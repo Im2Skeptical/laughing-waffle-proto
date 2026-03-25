@@ -1,0 +1,4 @@
+node_modules/
+.vscode/
+Trace-*.json
+npm-debug.log*

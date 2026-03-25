@@ -1,0 +1,201 @@
+// hub-structure-defs.js
+// Definitions for hub structures.
+
+import { ensureTooltipCardUi } from "../tooltip-ui-utils.js";
+
+export const hubStructureDefs = {
+  hearth: {
+    id: "hearth",
+    kind: "hubStructure",
+    name: "Hearth",
+    color: 0xd9793a,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: ["canCook", "canCraft"],
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    build: {
+      laborSec: 20,
+      requirements: [
+        { kind: "item", itemId: "straw", amount: 8 },
+        { kind: "item", itemId: "stone", amount: 2 },
+      ],
+    },
+    ui: {
+      title: "Hearth",
+      lines: ["Small fireplace to cook and craft"],
+      description: "Rest here to regain stamina.",
+    },
+  },
+  makeshiftShelter: {
+    id: "makeshiftShelter",
+    kind: "hubStructure",
+    name: "Makeshift Shelter",
+    color: 0x808080,
+    defaultSpan: 2,
+    maxInstances: 1,
+    tags: ["canRest"],
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    ui: {
+      title: "Makeshift Shelter",
+      lines: ["Shelter appropriated from the remnants of the old world."],
+      description: "Rest here to regain stamina.",
+    },
+  },
+  templeRuins: {
+    id: "templeRuins",
+    kind: "hubStructure",
+    name: "Temple Ruins",
+    color: 0x676258,
+    defaultSpan: 2,
+    maxInstances: 1,
+    tags: ["build"],
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    ui: {
+      title: "Temple Ruins",
+      lines: ["A collapsed sanctuary waits to be reclaimed."],
+      description: "Rebuild the ruins into a shelter.",
+    },
+  },
+  mudHouses: {
+    id: "mudHouses",
+    kind: "hubStructure",
+    name: "Mud Houses",
+    color: 0x808080,
+    defaultSpan: 2,
+    maxInstances: 1,
+    tags: ["canRest", "canHouse"],
+    housing: {
+      vacancy: 12,
+    },
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    build: {
+      laborSec: 15,
+      placementMode: "upgrade",
+      upgradeFromDefIds: ["makeshiftShelter"],
+      requirements: [
+        { kind: "item", itemId: "straw", amount: 4 },
+        { kind: "item", itemId: "reeds", amount: 2 },
+      ],
+    },
+    ui: {
+      title: "Mud Houses",
+      lines: ["Just enough for everyone to rest."],
+      description: "Rest here to regain stamina.",
+    },
+  },
+  granary: {
+    id: "granary",
+    kind: "hubStructure",
+    name: "Granary",
+    color: 0xc2a16a,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: ["depositable", "communal", "distributor", "canPreserve"],
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    inventoryRules: { allowedItemTags: ["grain"] },
+    deposit: {
+      systemId: "granaryStore",
+      poolKey: "byKindTier",
+      allowedTags: ["grain"],
+      instantDropboxLoad: true,
+    },
+    build: {
+      laborSec: 60,
+      requirements: [
+        { kind: "item", itemId: "straw", amount: 12 },
+        { kind: "item", itemId: "stone", amount: 2 },
+        { kind: "item", itemId: "reeds", amount: 8 },
+      ],
+    },
+    ui: {
+      title: "Granary",
+      lines: ["Deposit grain here to build prestige."],
+      description: "Stores grain by type and tier.",
+    },
+  },
+  ritualShrine: {
+    id: "ritualShrine",
+    kind: "hubStructure",
+    name: "Ritual Shrine",
+    color: 0x7a5f8f,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: ["depositable", "communal"],
+    systems: {},
+    inventory: { cols: 5, rows: 6 },
+    inventoryRules: { allowedItemTags: ["grain", "edible"] },
+    deposit: {
+      systemId: "granaryStore",
+      poolKey: "byKindTier",
+      allowedTags: ["grain", "edible"],
+      storeDeposits: false,
+      prestigeCurveMultiplier: 1.5,
+      instantDropboxLoad: true,
+    },
+    build: {
+      laborSec: 60,
+      requirements: [
+        { kind: "item", itemId: "straw", amount: 12 },
+        { kind: "item", itemId: "stone", amount: 2 },
+        { kind: "item", itemId: "reeds", amount: 8 },
+      ],
+    },
+    ui: {
+      title: "Ritual Shrine",
+      lines: ["Consumes grain + edible offerings for boosted prestige."],
+      description: "Like Granary deposits, but offerings are not stored.",
+    },
+  },
+  storehouse: {
+    id: "storehouse",
+    kind: "hubStructure",
+    name: "Storehouse",
+    color: 0x8a6a4f,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: ["depositable", "distributor"],
+    systems: {},
+    inventory: { cols: 6, rows: 6 },
+    deposit: {
+      systemId: "storehouseStore",
+      poolKey: "byKindTier",
+      allowAny: true,
+      instantDropboxLoad: true,
+    },
+    build: {
+      laborSec: 80,
+      requirements: [
+        { kind: "item", itemId: "stone", amount: 4 },
+        { kind: "item", itemId: "straw", amount: 6 },
+      ],
+    },
+    ui: {
+      title: "Storehouse",
+      lines: ["General storage for materials."],
+      description: "Holds mixed resources.",
+    },
+  },
+  itemzoo: {
+    id: "itemzoo",
+    kind: "hubStructure",
+    name: "Item Zoo",
+    color: 0xd70d0d,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: [],
+    systems: {},
+    inventory: { cols: 30, rows: 25 },
+    ui: {
+      title: "Item Zoo",
+      lines: ["Dev structure to preview all items"],
+      description: "Stores items by type and tier.",
+    },
+  },
+};
+
+ensureTooltipCardUi(hubStructureDefs);
