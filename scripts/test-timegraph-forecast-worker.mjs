@@ -213,6 +213,51 @@ function testControllerPartialForecastDoesNotSyncBuildUnloadedSeconds() {
   assert.ok(historyState, "history state should still resolve synchronously");
 }
 
+function testControllerSyncForecastExtendsVisibleCoverage() {
+  const { state, timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.gold,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: 1280,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+
+  const initialData = controller.getData();
+  assert.equal(initialData.forecastCoverageEndSec, 0);
+
+  const futureSec = 774;
+  const futureState = controller.getStateAt(futureSec);
+  assert.ok(futureState, "future forecast state should resolve synchronously");
+
+  const dataAfterBrowse = controller.getData();
+  assert.ok(
+    dataAfterBrowse.forecastCoverageEndSec >= futureSec,
+    `visible forecast coverage should reach ${futureSec}, got ${dataAfterBrowse.forecastCoverageEndSec}`
+  );
+
+  const sampleRes = controller.getSamplesForWindow({
+    startSec: 0,
+    endSec: 800,
+    focus: false,
+    cursorSec: futureSec,
+  });
+  assert.equal(sampleRes.ok, true, sampleRes.reason);
+  const futurePoint = sampleRes.points.find((point) => point.tSec === futureSec);
+  assert.ok(futurePoint, `expected sampled point at ${futureSec}`);
+  assert.equal(
+    futurePoint.pending,
+    false,
+    "sync-built future forecast should no longer remain visually pending"
+  );
+}
+
 function testWorkerServiceDedupesEquivalentRequests() {
   const { timeline } = createBasicTimeline();
   const projectionCache = createProjectionCache();
@@ -266,6 +311,10 @@ const tests = [
   [
     "controller partial forecast does not sync build unloaded future",
     testControllerPartialForecastDoesNotSyncBuildUnloadedSeconds,
+  ],
+  [
+    "controller sync forecast extends visible coverage",
+    testControllerSyncForecastExtendsVisibleCoverage,
   ],
   [
     "worker service dedupes equivalent requests",

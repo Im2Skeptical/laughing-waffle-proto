@@ -1,8 +1,9 @@
 import {
-  FAITH_GROWTH_STREAK_FOR_UPGRADE,
   POPULATION_COLLAPSE_ALL_FAIL_MULTIPLIER,
   POPULATION_GROWTH_FULL_FEED_RATE,
   SEASON_DISPLAY,
+  SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
+  SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
@@ -55,11 +56,113 @@ function shiftTier(tier, delta = 0) {
   return TIER_ASC[nextIndex] || normalized;
 }
 
-function getFaithGrowthThreshold() {
-  const raw = Number.isFinite(FAITH_GROWTH_STREAK_FOR_UPGRADE)
-    ? Math.floor(FAITH_GROWTH_STREAK_FOR_UPGRADE)
+function getHappinessFullFeedThreshold() {
+  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE)
+    ? Math.floor(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE)
     : 3;
   return Math.max(1, raw);
+}
+
+function getHappinessPartialFeedThreshold() {
+  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE)
+    ? Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE)
+    : 2;
+  return Math.max(1, raw);
+}
+
+function normalizeHappinessStatus(value) {
+  if (value === "positive" || value === "negative") return value;
+  return "neutral";
+}
+
+function shiftHappinessStatus(status, delta = 0) {
+  const order = ["negative", "neutral", "positive"];
+  const normalized = normalizeHappinessStatus(status);
+  const index = order.indexOf(normalized);
+  const nextIndex = Math.max(0, Math.min(order.length - 1, index + Math.floor(delta)));
+  return order[nextIndex] || normalized;
+}
+
+function computeFaithPopulationPenalty(totalPopulation, kind) {
+  const total = Number.isFinite(totalPopulation)
+    ? Math.max(0, Math.floor(totalPopulation))
+    : 0;
+  if (total <= 0) return 0;
+  if (kind === "faithCollapsed") {
+    return total;
+  }
+  if (kind !== "faithDegraded") {
+    return 0;
+  }
+  return Math.min(total, Math.max(1, Math.floor(total * 0.2)));
+}
+
+function getSeasonMealOutcomeKind(attempts, successes) {
+  const safeAttempts = Number.isFinite(attempts) ? Math.max(0, Math.floor(attempts)) : 0;
+  const safeSuccesses = Number.isFinite(successes) ? Math.max(0, Math.floor(successes)) : 0;
+  if (safeAttempts <= 0) return "dormant";
+  if (safeSuccesses >= safeAttempts) return "full";
+  if (safeSuccesses <= 0) return "missed";
+  return "partial";
+}
+
+function applySeasonHappinessOutcome(happinessState, seasonOutcomeKind) {
+  if (!happinessState || typeof happinessState !== "object") {
+    return {
+      previousStatus: "neutral",
+      nextStatus: "neutral",
+      positiveFeedStreak: 0,
+      negativeFeedStreak: 0,
+      seasonOutcomeKind,
+      changed: false,
+    };
+  }
+
+  const previousStatus = normalizeHappinessStatus(happinessState.status);
+  let nextStatus = previousStatus;
+  let positiveFeedStreak = Number.isFinite(happinessState.positiveFeedStreak)
+    ? Math.max(0, Math.floor(happinessState.positiveFeedStreak))
+    : 0;
+  let negativeFeedStreak = Number.isFinite(happinessState.negativeFeedStreak)
+    ? Math.max(0, Math.floor(happinessState.negativeFeedStreak))
+    : 0;
+  const fullThreshold = getHappinessFullFeedThreshold();
+  const partialThreshold = getHappinessPartialFeedThreshold();
+
+  if (seasonOutcomeKind === "full") {
+    positiveFeedStreak += 1;
+    negativeFeedStreak = 0;
+    if (positiveFeedStreak >= fullThreshold) {
+      nextStatus = shiftHappinessStatus(previousStatus, 1);
+      positiveFeedStreak = 0;
+    }
+  } else if (seasonOutcomeKind === "partial") {
+    negativeFeedStreak += 1;
+    positiveFeedStreak = 0;
+    if (negativeFeedStreak >= partialThreshold) {
+      nextStatus = shiftHappinessStatus(previousStatus, -1);
+      negativeFeedStreak = 0;
+    }
+  } else if (seasonOutcomeKind === "missed") {
+    positiveFeedStreak = 0;
+    negativeFeedStreak = 0;
+    nextStatus = shiftHappinessStatus(previousStatus, -1);
+  } else {
+    positiveFeedStreak = 0;
+    negativeFeedStreak = 0;
+  }
+
+  happinessState.status = nextStatus;
+  happinessState.positiveFeedStreak = positiveFeedStreak;
+  happinessState.negativeFeedStreak = negativeFeedStreak;
+  return {
+    previousStatus,
+    nextStatus,
+    positiveFeedStreak,
+    negativeFeedStreak,
+    seasonOutcomeKind,
+    changed: previousStatus !== nextStatus,
+  };
 }
 
 function clampRatio(value) {
@@ -491,8 +594,12 @@ function computeStructureDerivedState(state) {
       freePopulation: Math.max(0, total - committed - staffed),
       free: Math.max(0, total - committed - staffed),
       faithTier: typeof classState?.faith?.tier === "string" ? classState.faith.tier : "gold",
-      faithGrowthStreak: Number.isFinite(classState?.faith?.growthStreak)
-        ? Math.max(0, Math.floor(classState.faith.growthStreak))
+      happinessStatus: normalizeHappinessStatus(classState?.happiness?.status),
+      positiveFeedStreak: Number.isFinite(classState?.happiness?.positiveFeedStreak)
+        ? Math.max(0, Math.floor(classState.happiness.positiveFeedStreak))
+        : 0,
+      negativeFeedStreak: Number.isFinite(classState?.happiness?.negativeFeedStreak)
+        ? Math.max(0, Math.floor(classState.happiness.negativeFeedStreak))
         : 0,
     };
   }
@@ -682,25 +789,31 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
   for (const classId of getSettlementClassIds(state)) {
     const classState = getPopulationClassState(state, classId);
     const yearlyState = classState?.yearly;
+    const happinessState = classState?.happiness;
     if (!classState || !yearlyState) continue;
     const attempts = Number.isFinite(classState.total)
       ? Math.max(0, Math.floor(classState.total))
       : 0;
     const successes = Math.min(attempts, availableFood);
     const misses = Math.max(0, attempts - successes);
+    const seasonOutcomeKind = getSeasonMealOutcomeKind(attempts, successes);
+    const happinessOutcome = applySeasonHappinessOutcome(happinessState, seasonOutcomeKind);
     availableFood = Math.max(0, availableFood - successes);
     yearlyState.mealAttempts = Math.max(0, Math.floor(yearlyState.mealAttempts ?? 0) + attempts);
     yearlyState.mealSuccesses = Math.max(
       0,
       Math.floor(yearlyState.mealSuccesses ?? 0) + successes
     );
+    yearlyState.lastSeasonOutcomeKind = seasonOutcomeKind;
     changed = true;
 
     if (attempts <= 0) continue;
     pushGameEvent(state, {
       type: "populationSeasonMeal",
       tSec,
-      text: `${classId} consumed ${successes}/${attempts} meals in ${seasonLabel}`,
+      text:
+        `${classId} consumed ${successes}/${attempts} meals in ${seasonLabel}` +
+        ` (${seasonOutcomeKind}, happiness ${happinessOutcome.previousStatus} -> ${happinessOutcome.nextStatus})`,
       data: {
         focusKind: "hubCore",
         hubStructureId: null,
@@ -709,6 +822,16 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
         mealSuccesses: successes,
         mealMisses: misses,
         seasonKey,
+        seasonOutcomeKind,
+        happiness: {
+          previousStatus: happinessOutcome.previousStatus,
+          nextStatus: happinessOutcome.nextStatus,
+          positiveFeedStreak: happinessOutcome.positiveFeedStreak,
+          negativeFeedStreak: happinessOutcome.negativeFeedStreak,
+          fullFeedThreshold: getHappinessFullFeedThreshold(),
+          partialFeedThreshold: getHappinessPartialFeedThreshold(),
+          missedFeedDegradesImmediately: true,
+        },
       },
     });
   }
@@ -837,39 +960,36 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     const classState = getPopulationClassState(state, classId);
     const yearlyState = classState?.yearly;
     const faithState = classState?.faith;
-    if (!classState || !yearlyState || !faithState) continue;
+    const happinessState = classState?.happiness;
+    if (!classState || !yearlyState || !faithState || !happinessState) continue;
 
-    const faithThreshold = getFaithGrowthThreshold();
     const previousFaithTier = typeof faithState.tier === "string" ? faithState.tier : "gold";
     let nextFaithTier = previousFaithTier;
     let faithOutcome = result.previousPopulation > 0 ? "faithUnchanged" : "faithDormant";
-    let faithGrowthStreak = Number.isFinite(faithState.growthStreak)
-      ? Math.max(0, Math.floor(faithState.growthStreak))
-      : 0;
+    const happinessStatus = normalizeHappinessStatus(happinessState.status);
 
     if (result.previousPopulation > 0) {
-      if (result.outcomeKind === "populationChanged") {
-        faithGrowthStreak += 1;
-        if (faithGrowthStreak >= faithThreshold) {
-          nextFaithTier = shiftTier(previousFaithTier, 1);
-          faithOutcome =
-            nextFaithTier === previousFaithTier ? "faithAlreadyMax" : "faithUpgraded";
-          faithGrowthStreak = 0;
-        }
-      } else if (result.outcomeKind === "populationHalved") {
-        faithGrowthStreak = 0;
+      if (happinessStatus === "positive") {
+        nextFaithTier = shiftTier(previousFaithTier, 1);
+        faithOutcome =
+          nextFaithTier === previousFaithTier ? "faithAlreadyMax" : "faithUpgraded";
+      } else if (happinessStatus === "negative") {
         nextFaithTier = shiftTier(previousFaithTier, -1);
         faithOutcome =
           nextFaithTier === previousFaithTier ? "faithCollapsed" : "faithDegraded";
-      } else {
-        faithGrowthStreak = 0;
       }
-    } else {
-      faithGrowthStreak = 0;
+    }
+
+    const populationBeforeFaithPenalty = Math.max(0, Math.floor(classState.total ?? 0));
+    const faithPopulationLoss = computeFaithPopulationPenalty(
+      populationBeforeFaithPenalty,
+      faithOutcome
+    );
+    if (faithPopulationLoss > 0) {
+      classState.total = Math.max(0, populationBeforeFaithPenalty - faithPopulationLoss);
     }
 
     faithState.tier = nextFaithTier;
-    faithState.growthStreak = faithGrowthStreak;
     yearlyState.year = currentYear;
     yearlyState.mealAttempts = 0;
     yearlyState.mealSuccesses = 0;
@@ -880,7 +1000,14 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     const priorYear = Math.max(1, currentYear - 1);
     const attractionSummaryText =
       result.attractedPopulation > 0 ? `, +${result.attractedPopulation} attracted` : "";
-    const faithSummaryText = `, faith ${previousFaithTier} -> ${nextFaithTier}`;
+    const faithPopulationLossText =
+      faithPopulationLoss > 0
+        ? faithOutcome === "faithCollapsed"
+          ? `, faith collapse lost ${faithPopulationLoss} population`
+          : `, faith loss cost ${faithPopulationLoss} population`
+        : "";
+    const faithSummaryText =
+      `, happiness ${happinessStatus}, faith ${previousFaithTier} -> ${nextFaithTier}${faithPopulationLossText}`;
     pushGameEvent(state, {
       type: "populationYearlyUpdate",
       tSec,
@@ -904,12 +1031,22 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
         attractionPerVacancyPerYear: Number(result.attractionPerVacancyPerYear ?? 0),
         attractionProgress: Number(yearlyState.attractionProgress ?? 0),
         foodAfterMeals: Math.max(0, Math.floor(stockpiles.food)),
+        faithPopulationLoss,
+        happiness: {
+          status: happinessStatus,
+          positiveFeedStreak: Math.max(0, Math.floor(happinessState.positiveFeedStreak ?? 0)),
+          negativeFeedStreak: Math.max(0, Math.floor(happinessState.negativeFeedStreak ?? 0)),
+          fullFeedThreshold: getHappinessFullFeedThreshold(),
+          partialFeedThreshold: getHappinessPartialFeedThreshold(),
+          missedFeedDegradesImmediately: true,
+          lastSeasonOutcomeKind: yearlyState.lastSeasonOutcomeKind ?? null,
+        },
         faith: {
           previousTier: previousFaithTier,
           nextTier: nextFaithTier,
           outcome: faithOutcome,
-          growthStreak: faithGrowthStreak,
-          growthThreshold: faithThreshold,
+          populationBeforePenalty: populationBeforeFaithPenalty,
+          populationLoss: faithPopulationLoss,
         },
       },
     });

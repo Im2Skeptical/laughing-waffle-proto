@@ -136,19 +136,34 @@ export function createTimeGraphController({
     }) ?? { ok: false, reason: "projectionUnavailable" };
   }
 
-  function getAsyncForecastCoverageEndSec(tl) {
+  function getEffectiveForecastCoverageEndSec(tl) {
     const historyEndSec = clampSec(tl?.historyEndSec ?? 0);
-    const meta = projection.getForecastAsyncMeta?.() ?? null;
+    const meta = projection.getForecastMeta?.() ?? null;
     const timelineToken = getTimelineToken(tl);
+    if (!meta || typeof timelineToken !== "string") {
+      return historyEndSec;
+    }
+
+    let coverageEndSec = historyEndSec;
     if (
-      meta &&
-      typeof timelineToken === "string" &&
       meta.forecastAsyncToken === timelineToken &&
       clampSec(meta.forecastAsyncStepSec) === ASYNC_FORECAST_STEP_SEC
     ) {
-      return Math.max(historyEndSec, clampSec(meta.forecastAsyncEndSec));
+      coverageEndSec = Math.max(
+        coverageEndSec,
+        clampSec(meta.forecastAsyncEndSec)
+      );
     }
-    return historyEndSec;
+    if (
+      clampSec(meta.forecastBaseSec) <= historyEndSec &&
+      clampSec(meta.forecastEndSec) > historyEndSec
+    ) {
+      coverageEndSec = Math.max(
+        coverageEndSec,
+        clampSec(meta.forecastEndSec)
+      );
+    }
+    return coverageEndSec;
   }
 
   function buildScheduledActionsBySecond(tl, startSec, endSec) {
@@ -212,7 +227,7 @@ export function createTimeGraphController({
     const desiredEndSec = historyEndSec + clampSec(horizonSecCur ?? 0);
     const timelineToken = getTimelineToken(tl);
     if (typeof timelineToken !== "string") return null;
-    const coverageEndSec = getAsyncForecastCoverageEndSec(tl);
+    const coverageEndSec = getEffectiveForecastCoverageEndSec(tl);
     const requestedEndSec = Math.max(
       desiredEndSec,
       clampSec(graphCache.window.forecastRequestedEndSec ?? historyEndSec)
@@ -280,7 +295,7 @@ export function createTimeGraphController({
     const nextCoverageEndSec =
       requestRes && Number.isFinite(requestRes.coverageEndSec)
         ? requestRes.coverageEndSec
-        : getAsyncForecastCoverageEndSec(tl);
+        : getEffectiveForecastCoverageEndSec(tl);
     const nextRequestedEndSec =
       requestRes && Number.isFinite(requestRes.requestedEndSec)
         ? requestRes.requestedEndSec
@@ -1087,7 +1102,7 @@ export function createTimeGraphController({
   function getData() {
     const tl = getTimeline?.();
     if (tl) {
-      const coverageEndSec = getAsyncForecastCoverageEndSec(tl);
+      const coverageEndSec = getEffectiveForecastCoverageEndSec(tl);
       setForecastRuntimeState({
         coverageEndSec,
         requestedEndSec:
@@ -1236,7 +1251,7 @@ export function createTimeGraphController({
     const resolverFactory = getResolverFactory();
     const key = subjectKey ?? "__global__";
     const meta = graphCache.window.forecastValuesMeta;
-    const coverageEndSec = getAsyncForecastCoverageEndSec(tl);
+    const coverageEndSec = getEffectiveForecastCoverageEndSec(tl);
 
     const canReuse =
       meta &&

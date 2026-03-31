@@ -31,6 +31,7 @@ import {
   handleCreateWorkProcess,
   handleAdvanceWorkProcess,
   handleReservePopulation,
+  handleShiftPopulationClassHappiness,
   handleTransferPopulationClass,
 } from "./ops/system-ops.js";
 import {
@@ -74,6 +75,7 @@ const handlers = {
   ResetSystemState: handleResetSystemState,
   AdjustSystemState: handleAdjustSystemState,
   ReservePopulation: handleReservePopulation,
+  ShiftPopulationClassHappiness: handleShiftPopulationClassHappiness,
   TransferPopulationClass: handleTransferPopulationClass,
   ExpireStoredPerishables: handleExpireStoredPerishables,
   ConsumeItem: handleConsumeItem,

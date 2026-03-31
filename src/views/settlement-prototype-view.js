@@ -6,6 +6,7 @@ import { getCurrentSeasonKey } from "../model/state.js";
 import {
   getSettlementClassIds,
   getSettlementFaithSummary,
+  getSettlementHappinessSummary,
   getSettlementOrderSlots,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
@@ -184,6 +185,7 @@ function buildSignature(state, selectedClassId) {
       classId,
       population: getSettlementPopulationSummary(state, classId),
       faith: getSettlementFaithSummary(state, classId),
+      happiness: getSettlementHappinessSummary(state, classId),
     })),
     orderCards,
     practiceCardsByClass,
@@ -406,7 +408,7 @@ function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
   container.addChild(createText(String(value), TEXT_STYLES.chip, x + width - 14, y + 20, 1, 0.5));
 }
 
-function drawClassSummaryCard(container, rect, classId, population, faith, selected) {
+function drawClassSummaryCard(container, rect, classId, population, faith, happiness, selected) {
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
@@ -424,18 +426,18 @@ function drawClassSummaryCard(container, rect, classId, population, faith, selec
     createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, rect.x + 16, rect.y + 12)
   );
   const lines = [
-    `Total ${Math.floor(population?.total ?? 0)}`,
-    `Free ${Math.floor(population?.free ?? 0)}`,
+    `Total ${Math.floor(population?.total ?? 0)}  Free ${Math.floor(population?.free ?? 0)}`,
     `Reserved ${Math.floor(population?.reserved ?? 0)}`,
-    `Faith ${capitalizeTier(faith?.tier)} ${Math.floor(faith?.growthStreak ?? 0)}/${Math.floor(faith?.growthThreshold ?? 0)}`,
+    `Faith ${capitalizeTier(faith?.tier)}  Mood ${capitalizeLabel(happiness?.status)}`,
+    `${Math.floor(happiness?.positiveFeedStreak ?? 0)}/${Math.floor(happiness?.fullFeedThreshold ?? 0)} full  ${Math.floor(happiness?.negativeFeedStreak ?? 0)}/${Math.floor(happiness?.partialFeedThreshold ?? 0)} partial`,
   ];
   container.addChild(
     createText(
       lines.join("\n"),
       {
         ...TEXT_STYLES.body,
-        fontSize: 13,
-        lineHeight: 18,
+        fontSize: 12,
+        lineHeight: 16,
       },
       rect.x + 16,
       rect.y + 42
@@ -621,6 +623,7 @@ export function createSettlementPrototypeView({
         classId,
         getSettlementPopulationSummary(state, classId),
         getSettlementFaithSummary(state, classId),
+        getSettlementHappinessSummary(state, classId),
         classId === selectedClassId
       );
     }
@@ -635,7 +638,7 @@ export function createSettlementPrototypeView({
           capitalizeLabel(classId),
           {
             x: practiceRect.x + i * (tabWidth + 10),
-            y: 265,
+            y: practiceRect.y - 36,
             width: tabWidth,
             height: 34,
           },
