@@ -6,6 +6,11 @@ export {
   handleAdjustSystemState,
 } from "./system/state-ops.js";
 
+export {
+  handleReservePopulation,
+  handleTransferPopulationClass,
+} from "./system/population-ops.js";
+
 export { handleExpireStoredPerishables } from "./system/perishables-ops.js";
 
 export { handleCreateWorkProcess } from "./system/work-process-create.js";

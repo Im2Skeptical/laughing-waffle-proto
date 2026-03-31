@@ -5,6 +5,8 @@ import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { envStructureDefs } from "../defs/gamepieces/env-structures-defs.js";
 import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
 import { envSystemDefs } from "../defs/gamesystems/env-systems-defs.js";
+import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
+import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
 import { createEmptyLeaderEquipment } from "./equipment-rules.js";
 import {
@@ -25,6 +27,11 @@ import {
   ensureDiscoveryState,
   ensureLocationNamesState,
 } from "./state.js";
+import {
+  createSettlementCardInstance,
+  ensureHubSettlementState,
+} from "./settlement-state.js";
+import { syncSettlementDerivedState } from "./settlement-exec.js";
 import {
   getDefaultSkillPointsForPawnDefId,
   getGlobalSkillModifier,
@@ -49,7 +56,15 @@ function cloneSerializable(value) {
 
 function applyInstanceOverrides(instance, spec) {
   if (!instance || !spec || typeof spec !== "object") return instance;
-  for (const key of ["tier", "tags", "tagStates", "props", "systemTiers", "systemState"]) {
+  for (const key of [
+    "tier",
+    "span",
+    "tags",
+    "tagStates",
+    "props",
+    "systemTiers",
+    "systemState",
+  ]) {
     if (!Object.prototype.hasOwnProperty.call(spec, key)) continue;
     instance[key] = cloneSerializable(spec[key]);
   }
@@ -191,6 +206,166 @@ function recomputeInitialActionPoints(state) {
   );
 }
 
+function isSettlementPrototypeSetup(state) {
+  return state?.variantFlags?.settlementPrototypeEnabled === true;
+}
+
+function resolveSettlementZoneSpecs(zoneSpec) {
+  if (Array.isArray(zoneSpec?.slots)) return zoneSpec.slots;
+  if (Array.isArray(zoneSpec)) return zoneSpec;
+  return [];
+}
+
+function applySettlementCoreSpec(core, spec) {
+  if (!core || !spec || typeof spec !== "object" || Array.isArray(spec)) return;
+  if (spec.systemTiers && typeof spec.systemTiers === "object") {
+    Object.assign(core.systemTiers, cloneSerializable(spec.systemTiers));
+  }
+  if (spec.systemState?.stockpiles && typeof spec.systemState.stockpiles === "object") {
+    Object.assign(core.systemState.stockpiles, cloneSerializable(spec.systemState.stockpiles));
+  }
+  if (
+    spec.systemState?.populationClasses &&
+    typeof spec.systemState.populationClasses === "object"
+  ) {
+    core.systemState.populationClasses = cloneSerializable(spec.systemState.populationClasses);
+  } else if (spec.systemState?.population && typeof spec.systemState.population === "object") {
+    const faithTier =
+      typeof spec.systemState?.faith?.tier === "string"
+        ? spec.systemState.faith.tier
+        : typeof spec.systemTiers?.faith === "string"
+          ? spec.systemTiers.faith
+          : "gold";
+    core.systemState.populationClasses = {
+      villager: {
+        total: Number.isFinite(spec.systemState.population.total)
+          ? Math.max(0, Math.floor(spec.systemState.population.total))
+          : 0,
+        commitments: Array.isArray(spec.systemState.population.commitments)
+          ? cloneSerializable(spec.systemState.population.commitments)
+          : [],
+        yearly: cloneSerializable(spec.systemState.population.yearly || {}),
+        faith: {
+          tier: faithTier,
+          growthStreak: Math.max(
+            0,
+            Math.floor(spec.systemState?.faith?.growthStreak ?? 0)
+          ),
+        },
+      },
+    };
+  }
+  if (spec.props && typeof spec.props === "object") {
+    Object.assign(core.props, cloneSerializable(spec.props));
+  }
+}
+
+function buildSettlementCardSlots(state, zoneSpec, defs, cardKind, fallbackCount) {
+  const specs = resolveSettlementZoneSpecs(zoneSpec);
+  const slotCount =
+    specs.length > 0
+      ? specs.length
+      : Number.isFinite(zoneSpec?.slotCount)
+        ? Math.max(0, Math.floor(zoneSpec.slotCount))
+        : fallbackCount;
+  const slots = new Array(slotCount).fill(null).map(() => ({ card: null }));
+  for (let index = 0; index < specs.length && index < slotCount; index += 1) {
+    const rawSlot = specs[index];
+    if (rawSlot == null) continue;
+    const spec =
+      rawSlot && typeof rawSlot === "object" && rawSlot.card ? rawSlot.card : rawSlot;
+    const defId =
+      typeof spec === "string"
+        ? spec
+        : typeof spec?.defId === "string"
+          ? spec.defId
+          : null;
+    if (!defId || !defs[defId]) continue;
+    slots[index].card = createSettlementCardInstance(defId, cardKind, state, spec);
+  }
+  return slots;
+}
+
+function buildSettlementStructureSlots(state, zoneSpec, slotCountHint) {
+  const specs = resolveSettlementZoneSpecs(zoneSpec);
+  const slotCount =
+    specs.length > 0
+      ? specs.length
+      : Number.isFinite(zoneSpec?.slotCount)
+        ? Math.max(1, Math.floor(zoneSpec.slotCount))
+        : slotCountHint;
+  const slots = new Array(slotCount).fill(null).map(() => ({ structure: null }));
+  for (let index = 0; index < specs.length && index < slotCount; index += 1) {
+    const rawSlot = specs[index];
+    if (rawSlot == null) continue;
+    const spec =
+      rawSlot && typeof rawSlot === "object" && rawSlot.structure
+        ? rawSlot.structure
+        : rawSlot;
+    const defId =
+      typeof spec === "string"
+        ? spec
+        : typeof spec?.defId === "string"
+          ? spec.defId
+          : null;
+    if (!defId || !hubStructureDefs[defId]) continue;
+    const structure = makeHubStructureInstance(defId, state, {
+      tier: typeof spec?.tier === "string" ? spec.tier : null,
+    });
+    applyInstanceOverrides(structure, spec);
+    slots[index].structure = structure;
+  }
+  return slots;
+}
+
+function buildSettlementPrototypeHubState(state, setup, hubCols) {
+  ensureHubSettlementState(state.hub, hubCols);
+  const rawHub =
+    setup?.hub && typeof setup.hub === "object" && !Array.isArray(setup.hub)
+      ? setup.hub
+      : {};
+  if (Array.isArray(rawHub.classOrder)) {
+    state.hub.classOrder = cloneSerializable(rawHub.classOrder);
+  }
+  ensureHubSettlementState(state.hub, hubCols);
+  applySettlementCoreSpec(state.hub.core, setup?.hub?.core);
+  ensureHubSettlementState(state.hub, hubCols);
+
+  const rawZones =
+    setup?.hub?.zones && typeof setup.hub.zones === "object" ? setup.hub.zones : {};
+  state.hub.zones.order.slots = buildSettlementCardSlots(
+    state,
+    rawZones.order,
+    settlementOrderDefs,
+    "settlementOrder",
+    1
+  );
+  const rawPracticeByClass =
+    rawZones.practiceByClass && typeof rawZones.practiceByClass === "object"
+      ? rawZones.practiceByClass
+      : {};
+  for (const classId of state.hub.classOrder || []) {
+    const zoneSpec =
+      rawPracticeByClass[classId] ??
+      (classId === state.hub.classOrder[0] ? rawZones.practice : null);
+    state.hub.zones.practiceByClass[classId].slots = buildSettlementCardSlots(
+      state,
+      zoneSpec,
+      settlementPracticeDefs,
+      "settlementPractice",
+      5
+    );
+  }
+  state.hub.zones.structures.slots = buildSettlementStructureSlots(
+    state,
+    rawZones.structures,
+    hubCols
+  );
+  state.hub.slots = state.hub.zones.structures.slots;
+  state.hub.cols = state.hub.slots.length;
+  ensureHubSettlementState(state.hub, state.hub.cols);
+}
+
 // Create a fully-initialized GameState snapshot
 // - scenario can be a setupId string OR a raw setup object (from scenarios-defs style)
 export function createInitialState(scenario = "devGym01", seed = null) {
@@ -233,6 +408,8 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   state.nextEnvStructureInstanceId = 1;
   state.nextEnvInstanceId = 1;
   state.nextItemId = 1;
+  state.nextSettlementCardInstanceId = 1;
+  state.nextPopulationCommitmentId = 1;
   state.nextPawnId = 101;
   state.nextFollowerCreationOrderIndex = 1;
 
@@ -246,15 +423,28 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   applySetupLocationNames(state, setup);
   applySetupDiscoveryState(state, setup);
 
-  // hub structures
-  state.hub.slots = buildHubSlots(setup, hubCols, state);
-
   state.board.layers.envStructure.anchors = buildEnvStructureAnchors(
     setup,
     boardCols,
-    state
+    state,
+    { includeDefaultPortal: !isSettlementPrototypeSetup(state) }
   );
   state.board.layers.tile.anchors = buildTileAnchors(setup, boardCols, state);
+
+  if (isSettlementPrototypeSetup(state)) {
+    buildSettlementPrototypeHubState(state, setup, hubCols);
+    state.pawns = [];
+    state.ownerInventories = {};
+    recomputeInitialActionPoints(state);
+    buildSeasonDeckForCurrentSeason(state);
+    rebuildBoardOccupancy(state);
+    syncSettlementDerivedState(state, state.tSec);
+    return state;
+  }
+
+  // hub structures
+  state.hub.slots = buildHubSlots(setup, hubCols, state);
+  state.hub.zones.structures.slots = state.hub.slots;
 
   // pawns
   const pawnSpecs =
@@ -544,14 +734,17 @@ function buildHubSlots(setup, hubCols, state) {
   return slots;
 }
 
-function buildEnvStructureAnchors(setup, boardCols, state) {
+function buildEnvStructureAnchors(setup, boardCols, state, options = {}) {
   const setupSpecs = Array.isArray(setup?.board?.envStructures)
     ? setup.board.envStructures
     : [];
+  const includeDefaultPortal = options?.includeDefaultPortal !== false;
   const specs =
     setupSpecs.length > 0
       ? setupSpecs
-      : [{ defId: "hubPortal", col: Math.floor((boardCols - 1) / 2) }];
+      : includeDefaultPortal
+        ? [{ defId: "hubPortal", col: Math.floor((boardCols - 1) / 2) }]
+        : [];
   const anchors = [];
   const occupiedBy = new Array(boardCols).fill(null);
 

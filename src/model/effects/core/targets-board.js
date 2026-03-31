@@ -270,6 +270,10 @@ function collectRefCols(state, refSpec, context, maxCols) {
 export function resolveBoardTargets(state, targetSpec, context) {
   if (!targetSpec || typeof targetSpec !== "object") return [];
 
+  if (targetSpec.ref === "hubCore") {
+    return state?.hub?.core ? [state.hub.core] : [];
+  }
+
   if (
     targetSpec.ref === "self" &&
     !targetSpec.layer &&

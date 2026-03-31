@@ -81,10 +81,13 @@ export const hubStructureDefs = {
         { kind: "item", itemId: "reeds", amount: 2 },
       ],
     },
+    settlementPrototype: {
+      populationCapacityBonus: 100,
+    },
     ui: {
       title: "Mud Houses",
-      lines: ["Just enough for everyone to rest."],
-      description: "Rest here to regain stamina.",
+      lines: ["Holds 100 population."],
+      description: "Settlement housing that expands population capacity.",
     },
   },
   granary: {
@@ -112,10 +115,36 @@ export const hubStructureDefs = {
         { kind: "item", itemId: "reeds", amount: 8 },
       ],
     },
+    settlementPrototype: {
+      foodCapacityBonus: 1000,
+    },
     ui: {
       title: "Granary",
-      lines: ["Deposit grain here to build prestige."],
-      description: "Stores grain by type and tier.",
+      lines: ["Holds 100 food."],
+      description: "Settlement food storage that defines the food cap.",
+    },
+  },
+  riverTemple: {
+    id: "riverTemple",
+    kind: "hubStructure",
+    name: "River Temple",
+    color: 0x6d6558,
+    defaultSpan: 1,
+    maxInstances: 1,
+    tags: [],
+    systems: {},
+    inventory: null,
+    settlementPrototype: {
+      staffingRequired: 2,
+      capabilities: ["practice.floodRites.enabled"],
+    },
+    ui: {
+      title: "River Temple",
+      lines: [
+        "Commit 2 population.",
+        "Enables Flood Rites.",
+      ],
+      description: "A staffed ritual structure that unlocks flood practices.",
     },
   },
   ritualShrine: {

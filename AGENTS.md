@@ -6,7 +6,7 @@ Local instructions for Codex agents working in this repo.
 - Read `ai/ai-context.md` before making changes.
 
 ## Current goal context
-- General feature buildout and fixes.
+- We are doing a large refactor. Core assumtions about gameplay may be drastically different to ai-context and other documentation
 
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.
@@ -20,8 +20,3 @@ Local instructions for Codex agents working in this repo.
 - Before coding, do an impact analysis (determinism, serialization, replay, layering).
 - Mention how to test any behavior you touch.
 - Refactors are to be clean with no migratory shim style code. We are prototyping and so there is no need to preserve functionality of older saves
-
-
-
-- After any code change, run `npm run verify` before finalizing.
-- Use `set STRICT_ENV_DEFS=1 && npm run test` when env def changes should be a hard gate.

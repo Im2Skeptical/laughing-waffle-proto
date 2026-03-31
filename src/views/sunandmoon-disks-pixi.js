@@ -258,6 +258,9 @@ export function createSunAndMoonDisksView({
   getEditableHistoryBounds,
   browseCursorSecond,
   commitCursorSecond,
+  previewCursorSecond,
+  clearPreviewState,
+  commitPreviewToLive,
   requestPauseBeforeDrag,
   layout = SUN_AND_MOON_DISKS_LAYOUT,
 } = {}) {
@@ -278,10 +281,15 @@ let feedbackText = null;
   let pendingBrowseSec = null;
   let commitRafId = 0;
   let pendingCommitSec = null;
+  let previewRafId = 0;
+  let pendingPreviewSec = null;
 
   let stageMoveHandler = null;
   let stageUpHandler = null;
   let stageListenersBound = false;
+  let lastStageMovePointerId = null;
+  let lastStageMoveX = null;
+  let lastStageMoveY = null;
 
   function getSpriteByDiskId(diskId) {
     return diskId === DISK_ID_SEASON ? seasonSprite : moonSprite;
@@ -321,7 +329,17 @@ let feedbackText = null;
     browseCursorSecond?.(Math.max(0, Math.floor(sec)));
   }
 
+  function clearBrowseRequest() {
+    if (browseRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(browseRafId);
+    }
+    browseRafId = 0;
+    pendingBrowseSec = null;
+  }
+
   function queueBrowseSecond(sec) {
+    clearCommitRequest();
+    clearPreviewRequest();
     pendingBrowseSec = Math.max(0, Math.floor(sec));
     if (browseRafId) return;
     if (typeof requestAnimationFrame === "function") {
@@ -339,7 +357,17 @@ let feedbackText = null;
     commitCursorSecond?.(Math.max(0, Math.floor(sec)));
   }
 
+  function clearCommitRequest() {
+    if (commitRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(commitRafId);
+    }
+    commitRafId = 0;
+    pendingCommitSec = null;
+  }
+
   function queueCommitSecond(sec) {
+    clearBrowseRequest();
+    clearPreviewRequest();
     pendingCommitSec = Math.max(0, Math.floor(sec));
     if (commitRafId) return;
     if (typeof requestAnimationFrame === "function") {
@@ -347,6 +375,34 @@ let feedbackText = null;
       return;
     }
     flushCommitRequest();
+  }
+
+  function flushPreviewRequest() {
+    previewRafId = 0;
+    const sec = pendingPreviewSec;
+    pendingPreviewSec = null;
+    if (!Number.isFinite(sec)) return;
+    previewCursorSecond?.(Math.max(0, Math.floor(sec)));
+  }
+
+  function clearPreviewRequest() {
+    if (previewRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(previewRafId);
+    }
+    previewRafId = 0;
+    pendingPreviewSec = null;
+  }
+
+  function queuePreviewSecond(sec) {
+    clearBrowseRequest();
+    clearCommitRequest();
+    pendingPreviewSec = Math.max(0, Math.floor(sec));
+    if (previewRafId) return;
+    if (typeof requestAnimationFrame === "function") {
+      previewRafId = requestAnimationFrame(flushPreviewRequest);
+      return;
+    }
+    flushPreviewRequest();
   }
 
   function startDrag(diskId, event) {
@@ -388,6 +444,30 @@ let feedbackText = null;
 
   function endDrag() {
     if (!dragSession) return;
+    const activeDrag = dragSession;
+    const frontierSec = getFrontierSec({ getTimeline, getState });
+    const targetSec = Math.max(
+      0,
+      Math.floor(activeDrag.visualTargetSec ?? activeDrag.dragStartSec ?? frontierSec)
+    );
+    const isFutureTarget = targetSec > frontierSec;
+
+    if (isFutureTarget && typeof previewCursorSecond === "function") {
+      flushPreviewRequest();
+      const commitRes = commitPreviewToLive?.();
+      if (!commitRes?.ok) {
+        commitCursorSecond?.(targetSec);
+      }
+    } else if (Number.isFinite(pendingCommitSec)) {
+      flushCommitRequest();
+    } else if (Number.isFinite(pendingBrowseSec)) {
+      clearPreviewState?.();
+      flushBrowseRequest();
+    } else {
+      clearPreviewRequest();
+      clearPreviewState?.();
+    }
+
     dragSession = null;
     if (moonSprite) moonSprite.cursor = "grab";
     if (seasonSprite) seasonSprite.cursor = "grab";
@@ -443,11 +523,16 @@ let feedbackText = null;
       });
       const clampedSec = Math.max(minEditableSec, Math.min(frontierSec, dragSec));
       dragSession.visualTargetSec = clampedSec;
+      clearPreviewState?.();
       queueBrowseSecond(clampedSec);
       return;
     }
 
     dragSession.visualTargetSec = dragSec;
+    if (typeof previewCursorSecond === "function") {
+      queuePreviewSecond(dragSec);
+      return;
+    }
     queueCommitSecond(dragSec);
   }
 
@@ -457,14 +542,34 @@ let feedbackText = null;
 
     stageMoveHandler = (event) => {
       if (!dragSession) return;
+      const global = event?.global;
+      const pointerId = Number.isFinite(event?.pointerId) ? event.pointerId : null;
+      if (
+        Number.isFinite(global?.x) &&
+        Number.isFinite(global?.y) &&
+        pointerId === lastStageMovePointerId &&
+        global.x === lastStageMoveX &&
+        global.y === lastStageMoveY
+      ) {
+        return;
+      }
+      lastStageMovePointerId = pointerId;
+      lastStageMoveX = Number.isFinite(global?.x) ? global.x : null;
+      lastStageMoveY = Number.isFinite(global?.y) ? global.y : null;
       updateDragFromPointerEvent(event);
       event.stopPropagation?.();
     };
 
     stageUpHandler = () => {
+      lastStageMovePointerId = null;
+      lastStageMoveX = null;
+      lastStageMoveY = null;
       endDrag();
     };
 
+    // Keep disk scrubbing responsive even when the pointer leaves the disk sprite
+    // during a turn. Some layouts make the old hit-tested pointermove path feel dead.
+    app.stage.on("globalpointermove", stageMoveHandler);
     app.stage.on("pointermove", stageMoveHandler);
     app.stage.on("pointerup", stageUpHandler);
     app.stage.on("pointerupoutside", stageUpHandler);
@@ -473,6 +578,7 @@ let feedbackText = null;
 
   function unbindStageInput() {
     if (!stageListenersBound || !app?.stage) return;
+    if (stageMoveHandler) app.stage.off("globalpointermove", stageMoveHandler);
     if (stageMoveHandler) app.stage.off("pointermove", stageMoveHandler);
     if (stageUpHandler) {
       app.stage.off("pointerup", stageUpHandler);
@@ -480,6 +586,12 @@ let feedbackText = null;
     }
     stageMoveHandler = null;
     stageUpHandler = null;
+    lastStageMovePointerId = null;
+    lastStageMoveX = null;
+    lastStageMoveY = null;
+    clearBrowseRequest();
+    clearCommitRequest();
+    clearPreviewRequest();
     stageListenersBound = false;
   }
 

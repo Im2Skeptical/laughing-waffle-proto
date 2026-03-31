@@ -233,6 +233,12 @@ export function createMetricGraphView({
   canCommitScrubSecond = null,
   getSystemTargetModeLabel = null,
   onToggleSystemTargetMode = null,
+  windowWidth = 1200,
+  windowHeight = 176,
+  headerHeight = 38,
+  showPin = false,
+  showClose = true,
+  draggable = true,
 }) {
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
@@ -289,9 +295,11 @@ export function createMetricGraphView({
     };
   });
 
-  const WIN_W = 1200;
-  const WIN_H = 176;
-  const HEADER_H = 38;
+  const WIN_W = Number.isFinite(windowWidth) ? Math.max(320, Math.floor(windowWidth)) : 1200;
+  const WIN_H = Number.isFinite(windowHeight) ? Math.max(120, Math.floor(windowHeight)) : 176;
+  const HEADER_H = Number.isFinite(headerHeight)
+    ? Math.max(24, Math.min(WIN_H - 24, Math.floor(headerHeight)))
+    : 38;
 
   const body = new PIXI.Graphics();
   const plotG = new PIXI.Graphics();
@@ -331,9 +339,10 @@ export function createMetricGraphView({
     height: HEADER_H,
     radius: 14,
     background: TIMEGRAPH_THEME.panelHeaderBg,
-    showPin: false,
+    showPin: showPin === true,
+    showClose: showClose !== false,
     closeOffsetX: 20,
-    dragTarget: root,
+    dragTarget: draggable !== false ? root : null,
     onClose: () => close(),
   });
 

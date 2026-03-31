@@ -7,6 +7,7 @@ export const DEFAULT_VARIANT_FLAGS = Object.freeze({
   inventoryTransferPlannerEnabled: false,
   inventoryTransferGhostPreviewEnabled: false,
   showApHud: false,
+  settlementPrototypeEnabled: false,
 });
 
 export function normalizeVariantFlags(value) {
@@ -18,5 +19,6 @@ export function normalizeVariantFlags(value) {
     inventoryTransferGhostPreviewEnabled:
       raw.inventoryTransferGhostPreviewEnabled !== false,
     showApHud: raw.showApHud !== false,
+    settlementPrototypeEnabled: raw.settlementPrototypeEnabled === true,
   };
 }
