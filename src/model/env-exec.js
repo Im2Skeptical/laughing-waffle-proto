@@ -2,6 +2,7 @@
 // Per-second environment execution (events + tile intents).
 
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
+import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
 import { ENV_EVENT_DRAW_CADENCE_SEC } from "../defs/gamesettings/gamerules-defs.js";
 import {
@@ -20,6 +21,14 @@ import { getPawnEffectiveWorkUnits } from "./prestige-system.js";
 import { ensureRecipePriorityState, getEnabledRecipeIds } from "./recipe-priority.js";
 import { computeGlobalSkillMods } from "./skills.js";
 import { isTagHidden } from "./tag-state.js";
+import {
+  clearSettlementFloodplainGreenResource,
+  getHubCore,
+  getSettlementFloodplainTiles,
+  getSettlementTileGreenResource,
+  setSettlementTileGreenResource,
+  syncSettlementFloodplainGreenResource,
+} from "./settlement-state.js";
 
 function chooseArticle(noun) {
   if (!noun || typeof noun !== "string") return "A";
@@ -1178,8 +1187,56 @@ function spawnEnvEventFromDef(state, defId, def, tSec) {
   return { placedAny, needsRebuild };
 }
 
+function stepSettlementPrototypeEnvSecond(state, tSec) {
+  const core = getHubCore(state);
+  if (!core) return;
+
+  const seasonKey = getCurrentSeasonKey(state);
+  const seasonChanged = state?._seasonChanged === true;
+  if (!seasonChanged) return;
+
+  if (seasonKey === "autumn") {
+    clearSettlementFloodplainGreenResource(state);
+    core.props.floodWindowArmed = true;
+    return;
+  }
+
+  if (seasonKey !== "winter" || core.props.floodWindowArmed !== true) {
+    return;
+  }
+
+  const floodplainTiles = getSettlementFloodplainTiles(state);
+  for (const tile of floodplainTiles) {
+    const def = envTileDefs[tile?.defId];
+    const settlementSpec =
+      def?.settlementPrototype && typeof def.settlementPrototype === "object"
+        ? def.settlementPrototype
+        : null;
+    const winterDeposits =
+      settlementSpec.winterStockpileDeposits &&
+      typeof settlementSpec.winterStockpileDeposits === "object"
+        ? settlementSpec.winterStockpileDeposits
+        : null;
+    if (!winterDeposits) continue;
+    const greenDeposit = Number.isFinite(winterDeposits.greenResource)
+      ? Math.max(0, Math.floor(winterDeposits.greenResource))
+      : 0;
+    if (greenDeposit <= 0) continue;
+    setSettlementTileGreenResource(
+      tile,
+      getSettlementTileGreenResource(tile) + greenDeposit
+    );
+  }
+  syncSettlementFloodplainGreenResource(state);
+  core.props.floodWindowArmed = false;
+}
+
 export function stepEnvSecond(state, tSec) {
   if (!state || !state.board) return;
+  if (state?.variantFlags?.settlementPrototypeEnabled === true) {
+    stepSettlementPrototypeEnvSecond(state, tSec);
+    return;
+  }
 
   const board = state.board;
   const seasonKey = getCurrentSeasonKey(state);

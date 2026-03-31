@@ -18,7 +18,9 @@ export const hubSystemDefs = {
     kind: "hubSystem",
     ui: { name: "Faith", description: "Civilization faith stability tier." },
     defaultTier: "gold",
-    stateDefaults: {},
+    stateDefaults: {
+      growthStreak: 0,
+    },
   },
   deposit: {
     id: "deposit",
@@ -107,6 +109,69 @@ export const hubSystemDefs = {
       selectedRecipeId: null,
       recipePriority: { ordered: [], enabled: {} },
       processes: [], // same queueKey pattern as crops
+    },
+  },
+  stockpiles: {
+    id: "stockpiles",
+    kind: "hubSystem",
+    ui: {
+      name: "Stockpiles",
+      description: "Global settlement stockpiles stored on the hub core.",
+    },
+    defaultTier: "bronze",
+    stateDefaults: {
+      food: 0,
+      redResource: 0,
+      greenResource: 0,
+      blueResource: 0,
+      blackResource: 0,
+    },
+  },
+  population: {
+    id: "population",
+    kind: "hubSystem",
+    ui: {
+      name: "Population",
+      description: "Per-class settlement demographics, commitments, and yearly trackers.",
+    },
+    defaultTier: "bronze",
+    stateDefaults: {
+      populationClasses: {
+        villager: {
+          total: 0,
+          commitments: [],
+          yearly: {
+            year: 1,
+            mealAttempts: 0,
+            mealSuccesses: 0,
+            attractionProgress: 0,
+            lastMealAttempts: 0,
+            lastMealSuccesses: 0,
+            lastOutcomeKind: null,
+          },
+          faith: {
+            tier: "gold",
+            growthStreak: 0,
+          },
+        },
+        stranger: {
+          total: 0,
+          commitments: [],
+          yearly: {
+            year: 1,
+            mealAttempts: 0,
+            mealSuccesses: 0,
+            attractionProgress: 0,
+            lastMealAttempts: 0,
+            lastMealSuccesses: 0,
+            lastOutcomeKind: null,
+          },
+          faith: {
+            tier: "gold",
+            growthStreak: 0,
+          },
+        },
+      },
     },
   },
 };

@@ -30,6 +30,8 @@ import {
   handleExpireStoredPerishables,
   handleCreateWorkProcess,
   handleAdvanceWorkProcess,
+  handleReservePopulation,
+  handleTransferPopulationClass,
 } from "./ops/system-ops.js";
 import {
   handleAddTag,
@@ -71,6 +73,8 @@ const handlers = {
   AccumulateRatio: handleAccumulateRatio,
   ResetSystemState: handleResetSystemState,
   AdjustSystemState: handleAdjustSystemState,
+  ReservePopulation: handleReservePopulation,
+  TransferPopulationClass: handleTransferPopulationClass,
   ExpireStoredPerishables: handleExpireStoredPerishables,
   ConsumeItem: handleConsumeItem,
   TransferUnits: handleTransferUnits,

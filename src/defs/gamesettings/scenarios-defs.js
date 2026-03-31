@@ -171,141 +171,109 @@ export const setupDefs = {
   devPlaytesting01: {
     variantFlags: {
       ...DEFAULT_VARIANT_FLAGS,
-      actionPointCostsEnabled: false,
-      actionLogEnabled: false,
-      inventoryTransferPlannerEnabled: false,
-      inventoryTransferGhostPreviewEnabled: false,
-      showApHud: false,
+      settlementPrototypeEnabled: true,
     },
-
-    skillProgressionDefs: {
-      defaultStartingSkillPoints: 6,
-      startingSkillPointsByPawnDefId: {
-        default: 6
-      },
-      defaultUnlockedRecipes: [
-        "none",
-      ],
-      defaultUnlockedHubStructures: [
-        "none"
-      ],
-      defaultUnlockedEnvTags: [
-        "explore",
-        "delve"
-      ],
-      defaultUnlockedHubTags: [
-        "canRest", "build", "canHouse"
-      ],
-    }, 
 
     rngSeed: 123,
 
     resources: { gold: 0, grain: 0, food: 0, population: 0 },
 
     locationNames: {
-      hub: "Ancient Ruins",
+      hub: "Hub",
+      region: "Region",
     },
 
     discovery: {
       envCols: [
-        { exposed: true, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
-        { exposed: false, revealed: false },
+        { exposed: true, revealed: true },
+        { exposed: true, revealed: true },
+        { exposed: true, revealed: true },
+        { exposed: true, revealed: true },
+        { exposed: true, revealed: true },
       ],
-      hubVisible: false,
-      hubRenameUnlocked: false,
+      hubVisible: true,
+      hubRenameUnlocked: true,
     },
 
     board: {
-      cols: 12,
+      cols: 5,
       tiles: [
-        { defId: "tile_hinterland", tags: ["explore", "forageable", "herdable"] },
-        { defId: "tile_levee", tags: ["explore", "delve", "forageable"] },
-        { defId: "tile_wetlands", tags: ["explore", "forageable", "fishable"] },
-        { defId: "tile_floodplains", tags: ["explore", "farmable", "forageable"] },
-        { defId: "tile_floodplains", tags: ["explore", "farmable", "forageable"] },
-        { defId: "tile_floodplains", tags: ["explore", "farmable", "forageable"] },
-        { defId: "tile_river", tags: ["explore", "fishable"] },
-        { defId: "tile_floodplains", tags: ["explore", "farmable", "forageable"] },
-        { defId: "tile_floodplains", tags: ["explore", "farmable", "forageable"] },
-        { defId: "tile_wetlands", tags: ["explore", "forageable", "fishable"] },
-        { defId: "tile_levee", tags: ["explore", "forageable"] },
-        { defId: "tile_hinterland", tags: ["explore", "forageable", "herdable"] },
+        "tile_hinterland",
+        "tile_levee",
+        "tile_floodplains",
+        "tile_floodplains",
+        "tile_river",
       ],
-      envStructures: [{ defId: "ancientRuins", col: 1 }],
+      envStructures: [],
     },
 
     hub: {
-      cols: 10,
-      structures: [
-        {
-          defId: "templeRuins",
-          hubCol: 4,
-          tags: ["build"],
-          systemTiers: {
-            build: "bronze",
+      cols: 6,
+      classOrder: ["villager", "stranger"],
+      core: {
+        systemState: {
+          stockpiles: {
+            food: 40,
+            redResource: 0,
+            greenResource: 0,
+            blueResource: 0,
+            blackResource: 0,
           },
-          systemState: {
-            build: {
-              processes: [
-                {
-                  id: "proc_templeRuins_rebuild_0",
-                  type: "build",
-                  mode: "work",
-                  startSec: 0,
-                  durationSec: 5,
-                  progress: 0,
-                  completionPolicy: "build",
-                  buildKind: "hubStructure",
-                  buildDefId: "makeshiftShelter",
-                  requirements: [],
-                  preserveStructureTitle: true,
-                  allowCancel: false,
-                  completionEffects: [
-                    { op: "SetLocationName", area: "hub", name: "Hub" },
-                    { op: "SetDiscoveryState", key: "hubRenameUnlocked", value: true },
-                  ],
-                },
-              ],
+          populationClasses: {
+            villager: {
+              total: 8,
+              commitments: [],
+              faith: {
+                tier: "gold",
+                growthStreak: 0,
+              },
+            },
+            stranger: {
+              total: 0,
+              commitments: [],
+              faith: {
+                tier: "gold",
+                growthStreak: 0,
+              },
             },
           },
         },
-      ],
+      },
+      zones: {
+        order: {
+          slots: [{ defId: "elders" }],
+        },
+        practiceByClass: {
+          villager: {
+            slots: [
+              { defId: "floodRites" },
+              { defId: "riverRecessionFarming" },
+              { defId: "rest" },
+              { defId: "openToStrangers" },
+              null,
+            ],
+          },
+          stranger: {
+            slots: [
+              { defId: "asTheRomans" },
+              { defId: "becomeVillagers" },
+              null,
+              null,
+              null,
+            ],
+          },
+        },
+        structures: {
+          slots: [
+            null,
+            { defId: "granary" },
+            { defId: "mudHouses", span: 1 },
+            { defId: "riverTemple" },
+            null,
+            null,
+          ],
+        },
+      },
     },
-
-    pawns: [
-      { name: "Pawn 1", 
-        color: 0xff9999, 
-        envCol: 0, 
-        role: "leader", 
-        skillPoints: 0,
-        //unlockedSkillNodeIds: ["Astronomy", "Crafting", "Worship", "MudHouses", "Fish", "Forage", "Basket", "Cooking", "Hearth"]
-        unlockedSkillNodeIds: [""]
-      },
-      //{ name: "Pawn 2", color: 0x9999ff, hubCol: 3, role: "leader" },
-    ],
-
-    inventories: [
-      {
-        owner: { type: "hubStructure", hubCol: 4 },
-        items: [
-          { kind: "moteOfEternity", quantity: 1, gridX: 0, gridY: 0 },
-          { kind: "mysteriousAncientTome", quantity: 1, gridX: 1, gridY: 0 },
-        ],
-      },
-      {
-        owner: { type: "pawn", index: 0 },
-        items: [],
-      },
-    ],
   },
 };

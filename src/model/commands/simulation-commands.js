@@ -3,6 +3,7 @@ import { processSecondChangeForItems } from "../effects/index.js";
 import { stepEnvSecond } from "../env-exec.js";
 import { stepHubSecond } from "../hub-exec.js";
 import { stepPawnSecond } from "../pawn-exec.js";
+import { stepSettlementSecond } from "../settlement-exec.js";
 import {
   enforcePrestigeFollowerCap,
   enforceWorkerPopulationCap,
@@ -101,12 +102,17 @@ export function cmdTickSimulation(state, dt) {
   state._seasonChanged = state._seasonChanged === true || advancedSeasonCount > 0;
 
   if (didAdvanceSecond) {
-    processSecondChangeForItems(state);
-    stepPawnSecond(state, state.tSec, { placePawn: cmdPlacePawn });
-    stepEnvSecond(state, state.tSec);
-    stepHubSecond(state, state.tSec);
-    enforceWorkerPopulationCap(state);
-    enforcePrestigeFollowerCap(state);
+    if (state?.variantFlags?.settlementPrototypeEnabled === true) {
+      stepEnvSecond(state, state.tSec);
+      stepSettlementSecond(state, state.tSec);
+    } else {
+      processSecondChangeForItems(state);
+      stepPawnSecond(state, state.tSec, { placePawn: cmdPlacePawn });
+      stepEnvSecond(state, state.tSec);
+      stepHubSecond(state, state.tSec);
+      enforceWorkerPopulationCap(state);
+      enforcePrestigeFollowerCap(state);
+    }
     if (state._seasonChanged) state._seasonChanged = false;
   }
 

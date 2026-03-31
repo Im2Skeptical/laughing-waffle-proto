@@ -49,6 +49,12 @@ export const envTileDefs = {
         { defId: "event_storm", weight: 1 },
       ],
     },
+    settlementPrototype: {
+      autumnFloods: true,
+      winterStockpileDeposits: {
+        greenResource: 5,
+      },
+    },
   },
   tile_wetlands: {
     id: "tile_wetlands",

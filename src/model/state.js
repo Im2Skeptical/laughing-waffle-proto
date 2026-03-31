@@ -27,6 +27,10 @@ import {
 } from "./skills.js";
 import { normalizeVariantFlags } from "../defs/gamesettings/variant-flags-defs.js";
 import { ensurePersistentKnowledgeState } from "./persistent-memory.js";
+import {
+  ensureHubSettlementState,
+  isSettlementPrototypeEnabled,
+} from "./settlement-state.js";
 
 const BOARD_COLS = 12;
 const BOARD_LAYERS = ["tile", "event", "envStructure"];
@@ -70,12 +74,12 @@ function createBoardState(cols = BOARD_COLS) {
 
 function createHubState(cols = HUB_COLS) {
   const safeCols = Number.isFinite(cols) && cols > 0 ? Math.floor(cols) : HUB_COLS;
-  return {
+  return ensureHubSettlementState({
     cols: safeCols,
     slots: new Array(safeCols).fill(null).map(() => ({ structure: null })),
     anchors: [],
     occ: new Array(safeCols).fill(null),
-  };
+  }, safeCols);
 }
 
 function ensureBoardState(state) {
@@ -231,6 +235,10 @@ export function ensureHubState(state) {
   }
 
   const hub = state.hub;
+  ensureHubSettlementState(
+    hub,
+    Number.isFinite(hub.cols) && hub.cols > 0 ? Math.floor(hub.cols) : HUB_COLS
+  );
   if (!Array.isArray(hub.slots)) hub.slots = [];
 
   const slotsLen = hub.slots.length;
@@ -243,6 +251,7 @@ export function ensureHubState(state) {
   }
 
   hub.cols = Array.isArray(hub.slots) ? hub.slots.length : cols;
+  hub.zones.structures.slots = hub.slots;
 
   for (let i = 0; i < hub.slots.length; i++) {
     const slot = hub.slots[i];
@@ -587,6 +596,8 @@ export function createEmptyState(seed = 123456789) {
     ownerInventories: {},
 
     nextItemId: 1,
+    nextSettlementCardInstanceId: 1,
+    nextPopulationCommitmentId: 1,
 
     pawns: [],
     nextPawnId: 101,
@@ -905,6 +916,7 @@ function ensureHubStructureFields(instance, def) {
 }
 
 function ensureHubInventories(state) {
+  if (isSettlementPrototypeEnabled(state)) return;
   if (!state || !state.ownerInventories) return;
   const invs = state.ownerInventories;
   const slots = Array.isArray(state?.hub?.slots) ? state.hub.slots : [];
@@ -1329,6 +1341,12 @@ export function deserializeGameState(data) {
   }
   if (!Number.isFinite(state.nextPawnId)) {
     state.nextPawnId = 101;
+  }
+  if (!Number.isFinite(state.nextSettlementCardInstanceId)) {
+    state.nextSettlementCardInstanceId = 1;
+  }
+  if (!Number.isFinite(state.nextPopulationCommitmentId)) {
+    state.nextPopulationCommitmentId = 1;
   }
   if (!state.apCapOverride || typeof state.apCapOverride !== "object") {
     state.apCapOverride = null;
