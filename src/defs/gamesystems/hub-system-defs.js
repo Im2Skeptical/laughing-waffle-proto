@@ -18,9 +18,7 @@ export const hubSystemDefs = {
     kind: "hubSystem",
     ui: { name: "Faith", description: "Civilization faith stability tier." },
     defaultTier: "gold",
-    stateDefaults: {
-      growthStreak: 0,
-    },
+    stateDefaults: {},
   },
   deposit: {
     id: "deposit",
@@ -151,7 +149,11 @@ export const hubSystemDefs = {
           },
           faith: {
             tier: "gold",
-            growthStreak: 0,
+          },
+          happiness: {
+            status: "neutral",
+            positiveFeedStreak: 0,
+            negativeFeedStreak: 0,
           },
         },
         stranger: {
@@ -168,7 +170,11 @@ export const hubSystemDefs = {
           },
           faith: {
             tier: "gold",
-            growthStreak: 0,
+          },
+          happiness: {
+            status: "neutral",
+            positiveFeedStreak: 0,
+            negativeFeedStreak: 0,
           },
         },
       },

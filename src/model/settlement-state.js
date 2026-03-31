@@ -1,6 +1,8 @@
 import {
-  FAITH_GROWTH_STREAK_FOR_UPGRADE,
   FAITH_STARTING_TIER,
+  SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
+  SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE,
+  SETTLEMENT_HAPPINESS_STARTING_LEVEL,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
@@ -9,6 +11,7 @@ const DEFAULT_ORDER_SLOT_COUNT = 1;
 const DEFAULT_PRACTICE_SLOT_COUNT = 5;
 const DEFAULT_STRUCTURE_SLOT_COUNT = 6;
 const DEFAULT_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
+const HAPPINESS_ASC = Object.freeze(["negative", "neutral", "positive"]);
 
 export const SETTLEMENT_STOCKPILE_KEYS = Object.freeze([
   "food",
@@ -44,6 +47,19 @@ function normalizeTierId(value, fallback = "bronze") {
 
 function getFaithStartingTier() {
   return normalizeTierId(FAITH_STARTING_TIER, "gold");
+}
+
+function normalizeHappinessStatus(value) {
+  if (typeof value !== "string") {
+    return HAPPINESS_ASC.includes(SETTLEMENT_HAPPINESS_STARTING_LEVEL)
+      ? SETTLEMENT_HAPPINESS_STARTING_LEVEL
+      : "neutral";
+  }
+  return HAPPINESS_ASC.includes(value)
+    ? value
+    : HAPPINESS_ASC.includes(SETTLEMENT_HAPPINESS_STARTING_LEVEL)
+      ? SETTLEMENT_HAPPINESS_STARTING_LEVEL
+      : "neutral";
 }
 
 function normalizeClassId(value) {
@@ -89,6 +105,10 @@ function normalizePopulationYearlyState(raw) {
       typeof next.lastOutcomeKind === "string" && next.lastOutcomeKind.length > 0
         ? next.lastOutcomeKind
         : null,
+    lastSeasonOutcomeKind:
+      typeof next.lastSeasonOutcomeKind === "string" && next.lastSeasonOutcomeKind.length > 0
+        ? next.lastSeasonOutcomeKind
+        : null,
   };
 }
 
@@ -97,8 +117,19 @@ function normalizeFaithState(raw, fallbackTier = null) {
     raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
   return {
     tier: normalizeTierId(next.tier, normalizeTierId(fallbackTier, getFaithStartingTier())),
-    growthStreak: Number.isFinite(next.growthStreak)
-      ? Math.max(0, Math.floor(next.growthStreak))
+  };
+}
+
+function normalizeHappinessState(raw) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    status: normalizeHappinessStatus(next.status),
+    positiveFeedStreak: Number.isFinite(next.positiveFeedStreak)
+      ? Math.max(0, Math.floor(next.positiveFeedStreak))
+      : 0,
+    negativeFeedStreak: Number.isFinite(next.negativeFeedStreak)
+      ? Math.max(0, Math.floor(next.negativeFeedStreak))
       : 0,
   };
 }
@@ -142,6 +173,7 @@ function normalizePopulationClassState(raw, fallbackTier = null) {
     commitments,
     yearly: normalizePopulationYearlyState(next.yearly),
     faith: normalizeFaithState(next.faith, fallbackTier),
+    happiness: normalizeHappinessState(next.happiness),
   };
 }
 
@@ -606,6 +638,7 @@ function buildClassPopulationSummary(state, classId) {
     ? Math.max(0, Math.floor(derived.reserved))
     : committed + staffed;
   const faith = populationClass?.faith ?? null;
+  const happiness = populationClass?.happiness ?? null;
   return {
     classId,
     total,
@@ -617,8 +650,12 @@ function buildClassPopulationSummary(state, classId) {
       ? Math.max(0, Math.floor(props.populationCapacity))
       : 0,
     faithTier: normalizeTierId(faith?.tier, getFaithStartingTier()),
-    faithGrowthStreak: Number.isFinite(faith?.growthStreak)
-      ? Math.max(0, Math.floor(faith.growthStreak))
+    happinessStatus: normalizeHappinessStatus(happiness?.status),
+    positiveFeedStreak: Number.isFinite(happiness?.positiveFeedStreak)
+      ? Math.max(0, Math.floor(happiness.positiveFeedStreak))
+      : 0,
+    negativeFeedStreak: Number.isFinite(happiness?.negativeFeedStreak)
+      ? Math.max(0, Math.floor(happiness.negativeFeedStreak))
       : 0,
   };
 }
@@ -677,17 +714,8 @@ export function getSettlementFaithState(state, classId = null) {
 
 export function getSettlementFaithSummary(state, classId = null) {
   const tier = getSettlementFaithTier(state, classId);
-  const faithState = getSettlementFaithState(state, classId);
-  const growthStreak = Number.isFinite(faithState?.growthStreak)
-    ? Math.max(0, Math.floor(faithState.growthStreak))
-    : 0;
-  const growthThreshold = Number.isFinite(FAITH_GROWTH_STREAK_FOR_UPGRADE)
-    ? Math.max(1, Math.floor(FAITH_GROWTH_STREAK_FOR_UPGRADE))
-    : 3;
   return {
     tier,
-    growthStreak,
-    growthThreshold,
   };
 }
 
@@ -695,6 +723,41 @@ export function getSettlementFaithGraphValue(state, classId = null) {
   const tier = getSettlementFaithTier(state, classId);
   const rank = Math.max(0, TIER_ASC.indexOf(tier));
   return (rank + 1) * 25;
+}
+
+export function getSettlementHappinessState(state, classId = null) {
+  const happiness = getSettlementPopulationClassState(state, classId)?.happiness;
+  return happiness && typeof happiness === "object" ? happiness : null;
+}
+
+export function getSettlementHappinessSummary(state, classId = null) {
+  const happinessState = getSettlementHappinessState(state, classId);
+  const fullFeedThreshold = Number.isFinite(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE)
+    ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE))
+    : 3;
+  const partialFeedThreshold = Number.isFinite(
+    SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE
+  )
+    ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE))
+    : 2;
+  return {
+    status: normalizeHappinessStatus(happinessState?.status),
+    positiveFeedStreak: Number.isFinite(happinessState?.positiveFeedStreak)
+      ? Math.max(0, Math.floor(happinessState.positiveFeedStreak))
+      : 0,
+    negativeFeedStreak: Number.isFinite(happinessState?.negativeFeedStreak)
+      ? Math.max(0, Math.floor(happinessState.negativeFeedStreak))
+      : 0,
+    fullFeedThreshold,
+    partialFeedThreshold,
+  };
+}
+
+export function getSettlementHappinessGraphValue(state, classId = null) {
+  const status = getSettlementHappinessSummary(state, classId).status;
+  if (status === "positive") return 100;
+  if (status === "negative") return 0;
+  return 50;
 }
 
 export function isSettlementPrototypeEnabled(state) {

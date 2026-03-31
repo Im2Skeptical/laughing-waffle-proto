@@ -9,6 +9,7 @@ export {
 export {
   handleReservePopulation,
   handleTransferPopulationClass,
+  handleShiftPopulationClassHappiness,
 } from "./system/population-ops.js";
 
 export { handleExpireStoredPerishables } from "./system/perishables-ops.js";

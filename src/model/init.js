@@ -247,11 +247,8 @@ function applySettlementCoreSpec(core, spec) {
         yearly: cloneSerializable(spec.systemState.population.yearly || {}),
         faith: {
           tier: faithTier,
-          growthStreak: Math.max(
-            0,
-            Math.floor(spec.systemState?.faith?.growthStreak ?? 0)
-          ),
         },
+        happiness: cloneSerializable(spec.systemState.population.happiness || {}),
       },
     };
   }

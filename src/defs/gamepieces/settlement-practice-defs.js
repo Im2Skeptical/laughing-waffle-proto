@@ -17,7 +17,8 @@ export const settlementPracticeDefs = {
       lines: [
         "Autumn start",
         "Per free population consume 1 food",
-        "Generate 2 redResource",
+        "Generate 1 redResource",
+        "Improve mood by 1 step",
         "Reserve population for 15s",
       ],
       description: "River rites that turn stored food into ritual labor and redResource.",
@@ -63,7 +64,12 @@ export const settlementPracticeDefs = {
         system: "stockpiles",
         key: "redResource",
         amountVar: "practiceAmount",
-        amountScale: 2,
+        amountScale: 1,
+      },
+      {
+        op: "ShiftPopulationClassHappiness",
+        target: { ref: "hubCore" },
+        amount: 1,
       },
     ],
   },
@@ -75,7 +81,7 @@ export const settlementPracticeDefs = {
     ui: {
       title: "River Recession Farming",
       lines: [
-        "Consume 2 red + 1 green per free population",
+        "Consume 1 red + 1 green per free population",
         "Generate 20 food on completion",
         "Reserve population for 30s",
       ],
@@ -87,7 +93,7 @@ export const settlementPracticeDefs = {
     requires: {
       freePopulationAtLeast: 1,
       stockpileAtLeast: {
-        redResource: 2,
+        redResource: 1,
         greenResource: 1,
       },
     },
@@ -124,7 +130,7 @@ export const settlementPracticeDefs = {
         system: "stockpiles",
         key: "redResource",
         amountVar: "practiceAmount",
-        amountScale: -2,
+        amountScale: -1,
       },
       {
         op: "AdjustSystemState",

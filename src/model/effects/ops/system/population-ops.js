@@ -205,6 +205,19 @@ function resolveTransferClassId(effectValue, contextValue, fallback = null) {
   return fallback;
 }
 
+function normalizeHappinessStatus(value) {
+  if (value === "positive" || value === "negative") return value;
+  return "neutral";
+}
+
+function shiftHappinessStatus(status, delta = 0) {
+  const order = ["negative", "neutral", "positive"];
+  const normalized = normalizeHappinessStatus(status);
+  const index = order.indexOf(normalized);
+  const nextIndex = Math.max(0, Math.min(order.length - 1, index + Math.floor(delta)));
+  return order[nextIndex] || normalized;
+}
+
 export function handleTransferPopulationClass(state, effect, context) {
   const targets = resolveEffectTargets(state, effect, context);
   if (!targets.length) return false;
@@ -241,6 +254,50 @@ export function handleTransferPopulationClass(state, effect, context) {
       0,
       Math.floor(toClassState.total ?? 0) + amount
     );
+    changed = true;
+  }
+
+  return changed;
+}
+
+export function handleShiftPopulationClassHappiness(state, effect, context) {
+  const targets = resolveEffectTargets(state, effect, context);
+  if (!targets.length) return false;
+
+  let changed = false;
+  for (const target of targets) {
+    if (!target?.systemState?.populationClasses) continue;
+    const classId = resolveTargetClassId(effect, context);
+    if (!classId) continue;
+    const classState = getSettlementPopulationClassState(state, classId);
+    if (!classState) continue;
+
+    const { def } = resolveEffectDef(effect, target, context);
+    const amountRaw = resolveAmount(effect, classState, def, context);
+    const delta = Number.isFinite(amountRaw) ? Math.trunc(amountRaw) : 0;
+    if (delta === 0) continue;
+
+    if (
+      !classState.happiness ||
+      typeof classState.happiness !== "object" ||
+      Array.isArray(classState.happiness)
+    ) {
+      classState.happiness = {
+        status: "neutral",
+        positiveFeedStreak: 0,
+        negativeFeedStreak: 0,
+      };
+    }
+
+    const previousStatus = normalizeHappinessStatus(classState.happiness.status);
+    const nextStatus = shiftHappinessStatus(previousStatus, delta);
+    if (nextStatus === previousStatus) continue;
+
+    classState.happiness.status = nextStatus;
+    if (effect.resetStreaks !== false) {
+      classState.happiness.positiveFeedStreak = 0;
+      classState.happiness.negativeFeedStreak = 0;
+    }
     changed = true;
   }
 

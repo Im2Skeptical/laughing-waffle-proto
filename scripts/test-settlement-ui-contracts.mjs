@@ -31,6 +31,25 @@ for (const forbiddenImport of [
 
 assert.match(
   rootSource,
+  /function\s+shouldInvalidateSettlementTimelineForecast\(reason\)/,
+  "[test] settlement root should define a dedicated timeline-forecast invalidation filter"
+);
+assert.match(
+  rootSource,
+  /if\s*\(shouldInvalidateSettlementTimelineForecast\(reason\)\)\s*\{\s*forecastWorkerService\.handleTimelineInvalidation\?\.\(reason\);\s*settlementGraphController\?\.handleInvalidate\?\.\(reason\);/s,
+  "[test] settlement root should only reset forecast/controller state for real timeline mutations"
+);
+assert.match(
+  rootSource,
+  /reason === "actionDispatched"[\s\S]*reason === "actionDispatchedCurrentSec"[\s\S]*reason === "plannerClear"[\s\S]*reason\.startsWith\("plannerCommit:"\)/,
+  "[test] settlement root invalidation filter should allow actual timeline mutation reasons"
+);
+assert.ok(
+  !/reason === "scrubBrowse"|reason === "scrubCommit"|reason === "plannerCommitBlocked"|reason === "plannerCommitFailed"/.test(rootSource),
+  "[test] settlement root invalidation filter should not treat browse-only reasons as timeline mutations"
+);
+assert.match(
+  rootSource,
   /showClose:\s*false/,
   "[test] settlement graph should remain pinned open"
 );
@@ -101,8 +120,28 @@ assert.match(
 );
 assert.match(
   rootSource,
+  /MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES\s*=\s*5/,
+  "[test] settlement root should cap the visible settlement graph series count"
+);
+assert.match(
+  rootSource,
   /horizonSec:\s*SETTLEMENT_GRAPH_WINDOW_SEC/,
   "[test] settlement graph controller should use the settlement graph window constant"
+);
+assert.match(
+  rootSource,
+  /getSystemTargetModeLabel:\s*\(\)\s*=>\s*getSettlementGraphSeriesButtonLabel\(\)/,
+  "[test] settlement graph should expose a series picker button in the header"
+);
+assert.match(
+  rootSource,
+  /onToggleSystemTargetMode:\s*\(\)\s*=>\s*toggleSettlementGraphSeriesMenu\(\)/,
+  "[test] settlement graph header button should toggle the settlement series menu"
+);
+assert.match(
+  rootSource,
+  /function\s+renderSettlementGraphSeriesMenu\(/,
+  "[test] settlement root should render a settlement graph series menu"
 );
 
 for (const label of ["Order", "Practice", "Structures"]) {
@@ -137,8 +176,18 @@ assert.match(
 );
 assert.match(
   prototypeViewSource,
+  /y:\s*practiceRect\.y\s*-\s*36/,
+  "[test] class tabs should sit above the practice panel instead of covering the class summary cards"
+);
+assert.match(
+  prototypeViewSource,
   /Faith \$\{capitalizeTier/,
   "[test] class summary cards should show class faith state"
+);
+assert.match(
+  prototypeViewSource,
+  /Mood \$\{capitalizeLabel\(happiness\?\.status\)\}/,
+  "[test] class summary cards should show class happiness state"
 );
 assert.match(
   prototypeViewSource,
@@ -154,6 +203,11 @@ assert.match(
   graphMetricsSource,
   /id:\s*"faith"/,
   "[test] settlement graph should include faith"
+);
+assert.match(
+  graphMetricsSource,
+  /id:\s*"happiness"/,
+  "[test] settlement graph should include happiness"
 );
 assert.match(
   graphMetricsSource,

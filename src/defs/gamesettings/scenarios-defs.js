@@ -225,7 +225,11 @@ export const setupDefs = {
               commitments: [],
               faith: {
                 tier: "gold",
-                growthStreak: 0,
+              },
+              happiness: {
+                status: "neutral",
+                positiveFeedStreak: 0,
+                negativeFeedStreak: 0,
               },
             },
             stranger: {
@@ -233,7 +237,11 @@ export const setupDefs = {
               commitments: [],
               faith: {
                 tier: "gold",
-                growthStreak: 0,
+              },
+              happiness: {
+                status: "neutral",
+                positiveFeedStreak: 0,
+                negativeFeedStreak: 0,
               },
             },
           },
