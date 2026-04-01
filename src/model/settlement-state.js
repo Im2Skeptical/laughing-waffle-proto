@@ -1,7 +1,8 @@
 import {
   FAITH_STARTING_TIER,
   SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
-  SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE,
+  SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION,
+  SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
   SETTLEMENT_HAPPINESS_STARTING_LEVEL,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
@@ -87,19 +88,19 @@ function normalizePopulationYearlyState(raw) {
   return {
     year: Number.isFinite(next.year) ? Math.max(1, Math.floor(next.year)) : 1,
     mealAttempts: Number.isFinite(next.mealAttempts)
-      ? Math.max(0, Math.floor(next.mealAttempts))
+      ? Math.max(0, Number(next.mealAttempts))
       : 0,
     mealSuccesses: Number.isFinite(next.mealSuccesses)
-      ? Math.max(0, Math.floor(next.mealSuccesses))
+      ? Math.max(0, Number(next.mealSuccesses))
       : 0,
     attractionProgress: Number.isFinite(next.attractionProgress)
       ? Math.max(0, Number(next.attractionProgress))
       : 0,
     lastMealAttempts: Number.isFinite(next.lastMealAttempts)
-      ? Math.max(0, Math.floor(next.lastMealAttempts))
+      ? Math.max(0, Number(next.lastMealAttempts))
       : 0,
     lastMealSuccesses: Number.isFinite(next.lastMealSuccesses)
-      ? Math.max(0, Math.floor(next.lastMealSuccesses))
+      ? Math.max(0, Number(next.lastMealSuccesses))
       : 0,
     lastOutcomeKind:
       typeof next.lastOutcomeKind === "string" && next.lastOutcomeKind.length > 0
@@ -109,6 +110,9 @@ function normalizePopulationYearlyState(raw) {
       typeof next.lastSeasonOutcomeKind === "string" && next.lastSeasonOutcomeKind.length > 0
         ? next.lastSeasonOutcomeKind
         : null,
+    lastSeasonFeedRatio: Number.isFinite(next.lastSeasonFeedRatio)
+      ? Math.max(0, Math.min(1, Number(next.lastSeasonFeedRatio)))
+      : 0,
   };
 }
 
@@ -123,14 +127,23 @@ function normalizeFaithState(raw, fallbackTier = null) {
 function normalizeHappinessState(raw) {
   const next =
     raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  const partialFeedRatios = Array.isArray(next.partialFeedRatios)
+    ? next.partialFeedRatios
+        .map((value) =>
+          Number.isFinite(value) ? Math.max(0, Math.min(1, Number(value))) : null
+        )
+        .filter((value) => value != null)
+        .slice(-Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH || 3)))
+    : [];
   return {
     status: normalizeHappinessStatus(next.status),
-    positiveFeedStreak: Number.isFinite(next.positiveFeedStreak)
-      ? Math.max(0, Math.floor(next.positiveFeedStreak))
+    fullFeedStreak: Number.isFinite(next.fullFeedStreak ?? next.positiveFeedStreak)
+      ? Math.max(0, Math.floor(next.fullFeedStreak ?? next.positiveFeedStreak))
       : 0,
-    negativeFeedStreak: Number.isFinite(next.negativeFeedStreak)
-      ? Math.max(0, Math.floor(next.negativeFeedStreak))
+    missedFeedStreak: Number.isFinite(next.missedFeedStreak ?? next.negativeFeedStreak)
+      ? Math.max(0, Math.floor(next.missedFeedStreak ?? next.negativeFeedStreak))
       : 0,
+    partialFeedRatios,
   };
 }
 
@@ -168,8 +181,14 @@ function normalizePopulationClassState(raw, fallbackTier = null) {
   const commitments = Array.isArray(next.commitments)
     ? next.commitments.map(normalizeCommitment).filter(Boolean)
     : [];
+  const legacyTotal = Number.isFinite(next.total) ? Math.max(0, Math.floor(next.total)) : 0;
+  const adults = Number.isFinite(next.adults)
+    ? Math.max(0, Math.floor(next.adults))
+    : legacyTotal;
+  const youth = Number.isFinite(next.youth) ? Math.max(0, Math.floor(next.youth)) : 0;
   return {
-    total: Number.isFinite(next.total) ? Math.max(0, Math.floor(next.total)) : 0,
+    adults,
+    youth,
     commitments,
     yearly: normalizePopulationYearlyState(next.yearly),
     faith: normalizeFaithState(next.faith, fallbackTier),
@@ -615,11 +634,21 @@ function buildClassPopulationSummary(state, classId) {
     props?.classSummaries && typeof props.classSummaries === "object"
       ? props.classSummaries[classId]
       : null;
+  const adults = Number.isFinite(derived?.adults)
+    ? Math.max(0, Math.floor(derived.adults))
+    : Number.isFinite(populationClass?.adults)
+      ? Math.max(0, Math.floor(populationClass.adults))
+      : Number.isFinite(populationClass?.total)
+        ? Math.max(0, Math.floor(populationClass.total))
+        : 0;
+  const youth = Number.isFinite(derived?.youth)
+    ? Math.max(0, Math.floor(derived.youth))
+    : Number.isFinite(populationClass?.youth)
+      ? Math.max(0, Math.floor(populationClass.youth))
+      : 0;
   const total = Number.isFinite(derived?.total)
     ? Math.max(0, Math.floor(derived.total))
-    : Number.isFinite(populationClass?.total)
-      ? Math.max(0, Math.floor(populationClass.total))
-      : 0;
+    : adults + youth;
   const committed = Number.isFinite(derived?.committed)
     ? Math.max(0, Math.floor(derived.committed))
     : Array.isArray(populationClass?.commitments)
@@ -633,7 +662,7 @@ function buildClassPopulationSummary(state, classId) {
     : 0;
   const free = Number.isFinite(derived?.free)
     ? Math.max(0, Math.floor(derived.free))
-    : Math.max(0, total - committed - staffed);
+    : Math.max(0, adults - committed - staffed);
   const reserved = Number.isFinite(derived?.reserved)
     ? Math.max(0, Math.floor(derived.reserved))
     : committed + staffed;
@@ -641,7 +670,10 @@ function buildClassPopulationSummary(state, classId) {
   const happiness = populationClass?.happiness ?? null;
   return {
     classId,
+    adults,
+    youth,
     total,
+    workPopulation: adults,
     committed,
     staffed,
     reserved,
@@ -651,12 +683,17 @@ function buildClassPopulationSummary(state, classId) {
       : 0,
     faithTier: normalizeTierId(faith?.tier, getFaithStartingTier()),
     happinessStatus: normalizeHappinessStatus(happiness?.status),
-    positiveFeedStreak: Number.isFinite(happiness?.positiveFeedStreak)
-      ? Math.max(0, Math.floor(happiness.positiveFeedStreak))
+    fullFeedStreak: Number.isFinite(happiness?.fullFeedStreak)
+      ? Math.max(0, Math.floor(happiness.fullFeedStreak))
       : 0,
-    negativeFeedStreak: Number.isFinite(happiness?.negativeFeedStreak)
-      ? Math.max(0, Math.floor(happiness.negativeFeedStreak))
+    missedFeedStreak: Number.isFinite(happiness?.missedFeedStreak)
+      ? Math.max(0, Math.floor(happiness.missedFeedStreak))
       : 0,
+    partialFeedRatios: Array.isArray(happiness?.partialFeedRatios)
+      ? happiness.partialFeedRatios.map((value) =>
+          Number.isFinite(value) ? Math.max(0, Math.min(1, Number(value))) : 0
+        )
+      : [],
   };
 }
 
@@ -666,6 +703,8 @@ export function getSettlementPopulationSummary(state, classId = null) {
   }
   const classIds = getSettlementClassIds(state);
   const byClass = {};
+  let adults = 0;
+  let youth = 0;
   let total = 0;
   let committed = 0;
   let staffed = 0;
@@ -674,6 +713,8 @@ export function getSettlementPopulationSummary(state, classId = null) {
   for (const id of classIds) {
     const summary = buildClassPopulationSummary(state, id);
     byClass[id] = summary;
+    adults += summary.adults;
+    youth += summary.youth;
     total += summary.total;
     committed += summary.committed;
     staffed += summary.staffed;
@@ -682,7 +723,10 @@ export function getSettlementPopulationSummary(state, classId = null) {
   }
   const props = getHubCore(state)?.props;
   return {
+    adults,
+    youth,
     total,
+    workPopulation: adults,
     committed,
     staffed,
     reserved,
@@ -735,21 +779,28 @@ export function getSettlementHappinessSummary(state, classId = null) {
   const fullFeedThreshold = Number.isFinite(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE)
     ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE))
     : 3;
-  const partialFeedThreshold = Number.isFinite(
-    SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE
-  )
-    ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE))
-    : 2;
+  const missedFeedThreshold = Number.isFinite(SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION)
+    ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION))
+    : 3;
+  const partialMemoryLength = Number.isFinite(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH)
+    ? Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH))
+    : 3;
   return {
     status: normalizeHappinessStatus(happinessState?.status),
-    positiveFeedStreak: Number.isFinite(happinessState?.positiveFeedStreak)
-      ? Math.max(0, Math.floor(happinessState.positiveFeedStreak))
+    fullFeedStreak: Number.isFinite(happinessState?.fullFeedStreak)
+      ? Math.max(0, Math.floor(happinessState.fullFeedStreak))
       : 0,
-    negativeFeedStreak: Number.isFinite(happinessState?.negativeFeedStreak)
-      ? Math.max(0, Math.floor(happinessState.negativeFeedStreak))
+    missedFeedStreak: Number.isFinite(happinessState?.missedFeedStreak)
+      ? Math.max(0, Math.floor(happinessState.missedFeedStreak))
       : 0,
+    partialFeedRatios: Array.isArray(happinessState?.partialFeedRatios)
+      ? happinessState.partialFeedRatios.map((value) =>
+          Number.isFinite(value) ? Math.max(0, Math.min(1, Number(value))) : 0
+        )
+      : [],
     fullFeedThreshold,
-    partialFeedThreshold,
+    missedFeedThreshold,
+    partialMemoryLength,
   };
 }
 

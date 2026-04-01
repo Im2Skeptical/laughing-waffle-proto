@@ -127,6 +127,14 @@ function capitalizeLabel(value) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function formatPartialFeedMemory(partialFeedRatios) {
+  const ratios = Array.isArray(partialFeedRatios) ? partialFeedRatios : [];
+  if (!ratios.length) return "None";
+  return ratios
+    .map((value) => `${Math.round((Number.isFinite(value) ? Number(value) : 0) * 100)}%`)
+    .join(" -> ");
+}
+
 function formatPracticeBlockedReason(reason) {
   const text = typeof reason === "string" ? reason : "";
   if (!text.length) return "";
@@ -259,7 +267,7 @@ function buildTileLines(tile) {
   if (tile?.defId === "tile_floodplains") {
     return [
       "Every autumn flood,",
-      "every winter deposit",
+      "every spring deposit",
       "5 greenResource.",
       `Stored Green: ${getSettlementTileGreenResource(tile)}`,
     ];
@@ -426,10 +434,12 @@ function drawClassSummaryCard(container, rect, classId, population, faith, happi
     createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, rect.x + 16, rect.y + 12)
   );
   const lines = [
+    `Adults ${Math.floor(population?.adults ?? 0)}  Youth ${Math.floor(population?.youth ?? 0)}`,
     `Total ${Math.floor(population?.total ?? 0)}  Free ${Math.floor(population?.free ?? 0)}`,
     `Reserved ${Math.floor(population?.reserved ?? 0)}`,
     `Faith ${capitalizeTier(faith?.tier)}  Mood ${capitalizeLabel(happiness?.status)}`,
-    `${Math.floor(happiness?.positiveFeedStreak ?? 0)}/${Math.floor(happiness?.fullFeedThreshold ?? 0)} full  ${Math.floor(happiness?.negativeFeedStreak ?? 0)}/${Math.floor(happiness?.partialFeedThreshold ?? 0)} partial`,
+    `${Math.floor(happiness?.fullFeedStreak ?? 0)}/${Math.floor(happiness?.fullFeedThreshold ?? 0)} full  ${Math.floor(happiness?.missedFeedStreak ?? 0)}/${Math.floor(happiness?.missedFeedThreshold ?? 0)} missed`,
+    `Partial ${formatPartialFeedMemory(happiness?.partialFeedRatios)}`,
   ];
   container.addChild(
     createText(
@@ -515,12 +525,13 @@ export function createSettlementPrototypeView({
     )}`;
     root.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 35, 0.5, 0.5));
 
-    const hubPanelRect = { x: 120, y: 120, width: 1180, height: 650 };
+    const hubPanelRect = { x: 120, y: 120, width: 1180, height: 700 };
     const regionPanelRect = { x: 1430, y: 180, width: 830, height: 590 };
     const orderRect = { x: 140, y: 260, width: 240, height: 300 };
-    const practiceRect = { x: 430, y: 336, width: 850, height: 224 };
-    const structuresRect = { x: 140, y: 580, width: 1140, height: 170 };
-    const classStripRect = { x: 430, y: 208, width: 850, height: 88 };
+    const classStripRect = { x: 430, y: 208, width: 850, height: 126 };
+    const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
+    const practiceRect = { x: 430, y: 388, width: 850, height: 224 };
+    const structuresRect = { x: 140, y: 630, width: 1140, height: 170 };
 
     const panelGfx = new PIXI.Graphics();
     roundedRect(
@@ -586,9 +597,9 @@ export function createSettlementPrototypeView({
     );
     root.addChild(createText("Order", TEXT_STYLES.title, 260, 235, 0.5, 0.5));
     root.addChild(
-      createText(`Practice - ${capitalizeLabel(selectedClassId)}`, TEXT_STYLES.title, 855, 285, 0.5, 0.5)
+      createText(`Practice - ${capitalizeLabel(selectedClassId)}`, TEXT_STYLES.title, 855, 365, 0.5, 0.5)
     );
-    root.addChild(createText("Structures", TEXT_STYLES.title, 710, 555, 0.5, 0.5));
+    root.addChild(createText("Structures", TEXT_STYLES.title, 710, 605, 0.5, 0.5));
 
     const foodCapacity = Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0);
     const chipsLayer = new PIXI.Container();
@@ -637,10 +648,10 @@ export function createSettlementPrototypeView({
         createClassTab(
           capitalizeLabel(classId),
           {
-            x: practiceRect.x + i * (tabWidth + 10),
-            y: practiceRect.y - 36,
+            x: classTabsRect.x + i * (tabWidth + 10),
+            y: classTabsRect.y,
             width: tabWidth,
-            height: 34,
+            height: classTabsRect.height,
           },
           classId === selectedClassId,
           () => {

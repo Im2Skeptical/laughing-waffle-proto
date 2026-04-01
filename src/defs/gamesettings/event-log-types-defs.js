@@ -94,6 +94,12 @@ export const eventLogTypeDefs = {
     color: 0x04ff00,
     glyph: "PY",
   },
+  populationStarvationEvent: {
+    id: "populationStarvationEvent",
+    label: "Starvation",
+    color: 0xff4f4f,
+    glyph: "PS",
+  },
   runComplete: {
     id: "runComplete",
     label: "Run Complete",

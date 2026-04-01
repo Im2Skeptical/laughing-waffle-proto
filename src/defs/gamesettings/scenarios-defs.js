@@ -221,27 +221,31 @@ export const setupDefs = {
           },
           populationClasses: {
             villager: {
-              total: 8,
+              adults: 8,
+              youth: 0,
               commitments: [],
               faith: {
                 tier: "gold",
               },
               happiness: {
                 status: "neutral",
-                positiveFeedStreak: 0,
-                negativeFeedStreak: 0,
+                fullFeedStreak: 0,
+                missedFeedStreak: 0,
+                partialFeedRatios: [],
               },
             },
             stranger: {
-              total: 0,
+              adults: 0,
+              youth: 0,
               commitments: [],
               faith: {
                 tier: "gold",
               },
               happiness: {
                 status: "neutral",
-                positiveFeedStreak: 0,
-                negativeFeedStreak: 0,
+                fullFeedStreak: 0,
+                missedFeedStreak: 0,
+                partialFeedRatios: [],
               },
             },
           },

@@ -176,8 +176,18 @@ assert.match(
 );
 assert.match(
   prototypeViewSource,
-  /y:\s*practiceRect\.y\s*-\s*36/,
-  "[test] class tabs should sit above the practice panel instead of covering the class summary cards"
+  /const classTabsRect = \{ x: 430, y: 344, width: 850, height: 34 \}/,
+  "[test] prototype layout should reserve a dedicated class-tab row between the class summaries and practice panel"
+);
+assert.match(
+  prototypeViewSource,
+  /y:\s*classTabsRect\.y/,
+  "[test] class tabs should be positioned from the dedicated class-tab row instead of overlapping summary cards"
+);
+assert.match(
+  prototypeViewSource,
+  /Adults \$\{Math\.floor\(population\?\.adults \?\? 0\)\}  Youth \$\{Math\.floor\(population\?\.youth \?\? 0\)\}/,
+  "[test] class summary cards should show adults and youth separately"
 );
 assert.match(
   prototypeViewSource,
@@ -188,6 +198,16 @@ assert.match(
   prototypeViewSource,
   /Mood \$\{capitalizeLabel\(happiness\?\.status\)\}/,
   "[test] class summary cards should show class happiness state"
+);
+assert.match(
+  prototypeViewSource,
+  /fullFeedStreak.*missedFeedStreak/s,
+  "[test] class summary cards should show full and missed feed progress"
+);
+assert.match(
+  prototypeViewSource,
+  /Partial \$\{formatPartialFeedMemory\(happiness\?\.partialFeedRatios\)\}/,
+  "[test] class summary cards should show partial-feed memory"
 );
 assert.match(
   prototypeViewSource,
@@ -225,8 +245,28 @@ assert.ok(
 );
 assert.match(
   graphMetricsSource,
-  /Each season change consumes up to/,
-  "[test] food tooltip text should describe seasonal upkeep rather than yearly batch drain"
+  /Each season change consumes up to .* adults \+ .* youth at 0\.5/,
+  "[test] food tooltip text should describe weighted seasonal upkeep"
+);
+assert.match(
+  graphMetricsSource,
+  /Adults: \$\{population\.adults\}/,
+  "[test] population tooltip should show adults separately"
+);
+assert.match(
+  graphMetricsSource,
+  /Youth: \$\{population\.youth\}/,
+  "[test] population tooltip should show youth separately"
+);
+assert.match(
+  graphMetricsSource,
+  /Full-feed streak: .*Missed-feed streak: .*Partial memory:/s,
+  "[test] happiness tooltip should show full-feed progress, missed-feed progress, and partial memory"
+);
+assert.match(
+  graphMetricsSource,
+  /Three full seasons set happiness to positive\. Three consecutive misses trigger a starvation event\./,
+  "[test] happiness tooltip should describe the new feed-memory and starvation rules"
 );
 assert.match(
   prototypeViewSource,

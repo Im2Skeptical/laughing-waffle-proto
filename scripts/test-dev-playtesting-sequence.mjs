@@ -50,12 +50,24 @@ function buildSettlementSetup({
     blueResource: 0,
     blackResource: 0,
   },
-  villagerTotal = 8,
-  strangerTotal = 0,
+  villagerAdults = 8,
+  villagerYouth = 0,
+  strangerAdults = 0,
+  strangerYouth = 0,
   villagerFaithTier = "gold",
   strangerFaithTier = "gold",
-  villagerHappiness = { status: "neutral", positiveFeedStreak: 0, negativeFeedStreak: 0 },
-  strangerHappiness = { status: "neutral", positiveFeedStreak: 0, negativeFeedStreak: 0 },
+  villagerHappiness = {
+    status: "neutral",
+    fullFeedStreak: 0,
+    missedFeedStreak: 0,
+    partialFeedRatios: [],
+  },
+  strangerHappiness = {
+    status: "neutral",
+    fullFeedStreak: 0,
+    missedFeedStreak: 0,
+    partialFeedRatios: [],
+  },
   villagerPracticeSlots = [
     { defId: "floodRites" },
     { defId: "riverRecessionFarming" },
@@ -95,7 +107,8 @@ function buildSettlementSetup({
           stockpiles,
           populationClasses: {
             villager: {
-              total: villagerTotal,
+              adults: villagerAdults,
+              youth: villagerYouth,
               commitments: [],
               faith: {
                 tier: villagerFaithTier,
@@ -103,7 +116,8 @@ function buildSettlementSetup({
               happiness: villagerHappiness,
             },
             stranger: {
-              total: strangerTotal,
+              adults: strangerAdults,
+              youth: strangerYouth,
               commitments: [],
               faith: {
                 tier: strangerFaithTier,
@@ -166,13 +180,14 @@ function summarizeClass(state, classId) {
     happiness: state?.hub?.core?.systemState?.populationClasses?.[classId]?.happiness ?? null,
     yearly: {
       year: Math.floor(classState?.yearly?.year ?? 0),
-      mealAttempts: Math.floor(classState?.yearly?.mealAttempts ?? 0),
-      mealSuccesses: Math.floor(classState?.yearly?.mealSuccesses ?? 0),
+      mealAttempts: Number(Number(classState?.yearly?.mealAttempts ?? 0).toFixed(4)),
+      mealSuccesses: Number(Number(classState?.yearly?.mealSuccesses ?? 0).toFixed(4)),
       attractionProgress: Number(classState?.yearly?.attractionProgress ?? 0),
-      lastMealAttempts: Math.floor(classState?.yearly?.lastMealAttempts ?? 0),
-      lastMealSuccesses: Math.floor(classState?.yearly?.lastMealSuccesses ?? 0),
+      lastMealAttempts: Number(Number(classState?.yearly?.lastMealAttempts ?? 0).toFixed(4)),
+      lastMealSuccesses: Number(Number(classState?.yearly?.lastMealSuccesses ?? 0).toFixed(4)),
       lastOutcomeKind: classState?.yearly?.lastOutcomeKind ?? null,
       lastSeasonOutcomeKind: classState?.yearly?.lastSeasonOutcomeKind ?? null,
+      lastSeasonFeedRatio: Number(Number(classState?.yearly?.lastSeasonFeedRatio ?? 0).toFixed(4)),
     },
     commitments: Array.isArray(classState?.commitments)
       ? classState.commitments.map((commitment) => ({
@@ -222,6 +237,8 @@ function runInitAssertions() {
   );
   assert.deepEqual(summary.classOrder, ["villager", "stranger"], "expected deterministic class order");
   assert.equal(summary.byClass.villager.population.total, 8, "expected villager starting population");
+  assert.equal(summary.byClass.villager.population.adults, 8, "expected villager starting adults");
+  assert.equal(summary.byClass.villager.population.youth, 0, "expected villager starting youth");
   assert.equal(summary.byClass.villager.population.free, 6, "expected villager free population after temple staffing");
   assert.equal(summary.byClass.stranger.population.total, 0, "expected stranger pool to start empty");
   assert.deepEqual(
@@ -246,7 +263,7 @@ function runMealPriorityAssertions() {
         blueResource: 0,
         blackResource: 0,
       },
-      strangerTotal: 4,
+      strangerAdults: 4,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
       structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
@@ -268,6 +285,7 @@ function runMealPriorityAssertions() {
       lastMealSuccesses: 0,
       lastOutcomeKind: null,
       lastSeasonOutcomeKind: "partial",
+      lastSeasonFeedRatio: 0.75,
     },
     "villagers should eat first in class order"
   );
@@ -282,6 +300,7 @@ function runMealPriorityAssertions() {
       lastMealSuccesses: 0,
       lastOutcomeKind: null,
       lastSeasonOutcomeKind: "missed",
+      lastSeasonFeedRatio: 0,
     },
     "strangers should only eat from the food remaining after villagers"
   );
@@ -308,41 +327,77 @@ function runHappinessAssertions() {
     summarizeClass(positiveState, "villager").happiness,
     {
       status: "positive",
-      positiveFeedStreak: 0,
-      negativeFeedStreak: 0,
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
     },
     "three consecutive fully-fed seasons should improve class happiness"
   );
 
-  const negativeState = createInitialState(
+  const risingPartialState = createInitialState(
     buildSettlementSetup({
       stockpiles: {
-        food: 15,
+        food: 4,
         redResource: 0,
         greenResource: 0,
         blueResource: 0,
         blackResource: 0,
       },
-      villagerTotal: 10,
+      villagerAdults: 10,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
       structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
     }),
     123
   );
-  advanceToSecond(negativeState, 97);
+  advanceToSecond(risingPartialState, 33);
+  risingPartialState.hub.core.systemState.stockpiles.food = 6;
+  advanceToSecond(risingPartialState, 65);
+  risingPartialState.hub.core.systemState.stockpiles.food = 8;
+  advanceToSecond(risingPartialState, 97);
   assert.deepEqual(
-    summarizeClass(negativeState, "villager").happiness,
+    summarizeClass(risingPartialState, "villager").happiness,
+    {
+      status: "positive",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
+    },
+    "three rising partial feed ratios should improve happiness"
+  );
+
+  const flatPartialState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 6,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 10,
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(flatPartialState, 33);
+  flatPartialState.hub.core.systemState.stockpiles.food = 6;
+  advanceToSecond(flatPartialState, 65);
+  assert.deepEqual(
+    summarizeClass(flatPartialState, "villager").happiness,
     {
       status: "negative",
-      positiveFeedStreak: 0,
-      negativeFeedStreak: 0,
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [0.6],
     },
-    "two partial seasons should worsen happiness"
+    "flat-or-lower partial feed ratios should worsen happiness immediately"
   );
 
   advanceToSecond(positiveState, 129);
-  advanceToSecond(negativeState, 129);
+  advanceToSecond(flatPartialState, 129);
 
   assert.equal(
     summarizeClass(positiveState, "villager").faith.tier,
@@ -350,14 +405,34 @@ function runHappinessAssertions() {
     "happy classes should gain faith at the spring yearly rollover"
   );
   assert.equal(
-    summarizeClass(negativeState, "villager").faith.tier,
+    summarizeClass(flatPartialState, "villager").faith.tier,
     "silver",
     "unhappy classes should lose faith at the spring yearly rollover"
   );
   assert.equal(
-    summarizeClass(negativeState, "villager").population.total,
+    summarizeClass(flatPartialState, "villager").population.total,
+    12,
+    "yearly population change should now follow the class faith tier instead of feeding outcome"
+  );
+  assert.equal(
+    summarizeClass(flatPartialState, "villager").population.adults,
+    10,
+    "faith-based youth growth should not change adult workforce directly"
+  );
+  assert.equal(
+    summarizeClass(flatPartialState, "villager").population.youth,
+    2,
+    "gold faith should add 20 percent of the class into youth even on a negative year"
+  );
+  assert.equal(
+    summarizeClass(positiveState, "villager").population.adults,
     8,
-    "faith degradation should also reduce class population by 20 percent"
+    "good years should not directly increase adults"
+  );
+  assert.equal(
+    summarizeClass(positiveState, "villager").population.youth,
+    1,
+    "good years should add youth instead"
   );
 
   const missedState = createInitialState(
@@ -375,15 +450,32 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(missedState, 33);
+  advanceToSecond(missedState, 97);
   assert.deepEqual(
     summarizeClass(missedState, "villager").happiness,
     {
       status: "negative",
-      positiveFeedStreak: 0,
-      negativeFeedStreak: 0,
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
     },
-    "a missed season should worsen happiness immediately"
+    "three consecutive missed seasons should trigger starvation and reduce happiness"
+  );
+  assert.equal(
+    summarizeClass(missedState, "villager").faith.tier,
+    "silver",
+    "the starvation event should reduce faith by one tier immediately"
+  );
+  assert.equal(
+    summarizeClass(missedState, "villager").population.total,
+    7,
+    "the starvation event should remove 20 percent of class population immediately"
+  );
+  const starvationEvent = findLastGameEvent(missedState, "populationStarvationEvent", "villager");
+  assert.equal(
+    starvationEvent?.data?.starvationLoss?.totalRemoved,
+    1,
+    "the starvation event should report the seasonal population loss"
   );
 
   const bronzeCollapseState = createInitialState(
@@ -395,8 +487,14 @@ function runHappinessAssertions() {
         blueResource: 0,
         blackResource: 0,
       },
-      villagerTotal: 10,
+      villagerAdults: 10,
       villagerFaithTier: "bronze",
+      villagerHappiness: {
+        status: "negative",
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
+      },
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
       structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
@@ -411,8 +509,8 @@ function runHappinessAssertions() {
   );
   assert.equal(
     summarizeClass(bronzeCollapseState, "villager").population.total,
-    0,
-    "negative happiness at bronze faith should wipe the class population"
+    5,
+    "negative happiness at bronze faith should now cause a half-loss after the bronze yearly decline"
   );
   const collapseEvent = findLastGameEvent(
     bronzeCollapseState,
@@ -426,8 +524,8 @@ function runHappinessAssertions() {
   );
   assert.equal(
     collapseEvent?.data?.faithPopulationLoss,
-    10,
-    "faith collapse should report the full class loss in the yearly event"
+    4,
+    "bronze-floor faith collapse should report the half-loss applied after the bronze yearly decline"
   );
 
   const floodRitesMoodState = createInitialState(
@@ -441,8 +539,9 @@ function runHappinessAssertions() {
       },
       villagerHappiness: {
         status: "neutral",
-        positiveFeedStreak: 0,
-        negativeFeedStreak: 0,
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
       },
       villagerPracticeSlots: [{ defId: "floodRites" }, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
@@ -455,17 +554,112 @@ function runHappinessAssertions() {
     summarizeClass(floodRitesMoodState, "villager").happiness,
     {
       status: "positive",
-      positiveFeedStreak: 0,
-      negativeFeedStreak: 0,
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
     },
     "flood rites should raise the acting class mood by one step when it resolves"
+  );
+
+  const weightedDemandState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 9,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 8,
+      villagerYouth: 2,
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(weightedDemandState, 33);
+  assert.deepEqual(
+    summarizeClass(weightedDemandState, "villager").yearly,
+    {
+      year: 1,
+      mealAttempts: 9,
+      mealSuccesses: 9,
+      attractionProgress: 0,
+      lastMealAttempts: 0,
+      lastMealSuccesses: 0,
+      lastOutcomeKind: null,
+      lastSeasonOutcomeKind: "full",
+      lastSeasonFeedRatio: 1,
+    },
+    "season meals should use adults plus youth at half cost"
+  );
+
+  const springFloodplainState = createInitialState(
+    buildSettlementSetup({
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(springFloodplainState, 129);
+  assert.equal(
+    springFloodplainState.hub.core.systemState.stockpiles.greenResource,
+    10,
+    "floodplains should deposit green resource in spring after the autumn flood reset"
+  );
+
+  const demographicStepState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 1000,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 8,
+      villagerYouth: 10,
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(demographicStepState, 641);
+  const demographicEvent = findLastGameEvent(
+    demographicStepState,
+    "populationYearlyUpdate",
+    "villager"
+  );
+  assert.equal(
+    summarizeClass(demographicStepState, "villager").population.adults,
+    46,
+    "every five years some youth should convert into adults"
+  );
+  assert.equal(
+    summarizeClass(demographicStepState, "villager").population.youth,
+    38,
+    "every five years some youth should decay while the remainder stays youth"
+  );
+  assert.deepEqual(
+    demographicEvent?.data?.demographicStep,
+    {
+      youthBefore: 95,
+      toAdults: 38,
+      decayed: 19,
+      youthAfter: 38,
+      adultsAfter: 46,
+    },
+    "the five-year demographic step should report youth conversion and decay in the yearly event"
   );
 }
 
 function runMirroringAssertions() {
   const state = createInitialState(
     buildSettlementSetup({
-      strangerTotal: 4,
+      strangerAdults: 4,
     }),
     123
   );
@@ -516,20 +710,18 @@ function runOpenToStrangersAssertions() {
 
   const villager = summarizeClass(state, "villager");
   const stranger = summarizeClass(state, "stranger");
-  const expectedVillagersAfterGrowth = 9;
+  const expectedVillagersAfterGrowth = 12;
+  const expectedVillagerAdults = 8;
+  const expectedVillagerYouth = 4;
   const expectedStrangerAttraction = Math.floor(
     (populationCapacity - expectedVillagersAfterGrowth) *
       PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR
   );
-  const expectedFoodAfterPractices = 130;
-  const expectedFoodAfterSpringMeal = Math.max(
-    0,
-    expectedFoodAfterPractices -
-      expectedVillagersAfterGrowth -
-      expectedStrangerAttraction
-  );
+  const expectedFoodAfterSpringMeal = 0;
 
   assert.equal(villager.population.total, expectedVillagersAfterGrowth, "villagers should still receive their own yearly growth result");
+  assert.equal(villager.population.adults, expectedVillagerAdults, "villager adults should remain stable after a favorable year");
+  assert.equal(villager.population.youth, expectedVillagerYouth, "villager favorable growth should now land in youth");
   assert.equal(
     stranger.population.total,
     expectedStrangerAttraction,
@@ -538,7 +730,7 @@ function runOpenToStrangersAssertions() {
   assert.equal(
     getSettlementStockpile(state, "food"),
     expectedFoodAfterSpringMeal,
-    "after yearly attraction, the new spring meal should consume food for both classes in priority order"
+    "after the spring deposit timing shift, the new spring meal and practice startup should leave the food stockpile empty in this fixture"
   );
   assert.deepEqual(
     state.hub.core.props.practicePassiveBonusesByClass,
@@ -574,8 +766,8 @@ function runBecomeVillagersAssertions() {
         blueResource: 0,
         blackResource: 0,
       },
-      villagerTotal: 0,
-      strangerTotal: 20,
+      villagerAdults: 0,
+      strangerAdults: 20,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, { defId: "becomeVillagers" }, null, null, null],
       structures: [{ defId: "granary" }, { defId: "mudHouses" }, null, null, null, null],
@@ -618,16 +810,61 @@ function runBecomeVillagersAssertions() {
     "become villagers should transfer its reserved amount into the villager class on completion"
   );
   assert.equal(
+    summarizeClass(state, "villager").population.adults,
+    2,
+    "become villagers should transfer adults by default"
+  );
+  assert.equal(
     summarizeClass(state, "stranger").practice[1].activeReservation,
-    false,
-    "become villagers should clear its active reservation after completion"
+    true,
+    "become villagers should be able to start a new reservation immediately after completion if the stranger class still qualifies"
   );
 }
 
 function runSerializationReplayAssertions() {
+  const legacySetup = buildSettlementSetup();
+  const legacyState = createInitialState(
+    {
+      ...legacySetup,
+      hub: {
+        ...legacySetup.hub,
+        core: {
+          systemState: {
+            stockpiles: {
+              food: 40,
+              redResource: 0,
+              greenResource: 0,
+              blueResource: 0,
+              blackResource: 0,
+            },
+            populationClasses: {
+              villager: {
+                total: 8,
+              },
+              stranger: {
+                total: 0,
+              },
+            },
+          },
+        },
+      },
+    },
+    123
+  );
+  assert.equal(
+    summarizeClass(legacyState, "villager").population.adults,
+    8,
+    "legacy class totals should normalize into adult population"
+  );
+  assert.equal(
+    summarizeClass(legacyState, "villager").population.youth,
+    0,
+    "legacy class totals should default youth to zero"
+  );
+
   const live = createInitialState(
     buildSettlementSetup({
-      strangerTotal: 4,
+      strangerAdults: 4,
     }),
     123
   );
@@ -644,7 +881,7 @@ function runSerializationReplayAssertions() {
   const timeline = createTimelineFromInitialState(
     createInitialState(
       buildSettlementSetup({
-        strangerTotal: 4,
+        strangerAdults: 4,
       }),
       123
     )
