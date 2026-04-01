@@ -136,7 +136,8 @@ export const hubSystemDefs = {
     stateDefaults: {
       populationClasses: {
         villager: {
-          total: 0,
+          adults: 0,
+          youth: 0,
           commitments: [],
           yearly: {
             year: 1,
@@ -152,12 +153,14 @@ export const hubSystemDefs = {
           },
           happiness: {
             status: "neutral",
-            positiveFeedStreak: 0,
-            negativeFeedStreak: 0,
+            fullFeedStreak: 0,
+            missedFeedStreak: 0,
+            partialFeedRatios: [],
           },
         },
         stranger: {
-          total: 0,
+          adults: 0,
+          youth: 0,
           commitments: [],
           yearly: {
             year: 1,
@@ -173,8 +176,9 @@ export const hubSystemDefs = {
           },
           happiness: {
             status: "neutral",
-            positiveFeedStreak: 0,
-            negativeFeedStreak: 0,
+            fullFeedStreak: 0,
+            missedFeedStreak: 0,
+            partialFeedRatios: [],
           },
         },
       },

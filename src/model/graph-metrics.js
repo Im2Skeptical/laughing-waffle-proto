@@ -23,11 +23,12 @@ function getSettlementFoodTooltipSpec(state) {
   const population = getSettlementPopulationSummary(state);
   const food = getSettlementStockpile(state, "food");
   const foodCapacity = Math.max(0, Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0));
+  const weightedDemand = population.adults + population.youth * 0.5;
   return {
     title: "Food",
     lines: [
-      `Current stockpile: ${Math.floor(food)}/${foodCapacity}`,
-      `Each season change consumes up to ${population.total} food from the stockpile.`,
+      `Current stockpile: ${Number(food).toFixed(1)}/${foodCapacity}`,
+      `Each season change consumes up to ${weightedDemand.toFixed(1)} food (${population.adults} adults + ${population.youth} youth at 0.5).`,
       "Spring rollovers resolve the last year's population and faith before the new season meal.",
     ],
   };
@@ -69,6 +70,8 @@ function getSettlementPopulationTooltipSpec(state, classId = null) {
     title: `${classId ? `${formatClassLabel(classId)} ` : ""}Population`,
     lines: [
       `Total population: ${population.total}`,
+      `Adults: ${population.adults}`,
+      `Youth: ${population.youth}`,
       `Reserved by structures/practices: ${population.reserved}`,
       `Free population: ${population.free}`,
     ],
@@ -102,13 +105,18 @@ function getSettlementFaithTooltipSpec(state, classId = null) {
 
 function getSettlementHappinessTooltipSpec(state, classId = null) {
   const happiness = getSettlementHappinessSummary(state, classId);
+  const partialMemory =
+    happiness.partialFeedRatios.length > 0
+      ? happiness.partialFeedRatios.map((value) => `${Math.round(value * 100)}%`).join(" -> ")
+      : "None";
   return {
     title: `${classId ? `${formatClassLabel(classId)} ` : ""}Happiness`,
     lines: [
       `Current state: ${capitalizeLabel(happiness.status)}`,
-      `Full-feed streak: ${happiness.positiveFeedStreak}/${happiness.fullFeedThreshold}`,
-      `Partial-feed streak: ${happiness.negativeFeedStreak}/${happiness.partialFeedThreshold}`,
-      "Three full seasons improve happiness. One missed season worsens it immediately. Two partial seasons also worsen it.",
+      `Full-feed streak: ${happiness.fullFeedStreak}/${happiness.fullFeedThreshold}`,
+      `Missed-feed streak: ${happiness.missedFeedStreak}/${happiness.missedFeedThreshold}`,
+      `Partial memory: ${partialMemory}`,
+      "Three full seasons set happiness to positive. Three consecutive misses trigger a starvation event. Partial ratios improve on 3 rising steps and worsen immediately on flat-or-lower steps.",
     ],
   };
 }

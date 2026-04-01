@@ -1,9 +1,15 @@
 import {
-  POPULATION_COLLAPSE_ALL_FAIL_MULTIPLIER,
-  POPULATION_GROWTH_FULL_FEED_RATE,
+  DEMOGRAPHIC_STEP_YEARS,
   SEASON_DISPLAY,
+  SETTLEMENT_BRONZE_FLOOR_COLLAPSE_LOSS_RATE,
   SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
-  SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE,
+  SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION,
+  SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
+  SETTLEMENT_STARVATION_EVENT_POPULATION_LOSS_RATE,
+  SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH,
+  YOUTH_DECAY_RATE,
+  YOUTH_FOOD_COST,
+  YOUTH_TO_ADULT_RATE,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
@@ -40,6 +46,124 @@ function getCommittedPopulationForClass(classState) {
   return commitments.reduce((sum, commitment) => sum + getCommitmentAmount(commitment), 0);
 }
 
+function getAdultPopulationForClass(classState) {
+  if (Number.isFinite(classState?.adults)) {
+    return Math.max(0, Math.floor(classState.adults));
+  }
+  if (Number.isFinite(classState?.total)) {
+    return Math.max(0, Math.floor(classState.total));
+  }
+  return 0;
+}
+
+function getYouthPopulationForClass(classState) {
+  return Number.isFinite(classState?.youth) ? Math.max(0, Math.floor(classState.youth)) : 0;
+}
+
+function getTotalPopulationForClass(classState) {
+  return getAdultPopulationForClass(classState) + getYouthPopulationForClass(classState);
+}
+
+function setPopulationClassCounts(classState, adults, youth) {
+  if (!classState || typeof classState !== "object") return;
+  classState.adults = Number.isFinite(adults) ? Math.max(0, Math.floor(adults)) : 0;
+  classState.youth = Number.isFinite(youth) ? Math.max(0, Math.floor(youth)) : 0;
+}
+
+function addAdultPopulation(classState, amount) {
+  if (!classState || typeof classState !== "object") return 0;
+  const delta = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  if (delta <= 0) return getAdultPopulationForClass(classState);
+  const nextAdults = getAdultPopulationForClass(classState) + delta;
+  setPopulationClassCounts(classState, nextAdults, getYouthPopulationForClass(classState));
+  return nextAdults;
+}
+
+function addYouthPopulation(classState, amount) {
+  if (!classState || typeof classState !== "object") return 0;
+  const delta = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  if (delta <= 0) return getYouthPopulationForClass(classState);
+  const nextYouth = getYouthPopulationForClass(classState) + delta;
+  setPopulationClassCounts(classState, getAdultPopulationForClass(classState), nextYouth);
+  return nextYouth;
+}
+
+function reducePopulationFromClass(classState, amount) {
+  if (!classState || typeof classState !== "object") {
+    return { adultsRemoved: 0, youthRemoved: 0, totalRemoved: 0 };
+  }
+  const adults = getAdultPopulationForClass(classState);
+  const youth = getYouthPopulationForClass(classState);
+  const total = adults + youth;
+  const targetRemoval = Math.min(
+    total,
+    Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0
+  );
+  if (targetRemoval <= 0 || total <= 0) {
+    return { adultsRemoved: 0, youthRemoved: 0, totalRemoved: 0 };
+  }
+
+  let adultsRemoved = Math.min(adults, Math.floor((targetRemoval * adults) / total));
+  let youthRemoved = Math.min(youth, targetRemoval - adultsRemoved);
+  let remaining = targetRemoval - adultsRemoved - youthRemoved;
+  if (remaining > 0) {
+    const extraYouth = Math.min(youth - youthRemoved, remaining);
+    youthRemoved += extraYouth;
+    remaining -= extraYouth;
+  }
+  if (remaining > 0) {
+    const extraAdults = Math.min(adults - adultsRemoved, remaining);
+    adultsRemoved += extraAdults;
+    remaining -= extraAdults;
+  }
+
+  setPopulationClassCounts(classState, adults - adultsRemoved, youth - youthRemoved);
+  return {
+    adultsRemoved,
+    youthRemoved,
+    totalRemoved: adultsRemoved + youthRemoved,
+  };
+}
+
+function getYouthFoodCost() {
+  return Number.isFinite(YOUTH_FOOD_COST) ? Math.max(0, Number(YOUTH_FOOD_COST)) : 0.5;
+}
+
+function getWeightedFoodDemandForClass(classState) {
+  return getAdultPopulationForClass(classState) + getYouthPopulationForClass(classState) * getYouthFoodCost();
+}
+
+function roundMealValue(value) {
+  return Number(Number.isFinite(value) ? value : 0).toFixed(4) * 1;
+}
+
+function shouldRunDemographicStep(priorYear) {
+  const cadence = Number.isFinite(DEMOGRAPHIC_STEP_YEARS)
+    ? Math.max(1, Math.floor(DEMOGRAPHIC_STEP_YEARS))
+    : 5;
+  const year = Number.isFinite(priorYear) ? Math.max(1, Math.floor(priorYear)) : 1;
+  return year % cadence === 0;
+}
+
+function applyDemographicStep(classState) {
+  const youthBefore = getYouthPopulationForClass(classState);
+  if (youthBefore <= 0) {
+    return { youthBefore, toAdults: 0, decayed: 0, youthAfter: 0, adultsAfter: getAdultPopulationForClass(classState) };
+  }
+  const toAdultsRate = Number.isFinite(YOUTH_TO_ADULT_RATE)
+    ? Math.max(0, Number(YOUTH_TO_ADULT_RATE))
+    : 0.4;
+  const decayRate = Number.isFinite(YOUTH_DECAY_RATE)
+    ? Math.max(0, Number(YOUTH_DECAY_RATE))
+    : 0.2;
+  const toAdults = Math.min(youthBefore, Math.floor(youthBefore * toAdultsRate));
+  const decayed = Math.min(youthBefore - toAdults, Math.floor(youthBefore * decayRate));
+  const youthAfter = Math.max(0, youthBefore - toAdults - decayed);
+  const adultsAfter = getAdultPopulationForClass(classState) + toAdults;
+  setPopulationClassCounts(classState, adultsAfter, youthAfter);
+  return { youthBefore, toAdults, decayed, youthAfter, adultsAfter };
+}
+
 function buildPracticePassiveKey(card, classId) {
   const instanceId = Number.isFinite(card?.instanceId) ? Math.floor(card.instanceId) : 0;
   return `settlement:practice:${classId || "default"}:${instanceId}`;
@@ -63,10 +187,17 @@ function getHappinessFullFeedThreshold() {
   return Math.max(1, raw);
 }
 
-function getHappinessPartialFeedThreshold() {
-  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE)
-    ? Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_FEED_STREAK_FOR_DECREASE)
-    : 2;
+function getHappinessMissedFeedThreshold() {
+  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION)
+    ? Math.floor(SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION)
+    : 3;
+  return Math.max(1, raw);
+}
+
+function getHappinessPartialMemoryLength() {
+  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH)
+    ? Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH)
+    : 3;
   return Math.max(1, raw);
 }
 
@@ -88,79 +219,129 @@ function computeFaithPopulationPenalty(totalPopulation, kind) {
     ? Math.max(0, Math.floor(totalPopulation))
     : 0;
   if (total <= 0) return 0;
-  if (kind === "faithCollapsed") {
-    return total;
-  }
-  if (kind !== "faithDegraded") {
+  if (kind !== "faithCollapsed") {
     return 0;
   }
-  return Math.min(total, Math.max(1, Math.floor(total * 0.2)));
+  const collapseRate = Number.isFinite(SETTLEMENT_BRONZE_FLOOR_COLLAPSE_LOSS_RATE)
+    ? Math.max(0, Number(SETTLEMENT_BRONZE_FLOOR_COLLAPSE_LOSS_RATE))
+    : 0.5;
+  return Math.min(total, Math.max(1, Math.floor(total * collapseRate)));
+}
+
+function getSettlementYearlyPopulationFaithRate(faithTier) {
+  if (
+    SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH &&
+    typeof SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH === "object"
+  ) {
+    const rate = SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH[faithTier];
+    if (Number.isFinite(rate)) return Number(rate);
+  }
+  return 0;
 }
 
 function getSeasonMealOutcomeKind(attempts, successes) {
-  const safeAttempts = Number.isFinite(attempts) ? Math.max(0, Math.floor(attempts)) : 0;
-  const safeSuccesses = Number.isFinite(successes) ? Math.max(0, Math.floor(successes)) : 0;
+  const safeAttempts = Number.isFinite(attempts) ? Math.max(0, Number(attempts)) : 0;
+  const safeSuccesses = Number.isFinite(successes) ? Math.max(0, Number(successes)) : 0;
   if (safeAttempts <= 0) return "dormant";
-  if (safeSuccesses >= safeAttempts) return "full";
+  if (safeSuccesses >= safeAttempts - 0.0001) return "full";
   if (safeSuccesses <= 0) return "missed";
   return "partial";
 }
 
-function applySeasonHappinessOutcome(happinessState, seasonOutcomeKind) {
+function getSeasonFeedRatio(attempts, successes) {
+  const safeAttempts = Number.isFinite(attempts) ? Math.max(0, Number(attempts)) : 0;
+  if (safeAttempts <= 0) return 0;
+  const safeSuccesses = Number.isFinite(successes) ? Math.max(0, Number(successes)) : 0;
+  return Math.max(0, Math.min(1, safeSuccesses / safeAttempts));
+}
+
+function applySeasonHappinessOutcome(happinessState, seasonOutcomeKind, feedRatio) {
   if (!happinessState || typeof happinessState !== "object") {
     return {
       previousStatus: "neutral",
       nextStatus: "neutral",
-      positiveFeedStreak: 0,
-      negativeFeedStreak: 0,
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
       seasonOutcomeKind,
+      feedRatio,
+      starvationTriggered: false,
       changed: false,
     };
   }
 
   const previousStatus = normalizeHappinessStatus(happinessState.status);
   let nextStatus = previousStatus;
-  let positiveFeedStreak = Number.isFinite(happinessState.positiveFeedStreak)
-    ? Math.max(0, Math.floor(happinessState.positiveFeedStreak))
+  let fullFeedStreak = Number.isFinite(happinessState.fullFeedStreak)
+    ? Math.max(0, Math.floor(happinessState.fullFeedStreak))
     : 0;
-  let negativeFeedStreak = Number.isFinite(happinessState.negativeFeedStreak)
-    ? Math.max(0, Math.floor(happinessState.negativeFeedStreak))
+  let missedFeedStreak = Number.isFinite(happinessState.missedFeedStreak)
+    ? Math.max(0, Math.floor(happinessState.missedFeedStreak))
     : 0;
+  let partialFeedRatios = Array.isArray(happinessState.partialFeedRatios)
+    ? happinessState.partialFeedRatios
+        .map((value) =>
+          Number.isFinite(value) ? Math.max(0, Math.min(1, Number(value))) : null
+        )
+        .filter((value) => value != null)
+        .slice(-getHappinessPartialMemoryLength())
+    : [];
   const fullThreshold = getHappinessFullFeedThreshold();
-  const partialThreshold = getHappinessPartialFeedThreshold();
+  const missedThreshold = getHappinessMissedFeedThreshold();
+  const partialMemoryLength = getHappinessPartialMemoryLength();
+  let starvationTriggered = false;
 
   if (seasonOutcomeKind === "full") {
-    positiveFeedStreak += 1;
-    negativeFeedStreak = 0;
-    if (positiveFeedStreak >= fullThreshold) {
-      nextStatus = shiftHappinessStatus(previousStatus, 1);
-      positiveFeedStreak = 0;
+    fullFeedStreak += 1;
+    missedFeedStreak = 0;
+    partialFeedRatios = [];
+    if (fullFeedStreak >= fullThreshold) {
+      nextStatus = "positive";
+      fullFeedStreak = 0;
     }
   } else if (seasonOutcomeKind === "partial") {
-    negativeFeedStreak += 1;
-    positiveFeedStreak = 0;
-    if (negativeFeedStreak >= partialThreshold) {
+    const safeFeedRatio = Math.max(0, Math.min(1, Number(feedRatio) || 0));
+    const previousPartialRatio =
+      partialFeedRatios.length > 0 ? partialFeedRatios[partialFeedRatios.length - 1] : null;
+    fullFeedStreak = 0;
+    missedFeedStreak = 0;
+    if (previousPartialRatio != null && safeFeedRatio <= previousPartialRatio + 0.0001) {
       nextStatus = shiftHappinessStatus(previousStatus, -1);
-      negativeFeedStreak = 0;
+      partialFeedRatios = [safeFeedRatio];
+    } else {
+      partialFeedRatios = [...partialFeedRatios, safeFeedRatio].slice(-partialMemoryLength);
+      if (partialFeedRatios.length >= partialMemoryLength) {
+        nextStatus = shiftHappinessStatus(previousStatus, 1);
+        partialFeedRatios = [];
+      }
     }
   } else if (seasonOutcomeKind === "missed") {
-    positiveFeedStreak = 0;
-    negativeFeedStreak = 0;
-    nextStatus = shiftHappinessStatus(previousStatus, -1);
+    fullFeedStreak = 0;
+    partialFeedRatios = [];
+    missedFeedStreak += 1;
+    if (missedFeedStreak >= missedThreshold) {
+      starvationTriggered = true;
+      missedFeedStreak = 0;
+    }
   } else {
-    positiveFeedStreak = 0;
-    negativeFeedStreak = 0;
+    fullFeedStreak = 0;
+    missedFeedStreak = 0;
+    partialFeedRatios = [];
   }
 
   happinessState.status = nextStatus;
-  happinessState.positiveFeedStreak = positiveFeedStreak;
-  happinessState.negativeFeedStreak = negativeFeedStreak;
+  happinessState.fullFeedStreak = fullFeedStreak;
+  happinessState.missedFeedStreak = missedFeedStreak;
+  happinessState.partialFeedRatios = partialFeedRatios;
   return {
     previousStatus,
     nextStatus,
-    positiveFeedStreak,
-    negativeFeedStreak,
+    fullFeedStreak,
+    missedFeedStreak,
+    partialFeedRatios,
     seasonOutcomeKind,
+    feedRatio,
+    starvationTriggered,
     changed: previousStatus !== nextStatus,
   };
 }
@@ -406,12 +587,15 @@ function buildClassAvailabilityBeforeStructures(state) {
   const out = {};
   for (const classId of getSettlementClassIds(state)) {
     const classState = getPopulationClassState(state, classId);
-    const total = Number.isFinite(classState?.total) ? Math.max(0, Math.floor(classState.total)) : 0;
+    const adults = getAdultPopulationForClass(classState);
+    const youth = getYouthPopulationForClass(classState);
     const committed = getCommittedPopulationForClass(classState);
     out[classId] = {
-      total,
+      adults,
+      youth,
+      total: adults + youth,
       committed,
-      available: Math.max(0, total - committed),
+      available: Math.max(0, adults - committed),
     };
   }
   return out;
@@ -507,7 +691,11 @@ function computeStructureDerivedState(state) {
   );
   const structureSlots = getSettlementStructureSlots(state);
 
-  let availableForStructures = Math.max(0, totalPopulation - committedPopulation);
+  const totalAdultPopulation = classIds.reduce(
+    (sum, classId) => sum + classAvailability[classId].adults,
+    0
+  );
+  let availableForStructures = Math.max(0, totalAdultPopulation - committedPopulation);
   let structureStaffingReserved = 0;
   let foodCapacity = 0;
   let populationCapacity = 0;
@@ -582,25 +770,34 @@ function computeStructureDerivedState(state) {
   const classSummaries = {};
   for (const classId of classIds) {
     const classState = getPopulationClassState(state, classId);
+    const adults = classAvailability[classId].adults;
+    const youth = classAvailability[classId].youth;
     const total = classAvailability[classId].total;
     const committed = classAvailability[classId].committed;
     const staffed = Math.max(0, Math.floor(staffingByClass[classId] ?? 0));
+    const freeAdults = Math.max(0, adults - committed - staffed);
     classSummaries[classId] = {
+      adults,
+      youth,
+      workPopulation: adults,
       totalPopulation: total,
       total,
       committed,
       staffed,
       reserved: committed + staffed,
-      freePopulation: Math.max(0, total - committed - staffed),
-      free: Math.max(0, total - committed - staffed),
+      freePopulation: freeAdults,
+      free: freeAdults,
       faithTier: typeof classState?.faith?.tier === "string" ? classState.faith.tier : "gold",
       happinessStatus: normalizeHappinessStatus(classState?.happiness?.status),
-      positiveFeedStreak: Number.isFinite(classState?.happiness?.positiveFeedStreak)
-        ? Math.max(0, Math.floor(classState.happiness.positiveFeedStreak))
+      fullFeedStreak: Number.isFinite(classState?.happiness?.fullFeedStreak)
+        ? Math.max(0, Math.floor(classState.happiness.fullFeedStreak))
         : 0,
-      negativeFeedStreak: Number.isFinite(classState?.happiness?.negativeFeedStreak)
-        ? Math.max(0, Math.floor(classState.happiness.negativeFeedStreak))
+      missedFeedStreak: Number.isFinite(classState?.happiness?.missedFeedStreak)
+        ? Math.max(0, Math.floor(classState.happiness.missedFeedStreak))
         : 0,
+      partialFeedRatios: Array.isArray(classState?.happiness?.partialFeedRatios)
+        ? [...classState.happiness.partialFeedRatios]
+        : [],
     };
   }
 
@@ -644,7 +841,7 @@ function computeStructureDerivedState(state) {
 
 function trimPopulationCommitmentsToTotal(classState) {
   if (!classState || !Array.isArray(classState.commitments)) return false;
-  const total = Number.isFinite(classState.total) ? Math.max(0, Math.floor(classState.total)) : 0;
+  const total = getAdultPopulationForClass(classState);
   let committed = getCommittedPopulationForClass(classState);
   if (committed <= total) return false;
   let changed = false;
@@ -697,27 +894,30 @@ function clampSettlementState(state, summary) {
   const classIds = getSettlementClassIds(state);
   let totalPopulation = classIds.reduce((sum, classId) => {
     const classState = getPopulationClassState(state, classId);
-    return sum + Math.max(0, Math.floor(classState?.total ?? 0));
+    return sum + getTotalPopulationForClass(classState);
   }, 0);
   if (totalPopulation > populationCapacity) {
     let overflow = totalPopulation - populationCapacity;
     for (let index = classIds.length - 1; index >= 0 && overflow > 0; index -= 1) {
       const classState = getPopulationClassState(state, classIds[index]);
       if (!classState) continue;
-      const current = Math.max(0, Math.floor(classState.total ?? 0));
-      const removed = Math.min(current, overflow);
-      if (removed <= 0) continue;
-      classState.total = current - removed;
-      overflow -= removed;
-      changed = true;
+      const removed = reducePopulationFromClass(classState, overflow).totalRemoved;
+      if (removed > 0) {
+        overflow -= removed;
+        changed = true;
+      }
     }
   }
 
   for (const classId of classIds) {
     const classState = getPopulationClassState(state, classId);
     if (!classState) continue;
-    if (!Number.isFinite(classState.total) || classState.total < 0) {
-      classState.total = 0;
+    if (!Number.isFinite(classState.adults) || classState.adults < 0) {
+      classState.adults = 0;
+      changed = true;
+    }
+    if (!Number.isFinite(classState.youth) || classState.youth < 0) {
+      classState.youth = 0;
       changed = true;
     }
     if (trimPopulationCommitmentsToTotal(classState)) {
@@ -782,7 +982,7 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
   if (!stockpiles) return false;
 
   let changed = false;
-  let availableFood = Number.isFinite(stockpiles.food) ? Math.max(0, Math.floor(stockpiles.food)) : 0;
+  let availableFood = Number.isFinite(stockpiles.food) ? Math.max(0, Number(stockpiles.food)) : 0;
   const seasonKey = getCurrentSeasonKey(state);
   const seasonLabel = SEASON_DISPLAY?.[seasonKey] || seasonKey || "Season";
 
@@ -791,52 +991,122 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
     const yearlyState = classState?.yearly;
     const happinessState = classState?.happiness;
     if (!classState || !yearlyState) continue;
-    const attempts = Number.isFinite(classState.total)
-      ? Math.max(0, Math.floor(classState.total))
-      : 0;
+    const attempts = getWeightedFoodDemandForClass(classState);
     const successes = Math.min(attempts, availableFood);
     const misses = Math.max(0, attempts - successes);
+    const feedRatio = getSeasonFeedRatio(attempts, successes);
     const seasonOutcomeKind = getSeasonMealOutcomeKind(attempts, successes);
-    const happinessOutcome = applySeasonHappinessOutcome(happinessState, seasonOutcomeKind);
+    const happinessOutcome = applySeasonHappinessOutcome(
+      happinessState,
+      seasonOutcomeKind,
+      feedRatio
+    );
     availableFood = Math.max(0, availableFood - successes);
-    yearlyState.mealAttempts = Math.max(0, Math.floor(yearlyState.mealAttempts ?? 0) + attempts);
-    yearlyState.mealSuccesses = Math.max(
-      0,
-      Math.floor(yearlyState.mealSuccesses ?? 0) + successes
+    yearlyState.mealAttempts = roundMealValue(Number(yearlyState.mealAttempts ?? 0) + attempts);
+    yearlyState.mealSuccesses = roundMealValue(
+      Number(yearlyState.mealSuccesses ?? 0) + successes
     );
     yearlyState.lastSeasonOutcomeKind = seasonOutcomeKind;
+    yearlyState.lastSeasonFeedRatio = roundMealValue(feedRatio);
     changed = true;
+
+    let starvationLoss = { adultsRemoved: 0, youthRemoved: 0, totalRemoved: 0 };
+    let starvationFaithBefore = null;
+    let starvationFaithAfter = null;
+    let starvationHappinessBefore = null;
+    let starvationHappinessAfter = null;
+    if (happinessOutcome.starvationTriggered) {
+      const currentPopulation = getTotalPopulationForClass(classState);
+      const starvationLossRate = Number.isFinite(SETTLEMENT_STARVATION_EVENT_POPULATION_LOSS_RATE)
+        ? Math.max(0, Number(SETTLEMENT_STARVATION_EVENT_POPULATION_LOSS_RATE))
+        : 0.2;
+      const starvationLossAmount = Math.min(
+        currentPopulation,
+        Math.max(1, Math.floor(currentPopulation * starvationLossRate))
+      );
+      starvationLoss = reducePopulationFromClass(classState, starvationLossAmount);
+      starvationFaithBefore = typeof classState?.faith?.tier === "string" ? classState.faith.tier : "gold";
+      starvationHappinessBefore = normalizeHappinessStatus(happinessState?.status);
+      if (classState?.faith && typeof classState.faith === "object") {
+        classState.faith.tier = shiftTier(starvationFaithBefore, -1);
+        starvationFaithAfter = classState.faith.tier;
+      }
+      if (happinessState && typeof happinessState === "object") {
+        happinessState.status = shiftHappinessStatus(starvationHappinessBefore, -1);
+        happinessState.fullFeedStreak = 0;
+        happinessState.missedFeedStreak = 0;
+        happinessState.partialFeedRatios = [];
+        starvationHappinessAfter = happinessState.status;
+      }
+      happinessOutcome.nextStatus = normalizeHappinessStatus(happinessState?.status);
+      happinessOutcome.fullFeedStreak = Math.max(0, Math.floor(happinessState?.fullFeedStreak ?? 0));
+      happinessOutcome.missedFeedStreak = Math.max(0, Math.floor(happinessState?.missedFeedStreak ?? 0));
+      happinessOutcome.partialFeedRatios = Array.isArray(happinessState?.partialFeedRatios)
+        ? [...happinessState.partialFeedRatios]
+        : [];
+      changed = true;
+    }
 
     if (attempts <= 0) continue;
     pushGameEvent(state, {
       type: "populationSeasonMeal",
       tSec,
       text:
-        `${classId} consumed ${successes}/${attempts} meals in ${seasonLabel}` +
+        `${classId} consumed ${roundMealValue(successes)}/${roundMealValue(attempts)} weighted meals in ${seasonLabel}` +
         ` (${seasonOutcomeKind}, happiness ${happinessOutcome.previousStatus} -> ${happinessOutcome.nextStatus})`,
       data: {
         focusKind: "hubCore",
         hubStructureId: null,
         classId,
-        mealAttempts: attempts,
-        mealSuccesses: successes,
-        mealMisses: misses,
+        mealAttempts: roundMealValue(attempts),
+        mealSuccesses: roundMealValue(successes),
+        mealMisses: roundMealValue(misses),
+        feedRatio: roundMealValue(feedRatio),
+        adults: getAdultPopulationForClass(classState),
+        youth: getYouthPopulationForClass(classState),
+        youthFoodCost: getYouthFoodCost(),
         seasonKey,
         seasonOutcomeKind,
         happiness: {
           previousStatus: happinessOutcome.previousStatus,
           nextStatus: happinessOutcome.nextStatus,
-          positiveFeedStreak: happinessOutcome.positiveFeedStreak,
-          negativeFeedStreak: happinessOutcome.negativeFeedStreak,
+          fullFeedStreak: happinessOutcome.fullFeedStreak,
+          missedFeedStreak: happinessOutcome.missedFeedStreak,
+          partialFeedRatios: happinessOutcome.partialFeedRatios,
           fullFeedThreshold: getHappinessFullFeedThreshold(),
-          partialFeedThreshold: getHappinessPartialFeedThreshold(),
-          missedFeedDegradesImmediately: true,
+          missedFeedThreshold: getHappinessMissedFeedThreshold(),
+          partialMemoryLength: getHappinessPartialMemoryLength(),
         },
       },
     });
+
+    if (happinessOutcome.starvationTriggered) {
+      pushGameEvent(state, {
+        type: "populationStarvationEvent",
+        tSec,
+        text:
+          `${classId} starvation event in ${seasonLabel}: lost ${starvationLoss.totalRemoved} population, ` +
+          `happiness ${starvationHappinessBefore} -> ${starvationHappinessAfter}, ` +
+          `faith ${starvationFaithBefore} -> ${starvationFaithAfter}`,
+        data: {
+          classId,
+          seasonKey,
+          feedRatio: roundMealValue(feedRatio),
+          starvationLoss,
+          happiness: {
+            previousStatus: starvationHappinessBefore,
+            nextStatus: starvationHappinessAfter,
+          },
+          faith: {
+            previousTier: starvationFaithBefore,
+            nextTier: starvationFaithAfter,
+          },
+        },
+      });
+    }
   }
 
-  stockpiles.food = availableFood;
+  stockpiles.food = roundMealValue(availableFood);
   return changed;
 }
 
@@ -860,58 +1130,60 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
   for (const classId of classIds) {
     const classState = getPopulationClassState(state, classId);
     const yearlyState = classState?.yearly;
+    const faithState = classState?.faith;
     if (!classState || !yearlyState || yearlyState.year >= currentYear) continue;
 
-    const previousPopulation = Number.isFinite(classState.total)
-      ? Math.max(0, Math.floor(classState.total))
-      : 0;
+    const previousAdults = getAdultPopulationForClass(classState);
+    const previousYouth = getYouthPopulationForClass(classState);
+    const previousPopulation = previousAdults + previousYouth;
+    const previousFaithTier = typeof faithState?.tier === "string" ? faithState.tier : "gold";
     const mealAttempts = Number.isFinite(yearlyState.mealAttempts)
-      ? Math.max(0, Math.floor(yearlyState.mealAttempts))
+      ? Math.max(0, Number(yearlyState.mealAttempts))
       : 0;
     const mealSuccesses = Number.isFinite(yearlyState.mealSuccesses)
-      ? Math.max(0, Math.floor(yearlyState.mealSuccesses))
+      ? Math.max(0, Number(yearlyState.mealSuccesses))
       : 0;
     const mealMisses = Math.max(0, mealAttempts - mealSuccesses);
 
-    let populationAfterMeals = previousPopulation;
     let outcomeKind = "populationUnchanged";
     let outcomeText = "population held steady";
+    let youthGrowth = 0;
+    let starvationLoss = { adultsRemoved: 0, youthRemoved: 0, totalRemoved: 0 };
 
     if (previousPopulation > 0) {
-      if (mealAttempts > 0 && mealMisses === 0) {
-        const growthRate = Number.isFinite(POPULATION_GROWTH_FULL_FEED_RATE)
-          ? Math.max(0, POPULATION_GROWTH_FULL_FEED_RATE)
-          : 0;
-        const growth = Math.max(1, Math.floor(previousPopulation * growthRate));
-        populationAfterMeals = previousPopulation + growth;
+      const faithPopulationRate = getSettlementYearlyPopulationFaithRate(previousFaithTier);
+      if (faithPopulationRate > 0) {
+        const growth = Math.max(1, Math.floor(previousPopulation * faithPopulationRate));
+        youthGrowth = growth;
+        addYouthPopulation(classState, growth);
         outcomeKind = "populationChanged";
-        outcomeText = `full feeding growth (+${growth})`;
-      } else if (mealAttempts > 0 && mealSuccesses === 0) {
-        const collapseMultiplier = Number.isFinite(POPULATION_COLLAPSE_ALL_FAIL_MULTIPLIER)
-          ? Math.max(0, POPULATION_COLLAPSE_ALL_FAIL_MULTIPLIER)
-          : 0.5;
-        populationAfterMeals = Math.floor(previousPopulation * collapseMultiplier);
-        outcomeKind = "populationHalved";
-        outcomeText = "complete starvation collapse";
+        outcomeText = `${previousFaithTier} faith growth (+${growth} youth)`;
+      } else if (faithPopulationRate < 0) {
+        const loss = Math.max(1, Math.floor(previousPopulation * Math.abs(faithPopulationRate)));
+        starvationLoss = reducePopulationFromClass(classState, loss);
+        outcomeKind = "populationReduced";
+        outcomeText = `${previousFaithTier} faith decline (-${starvationLoss.totalRemoved} population)`;
       } else if (mealAttempts === 0) {
         outcomeText = "no yearly meal attempts";
-      } else {
-        outcomeText = "partial feeding";
       }
     } else {
       outcomeKind = "populationDormant";
       outcomeText = "no residents";
     }
 
-    classState.total = Math.max(0, Math.floor(populationAfterMeals));
     yearlyResults[classId] = {
       classId,
+      previousAdults,
+      previousYouth,
       previousPopulation,
-      mealAttempts,
-      mealSuccesses,
-      mealMisses,
+      previousFaithTier,
+      mealAttempts: roundMealValue(mealAttempts),
+      mealSuccesses: roundMealValue(mealSuccesses),
+      mealMisses: roundMealValue(mealMisses),
       outcomeKind,
       outcomeText,
+      youthGrowth,
+      starvationLoss,
     };
   }
 
@@ -931,25 +1203,34 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     const attractionPerVacancyPerYear = Number(
       afterMealsSummary?.practicePassiveBonusesByClass?.[classId]?.attractionPerVacancyPerYear ?? 0
     );
-    const allowAttraction =
-      result.previousPopulation <= 0 || result.outcomeKind !== "populationHalved";
-    const attraction = allowAttraction
-      ? applyYearlyHousingAttraction(yearlyState, remainingVacancy, attractionPerVacancyPerYear)
-      : (() => {
-          yearlyState.attractionProgress = 0;
-          return { attracted: 0, attractionProgress: 0 };
-        })();
+    const attraction = applyYearlyHousingAttraction(
+      yearlyState,
+      remainingVacancy,
+      attractionPerVacancyPerYear
+    );
     const attractedPopulation = Math.min(
       Math.max(0, Math.floor(attraction.attracted ?? 0)),
       remainingVacancy
     );
-    classState.total = Math.max(0, Math.floor(classState.total ?? 0) + attractedPopulation);
+    addAdultPopulation(classState, attractedPopulation);
     remainingVacancy = Math.max(0, remainingVacancy - attractedPopulation);
     result.attractedPopulation = attractedPopulation;
     result.attractionPerVacancyPerYear = attractionPerVacancyPerYear;
     if (result.previousPopulation <= 0 && attractedPopulation > 0) {
       result.outcomeKind = "populationAttracted";
       result.outcomeText = `vacancy attraction (+${attractedPopulation})`;
+    }
+  }
+
+  const priorYear = Math.max(1, currentYear - 1);
+  const demographicStepsByClass = {};
+  if (shouldRunDemographicStep(priorYear)) {
+    for (const classId of classIds) {
+      const result = yearlyResults[classId];
+      if (!result) continue;
+      const classState = getPopulationClassState(state, classId);
+      if (!classState) continue;
+      demographicStepsByClass[classId] = applyDemographicStep(classState);
     }
   }
 
@@ -980,13 +1261,13 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
       }
     }
 
-    const populationBeforeFaithPenalty = Math.max(0, Math.floor(classState.total ?? 0));
+    const populationBeforeFaithPenalty = getTotalPopulationForClass(classState);
     const faithPopulationLoss = computeFaithPopulationPenalty(
       populationBeforeFaithPenalty,
       faithOutcome
     );
     if (faithPopulationLoss > 0) {
-      classState.total = Math.max(0, populationBeforeFaithPenalty - faithPopulationLoss);
+      reducePopulationFromClass(classState, faithPopulationLoss);
     }
 
     faithState.tier = nextFaithTier;
@@ -997,13 +1278,25 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     yearlyState.lastMealSuccesses = result.mealSuccesses;
     yearlyState.lastOutcomeKind = result.outcomeKind;
 
-    const priorYear = Math.max(1, currentYear - 1);
+    const nextAdults = getAdultPopulationForClass(classState);
+    const nextYouth = getYouthPopulationForClass(classState);
+    const demographicStep = demographicStepsByClass[classId] ?? {
+      youthBefore: result.previousYouth + result.youthGrowth,
+      toAdults: 0,
+      decayed: 0,
+      youthAfter: nextYouth,
+      adultsAfter: nextAdults,
+    };
     const attractionSummaryText =
       result.attractedPopulation > 0 ? `, +${result.attractedPopulation} attracted` : "";
+    const demographicSummaryText =
+      demographicStep.toAdults > 0 || demographicStep.decayed > 0
+        ? `, youth step ${demographicStep.toAdults} -> adults / ${demographicStep.decayed} lost`
+        : "";
     const faithPopulationLossText =
       faithPopulationLoss > 0
         ? faithOutcome === "faithCollapsed"
-          ? `, faith collapse lost ${faithPopulationLoss} population`
+          ? `, bronze-floor collapse lost ${faithPopulationLoss} population`
           : `, faith loss cost ${faithPopulationLoss} population`
         : "";
     const faithSummaryText =
@@ -1011,16 +1304,22 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     pushGameEvent(state, {
       type: "populationYearlyUpdate",
       tSec,
-      text: `Year ${priorYear} ${classId} update: ${result.previousPopulation} -> ${Math.floor(classState.total ?? 0)} (${result.outcomeText})${attractionSummaryText}${faithSummaryText}`,
+      text: `Year ${priorYear} ${classId} update: ${result.previousPopulation} -> ${nextAdults + nextYouth} (${result.outcomeText})${attractionSummaryText}${demographicSummaryText}${faithSummaryText}`,
       data: {
         year: priorYear,
         classId,
+        previousAdults: result.previousAdults,
+        previousYouth: result.previousYouth,
         previousPopulation: result.previousPopulation,
-        nextPopulation: Math.floor(classState.total ?? 0),
+        nextAdults,
+        nextYouth,
+        nextPopulation: nextAdults + nextYouth,
         mealAttempts: result.mealAttempts,
         mealSuccesses: result.mealSuccesses,
         mealMisses: result.mealMisses,
         populationOutcome: result.outcomeKind,
+        youthGrowth: Math.max(0, Math.floor(result.youthGrowth ?? 0)),
+        starvationLoss: result.starvationLoss,
         attractedPopulation: Math.max(0, Math.floor(result.attractedPopulation ?? 0)),
         housingCapacity: Math.max(0, Math.floor(afterAttractionSummary.populationCapacity)),
         housingVacancy: Math.max(
@@ -1030,15 +1329,20 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
         ),
         attractionPerVacancyPerYear: Number(result.attractionPerVacancyPerYear ?? 0),
         attractionProgress: Number(yearlyState.attractionProgress ?? 0),
-        foodAfterMeals: Math.max(0, Math.floor(stockpiles.food)),
+        foodAfterMeals: roundMealValue(stockpiles.food),
+        demographicStep,
         faithPopulationLoss,
+        lastSeasonFeedRatio: Number(yearlyState.lastSeasonFeedRatio ?? 0),
         happiness: {
           status: happinessStatus,
-          positiveFeedStreak: Math.max(0, Math.floor(happinessState.positiveFeedStreak ?? 0)),
-          negativeFeedStreak: Math.max(0, Math.floor(happinessState.negativeFeedStreak ?? 0)),
+          fullFeedStreak: Math.max(0, Math.floor(happinessState.fullFeedStreak ?? 0)),
+          missedFeedStreak: Math.max(0, Math.floor(happinessState.missedFeedStreak ?? 0)),
+          partialFeedRatios: Array.isArray(happinessState.partialFeedRatios)
+            ? [...happinessState.partialFeedRatios]
+            : [],
           fullFeedThreshold: getHappinessFullFeedThreshold(),
-          partialFeedThreshold: getHappinessPartialFeedThreshold(),
-          missedFeedDegradesImmediately: true,
+          missedFeedThreshold: getHappinessMissedFeedThreshold(),
+          partialMemoryLength: getHappinessPartialMemoryLength(),
           lastSeasonOutcomeKind: yearlyState.lastSeasonOutcomeKind ?? null,
         },
         faith: {

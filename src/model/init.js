@@ -238,9 +238,10 @@ function applySettlementCoreSpec(core, spec) {
           : "gold";
     core.systemState.populationClasses = {
       villager: {
-        total: Number.isFinite(spec.systemState.population.total)
+        adults: Number.isFinite(spec.systemState.population.total)
           ? Math.max(0, Math.floor(spec.systemState.population.total))
           : 0,
+        youth: 0,
         commitments: Array.isArray(spec.systemState.population.commitments)
           ? cloneSerializable(spec.systemState.population.commitments)
           : [],

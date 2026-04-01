@@ -1201,7 +1201,7 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
     return;
   }
 
-  if (seasonKey !== "winter" || core.props.floodWindowArmed !== true) {
+  if (seasonKey !== "spring" || core.props.floodWindowArmed !== true) {
     return;
   }
 
@@ -1212,14 +1212,14 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
       def?.settlementPrototype && typeof def.settlementPrototype === "object"
         ? def.settlementPrototype
         : null;
-    const winterDeposits =
-      settlementSpec.winterStockpileDeposits &&
-      typeof settlementSpec.winterStockpileDeposits === "object"
-        ? settlementSpec.winterStockpileDeposits
+    const springDeposits =
+      settlementSpec.springStockpileDeposits &&
+      typeof settlementSpec.springStockpileDeposits === "object"
+        ? settlementSpec.springStockpileDeposits
         : null;
-    if (!winterDeposits) continue;
-    const greenDeposit = Number.isFinite(winterDeposits.greenResource)
-      ? Math.max(0, Math.floor(winterDeposits.greenResource))
+    if (!springDeposits) continue;
+    const greenDeposit = Number.isFinite(springDeposits.greenResource)
+      ? Math.max(0, Math.floor(springDeposits.greenResource))
       : 0;
     if (greenDeposit <= 0) continue;
     setSettlementTileGreenResource(

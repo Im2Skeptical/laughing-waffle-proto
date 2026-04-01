@@ -51,7 +51,7 @@ export const envTileDefs = {
     },
     settlementPrototype: {
       autumnFloods: true,
-      winterStockpileDeposits: {
+      springStockpileDeposits: {
         greenResource: 5,
       },
     },

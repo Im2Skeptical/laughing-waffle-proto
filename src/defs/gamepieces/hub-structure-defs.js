@@ -82,11 +82,11 @@ export const hubStructureDefs = {
       ],
     },
     settlementPrototype: {
-      populationCapacityBonus: 100,
+      populationCapacityBonus: 500,
     },
     ui: {
       title: "Mud Houses",
-      lines: ["Holds 100 population."],
+      lines: ["Holds 500 population."],
       description: "Settlement housing that expands population capacity.",
     },
   },

@@ -210,6 +210,20 @@ function normalizeHappinessStatus(value) {
   return "neutral";
 }
 
+function getAdultPopulation(classState) {
+  if (Number.isFinite(classState?.adults)) {
+    return Math.max(0, Math.floor(classState.adults));
+  }
+  if (Number.isFinite(classState?.total)) {
+    return Math.max(0, Math.floor(classState.total));
+  }
+  return 0;
+}
+
+function getYouthPopulation(classState) {
+  return Number.isFinite(classState?.youth) ? Math.max(0, Math.floor(classState.youth)) : 0;
+}
+
 function shiftHappinessStatus(status, delta = 0) {
   const order = ["negative", "neutral", "positive"];
   const normalized = normalizeHappinessStatus(status);
@@ -243,17 +257,14 @@ export function handleTransferPopulationClass(state, effect, context) {
     const { def } = resolveEffectDef(effect, target, context);
     const amountRaw = resolveAmount(effect, fromClassState, def, context);
     const requested = Number.isFinite(amountRaw) ? Math.max(0, Math.floor(amountRaw)) : 0;
-    const available = Number.isFinite(fromClassState.total)
-      ? Math.max(0, Math.floor(fromClassState.total))
-      : 0;
+    const available = getAdultPopulation(fromClassState);
     const amount = Math.min(requested, available);
     if (amount <= 0) continue;
 
-    fromClassState.total = Math.max(0, available - amount);
-    toClassState.total = Math.max(
-      0,
-      Math.floor(toClassState.total ?? 0) + amount
-    );
+    fromClassState.adults = Math.max(0, available - amount);
+    fromClassState.youth = getYouthPopulation(fromClassState);
+    toClassState.adults = Math.max(0, getAdultPopulation(toClassState) + amount);
+    toClassState.youth = getYouthPopulation(toClassState);
     changed = true;
   }
 
@@ -284,8 +295,9 @@ export function handleShiftPopulationClassHappiness(state, effect, context) {
     ) {
       classState.happiness = {
         status: "neutral",
-        positiveFeedStreak: 0,
-        negativeFeedStreak: 0,
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
       };
     }
 
@@ -295,8 +307,9 @@ export function handleShiftPopulationClassHappiness(state, effect, context) {
 
     classState.happiness.status = nextStatus;
     if (effect.resetStreaks !== false) {
-      classState.happiness.positiveFeedStreak = 0;
-      classState.happiness.negativeFeedStreak = 0;
+      classState.happiness.fullFeedStreak = 0;
+      classState.happiness.missedFeedStreak = 0;
+      classState.happiness.partialFeedRatios = [];
     }
     changed = true;
   }
