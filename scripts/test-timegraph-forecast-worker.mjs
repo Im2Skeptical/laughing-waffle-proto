@@ -12,7 +12,13 @@ import {
   replaceActionsAtSecond,
 } from "../src/model/timeline/index.js";
 import { createEmptyState } from "../src/model/state.js";
-import { createTimegraphForecastWorkerService } from "../src/controllers/timegraph-forecast-worker-service.js";
+import {
+  createTimegraphForecastWorkerService,
+  TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
+  TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
+  TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
+  TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
+} from "../src/controllers/timegraph-forecast-worker-service.js";
 import { GRAPH_METRICS } from "../src/model/graph-metrics.js";
 
 function createBasicTimeline() {
@@ -258,6 +264,252 @@ function testControllerSyncForecastExtendsVisibleCoverage() {
   );
 }
 
+function testControllerRetainsForecastValuesAcrossCoverageUpdates() {
+  const { state, timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.gold,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: 1280,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+
+  const firstForecastSec = 5;
+  const secondForecastSec = 20;
+
+  assert.ok(
+    controller.getStateAt(firstForecastSec),
+    "initial forecast browse should resolve synchronously"
+  );
+  controller.getData();
+
+  let valuesBySec =
+    controller.getSeriesValuesForSeconds([firstForecastSec], {
+      focus: false,
+      allowSyncForecast: false,
+    }) ?? new Map();
+  assert.ok(
+    valuesBySec.has(firstForecastSec),
+    "controller should retain forecast values after first reveal"
+  );
+
+  assert.ok(
+    controller.getStateAt(secondForecastSec),
+    "later forecast browse should resolve synchronously"
+  );
+  controller.getData();
+
+  const originalGetStateData = projectionCache.getStateData.bind(projectionCache);
+  projectionCache.getStateData = (sec) =>
+    sec < secondForecastSec ? null : originalGetStateData(sec);
+
+  valuesBySec =
+    controller.getSeriesValuesForSeconds([firstForecastSec, secondForecastSec], {
+      focus: false,
+      allowSyncForecast: false,
+    }) ?? new Map();
+
+  projectionCache.getStateData = originalGetStateData;
+
+  assert.ok(
+    valuesBySec.has(firstForecastSec),
+    "later coverage updates should not drop already revealed forecast values"
+  );
+  assert.ok(
+    valuesBySec.has(secondForecastSec),
+    "controller should still expose the newly revealed forecast value"
+  );
+}
+
+function testControllerRetainsForecastPreviewStateAcrossCoverageUpdates() {
+  const { state, timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.gold,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: 1280,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+
+  const firstForecastSec = 6;
+  const secondForecastSec = 24;
+
+  const firstState = controller.getStateAt(firstForecastSec);
+  assert.ok(firstState, "initial forecast preview state should resolve");
+
+  const secondState = controller.getStateAt(secondForecastSec);
+  assert.ok(secondState, "later forecast preview state should resolve");
+
+  const originalGetStateData = projectionCache.getStateData.bind(projectionCache);
+  projectionCache.getStateData = (sec) =>
+    sec < secondForecastSec ? null : originalGetStateData(sec);
+
+  const restoredFirstState = controller.getStateAt(firstForecastSec);
+
+  projectionCache.getStateData = originalGetStateData;
+
+  assert.ok(
+    restoredFirstState,
+    "controller should retain preview state for earlier revealed forecast seconds"
+  );
+  assert.equal(
+    hashState(restoredFirstState),
+    hashState(firstState),
+    "restored forecast preview state should match the originally revealed state"
+  );
+}
+
+function testControllerRebuildsForecastPreviewFromRetainedGraphAnchors() {
+  const { state, timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.gold,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: 1280,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+
+  const forecastEndSec = 960;
+  assert.ok(
+    controller.getStateAt(forecastEndSec),
+    "priming a later forecast second should build the visible projection window"
+  );
+
+  const sampleRes = controller.getSamplesForWindow({
+    startSec: 0,
+    endSec: forecastEndSec,
+    focus: false,
+    cursorSec: forecastEndSec,
+  });
+  assert.equal(sampleRes.ok, true, sampleRes.reason);
+
+  const forecastSamples = sampleRes.seconds.filter((sec) => sec > timeline.historyEndSec);
+  let targetSec = null;
+  for (let i = 0; i < forecastSamples.length - 1; i++) {
+    const startSec = forecastSamples[i];
+    const endSec = forecastSamples[i + 1];
+    if (endSec - startSec > 2) {
+      targetSec = startSec + Math.floor((endSec - startSec) / 2);
+      break;
+    }
+  }
+  assert.ok(
+    Number.isFinite(targetSec),
+    "expected a forecast sampling gap so preview can rebuild from a retained anchor"
+  );
+
+  const graphCache = controller.getData().cache;
+  assert.equal(
+    graphCache?.stateDataByBoundary?.has?.(targetSec) ?? false,
+    false,
+    "target preview second should not already be pinned before fallback rebuild"
+  );
+
+  projectionCache.clear();
+
+  const restoredState = controller.getStateAt(targetSec);
+  assert.ok(
+    restoredState,
+    "controller should rebuild forecast preview state from retained graph anchors"
+  );
+
+  const rebuilt = rebuildStateAtSecond(timeline, targetSec);
+  assert.equal(rebuilt.ok, true, rebuilt.reason);
+  assert.equal(
+    hashState(restoredState),
+    hashState(rebuilt.state),
+    "anchor-rebuilt forecast preview should match deterministic replay at the same second"
+  );
+}
+
+function testControllerRebuildsForecastValuesFromRetainedGraphAnchors() {
+  const { state, timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.gold,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: 1280,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+
+  const forecastEndSec = 960;
+  assert.ok(
+    controller.getStateAt(forecastEndSec),
+    "priming a later forecast second should build the visible projection window"
+  );
+
+  const sampleRes = controller.getSamplesForWindow({
+    startSec: 0,
+    endSec: forecastEndSec,
+    focus: false,
+    cursorSec: forecastEndSec,
+  });
+  assert.equal(sampleRes.ok, true, sampleRes.reason);
+
+  const forecastSamples = sampleRes.seconds.filter((sec) => sec > timeline.historyEndSec);
+  let targetSec = null;
+  for (let i = 0; i < forecastSamples.length - 1; i++) {
+    const startSec = forecastSamples[i];
+    const endSec = forecastSamples[i + 1];
+    if (endSec - startSec > 2) {
+      targetSec = startSec + Math.floor((endSec - startSec) / 2);
+      break;
+    }
+  }
+  assert.ok(
+    Number.isFinite(targetSec),
+    "expected a forecast sampling gap so graph values can rebuild from a retained anchor"
+  );
+
+  const graphCache = controller.getData().cache;
+  assert.equal(
+    graphCache?.stateDataByBoundary?.has?.(targetSec) ?? false,
+    false,
+    "target graph sample second should not already be pinned before fallback rebuild"
+  );
+
+  const originalGetStateData = projectionCache.getStateData.bind(projectionCache);
+  projectionCache.getStateData = (sec) =>
+    sec === targetSec ? null : originalGetStateData(sec);
+
+  const valuesBySec =
+    controller.getSeriesValuesForSeconds([targetSec], {
+      focus: false,
+      allowSyncForecast: false,
+    }) ?? new Map();
+
+  projectionCache.getStateData = originalGetStateData;
+
+  assert.ok(
+    valuesBySec.has(targetSec),
+    "controller should rebuild forecast graph values from retained graph anchors"
+  );
+}
+
 function testWorkerServiceDedupesEquivalentRequests() {
   const { timeline } = createBasicTimeline();
   const projectionCache = createProjectionCache();
@@ -276,7 +528,7 @@ function testWorkerServiceDedupesEquivalentRequests() {
     timelineToken: projectionCache.getTimelineToken(timeline),
     historyEndSec: 0,
     stepSec: 1,
-    desiredEndSec: 250,
+    desiredEndSec: TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC + 250,
     boundaryStateData: boundaryRes.stateData,
     scheduledActionsBySecond: [],
   };
@@ -289,6 +541,105 @@ function testWorkerServiceDedupesEquivalentRequests() {
 
   service.dispose();
   assert.equal(fakeWorker.terminated, true);
+}
+
+function testWorkerServiceAdvancesCoverageOnPartialChunkResults() {
+  const { timeline } = createBasicTimeline();
+  const projectionCache = createProjectionCache();
+  projectionCache.ensureSignature(timeline);
+  const fakeWorker = createFakeWorker();
+  const service = createTimegraphForecastWorkerService({
+    createWorker: () => fakeWorker,
+    timeNowMs: () => 1000,
+  });
+
+  const boundaryRes = getStateDataAtSecond(timeline, 0);
+  assert.equal(boundaryRes.ok, true);
+
+  const desiredEndSec = TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC + 180;
+  const request = {
+    projectionCache,
+    timeline,
+    timelineToken: projectionCache.getTimelineToken(timeline),
+    historyEndSec: 0,
+    stepSec: 1,
+    desiredEndSec,
+    boundaryStateData: boundaryRes.stateData,
+    scheduledActionsBySecond: [],
+  };
+
+  const first = service.requestCoverage(request);
+  assert.equal(first.ok, true, first.reason);
+  assert.equal(fakeWorker.messages.length, 1);
+
+  const message = fakeWorker.messages[0];
+  const partialEndSec = Math.min(
+    desiredEndSec,
+    TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC + TIMEGRAPH_FORECAST_STREAM_SLICE_SEC
+  );
+  const partialRes = buildProjectionChunkFromStateData(
+    projectionCache.getStateData(TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC),
+    TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
+    partialEndSec,
+    {
+      stepSec: 1,
+      actionsBySecond: [],
+    }
+  );
+  assert.equal(partialRes.ok, true, partialRes.reason);
+
+  fakeWorker.emit({
+    kind: "chunkResult",
+    requestId: message.requestId,
+    requestKey: message.requestKey,
+    timelineToken: message.timelineToken,
+    historyEndSec: message.historyEndSec,
+    baseSec: partialRes.baseSec,
+    endSec: partialRes.endSec,
+    stepSec: partialRes.stepSec,
+    done: false,
+    result: {
+      ...partialRes,
+      stateDataBySecond: Array.from(partialRes.stateDataBySecond.entries()),
+    },
+  });
+
+  const afterPartial = service.requestCoverage(request);
+  assert.equal(afterPartial.ok, true, afterPartial.reason);
+  assert.equal(
+    afterPartial.coverageEndSec >= partialEndSec,
+    true,
+    "worker service should expose partial coverage before the full chunk completes"
+  );
+
+  service.dispose();
+}
+
+function testWorkerServiceDefaultThroughputMatchesFasterReveal() {
+  assert.equal(
+    TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
+    120,
+    "worker service should keep the synchronous prime chunk modest to avoid main-thread stalls"
+  );
+  assert.equal(
+    TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
+    480,
+    "worker service should request larger async forecast chunks to reduce per-request overhead"
+  );
+  assert.equal(
+    TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
+    30,
+    "worker service should stream forecast chunk progress in smaller slices for smooth unveil pacing"
+  );
+  assert.equal(
+    TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
+    50,
+    "worker service should dispatch forecast chunks promptly once the worker is ready"
+  );
+  assert.ok(
+    TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC / (TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS / 1000) >= 480,
+    "worker default forecast throughput should keep pace with the faster reveal rate"
+  );
 }
 
 const tests = [
@@ -317,8 +668,32 @@ const tests = [
     testControllerSyncForecastExtendsVisibleCoverage,
   ],
   [
+    "controller retains forecast values across coverage updates",
+    testControllerRetainsForecastValuesAcrossCoverageUpdates,
+  ],
+  [
+    "controller retains forecast preview state across coverage updates",
+    testControllerRetainsForecastPreviewStateAcrossCoverageUpdates,
+  ],
+  [
+    "controller rebuilds forecast preview from retained graph anchors",
+    testControllerRebuildsForecastPreviewFromRetainedGraphAnchors,
+  ],
+  [
+    "controller rebuilds forecast values from retained graph anchors",
+    testControllerRebuildsForecastValuesFromRetainedGraphAnchors,
+  ],
+  [
     "worker service dedupes equivalent requests",
     testWorkerServiceDedupesEquivalentRequests,
+  ],
+  [
+    "worker service advances coverage on partial chunk results",
+    testWorkerServiceAdvancesCoverageOnPartialChunkResults,
+  ],
+  [
+    "worker service default throughput matches faster reveal",
+    testWorkerServiceDefaultThroughputMatchesFasterReveal,
   ],
 ];
 

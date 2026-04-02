@@ -55,7 +55,7 @@ function normalizeActionsBySecond(actionsBySecond) {
   return out;
 }
 
-export function buildProjectionChunkFromStateData(
+function createProjectionChunkRunner(
   boundaryStateData,
   baseSec,
   endSec,
@@ -84,32 +84,69 @@ export function buildProjectionChunkFromStateData(
   state.tSec = startSec;
   state.simStepIndex = startSec * TICKS_PER_SEC;
 
-  const stateDataBySecond = new Map();
-  let lastStateData = serializeGameState(state);
+  return {
+    ok: true,
+    dt,
+    startSec,
+    targetEndSec,
+    stepSec,
+    scheduledActionsBySecond,
+    state,
+  };
+}
 
-  for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
-    for (let i = 0; i < TICKS_PER_SEC; i += 1) {
-      updateGame(dt, state);
-    }
+function advanceProjectionChunkOneSecond(runtime, sec) {
+  const { dt, state, scheduledActionsBySecond } = runtime;
+  for (let i = 0; i < TICKS_PER_SEC; i += 1) {
+    updateGame(dt, state);
+  }
 
-    const actions = scheduledActionsBySecond.get(sec);
-    if (actions && actions.length) {
-      for (const action of actions) {
-        const result = applyAction(state, action, { isReplay: true });
-        if (!result?.ok) {
-          return {
-            ok: false,
-            reason: result?.reason ?? "actionFailed",
-            detail: result?.detail ?? result ?? null,
-            action,
-            tSec: sec,
-          };
-        }
+  const actions = scheduledActionsBySecond.get(sec);
+  if (actions && actions.length) {
+    for (const action of actions) {
+      const result = applyAction(state, action, { isReplay: true });
+      if (!result?.ok) {
+        return {
+          ok: false,
+          reason: result?.reason ?? "actionFailed",
+          detail: result?.detail ?? result ?? null,
+          action,
+          tSec: sec,
+        };
       }
     }
+  }
 
-    canonicalizeSnapshot(state);
-    lastStateData = serializeGameState(state);
+  canonicalizeSnapshot(state);
+  return {
+    ok: true,
+    stateData: serializeGameState(state),
+  };
+}
+
+export function buildProjectionChunkFromStateData(
+  boundaryStateData,
+  baseSec,
+  endSec,
+  opts = {}
+) {
+  const runtime = createProjectionChunkRunner(
+    boundaryStateData,
+    baseSec,
+    endSec,
+    opts
+  );
+  if (!runtime?.ok) return runtime;
+
+  const { startSec, targetEndSec, stepSec } = runtime;
+
+  const stateDataBySecond = new Map();
+  let lastStateData = serializeGameState(runtime.state);
+
+  for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
+    const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
+    if (!stepRes?.ok) return stepRes;
+    lastStateData = stepRes.stateData;
     if ((sec - startSec) % stepSec === 0) {
       stateDataBySecond.set(sec, lastStateData);
     }
@@ -121,6 +158,64 @@ export function buildProjectionChunkFromStateData(
     endSec: targetEndSec,
     stepSec,
     stateDataBySecond,
+    lastStateData,
+  };
+}
+
+export function streamProjectionChunkFromStateData(
+  boundaryStateData,
+  baseSec,
+  endSec,
+  opts = {}
+) {
+  const runtime = createProjectionChunkRunner(
+    boundaryStateData,
+    baseSec,
+    endSec,
+    opts
+  );
+  if (!runtime?.ok) return runtime;
+
+  const { startSec, targetEndSec, stepSec } = runtime;
+  const requestedEmitSliceSec =
+    opts?.emitSliceSec ?? Math.max(1, targetEndSec - startSec);
+  const emitSliceSec = Math.max(1, Math.floor(requestedEmitSliceSec));
+  const onChunk = typeof opts?.onChunk === "function" ? opts.onChunk : null;
+
+  let sliceBaseSec = startSec;
+  let sliceStateDataBySecond = new Map();
+  let lastStateData = serializeGameState(runtime.state);
+
+  for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
+    const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
+    if (!stepRes?.ok) return stepRes;
+    lastStateData = stepRes.stateData;
+    if ((sec - startSec) % stepSec === 0) {
+      sliceStateDataBySecond.set(sec, lastStateData);
+    }
+
+    const reachedSliceBoundary =
+      sec === targetEndSec || sec - sliceBaseSec >= emitSliceSec;
+    if (!reachedSliceBoundary) continue;
+
+    const chunk = {
+      ok: true,
+      baseSec: sliceBaseSec,
+      endSec: sec,
+      stepSec,
+      stateDataBySecond: sliceStateDataBySecond,
+      lastStateData,
+    };
+    onChunk?.(chunk, { done: sec === targetEndSec });
+    sliceBaseSec = sec;
+    sliceStateDataBySecond = new Map();
+  }
+
+  return {
+    ok: true,
+    baseSec: startSec,
+    endSec: targetEndSec,
+    stepSec,
     lastStateData,
   };
 }

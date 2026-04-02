@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import {
+  clampDiskHistoryBrowseTargetSec,
+  clampDiskForecastPreviewTargetSec,
+} from "../src/views/sunandmoon-disks-pixi.js";
+import { clampForecastScrubTargetSec } from "../src/views/timegraphs-pixi.js";
+import {
+  computeSettlementGraphWindowSpec,
+  computeSettlementProjectionCacheConfig,
+} from "../src/views/ui-root/settlement-timegraph-window.js";
 
 const entrySource = await readFile("src/views/ui-root-pixi.js", "utf8");
 const rootSource = await readFile("src/views/ui-root-settlement-pixi.js", "utf8");
 const graphMetricsSource = await readFile("src/model/graph-metrics.js", "utf8");
 const prototypeViewSource = await readFile("src/views/settlement-prototype-view.js", "utf8");
 const diskViewSource = await readFile("src/views/sunandmoon-disks-pixi.js", "utf8");
+const timegraphViewSource = await readFile("src/views/timegraphs-pixi.js", "utf8");
 
 assert.match(
   entrySource,
@@ -100,6 +110,11 @@ assert.match(
 );
 assert.match(
   rootSource,
+  /getForecastPreviewCapSec:\s*\(\)\s*=>/,
+  "[test] settlement root should pass the graph reveal cap to disk preview controls"
+);
+assert.match(
+  rootSource,
   /commitPreviewToLive:\s*\(\)\s*=>\s*runner\.commitPreviewToLive\?\.\(\)/,
   "[test] settlement root should allow disk forecast drags to commit on release"
 );
@@ -127,6 +142,16 @@ assert.match(
   rootSource,
   /horizonSec:\s*SETTLEMENT_GRAPH_WINDOW_SEC/,
   "[test] settlement graph controller should use the settlement graph window constant"
+);
+assert.match(
+  rootSource,
+  /projectionCache:\s*settlementProjectionCache/,
+  "[test] settlement graph controller should use a dedicated projection cache sized for the settlement forecast"
+);
+assert.match(
+  rootSource,
+  /computeSettlementGraphWindowSpec/,
+  "[test] settlement root should use a settlement-specific graph window policy"
 );
 assert.match(
   rootSource,
@@ -310,8 +335,77 @@ assert.match(
 );
 assert.match(
   diskViewSource,
-  /if\s*\(typeof previewCursorSecond === "function"\)\s*\{\s*queuePreviewSecond\(dragSec\);/s,
+  /if\s*\(typeof previewCursorSecond === "function"\)\s*\{\s*queuePreviewSecond\(clampedFutureSec\);/s,
   "[test] sun\/moon disks should preview future drag instead of committing immediately"
+);
+assert.match(
+  timegraphViewSource,
+  /statusNote = "Forecast revealing"/,
+  "[test] metric graph should block previewing beyond the current forecast reveal boundary"
+);
+assert.match(
+  timegraphViewSource,
+  /FORECAST_REVEAL_RATE_SEC_PER_SEC\s*=\s*480/,
+  "[test] metric graph should reveal forecast coverage at the faster prototype pacing"
+);
+assert.equal(
+  clampDiskHistoryBrowseTargetSec(42, 120),
+  42,
+  "[test] history disk drag should preserve historical browse targets inside realized history"
+);
+assert.equal(
+  clampDiskHistoryBrowseTargetSec(140, 120),
+  120,
+  "[test] history disk drag should clamp to the realized frontier when overshooting"
+);
+assert.equal(
+  clampDiskForecastPreviewTargetSec(240, 120, 180),
+  180,
+  "[test] disk future preview should clamp to the animated forecast reveal cap"
+);
+assert.equal(
+  clampForecastScrubTargetSec(240, 120, 180, { minSec: 0, maxSec: 500 }),
+  180,
+  "[test] graph forecast scrub should clamp to the animated forecast reveal cap"
+);
+assert.deepEqual(
+  computeSettlementGraphWindowSpec({
+    historyEndSec: 32,
+    cursorSec: 32,
+    horizonSec: 5120,
+  }),
+  {
+    minSec: 0,
+    maxSec: 32 + 5120,
+    scrubSec: 32,
+  },
+  "[test] settlement graph default window should keep the full forecast horizon visible"
+);
+assert.deepEqual(
+  computeSettlementGraphWindowSpec({
+    historyEndSec: 128,
+    cursorSec: 96,
+    forecastPreviewSec: 180,
+    horizonSec: 5120,
+  }),
+  {
+    minSec: 0,
+    maxSec: 128 + 5120,
+    scrubSec: 180,
+  },
+  "[test] settlement graph window should keep the full forecast horizon while allowing preview scrub focus"
+);
+const projectionCacheConfig = computeSettlementProjectionCacheConfig({
+  horizonSec: 5120,
+  stepSec: 1,
+});
+assert.ok(
+  projectionCacheConfig.maxEntries > 5120,
+  "[test] settlement projection cache should hold more than one full 40-year 1s forecast window"
+);
+assert.ok(
+  projectionCacheConfig.maxBytes > 48 * 1024 * 1024,
+  "[test] settlement projection cache should exceed the shared default byte budget for long-horizon forecasts"
 );
 
 console.log("[test] settlement ui contracts passed");
