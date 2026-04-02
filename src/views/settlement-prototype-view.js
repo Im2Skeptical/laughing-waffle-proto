@@ -167,7 +167,10 @@ function buildSignature(state, selectedClassId) {
     defId: slot?.structure?.defId ?? null,
     runtime: slot?.structure?.props?.settlement ?? null,
   }));
-  const orderCards = getSettlementOrderSlots(state).map((slot) => slot?.card?.defId ?? null);
+  const orderCards = getSettlementOrderSlots(state).map((slot) => ({
+    defId: slot?.card?.defId ?? null,
+    runtime: slot?.card?.props?.settlement ?? null,
+  }));
   const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
     ? state.board.layers.tile.anchors.map((tile) => ({
         defId: tile?.defId ?? null,
@@ -266,7 +269,43 @@ function buildStructureLines(structure) {
 
 function buildOrderLines(card) {
   const def = settlementOrderDefs[card?.defId];
-  return Array.isArray(def?.ui?.lines) ? [...def.ui.lines] : [];
+  const runtime =
+    card?.props?.settlement && typeof card.props.settlement === "object"
+      ? card.props.settlement
+      : {};
+  const lines = [];
+  if (Number.isFinite(runtime.memberCount)) {
+    lines.push(`Members ${Math.floor(runtime.memberCount)}`);
+  }
+  if (Number.isFinite(runtime.lastProcessedYear)) {
+    lines.push(`Last Yearly Tick ${Math.floor(runtime.lastProcessedYear)}`);
+  }
+  if (Number.isFinite(runtime.nextRecruitmentYear)) {
+    lines.push(`Next Recruit Year ${Math.floor(runtime.nextRecruitmentYear)}`);
+  }
+  const members = Array.isArray(runtime.members) ? runtime.members.slice(0, 3) : [];
+  for (const member of members) {
+    lines.push(
+      `${Math.floor(member?.ageYears ?? 0)}y ${member?.modifierLabel ?? "None"} P${Math.floor(member?.prestige ?? 0)}`
+    );
+  }
+  const overflow = Math.max(0, Math.floor(runtime.memberCount ?? 0) - members.length);
+  if (overflow > 0) {
+    lines.push(`+${overflow} more`);
+  }
+  const resolvedBoardsByClass =
+    runtime.resolvedBoardsByClass && typeof runtime.resolvedBoardsByClass === "object"
+      ? runtime.resolvedBoardsByClass
+      : {};
+  for (const [classId, board] of Object.entries(resolvedBoardsByClass)) {
+    const practiceIds = Array.isArray(board) ? board : [];
+    if (practiceIds.length <= 0) continue;
+    lines.push(`${capitalizeLabel(classId)}: ${practiceIds.join(", ")}`);
+  }
+  if (lines.length <= 0) {
+    return Array.isArray(def?.ui?.lines) ? [...def.ui.lines] : [];
+  }
+  return lines;
 }
 
 function buildTileLines(tile) {

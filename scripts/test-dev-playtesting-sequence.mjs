@@ -6,9 +6,12 @@ import { PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR } from "../s
 import { DEFAULT_VARIANT_FLAGS } from "../src/defs/gamesettings/variant-flags-defs.js";
 import { createInitialState, updateGame } from "../src/model/game-model.js";
 import { getCurrentSeasonKey, deserializeGameState, serializeGameState } from "../src/model/state.js";
+import { syncSettlementDerivedState } from "../src/model/settlement-exec.js";
+import { stepSettlementOrders } from "../src/model/settlement-order-exec.js";
 import {
   getSettlementClassIds,
   getSettlementFaithSummary,
+  getSettlementOrderSlots,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
@@ -76,6 +79,7 @@ function buildSettlementSetup({
     null,
   ],
   strangerPracticeSlots = [{ defId: "asTheRomans" }, { defId: "becomeVillagers" }, null, null, null],
+  orderSlots = null,
   structures = [null, { defId: "granary" }, { defId: "mudHouses" }, { defId: "riverTemple" }, null, null],
 } = {}) {
   return {
@@ -129,7 +133,7 @@ function buildSettlementSetup({
       },
       zones: {
         order: {
-          slots: [{ defId: "elders" }],
+          slots: Array.isArray(orderSlots) ? orderSlots : [null],
         },
         practiceByClass: {
           villager: {
@@ -219,6 +223,25 @@ function summarizeState(state) {
       blueResource: getSettlementStockpile(state, "blueResource"),
       blackResource: getSettlementStockpile(state, "blackResource"),
     },
+    order: getSettlementOrderSlots(state).map((slot) => ({
+      defId: slot?.card?.defId ?? null,
+      memberCount: Math.floor(slot?.card?.props?.settlement?.memberCount ?? 0),
+      lastProcessedYear: Number.isFinite(slot?.card?.props?.settlement?.lastProcessedYear)
+        ? Math.floor(slot.card.props.settlement.lastProcessedYear)
+        : null,
+      nextRecruitmentYear: Number.isFinite(slot?.card?.props?.settlement?.nextRecruitmentYear)
+        ? Math.floor(slot.card.props.settlement.nextRecruitmentYear)
+        : null,
+      resolvedBoardsByClass: slot?.card?.props?.settlement?.resolvedBoardsByClass ?? null,
+      members: Array.isArray(slot?.card?.props?.settlement?.members)
+        ? slot.card.props.settlement.members.map((member) => ({
+            memberId: member?.memberId ?? null,
+            ageYears: Math.floor(member?.ageYears ?? 0),
+            modifierId: member?.modifierId ?? null,
+            prestige: Math.floor(member?.prestige ?? 0),
+          }))
+        : [],
+    })),
     aggregatePopulation: getSettlementPopulationSummary(state),
     bonuses: state?.hub?.core?.props?.practicePassiveBonusesByClass ?? null,
     byClass: Object.fromEntries(classIds.map((classId) => [classId, summarizeClass(state, classId)])),
@@ -236,11 +259,21 @@ function runInitAssertions() {
     "prototype scenario should not seed inventories"
   );
   assert.deepEqual(summary.classOrder, ["villager", "stranger"], "expected deterministic class order");
-  assert.equal(summary.byClass.villager.population.total, 8, "expected villager starting population");
-  assert.equal(summary.byClass.villager.population.adults, 8, "expected villager starting adults");
-  assert.equal(summary.byClass.villager.population.youth, 0, "expected villager starting youth");
-  assert.equal(summary.byClass.villager.population.free, 6, "expected villager free population after temple staffing");
+  assert.equal(summary.byClass.villager.population.total, 34, "expected villager starting population");
+  assert.equal(summary.byClass.villager.population.adults, 24, "expected villager starting adults");
+  assert.equal(summary.byClass.villager.population.youth, 10, "expected villager starting youth");
+  assert.equal(summary.byClass.villager.population.free, 22, "expected villager free population after temple staffing");
   assert.equal(summary.byClass.stranger.population.total, 0, "expected stranger pool to start empty");
+  assert.equal(
+    state.hub.zones.order.slots[0]?.card?.defId,
+    "elderCouncil",
+    "expected elder council order card"
+  );
+  assert.equal(
+    state.hub.zones.order.slots[0]?.card?.props?.settlement?.memberCount,
+    4,
+    "expected seeded four-member elder council"
+  );
   assert.deepEqual(
     summary.byClass.villager.practice.map((entry) => entry.defId),
     ["floodRites", "riverRecessionFarming", "rest", "openToStrangers", null],
@@ -805,6 +838,51 @@ function runMirroringAssertions() {
   );
 }
 
+function runElderCouncilAssertions() {
+  const state = createInitialState("devPlaytesting01", 123);
+  const councilCard = state.hub.zones.order.slots[0]?.card ?? null;
+  assert.equal(councilCard?.defId, "elderCouncil", "expected elder council def id");
+  assert.equal(
+    councilCard?.props?.settlement?.memberCount,
+    4,
+    "expected seeded elder council member count"
+  );
+  assert.deepEqual(
+    councilCard?.props?.settlement?.resolvedBoardsByClass,
+    {
+      villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
+      stranger: ["asTheRomans", "becomeVillagers"],
+    },
+    "seeded elder agendas should reproduce the prototype practice boards"
+  );
+
+  const recruitmentState = createInitialState(
+    buildSettlementSetup({
+      orderSlots: [{ defId: "elderCouncil" }],
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+    }),
+    123
+  );
+  recruitmentState.year = 5;
+  recruitmentState._seasonChanged = true;
+  recruitmentState.hub.core.systemState.populationClasses.villager.adults = 250;
+  recruitmentState.hub.core.systemState.populationClasses.villager.youth = 0;
+  const recruitmentCouncil = recruitmentState.hub.zones.order.slots[0].card.systemState.elderCouncil;
+  recruitmentCouncil.lastProcessedYear = 4;
+  recruitmentCouncil.members = recruitmentCouncil.members.map((member, index) => ({
+    ...member,
+    ageYears: 30 + index,
+  }));
+  syncSettlementDerivedState(recruitmentState, recruitmentState.tSec);
+  stepSettlementOrders(recruitmentState, recruitmentState.tSec);
+  assert.equal(
+    recruitmentState.hub.zones.order.slots[0].card.props.settlement.memberCount,
+    7,
+    "five-year cadence should append recruits without a seat cap"
+  );
+}
+
 function runOpenToStrangersAssertions() {
   const requiredFaithTier =
     settlementPracticeDefs?.openToStrangers?.requires?.faithTierAtLeast ?? "gold";
@@ -977,6 +1055,59 @@ function runBecomeVillagersAssertions() {
   );
 }
 
+function runRaiseAsVillagersAssertions() {
+  const state = createInitialState(
+    buildSettlementSetup({
+      villagerAdults: 2,
+      villagerYouth: 1,
+      strangerAdults: 0,
+      strangerYouth: 3,
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [{ defId: "raiseAsVillagers" }, null, null, null, null],
+    }),
+    123
+  );
+
+  advanceToSecond(state, 1);
+  assert.equal(
+    summarizeClass(state, "villager").population.youth,
+    4,
+    "raise as villagers should move stranger youth into villager youth"
+  );
+  assert.equal(
+    summarizeClass(state, "stranger").population.youth,
+    0,
+    "raise as villagers should remove youth from the stranger class"
+  );
+}
+
+function runEmergencyFoodReserveAssertions() {
+  const state = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 8,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 10,
+      villagerPracticeSlots: [{ defId: "emergencyFoodReserve" }, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+
+  advanceToSecond(state, 33);
+  assertClose(
+    getSettlementStockpile(state, "food"),
+    0.8,
+    0.0001,
+    "emergency food reserve should preserve 10 percent when the population cannot be fully fed"
+  );
+}
+
 function runSerializationReplayAssertions() {
   const legacySetup = buildSettlementSetup();
   const legacyState = createInitialState(
@@ -1049,6 +1180,29 @@ function runSerializationReplayAssertions() {
     summarizeState(live),
     "replay rebuild should match live class demographic simulation"
   );
+
+  const councilLive = createInitialState("devPlaytesting01", 123);
+  advanceToSecond(councilLive, 72);
+  const councilSerialized = serializeGameState(councilLive);
+  const councilRestored = deserializeGameState(councilSerialized);
+  assert.deepEqual(
+    summarizeState(councilRestored),
+    summarizeState(councilLive),
+    "serialize/deserialize should preserve elder council state and resolved boards"
+  );
+
+  const councilTimeline = createTimelineFromInitialState(createInitialState("devPlaytesting01", 123));
+  const councilRebuilt = rebuildStateAtSecond(councilTimeline, 72);
+  assert.equal(
+    councilRebuilt?.ok,
+    true,
+    `rebuildStateAtSecond failed: ${JSON.stringify(councilRebuilt)}`
+  );
+  assert.deepEqual(
+    summarizeState(councilRebuilt.state),
+    summarizeState(councilLive),
+    "replay rebuild should preserve elder council state and resolved boards"
+  );
 }
 
 function run() {
@@ -1056,8 +1210,11 @@ function run() {
   runMealPriorityAssertions();
   runHappinessAssertions();
   runMirroringAssertions();
+  runElderCouncilAssertions();
   runOpenToStrangersAssertions();
   runBecomeVillagersAssertions();
+  runRaiseAsVillagersAssertions();
+  runEmergencyFoodReserveAssertions();
   runSerializationReplayAssertions();
   console.log("[test] devPlaytesting01 settlement demographics passed");
 }

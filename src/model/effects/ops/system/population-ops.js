@@ -224,6 +224,10 @@ function getYouthPopulation(classState) {
   return Number.isFinite(classState?.youth) ? Math.max(0, Math.floor(classState.youth)) : 0;
 }
 
+function getTotalPopulation(classState) {
+  return getAdultPopulation(classState) + getYouthPopulation(classState);
+}
+
 function shiftHappinessStatus(status, delta = 0) {
   const order = ["negative", "neutral", "positive"];
   const normalized = normalizeHappinessStatus(status);
@@ -257,14 +261,39 @@ export function handleTransferPopulationClass(state, effect, context) {
     const { def } = resolveEffectDef(effect, target, context);
     const amountRaw = resolveAmount(effect, fromClassState, def, context);
     const requested = Number.isFinite(amountRaw) ? Math.max(0, Math.floor(amountRaw)) : 0;
-    const available = getAdultPopulation(fromClassState);
+    const populationPool =
+      effect.populationPool === "youth" || effect.populationPool === "all"
+        ? effect.populationPool
+        : "adults";
+    const available =
+      populationPool === "youth"
+        ? getYouthPopulation(fromClassState)
+        : populationPool === "all"
+          ? getTotalPopulation(fromClassState)
+          : getAdultPopulation(fromClassState);
     const amount = Math.min(requested, available);
     if (amount <= 0) continue;
 
-    fromClassState.adults = Math.max(0, available - amount);
-    fromClassState.youth = getYouthPopulation(fromClassState);
-    toClassState.adults = Math.max(0, getAdultPopulation(toClassState) + amount);
-    toClassState.youth = getYouthPopulation(toClassState);
+    if (populationPool === "youth") {
+      fromClassState.youth = Math.max(0, getYouthPopulation(fromClassState) - amount);
+      fromClassState.adults = getAdultPopulation(fromClassState);
+      toClassState.youth = Math.max(0, getYouthPopulation(toClassState) + amount);
+      toClassState.adults = getAdultPopulation(toClassState);
+    } else if (populationPool === "all") {
+      let remaining = amount;
+      const removedAdults = Math.min(getAdultPopulation(fromClassState), remaining);
+      remaining -= removedAdults;
+      const removedYouth = Math.min(getYouthPopulation(fromClassState), remaining);
+      fromClassState.adults = Math.max(0, getAdultPopulation(fromClassState) - removedAdults);
+      fromClassState.youth = Math.max(0, getYouthPopulation(fromClassState) - removedYouth);
+      toClassState.adults = Math.max(0, getAdultPopulation(toClassState) + removedAdults);
+      toClassState.youth = Math.max(0, getYouthPopulation(toClassState) + removedYouth);
+    } else {
+      fromClassState.adults = Math.max(0, getAdultPopulation(fromClassState) - amount);
+      fromClassState.youth = getYouthPopulation(fromClassState);
+      toClassState.adults = Math.max(0, getAdultPopulation(toClassState) + amount);
+      toClassState.youth = getYouthPopulation(toClassState);
+    }
     changed = true;
   }
 

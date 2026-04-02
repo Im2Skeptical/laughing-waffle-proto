@@ -253,26 +253,14 @@ export const setupDefs = {
       },
       zones: {
         order: {
-          slots: [{ defId: "elders" }],
+          slots: [{ defId: "elderCouncil" }],
         },
         practiceByClass: {
           villager: {
-            slots: [
-              { defId: "floodRites" },
-              { defId: "riverRecessionFarming" },
-              { defId: "rest" },
-              { defId: "openToStrangers" },
-              null,
-            ],
+            slots: [null, null, null, null, null],
           },
           stranger: {
-            slots: [
-              { defId: "asTheRomans" },
-              { defId: "becomeVillagers" },
-              null,
-              null,
-              null,
-            ],
+            slots: [null, null, null, null, null],
           },
         },
         structures: {
