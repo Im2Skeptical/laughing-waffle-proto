@@ -200,40 +200,25 @@ export const settlementPracticeDefs = {
       title: "Become Villagers",
       lines: [
         "Every 2 years",
-        "Reserve 10% of strangers",
-        "Convert them into villagers",
+        "Convert 10% of current strangers",
+        "No reservation required",
       ],
       description:
-        "A slow assimilation practice that steadily turns settled strangers into villagers.",
+        "A slow assimilation practice that converts a slice of the current stranger population on each cycle.",
     },
     timing: {
       cadenceSec: SEASON_DURATION_SEC * 4 * 2,
     },
-    requires: {
-      freePopulationAtLeast: 1,
-    },
     amount: {
-      mode: "min",
-      values: [
-        { kind: "freePopulation" },
-        { kind: "totalPopulation", divideBy: 10, minimum: 1 },
-      ],
+      mode: "max",
+      values: [{ kind: "totalPopulation", divideBy: 10, minimum: 1 }],
     },
     effects: [
       {
-        op: "ReservePopulation",
+        op: "TransferPopulationClass",
         target: { ref: "hubCore" },
         amountVar: "practiceAmount",
-        releaseOffsetSec: SEASON_DURATION_SEC * 4 * 2,
-        label: "Become Villagers",
-        onReleaseEffects: [
-          {
-            op: "TransferPopulationClass",
-            target: { ref: "hubCore" },
-            amountVar: "practiceAmount",
-            toPopulationClassId: "villager",
-          },
-        ],
+        toPopulationClassId: "villager",
       },
     ],
   },
