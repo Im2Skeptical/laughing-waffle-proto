@@ -265,7 +265,7 @@ assert.match(
 );
 assert.match(
   graphMetricsSource,
-  /Three full seasons set happiness to positive\. Three consecutive misses trigger a starvation event\./,
+  /Three full seasons set happiness to positive\. Three consecutive misses trigger starvation, and further misses keep triggering it until the class gets at least a 50% feed\./,
   "[test] happiness tooltip should describe the new feed-memory and starvation rules"
 );
 assert.match(
@@ -290,13 +290,13 @@ assert.match(
 );
 assert.match(
   prototypeViewSource,
-  /activeProgressRemaining/,
-  "[test] practice card rendering should read the authoritative reservation progress"
+  /activeReservation === true \|\| runtime\.activeProgressKind === "cadence"/,
+  "[test] practice card rendering should use the drain fill for reservation or cadence progress"
 );
 assert.match(
   prototypeViewSource,
-  /activeRemainingSec/,
-  "[test] practice cards should show an active reservation countdown"
+  /Next trigger: \$\{Math\.max\(0, Math\.floor\(runtime\.activeRemainingSec \?\? 0\)\)\}s/,
+  "[test] practice cards should show a cadence countdown when an active practice is waiting for its next trigger"
 );
 assert.match(
   diskViewSource,
