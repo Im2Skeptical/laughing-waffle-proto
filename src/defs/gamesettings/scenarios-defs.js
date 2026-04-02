@@ -213,7 +213,7 @@ export const setupDefs = {
       core: {
         systemState: {
           stockpiles: {
-            food: 40,
+            food: 100,
             redResource: 0,
             greenResource: 0,
             blueResource: 0,
@@ -221,8 +221,8 @@ export const setupDefs = {
           },
           populationClasses: {
             villager: {
-              adults: 8,
-              youth: 0,
+              adults: 24,
+              youth: 10,
               commitments: [],
               faith: {
                 tier: "gold",
