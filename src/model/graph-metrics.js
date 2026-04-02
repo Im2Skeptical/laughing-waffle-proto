@@ -116,7 +116,7 @@ function getSettlementHappinessTooltipSpec(state, classId = null) {
       `Full-feed streak: ${happiness.fullFeedStreak}/${happiness.fullFeedThreshold}`,
       `Missed-feed streak: ${happiness.missedFeedStreak}/${happiness.missedFeedThreshold}`,
       `Partial memory: ${partialMemory}`,
-      "Three full seasons set happiness to positive. Three consecutive misses trigger a starvation event. Partial ratios improve on 3 rising steps and worsen immediately on flat-or-lower steps.",
+      "Three full seasons set happiness to positive. Three consecutive misses trigger starvation, and further misses keep triggering it until the class gets at least a 50% feed. Partial ratios improve on 3 rising steps and worsen immediately on flat-or-lower steps.",
     ],
   };
 }
