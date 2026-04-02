@@ -1,7 +1,9 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
 
-export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 200;
-export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 2000;
+export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 120;
+export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
+export const TIMEGRAPH_FORECAST_STREAM_SLICE_SEC = 30;
+export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 50;
 
 function nowMs() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -58,7 +60,9 @@ function normalizeChunkEntries(entries) {
 export function createTimegraphForecastWorkerService({
   createWorker = null,
   timeNowMs = nowMs,
+  primeChunkSizeSec = TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
   chunkSizeSec = TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
+  streamSliceSec = TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
   requestCadenceMs = TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
 } = {}) {
   let worker = null;
@@ -101,7 +105,7 @@ export function createTimegraphForecastWorkerService({
     const message = event?.data ?? null;
     if (!message || message.kind !== "chunkResult") return;
 
-    const request = releaseRequest(message.requestId);
+    const request = requestsById.get(message.requestId) ?? null;
     if (!request) return;
 
     const entry = requestsByKey.get(request.requestKey);
@@ -125,6 +129,9 @@ export function createTimegraphForecastWorkerService({
         clampSec(entry.coverageEndSec),
         clampSec(message.endSec)
       );
+    }
+    if (message.done === true) {
+      releaseRequest(message.requestId);
     }
   }
 
@@ -229,7 +236,7 @@ export function createTimegraphForecastWorkerService({
     if (!entry.primedInitialChunk && entry.coverageEndSec === baseSec) {
       const primeEndSec = Math.min(
         entry.requestedEndSec,
-        baseSec + Math.max(1, Math.floor(chunkSizeSec))
+        baseSec + Math.max(1, Math.floor(primeChunkSizeSec))
       );
       if (primeEndSec > baseSec && boundaryStateData != null) {
         const primeActions = normalizeActionsBySecond(
@@ -346,6 +353,7 @@ export function createTimegraphForecastWorkerService({
       baseSec: chunkBaseSec,
       endSec: chunkEndSec,
       stepSec: normalizedStepSec,
+      streamSliceSec: Math.max(1, Math.floor(streamSliceSec)),
       boundaryStateData: chunkBoundaryStateData,
       scheduledActionsBySecond: chunkActions,
     });

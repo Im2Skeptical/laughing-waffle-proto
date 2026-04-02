@@ -3,7 +3,6 @@
 // Pure view module: reads state and dispatches scrub/commit intents only.
 
 import {
-  BASE_EDITABLE_HISTORY_WINDOW_SEC,
   SEASON_DURATION_SEC,
   MOON_CYCLE_SEC,
   MOON_PHASE_OFFSET_SEC,
@@ -190,17 +189,21 @@ function getFrontierSec({ getTimeline, getState }) {
   return getTSecInt(state);
 }
 
-function getMinEditableSec({ getEditableHistoryBounds, frontierSec }) {
-  const bounds =
-    typeof getEditableHistoryBounds === "function"
-      ? getEditableHistoryBounds()
-      : null;
-  const fromBounds = Math.floor(bounds?.minEditableSec ?? -1);
-  if (Number.isFinite(fromBounds) && fromBounds >= 0) {
-    return Math.min(frontierSec, fromBounds);
-  }
-  const fallbackWindowSec = clampNonNegativeSec(BASE_EDITABLE_HISTORY_WINDOW_SEC, 0);
-  return Math.max(0, frontierSec - fallbackWindowSec);
+export function clampDiskHistoryBrowseTargetSec(dragSec, frontierSec) {
+  const frontier = clampNonNegativeSec(frontierSec, 0);
+  const target = clampNonNegativeSec(dragSec, frontier);
+  return Math.max(0, Math.min(frontier, target));
+}
+
+export function clampDiskForecastPreviewTargetSec(
+  dragSec,
+  frontierSec,
+  revealCapSec
+) {
+  const frontier = clampNonNegativeSec(frontierSec, 0);
+  const target = clampNonNegativeSec(dragSec, frontier);
+  const revealCap = clampNonNegativeSec(revealCapSec, frontier);
+  return Math.max(frontier, Math.min(target, Math.max(frontier, revealCap)));
 }
 
 function getSpritePointerAngleRad(sprite, globalPoint) {
@@ -256,6 +259,7 @@ export function createSunAndMoonDisksView({
   getDiskVisibility,
   getTimeline,
   getEditableHistoryBounds,
+  getForecastPreviewCapSec,
   browseCursorSecond,
   commitCursorSecond,
   previewCursorSecond,
@@ -517,23 +521,35 @@ let feedbackText = null;
     const frontierSec = getFrontierSec({ getTimeline, getState });
     const dragSec = Math.round(dragSession.dragStartSec + dragSession.accumSec);
     if (dragSec <= frontierSec) {
-      const minEditableSec = getMinEditableSec({
-        getEditableHistoryBounds,
-        frontierSec,
-      });
-      const clampedSec = Math.max(minEditableSec, Math.min(frontierSec, dragSec));
+      // Browsing recorded history must not be limited by editability rules.
+      // Edit-window gates apply to mutations, not to read-only time travel.
+      const clampedSec = clampDiskHistoryBrowseTargetSec(dragSec, frontierSec);
       dragSession.visualTargetSec = clampedSec;
       clearPreviewState?.();
       queueBrowseSecond(clampedSec);
       return;
     }
 
-    dragSession.visualTargetSec = dragSec;
-    if (typeof previewCursorSecond === "function") {
-      queuePreviewSecond(dragSec);
+    const forecastPreviewCapSec =
+      typeof getForecastPreviewCapSec === "function"
+        ? getForecastPreviewCapSec()
+        : frontierSec;
+    const clampedFutureSec = clampDiskForecastPreviewTargetSec(
+      dragSec,
+      frontierSec,
+      forecastPreviewCapSec
+    );
+    dragSession.visualTargetSec = clampedFutureSec;
+    if (clampedFutureSec <= frontierSec) {
+      clearPreviewState?.();
+      queueBrowseSecond(frontierSec);
       return;
     }
-    queueCommitSecond(dragSec);
+    if (typeof previewCursorSecond === "function") {
+      queuePreviewSecond(clampedFutureSec);
+      return;
+    }
+    queueCommitSecond(clampedFutureSec);
   }
 
   function bindStageInput() {

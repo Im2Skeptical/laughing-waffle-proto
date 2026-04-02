@@ -4,7 +4,10 @@
 // No Pixi imports.
 
 import { GRAPH_METRICS } from "../graph-metrics.js";
-import { buildProjectionStateStepWindowFromStateData } from "../projection.js";
+import {
+  buildProjectionStateStepWindowFromStateData,
+  buildProjectionStateWindowFromStateData,
+} from "../projection.js";
 import { deserializeGameState } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
 import {
@@ -51,13 +54,34 @@ function shouldSampleHistory(sec, frontierSec, strideSec) {
 }
 
 function cacheForecastStateData(stateDataByBoundary, sec, historyEndSec, stateData) {
-  // Forecast state snapshots are owned by the shared projection cache.
-  // Controllers should not duplicate serialized state data.
-  return;
+  if (!(stateDataByBoundary instanceof Map) || stateData == null) return;
+  const targetSec = clampSec(sec);
+  stateDataByBoundary.set(targetSec, stateData);
 }
 
 function purgePastStateData(stateDataByBoundary, historyEndSec) {
-  return;
+  if (!(stateDataByBoundary instanceof Map)) return;
+  const cutoff = clampSec(historyEndSec);
+  for (const sec of stateDataByBoundary.keys()) {
+    if (clampSec(sec) <= cutoff) {
+      stateDataByBoundary.delete(sec);
+    }
+  }
+}
+
+function findNearestForecastAnchorSec(stateDataByBoundary, targetSec, historyEndSec) {
+  if (!(stateDataByBoundary instanceof Map)) return null;
+  const target = clampSec(targetSec);
+  const historyEnd = clampSec(historyEndSec);
+  let nearestSec = null;
+  for (const secRaw of stateDataByBoundary.keys()) {
+    const sec = clampSec(secRaw);
+    if (sec <= historyEnd || sec > target) continue;
+    if (nearestSec == null || sec > nearestSec) {
+      nearestSec = sec;
+    }
+  }
+  return nearestSec;
 }
 
 function nowMs() {
@@ -80,7 +104,7 @@ export function createTimeGraphController({
   horizonSec = BASE_PROJECTION_HORIZON_SEC,
 } = {}) {
   const ASYNC_FORECAST_STEP_SEC = 1;
-  const ASYNC_FORECAST_REQUEST_POLL_MS = 250;
+  const ASYNC_FORECAST_REQUEST_POLL_MS = 50;
   let graphCache = null;
   let metricDef = resolveMetricDef(metric);
   let activeSeries = resolveSeries(metricDef, null, null);
@@ -166,6 +190,49 @@ export function createTimeGraphController({
     return coverageEndSec;
   }
 
+  function tryBuildForecastStateDataFromRetainedAnchor(sec, historyEndSec) {
+    const targetSec = clampSec(sec);
+    const frontierSec = clampSec(historyEndSec);
+    const anchorSec = findNearestForecastAnchorSec(
+      graphCache?.stateDataByBoundary,
+      targetSec,
+      frontierSec
+    );
+    if (anchorSec == null) return null;
+
+    const anchorStateData =
+      graphCache?.stateDataByBoundary?.get?.(anchorSec) ?? null;
+    const deltaSec = targetSec - anchorSec;
+    if (anchorStateData == null || deltaSec < 0) return null;
+    if (deltaSec === 0) {
+      return anchorStateData;
+    }
+
+    const win = buildProjectionStateWindowFromStateData(
+      anchorStateData,
+      anchorSec,
+      { horizonSec: deltaSec }
+    );
+    if (!win?.ok) return null;
+
+    let rebuiltStateData = null;
+    for (const [builtSec, builtStateData] of win.stateDataBySecond.entries()) {
+      if (builtSec <= anchorSec || builtSec > targetSec) continue;
+      cacheForecastStateData(
+        graphCache?.stateDataByBoundary,
+        builtSec,
+        frontierSec,
+        builtStateData
+      );
+      projection.setStateData?.(builtSec, builtStateData);
+      if (builtSec === targetSec) {
+        rebuiltStateData = builtStateData;
+      }
+    }
+
+    return rebuiltStateData;
+  }
+
   function buildScheduledActionsBySecond(tl, startSec, endSec) {
     const start = clampSec(startSec);
     const end = clampSec(endSec);
@@ -208,7 +275,6 @@ export function createTimeGraphController({
     graphCache.window.forecastPending = nextPending;
     if (changed) {
       graphCache.version = ++cacheVersion;
-      invalidateSubjectValues();
     }
     return changed;
   }
@@ -1253,7 +1319,7 @@ export function createTimeGraphController({
     const meta = graphCache.window.forecastValuesMeta;
     const coverageEndSec = getEffectiveForecastCoverageEndSec(tl);
 
-    const canReuse =
+    const hasCompatibleMeta =
       meta &&
       meta.baseSec === baseSec &&
       meta.historyEndSec === baseSec &&
@@ -1261,10 +1327,9 @@ export function createTimeGraphController({
       meta.seriesSig === seriesSig &&
       meta.subjectKey === key &&
       meta.valuesRevision === valuesRevision &&
-      meta.endSec >= maxSec &&
       graphCache.window.forecastValuesBySec instanceof Map;
 
-    if (!canReuse) {
+    if (!hasCompatibleMeta) {
       graphCache.window.forecastValuesBySec = new Map();
       graphCache.window.forecastValuesMeta = {
         baseSec,
@@ -1275,6 +1340,8 @@ export function createTimeGraphController({
         subjectKey: key,
         valuesRevision,
       };
+    } else if (meta.endSec < maxSec) {
+      graphCache.window.forecastValuesMeta.endSec = coverageEndSec;
     }
 
     const valuesBySec = graphCache.window.forecastValuesBySec;
@@ -1282,9 +1349,21 @@ export function createTimeGraphController({
       if (sec > coverageEndSec) continue;
       if (valuesBySec.has(sec)) continue;
       const sigRes = projection.ensureSignature?.(tl);
-      const stateData =
+      let stateData =
         sigRes?.changed === true ? null : projection.getStateData?.(sec) ?? null;
+      if (stateData == null) {
+        stateData = tryBuildForecastStateDataFromRetainedAnchor(
+          sec,
+          historyEndSec
+        );
+      }
       if (stateData == null) continue;
+      cacheForecastStateData(
+        graphCache?.stateDataByBoundary,
+        sec,
+        historyEndSec,
+        stateData
+      );
       const values = computeValuesFromStateData(
         stateData,
         activeSeries,
@@ -1372,6 +1451,14 @@ export function createTimeGraphController({
         }
         stateData = res.stateData ?? null;
       }
+      if (sec > historyEndSec && stateData != null) {
+        cacheForecastStateData(
+          graphCache?.stateDataByBoundary,
+          sec,
+          historyEndSec,
+          stateData
+        );
+      }
 
       const values = computeValuesFromStateData(
         stateData,
@@ -1392,6 +1479,11 @@ export function createTimeGraphController({
     const sec = clampSec(tSec);
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
     if (shouldCacheForecastSec(sec, historyEndSec)) {
+      const cachedGraphStateData = graphCache?.stateDataByBoundary?.get?.(sec) ?? null;
+      if (cachedGraphStateData != null) {
+        recordTimegraphCacheHit();
+        return cachedGraphStateData;
+      }
       // Guard direct projection-cache reads behind signature refresh so
       // stale forecast snapshots cannot survive timeline edits.
       const sigRes = projection.ensureSignature?.(tl);
@@ -1399,7 +1491,21 @@ export function createTimeGraphController({
         sigRes?.changed === true ? null : projection.getStateData?.(sec) ?? null;
       if (cachedProjectionData != null) {
         recordTimegraphCacheHit();
+        cacheForecastStateData(
+          graphCache?.stateDataByBoundary,
+          sec,
+          historyEndSec,
+          cachedProjectionData
+        );
         return cachedProjectionData;
+      }
+      const rebuiltStateData = tryBuildForecastStateDataFromRetainedAnchor(
+        sec,
+        historyEndSec
+      );
+      if (rebuiltStateData != null) {
+        recordTimegraphCacheHit();
+        return rebuiltStateData;
       }
       recordTimegraphCacheMiss();
       const res = ensureProjectionStateAtSecond(
@@ -1409,6 +1515,12 @@ export function createTimeGraphController({
         forecastStepSecCur
       );
       if (!res.ok) return null;
+      cacheForecastStateData(
+        graphCache?.stateDataByBoundary,
+        sec,
+        historyEndSec,
+        res.stateData
+      );
       return res.stateData ?? null;
     }
     const res = ensureProjectionStateAtSecond(tl, sec, undefined, forecastStepSecCur);

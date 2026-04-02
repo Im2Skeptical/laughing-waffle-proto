@@ -18,6 +18,11 @@ import {
   SUN_AND_MOON_DISKS_LAYOUT,
 } from "./sunandmoon-disks-pixi.js";
 import { installGlobalTextStylePolicy } from "./ui-helpers/text-style-policy.js";
+import {
+  computeSettlementGraphWindowSpec,
+  createSettlementProjectionCache,
+  SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+} from "./ui-root/settlement-timegraph-window.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -138,6 +143,10 @@ let settlementGraphSeriesMenuOpen = false;
 let settlementGraphSeriesMenuSignature = "";
 let visibleSettlementGraphSeriesIds = [...DEFAULT_SETTLEMENT_GRAPH_VISIBLE_SERIES];
 const forecastWorkerService = createTimegraphForecastWorkerService();
+const settlementProjectionCache = createSettlementProjectionCache({
+  horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+  stepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+});
 const tooltipView = createTooltipView({
   layer: tooltipLayer,
   app,
@@ -320,8 +329,9 @@ settlementGraphController = createTimeGraphController({
   getTimeline: () => runner.getTimeline?.(),
   getCursorState: () => runner.getCursorState?.(),
   metric: GRAPH_METRICS.settlement,
+  projectionCache: settlementProjectionCache,
   forecastWorkerService,
-  forecastStepSec: 1,
+  forecastStepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
   horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
 });
 settlementGraphController.setSubject?.({ classId: selectedPracticeClassId }, selectedPracticeClassId);
@@ -407,16 +417,28 @@ const sunMoonDisksView = createSunAndMoonDisksView({
   getState: () => runner.getState?.(),
   getTimeline: () => runner.getTimeline?.(),
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
+  getForecastPreviewCapSec: () =>
+    settlementGraphView?.getForecastScrubCapSec?.() ??
+    runner.getTimeline?.()?.historyEndSec ??
+    0,
   browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
   commitCursorSecond: (tSec) => runner.commitCursorSecond?.(tSec),
   previewCursorSecond: (tSec) => {
-    const previewState = settlementGraphController?.getStateAt?.(tSec);
+    const previewCapSec =
+      settlementGraphView?.getForecastScrubCapSec?.() ??
+      runner.getTimeline?.()?.historyEndSec ??
+      0;
+    const clampedTSec = Math.max(
+      0,
+      Math.min(Math.floor(tSec ?? 0), Math.floor(previewCapSec))
+    );
+    const previewState = settlementGraphController?.getStateAt?.(clampedTSec);
     if (!previewState) {
       runner.clearPreviewState?.();
       return { ok: false, reason: "previewUnavailable" };
     }
     runner.setPreviewState?.(previewState);
-    return { ok: true, tSec };
+    return { ok: true, tSec: clampedTSec };
   },
   clearPreviewState: () => runner.clearPreviewState?.(),
   commitPreviewToLive: () => runner.commitPreviewToLive?.(),
@@ -437,6 +459,16 @@ settlementGraphView = createMetricGraphView({
   setPreviewState: (state) => runner.setPreviewState?.(state),
   clearPreviewState: () => runner.clearPreviewState?.(),
   commitSecond: (tSec, stateData) => runner.commitCursorSecond?.(tSec, stateData),
+  getWindowSpec: ({ timeline, cursorState, zoomed }) => {
+    const preview = runner.getPreviewStatus?.();
+    return computeSettlementGraphWindowSpec({
+      historyEndSec: timeline?.historyEndSec,
+      cursorSec: cursorState?.tSec,
+      forecastPreviewSec: preview?.isForecastPreview ? preview.previewSec : null,
+      horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+      zoomed,
+    });
+  },
   openPosition: { x: 110, y: 840 },
   windowWidth: 1560,
   windowHeight: 190,
