@@ -32,6 +32,7 @@ import {
   ensureHubSettlementState,
 } from "./settlement-state.js";
 import { syncSettlementDerivedState } from "./settlement-exec.js";
+import { stepSettlementOrders } from "./settlement-order-exec.js";
 import {
   getDefaultSkillPointsForPawnDefId,
   getGlobalSkillModifier,
@@ -436,6 +437,7 @@ export function createInitialState(scenario = "devGym01", seed = null) {
     recomputeInitialActionPoints(state);
     buildSeasonDeckForCurrentSeason(state);
     rebuildBoardOccupancy(state);
+    stepSettlementOrders(state, state.tSec);
     syncSettlementDerivedState(state, state.tSec);
     return state;
   }

@@ -11,6 +11,8 @@ export const settlementPracticeDefs = {
     id: "floodRites",
     kind: "settlementPractice",
     practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "base",
     name: "Flood Rites",
     ui: {
       title: "Flood Rites",
@@ -77,6 +79,8 @@ export const settlementPracticeDefs = {
     id: "riverRecessionFarming",
     kind: "settlementPractice",
     practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "base",
     name: "River Recession Farming",
     ui: {
       title: "River Recession Farming",
@@ -146,6 +150,8 @@ export const settlementPracticeDefs = {
     id: "rest",
     kind: "settlementPractice",
     practiceMode: "passive",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "base",
     name: "Rest",
     ui: {
       title: "Rest",
@@ -178,6 +184,8 @@ export const settlementPracticeDefs = {
     id: "asTheRomans",
     kind: "settlementPractice",
     practiceMode: "active",
+    orderEligibleClassIds: ["stranger"],
+    orderDevelopmentTier: "base",
     name: "As the Romans",
     ui: {
       title: "As the Romans",
@@ -195,6 +203,8 @@ export const settlementPracticeDefs = {
     id: "becomeVillagers",
     kind: "settlementPractice",
     practiceMode: "active",
+    orderEligibleClassIds: ["stranger"],
+    orderDevelopmentTier: "base",
     name: "Become Villagers",
     ui: {
       title: "Become Villagers",
@@ -226,6 +236,8 @@ export const settlementPracticeDefs = {
     id: "openToStrangers",
     kind: "settlementPractice",
     practiceMode: "passive",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "base",
     name: "Open to Strangers",
     ui: {
       title: "Open to Strangers",
@@ -245,6 +257,62 @@ export const settlementPracticeDefs = {
         PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR,
     },
     passiveTargetPopulationClassId: "stranger",
+  },
+  raiseAsVillagers: {
+    id: "raiseAsVillagers",
+    kind: "settlementPractice",
+    practiceMode: "passive",
+    orderEligibleClassIds: ["stranger"],
+    orderDevelopmentTier: "minor",
+    name: "Raise as Villagers",
+    ui: {
+      title: "Raise as Villagers",
+      lines: [
+        "Passive",
+        "Stranger children",
+        "become villager children",
+      ],
+      description:
+        "Children raised under village custom join the villager class before adulthood.",
+    },
+    timing: {
+      cadenceSec: 1,
+    },
+    amount: {
+      mode: "max",
+      values: [{ kind: "youthPopulation" }],
+    },
+    effects: [
+      {
+        op: "TransferPopulationClass",
+        target: { ref: "hubCore" },
+        amountVar: "practiceAmount",
+        fromPopulationClassId: "stranger",
+        toPopulationClassId: "villager",
+        populationPool: "youth",
+      },
+    ],
+  },
+  emergencyFoodReserve: {
+    id: "emergencyFoodReserve",
+    kind: "settlementPractice",
+    practiceMode: "passive",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "minor",
+    name: "Emergency Food Reserve",
+    ui: {
+      title: "Emergency Food Reserve",
+      lines: [
+        "Passive",
+        "If food is short,",
+        "keep back 10%",
+      ],
+      description:
+        "Maintain a protected emergency reserve instead of spending the last stores in a bad season.",
+    },
+    passiveBonuses: {
+      emergencyFoodReserveRatio: 0.1,
+    },
   },
 };
 

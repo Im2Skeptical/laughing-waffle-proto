@@ -21,7 +21,10 @@ import {
 } from "../src/model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../src/model/timegraph-controller.js";
 import { GRAPH_METRICS } from "../src/model/graph-metrics.js";
-import { resolveDefaultGraphScrubSec } from "../src/views/timegraphs-pixi.js";
+import {
+  reconcileLatchedForecastPreview,
+  resolveDefaultGraphScrubSec,
+} from "../src/views/timegraphs-pixi.js";
 import { cropDefs } from "../src/defs/gamepieces/crops-defs.js";
 import { envTagDefs } from "../src/defs/gamesystems/env-tags-defs.js";
 import { forageDropTables } from "../src/defs/gamepieces/forage-droptables-defs.js";
@@ -1222,6 +1225,57 @@ function runTimegraphEditPolicyChecks() {
     }),
     200,
     "latest forecast scrub target should take precedence over stale preview state"
+  );
+  assert.deepEqual(
+    reconcileLatchedForecastPreview({
+      previewStatus: {
+        active: false,
+        isForecastPreview: false,
+        previewSec: null,
+      },
+      statusNote: "Preview only - click Commit to jump",
+      latchedForecastScrubSec: 200,
+    }),
+    {
+      latchedForecastScrubSec: null,
+      forecastPreviewSec: null,
+      statusNote: "",
+    },
+    "stale preview-only latches should clear once the runner no longer has an active forecast preview"
+  );
+  assert.deepEqual(
+    reconcileLatchedForecastPreview({
+      previewStatus: {
+        active: false,
+        isForecastPreview: false,
+        previewSec: null,
+      },
+      statusNote: "Forecast loading",
+      latchedForecastScrubSec: 200,
+    }),
+    {
+      latchedForecastScrubSec: 200,
+      forecastPreviewSec: null,
+      statusNote: "Forecast loading",
+    },
+    "loading forecast latches should persist until coverage is available"
+  );
+  assert.deepEqual(
+    reconcileLatchedForecastPreview({
+      previewStatus: {
+        active: true,
+        isForecastPreview: true,
+        previewSec: 190,
+      },
+      statusNote: "Preview only - click Commit to jump",
+      latchedForecastScrubSec: 200,
+    }),
+    {
+      latchedForecastScrubSec: 190,
+      forecastPreviewSec: 190,
+      statusNote: "Preview only - click Commit to jump",
+    },
+    "an active forecast preview should refresh the latched target from the runner preview state"
   );
 
   const ringDef = itemDefs?.ringOfEternity;

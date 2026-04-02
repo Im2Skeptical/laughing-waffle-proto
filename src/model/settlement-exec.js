@@ -17,6 +17,7 @@ import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-d
 import { pushGameEvent } from "./event-feed.js";
 import { runEffect } from "./effects/index.js";
 import { passiveTimingPasses } from "./passive-timing.js";
+import { stepSettlementOrders } from "./settlement-order-exec.js";
 import { getCurrentSeasonKey } from "./state.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
 import {
@@ -416,6 +417,9 @@ function resolvePracticeAmountValue(input, state, classSummary) {
       break;
     case "totalPopulation":
       baseValue = Math.max(0, Math.floor(classSummary?.totalPopulation ?? 0));
+      break;
+    case "youthPopulation":
+      baseValue = Math.max(0, Math.floor(classSummary?.youth ?? 0));
       break;
     case "stockpile": {
       const key = typeof input.key === "string" ? input.key : null;
@@ -990,6 +994,26 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
 
   let changed = false;
   let availableFood = Number.isFinite(stockpiles.food) ? Math.max(0, Number(stockpiles.food)) : 0;
+  const totalMealDemand = getSettlementClassIds(state).reduce((sum, classId) => {
+    return sum + getWeightedFoodDemandForClass(getPopulationClassState(state, classId));
+  }, 0);
+  const reserveRatio = Math.max(
+    0,
+    Number(
+      Object.values(getHubCore(state)?.props?.practicePassiveBonusesByClass ?? {}).reduce(
+        (max, bonuses) => {
+          const ratio = Number(bonuses?.emergencyFoodReserveRatio ?? 0);
+          return Math.max(max, Number.isFinite(ratio) ? ratio : 0);
+        },
+        0
+      )
+    )
+  );
+  const emergencyReserveFood =
+    reserveRatio > 0 && availableFood + 0.0001 < totalMealDemand
+      ? availableFood * Math.min(1, reserveRatio)
+      : 0;
+  let spendableFood = Math.max(0, availableFood - emergencyReserveFood);
   const seasonKey = getCurrentSeasonKey(state);
   const seasonLabel = SEASON_DISPLAY?.[seasonKey] || seasonKey || "Season";
 
@@ -999,7 +1023,7 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
     const happinessState = classState?.happiness;
     if (!classState || !yearlyState) continue;
     const attempts = getWeightedFoodDemandForClass(classState);
-    const successes = Math.min(attempts, availableFood);
+    const successes = Math.min(attempts, spendableFood);
     const misses = Math.max(0, attempts - successes);
     const feedRatio = getSeasonFeedRatio(attempts, successes);
     const seasonOutcomeKind = getSeasonMealOutcomeKind(classState, attempts, successes);
@@ -1008,7 +1032,8 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
       seasonOutcomeKind,
       feedRatio
     );
-    availableFood = Math.max(0, availableFood - successes);
+    spendableFood = Math.max(0, spendableFood - successes);
+    availableFood = spendableFood + emergencyReserveFood;
     yearlyState.mealAttempts = roundMealValue(Number(yearlyState.mealAttempts ?? 0) + attempts);
     yearlyState.mealSuccesses = roundMealValue(
       Number(yearlyState.mealSuccesses ?? 0) + successes
@@ -1857,6 +1882,8 @@ export function stepSettlementSecond(state, tSec) {
   if (!getHubCore(state)) return;
   releaseExpiredPopulationCommitments(state, tSec);
   runSettlementPopulationSeasonTick(state, tSec);
+  syncSettlementDerivedState(state, tSec);
+  stepSettlementOrders(state, tSec);
   syncSettlementDerivedState(state, tSec);
   executePassivePractices(state, tSec);
   syncSettlementDerivedState(state, tSec);

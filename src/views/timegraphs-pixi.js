@@ -75,6 +75,46 @@ export function resolveDefaultGraphScrubSec({
   return Math.max(0, Math.floor(currentSec ?? 0));
 }
 
+export function reconcileLatchedForecastPreview({
+  previewStatus,
+  statusNote,
+  latchedForecastScrubSec,
+} = {}) {
+  const preview =
+    previewStatus && typeof previewStatus === "object" ? previewStatus : null;
+  const hasForecastPreview =
+    preview?.active === true &&
+    preview?.isForecastPreview === true &&
+    Number.isFinite(preview?.previewSec);
+  if (hasForecastPreview) {
+    const previewSec = Math.max(0, Math.floor(preview.previewSec));
+    return {
+      latchedForecastScrubSec: previewSec,
+      forecastPreviewSec: previewSec,
+      statusNote,
+    };
+  }
+
+  const waitingForForecastCoverage =
+    statusNote === "Forecast loading" || statusNote === "Forecast revealing";
+  if (waitingForForecastCoverage) {
+    return {
+      latchedForecastScrubSec: Number.isFinite(latchedForecastScrubSec)
+        ? Math.max(0, Math.floor(latchedForecastScrubSec))
+        : null,
+      forecastPreviewSec: null,
+      statusNote,
+    };
+  }
+
+  return {
+    latchedForecastScrubSec: null,
+    forecastPreviewSec: null,
+    statusNote:
+      statusNote === "Preview only - click Commit to jump" ? "" : statusNote,
+  };
+}
+
 export function clampForecastScrubTargetSec(
   targetSec,
   historyEndSec,
@@ -464,6 +504,20 @@ export function createMetricGraphView({
 
   function clearLatchedForecastScrub() {
     latchedForecastScrubSec = null;
+  }
+
+  function syncLatchedForecastPreviewStatus() {
+    const synced = reconcileLatchedForecastPreview({
+      previewStatus:
+        typeof getPreviewStatus === "function" ? getPreviewStatus() : null,
+      statusNote,
+      latchedForecastScrubSec,
+    });
+    latchedForecastScrubSec = synced.latchedForecastScrubSec;
+    statusNote = synced.statusNote;
+    if (!isScrubbing && Number.isFinite(synced.forecastPreviewSec)) {
+      scrubSec = clampScrubSecToRevealCap(synced.forecastPreviewSec);
+    }
   }
 
   function getVisibleForecastScrubCapSec() {
@@ -1700,6 +1754,7 @@ export function createMetricGraphView({
     if (!root.visible) return;
     resolveMetric();
     updateTimeBounds();
+    syncLatchedForecastPreviewStatus();
     tryRestoreLatchedForecastPreview();
     updateHeaderButtons();
     drawLegend(getActiveSeries());
