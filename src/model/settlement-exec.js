@@ -4,6 +4,7 @@ import {
   SETTLEMENT_BRONZE_FLOOR_COLLAPSE_LOSS_RATE,
   SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
   SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION,
+  SETTLEMENT_HAPPINESS_PARTIAL_FEED_MIN_POPULATION_RATIO,
   SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
   SETTLEMENT_STARVATION_EVENT_POPULATION_LOSS_RATE,
   SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH,
@@ -201,6 +202,13 @@ function getHappinessPartialMemoryLength() {
   return Math.max(1, raw);
 }
 
+function getHappinessPartialFeedMinPopulationRatio() {
+  const raw = Number.isFinite(SETTLEMENT_HAPPINESS_PARTIAL_FEED_MIN_POPULATION_RATIO)
+    ? Number(SETTLEMENT_HAPPINESS_PARTIAL_FEED_MIN_POPULATION_RATIO)
+    : 0.5;
+  return Math.max(0, Math.min(1, raw));
+}
+
 function normalizeHappinessStatus(value) {
   if (value === "positive" || value === "negative") return value;
   return "neutral";
@@ -239,13 +247,15 @@ function getSettlementYearlyPopulationFaithRate(faithTier) {
   return 0;
 }
 
-function getSeasonMealOutcomeKind(attempts, successes) {
+function getSeasonMealOutcomeKind(classState, attempts, successes) {
   const safeAttempts = Number.isFinite(attempts) ? Math.max(0, Number(attempts)) : 0;
   const safeSuccesses = Number.isFinite(successes) ? Math.max(0, Number(successes)) : 0;
+  const totalPopulation = getTotalPopulationForClass(classState);
+  const partialThreshold = totalPopulation * getHappinessPartialFeedMinPopulationRatio();
   if (safeAttempts <= 0) return "dormant";
   if (safeSuccesses >= safeAttempts - 0.0001) return "full";
-  if (safeSuccesses <= 0) return "missed";
-  return "partial";
+  if (safeSuccesses + 0.0001 >= partialThreshold) return "partial";
+  return "missed";
 }
 
 function getSeasonFeedRatio(attempts, successes) {
@@ -318,11 +328,8 @@ function applySeasonHappinessOutcome(happinessState, seasonOutcomeKind, feedRati
   } else if (seasonOutcomeKind === "missed") {
     fullFeedStreak = 0;
     partialFeedRatios = [];
-    missedFeedStreak += 1;
-    if (missedFeedStreak >= missedThreshold) {
-      starvationTriggered = true;
-      missedFeedStreak = 0;
-    }
+    missedFeedStreak = Math.min(missedThreshold, missedFeedStreak + 1);
+    starvationTriggered = missedFeedStreak >= missedThreshold;
   } else {
     fullFeedStreak = 0;
     missedFeedStreak = 0;
@@ -995,7 +1002,7 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
     const successes = Math.min(attempts, availableFood);
     const misses = Math.max(0, attempts - successes);
     const feedRatio = getSeasonFeedRatio(attempts, successes);
-    const seasonOutcomeKind = getSeasonMealOutcomeKind(attempts, successes);
+    const seasonOutcomeKind = getSeasonMealOutcomeKind(classState, attempts, successes);
     const happinessOutcome = applySeasonHappinessOutcome(
       happinessState,
       seasonOutcomeKind,
@@ -1034,7 +1041,6 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
       if (happinessState && typeof happinessState === "object") {
         happinessState.status = shiftHappinessStatus(starvationHappinessBefore, -1);
         happinessState.fullFeedStreak = 0;
-        happinessState.missedFeedStreak = 0;
         happinessState.partialFeedRatios = [];
         starvationHappinessAfter = happinessState.status;
       }
@@ -1426,6 +1432,7 @@ function getPracticeReservationRuntime(state, classId, sourceId, tSec) {
   const activeRemainingSec = Math.max(0, latestReleaseSec - safeNowSec);
   return {
     activeReservation: true,
+    activeProgressKind: "reservation",
     activeAmount: pendingPopulation,
     activeStartSec,
     activeReleaseSec: latestReleaseSec,
@@ -1433,6 +1440,45 @@ function getPracticeReservationRuntime(state, classId, sourceId, tSec) {
     activeRemainingSec,
     activeProgressRemaining: clampRatio(activeRemainingSec / activeDurationSec),
   };
+}
+
+function getPracticeCadenceRuntime(def, tSec) {
+  const cadenceSec = Number.isFinite(def?.timing?.cadenceSec)
+    ? Math.max(1, Math.floor(def.timing.cadenceSec))
+    : 0;
+  const safeNowSec = Number.isFinite(tSec) ? Math.max(0, Math.floor(tSec)) : 0;
+  if (cadenceSec <= 0) {
+    return {
+      activeReservation: false,
+      activeProgressKind: null,
+      activeAmount: 0,
+      activeStartSec: null,
+      activeReleaseSec: null,
+      activeDurationSec: 0,
+      activeRemainingSec: 0,
+      activeProgressRemaining: 0,
+    };
+  }
+  const secondsIntoCadence = safeNowSec % cadenceSec;
+  const activeRemainingSec =
+    secondsIntoCadence === 0 ? cadenceSec : cadenceSec - secondsIntoCadence;
+  const activeStartSec = safeNowSec - secondsIntoCadence;
+  return {
+    activeReservation: false,
+    activeProgressKind: "cadence",
+    activeAmount: 0,
+    activeStartSec,
+    activeReleaseSec: activeStartSec + cadenceSec,
+    activeDurationSec: cadenceSec,
+    activeRemainingSec,
+    activeProgressRemaining: clampRatio(activeRemainingSec / cadenceSec),
+  };
+}
+
+function getPracticeProgressRuntime(state, classId, cardDef, executionDef, tSec) {
+  const reservationRuntime = getPracticeReservationRuntime(state, classId, cardDef?.id, tSec);
+  if (reservationRuntime.activeReservation) return reservationRuntime;
+  return getPracticeCadenceRuntime(executionDef || cardDef, tSec);
 }
 
 function resolveMirrorPractice(state, sourceClassId, summary, tSec) {
@@ -1545,6 +1591,7 @@ function syncPracticeIndicators(state, tSec, summary) {
               : requirementResult.reason
             : resolved.blockedReason,
           activeReservation: false,
+          activeProgressKind: null,
           activeAmount: 0,
           activeStartSec: null,
           activeReleaseSec: null,
@@ -1557,8 +1604,14 @@ function syncPracticeIndicators(state, tSec, summary) {
         continue;
       }
 
-      const reservationRuntime = getPracticeReservationRuntime(state, classId, cardDef.id, tSec);
-      const blockedReason = reservationRuntime.activeReservation
+      const progressRuntime = getPracticeProgressRuntime(
+        state,
+        classId,
+        cardDef,
+        executionDef,
+        tSec
+      );
+      const blockedReason = progressRuntime.activeReservation
         ? null
         : activePracticeSlotIndex != null
           ? "priority"
@@ -1571,10 +1624,10 @@ function syncPracticeIndicators(state, tSec, summary) {
         practiceMode,
         slotIndex,
         ownerClassId: classId,
-        pendingPopulation: reservationRuntime.activeAmount,
+        pendingPopulation: progressRuntime.activeAmount,
         previewAmount,
         available:
-          reservationRuntime.activeReservation ||
+          progressRuntime.activeReservation ||
           (activePracticeSlotIndex == null &&
             !!executionDef &&
             requirementResult.ok &&
@@ -1582,7 +1635,7 @@ function syncPracticeIndicators(state, tSec, summary) {
         blockedReason,
         mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
         mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
-        ...reservationRuntime,
+        ...progressRuntime,
         lastEvaluatedSec: tSec,
       });
     }
@@ -1639,6 +1692,7 @@ function executePassivePractices(state, tSec) {
             : requirementResult.reason
           : resolved.blockedReason,
         activeReservation: false,
+        activeProgressKind: null,
         activeAmount: 0,
         activeStartSec: null,
         activeReleaseSec: null,
@@ -1721,19 +1775,25 @@ function executePractices(state, tSec) {
           passiveKey: buildPracticePassiveKey(card, classId),
           isActive: requirementResult.ok && amount > 0,
         });
-      const reservationRuntime = getPracticeReservationRuntime(state, classId, cardDef.id, tSec);
+      const progressRuntime = getPracticeProgressRuntime(
+        state,
+        classId,
+        cardDef,
+        executionDef,
+        tSec
+      );
 
       setPracticeRuntime(card, {
         practiceMode: "active",
         slotIndex,
         ownerClassId: classId,
-        pendingPopulation: reservationRuntime.activeAmount,
+        pendingPopulation: progressRuntime.activeAmount,
         previewAmount: amount,
         available:
-          reservationRuntime.activeReservation ||
+          progressRuntime.activeReservation ||
           (!!executionDef && requirementResult.ok && amount > 0),
         blockedReason:
-          reservationRuntime.activeReservation
+          progressRuntime.activeReservation
             ? null
             : executionDef
               ? requirementResult.ok
@@ -1742,7 +1802,7 @@ function executePractices(state, tSec) {
               : resolved.blockedReason,
         mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
         mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
-        ...reservationRuntime,
+        ...progressRuntime,
         lastEvaluatedSec: tSec,
       });
 

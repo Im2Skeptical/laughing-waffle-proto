@@ -337,7 +337,7 @@ function runHappinessAssertions() {
   const risingPartialState = createInitialState(
     buildSettlementSetup({
       stockpiles: {
-        food: 4,
+        food: 5,
         redResource: 0,
         greenResource: 0,
         blueResource: 0,
@@ -353,7 +353,7 @@ function runHappinessAssertions() {
   advanceToSecond(risingPartialState, 33);
   risingPartialState.hub.core.systemState.stockpiles.food = 6;
   advanceToSecond(risingPartialState, 65);
-  risingPartialState.hub.core.systemState.stockpiles.food = 8;
+  risingPartialState.hub.core.systemState.stockpiles.food = 7;
   advanceToSecond(risingPartialState, 97);
   assert.deepEqual(
     summarizeClass(risingPartialState, "villager").happiness,
@@ -364,6 +364,30 @@ function runHappinessAssertions() {
       partialFeedRatios: [],
     },
     "three rising partial feed ratios should improve happiness"
+  );
+
+  const belowPartialThresholdState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 4.75,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 8,
+      villagerYouth: 2,
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(belowPartialThresholdState, 33);
+  assert.equal(
+    summarizeClass(belowPartialThresholdState, "villager").yearly.lastSeasonOutcomeKind,
+    "missed",
+    "feeding under 50 percent of the class population should still count as a missed season"
   );
 
   const flatPartialState = createInitialState(
@@ -456,7 +480,7 @@ function runHappinessAssertions() {
     {
       status: "negative",
       fullFeedStreak: 0,
-      missedFeedStreak: 0,
+      missedFeedStreak: 3,
       partialFeedRatios: [],
     },
     "three consecutive missed seasons should trigger starvation and reduce happiness"
@@ -476,6 +500,95 @@ function runHappinessAssertions() {
     starvationEvent?.data?.starvationLoss?.totalRemoved,
     1,
     "the starvation event should report the seasonal population loss"
+  );
+
+  const starvationCarryState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 0,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 8,
+      villagerHappiness: {
+        status: "neutral",
+        fullFeedStreak: 0,
+        missedFeedStreak: 2,
+        partialFeedRatios: [],
+      },
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(starvationCarryState, 33);
+  assert.deepEqual(
+    summarizeClass(starvationCarryState, "villager").happiness,
+    {
+      status: "negative",
+      fullFeedStreak: 0,
+      missedFeedStreak: 3,
+      partialFeedRatios: [],
+    },
+    "starvation should not clear the missed-feed streak on trigger"
+  );
+  starvationCarryState.hub.core.systemState.stockpiles.food = 0;
+  advanceToSecond(starvationCarryState, 65);
+  assert.deepEqual(
+    summarizeClass(starvationCarryState, "villager").happiness,
+    {
+      status: "negative",
+      fullFeedStreak: 0,
+      missedFeedStreak: 3,
+      partialFeedRatios: [],
+    },
+    "continued misses after starvation should keep the streak latched until a qualifying feed"
+  );
+  const villagerStarvationEvents = starvationCarryState.gameEventFeed.filter(
+    (entry) =>
+      entry?.type === "populationStarvationEvent" && entry?.data?.classId === "villager"
+  );
+  assert.equal(
+    villagerStarvationEvents.length,
+    2,
+    "further missed seasons should keep triggering starvation while the streak stays latched"
+  );
+
+  const starvationResetState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 4,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 8,
+      villagerHappiness: {
+        status: "negative",
+        fullFeedStreak: 0,
+        missedFeedStreak: 3,
+        partialFeedRatios: [],
+      },
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+    }),
+    123
+  );
+  advanceToSecond(starvationResetState, 33);
+  assert.deepEqual(
+    summarizeClass(starvationResetState, "villager").happiness,
+    {
+      status: "negative",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [0.5],
+    },
+    "a qualifying partial feed should clear the latched starvation streak"
   );
 
   const bronzeCollapseState = createInitialState(
@@ -775,49 +888,92 @@ function runBecomeVillagersAssertions() {
     123
   );
 
-  advanceToSecond(state, 256);
+  advanceToSecond(state, 255);
+  const beforeFirstTriggerVillagers = summarizeClass(state, "villager").population.total;
+  const beforeFirstTriggerStrangers = summarizeClass(state, "stranger").population.total;
+  const expectedFirstConversion = Math.max(1, Math.floor(beforeFirstTriggerStrangers / 10));
 
-  const activeRuntime = summarizeClass(state, "stranger").practice[1];
+  advanceToSecond(state, 256);
+  const firstTriggerRuntime = summarizeClass(state, "stranger").practice[1];
   assert.deepEqual(
     summarizeClass(state, "stranger").commitments,
-    [{ sourceId: "becomeVillagers", amount: 2, startSec: 256, releaseSec: 512 }],
-    "become villagers should reserve 10 percent of strangers for a 2-year conversion timer"
+    [],
+    "become villagers should not reserve stranger population"
   );
-  assert.equal(activeRuntime.activeReservation, true, "become villagers should expose an active drain runtime");
-  assert.equal(activeRuntime.activeAmount, 2, "become villagers should report its reserved stranger amount");
-  assert.equal(activeRuntime.activeRemainingSec, 256, "become villagers should start with a full 2-year timer");
+  assert.equal(
+    summarizeClass(state, "villager").population.total,
+    beforeFirstTriggerVillagers + expectedFirstConversion,
+    "become villagers should convert population immediately when its 2-year trigger fires"
+  );
+  assert.equal(
+    summarizeClass(state, "stranger").population.total,
+    beforeFirstTriggerStrangers - expectedFirstConversion,
+    "become villagers should remove the converted amount from the stranger class immediately"
+  );
+  assert.equal(
+    firstTriggerRuntime.activeReservation,
+    false,
+    "become villagers should not expose reservation runtime after triggering"
+  );
+  assert.equal(
+    firstTriggerRuntime.lastRunSec,
+    256,
+    "become villagers should record when the trigger last fired"
+  );
+  assert.equal(
+    firstTriggerRuntime.lastAmount,
+    expectedFirstConversion,
+    "become villagers should record the converted amount from the trigger"
+  );
+  assert.equal(
+    firstTriggerRuntime.activeRemainingSec,
+    256,
+    "become villagers should reset its cadence countdown after triggering"
+  );
   assertClose(
-    activeRuntime.activeProgressRemaining,
+    firstTriggerRuntime.activeProgressRemaining,
     1,
     0.0001,
-    "become villagers should start with a full drain mask"
+    "become villagers should show a full cadence drain immediately after triggering"
+  );
+  assert.equal(
+    firstTriggerRuntime.previewAmount,
+    Math.floor((beforeFirstTriggerStrangers - expectedFirstConversion) / 10),
+    "become villagers should recalculate its next conversion amount from the remaining stranger population"
   );
 
   advanceToSecond(state, 300);
   const midRuntime = summarizeClass(state, "stranger").practice[1];
-  assert.equal(midRuntime.activeRemainingSec, 212, "become villagers should count down from authoritative time");
+  assert.equal(
+    midRuntime.activeReservation,
+    false,
+    "become villagers should remain non-reserving between triggers"
+  );
+  assert.equal(
+    midRuntime.lastRunSec,
+    256,
+    "become villagers should preserve its last trigger timestamp between firings"
+  );
+  assert.equal(
+    midRuntime.activeRemainingSec,
+    212,
+    "become villagers should count down to its next cadence even without a reservation"
+  );
   assertClose(
     midRuntime.activeProgressRemaining,
     212 / 256,
     0.0001,
-    "become villagers drain progress should rebuild from startSec and releaseSec"
-  );
-
-  advanceToSecond(state, 512);
-  assert.equal(
-    summarizeClass(state, "villager").population.total,
-    2,
-    "become villagers should transfer its reserved amount into the villager class on completion"
+    "become villagers should expose cadence progress for the drain fill effect"
   );
   assert.equal(
-    summarizeClass(state, "villager").population.adults,
-    2,
-    "become villagers should transfer adults by default"
+    midRuntime.previewAmount,
+    Math.floor(summarizeClass(state, "stranger").population.total / 10),
+    "become villagers should keep previewing conversion from the current stranger population between triggers"
   );
   assert.equal(
-    summarizeClass(state, "stranger").practice[1].activeReservation,
-    true,
-    "become villagers should be able to start a new reservation immediately after completion if the stranger class still qualifies"
+    midRuntime.lastAmount,
+    expectedFirstConversion,
+    "become villagers should keep the last completed conversion amount until the next trigger"
   );
 }
 

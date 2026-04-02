@@ -227,6 +227,13 @@ function buildPracticeLines(card) {
       `Active: ${Math.floor(runtime.activeAmount ?? runtime.pendingPopulation ?? 0)} pop, ${Math.max(0, Math.floor(runtime.activeRemainingSec ?? 0))}s left`
     );
   }
+  if (
+    runtime.activeReservation !== true &&
+    runtime.activeProgressKind === "cadence" &&
+    Number.isFinite(runtime.activeRemainingSec)
+  ) {
+    lines.push(`Next trigger: ${Math.max(0, Math.floor(runtime.activeRemainingSec ?? 0))}s`);
+  }
   if (!runtime.activeReservation && runtime.lastAmount > 0 && Number.isFinite(runtime.lastRunSec)) {
     lines.push(`Last run: ${Math.floor(runtime.lastAmount)} at ${Math.floor(runtime.lastRunSec)}s`);
   }
@@ -356,7 +363,10 @@ function drawPracticeCard(container, rect, card, title, lines, fill, outline = P
   );
   container.addChild(gfx);
 
-  if (runtime.activeReservation === true && Number.isFinite(runtime.activeProgressRemaining)) {
+  if (
+    (runtime.activeReservation === true || runtime.activeProgressKind === "cadence") &&
+    Number.isFinite(runtime.activeProgressRemaining)
+  ) {
     const innerX = rect.x + 4;
     const innerY = rect.y + 4;
     const innerWidth = Math.max(0, rect.width - 8);
