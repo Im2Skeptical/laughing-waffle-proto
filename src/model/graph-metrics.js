@@ -7,11 +7,103 @@ import {
   getSettlementFaithSummary,
   getSettlementHappinessGraphValue,
   getSettlementHappinessSummary,
+  getSettlementClassIds,
   getSettlementFloodplainTiles,
   getSettlementPopulationSummary,
   getSettlementStockpile,
   isSettlementPrototypeEnabled,
 } from "./settlement-state.js";
+
+const DEFAULT_SETTLEMENT_GRAPH_CLASS_IDS = Object.freeze(["villager", "stranger"]);
+const SETTLEMENT_CLASS_METRIC_COLOR_PALETTES = Object.freeze({
+  population: Object.freeze([
+    0xb88cff,
+    0x66b7f0,
+    0xf2a766,
+    0x8acb88,
+    0xf07a7a,
+    0x88d7d0,
+    0xe0b86e,
+    0xc79be8,
+  ]),
+  freePopulation: Object.freeze([
+    0xd8c47d,
+    0xa2d6c9,
+    0xe2aa72,
+    0xa5c992,
+    0xd7a1a1,
+    0xa7c2e6,
+    0xd9d27a,
+    0xcbb4e4,
+  ]),
+  faith: Object.freeze([
+    0xf1de7a,
+    0xf6c972,
+    0xe5c27f,
+    0xe8dd9b,
+    0xecc16d,
+    0xd9c984,
+    0xf0d49c,
+    0xd3ba67,
+  ]),
+  happiness: Object.freeze([
+    0xf2a766,
+    0xef8e73,
+    0xe9bb6e,
+    0xe68888,
+    0xf0b38e,
+    0xd48d5f,
+    0xdba07d,
+    0xebc29d,
+  ]),
+});
+const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
+  {
+    id: "population",
+    shortLabel: "Pop",
+    label: "Population",
+    getValue: (state, classId) => getSettlementPopulationSummary(state, classId).total,
+    getValueFromSnapshot: (snapshot, classId) =>
+      getSettlementPopulationSummary(snapshot, classId).total,
+    getLegendTooltipSpec: (state, classId) =>
+      getSettlementPopulationTooltipSpec(state, classId),
+    formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
+  },
+  {
+    id: "freePopulation",
+    shortLabel: "Free",
+    label: "Free Population",
+    getValue: (state, classId) => getSettlementPopulationSummary(state, classId).free,
+    getValueFromSnapshot: (snapshot, classId) =>
+      getSettlementPopulationSummary(snapshot, classId).free,
+    getLegendTooltipSpec: (state, classId) =>
+      getSettlementFreePopulationTooltipSpec(state, classId),
+    formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
+  },
+  {
+    id: "faith",
+    shortLabel: "Faith",
+    label: "Faith",
+    getValue: (state, classId) => getSettlementFaithGraphValue(state, classId),
+    getValueFromSnapshot: (snapshot, classId) =>
+      getSettlementFaithGraphValue(snapshot, classId),
+    getLegendTooltipSpec: (state, classId) =>
+      getSettlementFaithTooltipSpec(state, classId),
+    formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
+  },
+  {
+    id: "happiness",
+    shortLabel: "Happy",
+    label: "Happiness",
+    getValue: (state, classId) => getSettlementHappinessGraphValue(state, classId),
+    getValueFromSnapshot: (snapshot, classId) =>
+      getSettlementHappinessGraphValue(snapshot, classId),
+    getLegendTooltipSpec: (state, classId) =>
+      getSettlementHappinessTooltipSpec(state, classId),
+    formatValue: (value) =>
+      value >= 75 ? "Positive" : value <= 25 ? "Negative" : "Neutral",
+  },
+]);
 
 function capitalizeLabel(value) {
   const text = typeof value === "string" ? value : "";
@@ -120,6 +212,99 @@ function getSettlementHappinessTooltipSpec(state, classId = null) {
     ],
   };
 }
+
+function getSettlementGraphClassIds(state) {
+  const classIds = getSettlementClassIds(state);
+  return classIds.length ? classIds : DEFAULT_SETTLEMENT_GRAPH_CLASS_IDS;
+}
+
+function resolveSettlementClassMetricColor(metricId, classIndex) {
+  const palette = Array.isArray(SETTLEMENT_CLASS_METRIC_COLOR_PALETTES[metricId])
+    ? SETTLEMENT_CLASS_METRIC_COLOR_PALETTES[metricId]
+    : SETTLEMENT_CLASS_METRIC_COLOR_PALETTES.population;
+  if (!palette.length) return 0xb8a4ff;
+  const safeIndex = Number.isFinite(classIndex) ? Math.max(0, Math.floor(classIndex)) : 0;
+  return palette[safeIndex % palette.length];
+}
+
+function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
+  const safeClassId =
+    typeof classId === "string" && classId.length ? classId : "villager";
+  const safeMetricDef =
+    metricDef && typeof metricDef === "object"
+      ? metricDef
+      : SETTLEMENT_CLASS_METRIC_DEFS[0];
+  const metricId = String(safeMetricDef.id ?? "population");
+  const metricShortLabel = String(
+    safeMetricDef.shortLabel ?? safeMetricDef.label ?? metricId
+  );
+  const metricLabel = String(safeMetricDef.label ?? metricShortLabel);
+  const classLabel = formatClassLabel(safeClassId);
+  return {
+    id: `${metricId}:${safeClassId}`,
+    label: `${classLabel} ${metricShortLabel}`,
+    color: resolveSettlementClassMetricColor(metricId, classIndex),
+    legendLabel: `${classLabel} ${metricLabel}`,
+    pickerGroup: "classMetric",
+    pickerClassId: safeClassId,
+    pickerMetricId: metricId,
+    pickerMetricLabel: metricLabel,
+    pickerMetricShortLabel: metricShortLabel,
+    getValue: (state) => safeMetricDef.getValue(state, safeClassId),
+    getValueFromSnapshot: (snapshot) =>
+      safeMetricDef.getValueFromSnapshot(snapshot, safeClassId),
+    getLegendTooltipSpec: (state) =>
+      safeMetricDef.getLegendTooltipSpec(state, safeClassId),
+    formatValue: safeMetricDef.formatValue,
+  };
+}
+
+function getSettlementClassMetricSeries(state) {
+  const classIds = getSettlementGraphClassIds(state);
+  const series = [];
+  for (const metricDef of SETTLEMENT_CLASS_METRIC_DEFS) {
+    classIds.forEach((classId, index) => {
+      series.push(createSettlementClassMetricSeries(classId, index, metricDef));
+    });
+  }
+  return series;
+}
+
+const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
+  {
+    id: "food",
+    label: "Food",
+    color: 0xdcc56f,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementStockpile(state, "food"),
+    getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "food"),
+    getLegendTooltipSpec: (state) => getSettlementFoodTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
+    id: "redResource",
+    label: "Red",
+    color: 0xc55c4a,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementStockpile(state, "redResource"),
+    getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "redResource"),
+    getLegendTooltipSpec: (state) => getSettlementRedTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
+    id: "greenResource",
+    label: "Green",
+    color: 0x7eb37d,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementStockpile(state, "greenResource"),
+    getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "greenResource"),
+    getLegendTooltipSpec: (state) => getSettlementGreenTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+]);
 
 export const GRAPH_METRICS = {
   gold: {
@@ -237,91 +422,13 @@ export const GRAPH_METRICS = {
   settlement: {
     id: "settlement",
     label: "Settlement",
-    getLabel: (subject) =>
-      subject?.classId ? `Settlement - ${formatClassLabel(subject.classId)}` : "Settlement",
-    getSubjectKey: (subject) => subject?.classId ?? null,
     series: [
-      {
-        id: "food",
-        label: "Food",
-        color: 0xdcc56f,
-        getValue: (state) => getSettlementStockpile(state, "food"),
-        getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "food"),
-        getLegendTooltipSpec: (state) => getSettlementFoodTooltipSpec(state),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "redResource",
-        label: "Red",
-        color: 0xc55c4a,
-        getValue: (state) => getSettlementStockpile(state, "redResource"),
-        getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "redResource"),
-        getLegendTooltipSpec: (state) => getSettlementRedTooltipSpec(state),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "greenResource",
-        label: "Green",
-        color: 0x7eb37d,
-        getValue: (state) => getSettlementStockpile(state, "greenResource"),
-        getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "greenResource"),
-        getLegendTooltipSpec: (state) => getSettlementGreenTooltipSpec(state),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "totalPopulation",
-        label: "Pop",
-        color: 0xb8a4ff,
-        getValue: (state, subject) =>
-          getSettlementPopulationSummary(state, subject?.classId ?? null).total,
-        getValueFromSnapshot: (snapshot, subject) =>
-          getSettlementPopulationSummary(snapshot, subject?.classId ?? null).total,
-        getLegendTooltipSpec: (state, subject) =>
-          getSettlementPopulationTooltipSpec(state, subject?.classId ?? null),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "freePopulation",
-        label: "Free",
-        color: 0x8ec3f2,
-        getValue: (state, subject) =>
-          getSettlementPopulationSummary(state, subject?.classId ?? null).free,
-        getValueFromSnapshot: (snapshot, subject) =>
-          getSettlementPopulationSummary(snapshot, subject?.classId ?? null).free,
-        getLegendTooltipSpec: (state, subject) =>
-          getSettlementFreePopulationTooltipSpec(state, subject?.classId ?? null),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "faith",
-        label: "Faith",
-        color: 0xf1de7a,
-        getValue: (state, subject) => getSettlementFaithGraphValue(state, subject?.classId ?? null),
-        getValueFromSnapshot: (snapshot, subject) =>
-          getSettlementFaithGraphValue(snapshot, subject?.classId ?? null),
-        getLegendTooltipSpec: (state, subject) =>
-          getSettlementFaithTooltipSpec(state, subject?.classId ?? null),
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "happiness",
-        label: "Happy",
-        color: 0xf2a766,
-        getValue: (state, subject) =>
-          getSettlementHappinessGraphValue(state, subject?.classId ?? null),
-        getValueFromSnapshot: (snapshot, subject) =>
-          getSettlementHappinessGraphValue(snapshot, subject?.classId ?? null),
-        getLegendTooltipSpec: (state, subject) =>
-          getSettlementHappinessTooltipSpec(state, subject?.classId ?? null),
-        formatValue: (value) =>
-          value >= 75 ? "Positive" : value <= 25 ? "Negative" : "Neutral",
-      },
+      ...SETTLEMENT_RESOURCE_SERIES,
+      ...getSettlementClassMetricSeries(null),
+    ],
+    getSeries: (_subject, state) => [
+      ...SETTLEMENT_RESOURCE_SERIES,
+      ...getSettlementClassMetricSeries(state),
     ],
   },
 };
