@@ -123,10 +123,9 @@ assert.match(
   /let\s+selectedPracticeClassId\s*=\s*"villager"/,
   "[test] settlement root should default the selected class to villagers"
 );
-assert.match(
-  rootSource,
-  /setSubject\?\.\(\{\s*classId:\s*selectedPracticeClassId\s*\}/,
-  "[test] settlement graph should follow the selected class subject"
+assert.ok(
+  !/setSubject\?\.\(\{\s*classId:\s*selectedPracticeClassId\s*\}/.test(rootSource),
+  "[test] settlement graph should not couple graph series to the selected practice tab"
 );
 assert.match(
   rootSource,
@@ -167,6 +166,36 @@ assert.match(
   rootSource,
   /function\s+renderSettlementGraphSeriesMenu\(/,
   "[test] settlement root should render a settlement graph series menu"
+);
+assert.match(
+  rootSource,
+  /function\s+partitionSettlementGraphMenuSeries\(allSeries\)/,
+  "[test] settlement root should partition the series picker into grouped menu data"
+);
+assert.match(
+  rootSource,
+  /function\s+buildSettlementGraphSeriesMenuLayout\(allSeries\)/,
+  "[test] settlement root should build a grouped layout for the series picker"
+);
+assert.match(
+  rootSource,
+  /function\s+getSettlementGraphSeriesMenuRect\(allSeries\)/,
+  "[test] settlement root should compute the series menu rect dynamically"
+);
+assert.match(
+  rootSource,
+  /graphRect\.y - height - 8/,
+  "[test] settlement graph series menu should anchor above the graph when opened"
+);
+assert.match(
+  rootSource,
+  /VIEWPORT_DESIGN_HEIGHT - height - SETTLEMENT_GRAPH_MENU_MARGIN/,
+  "[test] settlement graph series menu should clamp inside the viewport height"
+);
+assert.match(
+  rootSource,
+  /"Toggle any mix of globals and class metrics"/,
+  "[test] settlement graph series menu should explain mixed global and class metric toggles"
 );
 
 for (const label of ["Order", "Practice", "Structures"]) {
@@ -241,23 +270,27 @@ assert.match(
 );
 assert.match(
   graphMetricsSource,
-  /id:\s*"totalPopulation"/,
-  "[test] settlement graph should include total population"
+  /id:\s*`\$\{metricId\}:\$\{safeClassId\}`/,
+  "[test] settlement graph should include class-qualified graph series ids"
 );
 assert.match(
   graphMetricsSource,
-  /id:\s*"faith"/,
-  "[test] settlement graph should include faith"
+  /getSettlementClassIds/,
+  "[test] settlement graph should derive class-qualified series from the settlement class list"
 );
 assert.match(
   graphMetricsSource,
-  /id:\s*"happiness"/,
-  "[test] settlement graph should include happiness"
+  /pickerGroup:\s*"classMetric"/,
+  "[test] settlement graph should tag class metric series for picker grouping"
 );
 assert.match(
   graphMetricsSource,
-  /subject\?\.classId/,
-  "[test] settlement graph should read the selected class subject for class-specific series"
+  /pickerMetricId:\s*metricId/,
+  "[test] settlement graph should expose metric ids for grouped class toggles"
+);
+assert.ok(
+  !/subject\?\.classId/.test(graphMetricsSource),
+  "[test] settlement graph should not depend on the selected class subject for class-specific toggles"
 );
 assert.match(
   graphMetricsSource,
