@@ -9,7 +9,7 @@ import {
   SETTLEMENT_STARVATION_EVENT_POPULATION_LOSS_RATE,
   SETTLEMENT_YEARLY_POPULATION_RATE_BY_FAITH,
   YOUTH_DECAY_RATE,
-  YOUTH_FOOD_COST,
+  YOUTH_PER_FOOD,
   YOUTH_TO_ADULT_RATE,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
@@ -127,12 +127,22 @@ function reducePopulationFromClass(classState, amount) {
   };
 }
 
-function getYouthFoodCost() {
-  return Number.isFinite(YOUTH_FOOD_COST) ? Math.max(0, Number(YOUTH_FOOD_COST)) : 0.5;
+function getYouthPerFood() {
+  const youthPerFood = Number.isFinite(YOUTH_PER_FOOD)
+    ? Math.max(1, Math.floor(YOUTH_PER_FOOD))
+    : 2;
+  return youthPerFood;
+}
+
+function getYouthFoodDemand(youthCount) {
+  const youth = Number.isFinite(youthCount) ? Math.max(0, Math.floor(youthCount)) : 0;
+  if (youth <= 0) return 0;
+  return Math.ceil(youth / getYouthPerFood());
 }
 
 function getWeightedFoodDemandForClass(classState) {
-  return getAdultPopulationForClass(classState) + getYouthPopulationForClass(classState) * getYouthFoodCost();
+  const youth = getYouthPopulationForClass(classState);
+  return getAdultPopulationForClass(classState) + getYouthFoodDemand(youth);
 }
 
 function roundMealValue(value) {
@@ -1095,7 +1105,8 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
         feedRatio: roundMealValue(feedRatio),
         adults: getAdultPopulationForClass(classState),
         youth: getYouthPopulationForClass(classState),
-        youthFoodCost: getYouthFoodCost(),
+        youthPerFood: getYouthPerFood(),
+        youthFoodRoundsUp: true,
         seasonKey,
         seasonOutcomeKind,
         happiness: {

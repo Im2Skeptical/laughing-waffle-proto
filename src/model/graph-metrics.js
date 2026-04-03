@@ -1,6 +1,7 @@
 // src/model/graph-metrics.js
 // Metric definitions for time graphs.
 
+import { YOUTH_PER_FOOD } from "../defs/gamesettings/gamerules-defs.js";
 import { getTotalFoodFromEdibles, getTotalStackByTag } from "./query.js";
 import {
   getSettlementFaithGraphValue,
@@ -23,12 +24,13 @@ function getSettlementFoodTooltipSpec(state) {
   const population = getSettlementPopulationSummary(state);
   const food = getSettlementStockpile(state, "food");
   const foodCapacity = Math.max(0, Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0));
-  const weightedDemand = population.adults + population.youth * 0.5;
+  const youthPerFood = Number.isFinite(YOUTH_PER_FOOD) ? Math.max(1, Math.floor(YOUTH_PER_FOOD)) : 2;
+  const weightedDemand = population.adults + Math.ceil(population.youth / youthPerFood);
   return {
     title: "Food",
     lines: [
-      `Current stockpile: ${Number(food).toFixed(1)}/${foodCapacity}`,
-      `Each season change consumes up to ${weightedDemand.toFixed(1)} food (${population.adults} adults + ${population.youth} youth at 0.5).`,
+      `Current stockpile: ${Math.floor(food)}/${foodCapacity}`,
+      `Each season change consumes up to ${weightedDemand} food (${population.adults} adults + ${population.youth} youth, with 1 food per ${youthPerFood} youth and odd youth rounded up).`,
       "Spring rollovers resolve the last year's population and faith before the new season meal.",
     ],
   };

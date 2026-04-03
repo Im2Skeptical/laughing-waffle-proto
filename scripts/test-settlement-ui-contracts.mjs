@@ -270,8 +270,8 @@ assert.ok(
 );
 assert.match(
   graphMetricsSource,
-  /Each season change consumes up to .* adults \+ .* youth at 0\.5/,
-  "[test] food tooltip text should describe weighted seasonal upkeep"
+  /Each season change consumes up to .* food \(\$\{population\.adults\} adults \+ \$\{population\.youth\} youth, with 1 food per \$\{youthPerFood\} youth and odd youth rounded up\)\./,
+  "[test] food tooltip text should describe rounded youth seasonal upkeep"
 );
 assert.match(
   graphMetricsSource,
