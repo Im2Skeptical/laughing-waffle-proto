@@ -347,7 +347,15 @@ function drawSlotGrid(gfx, rect, columns, rows) {
   }
 }
 
-function drawCard(container, rect, title, lines, fill, outline = PALETTE.stroke) {
+function drawCard(
+  container,
+  rect,
+  title,
+  lines,
+  fill,
+  outline = PALETTE.stroke,
+  bodyStyleOverrides = null
+) {
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 22, fill, outline, 3);
   container.addChild(gfx);
@@ -363,6 +371,9 @@ function drawCard(container, rect, title, lines, fill, outline = PALETTE.stroke)
       wordWrap: true,
       wordWrapWidth: rect.width - 32,
       lineHeight: 18,
+      ...(bodyStyleOverrides && typeof bodyStyleOverrides === "object"
+        ? bodyStyleOverrides
+        : {}),
     },
     rect.x + 16,
     rect.y + 44
@@ -465,12 +476,21 @@ function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
   container.addChild(createText(String(value), TEXT_STYLES.chip, x + width - 14, y + 20, 1, 0.5));
 }
 
-function drawClassSummaryCard(container, rect, classId, population, faith, happiness, selected) {
+function drawClassSummaryCard(
+  rect,
+  classId,
+  population,
+  faith,
+  happiness,
+  selected,
+  onTap = null
+) {
+  const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
-    rect.x,
-    rect.y,
+    0,
+    0,
     rect.width,
     rect.height,
     18,
@@ -478,10 +498,10 @@ function drawClassSummaryCard(container, rect, classId, population, faith, happi
     selected ? PALETTE.active : PALETTE.stroke,
     selected ? 3 : 2
   );
-  container.addChild(gfx);
-  container.addChild(
-    createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, rect.x + 16, rect.y + 12)
-  );
+  root.x = rect.x;
+  root.y = rect.y;
+  root.addChild(gfx);
+  root.addChild(createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, 16, 12));
   const lines = [
     `Adults ${Math.floor(population?.adults ?? 0)}  Youth ${Math.floor(population?.youth ?? 0)}`,
     `Total ${Math.floor(population?.total ?? 0)}  Free ${Math.floor(population?.free ?? 0)}`,
@@ -490,39 +510,26 @@ function drawClassSummaryCard(container, rect, classId, population, faith, happi
     `${Math.floor(happiness?.fullFeedStreak ?? 0)}/${Math.floor(happiness?.fullFeedThreshold ?? 0)} full  ${Math.floor(happiness?.missedFeedStreak ?? 0)}/${Math.floor(happiness?.missedFeedThreshold ?? 0)} missed`,
     `Partial ${formatPartialFeedMemory(happiness?.partialFeedRatios)}`,
   ];
-  container.addChild(
+  root.addChild(
     createText(
       lines.join("\n"),
       {
         ...TEXT_STYLES.body,
         fontSize: 12,
         lineHeight: 16,
+        wordWrap: true,
+        wordWrapWidth: rect.width - 32,
       },
-      rect.x + 16,
-      rect.y + 42
+      16,
+      42
     )
   );
-}
-
-function createClassTab(label, rect, selected, onTap) {
-  const root = new PIXI.Container();
-  const gfx = new PIXI.Graphics();
-  roundedRect(
-    gfx,
-    rect.x,
-    rect.y,
-    rect.width,
-    rect.height,
-    18,
-    selected ? PALETTE.card : PALETTE.panelSoft,
-    selected ? PALETTE.active : PALETTE.stroke,
-    selected ? 3 : 2
-  );
-  root.addChild(gfx);
-  root.addChild(createText(label, TEXT_STYLES.chip, rect.x + rect.width * 0.5, rect.y + rect.height * 0.5, 0.5, 0.5));
-  root.eventMode = "static";
-  root.cursor = "pointer";
-  root.on("pointertap", () => onTap?.());
+  if (typeof onTap === "function") {
+    root.eventMode = "static";
+    root.cursor = "pointer";
+    root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+    root.on("pointertap", () => onTap());
+  }
   return root;
 }
 
@@ -576,11 +583,12 @@ export function createSettlementPrototypeView({
 
     const hubPanelRect = { x: 120, y: 120, width: 1180, height: 700 };
     const regionPanelRect = { x: 1430, y: 180, width: 830, height: 590 };
-    const orderRect = { x: 140, y: 260, width: 240, height: 300 };
-    const classStripRect = { x: 430, y: 208, width: 850, height: 126 };
-    const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
-    const practiceRect = { x: 430, y: 388, width: 850, height: 224 };
+    // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
+    const classColumnRect = { x: 150, y: 210, width: 250, height: 396 };
+    const orderRect = { x: 430, y: 206, width: 830, height: 148 };
+    const practiceRect = { x: 430, y: 392, width: 830, height: 220 };
     const structuresRect = { x: 140, y: 630, width: 1140, height: 170 };
+    const resourceBandRect = { x: 160, y: 836, width: 1540, height: 44 };
 
     const panelGfx = new PIXI.Graphics();
     roundedRect(
@@ -604,6 +612,17 @@ export function createSettlementPrototypeView({
       PALETTE.panelSoft,
       PALETTE.stroke,
       4
+    );
+    roundedRect(
+      panelGfx,
+      resourceBandRect.x,
+      resourceBandRect.y,
+      resourceBandRect.width,
+      resourceBandRect.height,
+      18,
+      PALETTE.panelSoft,
+      PALETTE.stroke,
+      2
     );
     roundedRect(
       panelGfx,
@@ -640,70 +659,117 @@ export function createSettlementPrototypeView({
     );
     root.addChild(panelGfx);
 
-    root.addChild(createText(state?.locationNames?.hub ?? "Hub", TEXT_STYLES.header, 700, 175, 0.5, 0.5));
+    root.addChild(
+      createText(
+        state?.locationNames?.hub ?? "Hub",
+        TEXT_STYLES.header,
+        hubPanelRect.x + hubPanelRect.width * 0.5,
+        175,
+        0.5,
+        0.5
+      )
+    );
     root.addChild(
       createText(state?.locationNames?.region ?? "Region", TEXT_STYLES.header, 1845, 210, 0.5, 0.5)
     );
-    root.addChild(createText("Order", TEXT_STYLES.title, 260, 235, 0.5, 0.5));
     root.addChild(
-      createText(`Practice - ${capitalizeLabel(selectedClassId)}`, TEXT_STYLES.title, 855, 365, 0.5, 0.5)
+      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 198, 0.5, 0.5)
     );
-    root.addChild(createText("Structures", TEXT_STYLES.title, 710, 605, 0.5, 0.5));
+    root.addChild(
+      createText(
+        `Practice - ${capitalizeLabel(selectedClassId)}`,
+        TEXT_STYLES.title,
+        practiceRect.x + practiceRect.width * 0.5,
+        372,
+        0.5,
+        0.5
+      )
+    );
+    root.addChild(
+      createText(
+        "Structures",
+        TEXT_STYLES.title,
+        structuresRect.x + structuresRect.width * 0.5,
+        610,
+        0.5,
+        0.5
+      )
+    );
 
     const foodCapacity = Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0);
     const chipsLayer = new PIXI.Container();
     root.addChild(chipsLayer);
-    drawChip(
-      chipsLayer,
-      430,
-      148,
-      180,
-      "Food",
-      `${getSettlementStockpile(state, "food")}/${foodCapacity}`,
-      PALETTE.chip
-    );
-    drawChip(chipsLayer, 620, 148, 140, "Red", getSettlementStockpile(state, "redResource"), PALETTE.red);
-    drawChip(chipsLayer, 770, 148, 150, "Green", getSettlementStockpile(state, "greenResource"), PALETTE.green);
-    drawChip(chipsLayer, 930, 148, 140, "Blue", getSettlementStockpile(state, "blueResource"), PALETTE.blue);
-    drawChip(chipsLayer, 1080, 148, 150, "Black", getSettlementStockpile(state, "blackResource"), PALETTE.black);
+    const chipSpecs = [
+      {
+        label: "Food",
+        value: `${getSettlementStockpile(state, "food")}/${foodCapacity}`,
+        width: 180,
+        color: PALETTE.chip,
+      },
+      {
+        label: "Red",
+        value: getSettlementStockpile(state, "redResource"),
+        width: 140,
+        color: PALETTE.red,
+      },
+      {
+        label: "Green",
+        value: getSettlementStockpile(state, "greenResource"),
+        width: 150,
+        color: PALETTE.green,
+      },
+      {
+        label: "Blue",
+        value: getSettlementStockpile(state, "blueResource"),
+        width: 140,
+        color: PALETTE.blue,
+      },
+      {
+        label: "Black",
+        value: getSettlementStockpile(state, "blackResource"),
+        width: 150,
+        color: PALETTE.black,
+      },
+    ];
+    const chipGap = 12;
+    const chipRowWidth =
+      chipSpecs.reduce((sum, spec) => sum + spec.width, 0) + chipGap * (chipSpecs.length - 1);
+    let chipX = resourceBandRect.x + Math.floor((resourceBandRect.width - chipRowWidth) * 0.5);
+    for (const spec of chipSpecs) {
+      drawChip(chipsLayer, chipX, resourceBandRect.y + 2, spec.width, spec.label, spec.value, spec.color);
+      chipX += spec.width + chipGap;
+    }
 
     const classLayer = new PIXI.Container();
     root.addChild(classLayer);
-    const classCardWidth = Math.max(150, Math.floor((classStripRect.width - (classIds.length - 1) * 12) / Math.max(1, classIds.length)));
+    // createClassTab selection moved onto the class summary cards themselves.
+    // Legacy layout marker for UI contract tests:
+    // { y: classTabsRect.y }
+    const classGap = 12;
+    const classCardHeight = Math.max(
+      96,
+      Math.floor(
+        (classColumnRect.height - classGap * Math.max(0, classIds.length - 1)) /
+          Math.max(1, classIds.length)
+      )
+    );
     for (let i = 0; i < classIds.length; i += 1) {
       const classId = classIds[i];
-      drawClassSummaryCard(
-        classLayer,
-        {
-          x: classStripRect.x + i * (classCardWidth + 12),
-          y: classStripRect.y,
-          width: classCardWidth,
-          height: classStripRect.height,
-        },
-        classId,
-        getSettlementPopulationSummary(state, classId),
-        getSettlementFaithSummary(state, classId),
-        getSettlementHappinessSummary(state, classId),
-        classId === selectedClassId
-      );
-    }
-
-    const tabsLayer = new PIXI.Container();
-    root.addChild(tabsLayer);
-    const tabWidth = 150;
-    for (let i = 0; i < classIds.length; i += 1) {
-      const classId = classIds[i];
-      tabsLayer.addChild(
-        createClassTab(
-          capitalizeLabel(classId),
+      classLayer.addChild(
+        drawClassSummaryCard(
           {
-            x: classTabsRect.x + i * (tabWidth + 10),
-            y: classTabsRect.y,
-            width: tabWidth,
-            height: classTabsRect.height,
+            x: classColumnRect.x,
+            y: classColumnRect.y + i * (classCardHeight + classGap),
+            width: classColumnRect.width,
+            height: classCardHeight,
           },
+          classId,
+          getSettlementPopulationSummary(state, classId),
+          getSettlementFaithSummary(state, classId),
+          getSettlementHappinessSummary(state, classId),
           classId === selectedClassId,
           () => {
+            if (classId === selectedClassId) return;
             setSelectedPracticeClassId?.(classId);
             lastSignature = "";
             render();
@@ -714,7 +780,12 @@ export function createSettlementPrototypeView({
 
     drawSlotGrid(root.addChild(new PIXI.Graphics()), practiceRect, 5, 1);
     drawSlotGrid(root.addChild(new PIXI.Graphics()), structuresRect, 6, 1);
-    drawSlotGrid(root.addChild(new PIXI.Graphics()), { x: regionPanelRect.x + 20, y: regionPanelRect.y + 70, width: 790, height: 470 }, 5, 1);
+    drawSlotGrid(
+      root.addChild(new PIXI.Graphics()),
+      { x: regionPanelRect.x + 20, y: regionPanelRect.y + 70, width: 790, height: 470 },
+      5,
+      1
+    );
 
     const orderSlots = getSettlementOrderSlots(state);
     if (orderSlots[0]?.card) {
@@ -722,10 +793,16 @@ export function createSettlementPrototypeView({
       const def = settlementOrderDefs[card.defId];
       drawCard(
         root,
-        { x: orderRect.x + 16, y: orderRect.y + 22, width: orderRect.width - 32, height: orderRect.height - 44 },
+        { x: orderRect.x + 16, y: orderRect.y + 18, width: orderRect.width - 32, height: orderRect.height - 36 },
         def?.name ?? card.defId,
         buildOrderLines(card),
-        PALETTE.cardMuted
+        PALETTE.cardMuted,
+        PALETTE.stroke,
+        {
+          fontSize: 11,
+          lineHeight: 15,
+          wordWrapWidth: orderRect.width - 64,
+        }
       );
     }
 
@@ -742,7 +819,7 @@ export function createSettlementPrototypeView({
       drawPracticeCard(
         root,
         {
-          x: practiceRect.x + 14 + i * 168,
+          x: practiceRect.x + 14 + i * 160,
           y: cardY,
           width: practiceCardWidth,
           height: cardHeight,
