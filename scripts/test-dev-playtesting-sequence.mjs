@@ -707,7 +707,7 @@ function runHappinessAssertions() {
     "flood rites should raise the acting class mood by one step when it resolves"
   );
 
-  const weightedDemandState = createInitialState(
+  const roundedYouthDemandState = createInitialState(
     buildSettlementSetup({
       stockpiles: {
         food: 9,
@@ -717,16 +717,16 @@ function runHappinessAssertions() {
         blackResource: 0,
       },
       villagerAdults: 8,
-      villagerYouth: 2,
+      villagerYouth: 1,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
       structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
     }),
     123
   );
-  advanceToSecond(weightedDemandState, 33);
+  advanceToSecond(roundedYouthDemandState, 33);
   assert.deepEqual(
-    summarizeClass(weightedDemandState, "villager").yearly,
+    summarizeClass(roundedYouthDemandState, "villager").yearly,
     {
       year: 1,
       mealAttempts: 9,
@@ -738,7 +738,7 @@ function runHappinessAssertions() {
       lastSeasonOutcomeKind: "full",
       lastSeasonFeedRatio: 1,
     },
-    "season meals should use adults plus youth at half cost"
+    "season meals should round odd youth up to one full food per pair"
   );
 
   const springFloodplainState = createInitialState(
