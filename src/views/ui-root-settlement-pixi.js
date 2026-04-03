@@ -120,7 +120,7 @@ const SETTLEMENT_GRAPH_WINDOW_SEC =
 const MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES = 5;
 const SETTLEMENT_GRAPH_MENU_RECT = {
   x: 1410,
-  y: 882,
+  y: 926,
   width: 240,
 };
 const SETTLEMENT_GRAPH_ALL_SERIES = Array.isArray(GRAPH_METRICS.settlement?.series)
@@ -469,7 +469,7 @@ settlementGraphView = createMetricGraphView({
       zoomed,
     });
   },
-  openPosition: { x: 110, y: 840 },
+  openPosition: { x: 110, y: 884 },
   windowWidth: 1560,
   windowHeight: 190,
   headerHeight: 34,
