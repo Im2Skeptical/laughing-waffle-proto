@@ -727,6 +727,7 @@ prototypeView = createSettlementPrototypeView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
+  tooltipView,
   setSelectedPracticeClassId: (classId) => {
     selectedPracticeClassId = typeof classId === "string" && classId.length > 0 ? classId : "villager";
   },
