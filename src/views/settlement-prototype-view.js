@@ -42,6 +42,11 @@ const PALETTE = Object.freeze({
   passiveBorderMuted: 0x7c8d72,
   active: 0xd1ad44,
   inactive: 0x777168,
+  elderLozenge: 0x45403d,
+  elderLozengeSoft: 0x595149,
+  bustBackdrop: 0x686056,
+  bustDark: 0x40362f,
+  flyout: 0x3f3935,
 });
 
 const TEXT_STYLES = Object.freeze({
@@ -80,6 +85,16 @@ const TEXT_STYLES = Object.freeze({
     fill: PALETTE.textMuted,
   },
 });
+
+const ORDER_PANEL_LAYOUT = Object.freeze({
+  padding: 16,
+  gap: 18,
+  leftRatio: 0.56,
+});
+
+const ELDER_BUST_SKIN_TONES = Object.freeze([0xcab59c, 0xb89d82, 0xa7876f, 0x8c6f5b]);
+const ELDER_BUST_ACCENT_TONES = Object.freeze([0x7d6b4d, 0x6f7a88, 0x725b76, 0x5d7d66, 0x916443]);
+const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
 
 function roundedRect(
   gfx,
@@ -150,6 +165,11 @@ function formatPracticeBlockedReason(reason) {
     .replace(/^mirrorSource$/, "villager practice")
     .replace(/^seasonMismatch$/, "season")
     .replace(/^freePopulation$/, "free population");
+}
+
+function formatSignedNumber(value) {
+  const safe = Number.isFinite(value) ? Math.floor(value) : 0;
+  return safe >= 0 ? `+${safe}` : String(safe);
 }
 
 function buildSignature(state, selectedClassId) {
@@ -268,45 +288,65 @@ function buildStructureLines(structure) {
   return lines;
 }
 
-function buildOrderLines(card) {
-  const def = settlementOrderDefs[card?.defId];
-  const runtime =
-    card?.props?.settlement && typeof card.props.settlement === "object"
-      ? card.props.settlement
-      : {};
-  const lines = [];
-  if (Number.isFinite(runtime.memberCount)) {
-    lines.push(`Members ${Math.floor(runtime.memberCount)}`);
-  }
-  if (Number.isFinite(runtime.lastProcessedYear)) {
-    lines.push(`Last Yearly Tick ${Math.floor(runtime.lastProcessedYear)}`);
-  }
-  if (Number.isFinite(runtime.nextRecruitmentYear)) {
-    lines.push(`Next Recruit Year ${Math.floor(runtime.nextRecruitmentYear)}`);
-  }
-  const members = Array.isArray(runtime.members) ? runtime.members.slice(0, 3) : [];
-  for (const member of members) {
-    lines.push(
-      `${Math.floor(member?.ageYears ?? 0)}y ${member?.modifierLabel ?? "None"} P${Math.floor(member?.prestige ?? 0)}`
+function getOrderRuntime(card) {
+  return card?.props?.settlement && typeof card.props.settlement === "object"
+    ? card.props.settlement
+    : {};
+}
+
+function getSortedOrderMembers(card) {
+  const runtime = getOrderRuntime(card);
+  return (Array.isArray(runtime.members) ? runtime.members : [])
+    .slice()
+    .sort(
+      (a, b) =>
+        Math.floor(b?.prestige ?? 0) - Math.floor(a?.prestige ?? 0) ||
+        Math.floor(b?.ageYears ?? 0) - Math.floor(a?.ageYears ?? 0) ||
+        String(a?.memberId ?? "").localeCompare(String(b?.memberId ?? ""))
     );
-  }
-  const overflow = Math.max(0, Math.floor(runtime.memberCount ?? 0) - members.length);
-  if (overflow > 0) {
-    lines.push(`+${overflow} more`);
-  }
-  const resolvedBoardsByClass =
-    runtime.resolvedBoardsByClass && typeof runtime.resolvedBoardsByClass === "object"
-      ? runtime.resolvedBoardsByClass
-      : {};
-  for (const [classId, board] of Object.entries(resolvedBoardsByClass)) {
-    const practiceIds = Array.isArray(board) ? board : [];
-    if (practiceIds.length <= 0) continue;
-    lines.push(`${capitalizeLabel(classId)}: ${practiceIds.join(", ")}`);
-  }
-  if (lines.length <= 0) {
-    return Array.isArray(def?.ui?.lines) ? [...def.ui.lines] : [];
-  }
-  return lines;
+}
+
+function getSelectedAgendaForMember(member, selectedClassId) {
+  return Array.isArray(member?.agendaByClass?.[selectedClassId])
+    ? member.agendaByClass[selectedClassId]
+    : [];
+}
+
+function getOrderModifierDef(orderDef, member) {
+  const modifierId = typeof member?.modifierId === "string" ? member.modifierId : "";
+  return orderDef?.prestigeModifiers?.[modifierId] ?? null;
+}
+
+function buildElderDetailTooltipSpec(orderDef, member) {
+  const ageYears = Math.max(0, Math.floor(member?.ageYears ?? 0));
+  const joinedYear = Math.max(0, Math.floor(member?.joinedYear ?? 0));
+  const prestige = Math.max(0, Math.floor(member?.prestige ?? 0));
+  const modifierDef = getOrderModifierDef(orderDef, member);
+  const prestigeDelta = Number(modifierDef?.prestigeDelta ?? 0);
+  const modifierLabel = modifierDef?.label ?? member?.modifierLabel ?? member?.modifierId ?? "None";
+  return {
+    title: modifierLabel || "Elder",
+    subtitle: `Prestige ${prestige}`,
+    maxWidth: 320,
+    sections: [
+      {
+        type: "table",
+        title: "Details",
+        rows: [
+          { label: "Age", value: `${ageYears} years` },
+          { label: "Joined", value: joinedYear > 0 ? `Year ${joinedYear}` : "Unknown" },
+          { label: "Class", value: capitalizeLabel(member?.sourceClassId) },
+          { label: "Trait", value: modifierLabel },
+          { label: "Buff/Nerf", value: `${formatSignedNumber(prestigeDelta)} prestige` },
+        ],
+      },
+      {
+        type: "paragraph",
+        title: "Prestige Formula",
+        text: `${ageYears} age + ${formatSignedNumber(prestigeDelta)} trait = ${prestige}`,
+      },
+    ],
+  };
 }
 
 function buildTileLines(tile) {
@@ -391,6 +431,508 @@ function getPracticeDrainColor(card) {
     default:
       return PALETTE.practiceDrainNeutral;
   }
+}
+
+function getMiniPracticeStyle(defId, opts = null) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const def = settlementPracticeDefs?.[defId] ?? null;
+  const passive = def?.practiceMode === "passive";
+  if (!defId || !def) {
+    return {
+      fill: PALETTE.slot,
+      outline: PALETTE.stroke,
+      radius: 10,
+      passive: false,
+      title: options.emptyLabel ?? "No agenda",
+    };
+  }
+  let outline = passive ? PALETTE.passiveBorderMuted : PALETTE.stroke;
+  let fill = passive ? PALETTE.panelSoft : PALETTE.card;
+  if (defId === "floodRites") {
+    outline = PALETTE.practiceDrainRed;
+    fill = 0x53413f;
+  } else if (defId === "riverRecessionFarming") {
+    outline = PALETTE.practiceDrainGreen;
+    fill = 0x54614d;
+  } else if (defId === "openToStrangers") {
+    outline = PALETTE.passiveBorder;
+    fill = 0x535048;
+  } else if (defId === "asTheRomans") {
+    outline = PALETTE.active;
+    fill = 0x4d4a52;
+  }
+  return {
+    fill,
+    outline,
+    radius: passive ? 10 : 12,
+    passive,
+    title: def?.name ?? defId,
+  };
+}
+
+function drawMiniPracticeCard(container, rect, defId, opts = null) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const style = getMiniPracticeStyle(defId, options);
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+
+  const gfx = new PIXI.Graphics();
+  roundedRect(
+    gfx,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    style.radius,
+    style.fill,
+    style.outline,
+    style.passive ? 3 : 2
+  );
+  root.addChild(gfx);
+
+  const title = createText(
+    style.title,
+    {
+      ...TEXT_STYLES.body,
+      fontSize: options.fontSize ?? 10,
+      fontWeight: "bold",
+      wordWrap: true,
+      wordWrapWidth: rect.width - 10,
+      lineHeight: options.lineHeight ?? 12,
+    },
+    5,
+    5
+  );
+  root.addChild(title);
+
+  container.addChild(root);
+  return root;
+}
+
+function drawAgendaStack(container, rect, agendaDefIds) {
+  const agenda = Array.isArray(agendaDefIds) ? agendaDefIds : [];
+  const stack = new PIXI.Container();
+  stack.x = rect.x;
+  stack.y = rect.y;
+
+  if (agenda.length <= 0) {
+    drawMiniPracticeCard(
+      stack,
+      { x: 0, y: 0, width: rect.width, height: rect.height },
+      null,
+      { emptyLabel: "No agenda", fontSize: 10, lineHeight: 12 }
+    );
+    container.addChild(stack);
+    return stack;
+  }
+
+  const visibleCount = Math.min(3, agenda.length);
+  const xOffset = Math.max(4, Math.floor(rect.width * 0.08));
+  const yOffset = 4;
+  for (let index = visibleCount - 1; index >= 0; index -= 1) {
+    const width = Math.max(rect.width - xOffset * index, rect.width * 0.72);
+    const height = Math.max(rect.height - yOffset * index, rect.height * 0.72);
+    drawMiniPracticeCard(
+      stack,
+      { x: xOffset * index, y: yOffset * index, width, height },
+      agenda[index],
+      { fontSize: 9, lineHeight: 11 }
+    );
+  }
+
+  if (agenda.length > visibleCount) {
+    stack.addChild(
+      createText(
+        `+${agenda.length - visibleCount}`,
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 10,
+          fontWeight: "bold",
+        },
+        rect.width - 2,
+        rect.height - 1,
+        1,
+        1
+      )
+    );
+  }
+
+  container.addChild(stack);
+  return stack;
+}
+
+function hashString(value) {
+  const text = String(value ?? "");
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function drawDeterministicBust(container, rect, member) {
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+  const seed = hashString(
+    `${member?.memberId ?? ""}|${member?.modifierId ?? ""}|${member?.sourceClassId ?? ""}|${member?.joinedYear ?? 0}`
+  );
+  const skinTone = ELDER_BUST_SKIN_TONES[seed % ELDER_BUST_SKIN_TONES.length];
+  const accentTone =
+    ELDER_BUST_ACCENT_TONES[Math.floor(seed / 7) % ELDER_BUST_ACCENT_TONES.length];
+  const darkTone = PALETTE.bustDark;
+
+  const backdrop = new PIXI.Graphics();
+  roundedRect(
+    backdrop,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    Math.min(18, Math.floor(rect.height * 0.35)),
+    PALETTE.bustBackdrop,
+    PALETTE.stroke,
+    2
+  );
+  root.addChild(backdrop);
+
+  const shoulderVariant = Math.floor(seed / 13) % 3;
+  const shoulders = new PIXI.Graphics();
+  shoulders.beginFill(accentTone, 0.95);
+  if (shoulderVariant === 0) {
+    shoulders.drawRoundedRect(rect.width * 0.12, rect.height * 0.52, rect.width * 0.76, rect.height * 0.32, 10);
+  } else if (shoulderVariant === 1) {
+    shoulders.moveTo(rect.width * 0.1, rect.height * 0.82);
+    shoulders.lineTo(rect.width * 0.28, rect.height * 0.52);
+    shoulders.lineTo(rect.width * 0.72, rect.height * 0.52);
+    shoulders.lineTo(rect.width * 0.9, rect.height * 0.82);
+  } else {
+    shoulders.drawEllipse(rect.width * 0.5, rect.height * 0.73, rect.width * 0.34, rect.height * 0.18);
+  }
+  shoulders.endFill();
+  root.addChild(shoulders);
+
+  const headVariant = Math.floor(seed / 29) % 3;
+  const head = new PIXI.Graphics();
+  head.beginFill(skinTone, 1);
+  if (headVariant === 0) {
+    head.drawEllipse(rect.width * 0.5, rect.height * 0.33, rect.width * 0.17, rect.height * 0.2);
+  } else if (headVariant === 1) {
+    head.drawRoundedRect(rect.width * 0.33, rect.height * 0.13, rect.width * 0.34, rect.height * 0.42, 12);
+  } else {
+    head.drawCircle(rect.width * 0.5, rect.height * 0.32, Math.min(rect.width, rect.height) * 0.18);
+  }
+  head.endFill();
+  root.addChild(head);
+
+  const hairVariant = Math.floor(seed / 53) % 4;
+  const hair = new PIXI.Graphics();
+  hair.beginFill(darkTone, 0.96);
+  if (hairVariant === 0) {
+    hair.drawEllipse(rect.width * 0.5, rect.height * 0.23, rect.width * 0.2, rect.height * 0.13);
+  } else if (hairVariant === 1) {
+    hair.drawRoundedRect(rect.width * 0.3, rect.height * 0.09, rect.width * 0.4, rect.height * 0.16, 10);
+  } else if (hairVariant === 2) {
+    hair.moveTo(rect.width * 0.26, rect.height * 0.22);
+    hair.lineTo(rect.width * 0.5, rect.height * 0.03);
+    hair.lineTo(rect.width * 0.74, rect.height * 0.22);
+  } else {
+    hair.drawEllipse(rect.width * 0.5, rect.height * 0.2, rect.width * 0.22, rect.height * 0.1);
+    hair.drawRect(rect.width * 0.46, rect.height * 0.13, rect.width * 0.08, rect.height * 0.08);
+  }
+  hair.endFill();
+  root.addChild(hair);
+
+  if ((Math.floor(seed / 89) % 2) === 0) {
+    const beard = new PIXI.Graphics();
+    beard.beginFill(darkTone, 0.92);
+    beard.moveTo(rect.width * 0.38, rect.height * 0.42);
+    beard.lineTo(rect.width * 0.62, rect.height * 0.42);
+    beard.lineTo(rect.width * 0.5, rect.height * 0.58);
+    beard.endFill();
+    root.addChild(beard);
+  } else {
+    const diadem = new PIXI.Graphics();
+    diadem.lineStyle(2, PALETTE.accent, 0.9);
+    diadem.moveTo(rect.width * 0.32, rect.height * 0.19);
+    diadem.lineTo(rect.width * 0.68, rect.height * 0.19);
+    root.addChild(diadem);
+  }
+
+  container.addChild(root);
+  return root;
+}
+
+function drawSubPanel(container, rect, fill = PALETTE.cardMuted, outline = PALETTE.stroke) {
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 18, fill, outline, 2);
+  container.addChild(gfx);
+  return gfx;
+}
+
+function drawOrderSummaryBlock(container, rect, runtime) {
+  drawSubPanel(container, rect, PALETTE.elderLozengeSoft, PALETTE.stroke);
+  container.addChild(createText("Elder Council", TEXT_STYLES.cardTitle, rect.x + 14, rect.y + 10));
+  const rows = [
+    `Members ${Math.floor(runtime?.memberCount ?? 0)}`,
+    `Last Yearly Tick ${Number.isFinite(runtime?.lastProcessedYear) ? Math.floor(runtime.lastProcessedYear) : "--"}`,
+    `Next Recruit Year ${Number.isFinite(runtime?.nextRecruitmentYear) ? Math.floor(runtime.nextRecruitmentYear) : "--"}`,
+  ];
+  container.addChild(
+    createText(
+      rows.join("\n"),
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 12,
+        wordWrap: true,
+        wordWrapWidth: rect.width - 24,
+        lineHeight: 16,
+      },
+      rect.x + 14,
+      rect.y + 42
+    )
+  );
+}
+
+function drawOrderGlobalSummary(container, rect, card) {
+  drawSubPanel(container, rect, PALETTE.cardMuted, PALETTE.stroke);
+  const runtime = getOrderRuntime(card);
+  drawOrderSummaryBlock(
+    container,
+    {
+      x: rect.x + 10,
+      y: rect.y + 10,
+      width: rect.width - 20,
+      height: rect.height - 20,
+    },
+    runtime
+  );
+}
+
+function drawElderLozenge(
+  container,
+  rect,
+  orderDef,
+  member,
+  selectedClassId,
+  tooltipView,
+  showAgendaFlyout,
+  scheduleAgendaFlyoutHide
+) {
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 18, PALETTE.elderLozenge, PALETTE.stroke, 2);
+  root.addChild(gfx);
+
+  const prestigePillRect = { x: 8, y: 7, width: 52, height: rect.height - 14 };
+  const prestigePill = new PIXI.Graphics();
+  roundedRect(
+    prestigePill,
+    prestigePillRect.x,
+    prestigePillRect.y,
+    prestigePillRect.width,
+    prestigePillRect.height,
+    12,
+    PALETTE.chip,
+    PALETTE.stroke,
+    2
+  );
+  root.addChild(prestigePill);
+  root.addChild(
+    createText(
+      `P${Math.floor(member?.prestige ?? 0)}`,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 12,
+        fontWeight: "bold",
+      },
+      prestigePillRect.x + prestigePillRect.width * 0.5,
+      prestigePillRect.y + prestigePillRect.height * 0.5,
+      0.5,
+      0.5
+    )
+  );
+
+  const bustRect = { x: 66, y: 6, width: 56, height: rect.height - 12 };
+  drawDeterministicBust(root, bustRect, member);
+
+  const nameX = bustRect.x + bustRect.width + 12;
+  const agendaRect = { x: rect.width - 100, y: 7, width: 82, height: rect.height - 14 };
+  root.addChild(
+    createText(
+      member?.modifierLabel ?? member?.memberId ?? "Elder",
+      {
+        ...TEXT_STYLES.body,
+        fontWeight: "bold",
+        fontSize: 12,
+        wordWrap: true,
+        wordWrapWidth: Math.max(40, agendaRect.x - nameX - 8),
+        lineHeight: 14,
+      },
+      nameX,
+      10
+    )
+  );
+  root.addChild(
+    createText(
+      `${capitalizeLabel(member?.sourceClassId)} elder`,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 10,
+      },
+      nameX,
+      rect.height - 18
+    )
+  );
+
+  const selectedAgenda = getSelectedAgendaForMember(member, selectedClassId);
+  const agendaStack = drawAgendaStack(root, agendaRect, selectedAgenda);
+
+  const detailHit = new PIXI.Graphics();
+  detailHit.beginFill(0xffffff, 0.001);
+  detailHit.drawRoundedRect(8, 6, agendaRect.x - 16, rect.height - 12, 16);
+  detailHit.endFill();
+  detailHit.eventMode = "static";
+  detailHit.cursor = "pointer";
+  detailHit.on("pointerover", () => {
+    const anchor =
+      tooltipView?.getAnchorRectForDisplayObject?.(detailHit, "parent") ?? {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        coordinateSpace: "parent",
+      };
+    tooltipView?.show?.(
+      {
+        ...buildElderDetailTooltipSpec(orderDef, member),
+        scale: Math.max(
+          Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+          tooltipView?.getRelativeDisplayScale?.(detailHit, 1) ?? 1
+        ),
+      },
+      anchor
+    );
+  });
+  detailHit.on("pointerout", () => {
+    tooltipView?.hide?.();
+  });
+  root.addChild(detailHit);
+
+  const agendaHit = new PIXI.Graphics();
+  agendaHit.beginFill(0xffffff, 0.001);
+  agendaHit.drawRoundedRect(agendaRect.x, agendaRect.y, agendaRect.width, agendaRect.height, 12);
+  agendaHit.endFill();
+  agendaHit.eventMode = "static";
+  agendaHit.cursor = "pointer";
+  agendaHit.on("pointerover", () => {
+    showAgendaFlyout?.({
+      member,
+      anchorDisplayObject: agendaHit,
+    });
+  });
+  agendaHit.on("pointerout", () => {
+    scheduleAgendaFlyoutHide?.();
+  });
+  root.addChild(agendaHit);
+  root.addChild(agendaStack);
+
+  container.addChild(root);
+  return root;
+}
+
+function drawElderRoster(
+  container,
+  rect,
+  card,
+  orderDef,
+  selectedClassId,
+  tooltipView,
+  showAgendaFlyout,
+  scheduleAgendaFlyoutHide
+) {
+  drawSubPanel(container, rect, PALETTE.cardMuted, PALETTE.stroke);
+  container.addChild(createText("Prestige", TEXT_STYLES.cardTitle, rect.x + 12, rect.y + 10));
+  const members = getSortedOrderMembers(card);
+  const headerHeight = 28;
+  const rosterY = rect.y + headerHeight + 12;
+  const rosterHeight = rect.height - headerHeight - 22;
+  if (members.length <= 0) {
+    drawSubPanel(
+      container,
+      { x: rect.x + 10, y: rosterY, width: rect.width - 20, height: 42 },
+      PALETTE.elderLozenge,
+      PALETTE.stroke
+    );
+    container.addChild(createText("No elders", TEXT_STYLES.muted, rect.x + 24, rosterY + 13));
+    return;
+  }
+  const rowGap = 8;
+  const rowHeight = Math.max(
+    36,
+    Math.min(52, Math.floor((rosterHeight - rowGap * Math.max(0, members.length - 1)) / members.length))
+  );
+  for (let index = 0; index < members.length; index += 1) {
+    drawElderLozenge(
+      container,
+      {
+        x: rect.x + 10,
+        y: rosterY + index * (rowHeight + rowGap),
+        width: rect.width - 20,
+        height: rowHeight,
+      },
+      orderDef,
+      members[index],
+      selectedClassId,
+      tooltipView,
+      showAgendaFlyout,
+      scheduleAgendaFlyoutHide
+    );
+  }
+}
+
+function drawOrderPanel(
+  container,
+  rect,
+  state,
+  selectedClassId,
+  card,
+  tooltipView,
+  showAgendaFlyout,
+  scheduleAgendaFlyoutHide
+) {
+  if (!card) return;
+  const orderDef = settlementOrderDefs?.[card?.defId] ?? null;
+  const innerWidth = rect.width - ORDER_PANEL_LAYOUT.padding * 2;
+  const leftWidth = Math.floor(innerWidth * ORDER_PANEL_LAYOUT.leftRatio);
+  const rightWidth = innerWidth - leftWidth - ORDER_PANEL_LAYOUT.gap;
+  const leftRect = {
+    x: rect.x + ORDER_PANEL_LAYOUT.padding,
+    y: rect.y + ORDER_PANEL_LAYOUT.padding,
+    width: leftWidth,
+    height: rect.height - ORDER_PANEL_LAYOUT.padding * 2,
+  };
+  const rightRect = {
+    x: leftRect.x + leftRect.width + ORDER_PANEL_LAYOUT.gap,
+    y: leftRect.y,
+    width: rightWidth,
+    height: leftRect.height,
+  };
+  drawElderRoster(
+    container,
+    leftRect,
+    card,
+    orderDef,
+    selectedClassId,
+    tooltipView,
+    showAgendaFlyout,
+    scheduleAgendaFlyoutHide
+  );
+  drawOrderGlobalSummary(container, rightRect, card);
 }
 
 function drawPracticeCard(
@@ -611,8 +1153,138 @@ export function createSettlementPrototypeView({
   tooltipView,
 } = {}) {
   const root = new PIXI.Container();
+  const contentLayer = new PIXI.Container();
+  const overlayLayer = new PIXI.Container();
+  root.addChild(contentLayer, overlayLayer);
   layer?.addChild(root);
   let lastSignature = "";
+  let agendaFlyoutSpec = null;
+  let agendaFlyoutHideTimeoutId = null;
+
+  function clearAgendaFlyoutHideTimer() {
+    if (agendaFlyoutHideTimeoutId == null) return;
+    clearTimeout(agendaFlyoutHideTimeoutId);
+    agendaFlyoutHideTimeoutId = null;
+  }
+
+  function hideAgendaFlyoutNow() {
+    clearAgendaFlyoutHideTimer();
+    agendaFlyoutSpec = null;
+    clearChildren(overlayLayer);
+  }
+
+  function scheduleAgendaFlyoutHide() {
+    clearAgendaFlyoutHideTimer();
+    agendaFlyoutHideTimeoutId = setTimeout(() => {
+      agendaFlyoutSpec = null;
+      clearChildren(overlayLayer);
+      agendaFlyoutHideTimeoutId = null;
+    }, AGENDA_FLYOUT_HIDE_DELAY_MS);
+  }
+
+  function renderAgendaFlyout(state) {
+    clearChildren(overlayLayer);
+    if (!agendaFlyoutSpec || !state) return;
+    const classIds = getSettlementClassIds(state);
+    const member = agendaFlyoutSpec.member;
+    const anchorBounds =
+      agendaFlyoutSpec.anchorDisplayObject?.getBounds?.() ?? agendaFlyoutSpec.anchorRect ?? null;
+    if (!anchorBounds) return;
+    const width = 360;
+    const sectionGap = 8;
+    const headerHeight = 30;
+    const rowHeight = 56;
+    const height =
+      16 +
+      headerHeight +
+      classIds.length * rowHeight +
+      Math.max(0, classIds.length - 1) * sectionGap +
+      14;
+    const screenWidth = Math.floor(app?.screen?.width ?? 2424);
+    const screenHeight = Math.floor(app?.screen?.height ?? 1080);
+    let x = anchorBounds.x + anchorBounds.width + 14;
+    if (x + width > screenWidth - 16) {
+      x = anchorBounds.x - width - 14;
+    }
+    x = Math.max(16, Math.min(x, screenWidth - width - 16));
+    let y = anchorBounds.y - 8;
+    y = Math.max(16, Math.min(y, screenHeight - height - 16));
+
+    const flyout = new PIXI.Container();
+    flyout.x = x;
+    flyout.y = y;
+    flyout.eventMode = "static";
+    flyout.cursor = "default";
+    flyout.hitArea = new PIXI.Rectangle(0, 0, width, height);
+    flyout.on("pointerover", () => {
+      clearAgendaFlyoutHideTimer();
+    });
+    flyout.on("pointerout", () => {
+      scheduleAgendaFlyoutHide();
+    });
+
+    const bg = new PIXI.Graphics();
+    roundedRect(bg, 0, 0, width, height, 18, PALETTE.flyout, PALETTE.accent, 2);
+    flyout.addChild(bg);
+    flyout.addChild(createText("Full Agenda", TEXT_STYLES.cardTitle, 14, 12));
+
+    let cursorY = 16 + headerHeight;
+    for (const classId of classIds) {
+      drawSubPanel(
+        flyout,
+        { x: 12, y: cursorY, width: width - 24, height: rowHeight },
+        PALETTE.elderLozengeSoft,
+        PALETTE.stroke
+      );
+      flyout.addChild(
+        createText(
+          capitalizeLabel(classId),
+          {
+            ...TEXT_STYLES.body,
+            fontWeight: "bold",
+            fontSize: 12,
+          },
+          22,
+          cursorY + 8
+        )
+      );
+      const agenda = Array.isArray(member?.agendaByClass?.[classId]) ? member.agendaByClass[classId] : [];
+      if (agenda.length <= 0) {
+        drawMiniPracticeCard(
+          flyout,
+          { x: 96, y: cursorY + 7, width: 84, height: rowHeight - 14 },
+          null,
+          { emptyLabel: "No agenda", fontSize: 9, lineHeight: 11 }
+        );
+      } else {
+        const cardWidth = 74;
+        const gap = 6;
+        for (let index = 0; index < agenda.length; index += 1) {
+          drawMiniPracticeCard(
+            flyout,
+            {
+              x: 96 + index * (cardWidth + gap),
+              y: cursorY + 7,
+              width: cardWidth,
+              height: rowHeight - 14,
+            },
+            agenda[index],
+            { fontSize: 8, lineHeight: 10 }
+          );
+        }
+      }
+      cursorY += rowHeight + sectionGap;
+    }
+
+    overlayLayer.addChild(flyout);
+  }
+
+  function showAgendaFlyout(spec) {
+    clearAgendaFlyoutHideTimer();
+    agendaFlyoutSpec = spec && typeof spec === "object" ? spec : null;
+    const state = typeof getState === "function" ? getState() : null;
+    renderAgendaFlyout(state);
+  }
 
   function render() {
     const state = typeof getState === "function" ? getState() : null;
@@ -623,11 +1295,15 @@ export function createSettlementPrototypeView({
       classIds[0] ||
       "villager";
     const signature = buildSignature(state, selectedClassId);
-    if (signature === lastSignature) return;
+    if (signature === lastSignature) {
+      renderAgendaFlyout(state);
+      return;
+    }
     lastSignature = signature;
 
     tooltipView?.hide?.();
-    clearChildren(root);
+    hideAgendaFlyoutNow();
+    clearChildren(contentLayer);
 
     const screenWidth = Math.floor(app?.screen?.width ?? 2424);
     const screenHeight = Math.floor(app?.screen?.height ?? 1080);
@@ -636,16 +1312,16 @@ export function createSettlementPrototypeView({
     background.beginFill(PALETTE.background, 1);
     background.drawRect(0, 0, screenWidth, screenHeight);
     background.endFill();
-    root.addChild(background);
+    contentLayer.addChild(background);
 
     const topbar = new PIXI.Graphics();
     roundedRect(topbar, 0, 0, screenWidth, 70, 0, PALETTE.topbar, PALETTE.topbar, 0);
-    root.addChild(topbar);
+    contentLayer.addChild(topbar);
 
-    const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  •  Year ${Math.floor(
+    const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  |  Year ${Math.floor(
       state?.year ?? 1
     )}`;
-    root.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 35, 0.5, 0.5));
+    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 35, 0.5, 0.5));
 
     const hubPanelRect = { x: 120, y: 120, width: 1180, height: 700 };
     const regionPanelRect = { x: 1430, y: 180, width: 830, height: 590 };
@@ -723,9 +1399,9 @@ export function createSettlementPrototypeView({
       PALETTE.stroke,
       3
     );
-    root.addChild(panelGfx);
+    contentLayer.addChild(panelGfx);
 
-    root.addChild(
+    contentLayer.addChild(
       createText(
         state?.locationNames?.hub ?? "Hub",
         TEXT_STYLES.header,
@@ -735,13 +1411,13 @@ export function createSettlementPrototypeView({
         0.5
       )
     );
-    root.addChild(
+    contentLayer.addChild(
       createText(state?.locationNames?.region ?? "Region", TEXT_STYLES.header, 1845, 210, 0.5, 0.5)
     );
-    root.addChild(
+    contentLayer.addChild(
       createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 172, 0.5, 0.5)
     );
-    root.addChild(
+    contentLayer.addChild(
       createText(
         `Practice - ${capitalizeLabel(selectedClassId)}`,
         TEXT_STYLES.title,
@@ -751,7 +1427,7 @@ export function createSettlementPrototypeView({
         0.5
       )
     );
-    root.addChild(
+    contentLayer.addChild(
       createText(
         "Structures",
         TEXT_STYLES.title,
@@ -764,7 +1440,7 @@ export function createSettlementPrototypeView({
 
     const foodCapacity = Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0);
     const chipsLayer = new PIXI.Container();
-    root.addChild(chipsLayer);
+    contentLayer.addChild(chipsLayer);
     const chipSpecs = [
       {
         label: "Food",
@@ -807,7 +1483,7 @@ export function createSettlementPrototypeView({
     }
 
     const classLayer = new PIXI.Container();
-    root.addChild(classLayer);
+    contentLayer.addChild(classLayer);
     // createClassTab selection moved onto the class summary cards themselves.
     // Legacy layout marker for UI contract tests:
     // { y: classTabsRect.y }
@@ -844,31 +1520,27 @@ export function createSettlementPrototypeView({
       );
     }
 
-    drawSlotGrid(root.addChild(new PIXI.Graphics()), practiceRect, 5, 1);
-    drawSlotGrid(root.addChild(new PIXI.Graphics()), structuresRect, 6, 1);
+    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), practiceRect, 5, 1);
+    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, 6, 1);
     drawSlotGrid(
-      root.addChild(new PIXI.Graphics()),
+      contentLayer.addChild(new PIXI.Graphics()),
       { x: regionPanelRect.x + 20, y: regionPanelRect.y + 70, width: 790, height: 470 },
       5,
       1
     );
 
     const orderSlots = getSettlementOrderSlots(state);
-    if (orderSlots[0]?.card) {
-      const card = orderSlots[0].card;
-      const def = settlementOrderDefs[card.defId];
-      drawCard(
-        root,
-        { x: orderRect.x + 16, y: orderRect.y + 18, width: orderRect.width - 32, height: orderRect.height - 36 },
-        def?.name ?? card.defId,
-        buildOrderLines(card),
-        PALETTE.cardMuted,
-        PALETTE.stroke,
-        {
-          fontSize: 11,
-          lineHeight: 15,
-          wordWrapWidth: orderRect.width - 64,
-        }
+    const orderCard = orderSlots[0]?.card ?? null;
+    if (orderCard) {
+      drawOrderPanel(
+        contentLayer,
+        orderRect,
+        state,
+        selectedClassId,
+        orderCard,
+        tooltipView,
+        showAgendaFlyout,
+        scheduleAgendaFlyoutHide
       );
     }
 
@@ -884,7 +1556,7 @@ export function createSettlementPrototypeView({
       const cardY =
         practiceRect.y + 24 + Math.max(0, Math.floor((practiceRect.height - 48 - cardHeight) * 0.5));
       drawPracticeCard(
-        root,
+        contentLayer,
         {
           x: practiceRect.x + 14 + i * (practiceCardWidth + practiceCardGap),
           y: cardY,
@@ -917,7 +1589,7 @@ export function createSettlementPrototypeView({
       if (!structure) continue;
       const def = hubStructureDefs[structure.defId];
       drawCard(
-        root,
+        contentLayer,
         {
           x: structuresRect.x + 14 + i * (structureCardWidth + structureCardGap),
           y: structuresRect.y + 18,
@@ -943,7 +1615,7 @@ export function createSettlementPrototypeView({
       const tile = tileAnchors[i];
       const def = envTileDefs[tile?.defId];
       drawCard(
-        root,
+        contentLayer,
         {
           x: regionPanelRect.x + 20 + i * 158,
           y: regionPanelRect.y + 90,
@@ -969,7 +1641,9 @@ export function createSettlementPrototypeView({
       !root.visible || typeof root.getBounds !== "function" ? null : root.getBounds(),
     destroy: () => {
       tooltipView?.hide?.();
-      clearChildren(root);
+      hideAgendaFlyoutNow();
+      clearChildren(contentLayer);
+      clearChildren(overlayLayer);
       root.removeFromParent();
       root.destroy({ children: true });
     },

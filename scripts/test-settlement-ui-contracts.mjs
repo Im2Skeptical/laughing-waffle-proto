@@ -271,6 +271,89 @@ assert.match(
   /getSettlementPracticeSlotsByClass\(state,\s*selectedClassId\)/,
   "[test] prototype playfield should render the selected class practice tableau"
 );
+assert.ok(
+  !prototypeViewSource.includes("buildOrderLines"),
+  "[test] prototype playfield should not rely on the old single-text order summary helper"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+getOrderRuntime\(card\)/,
+  "[test] prototype playfield should normalize order runtime through a dedicated helper"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+getSortedOrderMembers\(card\)/,
+  "[test] prototype playfield should sort elders through a dedicated order member helper"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+getSelectedAgendaForMember\(member,\s*selectedClassId\)/,
+  "[test] elder roster should resolve preview agendas from the selected class"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+buildElderDetailTooltipSpec\(orderDef,\s*member\)/,
+  "[test] elder roster should build structured elder detail tooltips"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+drawElderRoster\(/,
+  "[test] order panel should render a dedicated elder roster"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+drawElderLozenge\(/,
+  "[test] elder roster should render per-elder lozenges"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+drawOrderGlobalSummary\(/,
+  "[test] order panel should render a dedicated global summary section"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+drawOrderPanel\(/,
+  "[test] prototype playfield should split the order panel through a dedicated renderer"
+);
+assert.match(
+  prototypeViewSource,
+  /const\s+selectedAgenda\s*=\s*getSelectedAgendaForMember\(member,\s*selectedClassId\)/,
+  "[test] elder lozenges should preview the agenda for the selected class"
+);
+assert.match(
+  prototypeViewSource,
+  /drawOrderGlobalSummary\(container,\s*rightRect,\s*card\)/,
+  "[test] order panel right side should render only the compact global summary"
+);
+assert.ok(
+  !/drawResolvedBoardStrip|getResolvedBoardsByClass/.test(prototypeViewSource),
+  "[test] order panel right side should no longer render resolved board strips"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+renderAgendaFlyout\(state\)/,
+  "[test] elder agenda hover should render a dedicated flyout"
+);
+assert.match(
+  prototypeViewSource,
+  /function\s+showAgendaFlyout\(spec\)/,
+  "[test] elder agenda hover should expose a flyout show helper"
+);
+assert.match(
+  prototypeViewSource,
+  /"Full Agenda"/,
+  "[test] elder agenda flyout should label the expanded agenda view"
+);
+assert.match(
+  prototypeViewSource,
+  /showAgendaFlyout\?\.\(\{\s*member,\s*anchorDisplayObject:\s*agendaHit,/s,
+  "[test] elder lozenges should hook agenda hover into the flyout controller"
+);
+assert.match(
+  prototypeViewSource,
+  /drawOrderPanel\(\s*contentLayer,\s*orderRect,\s*state,\s*selectedClassId,\s*orderCard,/s,
+  "[test] prototype playfield should render the split order panel instead of a text card"
+);
 assert.match(
   graphMetricsSource,
   /id:\s*`\$\{metricId\}:\$\{safeClassId\}`/,
