@@ -14,6 +14,7 @@ import {
   getSettlementStructureSlots,
   getSettlementTileGreenResource,
 } from "../model/settlement-state.js";
+import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
 
 const PALETTE = Object.freeze({
   background: 0x847b68,
@@ -392,18 +393,33 @@ function getPracticeDrainColor(card) {
   }
 }
 
-function drawPracticeCard(container, rect, card, title, lines, fill, outline = PALETTE.stroke) {
+function drawPracticeCard(
+  container,
+  rect,
+  card,
+  title,
+  lines,
+  fill,
+  outline = PALETTE.stroke,
+  opts = null
+) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const showBody = options.showBody !== false;
+  const tooltipView = options.tooltipView ?? null;
   const def = settlementPracticeDefs[card?.defId];
   const practiceMode = def?.practiceMode === "passive" ? "passive" : "active";
   const runtime =
     card?.props?.settlement && typeof card.props.settlement === "object"
       ? card.props.settlement
       : {};
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
-    rect.x,
-    rect.y,
+    0,
+    0,
     rect.width,
     rect.height,
     practiceMode === "passive" ? 16 : 22,
@@ -411,14 +427,14 @@ function drawPracticeCard(container, rect, card, title, lines, fill, outline = P
     outline,
     practiceMode === "passive" ? 4 : 3
   );
-  container.addChild(gfx);
+  root.addChild(gfx);
 
   if (
     (runtime.activeReservation === true || runtime.activeProgressKind === "cadence") &&
     Number.isFinite(runtime.activeProgressRemaining)
   ) {
-    const innerX = rect.x + 4;
-    const innerY = rect.y + 4;
+    const innerX = 4;
+    const innerY = 4;
     const innerWidth = Math.max(0, rect.width - 8);
     const innerHeight = Math.max(0, rect.height - 8);
     const fillHeight = innerHeight * Math.max(0, Math.min(1, runtime.activeProgressRemaining));
@@ -437,7 +453,7 @@ function drawPracticeCard(container, rect, card, title, lines, fill, outline = P
       0.42,
       0
     );
-    container.addChild(drainFill);
+    root.addChild(drainFill);
 
     const drainMask = new PIXI.Graphics();
     if (fillHeight > 0.0001) {
@@ -446,26 +462,73 @@ function drawPracticeCard(container, rect, card, title, lines, fill, outline = P
       drainMask.drawRect(innerX, drainY, innerWidth, fillHeight + 1);
       drainMask.endFill();
     }
-    container.addChild(drainMask);
+    root.addChild(drainMask);
     drainFill.mask = drainMask;
   }
 
-  const titleText = createText(title, TEXT_STYLES.cardTitle, rect.x + 16, rect.y + 14);
-  container.addChild(titleText);
-
-  const body = createText(
-    lines.join("\n"),
+  const titleText = createText(
+    title,
     {
-      ...TEXT_STYLES.body,
-      fontSize: 13,
+      ...TEXT_STYLES.cardTitle,
+      fontSize: rect.width < 156 ? 17 : TEXT_STYLES.cardTitle.fontSize,
       wordWrap: true,
-      wordWrapWidth: rect.width - 32,
-      lineHeight: 18,
+      wordWrapWidth: rect.width - 24,
+      lineHeight: showBody ? 20 : 18,
     },
-    rect.x + 16,
-    rect.y + 44
+    12,
+    showBody ? 14 : 12
   );
-  container.addChild(body);
+  root.addChild(titleText);
+
+  if (showBody) {
+    const body = createText(
+      lines.join("\n"),
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 13,
+        wordWrap: true,
+        wordWrapWidth: rect.width - 28,
+        lineHeight: 18,
+      },
+      14,
+      48
+    );
+    root.addChild(body);
+  }
+
+  if (tooltipView && Array.isArray(lines) && lines.length > 0) {
+    root.eventMode = "static";
+    root.cursor = "pointer";
+    root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+    root.on("pointerover", () => {
+      const anchor =
+        tooltipView.getAnchorRectForDisplayObject?.(root, "parent") ?? {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          coordinateSpace: "parent",
+        };
+      tooltipView.show?.(
+        {
+          title,
+          lines,
+          maxWidth: 300,
+          scale: Math.max(
+            Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+            tooltipView.getRelativeDisplayScale?.(root, 1) ?? 1
+          ),
+        },
+        anchor
+      );
+    });
+    root.on("pointerout", () => {
+      tooltipView.hide?.();
+    });
+  }
+
+  container.addChild(root);
+  return root;
 }
 
 function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
@@ -486,6 +549,7 @@ function drawClassSummaryCard(
   onTap = null
 ) {
   const root = new PIXI.Container();
+  const compactBody = rect.height < 160;
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
@@ -515,8 +579,8 @@ function drawClassSummaryCard(
       lines.join("\n"),
       {
         ...TEXT_STYLES.body,
-        fontSize: 12,
-        lineHeight: 16,
+        fontSize: compactBody ? 10 : 12,
+        lineHeight: compactBody ? 14 : 16,
         wordWrap: true,
         wordWrapWidth: rect.width - 32,
       },
@@ -544,6 +608,7 @@ export function createSettlementPrototypeView({
   getState,
   getSelectedPracticeClassId,
   setSelectedPracticeClassId,
+  tooltipView,
 } = {}) {
   const root = new PIXI.Container();
   layer?.addChild(root);
@@ -561,6 +626,7 @@ export function createSettlementPrototypeView({
     if (signature === lastSignature) return;
     lastSignature = signature;
 
+    tooltipView?.hide?.();
     clearChildren(root);
 
     const screenWidth = Math.floor(app?.screen?.width ?? 2424);
@@ -584,10 +650,10 @@ export function createSettlementPrototypeView({
     const hubPanelRect = { x: 120, y: 120, width: 1180, height: 700 };
     const regionPanelRect = { x: 1430, y: 180, width: 830, height: 590 };
     // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
-    const classColumnRect = { x: 150, y: 210, width: 250, height: 396 };
-    const orderRect = { x: 430, y: 206, width: 830, height: 148 };
-    const practiceRect = { x: 430, y: 392, width: 830, height: 220 };
-    const structuresRect = { x: 140, y: 630, width: 1140, height: 170 };
+    const classColumnRect = { x: 150, y: 188, width: 220, height: 300 };
+    const orderRect = { x: 394, y: 184, width: 846, height: 220 };
+    const practiceRect = { x: 394, y: 434, width: 846, height: 176 };
+    const structuresRect = { x: 140, y: 630, width: 1100, height: 124 };
     const resourceBandRect = { x: 160, y: 836, width: 1540, height: 44 };
 
     const panelGfx = new PIXI.Graphics();
@@ -664,7 +730,7 @@ export function createSettlementPrototypeView({
         state?.locationNames?.hub ?? "Hub",
         TEXT_STYLES.header,
         hubPanelRect.x + hubPanelRect.width * 0.5,
-        175,
+        148,
         0.5,
         0.5
       )
@@ -673,14 +739,14 @@ export function createSettlementPrototypeView({
       createText(state?.locationNames?.region ?? "Region", TEXT_STYLES.header, 1845, 210, 0.5, 0.5)
     );
     root.addChild(
-      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 198, 0.5, 0.5)
+      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 172, 0.5, 0.5)
     );
     root.addChild(
       createText(
         `Practice - ${capitalizeLabel(selectedClassId)}`,
         TEXT_STYLES.title,
         practiceRect.x + practiceRect.width * 0.5,
-        372,
+        416,
         0.5,
         0.5
       )
@@ -747,7 +813,7 @@ export function createSettlementPrototypeView({
     // { y: classTabsRect.y }
     const classGap = 12;
     const classCardHeight = Math.max(
-      96,
+      92,
       Math.floor(
         (classColumnRect.height - classGap * Math.max(0, classIds.length - 1)) /
           Math.max(1, classIds.length)
@@ -807,7 +873,8 @@ export function createSettlementPrototypeView({
     }
 
     const practiceSlots = getSettlementPracticeSlotsByClass(state, selectedClassId);
-    const practiceCardWidth = 154;
+    const practiceCardWidth = 148;
+    const practiceCardGap = 16;
     for (let i = 0; i < practiceSlots.length; i += 1) {
       const card = practiceSlots[i]?.card ?? null;
       if (!card) continue;
@@ -819,7 +886,7 @@ export function createSettlementPrototypeView({
       drawPracticeCard(
         root,
         {
-          x: practiceRect.x + 14 + i * 160,
+          x: practiceRect.x + 14 + i * (practiceCardWidth + practiceCardGap),
           y: cardY,
           width: practiceCardWidth,
           height: cardHeight,
@@ -834,12 +901,17 @@ export function createSettlementPrototypeView({
             : PALETTE.passiveBorderMuted
           : card?.props?.settlement?.available
             ? PALETTE.active
-            : PALETTE.stroke
+            : PALETTE.stroke,
+        {
+          showBody: false,
+          tooltipView,
+        }
       );
     }
 
     const structureSlots = getSettlementStructureSlots(state);
-    const structureCardWidth = 168;
+    const structureCardWidth = 154;
+    const structureCardGap = 18;
     for (let i = 0; i < structureSlots.length; i += 1) {
       const structure = structureSlots[i]?.structure ?? null;
       if (!structure) continue;
@@ -847,7 +919,7 @@ export function createSettlementPrototypeView({
       drawCard(
         root,
         {
-          x: structuresRect.x + 14 + i * 188,
+          x: structuresRect.x + 14 + i * (structureCardWidth + structureCardGap),
           y: structuresRect.y + 18,
           width: structureCardWidth,
           height: structuresRect.height - 36,
@@ -855,7 +927,12 @@ export function createSettlementPrototypeView({
         def?.name ?? structure.defId,
         buildStructureLines(structure),
         structure?.props?.settlement?.active ? PALETTE.card : PALETTE.cardMuted,
-        structure?.props?.settlement?.active ? PALETTE.active : PALETTE.stroke
+        structure?.props?.settlement?.active ? PALETTE.active : PALETTE.stroke,
+        {
+          fontSize: 11,
+          lineHeight: 15,
+          wordWrapWidth: structureCardWidth - 28,
+        }
       );
     }
 
@@ -891,6 +968,7 @@ export function createSettlementPrototypeView({
     getScreenRect: () =>
       !root.visible || typeof root.getBounds !== "function" ? null : root.getBounds(),
     destroy: () => {
+      tooltipView?.hide?.();
       clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
