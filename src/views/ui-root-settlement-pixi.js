@@ -190,8 +190,19 @@ function getSettlementGraphDefaultSeriesIds(allSeries = getSettlementGraphMenuSe
     preferred.push(seriesId);
   };
 
+  for (const preferredGlobalId of ["food", "redResource", "greenResource"]) {
+    const series = list.find(
+      (entry) => getSettlementGraphSeriesId(entry) === preferredGlobalId
+    );
+    if (series) {
+      pushUnique(getSettlementGraphSeriesId(series));
+    }
+  }
   for (const series of list) {
-    if (series?.pickerGroup === "global") {
+    if (
+      series?.pickerGroup === "global" &&
+      getSettlementGraphSeriesId(series) !== "totalPopulation"
+    ) {
       pushUnique(getSettlementGraphSeriesId(series));
     }
   }

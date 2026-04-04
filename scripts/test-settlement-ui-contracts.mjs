@@ -4,7 +4,10 @@ import {
   clampDiskHistoryBrowseTargetSec,
   clampDiskForecastPreviewTargetSec,
 } from "../src/views/sunandmoon-disks-pixi.js";
-import { clampForecastScrubTargetSec } from "../src/views/timegraphs-pixi.js";
+import {
+  clampForecastScrubTargetSec,
+  computeGraphSeriesScaleRanges,
+} from "../src/views/timegraphs-pixi.js";
 import {
   computeSettlementGraphWindowSpec,
   computeSettlementProjectionCacheConfig,
@@ -280,6 +283,11 @@ assert.match(
 );
 assert.match(
   graphMetricsSource,
+  /id:\s*"totalPopulation"/,
+  "[test] settlement graph should include a settlement-wide total population series"
+);
+assert.match(
+  graphMetricsSource,
   /pickerGroup:\s*"classMetric"/,
   "[test] settlement graph should tag class metric series for picker grouping"
 );
@@ -400,6 +408,48 @@ assert.equal(
   clampForecastScrubTargetSec(240, 120, 180, { minSec: 0, maxSec: 500 }),
   180,
   "[test] graph forecast scrub should clamp to the animated forecast reveal cap"
+);
+const mixedScaleRanges = computeGraphSeriesScaleRanges(
+  [
+    { id: "population:villager", scaleGroupId: "population", scaleMode: "dynamic", scaleMin: 0 },
+    { id: "faith:villager", scaleGroupId: "faith", scaleMode: "fixed", scaleMin: 0, scaleMax: 100 },
+    { id: "faith:stranger", scaleGroupId: "faith", scaleMode: "fixed", scaleMin: 0, scaleMax: 100 },
+  ],
+  new Map([
+    ["population:villager", [10, 20, 35]],
+    ["faith:villager", [25, 50, 75]],
+    ["faith:stranger", [0, 25, 100]],
+  ])
+);
+assert.deepEqual(
+  mixedScaleRanges.get("population:villager"),
+  {
+    groupId: "population",
+    scaleMode: "dynamic",
+    minValue: 0,
+    maxValue: 35,
+  },
+  "[test] dynamic graph series should normalize to their own observed maximum"
+);
+assert.deepEqual(
+  mixedScaleRanges.get("faith:villager"),
+  {
+    groupId: "faith",
+    scaleMode: "fixed",
+    minValue: 0,
+    maxValue: 100,
+  },
+  "[test] fixed graph series should preserve their configured full-range bounds"
+);
+assert.deepEqual(
+  mixedScaleRanges.get("faith:stranger"),
+  {
+    groupId: "faith",
+    scaleMode: "fixed",
+    minValue: 0,
+    maxValue: 100,
+  },
+  "[test] class variants of a fixed graph metric should share the same full-range bounds"
 );
 assert.deepEqual(
   computeSettlementGraphWindowSpec({

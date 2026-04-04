@@ -244,6 +244,94 @@ function getSeriesValue(point, seriesId) {
   return 0;
 }
 
+function resolveSeriesScaleMode(seriesDef) {
+  return seriesDef?.scaleMode === "fixed" ? "fixed" : "dynamic";
+}
+
+function resolveSeriesScaleGroupId(seriesDef) {
+  const explicitGroupId = String(seriesDef?.scaleGroupId ?? "").trim();
+  if (explicitGroupId) return explicitGroupId;
+  const seriesId = String(seriesDef?.id ?? "").trim();
+  return seriesId || "__default__";
+}
+
+export function computeGraphSeriesScaleRanges(
+  seriesList,
+  seriesValues,
+  { defaultMin = 0, defaultMax = 100 } = {}
+) {
+  const list = Array.isArray(seriesList) ? seriesList : [];
+  const valuesBySeriesId = seriesValues instanceof Map ? seriesValues : new Map();
+  const groupRanges = new Map();
+  const seriesRanges = new Map();
+
+  for (const seriesDef of list) {
+    const seriesId = String(seriesDef?.id ?? "");
+    if (!seriesId) continue;
+    const groupId = resolveSeriesScaleGroupId(seriesDef);
+    let groupRange = groupRanges.get(groupId);
+    if (!groupRange) {
+      groupRange = {
+        groupId,
+        scaleMode: resolveSeriesScaleMode(seriesDef),
+        minValue: Number.isFinite(seriesDef?.scaleMin)
+          ? Number(seriesDef.scaleMin)
+          : Number(defaultMin),
+        maxValue: Number.isFinite(seriesDef?.scaleMax)
+          ? Number(seriesDef.scaleMax)
+          : null,
+        observedMaxValue: -Infinity,
+      };
+      groupRanges.set(groupId, groupRange);
+    } else {
+      if (groupRange.scaleMode !== "fixed" && resolveSeriesScaleMode(seriesDef) === "fixed") {
+        groupRange.scaleMode = "fixed";
+      }
+      if (Number.isFinite(seriesDef?.scaleMin)) {
+        groupRange.minValue = Number(seriesDef.scaleMin);
+      }
+      if (Number.isFinite(seriesDef?.scaleMax)) {
+        groupRange.maxValue = Number(seriesDef.scaleMax);
+      }
+    }
+
+    const values = valuesBySeriesId.get(seriesId);
+    for (const value of Array.isArray(values) ? values : []) {
+      if (!Number.isFinite(value)) continue;
+      if (value > groupRange.observedMaxValue) {
+        groupRange.observedMaxValue = value;
+      }
+    }
+  }
+
+  for (const seriesDef of list) {
+    const seriesId = String(seriesDef?.id ?? "");
+    if (!seriesId) continue;
+    const groupRange = groupRanges.get(resolveSeriesScaleGroupId(seriesDef));
+    if (!groupRange) continue;
+    const minValue = Number.isFinite(groupRange.minValue)
+      ? Number(groupRange.minValue)
+      : Number(defaultMin);
+    let maxValue = Number.isFinite(groupRange.maxValue)
+      ? Number(groupRange.maxValue)
+      : groupRange.observedMaxValue;
+    if (!Number.isFinite(maxValue)) {
+      maxValue = Number(defaultMax);
+    }
+    if (maxValue <= minValue) {
+      maxValue = minValue + 1;
+    }
+    seriesRanges.set(seriesId, {
+      groupId: groupRange.groupId,
+      scaleMode: groupRange.scaleMode,
+      minValue,
+      maxValue,
+    });
+  }
+
+  return seriesRanges;
+}
+
 function normalizeEventMarkers(rawMarkers, { minSec, maxSec }) {
   const min = Math.max(0, Math.floor(minSec ?? 0));
   const max = Math.max(min, Math.floor(maxSec ?? min));
@@ -1193,8 +1281,6 @@ export function createMetricGraphView({
       seriesValues.set(s.id, new Array(pointsForDraw.length));
     }
 
-    let minValue = 0;
-    let maxValue = -Infinity;
     for (let i = 0; i < pointsForDraw.length; i++) {
       const point = pointsForDraw[i];
       const t = Math.max(0, Math.floor(point?.tSec ?? 0));
@@ -1213,19 +1299,12 @@ export function createMetricGraphView({
         }
         const arr = seriesValues.get(seriesDef.id);
         if (arr) arr[i] = value;
-        if (Number.isFinite(value) && value > maxValue) {
-          maxValue = value;
-        }
       }
     }
-
-    if (!Number.isFinite(maxValue)) {
-      maxValue = 100;
-    }
-    if (maxValue <= minValue) {
-      maxValue = minValue + 1;
-    }
-    maxValue += (maxValue - minValue) * 0.1;
+    const seriesScaleRanges = computeGraphSeriesScaleRanges(seriesList, seriesValues, {
+      defaultMin: 0,
+      defaultMax: 100,
+    });
 
     const defaultHistoryZones = computeHistoryZoneSegments({
       minSec,
@@ -1286,8 +1365,7 @@ export function createMetricGraphView({
       seriesList,
       pointsForDraw,
       seriesValues,
-      minValue,
-      maxValue,
+      seriesScaleRanges,
       historyEndSec,
       actualForecastCoverageEndSec,
       historyZones,
@@ -1336,10 +1414,19 @@ export function createMetricGraphView({
       )
     );
     const seriesValues = snapshot?.seriesValues ?? new Map();
-    const minValue = Number.isFinite(snapshot?.minValue) ? snapshot.minValue : 0;
-    const maxValue = Number.isFinite(snapshot?.maxValue) ? snapshot.maxValue : 100;
+    const seriesScaleRanges =
+      snapshot?.seriesScaleRanges instanceof Map
+        ? snapshot.seriesScaleRanges
+        : new Map();
 
-    function yForValue(v) {
+    function yForValue(v, seriesId) {
+      const scaleRange = seriesScaleRanges.get(seriesId) ?? null;
+      const minValue = Number.isFinite(scaleRange?.minValue)
+        ? scaleRange.minValue
+        : 0;
+      const maxValue = Number.isFinite(scaleRange?.maxValue)
+        ? scaleRange.maxValue
+        : 100;
       const tRaw = (v - minValue) / Math.max(1e-6, maxValue - minValue);
       const t = Math.max(0, Math.min(1, tRaw));
       return plot.y + plot.h - t * plot.h;
@@ -1442,7 +1529,7 @@ export function createMetricGraphView({
           continue;
         }
         const x = timeToX(t);
-        const y = yForValue(value);
+        const y = yForValue(value, s.id);
 
         if (first) {
           plotG.moveTo(x, y);
