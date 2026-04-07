@@ -43,18 +43,43 @@ export function computeSettlementGraphWindowSpec({
   forecastPreviewSec = null,
   horizonSec = 0,
   zoomed = false,
+  lineageStartSec = null,
+  currentVassalStartSec = null,
+  latestDeathSec = null,
 } = {}) {
-  if (zoomed === true) return null;
-
   const historyEnd = toNonNegativeSec(historyEndSec, 0);
   const cursor = toNonNegativeSec(cursorSec, historyEnd);
   const previewSec = Number.isFinite(forecastPreviewSec)
     ? toNonNegativeSec(forecastPreviewSec, historyEnd)
     : null;
   const horizon = toNonNegativeSec(horizonSec, 0);
+  const safeLineageStartSec = Number.isFinite(lineageStartSec)
+    ? toNonNegativeSec(lineageStartSec, 0)
+    : null;
+  const safeCurrentVassalStartSec = Number.isFinite(currentVassalStartSec)
+    ? toNonNegativeSec(currentVassalStartSec, safeLineageStartSec ?? 0)
+    : null;
+  const safeLatestDeathSec = Number.isFinite(latestDeathSec)
+    ? toNonNegativeSec(latestDeathSec, 0)
+    : null;
 
   const realizedEndSec = Math.max(historyEnd, cursor);
   const visibleEndSec = Math.max(realizedEndSec, previewSec ?? realizedEndSec);
+
+  if (safeLatestDeathSec != null && safeLatestDeathSec > 0) {
+    const minSec = zoomed === true
+      ? safeCurrentVassalStartSec ?? safeLineageStartSec ?? 0
+      : safeLineageStartSec ?? 0;
+    const maxSec = Math.max(minSec + 1, safeLatestDeathSec);
+    const preferredScrubSec = previewSec != null ? previewSec : cursor;
+    return {
+      minSec,
+      maxSec,
+      scrubSec: Math.max(minSec, Math.min(maxSec, preferredScrubSec)),
+    };
+  }
+
+  if (zoomed === true) return null;
 
   return {
     minSec: 0,

@@ -19,6 +19,7 @@ const graphMetricsSource = await readFile("src/model/graph-metrics.js", "utf8");
 const prototypeViewSource = await readFile("src/views/settlement-prototype-view.js", "utf8");
 const diskViewSource = await readFile("src/views/sunandmoon-disks-pixi.js", "utf8");
 const timegraphViewSource = await readFile("src/views/timegraphs-pixi.js", "utf8");
+const vassalChooserSource = await readFile("src/views/settlement-vassal-chooser-pixi.js", "utf8");
 
 assert.match(
   entrySource,
@@ -154,6 +155,46 @@ assert.match(
   rootSource,
   /computeSettlementGraphWindowSpec/,
   "[test] settlement root should use a settlement-specific graph window policy"
+);
+assert.match(
+  rootSource,
+  /createSettlementVassalChooserView/,
+  "[test] settlement root should boot the blocking vassal chooser overlay"
+);
+assert.match(
+  rootSource,
+  /createSettlementVassalChooserView\([\s\S]*tooltipView/s,
+  "[test] settlement root should provide tooltip support to the vassal chooser"
+);
+assert.match(
+  rootSource,
+  /createSettlementVassalControlsView/,
+  "[test] settlement root should boot dedicated vassal controls"
+);
+assert.match(
+  rootSource,
+  /setHorizonSecOverride\?\.\(/,
+  "[test] settlement root should override graph horizon when the current lineage extends past the base window"
+);
+assert.match(
+  rootSource,
+  /ActionKinds\.SETTLEMENT_SELECT_VASSAL_CANDIDATE/,
+  "[test] settlement root should dispatch the vassal selection action from the chooser"
+);
+assert.match(
+  rootSource,
+  /ActionKinds\.SETTLEMENT_BEGIN_NEXT_VASSAL_SELECTION/,
+  "[test] settlement root should dispatch the next-vassal selection action from the control button"
+);
+assert.match(
+  rootSource,
+  /getVisibleVassalTimeSec:/,
+  "[test] settlement prototype view should receive a reveal-aware vassal visibility callback"
+);
+assert.match(
+  rootSource,
+  /getForecastScrubCapSec\?\.\(\)/,
+  "[test] settlement root should use the graph reveal cap for vassal skip gating and panel visibility"
 );
 assert.match(
   rootSource,
@@ -423,6 +464,31 @@ assert.match(
   "[test] practice cards should use a dedicated renderer for the active drain fill"
 );
 assert.match(
+  vassalChooserSource,
+  /villager:\s*"Villager"/,
+  "[test] vassal chooser cards should render a villager agenda subsection"
+);
+assert.match(
+  vassalChooserSource,
+  /stranger:\s*"Stranger"/,
+  "[test] vassal chooser cards should render a stranger agenda subsection"
+);
+assert.match(
+  vassalChooserSource,
+  /createMiniPracticeCard/,
+  "[test] vassal chooser cards should render board-style mini practice cards for agendas"
+);
+assert.match(
+  prototypeViewSource,
+  /getVisibleVassalTimeSec/,
+  "[test] prototype vassal panel should accept a reveal-aware visible time callback"
+);
+assert.match(
+  prototypeViewSource,
+  /visibleVassalThroughSec/,
+  "[test] prototype vassal panel should compute event visibility from the reveal-aware time"
+);
+assert.match(
   prototypeViewSource,
   /practiceMode === "passive"/,
   "[test] prototype view should distinguish passive practice cards from actives"
@@ -560,6 +626,40 @@ assert.deepEqual(
     scrubSec: 180,
   },
   "[test] settlement graph window should keep the full forecast horizon while allowing preview scrub focus"
+);
+assert.deepEqual(
+  computeSettlementGraphWindowSpec({
+    historyEndSec: 640,
+    cursorSec: 672,
+    forecastPreviewSec: 900,
+    horizonSec: 5120,
+    lineageStartSec: 128,
+    currentVassalStartSec: 384,
+    latestDeathSec: 960,
+  }),
+  {
+    minSec: 128,
+    maxSec: 960,
+    scrubSec: 900,
+  },
+  "[test] settlement graph default lineage window should start at the first selected vassal and end at the latest death"
+);
+assert.deepEqual(
+  computeSettlementGraphWindowSpec({
+    historyEndSec: 640,
+    cursorSec: 672,
+    horizonSec: 5120,
+    zoomed: true,
+    lineageStartSec: 128,
+    currentVassalStartSec: 384,
+    latestDeathSec: 960,
+  }),
+  {
+    minSec: 384,
+    maxSec: 960,
+    scrubSec: 672,
+  },
+  "[test] settlement graph focus mode should start at the current vassal while remaining pinned to the latest lineage death"
 );
 const projectionCacheConfig = computeSettlementProjectionCacheConfig({
   horizonSec: 5120,

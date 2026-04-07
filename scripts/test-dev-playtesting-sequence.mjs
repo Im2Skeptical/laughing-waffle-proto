@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import { ActionKinds, applyAction } from "../src/model/actions.js";
 import { hubStructureDefs } from "../src/defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../src/defs/gamepieces/settlement-practice-defs.js";
 import { PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR } from "../src/defs/gamesettings/gamerules-defs.js";
@@ -10,13 +11,16 @@ import { syncSettlementDerivedState } from "../src/model/settlement-exec.js";
 import { stepSettlementOrders } from "../src/model/settlement-order-exec.js";
 import {
   getSettlementClassIds,
+  getSettlementCurrentVassal,
   getSettlementFaithSummary,
   getSettlementOrderSlots,
+  getSettlementPendingVassalSelection,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
 } from "../src/model/settlement-state.js";
 import {
+  appendActionAtCursor,
   createTimelineFromInitialState,
   rebuildStateAtSecond,
 } from "../src/model/timeline/index.js";
@@ -245,6 +249,77 @@ function summarizeState(state) {
     aggregatePopulation: getSettlementPopulationSummary(state),
     bonuses: state?.hub?.core?.props?.practicePassiveBonusesByClass ?? null,
     byClass: Object.fromEntries(classIds.map((classId) => [classId, summarizeClass(state, classId)])),
+  };
+}
+
+function summarizePendingVassalSelection(state) {
+  const pendingSelection = getSettlementPendingVassalSelection(state);
+  return {
+    poolId: pendingSelection?.poolId ?? null,
+    createdSec: Math.floor(pendingSelection?.createdSec ?? 0),
+    candidates: (Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : []).map(
+      (candidate) => ({
+        vassalId: candidate?.vassalId ?? null,
+        sourceClassId: candidate?.sourceClassId ?? null,
+        initialAgeYears: Math.floor(candidate?.initialAgeYears ?? 0),
+        deathAgeYears: Math.floor(candidate?.deathAgeYears ?? 0),
+        deathSec: Math.floor(candidate?.deathSec ?? 0),
+        professionAgeYears: Math.floor(candidate?.professionAgeYears ?? 0),
+        traitAgeYears: Math.floor(candidate?.traitAgeYears ?? 0),
+        agendaByClass: candidate?.agendaByClass ?? {},
+        eventKinds: (Array.isArray(candidate?.lifeEvents) ? candidate.lifeEvents : []).map(
+          (event) => `${event?.kind ?? "event"}:${Math.floor(event?.ageYears ?? 0)}`
+        ),
+      })
+    ),
+  };
+}
+
+function summarizeCouncilMembers(state) {
+  const councilCard = getSettlementOrderSlots(state)[0]?.card ?? null;
+  return Array.isArray(councilCard?.systemState?.elderCouncil?.members)
+    ? councilCard.systemState.elderCouncil.members.map((member) => ({
+        memberId: member?.memberId ?? null,
+        sourceVassalId: member?.sourceVassalId ?? null,
+        sourceClassId: member?.sourceClassId ?? null,
+        joinedYear: Math.floor(member?.joinedYear ?? 0),
+        ageYears: Math.floor(member?.ageYears ?? 0),
+        modifierId: member?.modifierId ?? null,
+      }))
+    : [];
+}
+
+function summarizeCurrentVassal(state) {
+  const currentVassal = getSettlementCurrentVassal(state);
+  if (!currentVassal) return null;
+  return {
+    vassalId: currentVassal.vassalId,
+    sourceClassId: currentVassal.sourceClassId,
+    currentClassId: currentVassal.currentClassId,
+    birthSec: Math.floor(currentVassal.birthSec ?? 0),
+    birthYear: Math.floor(currentVassal.birthYear ?? 0),
+    selectedSec: Math.floor(currentVassal.selectedSec ?? 0),
+    deathSec: Math.floor(currentVassal.deathSec ?? 0),
+    deathYear: Math.floor(currentVassal.deathYear ?? 0),
+    professionId: currentVassal.professionId ?? null,
+    traitId: currentVassal.traitId ?? null,
+    councilMemberId: currentVassal.councilMemberId ?? null,
+    joinedCouncilSec: Number.isFinite(currentVassal?.joinedCouncilSec)
+      ? Math.floor(currentVassal.joinedCouncilSec)
+      : null,
+    removedFromCouncilSec: Number.isFinite(currentVassal?.removedFromCouncilSec)
+      ? Math.floor(currentVassal.removedFromCouncilSec)
+      : null,
+    isDead: currentVassal.isDead === true,
+    isElder: currentVassal.isElder === true,
+    lifeEvents: (Array.isArray(currentVassal?.lifeEvents) ? currentVassal.lifeEvents : []).map((event) => ({
+      kind: event?.kind ?? null,
+      tSec: Math.floor(event?.tSec ?? 0),
+      ageYears: Math.floor(event?.ageYears ?? 0),
+      classId: event?.classId ?? null,
+      professionId: event?.professionId ?? null,
+      traitId: event?.traitId ?? null,
+    })),
   };
 }
 
@@ -1205,6 +1280,189 @@ function runSerializationReplayAssertions() {
   );
 }
 
+function runVassalLineageAssertions() {
+  const initialA = createInitialState("devPlaytesting01", 123);
+  const initialB = createInitialState("devPlaytesting01", 123);
+
+  assert.deepEqual(
+    summarizePendingVassalSelection(initialA),
+    summarizePendingVassalSelection(initialB),
+    "seeded vassal candidate pools should be deterministic for a given seed"
+  );
+
+  const poolSummary = summarizePendingVassalSelection(initialA);
+  assert.equal(poolSummary.candidates.length, 3, "the initial vassal chooser should offer exactly three candidates");
+  for (const candidate of poolSummary.candidates) {
+    assert.ok(
+      candidate.initialAgeYears >= 6 && candidate.initialAgeYears <= 12,
+      "vassal candidates should start between ages 6 and 12"
+    );
+    assert.ok(
+      candidate.professionAgeYears >= 14 && candidate.professionAgeYears <= 18,
+      "vassal profession events should be scheduled between ages 14 and 18"
+    );
+    assert.ok(
+      candidate.traitAgeYears >= 26 && candidate.traitAgeYears <= 30,
+      "vassal trait events should be scheduled between ages 26 and 30"
+    );
+    if (candidate.sourceClassId === "stranger") {
+      assert.ok(
+        candidate.eventKinds.includes("classChanged:18"),
+        "stranger vassals should pre-schedule their villager transition at age 18"
+      );
+    }
+    for (const classId of ["villager", "stranger"]) {
+      const agenda = Array.isArray(candidate?.agendaByClass?.[classId])
+        ? candidate.agendaByClass[classId]
+        : [];
+      const eligiblePracticeIds = Object.values(settlementPracticeDefs)
+        .filter((def) => Array.isArray(def?.orderEligibleClassIds) && def.orderEligibleClassIds.includes(classId))
+        .map((def) => def.id);
+      const expectedMinLength = Math.min(
+        classId === "villager" ? 5 : 5,
+        eligiblePracticeIds.length
+      );
+      assert.equal(
+        agenda.length,
+        expectedMinLength,
+        `vassal agendas should be filled out for the ${classId} class`
+      );
+      const minorDevelopmentIds = Object.values(settlementPracticeDefs)
+        .filter(
+          (def) =>
+            def?.orderDevelopmentTier === "minor" &&
+            Array.isArray(def?.orderEligibleClassIds) &&
+            def.orderEligibleClassIds.includes(classId)
+        )
+        .map((def) => def.id);
+      if (minorDevelopmentIds.length > 0) {
+        assert.ok(
+          agenda.some((defId) => minorDevelopmentIds.includes(defId)),
+          `vassal agendas should always include a minor development for ${classId}`
+        );
+      }
+    }
+  }
+
+  const live = createInitialState("devPlaytesting01", 123);
+  live.paused = true;
+  const pendingSelection = getSettlementPendingVassalSelection(live);
+  const candidate =
+    (Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : [])
+      .filter((entry) =>
+        (Array.isArray(entry?.lifeEvents) ? entry.lifeEvents : []).some((event) => event?.kind === "becameElder")
+      )
+      .sort((a, b) => Math.floor(a?.deathSec ?? 0) - Math.floor(b?.deathSec ?? 0))[0] ?? null;
+
+  assert.ok(candidate, "expected at least one seeded candidate to survive to elder age for the lineage test");
+
+  const selectAction = {
+    kind: ActionKinds.SETTLEMENT_SELECT_VASSAL_CANDIDATE,
+    payload: {
+      vassalId: candidate.vassalId,
+      tSec: live.tSec,
+    },
+  };
+  const selectResult = applyAction(live, selectAction);
+  assert.equal(selectResult?.ok, true, `vassal selection should succeed: ${JSON.stringify(selectResult)}`);
+  assert.equal(
+    getSettlementPendingVassalSelection(live),
+    null,
+    "selecting a vassal should close the pending chooser pool"
+  );
+
+  const selectedVassal = summarizeCurrentVassal(live);
+  const elderEvent = selectedVassal?.lifeEvents.find((event) => event.kind === "becameElder") ?? null;
+  const deathEvent = selectedVassal?.lifeEvents.find((event) => event.kind === "died") ?? null;
+  assert.ok(elderEvent, "selected vassal should include an elder milestone event");
+  assert.ok(deathEvent, "selected vassal should include a death event");
+  assert.equal(elderEvent.ageYears, 45, "vassals should become elders at age 45");
+
+  live.paused = false;
+  advanceToSecond(live, elderEvent.tSec);
+  const elderState = summarizeCurrentVassal(live);
+  const elderCouncilMembers = summarizeCouncilMembers(live);
+  const elderCouncilMember = elderCouncilMembers.find(
+    (member) => member.sourceVassalId === elderState?.vassalId
+  );
+
+  assert.equal(elderState?.isElder, true, "selected vassals should become elders when their milestone resolves");
+  assert.ok(elderCouncilMember, "elder vassals should be mirrored into the authoritative elder council");
+  assert.equal(
+    elderCouncilMember?.modifierId,
+    elderState?.traitId,
+    "vassal-backed elder council members should reuse the vassal trait as their modifier"
+  );
+
+  const timelineBase = createInitialState("devPlaytesting01", 123);
+  timelineBase.paused = true;
+  const timeline = createTimelineFromInitialState(timelineBase);
+  const appendResult = appendActionAtCursor(timeline, selectAction, timelineBase);
+  assert.equal(appendResult?.ok, true, `failed to record vassal selection action: ${JSON.stringify(appendResult)}`);
+
+  const elderRebuilt = rebuildStateAtSecond(timeline, elderEvent.tSec);
+  assert.equal(
+    elderRebuilt?.ok,
+    true,
+    `rebuildStateAtSecond failed for vassal elder milestone: ${JSON.stringify(elderRebuilt)}`
+  );
+  assert.deepEqual(
+    summarizeCurrentVassal(elderRebuilt.state),
+    summarizeCurrentVassal(live),
+    "replay rebuild should reproduce the same vassal state at elder age"
+  );
+  assert.deepEqual(
+    summarizeCouncilMembers(elderRebuilt.state),
+    summarizeCouncilMembers(live),
+    "replay rebuild should reproduce the same council state for vassal elders"
+  );
+
+  advanceToSecond(live, deathEvent.tSec + 1);
+  const deadState = summarizeCurrentVassal(live);
+  assert.equal(deadState?.isDead, true, "selected vassals should die on their scheduled death second");
+  assert.equal(
+    summarizeCouncilMembers(live).some((member) => member.sourceVassalId === deadState?.vassalId),
+    false,
+    "dead vassals should be removed from the authoritative elder council"
+  );
+  if (deadState?.sourceClassId === "stranger" && deadState?.deathYear >= deadState?.birthYear) {
+    assert.equal(
+      deadState.currentClassId,
+      "villager",
+      "stranger vassals should remain villagers after their age-18 class transition"
+    );
+  }
+
+  const restored = deserializeGameState(serializeGameState(live));
+  assert.deepEqual(
+    summarizeCurrentVassal(restored),
+    summarizeCurrentVassal(live),
+    "serialize/deserialize should preserve current vassal lineage state"
+  );
+  assert.deepEqual(
+    summarizeCouncilMembers(restored),
+    summarizeCouncilMembers(live),
+    "serialize/deserialize should preserve vassal-backed council membership state"
+  );
+
+  const deathRebuilt = rebuildStateAtSecond(timeline, deathEvent.tSec + 1);
+  assert.equal(
+    deathRebuilt?.ok,
+    true,
+    `rebuildStateAtSecond failed for vassal death: ${JSON.stringify(deathRebuilt)}`
+  );
+  assert.deepEqual(
+    summarizeCurrentVassal(deathRebuilt.state),
+    summarizeCurrentVassal(live),
+    "replay rebuild should reproduce the same vassal state after death"
+  );
+  assert.deepEqual(
+    summarizeCouncilMembers(deathRebuilt.state),
+    summarizeCouncilMembers(live),
+    "replay rebuild should reproduce council removal for dead vassals"
+  );
+}
+
 function run() {
   runInitAssertions();
   runMealPriorityAssertions();
@@ -1216,6 +1474,7 @@ function run() {
   runRaiseAsVillagersAssertions();
   runEmergencyFoodReserveAssertions();
   runSerializationReplayAssertions();
+  runVassalLineageAssertions();
   console.log("[test] devPlaytesting01 settlement demographics passed");
 }
 

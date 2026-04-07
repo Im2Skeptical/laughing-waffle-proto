@@ -41,6 +41,7 @@ export function createCenteredModalFrame({
   panelBorderAlpha = 0.95,
   backdropAlpha = 0.62,
   onRequestClose = null,
+  showClose = true,
 } = {}) {
   const resolvedLayout =
     layout && typeof layout === "object"
@@ -109,7 +110,7 @@ export function createCenteredModalFrame({
     paddingX: 10,
     paddingY: 5,
     showPin: false,
-    showClose: true,
+    showClose: showClose !== false,
     closeOffsetX,
     closeButtonWidth,
     closeButtonHeight,

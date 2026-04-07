@@ -37,6 +37,8 @@ import {
   cmdAdjustWorkerCount,
   cmdBuildDesignate,
   cmdCancelBuild,
+  cmdBeginNextSettlementVassalSelection,
+  cmdSelectSettlementVassalCandidate,
   cmdUnlockSkillNode,
 } from "./commands.js";
 
@@ -73,6 +75,8 @@ export const ActionKinds = {
   TOGGLE_ROUTING_TEMPLATE_ENDPOINT: "toggleRoutingTemplateEndpoint",
   ADJUST_FOLLOWER_COUNT: "adjustFollowerCount",
   ADJUST_WORKER_COUNT: "adjustWorkerCount",
+  SETTLEMENT_BEGIN_NEXT_VASSAL_SELECTION: "settlementBeginNextVassalSelection",
+  SETTLEMENT_SELECT_VASSAL_CANDIDATE: "settlementSelectVassalCandidate",
   UNLOCK_SKILL_NODE: "unlockSkillNode",
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
@@ -309,6 +313,14 @@ export function applyAction(state, action, context = {}) {
 
     case ActionKinds.ADJUST_WORKER_COUNT:
       result = cmdAdjustWorkerCount(state, payload);
+      break;
+
+    case ActionKinds.SETTLEMENT_BEGIN_NEXT_VASSAL_SELECTION:
+      result = cmdBeginNextSettlementVassalSelection(state, payload);
+      break;
+
+    case ActionKinds.SETTLEMENT_SELECT_VASSAL_CANDIDATE:
+      result = cmdSelectSettlementVassalCandidate(state, payload);
       break;
 
     case ActionKinds.UNLOCK_SKILL_NODE:

@@ -5,5 +5,6 @@ export * from "./commands/owner-acceptance.js";
 export * from "./commands/pawn-skill-commands.js";
 export * from "./commands/routing-commands.js";
 export * from "./commands/selection-commands.js";
+export * from "./commands/settlement-vassal-commands.js";
 export * from "./commands/simulation-commands.js";
 export * from "./commands/tag-commands.js";
