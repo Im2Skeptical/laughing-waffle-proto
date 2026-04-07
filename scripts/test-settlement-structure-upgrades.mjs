@@ -6,6 +6,7 @@ import { createInitialState, updateGame } from "../src/model/game-model.js";
 import { syncSettlementDerivedState } from "../src/model/settlement-exec.js";
 import { deserializeGameState, serializeGameState } from "../src/model/state.js";
 import {
+  getSettlementPendingVassalSelection,
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
   getSettlementTileBlueResource,
@@ -446,6 +447,44 @@ function runElderAgendaClearAssertions() {
   );
 }
 
+function runVassalAgendaClearAssertions() {
+  const state = createSettlementUpgradeState({
+    stockpiles: {
+      food: 20,
+      redResource: 10,
+      greenResource: 0,
+      blueResource: 2,
+      blackResource: 0,
+    },
+    villagerAdults: 30,
+    villagerPracticeSlots: [{ defId: "upgradeFoodStorage" }, null, null, null, null],
+  });
+  const pendingSelection = getSettlementPendingVassalSelection(state);
+  const candidates = Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : [];
+  assert.ok(candidates.length > 0, "expected a pending vassal selection pool");
+
+  for (const candidate of candidates) {
+    candidate.agendaByClass.villager = ["upgradeFoodStorage", "rest"];
+  }
+
+  advanceToSecond(state, 1 + YEAR_DURATION_SEC);
+
+  for (const candidate of candidates) {
+    assert.equal(
+      candidate.agendaByClass.villager.includes("upgradeFoodStorage"),
+      false,
+      "pending vassal candidates should clear the completed food-storage upgrade practice from their agendas"
+    );
+  }
+  for (const record of Object.values(state.hub.core.systemState.vassalLineage?.vassalsById ?? {})) {
+    assert.equal(
+      (record?.agendaByClass?.villager ?? []).includes("upgradeFoodStorage"),
+      false,
+      "stored vassal lineage records should clear the completed food-storage upgrade practice from their agendas"
+    );
+  }
+}
+
 function runBlueResourceAssertions() {
   const capState = createSettlementUpgradeState({
     tiles: new Array(12).fill("tile_hinterland"),
@@ -491,6 +530,7 @@ function run() {
   runBlockedPracticeAssertions();
   runSerializationReplayAssertions();
   runElderAgendaClearAssertions();
+  runVassalAgendaClearAssertions();
   runBlueResourceAssertions();
   console.log("[test] settlement structure upgrades passed");
 }

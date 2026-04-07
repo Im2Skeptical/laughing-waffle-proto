@@ -93,6 +93,41 @@ export function getEligiblePracticeIds(classId) {
     .sort((a, b) => a.localeCompare(b));
 }
 
+function movePracticeToFront(agenda, defId) {
+  const index = Array.isArray(agenda) ? agenda.indexOf(defId) : -1;
+  if (index <= 0) return Array.isArray(agenda) ? agenda : [];
+  const [moved] = agenda.splice(index, 1);
+  agenda.unshift(moved);
+  return agenda;
+}
+
+export function ensureMajorDevelopmentInAgenda(seedAgenda, classId, state, limit) {
+  const agenda = uniquePracticeIds(seedAgenda, classId, limit);
+  const existingMajorDevelopmentId =
+    agenda.find((defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier === "major") ?? null;
+  if (existingMajorDevelopmentId) {
+    return uniquePracticeIds(movePracticeToFront(agenda, existingMajorDevelopmentId), classId, limit);
+  }
+  const majorDevelopmentIds = getMajorDevelopmentIds(classId).filter((defId) => !agenda.includes(defId));
+  if (majorDevelopmentIds.length <= 0) return agenda;
+  const majorDevelopmentId = chooseRandom(majorDevelopmentIds, state);
+  if (!majorDevelopmentId) return agenda;
+  if (!Number.isFinite(limit) || limit <= 0 || agenda.length < limit) {
+    agenda.unshift(majorDevelopmentId);
+  } else {
+    const replaceIndex = agenda.findLastIndex(
+      (defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier !== "minor"
+    );
+    if (replaceIndex >= 0) {
+      agenda[replaceIndex] = majorDevelopmentId;
+    } else {
+      agenda[agenda.length - 1] = majorDevelopmentId;
+    }
+    movePracticeToFront(agenda, majorDevelopmentId);
+  }
+  return uniquePracticeIds(agenda, classId, limit);
+}
+
 export function uniquePracticeIds(rawList, classId, limit) {
   const seen = new Set();
   const result = [];
@@ -197,17 +232,7 @@ export function mutateAgendaForClass(
     typeof state?.rngNextFloat === "function" &&
     state.rngNextFloat() < normalizedMajorDevelopmentChance
   ) {
-    const majorDevelopmentId = chooseRandom(majorDevelopmentIds, state);
-    if (majorDevelopmentId) {
-      if (!Number.isFinite(limit) || limit <= 0 || agenda.length < limit) {
-        agenda.push(majorDevelopmentId);
-      } else {
-        const replaceIndex = agenda.findLastIndex(
-          (defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier !== "minor"
-        );
-        agenda[replaceIndex >= 0 ? replaceIndex : agenda.length - 1] = majorDevelopmentId;
-      }
-    }
+    return ensureMajorDevelopmentInAgenda(agenda, classId, state, limit);
   }
 
   return uniquePracticeIds(agenda, classId, limit);

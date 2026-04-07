@@ -348,6 +348,16 @@ assert.match(
 );
 assert.match(
   prototypeViewSource,
+  /sourceVassalId/,
+  "[test] elder roster should recognize vassal-backed council members"
+);
+assert.match(
+  prototypeViewSource,
+  /"Vassal"/,
+  "[test] elder roster should visibly badge vassal-backed council members"
+);
+assert.match(
+  prototypeViewSource,
   /function\s+drawOrderGlobalSummary\(/,
   "[test] order panel should render a dedicated global summary section"
 );
@@ -487,6 +497,11 @@ assert.match(
   prototypeViewSource,
   /visibleVassalThroughSec/,
   "[test] prototype vassal panel should compute event visibility from the reveal-aware time"
+);
+assert.match(
+  prototypeViewSource,
+  /Died of \$\{formatVassalDeathCause/,
+  "[test] vassal event log should show explicit death causes"
 );
 assert.match(
   prototypeViewSource,

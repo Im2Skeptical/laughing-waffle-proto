@@ -58,6 +58,8 @@ const PALETTE = Object.freeze({
   inactive: 0x777168,
   elderLozenge: 0x45403d,
   elderLozengeSoft: 0x595149,
+  vassalCouncilFill: 0x4e4534,
+  vassalCouncilStroke: 0xe3c46c,
   bustBackdrop: 0x686056,
   bustDark: 0x40362f,
   flyout: 0x3f3935,
@@ -219,6 +221,7 @@ function buildCompactVassalSignature(vassal, visibleEvents, classIds) {
       classId: event?.classId ?? null,
       professionId: event?.professionId ?? null,
       traitId: event?.traitId ?? null,
+      causeOfDeath: event?.causeOfDeath ?? null,
       text: event?.text ?? "",
     })),
   };
@@ -460,6 +463,7 @@ function buildElderDetailTooltipSpec(orderDef, member) {
           { label: "Age", value: `${ageYears} years` },
           { label: "Joined", value: joinedYear > 0 ? `Year ${joinedYear}` : "Unknown" },
           { label: "Class", value: capitalizeLabel(member?.sourceClassId) },
+          { label: "Origin", value: member?.sourceVassalId ? "Vassal" : "Council" },
           { label: "Trait", value: modifierLabel },
           { label: "Buff/Nerf", value: `${formatSignedNumber(prestigeDelta)} prestige` },
         ],
@@ -704,13 +708,28 @@ function hashString(value) {
   return hash >>> 0;
 }
 
+function getDeterministicBustSeedParts(member) {
+  const sourceVassalId =
+    typeof member?.sourceVassalId === "string" && member.sourceVassalId.length > 0
+      ? member.sourceVassalId
+      : null;
+  if (sourceVassalId) {
+    return ["vassal", sourceVassalId];
+  }
+  return [
+    "member",
+    member?.memberId ?? "",
+    member?.modifierId ?? "",
+    member?.sourceClassId ?? "",
+    member?.joinedYear ?? 0,
+  ];
+}
+
 function drawDeterministicBust(container, rect, member) {
   const root = new PIXI.Container();
   root.x = rect.x;
   root.y = rect.y;
-  const seed = hashString(
-    `${member?.memberId ?? ""}|${member?.modifierId ?? ""}|${member?.sourceClassId ?? ""}|${member?.joinedYear ?? 0}`
-  );
+  const seed = hashString(getDeterministicBustSeedParts(member).join("|"));
   const skinTone = ELDER_BUST_SKIN_TONES[seed % ELDER_BUST_SKIN_TONES.length];
   const accentTone =
     ELDER_BUST_ACCENT_TONES[Math.floor(seed / 7) % ELDER_BUST_ACCENT_TONES.length];
@@ -863,8 +882,20 @@ function drawElderLozenge(
   const root = new PIXI.Container();
   root.x = rect.x;
   root.y = rect.y;
+  const isVassalCouncillor =
+    typeof member?.sourceVassalId === "string" && member.sourceVassalId.length > 0;
   const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 18, PALETTE.elderLozenge, PALETTE.stroke, 2);
+  roundedRect(
+    gfx,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    18,
+    isVassalCouncillor ? PALETTE.vassalCouncilFill : PALETTE.elderLozenge,
+    isVassalCouncillor ? PALETTE.vassalCouncilStroke : PALETTE.stroke,
+    isVassalCouncillor ? 3 : 2
+  );
   root.addChild(gfx);
 
   const prestigePillRect = { x: 8, y: 7, width: 52, height: rect.height - 14 };
@@ -922,11 +953,44 @@ function drawElderLozenge(
       {
         ...TEXT_STYLES.muted,
         fontSize: 10,
+        fill: isVassalCouncillor ? PALETTE.vassalCouncilStroke : TEXT_STYLES.muted.fill,
       },
       nameX,
       rect.height - 18
     )
   );
+
+  if (isVassalCouncillor) {
+    const badgeRect = { x: nameX, y: rect.height - 36, width: 58, height: 14 };
+    const badge = new PIXI.Graphics();
+    roundedRect(
+      badge,
+      badgeRect.x,
+      badgeRect.y,
+      badgeRect.width,
+      badgeRect.height,
+      8,
+      0x3a342d,
+      PALETTE.vassalCouncilStroke,
+      1
+    );
+    root.addChild(badge);
+    root.addChild(
+      createText(
+        "Vassal",
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 9,
+          fontWeight: "bold",
+          fill: PALETTE.vassalCouncilStroke,
+        },
+        badgeRect.x + badgeRect.width * 0.5,
+        badgeRect.y + badgeRect.height * 0.5,
+        0.5,
+        0.5
+      )
+    );
+  }
 
   const selectedAgenda = getSelectedAgendaForMember(member, selectedClassId);
   const agendaStack = drawAgendaStack(root, agendaRect, selectedAgenda);
@@ -1293,6 +1357,12 @@ function getVassalTraitLabel(traitId) {
   return settlementVassalTraitDefs?.[traitId]?.label ?? traitId;
 }
 
+function formatVassalDeathCause(causeOfDeath) {
+  if (causeOfDeath === "starvation") return "starvation";
+  if (causeOfDeath === "oldAge") return "old age";
+  return "unknown causes";
+}
+
 function drawVassalEventLog(container, rect, events, state) {
   const safeEvents = Array.isArray(events) ? events.slice().reverse() : [];
   const clipCount = Math.min(6, safeEvents.length);
@@ -1311,7 +1381,11 @@ function drawVassalEventLog(container, rect, events, state) {
     container.addChild(row);
     container.addChild(
       createText(
-        typeof event?.text === "string" && event.text.length > 0 ? event.text : capitalizeLabel(event?.kind),
+        event?.kind === "died"
+          ? `Died of ${formatVassalDeathCause(event?.causeOfDeath)}`
+          : typeof event?.text === "string" && event.text.length > 0
+            ? event.text
+            : capitalizeLabel(event?.kind),
         {
           ...TEXT_STYLES.cardTitle,
           fontSize: 16,
@@ -1427,6 +1501,7 @@ function drawVassalPanel(
   const bustRect = { x: rect.x + rect.width - 184, y: rect.y + 232, width: 164, height: 144 };
   drawDeterministicBust(container, bustRect, {
     memberId: currentVassal.vassalId,
+    sourceVassalId: currentVassal.vassalId,
     modifierId: currentVassal.traitId,
     sourceClassId: currentVassal.currentClassId,
     joinedYear: currentVassal.birthYear,
