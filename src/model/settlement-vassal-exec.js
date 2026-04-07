@@ -113,6 +113,10 @@ function buildLifeEvent(eventId, kind, tSec, ageYears, extra = {}) {
     professionId:
       typeof extra.professionId === "string" && extra.professionId.length > 0 ? extra.professionId : null,
     traitId: typeof extra.traitId === "string" && extra.traitId.length > 0 ? extra.traitId : null,
+    causeOfDeath:
+      typeof extra.causeOfDeath === "string" && extra.causeOfDeath.length > 0
+        ? extra.causeOfDeath
+        : null,
     text: typeof extra.text === "string" ? extra.text : "",
   };
 }
@@ -187,7 +191,8 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
       deathYear = eventYear;
       events.push(
         buildLifeEvent(`${record.vassalId}:death:${ageYears}`, "died", eventSec, ageYears, {
-          text: "Died",
+          causeOfDeath: "oldAge",
+          text: "Died of old age",
         })
       );
       break;
@@ -203,6 +208,7 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
   record.deathAgeYears = deathAgeYears;
   record.deathYear = deathYear;
   record.deathSec = getSettlementYearStartSec(state, deathYear);
+  record.deathCause = deathAgeYears > record.initialAgeYears ? "oldAge" : null;
   record.lifeEvents = events;
   return record;
 }
@@ -248,6 +254,7 @@ function createCandidateRecord(state, lineage, poolId, orderDef, boardByClass) {
     agendaByClass,
     professionId: null,
     traitId: null,
+    deathCause: null,
     councilMemberId: null,
     joinedCouncilSec: null,
     removedFromCouncilSec: null,
@@ -352,6 +359,35 @@ export function beginNextSettlementVassalSelection(state, tSec = null) {
   return pool ? { ok: true, poolId: pool.poolId } : { ok: false, reason: "poolFailed" };
 }
 
+export function removePracticeFromVassalAgendas(state, practiceDefId, classId = null) {
+  if (typeof practiceDefId !== "string" || practiceDefId.length <= 0) return false;
+  const lineage = getVassalLineageMutable(state);
+  if (!lineage?.vassalsById || typeof lineage.vassalsById !== "object") return false;
+
+  const classIds = classId ? [classId] : getSettlementClassIds(state);
+  const processedVassalIds = new Set();
+  let changed = false;
+
+  for (const record of Object.values(lineage.vassalsById)) {
+    const vassalId =
+      typeof record?.vassalId === "string" && record.vassalId.length > 0 ? record.vassalId : null;
+    if (!vassalId || processedVassalIds.has(vassalId)) continue;
+    processedVassalIds.add(vassalId);
+    if (!record?.agendaByClass || typeof record.agendaByClass !== "object") continue;
+    for (const targetClassId of classIds) {
+      const agenda = Array.isArray(record.agendaByClass[targetClassId])
+        ? record.agendaByClass[targetClassId]
+        : [];
+      const nextAgenda = agenda.filter((defId) => defId !== practiceDefId);
+      if (nextAgenda.length === agenda.length) continue;
+      record.agendaByClass[targetClassId] = nextAgenda;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 export function getCurrentSettlementVassal(state) {
   const lineage = getSettlementVassalLineageState(state);
   const currentVassalId =
@@ -402,6 +438,10 @@ function applyVassalLifeEvent(state, vassal, event) {
     case "died":
       if (vassal.isDead === true) return false;
       vassal.isDead = true;
+      vassal.deathCause =
+        typeof event?.causeOfDeath === "string" && event.causeOfDeath.length > 0
+          ? event.causeOfDeath
+          : vassal.deathCause ?? null;
       vassal.removedFromCouncilSec = Math.max(0, Math.floor(event.tSec ?? 0));
       if (typeof vassal.vassalId === "string" && vassal.vassalId.length > 0) {
         removeElderCouncilMemberBySourceVassalId(state, vassal.vassalId);

@@ -234,6 +234,8 @@ function normalizeVassalLifeEvent(raw, fallbackIndex = 0) {
     professionId:
       typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
     traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    causeOfDeath:
+      typeof raw.causeOfDeath === "string" && raw.causeOfDeath.length > 0 ? raw.causeOfDeath : null,
     text: typeof raw.text === "string" ? raw.text : "",
   };
 }
@@ -274,6 +276,8 @@ function normalizeVassalRecord(raw, fallbackId = null) {
     professionId:
       typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
     traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    deathCause:
+      typeof raw.deathCause === "string" && raw.deathCause.length > 0 ? raw.deathCause : null,
     councilMemberId:
       typeof raw.councilMemberId === "string" && raw.councilMemberId.length > 0
         ? raw.councilMemberId

@@ -357,6 +357,8 @@ function summarizeCurrentVassal(state) {
       classId: event?.classId ?? null,
       professionId: event?.professionId ?? null,
       traitId: event?.traitId ?? null,
+      causeOfDeath: event?.causeOfDeath ?? null,
+      text: event?.text ?? "",
     })),
   };
 }
@@ -1665,6 +1667,8 @@ function runVassalLineageAssertions() {
   assert.ok(elderEvent, "selected vassal should include an elder milestone event");
   assert.ok(deathEvent, "selected vassal should include a death event");
   assert.equal(elderEvent.ageYears, 45, "vassals should become elders at age 45");
+  assert.equal(deathEvent?.causeOfDeath, "oldAge", "scheduled vassal death events should record the cause of death");
+  assert.equal(deathEvent?.text, "Died of old age", "scheduled vassal death events should name the death cause in the log text");
 
   live.paused = false;
   advanceToSecond(live, elderEvent.tSec);
@@ -1787,7 +1791,6 @@ function runVassalMajorDevelopmentAgendaAssertions() {
     rngNextIntCalls: 0,
     rngNextFloat() {
       this.rngNextFloatCalls += 1;
-      if (this.rngNextFloatCalls < 3) return 0.99;
       return 0;
     },
     rngNextInt(min) {
@@ -1804,9 +1807,13 @@ function runVassalMajorDevelopmentAgendaAssertions() {
     {
       fillToLimit: true,
       requireMinorDevelopment: true,
-      majorDevelopmentChance: SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
+      majorDevelopmentChance: 1,
     }
   ).villager;
+  assert.ok(
+    majorVillagerIds.includes(forcedMajorAgenda[0]),
+    "forced vassal agenda generation should put a major villager development first"
+  );
   assert.ok(
     forcedMajorAgenda.some((defId) => majorVillagerIds.includes(defId)),
     "forced vassal agenda generation should be able to include a major villager development"
@@ -1844,6 +1851,36 @@ function runVassalMajorDevelopmentAgendaAssertions() {
     blockedMajorAgenda.some((defId) => majorVillagerIds.includes(defId)),
     false,
     "vassal agenda generation should exclude major villager developments when the configured roll misses"
+  );
+
+  const guaranteedCandidateState = createInitialState("devPlaytesting01", 123);
+  const guaranteedBoardByClass = {};
+  for (const classId of getSettlementClassIds(guaranteedCandidateState)) {
+    guaranteedBoardByClass[classId] = getSettlementPracticeSlotsByClass(
+      guaranteedCandidateState,
+      classId
+    )
+      .map((slot) => slot?.card?.defId ?? null)
+      .filter((defId) => typeof defId === "string" && defId.length > 0);
+  }
+  const guaranteedAgendas = new Array(3).fill(null).map(() =>
+    buildGeneratedAgendaByClass(
+      guaranteedCandidateState,
+      orderDef,
+      ["villager"],
+      guaranteedBoardByClass,
+      getSlotCount,
+      {
+        fillToLimit: true,
+        requireMinorDevelopment: true,
+        majorDevelopmentChance: 1,
+      }
+    ).villager
+  );
+  assert.equal(
+    guaranteedAgendas.every((agenda) => majorVillagerIds.includes(agenda[0])),
+    true,
+    "setting the per-vassal major development chance to 1 should put a major first on every generated vassal agenda"
   );
 }
 

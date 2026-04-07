@@ -7,6 +7,7 @@ import {
 } from "../../../settlement-upgrades.js";
 import { settlementPracticeDefs } from "../../../../defs/gamepieces/settlement-practice-defs.js";
 import { removePracticeFromElderAgendas } from "../../../settlement-order-exec.js";
+import { removePracticeFromVassalAgendas } from "../../../settlement-vassal-exec.js";
 
 export function handleAdvanceSettlementStructureUpgrade(state, effect, context) {
   const targets = resolveEffectTargets(state, effect, context);
@@ -42,6 +43,7 @@ export function handleAdvanceSettlementStructureUpgrade(state, effect, context) 
             removePracticeFromElderAgendas(state, practiceDef.id, null, {
               suppressForCurrentYear: true,
             }) || changed;
+          changed = removePracticeFromVassalAgendas(state, practiceDef.id, null) || changed;
           continue;
         }
         for (const classId of eligibleClassIds) {
@@ -49,6 +51,7 @@ export function handleAdvanceSettlementStructureUpgrade(state, effect, context) 
             removePracticeFromElderAgendas(state, practiceDef.id, classId, {
               suppressForCurrentYear: true,
             }) || changed;
+          changed = removePracticeFromVassalAgendas(state, practiceDef.id, classId) || changed;
         }
       }
     }
