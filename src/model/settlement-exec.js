@@ -30,7 +30,16 @@ import {
   getSettlementStockpile,
   getSettlementStructureSlots,
   syncSettlementFloodplainGreenResource,
+  syncSettlementHinterlandBlueResource,
 } from "./settlement-state.js";
+import {
+  ensureSettlementStructureUpgradeState,
+  findSettlementStructureByDefId,
+  getSettlementStructureCapacityBonus,
+  getSettlementStructureCurrentTier,
+  getSettlementStructureNextTier,
+  getSettlementStructureUpgradeProgress,
+} from "./settlement-upgrades.js";
 
 function getStockpilesState(state) {
   return getHubCore(state)?.systemState?.stockpiles ?? null;
@@ -232,6 +241,52 @@ function shiftHappinessStatus(status, delta = 0) {
   const index = order.indexOf(normalized);
   const nextIndex = Math.max(0, Math.min(order.length - 1, index + Math.floor(delta)));
   return order[nextIndex] || normalized;
+}
+
+function getHousingPressureHappinessCapStatus(totalPopulation, populationCapacity) {
+  const total = Number.isFinite(totalPopulation) ? Math.max(0, Math.floor(totalPopulation)) : 0;
+  const capacity = Number.isFinite(populationCapacity)
+    ? Math.max(0, Math.floor(populationCapacity))
+    : 0;
+  if (total <= 0) return "positive";
+  if (capacity <= 0) return "negative";
+  if (total * 5 > capacity * 6) return "negative";
+  if (total > capacity) return "neutral";
+  return "positive";
+}
+
+function clampHappinessStatusToCap(status, capStatus) {
+  const order = ["negative", "neutral", "positive"];
+  const normalized = normalizeHappinessStatus(status);
+  const normalizedCap = normalizeHappinessStatus(capStatus);
+  const statusIndex = order.indexOf(normalized);
+  const capIndex = order.indexOf(normalizedCap);
+  return order[Math.min(statusIndex, capIndex)] ?? normalized;
+}
+
+function applySettlementHousingPressureHappinessCap(state, summary) {
+  const classIds = getSettlementClassIds(state);
+  const totalPopulation = Number.isFinite(summary?.totalPopulation)
+    ? Math.max(0, Math.floor(summary.totalPopulation))
+    : classIds.reduce((sum, classId) => {
+        return sum + getTotalPopulationForClass(getPopulationClassState(state, classId));
+      }, 0);
+  const populationCapacity = Number.isFinite(summary?.populationCapacity)
+    ? Math.max(0, Math.floor(summary.populationCapacity))
+    : 0;
+  const capStatus = getHousingPressureHappinessCapStatus(totalPopulation, populationCapacity);
+  let changed = false;
+  for (const classId of classIds) {
+    const classState = getPopulationClassState(state, classId);
+    const happinessState = classState?.happiness;
+    if (!happinessState || typeof happinessState !== "object") continue;
+    const previousStatus = normalizeHappinessStatus(happinessState.status);
+    const nextStatus = clampHappinessStatusToCap(previousStatus, capStatus);
+    if (nextStatus === previousStatus) continue;
+    happinessState.status = nextStatus;
+    changed = true;
+  }
+  return changed;
 }
 
 function computeFaithPopulationPenalty(totalPopulation, kind) {
@@ -439,6 +494,13 @@ function resolvePracticeAmountValue(input, state, classSummary) {
         key && Number.isFinite(stockpiles?.[key]) ? Math.max(0, Math.floor(stockpiles[key])) : 0;
       break;
     }
+    case "settlementStructureUpgradeCitizensRemaining": {
+      const structureDefId = typeof input.structureDefId === "string" ? input.structureDefId : null;
+      const structure = structureDefId ? findSettlementStructureByDefId(state, structureDefId) : null;
+      const progress = structure ? getSettlementStructureUpgradeProgress(structure) : null;
+      baseValue = Math.max(0, Math.floor(progress?.remainingCitizenYearsForNextTier ?? 0));
+      break;
+    }
     default:
       baseValue = 0;
       break;
@@ -523,6 +585,46 @@ function resolvePracticeAmountResult(def, state, classSummary) {
   return clampPracticeAmountByStockpileCosts(def, state, baseAmount);
 }
 
+function getPracticeUpgradeTargetStructureDefId(def) {
+  if (
+    typeof def?.upgradeTargetStructureDefId === "string" &&
+    def.upgradeTargetStructureDefId.length > 0
+  ) {
+    return def.upgradeTargetStructureDefId;
+  }
+  if (
+    typeof def?.requires?.settlementStructureDefId === "string" &&
+    def.requires.settlementStructureDefId.length > 0
+  ) {
+    return def.requires.settlementStructureDefId;
+  }
+  return null;
+}
+
+function getPracticeUpgradeTargetRuntime(state, def) {
+  const structureDefId = getPracticeUpgradeTargetStructureDefId(def);
+  const structure = structureDefId ? findSettlementStructureByDefId(state, structureDefId) : null;
+  const progress = structure ? getSettlementStructureUpgradeProgress(structure) : null;
+  return {
+    upgradeTargetStructureDefId: structureDefId,
+    upgradeTargetStructurePresent: !!structure,
+    upgradeTargetTier: progress?.tier ?? null,
+    upgradeTargetNextTier: progress?.nextTier ?? null,
+    upgradeTargetProgressCompleted: Math.max(
+      0,
+      Math.floor(progress?.completedCitizenYearsTowardNextTier ?? 0)
+    ),
+    upgradeTargetProgressRequired: Math.max(
+      0,
+      Math.floor(progress?.requiredCitizenYearsForNextTier ?? 0)
+    ),
+    upgradeTargetProgressRemaining: Math.max(
+      0,
+      Math.floor(progress?.remainingCitizenYearsForNextTier ?? 0)
+    ),
+  };
+}
+
 function normalizeRequirementEntries(value) {
   if (Array.isArray(value)) return value;
   if (value && typeof value === "object") return [value];
@@ -542,6 +644,36 @@ function practiceRequirementsPass(def, state, classSummary, seasonKey, classId) 
   if (Number.isFinite(requires.freePopulationAtLeast)) {
     if ((classSummary?.freePopulation ?? 0) < Math.floor(requires.freePopulationAtLeast)) {
       return { ok: false, reason: "freePopulation" };
+    }
+  }
+  if (typeof requires.settlementStructureDefId === "string") {
+    const structure = findSettlementStructureByDefId(state, requires.settlementStructureDefId);
+    if (!structure) {
+      return {
+        ok: false,
+        reason: `upgradeTargetMissing:${requires.settlementStructureDefId}`,
+      };
+    }
+  }
+  if (
+    typeof requires.settlementStructureTierBelow === "string" &&
+    TIER_ASC.includes(requires.settlementStructureTierBelow)
+  ) {
+    const structure = typeof requires.settlementStructureDefId === "string"
+      ? findSettlementStructureByDefId(state, requires.settlementStructureDefId)
+      : null;
+    if (!structure) {
+      return {
+        ok: false,
+        reason: `upgradeTargetMissing:${requires.settlementStructureDefId ?? "unknown"}`,
+      };
+    }
+    const currentTier = getSettlementStructureCurrentTier(structure);
+    if (
+      currentTier &&
+      TIER_ASC.indexOf(currentTier) >= TIER_ASC.indexOf(requires.settlementStructureTierBelow)
+    ) {
+      return { ok: false, reason: `upgradeTier:${currentTier}` };
     }
   }
   const stockpileRequirements = normalizeRequirementEntries(requires.stockpileAtLeast);
@@ -728,6 +860,7 @@ function computeStructureDerivedState(state) {
     const structure = structureSlots[slotIndex]?.structure ?? null;
     if (!structure) continue;
     const def = hubStructureDefs[structure.defId];
+    ensureSettlementStructureUpgradeState(structure);
     const settlementSpec =
       def?.settlementPrototype && typeof def.settlementPrototype === "object"
         ? def.settlementPrototype
@@ -744,12 +877,19 @@ function computeStructureDerivedState(state) {
     }
 
     if (isActive) {
-      foodCapacity += Number.isFinite(settlementSpec.foodCapacityBonus)
-        ? Math.max(0, Math.floor(settlementSpec.foodCapacityBonus))
-        : 0;
-      populationCapacity += Number.isFinite(settlementSpec.populationCapacityBonus)
-        ? Math.max(0, Math.floor(settlementSpec.populationCapacityBonus))
-        : 0;
+      const tierCapacityBonus = getSettlementStructureCapacityBonus(structure);
+      foodCapacity +=
+        settlementSpec?.foodCapacityBonusByTier && tierCapacityBonus != null
+          ? tierCapacityBonus
+          : Number.isFinite(settlementSpec.foodCapacityBonus)
+            ? Math.max(0, Math.floor(settlementSpec.foodCapacityBonus))
+            : 0;
+      populationCapacity +=
+        settlementSpec?.populationCapacityBonusByTier && tierCapacityBonus != null
+          ? tierCapacityBonus
+          : Number.isFinite(settlementSpec.populationCapacityBonus)
+            ? Math.max(0, Math.floor(settlementSpec.populationCapacityBonus))
+            : 0;
       const grantedCapabilities = Array.isArray(settlementSpec.capabilities)
         ? settlementSpec.capabilities
         : [];
@@ -763,20 +903,34 @@ function computeStructureDerivedState(state) {
       }
     }
 
+    const upgradeProgress = getSettlementStructureUpgradeProgress(structure);
+    const tierCapacityBonus = getSettlementStructureCapacityBonus(structure);
+
     setStructureRuntime(structure, {
       active: isActive,
       slotIndex,
       staffingRequired,
       reservedPopulation: isActive ? staffingRequired : 0,
-      foodCapacityBonus: Number.isFinite(settlementSpec.foodCapacityBonus)
-        ? Math.max(0, Math.floor(settlementSpec.foodCapacityBonus))
-        : 0,
-      populationCapacityBonus: Number.isFinite(settlementSpec.populationCapacityBonus)
-        ? Math.max(0, Math.floor(settlementSpec.populationCapacityBonus))
-        : 0,
+      foodCapacityBonus:
+        settlementSpec?.foodCapacityBonusByTier && tierCapacityBonus != null
+          ? tierCapacityBonus
+          : Number.isFinite(settlementSpec.foodCapacityBonus)
+            ? Math.max(0, Math.floor(settlementSpec.foodCapacityBonus))
+            : 0,
+      populationCapacityBonus:
+        settlementSpec?.populationCapacityBonusByTier && tierCapacityBonus != null
+          ? tierCapacityBonus
+          : Number.isFinite(settlementSpec.populationCapacityBonus)
+            ? Math.max(0, Math.floor(settlementSpec.populationCapacityBonus))
+            : 0,
       capabilities: Array.isArray(settlementSpec.capabilities)
         ? settlementSpec.capabilities.filter((entry) => typeof entry === "string")
         : [],
+      upgradeTier: upgradeProgress.tier,
+      nextUpgradeTier: upgradeProgress.nextTier,
+      upgradeProgressCompleted: upgradeProgress.completedCitizenYearsTowardNextTier,
+      upgradeProgressRequired: upgradeProgress.requiredCitizenYearsForNextTier,
+      upgradeProgressRemaining: upgradeProgress.remainingCitizenYearsForNextTier,
     });
   }
 
@@ -910,27 +1064,7 @@ function clampSettlementState(state, summary) {
     changed = true;
   }
 
-  const populationCapacity = Number.isFinite(summary?.populationCapacity)
-    ? Math.max(0, Math.floor(summary.populationCapacity))
-    : 0;
   const classIds = getSettlementClassIds(state);
-  let totalPopulation = classIds.reduce((sum, classId) => {
-    const classState = getPopulationClassState(state, classId);
-    return sum + getTotalPopulationForClass(classState);
-  }, 0);
-  if (totalPopulation > populationCapacity) {
-    let overflow = totalPopulation - populationCapacity;
-    for (let index = classIds.length - 1; index >= 0 && overflow > 0; index -= 1) {
-      const classState = getPopulationClassState(state, classIds[index]);
-      if (!classState) continue;
-      const removed = reducePopulationFromClass(classState, overflow).totalRemoved;
-      if (removed > 0) {
-        overflow -= removed;
-        changed = true;
-      }
-    }
-  }
-
   for (const classId of classIds) {
     const classState = getPopulationClassState(state, classId);
     if (!classState) continue;
@@ -945,6 +1079,9 @@ function clampSettlementState(state, summary) {
     if (trimPopulationCommitmentsToTotal(classState)) {
       changed = true;
     }
+  }
+  if (applySettlementHousingPressureHappinessCap(state, summary)) {
+    changed = true;
   }
   return changed;
 }
@@ -1278,6 +1415,7 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
   }
 
   const afterAttractionSummary = computeStructureDerivedState(state);
+  applySettlementHousingPressureHappinessCap(state, afterAttractionSummary);
   for (const classId of classIds) {
     const result = yearlyResults[classId];
     if (!result) continue;
@@ -1636,6 +1774,7 @@ function syncPracticeIndicators(state, tSec, summary) {
           activeRemainingSec: 0,
           activeProgressRemaining: 0,
           mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
+          ...getPracticeUpgradeTargetRuntime(state, cardDef),
           lastEvaluatedSec: tSec,
         });
         continue;
@@ -1672,6 +1811,7 @@ function syncPracticeIndicators(state, tSec, summary) {
         blockedReason,
         mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
         mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
+        ...getPracticeUpgradeTargetRuntime(state, cardDef),
         ...progressRuntime,
         lastEvaluatedSec: tSec,
       });
@@ -1737,6 +1877,7 @@ function executePassivePractices(state, tSec) {
         activeRemainingSec: 0,
         activeProgressRemaining: 0,
         mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
+        ...getPracticeUpgradeTargetRuntime(state, cardDef),
         lastEvaluatedSec: tSec,
       });
 
@@ -1839,6 +1980,7 @@ function executePractices(state, tSec) {
               : resolved.blockedReason,
         mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
         mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
+        ...getPracticeUpgradeTargetRuntime(state, cardDef),
         ...progressRuntime,
         lastEvaluatedSec: tSec,
       });
@@ -1879,10 +2021,17 @@ export function syncSettlementDerivedState(state, tSec = 0) {
   if (Number.isFinite(desiredGreenResource)) {
     syncSettlementFloodplainGreenResource(state, desiredGreenResource);
   }
+  const desiredBlueResource = getStockpilesState(state)?.blueResource;
+  if (Number.isFinite(desiredBlueResource)) {
+    syncSettlementHinterlandBlueResource(state, desiredBlueResource);
+  }
   let summary = computeStructureDerivedState(state);
   if (clampSettlementState(state, summary)) {
     if (Number.isFinite(getStockpilesState(state)?.greenResource)) {
       syncSettlementFloodplainGreenResource(state, getStockpilesState(state).greenResource);
+    }
+    if (Number.isFinite(getStockpilesState(state)?.blueResource)) {
+      syncSettlementHinterlandBlueResource(state, getStockpilesState(state).blueResource);
     }
     summary = computeStructureDerivedState(state);
   }

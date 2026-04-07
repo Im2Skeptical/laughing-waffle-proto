@@ -25,10 +25,17 @@ import {
   clearSettlementFloodplainGreenResource,
   getHubCore,
   getSettlementFloodplainTiles,
+  getSettlementHinterlandBlueTotal,
+  getSettlementHinterlandTiles,
   getSettlementTileGreenResource,
+  getSettlementTileBlueResource,
   setSettlementTileGreenResource,
+  setSettlementTileBlueResource,
   syncSettlementFloodplainGreenResource,
+  syncSettlementHinterlandBlueResource,
 } from "./settlement-state.js";
+
+const SETTLEMENT_BLUE_RESOURCE_CAP = 10;
 
 function chooseArticle(noun) {
   if (!noun || typeof noun !== "string") return "A";
@@ -1194,6 +1201,20 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
   const seasonKey = getCurrentSeasonKey(state);
   const seasonChanged = state?._seasonChanged === true;
   if (!seasonChanged) return;
+
+  let blueTotal = getSettlementHinterlandBlueTotal(state);
+  if (blueTotal < SETTLEMENT_BLUE_RESOURCE_CAP) {
+    const hinterlandTiles = getSettlementHinterlandTiles(state);
+    for (const tile of hinterlandTiles) {
+      if (blueTotal >= SETTLEMENT_BLUE_RESOURCE_CAP) break;
+      setSettlementTileBlueResource(tile, getSettlementTileBlueResource(tile) + 1);
+      blueTotal += 1;
+    }
+  }
+  syncSettlementHinterlandBlueResource(
+    state,
+    Math.min(SETTLEMENT_BLUE_RESOURCE_CAP, blueTotal)
+  );
 
   if (seasonKey === "autumn") {
     clearSettlementFloodplainGreenResource(state);

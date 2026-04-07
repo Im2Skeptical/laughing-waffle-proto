@@ -31,6 +31,10 @@ import {
   ensureHubSettlementState,
   isSettlementPrototypeEnabled,
 } from "./settlement-state.js";
+import {
+  ensureSettlementStructureUpgradeState,
+  isUpgradeableSettlementStructureDef,
+} from "./settlement-upgrades.js";
 
 const BOARD_COLS = 12;
 const BOARD_LAYERS = ["tile", "event", "envStructure"];
@@ -912,6 +916,10 @@ function ensureHubStructureFields(instance, def) {
     typeof def?.deposit?.systemId === "string" ? def.deposit.systemId : null;
   if (depositSystemId) {
     ensureHubSystemState(depositSystemId);
+  }
+
+  if (isUpgradeableSettlementStructureDef(def)) {
+    ensureSettlementStructureUpgradeState(instance);
   }
 }
 

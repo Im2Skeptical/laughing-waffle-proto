@@ -11,6 +11,7 @@ export {
   handleTransferPopulationClass,
   handleShiftPopulationClassHappiness,
 } from "./system/population-ops.js";
+export { handleAdvanceSettlementStructureUpgrade } from "./system/settlement-upgrade-ops.js";
 
 export { handleExpireStoredPerishables } from "./system/perishables-ops.js";
 

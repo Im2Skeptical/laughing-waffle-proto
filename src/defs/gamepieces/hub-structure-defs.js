@@ -82,11 +82,21 @@ export const hubStructureDefs = {
       ],
     },
     settlementPrototype: {
-      populationCapacityBonus: 500,
+      populationCapacityBonusByTier: {
+        bronze: 100,
+        silver: 250,
+        gold: 400,
+        diamond: 600,
+      },
+      upgradeCitizenYearsByTier: {
+        bronze: 5,
+        silver: 10,
+        gold: 20,
+      },
     },
     ui: {
       title: "Mud Houses",
-      lines: ["Holds 500 population."],
+      lines: ["Upgradeable housing.", "Bronze 100 -> Diamond 600 population."],
       description: "Settlement housing that expands population capacity.",
     },
   },
@@ -116,11 +126,21 @@ export const hubStructureDefs = {
       ],
     },
     settlementPrototype: {
-      foodCapacityBonus: 1000,
+      foodCapacityBonusByTier: {
+        bronze: 200,
+        silver: 600,
+        gold: 1200,
+        diamond: 2000,
+      },
+      upgradeCitizenYearsByTier: {
+        bronze: 5,
+        silver: 10,
+        gold: 20,
+      },
     },
     ui: {
       title: "Granary",
-      lines: ["Holds 100 food."],
+      lines: ["Upgradeable food storage.", "Bronze 200 -> Diamond 2000 food."],
       description: "Settlement food storage that defines the food cap.",
     },
   },
