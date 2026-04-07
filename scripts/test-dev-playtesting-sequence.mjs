@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { hubStructureDefs } from "../src/defs/gamepieces/hub-structure-defs.js";
+import { settlementOrderDefs } from "../src/defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../src/defs/gamepieces/settlement-practice-defs.js";
 import { PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR } from "../src/defs/gamesettings/gamerules-defs.js";
 import { DEFAULT_VARIANT_FLAGS } from "../src/defs/gamesettings/variant-flags-defs.js";
@@ -20,11 +21,26 @@ import {
   createTimelineFromInitialState,
   rebuildStateAtSecond,
 } from "../src/model/timeline/index.js";
+import {
+  findSettlementStructureByDefId,
+  getSettlementStructureCapacityBonus,
+} from "../src/model/settlement-upgrades.js";
 
 function advanceToSecond(state, targetSec) {
   const safeTarget = Math.max(0, Math.floor(targetSec));
   while ((state?.tSec ?? 0) < safeTarget) {
     updateGame(1 / 60, state);
+  }
+}
+
+function advanceToSecondMaintainingFood(state, targetSec, foodAmount) {
+  const safeTarget = Math.max(0, Math.floor(targetSec));
+  const safeFoodAmount = Math.max(0, Math.floor(foodAmount));
+  while ((state?.tSec ?? 0) < safeTarget) {
+    updateGame(1 / 60, state);
+    if (state?.hub?.core?.systemState?.stockpiles) {
+      state.hub.core.systemState.stockpiles.food = safeFoodAmount;
+    }
   }
 }
 
@@ -80,8 +96,28 @@ function buildSettlementSetup({
   ],
   strangerPracticeSlots = [{ defId: "asTheRomans" }, { defId: "becomeVillagers" }, null, null, null],
   orderSlots = null,
-  structures = [null, { defId: "granary" }, { defId: "mudHouses" }, { defId: "riverTemple" }, null, null],
+  structures = [
+    null,
+    { defId: "granary", tier: "diamond" },
+    { defId: "mudHouses", tier: "diamond" },
+    { defId: "riverTemple" },
+    null,
+    null,
+  ],
 } = {}) {
+  const normalizedStructures = structures.map((entry) => {
+    if (!entry || typeof entry !== "object") return entry;
+    if (
+      (entry.defId === "granary" || entry.defId === "mudHouses") &&
+      typeof entry.tier !== "string"
+    ) {
+      return {
+        ...entry,
+        tier: "diamond",
+      };
+    }
+    return entry;
+  });
   return {
     rngSeed: 123,
     variantFlags: {
@@ -101,7 +137,7 @@ function buildSettlementSetup({
       tiles: ["tile_hinterland", "tile_levee", "tile_floodplains", "tile_floodplains", "tile_river"],
     },
     hub: {
-      cols: structures.length,
+      cols: normalizedStructures.length,
       classOrder: ["villager", "stranger"],
       core: {
         systemTiers: {
@@ -144,7 +180,7 @@ function buildSettlementSetup({
           },
         },
         structures: {
-          slots: structures,
+          slots: normalizedStructures,
         },
       },
     },
@@ -299,7 +335,14 @@ function runMealPriorityAssertions() {
       strangerAdults: 4,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
-      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, null, null, null],
+      structures: [
+        null,
+        { defId: "granary", tier: "diamond" },
+        { defId: "mudHouses", tier: "diamond" },
+        null,
+        null,
+        null,
+      ],
     }),
     123
   );
@@ -691,7 +734,14 @@ function runHappinessAssertions() {
       },
       villagerPracticeSlots: [{ defId: "floodRites" }, null, null, null, null],
       strangerPracticeSlots: [null, null, null, null, null],
-      structures: [null, { defId: "granary" }, { defId: "mudHouses" }, { defId: "riverTemple" }, null, null],
+      structures: [
+        null,
+        { defId: "granary", tier: "diamond" },
+        { defId: "mudHouses", tier: "diamond" },
+        { defId: "riverTemple" },
+        null,
+        null,
+      ],
     }),
     123
   );
@@ -773,7 +823,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(demographicStepState, 641);
+  advanceToSecondMaintainingFood(demographicStepState, 641, 200);
   const demographicEvent = findLastGameEvent(
     demographicStepState,
     "populationYearlyUpdate",
@@ -799,6 +849,112 @@ function runHappinessAssertions() {
       adultsAfter: 46,
     },
     "the five-year demographic step should report youth conversion and decay in the yearly event"
+  );
+}
+
+function runHousingPressureAssertions() {
+  const neutralCapState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 400,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 101,
+      villagerFaithTier: "silver",
+      villagerHappiness: {
+        status: "positive",
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
+      },
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [
+        null,
+        { defId: "granary", tier: "diamond" },
+        { defId: "mudHouses", tier: "bronze" },
+        null,
+        null,
+        null,
+      ],
+    }),
+    123
+  );
+  assert.equal(
+    summarizeClass(neutralCapState, "villager").population.total,
+    101,
+    "housing overflow should no longer trim population back to the capacity"
+  );
+  assert.deepEqual(
+    summarizeClass(neutralCapState, "villager").happiness,
+    {
+      status: "neutral",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
+    },
+    "population above the housing cap should clamp happiness to neutral"
+  );
+  advanceToSecond(neutralCapState, 129);
+  assert.equal(
+    summarizeClass(neutralCapState, "villager").faith.tier,
+    "silver",
+    "overcrowding at up to 120 percent should prevent positive happiness from raising faith"
+  );
+
+  const negativeCapState = createInitialState(
+    buildSettlementSetup({
+      stockpiles: {
+        food: 500,
+        redResource: 0,
+        greenResource: 0,
+        blueResource: 0,
+        blackResource: 0,
+      },
+      villagerAdults: 121,
+      villagerFaithTier: "gold",
+      villagerHappiness: {
+        status: "positive",
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
+      },
+      villagerPracticeSlots: [null, null, null, null, null],
+      strangerPracticeSlots: [null, null, null, null, null],
+      structures: [
+        null,
+        { defId: "granary", tier: "diamond" },
+        { defId: "mudHouses", tier: "bronze" },
+        null,
+        null,
+        null,
+      ],
+    }),
+    123
+  );
+  assert.equal(
+    summarizeClass(negativeCapState, "villager").population.total,
+    121,
+    "housing overflow beyond 120 percent should still preserve the excess population"
+  );
+  assert.deepEqual(
+    summarizeClass(negativeCapState, "villager").happiness,
+    {
+      status: "negative",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
+    },
+    "population above 120 percent of housing should clamp happiness to negative"
+  );
+  advanceToSecond(negativeCapState, 129);
+  assert.equal(
+    summarizeClass(negativeCapState, "villager").faith.tier,
+    "silver",
+    "severe overcrowding should drive the yearly faith downgrade through the negative happiness cap"
   );
 }
 
@@ -840,6 +996,15 @@ function runMirroringAssertions() {
 
 function runElderCouncilAssertions() {
   const state = createInitialState("devPlaytesting01", 123);
+  const orderDef = settlementOrderDefs.elderCouncil;
+  const expectedCadenceYears = Math.max(
+    1,
+    Math.floor(orderDef?.recruitmentCadenceYears ?? 5)
+  );
+  const expectedAdultsPerElder = Math.max(
+    1,
+    Math.floor(orderDef?.recruitmentAdultsPerElder ?? 100)
+  );
   const councilCard = state.hub.zones.order.slots[0]?.card ?? null;
   assert.equal(councilCard?.defId, "elderCouncil", "expected elder council def id");
   assert.equal(
@@ -855,6 +1020,21 @@ function runElderCouncilAssertions() {
     },
     "seeded elder agendas should reproduce the prototype practice boards"
   );
+  assert.equal(
+    councilCard?.props?.settlement?.recruitmentCadenceYears,
+    expectedCadenceYears,
+    "elder council runtime should surface the recruitment cadence"
+  );
+  assert.equal(
+    councilCard?.props?.settlement?.recruitmentAdultsPerElder,
+    expectedAdultsPerElder,
+    "elder council runtime should surface the adults-per-elder recruitment rate"
+  );
+  assert.equal(
+    councilCard?.props?.settlement?.recruitmentAdultPopulation,
+    Math.max(0, Math.floor(getSettlementPopulationSummary(state)?.adults ?? 0)),
+    "elder council runtime should surface the current adult population used for recruitment"
+  );
 
   const recruitmentState = createInitialState(
     buildSettlementSetup({
@@ -866,7 +1046,7 @@ function runElderCouncilAssertions() {
   );
   recruitmentState.year = 5;
   recruitmentState._seasonChanged = true;
-  recruitmentState.hub.core.systemState.populationClasses.villager.adults = 250;
+  recruitmentState.hub.core.systemState.populationClasses.villager.adults = 300;
   recruitmentState.hub.core.systemState.populationClasses.villager.youth = 0;
   const recruitmentCouncil = recruitmentState.hub.zones.order.slots[0].card.systemState.elderCouncil;
   recruitmentCouncil.lastProcessedYear = 4;
@@ -876,11 +1056,110 @@ function runElderCouncilAssertions() {
   }));
   syncSettlementDerivedState(recruitmentState, recruitmentState.tSec);
   stepSettlementOrders(recruitmentState, recruitmentState.tSec);
+  const expectedGuaranteedRecruits = Math.floor(300 / expectedAdultsPerElder);
   assert.equal(
     recruitmentState.hub.zones.order.slots[0].card.props.settlement.memberCount,
-    7,
+    4 + expectedGuaranteedRecruits,
     "five-year cadence should append recruits without a seat cap"
   );
+  assert.equal(
+    recruitmentState.hub.zones.order.slots[0].card.props.settlement.projectedRecruitsGuaranteed,
+    expectedGuaranteedRecruits,
+    "elder council runtime should expose the guaranteed recruit count at the current adult population"
+  );
+  assert.equal(
+    recruitmentState.hub.zones.order.slots[0].card.props.settlement.projectedRecruitsRemainderChance,
+    0,
+    "elder council runtime should expose the remainder recruit chance"
+  );
+
+  const mutationDef = settlementOrderDefs.elderCouncil;
+  const originalAgendaMutation = JSON.parse(
+    JSON.stringify(mutationDef?.agendaMutation ?? {})
+  );
+  try {
+    for (const developmentChance of [1.0, 100]) {
+      mutationDef.agendaMutation = {
+        ...mutationDef.agendaMutation,
+        reorderChance: 0,
+        developmentChance,
+      };
+      const mutationState = createInitialState(
+        buildSettlementSetup({
+          orderSlots: [{ defId: "elderCouncil" }],
+          villagerPracticeSlots: [null, null, null, null, null],
+          strangerPracticeSlots: [null, null, null, null, null],
+        }),
+        123
+      );
+      mutationState.year = 5;
+      mutationState._seasonChanged = true;
+      mutationState.hub.core.systemState.populationClasses.villager.adults = 300;
+      mutationState.hub.core.systemState.populationClasses.villager.youth = 0;
+
+      const mutationCard = mutationState.hub.zones.order.slots[0]?.card ?? null;
+      const mutationCouncil = mutationCard?.systemState?.elderCouncil ?? null;
+      assert.ok(mutationCouncil, "expected elder council state for recruitment mutation test");
+      mutationCouncil.lastProcessedYear = 4;
+      mutationCouncil.members = mutationCouncil.members.map((member, index) => ({
+        ...member,
+        ageYears: 30 + index,
+      }));
+
+      syncSettlementDerivedState(mutationState, mutationState.tSec);
+      stepSettlementOrders(mutationState, mutationState.tSec);
+
+      const recruitedMembers = mutationCard.systemState.elderCouncil.members.filter(
+        (member) => member?.joinedYear === 5
+      );
+      assert.equal(
+        recruitedMembers.length,
+        expectedGuaranteedRecruits,
+        "expected the current guaranteed recruit count in the mutation test"
+      );
+      assert.equal(
+        recruitedMembers.every((member) =>
+          (member?.agendaByClass?.villager ?? []).some(
+            (defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier === "minor"
+          )
+        ),
+        true,
+        `developmentChance=${developmentChance} should add a minor villager practice to each recruited elder agenda`
+      );
+    }
+
+    const extinctionState = createInitialState(
+      buildSettlementSetup({
+        orderSlots: [{ defId: "elderCouncil" }],
+      }),
+      123
+    );
+    const extinctionCard = extinctionState.hub.zones.order.slots[0]?.card ?? null;
+    const extinctionCouncil = extinctionCard?.systemState?.elderCouncil ?? null;
+    assert.ok(extinctionCouncil, "expected elder council state for extinction regression");
+    extinctionCouncil.members = [];
+    extinctionCouncil.lastProcessedYear = 7;
+    extinctionCouncil.nextMemberId = 5;
+    extinctionState.year = 8;
+    extinctionState._seasonChanged = true;
+    syncSettlementDerivedState(extinctionState, extinctionState.tSec);
+    stepSettlementOrders(extinctionState, extinctionState.tSec);
+    assert.equal(
+      extinctionCard.systemState.elderCouncil.members.length,
+      0,
+      "an extinct council should stay empty until real recruitment, not silently reseed from the initial template"
+    );
+    assert.deepEqual(
+      extinctionCard.props.settlement.resolvedBoardsByClass,
+      {
+        villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
+        stranger: ["asTheRomans", "becomeVillagers"],
+      },
+      "when the council is empty, the current practice boards should remain unchanged until new elders are recruited"
+    );
+  } finally {
+    mutationDef.agendaMutation = originalAgendaMutation;
+  }
 }
 
 function runOpenToStrangersAssertions() {
@@ -894,7 +1173,7 @@ function runOpenToStrangersAssertions() {
     123
   );
   const populationCapacity = Math.floor(
-    hubStructureDefs?.mudHouses?.settlementPrototype?.populationCapacityBonus ?? 0
+    getSettlementStructureCapacityBonus(findSettlementStructureByDefId(state, "mudHouses"))
   );
 
   advanceToSecond(state, 129);
@@ -961,7 +1240,14 @@ function runBecomeVillagersAssertions() {
       strangerAdults: 20,
       villagerPracticeSlots: [null, null, null, null, null],
       strangerPracticeSlots: [null, { defId: "becomeVillagers" }, null, null, null],
-      structures: [{ defId: "granary" }, { defId: "mudHouses" }, null, null, null, null],
+      structures: [
+        { defId: "granary", tier: "diamond" },
+        { defId: "mudHouses", tier: "diamond" },
+        null,
+        null,
+        null,
+        null,
+      ],
     }),
     123
   );
@@ -1209,6 +1495,7 @@ function run() {
   runInitAssertions();
   runMealPriorityAssertions();
   runHappinessAssertions();
+  runHousingPressureAssertions();
   runMirroringAssertions();
   runElderCouncilAssertions();
   runOpenToStrangersAssertions();

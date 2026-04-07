@@ -6,7 +6,7 @@ export const settlementOrderDefs = {
     kind: "settlementOrder",
     name: "Elder Council",
     recruitmentCadenceYears: 5,
-    recruitmentAdultsPerElder: 100,
+    recruitmentAdultsPerElder: 50,
     initialCouncilTemplate: [
       {
         ageYears: 61,
@@ -89,7 +89,7 @@ export const settlementOrderDefs = {
     ],
     agendaMutation: {
       reorderChance: 0.2,
-      developmentChance: 0.05,
+      developmentChance: 25,
     },
     ui: {
       title: "Elder Council",

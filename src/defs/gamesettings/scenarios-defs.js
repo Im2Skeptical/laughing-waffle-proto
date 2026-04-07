@@ -213,7 +213,7 @@ export const setupDefs = {
       core: {
         systemState: {
           stockpiles: {
-            food: 100,
+            food: 20,
             redResource: 0,
             greenResource: 0,
             blueResource: 0,
