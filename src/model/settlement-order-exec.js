@@ -13,6 +13,10 @@ function cloneSerializable(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function getCurrentSettlementYear(state) {
+  return Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
+}
+
 function getFirstOrderCard(state, defId = null) {
   const slots = getSettlementOrderSlots(state);
   for (const slot of slots) {
@@ -50,13 +54,14 @@ function ensureElderCouncilState(card, state) {
     card.systemState = {};
   }
   const classIds = getSettlementClassIds(state);
-  const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
+  const currentYear = getCurrentSettlementYear(state);
   const existing =
     card.systemState.elderCouncil &&
     typeof card.systemState.elderCouncil === "object" &&
     !Array.isArray(card.systemState.elderCouncil)
       ? card.systemState.elderCouncil
       : {};
+  const shouldSeedInitialCouncil = !Array.isArray(existing.members);
   const membersRaw = Array.isArray(existing.members) ? existing.members : [];
   const members = membersRaw
     .map((member, index) => {
@@ -82,6 +87,28 @@ function ensureElderCouncilState(card, state) {
       };
     })
     .filter(Boolean);
+  const suppressedPracticeYearsByClassRaw =
+    existing.suppressedPracticeYearsByClass &&
+    typeof existing.suppressedPracticeYearsByClass === "object" &&
+    !Array.isArray(existing.suppressedPracticeYearsByClass)
+      ? existing.suppressedPracticeYearsByClass
+      : {};
+  const suppressedPracticeYearsByClass = {};
+  for (const classId of classIds) {
+    const rawByClass =
+      suppressedPracticeYearsByClassRaw[classId] &&
+      typeof suppressedPracticeYearsByClassRaw[classId] === "object" &&
+      !Array.isArray(suppressedPracticeYearsByClassRaw[classId])
+        ? suppressedPracticeYearsByClassRaw[classId]
+        : {};
+    const normalizedByClass = {};
+    for (const [defId, year] of Object.entries(rawByClass)) {
+      if (!settlementPracticeDefs[defId]) continue;
+      if (!Number.isFinite(year)) continue;
+      normalizedByClass[defId] = Math.max(1, Math.floor(year));
+    }
+    suppressedPracticeYearsByClass[classId] = normalizedByClass;
+  }
   let nextMemberId = Number.isFinite(existing.nextMemberId)
     ? Math.max(1, Math.floor(existing.nextMemberId))
     : members.length + 1;
@@ -91,9 +118,10 @@ function ensureElderCouncilState(card, state) {
       : currentYear,
     nextMemberId,
     members,
+    suppressedPracticeYearsByClass,
   };
 
-  if (members.length <= 0) {
+  if (shouldSeedInitialCouncil && members.length <= 0) {
     seedInitialCouncil(card, state);
     nextMemberId = Math.max(
       1,
@@ -200,6 +228,37 @@ function chooseRandom(list, state) {
   return list[0];
 }
 
+function getSuppressedPracticeIdsForClass(councilState, state, classId) {
+  const currentYear = getCurrentSettlementYear(state);
+  const byClass =
+    councilState?.suppressedPracticeYearsByClass &&
+    typeof councilState.suppressedPracticeYearsByClass === "object" &&
+    !Array.isArray(councilState.suppressedPracticeYearsByClass)
+      ? councilState.suppressedPracticeYearsByClass[classId]
+      : null;
+  const blocked = new Set();
+  if (!byClass || typeof byClass !== "object" || Array.isArray(byClass)) return blocked;
+  for (const [defId, year] of Object.entries(byClass)) {
+    if (!settlementPracticeDefs[defId]) continue;
+    if (Math.floor(year) !== currentYear) continue;
+    blocked.add(defId);
+  }
+  return blocked;
+}
+
+function normalizeChance(value) {
+  if (!Number.isFinite(value)) return 0;
+  const raw = Number(value);
+  if (raw <= 0) return 0;
+  if (raw <= 1) {
+    return Math.max(0, Math.min(1, raw));
+  }
+  if (raw > 1) {
+    return Math.max(0, Math.min(1, raw / 100));
+  }
+  return 0;
+}
+
 function getMinorDevelopmentIds(classId) {
   return Object.values(settlementPracticeDefs)
     .filter((def) => {
@@ -228,10 +287,12 @@ function uniquePracticeIds(rawList, classId, limit) {
   return result;
 }
 
-function mutateAgendaForClass(seedAgenda, classId, orderDef, state, limit) {
-  const agenda = uniquePracticeIds(seedAgenda, classId, limit);
-  const reorderChance = Number(orderDef?.agendaMutation?.reorderChance ?? 0);
-  const developmentChance = Number(orderDef?.agendaMutation?.developmentChance ?? 0);
+function mutateAgendaForClass(seedAgenda, classId, orderDef, state, limit, blockedPracticeIds = null) {
+  const agenda = uniquePracticeIds(seedAgenda, classId, limit).filter(
+    (defId) => !blockedPracticeIds?.has(defId)
+  );
+  const reorderChance = normalizeChance(orderDef?.agendaMutation?.reorderChance ?? 0);
+  const developmentChance = normalizeChance(orderDef?.agendaMutation?.developmentChance ?? 0);
 
   if (
     agenda.length > 1 &&
@@ -249,7 +310,9 @@ function mutateAgendaForClass(seedAgenda, classId, orderDef, state, limit) {
     agenda.splice(toIndex, 0, moved);
   }
 
-  const minorDevelopmentIds = getMinorDevelopmentIds(classId).filter((defId) => !agenda.includes(defId));
+  const minorDevelopmentIds = getMinorDevelopmentIds(classId).filter(
+    (defId) => !agenda.includes(defId) && !blockedPracticeIds?.has(defId)
+  );
   if (
     minorDevelopmentIds.length > 0 &&
     typeof state?.rngNextFloat === "function" &&
@@ -288,11 +351,19 @@ function createRecruitMember(card, state, orderDef, boardByClass) {
   const agendaByClass = {};
   for (const classId of classIds) {
     const limit = getPracticeSlotCount(state, classId);
+    const blockedPracticeIds = getSuppressedPracticeIdsForClass(councilState, state, classId);
     const seedAgenda =
       Array.isArray(boardByClass?.[classId]) && boardByClass[classId].length > 0
         ? boardByClass[classId]
         : getFallbackAgendaForClass(orderDef, classId);
-    agendaByClass[classId] = mutateAgendaForClass(seedAgenda, classId, orderDef, state, limit);
+    agendaByClass[classId] = mutateAgendaForClass(
+      seedAgenda,
+      classId,
+      orderDef,
+      state,
+      limit,
+      blockedPracticeIds
+    );
   }
   return {
     memberId: `elder-${nextMemberId}`,
@@ -347,6 +418,7 @@ function processAnnualCouncilUpdate(card, state, orderDef) {
   const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
   if (councilState.lastProcessedYear >= currentYear) return false;
 
+  const priorMemberCount = Array.isArray(councilState.members) ? councilState.members.length : 0;
   const survivors = [];
   for (const member of councilState.members) {
     const nextMember = {
@@ -365,9 +437,12 @@ function processAnnualCouncilUpdate(card, state, orderDef) {
     survivors.push(nextMember);
   }
   councilState.members = survivors;
-  maybeRecruitElders(card, state, orderDef);
+  const recruited = maybeRecruitElders(card, state, orderDef);
   councilState.lastProcessedYear = currentYear;
-  return true;
+  return (
+    recruited ||
+    (Array.isArray(councilState.members) ? councilState.members.length : 0) !== priorMemberCount
+  );
 }
 
 function buildCurrentBoardPositionMap(state, classId) {
@@ -504,6 +579,10 @@ function resolveBoardsByClass(state, card, orderDef) {
   const councilState = ensureElderCouncilState(card, state);
   const resolvedBoardsByClass = {};
   for (const classId of getSettlementClassIds(state)) {
+    if (!Array.isArray(councilState?.members) || councilState.members.length <= 0) {
+      resolvedBoardsByClass[classId] = getCurrentBoardDefIds(state, classId);
+      continue;
+    }
     resolvedBoardsByClass[classId] = resolvePracticeBoardForClass(
       state,
       orderDef,
@@ -530,8 +609,34 @@ function buildRuntimeMembers(orderDef, councilState) {
     .sort((a, b) => (b.prestige - a.prestige) || (b.ageYears - a.ageYears) || a.memberId.localeCompare(b.memberId));
 }
 
+function buildRecruitmentRuntime(orderDef, state) {
+  const cadenceYears = Number.isFinite(orderDef?.recruitmentCadenceYears)
+    ? Math.max(1, Math.floor(orderDef.recruitmentCadenceYears))
+    : 5;
+  const adultsPerElder = Number.isFinite(orderDef?.recruitmentAdultsPerElder)
+    ? Math.max(1, Math.floor(orderDef.recruitmentAdultsPerElder))
+    : 100;
+  const populationSummary = getSettlementPopulationSummary(state);
+  const adultPopulation = Math.max(0, Math.floor(populationSummary?.adults ?? 0));
+  const guaranteedRecruits = Math.floor(adultPopulation / adultsPerElder);
+  const remainderAdults = adultPopulation % adultsPerElder;
+  const remainderRecruitChance = remainderAdults > 0 ? remainderAdults / adultsPerElder : 0;
+  return {
+    recruitmentCadenceYears: cadenceYears,
+    recruitmentAdultsPerElder: adultsPerElder,
+    recruitmentAdultPopulation: adultPopulation,
+    projectedRecruitsGuaranteed: guaranteedRecruits,
+    projectedRecruitsRemainderAdults: remainderAdults,
+    projectedRecruitsRemainderChance: remainderRecruitChance,
+    projectedRecruitsMin: guaranteedRecruits,
+    projectedRecruitsMax: guaranteedRecruits + (remainderAdults > 0 ? 1 : 0),
+    projectedRecruitsExpected: guaranteedRecruits + remainderRecruitChance,
+  };
+}
+
 function syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass) {
   const councilState = ensureElderCouncilState(card, state);
+  const recruitmentRuntime = buildRecruitmentRuntime(orderDef, state);
   if (!card.props || typeof card.props !== "object" || Array.isArray(card.props)) {
     card.props = {};
   }
@@ -548,10 +653,90 @@ function syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass) {
       const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
       return currentYear % cadence === 0 ? currentYear + cadence : currentYear + (cadence - (currentYear % cadence));
     })(),
+    recruitmentCadenceYears: recruitmentRuntime.recruitmentCadenceYears,
+    recruitmentAdultsPerElder: recruitmentRuntime.recruitmentAdultsPerElder,
+    recruitmentAdultPopulation: recruitmentRuntime.recruitmentAdultPopulation,
+    projectedRecruitsGuaranteed: recruitmentRuntime.projectedRecruitsGuaranteed,
+    projectedRecruitsRemainderAdults: recruitmentRuntime.projectedRecruitsRemainderAdults,
+    projectedRecruitsRemainderChance: recruitmentRuntime.projectedRecruitsRemainderChance,
+    projectedRecruitsMin: recruitmentRuntime.projectedRecruitsMin,
+    projectedRecruitsMax: recruitmentRuntime.projectedRecruitsMax,
+    projectedRecruitsExpected: recruitmentRuntime.projectedRecruitsExpected,
     members: buildRuntimeMembers(orderDef, councilState),
     resolvedBoardsByClass: cloneSerializable(resolvedBoardsByClass),
     lastBoardSyncReason: "elderCouncil",
   };
+}
+
+export function removePracticeFromElderAgendas(
+  state,
+  practiceDefId,
+  classId = null,
+  options = {}
+) {
+  if (typeof practiceDefId !== "string" || practiceDefId.length <= 0) return false;
+  const card = getFirstOrderCard(state, "elderCouncil");
+  if (!card) return false;
+  const councilState = ensureElderCouncilState(card, state);
+  if (!councilState) return false;
+
+  const classIds = classId ? [classId] : getSettlementClassIds(state);
+  let changed = false;
+  let suppressedChanged = false;
+  if (options?.suppressForCurrentYear === true) {
+    const currentYear = getCurrentSettlementYear(state);
+    if (
+      !councilState.suppressedPracticeYearsByClass ||
+      typeof councilState.suppressedPracticeYearsByClass !== "object" ||
+      Array.isArray(councilState.suppressedPracticeYearsByClass)
+    ) {
+      councilState.suppressedPracticeYearsByClass = {};
+    }
+    for (const targetClassId of classIds) {
+      if (
+        !councilState.suppressedPracticeYearsByClass[targetClassId] ||
+        typeof councilState.suppressedPracticeYearsByClass[targetClassId] !== "object" ||
+        Array.isArray(councilState.suppressedPracticeYearsByClass[targetClassId])
+      ) {
+        councilState.suppressedPracticeYearsByClass[targetClassId] = {};
+      }
+      if (councilState.suppressedPracticeYearsByClass[targetClassId][practiceDefId] === currentYear) {
+        continue;
+      }
+      councilState.suppressedPracticeYearsByClass[targetClassId][practiceDefId] = currentYear;
+      suppressedChanged = true;
+    }
+  }
+  for (const member of Array.isArray(councilState.members) ? councilState.members : []) {
+    if (!member || typeof member !== "object") continue;
+    if (
+      !member.agendaByClass ||
+      typeof member.agendaByClass !== "object" ||
+      Array.isArray(member.agendaByClass)
+    ) {
+      continue;
+    }
+    for (const targetClassId of classIds) {
+      const agenda = Array.isArray(member.agendaByClass[targetClassId])
+        ? member.agendaByClass[targetClassId]
+        : [];
+      const nextAgenda = agenda.filter((defId) => defId !== practiceDefId);
+      if (nextAgenda.length === agenda.length) continue;
+      member.agendaByClass[targetClassId] = nextAgenda;
+      changed = true;
+    }
+  }
+
+  if (!changed && !suppressedChanged) return false;
+  const orderDef = getOrderDef(card);
+  if (changed && orderDef) {
+    const resolvedBoardsByClass = resolveBoardsByClass(state, card, orderDef);
+    for (const targetClassId of getSettlementClassIds(state)) {
+      reconcilePracticeBoard(state, targetClassId, resolvedBoardsByClass[targetClassId] ?? []);
+    }
+    syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass);
+  }
+  return changed || suppressedChanged;
 }
 
 export function stepSettlementOrders(state, tSec) {

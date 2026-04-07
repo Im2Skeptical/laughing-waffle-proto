@@ -12,6 +12,7 @@ import {
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
   getSettlementStructureSlots,
+  getSettlementTileBlueResource,
   getSettlementTileGreenResource,
 } from "../model/settlement-state.js";
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
@@ -154,6 +155,12 @@ function formatPartialFeedMemory(partialFeedRatios) {
 function formatPracticeBlockedReason(reason) {
   const text = typeof reason === "string" ? reason : "";
   if (!text.length) return "";
+  if (text.startsWith("upgradeTargetMissing:")) {
+    return `${text.slice("upgradeTargetMissing:".length)} missing`;
+  }
+  if (text.startsWith("upgradeTier:")) {
+    return `${capitalizeTier(text.slice("upgradeTier:".length))} tier`;
+  }
   if (text.startsWith("faithTier:")) {
     return `faith ${capitalizeTier(text.slice("faithTier:".length))}+`;
   }
@@ -196,6 +203,7 @@ function buildSignature(state, selectedClassId) {
     ? state.board.layers.tile.anchors.map((tile) => ({
         defId: tile?.defId ?? null,
         greenResourceStored: getSettlementTileGreenResource(tile),
+        blueResourceStored: getSettlementTileBlueResource(tile),
       }))
     : [];
   return JSON.stringify({
@@ -261,6 +269,20 @@ function buildPracticeLines(card) {
   if (!runtime.activeReservation && runtime.lastAmount > 0 && Number.isFinite(runtime.lastRunSec)) {
     lines.push(`Last run: ${Math.floor(runtime.lastAmount)} at ${Math.floor(runtime.lastRunSec)}s`);
   }
+  if (runtime.upgradeTargetStructureDefId) {
+    if (runtime.upgradeTargetStructurePresent) {
+      lines.push(
+        `Target: ${capitalizeTier(runtime.upgradeTargetTier)} -> ${capitalizeTier(runtime.upgradeTargetNextTier)}`
+      );
+      if (runtime.upgradeTargetNextTier) {
+        lines.push(
+          `Progress: ${Math.floor(runtime.upgradeTargetProgressCompleted ?? 0)}/${Math.floor(runtime.upgradeTargetProgressRequired ?? 0)}`
+        );
+      }
+    } else {
+      lines.push(`Target: ${runtime.upgradeTargetStructureDefId} missing`);
+    }
+  }
   if (!runtime.activeReservation && runtime.available) {
     lines.push(`Ready: ${Math.floor(runtime.previewAmount ?? 0)} population available`);
   } else if (!runtime.activeReservation && runtime.blockedReason) {
@@ -284,6 +306,16 @@ function buildStructureLines(structure) {
     );
   } else {
     lines.push("Passive structure");
+  }
+  if (runtime.upgradeTier) {
+    lines.push(`Tier: ${capitalizeTier(runtime.upgradeTier)}`);
+    if (runtime.nextUpgradeTier) {
+      lines.push(
+        `Upgrade: ${Math.floor(runtime.upgradeProgressCompleted ?? 0)}/${Math.floor(runtime.upgradeProgressRequired ?? 0)} to ${capitalizeTier(runtime.nextUpgradeTier)}`
+      );
+    } else {
+      lines.push("Upgrade: Max tier");
+    }
   }
   return lines;
 }
@@ -357,6 +389,14 @@ function buildTileLines(tile) {
       "every spring deposit",
       "5 greenResource.",
       `Stored Green: ${getSettlementTileGreenResource(tile)}`,
+    ];
+  }
+  if (tile?.defId === "tile_hinterland") {
+    return [
+      "Every season change,",
+      "store 1 blueResource",
+      "until the global cap.",
+      `Stored Blue: ${getSettlementTileBlueResource(tile)}`,
     ];
   }
   const description = def?.ui?.description;
@@ -675,10 +715,17 @@ function drawSubPanel(container, rect, fill = PALETTE.cardMuted, outline = PALET
 function drawOrderSummaryBlock(container, rect, runtime) {
   drawSubPanel(container, rect, PALETTE.elderLozengeSoft, PALETTE.stroke);
   container.addChild(createText("Elder Council", TEXT_STYLES.cardTitle, rect.x + 14, rect.y + 10));
+  const remainderChancePercent = Number.isFinite(runtime?.projectedRecruitsRemainderChance)
+    ? Math.round(runtime.projectedRecruitsRemainderChance * 100)
+    : 0;
   const rows = [
     `Members ${Math.floor(runtime?.memberCount ?? 0)}`,
+    `Adults ${Math.floor(runtime?.recruitmentAdultPopulation ?? 0)}`,
+    `Cadence ${Number.isFinite(runtime?.recruitmentCadenceYears) ? Math.floor(runtime.recruitmentCadenceYears) : "--"}y`,
+    `Rate ${Number.isFinite(runtime?.recruitmentAdultsPerElder) ? Math.floor(runtime.recruitmentAdultsPerElder) : "--"} adults / elder`,
     `Last Yearly Tick ${Number.isFinite(runtime?.lastProcessedYear) ? Math.floor(runtime.lastProcessedYear) : "--"}`,
     `Next Recruit Year ${Number.isFinite(runtime?.nextRecruitmentYear) ? Math.floor(runtime.nextRecruitmentYear) : "--"}`,
+    `If Recruiting Now ${Math.floor(runtime?.projectedRecruitsGuaranteed ?? 0)} + ${remainderChancePercent}%`,
   ];
   container.addChild(
     createText(
