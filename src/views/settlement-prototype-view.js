@@ -192,6 +192,67 @@ function formatSignedNumber(value) {
   return safe >= 0 ? `+${safe}` : String(safe);
 }
 
+function buildCompactVassalSignature(vassal, visibleEvents, classIds) {
+  if (!vassal || typeof vassal !== "object") return null;
+  const safeClassIds = Array.isArray(classIds) ? classIds : [];
+  return {
+    vassalId: vassal.vassalId ?? null,
+    sourceClassId: vassal.sourceClassId ?? null,
+    currentClassId: vassal.currentClassId ?? null,
+    birthYear: Number.isFinite(vassal.birthYear) ? Math.floor(vassal.birthYear) : null,
+    deathYear: Number.isFinite(vassal.deathYear) ? Math.floor(vassal.deathYear) : null,
+    professionId: vassal.professionId ?? null,
+    traitId: vassal.traitId ?? null,
+    isDead: vassal.isDead === true,
+    isElder: vassal.isElder === true,
+    agendaByClass: Object.fromEntries(
+      safeClassIds.map((classId) => [
+        classId,
+        Array.isArray(vassal?.agendaByClass?.[classId]) ? [...vassal.agendaByClass[classId]] : [],
+      ])
+    ),
+    visibleEvents: (Array.isArray(visibleEvents) ? visibleEvents : []).map((event) => ({
+      eventId: event?.eventId ?? null,
+      kind: event?.kind ?? null,
+      tSec: Number.isFinite(event?.tSec) ? Math.floor(event.tSec) : null,
+      ageYears: Number.isFinite(event?.ageYears) ? Math.floor(event.ageYears) : null,
+      classId: event?.classId ?? null,
+      professionId: event?.professionId ?? null,
+      traitId: event?.traitId ?? null,
+      text: event?.text ?? "",
+    })),
+  };
+}
+
+function buildCompactPendingSelectionSignature(pendingSelection, classIds) {
+  if (!pendingSelection || typeof pendingSelection !== "object") return null;
+  const safeClassIds = Array.isArray(classIds) ? classIds : [];
+  return {
+    poolId: pendingSelection.poolId ?? null,
+    createdSec: Number.isFinite(pendingSelection.createdSec)
+      ? Math.floor(pendingSelection.createdSec)
+      : null,
+    candidates: (Array.isArray(pendingSelection.candidates) ? pendingSelection.candidates : []).map(
+      (candidate) => ({
+        vassalId: candidate?.vassalId ?? null,
+        sourceClassId: candidate?.sourceClassId ?? null,
+        initialAgeYears: Number.isFinite(candidate?.initialAgeYears)
+          ? Math.floor(candidate.initialAgeYears)
+          : null,
+        deathYear: Number.isFinite(candidate?.deathYear) ? Math.floor(candidate.deathYear) : null,
+        agendaByClass: Object.fromEntries(
+          safeClassIds.map((classId) => [
+            classId,
+            Array.isArray(candidate?.agendaByClass?.[classId])
+              ? [...candidate.agendaByClass[classId]]
+              : [],
+          ])
+        ),
+      })
+    ),
+  };
+}
+
 function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) {
   const summary = getSettlementPopulationSummary(state);
   const classIds = getSettlementClassIds(state);
@@ -244,18 +305,18 @@ function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) 
       const currentVassal = getSettlementCurrentVassal(state);
       const pendingSelection = getSettlementPendingVassalSelection(state);
       const firstSelectedVassal = getSettlementFirstSelectedVassal(state);
+      const visibleEvents = currentVassal
+        ? getSettlementVisibleVassalLifeEvents(
+            state,
+            currentVassal.vassalId,
+            visibleVassalThroughSec
+          )
+        : [];
       return {
-        currentVassal,
-        pendingSelection,
+        currentVassal: buildCompactVassalSignature(currentVassal, visibleEvents, classIds),
+        pendingSelection: buildCompactPendingSelectionSignature(pendingSelection, classIds),
         firstSelectedVassalId: firstSelectedVassal?.vassalId ?? null,
         latestDeathSec: getSettlementLatestSelectedVassalDeathSec(state),
-        visibleEvents: currentVassal
-          ? getSettlementVisibleVassalLifeEvents(
-              state,
-              currentVassal.vassalId,
-              visibleVassalThroughSec
-            )
-          : [],
       };
     })(),
     orderCards,

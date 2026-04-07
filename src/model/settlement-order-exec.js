@@ -188,30 +188,6 @@ function getFallbackAgendaForClass(orderDef, classId) {
   return [];
 }
 
-function pickWeightedClassId(state, adultSummaries) {
-  const classIds = getSettlementClassIds(state);
-  let totalAdults = 0;
-  for (const classId of classIds) {
-    totalAdults += Math.max(0, Math.floor(adultSummaries?.[classId]?.adults ?? 0));
-  }
-  if (totalAdults <= 0) return classIds[0] ?? "villager";
-  let roll = typeof state?.rngNextFloat === "function" ? state.rngNextFloat() * totalAdults : 0;
-  for (const classId of classIds) {
-    roll -= Math.max(0, Math.floor(adultSummaries?.[classId]?.adults ?? 0));
-    if (roll < 0) return classId;
-  }
-  return classIds[classIds.length - 1] ?? "villager";
-}
-
-function chooseRandom(list, state) {
-  if (!Array.isArray(list) || list.length <= 0) return null;
-  if (list.length === 1) return list[0];
-  if (typeof state?.rngNextInt === "function") {
-    return list[state.rngNextInt(0, list.length - 1)] ?? list[0];
-  }
-  return list[0];
-}
-
 function getSuppressedPracticeIdsForClass(councilState, state, classId) {
   const currentYear = getCurrentSettlementYear(state);
   const byClass =

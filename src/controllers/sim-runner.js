@@ -1411,6 +1411,7 @@ export function createSimRunner({
       simAccumulator += frameDt * effectiveSpeed;
       let steps = 0;
       const maxSteps = getMaxSimStepsForSpeed(effectiveSpeed);
+      const checkpointStartSec = Math.floor(cursorState?.tSec ?? 0);
 
       let playbackAppliedThisUpdate = false;
       while (simAccumulator >= SIM_DT_STEP && steps < maxSteps) {
@@ -1471,7 +1472,10 @@ export function createSimRunner({
       }
 
       if (steps > 0) {
-        maintainCheckpoints(timeline, cursorState);
+        const checkpointEndSec = Math.floor(cursorState?.tSec ?? 0);
+        if (checkpointEndSec !== checkpointStartSec) {
+          maintainCheckpoints(timeline, cursorState);
+        }
         syncTimelineMaxReachedHistoryEndSec();
       }
 

@@ -35,14 +35,27 @@ function getPracticeCardStyle(defId) {
       fill: 0x4b4743,
       stroke: 0x7a7469,
       passive: false,
+      tierLabel: "",
     };
   }
   const passive = def.practiceMode === "passive";
+  const developmentTier =
+    typeof def?.orderDevelopmentTier === "string" ? def.orderDevelopmentTier : "base";
+  if (developmentTier === "major") {
+    return {
+      title: String(def?.ui?.title ?? def?.name ?? defId),
+      fill: 0x6b5740,
+      stroke: 0xe3c46c,
+      passive,
+      tierLabel: "Major",
+    };
+  }
   return {
     title: String(def?.ui?.title ?? def?.name ?? defId),
     fill: passive ? 0x70815b : 0x4f4a45,
     stroke: passive ? 0xaed08d : 0xd7d0c3,
     passive,
+    tierLabel: developmentTier === "minor" ? "Minor" : "",
   };
 }
 
@@ -70,6 +83,18 @@ function createMiniPracticeCard(container, rect, defId, tooltipView) {
   title.x = 5;
   title.y = 5;
   root.addChild(title);
+
+  if (style.tierLabel) {
+    const badge = new PIXI.Text(style.tierLabel, {
+      fontFamily: "Georgia",
+      fontSize: 9,
+      fontWeight: "bold",
+      fill: style.stroke,
+    });
+    badge.x = 5;
+    badge.y = rect.height - 14;
+    root.addChild(badge);
+  }
 
   if (tooltipView && defId && settlementPracticeDefs?.[defId]) {
     root.eventMode = "static";
@@ -245,6 +270,34 @@ export function createSettlementVassalChooserView({
   const { body, setOpenVisible } = modalFrame;
   let lastSignature = "";
 
+  function buildPendingSelectionSignature(pendingSelection) {
+    return JSON.stringify({
+      poolId: pendingSelection?.poolId ?? null,
+      createdSec: Number.isFinite(pendingSelection?.createdSec)
+        ? Math.floor(pendingSelection.createdSec)
+        : null,
+      candidates: (Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : []).map(
+        (candidate) => ({
+          vassalId: candidate?.vassalId ?? null,
+          sourceClassId: candidate?.sourceClassId ?? null,
+          initialAgeYears: Number.isFinite(candidate?.initialAgeYears)
+            ? Math.floor(candidate.initialAgeYears)
+            : null,
+          deathYear: Number.isFinite(candidate?.deathYear) ? Math.floor(candidate.deathYear) : null,
+          agendaByClass: {
+            villager: Array.isArray(candidate?.agendaByClass?.villager)
+              ? [...candidate.agendaByClass.villager]
+              : [],
+            stranger: Array.isArray(candidate?.agendaByClass?.stranger)
+              ? [...candidate.agendaByClass.stranger]
+              : [],
+          },
+        })
+      ),
+      screen: [app?.screen?.width ?? 0, app?.screen?.height ?? 0],
+    });
+  }
+
   function render(force = false) {
     const state = getState?.() ?? null;
     const open = typeof isOpen === "function" ? isOpen() === true : false;
@@ -256,10 +309,7 @@ export function createSettlementVassalChooserView({
       return;
     }
     const pendingSelection = state?.hub?.core?.systemState?.vassalLineage?.pendingSelection ?? null;
-    const signature = JSON.stringify({
-      pendingSelection,
-      screen: [app?.screen?.width ?? 0, app?.screen?.height ?? 0],
-    });
+    const signature = buildPendingSelectionSignature(pendingSelection);
     if (!force && signature === lastSignature) return;
     lastSignature = signature;
     clearChildren(body);

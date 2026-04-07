@@ -1,6 +1,7 @@
 import { settlementOrderDefs } from "./settlement-order-defs.js";
 
 export const SETTLEMENT_VASSAL_CANDIDATE_COUNT = 3;
+export const SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE = 0.5;
 export const SETTLEMENT_VASSAL_STARTING_AGE_MIN = 6;
 export const SETTLEMENT_VASSAL_STARTING_AGE_MAX = 12;
 export const SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS = 18;

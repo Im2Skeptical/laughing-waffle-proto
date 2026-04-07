@@ -4,12 +4,14 @@ import { ActionKinds, applyAction } from "../src/model/actions.js";
 import { hubStructureDefs } from "../src/defs/gamepieces/hub-structure-defs.js";
 import { settlementOrderDefs } from "../src/defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../src/defs/gamepieces/settlement-practice-defs.js";
+import { SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE } from "../src/defs/gamepieces/settlement-vassal-defs.js";
 import { PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR } from "../src/defs/gamesettings/gamerules-defs.js";
 import { DEFAULT_VARIANT_FLAGS } from "../src/defs/gamesettings/variant-flags-defs.js";
 import { createInitialState, updateGame } from "../src/model/game-model.js";
 import { getCurrentSeasonKey, deserializeGameState, serializeGameState } from "../src/model/state.js";
 import { syncSettlementDerivedState } from "../src/model/settlement-exec.js";
 import { stepSettlementOrders } from "../src/model/settlement-order-exec.js";
+import { buildGeneratedAgendaByClass } from "../src/model/settlement-leadership.js";
 import {
   getSettlementClassIds,
   getSettlementCurrentVassal,
@@ -1749,6 +1751,102 @@ function runVassalLineageAssertions() {
   );
 }
 
+function runVassalMajorDevelopmentAgendaAssertions() {
+  assert.equal(
+    settlementPracticeDefs.upgradeFoodStorage?.orderDevelopmentTier,
+    "major",
+    "upgrade food storage should be a major development"
+  );
+  assert.equal(
+    settlementPracticeDefs.upgradeHousing?.orderDevelopmentTier,
+    "major",
+    "upgrade housing should be a major development"
+  );
+
+  const baseState = createInitialState("devPlaytesting01", 123);
+  const classIds = getSettlementClassIds(baseState);
+  const boardByClass = {};
+  for (const classId of classIds) {
+    boardByClass[classId] = getSettlementPracticeSlotsByClass(baseState, classId)
+      .map((slot) => slot?.card?.defId ?? null)
+      .filter((defId) => typeof defId === "string" && defId.length > 0);
+  }
+  const getSlotCount = (classId) => getSettlementPracticeSlotsByClass(baseState, classId).length;
+  const orderDef = {
+    ...settlementOrderDefs.elderCouncil,
+    agendaMutation: {
+      ...settlementOrderDefs.elderCouncil?.agendaMutation,
+      reorderChance: 0,
+      developmentChance: 0,
+    },
+  };
+  const majorVillagerIds = ["upgradeFoodStorage", "upgradeHousing"];
+
+  const forcedMajorState = {
+    rngNextFloatCalls: 0,
+    rngNextIntCalls: 0,
+    rngNextFloat() {
+      this.rngNextFloatCalls += 1;
+      if (this.rngNextFloatCalls < 3) return 0.99;
+      return 0;
+    },
+    rngNextInt(min) {
+      this.rngNextIntCalls += 1;
+      return Math.floor(min ?? 0);
+    },
+  };
+  const forcedMajorAgenda = buildGeneratedAgendaByClass(
+    forcedMajorState,
+    orderDef,
+    ["villager"],
+    boardByClass,
+    getSlotCount,
+    {
+      fillToLimit: true,
+      requireMinorDevelopment: true,
+      majorDevelopmentChance: SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
+    }
+  ).villager;
+  assert.ok(
+    forcedMajorAgenda.some((defId) => majorVillagerIds.includes(defId)),
+    "forced vassal agenda generation should be able to include a major villager development"
+  );
+  assert.ok(
+    forcedMajorAgenda.some(
+      (defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier === "minor"
+    ),
+    "forcing a major development should still preserve a minor development on the vassal agenda"
+  );
+
+  const blockedMajorState = {
+    rngNextFloatCalls: 0,
+    rngNextFloat() {
+      this.rngNextFloatCalls += 1;
+      return 0.99;
+    },
+    rngNextInt(min) {
+      return Math.floor(min ?? 0);
+    },
+  };
+  const blockedMajorAgenda = buildGeneratedAgendaByClass(
+    blockedMajorState,
+    orderDef,
+    ["villager"],
+    boardByClass,
+    getSlotCount,
+    {
+      fillToLimit: true,
+      requireMinorDevelopment: true,
+      majorDevelopmentChance: SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
+    }
+  ).villager;
+  assert.equal(
+    blockedMajorAgenda.some((defId) => majorVillagerIds.includes(defId)),
+    false,
+    "vassal agenda generation should exclude major villager developments when the configured roll misses"
+  );
+}
+
 function run() {
   runInitAssertions();
   runMealPriorityAssertions();
@@ -1762,6 +1860,7 @@ function run() {
   runEmergencyFoodReserveAssertions();
   runSerializationReplayAssertions();
   runVassalLineageAssertions();
+  runVassalMajorDevelopmentAgendaAssertions();
   console.log("[test] devPlaytesting01 settlement demographics passed");
 }
 

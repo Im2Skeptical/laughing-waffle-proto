@@ -2,6 +2,7 @@ import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js
 import {
   SETTLEMENT_VASSAL_CANDIDATE_COUNT,
   SETTLEMENT_VASSAL_ELDER_AGE_YEARS,
+  SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
   SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE,
   SETTLEMENT_VASSAL_STARTING_AGE_MAX,
   SETTLEMENT_VASSAL_STARTING_AGE_MIN,
@@ -225,6 +226,7 @@ function createCandidateRecord(state, lineage, poolId, orderDef, boardByClass) {
     {
       fillToLimit: true,
       requireMinorDevelopment: true,
+      majorDevelopmentChance: SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
     }
   );
   const record = {
