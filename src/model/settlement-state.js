@@ -365,6 +365,9 @@ function ensureTileSettlementState(tile) {
   settlement.greenResourceStored = Number.isFinite(settlement.greenResourceStored)
     ? Math.max(0, Math.floor(settlement.greenResourceStored))
     : 0;
+  settlement.blueResourceStored = Number.isFinite(settlement.blueResourceStored)
+    ? Math.max(0, Math.floor(settlement.blueResourceStored))
+    : 0;
   return settlement;
 }
 
@@ -749,8 +752,20 @@ export function getSettlementFloodplainTiles(state) {
   return tiles.filter((tile) => getFloodplainSettlementSpec(tile));
 }
 
+export function getSettlementHinterlandTiles(state) {
+  const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
+    ? state.board.layers.tile.anchors
+    : [];
+  return tiles.filter((tile) => tile?.defId === "tile_hinterland");
+}
+
 export function getSettlementTileGreenResource(tile) {
   const value = getTileSettlementState(tile)?.greenResourceStored;
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+}
+
+export function getSettlementTileBlueResource(tile) {
+  const value = getTileSettlementState(tile)?.blueResourceStored;
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
 }
 
@@ -763,9 +778,25 @@ export function setSettlementTileGreenResource(tile, amount) {
   return settlement.greenResourceStored;
 }
 
+export function setSettlementTileBlueResource(tile, amount) {
+  const settlement = ensureTileSettlementState(tile);
+  if (!settlement) return 0;
+  settlement.blueResourceStored = Number.isFinite(amount)
+    ? Math.max(0, Math.floor(amount))
+    : 0;
+  return settlement.blueResourceStored;
+}
+
 export function getSettlementFloodplainGreenTotal(state) {
   return getSettlementFloodplainTiles(state).reduce(
     (sum, tile) => sum + getSettlementTileGreenResource(tile),
+    0
+  );
+}
+
+export function getSettlementHinterlandBlueTotal(state) {
+  return getSettlementHinterlandTiles(state).reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
     0
   );
 }
@@ -812,6 +843,55 @@ export function clearSettlementFloodplainGreenResource(state) {
     setSettlementTileGreenResource(tile, 0);
   }
   return syncSettlementFloodplainGreenResource(state, 0);
+}
+
+export function syncSettlementHinterlandBlueResource(state, desiredTotal = null) {
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  const hinterlandTiles = getSettlementHinterlandTiles(state);
+  const currentTotal = hinterlandTiles.reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
+    0
+  );
+  const targetTotal = Number.isFinite(desiredTotal)
+    ? Math.max(0, Math.floor(desiredTotal))
+    : currentTotal;
+
+  if (targetTotal < currentTotal) {
+    let remainingToRemove = currentTotal - targetTotal;
+    for (let index = hinterlandTiles.length - 1; index >= 0 && remainingToRemove > 0; index -= 1) {
+      const tile = hinterlandTiles[index];
+      const current = getSettlementTileBlueResource(tile);
+      const removed = Math.min(current, remainingToRemove);
+      setSettlementTileBlueResource(tile, current - removed);
+      remainingToRemove -= removed;
+    }
+  } else if (targetTotal > currentTotal && hinterlandTiles.length > 0) {
+    let remainingToAdd = targetTotal - currentTotal;
+    for (const tile of hinterlandTiles) {
+      if (remainingToAdd <= 0) break;
+      setSettlementTileBlueResource(
+        tile,
+        getSettlementTileBlueResource(tile) + 1
+      );
+      remainingToAdd -= 1;
+    }
+    if (remainingToAdd > 0) {
+      const lastTile = hinterlandTiles[hinterlandTiles.length - 1];
+      setSettlementTileBlueResource(
+        lastTile,
+        getSettlementTileBlueResource(lastTile) + remainingToAdd
+      );
+    }
+  }
+
+  const actualTotal = hinterlandTiles.reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
+    0
+  );
+  if (stockpiles && typeof stockpiles === "object") {
+    stockpiles.blueResource = actualTotal;
+  }
+  return actualTotal;
 }
 
 export function getSettlementStockpile(state, key) {

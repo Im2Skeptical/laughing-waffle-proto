@@ -314,6 +314,150 @@ export const settlementPracticeDefs = {
       emergencyFoodReserveRatio: 0.1,
     },
   },
+  upgradeFoodStorage: {
+    id: "upgradeFoodStorage",
+    kind: "settlementPractice",
+    practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "minor",
+    name: "Upgrade Food Storage",
+    upgradeTargetStructureDefId: "granary",
+    ui: {
+      title: "Upgrade Food Storage",
+      lines: [
+        "Consume 5 red + 1 blue",
+        "per committed citizen",
+        "Commit citizens for 1 year",
+        "Progress counts on release",
+      ],
+      description: "Long-term labor that upgrades the granary tier over repeated yearly commitments.",
+    },
+    requires: {
+      freePopulationAtLeast: 1,
+      stockpileAtLeast: {
+        redResource: 5,
+        blueResource: 1,
+      },
+      settlementStructureDefId: "granary",
+      settlementStructureTierBelow: "diamond",
+    },
+    amount: {
+      mode: "min",
+      values: [
+        { kind: "freePopulation" },
+        {
+          kind: "settlementStructureUpgradeCitizensRemaining",
+          structureDefId: "granary",
+        },
+      ],
+    },
+    effects: [
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "redResource",
+        amountVar: "practiceAmount",
+        amountScale: -5,
+      },
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "blueResource",
+        amountVar: "practiceAmount",
+        amountScale: -1,
+      },
+      {
+        op: "ReservePopulation",
+        target: { ref: "hubCore" },
+        amountVar: "practiceAmount",
+        releaseOffsetSec: SEASON_DURATION_SEC * 4,
+        sourceId: "upgradeFoodStorage",
+        label: "Upgrade Food Storage",
+        onReleaseEffects: [
+          {
+            op: "AdvanceSettlementStructureUpgrade",
+            target: { ref: "hubCore" },
+            structureDefId: "granary",
+            amountVar: "practiceAmount",
+          },
+        ],
+      },
+    ],
+  },
+  upgradeHousing: {
+    id: "upgradeHousing",
+    kind: "settlementPractice",
+    practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "minor",
+    name: "Upgrade Housing",
+    upgradeTargetStructureDefId: "mudHouses",
+    ui: {
+      title: "Upgrade Housing",
+      lines: [
+        "Consume 5 red + 1 blue",
+        "per committed citizen",
+        "Commit citizens for 1 year",
+        "Progress counts on release",
+      ],
+      description: "Long-term labor that upgrades mud-house capacity over repeated yearly commitments.",
+    },
+    requires: {
+      freePopulationAtLeast: 1,
+      stockpileAtLeast: {
+        redResource: 5,
+        blueResource: 1,
+      },
+      settlementStructureDefId: "mudHouses",
+      settlementStructureTierBelow: "diamond",
+    },
+    amount: {
+      mode: "min",
+      values: [
+        { kind: "freePopulation" },
+        {
+          kind: "settlementStructureUpgradeCitizensRemaining",
+          structureDefId: "mudHouses",
+        },
+      ],
+    },
+    effects: [
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "redResource",
+        amountVar: "practiceAmount",
+        amountScale: -5,
+      },
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "blueResource",
+        amountVar: "practiceAmount",
+        amountScale: -1,
+      },
+      {
+        op: "ReservePopulation",
+        target: { ref: "hubCore" },
+        amountVar: "practiceAmount",
+        releaseOffsetSec: SEASON_DURATION_SEC * 1,
+        sourceId: "upgradeHousing",
+        label: "Upgrade Housing",
+        onReleaseEffects: [
+          {
+            op: "AdvanceSettlementStructureUpgrade",
+            target: { ref: "hubCore" },
+            structureDefId: "mudHouses",
+            amountVar: "practiceAmount",
+          },
+        ],
+      },
+    ],
+  },
 };
 
 ensureTooltipCardUi(settlementPracticeDefs);

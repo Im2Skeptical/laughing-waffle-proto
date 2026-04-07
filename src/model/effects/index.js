@@ -33,6 +33,7 @@ import {
   handleReservePopulation,
   handleShiftPopulationClassHappiness,
   handleTransferPopulationClass,
+  handleAdvanceSettlementStructureUpgrade,
 } from "./ops/system-ops.js";
 import {
   handleAddTag,
@@ -77,6 +78,7 @@ const handlers = {
   ReservePopulation: handleReservePopulation,
   ShiftPopulationClassHappiness: handleShiftPopulationClassHappiness,
   TransferPopulationClass: handleTransferPopulationClass,
+  AdvanceSettlementStructureUpgrade: handleAdvanceSettlementStructureUpgrade,
   ExpireStoredPerishables: handleExpireStoredPerishables,
   ConsumeItem: handleConsumeItem,
   TransferUnits: handleTransferUnits,
