@@ -319,7 +319,7 @@ export const settlementPracticeDefs = {
     kind: "settlementPractice",
     practiceMode: "active",
     orderEligibleClassIds: ["villager"],
-    orderDevelopmentTier: "minor",
+    orderDevelopmentTier: "major",
     name: "Upgrade Food Storage",
     upgradeTargetStructureDefId: "granary",
     ui: {
@@ -391,7 +391,7 @@ export const settlementPracticeDefs = {
     kind: "settlementPractice",
     practiceMode: "active",
     orderEligibleClassIds: ["villager"],
-    orderDevelopmentTier: "minor",
+    orderDevelopmentTier: "major",
     name: "Upgrade Housing",
     upgradeTargetStructureDefId: "mudHouses",
     ui: {

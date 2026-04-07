@@ -63,15 +63,23 @@ export function pickWeightedClassId(state, classIds, adultSummaries) {
   return safeClassIds[safeClassIds.length - 1] ?? "villager";
 }
 
-export function getMinorDevelopmentIds(classId) {
+function getDevelopmentIdsByTier(classId, tier) {
   return Object.values(settlementPracticeDefs)
     .filter((def) => {
-      if (!def || def.orderDevelopmentTier !== "minor") return false;
+      if (!def || def.orderDevelopmentTier !== tier) return false;
       const eligible = Array.isArray(def.orderEligibleClassIds) ? def.orderEligibleClassIds : [];
       return eligible.includes(classId);
     })
     .map((def) => def.id)
     .sort((a, b) => a.localeCompare(b));
+}
+
+export function getMinorDevelopmentIds(classId) {
+  return getDevelopmentIdsByTier(classId, "minor");
+}
+
+export function getMajorDevelopmentIds(classId) {
+  return getDevelopmentIdsByTier(classId, "major");
 }
 
 export function getEligiblePracticeIds(classId) {
@@ -120,6 +128,7 @@ export function mutateAgendaForClass(
   {
     fillToLimit = false,
     requireMinorDevelopment = false,
+    majorDevelopmentChance = 0,
   } = {}
 ) {
   const agenda = uniquePracticeIds(seedAgenda, classId, limit);
@@ -176,6 +185,27 @@ export function mutateAgendaForClass(
         }
       } else {
         agenda.push(guaranteedMinorDevelopmentId);
+      }
+    }
+  }
+
+  const normalizedMajorDevelopmentChance = Math.max(0, Math.min(1, Number(majorDevelopmentChance) || 0));
+  const majorDevelopmentIds = getMajorDevelopmentIds(classId).filter((defId) => !agenda.includes(defId));
+  if (
+    majorDevelopmentIds.length > 0 &&
+    normalizedMajorDevelopmentChance > 0 &&
+    typeof state?.rngNextFloat === "function" &&
+    state.rngNextFloat() < normalizedMajorDevelopmentChance
+  ) {
+    const majorDevelopmentId = chooseRandom(majorDevelopmentIds, state);
+    if (majorDevelopmentId) {
+      if (!Number.isFinite(limit) || limit <= 0 || agenda.length < limit) {
+        agenda.push(majorDevelopmentId);
+      } else {
+        const replaceIndex = agenda.findLastIndex(
+          (defId) => settlementPracticeDefs?.[defId]?.orderDevelopmentTier !== "minor"
+        );
+        agenda[replaceIndex >= 0 ? replaceIndex : agenda.length - 1] = majorDevelopmentId;
       }
     }
   }
