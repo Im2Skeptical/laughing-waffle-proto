@@ -100,6 +100,42 @@ export const eventLogTypeDefs = {
     color: 0xff4f4f,
     glyph: "PS",
   },
+  vassalBirth: {
+    id: "vassalBirth",
+    label: "Vassal Born",
+    color: 0x87b7ff,
+    glyph: "VB",
+  },
+  vassalClassChanged: {
+    id: "vassalClassChanged",
+    label: "Vassal Class",
+    color: 0xb6d98f,
+    glyph: "VC",
+  },
+  vassalProfessionAssigned: {
+    id: "vassalProfessionAssigned",
+    label: "Profession",
+    color: 0xffd27a,
+    glyph: "VP",
+  },
+  vassalTraitAssigned: {
+    id: "vassalTraitAssigned",
+    label: "Trait",
+    color: 0x9dc7ff,
+    glyph: "VT",
+  },
+  vassalBecameElder: {
+    id: "vassalBecameElder",
+    label: "Became Elder",
+    color: 0x7ac7ff,
+    glyph: "VE",
+  },
+  vassalDied: {
+    id: "vassalDied",
+    label: "Vassal Died",
+    color: 0xff7b7b,
+    glyph: "VD",
+  },
   runComplete: {
     id: "runComplete",
     label: "Run Complete",

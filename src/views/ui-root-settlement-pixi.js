@@ -3,13 +3,22 @@ const BOOT_SETUP_ID = "devPlaytesting01";
 import { createSimRunner } from "../controllers/sim-runner.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import { SEASON_DURATION_SEC } from "../defs/gamesettings/gamerules-defs.js";
+import { ActionKinds } from "../model/actions.js";
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import {
+  getSettlementCurrentVassal,
+  getSettlementFirstSelectedVassal,
+  getSettlementLatestSelectedVassalDeathSec,
+  getSettlementPendingVassalSelection,
+} from "../model/settlement-state.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
 import {
   VIEWPORT_DESIGN_HEIGHT,
   VIEWPORT_DESIGN_WIDTH,
 } from "./layout-pixi.js";
 import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
+import { createSettlementVassalChooserView } from "./settlement-vassal-chooser-pixi.js";
+import { createSettlementVassalControlsView } from "./settlement-vassal-controls-pixi.js";
 import { createTimeControlsView } from "./time-controls-pixi.js";
 import { createMetricGraphView } from "./timegraphs-pixi.js";
 import { createTooltipView } from "./tooltip-pixi.js";
@@ -113,6 +122,7 @@ const playfieldLayer = new PIXI.Container();
 const graphLayer = new PIXI.Container();
 const controlLayer = new PIXI.Container();
 const tooltipLayer = new PIXI.Container();
+const modalLayer = new PIXI.Container();
 const settlementGraphSeriesMenuLayer = new PIXI.Container();
 const SETTLEMENT_GRAPH_WINDOW_YEARS = 40;
 const SETTLEMENT_GRAPH_WINDOW_SEC =
@@ -143,16 +153,20 @@ const SETTLEMENT_GRAPH_MENU_LAYOUT = Object.freeze({
 });
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
-app.stage.addChild(playfieldLayer, graphLayer, controlLayer, tooltipLayer);
+app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltipLayer);
 controlLayer.addChild(settlementGraphSeriesMenuLayer);
 
 let prototypeView = null;
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
+let settlementVassalChooserView = null;
+let settlementVassalControlsView = null;
 let settlementGraphSeriesMenuOpen = false;
 let settlementGraphSeriesMenuSignature = "";
 let visibleSettlementGraphSeriesIds = [];
+let settlementVassalSelectionWasOpen = false;
+let settlementVassalSelectionResumeOnClose = null;
 const forecastWorkerService = createTimegraphForecastWorkerService();
 const settlementProjectionCache = createSettlementProjectionCache({
   horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
@@ -707,6 +721,128 @@ function shouldInvalidateSettlementTimelineForecast(reason) {
   return false;
 }
 
+function getSettlementAuthoritativeState() {
+  return runner?.getCursorState?.() ?? runner?.getState?.() ?? null;
+}
+
+function shouldResumeAfterBlockingVassalSelection(state = getSettlementAuthoritativeState()) {
+  const paused = state?.paused === true;
+  const timeScale = runner?.getTimeScale?.() ?? null;
+  const currentSpeed = Number.isFinite(timeScale?.current) ? Number(timeScale.current) : 1;
+  const targetSpeed = Number.isFinite(timeScale?.target) ? Number(timeScale.target) : currentSpeed;
+  return paused !== true && (currentSpeed > 0 || targetSpeed > 0);
+}
+
+function getSettlementVisibleVassalTimeSec(state = null) {
+  const currentState = state ?? runner?.getState?.() ?? null;
+  const committedSec = Math.max(0, Math.floor(currentState?.tSec ?? 0));
+  const revealedSec = settlementGraphView?.getForecastScrubCapSec?.() ?? committedSec;
+  return Math.max(committedSec, Math.floor(revealedSec ?? committedSec));
+}
+
+function syncSettlementGraphHorizon() {
+  const state = getSettlementAuthoritativeState();
+  const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(state);
+  const historyEndSec = Math.max(0, Math.floor(runner?.getTimeline?.()?.historyEndSec ?? 0));
+  const requiredHorizonSec = Math.max(0, latestDeathSec - historyEndSec);
+  settlementGraphController?.setHorizonSecOverride?.(
+    requiredHorizonSec > SETTLEMENT_GRAPH_WINDOW_SEC ? requiredHorizonSec : null
+  );
+}
+
+function syncSettlementVassalSelectionPauseState() {
+  const state = getSettlementAuthoritativeState();
+  const selectionOpen = !!getSettlementPendingVassalSelection(state);
+  if (selectionOpen && !settlementVassalSelectionWasOpen) {
+    if (settlementVassalSelectionResumeOnClose == null) {
+      settlementVassalSelectionResumeOnClose = shouldResumeAfterBlockingVassalSelection(state);
+    }
+    requestPauseBeforeDrag();
+  }
+  if (!selectionOpen && settlementVassalSelectionWasOpen) {
+    const shouldResume = settlementVassalSelectionResumeOnClose === true;
+    settlementVassalSelectionResumeOnClose = null;
+    if (shouldResume) {
+      runner.setTimeScaleTarget?.(1, { unpause: true });
+      runner.setPaused?.(false);
+    }
+  }
+  settlementVassalSelectionWasOpen = selectionOpen;
+  return selectionOpen;
+}
+
+function openNextSettlementVassalSelection() {
+  const state = getSettlementAuthoritativeState();
+  settlementVassalSelectionResumeOnClose = shouldResumeAfterBlockingVassalSelection(state);
+  requestPauseBeforeDrag();
+  const result = runner.dispatchAction?.(
+    ActionKinds.SETTLEMENT_BEGIN_NEXT_VASSAL_SELECTION,
+    { tSec: state?.tSec }
+  );
+  if (!result?.ok) {
+    settlementVassalSelectionResumeOnClose = null;
+  }
+  syncSettlementVassalSelectionPauseState();
+  return result;
+}
+
+function selectSettlementVassal(vassalId) {
+  const state = getSettlementAuthoritativeState();
+  const result = runner.dispatchAction?.(
+    ActionKinds.SETTLEMENT_SELECT_VASSAL_CANDIDATE,
+    {
+      vassalId,
+      tSec: state?.tSec,
+    }
+  );
+  if (result?.ok) {
+    syncSettlementVassalSelectionPauseState();
+  }
+  return result;
+}
+
+function getSettlementSkipToDeathState() {
+  const state = getSettlementAuthoritativeState();
+  const currentVassal = getSettlementCurrentVassal(state);
+  const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
+  const currentSec = Math.max(0, Math.floor(state?.tSec ?? 0));
+  const forecastRevealCapSec = Math.max(
+    0,
+    Math.floor(
+      settlementGraphView?.getForecastScrubCapSec?.() ??
+        runner?.getTimeline?.()?.historyEndSec ??
+        currentSec
+    )
+  );
+  return {
+    enabled:
+      !!currentVassal &&
+      currentVassal.isDead !== true &&
+      deathSec > currentSec &&
+      forecastRevealCapSec >= deathSec,
+    label: "Skip to Death",
+  };
+}
+
+function skipCurrentVassalToDeath() {
+  const state = getSettlementAuthoritativeState();
+  const currentVassal = getSettlementCurrentVassal(state);
+  const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
+  if (!currentVassal || deathSec <= 0) return { ok: false, reason: "noCurrentVassalDeath" };
+  const stateData = settlementGraphController?.getStateDataAt?.(deathSec) ?? null;
+  return runner.commitCursorSecond?.(deathSec, stateData ?? undefined);
+}
+
+function getSettlementNextVassalState() {
+  const state = getSettlementAuthoritativeState();
+  const currentVassal = getSettlementCurrentVassal(state);
+  const hasPendingSelection = !!getSettlementPendingVassalSelection(state);
+  return {
+    enabled: !!currentVassal && currentVassal.isDead === true && hasPendingSelection !== true,
+    label: "Next Vassal",
+  };
+}
+
 const runner = createSimRunner({
   setupId: BOOT_SETUP_ID,
   onInvalidate: (reason) => {
@@ -714,9 +850,11 @@ const runner = createSimRunner({
       forecastWorkerService.handleTimelineInvalidation?.(reason);
       settlementGraphController?.handleInvalidate?.(reason);
     }
+    syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
   },
   onRebuildViews: () => {
+    syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
   },
 });
@@ -738,6 +876,7 @@ prototypeView = createSettlementPrototypeView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
+  getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
   setSelectedPracticeClassId: (classId) => {
     selectedPracticeClassId = typeof classId === "string" && classId.length > 0 ? classId : "villager";
@@ -854,12 +993,17 @@ settlementGraphView = createMetricGraphView({
   commitSecond: (tSec, stateData) => runner.commitCursorSecond?.(tSec, stateData),
   getWindowSpec: ({ timeline, cursorState, zoomed }) => {
     const preview = runner.getPreviewStatus?.();
+    const firstSelectedVassal = getSettlementFirstSelectedVassal(cursorState);
+    const currentVassal = getSettlementCurrentVassal(cursorState);
     return computeSettlementGraphWindowSpec({
       historyEndSec: timeline?.historyEndSec,
       cursorSec: cursorState?.tSec,
       forecastPreviewSec: preview?.isForecastPreview ? preview.previewSec : null,
       horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
       zoomed,
+      lineageStartSec: firstSelectedVassal?.birthSec ?? null,
+      currentVassalStartSec: currentVassal?.birthSec ?? null,
+      latestDeathSec: getSettlementLatestSelectedVassalDeathSec(cursorState),
     });
   },
   openPosition: { x: 110, y: 884 },
@@ -871,6 +1015,24 @@ settlementGraphView = createMetricGraphView({
   showClose: false,
   showPin: false,
   draggable: false,
+});
+
+settlementVassalControlsView = createSettlementVassalControlsView({
+  app,
+  layer: controlLayer,
+  getSkipState: () => getSettlementSkipToDeathState(),
+  onSkip: () => skipCurrentVassalToDeath(),
+  getNextState: () => getSettlementNextVassalState(),
+  onNext: () => openNextSettlementVassalSelection(),
+});
+
+settlementVassalChooserView = createSettlementVassalChooserView({
+  app,
+  layer: modalLayer,
+  getState: () => getSettlementAuthoritativeState(),
+  isOpen: () => !!getSettlementPendingVassalSelection(getSettlementAuthoritativeState()),
+  onSelectCandidate: (vassalId) => selectSettlementVassal(vassalId),
+  tooltipView,
 });
 
 function requestPauseBeforeDrag() {
@@ -912,14 +1074,19 @@ function resizeCanvas() {
   settlementGraphView.render?.();
   renderSettlementGraphSeriesMenu();
   sunMoonDisksView.applyLayout?.();
+  settlementVassalChooserView?.refresh?.();
 }
 
 runner.init();
+syncSettlementGraphHorizon();
+syncSettlementVassalSelectionPauseState();
 prototypeView.init();
 settlementGraphView.open();
 renderSettlementGraphSeriesMenu();
 timeControlsView.init();
 sunMoonDisksView.init();
+settlementVassalControlsView.init();
+settlementVassalChooserView.init();
 
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleGlobalKeyDown);
@@ -927,6 +1094,8 @@ window.addEventListener("keydown", handleGlobalKeyDown);
 app.ticker.add((delta) => {
   const frameDt = delta / 60;
   runner.update(frameDt);
+  syncSettlementGraphHorizon();
+  syncSettlementVassalSelectionPauseState();
   settlementGraphController.update?.();
   syncSettlementGraphSeriesSelection();
   prototypeView.update(frameDt);
@@ -934,4 +1103,6 @@ app.ticker.add((delta) => {
   renderSettlementGraphSeriesMenu();
   timeControlsView.update(frameDt);
   sunMoonDisksView.update(frameDt);
+  settlementVassalControlsView.update(frameDt);
+  settlementVassalChooserView.update(frameDt);
 });

@@ -13,6 +13,14 @@ const DEFAULT_PRACTICE_SLOT_COUNT = 5;
 const DEFAULT_STRUCTURE_SLOT_COUNT = 6;
 const DEFAULT_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 const HAPPINESS_ASC = Object.freeze(["negative", "neutral", "positive"]);
+const DEFAULT_VASSAL_LINEAGE_STATE = Object.freeze({
+  nextVassalId: 1,
+  nextPoolId: 1,
+  selectedVassalIds: [],
+  currentVassalId: null,
+  pendingSelection: null,
+  vassalsById: {},
+});
 
 export const SETTLEMENT_STOCKPILE_KEYS = Object.freeze([
   "food",
@@ -212,6 +220,127 @@ function normalizePopulationClasses(raw, classOrder, fallbackTier = null) {
   return out;
 }
 
+function normalizeVassalLifeEvent(raw, fallbackIndex = 0) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return {
+    eventId:
+      typeof raw.eventId === "string" && raw.eventId.length > 0
+        ? raw.eventId
+        : `vassal-event-${Math.max(0, Math.floor(fallbackIndex))}`,
+    kind: typeof raw.kind === "string" && raw.kind.length > 0 ? raw.kind : "event",
+    tSec: Number.isFinite(raw.tSec) ? Math.max(0, Math.floor(raw.tSec)) : 0,
+    ageYears: Number.isFinite(raw.ageYears) ? Math.max(0, Math.floor(raw.ageYears)) : 0,
+    classId: typeof raw.classId === "string" && raw.classId.length > 0 ? raw.classId : null,
+    professionId:
+      typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
+    traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    text: typeof raw.text === "string" ? raw.text : "",
+  };
+}
+
+function normalizeVassalRecord(raw, fallbackId = null) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const vassalId =
+    typeof raw.vassalId === "string" && raw.vassalId.length > 0 ? raw.vassalId : fallbackId;
+  if (!vassalId) return null;
+  return {
+    vassalId,
+    poolId: typeof raw.poolId === "string" && raw.poolId.length > 0 ? raw.poolId : null,
+    sourceClassId:
+      typeof raw.sourceClassId === "string" && raw.sourceClassId.length > 0 ? raw.sourceClassId : "villager",
+    currentClassId:
+      typeof raw.currentClassId === "string" && raw.currentClassId.length > 0
+        ? raw.currentClassId
+        : typeof raw.sourceClassId === "string" && raw.sourceClassId.length > 0
+          ? raw.sourceClassId
+          : "villager",
+    birthSec: Number.isFinite(raw.birthSec) ? Math.max(0, Math.floor(raw.birthSec)) : 0,
+    birthYear: Number.isFinite(raw.birthYear) ? Math.max(1, Math.floor(raw.birthYear)) : 1,
+    selectedSec: Number.isFinite(raw.selectedSec) ? Math.max(0, Math.floor(raw.selectedSec)) : 0,
+    deathSec: Number.isFinite(raw.deathSec) ? Math.max(0, Math.floor(raw.deathSec)) : 0,
+    deathYear: Number.isFinite(raw.deathYear) ? Math.max(1, Math.floor(raw.deathYear)) : 1,
+    initialAgeYears: Number.isFinite(raw.initialAgeYears) ? Math.max(0, Math.floor(raw.initialAgeYears)) : 0,
+    deathAgeYears: Number.isFinite(raw.deathAgeYears) ? Math.max(0, Math.floor(raw.deathAgeYears)) : 0,
+    villagerAgeYears:
+      Number.isFinite(raw.villagerAgeYears) ? Math.max(0, Math.floor(raw.villagerAgeYears)) : null,
+    professionAgeYears:
+      Number.isFinite(raw.professionAgeYears) ? Math.max(0, Math.floor(raw.professionAgeYears)) : null,
+    traitAgeYears: Number.isFinite(raw.traitAgeYears) ? Math.max(0, Math.floor(raw.traitAgeYears)) : null,
+    elderAgeYears: Number.isFinite(raw.elderAgeYears) ? Math.max(0, Math.floor(raw.elderAgeYears)) : null,
+    agendaByClass:
+      raw.agendaByClass && typeof raw.agendaByClass === "object" && !Array.isArray(raw.agendaByClass)
+        ? cloneSerializable(raw.agendaByClass)
+        : {},
+    professionId:
+      typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
+    traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    councilMemberId:
+      typeof raw.councilMemberId === "string" && raw.councilMemberId.length > 0
+        ? raw.councilMemberId
+        : null,
+    joinedCouncilSec:
+      Number.isFinite(raw.joinedCouncilSec) ? Math.max(0, Math.floor(raw.joinedCouncilSec)) : null,
+    removedFromCouncilSec:
+      Number.isFinite(raw.removedFromCouncilSec) ? Math.max(0, Math.floor(raw.removedFromCouncilSec)) : null,
+    isDead: raw.isDead === true,
+    isElder: raw.isElder === true,
+    lifeEvents: Array.isArray(raw.lifeEvents)
+      ? raw.lifeEvents.map((entry, index) => normalizeVassalLifeEvent(entry, index)).filter(Boolean)
+      : [],
+  };
+}
+
+function normalizeVassalCandidatePool(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const candidates = Array.isArray(raw.candidates)
+    ? raw.candidates
+        .map((entry, index) =>
+          normalizeVassalRecord(
+            entry,
+            typeof entry?.vassalId === "string" && entry.vassalId.length > 0
+              ? entry.vassalId
+              : `vassal-pending-${index + 1}`
+          )
+        )
+        .filter(Boolean)
+    : [];
+  return {
+    poolId: typeof raw.poolId === "string" && raw.poolId.length > 0 ? raw.poolId : null,
+    createdSec: Number.isFinite(raw.createdSec) ? Math.max(0, Math.floor(raw.createdSec)) : 0,
+    candidates,
+  };
+}
+
+function normalizeVassalLineageState(raw) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? cloneSerializable(raw)
+      : cloneSerializable(DEFAULT_VASSAL_LINEAGE_STATE);
+  const selectedVassalIds = Array.isArray(next.selectedVassalIds)
+    ? next.selectedVassalIds.filter((entry) => typeof entry === "string" && entry.length > 0)
+    : [];
+  const vassalsById = {};
+  if (next.vassalsById && typeof next.vassalsById === "object" && !Array.isArray(next.vassalsById)) {
+    for (const [vassalId, value] of Object.entries(next.vassalsById)) {
+      const record = normalizeVassalRecord(value, vassalId);
+      if (!record) continue;
+      vassalsById[record.vassalId] = record;
+    }
+  }
+  const pendingSelection = normalizeVassalCandidatePool(next.pendingSelection);
+  return {
+    nextVassalId: Number.isFinite(next.nextVassalId) ? Math.max(1, Math.floor(next.nextVassalId)) : 1,
+    nextPoolId: Number.isFinite(next.nextPoolId) ? Math.max(1, Math.floor(next.nextPoolId)) : 1,
+    selectedVassalIds,
+    currentVassalId:
+      typeof next.currentVassalId === "string" && next.currentVassalId.length > 0
+        ? next.currentVassalId
+        : null,
+    pendingSelection,
+    vassalsById,
+  };
+}
+
 function getTileSettlementState(tile) {
   const settlement = tile?.props?.settlement;
   if (!settlement || typeof settlement !== "object" || Array.isArray(settlement)) {
@@ -300,6 +429,7 @@ export function createHubCore() {
     systemState: {
       stockpiles: normalizeStockpiles(null),
       populationClasses: normalizePopulationClasses(null, classOrder, getFaithStartingTier()),
+      vassalLineage: normalizeVassalLineageState(null),
     },
   };
 }
@@ -353,6 +483,7 @@ export function ensureHubCoreShape(core) {
     null,
     fallbackTier
   );
+  target.systemState.vassalLineage = normalizeVassalLineageState(target.systemState.vassalLineage);
   delete target.systemState.population;
   delete target.systemState.faith;
   target.props = createDerivedProps(target.props);
@@ -511,6 +642,72 @@ export function getSettlementPopulationClasses(state) {
   const core = getHubCore(state);
   const populationClasses = core?.systemState?.populationClasses;
   return populationClasses && typeof populationClasses === "object" ? populationClasses : {};
+}
+
+export function getSettlementYearDurationSec(state) {
+  const seasons = Array.isArray(state?.seasons) && state.seasons.length > 0 ? state.seasons : [0, 1, 2, 3];
+  const seasonDurationSec = Number.isFinite(state?.seasonDurationSec)
+    ? Math.max(1, Math.floor(state.seasonDurationSec))
+    : 32;
+  return seasonDurationSec * seasons.length;
+}
+
+export function getSettlementYearStartSec(state, year) {
+  const safeYear = Number.isFinite(year) ? Math.max(1, Math.floor(year)) : 1;
+  return Math.max(0, (safeYear - 1) * getSettlementYearDurationSec(state));
+}
+
+export function getSettlementVassalLineageState(state) {
+  return getHubCore(state)?.systemState?.vassalLineage ?? null;
+}
+
+export function getSettlementCurrentVassal(state) {
+  const lineage = getSettlementVassalLineageState(state);
+  const currentVassalId =
+    typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
+      ? lineage.currentVassalId
+      : null;
+  if (!currentVassalId) return null;
+  return lineage?.vassalsById?.[currentVassalId] ?? null;
+}
+
+export function getSettlementPendingVassalSelection(state) {
+  return getSettlementVassalLineageState(state)?.pendingSelection ?? null;
+}
+
+export function getSettlementSelectedVassals(state) {
+  const lineage = getSettlementVassalLineageState(state);
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  const byId = lineage?.vassalsById ?? {};
+  return selectedIds.map((vassalId) => byId?.[vassalId] ?? null).filter(Boolean);
+}
+
+export function getSettlementFirstSelectedVassal(state) {
+  return getSettlementSelectedVassals(state)[0] ?? null;
+}
+
+export function getSettlementLatestSelectedVassalDeathSec(state) {
+  let latestDeathSec = 0;
+  for (const vassal of getSettlementSelectedVassals(state)) {
+    latestDeathSec = Math.max(
+      latestDeathSec,
+      Number.isFinite(vassal?.deathSec) ? Math.max(0, Math.floor(vassal.deathSec)) : 0
+    );
+  }
+  return latestDeathSec;
+}
+
+export function getSettlementVisibleVassalLifeEvents(state, vassalId, tSec = null) {
+  const lineage = getSettlementVassalLineageState(state);
+  const record =
+    typeof vassalId === "string" && vassalId.length > 0 ? lineage?.vassalsById?.[vassalId] ?? null : null;
+  if (!record) return [];
+  const safeTSec = Number.isFinite(tSec)
+    ? Math.max(0, Math.floor(tSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  return (Array.isArray(record.lifeEvents) ? record.lifeEvents : []).filter(
+    (entry) => Math.max(0, Math.floor(entry?.tSec ?? 0)) <= safeTSec
+  );
 }
 
 export function getSettlementPopulationClassState(state, classId = null) {

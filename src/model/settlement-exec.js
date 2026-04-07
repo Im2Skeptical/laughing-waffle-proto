@@ -19,6 +19,7 @@ import { runEffect } from "./effects/index.js";
 import { passiveTimingPasses } from "./passive-timing.js";
 import { stepSettlementOrders } from "./settlement-order-exec.js";
 import { getCurrentSeasonKey } from "./state.js";
+import { stepSettlementVassals } from "./settlement-vassal-exec.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
 import {
   getHubCore,
@@ -1893,6 +1894,8 @@ export function stepSettlementSecond(state, tSec) {
   if (!getHubCore(state)) return;
   releaseExpiredPopulationCommitments(state, tSec);
   runSettlementPopulationSeasonTick(state, tSec);
+  syncSettlementDerivedState(state, tSec);
+  stepSettlementVassals(state, tSec);
   syncSettlementDerivedState(state, tSec);
   stepSettlementOrders(state, tSec);
   syncSettlementDerivedState(state, tSec);

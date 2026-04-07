@@ -4,16 +4,29 @@ import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import { getCurrentSeasonKey } from "../model/state.js";
 import {
+  getSettlementCurrentVassal,
   getSettlementClassIds,
   getSettlementFaithSummary,
+  getSettlementFirstSelectedVassal,
   getSettlementHappinessSummary,
+  getSettlementLatestSelectedVassalDeathSec,
   getSettlementOrderSlots,
+  getSettlementPendingVassalSelection,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
   getSettlementStructureSlots,
   getSettlementTileGreenResource,
+  getSettlementYearDurationSec,
+  getSettlementVisibleVassalLifeEvents,
 } from "../model/settlement-state.js";
+import {
+  getSettlementVassalAgeYearsAtSecond,
+} from "../model/settlement-vassal-exec.js";
+import {
+  settlementVassalProfessionDefs,
+  settlementVassalTraitDefs,
+} from "../defs/gamepieces/settlement-vassal-defs.js";
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
 
 const PALETTE = Object.freeze({
@@ -172,7 +185,7 @@ function formatSignedNumber(value) {
   return safe >= 0 ? `+${safe}` : String(safe);
 }
 
-function buildSignature(state, selectedClassId) {
+function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) {
   const summary = getSettlementPopulationSummary(state);
   const classIds = getSettlementClassIds(state);
   const practiceCardsByClass = {};
@@ -219,6 +232,24 @@ function buildSignature(state, selectedClassId) {
       faith: getSettlementFaithSummary(state, classId),
       happiness: getSettlementHappinessSummary(state, classId),
     })),
+    vassal: (() => {
+      const currentVassal = getSettlementCurrentVassal(state);
+      const pendingSelection = getSettlementPendingVassalSelection(state);
+      const firstSelectedVassal = getSettlementFirstSelectedVassal(state);
+      return {
+        currentVassal,
+        pendingSelection,
+        firstSelectedVassalId: firstSelectedVassal?.vassalId ?? null,
+        latestDeathSec: getSettlementLatestSelectedVassalDeathSec(state),
+        visibleEvents: currentVassal
+          ? getSettlementVisibleVassalLifeEvents(
+              state,
+              currentVassal.vassalId,
+              visibleVassalThroughSec
+            )
+          : [],
+      };
+    })(),
     orderCards,
     practiceCardsByClass,
     structures,
@@ -1144,6 +1175,169 @@ function getTileCardFill(tile) {
   return tile?.defId === "tile_river" ? 0x7b9a89 : PALETTE.tileCard;
 }
 
+function getVassalProfessionLabel(professionId) {
+  if (typeof professionId !== "string" || professionId.length <= 0) return "None";
+  return settlementVassalProfessionDefs?.[professionId]?.label ?? professionId;
+}
+
+function getVassalTraitLabel(traitId) {
+  if (typeof traitId !== "string" || traitId.length <= 0) return "None";
+  return settlementVassalTraitDefs?.[traitId]?.label ?? traitId;
+}
+
+function drawVassalEventLog(container, rect, events, state) {
+  const safeEvents = Array.isArray(events) ? events.slice().reverse() : [];
+  const clipCount = Math.min(6, safeEvents.length);
+  if (clipCount <= 0) {
+    drawSubPanel(container, rect, 0x243145, PALETTE.stroke);
+    container.addChild(createText("No recorded events yet", TEXT_STYLES.muted, rect.x + 18, rect.y + 18));
+    return;
+  }
+  const rowGap = 10;
+  const rowHeight = Math.max(52, Math.floor((rect.height - rowGap * (clipCount - 1)) / clipCount));
+  for (let index = 0; index < clipCount; index += 1) {
+    const event = safeEvents[index];
+    const rowY = rect.y + index * (rowHeight + rowGap);
+    const row = new PIXI.Graphics();
+    roundedRect(row, rect.x, rowY, rect.width, rowHeight, 18, 0x2c3b55, 0x4fa2ff, 2);
+    container.addChild(row);
+    container.addChild(
+      createText(
+        typeof event?.text === "string" && event.text.length > 0 ? event.text : capitalizeLabel(event?.kind),
+        {
+          ...TEXT_STYLES.cardTitle,
+          fontSize: 16,
+        },
+        rect.x + 18,
+        rowY + 12
+      )
+    );
+    container.addChild(
+      createText(
+        `Age ${Math.floor(event?.ageYears ?? 0)} • Year ${
+          1 + Math.floor((event?.tSec ?? 0) / Math.max(1, getSettlementYearDurationSec(state)))
+        }`,
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 11,
+        },
+        rect.x + 18,
+        rowY + rowHeight - 20
+      )
+    );
+  }
+}
+
+function drawVassalPanel(
+  container,
+  rect,
+  state,
+  selectedClassId,
+  tooltipView,
+  visibleVassalThroughSec = null
+) {
+  const currentVassal = getSettlementCurrentVassal(state);
+  const panelBg = new PIXI.Graphics();
+  roundedRect(panelBg, rect.x, rect.y, rect.width, rect.height, 26, PALETTE.panelSoft, PALETTE.stroke, 4);
+  container.addChild(panelBg);
+  container.addChild(createText("Vassal", TEXT_STYLES.header, rect.x + rect.width * 0.5, rect.y + 32, 0.5, 0.5));
+
+  if (!currentVassal) {
+    container.addChild(
+      createText(
+        "Choose a vassal to begin the lineage.",
+        TEXT_STYLES.body,
+        rect.x + 26,
+        rect.y + 82
+      )
+    );
+    return;
+  }
+
+  const ageYears = getSettlementVassalAgeYearsAtSecond(state, currentVassal, state?.tSec);
+  const titleLabel = `${capitalizeLabel(currentVassal.currentClassId)} • Age ${ageYears}`;
+  container.addChild(createText(titleLabel, TEXT_STYLES.title, rect.x + 26, rect.y + 74));
+  container.addChild(
+    createText(
+      currentVassal.isDead ? "Dead" : currentVassal.isElder ? "Elder" : "Alive",
+      {
+        ...TEXT_STYLES.body,
+        fontWeight: "bold",
+        fill: currentVassal.isDead ? 0xd2735f : currentVassal.isElder ? PALETTE.active : PALETTE.passiveBorder,
+      },
+      rect.x + rect.width - 28,
+      rect.y + 78,
+      1,
+      0
+    )
+  );
+
+  const agendaRect = { x: rect.x + 20, y: rect.y + 112, width: rect.width - 40, height: 104 };
+  drawSubPanel(container, agendaRect, PALETTE.panel, PALETTE.stroke);
+  container.addChild(createText("Agenda", TEXT_STYLES.title, agendaRect.x + 14, agendaRect.y + 10));
+  const agenda = Array.isArray(currentVassal?.agendaByClass?.[selectedClassId])
+    ? currentVassal.agendaByClass[selectedClassId]
+    : [];
+  const agendaCardWidth = 84;
+  const agendaGap = 8;
+  for (let index = 0; index < Math.min(5, agenda.length); index += 1) {
+    drawMiniPracticeCard(
+      container,
+      {
+        x: agendaRect.x + 16 + index * (agendaCardWidth + agendaGap),
+        y: agendaRect.y + 36,
+        width: agendaCardWidth,
+        height: 52,
+      },
+      agenda[index],
+      { fontSize: 9, lineHeight: 10 }
+    );
+  }
+
+  const statsRect = { x: rect.x + 20, y: rect.y + 232, width: 244, height: 144 };
+  drawSubPanel(container, statsRect, PALETTE.elderLozengeSoft, PALETTE.stroke);
+  container.addChild(createText("Stats", TEXT_STYLES.title, statsRect.x + 14, statsRect.y + 10));
+  container.addChild(
+    createText(
+      [
+        `Class ${capitalizeLabel(currentVassal.currentClassId)}`,
+        `Profession ${getVassalProfessionLabel(currentVassal.professionId)}`,
+        `Trait ${getVassalTraitLabel(currentVassal.traitId)}`,
+        `Elder ${currentVassal.isElder ? "Yes" : "No"}`,
+        `Death Year ${Math.floor(currentVassal.deathYear ?? 1)}`,
+      ].join("\n"),
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 12,
+        lineHeight: 17,
+      },
+      statsRect.x + 14,
+      statsRect.y + 40
+    )
+  );
+
+  const bustRect = { x: rect.x + rect.width - 184, y: rect.y + 232, width: 164, height: 144 };
+  drawDeterministicBust(container, bustRect, {
+    memberId: currentVassal.vassalId,
+    modifierId: currentVassal.traitId,
+    sourceClassId: currentVassal.currentClassId,
+    joinedYear: currentVassal.birthYear,
+  });
+
+  const eventRect = { x: rect.x + 20, y: rect.y + 394, width: rect.width - 40, height: rect.height - 416 };
+  container.addChild(createText("Event Log", TEXT_STYLES.title, eventRect.x + 2, eventRect.y - 28));
+  drawVassalEventLog(
+    container,
+    eventRect,
+    getSettlementVisibleVassalLifeEvents(
+      state,
+      currentVassal.vassalId,
+      visibleVassalThroughSec
+    ),
+    state
+  );
+}
+
 export function createSettlementPrototypeView({
   app,
   layer,
@@ -1151,6 +1345,7 @@ export function createSettlementPrototypeView({
   getSelectedPracticeClassId,
   setSelectedPracticeClassId,
   tooltipView,
+  getVisibleVassalTimeSec,
 } = {}) {
   const root = new PIXI.Container();
   const contentLayer = new PIXI.Container();
@@ -1294,7 +1489,11 @@ export function createSettlementPrototypeView({
       (typeof getSelectedPracticeClassId === "function" && getSelectedPracticeClassId()) ||
       classIds[0] ||
       "villager";
-    const signature = buildSignature(state, selectedClassId);
+    const visibleVassalThroughSec =
+      typeof getVisibleVassalTimeSec === "function"
+        ? getVisibleVassalTimeSec(state)
+        : state?.tSec;
+    const signature = buildSignature(state, selectedClassId, visibleVassalThroughSec);
     if (signature === lastSignature) {
       renderAgendaFlyout(state);
       return;
@@ -1323,14 +1522,15 @@ export function createSettlementPrototypeView({
     )}`;
     contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 35, 0.5, 0.5));
 
-    const hubPanelRect = { x: 120, y: 120, width: 1180, height: 700 };
-    const regionPanelRect = { x: 1430, y: 180, width: 830, height: 590 };
+    const hubPanelRect = { x: 70, y: 120, width: 1080, height: 700 };
+    const vassalPanelRect = { x: 1170, y: 120, width: 560, height: 620 };
+    const regionPanelRect = { x: 1760, y: 180, width: 540, height: 450 };
     // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
-    const classColumnRect = { x: 150, y: 188, width: 220, height: 300 };
-    const orderRect = { x: 394, y: 184, width: 846, height: 220 };
-    const practiceRect = { x: 394, y: 434, width: 846, height: 176 };
-    const structuresRect = { x: 140, y: 630, width: 1100, height: 124 };
-    const resourceBandRect = { x: 160, y: 836, width: 1540, height: 44 };
+    const classColumnRect = { x: 100, y: 188, width: 220, height: 300 };
+    const orderRect = { x: 344, y: 184, width: 776, height: 220 };
+    const practiceRect = { x: 344, y: 434, width: 776, height: 176 };
+    const structuresRect = { x: 90, y: 630, width: 1030, height: 124 };
+    const resourceBandRect = { x: 110, y: 836, width: 1560, height: 44 };
 
     const panelGfx = new PIXI.Graphics();
     roundedRect(
@@ -1350,6 +1550,17 @@ export function createSettlementPrototypeView({
       regionPanelRect.y,
       regionPanelRect.width,
       regionPanelRect.height,
+      26,
+      PALETTE.panelSoft,
+      PALETTE.stroke,
+      4
+    );
+    roundedRect(
+      panelGfx,
+      vassalPanelRect.x,
+      vassalPanelRect.y,
+      vassalPanelRect.width,
+      vassalPanelRect.height,
       26,
       PALETTE.panelSoft,
       PALETTE.stroke,
@@ -1412,7 +1623,17 @@ export function createSettlementPrototypeView({
       )
     );
     contentLayer.addChild(
-      createText(state?.locationNames?.region ?? "Region", TEXT_STYLES.header, 1845, 210, 0.5, 0.5)
+      createText(
+        state?.locationNames?.region ?? "Region",
+        TEXT_STYLES.header,
+        regionPanelRect.x + regionPanelRect.width * 0.5,
+        210,
+        0.5,
+        0.5
+      )
+    );
+    contentLayer.addChild(
+      createText("Vassal", TEXT_STYLES.header, vassalPanelRect.x + vassalPanelRect.width * 0.5, 148, 0.5, 0.5)
     );
     contentLayer.addChild(
       createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 172, 0.5, 0.5)
@@ -1524,9 +1745,22 @@ export function createSettlementPrototypeView({
     drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, 6, 1);
     drawSlotGrid(
       contentLayer.addChild(new PIXI.Graphics()),
-      { x: regionPanelRect.x + 20, y: regionPanelRect.y + 70, width: 790, height: 470 },
+      {
+        x: regionPanelRect.x + 20,
+        y: regionPanelRect.y + 70,
+        width: regionPanelRect.width - 40,
+        height: regionPanelRect.height - 100,
+      },
       5,
       1
+    );
+    drawVassalPanel(
+      contentLayer,
+      vassalPanelRect,
+      state,
+      selectedClassId,
+      tooltipView,
+      visibleVassalThroughSec
     );
 
     const orderSlots = getSettlementOrderSlots(state);
@@ -1617,10 +1851,10 @@ export function createSettlementPrototypeView({
       drawCard(
         contentLayer,
         {
-          x: regionPanelRect.x + 20 + i * 158,
+          x: regionPanelRect.x + 20 + i * 100,
           y: regionPanelRect.y + 90,
-          width: 146,
-          height: 450,
+          width: 88,
+          height: regionPanelRect.height - 140,
         },
         def?.name ?? tile?.defId ?? "Tile",
         buildTileLines(tile),
