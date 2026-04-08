@@ -5,7 +5,11 @@ import { hubStructureDefs } from "../src/defs/gamepieces/hub-structure-defs.js";
 import { settlementOrderDefs } from "../src/defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../src/defs/gamepieces/settlement-practice-defs.js";
 import { SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE } from "../src/defs/gamepieces/settlement-vassal-defs.js";
-import { PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR } from "../src/defs/gamesettings/gamerules-defs.js";
+import {
+  DEMOGRAPHIC_STEP_YEARS,
+  PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR,
+  SEASON_DURATION_SEC,
+} from "../src/defs/gamesettings/gamerules-defs.js";
 import { DEFAULT_VARIANT_FLAGS } from "../src/defs/gamesettings/variant-flags-defs.js";
 import { createInitialState, updateGame } from "../src/model/game-model.js";
 import { getCurrentSeasonKey, deserializeGameState, serializeGameState } from "../src/model/state.js";
@@ -48,6 +52,32 @@ function advanceToSecondMaintainingFood(state, targetSec, foodAmount) {
       state.hub.core.systemState.stockpiles.food = safeFoodAmount;
     }
   }
+}
+
+const SETTLEMENT_SEASON_SEC = Math.max(1, Math.floor(SEASON_DURATION_SEC));
+const SETTLEMENT_YEAR_SEC = SETTLEMENT_SEASON_SEC * 4;
+const BECOME_VILLAGERS_CADENCE_SEC = Math.max(
+  1,
+  Math.floor(settlementPracticeDefs?.becomeVillagers?.timing?.cadenceSec ?? SETTLEMENT_YEAR_SEC * 2)
+);
+const FLOOD_RITES_RELEASE_OFFSET_SEC = Math.max(
+  0,
+  Math.floor(
+    settlementPracticeDefs?.floodRites?.effects?.find((effect) => effect?.op === "ReservePopulation")
+      ?.releaseOffsetSec ?? 0
+  )
+);
+const SERIALIZATION_REPLAY_SNAPSHOT_SEC = Math.max(
+  1,
+  SETTLEMENT_SEASON_SEC * 2 + Math.ceil(SETTLEMENT_SEASON_SEC / 4)
+);
+
+function afterSettlementSeasons(seasonCount) {
+  return Math.max(0, Math.floor(seasonCount) * SETTLEMENT_SEASON_SEC + 1);
+}
+
+function afterSettlementYears(yearCount) {
+  return afterSettlementSeasons(Math.floor(yearCount) * 4);
 }
 
 function assertClose(actual, expected, epsilon, message) {
@@ -426,7 +456,7 @@ function runMealPriorityAssertions() {
     123
   );
 
-  advanceToSecond(state, 33);
+  advanceToSecond(state, afterSettlementSeasons(1));
 
   assert.equal(getSettlementStockpile(state, "food"), 0, "season meals should consume the available food");
   assert.deepEqual(
@@ -477,7 +507,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(positiveState, 97);
+  advanceToSecond(positiveState, afterSettlementSeasons(3));
   assert.deepEqual(
     summarizeClass(positiveState, "villager").happiness,
     {
@@ -505,11 +535,11 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(risingPartialState, 33);
+  advanceToSecond(risingPartialState, afterSettlementSeasons(1));
   risingPartialState.hub.core.systemState.stockpiles.food = 6;
-  advanceToSecond(risingPartialState, 65);
+  advanceToSecond(risingPartialState, afterSettlementSeasons(2));
   risingPartialState.hub.core.systemState.stockpiles.food = 7;
-  advanceToSecond(risingPartialState, 97);
+  advanceToSecond(risingPartialState, afterSettlementSeasons(3));
   assert.deepEqual(
     summarizeClass(risingPartialState, "villager").happiness,
     {
@@ -538,7 +568,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(belowPartialThresholdState, 33);
+  advanceToSecond(belowPartialThresholdState, afterSettlementSeasons(1));
   assert.equal(
     summarizeClass(belowPartialThresholdState, "villager").yearly.lastSeasonOutcomeKind,
     "missed",
@@ -561,9 +591,9 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(flatPartialState, 33);
+  advanceToSecond(flatPartialState, afterSettlementSeasons(1));
   flatPartialState.hub.core.systemState.stockpiles.food = 6;
-  advanceToSecond(flatPartialState, 65);
+  advanceToSecond(flatPartialState, afterSettlementSeasons(2));
   assert.deepEqual(
     summarizeClass(flatPartialState, "villager").happiness,
     {
@@ -575,8 +605,8 @@ function runHappinessAssertions() {
     "flat-or-lower partial feed ratios should worsen happiness immediately"
   );
 
-  advanceToSecond(positiveState, 129);
-  advanceToSecond(flatPartialState, 129);
+  advanceToSecond(positiveState, afterSettlementYears(1));
+  advanceToSecond(flatPartialState, afterSettlementYears(1));
 
   assert.equal(
     summarizeClass(positiveState, "villager").faith.tier,
@@ -629,7 +659,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(missedState, 97);
+  advanceToSecond(missedState, afterSettlementSeasons(3));
   assert.deepEqual(
     summarizeClass(missedState, "villager").happiness,
     {
@@ -679,7 +709,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(starvationCarryState, 33);
+  advanceToSecond(starvationCarryState, afterSettlementSeasons(1));
   assert.deepEqual(
     summarizeClass(starvationCarryState, "villager").happiness,
     {
@@ -691,7 +721,7 @@ function runHappinessAssertions() {
     "starvation should not clear the missed-feed streak on trigger"
   );
   starvationCarryState.hub.core.systemState.stockpiles.food = 0;
-  advanceToSecond(starvationCarryState, 65);
+  advanceToSecond(starvationCarryState, afterSettlementSeasons(2));
   assert.deepEqual(
     summarizeClass(starvationCarryState, "villager").happiness,
     {
@@ -734,7 +764,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(starvationResetState, 33);
+  advanceToSecond(starvationResetState, afterSettlementSeasons(1));
   assert.deepEqual(
     summarizeClass(starvationResetState, "villager").happiness,
     {
@@ -769,7 +799,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(bronzeCollapseState, 129);
+  advanceToSecond(bronzeCollapseState, afterSettlementYears(1));
   assert.equal(
     summarizeClass(bronzeCollapseState, "villager").faith.tier,
     "bronze",
@@ -824,7 +854,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(floodRitesMoodState, 65);
+  advanceToSecond(floodRitesMoodState, afterSettlementSeasons(2));
   assert.deepEqual(
     summarizeClass(floodRitesMoodState, "villager").happiness,
     {
@@ -853,7 +883,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(roundedYouthDemandState, 33);
+  advanceToSecond(roundedYouthDemandState, afterSettlementSeasons(1));
   assert.deepEqual(
     summarizeClass(roundedYouthDemandState, "villager").yearly,
     {
@@ -878,7 +908,7 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecond(springFloodplainState, 129);
+  advanceToSecond(springFloodplainState, afterSettlementYears(1));
   assert.equal(
     springFloodplainState.hub.core.systemState.stockpiles.greenResource,
     10,
@@ -902,7 +932,11 @@ function runHappinessAssertions() {
     }),
     123
   );
-  advanceToSecondMaintainingFood(demographicStepState, 641, 200);
+  advanceToSecondMaintainingFood(
+    demographicStepState,
+    afterSettlementYears(DEMOGRAPHIC_STEP_YEARS),
+    200
+  );
   const demographicEvent = findLastGameEvent(
     demographicStepState,
     "populationYearlyUpdate",
@@ -977,7 +1011,7 @@ function runHousingPressureAssertions() {
     },
     "population above the housing cap should clamp happiness to neutral"
   );
-  advanceToSecond(neutralCapState, 129);
+  advanceToSecond(neutralCapState, afterSettlementYears(1));
   assert.equal(
     summarizeClass(neutralCapState, "villager").faith.tier,
     "silver",
@@ -1029,7 +1063,7 @@ function runHousingPressureAssertions() {
     },
     "population above 120 percent of housing should clamp happiness to negative"
   );
-  advanceToSecond(negativeCapState, 129);
+  advanceToSecond(negativeCapState, afterSettlementYears(1));
   assert.equal(
     summarizeClass(negativeCapState, "villager").faith.tier,
     "silver",
@@ -1045,19 +1079,36 @@ function runMirroringAssertions() {
     123
   );
 
-  advanceToSecond(state, 65);
+  advanceToSecond(state, afterSettlementSeasons(2));
 
   const villagerClass = summarizeClass(state, "villager");
   const strangerClass = summarizeClass(state, "stranger");
+  const expectedFloodRitesStartSec = afterSettlementSeasons(2);
+  const expectedFloodRitesReleaseSec =
+    expectedFloodRitesStartSec + FLOOD_RITES_RELEASE_OFFSET_SEC;
 
   assert.deepEqual(
     villagerClass.commitments,
-    [{ sourceId: "floodRites", amount: 6, startSec: 65, releaseSec: 80 }],
+    [
+      {
+        sourceId: "floodRites",
+        amount: 6,
+        startSec: expectedFloodRitesStartSec,
+        releaseSec: expectedFloodRitesReleaseSec,
+      },
+    ],
     "villager flood rites should reserve villager population"
   );
   assert.deepEqual(
     strangerClass.commitments,
-    [{ sourceId: "asTheRomans", amount: 3, startSec: 65, releaseSec: 80 }],
+    [
+      {
+        sourceId: "asTheRomans",
+        amount: 3,
+        startSec: expectedFloodRitesStartSec,
+        releaseSec: expectedFloodRitesReleaseSec,
+      },
+    ],
     "as the romans should reserve stranger population under its own source id"
   );
   assert.equal(
@@ -1255,7 +1306,7 @@ function runOpenToStrangersAssertions() {
     getSettlementStructureCapacityBonus(findSettlementStructureByDefId(state, "mudHouses"))
   );
 
-  advanceToSecond(state, 129);
+  advanceToSecond(state, afterSettlementYears(1));
 
   const villager = summarizeClass(state, "villager");
   const stranger = summarizeClass(state, "stranger");
@@ -1331,12 +1382,12 @@ function runBecomeVillagersAssertions() {
     123
   );
 
-  advanceToSecond(state, 255);
+  advanceToSecond(state, BECOME_VILLAGERS_CADENCE_SEC - 1);
   const beforeFirstTriggerVillagers = summarizeClass(state, "villager").population.total;
   const beforeFirstTriggerStrangers = summarizeClass(state, "stranger").population.total;
   const expectedFirstConversion = Math.max(1, Math.floor(beforeFirstTriggerStrangers / 10));
 
-  advanceToSecond(state, 256);
+  advanceToSecond(state, BECOME_VILLAGERS_CADENCE_SEC);
   const firstTriggerRuntime = summarizeClass(state, "stranger").practice[1];
   assert.deepEqual(
     summarizeClass(state, "stranger").commitments,
@@ -1360,7 +1411,7 @@ function runBecomeVillagersAssertions() {
   );
   assert.equal(
     firstTriggerRuntime.lastRunSec,
-    256,
+    BECOME_VILLAGERS_CADENCE_SEC,
     "become villagers should record when the trigger last fired"
   );
   assert.equal(
@@ -1370,7 +1421,7 @@ function runBecomeVillagersAssertions() {
   );
   assert.equal(
     firstTriggerRuntime.activeRemainingSec,
-    256,
+    BECOME_VILLAGERS_CADENCE_SEC,
     "become villagers should reset its cadence countdown after triggering"
   );
   assertClose(
@@ -1385,7 +1436,11 @@ function runBecomeVillagersAssertions() {
     "become villagers should recalculate its next conversion amount from the remaining stranger population"
   );
 
-  advanceToSecond(state, 300);
+  const becomeVillagersMidCadenceElapsedSec = Math.max(
+    1,
+    Math.floor((BECOME_VILLAGERS_CADENCE_SEC * 44) / 256)
+  );
+  advanceToSecond(state, BECOME_VILLAGERS_CADENCE_SEC + becomeVillagersMidCadenceElapsedSec);
   const midRuntime = summarizeClass(state, "stranger").practice[1];
   assert.equal(
     midRuntime.activeReservation,
@@ -1394,17 +1449,19 @@ function runBecomeVillagersAssertions() {
   );
   assert.equal(
     midRuntime.lastRunSec,
-    256,
+    BECOME_VILLAGERS_CADENCE_SEC,
     "become villagers should preserve its last trigger timestamp between firings"
   );
+  const expectedMidCadenceRemainingSec =
+    BECOME_VILLAGERS_CADENCE_SEC - becomeVillagersMidCadenceElapsedSec;
   assert.equal(
     midRuntime.activeRemainingSec,
-    212,
+    expectedMidCadenceRemainingSec,
     "become villagers should count down to its next cadence even without a reservation"
   );
   assertClose(
     midRuntime.activeProgressRemaining,
-    212 / 256,
+    expectedMidCadenceRemainingSec / BECOME_VILLAGERS_CADENCE_SEC,
     0.0001,
     "become villagers should expose cadence progress for the drain fill effect"
   );
@@ -1464,7 +1521,7 @@ function runEmergencyFoodReserveAssertions() {
     123
   );
 
-  advanceToSecond(state, 33);
+  advanceToSecond(state, afterSettlementSeasons(1));
   assertClose(
     getSettlementStockpile(state, "food"),
     0.8,
@@ -1520,7 +1577,7 @@ function runSerializationReplayAssertions() {
     }),
     123
   );
-  advanceToSecond(live, 72);
+  advanceToSecond(live, SERIALIZATION_REPLAY_SNAPSHOT_SEC);
 
   const serialized = serializeGameState(live);
   const restored = deserializeGameState(serialized);
@@ -1538,7 +1595,7 @@ function runSerializationReplayAssertions() {
       123
     )
   );
-  const rebuilt = rebuildStateAtSecond(timeline, 72);
+  const rebuilt = rebuildStateAtSecond(timeline, SERIALIZATION_REPLAY_SNAPSHOT_SEC);
   assert.equal(rebuilt?.ok, true, `rebuildStateAtSecond failed: ${JSON.stringify(rebuilt)}`);
   assert.deepEqual(
     summarizeState(rebuilt.state),
@@ -1547,7 +1604,7 @@ function runSerializationReplayAssertions() {
   );
 
   const councilLive = createInitialState("devPlaytesting01", 123);
-  advanceToSecond(councilLive, 72);
+  advanceToSecond(councilLive, SERIALIZATION_REPLAY_SNAPSHOT_SEC);
   const councilSerialized = serializeGameState(councilLive);
   const councilRestored = deserializeGameState(councilSerialized);
   assert.deepEqual(
@@ -1557,7 +1614,10 @@ function runSerializationReplayAssertions() {
   );
 
   const councilTimeline = createTimelineFromInitialState(createInitialState("devPlaytesting01", 123));
-  const councilRebuilt = rebuildStateAtSecond(councilTimeline, 72);
+  const councilRebuilt = rebuildStateAtSecond(
+    councilTimeline,
+    SERIALIZATION_REPLAY_SNAPSHOT_SEC
+  );
   assert.equal(
     councilRebuilt?.ok,
     true,

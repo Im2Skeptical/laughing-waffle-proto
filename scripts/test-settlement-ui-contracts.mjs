@@ -550,8 +550,13 @@ assert.match(
 );
 assert.match(
   timegraphViewSource,
-  /FORECAST_REVEAL_RATE_SEC_PER_SEC\s*=\s*480/,
+  /FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC\s*=\s*480/,
   "[test] metric graph should reveal forecast coverage at the faster prototype pacing"
+);
+assert.match(
+  timegraphViewSource,
+  /FORECAST_REVEAL_TARGET_DURATION_SEC\s*=\s*0\.6/,
+  "[test] metric graph should scale reveal speed to the visible forecast span"
 );
 assert.equal(
   clampDiskHistoryBrowseTargetSec(42, 120),
