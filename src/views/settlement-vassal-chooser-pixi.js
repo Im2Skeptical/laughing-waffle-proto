@@ -269,6 +269,7 @@ export function createSettlementVassalChooserView({
   });
   const { body, setOpenVisible } = modalFrame;
   let lastSignature = "";
+  let wasOpen = false;
 
   function buildPendingSelectionSignature(pendingSelection) {
     return JSON.stringify({
@@ -303,11 +304,15 @@ export function createSettlementVassalChooserView({
     const open = typeof isOpen === "function" ? isOpen() === true : false;
     setOpenVisible(open);
     if (!open || !state) {
-      tooltipView?.hide?.();
-      clearChildren(body);
-      lastSignature = "";
+      if (wasOpen) {
+        tooltipView?.hide?.();
+        clearChildren(body);
+        lastSignature = "";
+      }
+      wasOpen = false;
       return;
     }
+    wasOpen = true;
     const pendingSelection = state?.hub?.core?.systemState?.vassalLineage?.pendingSelection ?? null;
     const signature = buildPendingSelectionSignature(pendingSelection);
     if (!force && signature === lastSignature) return;

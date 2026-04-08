@@ -1,4 +1,5 @@
 import { createProjectionCache } from "../../model/timegraph/projection-cache.js";
+import { SEASON_DURATION_SEC } from "../../defs/gamesettings/gamerules-defs.js";
 import {
   DEFAULT_PROJECTION_CACHE_MAX_BYTES,
   DEFAULT_STATE_DATA_ESTIMATE_BYTES,
@@ -13,6 +14,12 @@ function toNonNegativeSec(value, fallback = 0) {
 
 export const SETTLEMENT_GRAPH_FORECAST_STEP_SEC = 1;
 export const SETTLEMENT_GRAPH_CACHE_SLACK_SEC = 512;
+const SETTLEMENT_GRAPH_MIN_CACHE_BYTES = 512 * 1024 * 1024;
+const SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS = 200;
+const SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_SEC =
+  Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
+  4 *
+  SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS;
 
 export function computeSettlementProjectionCacheConfig({
   horizonSec = 0,
@@ -22,14 +29,25 @@ export function computeSettlementProjectionCacheConfig({
   const horizon = toNonNegativeSec(horizonSec, 0);
   const step = Math.max(1, toNonNegativeSec(stepSec, SETTLEMENT_GRAPH_FORECAST_STEP_SEC));
   const slack = Math.max(step, toNonNegativeSec(extraSec, SETTLEMENT_GRAPH_CACHE_SLACK_SEC));
+  // Settlement graphs can temporarily expand beyond the default 40-year window to cover
+  // an entire current-vassal lifespan. Keep enough contiguous forecast state cached so
+  // early sampled seconds are not evicted after a sync browse to a late death second.
+  const requiredForecastCapacitySec = Math.max(
+    horizon,
+    SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_SEC
+  );
   const requiredEntries =
-    Math.ceil(horizon / step) + Math.ceil(slack / step) + 1;
+    Math.ceil(requiredForecastCapacitySec / step) + Math.ceil(slack / step) + 1;
   const requiredBytes =
     requiredEntries * Math.max(1, DEFAULT_STATE_DATA_ESTIMATE_BYTES);
 
   return {
     maxEntries: requiredEntries,
-    maxBytes: Math.max(DEFAULT_PROJECTION_CACHE_MAX_BYTES * 2, requiredBytes),
+    maxBytes: Math.max(
+      SETTLEMENT_GRAPH_MIN_CACHE_BYTES,
+      DEFAULT_PROJECTION_CACHE_MAX_BYTES * 2,
+      requiredBytes
+    ),
   };
 }
 

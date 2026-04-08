@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 
 import { ActionKinds } from "../src/model/actions.js";
+import { applyAction } from "../src/model/actions.js";
+import { SEASON_DURATION_SEC } from "../src/defs/gamesettings/gamerules-defs.js";
 import { buildProjectionChunkFromStateData } from "../src/model/projection-chunk.js";
 import { serializeGameState } from "../src/model/state.js";
 import { createProjectionCache } from "../src/model/timegraph/projection-cache.js";
@@ -11,6 +13,7 @@ import {
   rebuildStateAtSecond,
   replaceActionsAtSecond,
 } from "../src/model/timeline/index.js";
+import { createInitialState, updateGame } from "../src/model/game-model.js";
 import { createEmptyState } from "../src/model/state.js";
 import {
   createTimegraphForecastWorkerService,
@@ -20,6 +23,11 @@ import {
   TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
 } from "../src/controllers/timegraph-forecast-worker-service.js";
 import { GRAPH_METRICS } from "../src/model/graph-metrics.js";
+import {
+  getSettlementCurrentVassal,
+  getSettlementPendingVassalSelection,
+} from "../src/model/settlement-state.js";
+import { createSettlementProjectionCache } from "../src/views/ui-root/settlement-timegraph-window.js";
 
 function createBasicTimeline() {
   const state = createEmptyState(12345);
@@ -510,6 +518,83 @@ function testControllerRebuildsForecastValuesFromRetainedGraphAnchors() {
   );
 }
 
+function testSettlementProjectionCacheRetainsFullCurrentVassalForecast() {
+  const settlementGraphWindowSec =
+    Math.max(1, Math.floor(SEASON_DURATION_SEC)) * 4 * 40;
+  const state = createInitialState("devPlaytesting01", 123);
+  state.paused = true;
+  const pendingSelection = getSettlementPendingVassalSelection(state);
+  const candidate = pendingSelection?.candidates?.[0] ?? null;
+  assert.ok(candidate, "expected an initial settlement vassal candidate");
+
+  const selectRes = applyAction(state, {
+    kind: ActionKinds.SETTLEMENT_SELECT_VASSAL_CANDIDATE,
+    payload: {
+      vassalId: candidate.vassalId,
+      tSec: state.tSec,
+    },
+  });
+  assert.equal(selectRes?.ok, true, `expected vassal selection to succeed: ${JSON.stringify(selectRes)}`);
+
+  state.paused = false;
+  while ((state.tSec ?? 0) < 9) {
+    updateGame(1 / 60, state);
+  }
+
+  const currentVassal = getSettlementCurrentVassal(state);
+  assert.ok(currentVassal, "expected a selected current vassal");
+  assert.ok(
+    currentVassal.deathSec > settlementGraphWindowSec,
+    "fixture should use a vassal lifespan that exceeds the default 40-year graph window"
+  );
+
+  const timeline = createTimelineFromInitialState(state);
+  timeline.cursorSec = Math.max(0, Math.floor(state.tSec ?? 0));
+  timeline.historyEndSec = Math.max(0, Math.floor(state.tSec ?? 0));
+
+  const projectionCache = createSettlementProjectionCache({
+    horizonSec: settlementGraphWindowSec,
+    stepSec: 1,
+  });
+  const controller = createTimeGraphController({
+    getTimeline: () => timeline,
+    getCursorState: () => state,
+    metric: GRAPH_METRICS.settlement,
+    projectionCache,
+    forecastStepSec: 1,
+    horizonSec: settlementGraphWindowSec,
+  });
+
+  controller.setActive(true);
+  const ensureRes = controller.ensureCache();
+  assert.equal(ensureRes.ok, true, ensureRes.reason);
+  assert.ok(
+    controller.getStateAt(currentVassal.deathSec),
+    "sync browsing a late death second should build the full current-vassal forecast"
+  );
+
+  const sampleRes = controller.getSamplesForWindow({
+    startSec: 0,
+    endSec: currentVassal.deathSec,
+    focus: false,
+    cursorSec: Math.floor(state.tSec ?? 0),
+  });
+  assert.equal(sampleRes.ok, true, sampleRes.reason);
+
+  const pendingForecastPoints = sampleRes.points.filter(
+    (point) =>
+      Math.floor(point?.tSec ?? 0) > timeline.historyEndSec && point?.pending === true
+  );
+  assert.equal(
+    pendingForecastPoints.length,
+    0,
+    `settlement forecast sampling should not leave pending gaps after a sync browse to death; pending seconds: ${pendingForecastPoints
+      .slice(0, 12)
+      .map((point) => point.tSec)
+      .join(", ")}`
+  );
+}
+
 function testWorkerServiceDedupesEquivalentRequests() {
   const { timeline } = createBasicTimeline();
   const projectionCache = createProjectionCache();
@@ -682,6 +767,10 @@ const tests = [
   [
     "controller rebuilds forecast values from retained graph anchors",
     testControllerRebuildsForecastValuesFromRetainedGraphAnchors,
+  ],
+  [
+    "settlement projection cache retains full current-vassal forecast",
+    testSettlementProjectionCacheRetainsFullCurrentVassalForecast,
   ],
   [
     "worker service dedupes equivalent requests",

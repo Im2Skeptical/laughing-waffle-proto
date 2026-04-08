@@ -57,7 +57,8 @@ const FORECAST_PENDING_ZONE_ALPHA = Math.min(
   1,
   TIME_STATE_GRAPH_BG_ALPHA * 4.5
 );
-const FORECAST_REVEAL_RATE_SEC_PER_SEC = 480;
+const FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC = 480;
+const FORECAST_REVEAL_TARGET_DURATION_SEC = 0.6;
 const FORECAST_REVEAL_PLOT_THROTTLE_MS = 16;
 const FORECAST_REVEAL_MARKER_ALPHA = 0.92;
 
@@ -696,8 +697,13 @@ export function createMetricGraphView({
     const elapsedMs = Math.max(0, nowMs - forecastRevealLastTickMs);
     forecastRevealLastTickMs = nowMs;
     if (elapsedMs <= 0) return currentEnd;
+    const remainingForecastSpanSec = Math.max(1, targetEnd - historyEnd);
+    const revealRateSecPerSec = Math.max(
+      FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
+      remainingForecastSpanSec / Math.max(0.05, FORECAST_REVEAL_TARGET_DURATION_SEC)
+    );
     const revealDeltaSec =
-      (elapsedMs / 1000) * Math.max(1, FORECAST_REVEAL_RATE_SEC_PER_SEC);
+      (elapsedMs / 1000) * revealRateSecPerSec;
     const animatedEnd = Math.min(targetEnd, currentEnd + revealDeltaSec);
     forecastRevealAnimatedEndSec = Math.max(historyEnd, animatedEnd);
     forecastRevealVisibleEndSec = forecastRevealAnimatedEndSec;

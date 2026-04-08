@@ -8,7 +8,7 @@ export const BASE_PROJECTION_HORIZON_SEC = 1200;
 export const BASE_EDITABLE_HISTORY_WINDOW_SEC = 0;
 export const ENV_EVENT_DRAW_CADENCE_SEC = 5;
 
-export const SEASON_DURATION_SEC = 32; // seconds of simulation per season
+export const SEASON_DURATION_SEC = 8; // seconds of simulation per season
 export const SEASONS = ["spring", "summer", "autumn", "winter"];
 export const SEASON_DISPLAY = {
   spring: "Spring",
@@ -18,8 +18,8 @@ export const SEASON_DISPLAY = {
 };
 
 // --- Moon / Action Point Cap ---
-export const MOON_CYCLE_SEC = 30;
-export const MOON_PHASE_OFFSET_SEC = 15;
+export const MOON_CYCLE_SEC = 6;
+export const MOON_PHASE_OFFSET_SEC = 0;
 export const AP_CAP_MIN = 0;
 export const AP_CAP_MAX = 120;
 export const AP_INCOME_PER_SEC = 1;

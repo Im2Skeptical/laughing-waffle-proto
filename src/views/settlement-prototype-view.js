@@ -1001,7 +1001,7 @@ function drawElderLozenge(
   detailHit.endFill();
   detailHit.eventMode = "static";
   detailHit.cursor = "pointer";
-  detailHit.on("pointerover", () => {
+  detailHit.on("pointerenter", () => {
     const anchor =
       tooltipView?.getAnchorRectForDisplayObject?.(detailHit, "parent") ?? {
         x: rect.x,
@@ -1021,7 +1021,7 @@ function drawElderLozenge(
       anchor
     );
   });
-  detailHit.on("pointerout", () => {
+  detailHit.on("pointerleave", () => {
     tooltipView?.hide?.();
   });
   root.addChild(detailHit);
@@ -1032,13 +1032,13 @@ function drawElderLozenge(
   agendaHit.endFill();
   agendaHit.eventMode = "static";
   agendaHit.cursor = "pointer";
-  agendaHit.on("pointerover", () => {
+  agendaHit.on("pointerenter", () => {
     showAgendaFlyout?.({
       member,
       anchorDisplayObject: agendaHit,
     });
   });
-  agendaHit.on("pointerout", () => {
+  agendaHit.on("pointerleave", () => {
     scheduleAgendaFlyoutHide?.();
   });
   root.addChild(agendaHit);
@@ -1245,7 +1245,7 @@ function drawPracticeCard(
     root.eventMode = "static";
     root.cursor = "pointer";
     root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-    root.on("pointerover", () => {
+    root.on("pointerenter", () => {
       const anchor =
         tooltipView.getAnchorRectForDisplayObject?.(root, "parent") ?? {
           x: rect.x,
@@ -1267,7 +1267,7 @@ function drawPracticeCard(
         anchor
       );
     });
-    root.on("pointerout", () => {
+    root.on("pointerleave", () => {
       tooltipView.hide?.();
     });
   }
@@ -1594,10 +1594,10 @@ export function createSettlementPrototypeView({
     flyout.eventMode = "static";
     flyout.cursor = "default";
     flyout.hitArea = new PIXI.Rectangle(0, 0, width, height);
-    flyout.on("pointerover", () => {
+    flyout.on("pointerenter", () => {
       clearAgendaFlyoutHideTimer();
     });
-    flyout.on("pointerout", () => {
+    flyout.on("pointerleave", () => {
       scheduleAgendaFlyoutHide();
     });
 
@@ -1683,7 +1683,6 @@ export function createSettlementPrototypeView({
     }
     lastSignature = signature;
 
-    tooltipView?.hide?.();
     hideAgendaFlyoutNow();
     clearChildren(contentLayer);
 

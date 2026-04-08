@@ -48,7 +48,7 @@ export const settlementPracticeDefs = {
         op: "ReservePopulation",
         target: { ref: "hubCore" },
         amountVar: "practiceAmount",
-        releaseOffsetSec: 15,
+        releaseOffsetSec: 3,
         sourceId: "floodRites",
         label: "Flood Rites",
       },
@@ -114,7 +114,7 @@ export const settlementPracticeDefs = {
         op: "ReservePopulation",
         target: { ref: "hubCore" },
         amountVar: "practiceAmount",
-        releaseOffsetSec: 30,
+        releaseOffsetSec: 6,
         sourceId: "riverRecessionFarming",
         label: "River Recession Farming",
         onReleaseEffects: [

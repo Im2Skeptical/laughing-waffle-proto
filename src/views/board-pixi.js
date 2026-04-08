@@ -2211,6 +2211,13 @@ export function createBoardView(opts) {
     lastPointerPos = { x: p.x, y: p.y };
   }
 
+  function resolvePointerPos(ev) {
+    const point = ev?.data?.global ?? lastPointerPos;
+    if (!point) return null;
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+    return { x: point.x, y: point.y };
+  }
+
   function setActiveHover(next) {
     if (!next?.view) return;
     if (activeHover?.view === next.view) return;
@@ -2223,6 +2230,16 @@ export function createBoardView(opts) {
     if (view && activeHover.view !== view) return;
     activeHover.clear?.();
     activeHover = null;
+  }
+
+  function shouldRetainHoverOnPointerLeave(view, ev, pad = 0) {
+    const pointerPos = resolvePointerPos(ev);
+    if (!pointerPos) return false;
+    return (
+      isPointerInsideView(view, pointerPos, pad) ||
+      isPointerInsideAnchor(view?.hoverAnchor, pointerPos, pad) ||
+      isPointerInsideAnchor(view?.hoverUiAnchor, pointerPos, pad)
+    );
   }
 
   function isPointerInsideView(view, globalPos, pad = 0) {
@@ -4694,9 +4711,10 @@ export function createBoardView(opts) {
         applyTileHover(view);
       });
 
-    cont.on("pointerleave", () => {
+    cont.on("pointerleave", (ev) => {
         if (view.tagDrag || view.holdHover) return;
         if (activeHover?.view && activeHover.view !== view) return;
+        if (shouldRetainHoverOnPointerLeave(view, ev)) return;
         if (holdHoverForOccupantIfNeeded(view)) return;
         clearActiveHover(view);
     });
@@ -5118,8 +5136,9 @@ export function createBoardView(opts) {
       applyEventHover(view, col, span);
     });
 
-    cont.on("pointerleave", () => {
+    cont.on("pointerleave", (ev) => {
       if (activeHover?.view && activeHover.view !== view) return;
+      if (shouldRetainHoverOnPointerLeave(view, ev)) return;
       clearActiveHover(view);
     });
 
@@ -5348,8 +5367,9 @@ export function createBoardView(opts) {
       applyEnvStructureHover(view);
     });
 
-    cont.on("pointerleave", () => {
+    cont.on("pointerleave", (ev) => {
       if (activeHover?.view && activeHover.view !== view) return;
+      if (shouldRetainHoverOnPointerLeave(view, ev)) return;
       if (holdHoverForOccupantIfNeeded(view)) return;
       clearActiveHover(view);
     });
@@ -5734,8 +5754,9 @@ export function createBoardView(opts) {
       applyHubStructureHover(view);
     });
 
-    cont.on("pointerleave", () => {
+    cont.on("pointerleave", (ev) => {
       if (activeHover?.view && activeHover.view !== view) return;
+      if (shouldRetainHoverOnPointerLeave(view, ev)) return;
       if (holdHoverForOccupantIfNeeded(view)) return;
       clearActiveHover(view);
     });
