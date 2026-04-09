@@ -2,6 +2,7 @@ import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
+import { getSettlementChaosGodSummary } from "../model/settlement-chaos.js";
 import { getCurrentSeasonKey } from "../model/state.js";
 import {
   getSettlementCurrentVassal,
@@ -179,6 +180,10 @@ function formatPracticeBlockedReason(reason) {
   if (text.startsWith("faithTier:")) {
     return `faith ${capitalizeTier(text.slice("faithTier:".length))}+`;
   }
+  if (text.startsWith("chaosGod:")) {
+    const [, godId = "god", key = "pressure"] = text.split(":");
+    return `${godId} ${key}`;
+  }
   return text
     .replace(/^stockpileHigh:/, "")
     .replace(/^stockpile:/, "")
@@ -259,6 +264,7 @@ function buildCompactPendingSelectionSignature(pendingSelection, classIds) {
 function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) {
   const summary = getSettlementPopulationSummary(state);
   const classIds = getSettlementClassIds(state);
+  const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
   const practiceCardsByClass = {};
   for (const classId of classIds) {
     practiceCardsByClass[classId] = getSettlementPracticeSlotsByClass(state, classId).map(
@@ -298,6 +304,7 @@ function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) 
       blue: getSettlementStockpile(state, "blueResource"),
       black: getSettlementStockpile(state, "blackResource"),
     },
+    redGodSummary,
     classSummaries: classIds.map((classId) => ({
       classId,
       population: getSettlementPopulationSummary(state, classId),
@@ -1284,6 +1291,99 @@ function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
   container.addChild(createText(String(value), TEXT_STYLES.chip, x + width - 14, y + 20, 1, 0.5));
 }
 
+function drawRedGodSigil(container, x, y, summary) {
+  const root = new PIXI.Container();
+  root.x = x;
+  root.y = y;
+
+  const radius = 32;
+  const cadenceSec = Math.max(1, Math.floor(summary?.cadenceSec ?? 1));
+  const countdownSec = Math.max(0, Math.floor(summary?.spawnCountdownSec ?? 0));
+  const elapsedRatio = Math.max(0, Math.min(1, 1 - countdownSec / cadenceSec));
+  const endAngle = -Math.PI / 2 + Math.PI * 2 * elapsedRatio;
+
+  const outer = new PIXI.Graphics();
+  outer.lineStyle(4, PALETTE.black, 0.95);
+  outer.beginFill(PALETTE.black, 0.22);
+  outer.drawCircle(0, 0, radius + 8);
+  outer.endFill();
+  root.addChild(outer);
+
+  const ringBg = new PIXI.Graphics();
+  ringBg.lineStyle(6, PALETTE.stroke, 0.65);
+  ringBg.arc(0, 0, radius + 2, -Math.PI / 2, Math.PI * 1.5);
+  root.addChild(ringBg);
+
+  const ring = new PIXI.Graphics();
+  ring.lineStyle(6, PALETTE.red, 0.95);
+  ring.arc(0, 0, radius + 2, -Math.PI / 2, endAngle);
+  root.addChild(ring);
+
+  const core = new PIXI.Graphics();
+  core.beginFill(PALETTE.red, 0.28);
+  core.drawCircle(0, 0, radius - 8);
+  core.endFill();
+  root.addChild(core);
+
+  const emblem = new PIXI.Graphics();
+  emblem.lineStyle(2, PALETTE.accent, 0.95);
+  emblem.beginFill(PALETTE.red, 0.9);
+  emblem.drawPolygon([
+    -10, -18,
+    2, -2,
+    -6, -2,
+    10, 18,
+    -2, 4,
+    6, 4,
+  ]);
+  emblem.endFill();
+  emblem.beginFill(PALETTE.black, 0.85);
+  emblem.drawPolygon([
+    -20, -6,
+    -8, -16,
+    -10, -2,
+  ]);
+  emblem.drawPolygon([
+    20, 6,
+    8, 16,
+    10, 2,
+  ]);
+  emblem.endFill();
+  root.addChild(emblem);
+
+  container.addChild(root);
+}
+
+function drawRedGodPanel(container, rect, summary) {
+  drawSubPanel(container, rect, PALETTE.panel, PALETTE.stroke);
+  drawRedGodSigil(container, rect.x + 64, rect.y + Math.floor(rect.height / 2), summary);
+  container.addChild(createText("redGod", TEXT_STYLES.title, rect.x + 126, rect.y + 18));
+  container.addChild(
+    createText(
+      `Chaos Power: ${Math.floor(summary?.chaosPower ?? 0)}`,
+      TEXT_STYLES.body,
+      rect.x + 126,
+      rect.y + 50
+    )
+  );
+  container.addChild(
+    createText(
+      `Next Spawn: ${Math.floor(summary?.nextSpawnCount ?? 0)} in ${Math.floor(summary?.spawnCountdownSec ?? 0)}s`,
+      TEXT_STYLES.body,
+      rect.x + 126,
+      rect.y + 74
+    )
+  );
+  container.addChild(
+    createText(
+      `Monsters: ${Math.floor(summary?.monsterCount ?? 0)} / ${Math.floor(summary?.monsterWinCount ?? 100)}`,
+      TEXT_STYLES.body,
+      rect.x + 126,
+      rect.y + 98
+    )
+  );
+}
+
 function drawClassSummaryCard(
   rect,
   classId,
@@ -1676,6 +1776,7 @@ export function createSettlementPrototypeView({
       typeof getVisibleVassalTimeSec === "function"
         ? getVisibleVassalTimeSec(state)
         : state?.tSec;
+    const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
     const signature = buildSignature(state, selectedClassId, visibleVassalThroughSec);
     if (signature === lastSignature) {
       renderAgendaFlyout(state);
@@ -1706,7 +1807,8 @@ export function createSettlementPrototypeView({
 
     const hubPanelRect = { x: 70, y: 120, width: 1080, height: 700 };
     const vassalPanelRect = { x: 1170, y: 120, width: 560, height: 620 };
-    const regionPanelRect = { x: 1760, y: 180, width: 540, height: 450 };
+    const chaosPanelRect = { x: 1760, y: 120, width: 540, height: 140 };
+    const regionPanelRect = { x: 1760, y: 280, width: 540, height: 350 };
     // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
     const classColumnRect = { x: 100, y: 188, width: 220, height: 300 };
     const orderRect = { x: 344, y: 184, width: 776, height: 220 };
@@ -1721,6 +1823,17 @@ export function createSettlementPrototypeView({
       hubPanelRect.y,
       hubPanelRect.width,
       hubPanelRect.height,
+      26,
+      PALETTE.panelSoft,
+      PALETTE.stroke,
+      4
+    );
+    roundedRect(
+      panelGfx,
+      chaosPanelRect.x,
+      chaosPanelRect.y,
+      chaosPanelRect.width,
+      chaosPanelRect.height,
       26,
       PALETTE.panelSoft,
       PALETTE.stroke,
@@ -1809,7 +1922,7 @@ export function createSettlementPrototypeView({
         state?.locationNames?.region ?? "Region",
         TEXT_STYLES.header,
         regionPanelRect.x + regionPanelRect.width * 0.5,
-        210,
+        regionPanelRect.y + 30,
         0.5,
         0.5
       )
@@ -2027,6 +2140,7 @@ export function createSettlementPrototypeView({
     const tileAnchors = Array.isArray(state?.board?.layers?.tile?.anchors)
       ? state.board.layers.tile.anchors
       : [];
+    drawRedGodPanel(contentLayer, chaosPanelRect, redGodSummary);
     for (let i = 0; i < tileAnchors.length; i += 1) {
       const tile = tileAnchors[i];
       const def = envTileDefs[tile?.defId];
@@ -2034,9 +2148,9 @@ export function createSettlementPrototypeView({
         contentLayer,
         {
           x: regionPanelRect.x + 20 + i * 100,
-          y: regionPanelRect.y + 90,
+          y: regionPanelRect.y + 70,
           width: 88,
-          height: regionPanelRect.height - 140,
+          height: regionPanelRect.height - 100,
         },
         def?.name ?? tile?.defId ?? "Tile",
         buildTileLines(tile),

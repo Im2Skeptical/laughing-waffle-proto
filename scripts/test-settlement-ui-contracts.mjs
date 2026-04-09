@@ -188,6 +188,26 @@ assert.match(
 );
 assert.match(
   rootSource,
+  /createRunCompleteView/,
+  "[test] settlement root should boot the shared run-complete modal"
+);
+assert.match(
+  rootSource,
+  /function\s+syncSettlementRunCompleteOverlay\(/,
+  "[test] settlement root should sync the settlement run-complete overlay from the event feed"
+);
+assert.match(
+  rootSource,
+  /entry\?\.type === "runComplete"/,
+  "[test] settlement root should look for runComplete events in the game event feed"
+);
+assert.match(
+  rootSource,
+  /runCompleteView\?\.openForEntry\?\.\(latestEntry,\s*\{\s*source:\s*"settlement"\s*\}\)/,
+  "[test] settlement root should open the shared run-complete modal for settlement run-complete events"
+);
+assert.match(
+  rootSource,
   /getVisibleVassalTimeSec:/,
   "[test] settlement prototype view should receive a reveal-aware vassal visibility callback"
 );
@@ -256,6 +276,24 @@ for (const label of ["Order", "Practice", "Structures"]) {
     `[test] prototype playfield should render the ${label} zone label`
   );
 }
+
+for (const label of ["redGod", "Chaos Power", "Next Spawn", "Monsters"]) {
+  assert.ok(
+    prototypeViewSource.includes(`"${label}"`) || prototypeViewSource.includes(`\`${label}`),
+    `[test] prototype playfield should render the ${label} redGod HUD text`
+  );
+}
+
+assert.match(
+  prototypeViewSource,
+  /getSettlementChaosGodSummary\(state,\s*"redGod"\)/,
+  "[test] prototype playfield should derive the redGod panel from settlement chaos summary data"
+);
+assert.match(
+  prototypeViewSource,
+  /const\s+chaosPanelRect\s*=\s*\{\s*x:\s*1760,\s*y:\s*120,\s*width:\s*540,\s*height:\s*140\s*\}/,
+  "[test] prototype playfield should reserve the top-right redGod panel rect"
+);
 
 assert.match(
   prototypeViewSource,

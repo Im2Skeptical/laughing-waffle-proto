@@ -314,6 +314,168 @@ export const settlementPracticeDefs = {
       emergencyFoodReserveRatio: 0.1,
     },
   },
+  monsterHunt: {
+    id: "monsterHunt",
+    kind: "settlementPractice",
+    practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "minor",
+    name: "Monster Hunt",
+    ui: {
+      title: "Monster Hunt",
+      lines: [
+        "Commit up to 10 citizens for 1 moon",
+        "Consume 1 red per citizen",
+        "Kill 10 monsters per citizen on return",
+      ],
+      description: "A short punitive hunt that turns ritual stores into direct pressure relief.",
+    },
+    requires: {
+      freePopulationAtLeast: 1,
+      stockpileAtLeast: {
+        redResource: 1,
+      },
+      chaosGodValueAtLeast: {
+        godId: "redGod",
+        key: "monsterCount",
+        amount: 10,
+      },
+    },
+    amount: {
+      mode: "min",
+      values: [
+        { kind: "freePopulation" },
+        10,
+        { kind: "stockpile", key: "redResource" },
+        { kind: "chaosGodValue", godId: "redGod", key: "monsterCount", divideBy: 10 },
+      ],
+    },
+    effects: [
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "redResource",
+        amountVar: "practiceAmount",
+        amountScale: -1,
+      },
+      {
+        op: "ReservePopulation",
+        target: { ref: "hubCore" },
+        amountVar: "practiceAmount",
+        releaseOffsetSec: MOON_CYCLE_SEC,
+        sourceId: "monsterHunt",
+        label: "Monster Hunt",
+        onReleaseEffects: [
+          {
+            op: "AdjustSettlementChaosGodState",
+            target: { ref: "hubCore" },
+            godId: "redGod",
+            key: "monsterCount",
+            amountVar: "practiceAmount",
+            amountScale: -10,
+            min: 0,
+          },
+        ],
+      },
+    ],
+  },
+  monsterWar: {
+    id: "monsterWar",
+    kind: "settlementPractice",
+    practiceMode: "active",
+    orderEligibleClassIds: ["villager"],
+    orderDevelopmentTier: "major",
+    name: "Monster War",
+    ui: {
+      title: "Monster War",
+      lines: [
+        "Commit up to 20 citizens for 14 moons",
+        "Consume 1 food + 1 red per citizen",
+        "Kill 10 monsters and reduce chaos by 10 per citizen on return",
+      ],
+      description: "A long organized campaign that suppresses both the redGod host and its mounting pressure.",
+    },
+    requires: {
+      freePopulationAtLeast: 1,
+      stockpileAtLeast: {
+        food: 1,
+        redResource: 1,
+      },
+      chaosGodValueAtLeast: [
+        {
+          godId: "redGod",
+          key: "monsterCount",
+          amount: 10,
+        },
+        {
+          godId: "redGod",
+          key: "chaosPower",
+          amount: 10,
+        },
+      ],
+    },
+    timing: {
+      cadenceSec: MOON_CYCLE_SEC * 14,
+    },
+    amount: {
+      mode: "min",
+      values: [
+        { kind: "freePopulation" },
+        20,
+        { kind: "stockpile", key: "food" },
+        { kind: "stockpile", key: "redResource" },
+        { kind: "chaosGodValue", godId: "redGod", key: "monsterCount", divideBy: 10 },
+        { kind: "chaosGodValue", godId: "redGod", key: "chaosPower", divideBy: 10 },
+      ],
+    },
+    effects: [
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "food",
+        amountVar: "practiceAmount",
+        amountScale: -1,
+      },
+      {
+        op: "AdjustSystemState",
+        target: { ref: "hubCore" },
+        system: "stockpiles",
+        key: "redResource",
+        amountVar: "practiceAmount",
+        amountScale: -1,
+      },
+      {
+        op: "ReservePopulation",
+        target: { ref: "hubCore" },
+        amountVar: "practiceAmount",
+        releaseOffsetSec: MOON_CYCLE_SEC * 14,
+        sourceId: "monsterWar",
+        label: "Monster War",
+        onReleaseEffects: [
+          {
+            op: "AdjustSettlementChaosGodState",
+            target: { ref: "hubCore" },
+            godId: "redGod",
+            key: "monsterCount",
+            amountVar: "practiceAmount",
+            amountScale: -10,
+            min: 0,
+          },
+          {
+            op: "AdjustSettlementChaosGodState",
+            target: { ref: "hubCore" },
+            godId: "redGod",
+            key: "chaosPower",
+            amountVar: "practiceAmount",
+            amountScale: -10,
+            min: 0,
+          },
+        ],
+      },
+    ],
+  },
   upgradeFoodStorage: {
     id: "upgradeFoodStorage",
     kind: "settlementPractice",

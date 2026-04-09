@@ -8,6 +8,7 @@ import { cloneSerializable } from "../../core/clone.js";
 import { resolveEffectDef } from "../../core/registry.js";
 import { ensureSystemState } from "../../core/system-state.js";
 import { resolveEffectTargets } from "./targets.js";
+import { getSettlementChaosGodState } from "../../../settlement-chaos.js";
 
 export function handleAddToSystemState(state, effect, context) {
   const systemId = effect.system;
@@ -182,6 +183,35 @@ export function handleAdjustSystemState(state, effect, context) {
       systemState[key] = next;
       changed = true;
     }
+  }
+
+  return changed;
+}
+
+export function handleAdjustSettlementChaosGodState(state, effect, context) {
+  const godId = typeof effect?.godId === "string" ? effect.godId : null;
+  const key = typeof effect?.key === "string" ? effect.key : null;
+  if (!godId || !key) return false;
+
+  const targets = resolveEffectTargets(state, effect, context);
+  if (!targets.length) return false;
+
+  let changed = false;
+  for (const target of targets) {
+    if (target?.kind !== "hubCore") continue;
+    const godState = getSettlementChaosGodState(state, godId);
+    if (!godState || !Object.prototype.hasOwnProperty.call(godState, key)) continue;
+    const { def } = resolveEffectDef(effect, target, context);
+    const deltaRaw = resolveAmount(effect, godState, def, context);
+    const delta = Number.isFinite(deltaRaw) ? deltaRaw : 0;
+    const current = Number.isFinite(godState[key]) ? godState[key] : 0;
+    const nextRaw = current + delta;
+    const min = Number.isFinite(effect.min) ? effect.min : -Infinity;
+    const max = Number.isFinite(effect.max) ? effect.max : Infinity;
+    const next = clamp(nextRaw, min, max);
+    if (next === current) continue;
+    godState[key] = next;
+    changed = true;
   }
 
   return changed;

@@ -100,6 +100,12 @@ export const eventLogTypeDefs = {
     color: 0xff4f4f,
     glyph: "PS",
   },
+  redGodSpawn: {
+    id: "redGodSpawn",
+    label: "Red God",
+    color: 0xd85d4b,
+    glyph: "RG",
+  },
   vassalBirth: {
     id: "vassalBirth",
     label: "Vassal Born",

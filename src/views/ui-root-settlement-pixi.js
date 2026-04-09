@@ -17,6 +17,7 @@ import {
   VIEWPORT_DESIGN_WIDTH,
 } from "./layout-pixi.js";
 import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
+import { createRunCompleteView } from "./run-complete-pixi.js";
 import { createSettlementVassalChooserView } from "./settlement-vassal-chooser-pixi.js";
 import { createSettlementVassalControlsView } from "./settlement-vassal-controls-pixi.js";
 import { createTimeControlsView } from "./time-controls-pixi.js";
@@ -162,6 +163,7 @@ let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
 let settlementVassalChooserView = null;
 let settlementVassalControlsView = null;
+let runCompleteView = null;
 let settlementGraphSeriesMenuOpen = false;
 let settlementGraphSeriesMenuSignature = "";
 let visibleSettlementGraphSeriesIds = [];
@@ -843,6 +845,23 @@ function getSettlementNextVassalState() {
   };
 }
 
+function getLatestRunCompleteEntry(state = runner?.getState?.() ?? null) {
+  const feed = Array.isArray(state?.gameEventFeed) ? state.gameEventFeed : [];
+  for (let index = feed.length - 1; index >= 0; index -= 1) {
+    const entry = feed[index];
+    if (entry?.type === "runComplete") return entry;
+  }
+  return null;
+}
+
+function syncSettlementRunCompleteOverlay() {
+  const latestEntry = getLatestRunCompleteEntry(runner?.getState?.() ?? null);
+  const latestId = Number.isFinite(latestEntry?.id) ? Math.floor(latestEntry.id) : null;
+  if (latestId == null) return;
+  if (runCompleteView?.isOpenForEvent?.(latestId) === true) return;
+  runCompleteView?.openForEntry?.(latestEntry, { source: "settlement" });
+}
+
 const runner = createSimRunner({
   setupId: BOOT_SETUP_ID,
   onInvalidate: (reason) => {
@@ -1034,6 +1053,10 @@ settlementVassalChooserView = createSettlementVassalChooserView({
   onSelectCandidate: (vassalId) => selectSettlementVassal(vassalId),
   tooltipView,
 });
+runCompleteView = createRunCompleteView({
+  app,
+  layer: modalLayer,
+});
 
 function requestPauseBeforeDrag() {
   runner.setTimeScaleTarget?.(0, { requestPause: true });
@@ -1075,6 +1098,7 @@ function resizeCanvas() {
   renderSettlementGraphSeriesMenu();
   sunMoonDisksView.applyLayout?.();
   settlementVassalChooserView?.refresh?.();
+  runCompleteView?.resize?.();
 }
 
 runner.init();
@@ -1087,6 +1111,8 @@ timeControlsView.init();
 sunMoonDisksView.init();
 settlementVassalControlsView.init();
 settlementVassalChooserView.init();
+runCompleteView.init();
+syncSettlementRunCompleteOverlay();
 
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleGlobalKeyDown);
@@ -1105,4 +1131,6 @@ app.ticker.add((delta) => {
   sunMoonDisksView.update(frameDt);
   settlementVassalControlsView.update(frameDt);
   settlementVassalChooserView.update(frameDt);
+  syncSettlementRunCompleteOverlay();
+  runCompleteView.update(frameDt);
 });
