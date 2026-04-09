@@ -25,6 +25,21 @@ export const AP_CAP_MAX = 120;
 export const AP_INCOME_PER_SEC = 1;
 export const AP_INCOME_MULT_WAXING = 8;
 export const AP_INCOME_MULT_WANING = 0;
+export const CHAOS_GOD_IDS = Object.freeze([
+  "redGod",
+  "greenGod",
+  "blueGod",
+  "blackGod",
+]);
+export const RED_GOD_ENABLED = false;
+export const RED_GOD_CHAOS_RATE_BY_FAITH = Object.freeze({
+  silver: 1,
+  bronze: 2,
+});
+export const RED_GOD_POPULATION_BAND_SIZE = 10;
+export const RED_GOD_SPAWN_CADENCE_MOONS = 7;
+export const RED_GOD_MONSTERS_PER_CHAOS = 10;
+export const RED_GOD_MONSTER_WIN_COUNT = 100;
 
 
 // --- Prestige + Followers ---

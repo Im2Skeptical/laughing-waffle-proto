@@ -231,6 +231,9 @@ function applySettlementCoreSpec(core, spec) {
     typeof spec.systemState.populationClasses === "object"
   ) {
     core.systemState.populationClasses = cloneSerializable(spec.systemState.populationClasses);
+  }
+  if (spec.systemState?.chaosGods && typeof spec.systemState.chaosGods === "object") {
+    core.systemState.chaosGods = cloneSerializable(spec.systemState.chaosGods);
   } else if (spec.systemState?.population && typeof spec.systemState.population === "object") {
     const faithTier =
       typeof spec.systemState?.faith?.tier === "string"

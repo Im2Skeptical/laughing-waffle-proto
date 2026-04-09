@@ -17,6 +17,10 @@ import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-d
 import { pushGameEvent } from "./event-feed.js";
 import { runEffect } from "./effects/index.js";
 import { passiveTimingPasses } from "./passive-timing.js";
+import {
+  getSettlementChaosGodState,
+  stepSettlementChaosSecond,
+} from "./settlement-chaos.js";
 import { stepSettlementOrders } from "./settlement-order-exec.js";
 import { getCurrentSeasonKey } from "./state.js";
 import { stepSettlementVassals } from "./settlement-vassal-exec.js";
@@ -494,6 +498,14 @@ function resolvePracticeAmountValue(input, state, classSummary) {
         key && Number.isFinite(stockpiles?.[key]) ? Math.max(0, Math.floor(stockpiles[key])) : 0;
       break;
     }
+    case "chaosGodValue": {
+      const godId = typeof input.godId === "string" ? input.godId : null;
+      const key = typeof input.key === "string" ? input.key : null;
+      const godState = godId ? getSettlementChaosGodState(state, godId) : null;
+      baseValue =
+        key && Number.isFinite(godState?.[key]) ? Math.max(0, Math.floor(godState[key])) : 0;
+      break;
+    }
     case "settlementStructureUpgradeCitizensRemaining": {
       const structureDefId = typeof input.structureDefId === "string" ? input.structureDefId : null;
       const structure = structureDefId ? findSettlementStructureByDefId(state, structureDefId) : null;
@@ -703,6 +715,20 @@ function practiceRequirementsPass(def, state, classSummary, seasonKey, classId) 
         if (value > amount) {
           return { ok: false, reason: `stockpileHigh:${key}` };
         }
+      }
+    }
+  }
+  const chaosRequirements = normalizeRequirementEntries(requires.chaosGodValueAtLeast);
+  if (chaosRequirements.length > 0) {
+    for (const entry of chaosRequirements) {
+      if (!entry || typeof entry !== "object") continue;
+      const godId = typeof entry.godId === "string" ? entry.godId : null;
+      const key = typeof entry.key === "string" ? entry.key : null;
+      const amount = Number.isFinite(entry.amount) ? Math.max(0, Math.floor(entry.amount)) : 0;
+      const godState = godId ? getSettlementChaosGodState(state, godId) : null;
+      const value = key && Number.isFinite(godState?.[key]) ? Math.floor(godState[key]) : 0;
+      if (value < amount) {
+        return { ok: false, reason: `chaosGod:${godId ?? "unknown"}:${key ?? "value"}` };
       }
     }
   }
@@ -2043,13 +2069,20 @@ export function stepSettlementSecond(state, tSec) {
   if (!getHubCore(state)) return;
   releaseExpiredPopulationCommitments(state, tSec);
   runSettlementPopulationSeasonTick(state, tSec);
+  if (state?.runStatus?.complete === true) return;
   syncSettlementDerivedState(state, tSec);
   stepSettlementVassals(state, tSec);
+  if (state?.runStatus?.complete === true) return;
   syncSettlementDerivedState(state, tSec);
   stepSettlementOrders(state, tSec);
+  if (state?.runStatus?.complete === true) return;
   syncSettlementDerivedState(state, tSec);
   executePassivePractices(state, tSec);
+  if (state?.runStatus?.complete === true) return;
   syncSettlementDerivedState(state, tSec);
   executePractices(state, tSec);
+  syncSettlementDerivedState(state, tSec);
+  if (state?.runStatus?.complete === true) return;
+  stepSettlementChaosSecond(state, tSec);
   syncSettlementDerivedState(state, tSec);
 }

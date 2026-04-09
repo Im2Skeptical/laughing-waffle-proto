@@ -13,10 +13,14 @@ function normalizeRunComplete(entry) {
     typeof data?.reason === "string" && data.reason.length > 0
       ? data.reason
       : "unknown";
+  const text =
+    typeof entry?.text === "string" && entry.text.length > 0
+      ? entry.text
+      : `Civilization lasted until Year ${year}.`;
   return {
     year,
     reason,
-    text: `Civilization lasted until Year ${year}.`,
+    text,
   };
 }
 
@@ -26,6 +30,9 @@ function formatReason(reason) {
   }
   if (reason === "leaderFaithCollapsedAtBronze") {
     return "All leaders were lost after faith collapse from starvation.";
+  }
+  if (reason === "redGodMonsterOverrun") {
+    return "redGod reached 100 monsters and overran the settlement.";
   }
   return "Run complete.";
 }
