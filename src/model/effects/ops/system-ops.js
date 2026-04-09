@@ -13,6 +13,7 @@ export {
   handleShiftPopulationClassHappiness,
 } from "./system/population-ops.js";
 export { handleAdvanceSettlementStructureUpgrade } from "./system/settlement-upgrade-ops.js";
+export { handleRemoveSettlementPractice } from "./system/settlement-practice-ops.js";
 
 export { handleExpireStoredPerishables } from "./system/perishables-ops.js";
 

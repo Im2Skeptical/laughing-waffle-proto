@@ -320,6 +320,7 @@ export const settlementPracticeDefs = {
     practiceMode: "active",
     orderEligibleClassIds: ["villager"],
     orderDevelopmentTier: "minor",
+    completionBehavior: "removePractice",
     name: "Monster Hunt",
     ui: {
       title: "Monster Hunt",
@@ -375,6 +376,10 @@ export const settlementPracticeDefs = {
             amountVar: "practiceAmount",
             amountScale: -10,
             min: 0,
+          },
+          {
+            op: "RemoveSettlementPractice",
+            suppressForCurrentYear: true,
           },
         ],
       },
@@ -482,6 +487,7 @@ export const settlementPracticeDefs = {
     practiceMode: "active",
     orderEligibleClassIds: ["villager"],
     orderDevelopmentTier: "major",
+    completionBehavior: "removePractice",
     name: "Upgrade Food Storage",
     upgradeTargetStructureDefId: "granary",
     ui: {
@@ -554,6 +560,7 @@ export const settlementPracticeDefs = {
     practiceMode: "active",
     orderEligibleClassIds: ["villager"],
     orderDevelopmentTier: "major",
+    completionBehavior: "removePractice",
     name: "Upgrade Housing",
     upgradeTargetStructureDefId: "mudHouses",
     ui: {

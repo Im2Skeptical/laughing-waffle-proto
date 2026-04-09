@@ -150,7 +150,7 @@ function drawAgendaSection(container, rect, classId, agenda, tooltipView) {
   const cardWidth = 82;
   const cardHeight = 56;
   const cardGap = 8;
-  const cards = Array.isArray(agenda) ? agenda : [];
+  const cards = Array.isArray(agenda) ? agenda.slice(0, 3) : [];
   for (let index = 0; index < cards.length; index += 1) {
     createMiniPracticeCard(
       section,

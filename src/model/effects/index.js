@@ -35,6 +35,7 @@ import {
   handleShiftPopulationClassHappiness,
   handleTransferPopulationClass,
   handleAdvanceSettlementStructureUpgrade,
+  handleRemoveSettlementPractice,
 } from "./ops/system-ops.js";
 import {
   handleAddTag,
@@ -81,6 +82,7 @@ const handlers = {
   ShiftPopulationClassHappiness: handleShiftPopulationClassHappiness,
   TransferPopulationClass: handleTransferPopulationClass,
   AdvanceSettlementStructureUpgrade: handleAdvanceSettlementStructureUpgrade,
+  RemoveSettlementPractice: handleRemoveSettlementPractice,
   ExpireStoredPerishables: handleExpireStoredPerishables,
   ConsumeItem: handleConsumeItem,
   TransferUnits: handleTransferUnits,
