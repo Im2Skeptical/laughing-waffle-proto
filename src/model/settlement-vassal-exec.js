@@ -14,7 +14,7 @@ import {
   settlementVassalTraitIds,
 } from "../defs/gamepieces/settlement-vassal-defs.js";
 import {
-  buildGeneratedAgendaByClass,
+  buildGeneratedVassalAgendaByClass,
   chooseRandom,
   getMortalityChance,
   pickWeightedClassId,
@@ -24,7 +24,6 @@ import {
   getSettlementClassIds,
   getSettlementOrderSlots,
   getSettlementPopulationSummary,
-  getSettlementPracticeSlotsByClass,
   getSettlementVassalLineageState,
   getSettlementYearDurationSec,
   getSettlementYearStartSec,
@@ -71,16 +70,6 @@ function getFirstOrderCard(state, defId = null) {
 function getOrderDef(state) {
   const card = getFirstOrderCard(state, "elderCouncil");
   return settlementOrderDefs?.[card?.defId] ?? settlementOrderDefs?.elderCouncil ?? null;
-}
-
-function getPracticeSlotCount(state, classId) {
-  return getSettlementPracticeSlotsByClass(state, classId).length;
-}
-
-function getCurrentBoardDefIds(state, classId) {
-  return getSettlementPracticeSlotsByClass(state, classId)
-    .map((slot) => slot?.card?.defId ?? null)
-    .filter((defId) => typeof defId === "string" && defId.length > 0);
 }
 
 function nextLineagePoolId(lineage) {
@@ -213,7 +202,7 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
   return record;
 }
 
-function createCandidateRecord(state, lineage, poolId, orderDef, boardByClass) {
+function createCandidateRecord(state, lineage, poolId, orderDef) {
   const classIds = getSettlementClassIds(state);
   const populationSummary = getSettlementPopulationSummary(state);
   const currentYear = getCurrentYear(state);
@@ -223,15 +212,11 @@ function createCandidateRecord(state, lineage, poolId, orderDef, boardByClass) {
     typeof state?.rngNextInt === "function"
       ? state.rngNextInt(SETTLEMENT_VASSAL_STARTING_AGE_MIN, SETTLEMENT_VASSAL_STARTING_AGE_MAX)
       : SETTLEMENT_VASSAL_STARTING_AGE_MIN;
-  const agendaByClass = buildGeneratedAgendaByClass(
+  const agendaByClass = buildGeneratedVassalAgendaByClass(
     state,
-    orderDef,
     classIds,
-    boardByClass,
-    (classId) => getPracticeSlotCount(state, classId),
     {
-      fillToLimit: true,
-      requireMinorDevelopment: true,
+      agendaSize: 3,
       majorDevelopmentChance: SETTLEMENT_VASSAL_MAJOR_DEVELOPMENT_CHANCE,
     }
   );
@@ -274,10 +259,6 @@ export function ensureSettlementVassalSelectionPool(state, tSec = null) {
   }
   const orderDef = getOrderDef(state);
   const poolId = nextLineagePoolId(lineage);
-  const boardByClass = {};
-  for (const classId of getSettlementClassIds(state)) {
-    boardByClass[classId] = getCurrentBoardDefIds(state, classId);
-  }
   const createdSec = getSafeTSec(state, tSec);
   const previousTSec = state?.tSec;
   if (Number.isFinite(createdSec)) {
@@ -285,7 +266,7 @@ export function ensureSettlementVassalSelectionPool(state, tSec = null) {
   }
   const candidates = [];
   for (let index = 0; index < SETTLEMENT_VASSAL_CANDIDATE_COUNT; index += 1) {
-    const record = createCandidateRecord(state, lineage, poolId, orderDef, boardByClass);
+    const record = createCandidateRecord(state, lineage, poolId, orderDef);
     candidates.push(record);
     lineage.vassalsById[record.vassalId] = record;
   }

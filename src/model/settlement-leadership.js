@@ -93,6 +93,32 @@ export function getEligiblePracticeIds(classId) {
     .sort((a, b) => a.localeCompare(b));
 }
 
+function normalizeChance(value) {
+  if (!Number.isFinite(value)) return 0;
+  const raw = Number(value);
+  if (raw <= 0) return 0;
+  if (raw <= 1) {
+    return Math.max(0, Math.min(1, raw));
+  }
+  return Math.max(0, Math.min(1, raw / 100));
+}
+
+function drawUniquePracticeIdsFromPool(pool, count, state) {
+  const remaining = Array.isArray(pool) ? [...pool] : [];
+  const picks = [];
+  const targetCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  while (remaining.length > 0 && picks.length < targetCount) {
+    const pickedDefId = chooseRandom(remaining, state);
+    if (!pickedDefId) break;
+    picks.push(pickedDefId);
+    const pickedIndex = remaining.indexOf(pickedDefId);
+    if (pickedIndex >= 0) {
+      remaining.splice(pickedIndex, 1);
+    }
+  }
+  return picks;
+}
+
 function movePracticeToFront(agenda, defId) {
   const index = Array.isArray(agenda) ? agenda.indexOf(defId) : -1;
   if (index <= 0) return Array.isArray(agenda) ? agenda : [];
@@ -264,5 +290,61 @@ export function buildGeneratedAgendaByClass(
       options
     );
   }
+  return agendaByClass;
+}
+
+export function buildGeneratedElderAgendaByClass(
+  state,
+  classIds,
+  getAgendaSizeForClass,
+  { blockedPracticeIdsByClass = {} } = {}
+) {
+  const agendaByClass = {};
+  for (const classId of Array.isArray(classIds) ? classIds : []) {
+    const blockedPracticeIds = blockedPracticeIdsByClass?.[classId];
+    const minorPool = getMinorDevelopmentIds(classId).filter(
+      (defId) => !blockedPracticeIds?.has?.(defId)
+    );
+    const agendaSize = Number.isFinite(getAgendaSizeForClass?.(classId))
+      ? Math.max(0, Math.floor(getAgendaSizeForClass(classId)))
+      : 0;
+    agendaByClass[classId] = drawUniquePracticeIdsFromPool(minorPool, agendaSize, state);
+  }
+  return agendaByClass;
+}
+
+export function buildGeneratedVassalAgendaByClass(
+  state,
+  classIds,
+  { agendaSize = 3, majorDevelopmentChance = 0 } = {}
+) {
+  const normalizedAgendaSize = Number.isFinite(agendaSize) ? Math.max(0, Math.floor(agendaSize)) : 0;
+  const normalizedMajorChance = normalizeChance(majorDevelopmentChance);
+  const agendaByClass = {};
+
+  for (const classId of Array.isArray(classIds) ? classIds : []) {
+    const agenda = [];
+    const shouldIncludeMajor =
+      normalizedAgendaSize > 0 &&
+      normalizedMajorChance > 0 &&
+      typeof state?.rngNextFloat === "function" &&
+      state.rngNextFloat() < normalizedMajorChance;
+    if (shouldIncludeMajor) {
+      const majorDefId = chooseRandom(getMajorDevelopmentIds(classId), state);
+      if (majorDefId) {
+        agenda.push(majorDefId);
+      }
+    }
+
+    const nonMajorEligiblePool = getEligiblePracticeIds(classId).filter(
+      (defId) =>
+        !agenda.includes(defId) &&
+        settlementPracticeDefs?.[defId]?.orderDevelopmentTier !== "major"
+    );
+    const remainingSlots = Math.max(0, normalizedAgendaSize - agenda.length);
+    agenda.push(...drawUniquePracticeIdsFromPool(nonMajorEligiblePool, remainingSlots, state));
+    agendaByClass[classId] = agenda;
+  }
+
   return agendaByClass;
 }

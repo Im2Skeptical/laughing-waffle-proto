@@ -57,6 +57,9 @@ const PALETTE = Object.freeze({
   passiveBorderMuted: 0x7c8d72,
   active: 0xd1ad44,
   inactive: 0x777168,
+  mission: 0xd48f3f,
+  missionSoft: 0x5c4630,
+  missionFill: 0x564236,
   elderLozenge: 0x45403d,
   elderLozengeSoft: 0x595149,
   vassalCouncilFill: 0x4e4534,
@@ -580,6 +583,7 @@ function getMiniPracticeStyle(defId, opts = null) {
   const options = opts && typeof opts === "object" ? opts : {};
   const def = settlementPracticeDefs?.[defId] ?? null;
   const passive = def?.practiceMode === "passive";
+  const isMission = def?.completionBehavior === "removePractice";
   if (!defId || !def) {
     return {
       fill: PALETTE.slot,
@@ -587,6 +591,9 @@ function getMiniPracticeStyle(defId, opts = null) {
       radius: 10,
       passive: false,
       title: options.emptyLabel ?? "No agenda",
+      badgeLabel: null,
+      badgeFill: PALETTE.chip,
+      badgeOutline: PALETTE.stroke,
     };
   }
   let outline = passive ? PALETTE.passiveBorderMuted : PALETTE.stroke;
@@ -604,12 +611,19 @@ function getMiniPracticeStyle(defId, opts = null) {
     outline = PALETTE.active;
     fill = 0x4d4a52;
   }
+  if (isMission) {
+    outline = PALETTE.mission;
+    fill = passive ? PALETTE.missionSoft : PALETTE.missionFill;
+  }
   return {
     fill,
     outline,
     radius: passive ? 10 : 12,
     passive,
     title: def?.name ?? defId,
+    badgeLabel: isMission ? "Mission" : null,
+    badgeFill: PALETTE.missionSoft,
+    badgeOutline: PALETTE.mission,
   };
 }
 
@@ -649,8 +663,46 @@ function drawMiniPracticeCard(container, rect, defId, opts = null) {
   );
   root.addChild(title);
 
+  if (style.badgeLabel) {
+    const badgeHeight = Math.max(12, Math.floor((options.fontSize ?? 10) + 4));
+    const badgeWidth = Math.min(rect.width - 10, style.badgeLabel.length * 6 + 14);
+    const badgeX = Math.max(4, rect.width - badgeWidth - 4);
+    const badge = new PIXI.Graphics();
+    roundedRect(
+      badge,
+      badgeX,
+      4,
+      badgeWidth,
+      badgeHeight,
+      8,
+      style.badgeFill,
+      style.badgeOutline,
+      1
+    );
+    root.addChild(badge);
+    root.addChild(
+      createText(
+        style.badgeLabel,
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: Math.max(8, (options.fontSize ?? 10) - 1),
+          fontWeight: "bold",
+          fill: PALETTE.accent,
+        },
+        badgeX + badgeWidth * 0.5,
+        4 + badgeHeight * 0.5,
+        0.5,
+        0.5
+      )
+    );
+  }
+
   container.addChild(root);
   return root;
+}
+
+function isMissionPractice(card) {
+  return settlementPracticeDefs?.[card?.defId]?.completionBehavior === "removePractice";
 }
 
 function drawAgendaStack(container, rect, agendaDefIds) {
@@ -1167,6 +1219,7 @@ function drawPracticeCard(
   const root = new PIXI.Container();
   root.x = rect.x;
   root.y = rect.y;
+  const isMission = isMissionPractice(card);
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
@@ -1180,6 +1233,24 @@ function drawPracticeCard(
     practiceMode === "passive" ? 4 : 3
   );
   root.addChild(gfx);
+
+  if (isMission) {
+    const missionFrame = new PIXI.Graphics();
+    roundedRect(
+      missionFrame,
+      6,
+      6,
+      rect.width - 12,
+      rect.height - 12,
+      practiceMode === "passive" ? 12 : 18,
+      PALETTE.missionFill,
+      PALETTE.mission,
+      2,
+      0.08,
+      0.9
+    );
+    root.addChild(missionFrame);
+  }
 
   if (
     (runtime.activeReservation === true || runtime.activeProgressKind === "cadence") &&
@@ -1231,6 +1302,40 @@ function drawPracticeCard(
     showBody ? 14 : 12
   );
   root.addChild(titleText);
+
+  if (isMission) {
+    const badgeWidth = 70;
+    const badgeHeight = 18;
+    const badgeX = rect.width - badgeWidth - 12;
+    const badge = new PIXI.Graphics();
+    roundedRect(
+      badge,
+      badgeX,
+      12,
+      badgeWidth,
+      badgeHeight,
+      9,
+      PALETTE.missionSoft,
+      PALETTE.mission,
+      1
+    );
+    root.addChild(badge);
+    root.addChild(
+      createText(
+        "MISSION",
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 10,
+          fontWeight: "bold",
+          fill: PALETTE.accent,
+        },
+        badgeX + badgeWidth * 0.5,
+        12 + badgeHeight * 0.5,
+        0.5,
+        0.5
+      )
+    );
+  }
 
   if (showBody) {
     const body = createText(
@@ -1562,7 +1667,8 @@ function drawVassalPanel(
     : [];
   const agendaCardWidth = 84;
   const agendaGap = 8;
-  for (let index = 0; index < Math.min(5, agenda.length); index += 1) {
+  const visibleAgendaCount = Math.min(3, agenda.length);
+  for (let index = 0; index < visibleAgendaCount; index += 1) {
     drawMiniPracticeCard(
       container,
       {

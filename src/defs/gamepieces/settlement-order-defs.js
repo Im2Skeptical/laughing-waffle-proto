@@ -7,6 +7,10 @@ export const settlementOrderDefs = {
     name: "Elder Council",
     recruitmentCadenceYears: 5,
     recruitmentAdultsPerElder: 50,
+    starterPracticeBoardByClass: {
+      villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
+      stranger: ["asTheRomans", "becomeVillagers"],
+    },
     initialCouncilTemplate: [
       {
         ageYears: 61,

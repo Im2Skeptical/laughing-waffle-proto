@@ -8,12 +8,12 @@ import {
   getSettlementPracticeSlotsByClass,
 } from "./settlement-state.js";
 import {
-  buildGeneratedAgendaByClass,
-  chooseRandom,
+  buildGeneratedElderAgendaByClass,
   cloneSerializable,
   getMortalityChance,
   normalizeAgendaByClass,
   pickWeightedClassId,
+  uniquePracticeIds,
 } from "./settlement-leadership.js";
 
 function getCurrentSettlementYear(state) {
@@ -42,6 +42,7 @@ function ensureElderCouncilState(card, state) {
   }
   const classIds = getSettlementClassIds(state);
   const currentYear = getCurrentSettlementYear(state);
+  const orderDef = getOrderDef(card);
   const existing =
     card.systemState.elderCouncil &&
     typeof card.systemState.elderCouncil === "object" &&
@@ -110,6 +111,11 @@ function ensureElderCouncilState(card, state) {
     nextMemberId,
     members,
     suppressedPracticeYearsByClass,
+    practiceBoardMemoryByClass: normalizePracticeBoardMemoryByClass(
+      existing.practiceBoardMemoryByClass,
+      state,
+      orderDef
+    ),
   };
 
   if (shouldSeedInitialCouncil && members.length <= 0) {
@@ -173,19 +179,31 @@ function getPracticeSlotCount(state, classId) {
   return getSettlementPracticeSlotsByClass(state, classId).length;
 }
 
-function getCurrentBoardDefIds(state, classId) {
-  return getSettlementPracticeSlotsByClass(state, classId)
-    .map((slot) => slot?.card?.defId ?? null)
-    .filter((defId) => typeof defId === "string" && defId.length > 0);
-}
-
-function getFallbackAgendaForClass(orderDef, classId) {
+function getStarterPracticeBoardForClass(orderDef, classId) {
+  const starterBoard = orderDef?.starterPracticeBoardByClass?.[classId];
+  if (Array.isArray(starterBoard) && starterBoard.length > 0) {
+    return starterBoard.slice();
+  }
   const template = Array.isArray(orderDef?.initialCouncilTemplate) ? orderDef.initialCouncilTemplate : [];
   for (const member of template) {
     const agenda = Array.isArray(member?.agendaByClass?.[classId]) ? member.agendaByClass[classId] : [];
     if (agenda.length > 0) return agenda.slice();
   }
   return [];
+}
+
+function normalizePracticeBoardMemoryByClass(rawPracticeBoardMemoryByClass, state, orderDef) {
+  const classIds = getSettlementClassIds(state);
+  const next = {};
+  for (const classId of classIds) {
+    const slotCount = getPracticeSlotCount(state, classId);
+    const sourceBoard =
+      Array.isArray(rawPracticeBoardMemoryByClass?.[classId])
+        ? rawPracticeBoardMemoryByClass[classId]
+        : getStarterPracticeBoardForClass(orderDef, classId);
+    next[classId] = uniquePracticeIds(sourceBoard, classId, slotCount);
+  }
+  return next;
 }
 
 function getSuppressedPracticeIdsForClass(councilState, state, classId) {
@@ -206,93 +224,7 @@ function getSuppressedPracticeIdsForClass(councilState, state, classId) {
   return blocked;
 }
 
-function normalizeChance(value) {
-  if (!Number.isFinite(value)) return 0;
-  const raw = Number(value);
-  if (raw <= 0) return 0;
-  if (raw <= 1) {
-    return Math.max(0, Math.min(1, raw));
-  }
-  if (raw > 1) {
-    return Math.max(0, Math.min(1, raw / 100));
-  }
-  return 0;
-}
-
-function getMinorDevelopmentIds(classId) {
-  return Object.values(settlementPracticeDefs)
-    .filter((def) => {
-      if (!def || def.orderDevelopmentTier !== "minor") return false;
-      const eligible = Array.isArray(def.orderEligibleClassIds) ? def.orderEligibleClassIds : [];
-      return eligible.includes(classId);
-    })
-    .map((def) => def.id)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function uniquePracticeIds(rawList, classId, limit) {
-  const seen = new Set();
-  const result = [];
-  const eligibleClassId = typeof classId === "string" ? classId : null;
-  for (const defId of Array.isArray(rawList) ? rawList : []) {
-    if (typeof defId !== "string" || seen.has(defId)) continue;
-    const def = settlementPracticeDefs[defId];
-    if (!def) continue;
-    const eligible = Array.isArray(def.orderEligibleClassIds) ? def.orderEligibleClassIds : [];
-    if (eligibleClassId && eligible.length > 0 && !eligible.includes(eligibleClassId)) continue;
-    seen.add(defId);
-    result.push(defId);
-    if (Number.isFinite(limit) && result.length >= limit) break;
-  }
-  return result;
-}
-
-function mutateAgendaForClass(seedAgenda, classId, orderDef, state, limit, blockedPracticeIds = null) {
-  const agenda = uniquePracticeIds(seedAgenda, classId, limit).filter(
-    (defId) => !blockedPracticeIds?.has(defId)
-  );
-  const reorderChance = normalizeChance(orderDef?.agendaMutation?.reorderChance ?? 0);
-  const developmentChance = normalizeChance(orderDef?.agendaMutation?.developmentChance ?? 0);
-
-  if (
-    agenda.length > 1 &&
-    typeof state?.rngNextFloat === "function" &&
-    state.rngNextFloat() < reorderChance
-  ) {
-    const fromIndex = state.rngNextInt(0, agenda.length - 1);
-    let toIndex = state.rngNextInt(0, agenda.length - 1);
-    if (agenda.length > 1) {
-      while (toIndex === fromIndex) {
-        toIndex = state.rngNextInt(0, agenda.length - 1);
-      }
-    }
-    const [moved] = agenda.splice(fromIndex, 1);
-    agenda.splice(toIndex, 0, moved);
-  }
-
-  const minorDevelopmentIds = getMinorDevelopmentIds(classId).filter(
-    (defId) => !agenda.includes(defId) && !blockedPracticeIds?.has(defId)
-  );
-  if (
-    minorDevelopmentIds.length > 0 &&
-    typeof state?.rngNextFloat === "function" &&
-    state.rngNextFloat() < developmentChance
-  ) {
-    const replacementDefId = chooseRandom(minorDevelopmentIds, state);
-    if (replacementDefId) {
-      if (agenda.length <= 0) {
-        agenda.push(replacementDefId);
-      } else {
-        const replaceIndex = state.rngNextInt(0, agenda.length - 1);
-        agenda[replaceIndex] = replacementDefId;
-      }
-    }
-  }
-
-  return uniquePracticeIds(agenda, classId, limit);
-}
-
-function createRecruitMember(card, state, orderDef, boardByClass) {
+function createRecruitMember(card, state, orderDef) {
   const councilState = card?.systemState?.elderCouncil;
   if (!councilState) return null;
   const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
@@ -301,30 +233,26 @@ function createRecruitMember(card, state, orderDef, boardByClass) {
   const classIds = getSettlementClassIds(state);
   const sourceClassId = pickWeightedClassId(state, classIds, byClass);
   const modifierIds = Object.keys(orderDef?.prestigeModifiers ?? {}).sort((a, b) => a.localeCompare(b));
-  const modifierId = chooseRandom(modifierIds, state);
+  const modifierId =
+    modifierIds.length > 0 && typeof state?.rngNextInt === "function"
+      ? modifierIds[state.rngNextInt(0, modifierIds.length - 1)] ?? modifierIds[0]
+      : modifierIds[0] ?? null;
   const nextMemberId = Number.isFinite(councilState.nextMemberId)
     ? Math.max(1, Math.floor(councilState.nextMemberId))
     : 1;
   councilState.nextMemberId = nextMemberId + 1;
   const ageYears =
     typeof state?.rngNextInt === "function" ? state.rngNextInt(45, 64) : 55;
-  const agendaByClass = {};
-  for (const classId of classIds) {
-    const limit = getPracticeSlotCount(state, classId);
-    const blockedPracticeIds = getSuppressedPracticeIdsForClass(councilState, state, classId);
-    const seedAgenda =
-      Array.isArray(boardByClass?.[classId]) && boardByClass[classId].length > 0
-        ? boardByClass[classId]
-        : getFallbackAgendaForClass(orderDef, classId);
-    agendaByClass[classId] = mutateAgendaForClass(
-      seedAgenda,
-      classId,
-      orderDef,
-      state,
-      limit,
-      blockedPracticeIds
-    );
-  }
+  const agendaByClass = buildGeneratedElderAgendaByClass(state, classIds, () => {
+    if (typeof state?.rngNextInt === "function") {
+      return state.rngNextInt(1, 3);
+    }
+    return 1;
+  }, {
+    blockedPracticeIdsByClass: Object.fromEntries(
+      classIds.map((classId) => [classId, getSuppressedPracticeIdsForClass(councilState, state, classId)])
+    ),
+  });
   return {
     memberId: `elder-${nextMemberId}`,
     sourceClassId,
@@ -358,14 +286,10 @@ function maybeRecruitElders(card, state, orderDef) {
   }
   if (recruitCount <= 0) return false;
 
-  const boardByClass = {};
-  for (const classId of getSettlementClassIds(state)) {
-    boardByClass[classId] = getCurrentBoardDefIds(state, classId);
-  }
   const councilState = card?.systemState?.elderCouncil;
   if (!councilState) return false;
   for (let index = 0; index < recruitCount; index += 1) {
-    const member = createRecruitMember(card, state, orderDef, boardByClass);
+    const member = createRecruitMember(card, state, orderDef);
     if (member) {
       councilState.members.push(member);
     }
@@ -413,104 +337,122 @@ function processAnnualCouncilUpdate(card, state, orderDef) {
   );
 }
 
-function buildCurrentBoardPositionMap(state, classId) {
-  const map = {};
-  const currentBoard = getCurrentBoardDefIds(state, classId);
-  for (let index = 0; index < currentBoard.length; index += 1) {
-    map[currentBoard[index]] = index;
+function buildPracticePrestigeTotalsForClass(orderDef, councilState, classId) {
+  const totals = {};
+  for (const member of Array.isArray(councilState?.members) ? councilState.members : []) {
+    const agenda = Array.isArray(member?.agendaByClass?.[classId]) ? member.agendaByClass[classId] : [];
+    const memberPrestige = getMemberPrestige(orderDef, member);
+    for (const defId of agenda) {
+      if (!settlementPracticeDefs[defId]) continue;
+      totals[defId] = Math.max(0, Math.floor(totals[defId] ?? 0)) + memberPrestige;
+    }
   }
-  return map;
+  return totals;
 }
 
-function getMemberCandidate(member, classId, placedDefIds) {
-  const agenda = Array.isArray(member?.agendaByClass?.[classId]) ? member.agendaByClass[classId] : [];
-  for (const defId of agenda) {
-    if (placedDefIds.has(defId)) continue;
-    if (!settlementPracticeDefs[defId]) continue;
-    return defId;
-  }
-  return null;
+function sortSupportedPracticeIds(practiceIds, prestigeTotals, boardPositions) {
+  return [...practiceIds].sort((a, b) => {
+    const prestigeDelta = Math.max(0, Math.floor(prestigeTotals?.[b] ?? 0)) -
+      Math.max(0, Math.floor(prestigeTotals?.[a] ?? 0));
+    if (prestigeDelta !== 0) return prestigeDelta;
+    const positionDelta =
+      Math.max(0, Math.floor(boardPositions?.[a] ?? Number.MAX_SAFE_INTEGER)) -
+      Math.max(0, Math.floor(boardPositions?.[b] ?? Number.MAX_SAFE_INTEGER));
+    if (positionDelta !== 0) return positionDelta;
+    return a.localeCompare(b);
+  });
 }
 
-function getWinningCandidateIds(state, tallies, currentBoardPositions, remainingSlots) {
-  const entries = Array.from(tallies.values());
-  if (entries.length <= 0) return [];
-  let contenders = entries.filter(
-    (entry) => entry.prestigeTotal === Math.max(...entries.map((item) => item.prestigeTotal))
-  );
-
-  const existingContenders = contenders
-    .map((entry) => ({
-      ...entry,
-      existingPosition:
-        Number.isFinite(currentBoardPositions?.[entry.defId])
-          ? Math.floor(currentBoardPositions[entry.defId])
-          : Infinity,
-    }))
-    .sort((a, b) => a.existingPosition - b.existingPosition);
-  if (existingContenders[0]?.existingPosition !== Infinity) {
-    const bestPosition = existingContenders[0].existingPosition;
-    contenders = existingContenders.filter((entry) => entry.existingPosition === bestPosition);
-  } else {
-    const bestAgeTotal = Math.max(...contenders.map((entry) => entry.ageTotal));
-    contenders = contenders.filter((entry) => entry.ageTotal === bestAgeTotal);
+function findWeakestPracticeIndex(boardDefIds, prestigeTotals) {
+  let weakestIndex = -1;
+  let weakestDefId = null;
+  for (let index = 0; index < boardDefIds.length; index += 1) {
+    const defId = boardDefIds[index];
+    if (typeof defId !== "string" || defId.length <= 0) continue;
+    if (weakestIndex < 0) {
+      weakestIndex = index;
+      weakestDefId = defId;
+      continue;
+    }
+    const candidatePrestige = Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0));
+    const weakestPrestige = Math.max(0, Math.floor(prestigeTotals?.[weakestDefId] ?? 0));
+    if (candidatePrestige < weakestPrestige) {
+      weakestIndex = index;
+      weakestDefId = defId;
+      continue;
+    }
+    if (candidatePrestige > weakestPrestige) continue;
+    if (index > weakestIndex) {
+      weakestIndex = index;
+      weakestDefId = defId;
+      continue;
+    }
+    if (index < weakestIndex) continue;
+    if (defId.localeCompare(weakestDefId) > 0) {
+      weakestIndex = index;
+      weakestDefId = defId;
+    }
   }
-
-  if (contenders.length <= 1) {
-    return contenders.map((entry) => entry.defId);
-  }
-  if (remainingSlots <= 1) {
-    const chosen = chooseRandom(
-      contenders.map((entry) => entry.defId).sort((a, b) => a.localeCompare(b)),
-      state
-    );
-    return chosen ? [chosen] : [];
-  }
-  return contenders
-    .map((entry) => entry.defId)
-    .sort((a, b) => a.localeCompare(b))
-    .slice(0, remainingSlots);
+  return weakestIndex;
 }
 
 function resolvePracticeBoardForClass(state, orderDef, councilState, classId) {
   const maxSlots = getPracticeSlotCount(state, classId);
-  const resolved = [];
-  const placedDefIds = new Set();
-  const currentBoardPositions = buildCurrentBoardPositionMap(state, classId);
-
-  while (resolved.length < maxSlots) {
-    const tallies = new Map();
-    for (const member of Array.isArray(councilState?.members) ? councilState.members : []) {
-      const candidateDefId = getMemberCandidate(member, classId, placedDefIds);
-      if (!candidateDefId) continue;
-      if (!tallies.has(candidateDefId)) {
-        tallies.set(candidateDefId, {
-          defId: candidateDefId,
-          prestigeTotal: 0,
-          ageTotal: 0,
-        });
-      }
-      const tally = tallies.get(candidateDefId);
-      tally.prestigeTotal += getMemberPrestige(orderDef, member);
-      tally.ageTotal += Math.max(0, Math.floor(member?.ageYears ?? 0));
-    }
-    if (tallies.size <= 0) break;
-    const winners = getWinningCandidateIds(
-      state,
-      tallies,
-      currentBoardPositions,
-      maxSlots - resolved.length
-    );
-    if (winners.length <= 0) break;
-    for (const defId of winners) {
-      if (placedDefIds.has(defId)) continue;
-      placedDefIds.add(defId);
-      resolved.push(defId);
-      if (resolved.length >= maxSlots) break;
-    }
+  const residentBoard = uniquePracticeIds(
+    councilState?.practiceBoardMemoryByClass?.[classId],
+    classId,
+    maxSlots
+  );
+  const members = Array.isArray(councilState?.members) ? councilState.members : [];
+  const prestigeTotals = buildPracticePrestigeTotalsForClass(orderDef, councilState, classId);
+  if (members.length <= 0) {
+    return {
+      resolvedBoard: residentBoard,
+      prestigeTotals,
+    };
   }
 
-  return resolved;
+  const workingBoard = [...residentBoard];
+  const incomingSupportedDefIds = Object.keys(prestigeTotals)
+    .filter(
+      (defId) =>
+        Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0 && !workingBoard.includes(defId)
+    )
+    .sort((a, b) => {
+      const prestigeDelta = Math.max(0, Math.floor(prestigeTotals?.[b] ?? 0)) -
+        Math.max(0, Math.floor(prestigeTotals?.[a] ?? 0));
+      if (prestigeDelta !== 0) return prestigeDelta;
+      return a.localeCompare(b);
+    });
+
+  for (const defId of incomingSupportedDefIds) {
+    if (workingBoard.length < maxSlots) {
+      workingBoard.push(defId);
+      continue;
+    }
+    const weakestIndex = findWeakestPracticeIndex(workingBoard, prestigeTotals);
+    if (weakestIndex < 0) continue;
+    const weakestDefId = workingBoard[weakestIndex];
+    const weakestPrestige = Math.max(0, Math.floor(prestigeTotals?.[weakestDefId] ?? 0));
+    const incomingPrestige = Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0));
+    if (incomingPrestige <= weakestPrestige) continue;
+    workingBoard[weakestIndex] = defId;
+  }
+
+  const boardPositions = Object.fromEntries(workingBoard.map((defId, index) => [defId, index]));
+  const supportedDefIds = sortSupportedPracticeIds(
+    workingBoard.filter((defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0),
+    prestigeTotals,
+    boardPositions
+  );
+  const unsupportedDefIds = workingBoard.filter(
+    (defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) <= 0
+  );
+
+  return {
+    resolvedBoard: [...supportedDefIds, ...unsupportedDefIds].slice(0, maxSlots),
+    prestigeTotals,
+  };
 }
 
 function reconcilePracticeBoard(state, classId, resolvedDefIds) {
@@ -546,19 +488,28 @@ function reconcilePracticeBoard(state, classId, resolvedDefIds) {
 function resolveBoardsByClass(state, card, orderDef) {
   const councilState = ensureElderCouncilState(card, state);
   const resolvedBoardsByClass = {};
+  const practicePrestigeTotalsByClass = {};
   for (const classId of getSettlementClassIds(state)) {
-    if (!Array.isArray(councilState?.members) || councilState.members.length <= 0) {
-      resolvedBoardsByClass[classId] = getCurrentBoardDefIds(state, classId);
-      continue;
-    }
-    resolvedBoardsByClass[classId] = resolvePracticeBoardForClass(
+    const { resolvedBoard, prestigeTotals } = resolvePracticeBoardForClass(
       state,
       orderDef,
       councilState,
       classId
     );
+    resolvedBoardsByClass[classId] = resolvedBoard;
+    practicePrestigeTotalsByClass[classId] = prestigeTotals;
+    if (
+      councilState?.practiceBoardMemoryByClass &&
+      typeof councilState.practiceBoardMemoryByClass === "object" &&
+      !Array.isArray(councilState.practiceBoardMemoryByClass)
+    ) {
+      councilState.practiceBoardMemoryByClass[classId] = cloneSerializable(resolvedBoard);
+    }
   }
-  return resolvedBoardsByClass;
+  return {
+    resolvedBoardsByClass,
+    practicePrestigeTotalsByClass,
+  };
 }
 
 function buildRuntimeMembers(orderDef, councilState) {
@@ -603,7 +554,13 @@ function buildRecruitmentRuntime(orderDef, state) {
   };
 }
 
-function syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass) {
+function syncOrderRuntime(
+  card,
+  state,
+  orderDef,
+  resolvedBoardsByClass,
+  practicePrestigeTotalsByClass
+) {
   const councilState = ensureElderCouncilState(card, state);
   const recruitmentRuntime = buildRecruitmentRuntime(orderDef, state);
   if (!card.props || typeof card.props !== "object" || Array.isArray(card.props)) {
@@ -633,6 +590,8 @@ function syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass) {
     projectedRecruitsExpected: recruitmentRuntime.projectedRecruitsExpected,
     members: buildRuntimeMembers(orderDef, councilState),
     resolvedBoardsByClass: cloneSerializable(resolvedBoardsByClass),
+    practiceBoardMemoryByClass: cloneSerializable(councilState?.practiceBoardMemoryByClass ?? {}),
+    practicePrestigeTotalsByClass: cloneSerializable(practicePrestigeTotalsByClass ?? {}),
     lastBoardSyncReason: "elderCouncil",
   };
 }
@@ -699,13 +658,62 @@ export function removePracticeFromElderAgendas(
   if (!changed && !suppressedChanged) return false;
   const orderDef = getOrderDef(card);
   if (changed && orderDef) {
-    const resolvedBoardsByClass = resolveBoardsByClass(state, card, orderDef);
+    const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
+      state,
+      card,
+      orderDef
+    );
     for (const targetClassId of getSettlementClassIds(state)) {
       reconcilePracticeBoard(state, targetClassId, resolvedBoardsByClass[targetClassId] ?? []);
     }
-    syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass);
+    syncOrderRuntime(
+      card,
+      state,
+      orderDef,
+      resolvedBoardsByClass,
+      practicePrestigeTotalsByClass
+    );
   }
   return changed || suppressedChanged;
+}
+
+export function removePracticeFromPersistentPracticeBoards(state, practiceDefId, classId = null) {
+  if (typeof practiceDefId !== "string" || practiceDefId.length <= 0) return false;
+  const card = getFirstOrderCard(state, "elderCouncil");
+  if (!card) return false;
+  const councilState = ensureElderCouncilState(card, state);
+  const orderDef = getOrderDef(card);
+  if (!councilState || !orderDef) return false;
+
+  const classIds = classId ? [classId] : getSettlementClassIds(state);
+  let changed = false;
+  for (const targetClassId of classIds) {
+    const currentBoard = Array.isArray(councilState?.practiceBoardMemoryByClass?.[targetClassId])
+      ? councilState.practiceBoardMemoryByClass[targetClassId]
+      : [];
+    const nextBoard = currentBoard.filter((defId) => defId !== practiceDefId);
+    if (nextBoard.length === currentBoard.length) continue;
+    councilState.practiceBoardMemoryByClass[targetClassId] = nextBoard;
+    changed = true;
+  }
+
+  if (!changed) return false;
+  const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
+    state,
+    card,
+    orderDef
+  );
+  for (const targetClassId of getSettlementClassIds(state)) {
+    reconcilePracticeBoard(state, targetClassId, resolvedBoardsByClass[targetClassId] ?? []);
+  }
+  syncOrderRuntime(
+    card,
+    state,
+    orderDef,
+    resolvedBoardsByClass,
+    practicePrestigeTotalsByClass
+  );
+  return true;
 }
 
 export function stepSettlementOrders(state, tSec) {
@@ -720,11 +728,21 @@ export function stepSettlementOrders(state, tSec) {
     changed = processAnnualCouncilUpdate(card, state, orderDef) || changed;
   }
 
-  const resolvedBoardsByClass = resolveBoardsByClass(state, card, orderDef);
+  const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
+    state,
+    card,
+    orderDef
+  );
   for (const classId of getSettlementClassIds(state)) {
     changed = reconcilePracticeBoard(state, classId, resolvedBoardsByClass[classId] ?? []) || changed;
   }
-  syncOrderRuntime(card, state, orderDef, resolvedBoardsByClass);
+  syncOrderRuntime(
+    card,
+    state,
+    orderDef,
+    resolvedBoardsByClass,
+    practicePrestigeTotalsByClass
+  );
   return changed;
 }
 
