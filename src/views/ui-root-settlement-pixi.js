@@ -10,7 +10,11 @@ import {
   getSettlementFirstSelectedVassal,
   getSettlementLatestSelectedVassalDeathSec,
   getSettlementPendingVassalSelection,
+  getSettlementSelectedVassalRealizedSegments,
+  getSettlementVassalBoundarySeconds,
+  getSettlementYearDurationSec,
 } from "../model/settlement-state.js";
+import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
 import {
   VIEWPORT_DESIGN_HEIGHT,
@@ -30,6 +34,7 @@ import {
 import { installGlobalTextStylePolicy } from "./ui-helpers/text-style-policy.js";
 import {
   computeSettlementGraphWindowSpec,
+  SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC,
   createSettlementProjectionCache,
   SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
 } from "./ui-root/settlement-timegraph-window.js";
@@ -169,6 +174,9 @@ let settlementGraphSeriesMenuSignature = "";
 let visibleSettlementGraphSeriesIds = [];
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeOnClose = null;
+let settlementGraphHorizonOverrideSec = null;
+let settlementProjectedLossCacheKey = "";
+let settlementProjectedLossCacheValue = null;
 const forecastWorkerService = createTimegraphForecastWorkerService();
 const settlementProjectionCache = createSettlementProjectionCache({
   horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
@@ -723,8 +731,159 @@ function shouldInvalidateSettlementTimelineForecast(reason) {
   return false;
 }
 
+function invalidateSettlementProjectedLossCache() {
+  settlementProjectedLossCacheKey = "";
+  settlementProjectedLossCacheValue = null;
+}
+
 function getSettlementAuthoritativeState() {
   return runner?.getCursorState?.() ?? runner?.getState?.() ?? null;
+}
+
+function getSettlementViewedState() {
+  return runner?.getState?.() ?? runner?.getCursorState?.() ?? null;
+}
+
+function getSettlementFrontierSec() {
+  return Math.max(0, Math.floor(runner?.getTimeline?.()?.historyEndSec ?? 0));
+}
+
+function getSettlementFrontierState() {
+  const frontierSec = getSettlementFrontierSec();
+  const cursorSec = Math.max(0, Math.floor(runner?.getCursorState?.()?.tSec ?? 0));
+  if (cursorSec === frontierSec) {
+    return getSettlementAuthoritativeState();
+  }
+  return settlementGraphController?.getStateAt?.(frontierSec) ?? getSettlementAuthoritativeState();
+}
+
+function getEffectiveSettlementGraphHorizonSec() {
+  return settlementGraphHorizonOverrideSec ?? SETTLEMENT_GRAPH_WINDOW_SEC;
+}
+
+function setSettlementGraphHorizonOverride(nextHorizonSec) {
+  const normalized = Number.isFinite(nextHorizonSec)
+    ? Math.max(1, Math.floor(nextHorizonSec))
+    : null;
+  if (normalized === settlementGraphHorizonOverrideSec) return;
+  settlementGraphHorizonOverrideSec = normalized;
+  invalidateSettlementProjectedLossCache();
+  settlementGraphController?.setHorizonSecOverride?.(normalized);
+}
+
+function isSettlementStateRunComplete(state) {
+  return state?.runStatus?.complete === true;
+}
+
+function getSettlementLossYearAtSecond(state, tSec) {
+  const yearDurationSec = Math.max(1, getSettlementYearDurationSec(state));
+  return 1 + Math.floor(Math.max(0, Math.floor(tSec ?? 0)) / yearDurationSec);
+}
+
+function getProjectedSettlementLossInfo() {
+  const timeline = runner?.getTimeline?.();
+  if (!timeline) {
+    return { lossSec: null, lossYear: null, resolved: false };
+  }
+  const historyEndSec = getSettlementFrontierSec();
+  const cacheKey = [
+    Math.floor(timeline?.revision ?? 0),
+    historyEndSec,
+    settlementGraphHorizonOverrideSec ?? "default",
+  ].join("|");
+  if (cacheKey === settlementProjectedLossCacheKey && settlementProjectedLossCacheValue) {
+    return settlementProjectedLossCacheValue;
+  }
+
+  const frontierState = getSettlementFrontierState();
+  if (!frontierState) {
+    const fallback = { lossSec: null, lossYear: null, resolved: false };
+    settlementProjectedLossCacheKey = cacheKey;
+    settlementProjectedLossCacheValue = fallback;
+    return fallback;
+  }
+
+  if (isSettlementStateRunComplete(frontierState)) {
+    const lossSec = Number.isFinite(frontierState?.runStatus?.tSec)
+      ? Math.max(0, Math.floor(frontierState.runStatus.tSec))
+      : historyEndSec;
+    const lossYear = Number.isFinite(frontierState?.runStatus?.year)
+      ? Math.max(1, Math.floor(frontierState.runStatus.year))
+      : getSettlementLossYearAtSecond(frontierState, lossSec);
+    const resolved = {
+      lossSec,
+      lossYear,
+      resolved: true,
+    };
+    settlementProjectedLossCacheKey = cacheKey;
+    settlementProjectedLossCacheValue = resolved;
+    return resolved;
+  }
+
+  const yearDurationSec = Math.max(1, getSettlementYearDurationSec(frontierState));
+  const currentYear = Number.isFinite(frontierState?.year)
+    ? Math.max(1, Math.floor(frontierState.year))
+    : getSettlementLossYearAtSecond(frontierState, historyEndSec);
+  const searchLimitSec = historyEndSec + Math.max(
+    SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC,
+    getEffectiveSettlementGraphHorizonSec()
+  );
+
+  let lowSec = historyEndSec;
+  let highSec = null;
+  for (
+    let year = currentYear + 1;
+    getSettlementLossYearAtSecond(frontierState, (year - 1) * yearDurationSec) <=
+      getSettlementLossYearAtSecond(frontierState, searchLimitSec);
+    year += 1
+  ) {
+    const boundarySec = Math.min(searchLimitSec, Math.max(0, (year - 1) * yearDurationSec));
+    if (boundarySec <= lowSec) continue;
+    const stateAtBoundary = settlementGraphController?.getStateAt?.(boundarySec) ?? null;
+    if (isSettlementStateRunComplete(stateAtBoundary)) {
+      highSec = boundarySec;
+      break;
+    }
+    if (boundarySec >= searchLimitSec) break;
+  }
+  if (highSec == null) {
+    const stateAtLimit = settlementGraphController?.getStateAt?.(searchLimitSec) ?? null;
+    if (isSettlementStateRunComplete(stateAtLimit)) {
+      highSec = searchLimitSec;
+    }
+  }
+
+  if (highSec == null) {
+    const unresolved = { lossSec: null, lossYear: null, resolved: false };
+    settlementProjectedLossCacheKey = cacheKey;
+    settlementProjectedLossCacheValue = unresolved;
+    return unresolved;
+  }
+
+  while (lowSec + 1 < highSec) {
+    const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
+    const stateAtMid = settlementGraphController?.getStateAt?.(midSec) ?? null;
+    if (isSettlementStateRunComplete(stateAtMid)) {
+      highSec = midSec;
+    } else {
+      lowSec = midSec;
+    }
+  }
+
+  const lossState = settlementGraphController?.getStateAt?.(highSec) ?? null;
+  const exactLossSec = Number.isFinite(lossState?.runStatus?.tSec)
+    ? Math.max(historyEndSec, Math.floor(lossState.runStatus.tSec))
+    : highSec;
+  const resolved = {
+    lossSec: exactLossSec,
+    lossYear: Number.isFinite(lossState?.runStatus?.year)
+      ? Math.max(1, Math.floor(lossState.runStatus.year))
+      : getSettlementLossYearAtSecond(frontierState, exactLossSec),
+    resolved: true,
+  };
+  settlementProjectedLossCacheKey = cacheKey;
+  settlementProjectedLossCacheValue = resolved;
+  return resolved;
 }
 
 function shouldResumeAfterBlockingVassalSelection(state = getSettlementAuthoritativeState()) {
@@ -743,11 +902,19 @@ function getSettlementVisibleVassalTimeSec(state = null) {
 }
 
 function syncSettlementGraphHorizon() {
-  const state = getSettlementAuthoritativeState();
-  const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(state);
-  const historyEndSec = Math.max(0, Math.floor(runner?.getTimeline?.()?.historyEndSec ?? 0));
-  const requiredHorizonSec = Math.max(0, latestDeathSec - historyEndSec);
-  settlementGraphController?.setHorizonSecOverride?.(
+  const frontierState = getSettlementFrontierState();
+  const historyEndSec = getSettlementFrontierSec();
+  const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(frontierState);
+  const projectedLossInfo = getProjectedSettlementLossInfo();
+  const projectedLossSec = Number.isFinite(projectedLossInfo?.lossSec)
+    ? Math.max(0, Math.floor(projectedLossInfo.lossSec))
+    : 0;
+  const requiredHorizonSec = Math.max(
+    0,
+    latestDeathSec - historyEndSec,
+    projectedLossSec - historyEndSec
+  );
+  setSettlementGraphHorizonOverride(
     requiredHorizonSec > SETTLEMENT_GRAPH_WINDOW_SEC ? requiredHorizonSec : null
   );
 }
@@ -774,12 +941,15 @@ function syncSettlementVassalSelectionPauseState() {
 }
 
 function openNextSettlementVassalSelection() {
-  const state = getSettlementAuthoritativeState();
-  settlementVassalSelectionResumeOnClose = shouldResumeAfterBlockingVassalSelection(state);
+  const viewedState = getSettlementViewedState();
+  const frontierSec = getSettlementFrontierSec();
+  settlementVassalSelectionResumeOnClose = shouldResumeAfterBlockingVassalSelection(viewedState);
   requestPauseBeforeDrag();
+  runner.clearPreviewState?.();
+  runner.browseCursorSecond?.(frontierSec);
   const result = runner.dispatchAction?.(
     ActionKinds.SETTLEMENT_BEGIN_NEXT_VASSAL_SELECTION,
-    { tSec: state?.tSec }
+    { tSec: frontierSec }
   );
   if (!result?.ok) {
     settlementVassalSelectionResumeOnClose = null;
@@ -789,59 +959,77 @@ function openNextSettlementVassalSelection() {
 }
 
 function selectSettlementVassal(vassalId) {
-  const state = getSettlementAuthoritativeState();
+  const frontierSec = getSettlementFrontierSec();
+  runner.clearPreviewState?.();
+  runner.browseCursorSecond?.(frontierSec);
   const result = runner.dispatchAction?.(
     ActionKinds.SETTLEMENT_SELECT_VASSAL_CANDIDATE,
     {
       vassalId,
-      tSec: state?.tSec,
+      tSec: frontierSec,
     }
   );
   if (result?.ok) {
+    invalidateSettlementProjectedLossCache();
+    syncSettlementGraphHorizon();
+    const frontierState = getSettlementFrontierState();
+    const currentVassal = getSettlementCurrentVassal(frontierState);
+    const projectedLossInfo = getProjectedSettlementLossInfo();
+    const projectedLossSec = Number.isFinite(projectedLossInfo?.lossSec)
+      ? Math.max(0, Math.floor(projectedLossInfo.lossSec))
+      : Math.max(0, Math.floor(currentVassal?.deathSec ?? frontierSec));
+    const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? frontierSec));
+    const autoCommitTargetSec = Math.max(
+      frontierSec,
+      Math.min(deathSec, projectedLossSec)
+    );
+    const stateData = settlementGraphController?.getStateDataAt?.(autoCommitTargetSec) ?? null;
+    runner.commitCursorSecond?.(autoCommitTargetSec, stateData ?? undefined);
+    if (Number.isFinite(currentVassal?.birthSec)) {
+      runner.browseCursorSecond?.(Math.max(0, Math.floor(currentVassal.birthSec)));
+    }
+    runner.clearPreviewState?.();
+    settlementVassalSelectionResumeOnClose = false;
     syncSettlementVassalSelectionPauseState();
   }
   return result;
 }
 
-function getSettlementSkipToDeathState() {
-  const state = getSettlementAuthoritativeState();
+function getSettlementJumpToDeathState() {
+  const state = getSettlementViewedState();
   const currentVassal = getSettlementCurrentVassal(state);
   const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
   const currentSec = Math.max(0, Math.floor(state?.tSec ?? 0));
-  const forecastRevealCapSec = Math.max(
-    0,
-    Math.floor(
-      settlementGraphView?.getForecastScrubCapSec?.() ??
-        runner?.getTimeline?.()?.historyEndSec ??
-        currentSec
-    )
-  );
+  const historyEndSec = getSettlementFrontierSec();
   return {
     enabled:
       !!currentVassal &&
-      currentVassal.isDead !== true &&
-      deathSec > currentSec &&
-      forecastRevealCapSec >= deathSec,
-    label: "Skip to Death",
+      deathSec > 0 &&
+      deathSec <= historyEndSec &&
+      deathSec !== currentSec,
+    label: "Jump to Death",
   };
 }
 
-function skipCurrentVassalToDeath() {
-  const state = getSettlementAuthoritativeState();
+function jumpCurrentVassalToDeath() {
+  const state = getSettlementViewedState();
   const currentVassal = getSettlementCurrentVassal(state);
   const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
   if (!currentVassal || deathSec <= 0) return { ok: false, reason: "noCurrentVassalDeath" };
-  const stateData = settlementGraphController?.getStateDataAt?.(deathSec) ?? null;
-  return runner.commitCursorSecond?.(deathSec, stateData ?? undefined);
+  return runner.browseCursorSecond?.(deathSec);
 }
 
-function getSettlementNextVassalState() {
-  const state = getSettlementAuthoritativeState();
-  const currentVassal = getSettlementCurrentVassal(state);
-  const hasPendingSelection = !!getSettlementPendingVassalSelection(state);
+function getSettlementPrimaryVassalState() {
+  const frontierState = getSettlementFrontierState();
+  const hasPendingSelection = !!getSettlementPendingVassalSelection(frontierState);
+  const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
+  const currentVassal = getSettlementCurrentVassal(frontierState);
+  const runComplete = isSettlementStateRunComplete(frontierState);
+  const validInsertionPoint =
+    !hasSelectedVassal || !!currentVassal?.isDead;
   return {
-    enabled: !!currentVassal && currentVassal.isDead === true && hasPendingSelection !== true,
-    label: "Next Vassal",
+    enabled: hasPendingSelection !== true && runComplete !== true && validInsertionPoint,
+    label: hasSelectedVassal ? "Next Vassal" : "Intervene",
   };
 }
 
@@ -869,10 +1057,12 @@ const runner = createSimRunner({
       forecastWorkerService.handleTimelineInvalidation?.(reason);
       settlementGraphController?.handleInvalidate?.(reason);
     }
+    invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
   },
   onRebuildViews: () => {
+    invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
   },
@@ -894,6 +1084,7 @@ prototypeView = createSettlementPrototypeView({
   app,
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
+  getCivilizationLossInfo: () => getProjectedSettlementLossInfo(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
@@ -1012,8 +1203,10 @@ settlementGraphView = createMetricGraphView({
   commitSecond: (tSec, stateData) => runner.commitCursorSecond?.(tSec, stateData),
   getWindowSpec: ({ timeline, cursorState, zoomed }) => {
     const preview = runner.getPreviewStatus?.();
-    const firstSelectedVassal = getSettlementFirstSelectedVassal(cursorState);
-    const currentVassal = getSettlementCurrentVassal(cursorState);
+    const frontierState = getSettlementFrontierState();
+    const firstSelectedVassal = getSettlementFirstSelectedVassal(frontierState);
+    const currentVassal = getSettlementCurrentVassal(frontierState);
+    const projectedLossInfo = getProjectedSettlementLossInfo();
     return computeSettlementGraphWindowSpec({
       historyEndSec: timeline?.historyEndSec,
       cursorSec: cursorState?.tSec,
@@ -1022,7 +1215,7 @@ settlementGraphView = createMetricGraphView({
       zoomed,
       lineageStartSec: firstSelectedVassal?.birthSec ?? null,
       currentVassalStartSec: currentVassal?.birthSec ?? null,
-      latestDeathSec: getSettlementLatestSelectedVassalDeathSec(cursorState),
+      projectedLossSec: projectedLossInfo?.lossSec ?? null,
     });
   },
   openPosition: { x: 110, y: 884 },
@@ -1035,14 +1228,72 @@ settlementGraphView = createMetricGraphView({
   showPin: false,
   draggable: false,
 });
+settlementGraphView.setHistoryZoneResolver?.((zoneSpec) => {
+  const timeline = runner.getTimeline?.();
+  const frontierState = getSettlementFrontierState();
+  const baseBounds = runner.getEditableHistoryBounds?.();
+  const baseSegments = computeHistoryZoneSegments({
+    minSec: zoneSpec?.minSec,
+    maxSec: zoneSpec?.maxSec,
+    historyEndSec: zoneSpec?.historyEndSec,
+    baseMinEditableSec: baseBounds?.minEditableSec,
+  });
+  const realizedSegments = getSettlementSelectedVassalRealizedSegments(
+    frontierState,
+    Math.floor(timeline?.historyEndSec ?? 0)
+  );
+  if (!realizedSegments.length) {
+    return baseSegments;
+  }
+  return [
+    ...baseSegments,
+    ...realizedSegments.map((segment) => ({
+      kind: "fixedHistory",
+      startSec: segment.startSec,
+      endSec: segment.endSec,
+    })),
+  ];
+});
+settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
+  const frontierState = getSettlementFrontierState();
+  const realizedSegments = getSettlementSelectedVassalRealizedSegments(
+    frontierState,
+    historyEndSec
+  );
+  for (const segment of realizedSegments) {
+    const insideFixedSegment =
+      scrubSec >= segment.startSec &&
+      (scrubSec < segment.endSec ||
+        (isSettlementStateRunComplete(frontierState) && scrubSec === segment.endSec));
+    if (insideFixedSegment) {
+      return { allow: false, reason: "Vassal history is fixed" };
+    }
+  }
+  return { allow: true };
+});
+settlementGraphView.setEventMarkerResolver?.(({ historyEndSec }) => {
+  const frontierState = getSettlementFrontierState();
+  const runComplete = isSettlementStateRunComplete(frontierState);
+  const boundarySeconds = getSettlementVassalBoundarySeconds(frontierState, historyEndSec);
+  return boundarySeconds
+    .filter((sec, index, arr) => arr.indexOf(sec) === index)
+    .map((tSec) => ({
+      tSec,
+      severity: "critical",
+      color: 0xe3c46c,
+      lineWidth: tSec === historyEndSec && !runComplete ? 4 : 3,
+      radius: tSec === historyEndSec && !runComplete ? 6 : 5,
+      alpha: tSec === historyEndSec && !runComplete ? 0.92 : 0.78,
+    }));
+});
 
 settlementVassalControlsView = createSettlementVassalControlsView({
   app,
   layer: controlLayer,
-  getSkipState: () => getSettlementSkipToDeathState(),
-  onSkip: () => skipCurrentVassalToDeath(),
-  getNextState: () => getSettlementNextVassalState(),
-  onNext: () => openNextSettlementVassalSelection(),
+  getJumpState: () => getSettlementJumpToDeathState(),
+  onJump: () => jumpCurrentVassalToDeath(),
+  getPrimaryState: () => getSettlementPrimaryVassalState(),
+  onPrimary: () => openNextSettlementVassalSelection(),
 });
 
 settlementVassalChooserView = createSettlementVassalChooserView({

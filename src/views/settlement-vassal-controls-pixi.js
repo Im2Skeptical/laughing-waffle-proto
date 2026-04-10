@@ -1,7 +1,9 @@
-const BUTTON_WIDTH = 132;
-const BUTTON_HEIGHT = 54;
+const PRIMARY_BUTTON_WIDTH = 180;
+const PRIMARY_BUTTON_HEIGHT = 88;
+const JUMP_BUTTON_WIDTH = 120;
+const JUMP_BUTTON_HEIGHT = 42;
 
-function makeButton(root, label) {
+function makeButton(root, label, width, height, textStyle = {}) {
   const container = new PIXI.Container();
   const bg = new PIXI.Graphics();
   const text = new PIXI.Text(label, {
@@ -9,61 +11,73 @@ function makeButton(root, label) {
     fontSize: 17,
     fontWeight: "bold",
     fill: 0xf7f2e9,
+    ...textStyle,
   });
   text.anchor.set(0.5);
-  text.x = BUTTON_WIDTH * 0.5;
-  text.y = BUTTON_HEIGHT * 0.5;
+  text.x = width * 0.5;
+  text.y = height * 0.5;
   container.addChild(bg, text);
   container.eventMode = "static";
   root.addChild(container);
-  return { container, bg, text };
+  return { container, bg, text, width, height };
 }
 
-function drawButton(bg, enabled) {
+function drawButton(bg, enabled, width, height, radius, fillColor) {
   bg.clear();
   bg.lineStyle(2, enabled ? 0x9ec087 : 0x5f5a55, 0.95);
-  bg.beginFill(enabled ? 0x314c2b : 0x4a4743, 0.98);
-  bg.drawRoundedRect(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, 20);
+  bg.beginFill(enabled ? fillColor : 0x4a4743, 0.98);
+  bg.drawRoundedRect(0, 0, width, height, radius);
   bg.endFill();
 }
 
 export function createSettlementVassalControlsView({
   app,
   layer,
-  getSkipState,
-  onSkip,
-  getNextState,
-  onNext,
+  getJumpState,
+  onJump,
+  getPrimaryState,
+  onPrimary,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 6;
   layer?.addChild(root);
-  const skipButton = makeButton(root, "Skip to Death");
-  const nextButton = makeButton(root, "Next Vassal");
-  skipButton.container.on("pointertap", () => {
-    if (getSkipState?.()?.enabled !== true) return;
-    onSkip?.();
+  const jumpButton = makeButton(root, "Jump to Death", JUMP_BUTTON_WIDTH, JUMP_BUTTON_HEIGHT, {
+    fontSize: 14,
   });
-  nextButton.container.on("pointertap", () => {
-    if (getNextState?.()?.enabled !== true) return;
-    onNext?.();
+  const primaryButton = makeButton(root, "Intervene", PRIMARY_BUTTON_WIDTH, PRIMARY_BUTTON_HEIGHT, {
+    fontSize: 22,
+  });
+  jumpButton.container.on("pointertap", () => {
+    if (getJumpState?.()?.enabled !== true) return;
+    onJump?.();
+  });
+  primaryButton.container.on("pointertap", () => {
+    if (getPrimaryState?.()?.enabled !== true) return;
+    onPrimary?.();
   });
 
-  function updateButton(button, state, fallbackLabel) {
+  function updateButton(button, state, fallbackLabel, drawSpec) {
     const enabled = state?.enabled === true;
     button.container.eventMode = enabled ? "static" : "none";
     button.container.cursor = enabled ? "pointer" : "default";
     button.text.text = typeof state?.label === "string" && state.label.length > 0 ? state.label : fallbackLabel;
-    drawButton(button.bg, enabled);
+    drawButton(
+      button.bg,
+      enabled,
+      button.width,
+      button.height,
+      drawSpec.radius,
+      drawSpec.fillColor
+    );
   }
 
   function layout() {
     const screenWidth = Math.floor(app?.screen?.width ?? 2424);
     const screenHeight = Math.floor(app?.screen?.height ?? 1080);
-    nextButton.container.x = screenWidth - BUTTON_WIDTH - 26;
-    nextButton.container.y = screenHeight - 116;
-    skipButton.container.x = screenWidth - BUTTON_WIDTH - 26;
-    skipButton.container.y = screenHeight - 52;
+    primaryButton.container.x = screenWidth - PRIMARY_BUTTON_WIDTH - 28;
+    primaryButton.container.y = screenHeight - PRIMARY_BUTTON_HEIGHT - 52;
+    jumpButton.container.x = screenWidth - JUMP_BUTTON_WIDTH - 58;
+    jumpButton.container.y = primaryButton.container.y - JUMP_BUTTON_HEIGHT - 10;
   }
 
   return {
@@ -72,8 +86,14 @@ export function createSettlementVassalControlsView({
     },
     update() {
       layout();
-      updateButton(skipButton, getSkipState?.() ?? null, "Skip to Death");
-      updateButton(nextButton, getNextState?.() ?? null, "Next Vassal");
+      updateButton(jumpButton, getJumpState?.() ?? null, "Jump to Death", {
+        radius: 18,
+        fillColor: 0x47513c,
+      });
+      updateButton(primaryButton, getPrimaryState?.() ?? null, "Intervene", {
+        radius: 38,
+        fillColor: 0x314c2b,
+      });
     },
     getScreenRect: () => (!root.visible || typeof root.getBounds !== "function" ? null : root.getBounds()),
   };

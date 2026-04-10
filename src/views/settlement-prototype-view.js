@@ -264,7 +264,12 @@ function buildCompactPendingSelectionSignature(pendingSelection, classIds) {
   };
 }
 
-function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) {
+function buildSignature(
+  state,
+  selectedClassId,
+  visibleVassalThroughSec = null,
+  civilizationLossInfo = null
+) {
   const summary = getSettlementPopulationSummary(state);
   const classIds = getSettlementClassIds(state);
   const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
@@ -308,6 +313,17 @@ function buildSignature(state, selectedClassId, visibleVassalThroughSec = null) 
       black: getSettlementStockpile(state, "blackResource"),
     },
     redGodSummary,
+    civilizationLossInfo: civilizationLossInfo && typeof civilizationLossInfo === "object"
+      ? {
+          lossSec: Number.isFinite(civilizationLossInfo.lossSec)
+            ? Math.floor(civilizationLossInfo.lossSec)
+            : null,
+          lossYear: Number.isFinite(civilizationLossInfo.lossYear)
+            ? Math.floor(civilizationLossInfo.lossYear)
+            : null,
+          resolved: civilizationLossInfo.resolved === true,
+        }
+      : null,
     classSummaries: classIds.map((classId) => ({
       classId,
       population: getSettlementPopulationSummary(state, classId),
@@ -1731,6 +1747,7 @@ export function createSettlementPrototypeView({
   app,
   layer,
   getState,
+  getCivilizationLossInfo,
   getSelectedPracticeClassId,
   setSelectedPracticeClassId,
   tooltipView,
@@ -1882,8 +1899,15 @@ export function createSettlementPrototypeView({
       typeof getVisibleVassalTimeSec === "function"
         ? getVisibleVassalTimeSec(state)
         : state?.tSec;
+    const civilizationLossInfo =
+      typeof getCivilizationLossInfo === "function" ? getCivilizationLossInfo() : null;
     const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
-    const signature = buildSignature(state, selectedClassId, visibleVassalThroughSec);
+    const signature = buildSignature(
+      state,
+      selectedClassId,
+      visibleVassalThroughSec,
+      civilizationLossInfo
+    );
     if (signature === lastSignature) {
       renderAgendaFlyout(state);
       return;
@@ -1909,7 +1933,25 @@ export function createSettlementPrototypeView({
     const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  |  Year ${Math.floor(
       state?.year ?? 1
     )}`;
-    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 35, 0.5, 0.5));
+    const civilizationLostLabel = Number.isFinite(civilizationLossInfo?.lossYear)
+      ? `Civilization Lost - Year ${Math.floor(civilizationLossInfo.lossYear)}`
+      : "Civilization Lost - Unknown";
+    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 24, 0.5, 0.5));
+    contentLayer.addChild(
+      createText(
+        civilizationLostLabel,
+        {
+          ...TEXT_STYLES.body,
+          fontSize: 18,
+          fontWeight: "bold",
+          fill: PALETTE.accent,
+        },
+        screenWidth * 0.5,
+        50,
+        0.5,
+        0.5
+      )
+    );
 
     const hubPanelRect = { x: 70, y: 120, width: 1080, height: 700 };
     const vassalPanelRect = { x: 1170, y: 120, width: 560, height: 620 };
