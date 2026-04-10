@@ -114,6 +114,7 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
   const currentYear = Math.max(1, Math.floor(record.birthYear ?? getCurrentYear(state)));
   const classChangeAge =
     record.sourceClassId === "stranger" ? SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS : null;
+  const firstMortalityAgeYears = SETTLEMENT_VASSAL_ELDER_AGE_YEARS + 1;
   const professionAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE, state);
   const traitAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_TRAIT_AGE_RANGE, state);
   const professionId = chooseRandom(settlementVassalProfessionIds, state);
@@ -126,8 +127,8 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
     }),
   ];
 
-  let deathAgeYears = record.initialAgeYears;
-  let deathYear = currentYear;
+  let deathAgeYears = null;
+  let deathYear = null;
   for (let ageYears = record.initialAgeYears + 1; ageYears <= 200; ageYears += 1) {
     const eventYear = currentYear + (ageYears - record.initialAgeYears);
     const eventSec = getSettlementYearStartSec(state, eventYear);
@@ -169,6 +170,9 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
         })
       );
     }
+    if (ageYears < firstMortalityAgeYears) {
+      continue;
+    }
 
     const mortalityChance = getMortalityChance(orderDef, ageYears);
     const diedThisYear =
@@ -187,6 +191,22 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
       break;
     }
   }
+  if (deathAgeYears == null || deathYear == null) {
+    deathAgeYears = 200;
+    deathYear = currentYear + (deathAgeYears - record.initialAgeYears);
+    events.push(
+      buildLifeEvent(
+        `${record.vassalId}:death:${deathAgeYears}`,
+        "died",
+        getSettlementYearStartSec(state, deathYear),
+        deathAgeYears,
+        {
+          causeOfDeath: "oldAge",
+          text: "Died of old age",
+        }
+      )
+    );
+  }
 
   record.professionAgeYears = professionAgeYears;
   record.traitAgeYears = traitAgeYears;
@@ -197,7 +217,7 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
   record.deathAgeYears = deathAgeYears;
   record.deathYear = deathYear;
   record.deathSec = getSettlementYearStartSec(state, deathYear);
-  record.deathCause = deathAgeYears > record.initialAgeYears ? "oldAge" : null;
+  record.deathCause = "oldAge";
   record.lifeEvents = events;
   return record;
 }
