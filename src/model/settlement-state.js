@@ -747,6 +747,74 @@ export function getSettlementLatestSelectedVassalDeathSec(state) {
   return latestDeathSec;
 }
 
+export function getSettlementSelectedVassalRealizedSegments(state, historyEndSec = null) {
+  const selectedVassals = getSettlementSelectedVassals(state);
+  const safeHistoryEndSec = Number.isFinite(historyEndSec)
+    ? Math.max(0, Math.floor(historyEndSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  const runComplete = state?.runStatus?.complete === true;
+  const segments = [];
+
+  for (let index = 0; index < selectedVassals.length; index += 1) {
+    const current = selectedVassals[index];
+    const next = selectedVassals[index + 1] ?? null;
+    const startSec = Number.isFinite(current?.birthSec)
+      ? Math.max(0, Math.floor(current.birthSec))
+      : Number.isFinite(current?.selectedSec)
+        ? Math.max(0, Math.floor(current.selectedSec))
+        : null;
+    if (startSec == null || startSec > safeHistoryEndSec) continue;
+
+    const nextStartSec = Number.isFinite(next?.birthSec)
+      ? Math.max(0, Math.floor(next.birthSec))
+      : Number.isFinite(next?.selectedSec)
+        ? Math.max(0, Math.floor(next.selectedSec))
+        : null;
+    const deathSec = Number.isFinite(current?.deathSec)
+      ? Math.max(0, Math.floor(current.deathSec))
+      : startSec;
+    const nominalEndSec = nextStartSec != null
+      ? nextStartSec
+      : runComplete
+        ? safeHistoryEndSec
+        : deathSec;
+    const endSec = Math.max(startSec, Math.min(safeHistoryEndSec, nominalEndSec));
+    segments.push({
+      vassalId: current?.vassalId ?? null,
+      startSec,
+      endSec,
+      complete: safeHistoryEndSec >= nominalEndSec,
+    });
+  }
+
+  return segments;
+}
+
+export function getSettlementVassalBoundarySeconds(state, historyEndSec = null) {
+  const selectedVassals = getSettlementSelectedVassals(state);
+  const safeHistoryEndSec = Number.isFinite(historyEndSec)
+    ? Math.max(0, Math.floor(historyEndSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  const runComplete = state?.runStatus?.complete === true;
+  const seconds = new Set();
+
+  for (let index = 1; index < selectedVassals.length; index += 1) {
+    const startSec = Number.isFinite(selectedVassals[index]?.birthSec)
+      ? Math.max(0, Math.floor(selectedVassals[index].birthSec))
+      : Number.isFinite(selectedVassals[index]?.selectedSec)
+        ? Math.max(0, Math.floor(selectedVassals[index].selectedSec))
+        : null;
+    if (startSec != null) {
+      seconds.add(startSec);
+    }
+  }
+  if (!runComplete) {
+    seconds.add(safeHistoryEndSec);
+  }
+
+  return [...seconds].sort((a, b) => a - b);
+}
+
 export function getSettlementVisibleVassalLifeEvents(state, vassalId, tSec = null) {
   const lineage = getSettlementVassalLineageState(state);
   const record =

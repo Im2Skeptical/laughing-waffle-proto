@@ -16,7 +16,7 @@ export const SETTLEMENT_GRAPH_FORECAST_STEP_SEC = 1;
 export const SETTLEMENT_GRAPH_CACHE_SLACK_SEC = 512;
 const SETTLEMENT_GRAPH_MIN_CACHE_BYTES = 512 * 1024 * 1024;
 const SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS = 200;
-const SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_SEC =
+export const SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC =
   Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
   4 *
   SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS;
@@ -34,7 +34,7 @@ export function computeSettlementProjectionCacheConfig({
   // early sampled seconds are not evicted after a sync browse to a late death second.
   const requiredForecastCapacitySec = Math.max(
     horizon,
-    SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_SEC
+    SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC
   );
   const requiredEntries =
     Math.ceil(requiredForecastCapacitySec / step) + Math.ceil(slack / step) + 1;
@@ -63,7 +63,7 @@ export function computeSettlementGraphWindowSpec({
   zoomed = false,
   lineageStartSec = null,
   currentVassalStartSec = null,
-  latestDeathSec = null,
+  projectedLossSec = null,
 } = {}) {
   const historyEnd = toNonNegativeSec(historyEndSec, 0);
   const cursor = toNonNegativeSec(cursorSec, historyEnd);
@@ -77,18 +77,18 @@ export function computeSettlementGraphWindowSpec({
   const safeCurrentVassalStartSec = Number.isFinite(currentVassalStartSec)
     ? toNonNegativeSec(currentVassalStartSec, safeLineageStartSec ?? 0)
     : null;
-  const safeLatestDeathSec = Number.isFinite(latestDeathSec)
-    ? toNonNegativeSec(latestDeathSec, 0)
+  const safeProjectedLossSec = Number.isFinite(projectedLossSec)
+    ? toNonNegativeSec(projectedLossSec, 0)
     : null;
 
   const realizedEndSec = Math.max(historyEnd, cursor);
   const visibleEndSec = Math.max(realizedEndSec, previewSec ?? realizedEndSec);
 
-  if (safeLatestDeathSec != null && safeLatestDeathSec > 0) {
+  if (safeProjectedLossSec != null && safeProjectedLossSec > 0) {
     const minSec = zoomed === true
       ? safeCurrentVassalStartSec ?? safeLineageStartSec ?? 0
-      : safeLineageStartSec ?? 0;
-    const maxSec = Math.max(minSec + 1, safeLatestDeathSec);
+      : 0;
+    const maxSec = Math.max(minSec + 1, safeProjectedLossSec);
     const preferredScrubSec = previewSec != null ? previewSec : cursor;
     return {
       minSec,

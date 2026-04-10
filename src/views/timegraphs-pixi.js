@@ -345,10 +345,19 @@ function normalizeEventMarkers(rawMarkers, { minSec, maxSec }) {
     if (sec == null || sec < min || sec > max) continue;
     const severity = marker?.severity === "critical" ? "critical" : "normal";
     const color = Number.isFinite(marker?.color) ? Math.floor(marker.color) : null;
-    const dedupeKey = `${sec}:${severity}`;
+    const lineWidth = Number.isFinite(marker?.lineWidth)
+      ? Math.max(1, Number(marker.lineWidth))
+      : null;
+    const radius = Number.isFinite(marker?.radius)
+      ? Math.max(1, Number(marker.radius))
+      : null;
+    const alpha = Number.isFinite(marker?.alpha)
+      ? Math.max(0, Math.min(1, Number(marker.alpha)))
+      : null;
+    const dedupeKey = `${sec}:${severity}:${color ?? "default"}:${lineWidth ?? "default"}:${radius ?? "default"}:${alpha ?? "default"}`;
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
-    out.push({ tSec: sec, severity, color });
+    out.push({ tSec: sec, severity, color, lineWidth, radius, alpha });
   }
 
   out.sort(
@@ -1589,17 +1598,30 @@ export function createMetricGraphView({
         : marker.severity === "critical"
           ? TIMEGRAPH_THEME.eventMarkerCritical
           : TIMEGRAPH_THEME.eventMarkerNormal;
+      const lineAlpha = Number.isFinite(marker?.alpha)
+        ? marker.alpha
+        : marker.severity === "critical"
+          ? 0.72
+          : 0.9;
+      const markerRadius = Number.isFinite(marker?.radius)
+        ? marker.radius
+        : marker.severity === "critical"
+          ? 4
+          : 2.5;
+      const markerLineWidth = Number.isFinite(marker?.lineWidth)
+        ? marker.lineWidth
+        : 1;
       if (marker.severity === "critical") {
-        plotG.lineStyle(1, color, 0.72);
+        plotG.lineStyle(markerLineWidth, color, lineAlpha);
         plotG.moveTo(x, plot.y + 1);
         plotG.lineTo(x, plot.y + plot.h - 1);
-        plotG.beginFill(color, 0.95);
-        plotG.drawCircle(x, plot.y + 7, 4);
+        plotG.beginFill(color, Math.max(0.3, lineAlpha));
+        plotG.drawCircle(x, plot.y + 7, markerRadius);
         plotG.endFill();
         continue;
       }
-      plotG.beginFill(color, 0.9);
-      plotG.drawCircle(x, plot.y + 8, 2.5);
+      plotG.beginFill(color, lineAlpha);
+      plotG.drawCircle(x, plot.y + 8, markerRadius);
       plotG.endFill();
     }
 
