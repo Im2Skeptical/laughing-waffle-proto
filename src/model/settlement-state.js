@@ -21,7 +21,6 @@ const DEFAULT_VASSAL_LINEAGE_STATE = Object.freeze({
   nextPoolId: 1,
   selectedVassalIds: [],
   currentVassalId: null,
-  pendingSelection: null,
   vassalsById: {},
 });
 const DEFAULT_RED_GOD_SPAWN_CADENCE_SEC = Math.max(
@@ -335,27 +334,6 @@ function normalizeVassalRecord(raw, fallbackId = null) {
   };
 }
 
-function normalizeVassalCandidatePool(raw) {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const candidates = Array.isArray(raw.candidates)
-    ? raw.candidates
-        .map((entry, index) =>
-          normalizeVassalRecord(
-            entry,
-            typeof entry?.vassalId === "string" && entry.vassalId.length > 0
-              ? entry.vassalId
-              : `vassal-pending-${index + 1}`
-          )
-        )
-        .filter(Boolean)
-    : [];
-  return {
-    poolId: typeof raw.poolId === "string" && raw.poolId.length > 0 ? raw.poolId : null,
-    createdSec: Number.isFinite(raw.createdSec) ? Math.max(0, Math.floor(raw.createdSec)) : 0,
-    candidates,
-  };
-}
-
 function normalizeVassalLineageState(raw) {
   const next =
     raw && typeof raw === "object" && !Array.isArray(raw)
@@ -372,16 +350,19 @@ function normalizeVassalLineageState(raw) {
       vassalsById[record.vassalId] = record;
     }
   }
-  const pendingSelection = normalizeVassalCandidatePool(next.pendingSelection);
+  const explicitCurrentVassalId =
+    typeof next.currentVassalId === "string" && next.currentVassalId.length > 0
+      ? next.currentVassalId
+      : null;
+  const currentVassalId =
+    explicitCurrentVassalId && vassalsById[explicitCurrentVassalId]
+      ? explicitCurrentVassalId
+      : [...selectedVassalIds].reverse().find((vassalId) => !!vassalsById[vassalId]) ?? null;
   return {
     nextVassalId: Number.isFinite(next.nextVassalId) ? Math.max(1, Math.floor(next.nextVassalId)) : 1,
     nextPoolId: Number.isFinite(next.nextPoolId) ? Math.max(1, Math.floor(next.nextPoolId)) : 1,
     selectedVassalIds,
-    currentVassalId:
-      typeof next.currentVassalId === "string" && next.currentVassalId.length > 0
-        ? next.currentVassalId
-        : null,
-    pendingSelection,
+    currentVassalId,
     vassalsById,
   };
 }
@@ -717,12 +698,15 @@ export function getSettlementCurrentVassal(state) {
     typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
       ? lineage.currentVassalId
       : null;
-  if (!currentVassalId) return null;
-  return lineage?.vassalsById?.[currentVassalId] ?? null;
-}
-
-export function getSettlementPendingVassalSelection(state) {
-  return getSettlementVassalLineageState(state)?.pendingSelection ?? null;
+  if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
+    return lineage.vassalsById[currentVassalId];
+  }
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
+    const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
+    if (fallback) return fallback;
+  }
+  return null;
 }
 
 export function getSettlementSelectedVassals(state) {

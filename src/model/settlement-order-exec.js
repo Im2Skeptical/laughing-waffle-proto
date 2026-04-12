@@ -363,39 +363,6 @@ function sortSupportedPracticeIds(practiceIds, prestigeTotals, boardPositions) {
   });
 }
 
-function findWeakestPracticeIndex(boardDefIds, prestigeTotals) {
-  let weakestIndex = -1;
-  let weakestDefId = null;
-  for (let index = 0; index < boardDefIds.length; index += 1) {
-    const defId = boardDefIds[index];
-    if (typeof defId !== "string" || defId.length <= 0) continue;
-    if (weakestIndex < 0) {
-      weakestIndex = index;
-      weakestDefId = defId;
-      continue;
-    }
-    const candidatePrestige = Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0));
-    const weakestPrestige = Math.max(0, Math.floor(prestigeTotals?.[weakestDefId] ?? 0));
-    if (candidatePrestige < weakestPrestige) {
-      weakestIndex = index;
-      weakestDefId = defId;
-      continue;
-    }
-    if (candidatePrestige > weakestPrestige) continue;
-    if (index > weakestIndex) {
-      weakestIndex = index;
-      weakestDefId = defId;
-      continue;
-    }
-    if (index < weakestIndex) continue;
-    if (defId.localeCompare(weakestDefId) > 0) {
-      weakestIndex = index;
-      weakestDefId = defId;
-    }
-  }
-  return weakestIndex;
-}
-
 function resolvePracticeBoardForClass(state, orderDef, councilState, classId) {
   const maxSlots = getPracticeSlotCount(state, classId);
   const residentBoard = uniquePracticeIds(
@@ -412,45 +379,27 @@ function resolvePracticeBoardForClass(state, orderDef, councilState, classId) {
     };
   }
 
-  const workingBoard = [...residentBoard];
+  const boardPositions = Object.fromEntries(residentBoard.map((defId, index) => [defId, index]));
+  const supportedResidentDefIds = residentBoard.filter(
+    (defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0
+  );
+  const unsupportedResidentDefIds = residentBoard.filter(
+    (defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) <= 0
+  );
   const incomingSupportedDefIds = Object.keys(prestigeTotals)
     .filter(
-      (defId) =>
-        Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0 && !workingBoard.includes(defId)
+      (defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0 && !residentBoard.includes(defId)
     )
-    .sort((a, b) => {
-      const prestigeDelta = Math.max(0, Math.floor(prestigeTotals?.[b] ?? 0)) -
-        Math.max(0, Math.floor(prestigeTotals?.[a] ?? 0));
-      if (prestigeDelta !== 0) return prestigeDelta;
-      return a.localeCompare(b);
-    });
+    .sort((a, b) => a.localeCompare(b));
 
-  for (const defId of incomingSupportedDefIds) {
-    if (workingBoard.length < maxSlots) {
-      workingBoard.push(defId);
-      continue;
-    }
-    const weakestIndex = findWeakestPracticeIndex(workingBoard, prestigeTotals);
-    if (weakestIndex < 0) continue;
-    const weakestDefId = workingBoard[weakestIndex];
-    const weakestPrestige = Math.max(0, Math.floor(prestigeTotals?.[weakestDefId] ?? 0));
-    const incomingPrestige = Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0));
-    if (incomingPrestige <= weakestPrestige) continue;
-    workingBoard[weakestIndex] = defId;
-  }
-
-  const boardPositions = Object.fromEntries(workingBoard.map((defId, index) => [defId, index]));
   const supportedDefIds = sortSupportedPracticeIds(
-    workingBoard.filter((defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) > 0),
+    [...supportedResidentDefIds, ...incomingSupportedDefIds],
     prestigeTotals,
     boardPositions
   );
-  const unsupportedDefIds = workingBoard.filter(
-    (defId) => Math.max(0, Math.floor(prestigeTotals?.[defId] ?? 0)) <= 0
-  );
 
   return {
-    resolvedBoard: [...supportedDefIds, ...unsupportedDefIds].slice(0, maxSlots),
+    resolvedBoard: [...supportedDefIds, ...unsupportedResidentDefIds].slice(0, maxSlots),
     prestigeTotals,
   };
 }
@@ -776,6 +725,52 @@ export function upsertElderCouncilMemberFromVassal(state, spec = {}) {
     councilState.members.push(nextMember);
   }
   return nextMember;
+}
+
+export function syncElderCouncilMembersFromVassals(state, specs = []) {
+  const card = getFirstOrderCard(state, "elderCouncil");
+  if (!card) return false;
+  const councilState = ensureElderCouncilState(card, state);
+  if (!councilState) return false;
+
+  const normalizedSpecs = [];
+  const eligibleVassalIds = new Set();
+  for (const spec of Array.isArray(specs) ? specs : []) {
+    const vassalId =
+      typeof spec?.sourceVassalId === "string" && spec.sourceVassalId.length > 0
+        ? spec.sourceVassalId
+        : null;
+    if (!vassalId || eligibleVassalIds.has(vassalId)) continue;
+    eligibleVassalIds.add(vassalId);
+    normalizedSpecs.push(spec);
+  }
+
+  const beforeCount = Array.isArray(councilState.members) ? councilState.members.length : 0;
+  councilState.members = (Array.isArray(councilState.members) ? councilState.members : []).filter(
+    (member) => {
+      const sourceVassalId =
+        typeof member?.sourceVassalId === "string" && member.sourceVassalId.length > 0
+          ? member.sourceVassalId
+          : null;
+      if (!sourceVassalId) return true;
+      return eligibleVassalIds.has(sourceVassalId);
+    }
+  );
+
+  let changed = councilState.members.length !== beforeCount;
+  for (const spec of normalizedSpecs) {
+    const vassalId = spec.sourceVassalId;
+    const existingMember =
+      councilState.members.find((member) => member?.sourceVassalId === vassalId) ?? null;
+    const nextMember = upsertElderCouncilMemberFromVassal(state, spec);
+    if (
+      nextMember &&
+      JSON.stringify(existingMember ?? null) !== JSON.stringify(nextMember)
+    ) {
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 export function removeElderCouncilMemberBySourceVassalId(state, sourceVassalId) {

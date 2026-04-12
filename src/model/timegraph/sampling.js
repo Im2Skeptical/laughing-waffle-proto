@@ -81,6 +81,24 @@ export function addGridSamples(sampleSet, startSec, endSec, targetCount) {
   sampleSet.add(end);
 }
 
+export function addDenseEdgeSamples(
+  sampleSet,
+  startSec,
+  endSec,
+  { spanSec = 64, strideSec = 1 } = {}
+) {
+  const start = clampSec(startSec);
+  const end = clampSec(endSec);
+  if (end <= start) return;
+  const span = Math.max(1, Math.floor(spanSec ?? 64));
+  const stride = Math.max(1, Math.floor(strideSec ?? 1));
+  const denseEnd = Math.min(end, start + span);
+  for (let sec = start; sec <= denseEnd; sec += stride) {
+    sampleSet.add(sec);
+  }
+  sampleSet.add(denseEnd);
+}
+
 export function pickActionSecondsForSampling(
   actionSecs,
   { focus, cursorSec, startSec, endSec } = {}
@@ -182,6 +200,10 @@ export function buildSampleSeconds({
   let remaining = target - samples.size;
 
   if (!focus) {
+    addDenseEdgeSamples(samples, start, end, {
+      spanSec: Math.min(128, Math.max(16, Math.floor((end - start) * 0.08))),
+      strideSec: 1,
+    });
     addGridSamples(samples, start, end, target);
     // Keep non-focus sampling stable over time. In full-history mode, filler
     // redistribution causes sample-second churn every frontier advance, which

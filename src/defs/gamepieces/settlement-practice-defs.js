@@ -441,7 +441,7 @@ export const settlementPracticeDefs = {
         system: "stockpiles",
         key: "food",
         amountVar: "practiceAmount",
-        amountScale: -1,
+        amountScale: 0,
       },
       {
         op: "AdjustSystemState",
@@ -449,13 +449,13 @@ export const settlementPracticeDefs = {
         system: "stockpiles",
         key: "redResource",
         amountVar: "practiceAmount",
-        amountScale: -1,
+        amountScale: 1,
       },
       {
         op: "ReservePopulation",
         target: { ref: "hubCore" },
         amountVar: "practiceAmount",
-        releaseOffsetSec: MOON_CYCLE_SEC * 14,
+        releaseOffsetSec: MOON_CYCLE_SEC * 1,
         sourceId: "monsterWar",
         label: "Monster War",
         onReleaseEffects: [

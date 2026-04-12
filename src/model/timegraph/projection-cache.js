@@ -380,13 +380,34 @@ export function createProjectionCache({
 
     if (t >= forecastBaseSec && step > 0) {
       const offset = t - forecastBaseSec;
-      const anchorSec =
+      let anchorSec =
         forecastBaseSec + Math.floor(offset / step) * step;
       let anchorData = stateDataBySecond.get(anchorSec);
+
+      if (anchorData == null && anchorSec > historyEnd) {
+        for (
+          let candidateSec = anchorSec - step;
+          candidateSec > historyEnd;
+          candidateSec -= step
+        ) {
+          const candidateData = stateDataBySecond.get(candidateSec);
+          if (candidateData == null) continue;
+          anchorSec = candidateSec;
+          anchorData = candidateData;
+          break;
+        }
+      }
+
       if (anchorData == null && anchorSec <= historyEnd) {
         const baseRes = getStateDataAtSecond(tl, anchorSec);
         if (baseRes.ok) anchorData = baseRes.stateData;
       }
+      if (anchorData == null && historyEnd !== anchorSec) {
+        anchorSec = historyEnd;
+        const baseRes = getStateDataAtSecond(tl, historyEnd);
+        if (baseRes.ok) anchorData = baseRes.stateData;
+      }
+
       if (anchorData != null) {
         const delta = t - anchorSec;
         if (delta > 0) {
@@ -463,7 +484,6 @@ export function createProjectionCache({
 
     if (chunk?.lastStateData != null) {
       setForecastState(endSec, currentHistoryEndSec, chunk.lastStateData);
-      absorbTimelinePersistentKnowledge(tl, chunk.lastStateData);
     }
 
     forecastAsyncEndSec = Math.max(forecastAsyncEndSec, endSec);
@@ -500,6 +520,15 @@ export function createProjectionCache({
       const t = clampSec(sec);
       set(t, data);
       return { ok: true };
+    },
+    getDebugSecondKeys: (limit = 32) => {
+      const cap = Math.max(1, Math.floor(limit ?? 32));
+      const keys = Array.from(stateDataBySecond.keys()).sort((a, b) => a - b);
+      return {
+        count: keys.length,
+        first: keys.slice(0, cap),
+        last: keys.slice(Math.max(0, keys.length - cap)),
+      };
     },
     clear: () => reset(-1),
     getSize: () => stateDataBySecond.size,

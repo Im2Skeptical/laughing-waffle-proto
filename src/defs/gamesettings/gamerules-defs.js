@@ -9,6 +9,9 @@ export const BASE_EDITABLE_HISTORY_WINDOW_SEC = 0;
 export const ENV_EVENT_DRAW_CADENCE_SEC = 5;
 
 export const SEASON_DURATION_SEC = 8; // seconds of simulation per season
+export const SETTLEMENT_VISIBLE_WINDOW_YEARS = 40;
+export const SETTLEMENT_FORECAST_CACHE_YEARS = 200;
+export const SETTLEMENT_LOSS_SEARCH_YEARS = 600;
 export const SEASONS = ["spring", "summer", "autumn", "winter"];
 export const SEASON_DISPLAY = {
   spring: "Spring",
@@ -31,15 +34,15 @@ export const CHAOS_GOD_IDS = Object.freeze([
   "blueGod",
   "blackGod",
 ]);
-export const RED_GOD_ENABLED = false;
+export const RED_GOD_ENABLED = true;
 export const RED_GOD_CHAOS_RATE_BY_FAITH = Object.freeze({
   silver: 1,
   bronze: 2,
 });
 export const RED_GOD_POPULATION_BAND_SIZE = 10;
 export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
-export const RED_GOD_MONSTERS_PER_CHAOS = 100;
-export const RED_GOD_MONSTER_WIN_COUNT = 1000;
+export const RED_GOD_MONSTERS_PER_CHAOS = 10;
+export const RED_GOD_MONSTER_WIN_COUNT = 1400;
 
 
 // --- Prestige + Followers ---
@@ -108,3 +111,5 @@ export const PERISHABILITY_ROT_MULTIPLIER_BY_TIER = {
   gold: 0.5,
   diamond: 0.25,
 };
+
+

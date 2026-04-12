@@ -16,32 +16,32 @@ export const settlementOrderDefs = {
         ageYears: 61,
         modifierId: "hardworker",
         agendaByClass: {
-          villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
-          stranger: ["asTheRomans", "becomeVillagers"],
+          villager: ["floodRites", "riverRecessionFarming"],
+          stranger: ["asTheRomans"],
         },
       },
       {
         ageYears: 58,
         modifierId: "goodTeacher",
         agendaByClass: {
-          villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
-          stranger: ["asTheRomans", "becomeVillagers"],
+          villager: ["riverRecessionFarming", "rest"],
+          stranger: ["becomeVillagers"],
         },
       },
       {
         ageYears: 54,
         modifierId: "fairTrader",
         agendaByClass: {
-          villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
-          stranger: ["asTheRomans", "becomeVillagers"],
+          villager: ["openToStrangers", "floodRites"],
+          stranger: ["asTheRomans"],
         },
       },
       {
         ageYears: 49,
         modifierId: "pious",
         agendaByClass: {
-          villager: ["floodRites", "riverRecessionFarming", "rest", "openToStrangers"],
-          stranger: ["asTheRomans", "becomeVillagers"],
+          villager: ["rest", "openToStrangers"],
+          stranger: ["becomeVillagers"],
         },
       },
     ],

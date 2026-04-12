@@ -185,7 +185,7 @@ function createCard(container, rect, candidate, onSelect, tooltipView) {
   root.eventMode = "static";
   root.cursor = "pointer";
   root.hitArea = new PIXI.Rectangle(rect.x, rect.y, rect.width, rect.height);
-  root.on("pointertap", () => onSelect?.(candidate?.vassalId ?? null));
+  root.on("pointertap", () => onSelect?.(candidate?.candidateIndex ?? null));
 
   const bg = new PIXI.Graphics();
   drawCardRect(bg, rect.x, rect.y, rect.width, rect.height, 0x4d4740, 0xd7b450);
@@ -244,7 +244,7 @@ function createCard(container, rect, candidate, onSelect, tooltipView) {
 export function createSettlementVassalChooserView({
   app,
   layer,
-  getState,
+  getSelectionPool,
   isOpen,
   onSelectCandidate,
   tooltipView,
@@ -271,14 +271,18 @@ export function createSettlementVassalChooserView({
   let lastSignature = "";
   let wasOpen = false;
 
-  function buildPendingSelectionSignature(pendingSelection) {
+  function buildSelectionPoolSignature(selectionPool) {
     return JSON.stringify({
-      poolId: pendingSelection?.poolId ?? null,
-      createdSec: Number.isFinite(pendingSelection?.createdSec)
-        ? Math.floor(pendingSelection.createdSec)
+      poolId: selectionPool?.poolId ?? null,
+      createdSec: Number.isFinite(selectionPool?.createdSec)
+        ? Math.floor(selectionPool.createdSec)
         : null,
-      candidates: (Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : []).map(
+      expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
+      candidates: (Array.isArray(selectionPool?.candidates) ? selectionPool.candidates : []).map(
         (candidate) => ({
+          candidateIndex: Number.isFinite(candidate?.candidateIndex)
+            ? Math.floor(candidate.candidateIndex)
+            : null,
           vassalId: candidate?.vassalId ?? null,
           sourceClassId: candidate?.sourceClassId ?? null,
           initialAgeYears: Number.isFinite(candidate?.initialAgeYears)
@@ -300,10 +304,9 @@ export function createSettlementVassalChooserView({
   }
 
   function render(force = false) {
-    const state = getState?.() ?? null;
     const open = typeof isOpen === "function" ? isOpen() === true : false;
     setOpenVisible(open);
-    if (!open || !state) {
+    if (!open) {
       if (wasOpen) {
         tooltipView?.hide?.();
         clearChildren(body);
@@ -313,8 +316,8 @@ export function createSettlementVassalChooserView({
       return;
     }
     wasOpen = true;
-    const pendingSelection = state?.hub?.core?.systemState?.vassalLineage?.pendingSelection ?? null;
-    const signature = buildPendingSelectionSignature(pendingSelection);
+    const selectionPool = getSelectionPool?.() ?? null;
+    const signature = buildSelectionPoolSignature(selectionPool);
     if (!force && signature === lastSignature) return;
     lastSignature = signature;
     clearChildren(body);
@@ -333,7 +336,7 @@ export function createSettlementVassalChooserView({
     intro.y = 0;
     body.addChild(intro);
 
-    const candidates = Array.isArray(pendingSelection?.candidates) ? pendingSelection.candidates : [];
+    const candidates = Array.isArray(selectionPool?.candidates) ? selectionPool.candidates : [];
     const cardGap = 26;
     const cardWidth = Math.floor((frame.bodyWidth - cardGap * 2 - 24) / 3);
     const cardHeight = frame.bodyHeight - 86;

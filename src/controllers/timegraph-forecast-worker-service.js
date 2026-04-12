@@ -4,6 +4,7 @@ export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 120;
 export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
 export const TIMEGRAPH_FORECAST_STREAM_SLICE_SEC = 30;
 export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 50;
+export const TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS = 750;
 
 function nowMs() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -64,28 +65,72 @@ export function createTimegraphForecastWorkerService({
   chunkSizeSec = TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
   streamSliceSec = TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
   requestCadenceMs = TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
+  workerStallTimeoutMs = TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS,
 } = {}) {
   let worker = null;
+  let workerDisabled = false;
   let nextRequestId = 1;
   const requestsById = new Map();
   const requestsByKey = new Map();
 
+  function clearInFlightRequests() {
+    requestsById.clear();
+    for (const entry of requestsByKey.values()) {
+      if (!entry || typeof entry !== "object") continue;
+      entry.inFlight = null;
+    }
+  }
+
+  function teardownWorker({ disable = false } = {}) {
+    if (disable === true) {
+      workerDisabled = true;
+    }
+    const currentWorker = worker;
+    worker = null;
+    clearInFlightRequests();
+    if (!currentWorker) return;
+    if (typeof currentWorker.removeEventListener === "function") {
+      currentWorker.removeEventListener("message", handleWorkerMessage);
+      currentWorker.removeEventListener("error", handleWorkerError);
+      currentWorker.removeEventListener("messageerror", handleWorkerMessageError);
+    }
+    currentWorker.terminate?.();
+  }
+
+  function handleWorkerError() {
+    teardownWorker({ disable: true });
+  }
+
+  function handleWorkerMessageError() {
+    teardownWorker({ disable: true });
+  }
+
   function ensureWorker() {
+    if (workerDisabled) return null;
     if (worker) return worker;
-    if (typeof createWorker === "function") {
-      worker = createWorker();
-    } else if (typeof Worker === "function") {
-      worker = new Worker(
-        new URL("./timegraph-forecast-worker.js", import.meta.url),
-        { type: "module" }
-      );
-    } else {
+    try {
+      if (typeof createWorker === "function") {
+        worker = createWorker();
+      } else if (typeof Worker === "function") {
+        worker = new Worker(
+          new URL("./timegraph-forecast-worker.js", import.meta.url),
+          { type: "module" }
+        );
+      } else {
+        return null;
+      }
+    } catch (_error) {
+      worker = null;
+      workerDisabled = true;
       return null;
     }
     if (worker && typeof worker.addEventListener === "function") {
       worker.addEventListener("message", handleWorkerMessage);
+      worker.addEventListener("error", handleWorkerError);
+      worker.addEventListener("messageerror", handleWorkerMessageError);
     } else if (worker) {
       worker.onmessage = handleWorkerMessage;
+      worker.onerror = handleWorkerError;
     }
     return worker;
   }
@@ -129,10 +174,112 @@ export function createTimegraphForecastWorkerService({
         clampSec(entry.coverageEndSec),
         clampSec(message.endSec)
       );
+      entry.lastProgressMs = timeNowMs();
     }
     if (message.done === true) {
       releaseRequest(message.requestId);
     }
+  }
+
+  function advanceCoverageLocally({
+    entry,
+    projectionCache,
+    timeline,
+    timelineToken,
+    historyEndSec,
+    stepSec,
+    boundaryStateData,
+    scheduledActionsBySecond,
+    maxSliceSec = streamSliceSec,
+  } = {}) {
+    if (!entry || !projectionCache || !timeline) {
+      return {
+        ok: false,
+        reason: "missingDependencies",
+        coverageEndSec: clampSec(historyEndSec),
+        pending: false,
+        requestedEndSec: clampSec(historyEndSec),
+      };
+    }
+
+    const baseSec = clampSec(historyEndSec);
+    const normalizedStepSec = Math.max(1, Math.floor(stepSec ?? 1));
+    const sliceBaseSec = clampSec(entry.coverageEndSec);
+    const sliceEndSec = Math.min(
+      clampSec(entry.requestedEndSec),
+      sliceBaseSec + Math.max(1, Math.floor(maxSliceSec ?? 1))
+    );
+    if (sliceEndSec <= sliceBaseSec) {
+      return {
+        ok: true,
+        reason: "localFallbackNoop",
+        coverageEndSec: sliceBaseSec,
+        pending: clampSec(entry.requestedEndSec) > sliceBaseSec,
+        requestedEndSec: clampSec(entry.requestedEndSec),
+      };
+    }
+
+    const chunkBoundaryStateData =
+      sliceBaseSec === baseSec
+        ? boundaryStateData
+        : projectionCache.getStateData?.(sliceBaseSec) ?? null;
+    if (chunkBoundaryStateData == null) {
+      return {
+        ok: false,
+        reason: "missingChunkBoundaryStateData",
+        coverageEndSec: sliceBaseSec,
+        pending: true,
+        requestedEndSec: clampSec(entry.requestedEndSec),
+      };
+    }
+
+    const sliceActions = normalizeActionsBySecond(
+      scheduledActionsBySecond,
+      sliceBaseSec,
+      sliceEndSec
+    );
+    const sliceRes = buildProjectionChunkFromStateData(
+      chunkBoundaryStateData,
+      sliceBaseSec,
+      sliceEndSec,
+      {
+        stepSec: normalizedStepSec,
+        actionsBySecond: sliceActions,
+      }
+    );
+    if (sliceRes?.ok !== true) {
+      return {
+        ok: false,
+        reason: sliceRes?.reason ?? "localFallbackFailed",
+        coverageEndSec: sliceBaseSec,
+        pending: true,
+        requestedEndSec: clampSec(entry.requestedEndSec),
+      };
+    }
+
+    const merged = projectionCache.mergeForecastChunk?.(timeline, {
+      timelineToken,
+      historyEndSec: baseSec,
+      baseSec: sliceBaseSec,
+      endSec: sliceEndSec,
+      stepSec: normalizedStepSec,
+      stateDataBySecond: Array.from(sliceRes.stateDataBySecond.entries()),
+      lastStateData: sliceRes.lastStateData,
+    });
+    if (merged?.ok === true) {
+      entry.coverageEndSec = Math.max(
+        clampSec(entry.coverageEndSec),
+        clampSec(sliceEndSec)
+      );
+      entry.lastProgressMs = timeNowMs();
+    }
+    return {
+      ok: merged?.ok === true,
+      reason: merged?.ok === true ? "localFallback" : merged?.reason ?? "localFallbackMergeFailed",
+      coverageEndSec: clampSec(entry.coverageEndSec),
+      pending: clampSec(entry.requestedEndSec) > clampSec(entry.coverageEndSec),
+      requestedEndSec: clampSec(entry.requestedEndSec),
+    };
   }
 
   function getCoverageMeta(projectionCache, timelineToken, historyEndSec, stepSec) {
@@ -173,7 +320,6 @@ export function createTimegraphForecastWorkerService({
       };
     }
 
-    const workerInstance = ensureWorker();
     const baseSec = clampSec(historyEndSec);
     const requestedEndSec = Math.max(baseSec, clampSec(desiredEndSec));
     const normalizedStepSec = Math.max(1, Math.floor(stepSec ?? 1));
@@ -195,6 +341,7 @@ export function createTimegraphForecastWorkerService({
         requestedEndSec,
         coverageEndSec: coverage.coverageEndSec,
         lastDispatchMs: -Infinity,
+        lastProgressMs: timeNowMs(),
         inFlight: null,
         primedInitialChunk: false,
       };
@@ -211,16 +358,6 @@ export function createTimegraphForecastWorkerService({
         normalizedStepSec
       );
       entry.coverageEndSec = coverage.coverageEndSec;
-    }
-
-    if (!workerInstance) {
-      return {
-        ok: false,
-        reason: "workerUnavailable",
-        coverageEndSec: entry.coverageEndSec,
-        pending: false,
-        requestedEndSec: entry.requestedEndSec,
-      };
     }
 
     const pending = entry.requestedEndSec > entry.coverageEndSec;
@@ -268,6 +405,7 @@ export function createTimegraphForecastWorkerService({
               entry.coverageEndSec,
               clampSec(primeEndSec)
             );
+            entry.lastProgressMs = timeNowMs();
           }
         }
       }
@@ -285,6 +423,31 @@ export function createTimegraphForecastWorkerService({
     }
 
     const currentMs = timeNowMs();
+    if (
+      entry.inFlight &&
+      currentMs - Math.max(
+        Number.isFinite(entry.lastProgressMs) ? entry.lastProgressMs : -Infinity,
+        Number.isFinite(entry.inFlight?.startedMs) ? entry.inFlight.startedMs : -Infinity
+      ) >
+        Math.max(1, Math.floor(workerStallTimeoutMs))
+    ) {
+      teardownWorker({ disable: true });
+    }
+
+    const workerInstance = ensureWorker();
+    if (!workerInstance) {
+      return advanceCoverageLocally({
+        entry,
+        projectionCache,
+        timeline,
+        timelineToken,
+        historyEndSec: baseSec,
+        stepSec: normalizedStepSec,
+        boundaryStateData,
+        scheduledActionsBySecond,
+      });
+    }
+
     if (entry.inFlight || currentMs - entry.lastDispatchMs < requestCadenceMs) {
       return {
         ok: true,
@@ -328,6 +491,7 @@ export function createTimegraphForecastWorkerService({
       requestId,
       baseSec: chunkBaseSec,
       endSec: chunkEndSec,
+      startedMs: currentMs,
     };
 
     const request = {
@@ -367,19 +531,14 @@ export function createTimegraphForecastWorkerService({
   }
 
   function handleTimelineInvalidation(_reason = "invalidate") {
-    requestsById.clear();
+    clearInFlightRequests();
     requestsByKey.clear();
+    workerDisabled = false;
   }
 
   function dispose() {
-    requestsById.clear();
     requestsByKey.clear();
-    if (!worker) return;
-    if (typeof worker.removeEventListener === "function") {
-      worker.removeEventListener("message", handleWorkerMessage);
-    }
-    worker.terminate?.();
-    worker = null;
+    teardownWorker({ disable: false });
   }
 
   return {

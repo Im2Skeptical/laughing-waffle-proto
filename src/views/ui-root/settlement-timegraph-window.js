@@ -1,5 +1,9 @@
 import { createProjectionCache } from "../../model/timegraph/projection-cache.js";
-import { SEASON_DURATION_SEC } from "../../defs/gamesettings/gamerules-defs.js";
+import {
+  SEASON_DURATION_SEC,
+  SETTLEMENT_FORECAST_CACHE_YEARS,
+  SETTLEMENT_LOSS_SEARCH_YEARS,
+} from "../../defs/gamesettings/gamerules-defs.js";
 import {
   DEFAULT_PROJECTION_CACHE_MAX_BYTES,
   DEFAULT_STATE_DATA_ESTIMATE_BYTES,
@@ -15,11 +19,14 @@ function toNonNegativeSec(value, fallback = 0) {
 export const SETTLEMENT_GRAPH_FORECAST_STEP_SEC = 1;
 export const SETTLEMENT_GRAPH_CACHE_SLACK_SEC = 512;
 const SETTLEMENT_GRAPH_MIN_CACHE_BYTES = 512 * 1024 * 1024;
-const SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS = 200;
-export const SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC =
+export const SETTLEMENT_GRAPH_FORECAST_CACHE_CAPACITY_SEC =
   Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
   4 *
-  SETTLEMENT_GRAPH_MIN_FORECAST_CAPACITY_YEARS;
+  Math.max(1, Math.floor(SETTLEMENT_FORECAST_CACHE_YEARS));
+export const SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC =
+  Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
+  4 *
+  Math.max(1, Math.floor(SETTLEMENT_LOSS_SEARCH_YEARS));
 
 export function computeSettlementProjectionCacheConfig({
   horizonSec = 0,
@@ -34,7 +41,7 @@ export function computeSettlementProjectionCacheConfig({
   // early sampled seconds are not evicted after a sync browse to a late death second.
   const requiredForecastCapacitySec = Math.max(
     horizon,
-    SETTLEMENT_GRAPH_FORECAST_CAPACITY_SEC
+    SETTLEMENT_GRAPH_FORECAST_CACHE_CAPACITY_SEC
   );
   const requiredEntries =
     Math.ceil(requiredForecastCapacitySec / step) + Math.ceil(slack / step) + 1;
