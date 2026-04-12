@@ -12,7 +12,6 @@ import {
   getSettlementHappinessSummary,
   getSettlementLatestSelectedVassalDeathSec,
   getSettlementOrderSlots,
-  getSettlementPendingVassalSelection,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStockpile,
@@ -235,35 +234,6 @@ function buildCompactVassalSignature(vassal, visibleEvents, classIds) {
   };
 }
 
-function buildCompactPendingSelectionSignature(pendingSelection, classIds) {
-  if (!pendingSelection || typeof pendingSelection !== "object") return null;
-  const safeClassIds = Array.isArray(classIds) ? classIds : [];
-  return {
-    poolId: pendingSelection.poolId ?? null,
-    createdSec: Number.isFinite(pendingSelection.createdSec)
-      ? Math.floor(pendingSelection.createdSec)
-      : null,
-    candidates: (Array.isArray(pendingSelection.candidates) ? pendingSelection.candidates : []).map(
-      (candidate) => ({
-        vassalId: candidate?.vassalId ?? null,
-        sourceClassId: candidate?.sourceClassId ?? null,
-        initialAgeYears: Number.isFinite(candidate?.initialAgeYears)
-          ? Math.floor(candidate.initialAgeYears)
-          : null,
-        deathYear: Number.isFinite(candidate?.deathYear) ? Math.floor(candidate.deathYear) : null,
-        agendaByClass: Object.fromEntries(
-          safeClassIds.map((classId) => [
-            classId,
-            Array.isArray(candidate?.agendaByClass?.[classId])
-              ? [...candidate.agendaByClass[classId]]
-              : [],
-          ])
-        ),
-      })
-    ),
-  };
-}
-
 function buildSignature(
   state,
   selectedClassId,
@@ -332,7 +302,6 @@ function buildSignature(
     })),
     vassal: (() => {
       const currentVassal = getSettlementCurrentVassal(state);
-      const pendingSelection = getSettlementPendingVassalSelection(state);
       const firstSelectedVassal = getSettlementFirstSelectedVassal(state);
       const visibleEvents = currentVassal
         ? getSettlementVisibleVassalLifeEvents(
@@ -343,7 +312,6 @@ function buildSignature(
         : [];
       return {
         currentVassal: buildCompactVassalSignature(currentVassal, visibleEvents, classIds),
-        pendingSelection: buildCompactPendingSelectionSignature(pendingSelection, classIds),
         firstSelectedVassalId: firstSelectedVassal?.vassalId ?? null,
         latestDeathSec: getSettlementLatestSelectedVassalDeathSec(state),
       };
@@ -959,6 +927,7 @@ function drawElderLozenge(
   root.y = rect.y;
   const isVassalCouncillor =
     typeof member?.sourceVassalId === "string" && member.sourceVassalId.length > 0;
+  const compactMode = rect.height < 36;
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
@@ -972,6 +941,81 @@ function drawElderLozenge(
     isVassalCouncillor ? 3 : 2
   );
   root.addChild(gfx);
+
+  if (compactMode) {
+    const agendaRect = { x: rect.width - 70, y: 4, width: 62, height: rect.height - 8 };
+    root.addChild(
+      createText(
+        `P${Math.floor(member?.prestige ?? 0)}`,
+        {
+          ...TEXT_STYLES.body,
+          fontSize: 10,
+          fontWeight: "bold",
+        },
+        10,
+        rect.height * 0.5,
+        0,
+        0.5
+      )
+    );
+    root.addChild(
+      createText(
+        member?.modifierLabel ?? member?.memberId ?? "Elder",
+        {
+          ...TEXT_STYLES.body,
+          fontWeight: "bold",
+          fontSize: 10,
+          wordWrap: true,
+          wordWrapWidth: Math.max(40, agendaRect.x - 56),
+          lineHeight: 11,
+        },
+        42,
+        4
+      )
+    );
+    root.addChild(
+      createText(
+        isVassalCouncillor ? "Vassal" : `${capitalizeLabel(member?.sourceClassId)} elder`,
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 9,
+          fill: isVassalCouncillor ? PALETTE.vassalCouncilStroke : TEXT_STYLES.muted.fill,
+        },
+        42,
+        rect.height - 5,
+        0,
+        1
+      )
+    );
+    drawAgendaStack(root, agendaRect, getSelectedAgendaForMember(member, selectedClassId));
+
+    const detailHit = new PIXI.Graphics();
+    detailHit.beginFill(0xffffff, 0.001);
+    detailHit.drawRoundedRect(4, 3, rect.width - 8, rect.height - 6, 12);
+    detailHit.endFill();
+    detailHit.eventMode = "static";
+    detailHit.cursor = "pointer";
+    detailHit.on("pointerenter", () => {
+      const anchor =
+        detailHit.getBounds?.() ?? { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      tooltipView?.show({
+        ...buildElderDetailTooltipSpec(orderDef, member),
+        anchorRect: anchor,
+      });
+      showAgendaFlyout?.({
+        member,
+        anchorDisplayObject: detailHit,
+        anchorRect: anchor,
+      });
+    });
+    detailHit.on("pointerleave", () => {
+      tooltipView?.hide();
+      scheduleAgendaFlyoutHide?.();
+    });
+    root.addChild(detailHit);
+    container.addChild(root);
+    return root;
+  }
 
   const prestigePillRect = { x: 8, y: 7, width: 52, height: rect.height - 14 };
   const prestigePill = new PIXI.Graphics();
@@ -1150,16 +1194,20 @@ function drawElderRoster(
     return;
   }
   const rowGap = 8;
+  const compactRowGap = members.length >= 5 ? 4 : rowGap;
   const rowHeight = Math.max(
-    36,
-    Math.min(52, Math.floor((rosterHeight - rowGap * Math.max(0, members.length - 1)) / members.length))
+    20,
+    Math.min(
+      52,
+      Math.floor((rosterHeight - compactRowGap * Math.max(0, members.length - 1)) / members.length)
+    )
   );
   for (let index = 0; index < members.length; index += 1) {
     drawElderLozenge(
       container,
       {
         x: rect.x + 10,
-        y: rosterY + index * (rowHeight + rowGap),
+        y: rosterY + index * (rowHeight + compactRowGap),
         width: rect.width - 20,
         height: rowHeight,
       },

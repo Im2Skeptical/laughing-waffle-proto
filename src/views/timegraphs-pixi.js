@@ -398,6 +398,10 @@ export function createMetricGraphView({
   showPin = false,
   showClose = true,
   draggable = true,
+  forecastRevealTargetDurationSec = FORECAST_REVEAL_TARGET_DURATION_SEC,
+  forecastRevealMinRateSecPerSec = FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
+  forecastRevealMaxRateSecPerSec = Number.POSITIVE_INFINITY,
+  forecastRevealStartDelayMs = 0,
 }) {
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
@@ -581,6 +585,7 @@ export function createMetricGraphView({
   let forecastRevealLastTickMs = 0;
   let forecastRevealHistoryEndSec = 0;
   let forecastRevealVisibleEndSec = 0;
+  let forecastRevealDelayUntilMs = 0;
   let plotSnapshotKey = "";
   let plotSnapshot = null;
   let latchedForecastScrubSec = null;
@@ -602,6 +607,18 @@ export function createMetricGraphView({
 
   function clearLatchedForecastScrub() {
     latchedForecastScrubSec = null;
+  }
+
+  function resetForecastPreviewState() {
+    isScrubbing = false;
+    clearLatchedForecastScrub();
+    if (
+      statusNote === "Forecast loading" ||
+      statusNote === "Forecast revealing" ||
+      statusNote === "Preview only - click Commit to jump"
+    ) {
+      statusNote = "";
+    }
   }
 
   function syncLatchedForecastPreviewStatus() {
@@ -683,6 +700,8 @@ export function createMetricGraphView({
     forecastRevealLastTickMs = nowMs;
     forecastRevealHistoryEndSec = historyEnd;
     forecastRevealVisibleEndSec = animatedEnd;
+    forecastRevealDelayUntilMs =
+      nowMs + Math.max(0, Number(forecastRevealStartDelayMs ?? 0));
     invalidatePlotSnapshot();
   }
 
@@ -701,15 +720,44 @@ export function createMetricGraphView({
       forecastRevealAnimatedEndSec = targetEnd;
       forecastRevealLastTickMs = nowMs;
       forecastRevealVisibleEndSec = targetEnd;
+      if (nowMs >= forecastRevealDelayUntilMs) {
+        forecastRevealDelayUntilMs = 0;
+      }
       return targetEnd;
     }
-    const elapsedMs = Math.max(0, nowMs - forecastRevealLastTickMs);
+    const effectiveStartMs = Math.max(
+      forecastRevealLastTickMs,
+      forecastRevealDelayUntilMs
+    );
+    const elapsedMs = Math.max(0, nowMs - effectiveStartMs);
     forecastRevealLastTickMs = nowMs;
     if (elapsedMs <= 0) return currentEnd;
+    forecastRevealDelayUntilMs = 0;
     const remainingForecastSpanSec = Math.max(1, targetEnd - historyEnd);
+    const minRevealRateSecPerSec = Math.max(
+      1,
+      Number(
+        forecastRevealMinRateSecPerSec ?? FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
+      )
+    );
+    const maxRevealRateSecPerSec = Math.max(
+      minRevealRateSecPerSec,
+      Number(
+        forecastRevealMaxRateSecPerSec ?? Number.POSITIVE_INFINITY
+      )
+    );
+    const targetRevealRateSecPerSec =
+      remainingForecastSpanSec /
+      Math.max(
+        0.05,
+        Number(
+          forecastRevealTargetDurationSec ??
+            FORECAST_REVEAL_TARGET_DURATION_SEC
+        )
+      );
     const revealRateSecPerSec = Math.max(
-      FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
-      remainingForecastSpanSec / Math.max(0.05, FORECAST_REVEAL_TARGET_DURATION_SEC)
+      minRevealRateSecPerSec,
+      Math.min(maxRevealRateSecPerSec, targetRevealRateSecPerSec)
     );
     const revealDeltaSec =
       (elapsedMs / 1000) * revealRateSecPerSec;
@@ -1444,7 +1492,10 @@ export function createMetricGraphView({
         : 100;
       const tRaw = (v - minValue) / Math.max(1e-6, maxValue - minValue);
       const t = Math.max(0, Math.min(1, tRaw));
-      return plot.y + plot.h - t * plot.h;
+      // Keep min/max-aligned series inside the plot rect so long zero plateaus
+      // do not disappear into the panel border during forecast reveal.
+      const drawableHeight = Math.max(1, plot.h - 2);
+      return plot.y + 1 + (1 - t) * drawableHeight;
     }
 
     function drawZone(startSec, endSec, color, alpha = TIME_STATE_GRAPH_BG_ALPHA) {
@@ -1846,8 +1897,7 @@ export function createMetricGraphView({
   function close() {
     if (!root.visible) return;
     root.visible = false;
-    isScrubbing = false;
-    clearLatchedForecastScrub();
+    resetForecastPreviewState();
     invalidatePlotSnapshot();
     resetForecastReveal(0, 0, 0, performance.now());
     clearLegendEntries();
@@ -1863,6 +1913,91 @@ export function createMetricGraphView({
   function getScreenRect() {
     if (!root.visible || typeof root.getBounds !== "function") return null;
     return root.getBounds();
+  }
+
+  function getPlotScreenRect() {
+    if (
+      !root.visible ||
+      typeof root.toGlobal !== "function" ||
+      typeof app?.view?.getBoundingClientRect !== "function"
+    ) {
+      return null;
+    }
+    const topLeft = root.toGlobal(new PIXI.Point(plot.x, plot.y));
+    const bottomRight = root.toGlobal(
+      new PIXI.Point(plot.x + plot.w, plot.y + plot.h)
+    );
+    const canvasRect = app.view.getBoundingClientRect();
+    const scaleX = canvasRect.width / Math.max(1, Number(app.screen?.width ?? 1));
+    const scaleY = canvasRect.height / Math.max(1, Number(app.screen?.height ?? 1));
+    return {
+      x: canvasRect.left + Number(topLeft?.x ?? 0) * scaleX,
+      y: canvasRect.top + Number(topLeft?.y ?? 0) * scaleY,
+      width:
+        Math.max(0, Number(bottomRight?.x ?? 0) - Number(topLeft?.x ?? 0)) *
+        scaleX,
+      height:
+        Math.max(0, Number(bottomRight?.y ?? 0) - Number(topLeft?.y ?? 0)) *
+        scaleY,
+    };
+  }
+
+  function getDebugState() {
+    const tl = getTimeline?.();
+    const data = controller.getData?.() ?? {};
+    const snapshot = getPlotSnapshot();
+    const pointsForDraw = Array.isArray(snapshot?.pointsForDraw)
+      ? snapshot.pointsForDraw
+      : [];
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    const visibleForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.min(
+        actualForecastCoverageEndSec,
+        forecastRevealHistoryEndSec === historyEndSec
+          ? Math.floor(forecastRevealVisibleEndSec ?? historyEndSec)
+          : historyEndSec
+      )
+    );
+    return {
+      minSec,
+      maxSec,
+      scrubSec,
+      statusNote,
+      isScrubbing,
+      zoomed,
+      historyEndSec,
+      actualForecastCoverageEndSec,
+      visibleForecastCoverageEndSec,
+      forecastRevealHistoryEndSec: Math.max(
+        0,
+        Math.floor(forecastRevealHistoryEndSec ?? 0)
+      ),
+      forecastRevealTargetEndSec: Math.max(
+        0,
+        Math.floor(forecastRevealTargetEndSec ?? 0)
+      ),
+      samplePointCount: pointsForDraw.length,
+      samplePointSecs: {
+        first: pointsForDraw
+          .slice(0, 96)
+          .map((point) => Math.max(0, Math.floor(point?.tSec ?? 0))),
+        last: pointsForDraw
+          .slice(Math.max(0, pointsForDraw.length - 32))
+          .map((point) => Math.max(0, Math.floor(point?.tSec ?? 0))),
+      },
+      samplePointPending: {
+        first: pointsForDraw
+          .slice(0, 96)
+          .map((point) => point?.pending === true),
+      },
+      plotScreenRect: getPlotScreenRect(),
+      windowScreenRect: getScreenRect(),
+    };
   }
 
   function render() {
@@ -1970,6 +2105,8 @@ export function createMetricGraphView({
     destroy,
     isOpen,
     getScreenRect,
+    getPlotScreenRect,
+    getDebugState,
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
     render,
     setWindowSpecResolver,
@@ -1977,6 +2114,7 @@ export function createMetricGraphView({
     setSeriesValueOverrideResolver,
     setHistoryZoneResolver,
     setEventMarkerResolver,
+    resetForecastPreviewState,
   };
 }
 

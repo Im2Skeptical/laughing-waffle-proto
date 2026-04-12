@@ -24,14 +24,16 @@ import {
   getSettlementClassIds,
   getSettlementOrderSlots,
   getSettlementPopulationSummary,
+  getSettlementSelectedVassals,
   getSettlementVassalLineageState,
   getSettlementYearDurationSec,
   getSettlementYearStartSec,
 } from "./settlement-state.js";
 import {
-  removeElderCouncilMemberBySourceVassalId,
+  syncElderCouncilMembersFromVassals,
   upsertElderCouncilMemberFromVassal,
 } from "./settlement-order-exec.js";
+import { deserializeGameState, serializeGameState } from "./state.js";
 
 function getVassalLineageMutable(state) {
   const core = getHubCore(state);
@@ -271,12 +273,9 @@ function createCandidateRecord(state, lineage, poolId, orderDef) {
   return record;
 }
 
-export function ensureSettlementVassalSelectionPool(state, tSec = null) {
+function generateSettlementVassalSelectionPoolMutable(state, tSec = null) {
   const lineage = getVassalLineageMutable(state);
   if (!lineage) return null;
-  if (lineage.pendingSelection?.candidates?.length === SETTLEMENT_VASSAL_CANDIDATE_COUNT) {
-    return lineage.pendingSelection;
-  }
   const orderDef = getOrderDef(state);
   const poolId = nextLineagePoolId(lineage);
   const createdSec = getSafeTSec(state, tSec);
@@ -288,29 +287,56 @@ export function ensureSettlementVassalSelectionPool(state, tSec = null) {
   for (let index = 0; index < SETTLEMENT_VASSAL_CANDIDATE_COUNT; index += 1) {
     const record = createCandidateRecord(state, lineage, poolId, orderDef);
     candidates.push(record);
-    lineage.vassalsById[record.vassalId] = record;
   }
   if (Number.isFinite(previousTSec)) {
     state.tSec = previousTSec;
   }
-  lineage.pendingSelection = {
+  return {
     poolId,
     createdSec,
     candidates,
   };
-  return lineage.pendingSelection;
 }
 
-export function selectSettlementVassalCandidate(state, vassalId, tSec = null) {
-  const lineage = getVassalLineageMutable(state);
-  if (!lineage) return { ok: false, reason: "noLineage" };
-  const pendingSelection = lineage.pendingSelection;
-  if (!pendingSelection) return { ok: false, reason: "noPendingSelection" };
-  const candidate = Array.isArray(pendingSelection.candidates)
-    ? pendingSelection.candidates.find((entry) => entry?.vassalId === vassalId) ?? null
-    : null;
-  if (!candidate) return { ok: false, reason: "missingCandidate" };
+function buildSelectionPoolHash(pool) {
+  const signature = {
+    poolId: pool?.poolId ?? null,
+    createdSec: Number.isFinite(pool?.createdSec) ? Math.floor(pool.createdSec) : null,
+    candidates: (Array.isArray(pool?.candidates) ? pool.candidates : []).map((candidate) => ({
+      vassalId: candidate?.vassalId ?? null,
+      sourceClassId: candidate?.sourceClassId ?? null,
+      initialAgeYears: Number.isFinite(candidate?.initialAgeYears)
+        ? Math.floor(candidate.initialAgeYears)
+        : null,
+      birthYear: Number.isFinite(candidate?.birthYear) ? Math.floor(candidate.birthYear) : null,
+      deathYear: Number.isFinite(candidate?.deathYear) ? Math.floor(candidate.deathYear) : null,
+      agendaByClass: candidate?.agendaByClass ?? null,
+    })),
+  };
+  return JSON.stringify(signature);
+}
 
+export function getSettlementVassalSelectionPoolHash(pool) {
+  return buildSelectionPoolHash(pool);
+}
+
+export function buildSettlementVassalSelectionPool(state, tSec = null) {
+  if (!state || typeof state !== "object") return null;
+  const clonedState = deserializeGameState(serializeGameState(state));
+  const pool = generateSettlementVassalSelectionPoolMutable(clonedState, tSec);
+  if (!pool) return null;
+  return {
+    ...pool,
+    candidates: pool.candidates.map((candidate, index) => ({
+      ...candidate,
+      candidateIndex: index,
+    })),
+    expectedPoolHash: buildSelectionPoolHash(pool),
+  };
+}
+
+function finalizeSelectedVassal(state, lineage, candidate, tSec = null) {
+  if (!lineage || !candidate) return { ok: false, reason: "missingCandidate" };
   const safeTSec = getSafeTSec(state, tSec);
   candidate.selectedSec = safeTSec;
   candidate.birthSec = safeTSec;
@@ -340,24 +366,38 @@ export function selectSettlementVassalCandidate(state, vassalId, tSec = null) {
       })
     : [];
 
+  lineage.vassalsById[candidate.vassalId] = candidate;
   lineage.currentVassalId = candidate.vassalId;
   if (!lineage.selectedVassalIds.includes(candidate.vassalId)) {
     lineage.selectedVassalIds.push(candidate.vassalId);
   }
-  lineage.pendingSelection = null;
   return { ok: true, vassalId: candidate.vassalId };
 }
 
-export function beginNextSettlementVassalSelection(state, tSec = null) {
+export function selectSettlementVassal(state, candidateIndex, expectedPoolHash, tSec = null) {
   const lineage = getVassalLineageMutable(state);
   if (!lineage) return { ok: false, reason: "noLineage" };
-  if (lineage.pendingSelection) return { ok: false, reason: "selectionAlreadyOpen" };
   const currentVassal = getCurrentSettlementVassal(state);
   if (currentVassal && currentVassal.isDead !== true) {
     return { ok: false, reason: "currentVassalAlive" };
   }
-  const pool = ensureSettlementVassalSelectionPool(state, tSec);
-  return pool ? { ok: true, poolId: pool.poolId } : { ok: false, reason: "poolFailed" };
+  const safeIndex = Number.isFinite(candidateIndex) ? Math.floor(candidateIndex) : -1;
+  const previewPool = buildSettlementVassalSelectionPool(state, tSec);
+  if (!previewPool) return { ok: false, reason: "poolFailed" };
+  const actualHash = previewPool.expectedPoolHash;
+  if (typeof expectedPoolHash === "string" && expectedPoolHash.length > 0 && expectedPoolHash !== actualHash) {
+    return { ok: false, reason: "selectionPoolMismatch", actualPoolHash: actualHash };
+  }
+  if (safeIndex < 0 || safeIndex >= previewPool.candidates.length) {
+    return { ok: false, reason: "missingCandidate" };
+  }
+  const pool = generateSettlementVassalSelectionPoolMutable(state, tSec);
+  if (!pool) return { ok: false, reason: "poolFailed" };
+  const candidate = pool.candidates[safeIndex] ?? null;
+  if (!candidate) {
+    return { ok: false, reason: "missingCandidate" };
+  }
+  return finalizeSelectedVassal(state, lineage, candidate, tSec);
 }
 
 export function removePracticeFromVassalAgendas(state, practiceDefId, classId = null) {
@@ -395,8 +435,15 @@ export function getCurrentSettlementVassal(state) {
     typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
       ? lineage.currentVassalId
       : null;
-  if (!currentVassalId) return null;
-  return lineage?.vassalsById?.[currentVassalId] ?? null;
+  if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
+    return lineage.vassalsById[currentVassalId];
+  }
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
+    const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
+    if (fallback) return fallback;
+  }
+  return null;
 }
 
 function applyVassalLifeEvent(state, vassal, event) {
@@ -444,34 +491,36 @@ function applyVassalLifeEvent(state, vassal, event) {
           ? event.causeOfDeath
           : vassal.deathCause ?? null;
       vassal.removedFromCouncilSec = Math.max(0, Math.floor(event.tSec ?? 0));
-      if (typeof vassal.vassalId === "string" && vassal.vassalId.length > 0) {
-        removeElderCouncilMemberBySourceVassalId(state, vassal.vassalId);
-      }
       return true;
     default:
       return false;
   }
 }
 
-function syncCouncilMirrorForAliveVassal(state, vassal, tSec) {
-  if (!vassal || vassal.isElder !== true || vassal.isDead === true) return false;
-  const ageYears = getSettlementVassalAgeYearsAtSecond(state, vassal, tSec);
-  const joinedCouncilSec = Number.isFinite(vassal?.joinedCouncilSec)
-    ? Math.max(0, Math.floor(vassal.joinedCouncilSec))
-    : tSec;
-  upsertElderCouncilMemberFromVassal(state, {
-    sourceVassalId: vassal.vassalId,
-    memberId: vassal.councilMemberId ?? `vassal-${vassal.vassalId}`,
-    sourceClassId: vassal.currentClassId,
-    joinedYear: getYearAtSecond(state, joinedCouncilSec),
-    ageYears,
-    modifierId:
-      typeof vassal.traitId === "string" && vassal.traitId.length > 0
-        ? vassal.traitId
-        : null,
-    agendaByClass: vassal.agendaByClass,
-  });
-  return true;
+function buildSelectedVassalCouncilSpecs(state, tSec) {
+  const specs = [];
+  for (const vassal of getSettlementSelectedVassals(state)) {
+    if (!vassal || vassal.isElder !== true) continue;
+    const joinedCouncilSec = Number.isFinite(vassal?.joinedCouncilSec)
+      ? Math.max(0, Math.floor(vassal.joinedCouncilSec))
+      : null;
+    if (joinedCouncilSec == null || joinedCouncilSec > tSec) continue;
+    const referenceSec =
+      vassal.isDead === true && Number.isFinite(vassal?.removedFromCouncilSec)
+        ? Math.max(0, Math.floor(vassal.removedFromCouncilSec))
+        : tSec;
+    specs.push({
+      sourceVassalId: vassal.vassalId,
+      memberId: vassal.councilMemberId ?? `vassal-${vassal.vassalId}`,
+      sourceClassId: vassal.currentClassId,
+      joinedYear: getYearAtSecond(state, joinedCouncilSec),
+      ageYears: getSettlementVassalAgeYearsAtSecond(state, vassal, referenceSec),
+      modifierId:
+        typeof vassal.traitId === "string" && vassal.traitId.length > 0 ? vassal.traitId : null,
+      agendaByClass: vassal.agendaByClass,
+    });
+  }
+  return specs;
 }
 
 export function getSettlementVassalAgeYearsAtSecond(state, vassal, tSec = null) {
@@ -489,15 +538,18 @@ export function stepSettlementVassals(state, tSec) {
   const lineage = getVassalLineageMutable(state);
   if (!lineage) return false;
   const currentVassal = getCurrentSettlementVassal(state);
-  if (!currentVassal) return false;
   let changed = false;
   const safeTSec = getSafeTSec(state, tSec);
-  const events = Array.isArray(currentVassal.lifeEvents) ? currentVassal.lifeEvents : [];
-  for (const event of events) {
-    const eventSec = Math.max(0, Math.floor(event?.tSec ?? 0));
-    if (eventSec > safeTSec) continue;
-    changed = applyVassalLifeEvent(state, currentVassal, event) || changed;
+  if (currentVassal) {
+    const events = Array.isArray(currentVassal.lifeEvents) ? currentVassal.lifeEvents : [];
+    for (const event of events) {
+      const eventSec = Math.max(0, Math.floor(event?.tSec ?? 0));
+      if (eventSec > safeTSec) continue;
+      changed = applyVassalLifeEvent(state, currentVassal, event) || changed;
+    }
   }
-  changed = syncCouncilMirrorForAliveVassal(state, currentVassal, safeTSec) || changed;
+  changed =
+    syncElderCouncilMembersFromVassals(state, buildSelectedVassalCouncilSpecs(state, safeTSec)) ||
+    changed;
   return changed;
 }

@@ -1,15 +1,15 @@
 import {
-  beginNextSettlementVassalSelection,
-  selectSettlementVassalCandidate,
+  selectSettlementVassal,
 } from "../settlement-vassal-exec.js";
 
-export function cmdBeginNextSettlementVassalSelection(state, payload = {}) {
-  return beginNextSettlementVassalSelection(state, payload?.tSec);
-}
-
-export function cmdSelectSettlementVassalCandidate(state, payload = {}) {
-  const vassalId =
-    typeof payload?.vassalId === "string" && payload.vassalId.length > 0 ? payload.vassalId : null;
-  if (!vassalId) return { ok: false, reason: "missingVassalId" };
-  return selectSettlementVassalCandidate(state, vassalId, payload?.tSec);
+export function cmdSelectSettlementVassal(state, payload = {}) {
+  const candidateIndex = Number.isFinite(payload?.candidateIndex)
+    ? Math.floor(payload.candidateIndex)
+    : null;
+  if (candidateIndex == null) return { ok: false, reason: "missingCandidateIndex" };
+  const expectedPoolHash =
+    typeof payload?.expectedPoolHash === "string" && payload.expectedPoolHash.length > 0
+      ? payload.expectedPoolHash
+      : null;
+  return selectSettlementVassal(state, candidateIndex, expectedPoolHash, payload?.tSec);
 }
