@@ -18,6 +18,11 @@ import {
   createTimeGraphController,
   getSharedProjectionCache,
 } from "../timegraph-controller.js";
+import {
+  buildSettlementVassalSelectionPool,
+  selectSettlementVassal,
+} from "../settlement-vassal-exec.js";
+import { getHubCore } from "../settlement-state.js";
 
 const DT_STEP = 1 / 60;
 const TEST_SEED = 99999;
@@ -91,6 +96,22 @@ function summarizeEnvEvents(state) {
   return entries.join("|");
 }
 
+function clearVassalLineageForHash(state) {
+  const clone = deserializeGameState(serializeGameState(state));
+  const hubCore = getHubCore(clone);
+  if (hubCore?.systemState && typeof hubCore.systemState === "object") {
+    delete hubCore.systemState.vassalLineage;
+  }
+  return clone;
+}
+
+function runSimulationSeconds(state, seconds) {
+  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  for (let tick = 0; tick < safeSeconds * 60; tick += 1) {
+    updateGame(DT_STEP, state);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Scenarios
 // -----------------------------------------------------------------------------
@@ -105,6 +126,8 @@ export function runDeterminismSuite() {
     results.push(testProjectionVsReplay());
     results.push(testHistoryStableAfterFutureAction());
     results.push(testHistoryPreviewMatchesReplay());
+    results.push(testVassalSelectionDoesNotAdvanceSharedRng());
+    results.push(testVassalSelectionPreservesNonLineageTimeline());
   } catch (e) {
     console.error("Suite crashed:", e);
     results.push({ name: "Suite Integrity", passed: false, error: e.message });
@@ -419,6 +442,71 @@ function testHistoryPreviewMatchesReplay() {
     }
 
     return { name, passed: true, hash: replayAfterHash };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testVassalSelectionDoesNotAdvanceSharedRng() {
+  const name = "Vassal Selection Leaves Shared RNG Stable";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 2);
+    const pool = buildSettlementVassalSelectionPool(state, 0);
+    if (!pool?.candidates?.length) {
+      throw new Error("Vassal selection pool missing");
+    }
+
+    const beforeSeed = Math.floor(state?.rng?.seed ?? 0);
+    const selectionRes = selectSettlementVassal(state, 0, pool.expectedPoolHash, 0);
+    if (!selectionRes?.ok) {
+      throw new Error("Selection failed: " + (selectionRes?.reason ?? "unknown"));
+    }
+    const afterSeed = Math.floor(state?.rng?.seed ?? 0);
+
+    if (beforeSeed !== afterSeed) {
+      return {
+        name,
+        passed: false,
+        reason: `Shared RNG advanced (${beforeSeed} -> ${afterSeed})`,
+      };
+    }
+
+    return { name, passed: true, seed: beforeSeed };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testVassalSelectionPreservesNonLineageTimeline() {
+  const name = "Vassal Selection Preserves Non-Lineage Timeline";
+  try {
+    const baseline = createInitialState("devPlaytesting01", TEST_SEED + 3);
+    const selected = deserializeGameState(serializeGameState(baseline));
+    const pool = buildSettlementVassalSelectionPool(selected, 0);
+    if (!pool?.candidates?.length) {
+      throw new Error("Vassal selection pool missing");
+    }
+
+    const selectionRes = selectSettlementVassal(selected, 0, pool.expectedPoolHash, 0);
+    if (!selectionRes?.ok) {
+      throw new Error("Selection failed: " + (selectionRes?.reason ?? "unknown"));
+    }
+
+    runSimulationSeconds(baseline, 120);
+    runSimulationSeconds(selected, 120);
+
+    const baselineHash = computeStateHash(clearVassalLineageForHash(baseline));
+    const selectedHash = computeStateHash(clearVassalLineageForHash(selected));
+
+    if (baselineHash !== selectedHash) {
+      return {
+        name,
+        passed: false,
+        reason: `Non-lineage state diverged (${baselineHash} vs ${selectedHash})`,
+      };
+    }
+
+    return { name, passed: true, hash: baselineHash };
   } catch (e) {
     return { name, passed: false, reason: e.message };
   }
