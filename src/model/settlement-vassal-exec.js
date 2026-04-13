@@ -33,6 +33,7 @@ import {
   syncElderCouncilMembersFromVassals,
   upsertElderCouncilMemberFromVassal,
 } from "./settlement-order-exec.js";
+import { createRng } from "./rng.js";
 import { deserializeGameState, serializeGameState } from "./state.js";
 
 function getVassalLineageMutable(state) {
@@ -50,6 +51,43 @@ function getCurrentYear(state) {
 function getSafeTSec(state, tSec = null) {
   if (Number.isFinite(tSec)) return Math.max(0, Math.floor(tSec));
   return Math.max(0, Math.floor(state?.tSec ?? 0));
+}
+
+function hashString(value) {
+  const text = String(value ?? "");
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash | 0;
+}
+
+function getSharedSeedSnapshot(state) {
+  if (Number.isFinite(state?.rng?.seed)) {
+    return Math.floor(state.rng.seed);
+  }
+  if (Number.isFinite(state?.rng?.baseSeed)) {
+    return Math.floor(state.rng.baseSeed);
+  }
+  return 0;
+}
+
+function deriveVassalPoolSeed(state, createdSec, poolId) {
+  const safeSec = Math.max(0, Math.floor(createdSec ?? 0));
+  const poolHash = hashString(poolId);
+  let seed = getSharedSeedSnapshot(state) | 0;
+  seed = Math.imul(seed ^ (safeSec + 0x9e3779b9), 0x85ebca6b);
+  seed = Math.imul(seed ^ poolHash, 0xc2b2ae35);
+  return seed | 0;
+}
+
+function createVassalRandomSource(state, createdSec, poolId) {
+  const rng = createRng(deriveVassalPoolSeed(state, createdSec, poolId));
+  return {
+    rngNextFloat: () => rng.nextFloat(),
+    rngNextInt: (min, max) => rng.nextInt(min, max),
+  };
 }
 
 function getYearAtSecond(state, tSec = null) {
@@ -88,10 +126,10 @@ function nextLineageVassalId(lineage) {
   return `vassal-${nextVassalId}`;
 }
 
-function randomAgeInRange(range, state) {
+function randomAgeInRange(range, randomSource) {
   const min = Number.isFinite(range?.min) ? Math.max(0, Math.floor(range.min)) : 0;
   const max = Number.isFinite(range?.max) ? Math.max(min, Math.floor(range.max)) : min;
-  return typeof state?.rngNextInt === "function" ? state.rngNextInt(min, max) : min;
+  return typeof randomSource?.rngNextInt === "function" ? randomSource.rngNextInt(min, max) : min;
 }
 
 function buildLifeEvent(eventId, kind, tSec, ageYears, extra = {}) {
@@ -112,15 +150,15 @@ function buildLifeEvent(eventId, kind, tSec, ageYears, extra = {}) {
   };
 }
 
-function buildCandidateLifeSchedule(state, record, orderDef) {
+function buildCandidateLifeSchedule(state, record, orderDef, randomSource) {
   const currentYear = Math.max(1, Math.floor(record.birthYear ?? getCurrentYear(state)));
   const classChangeAge =
     record.sourceClassId === "stranger" ? SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS : null;
   const firstMortalityAgeYears = SETTLEMENT_VASSAL_ELDER_AGE_YEARS + 1;
-  const professionAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE, state);
-  const traitAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_TRAIT_AGE_RANGE, state);
-  const professionId = chooseRandom(settlementVassalProfessionIds, state);
-  const traitId = chooseRandom(settlementVassalTraitIds, state);
+  const professionAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE, randomSource);
+  const traitAgeYears = randomAgeInRange(SETTLEMENT_VASSAL_TRAIT_AGE_RANGE, randomSource);
+  const professionId = chooseRandom(settlementVassalProfessionIds, randomSource);
+  const traitId = chooseRandom(settlementVassalTraitIds, randomSource);
 
   const events = [
     buildLifeEvent(`${record.vassalId}:birth`, "birth", record.birthSec, record.initialAgeYears, {
@@ -179,8 +217,8 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
     const mortalityChance = getMortalityChance(orderDef, ageYears);
     const diedThisYear =
       mortalityChance > 0 &&
-      typeof state?.rngNextFloat === "function" &&
-      state.rngNextFloat() < mortalityChance;
+      typeof randomSource?.rngNextFloat === "function" &&
+      randomSource.rngNextFloat() < mortalityChance;
     if (diedThisYear) {
       deathAgeYears = ageYears;
       deathYear = eventYear;
@@ -224,18 +262,18 @@ function buildCandidateLifeSchedule(state, record, orderDef) {
   return record;
 }
 
-function createCandidateRecord(state, lineage, poolId, orderDef) {
+function createCandidateRecord(state, lineage, poolId, orderDef, randomSource) {
   const classIds = getSettlementClassIds(state);
   const populationSummary = getSettlementPopulationSummary(state);
   const currentYear = getCurrentYear(state);
   const vassalId = nextLineageVassalId(lineage);
-  const sourceClassId = pickWeightedClassId(state, classIds, populationSummary?.byClass ?? {});
+  const sourceClassId = pickWeightedClassId(randomSource, classIds, populationSummary?.byClass ?? {});
   const initialAgeYears =
-    typeof state?.rngNextInt === "function"
-      ? state.rngNextInt(SETTLEMENT_VASSAL_STARTING_AGE_MIN, SETTLEMENT_VASSAL_STARTING_AGE_MAX)
+    typeof randomSource?.rngNextInt === "function"
+      ? randomSource.rngNextInt(SETTLEMENT_VASSAL_STARTING_AGE_MIN, SETTLEMENT_VASSAL_STARTING_AGE_MAX)
       : SETTLEMENT_VASSAL_STARTING_AGE_MIN;
   const agendaByClass = buildGeneratedVassalAgendaByClass(
-    state,
+    randomSource,
     classIds,
     {
       agendaSize: 3,
@@ -269,7 +307,7 @@ function createCandidateRecord(state, lineage, poolId, orderDef) {
     isElder: false,
     lifeEvents: [],
   };
-  buildCandidateLifeSchedule(state, record, orderDef);
+  buildCandidateLifeSchedule(state, record, orderDef, randomSource);
   return record;
 }
 
@@ -279,13 +317,14 @@ function generateSettlementVassalSelectionPoolMutable(state, tSec = null) {
   const orderDef = getOrderDef(state);
   const poolId = nextLineagePoolId(lineage);
   const createdSec = getSafeTSec(state, tSec);
+  const randomSource = createVassalRandomSource(state, createdSec, poolId);
   const previousTSec = state?.tSec;
   if (Number.isFinite(createdSec)) {
     state.tSec = createdSec;
   }
   const candidates = [];
   for (let index = 0; index < SETTLEMENT_VASSAL_CANDIDATE_COUNT; index += 1) {
-    const record = createCandidateRecord(state, lineage, poolId, orderDef);
+    const record = createCandidateRecord(state, lineage, poolId, orderDef, randomSource);
     candidates.push(record);
   }
   if (Number.isFinite(previousTSec)) {
