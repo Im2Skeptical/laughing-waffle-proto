@@ -401,6 +401,8 @@ export function createMetricGraphView({
   showPin = false,
   showClose = true,
   draggable = true,
+  treatRevealedForecastAsHistory = false,
+  getRenderedHistoryEndSec: renderedHistoryEndResolver = null,
   forecastRevealTargetDurationSec = FORECAST_REVEAL_TARGET_DURATION_SEC,
   forecastRevealMinRateSecPerSec = FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
   forecastRevealMaxRateSecPerSec = Number.POSITIVE_INFINITY,
@@ -623,6 +625,68 @@ export function createMetricGraphView({
     return override;
   }
 
+  function getVisibleForecastCoverageEndSec(
+    actualForecastCoverageEndSec,
+    displayHistoryEndSec
+  ) {
+    const displayHistoryEnd = Math.max(
+      0,
+      Math.floor(displayHistoryEndSec ?? 0)
+    );
+    const actualForecastEnd = Math.max(
+      displayHistoryEnd,
+      Math.floor(actualForecastCoverageEndSec ?? displayHistoryEnd)
+    );
+    const visibleForecastEnd =
+      forecastRevealHistoryEndSec === displayHistoryEnd
+        ? Math.max(
+            displayHistoryEnd,
+            Math.floor(forecastRevealVisibleEndSec ?? displayHistoryEnd)
+          )
+        : displayHistoryEnd;
+    return Math.max(
+      displayHistoryEnd,
+      Math.min(actualForecastEnd, visibleForecastEnd)
+    );
+  }
+
+  function getRenderedHistoryEndSec(
+    displayHistoryEndSec,
+    actualForecastCoverageEndSec,
+    extra = null
+  ) {
+    const displayHistoryEnd = Math.max(
+      0,
+      Math.floor(displayHistoryEndSec ?? 0)
+    );
+    const actualForecastEnd = Math.max(
+      displayHistoryEnd,
+      Math.floor(actualForecastCoverageEndSec ?? displayHistoryEnd)
+    );
+    const visibleForecastEnd = getVisibleForecastCoverageEndSec(
+      actualForecastEnd,
+      displayHistoryEnd
+    );
+    if (typeof renderedHistoryEndResolver === "function") {
+      const resolved = renderedHistoryEndResolver({
+        displayHistoryEndSec: displayHistoryEnd,
+        actualForecastCoverageEndSec: actualForecastEnd,
+        visibleForecastCoverageEndSec: visibleForecastEnd,
+        ...extra,
+      });
+      if (Number.isFinite(resolved)) {
+        return Math.max(
+          displayHistoryEnd,
+          Math.min(actualForecastEnd, Math.floor(resolved))
+        );
+      }
+    }
+    if (treatRevealedForecastAsHistory !== true) {
+      return displayHistoryEnd;
+    }
+    return visibleForecastEnd;
+  }
+
   function setLatchedForecastScrub(sec) {
     latchedForecastScrubSec = Number.isFinite(sec)
       ? Math.max(0, Math.floor(sec))
@@ -735,16 +799,13 @@ export function createMetricGraphView({
       historyEndSec,
       Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
     );
-    const visibleForecastCoverageEndSec =
-      forecastRevealHistoryEndSec === displayHistoryEndSec
-        ? Math.max(
-            displayHistoryEndSec,
-            Math.floor(forecastRevealVisibleEndSec ?? displayHistoryEndSec)
-          )
-        : displayHistoryEndSec;
+    const visibleForecastCoverageEndSec = getVisibleForecastCoverageEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
     return Math.max(
       displayHistoryEndSec,
-      Math.min(actualForecastCoverageEndSec, visibleForecastCoverageEndSec)
+      visibleForecastCoverageEndSec
     );
   }
 
@@ -1424,9 +1485,22 @@ export function createMetricGraphView({
     const tl = getTimeline?.();
     const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
     const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    const renderedHistoryEndSec = getRenderedHistoryEndSec(
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      {
+        timeline: tl,
+        cursorState: cs,
+        graphData: data,
+      }
+    );
     const snapshotKey = `${cacheVersion}|${minSec}:${maxSec}|${displayHistoryEndSec}|${zoomed ? 1 : 0}|${
       sampleCursorSec == null ? "stable" : sampleCursorSec
-    }`;
+    }|${renderedHistoryEndSec}`;
     if (plotSnapshot && plotSnapshotKey === snapshotKey) {
       return plotSnapshot;
     }
@@ -1459,10 +1533,6 @@ export function createMetricGraphView({
       pointsForDraw = decimated;
     }
 
-    const actualForecastCoverageEndSec = Math.max(
-      historyEndSec,
-      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
-    );
     const editableBounds = getEditableHistoryBounds?.();
     const minEditableSec = Number.isFinite(editableBounds?.minEditableSec)
       ? Math.max(0, Math.floor(editableBounds.minEditableSec))
@@ -1501,7 +1571,7 @@ export function createMetricGraphView({
     const defaultHistoryZones = computeHistoryZoneSegments({
       minSec,
       maxSec,
-      historyEndSec: displayHistoryEndSec,
+      historyEndSec: renderedHistoryEndSec,
       baseMinEditableSec: minEditableSec,
       extraEditableRanges: [],
     });
@@ -1510,7 +1580,14 @@ export function createMetricGraphView({
         ? historyZoneResolver({
             minSec,
             maxSec,
-            historyEndSec: displayHistoryEndSec,
+            historyEndSec: renderedHistoryEndSec,
+            actualHistoryEndSec: historyEndSec,
+            displayHistoryEndSec,
+            actualForecastCoverageEndSec,
+            visibleForecastCoverageEndSec: getVisibleForecastCoverageEndSec(
+              actualForecastCoverageEndSec,
+              displayHistoryEndSec
+            ),
             editableBounds,
             timeline: tl,
             cursorState: cs,
@@ -1522,7 +1599,7 @@ export function createMetricGraphView({
       Array.isArray(customHistoryZones) && customHistoryZones.length
         ? customHistoryZones
         : defaultHistoryZones,
-      { minSec, maxSec, historyEndSec: displayHistoryEndSec }
+      { minSec, maxSec, historyEndSec: renderedHistoryEndSec }
     );
     const itemUnavailableZones = normalizeItemUnavailableZones(
       customHistoryZones,
@@ -1540,7 +1617,14 @@ export function createMetricGraphView({
         ? eventMarkerResolver({
             minSec,
             maxSec,
-            historyEndSec: displayHistoryEndSec,
+            historyEndSec: renderedHistoryEndSec,
+            actualHistoryEndSec: historyEndSec,
+            displayHistoryEndSec,
+            actualForecastCoverageEndSec,
+            visibleForecastCoverageEndSec: getVisibleForecastCoverageEndSec(
+              actualForecastCoverageEndSec,
+              displayHistoryEndSec
+            ),
             timeline: tl,
             cursorState: cs,
             graphData: data,
@@ -1560,6 +1644,7 @@ export function createMetricGraphView({
       seriesScaleRanges,
       historyEndSec,
       displayHistoryEndSec,
+      renderedHistoryEndSec,
       actualForecastCoverageEndSec,
       historyZones,
       itemUnavailableZones,
@@ -1594,6 +1679,10 @@ export function createMetricGraphView({
     const displayHistoryEndSec = Math.max(
       0,
       Math.floor(snapshot?.displayHistoryEndSec ?? historyEndSec)
+    );
+    const renderedHistoryEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.floor(snapshot?.renderedHistoryEndSec ?? displayHistoryEndSec)
     );
     const actualForecastCoverageEndSec = Math.max(
       historyEndSec,
@@ -1660,7 +1749,7 @@ export function createMetricGraphView({
         drawZone(zone.startSec, zone.endSec, TIME_STATE_COLORS.editableHistory);
       }
     }
-    drawZone(displayHistoryEndSec, maxSec, TIME_STATE_COLORS.forecast);
+    drawZone(renderedHistoryEndSec, maxSec, TIME_STATE_COLORS.forecast);
     if (visibleForecastCoverageEndSec < maxSec) {
       drawZone(
         visibleForecastCoverageEndSec,

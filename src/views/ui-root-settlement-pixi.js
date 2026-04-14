@@ -1196,8 +1196,46 @@ function shouldResumeAfterBlockingVassalSelection(state = getSettlementAuthorita
 function getSettlementVisibleVassalTimeSec(state = null) {
   const currentState = state ?? runner?.getState?.() ?? null;
   const committedSec = Math.max(0, Math.floor(currentState?.tSec ?? 0));
+  const currentVassal = getSettlementCurrentVassal(currentState);
+  if (!currentVassal) return committedSec;
   const revealedSec = settlementGraphView?.getForecastScrubCapSec?.() ?? committedSec;
-  return Math.max(committedSec, Math.floor(revealedSec ?? committedSec));
+  const visibleSec = Math.max(committedSec, Math.floor(revealedSec ?? committedSec));
+  const deathSec = Number.isFinite(currentVassal?.deathSec)
+    ? Math.max(0, Math.floor(currentVassal.deathSec))
+    : null;
+  if (deathSec == null) return visibleSec;
+  return Math.min(visibleSec, deathSec);
+}
+
+function getSettlementRenderedHistoryEndSec({
+  actualHistoryEndSec = null,
+  displayHistoryEndSec = null,
+  visibleForecastCoverageEndSec = null,
+} = {}) {
+  const safeActualHistoryEndSec = Number.isFinite(actualHistoryEndSec)
+    ? Math.max(0, Math.floor(actualHistoryEndSec))
+    : getSettlementFrontierSec();
+  const safeDisplayHistoryEndSec = Number.isFinite(displayHistoryEndSec)
+    ? Math.max(0, Math.floor(displayHistoryEndSec))
+    : safeActualHistoryEndSec;
+  const safeVisibleForecastCoverageEndSec = Number.isFinite(visibleForecastCoverageEndSec)
+    ? Math.max(safeDisplayHistoryEndSec, Math.floor(visibleForecastCoverageEndSec))
+    : safeDisplayHistoryEndSec;
+  const frontierState = getSettlementFrontierState();
+  const currentVassal = getSettlementCurrentVassal(frontierState);
+  if (!currentVassal) {
+    return safeDisplayHistoryEndSec;
+  }
+  const deathSec = Number.isFinite(currentVassal?.deathSec)
+    ? Math.max(0, Math.floor(currentVassal.deathSec))
+    : null;
+  if (deathSec == null) {
+    return safeVisibleForecastCoverageEndSec;
+  }
+  return Math.max(
+    safeDisplayHistoryEndSec,
+    Math.min(safeVisibleForecastCoverageEndSec, deathSec)
+  );
 }
 
 function syncSettlementGraphRevealConfig() {
@@ -1747,6 +1785,12 @@ settlementGraphView = createMetricGraphView({
   windowWidth: 1560,
   windowHeight: 190,
   headerHeight: 34,
+  getRenderedHistoryEndSec: (spec) =>
+    getSettlementRenderedHistoryEndSec({
+      actualHistoryEndSec: spec?.actualHistoryEndSec,
+      displayHistoryEndSec: spec?.displayHistoryEndSec,
+      visibleForecastCoverageEndSec: spec?.visibleForecastCoverageEndSec,
+    }),
   forecastRevealTargetDurationSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.targetDurationSec,
   forecastRevealMinRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.minRateSecPerSec,
   forecastRevealMaxRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.maxRateSecPerSec,
