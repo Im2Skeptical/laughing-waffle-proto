@@ -1424,12 +1424,13 @@ export function createTimeGraphController({
 
     const valuesBySec = graphCache.window.forecastValuesBySec;
     const firstRequestedSec = requested[0] ?? null;
+    const projectionSigRes = projection.ensureSignature?.(tl);
+    const canReadProjectionCache = projectionSigRes?.changed !== true;
     for (const sec of requested) {
       if (sec > coverageEndSec) continue;
       if (valuesBySec.has(sec)) continue;
-      const sigRes = projection.ensureSignature?.(tl);
       let stateData =
-        sigRes?.changed === true ? null : projection.getStateData?.(sec) ?? null;
+        canReadProjectionCache ? projection.getStateData?.(sec) ?? null : null;
       if (stateData == null) {
         stateData = tryBuildForecastStateDataFromRetainedAnchor(
           sec,
@@ -1506,6 +1507,8 @@ export function createTimeGraphController({
       historyEndSec,
       seriesSig
     );
+    const projectionSigRes = projection.ensureSignature?.(tl);
+    const canReadProjectionCache = projectionSigRes?.changed !== true;
     const resolverFactory = getResolverFactory();
     for (const secRaw of seconds || []) {
       const sec = clampSec(secRaw);
@@ -1525,9 +1528,8 @@ export function createTimeGraphController({
       if (shouldCacheForecastSec(sec, historyEndSec)) {
         // Guard direct projection-cache reads behind signature refresh so
         // stale forecast snapshots cannot survive timeline edits.
-        const sigRes = projection.ensureSignature?.(tl);
         const cachedProjectionData =
-          sigRes?.changed === true ? null : projection.getStateData?.(sec) ?? null;
+          canReadProjectionCache ? projection.getStateData?.(sec) ?? null : null;
         if (cachedProjectionData != null) {
           recordTimegraphCacheHit();
           stateData = cachedProjectionData;

@@ -61,6 +61,9 @@ const FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC = 480;
 const FORECAST_REVEAL_TARGET_DURATION_SEC = 0.6;
 const FORECAST_REVEAL_PLOT_THROTTLE_MS = 16;
 const FORECAST_REVEAL_MARKER_ALPHA = 0.92;
+const TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC = 0.22;
+const TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC = 480;
+const TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC = 9600;
 
 export function resolveDefaultGraphScrubSec({
   currentSec,
@@ -403,6 +406,10 @@ export function createMetricGraphView({
   forecastRevealMaxRateSecPerSec = Number.POSITIVE_INFINITY,
   forecastRevealStartDelayMs = 0,
 }) {
+  let forecastRevealTargetDurationSecCur = forecastRevealTargetDurationSec;
+  let forecastRevealMinRateSecPerSecCur = forecastRevealMinRateSecPerSec;
+  let forecastRevealMaxRateSecPerSecCur = forecastRevealMaxRateSecPerSec;
+  let forecastRevealStartDelayMsCur = forecastRevealStartDelayMs;
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
   let windowSpecResolver =
@@ -590,6 +597,9 @@ export function createMetricGraphView({
   let plotSnapshotKey = "";
   let plotSnapshot = null;
   let latchedForecastScrubSec = null;
+  let animatedMinSec = null;
+  let animatedMaxSec = null;
+  let animatedBoundsLastTickMs = 0;
 
   function clampInt(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v | 0));
@@ -617,6 +627,73 @@ export function createMetricGraphView({
     latchedForecastScrubSec = Number.isFinite(sec)
       ? Math.max(0, Math.floor(sec))
       : null;
+  }
+
+  function resetAnimatedTimeBounds(nextMinSec, nextMaxSec, nowMs = performance.now()) {
+    animatedMinSec = Math.max(0, Math.floor(nextMinSec ?? 0));
+    animatedMaxSec = Math.max(
+      animatedMinSec + 1,
+      Math.floor(nextMaxSec ?? animatedMinSec + 1)
+    );
+    animatedBoundsLastTickMs = nowMs;
+    minSec = animatedMinSec;
+    maxSec = animatedMaxSec;
+  }
+
+  function animateBoundToward(current, target, elapsedMs) {
+    if (!Number.isFinite(current)) return Math.floor(target ?? 0);
+    const safeTarget = Math.floor(target ?? current);
+    if (safeTarget === current) return current;
+    const delta = safeTarget - current;
+    const stepMagnitude = Math.max(
+      TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
+      Math.min(
+        TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
+        Math.abs(delta) /
+          Math.max(0.05, TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC)
+      )
+    ) * (Math.max(0, elapsedMs) / 1000);
+    const step = Math.max(1, Math.floor(stepMagnitude));
+    if (delta > 0) {
+      return Math.min(safeTarget, current + step);
+    }
+    return Math.max(safeTarget, current - step);
+  }
+
+  function setTimeBounds(nextMinSec, nextMaxSec, opts = {}) {
+    const nextMin = Math.max(0, Math.floor(nextMinSec ?? 0));
+    const nextMax = Math.max(nextMin + 1, Math.floor(nextMaxSec ?? nextMin + 1));
+    const forceImmediate = opts.immediate === true;
+    const shouldAnimate =
+      forceImmediate !== true &&
+      root.visible === true &&
+      isScrubbing !== true &&
+      zoomed !== true;
+    if (!shouldAnimate) {
+      resetAnimatedTimeBounds(nextMin, nextMax, performance.now());
+      return;
+    }
+
+    const nowMs = performance.now();
+    if (!Number.isFinite(animatedMinSec) || !Number.isFinite(animatedMaxSec)) {
+      resetAnimatedTimeBounds(nextMin, nextMax, nowMs);
+      return;
+    }
+
+    const elapsedMs = Math.max(
+      0,
+      nowMs - (Number.isFinite(animatedBoundsLastTickMs) ? animatedBoundsLastTickMs : nowMs)
+    );
+    animatedBoundsLastTickMs = nowMs;
+    animatedMinSec = animateBoundToward(animatedMinSec, nextMin, elapsedMs);
+    animatedMaxSec = animateBoundToward(animatedMaxSec, nextMax, elapsedMs);
+
+    if (nextMin > animatedMinSec) {
+      animatedMinSec = nextMin;
+    }
+
+    minSec = Math.max(0, Math.floor(animatedMinSec));
+    maxSec = Math.max(minSec + 1, Math.floor(animatedMaxSec));
   }
 
   function clearLatchedForecastScrub() {
@@ -716,7 +793,7 @@ export function createMetricGraphView({
     forecastRevealHistoryEndSec = historyEnd;
     forecastRevealVisibleEndSec = animatedEnd;
     forecastRevealDelayUntilMs =
-      nowMs + Math.max(0, Number(forecastRevealStartDelayMs ?? 0));
+      nowMs + Math.max(0, Number(forecastRevealStartDelayMsCur ?? 0));
     invalidatePlotSnapshot();
   }
 
@@ -786,13 +863,14 @@ export function createMetricGraphView({
     const minRevealRateSecPerSec = Math.max(
       1,
       Number(
-        forecastRevealMinRateSecPerSec ?? FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
+        forecastRevealMinRateSecPerSecCur ??
+          FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
       )
     );
     const maxRevealRateSecPerSec = Math.max(
       minRevealRateSecPerSec,
       Number(
-        forecastRevealMaxRateSecPerSec ?? Number.POSITIVE_INFINITY
+        forecastRevealMaxRateSecPerSecCur ?? Number.POSITIVE_INFINITY
       )
     );
     const targetRevealRateSecPerSec =
@@ -800,7 +878,7 @@ export function createMetricGraphView({
       Math.max(
         0.05,
         Number(
-          forecastRevealTargetDurationSec ??
+          forecastRevealTargetDurationSecCur ??
             FORECAST_REVEAL_TARGET_DURATION_SEC
         )
       );
@@ -1281,8 +1359,9 @@ export function createMetricGraphView({
       Number.isFinite(customWindowSpec.minSec) &&
       Number.isFinite(customWindowSpec.maxSec)
     ) {
-      minSec = Math.max(0, Math.floor(customWindowSpec.minSec));
-      maxSec = Math.max(minSec + 1, Math.floor(customWindowSpec.maxSec));
+      const nextMinSec = Math.max(0, Math.floor(customWindowSpec.minSec));
+      const nextMaxSec = Math.max(nextMinSec + 1, Math.floor(customWindowSpec.maxSec));
+      setTimeBounds(nextMinSec, nextMaxSec, { immediate: true });
       const allowPreviewScrub =
         customWindowSpec.forceScrubToCursor !== true &&
         Number.isFinite(forecastPreviewSec);
@@ -1314,13 +1393,14 @@ export function createMetricGraphView({
         min = 0;
       }
 
-      minSec = min;
-      maxSec = Math.max(min + span, max);
+      setTimeBounds(min, Math.max(min + span, max), { immediate: true });
     } else {
       const liveMax = Math.max(historyEnd, currentT);
-      minSec =
-        rollingWindow != null ? Math.max(0, liveMax - rollingWindow) : 0;
-      maxSec = liveMax + horizonSec;
+      setTimeBounds(
+        rollingWindow != null ? Math.max(0, liveMax - rollingWindow) : 0,
+        liveMax + horizonSec,
+        { immediate: true }
+      );
     }
 
     if (!isScrubbing) {
@@ -1941,6 +2021,9 @@ export function createMetricGraphView({
     root.y = openPosition?.y ?? defaultY;
     invalidatePlotSnapshot();
     resetForecastReveal(0, 0, 0, performance.now());
+    animatedMinSec = null;
+    animatedMaxSec = null;
+    animatedBoundsLastTickMs = 0;
     solidHitArea.refresh();
     controller?.setActive?.(true);
     controller.handleInvalidate?.("open");
@@ -1954,6 +2037,9 @@ export function createMetricGraphView({
     resetForecastPreviewState();
     invalidatePlotSnapshot();
     resetForecastReveal(0, 0, 0, performance.now());
+    animatedMinSec = null;
+    animatedMaxSec = null;
+    animatedBoundsLastTickMs = 0;
     clearLegendEntries();
     tooltipView?.hide?.();
     clearPreviewState?.();
@@ -2145,6 +2231,29 @@ export function createMetricGraphView({
     statusNote = "";
   }
 
+  function setForecastRevealConfig({
+    targetDurationSec,
+    minRateSecPerSec,
+    maxRateSecPerSec,
+    startDelayMs,
+  } = {}) {
+    forecastRevealTargetDurationSecCur = Number.isFinite(targetDurationSec)
+      ? Math.max(0.05, Number(targetDurationSec))
+      : forecastRevealTargetDurationSec;
+    forecastRevealMinRateSecPerSecCur = Number.isFinite(minRateSecPerSec)
+      ? Math.max(1, Number(minRateSecPerSec))
+      : forecastRevealMinRateSecPerSec;
+    forecastRevealMaxRateSecPerSecCur = Number.isFinite(maxRateSecPerSec)
+      ? Math.max(
+          forecastRevealMinRateSecPerSecCur,
+          Number(maxRateSecPerSec)
+        )
+      : forecastRevealMaxRateSecPerSec;
+    forecastRevealStartDelayMsCur = Number.isFinite(startDelayMs)
+      ? Math.max(0, Number(startDelayMs))
+      : forecastRevealStartDelayMs;
+  }
+
   function destroy() {
     close();
     eventMarkerResolver = null;
@@ -2171,6 +2280,7 @@ export function createMetricGraphView({
     setSeriesValueOverrideResolver,
     setHistoryZoneResolver,
     setEventMarkerResolver,
+    setForecastRevealConfig,
     resetForecastPreviewState,
     restartForecastRevealFrom,
     clearForecastRevealRestart,
