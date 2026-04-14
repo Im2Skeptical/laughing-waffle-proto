@@ -234,6 +234,58 @@ function buildCompactVassalSignature(vassal, visibleEvents, classIds) {
   };
 }
 
+function countVisibleVassalLifeEvents(vassal, visibleVassalThroughSec = null) {
+  const events = Array.isArray(vassal?.lifeEvents) ? vassal.lifeEvents : [];
+  if (!events.length) return 0;
+  const safeVisibleSec = Number.isFinite(visibleVassalThroughSec)
+    ? Math.max(0, Math.floor(visibleVassalThroughSec))
+    : Number.POSITIVE_INFINITY;
+  let count = 0;
+  for (const event of events) {
+    const eventSec = Number.isFinite(event?.tSec)
+      ? Math.max(0, Math.floor(event.tSec))
+      : null;
+    if (eventSec == null || eventSec > safeVisibleSec) break;
+    count += 1;
+  }
+  return count;
+}
+
+function buildRenderGateKey(
+  state,
+  selectedClassId,
+  visibleVassalThroughSec = null,
+  civilizationLossInfo = null
+) {
+  const currentVassal = getSettlementCurrentVassal(state);
+  const deathSec = Number.isFinite(currentVassal?.deathSec)
+    ? Math.max(0, Math.floor(currentVassal.deathSec))
+    : null;
+  const deathYearKnown =
+    deathSec != null &&
+    Number.isFinite(visibleVassalThroughSec) &&
+    Math.floor(visibleVassalThroughSec) >= deathSec;
+  const lossYear = Number.isFinite(civilizationLossInfo?.lossYear)
+    ? Math.floor(civilizationLossInfo.lossYear)
+    : null;
+  return [
+    Math.floor(state?.tSec ?? 0),
+    getCurrentSeasonKey(state),
+    Math.floor(state?.year ?? 0),
+    selectedClassId ?? "",
+    currentVassal?.vassalId ?? "",
+    currentVassal?.currentClassId ?? "",
+    currentVassal?.professionId ?? "",
+    currentVassal?.traitId ?? "",
+    currentVassal?.isDead === true ? 1 : 0,
+    currentVassal?.isElder === true ? 1 : 0,
+    deathYearKnown ? 1 : 0,
+    countVisibleVassalLifeEvents(currentVassal, visibleVassalThroughSec),
+    lossYear ?? "",
+    civilizationLossInfo?.resolved === true ? 1 : 0,
+  ].join("|");
+}
+
 function buildSignature(
   state,
   selectedClassId,
@@ -1816,6 +1868,7 @@ export function createSettlementPrototypeView({
   root.addChild(contentLayer, overlayLayer);
   layer?.addChild(root);
   let lastSignature = "";
+  let lastRenderGateKey = "";
   let agendaFlyoutSpec = null;
   let agendaFlyoutHideTimeoutId = null;
 
@@ -1958,6 +2011,17 @@ export function createSettlementPrototypeView({
         : state?.tSec;
     const civilizationLossInfo =
       typeof getCivilizationLossInfo === "function" ? getCivilizationLossInfo() : null;
+    const renderGateKey = buildRenderGateKey(
+      state,
+      selectedClassId,
+      visibleVassalThroughSec,
+      civilizationLossInfo
+    );
+    if (renderGateKey === lastRenderGateKey) {
+      renderAgendaFlyout(state);
+      return;
+    }
+    lastRenderGateKey = renderGateKey;
     const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
     const signature = buildSignature(
       state,
@@ -2235,6 +2299,7 @@ export function createSettlementPrototypeView({
             if (classId === selectedClassId) return;
             setSelectedPracticeClassId?.(classId);
             lastSignature = "";
+            lastRenderGateKey = "";
             render();
           }
         )
@@ -2369,6 +2434,7 @@ export function createSettlementPrototypeView({
     init: () => render(),
     refresh: () => {
       lastSignature = "";
+      lastRenderGateKey = "";
       render();
     },
     update: () => render(),
