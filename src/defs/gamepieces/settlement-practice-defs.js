@@ -298,7 +298,7 @@ export const settlementPracticeDefs = {
     kind: "settlementPractice",
     practiceMode: "passive",
     orderEligibleClassIds: ["villager"],
-    orderDevelopmentTier: "minor",
+    orderDevelopmentTier: "major",
     name: "Emergency Food Reserve",
     ui: {
       title: "Emergency Food Reserve",
@@ -427,7 +427,7 @@ export const settlementPracticeDefs = {
       mode: "min",
       values: [
         { kind: "freePopulation" },
-        20,
+        1,
         { kind: "stockpile", key: "food" },
         { kind: "stockpile", key: "redResource" },
         { kind: "chaosGodValue", godId: "redGod", key: "monsterCount", divideBy: 10 },
@@ -465,7 +465,7 @@ export const settlementPracticeDefs = {
             godId: "redGod",
             key: "monsterCount",
             amountVar: "practiceAmount",
-            amountScale: -10,
+            amountScale: -100,
             min: 0,
           },
           {
@@ -474,7 +474,7 @@ export const settlementPracticeDefs = {
             godId: "redGod",
             key: "chaosPower",
             amountVar: "practiceAmount",
-            amountScale: -10,
+            amountScale: -100,
             min: 0,
           },
         ],

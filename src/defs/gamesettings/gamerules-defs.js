@@ -42,7 +42,7 @@ export const RED_GOD_CHAOS_RATE_BY_FAITH = Object.freeze({
 export const RED_GOD_POPULATION_BAND_SIZE = 10;
 export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
 export const RED_GOD_MONSTERS_PER_CHAOS = 100;
-export const RED_GOD_MONSTER_WIN_COUNT = 1400;
+export const RED_GOD_MONSTER_WIN_COUNT = 2000;
 
 
 // --- Prestige + Followers ---
