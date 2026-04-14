@@ -64,6 +64,8 @@ const FORECAST_REVEAL_MARKER_ALPHA = 0.92;
 const TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC = 0.22;
 const TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC = 480;
 const TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC = 9600;
+const PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC = 32;
+const PLOT_REFRESH_OVERSCAN_POINTS = 1;
 
 export function resolveDefaultGraphScrubSec({
   currentSec,
@@ -407,11 +409,21 @@ export function createMetricGraphView({
   forecastRevealMinRateSecPerSec = FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
   forecastRevealMaxRateSecPerSec = Number.POSITIVE_INFINITY,
   forecastRevealStartDelayMs = 0,
+  forecastRevealFollowGapSec = 0,
+  forecastRevealFollowResponseSec = 0.9,
+  forecastRevealAccelerationSecPerSec2 = 220,
+  forecastRevealDecelerationSecPerSec2 = 320,
 }) {
   let forecastRevealTargetDurationSecCur = forecastRevealTargetDurationSec;
   let forecastRevealMinRateSecPerSecCur = forecastRevealMinRateSecPerSec;
   let forecastRevealMaxRateSecPerSecCur = forecastRevealMaxRateSecPerSec;
   let forecastRevealStartDelayMsCur = forecastRevealStartDelayMs;
+  let forecastRevealFollowGapSecCur = forecastRevealFollowGapSec;
+  let forecastRevealFollowResponseSecCur = forecastRevealFollowResponseSec;
+  let forecastRevealAccelerationSecPerSec2Cur =
+    forecastRevealAccelerationSecPerSec2;
+  let forecastRevealDecelerationSecPerSec2Cur =
+    forecastRevealDecelerationSecPerSec2;
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
   let windowSpecResolver =
@@ -596,6 +608,7 @@ export function createMetricGraphView({
   let forecastRevealVisibleEndSec = 0;
   let forecastRevealDelayUntilMs = 0;
   let forecastRevealStartSecOverride = null;
+  let forecastRevealVelocitySecPerSec = 0;
   let plotSnapshotKey = "";
   let plotSnapshot = null;
   let latchedForecastScrubSec = null;
@@ -648,6 +661,23 @@ export function createMetricGraphView({
       displayHistoryEnd,
       Math.min(actualForecastEnd, visibleForecastEnd)
     );
+  }
+
+  function getForecastRevealFollowTargetEndSec(targetEndSec, historyEndSec) {
+    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
+    const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
+    const configuredGapSec = Math.max(
+      0,
+      Number(forecastRevealFollowGapSecCur ?? 0)
+    );
+    if (configuredGapSec <= 0) return targetEnd;
+    const availableSpanSec = Math.max(0, targetEnd - historyEnd);
+    if (availableSpanSec <= 1) return historyEnd;
+    const effectiveGapSec = Math.min(
+      configuredGapSec,
+      Math.max(4, availableSpanSec * 0.4)
+    );
+    return Math.max(historyEnd, targetEnd - effectiveGapSec);
   }
 
   function getRenderedHistoryEndSec(
@@ -809,6 +839,100 @@ export function createMetricGraphView({
     );
   }
 
+  function getForecastRevealDesiredVelocitySecPerSec(
+    targetEndSec,
+    currentEndSec,
+    historyEndSec
+  ) {
+    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
+    const currentEnd = Math.max(historyEnd, Number(currentEndSec ?? historyEnd));
+    const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
+    const minRevealRateSecPerSec = Math.max(
+      1,
+      Number(
+        forecastRevealMinRateSecPerSecCur ??
+          FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
+      )
+    );
+    const maxRevealRateSecPerSec = Math.max(
+      minRevealRateSecPerSec,
+      Number(
+        forecastRevealMaxRateSecPerSecCur ?? Number.POSITIVE_INFINITY
+      )
+    );
+    const remainingForecastSpanSec = Math.max(1, targetEnd - historyEnd);
+    const targetRevealRateSecPerSec =
+      remainingForecastSpanSec /
+      Math.max(
+        0.05,
+        Number(
+          forecastRevealTargetDurationSecCur ??
+            FORECAST_REVEAL_TARGET_DURATION_SEC
+        )
+      );
+    const followTargetEndSec = getForecastRevealFollowTargetEndSec(
+      targetEnd,
+      historyEnd
+    );
+    const followDistanceSec = Math.max(0, followTargetEndSec - currentEnd);
+    const followResponseSec = Math.max(
+      0.05,
+      Number(forecastRevealFollowResponseSecCur ?? 0.9)
+    );
+    const adaptiveRevealRateSecPerSec =
+      followDistanceSec / followResponseSec;
+    let desiredVelocitySecPerSec =
+      forecastRevealFollowGapSecCur > 0
+        ? adaptiveRevealRateSecPerSec
+        : Math.max(
+            minRevealRateSecPerSec,
+            Math.min(maxRevealRateSecPerSec, targetRevealRateSecPerSec)
+          );
+    if (forecastRevealFollowGapSecCur > 0) {
+      const farFromFollowTarget =
+        followDistanceSec >
+        Math.max(6, Number(forecastRevealFollowGapSecCur ?? 0) * 0.25);
+      if (farFromFollowTarget) {
+        desiredVelocitySecPerSec = Math.max(
+          minRevealRateSecPerSec,
+          desiredVelocitySecPerSec
+        );
+      }
+      desiredVelocitySecPerSec = Math.max(
+        0,
+        Math.min(maxRevealRateSecPerSec, desiredVelocitySecPerSec)
+      );
+    }
+    return {
+      desiredVelocitySecPerSec,
+      followTargetEndSec,
+      followDistanceSec,
+      minRevealRateSecPerSec,
+      maxRevealRateSecPerSec,
+    };
+  }
+
+  function getForecastRevealEffectiveStartDelayMs(
+    targetEndSec,
+    animatedEndSec,
+    historyEndSec
+  ) {
+    const configuredDelayMs = Math.max(
+      0,
+      Number(forecastRevealStartDelayMsCur ?? 0)
+    );
+    if (configuredDelayMs <= 0) return 0;
+    const { followDistanceSec } = getForecastRevealDesiredVelocitySecPerSec(
+      targetEndSec,
+      animatedEndSec,
+      historyEndSec
+    );
+    if (followDistanceSec >= Math.max(6, Number(forecastRevealFollowGapSecCur ?? 0) * 0.33)) {
+      return 0;
+    }
+    return configuredDelayMs;
+  }
+
   function clampScrubSecToRevealCap(targetSec) {
     const tl = getTimeline?.();
     const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
@@ -853,8 +977,22 @@ export function createMetricGraphView({
     forecastRevealLastTickMs = nowMs;
     forecastRevealHistoryEndSec = historyEnd;
     forecastRevealVisibleEndSec = animatedEnd;
+    const initialVelocity = getForecastRevealDesiredVelocitySecPerSec(
+      targetEnd,
+      animatedEnd,
+      historyEnd
+    ).desiredVelocitySecPerSec;
+    forecastRevealVelocitySecPerSec =
+      initialVelocity > 0
+        ? Math.max(0, Math.min(initialVelocity, Number(initialVelocity)))
+        : 0;
     forecastRevealDelayUntilMs =
-      nowMs + Math.max(0, Number(forecastRevealStartDelayMsCur ?? 0));
+      nowMs +
+      getForecastRevealEffectiveStartDelayMs(
+        targetEnd,
+        animatedEnd,
+        historyEnd
+      );
     invalidatePlotSnapshot();
   }
 
@@ -907,6 +1045,7 @@ export function createMetricGraphView({
       forecastRevealAnimatedEndSec = targetEnd;
       forecastRevealLastTickMs = nowMs;
       forecastRevealVisibleEndSec = targetEnd;
+      forecastRevealVelocitySecPerSec = 0;
       if (nowMs >= forecastRevealDelayUntilMs) {
         forecastRevealDelayUntilMs = 0;
       }
@@ -920,36 +1059,45 @@ export function createMetricGraphView({
     forecastRevealLastTickMs = nowMs;
     if (elapsedMs <= 0) return currentEnd;
     forecastRevealDelayUntilMs = 0;
-    const remainingForecastSpanSec = Math.max(1, targetEnd - historyEnd);
-    const minRevealRateSecPerSec = Math.max(
+    const elapsedSec = elapsedMs / 1000;
+    const {
+      desiredVelocitySecPerSec: targetVelocitySecPerSec,
+      followTargetEndSec,
+      maxRevealRateSecPerSec,
+    } = getForecastRevealDesiredVelocitySecPerSec(
+      targetEnd,
+      currentEnd,
+      historyEnd
+    );
+    const accelLimitSecPerSec = Math.max(
       1,
-      Number(
-        forecastRevealMinRateSecPerSecCur ??
-          FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
+      Number(forecastRevealAccelerationSecPerSec2Cur ?? 220)
+    );
+    const decelLimitSecPerSec = Math.max(
+      1,
+      Number(forecastRevealDecelerationSecPerSec2Cur ?? 320)
+    );
+    const velocityDeltaSecPerSec =
+      targetVelocitySecPerSec - forecastRevealVelocitySecPerSec;
+    const maxVelocityStepSecPerSec =
+      velocityDeltaSecPerSec >= 0
+        ? accelLimitSecPerSec * elapsedSec
+        : decelLimitSecPerSec * elapsedSec;
+    const clampedVelocityDeltaSecPerSec = Math.max(
+      -maxVelocityStepSecPerSec,
+      Math.min(maxVelocityStepSecPerSec, velocityDeltaSecPerSec)
+    );
+    forecastRevealVelocitySecPerSec = Math.max(
+      0,
+      Math.min(
+        maxRevealRateSecPerSec,
+        forecastRevealVelocitySecPerSec + clampedVelocityDeltaSecPerSec
       )
     );
-    const maxRevealRateSecPerSec = Math.max(
-      minRevealRateSecPerSec,
-      Number(
-        forecastRevealMaxRateSecPerSecCur ?? Number.POSITIVE_INFINITY
-      )
-    );
-    const targetRevealRateSecPerSec =
-      remainingForecastSpanSec /
-      Math.max(
-        0.05,
-        Number(
-          forecastRevealTargetDurationSecCur ??
-            FORECAST_REVEAL_TARGET_DURATION_SEC
-        )
-      );
-    const revealRateSecPerSec = Math.max(
-      minRevealRateSecPerSec,
-      Math.min(maxRevealRateSecPerSec, targetRevealRateSecPerSec)
-    );
-    const revealDeltaSec =
-      (elapsedMs / 1000) * revealRateSecPerSec;
-    const animatedEnd = Math.min(targetEnd, currentEnd + revealDeltaSec);
+    const revealDeltaSec = elapsedSec * forecastRevealVelocitySecPerSec;
+    const maxVisibleEndSec =
+      forecastRevealFollowGapSecCur > 0 ? followTargetEndSec : targetEnd;
+    const animatedEnd = Math.min(maxVisibleEndSec, currentEnd + revealDeltaSec);
     forecastRevealAnimatedEndSec = Math.max(historyEnd, animatedEnd);
     forecastRevealVisibleEndSec = forecastRevealAnimatedEndSec;
     return forecastRevealAnimatedEndSec;
@@ -993,6 +1141,7 @@ export function createMetricGraphView({
       forecastRevealTargetEndSec = Math.max(actualEnd, clampedAnimatedEnd);
       forecastRevealHistoryEndSec = historyEnd;
       forecastRevealLastTickMs = nowMs;
+      forecastRevealVelocitySecPerSec = 0;
     }
 
     if (actualEnd > targetEnd) {
@@ -1498,16 +1647,191 @@ export function createMetricGraphView({
         graphData: data,
       }
     );
-    const snapshotKey = `${cacheVersion}|${minSec}:${maxSec}|${displayHistoryEndSec}|${zoomed ? 1 : 0}|${
+    const snapshotBoundsQuantumSec = Math.max(
+      1,
+      Math.floor(PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC)
+    );
+    const snapshotMinSec =
+      Math.floor(Math.max(0, minSec) / snapshotBoundsQuantumSec) *
+      snapshotBoundsQuantumSec;
+    const snapshotMaxSec =
+      Math.ceil(Math.max(snapshotMinSec + 1, maxSec) / snapshotBoundsQuantumSec) *
+      snapshotBoundsQuantumSec;
+    const snapshotKey = `${cacheVersion}|${snapshotMinSec}:${snapshotMaxSec}|${displayHistoryEndSec}|${zoomed ? 1 : 0}|${
       sampleCursorSec == null ? "stable" : sampleCursorSec
-    }|${renderedHistoryEndSec}`;
+    }`;
+    const editableBounds = getEditableHistoryBounds?.();
+    const visibleForecastCoverageEndSec = getVisibleForecastCoverageEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
+
+    function buildDynamicSnapshotParts(baseSnapshot) {
+      const customHistoryZones =
+        typeof historyZoneResolver === "function"
+          ? historyZoneResolver({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              actualHistoryEndSec: historyEndSec,
+              displayHistoryEndSec,
+              actualForecastCoverageEndSec,
+              visibleForecastCoverageEndSec,
+              editableBounds,
+              timeline: tl,
+              cursorState: cs,
+              graphData: data,
+              zoomed,
+            })
+          : null;
+      const historyZones = normalizeHistoryZoneSegments(
+        Array.isArray(customHistoryZones) && customHistoryZones.length
+          ? customHistoryZones
+          : computeHistoryZoneSegments({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              baseMinEditableSec: Number.isFinite(editableBounds?.minEditableSec)
+                ? Math.max(0, Math.floor(editableBounds.minEditableSec))
+                : 0,
+              extraEditableRanges: [],
+            }),
+        { minSec, maxSec, historyEndSec: renderedHistoryEndSec }
+      );
+      const itemUnavailableZones = normalizeItemUnavailableZones(
+        customHistoryZones,
+        { minSec, maxSec }
+      );
+      const rawEventMarkers =
+        typeof eventMarkerResolver === "function"
+          ? eventMarkerResolver({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              actualHistoryEndSec: historyEndSec,
+              displayHistoryEndSec,
+              actualForecastCoverageEndSec,
+              visibleForecastCoverageEndSec,
+              timeline: tl,
+              cursorState: cs,
+              graphData: data,
+            })
+          : null;
+      return {
+        ...baseSnapshot,
+        renderedHistoryEndSec,
+        historyZones,
+        itemUnavailableZones,
+        eventMarkers: normalizeEventMarkers(rawEventMarkers, { minSec, maxSec }),
+      };
+    }
+
+    function refreshPlotSnapshotForecastState(baseSnapshot) {
+      const basePoints = Array.isArray(baseSnapshot?.pointsForDraw)
+        ? baseSnapshot.pointsForDraw
+        : [];
+      if (!basePoints.length || !seriesList.length) {
+        return {
+          pointsForDraw: basePoints,
+          seriesValues: new Map(),
+          seriesScaleRanges: new Map(),
+        };
+      }
+
+      const pointSecs = basePoints.map((point) =>
+        Math.max(0, Math.floor(point?.tSec ?? 0))
+      );
+      let requestedPointSecs = pointSecs.filter((sec) => sec <= maxSec);
+      if (PLOT_REFRESH_OVERSCAN_POINTS > 0) {
+        const overscanSecs = pointSecs.filter((sec) => sec > maxSec);
+        if (overscanSecs.length) {
+          requestedPointSecs = requestedPointSecs.concat(
+            overscanSecs.slice(0, PLOT_REFRESH_OVERSCAN_POINTS)
+          );
+        }
+      }
+      const valuesBySec =
+        controller.getSeriesValuesForSeconds?.(requestedPointSecs, {
+          focus: zoomed,
+          allowSyncForecast: false,
+        }) ?? new Map();
+      const refreshedPoints = new Array(basePoints.length);
+      const refreshedSeriesValues = new Map();
+      for (const s of seriesList) {
+        refreshedSeriesValues.set(s.id, new Array(basePoints.length));
+      }
+
+      for (let i = 0; i < basePoints.length; i++) {
+        const point = basePoints[i];
+        const t = pointSecs[i];
+        const resolvedValues = valuesBySec.get(t) ?? null;
+        const pending = t > historyEndSec && resolvedValues == null;
+        const refreshedPoint =
+          point?.pending === pending && point?.values === resolvedValues
+            ? point
+            : {
+                ...point,
+                pending,
+                values: resolvedValues,
+              };
+        refreshedPoints[i] = refreshedPoint;
+
+        for (const seriesDef of seriesList) {
+          let value = null;
+          if (
+            pending !== true &&
+            !(t > historyEndSec && t > actualForecastCoverageEndSec)
+          ) {
+            const override = seriesValueOverrideResolver?.(
+              t,
+              seriesDef.id,
+              refreshedPoint,
+              sampleCursorSec
+            );
+            value = Number.isFinite(override)
+              ? override
+              : getSeriesValue(refreshedPoint, seriesDef.id);
+          }
+          const arr = refreshedSeriesValues.get(seriesDef.id);
+          if (arr) arr[i] = value;
+        }
+      }
+
+      return {
+        pointsForDraw: refreshedPoints,
+        seriesValues: refreshedSeriesValues,
+        seriesScaleRanges: computeGraphSeriesScaleRanges(
+          seriesList,
+          refreshedSeriesValues,
+          {
+            defaultMin: 0,
+            defaultMax: 100,
+          }
+        ),
+      };
+    }
+
     if (plotSnapshot && plotSnapshotKey === snapshotKey) {
-      return plotSnapshot;
+      const refreshedForecastState = refreshPlotSnapshotForecastState(plotSnapshot);
+      plotSnapshot = {
+        ...plotSnapshot,
+        data,
+        tl,
+        cs,
+        cursorSec,
+        historyEndSec,
+        displayHistoryEndSec,
+        actualForecastCoverageEndSec,
+        pointsForDraw: refreshedForecastState.pointsForDraw,
+        seriesValues: refreshedForecastState.seriesValues,
+        seriesScaleRanges: refreshedForecastState.seriesScaleRanges,
+      };
+      return buildDynamicSnapshotParts(plotSnapshot);
     }
 
     const sampleRes = controller.getSamplesForWindow?.({
-      startSec: minSec,
-      endSec: maxSec,
+      startSec: snapshotMinSec,
+      endSec: snapshotMaxSec,
       focus: zoomed,
       cursorSec: sampleCursorSec,
     });
@@ -1533,7 +1857,6 @@ export function createMetricGraphView({
       pointsForDraw = decimated;
     }
 
-    const editableBounds = getEditableHistoryBounds?.();
     const minEditableSec = Number.isFinite(editableBounds?.minEditableSec)
       ? Math.max(0, Math.floor(editableBounds.minEditableSec))
       : 0;
@@ -1568,69 +1891,12 @@ export function createMetricGraphView({
       defaultMax: 100,
     });
 
-    const defaultHistoryZones = computeHistoryZoneSegments({
-      minSec,
-      maxSec,
-      historyEndSec: renderedHistoryEndSec,
-      baseMinEditableSec: minEditableSec,
-      extraEditableRanges: [],
-    });
-    const customHistoryZones =
-      typeof historyZoneResolver === "function"
-        ? historyZoneResolver({
-            minSec,
-            maxSec,
-            historyEndSec: renderedHistoryEndSec,
-            actualHistoryEndSec: historyEndSec,
-            displayHistoryEndSec,
-            actualForecastCoverageEndSec,
-            visibleForecastCoverageEndSec: getVisibleForecastCoverageEndSec(
-              actualForecastCoverageEndSec,
-              displayHistoryEndSec
-            ),
-            editableBounds,
-            timeline: tl,
-            cursorState: cs,
-            graphData: data,
-            zoomed,
-          })
-        : null;
-    const historyZones = normalizeHistoryZoneSegments(
-      Array.isArray(customHistoryZones) && customHistoryZones.length
-        ? customHistoryZones
-        : defaultHistoryZones,
-      { minSec, maxSec, historyEndSec: renderedHistoryEndSec }
-    );
-    const itemUnavailableZones = normalizeItemUnavailableZones(
-      customHistoryZones,
-      { minSec, maxSec }
-    );
-
     const markerActionSecs = getMarkerActionSecs(
       minSec,
       maxSec,
       Math.floor(plot.w * MAX_ACTION_MARKERS_DENSITY)
     );
     const markerSecs = getMarkerSeconds(markerActionSecs);
-    const rawEventMarkers =
-      typeof eventMarkerResolver === "function"
-        ? eventMarkerResolver({
-            minSec,
-            maxSec,
-            historyEndSec: renderedHistoryEndSec,
-            actualHistoryEndSec: historyEndSec,
-            displayHistoryEndSec,
-            actualForecastCoverageEndSec,
-            visibleForecastCoverageEndSec: getVisibleForecastCoverageEndSec(
-              actualForecastCoverageEndSec,
-              displayHistoryEndSec
-            ),
-            timeline: tl,
-            cursorState: cs,
-            graphData: data,
-          })
-        : null;
-    const eventMarkers = normalizeEventMarkers(rawEventMarkers, { minSec, maxSec });
 
     plotSnapshotKey = snapshotKey;
     plotSnapshot = {
@@ -1644,14 +1910,10 @@ export function createMetricGraphView({
       seriesScaleRanges,
       historyEndSec,
       displayHistoryEndSec,
-      renderedHistoryEndSec,
       actualForecastCoverageEndSec,
-      historyZones,
-      itemUnavailableZones,
       markerSecs,
-      eventMarkers,
     };
-    return plotSnapshot;
+    return buildDynamicSnapshotParts(plotSnapshot);
   }
 
   function drawPlot() {
@@ -1698,6 +1960,10 @@ export function createMetricGraphView({
           ? Number(forecastRevealVisibleEndSec ?? displayHistoryEndSec)
           : displayHistoryEndSec
       )
+    );
+    const lineDrawEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.min(maxSec, visibleForecastCoverageEndSec)
     );
     const seriesValues = snapshot?.seriesValues ?? new Map();
     const seriesScaleRanges =
@@ -1750,9 +2016,9 @@ export function createMetricGraphView({
       }
     }
     drawZone(renderedHistoryEndSec, maxSec, TIME_STATE_COLORS.forecast);
-    if (visibleForecastCoverageEndSec < maxSec) {
+    if (lineDrawEndSec < maxSec) {
       drawZone(
-        visibleForecastCoverageEndSec,
+        lineDrawEndSec,
         maxSec,
         TIMEGRAPH_THEME.panelBorder,
         FORECAST_PENDING_ZONE_ALPHA
@@ -1804,17 +2070,44 @@ export function createMetricGraphView({
       plotG.lineStyle(lineWidth, lineColor, lineAlpha);
       let first = true;
       const values = seriesValues.get(s.id) ?? [];
+      let prevDrawnPoint = null;
+      let drewToLineEnd = false;
 
       for (let i = 0; i < pointsForDraw.length; i++) {
         const p = pointsForDraw[i];
         const t = p.tSec ?? 0;
         const value = values[i];
-        if (t > displayHistoryEndSec && t > visibleForecastCoverageEndSec) {
+        if (t > displayHistoryEndSec && t > lineDrawEndSec) {
+          if (
+            prevDrawnPoint &&
+            Number.isFinite(prevDrawnPoint.t) &&
+            Number.isFinite(prevDrawnPoint.value) &&
+            Number.isFinite(value) &&
+            t > prevDrawnPoint.t &&
+            lineDrawEndSec > prevDrawnPoint.t
+          ) {
+            const ratio =
+              (lineDrawEndSec - prevDrawnPoint.t) /
+              Math.max(1e-6, t - prevDrawnPoint.t);
+            const interpolatedValue =
+              prevDrawnPoint.value +
+              (value - prevDrawnPoint.value) * ratio;
+            const interpolatedX = timeToX(lineDrawEndSec);
+            const interpolatedY = yForValue(interpolatedValue, s.id);
+            if (first) {
+              plotG.moveTo(interpolatedX, interpolatedY);
+              first = false;
+            } else {
+              plotG.lineTo(interpolatedX, interpolatedY);
+            }
+            drewToLineEnd = true;
+          }
           first = true;
-          continue;
+          break;
         }
         if (!Number.isFinite(value)) {
           first = true;
+          prevDrawnPoint = null;
           continue;
         }
         const x = timeToX(t);
@@ -1826,11 +2119,25 @@ export function createMetricGraphView({
         } else {
           plotG.lineTo(x, y);
         }
+        prevDrawnPoint = { t, value };
+      }
+
+      if (
+        drewToLineEnd !== true &&
+        prevDrawnPoint &&
+        Number.isFinite(prevDrawnPoint.t) &&
+        Number.isFinite(prevDrawnPoint.value) &&
+        lineDrawEndSec > prevDrawnPoint.t
+      ) {
+        plotG.lineTo(
+          timeToX(lineDrawEndSec),
+          yForValue(prevDrawnPoint.value, s.id)
+        );
       }
     }
 
-    if (visibleForecastCoverageEndSec < maxSec) {
-      const markerX = timeToX(visibleForecastCoverageEndSec);
+    if (lineDrawEndSec < maxSec) {
+      const markerX = timeToX(lineDrawEndSec);
       plotG.lineStyle(
         2,
         TIMEGRAPH_THEME.forecastMarker,
@@ -2184,6 +2491,10 @@ export function createMetricGraphView({
       historyEndSec,
       Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
     );
+    const followTargetEndSec = getForecastRevealFollowTargetEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
     const visibleForecastCoverageEndSec = Math.max(
       displayHistoryEndSec,
       Math.min(
@@ -2204,6 +2515,14 @@ export function createMetricGraphView({
       displayHistoryEndSec,
       actualForecastCoverageEndSec,
       visibleForecastCoverageEndSec,
+      forecastRevealFollowTargetEndSec: Math.max(
+        displayHistoryEndSec,
+        Math.floor(followTargetEndSec ?? displayHistoryEndSec)
+      ),
+      forecastRevealVelocitySecPerSec: Math.max(
+        0,
+        Number(forecastRevealVelocitySecPerSec ?? 0)
+      ),
       forecastRevealHistoryEndSec: Math.max(
         0,
         Math.floor(forecastRevealHistoryEndSec ?? 0)
@@ -2234,11 +2553,6 @@ export function createMetricGraphView({
   function render() {
     if (!root.visible) return;
     resolveMetric();
-    updateTimeBounds();
-    syncLatchedForecastPreviewStatus();
-    tryRestoreLatchedForecastPreview();
-    updateHeaderButtons();
-    drawLegend(getActiveSeries());
     const now = performance.now();
     const data = controller.getData?.() ?? {};
     const tl = getTimeline?.();
@@ -2254,11 +2568,17 @@ export function createMetricGraphView({
       displayHistoryEndSec
     );
     forecastRevealVisibleEndSec = visibleForecastCoverageEndSec;
+    updateTimeBounds();
+    syncLatchedForecastPreviewStatus();
+    tryRestoreLatchedForecastPreview();
+    updateHeaderButtons();
+    drawLegend(getActiveSeries());
     const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(visibleForecastCoverageEndSec * 10)}`;
     const cacheVersion =
       Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
     const versionChanged =
       cacheVersion !== lastPlotVersion || boundsKey !== lastPlotBoundsKey;
+    const boundsChanged = boundsKey !== lastPlotBoundsKey;
     const revealAnimating =
       Math.max(
         displayHistoryEndSec,
@@ -2268,7 +2588,7 @@ export function createMetricGraphView({
       0.001;
     const shouldPlot =
       revealAnimating
-        ? now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
+        ? boundsChanged || now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
         : isScrubbing || zoomed
           ? now - lastPlotMs >= PLOT_THROTTLE_MS
           : versionChanged && now - lastPlotMs >= PLOT_THROTTLE_MS;
@@ -2325,6 +2645,10 @@ export function createMetricGraphView({
     minRateSecPerSec,
     maxRateSecPerSec,
     startDelayMs,
+    followGapSec,
+    followResponseSec,
+    accelerationSecPerSec2,
+    decelerationSecPerSec2,
   } = {}) {
     forecastRevealTargetDurationSecCur = Number.isFinite(targetDurationSec)
       ? Math.max(0.05, Number(targetDurationSec))
@@ -2341,6 +2665,22 @@ export function createMetricGraphView({
     forecastRevealStartDelayMsCur = Number.isFinite(startDelayMs)
       ? Math.max(0, Number(startDelayMs))
       : forecastRevealStartDelayMs;
+    forecastRevealFollowGapSecCur = Number.isFinite(followGapSec)
+      ? Math.max(0, Number(followGapSec))
+      : forecastRevealFollowGapSec;
+    forecastRevealFollowResponseSecCur = Number.isFinite(followResponseSec)
+      ? Math.max(0.05, Number(followResponseSec))
+      : forecastRevealFollowResponseSec;
+    forecastRevealAccelerationSecPerSec2Cur = Number.isFinite(
+      accelerationSecPerSec2
+    )
+      ? Math.max(1, Number(accelerationSecPerSec2))
+      : forecastRevealAccelerationSecPerSec2;
+    forecastRevealDecelerationSecPerSec2Cur = Number.isFinite(
+      decelerationSecPerSec2
+    )
+      ? Math.max(1, Number(decelerationSecPerSec2))
+      : forecastRevealDecelerationSecPerSec2;
   }
 
   function destroy() {
