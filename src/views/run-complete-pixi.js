@@ -90,6 +90,8 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
   let openEventId = null;
   let openEventSec = null;
   let openInfo = null;
+  let backdropVisible = false;
+  let panelVisible = false;
 
   function drawBackdrop() {
     blocker.clear();
@@ -109,6 +111,12 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
   function layout() {
     drawBackdrop();
     drawPanelFrame();
+
+    root.visible = backdropVisible || panelVisible;
+    panel.visible = panelVisible;
+    blocker.visible = backdropVisible || panelVisible;
+    blocker.eventMode = panelVisible ? "static" : "none";
+    blocker.cursor = panelVisible ? "pointer" : "default";
 
     panel.x = Math.floor((app.screen.width - PANEL_WIDTH) / 2);
     panel.y = Math.floor((app.screen.height - PANEL_HEIGHT) / 2);
@@ -135,7 +143,8 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
     openInfo = info;
     openEventId = Number.isFinite(entry?.id) ? Math.floor(entry.id) : null;
     openEventSec = Number.isFinite(entry?.tSec) ? Math.floor(entry.tSec) : null;
-    root.visible = true;
+    backdropVisible = true;
+    panelVisible = true;
     layout();
     applyText(info);
     return {
@@ -147,8 +156,9 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
   }
 
   function close(reason = "close") {
-    if (!root.visible) return { ok: false, reason: "alreadyClosed" };
-    root.visible = false;
+    if (!panelVisible) return { ok: false, reason: "alreadyClosed" };
+    panelVisible = false;
+    layout();
     const closedInfo = {
       eventId: openEventId,
       eventSec: openEventSec,
@@ -186,6 +196,13 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
 
   function update() {}
 
+  function setBackdropVisible(visible) {
+    const nextVisible = visible === true;
+    if (backdropVisible === nextVisible) return;
+    backdropVisible = nextVisible;
+    layout();
+  }
+
   return {
     init,
     update,
@@ -195,10 +212,12 @@ export function createRunCompleteView({ app, layer, onClose } = {}) {
     close,
     isOpen: () => root.visible,
     isOpenForEvent: (entryId) =>
-      root.visible &&
+      panelVisible &&
       Number.isFinite(entryId) &&
       Number.isFinite(openEventId) &&
       Math.floor(entryId) === openEventId,
+    setBackdropVisible,
+    isBackdropVisible: () => backdropVisible,
     getOpenEventId: () => openEventId,
     getOpenEventSec: () => openEventSec,
     getOpenInfo: () => openInfo,

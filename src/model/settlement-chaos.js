@@ -107,6 +107,51 @@ function getClassRedGodChaosContribution(state, classId) {
   return Math.max(0, populationBands * rate);
 }
 
+function getClassRedGodChaosContributionBreakdown(state, classId) {
+  const classState = getSettlementPopulationClassState(state, classId);
+  const faithTier = typeof classState?.faith?.tier === "string" ? classState.faith.tier : null;
+  const ratePerBand = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[faithTier])
+    ? Math.max(0, Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[faithTier]))
+    : 0;
+  const population = getClassTotalPopulation(classState);
+  const bandSize = Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10));
+  const populationBands = Math.floor(population / bandSize);
+  return {
+    classId: typeof classId === "string" && classId.length > 0 ? classId : "unknown",
+    faithTier,
+    ratePerBand,
+    population,
+    bandSize,
+    populationBands,
+    contribution: ratePerBand > 0 ? Math.max(0, populationBands * ratePerBand) : 0,
+  };
+}
+
+export function getSettlementChaosIncomeSummary(state, godId) {
+  const safeGodId =
+    typeof godId === "string" && CHAOS_GOD_IDS.includes(godId) ? godId : "redGod";
+  if (safeGodId !== "redGod") {
+    return {
+      godId: safeGodId,
+      totalIncome: 0,
+      populationBandSize: Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10)),
+      byClass: [],
+    };
+  }
+  const byClass = getSettlementClassIds(state).map((classId) =>
+    getClassRedGodChaosContributionBreakdown(state, classId)
+  );
+  return {
+    godId: safeGodId,
+    totalIncome: byClass.reduce(
+      (sum, entry) => sum + Math.max(0, Math.floor(entry?.contribution ?? 0)),
+      0
+    ),
+    populationBandSize: Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10)),
+    byClass,
+  };
+}
+
 function getRedGodNextSpawnCount(chaosPower) {
   return Math.floor(
     clampInt(chaosPower, 0) / Math.max(1, clampInt(RED_GOD_MONSTERS_PER_CHAOS, 10))
@@ -118,12 +163,14 @@ export function getSettlementChaosGodSummary(state, godId) {
     typeof godId === "string" && CHAOS_GOD_IDS.includes(godId) ? godId : "redGod";
   const godState = getSettlementChaosGodState(state, safeGodId);
   const cadenceSec = getRedGodSpawnCadenceSec();
+  const incomeSummary = getSettlementChaosIncomeSummary(state, safeGodId);
   if (safeGodId !== "redGod") {
     return {
       godId: safeGodId,
       enabled: godState?.enabled === true,
       chaosPower: 0,
       monsterCount: 0,
+      chaosIncome: 0,
       monsterWinCount: clampInt(RED_GOD_MONSTER_WIN_COUNT, 100),
       nextSpawnSec: null,
       spawnCountdownSec: 0,
@@ -140,6 +187,7 @@ export function getSettlementChaosGodSummary(state, godId) {
     godId: safeGodId,
     enabled: godState?.enabled === true,
     chaosPower,
+    chaosIncome: Math.max(0, Math.floor(incomeSummary?.totalIncome ?? 0)),
     monsterCount: clampInt(godState?.monsterCount, 0),
     monsterWinCount: clampInt(RED_GOD_MONSTER_WIN_COUNT, 100),
     nextSpawnSec,
@@ -155,10 +203,7 @@ export function stepSettlementChaosSecond(state, tSec) {
   if (!redGod || redGod.enabled !== true) return false;
 
   let changed = false;
-  let contribution = 0;
-  for (const classId of getSettlementClassIds(state)) {
-    contribution += getClassRedGodChaosContribution(state, classId);
-  }
+  const contribution = getSettlementChaosIncomeSummary(state, "redGod").totalIncome;
   if (contribution > 0) {
     redGod.chaosPower = clampInt(redGod.chaosPower, 0) + contribution;
     changed = true;
