@@ -8,6 +8,7 @@ import {
 } from "../defs/gamesettings/gamerules-defs.js";
 import { ActionKinds } from "../model/actions.js";
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import { getPerfSnapshot } from "../model/perf.js";
 import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
@@ -197,15 +198,23 @@ const SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC = 16;
 const SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC = 16;
 const SETTLEMENT_GRAPH_REVEAL_DEFAULT = Object.freeze({
   targetDurationSec: 14,
-  minRateSecPerSec: 84,
-  maxRateSecPerSec: 84,
+  minRateSecPerSec: 60,
+  maxRateSecPerSec: 112,
   startDelayMs: 400,
+  followGapSec: 36,
+  followResponseSec: 1.1,
+  accelerationSecPerSec2: 180,
+  decelerationSecPerSec2: 260,
 });
 const SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT = Object.freeze({
   targetDurationSec: 13,
-  minRateSecPerSec: 92,
-  maxRateSecPerSec: 92,
+  minRateSecPerSec: 72,
+  maxRateSecPerSec: 132,
   startDelayMs: 250,
+  followGapSec: 48,
+  followResponseSec: 0.95,
+  accelerationSecPerSec2: 220,
+  decelerationSecPerSec2: 320,
 });
 const forecastWorkerService = createTimegraphForecastWorkerService();
 const settlementProjectionCache = createSettlementProjectionCache({
@@ -1795,6 +1804,12 @@ settlementGraphView = createMetricGraphView({
   forecastRevealMinRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.minRateSecPerSec,
   forecastRevealMaxRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.maxRateSecPerSec,
   forecastRevealStartDelayMs: SETTLEMENT_GRAPH_REVEAL_DEFAULT.startDelayMs,
+  forecastRevealFollowGapSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.followGapSec,
+  forecastRevealFollowResponseSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.followResponseSec,
+  forecastRevealAccelerationSecPerSec2:
+    SETTLEMENT_GRAPH_REVEAL_DEFAULT.accelerationSecPerSec2,
+  forecastRevealDecelerationSecPerSec2:
+    SETTLEMENT_GRAPH_REVEAL_DEFAULT.decelerationSecPerSec2,
   getSystemTargetModeLabel: () => getSettlementGraphSeriesButtonLabel(),
   onToggleSystemTargetMode: () => toggleSettlementGraphSeriesMenu(),
   showClose: false,
@@ -2036,6 +2051,11 @@ function publishSettlementDebugApi() {
       prototypeView?.refresh?.();
       return true;
     },
+    getPerfSnapshot: () =>
+      getPerfSnapshot({
+        timeline: runner?.getTimeline?.() ?? null,
+        controllers: [settlementGraphController].filter(Boolean),
+      }),
     hasStateDataAt: (tSec) =>
       settlementGraphController?.getStateDataAt?.(Math.floor(tSec ?? 0)) != null,
     hasStateAt: (tSec) =>

@@ -19,6 +19,9 @@ import {
   getActionSecondsInRangeSampled,
 } from "../timeline/index.js";
 
+const NON_FOCUS_DENSE_EDGE_MAX_SEC = 128;
+const NON_FOCUS_TOTAL_SAMPLE_SLACK = 24;
+
 export function getSamplingModeSignature(focus, windowSec) {
   const span = Math.max(1, Math.floor(windowSec ?? 0));
   const bucket = Math.max(1, Math.round(span / SAMPLING_BUCKET_SEC));
@@ -94,6 +97,37 @@ export function addDenseEdgeSamples(
   const stride = Math.max(1, Math.floor(strideSec ?? 1));
   const denseEnd = Math.min(end, start + span);
   for (let sec = start; sec <= denseEnd; sec += stride) {
+    sampleSet.add(sec);
+  }
+  sampleSet.add(denseEnd);
+}
+
+export function addBudgetedDenseEdgeSamples(
+  sampleSet,
+  startSec,
+  endSec,
+  { spanSec = 64, maxCount = 0 } = {}
+) {
+  const start = clampSec(startSec);
+  const end = clampSec(endSec);
+  const budget = Math.max(0, Math.floor(maxCount ?? 0));
+  if (budget <= 0 || end <= start) return;
+
+  const span = Math.max(1, Math.floor(spanSec ?? 64));
+  const denseEnd = Math.min(end, start + span);
+  if (denseEnd <= start) return;
+
+  const intervalCount = denseEnd - start;
+  const desiredAdditions = Math.min(budget, intervalCount);
+  if (desiredAdditions <= 0) return;
+
+  const stride = Math.max(
+    1,
+    Math.ceil(intervalCount / Math.max(1, desiredAdditions))
+  );
+  const first = Math.ceil((start + 1) / stride) * stride;
+
+  for (let sec = first; sec < denseEnd; sec += stride) {
     sampleSet.add(sec);
   }
   sampleSet.add(denseEnd);
@@ -200,11 +234,22 @@ export function buildSampleSeconds({
   let remaining = target - samples.size;
 
   if (!focus) {
-    addDenseEdgeSamples(samples, start, end, {
-      spanSec: Math.min(128, Math.max(16, Math.floor((end - start) * 0.08))),
-      strideSec: 1,
-    });
     addGridSamples(samples, start, end, target);
+    // Keep the early edge dense enough for the unveil marker to read clearly,
+    // but cap the total non-focus sample budget so window-span thresholds do
+    // not create large frame-time cliffs as the graph expands.
+    const nonFocusTotalTarget = Math.max(
+      target,
+      NORMAL_SAMPLE_MIN
+    ) + NON_FOCUS_TOTAL_SAMPLE_SLACK;
+    const denseBudget = Math.max(0, nonFocusTotalTarget - samples.size);
+    addBudgetedDenseEdgeSamples(samples, start, end, {
+      spanSec: Math.min(
+        NON_FOCUS_DENSE_EDGE_MAX_SEC,
+        Math.max(16, Math.floor((end - start) * 0.08))
+      ),
+      maxCount: denseBudget,
+    });
     // Keep non-focus sampling stable over time. In full-history mode, filler
     // redistribution causes sample-second churn every frontier advance, which
     // defeats value-cache reuse and scales render cost with large tSec.
