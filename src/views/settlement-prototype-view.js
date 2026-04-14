@@ -2,7 +2,14 @@ import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
-import { getSettlementChaosGodSummary } from "../model/settlement-chaos.js";
+import {
+  RED_GOD_CHAOS_RATE_BY_FAITH,
+  RED_GOD_POPULATION_BAND_SIZE,
+} from "../defs/gamesettings/gamerules-defs.js";
+import {
+  getSettlementChaosGodSummary,
+  getSettlementChaosIncomeSummary,
+} from "../model/settlement-chaos.js";
 import { getCurrentSeasonKey } from "../model/state.js";
 import {
   getSettlementCurrentVassal,
@@ -114,6 +121,19 @@ const ORDER_PANEL_LAYOUT = Object.freeze({
 const ELDER_BUST_SKIN_TONES = Object.freeze([0xcab59c, 0xb89d82, 0xa7876f, 0x8c6f5b]);
 const ELDER_BUST_ACCENT_TONES = Object.freeze([0x7d6b4d, 0x6f7a88, 0x725b76, 0x5d7d66, 0x916443]);
 const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
+const FAITH_TIER_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
+const FAITH_TIER_COLORS = Object.freeze({
+  bronze: 0xb98155,
+  silver: 0xc6ccd6,
+  gold: 0xe0bf54,
+  diamond: 0x8dd5e8,
+});
+const HAPPINESS_STATE_ORDER = Object.freeze(["negative", "neutral", "positive"]);
+const HAPPINESS_STATE_COLORS = Object.freeze({
+  negative: 0xc86a5c,
+  neutral: 0xb7a98a,
+  positive: 0x8dbb6f,
+});
 
 function roundedRect(
   gfx,
@@ -290,6 +310,9 @@ function buildSignature(
             : null,
           lossYear: Number.isFinite(civilizationLossInfo.lossYear)
             ? Math.floor(civilizationLossInfo.lossYear)
+            : null,
+          maxLossYear: Number.isFinite(civilizationLossInfo.maxLossYear)
+            ? Math.floor(civilizationLossInfo.maxLossYear)
             : null,
           resolved: civilizationLossInfo.resolved === true,
         }
@@ -1523,34 +1546,898 @@ function drawRedGodSigil(container, x, y, summary) {
   container.addChild(root);
 }
 
-function drawRedGodPanel(container, rect, summary) {
+function drawChaosPoolSigil(container, x, y) {
+  const root = new PIXI.Container();
+  root.x = x;
+  root.y = y;
+
+  const radius = 24;
+  const ringWidth = 7;
+  const segments = [
+    { start: -Math.PI / 2, end: 0, color: PALETTE.red },
+    { start: 0, end: Math.PI / 2, color: PALETTE.green },
+    { start: Math.PI / 2, end: Math.PI, color: PALETTE.blue },
+    { start: Math.PI, end: Math.PI * 1.5, color: PALETTE.black },
+  ];
+
+  const outer = new PIXI.Graphics();
+  outer.lineStyle(2, PALETTE.stroke, 0.9);
+  outer.beginFill(0x3b3532, 0.95);
+  outer.drawCircle(0, 0, radius + 7);
+  outer.endFill();
+  root.addChild(outer);
+
+  for (const segment of segments) {
+    const arc = new PIXI.Graphics();
+    arc.lineStyle(ringWidth, segment.color, 0.95);
+    arc.arc(0, 0, radius, segment.start, segment.end);
+    root.addChild(arc);
+  }
+
+  const core = new PIXI.Graphics();
+  core.beginFill(0x534b46, 1);
+  core.drawCircle(0, 0, radius - 8);
+  core.endFill();
+  root.addChild(core);
+
+  const spark = new PIXI.Graphics();
+  spark.lineStyle(2, PALETTE.accent, 0.95);
+  spark.drawPolygon([
+    -5, -9,
+    1, -1,
+    -3, -1,
+    5, 9,
+    -1, 2,
+    3, 2,
+  ]);
+  root.addChild(spark);
+
+  container.addChild(root);
+  return root;
+}
+
+function getChaosIncomeTooltipSpec(incomeSummary) {
+  const summary = incomeSummary && typeof incomeSummary === "object" ? incomeSummary : null;
+  const lines = [];
+  for (const entry of Array.isArray(summary?.byClass) ? summary.byClass : []) {
+    const classLabel = capitalizeLabel(entry?.classId);
+    const tierLabel = capitalizeTier(entry?.faithTier);
+    const contribution = Math.max(0, Math.floor(entry?.contribution ?? 0));
+    const ratePerBand = Math.max(0, Math.floor(entry?.ratePerBand ?? 0));
+    const populationBands = Math.max(0, Math.floor(entry?.populationBands ?? 0));
+    const population = Math.max(0, Math.floor(entry?.population ?? 0));
+    if (contribution > 0) {
+      lines.push(
+        `${classLabel}: ${tierLabel} faith, ${population} pop -> ${populationBands} band${populationBands === 1 ? "" : "s"} x ${ratePerBand} = +${contribution}`
+      );
+    } else {
+      lines.push(`${classLabel}: ${tierLabel} faith, ${population} pop -> +0`);
+    }
+  }
+  if (!lines.length) {
+    lines.push("No active chaos income sources.");
+  }
+  return {
+    title: "Chaos Income",
+    lines: [
+      `Current income: +${Math.max(0, Math.floor(summary?.totalIncome ?? 0))} per second`,
+      ...lines,
+    ],
+    maxWidth: 340,
+  };
+}
+
+function drawChaosValueCard(container, rect, label, valueText, accentColor, opts = {}) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const compactMode = rect.height < 52;
+  const showSubtext =
+    typeof options.subtext === "string" &&
+    options.subtext.length > 0 &&
+    compactMode !== true;
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+
+  const bg = new PIXI.Graphics();
+  roundedRect(bg, 0, 0, rect.width, rect.height, 16, 0x443d39, PALETTE.stroke, 2);
+  root.addChild(bg);
+
+  const accent = new PIXI.Graphics();
+  roundedRect(accent, 10, 10, 10, rect.height - 20, 5, accentColor, accentColor, 0);
+  root.addChild(accent);
+
+  root.addChild(
+    createText(
+      label,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: compactMode ? 9 : 10,
+        fontWeight: "bold",
+      },
+      28,
+      compactMode ? 6 : 10
+    )
+  );
+  root.addChild(
+    createText(
+      valueText,
+      {
+        ...TEXT_STYLES.title,
+        fontSize: compactMode ? 20 : 24,
+      },
+      28,
+      compactMode ? 28 : 34
+    )
+  );
+
+  if (showSubtext) {
+    root.addChild(
+      createText(
+        options.subtext,
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 9,
+        },
+        28,
+        rect.height - 16,
+        0,
+        1
+      )
+    );
+  }
+
+  if (Array.isArray(options.segmentValues) && options.segmentValues.length > 0) {
+    const total = options.segmentValues.reduce(
+      (sum, segment) => sum + Math.max(0, Math.floor(segment?.value ?? 0)),
+      0
+    );
+    const stripY = rect.height - 14;
+    const stripX = 28;
+    const stripWidth = rect.width - 40;
+    const stripBg = new PIXI.Graphics();
+    roundedRect(stripBg, stripX, stripY, stripWidth, 6, 3, 0x322d2a, PALETTE.stroke, 1);
+    root.addChild(stripBg);
+    if (total > 0) {
+      let cursorX = stripX + 1;
+      const innerWidth = stripWidth - 2;
+      options.segmentValues.forEach((segment, index) => {
+        const safeValue = Math.max(0, Math.floor(segment?.value ?? 0));
+        if (safeValue <= 0) return;
+        const remainingValues = options.segmentValues
+          .slice(index + 1)
+          .reduce((sum, item) => sum + Math.max(0, Math.floor(item?.value ?? 0)), 0);
+        const remainingWidth = stripX + 1 + innerWidth - cursorX;
+        const width =
+          index === options.segmentValues.length - 1 || remainingValues <= 0
+            ? remainingWidth
+            : Math.max(2, Math.round((safeValue / total) * innerWidth));
+        const segmentGfx = new PIXI.Graphics();
+        roundedRect(
+          segmentGfx,
+          cursorX,
+          stripY + 1,
+          Math.min(width, remainingWidth),
+          4,
+          2,
+          Number.isFinite(segment?.color) ? segment.color : accentColor,
+          Number.isFinite(segment?.color) ? segment.color : accentColor,
+          0
+        );
+        root.addChild(segmentGfx);
+        cursorX += Math.min(width, remainingWidth);
+      });
+    }
+  }
+
+  if (options.tooltipView && options.tooltipSpec) {
+    root.eventMode = "static";
+    root.cursor = "pointer";
+    root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+    root.on("pointerenter", () => {
+      const anchor =
+        options.tooltipView.getAnchorRectForDisplayObject?.(root, "parent") ?? {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          coordinateSpace: "parent",
+        };
+      options.tooltipView.show?.(
+        {
+          ...options.tooltipSpec,
+          scale: Math.max(
+            Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+            options.tooltipView.getRelativeDisplayScale?.(root, 1) ?? 1
+          ),
+        },
+        anchor
+      );
+    });
+    root.on("pointerleave", () => {
+      options.tooltipView.hide?.();
+    });
+  }
+
+  container.addChild(root);
+  return root;
+}
+
+function drawChaosStatPill(container, rect, label, valueText, accentColor, opts = {}) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const compactMode = rect.height < 34;
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+
+  const bg = new PIXI.Graphics();
+  roundedRect(bg, 0, 0, rect.width, rect.height, 14, 0x443d39, PALETTE.stroke, 2);
+  root.addChild(bg);
+
+  const accent = new PIXI.Graphics();
+  roundedRect(accent, 8, 8, 8, rect.height - 16, 4, accentColor, accentColor, 0);
+  root.addChild(accent);
+
+  root.addChild(
+    createText(
+      label,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: compactMode ? 8 : 9,
+        fontWeight: "bold",
+      },
+      24,
+      compactMode ? 4 : 8
+    )
+  );
+  root.addChild(
+    createText(
+      valueText,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: compactMode ? 13 : 18,
+        fontWeight: "bold",
+      },
+      rect.width - 12,
+      compactMode ? rect.height - 5 : rect.height - 11,
+      1,
+      1
+    )
+  );
+
+  if (
+    compactMode !== true &&
+    Array.isArray(options.segmentValues) &&
+    options.segmentValues.length > 0
+  ) {
+    const total = options.segmentValues.reduce(
+      (sum, segment) => sum + Math.max(0, Math.floor(segment?.value ?? 0)),
+      0
+    );
+    const stripX = 24;
+    const stripY = rect.height - 11;
+    const stripWidth = rect.width - 36;
+    const stripBg = new PIXI.Graphics();
+    roundedRect(stripBg, stripX, stripY, stripWidth, 5, 2, 0x2f2a28, PALETTE.stroke, 1);
+    root.addChild(stripBg);
+    if (total > 0) {
+      let cursorX = stripX + 1;
+      const innerWidth = stripWidth - 2;
+      options.segmentValues.forEach((segment, index) => {
+        const safeValue = Math.max(0, Math.floor(segment?.value ?? 0));
+        if (safeValue <= 0) return;
+        const remainingValues = options.segmentValues
+          .slice(index + 1)
+          .reduce((sum, item) => sum + Math.max(0, Math.floor(item?.value ?? 0)), 0);
+        const remainingWidth = stripX + 1 + innerWidth - cursorX;
+        const width =
+          index === options.segmentValues.length - 1 || remainingValues <= 0
+            ? remainingWidth
+            : Math.max(2, Math.round((safeValue / total) * innerWidth));
+        const segmentGfx = new PIXI.Graphics();
+        roundedRect(
+          segmentGfx,
+          cursorX,
+          stripY + 1,
+          Math.min(width, remainingWidth),
+          3,
+          1,
+          Number.isFinite(segment?.color) ? segment.color : accentColor,
+          Number.isFinite(segment?.color) ? segment.color : accentColor,
+          0
+        );
+        root.addChild(segmentGfx);
+        cursorX += Math.min(width, remainingWidth);
+      });
+    }
+  }
+
+  if (options.tooltipView && options.tooltipSpec) {
+    root.eventMode = "static";
+    root.cursor = "pointer";
+    root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+    root.on("pointerenter", () => {
+      const anchor =
+        options.tooltipView.getAnchorRectForDisplayObject?.(root, "parent") ?? {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          coordinateSpace: "parent",
+        };
+      options.tooltipView.show?.(
+        {
+          ...options.tooltipSpec,
+          scale: Math.max(
+            Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+            options.tooltipView.getRelativeDisplayScale?.(root, 1) ?? 1
+          ),
+        },
+        anchor
+      );
+    });
+    root.on("pointerleave", () => {
+      options.tooltipView.hide?.();
+    });
+  }
+
+  container.addChild(root);
+  return root;
+}
+
+function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
   drawSubPanel(container, rect, PALETTE.panel, PALETTE.stroke);
-  drawRedGodSigil(container, rect.x + 64, rect.y + Math.floor(rect.height / 2), summary);
-  container.addChild(createText("redGod", TEXT_STYLES.title, rect.x + 126, rect.y + 18));
   container.addChild(
     createText(
-      `Chaos Power: ${Math.floor(summary?.chaosPower ?? 0)}`,
-      TEXT_STYLES.body,
-      rect.x + 126,
-      rect.y + 50
+      "Chaos",
+      TEXT_STYLES.title,
+      rect.x + rect.width * 0.5,
+      rect.y + 18,
+      0.5,
+      0
+    )
+  );
+
+  const sharedRect = {
+    x: rect.x + 12,
+    y: rect.y + 46,
+    width: rect.width - 24,
+    height: 92,
+  };
+  const godRect = {
+    x: rect.x + 12,
+    y: rect.y + 146,
+    width: rect.width - 24,
+    height: rect.height - 158,
+  };
+
+  drawSubPanel(container, sharedRect, 0x4a433f, PALETTE.stroke);
+  drawChaosPoolSigil(container, sharedRect.x + 38, sharedRect.y + Math.floor(sharedRect.height * 0.5));
+  container.addChild(
+    createText(
+      "Shared Pool",
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 10,
+        fontWeight: "bold",
+      },
+      sharedRect.x + 74,
+      sharedRect.y + 8
+    )
+  );
+
+  drawChaosStatPill(
+    container,
+    { x: sharedRect.x + 74, y: sharedRect.y + 26, width: 168, height: 42 },
+    "Chaos Power",
+    `${Math.floor(summary?.chaosPower ?? 0)}`,
+    PALETTE.red
+  );
+  drawChaosStatPill(
+    container,
+    { x: sharedRect.x + 252, y: sharedRect.y + 26, width: 240, height: 42 },
+    "Chaos Income",
+    `+${Math.floor(incomeSummary?.totalIncome ?? summary?.chaosIncome ?? 0)}/s`,
+    PALETTE.accent,
+    {
+      segmentValues: (Array.isArray(incomeSummary?.byClass) ? incomeSummary.byClass : []).map((entry) => ({
+        value: Math.max(0, Math.floor(entry?.contribution ?? 0)),
+        color: getFaithTierColor(entry?.faithTier),
+      })),
+      tooltipView,
+      tooltipSpec: getChaosIncomeTooltipSpec(incomeSummary),
+    }
+  );
+
+  drawSubPanel(container, godRect, 0x443a37, PALETTE.stroke);
+  drawRedGodSigil(container, godRect.x + 40, godRect.y + Math.floor(godRect.height * 0.5), summary);
+  container.addChild(
+    createText(
+      "RedGod",
+      {
+        ...TEXT_STYLES.cardTitle,
+        fontSize: 16,
+      },
+      godRect.x + 82,
+      godRect.y + 8
     )
   );
   container.addChild(
     createText(
-      `Next Spawn: ${Math.floor(summary?.nextSpawnCount ?? 0)} in ${Math.floor(summary?.spawnCountdownSec ?? 0)}s`,
-      TEXT_STYLES.body,
-      rect.x + 126,
-      rect.y + 74
+      "First active chaos god",
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 9,
+      },
+      godRect.x + 82,
+      godRect.y + 30
+    )
+  );
+  drawChaosStatPill(
+    container,
+    { x: godRect.x + 186, y: godRect.y + 14, width: 296, height: 28 },
+    "Next Spawn",
+    `+${Math.floor(summary?.nextSpawnCount ?? 0)} in ${Math.floor(summary?.spawnCountdownSec ?? 0)}s`,
+    0x9f8550
+  );
+  drawChaosStatPill(
+    container,
+    { x: godRect.x + 186, y: godRect.y + 50, width: 296, height: 28 },
+    "Monsters",
+    `${Math.floor(summary?.monsterCount ?? 0)} / ${Math.floor(summary?.monsterWinCount ?? 100)}`,
+    PALETTE.red
+  );
+}
+
+function getFaithTierRank(tier) {
+  return FAITH_TIER_ORDER.indexOf(typeof tier === "string" ? tier : "");
+}
+
+function getFaithTierColor(tier) {
+  return FAITH_TIER_COLORS[tier] ?? PALETTE.inactive;
+}
+
+function getHappinessStateColor(status) {
+  return HAPPINESS_STATE_COLORS[status] ?? PALETTE.inactive;
+}
+
+function drawClassStatPill(container, x, y, width, label, value, fill) {
+  const height = 20;
+  const pill = new PIXI.Graphics();
+  roundedRect(pill, x, y, width, height, 10, fill, PALETTE.stroke, 1);
+  container.addChild(pill);
+  container.addChild(
+    createText(
+      label,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 8,
+      },
+      x + 8,
+      y + 5
     )
   );
   container.addChild(
     createText(
-      `Monsters: ${Math.floor(summary?.monsterCount ?? 0)} / ${Math.floor(summary?.monsterWinCount ?? 100)}`,
-      TEXT_STYLES.body,
-      rect.x + 126,
-      rect.y + 98
+      String(value),
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 11,
+        fontWeight: "bold",
+      },
+      x + width - 8,
+      y + height * 0.5,
+      1,
+      0.5
     )
   );
+}
+
+function drawFaithTrack(container, rect, faith) {
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+
+  const panel = new PIXI.Graphics();
+  roundedRect(panel, 0, 0, rect.width, rect.height, 14, 0x3f3935, PALETTE.stroke, 1);
+  root.addChild(panel);
+  root.addChild(
+    createText(
+      "Faith",
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 9,
+        fontWeight: "bold",
+      },
+      10,
+      5
+    )
+  );
+
+  const currentTier = typeof faith?.tier === "string" ? faith.tier : "bronze";
+  const currentRank = Math.max(0, getFaithTierRank(currentTier));
+  const nodeY = rect.height <= 36 ? 18 : Math.max(16, Math.floor(rect.height * 0.52));
+  const nodeRadius = rect.height <= 34 ? 6 : 7;
+  const startX = 20;
+  const endX = rect.width - 20;
+  const stepX = (endX - startX) / Math.max(1, FAITH_TIER_ORDER.length - 1);
+
+  for (let index = 0; index < FAITH_TIER_ORDER.length - 1; index += 1) {
+    const currentX = startX + stepX * index;
+    const nextX = startX + stepX * (index + 1);
+    const segment = new PIXI.Graphics();
+    const leftActive = index <= currentRank - 1;
+    const rightActive = index + 1 <= currentRank;
+    segment.lineStyle(4, leftActive || rightActive ? PALETTE.active : PALETTE.stroke, 0.95);
+    segment.moveTo(currentX, nodeY);
+    segment.lineTo(nextX, nodeY);
+    root.addChild(segment);
+  }
+
+  for (let index = 0; index < FAITH_TIER_ORDER.length; index += 1) {
+    const tier = FAITH_TIER_ORDER[index];
+    const tierX = startX + stepX * index;
+    const active = index <= currentRank;
+    const node = new PIXI.Graphics();
+    node.lineStyle(2, getFaithTierColor(tier), active ? 1 : 0.55);
+    node.beginFill(active ? getFaithTierColor(tier) : PALETTE.cardMuted, active ? 1 : 0.6);
+    node.drawCircle(tierX, nodeY, nodeRadius);
+    node.endFill();
+    root.addChild(node);
+
+    const tierLabel = createText(
+      tier === "diamond" ? "Dia" : capitalizeTier(tier).slice(0, 3),
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 7,
+        fontWeight: index === currentRank ? "bold" : "normal",
+        fill: active ? PALETTE.text : PALETTE.textMuted,
+      },
+      tierX,
+      nodeY + nodeRadius + 2,
+      0.5,
+      0
+    );
+    root.addChild(tierLabel);
+
+    const chaosRate = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[tier])
+      ? Math.max(0, Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[tier]))
+      : 0;
+    if (chaosRate > 0) {
+      const badgeWidth = 34;
+      const badgeHeight = 12;
+      const badge = new PIXI.Graphics();
+      roundedRect(
+        badge,
+        tierX - badgeWidth * 0.5,
+        4,
+        badgeWidth,
+        badgeHeight,
+        7,
+        tier === currentTier ? PALETTE.red : 0x5a4038,
+        PALETTE.red,
+        1
+      );
+      root.addChild(badge);
+      root.addChild(
+        createText(
+          `+${chaosRate}`,
+          {
+            ...TEXT_STYLES.body,
+            fontSize: 8,
+            fontWeight: "bold",
+          },
+          tierX,
+          4 + badgeHeight * 0.5,
+          0.5,
+          0.5
+        )
+      );
+    }
+  }
+
+  const riskLabel = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[currentTier])
+    ? `redGod +${Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[currentTier])} / ${Math.max(1, Math.floor(RED_GOD_POPULATION_BAND_SIZE ?? 10))} pop`
+    : "No chaos gain";
+  root.addChild(
+    createText(
+      riskLabel,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 8,
+        fontWeight: "bold",
+        fill: Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[currentTier]) ? PALETTE.red : PALETTE.passiveBorder,
+      },
+      rect.width - 10,
+      5,
+      1,
+      0
+    )
+  );
+
+  container.addChild(root);
+  return root;
+}
+
+function drawStreakTrack(container, rect, label, activeCount, threshold, activeFill, baseFill) {
+  const safeThreshold = Math.max(1, Math.floor(threshold ?? 1));
+  const safeCount = Math.max(0, Math.floor(activeCount ?? 0));
+  container.addChild(
+    createText(
+      label,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 9,
+      },
+      rect.x,
+      rect.y + 1
+    )
+  );
+  const labelWidth = 28;
+  const barX = rect.x + labelWidth;
+  const barWidth = rect.width - labelWidth;
+  const gap = 4;
+  const segmentWidth = Math.max(
+    6,
+    Math.floor((barWidth - gap * Math.max(0, safeThreshold - 1)) / safeThreshold)
+  );
+  for (let index = 0; index < safeThreshold; index += 1) {
+    const segment = new PIXI.Graphics();
+    roundedRect(
+      segment,
+      barX + index * (segmentWidth + gap),
+      rect.y,
+      segmentWidth,
+      rect.height,
+      5,
+      index < safeCount ? activeFill : baseFill,
+      index < safeCount ? activeFill : PALETTE.stroke,
+      1
+    );
+    container.addChild(segment);
+  }
+  container.addChild(
+    createText(
+      `${Math.min(safeCount, safeThreshold)}/${safeThreshold}`,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 9,
+        fontWeight: "bold",
+      },
+      rect.x + rect.width + 2,
+      rect.y + rect.height * 0.5,
+      0,
+      0.5
+    )
+  );
+}
+
+function drawCompactPipRow(container, x, y, label, activeCount, threshold, activeFill, inactiveFill) {
+  const safeThreshold = Math.max(1, Math.floor(threshold ?? 1));
+  const safeCount = Math.max(0, Math.floor(activeCount ?? 0));
+  container.addChild(
+    createText(
+      label,
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 8,
+        fontWeight: "bold",
+      },
+      x,
+      y + 1
+    )
+  );
+  for (let index = 0; index < safeThreshold; index += 1) {
+    const pip = new PIXI.Graphics();
+    roundedRect(
+      pip,
+      x + 12 + index * 10,
+      y,
+      8,
+      8,
+      4,
+      index < safeCount ? activeFill : inactiveFill,
+      index < safeCount ? activeFill : PALETTE.stroke,
+      1
+    );
+    container.addChild(pip);
+  }
+  container.addChild(
+    createText(
+      `${Math.min(safeCount, safeThreshold)}/${safeThreshold}`,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 8,
+        fontWeight: "bold",
+      },
+      x + 12 + safeThreshold * 10 + 2,
+      y + 4,
+      0,
+      0.5
+    )
+  );
+}
+
+function drawPartialMemoryBars(container, rect, partialFeedRatios) {
+  const ratios = Array.isArray(partialFeedRatios) ? partialFeedRatios : [];
+  const compact = rect.width <= 40;
+  if (!compact) {
+    container.addChild(
+      createText(
+        "Partial",
+        {
+          ...TEXT_STYLES.muted,
+          fontSize: 9,
+        },
+        rect.x,
+        rect.y + 1
+      )
+    );
+  }
+  const labelWidth = compact ? 0 : 32;
+  const barsX = rect.x + labelWidth;
+  const availableWidth = Math.max(20, rect.width - labelWidth);
+  const barWidth = 10;
+  const gap = 5;
+  const count = Math.max(1, ratios.length);
+  const totalWidth = count * barWidth + Math.max(0, count - 1) * gap;
+  let startX = barsX;
+  if (totalWidth < availableWidth) {
+    startX += Math.floor((availableWidth - totalWidth) * 0.5);
+  }
+  for (let index = 0; index < ratios.length; index += 1) {
+    const ratio = Math.max(0, Math.min(1, Number(ratios[index] ?? 0)));
+    const bar = new PIXI.Graphics();
+    roundedRect(
+      bar,
+      startX + index * (barWidth + gap),
+      rect.y + 2,
+      barWidth,
+      rect.height - 4,
+      4,
+      0x4a4743,
+      PALETTE.stroke,
+      1
+    );
+    container.addChild(bar);
+
+    const fillHeight = Math.max(2, Math.floor((rect.height - 8) * ratio));
+    const fill = new PIXI.Graphics();
+    roundedRect(
+      fill,
+      startX + index * (barWidth + gap) + 2,
+      rect.y + rect.height - 4 - fillHeight,
+      barWidth - 4,
+      fillHeight,
+      3,
+      ratio >= 0.5 ? PALETTE.passiveBorder : PALETTE.red,
+      ratio >= 0.5 ? PALETTE.passiveBorder : PALETTE.red,
+      0
+    );
+    container.addChild(fill);
+  }
+  if (!ratios.length) {
+    container.addChild(
+      createText(
+        "none",
+        {
+          ...TEXT_STYLES.body,
+          fontSize: 8,
+        },
+        rect.x + rect.width - 2,
+        rect.y + rect.height * 0.5,
+        1,
+        0.5
+      )
+    );
+  }
+}
+
+function drawMoodPanel(container, rect, happiness) {
+  const root = new PIXI.Container();
+  root.x = rect.x;
+  root.y = rect.y;
+
+  const panel = new PIXI.Graphics();
+  roundedRect(panel, 0, 0, rect.width, rect.height, 14, 0x3f3935, PALETTE.stroke, 1);
+  root.addChild(panel);
+
+  root.addChild(
+    createText(
+      "Mood",
+      {
+        ...TEXT_STYLES.muted,
+        fontSize: 9,
+        fontWeight: "bold",
+      },
+      10,
+      5
+    )
+  );
+
+  const status = typeof happiness?.status === "string" ? happiness.status : "neutral";
+  const compactMode = rect.height < 48;
+  const moodX = 42;
+  const moodY = 4;
+  const cellWidth = compactMode ? 32 : 38;
+  const cellGap = compactMode ? 3 : 4;
+  for (let index = 0; index < HAPPINESS_STATE_ORDER.length; index += 1) {
+    const moodId = HAPPINESS_STATE_ORDER[index];
+    const selected = moodId === status;
+    const cell = new PIXI.Graphics();
+    roundedRect(
+      cell,
+        moodX + index * (cellWidth + cellGap),
+      moodY,
+      cellWidth,
+      compactMode ? 16 : 18,
+      9,
+      selected ? getHappinessStateColor(moodId) : PALETTE.cardMuted,
+      getHappinessStateColor(moodId),
+      1
+    );
+    root.addChild(cell);
+    root.addChild(
+      createText(
+        moodId === "negative" ? "Neg" : moodId === "positive" ? "Pos" : "Mid",
+        {
+          ...TEXT_STYLES.body,
+          fontSize: 8,
+          fontWeight: selected ? "bold" : "normal",
+          fill: selected ? PALETTE.black : PALETTE.text,
+        },
+        moodX + index * (cellWidth + cellGap) + cellWidth * 0.5,
+        moodY + (compactMode ? 8 : 9),
+        0.5,
+        0.5
+      )
+    );
+  }
+
+  if (compactMode) {
+    drawCompactPipRow(
+      root,
+      10,
+      24,
+      "+",
+      happiness?.fullFeedStreak,
+      happiness?.fullFeedThreshold,
+      PALETTE.passiveBorder,
+      0x544e49
+    );
+    drawCompactPipRow(
+      root,
+      Math.max(92, Math.floor(rect.width * 0.5) - 10),
+      24,
+      "-",
+      happiness?.missedFeedStreak,
+      happiness?.missedFeedThreshold,
+      PALETTE.red,
+      0x54413d
+    );
+  } else {
+    drawStreakTrack(
+      root,
+      { x: 10, y: 26, width: rect.width - 54, height: 8 },
+      "Full",
+      happiness?.fullFeedStreak,
+      happiness?.fullFeedThreshold,
+      PALETTE.passiveBorder,
+      0x544e49
+    );
+    drawStreakTrack(
+      root,
+      { x: 10, y: 40, width: rect.width - 54, height: 8 },
+      "Miss",
+      happiness?.missedFeedStreak,
+      happiness?.missedFeedThreshold,
+      PALETTE.red,
+      0x54413d
+    );
+    drawPartialMemoryBars(root, { x: rect.width - 44, y: 22, width: 34, height: 30 }, happiness?.partialFeedRatios);
+  }
+
+  container.addChild(root);
+  return root;
 }
 
 function drawClassSummaryCard(
@@ -1563,7 +2450,6 @@ function drawClassSummaryCard(
   onTap = null
 ) {
   const root = new PIXI.Container();
-  const compactBody = rect.height < 160;
   const gfx = new PIXI.Graphics();
   roundedRect(
     gfx,
@@ -1580,28 +2466,29 @@ function drawClassSummaryCard(
   root.y = rect.y;
   root.addChild(gfx);
   root.addChild(createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, 16, 12));
-  const lines = [
-    `Adults ${Math.floor(population?.adults ?? 0)}  Youth ${Math.floor(population?.youth ?? 0)}`,
-    `Total ${Math.floor(population?.total ?? 0)}  Free ${Math.floor(population?.free ?? 0)}`,
-    `Reserved ${Math.floor(population?.reserved ?? 0)}`,
-    `Faith ${capitalizeTier(faith?.tier)}  Mood ${capitalizeLabel(happiness?.status)}`,
-    `${Math.floor(happiness?.fullFeedStreak ?? 0)}/${Math.floor(happiness?.fullFeedThreshold ?? 0)} full  ${Math.floor(happiness?.missedFeedStreak ?? 0)}/${Math.floor(happiness?.missedFeedThreshold ?? 0)} missed`,
-    `Partial ${formatPartialFeedMemory(happiness?.partialFeedRatios)}`,
-  ];
   root.addChild(
     createText(
-      lines.join("\n"),
+      `Total ${Math.floor(population?.total ?? 0)}   Reserved ${Math.floor(population?.reserved ?? 0)}`,
       {
-        ...TEXT_STYLES.body,
-        fontSize: compactBody ? 10 : 12,
-        lineHeight: compactBody ? 14 : 16,
-        wordWrap: true,
-        wordWrapWidth: rect.width - 32,
+        ...TEXT_STYLES.muted,
+        fontSize: 9,
       },
+      rect.width - 16,
       16,
-      42
+      1,
+      0
     )
   );
+
+  const statsY = 34;
+  const statGap = 8;
+  const statWidth = Math.floor((rect.width - 32 - statGap * 2) / 3);
+  drawClassStatPill(root, 16, statsY, statWidth, "Adults", Math.floor(population?.adults ?? 0), 0x4b4a3d);
+  drawClassStatPill(root, 16 + statWidth + statGap, statsY, statWidth, "Youth", Math.floor(population?.youth ?? 0), 0x444f57);
+  drawClassStatPill(root, 16 + (statWidth + statGap) * 2, statsY, statWidth, "Free", Math.floor(population?.free ?? 0), 0x42513c);
+
+  drawFaithTrack(root, { x: 16, y: 58, width: rect.width - 32, height: 36 }, faith);
+  drawMoodPanel(root, { x: 16, y: 98, width: rect.width - 32, height: Math.max(36, rect.height - 108) }, happiness);
   if (typeof onTap === "function") {
     root.eventMode = "static";
     root.cursor = "pointer";
@@ -1959,6 +2846,7 @@ export function createSettlementPrototypeView({
     const civilizationLossInfo =
       typeof getCivilizationLossInfo === "function" ? getCivilizationLossInfo() : null;
     const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
+    const redGodIncomeSummary = getSettlementChaosIncomeSummary(state, "redGod");
     const signature = buildSignature(
       state,
       selectedClassId,
@@ -1991,7 +2879,11 @@ export function createSettlementPrototypeView({
       state?.year ?? 1
     )}`;
     const civilizationLostLabel = Number.isFinite(civilizationLossInfo?.lossYear)
-      ? `Civilization Lost - Year ${Math.floor(civilizationLossInfo.lossYear)}`
+      ? `Civilization Lost - Year ${Math.floor(civilizationLossInfo.lossYear)}${
+          Number.isFinite(civilizationLossInfo?.maxLossYear)
+            ? ` (max ${Math.floor(civilizationLossInfo.maxLossYear)})`
+            : ""
+        }`
       : "Civilization Lost - Unknown";
     contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 24, 0.5, 0.5));
     contentLayer.addChild(
@@ -2012,8 +2904,8 @@ export function createSettlementPrototypeView({
 
     const hubPanelRect = { x: 70, y: 120, width: 1080, height: 700 };
     const vassalPanelRect = { x: 1170, y: 120, width: 560, height: 620 };
-    const chaosPanelRect = { x: 1760, y: 120, width: 540, height: 140 };
-    const regionPanelRect = { x: 1760, y: 280, width: 540, height: 350 };
+    const chaosPanelRect = { x: 1760, y: 120, width: 540, height: 260 };
+    const regionPanelRect = { x: 1760, y: 400, width: 540, height: 230 };
     // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
     const classColumnRect = { x: 100, y: 188, width: 220, height: 300 };
     const orderRect = { x: 344, y: 184, width: 776, height: 220 };
@@ -2345,7 +3237,7 @@ export function createSettlementPrototypeView({
     const tileAnchors = Array.isArray(state?.board?.layers?.tile?.anchors)
       ? state.board.layers.tile.anchors
       : [];
-    drawRedGodPanel(contentLayer, chaosPanelRect, redGodSummary);
+    drawRedGodPanel(contentLayer, chaosPanelRect, redGodSummary, redGodIncomeSummary, tooltipView);
     for (let i = 0; i < tileAnchors.length; i += 1) {
       const tile = tileAnchors[i];
       const def = envTileDefs[tile?.defId];
