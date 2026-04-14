@@ -3,6 +3,7 @@
 
 import { YOUTH_PER_FOOD } from "../defs/gamesettings/gamerules-defs.js";
 import { getTotalFoodFromEdibles, getTotalStackByTag } from "./query.js";
+import { getSettlementChaosGodSummary } from "./settlement-chaos.js";
 import {
   getSettlementFaithGraphValue,
   getSettlementFaithSummary,
@@ -168,6 +169,30 @@ function getSettlementGreenTooltipSpec(state) {
   };
 }
 
+function getSettlementChaosPowerTooltipSpec(state) {
+  const redGod = getSettlementChaosGodSummary(state, "redGod");
+  return {
+    title: "Chaos Power",
+    lines: [
+      `Current chaos power: ${Math.floor(redGod?.chaosPower ?? 0)}`,
+      `Next spawn in: ${Math.floor(redGod?.spawnCountdownSec ?? 0)}s`,
+      `Projected monsters on next spawn: ${Math.floor(redGod?.nextSpawnCount ?? 0)}`,
+    ],
+  };
+}
+
+function getSettlementMonstersTooltipSpec(state) {
+  const redGod = getSettlementChaosGodSummary(state, "redGod");
+  return {
+    title: "Monsters",
+    lines: [
+      `Current monsters: ${Math.floor(redGod?.monsterCount ?? 0)}/${Math.floor(redGod?.monsterWinCount ?? 100)}`,
+      `Spawn cadence: every ${Math.floor(redGod?.cadenceSec ?? 0)}s`,
+      "If monsters reach the win threshold, the run ends.",
+    ],
+  };
+}
+
 function formatClassLabel(classId) {
   return capitalizeLabel(typeof classId === "string" ? classId : "villager");
 }
@@ -292,6 +317,21 @@ function getSettlementClassMetricSeries(state) {
 
 const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
   {
+    id: "totalPopulation",
+    label: "Total Pop",
+    color: 0xd6c1ff,
+    scaleGroupId: "settlementPopulation",
+    scaleMode: "dynamic",
+    scaleMin: 0,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementPopulationSummary(state).total,
+    getValueFromSnapshot: (snapshot) =>
+      getSettlementPopulationSummary(snapshot).total,
+    getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
     id: "food",
     label: "Food",
     color: 0xdcc56f,
@@ -302,6 +342,36 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValue: (state) => getSettlementStockpile(state, "food"),
     getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "food"),
     getLegendTooltipSpec: (state) => getSettlementFoodTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
+    id: "chaosPower",
+    label: "Chaos Power",
+    color: 0xc96a52,
+    scaleGroupId: "settlementChaosPower",
+    scaleMode: "dynamic",
+    scaleMin: 0,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementChaosGodSummary(state, "redGod").chaosPower,
+    getValueFromSnapshot: (snapshot) =>
+      getSettlementChaosGodSummary(snapshot, "redGod").chaosPower,
+    getLegendTooltipSpec: (state) => getSettlementChaosPowerTooltipSpec(state),
+    formatValue: (value) =>
+      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
+    id: "monsterCount",
+    label: "Monsters",
+    color: 0xb84e4e,
+    scaleGroupId: "settlementMonsterCount",
+    scaleMode: "dynamic",
+    scaleMin: 0,
+    pickerGroup: "global",
+    getValue: (state) => getSettlementChaosGodSummary(state, "redGod").monsterCount,
+    getValueFromSnapshot: (snapshot) =>
+      getSettlementChaosGodSummary(snapshot, "redGod").monsterCount,
+    getLegendTooltipSpec: (state) => getSettlementMonstersTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
   },
@@ -330,21 +400,6 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValue: (state) => getSettlementStockpile(state, "greenResource"),
     getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "greenResource"),
     getLegendTooltipSpec: (state) => getSettlementGreenTooltipSpec(state),
-    formatValue: (value) =>
-      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-  },
-  {
-    id: "totalPopulation",
-    label: "Total Pop",
-    color: 0xd6c1ff,
-    scaleGroupId: "settlementPopulation",
-    scaleMode: "dynamic",
-    scaleMin: 0,
-    pickerGroup: "global",
-    getValue: (state) => getSettlementPopulationSummary(state).total,
-    getValueFromSnapshot: (snapshot) =>
-      getSettlementPopulationSummary(snapshot).total,
-    getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
   },

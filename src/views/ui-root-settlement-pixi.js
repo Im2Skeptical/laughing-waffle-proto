@@ -182,6 +182,7 @@ let settlementVassalSelectionResumeSpeed = 0;
 let settlementGraphHorizonOverrideSec = null;
 let settlementProjectedLossCacheKey = "";
 let settlementProjectedLossCacheValue = null;
+let settlementMaxObservedLossYear = null;
 let settlementPlaybackSpeedTarget = 0;
 let settlementPlaybackSpeedCurrent = 0;
 let settlementPlaybackViewSec = null;
@@ -243,26 +244,18 @@ function getSettlementGraphDefaultSeriesIds(allSeries = getSettlementGraphMenuSe
     preferred.push(seriesId);
   };
 
-  for (const preferredGlobalId of ["food", "redResource", "greenResource"]) {
+  for (const preferredSeriesId of [
+    "totalPopulation",
+    "food",
+    "chaosPower",
+    "faith:villager",
+    "happiness:villager",
+  ]) {
     const series = list.find(
-      (entry) => getSettlementGraphSeriesId(entry) === preferredGlobalId
+      (entry) => getSettlementGraphSeriesId(entry) === preferredSeriesId
     );
-    if (series) {
-      pushUnique(getSettlementGraphSeriesId(series));
-    }
-  }
-  for (const series of list) {
-    if (
-      series?.pickerGroup === "global" &&
-      getSettlementGraphSeriesId(series) !== "totalPopulation"
-    ) {
-      pushUnique(getSettlementGraphSeriesId(series));
-    }
-  }
-  for (const series of list) {
-    if (series?.pickerGroup === "classMetric" && series?.pickerMetricId === "population") {
-      pushUnique(getSettlementGraphSeriesId(series));
-    }
+    if (!series) continue;
+    pushUnique(getSettlementGraphSeriesId(series));
     if (preferred.length >= MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES) break;
   }
   for (const series of list) {
@@ -1483,6 +1476,17 @@ function selectSettlementVassal(candidateIndex) {
 }
 
 function getSettlementJumpToDeathState() {
+  const frontierState = getSettlementFrontierState();
+  if (isSettlementStateRunComplete(frontierState)) {
+    const endSec = Number.isFinite(frontierState?.runStatus?.tSec)
+      ? Math.max(0, Math.floor(frontierState.runStatus.tSec))
+      : getSettlementFrontierSec();
+    const currentSec = getSettlementViewedSec();
+    return {
+      enabled: endSec > 0 && endSec !== currentSec,
+      label: "Jump to End",
+    };
+  }
   const state = getSettlementViewedState();
   const currentVassal = getSettlementCurrentVassal(state);
   const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
@@ -1499,6 +1503,13 @@ function getSettlementJumpToDeathState() {
 }
 
 function jumpCurrentVassalToDeath() {
+  const frontierState = getSettlementFrontierState();
+  if (isSettlementStateRunComplete(frontierState)) {
+    const endSec = Number.isFinite(frontierState?.runStatus?.tSec)
+      ? Math.max(0, Math.floor(frontierState.runStatus.tSec))
+      : getSettlementFrontierSec();
+    return setSettlementViewedSecond(endSec);
+  }
   const state = getSettlementViewedState();
   const currentVassal = getSettlementCurrentVassal(state);
   const deathSec = Math.max(0, Math.floor(currentVassal?.deathSec ?? 0));
@@ -1512,11 +1523,43 @@ function getSettlementPrimaryVassalState() {
   const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
   const currentVassal = getSettlementCurrentVassal(frontierState);
   const runComplete = isSettlementStateRunComplete(frontierState);
+  const runCompleteEntry = getLatestRunCompleteEntry(frontierState);
   const validInsertionPoint =
     !hasSelectedVassal || !currentVassal || currentVassal.isDead === true;
+  if (runComplete) {
+    return {
+      enabled: !!runCompleteEntry,
+      label: "Gameover",
+    };
+  }
   return {
     enabled: hasPendingSelection !== true && runComplete !== true && validInsertionPoint,
     label: hasSelectedVassal ? "Next Vassal" : "Intervene",
+  };
+}
+
+function getSettlementLossInfoForDisplay() {
+  const lossInfo = getDisplayedSettlementLossInfo();
+  const candidateYears = [
+    Number.isFinite(lossInfo?.lossYear) ? Math.floor(lossInfo.lossYear) : null,
+    Number.isFinite(lossInfo?.finalLossYear) ? Math.floor(lossInfo.finalLossYear) : null,
+  ].filter((value) => value != null);
+  if (candidateYears.length > 0) {
+    const bestKnownYear = candidateYears.reduce(
+      (maxYear, value) => Math.max(maxYear, value),
+      0
+    );
+    settlementMaxObservedLossYear =
+      settlementMaxObservedLossYear == null
+        ? bestKnownYear
+        : Math.max(settlementMaxObservedLossYear, bestKnownYear);
+  }
+  return {
+    ...lossInfo,
+    maxLossYear:
+      settlementMaxObservedLossYear == null
+        ? null
+        : Math.max(1, Math.floor(settlementMaxObservedLossYear)),
   };
 }
 
@@ -1526,15 +1569,46 @@ function getLatestRunCompleteEntry(state = runner?.getState?.() ?? null) {
     const entry = feed[index];
     if (entry?.type === "runComplete") return entry;
   }
+  if (state?.runStatus?.complete === true) {
+    const runYear = Number.isFinite(state?.runStatus?.year)
+      ? Math.max(1, Math.floor(state.runStatus.year))
+      : Number.isFinite(state?.year)
+        ? Math.max(1, Math.floor(state.year))
+        : 1;
+    const runSec = Number.isFinite(state?.runStatus?.tSec)
+      ? Math.max(0, Math.floor(state.runStatus.tSec))
+      : Math.max(0, Math.floor(state?.tSec ?? 0));
+    const runReason =
+      typeof state?.runStatus?.reason === "string" && state.runStatus.reason.length > 0
+        ? state.runStatus.reason
+        : "unknown";
+    return {
+      id: null,
+      type: "runComplete",
+      tSec: runSec,
+      text: `Civilization lasted until Year ${runYear}.`,
+      data: {
+        runComplete: true,
+        year: runYear,
+        reason: runReason,
+      },
+    };
+  }
   return null;
 }
 
-function syncSettlementRunCompleteOverlay() {
-  const latestEntry = getLatestRunCompleteEntry(runner?.getState?.() ?? null);
-  const latestId = Number.isFinite(latestEntry?.id) ? Math.floor(latestEntry.id) : null;
-  if (latestId == null) return;
-  if (runCompleteView?.isOpenForEvent?.(latestId) === true) return;
-  runCompleteView?.openForEntry?.(latestEntry, { source: "settlement" });
+function openSettlementRunCompleteOverlay() {
+  const latestEntry = getLatestRunCompleteEntry(getSettlementFrontierState());
+  if (!latestEntry) return { ok: false, reason: "noRunCompleteEntry" };
+  return runCompleteView?.openForEntry?.(latestEntry, { source: "settlement" }) ?? {
+    ok: false,
+    reason: "overlayUnavailable",
+  };
+}
+
+function syncSettlementRunCompletePresentation() {
+  const viewedState = getSettlementViewedState();
+  runCompleteView?.setBackdropVisible?.(isSettlementStateRunComplete(viewedState));
 }
 
 const runner = createSimRunner({
@@ -1571,7 +1645,7 @@ prototypeView = createSettlementPrototypeView({
   app,
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
-  getCivilizationLossInfo: () => getDisplayedSettlementLossInfo(),
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
@@ -1607,19 +1681,8 @@ const timeControlsView = createTimeControlsView({
   isPausePending: () => false,
   getCommitPreviewState: () => ({ visible: false, enabled: false }),
   onCommitPreview: () => ({ ok: false, reason: "settlementPreviewOnly" }),
-  getReturnToPresentState: () => {
-    const frontierSec = getSettlementFrontierSec();
-    const viewedSec = getSettlementViewedSec();
-    if (viewedSec === frontierSec) {
-      return { visible: false, enabled: false, targetSec: null };
-    }
-    return {
-      visible: true,
-      enabled: true,
-      targetSec: frontierSec,
-    };
-  },
-  onReturnToPresent: (targetSec) => returnSettlementViewToPresent(targetSec),
+  getReturnToPresentState: () => ({ visible: false, enabled: false, targetSec: null }),
+  onReturnToPresent: () => ({ ok: false, reason: "settlementNoReturnButton" }),
   getTimeScale: () => getSettlementPlaybackState(),
   setTimeScaleTarget: (speed) => setSettlementPlaybackTarget(speed),
   layout: {
@@ -1759,7 +1822,12 @@ settlementVassalControlsView = createSettlementVassalControlsView({
   getJumpState: () => getSettlementJumpToDeathState(),
   onJump: () => jumpCurrentVassalToDeath(),
   getPrimaryState: () => getSettlementPrimaryVassalState(),
-  onPrimary: () => openNextSettlementVassalSelection(),
+  onPrimary: () => {
+    if (isSettlementStateRunComplete(getSettlementFrontierState())) {
+      return openSettlementRunCompleteOverlay();
+    }
+    return openNextSettlementVassalSelection();
+  },
 });
 
 settlementVassalChooserView = createSettlementVassalChooserView({
@@ -1823,7 +1891,7 @@ function publishSettlementDebugApi() {
       playbackTarget: settlementPlaybackSpeedTarget,
       playbackCurrent: settlementPlaybackSpeedCurrent,
       projectedLossInfo: getProjectedSettlementLossInfo(),
-      displayedLossInfo: getDisplayedSettlementLossInfo(),
+      displayedLossInfo: getSettlementLossInfoForDisplay(),
       graph: settlementGraphView?.getDebugState?.() ?? null,
       controller: (() => {
         const data = settlementGraphController?.getData?.() ?? null;
@@ -1947,7 +2015,7 @@ sunMoonDisksView.init();
 settlementVassalControlsView.init();
 settlementVassalChooserView.init();
 runCompleteView.init();
-syncSettlementRunCompleteOverlay();
+syncSettlementRunCompletePresentation();
 publishSettlementDebugApi();
 
 window.addEventListener("resize", resizeCanvas);
@@ -1983,6 +2051,6 @@ app.ticker.add((delta) => {
   sunMoonDisksView.update(frameDt);
   settlementVassalControlsView.update(frameDt);
   settlementVassalChooserView.update(frameDt);
-  syncSettlementRunCompleteOverlay();
+  syncSettlementRunCompletePresentation();
   runCompleteView.update(frameDt);
 });
