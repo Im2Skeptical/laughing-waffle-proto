@@ -1688,6 +1688,13 @@ function drawVassalPanel(
   visibleVassalThroughSec = null
 ) {
   const currentVassal = getSettlementCurrentVassal(state);
+  const deathSec = Number.isFinite(currentVassal?.deathSec)
+    ? Math.max(0, Math.floor(currentVassal.deathSec))
+    : null;
+  const deathYearKnown =
+    deathSec != null &&
+    Number.isFinite(visibleVassalThroughSec) &&
+    Math.floor(visibleVassalThroughSec) >= deathSec;
   const panelBg = new PIXI.Graphics();
   roundedRect(panelBg, rect.x, rect.y, rect.width, rect.height, 26, PALETTE.panelSoft, PALETTE.stroke, 4);
   container.addChild(panelBg);
@@ -1756,7 +1763,9 @@ function drawVassalPanel(
         `Profession ${getVassalProfessionLabel(currentVassal.professionId)}`,
         `Trait ${getVassalTraitLabel(currentVassal.traitId)}`,
         `Elder ${currentVassal.isElder ? "Yes" : "No"}`,
-        `Death Year ${Math.floor(currentVassal.deathYear ?? 1)}`,
+        deathYearKnown
+          ? `Death Year ${Math.floor(currentVassal.deathYear ?? 1)}`
+          : "Death Year Unknown",
       ].join("\n"),
       {
         ...TEXT_STYLES.body,
