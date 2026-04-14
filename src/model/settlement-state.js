@@ -792,8 +792,21 @@ export function getSettlementVassalBoundarySeconds(state, historyEndSec = null) 
       seconds.add(startSec);
     }
   }
-  if (!runComplete) {
-    seconds.add(safeHistoryEndSec);
+  if (!runComplete && selectedVassals.length > 0) {
+    const currentVassal = getSettlementCurrentVassal(state) ?? selectedVassals[selectedVassals.length - 1] ?? null;
+    const currentStartSec = Number.isFinite(currentVassal?.birthSec)
+      ? Math.max(0, Math.floor(currentVassal.birthSec))
+      : Number.isFinite(currentVassal?.selectedSec)
+        ? Math.max(0, Math.floor(currentVassal.selectedSec))
+        : null;
+    const deathSec = Number.isFinite(currentVassal?.deathSec)
+      ? Math.max(0, Math.floor(currentVassal.deathSec))
+      : null;
+    const activeBoundarySec =
+      deathSec == null ? safeHistoryEndSec : Math.min(safeHistoryEndSec, deathSec);
+    if (currentStartSec == null || activeBoundarySec >= currentStartSec) {
+      seconds.add(activeBoundarySec);
+    }
   }
 
   return [...seconds].sort((a, b) => a - b);

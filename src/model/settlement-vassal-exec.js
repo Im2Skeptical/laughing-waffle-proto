@@ -563,7 +563,11 @@ function buildSelectedVassalCouncilSpecs(state, tSec) {
 }
 
 export function getSettlementVassalAgeYearsAtSecond(state, vassal, tSec = null) {
-  const safeTSec = getSafeTSec(state, tSec);
+  const requestedSec = getSafeTSec(state, tSec);
+  const deathSec = Number.isFinite(vassal?.deathSec)
+    ? Math.max(0, Math.floor(vassal.deathSec))
+    : null;
+  const safeTSec = deathSec == null ? requestedSec : Math.min(requestedSec, deathSec);
   const selectedSec = Number.isFinite(vassal?.selectedSec) ? Math.max(0, Math.floor(vassal.selectedSec)) : safeTSec;
   const birthYear = Number.isFinite(vassal?.birthYear) ? Math.max(1, Math.floor(vassal.birthYear)) : getCurrentYear(state);
   const initialAgeYears = Number.isFinite(vassal?.initialAgeYears) ? Math.max(0, Math.floor(vassal.initialAgeYears)) : 0;
