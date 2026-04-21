@@ -1,4 +1,5 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
+import { recordSettlementForecastBuild } from "../model/perf.js";
 
 export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 120;
 export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
@@ -56,6 +57,14 @@ function normalizeActionsBySecond(actionsBySecond, baseSec, endSec) {
 function normalizeChunkEntries(entries) {
   if (entries instanceof Map) return Array.from(entries.entries());
   return Array.isArray(entries) ? entries : [];
+}
+
+function estimateMessageBytes(payload) {
+  try {
+    return Math.max(0, JSON.stringify(payload).length);
+  } catch (_error) {
+    return 0;
+  }
 }
 
 export function createTimegraphForecastWorkerService({
@@ -170,6 +179,11 @@ export function createTimegraphForecastWorkerService({
 
     if (!entry) return;
     if (merged?.ok === true && message.result?.ok === true) {
+      recordSettlementForecastBuild({
+        workerSec: Math.max(0, clampSec(message.endSec) - clampSec(message.baseSec)),
+        workerMessages: 1,
+        workerMessageBytes: estimateMessageBytes(message),
+      });
       entry.coverageEndSec = Math.max(
         clampSec(entry.coverageEndSec),
         clampSec(message.endSec)
@@ -267,6 +281,9 @@ export function createTimegraphForecastWorkerService({
       lastStateData: sliceRes.lastStateData,
     });
     if (merged?.ok === true) {
+      recordSettlementForecastBuild({
+        fallbackSec: Math.max(0, clampSec(sliceEndSec) - clampSec(sliceBaseSec)),
+      });
       entry.coverageEndSec = Math.max(
         clampSec(entry.coverageEndSec),
         clampSec(sliceEndSec)
@@ -401,6 +418,9 @@ export function createTimegraphForecastWorkerService({
             lastStateData: primeRes.lastStateData,
           });
           if (merged?.ok === true) {
+            recordSettlementForecastBuild({
+              fallbackSec: Math.max(0, clampSec(primeEndSec) - baseSec),
+            });
             entry.coverageEndSec = Math.max(
               entry.coverageEndSec,
               clampSec(primeEndSec)
@@ -508,7 +528,7 @@ export function createTimegraphForecastWorkerService({
       chunkEndSec
     );
 
-    workerInstance.postMessage({
+    const message = {
       kind: "buildChunk",
       requestId,
       requestKey,
@@ -520,7 +540,12 @@ export function createTimegraphForecastWorkerService({
       streamSliceSec: Math.max(1, Math.floor(streamSliceSec)),
       boundaryStateData: chunkBoundaryStateData,
       scheduledActionsBySecond: chunkActions,
+    };
+    recordSettlementForecastBuild({
+      workerMessages: 1,
+      workerMessageBytes: estimateMessageBytes(message),
     });
+    workerInstance.postMessage(message);
 
     return {
       ok: true,
