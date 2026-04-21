@@ -2,6 +2,13 @@ import { deserializeGameState, serializeGameState } from "./state.js";
 import { canonicalizeSnapshot } from "./canonicalize.js";
 import { updateGame } from "./game-model.js";
 import { applyAction } from "./actions.js";
+import {
+  perfEnabled,
+  perfNowMs,
+  recordProjectionCanonicalize,
+  recordProjectionDeserialize,
+  recordProjectionSerialize,
+} from "./perf.js";
 
 const TICKS_PER_SEC = 60;
 const DEFAULT_DT_STEP = 1 / TICKS_PER_SEC;
@@ -22,6 +29,32 @@ function resolveDtStepStrict(dtStep) {
     return { ok: false, reason: "unsupportedDtStep" };
   }
   return { ok: true, dt: DEFAULT_DT_STEP };
+}
+
+function deserializeProjectionState(stateData) {
+  const startMs = perfEnabled() ? perfNowMs() : 0;
+  const state = deserializeGameState(stateData);
+  if (perfEnabled()) {
+    recordProjectionDeserialize(perfNowMs() - startMs);
+  }
+  return state;
+}
+
+function serializeProjectionState(state) {
+  const startMs = perfEnabled() ? perfNowMs() : 0;
+  const stateData = serializeGameState(state);
+  if (perfEnabled()) {
+    recordProjectionSerialize(perfNowMs() - startMs);
+  }
+  return stateData;
+}
+
+function canonicalizeProjectionState(state) {
+  const startMs = perfEnabled() ? perfNowMs() : 0;
+  canonicalizeSnapshot(state);
+  if (perfEnabled()) {
+    recordProjectionCanonicalize(perfNowMs() - startMs);
+  }
 }
 
 function normalizeActionsBySecond(actionsBySecond) {
@@ -78,8 +111,8 @@ function createProjectionChunkRunner(
     opts?.actionsBySecond
   );
 
-  const state = deserializeGameState(boundaryStateData);
-  canonicalizeSnapshot(state);
+  const state = deserializeProjectionState(boundaryStateData);
+  canonicalizeProjectionState(state);
   state.paused = false;
   state.tSec = startSec;
   state.simStepIndex = startSec * TICKS_PER_SEC;
@@ -117,10 +150,10 @@ function advanceProjectionChunkOneSecond(runtime, sec) {
     }
   }
 
-  canonicalizeSnapshot(state);
+  canonicalizeProjectionState(state);
   return {
     ok: true,
-    stateData: serializeGameState(state),
+    stateData: serializeProjectionState(state),
   };
 }
 
@@ -141,7 +174,7 @@ export function buildProjectionChunkFromStateData(
   const { startSec, targetEndSec, stepSec } = runtime;
 
   const stateDataBySecond = new Map();
-  let lastStateData = serializeGameState(runtime.state);
+  let lastStateData = serializeProjectionState(runtime.state);
 
   for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
@@ -184,7 +217,7 @@ export function streamProjectionChunkFromStateData(
 
   let sliceBaseSec = startSec;
   let sliceStateDataBySecond = new Map();
-  let lastStateData = serializeGameState(runtime.state);
+  let lastStateData = serializeProjectionState(runtime.state);
 
   for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);

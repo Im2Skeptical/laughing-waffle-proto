@@ -38,6 +38,9 @@ const perf = {
     history: { lastMs: 0, lastPoints: 0 },
     forecast: { lastMs: 0, lastPoints: 0 },
     stateWindow: { lastMs: 0, lastPoints: 0 },
+    serialize: { count: 0, lastMs: 0, totalMs: 0, maxMs: 0 },
+    deserialize: { count: 0, lastMs: 0, totalMs: 0, maxMs: 0 },
+    canonicalize: { count: 0, lastMs: 0, totalMs: 0, maxMs: 0 },
   },
   timegraph: {
     cacheHits: 0,
@@ -78,6 +81,25 @@ const perf = {
       maxMs: 0,
     },
     viewUpdates: new Map(),
+  },
+  settlement: {
+    forecast: {
+      workerBuiltSec: 0,
+      fallbackBuiltSec: 0,
+      workerMessages: 0,
+      workerMessageBytes: 0,
+      computedToRevealedLagSec: 0,
+      revealedToHistoryLagSec: 0,
+      maxComputedToRevealedLagSec: 0,
+      maxRevealedToHistoryLagSec: 0,
+    },
+    lossSearch: {
+      count: 0,
+      lastMs: 0,
+      maxMs: 0,
+      lastProbes: 0,
+      maxProbes: 0,
+    },
   },
 };
 
@@ -121,6 +143,27 @@ export function recordProjectionStateWindowBuild({ ms, points }) {
   perf.projection.stateWindow.lastPoints = Number.isFinite(points)
     ? points
     : 0;
+}
+
+function recordProjectionPhaseStat(stat, ms) {
+  if (!isPerfActive() || !stat) return;
+  const value = Number.isFinite(ms) && ms >= 0 ? ms : 0;
+  stat.count += 1;
+  stat.lastMs = value;
+  stat.totalMs += value;
+  if (value > stat.maxMs) stat.maxMs = value;
+}
+
+export function recordProjectionSerialize(ms) {
+  recordProjectionPhaseStat(perf.projection.serialize, ms);
+}
+
+export function recordProjectionDeserialize(ms) {
+  recordProjectionPhaseStat(perf.projection.deserialize, ms);
+}
+
+export function recordProjectionCanonicalize(ms) {
+  recordProjectionPhaseStat(perf.projection.canonicalize, ms);
 }
 
 export function recordTimegraphCacheHit() {
@@ -218,6 +261,63 @@ export function recordActionDispatch({ ok = true, ms = 0 } = {}) {
   }
 }
 
+export function recordSettlementForecastBuild({
+  workerSec = 0,
+  fallbackSec = 0,
+  workerMessages = 0,
+  workerMessageBytes = 0,
+} = {}) {
+  if (!isPerfActive()) return;
+  perf.settlement.forecast.workerBuiltSec += Number.isFinite(workerSec)
+    ? Math.max(0, Math.floor(workerSec))
+    : 0;
+  perf.settlement.forecast.fallbackBuiltSec += Number.isFinite(fallbackSec)
+    ? Math.max(0, Math.floor(fallbackSec))
+    : 0;
+  perf.settlement.forecast.workerMessages += Number.isFinite(workerMessages)
+    ? Math.max(0, Math.floor(workerMessages))
+    : 0;
+  perf.settlement.forecast.workerMessageBytes += Number.isFinite(workerMessageBytes)
+    ? Math.max(0, Math.floor(workerMessageBytes))
+    : 0;
+}
+
+export function recordSettlementForecastLag({
+  computedToRevealedLagSec = 0,
+  revealedToHistoryLagSec = 0,
+} = {}) {
+  if (!isPerfActive()) return;
+  const computedLag = Number.isFinite(computedToRevealedLagSec)
+    ? Math.max(0, Math.floor(computedToRevealedLagSec))
+    : 0;
+  const revealedLag = Number.isFinite(revealedToHistoryLagSec)
+    ? Math.max(0, Math.floor(revealedToHistoryLagSec))
+    : 0;
+  perf.settlement.forecast.computedToRevealedLagSec = computedLag;
+  perf.settlement.forecast.revealedToHistoryLagSec = revealedLag;
+  if (computedLag > perf.settlement.forecast.maxComputedToRevealedLagSec) {
+    perf.settlement.forecast.maxComputedToRevealedLagSec = computedLag;
+  }
+  if (revealedLag > perf.settlement.forecast.maxRevealedToHistoryLagSec) {
+    perf.settlement.forecast.maxRevealedToHistoryLagSec = revealedLag;
+  }
+}
+
+export function recordSettlementLossSearch({ ms = 0, probes = 0 } = {}) {
+  if (!isPerfActive()) return;
+  const elapsed = Number.isFinite(ms) && ms >= 0 ? ms : 0;
+  const safeProbes = Number.isFinite(probes) ? Math.max(0, Math.floor(probes)) : 0;
+  perf.settlement.lossSearch.count += 1;
+  perf.settlement.lossSearch.lastMs = elapsed;
+  perf.settlement.lossSearch.lastProbes = safeProbes;
+  if (elapsed > perf.settlement.lossSearch.maxMs) {
+    perf.settlement.lossSearch.maxMs = elapsed;
+  }
+  if (safeProbes > perf.settlement.lossSearch.maxProbes) {
+    perf.settlement.lossSearch.maxProbes = safeProbes;
+  }
+}
+
 export function resetPerfCounters() {
   perf.timeline.rebuild.count = 0;
   perf.timeline.rebuild.memoHits = 0;
@@ -233,6 +333,18 @@ export function resetPerfCounters() {
   perf.projection.forecast.lastPoints = 0;
   perf.projection.stateWindow.lastMs = 0;
   perf.projection.stateWindow.lastPoints = 0;
+  perf.projection.serialize.count = 0;
+  perf.projection.serialize.lastMs = 0;
+  perf.projection.serialize.totalMs = 0;
+  perf.projection.serialize.maxMs = 0;
+  perf.projection.deserialize.count = 0;
+  perf.projection.deserialize.lastMs = 0;
+  perf.projection.deserialize.totalMs = 0;
+  perf.projection.deserialize.maxMs = 0;
+  perf.projection.canonicalize.count = 0;
+  perf.projection.canonicalize.lastMs = 0;
+  perf.projection.canonicalize.totalMs = 0;
+  perf.projection.canonicalize.maxMs = 0;
 
   perf.timegraph.cacheHits = 0;
   perf.timegraph.cacheMisses = 0;
@@ -266,6 +378,21 @@ export function resetPerfCounters() {
   perf.runtime.frame.maxMs = 0;
 
   perf.runtime.viewUpdates.clear();
+
+  perf.settlement.forecast.workerBuiltSec = 0;
+  perf.settlement.forecast.fallbackBuiltSec = 0;
+  perf.settlement.forecast.workerMessages = 0;
+  perf.settlement.forecast.workerMessageBytes = 0;
+  perf.settlement.forecast.computedToRevealedLagSec = 0;
+  perf.settlement.forecast.revealedToHistoryLagSec = 0;
+  perf.settlement.forecast.maxComputedToRevealedLagSec = 0;
+  perf.settlement.forecast.maxRevealedToHistoryLagSec = 0;
+
+  perf.settlement.lossSearch.count = 0;
+  perf.settlement.lossSearch.lastMs = 0;
+  perf.settlement.lossSearch.maxMs = 0;
+  perf.settlement.lossSearch.lastProbes = 0;
+  perf.settlement.lossSearch.maxProbes = 0;
 }
 
 export function getTopViewUpdates(limit = 10, metric = "avgMs") {
@@ -382,6 +509,9 @@ export function getPerfSnapshot({ timeline, controllers } = {}) {
       lastRenderMs: perf.view.lastMs,
       lastRenderPoints: perf.view.lastPoints,
       lastRenderMetric: perf.view.lastMetric,
+      serialize: { ...perf.projection.serialize },
+      deserialize: { ...perf.projection.deserialize },
+      canonicalize: { ...perf.projection.canonicalize },
     },
     runtime: {
       frameCount: perf.runtime.frame.count,
@@ -405,6 +535,10 @@ export function getPerfSnapshot({ timeline, controllers } = {}) {
       actionDispatchLastMs: perf.runtime.actionDispatch.lastMs,
       actionDispatchMaxMs: perf.runtime.actionDispatch.maxMs,
       viewUpdates,
+    },
+    settlement: {
+      forecast: { ...perf.settlement.forecast },
+      lossSearch: { ...perf.settlement.lossSearch },
     },
   };
 }

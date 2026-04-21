@@ -2515,6 +2515,9 @@ export function createMetricGraphView({
       displayHistoryEndSec,
       actualForecastCoverageEndSec,
       visibleForecastCoverageEndSec,
+      computedCoverageEndSec: actualForecastCoverageEndSec,
+      revealedCoverageEndSec: visibleForecastCoverageEndSec,
+      browseCapSec: visibleForecastCoverageEndSec,
       forecastRevealFollowTargetEndSec: Math.max(
         displayHistoryEndSec,
         Math.floor(followTargetEndSec ?? displayHistoryEndSec)

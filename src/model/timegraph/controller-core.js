@@ -20,6 +20,8 @@ import {
   perfNowMs,
   recordProjectionHistoryBuild,
   recordProjectionForecastBuild,
+  recordProjectionCanonicalize,
+  recordProjectionDeserialize,
   recordTimegraphCacheHit,
   recordTimegraphCacheMiss,
 } from "../perf.js";
@@ -1631,8 +1633,16 @@ export function createTimeGraphController({
   function getStateAt(tSec) {
     const stateData = getStateDataAt(tSec);
     if (stateData == null) return null;
+    const deserializeStartMs = perfEnabled() ? perfNowMs() : 0;
     const state = deserializeGameState(stateData);
+    if (perfEnabled()) {
+      recordProjectionDeserialize(perfNowMs() - deserializeStartMs);
+    }
+    const canonicalizeStartMs = perfEnabled() ? perfNowMs() : 0;
     canonicalizeSnapshot(state);
+    if (perfEnabled()) {
+      recordProjectionCanonicalize(perfNowMs() - canonicalizeStartMs);
+    }
     return state;
   }
 

@@ -1,6 +1,7 @@
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
+import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import {
   SEASON_DURATION_SEC,
@@ -12,10 +13,8 @@ import { getPerfSnapshot } from "../model/perf.js";
 import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
-  getSettlementLatestSelectedVassalDeathSec,
   getSettlementSelectedVassalRealizedSegments,
   getSettlementVassalBoundarySeconds,
-  getSettlementYearDurationSec,
 } from "../model/settlement-state.js";
 import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
@@ -174,6 +173,7 @@ let settlementGraphView = null;
 let settlementVassalChooserView = null;
 let settlementVassalControlsView = null;
 let runCompleteView = null;
+let settlementForecastController = null;
 let settlementGraphSeriesMenuOpen = false;
 let settlementGraphSeriesMenuSignature = "";
 let visibleSettlementGraphSeriesIds = [];
@@ -181,13 +181,9 @@ let settlementPendingVassalSelection = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
 let settlementGraphHorizonOverrideSec = null;
-let settlementProjectedLossCacheKey = "";
-let settlementProjectedLossCacheValue = null;
-let settlementMaxObservedLossYear = null;
 let settlementPlaybackSpeedTarget = 0;
 let settlementPlaybackSpeedCurrent = 0;
 let settlementPlaybackViewSec = null;
-let settlementPendingCommitJob = null;
 let settlementGraphRevealMode = "";
 const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
 const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
@@ -763,55 +759,15 @@ function shouldInvalidateSettlementTimelineForecast(reason) {
 }
 
 function invalidateSettlementProjectedLossCache() {
-  settlementProjectedLossCacheKey = "";
-  settlementProjectedLossCacheValue = null;
-}
-
-function quantizeSettlementSecUp(value, quantumSec) {
-  const safeValue = Math.max(0, Math.floor(value ?? 0));
-  const quantum = Math.max(1, Math.floor(quantumSec ?? 1));
-  if (safeValue <= 0) return 0;
-  return Math.ceil(safeValue / quantum) * quantum;
-}
-
-function quantizeSettlementSecDown(value, quantumSec) {
-  const safeValue = Math.max(0, Math.floor(value ?? 0));
-  const quantum = Math.max(1, Math.floor(quantumSec ?? 1));
-  return Math.floor(safeValue / quantum) * quantum;
+  settlementForecastController?.invalidateLossCache?.();
 }
 
 function clearSettlementPendingCommitJob() {
-  settlementPendingCommitJob = null;
-}
-
-function getSettlementAvailableForecastCoverageEndSec() {
-  const historyEndSec = getSettlementFrontierSec();
-  const graphData = settlementGraphController?.getData?.() ?? null;
-  return Math.max(
-    historyEndSec,
-    Math.floor(graphData?.forecastCoverageEndSec ?? historyEndSec)
-  );
+  settlementForecastController?.clearPendingCommitJob?.();
 }
 
 function scheduleSettlementPendingCommit(frontierSec, currentVassal) {
-  const safeFrontierSec = Math.max(0, Math.floor(frontierSec ?? 0));
-  const deathSec = Number.isFinite(currentVassal?.deathSec)
-    ? Math.max(safeFrontierSec, Math.floor(currentVassal.deathSec))
-    : safeFrontierSec;
-  if (deathSec <= safeFrontierSec) {
-    clearSettlementPendingCommitJob();
-    return;
-  }
-  settlementPendingCommitJob = {
-    startSec: safeFrontierSec,
-    deathSec,
-    targetSec: deathSec,
-    lastCommitMs: Number.NEGATIVE_INFINITY,
-    sourceVassalId:
-      typeof currentVassal?.vassalId === "string" && currentVassal.vassalId.length > 0
-        ? currentVassal.vassalId
-        : null,
-  };
+  return settlementForecastController?.schedulePendingCommit?.(frontierSec, currentVassal) ?? null;
 }
 
 function clampSettlementPlaybackSpeed(speed) {
@@ -820,9 +776,10 @@ function clampSettlementPlaybackSpeed(speed) {
 }
 
 function getSettlementPreviewCapSec() {
+  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   return Math.max(
     getSettlementFrontierSec(),
-    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? getSettlementFrontierSec())
+    Math.floor(forecastStatus?.browseCapSec ?? getSettlementFrontierSec())
   );
 }
 
@@ -933,268 +890,19 @@ function isSettlementStateRunComplete(state) {
   return state?.runStatus?.complete === true;
 }
 
-function getSettlementLossYearAtSecond(state, tSec) {
-  const yearDurationSec = Math.max(1, getSettlementYearDurationSec(state));
-  return 1 + Math.floor(Math.max(0, Math.floor(tSec ?? 0)) / yearDurationSec);
-}
-
-function getActiveSettlementPendingCommitTargetSec(historyEndSec = getSettlementFrontierSec()) {
-  const job = settlementPendingCommitJob;
-  if (!job) return null;
-  const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-  const targetSec = Number.isFinite(job?.targetSec)
-    ? Math.max(historyEnd, Math.floor(job.targetSec))
-    : Number.isFinite(job?.deathSec)
-      ? Math.max(historyEnd, Math.floor(job.deathSec))
-      : null;
-  if (targetSec == null || targetSec <= historyEnd) return null;
-  return targetSec;
-}
-
-function findSettlementLossInfoWithinRange(
-  startSec,
-  endSec,
-  frontierState = getSettlementFrontierState()
-) {
-  const state = frontierState ?? null;
-  if (!state) {
-    return { lossSec: null, lossYear: null, resolved: false };
-  }
-  const lowStartSec = Math.max(0, Math.floor(startSec ?? 0));
-  const highEndSec = Math.max(lowStartSec, Math.floor(endSec ?? lowStartSec));
-  if (highEndSec <= lowStartSec) {
-    return { lossSec: null, lossYear: null, resolved: false };
-  }
-
-  const stateAtEnd = settlementGraphController?.getStateAt?.(highEndSec) ?? null;
-  if (!isSettlementStateRunComplete(stateAtEnd)) {
-    return { lossSec: null, lossYear: null, resolved: false };
-  }
-
-  let lowSec = lowStartSec;
-  let highSec = highEndSec;
-  while (lowSec + 1 < highSec) {
-    const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
-    const stateAtMid = settlementGraphController?.getStateAt?.(midSec) ?? null;
-    if (isSettlementStateRunComplete(stateAtMid)) {
-      highSec = midSec;
-    } else {
-      lowSec = midSec;
-    }
-  }
-
-  const lossState = settlementGraphController?.getStateAt?.(highSec) ?? stateAtEnd;
-  const exactLossSec = Number.isFinite(lossState?.runStatus?.tSec)
-    ? Math.max(lowStartSec, Math.floor(lossState.runStatus.tSec))
-    : highSec;
-  return {
-    lossSec: exactLossSec,
-    lossYear: Number.isFinite(lossState?.runStatus?.year)
-      ? Math.max(1, Math.floor(lossState.runStatus.year))
-      : getSettlementLossYearAtSecond(state, exactLossSec),
-    resolved: true,
-  };
-}
-
 function getProjectedSettlementLossInfo({ deferDuringPendingCommit = true } = {}) {
-  const timeline = runner?.getTimeline?.();
-  if (!timeline) {
-    return { lossSec: null, lossYear: null, resolved: false };
-  }
-  settlementGraphController?.ensureCache?.();
-  const historyEndSec = getSettlementFrontierSec();
-  const availableCoverageEndSec = getSettlementAvailableForecastCoverageEndSec();
-  const revisionHistoryKey = [
-    Math.floor(timeline?.revision ?? 0),
-    historyEndSec,
-  ].join("|");
-  const resolvedCacheKey = `${revisionHistoryKey}|resolved`;
-  if (
-    settlementProjectedLossCacheKey === resolvedCacheKey &&
-    settlementProjectedLossCacheValue?.resolved === true
-  ) {
-    return settlementProjectedLossCacheValue;
-  }
-
-  const frontierState = getSettlementFrontierState();
-  if (!frontierState) {
-    const fallback = { lossSec: null, lossYear: null, resolved: false };
-    settlementProjectedLossCacheKey = `${revisionHistoryKey}|missingFrontier`;
-    settlementProjectedLossCacheValue = fallback;
-    return fallback;
-  }
-
-  if (isSettlementStateRunComplete(frontierState)) {
-    const lossSec = Number.isFinite(frontierState?.runStatus?.tSec)
-      ? Math.max(0, Math.floor(frontierState.runStatus.tSec))
-      : historyEndSec;
-    const lossYear = Number.isFinite(frontierState?.runStatus?.year)
-      ? Math.max(1, Math.floor(frontierState.runStatus.year))
-      : getSettlementLossYearAtSecond(frontierState, lossSec);
-    const resolved = {
-      lossSec,
-      lossYear,
-      resolved: true,
-    };
-    settlementProjectedLossCacheKey = resolvedCacheKey;
-    settlementProjectedLossCacheValue = resolved;
-    return resolved;
-  }
-
-  const pendingCommitTargetSec =
-    deferDuringPendingCommit === true
-      ? getActiveSettlementPendingCommitTargetSec(historyEndSec)
-      : null;
-  if (pendingCommitTargetSec != null) {
-    const deferred = { lossSec: null, lossYear: null, resolved: false };
-    settlementProjectedLossCacheKey = `${revisionHistoryKey}|pending|${pendingCommitTargetSec}`;
-    settlementProjectedLossCacheValue = deferred;
-    return deferred;
-  }
-
-  const yearDurationSec = Math.max(1, getSettlementYearDurationSec(frontierState));
-  const currentYear = Number.isFinite(frontierState?.year)
-    ? Math.max(1, Math.floor(frontierState.year))
-    : getSettlementLossYearAtSecond(frontierState, historyEndSec);
-  const searchLimitSec = Math.min(
-    availableCoverageEndSec,
-    historyEndSec + Math.max(
-      SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
-      getEffectiveSettlementGraphHorizonSec()
-    )
-  );
-  const unresolvedCacheKey = `${revisionHistoryKey}|unresolved|${quantizeSettlementSecDown(
-    searchLimitSec,
-    SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC
-  )}`;
-  if (
-    settlementProjectedLossCacheKey === unresolvedCacheKey &&
-    settlementProjectedLossCacheValue
-  ) {
-    return settlementProjectedLossCacheValue;
-  }
-  if (searchLimitSec <= historyEndSec) {
-    const unresolved = { lossSec: null, lossYear: null, resolved: false };
-    settlementProjectedLossCacheKey = unresolvedCacheKey;
-    settlementProjectedLossCacheValue = unresolved;
-    return unresolved;
-  }
-
-  let lowSec = historyEndSec;
-  let highSec = null;
-  for (
-    let year = currentYear + 1;
-    getSettlementLossYearAtSecond(frontierState, (year - 1) * yearDurationSec) <=
-      getSettlementLossYearAtSecond(frontierState, searchLimitSec);
-    year += 1
-  ) {
-    const boundarySec = Math.min(searchLimitSec, Math.max(0, (year - 1) * yearDurationSec));
-    if (boundarySec <= lowSec) continue;
-    const stateAtBoundary = settlementGraphController?.getStateAt?.(boundarySec) ?? null;
-    if (isSettlementStateRunComplete(stateAtBoundary)) {
-      highSec = boundarySec;
-      break;
-    }
-    if (boundarySec >= searchLimitSec) break;
-  }
-  if (highSec == null) {
-    const stateAtLimit = settlementGraphController?.getStateAt?.(searchLimitSec) ?? null;
-    if (isSettlementStateRunComplete(stateAtLimit)) {
-      highSec = searchLimitSec;
-    }
-  }
-
-  if (highSec == null) {
-    const unresolved = { lossSec: null, lossYear: null, resolved: false };
-    settlementProjectedLossCacheKey = unresolvedCacheKey;
-    settlementProjectedLossCacheValue = unresolved;
-    return unresolved;
-  }
-
-  while (lowSec + 1 < highSec) {
-    const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
-    const stateAtMid = settlementGraphController?.getStateAt?.(midSec) ?? null;
-    if (isSettlementStateRunComplete(stateAtMid)) {
-      highSec = midSec;
-    } else {
-      lowSec = midSec;
-    }
-  }
-
-  const lossState = settlementGraphController?.getStateAt?.(highSec) ?? null;
-  const exactLossSec = Number.isFinite(lossState?.runStatus?.tSec)
-    ? Math.max(historyEndSec, Math.floor(lossState.runStatus.tSec))
-    : highSec;
-  const resolved = {
-    lossSec: exactLossSec,
-    lossYear: Number.isFinite(lossState?.runStatus?.year)
-      ? Math.max(1, Math.floor(lossState.runStatus.year))
-      : getSettlementLossYearAtSecond(frontierState, exactLossSec),
-    resolved: true,
-  };
-  settlementProjectedLossCacheKey = resolvedCacheKey;
-  settlementProjectedLossCacheValue = resolved;
-  return resolved;
-}
-
-function getSettlementDynamicDisplayLossSec(state = getSettlementFrontierState()) {
-  if (!state) return null;
-  const frontierSec = getSettlementFrontierSec();
-  const yearDurationSec = Math.max(1, getSettlementYearDurationSec(state));
-  const revealedForecastSec = Math.max(
-    frontierSec,
-    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? frontierSec)
-  );
-  const bufferSec =
-    Math.max(1, yearDurationSec) * Math.max(1, Math.floor(SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS));
-  return Math.max(frontierSec, revealedForecastSec + bufferSec);
+  return settlementForecastController?.getProjectedLossInfo?.({
+    deferDuringPendingCommit,
+  }) ?? { lossSec: null, lossYear: null, resolved: false };
 }
 
 function getDisplayedSettlementLossInfo() {
-  const exactLossInfo = getProjectedSettlementLossInfo();
-  const frontierState = getSettlementFrontierState();
-  if (!frontierState) {
-    return exactLossInfo?.resolved === true
-      ? exactLossInfo
-      : { lossSec: null, lossYear: null, resolved: false };
-  }
-  const frontierSec = getSettlementFrontierSec();
-  const dynamicDisplayLossSec = getSettlementDynamicDisplayLossSec(frontierState);
-  if (exactLossInfo?.resolved !== true) {
-    if (!Number.isFinite(dynamicDisplayLossSec)) {
-      return { lossSec: null, lossYear: null, resolved: false };
-    }
-    return {
-      lossSec: Math.max(frontierSec, Math.floor(dynamicDisplayLossSec)),
-      lossYear: getSettlementLossYearAtSecond(frontierState, dynamicDisplayLossSec),
-      resolved: false,
-      finalLossSec: null,
-      finalLossYear: null,
-    };
-  }
-  const uncappedResolvedLossSec = Math.max(
-    frontierSec,
-    Math.floor(exactLossInfo?.lossSec ?? frontierSec)
-  );
-  const displayedLossSec = Number.isFinite(dynamicDisplayLossSec)
-    ? Math.max(
-        frontierSec,
-        Math.min(
-          uncappedResolvedLossSec,
-          Math.floor(dynamicDisplayLossSec)
-        )
-      )
-    : uncappedResolvedLossSec;
-  return {
-    lossSec: displayedLossSec,
-    lossYear: getSettlementLossYearAtSecond(frontierState, displayedLossSec),
-    resolved: true,
-    finalLossSec: Number.isFinite(exactLossInfo?.lossSec)
-      ? Math.floor(exactLossInfo.lossSec)
-      : null,
-    finalLossYear: Number.isFinite(exactLossInfo?.lossYear)
-      ? Math.floor(exactLossInfo.lossYear)
-      : null,
+  return settlementForecastController?.getDisplayedLossInfo?.() ?? {
+    lossSec: null,
+    lossYear: null,
+    resolved: false,
+    finalLossSec: null,
+    finalLossYear: null,
   };
 }
 
@@ -1203,17 +911,7 @@ function shouldResumeAfterBlockingVassalSelection(state = getSettlementAuthorita
 }
 
 function getSettlementVisibleVassalTimeSec(state = null) {
-  const currentState = state ?? runner?.getState?.() ?? null;
-  const committedSec = Math.max(0, Math.floor(currentState?.tSec ?? 0));
-  const currentVassal = getSettlementCurrentVassal(currentState);
-  if (!currentVassal) return committedSec;
-  const revealedSec = settlementGraphView?.getForecastScrubCapSec?.() ?? committedSec;
-  const visibleSec = Math.max(committedSec, Math.floor(revealedSec ?? committedSec));
-  const deathSec = Number.isFinite(currentVassal?.deathSec)
-    ? Math.max(0, Math.floor(currentVassal.deathSec))
-    : null;
-  if (deathSec == null) return visibleSec;
-  return Math.min(visibleSec, deathSec);
+  return settlementForecastController?.getVisibleVassalTimeSec?.(state) ?? 0;
 }
 
 function getSettlementRenderedHistoryEndSec({
@@ -1221,34 +919,15 @@ function getSettlementRenderedHistoryEndSec({
   displayHistoryEndSec = null,
   visibleForecastCoverageEndSec = null,
 } = {}) {
-  const safeActualHistoryEndSec = Number.isFinite(actualHistoryEndSec)
-    ? Math.max(0, Math.floor(actualHistoryEndSec))
-    : getSettlementFrontierSec();
-  const safeDisplayHistoryEndSec = Number.isFinite(displayHistoryEndSec)
-    ? Math.max(0, Math.floor(displayHistoryEndSec))
-    : safeActualHistoryEndSec;
-  const safeVisibleForecastCoverageEndSec = Number.isFinite(visibleForecastCoverageEndSec)
-    ? Math.max(safeDisplayHistoryEndSec, Math.floor(visibleForecastCoverageEndSec))
-    : safeDisplayHistoryEndSec;
-  const frontierState = getSettlementFrontierState();
-  const currentVassal = getSettlementCurrentVassal(frontierState);
-  if (!currentVassal) {
-    return safeDisplayHistoryEndSec;
-  }
-  const deathSec = Number.isFinite(currentVassal?.deathSec)
-    ? Math.max(0, Math.floor(currentVassal.deathSec))
-    : null;
-  if (deathSec == null) {
-    return safeVisibleForecastCoverageEndSec;
-  }
-  return Math.max(
-    safeDisplayHistoryEndSec,
-    Math.min(safeVisibleForecastCoverageEndSec, deathSec)
-  );
+  return settlementForecastController?.getRenderedHistoryEndSec?.({
+    actualHistoryEndSec,
+    displayHistoryEndSec,
+    revealedCoverageEndSec: visibleForecastCoverageEndSec,
+  }) ?? Math.max(0, Math.floor(displayHistoryEndSec ?? actualHistoryEndSec ?? 0));
 }
 
 function syncSettlementGraphRevealConfig() {
-  const nextMode = settlementPendingCommitJob ? "pendingCommit" : "default";
+  const nextMode = settlementForecastController?.getRevealMode?.() ?? "default";
   if (nextMode === settlementGraphRevealMode) return;
   settlementGraphRevealMode = nextMode;
   settlementGraphView?.setForecastRevealConfig?.(
@@ -1259,188 +938,14 @@ function syncSettlementGraphRevealConfig() {
 }
 
 function syncSettlementGraphHorizon() {
-  const frontierState = getSettlementFrontierState();
-  const historyEndSec = getSettlementFrontierSec();
-  const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(frontierState);
-  const pendingCommitTargetSec = getActiveSettlementPendingCommitTargetSec(historyEndSec);
-  const visibleForecastCoverageEndSec = Math.max(
-    historyEndSec,
-    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? historyEndSec)
-  );
-  if (pendingCommitTargetSec != null) {
-    const requiredHorizonSec = Math.max(
-      0,
-      latestDeathSec - historyEndSec,
-      pendingCommitTargetSec - historyEndSec,
-      visibleForecastCoverageEndSec - historyEndSec
-    );
-    const quantizedRequiredHorizonSec = quantizeSettlementSecUp(
-      requiredHorizonSec,
-      SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC
-    );
-    setSettlementGraphHorizonOverride(
-      quantizedRequiredHorizonSec > SETTLEMENT_GRAPH_WINDOW_SEC
-        ? quantizedRequiredHorizonSec
-        : null
-    );
-    return;
-  }
-  const projectedLossInfo = getProjectedSettlementLossInfo();
-  const displayedLossInfo = getDisplayedSettlementLossInfo();
-  const dynamicRequestBufferSec =
-    Math.max(1, getSettlementYearDurationSec(frontierState)) *
-    Math.max(1, Math.floor(SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS));
-  const projectedLossSec = Number.isFinite(projectedLossInfo?.lossSec)
-    ? Math.max(0, Math.floor(projectedLossInfo.lossSec))
-    : 0;
-  const displayedLossSec = Number.isFinite(displayedLossInfo?.lossSec)
-    ? Math.max(0, Math.floor(displayedLossInfo.lossSec))
-    : 0;
-  const requiredHorizonSec =
-    projectedLossInfo?.resolved === true
-      ? Math.max(
-          0,
-          latestDeathSec - historyEndSec,
-          projectedLossSec - historyEndSec
-        )
-      : Math.max(
-          0,
-          latestDeathSec - historyEndSec,
-          projectedLossSec - historyEndSec,
-          displayedLossSec - historyEndSec + dynamicRequestBufferSec,
-          visibleForecastCoverageEndSec - historyEndSec + SETTLEMENT_GRAPH_WINDOW_SEC
-        );
-  const quantizedRequiredHorizonSec = quantizeSettlementSecUp(
-    requiredHorizonSec,
-    SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC
-  );
-  setSettlementGraphHorizonOverride(
-    quantizedRequiredHorizonSec > SETTLEMENT_GRAPH_WINDOW_SEC
-      ? quantizedRequiredHorizonSec
-      : null
-  );
+  settlementForecastController?.syncHorizon?.();
 }
 
 function processSettlementPendingCommit() {
-  const job = settlementPendingCommitJob;
-  if (!job) return;
-
-  const historyEndSec = getSettlementFrontierSec();
-  const frontierState = getSettlementFrontierState();
-  if (!frontierState) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-    return;
-  }
-
-  if (isSettlementStateRunComplete(frontierState)) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-    return;
-  }
-
-  const currentVassal = getSettlementCurrentVassal(frontierState);
-  if (!currentVassal) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-    return;
-  }
-
-  if (
-    job.sourceVassalId &&
-    typeof currentVassal?.vassalId === "string" &&
-    currentVassal.vassalId !== job.sourceVassalId
-  ) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-    return;
-  }
-
-  const pendingTargetSec = getActiveSettlementPendingCommitTargetSec(historyEndSec);
-  const finalTargetSec =
-    pendingTargetSec != null
-      ? pendingTargetSec
-      : Math.max(historyEndSec, Math.floor(job?.deathSec ?? historyEndSec));
-  job.targetSec = finalTargetSec;
-
-  if (historyEndSec >= finalTargetSec) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-    return;
-  }
-
-  const visibleForecastCoverageEndSec = Math.max(
-    historyEndSec,
-    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? historyEndSec)
-  );
-  const bufferedRevealCommitCapSec = Math.max(
-    historyEndSec,
-    visibleForecastCoverageEndSec - SETTLEMENT_AUTO_COMMIT_BUFFER_SEC
-  );
-  const desiredCommitSec = Math.min(finalTargetSec, bufferedRevealCommitCapSec);
-  if (desiredCommitSec <= historyEndSec) {
-    return;
-  }
-
-  const nowMs =
-    typeof performance !== "undefined" && typeof performance.now === "function"
-      ? performance.now()
-      : Date.now();
-  const lastCommitMs = Number.isFinite(job?.lastCommitMs)
-    ? Number(job.lastCommitMs)
-    : Number.NEGATIVE_INFINITY;
-  const revealLagSec = Math.max(0, desiredCommitSec - historyEndSec);
-  if (
-    nowMs - lastCommitMs < SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS &&
-    revealLagSec < SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC
-  ) {
-    return;
-  }
-
-  let commitTargetSec = Math.min(
-    finalTargetSec,
-    historyEndSec + SETTLEMENT_AUTO_COMMIT_CHUNK_SEC,
-    desiredCommitSec
-  );
-  if (commitTargetSec <= historyEndSec) {
-    return;
-  }
-
-  const chunkLossInfo = findSettlementLossInfoWithinRange(
-    historyEndSec,
-    commitTargetSec,
-    frontierState
-  );
-  if (chunkLossInfo?.resolved === true && Number.isFinite(chunkLossInfo?.lossSec)) {
-    const resolvedLossSec = Math.max(historyEndSec, Math.floor(chunkLossInfo.lossSec));
-    job.targetSec = Math.min(finalTargetSec, resolvedLossSec);
-    commitTargetSec = Math.min(commitTargetSec, resolvedLossSec);
-  }
-  if (commitTargetSec <= historyEndSec) {
-    return;
-  }
-
-  const viewedSec = getSettlementViewedSec();
-  const commitRes = runner.commitCursorSecond?.(commitTargetSec);
-  if (commitRes?.ok !== true) {
-    return;
-  }
-  job.lastCommitMs = nowMs;
-  const clampedViewedSec = Math.max(0, Math.min(viewedSec, getSettlementFrontierSec()));
-  settlementPlaybackViewSec = clampedViewedSec;
-  runner.clearPreviewState?.();
-  runner.browseCursorSecond?.(clampedViewedSec);
-  invalidateSettlementProjectedLossCache();
-
-  const committedState = getSettlementFrontierState();
-  if (
-    isSettlementStateRunComplete(committedState) ||
-    (getSettlementCurrentVassal(committedState)?.isDead === true &&
-      getSettlementFrontierSec() >= finalTargetSec)
-  ) {
-    settlementGraphView?.clearForecastRevealRestart?.();
-    clearSettlementPendingCommitJob();
-  }
+  settlementForecastController?.processPendingCommit?.({
+    clearForecastRevealRestart: () =>
+      settlementGraphView?.clearForecastRevealRestart?.(),
+  });
 }
 
 function syncSettlementVassalSelectionPauseState() {
@@ -1468,14 +973,35 @@ function syncSettlementVassalSelectionPauseState() {
 }
 
 function openNextSettlementVassalSelection() {
-  const frontierState = getSettlementFrontierState();
-  const frontierSec = getSettlementFrontierSec();
-  const currentVassal = getSettlementCurrentVassal(frontierState);
+  let frontierState = getSettlementFrontierState();
+  let frontierSec = getSettlementFrontierSec();
+  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   if (isSettlementStateRunComplete(frontierState)) {
     return { ok: false, reason: "runComplete" };
   }
+  if (forecastStatus?.nextVassalEnabled !== true) {
+    return { ok: false, reason: "currentVassalDeathUnresolved" };
+  }
+  const currentVassal = getSettlementCurrentVassal(frontierState);
   if (currentVassal && currentVassal.isDead !== true) {
-    return { ok: false, reason: "currentVassalAlive" };
+    const deathSec = Number.isFinite(forecastStatus?.currentVassalDeathSec)
+      ? Math.max(frontierSec, Math.floor(forecastStatus.currentVassalDeathSec))
+      : null;
+    if (deathSec == null || forecastStatus?.currentVassalDeathResolved !== true) {
+      return { ok: false, reason: "currentVassalDeathUnresolved" };
+    }
+    const commitRes = runner.commitCursorSecond?.(deathSec);
+    if (commitRes?.ok !== true) {
+      return commitRes ?? { ok: false, reason: "commitFailed" };
+    }
+    clearSettlementPendingCommitJob();
+    settlementGraphView?.clearForecastRevealRestart?.();
+    runner.clearPreviewState?.();
+    runner.browseCursorSecond?.(deathSec);
+    settlementPlaybackViewSec = deathSec;
+    invalidateSettlementProjectedLossCache();
+    frontierState = getSettlementFrontierState();
+    frontierSec = getSettlementFrontierSec();
   }
   settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection()
     ? settlementPlaybackSpeedTarget
@@ -1566,13 +1092,11 @@ function jumpCurrentVassalToDeath() {
 
 function getSettlementPrimaryVassalState() {
   const frontierState = getSettlementFrontierState();
+  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   const hasPendingSelection = !!settlementPendingVassalSelection;
   const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
-  const currentVassal = getSettlementCurrentVassal(frontierState);
   const runComplete = isSettlementStateRunComplete(frontierState);
   const runCompleteEntry = getLatestRunCompleteEntry(frontierState);
-  const validInsertionPoint =
-    !hasSelectedVassal || !currentVassal || currentVassal.isDead === true;
   if (runComplete) {
     return {
       enabled: !!runCompleteEntry,
@@ -1580,33 +1104,22 @@ function getSettlementPrimaryVassalState() {
     };
   }
   return {
-    enabled: hasPendingSelection !== true && runComplete !== true && validInsertionPoint,
+    enabled:
+      hasPendingSelection !== true &&
+      runComplete !== true &&
+      forecastStatus?.nextVassalEnabled === true,
     label: hasSelectedVassal ? "Next Vassal" : "Intervene",
   };
 }
 
 function getSettlementLossInfoForDisplay() {
-  const lossInfo = getDisplayedSettlementLossInfo();
-  const candidateYears = [
-    Number.isFinite(lossInfo?.lossYear) ? Math.floor(lossInfo.lossYear) : null,
-    Number.isFinite(lossInfo?.finalLossYear) ? Math.floor(lossInfo.finalLossYear) : null,
-  ].filter((value) => value != null);
-  if (candidateYears.length > 0) {
-    const bestKnownYear = candidateYears.reduce(
-      (maxYear, value) => Math.max(maxYear, value),
-      0
-    );
-    settlementMaxObservedLossYear =
-      settlementMaxObservedLossYear == null
-        ? bestKnownYear
-        : Math.max(settlementMaxObservedLossYear, bestKnownYear);
-  }
-  return {
-    ...lossInfo,
-    maxLossYear:
-      settlementMaxObservedLossYear == null
-        ? null
-        : Math.max(1, Math.floor(settlementMaxObservedLossYear)),
+  return settlementForecastController?.getLossInfoForDisplay?.() ?? {
+    lossSec: null,
+    lossYear: null,
+    resolved: false,
+    finalLossSec: null,
+    finalLossYear: null,
+    maxLossYear: null,
   };
 }
 
@@ -1684,6 +1197,35 @@ settlementGraphController = createTimeGraphController({
   forecastWorkerService,
   forecastStepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
   horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+});
+settlementForecastController = createSettlementForecastController({
+  getTimeline: () => runner.getTimeline?.(),
+  ensureControllerCache: () => settlementGraphController?.ensureCache?.(),
+  getControllerData: () => settlementGraphController?.getData?.(),
+  getControllerStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  getFrontierState: () => getSettlementFrontierState(),
+  getViewedState: () => getSettlementViewedState(),
+  getViewedSec: () => getSettlementViewedSec(),
+  getRevealedCoverageEndSec: () =>
+    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? getSettlementFrontierSec()),
+  getEffectiveGraphHorizonSec: () => getEffectiveSettlementGraphHorizonSec(),
+  setHorizonSecOverride: (nextHorizonSec) => setSettlementGraphHorizonOverride(nextHorizonSec),
+  commitCursorSecond: (tSec) => runner.commitCursorSecond?.(tSec),
+  browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
+  clearPreviewState: () => runner.clearPreviewState?.(),
+  setPlaybackViewSec: (tSec) => {
+    settlementPlaybackViewSec = Math.max(0, Math.floor(tSec ?? 0));
+  },
+  graphWindowSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+  lossSearchCapacitySec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
+  autoCommitBufferSec: SETTLEMENT_AUTO_COMMIT_BUFFER_SEC,
+  autoCommitChunkSec: SETTLEMENT_AUTO_COMMIT_CHUNK_SEC,
+  autoCommitMinIntervalMs: SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS,
+  autoCommitForceLagSec: SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC,
+  dynamicDisplayBufferYears: SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS,
+  exactLossSearchBucketSec: SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC,
+  horizonUpdateQuantumSec: SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC,
 });
 visibleSettlementGraphSeriesIds = getSettlementGraphDefaultSeriesIds();
 applySettlementGraphSeriesSelection();
@@ -1943,99 +1485,97 @@ function resizeCanvas() {
 function publishSettlementDebugApi() {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
-    getSnapshot: () => ({
-      frontierSec: getSettlementFrontierSec(),
-      viewedSec: getSettlementViewedSec(),
-      previewCapSec: getSettlementPreviewCapSec(),
-      playbackTarget: settlementPlaybackSpeedTarget,
-      playbackCurrent: settlementPlaybackSpeedCurrent,
-      projectedLossInfo: getProjectedSettlementLossInfo(),
-      displayedLossInfo: getSettlementLossInfoForDisplay(),
-      graph: settlementGraphView?.getDebugState?.() ?? null,
-      controller: (() => {
-        const data = settlementGraphController?.getData?.() ?? null;
-        return data
-          ? {
-              horizonSec: Math.max(0, Math.floor(data.horizonSec ?? 0)),
-              forecastStepSec: Math.max(
-                0,
-                Math.floor(data.forecastStepSec ?? 0)
-              ),
-              forecastCoverageEndSec: Math.max(
-                0,
-                Math.floor(data.forecastCoverageEndSec ?? 0)
-              ),
-              forecastRequestedEndSec: Math.max(
-                0,
-                Math.floor(data.forecastRequestedEndSec ?? 0)
-              ),
-              forecastPending: data.forecastPending === true,
-              graphBoundarySecs:
-                data.cache?.stateDataByBoundary instanceof Map
-                  ? {
-                      count: data.cache.stateDataByBoundary.size,
-                      first: Array.from(data.cache.stateDataByBoundary.keys())
-                        .sort((a, b) => a - b)
-                        .slice(0, 32),
-                      last: Array.from(data.cache.stateDataByBoundary.keys())
-                        .sort((a, b) => a - b)
-                        .slice(-32),
-                    }
-                  : null,
-            }
-          : null;
-      })(),
-      projection: settlementProjectionCache?.getForecastMeta?.() ?? null,
-      projectionKeys: settlementProjectionCache?.getDebugSecondKeys?.(32) ?? null,
-      pendingCommitJob: settlementPendingCommitJob
-        ? {
-            startSec: Math.max(0, Math.floor(settlementPendingCommitJob.startSec ?? 0)),
-            deathSec: Math.max(0, Math.floor(settlementPendingCommitJob.deathSec ?? 0)),
-            targetSec: Math.max(0, Math.floor(settlementPendingCommitJob.targetSec ?? 0)),
-            sourceVassalId: settlementPendingCommitJob.sourceVassalId ?? null,
-          }
-        : null,
-      runner: {
-        timeline: (() => {
-          const timeline = runner?.getTimeline?.() ?? null;
-          return timeline
+    getSnapshot: () => {
+      const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
+      return {
+        frontierSec: getSettlementFrontierSec(),
+        viewedSec: getSettlementViewedSec(),
+        browseCapSec: Math.max(0, Math.floor(forecastStatus?.browseCapSec ?? 0)),
+        previewCapSec: getSettlementPreviewCapSec(),
+        playbackTarget: settlementPlaybackSpeedTarget,
+        playbackCurrent: settlementPlaybackSpeedCurrent,
+        forecastStatus,
+        projectedLossInfo: getProjectedSettlementLossInfo(),
+        displayedLossInfo: getSettlementLossInfoForDisplay(),
+        graph: settlementGraphView?.getDebugState?.() ?? null,
+        controller: (() => {
+          const data = settlementGraphController?.getData?.() ?? null;
+          return data
             ? {
-                cursorSec: Math.max(0, Math.floor(timeline.cursorSec ?? 0)),
-                historyEndSec: Math.max(
+                horizonSec: Math.max(0, Math.floor(data.horizonSec ?? 0)),
+                forecastStepSec: Math.max(
                   0,
-                  Math.floor(timeline.historyEndSec ?? 0)
+                  Math.floor(data.forecastStepSec ?? 0)
                 ),
-                maxReachedHistoryEndSec: Math.max(
+                computedCoverageEndSec: Math.max(
                   0,
-                  Math.floor(timeline.maxReachedHistoryEndSec ?? 0)
+                  Math.floor(data.forecastCoverageEndSec ?? 0)
                 ),
-                revision: Math.max(0, Math.floor(timeline.revision ?? 0)),
+                forecastRequestedEndSec: Math.max(
+                  0,
+                  Math.floor(data.forecastRequestedEndSec ?? 0)
+                ),
+                forecastPending: data.forecastPending === true,
+                graphBoundarySecs:
+                  data.cache?.stateDataByBoundary instanceof Map
+                    ? {
+                        count: data.cache.stateDataByBoundary.size,
+                        first: Array.from(data.cache.stateDataByBoundary.keys())
+                          .sort((a, b) => a - b)
+                          .slice(0, 32),
+                        last: Array.from(data.cache.stateDataByBoundary.keys())
+                          .sort((a, b) => a - b)
+                          .slice(-32),
+                      }
+                    : null,
               }
             : null;
         })(),
-        previewStatus: runner?.getPreviewStatus?.() ?? null,
-        cursorStateSec: Math.max(
-          0,
-          Math.floor(runner?.getCursorState?.()?.tSec ?? 0)
-        ),
-        stateSec: Math.max(0, Math.floor(runner?.getState?.()?.tSec ?? 0)),
-      },
-      lineage: (() => {
-        const state = getSettlementFrontierState();
-        const lineage = state?.hub?.core?.systemState?.vassalLineage ?? null;
-        return lineage
-          ? {
-              currentVassalId: lineage.currentVassalId ?? null,
-              selectedVassalIds: Array.isArray(lineage.selectedVassalIds)
-                ? [...lineage.selectedVassalIds]
-                : [],
-              vassalIds: lineage.vassalsById
-                ? Object.keys(lineage.vassalsById)
-                : [],
-            }
-          : null;
-      })(),
-    }),
+        projection: settlementProjectionCache?.getForecastMeta?.() ?? null,
+        projectionKeys: settlementProjectionCache?.getDebugSecondKeys?.(32) ?? null,
+        pendingCommitJob: settlementForecastController?.getPendingCommitJob?.() ?? null,
+        runner: {
+          timeline: (() => {
+            const timeline = runner?.getTimeline?.() ?? null;
+            return timeline
+              ? {
+                  cursorSec: Math.max(0, Math.floor(timeline.cursorSec ?? 0)),
+                  historyEndSec: Math.max(
+                    0,
+                    Math.floor(timeline.historyEndSec ?? 0)
+                  ),
+                  maxReachedHistoryEndSec: Math.max(
+                    0,
+                    Math.floor(timeline.maxReachedHistoryEndSec ?? 0)
+                  ),
+                  revision: Math.max(0, Math.floor(timeline.revision ?? 0)),
+                }
+              : null;
+          })(),
+          previewStatus: runner?.getPreviewStatus?.() ?? null,
+          cursorStateSec: Math.max(
+            0,
+            Math.floor(runner?.getCursorState?.()?.tSec ?? 0)
+          ),
+          stateSec: Math.max(0, Math.floor(runner?.getState?.()?.tSec ?? 0)),
+        },
+        lineage: (() => {
+          const state = getSettlementFrontierState();
+          const lineage = state?.hub?.core?.systemState?.vassalLineage ?? null;
+          return lineage
+            ? {
+                currentVassalId: lineage.currentVassalId ?? null,
+                selectedVassalIds: Array.isArray(lineage.selectedVassalIds)
+                  ? [...lineage.selectedVassalIds]
+                  : [],
+                vassalIds: lineage.vassalsById
+                  ? Object.keys(lineage.vassalsById)
+                  : [],
+              }
+            : null;
+        })(),
+      };
+    },
     getGraphClickPoint: (ratioX = 0, ratioY = 0.5) => {
       const plotRect = settlementGraphView?.getPlotScreenRect?.();
       if (!plotRect) return null;

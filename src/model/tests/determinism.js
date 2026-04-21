@@ -26,6 +26,7 @@ import { getHubCore } from "../settlement-state.js";
 
 const DT_STEP = 1 / 60;
 const TEST_SEED = 99999;
+const HISTORY_TEST_SETUP_ID = "devGym01";
 
 // -----------------------------------------------------------------------------
 // Hashing / Comparison
@@ -301,7 +302,7 @@ function testHistoryStableAfterFutureAction() {
     const sampleSec = 120;
     const actionSec = 240;
 
-    const s0 = createInitialState("testing", TEST_SEED);
+    const s0 = createInitialState(HISTORY_TEST_SETUP_ID, TEST_SEED);
     const tl = createTimelineFromInitialState(s0);
     tl.historyEndSec = historyEndSec;
     tl.cursorSec = historyEndSec;
@@ -356,7 +357,7 @@ function testHistoryPreviewMatchesReplay() {
     const sampleSec = 120;
     const actionSec = 240;
 
-    const s0 = createInitialState("testing", TEST_SEED + 1);
+    const s0 = createInitialState(HISTORY_TEST_SETUP_ID, TEST_SEED + 1);
     const tl = createTimelineFromInitialState(s0);
     tl.historyEndSec = historyEndSec;
     tl.cursorSec = historyEndSec;
