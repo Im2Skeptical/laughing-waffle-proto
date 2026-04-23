@@ -594,6 +594,10 @@ export function createSettlementForecastController({
     const historyEndSec = clampSec(getFrontierSec?.(), 0);
     const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(frontierState);
     const forecastStatus = getForecastStatus();
+    const displayedLossInfo = getDisplayedLossInfo();
+    const displayedLossSec = Number.isFinite(displayedLossInfo?.lossSec)
+      ? Math.max(historyEndSec, Math.floor(displayedLossInfo.lossSec))
+      : historyEndSec;
     let requiredHorizonSec = 0;
 
     if (forecastStatus.pendingCommitTargetSec != null) {
@@ -614,6 +618,7 @@ export function createSettlementForecastController({
       requiredHorizonSec = Math.max(
         0,
         latestDeathSec - historyEndSec,
+        displayedLossSec - historyEndSec,
         forecastStatus.browseCapSec - historyEndSec + unresolvedBrowseLead
       );
     }

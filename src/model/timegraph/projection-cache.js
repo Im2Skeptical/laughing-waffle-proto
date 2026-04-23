@@ -6,6 +6,11 @@ import {
   buildProjectionStateWindowFromStateData,
 } from "../projection.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
+import {
+  perfEnabled,
+  perfNowMs,
+  recordSettlementForecastMerge,
+} from "../perf.js";
 import { deserializeGameState } from "../state.js";
 import {
   absorbTimelinePersistentKnowledge,
@@ -486,6 +491,7 @@ export function createProjectionCache({
   }
 
   function mergeForecastChunk(tl, chunk = {}) {
+    const perfStartMs = perfEnabled() ? perfNowMs() : 0;
     if (!tl) return { ok: false, reason: "noTimeline" };
 
     const token = typeof chunk?.timelineToken === "string"
@@ -549,6 +555,9 @@ export function createProjectionCache({
     }
 
     forecastAsyncEndSec = Math.max(forecastAsyncEndSec, endSec);
+    if (perfEnabled()) {
+      recordSettlementForecastMerge(perfNowMs() - perfStartMs);
+    }
     return {
       ok: true,
       forecastAsyncEndSec,

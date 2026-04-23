@@ -65,6 +65,27 @@ export function computeValuesFromStateData(stateData, series, subject, resolverF
   return values;
 }
 
+export function computeValuesFromSummary(summary, series, subject) {
+  if (!summary || typeof summary !== "object") {
+    return { ok: false, values: null };
+  }
+  const list = Array.isArray(series) ? series : [];
+  if (!list.length) return { ok: true, values: {} };
+
+  const values = {};
+  for (const s of list) {
+    if (!s || typeof s.getValueFromSummary !== "function") {
+      return { ok: false, values: null };
+    }
+    const value = s.getValueFromSummary(summary, subject);
+    if (!Number.isFinite(value)) {
+      return { ok: false, values: null };
+    }
+    values[s.id] = safeNumber(value);
+  }
+  return { ok: true, values };
+}
+
 export function resolveSeries(metricDef, subject, cursorState) {
   if (typeof metricDef?.getSeries === "function") {
     return ensureSeriesArray(metricDef.getSeries(subject, cursorState));

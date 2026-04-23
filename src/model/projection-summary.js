@@ -1,3 +1,4 @@
+import { GRAPH_METRICS } from "./graph-metrics.js";
 import {
   getSettlementCurrentVassal,
   getSettlementLatestSelectedVassalDeathSec,
@@ -11,6 +12,26 @@ function clampSec(value, fallback = 0) {
 function clampYear(value, fallback = 1) {
   if (!Number.isFinite(value)) return Math.max(1, Math.floor(fallback));
   return Math.max(1, Math.floor(value));
+}
+
+function buildSettlementGraphValues(state) {
+  const series =
+    typeof GRAPH_METRICS?.settlement?.getSeries === "function"
+      ? GRAPH_METRICS.settlement.getSeries(null, state)
+      : Array.isArray(GRAPH_METRICS?.settlement?.series)
+        ? GRAPH_METRICS.settlement.series
+        : [];
+  const out = {};
+  for (const seriesDef of series) {
+    const seriesId = typeof seriesDef?.id === "string" ? seriesDef.id : "";
+    if (!seriesId || typeof seriesDef?.getValueFromSnapshot !== "function") {
+      continue;
+    }
+    const value = seriesDef.getValueFromSnapshot(state, null);
+    if (!Number.isFinite(value)) continue;
+    out[seriesId] = Number(value);
+  }
+  return out;
 }
 
 export function buildProjectionSummaryFromState(state) {
@@ -30,6 +51,9 @@ export function buildProjectionSummaryFromState(state) {
     runComplete,
     runLossSec,
     runLossYear,
+    graphValues: {
+      settlement: buildSettlementGraphValues(state),
+    },
     settlement: {
       currentVassalId:
         typeof currentVassal?.vassalId === "string" && currentVassal.vassalId.length > 0
