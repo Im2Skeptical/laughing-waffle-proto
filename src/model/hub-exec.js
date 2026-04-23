@@ -7,11 +7,6 @@ import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 import { itemDefs } from "../defs/gamepieces/item-defs.js";
 import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
 import {
-  ensureRecipePriorityState,
-  getEnabledRecipeIds,
-  isRecipeSystem,
-} from "./recipe-priority.js";
-import {
   INITIAL_POPULATION_DEFAULT,
   POPULATION_ATTRACTION_PER_VACANCY_PER_YEAR,
   POPULATION_GROWTH_FULL_FEED_RATE,
@@ -29,7 +24,6 @@ import {
   syncPhaseToPaused,
 } from "./state.js";
 import { runEffect } from "./effects/index.js";
-import { resolveCosts, canAffordCosts, applyCosts } from "./costs.js";
 import {
   PAWN_ROLE_LEADER,
   getLeaderById,
@@ -51,214 +45,13 @@ import {
 } from "./process-framework.js";
 import { canOwnerAcceptItem } from "./commands.js";
 import { computeGlobalSkillMods, getGlobalSkillModifier } from "./skills.js";
-import { passiveTimingPasses } from "./passive-timing.js";
-
-function hasProcess(structure, systemId, type) {
-  const sys = structure?.systemState?.[systemId];
-  const processes = Array.isArray(sys?.processes) ? sys.processes : [];
-  if (!type) return processes.length > 0;
-  return processes.some((p) => p && p.type === type);
-}
-
-function resolveProcessTypesFromPriorityState(structure, systemId, key) {
-  if (!structure || !systemId || !key) return [];
-  const systemState = structure?.systemState?.[systemId];
-  if (!systemState || typeof systemState !== "object") return [];
-  const raw = systemState[key];
-  if (!raw || typeof raw !== "object") return [];
-  if (isRecipeSystem(systemId) && key === "recipePriority") {
-    const priority = ensureRecipePriorityState(systemState, {
-      systemId,
-      state: null,
-      includeLocked: true,
-    });
-    return getEnabledRecipeIds(priority);
-  }
-  const ordered = Array.isArray(raw.ordered) ? raw.ordered : [];
-  const enabled =
-    raw.enabled && typeof raw.enabled === "object" ? raw.enabled : {};
-  const out = [];
-  for (const entry of ordered) {
-    const processType =
-      typeof entry === "string" && entry.length > 0 ? entry : null;
-    if (!processType) continue;
-    if (enabled[processType] === false) continue;
-    if (out.includes(processType)) continue;
-    out.push(processType);
-  }
-  return out;
-}
-
-function requirementsPass(requires, seasonKey, structure, hasPawn, isTagUnlocked = null) {
-  if (!requires || typeof requires !== "object") return true;
-
-  if (Array.isArray(requires.season) && requires.season.length > 0) {
-    if (!seasonKey || !requires.season.includes(seasonKey)) return false;
-  }
-
-  if (typeof requires.hasPawn === "boolean") {
-    if (requires.hasPawn !== hasPawn) return false;
-  }
-
-  if (typeof requires.hasSelectedCrop === "boolean") {
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId;
-    const hasSelected =
-      typeof selectedCropId === "string" && selectedCropId.length > 0;
-    if (requires.hasSelectedCrop !== hasSelected) return false;
-  }
-
-  if (Array.isArray(requires.selectedCropIdIn)) {
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId;
-    if (
-      requires.selectedCropIdIn.length > 0 &&
-      (typeof selectedCropId !== "string" ||
-        !requires.selectedCropIdIn.includes(selectedCropId))
-    ) {
-      return false;
-    }
-  }
-
-  if (Object.prototype.hasOwnProperty.call(requires, "hasEquipment")) {
-    return false;
-  }
-
-  if (typeof requires.hasMaturedPool === "boolean") {
-    const pool = structure?.systemState?.growth?.maturedPool;
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId ?? null;
-    const hasPool = hasMaturedPoolForCrop(pool, selectedCropId);
-    if (requires.hasMaturedPool !== hasPool) return false;
-  }
-
-  const processSystem =
-    typeof requires.processSystem === "string" ? requires.processSystem : null;
-  const processTypePriorityKey =
-    typeof requires.processTypeFromSystemPriorityKey === "string"
-      ? requires.processTypeFromSystemPriorityKey
-      : null;
-  const processTypeKey =
-    typeof requires.processTypeFromSystemKey === "string"
-      ? requires.processTypeFromSystemKey
-      : "selectedRecipeId";
-  const selectedProcessTypes = processTypePriorityKey
-    ? resolveProcessTypesFromPriorityState(
-        structure,
-        processSystem,
-        processTypePriorityKey
-      )
-    : [];
-  const selectedProcessType =
-    selectedProcessTypes.length > 0
-      ? selectedProcessTypes[0]
-      : processSystem && structure?.systemState?.[processSystem]
-        ? structure.systemState[processSystem][processTypeKey]
-        : null;
-  const hasSelectedRecipe =
-    typeof selectedProcessType === "string" && selectedProcessType.length > 0;
-
-  if (typeof requires.hasSelectedRecipe === "boolean") {
-    if (requires.hasSelectedRecipe !== hasSelectedRecipe) return false;
-  }
-
-  if (requires.hasSelectedProcessType === true) {
-    if (!hasSelectedRecipe) return false;
-    if (selectedProcessTypes.length > 0) {
-      let hasAny = false;
-      for (const type of selectedProcessTypes) {
-        if (hasProcess(structure, processSystem, type)) {
-          hasAny = true;
-          break;
-        }
-      }
-      if (!hasAny) return false;
-    } else if (!hasProcess(structure, processSystem, selectedProcessType)) {
-      return false;
-    }
-  }
-
-  if (requires.noSelectedProcessType === true) {
-    if (selectedProcessTypes.length > 0) {
-      for (const type of selectedProcessTypes) {
-        if (hasProcess(structure, processSystem, type)) return false;
-      }
-    } else if (
-      hasSelectedRecipe &&
-      hasProcess(structure, processSystem, selectedProcessType)
-    ) {
-      return false;
-    }
-  }
-
-  const tagReq = requires.hasTag;
-  if (tagReq != null) {
-    const structureTags = Array.isArray(structure?.tags) ? structure.tags : [];
-    const requiredTags = Array.isArray(tagReq)
-      ? tagReq
-      : typeof tagReq === "string"
-        ? [tagReq]
-        : [];
-
-    for (const tag of requiredTags) {
-      if (!structureTags.includes(tag)) return false;
-      if (isTagUnlocked && !isTagUnlocked(tag)) return false;
-    }
-  }
-
-  // processSystem already derived above for recipe checks.
-  if (processSystem) {
-    if (requires.hasProcessType) {
-      const types = Array.isArray(requires.hasProcessType)
-        ? requires.hasProcessType
-        : [requires.hasProcessType];
-      for (const type of types) {
-        if (!hasProcess(structure, processSystem, type)) return false;
-      }
-    }
-    if (requires.noProcessType) {
-      const types = Array.isArray(requires.noProcessType)
-        ? requires.noProcessType
-        : [requires.noProcessType];
-      for (const type of types) {
-        if (hasProcess(structure, processSystem, type)) return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-function hasTieredUnits(pool) {
-  if (!pool || typeof pool !== "object") return false;
-  return (
-    (pool.bronze ?? 0) > 0 ||
-    (pool.silver ?? 0) > 0 ||
-    (pool.gold ?? 0) > 0 ||
-    (pool.diamond ?? 0) > 0
-  );
-}
-
-function resolveMaturedPoolBucket(pool, cropId) {
-  if (!pool || typeof pool !== "object") return null;
-  const hasTierKeys =
-    Object.prototype.hasOwnProperty.call(pool, "bronze") ||
-    Object.prototype.hasOwnProperty.call(pool, "silver") ||
-    Object.prototype.hasOwnProperty.call(pool, "gold") ||
-    Object.prototype.hasOwnProperty.call(pool, "diamond");
-  if (hasTierKeys) return pool;
-  if (typeof cropId !== "string" || cropId.length <= 0) return null;
-  const bucket = pool[cropId];
-  return bucket && typeof bucket === "object" ? bucket : null;
-}
-
-function hasMaturedPoolForCrop(pool, cropId) {
-  const bucket = resolveMaturedPoolBucket(pool, cropId);
-  if (bucket) return hasTieredUnits(bucket);
-  if (!pool || typeof pool !== "object") return false;
-  for (const value of Object.values(pool)) {
-    if (!value || typeof value !== "object") continue;
-    if (hasTieredUnits(value)) return true;
-  }
-  return false;
-}
+import {
+  hasProcess,
+  hubRequirementsPass,
+  resolveProcessTypesFromPriorityState,
+  runSubjectTagActorIntents,
+  runSubjectTagPassives,
+} from "./tag-execution-common.js";
 
 function isTagDisabled(structure, tagId, isTagUnlocked = null) {
   if (!structure || !tagId) return false;
@@ -1667,118 +1460,68 @@ export function stepHubSecond(state, tSec) {
       hubWorkers: contributingPawns,
     };
 
-    for (const tagId of tags) {
-      const tagDef = hubTagDefs[tagId];
-      if (!tagDef) continue;
-      const tagDisabled = isTagDisabled(structure, tagId, isTagUnlocked);
-      const passives = Array.isArray(tagDef.passives) ? tagDef.passives : [];
-      for (let passiveIndex = 0; passiveIndex < passives.length; passiveIndex++) {
-        const passive = passives[passiveIndex];
-        if (!passive || typeof passive !== "object") continue;
-        const passiveKey = buildHubPassiveKey(
-          structure,
-          tagId,
-          passive,
-          passiveIndex
-        );
-        if (tagDisabled) {
-          passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: false,
-          });
-          continue;
-        }
-        const requirementsOk =
-          !passive.requires ||
-          requirementsPass(passive.requires, seasonKey, structure, hasPawn, isTagUnlocked);
-        if (!requirementsOk) {
-          passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: false,
-          });
-          continue;
-        }
-        if (
-          !passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: true,
-          })
-        ) {
-          continue;
-        }
-        if (passive.effect) {
-          runEffect(state, passive.effect, { ...baseContext });
-        }
-      }
-    }
+    runSubjectTagPassives({
+      state,
+      tSec,
+      tags,
+      seasonKey,
+      subject: structure,
+      hasPawn,
+      baseContext,
+      getTagDef: (tagId) => hubTagDefs[tagId],
+      isTagDisabled: (tagId) => isTagDisabled(structure, tagId, isTagUnlocked),
+      buildPassiveKey: (tagId, passive, passiveIndex) =>
+        buildHubPassiveKey(structure, tagId, passive, passiveIndex),
+      requirementsPass: (requires, passSeasonKey, subject, passHasPawn) =>
+        hubRequirementsPass(
+          requires,
+          passSeasonKey,
+          subject,
+          passHasPawn,
+          isTagUnlocked
+        ),
+    });
 
     if (!hasPawn) continue;
 
-    for (const pawn of pawns) {
-      if (!pawn) continue;
-      ensurePawnSystems(pawn);
-      const pawnInv = state?.ownerInventories?.[pawn.id] ?? null;
-
-      const repeatLimit = Math.max(1, getPawnEffectiveWorkUnits(state, pawn));
-      for (let iteration = 0; iteration < repeatLimit; iteration++) {
-        const pawnContext = {
-          ...baseContext,
-          pawnId: pawn.id,
-          ownerId: pawn.id,
-          pawn,
-          pawnInv,
-        };
-
-        let executed = false;
-        for (const tagId of tags) {
-          if (isTagDisabled(structure, tagId, isTagUnlocked)) continue;
-          const tagDef = hubTagDefs[tagId];
-          if (!tagDef) continue;
-          const intents = Array.isArray(tagDef.intents) ? tagDef.intents : [];
-          for (const intent of intents) {
-            if (!intent || typeof intent !== "object") continue;
-            if (iteration > 0 && intent.repeatByActorWorkUnits !== true) continue;
-            if (
-              intent.requires &&
-              !requirementsPass(intent.requires, seasonKey, structure, true, isTagUnlocked)
-            ) {
-              continue;
-            }
-            const resolvedEffect = resolveIntentEffect(intent.effect, structure);
-            if (!resolvedEffect) continue;
-            if (!canExecuteIntentEffect(state, structure, resolvedEffect)) {
-              continue;
-            }
-            let resolvedIntentCost = null;
-            let intentContext = null;
-            if (intent.cost) {
-              intentContext = {
-                ...pawnContext,
-                intentId: intent.id ?? null,
-              };
-              const resolved = resolveCosts(intent.cost, intentContext);
-              if (!resolved) continue;
-              if (!canAffordCosts(resolved, intentContext)) continue;
-              resolvedIntentCost = resolved;
-            }
-            let effectSucceeded = true;
-            if (resolvedEffect) {
-              effectSucceeded = runEffect(state, resolvedEffect, { ...pawnContext });
-            }
-            if (!effectSucceeded) {
-              continue;
-            }
-            if (resolvedIntentCost && intentContext) {
-              applyCosts(resolvedIntentCost, intentContext);
-            }
-            executed = true;
-            break;
-          }
-          if (executed) break;
+    runSubjectTagActorIntents({
+      state,
+      tags,
+      seasonKey,
+      subject: structure,
+      actors: pawns,
+      ensureActor: ensurePawnSystems,
+      getRepeatLimit: (pawn) => getPawnEffectiveWorkUnits(state, pawn),
+      buildActorContext: (pawn) => ({
+        ...baseContext,
+        pawnId: pawn.id,
+        ownerId: pawn.id,
+        pawn,
+        pawnInv: state?.ownerInventories?.[pawn.id] ?? null,
+      }),
+      getTagDef: (tagId) => hubTagDefs[tagId],
+      isTagDisabled: (tagId) => isTagDisabled(structure, tagId, isTagUnlocked),
+      requirementsPass: (requires, passSeasonKey, subject, passHasPawn) =>
+        hubRequirementsPass(
+          requires,
+          passSeasonKey,
+          subject,
+          passHasPawn,
+          isTagUnlocked
+        ),
+      resolveIntentExecutions: (intent, pawnContext) => {
+        const resolvedEffect = resolveIntentEffect(intent.effect, structure);
+        if (!resolvedEffect) return [];
+        if (!canExecuteIntentEffect(state, structure, resolvedEffect)) {
+          return [];
         }
-
-        if (!executed) break;
-      }
-    }
+        return [
+          {
+            context: pawnContext,
+            effect: resolvedEffect,
+          },
+        ];
+      },
+    });
   }
 }

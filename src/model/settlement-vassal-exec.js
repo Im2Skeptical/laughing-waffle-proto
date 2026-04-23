@@ -10,6 +10,7 @@ import {
   SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS,
   settlementVassalProfessionDefs,
   settlementVassalProfessionIds,
+  settlementVassalLifeEventDefs,
   settlementVassalTraitDefs,
   settlementVassalTraitIds,
 } from "../defs/gamepieces/settlement-vassal-defs.js";
@@ -31,9 +32,9 @@ import {
 } from "./settlement-state.js";
 import {
   syncElderCouncilMembersFromVassals,
-  upsertElderCouncilMemberFromVassal,
 } from "./settlement-order-exec.js";
 import { createRng } from "./rng.js";
+import { applyDeclarativeAssignments } from "./settlement-domain-events.js";
 import { deserializeGameState, serializeGameState } from "./state.js";
 
 function getVassalLineageMutable(state) {
@@ -305,6 +306,7 @@ function createCandidateRecord(state, lineage, poolId, orderDef, randomSource) {
     removedFromCouncilSec: null,
     isDead: false,
     isElder: false,
+    lastAppliedLifeEventIndex: -1,
     lifeEvents: [],
   };
   buildCandidateLifeSchedule(state, record, orderDef, randomSource);
@@ -391,6 +393,7 @@ function finalizeSelectedVassal(state, lineage, candidate, tSec = null) {
   candidate.removedFromCouncilSec = null;
   candidate.isDead = false;
   candidate.isElder = false;
+  candidate.lastAppliedLifeEventIndex = -1;
   candidate.lifeEvents = Array.isArray(candidate.lifeEvents)
     ? candidate.lifeEvents.map((entry) => {
         if (!entry) return entry;
@@ -487,53 +490,13 @@ export function getCurrentSettlementVassal(state) {
 
 function applyVassalLifeEvent(state, vassal, event) {
   if (!vassal || !event) return false;
-  switch (event.kind) {
-    case "classChanged":
-      if (event.classId && vassal.currentClassId !== event.classId) {
-        vassal.currentClassId = event.classId;
-        return true;
-      }
-      return false;
-    case "professionAssigned":
-      if (!vassal.professionId && typeof event?.professionId === "string" && event.professionId.length > 0) {
-        vassal.professionId = event.professionId;
-        return true;
-      }
-      return false;
-    case "traitAssigned":
-      if (!vassal.traitId && typeof event?.traitId === "string" && event.traitId.length > 0) {
-        vassal.traitId = event.traitId;
-        return true;
-      }
-      return false;
-    case "becameElder":
-      if (vassal.isElder === true) return false;
-      vassal.isElder = true;
-      vassal.joinedCouncilSec = Math.max(0, Math.floor(event.tSec ?? 0));
-      vassal.councilMemberId = `vassal-${vassal.vassalId}`;
-      upsertElderCouncilMemberFromVassal(state, {
-        sourceVassalId: vassal.vassalId,
-        memberId: vassal.councilMemberId,
-        sourceClassId: vassal.currentClassId,
-        joinedYear: getYearAtSecond(state, event.tSec),
-        ageYears: Math.max(0, Math.floor(event.ageYears ?? vassal.initialAgeYears)),
-        modifierId:
-          typeof vassal.traitId === "string" && vassal.traitId.length > 0 ? vassal.traitId : null,
-        agendaByClass: vassal.agendaByClass,
-      });
-      return true;
-    case "died":
-      if (vassal.isDead === true) return false;
-      vassal.isDead = true;
-      vassal.deathCause =
-        typeof event?.causeOfDeath === "string" && event.causeOfDeath.length > 0
-          ? event.causeOfDeath
-          : vassal.deathCause ?? null;
-      vassal.removedFromCouncilSec = Math.max(0, Math.floor(event.tSec ?? 0));
-      return true;
-    default:
-      return false;
-  }
+  const eventDef =
+    typeof event.kind === "string" ? settlementVassalLifeEventDefs?.[event.kind] ?? null : null;
+  if (!eventDef) return false;
+  return applyDeclarativeAssignments(vassal, eventDef.assignments, {
+    state,
+    event,
+  });
 }
 
 function buildSelectedVassalCouncilSpecs(state, tSec) {
@@ -585,10 +548,22 @@ export function stepSettlementVassals(state, tSec) {
   const safeTSec = getSafeTSec(state, tSec);
   if (currentVassal) {
     const events = Array.isArray(currentVassal.lifeEvents) ? currentVassal.lifeEvents : [];
-    for (const event of events) {
+    let lastAppliedLifeEventIndex = Number.isFinite(currentVassal?.lastAppliedLifeEventIndex)
+      ? Math.max(-1, Math.floor(currentVassal.lastAppliedLifeEventIndex))
+      : -1;
+    if (lastAppliedLifeEventIndex >= events.length) {
+      lastAppliedLifeEventIndex = events.length - 1;
+    }
+    for (let eventIndex = lastAppliedLifeEventIndex + 1; eventIndex < events.length; eventIndex += 1) {
+      const event = events[eventIndex];
       const eventSec = Math.max(0, Math.floor(event?.tSec ?? 0));
-      if (eventSec > safeTSec) continue;
+      if (eventSec > safeTSec) break;
       changed = applyVassalLifeEvent(state, currentVassal, event) || changed;
+      lastAppliedLifeEventIndex = eventIndex;
+    }
+    if ((currentVassal.lastAppliedLifeEventIndex ?? -1) !== lastAppliedLifeEventIndex) {
+      currentVassal.lastAppliedLifeEventIndex = lastAppliedLifeEventIndex;
+      changed = true;
     }
   }
   changed =

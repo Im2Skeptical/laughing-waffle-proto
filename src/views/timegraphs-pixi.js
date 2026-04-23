@@ -66,6 +66,12 @@ const TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC = 480;
 const TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC = 9600;
 const PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC = 32;
 const PLOT_REFRESH_OVERSCAN_POINTS = 1;
+const PROJECTION_REPLACEMENT_FLASH_ALPHA = 0.22;
+const PROJECTION_REPLACEMENT_DIM_ALPHA = 0.07;
+const PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA = 0.88;
+const PROJECTION_REPLACEMENT_DIM_LINE_ALPHA = 0.24;
+const PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS = 32;
+const GRAPH_BOOT_FADE_FRAME_MS = 32;
 
 export function resolveDefaultGraphScrubSec({
   currentSec,
@@ -140,6 +146,30 @@ export function clampForecastScrubTargetSec(
     Math.floor(revealCapSec ?? historyEnd)
   );
   return Math.max(min, Math.min(max, Math.min(normalizedTarget, revealCap)));
+}
+
+function clamp01(v) {
+  return Math.max(0, Math.min(1, Number(v ?? 0)));
+}
+
+function lerpNumber(a, b, t) {
+  const mix = clamp01(t);
+  return Number(a ?? 0) + (Number(b ?? 0) - Number(a ?? 0)) * mix;
+}
+
+function blendColor(baseColor, tintColor, strength = 0.18) {
+  const mix = clamp01(strength);
+  const inv = 1 - mix;
+  const br = (baseColor >> 16) & 0xff;
+  const bg = (baseColor >> 8) & 0xff;
+  const bb = baseColor & 0xff;
+  const tr = (tintColor >> 16) & 0xff;
+  const tg = (tintColor >> 8) & 0xff;
+  const tb = tintColor & 0xff;
+  const nr = Math.round(br * inv + tr * mix);
+  const ng = Math.round(bg * inv + tg * mix);
+  const nb = Math.round(bb * inv + tb * mix);
+  return (nr << 16) | (ng << 8) | nb;
 }
 
 function normalizeHistoryZoneSegments(rawSegments, { minSec, maxSec, historyEndSec }) {
@@ -413,6 +443,12 @@ export function createMetricGraphView({
   forecastRevealFollowResponseSec = 0.9,
   forecastRevealAccelerationSecPerSec2 = 220,
   forecastRevealDecelerationSecPerSec2 = 320,
+  plotSnapshotBoundsQuantumSec = PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  plotSnapshotCoverForecast = false,
+  plotSnapshotLeadSec = 0,
+  bootFadeDurationMs = 0,
+  bootFadeColor = 0x000000,
+  bootRevealDelayMs = 0,
 }) {
   let forecastRevealTargetDurationSecCur = forecastRevealTargetDurationSec;
   let forecastRevealMinRateSecPerSecCur = forecastRevealMinRateSecPerSec;
@@ -424,6 +460,23 @@ export function createMetricGraphView({
     forecastRevealAccelerationSecPerSec2;
   let forecastRevealDecelerationSecPerSec2Cur =
     forecastRevealDecelerationSecPerSec2;
+  const plotSnapshotBoundsQuantumSecCur = Math.max(
+    1,
+    Math.floor(plotSnapshotBoundsQuantumSec ?? PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC)
+  );
+  const plotSnapshotCoverForecastCur = plotSnapshotCoverForecast === true;
+  const plotSnapshotLeadSecCur = Math.max(
+    0,
+    Math.floor(plotSnapshotLeadSec ?? 0)
+  );
+  const bootFadeDurationMsCur = Math.max(0, Number(bootFadeDurationMs ?? 0));
+  const bootFadeColorCur = Number.isFinite(bootFadeColor)
+    ? Math.max(0, Math.floor(bootFadeColor))
+    : 0x000000;
+  const bootRevealDelayMsCur = Math.max(
+    0,
+    Number(bootRevealDelayMs ?? bootFadeDurationMsCur)
+  );
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
   let windowSpecResolver =
@@ -615,6 +668,10 @@ export function createMetricGraphView({
   let animatedMinSec = null;
   let animatedMaxSec = null;
   let animatedBoundsLastTickMs = 0;
+  let plotSnapshotTargetMaxSec = null;
+  let stagedProjectionReplacement = null;
+  let projectionReplacement = null;
+  let bootFadeTransition = null;
 
   function clampInt(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v | 0));
@@ -623,6 +680,242 @@ export function createMetricGraphView({
   function invalidatePlotSnapshot() {
     plotSnapshotKey = "";
     plotSnapshot = null;
+    plotSnapshotTargetMaxSec = null;
+  }
+
+  function clearProjectionReplacementTransition() {
+    stagedProjectionReplacement = null;
+    projectionReplacement = null;
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+  }
+
+  function beginBootFadeTransition(nowMs = performance.now()) {
+    bootFadeTransition =
+      bootFadeDurationMsCur > 0
+        ? {
+            startedMs: nowMs,
+            durationMs: bootFadeDurationMsCur,
+            color: bootFadeColorCur,
+          }
+        : null;
+  }
+
+  function clearBootFadeTransition() {
+    bootFadeTransition = null;
+  }
+
+  function getBootFadeRenderState(nowMs) {
+    const transition = bootFadeTransition;
+    if (!transition) return null;
+    const durationMs = Math.max(0, Number(transition.durationMs ?? 0));
+    if (durationMs <= 0) {
+      bootFadeTransition = null;
+      return null;
+    }
+    const elapsedMs = Math.max(
+      0,
+      nowMs - Math.max(0, Number(transition.startedMs ?? nowMs))
+    );
+    const progress = clamp01(elapsedMs / durationMs);
+    const alpha = Math.max(0, 1 - progress);
+    if (alpha <= 0.001) {
+      bootFadeTransition = null;
+      return null;
+    }
+    return {
+      color: Number.isFinite(transition.color) ? transition.color : bootFadeColorCur,
+      alpha,
+      key: Math.floor(elapsedMs / GRAPH_BOOT_FADE_FRAME_MS),
+    };
+  }
+
+  function getProjectionReplacementMaxFloorSec() {
+    return Number.isFinite(projectionReplacement?.maxSecFloor)
+      ? Math.max(0, Math.floor(projectionReplacement.maxSecFloor))
+      : null;
+  }
+
+  function buildProjectionReplacementRenderState(nowMs, lineDrawEndSec) {
+    const overlay = projectionReplacement;
+    if (!overlay) return null;
+    const fadeStrength = clamp01(overlay.fadeStrength ?? 1);
+    const truncationStartSec = Math.max(
+      0,
+      Math.floor(overlay.truncationStartSec ?? 0)
+    );
+    const maxSecFloor = Math.max(
+      truncationStartSec + 1,
+      Math.floor(overlay.maxSecFloor ?? truncationStartSec + 1)
+    );
+    const activeStartSec = Math.max(
+      truncationStartSec,
+      Math.floor(lineDrawEndSec ?? truncationStartSec)
+    );
+    if (activeStartSec >= maxSecFloor) {
+      projectionReplacement = null;
+      return null;
+    }
+    const transitionDurationMs = Math.max(
+      0,
+      Number(overlay.transitionDurationMs ?? 0)
+    );
+    const flashDurationMs = Math.max(
+      0,
+      Math.min(
+        transitionDurationMs,
+        Number(overlay.flashDurationMs ?? transitionDurationMs)
+      )
+    );
+    const elapsedMs = Math.max(
+      0,
+      nowMs - Math.max(0, Number(overlay.startedMs ?? nowMs))
+    );
+    const flashProgress = flashDurationMs > 0 ? clamp01(elapsedMs / flashDurationMs) : 1;
+    const fadeDurationMs = Math.max(0, transitionDurationMs - flashDurationMs);
+    const fadeProgress =
+      elapsedMs <= flashDurationMs
+        ? 0
+        : fadeDurationMs > 0
+          ? clamp01((elapsedMs - flashDurationMs) / fadeDurationMs)
+          : 1;
+    const settled = elapsedMs >= transitionDurationMs;
+    const tintColor = settled
+      ? TIMEGRAPH_THEME.panelBorder
+      : elapsedMs < flashDurationMs
+        ? TIMEGRAPH_THEME.eventMarkerCritical
+        : blendColor(
+            TIMEGRAPH_THEME.eventMarkerCritical,
+            TIMEGRAPH_THEME.panelBorder,
+            fadeProgress
+          );
+    const zoneColor = settled
+      ? TIMEGRAPH_THEME.panelBorder
+      : blendColor(
+          TIMEGRAPH_THEME.eventMarkerCritical,
+          TIMEGRAPH_THEME.panelBodyBg,
+          elapsedMs < flashDurationMs ? flashProgress * 0.35 : 0.55 + fadeProgress * 0.45
+        );
+    const zoneAlpha = settled
+      ? PROJECTION_REPLACEMENT_DIM_ALPHA
+      : lerpNumber(
+          PROJECTION_REPLACEMENT_FLASH_ALPHA,
+          PROJECTION_REPLACEMENT_DIM_ALPHA,
+          elapsedMs < flashDurationMs ? 0 : fadeProgress
+        );
+    const lineAlpha = settled
+      ? lerpNumber(1, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA, fadeStrength)
+      : lerpNumber(
+          PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
+          lerpNumber(1, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA, fadeStrength),
+          elapsedMs < flashDurationMs ? 0 : fadeProgress
+        );
+    const settledZoneAlpha = lerpNumber(
+      0,
+      PROJECTION_REPLACEMENT_DIM_ALPHA,
+      fadeStrength
+    );
+    const tintStrength = settled
+      ? lerpNumber(0, 0.88, fadeStrength)
+      : lerpNumber(
+          0.74,
+          lerpNumber(0, 0.88, fadeStrength),
+          fadeProgress
+        );
+    return {
+      snapshot: overlay.snapshot,
+      drawStartSec: activeStartSec,
+      drawEndSec: maxSecFloor,
+      maxSecFloor,
+      zoneColor,
+      zoneAlpha: settled ? settledZoneAlpha : zoneAlpha,
+      tintColor,
+      tintStrength,
+      lineAlpha,
+      settled,
+      transitionAnimating: elapsedMs < transitionDurationMs,
+    };
+  }
+
+  function getProjectionReplacementRenderKey(nowMs) {
+    const overlay = projectionReplacement;
+    if (!overlay) return "";
+    const transitionDurationMs = Math.max(
+      0,
+      Number(overlay.transitionDurationMs ?? 0)
+    );
+    const elapsedMs = Math.max(
+      0,
+      nowMs - Math.max(0, Number(overlay.startedMs ?? nowMs))
+    );
+    if (elapsedMs >= transitionDurationMs) {
+      return "";
+    }
+    const phaseBucket = Math.floor(
+      elapsedMs / PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS
+    );
+    return `${Math.floor(overlay.truncationStartSec ?? 0)}:${Math.floor(
+      overlay.maxSecFloor ?? 0
+    )}:${phaseBucket}`;
+  }
+
+  function stageProjectionReplacementTransition({
+    truncationStartSec,
+    maxSecFloor,
+    transitionDurationMs = 0,
+    flashDurationMs = 0,
+    fadeStrength = 1,
+  } = {}) {
+    const snapshot = plotSnapshot ?? getPlotSnapshot();
+    const points = Array.isArray(snapshot?.pointsForDraw) ? snapshot.pointsForDraw : [];
+    if (!points.length) {
+      stagedProjectionReplacement = null;
+      return false;
+    }
+    const normalizedTruncationStartSec = Math.max(
+      0,
+      Math.floor(
+        truncationStartSec ??
+          snapshot?.displayHistoryEndSec ??
+          snapshot?.historyEndSec ??
+          0
+      )
+    );
+    const normalizedMaxSecFloor = Math.max(
+      normalizedTruncationStartSec + 1,
+      Math.floor(maxSecFloor ?? maxSec ?? normalizedTruncationStartSec + 1)
+    );
+    stagedProjectionReplacement = {
+      snapshot,
+      truncationStartSec: normalizedTruncationStartSec,
+      maxSecFloor: normalizedMaxSecFloor,
+      transitionDurationMs: Math.max(0, Number(transitionDurationMs ?? 0)),
+      flashDurationMs: Math.max(0, Number(flashDurationMs ?? 0)),
+      fadeStrength: clamp01(fadeStrength),
+    };
+    return true;
+  }
+
+  function resolvePlotSnapshotTargetMaxSec(rawTargetMaxSec, snapshotMinSec) {
+    const minimumTargetMaxSec = Math.max(
+      snapshotMinSec + 1,
+      Math.floor(rawTargetMaxSec ?? snapshotMinSec + 1)
+    );
+    if (plotSnapshotLeadSecCur <= 0) {
+      return minimumTargetMaxSec;
+    }
+    const currentTargetMaxSec = Number.isFinite(plotSnapshotTargetMaxSec)
+      ? Math.max(snapshotMinSec + 1, Math.floor(plotSnapshotTargetMaxSec))
+      : null;
+    const shouldResetTarget =
+      currentTargetMaxSec == null ||
+      minimumTargetMaxSec > currentTargetMaxSec ||
+      minimumTargetMaxSec < currentTargetMaxSec - plotSnapshotLeadSecCur;
+    if (shouldResetTarget) {
+      plotSnapshotTargetMaxSec =
+        minimumTargetMaxSec + plotSnapshotLeadSecCur;
+    }
+    return Math.max(minimumTargetMaxSec, Math.floor(plotSnapshotTargetMaxSec));
   }
 
   function getDisplayHistoryEndSec(actualHistoryEndSec) {
@@ -756,7 +1049,14 @@ export function createMetricGraphView({
 
   function setTimeBounds(nextMinSec, nextMaxSec, opts = {}) {
     const nextMin = Math.max(0, Math.floor(nextMinSec ?? 0));
-    const nextMax = Math.max(nextMin + 1, Math.floor(nextMaxSec ?? nextMin + 1));
+    const projectionReplacementMaxFloorSec = getProjectionReplacementMaxFloorSec();
+    const nextMax = Math.max(
+      nextMin + 1,
+      Math.floor(nextMaxSec ?? nextMin + 1),
+      Number.isFinite(projectionReplacementMaxFloorSec)
+        ? projectionReplacementMaxFloorSec
+        : nextMin + 1
+    );
     const forceImmediate = opts.immediate === true;
     const shouldAnimate =
       forceImmediate !== true &&
@@ -996,7 +1296,7 @@ export function createMetricGraphView({
     invalidatePlotSnapshot();
   }
 
-  function restartForecastRevealFrom(startSec) {
+  function restartForecastRevealFrom(startSec, opts = {}) {
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const actualHistoryEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
@@ -1011,18 +1311,44 @@ export function createMetricGraphView({
       actualHistoryEndSec,
       Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
     );
+    const nowMs = performance.now();
+    if (opts?.activateProjectionReplacementTransition === true) {
+      projectionReplacement = stagedProjectionReplacement
+        ? {
+            ...stagedProjectionReplacement,
+            startedMs: nowMs,
+          }
+        : null;
+      stagedProjectionReplacement = null;
+    } else {
+      stagedProjectionReplacement = null;
+      if (opts?.clearProjectionReplacementTransition === true) {
+        projectionReplacement = null;
+      }
+    }
     resetForecastReveal(
       displayHistoryEndSec,
       actualForecastCoverageEndSec,
       displayHistoryEndSec,
-      performance.now()
+      nowMs
     );
+    const extraStartDelayMs = Math.max(
+      0,
+      Number(opts?.extraStartDelayMs ?? 0)
+    );
+    if (extraStartDelayMs > 0) {
+      forecastRevealDelayUntilMs = Math.max(
+        forecastRevealDelayUntilMs,
+        nowMs + extraStartDelayMs
+      );
+    }
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
     invalidatePlotSnapshot();
   }
 
   function clearForecastRevealRestart() {
+    stagedProjectionReplacement = null;
     if (!Number.isFinite(forecastRevealStartSecOverride)) return;
     forecastRevealStartSecOverride = null;
     invalidatePlotSnapshot();
@@ -1649,13 +1975,23 @@ export function createMetricGraphView({
     );
     const snapshotBoundsQuantumSec = Math.max(
       1,
-      Math.floor(PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC)
+      plotSnapshotBoundsQuantumSecCur
     );
+    const snapshotTargetMaxSecRaw = plotSnapshotCoverForecastCur
+      ? Math.max(maxSec, actualForecastCoverageEndSec)
+      : maxSec;
     const snapshotMinSec =
       Math.floor(Math.max(0, minSec) / snapshotBoundsQuantumSec) *
       snapshotBoundsQuantumSec;
+    const snapshotTargetMaxSec = resolvePlotSnapshotTargetMaxSec(
+      snapshotTargetMaxSecRaw,
+      snapshotMinSec
+    );
     const snapshotMaxSec =
-      Math.ceil(Math.max(snapshotMinSec + 1, maxSec) / snapshotBoundsQuantumSec) *
+      Math.ceil(
+        Math.max(snapshotMinSec + 1, snapshotTargetMaxSec) /
+          snapshotBoundsQuantumSec
+      ) *
       snapshotBoundsQuantumSec;
     const snapshotKey = `${cacheVersion}|${snapshotMinSec}:${snapshotMaxSec}|${displayHistoryEndSec}|${zoomed ? 1 : 0}|${
       sampleCursorSec == null ? "stable" : sampleCursorSec
@@ -2000,6 +2336,148 @@ export function createMetricGraphView({
       plotG.drawRect(left, plot.y, right - left, plot.h);
       plotG.endFill();
     }
+
+    function drawSeriesLinesForRange({
+      sourceSeriesList,
+      sourcePoints,
+      sourceSeriesValues,
+      drawStartSec = minSec,
+      drawEndSec = maxSec,
+      colorResolver = null,
+      alphaMultiplier = 1,
+    } = {}) {
+      const list = Array.isArray(sourceSeriesList) ? sourceSeriesList : [];
+      const points = Array.isArray(sourcePoints) ? sourcePoints : [];
+      if (!list.length || !points.length) return;
+      const clampedDrawStartSec = Math.max(
+        minSec,
+        Math.floor(drawStartSec ?? minSec)
+      );
+      const clampedDrawEndSec = Math.max(
+        clampedDrawStartSec,
+        Math.min(maxSec, Math.floor(drawEndSec ?? maxSec))
+      );
+      if (clampedDrawEndSec <= clampedDrawStartSec) return;
+
+      const hasHoveredSeries =
+        typeof hoveredLegendSeriesId === "string" &&
+        hoveredLegendSeriesId.length > 0;
+
+      for (const s of list) {
+        const baseLineColor = Number.isFinite(s?.color)
+          ? s.color
+          : MUCHA_UI_COLORS.accents.gold;
+        const isHovered = hasHoveredSeries && s.id === hoveredLegendSeriesId;
+        const lineWidth = hasHoveredSeries
+          ? isHovered
+            ? SERIES_LINE_WIDTH_HOVERED
+            : SERIES_LINE_WIDTH_DIMMED
+          : SERIES_LINE_WIDTH_DEFAULT;
+        const baseAlpha = hasHoveredSeries
+          ? isHovered
+            ? SERIES_LINE_ALPHA_HOVERED
+            : SERIES_LINE_ALPHA_DIMMED
+          : SERIES_LINE_ALPHA_DEFAULT;
+        const resolvedLineColor =
+          typeof colorResolver === "function"
+            ? colorResolver(baseLineColor, s)
+            : baseLineColor;
+        const resolvedLineAlpha = Math.max(
+          0,
+          Math.min(1, baseAlpha * Math.max(0, Number(alphaMultiplier ?? 1)))
+        );
+        plotG.lineStyle(lineWidth, resolvedLineColor, resolvedLineAlpha);
+
+        const values = sourceSeriesValues?.get?.(s.id) ?? [];
+        let first = true;
+        let prevFinitePoint = null;
+
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          const t = Math.max(0, Math.floor(p?.tSec ?? 0));
+          const value = values[i];
+          if (!Number.isFinite(value)) {
+            first = true;
+            prevFinitePoint = null;
+            continue;
+          }
+
+          if (t < clampedDrawStartSec) {
+            prevFinitePoint = { t, value };
+            continue;
+          }
+
+          if (first && prevFinitePoint && prevFinitePoint.t < clampedDrawStartSec) {
+            const ratio =
+              (clampedDrawStartSec - prevFinitePoint.t) /
+              Math.max(1e-6, t - prevFinitePoint.t);
+            const interpolatedValue =
+              prevFinitePoint.value +
+              (value - prevFinitePoint.value) * ratio;
+            plotG.moveTo(
+              timeToX(clampedDrawStartSec),
+              yForValue(interpolatedValue, s.id)
+            );
+            plotG.lineTo(timeToX(t), yForValue(value, s.id));
+            first = false;
+            prevFinitePoint = { t, value };
+            if (t >= clampedDrawEndSec) break;
+            continue;
+          }
+
+          if (t > clampedDrawEndSec) {
+            if (
+              prevFinitePoint &&
+              Number.isFinite(prevFinitePoint.t) &&
+              prevFinitePoint.t < clampedDrawEndSec
+            ) {
+              const ratio =
+                (clampedDrawEndSec - prevFinitePoint.t) /
+                Math.max(1e-6, t - prevFinitePoint.t);
+              const interpolatedValue =
+                prevFinitePoint.value +
+                (value - prevFinitePoint.value) * ratio;
+              const x = timeToX(clampedDrawEndSec);
+              const y = yForValue(interpolatedValue, s.id);
+              if (first) {
+                plotG.moveTo(x, y);
+              } else {
+                plotG.lineTo(x, y);
+              }
+            } else if (!first) {
+              plotG.lineTo(
+                timeToX(clampedDrawEndSec),
+                yForValue(prevFinitePoint?.value ?? value, s.id)
+              );
+            }
+            first = true;
+            break;
+          }
+
+          const x = timeToX(t);
+          const y = yForValue(value, s.id);
+          if (first) {
+            plotG.moveTo(x, y);
+            first = false;
+          } else {
+            plotG.lineTo(x, y);
+          }
+          prevFinitePoint = { t, value };
+        }
+
+        if (
+          !first &&
+          prevFinitePoint &&
+          Number.isFinite(prevFinitePoint.t) &&
+          prevFinitePoint.t < clampedDrawEndSec
+        ) {
+          plotG.lineTo(
+            timeToX(clampedDrawEndSec),
+            yForValue(prevFinitePoint.value, s.id)
+          );
+        }
+      }
+    }
     const historyZones = Array.isArray(snapshot?.historyZones)
       ? snapshot.historyZones
       : [];
@@ -2048,93 +2526,41 @@ export function createMetricGraphView({
       }
     }
 
-    // Data Line
-    const hasHoveredSeries =
-      typeof hoveredLegendSeriesId === "string" &&
-      hoveredLegendSeriesId.length > 0;
-    for (const s of seriesList) {
-      const lineColor = Number.isFinite(s.color)
-        ? s.color
-        : MUCHA_UI_COLORS.accents.gold;
-      const isHovered = hasHoveredSeries && s.id === hoveredLegendSeriesId;
-      const lineWidth = hasHoveredSeries
-        ? isHovered
-          ? SERIES_LINE_WIDTH_HOVERED
-          : SERIES_LINE_WIDTH_DIMMED
-        : SERIES_LINE_WIDTH_DEFAULT;
-      const lineAlpha = hasHoveredSeries
-        ? isHovered
-          ? SERIES_LINE_ALPHA_HOVERED
-          : SERIES_LINE_ALPHA_DIMMED
-        : SERIES_LINE_ALPHA_DEFAULT;
-      plotG.lineStyle(lineWidth, lineColor, lineAlpha);
-      let first = true;
-      const values = seriesValues.get(s.id) ?? [];
-      let prevDrawnPoint = null;
-      let drewToLineEnd = false;
-
-      for (let i = 0; i < pointsForDraw.length; i++) {
-        const p = pointsForDraw[i];
-        const t = p.tSec ?? 0;
-        const value = values[i];
-        if (t > displayHistoryEndSec && t > lineDrawEndSec) {
-          if (
-            prevDrawnPoint &&
-            Number.isFinite(prevDrawnPoint.t) &&
-            Number.isFinite(prevDrawnPoint.value) &&
-            Number.isFinite(value) &&
-            t > prevDrawnPoint.t &&
-            lineDrawEndSec > prevDrawnPoint.t
-          ) {
-            const ratio =
-              (lineDrawEndSec - prevDrawnPoint.t) /
-              Math.max(1e-6, t - prevDrawnPoint.t);
-            const interpolatedValue =
-              prevDrawnPoint.value +
-              (value - prevDrawnPoint.value) * ratio;
-            const interpolatedX = timeToX(lineDrawEndSec);
-            const interpolatedY = yForValue(interpolatedValue, s.id);
-            if (first) {
-              plotG.moveTo(interpolatedX, interpolatedY);
-              first = false;
-            } else {
-              plotG.lineTo(interpolatedX, interpolatedY);
-            }
-            drewToLineEnd = true;
-          }
-          first = true;
-          break;
-        }
-        if (!Number.isFinite(value)) {
-          first = true;
-          prevDrawnPoint = null;
-          continue;
-        }
-        const x = timeToX(t);
-        const y = yForValue(value, s.id);
-
-        if (first) {
-          plotG.moveTo(x, y);
-          first = false;
-        } else {
-          plotG.lineTo(x, y);
-        }
-        prevDrawnPoint = { t, value };
-      }
-
-      if (
-        drewToLineEnd !== true &&
-        prevDrawnPoint &&
-        Number.isFinite(prevDrawnPoint.t) &&
-        Number.isFinite(prevDrawnPoint.value) &&
-        lineDrawEndSec > prevDrawnPoint.t
-      ) {
-        plotG.lineTo(
-          timeToX(lineDrawEndSec),
-          yForValue(prevDrawnPoint.value, s.id)
-        );
-      }
+    const projectionReplacementState = buildProjectionReplacementRenderState(
+      performance.now(),
+      lineDrawEndSec
+    );
+    if (projectionReplacementState) {
+      drawZone(
+        projectionReplacementState.drawStartSec,
+        projectionReplacementState.drawEndSec,
+        projectionReplacementState.zoneColor,
+        projectionReplacementState.zoneAlpha
+      );
+      drawSeriesLinesForRange({
+        sourceSeriesList: seriesList,
+        sourcePoints: projectionReplacementState.snapshot?.pointsForDraw,
+        sourceSeriesValues:
+          projectionReplacementState.snapshot?.seriesValues ?? new Map(),
+        drawStartSec: projectionReplacementState.drawStartSec,
+        drawEndSec: projectionReplacementState.drawEndSec,
+        colorResolver: (baseColor) =>
+          blendColor(
+            baseColor,
+            projectionReplacementState.tintColor,
+            projectionReplacementState.tintStrength
+          ),
+        alphaMultiplier: projectionReplacementState.lineAlpha,
+      });
     }
+
+    drawSeriesLinesForRange({
+      sourceSeriesList: seriesList,
+      sourcePoints: pointsForDraw,
+      sourceSeriesValues: seriesValues,
+      drawStartSec: minSec,
+      drawEndSec: lineDrawEndSec,
+    });
 
     if (lineDrawEndSec < maxSec) {
       const markerX = timeToX(lineDrawEndSec);
@@ -2203,6 +2629,13 @@ export function createMetricGraphView({
       }
       plotG.beginFill(color, lineAlpha);
       plotG.drawCircle(x, plot.y + 8, markerRadius);
+      plotG.endFill();
+    }
+
+    const bootFadeState = getBootFadeRenderState(performance.now());
+    if (bootFadeState) {
+      plotG.beginFill(bootFadeState.color, bootFadeState.alpha);
+      plotG.drawRect(plot.x, plot.y, plot.w, plot.h);
       plotG.endFill();
     }
 
@@ -2415,8 +2848,17 @@ export function createMetricGraphView({
     const defaultY = app.screen.height - WIN_H - 800;
     root.x = openPosition?.x ?? defaultX;
     root.y = openPosition?.y ?? defaultY;
+    const nowMs = performance.now();
     invalidatePlotSnapshot();
-    resetForecastReveal(0, 0, 0, performance.now());
+    clearProjectionReplacementTransition();
+    beginBootFadeTransition(nowMs);
+    resetForecastReveal(0, 0, 0, nowMs);
+    if (bootRevealDelayMsCur > 0) {
+      forecastRevealDelayUntilMs = Math.max(
+        forecastRevealDelayUntilMs,
+        nowMs + bootRevealDelayMsCur
+      );
+    }
     animatedMinSec = null;
     animatedMaxSec = null;
     animatedBoundsLastTickMs = 0;
@@ -2432,6 +2874,8 @@ export function createMetricGraphView({
     root.visible = false;
     resetForecastPreviewState();
     invalidatePlotSnapshot();
+    clearProjectionReplacementTransition();
+    clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
     animatedMinSec = null;
     animatedMaxSec = null;
@@ -2576,7 +3020,11 @@ export function createMetricGraphView({
     tryRestoreLatchedForecastPreview();
     updateHeaderButtons();
     drawLegend(getActiveSeries());
-    const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(visibleForecastCoverageEndSec * 10)}`;
+    const projectionReplacementKey = getProjectionReplacementRenderKey(now);
+    const bootFadeState = getBootFadeRenderState(now);
+    const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(
+      visibleForecastCoverageEndSec * 10
+    )}:${projectionReplacementKey}:${bootFadeState?.key ?? ""}`;
     const cacheVersion =
       Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
     const versionChanged =
@@ -2588,7 +3036,7 @@ export function createMetricGraphView({
         Math.floor(forecastRevealTargetEndSec ?? displayHistoryEndSec)
       ) -
         visibleForecastCoverageEndSec >
-      0.001;
+      0.001 || !!projectionReplacementKey || !!bootFadeState;
     const shouldPlot =
       revealAnimating
         ? boundsChanged || now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
@@ -2714,6 +3162,8 @@ export function createMetricGraphView({
     setEventMarkerResolver,
     setForecastRevealConfig,
     resetForecastPreviewState,
+    stageProjectionReplacementTransition,
+    clearProjectionReplacementTransition,
     restartForecastRevealFrom,
     clearForecastRevealRestart,
   };

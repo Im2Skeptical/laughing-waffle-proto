@@ -14,13 +14,16 @@ import {
 } from "./state.js";
 import { createRng } from "./rng.js";
 import { runEffect } from "./effects/index.js";
-import { resolveCosts, canAffordCosts, applyCosts } from "./costs.js";
 import { pushGameEvent } from "./event-feed.js";
-import { passiveTimingPasses } from "./passive-timing.js";
 import { getPawnEffectiveWorkUnits } from "./prestige-system.js";
 import { ensureRecipePriorityState, getEnabledRecipeIds } from "./recipe-priority.js";
 import { computeGlobalSkillMods } from "./skills.js";
 import { isTagHidden } from "./tag-state.js";
+import {
+  envRequirementsPass,
+  runSubjectTagActorIntents,
+  runSubjectTagPassives,
+} from "./tag-execution-common.js";
 import {
   clearSettlementFloodplainGreenResource,
   getHubCore,
@@ -342,99 +345,6 @@ function resolveAggregateDraw(state, defId, def, drawResolution, tSec) {
     outcome: "aggregated",
     aggregation: buildAggregateRunPayload(nextRunState),
   };
-}
-
-function requirementsPass(requires, seasonKey, tile, hasPawn, isTagUnlocked = null) {
-  if (!requires || typeof requires !== "object") return true;
-
-  if (Array.isArray(requires.season) && requires.season.length > 0) {
-    if (!seasonKey || !requires.season.includes(seasonKey)) return false;
-  }
-
-  if (typeof requires.hasPawn === "boolean") {
-    if (requires.hasPawn !== hasPawn) return false;
-  }
-
-  if (typeof requires.hasSelectedCrop === "boolean") {
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId;
-    const hasSelected =
-      typeof selectedCropId === "string" && selectedCropId.length > 0;
-    if (requires.hasSelectedCrop !== hasSelected) return false;
-  }
-
-  if (Array.isArray(requires.selectedCropIdIn)) {
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId;
-    if (
-      requires.selectedCropIdIn.length > 0 &&
-      (typeof selectedCropId !== "string" ||
-        !requires.selectedCropIdIn.includes(selectedCropId))
-    ) {
-      return false;
-    }
-  }
-
-  if (Object.prototype.hasOwnProperty.call(requires, "hasEquipment")) {
-    return false;
-  }
-
-  if (typeof requires.hasMaturedPool === "boolean") {
-    const pool = tile?.systemState?.growth?.maturedPool;
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId ?? null;
-    const hasPool = hasMaturedPoolForCrop(pool, selectedCropId);
-    if (requires.hasMaturedPool !== hasPool) return false;
-  }
-
-  const tagReq = requires.hasTag;
-  if (tagReq != null) {
-    const tileTags = Array.isArray(tile?.tags) ? tile.tags : [];
-    const requiredTags = Array.isArray(tagReq)
-      ? tagReq
-      : typeof tagReq === "string"
-        ? [tagReq]
-        : [];
-
-    for (const tag of requiredTags) {
-      if (!tileTags.includes(tag)) return false;
-      if (isTagUnlocked && !isTagUnlocked(tag)) return false;
-      if (isTagHidden(tile, tag)) return false;
-    }
-  }
-
-  return true;
-}
-
-function hasTieredUnits(pool) {
-  if (!pool || typeof pool !== "object") return false;
-  return (
-    (pool.bronze ?? 0) > 0 ||
-    (pool.silver ?? 0) > 0 ||
-    (pool.gold ?? 0) > 0 ||
-    (pool.diamond ?? 0) > 0
-  );
-}
-
-function resolveMaturedPoolBucket(pool, cropId) {
-  if (!pool || typeof pool !== "object") return null;
-  const hasTierKeys =
-    Object.prototype.hasOwnProperty.call(pool, "bronze") ||
-    Object.prototype.hasOwnProperty.call(pool, "silver") ||
-    Object.prototype.hasOwnProperty.call(pool, "gold") ||
-    Object.prototype.hasOwnProperty.call(pool, "diamond");
-  if (hasTierKeys) return pool;
-  if (typeof cropId !== "string" || cropId.length <= 0) return null;
-  const bucket = pool[cropId];
-  return bucket && typeof bucket === "object" ? bucket : null;
-}
-
-function hasMaturedPoolForCrop(pool, cropId) {
-  const bucket = resolveMaturedPoolBucket(pool, cropId);
-  if (bucket) return hasTieredUnits(bucket);
-  if (!pool || typeof pool !== "object") return false;
-  for (const value of Object.values(pool)) {
-    if (!value || typeof value !== "object") continue;
-    if (hasTieredUnits(value)) return true;
-  }
-  return false;
 }
 
 function resolveIntentSelectedCropCandidates(intent, tile, state, selectedCropId) {
@@ -1426,122 +1336,70 @@ export function stepEnvSecond(state, tSec) {
       envCol: col,
     };
 
-    for (const tagId of tags) {
-      const tagDef = envTagDefs[tagId];
-      if (!tagDef) continue;
-      const tagDisabled = isTagDisabled(tile, tagId, isTagUnlocked);
-      const passives = Array.isArray(tagDef.passives) ? tagDef.passives : [];
-      for (let passiveIndex = 0; passiveIndex < passives.length; passiveIndex++) {
-        const passive = passives[passiveIndex];
-        if (!passive || typeof passive !== "object") continue;
-        const passiveKey = buildEnvPassiveKey(col, tagId, passive, passiveIndex);
-        if (tagDisabled) {
-          passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: false,
-          });
-          continue;
-        }
-        const requirementsOk =
-          !passive.requires ||
-          requirementsPass(passive.requires, seasonKey, tile, hasPawn, isTagUnlocked);
-        if (!requirementsOk) {
-          passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: false,
-          });
-          continue;
-        }
-        if (
-          !passiveTimingPasses(passive.timing, state, tSec, {
-            passiveKey,
-            isActive: true,
-          })
-        ) {
-          continue;
-        }
-        if (passive.effect) {
-          runEffect(state, passive.effect, { ...baseContext });
-        }
-      }
-    }
+    runSubjectTagPassives({
+      state,
+      tSec,
+      tags,
+      seasonKey,
+      subject: tile,
+      hasPawn,
+      baseContext,
+      getTagDef: (tagId) => envTagDefs[tagId],
+      isTagDisabled: (tagId) => isTagDisabled(tile, tagId, isTagUnlocked),
+      buildPassiveKey: (tagId, passive, passiveIndex) =>
+        buildEnvPassiveKey(col, tagId, passive, passiveIndex),
+      requirementsPass: (requires, passSeasonKey, subject, passHasPawn) =>
+        envRequirementsPass(
+          requires,
+          passSeasonKey,
+          subject,
+          passHasPawn,
+          isTagUnlocked,
+          isTagHidden
+        ),
+    });
 
     if (!hasPawn) continue;
 
-    for (const pawnId of pawnIds) {
-      const pawn = pawnById.get(pawnId);
-      if (!pawn) continue;
-      ensurePawnSystems(pawn);
-      const pawnInv = state?.ownerInventories?.[pawnId] ?? null;
-
-      const repeatLimit = Math.max(1, getPawnEffectiveWorkUnits(state, pawn));
-      for (let iteration = 0; iteration < repeatLimit; iteration++) {
-        const pawnContext = {
+    const pawnsOnTile = pawnIds.map((pawnId) => pawnById.get(pawnId)).filter(Boolean);
+    runSubjectTagActorIntents({
+      state,
+      tags,
+      seasonKey,
+      subject: tile,
+      actors: pawnsOnTile,
+      ensureActor: ensurePawnSystems,
+      getRepeatLimit: (pawn) => getPawnEffectiveWorkUnits(state, pawn),
+      buildActorContext: (pawn) => {
+        const pawnId = pawn.id;
+        return {
           ...baseContext,
           pawnId,
           ownerId: pawnId,
           pawn,
-          pawnInv,
+          pawnInv: state?.ownerInventories?.[pawnId] ?? null,
           selectedCropId,
         };
-
-        let executed = false;
-        for (const tagId of tags) {
-          if (isTagDisabled(tile, tagId, isTagUnlocked)) continue;
-          const tagDef = envTagDefs[tagId];
-          if (!tagDef) continue;
-          const intents = Array.isArray(tagDef.intents) ? tagDef.intents : [];
-          for (const intent of intents) {
-            if (!intent || typeof intent !== "object") continue;
-            if (iteration > 0 && intent.repeatByActorWorkUnits !== true) continue;
-            if (
-              intent.requires &&
-              !requirementsPass(intent.requires, seasonKey, tile, true, isTagUnlocked)
-            ) {
-              continue;
-            }
-            const executionContexts = buildIntentExecutionContexts(
-              intent,
-              pawnContext,
-              tile,
-              state
-            );
-            for (const executionContext of executionContexts) {
-              let resolvedIntentCost = null;
-              let intentContext = null;
-              if (intent.cost) {
-                intentContext = {
-                  ...executionContext,
-                  intentId: intent.id ?? null,
-                };
-                const resolved = resolveCosts(intent.cost, intentContext);
-                if (!resolved) continue;
-                if (!canAffordCosts(resolved, intentContext)) continue;
-                resolvedIntentCost = resolved;
-              }
-              let effectSucceeded = true;
-              if (intent.effect) {
-                effectSucceeded = runEffect(state, intent.effect, {
-                  ...executionContext,
-                });
-              }
-              if (!effectSucceeded) {
-                continue;
-              }
-              if (resolvedIntentCost && intentContext) {
-                applyCosts(resolvedIntentCost, intentContext);
-              }
-              executed = true;
-              break;
-            }
-            if (executed) break;
-          }
-          if (executed) break;
-        }
-
-        if (!executed) break;
-      }
-    }
+      },
+      getTagDef: (tagId) => envTagDefs[tagId],
+      isTagDisabled: (tagId) => isTagDisabled(tile, tagId, isTagUnlocked),
+      requirementsPass: (requires, passSeasonKey, subject, passHasPawn) =>
+        envRequirementsPass(
+          requires,
+          passSeasonKey,
+          subject,
+          passHasPawn,
+          isTagUnlocked,
+          isTagHidden
+        ),
+      resolveIntentExecutions: (intent, pawnContext) =>
+        buildIntentExecutionContexts(intent, pawnContext, tile, state).map(
+          (executionContext) => ({
+            context: executionContext,
+            effect: intent.effect,
+          })
+        ),
+    });
   }
 
   if (needsRebuild) {

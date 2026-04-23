@@ -18,11 +18,22 @@ import {
   getTopEnabledRecipeId,
   normalizeRecipePriority,
 } from "../../model/recipe-priority.js";
-import { IntentKinds } from "./action-intents.js";
+import { getItemQuantity } from "./action-currency-utils.js";
 import {
-  getCurrencyGroupInfo,
-  getItemQuantity,
-} from "./action-currency-utils.js";
+  describePlannerAction,
+  describePlannerIntent,
+  getCurrencyGroupInfoForAction,
+  getCurrencyGroupInfoForIntent,
+  getPlannerActionApCost,
+  getPlannerIntentId,
+  getPlannerIntentPlanSignature,
+  isHubPlanAction as registryIsHubPlanAction,
+  isHubPlanIntent as registryIsHubPlanIntent,
+  isTilePlanAction as registryIsTilePlanAction,
+  isTilePlanIntent as registryIsTilePlanIntent,
+  shouldLogPlannerAction,
+  shouldLogPlannerIntent,
+} from "./action-plan-registry.js";
 
 function formatItemNameFromKind(kind) {
   if (kind && itemDefs[kind]) return itemDefs[kind].name || kind;
@@ -114,39 +125,19 @@ function formatTileName(envCol, state) {
 }
 
 function isTilePlanIntent(intent) {
-  if (!intent) return false;
-  return (
-    intent.kind === IntentKinds.TILE_TAG_ORDER ||
-    intent.kind === IntentKinds.TILE_TAG_TOGGLE ||
-    intent.kind === IntentKinds.TILE_CROP_SELECT
-  );
+  return registryIsTilePlanIntent(intent);
 }
 
 function isHubPlanIntent(intent) {
-  if (!intent) return false;
-  return (
-    intent.kind === IntentKinds.HUB_TAG_ORDER ||
-    intent.kind === IntentKinds.HUB_TAG_TOGGLE ||
-    intent.kind === IntentKinds.HUB_RECIPE_SELECT
-  );
+  return registryIsHubPlanIntent(intent);
 }
 
 function isTilePlanAction(action) {
-  const kind = action?.kind;
-  return (
-    kind === ActionKinds.SET_TILE_TAG_ORDER ||
-    kind === ActionKinds.TOGGLE_TILE_TAG ||
-    kind === ActionKinds.SET_TILE_CROP_SELECTION
-  );
+  return registryIsTilePlanAction(action);
 }
 
 function isHubPlanAction(action) {
-  const kind = action?.kind;
-  return (
-    kind === ActionKinds.SET_HUB_TAG_ORDER ||
-    kind === ActionKinds.TOGGLE_HUB_TAG ||
-    kind === ActionKinds.SET_HUB_RECIPE_SELECTION
-  );
+  return registryIsHubPlanAction(action);
 }
 
 function formatSkillNodeName(nodeId) {
@@ -165,45 +156,11 @@ function formatHubPlanLabel(hubCol, state) {
 }
 
 function getTilePlanIntentSignature(intent) {
-  if (!intent) return "";
-  if (intent.kind === IntentKinds.TILE_TAG_ORDER) {
-    const tags = Array.isArray(intent.tagIds) ? intent.tagIds : [];
-    return `order:${tags.join(",")}`;
-  }
-  if (intent.kind === IntentKinds.TILE_TAG_TOGGLE) {
-    return `toggle:${intent.tagId ?? ""}:${intent.disabled === true}`;
-  }
-  if (intent.kind === IntentKinds.TILE_CROP_SELECT) {
-    const priority = normalizeRecipePriorityForLog(
-      "growth",
-      intent.recipePriority,
-      intent.cropId ?? null
-    );
-    const sig = buildRecipePrioritySignature(priority);
-    return `crop:${sig}`;
-  }
-  return intent.kind || "";
+  return getPlannerIntentPlanSignature(intent, createActionLogDescribeContext(null, null));
 }
 
 function getHubPlanIntentSignature(intent) {
-  if (!intent) return "";
-  if (intent.kind === IntentKinds.HUB_TAG_ORDER) {
-    const tags = Array.isArray(intent.tagIds) ? intent.tagIds : [];
-    return `order:${tags.join(",")}`;
-  }
-  if (intent.kind === IntentKinds.HUB_TAG_TOGGLE) {
-    return `toggle:${intent.tagId ?? ""}:${intent.disabled === true}`;
-  }
-  if (intent.kind === IntentKinds.HUB_RECIPE_SELECT) {
-    const priority = normalizeRecipePriorityForLog(
-      intent.systemId ?? null,
-      intent.recipePriority,
-      intent.recipeId ?? null
-    );
-    const sig = buildRecipePrioritySignature(priority);
-    return `recipe:${intent.systemId ?? ""}:${sig}`;
-  }
-  return intent.kind || "";
+  return getPlannerIntentPlanSignature(intent, createActionLogDescribeContext(null, null));
 }
 
 function formatPlacementName(placement, state) {
@@ -237,67 +194,36 @@ function resolvePlacementFromPayload(payload) {
   return null;
 }
 
+function createActionLogDescribeContext(state, getOwnerLabel) {
+  return {
+    state,
+    getOwnerLabel,
+    buildRecipePrioritySignature,
+    formatBuildCancelDefName(defId) {
+      if (!defId) return "Structure";
+      return hubStructureDefs[defId]?.name || defId;
+    },
+    formatCropPriorityLabel,
+    formatEnvTagName,
+    formatHubName,
+    formatHubTagName,
+    formatItemNameFromKind,
+    formatOwnerName,
+    formatPawnName,
+    formatPlacementName,
+    formatRecipePriorityLabel,
+    formatSkillNodeName,
+    formatTileName,
+    normalizeRecipePriorityForLog,
+    resolvePlacementFromPayload,
+  };
+}
+
 function describeIntent(intent, state, getOwnerLabel) {
-  if (!intent) return "";
-  switch (intent.kind) {
-    case IntentKinds.ITEM_TRANSFER: {
-      const itemName = formatItemNameFromKind(intent?.item?.kind);
-      const fallback =
-        itemName || `Item ${intent?.itemId ?? ""}`.trim() || "Item";
-      const dest = formatOwnerName(intent.toOwnerId, getOwnerLabel);
-      return `${fallback} > ${dest}`;
-    }
-    case IntentKinds.PAWN_MOVE: {
-      const pawnName = formatPawnName(intent.pawnId, state);
-      const dest = formatPlacementName(intent.toPlacement, state);
-      return `${pawnName} > ${dest}`;
-    }
-    case IntentKinds.BUILD_DESIGNATE: {
-      return `Build ${intent.defId || intent.buildKey || "Plan"}`;
-    }
-    case IntentKinds.TILE_TAG_ORDER: {
-      const tileName = formatTileName(intent.envCol, state);
-      return `Tags > ${tileName}`;
-    }
-    case IntentKinds.HUB_TAG_ORDER: {
-      const hubName = formatHubName(intent.hubCol, state);
-      return `Tags > ${hubName}`;
-    }
-    case IntentKinds.TILE_TAG_TOGGLE: {
-      const tileName = formatTileName(intent.envCol, state);
-      const tagName = formatEnvTagName(intent.tagId);
-      const status = intent.disabled ? "Off" : "On";
-      return `Tag ${tagName} > ${tileName}: ${status}`;
-    }
-    case IntentKinds.HUB_TAG_TOGGLE: {
-      const hubName = formatHubName(intent.hubCol, state);
-      const tagName = formatHubTagName(intent.tagId);
-      const status = intent.disabled ? "Off" : "On";
-      return `Tag ${tagName} > ${hubName}: ${status}`;
-    }
-    case IntentKinds.TILE_CROP_SELECT: {
-      const tileName = formatTileName(intent.envCol, state);
-      const priority = normalizeRecipePriorityForLog(
-        "growth",
-        intent.recipePriority,
-        intent.cropId ?? null
-      );
-      const summary = formatCropPriorityLabel(priority);
-      return `Seeds > ${tileName}: ${summary}`;
-    }
-    case IntentKinds.HUB_RECIPE_SELECT: {
-      const hubName = formatHubName(intent.hubCol, state);
-      const priority = normalizeRecipePriorityForLog(
-        intent.systemId ?? null,
-        intent.recipePriority,
-        intent.recipeId ?? null
-      );
-      const summary = formatRecipePriorityLabel(intent.systemId ?? null, priority);
-      return `Recipes > ${hubName}: ${summary}`;
-    }
-    default:
-      return intent.kind || "Action";
-  }
+  return describePlannerIntent(
+    intent,
+    createActionLogDescribeContext(state, getOwnerLabel)
+  );
 }
 
 function formatCurrencyGroupDescription(group, getOwnerLabel) {
@@ -321,22 +247,15 @@ function buildIntentRowSpecs(intents, planner, state, focus, getOwnerLabel) {
   const hubPlanGroups = new Map();
 
   for (const intent of intents) {
-    if (intent?.kind !== IntentKinds.ITEM_TRANSFER) continue;
-    const kind = intent.item?.kind ?? null;
-    const info = getCurrencyGroupInfo({
-      item: intent.item ?? null,
-      kind,
-      fromOwnerId: intent.fromOwnerId,
-      toOwnerId: intent.toOwnerId,
-    });
+    const info = getCurrencyGroupInfoForIntent(intent);
     if (!info) continue;
 
-    const intentId = intent.id ?? intent.subjectKey ?? null;
+    const intentId = getPlannerIntentId(intent);
     const qty = getItemQuantity(intent.item);
     let group = groupByKey.get(info.key);
     if (!group) {
       group = {
-        kind,
+        kind: intent.item?.kind ?? null,
         minId: info.minId,
         maxId: info.maxId,
         net: 0,
@@ -491,13 +410,7 @@ function buildIntentRowSpecs(intents, planner, state, focus, getOwnerLabel) {
 
     if (!intent) continue;
     const intentCost = planner?.getIntentCost?.(intentId) ?? 0;
-    if (intent.kind === IntentKinds.ITEM_TRANSFER && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.TILE_TAG_ORDER && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.HUB_TAG_ORDER && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.TILE_TAG_TOGGLE && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.HUB_TAG_TOGGLE && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.TILE_CROP_SELECT && intentCost <= 0) continue;
-    if (intent.kind === IntentKinds.HUB_RECIPE_SELECT && intentCost <= 0) continue;
+    if (!shouldLogPlannerIntent(intent, intentCost)) continue;
     const rowId = intentId ?? `intent:${rowsOut.length}`;
     rowsOut.push({
       id: rowId,
@@ -520,16 +433,9 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
   const hubPlanGroups = new Map();
 
   for (const action of actions) {
-    if (action.kind !== ActionKinds.INVENTORY_MOVE) continue;
-    const payload = action.payload || {};
-    const kind = payload.item?.kind ?? null;
-    const info = getCurrencyGroupInfo({
-      item: payload.item ?? null,
-      kind,
-      fromOwnerId: payload.fromOwnerId,
-      toOwnerId: payload.toOwnerId,
-    });
+    const info = getCurrencyGroupInfoForAction(action);
     if (!info) continue;
+    const payload = action.payload || {};
     const qty = getItemQuantity(payload.item);
     let group = groupByKey.get(info.key);
     if (!group) {
@@ -543,11 +449,7 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
       groupByKey.set(info.key, group);
     }
     group.net += info.dir * qty;
-    group.cost += Number.isFinite(action.apCost)
-      ? Math.floor(action.apCost)
-      : Number.isFinite(payload.apCost)
-      ? Math.floor(payload.apCost)
-      : 0;
+    group.cost += getPlannerActionApCost(action);
     groupKeyByAction.set(action, info.key);
   }
 
@@ -566,10 +468,7 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
       group = { envCol, cost: 0, firstIndex: i };
       tilePlanGroups.set(envCol, group);
     }
-    const apCost =
-      Number.isFinite(action.apCost) || Number.isFinite(payload.apCost)
-        ? Math.floor(action.apCost ?? payload.apCost ?? 0)
-        : 0;
+    const apCost = getPlannerActionApCost(action);
     if (apCost > group.cost) group.cost = apCost;
   }
 
@@ -588,10 +487,7 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
       group = { hubCol, cost: 0, firstIndex: i };
       hubPlanGroups.set(hubCol, group);
     }
-    const apCost =
-      Number.isFinite(action.apCost) || Number.isFinite(payload.apCost)
-        ? Math.floor(action.apCost ?? payload.apCost ?? 0)
-        : 0;
+    const apCost = getPlannerActionApCost(action);
     if (apCost > group.cost) group.cost = apCost;
   }
 
@@ -662,88 +558,12 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
     }
 
     const kind = action.kind;
-    const apCost =
-      Number.isFinite(action.apCost) || Number.isFinite(payload.apCost)
-        ? Math.floor(action.apCost ?? payload.apCost ?? 0)
-        : 0;
-
-    let desc = "Action";
-    if (kind === ActionKinds.INVENTORY_MOVE) {
-      const itemName = payload.item?.kind
-        ? formatItemNameFromKind(payload.item.kind)
-        : `Item ${payload.itemId ?? ""}`.trim();
-      const dest = formatOwnerName(payload.toOwnerId, getOwnerLabel);
-      desc = `${itemName} > ${dest}`;
-    } else if (kind === ActionKinds.PLACE_PAWN) {
-      const pawnId = payload.pawnId;
-      const pawnName = formatPawnName(pawnId, state);
-      const placement = resolvePlacementFromPayload(payload);
-      const dest = formatPlacementName(placement, state);
-      desc = `${pawnName} > ${dest}`;
-    } else if (kind === ActionKinds.BUILD_DESIGNATE) {
-      desc = `Build ${payload.defId || payload.buildKey || "Plan"}`;
-    } else if (kind === ActionKinds.BUILD_CANCEL) {
-      const hubCol = Number.isFinite(payload.hubCol)
-        ? Math.floor(payload.hubCol)
-        : null;
-      const hubName = hubCol != null ? formatHubName(hubCol, state) : "Hub";
-      const defName = payload.defId
-        ? hubStructureDefs[payload.defId]?.name || payload.defId
-        : "Structure";
-      desc = `Cancel ${defName} @ ${hubName}`;
-    } else if (kind === ActionKinds.SET_TILE_TAG_ORDER) {
-      const tileName = formatTileName(payload.envCol, state);
-      desc = `Tags > ${tileName}`;
-    } else if (kind === ActionKinds.SET_HUB_TAG_ORDER) {
-      const hubName = formatHubName(payload.hubCol, state);
-      desc = `Tags > ${hubName}`;
-    } else if (kind === ActionKinds.TOGGLE_TILE_TAG) {
-      const tileName = formatTileName(payload.envCol, state);
-      const tagName = formatEnvTagName(payload.tagId);
-      const status = payload.disabled ? "Off" : "On";
-      desc = `Tag ${tagName} > ${tileName}: ${status}`;
-    } else if (kind === ActionKinds.TOGGLE_HUB_TAG) {
-      const hubName = formatHubName(payload.hubCol, state);
-      const tagName = formatHubTagName(payload.tagId);
-      const status = payload.disabled ? "Off" : "On";
-      desc = `Tag ${tagName} > ${hubName}: ${status}`;
-    } else if (kind === ActionKinds.SET_TILE_CROP_SELECTION) {
-      const tileName = formatTileName(payload.envCol, state);
-      const priority = normalizeRecipePriorityForLog(
-        "growth",
-        payload.recipePriority,
-        payload.cropId ?? null
-      );
-      const summary = formatCropPriorityLabel(priority);
-      desc = `Seeds > ${tileName}: ${summary}`;
-    } else if (kind === ActionKinds.SET_HUB_RECIPE_SELECTION) {
-      const hubName = formatHubName(payload.hubCol, state);
-      const priority = normalizeRecipePriorityForLog(
-        payload.systemId ?? null,
-        payload.recipePriority,
-        payload.recipeId ?? null
-      );
-      const summary = formatRecipePriorityLabel(payload.systemId ?? null, priority);
-      desc = `Recipes > ${hubName}: ${summary}`;
-    } else if (kind === ActionKinds.UNLOCK_SKILL_NODE) {
-      const leaderPawnId =
-        payload.leaderPawnId != null
-          ? payload.leaderPawnId
-          : payload.pawnId != null
-            ? payload.pawnId
-            : null;
-      const pawnName = formatPawnName(leaderPawnId, state);
-      const skillName = formatSkillNodeName(payload.nodeId);
-      desc = `Skill > ${pawnName}: ${skillName}`;
-    }
-
-    if (kind === ActionKinds.INVENTORY_MOVE && apCost <= 0) continue;
-    if (kind === ActionKinds.SET_TILE_TAG_ORDER && apCost <= 0) continue;
-    if (kind === ActionKinds.SET_HUB_TAG_ORDER && apCost <= 0) continue;
-    if (kind === ActionKinds.TOGGLE_TILE_TAG && apCost <= 0) continue;
-    if (kind === ActionKinds.TOGGLE_HUB_TAG && apCost <= 0) continue;
-    if (kind === ActionKinds.SET_TILE_CROP_SELECTION && apCost <= 0) continue;
-    if (kind === ActionKinds.SET_HUB_RECIPE_SELECTION && apCost <= 0) continue;
+    const apCost = getPlannerActionApCost(action);
+    const desc = describePlannerAction(
+      action,
+      createActionLogDescribeContext(state, getOwnerLabel)
+    );
+    if (!shouldLogPlannerAction(action, apCost)) continue;
     rowsOut.push({
       id: `${kind}:${i}`,
       description: desc,
@@ -756,25 +576,7 @@ export function buildActionRowSpecs(actions, state, getOwnerLabel) {
 }
 
 function isLogAction(action) {
-  if (!action || typeof action !== "object") return false;
-  const kind = action.kind;
-  if (kind === ActionKinds.INVENTORY_MOVE) {
-    const payload = action.payload || {};
-    const fromOwner = payload.fromOwnerId;
-    const toOwner = payload.toOwnerId;
-    return fromOwner != null && toOwner != null && fromOwner !== toOwner;
-  }
-  if (kind === ActionKinds.PLACE_PAWN) return true;
-  if (kind === ActionKinds.BUILD_DESIGNATE) return true;
-  if (kind === ActionKinds.BUILD_CANCEL) return true;
-  if (kind === ActionKinds.SET_TILE_TAG_ORDER) return true;
-  if (kind === ActionKinds.SET_HUB_TAG_ORDER) return true;
-  if (kind === ActionKinds.TOGGLE_TILE_TAG) return true;
-  if (kind === ActionKinds.TOGGLE_HUB_TAG) return true;
-  if (kind === ActionKinds.SET_TILE_CROP_SELECTION) return true;
-  if (kind === ActionKinds.SET_HUB_RECIPE_SELECTION) return true;
-  if (kind === ActionKinds.UNLOCK_SKILL_NODE) return true;
-  return false;
+  return shouldLogPlannerAction(action, getPlannerActionApCost(action));
 }
 
 function getActionsAtSecond(timeline, sec) {

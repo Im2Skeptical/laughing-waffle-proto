@@ -1,7 +1,12 @@
 import { deserializeGameState, serializeGameState } from "./state.js";
 import { canonicalizeSnapshot } from "./canonicalize.js";
-import { updateGame } from "./game-model.js";
-import { applyAction } from "./actions.js";
+import { buildProjectionSummaryFromState } from "./projection-summary.js";
+import {
+  DEFAULT_REPLAY_DT_STEP,
+  advanceReplayStateOneSecond,
+  applyReplayActionsAtSecond,
+  initializeReplayClock,
+} from "./replay-second-runner.js";
 import {
   perfEnabled,
   perfNowMs,
@@ -10,8 +15,7 @@ import {
   recordProjectionSerialize,
 } from "./perf.js";
 
-const TICKS_PER_SEC = 60;
-const DEFAULT_DT_STEP = 1 / TICKS_PER_SEC;
+const DEFAULT_FORECAST_STATE_ANCHOR_STRIDE_SEC = 16;
 
 function clampSec(value) {
   if (!Number.isFinite(value)) return 0;
@@ -24,11 +28,28 @@ function normalizeStepSec(stepSec) {
 }
 
 function resolveDtStepStrict(dtStep) {
-  if (dtStep == null) return { ok: true, dt: DEFAULT_DT_STEP };
-  if (!Number.isFinite(dtStep) || dtStep !== DEFAULT_DT_STEP) {
+  if (dtStep == null) return { ok: true, dt: DEFAULT_REPLAY_DT_STEP };
+  if (!Number.isFinite(dtStep) || dtStep !== DEFAULT_REPLAY_DT_STEP) {
     return { ok: false, reason: "unsupportedDtStep" };
   }
-  return { ok: true, dt: DEFAULT_DT_STEP };
+  return { ok: true, dt: DEFAULT_REPLAY_DT_STEP };
+}
+
+function normalizeStateAnchorStrideSec(stateAnchorStrideSec) {
+  if (!Number.isFinite(stateAnchorStrideSec) || stateAnchorStrideSec <= 0) {
+    return DEFAULT_FORECAST_STATE_ANCHOR_STRIDE_SEC;
+  }
+  return Math.max(1, Math.floor(stateAnchorStrideSec));
+}
+
+function shouldStoreStateAnchor(sec, startSec, endSec, stateAnchorStrideSec) {
+  const safeSec = clampSec(sec);
+  const safeStartSec = clampSec(startSec);
+  const safeEndSec = clampSec(endSec);
+  const stride = normalizeStateAnchorStrideSec(stateAnchorStrideSec);
+  if (safeSec <= safeStartSec) return true;
+  if (safeSec >= safeEndSec) return true;
+  return (safeSec - safeStartSec) % stride === 0;
 }
 
 function deserializeProjectionState(stateData) {
@@ -107,15 +128,16 @@ function createProjectionChunkRunner(
   }
 
   const stepSec = normalizeStepSec(opts?.stepSec);
+  const stateAnchorStrideSec = normalizeStateAnchorStrideSec(
+    opts?.stateAnchorStrideSec
+  );
   const scheduledActionsBySecond = normalizeActionsBySecond(
     opts?.actionsBySecond
   );
 
   const state = deserializeProjectionState(boundaryStateData);
   canonicalizeProjectionState(state);
-  state.paused = false;
-  state.tSec = startSec;
-  state.simStepIndex = startSec * TICKS_PER_SEC;
+  initializeReplayClock(state, startSec);
 
   return {
     ok: true,
@@ -123,6 +145,7 @@ function createProjectionChunkRunner(
     startSec,
     targetEndSec,
     stepSec,
+    stateAnchorStrideSec,
     scheduledActionsBySecond,
     state,
   };
@@ -130,30 +153,23 @@ function createProjectionChunkRunner(
 
 function advanceProjectionChunkOneSecond(runtime, sec) {
   const { dt, state, scheduledActionsBySecond } = runtime;
-  for (let i = 0; i < TICKS_PER_SEC; i += 1) {
-    updateGame(dt, state);
+  const advanceResult = advanceReplayStateOneSecond(state, dt);
+  if (!advanceResult?.ok) {
+    return advanceResult;
   }
 
   const actions = scheduledActionsBySecond.get(sec);
   if (actions && actions.length) {
-    for (const action of actions) {
-      const result = applyAction(state, action, { isReplay: true });
-      if (!result?.ok) {
-        return {
-          ok: false,
-          reason: result?.reason ?? "actionFailed",
-          detail: result?.detail ?? result ?? null,
-          action,
-          tSec: sec,
-        };
-      }
+    const replayRes = applyReplayActionsAtSecond(state, actions, sec);
+    if (!replayRes?.ok) {
+      return replayRes;
     }
   }
 
   canonicalizeProjectionState(state);
   return {
     ok: true,
-    stateData: serializeProjectionState(state),
+    summary: buildProjectionSummaryFromState(state),
   };
 }
 
@@ -171,18 +187,28 @@ export function buildProjectionChunkFromStateData(
   );
   if (!runtime?.ok) return runtime;
 
-  const { startSec, targetEndSec, stepSec } = runtime;
+  const { startSec, targetEndSec, stepSec, stateAnchorStrideSec } = runtime;
 
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   let lastStateData = serializeProjectionState(runtime.state);
+  summaryBySecond.set(startSec, buildProjectionSummaryFromState(runtime.state));
 
   for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
     if (!stepRes?.ok) return stepRes;
-    lastStateData = stepRes.stateData;
-    if ((sec - startSec) % stepSec === 0) {
-      stateDataBySecond.set(sec, lastStateData);
+    const shouldStoreAnchor =
+      (sec - startSec) % stepSec === 0 &&
+      shouldStoreStateAnchor(sec, startSec, targetEndSec, stateAnchorStrideSec);
+    const needsSerializedState = shouldStoreAnchor || sec === targetEndSec;
+    if (needsSerializedState) {
+      const stateData = serializeProjectionState(runtime.state);
+      lastStateData = stateData;
+      if (shouldStoreAnchor) {
+        stateDataBySecond.set(sec, stateData);
+      }
     }
+    summaryBySecond.set(sec, stepRes.summary);
   }
 
   return {
@@ -191,6 +217,7 @@ export function buildProjectionChunkFromStateData(
     endSec: targetEndSec,
     stepSec,
     stateDataBySecond,
+    summaryBySecond,
     lastStateData,
   };
 }
@@ -209,7 +236,7 @@ export function streamProjectionChunkFromStateData(
   );
   if (!runtime?.ok) return runtime;
 
-  const { startSec, targetEndSec, stepSec } = runtime;
+  const { startSec, targetEndSec, stepSec, stateAnchorStrideSec } = runtime;
   const requestedEmitSliceSec =
     opts?.emitSliceSec ?? Math.max(1, targetEndSec - startSec);
   const emitSliceSec = Math.max(1, Math.floor(requestedEmitSliceSec));
@@ -217,18 +244,28 @@ export function streamProjectionChunkFromStateData(
 
   let sliceBaseSec = startSec;
   let sliceStateDataBySecond = new Map();
+  let sliceSummaryBySecond = new Map();
   let lastStateData = serializeProjectionState(runtime.state);
+  sliceSummaryBySecond.set(startSec, buildProjectionSummaryFromState(runtime.state));
 
   for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
     if (!stepRes?.ok) return stepRes;
-    lastStateData = stepRes.stateData;
-    if ((sec - startSec) % stepSec === 0) {
-      sliceStateDataBySecond.set(sec, lastStateData);
-    }
+    sliceSummaryBySecond.set(sec, stepRes.summary);
 
     const reachedSliceBoundary =
       sec === targetEndSec || sec - sliceBaseSec >= emitSliceSec;
+    const shouldStoreAnchor =
+      (sec - startSec) % stepSec === 0 &&
+      shouldStoreStateAnchor(sec, startSec, targetEndSec, stateAnchorStrideSec);
+    const needsSerializedState = shouldStoreAnchor || reachedSliceBoundary;
+    if (needsSerializedState) {
+      const stateData = serializeProjectionState(runtime.state);
+      lastStateData = stateData;
+      if (shouldStoreAnchor) {
+        sliceStateDataBySecond.set(sec, stateData);
+      }
+    }
     if (!reachedSliceBoundary) continue;
 
     const chunk = {
@@ -237,11 +274,14 @@ export function streamProjectionChunkFromStateData(
       endSec: sec,
       stepSec,
       stateDataBySecond: sliceStateDataBySecond,
+      summaryBySecond: sliceSummaryBySecond,
       lastStateData,
     };
     onChunk?.(chunk, { done: sec === targetEndSec });
     sliceBaseSec = sec;
     sliceStateDataBySecond = new Map();
+    sliceSummaryBySecond = new Map();
+    sliceSummaryBySecond.set(sec, stepRes.summary);
   }
 
   return {

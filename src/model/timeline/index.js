@@ -5,8 +5,12 @@
 
 import { deserializeGameState, serializeGameState } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
-import { applyAction } from "../actions.js";
-import { updateGame } from "../game-model.js";
+import {
+  DEFAULT_REPLAY_DT_STEP,
+  advanceReplayStateOneSecond,
+  applyReplayActionsAtSecond,
+  initializeReplayClock,
+} from "../replay-second-runner.js";
 import {
   clonePersistentKnowledge,
   ensurePersistentKnowledgeState,
@@ -48,9 +52,6 @@ import {
 
 // Note: memo-cache, action-index, and mutation-signature helpers are split
 // into dedicated modules to keep this file focused on timeline orchestration.
-
-const TICKS_PER_SEC = 60;
-const MICROSTEP_DT = 1 / TICKS_PER_SEC;
 
 // Checkpoint Strategy Constants
 const CP_STRIDE_SEC = 2;
@@ -337,7 +338,7 @@ export function absorbTimelinePersistentKnowledge(tl, sourceLike) {
   ensurePersistentKnowledgeState(tl);
   const changed = mergePersistentKnowledge(tl, sourceLike);
   if (!changed) return { changed: false };
-  // Swap reference so cache signatures can detect knowledge-only mutations.
+  // Re-clone to keep timeline knowledge detached and normalized.
   tl.persistentKnowledge = clonePersistentKnowledge(tl);
   tl._memoGuardSig = computeTimelineMutationSig(tl);
   return { changed: true };
@@ -673,12 +674,8 @@ export function rebuildStateAtSecond(tl, targetSec) {
         bestCp.appliedThroughSec >= startSec));
 
   const state = deserializeGameState(startStateData);
-
-  state.tSec = startSec;
-  state.simStepIndex = startSec * TICKS_PER_SEC;
-
   // Replay ignores pause gating; timeline time only advances when unpaused.
-  state.paused = false;
+  initializeReplayClock(state, startSec);
   canonicalizeSnapshot(state);
 
   // 2) Replay second-by-second
@@ -689,19 +686,28 @@ export function rebuildStateAtSecond(tl, targetSec) {
     if (!(skipActionsAtStartSec && s === startSec)) {
       const acts = actionsBySec.get(s);
       if (acts && acts.length) {
-        for (const a of acts) {
-          const res = applyAction(state, a, { isReplay: true });
-          if (!res?.ok) {
-            console.warn(`Replay action failed at t=${s}: ${res.reason}`, a);
-            return { ok: false, reason: "actionFailed", detail: res };
-          }
+        const replayRes = applyReplayActionsAtSecond(state, acts, s);
+        if (!replayRes?.ok) {
+          console.warn(
+            `Replay action failed at t=${s}: ${replayRes.reason}`,
+            replayRes?.action
+          );
+          return { ok: false, reason: "actionFailed", detail: replayRes };
         }
       }
     }
 
     if (s < target) {
-      for (let i = 0; i < TICKS_PER_SEC; i++) {
-        updateGame(MICROSTEP_DT, state);
+      const advanceResult = advanceReplayStateOneSecond(
+        state,
+        DEFAULT_REPLAY_DT_STEP
+      );
+      if (!advanceResult?.ok) {
+        return {
+          ok: false,
+          reason: advanceResult.reason ?? "advanceFailed",
+          detail: advanceResult,
+        };
       }
     }
   }

@@ -23,6 +23,10 @@ import {
   computeIntentCostSummary,
 } from "./action-costs.js";
 import {
+  decodeTimelineActionToIntent,
+  encodeIntentToPlannerAction,
+} from "./action-plan-registry.js";
+import {
   buildPreviewSnapshot,
   createEmptyInventoryPreview,
 } from "./action-preview-state.js";
@@ -453,6 +457,40 @@ export function createActionPlanner({
     };
   }
 
+  function createTimelineIntentContext(state) {
+    return {
+      state,
+      clonePlacement,
+      normalizeApCost,
+      normalizePawnPlacement,
+      makePawnPlacement,
+      normalizeTagList,
+      normalizeRecipePriorityPayload,
+      normalizeCropId,
+      normalizeRecipeId,
+      cloneRecipePriority,
+      findTimelineItemSnapshot(action) {
+        const payload = action?.payload || {};
+        const itemId = payload.itemId ?? payload.item?.id ?? null;
+        const ownerId = payload.toOwnerId ?? payload.fromOwnerId ?? null;
+        if (itemId == null || ownerId == null) return null;
+        const inv = getInventoryForOwner(state, ownerId);
+        const item = findItemInOwner(inv, itemId);
+        return makeItemSnapshot(item);
+      },
+    };
+  }
+
+  function createIntentActionContext(state, costById = null) {
+    return {
+      state,
+      stateStart: state,
+      costById,
+      clonePlacement,
+      cloneRecipePriority,
+    };
+  }
+
   function ensureActive() {
     const timeline = getTimelineSafe();
     const state = getStateSafe();
@@ -493,268 +531,15 @@ export function createActionPlanner({
       return;
     }
 
+    const timelineIntentContext = createTimelineIntentContext(state);
     for (const action of actions) {
-      const kind = action.kind;
-      const payload = action.payload || {};
-
-      if (kind === ActionKinds.INVENTORY_MOVE) {
-        const fromOwnerId = payload.fromOwnerId;
-        const toOwnerId = payload.toOwnerId;
-        if (fromOwnerId === toOwnerId) continue;
-
-        const itemId = payload.itemId ?? payload.item?.id ?? null;
-        if (itemId == null) continue;
-
-        const fromPlacement = payload.fromPlacement
-          ? { ...payload.fromPlacement }
-          : null;
-        const toPlacement = payload.toPlacement
-          ? { ...payload.toPlacement }
-          : {
-              ownerId: toOwnerId,
-              gx: payload.targetGX,
-              gy: payload.targetGY,
-            };
-
-        let itemSnapshot = payload.item ? { ...payload.item } : null;
-        if (!itemSnapshot) {
-          const inv = getInventoryForOwner(state, toOwnerId);
-          const item = findItemInOwner(inv, itemId);
-          itemSnapshot = makeItemSnapshot(item);
-        }
-
-        const subjectKey = `item:${itemId}`;
-        const intent = makeItemTransferIntent({
-          id: subjectKey,
-          subjectKey,
-          itemId,
-          item: itemSnapshot,
-          fromOwnerId,
-          toOwnerId,
-          fromPlacement,
-          toPlacement,
-          baselinePlacement: clonePlacement(toPlacement),
-          apCostOverride: null,
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.PLACE_PAWN) {
-        const pawnId = payload.pawnId != null ? payload.pawnId : null;
-        if (pawnId == null) continue;
-
-        const toHubCol =
-          payload.toHubCol ??
-          payload.hubCol ??
-          null;
-        const toEnvCol =
-          payload.toEnvCol ??
-          payload.envCol ??
-          null;
-        const fromHubCol =
-          payload.fromHubCol != null ? payload.fromHubCol : null;
-        const fromEnvCol =
-          payload.fromEnvCol != null ? payload.fromEnvCol : null;
-
-        const fromPlacement =
-          normalizePawnPlacement(payload.fromPlacement) ??
-          makePawnPlacement({ hubCol: fromHubCol, envCol: fromEnvCol });
-        const toPlacement =
-          normalizePawnPlacement(payload.toPlacement) ??
-          makePawnPlacement({ hubCol: toHubCol, envCol: toEnvCol });
-
-        const subjectKey = `pawn:${pawnId}`;
-        const intent = makePawnMoveIntent({
-          id: subjectKey,
-          subjectKey,
-          pawnId,
-          fromPlacement,
-          toPlacement,
-          baselinePlacement: clonePlacement(toPlacement),
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.BUILD_DESIGNATE) {
-        const buildKey = payload.buildKey ?? payload.targetKey ?? null;
-        if (buildKey == null) continue;
-
-        const subjectKey = `build:${buildKey}`;
-        const intent = makeBuildDesignateIntent({
-          id: subjectKey,
-          subjectKey,
-          buildKey,
-          defId: payload.defId ?? null,
-          target: payload.target ?? null,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-      }
-
-      if (kind === ActionKinds.SET_TILE_TAG_ORDER) {
-        const envCol = payload.envCol ?? null;
-        if (!Number.isFinite(envCol)) continue;
-        const col = Math.floor(envCol);
-        const subjectKey = `tileTags:${col}`;
-        const tagIds = normalizeTagList(payload.tagIds ?? payload.tags);
-        const intent = makeTileTagOrderIntent({
-          id: subjectKey,
-          subjectKey,
-          envCol: col,
-          tagIds,
-          baselineTags: tagIds,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.SET_HUB_TAG_ORDER) {
-        const hubCol = payload.hubCol ?? null;
-        if (!Number.isFinite(hubCol)) continue;
-        const col = Math.floor(hubCol);
-        const subjectKey = `hubTags:${col}`;
-        const tagIds = normalizeTagList(payload.tagIds ?? payload.tags);
-        const intent = makeHubTagOrderIntent({
-          id: subjectKey,
-          subjectKey,
-          hubCol: col,
-          tagIds,
-          baselineTags: tagIds,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.TOGGLE_TILE_TAG) {
-        const envCol = payload.envCol ?? null;
-        const tagId = payload.tagId ?? null;
-        if (!Number.isFinite(envCol) || !tagId) continue;
-        const col = Math.floor(envCol);
-        const subjectKey = `tileTagToggle:${col}:${tagId}`;
-        const disabled = payload.disabled === true;
-        const intent = makeTileTagToggleIntent({
-          id: subjectKey,
-          subjectKey,
-          envCol: col,
-          tagId,
-          disabled,
-          baselineDisabled: disabled,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.TOGGLE_HUB_TAG) {
-        const hubCol = payload.hubCol ?? null;
-        const tagId = payload.tagId ?? null;
-        if (!Number.isFinite(hubCol) || !tagId) continue;
-        const col = Math.floor(hubCol);
-        const subjectKey = `hubTagToggle:${col}:${tagId}`;
-        const disabled = payload.disabled === true;
-        const intent = makeHubTagToggleIntent({
-          id: subjectKey,
-          subjectKey,
-          hubCol: col,
-          tagId,
-          disabled,
-          baselineDisabled: disabled,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.SET_TILE_CROP_SELECTION) {
-        const envCol = payload.envCol ?? null;
-        if (!Number.isFinite(envCol)) continue;
-        const col = Math.floor(envCol);
-        const subjectKey = `tileCrop:${col}`;
-        const recipePriority = normalizeRecipePriorityPayload(
-          {
-            recipePriority: payload.recipePriority,
-            recipeId: normalizeCropId(payload.cropId),
-          },
-          { systemId: "growth", state: getStateSafe() }
-        );
-        const intent = makeTileCropSelectIntent({
-          id: subjectKey,
-          subjectKey,
-          envCol: col,
-          recipePriority,
-          baselineRecipePriority: recipePriority,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
-
-      if (kind === ActionKinds.SET_HUB_RECIPE_SELECTION) {
-        const hubCol = payload.hubCol ?? null;
-        const systemId = payload.systemId ?? null;
-        if (!Number.isFinite(hubCol) || !systemId) continue;
-        const col = Math.floor(hubCol);
-        const subjectKey = `hubRecipe:${col}:${systemId}`;
-        const recipePriority = normalizeRecipePriorityPayload(
-          {
-            recipePriority: payload.recipePriority,
-            recipeId: normalizeRecipeId(payload.recipeId),
-          },
-          { systemId, state: getStateSafe() }
-        );
-        const intent = makeHubRecipeSelectIntent({
-          id: subjectKey,
-          subjectKey,
-          hubCol: col,
-          systemId,
-          recipePriority,
-          baselineRecipePriority: recipePriority,
-          apCostOverride: normalizeApCost(action.apCost ?? payload.apCost),
-          source: "timeline",
-        });
-
-        baselineIntents.set(subjectKey, intent);
-        intents.set(subjectKey, cloneIntent(intent));
-        if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
-        continue;
-      }
+      const intent = decodeTimelineActionToIntent(action, timelineIntentContext);
+      if (!intent) continue;
+      const subjectKey = intent.subjectKey ?? intent.id ?? getIntentSubjectKey(intent);
+      if (!subjectKey) continue;
+      baselineIntents.set(subjectKey, intent);
+      intents.set(subjectKey, cloneIntent(intent));
+      if (!intentOrder.includes(subjectKey)) intentOrder.push(subjectKey);
     }
 
     bump("rebuild");
@@ -1728,163 +1513,12 @@ export function createActionPlanner({
       stateStart: state,
     });
     const costById = costSummary?.byId || {};
+    const actionContext = createIntentActionContext(state, costById);
 
     for (const intent of orderedIntents) {
       if (!intent) continue;
-      if (intent.kind === IntentKinds.ITEM_TRANSFER) {
-        const to = intent.toPlacement;
-        if (!to) continue;
-        const payload = {
-          fromOwnerId: intent.fromOwnerId,
-          toOwnerId: intent.toOwnerId,
-          itemId: intent.itemId,
-          targetGX: to.gx,
-          targetGY: to.gy,
-          fromPlacement: intent.fromPlacement,
-          toPlacement: intent.toPlacement,
-          item: intent.item,
-        };
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.INVENTORY_MOVE,
-          payload,
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.PAWN_MOVE) {
-        const toPlacement = intent.toPlacement ?? null;
-        const toHubCol = toPlacement?.hubCol ?? null;
-        const toEnvCol = toPlacement?.envCol ?? null;
-        if (toHubCol == null && toEnvCol == null) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        const payload = {
-          pawnId: intent.pawnId,
-          fromPlacement: clonePlacement(intent.fromPlacement),
-          toPlacement: clonePlacement(toPlacement),
-        };
-        if (toHubCol != null) {
-          payload.hubCol = toHubCol;
-          payload.toHubCol = toHubCol;
-          payload.fromHubCol = intent.fromPlacement?.hubCol ?? null;
-        }
-        if (toEnvCol != null) {
-          payload.envCol = toEnvCol;
-          payload.toEnvCol = toEnvCol;
-          payload.fromEnvCol = intent.fromPlacement?.envCol ?? null;
-        }
-        actions.push({
-          kind: ActionKinds.PLACE_PAWN,
-          payload,
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.BUILD_DESIGNATE) {
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.BUILD_DESIGNATE,
-          payload: {
-            buildKey: intent.buildKey,
-            defId: intent.defId ?? null,
-            target: intent.target ?? null,
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.TILE_TAG_ORDER) {
-        if (!Number.isFinite(intent.envCol)) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.SET_TILE_TAG_ORDER,
-          payload: {
-            envCol: Math.floor(intent.envCol),
-            tagIds: Array.isArray(intent.tagIds) ? intent.tagIds.slice() : [],
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.HUB_TAG_ORDER) {
-        if (!Number.isFinite(intent.hubCol)) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.SET_HUB_TAG_ORDER,
-          payload: {
-            hubCol: Math.floor(intent.hubCol),
-            tagIds: Array.isArray(intent.tagIds) ? intent.tagIds.slice() : [],
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.TILE_TAG_TOGGLE) {
-        if (!Number.isFinite(intent.envCol) || !intent.tagId) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.TOGGLE_TILE_TAG,
-          payload: {
-            envCol: Math.floor(intent.envCol),
-            tagId: intent.tagId,
-            disabled: intent.disabled === true,
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.HUB_TAG_TOGGLE) {
-        if (!Number.isFinite(intent.hubCol) || !intent.tagId) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.TOGGLE_HUB_TAG,
-          payload: {
-            hubCol: Math.floor(intent.hubCol),
-            tagId: intent.tagId,
-            disabled: intent.disabled === true,
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.TILE_CROP_SELECT) {
-        if (!Number.isFinite(intent.envCol)) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.SET_TILE_CROP_SELECTION,
-          payload: {
-            envCol: Math.floor(intent.envCol),
-            cropId: intent.cropId ?? null,
-            recipePriority: cloneRecipePriority(intent.recipePriority),
-          },
-          apCost,
-        });
-      } else if (intent.kind === IntentKinds.HUB_RECIPE_SELECT) {
-        if (!Number.isFinite(intent.hubCol) || !intent.systemId) continue;
-        const apCost =
-          intent?.id != null && Number.isFinite(costById[intent.id])
-            ? costById[intent.id]
-            : estimateIntentApCost(intent, { stateStart: state });
-        actions.push({
-          kind: ActionKinds.SET_HUB_RECIPE_SELECTION,
-          payload: {
-            hubCol: Math.floor(intent.hubCol),
-            systemId: intent.systemId,
-            recipePriority: cloneRecipePriority(intent.recipePriority),
-          },
-          apCost,
-        });
-      }
+      const action = encodeIntentToPlannerAction(intent, actionContext);
+      if (action) actions.push(action);
     }
 
     return {

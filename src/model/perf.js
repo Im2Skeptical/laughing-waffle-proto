@@ -88,6 +88,8 @@ const perf = {
       fallbackBuiltSec: 0,
       workerMessages: 0,
       workerMessageBytes: 0,
+      workerRejectedChunks: 0,
+      workerRejectedByReason: {},
       computedToRevealedLagSec: 0,
       revealedToHistoryLagSec: 0,
       maxComputedToRevealedLagSec: 0,
@@ -282,6 +284,15 @@ export function recordSettlementForecastBuild({
     : 0;
 }
 
+export function recordSettlementForecastWorkerReject(reason = "unknown") {
+  if (!isPerfActive()) return;
+  const safeReason =
+    typeof reason === "string" && reason.length > 0 ? reason : "unknown";
+  perf.settlement.forecast.workerRejectedChunks += 1;
+  const counts = perf.settlement.forecast.workerRejectedByReason;
+  counts[safeReason] = Math.max(0, Math.floor(counts[safeReason] ?? 0)) + 1;
+}
+
 export function recordSettlementForecastLag({
   computedToRevealedLagSec = 0,
   revealedToHistoryLagSec = 0,
@@ -383,6 +394,8 @@ export function resetPerfCounters() {
   perf.settlement.forecast.fallbackBuiltSec = 0;
   perf.settlement.forecast.workerMessages = 0;
   perf.settlement.forecast.workerMessageBytes = 0;
+  perf.settlement.forecast.workerRejectedChunks = 0;
+  perf.settlement.forecast.workerRejectedByReason = {};
   perf.settlement.forecast.computedToRevealedLagSec = 0;
   perf.settlement.forecast.revealedToHistoryLagSec = 0;
   perf.settlement.forecast.maxComputedToRevealedLagSec = 0;
@@ -454,6 +467,12 @@ export function getPerfSnapshot({ timeline, controllers } = {}) {
       : 0;
     return Math.max(acc, size);
   }, 0);
+  const maxForecastSummaryCache = controllerData.reduce((acc, d) => {
+    const size = Number.isFinite(d?.projectionSummaryCacheSize)
+      ? d.projectionSummaryCacheSize
+      : 0;
+    return Math.max(acc, size);
+  }, 0);
 
   const maxForecastCap = controllerData.reduce((acc, d) => {
     const cap = Number.isFinite(d?.projectionCacheCap)
@@ -497,6 +516,7 @@ export function getPerfSnapshot({ timeline, controllers } = {}) {
     },
     graphs: {
       forecastCacheSize: maxForecastCache,
+      forecastSummaryCacheSize: maxForecastSummaryCache,
       forecastCacheCap: maxForecastCap,
       forecastCacheBytes: maxForecastBytes,
       forecastCacheMaxBytes: maxForecastMaxBytes,

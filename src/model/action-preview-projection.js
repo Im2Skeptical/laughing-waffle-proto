@@ -1,9 +1,10 @@
-import { ActionKinds, applyAction } from "./actions.js";
-import { updateGame } from "./game-model.js";
+import { collectActionTouchedTargets } from "./action-target-metadata.js";
+import { canonicalizeSnapshot } from "./canonicalize.js";
+import {
+  advanceReplayStateToSecond,
+  applyReplayActionsAtSecond,
+} from "./replay-second-runner.js";
 import { deserializeGameState, serializeGameState } from "./state.js";
-
-const TICKS_PER_SEC = 60;
-const SIM_DT_STEP = 1 / TICKS_PER_SEC;
 
 function cloneState(state) {
   return deserializeGameState(serializeGameState(state));
@@ -87,43 +88,6 @@ function addTouchedTarget(set, value) {
   set.add(value);
 }
 
-function collectActionTouchedTargets(action, touchedTargets) {
-  const payload = action?.payload || {};
-  switch (action?.kind) {
-    case ActionKinds.INVENTORY_MOVE:
-      addTouchedTarget(touchedTargets.ownerIds, payload.fromOwnerId);
-      addTouchedTarget(
-        touchedTargets.ownerIds,
-        payload.toPlacement?.ownerId ?? payload.toOwnerId
-      );
-      break;
-    case ActionKinds.PLACE_PAWN:
-      addTouchedTarget(touchedTargets.pawnIds, payload.pawnId);
-      break;
-    case ActionKinds.ADJUST_FOLLOWER_COUNT:
-    case ActionKinds.ADJUST_WORKER_COUNT:
-      addTouchedTarget(touchedTargets.pawnIds, payload.leaderId);
-      break;
-    case ActionKinds.SET_TILE_TAG_ORDER:
-    case ActionKinds.TOGGLE_TILE_TAG:
-    case ActionKinds.SET_TILE_CROP_SELECTION:
-      addTouchedTarget(touchedTargets.envCols, payload.envCol);
-      break;
-    case ActionKinds.SET_HUB_TAG_ORDER:
-    case ActionKinds.TOGGLE_HUB_TAG:
-    case ActionKinds.SET_HUB_RECIPE_SELECTION:
-      addTouchedTarget(touchedTargets.hubCols, payload.hubCol);
-      break;
-    case ActionKinds.BUILD_DESIGNATE:
-      addTouchedTarget(touchedTargets.hubCols, payload.hubCol);
-      addTouchedTarget(touchedTargets.hubCols, payload.target?.hubCol);
-      addTouchedTarget(touchedTargets.hubCols, payload.target?.col);
-      break;
-    default:
-      break;
-  }
-}
-
 function collectResultTouchedTargets(result, touchedTargets) {
   addTouchedTarget(touchedTargets.ownerIds, result?.fromOwnerId);
   addTouchedTarget(touchedTargets.ownerIds, result?.toOwnerId);
@@ -134,23 +98,7 @@ function collectResultTouchedTargets(result, touchedTargets) {
 }
 
 function advanceStateToSecond(state, targetSec) {
-  const desiredSec = Number.isFinite(targetSec) ? Math.max(0, Math.floor(targetSec)) : 0;
-  let currentSec = Number.isFinite(state?.tSec) ? Math.max(0, Math.floor(state.tSec)) : 0;
-  if (currentSec >= desiredSec) return { ok: true };
-
-  state.paused = false;
-  while (currentSec < desiredSec) {
-    const beforeSec = currentSec;
-    for (let i = 0; i < TICKS_PER_SEC; i += 1) {
-      updateGame(SIM_DT_STEP, state);
-    }
-    currentSec = Number.isFinite(state?.tSec) ? Math.max(0, Math.floor(state.tSec)) : beforeSec;
-    if (currentSec <= beforeSec) {
-      return { ok: false, reason: "advanceFailed", targetSec: desiredSec, currentSec };
-    }
-  }
-
-  return { ok: true };
+  return advanceReplayStateToSecond(state, targetSec);
 }
 
 function projectIntoState(projectedState, buckets) {
@@ -158,6 +106,8 @@ function projectIntoState(projectedState, buckets) {
   const touchedTargets = createTouchedTargets();
   let startSec = null;
   let endSec = null;
+
+  canonicalizeSnapshot(projectedState);
 
   for (const bucket of buckets) {
     if (!bucket || !Array.isArray(bucket.actions) || bucket.actions.length <= 0) continue;
@@ -180,7 +130,14 @@ function projectIntoState(projectedState, buckets) {
 
     for (const action of bucket.actions) {
       collectActionTouchedTargets(action, touchedTargets);
-      const result = applyAction(projectedState, action, { isReplay: true });
+      const replayRes = applyReplayActionsAtSecond(projectedState, [action], sec);
+      const result = replayRes?.ok
+        ? replayRes.result ?? { ok: true }
+        : {
+            ok: false,
+            reason: replayRes?.reason ?? "actionFailed",
+            detail: replayRes?.detail ?? null,
+          };
       actionResults.push({
         action,
         result,
@@ -199,6 +156,8 @@ function projectIntoState(projectedState, buckets) {
       }
       collectResultTouchedTargets(result, touchedTargets);
     }
+
+    canonicalizeSnapshot(projectedState, sec);
   }
 
   return {
@@ -218,6 +177,7 @@ export function projectActionsFromBoundaryStateData({
   if (boundaryStateData == null) return { ok: false, reason: "noBoundaryStateData" };
   const baselineState = cloneStateData(boundaryStateData);
   const projectedState = cloneStateData(boundaryStateData);
+  canonicalizeSnapshot(baselineState);
   const buckets = normalizeActionBuckets(actionsBySecond);
   const projection = projectIntoState(projectedState, buckets);
   return {
@@ -230,6 +190,7 @@ export function projectActionsFromState({ state, actionsBySecond } = {}) {
   if (!state || typeof state !== "object") return { ok: false, reason: "noState" };
   const baselineState = cloneState(state);
   const projectedState = cloneState(state);
+  canonicalizeSnapshot(baselineState);
   const buckets = normalizeActionBuckets(actionsBySecond);
   const projection = projectIntoState(projectedState, buckets);
   return {

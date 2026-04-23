@@ -48,3 +48,83 @@ export const settlementVassalProfessionIds = Object.freeze(
 export const settlementVassalTraitIds = Object.freeze(
   Object.keys(settlementVassalTraitDefs).sort((a, b) => a.localeCompare(b))
 );
+
+export const settlementVassalLifeEventDefs = Object.freeze({
+  birth: Object.freeze({
+    id: "birth",
+    assignments: Object.freeze([]),
+  }),
+  classChanged: Object.freeze({
+    id: "classChanged",
+    assignments: Object.freeze([
+      Object.freeze({
+        field: "currentClassId",
+        fromEvent: "classId",
+        onlyIfDifferent: true,
+      }),
+    ]),
+  }),
+  professionAssigned: Object.freeze({
+    id: "professionAssigned",
+    assignments: Object.freeze([
+      Object.freeze({
+        field: "professionId",
+        fromEvent: "professionId",
+        onlyIfTargetMissing: true,
+      }),
+    ]),
+  }),
+  traitAssigned: Object.freeze({
+    id: "traitAssigned",
+    assignments: Object.freeze([
+      Object.freeze({
+        field: "traitId",
+        fromEvent: "traitId",
+        onlyIfTargetMissing: true,
+      }),
+    ]),
+  }),
+  becameElder: Object.freeze({
+    id: "becameElder",
+    assignments: Object.freeze([
+      Object.freeze({
+        field: "isElder",
+        value: true,
+        onlyIfDifferent: true,
+      }),
+      Object.freeze({
+        field: "joinedCouncilSec",
+        fromEvent: "tSec",
+        transform: "floorNonNegative",
+        onlyIfDifferent: true,
+      }),
+      Object.freeze({
+        field: "councilMemberId",
+        transform: "vassalCouncilMemberId",
+        onlyIfDifferent: true,
+      }),
+    ]),
+  }),
+  died: Object.freeze({
+    id: "died",
+    assignments: Object.freeze([
+      Object.freeze({
+        field: "isDead",
+        value: true,
+        onlyIfDifferent: true,
+      }),
+      Object.freeze({
+        field: "deathCause",
+        fromEvent: "causeOfDeath",
+        fallbackTargetField: "deathCause",
+        onlyIfDifferent: true,
+      }),
+      Object.freeze({
+        field: "removedFromCouncilSec",
+        fromEvent: "tSec",
+        transform: "floorNonNegative",
+        onlyIfDifferent: true,
+      }),
+    ]),
+  }),
+});
