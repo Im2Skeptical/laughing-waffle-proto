@@ -35,8 +35,38 @@ function quantizeSecDown(value, quantumSec) {
   return Math.floor(safeValue / quantum) * quantum;
 }
 
-function isRunComplete(state) {
-  return state?.runStatus?.complete === true;
+function isRunComplete(stateOrSummary) {
+  return (
+    stateOrSummary?.runComplete === true ||
+    stateOrSummary?.runStatus?.complete === true
+  );
+}
+
+function getLossInfoFromProbe(probe, fallbackSec = 0, fallbackYear = 1) {
+  if (!probe || typeof probe !== "object") {
+    return {
+      lossSec: clampSec(fallbackSec, 0),
+      lossYear: Math.max(1, Math.floor(fallbackYear ?? 1)),
+    };
+  }
+  if (probe.runComplete === true) {
+    return {
+      lossSec: Number.isFinite(probe.runLossSec)
+        ? clampSec(probe.runLossSec, fallbackSec)
+        : clampSec(fallbackSec, 0),
+      lossYear: Number.isFinite(probe.runLossYear)
+        ? Math.max(1, Math.floor(probe.runLossYear))
+        : Math.max(1, Math.floor(fallbackYear ?? 1)),
+    };
+  }
+  return {
+    lossSec: Number.isFinite(probe?.runStatus?.tSec)
+      ? clampSec(probe.runStatus.tSec, fallbackSec)
+      : clampSec(fallbackSec, 0),
+    lossYear: Number.isFinite(probe?.runStatus?.year)
+      ? Math.max(1, Math.floor(probe.runStatus.year))
+      : Math.max(1, Math.floor(fallbackYear ?? 1)),
+  };
 }
 
 function getLossYearAtSecond(state, tSec) {
@@ -49,6 +79,8 @@ export function createSettlementForecastController({
   ensureControllerCache,
   getControllerData,
   getControllerStateAt,
+  getControllerStateDataAt,
+  getControllerSummaryAt,
   getFrontierSec,
   getFrontierState,
   getViewedState,
@@ -67,8 +99,11 @@ export function createSettlementForecastController({
   autoCommitMinIntervalMs = 0,
   autoCommitForceLagSec = 0,
   dynamicDisplayBufferYears = 0,
+  dynamicDisplayQuantumSec = 1,
   exactLossSearchBucketSec = 1,
   horizonUpdateQuantumSec = 1,
+  horizonLeadBufferSec = 0,
+  unresolvedBrowseLeadSec = 0,
 } = {}) {
   let horizonOverrideSec = null;
   let projectedLossCacheKey = "";
@@ -147,8 +182,10 @@ export function createSettlementForecastController({
     return getPendingCommitJob();
   }
 
-  function probeStateAt(tSec, counters) {
+  function probeSummaryAt(tSec, counters) {
     if (counters) counters.probes += 1;
+    const summary = getControllerSummaryAt?.(tSec) ?? null;
+    if (summary != null) return summary;
     return getControllerStateAt?.(tSec) ?? null;
   }
 
@@ -176,7 +213,7 @@ export function createSettlementForecastController({
       return finalize({ lossSec: null, lossYear: null, resolved: false });
     }
 
-    const stateAtEnd = probeStateAt(highEndSec, counters);
+    const stateAtEnd = probeSummaryAt(highEndSec, counters);
     if (!isRunComplete(stateAtEnd)) {
       return finalize({ lossSec: null, lossYear: null, resolved: false });
     }
@@ -185,7 +222,7 @@ export function createSettlementForecastController({
     let highSec = highEndSec;
     while (lowSec + 1 < highSec) {
       const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
-      const stateAtMid = probeStateAt(midSec, counters);
+      const stateAtMid = probeSummaryAt(midSec, counters);
       if (isRunComplete(stateAtMid)) {
         highSec = midSec;
       } else {
@@ -193,15 +230,15 @@ export function createSettlementForecastController({
       }
     }
 
-    const lossState = probeStateAt(highSec, counters) ?? stateAtEnd;
-    const exactLossSec = Number.isFinite(lossState?.runStatus?.tSec)
-      ? Math.max(lowStartSec, Math.floor(lossState.runStatus.tSec))
-      : highSec;
+    const lossState = probeSummaryAt(highSec, counters) ?? stateAtEnd;
+    const lossInfo = getLossInfoFromProbe(
+      lossState,
+      highSec,
+      getLossYearAtSecond(state, highSec)
+    );
     return finalize({
-      lossSec: exactLossSec,
-      lossYear: Number.isFinite(lossState?.runStatus?.year)
-        ? Math.max(1, Math.floor(lossState.runStatus.year))
-        : getLossYearAtSecond(state, exactLossSec),
+      lossSec: Math.max(lowStartSec, lossInfo.lossSec),
+      lossYear: lossInfo.lossYear,
       resolved: true,
     });
   }
@@ -314,7 +351,7 @@ export function createSettlementForecastController({
     ) {
       const boundarySec = Math.min(searchLimitSec, Math.max(0, (year - 1) * yearDurationSec));
       if (boundarySec <= lowSec) continue;
-      const stateAtBoundary = probeStateAt(boundarySec, counters);
+      const stateAtBoundary = probeSummaryAt(boundarySec, counters);
       if (isRunComplete(stateAtBoundary)) {
         highSec = boundarySec;
         break;
@@ -322,7 +359,7 @@ export function createSettlementForecastController({
       if (boundarySec >= searchLimitSec) break;
     }
     if (highSec == null) {
-      const stateAtLimit = probeStateAt(searchLimitSec, counters);
+      const stateAtLimit = probeSummaryAt(searchLimitSec, counters);
       if (isRunComplete(stateAtLimit)) {
         highSec = searchLimitSec;
       }
@@ -337,7 +374,7 @@ export function createSettlementForecastController({
 
     while (lowSec + 1 < highSec) {
       const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
-      const stateAtMid = probeStateAt(midSec, counters);
+      const stateAtMid = probeSummaryAt(midSec, counters);
       if (isRunComplete(stateAtMid)) {
         highSec = midSec;
       } else {
@@ -345,15 +382,15 @@ export function createSettlementForecastController({
       }
     }
 
-    const lossState = probeStateAt(highSec, counters);
-    const exactLossSec = Number.isFinite(lossState?.runStatus?.tSec)
-      ? Math.max(historyEndSec, Math.floor(lossState.runStatus.tSec))
-      : highSec;
+    const lossState = probeSummaryAt(highSec, counters);
+    const lossInfo = getLossInfoFromProbe(
+      lossState,
+      highSec,
+      getLossYearAtSecond(frontierState, highSec)
+    );
     const resolved = {
-      lossSec: exactLossSec,
-      lossYear: Number.isFinite(lossState?.runStatus?.year)
-        ? Math.max(1, Math.floor(lossState.runStatus.year))
-        : getLossYearAtSecond(frontierState, exactLossSec),
+      lossSec: Math.max(historyEndSec, lossInfo.lossSec),
+      lossYear: lossInfo.lossYear,
       resolved: true,
     };
     projectedLossCacheKey = resolvedCacheKey;
@@ -367,7 +404,11 @@ export function createSettlementForecastController({
     const bufferSec =
       clampPositiveInt(getSettlementYearDurationSec(frontierState), 1) *
       clampPositiveInt(dynamicDisplayBufferYears, 1);
-    return Math.max(frontierSec, getBrowseCapSec() + bufferSec);
+    const rawDisplayLossSec = Math.max(frontierSec, getBrowseCapSec() + bufferSec);
+    return Math.max(
+      frontierSec,
+      quantizeSecUp(rawDisplayLossSec, dynamicDisplayQuantumSec)
+    );
   }
 
   function getDisplayedLossInfo() {
@@ -569,16 +610,33 @@ export function createSettlementForecastController({
         clampSec(forecastStatus.projectedLossSec, historyEndSec) - historyEndSec
       );
     } else {
+      const unresolvedBrowseLead = clampSec(unresolvedBrowseLeadSec, 0);
       requiredHorizonSec = Math.max(
         0,
         latestDeathSec - historyEndSec,
-        clampSec(forecastStatus.displayedLossSec, historyEndSec) - historyEndSec,
-        forecastStatus.browseCapSec - historyEndSec + clampSec(graphWindowSec, 0)
+        forecastStatus.browseCapSec - historyEndSec + unresolvedBrowseLead
       );
     }
 
+    const currentAppliedHorizonSec =
+      horizonOverrideSec != null
+        ? Math.max(0, Math.floor(horizonOverrideSec))
+        : clampSec(graphWindowSec, 0);
+    const leadBufferSec = clampSec(horizonLeadBufferSec, 0);
+    let bufferedRequiredHorizonSec = requiredHorizonSec;
+    if (
+      forecastStatus.pendingCommitTargetSec == null &&
+      forecastStatus.projectedLossResolved !== true
+    ) {
+      if (requiredHorizonSec <= currentAppliedHorizonSec) {
+        bufferedRequiredHorizonSec = currentAppliedHorizonSec;
+      } else if (leadBufferSec > 0) {
+        bufferedRequiredHorizonSec = requiredHorizonSec + leadBufferSec;
+      }
+    }
+
     const quantizedRequiredHorizonSec = quantizeSecUp(
-      requiredHorizonSec,
+      bufferedRequiredHorizonSec,
       horizonUpdateQuantumSec
     );
     horizonOverrideSec =
@@ -681,7 +739,9 @@ export function createSettlementForecastController({
     }
 
     const viewedSec = clampSec(getViewedSec?.(), historyEndSec);
-    const commitRes = commitCursorSecond?.(commitTargetSec);
+    const commitStateData =
+      getControllerStateDataAt?.(commitTargetSec) ?? null;
+    const commitRes = commitCursorSecond?.(commitTargetSec, commitStateData);
     if (commitRes?.ok !== true) {
       return;
     }

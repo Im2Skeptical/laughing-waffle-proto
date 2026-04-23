@@ -8,6 +8,7 @@ import {
   buildProjectionStateStepWindowFromStateData,
   buildProjectionStateWindowFromStateData,
 } from "../projection.js";
+import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { deserializeGameState } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
 import {
@@ -1234,6 +1235,7 @@ export function createTimeGraphController({
         graphCache?.window?.forecastRequestedEndSec ?? null,
       cacheVersion: graphCache?.version ?? cacheVersion,
       projectionCacheSize: projection.getSize?.(),
+      projectionSummaryCacheSize: projection.getSummarySize?.(),
       projectionCacheCap: projection.maxEntries,
       projectionCacheApproxBytes: projection.getApproxBytes?.(),
       projectionCacheMaxBytes: projection.maxBytes,
@@ -1630,6 +1632,37 @@ export function createTimeGraphController({
     return res.stateData ?? null;
   }
 
+  function getSummaryAt(tSec) {
+    const tl = getTimeline?.();
+    if (!tl) return null;
+    const sec = clampSec(tSec);
+    const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    if (sec > historyEndSec) {
+      const cachedSummary = projection.getSummary?.(sec) ?? null;
+      if (cachedSummary != null) {
+        return cachedSummary;
+      }
+    }
+
+    const stateData = getStateDataAt(sec);
+    if (stateData == null) return null;
+    const deserializeStartMs = perfEnabled() ? perfNowMs() : 0;
+    const state = deserializeGameState(stateData);
+    if (perfEnabled()) {
+      recordProjectionDeserialize(perfNowMs() - deserializeStartMs);
+    }
+    const canonicalizeStartMs = perfEnabled() ? perfNowMs() : 0;
+    canonicalizeSnapshot(state);
+    if (perfEnabled()) {
+      recordProjectionCanonicalize(perfNowMs() - canonicalizeStartMs);
+    }
+    const summary = buildProjectionSummaryFromState(state);
+    if (sec > historyEndSec) {
+      projection.setSummary?.(sec, summary);
+    }
+    return summary;
+  }
+
   function getStateAt(tSec) {
     const stateData = getStateDataAt(tSec);
     if (stateData == null) return null;
@@ -1715,6 +1748,7 @@ export function createTimeGraphController({
     getSamplesForWindow,
     getSeriesValuesForSeconds,
     getStateDataAt,
+    getSummaryAt,
     getStateAt,
     ensureForecastCoverageTo,
     setMetric,

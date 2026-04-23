@@ -5,6 +5,8 @@ import {
   buildProjectionStateStepWindowFromStateData,
   buildProjectionStateWindowFromStateData,
 } from "../projection.js";
+import { buildProjectionSummaryFromState } from "../projection-summary.js";
+import { deserializeGameState } from "../state.js";
 import {
   absorbTimelinePersistentKnowledge,
   getStateDataAtSecond,
@@ -21,14 +23,12 @@ function computeTimelineSignature(tl) {
   const actions = Array.isArray(tl?.actions) ? tl.actions : [];
   const len = actions.length;
   const last = len ? actions[len - 1] : null;
-  const persistentKnowledgeRef = tl?.persistentKnowledge ?? null;
   return {
     baseRef: tl?.baseStateData ?? null,
     actionsRef: actions,
     actionsLen: len,
     lastRef: last,
     lastSec: last ? Math.floor(last.tSec ?? 0) : 0,
-    persistentKnowledgeRef,
   };
 }
 
@@ -39,8 +39,7 @@ function signatureEquals(a, b) {
     a.actionsRef === b.actionsRef &&
     a.actionsLen === b.actionsLen &&
     a.lastRef === b.lastRef &&
-    a.lastSec === b.lastSec &&
-    a.persistentKnowledgeRef === b.persistentKnowledgeRef
+    a.lastSec === b.lastSec
   );
 }
 
@@ -59,6 +58,7 @@ export function createProjectionCache({
   let forecastAsyncStepSec = 1;
   let forecastAsyncToken = null;
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   const bytesBySecond = new Map();
   let stateDataSizeSamples = 0;
   let lastPurgedHistoryEndSec = -1;
@@ -85,6 +85,7 @@ export function createProjectionCache({
     forecastAsyncStepSec = 1;
     forecastAsyncToken = null;
     stateDataBySecond.clear();
+    summaryBySecond.clear();
     bytesBySecond.clear();
     approxBytesTotal = 0;
     stateDataSizeSamples = 0;
@@ -124,8 +125,26 @@ export function createProjectionCache({
     if (!stateDataBySecond.has(sec)) return;
     const removedBytes = bytesBySecond.get(sec) ?? 0;
     stateDataBySecond.delete(sec);
+    summaryBySecond.delete(sec);
     bytesBySecond.delete(sec);
     approxBytesTotal = Math.max(0, approxBytesTotal - removedBytes);
+  }
+
+  function setSummary(sec, summary) {
+    const t = clampSec(sec);
+    if (!summary || typeof summary !== "object") {
+      summaryBySecond.delete(t);
+      return;
+    }
+    summaryBySecond.set(t, summary);
+  }
+
+  function buildAndSetSummaryFromStateData(sec, stateData) {
+    if (stateData == null) return null;
+    const state = deserializeGameState(stateData);
+    const summary = buildProjectionSummaryFromState(state);
+    setSummary(sec, summary);
+    return summary;
   }
 
   function set(sec, data) {
@@ -149,9 +168,14 @@ export function createProjectionCache({
 
   function purgePastForecast(historyEndSec) {
     const cutoff = clampSec(historyEndSec);
-    for (const sec of stateDataBySecond.keys()) {
+    const forecastSecs = new Set([
+      ...stateDataBySecond.keys(),
+      ...summaryBySecond.keys(),
+    ]);
+    for (const sec of forecastSecs) {
       if (clampSec(sec) <= cutoff) {
         removeSec(sec);
+        summaryBySecond.delete(sec);
       }
     }
     lastPurgedHistoryEndSec = Math.max(lastPurgedHistoryEndSec, cutoff);
@@ -168,6 +192,13 @@ export function createProjectionCache({
     const historyEnd = clampSec(historyEndSec);
     if (t <= historyEnd) return;
     set(t, data);
+  }
+
+  function setForecastSummary(sec, historyEndSec, summary) {
+    const t = clampSec(sec);
+    const historyEnd = clampSec(historyEndSec);
+    if (t <= historyEnd) return;
+    setSummary(t, summary);
   }
 
   function ensureSignature(tl) {
@@ -262,6 +293,9 @@ export function createProjectionCache({
         for (const [sec, sd] of extend.stateDataBySecond.entries()) {
           setForecastState(sec, historyEndSec, sd);
         }
+        for (const [sec, summary] of extend.summaryBySecond.entries()) {
+          setForecastSummary(sec, historyEndSec, summary);
+        }
         forecastEndSec = extend.window.endSec;
         forecastStepSec = step;
         forecastDtStep = dtStep;
@@ -294,6 +328,9 @@ export function createProjectionCache({
           for (const [sec, sd] of extend.stateDataBySecond.entries()) {
             setForecastState(sec, historyEndSec, sd);
           }
+          for (const [sec, summary] of extend.summaryBySecond.entries()) {
+            setForecastSummary(sec, historyEndSec, summary);
+          }
           forecastEndSec = extend.window.endSec;
         }
       }
@@ -322,6 +359,9 @@ export function createProjectionCache({
 
     for (const [sec, sd] of winRes.stateDataBySecond.entries()) {
       setForecastState(sec, historyEndSec, sd);
+    }
+    for (const [sec, summary] of winRes.summaryBySecond.entries()) {
+      setForecastSummary(sec, historyEndSec, summary);
     }
 
     forecastBaseSec = baseSec;
@@ -419,6 +459,10 @@ export function createProjectionCache({
             const sd = win.stateDataBySecond.get(t);
             if (sd != null) {
               setForecastState(t, historyEnd, sd);
+              const summary = win.summaryBySecond.get(t);
+              if (summary != null) {
+                setForecastSummary(t, historyEnd, summary);
+              }
               if (absorbKnowledge) {
                 absorbTimelinePersistentKnowledge(tl, sd);
               }
@@ -427,6 +471,9 @@ export function createProjectionCache({
           }
         } else if (delta === 0) {
           setForecastState(t, historyEnd, anchorData);
+          if (summaryBySecond.get(t) == null) {
+            buildAndSetSummaryFromStateData(t, anchorData);
+          }
           if (absorbKnowledge) {
             absorbTimelinePersistentKnowledge(tl, anchorData);
           }
@@ -482,8 +529,23 @@ export function createProjectionCache({
       setForecastState(sec, currentHistoryEndSec, stateData);
     }
 
+    const summaryEntries = Array.isArray(chunk?.summaryBySecond)
+      ? chunk.summaryBySecond
+      : chunk?.summaryBySecond instanceof Map
+        ? Array.from(chunk.summaryBySecond.entries())
+        : [];
+    for (const entry of summaryEntries) {
+      const sec = Array.isArray(entry) ? entry[0] : entry?.sec;
+      const summary = Array.isArray(entry) ? entry[1] : entry?.summary;
+      if (summary == null) continue;
+      setForecastSummary(sec, currentHistoryEndSec, summary);
+    }
+
     if (chunk?.lastStateData != null) {
       setForecastState(endSec, currentHistoryEndSec, chunk.lastStateData);
+      if (summaryBySecond.get(endSec) == null) {
+        buildAndSetSummaryFromStateData(endSec, chunk.lastStateData);
+      }
     }
 
     forecastAsyncEndSec = Math.max(forecastAsyncEndSec, endSec);
@@ -516,9 +578,14 @@ export function createProjectionCache({
       forecastAsyncToken,
     }),
     getStateData: (sec) => touch(clampSec(sec)),
+    getSummary: (sec) => summaryBySecond.get(clampSec(sec)) ?? null,
     setStateData: (sec, data) => {
       const t = clampSec(sec);
       set(t, data);
+      return { ok: true };
+    },
+    setSummary: (sec, summary) => {
+      setSummary(sec, summary);
       return { ok: true };
     },
     getDebugSecondKeys: (limit = 32) => {
@@ -532,6 +599,7 @@ export function createProjectionCache({
     },
     clear: () => reset(-1),
     getSize: () => stateDataBySecond.size,
+    getSummarySize: () => summaryBySecond.size,
     getApproxBytes: () => approxBytesTotal,
     maxBytes: maxBytesBudget,
     maxEntries: Number.isFinite(maxEntriesBudget) ? maxEntriesBudget : null,

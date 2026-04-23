@@ -857,6 +857,38 @@ function getPracticePassiveBonuses(state, classSummaries, seasonKey) {
   return totalsByClass;
 }
 
+function createSettlementExecutionContext(state, tSec = 0) {
+  let cachedSummary = null;
+  let summaryDirty = true;
+  let cachedSeasonKey = null;
+  let seasonDirty = true;
+
+  return {
+    state,
+    tSec,
+    invalidateDerivedSummary() {
+      summaryDirty = true;
+    },
+    invalidateSeasonKey() {
+      seasonDirty = true;
+    },
+    getSeasonKey() {
+      if (seasonDirty || cachedSeasonKey == null) {
+        cachedSeasonKey = getCurrentSeasonKey(state);
+        seasonDirty = false;
+      }
+      return cachedSeasonKey;
+    },
+    getDerivedSummary() {
+      if (summaryDirty || !cachedSummary) {
+        cachedSummary = computeStructureDerivedState(state);
+        summaryDirty = false;
+      }
+      return cachedSummary;
+    },
+  };
+}
+
 function computeStructureDerivedState(state) {
   const core = getHubCore(state);
   const classIds = getSettlementClassIds(state);
@@ -1316,7 +1348,7 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
   return changed;
 }
 
-function maybeApplySettlementYearlyPopulationChange(state, tSec) {
+function maybeApplySettlementYearlyPopulationChange(state, tSec, executionContext = null) {
   const core = getHubCore(state);
   const stockpiles = getStockpilesState(state);
   if (!core || !stockpiles) return false;
@@ -1393,7 +1425,12 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     };
   }
 
-  const afterMealsSummary = computeStructureDerivedState(state);
+  if (executionContext) {
+    executionContext.invalidateDerivedSummary();
+  }
+  const afterMealsSummary = executionContext
+    ? executionContext.getDerivedSummary()
+    : computeStructureDerivedState(state);
   let remainingVacancy = Math.max(
     0,
     Math.floor(afterMealsSummary.populationCapacity) - Math.floor(afterMealsSummary.totalPopulation)
@@ -1440,7 +1477,12 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
     }
   }
 
-  const afterAttractionSummary = computeStructureDerivedState(state);
+  if (executionContext) {
+    executionContext.invalidateDerivedSummary();
+  }
+  const afterAttractionSummary = executionContext
+    ? executionContext.getDerivedSummary()
+    : computeStructureDerivedState(state);
   applySettlementHousingPressureHappinessCap(state, afterAttractionSummary);
   for (const classId of classIds) {
     const result = yearlyResults[classId];
@@ -1566,10 +1608,20 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec) {
   return true;
 }
 
-function runSettlementPopulationSeasonTick(state, tSec) {
+function runSettlementPopulationSeasonTick(state, tSec, executionContext = null) {
   if (!state || state._seasonChanged !== true) return false;
-  maybeApplySettlementYearlyPopulationChange(state, tSec);
-  return consumeSettlementMealsOnSeasonChange(state, tSec);
+  const activeExecutionContext =
+    executionContext ?? createSettlementExecutionContext(state, tSec);
+  const yearlyChanged = maybeApplySettlementYearlyPopulationChange(
+    state,
+    tSec,
+    activeExecutionContext
+  );
+  const mealChanged = consumeSettlementMealsOnSeasonChange(state, tSec);
+  if (mealChanged) {
+    activeExecutionContext.invalidateDerivedSummary();
+  }
+  return yearlyChanged || mealChanged;
 }
 
 function getPendingPopulationForSource(state, classId, sourceId) {
@@ -1845,107 +1897,161 @@ function syncPracticeIndicators(state, tSec, summary) {
   }
 }
 
-function executePassivePractices(state, tSec) {
-  let summary = computeStructureDerivedState(state);
-  const seasonKey = getCurrentSeasonKey(state);
-  const core = getHubCore(state);
+function evaluatePracticeExecution(
+  state,
+  tSec,
+  classId,
+  classSummary,
+  card,
+  practiceMode,
+  seasonKey
+) {
+  const cardDef = settlementPracticeDefs[card?.defId];
+  if (!cardDef || getPracticeMode(cardDef) !== practiceMode) return null;
 
-  for (const classId of getSettlementClassIds(state)) {
-    const practiceSlots = getSettlementPracticeSlotsByClass(state, classId);
-    const classSummary = summary?.classSummaries?.[classId] ?? {
-      totalPopulation: 0,
-      freePopulation: 0,
-    };
-    for (let slotIndex = 0; slotIndex < practiceSlots.length; slotIndex += 1) {
-      const card = practiceSlots[slotIndex]?.card ?? null;
-      if (!card) continue;
-      const cardDef = settlementPracticeDefs[card.defId];
-      if (!cardDef || getPracticeMode(cardDef) !== "passive") continue;
+  const resolved = resolvePracticeExecutionDef(state, classId, card, classSummary, tSec);
+  const executionDef = resolved.executionDef;
+  const requirementResult = executionDef
+    ? practiceRequirementsPass(executionDef, state, classSummary, seasonKey, classId)
+    : { ok: false, reason: resolved.blockedReason };
+  const amountResult =
+    executionDef && requirementResult.ok
+      ? resolvePracticeAmountResult(executionDef, state, classSummary)
+      : { amount: 0, reason: null };
+  const amount = amountResult.amount;
+  const hasPassiveEffects =
+    executionDef &&
+    (Array.isArray(executionDef?.effects)
+      ? executionDef.effects.length > 0
+      : !!executionDef?.effects);
+  const timingPasses =
+    executionDef &&
+    (practiceMode === "active" || hasPassiveEffects) &&
+    passiveTimingPasses(executionDef.timing, state, tSec, {
+      passiveKey: buildPracticePassiveKey(card, classId),
+      isActive: requirementResult.ok && amount > 0,
+    });
+  const progressRuntime =
+    practiceMode === "active"
+      ? getPracticeProgressRuntime(state, classId, cardDef, executionDef, tSec)
+      : null;
 
-      const resolved = resolvePracticeExecutionDef(state, classId, card, classSummary, tSec);
-      const executionDef = resolved.executionDef;
-      const requirementResult = executionDef
-        ? practiceRequirementsPass(executionDef, state, classSummary, seasonKey, classId)
-        : { ok: false, reason: resolved.blockedReason };
-      const amountResult =
-        executionDef && requirementResult.ok
-          ? resolvePracticeAmountResult(executionDef, state, classSummary)
-          : { amount: 0, reason: null };
-      const amount = amountResult.amount;
-      const hasPassiveEffects =
-        executionDef &&
-        (Array.isArray(executionDef?.effects) ? executionDef.effects.length > 0 : !!executionDef?.effects);
-      const timingPasses = hasPassiveEffects
-        ? passiveTimingPasses(executionDef.timing, state, tSec, {
-            passiveKey: buildPracticePassiveKey(card, classId),
-            isActive: requirementResult.ok && amount > 0,
-          })
-        : false;
+  return {
+    cardDef,
+    executionDef,
+    resolved,
+    requirementResult,
+    amountResult,
+    amount,
+    hasPassiveEffects,
+    timingPasses,
+    progressRuntime,
+  };
+}
 
-      setPracticeRuntime(card, {
-        practiceMode: "passive",
-        slotIndex,
-        ownerClassId: classId,
-        pendingPopulation: 0,
-        previewAmount: amount,
-        available: !!executionDef && requirementResult.ok && amountResult.reason == null,
-        blockedReason: executionDef
+function syncPracticeRuntimeFromEvaluation(
+  state,
+  tSec,
+  classId,
+  slotIndex,
+  card,
+  practiceMode,
+  evaluation
+) {
+  const {
+    cardDef,
+    executionDef,
+    resolved,
+    requirementResult,
+    amountResult,
+    amount,
+    progressRuntime,
+  } = evaluation;
+  const sharedRuntime = {
+    practiceMode,
+    slotIndex,
+    ownerClassId: classId,
+    previewAmount: amount,
+    mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
+    ...getPracticeUpgradeTargetRuntime(state, cardDef),
+    lastEvaluatedSec: tSec,
+  };
+
+  if (practiceMode === "passive") {
+    setPracticeRuntime(card, {
+      ...sharedRuntime,
+      pendingPopulation: 0,
+      available: !!executionDef && requirementResult.ok && amountResult.reason == null,
+      blockedReason: executionDef
+        ? requirementResult.ok
+          ? amountResult.reason
+          : requirementResult.reason
+        : resolved.blockedReason,
+      activeReservation: false,
+      activeProgressKind: null,
+      activeAmount: 0,
+      activeStartSec: null,
+      activeReleaseSec: null,
+      activeDurationSec: 0,
+      activeRemainingSec: 0,
+      activeProgressRemaining: 0,
+    });
+    return;
+  }
+
+  setPracticeRuntime(card, {
+    ...sharedRuntime,
+    pendingPopulation: progressRuntime.activeAmount,
+    available:
+      progressRuntime.activeReservation ||
+      (!!executionDef && requirementResult.ok && amount > 0),
+    blockedReason:
+      progressRuntime.activeReservation
+        ? null
+        : executionDef
           ? requirementResult.ok
             ? amountResult.reason
             : requirementResult.reason
           : resolved.blockedReason,
-        activeReservation: false,
-        activeProgressKind: null,
-        activeAmount: 0,
-        activeStartSec: null,
-        activeReleaseSec: null,
-        activeDurationSec: 0,
-        activeRemainingSec: 0,
-        activeProgressRemaining: 0,
-        mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
-        ...getPracticeUpgradeTargetRuntime(state, cardDef),
-        lastEvaluatedSec: tSec,
-      });
-
-      if (!executionDef || !requirementResult.ok || !hasPassiveEffects || !timingPasses || amount <= 0) {
-        continue;
-      }
-
-      const didChange = runEffect(state, executionDef.effects, {
-        kind: "game",
-        state,
-        source: core,
-        tSec,
-        practice: card,
-        practiceDef: executionDef,
-        practiceSourceId: cardDef.id,
-        practiceSourceLabel: cardDef.name,
-        populationClassId: classId,
-        targetPopulationClassId:
-          typeof cardDef.passiveTargetPopulationClassId === "string"
-            ? cardDef.passiveTargetPopulationClassId
-            : classId,
-        vars: {
-          practiceAmount: amount,
-        },
-      });
-      if (!didChange) continue;
-
-      setPracticeRuntime(card, {
-        lastRunSec: tSec,
-        lastAmount: amount,
-      });
-      summary = computeStructureDerivedState(state);
-    }
-  }
-
-  syncPracticeIndicators(state, tSec, summary);
+    mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
+    ...progressRuntime,
+  });
 }
 
-function executePractices(state, tSec) {
-  let summary = computeStructureDerivedState(state);
-  const seasonKey = getCurrentSeasonKey(state);
+function executePracticeEffects(state, tSec, classId, card, practiceMode, evaluation, core) {
+  const { cardDef, executionDef, amount } = evaluation;
+  return runEffect(state, executionDef.effects, {
+    kind: "game",
+    state,
+    source: core,
+    tSec,
+    practice: card,
+    practiceDef: executionDef,
+    practiceSourceId: cardDef.id,
+    practiceSourceLabel: cardDef.name,
+    populationClassId: classId,
+    ...(practiceMode === "passive"
+      ? {
+          targetPopulationClassId:
+            typeof cardDef.passiveTargetPopulationClassId === "string"
+              ? cardDef.passiveTargetPopulationClassId
+              : classId,
+        }
+      : {
+          fromPopulationClassId: classId,
+        }),
+    vars: {
+      practiceAmount: amount,
+    },
+  });
+}
+
+function executePracticeMode(state, tSec, practiceMode, executionContext = null) {
+  const activeExecutionContext =
+    executionContext ?? createSettlementExecutionContext(state, tSec);
+  let summary = activeExecutionContext.getDerivedSummary();
   const core = getHubCore(state);
+  const seasonKey = activeExecutionContext.getSeasonKey();
 
   for (const classId of getSettlementClassIds(state)) {
     const practiceSlots = getSettlementPracticeSlotsByClass(state, classId);
@@ -1953,96 +2059,84 @@ function executePractices(state, tSec) {
       totalPopulation: 0,
       freePopulation: 0,
     };
-    if (findActivePracticeSlotIndex(state, classId, tSec) != null) {
+    if (practiceMode === "active" && findActivePracticeSlotIndex(state, classId, tSec) != null) {
       continue;
     }
 
     for (let slotIndex = 0; slotIndex < practiceSlots.length; slotIndex += 1) {
       const card = practiceSlots[slotIndex]?.card ?? null;
       if (!card) continue;
-      const cardDef = settlementPracticeDefs[card.defId];
-      if (!cardDef || getPracticeMode(cardDef) !== "active") continue;
-
-      const resolved = resolvePracticeExecutionDef(state, classId, card, classSummary, tSec);
-      const executionDef = resolved.executionDef;
-      const requirementResult = executionDef
-        ? practiceRequirementsPass(executionDef, state, classSummary, seasonKey, classId)
-        : { ok: false, reason: resolved.blockedReason };
-      const amountResult =
-        executionDef && requirementResult.ok
-          ? resolvePracticeAmountResult(executionDef, state, classSummary)
-          : { amount: 0, reason: null };
-      const amount = amountResult.amount;
-      const timingPasses =
-        executionDef &&
-        passiveTimingPasses(executionDef.timing, state, tSec, {
-          passiveKey: buildPracticePassiveKey(card, classId),
-          isActive: requirementResult.ok && amount > 0,
-        });
-      const progressRuntime = getPracticeProgressRuntime(
+      const evaluation = evaluatePracticeExecution(
         state,
+        tSec,
         classId,
-        cardDef,
-        executionDef,
-        tSec
+        classSummary,
+        card,
+        practiceMode,
+        seasonKey
+      );
+      if (!evaluation) continue;
+
+      syncPracticeRuntimeFromEvaluation(
+        state,
+        tSec,
+        classId,
+        slotIndex,
+        card,
+        practiceMode,
+        evaluation
       );
 
-      setPracticeRuntime(card, {
-        practiceMode: "active",
-        slotIndex,
-        ownerClassId: classId,
-        pendingPopulation: progressRuntime.activeAmount,
-        previewAmount: amount,
-        available:
-          progressRuntime.activeReservation ||
-          (!!executionDef && requirementResult.ok && amount > 0),
-        blockedReason:
-          progressRuntime.activeReservation
-            ? null
-            : executionDef
-              ? requirementResult.ok
-                ? amountResult.reason
-                : requirementResult.reason
-              : resolved.blockedReason,
-        mirroredPracticeTitle: resolved.mirroredFrom?.title ?? null,
-        mirroredPracticeClassId: resolved.mirroredFrom?.classId ?? null,
-        ...getPracticeUpgradeTargetRuntime(state, cardDef),
-        ...progressRuntime,
-        lastEvaluatedSec: tSec,
-      });
+      const { executionDef, requirementResult, hasPassiveEffects, timingPasses, amount } =
+        evaluation;
+      const canRun =
+        practiceMode === "passive"
+          ? !!executionDef &&
+            requirementResult.ok &&
+            hasPassiveEffects &&
+            timingPasses &&
+            amount > 0
+          : !!executionDef && requirementResult.ok && timingPasses && amount > 0;
+      if (!canRun) continue;
 
-      if (!executionDef || !requirementResult.ok || !timingPasses || amount <= 0) continue;
-
-      const didChange = runEffect(state, executionDef.effects, {
-        kind: "game",
+      const didChange = executePracticeEffects(
         state,
-        source: core,
         tSec,
-        practice: card,
-        practiceDef: executionDef,
-        practiceSourceId: cardDef.id,
-        practiceSourceLabel: cardDef.name,
-        populationClassId: classId,
-        fromPopulationClassId: classId,
-        vars: {
-          practiceAmount: amount,
-        },
-      });
-      if (!didChange) break;
+        classId,
+        card,
+        practiceMode,
+        evaluation,
+        core
+      );
+      if (!didChange) {
+        if (practiceMode === "active") break;
+        continue;
+      }
 
       setPracticeRuntime(card, {
         lastRunSec: tSec,
         lastAmount: amount,
       });
-      summary = computeStructureDerivedState(state);
-      break;
+      activeExecutionContext.invalidateDerivedSummary();
+      summary = activeExecutionContext.getDerivedSummary();
+      if (practiceMode === "active") break;
     }
   }
 
   syncPracticeIndicators(state, tSec, summary);
 }
 
-export function syncSettlementDerivedState(state, tSec = 0) {
+function executePassivePractices(state, tSec, executionContext = null) {
+  executePracticeMode(state, tSec, "passive", executionContext);
+}
+
+function executePractices(state, tSec, executionContext = null) {
+  executePracticeMode(state, tSec, "active", executionContext);
+}
+
+export function syncSettlementDerivedState(state, tSec = 0, executionContext = null) {
+  const activeExecutionContext =
+    executionContext ?? createSettlementExecutionContext(state, tSec);
   const desiredGreenResource = getStockpilesState(state)?.greenResource;
   if (Number.isFinite(desiredGreenResource)) {
     syncSettlementFloodplainGreenResource(state, desiredGreenResource);
@@ -2051,7 +2145,7 @@ export function syncSettlementDerivedState(state, tSec = 0) {
   if (Number.isFinite(desiredBlueResource)) {
     syncSettlementHinterlandBlueResource(state, desiredBlueResource);
   }
-  let summary = computeStructureDerivedState(state);
+  let summary = activeExecutionContext.getDerivedSummary();
   if (clampSettlementState(state, summary)) {
     if (Number.isFinite(getStockpilesState(state)?.greenResource)) {
       syncSettlementFloodplainGreenResource(state, getStockpilesState(state).greenResource);
@@ -2059,7 +2153,8 @@ export function syncSettlementDerivedState(state, tSec = 0) {
     if (Number.isFinite(getStockpilesState(state)?.blueResource)) {
       syncSettlementHinterlandBlueResource(state, getStockpilesState(state).blueResource);
     }
-    summary = computeStructureDerivedState(state);
+    activeExecutionContext.invalidateDerivedSummary();
+    summary = activeExecutionContext.getDerivedSummary();
   }
   syncPracticeIndicators(state, tSec, summary);
   return summary;
@@ -2067,22 +2162,39 @@ export function syncSettlementDerivedState(state, tSec = 0) {
 
 export function stepSettlementSecond(state, tSec) {
   if (!getHubCore(state)) return;
-  releaseExpiredPopulationCommitments(state, tSec);
-  runSettlementPopulationSeasonTick(state, tSec);
+  const executionContext = createSettlementExecutionContext(state, tSec);
+  const commitmentsChanged = releaseExpiredPopulationCommitments(state, tSec);
+  if (commitmentsChanged) {
+    executionContext.invalidateDerivedSummary();
+  }
+  const populationChanged = runSettlementPopulationSeasonTick(
+    state,
+    tSec,
+    executionContext
+  );
+  if (populationChanged) {
+    executionContext.invalidateDerivedSummary();
+    executionContext.invalidateSeasonKey();
+  }
   if (state?.runStatus?.complete === true) return;
-  syncSettlementDerivedState(state, tSec);
-  stepSettlementVassals(state, tSec);
+  syncSettlementDerivedState(state, tSec, executionContext);
+  const vassalChanged = stepSettlementVassals(state, tSec);
   if (state?.runStatus?.complete === true) return;
-  syncSettlementDerivedState(state, tSec);
-  stepSettlementOrders(state, tSec);
+  const orderChanged = stepSettlementOrders(state, tSec);
   if (state?.runStatus?.complete === true) return;
-  syncSettlementDerivedState(state, tSec);
-  executePassivePractices(state, tSec);
+  if (vassalChanged || orderChanged) {
+    executionContext.invalidateDerivedSummary();
+    syncSettlementDerivedState(state, tSec, executionContext);
+  }
+  executePassivePractices(state, tSec, executionContext);
   if (state?.runStatus?.complete === true) return;
-  syncSettlementDerivedState(state, tSec);
-  executePractices(state, tSec);
-  syncSettlementDerivedState(state, tSec);
+  syncSettlementDerivedState(state, tSec, executionContext);
+  executePractices(state, tSec, executionContext);
+  syncSettlementDerivedState(state, tSec, executionContext);
   if (state?.runStatus?.complete === true) return;
-  stepSettlementChaosSecond(state, tSec);
-  syncSettlementDerivedState(state, tSec);
+  const chaosChanged = stepSettlementChaosSecond(state, tSec);
+  if (chaosChanged) {
+    executionContext.invalidateDerivedSummary();
+    syncSettlementDerivedState(state, tSec, executionContext);
+  }
 }

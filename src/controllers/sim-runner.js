@@ -179,7 +179,7 @@ export function createSimRunner({
     const trialState = deserializeGameState(serializeGameState(dragPreviewState));
     canonicalizeSnapshot(trialState);
     return (
-      applyAction(trialState, { kind, payload, apCost }) || {
+      applyAction(trialState, { kind, payload, apCost }, { isReplay: true }) || {
         ok: false,
         reason: "cmdFailed",
       }
@@ -197,7 +197,7 @@ export function createSimRunner({
       if (!action || typeof action !== "object" || !action.kind) {
         return { ok: false, reason: "badAction" };
       }
-      const res = applyAction(trialState, action) || {
+      const res = applyAction(trialState, action, { isReplay: true }) || {
         ok: false,
         reason: "cmdFailed",
       };

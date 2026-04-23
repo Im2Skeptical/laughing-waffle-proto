@@ -12,7 +12,14 @@ import {
 } from "./timeline/index.js";
 import { canonicalizeSnapshot } from "./canonicalize.js";
 import { updateGame } from "./game-model.js";
-import { applyAction } from "./actions.js";
+import { buildProjectionSummaryFromState } from "./projection-summary.js";
+import {
+  DEFAULT_REPLAY_DT_STEP,
+  TICKS_PER_REPLAY_SECOND,
+  advanceReplayStateOneSecond,
+  applyReplayActionsAtSecond,
+  initializeReplayClock,
+} from "./replay-second-runner.js";
 import {
   perfEnabled,
   perfNowMs,
@@ -21,12 +28,34 @@ import {
   recordProjectionStateWindowBuild,
 } from "./perf.js";
 
-const TICKS_PER_SEC = 60;
-const DEFAULT_DT_STEP = 1 / TICKS_PER_SEC;
+const DEFAULT_DT_STEP = DEFAULT_REPLAY_DT_STEP;
+const DEFAULT_FORECAST_STATE_ANCHOR_STRIDE_SEC = 16;
 
 function clampSec(v) {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.floor(v));
+}
+
+function normalizeStateAnchorStrideSec(stateAnchorStrideSec) {
+  if (!Number.isFinite(stateAnchorStrideSec) || stateAnchorStrideSec <= 0) {
+    return DEFAULT_FORECAST_STATE_ANCHOR_STRIDE_SEC;
+  }
+  return Math.max(1, Math.floor(stateAnchorStrideSec));
+}
+
+function shouldStoreProjectionStateAnchor(
+  sec,
+  baseSec,
+  endSec,
+  stateAnchorStrideSec
+) {
+  const safeSec = clampSec(sec);
+  const safeBaseSec = clampSec(baseSec);
+  const safeEndSec = clampSec(endSec);
+  const stride = normalizeStateAnchorStrideSec(stateAnchorStrideSec);
+  if (safeSec <= safeBaseSec) return true;
+  if (safeSec >= safeEndSec) return true;
+  return (safeSec - safeBaseSec) % stride === 0;
 }
 
 function resolveDtStepStrict(dtStep) {
@@ -146,7 +175,7 @@ function simulateForwardSecondsInPlace(state, seconds, dtStep) {
   state.paused = false;
 
   // Default semantics: fixed-step 60 ticks per second when dt=1/60.
-  const steps = totalSec * TICKS_PER_SEC;
+  const steps = totalSec * TICKS_PER_REPLAY_SECOND;
 
   for (let i = 0; i < steps; i++) {
     updateGame(dt, state);
@@ -168,7 +197,7 @@ function normalizeStateForProjection(state, baseSec) {
   if (Number.isFinite(baseSec)) {
     const sec = clampSec(baseSec);
     state.tSec = sec;
-    state.simStepIndex = sec * TICKS_PER_SEC;
+    state.simStepIndex = sec * TICKS_PER_REPLAY_SECOND;
   }
 }
 
@@ -188,7 +217,7 @@ function simulateUntilNextSeasonEventPure(
   state.paused = false;
 
   const startSeason = state.currentSeasonIndex ?? 0;
-  const maxSteps = Math.max(1, Math.floor(stepCapSec) * TICKS_PER_SEC);
+  const maxSteps = Math.max(1, Math.floor(stepCapSec) * TICKS_PER_REPLAY_SECOND);
 
   for (let i = 0; i < maxSteps; i++) {
     updateGame(dt, state);
@@ -232,22 +261,20 @@ export function buildMetricGraphHistoryCacheFromTimeline(tl, opts = null) {
   if (startStateData == null) return { ok: false, reason: "noBaseStateData" };
 
   const workingState = deserializeGameState(startStateData);
-  workingState.paused = false;
-
-  // Ensure clock alignment with checkpoint second (replay invariant)
-  workingState.tSec = startCheckpointSec;
-  workingState.simStepIndex = startCheckpointSec * TICKS_PER_SEC;
+  initializeReplayClock(workingState, startCheckpointSec);
 
   for (let sec = startCheckpointSec; sec <= historyEndSec; sec++) {
     // Apply actions scheduled at this second (timeline order preserved)
     const acts = actionsBySec.get(sec);
     if (acts && acts.length) {
-      for (const a of acts) {
-        const res = applyAction(workingState, a, { isReplay: true });
-        if (res && res.ok === false) {
-          console.warn(`History replay action failed at t=${sec}`, res, a);
-          return { ok: false, reason: "actionFailed", detail: res };
-        }
+      const replayRes = applyReplayActionsAtSecond(workingState, acts, sec);
+      if (!replayRes?.ok) {
+        console.warn(
+          `History replay action failed at t=${sec}`,
+          replayRes,
+          replayRes?.action
+        );
+        return { ok: false, reason: "actionFailed", detail: replayRes };
       }
     }
 
@@ -262,8 +289,12 @@ export function buildMetricGraphHistoryCacheFromTimeline(tl, opts = null) {
 
     // Advance exactly 1 second (60 microsteps), unless at frontier
     if (sec < historyEndSec) {
-      for (let i = 0; i < TICKS_PER_SEC; i++) {
-        updateGame(DEFAULT_DT_STEP, workingState);
+      const advanceResult = advanceReplayStateOneSecond(
+        workingState,
+        DEFAULT_DT_STEP
+      );
+      if (!advanceResult?.ok) {
+        return { ok: false, reason: "advanceFailed", detail: advanceResult };
       }
     }
   }
@@ -449,7 +480,9 @@ export function buildProjectionStateWindowFromTimeline(
   normalizeStateForProjection(s, baseSec);
 
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   stateDataBySecond.set(baseSec, serializeGameState(s));
+  summaryBySecond.set(baseSec, buildProjectionSummaryFromState(s));
 
   let curSec = baseSec;
   for (let i = 1; i <= horizonSec; i++) {
@@ -459,6 +492,7 @@ export function buildProjectionStateWindowFromTimeline(
     curSec = baseSec + i;
     canonicalizeSnapshot(s);
     stateDataBySecond.set(curSec, serializeGameState(s));
+    summaryBySecond.set(curSec, buildProjectionSummaryFromState(s));
   }
 
   return {
@@ -471,6 +505,7 @@ export function buildProjectionStateWindowFromTimeline(
       mode: "stateWindow",
     },
     stateDataBySecond,
+    summaryBySecond,
   };
 }
 
@@ -496,6 +531,9 @@ export function buildProjectionStateStepWindowFromTimeline(
     typeof opts?.stepSec === "number" && opts.stepSec > 0
       ? Math.floor(opts.stepSec)
       : 1;
+  const stateAnchorStrideSec = normalizeStateAnchorStrideSec(
+    opts?.stateAnchorStrideSec
+  );
 
   const baseSec = clampSec(
     typeof opts?.baseSec === "number" ? opts.baseSec : baseBoundary
@@ -509,17 +547,30 @@ export function buildProjectionStateStepWindowFromTimeline(
   normalizeStateForProjection(s, baseSec);
 
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   stateDataBySecond.set(baseSec, serializeGameState(s));
+  summaryBySecond.set(baseSec, buildProjectionSummaryFromState(s));
 
   const steps = Math.floor(horizonSec / stepSec);
   let curSec = baseSec;
+  const targetEndSec = baseSec + horizonSec;
   for (let i = 1; i <= steps; i++) {
     const sim = simulateForwardSecondsInPlace(s, stepSec, dtStep);
     if (!sim.ok) break;
 
     curSec = baseSec + i * stepSec;
     canonicalizeSnapshot(s);
-    stateDataBySecond.set(curSec, serializeGameState(s));
+    if (
+      shouldStoreProjectionStateAnchor(
+        curSec,
+        baseSec,
+        targetEndSec,
+        stateAnchorStrideSec
+      )
+    ) {
+      stateDataBySecond.set(curSec, serializeGameState(s));
+    }
+    summaryBySecond.set(curSec, buildProjectionSummaryFromState(s));
   }
 
   if (perfEnabled()) {
@@ -540,6 +591,7 @@ export function buildProjectionStateStepWindowFromTimeline(
       horizon: steps,
     },
     stateDataBySecond,
+    summaryBySecond,
   };
 }
 
@@ -639,6 +691,9 @@ export function buildProjectionStateStepWindowFromStateData(
     typeof opts?.stepSec === "number" && opts.stepSec > 0
       ? Math.floor(opts.stepSec)
       : 1;
+  const stateAnchorStrideSec = normalizeStateAnchorStrideSec(
+    opts?.stateAnchorStrideSec
+  );
 
   const baseSec = clampSec(
     typeof opts?.baseSec === "number" ? opts.baseSec : baseBoundary
@@ -648,17 +703,30 @@ export function buildProjectionStateStepWindowFromStateData(
   normalizeStateForProjection(s, baseSec);
 
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   stateDataBySecond.set(baseSec, serializeGameState(s));
+  summaryBySecond.set(baseSec, buildProjectionSummaryFromState(s));
 
   const steps = Math.floor(horizonSec / stepSec);
   let curSec = baseSec;
+  const targetEndSec = baseSec + horizonSec;
   for (let i = 1; i <= steps; i++) {
     const sim = simulateForwardSecondsInPlace(s, stepSec, dtStep);
     if (!sim.ok) break;
 
     curSec = baseSec + i * stepSec;
     canonicalizeSnapshot(s);
-    stateDataBySecond.set(curSec, serializeGameState(s));
+    if (
+      shouldStoreProjectionStateAnchor(
+        curSec,
+        baseSec,
+        targetEndSec,
+        stateAnchorStrideSec
+      )
+    ) {
+      stateDataBySecond.set(curSec, serializeGameState(s));
+    }
+    summaryBySecond.set(curSec, buildProjectionSummaryFromState(s));
   }
 
   if (perfEnabled()) {
@@ -679,6 +747,7 @@ export function buildProjectionStateStepWindowFromStateData(
       horizon: steps,
     },
     stateDataBySecond,
+    summaryBySecond,
   };
 }
 
@@ -708,7 +777,9 @@ export function buildProjectionStateWindowFromStateData(
   normalizeStateForProjection(s, baseSec);
 
   const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
   stateDataBySecond.set(baseSec, serializeGameState(s));
+  summaryBySecond.set(baseSec, buildProjectionSummaryFromState(s));
 
   let curSec = baseSec;
   for (let i = 1; i <= horizonSec; i++) {
@@ -718,6 +789,7 @@ export function buildProjectionStateWindowFromStateData(
     curSec = baseSec + i;
     canonicalizeSnapshot(s);
     stateDataBySecond.set(curSec, serializeGameState(s));
+    summaryBySecond.set(curSec, buildProjectionSummaryFromState(s));
   }
 
   if (perfEnabled()) {
@@ -736,6 +808,7 @@ export function buildProjectionStateWindowFromStateData(
       mode: "stateWindow",
     },
     stateDataBySecond,
+    summaryBySecond,
   };
 }
 

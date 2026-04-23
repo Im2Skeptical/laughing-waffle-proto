@@ -13,6 +13,14 @@ import { resolveAmount } from "./effects/core/amount.js";
 import { resolveEffectDef } from "./effects/core/registry.js";
 import { resolveOwnerTargets } from "./effects/core/targets-owner.js";
 import { resolveEffectTargets } from "./effects/ops/system/targets.js";
+import {
+  envRequirementsPass as runtimeEnvRequirementsPass,
+  hasProcess,
+  hasTieredUnits,
+  hubRequirementsPass as runtimeHubRequirementsPass,
+  resolveMaturedPoolBucket,
+  resolveProcessTypesFromPriorityState,
+} from "./tag-execution-common.js";
 
 function uniqueStrings(values) {
   const out = [];
@@ -62,65 +70,6 @@ function countInventoryItems(inv, matcher) {
   return total;
 }
 
-function hasAnyTieredUnits(pool) {
-  if (!pool || typeof pool !== "object") return false;
-  return (
-    Math.max(0, Math.floor(pool.bronze ?? 0)) > 0 ||
-    Math.max(0, Math.floor(pool.silver ?? 0)) > 0 ||
-    Math.max(0, Math.floor(pool.gold ?? 0)) > 0 ||
-    Math.max(0, Math.floor(pool.diamond ?? 0)) > 0
-  );
-}
-
-function resolveMaturedPoolBucket(pool, cropId) {
-  if (!pool || typeof pool !== "object") return null;
-  const hasTierKeys =
-    Object.prototype.hasOwnProperty.call(pool, "bronze") ||
-    Object.prototype.hasOwnProperty.call(pool, "silver") ||
-    Object.prototype.hasOwnProperty.call(pool, "gold") ||
-    Object.prototype.hasOwnProperty.call(pool, "diamond");
-  if (hasTierKeys) return pool;
-  if (typeof cropId !== "string" || cropId.length <= 0) return null;
-  const bucket = pool[cropId];
-  return bucket && typeof bucket === "object" ? bucket : null;
-}
-
-function resolveProcessTypesFromPriorityState(structure, systemId, key) {
-  if (!structure || !systemId || !key) return [];
-  const systemState = structure?.systemState?.[systemId];
-  if (!systemState || typeof systemState !== "object") return [];
-  const raw = systemState[key];
-  if (!raw || typeof raw !== "object") return [];
-  if (isRecipeSystem(systemId) && key === "recipePriority") {
-    const priority = ensureRecipePriorityState(systemState, {
-      systemId,
-      state: null,
-      includeLocked: true,
-    });
-    return getEnabledRecipeIds(priority);
-  }
-  const ordered = Array.isArray(raw.ordered) ? raw.ordered : [];
-  const enabled = raw.enabled && typeof raw.enabled === "object" ? raw.enabled : {};
-  const out = [];
-  for (const entry of ordered) {
-    const processType =
-      typeof entry === "string" && entry.length > 0 ? entry : null;
-    if (!processType) continue;
-    if (enabled[processType] === false) continue;
-    if (out.includes(processType)) continue;
-    out.push(processType);
-  }
-  return out;
-}
-
-function hasProcess(structure, systemId, type) {
-  const processes = Array.isArray(structure?.systemState?.[systemId]?.processes)
-    ? structure.systemState[systemId].processes
-    : [];
-  if (!type) return processes.length > 0;
-  return processes.some((process) => process && process.type === type);
-}
-
 function getPawnsOnEnvCol(state, col) {
   const out = [];
   const pawns = Array.isArray(state?.pawns) ? state.pawns : [];
@@ -151,61 +100,14 @@ function getPawnsOnHubAnchor(state, anchor) {
 }
 
 function envRequirementsPass(requires, seasonKey, tile, hasPawn, isTagUnlocked = null) {
-  if (!requires || typeof requires !== "object") return true;
-
-  if (Array.isArray(requires.season) && requires.season.length > 0) {
-    if (!seasonKey || !requires.season.includes(seasonKey)) return false;
-  }
-
-  if (typeof requires.hasPawn === "boolean" && requires.hasPawn !== hasPawn) {
-    return false;
-  }
-
-  if (typeof requires.hasSelectedCrop === "boolean") {
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId;
-    const hasSelected =
-      typeof selectedCropId === "string" && selectedCropId.length > 0;
-    if (requires.hasSelectedCrop !== hasSelected) return false;
-  }
-
-  if (Array.isArray(requires.selectedCropIdIn) && requires.selectedCropIdIn.length > 0) {
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId;
-    if (
-      typeof selectedCropId !== "string" ||
-      !requires.selectedCropIdIn.includes(selectedCropId)
-    ) {
-      return false;
-    }
-  }
-
-  if (Object.prototype.hasOwnProperty.call(requires, "hasEquipment")) {
-    return false;
-  }
-
-  if (typeof requires.hasMaturedPool === "boolean") {
-    const pool = tile?.systemState?.growth?.maturedPool;
-    const selectedCropId = tile?.systemState?.growth?.selectedCropId ?? null;
-    const bucket = resolveMaturedPoolBucket(pool, selectedCropId);
-    const hasPool = bucket ? hasAnyTieredUnits(bucket) : false;
-    if (requires.hasMaturedPool !== hasPool) return false;
-  }
-
-  const tagReq = requires.hasTag;
-  if (tagReq != null) {
-    const tileTags = Array.isArray(tile?.tags) ? tile.tags : [];
-    const requiredTags = Array.isArray(tagReq)
-      ? tagReq
-      : typeof tagReq === "string"
-        ? [tagReq]
-        : [];
-    for (const tag of requiredTags) {
-      if (!tileTags.includes(tag)) return false;
-      if (isTagUnlocked && !isTagUnlocked(tag)) return false;
-      if (isTagHidden(tile, tag)) return false;
-    }
-  }
-
-  return true;
+  return runtimeEnvRequirementsPass(
+    requires,
+    seasonKey,
+    tile,
+    hasPawn,
+    isTagUnlocked,
+    isTagHidden
+  );
 }
 
 function hubRequirementsPass(
@@ -215,140 +117,13 @@ function hubRequirementsPass(
   hasPawn,
   isTagUnlocked = null
 ) {
-  if (!requires || typeof requires !== "object") return true;
-
-  if (Array.isArray(requires.season) && requires.season.length > 0) {
-    if (!seasonKey || !requires.season.includes(seasonKey)) return false;
-  }
-
-  if (typeof requires.hasPawn === "boolean" && requires.hasPawn !== hasPawn) {
-    return false;
-  }
-
-  if (typeof requires.hasSelectedCrop === "boolean") {
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId;
-    const hasSelected =
-      typeof selectedCropId === "string" && selectedCropId.length > 0;
-    if (requires.hasSelectedCrop !== hasSelected) return false;
-  }
-
-  if (Array.isArray(requires.selectedCropIdIn) && requires.selectedCropIdIn.length > 0) {
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId;
-    if (
-      typeof selectedCropId !== "string" ||
-      !requires.selectedCropIdIn.includes(selectedCropId)
-    ) {
-      return false;
-    }
-  }
-
-  if (Object.prototype.hasOwnProperty.call(requires, "hasEquipment")) {
-    return false;
-  }
-
-  if (typeof requires.hasMaturedPool === "boolean") {
-    const pool = structure?.systemState?.growth?.maturedPool;
-    const selectedCropId = structure?.systemState?.growth?.selectedCropId ?? null;
-    const bucket = resolveMaturedPoolBucket(pool, selectedCropId);
-    const hasPool = bucket ? hasAnyTieredUnits(bucket) : false;
-    if (requires.hasMaturedPool !== hasPool) return false;
-  }
-  const processSystem =
-    typeof requires.processSystem === "string" ? requires.processSystem : null;
-  const processTypePriorityKey =
-    typeof requires.processTypeFromSystemPriorityKey === "string"
-      ? requires.processTypeFromSystemPriorityKey
-      : null;
-  const processTypeKey =
-    typeof requires.processTypeFromSystemKey === "string"
-      ? requires.processTypeFromSystemKey
-      : "selectedRecipeId";
-  const selectedProcessTypes = processTypePriorityKey
-    ? resolveProcessTypesFromPriorityState(
-        structure,
-        processSystem,
-        processTypePriorityKey
-      )
-    : [];
-  const selectedProcessType =
-    selectedProcessTypes.length > 0
-      ? selectedProcessTypes[0]
-      : processSystem && structure?.systemState?.[processSystem]
-        ? structure.systemState[processSystem][processTypeKey]
-        : null;
-  const hasSelectedRecipe =
-    typeof selectedProcessType === "string" && selectedProcessType.length > 0;
-
-  if (
-    typeof requires.hasSelectedRecipe === "boolean" &&
-    requires.hasSelectedRecipe !== hasSelectedRecipe
-  ) {
-    return false;
-  }
-
-  if (requires.hasSelectedProcessType === true) {
-    if (!hasSelectedRecipe) return false;
-    if (selectedProcessTypes.length > 0) {
-      let hasAny = false;
-      for (const type of selectedProcessTypes) {
-        if (hasProcess(structure, processSystem, type)) {
-          hasAny = true;
-          break;
-        }
-      }
-      if (!hasAny) return false;
-    } else if (!hasProcess(structure, processSystem, selectedProcessType)) {
-      return false;
-    }
-  }
-
-  if (requires.noSelectedProcessType === true) {
-    if (selectedProcessTypes.length > 0) {
-      for (const type of selectedProcessTypes) {
-        if (hasProcess(structure, processSystem, type)) return false;
-      }
-    } else if (
-      hasSelectedRecipe &&
-      hasProcess(structure, processSystem, selectedProcessType)
-    ) {
-      return false;
-    }
-  }
-
-  const tagReq = requires.hasTag;
-  if (tagReq != null) {
-    const structureTags = Array.isArray(structure?.tags) ? structure.tags : [];
-    const requiredTags = Array.isArray(tagReq)
-      ? tagReq
-      : typeof tagReq === "string"
-        ? [tagReq]
-        : [];
-    for (const tag of requiredTags) {
-      if (!structureTags.includes(tag)) return false;
-      if (isTagUnlocked && !isTagUnlocked(tag)) return false;
-    }
-  }
-
-  if (processSystem) {
-    if (requires.hasProcessType) {
-      const types = Array.isArray(requires.hasProcessType)
-        ? requires.hasProcessType
-        : [requires.hasProcessType];
-      for (const type of types) {
-        if (!hasProcess(structure, processSystem, type)) return false;
-      }
-    }
-    if (requires.noProcessType) {
-      const types = Array.isArray(requires.noProcessType)
-        ? requires.noProcessType
-        : [requires.noProcessType];
-      for (const type of types) {
-        if (hasProcess(structure, processSystem, type)) return false;
-      }
-    }
-  }
-
-  return true;
+  return runtimeHubRequirementsPass(
+    requires,
+    seasonKey,
+    structure,
+    hasPawn,
+    isTagUnlocked
+  );
 }
 
 function resolveIntentSelectedCropCandidates(intent, tile, state, selectedCropId) {
@@ -544,7 +319,7 @@ function previewTransferUnits(state, effect, context) {
   const itemKind =
     effect.itemKind || effect.kind || defId || def?.id || def?.cropId || null;
   const pool = resolveMaturedPoolBucket(poolRoot, itemKind);
-  if (!pool || !hasAnyTieredUnits(pool)) return false;
+  if (!pool || !hasTieredUnits(pool)) return false;
 
   const amountRaw = resolveAmount(effect, systemState, def, context);
   return Math.max(0, Math.floor(amountRaw ?? 0)) > 0;

@@ -35,6 +35,11 @@ function getOrderDef(card) {
   return settlementOrderDefs?.[card?.defId] ?? null;
 }
 
+function hasOrderRuntime(card) {
+  const settlement = card?.props?.settlement;
+  return settlement && typeof settlement === "object" && !Array.isArray(settlement);
+}
+
 function ensureElderCouncilState(card, state) {
   if (!card || typeof card !== "object") return null;
   if (!card.systemState || typeof card.systemState !== "object" || Array.isArray(card.systemState)) {
@@ -110,6 +115,7 @@ function ensureElderCouncilState(card, state) {
       : currentYear,
     nextMemberId,
     members,
+    runtimeSyncDirty: existing.runtimeSyncDirty === true || !hasOrderRuntime(card),
     suppressedPracticeYearsByClass,
     practiceBoardMemoryByClass: normalizePracticeBoardMemoryByClass(
       existing.practiceBoardMemoryByClass,
@@ -543,6 +549,9 @@ function syncOrderRuntime(
     practicePrestigeTotalsByClass: cloneSerializable(practicePrestigeTotalsByClass ?? {}),
     lastBoardSyncReason: "elderCouncil",
   };
+  if (councilState && typeof councilState === "object") {
+    councilState.runtimeSyncDirty = false;
+  }
 }
 
 export function removePracticeFromElderAgendas(
@@ -606,7 +615,7 @@ export function removePracticeFromElderAgendas(
 
   if (!changed && !suppressedChanged) return false;
   const orderDef = getOrderDef(card);
-  if (changed && orderDef) {
+  if ((changed || suppressedChanged) && orderDef) {
     const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
       state,
       card,
@@ -671,8 +680,15 @@ export function stepSettlementOrders(state, tSec) {
   const orderDef = getOrderDef(card);
   if (!orderDef) return false;
 
+  const councilState = ensureElderCouncilState(card, state);
+  if (!councilState) return false;
+  const needsRuntimeSync =
+    councilState.runtimeSyncDirty === true || !hasOrderRuntime(card);
+  if (state?._seasonChanged !== true && !needsRuntimeSync) {
+    return false;
+  }
+
   let changed = false;
-  ensureElderCouncilState(card, state);
   if (state?._seasonChanged === true) {
     changed = processAnnualCouncilUpdate(card, state, orderDef) || changed;
   }
@@ -695,7 +711,33 @@ export function stepSettlementOrders(state, tSec) {
   return changed;
 }
 
-export function upsertElderCouncilMemberFromVassal(state, spec = {}) {
+function areAgendaByClassEqual(left, right, classIds) {
+  for (const classId of classIds) {
+    const leftAgenda = Array.isArray(left?.[classId]) ? left[classId] : [];
+    const rightAgenda = Array.isArray(right?.[classId]) ? right[classId] : [];
+    if (leftAgenda.length !== rightAgenda.length) return false;
+    for (let index = 0; index < leftAgenda.length; index += 1) {
+      if (leftAgenda[index] !== rightAgenda[index]) return false;
+    }
+  }
+  return true;
+}
+
+function areCouncilMembersEqual(left, right, classIds) {
+  if (!left && !right) return true;
+  if (!left || !right) return false;
+  return (
+    left.memberId === right.memberId &&
+    left.sourceClassId === right.sourceClassId &&
+    left.joinedYear === right.joinedYear &&
+    left.ageYears === right.ageYears &&
+    left.modifierId === right.modifierId &&
+    left.sourceVassalId === right.sourceVassalId &&
+    areAgendaByClassEqual(left.agendaByClass, right.agendaByClass, classIds)
+  );
+}
+
+function upsertElderCouncilMemberFromVassal(state, spec = {}) {
   const card = getFirstOrderCard(state, "elderCouncil");
   if (!card) return null;
   const councilState = ensureElderCouncilState(card, state);
@@ -733,6 +775,7 @@ export function syncElderCouncilMembersFromVassals(state, specs = []) {
   const councilState = ensureElderCouncilState(card, state);
   if (!councilState) return false;
 
+  const classIds = getSettlementClassIds(state);
   const normalizedSpecs = [];
   const eligibleVassalIds = new Set();
   for (const spec of Array.isArray(specs) ? specs : []) {
@@ -763,24 +806,12 @@ export function syncElderCouncilMembersFromVassals(state, specs = []) {
     const existingMember =
       councilState.members.find((member) => member?.sourceVassalId === vassalId) ?? null;
     const nextMember = upsertElderCouncilMemberFromVassal(state, spec);
-    if (
-      nextMember &&
-      JSON.stringify(existingMember ?? null) !== JSON.stringify(nextMember)
-    ) {
+    if (nextMember && !areCouncilMembersEqual(existingMember, nextMember, classIds)) {
       changed = true;
     }
   }
+  if (changed) {
+    councilState.runtimeSyncDirty = true;
+  }
   return changed;
-}
-
-export function removeElderCouncilMemberBySourceVassalId(state, sourceVassalId) {
-  const card = getFirstOrderCard(state, "elderCouncil");
-  if (!card || typeof sourceVassalId !== "string" || sourceVassalId.length <= 0) return false;
-  const councilState = ensureElderCouncilState(card, state);
-  if (!councilState) return false;
-  const beforeCount = councilState.members.length;
-  councilState.members = councilState.members.filter(
-    (member) => member?.sourceVassalId !== sourceVassalId
-  );
-  return councilState.members.length !== beforeCount;
 }

@@ -185,13 +185,27 @@ let settlementPlaybackSpeedTarget = 0;
 let settlementPlaybackSpeedCurrent = 0;
 let settlementPlaybackViewSec = null;
 let settlementGraphRevealMode = "";
+let settlementFrontierStateCache = {
+  historyEndSec: -1,
+  revision: -1,
+  state: null,
+};
 const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
 const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
 const SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS = 900;
 const SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC = 448;
 const SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS = 4;
+const SETTLEMENT_DYNAMIC_DISPLAY_QUANTUM_SEC = 1;
+const SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC = 512;
+const SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC = 1024;
+const SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS = 1500;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS = 1500;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS = 360;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH = 0.5;
 const SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC = 16;
 const SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC = 16;
+const SETTLEMENT_HORIZON_LEAD_BUFFER_SEC = 256;
+const SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC = 256;
 const SETTLEMENT_GRAPH_REVEAL_DEFAULT = Object.freeze({
   targetDurationSec: 14,
   minRateSecPerSec: 60,
@@ -830,12 +844,35 @@ function getSettlementFrontierSec() {
 }
 
 function getSettlementFrontierState() {
+  const timeline = runner?.getTimeline?.() ?? null;
   const frontierSec = getSettlementFrontierSec();
   const cursorSec = Math.max(0, Math.floor(runner?.getCursorState?.()?.tSec ?? 0));
+  const revision = Math.max(0, Math.floor(timeline?.revision ?? 0));
   if (cursorSec === frontierSec) {
-    return getSettlementAuthoritativeState();
+    const authoritativeState = getSettlementAuthoritativeState();
+    settlementFrontierStateCache = {
+      historyEndSec: frontierSec,
+      revision,
+      state: authoritativeState,
+    };
+    return authoritativeState;
   }
-  return settlementGraphController?.getStateAt?.(frontierSec) ?? getSettlementAuthoritativeState();
+  if (
+    settlementFrontierStateCache.state &&
+    settlementFrontierStateCache.historyEndSec === frontierSec &&
+    settlementFrontierStateCache.revision === revision
+  ) {
+    return settlementFrontierStateCache.state;
+  }
+  const frontierState =
+    settlementGraphController?.getStateAt?.(frontierSec) ??
+    getSettlementAuthoritativeState();
+  settlementFrontierStateCache = {
+    historyEndSec: frontierSec,
+    revision,
+    state: frontierState,
+  };
+  return frontierState;
 }
 
 function setSettlementViewedSecond(tSec) {
@@ -882,7 +919,6 @@ function setSettlementGraphHorizonOverride(nextHorizonSec) {
     : null;
   if (normalized === settlementGraphHorizonOverrideSec) return;
   settlementGraphHorizonOverrideSec = normalized;
-  invalidateSettlementProjectedLossCache();
   settlementGraphController?.setHorizonSecOverride?.(normalized);
 }
 
@@ -990,7 +1026,9 @@ function openNextSettlementVassalSelection() {
     if (deathSec == null || forecastStatus?.currentVassalDeathResolved !== true) {
       return { ok: false, reason: "currentVassalDeathUnresolved" };
     }
-    const commitRes = runner.commitCursorSecond?.(deathSec);
+    const commitStateData =
+      settlementGraphController?.getStateDataAt?.(deathSec) ?? null;
+    const commitRes = runner.commitCursorSecond?.(deathSec, commitStateData);
     if (commitRes?.ok !== true) {
       return commitRes ?? { ok: false, reason: "commitFailed" };
     }
@@ -1023,6 +1061,12 @@ function selectSettlementVassal(candidateIndex) {
   const selectionPool = settlementPendingVassalSelection;
   setSettlementViewedSecond(frontierSec);
   settlementGraphView?.resetForecastPreviewState?.();
+  settlementGraphView?.stageProjectionReplacementTransition?.({
+    truncationStartSec: frontierSec,
+    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
+    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
+  });
   const result = runner.dispatchActionAtCurrentSecond?.(
     ActionKinds.SETTLEMENT_SELECT_VASSAL,
     {
@@ -1038,12 +1082,18 @@ function selectSettlementVassal(candidateIndex) {
     const currentVassal = getSettlementCurrentVassal(frontierState);
     scheduleSettlementPendingCommit(frontierSec, currentVassal);
     syncSettlementGraphHorizon();
-    settlementGraphView?.restartForecastRevealFrom?.(frontierSec);
+    settlementGraphView?.restartForecastRevealFrom?.(frontierSec, {
+      activateProjectionReplacementTransition: true,
+      extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    });
     returnSettlementViewToPresent(frontierSec);
     settlementVassalSelectionResumeSpeed = 0;
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = buildSettlementVassalSelectionPool(getSettlementFrontierState(), frontierSec);
+  } else {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
   }
   return result;
 }
@@ -1203,6 +1253,9 @@ settlementForecastController = createSettlementForecastController({
   ensureControllerCache: () => settlementGraphController?.ensureCache?.(),
   getControllerData: () => settlementGraphController?.getData?.(),
   getControllerStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec),
+  getControllerStateDataAt: (tSec) =>
+    settlementGraphController?.getStateDataAt?.(tSec),
+  getControllerSummaryAt: (tSec) => settlementGraphController?.getSummaryAt?.(tSec),
   getFrontierSec: () => getSettlementFrontierSec(),
   getFrontierState: () => getSettlementFrontierState(),
   getViewedState: () => getSettlementViewedState(),
@@ -1224,8 +1277,11 @@ settlementForecastController = createSettlementForecastController({
   autoCommitMinIntervalMs: SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS,
   autoCommitForceLagSec: SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC,
   dynamicDisplayBufferYears: SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS,
+  dynamicDisplayQuantumSec: SETTLEMENT_DYNAMIC_DISPLAY_QUANTUM_SEC,
   exactLossSearchBucketSec: SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC,
   horizonUpdateQuantumSec: SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC,
+  horizonLeadBufferSec: SETTLEMENT_HORIZON_LEAD_BUFFER_SEC,
+  unresolvedBrowseLeadSec: SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC,
 });
 visibleSettlementGraphSeriesIds = getSettlementGraphDefaultSeriesIds();
 applySettlementGraphSeriesSelection();
@@ -1352,6 +1408,12 @@ settlementGraphView = createMetricGraphView({
     SETTLEMENT_GRAPH_REVEAL_DEFAULT.accelerationSecPerSec2,
   forecastRevealDecelerationSecPerSec2:
     SETTLEMENT_GRAPH_REVEAL_DEFAULT.decelerationSecPerSec2,
+  plotSnapshotBoundsQuantumSec:
+    SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  plotSnapshotCoverForecast: true,
+  plotSnapshotLeadSec: SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC,
+  bootFadeDurationMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
+  bootRevealDelayMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
   getSystemTargetModeLabel: () => getSettlementGraphSeriesButtonLabel(),
   onToggleSystemTargetMode: () => toggleSettlementGraphSeriesMenu(),
   showClose: false,

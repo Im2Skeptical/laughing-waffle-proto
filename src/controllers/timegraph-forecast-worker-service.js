@@ -1,11 +1,18 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
-import { recordSettlementForecastBuild } from "../model/perf.js";
+import {
+  recordSettlementForecastBuild,
+  recordSettlementForecastWorkerReject,
+} from "../model/perf.js";
 
 export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 120;
 export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
 export const TIMEGRAPH_FORECAST_STREAM_SLICE_SEC = 30;
 export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 50;
 export const TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS = 750;
+export const TIMEGRAPH_FORECAST_EARLY_CHUNK_WINDOW_SEC = 1440;
+export const TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC = 180;
+export const TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC = 20;
+export const TIMEGRAPH_FORECAST_EARLY_REQUEST_CADENCE_MS = 20;
 
 function nowMs() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -75,12 +82,36 @@ export function createTimegraphForecastWorkerService({
   streamSliceSec = TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
   requestCadenceMs = TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
   workerStallTimeoutMs = TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS,
+  earlyChunkWindowSec = TIMEGRAPH_FORECAST_EARLY_CHUNK_WINDOW_SEC,
+  earlyChunkSizeSec = TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC,
+  earlyStreamSliceSec = TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC,
+  earlyRequestCadenceMs = TIMEGRAPH_FORECAST_EARLY_REQUEST_CADENCE_MS,
 } = {}) {
   let worker = null;
   let workerDisabled = false;
   let nextRequestId = 1;
   const requestsById = new Map();
   const requestsByKey = new Map();
+
+  function getChunkStrategy(baseSec, coverageEndSec) {
+    const safeBaseSec = clampSec(baseSec);
+    const safeCoverageEndSec = Math.max(safeBaseSec, clampSec(coverageEndSec));
+    const earlyWindowSecClamped = Math.max(0, clampSec(earlyChunkWindowSec));
+    const inEarlyWindow =
+      earlyWindowSecClamped > 0 &&
+      safeCoverageEndSec - safeBaseSec < earlyWindowSecClamped;
+    return {
+      chunkSizeSec: inEarlyWindow
+        ? Math.max(1, Math.floor(earlyChunkSizeSec))
+        : Math.max(1, Math.floor(chunkSizeSec)),
+      streamSliceSec: inEarlyWindow
+        ? Math.max(1, Math.floor(earlyStreamSliceSec))
+        : Math.max(1, Math.floor(streamSliceSec)),
+      requestCadenceMs: inEarlyWindow
+        ? Math.max(0, Math.floor(earlyRequestCadenceMs))
+        : Math.max(0, Math.floor(requestCadenceMs)),
+    };
+  }
 
   function clearInFlightRequests() {
     requestsById.clear();
@@ -174,6 +205,7 @@ export function createTimegraphForecastWorkerService({
       endSec: message.endSec,
       stepSec: message.stepSec,
       stateDataBySecond: normalizeChunkEntries(message.result?.stateDataBySecond),
+      summaryBySecond: normalizeChunkEntries(message.result?.summaryBySecond),
       lastStateData: message.result?.lastStateData ?? null,
     });
 
@@ -189,6 +221,8 @@ export function createTimegraphForecastWorkerService({
         clampSec(message.endSec)
       );
       entry.lastProgressMs = timeNowMs();
+    } else if (message.result?.ok === true) {
+      recordSettlementForecastWorkerReject(merged?.reason ?? "mergeFailed");
     }
     if (message.done === true) {
       releaseRequest(message.requestId);
@@ -278,6 +312,7 @@ export function createTimegraphForecastWorkerService({
       endSec: sliceEndSec,
       stepSec: normalizedStepSec,
       stateDataBySecond: Array.from(sliceRes.stateDataBySecond.entries()),
+      summaryBySecond: Array.from(sliceRes.summaryBySecond.entries()),
       lastStateData: sliceRes.lastStateData,
     });
     if (merged?.ok === true) {
@@ -415,6 +450,7 @@ export function createTimegraphForecastWorkerService({
             endSec: primeEndSec,
             stepSec: normalizedStepSec,
             stateDataBySecond: Array.from(primeRes.stateDataBySecond.entries()),
+            summaryBySecond: Array.from(primeRes.summaryBySecond.entries()),
             lastStateData: primeRes.lastStateData,
           });
           if (merged?.ok === true) {
@@ -443,6 +479,7 @@ export function createTimegraphForecastWorkerService({
     }
 
     const currentMs = timeNowMs();
+    const chunkStrategy = getChunkStrategy(baseSec, entry.coverageEndSec);
     if (
       entry.inFlight &&
       currentMs - Math.max(
@@ -465,10 +502,14 @@ export function createTimegraphForecastWorkerService({
         stepSec: normalizedStepSec,
         boundaryStateData,
         scheduledActionsBySecond,
+        maxSliceSec: chunkStrategy.streamSliceSec,
       });
     }
 
-    if (entry.inFlight || currentMs - entry.lastDispatchMs < requestCadenceMs) {
+    if (
+      entry.inFlight ||
+      currentMs - entry.lastDispatchMs < chunkStrategy.requestCadenceMs
+    ) {
       return {
         ok: true,
         coverageEndSec: entry.coverageEndSec,
@@ -480,7 +521,7 @@ export function createTimegraphForecastWorkerService({
     const chunkBaseSec = entry.coverageEndSec;
     const chunkEndSec = Math.min(
       entry.requestedEndSec,
-      chunkBaseSec + Math.max(1, Math.floor(chunkSizeSec))
+      chunkBaseSec + chunkStrategy.chunkSizeSec
     );
     if (chunkEndSec <= chunkBaseSec) {
       return {
@@ -537,7 +578,7 @@ export function createTimegraphForecastWorkerService({
       baseSec: chunkBaseSec,
       endSec: chunkEndSec,
       stepSec: normalizedStepSec,
-      streamSliceSec: Math.max(1, Math.floor(streamSliceSec)),
+      streamSliceSec: chunkStrategy.streamSliceSec,
       boundaryStateData: chunkBoundaryStateData,
       scheduledActionsBySecond: chunkActions,
     };
