@@ -23,6 +23,7 @@ import {
   recordProjectionForecastBuild,
   recordProjectionCanonicalize,
   recordProjectionDeserialize,
+  recordSettlementForecastValueBuild,
   recordTimegraphCacheHit,
   recordTimegraphCacheMiss,
 } from "../perf.js";
@@ -41,6 +42,7 @@ import {
   shouldCacheForecastSec,
 } from "./sampling.js";
 import {
+  computeValuesFromSummary,
   computeValuesFromStateData,
   ensureSeriesArray,
   getSeriesSignature,
@@ -1433,6 +1435,27 @@ export function createTimeGraphController({
     for (const sec of requested) {
       if (sec > coverageEndSec) continue;
       if (valuesBySec.has(sec)) continue;
+      const valueBuildStartMs = perfEnabled() ? perfNowMs() : 0;
+      const summary =
+        canReadProjectionCache ? projection.getSummary?.(sec) ?? null : null;
+      const summaryValuesRes = computeValuesFromSummary(
+        summary,
+        activeSeries,
+        subject
+      );
+      if (summaryValuesRes?.ok === true && summaryValuesRes.values) {
+        valuesBySec.set(sec, summaryValuesRes.values);
+        syncForecastRuntimeCoverageToSec(sec, historyEndSec);
+        if (perfEnabled()) {
+          recordSettlementForecastValueBuild({
+            ms: perfNowMs() - valueBuildStartMs,
+            points: 1,
+            summaryHits: 1,
+            summaryMisses: 0,
+          });
+        }
+        continue;
+      }
       let stateData =
         canReadProjectionCache ? projection.getStateData?.(sec) ?? null : null;
       if (stateData == null) {
@@ -1470,6 +1493,14 @@ export function createTimeGraphController({
         resolverFactory
       );
       valuesBySec.set(sec, values);
+      if (perfEnabled()) {
+        recordSettlementForecastValueBuild({
+          ms: perfNowMs() - valueBuildStartMs,
+          points: 1,
+          summaryHits: 0,
+          summaryMisses: 1,
+        });
+      }
     }
     if (graphCache.window.forecastValuesMeta) {
       graphCache.window.forecastValuesMeta.endSec = coverageEndSec;

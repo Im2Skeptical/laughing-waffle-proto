@@ -197,6 +197,13 @@ function formatClassLabel(classId) {
   return capitalizeLabel(typeof classId === "string" ? classId : "villager");
 }
 
+function getSettlementGraphValueFromSummary(summary, seriesId) {
+  const graphValues = summary?.graphValues?.settlement;
+  if (!graphValues || typeof graphValues !== "object") return null;
+  const value = graphValues[seriesId];
+  return Number.isFinite(value) ? Number(value) : null;
+}
+
 function getSettlementPopulationTooltipSpec(state, classId = null) {
   const population = getSettlementPopulationSummary(state, classId);
   return {
@@ -298,6 +305,8 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
     getValue: (state) => safeMetricDef.getValue(state, safeClassId),
     getValueFromSnapshot: (snapshot) =>
       safeMetricDef.getValueFromSnapshot(snapshot, safeClassId),
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`),
     getLegendTooltipSpec: (state) =>
       safeMetricDef.getLegendTooltipSpec(state, safeClassId),
     formatValue: safeMetricDef.formatValue,
@@ -327,6 +336,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValue: (state) => getSettlementPopulationSummary(state).total,
     getValueFromSnapshot: (snapshot) =>
       getSettlementPopulationSummary(snapshot).total,
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "totalPopulation"),
     getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -341,6 +352,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state) => getSettlementStockpile(state, "food"),
     getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "food"),
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "food"),
     getLegendTooltipSpec: (state) => getSettlementFoodTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -356,6 +369,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValue: (state) => getSettlementChaosGodSummary(state, "redGod").chaosPower,
     getValueFromSnapshot: (snapshot) =>
       getSettlementChaosGodSummary(snapshot, "redGod").chaosPower,
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "chaosPower"),
     getLegendTooltipSpec: (state) => getSettlementChaosPowerTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -371,6 +386,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValue: (state) => getSettlementChaosGodSummary(state, "redGod").monsterCount,
     getValueFromSnapshot: (snapshot) =>
       getSettlementChaosGodSummary(snapshot, "redGod").monsterCount,
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "monsterCount"),
     getLegendTooltipSpec: (state) => getSettlementMonstersTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -385,6 +402,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state) => getSettlementStockpile(state, "redResource"),
     getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "redResource"),
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "redResource"),
     getLegendTooltipSpec: (state) => getSettlementRedTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -399,6 +418,8 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state) => getSettlementStockpile(state, "greenResource"),
     getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "greenResource"),
+    getValueFromSummary: (summary) =>
+      getSettlementGraphValueFromSummary(summary, "greenResource"),
     getLegendTooltipSpec: (state) => getSettlementGreenTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",

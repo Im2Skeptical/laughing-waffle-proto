@@ -90,6 +90,16 @@ const perf = {
       workerMessageBytes: 0,
       workerRejectedChunks: 0,
       workerRejectedByReason: {},
+      merge: { count: 0, lastMs: 0, totalMs: 0, maxMs: 0 },
+      valueBuild: {
+        count: 0,
+        lastMs: 0,
+        totalMs: 0,
+        maxMs: 0,
+        lastPoints: 0,
+        summaryHits: 0,
+        summaryMisses: 0,
+      },
       computedToRevealedLagSec: 0,
       revealedToHistoryLagSec: 0,
       maxComputedToRevealedLagSec: 0,
@@ -284,6 +294,38 @@ export function recordSettlementForecastBuild({
     : 0;
 }
 
+export function recordSettlementForecastMerge(ms) {
+  if (!isPerfActive()) return;
+  const value = Number.isFinite(ms) && ms >= 0 ? ms : 0;
+  const stat = perf.settlement.forecast.merge;
+  stat.count += 1;
+  stat.lastMs = value;
+  stat.totalMs += value;
+  if (value > stat.maxMs) stat.maxMs = value;
+}
+
+export function recordSettlementForecastValueBuild({
+  ms = 0,
+  points = 0,
+  summaryHits = 0,
+  summaryMisses = 0,
+} = {}) {
+  if (!isPerfActive()) return;
+  const value = Number.isFinite(ms) && ms >= 0 ? ms : 0;
+  const stat = perf.settlement.forecast.valueBuild;
+  stat.count += 1;
+  stat.lastMs = value;
+  stat.totalMs += value;
+  if (value > stat.maxMs) stat.maxMs = value;
+  stat.lastPoints = Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0;
+  stat.summaryHits += Number.isFinite(summaryHits)
+    ? Math.max(0, Math.floor(summaryHits))
+    : 0;
+  stat.summaryMisses += Number.isFinite(summaryMisses)
+    ? Math.max(0, Math.floor(summaryMisses))
+    : 0;
+}
+
 export function recordSettlementForecastWorkerReject(reason = "unknown") {
   if (!isPerfActive()) return;
   const safeReason =
@@ -396,6 +438,17 @@ export function resetPerfCounters() {
   perf.settlement.forecast.workerMessageBytes = 0;
   perf.settlement.forecast.workerRejectedChunks = 0;
   perf.settlement.forecast.workerRejectedByReason = {};
+  perf.settlement.forecast.merge.count = 0;
+  perf.settlement.forecast.merge.lastMs = 0;
+  perf.settlement.forecast.merge.totalMs = 0;
+  perf.settlement.forecast.merge.maxMs = 0;
+  perf.settlement.forecast.valueBuild.count = 0;
+  perf.settlement.forecast.valueBuild.lastMs = 0;
+  perf.settlement.forecast.valueBuild.totalMs = 0;
+  perf.settlement.forecast.valueBuild.maxMs = 0;
+  perf.settlement.forecast.valueBuild.lastPoints = 0;
+  perf.settlement.forecast.valueBuild.summaryHits = 0;
+  perf.settlement.forecast.valueBuild.summaryMisses = 0;
   perf.settlement.forecast.computedToRevealedLagSec = 0;
   perf.settlement.forecast.revealedToHistoryLagSec = 0;
   perf.settlement.forecast.maxComputedToRevealedLagSec = 0;
@@ -557,7 +610,11 @@ export function getPerfSnapshot({ timeline, controllers } = {}) {
       viewUpdates,
     },
     settlement: {
-      forecast: { ...perf.settlement.forecast },
+      forecast: {
+        ...perf.settlement.forecast,
+        merge: { ...perf.settlement.forecast.merge },
+        valueBuild: { ...perf.settlement.forecast.valueBuild },
+      },
       lossSearch: { ...perf.settlement.lossSearch },
     },
   };
