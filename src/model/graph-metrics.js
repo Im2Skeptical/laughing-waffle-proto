@@ -345,7 +345,7 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
   {
     id: "food",
     label: "Food",
-    color: 0xdcc56f,
+    color: 0x66cc77,
     scaleGroupId: "settlementFood",
     scaleMode: "dynamic",
     scaleMin: 0,
