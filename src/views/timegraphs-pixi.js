@@ -446,6 +446,8 @@ export function createMetricGraphView({
   plotSnapshotBoundsQuantumSec = PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
   plotSnapshotCoverForecast = false,
   plotSnapshotLeadSec = 0,
+  freezeRevealedPlotPrefix = false,
+  freezeScaleMaxDuringReveal = false,
   bootFadeDurationMs = 0,
   bootFadeColor = 0x000000,
   bootRevealDelayMs = 0,
@@ -469,6 +471,8 @@ export function createMetricGraphView({
     0,
     Math.floor(plotSnapshotLeadSec ?? 0)
   );
+  const freezeRevealedPlotPrefixCur = freezeRevealedPlotPrefix === true;
+  const freezeScaleMaxDuringRevealCur = freezeScaleMaxDuringReveal === true;
   const bootFadeDurationMsCur = Math.max(0, Number(bootFadeDurationMs ?? 0));
   const bootFadeColorCur = Number.isFinite(bootFadeColor)
     ? Math.max(0, Math.floor(bootFadeColor))
@@ -518,6 +522,38 @@ export function createMetricGraphView({
   }
 
   resolveMetric();
+
+  function mergeStickySeriesScaleRanges(
+    previousRanges,
+    nextRanges,
+    seriesList = []
+  ) {
+    if (!(previousRanges instanceof Map) || !(nextRanges instanceof Map)) {
+      return nextRanges instanceof Map ? nextRanges : new Map();
+    }
+    const merged = new Map(nextRanges);
+    for (const seriesDef of Array.isArray(seriesList) ? seriesList : []) {
+      const seriesId = String(seriesDef?.id ?? "");
+      if (!seriesId) continue;
+      const previousRange = previousRanges.get(seriesId);
+      const nextRange = merged.get(seriesId);
+      if (!previousRange || !nextRange) continue;
+      merged.set(seriesId, {
+        ...nextRange,
+        minValue: Number.isFinite(previousRange.minValue)
+          ? previousRange.minValue
+          : nextRange.minValue,
+        maxValue:
+          Number.isFinite(previousRange.maxValue) &&
+          Number.isFinite(nextRange.maxValue)
+            ? Math.max(previousRange.maxValue, nextRange.maxValue)
+            : Number.isFinite(previousRange.maxValue)
+              ? previousRange.maxValue
+              : nextRange.maxValue,
+      });
+    }
+    return merged;
+  }
 
   const root = new PIXI.Container();
   root.visible = false;
@@ -956,9 +992,17 @@ export function createMetricGraphView({
     );
   }
 
-  function getForecastRevealFollowTargetEndSec(targetEndSec, historyEndSec) {
+  function getForecastRevealFollowTargetEndSec(
+    targetEndSec,
+    historyEndSec,
+    currentEndSec = historyEndSec
+  ) {
     const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
     const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
+    const currentEnd = Math.max(
+      historyEnd,
+      Math.min(targetEnd, Number(currentEndSec ?? historyEnd))
+    );
     const configuredGapSec = Math.max(
       0,
       Number(forecastRevealFollowGapSecCur ?? 0)
@@ -966,8 +1010,10 @@ export function createMetricGraphView({
     if (configuredGapSec <= 0) return targetEnd;
     const availableSpanSec = Math.max(0, targetEnd - historyEnd);
     if (availableSpanSec <= 1) return historyEnd;
+    const remainingToTargetSec = Math.max(0, targetEnd - currentEnd);
     const effectiveGapSec = Math.min(
       configuredGapSec,
+      Math.max(0, remainingToTargetSec * 0.5),
       Math.max(4, availableSpanSec * 0.4)
     );
     return Math.max(historyEnd, targetEnd - effectiveGapSec);
@@ -1172,7 +1218,8 @@ export function createMetricGraphView({
       );
     const followTargetEndSec = getForecastRevealFollowTargetEndSec(
       targetEnd,
-      historyEnd
+      historyEnd,
+      currentEnd
     );
     const followDistanceSec = Math.max(0, followTargetEndSec - currentEnd);
     const followResponseSec = Math.max(
@@ -2062,7 +2109,10 @@ export function createMetricGraphView({
       };
     }
 
-    function refreshPlotSnapshotForecastState(baseSnapshot) {
+    function refreshPlotSnapshotForecastState(
+      baseSnapshot,
+      { stablePrefixEndSec = null } = {}
+    ) {
       const basePoints = Array.isArray(baseSnapshot?.pointsForDraw)
         ? baseSnapshot.pointsForDraw
         : [];
@@ -2096,10 +2146,27 @@ export function createMetricGraphView({
       for (const s of seriesList) {
         refreshedSeriesValues.set(s.id, new Array(basePoints.length));
       }
+      const clampedStablePrefixEndSec = Number.isFinite(stablePrefixEndSec)
+        ? Math.max(0, Math.floor(stablePrefixEndSec))
+        : null;
 
       for (let i = 0; i < basePoints.length; i++) {
         const point = basePoints[i];
         const t = pointSecs[i];
+        const preserveStablePoint =
+          clampedStablePrefixEndSec != null && t <= clampedStablePrefixEndSec;
+        if (preserveStablePoint) {
+          refreshedPoints[i] = point;
+          for (const seriesDef of seriesList) {
+            const arr = refreshedSeriesValues.get(seriesDef.id);
+            if (!arr) continue;
+            const prevValues = baseSnapshot?.seriesValues?.get?.(seriesDef.id);
+            arr[i] = Array.isArray(prevValues)
+              ? prevValues[i] ?? null
+              : null;
+          }
+          continue;
+        }
         const resolvedValues = valuesBySec.get(t) ?? null;
         const pending = t > historyEndSec && resolvedValues == null;
         const refreshedPoint =
@@ -2133,22 +2200,45 @@ export function createMetricGraphView({
         }
       }
 
+      let refreshedScaleRanges = computeGraphSeriesScaleRanges(
+        seriesList,
+        refreshedSeriesValues,
+        {
+          defaultMin: 0,
+          defaultMax: 100,
+        }
+      );
+      if (freezeScaleMaxDuringRevealCur) {
+        refreshedScaleRanges = mergeStickySeriesScaleRanges(
+          baseSnapshot?.seriesScaleRanges,
+          refreshedScaleRanges,
+          seriesList
+        );
+      }
+
       return {
         pointsForDraw: refreshedPoints,
         seriesValues: refreshedSeriesValues,
-        seriesScaleRanges: computeGraphSeriesScaleRanges(
-          seriesList,
-          refreshedSeriesValues,
-          {
-            defaultMin: 0,
-            defaultMax: 100,
-          }
-        ),
+        seriesScaleRanges: refreshedScaleRanges,
       };
     }
 
     if (plotSnapshot && plotSnapshotKey === snapshotKey) {
-      const refreshedForecastState = refreshPlotSnapshotForecastState(plotSnapshot);
+      const stablePrefixEndSec =
+        freezeRevealedPlotPrefixCur &&
+        Number.isFinite(plotSnapshot?.visibleForecastCoverageEndSec)
+          ? Math.min(
+              maxSec,
+              Math.max(
+                displayHistoryEndSec,
+                Math.floor(plotSnapshot.visibleForecastCoverageEndSec)
+              )
+            )
+          : null;
+      const refreshedForecastState = refreshPlotSnapshotForecastState(
+        plotSnapshot,
+        { stablePrefixEndSec }
+      );
       plotSnapshot = {
         ...plotSnapshot,
         data,
@@ -2158,6 +2248,7 @@ export function createMetricGraphView({
         historyEndSec,
         displayHistoryEndSec,
         actualForecastCoverageEndSec,
+        visibleForecastCoverageEndSec,
         pointsForDraw: refreshedForecastState.pointsForDraw,
         seriesValues: refreshedForecastState.seriesValues,
         seriesScaleRanges: refreshedForecastState.seriesScaleRanges,
@@ -2222,10 +2313,74 @@ export function createMetricGraphView({
         if (arr) arr[i] = value;
       }
     }
-    const seriesScaleRanges = computeGraphSeriesScaleRanges(seriesList, seriesValues, {
+    const previousSnapshotCompatible =
+      freezeRevealedPlotPrefixCur &&
+      plotSnapshot &&
+      Math.floor(plotSnapshot?.snapshotMinSec ?? -1) === snapshotMinSec &&
+      Math.floor(plotSnapshot?.displayHistoryEndSec ?? -1) === displayHistoryEndSec &&
+      Math.floor(plotSnapshot?.zoomed ? 1 : 0) === (zoomed ? 1 : 0) &&
+      Math.floor(plotSnapshot?.sampleCursorSec ?? -1) ===
+        Math.floor(sampleCursorSec ?? -1);
+    const previousStablePrefixEndSec =
+      previousSnapshotCompatible &&
+      Number.isFinite(plotSnapshot?.visibleForecastCoverageEndSec)
+        ? Math.min(
+            maxSec,
+            Math.max(
+              displayHistoryEndSec,
+              Math.floor(plotSnapshot.visibleForecastCoverageEndSec)
+            )
+          )
+        : null;
+    if (
+      previousStablePrefixEndSec != null &&
+      Array.isArray(plotSnapshot?.pointsForDraw) &&
+      plotSnapshot.pointsForDraw.length
+    ) {
+      const mergedPoints = [];
+      const mergedSeriesValues = new Map();
+      for (const s of seriesList) {
+        mergedSeriesValues.set(s.id, []);
+      }
+      const appendPoint = (point, seriesValueSource, index) => {
+        mergedPoints.push(point);
+        for (const s of seriesList) {
+          const arr = mergedSeriesValues.get(s.id);
+          const sourceArr = seriesValueSource?.get?.(s.id);
+          arr.push(Array.isArray(sourceArr) ? sourceArr[index] ?? null : null);
+        }
+      };
+      const previousPoints = Array.isArray(plotSnapshot?.pointsForDraw)
+        ? plotSnapshot.pointsForDraw
+        : [];
+      for (let i = 0; i < previousPoints.length; i++) {
+        const point = previousPoints[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        if (t > previousStablePrefixEndSec) break;
+        appendPoint(point, plotSnapshot?.seriesValues, i);
+      }
+      for (let i = 0; i < pointsForDraw.length; i++) {
+        const point = pointsForDraw[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        if (t <= previousStablePrefixEndSec) continue;
+        appendPoint(point, seriesValues, i);
+      }
+      pointsForDraw = mergedPoints;
+      for (const s of seriesList) {
+        seriesValues.set(s.id, mergedSeriesValues.get(s.id) ?? []);
+      }
+    }
+    let seriesScaleRanges = computeGraphSeriesScaleRanges(seriesList, seriesValues, {
       defaultMin: 0,
       defaultMax: 100,
     });
+    if (freezeScaleMaxDuringRevealCur && previousSnapshotCompatible) {
+      seriesScaleRanges = mergeStickySeriesScaleRanges(
+        plotSnapshot?.seriesScaleRanges,
+        seriesScaleRanges,
+        seriesList
+      );
+    }
 
     const markerActionSecs = getMarkerActionSecs(
       minSec,
@@ -2247,6 +2402,11 @@ export function createMetricGraphView({
       historyEndSec,
       displayHistoryEndSec,
       actualForecastCoverageEndSec,
+      visibleForecastCoverageEndSec,
+      snapshotMinSec,
+      snapshotMaxSec,
+      sampleCursorSec,
+      zoomed,
       markerSecs,
     };
     return buildDynamicSnapshotParts(plotSnapshot);

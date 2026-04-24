@@ -1412,6 +1412,8 @@ settlementGraphView = createMetricGraphView({
     SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC,
   plotSnapshotCoverForecast: true,
   plotSnapshotLeadSec: SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC,
+  freezeRevealedPlotPrefix: true,
+  freezeScaleMaxDuringReveal: true,
   bootFadeDurationMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
   bootRevealDelayMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
   getSystemTargetModeLabel: () => getSettlementGraphSeriesButtonLabel(),

@@ -401,10 +401,26 @@ export function createSettlementForecastController({
   function getDynamicDisplayLossSec(frontierState = getFrontierState?.()) {
     if (!frontierState) return null;
     const frontierSec = clampSec(getFrontierSec?.(), 0);
+    const browseCapSec = clampSec(getBrowseCapSec(), frontierSec);
+    const computedCoverageEndSec = clampSec(
+      getComputedCoverageEndSec(),
+      frontierSec
+    );
     const bufferSec =
       clampPositiveInt(getSettlementYearDurationSec(frontierState), 1) *
       clampPositiveInt(dynamicDisplayBufferYears, 1);
-    const rawDisplayLossSec = Math.max(frontierSec, getBrowseCapSec() + bufferSec);
+    const bufferedDisplayLossSec = Math.max(
+      frontierSec,
+      browseCapSec,
+      browseCapSec + bufferSec
+    );
+    const rawDisplayLossSec = Number.isFinite(computedCoverageEndSec)
+      ? Math.max(
+          frontierSec,
+          browseCapSec,
+          Math.min(bufferedDisplayLossSec, computedCoverageEndSec)
+        )
+      : bufferedDisplayLossSec;
     return Math.max(
       frontierSec,
       quantizeSecUp(rawDisplayLossSec, dynamicDisplayQuantumSec)
