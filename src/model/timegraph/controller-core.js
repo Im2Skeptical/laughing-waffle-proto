@@ -107,6 +107,8 @@ export function createTimeGraphController({
   historyStrideSec = 1,
   forecastStepSec = DEFAULT_FORECAST_STEP_SEC,
   horizonSec = BASE_PROJECTION_HORIZON_SEC,
+  nonFocusStablePrefixSpanSec = null,
+  nonFocusStablePrefixStrideSec = null,
 } = {}) {
   const ASYNC_FORECAST_STEP_SEC = 1;
   const ASYNC_FORECAST_REQUEST_POLL_MS = 50;
@@ -135,6 +137,16 @@ export function createTimeGraphController({
   let forecastStepSecCur = forecastStepSec;
   let horizonSecCur = horizonSec;
   let horizonSecOverride = null;
+  const nonFocusStablePrefixSpanSecCur = Number.isFinite(
+    nonFocusStablePrefixSpanSec
+  )
+    ? Math.max(0, Math.floor(nonFocusStablePrefixSpanSec))
+    : 0;
+  const nonFocusStablePrefixStrideSecCur = Number.isFinite(
+    nonFocusStablePrefixStrideSec
+  )
+    ? Math.max(1, Math.floor(nonFocusStablePrefixStrideSec))
+    : 0;
 
   // Change detection
   let lastKnownHistoryEndSec = 0;
@@ -1305,7 +1317,12 @@ export function createTimeGraphController({
       cursorSec,
     });
     const actionSecondsVersion = Math.floor(tl?._actionSecondsVersion ?? 0);
-    const samplingSig = getSamplingModeSignature(!!focus, end - start);
+    const samplingSigBase = getSamplingModeSignature(!!focus, end - start);
+    const samplingSig = !focus &&
+      nonFocusStablePrefixSpanSecCur > 0 &&
+      nonFocusStablePrefixStrideSecCur > 0
+        ? `${samplingSigBase}|prefix:${nonFocusStablePrefixSpanSecCur}:${nonFocusStablePrefixStrideSecCur}`
+        : samplingSigBase;
     const metricId = metricDef?.id ?? metricDef?.label ?? "metric";
     const subjectKeyTag = subjectKey ?? "__global__";
     const cacheKey =
@@ -1321,6 +1338,8 @@ export function createTimeGraphController({
         cursorSec,
         actionSecs,
         focus: !!focus,
+        nonFocusStablePrefixSpanSec: nonFocusStablePrefixSpanSecCur,
+        nonFocusStablePrefixStrideSec: nonFocusStablePrefixStrideSecCur,
       });
       if (!focus && forecastStepSecCur > 1) {
         sampleSecs = alignForecastSampleSeconds(
