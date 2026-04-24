@@ -24,13 +24,13 @@ import {
 } from "../../model/owner-id-protocol.js";
 
 const SYSTEM_GRAPH_COLORS = [
-  0x7fd0ff,
-  0xffaa66,
-  0x7ccf6b,
-  0xff6699,
-  0xb07a4f,
-  0x9aa0b5,
-  0x8f6fff,
+  0x7fd0ff, // #7fd0ff
+  0xffaa66, // #ffaa66,
+  0x7ccf6b, // #7ccf6b,
+  0xff6699, // #ff6699,
+  0xb07a4f, // #b07a4f,
+  0x9aa0b5, // #9aa0b5,
+  0x8f6fff, // #8f6fff,
 ];
 
 const SYSTEM_GRAPH_TARGET_UPDATE_MS = 30;

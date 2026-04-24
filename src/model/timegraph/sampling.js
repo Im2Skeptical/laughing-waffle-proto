@@ -133,6 +133,22 @@ export function addBudgetedDenseEdgeSamples(
   sampleSet.add(denseEnd);
 }
 
+export function addStrideSamples(
+  sampleSet,
+  startSec,
+  endSec,
+  { strideSec = 1 } = {}
+) {
+  const start = clampSec(startSec);
+  const end = clampSec(endSec);
+  const stride = Math.max(1, Math.floor(strideSec ?? 1));
+  if (end <= start) return;
+  for (let sec = start; sec <= end; sec += stride) {
+    sampleSet.add(sec);
+  }
+  sampleSet.add(end);
+}
+
 export function pickActionSecondsForSampling(
   actionSecs,
   { focus, cursorSec, startSec, endSec } = {}
@@ -201,6 +217,8 @@ export function buildSampleSeconds({
   cursorSec,
   actionSecs,
   focus,
+  nonFocusStablePrefixSpanSec = null,
+  nonFocusStablePrefixStrideSec = null,
 }) {
   const start = clampSec(startSec);
   const end = clampSec(endSec);
@@ -235,6 +253,21 @@ export function buildSampleSeconds({
 
   if (!focus) {
     addGridSamples(samples, start, end, target);
+    const stablePrefixSpanSec = Number.isFinite(nonFocusStablePrefixSpanSec)
+      ? Math.max(0, Math.floor(nonFocusStablePrefixSpanSec))
+      : 0;
+    const stablePrefixStrideSec = Number.isFinite(nonFocusStablePrefixStrideSec)
+      ? Math.max(1, Math.floor(nonFocusStablePrefixStrideSec))
+      : 0;
+    if (stablePrefixSpanSec > 0 && stablePrefixStrideSec > 0) {
+      addStrideSamples(
+        samples,
+        start,
+        Math.min(end, start + stablePrefixSpanSec),
+        { strideSec: stablePrefixStrideSec }
+      );
+      return Array.from(samples.values()).sort((a, b) => a - b);
+    }
     // Keep the early edge dense enough for the unveil marker to read clearly,
     // but cap the total non-focus sample budget so window-span thresholds do
     // not create large frame-time cliffs as the graph expands.
