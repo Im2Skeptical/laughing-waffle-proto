@@ -49,6 +49,7 @@ function buildSummary({ initial, availability, probeResults, postSelection }) {
     nullProbeCount,
     viewTextCount: postSelection?.view?.textCount ?? initial?.view?.textCount ?? null,
     vassalPanel: postSelection?.view?.sections?.vassal ?? initial?.view?.sections?.vassal ?? null,
+    chaosPanel: postSelection?.view?.sections?.chaos ?? initial?.view?.sections?.chaos ?? null,
     firstProbe: summarizeProbeResult(probeResults[0] ?? null),
     lastProbe: summarizeProbeResult(probeResults[probeResults.length - 1] ?? null),
   };
@@ -78,6 +79,21 @@ function assertSettlementViewSemantics(snapshot) {
   if (!vassal?.hasStatus) missing.push("vassal status");
   if (missing.length > 0) {
     throw new Error(`Settlement view semantic snapshot missing: ${missing.join(", ")}`);
+  }
+}
+
+function assertChaosViewSemantics(snapshot) {
+  const chaos = snapshot?.view?.sections?.chaos ?? null;
+  const missing = [];
+  if (!chaos?.hasHeader) missing.push("Chaos");
+  if (!chaos?.hasSharedPool) missing.push("Shared Pool");
+  if (!chaos?.hasChaosPower) missing.push("Chaos Power");
+  if (!chaos?.hasChaosIncome) missing.push("Chaos Income");
+  if (!chaos?.hasRedGod) missing.push("RedGod");
+  if (!chaos?.hasNextSpawn) missing.push("Next Spawn");
+  if (!chaos?.hasMonsters) missing.push("Monsters");
+  if (missing.length > 0) {
+    throw new Error(`Chaos view semantic snapshot missing: ${missing.join(", ")}`);
   }
 }
 
@@ -185,6 +201,7 @@ async function main() {
     () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null
   );
   assertSettlementViewSemantics(initial);
+  assertChaosViewSemantics(initial);
   logJson("initial", initial);
 
   const availability = await page.evaluate(() => {
@@ -238,6 +255,7 @@ async function main() {
   } else {
     assertSettlementViewSemantics(postSelection);
   }
+  assertChaosViewSemantics(postSelection);
   logJson("selectionAttempt", selectionAttempt);
   logJson("postSelection", postSelection);
 
