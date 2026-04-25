@@ -62,7 +62,15 @@ import {
 } from "./settlement-theme.js";
 import {
   ORDER_PANEL_LAYOUT,
+  SETTLEMENT_CLASS_COLUMN_LAYOUT,
   SETTLEMENT_PANEL_RECTS,
+  SETTLEMENT_PRACTICE_CARD_LAYOUT,
+  SETTLEMENT_REGION_TILE_LAYOUT,
+  SETTLEMENT_RESOURCE_CHIP_LAYOUT,
+  SETTLEMENT_SECTION_LABEL_LAYOUT,
+  SETTLEMENT_SLOT_GRID_LAYOUT,
+  SETTLEMENT_STRUCTURE_CARD_LAYOUT,
+  SETTLEMENT_TOPBAR_LAYOUT,
 } from "./settlement-layout.js";
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
 
@@ -2463,7 +2471,7 @@ export function createSettlementPrototypeView({
     contentLayer.addChild(background);
 
     const topbar = new PIXI.Graphics();
-    roundedRect(topbar, 0, 0, screenWidth, 70, 0, PALETTE.topbar, PALETTE.topbar, 0);
+    roundedRect(topbar, 0, 0, screenWidth, SETTLEMENT_TOPBAR_LAYOUT.height, 0, PALETTE.topbar, PALETTE.topbar, 0);
     contentLayer.addChild(topbar);
 
     const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  |  Year ${Math.floor(
@@ -2476,7 +2484,7 @@ export function createSettlementPrototypeView({
             : ""
         }`
       : "Civilization Lost - Unknown";
-    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, 24, 0.5, 0.5));
+    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, SETTLEMENT_TOPBAR_LAYOUT.seasonY, 0.5, 0.5));
     contentLayer.addChild(
       createText(
         civilizationLostLabel,
@@ -2487,7 +2495,7 @@ export function createSettlementPrototypeView({
           fill: PALETTE.accent,
         },
         screenWidth * 0.5,
-        50,
+        SETTLEMENT_TOPBAR_LAYOUT.lossY,
         0.5,
         0.5
       )
@@ -2601,7 +2609,7 @@ export function createSettlementPrototypeView({
         state?.locationNames?.hub ?? "Hub",
         TEXT_STYLES.header,
         hubPanelRect.x + hubPanelRect.width * 0.5,
-        148,
+        SETTLEMENT_SECTION_LABEL_LAYOUT.hubY,
         0.5,
         0.5
       )
@@ -2611,23 +2619,23 @@ export function createSettlementPrototypeView({
         state?.locationNames?.region ?? "Region",
         TEXT_STYLES.header,
         regionPanelRect.x + regionPanelRect.width * 0.5,
-        regionPanelRect.y + 30,
+        regionPanelRect.y + SETTLEMENT_SECTION_LABEL_LAYOUT.regionYOffset,
         0.5,
         0.5
       )
     );
     contentLayer.addChild(
-      createText("Vassal", TEXT_STYLES.header, vassalPanelRect.x + vassalPanelRect.width * 0.5, 148, 0.5, 0.5)
+      createText("Vassal", TEXT_STYLES.header, vassalPanelRect.x + vassalPanelRect.width * 0.5, SETTLEMENT_SECTION_LABEL_LAYOUT.vassalY, 0.5, 0.5)
     );
     contentLayer.addChild(
-      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, 172, 0.5, 0.5)
+      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, SETTLEMENT_SECTION_LABEL_LAYOUT.orderY, 0.5, 0.5)
     );
     contentLayer.addChild(
       createText(
         `Practice - ${capitalizeLabel(selectedClassId)}`,
         TEXT_STYLES.title,
         practiceRect.x + practiceRect.width * 0.5,
-        416,
+        SETTLEMENT_SECTION_LABEL_LAYOUT.practiceY,
         0.5,
         0.5
       )
@@ -2637,7 +2645,7 @@ export function createSettlementPrototypeView({
         "Structures",
         TEXT_STYLES.title,
         structuresRect.x + structuresRect.width * 0.5,
-        610,
+        SETTLEMENT_SECTION_LABEL_LAYOUT.structuresY,
         0.5,
         0.5
       )
@@ -2649,34 +2657,34 @@ export function createSettlementPrototypeView({
       {
         label: "Food",
         value: `${getSettlementTotalFood(state)} total`,
-        width: 190,
+        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.food,
         color: PALETTE.chip,
       },
       {
         label: "Red",
         value: getSettlementStockpile(state, "redResource"),
-        width: 140,
+        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.red,
         color: PALETTE.red,
       },
       {
         label: "Blue",
         value: getSettlementStockpile(state, "blueResource"),
-        width: 140,
+        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.blue,
         color: PALETTE.blue,
       },
       {
         label: "Black",
         value: getSettlementStockpile(state, "blackResource"),
-        width: 150,
+        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.black,
         color: PALETTE.black,
       },
     ];
-    const chipGap = 12;
+    const chipGap = SETTLEMENT_RESOURCE_CHIP_LAYOUT.gap;
     const chipRowWidth =
       chipSpecs.reduce((sum, spec) => sum + spec.width, 0) + chipGap * (chipSpecs.length - 1);
     let chipX = resourceBandRect.x + Math.floor((resourceBandRect.width - chipRowWidth) * 0.5);
     for (const spec of chipSpecs) {
-      drawChip(chipsLayer, chipX, resourceBandRect.y + 2, spec.width, spec.label, spec.value, spec.color);
+      drawChip(chipsLayer, chipX, resourceBandRect.y + SETTLEMENT_RESOURCE_CHIP_LAYOUT.yOffset, spec.width, spec.label, spec.value, spec.color);
       chipX += spec.width + chipGap;
     }
 
@@ -2685,9 +2693,9 @@ export function createSettlementPrototypeView({
     // createClassTab selection moved onto the class summary cards themselves.
     // Legacy layout marker for UI contract tests:
     // { y: classTabsRect.y }
-    const classGap = 12;
+    const classGap = SETTLEMENT_CLASS_COLUMN_LAYOUT.gap;
     const classCardHeight = Math.max(
-      92,
+      SETTLEMENT_CLASS_COLUMN_LAYOUT.minCardHeight,
       Math.floor(
         (classColumnRect.height - classGap * Math.max(0, classIds.length - 1)) /
           Math.max(1, classIds.length)
@@ -2719,17 +2727,17 @@ export function createSettlementPrototypeView({
       );
     }
 
-    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), practiceRect, 5, 1);
-    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, 6, 1);
+    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), practiceRect, SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns, 1);
+    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns, 1);
     drawSlotGrid(
       contentLayer.addChild(new PIXI.Graphics()),
       {
-        x: regionPanelRect.x + 20,
-        y: regionPanelRect.y + 70,
-        width: regionPanelRect.width - 40,
-        height: regionPanelRect.height - 100,
+        x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset,
+        y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
+        width: regionPanelRect.width - SETTLEMENT_REGION_TILE_LAYOUT.xInset * 2,
+        height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
       },
-      5,
+      SETTLEMENT_SLOT_GRID_LAYOUT.regionColumns,
       1
     );
     drawVassalPanel(
@@ -2757,20 +2765,27 @@ export function createSettlementPrototypeView({
     }
 
     const practiceSlots = getSettlementPracticeSlotsByClass(state, selectedClassId);
-    const practiceCardWidth = 148;
-    const practiceCardGap = 16;
+    const practiceCardWidth = SETTLEMENT_PRACTICE_CARD_LAYOUT.width;
+    const practiceCardGap = SETTLEMENT_PRACTICE_CARD_LAYOUT.gap;
     for (let i = 0; i < practiceSlots.length; i += 1) {
       const card = practiceSlots[i]?.card ?? null;
       if (!card) continue;
       const def = settlementPracticeDefs[card.defId];
       const isPassivePractice = def?.practiceMode === "passive";
-      const cardHeight = isPassivePractice ? practiceCardWidth : practiceRect.height - 48;
+      const cardHeight = isPassivePractice
+        ? practiceCardWidth
+        : practiceRect.height - SETTLEMENT_PRACTICE_CARD_LAYOUT.heightInset;
       const cardY =
-        practiceRect.y + 24 + Math.max(0, Math.floor((practiceRect.height - 48 - cardHeight) * 0.5));
+        practiceRect.y +
+        SETTLEMENT_PRACTICE_CARD_LAYOUT.yInset +
+        Math.max(
+          0,
+          Math.floor((practiceRect.height - SETTLEMENT_PRACTICE_CARD_LAYOUT.heightInset - cardHeight) * 0.5)
+        );
       drawPracticeCard(
         contentLayer,
         {
-          x: practiceRect.x + 14 + i * (practiceCardWidth + practiceCardGap),
+          x: practiceRect.x + SETTLEMENT_PRACTICE_CARD_LAYOUT.xInset + i * (practiceCardWidth + practiceCardGap),
           y: cardY,
           width: practiceCardWidth,
           height: cardHeight,
@@ -2794,8 +2809,8 @@ export function createSettlementPrototypeView({
     }
 
     const structureSlots = getSettlementStructureSlots(state);
-    const structureCardWidth = 154;
-    const structureCardGap = 18;
+    const structureCardWidth = SETTLEMENT_STRUCTURE_CARD_LAYOUT.width;
+    const structureCardGap = SETTLEMENT_STRUCTURE_CARD_LAYOUT.gap;
     for (let i = 0; i < structureSlots.length; i += 1) {
       const structure = structureSlots[i]?.structure ?? null;
       if (!structure) continue;
@@ -2803,10 +2818,10 @@ export function createSettlementPrototypeView({
       drawCard(
         contentLayer,
         {
-          x: structuresRect.x + 14 + i * (structureCardWidth + structureCardGap),
-          y: structuresRect.y + 18,
+          x: structuresRect.x + SETTLEMENT_STRUCTURE_CARD_LAYOUT.xInset + i * (structureCardWidth + structureCardGap),
+          y: structuresRect.y + SETTLEMENT_STRUCTURE_CARD_LAYOUT.yInset,
           width: structureCardWidth,
-          height: structuresRect.height - 36,
+          height: structuresRect.height - SETTLEMENT_STRUCTURE_CARD_LAYOUT.heightInset,
         },
         def?.name ?? structure.defId,
         buildStructureLines(structure),
@@ -2815,7 +2830,7 @@ export function createSettlementPrototypeView({
         {
           fontSize: 11,
           lineHeight: 15,
-          wordWrapWidth: structureCardWidth - 28,
+          wordWrapWidth: structureCardWidth - SETTLEMENT_STRUCTURE_CARD_LAYOUT.wordWrapInset,
         }
       );
     }
@@ -2830,10 +2845,10 @@ export function createSettlementPrototypeView({
       drawCard(
         contentLayer,
         {
-          x: regionPanelRect.x + 20 + i * 100,
-          y: regionPanelRect.y + 70,
-          width: 88,
-          height: regionPanelRect.height - 100,
+          x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset + i * SETTLEMENT_REGION_TILE_LAYOUT.stepX,
+          y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
+          width: SETTLEMENT_REGION_TILE_LAYOUT.width,
+          height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
         },
         def?.name ?? tile?.defId ?? "Tile",
         buildTileLines(tile),
