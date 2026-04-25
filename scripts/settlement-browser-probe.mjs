@@ -50,6 +50,7 @@ function buildSummary({ initial, availability, probeResults, postSelection }) {
     viewTextCount: postSelection?.view?.textCount ?? initial?.view?.textCount ?? null,
     vassalPanel: postSelection?.view?.sections?.vassal ?? initial?.view?.sections?.vassal ?? null,
     chaosPanel: postSelection?.view?.sections?.chaos ?? initial?.view?.sections?.chaos ?? null,
+    classSummary: postSelection?.view?.sections?.classSummary ?? initial?.view?.sections?.classSummary ?? null,
     firstProbe: summarizeProbeResult(probeResults[0] ?? null),
     lastProbe: summarizeProbeResult(probeResults[probeResults.length - 1] ?? null),
   };
@@ -94,6 +95,19 @@ function assertChaosViewSemantics(snapshot) {
   if (!chaos?.hasMonsters) missing.push("Monsters");
   if (missing.length > 0) {
     throw new Error(`Chaos view semantic snapshot missing: ${missing.join(", ")}`);
+  }
+}
+
+function assertClassSummaryViewSemantics(snapshot) {
+  const classSummary = snapshot?.view?.sections?.classSummary ?? null;
+  const missing = [];
+  if (!classSummary?.hasAdults) missing.push("Adults");
+  if (!classSummary?.hasYouth) missing.push("Youth");
+  if (!classSummary?.hasFree) missing.push("Free");
+  if (!classSummary?.hasFaith) missing.push("Faith");
+  if (!classSummary?.hasMood) missing.push("Mood");
+  if (missing.length > 0) {
+    throw new Error(`Class summary view semantic snapshot missing: ${missing.join(", ")}`);
   }
 }
 
@@ -202,6 +216,7 @@ async function main() {
   );
   assertSettlementViewSemantics(initial);
   assertChaosViewSemantics(initial);
+  assertClassSummaryViewSemantics(initial);
   logJson("initial", initial);
 
   const availability = await page.evaluate(() => {
@@ -256,6 +271,7 @@ async function main() {
     assertSettlementViewSemantics(postSelection);
   }
   assertChaosViewSemantics(postSelection);
+  assertClassSummaryViewSemantics(postSelection);
   logJson("selectionAttempt", selectionAttempt);
   logJson("postSelection", postSelection);
 

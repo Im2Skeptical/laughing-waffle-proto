@@ -170,3 +170,44 @@ export const SETTLEMENT_CHAOS_PANEL_LAYOUT = Object.freeze({
     statHeight: 28,
   }),
 });
+
+export const SETTLEMENT_CLASS_SUMMARY_CARD_LAYOUT = Object.freeze({
+  radius: 18,
+  selectedStrokeWidth: 3,
+  strokeWidth: 2,
+  title: Object.freeze({
+    x: 16,
+    y: 12,
+    maxWidth: 92,
+  }),
+  population: Object.freeze({
+    rightInset: 16,
+    y: 16,
+    maxWidth: 116,
+  }),
+  stats: Object.freeze({
+    xInset: 16,
+    y: 34,
+    gap: 8,
+    count: 3,
+  }),
+  faith: Object.freeze({
+    xInset: 16,
+    y: 58,
+    widthInset: 32,
+    height: 36,
+  }),
+  mood: Object.freeze({
+    xInset: 16,
+    y: 98,
+    widthInset: 32,
+    minHeight: 36,
+    heightInset: 108,
+  }),
+  statPill: Object.freeze({
+    height: 20,
+    labelXInset: 8,
+    labelYOffset: 5,
+    valueRightInset: 8,
+  }),
+});

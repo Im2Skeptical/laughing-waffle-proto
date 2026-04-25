@@ -63,6 +63,7 @@ import {
 import {
   ORDER_PANEL_LAYOUT,
   SETTLEMENT_CHAOS_PANEL_LAYOUT,
+  SETTLEMENT_CLASS_SUMMARY_CARD_LAYOUT,
   SETTLEMENT_CLASS_COLUMN_LAYOUT,
   SETTLEMENT_PANEL_RECTS,
   SETTLEMENT_PRACTICE_CARD_LAYOUT,
@@ -175,6 +176,13 @@ function buildRenderSemanticSnapshot(contentLayer, overlayLayer) {
         hasRedGod: textSet.has("RedGod"),
         hasNextSpawn: textSet.has("Next Spawn"),
         hasMonsters: textSet.has("Monsters"),
+      },
+      classSummary: {
+        hasAdults: textSet.has("Adults"),
+        hasYouth: textSet.has("Youth"),
+        hasFree: textSet.has("Free"),
+        hasFaith: textSet.has("Faith"),
+        hasMood: textSet.has("Mood"),
       },
     },
   };
@@ -1702,7 +1710,8 @@ function getHappinessStateColor(status) {
 }
 
 function drawClassStatPill(container, x, y, width, label, value, fill) {
-  const height = 20;
+  const layout = SETTLEMENT_CLASS_SUMMARY_CARD_LAYOUT.statPill;
+  const height = layout.height;
   const pill = new PIXI.Graphics();
   roundedRect(pill, x, y, width, height, 10, fill, PALETTE.stroke, 1);
   container.addChild(pill);
@@ -1713,8 +1722,8 @@ function drawClassStatPill(container, x, y, width, label, value, fill) {
         ...TEXT_STYLES.muted,
         fontSize: 8,
       },
-      x + 8,
-      y + 5
+      x + layout.labelXInset,
+      y + layout.labelYOffset
     )
   );
   container.addChild(
@@ -1725,7 +1734,7 @@ function drawClassStatPill(container, x, y, width, label, value, fill) {
         fontSize: 11,
         fontWeight: "bold",
       },
-      x + width - 8,
+      x + width - layout.valueRightInset,
       y + height * 0.5,
       1,
       0.5
@@ -2152,6 +2161,7 @@ function drawClassSummaryCard(
   selected,
   onTap = null
 ) {
+  const layout = SETTLEMENT_CLASS_SUMMARY_CARD_LAYOUT;
   const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
   roundedRect(
@@ -2160,38 +2170,60 @@ function drawClassSummaryCard(
     0,
     rect.width,
     rect.height,
-    18,
+    layout.radius,
     selected ? PALETTE.panel : PALETTE.cardMuted,
     selected ? PALETTE.active : PALETTE.stroke,
-    selected ? 3 : 2
+    selected ? layout.selectedStrokeWidth : layout.strokeWidth
   );
   root.x = rect.x;
   root.y = rect.y;
   root.addChild(gfx);
-  root.addChild(createText(capitalizeLabel(classId), TEXT_STYLES.cardTitle, 16, 12));
   root.addChild(
-    createText(
+    createWrappedText(
+      capitalizeLabel(classId),
+      TEXT_STYLES.cardTitle,
+      layout.title.x,
+      layout.title.y,
+      layout.title.maxWidth
+    )
+  );
+  root.addChild(
+    createWrappedText(
       `Total ${Math.floor(population?.total ?? 0)}   Reserved ${Math.floor(population?.reserved ?? 0)}`,
       {
         ...TEXT_STYLES.muted,
         fontSize: 9,
       },
-      rect.width - 16,
-      16,
+      rect.width - layout.population.rightInset,
+      layout.population.y,
+      layout.population.maxWidth,
       1,
       0
     )
   );
 
-  const statsY = 34;
-  const statGap = 8;
-  const statWidth = Math.floor((rect.width - 32 - statGap * 2) / 3);
-  drawClassStatPill(root, 16, statsY, statWidth, "Adults", Math.floor(population?.adults ?? 0), PALETTE.classAdultsFill);
-  drawClassStatPill(root, 16 + statWidth + statGap, statsY, statWidth, "Youth", Math.floor(population?.youth ?? 0), PALETTE.classYouthFill);
-  drawClassStatPill(root, 16 + (statWidth + statGap) * 2, statsY, statWidth, "Free", Math.floor(population?.free ?? 0), PALETTE.classFreeFill);
+  const statsY = layout.stats.y;
+  const statGap = layout.stats.gap;
+  const statWidth = Math.floor(
+    (rect.width - layout.stats.xInset * 2 - statGap * (layout.stats.count - 1)) /
+      layout.stats.count
+  );
+  drawClassStatPill(root, layout.stats.xInset, statsY, statWidth, "Adults", Math.floor(population?.adults ?? 0), PALETTE.classAdultsFill);
+  drawClassStatPill(root, layout.stats.xInset + statWidth + statGap, statsY, statWidth, "Youth", Math.floor(population?.youth ?? 0), PALETTE.classYouthFill);
+  drawClassStatPill(root, layout.stats.xInset + (statWidth + statGap) * 2, statsY, statWidth, "Free", Math.floor(population?.free ?? 0), PALETTE.classFreeFill);
 
-  drawFaithTrack(root, { x: 16, y: 58, width: rect.width - 32, height: 36 }, faith);
-  drawMoodPanel(root, { x: 16, y: 98, width: rect.width - 32, height: Math.max(36, rect.height - 108) }, happiness);
+  drawFaithTrack(root, {
+    x: layout.faith.xInset,
+    y: layout.faith.y,
+    width: rect.width - layout.faith.widthInset,
+    height: layout.faith.height,
+  }, faith);
+  drawMoodPanel(root, {
+    x: layout.mood.xInset,
+    y: layout.mood.y,
+    width: rect.width - layout.mood.widthInset,
+    height: Math.max(layout.mood.minHeight, rect.height - layout.mood.heightInset),
+  }, happiness);
   if (typeof onTap === "function") {
     root.eventMode = "static";
     root.cursor = "pointer";
