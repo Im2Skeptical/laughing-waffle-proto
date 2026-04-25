@@ -66,6 +66,7 @@ export function publishSettlementDebugApi({
   getGraphControllerData,
   getProjectionForecastMeta,
   getProjectionDebugSecondKeys,
+  getViewSemanticSnapshot,
   getPendingCommitJob,
   getTimeline,
   getPreviewStatus,
@@ -102,6 +103,7 @@ export function publishSettlementDebugApi({
         controller: summarizeGraphControllerData(getGraphControllerData?.()),
         projection: getProjectionForecastMeta?.() ?? null,
         projectionKeys: getProjectionDebugSecondKeys?.(32) ?? null,
+        view: getViewSemanticSnapshot?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
           timeline: summarizeTimeline(timeline),
