@@ -62,6 +62,7 @@ import {
 } from "./settlement-theme.js";
 import {
   ORDER_PANEL_LAYOUT,
+  SETTLEMENT_CHAOS_PANEL_LAYOUT,
   SETTLEMENT_CLASS_COLUMN_LAYOUT,
   SETTLEMENT_PANEL_RECTS,
   SETTLEMENT_PRACTICE_CARD_LAYOUT,
@@ -165,6 +166,15 @@ function buildRenderSemanticSnapshot(contentLayer, overlayLayer) {
         hasTraitLine: hasPrefix("Trait "),
         hasDeathYearLine: hasPrefix("Death Year "),
         hasStatus: textSet.has("Alive") || textSet.has("Elder") || textSet.has("Dead"),
+      },
+      chaos: {
+        hasHeader: textSet.has("Chaos"),
+        hasSharedPool: textSet.has("Shared Pool"),
+        hasChaosPower: textSet.has("Chaos Power"),
+        hasChaosIncome: textSet.has("Chaos Income"),
+        hasRedGod: textSet.has("RedGod"),
+        hasNextSpawn: textSet.has("Next Spawn"),
+        hasMonsters: textSet.has("Monsters"),
       },
     },
   };
@@ -1539,33 +1549,38 @@ function drawChaosStatPill(container, rect, label, valueText, accentColor, opts 
 }
 
 function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
+  const layout = SETTLEMENT_CHAOS_PANEL_LAYOUT;
   drawSubPanel(container, rect, PALETTE.panel, PALETTE.stroke);
   container.addChild(
     createText(
       "Chaos",
       TEXT_STYLES.title,
       rect.x + rect.width * 0.5,
-      rect.y + 18,
+      rect.y + layout.titleY,
       0.5,
       0
     )
   );
 
   const sharedRect = {
-    x: rect.x + 12,
-    y: rect.y + 46,
-    width: rect.width - 24,
-    height: 92,
+    x: rect.x + layout.shared.xInset,
+    y: rect.y + layout.shared.yOffset,
+    width: rect.width - layout.shared.widthInset,
+    height: layout.shared.height,
   };
   const godRect = {
-    x: rect.x + 12,
-    y: rect.y + 146,
-    width: rect.width - 24,
-    height: rect.height - 158,
+    x: rect.x + layout.god.xInset,
+    y: rect.y + layout.god.yOffset,
+    width: rect.width - layout.god.widthInset,
+    height: rect.height - layout.god.heightInset,
   };
 
   drawSubPanel(container, sharedRect, PALETTE.chaosSharedPanel, PALETTE.stroke);
-  drawChaosPoolSigil(container, sharedRect.x + 38, sharedRect.y + Math.floor(sharedRect.height * 0.5));
+  drawChaosPoolSigil(
+    container,
+    sharedRect.x + layout.shared.sigilXOffset,
+    sharedRect.y + Math.floor(sharedRect.height * 0.5)
+  );
   container.addChild(
     createText(
       "Shared Pool",
@@ -1574,21 +1589,31 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
         fontSize: 10,
         fontWeight: "bold",
       },
-      sharedRect.x + 74,
-      sharedRect.y + 8
+      sharedRect.x + layout.shared.labelXOffset,
+      sharedRect.y + layout.shared.labelYOffset
     )
   );
 
   drawChaosStatPill(
     container,
-    { x: sharedRect.x + 74, y: sharedRect.y + 26, width: 168, height: 42 },
+    {
+      x: sharedRect.x + layout.shared.power.xOffset,
+      y: sharedRect.y + layout.shared.power.yOffset,
+      width: layout.shared.power.width,
+      height: layout.shared.power.height,
+    },
     "Chaos Power",
     `${Math.floor(summary?.chaosPower ?? 0)}`,
     PALETTE.red
   );
   drawChaosStatPill(
     container,
-    { x: sharedRect.x + 252, y: sharedRect.y + 26, width: 240, height: 42 },
+    {
+      x: sharedRect.x + layout.shared.income.xOffset,
+      y: sharedRect.y + layout.shared.income.yOffset,
+      width: layout.shared.income.width,
+      height: layout.shared.income.height,
+    },
     "Chaos Income",
     `+${Math.floor(incomeSummary?.totalIncome ?? summary?.chaosIncome ?? 0)}/s`,
     PALETTE.accent,
@@ -1609,7 +1634,12 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
   );
 
   drawSubPanel(container, godRect, PALETTE.chaosGodPanel, PALETTE.stroke);
-  drawRedGodSigil(container, godRect.x + 40, godRect.y + Math.floor(godRect.height * 0.5), summary);
+  drawRedGodSigil(
+    container,
+    godRect.x + layout.god.sigilXOffset,
+    godRect.y + Math.floor(godRect.height * 0.5),
+    summary
+  );
   container.addChild(
     createText(
       "RedGod",
@@ -1617,31 +1647,42 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
         ...TEXT_STYLES.cardTitle,
         fontSize: 16,
       },
-      godRect.x + 82,
-      godRect.y + 8
+      godRect.x + layout.god.textXOffset,
+      godRect.y + layout.god.titleYOffset
     )
   );
   container.addChild(
-    createText(
+    createWrappedText(
       "First active chaos god",
       {
         ...TEXT_STYLES.muted,
         fontSize: 9,
       },
-      godRect.x + 82,
-      godRect.y + 30
+      godRect.x + layout.god.textXOffset,
+      godRect.y + layout.god.subtitleYOffset,
+      layout.god.statXOffset - layout.god.textXOffset - 8
     )
   );
   drawChaosStatPill(
     container,
-    { x: godRect.x + 186, y: godRect.y + 14, width: 296, height: 28 },
+    {
+      x: godRect.x + layout.god.statXOffset,
+      y: godRect.y + layout.god.nextSpawnYOffset,
+      width: layout.god.statWidth,
+      height: layout.god.statHeight,
+    },
     "Next Spawn",
     `+${Math.floor(summary?.nextSpawnCount ?? 0)} in ${Math.floor(summary?.spawnCountdownSec ?? 0)}s`,
     PALETTE.chaosSpawnAccent
   );
   drawChaosStatPill(
     container,
-    { x: godRect.x + 186, y: godRect.y + 50, width: 296, height: 28 },
+    {
+      x: godRect.x + layout.god.statXOffset,
+      y: godRect.y + layout.god.monstersYOffset,
+      width: layout.god.statWidth,
+      height: layout.god.statHeight,
+    },
     "Monsters",
     `${Math.floor(summary?.monsterCount ?? 0)} / ${Math.floor(summary?.monsterWinCount ?? 100)}`,
     PALETTE.red

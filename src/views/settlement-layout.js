@@ -140,3 +140,33 @@ export const SETTLEMENT_VASSAL_PANEL_LAYOUT = Object.freeze({
     textWidthInset: 36,
   }),
 });
+
+export const SETTLEMENT_CHAOS_PANEL_LAYOUT = Object.freeze({
+  titleY: 18,
+  shared: Object.freeze({
+    xInset: 12,
+    yOffset: 46,
+    widthInset: 24,
+    height: 92,
+    sigilXOffset: 38,
+    labelXOffset: 74,
+    labelYOffset: 8,
+    power: Object.freeze({ xOffset: 74, yOffset: 26, width: 168, height: 42 }),
+    income: Object.freeze({ xOffset: 252, yOffset: 26, width: 240, height: 42 }),
+  }),
+  god: Object.freeze({
+    xInset: 12,
+    yOffset: 146,
+    widthInset: 24,
+    heightInset: 158,
+    sigilXOffset: 40,
+    textXOffset: 82,
+    titleYOffset: 8,
+    subtitleYOffset: 30,
+    statXOffset: 186,
+    nextSpawnYOffset: 14,
+    monstersYOffset: 50,
+    statWidth: 296,
+    statHeight: 28,
+  }),
+});
