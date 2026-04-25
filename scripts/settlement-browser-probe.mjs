@@ -32,7 +32,7 @@ function summarizeProbeResult(result) {
   };
 }
 
-function buildSummary({ initial, availability, probeResults }) {
+function buildSummary({ initial, availability, probeResults, postSelection }) {
   const missingAvailability = availability.filter(
     (entry) => !entry.hasStateData && !entry.hasState
   );
@@ -47,9 +47,55 @@ function buildSummary({ initial, availability, probeResults }) {
     missingAvailabilityCount: missingAvailability.length,
     probeCount: probeResults.length,
     nullProbeCount,
+    viewTextCount: postSelection?.view?.textCount ?? initial?.view?.textCount ?? null,
+    vassalPanel: postSelection?.view?.sections?.vassal ?? initial?.view?.sections?.vassal ?? null,
     firstProbe: summarizeProbeResult(probeResults[0] ?? null),
     lastProbe: summarizeProbeResult(probeResults[probeResults.length - 1] ?? null),
   };
+}
+
+function assertSettlementViewSemantics(snapshot) {
+  const vassal = snapshot?.view?.sections?.vassal ?? null;
+  const missing = [];
+  if (!vassal?.hasHeader) missing.push("Vassal");
+  const hasActiveVassal = vassal?.hasAgenda || vassal?.hasStats || vassal?.hasEventLog;
+  if (!hasActiveVassal && !vassal?.hasEmptyPrompt) {
+    missing.push("empty vassal prompt or active vassal content");
+  }
+  if (!hasActiveVassal) {
+    if (missing.length > 0) {
+      throw new Error(`Settlement view semantic snapshot missing: ${missing.join(", ")}`);
+    }
+    return;
+  }
+  if (!vassal?.hasAgenda) missing.push("Agenda");
+  if (!vassal?.hasStats) missing.push("Stats");
+  if (!vassal?.hasEventLog) missing.push("Event Log");
+  if (!vassal?.hasClassLine) missing.push("Class line");
+  if (!vassal?.hasProfessionLine) missing.push("Profession line");
+  if (!vassal?.hasTraitLine) missing.push("Trait line");
+  if (!vassal?.hasDeathYearLine) missing.push("Death Year line");
+  if (!vassal?.hasStatus) missing.push("vassal status");
+  if (missing.length > 0) {
+    throw new Error(`Settlement view semantic snapshot missing: ${missing.join(", ")}`);
+  }
+}
+
+function assertActiveVassalViewSemantics(snapshot) {
+  assertSettlementViewSemantics(snapshot);
+  const vassal = snapshot?.view?.sections?.vassal ?? null;
+  const missing = [];
+  if (!vassal?.hasAgenda) missing.push("Agenda");
+  if (!vassal?.hasStats) missing.push("Stats");
+  if (!vassal?.hasEventLog) missing.push("Event Log");
+  if (!vassal?.hasClassLine) missing.push("Class line");
+  if (!vassal?.hasProfessionLine) missing.push("Profession line");
+  if (!vassal?.hasTraitLine) missing.push("Trait line");
+  if (!vassal?.hasDeathYearLine) missing.push("Death Year line");
+  if (!vassal?.hasStatus) missing.push("vassal status");
+  if (missing.length > 0) {
+    throw new Error(`Active vassal view semantic snapshot missing: ${missing.join(", ")}`);
+  }
 }
 
 async function waitForHttp(url, timeoutMs = 15000) {
@@ -138,6 +184,7 @@ async function main() {
   const initial = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null
   );
+  assertSettlementViewSemantics(initial);
   logJson("initial", initial);
 
   const availability = await page.evaluate(() => {
@@ -173,13 +220,34 @@ async function main() {
   }
   logJson("probeResults", probeResults);
 
+  const selectionAttempt = await page.evaluate(() => {
+    const open = globalThis.__SETTLEMENT_DEBUG__?.openNextSelection?.() ?? null;
+    const select = open?.ok
+      ? globalThis.__SETTLEMENT_DEBUG__?.selectCandidate?.(0) ?? null
+      : null;
+    globalThis.__SETTLEMENT_DEBUG__?.forceRender?.();
+    return { open, select };
+  });
+  await delay(250);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__?.forceRender?.());
+  const postSelection = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null
+  );
+  if (selectionAttempt?.select?.ok) {
+    assertActiveVassalViewSemantics(postSelection);
+  } else {
+    assertSettlementViewSemantics(postSelection);
+  }
+  logJson("selectionAttempt", selectionAttempt);
+  logJson("postSelection", postSelection);
+
   await page.screenshot({
     path: SCREENSHOT_PATH,
     fullPage: true,
   });
 
-  const summary = buildSummary({ initial, availability, probeResults });
-  writeDetails({ summary, initial, availability, probeResults });
+  const summary = buildSummary({ initial, availability, probeResults, postSelection });
+  writeDetails({ summary, initial, availability, probeResults, selectionAttempt, postSelection });
   logLine("[probe:settlement] OK");
   logLine(
     `[probe:settlement] frontier=${summary.frontierSec} viewed=${summary.viewedSec} browseCap=${summary.browseCapSec} previewCap=${summary.previewCapSec}`

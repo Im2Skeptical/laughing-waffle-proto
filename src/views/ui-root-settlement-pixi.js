@@ -1571,6 +1571,7 @@ function publishSettlementDebugApi() {
       settlementProjectionCache?.getForecastMeta?.() ?? null,
     getProjectionDebugSecondKeys: (limit) =>
       settlementProjectionCache?.getDebugSecondKeys?.(limit) ?? null,
+    getViewSemanticSnapshot: () => prototypeView?.getSemanticSnapshot?.() ?? null,
     getPendingCommitJob: () =>
       settlementForecastController?.getPendingCommitJob?.() ?? null,
     getTimeline: () => runner?.getTimeline?.() ?? null,
