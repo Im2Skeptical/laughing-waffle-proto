@@ -9,7 +9,6 @@ import {
 } from "../defs/gamesettings/gamerules-defs.js";
 import { ActionKinds } from "../model/actions.js";
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
-import { getPerfSnapshot } from "../model/perf.js";
 import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
@@ -41,6 +40,9 @@ import {
   createSettlementProjectionCache,
   SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
 } from "./ui-root/settlement-timegraph-window.js";
+import {
+  publishSettlementDebugApi as publishSettlementDebugApiForSettlement,
+} from "./ui-root/settlement-debug-api.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -1554,127 +1556,38 @@ function resizeCanvas() {
 }
 
 function publishSettlementDebugApi() {
-  if (typeof globalThis === "undefined") return;
-  globalThis.__SETTLEMENT_DEBUG__ = {
-    getSnapshot: () => {
-      const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
-      return {
-        frontierSec: getSettlementFrontierSec(),
-        viewedSec: getSettlementViewedSec(),
-        browseCapSec: Math.max(0, Math.floor(forecastStatus?.browseCapSec ?? 0)),
-        previewCapSec: getSettlementPreviewCapSec(),
-        playbackTarget: settlementPlaybackSpeedTarget,
-        playbackCurrent: settlementPlaybackSpeedCurrent,
-        forecastStatus,
-        projectedLossInfo: getProjectedSettlementLossInfo(),
-        displayedLossInfo: getSettlementLossInfoForDisplay(),
-        graph: settlementGraphView?.getDebugState?.() ?? null,
-        controller: (() => {
-          const data = settlementGraphController?.getData?.() ?? null;
-          return data
-            ? {
-                horizonSec: Math.max(0, Math.floor(data.horizonSec ?? 0)),
-                forecastStepSec: Math.max(
-                  0,
-                  Math.floor(data.forecastStepSec ?? 0)
-                ),
-                computedCoverageEndSec: Math.max(
-                  0,
-                  Math.floor(data.forecastCoverageEndSec ?? 0)
-                ),
-                forecastRequestedEndSec: Math.max(
-                  0,
-                  Math.floor(data.forecastRequestedEndSec ?? 0)
-                ),
-                forecastPending: data.forecastPending === true,
-                graphBoundarySecs:
-                  data.cache?.stateDataByBoundary instanceof Map
-                    ? {
-                        count: data.cache.stateDataByBoundary.size,
-                        first: Array.from(data.cache.stateDataByBoundary.keys())
-                          .sort((a, b) => a - b)
-                          .slice(0, 32),
-                        last: Array.from(data.cache.stateDataByBoundary.keys())
-                          .sort((a, b) => a - b)
-                          .slice(-32),
-                      }
-                    : null,
-              }
-            : null;
-        })(),
-        projection: settlementProjectionCache?.getForecastMeta?.() ?? null,
-        projectionKeys: settlementProjectionCache?.getDebugSecondKeys?.(32) ?? null,
-        pendingCommitJob: settlementForecastController?.getPendingCommitJob?.() ?? null,
-        runner: {
-          timeline: (() => {
-            const timeline = runner?.getTimeline?.() ?? null;
-            return timeline
-              ? {
-                  cursorSec: Math.max(0, Math.floor(timeline.cursorSec ?? 0)),
-                  historyEndSec: Math.max(
-                    0,
-                    Math.floor(timeline.historyEndSec ?? 0)
-                  ),
-                  maxReachedHistoryEndSec: Math.max(
-                    0,
-                    Math.floor(timeline.maxReachedHistoryEndSec ?? 0)
-                  ),
-                  revision: Math.max(0, Math.floor(timeline.revision ?? 0)),
-                }
-              : null;
-          })(),
-          previewStatus: runner?.getPreviewStatus?.() ?? null,
-          cursorStateSec: Math.max(
-            0,
-            Math.floor(runner?.getCursorState?.()?.tSec ?? 0)
-          ),
-          stateSec: Math.max(0, Math.floor(runner?.getState?.()?.tSec ?? 0)),
-        },
-        lineage: (() => {
-          const state = getSettlementFrontierState();
-          const lineage = state?.hub?.core?.systemState?.vassalLineage ?? null;
-          return lineage
-            ? {
-                currentVassalId: lineage.currentVassalId ?? null,
-                selectedVassalIds: Array.isArray(lineage.selectedVassalIds)
-                  ? [...lineage.selectedVassalIds]
-                  : [],
-                vassalIds: lineage.vassalsById
-                  ? Object.keys(lineage.vassalsById)
-                  : [],
-              }
-            : null;
-        })(),
-      };
-    },
-    getGraphClickPoint: (ratioX = 0, ratioY = 0.5) => {
-      const plotRect = settlementGraphView?.getPlotScreenRect?.();
-      if (!plotRect) return null;
-      const rx = Math.max(0, Math.min(1, Number(ratioX ?? 0)));
-      const ry = Math.max(0, Math.min(1, Number(ratioY ?? 0.5)));
-      return {
-        x: plotRect.x + plotRect.width * rx,
-        y: plotRect.y + plotRect.height * ry,
-      };
-    },
-    forceRender: () => {
-      settlementGraphView?.render?.();
-      prototypeView?.refresh?.();
-      return true;
-    },
-    getPerfSnapshot: () =>
-      getPerfSnapshot({
-        timeline: runner?.getTimeline?.() ?? null,
-        controllers: [settlementGraphController].filter(Boolean),
-      }),
+  publishSettlementDebugApiForSettlement({
+    getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
+    getFrontierSec: () => getSettlementFrontierSec(),
+    getViewedSec: () => getSettlementViewedSec(),
+    getPreviewCapSec: () => getSettlementPreviewCapSec(),
+    getPlaybackTarget: () => settlementPlaybackSpeedTarget,
+    getPlaybackCurrent: () => settlementPlaybackSpeedCurrent,
+    getProjectedLossInfo: () => getProjectedSettlementLossInfo(),
+    getDisplayedLossInfo: () => getSettlementLossInfoForDisplay(),
+    getGraphDebugState: () => settlementGraphView?.getDebugState?.() ?? null,
+    getGraphControllerData: () => settlementGraphController?.getData?.() ?? null,
+    getProjectionForecastMeta: () =>
+      settlementProjectionCache?.getForecastMeta?.() ?? null,
+    getProjectionDebugSecondKeys: (limit) =>
+      settlementProjectionCache?.getDebugSecondKeys?.(limit) ?? null,
+    getPendingCommitJob: () =>
+      settlementForecastController?.getPendingCommitJob?.() ?? null,
+    getTimeline: () => runner?.getTimeline?.() ?? null,
+    getPreviewStatus: () => runner?.getPreviewStatus?.() ?? null,
+    getCursorState: () => runner?.getCursorState?.() ?? null,
+    getState: () => runner?.getState?.() ?? null,
+    getFrontierState: () => getSettlementFrontierState(),
+    getGraphPlotScreenRect: () => settlementGraphView?.getPlotScreenRect?.() ?? null,
+    renderGraph: () => settlementGraphView?.render?.(),
+    refreshPrototypeView: () => prototypeView?.refresh?.(),
+    getGraphController: () => settlementGraphController,
     hasStateDataAt: (tSec) =>
-      settlementGraphController?.getStateDataAt?.(Math.floor(tSec ?? 0)) != null,
-    hasStateAt: (tSec) =>
-      settlementGraphController?.getStateAt?.(Math.floor(tSec ?? 0)) != null,
+      settlementGraphController?.getStateDataAt?.(tSec) != null,
+    hasStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec) != null,
     openNextSelection: () => openNextSettlementVassalSelection(),
-    selectCandidate: (candidateIndex) =>
-      selectSettlementVassal(Math.max(0, Math.floor(candidateIndex ?? 0))),
-  };
+    selectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
+  });
 }
 
 runner.init();
