@@ -199,16 +199,16 @@ function getMiniPracticeStyle(defId, opts = null) {
   let fill = passive ? PALETTE.panelSoft : PALETTE.card;
   if (defId === "floodRites") {
     outline = PALETTE.practiceDrainRed;
-    fill = 0x53413f;
+    fill = PALETTE.practiceFloodFill;
   } else if (defId === "riverRecessionFarming") {
     outline = PALETTE.practiceDrainGreen;
-    fill = 0x54614d;
+    fill = PALETTE.practiceRiverFill;
   } else if (defId === "openToStrangers") {
     outline = PALETTE.passiveBorder;
-    fill = 0x535048;
+    fill = PALETTE.practiceStrangerFill;
   } else if (defId === "asTheRomans") {
     outline = PALETTE.active;
-    fill = 0x4d4a52;
+    fill = PALETTE.practiceRomanFill;
   }
   if (isMission) {
     outline = PALETTE.mission;
@@ -605,7 +605,7 @@ function drawElderLozenge(
     drawAgendaStack(root, agendaRect, getSelectedAgendaForMember(member, selectedClassId));
 
     const detailHit = new PIXI.Graphics();
-    detailHit.beginFill(0xffffff, 0.001);
+    detailHit.beginFill(PALETTE.hitArea, 0.001);
     detailHit.drawRoundedRect(4, 3, rect.width - 8, rect.height - 6, 12);
     detailHit.endFill();
     detailHit.eventMode = "static";
@@ -704,7 +704,7 @@ function drawElderLozenge(
       badgeRect.width,
       badgeRect.height,
       8,
-      0x3a342d,
+      PALETTE.vassalCouncilBadgeFill,
       PALETTE.vassalCouncilStroke,
       1
     );
@@ -730,7 +730,7 @@ function drawElderLozenge(
   const agendaStack = drawAgendaStack(root, agendaRect, selectedAgenda);
 
   const detailHit = new PIXI.Graphics();
-  detailHit.beginFill(0xffffff, 0.001);
+  detailHit.beginFill(PALETTE.hitArea, 0.001);
   detailHit.drawRoundedRect(8, 6, agendaRect.x - 16, rect.height - 12, 16);
   detailHit.endFill();
   detailHit.eventMode = "static";
@@ -761,7 +761,7 @@ function drawElderLozenge(
   root.addChild(detailHit);
 
   const agendaHit = new PIXI.Graphics();
-  agendaHit.beginFill(0xffffff, 0.001);
+  agendaHit.beginFill(PALETTE.hitArea, 0.001);
   agendaHit.drawRoundedRect(agendaRect.x, agendaRect.y, agendaRect.width, agendaRect.height, 12);
   agendaHit.endFill();
   agendaHit.eventMode = "static";
@@ -960,7 +960,7 @@ function drawPracticeCard(
     const drainMask = new PIXI.Graphics();
     if (fillHeight > 0.0001) {
       const drainY = innerY + innerHeight - fillHeight;
-      drainMask.beginFill(0xffffff, 1);
+      drainMask.beginFill(PALETTE.hitArea, 1);
       drainMask.drawRect(innerX, drainY, innerWidth, fillHeight + 1);
       drainMask.endFill();
     }
@@ -1154,7 +1154,7 @@ function drawChaosPoolSigil(container, x, y) {
 
   const outer = new PIXI.Graphics();
   outer.lineStyle(2, PALETTE.stroke, 0.9);
-  outer.beginFill(0x3b3532, 0.95);
+  outer.beginFill(PALETTE.chaosPoolOuter, 0.95);
   outer.drawCircle(0, 0, radius + 7);
   outer.endFill();
   root.addChild(outer);
@@ -1167,7 +1167,7 @@ function drawChaosPoolSigil(container, x, y) {
   }
 
   const core = new PIXI.Graphics();
-  core.beginFill(0x534b46, 1);
+  core.beginFill(PALETTE.chaosPoolCore, 1);
   core.drawCircle(0, 0, radius - 8);
   core.endFill();
   root.addChild(core);
@@ -1234,7 +1234,7 @@ function drawChaosValueCard(container, rect, label, valueText, accentColor, opts
   root.y = rect.y;
 
   const bg = new PIXI.Graphics();
-  roundedRect(bg, 0, 0, rect.width, rect.height, 16, 0x443d39, PALETTE.stroke, 2);
+  roundedRect(bg, 0, 0, rect.width, rect.height, 16, PALETTE.chaosCardFill, PALETTE.stroke, 2);
   root.addChild(bg);
 
   const accent = new PIXI.Graphics();
@@ -1290,7 +1290,7 @@ function drawChaosValueCard(container, rect, label, valueText, accentColor, opts
     const stripX = 28;
     const stripWidth = rect.width - 40;
     const stripBg = new PIXI.Graphics();
-    roundedRect(stripBg, stripX, stripY, stripWidth, 6, 3, 0x322d2a, PALETTE.stroke, 1);
+    roundedRect(stripBg, stripX, stripY, stripWidth, 6, 3, PALETTE.chaosMeterTrack, PALETTE.stroke, 1);
     root.addChild(stripBg);
     if (total > 0) {
       let cursorX = stripX + 1;
@@ -1365,7 +1365,7 @@ function drawChaosStatPill(container, rect, label, valueText, accentColor, opts 
   root.y = rect.y;
 
   const bg = new PIXI.Graphics();
-  roundedRect(bg, 0, 0, rect.width, rect.height, 14, 0x443d39, PALETTE.stroke, 2);
+  roundedRect(bg, 0, 0, rect.width, rect.height, 14, PALETTE.chaosCardFill, PALETTE.stroke, 2);
   root.addChild(bg);
 
   const accent = new PIXI.Graphics();
@@ -1412,7 +1412,7 @@ function drawChaosStatPill(container, rect, label, valueText, accentColor, opts 
     const stripY = rect.height - 11;
     const stripWidth = rect.width - 36;
     const stripBg = new PIXI.Graphics();
-    roundedRect(stripBg, stripX, stripY, stripWidth, 5, 2, 0x2f2a28, PALETTE.stroke, 1);
+    roundedRect(stripBg, stripX, stripY, stripWidth, 5, 2, PALETTE.chaosStatMeterTrack, PALETTE.stroke, 1);
     root.addChild(stripBg);
     if (total > 0) {
       let cursorX = stripX + 1;
@@ -1505,7 +1505,7 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
     height: rect.height - 158,
   };
 
-  drawSubPanel(container, sharedRect, 0x4a433f, PALETTE.stroke);
+  drawSubPanel(container, sharedRect, PALETTE.chaosSharedPanel, PALETTE.stroke);
   drawChaosPoolSigil(container, sharedRect.x + 38, sharedRect.y + Math.floor(sharedRect.height * 0.5));
   container.addChild(
     createText(
@@ -1549,7 +1549,7 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
     }
   );
 
-  drawSubPanel(container, godRect, 0x443a37, PALETTE.stroke);
+  drawSubPanel(container, godRect, PALETTE.chaosGodPanel, PALETTE.stroke);
   drawRedGodSigil(container, godRect.x + 40, godRect.y + Math.floor(godRect.height * 0.5), summary);
   container.addChild(
     createText(
@@ -1578,7 +1578,7 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
     { x: godRect.x + 186, y: godRect.y + 14, width: 296, height: 28 },
     "Next Spawn",
     `+${Math.floor(summary?.nextSpawnCount ?? 0)} in ${Math.floor(summary?.spawnCountdownSec ?? 0)}s`,
-    0x9f8550
+    PALETTE.chaosSpawnAccent
   );
   drawChaosStatPill(
     container,
@@ -1639,7 +1639,7 @@ function drawFaithTrack(container, rect, faith) {
   root.y = rect.y;
 
   const panel = new PIXI.Graphics();
-  roundedRect(panel, 0, 0, rect.width, rect.height, 14, 0x3f3935, PALETTE.stroke, 1);
+  roundedRect(panel, 0, 0, rect.width, rect.height, 14, PALETTE.faithPanel, PALETTE.stroke, 1);
   root.addChild(panel);
   root.addChild(
     createText(
@@ -1714,7 +1714,7 @@ function drawFaithTrack(container, rect, faith) {
         badgeWidth,
         badgeHeight,
         7,
-        tier === currentTier ? PALETTE.active : 0x43534a,
+        tier === currentTier ? PALETTE.active : PALETTE.faithMitigationInactive,
         PALETTE.active,
         1
       );
@@ -1897,7 +1897,7 @@ function drawPartialMemoryBars(container, rect, partialFeedRatios) {
       barWidth,
       rect.height - 4,
       4,
-      0x4a4743,
+      PALETTE.memoryBarBase,
       PALETTE.stroke,
       1
     );
@@ -1941,7 +1941,7 @@ function drawMoodPanel(container, rect, happiness) {
   root.y = rect.y;
 
   const panel = new PIXI.Graphics();
-  roundedRect(panel, 0, 0, rect.width, rect.height, 14, 0x3f3935, PALETTE.stroke, 1);
+  roundedRect(panel, 0, 0, rect.width, rect.height, 14, PALETTE.moodPanel, PALETTE.stroke, 1);
   root.addChild(panel);
 
   root.addChild(
@@ -2005,7 +2005,7 @@ function drawMoodPanel(container, rect, happiness) {
       happiness?.fullFeedStreak,
       happiness?.fullFeedThreshold,
       PALETTE.passiveBorder,
-      0x544e49
+      PALETTE.moodFullBase
     );
     drawCompactPipRow(
       root,
@@ -2015,7 +2015,7 @@ function drawMoodPanel(container, rect, happiness) {
       happiness?.missedFeedStreak,
       happiness?.missedFeedThreshold,
       PALETTE.red,
-      0x54413d
+      PALETTE.moodMissBase
     );
   } else {
     drawStreakTrack(
@@ -2025,7 +2025,7 @@ function drawMoodPanel(container, rect, happiness) {
       happiness?.fullFeedStreak,
       happiness?.fullFeedThreshold,
       PALETTE.passiveBorder,
-      0x544e49
+      PALETTE.moodFullBase
     );
     drawStreakTrack(
       root,
@@ -2034,7 +2034,7 @@ function drawMoodPanel(container, rect, happiness) {
       happiness?.missedFeedStreak,
       happiness?.missedFeedThreshold,
       PALETTE.red,
-      0x54413d
+      PALETTE.moodMissBase
     );
     drawPartialMemoryBars(root, { x: rect.width - 44, y: 22, width: 34, height: 30 }, happiness?.partialFeedRatios);
   }
@@ -2086,9 +2086,9 @@ function drawClassSummaryCard(
   const statsY = 34;
   const statGap = 8;
   const statWidth = Math.floor((rect.width - 32 - statGap * 2) / 3);
-  drawClassStatPill(root, 16, statsY, statWidth, "Adults", Math.floor(population?.adults ?? 0), 0x4b4a3d);
-  drawClassStatPill(root, 16 + statWidth + statGap, statsY, statWidth, "Youth", Math.floor(population?.youth ?? 0), 0x444f57);
-  drawClassStatPill(root, 16 + (statWidth + statGap) * 2, statsY, statWidth, "Free", Math.floor(population?.free ?? 0), 0x42513c);
+  drawClassStatPill(root, 16, statsY, statWidth, "Adults", Math.floor(population?.adults ?? 0), PALETTE.classAdultsFill);
+  drawClassStatPill(root, 16 + statWidth + statGap, statsY, statWidth, "Youth", Math.floor(population?.youth ?? 0), PALETTE.classYouthFill);
+  drawClassStatPill(root, 16 + (statWidth + statGap) * 2, statsY, statWidth, "Free", Math.floor(population?.free ?? 0), PALETTE.classFreeFill);
 
   drawFaithTrack(root, { x: 16, y: 58, width: rect.width - 32, height: 36 }, faith);
   drawMoodPanel(root, { x: 16, y: 98, width: rect.width - 32, height: Math.max(36, rect.height - 108) }, happiness);
@@ -2103,14 +2103,14 @@ function drawClassSummaryCard(
 
 function getTileCardFill(tile) {
   if (tile?.defId === "tile_floodplains") return PALETTE.cardMuted;
-  return tile?.defId === "tile_river" ? 0x7b9a89 : PALETTE.tileCard;
+  return tile?.defId === "tile_river" ? PALETTE.riverTileCard : PALETTE.tileCard;
 }
 
 function drawVassalEventLog(container, rect, events, state) {
   const safeEvents = Array.isArray(events) ? events.slice().reverse() : [];
   const clipCount = Math.min(6, safeEvents.length);
   if (clipCount <= 0) {
-    drawSubPanel(container, rect, 0x243145, PALETTE.stroke);
+    drawSubPanel(container, rect, PALETTE.eventLogEmptyFill, PALETTE.stroke);
     container.addChild(createText("No recorded events yet", TEXT_STYLES.muted, rect.x + 18, rect.y + 18));
     return;
   }
@@ -2120,7 +2120,7 @@ function drawVassalEventLog(container, rect, events, state) {
     const event = safeEvents[index];
     const rowY = rect.y + index * (rowHeight + rowGap);
     const row = new PIXI.Graphics();
-    roundedRect(row, rect.x, rowY, rect.width, rowHeight, 18, 0x2c3b55, 0x4fa2ff, 2);
+    roundedRect(row, rect.x, rowY, rect.width, rowHeight, 18, PALETTE.eventLogRowFill, PALETTE.eventLogRowStroke, 2);
     container.addChild(row);
     container.addChild(
       createText(
@@ -2195,7 +2195,7 @@ function drawVassalPanel(
       {
         ...TEXT_STYLES.body,
         fontWeight: "bold",
-        fill: currentVassal.isDead ? 0xd2735f : currentVassal.isElder ? PALETTE.active : PALETTE.passiveBorder,
+        fill: currentVassal.isDead ? PALETTE.vassalDead : currentVassal.isElder ? PALETTE.active : PALETTE.passiveBorder,
       },
       rect.x + rect.width - 28,
       rect.y + 78,
