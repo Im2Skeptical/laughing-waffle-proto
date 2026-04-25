@@ -22,7 +22,19 @@ import {
   buildSettlementVassalSelectionPool,
   selectSettlementVassal,
 } from "../settlement-vassal-exec.js";
-import { getHubCore } from "../settlement-state.js";
+import { getSettlementChaosIncomeSummary } from "../settlement-chaos.js";
+import {
+  createSettlementCardInstance,
+  getHubCore,
+  getSettlementFloodplainFoodTotal,
+  getSettlementFloodplainTiles,
+  getSettlementPopulationClassState,
+  getSettlementStockpile,
+  getSettlementTileFood,
+  getSettlementTotalFood,
+  getSettlementYearDurationSec,
+  setSettlementTileFood,
+} from "../settlement-state.js";
 
 const DT_STEP = 1 / 60;
 const TEST_SEED = 99999;
@@ -129,6 +141,11 @@ export function runDeterminismSuite() {
     results.push(testHistoryPreviewMatchesReplay());
     results.push(testVassalSelectionDoesNotAdvanceSharedRng());
     results.push(testVassalSelectionPreservesNonLineageTimeline());
+    results.push(testFloodplainFieldFoodSeasonalRules());
+    results.push(testFloodplainFieldFoodSummerDecay());
+    results.push(testPopulationMealsConsumeFieldFood());
+    results.push(testRiverRecessionFarmingMovesFieldFood());
+    results.push(testRedGodChaosIncomeBaseGrowthAndFaithMitigation());
   } catch (e) {
     console.error("Suite crashed:", e);
     results.push({ name: "Suite Integrity", passed: false, error: e.message });
@@ -508,6 +525,217 @@ function testVassalSelectionPreservesNonLineageTimeline() {
     }
 
     return { name, passed: true, hash: baselineHash };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function setSettlementClassPopulation(state, classId, adults, youth = 0) {
+  const classState = getSettlementPopulationClassState(state, classId);
+  if (!classState) return;
+  classState.adults = Math.max(0, Math.floor(adults));
+  classState.youth = Math.max(0, Math.floor(youth));
+  classState.commitments = [];
+}
+
+function getVillagerCommitmentAmount(state, sourceId) {
+  const classState = getSettlementPopulationClassState(state, "villager");
+  const commitments = Array.isArray(classState?.commitments) ? classState.commitments : [];
+  return commitments.reduce((sum, commitment) => {
+    if (commitment?.sourceId !== sourceId) return sum;
+    return sum + Math.max(0, Math.floor(commitment?.amount ?? 0));
+  }, 0);
+}
+
+function testFloodplainFieldFoodSeasonalRules() {
+  const name = "Floodplain Field Food Seasonal Rules";
+  try {
+    const winterState = createInitialState("devPlaytesting01", TEST_SEED + 4);
+    setSettlementClassPopulation(winterState, "villager", 0, 0);
+    for (const tile of getSettlementFloodplainTiles(winterState)) {
+      setSettlementTileFood(tile, 50);
+    }
+    runSimulationSeconds(winterState, 17);
+    if (getSettlementFloodplainFoodTotal(winterState) <= 0) {
+      throw new Error("Autumn should no longer clear floodplain field food");
+    }
+    runSimulationSeconds(winterState, 8);
+    if (getSettlementFloodplainFoodTotal(winterState) !== 0) {
+      throw new Error("Winter flood did not clear floodplain field food");
+    }
+
+    const springState = createInitialState("devPlaytesting01", TEST_SEED + 5);
+    setSettlementClassPopulation(springState, "villager", 0, 0);
+    const springTiles = getSettlementFloodplainTiles(springState);
+    if (springTiles.length < 2) throw new Error("Expected at least two floodplain tiles");
+    springState.currentSeasonIndex = 3;
+    springState.currentSeasonDeck = null;
+    springState.seasonClockSec = 0;
+    springState.seasonTimeRemaining = springState.seasonDurationSec;
+    getHubCore(springState).props.floodWindowArmed = true;
+    setSettlementTileFood(springTiles[0], 98);
+    setSettlementTileFood(springTiles[1], 100);
+
+    runSimulationSeconds(springState, 9);
+    const first = getSettlementTileFood(springTiles[0]);
+    const second = getSettlementTileFood(springTiles[1]);
+    if (first !== 100 || second !== 100) {
+      throw new Error(`Spring deposit did not cap per tile at 100 (${first}, ${second})`);
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testFloodplainFieldFoodSummerDecay() {
+  const name = "Floodplain Field Food Summer Decay";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 6);
+    setSettlementClassPopulation(state, "villager", 0, 0);
+    const stockpiles = getHubCore(state)?.systemState?.stockpiles;
+    stockpiles.food = 33;
+    const tiles = getSettlementFloodplainTiles(state);
+    if (tiles.length < 2) throw new Error("Expected at least two floodplain tiles");
+    setSettlementTileFood(tiles[0], 11);
+    setSettlementTileFood(tiles[1], 1);
+
+    runSimulationSeconds(state, 12);
+
+    const first = getSettlementTileFood(tiles[0]);
+    const second = getSettlementTileFood(tiles[1]);
+    const granaryFood = getSettlementStockpile(state, "food");
+    if (first !== 8 || second !== 0) {
+      throw new Error(`Summer decay mismatch (${first}, ${second})`);
+    }
+    if (granaryFood !== 33) {
+      throw new Error(`Summer decay changed granary food (${granaryFood})`);
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testPopulationMealsConsumeFieldFood() {
+  const name = "Population Meals Consume Field Food";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 8);
+    setSettlementClassPopulation(state, "villager", 5, 0);
+    const stockpiles = getHubCore(state)?.systemState?.stockpiles;
+    stockpiles.food = 0;
+    for (const tile of getSettlementFloodplainTiles(state)) {
+      setSettlementTileFood(tile, 0);
+    }
+    setSettlementTileFood(getSettlementFloodplainTiles(state)[0], 10);
+
+    runSimulationSeconds(state, 4);
+
+    if (getSettlementStockpile(state, "food") !== 0) {
+      throw new Error("Population meals should consume field food after empty hub food");
+    }
+    if (getSettlementFloodplainFoodTotal(state) !== 5) {
+      throw new Error(`Expected 5 field food after meals, got ${getSettlementFloodplainFoodTotal(state)}`);
+    }
+    if (getSettlementTotalFood(state) !== 5) {
+      throw new Error(`Expected total food 5 after meals, got ${getSettlementTotalFood(state)}`);
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testRiverRecessionFarmingMovesFieldFood() {
+  const name = "River Recession Farming Moves Field Food";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 7);
+    setSettlementClassPopulation(state, "villager", 4, 0);
+    const core = getHubCore(state);
+    const stockpiles = core?.systemState?.stockpiles;
+    stockpiles.food = 0;
+    stockpiles.redResource = 3;
+    stockpiles.greenResource = 99;
+    for (const tile of getSettlementFloodplainTiles(state)) {
+      setSettlementTileFood(tile, 0);
+    }
+    setSettlementTileFood(getSettlementFloodplainTiles(state)[0], 25);
+    state.hub.zones.practiceByClass.villager.slots[0].card =
+      createSettlementCardInstance(
+        "riverRecessionFarming",
+        "settlementPractice",
+        state
+      );
+
+    runSimulationSeconds(state, 1);
+
+    if (getSettlementStockpile(state, "redResource") !== 1) {
+      throw new Error(`Expected redResource 1 after starting packets, got ${getSettlementStockpile(state, "redResource")}`);
+    }
+    if (getSettlementFloodplainFoodTotal(state) !== 5) {
+      throw new Error(`Expected field food 5 after starting packets, got ${getSettlementFloodplainFoodTotal(state)}`);
+    }
+    if (getVillagerCommitmentAmount(state, "riverRecessionFarming") !== 2) {
+      throw new Error("Expected two reserved farming packets");
+    }
+    if (getSettlementStockpile(state, "food") !== 0) {
+      throw new Error("Farming added granary food before reservation release");
+    }
+
+    runSimulationSeconds(state, 6);
+
+    if (getVillagerCommitmentAmount(state, "riverRecessionFarming") !== 0) {
+      throw new Error("Farming reservation did not release");
+    }
+    if (getSettlementStockpile(state, "food") !== 24) {
+      throw new Error(`Expected 24 granary food after release, got ${getSettlementStockpile(state, "food")}`);
+    }
+    if (getSettlementStockpile(state, "greenResource") !== 99) {
+      throw new Error("River Recession Farming should not consume inert greenResource");
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
+function testRedGodChaosIncomeBaseGrowthAndFaithMitigation() {
+  const name = "Red God Chaos Income Base Growth And Faith Mitigation";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 9);
+    setSettlementClassPopulation(state, "villager", 0, 0);
+    setSettlementClassPopulation(state, "stranger", 0, 0);
+
+    let summary = getSettlementChaosIncomeSummary(state, "redGod");
+    if (summary.baseIncome !== 10 || summary.totalIncome !== 10) {
+      throw new Error(`Expected initial chaos income 10, got base ${summary.baseIncome}, total ${summary.totalIncome}`);
+    }
+
+    state.tSec = getSettlementYearDurationSec(state) * 12;
+    summary = getSettlementChaosIncomeSummary(state, "redGod");
+    if (summary.growthSteps !== 1 || summary.baseIncome !== 11 || summary.totalIncome !== 11) {
+      throw new Error(`Expected one growth step to base 11, got steps ${summary.growthSteps}, base ${summary.baseIncome}, total ${summary.totalIncome}`);
+    }
+
+    setSettlementClassPopulation(state, "villager", 5, 0);
+    getSettlementPopulationClassState(state, "villager").faith.tier = "gold";
+    summary = getSettlementChaosIncomeSummary(state, "redGod");
+    if (summary.totalMitigation !== 5 || summary.totalIncome !== 6) {
+      throw new Error(`Expected gold mitigation 5 and income 6, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    }
+
+    setSettlementClassPopulation(state, "stranger", 3, 0);
+    getSettlementPopulationClassState(state, "stranger").faith.tier = "diamond";
+    summary = getSettlementChaosIncomeSummary(state, "redGod");
+    if (summary.totalMitigation !== 11 || summary.totalIncome !== 0) {
+      throw new Error(`Expected diamond mitigation to clamp income at 0, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    }
+
+    return { name, passed: true };
   } catch (e) {
     return { name, passed: false, reason: e.message };
   }

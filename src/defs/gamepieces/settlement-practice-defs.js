@@ -23,7 +23,7 @@ export const settlementPracticeDefs = {
         "Improve mood by 1 step",
         "Reserve population for 15s",
       ],
-      description: "River rites that turn stored food into ritual labor and redResource.",
+      description: "River rites that turn available food into ritual labor and redResource.",
     },
     timing: {
       onSeasonChange: true,
@@ -53,10 +53,8 @@ export const settlementPracticeDefs = {
         label: "Flood Rites",
       },
       {
-        op: "AdjustSystemState",
+        op: "AdjustSettlementFood",
         target: { ref: "hubCore" },
-        system: "stockpiles",
-        key: "food",
         amountVar: "practiceAmount",
         amountScale: -1,
       },
@@ -85,11 +83,11 @@ export const settlementPracticeDefs = {
     ui: {
       title: "River Recession Farming",
       lines: [
-        "Consume 1 red + 1 green per free population",
-        "Generate 20 food on completion",
-        "Reserve population for 30s",
+        "Consume 1 red + 10 field food per free population",
+        "Store 12 granary food on completion",
+        "Reserve population for 1 moon",
       ],
-      description: "Seasonal labor that turns ritual and silt stores into food.",
+      description: "Seasonal labor that moves floodplain food into protected granary stores.",
     },
     timing: {
       cadenceSec: 1,
@@ -98,7 +96,6 @@ export const settlementPracticeDefs = {
       freePopulationAtLeast: 1,
       stockpileAtLeast: {
         redResource: 1,
-        greenResource: 1,
       },
     },
     amount: {
@@ -106,7 +103,12 @@ export const settlementPracticeDefs = {
       values: [
         { kind: "freePopulation" },
         { kind: "stockpile", key: "redResource" },
-        { kind: "stockpile", key: "greenResource" },
+        {
+          kind: "settlementTileStore",
+          tileDefId: "tile_floodplains",
+          key: "food",
+          divideBy: 10,
+        },
       ],
     },
     effects: [
@@ -124,7 +126,7 @@ export const settlementPracticeDefs = {
             system: "stockpiles",
             key: "food",
             amountVar: "practiceAmount",
-            amountScale: 20,
+            amountScale: 12,
           },
         ],
       },
@@ -137,12 +139,12 @@ export const settlementPracticeDefs = {
         amountScale: -1,
       },
       {
-        op: "AdjustSystemState",
+        op: "AdjustSettlementTileStore",
         target: { ref: "hubCore" },
-        system: "stockpiles",
-        key: "greenResource",
+        tileDefId: "tile_floodplains",
+        key: "food",
         amountVar: "practiceAmount",
-        amountScale: -1,
+        amountScale: -10,
       },
     ],
   },

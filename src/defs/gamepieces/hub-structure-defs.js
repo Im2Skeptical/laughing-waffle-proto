@@ -83,10 +83,10 @@ export const hubStructureDefs = {
     },
     settlementPrototype: {
       populationCapacityBonusByTier: {
-        bronze: 100,
-        silver: 250,
-        gold: 400,
-        diamond: 600,
+        bronze: 200,
+        silver: 450,
+        gold: 800,
+        diamond: 1600,
       },
       upgradeCitizenYearsByTier: {
         bronze: 5,

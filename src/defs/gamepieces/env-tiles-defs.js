@@ -51,8 +51,8 @@ export const envTileDefs = {
     },
     settlementPrototype: {
       autumnFloods: true,
-      springStockpileDeposits: {
-        greenResource: 5,
+      springTileStoreDeposits: {
+        food: 100,
       },
     },
   },

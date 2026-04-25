@@ -4,7 +4,10 @@
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
-import { ENV_EVENT_DRAW_CADENCE_SEC } from "../defs/gamesettings/gamerules-defs.js";
+import {
+  ENV_EVENT_DRAW_CADENCE_SEC,
+  MOON_CYCLE_SEC,
+} from "../defs/gamesettings/gamerules-defs.js";
 import {
   drawSeasonDeckEntry,
   getCurrentSeasonKey,
@@ -25,16 +28,14 @@ import {
   runSubjectTagPassives,
 } from "./tag-execution-common.js";
 import {
-  clearSettlementFloodplainGreenResource,
   getHubCore,
   getSettlementFloodplainTiles,
   getSettlementHinterlandBlueTotal,
   getSettlementHinterlandTiles,
-  getSettlementTileGreenResource,
+  getSettlementTileFood,
   getSettlementTileBlueResource,
-  setSettlementTileGreenResource,
+  setSettlementTileFood,
   setSettlementTileBlueResource,
-  syncSettlementFloodplainGreenResource,
   syncSettlementHinterlandBlueResource,
 } from "./settlement-state.js";
 
@@ -1110,6 +1111,19 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
 
   const seasonKey = getCurrentSeasonKey(state);
   const seasonChanged = state?._seasonChanged === true;
+
+  if (seasonKey === "summer" && Number.isFinite(tSec)) {
+    const moonCycleSec = Math.max(1, Math.floor(MOON_CYCLE_SEC || 1));
+    if (Math.floor(tSec) > 0 && Math.floor(tSec) % moonCycleSec === 0) {
+      for (const tile of getSettlementFloodplainTiles(state)) {
+        const current = getSettlementTileFood(tile);
+        if (current <= 0) continue;
+        const decay = Math.min(current, Math.ceil(current * 0.2));
+        setSettlementTileFood(tile, current - decay);
+      }
+    }
+  }
+
   if (!seasonChanged) return;
 
   let blueTotal = getSettlementHinterlandBlueTotal(state);
@@ -1126,12 +1140,6 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
     Math.min(SETTLEMENT_BLUE_RESOURCE_CAP, blueTotal)
   );
 
-  if (seasonKey === "autumn") {
-    clearSettlementFloodplainGreenResource(state);
-    core.props.floodWindowArmed = true;
-    return;
-  }
-
   if (seasonKey !== "spring" || core.props.floodWindowArmed !== true) {
     return;
   }
@@ -1144,21 +1152,20 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
         ? def.settlementPrototype
         : null;
     const springDeposits =
-      settlementSpec.springStockpileDeposits &&
-      typeof settlementSpec.springStockpileDeposits === "object"
-        ? settlementSpec.springStockpileDeposits
+      settlementSpec.springTileStoreDeposits &&
+      typeof settlementSpec.springTileStoreDeposits === "object"
+        ? settlementSpec.springTileStoreDeposits
         : null;
     if (!springDeposits) continue;
-    const greenDeposit = Number.isFinite(springDeposits.greenResource)
-      ? Math.max(0, Math.floor(springDeposits.greenResource))
+    const foodDeposit = Number.isFinite(springDeposits.food)
+      ? Math.max(0, Math.floor(springDeposits.food))
       : 0;
-    if (greenDeposit <= 0) continue;
-    setSettlementTileGreenResource(
+    if (foodDeposit <= 0) continue;
+    setSettlementTileFood(
       tile,
-      getSettlementTileGreenResource(tile) + greenDeposit
+      getSettlementTileFood(tile) + foodDeposit
     );
   }
-  syncSettlementFloodplainGreenResource(state);
   core.props.floodWindowArmed = false;
 }
 

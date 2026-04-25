@@ -16,6 +16,7 @@ const DEFAULT_PRACTICE_SLOT_COUNT = 5;
 const DEFAULT_STRUCTURE_SLOT_COUNT = 6;
 const DEFAULT_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 const HAPPINESS_ASC = Object.freeze(["negative", "neutral", "positive"]);
+export const SETTLEMENT_FLOODPLAIN_FOOD_CAP = 100;
 const DEFAULT_VASSAL_LINEAGE_STATE = Object.freeze({
   nextVassalId: 1,
   nextPoolId: 1,
@@ -388,8 +389,11 @@ function ensureTileSettlementState(tile) {
     tile.props.settlement = {};
   }
   const settlement = tile.props.settlement;
-  settlement.greenResourceStored = Number.isFinite(settlement.greenResourceStored)
-    ? Math.max(0, Math.floor(settlement.greenResourceStored))
+  settlement.foodStored = Number.isFinite(settlement.foodStored)
+    ? Math.max(
+        0,
+        Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(settlement.foodStored))
+      )
     : 0;
   settlement.blueResourceStored = Number.isFinite(settlement.blueResourceStored)
     ? Math.max(0, Math.floor(settlement.blueResourceStored))
@@ -871,9 +875,11 @@ export function getSettlementHinterlandTiles(state) {
   return tiles.filter((tile) => tile?.defId === "tile_hinterland");
 }
 
-export function getSettlementTileGreenResource(tile) {
-  const value = getTileSettlementState(tile)?.greenResourceStored;
-  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+export function getSettlementTileFood(tile) {
+  const value = getTileSettlementState(tile)?.foodStored;
+  return Number.isFinite(value)
+    ? Math.max(0, Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(value)))
+    : 0;
 }
 
 export function getSettlementTileBlueResource(tile) {
@@ -881,13 +887,16 @@ export function getSettlementTileBlueResource(tile) {
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
 }
 
-export function setSettlementTileGreenResource(tile, amount) {
+export function setSettlementTileFood(tile, amount) {
   const settlement = ensureTileSettlementState(tile);
   if (!settlement) return 0;
-  settlement.greenResourceStored = Number.isFinite(amount)
-    ? Math.max(0, Math.floor(amount))
+  settlement.foodStored = Number.isFinite(amount)
+    ? Math.max(
+        0,
+        Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(amount))
+      )
     : 0;
-  return settlement.greenResourceStored;
+  return settlement.foodStored;
 }
 
 export function setSettlementTileBlueResource(tile, amount) {
@@ -899,11 +908,19 @@ export function setSettlementTileBlueResource(tile, amount) {
   return settlement.blueResourceStored;
 }
 
-export function getSettlementFloodplainGreenTotal(state) {
+export function getSettlementFloodplainFoodTotal(state) {
   return getSettlementFloodplainTiles(state).reduce(
-    (sum, tile) => sum + getSettlementTileGreenResource(tile),
+    (sum, tile) => sum + getSettlementTileFood(tile),
     0
   );
+}
+
+export function getSettlementTotalFood(state) {
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  const storedFood = Number.isFinite(stockpiles?.food)
+    ? Math.max(0, Number(stockpiles.food))
+    : 0;
+  return storedFood + getSettlementFloodplainFoodTotal(state);
 }
 
 export function getSettlementHinterlandBlueTotal(state) {
@@ -913,48 +930,69 @@ export function getSettlementHinterlandBlueTotal(state) {
   );
 }
 
-export function syncSettlementFloodplainGreenResource(state, desiredTotal = null) {
-  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+export function addSettlementFloodplainFood(state, amount) {
   const floodplainTiles = getSettlementFloodplainTiles(state);
-  const currentTotal = floodplainTiles.reduce(
-    (sum, tile) => sum + getSettlementTileGreenResource(tile),
-    0
-  );
-  const targetTotal = Number.isFinite(desiredTotal)
-    ? Math.max(0, Math.floor(desiredTotal))
-    : currentTotal;
-
-  if (targetTotal < currentTotal) {
-    let remainingToRemove = currentTotal - targetTotal;
-    for (const tile of floodplainTiles) {
-      if (remainingToRemove <= 0) break;
-      const current = getSettlementTileGreenResource(tile);
-      const removed = Math.min(current, remainingToRemove);
-      setSettlementTileGreenResource(tile, current - removed);
-      remainingToRemove -= removed;
-    }
-  } else if (targetTotal > currentTotal && floodplainTiles.length > 0) {
-    const firstTile = floodplainTiles[0];
-    const current = getSettlementTileGreenResource(firstTile);
-    setSettlementTileGreenResource(firstTile, current + (targetTotal - currentTotal));
+  let remainingToAdd = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  let added = 0;
+  for (const tile of floodplainTiles) {
+    if (remainingToAdd <= 0) break;
+    const current = getSettlementTileFood(tile);
+    const room = Math.max(0, SETTLEMENT_FLOODPLAIN_FOOD_CAP - current);
+    const delta = Math.min(room, remainingToAdd);
+    if (delta <= 0) continue;
+    setSettlementTileFood(tile, current + delta);
+    remainingToAdd -= delta;
+    added += delta;
   }
-
-  const actualTotal = floodplainTiles.reduce(
-    (sum, tile) => sum + getSettlementTileGreenResource(tile),
-    0
-  );
-  if (stockpiles && typeof stockpiles === "object") {
-    stockpiles.greenResource = actualTotal;
-  }
-  return actualTotal;
+  return added;
 }
 
-export function clearSettlementFloodplainGreenResource(state) {
+export function removeSettlementFloodplainFood(state, amount) {
+  const floodplainTiles = getSettlementFloodplainTiles(state);
+  let remainingToRemove = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  let removedTotal = 0;
+  for (const tile of floodplainTiles) {
+    if (remainingToRemove <= 0) break;
+    const current = getSettlementTileFood(tile);
+    const removed = Math.min(current, remainingToRemove);
+    if (removed <= 0) continue;
+    setSettlementTileFood(tile, current - removed);
+    remainingToRemove -= removed;
+    removedTotal += removed;
+  }
+  return removedTotal;
+}
+
+export function consumeSettlementFood(state, amount) {
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  let remainingToConsume = Number.isFinite(amount) ? Math.max(0, Number(amount)) : 0;
+  if (remainingToConsume <= 0) return 0;
+
+  let consumed = 0;
+  if (stockpiles && typeof stockpiles === "object") {
+    const storedFood = Number.isFinite(stockpiles.food) ? Math.max(0, Number(stockpiles.food)) : 0;
+    const storedConsumed = Math.min(storedFood, remainingToConsume);
+    if (storedConsumed > 0) {
+      stockpiles.food = Math.max(0, storedFood - storedConsumed);
+      remainingToConsume -= storedConsumed;
+      consumed += storedConsumed;
+    }
+  }
+
+  if (remainingToConsume > 0) {
+    const fieldConsumed = removeSettlementFloodplainFood(state, Math.ceil(remainingToConsume));
+    consumed += fieldConsumed;
+  }
+
+  return consumed;
+}
+
+export function clearSettlementFloodplainFood(state) {
   const floodplainTiles = getSettlementFloodplainTiles(state);
   for (const tile of floodplainTiles) {
-    setSettlementTileGreenResource(tile, 0);
+    setSettlementTileFood(tile, 0);
   }
-  return syncSettlementFloodplainGreenResource(state, 0);
+  return 0;
 }
 
 export function syncSettlementHinterlandBlueResource(state, desiredTotal = null) {
