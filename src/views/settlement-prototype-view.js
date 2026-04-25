@@ -51,6 +51,12 @@ import {
   buildSignature,
 } from "./settlement-render-signature.js";
 import {
+  clearChildren,
+  createText,
+  createWrappedText,
+  roundedRect,
+} from "./settlement-view-primitives.js";
+import {
   ELDER_BUST_ACCENT_TONES,
   ELDER_BUST_SKIN_TONES,
   FAITH_TIER_COLORS,
@@ -78,56 +84,6 @@ import {
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
 
 const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
-
-function roundedRect(
-  gfx,
-  x,
-  y,
-  width,
-  height,
-  radius,
-  fill,
-  stroke,
-  strokeWidth = 3,
-  fillAlpha = 1,
-  strokeAlpha = 0.95
-) {
-  gfx.lineStyle(strokeWidth, stroke, strokeAlpha);
-  gfx.beginFill(fill, fillAlpha);
-  gfx.drawRoundedRect(x, y, width, height, radius);
-  gfx.endFill();
-}
-
-function clearChildren(container) {
-  const children = Array.isArray(container?.children) ? [...container.children] : [];
-  for (const child of children) {
-    container.removeChild(child);
-    child.destroy?.({ children: true });
-  }
-}
-
-function createText(label, style, x, y, anchorX = 0, anchorY = 0) {
-  const text = new PIXI.Text(label, style);
-  text.anchor.set(anchorX, anchorY);
-  text.x = x;
-  text.y = y;
-  return text;
-}
-
-function createWrappedText(label, style, x, y, maxWidth, anchorX = 0, anchorY = 0) {
-  return createText(
-    label,
-    {
-      ...style,
-      wordWrap: true,
-      wordWrapWidth: Math.max(1, Math.floor(maxWidth ?? 1)),
-    },
-    x,
-    y,
-    anchorX,
-    anchorY
-  );
-}
 
 function collectTextLabels(displayObject, labels = []) {
   if (!displayObject) return labels;
