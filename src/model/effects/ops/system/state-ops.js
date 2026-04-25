@@ -9,6 +9,12 @@ import { resolveEffectDef } from "../../core/registry.js";
 import { ensureSystemState } from "../../core/system-state.js";
 import { resolveEffectTargets } from "./targets.js";
 import { getSettlementChaosGodState } from "../../../settlement-chaos.js";
+import {
+  addSettlementFloodplainFood,
+  consumeSettlementFood,
+  getHubCore,
+  removeSettlementFloodplainFood,
+} from "../../../settlement-state.js";
 
 export function handleAddToSystemState(state, effect, context) {
   const systemId = effect.system;
@@ -186,6 +192,37 @@ export function handleAdjustSystemState(state, effect, context) {
   }
 
   return changed;
+}
+
+export function handleAdjustSettlementTileStore(state, effect, context) {
+  const tileDefId = typeof effect?.tileDefId === "string" ? effect.tileDefId : null;
+  const key = typeof effect?.key === "string" ? effect.key : null;
+  if (tileDefId !== "tile_floodplains" || key !== "food") return false;
+
+  const deltaRaw = resolveAmount(effect, null, null, context);
+  const delta = Number.isFinite(deltaRaw) ? Math.floor(deltaRaw) : 0;
+  if (delta === 0) return false;
+
+  if (delta > 0) {
+    return addSettlementFloodplainFood(state, delta) > 0;
+  }
+  return removeSettlementFloodplainFood(state, Math.abs(delta)) > 0;
+}
+
+export function handleAdjustSettlementFood(state, effect, context) {
+  const deltaRaw = resolveAmount(effect, null, null, context);
+  const delta = Number.isFinite(deltaRaw) ? Number(deltaRaw) : 0;
+  if (delta === 0) return false;
+
+  if (delta < 0) {
+    return consumeSettlementFood(state, Math.abs(delta)) > 0;
+  }
+
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  if (!stockpiles || typeof stockpiles !== "object") return false;
+  const current = Number.isFinite(stockpiles.food) ? Number(stockpiles.food) : 0;
+  stockpiles.food = current + delta;
+  return true;
 }
 
 export function handleAdjustSettlementChaosGodState(state, effect, context) {

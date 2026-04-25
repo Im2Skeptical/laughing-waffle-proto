@@ -1,4 +1,5 @@
 import {
+  MOON_CYCLE_SEC,
   DEMOGRAPHIC_STEP_YEARS,
   SEASON_DISPLAY,
   SETTLEMENT_BRONZE_FLOOR_COLLAPSE_LOSS_RATE,
@@ -31,9 +32,12 @@ import {
   getSettlementFaithTier,
   getSettlementPopulationClassState,
   getSettlementPracticeSlotsByClass,
+  consumeSettlementFood,
+  clearSettlementFloodplainFood,
+  getSettlementFloodplainFoodTotal,
   getSettlementStockpile,
+  getSettlementTotalFood,
   getSettlementStructureSlots,
-  syncSettlementFloodplainGreenResource,
   syncSettlementHinterlandBlueResource,
 } from "./settlement-state.js";
 import {
@@ -161,6 +165,13 @@ function getWeightedFoodDemandForClass(classState) {
 
 function roundMealValue(value) {
   return Number(Number.isFinite(value) ? value : 0).toFixed(4) * 1;
+}
+
+function isFullMoonSecond(tSec) {
+  if (!Number.isFinite(tSec)) return false;
+  const moonCycleSec = Math.max(1, Math.floor(MOON_CYCLE_SEC || 1));
+  const fullMoonOffsetSec = Math.floor(moonCycleSec / 2);
+  return Math.floor(tSec) > 0 && Math.floor(tSec) % moonCycleSec === fullMoonOffsetSec;
 }
 
 function shouldRunDemographicStep(priorYear) {
@@ -495,7 +506,20 @@ function resolvePracticeAmountValue(input, state, classSummary) {
       const key = typeof input.key === "string" ? input.key : null;
       const stockpiles = getStockpilesState(state);
       baseValue =
-        key && Number.isFinite(stockpiles?.[key]) ? Math.max(0, Math.floor(stockpiles[key])) : 0;
+        key === "food"
+          ? Math.max(0, Math.floor(getSettlementTotalFood(state)))
+          : key && Number.isFinite(stockpiles?.[key])
+            ? Math.max(0, Math.floor(stockpiles[key]))
+            : 0;
+      break;
+    }
+    case "settlementTileStore": {
+      const tileDefId = typeof input.tileDefId === "string" ? input.tileDefId : null;
+      const key = typeof input.key === "string" ? input.key : null;
+      baseValue =
+        tileDefId === "tile_floodplains" && key === "food"
+          ? getSettlementFloodplainFoodTotal(state)
+          : 0;
       break;
     }
     case "chaosGodValue": {
@@ -553,14 +577,15 @@ function resolvePracticeAmount(def, state, classSummary) {
 
 function getPracticeImmediateStockpileCostPerUnit(effect) {
   if (!effect || typeof effect !== "object") return null;
-  if (effect.op !== "AdjustSystemState") return null;
-  if (effect.system !== "stockpiles") return null;
-  if (typeof effect.key !== "string" || !effect.key.length) return null;
+  if (effect.op !== "AdjustSystemState" && effect.op !== "AdjustSettlementFood") return null;
+  if (effect.op === "AdjustSystemState" && effect.system !== "stockpiles") return null;
+  const key = effect.op === "AdjustSettlementFood" ? "food" : effect.key;
+  if (typeof key !== "string" || !key.length) return null;
   if (effect.amountVar !== "practiceAmount") return null;
   const amountScale = Number.isFinite(effect.amountScale) ? Number(effect.amountScale) : 1;
   if (!Number.isFinite(amountScale) || amountScale >= 0) return null;
   return {
-    key: effect.key,
+    key,
     costPerUnit: Math.max(1, Math.floor(Math.abs(amountScale))),
   };
 }
@@ -577,9 +602,12 @@ function clampPracticeAmountByStockpileCosts(def, state, baseAmount) {
   for (const effect of effects) {
     const cost = getPracticeImmediateStockpileCostPerUnit(effect);
     if (!cost) continue;
-    const available = Number.isFinite(stockpiles?.[cost.key])
-      ? Math.max(0, Math.floor(stockpiles[cost.key]))
-      : 0;
+    const available =
+      cost.key === "food"
+        ? Math.max(0, Math.floor(getSettlementTotalFood(state)))
+        : Number.isFinite(stockpiles?.[cost.key])
+          ? Math.max(0, Math.floor(stockpiles[cost.key]))
+          : 0;
     const affordableUnits = Math.max(0, Math.floor(available / Math.max(1, cost.costPerUnit)));
     if (affordableUnits >= clampedAmount) continue;
     clampedAmount = affordableUnits;
@@ -696,7 +724,12 @@ function practiceRequirementsPass(def, state, classSummary, seasonKey, classId) 
       for (const [key, amountRaw] of Object.entries(entry)) {
         if (!Number.isFinite(amountRaw)) continue;
         const amount = Math.max(0, Math.floor(amountRaw));
-        const value = Number.isFinite(stockpiles?.[key]) ? Math.floor(stockpiles[key]) : 0;
+        const value =
+          key === "food"
+            ? Math.floor(getSettlementTotalFood(state))
+            : Number.isFinite(stockpiles?.[key])
+              ? Math.floor(stockpiles[key])
+              : 0;
         if (value < amount) {
           return { ok: false, reason: `stockpile:${key}` };
         }
@@ -711,7 +744,12 @@ function practiceRequirementsPass(def, state, classSummary, seasonKey, classId) 
       for (const [key, amountRaw] of Object.entries(entry)) {
         if (!Number.isFinite(amountRaw)) continue;
         const amount = Math.max(0, Math.floor(amountRaw));
-        const value = Number.isFinite(stockpiles?.[key]) ? Math.floor(stockpiles[key]) : 0;
+        const value =
+          key === "food"
+            ? Math.floor(getSettlementTotalFood(state))
+            : Number.isFinite(stockpiles?.[key])
+              ? Math.floor(stockpiles[key])
+              : 0;
         if (value > amount) {
           return { ok: false, reason: `stockpileHigh:${key}` };
         }
@@ -1199,7 +1237,8 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
   if (!stockpiles) return false;
 
   let changed = false;
-  let availableFood = Number.isFinite(stockpiles.food) ? Math.max(0, Number(stockpiles.food)) : 0;
+  const initialFoodTotal = getSettlementTotalFood(state);
+  let availableFood = initialFoodTotal;
   const totalMealDemand = getSettlementClassIds(state).reduce((sum, classId) => {
     return sum + getWeightedFoodDemandForClass(getPopulationClassState(state, classId));
   }, 0);
@@ -1289,7 +1328,7 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
       type: "populationSeasonMeal",
       tSec,
       text:
-        `${classId} consumed ${roundMealValue(successes)}/${roundMealValue(attempts)} weighted meals in ${seasonLabel}` +
+        `${classId} consumed ${roundMealValue(successes)}/${roundMealValue(attempts)} weighted meals at full moon in ${seasonLabel}` +
         ` (${seasonOutcomeKind}, happiness ${happinessOutcome.previousStatus} -> ${happinessOutcome.nextStatus})`,
       data: {
         focusKind: "hubCore",
@@ -1344,7 +1383,10 @@ function consumeSettlementMealsOnSeasonChange(state, tSec) {
     }
   }
 
-  stockpiles.food = roundMealValue(availableFood);
+  const consumedFood = Math.max(0, initialFoodTotal - availableFood);
+  if (consumedFood > 0) {
+    consumeSettlementFood(state, roundMealValue(consumedFood));
+  }
   return changed;
 }
 
@@ -1578,7 +1620,7 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec, executionContex
         ),
         attractionPerVacancyPerYear: Number(result.attractionPerVacancyPerYear ?? 0),
         attractionProgress: Number(yearlyState.attractionProgress ?? 0),
-        foodAfterMeals: roundMealValue(stockpiles.food),
+        foodAfterMeals: roundMealValue(getSettlementTotalFood(state)),
         demographicStep,
         faithPopulationLoss,
         lastSeasonFeedRatio: Number(yearlyState.lastSeasonFeedRatio ?? 0),
@@ -1609,19 +1651,33 @@ function maybeApplySettlementYearlyPopulationChange(state, tSec, executionContex
 }
 
 function runSettlementPopulationSeasonTick(state, tSec, executionContext = null) {
-  if (!state || state._seasonChanged !== true) return false;
+  if (!state) return false;
   const activeExecutionContext =
     executionContext ?? createSettlementExecutionContext(state, tSec);
-  const yearlyChanged = maybeApplySettlementYearlyPopulationChange(
-    state,
-    tSec,
-    activeExecutionContext
-  );
-  const mealChanged = consumeSettlementMealsOnSeasonChange(state, tSec);
+  const core = getHubCore(state);
+  const seasonChanged = state._seasonChanged === true;
+  const yearlyChanged = seasonChanged
+    ? maybeApplySettlementYearlyPopulationChange(state, tSec, activeExecutionContext)
+    : false;
+  const mealChanged = isFullMoonSecond(tSec)
+    ? consumeSettlementMealsOnSeasonChange(state, tSec)
+    : false;
+  const seasonKey = getCurrentSeasonKey(state);
+  const shouldFlood = seasonChanged && seasonKey === "winter";
+  const floodChanged = shouldFlood && getSettlementFloodplainFoodTotal(state) > 0;
+  if (shouldFlood) {
+    clearSettlementFloodplainFood(state);
+    if (core?.props && typeof core.props === "object") {
+      core.props.floodWindowArmed = true;
+    }
+  }
   if (mealChanged) {
     activeExecutionContext.invalidateDerivedSummary();
   }
-  return yearlyChanged || mealChanged;
+  if (floodChanged) {
+    activeExecutionContext.invalidateDerivedSummary();
+  }
+  return yearlyChanged || mealChanged || floodChanged;
 }
 
 function getPendingPopulationForSource(state, classId, sourceId) {
@@ -2137,19 +2193,12 @@ function executePractices(state, tSec, executionContext = null) {
 export function syncSettlementDerivedState(state, tSec = 0, executionContext = null) {
   const activeExecutionContext =
     executionContext ?? createSettlementExecutionContext(state, tSec);
-  const desiredGreenResource = getStockpilesState(state)?.greenResource;
-  if (Number.isFinite(desiredGreenResource)) {
-    syncSettlementFloodplainGreenResource(state, desiredGreenResource);
-  }
   const desiredBlueResource = getStockpilesState(state)?.blueResource;
   if (Number.isFinite(desiredBlueResource)) {
     syncSettlementHinterlandBlueResource(state, desiredBlueResource);
   }
   let summary = activeExecutionContext.getDerivedSummary();
   if (clampSettlementState(state, summary)) {
-    if (Number.isFinite(getStockpilesState(state)?.greenResource)) {
-      syncSettlementFloodplainGreenResource(state, getStockpilesState(state).greenResource);
-    }
     if (Number.isFinite(getStockpilesState(state)?.blueResource)) {
       syncSettlementHinterlandBlueResource(state, getStockpilesState(state).blueResource);
     }

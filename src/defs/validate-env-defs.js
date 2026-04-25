@@ -24,6 +24,8 @@ const EFFECT_OPS = new Set([
   "ClampSystemState",
   "AccumulateRatio",
   "AdjustSystemState",
+  "AdjustSettlementFood",
+  "AdjustSettlementTileStore",
   "ClearSystemState",
   "RemoveEvent",
   "TransformEvent",

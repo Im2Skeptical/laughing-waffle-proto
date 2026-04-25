@@ -2,10 +2,12 @@ import {
   CHAOS_GOD_IDS,
   MOON_CYCLE_SEC,
   RED_GOD_ENABLED,
-  RED_GOD_CHAOS_RATE_BY_FAITH,
+  RED_GOD_BASE_CHAOS_INCOME,
+  RED_GOD_CHAOS_INCOME_GROWTH_RATE,
+  RED_GOD_CHAOS_INCOME_GROWTH_YEARS,
+  RED_GOD_FAITH_MITIGATION_BY_TIER,
   RED_GOD_MONSTER_WIN_COUNT,
   RED_GOD_MONSTERS_PER_CHAOS,
-  RED_GOD_POPULATION_BAND_SIZE,
   RED_GOD_SPAWN_CADENCE_MOONS,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { pushGameEvent } from "./event-feed.js";
@@ -14,6 +16,7 @@ import {
   getHubCore,
   getSettlementClassIds,
   getSettlementPopulationClassState,
+  getSettlementYearDurationSec,
 } from "./settlement-state.js";
 
 function clampInt(value, fallback = 0) {
@@ -94,36 +97,42 @@ function getClassTotalPopulation(classState) {
   return adults + youth;
 }
 
-function getClassRedGodChaosContribution(state, classId) {
-  const classState = getSettlementPopulationClassState(state, classId);
-  const tier = typeof classState?.faith?.tier === "string" ? classState.faith.tier : null;
-  const rate = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[tier])
-    ? Math.max(0, Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[tier]))
-    : 0;
-  if (rate <= 0) return 0;
-  const populationBands = Math.floor(
-    getClassTotalPopulation(classState) / Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10))
-  );
-  return Math.max(0, populationBands * rate);
+function getRedGodElapsedYears(state) {
+  const yearDurationSec = Math.max(1, clampInt(getSettlementYearDurationSec(state), 32));
+  const tSec = clampInt(state?.tSec, 0);
+  return Math.max(0, Math.floor(tSec / yearDurationSec));
 }
 
-function getClassRedGodChaosContributionBreakdown(state, classId) {
+function getRedGodGrowthSteps(state) {
+  const growthYears = Math.max(1, clampInt(RED_GOD_CHAOS_INCOME_GROWTH_YEARS, 12));
+  return Math.floor(getRedGodElapsedYears(state) / growthYears);
+}
+
+function getRedGodBaseChaosIncome(state) {
+  const growthSteps = getRedGodGrowthSteps(state);
+  const growthRate = Number.isFinite(RED_GOD_CHAOS_INCOME_GROWTH_RATE)
+    ? Math.max(0, RED_GOD_CHAOS_INCOME_GROWTH_RATE)
+    : 0;
+  let income = Math.max(0, clampInt(RED_GOD_BASE_CHAOS_INCOME, 10));
+  for (let step = 0; step < growthSteps; step += 1) {
+    income = Math.ceil(income * (1 + growthRate));
+  }
+  return Math.max(0, income);
+}
+
+function getClassRedGodChaosMitigationBreakdown(state, classId) {
   const classState = getSettlementPopulationClassState(state, classId);
   const faithTier = typeof classState?.faith?.tier === "string" ? classState.faith.tier : null;
-  const ratePerBand = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[faithTier])
-    ? Math.max(0, Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[faithTier]))
+  const mitigationPerPop = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[faithTier])
+    ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[faithTier]))
     : 0;
   const population = getClassTotalPopulation(classState);
-  const bandSize = Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10));
-  const populationBands = Math.floor(population / bandSize);
   return {
     classId: typeof classId === "string" && classId.length > 0 ? classId : "unknown",
     faithTier,
-    ratePerBand,
     population,
-    bandSize,
-    populationBands,
-    contribution: ratePerBand > 0 ? Math.max(0, populationBands * ratePerBand) : 0,
+    mitigationPerPop,
+    mitigation: mitigationPerPop > 0 ? Math.max(0, population * mitigationPerPop) : 0,
   };
 }
 
@@ -134,20 +143,36 @@ export function getSettlementChaosIncomeSummary(state, godId) {
     return {
       godId: safeGodId,
       totalIncome: 0,
-      populationBandSize: Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10)),
+      baseIncome: 0,
+      baseRate: Math.max(0, clampInt(RED_GOD_BASE_CHAOS_INCOME, 10)),
+      growthRate: 0,
+      growthYears: Math.max(1, clampInt(RED_GOD_CHAOS_INCOME_GROWTH_YEARS, 12)),
+      elapsedYears: 0,
+      growthSteps: 0,
+      totalMitigation: 0,
       byClass: [],
     };
   }
   const byClass = getSettlementClassIds(state).map((classId) =>
-    getClassRedGodChaosContributionBreakdown(state, classId)
+    getClassRedGodChaosMitigationBreakdown(state, classId)
+  );
+  const baseIncome = getRedGodBaseChaosIncome(state);
+  const totalMitigation = byClass.reduce(
+    (sum, entry) => sum + Math.max(0, Math.floor(entry?.mitigation ?? 0)),
+    0
   );
   return {
     godId: safeGodId,
-    totalIncome: byClass.reduce(
-      (sum, entry) => sum + Math.max(0, Math.floor(entry?.contribution ?? 0)),
-      0
-    ),
-    populationBandSize: Math.max(1, clampInt(RED_GOD_POPULATION_BAND_SIZE, 10)),
+    totalIncome: Math.max(0, baseIncome - totalMitigation),
+    baseIncome,
+    baseRate: Math.max(0, clampInt(RED_GOD_BASE_CHAOS_INCOME, 10)),
+    growthRate: Number.isFinite(RED_GOD_CHAOS_INCOME_GROWTH_RATE)
+      ? Math.max(0, RED_GOD_CHAOS_INCOME_GROWTH_RATE)
+      : 0,
+    growthYears: Math.max(1, clampInt(RED_GOD_CHAOS_INCOME_GROWTH_YEARS, 12)),
+    elapsedYears: getRedGodElapsedYears(state),
+    growthSteps: getRedGodGrowthSteps(state),
+    totalMitigation,
     byClass,
   };
 }

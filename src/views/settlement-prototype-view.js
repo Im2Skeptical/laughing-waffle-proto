@@ -3,8 +3,7 @@ import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import {
-  RED_GOD_CHAOS_RATE_BY_FAITH,
-  RED_GOD_POPULATION_BAND_SIZE,
+  RED_GOD_FAITH_MITIGATION_BY_TIER,
 } from "../defs/gamesettings/gamerules-defs.js";
 import {
   getSettlementChaosGodSummary,
@@ -21,10 +20,12 @@ import {
   getSettlementOrderSlots,
   getSettlementPopulationSummary,
   getSettlementPracticeSlotsByClass,
+  getSettlementFloodplainFoodTotal,
   getSettlementStockpile,
   getSettlementStructureSlots,
   getSettlementTileBlueResource,
-  getSettlementTileGreenResource,
+  getSettlementTileFood,
+  getSettlementTotalFood,
   getSettlementYearDurationSec,
   getSettlementVisibleVassalLifeEvents,
 } from "../model/settlement-state.js";
@@ -335,7 +336,7 @@ function buildSignature(
   const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
     ? state.board.layers.tile.anchors.map((tile) => ({
         defId: tile?.defId ?? null,
-        greenResourceStored: getSettlementTileGreenResource(tile),
+        foodStored: getSettlementTileFood(tile),
         blueResourceStored: getSettlementTileBlueResource(tile),
       }))
     : [];
@@ -348,9 +349,10 @@ function buildSignature(
     classIds,
     summary,
     stockpiles: {
-      food: getSettlementStockpile(state, "food"),
+      food: getSettlementTotalFood(state),
+      storedFood: getSettlementStockpile(state, "food"),
       red: getSettlementStockpile(state, "redResource"),
-      green: getSettlementStockpile(state, "greenResource"),
+      fieldFood: getSettlementFloodplainFoodTotal(state),
       blue: getSettlementStockpile(state, "blueResource"),
       black: getSettlementStockpile(state, "blackResource"),
     },
@@ -550,10 +552,11 @@ function buildTileLines(tile) {
   const def = envTileDefs[tile?.defId];
   if (tile?.defId === "tile_floodplains") {
     return [
-      "Every autumn flood,",
+      "Every winter flood,",
       "every spring deposit",
-      "5 greenResource.",
-      `Stored Green: ${getSettlementTileGreenResource(tile)}`,
+      "100 field food.",
+      "Summer decays 20% per moon.",
+      `Stored Field Food: ${getSettlementTileFood(tile)}`,
     ];
   }
   if (tile?.defId === "tile_hinterland") {
@@ -1650,30 +1653,33 @@ function drawChaosPoolSigil(container, x, y) {
 
 function getChaosIncomeTooltipSpec(incomeSummary) {
   const summary = incomeSummary && typeof incomeSummary === "object" ? incomeSummary : null;
-  const lines = [];
+  const mitigationLines = [];
   for (const entry of Array.isArray(summary?.byClass) ? summary.byClass : []) {
     const classLabel = capitalizeLabel(entry?.classId);
     const tierLabel = capitalizeTier(entry?.faithTier);
-    const contribution = Math.max(0, Math.floor(entry?.contribution ?? 0));
-    const ratePerBand = Math.max(0, Math.floor(entry?.ratePerBand ?? 0));
-    const populationBands = Math.max(0, Math.floor(entry?.populationBands ?? 0));
     const population = Math.max(0, Math.floor(entry?.population ?? 0));
-    if (contribution > 0) {
-      lines.push(
-        `${classLabel}: ${tierLabel} faith, ${population} pop -> ${populationBands} band${populationBands === 1 ? "" : "s"} x ${ratePerBand} = +${contribution}`
+    const mitigationPerPop = Math.max(0, Math.floor(entry?.mitigationPerPop ?? 0));
+    const mitigation = Math.max(0, Math.floor(entry?.mitigation ?? 0));
+    if (mitigation > 0) {
+      mitigationLines.push(
+        `${classLabel}: ${tierLabel} faith, ${population} pop x ${mitigationPerPop} = -${mitigation}`
       );
     } else {
-      lines.push(`${classLabel}: ${tierLabel} faith, ${population} pop -> +0`);
+      mitigationLines.push(`${classLabel}: ${tierLabel} faith, ${population} pop -> -0`);
     }
   }
-  if (!lines.length) {
-    lines.push("No active chaos income sources.");
+  if (!mitigationLines.length) {
+    mitigationLines.push("No population faith mitigation.");
   }
+  const growthRatePercent = Math.round(Math.max(0, Number(summary?.growthRate ?? 0)) * 100);
   return {
     title: "Chaos Income",
     lines: [
       `Current income: +${Math.max(0, Math.floor(summary?.totalIncome ?? 0))} per second`,
-      ...lines,
+      `Base pressure: +${Math.max(0, Math.floor(summary?.baseIncome ?? 0))}`,
+      `Growth: ${growthRatePercent}% every ${Math.max(1, Math.floor(summary?.growthYears ?? 1))} years (${Math.max(0, Math.floor(summary?.growthSteps ?? 0))} steps)`,
+      `Faith mitigation: -${Math.max(0, Math.floor(summary?.totalMitigation ?? 0))}`,
+      ...mitigationLines,
     ],
     maxWidth: 340,
   };
@@ -1991,10 +1997,16 @@ function drawRedGodPanel(container, rect, summary, incomeSummary, tooltipView) {
     `+${Math.floor(incomeSummary?.totalIncome ?? summary?.chaosIncome ?? 0)}/s`,
     PALETTE.accent,
     {
-      segmentValues: (Array.isArray(incomeSummary?.byClass) ? incomeSummary.byClass : []).map((entry) => ({
-        value: Math.max(0, Math.floor(entry?.contribution ?? 0)),
-        color: getFaithTierColor(entry?.faithTier),
-      })),
+      segmentValues: [
+        {
+          value: Math.max(0, Math.floor(incomeSummary?.baseIncome ?? 0)),
+          color: PALETTE.red,
+        },
+        {
+          value: Math.max(0, Math.floor(incomeSummary?.totalMitigation ?? 0)),
+          color: PALETTE.active,
+        },
+      ],
       tooltipView,
       tooltipSpec: getChaosIncomeTooltipSpec(incomeSummary),
     }
@@ -2151,10 +2163,10 @@ function drawFaithTrack(container, rect, faith) {
     );
     root.addChild(tierLabel);
 
-    const chaosRate = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[tier])
-      ? Math.max(0, Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[tier]))
+    const chaosMitigation = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[tier])
+      ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[tier]))
       : 0;
-    if (chaosRate > 0) {
+    if (chaosMitigation > 0) {
       const badgeWidth = 34;
       const badgeHeight = 12;
       const badge = new PIXI.Graphics();
@@ -2165,14 +2177,14 @@ function drawFaithTrack(container, rect, faith) {
         badgeWidth,
         badgeHeight,
         7,
-        tier === currentTier ? PALETTE.red : 0x5a4038,
-        PALETTE.red,
+        tier === currentTier ? PALETTE.active : 0x43534a,
+        PALETTE.active,
         1
       );
       root.addChild(badge);
       root.addChild(
         createText(
-          `+${chaosRate}`,
+          `-${chaosMitigation}`,
           {
             ...TEXT_STYLES.body,
             fontSize: 8,
@@ -2187,9 +2199,11 @@ function drawFaithTrack(container, rect, faith) {
     }
   }
 
-  const riskLabel = Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[currentTier])
-    ? `redGod +${Math.floor(RED_GOD_CHAOS_RATE_BY_FAITH[currentTier])} / ${Math.max(1, Math.floor(RED_GOD_POPULATION_BAND_SIZE ?? 10))} pop`
-    : "No chaos gain";
+  const currentMitigation = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[currentTier])
+    ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[currentTier]))
+    : 0;
+  const riskLabel =
+    currentMitigation > 0 ? `redGod -${currentMitigation} / pop` : "No chaos mitigation";
   root.addChild(
     createText(
       riskLabel,
@@ -2197,7 +2211,7 @@ function drawFaithTrack(container, rect, faith) {
         ...TEXT_STYLES.body,
         fontSize: 8,
         fontWeight: "bold",
-        fill: Number.isFinite(RED_GOD_CHAOS_RATE_BY_FAITH?.[currentTier]) ? PALETTE.red : PALETTE.passiveBorder,
+        fill: currentMitigation > 0 ? PALETTE.active : PALETTE.passiveBorder,
       },
       rect.width - 10,
       5,
@@ -3115,14 +3129,13 @@ export function createSettlementPrototypeView({
       )
     );
 
-    const foodCapacity = Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0);
     const chipsLayer = new PIXI.Container();
     contentLayer.addChild(chipsLayer);
     const chipSpecs = [
       {
         label: "Food",
-        value: `${getSettlementStockpile(state, "food")}/${foodCapacity}`,
-        width: 180,
+        value: `${getSettlementTotalFood(state)} total`,
+        width: 190,
         color: PALETTE.chip,
       },
       {
@@ -3130,12 +3143,6 @@ export function createSettlementPrototypeView({
         value: getSettlementStockpile(state, "redResource"),
         width: 140,
         color: PALETTE.red,
-      },
-      {
-        label: "Green",
-        value: getSettlementStockpile(state, "greenResource"),
-        width: 150,
-        color: PALETTE.green,
       },
       {
         label: "Blue",

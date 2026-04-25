@@ -35,11 +35,13 @@ export const CHAOS_GOD_IDS = Object.freeze([
   "blackGod",
 ]);
 export const RED_GOD_ENABLED = true;
-export const RED_GOD_CHAOS_RATE_BY_FAITH = Object.freeze({
-  silver: 1,
-  bronze: 2,
+export const RED_GOD_BASE_CHAOS_INCOME = 10;
+export const RED_GOD_CHAOS_INCOME_GROWTH_RATE = 0.03;
+export const RED_GOD_CHAOS_INCOME_GROWTH_YEARS = 12;
+export const RED_GOD_FAITH_MITIGATION_BY_TIER = Object.freeze({
+  gold: 1,
+  diamond: 2,
 });
-export const RED_GOD_POPULATION_BAND_SIZE = 10;
 export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
 export const RED_GOD_MONSTERS_PER_CHAOS = 100;
 export const RED_GOD_MONSTER_WIN_COUNT = 2000;

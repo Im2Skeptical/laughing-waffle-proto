@@ -4,6 +4,8 @@ export {
   handleAccumulateRatio,
   handleResetSystemState,
   handleAdjustSystemState,
+  handleAdjustSettlementFood,
+  handleAdjustSettlementTileStore,
   handleAdjustSettlementChaosGodState,
 } from "./system/state-ops.js";
 
