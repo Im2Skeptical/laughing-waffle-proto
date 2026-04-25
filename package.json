@@ -7,9 +7,12 @@
   "scripts": {
     "start": "serve",
     "build": "node scripts/build-check.mjs",
+    "check:build": "node scripts/build-check.mjs",
     "test": "node -e \"console.log('No legacy test scripts configured.')\"",
     "verify": "npm run build",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
+    "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
+    "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose",
     "skill:apply-export": "node scripts/apply-skill-editor-export.mjs"
   },
   "keywords": [
