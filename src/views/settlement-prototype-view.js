@@ -50,82 +50,17 @@ import {
   buildRenderGateKey,
   buildSignature,
 } from "./settlement-render-signature.js";
+import {
+  ELDER_BUST_ACCENT_TONES,
+  ELDER_BUST_SKIN_TONES,
+  FAITH_TIER_COLORS,
+  FAITH_TIER_ORDER,
+  HAPPINESS_STATE_COLORS,
+  HAPPINESS_STATE_ORDER,
+  PALETTE,
+  TEXT_STYLES,
+} from "./settlement-theme.js";
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
-
-const PALETTE = Object.freeze({
-  background: 0x847b68,
-  topbar: 0x413834,
-  panel: 0x5d564d,
-  panelSoft: 0x6d655b,
-  slot: 0x7b7368,
-  card: 0x4f4a4a,
-  cardMuted: 0x4a4744,
-  tileCard: 0x7e9874,
-  tileCardDark: 0x504b49,
-  stroke: 0x4f4b48,
-  chip: 0x4b4743,
-  text: 0xf7f2e9,
-  textMuted: 0xd7d0c3,
-  accent: 0xd7b450,
-  red: 0xbe6352,
-  green: 0x7fa568,
-  blue: 0x5d7ea6,
-  black: 0x2d2b2a,
-  practiceDrainRed: 0xd2735f,
-  practiceDrainGreen: 0x90b276,
-  practiceDrainNeutral: 0xd7b450,
-  passiveBorder: 0xa4be8d,
-  passiveBorderMuted: 0x7c8d72,
-  active: 0xd1ad44,
-  inactive: 0x777168,
-  mission: 0xd48f3f,
-  missionSoft: 0x5c4630,
-  missionFill: 0x564236,
-  elderLozenge: 0x45403d,
-  elderLozengeSoft: 0x595149,
-  vassalCouncilFill: 0x4e4534,
-  vassalCouncilStroke: 0xe3c46c,
-  bustBackdrop: 0x686056,
-  bustDark: 0x40362f,
-  flyout: 0x3f3935,
-});
-
-const TEXT_STYLES = Object.freeze({
-  title: {
-    fontFamily: "Georgia",
-    fontSize: 24,
-    fontWeight: "bold",
-    fill: PALETTE.text,
-  },
-  header: {
-    fontFamily: "Georgia",
-    fontSize: 36,
-    fontWeight: "bold",
-    fill: PALETTE.text,
-  },
-  chip: {
-    fontFamily: "Georgia",
-    fontSize: 16,
-    fontWeight: "bold",
-    fill: PALETTE.text,
-  },
-  cardTitle: {
-    fontFamily: "Georgia",
-    fontSize: 19,
-    fontWeight: "bold",
-    fill: PALETTE.text,
-  },
-  body: {
-    fontFamily: "Georgia",
-    fontSize: 14,
-    fill: PALETTE.text,
-  },
-  muted: {
-    fontFamily: "Georgia",
-    fontSize: 13,
-    fill: PALETTE.textMuted,
-  },
-});
 
 const ORDER_PANEL_LAYOUT = Object.freeze({
   padding: 16,
@@ -133,22 +68,7 @@ const ORDER_PANEL_LAYOUT = Object.freeze({
   leftRatio: 0.56,
 });
 
-const ELDER_BUST_SKIN_TONES = Object.freeze([0xcab59c, 0xb89d82, 0xa7876f, 0x8c6f5b]);
-const ELDER_BUST_ACCENT_TONES = Object.freeze([0x7d6b4d, 0x6f7a88, 0x725b76, 0x5d7d66, 0x916443]);
 const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
-const FAITH_TIER_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
-const FAITH_TIER_COLORS = Object.freeze({
-  bronze: 0xb98155,
-  silver: 0xc6ccd6,
-  gold: 0xe0bf54,
-  diamond: 0x8dd5e8,
-});
-const HAPPINESS_STATE_ORDER = Object.freeze(["negative", "neutral", "positive"]);
-const HAPPINESS_STATE_COLORS = Object.freeze({
-  negative: 0xc86a5c,
-  neutral: 0xb7a98a,
-  positive: 0x8dbb6f,
-});
 
 function roundedRect(
   gfx,
