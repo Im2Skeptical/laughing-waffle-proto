@@ -60,13 +60,11 @@ import {
   PALETTE,
   TEXT_STYLES,
 } from "./settlement-theme.js";
+import {
+  ORDER_PANEL_LAYOUT,
+  SETTLEMENT_PANEL_RECTS,
+} from "./settlement-layout.js";
 import { GAMEPIECE_HOVER_SCALE } from "./layout-pixi.js";
-
-const ORDER_PANEL_LAYOUT = Object.freeze({
-  padding: 16,
-  gap: 18,
-  leftRatio: 0.56,
-});
 
 const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
 
@@ -2495,16 +2493,17 @@ export function createSettlementPrototypeView({
       )
     );
 
-    const hubPanelRect = { x: 70, y: 120, width: 1080, height: 700 };
-    const vassalPanelRect = { x: 1170, y: 120, width: 560, height: 620 };
-    const chaosPanelRect = { x: 1760, y: 120, width: 540, height: 260 };
-    const regionPanelRect = { x: 1760, y: 400, width: 540, height: 230 };
-    // const classTabsRect = { x: 430, y: 344, width: 850, height: 34 };
-    const classColumnRect = { x: 100, y: 188, width: 220, height: 300 };
-    const orderRect = { x: 344, y: 184, width: 776, height: 220 };
-    const practiceRect = { x: 344, y: 434, width: 776, height: 176 };
-    const structuresRect = { x: 90, y: 630, width: 1030, height: 124 };
-    const resourceBandRect = { x: 110, y: 836, width: 1560, height: 44 };
+    const {
+      hub: hubPanelRect,
+      vassal: vassalPanelRect,
+      chaos: chaosPanelRect,
+      region: regionPanelRect,
+      classColumn: classColumnRect,
+      order: orderRect,
+      practice: practiceRect,
+      structures: structuresRect,
+      resourceBand: resourceBandRect,
+    } = SETTLEMENT_PANEL_RECTS;
 
     const panelGfx = new PIXI.Graphics();
     roundedRect(
