@@ -20,3 +20,11 @@ Local instructions for Codex agents working in this repo.
 - Before coding, do an impact analysis (determinism, serialization, replay, layering).
 - Mention how to test any behavior you touch.
 - Refactors are to be clean with no migratory shim style code. We are prototyping and so there is no need to preserve functionality of older saves
+
+## Context hygiene
+- Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.
+- Treat `artifacts/`, `coverage/`, `test-results/`, `playwright-report/`, screenshots/videos/traces/logs, and `*.bak` files as generated output by default.
+- Do not assume `exports/` is disposable; `exports/runtime.json` may be used as skill-editor patch input.
+- Do not dump full DOM snapshots, full game state, every frame log, every entity, browser traces, or large JSON blobs to chat or stdout.
+- For probes/debugging, write detailed output to an artifact file and print only the failed check, expected result, actual result, shortest reproduction command, relevant file/subsystem, and artifact path.
+- Preserve runtime/game behavior when changing workflow, scripts, ignores, or test-output formatting.

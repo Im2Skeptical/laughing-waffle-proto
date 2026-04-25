@@ -1,14 +1,55 @@
 import { spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 
 const PORT = 8080;
 const URL = `http://127.0.0.1:${PORT}`;
 const SERVE_SCRIPT = "./node_modules/serve/bin/serve.js";
+const ARTIFACT_DIR = "artifacts";
+const DETAIL_PATH = `${ARTIFACT_DIR}/settlement-browser-probe.json`;
+const SCREENSHOT_PATH = `${ARTIFACT_DIR}/settlement-browser-probe-latest.png`;
+const VERBOSE = process.argv.includes("--verbose");
 
-function log(label, value) {
+function logLine(message) {
+  process.stdout.write(`${message}\n`);
+}
+
+function logJson(label, value) {
+  if (!VERBOSE) return;
   process.stdout.write(`${label}: ${JSON.stringify(value, null, 2)}\n`);
+}
+
+function summarizeProbeResult(result) {
+  const graph = result?.graph ?? null;
+  return {
+    ratio: result?.ratio ?? null,
+    viewedSec: result?.viewedSec ?? null,
+    previewCapSec: result?.previewCapSec ?? null,
+    scrubSec: graph?.scrubSec ?? null,
+    visibleForecastCoverageEndSec: graph?.visibleForecastCoverageEndSec ?? null,
+    previewStatus: result?.previewStatus ?? null,
+  };
+}
+
+function buildSummary({ initial, availability, probeResults }) {
+  const missingAvailability = availability.filter(
+    (entry) => !entry.hasStateData && !entry.hasState
+  );
+  const nullProbeCount = probeResults.filter((entry) => entry.viewedSec == null).length;
+  return {
+    status: "completed",
+    frontierSec: initial?.frontierSec ?? null,
+    viewedSec: initial?.viewedSec ?? null,
+    browseCapSec: initial?.browseCapSec ?? null,
+    previewCapSec: initial?.previewCapSec ?? null,
+    availabilityChecked: availability.length,
+    missingAvailabilityCount: missingAvailability.length,
+    probeCount: probeResults.length,
+    nullProbeCount,
+    firstProbe: summarizeProbeResult(probeResults[0] ?? null),
+    lastProbe: summarizeProbeResult(probeResults[probeResults.length - 1] ?? null),
+  };
 }
 
 async function waitForHttp(url, timeoutMs = 15000) {
@@ -30,17 +71,16 @@ function startServer() {
     process.execPath,
     [SERVE_SCRIPT, "-l", String(PORT), "."],
     {
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: ["ignore", "ignore", "ignore"],
       windowsHide: true,
     }
   );
-  child.stdout.on("data", (chunk) => {
-    process.stdout.write(String(chunk));
-  });
-  child.stderr.on("data", (chunk) => {
-    process.stderr.write(String(chunk));
-  });
   return child;
+}
+
+function writeDetails(payload) {
+  mkdirSync(ARTIFACT_DIR, { recursive: true });
+  writeFileSync(DETAIL_PATH, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
 async function clickGraphRatio(page, ratioX, ratioY = 0.5) {
@@ -78,11 +118,11 @@ async function clickGraphRatio(page, ratioX, ratioY = 0.5) {
   return null;
 }
 
-const server = startServer();
-let browser = null;
-
-try {
-  mkdirSync("artifacts", { recursive: true });
+async function main() {
+  mkdirSync(ARTIFACT_DIR, { recursive: true });
+  const server = startServer();
+  let browser = null;
+  try {
   await waitForHttp(URL);
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({
@@ -98,7 +138,7 @@ try {
   const initial = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null
   );
-  log("initial", initial);
+  logJson("initial", initial);
 
   const availability = await page.evaluate(() => {
     const secs = [1, 2, 4, 8, 16, 32, 48, 52, 60, 64, 68, 69, 70];
@@ -108,7 +148,7 @@ try {
       hasState: globalThis.__SETTLEMENT_DEBUG__?.hasStateAt?.(sec) ?? false,
     }));
   });
-  log("availability", availability);
+  logJson("availability", availability);
 
   const probeRatios = [0, 0.0025, 0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05];
   const probeResults = [];
@@ -131,13 +171,48 @@ try {
       previewStatus: snapshot?.runner?.previewStatus ?? null,
     });
   }
-  log("probeResults", probeResults);
+  logJson("probeResults", probeResults);
 
   await page.screenshot({
-    path: "artifacts/settlement-browser-probe.png",
+    path: SCREENSHOT_PATH,
     fullPage: true,
   });
-} finally {
-  await browser?.close();
-  server.kill();
+
+  const summary = buildSummary({ initial, availability, probeResults });
+  writeDetails({ summary, initial, availability, probeResults });
+  logLine("[probe:settlement] OK");
+  logLine(
+    `[probe:settlement] frontier=${summary.frontierSec} viewed=${summary.viewedSec} browseCap=${summary.browseCapSec} previewCap=${summary.previewCapSec}`
+  );
+  logLine(
+    `[probe:settlement] availability=${summary.availabilityChecked} missing=${summary.missingAvailabilityCount} probes=${summary.probeCount} null=${summary.nullProbeCount}`
+  );
+  logLine(`[probe:settlement] details=${DETAIL_PATH}`);
+  logLine(`[probe:settlement] screenshot=${SCREENSHOT_PATH}`);
+  } finally {
+    await browser?.close();
+    server.kill();
+  }
 }
+
+main().catch((error) => {
+  const message = String(error?.message ?? error ?? "Unknown failure");
+  writeDetails({
+    summary: {
+      status: "failed",
+      error: message,
+      reproduction: "npm run probe:settlement",
+    },
+    error: {
+      message,
+      stack: error?.stack ?? null,
+    },
+  });
+  logLine("[probe:settlement] FAILED");
+  logLine(`[probe:settlement] error=${message}`);
+  logLine("[probe:settlement] expected=browser probe completes and captures settlement debug snapshot");
+  logLine("[probe:settlement] actual=probe failed before completion");
+  logLine("[probe:settlement] reproduce=npm run probe:settlement");
+  logLine(`[probe:settlement] details=${DETAIL_PATH}`);
+  process.exit(1);
+});
