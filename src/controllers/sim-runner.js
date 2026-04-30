@@ -38,7 +38,6 @@ import {
 } from "../model/persistent-memory.js";
 import { resolveEditWindowStatusAtSecond } from "../model/timegraph/edit-policy.js";
 import { getGlobalSkillModifier } from "../model/skills.js";
-import { createActionPlanner } from "./actionmanagers/action-planner.js";
 import {
   perfEnabled,
   perfNowMs,
@@ -61,6 +60,32 @@ const ACTION_PATH_CHECKPOINT_OPTS = Object.freeze({
   captureCheckpoint: false,
   prune: false,
 });
+
+function createNoopActionPlanner() {
+  return {
+    resetToTimeline() {},
+    buildCommitActions() {
+      return { ok: true, actions: [] };
+    },
+    markCommitted() {},
+    getOrderedIntents() {
+      return [];
+    },
+    getFocusIntent() {
+      return null;
+    },
+    getIntentCost() {
+      return 0;
+    },
+    getApPreview() {
+      return {
+        budget: 0,
+        spent: 0,
+        remaining: 0,
+      };
+    },
+  };
+}
 
 export function createSimRunner({
   onInvalidate,
@@ -312,20 +337,7 @@ export function createSimRunner({
     return { ok: true, stateData, cacheHit: false };
   }
 
-  const actionPlanner = createActionPlanner({
-    getTimeline: () => timeline,
-    getState: () => {
-      applyTimelinePersistentKnowledgeToState(cursorState);
-      return cursorState;
-    },
-    getPreviewBoundaryStateData: (tSec) => getPlannerBoundaryStateData(tSec),
-    onInvalidate: (reason) => onInvalidate?.(`planner:${reason}`),
-    onEdit: (reason) => {
-      dragPreviewState = null;
-      commitPlannerActions(`edit:${reason || "update"}`);
-    },
-    onInsufficientAp: (info) => onPlannerApReject?.(info),
-  });
+  const actionPlanner = createNoopActionPlanner();
 
   // Playback / Live Replay State
   let playbackNextActionIdx = 0;
