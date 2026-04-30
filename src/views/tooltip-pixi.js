@@ -300,11 +300,23 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     const rowHeight = 20;
     const labelWidth = Math.floor(maxWidth * 0.58);
     for (const row of section.rows || []) {
+      const accentColor = Number.isFinite(row.accentColor) ? row.accentColor : null;
       const rowBg = new PIXI.Graphics();
-      rowBg.beginFill(TABLE_BG, 0.92);
+      if (row.active) {
+        rowBg.lineStyle(1, accentColor ?? BG_STROKE, 0.95);
+      }
+      rowBg.beginFill(row.active && accentColor != null ? accentColor : TABLE_BG, row.active ? 0.24 : 0.92);
       rowBg.drawRoundedRect(x, cursorY, maxWidth, rowHeight, 4);
       rowBg.endFill();
       container.addChild(rowBg);
+
+      if (accentColor != null) {
+        const swatch = new PIXI.Graphics();
+        swatch.beginFill(accentColor, 0.95);
+        swatch.drawRoundedRect(x + 6, cursorY + 5, 10, 10, 3);
+        swatch.endFill();
+        container.addChild(swatch);
+      }
 
       const labelNode = createTextNode(
         row.label,
@@ -315,10 +327,10 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
         },
         scale
       );
-      labelNode.x = x + 8;
+      labelNode.x = x + (accentColor != null ? 22 : 8);
       labelNode.y = cursorY + 3;
       labelNode.style.wordWrap = true;
-      labelNode.style.wordWrapWidth = labelWidth - 12;
+      labelNode.style.wordWrapWidth = labelWidth - (accentColor != null ? 26 : 12);
       container.addChild(labelNode);
 
       const valueNode = createTextNode(

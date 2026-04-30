@@ -1,6 +1,4 @@
-import {
-  RED_GOD_FAITH_MITIGATION_BY_TIER,
-} from "../defs/gamesettings/gamerules-defs.js";
+import { getRedGodFaithMitigationRule } from "../model/settlement-chaos.js";
 import { capitalizeLabel, capitalizeTier } from "./settlement-formatters.js";
 import { SETTLEMENT_CLASS_SUMMARY_CARD_LAYOUT } from "./settlement-layout.js";
 import {
@@ -129,10 +127,8 @@ function drawFaithTrack(container, rect, faith) {
     );
     root.addChild(tierLabel);
 
-    const chaosMitigation = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[tier])
-      ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[tier]))
-      : 0;
-    if (chaosMitigation > 0) {
+    const chaosMitigation = getRedGodFaithMitigationRule(tier);
+    if (chaosMitigation.amount > 0) {
       const badgeWidth = 34;
       const badgeHeight = 12;
       const badge = new PIXI.Graphics();
@@ -150,7 +146,7 @@ function drawFaithTrack(container, rect, faith) {
       root.addChild(badge);
       root.addChild(
         createText(
-          `-${chaosMitigation}`,
+          `-${chaosMitigation.amount}`,
           {
             ...TEXT_STYLES.body,
             fontSize: 8,
@@ -165,11 +161,11 @@ function drawFaithTrack(container, rect, faith) {
     }
   }
 
-  const currentMitigation = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[currentTier])
-    ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[currentTier]))
-    : 0;
+  const currentMitigation = getRedGodFaithMitigationRule(currentTier);
   const riskLabel =
-    currentMitigation > 0 ? `redGod -${currentMitigation} / pop` : "No chaos mitigation";
+    currentMitigation.amount > 0
+      ? `redGod -${currentMitigation.label}`
+      : "No chaos mitigation";
   root.addChild(
     createText(
       riskLabel,
@@ -177,7 +173,7 @@ function drawFaithTrack(container, rect, faith) {
         ...TEXT_STYLES.body,
         fontSize: 8,
         fontWeight: "bold",
-        fill: currentMitigation > 0 ? PALETTE.active : PALETTE.passiveBorder,
+        fill: currentMitigation.amount > 0 ? PALETTE.active : PALETTE.passiveBorder,
       },
       rect.width - 10,
       5,

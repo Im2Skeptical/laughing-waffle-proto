@@ -76,6 +76,7 @@ export const SETTLEMENT_REGION_TILE_LAYOUT = Object.freeze({
   width: 88,
   heightInset: 100,
   stepX: 100,
+  slotPadding: 3,
 });
 
 export const SETTLEMENT_VASSAL_PANEL_LAYOUT = Object.freeze({

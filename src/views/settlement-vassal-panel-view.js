@@ -86,7 +86,7 @@ function drawVassalEventLog(container, rect, events, state) {
     );
     container.addChild(
       createText(
-        `Age ${Math.floor(event?.ageYears ?? 0)} â€¢ Year ${
+        `Age ${Math.floor(event?.ageYears ?? 0)} - Year ${
           1 + Math.floor((event?.tSec ?? 0) / Math.max(1, getSettlementYearDurationSec(state)))
         }`,
         {
@@ -155,7 +155,7 @@ export function drawVassalPanel(
   }
 
   const ageYears = getSettlementVassalAgeYearsAtSecond(state, currentVassal, state?.tSec);
-  const titleLabel = `${capitalizeLabel(currentVassal.currentClassId)} â€¢ Age ${ageYears}`;
+  const titleLabel = `${capitalizeLabel(currentVassal.currentClassId)} - Age ${ageYears}`;
   container.addChild(
     createWrappedText(
       titleLabel,

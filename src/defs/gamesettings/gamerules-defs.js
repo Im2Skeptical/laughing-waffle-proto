@@ -40,8 +40,8 @@ export const RED_GOD_BASE_CHAOS_INCOME = 10;
 export const RED_GOD_CHAOS_INCOME_GROWTH_RATE = 0.03;
 export const RED_GOD_CHAOS_INCOME_GROWTH_YEARS = 12;
 export const RED_GOD_FAITH_MITIGATION_BY_TIER = Object.freeze({
-  gold: 1,
-  diamond: 2,
+  gold: Object.freeze({ amount: 1, perPopulation: 5, rounding: "floor" }),
+  diamond: Object.freeze({ amount: 1, perPopulation: 2, rounding: "floor" }),
 });
 export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
 export const RED_GOD_MONSTERS_PER_CHAOS = 100;
