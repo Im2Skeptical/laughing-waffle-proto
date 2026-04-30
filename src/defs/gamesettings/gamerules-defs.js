@@ -1,8 +1,9 @@
 // gamerules-defs.js
 // Gameplay rules and tuning constants.
-
-import "../env-defs-dev.js";
-import "../skill-defs-dev.js";
+//
+// Legacy env/skill validation bootstraps are intentionally not imported here.
+// During the current settlement-prototype cleanup, several old registries are
+// allowed to be absent or empty while the new baseline is established.
 
 export const BASE_PROJECTION_HORIZON_SEC = 1200;
 export const BASE_EDITABLE_HISTORY_WINDOW_SEC = 0;
