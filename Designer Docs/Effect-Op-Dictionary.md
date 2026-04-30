@@ -11,7 +11,7 @@ Reference for all currently registered effect ops in `src/model/effects/index.js
 ## Skill Tree Effects
 - Skill tree node effects are authored as effect specs in `skillNodes[*].onUnlock` and executed via `runEffect`.
 - Unlock execution path: `cmdUnlockSkillNode` in `src/model/commands/pawn-skill-commands.js`.
-- `skillNodes[*].effects` is deprecated and fails validation (`validate-skill-defs.js`).
+- `skillNodes[*].effects` was deprecated before the in-repo skill defs were removed.
 - `skillNodes[*].onLock` is validated but not currently used by the unlock command path.
 
 ### Skill Node Requirement Shape

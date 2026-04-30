@@ -8,7 +8,6 @@ import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
 import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";
 import { envTagDefs } from "../../defs/gamesystems/env-tags-defs.js";
 import { hubTagDefs } from "../../defs/gamesystems/hub-tag-defs.js";
-import { skillNodes } from "../../defs/gamepieces/skill-tree-defs.js";
 import { ActionKinds } from "../../model/actions.js";
 import {
   buildRecipePriorityFromSelectedRecipe,
@@ -142,7 +141,7 @@ function isHubPlanAction(action) {
 
 function formatSkillNodeName(nodeId) {
   if (!nodeId) return "Skill";
-  return skillNodes?.[nodeId]?.name || nodeId;
+  return nodeId;
 }
 
 function formatTilePlanLabel(envCol, state) {

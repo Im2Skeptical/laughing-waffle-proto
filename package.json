@@ -12,8 +12,7 @@
     "verify": "npm run build",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
-    "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose",
-    "skill:apply-export": "node scripts/apply-skill-editor-export.mjs"
+    "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose"
   },
   "keywords": [
     "html",

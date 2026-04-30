@@ -12,7 +12,7 @@ Git history is the archive for this code. The old source was not moved into a re
 - Static import reachability from `src/views/ui-root-pixi.js` did not reach the removed files.
 - `package.json` scripts do not reference the removed views.
 - No dynamic imports, settlement probe references, or active test references were found for the removed views.
-- Documentation and tooling references to skill trees point at defs/export flow, not the removed Pixi editor views.
+- Historical documentation and tooling references to skill trees pointed at defs/export flow, not the removed Pixi editor views.
 - The removed files were implementation source only; they did not contain canonical design data.
 
 ## Removed Files
@@ -75,8 +75,8 @@ Debug/log/chrome helpers:
 
 ## Design Notes
 
-- Skill tree source of truth remains `src/defs/gamepieces/skill-tree-defs.js`.
-- Skill tree export/application workflow remains `npm run skill:apply-export`.
+- Skill tree source of truth has moved out of this repo.
+- The old in-repo skill tree export/application workflow was removed with the obsolete skill defs.
 - External or historical editor data should be recovered from its owning source, not from the removed Pixi editor.
 - Active settlement view, timegraph, vassal, replay, projection, model, controller, and defs code was intentionally left untouched.
 
