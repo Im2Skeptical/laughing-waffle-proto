@@ -1,10 +1,18 @@
 import { stepSettlementSecond } from "./settlement-exec.js";
+import { stepEnvSecond } from "./env-exec.js";
 
 function isSettlementPrototypeEnabled(state) {
   return state?.variantFlags?.settlementPrototypeEnabled === true;
 }
 
 const LIVE_SECOND_STAGES = [
+  {
+    id: "settlementEnv",
+    applies: (state) => isSettlementPrototypeEnabled(state),
+    run: (state, tSec) => {
+      stepEnvSecond(state, tSec);
+    },
+  },
   {
     id: "settlement",
     applies: (state) => isSettlementPrototypeEnabled(state),
