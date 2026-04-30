@@ -1,5 +1,5 @@
 import { hubStructureDefs } from "../../defs/gamepieces/hub-structure-defs.js";
-import { itemDefs } from "../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { TIER_ASC } from "../effects/core/tiers.js";
 import { bumpInvVersion } from "../effects/core/inventory-version.js";
 import { Inventory } from "../inventory-model.js";

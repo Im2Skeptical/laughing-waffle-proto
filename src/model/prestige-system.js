@@ -1,7 +1,7 @@
 // prestige-system.js
 // Leader/follower prestige, granary deposits, and hunger debt.
 
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import {
   PRESTIGE_COST_PER_FOLLOWER,
   HUNGER_THRESHOLD,

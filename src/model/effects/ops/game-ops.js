@@ -1,4 +1,4 @@
-import { itemDefs } from "../../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { forageDropTables } from "../../../defs/gamepieces/forage-droptables-defs.js";
 import { fishingDropTables } from "../../../defs/gamepieces/fishing-droptables-defs.js";
 import {

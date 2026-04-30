@@ -1,22 +1,6 @@
-import { itemDefs } from "../../../defs/gamepieces/item-defs.js";
-import { cropDefs } from "../../../defs/gamepieces/crops-defs.js";
-import { envSystemDefs } from "../../../defs/gamesystems/env-systems-defs.js";
-
 function getDefRegistry(name) {
   if (!name || typeof name !== "string") return null;
-  switch (name) {
-    case "crops":
-    case "cropDefs":
-      return cropDefs;
-    case "items":
-    case "itemDefs":
-      return itemDefs;
-    case "envSystems":
-    case "envSystemDefs":
-      return envSystemDefs;
-    default:
-      return null;
-  }
+  return null;
 }
 
 export function resolveEffectDef(effect, tile, context) {

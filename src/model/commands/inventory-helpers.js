@@ -1,8 +1,6 @@
-import { itemDefs } from "../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { hubStructureDefs } from "../../defs/gamepieces/hub-structure-defs.js";
-import {
-  LEADER_EQUIPMENT_SLOT_ORDER,
-} from "../../defs/gamesystems/equipment-slot-defs.js";
+const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze(["head", "chest", "mainHand", "offHand", "ring1", "ring2", "amulet"]);
 import {
   createEmptyLeaderEquipment,
 } from "../equipment-rules.js";

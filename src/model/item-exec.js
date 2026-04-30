@@ -1,7 +1,7 @@
 // item-exec.js
 // Per-second item execution (tag-driven passives).
 
-import { itemTagDefs } from "../defs/gamesystems/item-tag-defs.js";
+const itemTagDefs = Object.freeze({});
 import { passiveTimingPasses } from "./passive-timing.js";
 
 function compareOwnerIds(a, b) {

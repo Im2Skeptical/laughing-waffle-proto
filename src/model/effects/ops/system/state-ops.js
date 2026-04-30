@@ -1,7 +1,4 @@
-import { envSystemDefs } from "../../../../defs/gamesystems/env-systems-defs.js";
-import { pawnSystemDefs } from "../../../../defs/gamesystems/pawn-systems-defs.js";
 import { hubSystemDefs } from "../../../../defs/gamesystems/hub-system-defs.js";
-import { itemSystemDefs } from "../../../../defs/gamesystems/item-system-defs.js";
 import { resolveAmount } from "../../core/amount.js";
 import { clamp } from "../../core/clamp.js";
 import { cloneSerializable } from "../../core/clone.js";
@@ -122,10 +119,7 @@ export function handleResetSystemState(state, effect, context) {
   if (!targets.length) return false;
 
   const defaults =
-    envSystemDefs[systemId]?.stateDefaults ??
-    pawnSystemDefs[systemId]?.stateDefaults ??
     hubSystemDefs[systemId]?.stateDefaults ??
-    itemSystemDefs[systemId]?.stateDefaults ??
     {};
   let changed = false;
   for (const target of targets) {

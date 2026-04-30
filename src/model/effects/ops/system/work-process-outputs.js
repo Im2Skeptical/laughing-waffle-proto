@@ -1,4 +1,4 @@
-import { itemDefs } from "../../../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { TIER_ASC } from "../../core/tiers.js";
 import { ensureSystemState } from "../../core/system-state.js";
 import { handleSpawnItem } from "../game-ops.js";

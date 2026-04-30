@@ -2,7 +2,7 @@
 // View-model helpers for action log rows and navigation.
 
 import { hubStructureDefs }  from "../../defs/gamepieces/hub-structure-defs.js";
-import { itemDefs } from "../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { envTileDefs } from "../../defs/gamepieces/env-tiles-defs.js";
 import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
 import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";

@@ -1,5 +1,5 @@
 import { hubStructureDefs } from "../../../../defs/gamepieces/hub-structure-defs.js";
-import { itemDefs } from "../../../../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { TIER_ASC } from "../../core/tiers.js";
 import { resolveEffectTargets } from "./targets.js";
 

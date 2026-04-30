@@ -1,10 +1,8 @@
 // equipment-rules.js
 // Authoritative equipment validation and helpers.
 
-import {
-  LEADER_EQUIPMENT_SLOT_ALIAS_MAP,
-  LEADER_EQUIPMENT_SLOT_ORDER,
-} from "../defs/gamesystems/equipment-slot-defs.js";
+const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze(["head", "chest", "mainHand", "offHand", "ring1", "ring2", "amulet"]);
+const LEADER_EQUIPMENT_SLOT_ALIAS_MAP = Object.freeze({});
 
 function normalizeSlotToken(raw) {
   if (typeof raw !== "string") return null;

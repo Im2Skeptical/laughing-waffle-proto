@@ -4,7 +4,7 @@
 import { Inventory } from "./inventory-model.js";
 import { bumpInvVersion } from "./effects/core/inventory-version.js";
 import { TIER_ASC, getTierRank } from "./effects/core/tiers.js";
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { PAWN_AI_STAMINA_WARNING } from "../defs/gamesettings/gamerules-defs.js";
 import { pushGameEvent } from "./event-feed.js";
 import { getPawnSkillModifier } from "./skills.js";

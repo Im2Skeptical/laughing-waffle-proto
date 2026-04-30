@@ -4,11 +4,11 @@
 import { pawnDefs } from "../defs/gamepieces/pawn-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
 import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
-import { LEADER_EQUIPMENT_SLOT_ORDER } from "../defs/gamesystems/equipment-slot-defs.js";
+const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze(["head", "chest", "mainHand", "offHand", "ring1", "ring2", "amulet"]);
 import {
   PAWN_AI_HUNGER_WARNING,
   PAWN_AI_HUNGER_FULL,
