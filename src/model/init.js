@@ -2,7 +2,7 @@
 
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-import { envStructureDefs } from "../defs/gamepieces/env-structures-defs.js";
+const envStructureDefs = Object.freeze({});
 const envTagDefs = Object.freeze({});
 const envSystemDefs = Object.freeze({});
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";

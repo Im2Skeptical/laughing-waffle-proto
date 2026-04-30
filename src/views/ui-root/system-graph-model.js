@@ -2,7 +2,7 @@
 
 import { hubStructureDefs } from "../../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../../defs/gamepieces/env-tiles-defs.js";
-import { envStructureDefs } from "../../defs/gamepieces/env-structures-defs.js";
+const envStructureDefs = Object.freeze({});
 const cropDefs = Object.freeze({});
 const itemDefs = Object.freeze({});
 const recipeDefs = Object.freeze({});
