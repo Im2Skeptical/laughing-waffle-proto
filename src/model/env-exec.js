@@ -3,7 +3,7 @@
 
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
+const envTagDefs = Object.freeze({});
 import {
   ENV_EVENT_DRAW_CADENCE_SEC,
   MOON_CYCLE_SEC,

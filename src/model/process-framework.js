@@ -1,8 +1,8 @@
 // process-framework.js
 // Deterministic process defs + routing helpers (model-only).
 
-import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
-import { cropDefs } from "../defs/gamepieces/crops-defs.js";
+const recipeDefs = Object.freeze({});
+const cropDefs = Object.freeze({});
 const itemDefs = Object.freeze({});
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";

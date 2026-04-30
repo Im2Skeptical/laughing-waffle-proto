@@ -1,4 +1,4 @@
-import { envTagDefs } from "../../defs/gamesystems/env-tags-defs.js";
+const envTagDefs = Object.freeze({});
 import { PAWN_AI_SUPPRESS_AFTER_PLAYER_MOVE_SEC } from "../../defs/gamesettings/gamerules-defs.js";
 import { runEffect } from "../effects/index.js";
 import { adjustFollowerCount, adjustWorkerCount } from "../prestige-system.js";

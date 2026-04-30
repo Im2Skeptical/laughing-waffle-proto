@@ -1,6 +1,6 @@
-import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
-import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
-import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
+const envTagDefs = Object.freeze({});
+const hubTagDefs = Object.freeze({});
+const recipeDefs = Object.freeze({});
 import { resolveCosts, canAffordCosts } from "./costs.js";
 import { getCurrentSeasonKey } from "./state.js";
 import { isTagHidden } from "./tag-state.js";

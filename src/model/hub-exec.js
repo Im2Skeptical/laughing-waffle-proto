@@ -1,11 +1,11 @@
 // hub-exec.js
 // Per-second hub structure execution (passives + intents).
 
-import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
+const hubTagDefs = Object.freeze({});
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 const itemDefs = Object.freeze({});
-import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
+const recipeDefs = Object.freeze({});
 import {
   INITIAL_POPULATION_DEFAULT,
   POPULATION_ATTRACTION_PER_VACANCY_PER_YEAR,

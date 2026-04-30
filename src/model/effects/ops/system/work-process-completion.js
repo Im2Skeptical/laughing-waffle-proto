@@ -1,5 +1,5 @@
-import { envSystemDefs } from "../../../../defs/gamesystems/env-systems-defs.js";
-import { envTagDefs } from "../../../../defs/gamesystems/env-tags-defs.js";
+const envSystemDefs = Object.freeze({});
+const envTagDefs = Object.freeze({});
 import { envTileDefs } from "../../../../defs/gamepieces/env-tiles-defs.js";
 import { hubStructureDefs } from "../../../../defs/gamepieces/hub-structure-defs.js";
 import { cloneSerializable } from "../../core/clone.js";

@@ -4,10 +4,10 @@
 import { hubStructureDefs }  from "../../defs/gamepieces/hub-structure-defs.js";
 const itemDefs = Object.freeze({});
 import { envTileDefs } from "../../defs/gamepieces/env-tiles-defs.js";
-import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
-import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";
-import { envTagDefs } from "../../defs/gamesystems/env-tags-defs.js";
-import { hubTagDefs } from "../../defs/gamesystems/hub-tag-defs.js";
+const cropDefs = Object.freeze({});
+const recipeDefs = Object.freeze({});
+const envTagDefs = Object.freeze({});
+const hubTagDefs = Object.freeze({});
 import { ActionKinds } from "../../model/actions.js";
 import {
   buildRecipePriorityFromSelectedRecipe,

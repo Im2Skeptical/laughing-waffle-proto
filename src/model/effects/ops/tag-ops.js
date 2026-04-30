@@ -1,5 +1,5 @@
-import { envTagDefs } from "../../../defs/gamesystems/env-tags-defs.js";
-import { envSystemDefs } from "../../../defs/gamesystems/env-systems-defs.js";
+const envTagDefs = Object.freeze({});
+const envSystemDefs = Object.freeze({});
 import { cloneSerializable } from "../core/clone.js";
 import { getSystemTierLadder } from "../core/system-state.js";
 import { resolveBoardTargets } from "../core/targets-board.js";

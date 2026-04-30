@@ -8,7 +8,7 @@ import {
   LEADER_FAITH_STARTING_TIER,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
-import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
+const hubTagDefs = Object.freeze({});
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";

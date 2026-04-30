@@ -3,8 +3,8 @@
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { envStructureDefs } from "../defs/gamepieces/env-structures-defs.js";
-import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
-import { envSystemDefs } from "../defs/gamesystems/env-systems-defs.js";
+const envTagDefs = Object.freeze({});
+const envSystemDefs = Object.freeze({});
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";

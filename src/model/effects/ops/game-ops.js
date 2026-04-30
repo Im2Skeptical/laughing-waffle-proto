@@ -1,6 +1,6 @@
 const itemDefs = Object.freeze({});
-import { forageDropTables } from "../../../defs/gamepieces/forage-droptables-defs.js";
-import { fishingDropTables } from "../../../defs/gamepieces/fishing-droptables-defs.js";
+const forageDropTables = Object.freeze({});
+const fishingDropTables = Object.freeze({});
 import {
   Inventory,
   canStackItems,

@@ -2,9 +2,9 @@
 // Stateful planner: holds editable intents for a single tSec.
 
 import { ActionKinds } from "../../model/actions.js";
-import { envTagDefs } from "../../defs/gamesystems/env-tags-defs.js";
-import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
-import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";
+const envTagDefs = Object.freeze({});
+const cropDefs = Object.freeze({});
+const recipeDefs = Object.freeze({});
 import {
   IntentKinds,
   makeItemTransferIntent,
