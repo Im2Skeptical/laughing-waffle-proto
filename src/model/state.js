@@ -12,7 +12,7 @@ const hubTagDefs = Object.freeze({});
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-import { envStructureDefs } from "../defs/gamepieces/env-structures-defs.js";
+const envStructureDefs = Object.freeze({});
 import { attachRngHelpers, createRng } from "./rng.js";
 import { getActionPointCapAtSecond } from "./moon.js";
 import {
