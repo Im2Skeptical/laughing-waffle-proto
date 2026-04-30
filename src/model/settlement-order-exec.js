@@ -811,7 +811,26 @@ export function syncElderCouncilMembersFromVassals(state, specs = []) {
     }
   }
   if (changed) {
-    councilState.runtimeSyncDirty = true;
+    const orderDef = getOrderDef(card);
+    if (orderDef) {
+      const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
+        state,
+        card,
+        orderDef
+      );
+      for (const targetClassId of getSettlementClassIds(state)) {
+        reconcilePracticeBoard(state, targetClassId, resolvedBoardsByClass[targetClassId] ?? []);
+      }
+      syncOrderRuntime(
+        card,
+        state,
+        orderDef,
+        resolvedBoardsByClass,
+        practicePrestigeTotalsByClass
+      );
+    } else {
+      councilState.runtimeSyncDirty = true;
+    }
   }
   return changed;
 }

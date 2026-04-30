@@ -120,19 +120,69 @@ function getRedGodBaseChaosIncome(state) {
   return Math.max(0, income);
 }
 
+function normalizeRedGodFaithMitigationRule(rawRule) {
+  if (Number.isFinite(rawRule)) {
+    const mitigationPerPop = Math.max(0, Math.floor(rawRule));
+    return {
+      amount: mitigationPerPop,
+      perPopulation: 1,
+      rounding: "floor",
+      label: mitigationPerPop > 0 ? `${mitigationPerPop} / pop` : "",
+    };
+  }
+  const rule = rawRule && typeof rawRule === "object" && !Array.isArray(rawRule) ? rawRule : null;
+  const amount = Number.isFinite(rule?.amount) ? Math.max(0, Math.floor(rule.amount)) : 0;
+  const perPopulation = Number.isFinite(rule?.perPopulation)
+    ? Math.max(1, Math.floor(rule.perPopulation))
+    : 1;
+  const rounding =
+    rule?.rounding === "ceil" || rule?.rounding === "round" || rule?.rounding === "floor"
+      ? rule.rounding
+      : "floor";
+  return {
+    amount,
+    perPopulation,
+    rounding,
+    label: amount > 0 ? `${amount} / ${perPopulation} pop` : "",
+  };
+}
+
+export function getRedGodFaithMitigationRule(faithTier) {
+  const tier = typeof faithTier === "string" ? faithTier : null;
+  return normalizeRedGodFaithMitigationRule(
+    tier ? RED_GOD_FAITH_MITIGATION_BY_TIER?.[tier] : null
+  );
+}
+
+function applyRedGodFaithMitigationRule(population, rule) {
+  const safePopulation = Number.isFinite(population) ? Math.max(0, Math.floor(population)) : 0;
+  const safeRule = normalizeRedGodFaithMitigationRule(rule);
+  if (safePopulation <= 0 || safeRule.amount <= 0) return 0;
+  const scaled = safePopulation / Math.max(1, safeRule.perPopulation);
+  const units =
+    safeRule.rounding === "ceil"
+      ? Math.ceil(scaled)
+      : safeRule.rounding === "round"
+        ? Math.round(scaled)
+        : Math.floor(scaled);
+  return Math.max(0, units * safeRule.amount);
+}
+
 function getClassRedGodChaosMitigationBreakdown(state, classId) {
   const classState = getSettlementPopulationClassState(state, classId);
   const faithTier = typeof classState?.faith?.tier === "string" ? classState.faith.tier : null;
-  const mitigationPerPop = Number.isFinite(RED_GOD_FAITH_MITIGATION_BY_TIER?.[faithTier])
-    ? Math.max(0, Math.floor(RED_GOD_FAITH_MITIGATION_BY_TIER[faithTier]))
-    : 0;
+  const mitigationRule = getRedGodFaithMitigationRule(faithTier);
   const population = getClassTotalPopulation(classState);
   return {
     classId: typeof classId === "string" && classId.length > 0 ? classId : "unknown",
     faithTier,
     population,
-    mitigationPerPop,
-    mitigation: mitigationPerPop > 0 ? Math.max(0, population * mitigationPerPop) : 0,
+    mitigationPerPop: mitigationRule.perPopulation === 1 ? mitigationRule.amount : 0,
+    mitigationAmount: mitigationRule.amount,
+    mitigationPerPopulation: mitigationRule.perPopulation,
+    mitigationRounding: mitigationRule.rounding,
+    mitigationLabel: mitigationRule.label,
+    mitigation: applyRedGodFaithMitigationRule(population, mitigationRule),
   };
 }
 
@@ -163,7 +213,7 @@ export function getSettlementChaosIncomeSummary(state, godId) {
   );
   return {
     godId: safeGodId,
-    totalIncome: Math.max(0, baseIncome - totalMitigation),
+    totalIncome: baseIncome - totalMitigation,
     baseIncome,
     baseRate: Math.max(0, clampInt(RED_GOD_BASE_CHAOS_INCOME, 10)),
     growthRate: Number.isFinite(RED_GOD_CHAOS_INCOME_GROWTH_RATE)
@@ -212,7 +262,7 @@ export function getSettlementChaosGodSummary(state, godId) {
     godId: safeGodId,
     enabled: godState?.enabled === true,
     chaosPower,
-    chaosIncome: Math.max(0, Math.floor(incomeSummary?.totalIncome ?? 0)),
+    chaosIncome: Math.floor(incomeSummary?.totalIncome ?? 0),
     monsterCount: clampInt(godState?.monsterCount, 0),
     monsterWinCount: clampInt(RED_GOD_MONSTER_WIN_COUNT, 100),
     nextSpawnSec,
@@ -228,12 +278,15 @@ export function stepSettlementChaosSecond(state, tSec) {
   if (!redGod || redGod.enabled !== true) return false;
 
   let changed = false;
-  const contribution = getSettlementChaosIncomeSummary(state, "redGod").totalIncome;
-  if (contribution > 0) {
-    redGod.chaosPower = clampInt(redGod.chaosPower, 0) + contribution;
+  const contributionRaw = getSettlementChaosIncomeSummary(state, "redGod").totalIncome;
+  const contribution = Number.isFinite(contributionRaw) ? Math.floor(contributionRaw) : 0;
+  const currentChaosPower = clampInt(redGod.chaosPower, 0);
+  if (contribution !== 0) {
+    redGod.chaosPower = Math.max(0, currentChaosPower + contribution);
+    changed = redGod.chaosPower !== currentChaosPower;
+  } else if (redGod.chaosPower !== currentChaosPower) {
+    redGod.chaosPower = currentChaosPower;
     changed = true;
-  } else {
-    redGod.chaosPower = clampInt(redGod.chaosPower, 0);
   }
 
   const cadenceSec = getRedGodSpawnCadenceSec();

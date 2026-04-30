@@ -67,7 +67,12 @@ function normalizeTableSection(section) {
         ? String(row.value)
         : "";
     if (!label && !value) continue;
-    rows.push({ label, value });
+    rows.push({
+      label,
+      value,
+      accentColor: Number.isFinite(row.accentColor) ? row.accentColor : null,
+      active: row.active === true,
+    });
   }
   return {
     type: "table",

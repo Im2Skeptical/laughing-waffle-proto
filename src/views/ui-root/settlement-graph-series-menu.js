@@ -29,8 +29,6 @@ const DEFAULT_SERIES_IDS = Object.freeze([
   "totalPopulation",
   "food",
   "chaosPower",
-  "faith:villager",
-  "happiness:villager",
 ]);
 
 function getSeriesId(series) {
@@ -50,6 +48,9 @@ function getDefaultSeriesIds(allSeries, maxVisibleSeries) {
     if (!series) continue;
     pushUnique(getSeriesId(series));
     if (preferred.length >= maxVisibleSeries) break;
+  }
+  if (preferred.length > 0) {
+    return preferred.slice(0, maxVisibleSeries);
   }
   for (const series of list) {
     pushUnique(getSeriesId(series));

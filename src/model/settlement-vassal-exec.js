@@ -507,10 +507,14 @@ function buildSelectedVassalCouncilSpecs(state, tSec) {
       ? Math.max(0, Math.floor(vassal.joinedCouncilSec))
       : null;
     if (joinedCouncilSec == null || joinedCouncilSec > tSec) continue;
+    const removedFromCouncilSec = Number.isFinite(vassal?.removedFromCouncilSec)
+      ? Math.max(0, Math.floor(vassal.removedFromCouncilSec))
+      : null;
+    if (vassal.isDead === true || (removedFromCouncilSec != null && removedFromCouncilSec <= tSec)) {
+      continue;
+    }
     const referenceSec =
-      vassal.isDead === true && Number.isFinite(vassal?.removedFromCouncilSec)
-        ? Math.max(0, Math.floor(vassal.removedFromCouncilSec))
-        : tSec;
+      removedFromCouncilSec != null ? Math.min(tSec, removedFromCouncilSec) : tSec;
     specs.push({
       sourceVassalId: vassal.vassalId,
       memberId: vassal.councilMemberId ?? `vassal-${vassal.vassalId}`,

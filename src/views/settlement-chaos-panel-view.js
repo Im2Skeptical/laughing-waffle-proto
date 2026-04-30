@@ -15,6 +15,11 @@ function drawSubPanel(container, rect, fill = PALETTE.cardMuted, outline = PALET
   return gfx;
 }
 
+function formatSignedInt(value) {
+  const amount = Number.isFinite(value) ? Math.floor(value) : 0;
+  return amount > 0 ? `+${amount}` : `${amount}`;
+}
+
 function drawRedGodSigil(container, x, y, summary) {
   const root = new PIXI.Container();
   root.x = x;
@@ -135,11 +140,14 @@ function getChaosIncomeTooltipSpec(incomeSummary) {
     const classLabel = capitalizeLabel(entry?.classId);
     const tierLabel = capitalizeTier(entry?.faithTier);
     const population = Math.max(0, Math.floor(entry?.population ?? 0));
-    const mitigationPerPop = Math.max(0, Math.floor(entry?.mitigationPerPop ?? 0));
+    const mitigationLabel =
+      typeof entry?.mitigationLabel === "string" && entry.mitigationLabel.length > 0
+        ? entry.mitigationLabel
+        : `${Math.max(0, Math.floor(entry?.mitigationPerPop ?? 0))} / pop`;
     const mitigation = Math.max(0, Math.floor(entry?.mitigation ?? 0));
     if (mitigation > 0) {
       mitigationLines.push(
-        `${classLabel}: ${tierLabel} faith, ${population} pop x ${mitigationPerPop} = -${mitigation}`
+        `${classLabel}: ${tierLabel} faith, ${population} pop at ${mitigationLabel} = -${mitigation}`
       );
     } else {
       mitigationLines.push(`${classLabel}: ${tierLabel} faith, ${population} pop -> -0`);
@@ -152,7 +160,7 @@ function getChaosIncomeTooltipSpec(incomeSummary) {
   return {
     title: "Chaos Income",
     lines: [
-      `Current income: +${Math.max(0, Math.floor(summary?.totalIncome ?? 0))} per second`,
+      `Current income: ${formatSignedInt(summary?.totalIncome ?? 0)} per second`,
       `Base pressure: +${Math.max(0, Math.floor(summary?.baseIncome ?? 0))}`,
       `Growth: ${growthRatePercent}% every ${Math.max(1, Math.floor(summary?.growthYears ?? 1))} years (${Math.max(0, Math.floor(summary?.growthSteps ?? 0))} steps)`,
       `Faith mitigation: -${Math.max(0, Math.floor(summary?.totalMitigation ?? 0))}`,
@@ -351,7 +359,7 @@ export function drawRedGodPanel(container, rect, summary, incomeSummary, tooltip
       height: layout.shared.income.height,
     },
     "Chaos Income",
-    `+${Math.floor(incomeSummary?.totalIncome ?? summary?.chaosIncome ?? 0)}/s`,
+    `${formatSignedInt(incomeSummary?.totalIncome ?? summary?.chaosIncome ?? 0)}/s`,
     PALETTE.accent,
     {
       segmentValues: [

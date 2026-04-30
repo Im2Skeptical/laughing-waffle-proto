@@ -24,6 +24,7 @@ import {
 import {
   buildPracticeLines,
   buildStructureLines,
+  buildStructureTooltipSpec,
   buildTileLines,
 } from "./settlement-tooltip-lines.js";
 import {
@@ -46,13 +47,13 @@ import {
   roundedRect,
 } from "./settlement-view-primitives.js";
 import {
+  FAITH_TIER_COLORS,
   PALETTE,
   TEXT_STYLES,
 } from "./settlement-theme.js";
 import {
   SETTLEMENT_CLASS_COLUMN_LAYOUT,
   SETTLEMENT_PANEL_RECTS,
-  SETTLEMENT_PRACTICE_CARD_LAYOUT,
   SETTLEMENT_REGION_TILE_LAYOUT,
   SETTLEMENT_RESOURCE_CHIP_LAYOUT,
   SETTLEMENT_SECTION_LABEL_LAYOUT,
@@ -63,19 +64,45 @@ import {
 
 const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
 
-function drawSlotGrid(gfx, rect, columns, rows) {
+function getSlotRect(rect, columns, rows, index, padding = 6) {
   const colCount = Math.max(1, Math.floor(columns));
   const rowCount = Math.max(1, Math.floor(rows));
+  const safeIndex = Math.max(0, Math.floor(index));
+  const col = safeIndex % colCount;
+  const row = Math.floor(safeIndex / colCount);
   const cellWidth = rect.width / colCount;
   const cellHeight = rect.height / rowCount;
+  const inset = Math.max(0, Math.floor(padding));
+  return {
+    x: Math.round(rect.x + col * cellWidth + inset),
+    y: Math.round(rect.y + row * cellHeight + inset),
+    width: Math.max(1, Math.floor(cellWidth - inset * 2)),
+    height: Math.max(1, Math.floor(cellHeight - inset * 2)),
+  };
+}
+
+function fitSquareInRect(rect) {
+  const size = Math.max(1, Math.floor(Math.min(rect.width, rect.height)));
+  return {
+    x: Math.round(rect.x + (rect.width - size) * 0.5),
+    y: Math.round(rect.y + (rect.height - size) * 0.5),
+    width: size,
+    height: size,
+  };
+}
+
+function drawSlotGrid(gfx, rect, columns, rows, padding = 6) {
+  const colCount = Math.max(1, Math.floor(columns));
+  const rowCount = Math.max(1, Math.floor(rows));
   for (let row = 0; row < rowCount; row += 1) {
     for (let col = 0; col < colCount; col += 1) {
+      const slotRect = getSlotRect(rect, colCount, rowCount, row * colCount + col, padding);
       roundedRect(
         gfx,
-        rect.x + col * cellWidth + 6,
-        rect.y + row * cellHeight + 6,
-        cellWidth - 12,
-        cellHeight - 12,
+        slotRect.x,
+        slotRect.y,
+        slotRect.width,
+        slotRect.height,
         18,
         PALETTE.slot,
         PALETTE.stroke,
@@ -103,6 +130,11 @@ function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
 function getTileCardFill(tile) {
   if (tile?.defId === "tile_floodplains") return PALETTE.cardMuted;
   return tile?.defId === "tile_river" ? PALETTE.riverTileCard : PALETTE.tileCard;
+}
+
+function getStructureTierColor(structure) {
+  const tier = structure?.props?.settlement?.upgradeTier;
+  return typeof tier === "string" ? FAITH_TIER_COLORS[tier] ?? null : null;
 }
 
 export function createSettlementPrototypeView({
@@ -560,16 +592,18 @@ export function createSettlementPrototypeView({
 
     drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), practiceRect, SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns, 1);
     drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns, 1);
+    const regionTileGridRect = {
+      x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset,
+      y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
+      width: regionPanelRect.width - SETTLEMENT_REGION_TILE_LAYOUT.xInset * 2,
+      height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
+    };
     drawSlotGrid(
       contentLayer.addChild(new PIXI.Graphics()),
-      {
-        x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset,
-        y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
-        width: regionPanelRect.width - SETTLEMENT_REGION_TILE_LAYOUT.xInset * 2,
-        height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
-      },
+      regionTileGridRect,
       SETTLEMENT_SLOT_GRID_LAYOUT.regionColumns,
-      1
+      1,
+      SETTLEMENT_REGION_TILE_LAYOUT.slotPadding
     );
     drawVassalPanel(
       contentLayer,
@@ -596,31 +630,21 @@ export function createSettlementPrototypeView({
     }
 
     const practiceSlots = getSettlementPracticeSlotsByClass(state, selectedClassId);
-    const practiceCardWidth = SETTLEMENT_PRACTICE_CARD_LAYOUT.width;
-    const practiceCardGap = SETTLEMENT_PRACTICE_CARD_LAYOUT.gap;
     for (let i = 0; i < practiceSlots.length; i += 1) {
       const card = practiceSlots[i]?.card ?? null;
       if (!card) continue;
       const def = settlementPracticeDefs[card.defId];
       const isPassivePractice = def?.practiceMode === "passive";
-      const cardHeight = isPassivePractice
-        ? practiceCardWidth
-        : practiceRect.height - SETTLEMENT_PRACTICE_CARD_LAYOUT.heightInset;
-      const cardY =
-        practiceRect.y +
-        SETTLEMENT_PRACTICE_CARD_LAYOUT.yInset +
-        Math.max(
-          0,
-          Math.floor((practiceRect.height - SETTLEMENT_PRACTICE_CARD_LAYOUT.heightInset - cardHeight) * 0.5)
-        );
+      const practiceSlotRect = getSlotRect(
+        practiceRect,
+        SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns,
+        1,
+        i
+      );
+      const practiceCardRect = isPassivePractice ? fitSquareInRect(practiceSlotRect) : practiceSlotRect;
       drawPracticeCard(
         contentLayer,
-        {
-          x: practiceRect.x + SETTLEMENT_PRACTICE_CARD_LAYOUT.xInset + i * (practiceCardWidth + practiceCardGap),
-          y: cardY,
-          width: practiceCardWidth,
-          height: cardHeight,
-        },
+        practiceCardRect,
         card,
         def?.name ?? card.defId,
         buildPracticeLines(card),
@@ -640,28 +664,35 @@ export function createSettlementPrototypeView({
     }
 
     const structureSlots = getSettlementStructureSlots(state);
-    const structureCardWidth = SETTLEMENT_STRUCTURE_CARD_LAYOUT.width;
-    const structureCardGap = SETTLEMENT_STRUCTURE_CARD_LAYOUT.gap;
     for (let i = 0; i < structureSlots.length; i += 1) {
       const structure = structureSlots[i]?.structure ?? null;
       if (!structure) continue;
       const def = hubStructureDefs[structure.defId];
+      const tierColor = getStructureTierColor(structure);
+      const structureCardRect = getSlotRect(
+        structuresRect,
+        SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns,
+        1,
+        i
+      );
       drawCard(
         contentLayer,
-        {
-          x: structuresRect.x + SETTLEMENT_STRUCTURE_CARD_LAYOUT.xInset + i * (structureCardWidth + structureCardGap),
-          y: structuresRect.y + SETTLEMENT_STRUCTURE_CARD_LAYOUT.yInset,
-          width: structureCardWidth,
-          height: structuresRect.height - SETTLEMENT_STRUCTURE_CARD_LAYOUT.heightInset,
-        },
+        structureCardRect,
         def?.name ?? structure.defId,
         buildStructureLines(structure),
         structure?.props?.settlement?.active ? PALETTE.card : PALETTE.cardMuted,
-        structure?.props?.settlement?.active ? PALETTE.active : PALETTE.stroke,
+        tierColor ?? (structure?.props?.settlement?.active ? PALETTE.active : PALETTE.stroke),
         {
           fontSize: 11,
           lineHeight: 15,
-          wordWrapWidth: structureCardWidth - SETTLEMENT_STRUCTURE_CARD_LAYOUT.wordWrapInset,
+          wordWrapWidth: structureCardRect.width - SETTLEMENT_STRUCTURE_CARD_LAYOUT.wordWrapInset,
+        },
+        {
+          showBody: false,
+          tooltipView,
+          tooltipSpec: buildStructureTooltipSpec(structure),
+          edgeColor: tierColor,
+          edgeStrokeWidth: 5,
         }
       );
     }
@@ -673,18 +704,25 @@ export function createSettlementPrototypeView({
     for (let i = 0; i < tileAnchors.length; i += 1) {
       const tile = tileAnchors[i];
       const def = envTileDefs[tile?.defId];
+      const tileRect = getSlotRect(
+        regionTileGridRect,
+        SETTLEMENT_SLOT_GRID_LAYOUT.regionColumns,
+        1,
+        i,
+        SETTLEMENT_REGION_TILE_LAYOUT.slotPadding
+      );
       drawCard(
         contentLayer,
-        {
-          x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset + i * SETTLEMENT_REGION_TILE_LAYOUT.stepX,
-          y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
-          width: SETTLEMENT_REGION_TILE_LAYOUT.width,
-          height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
-        },
+        tileRect,
         def?.name ?? tile?.defId ?? "Tile",
         buildTileLines(tile),
         getTileCardFill(tile),
-        tile?.defId === "tile_floodplains" ? PALETTE.active : PALETTE.stroke
+        tile?.defId === "tile_floodplains" ? PALETTE.active : PALETTE.stroke,
+        null,
+        {
+          showBody: false,
+          tooltipView,
+        }
       );
     }
   }

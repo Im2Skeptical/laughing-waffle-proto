@@ -14,20 +14,31 @@ import { updateGame, createInitialState } from "../game-model.js";
 import { buildMetricGraphWindowFromTimeline } from "../projection.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
 import { ActionKinds } from "../actions.js";
+import { runEffect } from "../effects/index.js";
 import {
   createTimeGraphController,
   getSharedProjectionCache,
 } from "../timegraph-controller.js";
 import {
+  findSettlementStructureByDefId,
+  getSettlementStructureUpgradeProgress,
+} from "../settlement-upgrades.js";
+import {
   buildSettlementVassalSelectionPool,
   selectSettlementVassal,
+  stepSettlementVassals,
 } from "../settlement-vassal-exec.js";
-import { getSettlementChaosIncomeSummary } from "../settlement-chaos.js";
+import {
+  getRedGodFaithMitigationRule,
+  getSettlementChaosIncomeSummary,
+  stepSettlementChaosSecond,
+} from "../settlement-chaos.js";
 import {
   createSettlementCardInstance,
   getHubCore,
   getSettlementFloodplainFoodTotal,
   getSettlementFloodplainTiles,
+  getSettlementOrderSlots,
   getSettlementPopulationClassState,
   getSettlementStockpile,
   getSettlementTileFood,
@@ -141,10 +152,12 @@ export function runDeterminismSuite() {
     results.push(testHistoryPreviewMatchesReplay());
     results.push(testVassalSelectionDoesNotAdvanceSharedRng());
     results.push(testVassalSelectionPreservesNonLineageTimeline());
+    results.push(testDeadVassalsLeaveElderCouncil());
     results.push(testFloodplainFieldFoodSeasonalRules());
     results.push(testFloodplainFieldFoodSummerDecay());
     results.push(testPopulationMealsConsumeFieldFood());
     results.push(testRiverRecessionFarmingMovesFieldFood());
+    results.push(testSettlementUpgradePartialProgressKeepsPractice());
     results.push(testRedGodChaosIncomeBaseGrowthAndFaithMitigation());
   } catch (e) {
     console.error("Suite crashed:", e);
@@ -530,6 +543,78 @@ function testVassalSelectionPreservesNonLineageTimeline() {
   }
 }
 
+function testDeadVassalsLeaveElderCouncil() {
+  const name = "Dead Vassals Leave Elder Council";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 11);
+    const core = getHubCore(state);
+    const orderCard = getSettlementOrderSlots(state)[0]?.card ?? null;
+    const councilState = orderCard?.systemState?.elderCouncil ?? null;
+    if (!core || !councilState) throw new Error("Missing elder council fixtures");
+
+    const deadVassalId = "dead-vassal";
+    councilState.members.push({
+      memberId: `vassal-${deadVassalId}`,
+      sourceClassId: "villager",
+      joinedYear: 1,
+      ageYears: 55,
+      modifierId: "fairTrader",
+      sourceVassalId: deadVassalId,
+      agendaByClass: {
+        villager: ["rest"],
+        stranger: [],
+      },
+    });
+    core.systemState.vassalLineage = {
+      ...(core.systemState.vassalLineage ?? {}),
+      currentVassalId: deadVassalId,
+      selectedVassalIds: [deadVassalId],
+      vassalsById: {
+        [deadVassalId]: {
+          vassalId: deadVassalId,
+          sourceClassId: "villager",
+          currentClassId: "villager",
+          birthSec: 0,
+          birthYear: 1,
+          selectedSec: 0,
+          deathSec: 64,
+          deathYear: 3,
+          initialAgeYears: 53,
+          deathAgeYears: 55,
+          joinedCouncilSec: 32,
+          removedFromCouncilSec: 64,
+          councilMemberId: `vassal-${deadVassalId}`,
+          isDead: true,
+          isElder: true,
+          agendaByClass: {
+            villager: ["rest"],
+            stranger: [],
+          },
+          lifeEvents: [],
+          lastAppliedLifeEventIndex: -1,
+        },
+      },
+    };
+
+    if (!councilState.members.some((member) => member?.sourceVassalId === deadVassalId)) {
+      throw new Error("Test setup failed to add vassal council member");
+    }
+
+    stepSettlementVassals(state, 65);
+    const syncedCouncilState = orderCard?.systemState?.elderCouncil ?? null;
+    if (syncedCouncilState?.members?.some((member) => member?.sourceVassalId === deadVassalId)) {
+      throw new Error("Dead vassal remained on elder council");
+    }
+    if (orderCard?.props?.settlement?.members?.some((member) => member?.sourceVassalId === deadVassalId)) {
+      throw new Error("Dead vassal remained in elder council runtime");
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
 function setSettlementClassPopulation(state, classId, adults, youth = 0) {
   const classState = getSettlementPopulationClassState(state, classId);
   if (!classState) return;
@@ -703,6 +788,66 @@ function testRiverRecessionFarmingMovesFieldFood() {
   }
 }
 
+function testSettlementUpgradePartialProgressKeepsPractice() {
+  const name = "Settlement Upgrade Partial Progress Keeps Practice";
+  try {
+    const state = createInitialState("devPlaytesting01", TEST_SEED + 10);
+    const core = getHubCore(state);
+    const mudHouses = findSettlementStructureByDefId(state, "mudHouses");
+    if (!core || !mudHouses) throw new Error("Missing settlement upgrade fixtures");
+
+    mudHouses.tier = "silver";
+    mudHouses.systemState = {
+      ...(mudHouses.systemState ?? {}),
+      settlementUpgrade: {
+        completedCitizenYearsTowardNextTier: 0,
+      },
+    };
+    core.systemState.vassalLineage = {
+      ...(core.systemState.vassalLineage ?? {}),
+      currentVassalId: "test-vassal",
+      selectedVassalIds: ["test-vassal"],
+      vassalsById: {
+        testVassal: {
+          vassalId: "test-vassal",
+          agendaByClass: {
+            villager: ["upgradeHousing", "rest"],
+          },
+        },
+      },
+    };
+
+    const changed = runEffect(
+      state,
+      {
+        op: "AdvanceSettlementStructureUpgrade",
+        target: { ref: "hubCore" },
+        structureDefId: "mudHouses",
+        amount: 3,
+      },
+      { kind: "test", state, source: core, tSec: 0 }
+    );
+    if (!changed) throw new Error("Partial upgrade did not apply");
+
+    const progress = getSettlementStructureUpgradeProgress(mudHouses);
+    if (progress.tier !== "silver" || progress.completedCitizenYearsTowardNextTier !== 3) {
+      throw new Error(
+        `Expected silver 3/10 progress, got ${progress.tier} ${progress.completedCitizenYearsTowardNextTier}/${progress.requiredCitizenYearsForNextTier}`
+      );
+    }
+
+    const agenda =
+      core.systemState.vassalLineage.vassalsById.testVassal.agendaByClass.villager;
+    if (!agenda.includes("upgradeHousing")) {
+      throw new Error("Partial upgrade removed upgradeHousing from vassal agenda");
+    }
+
+    return { name, passed: true };
+  } catch (e) {
+    return { name, passed: false, reason: e.message };
+  }
+}
+
 function testRedGodChaosIncomeBaseGrowthAndFaithMitigation() {
   const name = "Red God Chaos Income Base Growth And Faith Mitigation";
   try {
@@ -721,18 +866,51 @@ function testRedGodChaosIncomeBaseGrowthAndFaithMitigation() {
       throw new Error(`Expected one growth step to base 11, got steps ${summary.growthSteps}, base ${summary.baseIncome}, total ${summary.totalIncome}`);
     }
 
-    setSettlementClassPopulation(state, "villager", 5, 0);
+    const goldRule = getRedGodFaithMitigationRule("gold");
+    const diamondRule = getRedGodFaithMitigationRule("diamond");
+    const goldTwoUnitsPopulation = Math.max(1, goldRule.perPopulation * 2);
+    const diamondThreeUnitsPopulation = Math.max(1, diamondRule.perPopulation * 3);
+
+    setSettlementClassPopulation(state, "villager", goldTwoUnitsPopulation, 0);
     getSettlementPopulationClassState(state, "villager").faith.tier = "gold";
     summary = getSettlementChaosIncomeSummary(state, "redGod");
-    if (summary.totalMitigation !== 5 || summary.totalIncome !== 6) {
-      throw new Error(`Expected gold mitigation 5 and income 6, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    const expectedGoldMitigation = goldRule.amount * 2;
+    if (summary.totalMitigation !== expectedGoldMitigation || summary.totalIncome !== 11 - expectedGoldMitigation) {
+      throw new Error(`Expected gold mitigation ${expectedGoldMitigation} and income ${11 - expectedGoldMitigation}, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
     }
 
-    setSettlementClassPopulation(state, "stranger", 3, 0);
+    setSettlementClassPopulation(state, "stranger", diamondThreeUnitsPopulation, 0);
     getSettlementPopulationClassState(state, "stranger").faith.tier = "diamond";
     summary = getSettlementChaosIncomeSummary(state, "redGod");
-    if (summary.totalMitigation !== 11 || summary.totalIncome !== 0) {
-      throw new Error(`Expected diamond mitigation to clamp income at 0, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    const expectedCombinedMitigation = expectedGoldMitigation + diamondRule.amount * 3;
+    if (summary.totalMitigation !== expectedCombinedMitigation || summary.totalIncome !== 11 - expectedCombinedMitigation) {
+      throw new Error(`Expected combined faith mitigation ${expectedCombinedMitigation} and income ${11 - expectedCombinedMitigation}, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    }
+
+    const targetNegativeMitigation = 13;
+    const diamondUnitsForNegative = Math.max(
+      0,
+      Math.ceil((targetNegativeMitigation - expectedGoldMitigation) / Math.max(1, diamondRule.amount))
+    );
+    setSettlementClassPopulation(state, "villager", goldTwoUnitsPopulation, 0);
+    setSettlementClassPopulation(
+      state,
+      "stranger",
+      diamondRule.perPopulation * diamondUnitsForNegative,
+      0
+    );
+    summary = getSettlementChaosIncomeSummary(state, "redGod");
+    const expectedNegativeIncome = 11 - summary.totalMitigation;
+    if (summary.totalMitigation < targetNegativeMitigation || expectedNegativeIncome >= 0) {
+      throw new Error(`Expected bucketed faith mitigation to drive income negative, got mitigation ${summary.totalMitigation}, income ${summary.totalIncome}`);
+    }
+
+    getHubCore(state).systemState.chaosGods.redGod.chaosPower = 5;
+    stepSettlementChaosSecond(state, state.tSec);
+    const chaosPowerAfterDrain = getHubCore(state)?.systemState?.chaosGods?.redGod?.chaosPower;
+    const expectedChaosPowerAfterDrain = Math.max(0, 5 + expectedNegativeIncome);
+    if (chaosPowerAfterDrain !== expectedChaosPowerAfterDrain) {
+      throw new Error(`Expected negative income to drain chaos power to ${expectedChaosPowerAfterDrain}, got ${chaosPowerAfterDrain}`);
     }
 
     return { name, passed: true };

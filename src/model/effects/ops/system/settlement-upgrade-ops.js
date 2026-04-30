@@ -35,9 +35,10 @@ export function handleAdvanceSettlementStructureUpgrade(state, effect, context) 
     if (amount <= 0) continue;
 
     const upgradeResult = advanceSettlementStructureUpgrade(structure, amount);
-    if (upgradeResult.changed) {
+    if (upgradeResult.tierChanged) {
       for (const practiceDef of Object.values(settlementPracticeDefs)) {
         if (practiceDef?.upgradeTargetStructureDefId !== structureDefId) continue;
+        if (practiceDef?.completionBehavior !== "removePractice") continue;
         const eligibleClassIds = Array.isArray(practiceDef.orderEligibleClassIds)
           ? practiceDef.orderEligibleClassIds
           : [];

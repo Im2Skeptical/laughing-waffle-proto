@@ -9,6 +9,65 @@ import {
   capitalizeTier,
   formatPracticeBlockedReason,
 } from "./settlement-formatters.js";
+import { FAITH_TIER_COLORS, PALETTE } from "./settlement-theme.js";
+
+const SETTLEMENT_STRUCTURE_TIERS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
+
+function getStructureCapacitySpec(def) {
+  const prototype =
+    def?.settlementPrototype && typeof def.settlementPrototype === "object"
+      ? def.settlementPrototype
+      : {};
+  if (
+    prototype.foodCapacityBonusByTier &&
+    typeof prototype.foodCapacityBonusByTier === "object"
+  ) {
+    return {
+      label: "Food Cap",
+      unit: "food",
+      values: prototype.foodCapacityBonusByTier,
+    };
+  }
+  if (
+    prototype.populationCapacityBonusByTier &&
+    typeof prototype.populationCapacityBonusByTier === "object"
+  ) {
+    return {
+      label: "Population Cap",
+      unit: "population",
+      values: prototype.populationCapacityBonusByTier,
+    };
+  }
+  return null;
+}
+
+function getStructureUpgradeThresholds(def) {
+  const thresholds = def?.settlementPrototype?.upgradeCitizenYearsByTier;
+  return thresholds && typeof thresholds === "object" ? thresholds : {};
+}
+
+function formatTierValue(value, unit) {
+  const safeValue = Number.isFinite(Number(value)) ? Math.floor(Number(value)) : 0;
+  return `${safeValue} ${unit}`;
+}
+
+function buildStructureTierRows(def, currentTier) {
+  const capacitySpec = getStructureCapacitySpec(def);
+  if (!capacitySpec) return [];
+  const thresholds = getStructureUpgradeThresholds(def);
+  return SETTLEMENT_STRUCTURE_TIERS.map((tier) => {
+    const capacity = formatTierValue(capacitySpec.values?.[tier], capacitySpec.unit);
+    const upgradeCost = Number.isFinite(Number(thresholds?.[tier]))
+      ? `${Math.floor(Number(thresholds[tier]))} years to next`
+      : "Max tier";
+    return {
+      label: capitalizeTier(tier),
+      value: `${capacity} - ${upgradeCost}`,
+      accentColor: FAITH_TIER_COLORS[tier] ?? PALETTE.accent,
+      active: tier === currentTier,
+    };
+  });
+}
 
 export function buildPracticeLines(card) {
   const def = settlementPracticeDefs[card?.defId];
@@ -94,6 +153,66 @@ export function buildStructureLines(structure) {
     }
   }
   return lines;
+}
+
+export function buildStructureTooltipSpec(structure) {
+  const def = hubStructureDefs[structure?.defId];
+  const runtime =
+    structure?.props?.settlement && typeof structure.props.settlement === "object"
+      ? structure.props.settlement
+      : {};
+  const lines = buildStructureLines(structure);
+  const capacitySpec = getStructureCapacitySpec(def);
+  const tierRows = buildStructureTierRows(def, runtime.upgradeTier);
+  if (tierRows.length <= 0) {
+    return {
+      title: def?.name ?? structure?.defId ?? "Structure",
+      lines,
+      maxWidth: 320,
+      accentColor: runtime.active ? PALETTE.active : PALETTE.stroke,
+    };
+  }
+  const sections = [];
+  const descriptionLines = Array.isArray(def?.ui?.lines) ? def.ui.lines.slice(0, 1) : [];
+  for (const line of descriptionLines) {
+    sections.push({ type: "paragraph", text: line });
+  }
+  sections.push({
+    type: "table",
+    title: capacitySpec?.label ? `${capacitySpec.label} by Tier` : "Tier Values",
+    rows: tierRows,
+  });
+  if (runtime.upgradeTier) {
+    sections.push({
+      type: "paragraph",
+      title: "Current",
+      text: runtime.nextUpgradeTier
+        ? `${capitalizeTier(runtime.upgradeTier)} - ${Math.floor(runtime.upgradeProgressCompleted ?? 0)}/${Math.floor(runtime.upgradeProgressRequired ?? 0)} years to ${capitalizeTier(runtime.nextUpgradeTier)}`
+        : `${capitalizeTier(runtime.upgradeTier)} - max tier`,
+    });
+  }
+  if (runtime.staffingRequired > 0) {
+    sections.push({
+      type: "paragraph",
+      title: "Staffing",
+      text: runtime.active
+        ? `Staffed: ${Math.floor(runtime.reservedPopulation ?? 0)} population`
+        : `Needs ${Math.floor(runtime.staffingRequired)} population`,
+    });
+  } else {
+    sections.push({
+      type: "paragraph",
+      title: "Staffing",
+      text: "Passive structure",
+    });
+  }
+  return {
+    title: def?.name ?? structure?.defId ?? "Structure",
+    subtitle: runtime.upgradeTier ? `${capitalizeTier(runtime.upgradeTier)} tier` : "",
+    maxWidth: 380,
+    accentColor: FAITH_TIER_COLORS[runtime.upgradeTier] ?? PALETTE.active,
+    sections,
+  };
 }
 
 export function buildTileLines(tile) {
