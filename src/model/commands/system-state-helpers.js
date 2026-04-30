@@ -1,4 +1,4 @@
-import { envSystemDefs } from "../../defs/gamesystems/env-systems-defs.js";
+const envSystemDefs = Object.freeze({});
 import { hubSystemDefs } from "../../defs/gamesystems/hub-system-defs.js";
 import {
   ensureRecipePriorityState,

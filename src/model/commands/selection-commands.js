@@ -1,5 +1,5 @@
-import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
-import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";
+const cropDefs = Object.freeze({});
+const recipeDefs = Object.freeze({});
 import { computeAvailableRecipesAndBuildings, hasEnvTagUnlock } from "../skills.js";
 import {
   buildRecipePriorityFromSelectedRecipe,

@@ -1,12 +1,12 @@
 // pawn-exec.js
 // Per-second pawn intent execution.
 
-import { pawnDefs } from "../defs/gamepieces/pawn-defs.js";
+const pawnDefs = Object.freeze({ default: { id: "default" } });
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 const itemDefs = Object.freeze({});
-import { envTagDefs } from "../defs/gamesystems/env-tags-defs.js";
-import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
+const envTagDefs = Object.freeze({});
+const hubTagDefs = Object.freeze({});
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze(["head", "chest", "mainHand", "offHand", "ring1", "ring2", "amulet"]);
 import {

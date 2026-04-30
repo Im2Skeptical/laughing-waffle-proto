@@ -3,14 +3,14 @@
 import { hubStructureDefs } from "../../defs/gamepieces/hub-structure-defs.js";
 import { envTileDefs } from "../../defs/gamepieces/env-tiles-defs.js";
 import { envStructureDefs } from "../../defs/gamepieces/env-structures-defs.js";
-import { cropDefs } from "../../defs/gamepieces/crops-defs.js";
+const cropDefs = Object.freeze({});
 const itemDefs = Object.freeze({});
-import { recipeDefs } from "../../defs/gamepieces/recipes-defs.js";
+const recipeDefs = Object.freeze({});
 const itemTagDefs = Object.freeze({});
-import { envTagDefs } from "../../defs/gamesystems/env-tags-defs.js";
-import { envSystemDefs } from "../../defs/gamesystems/env-systems-defs.js";
+const envTagDefs = Object.freeze({});
+const envSystemDefs = Object.freeze({});
 import { hubSystemDefs } from "../../defs/gamesystems/hub-system-defs.js";
-import { pawnSystemDefs } from "../../defs/gamesystems/pawn-systems-defs.js";
+const pawnSystemDefs = Object.freeze({});
 import {
   buildRecipePriorityFromSelectedRecipe,
   getEnabledRecipeIds,

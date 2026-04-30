@@ -1,4 +1,4 @@
-import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
+const hubTagDefs = Object.freeze({});
 
 const HUB_TAG_PLAYER_ROLE_ACTIVE = "active";
 const HUB_TAG_PLAYER_ROLE_PASSIVE = "passive";

@@ -1,5 +1,5 @@
-import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
-import { cropDefs } from "../defs/gamepieces/crops-defs.js";
+const recipeDefs = Object.freeze({});
+const cropDefs = Object.freeze({});
 import { computeAvailableRecipesAndBuildings } from "./skills.js";
 
 export function getRecipeKindForHubSystem(systemId) {

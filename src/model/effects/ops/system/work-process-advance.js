@@ -1,4 +1,4 @@
-import { envSystemDefs } from "../../../../defs/gamesystems/env-systems-defs.js";
+const envSystemDefs = Object.freeze({});
 import { clamp } from "../../core/clamp.js";
 import { resolveEffectDef } from "../../core/registry.js";
 import { ensureSystemState, getTierValueForSystem } from "../../core/system-state.js";
