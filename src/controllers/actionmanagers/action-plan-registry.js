@@ -1,4 +1,4 @@
-import { INTENT_AP_COSTS } from "../../defs/gamesettings/action-costs-defs.js";
+const INTENT_AP_COSTS = Object.freeze({});
 import { ActionKinds } from "../../model/actions.js";
 import { recipePrioritiesEqual } from "../../model/recipe-priority.js";
 import {
