@@ -1,10 +1,8 @@
 // src/model/timegraph/edit-policy.js
 // Shared, deterministic policy helpers for timegraph editability and windows.
 
-import {
-  SCROLL_GRAPH_SUBJECT_DEFS,
-  SCROLL_GRAPH_TYPE_DEFS,
-} from "../../defs/gamepieces/scroll-timegraph-defs.js";
+const SCROLL_GRAPH_SUBJECT_DEFS = Object.freeze({});
+const SCROLL_GRAPH_TYPE_DEFS = Object.freeze({});
 
 export function toSafeSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));
