@@ -9,7 +9,7 @@ export const setupDefs = {
       settlementPrototypeEnabled: true,
     },
 
-    rngSeed: 12345,
+    rngSeed: 123,
 
     resources: { gold: 0, grain: 0, food: 0, population: 0 },
 
