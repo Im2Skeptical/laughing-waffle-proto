@@ -4,7 +4,7 @@
 import { hubTagDefs } from "../defs/gamesystems/hub-tag-defs.js";
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
 import {
   INITIAL_POPULATION_DEFAULT,

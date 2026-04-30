@@ -17,21 +17,7 @@ import {
 
 import { initGameState, createInitialState } from "./init.js";
 
-import {
-  cmdAdvanceSeason,
-  cmdTickSimulation,
-  cmdMoveItemBetweenOwners,
-  cmdSplitStackAndPlace,
-  cmdPlacePawn,
-  cmdSetPaused,
-  cmdSetTileTagOrder,
-  cmdSetTileCropSelection,
-  cmdBuildDesignate,
-  cmdCancelBuild,
-  canOwnerAcceptItem,
-  cmdAdjustFollowerCount,
-  cmdAdjustWorkerCount,
-} from "./commands.js";
+import { cmdTickSimulation, cmdSetPaused } from "./commands/simulation-commands.js";
 
 // =============================================================================
 // UPDATE LOOP (orchestration)
@@ -52,29 +38,6 @@ export function updateGame(dt, state) {
 // Facade command helpers — explicit state required
 // =============================================================================
 
-
-export function advanceSeason(state) {
-  return cmdAdvanceSeason(state);
-}
-
-export function tryMoveItemBetweenOwners(state, args) {
-  return cmdMoveItemBetweenOwners(state, args);
-}
-
-export function placePawn(state, args) {
-  return cmdPlacePawn(state, args);
-}
-
-export function splitStackAndPlace(state, args) {
-  return cmdSplitStackAndPlace(
-    state,
-    args.ownerId,
-    args.itemId,
-    args.amount,
-    args.targetGX,
-    args.targetGY
-  );
-}
 
 export function setPaused(state, paused) {
   return cmdSetPaused(state, paused);
@@ -106,18 +69,7 @@ export {
   getCurrentSeasonData,
 
   // commands
-  cmdAdvanceSeason,
   cmdTickSimulation,
-  cmdMoveItemBetweenOwners,
-  cmdSplitStackAndPlace,
-  cmdPlacePawn,
   cmdSetPaused,
-  cmdSetTileTagOrder,
-  cmdSetTileCropSelection,
-  cmdBuildDesignate,
-  cmdCancelBuild,
-  cmdAdjustFollowerCount,
-  cmdAdjustWorkerCount,
-  canOwnerAcceptItem,
 };
 

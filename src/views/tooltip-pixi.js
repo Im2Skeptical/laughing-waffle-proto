@@ -6,7 +6,6 @@ import {
 import { applyTextResolution } from "./ui-helpers/text-resolution.js";
 import { MUCHA_UI_COLORS } from "./ui-helpers/mucha-ui-palette.js";
 import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
-import { keywordDefs } from "../defs/gamesystems/keyword-defs.js";
 import { normalizeTooltipSpec } from "./tooltip-spec.js";
 
 const BG_FILL = MUCHA_UI_COLORS?.surfaces?.panelDeep ?? 0x2a241d;
@@ -15,6 +14,7 @@ const BODY_TEXT = MUCHA_UI_COLORS?.ink?.primary ?? 0xf5f0e6;
 const MUTED_TEXT = MUCHA_UI_COLORS?.ink?.muted ?? 0xcdbda5;
 const TABLE_BG = MUCHA_UI_COLORS?.surfaces?.panel ?? 0x4f4540;
 const METER_BG = MUCHA_UI_COLORS?.surfaces?.panelSoft ?? 0x443a33;
+const keywordDefs = Object.freeze({});
 
 function getKeywordStyle(keywordId) {
   const def = keywordDefs?.[keywordId] ?? null;

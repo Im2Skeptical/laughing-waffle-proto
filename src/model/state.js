@@ -13,14 +13,8 @@ import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { envStructureDefs } from "../defs/gamepieces/env-structures-defs.js";
-import { pawnSystemDefs } from "../defs/gamesystems/pawn-systems-defs.js";
-import {
-  LEADER_EQUIPMENT_SLOT_ORDER,
-} from "../defs/gamesystems/equipment-slot-defs.js";
-import { createEmptyLeaderEquipment } from "./equipment-rules.js";
 import { attachRngHelpers, createRng } from "./rng.js";
 import { getActionPointCapAtSecond } from "./moon.js";
-import { Inventory } from "./inventory-model.js";
 import {
   ensureSkillRuntimeState,
   getGlobalSkillModifier,
@@ -29,7 +23,6 @@ import { normalizeVariantFlags } from "../defs/gamesettings/variant-flags-defs.j
 import { ensurePersistentKnowledgeState } from "./persistent-memory.js";
 import {
   ensureHubSettlementState,
-  isSettlementPrototypeEnabled,
 } from "./settlement-state.js";
 import {
   ensureSettlementStructureUpgradeState,
@@ -52,6 +45,15 @@ const DEFAULT_DISCOVERY_STATE = Object.freeze({
   hubVisible: true,
   hubRenameUnlocked: true,
 });
+const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze([
+  "head",
+  "chest",
+  "mainHand",
+  "offHand",
+  "ring1",
+  "ring2",
+  "amulet",
+]);
 
 // Board contract: layers.*.anchors are authoritative placements.
 // board.occ.* is derived in rebuildBoardOccupancy and stripped on serialize.
@@ -278,20 +280,10 @@ export function ensureHubState(state) {
     hub.occ = new Array(hub.cols).fill(null);
   }
 
-  ensureHubInventories(state);
 }
 
 export function buildPawnSystemDefaults() {
-  const systemTiers = {};
-  const systemState = {};
-  for (const [systemId, def] of Object.entries(pawnSystemDefs)) {
-    if (!def || typeof def !== "object") continue;
-    const defaultTier =
-      typeof def.defaultTier === "string" ? def.defaultTier : "bronze";
-    systemTiers[systemId] = defaultTier;
-    systemState[systemId] = deepCloneSerializable(def.stateDefaults ?? {});
-  }
-  return { systemTiers, systemState };
+  return { systemTiers: {}, systemState: {} };
 }
 
 export function ensurePawnSystems(pawn) {
@@ -301,27 +293,6 @@ export function ensurePawnSystems(pawn) {
   }
   if (!pawn.systemState || typeof pawn.systemState !== "object") {
     pawn.systemState = {};
-  }
-
-  for (const [systemId, def] of Object.entries(pawnSystemDefs)) {
-    if (!def || typeof def !== "object") continue;
-    if (pawn.systemTiers[systemId] == null) {
-      pawn.systemTiers[systemId] =
-        typeof def.defaultTier === "string" ? def.defaultTier : "bronze";
-    }
-    const existing = pawn.systemState[systemId];
-    if (!existing || typeof existing !== "object") {
-      pawn.systemState[systemId] = deepCloneSerializable(def.stateDefaults ?? {});
-    }
-    if (systemId === "hunger") {
-      const hunger = pawn.systemState[systemId];
-      if (!Number.isFinite(hunger.belowThresholdSec)) {
-        hunger.belowThresholdSec = 0;
-      }
-      if (!Number.isFinite(hunger.debtCadenceSec)) {
-        hunger.debtCadenceSec = 0;
-      }
-    }
   }
 
   ensurePawnAI(pawn);
@@ -441,7 +412,10 @@ function ensureLeaderPrestigeFields(pawn) {
   );
 
   if (!pawn.equipment || typeof pawn.equipment !== "object") {
-    pawn.equipment = createEmptyLeaderEquipment();
+    pawn.equipment = {};
+    for (const slotId of LEADER_EQUIPMENT_SLOT_ORDER) {
+      pawn.equipment[slotId] = null;
+    }
     return;
   }
   for (const slotId of LEADER_EQUIPMENT_SLOT_ORDER) {
@@ -920,28 +894,6 @@ function ensureHubStructureFields(instance, def) {
 
   if (isUpgradeableSettlementStructureDef(def)) {
     ensureSettlementStructureUpgradeState(instance);
-  }
-}
-
-function ensureHubInventories(state) {
-  if (isSettlementPrototypeEnabled(state)) return;
-  if (!state || !state.ownerInventories) return;
-  const invs = state.ownerInventories;
-  const slots = Array.isArray(state?.hub?.slots) ? state.hub.slots : [];
-  for (const slot of slots) {
-    const structure = slot?.structure;
-    if (!structure) continue;
-    const ownerId = structure.instanceId;
-    if (ownerId == null || invs[ownerId]) continue;
-    const def = hubStructureDefs[structure.defId];
-    if (!def) continue;
-    const invSpec = def.inventory ?? {};
-    const cols = Number.isFinite(invSpec.cols) ? invSpec.cols : 5;
-    const rows = Number.isFinite(invSpec.rows) ? invSpec.rows : 10;
-    const inv = Inventory.create(cols, rows);
-    Inventory.init(inv);
-    inv.version = 0;
-    invs[ownerId] = inv;
   }
 }
 

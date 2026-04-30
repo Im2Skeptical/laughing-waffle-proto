@@ -8,10 +8,8 @@ import { envSystemDefs } from "../defs/gamesystems/env-systems-defs.js";
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
-import { createEmptyLeaderEquipment } from "./equipment-rules.js";
 import {
   INITIAL_POPULATION_DEFAULT,
-  LEADER_FAITH_STARTING_TIER,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { normalizeVariantFlags } from "../defs/gamesettings/variant-flags-defs.js";
 import { getActionPointCapAtSecond } from "./moon.js";
@@ -23,7 +21,6 @@ import {
   makeHubStructureInstance,
   buildSeasonDeckForCurrentSeason,
   rebuildBoardOccupancy,
-  buildPawnSystemDefaults,
   ensureDiscoveryState,
   ensureLocationNamesState,
 } from "./state.js";
@@ -33,15 +30,7 @@ import {
 } from "./settlement-state.js";
 import { syncSettlementDerivedState } from "./settlement-exec.js";
 import { stepSettlementOrders } from "./settlement-order-exec.js";
-import {
-  getDefaultSkillPointsForPawnDefId,
-  getGlobalSkillModifier,
-  getSkillNodeDef,
-  getSkillNodeUnlockEffects,
-} from "./skills.js";
-import { runEffect } from "./effects/index.js";
-
-import { Inventory } from "./inventory-model.js";
+import { getGlobalSkillModifier } from "./skills.js";
 
 const HUB_COLS = 10;
 const DEV =
@@ -140,47 +129,6 @@ function getSetupSkillProgressionDefs(setup) {
   const raw = setup?.skillProgressionDefs;
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   return cloneSerializable(raw);
-}
-
-function normalizeUnlockedSkillNodeIds(value) {
-  const raw = Array.isArray(value) ? value : [];
-  const seen = new Set();
-  const out = [];
-  for (const entry of raw) {
-    if (typeof entry !== "string" || entry.length === 0) continue;
-    if (seen.has(entry)) continue;
-    seen.add(entry);
-    out.push(entry);
-  }
-  out.sort((a, b) => a.localeCompare(b));
-  return out;
-}
-
-function applyScenarioUnlockedSkillEffects(state) {
-  const pawns = Array.isArray(state?.pawns) ? state.pawns : [];
-  const nowSec = Number.isFinite(state?.tSec) ? Math.floor(state.tSec) : 0;
-
-  for (const pawn of pawns) {
-    if (!pawn || pawn.role !== "leader") continue;
-    const nodeIds = Array.isArray(pawn.unlockedSkillNodeIds)
-      ? pawn.unlockedSkillNodeIds
-      : [];
-    for (const nodeId of nodeIds) {
-      const nodeDef = getSkillNodeDef(null, nodeId);
-      if (!nodeDef) continue;
-      const unlockEffects = getSkillNodeUnlockEffects(nodeDef);
-      if (!unlockEffects.length) continue;
-      runEffect(state, unlockEffects, {
-        kind: "game",
-        state,
-        source: pawn,
-        pawn,
-        pawnId: pawn.id,
-        ownerId: pawn.id,
-        tSec: nowSec,
-      });
-    }
-  }
 }
 
 function recomputeInitialActionPoints(state) {
@@ -384,9 +332,6 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   const state = createEmptyState(seed ?? setup.rngSeed ?? 123456789);
   state.variantFlags = normalizeVariantFlags(setup?.variantFlags);
   state.skillProgressionDefs = getSetupSkillProgressionDefs(setup);
-  const skillDefsInput = state.skillProgressionDefs
-    ? { skillProgressionDefs: state.skillProgressionDefs }
-    : null;
 
   // baseline sim fields
   state.phase = "simulation";
@@ -445,134 +390,7 @@ export function createInitialState(scenario = "devGym01", seed = null) {
     return state;
   }
 
-  // hub structures
-  state.hub.slots = buildHubSlots(setup, hubCols, state);
-  state.hub.zones.structures.slots = state.hub.slots;
-
-  // pawns
-  const pawnSpecs =
-    (Array.isArray(setup.pawns) ? setup.pawns : null) || [];
-  const created = [];
-  for (let index = 0; index < pawnSpecs.length; index++) {
-    const c = pawnSpecs[index];
-    const wantsEnvRow = c?.row === "env" || Number.isFinite(c?.envCol);
-    const envCol = wantsEnvRow
-      ? getColIndex({ envCol: c.envCol }, index, boardCols)
-      : null;
-    const hubCol = wantsEnvRow
-      ? null
-      : getColIndex({ hubCol: c.hubCol }, index, hubCols);
-    const { systemTiers, systemState } = buildPawnSystemDefaults();
-    const role = c?.role === "follower" ? "follower" : "leader";
-    const pawnDefId =
-      typeof c?.pawnDefId === "string" ? c.pawnDefId : "default";
-    const pawn = {
-      id: state.nextPawnId++,
-      pawnDefId,
-      name: c.name,
-      color: c.color,
-      hubCol,
-      envCol,
-      systemTiers,
-      systemState,
-      skillPoints: Number.isFinite(c?.skillPoints)
-        ? Math.max(0, Math.floor(c.skillPoints))
-        : getDefaultSkillPointsForPawnDefId(pawnDefId, skillDefsInput),
-      unlockedSkillNodeIds: normalizeUnlockedSkillNodeIds(
-        c?.unlockedSkillNodeIds
-      ),
-      props: {},
-      role,
-      leaderId: null,
-      ai: {
-        mode: null,
-        assignedPlacement:
-          envCol != null
-            ? { hubCol: null, envCol }
-            : { hubCol, envCol: null },
-        returnState: "none",
-        suppressAutoUntilSec: 0,
-      },
-    };
-    if (role === "follower") {
-      pawn.followerCreationOrderIndex = state.nextFollowerCreationOrderIndex++;
-      pawn._leaderIndex = Number.isFinite(c?.leaderIndex)
-        ? Math.floor(c.leaderIndex)
-        : null;
-      pawn._leaderId = Number.isFinite(c?.leaderId) ? Math.floor(c.leaderId) : null;
-    } else {
-      pawn.totalDepositedAmountByTier = {};
-      pawn.prestigeCapBaseFromDeposits = 0;
-      pawn.prestigeCapBonus = 0;
-      pawn.prestigeCapBase = 0;
-      pawn.prestigeCapDebt = 0;
-      pawn.prestigeCapEffective = 0;
-      pawn.prestigeDebtByFollowerId = {};
-      pawn.workerCount = 0;
-      pawn.equipment = createEmptyLeaderEquipment();
-      pawn.leaderFaith = {
-        tier: LEADER_FAITH_STARTING_TIER,
-        eatStreak: 0,
-        decayElapsedSec: 0,
-        failedEatWarnActive: false,
-      };
-    }
-    created.push(pawn);
-  }
-
-  for (const pawn of created) {
-    if (pawn.role !== "follower") continue;
-    const leaderId =
-      Number.isFinite(pawn._leaderIndex) && created[pawn._leaderIndex]
-        ? created[pawn._leaderIndex].id
-        : Number.isFinite(pawn._leaderId)
-        ? pawn._leaderId
-        : null;
-    pawn.leaderId = leaderId;
-    delete pawn._leaderIndex;
-    delete pawn._leaderId;
-  }
-
-  state.pawns = created;
-  applyScenarioUnlockedSkillEffects(state);
-  recomputeInitialActionPoints(state);
-
-  // inventories
-  state.ownerInventories = {};
-
-  // hub structure inventories
-  for (const slot of state.hub.slots) {
-    const structure = slot.structure;
-    if (!structure) continue;
-    const def = hubStructureDefs[structure.defId];
-    if (!def) continue;
-
-    const invSpec = def.inventory ?? {};
-    const cols = Number.isFinite(invSpec.cols) ? invSpec.cols : 5;
-    const rows = Number.isFinite(invSpec.rows) ? invSpec.rows : 10;
-    const inv = Inventory.create(cols, rows);
-    Inventory.init(inv);
-    inv.version = 0;
-    state.ownerInventories[structure.instanceId] = inv;
-  }
-
-  // pawn inventories
-  for (const pawn of state.pawns) {
-    const inv = Inventory.create(5, 3);
-    Inventory.init(inv);
-    inv.version = 0;
-    state.ownerInventories[pawn.id] = inv;
-  }
-
-  // scenario-defined inventory items
-  applySetupInventories(state, setup);
-
-  // season deck (tile-driven)
-  buildSeasonDeckForCurrentSeason(state);
-
-  rebuildBoardOccupancy(state);
-
-  return state;
+  throw new Error("Only settlement prototype setup data is supported in this branch.");
 }
 
 // Mutate an existing state object in-place (views call initGameState(gameState, "testing")).
@@ -584,62 +402,6 @@ export function initGameState(state, setupId = "devGym01") {
 }
 
 // ----- internal helpers -----
-
-function applySetupInventories(state, setup) {
-  const invSpecs = setup.inventories || [];
-  if (invSpecs.length === 0) return;
-
-  const hubStructureIdsInOrder = state.hub.slots.map(
-    (s) => s?.structure?.instanceId ?? null
-  );
-  const pawnIdsInOrder = state.pawns.map((c) => c.id);
-  const leaderPawnIdsInOrder = state.pawns
-    .filter((pawn) => pawn?.role === "leader")
-    .map((pawn) => pawn.id);
-
-  for (const spec of invSpecs) {
-    const owner = spec.owner;
-    if (!owner) continue;
-
-    let ownerId = null;
-
-    if (owner.type === "hubStructure") {
-      const idx =
-        Number.isFinite(owner.hubCol)
-          ? getColIndex(owner, owner.index ?? 0, hubStructureIdsInOrder.length)
-          : owner.index;
-      ownerId = hubStructureIdsInOrder[idx];
-    } else if (owner.type === "hubSlot") {
-      ownerId =
-        hubStructureIdsInOrder[
-          getColIndex(owner, owner.index ?? 0, hubStructureIdsInOrder.length)
-        ];
-    } else if (owner.type === "leaderPawn") {
-      ownerId = leaderPawnIdsInOrder[owner.index];
-    } else if (owner.type === "pawn") {
-      ownerId = pawnIdsInOrder[owner.index];
-    }
-
-    if (!ownerId) continue;
-
-    const inv = state.ownerInventories[ownerId];
-    if (!inv) continue;
-
-    for (const it of spec.items || []) {
-      const item = Inventory.addNewItem(state, inv, {
-        kind: it.kind,
-        width: it.width ?? 1,
-        height: it.height ?? 1,
-        quantity: it.quantity ?? 1,
-        gridX: it.gridX ?? 0,
-        gridY: it.gridY ?? 0,
-      });
-
-    }
-
-    inv.version = (inv.version ?? 0) + 1;
-  }
-}
 
 function getBoardColsFromSetup(setup, state) {
   const candidate = setup?.board?.cols;

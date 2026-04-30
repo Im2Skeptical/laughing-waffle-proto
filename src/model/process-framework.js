@@ -3,7 +3,7 @@
 
 import { recipeDefs } from "../defs/gamepieces/recipes-defs.js";
 import { cropDefs } from "../defs/gamepieces/crops-defs.js";
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
+const itemDefs = Object.freeze({});
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
 import { TIER_ASC, getTierRank } from "./effects/core/tiers.js";

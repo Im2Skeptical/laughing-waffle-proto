@@ -1,5 +1,5 @@
-import { itemDefs } from "../defs/gamepieces/item-defs.js";
-import { LEADER_EQUIPMENT_SLOT_ORDER } from "../defs/gamesystems/equipment-slot-defs.js";
+const itemDefs = Object.freeze({});
+const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze(["head", "chest", "mainHand", "offHand", "ring1", "ring2", "amulet"]);
 
 function normalizeString(value) {
   return typeof value === "string" && value.length > 0 ? value : null;

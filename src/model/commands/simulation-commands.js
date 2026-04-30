@@ -9,7 +9,6 @@ import {
   getApIncomePerSecond,
   normalizeApState,
 } from "./ap-helpers.js";
-import { cmdPlacePawn } from "./pawn-skill-commands.js";
 
 const TICKS_PER_SEC = 60;
 const DEFAULT_SEASON_DURATION_SEC = SEASON_DURATION_SEC;
@@ -94,7 +93,7 @@ export function cmdTickSimulation(state, dt) {
   state._seasonChanged = state._seasonChanged === true || advancedSeasonCount > 0;
 
   if (didAdvanceSecond) {
-    runLiveSecondStages(state, state.tSec, { placePawn: cmdPlacePawn });
+    runLiveSecondStages(state, state.tSec);
     if (state._seasonChanged) state._seasonChanged = false;
   }
 
