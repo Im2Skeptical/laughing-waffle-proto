@@ -82,6 +82,10 @@ const PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA = 0.88;
 const PROJECTION_REPLACEMENT_DIM_LINE_ALPHA = 0.24;
 const PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS = 32;
 const GRAPH_BOOT_FADE_FRAME_MS = 32;
+const SERIES_SCALE_MAX_FLASH_DURATION_MS = 520;
+const SERIES_SCALE_MAX_FLASH_FRAME_MS = 32;
+const SERIES_SCALE_MAX_FLASH_COLOR = 0xffffff;
+const SERIES_SCALE_MAX_FLASH_WIDTH_BONUS = 2.5;
 
 export function createMetricGraphView({
   app,
@@ -234,6 +238,230 @@ export function createMetricGraphView({
     return merged;
   }
 
+  function buildSeriesValuesForVisibleScaleRange(
+    points,
+    seriesValues,
+    seriesList,
+    visibleEndSec
+  ) {
+    const list = Array.isArray(seriesList) ? seriesList : [];
+    const pointList = Array.isArray(points) ? points : [];
+    const sourceValues =
+      seriesValues instanceof Map ? seriesValues : new Map();
+    const scaleEnd = Number.isFinite(visibleEndSec)
+      ? Math.max(0, Number(visibleEndSec))
+      : Number.POSITIVE_INFINITY;
+    const out = new Map();
+
+    for (const seriesDef of list) {
+      const seriesId = String(seriesDef?.id ?? "");
+      if (!seriesId) continue;
+      const values = sourceValues.get(seriesId);
+      const scaleValues = [];
+      let previousT = null;
+      let previousValue = null;
+
+      for (let i = 0; i < pointList.length; i++) {
+        const point = pointList[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        const value = Array.isArray(values) ? values[i] : null;
+
+        if (!Number.isFinite(value)) {
+          if (t <= scaleEnd) {
+            previousT = null;
+            previousValue = null;
+          }
+          continue;
+        }
+
+        if (t <= scaleEnd) {
+          scaleValues.push(value);
+          previousT = t;
+          previousValue = value;
+          continue;
+        }
+
+        if (
+          Number.isFinite(previousT) &&
+          Number.isFinite(previousValue) &&
+          scaleEnd > previousT
+        ) {
+          const ratio = (scaleEnd - previousT) / Math.max(1e-6, t - previousT);
+          scaleValues.push(previousValue + (value - previousValue) * ratio);
+        }
+        break;
+      }
+
+      out.set(seriesId, scaleValues);
+    }
+
+    return out;
+  }
+
+  function computeSeriesScaleRangesForReveal(
+    seriesList,
+    points,
+    seriesValues,
+    visibleEndSec
+  ) {
+    const scaleValues = freezeScaleMaxDuringRevealCur
+      ? buildSeriesValuesForVisibleScaleRange(
+          points,
+          seriesValues,
+          seriesList,
+          visibleEndSec
+        )
+      : seriesValues;
+    return computeGraphSeriesScaleRanges(seriesList, scaleValues, {
+      defaultMin: 0,
+      defaultMax: 100,
+    });
+  }
+
+  function computeVisibleSeriesMaxValues(
+    points,
+    seriesValues,
+    seriesList,
+    visibleEndSec
+  ) {
+    const list = Array.isArray(seriesList) ? seriesList : [];
+    const pointList = Array.isArray(points) ? points : [];
+    const sourceValues =
+      seriesValues instanceof Map ? seriesValues : new Map();
+    const scaleEnd = Number.isFinite(visibleEndSec)
+      ? Math.max(0, Number(visibleEndSec))
+      : Number.POSITIVE_INFINITY;
+    const out = new Map();
+
+    for (const seriesDef of list) {
+      const seriesId = String(seriesDef?.id ?? "");
+      if (!seriesId) continue;
+      const values = sourceValues.get(seriesId);
+      let maxValue = -Infinity;
+      let previousT = null;
+      let previousValue = null;
+
+      for (let i = 0; i < pointList.length; i++) {
+        const point = pointList[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        const value = Array.isArray(values) ? values[i] : null;
+
+        if (!Number.isFinite(value)) {
+          if (t <= scaleEnd) {
+            previousT = null;
+            previousValue = null;
+          }
+          continue;
+        }
+
+        if (t <= scaleEnd) {
+          maxValue = Math.max(maxValue, value);
+          previousT = t;
+          previousValue = value;
+          continue;
+        }
+
+        if (
+          Number.isFinite(previousT) &&
+          Number.isFinite(previousValue) &&
+          scaleEnd > previousT
+        ) {
+          const ratio = (scaleEnd - previousT) / Math.max(1e-6, t - previousT);
+          const edgeValue = previousValue + (value - previousValue) * ratio;
+          maxValue = Math.max(maxValue, edgeValue);
+        }
+        break;
+      }
+
+      out.set(seriesId, maxValue);
+    }
+
+    return out;
+  }
+
+  function triggerSeriesScaleMaxFlash({
+    previousRanges,
+    nextRanges,
+    visibleMaxValues,
+    nowMs = performance.now(),
+  } = {}) {
+    if (
+      !(previousRanges instanceof Map) ||
+      !(nextRanges instanceof Map) ||
+      !(visibleMaxValues instanceof Map)
+    ) {
+      return false;
+    }
+
+    let triggered = false;
+    for (const [seriesId, nextRange] of nextRanges.entries()) {
+      const previousRange = previousRanges.get(seriesId);
+      const previousMax = Number(previousRange?.maxValue);
+      const nextMax = Number(nextRange?.maxValue);
+      const visibleMax = Number(visibleMaxValues.get(seriesId));
+      if (
+        !Number.isFinite(previousMax) ||
+        !Number.isFinite(nextMax) ||
+        !Number.isFinite(visibleMax) ||
+        nextMax <= previousMax + 1e-6 ||
+        visibleMax < nextMax - 1e-6
+      ) {
+        continue;
+      }
+      seriesScaleMaxFlashBySeriesId.set(seriesId, {
+        startedMs: nowMs,
+        durationMs: SERIES_SCALE_MAX_FLASH_DURATION_MS,
+      });
+      triggered = true;
+    }
+
+    if (triggered) {
+      lastPlotVersion = -1;
+      lastPlotBoundsKey = "";
+    }
+    return triggered;
+  }
+
+  function getSeriesScaleMaxFlashStrength(seriesId, nowMs = performance.now()) {
+    const flash = seriesScaleMaxFlashBySeriesId.get(seriesId);
+    if (!flash) return 0;
+    const durationMs = Math.max(
+      1,
+      Number(flash.durationMs ?? SERIES_SCALE_MAX_FLASH_DURATION_MS)
+    );
+    const elapsedMs = Math.max(
+      0,
+      nowMs - Math.max(0, Number(flash.startedMs ?? nowMs))
+    );
+    if (elapsedMs >= durationMs) {
+      seriesScaleMaxFlashBySeriesId.delete(seriesId);
+      return 0;
+    }
+    const progress = clamp01(elapsedMs / durationMs);
+    const pulse = 0.5 + 0.5 * Math.cos(progress * Math.PI * 2);
+    return Math.max(0, (1 - progress) * (0.65 + 0.35 * pulse));
+  }
+
+  function getSeriesScaleMaxFlashRenderKey(nowMs = performance.now()) {
+    const parts = [];
+    for (const [seriesId, flash] of seriesScaleMaxFlashBySeriesId.entries()) {
+      const durationMs = Math.max(
+        1,
+        Number(flash.durationMs ?? SERIES_SCALE_MAX_FLASH_DURATION_MS)
+      );
+      const elapsedMs = Math.max(
+        0,
+        nowMs - Math.max(0, Number(flash.startedMs ?? nowMs))
+      );
+      if (elapsedMs >= durationMs) {
+        seriesScaleMaxFlashBySeriesId.delete(seriesId);
+        continue;
+      }
+      parts.push(`${seriesId}:${Math.floor(elapsedMs / SERIES_SCALE_MAX_FLASH_FRAME_MS)}`);
+    }
+    return parts.join("|");
+  }
+
   const root = new PIXI.Container();
   root.visible = false;
   layer.addChild(root);
@@ -369,6 +597,7 @@ export function createMetricGraphView({
   let legendSignature = "";
   let hoveredLegendSeriesId = null;
   const legendEntriesBySeriesId = new Map();
+  const seriesScaleMaxFlashBySeriesId = new Map();
   let forecastRevealAnimatedEndSec = 0;
   let forecastRevealTargetEndSec = 0;
   let forecastRevealLastTickMs = 0;
@@ -1879,13 +2108,17 @@ export function createMetricGraphView({
         }
       }
 
-      let refreshedScaleRanges = computeGraphSeriesScaleRanges(
+      let refreshedScaleRanges = computeSeriesScaleRangesForReveal(
         seriesList,
+        refreshedPoints,
         refreshedSeriesValues,
-        {
-          defaultMin: 0,
-          defaultMax: 100,
-        }
+        visibleForecastCoverageEndSec
+      );
+      const refreshedVisibleMaxValues = computeVisibleSeriesMaxValues(
+        refreshedPoints,
+        refreshedSeriesValues,
+        seriesList,
+        visibleForecastCoverageEndSec
       );
       if (freezeScaleMaxDuringRevealCur) {
         refreshedScaleRanges = mergeStickySeriesScaleRanges(
@@ -1893,6 +2126,11 @@ export function createMetricGraphView({
           refreshedScaleRanges,
           seriesList
         );
+        triggerSeriesScaleMaxFlash({
+          previousRanges: baseSnapshot?.seriesScaleRanges,
+          nextRanges: refreshedScaleRanges,
+          visibleMaxValues: refreshedVisibleMaxValues,
+        });
       }
 
       return {
@@ -2049,16 +2287,29 @@ export function createMetricGraphView({
         seriesValues.set(s.id, mergedSeriesValues.get(s.id) ?? []);
       }
     }
-    let seriesScaleRanges = computeGraphSeriesScaleRanges(seriesList, seriesValues, {
-      defaultMin: 0,
-      defaultMax: 100,
-    });
+    let seriesScaleRanges = computeSeriesScaleRangesForReveal(
+      seriesList,
+      pointsForDraw,
+      seriesValues,
+      visibleForecastCoverageEndSec
+    );
+    const visibleMaxValues = computeVisibleSeriesMaxValues(
+      pointsForDraw,
+      seriesValues,
+      seriesList,
+      visibleForecastCoverageEndSec
+    );
     if (freezeScaleMaxDuringRevealCur && previousSnapshotCompatible) {
       seriesScaleRanges = mergeStickySeriesScaleRanges(
         plotSnapshot?.seriesScaleRanges,
         seriesScaleRanges,
         seriesList
       );
+      triggerSeriesScaleMaxFlash({
+        previousRanges: plotSnapshot?.seriesScaleRanges,
+        nextRanges: seriesScaleRanges,
+        visibleMaxValues,
+      });
     }
 
     const markerActionSecs = getMarkerActionSecs(
@@ -2094,6 +2345,7 @@ export function createMetricGraphView({
   function drawPlot() {
     resolveMetric();
     const perfStart = perfEnabled() ? perfNowMs() : 0;
+    const plotNowMs = performance.now();
     plotG.clear();
     const snapshot = getPlotSnapshot();
     const data = snapshot?.data ?? {};
@@ -2184,6 +2436,7 @@ export function createMetricGraphView({
       drawEndSec = maxSec,
       colorResolver = null,
       alphaMultiplier = 1,
+      enableScaleMaxFlash = false,
     } = {}) {
       const list = Array.isArray(sourceSeriesList) ? sourceSeriesList : [];
       const points = Array.isArray(sourcePoints) ? sourcePoints : [];
@@ -2221,11 +2474,31 @@ export function createMetricGraphView({
           typeof colorResolver === "function"
             ? colorResolver(baseLineColor, s)
             : baseLineColor;
+        const flashStrength =
+          enableScaleMaxFlash === true
+            ? getSeriesScaleMaxFlashStrength(s.id, plotNowMs)
+            : 0;
+        const lineColor =
+          flashStrength > 0
+            ? blendColor(
+                resolvedLineColor,
+                SERIES_SCALE_MAX_FLASH_COLOR,
+                Math.min(0.82, flashStrength)
+              )
+            : resolvedLineColor;
+        const flashLineWidth =
+          flashStrength > 0
+            ? lineWidth + SERIES_SCALE_MAX_FLASH_WIDTH_BONUS * flashStrength
+            : lineWidth;
         const resolvedLineAlpha = Math.max(
           0,
-          Math.min(1, baseAlpha * Math.max(0, Number(alphaMultiplier ?? 1)))
+          Math.min(
+            1,
+            baseAlpha * Math.max(0, Number(alphaMultiplier ?? 1)) +
+              flashStrength * 0.18
+          )
         );
-        plotG.lineStyle(lineWidth, resolvedLineColor, resolvedLineAlpha);
+        plotG.lineStyle(flashLineWidth, lineColor, resolvedLineAlpha);
 
         const values = sourceSeriesValues?.get?.(s.id) ?? [];
         let first = true;
@@ -2399,6 +2672,7 @@ export function createMetricGraphView({
       sourceSeriesValues: seriesValues,
       drawStartSec: minSec,
       drawEndSec: lineDrawEndSec,
+      enableScaleMaxFlash: true,
     });
 
     if (lineDrawEndSec < maxSec) {
@@ -2689,6 +2963,7 @@ export function createMetricGraphView({
     root.y = openPosition?.y ?? defaultY;
     const nowMs = performance.now();
     invalidatePlotSnapshot();
+    seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
     beginBootFadeTransition(nowMs);
     resetForecastReveal(0, 0, 0, nowMs);
@@ -2713,6 +2988,7 @@ export function createMetricGraphView({
     root.visible = false;
     resetForecastPreviewState();
     invalidatePlotSnapshot();
+    seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
     clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
@@ -2860,10 +3136,11 @@ export function createMetricGraphView({
     updateHeaderButtons();
     drawLegend(getActiveSeries());
     const projectionReplacementKey = getProjectionReplacementRenderKey(now);
+    const seriesScaleMaxFlashKey = getSeriesScaleMaxFlashRenderKey(now);
     const bootFadeState = getBootFadeRenderState(now);
     const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(
       visibleForecastCoverageEndSec * 10
-    )}:${projectionReplacementKey}:${bootFadeState?.key ?? ""}`;
+    )}:${projectionReplacementKey}:${seriesScaleMaxFlashKey}:${bootFadeState?.key ?? ""}`;
     const cacheVersion =
       Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
     const versionChanged =
@@ -2875,7 +3152,10 @@ export function createMetricGraphView({
         Math.floor(forecastRevealTargetEndSec ?? displayHistoryEndSec)
       ) -
         visibleForecastCoverageEndSec >
-      0.001 || !!projectionReplacementKey || !!bootFadeState;
+      0.001 ||
+      !!projectionReplacementKey ||
+      !!seriesScaleMaxFlashKey ||
+      !!bootFadeState;
     const shouldPlot =
       revealAnimating
         ? boundsChanged || now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
