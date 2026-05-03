@@ -122,6 +122,10 @@ function ensureElderCouncilState(card, state) {
       state,
       orderDef
     ),
+    debugPracticeBoardByClass: normalizeDebugPracticeBoardByClass(
+      existing.debugPracticeBoardByClass,
+      state
+    ),
   };
 
   if (shouldSeedInitialCouncil && members.length <= 0) {
@@ -208,6 +212,54 @@ function normalizePracticeBoardMemoryByClass(rawPracticeBoardMemoryByClass, stat
         ? rawPracticeBoardMemoryByClass[classId]
         : getStarterPracticeBoardForClass(orderDef, classId);
     next[classId] = uniquePracticeIds(sourceBoard, classId, slotCount);
+  }
+  return next;
+}
+
+function normalizeDebugPracticeBoardByClass(rawDebugPracticeBoardByClass, state) {
+  if (
+    !rawDebugPracticeBoardByClass ||
+    typeof rawDebugPracticeBoardByClass !== "object" ||
+    Array.isArray(rawDebugPracticeBoardByClass)
+  ) {
+    return {};
+  }
+  const next = {};
+  for (const classId of getSettlementClassIds(state)) {
+    const slotCount = getPracticeSlotCount(state, classId);
+    const source = rawDebugPracticeBoardByClass[classId];
+    const normalizedBySlot = {};
+    const entries = Array.isArray(source)
+      ? source.map((value, index) => [index, value])
+      : source && typeof source === "object"
+        ? Object.entries(source)
+        : [];
+    for (const [rawIndex, rawValue] of entries) {
+      const slotIndex = Number.isFinite(Number(rawIndex))
+        ? Math.max(0, Math.floor(Number(rawIndex)))
+        : null;
+      if (slotIndex == null || slotIndex >= slotCount) continue;
+      if (rawValue == null || rawValue?.mode === "empty") {
+        normalizedBySlot[String(slotIndex)] = { mode: "empty" };
+        continue;
+      }
+      const defId =
+        typeof rawValue === "string"
+          ? rawValue
+          : typeof rawValue?.defId === "string"
+            ? rawValue.defId
+            : null;
+      const def = defId ? settlementPracticeDefs[defId] : null;
+      const eligible = Array.isArray(def?.orderEligibleClassIds)
+        ? def.orderEligibleClassIds
+        : [];
+      if (def && (eligible.length === 0 || eligible.includes(classId))) {
+        normalizedBySlot[String(slotIndex)] = { mode: "set", defId };
+      }
+    }
+    if (Object.keys(normalizedBySlot).length > 0) {
+      next[classId] = normalizedBySlot;
+    }
   }
   return next;
 }
@@ -371,16 +423,24 @@ function sortSupportedPracticeIds(practiceIds, prestigeTotals, boardPositions) {
 
 function resolvePracticeBoardForClass(state, orderDef, councilState, classId) {
   const maxSlots = getPracticeSlotCount(state, classId);
+  const debugBoard =
+    councilState?.debugPracticeBoardByClass?.[classId] &&
+    typeof councilState.debugPracticeBoardByClass[classId] === "object" &&
+    !Array.isArray(councilState.debugPracticeBoardByClass[classId])
+      ? councilState.debugPracticeBoardByClass[classId]
+      : null;
+  const prestigeTotals = buildPracticePrestigeTotalsForClass(orderDef, councilState, classId);
   const residentBoard = uniquePracticeIds(
     councilState?.practiceBoardMemoryByClass?.[classId],
     classId,
     maxSlots
   );
   const members = Array.isArray(councilState?.members) ? councilState.members : [];
-  const prestigeTotals = buildPracticePrestigeTotalsForClass(orderDef, councilState, classId);
   if (members.length <= 0) {
+    const naturalBoard = residentBoard.slice(0, maxSlots);
     return {
-      resolvedBoard: residentBoard,
+      naturalBoard,
+      resolvedBoard: applyDebugPracticeBoardOverrides(naturalBoard, debugBoard, maxSlots),
       prestigeTotals,
     };
   }
@@ -404,10 +464,33 @@ function resolvePracticeBoardForClass(state, orderDef, councilState, classId) {
     boardPositions
   );
 
+  const naturalBoard = [...supportedDefIds, ...unsupportedResidentDefIds].slice(0, maxSlots);
   return {
-    resolvedBoard: [...supportedDefIds, ...unsupportedResidentDefIds].slice(0, maxSlots),
+    naturalBoard,
+    resolvedBoard: applyDebugPracticeBoardOverrides(naturalBoard, debugBoard, maxSlots),
     prestigeTotals,
   };
+}
+
+function applyDebugPracticeBoardOverrides(naturalBoard, debugBoard, maxSlots) {
+  const resolved = new Array(maxSlots).fill(null).map((_, index) =>
+    typeof naturalBoard?.[index] === "string" ? naturalBoard[index] : null
+  );
+  if (!debugBoard || typeof debugBoard !== "object" || Array.isArray(debugBoard)) {
+    return resolved;
+  }
+  for (let index = 0; index < maxSlots; index += 1) {
+    const entry = debugBoard[String(index)];
+    if (!entry || typeof entry !== "object") continue;
+    if (entry.mode === "empty") {
+      resolved[index] = null;
+      continue;
+    }
+    if (entry.mode === "set" && typeof entry.defId === "string") {
+      resolved[index] = entry.defId;
+    }
+  }
+  return resolved;
 }
 
 function reconcilePracticeBoard(state, classId, resolvedDefIds) {
@@ -445,7 +528,7 @@ function resolveBoardsByClass(state, card, orderDef) {
   const resolvedBoardsByClass = {};
   const practicePrestigeTotalsByClass = {};
   for (const classId of getSettlementClassIds(state)) {
-    const { resolvedBoard, prestigeTotals } = resolvePracticeBoardForClass(
+    const { naturalBoard, resolvedBoard, prestigeTotals } = resolvePracticeBoardForClass(
       state,
       orderDef,
       councilState,
@@ -458,7 +541,7 @@ function resolveBoardsByClass(state, card, orderDef) {
       typeof councilState.practiceBoardMemoryByClass === "object" &&
       !Array.isArray(councilState.practiceBoardMemoryByClass)
     ) {
-      councilState.practiceBoardMemoryByClass[classId] = cloneSerializable(resolvedBoard);
+      councilState.practiceBoardMemoryByClass[classId] = cloneSerializable(naturalBoard);
     }
   }
   return {
@@ -656,6 +739,72 @@ export function removePracticeFromPersistentPracticeBoards(state, practiceDefId,
   }
 
   if (!changed) return false;
+  const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
+    state,
+    card,
+    orderDef
+  );
+  for (const targetClassId of getSettlementClassIds(state)) {
+    reconcilePracticeBoard(state, targetClassId, resolvedBoardsByClass[targetClassId] ?? []);
+  }
+  syncOrderRuntime(
+    card,
+    state,
+    orderDef,
+    resolvedBoardsByClass,
+    practicePrestigeTotalsByClass
+  );
+  return true;
+}
+
+export function setDebugPracticeBoardSlot(state, classId, slotIndex, practiceDefId = null, opts = {}) {
+  const safeClassId = typeof classId === "string" ? classId : null;
+  if (!safeClassId || !getSettlementClassIds(state).includes(safeClassId)) return false;
+  const safeSlotIndex = Number.isFinite(slotIndex) ? Math.max(0, Math.floor(slotIndex)) : null;
+  const slotCount = getPracticeSlotCount(state, safeClassId);
+  if (safeSlotIndex == null || safeSlotIndex >= slotCount) return false;
+  const safePracticeDefId =
+    typeof practiceDefId === "string" && settlementPracticeDefs[practiceDefId]
+      ? practiceDefId
+      : null;
+  if (safePracticeDefId) {
+    const eligible = Array.isArray(settlementPracticeDefs[safePracticeDefId]?.orderEligibleClassIds)
+      ? settlementPracticeDefs[safePracticeDefId].orderEligibleClassIds
+      : [];
+    if (eligible.length > 0 && !eligible.includes(safeClassId)) return false;
+  }
+
+  const card = getFirstOrderCard(state, "elderCouncil");
+  if (!card) return false;
+  const councilState = ensureElderCouncilState(card, state);
+  const orderDef = getOrderDef(card);
+  if (!councilState || !orderDef) return false;
+  if (
+    !councilState.debugPracticeBoardByClass ||
+    typeof councilState.debugPracticeBoardByClass !== "object" ||
+    Array.isArray(councilState.debugPracticeBoardByClass)
+  ) {
+    councilState.debugPracticeBoardByClass = {};
+  }
+  const current =
+    councilState.debugPracticeBoardByClass[safeClassId] &&
+    typeof councilState.debugPracticeBoardByClass[safeClassId] === "object" &&
+    !Array.isArray(councilState.debugPracticeBoardByClass[safeClassId])
+      ? { ...councilState.debugPracticeBoardByClass[safeClassId] }
+      : {};
+  if (opts.clearOverride === true) {
+    delete current[String(safeSlotIndex)];
+  } else if (safePracticeDefId) {
+    current[String(safeSlotIndex)] = { mode: "set", defId: safePracticeDefId };
+  } else {
+    current[String(safeSlotIndex)] = { mode: "empty" };
+  }
+  if (Object.keys(current).length > 0) {
+    councilState.debugPracticeBoardByClass[safeClassId] = current;
+  } else {
+    delete councilState.debugPracticeBoardByClass[safeClassId];
+  }
+
   const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
     state,
     card,

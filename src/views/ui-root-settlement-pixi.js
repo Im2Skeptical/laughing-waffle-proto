@@ -10,9 +10,12 @@ import {
 import { ActionKinds } from "../model/actions.js";
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
 import {
+  getSettlementClassIds,
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
+  getSettlementPracticeSlotsByClass,
   getSettlementSelectedVassalRealizedSegments,
+  getSettlementStructureSlots,
   getSettlementVassalBoundarySeconds,
 } from "../model/settlement-state.js";
 import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
@@ -44,6 +47,7 @@ import {
   publishSettlementDebugApi as publishSettlementDebugApiForSettlement,
 } from "./ui-root/settlement-debug-api.js";
 import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-series-menu.js";
+import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -153,14 +157,17 @@ let settlementVassalControlsView = null;
 let runCompleteView = null;
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
+let settlementDebugMenu = null;
 let settlementPendingVassalSelection = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
+let settlementLastVassalSelectionResult = null;
 let settlementGraphHorizonOverrideSec = null;
 let settlementPlaybackSpeedTarget = 0;
 let settlementPlaybackSpeedCurrent = 0;
-let settlementPlaybackViewSec = null;
+let settlementPlaybackViewSecFloat = null;
 let settlementGraphRevealMode = "";
+let settlementPendingPreviewRestoreSec = null;
 let settlementFrontierStateCache = {
   historyEndSec: -1,
   revision: -1,
@@ -222,6 +229,8 @@ function shouldInvalidateSettlementTimelineForecast(reason) {
   if (reason === "actionDispatched" || reason === "actionDispatchedCurrentSec") {
     return true;
   }
+  if (reason === "actionScheduled") return true;
+  if (reason === "scrubCommit") return true;
   if (reason === "plannerClear") return true;
   if (reason.startsWith("plannerCommit:")) return true;
   return false;
@@ -237,6 +246,20 @@ function clearSettlementPendingCommitJob() {
 
 function scheduleSettlementPendingCommit(frontierSec, currentVassal) {
   return settlementForecastController?.schedulePendingCommit?.(frontierSec, currentVassal) ?? null;
+}
+
+function resyncSettlementPendingCommitForFrontier() {
+  clearSettlementPendingCommitJob();
+  const frontierState = getSettlementFrontierState();
+  if (isSettlementStateRunComplete(frontierState)) return null;
+  const currentVassal = getSettlementCurrentVassal(frontierState);
+  if (!currentVassal || currentVassal.isDead === true) return null;
+  const frontierSec = getSettlementFrontierSec();
+  const deathSec = Number.isFinite(currentVassal?.deathSec)
+    ? Math.max(0, Math.floor(currentVassal.deathSec))
+    : null;
+  if (deathSec == null || deathSec <= frontierSec) return null;
+  return scheduleSettlementPendingCommit(frontierSec, currentVassal);
 }
 
 function clampSettlementPlaybackSpeed(speed) {
@@ -264,18 +287,49 @@ function ensureSettlementRunnerPaused() {
   }
 }
 
-function setSettlementPlaybackTarget(speed) {
-  const next = clampSettlementPlaybackSpeed(speed);
-  settlementPlaybackSpeedTarget = next;
-  settlementPlaybackSpeedCurrent = next;
-  if (next !== 0 && !Number.isFinite(settlementPlaybackViewSec)) {
-    settlementPlaybackViewSec = getSettlementViewedSec();
+function getSettlementPlaybackTarget() {
+  return clampSettlementPlaybackSpeed(settlementPlaybackSpeedTarget);
+}
+
+function promoteSettlementPreviewToLive() {
+  const preview = runner.getPreviewStatus?.() ?? null;
+  if (!preview?.active) return { ok: true, promoted: false };
+  if (!preview.isForecastPreview) {
+    runner.clearPreviewState?.();
+    return { ok: true, promoted: false };
   }
-  if (next === 0) {
-    settlementPlaybackViewSec = getSettlementViewedSec();
+
+  const targetSec = Math.max(0, Math.floor(preview.previewSec ?? 0));
+  const commitRes = runner.commitPreviewToLive?.();
+  if (commitRes?.ok !== true) {
+    return commitRes ?? { ok: false, reason: "commitPreviewFailed" };
+  }
+  settlementGraphView?.resetForecastPreviewState?.();
+  invalidateSettlementProjectedLossCache();
+  syncSettlementGraphHorizon();
+  return { ...commitRes, promoted: true, targetSec };
+}
+
+function setSettlementPlaybackTarget(speed, opts = {}) {
+  const next = clampSettlementPlaybackSpeed(speed);
+  const result = runner.setTimeScaleTarget?.(0, {
+    ...opts,
+    immediate: true,
+    requestPause: true,
+  }) ?? {
+    ok: false,
+    reason: "runnerUnavailable",
+  };
+  settlementPlaybackSpeedTarget = result?.ok ? next : 0;
+  settlementPlaybackSpeedCurrent = settlementPlaybackSpeedTarget;
+  settlementPlaybackViewSecFloat =
+    settlementPlaybackSpeedTarget !== 0 ? getSettlementViewedSec() : null;
+  if (result?.ok) {
     ensureSettlementRunnerPaused();
   }
-  return { ok: true, target: next };
+  return result?.ok
+    ? { ...result, target: settlementPlaybackSpeedTarget }
+    : result;
 }
 
 function getSettlementPlaybackState() {
@@ -330,16 +384,51 @@ function getSettlementFrontierState() {
   return frontierState;
 }
 
-function setSettlementViewedSecond(tSec) {
+function commitSettlementViewedSecond(tSec, { stateData: providedStateData = null } = {}) {
   const frontierSec = getSettlementFrontierSec();
   const previewCapSec = getSettlementPreviewCapSec();
   const boundedTargetSec = Math.max(0, Math.min(Number(tSec ?? 0), previewCapSec));
-  settlementPlaybackViewSec = boundedTargetSec;
   const safeTargetSec = Math.floor(boundedTargetSec);
   if (safeTargetSec <= frontierSec) {
     runner.clearPreviewState?.();
     return runner.browseCursorSecond?.(safeTargetSec);
   }
+
+  const preview = runner.getPreviewStatus?.() ?? null;
+  if (
+    preview?.active === true &&
+    preview?.isForecastPreview === true &&
+    Math.floor(preview.previewSec ?? -1) === safeTargetSec
+  ) {
+    const previewCommit = promoteSettlementPreviewToLive();
+    if (previewCommit?.ok === true) return previewCommit;
+  }
+
+  const stateData =
+    providedStateData ?? settlementGraphController?.getStateDataAt?.(safeTargetSec) ?? null;
+  const commitRes = runner.commitCursorSecond?.(safeTargetSec, stateData);
+  if (commitRes?.ok !== true) {
+    return commitRes ?? { ok: false, reason: "commitFailed" };
+  }
+  settlementGraphView?.resetForecastPreviewState?.();
+  invalidateSettlementProjectedLossCache();
+  syncSettlementGraphHorizon();
+  return { ...commitRes, tSec: safeTargetSec, promoted: true };
+}
+
+function previewSettlementViewedSecond(tSec, { respectBrowseCap = true } = {}) {
+  const frontierSec = getSettlementFrontierSec();
+  const previewCapSec = getSettlementPreviewCapSec();
+  const rawTargetSec = Math.max(0, Number(tSec ?? 0));
+  const boundedTargetSec = respectBrowseCap
+    ? Math.max(0, Math.min(rawTargetSec, previewCapSec))
+    : rawTargetSec;
+  const safeTargetSec = Math.floor(boundedTargetSec);
+  if (safeTargetSec <= frontierSec) {
+    runner.clearPreviewState?.();
+    return runner.browseCursorSecond?.(safeTargetSec);
+  }
+  settlementGraphController?.ensureForecastCoverageTo?.(safeTargetSec);
   const previewState = settlementGraphController?.getStateAt?.(safeTargetSec) ?? null;
   if (!previewState) {
     return { ok: false, reason: "previewUnavailable" };
@@ -352,7 +441,60 @@ function setSettlementViewedSecond(tSec) {
   return { ok: true, tSec: safeTargetSec, preview: true };
 }
 
+function setSettlementViewedSecond(tSec, { mode = "commit", stateData = null } = {}) {
+  settlementPendingPreviewRestoreSec = null;
+  if (mode === "preview") return previewSettlementViewedSecond(tSec);
+  if (mode === "browse") {
+    const safeTargetSec = Math.max(0, Math.floor(tSec ?? 0));
+    if (safeTargetSec > getSettlementFrontierSec()) {
+      return previewSettlementViewedSecond(safeTargetSec);
+    }
+    runner.clearPreviewState?.();
+    return runner.browseCursorSecond?.(safeTargetSec);
+  }
+  return commitSettlementViewedSecond(tSec, { stateData });
+}
+
+function restoreSettlementPendingPreviewTarget() {
+  if (!Number.isFinite(settlementPendingPreviewRestoreSec)) return null;
+  const targetSec = Math.max(0, Math.floor(settlementPendingPreviewRestoreSec));
+  if (targetSec <= getSettlementFrontierSec()) {
+    settlementPendingPreviewRestoreSec = null;
+    return null;
+  }
+  const res = previewSettlementViewedSecond(targetSec, {
+    respectBrowseCap: false,
+  });
+  if (res?.ok === true) {
+    settlementPendingPreviewRestoreSec = null;
+  }
+  return res;
+}
+
+function updateSettlementPreviewPlayback(frameDt) {
+  const speed = clampSettlementPlaybackSpeed(settlementPlaybackSpeedTarget);
+  if (speed === 0) return;
+  const dt = Number.isFinite(frameDt) ? Math.max(0, Number(frameDt)) : 0;
+  const currentFloat = Number.isFinite(settlementPlaybackViewSecFloat)
+    ? settlementPlaybackViewSecFloat
+    : getSettlementViewedSec();
+  const previewCapSec = getSettlementPreviewCapSec();
+  const nextFloat = Math.max(0, Math.min(previewCapSec, currentFloat + speed * dt));
+  settlementPlaybackViewSecFloat = nextFloat;
+  const targetSec = Math.max(0, Math.min(previewCapSec, Math.floor(nextFloat)));
+  if (targetSec !== getSettlementViewedSec()) {
+    setSettlementViewedSecond(targetSec, { mode: "browse" });
+  }
+  if (
+    (speed > 0 && nextFloat >= previewCapSec) ||
+    (speed < 0 && nextFloat <= 0)
+  ) {
+    setSettlementPlaybackTarget(0);
+  }
+}
+
 function returnSettlementViewToPresent(targetSec = null) {
+  settlementPendingPreviewRestoreSec = null;
   setSettlementPlaybackTarget(0);
   runner.clearPreviewState?.();
   settlementGraphView?.resetForecastPreviewState?.();
@@ -360,7 +502,6 @@ function returnSettlementViewToPresent(targetSec = null) {
   const safeTargetSec = Number.isFinite(targetSec)
     ? Math.max(0, Math.min(Math.floor(targetSec), frontierSec))
     : frontierSec;
-  settlementPlaybackViewSec = safeTargetSec;
   return runner.browseCursorSecond?.(safeTargetSec);
 }
 
@@ -398,7 +539,7 @@ function getDisplayedSettlementLossInfo() {
 }
 
 function shouldResumeAfterBlockingVassalSelection(state = getSettlementAuthoritativeState()) {
-  return clampSettlementPlaybackSpeed(settlementPlaybackSpeedTarget) !== 0;
+  return getSettlementPlaybackTarget() !== 0;
 }
 
 function getSettlementVisibleVassalTimeSec(state = null) {
@@ -415,6 +556,41 @@ function getSettlementRenderedHistoryEndSec({
     displayHistoryEndSec,
     revealedCoverageEndSec: visibleForecastCoverageEndSec,
   }) ?? Math.max(0, Math.floor(displayHistoryEndSec ?? actualHistoryEndSec ?? 0));
+}
+
+function getSettlementDebugOverrideMarkerSeconds() {
+  const actions = runner?.getTimeline?.()?.actions;
+  if (!Array.isArray(actions) || actions.length <= 0) return [];
+  const seconds = [];
+  for (const action of actions) {
+    if (action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES) continue;
+    const tSec = Math.max(0, Math.floor(action?.tSec ?? 0));
+    if (!seconds.includes(tSec)) seconds.push(tSec);
+  }
+  return seconds.sort((a, b) => a - b);
+}
+
+function getSettlementViewedSlotSummary() {
+  const state = getSettlementViewedState();
+  if (!state?.hub) return null;
+  const practices = {};
+  for (const classId of getSettlementClassIds(state)) {
+    practices[classId] = getSettlementPracticeSlotsByClass(state, classId).map((slot) => {
+      const card = slot?.card ?? null;
+      return {
+        defId: card?.defId ?? null,
+        tier: card?.tier ?? card?.props?.settlement?.upgradeTier ?? null,
+      };
+    });
+  }
+  const structures = getSettlementStructureSlots(state).map((slot) => {
+    const structure = slot?.structure ?? null;
+    return {
+      defId: structure?.defId ?? null,
+      tier: structure?.tier ?? structure?.props?.settlement?.upgradeTier ?? null,
+    };
+  });
+  return { practices, structures };
 }
 
 function syncSettlementGraphRevealConfig() {
@@ -446,7 +622,9 @@ function syncSettlementVassalSelectionPauseState() {
       settlementVassalSelectionResumeSpeed = 0;
     }
     if (settlementVassalSelectionResumeSpeed === 0) {
-      settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection() ? settlementPlaybackSpeedTarget : 0;
+      settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection()
+        ? getSettlementPlaybackTarget()
+        : 0;
     }
     requestPauseBeforeDrag();
   }
@@ -464,6 +642,7 @@ function syncSettlementVassalSelectionPauseState() {
 }
 
 function openNextSettlementVassalSelection() {
+  settlementLastVassalSelectionResult = null;
   let frontierState = getSettlementFrontierState();
   let frontierSec = getSettlementFrontierSec();
   const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
@@ -481,9 +660,7 @@ function openNextSettlementVassalSelection() {
     if (deathSec == null || forecastStatus?.currentVassalDeathResolved !== true) {
       return { ok: false, reason: "currentVassalDeathUnresolved" };
     }
-    const commitStateData =
-      settlementGraphController?.getStateDataAt?.(deathSec) ?? null;
-    const commitRes = runner.commitCursorSecond?.(deathSec, commitStateData);
+    const commitRes = runner.commitCursorSecond?.(deathSec);
     if (commitRes?.ok !== true) {
       return commitRes ?? { ok: false, reason: "commitFailed" };
     }
@@ -491,13 +668,12 @@ function openNextSettlementVassalSelection() {
     settlementGraphView?.clearForecastRevealRestart?.();
     runner.clearPreviewState?.();
     runner.browseCursorSecond?.(deathSec);
-    settlementPlaybackViewSec = deathSec;
     invalidateSettlementProjectedLossCache();
     frontierState = getSettlementFrontierState();
     frontierSec = getSettlementFrontierSec();
   }
   settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection()
-    ? settlementPlaybackSpeedTarget
+    ? getSettlementPlaybackTarget()
     : 0;
   requestPauseBeforeDrag();
   setSettlementViewedSecond(frontierSec);
@@ -514,43 +690,169 @@ function openNextSettlementVassalSelection() {
 function selectSettlementVassal(candidateIndex) {
   const frontierSec = getSettlementFrontierSec();
   const selectionPool = settlementPendingVassalSelection;
-  setSettlementViewedSecond(frontierSec);
+  if (!selectionPool) {
+    return { ok: false, reason: "missingSelectionPool" };
+  }
+  const selectionSec = Number.isFinite(selectionPool?.createdSec)
+    ? Math.max(0, Math.floor(selectionPool.createdSec))
+    : frontierSec;
+  const isFirstVassalSelection =
+    selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
+  const moveRes = setSettlementViewedSecond(selectionSec);
+  if (moveRes?.ok !== true) {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementVassalChooserView?.refresh?.();
+    settlementLastVassalSelectionResult =
+      moveRes ?? { ok: false, reason: "selectionSeekFailed" };
+    return settlementLastVassalSelectionResult;
+  }
   settlementGraphView?.resetForecastPreviewState?.();
   settlementGraphView?.stageProjectionReplacementTransition?.({
-    truncationStartSec: frontierSec,
+    truncationStartSec: selectionSec,
     transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
     flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
     fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
   });
-  const result = runner.dispatchActionAtCurrentSecond?.(
-    ActionKinds.SETTLEMENT_SELECT_VASSAL,
-    {
-      candidateIndex,
-      expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
-      tSec: frontierSec,
-    }
-  );
+  const actionPayload = {
+    candidateIndex,
+    expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
+    tSec: selectionSec,
+  };
+  const result = isFirstVassalSelection
+    ? runner.dispatchActionAtSecond?.(
+        ActionKinds.SETTLEMENT_SELECT_VASSAL,
+        actionPayload,
+        selectionSec,
+        { reason: "settlementFirstVassalSelection" }
+      )
+    : runner.dispatchActionAtCurrentSecond?.(
+        ActionKinds.SETTLEMENT_SELECT_VASSAL,
+        actionPayload
+      );
+  settlementLastVassalSelectionResult = result ?? { ok: false, reason: "dispatchFailed" };
   if (result?.ok) {
+    if (isFirstVassalSelection) {
+      runner.browseCursorSecond?.(selectionSec);
+    }
     settlementPendingVassalSelection = null;
     invalidateSettlementProjectedLossCache();
     const frontierState = getSettlementFrontierState();
     const currentVassal = getSettlementCurrentVassal(frontierState);
-    scheduleSettlementPendingCommit(frontierSec, currentVassal);
+    scheduleSettlementPendingCommit(selectionSec, currentVassal);
     syncSettlementGraphHorizon();
-    settlementGraphView?.restartForecastRevealFrom?.(frontierSec, {
+    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
       activateProjectionReplacementTransition: true,
       extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
     });
-    returnSettlementViewToPresent(frontierSec);
+    returnSettlementViewToPresent(selectionSec);
     settlementVassalSelectionResumeSpeed = 0;
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
     settlementGraphView?.clearProjectionReplacementTransition?.();
-    settlementPendingVassalSelection = buildSettlementVassalSelectionPool(getSettlementFrontierState(), frontierSec);
+    const latestFrontierSec = getSettlementFrontierSec();
+    settlementPendingVassalSelection = buildSettlementVassalSelectionPool(
+      getSettlementFrontierState(),
+      latestFrontierSec
+    );
+    settlementVassalChooserView?.refresh?.();
+  } else if (result?.reason === "currentVassalAlive") {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementPendingVassalSelection = null;
+    syncSettlementVassalSelectionPauseState();
+    settlementVassalChooserView?.refresh?.();
   } else {
     settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementVassalChooserView?.refresh?.();
   }
   return result;
+}
+
+function applySettlementDebugOverrides(overrides) {
+  const cleanOverrides = (Array.isArray(overrides) ? overrides : []).filter(
+    (override) => override && typeof override === "object"
+  );
+  if (!cleanOverrides.length) return { ok: false, reason: "noOverrides" };
+
+  setSettlementPlaybackTarget(0);
+  const viewedSec = getSettlementViewedSec();
+  const targetSec = Math.max(0, Math.floor(viewedSec));
+  const frontierBeforeEdit = getSettlementFrontierSec();
+  const hadPendingSelection = !!settlementPendingVassalSelection;
+  settlementPendingVassalSelection = null;
+  let moveResult = { ok: true };
+  if (targetSec <= frontierBeforeEdit) {
+    moveResult = setSettlementViewedSecond(targetSec, { mode: "commit" });
+  } else {
+    runner.clearPreviewState?.();
+  }
+  if (!moveResult?.ok) return moveResult || { ok: false, reason: "targetBrowseFailed" };
+  settlementGraphView?.resetForecastPreviewState?.();
+
+  const previousFullHistoryEdit = runner.getFullHistoryEditOverride?.() === true;
+  runner.setFullHistoryEditOverride?.(true);
+  let result;
+  try {
+    const payload = {
+      overrides: cleanOverrides,
+    };
+    result =
+      targetSec > frontierBeforeEdit
+        ? runner.dispatchActionAtSecond?.(
+            ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES,
+            payload,
+            targetSec,
+            {
+              reason: "debugSettlementOverrides",
+              truncateFuture: true,
+            }
+          )
+        : runner.dispatchActionAtCurrentSecond?.(
+            ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES,
+            payload,
+            {
+              reason: "debugSettlementOverrides",
+              resetMaxReachedHistoryEndSec: true,
+            }
+          );
+  } finally {
+    runner.setFullHistoryEditOverride?.(previousFullHistoryEdit);
+  }
+
+  if (result?.ok) {
+    invalidateSettlementProjectedLossCache();
+    resyncSettlementPendingCommitForFrontier();
+    if (hadPendingSelection) {
+      const frontierSec = getSettlementFrontierSec();
+      const frontierState = getSettlementFrontierState();
+      const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
+      settlementPendingVassalSelection =
+        forecastStatus?.nextVassalEnabled === true
+          ? buildSettlementVassalSelectionPool(frontierState, frontierSec)
+          : null;
+      settlementVassalChooserView?.refresh?.();
+    }
+    syncSettlementGraphHorizon();
+    if (targetSec > getSettlementFrontierSec()) {
+      settlementGraphController?.ensureForecastCoverageTo?.(targetSec);
+      settlementGraphView?.restartForecastRevealFrom?.(targetSec, {
+        allowForecastStart: true,
+        clearProjectionReplacementTransition: true,
+      });
+      settlementPendingPreviewRestoreSec = targetSec;
+      restoreSettlementPendingPreviewTarget();
+    } else {
+      settlementGraphView?.restartForecastRevealFrom?.(targetSec, {
+        clearProjectionReplacementTransition: true,
+      });
+    }
+    prototypeView?.refresh?.();
+    settlementGraphView?.render?.();
+  }
+
+  return {
+    ...(result ?? { ok: false, reason: "dispatchFailed" }),
+    targetSec,
+  };
 }
 
 function getSettlementJumpToDeathState() {
@@ -686,11 +988,13 @@ const runner = createSimRunner({
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
+    settlementDebugMenu?.refresh?.();
   },
   onRebuildViews: () => {
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
+    settlementDebugMenu?.refresh?.();
   },
 });
 
@@ -725,9 +1029,7 @@ settlementForecastController = createSettlementForecastController({
   commitCursorSecond: (tSec) => runner.commitCursorSecond?.(tSec),
   browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
   clearPreviewState: () => runner.clearPreviewState?.(),
-  setPlaybackViewSec: (tSec) => {
-    settlementPlaybackViewSec = Math.max(0, Math.floor(tSec ?? 0));
-  },
+  setPlaybackViewSec: () => {},
   graphWindowSec: SETTLEMENT_GRAPH_WINDOW_SEC,
   lossSearchCapacitySec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
   autoCommitBufferSec: SETTLEMENT_AUTO_COMMIT_BUFFER_SEC,
@@ -797,7 +1099,7 @@ const timeControlsView = createTimeControlsView({
   layer: controlLayer,
   getGameState: () => ({
     ...(getSettlementViewedState() ?? {}),
-    paused: settlementPlaybackSpeedTarget === 0,
+    paused: getSettlementPlaybackTarget() === 0,
   }),
   togglePause,
   isPausePending: () => false,
@@ -806,7 +1108,7 @@ const timeControlsView = createTimeControlsView({
   getReturnToPresentState: () => ({ visible: false, enabled: false, targetSec: null }),
   onReturnToPresent: () => ({ ok: false, reason: "settlementNoReturnButton" }),
   getTimeScale: () => getSettlementPlaybackState(),
-  setTimeScaleTarget: (speed) => setSettlementPlaybackTarget(speed),
+  setTimeScaleTarget: (speed, opts) => setSettlementPlaybackTarget(speed, opts),
   layout: {
     enabled: true,
     zIndex: 4,
@@ -826,9 +1128,9 @@ const sunMoonDisksView = createSunAndMoonDisksView({
   getTimeline: () => runner.getTimeline?.(),
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
   getForecastPreviewCapSec: () => getSettlementPreviewCapSec(),
-  browseCursorSecond: (tSec) => setSettlementViewedSecond(tSec),
-  commitCursorSecond: (tSec) => setSettlementViewedSecond(tSec),
-  previewCursorSecond: (tSec) => setSettlementViewedSecond(tSec),
+  browseCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "browse" }),
+  commitCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "commit" }),
+  previewCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "preview" }),
   clearPreviewState: () => runner.clearPreviewState?.(),
   commitPreviewToLive: () => ({ ok: true, previewOnly: true }),
   requestPauseBeforeDrag: requestPauseBeforeDrag,
@@ -847,7 +1149,11 @@ settlementGraphView = createMetricGraphView({
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
   setPreviewState: (state) => runner.setPreviewState?.(state),
   clearPreviewState: () => runner.clearPreviewState?.(),
-  commitSecond: (tSec) => setSettlementViewedSecond(tSec),
+  commitSecond: (tSec, stateData) =>
+    setSettlementViewedSecond(tSec, { mode: "commit", stateData }),
+  commitForecastOnScrubRelease: false,
+  commitHistoryOnScrubRelease: false,
+  forecastPreviewStatusNote: "Viewing forecast",
   getWindowSpec: ({ timeline, cursorState, zoomed }) => {
     const preview = runner.getPreviewStatus?.();
     const frontierState = getSettlementFrontierState();
@@ -946,7 +1252,7 @@ settlementGraphView.setEventMarkerResolver?.(({ historyEndSec }) => {
   const frontierState = getSettlementFrontierState();
   const runComplete = isSettlementStateRunComplete(frontierState);
   const boundarySeconds = getSettlementVassalBoundarySeconds(frontierState, historyEndSec);
-  return boundarySeconds
+  const boundaryMarkers = boundarySeconds
     .filter((sec, index, arr) => arr.indexOf(sec) === index)
     .map((tSec) => ({
       tSec,
@@ -956,6 +1262,15 @@ settlementGraphView.setEventMarkerResolver?.(({ historyEndSec }) => {
       radius: tSec === historyEndSec && !runComplete ? 6 : 5,
       alpha: tSec === historyEndSec && !runComplete ? 0.92 : 0.78,
     }));
+  const debugMarkers = getSettlementDebugOverrideMarkerSeconds().map((tSec) => ({
+    tSec,
+    severity: "critical",
+    color: 0x7bdff2,
+    lineWidth: 2,
+    radius: 4,
+    alpha: 0.9,
+  }));
+  return [...boundaryMarkers, ...debugMarkers];
 });
 
 settlementVassalControlsView = createSettlementVassalControlsView({
@@ -984,6 +1299,15 @@ runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
 });
+settlementDebugMenu = createSettlementDebugMenuDom({
+  getState: () => getSettlementViewedState(),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  getViewedSec: () => getSettlementViewedSec(),
+  getPreviewStatus: () => runner.getPreviewStatus?.(),
+  applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
+  getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
+  isInteractionBlocked: () => !!settlementPendingVassalSelection,
+});
 
 function requestPauseBeforeDrag() {
   setSettlementPlaybackTarget(0);
@@ -991,7 +1315,7 @@ function requestPauseBeforeDrag() {
 }
 
 function togglePause() {
-  if (settlementPlaybackSpeedTarget !== 0) return requestPauseBeforeDrag();
+  if (getSettlementPlaybackTarget() !== 0) return requestPauseBeforeDrag();
   return setSettlementPlaybackTarget(1);
 }
 
@@ -1016,6 +1340,7 @@ function resizeCanvas() {
   fitCanvasToViewport(app.view);
   stylePage();
   prototypeView?.refresh?.();
+  settlementDebugMenu?.refresh?.();
   settlementGraphView.render?.();
   settlementGraphSeriesMenu?.render?.();
   sunMoonDisksView.applyLayout?.();
@@ -1029,8 +1354,8 @@ function publishSettlementDebugApi() {
     getFrontierSec: () => getSettlementFrontierSec(),
     getViewedSec: () => getSettlementViewedSec(),
     getPreviewCapSec: () => getSettlementPreviewCapSec(),
-    getPlaybackTarget: () => settlementPlaybackSpeedTarget,
-    getPlaybackCurrent: () => settlementPlaybackSpeedCurrent,
+    getPlaybackTarget: () => getSettlementPlaybackState().target,
+    getPlaybackCurrent: () => getSettlementPlaybackState().current,
     getProjectedLossInfo: () => getProjectedSettlementLossInfo(),
     getDisplayedLossInfo: () => getSettlementLossInfoForDisplay(),
     getGraphDebugState: () => settlementGraphView?.getDebugState?.() ?? null,
@@ -1040,6 +1365,7 @@ function publishSettlementDebugApi() {
     getProjectionDebugSecondKeys: (limit) =>
       settlementProjectionCache?.getDebugSecondKeys?.(limit) ?? null,
     getViewSemanticSnapshot: () => prototypeView?.getSemanticSnapshot?.() ?? null,
+    getViewedSlotSummary: () => getSettlementViewedSlotSummary(),
     getPendingCommitJob: () =>
       settlementForecastController?.getPendingCommitJob?.() ?? null,
     getTimeline: () => runner?.getTimeline?.() ?? null,
@@ -1054,8 +1380,11 @@ function publishSettlementDebugApi() {
     hasStateDataAt: (tSec) =>
       settlementGraphController?.getStateDataAt?.(tSec) != null,
     hasStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec) != null,
+    applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
     openNextSelection: () => openNextSettlementVassalSelection(),
     selectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
+    getLastVassalSelectionResult: () => settlementLastVassalSelectionResult,
+    isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
   });
 }
 
@@ -1072,6 +1401,7 @@ sunMoonDisksView.init();
 settlementVassalControlsView.init();
 settlementVassalChooserView.init();
 runCompleteView.init();
+settlementDebugMenu.init();
 syncSettlementRunCompletePresentation();
 publishSettlementDebugApi();
 
@@ -1081,24 +1411,12 @@ window.addEventListener("keydown", handleGlobalKeyDown);
 app.ticker.add((delta) => {
   const frameDt = delta / 60;
   runner.update(frameDt);
-  const playbackSpeed = settlementPlaybackSpeedTarget;
-  if (playbackSpeed !== 0) {
-    const baseViewedSec = Number.isFinite(settlementPlaybackViewSec)
-      ? settlementPlaybackViewSec
-      : getSettlementViewedSec();
-    const clampedViewedSec = Math.max(
-      0,
-      Math.min(baseViewedSec + playbackSpeed * frameDt, getSettlementPreviewCapSec())
-    );
-    const moveResult = setSettlementViewedSecond(clampedViewedSec);
-    if (!moveResult?.ok || Math.abs(clampedViewedSec - baseViewedSec) < 0.0001) {
-      setSettlementPlaybackTarget(0);
-    }
-  }
   settlementGraphController.update?.();
   processSettlementPendingCommit();
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
+  restoreSettlementPendingPreviewTarget();
+  updateSettlementPreviewPlayback(frameDt);
   syncSettlementVassalSelectionPauseState();
   settlementGraphSeriesMenu?.syncSelection?.();
   prototypeView.update(frameDt);
@@ -1110,4 +1428,5 @@ app.ticker.add((delta) => {
   settlementVassalChooserView.update(frameDt);
   syncSettlementRunCompletePresentation();
   runCompleteView.update(frameDt);
+  settlementDebugMenu.update(frameDt);
 });

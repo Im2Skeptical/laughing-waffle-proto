@@ -3,7 +3,7 @@
 import {
   buildProjectionStateStepWindowFromTimeline,
   buildProjectionStateStepWindowFromStateData,
-  buildProjectionStateWindowFromStateData,
+  buildProjectionStateWindowFromTimeline,
 } from "../projection.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import {
@@ -14,6 +14,7 @@ import {
 import { deserializeGameState } from "../state.js";
 import {
   absorbTimelinePersistentKnowledge,
+  getActionSecondsInRange,
   getStateDataAtSecond,
 } from "../timeline/index.js";
 import {
@@ -34,6 +35,9 @@ function computeTimelineSignature(tl) {
     actionsLen: len,
     lastRef: last,
     lastSec: last ? Math.floor(last.tSec ?? 0) : 0,
+    actionContentVersion: Number.isFinite(tl?._actionContentVersion)
+      ? Math.max(0, Math.floor(tl._actionContentVersion))
+      : 0,
   };
 }
 
@@ -44,7 +48,8 @@ function signatureEquals(a, b) {
     a.actionsRef === b.actionsRef &&
     a.actionsLen === b.actionsLen &&
     a.lastRef === b.lastRef &&
-    a.lastSec === b.lastSec
+    a.lastSec === b.lastSec &&
+    a.actionContentVersion === b.actionContentVersion
   );
 }
 
@@ -211,6 +216,36 @@ export function createProjectionCache({
     const changed = !signatureEquals(nextSig, signature);
     if (changed) reset(nextSig);
     return { changed, signature, signatureVersion };
+  }
+
+  function invalidateFromSecond(tl, startSec) {
+    const cutoff = clampSec(startSec);
+    const nextSig = computeTimelineSignature(tl);
+    const forecastSecs = new Set([
+      ...stateDataBySecond.keys(),
+      ...summaryBySecond.keys(),
+    ]);
+    for (const secRaw of forecastSecs) {
+      const sec = clampSec(secRaw);
+      if (sec < cutoff) continue;
+      removeSec(sec);
+      summaryBySecond.delete(sec);
+    }
+
+    signature = nextSig;
+    signatureVersion += 1;
+    const historyEndSec = clampSec(tl?.historyEndSec ?? 0);
+    const retainedEndSec = Math.max(historyEndSec, cutoff - 1);
+    forecastEndSec = Math.min(clampSec(forecastEndSec), retainedEndSec);
+    forecastAsyncBaseSec = historyEndSec;
+    forecastAsyncEndSec = Math.min(clampSec(forecastAsyncEndSec), retainedEndSec);
+    forecastAsyncStepSec = 1;
+    forecastAsyncToken = null;
+    return {
+      ok: true,
+      invalidatedFromSec: cutoff,
+      signatureVersion,
+    };
   }
 
   function getTimelineToken(tl) {
@@ -401,6 +436,24 @@ export function createProjectionCache({
       return { ok: true, stateData: sdRes.stateData };
     }
 
+    const scheduledActionSecs = getActionSecondsInRange(tl, historyEnd + 1, t, {
+      copy: false,
+    });
+    if (Array.isArray(scheduledActionSecs) && scheduledActionSecs.length > 0) {
+      const sdRes = getStateDataAtSecond(tl, t);
+      if (!sdRes.ok) {
+        return { ok: false, reason: sdRes.reason || "rebuildFailed" };
+      }
+      setForecastState(t, historyEnd, sdRes.stateData);
+      if (summaryBySecond.get(t) == null) {
+        buildAndSetSummaryFromStateData(t, sdRes.stateData);
+      }
+      if (absorbKnowledge) {
+        absorbTimelinePersistentKnowledge(tl, sdRes.stateData);
+      }
+      return { ok: true, stateData: sdRes.stateData };
+    }
+
     const cached = touch(t);
     if (cached != null) {
       if (absorbKnowledge) {
@@ -456,10 +509,10 @@ export function createProjectionCache({
       if (anchorData != null) {
         const delta = t - anchorSec;
         if (delta > 0) {
-          const win = buildProjectionStateWindowFromStateData(anchorData, anchorSec, {
-              horizonSec: delta,
-              dtStep: forecastDtStep ?? dtStep,
-            });
+          const win = buildProjectionStateWindowFromTimeline(tl, anchorSec, {
+            horizonSec: delta,
+            dtStep: forecastDtStep ?? dtStep,
+          });
           if (win.ok) {
             const sd = win.stateDataBySecond.get(t);
             if (sd != null) {
@@ -566,6 +619,7 @@ export function createProjectionCache({
 
   return {
     ensureSignature,
+    invalidateFromSecond,
     getTimelineToken,
     ensureStateAtSecond,
     ensureForecastWindow,

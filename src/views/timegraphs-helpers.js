@@ -58,7 +58,11 @@ export function reconcileLatchedForecastPreview({
     latchedForecastScrubSec: null,
     forecastPreviewSec: null,
     statusNote:
-      statusNote === "Preview only - click Commit to jump" ? "" : statusNote,
+      statusNote === "Preview only - click Commit to jump" ||
+      statusNote === "Release to jump" ||
+      statusNote === "Viewing forecast"
+        ? ""
+        : statusNote,
   };
 }
 

@@ -2,6 +2,7 @@
 // Active settlement timeline action registry.
 
 import { cmdSelectSettlementVassal } from "./commands/settlement-vassal-commands.js";
+import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
 import { getApCapForSecond, normalizeApState } from "./commands/ap-helpers.js";
 
 export const ActionKinds = {
@@ -41,6 +42,7 @@ export const ActionKinds = {
   UNLOCK_SKILL_NODE: "unlockSkillNode",
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
+  DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES: "debugSetSettlementSlotOverrides",
 };
 
 function ensureAPState(state) {
@@ -136,6 +138,9 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.DEBUG_SET_CAP:
       result = cmdDebugSetCap(state, payload);
+      break;
+    case ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES:
+      result = cmdDebugSetSettlementSlotOverrides(state, payload);
       break;
     default:
       return { ok: false, reason: "unsupportedAction", kind };

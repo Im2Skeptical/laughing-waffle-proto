@@ -597,7 +597,11 @@ export function createTimegraphForecastWorkerService({
   }
 
   function handleTimelineInvalidation(_reason = "invalidate") {
-    clearInFlightRequests();
+    // Timeline edits make the worker's current chunk obsolete. Clearing request
+    // maps prevents stale merges, but the old worker can still keep computing
+    // and delay the next branch's request. Terminate it so the next request
+    // starts on a fresh worker with the current timeline token.
+    teardownWorker({ disable: false });
     requestsByKey.clear();
     workerDisabled = false;
   }

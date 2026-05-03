@@ -507,12 +507,19 @@ export function createSettlementForecastController({
       : null;
     const historyEndSec = clampSec(getFrontierSec?.(), 0);
     const computedCoverageEndSec = getComputedCoverageEndSec();
+    const revealedCoverageEndSec = getBrowseCapSec();
+    const currentVassalDeathComputed =
+      deathSec != null &&
+      Math.max(historyEndSec, computedCoverageEndSec) >= deathSec;
+    const currentVassalDeathRevealed =
+      deathSec != null &&
+      Math.max(historyEndSec, revealedCoverageEndSec) >= deathSec;
     return {
       currentVassal,
       currentVassalDeathSec: deathSec,
-      currentVassalDeathResolved:
-        deathSec != null &&
-        Math.max(historyEndSec, computedCoverageEndSec) >= deathSec,
+      currentVassalDeathComputed,
+      currentVassalDeathRevealed,
+      currentVassalDeathResolved: currentVassalDeathRevealed,
     };
   }
 
@@ -524,7 +531,13 @@ export function createSettlementForecastController({
     const displayedLossInfo = getDisplayedLossInfo();
     const projectedLossInfo = getProjectedLossInfo();
     const pendingCommitTargetSec = getPendingCommitTargetSec(historyEndSec);
-    const { currentVassal, currentVassalDeathSec, currentVassalDeathResolved } =
+    const {
+      currentVassal,
+      currentVassalDeathSec,
+      currentVassalDeathComputed,
+      currentVassalDeathRevealed,
+      currentVassalDeathResolved,
+    } =
       getCurrentVassalDeathState(frontierState);
     const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
     const nextVassalEnabled =
@@ -555,6 +568,8 @@ export function createSettlementForecastController({
         : null,
       projectedLossResolved: projectedLossInfo?.resolved === true,
       currentVassalDeathSec,
+      currentVassalDeathComputed,
+      currentVassalDeathRevealed,
       currentVassalDeathResolved,
       pendingCommitTargetSec,
       nextVassalEnabled,

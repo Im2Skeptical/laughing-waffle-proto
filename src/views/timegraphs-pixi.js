@@ -131,6 +131,9 @@ export function createMetricGraphView({
   plotSnapshotLeadSec = 0,
   freezeRevealedPlotPrefix = false,
   freezeScaleMaxDuringReveal = false,
+  commitForecastOnScrubRelease = false,
+  commitHistoryOnScrubRelease = true,
+  forecastPreviewStatusNote: forecastPreviewStatusNoteOverride = null,
   bootFadeDurationMs = 0,
   bootFadeColor = 0x000000,
   bootRevealDelayMs = 0,
@@ -236,6 +239,20 @@ export function createMetricGraphView({
       });
     }
     return merged;
+  }
+
+  function applyStickyScaleRangeSources(nextRanges, seriesList = [], sources = []) {
+    let merged = nextRanges instanceof Map ? nextRanges : new Map();
+    for (const source of Array.isArray(sources) ? sources : []) {
+      if (!(source instanceof Map)) continue;
+      merged = mergeStickySeriesScaleRanges(source, merged, seriesList);
+    }
+    return merged;
+  }
+
+  function getProjectionReplacementScaleRanges() {
+    const ranges = projectionReplacement?.snapshot?.seriesScaleRanges;
+    return ranges instanceof Map ? ranges : null;
   }
 
   function buildSeriesValuesForVisibleScaleRange(
@@ -576,6 +593,12 @@ export function createMetricGraphView({
   let lastRestoreMs = 0;
   const RESTORE_THROTTLE_MS = 33;
   let statusNote = "";
+  const forecastPreviewStatusNote = commitForecastOnScrubRelease
+    ? "Release to jump"
+    : typeof forecastPreviewStatusNoteOverride === "string" &&
+        forecastPreviewStatusNoteOverride.length > 0
+      ? forecastPreviewStatusNoteOverride
+      : "Preview only - click Commit to jump";
   let lastScrubSignature = "";
   let cachedActionSecs = [];
   let lastActionSecondsVersion = null;
@@ -868,7 +891,7 @@ export function createMetricGraphView({
       return actual;
     }
     const override = Math.max(0, Math.floor(forecastRevealStartSecOverride));
-    if (override > actual) {
+    if (override !== actual) {
       forecastRevealStartSecOverride = null;
       return actual;
     }
@@ -1054,6 +1077,7 @@ export function createMetricGraphView({
     if (
       statusNote === "Forecast loading" ||
       statusNote === "Forecast revealing" ||
+      statusNote === forecastPreviewStatusNote ||
       statusNote === "Preview only - click Commit to jump"
     ) {
       statusNote = "";
@@ -1214,7 +1238,7 @@ export function createMetricGraphView({
     if (!restored) return;
     setPreviewState?.(restored);
     scrubSec = clampScrubSecToRevealCap(latchedForecastScrubSec);
-    statusNote = "Preview only - click Commit to jump";
+    statusNote = forecastPreviewStatusNote;
   }
 
   function resetForecastReveal(animatedEndSec, targetEndSec, historyEndSec, nowMs) {
@@ -1255,17 +1279,21 @@ export function createMetricGraphView({
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const actualHistoryEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
-    const normalizedStartSec = Math.max(
-      0,
-      Math.min(Math.floor(startSec ?? actualHistoryEndSec), actualHistoryEndSec)
-    );
-    forecastRevealStartSecOverride =
-      normalizedStartSec <= actualHistoryEndSec ? normalizedStartSec : null;
     const displayHistoryEndSec = getDisplayHistoryEndSec(actualHistoryEndSec);
     const actualForecastCoverageEndSec = Math.max(
       actualHistoryEndSec,
       Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
     );
+    const maxRestartSec =
+      opts?.allowForecastStart === true
+        ? Math.max(actualForecastCoverageEndSec, Math.floor(startSec ?? actualHistoryEndSec))
+        : actualHistoryEndSec;
+    const normalizedStartSec = Math.max(
+      0,
+      Math.min(Math.floor(startSec ?? actualHistoryEndSec), maxRestartSec)
+    );
+    forecastRevealStartSecOverride =
+      normalizedStartSec <= actualForecastCoverageEndSec ? normalizedStartSec : null;
     const nowMs = performance.now();
     if (opts?.activateProjectionReplacementTransition === true) {
       projectionReplacement = stagedProjectionReplacement
@@ -1282,7 +1310,7 @@ export function createMetricGraphView({
       }
     }
     resetForecastReveal(
-      displayHistoryEndSec,
+      Math.max(displayHistoryEndSec, normalizedStartSec),
       actualForecastCoverageEndSec,
       displayHistoryEndSec,
       nowMs
@@ -1421,8 +1449,6 @@ export function createMetricGraphView({
       forecastRevealVisibleEndSec = clampedAnimatedEnd;
       forecastRevealTargetEndSec = Math.max(actualEnd, clampedAnimatedEnd);
       forecastRevealHistoryEndSec = historyEnd;
-      forecastRevealLastTickMs = nowMs;
-      forecastRevealVelocitySecPerSec = 0;
     }
 
     if (actualEnd > targetEnd) {
@@ -2121,10 +2147,13 @@ export function createMetricGraphView({
         visibleForecastCoverageEndSec
       );
       if (freezeScaleMaxDuringRevealCur) {
-        refreshedScaleRanges = mergeStickySeriesScaleRanges(
-          baseSnapshot?.seriesScaleRanges,
+        refreshedScaleRanges = applyStickyScaleRangeSources(
           refreshedScaleRanges,
-          seriesList
+          seriesList,
+          [
+            baseSnapshot?.seriesScaleRanges,
+            getProjectionReplacementScaleRanges(),
+          ]
         );
         triggerSeriesScaleMaxFlash({
           previousRanges: baseSnapshot?.seriesScaleRanges,
@@ -2300,16 +2329,25 @@ export function createMetricGraphView({
       visibleForecastCoverageEndSec
     );
     if (freezeScaleMaxDuringRevealCur && previousSnapshotCompatible) {
-      seriesScaleRanges = mergeStickySeriesScaleRanges(
-        plotSnapshot?.seriesScaleRanges,
+      seriesScaleRanges = applyStickyScaleRangeSources(
         seriesScaleRanges,
-        seriesList
+        seriesList,
+        [
+          plotSnapshot?.seriesScaleRanges,
+          getProjectionReplacementScaleRanges(),
+        ]
       );
       triggerSeriesScaleMaxFlash({
         previousRanges: plotSnapshot?.seriesScaleRanges,
         nextRanges: seriesScaleRanges,
         visibleMaxValues,
       });
+    } else if (freezeScaleMaxDuringRevealCur) {
+      seriesScaleRanges = applyStickyScaleRangeSources(
+        seriesScaleRanges,
+        seriesList,
+        [getProjectionReplacementScaleRanges()]
+      );
     }
 
     const markerActionSecs = getMarkerActionSecs(
@@ -2864,7 +2902,7 @@ export function createMetricGraphView({
 
     if (commit && !isForecast) {
       clearLatchedForecastScrub();
-      if (typeof commitPolicyResolver === "function") {
+      if (commitHistoryOnScrubRelease && typeof commitPolicyResolver === "function") {
         const decision = commitPolicyResolver({
           scrubSec,
           historyEndSec: historyEnd,
@@ -2906,7 +2944,21 @@ export function createMetricGraphView({
         drawScrub();
         return;
       }
-      statusNote = "Preview only - click Commit to jump";
+      if (commit && commitForecastOnScrubRelease) {
+        clearPreviewState?.();
+        const stateData = controller?.getStateDataAt?.(scrubSec);
+        const res = commitSecond?.(scrubSec, stateData);
+        if (res && res.ok === false) {
+          statusNote = `Jump failed: ${res.reason}`;
+          drawScrub();
+          return;
+        }
+        clearLatchedForecastScrub();
+        statusNote = "";
+        drawScrub();
+        return;
+      }
+      statusNote = forecastPreviewStatusNote;
       applyPreviewThrottled(true);
       return;
     }
@@ -3107,6 +3159,21 @@ export function createMetricGraphView({
           .slice(0, 96)
           .map((point) => point?.pending === true),
       },
+      eventMarkers: Array.isArray(snapshot?.eventMarkers)
+        ? snapshot.eventMarkers.map((marker) => ({
+            tSec: marker.tSec,
+            severity: marker.severity,
+            color: marker.color,
+          }))
+        : [],
+      seriesScaleRanges:
+        snapshot?.seriesScaleRanges instanceof Map
+          ? Array.from(snapshot.seriesScaleRanges.entries()).map(([seriesId, range]) => ({
+              seriesId,
+              minValue: Number.isFinite(range?.minValue) ? range.minValue : null,
+              maxValue: Number.isFinite(range?.maxValue) ? range.maxValue : null,
+            }))
+          : [],
       plotScreenRect: getPlotScreenRect(),
       windowScreenRect: getScreenRect(),
     };

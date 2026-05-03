@@ -143,6 +143,16 @@ export function createSimRunner({
     return next;
   }
 
+  function resetTimelineMaxReachedHistoryEndSec(tSec = null) {
+    if (!timeline) return 0;
+    const historyEndSec = Math.max(0, Math.floor(timeline.historyEndSec ?? 0));
+    const cursorSec = Math.max(0, Math.floor(cursorState?.tSec ?? historyEndSec));
+    const extra = Number.isFinite(tSec) ? Math.max(0, Math.floor(tSec)) : 0;
+    const next = Math.max(historyEndSec, cursorSec, extra);
+    timeline.maxReachedHistoryEndSec = next;
+    return next;
+  }
+
   function getEditableHistoryBounds() {
     const windowSec = getEditableHistoryWindowSec();
     const maxReachedSec = syncTimelineMaxReachedHistoryEndSec();
@@ -1053,7 +1063,11 @@ export function createSimRunner({
     seekPlaybackIndex(currentSec);
     playbackActive = currentSec < getPlaybackCeilingSec();
     maintainCheckpoints(timeline, cursorState, ACTION_PATH_CHECKPOINT_OPTS);
-    syncTimelineMaxReachedHistoryEndSec();
+    if (opts.resetMaxReachedHistoryEndSec === true) {
+      resetTimelineMaxReachedHistoryEndSec(currentSec);
+    } else {
+      syncTimelineMaxReachedHistoryEndSec();
+    }
 
     onRebuildViews?.("actionDispatchedCurrentSec");
     onInvalidate?.("actionDispatchedCurrentSec");
@@ -1071,6 +1085,7 @@ export function createSimRunner({
   function scheduleActionsAtSecond(actionsAtSec, tSec, opts = {}) {
     if (!timeline || !cursorState) return { ok: false, reason: "noState" };
     const sec = Math.max(0, Math.floor(tSec ?? 0));
+    const truncateFuture = opts.truncateFuture === true;
     const gate = getEditWindowStatusForSecond(sec);
     if (!gate.ok) {
       return {
@@ -1100,7 +1115,7 @@ export function createSimRunner({
     if (!validation?.ok) return validation;
 
     const replaceRes = replaceActionsAtSecond(timeline, sec, orderedAtSec, {
-      truncateFuture: false,
+      truncateFuture,
     });
     if (!replaceRes?.ok) return replaceRes || { ok: false, reason: "replace" };
 
@@ -1596,6 +1611,7 @@ export function createSimRunner({
       return finishDispatch(
         applyActionsAtCurrentSecondByResim(prepared.actions, {
           reason: opts.reason || "dispatchLiveCurrentSec",
+          resetMaxReachedHistoryEndSec: opts.resetMaxReachedHistoryEndSec === true,
         })
       );
     },
@@ -1624,6 +1640,34 @@ export function createSimRunner({
       return finishDispatch(
         applyActionsAtCurrentSecondByResim(prepared.actions, {
           reason: opts.reason || "dispatchBatchLiveCurrentSec",
+          resetMaxReachedHistoryEndSec: opts.resetMaxReachedHistoryEndSec === true,
+        })
+      );
+    },
+
+    dispatchActionAtSecond(kind, payload, tSec, opts = {}) {
+      const perfStart = perfEnabled() ? perfNowMs() : 0;
+      const finishDispatch = (res) => {
+        recordActionDispatch({
+          ok: !!res?.ok,
+          ms: perfEnabled() ? perfNowMs() - perfStart : 0,
+        });
+        return res;
+      };
+      const prepared = prepareDispatchBatch([
+        {
+          kind,
+          payload,
+          apCost: opts.apCost,
+        },
+      ]);
+      if (!prepared?.ok) {
+        return finishDispatch(prepared);
+      }
+      return finishDispatch(
+        scheduleActionsAtSecond(prepared.actions, tSec, {
+          reason: opts.reason || "dispatchAtSecond",
+          truncateFuture: opts.truncateFuture === true,
         })
       );
     },
