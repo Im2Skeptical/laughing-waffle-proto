@@ -59,7 +59,7 @@ function getPracticeCardStyle(defId) {
   };
 }
 
-function createMiniPracticeCard(container, rect, defId, tooltipView) {
+function createMiniPracticeCard(container, rect, defId, tooltipView, onTap = null) {
   const root = new PIXI.Container();
   root.x = rect.x;
   root.y = rect.y;
@@ -100,6 +100,10 @@ function createMiniPracticeCard(container, rect, defId, tooltipView) {
     root.eventMode = "static";
     root.cursor = "pointer";
     root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+    root.on("pointertap", (event) => {
+      event?.stopPropagation?.();
+      onTap?.();
+    });
     root.on("pointerover", () => {
       const def = settlementPracticeDefs[defId];
       const lines = Array.isArray(def?.ui?.lines) ? [...def.ui.lines] : [];
@@ -132,7 +136,7 @@ function createMiniPracticeCard(container, rect, defId, tooltipView) {
   return root;
 }
 
-function drawAgendaSection(container, rect, classId, agenda, tooltipView) {
+function drawAgendaSection(container, rect, classId, agenda, tooltipView, onTap = null) {
   const section = new PIXI.Container();
   section.x = rect.x;
   section.y = rect.y;
@@ -161,7 +165,8 @@ function drawAgendaSection(container, rect, classId, agenda, tooltipView) {
         height: cardHeight,
       },
       cards[index],
-      tooltipView
+      tooltipView,
+      onTap
     );
   }
 
@@ -185,7 +190,8 @@ function createCard(container, rect, candidate, onSelect, tooltipView) {
   root.eventMode = "static";
   root.cursor = "pointer";
   root.hitArea = new PIXI.Rectangle(rect.x, rect.y, rect.width, rect.height);
-  root.on("pointertap", () => onSelect?.(candidate?.candidateIndex ?? null));
+  const selectCandidate = () => onSelect?.(candidate?.candidateIndex ?? null);
+  root.on("pointertap", selectCandidate);
 
   const bg = new PIXI.Graphics();
   drawCardRect(bg, rect.x, rect.y, rect.width, rect.height, 0x4d4740, 0xd7b450);
@@ -225,7 +231,8 @@ function createCard(container, rect, candidate, onSelect, tooltipView) {
     },
     "villager",
     candidate?.agendaByClass?.villager ?? [],
-    tooltipView
+    tooltipView,
+    selectCandidate
   );
   drawAgendaSection(
     root,
@@ -235,7 +242,8 @@ function createCard(container, rect, candidate, onSelect, tooltipView) {
     },
     "stranger",
     candidate?.agendaByClass?.stranger ?? [],
-    tooltipView
+    tooltipView,
+    selectCandidate
   );
 
   container.addChild(root);

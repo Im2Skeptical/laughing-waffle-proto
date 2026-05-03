@@ -216,7 +216,7 @@ export function createTimeGraphController({
     );
   }
 
-  function tryBuildForecastStateDataFromRetainedAnchor(sec, historyEndSec) {
+  function tryBuildForecastStateDataFromRetainedAnchor(sec, historyEndSec, tl = null) {
     const targetSec = clampSec(sec);
     const frontierSec = clampSec(historyEndSec);
     const anchorSec = findNearestForecastAnchorSec(
@@ -225,6 +225,12 @@ export function createTimeGraphController({
       frontierSec
     );
     if (anchorSec == null) return null;
+    if (tl) {
+      const actionSecs = getActionSecondsInRange(tl, anchorSec + 1, targetSec, {
+        copy: false,
+      });
+      if (Array.isArray(actionSecs) && actionSecs.length > 0) return null;
+    }
 
     const anchorStateData =
       graphCache?.stateDataByBoundary?.get?.(anchorSec) ?? null;
@@ -634,6 +640,43 @@ export function createTimeGraphController({
     return { ok: true };
   }
 
+  function deleteMapEntriesAtOrAfter(map, startSec) {
+    if (!(map instanceof Map)) return;
+    const start = clampSec(startSec);
+    for (const secRaw of map.keys()) {
+      if (clampSec(secRaw) >= start) {
+        map.delete(secRaw);
+      }
+    }
+  }
+
+  function invalidateGraphCacheFromSecond(startSec, historyEndSec) {
+    if (!graphCache) return;
+    const start = clampSec(startSec);
+    invalidateSubjectValuesFromSec(start);
+    graphCache.historyEndSec = clampSec(historyEndSec);
+    if (graphCache.window) {
+      const retainedForecast = Array.isArray(graphCache.window.forecast)
+        ? graphCache.window.forecast.filter((point) => clampSec(point?.tSec ?? 0) < start)
+        : [];
+      const retainedCoverageEndSec = retainedForecast.reduce(
+        (maxSec, point) => Math.max(maxSec, clampSec(point?.tSec ?? 0)),
+        clampSec(historyEndSec)
+      );
+      graphCache.window.baseSec = clampSec(historyEndSec);
+      graphCache.window.endSec = clampSec(historyEndSec) + horizonSecCur;
+      graphCache.window.forecast = retainedForecast;
+      graphCache.window.forecastCoverageEndSec = retainedCoverageEndSec;
+      graphCache.window.forecastRequestedEndSec = retainedCoverageEndSec;
+      graphCache.window.forecastPending = false;
+      graphCache.window.forecastValuesBySec = new Map();
+      graphCache.window.forecastValuesMeta = null;
+    }
+    deleteMapEntriesAtOrAfter(graphCache.stateDataByBoundary, start);
+    graphCache.sampleCache?.clear?.();
+    graphCache.version = ++cacheVersion;
+  }
+
   function patchHistoryFromSecond(tl, startSec, endSec) {
     if (!graphCache || !tl) return false;
 
@@ -1019,12 +1062,22 @@ export function createTimeGraphController({
       return { ok: true, reason: "deferred" };
     }
 
-    const sigRes = projection.ensureSignature(tl);
-    const signatureChanged = !!sigRes?.changed;
-
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
     const mutationSec = clampSec(tl?._lastMutationSec ?? historyEndSec);
     const mutationKind = tl?._lastMutationKind ?? null;
+    const isScheduledReplacePatch =
+      reason === "actionScheduled" &&
+      mutationKind === "replaceActionsAtSec" &&
+      graphCache;
+    if (isScheduledReplacePatch) {
+      projection.invalidateFromSecond?.(tl, mutationSec);
+    }
+
+    const sigRes = isScheduledReplacePatch
+      ? { changed: true }
+      : projection.ensureSignature(tl);
+    const signatureChanged = !!sigRes?.changed;
+
     const isPlannerCommitReason =
       typeof reason === "string" && reason.startsWith("plannerCommit");
     const isPlannerReplacePatch =
@@ -1046,31 +1099,18 @@ export function createTimeGraphController({
       !seriesDirty &&
       !valuesDirty &&
       !isPlannerCommitReason &&
+      !isScheduledReplacePatch &&
       reason !== "open" &&
       reason !== "active"
     ) {
       return { ok: true, reason: "noChange" };
     }
 
-    if (isPlannerReplacePatch || isCurrentSecondReplacePatch) {
+    if (isPlannerReplacePatch || isCurrentSecondReplacePatch || isScheduledReplacePatch) {
       // Defensive path: planner commits replace actions in-place at current sec.
       // Even if signature detection misses a corner case, force targeted cache
       // invalidation so scrub/preview reads cannot stay stale.
-      invalidateSubjectValuesFromSec(mutationSec);
-      graphCache.historyEndSec = historyEndSec;
-      if (graphCache.window) {
-        graphCache.window.baseSec = historyEndSec;
-        graphCache.window.endSec = historyEndSec + horizonSecCur;
-        graphCache.window.forecastValuesBySec = new Map();
-        graphCache.window.forecastValuesMeta = null;
-      }
-      if (graphCache.stateDataByBoundary) {
-        graphCache.stateDataByBoundary.clear();
-      }
-      if (graphCache.sampleCache && tl?._lastMutationChangedActionSeconds) {
-        graphCache.sampleCache.clear();
-      }
-      graphCache.version = ++cacheVersion;
+      invalidateGraphCacheFromSecond(mutationSec, historyEndSec);
       lastKnownHistoryEndSec = historyEndSec;
       stateDirty = false;
       windowDirty = false;
@@ -1079,7 +1119,9 @@ export function createTimeGraphController({
       requestAsyncForecastCoverage(tl, { force: true });
       return {
         ok: true,
-        reason: isCurrentSecondReplacePatch
+        reason: isScheduledReplacePatch
+          ? "scheduledReplaceActionPatch"
+          : isCurrentSecondReplacePatch
           ? "currentSecondReplaceActionPatch"
           : "replaceActionPatch",
       };
@@ -1093,21 +1135,7 @@ export function createTimeGraphController({
         graphCache;
       if (isActionAppendPatch || isPlannerReplacePatch || isCurrentSecondReplacePatch) {
         // Preserve most cached values; only invalidate from mutation frontier.
-        invalidateSubjectValuesFromSec(mutationSec);
-        graphCache.historyEndSec = historyEndSec;
-        if (graphCache.window) {
-          graphCache.window.baseSec = historyEndSec;
-          graphCache.window.endSec = historyEndSec + horizonSecCur;
-          graphCache.window.forecastValuesBySec = new Map();
-          graphCache.window.forecastValuesMeta = null;
-        }
-        if (graphCache.stateDataByBoundary) {
-          graphCache.stateDataByBoundary.clear();
-        }
-        if (graphCache.sampleCache && tl?._lastMutationChangedActionSeconds) {
-          graphCache.sampleCache.clear();
-        }
-        graphCache.version = ++cacheVersion;
+        invalidateGraphCacheFromSecond(mutationSec, historyEndSec);
         lastKnownHistoryEndSec = historyEndSec;
         stateDirty = false;
         windowDirty = false;
@@ -1630,16 +1658,28 @@ export function createTimeGraphController({
     const sec = clampSec(tSec);
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
     if (shouldCacheForecastSec(sec, historyEndSec)) {
-      const cachedGraphStateData = graphCache?.stateDataByBoundary?.get?.(sec) ?? null;
-      if (cachedGraphStateData != null) {
-        recordTimegraphCacheHit();
-        return cachedGraphStateData;
+      const scheduledActionSecs = getActionSecondsInRange(
+        tl,
+        historyEndSec + 1,
+        sec,
+        { copy: false }
+      );
+      const crossesScheduledActions =
+        Array.isArray(scheduledActionSecs) && scheduledActionSecs.length > 0;
+      if (!crossesScheduledActions) {
+        const cachedGraphStateData = graphCache?.stateDataByBoundary?.get?.(sec) ?? null;
+        if (cachedGraphStateData != null) {
+          recordTimegraphCacheHit();
+          return cachedGraphStateData;
+        }
       }
       // Guard direct projection-cache reads behind signature refresh so
       // stale forecast snapshots cannot survive timeline edits.
       const sigRes = projection.ensureSignature?.(tl);
       const cachedProjectionData =
-        sigRes?.changed === true ? null : projection.getStateData?.(sec) ?? null;
+        sigRes?.changed === true || crossesScheduledActions
+          ? null
+          : projection.getStateData?.(sec) ?? null;
       if (cachedProjectionData != null) {
         recordTimegraphCacheHit();
         cacheForecastStateData(
@@ -1651,14 +1691,17 @@ export function createTimeGraphController({
         syncForecastRuntimeCoverageToSec(sec, historyEndSec);
         return cachedProjectionData;
       }
-      const rebuiltStateData = tryBuildForecastStateDataFromRetainedAnchor(
-        sec,
-        historyEndSec
-      );
-      if (rebuiltStateData != null) {
-        recordTimegraphCacheHit();
-        syncForecastRuntimeCoverageToSec(sec, historyEndSec);
-        return rebuiltStateData;
+      if (!crossesScheduledActions) {
+        const rebuiltStateData = tryBuildForecastStateDataFromRetainedAnchor(
+          sec,
+          historyEndSec,
+          tl
+        );
+        if (rebuiltStateData != null) {
+          recordTimegraphCacheHit();
+          syncForecastRuntimeCoverageToSec(sec, historyEndSec);
+          return rebuiltStateData;
+        }
       }
       recordTimegraphCacheMiss();
       const res = ensureProjectionStateAtSecond(

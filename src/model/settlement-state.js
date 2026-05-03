@@ -648,7 +648,7 @@ export function createSettlementCardInstance(defId, cardKind, state, overrides =
     systemState: {},
   };
   if (overrides && typeof overrides === "object") {
-    for (const key of ["props", "systemTiers", "systemState"]) {
+    for (const key of ["tier", "props", "systemTiers", "systemState"]) {
       if (Object.prototype.hasOwnProperty.call(overrides, key)) {
         instance[key] = cloneSerializable(overrides[key]);
       }

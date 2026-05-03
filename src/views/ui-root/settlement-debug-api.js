@@ -28,6 +28,7 @@ function summarizeGraphControllerData(data) {
 }
 
 function summarizeTimeline(timeline) {
+  const actions = Array.isArray(timeline?.actions) ? timeline.actions : [];
   return timeline
     ? {
         cursorSec: nonNegativeFloor(timeline.cursorSec),
@@ -36,6 +37,13 @@ function summarizeTimeline(timeline) {
           timeline.maxReachedHistoryEndSec
         ),
         revision: nonNegativeFloor(timeline.revision),
+        actionContentVersion: nonNegativeFloor(timeline._actionContentVersion),
+        actionCount: actions.length,
+        actions: actions.slice(-16).map((action) => ({
+          kind: action?.kind ?? null,
+          tSec: nonNegativeFloor(action?.tSec),
+          payload: action?.payload ?? null,
+        })),
       }
     : null;
 }
@@ -67,6 +75,7 @@ export function publishSettlementDebugApi({
   getProjectionForecastMeta,
   getProjectionDebugSecondKeys,
   getViewSemanticSnapshot,
+  getViewedSlotSummary,
   getPendingCommitJob,
   getTimeline,
   getPreviewStatus,
@@ -79,8 +88,11 @@ export function publishSettlementDebugApi({
   getGraphController,
   hasStateDataAt,
   hasStateAt,
+  applyOverrides,
   openNextSelection,
   selectCandidate,
+  getLastVassalSelectionResult,
+  isVassalSelectionOpen,
 } = {}) {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
@@ -104,6 +116,7 @@ export function publishSettlementDebugApi({
         projection: getProjectionForecastMeta?.() ?? null,
         projectionKeys: getProjectionDebugSecondKeys?.(32) ?? null,
         view: getViewSemanticSnapshot?.() ?? null,
+        slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
           timeline: summarizeTimeline(timeline),
@@ -112,6 +125,8 @@ export function publishSettlementDebugApi({
           stateSec: nonNegativeFloor(state?.tSec),
         },
         lineage: summarizeLineage(getFrontierState?.()),
+        lastVassalSelectionResult: getLastVassalSelectionResult?.() ?? null,
+        vassalSelectionOpen: isVassalSelectionOpen?.() === true,
       };
     },
     getGraphClickPoint: (ratioX = 0, ratioY = 0.5) => {
@@ -136,6 +151,7 @@ export function publishSettlementDebugApi({
       }),
     hasStateDataAt: (tSec) => hasStateDataAt?.(Math.floor(tSec ?? 0)) === true,
     hasStateAt: (tSec) => hasStateAt?.(Math.floor(tSec ?? 0)) === true,
+    applyOverrides: (overrides) => applyOverrides?.(overrides),
     openNextSelection: () => openNextSelection?.(),
     selectCandidate: (candidateIndex) =>
       selectCandidate?.(Math.max(0, Math.floor(candidateIndex ?? 0))),

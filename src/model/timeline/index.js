@@ -90,6 +90,7 @@ export function createEmptyTimelineFromBase(baseState) {
   tl.actionsBySec = new Map();
   tl._actionSecondsSorted = [];
   tl._actionSecondsVersion = 0;
+  tl._actionContentVersion = 0;
   tl._lastMutationChangedActionSeconds = false;
   tl._actionsBySecSig = computeActionsMutationSig(tl);
   tl._memoGuardSig = computeTimelineMutationSig(tl);
@@ -124,6 +125,15 @@ function bumpRevision(tl, opts = {}) {
     tl._checkpointIndexCache = null;
   }
   return tl.revision;
+}
+
+function markActionsChanged(tl) {
+  if (!tl || typeof tl !== "object") return 0;
+  const prev = Number.isFinite(tl._actionContentVersion)
+    ? Math.max(0, Math.floor(tl._actionContentVersion))
+    : 0;
+  tl._actionContentVersion = prev + 1;
+  return tl._actionContentVersion;
 }
 
 function ensureCheckpointIndex(tl) {
@@ -319,6 +329,7 @@ function ensureRevisionFreshAgainstOutOfBandMutations(tl) {
 
   if (!mutationSigEquals(cur, prev)) {
     bumpRevision(tl);
+    markActionsChanged(tl);
     tl._memoGuardSig = cur;
 
     // rebuild persistent actionsBySec index on mutation
@@ -387,6 +398,7 @@ export function appendActionAtCursor(tl, action, state) {
   };
 
   tl.actions.push(entry);
+  markActionsChanged(tl);
   tl._lastMutationKind = "appendAction";
   tl._lastMutationSec = t;
   tl._lastMutationChangedActionSeconds = false;
@@ -426,6 +438,7 @@ export function replaceActionsAtSecond(tl, tSec, actionsAtSec, opts = {}) {
   }));
 
   bumpRevision(tl, { clearMemo: false });
+  markActionsChanged(tl);
   // Replacing actions at tSec invalidates this second and all future snapshots.
   pruneMemoAtOrAfter(tl, t);
   // Same as append: checkpoints at/after tSec can no longer be trusted.
@@ -1037,6 +1050,7 @@ export function truncateTimelineAfterSecond(tl, tSec) {
   pruneMemoAtOrAfter(tl, t + 1);
 
   tl.actions = truncateActionsAfterSecond(tl.actions, t);
+  markActionsChanged(tl);
   tl.checkpoints = truncateCheckpointsAfterSecond(tl.checkpoints, t);
 
   tl._lastMutationKind = "truncateTimelineAfterSec";

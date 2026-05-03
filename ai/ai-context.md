@@ -128,9 +128,9 @@ The generic engine still retains concepts like editable history windows, truncat
 - The player does not freely revisit earlier choices or freely branch around prior selected vassals.
 
 ### Unlock rule
-- The `Next Vassal` control becomes available once the current vassal's death is resolved in forecast coverage.
-- It does not wait for exact civilization-loss resolution.
-- It also does not require the reveal edge to reach that death second.
+- The `Next Vassal` control becomes available once the current vassal's death has reached the visible reveal edge.
+- It does not wait for exact civilization-loss resolution or for the broader projection to finish.
+- Computed-but-not-yet-revealed death coverage is not enough to unlock the next vassal.
 
 ### Selection timing rule
 - Even though the button unlocks on forecast readiness, the next selection still needs to be recorded at the authoritative current second.
@@ -198,3 +198,4 @@ When auditing projection performance, pay particular attention to:
 - Keep settlement-specific forecast policy in controllers/runtime modules, not in Pixi views.
 - Keep generic timegraph controller logic generic.
 - Explain what changed, why it changed, and how to test it.
+- When the local `grill-me` skill is requested, read `ai/skills/grill-me/SKILL.md` and use code exploration to answer questions that the codebase can answer.

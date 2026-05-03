@@ -45,7 +45,7 @@ export const RED_GOD_FAITH_MITIGATION_BY_TIER = Object.freeze({
 });
 export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
 export const RED_GOD_MONSTERS_PER_CHAOS = 100;
-export const RED_GOD_MONSTER_WIN_COUNT = 2000;
+export const RED_GOD_MONSTER_WIN_COUNT = 1000;
 
 
 // --- Prestige + Followers ---

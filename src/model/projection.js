@@ -478,6 +478,7 @@ export function buildProjectionStateWindowFromTimeline(
 
   let s = cloneState(baseRes.state);
   normalizeStateForProjection(s, baseSec);
+  const actionsBySec = actionsBySecFromTimeline(tl);
 
   const stateDataBySecond = new Map();
   const summaryBySecond = new Map();
@@ -490,6 +491,13 @@ export function buildProjectionStateWindowFromTimeline(
     if (!sim.ok) break;
 
     curSec = baseSec + i;
+    const acts = actionsBySec.get(curSec);
+    if (acts && acts.length) {
+      const replayRes = applyReplayActionsAtSecond(s, acts, curSec);
+      if (!replayRes?.ok) {
+        return { ok: false, reason: "actionFailed", detail: replayRes };
+      }
+    }
     canonicalizeSnapshot(s);
     stateDataBySecond.set(curSec, serializeGameState(s));
     summaryBySecond.set(curSec, buildProjectionSummaryFromState(s));
@@ -545,6 +553,7 @@ export function buildProjectionStateStepWindowFromTimeline(
 
   let s = cloneState(baseRes.state);
   normalizeStateForProjection(s, baseSec);
+  const actionsBySec = actionsBySecFromTimeline(tl);
 
   const stateDataBySecond = new Map();
   const summaryBySecond = new Map();
@@ -555,10 +564,19 @@ export function buildProjectionStateStepWindowFromTimeline(
   let curSec = baseSec;
   const targetEndSec = baseSec + horizonSec;
   for (let i = 1; i <= steps; i++) {
-    const sim = simulateForwardSecondsInPlace(s, stepSec, dtStep);
-    if (!sim.ok) break;
-
-    curSec = baseSec + i * stepSec;
+    const nextSec = baseSec + i * stepSec;
+    for (let sec = curSec + 1; sec <= nextSec; sec += 1) {
+      const sim = simulateForwardSecondsInPlace(s, 1, dtStep);
+      if (!sim.ok) return sim;
+      const acts = actionsBySec.get(sec);
+      if (acts && acts.length) {
+        const replayRes = applyReplayActionsAtSecond(s, acts, sec);
+        if (!replayRes?.ok) {
+          return { ok: false, reason: "actionFailed", detail: replayRes };
+        }
+      }
+    }
+    curSec = nextSec;
     canonicalizeSnapshot(s);
     if (
       shouldStoreProjectionStateAnchor(
