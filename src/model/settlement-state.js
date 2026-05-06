@@ -816,6 +816,28 @@ export function getSettlementVassalBoundarySeconds(state, historyEndSec = null) 
   return [...seconds].sort((a, b) => a - b);
 }
 
+export function getSettlementVassalElderEventSeconds(state, visibleThroughSec = null) {
+  const selectedVassals = getSettlementSelectedVassals(state);
+  const safeVisibleThroughSec = Number.isFinite(visibleThroughSec)
+    ? Math.max(0, Math.floor(visibleThroughSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  const seconds = new Set();
+
+  for (const vassal of selectedVassals) {
+    const lifeEvents = Array.isArray(vassal?.lifeEvents) ? vassal.lifeEvents : [];
+    for (const event of lifeEvents) {
+      if (event?.kind !== "becameElder") continue;
+      const eventSec = Number.isFinite(event?.tSec)
+        ? Math.max(0, Math.floor(event.tSec))
+        : null;
+      if (eventSec == null || eventSec > safeVisibleThroughSec) continue;
+      seconds.add(eventSec);
+    }
+  }
+
+  return [...seconds].sort((a, b) => a - b);
+}
+
 export function getSettlementVisibleVassalLifeEvents(state, vassalId, tSec = null) {
   const lineage = getSettlementVassalLineageState(state);
   const record =
@@ -849,6 +871,53 @@ export function getSettlementPracticeSlotsByClass(state, classId = null) {
   return Array.isArray(state?.hub?.zones?.practiceByClass?.[safeClassId]?.slots)
     ? state.hub.zones.practiceByClass[safeClassId].slots
     : [];
+}
+
+export function getSettlementDebugOverrideSlotSummary(state) {
+  const practiceByClass = {};
+  const orderSlots = getSettlementOrderSlots(state);
+  const orderCard =
+    orderSlots.find((slot) => slot?.card?.defId === "elderCouncil")?.card ??
+    orderSlots.find((slot) => slot?.card?.systemState?.elderCouncil)?.card ??
+    null;
+  const debugPracticeByClass =
+    orderCard?.systemState?.elderCouncil?.debugPracticeBoardByClass;
+  for (const classId of getSettlementClassIds(state)) {
+    const slotCount = getSettlementPracticeSlotsByClass(state, classId).length;
+    const active = new Array(slotCount).fill(false);
+    const bySlot =
+      debugPracticeByClass?.[classId] &&
+      typeof debugPracticeByClass[classId] === "object" &&
+      !Array.isArray(debugPracticeByClass[classId])
+        ? debugPracticeByClass[classId]
+        : null;
+    if (bySlot) {
+      for (const rawIndex of Object.keys(bySlot)) {
+        const slotIndex = Number.isFinite(Number(rawIndex))
+          ? Math.max(0, Math.floor(Number(rawIndex)))
+          : null;
+        if (slotIndex != null && slotIndex < slotCount) active[slotIndex] = true;
+      }
+    }
+    practiceByClass[classId] = active;
+  }
+
+  const structureSlots = getSettlementStructureSlots(state);
+  const rawStructureOverrides =
+    state?.hub?.zones?.structures?.debugOverrideSlots &&
+    typeof state.hub.zones.structures.debugOverrideSlots === "object" &&
+    !Array.isArray(state.hub.zones.structures.debugOverrideSlots)
+      ? state.hub.zones.structures.debugOverrideSlots
+      : {};
+  const structures = structureSlots.map((_, index) => {
+    const key = String(index);
+    return rawStructureOverrides[key] === true;
+  });
+
+  return {
+    practices: practiceByClass,
+    structures,
+  };
 }
 
 export function getSettlementPracticeSlots(state, classId = null) {

@@ -8,6 +8,7 @@ import {
 import { getCurrentSeasonKey } from "../model/state.js";
 import {
   getSettlementClassIds,
+  getSettlementDebugOverrideSlotSummary,
   getSettlementFaithSummary,
   getSettlementHappinessSummary,
   getSettlementOrderSlots,
@@ -110,6 +111,25 @@ function drawSlotGrid(gfx, rect, columns, rows, padding = 6) {
       );
     }
   }
+}
+
+function drawDebugOverrideSlotHighlight(container, rect) {
+  const gfx = new PIXI.Graphics();
+  roundedRect(
+    gfx,
+    rect.x + 2,
+    rect.y + 2,
+    Math.max(1, rect.width - 4),
+    Math.max(1, rect.height - 4),
+    16,
+    PALETTE.debugOverrideFill,
+    PALETTE.debugOverrideStroke,
+    4,
+    0.12,
+    0.96
+  );
+  container.addChild(gfx);
+  return gfx;
 }
 
 function drawSubPanel(container, rect, fill = PALETTE.cardMuted, outline = PALETTE.stroke) {
@@ -630,6 +650,7 @@ export function createSettlementPrototypeView({
     }
 
     const practiceSlots = getSettlementPracticeSlotsByClass(state, selectedClassId);
+    const debugOverrideSlots = getSettlementDebugOverrideSlotSummary(state);
     for (let i = 0; i < practiceSlots.length; i += 1) {
       const card = practiceSlots[i]?.card ?? null;
       if (!card) continue;
@@ -694,6 +715,24 @@ export function createSettlementPrototypeView({
           edgeColor: tierColor,
           edgeStrokeWidth: 5,
         }
+      );
+    }
+
+    const activePracticeDebugSlots =
+      debugOverrideSlots?.practices?.[selectedClassId] ?? [];
+    for (let i = 0; i < activePracticeDebugSlots.length; i += 1) {
+      if (activePracticeDebugSlots[i] !== true) continue;
+      drawDebugOverrideSlotHighlight(
+        contentLayer,
+        getSlotRect(practiceRect, SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns, 1, i)
+      );
+    }
+    const activeStructureDebugSlots = debugOverrideSlots?.structures ?? [];
+    for (let i = 0; i < activeStructureDebugSlots.length; i += 1) {
+      if (activeStructureDebugSlots[i] !== true) continue;
+      drawDebugOverrideSlotHighlight(
+        contentLayer,
+        getSlotRect(structuresRect, SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns, 1, i)
       );
     }
 

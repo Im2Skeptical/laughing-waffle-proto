@@ -62,6 +62,8 @@ export const PALETTE = Object.freeze({
   eventLogEmptyFill: 0x243145,
   eventLogRowFill: 0x2c3b55,
   eventLogRowStroke: 0x4fa2ff,
+  debugOverrideFill: 0x2d4d57,
+  debugOverrideStroke: 0x7bdff2,
 });
 
 export const TEXT_STYLES = Object.freeze({

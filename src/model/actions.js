@@ -1,7 +1,10 @@
 // src/model/actions.js
 // Active settlement timeline action registry.
 
-import { cmdSelectSettlementVassal } from "./commands/settlement-vassal-commands.js";
+import {
+  cmdDebugSelectCheatVassal,
+  cmdSelectSettlementVassal,
+} from "./commands/settlement-vassal-commands.js";
 import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
 import { getApCapForSecond, normalizeApState } from "./commands/ap-helpers.js";
 
@@ -43,6 +46,7 @@ export const ActionKinds = {
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
   DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES: "debugSetSettlementSlotOverrides",
+  DEBUG_SELECT_CHEAT_VASSAL: "debugSelectCheatVassal",
 };
 
 function ensureAPState(state) {
@@ -141,6 +145,9 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES:
       result = cmdDebugSetSettlementSlotOverrides(state, payload);
+      break;
+    case ActionKinds.DEBUG_SELECT_CHEAT_VASSAL:
+      result = cmdDebugSelectCheatVassal(state, payload);
       break;
     default:
       return { ok: false, reason: "unsupportedAction", kind };

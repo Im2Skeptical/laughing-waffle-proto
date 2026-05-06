@@ -91,6 +91,7 @@ export function publishSettlementDebugApi({
   applyOverrides,
   openNextSelection,
   selectCandidate,
+  selectCheatVassal,
   getLastVassalSelectionResult,
   isVassalSelectionOpen,
 } = {}) {
@@ -155,5 +156,8 @@ export function publishSettlementDebugApi({
     openNextSelection: () => openNextSelection?.(),
     selectCandidate: (candidateIndex) =>
       selectCandidate?.(Math.max(0, Math.floor(candidateIndex ?? 0))),
+    selectCheatVassal: (spec) => selectCheatVassal?.(spec),
+    getLastVassalSelectionResult: () => getLastVassalSelectionResult?.() ?? null,
+    isVassalSelectionOpen: () => isVassalSelectionOpen?.() === true,
   };
 }
