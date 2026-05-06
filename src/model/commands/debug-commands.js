@@ -68,7 +68,49 @@ function clearStructuresOverlappingRange(state, startSlot, span) {
     const overlaps = anchor < end && structureEnd > start;
     if (!overlaps) continue;
     clearOwnerInventoryForStructure(state, structure);
+    setDebugStructureOverrideSlot(state, index, false);
     slots[index].structure = null;
+  }
+}
+
+function ensureDebugStructureOverrideSlots(state) {
+  ensureHubSettlementState(state.hub, state.hub?.cols);
+  const structuresZone = state.hub?.zones?.structures;
+  if (!structuresZone || typeof structuresZone !== "object" || Array.isArray(structuresZone)) {
+    return null;
+  }
+  if (
+    !structuresZone.debugOverrideSlots ||
+    typeof structuresZone.debugOverrideSlots !== "object" ||
+    Array.isArray(structuresZone.debugOverrideSlots)
+  ) {
+    structuresZone.debugOverrideSlots = {};
+  }
+  return structuresZone.debugOverrideSlots;
+}
+
+function setDebugStructureOverrideSlot(state, slotIndex, active) {
+  const slots = getSettlementStructureSlots(state);
+  const safeSlotIndex = normalizeSlotIndex(slotIndex);
+  if (safeSlotIndex == null || safeSlotIndex >= slots.length) return false;
+  const overrides = ensureDebugStructureOverrideSlots(state);
+  if (!overrides) return false;
+  if (active === true) {
+    overrides[String(safeSlotIndex)] = true;
+  } else {
+    delete overrides[String(safeSlotIndex)];
+  }
+  if (Object.keys(overrides).length === 0) {
+    delete state.hub.zones.structures.debugOverrideSlots;
+  }
+  return true;
+}
+
+function clearDebugStructureOverrideSlotsInRange(state, startSlot, span) {
+  const start = Math.max(0, Math.floor(startSlot));
+  const end = start + Math.max(1, Math.floor(span));
+  for (let slotIndex = start; slotIndex < end; slotIndex += 1) {
+    setDebugStructureOverrideSlot(state, slotIndex, false);
   }
 }
 
@@ -126,9 +168,15 @@ function applyStructureOverride(state, override) {
     return { ok: false, reason: "badStructureSlot", slotIndex };
   }
 
+  if (override?.clearOverride === true) {
+    setDebugStructureOverrideSlot(state, slotIndex, false);
+    return { ok: true, changed: true };
+  }
+
   const defId = typeof override?.defId === "string" ? override.defId : null;
   if (!defId) {
     clearStructuresOverlappingRange(state, slotIndex, 1);
+    setDebugStructureOverrideSlot(state, slotIndex, true);
     rebuildHubOccupancy(state);
     return { ok: true, changed: true };
   }
@@ -145,11 +193,13 @@ function applyStructureOverride(state, override) {
   }
 
   clearStructuresOverlappingRange(state, slotIndex, span);
+  clearDebugStructureOverrideSlotsInRange(state, slotIndex, span);
   const structure = makeHubStructureInstance(defId, state, {
     tier: normalizeTier(override?.tier),
   });
   structure.tier = normalizeTier(override?.tier);
   slots[slotIndex] = { structure };
+  setDebugStructureOverrideSlot(state, slotIndex, true);
   rebuildHubOccupancy(state);
   return { ok: true, changed: true };
 }

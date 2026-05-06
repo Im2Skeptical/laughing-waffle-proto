@@ -17,6 +17,7 @@ import {
   getSettlementSelectedVassalRealizedSegments,
   getSettlementStructureSlots,
   getSettlementVassalBoundarySeconds,
+  getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
 import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
@@ -563,7 +564,12 @@ function getSettlementDebugOverrideMarkerSeconds() {
   if (!Array.isArray(actions) || actions.length <= 0) return [];
   const seconds = [];
   for (const action of actions) {
-    if (action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES) continue;
+    if (
+      action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES &&
+      action?.kind !== ActionKinds.DEBUG_SELECT_CHEAT_VASSAL
+    ) {
+      continue;
+    }
     const tSec = Math.max(0, Math.floor(action?.tSec ?? 0));
     if (!seconds.includes(tSec)) seconds.push(tSec);
   }
@@ -760,6 +766,73 @@ function selectSettlementVassal(candidateIndex) {
     settlementPendingVassalSelection = null;
     syncSettlementVassalSelectionPauseState();
     settlementVassalChooserView?.refresh?.();
+  } else {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementVassalChooserView?.refresh?.();
+  }
+  return result;
+}
+
+function selectSettlementCheatVassal(spec) {
+  const frontierSec = getSettlementFrontierSec();
+  const selectionPool = settlementPendingVassalSelection;
+  if (!selectionPool) {
+    return { ok: false, reason: "missingSelectionPool" };
+  }
+  const selectionSec = Number.isFinite(selectionPool?.createdSec)
+    ? Math.max(0, Math.floor(selectionPool.createdSec))
+    : frontierSec;
+  const isFirstVassalSelection =
+    selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
+  const moveRes = setSettlementViewedSecond(selectionSec);
+  if (moveRes?.ok !== true) {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementVassalChooserView?.refresh?.();
+    settlementLastVassalSelectionResult =
+      moveRes ?? { ok: false, reason: "selectionSeekFailed" };
+    return settlementLastVassalSelectionResult;
+  }
+  settlementGraphView?.resetForecastPreviewState?.();
+  settlementGraphView?.stageProjectionReplacementTransition?.({
+    truncationStartSec: selectionSec,
+    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
+    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
+  });
+  const actionPayload = {
+    tSec: selectionSec,
+    spec,
+  };
+  const result = isFirstVassalSelection
+    ? runner.dispatchActionAtSecond?.(
+        ActionKinds.DEBUG_SELECT_CHEAT_VASSAL,
+        actionPayload,
+        selectionSec,
+        { reason: "settlementFirstCheatVassalSelection" }
+      )
+    : runner.dispatchActionAtCurrentSecond?.(
+        ActionKinds.DEBUG_SELECT_CHEAT_VASSAL,
+        actionPayload
+      );
+  settlementLastVassalSelectionResult = result ?? { ok: false, reason: "dispatchFailed" };
+  if (result?.ok) {
+    if (isFirstVassalSelection) {
+      runner.browseCursorSecond?.(selectionSec);
+    }
+    settlementPendingVassalSelection = null;
+    settlementVassalChooserView?.refresh?.();
+    invalidateSettlementProjectedLossCache();
+    const frontierState = getSettlementFrontierState();
+    const currentVassal = getSettlementCurrentVassal(frontierState);
+    scheduleSettlementPendingCommit(selectionSec, currentVassal);
+    syncSettlementGraphHorizon();
+    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
+      activateProjectionReplacementTransition: true,
+      extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    });
+    returnSettlementViewToPresent(selectionSec);
+    settlementVassalSelectionResumeSpeed = 0;
+    syncSettlementVassalSelectionPauseState();
   } else {
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementVassalChooserView?.refresh?.();
@@ -1248,20 +1321,40 @@ settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
   }
   return { allow: true };
 });
-settlementGraphView.setEventMarkerResolver?.(({ historyEndSec }) => {
+settlementGraphView.setEventMarkerResolver?.(({
+  historyEndSec,
+  visibleForecastCoverageEndSec,
+}) => {
   const frontierState = getSettlementFrontierState();
+  const safeHistoryEndSec = Number.isFinite(historyEndSec)
+    ? Math.max(0, Math.floor(historyEndSec))
+    : 0;
   const runComplete = isSettlementStateRunComplete(frontierState);
-  const boundarySeconds = getSettlementVassalBoundarySeconds(frontierState, historyEndSec);
+  const boundarySeconds = getSettlementVassalBoundarySeconds(frontierState, safeHistoryEndSec);
   const boundaryMarkers = boundarySeconds
     .filter((sec, index, arr) => arr.indexOf(sec) === index)
     .map((tSec) => ({
       tSec,
       severity: "critical",
       color: 0xe3c46c,
-      lineWidth: tSec === historyEndSec && !runComplete ? 4 : 3,
-      radius: tSec === historyEndSec && !runComplete ? 6 : 5,
-      alpha: tSec === historyEndSec && !runComplete ? 0.92 : 0.78,
+      lineWidth: tSec === safeHistoryEndSec && !runComplete ? 4 : 3,
+      radius: tSec === safeHistoryEndSec && !runComplete ? 6 : 5,
+      alpha: tSec === safeHistoryEndSec && !runComplete ? 0.92 : 0.78,
     }));
+  const elderMarkerCapSec = Number.isFinite(visibleForecastCoverageEndSec)
+    ? Math.max(safeHistoryEndSec, Math.floor(visibleForecastCoverageEndSec))
+    : safeHistoryEndSec;
+  const elderMarkers = getSettlementVassalElderEventSeconds(
+    frontierState,
+    elderMarkerCapSec
+  ).map((tSec) => ({
+    tSec,
+    severity: "critical",
+    color: 0xa4be8d,
+    lineWidth: 2,
+    radius: 4,
+    alpha: 0.86,
+  }));
   const debugMarkers = getSettlementDebugOverrideMarkerSeconds().map((tSec) => ({
     tSec,
     severity: "critical",
@@ -1270,7 +1363,7 @@ settlementGraphView.setEventMarkerResolver?.(({ historyEndSec }) => {
     radius: 4,
     alpha: 0.9,
   }));
-  return [...boundaryMarkers, ...debugMarkers];
+  return [...boundaryMarkers, ...elderMarkers, ...debugMarkers];
 });
 
 settlementVassalControlsView = createSettlementVassalControlsView({
@@ -1305,6 +1398,9 @@ settlementDebugMenu = createSettlementDebugMenuDom({
   getViewedSec: () => getSettlementViewedSec(),
   getPreviewStatus: () => runner.getPreviewStatus?.(),
   applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
+  getVassalSelectionPool: () => settlementPendingVassalSelection,
+  isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
+  selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
   getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
   isInteractionBlocked: () => !!settlementPendingVassalSelection,
 });
@@ -1383,6 +1479,7 @@ function publishSettlementDebugApi() {
     applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
     openNextSelection: () => openNextSettlementVassalSelection(),
     selectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
+    selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
     getLastVassalSelectionResult: () => settlementLastVassalSelectionResult,
     isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
   });

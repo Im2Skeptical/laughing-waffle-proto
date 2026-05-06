@@ -1,4 +1,5 @@
 import {
+  selectCheatSettlementVassal,
   selectSettlementVassal,
 } from "../settlement-vassal-exec.js";
 
@@ -12,4 +13,8 @@ export function cmdSelectSettlementVassal(state, payload = {}) {
       ? payload.expectedPoolHash
       : null;
   return selectSettlementVassal(state, candidateIndex, expectedPoolHash, payload?.tSec);
+}
+
+export function cmdDebugSelectCheatVassal(state, payload = {}) {
+  return selectCheatSettlementVassal(state, payload?.spec, payload?.tSec);
 }

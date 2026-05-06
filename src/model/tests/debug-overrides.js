@@ -8,6 +8,8 @@ import { GRAPH_METRICS } from "../graph-metrics.js";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
+  getSettlementCurrentVassal,
+  getSettlementDebugOverrideSlotSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStructureSlots,
 } from "../settlement-state.js";
@@ -34,8 +36,38 @@ function debugOverrideAction(overrides, tSec = 0) {
   };
 }
 
+function cheatVassalAction(spec, tSec = 0) {
+  return {
+    kind: ActionKinds.DEBUG_SELECT_CHEAT_VASSAL,
+    tSec,
+    payload: {
+      tSec,
+      spec,
+    },
+  };
+}
+
 function applyDebugOverride(state, overrides) {
   return applyAction(state, debugOverrideAction(overrides), { isReplay: true });
+}
+
+function applyCheatVassal(state, spec, tSec = 0) {
+  return applyAction(state, cheatVassalAction(spec, tSec), { isReplay: true });
+}
+
+function buildCheatVassalSpec(overrides = {}) {
+  return {
+    sourceClassId: "villager",
+    initialAgeYears: 50,
+    deathAgeYears: 70,
+    professionId: "builder",
+    traitId: "pious",
+    agendaByClass: {
+      villager: ["floodRites", "riverRecessionFarming", "rest"],
+      stranger: ["asTheRomans", "becomeVillagers", "raiseAsVillagers"],
+    },
+    ...overrides,
+  };
 }
 
 function getPracticeCard(state, classId, slotIndex) {
@@ -65,6 +97,10 @@ function testPracticeOverride() {
   assert.equal(card.defId, "rest");
   assert.equal(card.tier, "gold");
   assert.equal(getPracticeCard(state, "villager", 1)?.defId ?? null, naturalSlot1);
+  assert.equal(
+    getSettlementDebugOverrideSlotSummary(state).practices.villager[0],
+    true
+  );
 
   const clearResult = applyDebugOverride(state, [
     {
@@ -76,6 +112,10 @@ function testPracticeOverride() {
   ]);
   assert.equal(clearResult.ok, true);
   assert.equal(getPracticeCard(state, "villager", 0), null);
+  assert.equal(
+    getSettlementDebugOverrideSlotSummary(state).practices.villager[0],
+    true
+  );
 
   const clearOverrideResult = applyDebugOverride(state, [
     {
@@ -87,6 +127,10 @@ function testPracticeOverride() {
   ]);
   assert.equal(clearOverrideResult.ok, true);
   assert.equal(getPracticeCard(state, "villager", 0)?.defId ?? null, naturalSlot0);
+  assert.equal(
+    getSettlementDebugOverrideSlotSummary(state).practices.villager[0],
+    false
+  );
 }
 
 function testStructureOverride() {
@@ -105,6 +149,113 @@ function testStructureOverride() {
   assert.equal(structure.defId, "granary");
   assert.equal(structure.tier, "diamond");
   assert.equal(state.hub.occ[4]?.instanceId, structure.instanceId);
+  assert.equal(getSettlementDebugOverrideSlotSummary(state).structures[4], true);
+
+  const clearOverrideResult = applyDebugOverride(state, [
+    {
+      zone: "structure",
+      slotIndex: 4,
+      clearOverride: true,
+    },
+  ]);
+  assert.equal(clearOverrideResult.ok, true);
+  assert.equal(getStructure(state, 4)?.defId, "granary");
+  assert.equal(getSettlementDebugOverrideSlotSummary(state).structures[4], false);
+}
+
+function testCheatVassalSelectionExactAndReplay() {
+  const state = createSettlementState();
+  const spec = buildCheatVassalSpec();
+  const result = applyCheatVassal(state, spec, 0);
+  assert.equal(result.ok, true);
+  const selected = getSettlementCurrentVassal(state);
+  assert.equal(selected.sourceClassId, "villager");
+  assert.equal(selected.currentClassId, "villager");
+  assert.equal(selected.initialAgeYears, 50);
+  assert.equal(selected.deathAgeYears, 70);
+  assert.equal(selected.professionId, "builder");
+  assert.equal(selected.traitId, "pious");
+  assert.equal(selected.isElder, true);
+  assert.deepEqual(selected.agendaByClass.villager, spec.agendaByClass.villager);
+  assert.deepEqual(selected.agendaByClass.stranger, spec.agendaByClass.stranger);
+  assert.equal(
+    selected.lifeEvents.some((event) => event.kind === "becameElder" && event.tSec === 0),
+    true
+  );
+
+  const timeline = createTimelineFromInitialState(createSettlementState());
+  replaceActionsAtSecond(timeline, 0, [cheatVassalAction(spec, 0)], {
+    truncateFuture: false,
+  });
+  const rebuilt = rebuildStateAtSecond(timeline, 0);
+  assert.equal(rebuilt.ok, true);
+  const replayed = getSettlementCurrentVassal(rebuilt.state);
+  assert.equal(replayed.sourceClassId, selected.sourceClassId);
+  assert.equal(replayed.initialAgeYears, selected.initialAgeYears);
+  assert.equal(replayed.deathAgeYears, selected.deathAgeYears);
+  assert.equal(replayed.professionId, selected.professionId);
+  assert.equal(replayed.traitId, selected.traitId);
+  assert.deepEqual(replayed.agendaByClass, selected.agendaByClass);
+}
+
+function testCheatVassalValidationRejectsBadSpec() {
+  let state = createSettlementState();
+  let result = applyCheatVassal(state, buildCheatVassalSpec({ sourceClassId: "noble" }), 0);
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "badSourceClassId");
+  assert.equal(getSettlementCurrentVassal(state), null);
+
+  state = createSettlementState();
+  result = applyCheatVassal(state, buildCheatVassalSpec({ professionId: "astrologer" }), 0);
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "badProfessionId");
+
+  state = createSettlementState();
+  result = applyCheatVassal(state, buildCheatVassalSpec({ traitId: "lucky" }), 0);
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "badTraitId");
+
+  state = createSettlementState();
+  result = applyCheatVassal(
+    state,
+    buildCheatVassalSpec({
+      agendaByClass: {
+        villager: ["asTheRomans"],
+        stranger: ["asTheRomans"],
+      },
+    }),
+    0
+  );
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "practiceClassMismatch");
+
+  state = createSettlementState();
+  result = applyCheatVassal(
+    state,
+    buildCheatVassalSpec({ initialAgeYears: 30, deathAgeYears: 30 }),
+    0
+  );
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "badDeathAge");
+}
+
+function testCheatVassalPastEventsApplyAtSelection() {
+  const state = createSettlementState();
+  const spec = buildCheatVassalSpec({
+    sourceClassId: "stranger",
+    initialAgeYears: 50,
+    deathAgeYears: 55,
+    professionId: "scribe",
+    traitId: "pious",
+  });
+  const result = applyCheatVassal(state, spec, 0);
+  assert.equal(result.ok, true);
+  const selected = getSettlementCurrentVassal(state);
+  assert.equal(selected.currentClassId, "villager");
+  assert.equal(selected.professionId, "scribe");
+  assert.equal(selected.traitId, "pious");
+  assert.equal(selected.isElder, true);
+  assert.equal(selected.joinedCouncilSec, 0);
 }
 
 function testTimelineReplayAndTruncation() {
@@ -276,6 +427,39 @@ function testDebugOverrideTruncatesFutureVassalSelections() {
   );
 }
 
+function testCheatVassalSelectionTruncatesFutureVassalSelections() {
+  const baseState = createSettlementState();
+  const timeline = createTimelineFromInitialState(baseState);
+  const vassalAction = (tSec, candidateIndex = 0) => ({
+    kind: ActionKinds.SETTLEMENT_SELECT_VASSAL,
+    tSec,
+    payload: {
+      candidateIndex,
+      expectedPoolHash: "testPoolHash",
+      tSec,
+    },
+  });
+
+  replaceActionsAtSecond(timeline, 0, [vassalAction(0, 0)], {
+    truncateFuture: false,
+  });
+  replaceActionsAtSecond(timeline, 10, [vassalAction(10, 1)], {
+    truncateFuture: false,
+  });
+
+  replaceActionsAtSecond(timeline, 6, [cheatVassalAction(buildCheatVassalSpec(), 6)], {
+    truncateFuture: true,
+  });
+
+  assert.deepEqual(
+    timeline.actions.map((action) => [action.kind, action.tSec]),
+    [
+      [ActionKinds.SETTLEMENT_SELECT_VASSAL, 0],
+      [ActionKinds.DEBUG_SELECT_CHEAT_VASSAL, 6],
+    ]
+  );
+}
+
 function testTargetedGraphInvalidationDropsStaleForecastCoverage() {
   const baseState = createSettlementState();
   const timeline = createTimelineFromInitialState(baseState);
@@ -387,9 +571,13 @@ function testForecastWorkerInvalidationTerminatesInFlightWorker() {
 export function runDebugOverrideSuite() {
   testPracticeOverride();
   testStructureOverride();
+  testCheatVassalSelectionExactAndReplay();
+  testCheatVassalValidationRejectsBadSpec();
+  testCheatVassalPastEventsApplyAtSelection();
   testTimelineReplayAndTruncation();
   testForecastProjectionAppliesFutureDebugActions();
   testDebugOverrideTruncatesFutureVassalSelections();
+  testCheatVassalSelectionTruncatesFutureVassalSelections();
   testTargetedGraphInvalidationDropsStaleForecastCoverage();
   testForecastWorkerInvalidationTerminatesInFlightWorker();
   return { ok: true };

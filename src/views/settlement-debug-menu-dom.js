@@ -1,8 +1,13 @@
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
+import {
+  settlementVassalProfessionDefs,
+  settlementVassalTraitDefs,
+} from "../defs/gamepieces/settlement-vassal-defs.js";
 import { TIER_ASC } from "../model/effects/core/tiers.js";
 import {
   getSettlementClassIds,
+  getSettlementDebugOverrideSlotSummary,
   getSettlementPracticeSlotsByClass,
   getSettlementStructureSlots,
 } from "../model/settlement-state.js";
@@ -78,6 +83,45 @@ function optionLabelForId(options, id) {
   return options.find((option) => option.id === id)?.label ?? "";
 }
 
+function createSelect(options, value = null, className = "codex-debug-input") {
+  const select = document.createElement("select");
+  select.className = className;
+  for (const option of Array.isArray(options) ? options : []) {
+    const node = document.createElement("option");
+    node.value = option.id ?? "";
+    node.textContent = option.label ?? option.id ?? "";
+    select.appendChild(node);
+  }
+  select.value = value ?? "";
+  return select;
+}
+
+function getProfessionOptions() {
+  return [
+    { id: "", label: "None" },
+    ...Object.values(settlementVassalProfessionDefs)
+      .filter((def) => def?.id)
+      .sort((a, b) => String(a.label ?? a.id).localeCompare(String(b.label ?? b.id)))
+      .map((def) => ({ id: def.id, label: def.label ?? def.id })),
+  ];
+}
+
+function getTraitOptions() {
+  return [
+    { id: "", label: "None" },
+    ...Object.values(settlementVassalTraitDefs)
+      .filter((def) => def?.id)
+      .sort((a, b) => String(a.label ?? a.id).localeCompare(String(b.label ?? b.id)))
+      .map((def) => ({ id: def.id, label: def.label ?? def.id })),
+  ];
+}
+
+function getCandidateScheduledField(candidate, kind, field) {
+  const events = Array.isArray(candidate?.lifeEvents) ? candidate.lifeEvents : [];
+  const match = events.find((event) => event?.kind === kind && typeof event?.[field] === "string");
+  return match?.[field] ?? null;
+}
+
 function appendOptionsToDatalist(datalist, options) {
   datalist.replaceChildren();
   for (const option of options) {
@@ -131,6 +175,9 @@ export function createSettlementDebugMenuDom({
   getViewedSec,
   getPreviewStatus,
   applyOverrides,
+  getVassalSelectionPool,
+  isVassalSelectionOpen,
+  selectCheatVassal,
   getDebugSnapshot,
   isInteractionBlocked,
 } = {}) {
@@ -242,6 +289,17 @@ export function createSettlementDebugMenuDom({
       border-bottom: 1px solid rgba(248, 234, 208, 0.12);
     }
     .codex-debug-row.dirty { background: rgba(224, 199, 137, 0.11); }
+    .codex-debug-row.debug-active {
+      background: rgba(123, 223, 242, 0.13);
+      box-shadow: inset 4px 0 #7bdff2;
+    }
+    .codex-debug-row.debug-active.dirty {
+      background: linear-gradient(90deg, rgba(123, 223, 242, 0.16), rgba(224, 199, 137, 0.12));
+    }
+    .codex-debug-row.debug-active .codex-debug-slot-label {
+      color: #aaf2ff;
+      font-weight: 700;
+    }
     .codex-debug-slot-label { font-size: 12px; color: #d8e2ef; }
     .codex-debug-current { font-size: 11px; color: #b9c7d8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .codex-debug-input,
@@ -262,6 +320,33 @@ export function createSettlementDebugMenuDom({
       background: #455463;
       color: #f8ead0;
       cursor: pointer;
+    }
+    .codex-debug-cheat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .codex-debug-field {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .codex-debug-field label {
+      font-size: 12px;
+      color: #e0c789;
+      font-weight: 700;
+    }
+    .codex-debug-agenda-row {
+      display: grid;
+      grid-template-columns: 92px repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .codex-debug-agenda-row .codex-debug-slot-label {
+      color: #e0c789;
+      font-weight: 700;
     }
     .codex-debug-toolbar {
       display: flex;
@@ -302,6 +387,10 @@ export function createSettlementDebugMenuDom({
   structuresTab.className = "codex-debug-tab";
   structuresTab.type = "button";
   structuresTab.textContent = "Structures";
+  const cheatVassalTab = document.createElement("button");
+  cheatVassalTab.className = "codex-debug-tab";
+  cheatVassalTab.type = "button";
+  cheatVassalTab.textContent = "Cheat Vassal";
   const statsTab = document.createElement("button");
   statsTab.className = "codex-debug-tab";
   statsTab.type = "button";
@@ -310,7 +399,7 @@ export function createSettlementDebugMenuDom({
   closeButton.className = "codex-debug-close";
   closeButton.type = "button";
   closeButton.textContent = "Close";
-  header.append(title, practicesTab, structuresTab, statsTab, closeButton);
+  header.append(title, practicesTab, structuresTab, cheatVassalTab, statsTab, closeButton);
 
   const body = document.createElement("div");
   body.className = "codex-debug-body";
@@ -328,15 +417,23 @@ export function createSettlementDebugMenuDom({
 
   function setOpen(nextOpen) {
     open = nextOpen === true;
+    if (open && isVassalSelectionOpen?.() === true) {
+      activeTab = "cheatVassal";
+    }
     panel.classList.toggle("open", open);
     button.textContent = open ? "Debug*" : "Debug";
     if (open) render();
   }
 
   function setTab(tab) {
-    activeTab = tab;
+    if (isVassalSelectionOpen?.() === true && tab !== "cheatVassal") {
+      activeTab = "cheatVassal";
+    } else {
+      activeTab = tab;
+    }
     practicesTab.classList.toggle("active", activeTab === "practices");
     structuresTab.classList.toggle("active", activeTab === "structures");
+    cheatVassalTab.classList.toggle("active", activeTab === "cheatVassal");
     statsTab.classList.toggle("active", activeTab === "stats");
     render();
   }
@@ -402,9 +499,11 @@ export function createSettlementDebugMenuDom({
     currentTier,
     buildOverride,
     buildClearOverride,
+    debugActive = false,
   }) {
     const row = document.createElement("div");
     row.className = "codex-debug-row";
+    row.classList.toggle("debug-active", debugActive === true);
     const label = createText("div", "codex-debug-slot-label", slotLabel);
     const input = document.createElement("input");
     input.className = "codex-debug-input";
@@ -460,6 +559,7 @@ export function createSettlementDebugMenuDom({
       return;
     }
     for (const classId of getSettlementClassIds(state)) {
+      const debugOverrides = getSettlementDebugOverrideSlotSummary(state);
       content.appendChild(
         createText("div", "codex-debug-section-title", `${capitalize(classId)} Practices`)
       );
@@ -482,6 +582,8 @@ export function createSettlementDebugMenuDom({
             options,
             datalistId,
             currentTier: card?.tier,
+            debugActive:
+              debugOverrides?.practices?.[classId]?.[slotIndex] === true,
             buildOverride: ({ defId, tier }) => ({
               zone: "practice",
               classId,
@@ -511,6 +613,7 @@ export function createSettlementDebugMenuDom({
     }
     content.appendChild(createText("div", "codex-debug-section-title", "Structures"));
     const slots = getSettlementStructureSlots(state);
+    const debugOverrides = getSettlementDebugOverrideSlotSummary(state);
     const occ = Array.isArray(state?.hub?.occ) ? state.hub.occ : [];
     for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
       const structure = slots[slotIndex]?.structure ?? occ[slotIndex] ?? null;
@@ -540,15 +643,164 @@ export function createSettlementDebugMenuDom({
           options,
           datalistId,
           currentTier: structure?.tier,
+          debugActive: debugOverrides?.structures?.[slotIndex] === true,
           buildOverride: ({ defId, tier }) => ({
             zone: "structure",
             slotIndex,
             defId,
             tier,
           }),
+          buildClearOverride: () => ({
+            zone: "structure",
+            slotIndex,
+            clearOverride: true,
+          }),
         })
       );
     }
+  }
+
+  function createCheatField(parent, labelText, input) {
+    const field = document.createElement("div");
+    field.className = "codex-debug-field";
+    const label = createText("label", "", labelText);
+    field.append(label, input);
+    parent.appendChild(field);
+    return input;
+  }
+
+  function renderCheatVassal() {
+    const state = getState?.();
+    const selectionPool = getVassalSelectionPool?.() ?? null;
+    content.replaceChildren();
+    if (!state?.hub || !selectionPool) {
+      content.appendChild(
+        createText("div", "codex-debug-meta", "Open vassal selection to craft a cheat vassal.")
+      );
+      return;
+    }
+
+    const defaultCandidate = Array.isArray(selectionPool?.candidates)
+      ? selectionPool.candidates[0] ?? null
+      : null;
+    const defaultProfessionId =
+      defaultCandidate?.professionId ??
+      getCandidateScheduledField(defaultCandidate, "professionAssigned", "professionId");
+    const defaultTraitId =
+      defaultCandidate?.traitId ??
+      getCandidateScheduledField(defaultCandidate, "traitAssigned", "traitId");
+    const classIds = getSettlementClassIds(state);
+    const classOptions = classIds.map((classId) => ({
+      id: classId,
+      label: capitalize(classId),
+    }));
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "codex-debug-toolbar";
+    const applyButton = document.createElement("button");
+    applyButton.className = "codex-debug-action";
+    applyButton.type = "button";
+    applyButton.textContent = "Select Cheat Vassal";
+    const meta = createText(
+      "span",
+      "codex-debug-meta",
+      `selection t=${Math.floor(selectionPool?.createdSec ?? getViewedSec?.() ?? 0)}`
+    );
+    toolbar.append(applyButton, meta);
+    content.appendChild(toolbar);
+
+    const grid = document.createElement("div");
+    grid.className = "codex-debug-cheat-grid";
+    content.appendChild(grid);
+
+    const sourceClassSelect = createCheatField(
+      grid,
+      "Source Class",
+      createSelect(classOptions, defaultCandidate?.sourceClassId ?? classIds[0] ?? "")
+    );
+
+    const initialAgeInput = document.createElement("input");
+    initialAgeInput.className = "codex-debug-input";
+    initialAgeInput.type = "number";
+    initialAgeInput.min = "0";
+    initialAgeInput.max = "199";
+    initialAgeInput.step = "1";
+    initialAgeInput.value = String(Math.floor(defaultCandidate?.initialAgeYears ?? 8));
+    createCheatField(grid, "Starting Age", initialAgeInput);
+
+    const deathAgeInput = document.createElement("input");
+    deathAgeInput.className = "codex-debug-input";
+    deathAgeInput.type = "number";
+    deathAgeInput.min = "1";
+    deathAgeInput.max = "200";
+    deathAgeInput.step = "1";
+    deathAgeInput.value = String(Math.floor(defaultCandidate?.deathAgeYears ?? 65));
+    createCheatField(grid, "Death Age", deathAgeInput);
+
+    const professionSelect = createCheatField(
+      grid,
+      "Profession",
+      createSelect(getProfessionOptions(), defaultProfessionId ?? "")
+    );
+    const traitSelect = createCheatField(
+      grid,
+      "Trait",
+      createSelect(getTraitOptions(), defaultTraitId ?? "")
+    );
+
+    content.appendChild(createText("div", "codex-debug-section-title", "Agenda"));
+    const agendaInputsByClass = {};
+    for (const classId of classIds) {
+      const options = getPracticeOptions(classId);
+      const datalistId = `codex-debug-cheat-agenda-${classId}`;
+      const datalist = document.createElement("datalist");
+      datalist.id = datalistId;
+      appendOptionsToDatalist(datalist, options);
+      content.appendChild(datalist);
+
+      const row = document.createElement("div");
+      row.className = "codex-debug-agenda-row";
+      row.appendChild(createText("div", "codex-debug-slot-label", capitalize(classId)));
+      const defaultAgenda = Array.isArray(defaultCandidate?.agendaByClass?.[classId])
+        ? defaultCandidate.agendaByClass[classId]
+        : [];
+      agendaInputsByClass[classId] = [];
+      for (let index = 0; index < 3; index += 1) {
+        const input = document.createElement("input");
+        input.className = "codex-debug-input";
+        input.setAttribute("list", datalistId);
+        input.placeholder = `Agenda ${index + 1}`;
+        input.value = optionLabelForId(options, defaultAgenda[index]) || "";
+        agendaInputsByClass[classId].push({ input, options });
+        row.appendChild(input);
+      }
+      content.appendChild(row);
+    }
+
+    applyButton.addEventListener("click", async () => {
+      const agendaByClass = {};
+      for (const classId of classIds) {
+        agendaByClass[classId] = agendaInputsByClass[classId]
+          .map(({ input, options }) => resolveOptionId(input.value, options))
+          .filter(Boolean);
+      }
+      const initialAgeYears = Math.max(0, Math.floor(Number(initialAgeInput.value)));
+      const deathAgeYears = Math.max(0, Math.floor(Number(deathAgeInput.value)));
+      const result = await selectCheatVassal?.({
+        sourceClassId: sourceClassSelect.value,
+        initialAgeYears,
+        deathAgeYears,
+        professionId: professionSelect.value || null,
+        traitId: traitSelect.value || null,
+        agendaByClass,
+      });
+      if (result?.ok) {
+        setStatus(`Selected cheat vassal ${result.vassalId ?? ""}`.trim(), "ok");
+        setOpen(false);
+      } else {
+        setStatus(`Cheat vassal failed: ${result?.reason ?? "unknown"}`, "error");
+      }
+    });
   }
 
   function renderStats() {
@@ -560,7 +812,21 @@ export function createSettlementDebugMenuDom({
 
   function render() {
     if (!open) return;
-    if (activeTab === "structures") renderStructures();
+    const selectionOpen = isVassalSelectionOpen?.() === true;
+    cheatVassalTab.disabled = !selectionOpen;
+    practicesTab.disabled = selectionOpen;
+    structuresTab.disabled = selectionOpen;
+    statsTab.disabled = selectionOpen;
+    if (selectionOpen && activeTab !== "cheatVassal") {
+      setTab("cheatVassal");
+      return;
+    }
+    practicesTab.classList.toggle("active", activeTab === "practices");
+    structuresTab.classList.toggle("active", activeTab === "structures");
+    cheatVassalTab.classList.toggle("active", activeTab === "cheatVassal");
+    statsTab.classList.toggle("active", activeTab === "stats");
+    if (activeTab === "cheatVassal") renderCheatVassal();
+    else if (activeTab === "structures") renderStructures();
     else if (activeTab === "stats") renderStats();
     else renderPractices();
   }
@@ -569,6 +835,7 @@ export function createSettlementDebugMenuDom({
   closeButton.addEventListener("click", () => setOpen(false));
   practicesTab.addEventListener("click", () => setTab("practices"));
   structuresTab.addEventListener("click", () => setTab("structures"));
+  cheatVassalTab.addEventListener("click", () => setTab("cheatVassal"));
   statsTab.addEventListener("click", () => setTab("stats"));
 
   return {
@@ -583,7 +850,8 @@ export function createSettlementDebugMenuDom({
       const blocked =
         typeof isInteractionBlocked === "function" &&
         isInteractionBlocked() === true;
-      root.classList.toggle("blocked", blocked);
+      root.classList.toggle("blocked", blocked && activeTab !== "cheatVassal");
+      if (blocked && open && activeTab !== "cheatVassal") render();
       if (open && activeTab === "stats") renderStats();
     },
     destroy() {

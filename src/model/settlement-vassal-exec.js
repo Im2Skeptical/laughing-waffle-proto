@@ -1,4 +1,5 @@
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
+import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import {
   SETTLEMENT_VASSAL_CANDIDATE_COUNT,
   SETTLEMENT_VASSAL_ELDER_AGE_YEARS,
@@ -263,6 +264,218 @@ function buildCandidateLifeSchedule(state, record, orderDef, randomSource) {
   return record;
 }
 
+function normalizeCheatVassalAgendaByClass(rawAgendaByClass, classIds) {
+  const agendaByClass = {};
+  for (const classId of classIds) {
+    const rawAgenda = Array.isArray(rawAgendaByClass?.[classId])
+      ? rawAgendaByClass[classId]
+      : [];
+    const seen = new Set();
+    const agenda = [];
+    for (const defId of rawAgenda) {
+      if (typeof defId !== "string" || defId.length <= 0) continue;
+      if (seen.has(defId)) continue;
+      const def = settlementPracticeDefs?.[defId] ?? null;
+      if (!def) {
+        return { ok: false, reason: "badAgendaPractice", classId, defId };
+      }
+      const eligible = Array.isArray(def.orderEligibleClassIds)
+        ? def.orderEligibleClassIds
+        : [];
+      if (eligible.length > 0 && !eligible.includes(classId)) {
+        return { ok: false, reason: "practiceClassMismatch", classId, defId };
+      }
+      seen.add(defId);
+      agenda.push(defId);
+      if (agenda.length >= 3) break;
+    }
+    agendaByClass[classId] = agenda;
+  }
+  return { ok: true, agendaByClass };
+}
+
+function normalizeCheatVassalSpec(state, spec = {}) {
+  const classIds = getSettlementClassIds(state);
+  const sourceClassId =
+    typeof spec?.sourceClassId === "string" && classIds.includes(spec.sourceClassId)
+      ? spec.sourceClassId
+      : null;
+  if (!sourceClassId) {
+    return { ok: false, reason: "badSourceClassId", sourceClassId: spec?.sourceClassId ?? null };
+  }
+
+  const initialAgeYears = Number.isFinite(spec?.initialAgeYears)
+    ? Math.max(0, Math.floor(spec.initialAgeYears))
+    : null;
+  if (initialAgeYears == null) {
+    return { ok: false, reason: "badInitialAge" };
+  }
+
+  const deathAgeYears = Number.isFinite(spec?.deathAgeYears)
+    ? Math.max(0, Math.floor(spec.deathAgeYears))
+    : null;
+  if (deathAgeYears == null || deathAgeYears < initialAgeYears + 1 || deathAgeYears > 200) {
+    return {
+      ok: false,
+      reason: "badDeathAge",
+      initialAgeYears,
+      deathAgeYears,
+    };
+  }
+
+  const professionId =
+    typeof spec?.professionId === "string" && spec.professionId.length > 0
+      ? spec.professionId
+      : null;
+  if (professionId != null && !settlementVassalProfessionDefs?.[professionId]) {
+    return { ok: false, reason: "badProfessionId", professionId };
+  }
+
+  const traitId =
+    typeof spec?.traitId === "string" && spec.traitId.length > 0
+      ? spec.traitId
+      : null;
+  if (traitId != null && !settlementVassalTraitDefs?.[traitId]) {
+    return { ok: false, reason: "badTraitId", traitId };
+  }
+
+  const agendaResult = normalizeCheatVassalAgendaByClass(spec?.agendaByClass, classIds);
+  if (!agendaResult.ok) return agendaResult;
+
+  return {
+    ok: true,
+    spec: {
+      sourceClassId,
+      initialAgeYears,
+      deathAgeYears,
+      professionId,
+      traitId,
+      agendaByClass: agendaResult.agendaByClass,
+    },
+  };
+}
+
+function addCheatLifeEvent(events, record, kind, ageYears, extra = {}) {
+  const safeAgeYears = Math.max(record.initialAgeYears, Math.floor(ageYears));
+  const eventId = `${record.vassalId}:${kind}:${safeAgeYears}`;
+  events.push(buildLifeEvent(eventId, kind, record.birthSec, safeAgeYears, extra));
+}
+
+function buildCheatVassalLifeSchedule(record, spec) {
+  const events = [
+    buildLifeEvent(`${record.vassalId}:birth`, "birth", record.birthSec, record.initialAgeYears, {
+      classId: record.sourceClassId,
+      text: "Born into the lineage",
+    }),
+  ];
+
+  const classChangeAge =
+    record.sourceClassId === "stranger" ? SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS : null;
+  if (classChangeAge != null && spec.deathAgeYears >= classChangeAge) {
+    addCheatLifeEvent(events, record, "classChanged", classChangeAge, {
+      classId: "villager",
+      text: "Became a villager",
+    });
+  }
+
+  if (spec.professionId && spec.deathAgeYears >= SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE.min) {
+    const professionAgeYears = Math.max(
+      record.initialAgeYears,
+      SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE.min
+    );
+    addCheatLifeEvent(events, record, "professionAssigned", professionAgeYears, {
+      professionId: spec.professionId,
+      text: `Changed profession: ${settlementVassalProfessionDefs?.[spec.professionId]?.label ?? spec.professionId}`,
+    });
+  }
+
+  if (spec.traitId && spec.deathAgeYears >= SETTLEMENT_VASSAL_TRAIT_AGE_RANGE.min) {
+    const traitAgeYears = Math.max(
+      record.initialAgeYears,
+      SETTLEMENT_VASSAL_TRAIT_AGE_RANGE.min
+    );
+    addCheatLifeEvent(events, record, "traitAssigned", traitAgeYears, {
+      traitId: spec.traitId,
+      text: `Gained trait: ${settlementVassalTraitDefs?.[spec.traitId]?.label ?? spec.traitId}`,
+    });
+  }
+
+  if (spec.deathAgeYears >= SETTLEMENT_VASSAL_ELDER_AGE_YEARS) {
+    const elderAgeYears = Math.max(record.initialAgeYears, SETTLEMENT_VASSAL_ELDER_AGE_YEARS);
+    addCheatLifeEvent(events, record, "becameElder", elderAgeYears, {
+      text: "Became elder",
+    });
+  }
+
+  events.push(
+    buildLifeEvent(
+      `${record.vassalId}:death:${spec.deathAgeYears}`,
+      "died",
+      record.birthSec,
+      spec.deathAgeYears,
+      {
+        causeOfDeath: "oldAge",
+        text: "Died of old age",
+      }
+    )
+  );
+
+  const eventOrder = {
+    birth: 0,
+    classChanged: 1,
+    professionAssigned: 2,
+    traitAssigned: 3,
+    becameElder: 4,
+    died: 5,
+  };
+  return events.sort(
+    (a, b) =>
+      Math.floor(a?.ageYears ?? 0) - Math.floor(b?.ageYears ?? 0) ||
+      (eventOrder[a?.kind] ?? 99) - (eventOrder[b?.kind] ?? 99)
+  );
+}
+
+function buildCheatVassalRecord(state, lineage, spec, tSec = null) {
+  const currentYear = getYearAtSecond(state, tSec);
+  const selectedSec = getSafeTSec(state, tSec);
+  const vassalId = nextLineageVassalId(lineage);
+  const record = {
+    vassalId,
+    poolId: "cheat-vassal",
+    sourceClassId: spec.sourceClassId,
+    currentClassId: spec.sourceClassId,
+    birthSec: selectedSec,
+    birthYear: currentYear,
+    selectedSec,
+    deathSec: selectedSec,
+    deathYear: currentYear,
+    initialAgeYears: spec.initialAgeYears,
+    deathAgeYears: spec.deathAgeYears,
+    villagerAgeYears:
+      spec.sourceClassId === "stranger" ? SETTLEMENT_VASSAL_VILLAGER_AGE_YEARS : null,
+    professionAgeYears: spec.professionId
+      ? Math.max(spec.initialAgeYears, SETTLEMENT_VASSAL_PROFESSION_AGE_RANGE.min)
+      : null,
+    traitAgeYears: spec.traitId
+      ? Math.max(spec.initialAgeYears, SETTLEMENT_VASSAL_TRAIT_AGE_RANGE.min)
+      : null,
+    elderAgeYears: SETTLEMENT_VASSAL_ELDER_AGE_YEARS,
+    agendaByClass: spec.agendaByClass,
+    professionId: null,
+    traitId: null,
+    deathCause: null,
+    councilMemberId: null,
+    joinedCouncilSec: null,
+    removedFromCouncilSec: null,
+    isDead: false,
+    isElder: false,
+    lastAppliedLifeEventIndex: -1,
+    lifeEvents: [],
+  };
+  record.lifeEvents = buildCheatVassalLifeSchedule(record, spec);
+  return record;
+}
+
 function createCandidateRecord(state, lineage, poolId, orderDef, randomSource) {
   const classIds = getSettlementClassIds(state);
   const populationSummary = getSettlementPopulationSummary(state);
@@ -440,6 +653,23 @@ export function selectSettlementVassal(state, candidateIndex, expectedPoolHash, 
     return { ok: false, reason: "missingCandidate" };
   }
   return finalizeSelectedVassal(state, lineage, candidate, tSec);
+}
+
+export function selectCheatSettlementVassal(state, spec, tSec = null) {
+  const lineage = getVassalLineageMutable(state);
+  if (!lineage) return { ok: false, reason: "noLineage" };
+  const currentVassal = getCurrentSettlementVassal(state);
+  if (currentVassal && currentVassal.isDead !== true) {
+    return { ok: false, reason: "currentVassalAlive" };
+  }
+  const normalized = normalizeCheatVassalSpec(state, spec);
+  if (!normalized.ok) return normalized;
+  const candidate = buildCheatVassalRecord(state, lineage, normalized.spec, tSec);
+  const result = finalizeSelectedVassal(state, lineage, candidate, tSec);
+  if (result?.ok) {
+    stepSettlementVassals(state, tSec);
+  }
+  return result;
 }
 
 export function removePracticeFromVassalAgendas(state, practiceDefId, classId = null) {

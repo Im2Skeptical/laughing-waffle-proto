@@ -3,6 +3,7 @@ import { getSettlementChaosGodSummary } from "../model/settlement-chaos.js";
 import {
   getSettlementClassIds,
   getSettlementCurrentVassal,
+  getSettlementDebugOverrideSlotSummary,
   getSettlementFaithSummary,
   getSettlementFirstSelectedVassal,
   getSettlementFloodplainFoodTotal,
@@ -86,6 +87,7 @@ export function buildRenderGateKey(
   const lossYear = Number.isFinite(civilizationLossInfo?.lossYear)
     ? Math.floor(civilizationLossInfo.lossYear)
     : null;
+  const debugOverrideSlots = getSettlementDebugOverrideSlotSummary(state);
   return [
     Math.floor(state?.tSec ?? 0),
     getCurrentSeasonKey(state),
@@ -101,6 +103,7 @@ export function buildRenderGateKey(
     countVisibleVassalLifeEvents(currentVassal, visibleVassalThroughSec),
     lossYear ?? "",
     civilizationLossInfo?.resolved === true ? 1 : 0,
+    JSON.stringify(debugOverrideSlots),
   ].join("|");
 }
 
@@ -114,6 +117,7 @@ export function buildSignature(
   const classIds = getSettlementClassIds(state);
   const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
   const practiceCardsByClass = {};
+  const debugOverrideSlots = getSettlementDebugOverrideSlotSummary(state);
   for (const classId of classIds) {
     practiceCardsByClass[classId] = getSettlementPracticeSlotsByClass(state, classId).map(
       (slot) => ({
@@ -191,6 +195,7 @@ export function buildSignature(
       };
     })(),
     orderCards,
+    debugOverrideSlots,
     practiceCardsByClass,
     structures,
     tiles,
