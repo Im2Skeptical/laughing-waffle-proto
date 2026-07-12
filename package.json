@@ -9,7 +9,10 @@
     "build": "node scripts/build-check.mjs",
     "check:build": "node scripts/build-check.mjs",
     "test": "node -e \"console.log('No legacy test scripts configured.')\"",
-    "verify": "npm run build",
+    "verify": "npm run build && npm run test:world && npm run test:determinism && npm run test:debug-overrides",
+    "test:world": "node src/model/tests/world-state.js",
+    "test:determinism": "node --input-type=module -e \"import {runDeterminismSuite} from './src/model/tests/determinism.js'; if(!runDeterminismSuite()) process.exit(1)\"",
+    "test:debug-overrides": "node --input-type=module -e \"import {runDebugOverrideSuite} from './src/model/tests/debug-overrides.js'; if(!runDebugOverrideSuite()) process.exit(1)\"",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose"

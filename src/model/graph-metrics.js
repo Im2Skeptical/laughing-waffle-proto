@@ -16,6 +16,7 @@ import {
   getSettlementTotalFood,
   isSettlementPrototypeEnabled,
 } from "./settlement-state.js";
+import { getPrimaryDetailedSiteState } from "./world-state.js";
 
 const DEFAULT_SETTLEMENT_GRAPH_CLASS_IDS = Object.freeze(["villager", "stranger"]);
 const SETTLEMENT_CLASS_METRIC_COLOR_PALETTES = Object.freeze({
@@ -133,7 +134,7 @@ function getSettlementFoodTooltipSpec(state) {
   const food = getSettlementTotalFood(state);
   const storedFood = getSettlementStockpile(state, "food");
   const fieldFood = getSettlementFloodplainFoodTotal(state);
-  const foodCapacity = Math.max(0, Math.floor(state?.hub?.core?.props?.foodCapacity ?? 0));
+  const foodCapacity = Math.max(0, Math.floor(getPrimaryDetailedSiteState(state)?.hub?.core?.props?.foodCapacity ?? 0));
   const youthPerFood = Number.isFinite(YOUTH_PER_FOOD) ? Math.max(1, Math.floor(YOUTH_PER_FOOD)) : 2;
   const weightedDemand = population.adults + Math.ceil(population.youth / youthPerFood);
   return {

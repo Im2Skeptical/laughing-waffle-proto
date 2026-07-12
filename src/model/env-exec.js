@@ -38,8 +38,13 @@ import {
   setSettlementTileBlueResource,
   syncSettlementHinterlandBlueResource,
 } from "./settlement-state.js";
+import { getPrimaryDetailedSiteState } from "./world-state.js";
 
 const SETTLEMENT_BLUE_RESOURCE_CAP = 10;
+
+function getLocalState(state) {
+  return getPrimaryDetailedSiteState(state);
+}
 
 function chooseArticle(noun) {
   if (!noun || typeof noun !== "string") return "A";
@@ -58,8 +63,8 @@ function formatEventAppearanceText(defId) {
 }
 
 function findSpawnedEventAnchor(state, defId, tSec) {
-  const anchors = Array.isArray(state?.board?.layers?.event?.anchors)
-    ? state.board.layers.event.anchors
+  const anchors = Array.isArray(getLocalState(state)?.board?.layers?.event?.anchors)
+    ? getLocalState(state).board.layers.event.anchors
     : [];
   const sec = Number.isFinite(tSec) ? Math.floor(tSec) : 0;
   const matches = [];
@@ -78,8 +83,8 @@ function findSpawnedEventAnchor(state, defId, tSec) {
 }
 
 function collectSpawnedEventPlacements(state, defId, tSec) {
-  const anchors = Array.isArray(state?.board?.layers?.event?.anchors)
-    ? state.board.layers.event.anchors
+  const anchors = Array.isArray(getLocalState(state)?.board?.layers?.event?.anchors)
+    ? getLocalState(state).board.layers.event.anchors
     : [];
   const sec = Number.isFinite(tSec) ? Math.floor(tSec) : 0;
   const placements = [];
@@ -186,9 +191,10 @@ function buildAggregateRunPayload(runState) {
 }
 
 function getActiveAggregateRun(state, aggregateKey, defId) {
+  const local = getLocalState(state);
   const runs =
-    state?.activeEnvEventRuns && typeof state.activeEnvEventRuns === "object"
-      ? state.activeEnvEventRuns
+    local?.activeEnvEventRuns && typeof local.activeEnvEventRuns === "object"
+      ? local.activeEnvEventRuns
       : null;
   if (!runs) return null;
   const run = runs[aggregateKey];
@@ -198,8 +204,8 @@ function getActiveAggregateRun(state, aggregateKey, defId) {
 }
 
 function findActiveAggregateAnchors(state, defId, aggregateKey) {
-  const anchors = Array.isArray(state?.board?.layers?.event?.anchors)
-    ? state.board.layers.event.anchors
+  const anchors = Array.isArray(local?.board?.layers?.event?.anchors)
+    ? local.board.layers.event.anchors
     : [];
   const matches = [];
   for (const anchor of anchors) {
@@ -253,7 +259,7 @@ function runAggregateBandUpdateEffects(state, anchors, magnitudeBand, tSec) {
 }
 
 function currentDeckMatchesAggregateRun(state, runState) {
-  const deck = state?.currentSeasonDeck;
+  const deck = getLocalState(state)?.currentSeasonDeck;
   if (!deck || typeof deck !== "object") return false;
   const deckYear = Number.isFinite(deck.year) ? Math.floor(deck.year) : null;
   const deckSeasonIndex = Number.isFinite(deck.seasonIndex)
@@ -267,7 +273,7 @@ function currentDeckMatchesAggregateRun(state, runState) {
 
 function purgeAggregateRunCardsFromCurrentDeck(state, runState) {
   if (!currentDeckMatchesAggregateRun(state, runState)) return false;
-  const deck = state?.currentSeasonDeck?.deck;
+  const deck = getLocalState(state)?.currentSeasonDeck?.deck;
   if (!Array.isArray(deck) || deck.length <= 0) return false;
   const defId = runState?.defId;
   if (typeof defId !== "string" || defId.length <= 0) return false;
@@ -286,7 +292,7 @@ function finalizeExpiredAggregateRun(state, aggregateKey, defId) {
   if (drawResolution?.purgeRemainingCardsOnExpire === true) {
     purgeAggregateRunCardsFromCurrentDeck(state, run);
   }
-  delete state.activeEnvEventRuns[aggregateKey];
+  delete getLocalState(state).activeEnvEventRuns[aggregateKey];
   return true;
 }
 
@@ -297,7 +303,7 @@ function resolveAggregateDraw(state, defId, def, drawResolution, tSec) {
     ? findActiveAggregateAnchors(state, defId, aggregateKey)
     : [];
   if (activeRun && activeAnchors.length <= 0) {
-    delete state.activeEnvEventRuns[aggregateKey];
+    delete getLocalState(state).activeEnvEventRuns[aggregateKey];
   }
 
   const liveRun =
@@ -315,7 +321,7 @@ function resolveAggregateDraw(state, defId, def, drawResolution, tSec) {
       (anchor) => Math.floor(anchor?.createdSec ?? -1) === Math.floor(tSec)
     );
     const runState = buildAggregateRunState(state, defId, drawResolution, tSec, 1);
-    state.activeEnvEventRuns[aggregateKey] = runState;
+    getLocalState(state).activeEnvEventRuns[aggregateKey] = runState;
     syncAggregateAnchors(spawnedAnchors, runState);
     const magnitudeBand = resolveAggregateMagnitudeBand(drawResolution, runState.cardsDrawn);
     runAggregateBandUpdateEffects(state, spawnedAnchors, magnitudeBand, tSec);
@@ -338,7 +344,7 @@ function resolveAggregateDraw(state, defId, def, drawResolution, tSec) {
     nextRunState.firstDrawSec,
     nextCardsDrawn
   );
-  state.activeEnvEventRuns[aggregateKey] = nextRunState;
+  getLocalState(state).activeEnvEventRuns[aggregateKey] = nextRunState;
   syncAggregateAnchors(activeAnchors, nextRunState);
   runAggregateBandUpdateEffects(state, activeAnchors, magnitudeBand, tSec);
   return {
@@ -401,7 +407,7 @@ function isTagDisabled(tile, tagId, isTagUnlocked = null) {
 
 function getPawnIdsOnEnvCol(state, col) {
   const out = [];
-  const pawns = Array.isArray(state?.pawns) ? state.pawns : [];
+  const pawns = Array.isArray(getLocalState(state)?.pawns) ? getLocalState(state).pawns : [];
   for (const pawn of pawns) {
     const slot = Number.isFinite(pawn?.envCol) ? Math.floor(pawn.envCol) : null;
     if (slot === col && pawn?.id != null) out.push(pawn.id);
@@ -548,7 +554,7 @@ function matchesTileWhere(tile, whereSpec, isTagUnlocked = null) {
 }
 
 function collectTileColsWhere(state, whereSpec, isTagUnlocked = null) {
-  const occ = state?.board?.occ?.tile;
+  const occ = getLocalState(state)?.board?.occ?.tile;
   if (!Array.isArray(occ)) return [];
   const cols = [];
   for (let col = 0; col < occ.length; col++) {
@@ -607,7 +613,7 @@ function expandAreaCols(refCols, areaSpec, maxCols) {
 
 function filterColsByWhere(state, cols, whereSpec, isTagUnlocked = null) {
   if (!whereSpec || typeof whereSpec !== "object") return cols;
-  const occ = state?.board?.occ?.tile;
+  const occ = getLocalState(state)?.board?.occ?.tile;
   if (!Array.isArray(occ)) return [];
   const out = [];
   for (const rawCol of cols) {
@@ -642,7 +648,7 @@ function resolvePlacementOriginCol(originCol, span, placementSpec, maxCols) {
 }
 
 function placementHasTiles(state, startCol, span) {
-  const tileOcc = state?.board?.occ?.tile;
+  const tileOcc = getLocalState(state)?.board?.occ?.tile;
   if (!Array.isArray(tileOcc)) return false;
   const safeSpan = Number.isFinite(span) && span > 0 ? Math.floor(span) : 1;
   for (let offset = 0; offset < safeSpan; offset++) {
@@ -725,7 +731,7 @@ function removeEventAnchors(state, anchors, tSec, options) {
   const removeKeys = new Set(
     ordered.map((anchor) => anchor?.instanceId ?? anchor)
   );
-  const anchorsList = state.board?.layers?.event?.anchors;
+  const anchorsList = getLocalState(state)?.board?.layers?.event?.anchors;
   if (!Array.isArray(anchorsList) || anchorsList.length === 0) return false;
 
   const next = anchorsList.filter((anchor) => {
@@ -736,7 +742,7 @@ function removeEventAnchors(state, anchors, tSec, options) {
   anchorsList.length = 0;
   anchorsList.push(...next);
 
-  const eventOcc = state.board?.occ?.event;
+  const eventOcc = getLocalState(state)?.board?.occ?.event;
   if (Array.isArray(eventOcc)) {
     for (const anchor of ordered) {
       const col = Number.isFinite(anchor?.col) ? Math.floor(anchor.col) : 0;
@@ -777,7 +783,7 @@ function transformEventAnchors(state, anchors, defId, tSec) {
 }
 
 function placeEventAnchor(state, defId, col, span, tSec) {
-  const board = state.board;
+  const board = getLocalState(state).board;
   if (!board) return false;
   const anchor = makeEnvEventInstance(defId, state, col, span, tSec);
   board.layers.event.anchors.push(anchor);
@@ -835,7 +841,7 @@ function getCollisionConfig(spawnSpec) {
 }
 
 function filterValidOriginCols(state, cols, span, placementSpec) {
-  const board = state?.board;
+  const board = getLocalState(state)?.board;
   const boardCols = Number.isFinite(board?.cols) ? Math.floor(board.cols) : 0;
   const tileOcc = board?.occ?.tile;
   if (!Array.isArray(tileOcc) || boardCols <= 0) return [];
@@ -865,10 +871,10 @@ function collectRandomCandidateCols(
   const validCols = filterValidOriginCols(state, baseCols, span, placementSpec);
   if (collisionMode !== "skip") return validCols;
 
-  const boardCols = Number.isFinite(state?.board?.cols)
-    ? Math.floor(state.board.cols)
+  const boardCols = Number.isFinite(getLocalState(state)?.board?.cols)
+    ? Math.floor(getLocalState(state).board.cols)
     : 0;
-  const eventOcc = state?.board?.occ?.event;
+  const eventOcc = getLocalState(state)?.board?.occ?.event;
   const filtered = [];
   for (const col of validCols) {
     const startCol = resolvePlacementOriginCol(col, span, placementSpec, boardCols);
@@ -889,8 +895,8 @@ function collectOriginColsByMode(
   rng,
   isTagUnlocked
 ) {
-  const boardCols = Number.isFinite(state?.board?.cols)
-    ? Math.floor(state.board.cols)
+  const boardCols = Number.isFinite(getLocalState(state)?.board?.cols)
+    ? Math.floor(getLocalState(state).board.cols)
     : 0;
   const mode = typeof spawnSpec?.mode === "string" ? spawnSpec.mode : "singleRandomCol";
 
@@ -953,14 +959,14 @@ function collectCollisionAnchorsForPlacements(eventOcc, originCols, span, placem
 }
 
 function attemptPlacement(state, defId, span, tSec, originCol, placementSpec, collision) {
-  const boardCols = Number.isFinite(state?.board?.cols)
-    ? Math.floor(state.board.cols)
+  const boardCols = Number.isFinite(getLocalState(state)?.board?.cols)
+    ? Math.floor(getLocalState(state).board.cols)
     : 0;
   const startCol = resolvePlacementOriginCol(originCol, span, placementSpec, boardCols);
   if (startCol == null) return { placed: false, needsRebuild: false };
   if (!placementHasTiles(state, startCol, span)) return { placed: false, needsRebuild: false };
 
-  const eventOcc = state?.board?.occ?.event;
+  const eventOcc = getLocalState(state)?.board?.occ?.event;
   let colliding = getIntersectingAnchorsForOcc(eventOcc, startCol, span);
 
   if (collision.mode === "skip") {
@@ -1018,7 +1024,7 @@ function deriveEnvEventSeed(state, tSec, defId) {
 }
 
 function spawnEnvEventFromDef(state, defId, def, tSec) {
-  const board = state?.board;
+  const board = getLocalState(state)?.board;
   if (!board) return { placedAny: false, needsRebuild: false };
 
   const span =
@@ -1170,13 +1176,13 @@ function stepSettlementPrototypeEnvSecond(state, tSec) {
 }
 
 export function stepEnvSecond(state, tSec) {
-  if (!state || !state.board) return;
+  if (!state || !getLocalState(state)?.board) return;
   if (state?.variantFlags?.settlementPrototypeEnabled === true) {
     stepSettlementPrototypeEnvSecond(state, tSec);
     return;
   }
 
-  const board = state.board;
+  const board = getLocalState(state).board;
   const seasonKey = getCurrentSeasonKey(state);
   const unlockedEnvTags = computeGlobalSkillMods(state).unlockedEnvTags;
   const isTagUnlocked = (tagId) =>
@@ -1291,7 +1297,7 @@ export function stepEnvSecond(state, tSec) {
         !result?.placedAny &&
         outcome !== "aggregated";
       if (shouldReturnToDeck) {
-        const deck = state.currentSeasonDeck?.deck;
+        const deck = getLocalState(state).currentSeasonDeck?.deck;
         if (Array.isArray(deck)) deck.unshift(entry);
       }
 
@@ -1322,7 +1328,7 @@ export function stepEnvSecond(state, tSec) {
 
   const cols = board.cols ?? 12;
   const tileOcc = board.occ?.tile;
-  const pawns = Array.isArray(state?.pawns) ? state.pawns : [];
+  const pawns = Array.isArray(getLocalState(state)?.pawns) ? getLocalState(state).pawns : [];
   const pawnById = new Map();
   for (const pawn of pawns) {
     if (pawn?.id != null) pawnById.set(pawn.id, pawn);
@@ -1384,7 +1390,7 @@ export function stepEnvSecond(state, tSec) {
           pawnId,
           ownerId: pawnId,
           pawn,
-          pawnInv: state?.ownerInventories?.[pawnId] ?? null,
+          pawnInv: getLocalState(state)?.ownerInventories?.[pawnId] ?? null,
           selectedCropId,
         };
       },
