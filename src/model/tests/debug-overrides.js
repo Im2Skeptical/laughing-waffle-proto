@@ -7,6 +7,7 @@ import { ActionKinds, applyAction } from "../actions.js";
 import { GRAPH_METRICS } from "../graph-metrics.js";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
+import { getPrimaryDetailedSiteState } from "../world-state.js";
 import {
   getSettlementCurrentVassal,
   getSettlementDebugOverrideSlotSummary,
@@ -148,7 +149,7 @@ function testStructureOverride() {
   const structure = getStructure(state, 4);
   assert.equal(structure.defId, "granary");
   assert.equal(structure.tier, "diamond");
-  assert.equal(state.hub.occ[4]?.instanceId, structure.instanceId);
+  assert.equal(getPrimaryDetailedSiteState(state).hub.occ[4]?.instanceId, structure.instanceId);
   assert.equal(getSettlementDebugOverrideSlotSummary(state).structures[4], true);
 
   const clearOverrideResult = applyDebugOverride(state, [

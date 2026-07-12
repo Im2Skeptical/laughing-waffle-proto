@@ -83,6 +83,31 @@ function assertSettlementViewSemantics(snapshot) {
   }
 }
 
+function assertWorldMapSemantics(snapshot) {
+  const map = snapshot?.worldMap ?? null;
+  const missing = [];
+  if (map?.mode !== "map") missing.push("map mode");
+  if (map?.visible !== true) missing.push("visible map");
+  if (map?.regionCount !== 15) missing.push("15 regions");
+  if (map?.selectedRegionId !== "river-crown") missing.push("River Crown selection");
+  if (missing.length > 0) {
+    throw new Error(`World map semantic snapshot missing: ${missing.join(", ")}`);
+  }
+}
+
+async function clickCanvasDesignPoint(page, point) {
+  const canvas = page.locator("canvas");
+  const box = await canvas.boundingBox();
+  if (!box || !point) throw new Error("Canvas or design click point unavailable");
+  const clickPoint = {
+    x: box.x + (point.x / 2424) * box.width,
+    y: box.y + (point.y / 1080) * box.height,
+  };
+  await page.mouse.click(clickPoint.x, clickPoint.y);
+  await delay(180);
+  return { box, point, clickPoint };
+}
+
 function assertChaosViewSemantics(snapshot) {
   const chaos = snapshot?.view?.sections?.chaos ?? null;
   const missing = [];
@@ -214,10 +239,41 @@ async function main() {
   const initial = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null
   );
+  assertWorldMapSemantics(initial);
   assertSettlementViewSemantics(initial);
   assertChaosViewSemantics(initial);
   assertClassSummaryViewSemantics(initial);
   logJson("initial", initial);
+
+  const ironPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("iron-hills") ?? null
+  );
+  const ironClick = await clickCanvasDesignPoint(page, ironPoint);
+  const ironSelection = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap ?? null
+  );
+  if (ironSelection?.selectedRegionId !== "iron-hills") {
+    throw new Error(`World map selection failed: expected iron-hills, got ${ironSelection?.selectedRegionId ?? "null"}; pointer=${ironSelection?.lastPointerRegionId ?? "none"}; click=${JSON.stringify(ironClick)}`);
+  }
+
+  const capitalPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("river-crown") ?? null
+  );
+  await clickCanvasDesignPoint(page, capitalPoint);
+  await clickCanvasDesignPoint(page, { x: 2047, y: 759 });
+  const settlementMode = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap?.mode ?? null
+  );
+  if (settlementMode !== "settlement") {
+    throw new Error(`Capital navigation failed: expected settlement mode, got ${settlementMode ?? "null"}`);
+  }
+  await clickCanvasDesignPoint(page, { x: 136, y: 35 });
+  const returnedMap = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap ?? null
+  );
+  if (returnedMap?.mode !== "map" || returnedMap?.selectedRegionId !== "river-crown") {
+    throw new Error("Return-to-map navigation did not preserve the selected capital region");
+  }
 
   const availability = await page.evaluate(() => {
     const secs = [1, 2, 4, 8, 16, 32, 48, 52, 60, 64, 68, 69, 70];

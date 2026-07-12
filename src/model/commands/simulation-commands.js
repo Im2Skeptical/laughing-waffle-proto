@@ -4,6 +4,7 @@ import {
   buildSeasonDeckForCurrentSeason,
   getCurrentSeasonKey,
 } from "../state.js";
+import { getPrimaryDetailedSiteState } from "../world-state.js";
 import {
   getApCapForSecond,
   getApIncomePerSecond,
@@ -29,7 +30,7 @@ export function cmdAdvanceSeason(state) {
 
   const newSeasonKey = getCurrentSeasonKey(state);
 
-  state.currentSeasonDeck = null;
+  getPrimaryDetailedSiteState(state).currentSeasonDeck = null;
   buildSeasonDeckForCurrentSeason(state);
   state._seasonChanged = true;
 

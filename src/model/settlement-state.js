@@ -10,6 +10,7 @@ import {
 } from "../defs/gamesettings/gamerules-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
+import { getPrimaryDetailedSiteState } from "./world-state.js";
 
 const DEFAULT_ORDER_SLOT_COUNT = 1;
 const DEFAULT_PRACTICE_SLOT_COUNT = 5;
@@ -658,11 +659,12 @@ export function createSettlementCardInstance(defId, cardKind, state, overrides =
 }
 
 export function getHubCore(state) {
-  return state?.hub?.core ?? null;
+  return getPrimaryDetailedSiteState(state)?.hub?.core ?? null;
 }
 
 export function getSettlementClassIds(state) {
-  const explicitOrder = Array.isArray(state?.hub?.classOrder) ? state.hub.classOrder : [];
+  const hub = getPrimaryDetailedSiteState(state)?.hub;
+  const explicitOrder = Array.isArray(hub?.classOrder) ? hub.classOrder : [];
   const populationClasses = getHubCore(state)?.systemState?.populationClasses;
   return normalizeClassOrder(
     explicitOrder.length ? explicitOrder : Object.keys(populationClasses || {})
@@ -857,23 +859,26 @@ export function getSettlementPopulationClassState(state, classId = null) {
 }
 
 export function getSettlementZone(state, zoneId) {
-  return state?.hub?.zones?.[zoneId] ?? null;
+  return getPrimaryDetailedSiteState(state)?.hub?.zones?.[zoneId] ?? null;
 }
 
 export function getSettlementStructureSlots(state) {
-  return Array.isArray(state?.hub?.zones?.structures?.slots)
-    ? state.hub.zones.structures.slots
+  const hub = getPrimaryDetailedSiteState(state)?.hub;
+  return Array.isArray(hub?.zones?.structures?.slots)
+    ? hub.zones.structures.slots
     : [];
 }
 
 export function getSettlementPracticeSlotsByClass(state, classId = null) {
   const safeClassId = normalizeClassId(classId) ?? getSettlementPrimaryClassId(state);
-  return Array.isArray(state?.hub?.zones?.practiceByClass?.[safeClassId]?.slots)
-    ? state.hub.zones.practiceByClass[safeClassId].slots
+  const hub = getPrimaryDetailedSiteState(state)?.hub;
+  return Array.isArray(hub?.zones?.practiceByClass?.[safeClassId]?.slots)
+    ? hub.zones.practiceByClass[safeClassId].slots
     : [];
 }
 
 export function getSettlementDebugOverrideSlotSummary(state) {
+  const hub = getPrimaryDetailedSiteState(state)?.hub;
   const practiceByClass = {};
   const orderSlots = getSettlementOrderSlots(state);
   const orderCard =
@@ -904,10 +909,10 @@ export function getSettlementDebugOverrideSlotSummary(state) {
 
   const structureSlots = getSettlementStructureSlots(state);
   const rawStructureOverrides =
-    state?.hub?.zones?.structures?.debugOverrideSlots &&
-    typeof state.hub.zones.structures.debugOverrideSlots === "object" &&
-    !Array.isArray(state.hub.zones.structures.debugOverrideSlots)
-      ? state.hub.zones.structures.debugOverrideSlots
+    hub?.zones?.structures?.debugOverrideSlots &&
+    typeof hub.zones.structures.debugOverrideSlots === "object" &&
+    !Array.isArray(hub.zones.structures.debugOverrideSlots)
+      ? hub.zones.structures.debugOverrideSlots
       : {};
   const structures = structureSlots.map((_, index) => {
     const key = String(index);
@@ -925,21 +930,24 @@ export function getSettlementPracticeSlots(state, classId = null) {
 }
 
 export function getSettlementOrderSlots(state) {
-  return Array.isArray(state?.hub?.zones?.order?.slots)
-    ? state.hub.zones.order.slots
+  const hub = getPrimaryDetailedSiteState(state)?.hub;
+  return Array.isArray(hub?.zones?.order?.slots)
+    ? hub.zones.order.slots
     : [];
 }
 
 export function getSettlementFloodplainTiles(state) {
-  const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
-    ? state.board.layers.tile.anchors
+  const board = getPrimaryDetailedSiteState(state)?.board;
+  const tiles = Array.isArray(board?.layers?.tile?.anchors)
+    ? board.layers.tile.anchors
     : [];
   return tiles.filter((tile) => getFloodplainSettlementSpec(tile));
 }
 
 export function getSettlementHinterlandTiles(state) {
-  const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
-    ? state.board.layers.tile.anchors
+  const board = getPrimaryDetailedSiteState(state)?.board;
+  const tiles = Array.isArray(board?.layers?.tile?.anchors)
+    ? board.layers.tile.anchors
     : [];
   return tiles.filter((tile) => tile?.defId === "tile_hinterland");
 }

@@ -28,6 +28,10 @@ import {
   ensureSettlementStructureUpgradeState,
   isUpgradeableSettlementStructureDef,
 } from "./settlement-upgrades.js";
+import {
+  createWorldState,
+  getPrimaryDetailedSiteState,
+} from "./world-state.js";
 
 const BOARD_COLS = 12;
 const BOARD_LAYERS = ["tile", "event", "envStructure"];
@@ -88,13 +92,18 @@ function createHubState(cols = HUB_COLS) {
   }, safeCols);
 }
 
+function getLocalState(state) {
+  return getPrimaryDetailedSiteState(state) ?? state;
+}
+
 function ensureBoardState(state) {
-  if (!state.board || typeof state.board !== "object") {
-    state.board = createBoardState();
+  const local = getLocalState(state);
+  if (!local.board || typeof local.board !== "object") {
+    local.board = createBoardState();
     return;
   }
 
-  const board = state.board;
+  const board = local.board;
   const cols =
     typeof board.cols === "number" && board.cols > 0 ? board.cols : BOARD_COLS;
   board.cols = cols;
@@ -127,9 +136,10 @@ function ensureBoardState(state) {
 
 function ensurePawnCollectionState(state) {
   if (!state || typeof state !== "object") return [];
-  if (Array.isArray(state.pawns)) return state.pawns;
-  state.pawns = [];
-  return state.pawns;
+  const local = getLocalState(state);
+  if (Array.isArray(local.pawns)) return local.pawns;
+  local.pawns = [];
+  return local.pawns;
 }
 
 export function getPawns(state) {
@@ -140,7 +150,8 @@ export function ensureLocationNamesState(state) {
   if (!state || typeof state !== "object") {
     return { ...DEFAULT_LOCATION_NAMES };
   }
-  const raw = state.locationNames;
+  const local = getLocalState(state);
+  const raw = local.locationNames;
   const locationNames = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   const region =
     typeof locationNames.region === "string" && locationNames.region.trim().length > 0
@@ -150,11 +161,11 @@ export function ensureLocationNamesState(state) {
     typeof locationNames.hub === "string" && locationNames.hub.trim().length > 0
       ? locationNames.hub.trim()
       : DEFAULT_LOCATION_NAMES.hub;
-  state.locationNames = {
+  local.locationNames = {
     region,
     hub,
   };
-  return state.locationNames;
+  return local.locationNames;
 }
 
 export function ensureDiscoveryState(state) {
@@ -165,12 +176,13 @@ export function ensureDiscoveryState(state) {
       hubRenameUnlocked: DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
     };
   }
+  const local = getLocalState(state);
   const raw =
-    state.discovery && typeof state.discovery === "object" && !Array.isArray(state.discovery)
-      ? state.discovery
+    local.discovery && typeof local.discovery === "object" && !Array.isArray(local.discovery)
+      ? local.discovery
       : {};
-  const boardCols = Number.isFinite(state?.board?.cols)
-    ? Math.max(0, Math.floor(state.board.cols))
+  const boardCols = Number.isFinite(local?.board?.cols)
+    ? Math.max(0, Math.floor(local.board.cols))
     : 0;
   const envCols = new Array(boardCols);
   const rawEnvCols = Array.isArray(raw.envCols) ? raw.envCols : [];
@@ -188,7 +200,7 @@ export function ensureDiscoveryState(state) {
           : DEFAULT_DISCOVERY_ENTRY.revealed,
     };
   }
-  state.discovery = {
+  local.discovery = {
     envCols,
     hubVisible:
       typeof raw.hubVisible === "boolean"
@@ -199,7 +211,7 @@ export function ensureDiscoveryState(state) {
         ? raw.hubRenameUnlocked
         : DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
   };
-  return state.discovery;
+  return local.discovery;
 }
 
 export function isEnvColExposed(state, envCol) {
@@ -235,12 +247,13 @@ export function isHubRenameUnlocked(state) {
 }
 
 export function ensureHubState(state) {
-  if (!state.hub || typeof state.hub !== "object") {
-    state.hub = createHubState();
+  const local = getLocalState(state);
+  if (!local.hub || typeof local.hub !== "object") {
+    local.hub = createHubState();
     return;
   }
 
-  const hub = state.hub;
+  const hub = local.hub;
   ensureHubSettlementState(
     hub,
     Number.isFinite(hub.cols) && hub.cols > 0 ? Math.floor(hub.cols) : HUB_COLS
@@ -515,7 +528,33 @@ export function syncPhaseToPaused(state) {
 // CORE STATE
 // =============================================================================
 
-export function createEmptyState(seed = 123456789) {
+export function createEmptyState(seed = 123456789, worldDefinitionId = "riverBasin01") {
+  const detailedState = {
+    resources: {
+      gold: 0,
+      grain: 0,
+      food: 0,
+      population: INITIAL_POPULATION_DEFAULT,
+    },
+    board: createBoardState(),
+    hub: createHubState(),
+    locationNames: { ...DEFAULT_LOCATION_NAMES },
+    discovery: {
+      envCols: new Array(BOARD_COLS).fill(null).map(() => ({
+        exposed: DEFAULT_DISCOVERY_ENTRY.exposed,
+        revealed: DEFAULT_DISCOVERY_ENTRY.revealed,
+      })),
+      hubVisible: DEFAULT_DISCOVERY_STATE.hubVisible,
+      hubRenameUnlocked: DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
+    },
+    currentSeasonDeck: null,
+    activeEnvEventRuns: {},
+    ownerInventories: {},
+    pawns: [],
+    passiveTimingRuntime: null,
+  };
+  const world = createWorldState(worldDefinitionId, detailedState);
+  const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
     phase: "simulation",
     turn: 0,
@@ -546,45 +585,25 @@ export function createEmptyState(seed = 123456789) {
     apCapOverride: null,
     variantFlags: normalizeVariantFlags(null),
 
-    resources: {
-      gold: 0,
-      grain: 0,
-      food: 0,
-      population: INITIAL_POPULATION_DEFAULT,
-    },
-
-    board: createBoardState(),
-    hub: createHubState(),
-    locationNames: { ...DEFAULT_LOCATION_NAMES },
-    discovery: {
-      envCols: new Array(BOARD_COLS).fill(null).map(() => ({
-        exposed: DEFAULT_DISCOVERY_ENTRY.exposed,
-        revealed: DEFAULT_DISCOVERY_ENTRY.revealed,
-      })),
-      hubVisible: DEFAULT_DISCOVERY_STATE.hubVisible,
-      hubRenameUnlocked: DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
+    world,
+    civilization: {
+      capitalRegionId: initialDetailedSite?.regionId ?? null,
+      capitalSiteId: initialDetailedSite?.id ?? null,
     },
     nextHubStructureInstanceId: 1,
     nextEnvStructureInstanceId: 1,
-
-    currentSeasonDeck: null,
-    activeEnvEventRuns: {},
     nextEnvInstanceId: 1,
-
-    ownerInventories: {},
 
     nextItemId: 1,
     nextSettlementCardInstanceId: 1,
     nextPopulationCommitmentId: 1,
 
-    pawns: [],
     nextPawnId: 101,
     nextFollowerCreationOrderIndex: 1,
     gameEventFeed: [],
     nextGameEventFeedId: 1,
     skillProgressionDefs: null,
     skillRuntime: null,
-    passiveTimingRuntime: null,
     persistentKnowledge: {
       droppedItemKindsByPoolId: {},
     },
@@ -747,7 +766,8 @@ export function rebuildBoardOccupancy(state) {
   if (state.permanentSlots) delete state.permanentSlots;
   if (state.nextPermanentInstanceId) delete state.nextPermanentInstanceId;
 
-  const board = state.board;
+  const local = getLocalState(state);
+  const board = local.board;
   for (const layer of BOARD_LAYERS) {
     board.occ[layer].fill(null);
   }
@@ -782,7 +802,7 @@ export function rebuildHubOccupancy(state) {
   if (!state) return;
   ensureHubState(state);
 
-  const hub = state.hub;
+  const hub = getLocalState(state).hub;
   const slots = Array.isArray(hub.slots) ? hub.slots : [];
   hub.cols = slots.length;
 
@@ -941,8 +961,9 @@ function pickWeightedDefId(rng, entries) {
 }
 
 function getOrderedTileAnchors(state) {
-  const anchors = Array.isArray(state?.board?.layers?.tile?.anchors)
-    ? state.board.layers.tile.anchors
+  const local = getLocalState(state);
+  const anchors = Array.isArray(local?.board?.layers?.tile?.anchors)
+    ? local.board.layers.tile.anchors
     : [];
   const ordered = anchors.map((anchor, index) => ({
     anchor,
@@ -1005,8 +1026,9 @@ export function buildSeasonDeckForCurrentSeason(state) {
 
   // Shuffle so draw order is not tied to tile columns.
   shuffleDeckInPlace(rng, deck);
-  state.currentSeasonDeck = { seasonKey, seasonIndex, year, deck };
-  return state.currentSeasonDeck;
+  const local = getLocalState(state);
+  local.currentSeasonDeck = { seasonKey, seasonIndex, year, deck };
+  return local.currentSeasonDeck;
 }
 
 export function getCurrentSeasonKey(state) {
@@ -1015,7 +1037,7 @@ export function getCurrentSeasonKey(state) {
 
 export function getCurrentSeasonData(state) {
   const seasonKey = getCurrentSeasonKey(state);
-  const deck = state.currentSeasonDeck;
+  const deck = getLocalState(state).currentSeasonDeck;
   if (deck && deck.seasonKey === seasonKey) return deck;
   return {
     seasonKey,
@@ -1029,7 +1051,7 @@ export function getCurrentSeasonData(state) {
 
 export function drawSeasonDeckEntry(state) {
   const seasonKey = getCurrentSeasonKey(state);
-  const deck = state.currentSeasonDeck;
+  const deck = getLocalState(state).currentSeasonDeck;
   if (!deck || deck.seasonKey !== seasonKey) return null;
   if (!Array.isArray(deck.deck) || deck.deck.length === 0) return null;
   return deck.deck.shift();
@@ -1097,24 +1119,24 @@ export function serializeGameState(state) {
   delete clean.rngNextInt;
   delete clean._boardDirty;
   delete clean._seasonChanged;
-  if (clean.board && clean.board.occ) delete clean.board.occ;
-  if (clean.hub) {
-    delete clean.hub.occ;
-    delete clean.hub.anchors;
-  }
-  if (clean.permanentSlots) delete clean.permanentSlots;
-  if (clean.nextPermanentInstanceId) delete clean.nextPermanentInstanceId;
-  if (clean.envSlots) delete clean.envSlots;
-  if (clean.envSlotsEnabled != null) delete clean.envSlotsEnabled;
-
-  // Inventories contain derived indices that cannot survive JSON cloning.
-  if (clean.ownerInventories) {
-    for (const inv of Object.values(clean.ownerInventories)) {
+  for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
+    const local = site?.detailedState;
+    if (!local) continue;
+    if (local.board?.occ) delete local.board.occ;
+    if (local.hub) {
+      delete local.hub.occ;
+      delete local.hub.anchors;
+    }
+    for (const inv of Object.values(local.ownerInventories ?? {})) {
       if (!inv) continue;
       delete inv.itemsById;
       delete inv.grid;
     }
   }
+  if (clean.permanentSlots) delete clean.permanentSlots;
+  if (clean.nextPermanentInstanceId) delete clean.nextPermanentInstanceId;
+  if (clean.envSlots) delete clean.envSlots;
+  if (clean.envSlotsEnabled != null) delete clean.envSlotsEnabled;
 
   return clean;
 }
@@ -1124,6 +1146,7 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
+  const local = getLocalState(state);
 
   // Ensure defaults
   if (!state.rng) state.rng = { seed: 123456789, baseSeed: 123456789 };
@@ -1135,28 +1158,28 @@ export function deserializeGameState(data) {
   if (!Number.isFinite(state.rng.baseSeed)) {
     state.rng.baseSeed = Math.floor(state.rng.seed ?? 123456789);
   }
-  if (!state.resources) {
-    state.resources = {
+  if (!local.resources) {
+    local.resources = {
       gold: 0,
       grain: 0,
       food: 0,
       population: INITIAL_POPULATION_DEFAULT,
     };
   }
-  if (!Number.isFinite(state.resources.gold)) state.resources.gold = 0;
-  if (!Number.isFinite(state.resources.grain)) state.resources.grain = 0;
-  if (!Number.isFinite(state.resources.food)) state.resources.food = 0;
-  if (!Number.isFinite(state.resources.population)) {
-    state.resources.population = INITIAL_POPULATION_DEFAULT;
+  if (!Number.isFinite(local.resources.gold)) local.resources.gold = 0;
+  if (!Number.isFinite(local.resources.grain)) local.resources.grain = 0;
+  if (!Number.isFinite(local.resources.food)) local.resources.food = 0;
+  if (!Number.isFinite(local.resources.population)) {
+    local.resources.population = INITIAL_POPULATION_DEFAULT;
   }
   if (state.envSlots) delete state.envSlots;
   if (state.envSlotsEnabled != null) delete state.envSlotsEnabled;
-  if (!state.hub || typeof state.hub !== "object") state.hub = createHubState();
+  if (!local.hub || typeof local.hub !== "object") local.hub = createHubState();
   ensureLocationNamesState(state);
   ensureDiscoveryState(state);
   const pawns = ensurePawnCollectionState(state);
   if (!state.seasons) state.seasons = SEASONS;
-  if (!state.ownerInventories) state.ownerInventories = {};
+  if (!local.ownerInventories) local.ownerInventories = {};
   if (!Array.isArray(state.gameEventFeed)) state.gameEventFeed = [];
   ensurePersistentKnowledgeState(state);
   if (
@@ -1175,37 +1198,37 @@ export function deserializeGameState(data) {
     state.nextGameEventFeedId = Math.max(1, maxEventId + 1);
   }
   if (
-    state.currentSeasonDeck != null &&
-    typeof state.currentSeasonDeck !== "object"
+    local.currentSeasonDeck != null &&
+    typeof local.currentSeasonDeck !== "object"
   ) {
-    state.currentSeasonDeck = null;
-  } else if (state.currentSeasonDeck) {
-    if (!Array.isArray(state.currentSeasonDeck.deck)) {
-      state.currentSeasonDeck.deck = [];
+    local.currentSeasonDeck = null;
+  } else if (local.currentSeasonDeck) {
+    if (!Array.isArray(local.currentSeasonDeck.deck)) {
+      local.currentSeasonDeck.deck = [];
     }
-    if (typeof state.currentSeasonDeck.seasonKey !== "string") {
-      state.currentSeasonDeck.seasonKey = getCurrentSeasonKey(state);
+    if (typeof local.currentSeasonDeck.seasonKey !== "string") {
+      local.currentSeasonDeck.seasonKey = getCurrentSeasonKey(state);
     }
-    if (!Number.isFinite(state.currentSeasonDeck.seasonIndex)) {
-      state.currentSeasonDeck.seasonIndex = Number.isFinite(state?.currentSeasonIndex)
+    if (!Number.isFinite(local.currentSeasonDeck.seasonIndex)) {
+      local.currentSeasonDeck.seasonIndex = Number.isFinite(state?.currentSeasonIndex)
         ? Math.floor(state.currentSeasonIndex)
         : 0;
     }
-    if (!Number.isFinite(state.currentSeasonDeck.year)) {
-      state.currentSeasonDeck.year = Number.isFinite(state?.year)
+    if (!Number.isFinite(local.currentSeasonDeck.year)) {
+      local.currentSeasonDeck.year = Number.isFinite(state?.year)
         ? Math.floor(state.year)
         : 1;
     }
   }
   if (
-    !state.activeEnvEventRuns ||
-    typeof state.activeEnvEventRuns !== "object" ||
-    Array.isArray(state.activeEnvEventRuns)
+    !local.activeEnvEventRuns ||
+    typeof local.activeEnvEventRuns !== "object" ||
+    Array.isArray(local.activeEnvEventRuns)
   ) {
-    state.activeEnvEventRuns = {};
+    local.activeEnvEventRuns = {};
   } else {
     const normalizedRuns = {};
-    for (const [aggregateKey, rawRun] of Object.entries(state.activeEnvEventRuns)) {
+    for (const [aggregateKey, rawRun] of Object.entries(local.activeEnvEventRuns)) {
       if (!rawRun || typeof rawRun !== "object" || Array.isArray(rawRun)) continue;
       const defId = typeof rawRun.defId === "string" ? rawRun.defId : null;
       if (!defId) continue;
@@ -1238,7 +1261,7 @@ export function deserializeGameState(data) {
           : 0,
       };
     }
-    state.activeEnvEventRuns = normalizedRuns;
+    local.activeEnvEventRuns = normalizedRuns;
   }
   ensureBoardState(state);
   ensureDiscoveryState(state);
@@ -1288,8 +1311,8 @@ export function deserializeGameState(data) {
   }
   if (!Number.isFinite(state.nextEnvStructureInstanceId)) {
     let maxEnvStructureId = 0;
-    const anchors = Array.isArray(state?.board?.layers?.envStructure?.anchors)
-      ? state.board.layers.envStructure.anchors
+    const anchors = Array.isArray(local?.board?.layers?.envStructure?.anchors)
+      ? local.board.layers.envStructure.anchors
       : [];
     for (const anchor of anchors) {
       const id = Number.isFinite(anchor?.instanceId)
@@ -1357,12 +1380,12 @@ export function deserializeGameState(data) {
   }
 
   // Rebuild derived inventory indices after JSON clone / replay.
-  for (const inv of Object.values(state.ownerInventories)) {
+  for (const inv of Object.values(local.ownerInventories)) {
     rebuildInventoryDerived(inv);
   }
 
-  const eventAnchors = Array.isArray(state?.board?.layers?.event?.anchors)
-    ? state.board.layers.event.anchors
+  const eventAnchors = Array.isArray(local?.board?.layers?.event?.anchors)
+    ? local.board.layers.event.anchors
     : [];
   for (const anchor of eventAnchors) {
     if (!anchor || typeof anchor !== "object") continue;
@@ -1385,7 +1408,7 @@ export function validateState(state) {
     return { ok: false, errors, warnings };
   }
 
-  const board = state.board;
+  const board = getLocalState(state).board;
   if (!board || typeof board !== "object") {
     errors.push("board missing");
     return { ok: false, errors, warnings };
@@ -1396,7 +1419,7 @@ export function validateState(state) {
     errors.push("board.cols invalid");
     return { ok: false, errors, warnings };
   }
-  const hub = state.hub;
+  const hub = getLocalState(state).hub;
   if (!hub || typeof hub !== "object") {
     errors.push("hub missing");
   }

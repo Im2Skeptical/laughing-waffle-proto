@@ -1,16 +1,20 @@
+import { getPrimaryDetailedSiteState } from "../../world-state.js";
+
 function getOccLayer(state, layer) {
-  if (layer === "hub") return state?.hub?.occ;
-  return state?.board?.occ?.[layer];
+  const local = getPrimaryDetailedSiteState(state);
+  if (layer === "hub") return local?.hub?.occ;
+  return local?.board?.occ?.[layer];
 }
 
 function getLayerAnchors(state, layer) {
   if (layer === "hub") {
-    const anchors = Array.isArray(state?.hub?.anchors) ? state.hub.anchors : null;
+    const local = getPrimaryDetailedSiteState(state);
+    const anchors = Array.isArray(local?.hub?.anchors) ? local.hub.anchors : null;
     if (anchors) return anchors.filter(Boolean);
-    const slots = Array.isArray(state?.hub?.slots) ? state.hub.slots : [];
+    const slots = Array.isArray(local?.hub?.slots) ? local.hub.slots : [];
     return slots.map((slot) => slot?.structure).filter(Boolean);
   }
-  const anchors = state?.board?.layers?.[layer]?.anchors;
+  const anchors = getPrimaryDetailedSiteState(state)?.board?.layers?.[layer]?.anchors;
   if (!Array.isArray(anchors)) return [];
   return anchors.filter(Boolean);
 }
@@ -19,7 +23,7 @@ function getPawnFromContext(state, context) {
   if (context?.pawn && typeof context.pawn === "object") return context.pawn;
   const pawnId = context?.pawnId != null ? context.pawnId : context?.ownerId;
   if (pawnId == null) return null;
-  const pawns = Array.isArray(state?.pawns) ? state.pawns : [];
+  const pawns = Array.isArray(getPrimaryDetailedSiteState(state)?.pawns) ? getPrimaryDetailedSiteState(state).pawns : [];
   for (const pawn of pawns) {
     if (pawn?.id === pawnId) return pawn;
   }
@@ -185,7 +189,7 @@ function matchesBoardWhere(target, whereSpec) {
 }
 
 function collectTileColsByWhere(state, whereSpec, maxCols) {
-  const occ = state?.board?.occ?.tile;
+  const occ = getPrimaryDetailedSiteState(state)?.board?.occ?.tile;
   if (!Array.isArray(occ)) return [];
   const safeMax = Number.isFinite(maxCols) ? Math.max(0, Math.floor(maxCols)) : occ.length;
   const cols = [];
@@ -271,7 +275,8 @@ export function resolveBoardTargets(state, targetSpec, context) {
   if (!targetSpec || typeof targetSpec !== "object") return [];
 
   if (targetSpec.ref === "hubCore") {
-    return state?.hub?.core ? [state.hub.core] : [];
+    const core = getPrimaryDetailedSiteState(state)?.hub?.core;
+    return core ? [core] : [];
   }
 
   if (

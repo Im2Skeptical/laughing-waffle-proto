@@ -20,7 +20,9 @@ Deterministic, time-driven strategy/city-builder prototype with replay, forecast
 - Pure JavaScript authoritative model
 
 ### Current board framing
-The codebase still carries generic timegraph and timeline-edit affordances, but the current player-facing prototype is the settlement/vassal flow.
+The player-facing prototype now starts on a 15-region world map. River Crown hosts the existing detailed settlement/vassal simulation; other authored sites are descriptive summary sites only.
+
+The codebase still carries generic timegraph and timeline-edit affordances, but the active simulation remains the River Crown settlement/vassal flow.
 
 The prototype is intentionally more locked down than the generic engine:
 - the player does not freely edit the timeline
@@ -121,6 +123,14 @@ The generic engine still retains concepts like editable history windows, truncat
 - Converting forecast into fixed history still happens through commit/replay truth, not by promoting view state.
 
 ## 6. Current Settlement Prototype Rules
+
+### Regional world foundation
+- Immutable map geometry, terrain, deposits, route definitions, and labels live in `src/defs/world/*`.
+- `GameState.world` stores the world definition ID and mutable site instances.
+- `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
+- Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
+- Map selection and map/settlement view mode are runtime UI state and never timeline actions.
+- Summary sites, deposits, and routes are descriptive only. They do not produce, transport, claim, or consume resources yet.
 
 ### Vassal progression
 - Vassal choice is permanent.

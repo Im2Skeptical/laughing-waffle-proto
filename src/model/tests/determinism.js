@@ -46,10 +46,11 @@ import {
   getSettlementYearDurationSec,
   setSettlementTileFood,
 } from "../settlement-state.js";
+import { getPrimaryDetailedSiteState } from "../world-state.js";
 
 const DT_STEP = 1 / 60;
 const TEST_SEED = 99999;
-const HISTORY_TEST_SETUP_ID = "devGym01";
+const HISTORY_TEST_SETUP_ID = "devPlaytesting01";
 
 // -----------------------------------------------------------------------------
 // Hashing / Comparison
@@ -173,7 +174,7 @@ function testRebuildConsistency() {
   const name = "Rebuild Idempotency";
   try {
     // Use real initialization logic
-    const s0 = createInitialState(TEST_SEED);
+    const s0 = createInitialState(HISTORY_TEST_SETUP_ID, TEST_SEED);
     const tl = createTimelineFromInitialState(s0);
 
     // Note: We test empty timeline rebuilding here.
@@ -203,7 +204,7 @@ function testLiveVsReplay() {
   const name = "Live Sim vs Replay";
   try {
     // 1. Setup Live
-    const liveState = createInitialState(TEST_SEED);
+    const liveState = createInitialState(HISTORY_TEST_SETUP_ID, TEST_SEED);
     const tl = createTimelineFromInitialState(liveState);
 
     // Ensure we start from a clean, canonical planning snapshot.
@@ -253,13 +254,13 @@ function testLiveVsReplay() {
           tSec: liveState.tSec,
           turn: liveState.turn,
           simTime: liveState.simTime,
-          gold: liveState.resources?.gold,
+          gold: getPrimaryDetailedSiteState(liveState)?.resources?.gold,
         },
         replay: {
           tSec: rebuildRes.state.tSec,
           turn: rebuildRes.state.turn,
           simTime: rebuildRes.state.simTime,
-          gold: rebuildRes.state.resources?.gold,
+          gold: getPrimaryDetailedSiteState(rebuildRes.state)?.resources?.gold,
         },
       });
       return {
@@ -278,7 +279,7 @@ function testLiveVsReplay() {
 function testProjectionVsReplay() {
   const name = "Projection vs Replay";
   try {
-    const s0 = createInitialState(TEST_SEED + 1);
+    const s0 = createInitialState(HISTORY_TEST_SETUP_ID, TEST_SEED + 1);
     const tl = createTimelineFromInitialState(s0);
 
     const baseSec = 0;
@@ -748,7 +749,7 @@ function testRiverRecessionFarmingMovesFieldFood() {
       setSettlementTileFood(tile, 0);
     }
     setSettlementTileFood(getSettlementFloodplainTiles(state)[0], 25);
-    state.hub.zones.practiceByClass.villager.slots[0].card =
+    getPrimaryDetailedSiteState(state).hub.zones.practiceByClass.villager.slots[0].card =
       createSettlementCardInstance(
         "riverRecessionFarming",
         "settlementPractice",

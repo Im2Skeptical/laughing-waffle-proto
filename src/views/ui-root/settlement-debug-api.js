@@ -1,4 +1,5 @@
 import { getPerfSnapshot } from "../../model/perf.js";
+import { getPrimaryDetailedSiteState } from "../../model/world-state.js";
 
 function nonNegativeFloor(value, fallback = 0) {
   const next = Number.isFinite(value) ? value : fallback;
@@ -49,7 +50,7 @@ function summarizeTimeline(timeline) {
 }
 
 function summarizeLineage(state) {
-  const lineage = state?.hub?.core?.systemState?.vassalLineage ?? null;
+  const lineage = getPrimaryDetailedSiteState(state)?.hub?.core?.systemState?.vassalLineage ?? null;
   return lineage
     ? {
         currentVassalId: lineage.currentVassalId ?? null,
@@ -75,6 +76,8 @@ export function publishSettlementDebugApi({
   getProjectionForecastMeta,
   getProjectionDebugSecondKeys,
   getViewSemanticSnapshot,
+  getWorldMapSnapshot,
+  getWorldMapClickPoint,
   getViewedSlotSummary,
   getPendingCommitJob,
   getTimeline,
@@ -117,6 +120,7 @@ export function publishSettlementDebugApi({
         projection: getProjectionForecastMeta?.() ?? null,
         projectionKeys: getProjectionDebugSecondKeys?.(32) ?? null,
         view: getViewSemanticSnapshot?.() ?? null,
+        worldMap: getWorldMapSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
@@ -140,6 +144,7 @@ export function publishSettlementDebugApi({
         y: plotRect.y + plotRect.height * ry,
       };
     },
+    getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
     forceRender: () => {
       renderGraph?.();
       refreshPrototypeView?.();

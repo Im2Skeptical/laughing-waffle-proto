@@ -11,11 +11,17 @@ export const setupDefs = {
 
     rngSeed: 12345,
 
+    worldDefinitionId: "riverBasin01",
+    civilization: {
+      capitalRegionId: "river-crown",
+      capitalSiteId: "river-crown-settlement",
+    },
+
     resources: { gold: 0, grain: 0, food: 0, population: 0 },
 
     locationNames: {
-      hub: "Hub",
-      region: "Region",
+      hub: "River Crown",
+      region: "River Crown Floodplain",
     },
 
     discovery: {

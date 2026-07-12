@@ -18,6 +18,7 @@ import {
   getSettlementStructureSlots,
   getSettlementTotalFood,
 } from "../model/settlement-state.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import {
   capitalizeLabel,
   formatPartialFeedMemory,
@@ -166,6 +167,7 @@ export function createSettlementPrototypeView({
   setSelectedPracticeClassId,
   tooltipView,
   getVisibleVassalTimeSec,
+  onReturnToMap,
 } = {}) {
   const root = new PIXI.Container();
   const contentLayer = new PIXI.Container();
@@ -357,6 +359,21 @@ export function createSettlementPrototypeView({
     roundedRect(topbar, 0, 0, screenWidth, SETTLEMENT_TOPBAR_LAYOUT.height, 0, PALETTE.topbar, PALETTE.topbar, 0);
     contentLayer.addChild(topbar);
 
+    const mapButton = new PIXI.Container();
+    const mapButtonBg = new PIXI.Graphics();
+    roundedRect(mapButtonBg, 0, 0, 132, 42, 6, PALETTE.panel, PALETTE.accent, 2);
+    mapButton.addChild(
+      mapButtonBg,
+      createText("<  Map", { ...TEXT_STYLES.chip, fontSize: 17 }, 66, 21, 0.5, 0.5)
+    );
+    mapButton.x = 70;
+    mapButton.y = 14;
+    mapButton.interactive = true;
+    mapButton.buttonMode = true;
+    mapButton.cursor = "pointer";
+    mapButton.on("pointertap", () => onReturnToMap?.());
+    contentLayer.addChild(mapButton);
+
     const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  |  Year ${Math.floor(
       state?.year ?? 1
     )}`;
@@ -489,7 +506,7 @@ export function createSettlementPrototypeView({
 
     contentLayer.addChild(
       createText(
-        state?.locationNames?.hub ?? "Hub",
+        getPrimaryDetailedSiteState(state)?.locationNames?.hub ?? "Hub",
         TEXT_STYLES.header,
         hubPanelRect.x + hubPanelRect.width * 0.5,
         SETTLEMENT_SECTION_LABEL_LAYOUT.hubY,
@@ -499,7 +516,7 @@ export function createSettlementPrototypeView({
     );
     contentLayer.addChild(
       createText(
-        state?.locationNames?.region ?? "Region",
+        getPrimaryDetailedSiteState(state)?.locationNames?.region ?? "Region",
         TEXT_STYLES.header,
         regionPanelRect.x + regionPanelRect.width * 0.5,
         regionPanelRect.y + SETTLEMENT_SECTION_LABEL_LAYOUT.regionYOffset,
@@ -736,8 +753,9 @@ export function createSettlementPrototypeView({
       );
     }
 
-    const tileAnchors = Array.isArray(state?.board?.layers?.tile?.anchors)
-      ? state.board.layers.tile.anchors
+    const local = getPrimaryDetailedSiteState(state);
+    const tileAnchors = Array.isArray(local?.board?.layers?.tile?.anchors)
+      ? local.board.layers.tile.anchors
       : [];
     drawRedGodPanel(contentLayer, chaosPanelRect, redGodSummary, redGodIncomeSummary, tooltipView);
     for (let i = 0; i < tileAnchors.length; i += 1) {
@@ -774,6 +792,14 @@ export function createSettlementPrototypeView({
       render();
     },
     update: () => render(),
+    setVisible: (visible) => {
+      root.visible = visible === true;
+      if (root.visible) {
+        lastSignature = "";
+        lastRenderGateKey = "";
+        render();
+      }
+    },
     getScreenRect: () =>
       !root.visible || typeof root.getBounds !== "function" ? null : root.getBounds(),
     getSemanticSnapshot: () => buildRenderSemanticSnapshot(contentLayer, overlayLayer),

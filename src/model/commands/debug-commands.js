@@ -18,6 +18,11 @@ import {
 import { syncSettlementDerivedState } from "../settlement-exec.js";
 import { setDebugPracticeBoardSlot } from "../settlement-order-exec.js";
 import { TIER_ASC } from "../effects/core/tiers.js";
+import { getPrimaryDetailedSiteState } from "../world-state.js";
+
+function getLocalState(state) {
+  return getPrimaryDetailedSiteState(state);
+}
 
 function normalizeTier(value, fallback = "bronze") {
   const safeFallback = TIER_ASC.includes(fallback) ? fallback : "bronze";
@@ -39,8 +44,8 @@ function isPracticeEligibleForClass(def, classId) {
 
 function clearOwnerInventoryForStructure(state, structure) {
   const instanceId = structure?.instanceId;
-  if (instanceId == null || !state?.ownerInventories) return;
-  delete state.ownerInventories[instanceId];
+  if (instanceId == null || !getLocalState(state)?.ownerInventories) return;
+  delete getLocalState(state).ownerInventories[instanceId];
 }
 
 function getStructureSpan(structureOrDefId) {
@@ -74,8 +79,9 @@ function clearStructuresOverlappingRange(state, startSlot, span) {
 }
 
 function ensureDebugStructureOverrideSlots(state) {
-  ensureHubSettlementState(state.hub, state.hub?.cols);
-  const structuresZone = state.hub?.zones?.structures;
+  const local = getLocalState(state);
+  ensureHubSettlementState(local.hub, local.hub?.cols);
+  const structuresZone = local.hub?.zones?.structures;
   if (!structuresZone || typeof structuresZone !== "object" || Array.isArray(structuresZone)) {
     return null;
   }
@@ -90,6 +96,7 @@ function ensureDebugStructureOverrideSlots(state) {
 }
 
 function setDebugStructureOverrideSlot(state, slotIndex, active) {
+  const local = getLocalState(state);
   const slots = getSettlementStructureSlots(state);
   const safeSlotIndex = normalizeSlotIndex(slotIndex);
   if (safeSlotIndex == null || safeSlotIndex >= slots.length) return false;
@@ -101,7 +108,7 @@ function setDebugStructureOverrideSlot(state, slotIndex, active) {
     delete overrides[String(safeSlotIndex)];
   }
   if (Object.keys(overrides).length === 0) {
-    delete state.hub.zones.structures.debugOverrideSlots;
+    delete local.hub.zones.structures.debugOverrideSlots;
   }
   return true;
 }
@@ -159,7 +166,8 @@ function applyPracticeOverride(state, override) {
 }
 
 function applyStructureOverride(state, override) {
-  ensureHubSettlementState(state.hub, state.hub?.cols);
+  const local = getLocalState(state);
+  ensureHubSettlementState(local.hub, local.hub?.cols);
   rebuildHubOccupancy(state);
 
   const slots = getSettlementStructureSlots(state);
@@ -254,23 +262,25 @@ export function cmdDebugQueueEnvEvent(state, { defId } = {}) {
     ? Math.floor(state.currentSeasonIndex)
     : 0;
   const year = Number.isFinite(state?.year) ? Math.floor(state.year) : 1;
-  if (!state.currentSeasonDeck || state.currentSeasonDeck.seasonKey !== seasonKey) {
+  const local = getLocalState(state);
+  if (!local.currentSeasonDeck || local.currentSeasonDeck.seasonKey !== seasonKey) {
     buildSeasonDeckForCurrentSeason(state);
   }
-  if (!state.currentSeasonDeck || !Array.isArray(state.currentSeasonDeck.deck)) {
-    state.currentSeasonDeck = { seasonKey, seasonIndex, year, deck: [] };
+  if (!local.currentSeasonDeck || !Array.isArray(local.currentSeasonDeck.deck)) {
+    local.currentSeasonDeck = { seasonKey, seasonIndex, year, deck: [] };
   }
 
-  state.currentSeasonDeck.deck.unshift({ defId });
+  local.currentSeasonDeck.deck.unshift({ defId });
   return { ok: true, result: "eventQueued", defId };
 }
 
 export function cmdDebugSetSettlementSlotOverrides(state, { overrides } = {}) {
-  if (!state?.hub || !Array.isArray(overrides)) {
+  const local = getLocalState(state);
+  if (!local?.hub || !Array.isArray(overrides)) {
     return { ok: false, reason: "badOverrides" };
   }
 
-  ensureHubSettlementState(state.hub, state.hub?.cols);
+  ensureHubSettlementState(local.hub, local.hub?.cols);
   const results = [];
   let changed = false;
 

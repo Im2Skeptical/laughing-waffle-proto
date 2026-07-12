@@ -85,6 +85,7 @@ export function createSettlementVassalControlsView({
       layout();
     },
     update() {
+      if (!root.visible) return;
       layout();
       updateButton(jumpButton, getJumpState?.() ?? null, "Jump to Death", {
         radius: 18,
@@ -95,6 +96,7 @@ export function createSettlementVassalControlsView({
         fillColor: 0x314c2b,
       });
     },
+    setVisible: (visible) => { root.visible = visible === true; },
     getScreenRect: () => (!root.visible || typeof root.getBounds !== "function" ? null : root.getBounds()),
   };
 }

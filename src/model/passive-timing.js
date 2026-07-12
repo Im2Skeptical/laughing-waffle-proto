@@ -1,6 +1,8 @@
 // passive-timing.js
 // Shared passive timing checks used by env/hub/item/pawn executors.
 
+import { getPrimaryDetailedSiteState } from "./world-state.js";
+
 function normalizedCadenceSec(timing) {
   if (!timing || typeof timing !== "object") return null;
   if (!Number.isFinite(timing.cadenceSec)) return null;
@@ -9,16 +11,17 @@ function normalizedCadenceSec(timing) {
 
 function ensurePassiveTimingRuntimeState(state) {
   if (!state || typeof state !== "object") return null;
-  if (!state.passiveTimingRuntime || typeof state.passiveTimingRuntime !== "object") {
-    state.passiveTimingRuntime = { activeByKey: {} };
+  const local = getPrimaryDetailedSiteState(state);
+  if (!local.passiveTimingRuntime || typeof local.passiveTimingRuntime !== "object") {
+    local.passiveTimingRuntime = { activeByKey: {} };
   }
   if (
-    !state.passiveTimingRuntime.activeByKey ||
-    typeof state.passiveTimingRuntime.activeByKey !== "object"
+    !local.passiveTimingRuntime.activeByKey ||
+    typeof local.passiveTimingRuntime.activeByKey !== "object"
   ) {
-    state.passiveTimingRuntime.activeByKey = {};
+    local.passiveTimingRuntime.activeByKey = {};
   }
-  return state.passiveTimingRuntime.activeByKey;
+  return local.passiveTimingRuntime.activeByKey;
 }
 
 function evaluatePassiveLifecycleTrigger(timing, state, options) {

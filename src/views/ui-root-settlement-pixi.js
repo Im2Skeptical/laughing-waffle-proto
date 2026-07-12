@@ -20,6 +20,7 @@ import {
   getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
 import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
 import {
@@ -49,6 +50,7 @@ import {
 } from "./ui-root/settlement-debug-api.js";
 import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-series-menu.js";
 import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
+import { createWorldMapView } from "./world-map-pixi.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -150,6 +152,9 @@ app.stage.hitArea = app.screen;
 app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltipLayer);
 
 let prototypeView = null;
+let worldMapView = null;
+let worldViewMode = "map";
+let selectedWorldRegionId = "river-crown";
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
@@ -174,6 +179,14 @@ let settlementFrontierStateCache = {
   revision: -1,
   state: null,
 };
+
+function setWorldViewMode(mode) {
+  worldViewMode = mode === "settlement" ? "settlement" : "map";
+  const settlementVisible = worldViewMode === "settlement";
+  prototypeView?.setVisible?.(settlementVisible);
+  worldMapView?.setVisible?.(!settlementVisible);
+  settlementVassalControlsView?.setVisible?.(settlementVisible);
+}
 const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
 const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
 const SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS = 900;
@@ -578,7 +591,7 @@ function getSettlementDebugOverrideMarkerSeconds() {
 
 function getSettlementViewedSlotSummary() {
   const state = getSettlementViewedState();
-  if (!state?.hub) return null;
+  if (!getPrimaryDetailedSiteState(state)?.hub) return null;
   const practices = {};
   for (const classId of getSettlementClassIds(state)) {
     practices[classId] = getSettlementPracticeSlotsByClass(state, classId).map((slot) => {
@@ -1146,9 +1159,21 @@ prototypeView = createSettlementPrototypeView({
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
+  onReturnToMap: () => setWorldViewMode("map"),
   setSelectedPracticeClassId: (classId) => {
     selectedPracticeClassId = typeof classId === "string" && classId.length > 0 ? classId : "villager";
   },
+});
+prototypeView.setVisible(false);
+
+worldMapView = createWorldMapView({
+  layer: playfieldLayer,
+  getState: () => runner.getState?.(),
+  getSelectedRegionId: () => selectedWorldRegionId,
+  setSelectedRegionId: (regionId) => {
+    selectedWorldRegionId = regionId;
+  },
+  onOpenDetailedSite: () => setWorldViewMode("settlement"),
 });
 
 const DISK_LAYOUT = {
@@ -1384,7 +1409,7 @@ settlementVassalChooserView = createSettlementVassalChooserView({
   app,
   layer: modalLayer,
   getSelectionPool: () => settlementPendingVassalSelection,
-  isOpen: () => !!settlementPendingVassalSelection,
+  isOpen: () => worldViewMode === "settlement" && !!settlementPendingVassalSelection,
   onSelectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
   tooltipView,
 });
@@ -1436,6 +1461,7 @@ function resizeCanvas() {
   fitCanvasToViewport(app.view);
   stylePage();
   prototypeView?.refresh?.();
+  worldMapView?.refresh?.();
   settlementDebugMenu?.refresh?.();
   settlementGraphView.render?.();
   settlementGraphSeriesMenu?.render?.();
@@ -1461,6 +1487,11 @@ function publishSettlementDebugApi() {
     getProjectionDebugSecondKeys: (limit) =>
       settlementProjectionCache?.getDebugSecondKeys?.(limit) ?? null,
     getViewSemanticSnapshot: () => prototypeView?.getSemanticSnapshot?.() ?? null,
+    getWorldMapSnapshot: () => ({
+      ...(worldMapView?.getSemanticSnapshot?.() ?? {}),
+      mode: worldViewMode,
+    }),
+    getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getViewedSlotSummary: () => getSettlementViewedSlotSummary(),
     getPendingCommitJob: () =>
       settlementForecastController?.getPendingCommitJob?.() ?? null,
@@ -1491,6 +1522,8 @@ syncSettlementGraphHorizon();
 syncSettlementGraphRevealConfig();
 syncSettlementVassalSelectionPauseState();
 prototypeView.init();
+worldMapView.init();
+setWorldViewMode("map");
 settlementGraphView.open();
 settlementGraphSeriesMenu?.render?.();
 timeControlsView.init();
@@ -1517,6 +1550,7 @@ app.ticker.add((delta) => {
   syncSettlementVassalSelectionPauseState();
   settlementGraphSeriesMenu?.syncSelection?.();
   prototypeView.update(frameDt);
+  worldMapView.update(frameDt);
   settlementGraphView.render();
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);

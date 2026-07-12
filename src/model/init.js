@@ -31,6 +31,7 @@ import {
 import { syncSettlementDerivedState } from "./settlement-exec.js";
 import { stepSettlementOrders } from "./settlement-order-exec.js";
 import { getGlobalSkillModifier } from "./skills.js";
+import { getPrimaryDetailedSiteState } from "./world-state.js";
 
 const HUB_COLS = 10;
 const DEV =
@@ -269,21 +270,22 @@ function buildSettlementStructureSlots(state, zoneSpec, slotCountHint) {
 }
 
 function buildSettlementPrototypeHubState(state, setup, hubCols) {
-  ensureHubSettlementState(state.hub, hubCols);
+  const local = getPrimaryDetailedSiteState(state);
+  ensureHubSettlementState(local.hub, hubCols);
   const rawHub =
     setup?.hub && typeof setup.hub === "object" && !Array.isArray(setup.hub)
       ? setup.hub
       : {};
   if (Array.isArray(rawHub.classOrder)) {
-    state.hub.classOrder = cloneSerializable(rawHub.classOrder);
+    local.hub.classOrder = cloneSerializable(rawHub.classOrder);
   }
-  ensureHubSettlementState(state.hub, hubCols);
-  applySettlementCoreSpec(state.hub.core, setup?.hub?.core);
-  ensureHubSettlementState(state.hub, hubCols);
+  ensureHubSettlementState(local.hub, hubCols);
+  applySettlementCoreSpec(local.hub.core, setup?.hub?.core);
+  ensureHubSettlementState(local.hub, hubCols);
 
   const rawZones =
     setup?.hub?.zones && typeof setup.hub.zones === "object" ? setup.hub.zones : {};
-  state.hub.zones.order.slots = buildSettlementCardSlots(
+  local.hub.zones.order.slots = buildSettlementCardSlots(
     state,
     rawZones.order,
     settlementOrderDefs,
@@ -294,11 +296,11 @@ function buildSettlementPrototypeHubState(state, setup, hubCols) {
     rawZones.practiceByClass && typeof rawZones.practiceByClass === "object"
       ? rawZones.practiceByClass
       : {};
-  for (const classId of state.hub.classOrder || []) {
+  for (const classId of local.hub.classOrder || []) {
     const zoneSpec =
       rawPracticeByClass[classId] ??
-      (classId === state.hub.classOrder[0] ? rawZones.practice : null);
-    state.hub.zones.practiceByClass[classId].slots = buildSettlementCardSlots(
+      (classId === local.hub.classOrder[0] ? rawZones.practice : null);
+    local.hub.zones.practiceByClass[classId].slots = buildSettlementCardSlots(
       state,
       zoneSpec,
       settlementPracticeDefs,
@@ -306,14 +308,14 @@ function buildSettlementPrototypeHubState(state, setup, hubCols) {
       5
     );
   }
-  state.hub.zones.structures.slots = buildSettlementStructureSlots(
+  local.hub.zones.structures.slots = buildSettlementStructureSlots(
     state,
     rawZones.structures,
     hubCols
   );
-  state.hub.slots = state.hub.zones.structures.slots;
-  state.hub.cols = state.hub.slots.length;
-  ensureHubSettlementState(state.hub, state.hub.cols);
+  local.hub.slots = local.hub.zones.structures.slots;
+  local.hub.cols = local.hub.slots.length;
+  ensureHubSettlementState(local.hub, local.hub.cols);
 }
 
 // Create a fully-initialized GameState snapshot
@@ -329,7 +331,21 @@ export function createInitialState(scenario = "devGym01", seed = null) {
     );
   }
 
-  const state = createEmptyState(seed ?? setup.rngSeed ?? 123456789);
+  const state = createEmptyState(
+    seed ?? setup.rngSeed ?? 123456789,
+    setup?.worldDefinitionId ?? "riverBasin01"
+  );
+  const local = getPrimaryDetailedSiteState(state);
+  state.civilization = {
+    capitalRegionId:
+      typeof setup?.civilization?.capitalRegionId === "string"
+        ? setup.civilization.capitalRegionId
+        : state.civilization.capitalRegionId,
+    capitalSiteId:
+      typeof setup?.civilization?.capitalSiteId === "string"
+        ? setup.civilization.capitalSiteId
+        : state.civilization.capitalSiteId,
+  };
   state.variantFlags = normalizeVariantFlags(setup?.variantFlags);
   state.skillProgressionDefs = getSetupSkillProgressionDefs(setup);
 
@@ -342,7 +358,7 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   state.paused = false;
 
   // resources
-  state.resources = {
+  local.resources = {
     gold: 0,
     grain: 0,
     food: 0,
@@ -363,25 +379,25 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   const boardCols = getBoardColsFromSetup(setup, state);
   const hubCols = getHubColsFromSetup(setup);
   ensureBoardCols(state, boardCols);
-  if (!state.hub || typeof state.hub !== "object") {
-    state.hub = { cols: hubCols, slots: [] };
+  if (!local.hub || typeof local.hub !== "object") {
+    local.hub = { cols: hubCols, slots: [] };
   }
-  state.hub.cols = hubCols;
+  local.hub.cols = hubCols;
   applySetupLocationNames(state, setup);
   applySetupDiscoveryState(state, setup);
 
-  state.board.layers.envStructure.anchors = buildEnvStructureAnchors(
+  local.board.layers.envStructure.anchors = buildEnvStructureAnchors(
     setup,
     boardCols,
     state,
     { includeDefaultPortal: !isSettlementPrototypeSetup(state) }
   );
-  state.board.layers.tile.anchors = buildTileAnchors(setup, boardCols, state);
+  local.board.layers.tile.anchors = buildTileAnchors(setup, boardCols, state);
 
   if (isSettlementPrototypeSetup(state)) {
     buildSettlementPrototypeHubState(state, setup, hubCols);
-    state.pawns = [];
-    state.ownerInventories = {};
+    local.pawns = [];
+    local.ownerInventories = {};
     recomputeInitialActionPoints(state);
     buildSeasonDeckForCurrentSeason(state);
     rebuildBoardOccupancy(state);
@@ -406,7 +422,8 @@ export function initGameState(state, setupId = "devGym01") {
 function getBoardColsFromSetup(setup, state) {
   const candidate = setup?.board?.cols;
   if (Number.isFinite(candidate)) return Math.max(1, Math.floor(candidate));
-  return Number.isFinite(state?.board?.cols) ? Math.floor(state.board.cols) : 12;
+  const local = getPrimaryDetailedSiteState(state);
+  return Number.isFinite(local?.board?.cols) ? Math.floor(local.board.cols) : 12;
 }
 
 function getHubColsFromSetup(setup) {
@@ -416,24 +433,25 @@ function getHubColsFromSetup(setup) {
 }
 
 function ensureBoardCols(state, cols) {
-  if (!state?.board) return;
-  if (state.board.cols === cols) return;
-  state.board.cols = cols;
-  if (!state.board.layers) {
-    state.board.layers = {
+  const local = getPrimaryDetailedSiteState(state);
+  if (!local?.board) return;
+  if (local.board.cols === cols) return;
+  local.board.cols = cols;
+  if (!local.board.layers) {
+    local.board.layers = {
       tile: { anchors: [] },
       event: { anchors: [] },
       envStructure: { anchors: [] },
     };
   }
-  if (!state.board.occ) {
-    state.board.occ = { tile: [], event: [], envStructure: [] };
+  if (!local.board.occ) {
+    local.board.occ = { tile: [], event: [], envStructure: [] };
   }
   for (const layer of ["tile", "event", "envStructure"]) {
-    state.board.occ[layer] = new Array(cols).fill(null);
-    if (!state.board.layers[layer]) state.board.layers[layer] = { anchors: [] };
-    if (!Array.isArray(state.board.layers[layer].anchors)) {
-      state.board.layers[layer].anchors = [];
+    local.board.occ[layer] = new Array(cols).fill(null);
+    if (!local.board.layers[layer]) local.board.layers[layer] = { anchors: [] };
+    if (!Array.isArray(local.board.layers[layer].anchors)) {
+      local.board.layers[layer].anchors = [];
     }
   }
 }

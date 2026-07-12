@@ -11,6 +11,7 @@ import {
   getSettlementPracticeSlotsByClass,
   getSettlementStructureSlots,
 } from "../model/settlement-state.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 
 const PANEL_WIDTH_PX = 680;
 const OPTION_LABEL_MAX = 96;
@@ -624,7 +625,7 @@ export function createSettlementDebugMenuDom({
     const state = getState?.();
     content.replaceChildren();
     appendToolbar(content);
-    if (!state?.hub) {
+    if (!getPrimaryDetailedSiteState(state)?.hub) {
       content.appendChild(createText("div", "codex-debug-meta", "No settlement state."));
       return;
     }
@@ -677,14 +678,15 @@ export function createSettlementDebugMenuDom({
     const state = getState?.();
     content.replaceChildren();
     appendToolbar(content);
-    if (!state?.hub) {
+    if (!getPrimaryDetailedSiteState(state)?.hub) {
       content.appendChild(createText("div", "codex-debug-meta", "No settlement state."));
       return;
     }
     content.appendChild(createText("div", "codex-debug-section-title", "Structures"));
     const slots = getSettlementStructureSlots(state);
     const debugOverrides = getSettlementDebugOverrideSlotSummary(state);
-    const occ = Array.isArray(state?.hub?.occ) ? state.hub.occ : [];
+    const hub = getPrimaryDetailedSiteState(state)?.hub;
+    const occ = Array.isArray(hub?.occ) ? hub.occ : [];
     for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
       const structure = slots[slotIndex]?.structure ?? occ[slotIndex] ?? null;
       const anchorCol = Number.isFinite(structure?.col)
@@ -743,7 +745,7 @@ export function createSettlementDebugMenuDom({
     const state = getState?.();
     const selectionPool = getVassalSelectionPool?.() ?? null;
     content.replaceChildren();
-    if (!state?.hub || !selectionPool) {
+    if (!getPrimaryDetailedSiteState(state)?.hub || !selectionPool) {
       content.appendChild(
         createText("div", "codex-debug-meta", "Open vassal selection to craft a cheat vassal.")
       );

@@ -19,6 +19,7 @@ import {
   getSettlementTotalFood,
   getSettlementVisibleVassalLifeEvents,
 } from "../model/settlement-state.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 
 function buildCompactVassalSignature(vassal, visibleEvents, classIds) {
   if (!vassal || typeof vassal !== "object") return null;
@@ -134,8 +135,9 @@ export function buildSignature(
     defId: slot?.card?.defId ?? null,
     runtime: slot?.card?.props?.settlement ?? null,
   }));
-  const tiles = Array.isArray(state?.board?.layers?.tile?.anchors)
-    ? state.board.layers.tile.anchors.map((tile) => ({
+  const local = getPrimaryDetailedSiteState(state);
+  const tiles = Array.isArray(local?.board?.layers?.tile?.anchors)
+    ? local.board.layers.tile.anchors.map((tile) => ({
         defId: tile?.defId ?? null,
         foodStored: getSettlementTileFood(tile),
         blueResourceStored: getSettlementTileBlueResource(tile),
