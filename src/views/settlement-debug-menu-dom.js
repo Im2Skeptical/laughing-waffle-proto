@@ -138,6 +138,43 @@ function createText(tagName, className, text) {
   return node;
 }
 
+function getFullscreenElement() {
+  return (
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    null
+  );
+}
+
+function getFullscreenTarget() {
+  return document.documentElement;
+}
+
+function canRequestFullscreen(target) {
+  return !!(
+    target?.requestFullscreen ||
+    target?.webkitRequestFullscreen ||
+    target?.msRequestFullscreen
+  );
+}
+
+function requestFullscreen(target) {
+  if (typeof target?.requestFullscreen === "function") return target.requestFullscreen();
+  if (typeof target?.webkitRequestFullscreen === "function") {
+    return target.webkitRequestFullscreen();
+  }
+  if (typeof target?.msRequestFullscreen === "function") return target.msRequestFullscreen();
+  return Promise.reject(new Error("Fullscreen unavailable"));
+}
+
+function exitFullscreen() {
+  if (typeof document.exitFullscreen === "function") return document.exitFullscreen();
+  if (typeof document.webkitExitFullscreen === "function") return document.webkitExitFullscreen();
+  if (typeof document.msExitFullscreen === "function") return document.msExitFullscreen();
+  return Promise.reject(new Error("Fullscreen exit unavailable"));
+}
+
 function createTierSelect(currentTier) {
   const select = document.createElement("select");
   select.className = "codex-debug-tier";
@@ -208,9 +245,9 @@ export function createSettlementDebugMenuDom({
       font-family: Arial, sans-serif;
       color: #f6efe3;
     }
-    .codex-debug-button {
+    .codex-debug-button,
+    .codex-fullscreen-button {
       position: fixed;
-      top: 14px;
       right: 14px;
       width: 84px;
       height: 34px;
@@ -222,13 +259,15 @@ export function createSettlementDebugMenuDom({
       pointer-events: auto;
       cursor: pointer;
     }
+    .codex-debug-button { top: 14px; }
+    .codex-fullscreen-button { top: 54px; }
     .codex-debug-panel {
       position: fixed;
-      top: 56px;
+      top: 94px;
       right: 14px;
       width: ${PANEL_WIDTH_PX}px;
       max-width: calc(100vw - 28px);
-      max-height: calc(100vh - 76px);
+      max-height: calc(100vh - 114px);
       display: none;
       pointer-events: auto;
       background: rgba(35, 39, 44, 0.97);
@@ -373,6 +412,12 @@ export function createSettlementDebugMenuDom({
   button.type = "button";
   button.textContent = "Debug";
 
+  const fullscreenButton = document.createElement("button");
+  fullscreenButton.className = "codex-fullscreen-button";
+  fullscreenButton.type = "button";
+  fullscreenButton.textContent = "Full";
+  fullscreenButton.title = "Toggle fullscreen";
+
   const panel = document.createElement("div");
   panel.className = "codex-debug-panel";
 
@@ -407,7 +452,7 @@ export function createSettlementDebugMenuDom({
   const content = document.createElement("div");
   body.append(status, content);
   panel.append(header, body);
-  root.append(button, panel);
+  root.append(button, fullscreenButton, panel);
 
   function setStatus(message, tone = "info") {
     status.textContent = message || "";
@@ -423,6 +468,31 @@ export function createSettlementDebugMenuDom({
     panel.classList.toggle("open", open);
     button.textContent = open ? "Debug*" : "Debug";
     if (open) render();
+  }
+
+  function syncFullscreenButton() {
+    fullscreenButton.textContent = getFullscreenElement() ? "Exit" : "Full";
+  }
+
+  async function toggleFullscreen() {
+    const fullscreenElement = getFullscreenElement();
+    try {
+      if (fullscreenElement) {
+        await exitFullscreen();
+        syncFullscreenButton();
+        return;
+      }
+      const target = getFullscreenTarget();
+      if (!canRequestFullscreen(target)) {
+        setStatus("Fullscreen unavailable in this browser.", "error");
+        return;
+      }
+      await requestFullscreen(target);
+      syncFullscreenButton();
+    } catch (err) {
+      syncFullscreenButton();
+      setStatus(`Fullscreen failed: ${err?.message ?? "unknown"}`, "error");
+    }
   }
 
   function setTab(tab) {
@@ -832,6 +902,9 @@ export function createSettlementDebugMenuDom({
   }
 
   button.addEventListener("click", () => setOpen(!open));
+  fullscreenButton.addEventListener("click", () => {
+    void toggleFullscreen();
+  });
   closeButton.addEventListener("click", () => setOpen(false));
   practicesTab.addEventListener("click", () => setTab("practices"));
   structuresTab.addEventListener("click", () => setTab("structures"));
@@ -844,6 +917,10 @@ export function createSettlementDebugMenuDom({
       initialized = true;
       document.head.appendChild(style);
       document.body.appendChild(root);
+      document.addEventListener("fullscreenchange", syncFullscreenButton);
+      document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
+      document.addEventListener("MSFullscreenChange", syncFullscreenButton);
+      syncFullscreenButton();
     },
     refresh: render,
     update() {
@@ -855,6 +932,9 @@ export function createSettlementDebugMenuDom({
       if (open && activeTab === "stats") renderStats();
     },
     destroy() {
+      document.removeEventListener("fullscreenchange", syncFullscreenButton);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
+      document.removeEventListener("MSFullscreenChange", syncFullscreenButton);
       root.remove();
       style.remove();
       initialized = false;
