@@ -1,5 +1,6 @@
 node_modules/
 .vscode/
+.codex/config.toml
 Trace-*.json
 npm-debug.log*
 
