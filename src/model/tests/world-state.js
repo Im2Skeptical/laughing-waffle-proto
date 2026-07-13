@@ -3,6 +3,7 @@ import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
+import { calculateTransportLinkTravel, findFastestRoute } from "../world-routes.js";
 import {
   getDetailedSiteState,
   getSitesInRegion,
@@ -11,40 +12,85 @@ import {
 
 function testWorldDefinition() {
   const definition = worldMapDefs.riverBasin01;
-  const result = validateWorldDefinition(definition, { requireConnected: true, requireMappedBorders: true });
+  const result = validateWorldDefinition(definition, { requireConnected: true });
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
 
   const malformed = JSON.parse(JSON.stringify(definition));
-  malformed.connections.push({ ...malformed.connections[0] });
+  malformed.borders.push({ ...malformed.borders[0] });
   const invalid = validateWorldDefinition(malformed, { requireConnected: true });
   assert.equal(invalid.ok, false);
-  assert.ok(invalid.errors.some((error) => error.startsWith("duplicate connection")));
+  assert.ok(invalid.errors.some((error) => error.startsWith("duplicate border")));
 
-  const invalidBorder = JSON.parse(JSON.stringify(definition));
-  invalidBorder.connections.find((edge) => edge.regionAId === "river-crown").regionBId = "obsidian-ridge";
-  const invalidGeometry = validateWorldDefinition(invalidBorder, { requireConnected: true, requireMappedBorders: true });
+  const invalidGeometryDef = JSON.parse(JSON.stringify(definition));
+  invalidGeometryDef.borders.find((entry) => entry.id === "river-lake").vertexIds = ["r3", "e3"];
+  const invalidGeometry = validateWorldDefinition(invalidGeometryDef, { requireConnected: true });
   assert.equal(invalidGeometry.ok, false);
-  assert.ok(invalidGeometry.errors.some((error) => error.includes("has no shared polygon boundary")));
+  assert.ok(invalidGeometry.errors.some((error) => error.includes("does not follow shared mesh edge")));
 
-  const invalidSeparation = JSON.parse(JSON.stringify(definition));
-  invalidSeparation.connections.find((edge) => (
-    [edge.regionAId, edge.regionBId].includes("river-crown")
-    && [edge.regionAId, edge.regionBId].includes("west-levee")
-  )).physicalRelation = "separated";
-  const invalidSeparationGeometry = validateWorldDefinition(invalidSeparation);
-  assert.equal(invalidSeparationGeometry.ok, false);
-  assert.ok(invalidSeparationGeometry.errors.some((error) => error.includes("has a shared polygon boundary")));
+  const invalidRiver = JSON.parse(JSON.stringify(definition));
+  invalidRiver.geographicFeatures.find((entry) => entry.id === "crown-river").segments[1].fromVertexId = "r2";
+  const invalidRiverGeometry = validateWorldDefinition(invalidRiver);
+  assert.equal(invalidRiverGeometry.ok, false);
+  assert.ok(invalidRiverGeometry.errors.some((error) => error.includes("is discontinuous")));
 
   const missingBorder = JSON.parse(JSON.stringify(definition));
-  missingBorder.connections = missingBorder.connections.filter((edge) => (
-    ![edge.regionAId, edge.regionBId].includes("west-levee")
-    || ![edge.regionAId, edge.regionBId].includes("upper-floodplain")
-  ));
-  const incompleteGeometry = validateWorldDefinition(missingBorder, { requireConnected: true, requireMappedBorders: true });
+  missingBorder.borders = missingBorder.borders.filter((entry) => entry.id !== "cedar-west");
+  const incompleteGeometry = validateWorldDefinition(missingBorder, { requireConnected: true });
   assert.equal(incompleteGeometry.ok, false);
-  assert.ok(incompleteGeometry.errors.some((error) => error.includes("has no connection")));
+  assert.ok(incompleteGeometry.errors.some((error) => error.includes("has no border")));
+}
+
+function testWorldRoutes() {
+  const definition = worldMapDefs.riverBasin01;
+  const downstream = findFastestRoute(definition, {
+    originSiteId: "river-crown-settlement",
+    destinationSiteId: "salt-coast-port",
+  });
+  const upstream = findFastestRoute(definition, {
+    originSiteId: "salt-coast-port",
+    destinationSiteId: "river-crown-settlement",
+  });
+  assert.equal(downstream.ok, true);
+  assert.equal(upstream.ok, true);
+  assert.ok(downstream.legs.every((leg) => leg.mode === "river"));
+  assert.ok(downstream.totalDays < upstream.totalDays);
+
+  const island = findFastestRoute(definition, {
+    originSiteId: "salt-coast-port",
+    destinationSiteId: "outer-isles-outpost",
+  });
+  assert.equal(island.ok, true);
+  assert.deepEqual(island.legs.map((leg) => leg.mode), ["sea"]);
+  const noSea = findFastestRoute(definition, {
+    originSiteId: "salt-coast-port",
+    destinationSiteId: "outer-isles-outpost",
+    enabledModes: ["land", "river"],
+  });
+  assert.deepEqual(noSea, { ok: false, reason: "noRoute" });
+
+  assert.equal(definition.transportLinks.some((link) => link.id === "land-black-obsidian"), false);
+  const passTravel = calculateTransportLinkTravel(
+    definition,
+    definition.transportLinks.find((link) => link.id === "land-iron-high")
+  );
+  assert.ok(passTravel.modifiers.some((modifier) => modifier.label === "pass" && modifier.days === 2));
+  const forestTravel = calculateTransportLinkTravel(
+    definition,
+    definition.transportLinks.find((link) => link.id === "land-cedar-west")
+  );
+  assert.ok(forestTravel.modifiers.some((modifier) => modifier.kind === "forestBelt"));
+  assert.deepEqual(
+    findFastestRoute(definition, {
+      originSiteId: "cedar-woods-camp",
+      destinationSiteId: "obsidian-ridge-quarry",
+    }),
+    findFastestRoute(definition, {
+      originSiteId: "cedar-woods-camp",
+      destinationSiteId: "obsidian-ridge-quarry",
+    })
+  );
 }
 
 function testNestedDetailedState() {
@@ -83,6 +129,7 @@ function testReplayParity() {
 
 export function runWorldStateSuite() {
   testWorldDefinition();
+  testWorldRoutes();
   testNestedDetailedState();
   testReplayParity();
   return true;
