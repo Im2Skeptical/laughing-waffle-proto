@@ -56,6 +56,10 @@ function testWorldRoutes() {
   assert.equal(upstream.ok, true);
   assert.ok(downstream.legs.every((leg) => leg.mode === "river"));
   assert.ok(downstream.totalDays < upstream.totalDays);
+  const originNode = definition.transportNodes.find((node) => node.siteId === "river-crown-settlement");
+  const destinationNode = definition.transportNodes.find((node) => node.siteId === "salt-coast-port");
+  assert.deepEqual(downstream.legs[0].path[0], originNode.point);
+  assert.deepEqual(downstream.legs.at(-1).path.at(-1), destinationNode.point);
 
   const island = findFastestRoute(definition, {
     originSiteId: "salt-coast-port",
