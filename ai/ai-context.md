@@ -125,12 +125,15 @@ The generic engine still retains concepts like editable history windows, truncat
 ## 6. Current Settlement Prototype Rules
 
 ### Regional world foundation
-- Immutable map geometry, terrain, deposits, route definitions, and labels live in `src/defs/world/*`.
+- Immutable shared-vertex map geometry, terrain, land cover, deposits, border features, transport definitions, and labels live in `src/defs/world/*`.
 - `GameState.world` stores the world definition ID and mutable site instances.
 - `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
-- Map selection and map/settlement view mode are runtime UI state and never timeline actions.
-- Summary sites, deposits, and routes are descriptive only. They do not produce, transport, claim, or consume resources yet.
+- Region polygons reference a canonical vertex mesh. Every shared segment has one authored border, and rivers, mountain ranges, and forest belts reference those borders rather than independent display paths.
+- Geographic borders and transport links are separate: a river may impede crossing while supporting faster longitudinal travel, and islands connect through explicit sea links.
+- Site-to-site route planning uses deterministic travel-day costs derived from geometry, terrain, forest coverage, crossings, and travel mode. It does not move entities or mutate authoritative state.
+- Map selection, planned route endpoints/mode filters, and map/settlement view mode are runtime UI state and never timeline actions.
+- Summary sites and deposits remain descriptive only. They do not produce, claim, consume, or ship resources yet.
 
 ### Vassal progression
 - Vassal choice is permanent.
