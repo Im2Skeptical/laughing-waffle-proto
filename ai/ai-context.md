@@ -131,6 +131,8 @@ The generic engine still retains concepts like editable history windows, truncat
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
 - Region polygons reference a canonical vertex mesh. Every shared segment has one authored border, and rivers, mountain ranges, and forest belts reference those borders rather than independent display paths.
 - Geographic borders and transport links are separate: a river may impede crossing while supporting faster longitudinal travel, and islands connect through explicit sea links.
+- River travel uses one symmetric speed in both directions. Ordered river segments describe source-to-outlet geography only and do not alter movement cost.
+- The authored regions are a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Outer Isles meet the ocean.
 - Site-to-site route planning uses deterministic travel-day costs derived from geometry, terrain, forest coverage, crossings, and travel mode. It does not move entities or mutate authoritative state.
 - Map selection, planned route endpoints/mode filters, and map/settlement view mode are runtime UI state and never timeline actions.
 - Summary sites and deposits remain descriptive only. They do not produce, claim, consume, or ship resources yet.

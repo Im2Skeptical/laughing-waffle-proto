@@ -40,26 +40,60 @@ function testWorldDefinition() {
   const incompleteGeometry = validateWorldDefinition(missingBorder, { requireConnected: true });
   assert.equal(incompleteGeometry.ok, false);
   assert.ok(incompleteGeometry.errors.some((error) => error.includes("has no border")));
+
+  const invalidCoastline = JSON.parse(JSON.stringify(definition));
+  invalidCoastline.mapContext.coastlineVertexIds = ["q0", "e0", "q2"];
+  const invalidCoastlineGeometry = validateWorldDefinition(invalidCoastline);
+  assert.equal(invalidCoastlineGeometry.ok, false);
+  assert.ok(invalidCoastlineGeometry.errors.some((error) => error.includes("map coastline does not follow outer mesh edge")));
+
+  const invalidFrontier = JSON.parse(JSON.stringify(definition));
+  invalidFrontier.mapContext.frontierFeatures[0].vertexIds = ["p3", "ct"];
+  const invalidFrontierGeometry = validateWorldDefinition(invalidFrontier);
+  assert.equal(invalidFrontierGeometry.ok, false);
+  assert.ok(invalidFrontierGeometry.errors.some((error) => error.includes("frontier feature western-forest-frontier does not follow outer mesh edge")));
+
+  const missingRiverOutlet = JSON.parse(JSON.stringify(definition));
+  missingRiverOutlet.mapContext.coastlineVertexIds = ["q0", "q1"];
+  const invalidOutlet = validateWorldDefinition(missingRiverOutlet);
+  assert.equal(invalidOutlet.ok, false);
+  assert.ok(invalidOutlet.errors.some((error) => error.includes("has no authored coastal outlet")));
+
+  const missingRiverSpeed = JSON.parse(JSON.stringify(definition));
+  delete missingRiverSpeed.travelRules.riverKmPerDay;
+  const invalidTravelRules = validateWorldDefinition(missingRiverSpeed);
+  assert.equal(invalidTravelRules.ok, false);
+  assert.ok(invalidTravelRules.errors.includes("invalid river travel speed"));
 }
 
 function testWorldRoutes() {
   const definition = worldMapDefs.riverBasin01;
-  const downstream = findFastestRoute(definition, {
+  const outbound = findFastestRoute(definition, {
     originSiteId: "river-crown-settlement",
     destinationSiteId: "salt-coast-port",
   });
-  const upstream = findFastestRoute(definition, {
+  const returnRoute = findFastestRoute(definition, {
     originSiteId: "salt-coast-port",
     destinationSiteId: "river-crown-settlement",
   });
-  assert.equal(downstream.ok, true);
-  assert.equal(upstream.ok, true);
-  assert.ok(downstream.legs.every((leg) => leg.mode === "river"));
-  assert.ok(downstream.totalDays < upstream.totalDays);
+  assert.equal(outbound.ok, true);
+  assert.equal(returnRoute.ok, true);
+  assert.ok(outbound.legs.every((leg) => leg.mode === "river"));
+  assert.ok(returnRoute.legs.every((leg) => leg.mode === "river"));
+  assert.equal(outbound.totalDays, returnRoute.totalDays);
+  assert.equal(outbound.totalDistanceKm, returnRoute.totalDistanceKm);
+  assert.equal(outbound.legs.some((leg) => Object.prototype.hasOwnProperty.call(leg, "direction")), false);
+  assert.equal(outbound.legs.some((leg) => leg.modifiers.some((modifier) => modifier.kind === "riverDirection")), false);
   const originNode = definition.transportNodes.find((node) => node.siteId === "river-crown-settlement");
   const destinationNode = definition.transportNodes.find((node) => node.siteId === "salt-coast-port");
-  assert.deepEqual(downstream.legs[0].path[0], originNode.point);
-  assert.deepEqual(downstream.legs.at(-1).path.at(-1), destinationNode.point);
+  assert.deepEqual(outbound.legs[0].path[0], originNode.point);
+  assert.deepEqual(outbound.legs.at(-1).path.at(-1), destinationNode.point);
+
+  const riverLink = definition.transportLinks.find((link) => link.id === "river-main-crown-lake");
+  const forwardRiverTravel = calculateTransportLinkTravel(definition, riverLink, false);
+  const reverseRiverTravel = calculateTransportLinkTravel(definition, riverLink, true);
+  assert.equal(forwardRiverTravel.days, reverseRiverTravel.days);
+  assert.equal(forwardRiverTravel.distanceKm, reverseRiverTravel.distanceKm);
 
   const island = findFastestRoute(definition, {
     originSiteId: "salt-coast-port",

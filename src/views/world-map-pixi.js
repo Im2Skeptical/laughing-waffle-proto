@@ -114,6 +114,10 @@ function getBorderPath(definition, segment) {
   return ids.map((id) => getWorldVertex(definition, id)).filter(Boolean);
 }
 
+function getVertexPath(definition, vertexIds) {
+  return (vertexIds ?? []).map((id) => getWorldVertex(definition, id)).filter(Boolean);
+}
+
 function pointAndTangentAtDistance(screenPoints, targetDistance) {
   let remaining = targetDistance;
   for (let index = 0; index < screenPoints.length - 1; index += 1) {
@@ -274,9 +278,20 @@ export function createWorldMapView({
     addButton(root, { x: 1898, y: 14, width: 178, height: 44 }, "Plan route", () => setMapInteractionMode?.("route"), { selected: routeState.mode === "route" });
     root.addChild(createText("REGIONAL VIEW", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
 
-    const sea = new PIXI.Graphics();
-    roundedRect(sea, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 6, 0x4f7784, 0x3d514f, 3);
-    root.addChild(sea);
+    const context = definition.mapContext;
+    const contextLayer = new PIXI.Graphics();
+    roundedRect(contextLayer, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 6, context.landColor, 0x3d514f, 3);
+    const oceanPolygon = [
+      ...getVertexPath(definition, context.coastlineVertexIds),
+      ...context.oceanBoundaryPoints,
+    ].flatMap((point) => {
+      const screen = pointToScreen(point);
+      return [screen.x, screen.y];
+    });
+    contextLayer.beginFill(context.oceanColor, 1);
+    contextLayer.drawPolygon(oceanPolygon);
+    contextLayer.endFill();
+    root.addChild(contextLayer);
 
     const forestLayer = new PIXI.Graphics();
     for (const region of definition.regions) {
@@ -310,16 +325,24 @@ export function createWorldMapView({
     forestLayer.eventMode = "none";
     root.addChild(forestLayer);
 
+    const frontierLayer = new PIXI.Graphics();
+    const coastline = getVertexPath(definition, context.coastlineVertexIds);
+    drawSolidPath(frontierLayer, coastline, 0x344a4c, 9, 0.95);
+    drawSolidPath(frontierLayer, coastline, context.coastlineColor, 4, 1);
+    for (const feature of context.frontierFeatures) {
+      const path = getVertexPath(definition, feature.vertexIds);
+      if (feature.type === "mountainRange") drawMountainSegment(frontierLayer, path, feature.crossingKind);
+      else if (feature.type === "forestBelt") drawForestBeltSegment(frontierLayer, path);
+    }
+    frontierLayer.eventMode = "none";
+    root.addChild(frontierLayer);
+
     const featureLayer = new PIXI.Graphics();
     for (const feature of definition.geographicFeatures) {
       if (feature.type === "river") {
         const path = getFeaturePath(definition, feature.id);
         drawSolidPath(featureLayer, path, 0x244b5f, 13, 0.95);
         drawSolidPath(featureLayer, path, 0x67b7d5, 7, 1);
-        for (const segment of feature.segments) {
-          const points = getBorderPath(definition, segment);
-          if (points.length >= 2) drawArrow(featureLayer, points[0], points.at(-1), 0xd5f1f7, 8);
-        }
       } else if (feature.type === "mountainRange") {
         for (const segment of feature.segments) {
           const border = definition.borders.find((entry) => entry.id === segment.borderId);
@@ -414,8 +437,7 @@ export function createWorldMapView({
         for (const leg of routeState.result.legs.slice(0, 7)) {
           const destinationNode = definition.transportNodes.find((node) => node.id === leg.toNodeId);
           const destinationRegion = definition.regions.find((region) => region.id === destinationNode?.regionId);
-          const detailText = leg.direction ? `, ${leg.direction}` : "";
-          root.addChild(createText(`${titleCase(leg.mode)} to ${destinationRegion?.name ?? "?"} - ${leg.days}d${detailText}`, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 30, y));
+          root.addChild(createText(`${titleCase(leg.mode)} to ${destinationRegion?.name ?? "?"} - ${leg.days}d`, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 30, y));
           y += 24;
         }
       } else if (routeState.destinationSiteId) {
