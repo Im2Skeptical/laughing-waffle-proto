@@ -114,29 +114,68 @@ function getBorderPath(definition, segment) {
   return ids.map((id) => getWorldVertex(definition, id)).filter(Boolean);
 }
 
-function drawMountainSegment(gfx, points) {
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const a = pointToScreen(points[index]);
-    const b = pointToScreen(points[index + 1]);
+function pointAndTangentAtDistance(screenPoints, targetDistance) {
+  let remaining = targetDistance;
+  for (let index = 0; index < screenPoints.length - 1; index += 1) {
+    const a = screenPoints[index];
+    const b = screenPoints[index + 1];
     const dx = b.x - a.x;
     const dy = b.y - a.y;
-    const length = Math.hypot(dx, dy);
-    const count = Math.max(1, Math.floor(length / 32));
-    const nx = length ? -dy / length : 0;
-    const ny = length ? dx / length : 0;
-    for (let step = 0; step < count; step += 1) {
-      const t = (step + 0.5) / count;
-      const x = a.x + dx * t;
-      const y = a.y + dy * t;
-      gfx.lineStyle(3, 0x4c4947, 0.95);
-      gfx.moveTo(x - dx / length * 10, y - dy / length * 10);
-      gfx.lineTo(x + nx * 10, y + ny * 10);
-      gfx.lineTo(x + dx / length * 10, y + dy / length * 10);
+    const length = Math.max(1, Math.hypot(dx, dy));
+    if (remaining <= length) {
+      const t = remaining / length;
+      return { x: a.x + dx * t, y: a.y + dy * t, ux: dx / length, uy: dy / length };
     }
+    remaining -= length;
+  }
+  return null;
+}
+
+function drawMountainSegment(gfx, points, crossingKind) {
+  const screenPoints = points.map(pointToScreen);
+  let length = 0;
+  for (let index = 0; index < screenPoints.length - 1; index += 1) {
+    length += Math.hypot(screenPoints[index + 1].x - screenPoints[index].x, screenPoints[index + 1].y - screenPoints[index].y);
+  }
+  const count = Math.max(1, Math.floor(length / 30));
+  for (let step = 0; step < count; step += 1) {
+    const progress = (step + 0.5) / count;
+    if (crossingKind === "pass" && Math.abs(progress - 0.5) < 0.18) continue;
+    const point = pointAndTangentAtDistance(screenPoints, length * progress);
+    if (!point) continue;
+    const nx = -point.uy;
+    const ny = point.ux;
+    gfx.lineStyle(3, 0x4c4947, 0.95);
+    gfx.moveTo(point.x - point.ux * 10, point.y - point.uy * 10);
+    gfx.lineTo(point.x + nx * 10, point.y + ny * 10);
+    gfx.lineTo(point.x + point.ux * 10, point.y + point.uy * 10);
+  }
+
+  const middle = pointAndTangentAtDistance(screenPoints, length / 2);
+  if (!middle) return;
+  const nx = -middle.uy;
+  const ny = middle.ux;
+  if (crossingKind === "pass") {
+    gfx.lineStyle(9, 0x383432, 0.95);
+    gfx.moveTo(middle.x - nx * 17, middle.y - ny * 17);
+    gfx.lineTo(middle.x + nx * 17, middle.y + ny * 17);
+    gfx.lineStyle(4, PALETTE.accent, 1);
+    gfx.moveTo(middle.x - nx * 17, middle.y - ny * 17);
+    gfx.lineTo(middle.x + nx * 17, middle.y + ny * 17);
+  } else if (crossingKind === "blocked") {
+    gfx.beginFill(0x4c4947, 0.95);
+    gfx.drawCircle(middle.x, middle.y, 13);
+    gfx.endFill();
+    gfx.lineStyle(4, 0xe8ded0, 1);
+    gfx.moveTo(middle.x - 6, middle.y - 6);
+    gfx.lineTo(middle.x + 6, middle.y + 6);
+    gfx.moveTo(middle.x + 6, middle.y - 6);
+    gfx.lineTo(middle.x - 6, middle.y + 6);
   }
 }
 
 function drawForestBeltSegment(gfx, points) {
+  gfx.lineStyle(0, 0x000000, 0);
   for (let index = 0; index < points.length - 1; index += 1) {
     const a = pointToScreen(points[index]);
     const b = pointToScreen(points[index + 1]);
@@ -282,7 +321,10 @@ export function createWorldMapView({
           if (points.length >= 2) drawArrow(featureLayer, points[0], points.at(-1), 0xd5f1f7, 8);
         }
       } else if (feature.type === "mountainRange") {
-        for (const segment of feature.segments) drawMountainSegment(featureLayer, getBorderPath(definition, segment));
+        for (const segment of feature.segments) {
+          const border = definition.borders.find((entry) => entry.id === segment.borderId);
+          drawMountainSegment(featureLayer, getBorderPath(definition, segment), border?.crossingKind);
+        }
       } else if (feature.type === "forestBelt") {
         for (const segment of feature.segments) drawForestBeltSegment(featureLayer, getBorderPath(definition, segment));
       }
@@ -327,9 +369,9 @@ export function createWorldMapView({
       const marker = new PIXI.Graphics();
       marker.lineStyle(isOrigin || isDestination ? 5 : 3, isOrigin ? 0x93c878 : isDestination ? PALETTE.accent : 0x292724, 1);
       marker.beginFill(site.simulationMode === "detailed" ? PALETTE.accent : 0xe4e0d6, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y + 22, isOrigin || isDestination ? 11 : 8);
+      marker.drawCircle(sitePoint.x, sitePoint.y, isOrigin || isDestination ? 11 : 8);
       marker.endFill();
-      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y + 22, 24);
+      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 24);
       marker.eventMode = "static";
       marker.interactive = true;
       marker.buttonMode = true;

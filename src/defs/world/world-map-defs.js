@@ -85,21 +85,21 @@ const vertices = [
 ];
 
 const regions = [
-  region("cedar-woods", "Cedar Woods", ["p0","p1","ct","p2"], {x:0.12,y:0.16}, {x:0.12,y:0.16}, "forest", ["timber","game"], 0.88),
-  region("iron-hills", "Iron Hills", ["p1","w0","w1","ct"], {x:0.29,y:0.13}, {x:0.36,y:0.22}, "uplands", ["iron","stone"], 0.20),
-  region("west-levee", "West Levee", ["p2","ct","w1","w2","w3","cm","p3"], {x:0.17,y:0.39}, {x:0.15,y:0.40}, "farmland", ["grain","clay"], 0.18),
-  region("southern-savanna", "Southern Savanna", ["p3","cm","w3","w4","w5","w6","p5","p4"], {x:0.22,y:0.76}, {x:0.22,y:0.76}, "savanna", ["pasture","game"], 0.08),
-  region("high-pass", "High Pass", ["w0","r0","r1","w1"], {x:0.45,y:0.13}, {x:0.54,y:0.06}, "mountains", ["stone"], 0.05),
+  region("cedar-woods", "Cedar Woods", ["p0","p1","ct","p2"], {x:0.12,y:0.16}, {x:0.12,y:0.21}, "forest", ["timber","game"], 0.88),
+  region("iron-hills", "Iron Hills", ["p1","w0","w1","ct"], {x:0.29,y:0.13}, {x:0.30,y:0.19}, "uplands", ["iron","stone"], 0.20),
+  region("west-levee", "West Levee", ["p2","ct","w1","w2","w3","cm","p3"], {x:0.17,y:0.39}, {x:0.17,y:0.45}, "farmland", ["grain","clay"], 0.18),
+  region("southern-savanna", "Southern Savanna", ["p3","cm","w3","w4","w5","w6","p5","p4"], {x:0.22,y:0.76}, {x:0.24,y:0.83}, "savanna", ["pasture","game"], 0.08),
+  region("high-pass", "High Pass", ["w0","r0","r1","w1"], {x:0.45,y:0.13}, {x:0.45,y:0.18}, "mountains", ["stone"], 0.05),
   region("upper-floodplain", "Upper Floodplain", ["w1","r1","r2","r3","w3","w2"], {x:0.45,y:0.34}, {x:0.34,y:0.49}, "floodplain", ["grain","reeds"], 0.12),
-  region("river-crown", "River Crown", ["w3","r3","r4","w4"], {x:0.44,y:0.56}, {x:0.47,y:0.49}, "floodplain", ["grain","clay"], 0.10),
-  region("reed-delta", "Reed Delta", ["w4","r4","r5","r6","w6","w5"], {x:0.52,y:0.75}, {x:0.66,y:0.79}, "wetlands", ["fish","reeds"], 0.22),
-  region("copper-basin", "Copper Basin", ["r0","e0","e1","r1"], {x:0.63,y:0.13}, {x:0.63,y:0.13}, "aridUplands", ["copper"], 0.02),
-  region("east-steppe", "East Steppe", ["r1","e1","e2","e3","r3","r2"], {x:0.65,y:0.34}, {x:0.58,y:0.35}, "grassland", ["pasture","horses"], 0.06),
-  region("lake-country", "Lake Country", ["r3","e3","e4","r4"], {x:0.61,y:0.55}, {x:0.55,y:0.64}, "freshwater", ["fish","reeds"], 0.16),
+  region("river-crown", "River Crown", ["w3","r3","r4","w4"], {x:0.44,y:0.56}, {x:0.45,y:0.60}, "floodplain", ["grain","clay"], 0.10),
+  region("reed-delta", "Reed Delta", ["w4","r4","r5","r6","w6","w5"], {x:0.52,y:0.75}, {x:0.54,y:0.83}, "wetlands", ["fish","reeds"], 0.22),
+  region("copper-basin", "Copper Basin", ["r0","e0","e1","r1"], {x:0.63,y:0.13}, {x:0.63,y:0.18}, "aridUplands", ["copper"], 0.02),
+  region("east-steppe", "East Steppe", ["r1","e1","e2","e3","r3","r2"], {x:0.65,y:0.34}, {x:0.66,y:0.40}, "grassland", ["pasture","horses"], 0.06),
+  region("lake-country", "Lake Country", ["r3","e3","e4","r4"], {x:0.61,y:0.55}, {x:0.61,y:0.60}, "freshwater", ["fish","reeds"], 0.16),
   region("black-marsh", "Black Marsh", ["r4","e4","e5","r5"], {x:0.68,y:0.69}, {x:0.73,y:0.63}, "marsh", ["peat","dye plants"], 0.28),
-  region("salt-coast", "Salt Coast", ["r5","e5","e6","r6"], {x:0.77,y:0.85}, {x:0.76,y:0.94}, "coast", ["salt","fish"], 0.04),
-  region("obsidian-ridge", "Obsidian Ridge", ["e0","q0","q1","q2","e6","e5","e4","e3","e2","e1"], {x:0.84,y:0.42}, {x:0.72,y:0.22}, "volcanic", ["obsidian","stone"], 0.08),
-  region("outer-isles", "Outer Isles", ["i0","i1","i2","i3","i4"], {x:0.96,y:0.65}, {x:0.96,y:0.65}, "islands", ["fish","shells"], 0.12),
+  region("salt-coast", "Salt Coast", ["r5","e5","e6","r6"], {x:0.77,y:0.85}, {x:0.78,y:0.89}, "coast", ["salt","fish"], 0.04),
+  region("obsidian-ridge", "Obsidian Ridge", ["e0","q0","q1","q2","e6","e5","e4","e3","e2","e1"], {x:0.84,y:0.42}, {x:0.84,y:0.49}, "volcanic", ["obsidian","stone"], 0.08),
+  region("outer-isles", "Outer Isles", ["i0","i1","i2","i3","i4"], {x:0.96,y:0.65}, {x:0.96,y:0.70}, "islands", ["fish","shells"], 0.12),
 ];
 
 const sites = [

@@ -50,9 +50,17 @@ function effectiveLandSpeed(definition, region) {
 }
 
 export function getTransportLinkPath(definition, link, reverse = false) {
-  let path = link?.mode === "river"
-    ? getFeaturePath(definition, link.featureId, link.fromVertexId, link.toVertexId)
-    : (link?.path ?? []).map((point) => ({ x: point.x, y: point.y }));
+  let path;
+  if (link?.mode === "river") {
+    const featurePath = getFeaturePath(definition, link.featureId, link.fromVertexId, link.toVertexId);
+    const nodeA = getNode(definition, link.nodeAId);
+    const nodeB = getNode(definition, link.nodeBId);
+    path = [nodeA?.point, ...featurePath, nodeB?.point]
+      .filter(Boolean)
+      .filter((point, index, points) => index === 0 || point.x !== points[index - 1].x || point.y !== points[index - 1].y);
+  } else {
+    path = (link?.path ?? []).map((point) => ({ x: point.x, y: point.y }));
+  }
   if (reverse) path = [...path].reverse();
   return path;
 }
