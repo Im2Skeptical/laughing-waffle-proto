@@ -48,6 +48,9 @@ function drawRoute(gfx, connection) {
   }
   if (routeModes.has("river")) {
     gfx.lineStyle(7, 0x4f91b5, 0.9);
+  } else if (connection?.physicalRelation === "separated") {
+    drawDashedPath(gfx, points, 0xe4d19b, 4);
+    return;
   } else {
     return;
   }
@@ -76,7 +79,7 @@ function addButton(parent, rect, label, onPress) {
 
 function routeLabel(connection) {
   return (connection?.routes ?? [])
-    .map((route) => `${route.mode} ${route.weight}`)
+    .map((route) => `${route.mode[0]?.toUpperCase() ?? ""}${route.mode.slice(1)} (cost ${route.weight})`)
     .join(" + ");
 }
 
