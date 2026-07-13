@@ -207,6 +207,20 @@ const geographicFeatures = [
   },
 ];
 
+const mapContext = {
+  landColor: 0x70766a,
+  oceanColor: 0x4f7784,
+  coastlineColor: 0xd7c99d,
+  coastlineVertexIds: ["q0","q1","q2","e6","r6"],
+  oceanBoundaryPoints: [{x:0.76,y:1},{x:1,y:1},{x:1,y:0}],
+  frontierFeatures: [
+    { id:"western-forest-frontier", type:"forestBelt", vertexIds:["p3","p2","p0","p1"] },
+    { id:"northern-rim-west", type:"mountainRange", vertexIds:["p1","w0"], crossingKind:"blocked" },
+    { id:"high-pass-gateway", type:"mountainRange", vertexIds:["w0","r0"], crossingKind:"pass" },
+    { id:"northern-rim-east", type:"mountainRange", vertexIds:["r0","e0","q0"], crossingKind:"blocked" },
+  ],
+};
+
 const transportNodes = regions.map((entry) => {
   const site = sites.find((candidate) => candidate.regionId === entry.id) ?? null;
   return {
@@ -269,8 +283,7 @@ export const worldMapDefs = Object.freeze({
       vertices: Object.freeze(vertices),
     },
     travelRules: {
-      riverDownstreamKmPerDay: 70,
-      riverUpstreamKmPerDay: 35,
+      riverKmPerDay: 60,
       seaKmPerDay: 80,
       forestSlowdown: 0.35,
       crossingPenaltyDays: { open:0, ford:1, bridge:0, ferry:1, pass:2, blocked:0 },
@@ -280,6 +293,7 @@ export const worldMapDefs = Object.freeze({
     sites: Object.freeze(sites),
     borders: Object.freeze(borders),
     geographicFeatures: Object.freeze(geographicFeatures),
+    mapContext: Object.freeze(mapContext),
     transportNodes: Object.freeze(transportNodes),
     transportLinks: Object.freeze([...landLinks, ...riverLinks, ...seaLinks]),
   }),

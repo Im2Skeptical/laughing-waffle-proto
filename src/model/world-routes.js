@@ -74,15 +74,13 @@ export function calculateTransportLinkTravel(definition, link, reverse = false) 
   if (!nodeA || !nodeB || path.length < 2) return null;
 
   if (link.mode === "river") {
-    const downstream = reverse !== true;
-    const speed = Math.max(1, downstream ? rules.riverDownstreamKmPerDay : rules.riverUpstreamKmPerDay);
+    const speed = Math.max(1, rules.riverKmPerDay ?? 1);
     const distanceKm = pathDistanceKm(definition, path);
     return {
       days: Math.max(1, Math.ceil(distanceKm / speed)),
       distanceKm: roundedDistance(distanceKm),
       mode: "river",
-      direction: downstream ? "downstream" : "upstream",
-      modifiers: [{ kind: "riverDirection", label: downstream ? "Downstream current" : "Upstream current", days: 0 }],
+      modifiers: [],
       path,
     };
   }
@@ -94,7 +92,6 @@ export function calculateTransportLinkTravel(definition, link, reverse = false) 
       days: Math.max(1, Math.ceil(distanceKm / speed)),
       distanceKm: roundedDistance(distanceKm),
       mode: "sea",
-      direction: null,
       modifiers: [],
       path,
     };
@@ -126,7 +123,6 @@ export function calculateTransportLinkTravel(definition, link, reverse = false) 
     days: Math.max(1, Math.ceil(rawDays)),
     distanceKm: roundedDistance(distanceKm),
     mode: "land",
-    direction: null,
     modifiers,
     path,
   };

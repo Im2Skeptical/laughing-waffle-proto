@@ -105,6 +105,10 @@ export function validateWorldDefinition(definition, { requireConnected = false }
   const regionById = new Map();
   const siteById = new Map();
 
+  if (!Number.isFinite(definition?.travelRules?.riverKmPerDay) || definition.travelRules.riverKmPerDay <= 0) {
+    errors.push("invalid river travel speed");
+  }
+
   for (const entry of vertices) {
     if (typeof entry?.id !== "string" || !entry.id) errors.push("vertex has no id");
     else if (vertexById.has(entry.id)) errors.push(`duplicate vertex ${entry.id}`);
@@ -172,6 +176,60 @@ export function validateWorldDefinition(definition, { requireConnected = false }
     }
   }
 
+  const mapContext = definition.mapContext;
+  const authoredCoastlineVertices = new Set();
+  const validateOuterPath = (vertexIds, label) => {
+    if (!Array.isArray(vertexIds) || vertexIds.length < 2) {
+      errors.push(`${label} has invalid vertices`);
+      return;
+    }
+    for (const vertexId of vertexIds) {
+      if (!vertexById.has(vertexId)) errors.push(`${label} references unknown vertex ${vertexId}`);
+    }
+    for (let index = 0; index < vertexIds.length - 1; index += 1) {
+      const key = edgeKey(vertexIds[index], vertexIds[index + 1]);
+      if ((edgeOwners.get(key) ?? []).length !== 1) errors.push(`${label} does not follow outer mesh edge ${key}`);
+    }
+  };
+
+  if (!mapContext || typeof mapContext !== "object") {
+    errors.push("map context is required");
+  } else {
+    validateOuterPath(mapContext.coastlineVertexIds, "map coastline");
+    for (const vertexId of mapContext.coastlineVertexIds ?? []) authoredCoastlineVertices.add(vertexId);
+
+    const boundaryPoints = Array.isArray(mapContext.oceanBoundaryPoints) ? mapContext.oceanBoundaryPoints : [];
+    if (boundaryPoints.length < 3 || !boundaryPoints.every(isPoint)) errors.push("map ocean boundary has invalid points");
+    const oceanPolygon = [
+      ...(mapContext.coastlineVertexIds ?? []).map((id) => vertexById.get(id)).filter(Boolean),
+      ...boundaryPoints,
+    ];
+    for (let aIndex = 0; aIndex < oceanPolygon.length; aIndex += 1) {
+      const aNext = (aIndex + 1) % oceanPolygon.length;
+      for (let bIndex = aIndex + 1; bIndex < oceanPolygon.length; bIndex += 1) {
+        const bNext = (bIndex + 1) % oceanPolygon.length;
+        if (aIndex === bIndex || aNext === bIndex || bNext === aIndex) continue;
+        if (segmentsCross(oceanPolygon[aIndex], oceanPolygon[aNext], oceanPolygon[bIndex], oceanPolygon[bNext])) {
+          errors.push("map ocean boundary is self-intersecting");
+        }
+      }
+    }
+
+    const frontierIds = new Set();
+    const frontierFeatures = Array.isArray(mapContext.frontierFeatures) ? mapContext.frontierFeatures : [];
+    if (frontierFeatures.length === 0) errors.push("map context has no frontier features");
+    for (const feature of frontierFeatures) {
+      if (typeof feature?.id !== "string" || !feature.id) errors.push("frontier feature has no id");
+      else if (frontierIds.has(feature.id)) errors.push(`duplicate frontier feature ${feature.id}`);
+      else frontierIds.add(feature.id);
+      if (!["mountainRange","forestBelt"].includes(feature?.type)) errors.push(`frontier feature ${feature?.id ?? "?"} has invalid type`);
+      if (feature?.type === "mountainRange" && !["blocked","pass"].includes(feature?.crossingKind)) {
+        errors.push(`frontier feature ${feature?.id ?? "?"} has invalid crossing`);
+      }
+      validateOuterPath(feature?.vertexIds, `frontier feature ${feature?.id ?? "?"}`);
+    }
+  }
+
   for (const site of sites) {
     if (typeof site?.id !== "string" || !site.id) errors.push("site has no id");
     else if (siteById.has(site.id)) errors.push(`duplicate site ${site.id}`);
@@ -225,11 +283,6 @@ export function validateWorldDefinition(definition, { requireConnected = false }
       previousEnd = segment?.toVertexId ?? null;
     }
   }
-  const coastlineVertices = new Set();
-  for (const [key, owners] of edgeOwners) {
-    if (owners.length !== 1) continue;
-    for (const id of key.split("|")) coastlineVertices.add(id);
-  }
   for (const feature of features.filter((entry) => entry?.type === "river")) {
     const path = getGeographicFeatureVertexIds(definition, feature.id);
     if (new Set(path).size !== path.length) errors.push(`river ${feature.id} contains a cycle`);
@@ -238,8 +291,8 @@ export function validateWorldDefinition(definition, { requireConnected = false }
       if (target?.type !== "river" || !getGeographicFeatureVertexIds(definition, target.id).includes(feature.outflow.vertexId) || path.at(-1) !== feature.outflow.vertexId) {
         errors.push(`river ${feature.id} has invalid outflow`);
       }
-    } else if (path.length && !coastlineVertices.has(path.at(-1))) {
-      errors.push(`river ${feature.id} has no coastal outlet`);
+    } else if (path.length && !authoredCoastlineVertices.has(path.at(-1))) {
+      errors.push(`river ${feature.id} has no authored coastal outlet`);
     }
   }
   for (const feature of features.filter((entry) => entry?.type === "river")) {
