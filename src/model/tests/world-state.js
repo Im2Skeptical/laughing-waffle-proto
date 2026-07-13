@@ -11,7 +11,7 @@ import {
 
 function testWorldDefinition() {
   const definition = worldMapDefs.riverBasin01;
-  const result = validateWorldDefinition(definition, { requireConnected: true });
+  const result = validateWorldDefinition(definition, { requireConnected: true, requireMappedBorders: true });
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
@@ -21,6 +21,30 @@ function testWorldDefinition() {
   const invalid = validateWorldDefinition(malformed, { requireConnected: true });
   assert.equal(invalid.ok, false);
   assert.ok(invalid.errors.some((error) => error.startsWith("duplicate connection")));
+
+  const invalidBorder = JSON.parse(JSON.stringify(definition));
+  invalidBorder.connections.find((edge) => edge.regionAId === "river-crown").regionBId = "obsidian-ridge";
+  const invalidGeometry = validateWorldDefinition(invalidBorder, { requireConnected: true, requireMappedBorders: true });
+  assert.equal(invalidGeometry.ok, false);
+  assert.ok(invalidGeometry.errors.some((error) => error.includes("has no shared polygon boundary")));
+
+  const invalidSeparation = JSON.parse(JSON.stringify(definition));
+  invalidSeparation.connections.find((edge) => (
+    [edge.regionAId, edge.regionBId].includes("river-crown")
+    && [edge.regionAId, edge.regionBId].includes("west-levee")
+  )).physicalRelation = "separated";
+  const invalidSeparationGeometry = validateWorldDefinition(invalidSeparation);
+  assert.equal(invalidSeparationGeometry.ok, false);
+  assert.ok(invalidSeparationGeometry.errors.some((error) => error.includes("has a shared polygon boundary")));
+
+  const missingBorder = JSON.parse(JSON.stringify(definition));
+  missingBorder.connections = missingBorder.connections.filter((edge) => (
+    ![edge.regionAId, edge.regionBId].includes("west-levee")
+    || ![edge.regionAId, edge.regionBId].includes("upper-floodplain")
+  ));
+  const incompleteGeometry = validateWorldDefinition(missingBorder, { requireConnected: true, requireMappedBorders: true });
+  assert.equal(incompleteGeometry.ok, false);
+  assert.ok(incompleteGeometry.errors.some((error) => error.includes("has no connection")));
 }
 
 function testNestedDetailedState() {

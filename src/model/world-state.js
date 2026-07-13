@@ -15,7 +15,49 @@ function isPoint(point) {
   return Number.isFinite(point?.x) && point.x >= 0 && point.x <= 1 && Number.isFinite(point?.y) && point.y >= 0 && point.y <= 1;
 }
 
-export function validateWorldDefinition(definition, { requireConnected = false } = {}) {
+const GEOMETRY_EPSILON = 1e-9;
+
+function pointCoordinates(point) {
+  return Array.isArray(point) ? point : [point?.x, point?.y];
+}
+
+function segmentsShareLength(aStart, aEnd, bStart, bEnd) {
+  const [ax1, ay1] = pointCoordinates(aStart);
+  const [ax2, ay2] = pointCoordinates(aEnd);
+  const [bx1, by1] = pointCoordinates(bStart);
+  const [bx2, by2] = pointCoordinates(bEnd);
+  const adx = ax2 - ax1;
+  const ady = ay2 - ay1;
+  const bdx = bx2 - bx1;
+  const bdy = by2 - by1;
+  const cross = (x1, y1, x2, y2) => x1 * y2 - y1 * x2;
+  if (Math.abs(cross(adx, ady, bdx, bdy)) > GEOMETRY_EPSILON) return false;
+  if (Math.abs(cross(adx, ady, bx1 - ax1, by1 - ay1)) > GEOMETRY_EPSILON) return false;
+
+  const useX = Math.abs(adx) >= Math.abs(ady);
+  const [aMin, aMax] = useX
+    ? [Math.min(ax1, ax2), Math.max(ax1, ax2)]
+    : [Math.min(ay1, ay2), Math.max(ay1, ay2)];
+  const [bMin, bMax] = useX
+    ? [Math.min(bx1, bx2), Math.max(bx1, bx2)]
+    : [Math.min(by1, by2), Math.max(by1, by2)];
+  return Math.min(aMax, bMax) - Math.max(aMin, bMin) > GEOMETRY_EPSILON;
+}
+
+function polygonsShareBoundarySegment(polygonA, polygonB) {
+  for (let aIndex = 0; aIndex < polygonA.length; aIndex += 1) {
+    const aStart = polygonA[aIndex];
+    const aEnd = polygonA[(aIndex + 1) % polygonA.length];
+    for (let bIndex = 0; bIndex < polygonB.length; bIndex += 1) {
+      const bStart = polygonB[bIndex];
+      const bEnd = polygonB[(bIndex + 1) % polygonB.length];
+      if (segmentsShareLength(aStart, aEnd, bStart, bEnd)) return true;
+    }
+  }
+  return false;
+}
+
+export function validateWorldDefinition(definition, { requireConnected = false, requireMappedBorders = false } = {}) {
   const errors = [];
   if (!definition || typeof definition !== "object") return { ok: false, errors: ["definition is required"] };
   const regions = Array.isArray(definition.regions) ? definition.regions : [];
@@ -23,11 +65,15 @@ export function validateWorldDefinition(definition, { requireConnected = false }
   const connections = Array.isArray(definition.connections) ? definition.connections : [];
   const regionIds = new Set();
   const siteIds = new Set();
+  const regionsById = new Map();
 
   for (const region of regions) {
     if (typeof region?.id !== "string" || !region.id) errors.push("region has no id");
     else if (regionIds.has(region.id)) errors.push(`duplicate region ${region.id}`);
-    else regionIds.add(region.id);
+    else {
+      regionIds.add(region.id);
+      regionsById.set(region.id, region);
+    }
     if (!worldTerrainDefs[region?.terrainId]) errors.push(`unknown terrain ${region?.terrainId ?? "?"}`);
     if (!Array.isArray(region?.polygon) || region.polygon.length < 3 || !region.polygon.every(isPoint)) {
       errors.push(`invalid polygon ${region?.id ?? "?"}`);
@@ -60,7 +106,17 @@ export function validateWorldDefinition(definition, { requireConnected = false }
     const key = [a, b].sort().join("|");
     if (pairKeys.has(key)) errors.push(`duplicate connection ${key}`);
     pairKeys.add(key);
-    if (edge?.physicalRelation !== "border" && edge?.physicalRelation !== "water") errors.push(`connection ${key} has invalid physical relation`);
+    if (edge?.physicalRelation !== "border" && edge?.physicalRelation !== "separated") errors.push(`connection ${key} has invalid physical relation`);
+    const regionA = regionsById.get(a);
+    const regionB = regionsById.get(b);
+    const validPolygons = Array.isArray(regionA?.polygon) && Array.isArray(regionB?.polygon);
+    const sharesBoundary = validPolygons && polygonsShareBoundarySegment(regionA.polygon, regionB.polygon);
+    if (edge?.physicalRelation === "border" && validPolygons && !sharesBoundary) {
+      errors.push(`border connection ${key} has no shared polygon boundary`);
+    }
+    if (edge?.physicalRelation === "separated" && sharesBoundary) {
+      errors.push(`separated connection ${key} has a shared polygon boundary`);
+    }
     const routeModes = new Set();
     if (!Array.isArray(edge?.routes) || edge.routes.length === 0) errors.push(`connection ${key} has no routes`);
     for (const route of Array.isArray(edge?.routes) ? edge.routes : []) {
@@ -74,6 +130,20 @@ export function validateWorldDefinition(definition, { requireConnected = false }
     }
     neighbors.get(a)?.add(b);
     neighbors.get(b)?.add(a);
+  }
+
+  if (requireMappedBorders) {
+    const regionList = Array.from(regionsById.values());
+    for (let aIndex = 0; aIndex < regionList.length; aIndex += 1) {
+      for (let bIndex = aIndex + 1; bIndex < regionList.length; bIndex += 1) {
+        const regionA = regionList[aIndex];
+        const regionB = regionList[bIndex];
+        if (!Array.isArray(regionA.polygon) || !Array.isArray(regionB.polygon)) continue;
+        if (!polygonsShareBoundarySegment(regionA.polygon, regionB.polygon)) continue;
+        const key = [regionA.id, regionB.id].sort().join("|");
+        if (!pairKeys.has(key)) errors.push(`shared polygon boundary ${key} has no connection`);
+      }
+    }
   }
 
   if (requireConnected && regionIds.size > 0) {
@@ -126,7 +196,7 @@ export function getPrimaryDetailedSiteState(state) {
 
 export function createWorldState(definitionId, detailedState) {
   const definition = worldMapDefs[definitionId];
-  const validation = validateWorldDefinition(definition, { requireConnected: true });
+  const validation = validateWorldDefinition(definition, { requireConnected: true, requireMappedBorders: true });
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
   const sites = definition.sites.map((site) => ({
     ...cloneSerializable(site),

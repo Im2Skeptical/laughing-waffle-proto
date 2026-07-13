@@ -90,33 +90,32 @@ const sites = [
 ];
 
 const connections = [
-  connection("high-pass","upper-floodplain","border",[{mode:"land",weight:2},{mode:"river",weight:2}],[{x:0.46,y:0.20},{x:0.37,y:0.31}]),
+  connection("high-pass","upper-floodplain","separated",[{mode:"land",weight:2},{mode:"river",weight:2}],[{x:0.46,y:0.20},{x:0.37,y:0.31}]),
   connection("upper-floodplain","river-crown","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.36,y:0.40},{x:0.34,y:0.58}]),
   connection("river-crown","reed-delta","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.38,y:0.61},{x:0.55,y:0.72}]),
   connection("reed-delta","salt-coast","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.58,y:0.74},{x:0.75,y:0.82}]),
-  connection("salt-coast","outer-isles","water",[{mode:"sea",weight:2}],[{x:0.84,y:0.79},{x:0.94,y:0.65}]),
+  connection("salt-coast","outer-isles","separated",[{mode:"sea",weight:2}],[{x:0.84,y:0.79},{x:0.94,y:0.65}]),
   connection("west-levee","cedar-woods","border",[{mode:"land",weight:1}],[{x:0.12,y:0.42},{x:0.13,y:0.20}]),
   connection("cedar-woods","iron-hills","border",[{mode:"land",weight:1}],[{x:0.18,y:0.17},{x:0.30,y:0.16}]),
   connection("iron-hills","high-pass","border",[{mode:"land",weight:2}],[{x:0.31,y:0.16},{x:0.46,y:0.14}]),
   connection("west-levee","southern-savanna","border",[{mode:"land",weight:1}],[{x:0.13,y:0.55},{x:0.24,y:0.82}]),
   connection("cedar-woods","upper-floodplain","border",[{mode:"land",weight:1}],[{x:0.20,y:0.23},{x:0.30,y:0.34}]),
   connection("iron-hills","upper-floodplain","border",[{mode:"land",weight:1}],[{x:0.31,y:0.22},{x:0.34,y:0.33}]),
-  connection("upper-floodplain","lake-country","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.39,y:0.37},{x:0.54,y:0.52}]),
+  connection("upper-floodplain","west-levee","border",[{mode:"land",weight:1}],[{x:0.24,y:0.37},{x:0.16,y:0.42}]),
   connection("river-crown","west-levee","border",[{mode:"land",weight:1}],[{x:0.27,y:0.57},{x:0.13,y:0.48}]),
   connection("river-crown","lake-country","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.40,y:0.57},{x:0.54,y:0.52}]),
   connection("river-crown","southern-savanna","border",[{mode:"land",weight:1}],[{x:0.31,y:0.66},{x:0.24,y:0.82}]),
   connection("lake-country","reed-delta","border",[{mode:"land",weight:1},{mode:"river",weight:1}],[{x:0.55,y:0.55},{x:0.55,y:0.70}]),
   connection("lake-country","east-steppe","border",[{mode:"land",weight:1}],[{x:0.57,y:0.48},{x:0.65,y:0.34}]),
-  connection("lake-country","black-marsh","border",[{mode:"land",weight:1}],[{x:0.60,y:0.54},{x:0.76,y:0.58}]),
+  connection("high-pass","copper-basin","border",[{mode:"land",weight:2}],[{x:0.53,y:0.15},{x:0.63,y:0.14}]),
   connection("east-steppe","copper-basin","border",[{mode:"land",weight:1}],[{x:0.66,y:0.30},{x:0.64,y:0.15}]),
   connection("east-steppe","black-marsh","border",[{mode:"land",weight:1}],[{x:0.69,y:0.40},{x:0.77,y:0.57}]),
   connection("east-steppe","obsidian-ridge","border",[{mode:"land",weight:1}],[{x:0.70,y:0.31},{x:0.82,y:0.28}]),
   connection("copper-basin","obsidian-ridge","border",[{mode:"land",weight:2}],[{x:0.69,y:0.16},{x:0.82,y:0.23}]),
   connection("black-marsh","reed-delta","border",[{mode:"land",weight:1}],[{x:0.74,y:0.62},{x:0.62,y:0.70}]),
   connection("black-marsh","salt-coast","border",[{mode:"land",weight:1}],[{x:0.82,y:0.65},{x:0.80,y:0.80}]),
+  connection("black-marsh","obsidian-ridge","border",[{mode:"land",weight:2}],[{x:0.84,y:0.47},{x:0.83,y:0.34}]),
   connection("southern-savanna","reed-delta","border",[{mode:"land",weight:1}],[{x:0.34,y:0.80},{x:0.50,y:0.76}]),
-  connection("southern-savanna","obsidian-ridge","border",[{mode:"land",weight:2}],[{x:0.38,y:0.87},{x:0.78,y:0.36}]),
-  connection("obsidian-ridge","salt-coast","border",[{mode:"land",weight:2}],[{x:0.86,y:0.35},{x:0.84,y:0.78}]),
 ];
 
 export const worldMapDefs = Object.freeze({
