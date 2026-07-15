@@ -13,7 +13,25 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 104, width: 1640, height: 704 });
 const DETAIL_RECT = Object.freeze({ x: 1734, y: 104, width: 626, height: 704 });
-const MODE_COLORS = Object.freeze({ land: 0xe4bf58, river: 0xa9d9ec, sea: 0xf0f2ea });
+const MODE_COLORS = Object.freeze({ land: 0xd7b450, river: 0xb7d3d8, sea: 0xe1e3dc });
+const MAP_COLORS = Object.freeze({
+  neutralLand: 0x85867d,
+  regionBorder: 0x4f554f,
+  riverUnderlay: 0x3d555b,
+  river: 0x70a5b1,
+  siteFill: 0xeee7d9,
+  siteStroke: 0x302d2a,
+  siteCore: 0x554f48,
+});
+
+function mixColor(first, second, secondWeight) {
+  const weight = Math.max(0, Math.min(1, secondWeight));
+  const channel = (shift) => Math.round(
+    ((first >> shift) & 0xff) * (1 - weight)
+    + ((second >> shift) & 0xff) * weight
+  );
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
+}
 
 function pointToScreen(point) {
   const x = Array.isArray(point) ? point[0] : point?.x;
@@ -73,34 +91,6 @@ function drawArrow(gfx, fromPoint, toPoint, color, size = 10) {
   gfx.endFill();
 }
 
-function pointInPolygon(point, polygon) {
-  let inside = false;
-  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
-    const a = polygon[index];
-    const b = polygon[previous];
-    const intersects = ((a[1] > point.y) !== (b[1] > point.y))
-      && point.x < ((b[0] - a[0]) * (point.y - a[1])) / ((b[1] - a[1]) || 1e-9) + a[0];
-    if (intersects) inside = !inside;
-  }
-  return inside;
-}
-
-function drawForestCover(gfx, region, polygon) {
-  const coverage = region?.landCover?.forest ?? 0;
-  if (coverage < 0.08) return;
-  const threshold = Math.round(coverage * 10);
-  for (let x = 0.055; x < 0.94; x += 0.045) {
-    for (let y = 0.09; y < 0.93; y += 0.055) {
-      const hash = (Math.round(x * 1000) * 17 + Math.round(y * 1000) * 31 + region.id.length * 13) % 10;
-      if (hash >= threshold || !pointInPolygon({ x, y }, polygon)) continue;
-      const point = pointToScreen({ x, y });
-      gfx.beginFill(0x244d35, 0.34);
-      gfx.drawCircle(point.x, point.y, 4);
-      gfx.endFill();
-    }
-  }
-}
-
 function getBorderPath(definition, segment) {
   const border = definition.borders.find((entry) => entry.id === segment.borderId);
   if (!border) return [];
@@ -141,7 +131,7 @@ function drawMountainSegment(gfx, points, crossingKind) {
   for (let index = 0; index < screenPoints.length - 1; index += 1) {
     length += Math.hypot(screenPoints[index + 1].x - screenPoints[index].x, screenPoints[index + 1].y - screenPoints[index].y);
   }
-  const count = Math.max(1, Math.floor(length / 30));
+  const count = Math.max(1, Math.floor(length / 40));
   for (let step = 0; step < count; step += 1) {
     const progress = (step + 0.5) / count;
     if (crossingKind === "pass" && Math.abs(progress - 0.5) < 0.18) continue;
@@ -149,10 +139,10 @@ function drawMountainSegment(gfx, points, crossingKind) {
     if (!point) continue;
     const nx = -point.uy;
     const ny = point.ux;
-    gfx.lineStyle(3, 0x4c4947, 0.95);
-    gfx.moveTo(point.x - point.ux * 10, point.y - point.uy * 10);
-    gfx.lineTo(point.x + nx * 10, point.y + ny * 10);
-    gfx.lineTo(point.x + point.ux * 10, point.y + point.uy * 10);
+    gfx.lineStyle(2, 0x4c4947, 0.72);
+    gfx.moveTo(point.x - point.ux * 8, point.y - point.uy * 8);
+    gfx.lineTo(point.x + nx * 8, point.y + ny * 8);
+    gfx.lineTo(point.x + point.ux * 8, point.y + point.uy * 8);
   }
 
   const middle = pointAndTangentAtDistance(screenPoints, length / 2);
@@ -160,21 +150,21 @@ function drawMountainSegment(gfx, points, crossingKind) {
   const nx = -middle.uy;
   const ny = middle.ux;
   if (crossingKind === "pass") {
-    gfx.lineStyle(9, 0x383432, 0.95);
-    gfx.moveTo(middle.x - nx * 17, middle.y - ny * 17);
-    gfx.lineTo(middle.x + nx * 17, middle.y + ny * 17);
-    gfx.lineStyle(4, PALETTE.accent, 1);
-    gfx.moveTo(middle.x - nx * 17, middle.y - ny * 17);
-    gfx.lineTo(middle.x + nx * 17, middle.y + ny * 17);
+    gfx.lineStyle(6, 0x383432, 0.8);
+    gfx.moveTo(middle.x - nx * 14, middle.y - ny * 14);
+    gfx.lineTo(middle.x + nx * 14, middle.y + ny * 14);
+    gfx.lineStyle(3, PALETTE.accent, 0.9);
+    gfx.moveTo(middle.x - nx * 14, middle.y - ny * 14);
+    gfx.lineTo(middle.x + nx * 14, middle.y + ny * 14);
   } else if (crossingKind === "blocked") {
-    gfx.beginFill(0x4c4947, 0.95);
-    gfx.drawCircle(middle.x, middle.y, 13);
+    gfx.beginFill(0x4c4947, 0.78);
+    gfx.drawCircle(middle.x, middle.y, 9);
     gfx.endFill();
-    gfx.lineStyle(4, 0xe8ded0, 1);
-    gfx.moveTo(middle.x - 6, middle.y - 6);
-    gfx.lineTo(middle.x + 6, middle.y + 6);
-    gfx.moveTo(middle.x + 6, middle.y - 6);
-    gfx.lineTo(middle.x - 6, middle.y + 6);
+    gfx.lineStyle(2, 0xe8ded0, 0.9);
+    gfx.moveTo(middle.x - 4, middle.y - 4);
+    gfx.lineTo(middle.x + 4, middle.y + 4);
+    gfx.moveTo(middle.x + 4, middle.y - 4);
+    gfx.lineTo(middle.x - 4, middle.y + 4);
   }
 }
 
@@ -184,13 +174,13 @@ function drawForestBeltSegment(gfx, points) {
     const a = pointToScreen(points[index]);
     const b = pointToScreen(points[index + 1]);
     const length = Math.hypot(b.x - a.x, b.y - a.y);
-    const count = Math.max(1, Math.floor(length / 22));
+    const count = Math.max(1, Math.floor(length / 32));
     for (let step = 0; step < count; step += 1) {
       const t = (step + 0.5) / count;
       const x = a.x + (b.x - a.x) * t;
       const y = a.y + (b.y - a.y) * t;
-      gfx.beginFill(0x28543a, 0.95);
-      gfx.drawCircle(x, y, 6);
+      gfx.beginFill(0x28543a, 0.62);
+      gfx.drawCircle(x, y, 4);
       gfx.endFill();
     }
   }
@@ -293,18 +283,16 @@ export function createWorldMapView({
     contextLayer.endFill();
     root.addChild(contextLayer);
 
-    const forestLayer = new PIXI.Graphics();
     for (const region of definition.regions) {
       const polygon = getRegionPolygon(definition, region);
       const terrain = getWorldTerrainDef(region.terrainId);
-      const selected = region.id === selectedRegionId;
       const screenPolygon = polygon.flatMap((point) => {
         const screen = pointToScreen(point);
         return [screen.x, screen.y];
       });
       const shape = new PIXI.Graphics();
-      shape.lineStyle(selected ? 7 : 3, selected ? PALETTE.accent : 0x3d443d, selected ? 1 : 0.92);
-      shape.beginFill(terrain?.color ?? 0x777777, selected ? 1 : 0.94);
+      shape.lineStyle(2, MAP_COLORS.regionBorder, 0.58);
+      shape.beginFill(mixColor(terrain?.color ?? 0x777777, MAP_COLORS.neutralLand, 0.42), 0.88);
       shape.drawPolygon(screenPolygon);
       shape.endFill();
       const regionHit = new PIXI.Container();
@@ -320,15 +308,27 @@ export function createWorldMapView({
         lastKey = "";
       });
       root.addChild(regionHit);
-      drawForestCover(forestLayer, region, polygon);
     }
-    forestLayer.eventMode = "none";
-    root.addChild(forestLayer);
+
+    const mapSelectedRegion = definition.regions.find((region) => region.id === selectedRegionId);
+    if (mapSelectedRegion) {
+      const selectedPolygon = getRegionPolygon(definition, mapSelectedRegion).flatMap((point) => {
+        const screen = pointToScreen(point);
+        return [screen.x, screen.y];
+      });
+      const selectionLayer = new PIXI.Graphics();
+      selectionLayer.lineStyle(4, PALETTE.accent, 0.86);
+      selectionLayer.beginFill(PALETTE.accent, 0.1);
+      selectionLayer.drawPolygon(selectedPolygon);
+      selectionLayer.endFill();
+      selectionLayer.eventMode = "none";
+      root.addChild(selectionLayer);
+    }
 
     const frontierLayer = new PIXI.Graphics();
     const coastline = getVertexPath(definition, context.coastlineVertexIds);
-    drawSolidPath(frontierLayer, coastline, 0x344a4c, 9, 0.95);
-    drawSolidPath(frontierLayer, coastline, context.coastlineColor, 4, 1);
+    drawSolidPath(frontierLayer, coastline, 0x344a4c, 6, 0.75);
+    drawSolidPath(frontierLayer, coastline, context.coastlineColor, 2.5, 0.82);
     for (const feature of context.frontierFeatures) {
       const path = getVertexPath(definition, feature.vertexIds);
       if (feature.type === "mountainRange") drawMountainSegment(frontierLayer, path, feature.crossingKind);
@@ -341,8 +341,8 @@ export function createWorldMapView({
     for (const feature of definition.geographicFeatures) {
       if (feature.type === "river") {
         const path = getFeaturePath(definition, feature.id);
-        drawSolidPath(featureLayer, path, 0x244b5f, 13, 0.95);
-        drawSolidPath(featureLayer, path, 0x67b7d5, 7, 1);
+        drawSolidPath(featureLayer, path, MAP_COLORS.riverUnderlay, 8, 0.72);
+        drawSolidPath(featureLayer, path, MAP_COLORS.river, 4, 0.92);
       } else if (feature.type === "mountainRange") {
         for (const segment of feature.segments) {
           const border = definition.borders.find((entry) => entry.id === segment.borderId);
@@ -359,12 +359,12 @@ export function createWorldMapView({
       const routeLayer = new PIXI.Graphics();
       for (const leg of routeState.result.legs) {
         const color = MODE_COLORS[leg.mode] ?? PALETTE.accent;
-        if (leg.mode === "sea") drawDashedPath(routeLayer, leg.path, color, 7);
+        if (leg.mode === "sea") drawDashedPath(routeLayer, leg.path, color, 4);
         else {
-          drawSolidPath(routeLayer, leg.path, 0x2d2926, 11, 0.85);
-          drawSolidPath(routeLayer, leg.path, color, 6, 1);
+          drawSolidPath(routeLayer, leg.path, 0x2d2926, 7, 0.7);
+          drawSolidPath(routeLayer, leg.path, color, 4, 0.95);
         }
-        if (leg.path.length >= 2) drawArrow(routeLayer, leg.path[0], leg.path.at(-1), color, 11);
+        if (leg.path.length >= 2) drawArrow(routeLayer, leg.path[0], leg.path.at(-1), color, 8);
       }
       routeLayer.eventMode = "none";
       root.addChild(routeLayer);
@@ -372,9 +372,18 @@ export function createWorldMapView({
 
     for (const region of definition.regions) {
       const labelPoint = pointToScreen(region.display.labelPoint);
+      const selected = region.id === selectedRegionId;
       const label = createWrappedText(
         region.name,
-        { ...TEXT_STYLES.chip, fontSize: 15, align: "center", stroke: 0x2d302c, strokeThickness: 4 },
+        {
+          ...TEXT_STYLES.chip,
+          fontSize: selected ? 15 : 13,
+          fontWeight: selected ? "bold" : "normal",
+          fill: selected ? PALETTE.text : 0xe3ded3,
+          align: "center",
+          stroke: 0x343632,
+          strokeThickness: selected ? 3 : 2,
+        },
         labelPoint.x,
         labelPoint.y,
         148,
@@ -389,12 +398,22 @@ export function createWorldMapView({
       const site = sites[0];
       const isOrigin = routeState.originSiteId === site.id;
       const isDestination = routeState.destinationSiteId === site.id;
+      const isDetailed = site.simulationMode === "detailed";
+      const emphasized = selected || isDetailed || isOrigin || isDestination;
+      const radius = isOrigin || isDestination ? 16 : isDetailed ? 14 : selected ? 13 : 11;
+      const stroke = isOrigin ? 0x93c878 : isDestination || selected ? PALETTE.accent : MAP_COLORS.siteStroke;
       const marker = new PIXI.Graphics();
-      marker.lineStyle(isOrigin || isDestination ? 5 : 3, isOrigin ? 0x93c878 : isDestination ? PALETTE.accent : 0x292724, 1);
-      marker.beginFill(site.simulationMode === "detailed" ? PALETTE.accent : 0xe4e0d6, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y, isOrigin || isDestination ? 11 : 8);
+      marker.beginFill(0x2d2926, emphasized ? 0.22 : 0.14);
+      marker.drawCircle(sitePoint.x, sitePoint.y, radius + 6);
       marker.endFill();
-      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 24);
+      marker.lineStyle(emphasized ? 4 : 3, stroke, 1);
+      marker.beginFill(isDetailed ? PALETTE.accent : MAP_COLORS.siteFill, 1);
+      marker.drawCircle(sitePoint.x, sitePoint.y, radius);
+      marker.endFill();
+      marker.beginFill(MAP_COLORS.siteCore, 1);
+      marker.drawCircle(sitePoint.x, sitePoint.y, isDetailed ? 4 : 3);
+      marker.endFill();
+      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 30);
       marker.eventMode = "static";
       marker.interactive = true;
       marker.buttonMode = true;

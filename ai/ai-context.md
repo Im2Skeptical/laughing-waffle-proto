@@ -133,6 +133,7 @@ The generic engine still retains concepts like editable history windows, truncat
 - Geographic borders and transport links are separate: a river may impede crossing while supporting faster longitudinal travel, and islands connect through explicit sea links.
 - River travel uses one symmetric speed in both directions. Ordered river segments describe source-to-outlet geography only and do not alter movement cost.
 - The authored regions are a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Outer Isles meet the ocean.
+- The map is contextual rather than a primary gameplay surface: sites and current selection carry the strongest visual emphasis, while region fills, borders, and decorative terrain remain subdued.
 - Site-to-site route planning uses deterministic travel-day costs derived from geometry, terrain, forest coverage, crossings, and travel mode. It does not move entities or mutate authoritative state.
 - Map selection, planned route endpoints/mode filters, and map/settlement view mode are runtime UI state and never timeline actions.
 - Summary sites and deposits remain descriptive only. They do not produce, claim, consume, or ship resources yet.
