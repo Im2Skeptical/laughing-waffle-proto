@@ -6,8 +6,8 @@
   "main": "index.html",
   "scripts": {
     "start": "serve",
-    "build": "node scripts/build-check.mjs",
-    "check:build": "node scripts/build-check.mjs",
+    "build": "node scripts/build-pages.mjs",
+    "check:build": "node scripts/build-pages.mjs",
     "test": "node -e \"console.log('No legacy test scripts configured.')\"",
     "verify": "npm run build && npm run test:world && npm run test:regional-practices && npm run test:determinism && npm run test:debug-overrides",
     "test:world": "node src/model/tests/world-state.js",
