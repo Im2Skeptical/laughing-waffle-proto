@@ -1,359 +1,143 @@
-import {
-  worldFacilityDefs,
-  worldMapDefs,
-  worldTerrainDefs,
-} from "../defs/world/world-map-defs.js";
+import { regionalPracticeDefs } from "../defs/gamepieces/regional-practice-defs.js";
+import { worldMapDefs } from "../defs/world/world-map-defs.js";
+
+export const REGION_COLOURS = Object.freeze(["red", "blue", "green", "black"]);
+export const REGION_CONTROLLERS = Object.freeze([
+  "player",
+  "frontier",
+  "external-a",
+  "external-b",
+]);
 
 function cloneSerializable(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value));
+  return JSON.parse(JSON.stringify(value));
 }
 
 function isPoint(point) {
-  return Number.isFinite(point?.x)
-    && point.x >= 0
-    && point.x <= 1
-    && Number.isFinite(point?.y)
-    && point.y >= 0
-    && point.y <= 1;
+  return !!point && Number.isFinite(point.x) && Number.isFinite(point.y);
 }
 
-function edgeKey(a, b) {
-  return [a, b].sort().join("|");
+function pairKey(regionAId, regionBId) {
+  return [String(regionAId), String(regionBId)].sort().join("|");
 }
 
-function pairKey(a, b) {
-  return [a, b].sort().join("|");
-}
-
-function orientation(a, b, c) {
-  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-}
-
-function segmentsCross(a, b, c, d) {
-  const abC = orientation(a, b, c);
-  const abD = orientation(a, b, d);
-  const cdA = orientation(c, d, a);
-  const cdB = orientation(c, d, b);
-  return ((abC > 0 && abD < 0) || (abC < 0 && abD > 0))
-    && ((cdA > 0 && cdB < 0) || (cdA < 0 && cdB > 0));
-}
-
-function getFeatureSegmentVertexIds(definition, segment) {
-  const border = definition?.borders?.find((entry) => entry?.id === segment?.borderId);
-  if (!border) return null;
-  const fromIndex = border.vertexIds.indexOf(segment.fromVertexId);
-  const toIndex = border.vertexIds.indexOf(segment.toVertexId);
-  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return null;
-  const low = Math.min(fromIndex, toIndex);
-  const high = Math.max(fromIndex, toIndex);
-  const path = border.vertexIds.slice(low, high + 1);
-  return fromIndex < toIndex ? path : path.reverse();
-}
-
-export function getGeographicFeatureVertexIds(definition, featureId) {
-  const feature = definition?.geographicFeatures?.find((entry) => entry?.id === featureId);
-  if (!feature) return [];
-  const path = [];
-  for (const segment of feature.segments ?? []) {
-    const segmentPath = getFeatureSegmentVertexIds(definition, segment);
-    if (!segmentPath) return [];
-    path.push(...(path.length ? segmentPath.slice(1) : segmentPath));
+function validateRegionMechanics(region, errors, label = "region") {
+  if (!REGION_COLOURS.includes(region?.colour)) {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid colour`);
   }
-  return path;
-}
-
-export function getWorldVertex(definition, vertexId) {
-  return definition?.geometry?.vertices?.find((entry) => entry?.id === vertexId) ?? null;
-}
-
-export function getRegionPolygon(definition, regionOrId) {
-  const region = typeof regionOrId === "string"
-    ? definition?.regions?.find((entry) => entry?.id === regionOrId)
-    : regionOrId;
-  if (!region) return [];
-  return (region.polygonVertexIds ?? [])
-    .map((vertexId) => getWorldVertex(definition, vertexId))
-    .filter(Boolean)
-    .map(({ x, y }) => [x, y]);
-}
-
-export function getFeaturePath(definition, featureId, fromVertexId = null, toVertexId = null) {
-  const ids = getGeographicFeatureVertexIds(definition, featureId);
-  if (!fromVertexId || !toVertexId) return ids.map((id) => getWorldVertex(definition, id)).filter(Boolean);
-  const fromIndex = ids.indexOf(fromVertexId);
-  const toIndex = ids.indexOf(toVertexId);
-  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return [];
-  const low = Math.min(fromIndex, toIndex);
-  const high = Math.max(fromIndex, toIndex);
-  const path = ids.slice(low, high + 1);
-  if (fromIndex > toIndex) path.reverse();
-  return path.map((id) => getWorldVertex(definition, id)).filter(Boolean);
+  if (!REGION_CONTROLLERS.includes(region?.controller)) {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid controller`);
+  }
+  if (!Number.isInteger(region?.capacity) || region.capacity < 0) {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid capacity`);
+  }
+  if (!Array.isArray(region?.installedPracticeIds)) {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid installed practices`);
+    return;
+  }
+  if (region.installedPracticeIds.length > region.capacity) {
+    errors.push(`${label} ${region?.id ?? "?"} exceeds capacity`);
+  }
+  for (const practiceId of region.installedPracticeIds) {
+    if (!regionalPracticeDefs[practiceId]) {
+      errors.push(`${label} ${region?.id ?? "?"} has invalid practice ${practiceId}`);
+    }
+  }
 }
 
 export function validateWorldDefinition(definition, { requireConnected = false } = {}) {
   const errors = [];
-  if (!definition || typeof definition !== "object") return { ok: false, errors: ["definition is required"] };
+  if (!definition || typeof definition !== "object") {
+    return { ok: false, errors: ["missing world definition"] };
+  }
 
-  const vertices = Array.isArray(definition?.geometry?.vertices) ? definition.geometry.vertices : [];
+  const vertices = Array.isArray(definition?.geometry?.vertices)
+    ? definition.geometry.vertices
+    : [];
   const regions = Array.isArray(definition.regions) ? definition.regions : [];
+  const connections = Array.isArray(definition.connections) ? definition.connections : [];
   const sites = Array.isArray(definition.sites) ? definition.sites : [];
-  const borders = Array.isArray(definition.borders) ? definition.borders : [];
-  const features = Array.isArray(definition.geographicFeatures) ? definition.geographicFeatures : [];
-  const nodes = Array.isArray(definition.transportNodes) ? definition.transportNodes : [];
-  const links = Array.isArray(definition.transportLinks) ? definition.transportLinks : [];
   const vertexById = new Map();
   const regionById = new Map();
-  const siteById = new Map();
-
-  if (!Number.isFinite(definition?.travelRules?.riverKmPerDay) || definition.travelRules.riverKmPerDay <= 0) {
-    errors.push("invalid river travel speed");
-  }
 
   for (const entry of vertices) {
-    if (typeof entry?.id !== "string" || !entry.id) errors.push("vertex has no id");
-    else if (vertexById.has(entry.id)) errors.push(`duplicate vertex ${entry.id}`);
-    else vertexById.set(entry.id, entry);
-    if (!isPoint(entry)) errors.push(`invalid vertex ${entry?.id ?? "?"}`);
+    if (typeof entry?.id !== "string" || !entry.id || !isPoint(entry)) {
+      errors.push("invalid world vertex");
+      continue;
+    }
+    if (vertexById.has(entry.id)) errors.push(`duplicate vertex ${entry.id}`);
+    vertexById.set(entry.id, entry);
   }
 
-  const edgeOwners = new Map();
-  const geometryEdges = new Map();
   for (const entry of regions) {
-    if (typeof entry?.id !== "string" || !entry.id) errors.push("region has no id");
-    else if (regionById.has(entry.id)) errors.push(`duplicate region ${entry.id}`);
-    else regionById.set(entry.id, entry);
-    if (!worldTerrainDefs[entry?.terrainId]) errors.push(`unknown terrain ${entry?.terrainId ?? "?"}`);
-    if (!Number.isFinite(entry?.landCover?.forest) || entry.landCover.forest < 0 || entry.landCover.forest > 1) {
-      errors.push(`invalid forest coverage ${entry?.id ?? "?"}`);
+    if (typeof entry?.id !== "string" || !entry.id) {
+      errors.push("region has no id");
+      continue;
+    }
+    if (regionById.has(entry.id)) errors.push(`duplicate region ${entry.id}`);
+    regionById.set(entry.id, entry);
+    if (!Array.isArray(entry.polygonVertexIds) || entry.polygonVertexIds.length < 3) {
+      errors.push(`region ${entry.id} has invalid polygon`);
+    } else {
+      for (const vertexId of entry.polygonVertexIds) {
+        if (!vertexById.has(vertexId)) errors.push(`region ${entry.id} references unknown vertex ${vertexId}`);
+      }
     }
     if (!isPoint(entry?.display?.labelPoint) || !isPoint(entry?.display?.sitePoint)) {
-      errors.push(`invalid display points ${entry?.id ?? "?"}`);
+      errors.push(`region ${entry.id} has invalid display points`);
     }
-    const polygonIds = Array.isArray(entry?.polygonVertexIds) ? entry.polygonVertexIds : [];
-    if (polygonIds.length < 3) errors.push(`invalid polygon ${entry?.id ?? "?"}`);
-    for (const vertexId of polygonIds) {
-      if (!vertexById.has(vertexId)) errors.push(`region ${entry?.id ?? "?"} references unknown vertex ${vertexId}`);
-    }
-    for (let index = 0; index < polygonIds.length; index += 1) {
-      const a = polygonIds[index];
-      const b = polygonIds[(index + 1) % polygonIds.length];
-      if (a === b) errors.push(`region ${entry?.id ?? "?"} repeats adjacent vertex ${a}`);
-      const key = edgeKey(a, b);
-      if (!edgeOwners.has(key)) edgeOwners.set(key, []);
-      edgeOwners.get(key).push(entry.id);
-      geometryEdges.set(key, { a, b });
-    }
-
-    for (let aIndex = 0; aIndex < polygonIds.length; aIndex += 1) {
-      const aNext = (aIndex + 1) % polygonIds.length;
-      for (let bIndex = aIndex + 1; bIndex < polygonIds.length; bIndex += 1) {
-        const bNext = (bIndex + 1) % polygonIds.length;
-        if (aIndex === bIndex || aNext === bIndex || bNext === aIndex) continue;
-        const a = vertexById.get(polygonIds[aIndex]);
-        const b = vertexById.get(polygonIds[aNext]);
-        const c = vertexById.get(polygonIds[bIndex]);
-        const d = vertexById.get(polygonIds[bNext]);
-        if (a && b && c && d && segmentsCross(a, b, c, d)) errors.push(`self-intersecting polygon ${entry.id}`);
-      }
-    }
+    validateRegionMechanics({ id: entry.id, ...entry.initialState }, errors, "initial region");
   }
 
-  for (const [key, owners] of edgeOwners) {
-    if (owners.length > 2) errors.push(`mesh edge ${key} belongs to more than two regions`);
+  const connectionKeys = new Set();
+  const neighbors = new Map(Array.from(regionById.keys(), (id) => [id, new Set()]));
+  for (const entry of connections) {
+    const a = entry?.regionAId;
+    const b = entry?.regionBId;
+    if (!regionById.has(a) || !regionById.has(b) || a === b) {
+      errors.push(`invalid connection ${a ?? "?"}-${b ?? "?"}`);
+      continue;
+    }
+    const key = pairKey(a, b);
+    if (connectionKeys.has(key)) errors.push(`duplicate connection ${key}`);
+    connectionKeys.add(key);
+    neighbors.get(a)?.add(b);
+    neighbors.get(b)?.add(a);
   }
 
-  const uniqueEdges = Array.from(geometryEdges.values());
-  for (let aIndex = 0; aIndex < uniqueEdges.length; aIndex += 1) {
-    for (let bIndex = aIndex + 1; bIndex < uniqueEdges.length; bIndex += 1) {
-      const first = uniqueEdges[aIndex];
-      const second = uniqueEdges[bIndex];
-      if ([first.a, first.b].some((id) => id === second.a || id === second.b)) continue;
-      const a = vertexById.get(first.a);
-      const b = vertexById.get(first.b);
-      const c = vertexById.get(second.a);
-      const d = vertexById.get(second.b);
-      if (a && b && c && d && segmentsCross(a, b, c, d)) errors.push(`mesh edges ${edgeKey(first.a, first.b)} and ${edgeKey(second.a, second.b)} cross`);
-    }
-  }
-
-  const mapContext = definition.mapContext;
-  const authoredCoastlineVertices = new Set();
-  const validateOuterPath = (vertexIds, label) => {
-    if (!Array.isArray(vertexIds) || vertexIds.length < 2) {
-      errors.push(`${label} has invalid vertices`);
-      return;
-    }
-    for (const vertexId of vertexIds) {
-      if (!vertexById.has(vertexId)) errors.push(`${label} references unknown vertex ${vertexId}`);
-    }
-    for (let index = 0; index < vertexIds.length - 1; index += 1) {
-      const key = edgeKey(vertexIds[index], vertexIds[index + 1]);
-      if ((edgeOwners.get(key) ?? []).length !== 1) errors.push(`${label} does not follow outer mesh edge ${key}`);
-    }
-  };
-
-  if (!mapContext || typeof mapContext !== "object") {
-    errors.push("map context is required");
-  } else {
-    validateOuterPath(mapContext.coastlineVertexIds, "map coastline");
-    for (const vertexId of mapContext.coastlineVertexIds ?? []) authoredCoastlineVertices.add(vertexId);
-
-    const boundaryPoints = Array.isArray(mapContext.oceanBoundaryPoints) ? mapContext.oceanBoundaryPoints : [];
-    if (boundaryPoints.length < 3 || !boundaryPoints.every(isPoint)) errors.push("map ocean boundary has invalid points");
-    const oceanPolygon = [
-      ...(mapContext.coastlineVertexIds ?? []).map((id) => vertexById.get(id)).filter(Boolean),
-      ...boundaryPoints,
-    ];
-    for (let aIndex = 0; aIndex < oceanPolygon.length; aIndex += 1) {
-      const aNext = (aIndex + 1) % oceanPolygon.length;
-      for (let bIndex = aIndex + 1; bIndex < oceanPolygon.length; bIndex += 1) {
-        const bNext = (bIndex + 1) % oceanPolygon.length;
-        if (aIndex === bIndex || aNext === bIndex || bNext === aIndex) continue;
-        if (segmentsCross(oceanPolygon[aIndex], oceanPolygon[aNext], oceanPolygon[bIndex], oceanPolygon[bNext])) {
-          errors.push("map ocean boundary is self-intersecting");
-        }
-      }
-    }
-
-    const frontierIds = new Set();
-    const frontierFeatures = Array.isArray(mapContext.frontierFeatures) ? mapContext.frontierFeatures : [];
-    if (frontierFeatures.length === 0) errors.push("map context has no frontier features");
-    for (const feature of frontierFeatures) {
-      if (typeof feature?.id !== "string" || !feature.id) errors.push("frontier feature has no id");
-      else if (frontierIds.has(feature.id)) errors.push(`duplicate frontier feature ${feature.id}`);
-      else frontierIds.add(feature.id);
-      if (!["mountainRange","forestBelt"].includes(feature?.type)) errors.push(`frontier feature ${feature?.id ?? "?"} has invalid type`);
-      if (feature?.type === "mountainRange" && !["blocked","pass"].includes(feature?.crossingKind)) {
-        errors.push(`frontier feature ${feature?.id ?? "?"} has invalid crossing`);
-      }
-      validateOuterPath(feature?.vertexIds, `frontier feature ${feature?.id ?? "?"}`);
-    }
-  }
-
+  const siteIds = new Set();
   for (const site of sites) {
     if (typeof site?.id !== "string" || !site.id) errors.push("site has no id");
-    else if (siteById.has(site.id)) errors.push(`duplicate site ${site.id}`);
-    else siteById.set(site.id, site);
-    if (!regionById.has(site?.regionId)) errors.push(`site ${site?.id ?? "?"} references unknown region`);
-    if (site?.simulationMode !== "summary" && site?.simulationMode !== "detailed") errors.push(`site ${site?.id ?? "?"} has invalid simulation mode`);
-    for (const facilityId of Array.isArray(site?.facilityDefIds) ? site.facilityDefIds : []) {
-      if (!worldFacilityDefs[facilityId]) errors.push(`site ${site.id} references unknown facility ${facilityId}`);
+    else if (siteIds.has(site.id)) errors.push(`duplicate site ${site.id}`);
+    else siteIds.add(site.id);
+    if (!regionById.has(site?.regionId)) errors.push(`site ${site?.id ?? "?"} has invalid region`);
+    if (site?.simulationMode !== "detailed") {
+      errors.push(`site ${site?.id ?? "?"} has unsupported simulation mode`);
     }
   }
 
-  const borderById = new Map();
-  const coveredSharedEdges = new Set();
-  const regionNeighbors = new Map(Array.from(regionById.keys(), (id) => [id, new Set()]));
-  for (const entry of borders) {
-    if (typeof entry?.id !== "string" || !entry.id) errors.push("border has no id");
-    else if (borderById.has(entry.id)) errors.push(`duplicate border ${entry.id}`);
-    else borderById.set(entry.id, entry);
-    if (!regionById.has(entry?.regionAId) || !regionById.has(entry?.regionBId) || entry.regionAId === entry.regionBId) {
-      errors.push(`border ${entry?.id ?? "?"} has invalid regions`);
-    }
-    if (!["open","ford","bridge","ferry","pass","blocked"].includes(entry?.crossingKind)) errors.push(`border ${entry?.id ?? "?"} has invalid crossing`);
-    if (!Array.isArray(entry?.vertexIds) || entry.vertexIds.length < 2) errors.push(`border ${entry?.id ?? "?"} has invalid vertices`);
-    for (let index = 0; index < (entry?.vertexIds?.length ?? 0) - 1; index += 1) {
-      const key = edgeKey(entry.vertexIds[index], entry.vertexIds[index + 1]);
-      const owners = edgeOwners.get(key) ?? [];
-      const expected = pairKey(entry.regionAId, entry.regionBId);
-      if (owners.length !== 2 || pairKey(owners[0], owners[1]) !== expected) errors.push(`border ${entry.id} does not follow shared mesh edge ${key}`);
-      if (coveredSharedEdges.has(key)) errors.push(`shared mesh edge ${key} is covered by multiple borders`);
-      coveredSharedEdges.add(key);
-    }
-    regionNeighbors.get(entry?.regionAId)?.add(entry?.regionBId);
-    regionNeighbors.get(entry?.regionBId)?.add(entry?.regionAId);
+  const coastlineIds = definition?.mapContext?.coastlineVertexIds;
+  if (!Array.isArray(coastlineIds) || coastlineIds.length < 2 || coastlineIds.some((id) => !vertexById.has(id))) {
+    errors.push("invalid decorative coastline");
   }
-  for (const [key, owners] of edgeOwners) {
-    if (owners.length === 2 && !coveredSharedEdges.has(key)) errors.push(`shared mesh edge ${key} has no border`);
-  }
-
-  const featureById = new Map();
-  for (const feature of features) {
-    if (typeof feature?.id !== "string" || !feature.id) errors.push("feature has no id");
-    else if (featureById.has(feature.id)) errors.push(`duplicate feature ${feature.id}`);
-    else featureById.set(feature.id, feature);
-    if (!["river","mountainRange","forestBelt"].includes(feature?.type)) errors.push(`feature ${feature?.id ?? "?"} has invalid type`);
-    if (!Array.isArray(feature?.segments) || feature.segments.length === 0) errors.push(`feature ${feature?.id ?? "?"} has no segments`);
-    let previousEnd = null;
-    for (const segment of feature?.segments ?? []) {
-      const segmentPath = getFeatureSegmentVertexIds(definition, segment);
-      if (!borderById.has(segment?.borderId) || !segmentPath) errors.push(`feature ${feature.id} has invalid segment ${segment?.borderId ?? "?"}`);
-      if (previousEnd && previousEnd !== segment?.fromVertexId) errors.push(`feature ${feature.id} is discontinuous at ${segment?.borderId ?? "?"}`);
-      previousEnd = segment?.toVertexId ?? null;
-    }
-  }
-  for (const feature of features.filter((entry) => entry?.type === "river")) {
-    const path = getGeographicFeatureVertexIds(definition, feature.id);
-    if (new Set(path).size !== path.length) errors.push(`river ${feature.id} contains a cycle`);
-    if (feature.outflow) {
-      const target = featureById.get(feature.outflow.featureId);
-      if (target?.type !== "river" || !getGeographicFeatureVertexIds(definition, target.id).includes(feature.outflow.vertexId) || path.at(-1) !== feature.outflow.vertexId) {
-        errors.push(`river ${feature.id} has invalid outflow`);
-      }
-    } else if (path.length && !authoredCoastlineVertices.has(path.at(-1))) {
-      errors.push(`river ${feature.id} has no authored coastal outlet`);
-    }
-  }
-  for (const feature of features.filter((entry) => entry?.type === "river")) {
-    const visited = new Set();
-    let current = feature;
-    while (current?.outflow?.featureId) {
-      if (visited.has(current.id)) {
-        errors.push(`river ${feature.id} has a cyclic outflow`);
-        break;
-      }
-      visited.add(current.id);
-      current = featureById.get(current.outflow.featureId);
-    }
-  }
-
-  const nodeById = new Map();
-  for (const node of nodes) {
-    if (typeof node?.id !== "string" || !node.id) errors.push("transport node has no id");
-    else if (nodeById.has(node.id)) errors.push(`duplicate transport node ${node.id}`);
-    else nodeById.set(node.id, node);
-    if (!regionById.has(node?.regionId) || !isPoint(node?.point)) errors.push(`transport node ${node?.id ?? "?"} is invalid`);
-    if (node?.siteId && siteById.get(node.siteId)?.regionId !== node.regionId) errors.push(`transport node ${node.id} has invalid site`);
-  }
-
-  const linkIds = new Set();
-  const transportNeighbors = new Map(Array.from(nodeById.keys(), (id) => [id, new Set()]));
-  for (const link of links) {
-    if (typeof link?.id !== "string" || !link.id) errors.push("transport link has no id");
-    else if (linkIds.has(link.id)) errors.push(`duplicate transport link ${link.id}`);
-    else linkIds.add(link.id);
-    if (!nodeById.has(link?.nodeAId) || !nodeById.has(link?.nodeBId) || link.nodeAId === link.nodeBId) errors.push(`transport link ${link?.id ?? "?"} has invalid nodes`);
-    if (!["land","river","sea"].includes(link?.mode)) errors.push(`transport link ${link?.id ?? "?"} has invalid mode`);
-    if (link?.mode === "land" && !borderById.has(link?.borderId)) errors.push(`land link ${link?.id ?? "?"} has invalid border`);
-    if (link?.mode === "river") {
-      const feature = featureById.get(link?.featureId);
-      if (feature?.type !== "river" || getFeaturePath(definition, link.featureId, link.fromVertexId, link.toVertexId).length < 2) errors.push(`river link ${link?.id ?? "?"} has invalid feature path`);
-    }
-    if (link?.mode !== "river" && (!Array.isArray(link?.path) || link.path.length < 2 || !link.path.every(isPoint))) errors.push(`transport link ${link?.id ?? "?"} has invalid path`);
-    transportNeighbors.get(link?.nodeAId)?.add(link?.nodeBId);
-    if (link?.bidirectional) transportNeighbors.get(link?.nodeBId)?.add(link?.nodeAId);
-    const regionAId = nodeById.get(link?.nodeAId)?.regionId;
-    const regionBId = nodeById.get(link?.nodeBId)?.regionId;
-    regionNeighbors.get(regionAId)?.add(regionBId);
-    if (link?.bidirectional) regionNeighbors.get(regionBId)?.add(regionAId);
+  if (!Array.isArray(definition?.mapContext?.oceanBoundaryPoints)
+      || !definition.mapContext.oceanBoundaryPoints.every(isPoint)) {
+    errors.push("invalid decorative ocean boundary");
   }
 
   if (requireConnected && regionById.size > 0) {
-    const visitGraph = (neighbors, message) => {
-      const ids = Array.from(neighbors.keys());
-      const visited = new Set();
-      const pending = ids.length ? [ids[0]] : [];
-      while (pending.length) {
-        const id = pending.pop();
-        if (visited.has(id)) continue;
-        visited.add(id);
-        for (const neighbor of neighbors.get(id) ?? []) pending.push(neighbor);
+    const start = regionById.keys().next().value;
+    const visited = new Set([start]);
+    const queue = [start];
+    while (queue.length) {
+      const current = queue.shift();
+      for (const next of neighbors.get(current) ?? []) {
+        if (visited.has(next)) continue;
+        visited.add(next);
+        queue.push(next);
       }
-      if (visited.size !== ids.length) errors.push(message);
-    };
-    visitGraph(regionNeighbors, "region graph is disconnected");
-    visitGraph(transportNeighbors, "transport graph is disconnected");
+    }
+    if (visited.size !== regionById.size) errors.push("region graph is disconnected");
   }
 
   return { ok: errors.length === 0, errors };
@@ -364,8 +148,37 @@ export function getWorldDefinition(state) {
   return typeof id === "string" ? worldMapDefs[id] ?? null : null;
 }
 
+export function getWorldVertex(definition, vertexId) {
+  return definition?.geometry?.vertices?.find((entry) => entry?.id === vertexId) ?? null;
+}
+
 export function getRegionDefinition(state, regionId) {
   return getWorldDefinition(state)?.regions?.find((region) => region?.id === regionId) ?? null;
+}
+
+export function getRegionPolygon(definition, regionOrId) {
+  const region = typeof regionOrId === "string"
+    ? definition?.regions?.find((entry) => entry?.id === regionOrId)
+    : regionOrId;
+  if (!region) return [];
+  return region.polygonVertexIds
+    .map((vertexId) => getWorldVertex(definition, vertexId))
+    .filter(Boolean);
+}
+
+export function getRegionState(state, regionId) {
+  return state?.world?.regions?.find((region) => region?.id === regionId) ?? null;
+}
+
+export function getConnectedRegionIds(state, regionId) {
+  const definition = getWorldDefinition(state);
+  if (!definition) return [];
+  const out = [];
+  for (const entry of definition.connections ?? []) {
+    if (entry.regionAId === regionId) out.push(entry.regionBId);
+    else if (entry.regionBId === regionId) out.push(entry.regionAId);
+  }
+  return out;
 }
 
 export function getSiteById(state, siteId) {
@@ -393,21 +206,43 @@ export function getPrimaryDetailedSiteState(state) {
   return getDetailedSiteState(state, getPrimaryDetailedSiteId(state));
 }
 
+export function validateWorldState(state) {
+  const errors = [];
+  const definition = getWorldDefinition(state);
+  if (!definition) return { ok: false, errors: ["unknown world definition"] };
+  const regions = Array.isArray(state?.world?.regions) ? state.world.regions : [];
+  const expectedIds = new Set(definition.regions.map((entry) => entry.id));
+  const seen = new Set();
+  for (const region of regions) {
+    if (!expectedIds.has(region?.id)) errors.push(`unknown region state ${region?.id ?? "?"}`);
+    else if (seen.has(region.id)) errors.push(`duplicate region state ${region.id}`);
+    else seen.add(region.id);
+    validateRegionMechanics(region, errors, "region state");
+  }
+  for (const id of expectedIds) {
+    if (!seen.has(id)) errors.push(`missing region state ${id}`);
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+export function canonicalizeWorldState(state) {
+  const definition = getWorldDefinition(state);
+  if (!definition || !Array.isArray(state?.world?.regions)) return;
+  const order = new Map(definition.regions.map((entry, index) => [entry.id, index]));
+  state.world.regions.sort((a, b) => (order.get(a?.id) ?? Number.MAX_SAFE_INTEGER) - (order.get(b?.id) ?? Number.MAX_SAFE_INTEGER));
+}
+
 export function createWorldState(definitionId, detailedState) {
   const definition = worldMapDefs[definitionId];
   const validation = validateWorldDefinition(definition, { requireConnected: true });
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
+  const regions = definition.regions.map((entry) => ({
+    id: entry.id,
+    ...cloneSerializable(entry.initialState),
+  }));
   const sites = definition.sites.map((site) => ({
     ...cloneSerializable(site),
     ...(site.simulationMode === "detailed" ? { detailedState } : {}),
   }));
-  return { definitionId, sites };
-}
-
-export function getWorldFacilityDef(facilityId) {
-  return worldFacilityDefs[facilityId] ?? null;
-}
-
-export function getWorldTerrainDef(terrainId) {
-  return worldTerrainDefs[terrainId] ?? null;
+  return { definitionId, regions, sites };
 }

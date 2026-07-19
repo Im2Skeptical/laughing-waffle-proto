@@ -29,8 +29,10 @@ import {
   isUpgradeableSettlementStructureDef,
 } from "./settlement-upgrades.js";
 import {
+  canonicalizeWorldState,
   createWorldState,
   getPrimaryDetailedSiteState,
+  validateWorldState,
 } from "./world-state.js";
 
 const BOARD_COLS = 12;
@@ -1146,6 +1148,11 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
+  canonicalizeWorldState(state);
+  const worldValidation = validateWorldState(state);
+  if (!worldValidation.ok) {
+    throw new Error(`Invalid serialized world state: ${worldValidation.errors.join("; ")}`);
+  }
   const local = getLocalState(state);
 
   // Ensure defaults

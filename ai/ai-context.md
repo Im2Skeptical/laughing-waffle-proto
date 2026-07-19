@@ -2,10 +2,11 @@
 
 This document is the current authoritative AI-facing context for the repo.
 
-It has two jobs:
+It has three jobs:
 
 1. Preserve the engine/runtime invariants that must stay true across refactors.
 2. Describe the current settlement prototype as it actually exists now, especially the timegraph, projection, and vassal flow.
+3. Record approved prototype milestones when they intentionally supersede current gameplay assumptions. A milestone plan describes the next experiment; it does not claim that the source already implements it.
 
 When older docs, comments, or legacy system affordances disagree with this file, follow this file.
 
@@ -20,7 +21,7 @@ Deterministic, time-driven strategy/city-builder prototype with replay, forecast
 - Pure JavaScript authoritative model
 
 ### Current board framing
-The player-facing prototype now starts on a 15-region world map. River Crown hosts the existing detailed settlement/vassal simulation; other authored sites are descriptive summary sites only.
+The player-facing prototype now starts on a 15-region minimal graph. River Crown hosts the existing detailed settlement/vassal simulation; the other regions are regional nodes only.
 
 The codebase still carries generic timegraph and timeline-edit affordances, but the active simulation remains the River Crown settlement/vassal flow.
 
@@ -28,6 +29,40 @@ The prototype is intentionally more locked down than the generic engine:
 - the player does not freely edit the timeline
 - the player does not freely branch around prior vassal choices
 - projection is primarily used for browsing and for the settlement timegraph UX
+
+## Approved Milestone 2: Minimal Nodal Geography
+
+### Purpose
+Test whether a minimal nodal geography can make regions non-interchangeable before adding diplomacy, logistics, terrain rules, or detailed content.
+
+### Minimal grammar
+- Each displayed region is one graph node.
+- A region has a colour (`red`, `blue`, `green`, or `black`), capacity, ordered installed practices (duplicates allowed), and a controller (`player`, `frontier`, `external-a`, or `external-b`).
+- Connections are only connected or not connected. They are undirected, unweighted, and mechanically identical.
+
+### Practice evaluators
+- **Cultivate:** matching-colour adjacent player regions.
+- **Store:** additional Store copies in the same region.
+- **Study:** distinct non-Study practices in the same region.
+- **Mobilize:** adjacent non-player regions.
+- **Administer:** connected player-controlled Administer component.
+- **Exchange:** host-region connection count.
+
+Evaluators must score a proposed placement without mutating the supplied game state. Initial effective scores use base `1` with bonuses capped at a total of `4`; preserve uncapped diagnostic values where practical.
+
+### Development stages
+1. Minimal grammar and evaluator implementation.
+2. Development-only Map Lab.
+3. First authored topology and balancing experiment.
+
+### Non-goals
+Diplomacy, conquest, logistics, resource packets, edge weights or types, directionality, terrain modifiers, deposits, procedural generation, and final content balance.
+
+### Success criteria
+The six practices prefer meaningfully different spatial or tableau arrangements. Capacity, topology, colour, and political boundaries create competing placement choices without any region becoming universally optimal.
+
+### Relationship to the current prototype
+The current authored world includes terrain, deposits, crossing kinds, transport modes, and travel costs, while current practices are settlement-local. Those systems are not part of this milestone's mechanical grammar. Stage 1 must decide how the minimal graph relates to the existing world representation without treating the richer geography as Milestone 2 rules.
 
 ## 2. Non-Negotiable Engine Invariants
 
@@ -125,18 +160,18 @@ The generic engine still retains concepts like editable history windows, truncat
 ## 6. Current Settlement Prototype Rules
 
 ### Regional world foundation
-- Immutable shared-vertex map geometry, terrain, land cover, deposits, border features, transport definitions, and labels live in `src/defs/world/*`.
-- `GameState.world` stores the world definition ID and mutable site instances.
+- Immutable shared-vertex polygon/coastline artwork, labels, initial region values, and undirected connections live in `src/defs/world/*`.
+- `GameState.world` stores the world definition ID, ordered mutable region instances, and the detailed River Crown site instance.
 - `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
-- Region polygons reference a canonical vertex mesh. Every shared segment has one authored border, and rivers, mountain ranges, and forest belts reference those borders rather than independent display paths.
-- Geographic borders and transport links are separate: a river may impede crossing while supporting faster longitudinal travel, and islands connect through explicit sea links.
-- River travel uses one symmetric speed in both directions. Ordered river segments describe source-to-outlet geography only and do not alter movement cost.
+- Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
+- Connections are immutable, undirected, unweighted, and mechanically identical. Outer Isles connects explicitly to Salt Coast.
+- Regional practices are separate from settlement-local practices. Their placement evaluators are pure, use base score 1 capped at 4, and retain uncapped diagnostics.
+- Installing a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority.
 - The authored regions are a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Outer Isles meet the ocean.
-- The map is contextual rather than a primary gameplay surface: sites and current selection carry the strongest visual emphasis, while region fills, borders, and decorative terrain remain subdued.
-- Site-to-site route planning uses deterministic travel-day costs derived from geometry, terrain, forest coverage, crossings, and travel mode. It does not move entities or mutate authoritative state.
-- Map selection, planned route endpoints/mode filters, and map/settlement view mode are runtime UI state and never timeline actions.
-- Summary sites and deposits remain descriptive only. They do not produce, claim, consume, or ship resources yet.
+- Region colour, controller, capacity, installed-practice order, connection count, and hypothetical practice scores are visible on the map.
+- Terrain, deposits, route types/weights, directionality, crossings, logistics, resource flow, and summary sites are absent from the active world schema and map UI.
+- Map selection and map/settlement view mode are runtime UI state and never timeline actions.
 
 ### Vassal progression
 - Vassal choice is permanent.

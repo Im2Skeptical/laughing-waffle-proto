@@ -1,37 +1,47 @@
 import {
-  getFeaturePath,
+  REGIONAL_PRACTICE_IDS,
+  regionalPracticeDefs,
+} from "../defs/gamepieces/regional-practice-defs.js";
+import {
+  evaluateRegionalPracticePlacement,
+  validateRegionalPracticeInstallation,
+} from "../model/regional-practices.js";
+import {
+  getConnectedRegionIds,
   getRegionDefinition,
   getRegionPolygon,
+  getRegionState,
   getSitesInRegion,
   getWorldDefinition,
-  getWorldFacilityDef,
-  getWorldTerrainDef,
   getWorldVertex,
 } from "../model/world-state.js";
-import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
+import {
+  clearChildren,
+  createText,
+  createWrappedText,
+  roundedRect,
+} from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 104, width: 1640, height: 704 });
 const DETAIL_RECT = Object.freeze({ x: 1734, y: 104, width: 626, height: 704 });
-const MODE_COLORS = Object.freeze({ land: 0xd7b450, river: 0xb7d3d8, sea: 0xe1e3dc });
-const MAP_COLORS = Object.freeze({
-  neutralLand: 0x85867d,
-  regionBorder: 0x4f554f,
-  riverUnderlay: 0x3d555b,
-  river: 0x70a5b1,
-  siteFill: 0xeee7d9,
-  siteStroke: 0x302d2a,
-  siteCore: 0x554f48,
+const REGION_COLOURS = Object.freeze({
+  red: 0xb9574d,
+  blue: 0x527da3,
+  green: 0x638c62,
+  black: 0x4d4d52,
 });
-
-function mixColor(first, second, secondWeight) {
-  const weight = Math.max(0, Math.min(1, secondWeight));
-  const channel = (shift) => Math.round(
-    ((first >> shift) & 0xff) * (1 - weight)
-    + ((second >> shift) & 0xff) * weight
-  );
-  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
-}
+const CONTROLLER_COLOURS = Object.freeze({
+  player: 0xe8c96c,
+  frontier: 0xd5d0c6,
+  "external-a": 0xc17a57,
+  "external-b": 0x8b72b1,
+});
+const PRACTICE_BUTTON_WIDTH = 276;
+const PRACTICE_BUTTON_HEIGHT = 96;
+const PRACTICE_BUTTON_GAP_X = 14;
+const PRACTICE_BUTTON_GAP_Y = 12;
+const PRACTICE_BUTTON_START_Y = DETAIL_RECT.y + 267;
 
 function pointToScreen(point) {
   const x = Array.isArray(point) ? point[0] : point?.x;
@@ -42,23 +52,8 @@ function pointToScreen(point) {
   };
 }
 
-function drawDashedPath(gfx, points, color, width = 4) {
-  const screenPoints = points.map(pointToScreen);
-  for (let index = 0; index < screenPoints.length - 1; index += 1) {
-    const a = screenPoints[index];
-    const b = screenPoints[index + 1];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const length = Math.max(1, Math.hypot(dx, dy));
-    const steps = Math.max(1, Math.floor(length / 18));
-    for (let step = 0; step < steps; step += 2) {
-      const from = step / steps;
-      const to = Math.min(1, (step + 1) / steps);
-      gfx.lineStyle(width, color, 0.95);
-      gfx.moveTo(a.x + dx * from, a.y + dy * from);
-      gfx.lineTo(a.x + dx * to, a.y + dy * to);
-    }
-  }
+function getVertexPath(definition, vertexIds) {
+  return (vertexIds ?? []).map((id) => getWorldVertex(definition, id)).filter(Boolean);
 }
 
 function drawSolidPath(gfx, points, color, width, alpha = 1) {
@@ -72,118 +67,35 @@ function drawSolidPath(gfx, points, color, width, alpha = 1) {
   }
 }
 
-function drawArrow(gfx, fromPoint, toPoint, color, size = 10) {
-  const from = pointToScreen(fromPoint);
-  const to = pointToScreen(toPoint);
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.max(1, Math.hypot(dx, dy));
-  const ux = dx / length;
-  const uy = dy / length;
-  const x = from.x + dx * 0.62;
-  const y = from.y + dy * 0.62;
-  gfx.beginFill(color, 0.95);
-  gfx.drawPolygon([
-    x + ux * size, y + uy * size,
-    x - ux * size * 0.7 - uy * size * 0.65, y - uy * size * 0.7 + ux * size * 0.65,
-    x - ux * size * 0.7 + uy * size * 0.65, y - uy * size * 0.7 - ux * size * 0.65,
-  ]);
-  gfx.endFill();
+function titleCase(value) {
+  return String(value ?? "")
+    .split(/[-\s]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
-function getBorderPath(definition, segment) {
-  const border = definition.borders.find((entry) => entry.id === segment.borderId);
-  if (!border) return [];
-  const fromIndex = border.vertexIds.indexOf(segment.fromVertexId);
-  const toIndex = border.vertexIds.indexOf(segment.toVertexId);
-  if (fromIndex < 0 || toIndex < 0) return [];
-  const low = Math.min(fromIndex, toIndex);
-  const high = Math.max(fromIndex, toIndex);
-  const ids = border.vertexIds.slice(low, high + 1);
-  if (fromIndex > toIndex) ids.reverse();
-  return ids.map((id) => getWorldVertex(definition, id)).filter(Boolean);
-}
-
-function getVertexPath(definition, vertexIds) {
-  return (vertexIds ?? []).map((id) => getWorldVertex(definition, id)).filter(Boolean);
-}
-
-function pointAndTangentAtDistance(screenPoints, targetDistance) {
-  let remaining = targetDistance;
-  for (let index = 0; index < screenPoints.length - 1; index += 1) {
-    const a = screenPoints[index];
-    const b = screenPoints[index + 1];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const length = Math.max(1, Math.hypot(dx, dy));
-    if (remaining <= length) {
-      const t = remaining / length;
-      return { x: a.x + dx * t, y: a.y + dy * t, ux: dx / length, uy: dy / length };
-    }
-    remaining -= length;
-  }
-  return null;
-}
-
-function drawMountainSegment(gfx, points, crossingKind) {
-  const screenPoints = points.map(pointToScreen);
-  let length = 0;
-  for (let index = 0; index < screenPoints.length - 1; index += 1) {
-    length += Math.hypot(screenPoints[index + 1].x - screenPoints[index].x, screenPoints[index + 1].y - screenPoints[index].y);
-  }
-  const count = Math.max(1, Math.floor(length / 40));
-  for (let step = 0; step < count; step += 1) {
-    const progress = (step + 0.5) / count;
-    if (crossingKind === "pass" && Math.abs(progress - 0.5) < 0.18) continue;
-    const point = pointAndTangentAtDistance(screenPoints, length * progress);
-    if (!point) continue;
-    const nx = -point.uy;
-    const ny = point.ux;
-    gfx.lineStyle(2, 0x4c4947, 0.72);
-    gfx.moveTo(point.x - point.ux * 8, point.y - point.uy * 8);
-    gfx.lineTo(point.x + nx * 8, point.y + ny * 8);
-    gfx.lineTo(point.x + point.ux * 8, point.y + point.uy * 8);
-  }
-
-  const middle = pointAndTangentAtDistance(screenPoints, length / 2);
-  if (!middle) return;
-  const nx = -middle.uy;
-  const ny = middle.ux;
-  if (crossingKind === "pass") {
-    gfx.lineStyle(6, 0x383432, 0.8);
-    gfx.moveTo(middle.x - nx * 14, middle.y - ny * 14);
-    gfx.lineTo(middle.x + nx * 14, middle.y + ny * 14);
-    gfx.lineStyle(3, PALETTE.accent, 0.9);
-    gfx.moveTo(middle.x - nx * 14, middle.y - ny * 14);
-    gfx.lineTo(middle.x + nx * 14, middle.y + ny * 14);
-  } else if (crossingKind === "blocked") {
-    gfx.beginFill(0x4c4947, 0.78);
-    gfx.drawCircle(middle.x, middle.y, 9);
-    gfx.endFill();
-    gfx.lineStyle(2, 0xe8ded0, 0.9);
-    gfx.moveTo(middle.x - 4, middle.y - 4);
-    gfx.lineTo(middle.x + 4, middle.y + 4);
-    gfx.moveTo(middle.x + 4, middle.y - 4);
-    gfx.lineTo(middle.x - 4, middle.y + 4);
+function installReasonText(reason) {
+  switch (reason) {
+    case "invalidPracticeId": return "Unknown practice";
+    case "invalidRegionId": return "Unknown region";
+    case "notPlayerControlled": return "Player-controlled regions only";
+    case "capacityFull": return "No capacity available";
+    default: return "Unavailable";
   }
 }
 
-function drawForestBeltSegment(gfx, points) {
-  gfx.lineStyle(0, 0x000000, 0);
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const a = pointToScreen(points[index]);
-    const b = pointToScreen(points[index + 1]);
-    const length = Math.hypot(b.x - a.x, b.y - a.y);
-    const count = Math.max(1, Math.floor(length / 32));
-    for (let step = 0; step < count; step += 1) {
-      const t = (step + 0.5) / count;
-      const x = a.x + (b.x - a.x) * t;
-      const y = a.y + (b.y - a.y) * t;
-      gfx.beginFill(0x28543a, 0.62);
-      gfx.drawCircle(x, y, 4);
-      gfx.endFill();
-    }
-  }
+function practiceButtonRect(practiceId) {
+  const index = REGIONAL_PRACTICE_IDS.indexOf(practiceId);
+  if (index < 0) return null;
+  const column = index % 2;
+  const row = Math.floor(index / 2);
+  return {
+    x: DETAIL_RECT.x + 24 + column * (PRACTICE_BUTTON_WIDTH + PRACTICE_BUTTON_GAP_X),
+    y: PRACTICE_BUTTON_START_Y + row * (PRACTICE_BUTTON_HEIGHT + PRACTICE_BUTTON_GAP_Y),
+    width: PRACTICE_BUTTON_WIDTH,
+    height: PRACTICE_BUTTON_HEIGHT,
+  };
 }
 
 function addButton(parent, rect, label, onPress, { selected = false, disabled = false } = {}) {
@@ -191,33 +103,114 @@ function addButton(parent, rect, label, onPress, { selected = false, disabled = 
   const bg = new PIXI.Graphics();
   const fill = selected ? PALETTE.accent : PALETTE.panel;
   roundedRect(bg, 0, 0, rect.width, rect.height, 6, fill, selected ? 0x3f3935 : PALETTE.stroke, 2);
-  button.addChild(bg, createText(label, { ...TEXT_STYLES.chip, fill: selected ? 0x2d2926 : PALETTE.text }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  button.addChild(
+    bg,
+    createText(
+      label,
+      { ...TEXT_STYLES.chip, fill: selected ? 0x2d2926 : PALETTE.text },
+      rect.width / 2,
+      rect.height / 2,
+      0.5,
+      0.5
+    )
+  );
   button.x = rect.x;
   button.y = rect.y;
   button.alpha = disabled ? 0.45 : 1;
-  button.eventMode = disabled ? "none" : "static";
-  button.interactive = !disabled;
+  button.eventMode = "static";
+  button.interactive = true;
   button.buttonMode = !disabled;
   button.cursor = disabled ? "default" : "pointer";
-  if (!disabled) button.on("pointertap", () => onPress?.());
+  button.on("pointertap", () => { if (!disabled) onPress?.(); });
   parent.addChild(button);
   return button;
 }
 
-function titleCase(value) {
-  return String(value ?? "").replace(/(^|\s)([a-z])/g, (_match, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
+  const disabled = !validation.ok;
+  const button = new PIXI.Container();
+  const bg = new PIXI.Graphics();
+  roundedRect(
+    bg,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    6,
+    disabled ? PALETTE.panelSoft : PALETTE.panel,
+    disabled ? 0x696660 : PALETTE.stroke,
+    2
+  );
+  button.addChild(bg);
+  button.addChild(createText(def.name, { ...TEXT_STYLES.title, fontSize: 18 }, 12, 12));
+  button.addChild(createText(
+    evaluation.ok ? `${evaluation.score}/4` : "—",
+    { ...TEXT_STYLES.header, fontSize: 21, fill: disabled ? PALETTE.textMuted : PALETTE.accent },
+    rect.width - 12,
+    10,
+    1
+  ));
+  const detailText = evaluation.ok
+    ? evaluation.breakdown.filter((entry) => entry.kind !== "base").map((entry) => entry.text).join(" · ")
+    : "Unable to evaluate";
+  button.addChild(createWrappedText(
+    detailText,
+    { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
+    12,
+    39,
+    rect.width - 24
+  ));
+  if (disabled) {
+    button.addChild(createText(
+      installReasonText(validation.reason),
+      { ...TEXT_STYLES.chip, fontSize: 12, fill: 0xd8b9a8 },
+      12,
+      rect.height - 18
+    ));
+  }
+  button.x = rect.x;
+  button.y = rect.y;
+  button.alpha = disabled ? 0.62 : 1;
+  // Keep fixed map controls in the interaction tree across region selection.
+  // Disabled controls retain a no-op hit target so Pixi does not cache their
+  // previous event mode when the detail panel is rebuilt.
+  button.eventMode = "static";
+  button.interactive = true;
+  button.buttonMode = !disabled;
+  button.cursor = disabled ? "default" : "pointer";
+  button.on("pointertap", () => { if (!disabled) onPress?.(); });
+  parent.addChild(button);
 }
 
-function siteName(state, siteId) {
-  return state?.world?.sites?.find((site) => site?.id === siteId)?.name ?? "Not selected";
+function worldMechanicsSignature(state) {
+  return (state?.world?.regions ?? [])
+    .map((region) => [
+      region.id,
+      region.colour,
+      region.capacity,
+      region.controller,
+      region.installedPracticeIds.join(","),
+    ].join(":"))
+    .join("|");
 }
 
-function borderSummary(definition, border) {
-  const features = definition.geographicFeatures
-    .filter((feature) => feature.segments.some((segment) => segment.borderId === border.id))
-    .map((feature) => feature.name);
-  const details = [...features, titleCase(border.crossingKind)].filter(Boolean);
-  return details.join(" / ");
+function selectedRegionSnapshot(state, selectedRegionId) {
+  const region = getRegionState(state, selectedRegionId);
+  if (!region) return null;
+  return {
+    id: region.id,
+    colour: region.colour,
+    controller: region.controller,
+    capacity: region.capacity,
+    usedCapacity: region.installedPracticeIds.length,
+    installedPracticeIds: [...region.installedPracticeIds],
+    connectedRegionIds: getConnectedRegionIds(state, region.id),
+    practiceOptions: REGIONAL_PRACTICE_IDS.map((practiceId) => ({
+      practiceId,
+      evaluation: evaluateRegionalPracticePlacement(state, { regionId: region.id, practiceId }),
+      installation: validateRegionalPracticeInstallation(state, { regionId: region.id, practiceId }),
+    })),
+  };
 }
 
 export function createWorldMapView({
@@ -225,12 +218,7 @@ export function createWorldMapView({
   getState,
   getSelectedRegionId,
   setSelectedRegionId,
-  getRoutePlannerState,
-  setMapInteractionMode,
-  selectRouteSite,
-  toggleRouteMode,
-  clearRoute,
-  swapRoute,
+  onInstallPractice,
   onOpenDetailedSite,
 }) {
   const root = new PIXI.Container();
@@ -238,16 +226,15 @@ export function createWorldMapView({
   layer.addChild(root);
   let lastKey = "";
   let lastPointerRegionId = null;
+  let lastInstallResult = null;
 
   function render(force = false) {
     if (!root.visible) return;
     const state = getState?.();
     const definition = getWorldDefinition(state);
     if (!definition) return;
-    const routeState = getRoutePlannerState?.() ?? {};
     const selectedRegionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId ?? null;
-    const routeLegKey = routeState.result?.ok ? routeState.result.legs.map((leg) => leg.linkId).join(",") : routeState.result?.reason ?? "";
-    const key = [definition.id, selectedRegionId, routeState.mode, routeState.originSiteId, routeState.destinationSiteId, JSON.stringify(routeState.enabledModes), routeLegKey].join("|");
+    const key = [definition.id, selectedRegionId, worldMechanicsSignature(state), JSON.stringify(lastInstallResult)].join("|");
     if (!force && key === lastKey) return;
     lastKey = key;
     clearChildren(root);
@@ -264,9 +251,7 @@ export function createWorldMapView({
     topbar.endFill();
     root.addChild(topbar);
     root.addChild(createText(definition.name, TEXT_STYLES.header, 74, 35, 0, 0.5));
-    addButton(root, { x: 1734, y: 14, width: 152, height: 44 }, "Browse", () => setMapInteractionMode?.("browse"), { selected: routeState.mode !== "route" });
-    addButton(root, { x: 1898, y: 14, width: 178, height: 44 }, "Plan route", () => setMapInteractionMode?.("route"), { selected: routeState.mode === "route" });
-    root.addChild(createText("REGIONAL VIEW", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
+    root.addChild(createText("MINIMAL REGIONAL GRAPH", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
 
     const context = definition.mapContext;
     const contextLayer = new PIXI.Graphics();
@@ -283,16 +268,21 @@ export function createWorldMapView({
     contextLayer.endFill();
     root.addChild(contextLayer);
 
-    for (const region of definition.regions) {
-      const polygon = getRegionPolygon(definition, region);
-      const terrain = getWorldTerrainDef(region.terrainId);
+    for (const regionDef of definition.regions) {
+      const region = getRegionState(state, regionDef.id);
+      const polygon = getRegionPolygon(definition, regionDef);
       const screenPolygon = polygon.flatMap((point) => {
         const screen = pointToScreen(point);
         return [screen.x, screen.y];
       });
+      const selected = regionDef.id === selectedRegionId;
       const shape = new PIXI.Graphics();
-      shape.lineStyle(2, MAP_COLORS.regionBorder, 0.58);
-      shape.beginFill(mixColor(terrain?.color ?? 0x777777, MAP_COLORS.neutralLand, 0.42), 0.88);
+      shape.lineStyle(
+        selected ? 5 : region?.controller === "player" ? 3 : 2,
+        selected ? PALETTE.accent : CONTROLLER_COLOURS[region?.controller] ?? 0x676767,
+        selected ? 1 : 0.9
+      );
+      shape.beginFill(REGION_COLOURS[region?.colour] ?? 0x777777, selected ? 0.94 : 0.82);
       shape.drawPolygon(screenPolygon);
       shape.endFill();
       const regionHit = new PIXI.Container();
@@ -303,124 +293,78 @@ export function createWorldMapView({
       regionHit.cursor = "pointer";
       regionHit.addChild(shape);
       regionHit.on("pointertap", () => {
-        lastPointerRegionId = region.id;
-        setSelectedRegionId?.(region.id);
+        lastPointerRegionId = regionDef.id;
+        lastInstallResult = null;
+        setSelectedRegionId?.(regionDef.id);
         lastKey = "";
       });
       root.addChild(regionHit);
     }
 
-    const mapSelectedRegion = definition.regions.find((region) => region.id === selectedRegionId);
-    if (mapSelectedRegion) {
-      const selectedPolygon = getRegionPolygon(definition, mapSelectedRegion).flatMap((point) => {
-        const screen = pointToScreen(point);
-        return [screen.x, screen.y];
-      });
-      const selectionLayer = new PIXI.Graphics();
-      selectionLayer.lineStyle(4, PALETTE.accent, 0.86);
-      selectionLayer.beginFill(PALETTE.accent, 0.1);
-      selectionLayer.drawPolygon(selectedPolygon);
-      selectionLayer.endFill();
-      selectionLayer.eventMode = "none";
-      root.addChild(selectionLayer);
+    const connectionLayer = new PIXI.Graphics();
+    for (const connection of definition.connections) {
+      const a = definition.regions.find((entry) => entry.id === connection.regionAId)?.display?.labelPoint;
+      const b = definition.regions.find((entry) => entry.id === connection.regionBId)?.display?.labelPoint;
+      if (!a || !b) continue;
+      const from = pointToScreen(a);
+      const to = pointToScreen(b);
+      connectionLayer.lineStyle(2, 0xf0eadc, 0.42);
+      connectionLayer.moveTo(from.x, from.y);
+      connectionLayer.lineTo(to.x, to.y);
     }
+    connectionLayer.eventMode = "none";
+    root.addChild(connectionLayer);
 
-    const frontierLayer = new PIXI.Graphics();
+    const coastlineLayer = new PIXI.Graphics();
     const coastline = getVertexPath(definition, context.coastlineVertexIds);
-    drawSolidPath(frontierLayer, coastline, 0x344a4c, 6, 0.75);
-    drawSolidPath(frontierLayer, coastline, context.coastlineColor, 2.5, 0.82);
-    for (const feature of context.frontierFeatures) {
-      const path = getVertexPath(definition, feature.vertexIds);
-      if (feature.type === "mountainRange") drawMountainSegment(frontierLayer, path, feature.crossingKind);
-      else if (feature.type === "forestBelt") drawForestBeltSegment(frontierLayer, path);
-    }
-    frontierLayer.eventMode = "none";
-    root.addChild(frontierLayer);
+    drawSolidPath(coastlineLayer, coastline, 0x344a4c, 6, 0.75);
+    drawSolidPath(coastlineLayer, coastline, context.coastlineColor, 2.5, 0.82);
+    coastlineLayer.eventMode = "none";
+    root.addChild(coastlineLayer);
 
-    const featureLayer = new PIXI.Graphics();
-    for (const feature of definition.geographicFeatures) {
-      if (feature.type === "river") {
-        const path = getFeaturePath(definition, feature.id);
-        drawSolidPath(featureLayer, path, MAP_COLORS.riverUnderlay, 8, 0.72);
-        drawSolidPath(featureLayer, path, MAP_COLORS.river, 4, 0.92);
-      } else if (feature.type === "mountainRange") {
-        for (const segment of feature.segments) {
-          const border = definition.borders.find((entry) => entry.id === segment.borderId);
-          drawMountainSegment(featureLayer, getBorderPath(definition, segment), border?.crossingKind);
-        }
-      } else if (feature.type === "forestBelt") {
-        for (const segment of feature.segments) drawForestBeltSegment(featureLayer, getBorderPath(definition, segment));
-      }
-    }
-    featureLayer.eventMode = "none";
-    root.addChild(featureLayer);
-
-    if (routeState.result?.ok && routeState.result.legs.length) {
-      const routeLayer = new PIXI.Graphics();
-      for (const leg of routeState.result.legs) {
-        const color = MODE_COLORS[leg.mode] ?? PALETTE.accent;
-        if (leg.mode === "sea") drawDashedPath(routeLayer, leg.path, color, 4);
-        else {
-          drawSolidPath(routeLayer, leg.path, 0x2d2926, 7, 0.7);
-          drawSolidPath(routeLayer, leg.path, color, 4, 0.95);
-        }
-        if (leg.path.length >= 2) drawArrow(routeLayer, leg.path[0], leg.path.at(-1), color, 8);
-      }
-      routeLayer.eventMode = "none";
-      root.addChild(routeLayer);
-    }
-
-    for (const region of definition.regions) {
-      const labelPoint = pointToScreen(region.display.labelPoint);
-      const selected = region.id === selectedRegionId;
+    for (const regionDef of definition.regions) {
+      const region = getRegionState(state, regionDef.id);
+      const labelPoint = pointToScreen(regionDef.display.labelPoint);
+      const selected = regionDef.id === selectedRegionId;
       const label = createWrappedText(
-        region.name,
+        `${regionDef.name}\n${region?.installedPracticeIds.length ?? 0}/${region?.capacity ?? 0}`,
         {
           ...TEXT_STYLES.chip,
           fontSize: selected ? 15 : 13,
           fontWeight: selected ? "bold" : "normal",
-          fill: selected ? PALETTE.text : 0xe3ded3,
+          fill: 0xf4eee3,
           align: "center",
           stroke: 0x343632,
-          strokeThickness: selected ? 3 : 2,
+          strokeThickness: selected ? 4 : 3,
         },
         labelPoint.x,
         labelPoint.y,
-        148,
+        150,
         0.5,
         0.5
       );
       label.eventMode = "none";
       root.addChild(label);
-      const sites = getSitesInRegion(state, region.id);
-      if (!sites.length) continue;
-      const sitePoint = pointToScreen(region.display.sitePoint);
-      const site = sites[0];
-      const isOrigin = routeState.originSiteId === site.id;
-      const isDestination = routeState.destinationSiteId === site.id;
-      const isDetailed = site.simulationMode === "detailed";
-      const emphasized = selected || isDetailed || isOrigin || isDestination;
-      const radius = isOrigin || isDestination ? 16 : isDetailed ? 14 : selected ? 13 : 11;
-      const stroke = isOrigin ? 0x93c878 : isDestination || selected ? PALETTE.accent : MAP_COLORS.siteStroke;
+
+      const detailedSite = getSitesInRegion(state, regionDef.id)
+        .find((site) => site.simulationMode === "detailed");
+      if (!detailedSite) continue;
+      const sitePoint = pointToScreen(regionDef.display.sitePoint);
       const marker = new PIXI.Graphics();
-      marker.beginFill(0x2d2926, emphasized ? 0.22 : 0.14);
-      marker.drawCircle(sitePoint.x, sitePoint.y, radius + 6);
+      marker.lineStyle(4, PALETTE.accent, 1);
+      marker.beginFill(0xeee7d9, 1);
+      marker.drawCircle(sitePoint.x, sitePoint.y, 13);
       marker.endFill();
-      marker.lineStyle(emphasized ? 4 : 3, stroke, 1);
-      marker.beginFill(isDetailed ? PALETTE.accent : MAP_COLORS.siteFill, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y, radius);
+      marker.beginFill(0x554f48, 1);
+      marker.drawCircle(sitePoint.x, sitePoint.y, 4);
       marker.endFill();
-      marker.beginFill(MAP_COLORS.siteCore, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y, isDetailed ? 4 : 3);
-      marker.endFill();
-      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 30);
+      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 28);
       marker.eventMode = "static";
       marker.interactive = true;
       marker.buttonMode = true;
       marker.cursor = "pointer";
       marker.on("pointertap", () => {
-        setSelectedRegionId?.(region.id);
-        if (routeState.mode === "route") selectRouteSite?.(site.id);
+        setSelectedRegionId?.(regionDef.id);
         lastKey = "";
       });
       root.addChild(marker);
@@ -430,83 +374,61 @@ export function createWorldMapView({
     roundedRect(detail, DETAIL_RECT.x, DETAIL_RECT.y, DETAIL_RECT.width, DETAIL_RECT.height, 6, PALETTE.panelSoft, PALETTE.stroke, 3);
     root.addChild(detail);
 
-    if (routeState.mode === "route") {
-      let y = DETAIL_RECT.y + 38;
-      root.addChild(createText("Route Planner", TEXT_STYLES.header, DETAIL_RECT.x + 28, y));
-      y += 57;
-      root.addChild(createText("ORIGIN", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-      y += 25;
-      root.addChild(createText(siteName(state, routeState.originSiteId), { ...TEXT_STYLES.title, fontSize: 20 }, DETAIL_RECT.x + 30, y));
-      y += 43;
-      root.addChild(createText("DESTINATION", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-      y += 25;
-      root.addChild(createText(siteName(state, routeState.destinationSiteId), { ...TEXT_STYLES.title, fontSize: 20 }, DETAIL_RECT.x + 30, y));
-      y += 48;
-      const modeWidth = 172;
-      for (const [index, mode] of ["land","river","sea"].entries()) {
-        addButton(root, { x: DETAIL_RECT.x + 30 + index * (modeWidth + 10), y, width: modeWidth, height: 40 }, titleCase(mode), () => toggleRouteMode?.(mode), { selected: routeState.enabledModes?.[mode] !== false });
-      }
-      y += 66;
-      if (routeState.result?.ok && routeState.destinationSiteId) {
-        root.addChild(createText(`${routeState.result.totalDays} travel days`, { ...TEXT_STYLES.header, fontSize: 28 }, DETAIL_RECT.x + 30, y));
-        root.addChild(createText(`${routeState.result.totalDistanceKm} km`, { ...TEXT_STYLES.muted, fontSize: 17 }, DETAIL_RECT.x + DETAIL_RECT.width - 30, y + 4, 1));
-        y += 48;
-        root.addChild(createText("LEGS", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-        y += 25;
-        for (const leg of routeState.result.legs.slice(0, 7)) {
-          const destinationNode = definition.transportNodes.find((node) => node.id === leg.toNodeId);
-          const destinationRegion = definition.regions.find((region) => region.id === destinationNode?.regionId);
-          root.addChild(createText(`${titleCase(leg.mode)} to ${destinationRegion?.name ?? "?"} - ${leg.days}d`, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 30, y));
-          y += 24;
-        }
-      } else if (routeState.destinationSiteId) {
-        root.addChild(createText("No route with enabled modes", { ...TEXT_STYLES.title, fontSize: 20 }, DETAIL_RECT.x + 30, y));
-      }
-      addButton(root, { x: DETAIL_RECT.x + 30, y: DETAIL_RECT.y + DETAIL_RECT.height - 62, width: 250, height: 40 }, "Clear", () => clearRoute?.(), { disabled: !routeState.originSiteId });
-      addButton(root, { x: DETAIL_RECT.x + 294, y: DETAIL_RECT.y + DETAIL_RECT.height - 62, width: 302, height: 40 }, "Swap", () => swapRoute?.(), { disabled: !routeState.originSiteId || !routeState.destinationSiteId });
-      return;
+    const selectedDef = getRegionDefinition(state, selectedRegionId);
+    const selectedRegion = getRegionState(state, selectedRegionId);
+    if (!selectedDef || !selectedRegion) return;
+    const connectedIds = getConnectedRegionIds(state, selectedRegionId);
+    let y = DETAIL_RECT.y + 38;
+    root.addChild(createText(selectedDef.name, TEXT_STYLES.header, DETAIL_RECT.x + 24, y));
+    y += 42;
+    root.addChild(createText(
+      `${titleCase(selectedRegion.colour)} · ${titleCase(selectedRegion.controller)} · ${selectedRegion.installedPracticeIds.length}/${selectedRegion.capacity} capacity`,
+      { ...TEXT_STYLES.title, fontSize: 18 },
+      DETAIL_RECT.x + 24,
+      y
+    ));
+    y += 31;
+    root.addChild(createText(
+      `${connectedIds.length} connection${connectedIds.length === 1 ? "" : "s"}`,
+      { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted },
+      DETAIL_RECT.x + 24,
+      y
+    ));
+    y += 31;
+    root.addChild(createText("INSTALLED PRACTICES", TEXT_STYLES.muted, DETAIL_RECT.x + 24, y));
+    y += 25;
+    const installedText = selectedRegion.installedPracticeIds.length
+      ? selectedRegion.installedPracticeIds.map((id, index) => `${index + 1}. ${regionalPracticeDefs[id]?.name ?? id}`).join("  ·  ")
+      : "None";
+    root.addChild(createWrappedText(installedText, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 24, y, DETAIL_RECT.width - 48));
+    root.addChild(createText("HYPOTHETICAL SCORE / INSTALL", TEXT_STYLES.muted, DETAIL_RECT.x + 24, DETAIL_RECT.y + 239));
+
+    for (const practiceId of REGIONAL_PRACTICE_IDS) {
+      const rect = practiceButtonRect(practiceId);
+      const evaluation = evaluateRegionalPracticePlacement(state, { regionId: selectedRegionId, practiceId });
+      const validation = validateRegionalPracticeInstallation(state, { regionId: selectedRegionId, practiceId });
+      addPracticeButton(root, rect, regionalPracticeDefs[practiceId], evaluation, validation, () => {
+        lastInstallResult = onInstallPractice?.(selectedRegionId, practiceId) ?? null;
+        lastKey = "";
+      });
     }
 
-    const selectedRegion = getRegionDefinition(state, selectedRegionId);
-    if (!selectedRegion) return;
-    const terrain = getWorldTerrainDef(selectedRegion.terrainId);
-    const sites = getSitesInRegion(state, selectedRegion.id);
-    const borders = definition.borders.filter((entry) => entry.regionAId === selectedRegion.id || entry.regionBId === selectedRegion.id);
-    let y = DETAIL_RECT.y + 42;
-    root.addChild(createText(selectedRegion.name, TEXT_STYLES.header, DETAIL_RECT.x + 28, y));
-    y += 62;
-    root.addChild(createText("TERRAIN", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-    y += 26;
-    root.addChild(createText(`${terrain?.name ?? selectedRegion.terrainId}  /  ${Math.round((selectedRegion.landCover?.forest ?? 0) * 100)}% forest`, { ...TEXT_STYLES.title, fontSize: 20 }, DETAIL_RECT.x + 30, y));
-    y += 54;
-    root.addChild(createText("DEPOSITS", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-    y += 27;
-    root.addChild(createWrappedText(selectedRegion.deposits.join("  /  ") || "None recorded", { ...TEXT_STYLES.body, fontSize: 18 }, DETAIL_RECT.x + 30, y, DETAIL_RECT.width - 60));
-    y += 62;
-    root.addChild(createText("SITES", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-    y += 27;
-    if (!sites.length) {
-      root.addChild(createText("No established site", { ...TEXT_STYLES.body, fontSize: 18 }, DETAIL_RECT.x + 30, y));
-      y += 50;
+    if (lastInstallResult) {
+      const message = lastInstallResult.ok
+        ? lastInstallResult.scheduled ? "Installation scheduled for the next second" : "Practice installed"
+        : `Installation failed: ${installReasonText(lastInstallResult.reason)}`;
+      root.addChild(createText(message, { ...TEXT_STYLES.chip, fontSize: 12 }, DETAIL_RECT.x + 280, DETAIL_RECT.y + 239));
     }
-    for (const site of sites) {
-      root.addChild(createText(site.name, { ...TEXT_STYLES.title, fontSize: 20 }, DETAIL_RECT.x + 30, y));
-      y += 28;
-      const facilities = site.facilityDefIds.map((id) => getWorldFacilityDef(id)?.name ?? id);
-      root.addChild(createWrappedText(facilities.join("  /  ") || "Detailed settlement", TEXT_STYLES.body, DETAIL_RECT.x + 30, y, DETAIL_RECT.width - 60));
-      y += 42;
-    }
-    y += 8;
-    root.addChild(createText("BORDERS", TEXT_STYLES.muted, DETAIL_RECT.x + 30, y));
-    y += 26;
-    for (const entry of borders.slice(0, 7)) {
-      const otherId = entry.regionAId === selectedRegion.id ? entry.regionBId : entry.regionAId;
-      const other = getRegionDefinition(state, otherId);
-      root.addChild(createText(`${other?.name ?? otherId} - ${borderSummary(definition, entry)}`, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 30, y));
-      y += 25;
-    }
-    const detailedSite = sites.find((site) => site.simulationMode === "detailed");
-    if (detailedSite) addButton(root, { x: DETAIL_RECT.x + 30, y: DETAIL_RECT.y + DETAIL_RECT.height - 72, width: DETAIL_RECT.width - 60, height: 46 }, "Open settlement", () => onOpenDetailedSite?.(detailedSite.id), { selected: true });
+
+    const detailedSite = getSitesInRegion(state, selectedRegionId)
+      .find((site) => site.simulationMode === "detailed");
+    addButton(
+      root,
+      { x: DETAIL_RECT.x + 24, y: DETAIL_RECT.y + DETAIL_RECT.height - 68, width: DETAIL_RECT.width - 48, height: 44 },
+      detailedSite ? "Open settlement" : "No detailed settlement",
+      () => onOpenDetailedSite?.(detailedSite?.id),
+      { selected: !!detailedSite, disabled: !detailedSite }
+    );
   }
 
   return {
@@ -514,16 +436,25 @@ export function createWorldMapView({
     update: () => render(false),
     refresh: () => { lastKey = ""; render(true); },
     setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
-    getSemanticSnapshot: () => ({
-      visible: root.visible === true,
-      selectedRegionId: getSelectedRegionId?.() ?? null,
-      lastPointerRegionId,
-      regionCount: getWorldDefinition(getState?.())?.regions?.length ?? 0,
-      routePlanner: getRoutePlannerState?.() ?? null,
-    }),
+    getSemanticSnapshot: () => {
+      const state = getState?.();
+      const selectedRegionId = getSelectedRegionId?.() ?? null;
+      return {
+        visible: root.visible === true,
+        selectedRegionId,
+        lastPointerRegionId,
+        regionCount: getWorldDefinition(state)?.regions?.length ?? 0,
+        selectedRegion: selectedRegionSnapshot(state, selectedRegionId),
+        lastInstallResult,
+      };
+    },
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
       return region ? pointToScreen(region.display.labelPoint) : null;
+    },
+    getPracticeClickPoint: (practiceId) => {
+      const rect = practiceButtonRect(practiceId);
+      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
     },
     destroy: () => { clearChildren(root); root.removeFromParent(); root.destroy({ children: true }); },
   };
