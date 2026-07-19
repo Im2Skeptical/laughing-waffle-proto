@@ -8,7 +8,10 @@ Git history is the archive for this code. The old source was not moved into a re
 
 ## Evidence
 
-- Runtime entry is `index.html` -> `src/views/ui-root-pixi.js` -> `src/views/ui-root-settlement-pixi.js`.
+- Development runtime entry is `index.html` -> `src/views/ui-root-pixi.js` ->
+  `src/views/ui-root-settlement-pixi.js`.
+- GitHub Pages runs `scripts/build-pages.mjs` and publishes `dist/`; its `index.html` points to a
+  content-hashed esbuild bundle instead of loading source modules directly.
 - Static import reachability from `src/views/ui-root-pixi.js` did not reach the removed files.
 - `package.json` scripts do not reference the removed views.
 - No dynamic imports, settlement probe references, or active test references were found for the removed views.
