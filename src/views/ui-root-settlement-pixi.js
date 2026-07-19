@@ -20,8 +20,7 @@ import {
   getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
 import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
-import { getPrimaryDetailedSiteState, getWorldDefinition } from "../model/world-state.js";
-import { findFastestRoute } from "../model/world-routes.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
 import {
@@ -156,10 +155,6 @@ let prototypeView = null;
 let worldMapView = null;
 let worldViewMode = "map";
 let selectedWorldRegionId = "river-crown";
-let worldMapInteractionMode = "browse";
-let worldRouteOriginSiteId = null;
-let worldRouteDestinationSiteId = null;
-const worldRouteEnabledModes = { land: true, river: true, sea: true };
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
@@ -1178,51 +1173,12 @@ worldMapView = createWorldMapView({
   setSelectedRegionId: (regionId) => {
     selectedWorldRegionId = regionId;
   },
-  getRoutePlannerState: () => {
-    const state = runner.getState?.();
-    const definition = getWorldDefinition(state);
-    const enabledModes = Object.fromEntries(Object.entries(worldRouteEnabledModes));
-    const result = definition && worldRouteOriginSiteId && worldRouteDestinationSiteId
-      ? findFastestRoute(definition, {
-          originSiteId: worldRouteOriginSiteId,
-          destinationSiteId: worldRouteDestinationSiteId,
-          enabledModes: Object.keys(enabledModes).filter((mode) => enabledModes[mode]),
-        })
-      : null;
-    return {
-      mode: worldMapInteractionMode,
-      originSiteId: worldRouteOriginSiteId,
-      destinationSiteId: worldRouteDestinationSiteId,
-      enabledModes,
-      result,
-    };
-  },
-  setMapInteractionMode: (mode) => {
-    worldMapInteractionMode = mode === "route" ? "route" : "browse";
-  },
-  selectRouteSite: (siteId) => {
-    if (!worldRouteOriginSiteId || worldRouteDestinationSiteId) {
-      worldRouteOriginSiteId = siteId;
-      worldRouteDestinationSiteId = null;
-    } else if (siteId !== worldRouteOriginSiteId) {
-      worldRouteDestinationSiteId = siteId;
-    }
-  },
-  toggleRouteMode: (mode) => {
-    if (Object.prototype.hasOwnProperty.call(worldRouteEnabledModes, mode)) {
-      worldRouteEnabledModes[mode] = !worldRouteEnabledModes[mode];
-    }
-  },
-  clearRoute: () => {
-    worldRouteOriginSiteId = null;
-    worldRouteDestinationSiteId = null;
-  },
-  swapRoute: () => {
-    if (!worldRouteOriginSiteId || !worldRouteDestinationSiteId) return;
-    const previousOrigin = worldRouteOriginSiteId;
-    worldRouteOriginSiteId = worldRouteDestinationSiteId;
-    worldRouteDestinationSiteId = previousOrigin;
-  },
+  onInstallPractice: (regionId, practiceId) =>
+    runner.dispatchAction(
+      ActionKinds.REGION_INSTALL_PRACTICE,
+      { regionId, practiceId },
+      { apCost: 0 }
+    ),
   onOpenDetailedSite: () => setWorldViewMode("settlement"),
 });
 
@@ -1542,6 +1498,7 @@ function publishSettlementDebugApi() {
       mode: worldViewMode,
     }),
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
+    getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
     getViewedSlotSummary: () => getSettlementViewedSlotSummary(),
     getPendingCommitJob: () =>
       settlementForecastController?.getPendingCommitJob?.() ?? null,
@@ -1553,6 +1510,7 @@ function publishSettlementDebugApi() {
     getGraphPlotScreenRect: () => settlementGraphView?.getPlotScreenRect?.() ?? null,
     renderGraph: () => settlementGraphView?.render?.(),
     refreshPrototypeView: () => prototypeView?.refresh?.(),
+    refreshWorldMap: () => worldMapView?.refresh?.(),
     getGraphController: () => settlementGraphController,
     hasStateDataAt: (tSec) =>
       settlementGraphController?.getStateDataAt?.(tSec) != null,

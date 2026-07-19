@@ -78,6 +78,7 @@ export function publishSettlementDebugApi({
   getViewSemanticSnapshot,
   getWorldMapSnapshot,
   getWorldMapClickPoint,
+  getWorldPracticeClickPoint,
   getViewedSlotSummary,
   getPendingCommitJob,
   getTimeline,
@@ -88,6 +89,7 @@ export function publishSettlementDebugApi({
   getGraphPlotScreenRect,
   renderGraph,
   refreshPrototypeView,
+  refreshWorldMap,
   getGraphController,
   hasStateDataAt,
   hasStateAt,
@@ -145,9 +147,12 @@ export function publishSettlementDebugApi({
       };
     },
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
+    getWorldPracticeClickPoint: (practiceId) =>
+      getWorldPracticeClickPoint?.(practiceId) ?? null,
     forceRender: () => {
       renderGraph?.();
       refreshPrototypeView?.();
+      refreshWorldMap?.();
       return true;
     },
     getPerfSnapshot: () =>

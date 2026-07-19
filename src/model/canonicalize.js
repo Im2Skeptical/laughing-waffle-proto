@@ -8,12 +8,15 @@ import {
   ensurePawnSkillFields,
   getPawns,
 } from "./state.js";
+import { canonicalizeWorldState } from "./world-state.js";
 
 export function canonicalizeSnapshot(state) {
   if (!state) return;
 
   // Ensure monotonic simTime is a number, but do not reset it (preserves history).
   state.simTime = typeof state.simTime === "number" ? state.simTime : 0;
+
+  canonicalizeWorldState(state);
 
   rebuildBoardOccupancy(state);
   const pawns = getPawns(state);

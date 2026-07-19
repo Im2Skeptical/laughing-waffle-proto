@@ -90,6 +90,14 @@ function assertWorldMapSemantics(snapshot) {
   if (map?.visible !== true) missing.push("visible map");
   if (map?.regionCount !== 15) missing.push("15 regions");
   if (map?.selectedRegionId !== "river-crown") missing.push("River Crown selection");
+  if (map?.selectedRegion?.colour !== "red") missing.push("River Crown colour");
+  if (map?.selectedRegion?.controller !== "player") missing.push("River Crown controller");
+  if (map?.selectedRegion?.capacity !== 4) missing.push("River Crown capacity");
+  if (map?.selectedRegion?.practiceOptions?.length !== 6) missing.push("six practice options");
+  if (Object.prototype.hasOwnProperty.call(map ?? {}, "routePlanner")) missing.push("no route planner");
+  if (map?.selectedRegion?.practiceOptions?.some((option) =>
+    !option?.evaluation?.ok || !Array.isArray(option?.evaluation?.breakdown)
+  )) missing.push("practice score breakdowns");
   if (missing.length > 0) {
     throw new Error(`World map semantic snapshot missing: ${missing.join(", ")}`);
   }
@@ -255,11 +263,57 @@ async function main() {
   if (ironSelection?.selectedRegionId !== "iron-hills") {
     throw new Error(`World map selection failed: expected iron-hills, got ${ironSelection?.selectedRegionId ?? "null"}; pointer=${ironSelection?.lastPointerRegionId ?? "none"}; click=${JSON.stringify(ironClick)}`);
   }
+  if (ironSelection?.selectedRegion?.controller !== "external-a") {
+    throw new Error("World map did not expose the selected external controller");
+  }
+  const ironStore = ironSelection?.selectedRegion?.practiceOptions?.find(
+    (option) => option.practiceId === "store"
+  );
+  if (ironStore?.installation?.reason !== "notPlayerControlled") {
+    throw new Error(`External region installation should be disabled; got ${ironStore?.installation?.reason ?? "none"}`);
+  }
 
   const capitalPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("river-crown") ?? null
   );
   await clickCanvasDesignPoint(page, capitalPoint);
+  await page.waitForFunction(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap?.selectedRegionId === "river-crown",
+    null,
+    { timeout: 30000 }
+  );
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__?.forceRender?.());
+  await delay(120);
+  const storePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getWorldPracticeClickPoint?.("store") ?? null
+  );
+  const firstStoreClick = await clickCanvasDesignPoint(page, storePoint);
+  await delay(250);
+  const firstStoreInstall = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap ?? null
+  );
+  if (firstStoreInstall?.selectedRegion?.installedPracticeIds?.[0] !== "store") {
+    throw new Error(
+      `First Store installation failed: selected=${firstStoreInstall?.selectedRegionId ?? "none"}; point=${JSON.stringify(storePoint)}; click=${JSON.stringify(firstStoreClick)}; result=${JSON.stringify(firstStoreInstall?.lastInstallResult ?? null)}`
+    );
+  }
+  await clickCanvasDesignPoint(page, storePoint);
+  await delay(250);
+  const secondStoreInstall = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap ?? null
+  );
+  const installedStores = secondStoreInstall?.selectedRegion?.installedPracticeIds ?? [];
+  const storeOption = secondStoreInstall?.selectedRegion?.practiceOptions?.find(
+    (option) => option.practiceId === "store"
+  );
+  if (installedStores.length !== 2
+      || installedStores[0] !== "store"
+      || installedStores[1] !== "store"
+      || storeOption?.evaluation?.score !== 3) {
+    throw new Error(
+      `Duplicate Store installation failed: practices=${JSON.stringify(installedStores)}; score=${storeOption?.evaluation?.score ?? "none"}; result=${JSON.stringify(secondStoreInstall?.lastInstallResult ?? null)}`
+    );
+  }
   await clickCanvasDesignPoint(page, { x: 2047, y: 759 });
   const settlementMode = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap?.mode ?? null

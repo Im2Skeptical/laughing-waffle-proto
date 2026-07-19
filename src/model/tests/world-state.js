@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
+import { canonicalizeSnapshot } from "../canonicalize.js";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
-import { calculateTransportLinkTravel, findFastestRoute } from "../world-routes.js";
 import {
+  getConnectedRegionIds,
   getDetailedSiteState,
-  getSitesInRegion,
+  getRegionState,
   validateWorldDefinition,
+  validateWorldState,
 } from "../world-state.js";
 
 function testWorldDefinition() {
@@ -15,135 +17,73 @@ function testWorldDefinition() {
   const result = validateWorldDefinition(definition, { requireConnected: true });
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
+  assert.equal(definition.connections.length, 26);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
+  assert.deepEqual(getConnectedRegionIds(
+    { world: { definitionId: definition.id } },
+    "outer-isles"
+  ), ["salt-coast"]);
 
-  const malformed = JSON.parse(JSON.stringify(definition));
-  malformed.borders.push({ ...malformed.borders[0] });
-  const invalid = validateWorldDefinition(malformed, { requireConnected: true });
-  assert.equal(invalid.ok, false);
-  assert.ok(invalid.errors.some((error) => error.startsWith("duplicate border")));
+  for (const forbidden of [
+    "travelRules",
+    "transportNodes",
+    "transportLinks",
+    "geographicFeatures",
+    "borders",
+  ]) {
+    assert.equal(Object.prototype.hasOwnProperty.call(definition, forbidden), false);
+  }
+  assert.equal(definition.regions.some((region) =>
+    "terrainId" in region || "deposits" in region || "landCover" in region
+  ), false);
 
-  const invalidGeometryDef = JSON.parse(JSON.stringify(definition));
-  invalidGeometryDef.borders.find((entry) => entry.id === "river-lake").vertexIds = ["r3", "e3"];
-  const invalidGeometry = validateWorldDefinition(invalidGeometryDef, { requireConnected: true });
-  assert.equal(invalidGeometry.ok, false);
-  assert.ok(invalidGeometry.errors.some((error) => error.includes("does not follow shared mesh edge")));
+  const duplicateConnection = JSON.parse(JSON.stringify(definition));
+  duplicateConnection.connections.push({
+    regionAId: duplicateConnection.connections[0].regionBId,
+    regionBId: duplicateConnection.connections[0].regionAId,
+  });
+  const duplicateResult = validateWorldDefinition(duplicateConnection);
+  assert.equal(duplicateResult.ok, false);
+  assert.ok(duplicateResult.errors.some((error) => error.startsWith("duplicate connection")));
 
-  const invalidRiver = JSON.parse(JSON.stringify(definition));
-  invalidRiver.geographicFeatures.find((entry) => entry.id === "crown-river").segments[1].fromVertexId = "r2";
-  const invalidRiverGeometry = validateWorldDefinition(invalidRiver);
-  assert.equal(invalidRiverGeometry.ok, false);
-  assert.ok(invalidRiverGeometry.errors.some((error) => error.includes("is discontinuous")));
+  const invalidController = JSON.parse(JSON.stringify(definition));
+  invalidController.regions[0].initialState.controller = "empire";
+  assert.equal(validateWorldDefinition(invalidController).ok, false);
 
-  const missingBorder = JSON.parse(JSON.stringify(definition));
-  missingBorder.borders = missingBorder.borders.filter((entry) => entry.id !== "cedar-west");
-  const incompleteGeometry = validateWorldDefinition(missingBorder, { requireConnected: true });
-  assert.equal(incompleteGeometry.ok, false);
-  assert.ok(incompleteGeometry.errors.some((error) => error.includes("has no border")));
+  const invalidCapacity = JSON.parse(JSON.stringify(definition));
+  invalidCapacity.regions[0].initialState.capacity = -1;
+  assert.equal(validateWorldDefinition(invalidCapacity).ok, false);
 
-  const invalidCoastline = JSON.parse(JSON.stringify(definition));
-  invalidCoastline.mapContext.coastlineVertexIds = ["q0", "e0", "q2"];
-  const invalidCoastlineGeometry = validateWorldDefinition(invalidCoastline);
-  assert.equal(invalidCoastlineGeometry.ok, false);
-  assert.ok(invalidCoastlineGeometry.errors.some((error) => error.includes("map coastline does not follow outer mesh edge")));
+  const invalidPractice = JSON.parse(JSON.stringify(definition));
+  invalidPractice.regions[0].initialState.installedPracticeIds = ["unknown"];
+  assert.equal(validateWorldDefinition(invalidPractice).ok, false);
 
-  const invalidFrontier = JSON.parse(JSON.stringify(definition));
-  invalidFrontier.mapContext.frontierFeatures[0].vertexIds = ["p3", "ct"];
-  const invalidFrontierGeometry = validateWorldDefinition(invalidFrontier);
-  assert.equal(invalidFrontierGeometry.ok, false);
-  assert.ok(invalidFrontierGeometry.errors.some((error) => error.includes("frontier feature western-forest-frontier does not follow outer mesh edge")));
-
-  const missingRiverOutlet = JSON.parse(JSON.stringify(definition));
-  missingRiverOutlet.mapContext.coastlineVertexIds = ["q0", "q1"];
-  const invalidOutlet = validateWorldDefinition(missingRiverOutlet);
-  assert.equal(invalidOutlet.ok, false);
-  assert.ok(invalidOutlet.errors.some((error) => error.includes("has no authored coastal outlet")));
-
-  const missingRiverSpeed = JSON.parse(JSON.stringify(definition));
-  delete missingRiverSpeed.travelRules.riverKmPerDay;
-  const invalidTravelRules = validateWorldDefinition(missingRiverSpeed);
-  assert.equal(invalidTravelRules.ok, false);
-  assert.ok(invalidTravelRules.errors.includes("invalid river travel speed"));
+  const disconnected = JSON.parse(JSON.stringify(definition));
+  disconnected.connections = disconnected.connections.filter(
+    (entry) => entry.regionAId !== "outer-isles" && entry.regionBId !== "outer-isles"
+  );
+  const disconnectedResult = validateWorldDefinition(disconnected, { requireConnected: true });
+  assert.equal(disconnectedResult.ok, false);
+  assert.ok(disconnectedResult.errors.includes("region graph is disconnected"));
 }
 
-function testWorldRoutes() {
-  const definition = worldMapDefs.riverBasin01;
-  const outbound = findFastestRoute(definition, {
-    originSiteId: "river-crown-settlement",
-    destinationSiteId: "salt-coast-port",
-  });
-  const returnRoute = findFastestRoute(definition, {
-    originSiteId: "salt-coast-port",
-    destinationSiteId: "river-crown-settlement",
-  });
-  assert.equal(outbound.ok, true);
-  assert.equal(returnRoute.ok, true);
-  assert.ok(outbound.legs.every((leg) => leg.mode === "river"));
-  assert.ok(returnRoute.legs.every((leg) => leg.mode === "river"));
-  assert.equal(outbound.totalDays, returnRoute.totalDays);
-  assert.equal(outbound.totalDistanceKm, returnRoute.totalDistanceKm);
-  assert.equal(outbound.legs.some((leg) => Object.prototype.hasOwnProperty.call(leg, "direction")), false);
-  assert.equal(outbound.legs.some((leg) => leg.modifiers.some((modifier) => modifier.kind === "riverDirection")), false);
-  const originNode = definition.transportNodes.find((node) => node.siteId === "river-crown-settlement");
-  const destinationNode = definition.transportNodes.find((node) => node.siteId === "salt-coast-port");
-  assert.deepEqual(outbound.legs[0].path[0], originNode.point);
-  assert.deepEqual(outbound.legs.at(-1).path.at(-1), destinationNode.point);
-
-  const riverLink = definition.transportLinks.find((link) => link.id === "river-main-crown-lake");
-  const forwardRiverTravel = calculateTransportLinkTravel(definition, riverLink, false);
-  const reverseRiverTravel = calculateTransportLinkTravel(definition, riverLink, true);
-  assert.equal(forwardRiverTravel.days, reverseRiverTravel.days);
-  assert.equal(forwardRiverTravel.distanceKm, reverseRiverTravel.distanceKm);
-
-  const island = findFastestRoute(definition, {
-    originSiteId: "salt-coast-port",
-    destinationSiteId: "outer-isles-outpost",
-  });
-  assert.equal(island.ok, true);
-  assert.deepEqual(island.legs.map((leg) => leg.mode), ["sea"]);
-  const noSea = findFastestRoute(definition, {
-    originSiteId: "salt-coast-port",
-    destinationSiteId: "outer-isles-outpost",
-    enabledModes: ["land", "river"],
-  });
-  assert.deepEqual(noSea, { ok: false, reason: "noRoute" });
-
-  assert.equal(definition.transportLinks.some((link) => link.id === "land-black-obsidian"), false);
-  const passTravel = calculateTransportLinkTravel(
-    definition,
-    definition.transportLinks.find((link) => link.id === "land-iron-high")
-  );
-  assert.ok(passTravel.modifiers.some((modifier) => modifier.label === "pass" && modifier.days === 2));
-  const forestTravel = calculateTransportLinkTravel(
-    definition,
-    definition.transportLinks.find((link) => link.id === "land-cedar-west")
-  );
-  assert.ok(forestTravel.modifiers.some((modifier) => modifier.kind === "forestBelt"));
-  assert.deepEqual(
-    findFastestRoute(definition, {
-      originSiteId: "cedar-woods-camp",
-      destinationSiteId: "obsidian-ridge-quarry",
-    }),
-    findFastestRoute(definition, {
-      originSiteId: "cedar-woods-camp",
-      destinationSiteId: "obsidian-ridge-quarry",
-    })
-  );
-}
-
-function testNestedDetailedState() {
+function testWorldStateAndSerialization() {
   const state = createInitialState("devPlaytesting01", 24680);
   assert.equal(Object.prototype.hasOwnProperty.call(state, "board"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(state, "hub"), false);
+  assert.equal(state.world.regions.length, 15);
+  assert.equal(state.world.sites.length, 1);
   assert.equal(state.civilization.capitalRegionId, "river-crown");
   assert.equal(state.civilization.capitalSiteId, "river-crown-settlement");
-  assert.equal(getSitesInRegion(state, "iron-hills")[0]?.simulationMode, "summary");
+  assert.equal(validateWorldState(state).ok, true);
 
   const local = getDetailedSiteState(state, state.civilization.capitalSiteId);
   assert.equal(local.hub.cols, 6);
   assert.equal(local.board.cols, 5);
   assert.ok(Array.isArray(local.hub.occ));
 
+  const riverCrown = getRegionState(state, "river-crown");
+  riverCrown.installedPracticeIds.push("store", "store");
   const serialized = serializeGameState(state);
   const serializedLocal = getDetailedSiteState(serialized, state.civilization.capitalSiteId);
   assert.equal(serializedLocal.hub.occ, undefined);
@@ -153,6 +93,18 @@ function testNestedDetailedState() {
   const restoredLocal = getDetailedSiteState(restored, state.civilization.capitalSiteId);
   assert.ok(Array.isArray(restoredLocal.hub.occ));
   assert.ok(Array.isArray(restoredLocal.board.occ.tile));
+  assert.deepEqual(getRegionState(restored, "river-crown").installedPracticeIds, ["store", "store"]);
+
+  restored.world.regions.reverse();
+  canonicalizeSnapshot(restored);
+  assert.deepEqual(
+    restored.world.regions.map((region) => region.id),
+    worldMapDefs.riverBasin01.regions.map((region) => region.id)
+  );
+
+  const invalidSerialized = serializeGameState(state);
+  getRegionState(invalidSerialized, "river-crown").controller = "invalid";
+  assert.throws(() => deserializeGameState(invalidSerialized), /Invalid serialized world state/);
 }
 
 function testReplayParity() {
@@ -167,8 +119,7 @@ function testReplayParity() {
 
 export function runWorldStateSuite() {
   testWorldDefinition();
-  testWorldRoutes();
-  testNestedDetailedState();
+  testWorldStateAndSerialization();
   testReplayParity();
   return true;
 }
