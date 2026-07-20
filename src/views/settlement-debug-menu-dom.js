@@ -14,7 +14,7 @@ import {
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { createMapLabDom } from "./map-lab-dom.js";
 
-const PANEL_WIDTH_PX = 680;
+const PANEL_WIDTH_PX = 820;
 const OPTION_LABEL_MAX = 96;
 
 function capitalize(value) {
