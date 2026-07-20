@@ -48,7 +48,7 @@ Test whether a minimal nodal geography can make regions non-interchangeable befo
 - **Administer:** connected player-controlled Administer component.
 - **Exchange:** host-region connection count.
 
-Evaluators must score a proposed placement without mutating the supplied game state. Initial effective scores use base `1` with bonuses capped at a total of `4`; preserve uncapped diagnostic values where practical.
+Evaluators must score a proposed placement without mutating the supplied game state. Scores use base `1` plus the full applicable bonus with no cap.
 
 ### Development stages
 1. Minimal grammar and evaluator implementation.
@@ -166,7 +166,8 @@ The generic engine still retains concepts like editable history windows, truncat
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
 - Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
 - Connections are immutable, undirected, unweighted, and mechanically identical. Outer Isles connects explicitly to Salt Coast.
-- Regional practices are separate from settlement-local practices. Their placement evaluators are pure, use base score 1 capped at 4, and retain uncapped diagnostics.
+- Regional practices are separate from settlement-local practices. Hypothetical and installed-practice evaluators are pure and use base score 1 with no cap.
+- The global regional-practice scoreboard sums the current score of every installed practice. Score presentation uses bronze for 1, silver for 2, gold for 3, and diamond for 4 or more.
 - Installing or uninstalling a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority. Uninstallation targets the installed slot index so duplicate IDs and order remain unambiguous.
 - The authored regions are a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Outer Isles meet the ocean.
 - Region colour, controller, capacity, installed-practice order, connection count, and hypothetical practice scores are visible on the map.

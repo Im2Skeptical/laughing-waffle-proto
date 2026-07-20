@@ -3,7 +3,9 @@ import {
   regionalPracticeDefs,
 } from "../defs/gamepieces/regional-practice-defs.js";
 import {
+  evaluateInstalledRegionalPractice,
   evaluateRegionalPracticePlacement,
+  getRegionalPracticeScoreboard,
   validateRegionalPracticeInstallation,
   validateRegionalPracticeUninstallation,
 } from "../model/regional-practices.js";
@@ -53,6 +55,12 @@ const INSTALLED_PRACTICE_START_Y = DETAIL_RECT.y + 166;
 const INSTALLED_PRACTICE_HEIGHT = 44;
 const INSTALLED_PRACTICE_GAP = 8;
 const INSTALLED_PRACTICE_COLUMNS = 4;
+const SCORE_TIERS = Object.freeze([
+  Object.freeze({ id: "diamond", label: "Diamond", minimum: 4, color: 0x8dd5e8 }),
+  Object.freeze({ id: "gold", label: "Gold", minimum: 3, color: 0xe0bf54 }),
+  Object.freeze({ id: "silver", label: "Silver", minimum: 2, color: 0xc6ccd6 }),
+  Object.freeze({ id: "bronze", label: "Bronze", minimum: 1, color: 0xb98155 }),
+]);
 
 function pointToScreen(point) {
   const x = Array.isArray(point) ? point[0] : point?.x;
@@ -84,6 +92,20 @@ function titleCase(value) {
     .filter(Boolean)
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function getScoreTier(score) {
+  const safeScore = Math.max(0, Math.floor(score ?? 0));
+  return SCORE_TIERS.find((tier) => safeScore >= tier.minimum)
+    ?? SCORE_TIERS[SCORE_TIERS.length - 1];
+}
+
+function blendColor(base, tint, tintWeight) {
+  const weight = Math.max(0, Math.min(1, tintWeight));
+  const channel = (shift) => Math.round(
+    ((base >> shift) & 0xff) * (1 - weight) + ((tint >> shift) & 0xff) * weight
+  );
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
 }
 
 function installReasonText(reason) {
@@ -167,6 +189,35 @@ function addControllerLegend(parent) {
   }
 }
 
+function addPracticeScoreboard(parent, scoreboard) {
+  const rect = { x: 1510, y: 11, width: 450, height: 50 };
+  const panel = new PIXI.Graphics();
+  roundedRect(panel, rect.x, rect.y, rect.width, rect.height, 8, PALETTE.panel, PALETTE.stroke, 2);
+  parent.addChild(
+    panel,
+    createText(
+      "PRACTICE SCOREBOARD",
+      { ...TEXT_STYLES.muted, fontSize: 12 },
+      rect.x + 14,
+      rect.y + 13
+    ),
+    createText(
+      `TOTAL ${scoreboard?.totalScore ?? 0}`,
+      { ...TEXT_STYLES.header, fontSize: 21, fill: PALETTE.accent },
+      rect.x + 14,
+      rect.y + 30
+    ),
+    createText(
+      `${scoreboard?.installedCount ?? 0} installed`,
+      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
+      rect.x + rect.width - 14,
+      rect.y + 35,
+      1,
+      0.5
+    )
+  );
+}
+
 function addButton(parent, rect, label, onPress, { selected = false, disabled = false } = {}) {
   const button = new PIXI.Container();
   const bg = new PIXI.Graphics();
@@ -197,6 +248,7 @@ function addButton(parent, rect, label, onPress, { selected = false, disabled = 
 
 function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
   const disabled = !validation.ok;
+  const scoreTier = getScoreTier(evaluation?.score);
   const button = new PIXI.Container();
   const bg = new PIXI.Graphics();
   roundedRect(
@@ -206,15 +258,15 @@ function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
     rect.width,
     rect.height,
     6,
-    disabled ? PALETTE.panelSoft : PALETTE.panel,
-    disabled ? 0x696660 : PALETTE.stroke,
+    blendColor(disabled ? PALETTE.panelSoft : PALETTE.panel, scoreTier.color, disabled ? 0.1 : 0.2),
+    disabled ? 0x696660 : scoreTier.color,
     2
   );
   button.addChild(bg);
   button.addChild(createText(def.name, { ...TEXT_STYLES.title, fontSize: 18 }, 12, 12));
   button.addChild(createText(
-    evaluation.ok ? `${evaluation.score}/4` : "—",
-    { ...TEXT_STYLES.header, fontSize: 21, fill: disabled ? PALETTE.textMuted : PALETTE.accent },
+    evaluation.ok ? `${evaluation.score} · ${scoreTier.label.toUpperCase()}` : "—",
+    { ...TEXT_STYLES.header, fontSize: 17, fill: disabled ? PALETTE.textMuted : scoreTier.color },
     rect.width - 12,
     10,
     1
@@ -251,8 +303,9 @@ function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
   parent.addChild(button);
 }
 
-function addInstalledPracticeButton(parent, rect, def, installedIndex, validation, onPress) {
+function addInstalledPracticeButton(parent, rect, def, installedIndex, evaluation, validation, onPress) {
   const disabled = !validation.ok;
+  const scoreTier = getScoreTier(evaluation?.score);
   const button = new PIXI.Container();
   const bg = new PIXI.Graphics();
   roundedRect(
@@ -262,8 +315,8 @@ function addInstalledPracticeButton(parent, rect, def, installedIndex, validatio
     rect.width,
     rect.height,
     6,
-    disabled ? PALETTE.panelSoft : PALETTE.chip,
-    disabled ? 0x696660 : PALETTE.accent,
+    blendColor(disabled ? PALETTE.panelSoft : PALETTE.chip, scoreTier.color, disabled ? 0.1 : 0.24),
+    disabled ? 0x696660 : scoreTier.color,
     2
   );
   button.addChild(
@@ -279,9 +332,17 @@ function addInstalledPracticeButton(parent, rect, def, installedIndex, validatio
     createText(
       def?.name ?? "Unknown",
       { ...TEXT_STYLES.chip, fontSize: 13 },
-      rect.width / 2,
+      rect.width / 2 - 6,
       rect.height / 2,
       0.5,
+      0.5
+    ),
+    createText(
+      evaluation?.ok ? String(evaluation.score) : "—",
+      { ...TEXT_STYLES.chip, fontSize: 13, fill: disabled ? PALETTE.textMuted : scoreTier.color },
+      rect.width - 29,
+      rect.height / 2,
+      1,
       0.5
     ),
     createText(
@@ -326,12 +387,25 @@ function selectedRegionSnapshot(state, selectedRegionId) {
     capacity: region.capacity,
     usedCapacity: region.installedPracticeIds.length,
     installedPracticeIds: [...region.installedPracticeIds],
+    installedPractices: region.installedPracticeIds.map((practiceId, installedIndex) => {
+      const evaluation = evaluateInstalledRegionalPractice(state, { regionId: region.id, installedIndex });
+      return {
+        practiceId,
+        installedIndex,
+        evaluation,
+        scoreTier: evaluation.ok ? getScoreTier(evaluation.score).id : null,
+      };
+    }),
     connectedRegionIds: getConnectedRegionIds(state, region.id),
-    practiceOptions: REGIONAL_PRACTICE_IDS.map((practiceId) => ({
-      practiceId,
-      evaluation: evaluateRegionalPracticePlacement(state, { regionId: region.id, practiceId }),
-      installation: validateRegionalPracticeInstallation(state, { regionId: region.id, practiceId }),
-    })),
+    practiceOptions: REGIONAL_PRACTICE_IDS.map((practiceId) => {
+      const evaluation = evaluateRegionalPracticePlacement(state, { regionId: region.id, practiceId });
+      return {
+        practiceId,
+        evaluation,
+        scoreTier: evaluation.ok ? getScoreTier(evaluation.score).id : null,
+        installation: validateRegionalPracticeInstallation(state, { regionId: region.id, practiceId }),
+      };
+    }),
   };
 }
 
@@ -357,6 +431,7 @@ export function createWorldMapView({
     const definition = getWorldDefinition(state);
     if (!definition) return;
     const selectedRegionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId ?? null;
+    const scoreboard = getRegionalPracticeScoreboard(state);
     const key = [definition.id, selectedRegionId, worldMechanicsSignature(state), JSON.stringify(lastPracticeResult)].join("|");
     if (!force && key === lastKey) return;
     lastKey = key;
@@ -375,6 +450,7 @@ export function createWorldMapView({
     root.addChild(topbar);
     root.addChild(createText(definition.name, TEXT_STYLES.header, 74, 35, 0, 0.5));
     addControllerLegend(root);
+    addPracticeScoreboard(root, scoreboard);
     root.addChild(createText("MINIMAL REGIONAL GRAPH", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
 
     const context = definition.mapContext;
@@ -520,6 +596,10 @@ export function createWorldMapView({
     } else {
       selectedRegion.installedPracticeIds.forEach((practiceId, installedIndex) => {
         const rect = installedPracticeButtonRect(installedIndex);
+        const evaluation = evaluateInstalledRegionalPractice(state, {
+          regionId: selectedRegionId,
+          installedIndex,
+        });
         const validation = validateRegionalPracticeUninstallation(state, {
           regionId: selectedRegionId,
           installedIndex,
@@ -529,6 +609,7 @@ export function createWorldMapView({
           rect,
           regionalPracticeDefs[practiceId],
           installedIndex,
+          evaluation,
           validation,
           () => {
             const result = onUninstallPractice?.(selectedRegionId, installedIndex) ?? null;
@@ -586,6 +667,7 @@ export function createWorldMapView({
     getSemanticSnapshot: () => {
       const state = getState?.();
       const selectedRegionId = getSelectedRegionId?.() ?? null;
+      const scoreboard = getRegionalPracticeScoreboard(state);
       return {
         visible: root.visible === true,
         selectedRegionId,
@@ -598,6 +680,12 @@ export function createWorldMapView({
           point: pointToScreen(regionDef.display.labelPoint),
         })) ?? [],
         detailedSiteMarkerCount: 0,
+        scoreboard: scoreboard.ok ? {
+          ok: true,
+          installedCount: scoreboard.installedCount,
+          totalScore: scoreboard.totalScore,
+          byPracticeId: scoreboard.byPracticeId,
+        } : scoreboard,
         lastPracticeResult,
       };
     },

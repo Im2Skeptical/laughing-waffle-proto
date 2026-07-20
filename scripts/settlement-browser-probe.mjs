@@ -99,6 +99,15 @@ function assertWorldMapSemantics(snapshot) {
   }
   if (map?.detailedSiteMarkerCount !== 0) missing.push("no detailed-site marker");
   if (map?.selectedRegion?.practiceOptions?.length !== 6) missing.push("six practice options");
+  if (map?.scoreboard?.totalScore !== 0 || map?.scoreboard?.installedCount !== 0) {
+    missing.push("empty practice scoreboard");
+  }
+  const initialExchange = map?.selectedRegion?.practiceOptions?.find(
+    (option) => option.practiceId === "exchange"
+  );
+  if (initialExchange?.evaluation?.score !== 5 || initialExchange?.scoreTier !== "diamond") {
+    missing.push("uncapped diamond Exchange score");
+  }
   if (Object.prototype.hasOwnProperty.call(map ?? {}, "routePlanner")) missing.push("no route planner");
   if (map?.selectedRegion?.practiceOptions?.some((option) =>
     !option?.evaluation?.ok || !Array.isArray(option?.evaluation?.breakdown)
@@ -302,6 +311,12 @@ async function main() {
       `First Store installation failed: selected=${firstStoreInstall?.selectedRegionId ?? "none"}; point=${JSON.stringify(storePoint)}; click=${JSON.stringify(firstStoreClick)}; result=${JSON.stringify(firstStoreInstall?.lastPracticeResult ?? null)}`
     );
   }
+  if (
+    firstStoreInstall?.scoreboard?.totalScore !== 1
+    || firstStoreInstall?.selectedRegion?.installedPractices?.[0]?.scoreTier !== "bronze"
+  ) {
+    throw new Error(`First Store scoreboard/tier mismatch: ${JSON.stringify(firstStoreInstall?.scoreboard ?? null)}`);
+  }
   await clickCanvasDesignPoint(page, storePoint);
   await delay(250);
   const secondStoreInstall = await page.evaluate(
@@ -314,7 +329,11 @@ async function main() {
   if (installedStores.length !== 2
       || installedStores[0] !== "store"
       || installedStores[1] !== "store"
-      || storeOption?.evaluation?.score !== 3) {
+      || storeOption?.evaluation?.score !== 3
+      || secondStoreInstall?.scoreboard?.totalScore !== 4
+      || secondStoreInstall?.selectedRegion?.installedPractices?.some(
+        (entry) => entry?.evaluation?.score !== 2 || entry?.scoreTier !== "silver"
+      )) {
     throw new Error(
       `Duplicate Store installation failed: practices=${JSON.stringify(installedStores)}; score=${storeOption?.evaluation?.score ?? "none"}; result=${JSON.stringify(secondStoreInstall?.lastPracticeResult ?? null)}`
     );
@@ -330,6 +349,7 @@ async function main() {
   if (
     afterStoreRemoval?.selectedRegion?.installedPracticeIds?.length !== 1
     || afterStoreRemoval.selectedRegion.installedPracticeIds[0] !== "store"
+    || afterStoreRemoval?.scoreboard?.totalScore !== 1
     || afterStoreRemoval?.lastPracticeResult?.operation !== "uninstall"
   ) {
     throw new Error(
