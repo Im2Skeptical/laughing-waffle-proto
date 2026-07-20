@@ -7,7 +7,9 @@ import {
 import { createInitialState } from "../init.js";
 import { buildProjectionStateWindowFromTimeline } from "../projection.js";
 import {
+  evaluateInstalledRegionalPractice,
   evaluateRegionalPracticePlacement,
+  getRegionalPracticeScoreboard,
   validateRegionalPracticeInstallation,
   validateRegionalPracticeUninstallation,
 } from "../regional-practices.js";
@@ -34,7 +36,6 @@ function testEvaluators() {
   const cultivateState = freshState();
   const cultivate = evaluateWithoutMutation(cultivateState, "river-crown", "cultivate");
   assert.equal(cultivate.score, 3);
-  assert.equal(cultivate.uncappedScore, 3);
   assert.deepEqual(cultivate.diagnostics.matchingRegionIds, ["upper-floodplain", "lake-country"]);
 
   const storeState = freshState();
@@ -56,9 +57,7 @@ function testEvaluators() {
     "mobilize",
   ];
   const study = evaluateWithoutMutation(studyState, "river-crown", "study");
-  assert.equal(study.score, 4);
-  assert.equal(study.uncappedScore, 5);
-  assert.equal(study.capped, true);
+  assert.equal(study.score, 5);
   assert.deepEqual(study.diagnostics.distinctPracticeIds, ["cultivate", "store", "exchange", "mobilize"]);
 
   const mobilizeState = freshState();
@@ -83,15 +82,44 @@ function testEvaluators() {
   );
 
   const exchange = evaluateWithoutMutation(freshState(), "river-crown", "exchange");
-  assert.equal(exchange.score, 4);
-  assert.equal(exchange.uncappedScore, 5);
-  assert.equal(exchange.capped, true);
+  assert.equal(exchange.score, 5);
   assert.equal(exchange.diagnostics.connectedRegionIds.length, 4);
 
   assert.deepEqual(
     evaluateRegionalPracticePlacement(freshState(), { regionId: "river-crown", practiceId: "invalid" }),
     { ok: false, reason: "invalidPracticeId" }
   );
+}
+
+function testInstalledScoresAndScoreboard() {
+  const state = freshState();
+  const host = getRegionState(state, "river-crown");
+  host.installedPracticeIds = ["store", "store", "exchange"];
+
+  const before = serializeGameState(state);
+  const firstStore = evaluateInstalledRegionalPractice(state, {
+    regionId: "river-crown",
+    installedIndex: 0,
+  });
+  const secondStore = evaluateInstalledRegionalPractice(state, {
+    regionId: "river-crown",
+    installedIndex: 1,
+  });
+  const exchange = evaluateInstalledRegionalPractice(state, {
+    regionId: "river-crown",
+    installedIndex: 2,
+  });
+  const scoreboard = getRegionalPracticeScoreboard(state);
+
+  assert.equal(firstStore.score, 2);
+  assert.equal(secondStore.score, 2);
+  assert.equal(exchange.score, 5);
+  assert.equal(scoreboard.ok, true);
+  assert.equal(scoreboard.installedCount, 3);
+  assert.equal(scoreboard.totalScore, 9);
+  assert.deepEqual(scoreboard.byPracticeId.store, { count: 2, totalScore: 4 });
+  assert.deepEqual(scoreboard.byPracticeId.exchange, { count: 1, totalScore: 5 });
+  assert.deepEqual(serializeGameState(state), before, "installed scoring mutated state");
 }
 
 function testInstallationRulesAndOrdering() {
@@ -201,6 +229,7 @@ function testTimelineReplayAndProjection() {
 
 export function runRegionalPracticeSuite() {
   testEvaluators();
+  testInstalledScoresAndScoreboard();
   testInstallationRulesAndOrdering();
   testTimelineReplayAndProjection();
   return true;

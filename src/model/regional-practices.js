@@ -9,7 +9,6 @@ import {
 } from "./world-state.js";
 
 export const REGIONAL_PRACTICE_BASE_SCORE = 1;
-export const REGIONAL_PRACTICE_SCORE_CAP = 4;
 
 function bonusResult(amount, text, details = {}) {
   return {
@@ -131,43 +130,101 @@ export function validateRegionalPracticeUninstallation(state, { regionId, instal
   };
 }
 
-export function evaluateRegionalPracticePlacement(state, { regionId, practiceId } = {}) {
+function evaluateRegionalPractice(state, host, practiceId, installedPracticeIds) {
   const def = regionalPracticeDefs[practiceId];
   if (!def) return { ok: false, reason: "invalidPracticeId" };
-  const host = getRegionState(state, regionId);
-  if (!host || !getRegionDefinition(state, regionId)) {
-    return { ok: false, reason: "invalidRegionId" };
-  }
   const evaluator = SCORE_RULE_EVALUATORS[def.scoreRule];
   if (!evaluator) return { ok: false, reason: "invalidScoreRule" };
 
-  const hypotheticalPracticeIds = [...host.installedPracticeIds, practiceId];
-  const bonus = evaluator(state, host, practiceId, hypotheticalPracticeIds);
-  const uncappedScore = REGIONAL_PRACTICE_BASE_SCORE + bonus.amount;
-  const score = Math.min(REGIONAL_PRACTICE_SCORE_CAP, uncappedScore);
-  const capped = uncappedScore > score;
+  const bonus = evaluator(state, host, practiceId, installedPracticeIds);
+  const score = REGIONAL_PRACTICE_BASE_SCORE + bonus.amount;
   const breakdown = [
     { kind: "base", amount: REGIONAL_PRACTICE_BASE_SCORE, text: "Base score: 1" },
     { kind: "bonus", amount: bonus.amount, text: `${bonus.text}: +${bonus.amount}` },
   ];
-  if (capped) {
-    breakdown.push({
-      kind: "cap",
-      amount: score - uncappedScore,
-      text: `Capped at ${REGIONAL_PRACTICE_SCORE_CAP}`,
-    });
-  }
 
   return {
     ok: true,
-    regionId,
+    regionId: host.id,
     practiceId,
     score,
-    uncappedScore,
-    capped,
     breakdown,
     diagnostics: Object.fromEntries(
       Object.entries(bonus).filter(([key]) => !["amount", "text"].includes(key))
     ),
+  };
+}
+
+export function evaluateRegionalPracticePlacement(state, { regionId, practiceId } = {}) {
+  const host = getRegionState(state, regionId);
+  if (!host || !getRegionDefinition(state, regionId)) {
+    return { ok: false, reason: "invalidRegionId" };
+  }
+  return evaluateRegionalPractice(
+    state,
+    host,
+    practiceId,
+    [...host.installedPracticeIds, practiceId]
+  );
+}
+
+export function evaluateInstalledRegionalPractice(state, { regionId, installedIndex } = {}) {
+  const host = getRegionState(state, regionId);
+  if (!host || !getRegionDefinition(state, regionId)) {
+    return { ok: false, reason: "invalidRegionId" };
+  }
+  if (
+    !Number.isInteger(installedIndex)
+    || installedIndex < 0
+    || installedIndex >= host.installedPracticeIds.length
+  ) {
+    return { ok: false, reason: "invalidInstalledIndex" };
+  }
+  const practiceId = host.installedPracticeIds[installedIndex];
+  const evaluation = evaluateRegionalPractice(
+    state,
+    host,
+    practiceId,
+    host.installedPracticeIds
+  );
+  return evaluation.ok ? { ...evaluation, installedIndex } : evaluation;
+}
+
+export function getRegionalPracticeScoreboard(state) {
+  const byPracticeId = Object.fromEntries(
+    Object.keys(regionalPracticeDefs).map((practiceId) => [practiceId, {
+      count: 0,
+      totalScore: 0,
+    }])
+  );
+  const entries = [];
+
+  for (const region of state?.world?.regions ?? []) {
+    for (let installedIndex = 0; installedIndex < region.installedPracticeIds.length; installedIndex += 1) {
+      const evaluation = evaluateInstalledRegionalPractice(state, {
+        regionId: region.id,
+        installedIndex,
+      });
+      if (!evaluation.ok) {
+        return {
+          ok: false,
+          reason: "invalidInstalledPractice",
+          regionId: region.id,
+          installedIndex,
+          evaluation,
+        };
+      }
+      entries.push(evaluation);
+      byPracticeId[evaluation.practiceId].count += 1;
+      byPracticeId[evaluation.practiceId].totalScore += evaluation.score;
+    }
+  }
+
+  return {
+    ok: true,
+    installedCount: entries.length,
+    totalScore: entries.reduce((total, entry) => total + entry.score, 0),
+    byPracticeId,
+    entries,
   };
 }
