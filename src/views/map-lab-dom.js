@@ -60,7 +60,8 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
 
   const style = document.createElement("style");
   style.textContent = `
-    .codex-debug-panel.map-lab-active { width: min(1180px, calc(100vw - 28px)); }
+    .codex-debug-panel.map-lab-active { inset:8px; width:auto; max-width:none; max-height:none; }
+    .codex-debug-panel.map-lab-active .codex-debug-body { flex:1; min-height:0; }
     .map-lab-root { display:grid; gap:12px; color:#f6efe3; }
     .map-lab-toolbar { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
     .map-lab-button,.map-lab-input { min-height:32px; border:1px solid rgba(224,199,137,.65); border-radius:5px; padding:5px 9px; }
@@ -70,11 +71,14 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     .map-lab-input { background:#f8f0df; color:#1d2430; min-width:0; }
     .map-lab-status { min-height:18px; font-size:12px; color:#d8e2ef; }
     .map-lab-status.error { color:#ffb4a8; } .map-lab-status.ok { color:#b9f5c7; } .map-lab-status.warning { color:#ffd18d; }
-    .map-lab-layout { display:grid; grid-template-columns:minmax(420px,1.4fr) minmax(330px,1fr); gap:12px; align-items:start; }
+    .map-lab-layout { display:grid; grid-template-columns:minmax(500px,1.6fr) minmax(360px,1fr); gap:12px; align-items:start; }
     .map-lab-card { background:rgba(14,18,23,.34); border:1px solid rgba(248,234,208,.2); border-radius:7px; padding:10px; min-width:0; }
     .map-lab-title { margin:0 0 8px; color:#e0c789; font-size:13px; font-weight:800; text-transform:uppercase; }
     .map-lab-map { width:100%; height:auto; display:block; background:#637067; border-radius:5px; touch-action:manipulation; }
-    .map-lab-edge { stroke:#f0eadc; stroke-width:2.2; opacity:.55; pointer-events:none; }
+    .map-lab-edge-halo { stroke:#17232b; stroke-width:8; opacity:.72; pointer-events:none; }
+    .map-lab-edge { stroke:#f4e4b2; stroke-width:3.2; opacity:.88; pointer-events:none; }
+    .map-lab-map.connection-editing .map-lab-edge-halo { stroke:#102b34; stroke-width:10; opacity:.9; }
+    .map-lab-map.connection-editing .map-lab-edge { stroke:#72e5f2; stroke-width:4.2; opacity:1; }
     .map-lab-region { stroke:#ddd3b8; stroke-width:1.5; cursor:pointer; }
     .map-lab-region.selected { stroke:#f4cf69; stroke-width:5; }
     .map-lab-region.pending { stroke:#7bdff2; stroke-width:5; }
@@ -101,7 +105,7 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     .map-lab-json { display:grid; gap:7px; }
     .map-lab-json textarea { min-height:180px; resize:vertical; width:100%; box-sizing:border-box; font:11px/1.35 Consolas,monospace; }
     @media(max-width:820px) {
-      .codex-debug-panel.map-lab-active { top:54px; right:4px; max-width:calc(100vw - 8px); max-height:calc(100vh - 62px); }
+      .codex-debug-panel.map-lab-active { inset:4px; width:auto; max-width:none; max-height:none; }
       .codex-debug-header { flex-wrap:wrap; }
       .map-lab-layout { grid-template-columns:1fr; }
       .map-lab-field-grid { grid-template-columns:1fr; }
@@ -114,19 +118,10 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     const svg = document.createElementNS(SVG_NS, "svg");
     svg.setAttribute("viewBox", "0 0 1000 600");
     svg.classList.add("map-lab-map");
+    svg.classList.toggle("connection-editing", connectionMode);
     svg.dataset.testid = "map-lab-map";
     const evaluationByRegion = new Map(snapshot.evaluations.map((entry) => [entry.regionId, entry]));
     const labelPoint = (id) => definition.regions.find((entry) => entry.id === id)?.display?.labelPoint;
-    for (const edge of snapshot.draft.connections) {
-      const a = labelPoint(edge.regionAId);
-      const b = labelPoint(edge.regionBId);
-      if (!a || !b) continue;
-      const line = document.createElementNS(SVG_NS, "line");
-      line.setAttribute("x1", a.x * 1000); line.setAttribute("y1", a.y * 600);
-      line.setAttribute("x2", b.x * 1000); line.setAttribute("y2", b.y * 600);
-      line.setAttribute("class", "map-lab-edge");
-      svg.appendChild(line);
-    }
     for (const regionDef of definition.regions) {
       const region = snapshot.draft.regions.find((entry) => entry.id === regionDef.id);
       const polygon = document.createElementNS(SVG_NS, "polygon");
@@ -142,6 +137,19 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
         ? controller.beginOrToggleConnection(region.id)
         : controller.selectRegion(region.id));
       svg.appendChild(polygon);
+    }
+    for (const edge of snapshot.draft.connections) {
+      const a = labelPoint(edge.regionAId);
+      const b = labelPoint(edge.regionBId);
+      if (!a || !b) continue;
+      for (const className of ["map-lab-edge-halo", "map-lab-edge"]) {
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", a.x * 1000); line.setAttribute("y1", a.y * 600);
+        line.setAttribute("x2", b.x * 1000); line.setAttribute("y2", b.y * 600);
+        line.setAttribute("class", className);
+        line.dataset.connection = `${edge.regionAId}|${edge.regionBId}`;
+        svg.appendChild(line);
+      }
     }
     for (const regionDef of definition.regions) {
       const region = snapshot.draft.regions.find((entry) => entry.id === regionDef.id);
@@ -175,7 +183,7 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     }
     wrap.appendChild(svg);
     wrap.appendChild(el("div", "map-lab-note", connectionMode
-      ? (snapshot.connectionStartRegionId ? `First region: ${regionName(definition, snapshot.connectionStartRegionId)}. Choose another.` : "Choose the first region, then the second.")
+      ? (snapshot.connectionStartRegionId ? `Cyan lines are active connections. First region: ${regionName(definition, snapshot.connectionStartRegionId)}. Choose another.` : "Cyan lines are active connections. Choose the first region, then the second.")
       : "Scores appear only on eligible player regions with spare capacity."));
     return wrap;
   }

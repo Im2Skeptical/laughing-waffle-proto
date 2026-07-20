@@ -70,6 +70,8 @@ try {
   await page.goto(URL, { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
   await openMapLab(page);
+  const panelBox = await page.locator(".codex-debug-panel.map-lab-active").boundingBox();
+  assert.ok(panelBox.width >= 1100 && panelBox.height >= 780, "Map Lab should fill the desktop viewport");
   checks.push("access");
 
   await page.getByTestId("map-lab-controller").selectOption("player");
@@ -89,6 +91,16 @@ try {
 
   const edgeCount = await page.locator(".map-lab-edge").count();
   await page.getByTestId("map-lab-connections").click();
+  const edgePresentation = await page.getByTestId("map-lab-map").evaluate((svg) => {
+    const children = [...svg.children];
+    return {
+      editing: svg.classList.contains("connection-editing"),
+      lastPolygonIndex: Math.max(...children.map((node, index) => node.matches("polygon") ? index : -1)),
+      firstEdgeIndex: children.findIndex((node) => node.classList.contains("map-lab-edge")),
+    };
+  });
+  assert.equal(edgePresentation.editing, true);
+  assert.ok(edgePresentation.firstEdgeIndex > edgePresentation.lastPolygonIndex, "Active edges must render above region fills");
   await page.getByTestId("map-lab-region-salt-coast").click();
   await page.getByTestId("map-lab-region-outer-isles").click();
   assert.equal(await page.locator(".map-lab-edge").count(), edgeCount - 1);
