@@ -502,7 +502,7 @@ export function createWorldMapView({
     }
 
     const connectionLayer = new PIXI.Graphics();
-    for (const connection of definition.connections) {
+    for (const connection of state.world.connections ?? []) {
       const a = definition.regions.find((entry) => entry.id === connection.regionAId)?.display?.labelPoint;
       const b = definition.regions.find((entry) => entry.id === connection.regionBId)?.display?.labelPoint;
       if (!a || !b) continue;

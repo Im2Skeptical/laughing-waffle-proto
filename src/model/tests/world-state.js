@@ -20,7 +20,7 @@ function testWorldDefinition() {
   assert.equal(definition.connections.length, 26);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
   assert.deepEqual(getConnectedRegionIds(
-    { world: { definitionId: definition.id } },
+    { world: { definitionId: definition.id, connections: definition.connections } },
     "outer-isles"
   ), ["salt-coast"]);
 
@@ -72,6 +72,7 @@ function testWorldStateAndSerialization() {
   assert.equal(Object.prototype.hasOwnProperty.call(state, "board"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(state, "hub"), false);
   assert.equal(state.world.regions.length, 15);
+  assert.equal(state.world.connections.length, 26);
   assert.equal(state.world.sites.length, 1);
   assert.equal(state.civilization.capitalRegionId, "river-crown");
   assert.equal(state.civilization.capitalSiteId, "river-crown-settlement");
@@ -94,17 +95,27 @@ function testWorldStateAndSerialization() {
   assert.ok(Array.isArray(restoredLocal.hub.occ));
   assert.ok(Array.isArray(restoredLocal.board.occ.tile));
   assert.deepEqual(getRegionState(restored, "river-crown").installedPracticeIds, ["store", "store"]);
+  assert.deepEqual(getConnectedRegionIds(restored, "outer-isles"), ["salt-coast"]);
 
   restored.world.regions.reverse();
+  restored.world.connections.reverse();
   canonicalizeSnapshot(restored);
   assert.deepEqual(
     restored.world.regions.map((region) => region.id),
     worldMapDefs.riverBasin01.regions.map((region) => region.id)
   );
+  assert.deepEqual(restored.world.connections[0], {
+    regionAId: "cedar-woods",
+    regionBId: "iron-hills",
+  });
 
   const invalidSerialized = serializeGameState(state);
   getRegionState(invalidSerialized, "river-crown").controller = "invalid";
   assert.throws(() => deserializeGameState(invalidSerialized), /Invalid serialized world state/);
+
+  const invalidConnection = serializeGameState(state);
+  invalidConnection.world.connections.push({ regionAId: "river-crown", regionBId: "river-crown" });
+  assert.throws(() => deserializeGameState(invalidConnection), /world-state connection/);
 }
 
 function testReplayParity() {

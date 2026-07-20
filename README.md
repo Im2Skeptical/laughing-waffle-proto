@@ -35,6 +35,45 @@ artifact used by GitHub Pages:
 - Determinism: `window.__DBG__.test()`
 - Check state: `window.__DBG__.getCursorState()`
 
+## Map Lab
+
+Open **Debug** and choose **Map Lab**. The development tool is also present in GitHub Pages
+playtest builds. It edits a separate browser draft and does not change the running game until
+**Start fresh test run** is confirmed.
+
+The editor supports region colour, controller, capacity, ordered duplicate practices, undirected
+connections, hypothetical scores, and all-practice diagnostics. A valid draft autosaves under
+`civsurvivor.mapLabDraft.v1`. Reset restores the authored map; Import / Export works with JSON.
+
+The exported schema is version 1 and contains mechanical data only:
+
+```json
+{
+  "schemaVersion": 1,
+  "worldDefinitionId": "riverBasin01",
+  "regions": [
+    {
+      "id": "cedar-woods",
+      "colour": "green",
+      "capacity": 2,
+      "controller": "frontier",
+      "installedPracticeIds": []
+    }
+  ],
+  "connections": [
+    { "regionAId": "cedar-woods", "regionBId": "iron-hills" }
+  ]
+}
+```
+
+Region geometry, labels, decorative map context, sites, and the detailed River Crown settlement
+are not duplicated. Applying a draft creates a new deterministic scenario at `tSec = 0`, with a
+fresh timeline and the normal authored settlement. Active connections are copied into that new
+`GameState` for save/replay authority. Save schema version 3 is intentionally incompatible with
+older prototype saves.
+
+Run `npm run probe:map-lab` after `npm run build` for the dedicated browser smoke test.
+
 ## Mobile Playtest With GitHub Pages
 
 ### One-time setup

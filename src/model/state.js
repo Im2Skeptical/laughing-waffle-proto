@@ -530,7 +530,11 @@ export function syncPhaseToPaused(state) {
 // CORE STATE
 // =============================================================================
 
-export function createEmptyState(seed = 123456789, worldDefinitionId = "riverBasin01") {
+export function createEmptyState(
+  seed = 123456789,
+  worldDefinitionId = "riverBasin01",
+  worldDraft = null
+) {
   const detailedState = {
     resources: {
       gold: 0,
@@ -555,7 +559,7 @@ export function createEmptyState(seed = 123456789, worldDefinitionId = "riverBas
     pawns: [],
     passiveTimingRuntime: null,
   };
-  const world = createWorldState(worldDefinitionId, detailedState);
+  const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
     phase: "simulation",
