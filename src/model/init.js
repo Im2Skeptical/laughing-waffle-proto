@@ -333,7 +333,8 @@ export function createInitialState(scenario = "devGym01", seed = null) {
 
   const state = createEmptyState(
     seed ?? setup.rngSeed ?? 123456789,
-    setup?.worldDefinitionId ?? "riverBasin01"
+    setup?.worldDefinitionId ?? "riverBasin01",
+    setup?.worldDraft ?? null
   );
   const local = getPrimaryDetailedSiteState(state);
   state.civilization = {

@@ -52,7 +52,7 @@ Evaluators must score a proposed placement without mutating the supplied game st
 
 ### Development stages
 1. Minimal grammar and evaluator implementation.
-2. Development-only Map Lab.
+2. Development-only Map Lab (implemented).
 3. First authored topology and balancing experiment.
 
 ### Non-goals
@@ -160,8 +160,8 @@ The generic engine still retains concepts like editable history windows, truncat
 ## 6. Current Settlement Prototype Rules
 
 ### Regional world foundation
-- Immutable shared-vertex polygon/coastline artwork, labels, initial region values, and undirected connections live in `src/defs/world/*`.
-- `GameState.world` stores the world definition ID, ordered mutable region instances, and the detailed River Crown site instance.
+- Immutable shared-vertex polygon/coastline artwork, labels, authored initial region values, and authored default connections live in `src/defs/world/*`.
+- `GameState.world` stores the world definition ID, ordered mutable region instances, canonical undirected connections, and the detailed River Crown site instance.
 - `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
 - Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
@@ -175,6 +175,9 @@ The generic engine still retains concepts like editable history windows, truncat
 - Installed-practice slots in player-controlled regions are tappable removal controls.
 - Terrain, deposits, route types/weights, directionality, crossings, logistics, resource flow, and summary sites are absent from the active world schema and map UI.
 - Map selection and map/settlement view mode are runtime UI state and never timeline actions.
+- Debug > Map Lab edits a versioned plain-data draft outside `GameState`, time, RNG, timeline, replay, and projection. It supports mechanical JSON import/export, one local browser draft, score overlays, and compact evaluator diagnostics.
+- Applying a valid Map Lab draft is explicit and destructive to the current run: after confirmation it creates a fresh deterministic `tSec = 0` scenario and timeline while retaining the authored River Crown settlement data.
+- Disconnected Map Lab drafts are valid but display a connected-component warning. The tool does not optimize or balance maps.
 
 ### Vassal progression
 - Vassal choice is permanent.

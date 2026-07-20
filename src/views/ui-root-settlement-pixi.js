@@ -1,6 +1,7 @@
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
+import { createMapLabController } from "../controllers/map-lab-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import {
@@ -164,6 +165,7 @@ let runCompleteView = null;
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
+let mapLabController = null;
 let settlementPendingVassalSelection = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
@@ -1429,6 +1431,18 @@ runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
 });
+mapLabController = createMapLabController({
+  runner,
+  setupId: BOOT_SETUP_ID,
+  onApplied: () => {
+    settlementPendingVassalSelection = null;
+    settlementLastVassalSelectionResult = null;
+    settlementPendingPreviewRestoreSec = null;
+    runCompleteView?.close?.("mapLabApply");
+    setWorldViewMode("map");
+    worldMapView?.refresh?.();
+  },
+});
 settlementDebugMenu = createSettlementDebugMenuDom({
   getState: () => getSettlementViewedState(),
   getFrontierSec: () => getSettlementFrontierSec(),
@@ -1440,6 +1454,7 @@ settlementDebugMenu = createSettlementDebugMenuDom({
   selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
   getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
   isInteractionBlocked: () => !!settlementPendingVassalSelection,
+  mapLabController,
 });
 
 function requestPauseBeforeDrag() {

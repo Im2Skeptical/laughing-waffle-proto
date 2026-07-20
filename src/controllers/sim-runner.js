@@ -2,7 +2,7 @@
 // Simulation runner (fixed-step, second-boundary pause, replay injection)
 
 import {
-  initGameState,
+  createInitialState,
   updateGame,
   setPaused,
   loadIntoGameState,
@@ -53,7 +53,7 @@ const TICKS_PER_SEC = 60;
 const MAX_SIM_STEPS_PER_FRAME = 8;
 const TIME_SCALE_MAX = 16;
 const TIME_SCALE_EASE_PER_SEC = 10;
-const SAVE_SCHEMA_VERSION = 2;
+const SAVE_SCHEMA_VERSION = 3;
 const SAVE_KEY_PREFIX = "civsurvivor.save";
 const ACTION_PATH_CHECKPOINT_OPTS = Object.freeze({
   writeMemo: true,
@@ -363,22 +363,15 @@ export function createSimRunner({
   let activeSetupId =
     typeof setupId === "string" && setupId.length > 0 ? setupId : "devGym01";
 
-  function initializeFromSetup(nextSetupId, reason = "init") {
-    const targetSetupId =
-      typeof nextSetupId === "string" && nextSetupId.length > 0
-        ? nextSetupId
-        : activeSetupId;
+  function initializeFromState(nextState, nextSetupId, reason = "init") {
+    let fresh;
     try {
-      initGameState(gameState, targetSetupId);
+      fresh = deserializeGameState(serializeGameState(nextState));
     } catch (error) {
-      return {
-        ok: false,
-        reason: "badSetupId",
-        setupId: targetSetupId,
-        error,
-      };
+      return { ok: false, reason: "invalidInitialState", error };
     }
-    activeSetupId = targetSetupId;
+    loadStateObjectIntoGameState(fresh);
+    activeSetupId = nextSetupId;
     cursorState = gameState;
 
     dragPreviewState = null;
@@ -417,6 +410,24 @@ export function createSimRunner({
     onRebuildViews?.(reason);
     onInvalidate?.(reason);
     return { ok: true, setupId: activeSetupId };
+  }
+
+  function initializeFromSetup(nextSetupId, reason = "init") {
+    const targetSetupId =
+      typeof nextSetupId === "string" && nextSetupId.length > 0
+        ? nextSetupId
+        : activeSetupId;
+    try {
+      const fresh = createInitialState(targetSetupId, null);
+      return initializeFromState(fresh, targetSetupId, reason);
+    } catch (error) {
+      return {
+        ok: false,
+        reason: "badSetupId",
+        setupId: targetSetupId,
+        error,
+      };
+    }
   }
 
   function getSaveSlotKey(slot) {
@@ -1809,6 +1820,8 @@ export function createSimRunner({
     saveToSlot,
     loadFromSlot,
     resetToSetup: (nextSetupId) => initializeFromSetup(nextSetupId, "init"),
+    resetToState: (nextState, nextSetupId = "mapLabDraft") =>
+      initializeFromState(nextState, nextSetupId, "init"),
     getSaveSlotMeta,
     getSetupId: () => activeSetupId,
     getSaveSlotCount: () => saveSlotCount,

@@ -12,6 +12,7 @@ import {
   getSettlementStructureSlots,
 } from "../model/settlement-state.js";
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
+import { createMapLabDom } from "./map-lab-dom.js";
 
 const PANEL_WIDTH_PX = 680;
 const OPTION_LABEL_MAX = 96;
@@ -218,6 +219,7 @@ export function createSettlementDebugMenuDom({
   selectCheatVassal,
   getDebugSnapshot,
   isInteractionBlocked,
+  mapLabController,
 } = {}) {
   if (typeof document === "undefined") {
     return {
@@ -441,11 +443,16 @@ export function createSettlementDebugMenuDom({
   statsTab.className = "codex-debug-tab";
   statsTab.type = "button";
   statsTab.textContent = "Stats";
+  const mapLabTab = document.createElement("button");
+  mapLabTab.className = "codex-debug-tab";
+  mapLabTab.type = "button";
+  mapLabTab.textContent = "Map Lab";
+  mapLabTab.dataset.testid = "debug-map-lab-tab";
   const closeButton = document.createElement("button");
   closeButton.className = "codex-debug-close";
   closeButton.type = "button";
   closeButton.textContent = "Close";
-  header.append(title, practicesTab, structuresTab, cheatVassalTab, statsTab, closeButton);
+  header.append(title, practicesTab, structuresTab, cheatVassalTab, statsTab, mapLabTab, closeButton);
 
   const body = document.createElement("div");
   body.className = "codex-debug-body";
@@ -454,6 +461,10 @@ export function createSettlementDebugMenuDom({
   body.append(status, content);
   panel.append(header, body);
   root.append(button, fullscreenButton, panel);
+  const mapLabView = createMapLabDom({
+    controller: mapLabController,
+    onRequestClose: () => setOpen(false),
+  });
 
   function setStatus(message, tone = "info") {
     status.textContent = message || "";
@@ -467,6 +478,7 @@ export function createSettlementDebugMenuDom({
       activeTab = "cheatVassal";
     }
     panel.classList.toggle("open", open);
+    panel.classList.toggle("map-lab-active", open && activeTab === "mapLab");
     button.textContent = open ? "Debug*" : "Debug";
     if (open) render();
   }
@@ -506,6 +518,7 @@ export function createSettlementDebugMenuDom({
     structuresTab.classList.toggle("active", activeTab === "structures");
     cheatVassalTab.classList.toggle("active", activeTab === "cheatVassal");
     statsTab.classList.toggle("active", activeTab === "stats");
+    mapLabTab.classList.toggle("active", activeTab === "mapLab");
     render();
   }
 
@@ -882,6 +895,11 @@ export function createSettlementDebugMenuDom({
     content.appendChild(pre);
   }
 
+  function renderMapLab() {
+    content.replaceChildren(mapLabView.element);
+    mapLabView.render();
+  }
+
   function render() {
     if (!open) return;
     const selectionOpen = isVassalSelectionOpen?.() === true;
@@ -889,6 +907,7 @@ export function createSettlementDebugMenuDom({
     practicesTab.disabled = selectionOpen;
     structuresTab.disabled = selectionOpen;
     statsTab.disabled = selectionOpen;
+    mapLabTab.disabled = selectionOpen;
     if (selectionOpen && activeTab !== "cheatVassal") {
       setTab("cheatVassal");
       return;
@@ -897,9 +916,12 @@ export function createSettlementDebugMenuDom({
     structuresTab.classList.toggle("active", activeTab === "structures");
     cheatVassalTab.classList.toggle("active", activeTab === "cheatVassal");
     statsTab.classList.toggle("active", activeTab === "stats");
+    mapLabTab.classList.toggle("active", activeTab === "mapLab");
+    panel.classList.toggle("map-lab-active", activeTab === "mapLab");
     if (activeTab === "cheatVassal") renderCheatVassal();
     else if (activeTab === "structures") renderStructures();
     else if (activeTab === "stats") renderStats();
+    else if (activeTab === "mapLab") renderMapLab();
     else renderPractices();
   }
 
@@ -912,6 +934,7 @@ export function createSettlementDebugMenuDom({
   structuresTab.addEventListener("click", () => setTab("structures"));
   cheatVassalTab.addEventListener("click", () => setTab("cheatVassal"));
   statsTab.addEventListener("click", () => setTab("stats"));
+  mapLabTab.addEventListener("click", () => setTab("mapLab"));
 
   return {
     init() {
@@ -919,6 +942,7 @@ export function createSettlementDebugMenuDom({
       initialized = true;
       document.head.appendChild(style);
       document.body.appendChild(root);
+      mapLabView.init();
       document.addEventListener("fullscreenchange", syncFullscreenButton);
       document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
       document.addEventListener("MSFullscreenChange", syncFullscreenButton);
@@ -938,6 +962,7 @@ export function createSettlementDebugMenuDom({
       document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
       document.removeEventListener("MSFullscreenChange", syncFullscreenButton);
       root.remove();
+      mapLabView.destroy();
       style.remove();
       initialized = false;
     },
