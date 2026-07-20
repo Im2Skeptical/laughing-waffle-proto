@@ -1179,6 +1179,12 @@ worldMapView = createWorldMapView({
       { regionId, practiceId },
       { apCost: 0 }
     ),
+  onUninstallPractice: (regionId, installedIndex) =>
+    runner.dispatchAction(
+      ActionKinds.REGION_UNINSTALL_PRACTICE,
+      { regionId, installedIndex },
+      { apCost: 0 }
+    ),
   onOpenDetailedSite: () => setWorldViewMode("settlement"),
 });
 
@@ -1499,6 +1505,8 @@ function publishSettlementDebugApi() {
     }),
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
+    getWorldInstalledPracticeClickPoint: (installedIndex) =>
+      worldMapView?.getInstalledPracticeClickPoint?.(installedIndex) ?? null,
     getViewedSlotSummary: () => getSettlementViewedSlotSummary(),
     getPendingCommitJob: () =>
       settlementForecastController?.getPendingCommitJob?.() ?? null,

@@ -79,6 +79,7 @@ export function publishSettlementDebugApi({
   getWorldMapSnapshot,
   getWorldMapClickPoint,
   getWorldPracticeClickPoint,
+  getWorldInstalledPracticeClickPoint,
   getViewedSlotSummary,
   getPendingCommitJob,
   getTimeline,
@@ -149,6 +150,8 @@ export function publishSettlementDebugApi({
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,
+    getWorldInstalledPracticeClickPoint: (installedIndex) =>
+      getWorldInstalledPracticeClickPoint?.(installedIndex) ?? null,
     forceRender: () => {
       renderGraph?.();
       refreshPrototypeView?.();

@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { ActionKinds } from "../actions.js";
-import { cmdInstallRegionalPractice } from "../commands/regional-practice-commands.js";
+import {
+  cmdInstallRegionalPractice,
+  cmdUninstallRegionalPractice,
+} from "../commands/regional-practice-commands.js";
 import { createInitialState } from "../init.js";
 import { buildProjectionStateWindowFromTimeline } from "../projection.js";
 import {
   evaluateRegionalPracticePlacement,
   validateRegionalPracticeInstallation,
+  validateRegionalPracticeUninstallation,
 } from "../regional-practices.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
@@ -115,17 +119,66 @@ function testInstallationRulesAndOrdering() {
     getRegionState(installState, "river-crown").installedPracticeIds,
     ["store", "cultivate", "store"]
   );
+
+  assert.deepEqual(
+    validateRegionalPracticeUninstallation(installState, {
+      regionId: "river-crown",
+      installedIndex: 3,
+    }),
+    { ok: false, reason: "invalidInstalledIndex" }
+  );
+  assert.deepEqual(
+    validateRegionalPracticeUninstallation(installState, {
+      regionId: "iron-hills",
+      installedIndex: 0,
+    }),
+    { ok: false, reason: "notPlayerControlled" }
+  );
+  assert.deepEqual(
+    cmdUninstallRegionalPractice(installState, {
+      regionId: "river-crown",
+      installedIndex: 1,
+    }),
+    {
+      ok: true,
+      operation: "uninstall",
+      regionId: "river-crown",
+      practiceId: "cultivate",
+      installedIndex: 1,
+    }
+  );
+  assert.deepEqual(
+    getRegionState(installState, "river-crown").installedPracticeIds,
+    ["store", "store"]
+  );
 }
 
 function testTimelineReplayAndProjection() {
   const initial = freshState();
   const timeline = createTimelineFromInitialState(initial);
-  const action = {
-    kind: ActionKinds.REGION_INSTALL_PRACTICE,
-    payload: { regionId: "river-crown", practiceId: "store" },
-    apCost: 0,
-  };
-  assert.equal(replaceActionsAtSecond(timeline, 1, [action], { truncateFuture: true }).ok, true);
+  const actions = [
+    {
+      kind: ActionKinds.REGION_INSTALL_PRACTICE,
+      payload: { regionId: "river-crown", practiceId: "store" },
+      apCost: 0,
+    },
+    {
+      kind: ActionKinds.REGION_INSTALL_PRACTICE,
+      payload: { regionId: "river-crown", practiceId: "cultivate" },
+      apCost: 0,
+    },
+    {
+      kind: ActionKinds.REGION_INSTALL_PRACTICE,
+      payload: { regionId: "river-crown", practiceId: "store" },
+      apCost: 0,
+    },
+    {
+      kind: ActionKinds.REGION_UNINSTALL_PRACTICE,
+      payload: { regionId: "river-crown", installedIndex: 1 },
+      apCost: 0,
+    },
+  ];
+  assert.equal(replaceActionsAtSecond(timeline, 1, actions, { truncateFuture: true }).ok, true);
   timeline.historyEndSec = 1;
   timeline.cursorSec = 1;
 
@@ -134,7 +187,10 @@ function testTimelineReplayAndProjection() {
   assert.equal(first.ok, true);
   assert.equal(second.ok, true);
   assert.deepEqual(serializeGameState(first.state), serializeGameState(second.state));
-  assert.deepEqual(getRegionState(first.state, "river-crown").installedPracticeIds, ["store"]);
+  assert.deepEqual(
+    getRegionState(first.state, "river-crown").installedPracticeIds,
+    ["store", "store"]
+  );
   assert.deepEqual(first.state.rng, initial.rng);
 
   const projection = buildProjectionStateWindowFromTimeline(timeline, 0, { horizonSec: 1 });

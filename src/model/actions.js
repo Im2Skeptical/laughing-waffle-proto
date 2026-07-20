@@ -6,7 +6,10 @@ import {
   cmdSelectSettlementVassal,
 } from "./commands/settlement-vassal-commands.js";
 import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
-import { cmdInstallRegionalPractice } from "./commands/regional-practice-commands.js";
+import {
+  cmdInstallRegionalPractice,
+  cmdUninstallRegionalPractice,
+} from "./commands/regional-practice-commands.js";
 import { getApCapForSecond, normalizeApState } from "./commands/ap-helpers.js";
 
 export const ActionKinds = {
@@ -49,6 +52,7 @@ export const ActionKinds = {
   DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES: "debugSetSettlementSlotOverrides",
   DEBUG_SELECT_CHEAT_VASSAL: "debugSelectCheatVassal",
   REGION_INSTALL_PRACTICE: "regionInstallPractice",
+  REGION_UNINSTALL_PRACTICE: "regionUninstallPractice",
 };
 
 function ensureAPState(state) {
@@ -153,6 +157,9 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.REGION_INSTALL_PRACTICE:
       result = cmdInstallRegionalPractice(state, payload);
+      break;
+    case ActionKinds.REGION_UNINSTALL_PRACTICE:
+      result = cmdUninstallRegionalPractice(state, payload);
       break;
     default:
       return { ok: false, reason: "unsupportedAction", kind };
