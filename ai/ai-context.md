@@ -167,9 +167,11 @@ The generic engine still retains concepts like editable history windows, truncat
 - Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
 - Connections are immutable, undirected, unweighted, and mechanically identical. Outer Isles connects explicitly to Salt Coast.
 - Regional practices are separate from settlement-local practices. Their placement evaluators are pure, use base score 1 capped at 4, and retain uncapped diagnostics.
-- Installing a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority.
+- Installing or uninstalling a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority. Uninstallation targets the installed slot index so duplicate IDs and order remain unambiguous.
 - The authored regions are a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Outer Isles meet the ocean.
 - Region colour, controller, capacity, installed-practice order, connection count, and hypothetical practice scores are visible on the map.
+- Controller markers sit at each region's graph-connection nexus. The detailed River Crown settlement has no separate map marker; it remains accessible from the selected-region panel.
+- Installed-practice slots in player-controlled regions are tappable removal controls.
 - Terrain, deposits, route types/weights, directionality, crossings, logistics, resource flow, and summary sites are absent from the active world schema and map UI.
 - Map selection and map/settlement view mode are runtime UI state and never timeline actions.
 

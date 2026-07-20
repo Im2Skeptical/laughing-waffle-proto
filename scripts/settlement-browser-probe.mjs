@@ -93,6 +93,11 @@ function assertWorldMapSemantics(snapshot) {
   if (map?.selectedRegion?.colour !== "red") missing.push("River Crown colour");
   if (map?.selectedRegion?.controller !== "player") missing.push("River Crown controller");
   if (map?.selectedRegion?.capacity !== 4) missing.push("River Crown capacity");
+  if (map?.controllerMarkers?.length !== 15) missing.push("15 controller markers");
+  if (map?.controllerMarkers?.find((marker) => marker.regionId === "river-crown")?.controller !== "player") {
+    missing.push("River Crown player marker");
+  }
+  if (map?.detailedSiteMarkerCount !== 0) missing.push("no detailed-site marker");
   if (map?.selectedRegion?.practiceOptions?.length !== 6) missing.push("six practice options");
   if (Object.prototype.hasOwnProperty.call(map ?? {}, "routePlanner")) missing.push("no route planner");
   if (map?.selectedRegion?.practiceOptions?.some((option) =>
@@ -294,7 +299,7 @@ async function main() {
   );
   if (firstStoreInstall?.selectedRegion?.installedPracticeIds?.[0] !== "store") {
     throw new Error(
-      `First Store installation failed: selected=${firstStoreInstall?.selectedRegionId ?? "none"}; point=${JSON.stringify(storePoint)}; click=${JSON.stringify(firstStoreClick)}; result=${JSON.stringify(firstStoreInstall?.lastInstallResult ?? null)}`
+      `First Store installation failed: selected=${firstStoreInstall?.selectedRegionId ?? "none"}; point=${JSON.stringify(storePoint)}; click=${JSON.stringify(firstStoreClick)}; result=${JSON.stringify(firstStoreInstall?.lastPracticeResult ?? null)}`
     );
   }
   await clickCanvasDesignPoint(page, storePoint);
@@ -311,7 +316,24 @@ async function main() {
       || installedStores[1] !== "store"
       || storeOption?.evaluation?.score !== 3) {
     throw new Error(
-      `Duplicate Store installation failed: practices=${JSON.stringify(installedStores)}; score=${storeOption?.evaluation?.score ?? "none"}; result=${JSON.stringify(secondStoreInstall?.lastInstallResult ?? null)}`
+      `Duplicate Store installation failed: practices=${JSON.stringify(installedStores)}; score=${storeOption?.evaluation?.score ?? "none"}; result=${JSON.stringify(secondStoreInstall?.lastPracticeResult ?? null)}`
+    );
+  }
+  const installedPracticePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getWorldInstalledPracticeClickPoint?.(0) ?? null
+  );
+  await clickCanvasDesignPoint(page, installedPracticePoint);
+  await delay(250);
+  const afterStoreRemoval = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap ?? null
+  );
+  if (
+    afterStoreRemoval?.selectedRegion?.installedPracticeIds?.length !== 1
+    || afterStoreRemoval.selectedRegion.installedPracticeIds[0] !== "store"
+    || afterStoreRemoval?.lastPracticeResult?.operation !== "uninstall"
+  ) {
+    throw new Error(
+      `Installed practice removal failed: practices=${JSON.stringify(afterStoreRemoval?.selectedRegion?.installedPracticeIds ?? null)}; result=${JSON.stringify(afterStoreRemoval?.lastPracticeResult ?? null)}`
     );
   }
   await clickCanvasDesignPoint(page, { x: 2047, y: 759 });

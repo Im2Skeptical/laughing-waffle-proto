@@ -1,6 +1,7 @@
 import {
   evaluateRegionalPracticePlacement,
   validateRegionalPracticeInstallation,
+  validateRegionalPracticeUninstallation,
 } from "../regional-practices.js";
 import { getRegionState } from "../world-state.js";
 
@@ -15,9 +16,25 @@ export function cmdInstallRegionalPractice(state, { regionId, practiceId } = {})
   region.installedPracticeIds.push(practiceId);
   return {
     ok: true,
+    operation: "install",
     regionId,
     practiceId,
     index,
     evaluation,
+  };
+}
+
+export function cmdUninstallRegionalPractice(state, { regionId, installedIndex } = {}) {
+  const validation = validateRegionalPracticeUninstallation(state, { regionId, installedIndex });
+  if (!validation.ok) return validation;
+
+  const region = getRegionState(state, regionId);
+  const [practiceId] = region.installedPracticeIds.splice(installedIndex, 1);
+  return {
+    ok: true,
+    operation: "uninstall",
+    regionId,
+    practiceId,
+    installedIndex,
   };
 }

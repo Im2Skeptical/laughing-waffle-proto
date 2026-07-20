@@ -114,6 +114,23 @@ export function validateRegionalPracticeInstallation(state, { regionId, practice
   return { ok: true };
 }
 
+export function validateRegionalPracticeUninstallation(state, { regionId, installedIndex } = {}) {
+  const region = getRegionState(state, regionId);
+  if (!region) return { ok: false, reason: "invalidRegionId" };
+  if (region.controller !== "player") return { ok: false, reason: "notPlayerControlled" };
+  if (
+    !Number.isInteger(installedIndex)
+    || installedIndex < 0
+    || installedIndex >= region.installedPracticeIds.length
+  ) {
+    return { ok: false, reason: "invalidInstalledIndex" };
+  }
+  return {
+    ok: true,
+    practiceId: region.installedPracticeIds[installedIndex],
+  };
+}
+
 export function evaluateRegionalPracticePlacement(state, { regionId, practiceId } = {}) {
   const def = regionalPracticeDefs[practiceId];
   if (!def) return { ok: false, reason: "invalidPracticeId" };

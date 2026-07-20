@@ -5,6 +5,7 @@ import {
 import {
   evaluateRegionalPracticePlacement,
   validateRegionalPracticeInstallation,
+  validateRegionalPracticeUninstallation,
 } from "../model/regional-practices.js";
 import {
   getConnectedRegionIds,
@@ -37,11 +38,21 @@ const CONTROLLER_COLOURS = Object.freeze({
   "external-a": 0xc17a57,
   "external-b": 0x8b72b1,
 });
+const CONTROLLER_MARKERS = Object.freeze({
+  player: Object.freeze({ glyph: "P", label: "Player" }),
+  frontier: Object.freeze({ glyph: "F", label: "Frontier" }),
+  "external-a": Object.freeze({ glyph: "A", label: "External A" }),
+  "external-b": Object.freeze({ glyph: "B", label: "External B" }),
+});
 const PRACTICE_BUTTON_WIDTH = 276;
 const PRACTICE_BUTTON_HEIGHT = 96;
 const PRACTICE_BUTTON_GAP_X = 14;
 const PRACTICE_BUTTON_GAP_Y = 12;
 const PRACTICE_BUTTON_START_Y = DETAIL_RECT.y + 267;
+const INSTALLED_PRACTICE_START_Y = DETAIL_RECT.y + 166;
+const INSTALLED_PRACTICE_HEIGHT = 44;
+const INSTALLED_PRACTICE_GAP = 8;
+const INSTALLED_PRACTICE_COLUMNS = 4;
 
 function pointToScreen(point) {
   const x = Array.isArray(point) ? point[0] : point?.x;
@@ -96,6 +107,64 @@ function practiceButtonRect(practiceId) {
     width: PRACTICE_BUTTON_WIDTH,
     height: PRACTICE_BUTTON_HEIGHT,
   };
+}
+
+function installedPracticeButtonRect(installedIndex) {
+  const availableWidth = DETAIL_RECT.width - 48;
+  const width = (
+    availableWidth - INSTALLED_PRACTICE_GAP * (INSTALLED_PRACTICE_COLUMNS - 1)
+  ) / INSTALLED_PRACTICE_COLUMNS;
+  const column = installedIndex % INSTALLED_PRACTICE_COLUMNS;
+  const row = Math.floor(installedIndex / INSTALLED_PRACTICE_COLUMNS);
+  return {
+    x: DETAIL_RECT.x + 24 + column * (width + INSTALLED_PRACTICE_GAP),
+    y: INSTALLED_PRACTICE_START_Y + row * (INSTALLED_PRACTICE_HEIGHT + INSTALLED_PRACTICE_GAP),
+    width,
+    height: INSTALLED_PRACTICE_HEIGHT,
+  };
+}
+
+function addControllerMarker(parent, point, controller, { selected = false, radius = 14 } = {}) {
+  const markerDef = CONTROLLER_MARKERS[controller] ?? { glyph: "?", label: "Unknown" };
+  const marker = new PIXI.Container();
+  const gfx = new PIXI.Graphics();
+  gfx.lineStyle(selected ? 5 : 3, selected ? PALETTE.accent : 0x383532, 1);
+  gfx.beginFill(CONTROLLER_COLOURS[controller] ?? 0x777777, 1);
+  gfx.drawCircle(0, 0, selected ? radius + 2 : radius);
+  gfx.endFill();
+  marker.addChild(
+    gfx,
+    createText(
+      markerDef.glyph,
+      { ...TEXT_STYLES.chip, fontSize: radius, fill: 0x302d2a },
+      0,
+      1,
+      0.5,
+      0.5
+    )
+  );
+  marker.x = point.x;
+  marker.y = point.y;
+  marker.eventMode = "none";
+  parent.addChild(marker);
+  return marker;
+}
+
+function addControllerLegend(parent) {
+  parent.addChild(createText("CONTROL", { ...TEXT_STYLES.muted, fontSize: 13 }, 520, 36, 0, 0.5));
+  let x = 635;
+  for (const controller of Object.keys(CONTROLLER_MARKERS)) {
+    addControllerMarker(parent, { x, y: 36 }, controller, { radius: 10 });
+    parent.addChild(createText(
+      CONTROLLER_MARKERS[controller].label,
+      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
+      x + 18,
+      36,
+      0,
+      0.5
+    ));
+    x += controller.startsWith("external") ? 235 : 205;
+  }
 }
 
 function addButton(parent, rect, label, onPress, { selected = false, disabled = false } = {}) {
@@ -182,6 +251,59 @@ function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
   parent.addChild(button);
 }
 
+function addInstalledPracticeButton(parent, rect, def, installedIndex, validation, onPress) {
+  const disabled = !validation.ok;
+  const button = new PIXI.Container();
+  const bg = new PIXI.Graphics();
+  roundedRect(
+    bg,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    6,
+    disabled ? PALETTE.panelSoft : PALETTE.chip,
+    disabled ? 0x696660 : PALETTE.accent,
+    2
+  );
+  button.addChild(
+    bg,
+    createText(
+      String(installedIndex + 1),
+      { ...TEXT_STYLES.muted, fontSize: 12 },
+      10,
+      rect.height / 2,
+      0,
+      0.5
+    ),
+    createText(
+      def?.name ?? "Unknown",
+      { ...TEXT_STYLES.chip, fontSize: 13 },
+      rect.width / 2,
+      rect.height / 2,
+      0.5,
+      0.5
+    ),
+    createText(
+      "×",
+      { ...TEXT_STYLES.title, fontSize: 19, fill: disabled ? PALETTE.textMuted : PALETTE.accent },
+      rect.width - 10,
+      rect.height / 2 - 1,
+      1,
+      0.5
+    )
+  );
+  button.x = rect.x;
+  button.y = rect.y;
+  button.alpha = disabled ? 0.58 : 1;
+  button.eventMode = "static";
+  button.interactive = true;
+  button.buttonMode = !disabled;
+  button.cursor = disabled ? "default" : "pointer";
+  button.on("pointertap", () => { if (!disabled) onPress?.(); });
+  parent.addChild(button);
+}
+
 function worldMechanicsSignature(state) {
   return (state?.world?.regions ?? [])
     .map((region) => [
@@ -219,6 +341,7 @@ export function createWorldMapView({
   getSelectedRegionId,
   setSelectedRegionId,
   onInstallPractice,
+  onUninstallPractice,
   onOpenDetailedSite,
 }) {
   const root = new PIXI.Container();
@@ -226,7 +349,7 @@ export function createWorldMapView({
   layer.addChild(root);
   let lastKey = "";
   let lastPointerRegionId = null;
-  let lastInstallResult = null;
+  let lastPracticeResult = null;
 
   function render(force = false) {
     if (!root.visible) return;
@@ -234,7 +357,7 @@ export function createWorldMapView({
     const definition = getWorldDefinition(state);
     if (!definition) return;
     const selectedRegionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId ?? null;
-    const key = [definition.id, selectedRegionId, worldMechanicsSignature(state), JSON.stringify(lastInstallResult)].join("|");
+    const key = [definition.id, selectedRegionId, worldMechanicsSignature(state), JSON.stringify(lastPracticeResult)].join("|");
     if (!force && key === lastKey) return;
     lastKey = key;
     clearChildren(root);
@@ -251,6 +374,7 @@ export function createWorldMapView({
     topbar.endFill();
     root.addChild(topbar);
     root.addChild(createText(definition.name, TEXT_STYLES.header, 74, 35, 0, 0.5));
+    addControllerLegend(root);
     root.addChild(createText("MINIMAL REGIONAL GRAPH", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
 
     const context = definition.mapContext;
@@ -294,7 +418,7 @@ export function createWorldMapView({
       regionHit.addChild(shape);
       regionHit.on("pointertap", () => {
         lastPointerRegionId = regionDef.id;
-        lastInstallResult = null;
+        lastPracticeResult = null;
         setSelectedRegionId?.(regionDef.id);
         lastKey = "";
       });
@@ -326,8 +450,9 @@ export function createWorldMapView({
       const region = getRegionState(state, regionDef.id);
       const labelPoint = pointToScreen(regionDef.display.labelPoint);
       const selected = regionDef.id === selectedRegionId;
+      addControllerMarker(root, labelPoint, region?.controller, { selected });
       const label = createWrappedText(
-        `${regionDef.name}\n${region?.installedPracticeIds.length ?? 0}/${region?.capacity ?? 0}`,
+        regionDef.name,
         {
           ...TEXT_STYLES.chip,
           fontSize: selected ? 15 : 13,
@@ -338,36 +463,23 @@ export function createWorldMapView({
           strokeThickness: selected ? 4 : 3,
         },
         labelPoint.x,
-        labelPoint.y,
+        labelPoint.y - 28,
         150,
         0.5,
         0.5
       );
       label.eventMode = "none";
       root.addChild(label);
-
-      const detailedSite = getSitesInRegion(state, regionDef.id)
-        .find((site) => site.simulationMode === "detailed");
-      if (!detailedSite) continue;
-      const sitePoint = pointToScreen(regionDef.display.sitePoint);
-      const marker = new PIXI.Graphics();
-      marker.lineStyle(4, PALETTE.accent, 1);
-      marker.beginFill(0xeee7d9, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y, 13);
-      marker.endFill();
-      marker.beginFill(0x554f48, 1);
-      marker.drawCircle(sitePoint.x, sitePoint.y, 4);
-      marker.endFill();
-      marker.hitArea = new PIXI.Circle(sitePoint.x, sitePoint.y, 28);
-      marker.eventMode = "static";
-      marker.interactive = true;
-      marker.buttonMode = true;
-      marker.cursor = "pointer";
-      marker.on("pointertap", () => {
-        setSelectedRegionId?.(regionDef.id);
-        lastKey = "";
-      });
-      root.addChild(marker);
+      const capacityLabel = createText(
+        `${region?.installedPracticeIds.length ?? 0}/${region?.capacity ?? 0}`,
+        { ...TEXT_STYLES.muted, fontSize: 12, fill: 0xf4eee3, stroke: 0x343632, strokeThickness: 3 },
+        labelPoint.x,
+        labelPoint.y + 28,
+        0.5,
+        0.5
+      );
+      capacityLabel.eventMode = "none";
+      root.addChild(capacityLabel);
     }
 
     const detail = new PIXI.Graphics();
@@ -395,12 +507,37 @@ export function createWorldMapView({
       y
     ));
     y += 31;
-    root.addChild(createText("INSTALLED PRACTICES", TEXT_STYLES.muted, DETAIL_RECT.x + 24, y));
-    y += 25;
-    const installedText = selectedRegion.installedPracticeIds.length
-      ? selectedRegion.installedPracticeIds.map((id, index) => `${index + 1}. ${regionalPracticeDefs[id]?.name ?? id}`).join("  ·  ")
-      : "None";
-    root.addChild(createWrappedText(installedText, { ...TEXT_STYLES.body, fontSize: 15 }, DETAIL_RECT.x + 24, y, DETAIL_RECT.width - 48));
+    root.addChild(createText("INSTALLED PRACTICES · TAP TO REMOVE", TEXT_STYLES.muted, DETAIL_RECT.x + 24, y));
+    if (selectedRegion.installedPracticeIds.length === 0) {
+      root.addChild(createText(
+        "None",
+        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted },
+        DETAIL_RECT.x + 24,
+        INSTALLED_PRACTICE_START_Y + INSTALLED_PRACTICE_HEIGHT / 2,
+        0,
+        0.5
+      ));
+    } else {
+      selectedRegion.installedPracticeIds.forEach((practiceId, installedIndex) => {
+        const rect = installedPracticeButtonRect(installedIndex);
+        const validation = validateRegionalPracticeUninstallation(state, {
+          regionId: selectedRegionId,
+          installedIndex,
+        });
+        addInstalledPracticeButton(
+          root,
+          rect,
+          regionalPracticeDefs[practiceId],
+          installedIndex,
+          validation,
+          () => {
+            const result = onUninstallPractice?.(selectedRegionId, installedIndex) ?? null;
+            lastPracticeResult = result ? { ...result, operation: "uninstall" } : null;
+            lastKey = "";
+          }
+        );
+      });
+    }
     root.addChild(createText("HYPOTHETICAL SCORE / INSTALL", TEXT_STYLES.muted, DETAIL_RECT.x + 24, DETAIL_RECT.y + 239));
 
     for (const practiceId of REGIONAL_PRACTICE_IDS) {
@@ -408,16 +545,26 @@ export function createWorldMapView({
       const evaluation = evaluateRegionalPracticePlacement(state, { regionId: selectedRegionId, practiceId });
       const validation = validateRegionalPracticeInstallation(state, { regionId: selectedRegionId, practiceId });
       addPracticeButton(root, rect, regionalPracticeDefs[practiceId], evaluation, validation, () => {
-        lastInstallResult = onInstallPractice?.(selectedRegionId, practiceId) ?? null;
+        const result = onInstallPractice?.(selectedRegionId, practiceId) ?? null;
+        lastPracticeResult = result ? { ...result, operation: "install" } : null;
         lastKey = "";
       });
     }
 
-    if (lastInstallResult) {
-      const message = lastInstallResult.ok
-        ? lastInstallResult.scheduled ? "Installation scheduled for the next second" : "Practice installed"
-        : `Installation failed: ${installReasonText(lastInstallResult.reason)}`;
-      root.addChild(createText(message, { ...TEXT_STYLES.chip, fontSize: 12 }, DETAIL_RECT.x + 280, DETAIL_RECT.y + 239));
+    if (lastPracticeResult) {
+      const removing = lastPracticeResult.operation === "uninstall";
+      const message = lastPracticeResult.ok
+        ? lastPracticeResult.scheduled
+          ? `${removing ? "Removal" : "Installation"} scheduled for the next second`
+          : `Practice ${removing ? "removed" : "installed"}`
+        : `Practice change failed: ${installReasonText(lastPracticeResult.reason)}`;
+      root.addChild(createText(
+        message,
+        { ...TEXT_STYLES.chip, fontSize: 12 },
+        DETAIL_RECT.x + DETAIL_RECT.width - 24,
+        DETAIL_RECT.y + 239,
+        1
+      ));
     }
 
     const detailedSite = getSitesInRegion(state, selectedRegionId)
@@ -445,7 +592,13 @@ export function createWorldMapView({
         lastPointerRegionId,
         regionCount: getWorldDefinition(state)?.regions?.length ?? 0,
         selectedRegion: selectedRegionSnapshot(state, selectedRegionId),
-        lastInstallResult,
+        controllerMarkers: getWorldDefinition(state)?.regions?.map((regionDef) => ({
+          regionId: regionDef.id,
+          controller: getRegionState(state, regionDef.id)?.controller ?? null,
+          point: pointToScreen(regionDef.display.labelPoint),
+        })) ?? [],
+        detailedSiteMarkerCount: 0,
+        lastPracticeResult,
       };
     },
     getRegionClickPoint: (regionId) => {
@@ -454,6 +607,10 @@ export function createWorldMapView({
     },
     getPracticeClickPoint: (practiceId) => {
       const rect = practiceButtonRect(practiceId);
+      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
+    },
+    getInstalledPracticeClickPoint: (installedIndex) => {
+      const rect = installedPracticeButtonRect(installedIndex);
       return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
     },
     destroy: () => { clearChildren(root); root.removeFromParent(); root.destroy({ children: true }); },
