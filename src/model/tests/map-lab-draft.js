@@ -84,7 +84,7 @@ function testEvaluationAndDiagnostics() {
   const diagnostics = getMapLabDiagnostics(draft);
   assert.equal(diagnostics.practices.length, 6);
   assert.equal(diagnostics.practices.find((entry) => entry.practiceId === "store").flat, true);
-  assert.deepEqual(diagnostics.practices.find((entry) => entry.practiceId === "cultivate").bestRegionIds, ["river-crown"]);
+  assert.deepEqual(diagnostics.practices.find((entry) => entry.practiceId === "cultivate").bestRegionIds, ["upper-floodplain"]);
   assert.ok(diagnostics.dominantRegions.some((entry) => entry.regionId === "river-crown"));
 
   const sharedWinnerDraft = createAuthoredMapLabDraft();

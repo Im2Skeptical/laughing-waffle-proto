@@ -53,7 +53,7 @@ Evaluators must score a proposed placement without mutating the supplied game st
 ### Development stages
 1. Minimal grammar and evaluator implementation.
 2. Development-only Map Lab (implemented).
-3. First authored topology and balancing experiment.
+3. First authored topology and balancing experiment (implemented as `milestone2Blank01` and `milestone2Sparse01`).
 
 ### Non-goals
 Diplomacy, conquest, logistics, resource packets, edge weights or types, directionality, terrain modifiers, deposits, procedural generation, and final content balance.
@@ -178,6 +178,8 @@ The generic engine still retains concepts like editable history windows, truncat
 - Debug > Map Lab edits a versioned plain-data draft outside `GameState`, time, RNG, timeline, replay, and projection. It supports mechanical JSON import/export, one local browser draft, score overlays, and compact evaluator diagnostics.
 - Applying a valid Map Lab draft is explicit and destructive to the current run: after confirmation it creates a fresh deterministic `tSec = 0` scenario and timeline while retaining the authored River Crown settlement data.
 - Disconnected Map Lab drafts are valid but display a connected-component warning. The tool does not optimize or balance maps.
+- The first authored Milestone 2 configuration uses four connected player regions, three frontier regions, and eight external regions. The blank form is the default map; Map Lab can load blank and sparse-interaction presets. The sparse form demonstrates Store, Study, and Administer while leaving one open slot in every player region.
+- The authoritative Substage 3 diagnostic record and score matrices live in `ai/milestone2-substage3-report.md`.
 
 ### Vassal progression
 - Vassal choice is permanent.

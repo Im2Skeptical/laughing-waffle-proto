@@ -1,4 +1,5 @@
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
+import { milestone2MapConfigDefs } from "../defs/world/milestone2-map-configs.js";
 import { createInitialState } from "../model/init.js";
 import {
   MAP_LAB_STORAGE_KEY,
@@ -34,6 +35,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
   let draft = createAuthoredMapLabDraft(definitionId);
   let selectedRegionId = draft.regions[0]?.id ?? null;
   let selectedPracticeId = "cultivate";
+  let selectedPresetId = "milestone2Blank01";
   let connectionStartRegionId = null;
   let status = { message: "", tone: "info" };
   const listeners = new Set();
@@ -56,8 +58,9 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
     }
   }
 
-  function replaceDraft(nextDraft, message = "Draft updated.") {
+  function replaceDraft(nextDraft, message = "Draft updated.", nextPresetId = selectedPresetId) {
     draft = canonicalizeMapLabDraft(nextDraft);
+    selectedPresetId = nextPresetId;
     if (!draft.regions.some((entry) => entry.id === selectedRegionId)) {
       selectedRegionId = draft.regions[0]?.id ?? null;
     }
@@ -84,7 +87,10 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       const text = storage.getItem(MAP_LAB_STORAGE_KEY);
       if (!text) return;
       const parsed = parseMapLabDraftJson(text);
-      if (parsed.ok) draft = parsed.draft;
+      if (parsed.ok) {
+        draft = parsed.draft;
+        selectedPresetId = null;
+      }
       else setStatus(`Stored draft ignored: ${parsed.errors[0]}`, "warning");
     } catch (_) {
       setStatus("Stored draft could not be read; using authored default.", "warning");
@@ -96,8 +102,13 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       draft,
       selectedRegionId,
       selectedPracticeId,
+      selectedPresetId,
       connectionStartRegionId,
       status,
+      presetOptions: Object.values(milestone2MapConfigDefs).map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+      })),
       evaluations: evaluateMapLabPractice(draft, selectedPracticeId),
       diagnostics: getMapLabDiagnostics(draft),
     };
@@ -157,7 +168,20 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       notify();
     },
     reset() {
-      return replaceDraft(createAuthoredMapLabDraft(definitionId), "Reset to authored default.");
+      return replaceDraft(
+        createAuthoredMapLabDraft(definitionId),
+        "Reset to authored default.",
+        "milestone2Blank01"
+      );
+    },
+    loadPreset(presetId) {
+      const preset = milestone2MapConfigDefs[presetId];
+      if (!preset) {
+        setStatus(`Unknown Map Lab scenario: ${presetId}`, "error");
+        notify();
+        return { ok: false, reason: "invalidPresetId" };
+      }
+      return replaceDraft(preset.draft, `Loaded ${preset.name}.`, preset.id);
     },
     exportJson() {
       return serializeMapLabDraft(draft);
@@ -169,7 +193,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
         notify();
         return result;
       }
-      return replaceDraft(result.draft, "Draft imported.");
+      return replaceDraft(result.draft, "Draft imported.", null);
     },
     applyToFreshRun() {
       const validation = validateMapLabDraft(draft);
@@ -197,4 +221,3 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
     },
   };
 }
-

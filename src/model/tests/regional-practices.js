@@ -35,8 +35,8 @@ function evaluateWithoutMutation(state, regionId, practiceId) {
 function testEvaluators() {
   const cultivateState = freshState();
   const cultivate = evaluateWithoutMutation(cultivateState, "river-crown", "cultivate");
-  assert.equal(cultivate.score, 3);
-  assert.deepEqual(cultivate.diagnostics.matchingRegionIds, ["upper-floodplain", "lake-country"]);
+  assert.equal(cultivate.score, 2);
+  assert.deepEqual(cultivate.diagnostics.matchingRegionIds, ["upper-floodplain"]);
 
   const storeState = freshState();
   const storeHost = getRegionState(storeState, "river-crown");
@@ -133,6 +133,7 @@ function testInstallationRulesAndOrdering() {
     { ok: false, reason: "notPlayerControlled" }
   );
   const host = getRegionState(state, "west-levee");
+  host.capacity = 2;
   host.installedPracticeIds = ["store", "store"];
   assert.deepEqual(
     validateRegionalPracticeInstallation(state, { regionId: "west-levee", practiceId: "study" }),
@@ -140,6 +141,7 @@ function testInstallationRulesAndOrdering() {
   );
 
   const installState = freshState();
+  getRegionState(installState, "river-crown").capacity = 3;
   assert.equal(cmdInstallRegionalPractice(installState, { regionId: "river-crown", practiceId: "store" }).ok, true);
   assert.equal(cmdInstallRegionalPractice(installState, { regionId: "river-crown", practiceId: "cultivate" }).ok, true);
   assert.equal(cmdInstallRegionalPractice(installState, { regionId: "river-crown", practiceId: "store" }).ok, true);
@@ -183,6 +185,7 @@ function testInstallationRulesAndOrdering() {
 
 function testTimelineReplayAndProjection() {
   const initial = freshState();
+  getRegionState(initial, "river-crown").capacity = 4;
   const timeline = createTimelineFromInitialState(initial);
   const actions = [
     {

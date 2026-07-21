@@ -274,12 +274,33 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     const definition = worldMapDefs[snapshot.draft.worldDefinitionId];
     root.replaceChildren();
     const toolbar = el("div", "map-lab-toolbar");
+    const presetSelect = select(
+      [
+        { id: "", label: "Custom / local draft" },
+        ...snapshot.presetOptions.map((entry) => ({ id: entry.id, label: entry.name })),
+      ],
+      snapshot.selectedPresetId ?? "",
+      "map-lab-preset",
+      () => {}
+    );
     const connectionButton = button(connectionMode ? "Finish connections" : "Edit connections", "map-lab-connections", () => {
       connectionMode = !connectionMode;
       if (!connectionMode) controller.cancelConnection(); else render();
     });
     connectionButton.classList.toggle("active", connectionMode);
-    toolbar.append(connectionButton,
+    const loadPresetButton = button("Load scenario", "map-lab-load-preset", () => {
+      if (!presetSelect.value) return;
+        if (globalThis.confirm("Replace the current Map Lab draft with this authored scenario?")) {
+          controller.loadPreset(presetSelect.value);
+        }
+    });
+    loadPresetButton.disabled = !presetSelect.value;
+    presetSelect.addEventListener("change", () => {
+      loadPresetButton.disabled = !presetSelect.value;
+    });
+    toolbar.append(presetSelect,
+      loadPresetButton,
+      connectionButton,
       button("Reset default", "map-lab-reset", () => { if (globalThis.confirm("Reset the Map Lab draft to the authored default?")) controller.reset(); }),
       button(jsonOpen ? "Hide JSON" : "Import / Export", "map-lab-json-toggle", () => { jsonOpen = !jsonOpen; if (jsonOpen) jsonText = controller.exportJson(); render(); }),
       button("Start fresh test run", "map-lab-apply", () => {

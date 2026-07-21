@@ -9,6 +9,8 @@ const URL = `http://127.0.0.1:${PORT}`;
 const ARTIFACT_DIR = "artifacts";
 const DETAIL_PATH = `${ARTIFACT_DIR}/map-lab-browser-probe.json`;
 const SCREENSHOT_PATH = `${ARTIFACT_DIR}/map-lab-browser-probe-latest.png`;
+const BLANK_SCREENSHOT_PATH = `${ARTIFACT_DIR}/milestone2-blank-map-lab.png`;
+const SPARSE_SCREENSHOT_PATH = `${ARTIFACT_DIR}/milestone2-sparse-map-lab.png`;
 
 async function waitForHttp(url, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
@@ -72,7 +74,26 @@ try {
   await openMapLab(page);
   const panelBox = await page.locator(".codex-debug-panel.map-lab-active").boundingBox();
   assert.ok(panelBox.width >= 1100 && panelBox.height >= 780, "Map Lab should fill the desktop viewport");
-  checks.push("access");
+  await page.getByTestId("map-lab-connections").click();
+  await page.screenshot({ path: BLANK_SCREENSHOT_PATH, fullPage: false });
+  await page.getByTestId("map-lab-connections").click();
+  await page.getByTestId("map-lab-preset").selectOption("milestone2Sparse01");
+  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  await page.getByTestId("map-lab-region-west-levee").evaluate((node) =>
+    node.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+  );
+  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 2);
+  await page.getByTestId("map-lab-score-administer").evaluate((node) => node.click());
+  await page.locator(".codex-debug-body").evaluate((node) => node.scrollTo(0, 0));
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.activeElement?.blur?.();
+  });
+  await page.screenshot({ path: SPARSE_SCREENSHOT_PATH, fullPage: false });
+  await page.getByTestId("map-lab-preset").selectOption("milestone2Blank01");
+  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  await page.getByTestId("map-lab-region-cedar-woods").click();
+  checks.push("access-and-authored-scenarios");
 
   await page.getByTestId("map-lab-controller").selectOption("player");
   await page.getByTestId("map-lab-colour").selectOption("red");

@@ -17,7 +17,7 @@ function testWorldDefinition() {
   const result = validateWorldDefinition(definition, { requireConnected: true });
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
-  assert.equal(definition.connections.length, 26);
+  assert.equal(definition.connections.length, 23);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
   assert.deepEqual(getConnectedRegionIds(
     { world: { definitionId: definition.id, connections: definition.connections } },
@@ -72,7 +72,7 @@ function testWorldStateAndSerialization() {
   assert.equal(Object.prototype.hasOwnProperty.call(state, "board"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(state, "hub"), false);
   assert.equal(state.world.regions.length, 15);
-  assert.equal(state.world.connections.length, 26);
+  assert.equal(state.world.connections.length, 23);
   assert.equal(state.world.sites.length, 1);
   assert.equal(state.civilization.capitalRegionId, "river-crown");
   assert.equal(state.civilization.capitalSiteId, "river-crown-settlement");

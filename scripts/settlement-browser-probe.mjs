@@ -92,7 +92,7 @@ function assertWorldMapSemantics(snapshot) {
   if (map?.selectedRegionId !== "river-crown") missing.push("River Crown selection");
   if (map?.selectedRegion?.colour !== "red") missing.push("River Crown colour");
   if (map?.selectedRegion?.controller !== "player") missing.push("River Crown controller");
-  if (map?.selectedRegion?.capacity !== 4) missing.push("River Crown capacity");
+  if (map?.selectedRegion?.capacity !== 2) missing.push("River Crown capacity");
   if (map?.controllerMarkers?.length !== 15) missing.push("15 controller markers");
   if (map?.controllerMarkers?.find((marker) => marker.regionId === "river-crown")?.controller !== "player") {
     missing.push("River Crown player marker");
