@@ -8,21 +8,26 @@ import {
   getConnectedRegionIds,
   getDetailedSiteState,
   getRegionState,
+  getWorldConnectionCandidates,
+  isWorldConnectionCandidate,
   validateWorldDefinition,
   validateWorldState,
 } from "../world-state.js";
 
 function testWorldDefinition() {
   const definition = worldMapDefs.riverBasin01;
-  const result = validateWorldDefinition(definition, { requireConnected: true });
+  const result = validateWorldDefinition(definition);
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
-  assert.equal(definition.connections.length, 23);
+  assert.equal(definition.connections.length, 17);
+  assert.equal(getWorldConnectionCandidates(definition).length, 25);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
   assert.deepEqual(getConnectedRegionIds(
     { world: { definitionId: definition.id, connections: definition.connections } },
     "outer-isles"
-  ), ["salt-coast"]);
+  ), []);
+  assert.equal(isWorldConnectionCandidate(definition, "salt-coast", "outer-isles"), false);
+  assert.equal(isWorldConnectionCandidate(definition, "river-crown", "lake-country"), true);
 
   for (const forbidden of [
     "travelRules",
@@ -46,6 +51,15 @@ function testWorldDefinition() {
   assert.equal(duplicateResult.ok, false);
   assert.ok(duplicateResult.errors.some((error) => error.startsWith("duplicate connection")));
 
+  const nonAdjacentConnection = JSON.parse(JSON.stringify(definition));
+  nonAdjacentConnection.connections.push({
+    regionAId: "west-levee",
+    regionBId: "lake-country",
+  });
+  const nonAdjacentResult = validateWorldDefinition(nonAdjacentConnection);
+  assert.equal(nonAdjacentResult.ok, false);
+  assert.ok(nonAdjacentResult.errors.includes("non-adjacent connection west-levee-lake-country"));
+
   const invalidController = JSON.parse(JSON.stringify(definition));
   invalidController.regions[0].initialState.controller = "empire";
   assert.equal(validateWorldDefinition(invalidController).ok, false);
@@ -58,11 +72,7 @@ function testWorldDefinition() {
   invalidPractice.regions[0].initialState.installedPracticeIds = ["unknown"];
   assert.equal(validateWorldDefinition(invalidPractice).ok, false);
 
-  const disconnected = JSON.parse(JSON.stringify(definition));
-  disconnected.connections = disconnected.connections.filter(
-    (entry) => entry.regionAId !== "outer-isles" && entry.regionBId !== "outer-isles"
-  );
-  const disconnectedResult = validateWorldDefinition(disconnected, { requireConnected: true });
+  const disconnectedResult = validateWorldDefinition(definition, { requireConnected: true });
   assert.equal(disconnectedResult.ok, false);
   assert.ok(disconnectedResult.errors.includes("region graph is disconnected"));
 }
@@ -72,7 +82,7 @@ function testWorldStateAndSerialization() {
   assert.equal(Object.prototype.hasOwnProperty.call(state, "board"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(state, "hub"), false);
   assert.equal(state.world.regions.length, 15);
-  assert.equal(state.world.connections.length, 23);
+  assert.equal(state.world.connections.length, 17);
   assert.equal(state.world.sites.length, 1);
   assert.equal(state.civilization.capitalRegionId, "river-crown");
   assert.equal(state.civilization.capitalSiteId, "river-crown-settlement");
@@ -95,7 +105,7 @@ function testWorldStateAndSerialization() {
   assert.ok(Array.isArray(restoredLocal.hub.occ));
   assert.ok(Array.isArray(restoredLocal.board.occ.tile));
   assert.deepEqual(getRegionState(restored, "river-crown").installedPracticeIds, ["store", "store"]);
-  assert.deepEqual(getConnectedRegionIds(restored, "outer-isles"), ["salt-coast"]);
+  assert.deepEqual(getConnectedRegionIds(restored, "outer-isles"), []);
 
   restored.world.regions.reverse();
   restored.world.connections.reverse();
@@ -106,7 +116,7 @@ function testWorldStateAndSerialization() {
   );
   assert.deepEqual(restored.world.connections[0], {
     regionAId: "cedar-woods",
-    regionBId: "iron-hills",
+    regionBId: "west-levee",
   });
 
   const invalidSerialized = serializeGameState(state);
@@ -116,6 +126,10 @@ function testWorldStateAndSerialization() {
   const invalidConnection = serializeGameState(state);
   invalidConnection.world.connections.push({ regionAId: "river-crown", regionBId: "river-crown" });
   assert.throws(() => deserializeGameState(invalidConnection), /world-state connection/);
+
+  const nonAdjacentConnection = serializeGameState(state);
+  nonAdjacentConnection.world.connections.push({ regionAId: "west-levee", regionBId: "lake-country" });
+  assert.throws(() => deserializeGameState(nonAdjacentConnection), /non-adjacent world-state connection/);
 }
 
 function testReplayParity() {

@@ -21,6 +21,50 @@ export function getWorldConnectionKey(regionAId, regionBId) {
   return [String(regionAId), String(regionBId)].sort().join("|");
 }
 
+function getPolygonEdgeKey(vertexAId, vertexBId) {
+  return [String(vertexAId), String(vertexBId)].sort().join("|");
+}
+
+function getRegionPolygonEdgeKeys(region) {
+  const vertexIds = Array.isArray(region?.polygonVertexIds)
+    ? region.polygonVertexIds
+    : [];
+  if (vertexIds.length < 2) return new Set();
+  return new Set(vertexIds.map((vertexId, index) => getPolygonEdgeKey(
+    vertexId,
+    vertexIds[(index + 1) % vertexIds.length]
+  )));
+}
+
+export function getWorldConnectionCandidates(definition) {
+  const regions = Array.isArray(definition?.regions) ? definition.regions : [];
+  const edgeKeysByRegionId = new Map(regions.map((region) => [
+    region.id,
+    getRegionPolygonEdgeKeys(region),
+  ]));
+  const candidates = [];
+  for (let leftIndex = 0; leftIndex < regions.length; leftIndex += 1) {
+    const left = regions[leftIndex];
+    const leftEdges = edgeKeysByRegionId.get(left.id);
+    for (let rightIndex = leftIndex + 1; rightIndex < regions.length; rightIndex += 1) {
+      const right = regions[rightIndex];
+      const rightEdges = edgeKeysByRegionId.get(right.id);
+      if ([...leftEdges].some((edgeKey) => rightEdges.has(edgeKey))) {
+        candidates.push({ regionAId: left.id, regionBId: right.id });
+      }
+    }
+  }
+  return candidates;
+}
+
+export function isWorldConnectionCandidate(definition, regionAId, regionBId) {
+  if (regionAId === regionBId) return false;
+  const key = getWorldConnectionKey(regionAId, regionBId);
+  return getWorldConnectionCandidates(definition).some((entry) =>
+    getWorldConnectionKey(entry.regionAId, entry.regionBId) === key
+  );
+}
+
 export function canonicalizeWorldConnections(connections, definition) {
   const order = new Map((definition?.regions ?? []).map((entry, index) => [entry.id, index]));
   return (Array.isArray(connections) ? connections : [])
@@ -40,7 +84,13 @@ export function canonicalizeWorldConnections(connections, definition) {
     });
 }
 
-function validateConnections(connections, regionById, errors, label = "connection") {
+function validateConnections(
+  connections,
+  regionById,
+  errors,
+  label = "connection",
+  definition = null
+) {
   if (!Array.isArray(connections)) {
     errors.push(`invalid ${label} list`);
     return;
@@ -52,6 +102,9 @@ function validateConnections(connections, regionById, errors, label = "connectio
     if (!regionById.has(a) || !regionById.has(b) || a === b) {
       errors.push(`invalid ${label} ${a ?? "?"}-${b ?? "?"}`);
       continue;
+    }
+    if (definition && !isWorldConnectionCandidate(definition, a, b)) {
+      errors.push(`non-adjacent ${label} ${a}-${b}`);
     }
     const key = getWorldConnectionKey(a, b);
     if (connectionKeys.has(key)) errors.push(`duplicate ${label} ${key}`);
@@ -128,7 +181,7 @@ export function validateWorldDefinition(definition, { requireConnected = false }
   }
 
   const neighbors = new Map(Array.from(regionById.keys(), (id) => [id, new Set()]));
-  validateConnections(connections, regionById, errors);
+  validateConnections(connections, regionById, errors, "connection", definition);
   for (const entry of connections) {
     const a = entry?.regionAId;
     const b = entry?.regionBId;
@@ -257,7 +310,7 @@ export function validateWorldState(state) {
   }
   validateConnections(state?.world?.connections, new Map(
     definition.regions.map((entry) => [entry.id, entry])
-  ), errors, "world-state connection");
+  ), errors, "world-state connection", definition);
   return { ok: errors.length === 0, errors };
 }
 
@@ -271,7 +324,7 @@ export function canonicalizeWorldState(state) {
 
 export function createWorldState(definitionId, detailedState, mechanicalDraft = null) {
   const definition = worldMapDefs[definitionId];
-  const validation = validateWorldDefinition(definition, { requireConnected: true });
+  const validation = validateWorldDefinition(definition);
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
   const draftRegionById = new Map(
     (Array.isArray(mechanicalDraft?.regions) ? mechanicalDraft.regions : [])

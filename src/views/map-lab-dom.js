@@ -1,6 +1,11 @@
 import { regionalPracticeDefs } from "../defs/gamepieces/regional-practice-defs.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
-import { REGION_COLOURS, REGION_CONTROLLERS, getRegionPolygon } from "../model/world-state.js";
+import {
+  REGION_COLOURS,
+  REGION_CONTROLLERS,
+  getRegionPolygon,
+  getWorldConnectionKey,
+} from "../model/world-state.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const FILL = { red: "#a95047", blue: "#527b9a", green: "#628a61", black: "#4a4a49" };
@@ -77,11 +82,14 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     .map-lab-map { width:100%; height:auto; display:block; background:#637067; border-radius:5px; touch-action:manipulation; }
     .map-lab-edge-halo { stroke:#17232b; stroke-width:8; opacity:.72; pointer-events:none; }
     .map-lab-edge { stroke:#f4e4b2; stroke-width:3.2; opacity:.88; pointer-events:none; }
+    .map-lab-candidate-edge { stroke:#d3dde3; stroke-width:2.2; stroke-dasharray:7 7; opacity:.55; pointer-events:none; }
     .map-lab-map.connection-editing .map-lab-edge-halo { stroke:#102b34; stroke-width:10; opacity:.9; }
     .map-lab-map.connection-editing .map-lab-edge { stroke:#72e5f2; stroke-width:4.2; opacity:1; }
     .map-lab-region { stroke:#ddd3b8; stroke-width:1.5; cursor:pointer; }
     .map-lab-region.selected { stroke:#f4cf69; stroke-width:5; }
     .map-lab-region.pending { stroke:#7bdff2; stroke-width:5; }
+    .map-lab-map.connection-editing .map-lab-region.connection-candidate { stroke:#b9f4fa; stroke-width:3; }
+    .map-lab-map.connection-editing .map-lab-region.connection-unavailable { opacity:.58; }
     .map-lab-label { fill:#fff8e9; font:700 12px Arial,sans-serif; text-anchor:middle; pointer-events:none; paint-order:stroke; stroke:#1d2327; stroke-width:3px; }
     .map-lab-marker { fill:#f4cf69; stroke:#20252a; stroke-width:2; pointer-events:none; }
     .map-lab-marker-text { fill:#20252a; font:800 11px Arial,sans-serif; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
@@ -122,13 +130,26 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     svg.dataset.testid = "map-lab-map";
     const evaluationByRegion = new Map(snapshot.evaluations.map((entry) => [entry.regionId, entry]));
     const labelPoint = (id) => definition.regions.find((entry) => entry.id === id)?.display?.labelPoint;
+    const activeKeys = new Set(snapshot.draft.connections.map((edge) =>
+      getWorldConnectionKey(edge.regionAId, edge.regionBId)
+    ));
+    const candidateRegionIds = new Set((snapshot.connectionCandidates ?? []).flatMap((edge) => {
+      if (edge.regionAId === snapshot.connectionStartRegionId) return [edge.regionBId];
+      if (edge.regionBId === snapshot.connectionStartRegionId) return [edge.regionAId];
+      return [];
+    }));
     for (const regionDef of definition.regions) {
       const region = snapshot.draft.regions.find((entry) => entry.id === regionDef.id);
       const polygon = document.createElementNS(SVG_NS, "polygon");
       polygon.setAttribute("points", getRegionPolygon(definition, regionDef)
         .map((point) => `${point.x * 1000},${point.y * 600}`).join(" "));
       polygon.setAttribute("fill", FILL[region.colour] ?? "#666");
-      polygon.setAttribute("class", `map-lab-region${snapshot.selectedRegionId === region.id ? " selected" : ""}${snapshot.connectionStartRegionId === region.id ? " pending" : ""}`);
+      const candidateClass = connectionMode && snapshot.connectionStartRegionId
+        ? candidateRegionIds.has(region.id)
+          ? " connection-candidate"
+          : region.id === snapshot.connectionStartRegionId ? "" : " connection-unavailable"
+        : "";
+      polygon.setAttribute("class", `map-lab-region${snapshot.selectedRegionId === region.id ? " selected" : ""}${snapshot.connectionStartRegionId === region.id ? " pending" : ""}${candidateClass}`);
       polygon.dataset.regionId = region.id;
       polygon.dataset.testid = `map-lab-region-${region.id}`;
       polygon.setAttribute("role", "button");
@@ -137,6 +158,20 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
         ? controller.beginOrToggleConnection(region.id)
         : controller.selectRegion(region.id));
       svg.appendChild(polygon);
+    }
+    if (connectionMode) {
+      for (const edge of snapshot.connectionCandidates ?? []) {
+        if (activeKeys.has(getWorldConnectionKey(edge.regionAId, edge.regionBId))) continue;
+        const a = labelPoint(edge.regionAId);
+        const b = labelPoint(edge.regionBId);
+        if (!a || !b) continue;
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", a.x * 1000); line.setAttribute("y1", a.y * 600);
+        line.setAttribute("x2", b.x * 1000); line.setAttribute("y2", b.y * 600);
+        line.setAttribute("class", "map-lab-candidate-edge");
+        line.dataset.connectionCandidate = `${edge.regionAId}|${edge.regionBId}`;
+        svg.appendChild(line);
+      }
     }
     for (const edge of snapshot.draft.connections) {
       const a = labelPoint(edge.regionAId);
@@ -183,7 +218,7 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     }
     wrap.appendChild(svg);
     wrap.appendChild(el("div", "map-lab-note", connectionMode
-      ? (snapshot.connectionStartRegionId ? `Cyan lines are active connections. First region: ${regionName(definition, snapshot.connectionStartRegionId)}. Choose another.` : "Cyan lines are active connections. Choose the first region, then the second.")
+      ? (snapshot.connectionStartRegionId ? `Cyan lines are active; dashed lines are available shared-edge connections. First region: ${regionName(definition, snapshot.connectionStartRegionId)}. Choose a highlighted neighbour.` : "Cyan lines are active; dashed lines are available shared-edge connections. Choose the first region, then an adjacent region.")
       : "Scores appear only on eligible player regions with spare capacity."));
     return wrap;
   }
