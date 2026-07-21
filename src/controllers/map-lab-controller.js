@@ -7,6 +7,7 @@ import {
   canonicalizeMapLabDraft,
   createAuthoredMapLabDraft,
   evaluateMapLabPractice,
+  getMapLabConnectionCandidates,
   getMapLabDiagnostics,
   moveMapLabPractice,
   parseMapLabDraftJson,
@@ -109,6 +110,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
         id: entry.id,
         name: entry.name,
       })),
+      connectionCandidates: getMapLabConnectionCandidates(draft),
       evaluations: evaluateMapLabPractice(draft, selectedPracticeId),
       diagnostics: getMapLabDiagnostics(draft),
     };
@@ -153,9 +155,12 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       const first = connectionStartRegionId;
       const result = toggleMapLabConnection(draft, first, regionId);
       if (!result.ok) {
-        setStatus(result.reason === "selfConnection"
+        const message = result.reason === "selfConnection"
           ? "A region cannot connect to itself; choose a different region."
-          : result.reason, "error");
+          : result.reason === "notPolygonAdjacent"
+            ? "Those regions cannot connect because they do not share a polygon edge."
+            : result.reason;
+        setStatus(message, "error");
         notify();
         return result;
       }

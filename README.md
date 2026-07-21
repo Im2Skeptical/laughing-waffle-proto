@@ -42,7 +42,9 @@ playtest builds. It edits a separate browser draft and does not change the runni
 **Start fresh test run** is confirmed.
 
 The editor supports region colour, controller, capacity, ordered duplicate practices, undirected
-connections, hypothetical scores, and all-practice diagnostics. A valid draft autosaves under
+connections between polygons that share an edge, hypothetical scores, and all-practice diagnostics.
+Connection editing shows active edges in cyan and currently available shared-edge pairs as dashed
+lines. A valid draft autosaves under
 `civsurvivor.mapLabDraft.v1`. Reset restores the authored map; Import / Export works with JSON.
 
 The exported schema is version 1 and contains mechanical data only:
@@ -81,7 +83,9 @@ Map Lab's scenario selector includes:
 - **Milestone 2 — Blank Suitability** (`devMilestone2Blank01`)
 - **Milestone 2 — Sparse Interactions** (`devMilestone2Sparse01`)
 
-The blank configuration is also the authored default used by `devPlaytesting01`. Mechanical JSON
+The blank configuration is also the authored default used by `devPlaytesting01`. All authored
+connections follow visible shared polygon edges. Outer Isles has no shared polygon edge and is
+therefore an isolated component in this experiment. Mechanical JSON
 exports are available at `exports/milestone2-blank-01.json` and
 `exports/milestone2-sparse-01.json`. The diagnostic matrices and first-pass revision notes are in
 `ai/milestone2-substage3-report.md`.

@@ -5,6 +5,7 @@ import {
   addMapLabPractice,
   createAuthoredMapLabDraft,
   evaluateMapLabPractice,
+  getMapLabConnectionCandidates,
   getMapLabConnectedComponents,
   getMapLabDiagnostics,
   moveMapLabPractice,
@@ -37,11 +38,13 @@ function testDefaultAndJsonRoundTrip() {
   bad.regions[0].installedPracticeIds = ["unknown"];
   bad.regions[0].capacity = 0;
   bad.connections.push({ regionAId: "river-crown", regionBId: "river-crown" });
+  bad.connections.push({ regionAId: "west-levee", regionBId: "lake-country" });
   const validation = validateMapLabDraft(bad);
   assert.equal(validation.ok, false);
   assert.ok(validation.errors.some((entry) => entry.includes("exceed capacity")));
   assert.ok(validation.errors.some((entry) => entry.includes("invalid practice")));
   assert.ok(validation.errors.some((entry) => entry.includes("self-connections")));
+  assert.ok(validation.errors.some((entry) => entry.includes("do not share a polygon edge")));
 }
 
 function testEditingAndCapacity() {
@@ -64,28 +67,35 @@ function testEditingAndCapacity() {
 
 function testConnectionsAndComponents() {
   let draft = createAuthoredMapLabDraft();
+  const candidates = getMapLabConnectionCandidates(draft);
+  assert.equal(candidates.length, 25);
+  assert.equal(candidates.some((entry) =>
+    entry.regionAId === "outer-isles" || entry.regionBId === "outer-isles"
+  ), false);
   assert.equal(toggleMapLabConnection(draft, "river-crown", "river-crown").reason, "selfConnection");
-  let result = toggleMapLabConnection(draft, "salt-coast", "outer-isles");
-  assert.equal(result.connected, false); draft = result.draft;
+  assert.equal(toggleMapLabConnection(draft, "west-levee", "lake-country").reason, "notPolygonAdjacent");
   assert.equal(getMapLabConnectedComponents(draft).length, 2);
-  result = toggleMapLabConnection(draft, "outer-isles", "salt-coast");
+  let result = toggleMapLabConnection(draft, "black-marsh", "salt-coast");
+  assert.equal(result.connected, false); draft = result.draft;
+  assert.equal(getMapLabConnectedComponents(draft).length, 3);
+  result = toggleMapLabConnection(draft, "salt-coast", "black-marsh");
   assert.equal(result.connected, true); draft = result.draft;
-  assert.equal(getMapLabConnectedComponents(draft).length, 1);
-  assert.equal(draft.connections.filter((entry) => [entry.regionAId, entry.regionBId].includes("outer-isles")).length, 1);
+  assert.equal(getMapLabConnectedComponents(draft).length, 2);
+  assert.equal(draft.connections.filter((entry) => [entry.regionAId, entry.regionBId].includes("outer-isles")).length, 0);
 }
 
 function testEvaluationAndDiagnostics() {
   const draft = createAuthoredMapLabDraft();
   const before = serializeMapLabDraft(draft);
   const exchange = evaluateMapLabPractice(draft, "exchange");
-  assert.equal(exchange.find((entry) => entry.regionId === "river-crown").evaluation.score, 5);
+  assert.equal(exchange.find((entry) => entry.regionId === "river-crown").evaluation.score, 4);
   assert.equal(exchange.find((entry) => entry.regionId === "iron-hills").eligible, false);
   assert.equal(serializeMapLabDraft(draft), before, "evaluation mutated the draft");
   const diagnostics = getMapLabDiagnostics(draft);
   assert.equal(diagnostics.practices.length, 6);
   assert.equal(diagnostics.practices.find((entry) => entry.practiceId === "store").flat, true);
   assert.deepEqual(diagnostics.practices.find((entry) => entry.practiceId === "cultivate").bestRegionIds, ["upper-floodplain"]);
-  assert.ok(diagnostics.dominantRegions.some((entry) => entry.regionId === "river-crown"));
+  assert.ok(diagnostics.dominantRegions.some((entry) => entry.regionId === "west-levee"));
 
   const sharedWinnerDraft = createAuthoredMapLabDraft();
   const river = sharedWinnerDraft.regions.find((entry) => entry.id === "river-crown");
@@ -106,7 +116,7 @@ function testEvaluationAndDiagnostics() {
 
 function testFreshScenarioReplayParity() {
   let draft = createAuthoredMapLabDraft();
-  draft = toggleMapLabConnection(draft, "salt-coast", "outer-isles").draft;
+  draft = toggleMapLabConnection(draft, "black-marsh", "salt-coast").draft;
   draft = updateMapLabRegion(draft, "river-crown", { colour: "blue", capacity: 5 }).draft;
   draft = addMapLabPractice(draft, "river-crown", "exchange").draft;
   const state = createInitialState({
@@ -115,12 +125,12 @@ function testFreshScenarioReplayParity() {
   }, 12345);
   assert.equal(validateWorldState(state).ok, true);
   assert.equal(state.tSec, 0);
-  assert.equal(getConnectedRegionIds(state, "outer-isles").length, 0);
+  assert.equal(getConnectedRegionIds(state, "salt-coast").length, 0);
   assert.equal(getRegionState(state, "river-crown").colour, "blue");
   draft.regions.find((entry) => entry.id === "river-crown").colour = "red";
   assert.equal(getRegionState(state, "river-crown").colour, "blue", "applied state shares draft references");
   const score = evaluateRegionalPracticePlacement(state, { regionId: "river-crown", practiceId: "exchange" });
-  assert.equal(score.score, 5);
+  assert.equal(score.score, 4);
   const timeline = createTimelineFromInitialState(state);
   const first = rebuildStateAtSecond(timeline, 8);
   const second = rebuildStateAtSecond(timeline, 8);

@@ -8,6 +8,8 @@ import {
   REGION_CONTROLLERS,
   canonicalizeWorldConnections,
   getWorldConnectionKey,
+  getWorldConnectionCandidates,
+  isWorldConnectionCandidate,
 } from "./world-state.js";
 import {
   evaluateRegionalPracticePlacement,
@@ -127,6 +129,9 @@ export function validateMapLabDraft(value) {
       if (!expectedIds.has(b)) errors.push(`${path}.regionBId: unknown region ${String(b)}`);
       if (a === b) errors.push(`${path}: self-connections are not allowed`);
       if (expectedIds.has(a) && expectedIds.has(b) && a !== b) {
+        if (!isWorldConnectionCandidate(definition, a, b)) {
+          errors.push(`${path}: ${a} and ${b} do not share a polygon edge`);
+        }
         const key = getWorldConnectionKey(a, b);
         if (connectionKeys.has(key)) errors.push(`${path}: duplicate undirected connection ${key}`);
         connectionKeys.add(key);
@@ -211,6 +216,9 @@ export function toggleMapLabConnection(draft, regionAId, regionBId) {
   const definition = getDefinition(draft?.worldDefinitionId);
   const validIds = new Set(definition?.regions?.map((entry) => entry.id) ?? []);
   if (!validIds.has(regionAId) || !validIds.has(regionBId)) return { ok: false, reason: "invalidRegionId" };
+  if (!isWorldConnectionCandidate(definition, regionAId, regionBId)) {
+    return { ok: false, reason: "notPolygonAdjacent" };
+  }
   const key = getWorldConnectionKey(regionAId, regionBId);
   let connected = true;
   const result = updateDraft(draft, (next) => {
@@ -225,6 +233,10 @@ export function toggleMapLabConnection(draft, regionAId, regionBId) {
     }
   });
   return { ...result, connected };
+}
+
+export function getMapLabConnectionCandidates(draft) {
+  return getWorldConnectionCandidates(getDefinition(draft?.worldDefinitionId));
 }
 
 export function getMapLabConnectedComponents(draft) {
@@ -316,4 +328,3 @@ export function getMapLabDiagnostics(draft) {
   const components = getMapLabConnectedComponents(draft);
   return { practices, sharedSoleBestRegions, dominantRegions, components, disconnected: components.length > 1 };
 }
-

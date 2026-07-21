@@ -165,7 +165,7 @@ The generic engine still retains concepts like editable history windows, truncat
 - `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
 - Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
 - Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
-- Connections are immutable, undirected, unweighted, and mechanically identical. Outer Isles connects explicitly to Salt Coast.
+- Connections are immutable, undirected, unweighted, and mechanically identical. A connection is valid only when the two immutable region polygons share a complete edge. Outer Isles shares no polygon edge and is therefore isolated in the current artwork.
 - Regional practices are separate from settlement-local practices. Hypothetical and installed-practice evaluators are pure and use base score 1 with no cap.
 - The global regional-practice scoreboard sums the current score of every installed practice. Score presentation uses bronze for 1, silver for 2, gold for 3, and diamond for 4 or more.
 - Installing or uninstalling a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority. Uninstallation targets the installed slot index so duplicate IDs and order remain unambiguous.
@@ -177,8 +177,8 @@ The generic engine still retains concepts like editable history windows, truncat
 - Map selection and map/settlement view mode are runtime UI state and never timeline actions.
 - Debug > Map Lab edits a versioned plain-data draft outside `GameState`, time, RNG, timeline, replay, and projection. It supports mechanical JSON import/export, one local browser draft, score overlays, and compact evaluator diagnostics.
 - Applying a valid Map Lab draft is explicit and destructive to the current run: after confirmation it creates a fresh deterministic `tSec = 0` scenario and timeline while retaining the authored River Crown settlement data.
-- Disconnected Map Lab drafts are valid but display a connected-component warning. The tool does not optimize or balance maps.
-- The first authored Milestone 2 configuration uses four connected player regions, three frontier regions, and eight external regions. The blank form is the default map; Map Lab can load blank and sparse-interaction presets. The sparse form demonstrates Store, Study, and Administer while leaving one open slot in every player region.
+- Disconnected Map Lab drafts are valid but display a connected-component warning. Connection editing shows both active edges and available shared-edge candidates, and rejects non-adjacent pairs. The tool does not optimize or balance maps.
+- The revised first authored Milestone 2 configuration uses four connected player regions, three frontier regions, eight external regions, and 17 active shared-edge connections. The blank form is the default map; Map Lab can load blank and sparse-interaction presets. The sparse form demonstrates Store, Study, and Administer while leaving one open slot in every player region.
 - The authoritative Substage 3 diagnostic record and score matrices live in `ai/milestone2-substage3-report.md`.
 
 ### Vassal progression

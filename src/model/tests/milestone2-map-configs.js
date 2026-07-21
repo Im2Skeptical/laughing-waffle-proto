@@ -12,7 +12,12 @@ import {
   getMapLabDiagnostics,
   validateMapLabDraft,
 } from "../map-lab-draft.js";
-import { getConnectedRegionIds, getRegionState } from "../world-state.js";
+import { worldMapDefs } from "../../defs/world/world-map-defs.js";
+import {
+  getConnectedRegionIds,
+  getRegionState,
+  isWorldConnectionCandidate,
+} from "../world-state.js";
 
 const PLAYER_REGION_IDS = ["west-levee", "upper-floodplain", "river-crown", "lake-country"];
 const PRACTICE_IDS = ["cultivate", "store", "study", "mobilize", "administer", "exchange"];
@@ -21,18 +26,18 @@ const EXPECTED_BLANK_MATRIX = {
   cultivate: [2, 3, 2, 1],
   store: [1, 1, 1, 1],
   study: [1, 1, 1, 1],
-  mobilize: [4, 1, 3, 4],
+  mobilize: [4, 1, 2, 4],
   administer: [1, 1, 1, 1],
-  exchange: [6, 4, 5, 7],
+  exchange: [5, 3, 4, 5],
 };
 
 const EXPECTED_SPARSE_MATRIX = {
   cultivate: [2, 3, 2, 1],
   store: [3, 1, 1, 2],
   study: [2, 3, 2, 3],
-  mobilize: [4, 1, 3, 4],
+  mobilize: [4, 1, 2, 4],
   administer: [3, 2, 2, 3],
-  exchange: [6, 4, 5, 7],
+  exchange: [5, 3, 4, 5],
 };
 
 function matrixForDraft(draft) {
@@ -60,9 +65,9 @@ function neighbors(draft, regionId) {
 function testMechanicalShapeAndPolitics() {
   for (const draft of [milestone2BlankDraft, milestone2SparseDraft]) {
     assert.equal(validateMapLabDraft(draft).ok, true);
-    assert.equal(getMapLabConnectedComponents(draft).length, 1);
+    assert.equal(getMapLabConnectedComponents(draft).length, 2);
     assert.equal(draft.regions.length, 15);
-    assert.equal(draft.connections.length, 23);
+    assert.equal(draft.connections.length, 17);
     assert.equal(draft.regions.filter((entry) => entry.controller === "player").length, 4);
     assert.equal(draft.regions.filter((entry) => entry.controller === "frontier").length, 3);
     assert.equal(draft.regions.filter((entry) => entry.controller === "external-a").length, 4);
@@ -73,17 +78,23 @@ function testMechanicalShapeAndPolitics() {
       === "capacity|colour|controller|id|installedPracticeIds"));
     assert.ok(draft.connections.every((entry) => Object.keys(entry).sort().join("|")
       === "regionAId|regionBId"));
+    assert.ok(draft.connections.every((entry) => isWorldConnectionCandidate(
+      worldMapDefs.riverBasin01,
+      entry.regionAId,
+      entry.regionBId
+    )), "every authored connection follows a shared polygon edge");
   }
 
   assert.ok(milestone2BlankDraft.regions.every((entry) => entry.installedPracticeIds.length === 0));
   assert.ok(milestone2SparseDraft.regions
     .filter((entry) => entry.controller === "player")
     .every((entry) => entry.installedPracticeIds.length === entry.capacity - 1));
-  assert.equal(degree(milestone2BlankDraft, "lake-country"), 6, "Lake Country is the high-connectivity hub");
-  assert.equal(degree(milestone2BlankDraft, "upper-floodplain"), 3);
+  assert.equal(degree(milestone2BlankDraft, "lake-country"), 4, "Lake Country is a high-connectivity hub");
+  assert.equal(degree(milestone2BlankDraft, "upper-floodplain"), 2);
   assert.ok(neighbors(milestone2BlankDraft, "upper-floodplain").every((id) => PLAYER_REGION_IDS.includes(id)),
     "Upper Floodplain is politically deep");
-  assert.equal(degree(milestone2BlankDraft, "outer-isles"), 1, "Outer Isles is peripheral");
+  assert.equal(degree(milestone2BlankDraft, "outer-isles"), 0, "Outer Isles has no shared polygon edge");
+  assert.equal(degree(milestone2BlankDraft, "salt-coast"), 1, "Salt Coast is the peripheral mainland branch");
   assert.deepEqual(neighbors(milestone2BlankDraft, "high-pass").sort(), ["copper-basin", "iron-hills"]);
 
   const withoutBottleneck = canonicalizeMapLabDraft(milestone2BlankDraft);
@@ -91,19 +102,22 @@ function testMechanicalShapeAndPolitics() {
     [entry.regionAId, entry.regionBId].includes("black-marsh")
     && [entry.regionAId, entry.regionBId].includes("salt-coast")
   ));
-  assert.equal(getMapLabConnectedComponents(withoutBottleneck).length, 2, "Black Marsh–Salt Coast is a bottleneck edge");
+  assert.equal(getMapLabConnectedComponents(withoutBottleneck).length, 3, "Black Marsh–Salt Coast is a bottleneck edge");
 
   const lakeNeighborColours = new Set(neighbors(milestone2BlankDraft, "lake-country")
     .map((id) => milestone2BlankDraft.regions.find((entry) => entry.id === id).colour));
   assert.deepEqual(lakeNeighborColours, new Set(["red", "blue", "green", "black"]));
   assert.equal(milestone2BlankDraft.regions.filter((entry) => entry.colour === "blue").length, 3);
-  assert.ok(neighbors(milestone2BlankDraft, "lake-country").includes("reed-delta"));
-  assert.equal(milestone2BlankDraft.regions.find((entry) => entry.id === "reed-delta").controller, "external-b");
+  assert.ok(neighbors(milestone2BlankDraft, "lake-country").includes("black-marsh"));
+  assert.equal(milestone2BlankDraft.regions.find((entry) => entry.id === "black-marsh").controller, "frontier");
 
-  const playerEdgeCount = milestone2BlankDraft.connections.filter((entry) =>
-    PLAYER_REGION_IDS.includes(entry.regionAId) && PLAYER_REGION_IDS.includes(entry.regionBId)
-  ).length;
-  assert.ok(playerEdgeCount >= PLAYER_REGION_IDS.length, "player territory contains a loop");
+  const externalLoopEdges = [
+    ["copper-basin", "east-steppe"],
+    ["east-steppe", "obsidian-ridge"],
+    ["copper-basin", "obsidian-ridge"],
+  ];
+  assert.ok(externalLoopEdges.every(([left, right]) => neighbors(milestone2BlankDraft, left).includes(right)),
+    "external territory contains a loop");
 }
 
 function testMatricesAndDiagnostics() {
@@ -133,7 +147,7 @@ function testNamedScenariosAndExports() {
   const sparseState = createInitialState("devMilestone2Sparse01", 12345);
   assert.deepEqual(getRegionState(blankState, "west-levee").installedPracticeIds, []);
   assert.deepEqual(getRegionState(sparseState, "west-levee").installedPracticeIds, ["store", "store"]);
-  assert.equal(getConnectedRegionIds(sparseState, "lake-country").length, 6);
+  assert.equal(getConnectedRegionIds(sparseState, "lake-country").length, 4);
 
   const blankExport = JSON.parse(readFileSync(
     new URL("../../../exports/milestone2-blank-01.json", import.meta.url), "utf8"

@@ -122,15 +122,23 @@ try {
   });
   assert.equal(edgePresentation.editing, true);
   assert.ok(edgePresentation.firstEdgeIndex > edgePresentation.lastPolygonIndex, "Active edges must render above region fills");
+  assert.ok(await page.locator(".map-lab-candidate-edge").count() > 0, "Available shared-edge connections should be visible");
+  await page.getByTestId("map-lab-region-black-marsh").click();
+  assert.ok(await page.locator(".map-lab-region.connection-candidate").count() > 0,
+    "Selecting a first region should highlight its polygon-adjacent candidates");
   await page.getByTestId("map-lab-region-salt-coast").click();
-  await page.getByTestId("map-lab-region-outer-isles").click();
   assert.equal(await page.locator(".map-lab-edge").count(), edgeCount - 1);
+  await page.getByTestId("map-lab-region-west-levee").click();
+  await page.getByTestId("map-lab-region-lake-country").click();
+  assert.match(await page.getByTestId("map-lab-status").innerText(), /do not share a polygon edge/);
+  await page.getByTestId("map-lab-connections").click();
+  await page.getByTestId("map-lab-connections").click();
   await page.getByTestId("map-lab-region-river-crown").click();
   await page.getByTestId("map-lab-region-river-crown").click();
   assert.match(await page.getByTestId("map-lab-status").innerText(), /cannot connect to itself/);
   await page.getByTestId("map-lab-connections").click();
   await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-region-outer-isles").click();
+  await page.getByTestId("map-lab-region-black-marsh").click();
   await page.getByTestId("map-lab-region-salt-coast").click();
   assert.equal(await page.locator(".map-lab-edge").count(), edgeCount);
   await page.getByTestId("map-lab-connections").click();
