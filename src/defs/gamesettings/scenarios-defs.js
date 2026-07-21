@@ -1,9 +1,12 @@
 // scenarios-defs.js - human-authored start scenarios (pure data)
 import { INITIAL_POPULATION_DEFAULT } from "./gamerules-defs.js";
 import { DEFAULT_VARIANT_FLAGS } from "./variant-flags-defs.js";
+import {
+  milestone2BlankDraft,
+  milestone2SparseDraft,
+} from "../world/milestone2-map-configs.js";
 
-export const setupDefs = {
-  devPlaytesting01: {
+const devPlaytestingSetup = {
     variantFlags: {
       ...DEFAULT_VARIANT_FLAGS,
       settlementPrototypeEnabled: true,
@@ -121,5 +124,16 @@ export const setupDefs = {
         },
       },
     },
+};
+
+export const setupDefs = {
+  devPlaytesting01: devPlaytestingSetup,
+  devMilestone2Blank01: {
+    ...devPlaytestingSetup,
+    worldDraft: milestone2BlankDraft,
+  },
+  devMilestone2Sparse01: {
+    ...devPlaytestingSetup,
+    worldDraft: milestone2SparseDraft,
   },
 };

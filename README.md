@@ -74,6 +74,18 @@ older prototype saves.
 
 Run `npm run probe:map-lab` after `npm run build` for the dedicated browser smoke test.
 
+### Milestone 2 authored test scenarios
+
+Map Lab's scenario selector includes:
+
+- **Milestone 2 — Blank Suitability** (`devMilestone2Blank01`)
+- **Milestone 2 — Sparse Interactions** (`devMilestone2Sparse01`)
+
+The blank configuration is also the authored default used by `devPlaytesting01`. Mechanical JSON
+exports are available at `exports/milestone2-blank-01.json` and
+`exports/milestone2-sparse-01.json`. The diagnostic matrices and first-pass revision notes are in
+`ai/milestone2-substage3-report.md`.
+
 ## Mobile Playtest With GitHub Pages
 
 ### One-time setup
