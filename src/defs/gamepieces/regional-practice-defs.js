@@ -4,7 +4,7 @@ export const REGIONAL_PRACTICE_SCORE_RULES = Object.freeze({
   DISTINCT_LOCAL_NON_SELF: "distinctLocalNonSelf",
   ADJACENT_NON_PLAYER: "adjacentNonPlayer",
   CONNECTED_PLAYER_PRACTICE_REGIONS: "connectedPlayerPracticeRegions",
-  HOST_CONNECTION_COUNT: "hostConnectionCount",
+  ADJACENT_DIFFERENT_COLOUR: "adjacentDifferentColour",
 });
 
 export const regionalPracticeDefs = Object.freeze({
@@ -36,7 +36,7 @@ export const regionalPracticeDefs = Object.freeze({
   exchange: Object.freeze({
     id: "exchange",
     name: "Exchange",
-    scoreRule: REGIONAL_PRACTICE_SCORE_RULES.HOST_CONNECTION_COUNT,
+    scoreRule: REGIONAL_PRACTICE_SCORE_RULES.ADJACENT_DIFFERENT_COLOUR,
   }),
 });
 

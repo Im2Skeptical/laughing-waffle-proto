@@ -28,7 +28,7 @@ const EXPECTED_BLANK_MATRIX = {
   study: [1, 1, 1, 1],
   mobilize: [4, 1, 2, 4],
   administer: [1, 1, 1, 1],
-  exchange: [5, 3, 4, 5],
+  exchange: [4, 1, 3, 4],
 };
 
 const EXPECTED_SPARSE_MATRIX = {
@@ -37,7 +37,7 @@ const EXPECTED_SPARSE_MATRIX = {
   study: [2, 3, 2, 3],
   mobilize: [4, 1, 2, 4],
   administer: [3, 2, 2, 3],
-  exchange: [5, 3, 4, 5],
+  exchange: [4, 1, 3, 4],
 };
 
 function matrixForDraft(draft) {
