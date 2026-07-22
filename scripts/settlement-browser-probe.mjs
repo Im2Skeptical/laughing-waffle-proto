@@ -105,8 +105,8 @@ function assertWorldMapSemantics(snapshot) {
   const initialExchange = map?.selectedRegion?.practiceOptions?.find(
     (option) => option.practiceId === "exchange"
   );
-  if (initialExchange?.evaluation?.score !== 4 || initialExchange?.scoreTier !== "diamond") {
-    missing.push("uncapped diamond Exchange score");
+  if (initialExchange?.evaluation?.score !== 3 || initialExchange?.scoreTier !== "gold") {
+    missing.push("different-colour Exchange score");
   }
   if (Object.prototype.hasOwnProperty.call(map ?? {}, "routePlanner")) missing.push("no route planner");
   if (map?.selectedRegion?.practiceOptions?.some((option) =>

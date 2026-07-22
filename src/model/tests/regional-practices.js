@@ -82,8 +82,15 @@ function testEvaluators() {
   );
 
   const exchange = evaluateWithoutMutation(freshState(), "river-crown", "exchange");
-  assert.equal(exchange.score, 4);
-  assert.equal(exchange.diagnostics.connectedRegionIds.length, 3);
+  assert.equal(exchange.score, 3);
+  assert.deepEqual(exchange.diagnostics.differentColourRegionIds, ["reed-delta", "lake-country"]);
+
+  const homogeneousExchangeState = freshState();
+  getRegionState(homogeneousExchangeState, "reed-delta").colour = "red";
+  getRegionState(homogeneousExchangeState, "lake-country").colour = "red";
+  const homogeneousExchange = evaluateWithoutMutation(homogeneousExchangeState, "river-crown", "exchange");
+  assert.equal(homogeneousExchange.score, 1);
+  assert.deepEqual(homogeneousExchange.diagnostics.differentColourRegionIds, []);
 
   assert.deepEqual(
     evaluateRegionalPracticePlacement(freshState(), { regionId: "river-crown", practiceId: "invalid" }),
@@ -113,12 +120,12 @@ function testInstalledScoresAndScoreboard() {
 
   assert.equal(firstStore.score, 2);
   assert.equal(secondStore.score, 2);
-  assert.equal(exchange.score, 4);
+  assert.equal(exchange.score, 3);
   assert.equal(scoreboard.ok, true);
   assert.equal(scoreboard.installedCount, 3);
-  assert.equal(scoreboard.totalScore, 8);
+  assert.equal(scoreboard.totalScore, 7);
   assert.deepEqual(scoreboard.byPracticeId.store, { count: 2, totalScore: 4 });
-  assert.deepEqual(scoreboard.byPracticeId.exchange, { count: 1, totalScore: 4 });
+  assert.deepEqual(scoreboard.byPracticeId.exchange, { count: 1, totalScore: 3 });
   assert.deepEqual(serializeGameState(state), before, "installed scoring mutated state");
 }
 

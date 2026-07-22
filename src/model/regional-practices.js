@@ -84,12 +84,17 @@ function connectedPlayerPracticeRegions(state, host, practiceId, hypotheticalPra
   );
 }
 
-function hostConnectionCount(state, host) {
-  const connectedRegionIds = getConnectedRegionIds(state, host.id);
+function adjacentDifferentColour(state, host) {
+  const matchingRegionIds = getConnectedRegionIds(state, host.id).filter(
+    (regionId) => getRegionState(state, regionId)?.colour !== host.colour
+  );
+  const count = matchingRegionIds.length;
+  const regionLabel = `adjacent region${count === 1 ? "" : "s"}`;
+  const verb = count === 1 ? "has" : "have";
   return bonusResult(
-    connectedRegionIds.length,
-    `${connectedRegionIds.length} host connection${connectedRegionIds.length === 1 ? "" : "s"}`,
-    { connectedRegionIds }
+    count,
+    `${count} ${regionLabel} ${verb} a different colour from ${host.colour}`,
+    { differentColourRegionIds: matchingRegionIds }
   );
 }
 
@@ -99,7 +104,7 @@ const SCORE_RULE_EVALUATORS = Object.freeze({
   [REGIONAL_PRACTICE_SCORE_RULES.DISTINCT_LOCAL_NON_SELF]: distinctLocalNonSelf,
   [REGIONAL_PRACTICE_SCORE_RULES.ADJACENT_NON_PLAYER]: adjacentNonPlayer,
   [REGIONAL_PRACTICE_SCORE_RULES.CONNECTED_PLAYER_PRACTICE_REGIONS]: connectedPlayerPracticeRegions,
-  [REGIONAL_PRACTICE_SCORE_RULES.HOST_CONNECTION_COUNT]: hostConnectionCount,
+  [REGIONAL_PRACTICE_SCORE_RULES.ADJACENT_DIFFERENT_COLOUR]: adjacentDifferentColour,
 });
 
 export function validateRegionalPracticeInstallation(state, { regionId, practiceId } = {}) {

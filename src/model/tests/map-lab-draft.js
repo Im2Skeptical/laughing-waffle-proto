@@ -88,7 +88,7 @@ function testEvaluationAndDiagnostics() {
   const draft = createAuthoredMapLabDraft();
   const before = serializeMapLabDraft(draft);
   const exchange = evaluateMapLabPractice(draft, "exchange");
-  assert.equal(exchange.find((entry) => entry.regionId === "river-crown").evaluation.score, 4);
+  assert.equal(exchange.find((entry) => entry.regionId === "river-crown").evaluation.score, 3);
   assert.equal(exchange.find((entry) => entry.regionId === "iron-hills").eligible, false);
   assert.equal(serializeMapLabDraft(draft), before, "evaluation mutated the draft");
   const diagnostics = getMapLabDiagnostics(draft);
@@ -130,7 +130,7 @@ function testFreshScenarioReplayParity() {
   draft.regions.find((entry) => entry.id === "river-crown").colour = "red";
   assert.equal(getRegionState(state, "river-crown").colour, "blue", "applied state shares draft references");
   const score = evaluateRegionalPracticePlacement(state, { regionId: "river-crown", practiceId: "exchange" });
-  assert.equal(score.score, 4);
+  assert.equal(score.score, 3);
   const timeline = createTimelineFromInitialState(state);
   const first = rebuildStateAtSecond(timeline, 8);
   const second = rebuildStateAtSecond(timeline, 8);

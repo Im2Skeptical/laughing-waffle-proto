@@ -46,7 +46,7 @@ Test whether a minimal nodal geography can make regions non-interchangeable befo
 - **Study:** distinct non-Study practices in the same region.
 - **Mobilize:** adjacent non-player regions.
 - **Administer:** connected player-controlled Administer component.
-- **Exchange:** host-region connection count.
+- **Exchange:** adjacent regions whose colour differs from the host region.
 
 Evaluators must score a proposed placement without mutating the supplied game state. Scores use base `1` plus the full applicable bonus with no cap.
 

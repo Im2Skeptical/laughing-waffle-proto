@@ -36,7 +36,7 @@ Scores are hypothetical placements in eligible player regions. Column order is W
 | Study | 1 | 1 | 1 | 1 |
 | Mobilize | 4 | 1 | 2 | 4 |
 | Administer | 1 | 1 | 1 | 1 |
-| Exchange | 5 | 3 | 4 | 5 |
+| Exchange | 4 | 1 | 3 | 4 |
 
 Store, Study, and Administer are intentionally flat when the tableau is blank; this scenario isolates spatial suitability.
 
@@ -49,20 +49,22 @@ Store, Study, and Administer are intentionally flat when the tableau is blank; t
 | Study | 2 | 3 | 2 | 3 |
 | Mobilize | 4 | 1 | 2 | 4 |
 | Administer | 3 | 2 | 2 | 3 |
-| Exchange | 5 | 3 | 4 | 5 |
+| Exchange | 4 | 1 | 3 | 4 |
 
 No sparse-scenario evaluator is flat. Best regions differ: Upper Floodplain for Cultivate; West Levee for Store; Upper Floodplain/Lake Country for Study; and West Levee/Lake Country for Mobilize, Administer, and Exchange.
 
 ## Diagnostic revision
 
-The first shared-edge pass omitted West Levee–Iron Hills and included Black Marsh–Obsidian Ridge. Lake Country was then the sole best region for both Mobilize and Exchange, scoring 4 and 5 respectively. It appeared in five evaluator best-sets.
+The first shared-edge pass omitted West Levee–Iron Hills and included Black Marsh–Obsidian Ridge. Lake Country was then the sole best region for both Mobilize and Exchange, scoring 4 for each. It appeared in five evaluator best-sets.
 
 The revision:
 
-- added the legal West Levee–Iron Hills edge, raising West Levee's Mobilize and Exchange scores to tie Lake Country;
+- added the legal West Levee–Iron Hills edge, raising West Levee's Mobilize and different-colour Exchange scores to tie Lake Country;
 - removed Black Marsh–Obsidian Ridge, making Black Marsh–Salt Coast a clearer bottleneck and preserving the peripheral mainland branch.
 
 The final sparse diagnostics contain no shared sole-best region. West Levee and Lake Country each appear in four best-sets, Upper Floodplain appears in two, and no region leads every evaluator.
+
+Exchange was subsequently narrowed from counting every host connection to counting only adjacent regions with a colour different from the host. This reduces its scores on homogeneous interiors, makes its readable breakdown explicitly colour-based, and leaves the topology unchanged.
 
 ## Assessment and concerns
 
@@ -73,5 +75,5 @@ Open concerns:
 - Outer Isles cannot participate in the graph because its polygon is spatially separate. Connecting it later would require redrawing the geometry, removing the region, or explicitly introducing a non-shared-edge mechanic; the latter is outside this experiment.
 - Store, Study, and Administer have no spatial signal on a blank tableau, so the paired seeded scenario remains necessary.
 - Study and Administer vary by only one point in the sparse scenario, so their placement tension may remain subtle.
-- Exchange and Mobilize now share the same two best locations. Capacity and seeded local practices provide counter-pressure, but longer playtesting is needed.
+- Exchange and Mobilize still share the same two best locations on this authored map, although River Crown now distinguishes them by one point. This correlation is a remaining configuration concern rather than a formula ambiguity.
 - Capacity creates eligibility and sequencing tension rather than directly changing evaluator scores.
