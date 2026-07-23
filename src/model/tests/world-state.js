@@ -19,6 +19,11 @@ function testWorldDefinition() {
   const result = validateWorldDefinition(definition);
   assert.equal(result.ok, true, result.errors.join("; "));
   assert.equal(definition.regions.length, 15);
+  assert.deepEqual(
+    definition.regions.map((region) => region.name),
+    Array.from({ length: 15 }, (_, index) => `Region${String(index + 1).padStart(2, "0")}`)
+  );
+  assert.equal(definition.sites[0].name, "Settlement07");
   assert.equal(definition.connections.length, 17);
   assert.equal(getWorldConnectionCandidates(definition).length, 25);
   assert.equal(new Set(definition.regions.map((region) => region.id)).size, 15);
@@ -89,6 +94,7 @@ function testWorldStateAndSerialization() {
   assert.equal(validateWorldState(state).ok, true);
 
   const local = getDetailedSiteState(state, state.civilization.capitalSiteId);
+  assert.deepEqual(local.locationNames, { hub: "Settlement07", region: "Region07" });
   assert.equal(local.hub.cols, 6);
   assert.equal(local.board.cols, 5);
   assert.ok(Array.isArray(local.hub.occ));

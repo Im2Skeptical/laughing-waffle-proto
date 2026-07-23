@@ -68,7 +68,7 @@ The exported schema is version 1 and contains mechanical data only:
 }
 ```
 
-Region geometry, labels, decorative map context, sites, and the detailed River Crown settlement
+Region geometry, labels, decorative map context, sites, and the detailed Region07 settlement
 are not duplicated. Applying a draft creates a new deterministic scenario at `tSec = 0`, with a
 fresh timeline and the normal authored settlement. Active connections are copied into that new
 `GameState` for save/replay authority. Save schema version 3 is intentionally incompatible with
@@ -84,7 +84,7 @@ Map Lab's scenario selector includes:
 - **Milestone 2 — Sparse Interactions** (`devMilestone2Sparse01`)
 
 The blank configuration is also the authored default used by `devPlaytesting01`. All authored
-connections follow visible shared polygon edges. Outer Isles has no shared polygon edge and is
+connections follow visible shared polygon edges. Region15 has no shared polygon edge and is
 therefore an isolated component in this experiment. Mechanical JSON
 exports are available at `exports/milestone2-blank-01.json` and
 `exports/milestone2-sparse-01.json`. The diagnostic matrices and first-pass revision notes are in

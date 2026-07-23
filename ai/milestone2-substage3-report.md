@@ -7,29 +7,29 @@
 - Map Lab exposes both configurations through its authored-scenario selector.
 - Mechanical JSON exports live in `exports/milestone2-blank-01.json` and `exports/milestone2-sparse-01.json`.
 
-Every connection joins regions whose polygons share a complete vertex-to-vertex edge. The geometry supplies 25 possible mainland pairs; the authored configuration activates 17. Outer Isles shares no polygon edge with any other region, so it is necessarily an isolated fifteenth region under this rule.
+Every connection joins regions whose polygons share a complete vertex-to-vertex edge. The geometry supplies 25 possible mainland pairs; the authored configuration activates 17. Region15 shares no polygon edge with any other region, so it is necessarily isolated under this rule.
 
 ## Topology and politics
 
-Player territory is the connected four-region chain West Levee–Upper Floodplain–River Crown–Lake Country. Cedar Woods, High Pass, and Black Marsh are frontier regions. The remaining eight regions are split evenly between external-a and external-b.
+Player territory is the connected four-region chain Region03–Region06–Region07–Region11. Region01, Region05, and Region12 are frontier regions. The remaining eight regions are split evenly between external-a and external-b.
 
-- West Levee and Lake Country are the two degree-four player hubs, preventing one uniquely dominant connectivity location.
-- Upper Floodplain is the politically deep degree-two capacity-four region.
-- West Levee is an exposed player frontier with three non-player neighbours.
-- The red West Levee–Upper Floodplain–River Crown chain is the visible homogeneous cluster.
-- Lake Country is a blue crossroads touching red, green, blue, and black neighbours. Its blue edge with frontier-controlled Black Marsh crosses a political boundary.
-- Copper Basin–East Steppe–Obsidian Ridge is an external loop.
-- Iron Hills–High Pass–Copper Basin is a corridor linking the western player edge to the external loop.
-- Black Marsh–Salt Coast is the bottleneck into the degree-one Salt Coast peripheral mainland branch.
-- Blue is comparatively rare and appears at Lake Country, Black Marsh, and isolated Outer Isles.
+- Region03 and Region11 are the two degree-four player hubs, preventing one uniquely dominant connectivity location.
+- Region06 is the politically deep degree-two capacity-four region.
+- Region03 is an exposed player frontier with three non-player neighbours.
+- The red Region03–Region06–Region07 chain is the visible homogeneous cluster.
+- Region11 is a blue crossroads touching red, green, blue, and black neighbours. Its blue edge with frontier-controlled Region12 crosses a political boundary.
+- Region09–Region10–Region14 is an external loop.
+- Region02–Region05–Region09 is a corridor linking the western player edge to the external loop.
+- Region12–Region13 is the bottleneck into the degree-one Region13 peripheral mainland branch.
+- Blue is comparatively rare and appears at Region11, Region12, and isolated Region15.
 
 ## Score matrices
 
-Scores are hypothetical placements in eligible player regions. Column order is West Levee, Upper Floodplain, River Crown, Lake Country.
+Scores are hypothetical placements in eligible player regions. Column order is Region03, Region06, Region07, Region11.
 
 ### Blank suitability scenario
 
-| Practice | West Levee | Upper Floodplain | River Crown | Lake Country |
+| Practice | Region03 | Region06 | Region07 | Region11 |
 | --- | ---: | ---: | ---: | ---: |
 | Cultivate | 2 | 3 | 2 | 1 |
 | Store | 1 | 1 | 1 | 1 |
@@ -42,7 +42,7 @@ Store, Study, and Administer are intentionally flat when the tableau is blank; t
 
 ### Sparse interaction scenario
 
-| Practice | West Levee | Upper Floodplain | River Crown | Lake Country |
+| Practice | Region03 | Region06 | Region07 | Region11 |
 | --- | ---: | ---: | ---: | ---: |
 | Cultivate | 2 | 3 | 2 | 1 |
 | Store | 3 | 1 | 1 | 2 |
@@ -51,18 +51,18 @@ Store, Study, and Administer are intentionally flat when the tableau is blank; t
 | Administer | 3 | 2 | 2 | 3 |
 | Exchange | 4 | 1 | 3 | 4 |
 
-No sparse-scenario evaluator is flat. Best regions differ: Upper Floodplain for Cultivate; West Levee for Store; Upper Floodplain/Lake Country for Study; and West Levee/Lake Country for Mobilize, Administer, and Exchange.
+No sparse-scenario evaluator is flat. Best regions differ: Region06 for Cultivate; Region03 for Store; Region06/Region11 for Study; and Region03/Region11 for Mobilize, Administer, and Exchange.
 
 ## Diagnostic revision
 
-The first shared-edge pass omitted West Levee–Iron Hills and included Black Marsh–Obsidian Ridge. Lake Country was then the sole best region for both Mobilize and Exchange, scoring 4 for each. It appeared in five evaluator best-sets.
+The first shared-edge pass omitted Region03–Region02 and included Region12–Region14. Region11 was then the sole best region for both Mobilize and Exchange, scoring 4 for each. It appeared in five evaluator best-sets.
 
 The revision:
 
-- added the legal West Levee–Iron Hills edge, raising West Levee's Mobilize and different-colour Exchange scores to tie Lake Country;
-- removed Black Marsh–Obsidian Ridge, making Black Marsh–Salt Coast a clearer bottleneck and preserving the peripheral mainland branch.
+- added the legal Region03–Region02 edge, raising Region03's Mobilize and different-colour Exchange scores to tie Region11;
+- removed Region12–Region14, making Region12–Region13 a clearer bottleneck and preserving the peripheral mainland branch.
 
-The final sparse diagnostics contain no shared sole-best region. West Levee and Lake Country each appear in four best-sets, Upper Floodplain appears in two, and no region leads every evaluator.
+The final sparse diagnostics contain no shared sole-best region. Region03 and Region11 each appear in four best-sets, Region06 appears in two, and no region leads every evaluator.
 
 Exchange was subsequently narrowed from counting every host connection to counting only adjacent regions with a colour different from the host. This reduces its scores on homogeneous interiors, makes its readable breakdown explicitly colour-based, and leaves the topology unchanged.
 
@@ -72,8 +72,8 @@ The minimal grammar remains sufficient for a first placement experiment. Constra
 
 Open concerns:
 
-- Outer Isles cannot participate in the graph because its polygon is spatially separate. Connecting it later would require redrawing the geometry, removing the region, or explicitly introducing a non-shared-edge mechanic; the latter is outside this experiment.
+- Region15 cannot participate in the graph because its polygon is spatially separate. Connecting it later would require redrawing the geometry, removing the region, or explicitly introducing a non-shared-edge mechanic; the latter is outside this experiment.
 - Store, Study, and Administer have no spatial signal on a blank tableau, so the paired seeded scenario remains necessary.
 - Study and Administer vary by only one point in the sparse scenario, so their placement tension may remain subtle.
-- Exchange and Mobilize still share the same two best locations on this authored map, although River Crown now distinguishes them by one point. This correlation is a remaining configuration concern rather than a formula ambiguity.
+- Exchange and Mobilize still share the same two best locations on this authored map, although Region07 now distinguishes them by one point. This correlation is a remaining configuration concern rather than a formula ambiguity.
 - Capacity creates eligibility and sequencing tension rather than directly changing evaluator scores.
