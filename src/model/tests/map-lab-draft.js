@@ -16,6 +16,14 @@ import {
   updateMapLabRegion,
   validateMapLabDraft,
 } from "../map-lab-draft.js";
+import {
+  createEmptyMapLabScenarioLibrary,
+  deleteMapLabScenario,
+  parseMapLabScenarioLibraryJson,
+  saveMapLabScenario,
+  serializeMapLabScenarioLibrary,
+  validateMapLabScenarioLibrary,
+} from "../map-lab-scenarios.js";
 import { evaluateRegionalPracticePlacement } from "../regional-practices.js";
 import { buildProjectionStateWindowFromTimeline } from "../projection.js";
 import { serializeGameState } from "../state.js";
@@ -63,6 +71,51 @@ function testEditingAndCapacity() {
   assert.deepEqual(draft.regions.find((entry) => entry.id === "west-levee").installedPracticeIds, ["store", "store", "cultivate"]);
   draft = removeMapLabPractice(draft, "west-levee", 1).draft;
   assert.deepEqual(draft.regions.find((entry) => entry.id === "west-levee").installedPracticeIds, ["store", "cultivate"]);
+}
+
+function testNamedScenarioLibrary() {
+  const blank = createAuthoredMapLabDraft();
+  const edited = updateMapLabRegion(blank, "cedar-woods", { colour: "blue" }).draft;
+  let library = createEmptyMapLabScenarioLibrary();
+  let result = saveMapLabScenario(library, { name: "  Blue opening  ", draft: edited });
+  assert.equal(result.ok, true);
+  library = result.library;
+  assert.equal(result.scenario.id, "local-1");
+  assert.equal(result.scenario.name, "Blue opening");
+  assert.equal(library.scenarios[0].draft.regions[0].colour, "blue");
+  edited.regions[0].colour = "red";
+  assert.equal(library.scenarios[0].draft.regions[0].colour, "blue", "saved scenario shares draft references");
+
+  assert.equal(saveMapLabScenario(library, { name: "blue OPENING", draft: blank }).reason, "duplicateName");
+  const replacement = updateMapLabRegion(blank, "cedar-woods", { capacity: 4 }).draft;
+  result = saveMapLabScenario(library, {
+    scenarioId: "local-1",
+    name: "Blue opening",
+    draft: replacement,
+  });
+  assert.equal(result.ok, true);
+  library = result.library;
+  assert.equal(library.scenarios.length, 1);
+  assert.equal(library.scenarios[0].draft.regions[0].capacity, 4);
+
+  result = saveMapLabScenario(library, { name: "Second test", draft: blank });
+  assert.equal(result.scenario.id, "local-2");
+  library = result.library;
+  assert.equal(validateMapLabScenarioLibrary(library).ok, true);
+  const serialized = serializeMapLabScenarioLibrary(library);
+  const parsed = parseMapLabScenarioLibraryJson(serialized);
+  assert.equal(parsed.ok, true);
+  assert.deepEqual(parsed.library, library);
+  assert.equal(serialized.includes("polygonVertexIds"), false);
+  assert.equal(serialized.includes("sites"), false);
+
+  const invalid = JSON.parse(serialized);
+  invalid.scenarios[1].name = "blue opening";
+  assert.equal(validateMapLabScenarioLibrary(invalid).ok, false);
+  result = deleteMapLabScenario(library, "local-1");
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.library.scenarios.map((entry) => entry.id), ["local-2"]);
+  assert.equal(deleteMapLabScenario(result.library, "missing").reason, "invalidScenarioId");
 }
 
 function testConnectionsAndComponents() {
@@ -151,6 +204,7 @@ const globalSetup = setupDefs.devPlaytesting01;
 export function runMapLabDraftSuite() {
   testDefaultAndJsonRoundTrip();
   testEditingAndCapacity();
+  testNamedScenarioLibrary();
   testConnectionsAndComponents();
   testEvaluationAndDiagnostics();
   testFreshScenarioReplayParity();

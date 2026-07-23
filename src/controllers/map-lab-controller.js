@@ -17,6 +17,15 @@ import {
   updateMapLabRegion,
   validateMapLabDraft,
 } from "../model/map-lab-draft.js";
+import {
+  MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY,
+  createEmptyMapLabScenarioLibrary,
+  deleteMapLabScenario,
+  findMapLabScenarioByName,
+  parseMapLabScenarioLibraryJson,
+  saveMapLabScenario,
+  serializeMapLabScenarioLibrary,
+} from "../model/map-lab-scenarios.js";
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -37,6 +46,8 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
   let selectedRegionId = draft.regions[0]?.id ?? null;
   let selectedPracticeId = "cultivate";
   let selectedPresetId = "milestone2Blank01";
+  let selectedLocalScenarioId = null;
+  let scenarioLibrary = createEmptyMapLabScenarioLibrary();
   let connectionStartRegionId = null;
   let status = { message: "", tone: "info" };
   const listeners = new Set();
@@ -59,9 +70,29 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
     }
   }
 
-  function replaceDraft(nextDraft, message = "Draft updated.", nextPresetId = selectedPresetId) {
+  function persistScenarioLibrary() {
+    const storage = safeStorage();
+    if (!storage) return false;
+    try {
+      storage.setItem(
+        MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY,
+        serializeMapLabScenarioLibrary(scenarioLibrary)
+      );
+      return true;
+    } catch (_) {
+      setStatus("Saved scenarios could not be written to browser storage.", "warning");
+      return false;
+    }
+  }
+
+  function replaceDraft(nextDraft, message = "Draft updated.", selection = {}) {
     draft = canonicalizeMapLabDraft(nextDraft);
-    selectedPresetId = nextPresetId;
+    selectedPresetId = Object.hasOwn(selection, "presetId")
+      ? selection.presetId
+      : selectedPresetId;
+    selectedLocalScenarioId = Object.hasOwn(selection, "localScenarioId")
+      ? selection.localScenarioId
+      : selectedLocalScenarioId;
     if (!draft.regions.some((entry) => entry.id === selectedRegionId)) {
       selectedRegionId = draft.regions[0]?.id ?? null;
     }
@@ -91,11 +122,41 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       if (parsed.ok) {
         draft = parsed.draft;
         selectedPresetId = null;
+        selectedLocalScenarioId = null;
       }
       else setStatus(`Stored draft ignored: ${parsed.errors[0]}`, "warning");
     } catch (_) {
       setStatus("Stored draft could not be read; using authored default.", "warning");
     }
+  }
+
+  function loadStoredScenarioLibrary() {
+    const storage = safeStorage();
+    if (!storage) return;
+    try {
+      const text = storage.getItem(MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY);
+      if (!text) return;
+      const parsed = parseMapLabScenarioLibraryJson(text);
+      if (parsed.ok) scenarioLibrary = parsed.library;
+      else setStatus(`Stored scenarios ignored: ${parsed.errors[0]}`, "warning");
+    } catch (_) {
+      setStatus("Stored scenarios could not be read; using an empty local library.", "warning");
+    }
+  }
+
+  function selectedScenarioDraft() {
+    if (selectedLocalScenarioId) {
+      return scenarioLibrary.scenarios.find((entry) => entry.id === selectedLocalScenarioId)?.draft ?? null;
+    }
+    if (selectedPresetId) return milestone2MapConfigDefs[selectedPresetId]?.draft ?? null;
+    return null;
+  }
+
+  function isSelectedScenarioDirty() {
+    const baseline = selectedScenarioDraft();
+    return baseline
+      ? serializeMapLabDraft(baseline) !== serializeMapLabDraft(draft)
+      : true;
   }
 
   function getSnapshot() {
@@ -104,9 +165,15 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       selectedRegionId,
       selectedPracticeId,
       selectedPresetId,
+      selectedLocalScenarioId,
+      selectedScenarioDirty: isSelectedScenarioDirty(),
       connectionStartRegionId,
       status,
       presetOptions: Object.values(milestone2MapConfigDefs).map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+      })),
+      localScenarioOptions: scenarioLibrary.scenarios.map((entry) => ({
         id: entry.id,
         name: entry.name,
       })),
@@ -117,6 +184,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
   }
 
   loadStoredDraft();
+  loadStoredScenarioLibrary();
 
   return {
     subscribe(listener) {
@@ -176,7 +244,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       return replaceDraft(
         createAuthoredMapLabDraft(definitionId),
         "Reset to authored default.",
-        "milestone2Blank01"
+        { presetId: "milestone2Blank01", localScenarioId: null }
       );
     },
     loadPreset(presetId) {
@@ -186,7 +254,78 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
         notify();
         return { ok: false, reason: "invalidPresetId" };
       }
-      return replaceDraft(preset.draft, `Loaded ${preset.name}.`, preset.id);
+      return replaceDraft(preset.draft, `Loaded ${preset.name}.`, {
+        presetId: preset.id,
+        localScenarioId: null,
+      });
+    },
+    loadLocalScenario(scenarioId) {
+      const scenario = scenarioLibrary.scenarios.find((entry) => entry.id === scenarioId);
+      if (!scenario) {
+        setStatus("That saved browser scenario no longer exists.", "error");
+        notify();
+        return { ok: false, reason: "invalidScenarioId" };
+      }
+      return replaceDraft(scenario.draft, `Loaded saved scenario “${scenario.name}”.`, {
+        presetId: null,
+        localScenarioId: scenario.id,
+      });
+    },
+    saveLocalScenario(name, { overwriteScenarioId = null } = {}) {
+      const sameName = findMapLabScenarioByName(scenarioLibrary, name);
+      const selectedScenario = scenarioLibrary.scenarios
+        .find((entry) => entry.id === selectedLocalScenarioId);
+      let scenarioId = overwriteScenarioId;
+      if (!scenarioId && selectedScenario
+          && sameName?.id === selectedScenario.id) {
+        scenarioId = selectedScenario.id;
+      }
+      const result = saveMapLabScenario(scenarioLibrary, { name, draft, scenarioId });
+      if (!result.ok) {
+        if (result.reason === "duplicateName") return { ...result, requiresOverwrite: true };
+        const message = result.reason === "emptyName"
+          ? "Enter a name for the scenario."
+          : result.reason === "nameTooLong"
+            ? "Scenario names must be 80 characters or fewer."
+            : "The scenario could not be saved.";
+        setStatus(message, "error");
+        notify();
+        return result;
+      }
+      scenarioLibrary = result.library;
+      selectedPresetId = null;
+      selectedLocalScenarioId = result.scenario.id;
+      const stored = persistScenarioLibrary();
+      setStatus(
+        stored
+          ? `Saved browser scenario “${result.scenario.name}”.`
+          : "Scenario changed, but browser storage is unavailable.",
+        stored ? "ok" : "warning"
+      );
+      notify();
+      return { ...result, stored };
+    },
+    deleteLocalScenario(scenarioId) {
+      const result = deleteMapLabScenario(scenarioLibrary, scenarioId);
+      if (!result.ok) {
+        setStatus("That saved browser scenario no longer exists.", "error");
+        notify();
+        return result;
+      }
+      scenarioLibrary = result.library;
+      if (selectedLocalScenarioId === scenarioId) {
+        selectedLocalScenarioId = null;
+        selectedPresetId = null;
+      }
+      const stored = persistScenarioLibrary();
+      setStatus(
+        stored
+          ? `Deleted saved scenario “${result.scenario.name}”. The current draft remains open.`
+          : "Scenario was removed in this session, but browser storage is unavailable.",
+        stored ? "ok" : "warning"
+      );
+      notify();
+      return { ...result, stored };
     },
     exportJson() {
       return serializeMapLabDraft(draft);
@@ -198,7 +337,10 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
         notify();
         return result;
       }
-      return replaceDraft(result.draft, "Draft imported.", null);
+      return replaceDraft(result.draft, "Draft imported.", {
+        presetId: null,
+        localScenarioId: null,
+      });
     },
     applyToFreshRun() {
       const validation = validateMapLabDraft(draft);

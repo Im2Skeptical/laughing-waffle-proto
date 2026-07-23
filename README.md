@@ -45,7 +45,14 @@ The editor supports region colour, controller, capacity, ordered duplicate pract
 connections between polygons that share an edge, hypothetical scores, and all-practice diagnostics.
 Connection editing shows active edges in cyan and currently available shared-edge pairs as dashed
 lines. A valid draft autosaves under
-`civsurvivor.mapLabDraft.v1`. Reset restores the authored map; Import / Export works with JSON.
+`civsurvivor.mapLabDraft.v1`. **Save scenario** adds a named copy of the current draft directly to
+the scenario selector. Named scenarios can be loaded, explicitly overwritten by saving with the
+same name, or deleted; authored scenarios remain read-only. The named library is stored under
+`civsurvivor.mapLabScenarios.v1`.
+
+Both the working draft and named scenarios are local to the current browser and site origin. They
+do not automatically transfer between a desktop browser and a phone, and clearing site data removes
+them. Import / Export remains available for backup or transfer. Reset restores the authored map.
 
 The exported schema is version 1 and contains mechanical data only:
 

@@ -309,12 +309,25 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     const definition = worldMapDefs[snapshot.draft.worldDefinitionId];
     root.replaceChildren();
     const toolbar = el("div", "map-lab-toolbar");
+    const selectedScenarioValue = snapshot.selectedLocalScenarioId
+      ? `local:${snapshot.selectedLocalScenarioId}`
+      : snapshot.selectedPresetId
+        ? `authored:${snapshot.selectedPresetId}`
+        : "";
+    const selectedScenarioSuffix = snapshot.selectedScenarioDirty ? " *" : "";
     const presetSelect = select(
       [
-        { id: "", label: "Custom / local draft" },
-        ...snapshot.presetOptions.map((entry) => ({ id: entry.id, label: entry.name })),
+        { id: "", label: "Custom / unsaved draft" },
+        ...snapshot.presetOptions.map((entry) => ({
+          id: `authored:${entry.id}`,
+          label: `Authored — ${entry.name}${selectedScenarioValue === `authored:${entry.id}` ? selectedScenarioSuffix : ""}`,
+        })),
+        ...snapshot.localScenarioOptions.map((entry) => ({
+          id: `local:${entry.id}`,
+          label: `Saved — ${entry.name}${selectedScenarioValue === `local:${entry.id}` ? selectedScenarioSuffix : ""}`,
+        })),
       ],
-      snapshot.selectedPresetId ?? "",
+      selectedScenarioValue,
       "map-lab-preset",
       () => {}
     );
@@ -325,16 +338,40 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     connectionButton.classList.toggle("active", connectionMode);
     const loadPresetButton = button("Load scenario", "map-lab-load-preset", () => {
       if (!presetSelect.value) return;
-        if (globalThis.confirm("Replace the current Map Lab draft with this authored scenario?")) {
-          controller.loadPreset(presetSelect.value);
-        }
+      if (!globalThis.confirm("Replace the current Map Lab draft with the selected scenario?")) return;
+      const [kind, id] = presetSelect.value.split(":");
+      if (kind === "authored") controller.loadPreset(id);
+      else if (kind === "local") controller.loadLocalScenario(id);
     });
     loadPresetButton.disabled = !presetSelect.value;
+    const deleteScenarioButton = button("Delete saved", "map-lab-delete-scenario", () => {
+      const [kind, id] = presetSelect.value.split(":");
+      if (kind !== "local") return;
+      const scenario = snapshot.localScenarioOptions.find((entry) => entry.id === id);
+      if (globalThis.confirm(`Delete the saved browser scenario “${scenario?.name ?? id}”? The current draft will remain open.`)) {
+        controller.deleteLocalScenario(id);
+      }
+    });
+    deleteScenarioButton.disabled = !presetSelect.value.startsWith("local:");
     presetSelect.addEventListener("change", () => {
       loadPresetButton.disabled = !presetSelect.value;
+      deleteScenarioButton.disabled = !presetSelect.value.startsWith("local:");
+    });
+    const saveScenarioButton = button("Save scenario", "map-lab-save-scenario", () => {
+      const selectedLocal = snapshot.localScenarioOptions
+        .find((entry) => entry.id === snapshot.selectedLocalScenarioId);
+      const name = globalThis.prompt("Save the current Map Lab draft as:", selectedLocal?.name ?? "");
+      if (name == null) return;
+      const result = controller.saveLocalScenario(name);
+      if (result.requiresOverwrite
+          && globalThis.confirm(`Replace the saved browser scenario “${result.existingScenarioName}”?`)) {
+        controller.saveLocalScenario(name, { overwriteScenarioId: result.existingScenarioId });
+      }
     });
     toolbar.append(presetSelect,
       loadPresetButton,
+      saveScenarioButton,
+      deleteScenarioButton,
       connectionButton,
       button("Reset default", "map-lab-reset", () => { if (globalThis.confirm("Reset the Map Lab draft to the authored default?")) controller.reset(); }),
       button(jsonOpen ? "Hide JSON" : "Import / Export", "map-lab-json-toggle", () => { jsonOpen = !jsonOpen; if (jsonOpen) jsonText = controller.exportJson(); render(); }),

@@ -34,6 +34,15 @@ async function clickConfirming(page, locator) {
   await clickPromise;
 }
 
+async function clickPrompting(page, locator, value) {
+  const dialogPromise = page.waitForEvent("dialog");
+  const clickPromise = locator.click();
+  const dialog = await dialogPromise;
+  assert.equal(dialog.type(), "prompt");
+  await dialog.accept(value);
+  await clickPromise;
+}
+
 async function openMapLab(page) {
   await page.getByRole("button", { name: /^Debug/ }).click();
   await page.getByTestId("debug-map-lab-tab").click();
@@ -66,6 +75,7 @@ try {
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v1");
+      localStorage.removeItem("civsurvivor.mapLabScenarios.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
   });
@@ -80,7 +90,7 @@ try {
   await page.getByTestId("map-lab-connections").click();
   await page.screenshot({ path: BLANK_SCREENSHOT_PATH, fullPage: false });
   await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-preset").selectOption("milestone2Sparse01");
+  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Sparse01");
   await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
   await page.getByTestId("map-lab-region-west-levee").evaluate((node) =>
     node.dispatchEvent(new MouseEvent("click", { bubbles: true }))
@@ -93,7 +103,7 @@ try {
     document.activeElement?.blur?.();
   });
   await page.screenshot({ path: SPARSE_SCREENSHOT_PATH, fullPage: false });
-  await page.getByTestId("map-lab-preset").selectOption("milestone2Blank01");
+  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
   await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
   await page.getByTestId("map-lab-region-cedar-woods").click();
   checks.push("access-and-authored-scenarios");
@@ -165,10 +175,28 @@ try {
   checks.push("import-export");
 
   await page.getByTestId("map-lab-colour").selectOption("blue");
+  await clickPrompting(page, page.getByTestId("map-lab-save-scenario"), "Blue browser test");
+  assert.match(await page.getByTestId("map-lab-status").innerText(), /Saved browser scenario/);
+  assert.equal(await page.getByTestId("map-lab-preset").inputValue(), "local:local-1");
+  await page.getByTestId("map-lab-colour").selectOption("black");
+  assert.match(await page.getByTestId("map-lab-preset").locator("option:checked").innerText(), /\*$/);
+  await clickPrompting(page, page.getByTestId("map-lab-save-scenario"), "Blue browser test");
+  assert.doesNotMatch(await page.getByTestId("map-lab-preset").locator("option:checked").innerText(), /\*$/);
+  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
+  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "green");
+  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
+  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "black");
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
   await openMapLab(page);
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "blue");
+  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "black");
+  assert.equal(await page.getByTestId("map-lab-preset").locator('option[value="local:local-1"]').count(), 1);
+  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
+  await clickConfirming(page, page.getByTestId("map-lab-delete-scenario"));
+  assert.equal(await page.getByTestId("map-lab-preset").locator('option[value="local:local-1"]').count(), 0);
+  checks.push("named-local-scenarios");
   await clickConfirming(page, page.getByTestId("map-lab-reset"));
   assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "green");
   checks.push("persistence-and-reset");
