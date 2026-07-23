@@ -108,6 +108,39 @@ try {
   await page.getByTestId("map-lab-region-cedar-woods").click();
   checks.push("access-and-authored-scenarios");
 
+  await page.getByRole("button", { name: "Close" }).click();
+  const westPoint = await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("west-levee")
+  );
+  await clickCanvasDesignPoint(page, westPoint);
+  const storePoint = await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__?.getWorldPracticeClickPoint?.("store")
+  );
+  await clickCanvasDesignPoint(page, storePoint);
+  await page.waitForFunction(() =>
+    globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
+      ?.selectedRegion?.installedPracticeIds?.includes("store")
+  );
+  await openMapLab(page);
+  await clickConfirming(page, page.getByTestId("map-lab-load-current-game"));
+  assert.match(await page.getByTestId("map-lab-status").innerText(), /running game was not changed/i);
+  assert.equal(await page.getByTestId("map-lab-preset").inputValue(), "");
+  await page.getByTestId("map-lab-region-west-levee").evaluate((node) =>
+    node.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+  );
+  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 1);
+  assert.match(await page.getByTestId("map-lab-installed-0").innerText(), /Store/);
+  await page.locator('[data-testid="map-lab-installed-0"] button:last-child').click();
+  const gamePracticesAfterDraftEdit = await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
+      ?.selectedRegion?.installedPracticeIds
+  );
+  assert.deepEqual(gamePracticesAfterDraftEdit, ["store"]);
+  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
+  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  await page.getByTestId("map-lab-region-cedar-woods").click();
+  checks.push("copy-current-game");
+
   await page.getByTestId("map-lab-controller").selectOption("player");
   await page.getByTestId("map-lab-colour").selectOption("red");
   await page.getByTestId("map-lab-capacity").fill("3");

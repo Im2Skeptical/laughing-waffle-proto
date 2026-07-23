@@ -6,6 +6,7 @@ import {
   addMapLabPractice,
   canonicalizeMapLabDraft,
   createAuthoredMapLabDraft,
+  createMapLabDraftFromGameState,
   evaluateMapLabPractice,
   getMapLabConnectionCandidates,
   getMapLabDiagnostics,
@@ -258,6 +259,21 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
         presetId: preset.id,
         localScenarioId: null,
       });
+    },
+    loadCurrentGame() {
+      const state = runner?.getState?.() ?? runner?.getCursorState?.() ?? null;
+      const result = createMapLabDraftFromGameState(state);
+      if (!result.ok) {
+        setStatus(`Could not copy the current game: ${result.errors[0] ?? "state unavailable"}`, "error");
+        notify();
+        return result;
+      }
+      const tSec = Math.max(0, Math.floor(state?.tSec ?? 0));
+      return replaceDraft(
+        result.draft,
+        `Copied the viewed game state at t=${tSec}. The running game was not changed.`,
+        { presetId: null, localScenarioId: null }
+      );
     },
     loadLocalScenario(scenarioId) {
       const scenario = scenarioLibrary.scenarios.find((entry) => entry.id === scenarioId);
