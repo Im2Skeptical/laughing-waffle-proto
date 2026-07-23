@@ -49,6 +49,35 @@ export function createAuthoredMapLabDraft(worldDefinitionId = "riverBasin01") {
   });
 }
 
+export function createMapLabDraftFromGameState(state) {
+  const world = state?.world;
+  const draft = {
+    schemaVersion: MAP_LAB_DRAFT_SCHEMA_VERSION,
+    worldDefinitionId: world?.definitionId,
+    regions: Array.isArray(world?.regions)
+      ? world.regions.map((region) => ({
+          id: region?.id,
+          colour: region?.colour,
+          capacity: region?.capacity,
+          controller: region?.controller,
+          installedPracticeIds: Array.isArray(region?.installedPracticeIds)
+            ? [...region.installedPracticeIds]
+            : region?.installedPracticeIds,
+        }))
+      : world?.regions,
+    connections: Array.isArray(world?.connections)
+      ? world.connections.map((connection) => ({
+          regionAId: connection?.regionAId,
+          regionBId: connection?.regionBId,
+        }))
+      : world?.connections,
+  };
+  const validation = validateMapLabDraft(draft);
+  return validation.ok
+    ? { ok: true, draft: canonicalizeMapLabDraft(draft), errors: [] }
+    : { ok: false, reason: "invalidGameState", errors: validation.errors };
+}
+
 export function canonicalizeMapLabDraft(value) {
   const draft = clone(value);
   const definition = getDefinition(draft?.worldDefinitionId);

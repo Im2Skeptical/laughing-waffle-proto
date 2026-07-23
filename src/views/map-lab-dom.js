@@ -251,7 +251,10 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     region.installedPracticeIds.forEach((practiceId, index) => {
       const row = el("div", "map-lab-installed-row");
       row.dataset.testid = `map-lab-installed-${index}`;
-      row.appendChild(el("span", "", String(index + 1)), el("span", "", regionalPracticeDefs[practiceId]?.name ?? practiceId));
+      row.append(
+        el("span", "", String(index + 1)),
+        el("span", "", regionalPracticeDefs[practiceId]?.name ?? practiceId)
+      );
       const up = button("↑", null, () => controller.movePractice(region.id, index, index - 1));
       up.disabled = index === 0;
       const down = button("↓", null, () => controller.movePractice(region.id, index, index + 1));
@@ -368,8 +371,14 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
         controller.saveLocalScenario(name, { overwriteScenarioId: result.existingScenarioId });
       }
     });
+    const loadCurrentGameButton = button("Copy current game", "map-lab-load-current-game", () => {
+      if (globalThis.confirm("Replace the Map Lab draft with a copy of the game state currently being viewed? The running game will not change.")) {
+        controller.loadCurrentGame();
+      }
+    });
     toolbar.append(presetSelect,
       loadPresetButton,
+      loadCurrentGameButton,
       saveScenarioButton,
       deleteScenarioButton,
       connectionButton,

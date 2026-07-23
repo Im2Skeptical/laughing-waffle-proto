@@ -50,6 +50,11 @@ the scenario selector. Named scenarios can be loaded, explicitly overwritten by 
 same name, or deleted; authored scenarios remain read-only. The named library is stored under
 `civsurvivor.mapLabScenarios.v1`.
 
+**Copy current game** replaces the working draft with the mechanical geography currently visible
+in the game, including installed-practice order. This is a deep, read-only copy: it does not change
+the running game or its timeline. If the timeline is being browsed, the copied draft reflects that
+viewed second. The copy can then be edited or saved as a named browser scenario.
+
 Both the working draft and named scenarios are local to the current browser and site origin. They
 do not automatically transfer between a desktop browser and a phone, and clearing site data removes
 them. Import / Export remains available for backup or transfer. Reset restores the authored map.

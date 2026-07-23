@@ -4,6 +4,7 @@ import { createInitialState } from "../init.js";
 import {
   addMapLabPractice,
   createAuthoredMapLabDraft,
+  createMapLabDraftFromGameState,
   evaluateMapLabPractice,
   getMapLabConnectionCandidates,
   getMapLabConnectedComponents,
@@ -53,6 +54,38 @@ function testDefaultAndJsonRoundTrip() {
   assert.ok(validation.errors.some((entry) => entry.includes("invalid practice")));
   assert.ok(validation.errors.some((entry) => entry.includes("self-connections")));
   assert.ok(validation.errors.some((entry) => entry.includes("do not share a polygon edge")));
+}
+
+function testCopyFromGameState() {
+  const state = createInitialState("devPlaytesting01", 13579);
+  const region = getRegionState(state, "west-levee");
+  region.colour = "blue";
+  region.capacity = 4;
+  region.installedPracticeIds = ["store", "cultivate", "store"];
+  state.world.connections = state.world.connections.slice(0, -1);
+  const stateBefore = serializeGameState(state);
+  const result = createMapLabDraftFromGameState(state);
+  assert.equal(result.ok, true, result.errors.join("; "));
+  const copiedRegion = result.draft.regions.find((entry) => entry.id === "west-levee");
+  assert.deepEqual(copiedRegion, {
+    id: "west-levee",
+    colour: "blue",
+    capacity: 4,
+    controller: "player",
+    installedPracticeIds: ["store", "cultivate", "store"],
+  });
+  assert.equal(result.draft.connections.length, state.world.connections.length);
+  const serializedDraft = serializeMapLabDraft(result.draft);
+  assert.equal(serializedDraft.includes("sites"), false);
+  assert.equal(serializedDraft.includes("tSec"), false);
+
+  copiedRegion.installedPracticeIds.pop();
+  result.draft.connections.pop();
+  assert.deepEqual(serializeGameState(state), stateBefore, "copied draft mutated the source game");
+  assert.equal(createMapLabDraftFromGameState(null).reason, "invalidGameState");
+  assert.equal(createMapLabDraftFromGameState({
+    world: { definitionId: "unknown", regions: [], connections: [] },
+  }).reason, "invalidGameState");
 }
 
 function testEditingAndCapacity() {
@@ -203,6 +236,7 @@ const globalSetup = setupDefs.devPlaytesting01;
 
 export function runMapLabDraftSuite() {
   testDefaultAndJsonRoundTrip();
+  testCopyFromGameState();
   testEditingAndCapacity();
   testNamedScenarioLibrary();
   testConnectionsAndComponents();
