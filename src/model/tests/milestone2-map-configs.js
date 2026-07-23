@@ -89,12 +89,12 @@ function testMechanicalShapeAndPolitics() {
   assert.ok(milestone2SparseDraft.regions
     .filter((entry) => entry.controller === "player")
     .every((entry) => entry.installedPracticeIds.length === entry.capacity - 1));
-  assert.equal(degree(milestone2BlankDraft, "lake-country"), 4, "Lake Country is a high-connectivity hub");
+  assert.equal(degree(milestone2BlankDraft, "lake-country"), 4, "Region11 is a high-connectivity hub");
   assert.equal(degree(milestone2BlankDraft, "upper-floodplain"), 2);
   assert.ok(neighbors(milestone2BlankDraft, "upper-floodplain").every((id) => PLAYER_REGION_IDS.includes(id)),
-    "Upper Floodplain is politically deep");
-  assert.equal(degree(milestone2BlankDraft, "outer-isles"), 0, "Outer Isles has no shared polygon edge");
-  assert.equal(degree(milestone2BlankDraft, "salt-coast"), 1, "Salt Coast is the peripheral mainland branch");
+    "Region06 is politically deep");
+  assert.equal(degree(milestone2BlankDraft, "outer-isles"), 0, "Region15 has no shared polygon edge");
+  assert.equal(degree(milestone2BlankDraft, "salt-coast"), 1, "Region13 is the peripheral mainland branch");
   assert.deepEqual(neighbors(milestone2BlankDraft, "high-pass").sort(), ["copper-basin", "iron-hills"]);
 
   const withoutBottleneck = canonicalizeMapLabDraft(milestone2BlankDraft);
@@ -102,7 +102,7 @@ function testMechanicalShapeAndPolitics() {
     [entry.regionAId, entry.regionBId].includes("black-marsh")
     && [entry.regionAId, entry.regionBId].includes("salt-coast")
   ));
-  assert.equal(getMapLabConnectedComponents(withoutBottleneck).length, 3, "Black Marsh–Salt Coast is a bottleneck edge");
+  assert.equal(getMapLabConnectedComponents(withoutBottleneck).length, 3, "Region12–Region13 is a bottleneck edge");
 
   const lakeNeighborColours = new Set(neighbors(milestone2BlankDraft, "lake-country")
     .map((id) => milestone2BlankDraft.regions.find((entry) => entry.id === id).colour));

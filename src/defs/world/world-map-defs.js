@@ -47,21 +47,21 @@ const vertices = [
 
 // Milestone 2 Substage 3 blank suitability configuration over immutable geometry.
 const regions = [
-  region("cedar-woods", "Cedar Woods", ["p0","p1","ct","p2"], {x:0.12,y:0.16}, {x:0.12,y:0.21}),
-  region("iron-hills", "Iron Hills", ["p1","w0","w1","ct"], {x:0.29,y:0.13}, {x:0.30,y:0.19}),
-  region("west-levee", "West Levee", ["p2","ct","w1","w2","w3","cm","p3"], {x:0.17,y:0.39}, {x:0.17,y:0.45}),
-  region("southern-savanna", "Southern Savanna", ["p3","cm","w3","w4","w5","w6","p5","p4"], {x:0.22,y:0.76}, {x:0.24,y:0.83}),
-  region("high-pass", "High Pass", ["w0","r0","r1","w1"], {x:0.45,y:0.13}, {x:0.45,y:0.18}),
-  region("upper-floodplain", "Upper Floodplain", ["w1","r1","r2","r3","w3","w2"], {x:0.45,y:0.34}, {x:0.34,y:0.49}),
-  region("river-crown", "River Crown", ["w3","r3","r4","w4"], {x:0.44,y:0.56}, {x:0.45,y:0.60}),
-  region("reed-delta", "Reed Delta", ["w4","r4","r5","r6","w6","w5"], {x:0.52,y:0.75}, {x:0.54,y:0.83}),
-  region("copper-basin", "Copper Basin", ["r0","e0","e1","r1"], {x:0.63,y:0.13}, {x:0.63,y:0.18}),
-  region("east-steppe", "East Steppe", ["r1","e1","e2","e3","r3","r2"], {x:0.65,y:0.34}, {x:0.66,y:0.40}),
-  region("lake-country", "Lake Country", ["r3","e3","e4","r4"], {x:0.61,y:0.55}, {x:0.61,y:0.60}),
-  region("black-marsh", "Black Marsh", ["r4","e4","e5","r5"], {x:0.68,y:0.69}, {x:0.73,y:0.63}),
-  region("salt-coast", "Salt Coast", ["r5","e5","e6","r6"], {x:0.77,y:0.85}, {x:0.78,y:0.89}),
-  region("obsidian-ridge", "Obsidian Ridge", ["e0","q0","q1","q2","e6","e5","e4","e3","e2","e1"], {x:0.84,y:0.42}, {x:0.84,y:0.49}),
-  region("outer-isles", "Outer Isles", ["i0","i1","i2","i3","i4"], {x:0.96,y:0.65}, {x:0.96,y:0.70}),
+  region("cedar-woods", "Region01", ["p0","p1","ct","p2"], {x:0.12,y:0.16}, {x:0.12,y:0.21}),
+  region("iron-hills", "Region02", ["p1","w0","w1","ct"], {x:0.29,y:0.13}, {x:0.30,y:0.19}),
+  region("west-levee", "Region03", ["p2","ct","w1","w2","w3","cm","p3"], {x:0.17,y:0.39}, {x:0.17,y:0.45}),
+  region("southern-savanna", "Region04", ["p3","cm","w3","w4","w5","w6","p5","p4"], {x:0.22,y:0.76}, {x:0.24,y:0.83}),
+  region("high-pass", "Region05", ["w0","r0","r1","w1"], {x:0.45,y:0.13}, {x:0.45,y:0.18}),
+  region("upper-floodplain", "Region06", ["w1","r1","r2","r3","w3","w2"], {x:0.45,y:0.34}, {x:0.34,y:0.49}),
+  region("river-crown", "Region07", ["w3","r3","r4","w4"], {x:0.44,y:0.56}, {x:0.45,y:0.60}),
+  region("reed-delta", "Region08", ["w4","r4","r5","r6","w6","w5"], {x:0.52,y:0.75}, {x:0.54,y:0.83}),
+  region("copper-basin", "Region09", ["r0","e0","e1","r1"], {x:0.63,y:0.13}, {x:0.63,y:0.18}),
+  region("east-steppe", "Region10", ["r1","e1","e2","e3","r3","r2"], {x:0.65,y:0.34}, {x:0.66,y:0.40}),
+  region("lake-country", "Region11", ["r3","e3","e4","r4"], {x:0.61,y:0.55}, {x:0.61,y:0.60}),
+  region("black-marsh", "Region12", ["r4","e4","e5","r5"], {x:0.68,y:0.69}, {x:0.73,y:0.63}),
+  region("salt-coast", "Region13", ["r5","e5","e6","r6"], {x:0.77,y:0.85}, {x:0.78,y:0.89}),
+  region("obsidian-ridge", "Region14", ["e0","q0","q1","q2","e6","e5","e4","e3","e2","e1"], {x:0.84,y:0.42}, {x:0.84,y:0.49}),
+  region("outer-isles", "Region15", ["i0","i1","i2","i3","i4"], {x:0.96,y:0.65}, {x:0.96,y:0.70}),
 ];
 
 const connections = milestone2BlankDraft.connections;
@@ -71,7 +71,7 @@ const sites = [
     id: "river-crown-settlement",
     regionId: "river-crown",
     simulationMode: "detailed",
-    name: "River Crown",
+    name: "Settlement07",
   },
 ];
 

@@ -23,8 +23,8 @@ const devPlaytestingSetup = {
     resources: { gold: 0, grain: 0, food: 0, population: 0 },
 
     locationNames: {
-      hub: "River Crown",
-      region: "River Crown Floodplain",
+      hub: "Settlement07",
+      region: "Region07",
     },
 
     discovery: {

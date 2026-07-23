@@ -72,6 +72,9 @@ try {
   await page.goto(URL, { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
   await openMapLab(page);
+  assert.equal(await page.getByTestId("map-lab-region-cedar-woods").getAttribute("aria-label"), "Region01 region");
+  assert.equal(await page.getByTestId("map-lab-region-river-crown").getAttribute("aria-label"), "Region07 region");
+  assert.equal(await page.getByTestId("map-lab-region-outer-isles").getAttribute("aria-label"), "Region15 region");
   const panelBox = await page.locator(".codex-debug-panel.map-lab-active").boundingBox();
   assert.ok(panelBox.width >= 1100 && panelBox.height >= 780, "Map Lab should fill the desktop viewport");
   await page.getByTestId("map-lab-connections").click();

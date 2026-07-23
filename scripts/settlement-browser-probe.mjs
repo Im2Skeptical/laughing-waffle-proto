@@ -89,13 +89,13 @@ function assertWorldMapSemantics(snapshot) {
   if (map?.mode !== "map") missing.push("map mode");
   if (map?.visible !== true) missing.push("visible map");
   if (map?.regionCount !== 15) missing.push("15 regions");
-  if (map?.selectedRegionId !== "river-crown") missing.push("River Crown selection");
-  if (map?.selectedRegion?.colour !== "red") missing.push("River Crown colour");
-  if (map?.selectedRegion?.controller !== "player") missing.push("River Crown controller");
-  if (map?.selectedRegion?.capacity !== 2) missing.push("River Crown capacity");
+  if (map?.selectedRegionId !== "river-crown") missing.push("Region07 selection");
+  if (map?.selectedRegion?.colour !== "red") missing.push("Region07 colour");
+  if (map?.selectedRegion?.controller !== "player") missing.push("Region07 controller");
+  if (map?.selectedRegion?.capacity !== 2) missing.push("Region07 capacity");
   if (map?.controllerMarkers?.length !== 15) missing.push("15 controller markers");
   if (map?.controllerMarkers?.find((marker) => marker.regionId === "river-crown")?.controller !== "player") {
-    missing.push("River Crown player marker");
+    missing.push("Region07 player marker");
   }
   if (map?.detailedSiteMarkerCount !== 0) missing.push("no detailed-site marker");
   if (map?.selectedRegion?.practiceOptions?.length !== 6) missing.push("six practice options");
