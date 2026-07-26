@@ -663,6 +663,10 @@ export function getHubCore(state) {
 }
 
 export function getSettlementClassIds(state) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (detailed?.populationByClass) {
+    return normalizeClassOrder(Object.keys(detailed.populationByClass));
+  }
   const hub = getPrimaryDetailedSiteState(state)?.hub;
   const explicitOrder = Array.isArray(hub?.classOrder) ? hub.classOrder : [];
   const populationClasses = getHubCore(state)?.systemState?.populationClasses;
@@ -676,6 +680,22 @@ export function getSettlementPrimaryClassId(state) {
 }
 
 export function getSettlementPopulationClasses(state) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (detailed?.populationByClass) {
+    return Object.fromEntries(Object.entries(detailed.populationByClass).map(([classId, entry]) => {
+      const elders = (entry.eldersByAge ?? []).reduce(
+        (sum, cohort) => sum + Math.max(0, Math.floor(cohort?.count ?? 0)), 0
+      );
+      return [classId, {
+        ...entry,
+        youth: Math.max(0, Math.floor(entry.children ?? 0)),
+        adults: Math.max(0, Math.floor(entry.adults ?? 0)) + elders,
+        total: Math.max(0, Math.floor(entry.children ?? 0))
+          + Math.max(0, Math.floor(entry.adults ?? 0)) + elders,
+        commitments: [],
+      }];
+    }));
+  }
   const core = getHubCore(state);
   const populationClasses = core?.systemState?.populationClasses;
   return populationClasses && typeof populationClasses === "object" ? populationClasses : {};
@@ -695,11 +715,12 @@ export function getSettlementYearStartSec(state, year) {
 }
 
 export function getSettlementVassalLineageState(state) {
-  return getHubCore(state)?.systemState?.vassalLineage ?? null;
+  return state?.civilization?.vassalLineage ?? null;
 }
 
 export function getSettlementCurrentVassal(state) {
   const lineage = getSettlementVassalLineageState(state);
+  if (lineage?.currentVassal) return lineage.currentVassal;
   const currentVassalId =
     typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
       ? lineage.currentVassalId
@@ -717,6 +738,7 @@ export function getSettlementCurrentVassal(state) {
 
 export function getSettlementSelectedVassals(state) {
   const lineage = getSettlementVassalLineageState(state);
+  if (Array.isArray(lineage?.selectedVassals)) return lineage.selectedVassals;
   const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
   const byId = lineage?.vassalsById ?? {};
   return selectedIds.map((vassalId) => byId?.[vassalId] ?? null).filter(Boolean);
@@ -863,6 +885,8 @@ export function getSettlementZone(state, zoneId) {
 }
 
 export function getSettlementStructureSlots(state) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (Array.isArray(detailed?.structureSlots)) return detailed.structureSlots;
   const hub = getPrimaryDetailedSiteState(state)?.hub;
   return Array.isArray(hub?.zones?.structures?.slots)
     ? hub.zones.structures.slots
@@ -870,6 +894,12 @@ export function getSettlementStructureSlots(state) {
 }
 
 export function getSettlementPracticeSlotsByClass(state, classId = null) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (Array.isArray(detailed?.practiceSlots)) {
+    return detailed.practiceSlots.map((slot) => slot
+      ? { card: { defId: slot.practiceId, props: { settlement: { work: slot.work ?? 0 } } } }
+      : { card: null });
+  }
   const safeClassId = normalizeClassId(classId) ?? getSettlementPrimaryClassId(state);
   const hub = getPrimaryDetailedSiteState(state)?.hub;
   return Array.isArray(hub?.zones?.practiceByClass?.[safeClassId]?.slots)
@@ -993,6 +1023,10 @@ export function getSettlementFloodplainFoodTotal(state) {
 }
 
 export function getSettlementTotalFood(state) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (Number.isFinite(detailed?.storedFood) && Number.isFinite(detailed?.looseFood)) {
+    return Number(detailed.storedFood) + Number(detailed.looseFood);
+  }
   const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
   const storedFood = Number.isFinite(stockpiles?.food)
     ? Math.max(0, Number(stockpiles.food))
@@ -1122,6 +1156,8 @@ export function syncSettlementHinterlandBlueResource(state, desiredTotal = null)
 }
 
 export function getSettlementStockpile(state, key) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (key === "food" && Number.isFinite(detailed?.storedFood)) return Number(detailed.storedFood);
   const stockpiles = getHubCore(state)?.systemState?.stockpiles;
   if (!stockpiles || typeof stockpiles !== "object") return 0;
   return Number.isFinite(stockpiles[key]) ? Number(stockpiles[key]) : 0;

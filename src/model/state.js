@@ -562,6 +562,7 @@ export function createEmptyState(
   const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
+    gameStateSchemaVersion: 4,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -595,6 +596,18 @@ export function createEmptyState(
     civilization: {
       capitalRegionId: initialDetailedSite?.regionId ?? null,
       capitalSiteId: initialDetailedSite?.id ?? null,
+      chaos: {
+        chaosPower: 0,
+        monsterCount: 0,
+        monsterLossThreshold: 1000,
+        lastAnnualIncome: null,
+      },
+      vassalLineage: {
+        nextVassalId: 1,
+        currentVassal: null,
+        pendingCandidates: [],
+        selectedVassals: [],
+      },
     },
     nextHubStructureInstanceId: 1,
     nextEnvStructureInstanceId: 1,
@@ -1152,11 +1165,23 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
+  if (state?.gameStateSchemaVersion !== 4) {
+    throw new Error("Unsupported game-state schema: expected v4");
+  }
   canonicalizeWorldState(state);
   const worldValidation = validateWorldState(state);
   if (!worldValidation.ok) {
     throw new Error(`Invalid serialized world state: ${worldValidation.errors.join("; ")}`);
   }
+  if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)) {
+    throw new Error("Invalid serialized RNG state");
+  }
+  attachRngHelpers(state);
+  state._boardDirty = false;
+  state._seasonChanged = false;
+  syncPhaseToPaused(state);
+  return state;
+
   const local = getLocalState(state);
 
   // Ensure defaults

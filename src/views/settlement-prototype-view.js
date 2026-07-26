@@ -1,813 +1,218 @@
-import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
-import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import {
-  getSettlementChaosGodSummary,
-  getSettlementChaosIncomeSummary,
-} from "../model/settlement-chaos.js";
-import { getCurrentSeasonKey } from "../model/state.js";
-import {
-  getSettlementClassIds,
-  getSettlementDebugOverrideSlotSummary,
-  getSettlementFaithSummary,
-  getSettlementHappinessSummary,
-  getSettlementOrderSlots,
-  getSettlementPopulationSummary,
-  getSettlementPracticeSlotsByClass,
-  getSettlementStockpile,
-  getSettlementStructureSlots,
-  getSettlementTotalFood,
-} from "../model/settlement-state.js";
-import { getPrimaryDetailedSiteState } from "../model/world-state.js";
-import {
-  capitalizeLabel,
-  formatPartialFeedMemory,
-} from "./settlement-formatters.js";
-import {
-  buildPracticeLines,
-  buildStructureLines,
-  buildStructureTooltipSpec,
-  buildTileLines,
-} from "./settlement-tooltip-lines.js";
-import {
-  drawMiniPracticeCard,
-} from "./settlement-agenda-view.js";
-import { drawCard, drawPracticeCard } from "./settlement-card-view.js";
-import { drawRedGodPanel } from "./settlement-chaos-panel-view.js";
-import { drawClassSummaryCard } from "./settlement-class-summary-view.js";
-import { drawOrderPanel } from "./settlement-order-panel-view.js";
-import { drawVassalPanel } from "./settlement-vassal-panel-view.js";
-import {
-  buildRenderGateKey,
-  buildSignature,
-} from "./settlement-render-signature.js";
-import { buildRenderSemanticSnapshot } from "./settlement-semantic-snapshot.js";
-import {
-  clearChildren,
-  createText,
-  createWrappedText,
-  roundedRect,
-} from "./settlement-view-primitives.js";
-import {
-  FAITH_TIER_COLORS,
-  PALETTE,
-  TEXT_STYLES,
-} from "./settlement-theme.js";
-import {
-  SETTLEMENT_CLASS_COLUMN_LAYOUT,
-  SETTLEMENT_PANEL_RECTS,
-  SETTLEMENT_REGION_TILE_LAYOUT,
-  SETTLEMENT_RESOURCE_CHIP_LAYOUT,
-  SETTLEMENT_SECTION_LABEL_LAYOUT,
-  SETTLEMENT_SLOT_GRID_LAYOUT,
-  SETTLEMENT_STRUCTURE_CARD_LAYOUT,
-  SETTLEMENT_TOPBAR_LAYOUT,
-} from "./settlement-layout.js";
+  getDetailedSettlementViewModel,
+  getDetailedVassalPrestige,
+  getElderMortalityRate,
+} from "../model/detailed-settlements.js";
+import { getRegionDefinition } from "../model/world-state.js";
+import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
+import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const AGENDA_FLYOUT_HIDE_DELAY_MS = 60;
+const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 756 });
 
-function getSlotRect(rect, columns, rows, index, padding = 6) {
-  const colCount = Math.max(1, Math.floor(columns));
-  const rowCount = Math.max(1, Math.floor(rows));
-  const safeIndex = Math.max(0, Math.floor(index));
-  const col = safeIndex % colCount;
-  const row = Math.floor(safeIndex / colCount);
-  const cellWidth = rect.width / colCount;
-  const cellHeight = rect.height / rowCount;
-  const inset = Math.max(0, Math.floor(padding));
-  return {
-    x: Math.round(rect.x + col * cellWidth + inset),
-    y: Math.round(rect.y + row * cellHeight + inset),
-    width: Math.max(1, Math.floor(cellWidth - inset * 2)),
-    height: Math.max(1, Math.floor(cellHeight - inset * 2)),
-  };
-}
-
-function fitSquareInRect(rect) {
-  const size = Math.max(1, Math.floor(Math.min(rect.width, rect.height)));
-  return {
-    x: Math.round(rect.x + (rect.width - size) * 0.5),
-    y: Math.round(rect.y + (rect.height - size) * 0.5),
-    width: size,
-    height: size,
-  };
-}
-
-function drawSlotGrid(gfx, rect, columns, rows, padding = 6) {
-  const colCount = Math.max(1, Math.floor(columns));
-  const rowCount = Math.max(1, Math.floor(rows));
-  for (let row = 0; row < rowCount; row += 1) {
-    for (let col = 0; col < colCount; col += 1) {
-      const slotRect = getSlotRect(rect, colCount, rowCount, row * colCount + col, padding);
-      roundedRect(
-        gfx,
-        slotRect.x,
-        slotRect.y,
-        slotRect.width,
-        slotRect.height,
-        18,
-        PALETTE.slot,
-        PALETTE.stroke,
-        2
-      );
-    }
-  }
-}
-
-function drawDebugOverrideSlotHighlight(container, rect) {
+function addButton(parent, rect, label, selected, onPress) {
+  const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
-  roundedRect(
-    gfx,
-    rect.x + 2,
-    rect.y + 2,
-    Math.max(1, rect.width - 4),
-    Math.max(1, rect.height - 4),
-    16,
-    PALETTE.debugOverrideFill,
-    PALETTE.debugOverrideStroke,
-    4,
-    0.12,
-    0.96
-  );
-  container.addChild(gfx);
-  return gfx;
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 7,
+    selected ? PALETTE.accent : PALETTE.panel, PALETTE.stroke, 2);
+  root.addChild(gfx, createText(label, {
+    ...TEXT_STYLES.title,
+    fill: selected ? 0x2b2825 : PALETTE.text,
+  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  root.position.set(rect.x, rect.y);
+  root.eventMode = "static";
+  root.cursor = "pointer";
+  root.on("pointertap", onPress);
+  parent.addChild(root);
 }
 
-function drawSubPanel(container, rect, fill = PALETTE.cardMuted, outline = PALETTE.stroke) {
+function panel(parent, rect, title) {
   const gfx = new PIXI.Graphics();
-  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 18, fill, outline, 2);
-  container.addChild(gfx);
-  return gfx;
+  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 8, PALETTE.panelSoft, PALETTE.stroke, 2);
+  parent.addChild(gfx, createText(title, TEXT_STYLES.title, rect.x + 18, rect.y + 15));
 }
 
-function drawChip(container, x, y, width, label, value, color = PALETTE.chip) {
-  const gfx = new PIXI.Graphics();
-  roundedRect(gfx, x, y, width, 40, 16, color, PALETTE.stroke, 2);
-  container.addChild(gfx);
-  container.addChild(createText(label, TEXT_STYLES.muted, x + 12, y + 7));
-  container.addChild(createText(String(value), TEXT_STYLES.chip, x + width - 14, y + 20, 1, 0.5));
-}
-
-function getTileCardFill(tile) {
-  if (tile?.defId === "tile_floodplains") return PALETTE.cardMuted;
-  return tile?.defId === "tile_river" ? PALETTE.riverTileCard : PALETTE.tileCard;
-}
-
-function getStructureTierColor(structure) {
-  const tier = structure?.props?.settlement?.upgradeTier;
-  return typeof tier === "string" ? FAITH_TIER_COLORS[tier] ?? null : null;
+function faithRates(classState) {
+  const birth = { bronze: 0, silver: 10, gold: 20, diamond: 50 }[classState?.faith?.tier] ?? 20;
+  return `Birth ${birth}% · child→adult 10% · adult→elder 2%`;
 }
 
 export function createSettlementPrototypeView({
-  app,
   layer,
   getState,
-  getCivilizationLossInfo,
-  getSelectedPracticeClassId,
-  setSelectedPracticeClassId,
-  tooltipView,
-  getVisibleVassalTimeSec,
+  getSelectedRegionId,
   onReturnToMap,
-} = {}) {
+}) {
   const root = new PIXI.Container();
-  const contentLayer = new PIXI.Container();
-  const overlayLayer = new PIXI.Container();
-  root.addChild(contentLayer, overlayLayer);
-  layer?.addChild(root);
+  layer.addChild(root);
+  let activeTab = "overview";
   let lastSignature = "";
-  let lastRenderGateKey = "";
-  let agendaFlyoutSpec = null;
-  let agendaFlyoutHideTimeoutId = null;
+  let semanticSnapshot = null;
 
-  function clearAgendaFlyoutHideTimer() {
-    if (agendaFlyoutHideTimeoutId == null) return;
-    clearTimeout(agendaFlyoutHideTimeoutId);
-    agendaFlyoutHideTimeoutId = null;
-  }
-
-  function hideAgendaFlyoutNow() {
-    clearAgendaFlyoutHideTimer();
-    agendaFlyoutSpec = null;
-    clearChildren(overlayLayer);
-  }
-
-  function scheduleAgendaFlyoutHide() {
-    clearAgendaFlyoutHideTimer();
-    agendaFlyoutHideTimeoutId = setTimeout(() => {
-      agendaFlyoutSpec = null;
-      clearChildren(overlayLayer);
-      agendaFlyoutHideTimeoutId = null;
-    }, AGENDA_FLYOUT_HIDE_DELAY_MS);
-  }
-
-  function renderAgendaFlyout(state) {
-    clearChildren(overlayLayer);
-    if (!agendaFlyoutSpec || !state) return;
-    const classIds = getSettlementClassIds(state);
-    const member = agendaFlyoutSpec.member;
-    const anchorBounds =
-      agendaFlyoutSpec.anchorDisplayObject?.getBounds?.() ?? agendaFlyoutSpec.anchorRect ?? null;
-    if (!anchorBounds) return;
-    const width = 360;
-    const sectionGap = 8;
-    const headerHeight = 30;
-    const rowHeight = 56;
-    const height =
-      16 +
-      headerHeight +
-      classIds.length * rowHeight +
-      Math.max(0, classIds.length - 1) * sectionGap +
-      14;
-    const screenWidth = Math.floor(app?.screen?.width ?? 2424);
-    const screenHeight = Math.floor(app?.screen?.height ?? 1080);
-    let x = anchorBounds.x + anchorBounds.width + 14;
-    if (x + width > screenWidth - 16) {
-      x = anchorBounds.x - width - 14;
-    }
-    x = Math.max(16, Math.min(x, screenWidth - width - 16));
-    let y = anchorBounds.y - 8;
-    y = Math.max(16, Math.min(y, screenHeight - height - 16));
-
-    const flyout = new PIXI.Container();
-    flyout.x = x;
-    flyout.y = y;
-    flyout.eventMode = "static";
-    flyout.cursor = "default";
-    flyout.hitArea = new PIXI.Rectangle(0, 0, width, height);
-    flyout.on("pointerenter", () => {
-      clearAgendaFlyoutHideTimer();
-    });
-    flyout.on("pointerleave", () => {
-      scheduleAgendaFlyoutHide();
-    });
+  function render(force = false) {
+    if (!root.visible) return;
+    const state = getState?.();
+    const regionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId;
+    const vm = getDetailedSettlementViewModel(state, regionId);
+    if (!vm) return;
+    const signature = JSON.stringify({ tSec: state.tSec, regionId, activeTab, vm,
+      lineage: state.civilization.vassalLineage, chaos: state.civilization.chaos });
+    if (!force && signature === lastSignature) return;
+    lastSignature = signature;
+    clearChildren(root);
 
     const bg = new PIXI.Graphics();
-    roundedRect(bg, 0, 0, width, height, 18, PALETTE.flyout, PALETTE.accent, 2);
-    flyout.addChild(bg);
-    flyout.addChild(createText("Full Agenda", TEXT_STYLES.cardTitle, 14, 12));
+    bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
+    root.addChild(bg);
+    const regionDef = getRegionDefinition(state, regionId);
+    root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
+      TEXT_STYLES.header, 48, 35, 0, 0.5));
+    addButton(root, { x: 1890, y: 14, width: 150, height: 44 }, "Overview",
+      activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
+    addButton(root, { x: 2050, y: 14, width: 190, height: 44 }, "Demographics",
+      activeTab === "demographics", () => { activeTab = "demographics"; lastSignature = ""; });
+    addButton(root, { x: 2250, y: 14, width: 126, height: 44 }, "Map", false, onReturnToMap);
 
-    let cursorY = 16 + headerHeight;
-    for (const classId of classIds) {
-      drawSubPanel(
-        flyout,
-        { x: 12, y: cursorY, width: width - 24, height: rowHeight },
-        PALETTE.elderLozengeSoft,
-        PALETTE.stroke
+    if (activeTab === "overview") {
+      const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
+      const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
+      const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
+      const structureRect = { x: BODY.x, y: 356, width: 540, height: 410 };
+      panel(root, foodRect, "Local food and population");
+      panel(root, practiceRect, "Five practice slots");
+      panel(root, orderRect, "Elder Order");
+      panel(root, structureRect, "Regional structure space");
+      root.addChild(
+        createText(`Stored food  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
+          foodRect.x + 18, foodRect.y + 64),
+        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 100),
+        createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 136),
+        createText(`Population  ${vm.population.total} / ${vm.population.housingCapacity} housing`,
+          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 172),
+        createText(`Last meal  ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand}` : "none"}`,
+          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 208)
       );
-      flyout.addChild(
-        createText(
-          capitalizeLabel(classId),
-          {
-            ...TEXT_STYLES.body,
-            fontWeight: "bold",
-            fontSize: 12,
-          },
-          22,
-          cursorY + 8
-        )
+      vm.practices.forEach((entry, index) => {
+        const y = practiceRect.y + 58 + index * 68;
+        root.addChild(createText(
+          `${index + 1}. ${entry.label ?? "Empty"}`,
+          { ...TEXT_STYLES.title, fontSize: 17 }, practiceRect.x + 18, y));
+        if (entry.practiceId) {
+          root.addChild(createText(
+            `${entry.work ? `work ${entry.work} · ` : ""}${entry.workers.tokens.length} tokens · ${entry.workers.effectiveWorkers} effective`,
+            { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, practiceRect.x + 360, y + 2));
+        }
+      });
+      const order = vm.elderOrder;
+      root.addChild(
+        createText(`Worker policy: one token per ten adults + elders, per class`,
+          TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 60),
+        createText(`Elders: ${order.count} · Ages ${order.ages.join(", ") || "none"}`,
+          TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 102),
+        createText(`Prestige: ${order.totalPrestige} total / ${order.count || 0}`,
+          TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 144),
+        createText(`Resistance = ${order.averagePrestige} average + ${order.coordinationResistance} coordination`,
+          TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 186),
+        createText(`Local resistance: ${order.resistance}`,
+          { ...TEXT_STYLES.header, fill: PALETTE.accent }, orderRect.x + 18, orderRect.y + 232)
       );
-      const agenda = Array.isArray(member?.agendaByClass?.[classId]) ? member.agendaByClass[classId] : [];
-      if (agenda.length <= 0) {
-        drawMiniPracticeCard(
-          flyout,
-          { x: 96, y: cursorY + 7, width: 84, height: rowHeight - 14 },
-          null,
-          { emptyLabel: "No agenda", fontSize: 9, lineHeight: 11 }
-        );
+      const vassal = state.civilization.vassalLineage.currentVassal;
+      if (vassal?.targetRegionId === regionId) {
+        root.addChild(createText(
+          `Vassal prestige ${getDetailedVassalPrestige(state, vassal)} · target here`,
+          TEXT_STYLES.title, orderRect.x + 18, orderRect.y + 286));
+        vassal.interventions.forEach((entry, index) => {
+          root.addChild(createText(
+            `${index + 1}. ${entry.practiceId} · ${entry.requiredPrestige} · ${entry.status}`,
+            TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 326 + index * 28));
+        });
       } else {
-        const cardWidth = 74;
-        const gap = 6;
-        for (let index = 0; index < agenda.length; index += 1) {
-          drawMiniPracticeCard(
-            flyout,
-            {
-              x: 96 + index * (cardWidth + gap),
-              y: cursorY + 7,
-              width: cardWidth,
-              height: rowHeight - 14,
-            },
-            agenda[index],
-            { fontSize: 8, lineHeight: 10 }
-          );
-        }
+        root.addChild(createText("No current vassal targets this Order.",
+          { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, orderRect.x + 18, orderRect.y + 286));
       }
-      cursorY += rowHeight + sectionGap;
+      root.addChild(createText(
+        `${vm.usedStructureCapacity} used / ${vm.structureCapacity} available`,
+        TEXT_STYLES.header, structureRect.x + 18, structureRect.y + 60));
+      vm.structures.forEach((slot, index) => root.addChild(createText(
+        `${index + 1}. ${slot?.structureId ?? "Empty"}`,
+        TEXT_STYLES.body, structureRect.x + 18, structureRect.y + 112 + index * 42)));
+    } else {
+      const villager = vm.population.byClass.villager;
+      const stranger = vm.population.byClass.stranger;
+      const site = state.world.sites.find((entry) => entry.regionId === regionId).detailedState;
+      const left = { x: BODY.x, y: BODY.y, width: 1128, height: 688 };
+      const right = { x: 1194, y: BODY.y, width: 1182, height: 688 };
+      panel(root, left, "Cohorts, housing, and meals");
+      panel(root, right, "Annual probabilities and previous result");
+      const lines = [
+        `Villagers: ${villager.children} children · ${villager.adults} adults · ${villager.elders} elders`,
+        `Villager elder ages: ${vm.elderOrder.ages.join(", ") || "none"}`,
+        `Strangers: ${stranger.children} children · ${stranger.adults} adults · ${stranger.elders} elders`,
+        `Housing: ${vm.population.total} / ${vm.population.housingCapacity}${vm.population.total > vm.population.housingCapacity ? " · OVER-HOUSED" : ""}`,
+        `Meal: ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand} (${Math.round(vm.lastMeal.ratio * 100)}%)` : "not yet resolved"}`,
+        `Loose food is eaten first; remote food requires Administration.`,
+      ];
+      lines.forEach((line, index) => root.addChild(createText(line, TEXT_STYLES.body,
+        left.x + 18, left.y + 64 + index * 44)));
+      let y = right.y + 64;
+      for (const classId of ["villager", "stranger"]) {
+        const classState = site.populationByClass[classId];
+        const birthRate = { bronze: 0, silver: 0.1, gold: 0.2, diamond: 0.5 }[
+          classState.faith.tier
+        ] ?? 0.2;
+        const expectedElderDeaths = (classState.eldersByAge ?? []).reduce(
+          (sum, cohort) => sum + cohort.count * getElderMortalityRate(cohort.age + 1), 0
+        );
+        root.addChild(
+          createText(classId.toUpperCase(), TEXT_STYLES.title, right.x + 18, y),
+          createText(`${faithRates(classState)} · Faith ${classState.faith.tier}`,
+            TEXT_STYLES.body, right.x + 18, y + 34),
+          createText(`Happiness ${classState.happiness.status} · full ${classState.happiness.fullFeedStreak}/3 · missed ${classState.happiness.missedFeedStreak}/3`,
+            TEXT_STYLES.body, right.x + 18, y + 66),
+          createText(
+            `Expected: ${(
+              classState.adults * birthRate
+            ).toFixed(1)} births · ${(classState.children * 0.1).toFixed(1)} adults · ${(classState.adults * 0.02).toFixed(1)} elders · ${expectedElderDeaths.toFixed(2)} elder deaths`,
+            { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted },
+            right.x + 18,
+            y + 94
+          )
+        );
+        y += 150;
+      }
+      root.addChild(createWrappedText(
+        "Elder mortality after aging: 1% through 49; 3% at 50–54; 8% at 55–59; 18% at 60–64; 35% at 65–69; 60% at 70–74; 85% at 75+.",
+        TEXT_STYLES.body, right.x + 18, y, right.width - 36));
+      y += 90;
+      root.addChild(createWrappedText(
+        site.lastAnnualResult
+          ? `Previous annual result (Year ${site.lastAnnualResult.year}): ${JSON.stringify(site.lastAnnualResult.byClass)}`
+          : "Previous annual result: none.",
+        { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, right.x + 18, y, right.width - 36));
     }
 
-    overlayLayer.addChild(flyout);
-  }
-
-  function showAgendaFlyout(spec) {
-    clearAgendaFlyoutHideTimer();
-    agendaFlyoutSpec = spec && typeof spec === "object" ? spec : null;
-    const state = typeof getState === "function" ? getState() : null;
-    renderAgendaFlyout(state);
-  }
-
-  function render() {
-    const state = typeof getState === "function" ? getState() : null;
-    if (!state) return;
-    const classIds = getSettlementClassIds(state);
-    const selectedClassId =
-      (typeof getSelectedPracticeClassId === "function" && getSelectedPracticeClassId()) ||
-      classIds[0] ||
-      "villager";
-    const visibleVassalThroughSec =
-      typeof getVisibleVassalTimeSec === "function"
-        ? getVisibleVassalTimeSec(state)
-        : state?.tSec;
-    const civilizationLossInfo =
-      typeof getCivilizationLossInfo === "function" ? getCivilizationLossInfo() : null;
-    const renderGateKey = buildRenderGateKey(
-      state,
-      selectedClassId,
-      visibleVassalThroughSec,
-      civilizationLossInfo
-    );
-    if (renderGateKey === lastRenderGateKey) {
-      renderAgendaFlyout(state);
-      return;
-    }
-    lastRenderGateKey = renderGateKey;
-    const redGodSummary = getSettlementChaosGodSummary(state, "redGod");
-    const redGodIncomeSummary = getSettlementChaosIncomeSummary(state, "redGod");
-    const signature = buildSignature(
-      state,
-      selectedClassId,
-      visibleVassalThroughSec,
-      civilizationLossInfo
-    );
-    if (signature === lastSignature) {
-      renderAgendaFlyout(state);
-      return;
-    }
-    lastSignature = signature;
-
-    hideAgendaFlyoutNow();
-    clearChildren(contentLayer);
-
-    const screenWidth = Math.floor(app?.screen?.width ?? 2424);
-    const screenHeight = Math.floor(app?.screen?.height ?? 1080);
-
-    const background = new PIXI.Graphics();
-    background.beginFill(PALETTE.background, 1);
-    background.drawRect(0, 0, screenWidth, screenHeight);
-    background.endFill();
-    contentLayer.addChild(background);
-
-    const topbar = new PIXI.Graphics();
-    roundedRect(topbar, 0, 0, screenWidth, SETTLEMENT_TOPBAR_LAYOUT.height, 0, PALETTE.topbar, PALETTE.topbar, 0);
-    contentLayer.addChild(topbar);
-
-    const mapButton = new PIXI.Container();
-    const mapButtonBg = new PIXI.Graphics();
-    roundedRect(mapButtonBg, 0, 0, 132, 42, 6, PALETTE.panel, PALETTE.accent, 2);
-    mapButton.addChild(
-      mapButtonBg,
-      createText("<  Map", { ...TEXT_STYLES.chip, fontSize: 17 }, 66, 21, 0.5, 0.5)
-    );
-    mapButton.x = 70;
-    mapButton.y = 14;
-    mapButton.interactive = true;
-    mapButton.buttonMode = true;
-    mapButton.cursor = "pointer";
-    mapButton.on("pointertap", () => onReturnToMap?.());
-    contentLayer.addChild(mapButton);
-
-    const seasonText = `${getCurrentSeasonKey(state).toUpperCase()}  |  Year ${Math.floor(
-      state?.year ?? 1
-    )}`;
-    const civilizationLostLabel = Number.isFinite(civilizationLossInfo?.lossYear)
-      ? `Civilization Lost - Year ${Math.floor(civilizationLossInfo.lossYear)}${
-          Number.isFinite(civilizationLossInfo?.maxLossYear)
-            ? ` (max ${Math.floor(civilizationLossInfo.maxLossYear)})`
-            : ""
-        }`
-      : "Civilization Lost - Unknown";
-    contentLayer.addChild(createText(seasonText, TEXT_STYLES.header, screenWidth * 0.5, SETTLEMENT_TOPBAR_LAYOUT.seasonY, 0.5, 0.5));
-    contentLayer.addChild(
-      createText(
-        civilizationLostLabel,
-        {
-          ...TEXT_STYLES.body,
-          fontSize: 18,
-          fontWeight: "bold",
-          fill: PALETTE.accent,
-        },
-        screenWidth * 0.5,
-        SETTLEMENT_TOPBAR_LAYOUT.lossY,
-        0.5,
-        0.5
-      )
-    );
-
-    const {
-      hub: hubPanelRect,
-      vassal: vassalPanelRect,
-      chaos: chaosPanelRect,
-      region: regionPanelRect,
-      classColumn: classColumnRect,
-      order: orderRect,
-      practice: practiceRect,
-      structures: structuresRect,
-      resourceBand: resourceBandRect,
-    } = SETTLEMENT_PANEL_RECTS;
-
-    const panelGfx = new PIXI.Graphics();
-    roundedRect(
-      panelGfx,
-      hubPanelRect.x,
-      hubPanelRect.y,
-      hubPanelRect.width,
-      hubPanelRect.height,
-      26,
-      PALETTE.panelSoft,
-      PALETTE.stroke,
-      4
-    );
-    roundedRect(
-      panelGfx,
-      chaosPanelRect.x,
-      chaosPanelRect.y,
-      chaosPanelRect.width,
-      chaosPanelRect.height,
-      26,
-      PALETTE.panelSoft,
-      PALETTE.stroke,
-      4
-    );
-    roundedRect(
-      panelGfx,
-      regionPanelRect.x,
-      regionPanelRect.y,
-      regionPanelRect.width,
-      regionPanelRect.height,
-      26,
-      PALETTE.panelSoft,
-      PALETTE.stroke,
-      4
-    );
-    roundedRect(
-      panelGfx,
-      vassalPanelRect.x,
-      vassalPanelRect.y,
-      vassalPanelRect.width,
-      vassalPanelRect.height,
-      26,
-      PALETTE.panelSoft,
-      PALETTE.stroke,
-      4
-    );
-    roundedRect(
-      panelGfx,
-      resourceBandRect.x,
-      resourceBandRect.y,
-      resourceBandRect.width,
-      resourceBandRect.height,
-      18,
-      PALETTE.panelSoft,
-      PALETTE.stroke,
-      2
-    );
-    roundedRect(
-      panelGfx,
-      orderRect.x,
-      orderRect.y,
-      orderRect.width,
-      orderRect.height,
-      22,
-      PALETTE.panel,
-      PALETTE.stroke,
-      3
-    );
-    roundedRect(
-      panelGfx,
-      practiceRect.x,
-      practiceRect.y,
-      practiceRect.width,
-      practiceRect.height,
-      22,
-      PALETTE.panel,
-      PALETTE.stroke,
-      3
-    );
-    roundedRect(
-      panelGfx,
-      structuresRect.x,
-      structuresRect.y,
-      structuresRect.width,
-      structuresRect.height,
-      22,
-      PALETTE.panel,
-      PALETTE.stroke,
-      3
-    );
-    contentLayer.addChild(panelGfx);
-
-    contentLayer.addChild(
-      createText(
-        getPrimaryDetailedSiteState(state)?.locationNames?.hub ?? "Hub",
-        TEXT_STYLES.header,
-        hubPanelRect.x + hubPanelRect.width * 0.5,
-        SETTLEMENT_SECTION_LABEL_LAYOUT.hubY,
-        0.5,
-        0.5
-      )
-    );
-    contentLayer.addChild(
-      createText(
-        getPrimaryDetailedSiteState(state)?.locationNames?.region ?? "Region",
-        TEXT_STYLES.header,
-        regionPanelRect.x + regionPanelRect.width * 0.5,
-        regionPanelRect.y + SETTLEMENT_SECTION_LABEL_LAYOUT.regionYOffset,
-        0.5,
-        0.5
-      )
-    );
-    contentLayer.addChild(
-      createText("Vassal", TEXT_STYLES.header, vassalPanelRect.x + vassalPanelRect.width * 0.5, SETTLEMENT_SECTION_LABEL_LAYOUT.vassalY, 0.5, 0.5)
-    );
-    contentLayer.addChild(
-      createText("Order", TEXT_STYLES.title, orderRect.x + orderRect.width * 0.5, SETTLEMENT_SECTION_LABEL_LAYOUT.orderY, 0.5, 0.5)
-    );
-    contentLayer.addChild(
-      createText(
-        `Practice - ${capitalizeLabel(selectedClassId)}`,
-        TEXT_STYLES.title,
-        practiceRect.x + practiceRect.width * 0.5,
-        SETTLEMENT_SECTION_LABEL_LAYOUT.practiceY,
-        0.5,
-        0.5
-      )
-    );
-    contentLayer.addChild(
-      createText(
-        "Structures",
-        TEXT_STYLES.title,
-        structuresRect.x + structuresRect.width * 0.5,
-        SETTLEMENT_SECTION_LABEL_LAYOUT.structuresY,
-        0.5,
-        0.5
-      )
-    );
-
-    const chipsLayer = new PIXI.Container();
-    contentLayer.addChild(chipsLayer);
-    const chipSpecs = [
-      {
-        label: "Food",
-        value: `${getSettlementTotalFood(state)} total`,
-        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.food,
-        color: PALETTE.chip,
+    semanticSnapshot = {
+      visible: root.visible === true,
+      activeTab,
+      regionId,
+      overview: vm,
+      demographics: {
+        population: vm.population,
+        lastMeal: vm.lastMeal,
+        lastAnnualResult: vm.lastAnnualResult,
       },
-      {
-        label: "Red",
-        value: getSettlementStockpile(state, "redResource"),
-        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.red,
-        color: PALETTE.red,
-      },
-      {
-        label: "Blue",
-        value: getSettlementStockpile(state, "blueResource"),
-        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.blue,
-        color: PALETTE.blue,
-      },
-      {
-        label: "Black",
-        value: getSettlementStockpile(state, "blackResource"),
-        width: SETTLEMENT_RESOURCE_CHIP_LAYOUT.widths.black,
-        color: PALETTE.black,
-      },
-    ];
-    const chipGap = SETTLEMENT_RESOURCE_CHIP_LAYOUT.gap;
-    const chipRowWidth =
-      chipSpecs.reduce((sum, spec) => sum + spec.width, 0) + chipGap * (chipSpecs.length - 1);
-    let chipX = resourceBandRect.x + Math.floor((resourceBandRect.width - chipRowWidth) * 0.5);
-    for (const spec of chipSpecs) {
-      drawChip(chipsLayer, chipX, resourceBandRect.y + SETTLEMENT_RESOURCE_CHIP_LAYOUT.yOffset, spec.width, spec.label, spec.value, spec.color);
-      chipX += spec.width + chipGap;
-    }
-
-    const classLayer = new PIXI.Container();
-    contentLayer.addChild(classLayer);
-    // createClassTab selection moved onto the class summary cards themselves.
-    // Legacy layout marker for UI contract tests:
-    // { y: classTabsRect.y }
-    const classGap = SETTLEMENT_CLASS_COLUMN_LAYOUT.gap;
-    const classCardHeight = Math.max(
-      SETTLEMENT_CLASS_COLUMN_LAYOUT.minCardHeight,
-      Math.floor(
-        (classColumnRect.height - classGap * Math.max(0, classIds.length - 1)) /
-          Math.max(1, classIds.length)
-      )
-    );
-    for (let i = 0; i < classIds.length; i += 1) {
-      const classId = classIds[i];
-      classLayer.addChild(
-        drawClassSummaryCard(
-          {
-            x: classColumnRect.x,
-            y: classColumnRect.y + i * (classCardHeight + classGap),
-            width: classColumnRect.width,
-            height: classCardHeight,
-          },
-          classId,
-          getSettlementPopulationSummary(state, classId),
-          getSettlementFaithSummary(state, classId),
-          getSettlementHappinessSummary(state, classId),
-          classId === selectedClassId,
-          () => {
-            if (classId === selectedClassId) return;
-            setSelectedPracticeClassId?.(classId);
-            lastSignature = "";
-            lastRenderGateKey = "";
-            render();
-          }
-        )
-      );
-    }
-
-    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), practiceRect, SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns, 1);
-    drawSlotGrid(contentLayer.addChild(new PIXI.Graphics()), structuresRect, SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns, 1);
-    const regionTileGridRect = {
-      x: regionPanelRect.x + SETTLEMENT_REGION_TILE_LAYOUT.xInset,
-      y: regionPanelRect.y + SETTLEMENT_REGION_TILE_LAYOUT.yOffset,
-      width: regionPanelRect.width - SETTLEMENT_REGION_TILE_LAYOUT.xInset * 2,
-      height: regionPanelRect.height - SETTLEMENT_REGION_TILE_LAYOUT.heightInset,
+      elderOrder: vm.elderOrder,
     };
-    drawSlotGrid(
-      contentLayer.addChild(new PIXI.Graphics()),
-      regionTileGridRect,
-      SETTLEMENT_SLOT_GRID_LAYOUT.regionColumns,
-      1,
-      SETTLEMENT_REGION_TILE_LAYOUT.slotPadding
-    );
-    drawVassalPanel(
-      contentLayer,
-      vassalPanelRect,
-      state,
-      selectedClassId,
-      tooltipView,
-      visibleVassalThroughSec
-    );
-
-    const orderSlots = getSettlementOrderSlots(state);
-    const orderCard = orderSlots[0]?.card ?? null;
-    if (orderCard) {
-      drawOrderPanel(
-        contentLayer,
-        orderRect,
-        state,
-        selectedClassId,
-        orderCard,
-        tooltipView,
-        showAgendaFlyout,
-        scheduleAgendaFlyoutHide
-      );
-    }
-
-    const practiceSlots = getSettlementPracticeSlotsByClass(state, selectedClassId);
-    const debugOverrideSlots = getSettlementDebugOverrideSlotSummary(state);
-    for (let i = 0; i < practiceSlots.length; i += 1) {
-      const card = practiceSlots[i]?.card ?? null;
-      if (!card) continue;
-      const def = settlementPracticeDefs[card.defId];
-      const isPassivePractice = def?.practiceMode === "passive";
-      const practiceSlotRect = getSlotRect(
-        practiceRect,
-        SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns,
-        1,
-        i
-      );
-      const practiceCardRect = isPassivePractice ? fitSquareInRect(practiceSlotRect) : practiceSlotRect;
-      drawPracticeCard(
-        contentLayer,
-        practiceCardRect,
-        card,
-        def?.name ?? card.defId,
-        buildPracticeLines(card),
-        card?.props?.settlement?.available ? PALETTE.card : PALETTE.cardMuted,
-        isPassivePractice
-          ? card?.props?.settlement?.available
-            ? PALETTE.passiveBorder
-            : PALETTE.passiveBorderMuted
-          : card?.props?.settlement?.available
-            ? PALETTE.active
-            : PALETTE.stroke,
-        {
-          showBody: false,
-          tooltipView,
-        }
-      );
-    }
-
-    const structureSlots = getSettlementStructureSlots(state);
-    for (let i = 0; i < structureSlots.length; i += 1) {
-      const structure = structureSlots[i]?.structure ?? null;
-      if (!structure) continue;
-      const def = hubStructureDefs[structure.defId];
-      const tierColor = getStructureTierColor(structure);
-      const structureCardRect = getSlotRect(
-        structuresRect,
-        SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns,
-        1,
-        i
-      );
-      drawCard(
-        contentLayer,
-        structureCardRect,
-        def?.name ?? structure.defId,
-        buildStructureLines(structure),
-        structure?.props?.settlement?.active ? PALETTE.card : PALETTE.cardMuted,
-        tierColor ?? (structure?.props?.settlement?.active ? PALETTE.active : PALETTE.stroke),
-        {
-          fontSize: 11,
-          lineHeight: 15,
-          wordWrapWidth: structureCardRect.width - SETTLEMENT_STRUCTURE_CARD_LAYOUT.wordWrapInset,
-        },
-        {
-          showBody: false,
-          tooltipView,
-          tooltipSpec: buildStructureTooltipSpec(structure),
-          edgeColor: tierColor,
-          edgeStrokeWidth: 5,
-        }
-      );
-    }
-
-    const activePracticeDebugSlots =
-      debugOverrideSlots?.practices?.[selectedClassId] ?? [];
-    for (let i = 0; i < activePracticeDebugSlots.length; i += 1) {
-      if (activePracticeDebugSlots[i] !== true) continue;
-      drawDebugOverrideSlotHighlight(
-        contentLayer,
-        getSlotRect(practiceRect, SETTLEMENT_SLOT_GRID_LAYOUT.practiceColumns, 1, i)
-      );
-    }
-    const activeStructureDebugSlots = debugOverrideSlots?.structures ?? [];
-    for (let i = 0; i < activeStructureDebugSlots.length; i += 1) {
-      if (activeStructureDebugSlots[i] !== true) continue;
-      drawDebugOverrideSlotHighlight(
-        contentLayer,
-        getSlotRect(structuresRect, SETTLEMENT_SLOT_GRID_LAYOUT.structureColumns, 1, i)
-      );
-    }
-
-    const local = getPrimaryDetailedSiteState(state);
-    const tileAnchors = Array.isArray(local?.board?.layers?.tile?.anchors)
-      ? local.board.layers.tile.anchors
-      : [];
-    drawRedGodPanel(contentLayer, chaosPanelRect, redGodSummary, redGodIncomeSummary, tooltipView);
-    for (let i = 0; i < tileAnchors.length; i += 1) {
-      const tile = tileAnchors[i];
-      const def = envTileDefs[tile?.defId];
-      const tileRect = getSlotRect(
-        regionTileGridRect,
-        SETTLEMENT_SLOT_GRID_LAYOUT.regionColumns,
-        1,
-        i,
-        SETTLEMENT_REGION_TILE_LAYOUT.slotPadding
-      );
-      drawCard(
-        contentLayer,
-        tileRect,
-        def?.name ?? tile?.defId ?? "Tile",
-        buildTileLines(tile),
-        getTileCardFill(tile),
-        tile?.defId === "tile_floodplains" ? PALETTE.active : PALETTE.stroke,
-        null,
-        {
-          showBody: false,
-          tooltipView,
-        }
-      );
-    }
   }
 
   return {
-    init: () => render(),
-    refresh: () => {
-      lastSignature = "";
-      lastRenderGateKey = "";
-      render();
-    },
+    init: () => render(true),
+    refresh: () => { lastSignature = ""; render(true); },
     update: () => render(),
-    setVisible: (visible) => {
-      root.visible = visible === true;
-      if (root.visible) {
-        lastSignature = "";
-        lastRenderGateKey = "";
-        render();
-      }
-    },
-    getScreenRect: () =>
-      !root.visible || typeof root.getBounds !== "function" ? null : root.getBounds(),
-    getSemanticSnapshot: () => buildRenderSemanticSnapshot(contentLayer, overlayLayer),
+    setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
+    getScreenRect: () => root.visible ? root.getBounds?.() ?? null : null,
+    getSemanticSnapshot: () => semanticSnapshot,
     destroy: () => {
-      tooltipView?.hide?.();
-      hideAgendaFlyoutNow();
-      clearChildren(contentLayer);
-      clearChildren(overlayLayer);
+      clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
     },

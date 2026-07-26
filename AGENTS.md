@@ -7,6 +7,7 @@ Local instructions for Codex agents working in this repo.
 
 ## Current goal context
 - We are doing a large refactor. Core assumtions about gameplay may be drastically different to ai-context and other documentation
+- The approved target for this refactor is `ai/detailed-settlement-redesign-plan.md`.
 
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.

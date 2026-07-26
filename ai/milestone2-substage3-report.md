@@ -1,5 +1,7 @@
 # Milestone 2 Substage 3 — Shared-Edge Test Configuration
 
+> Superseded by the approved [Map-Driven Detailed Settlement Redesign](./detailed-settlement-redesign-plan.md). This report describes the removed regional-practice experiment and is retained only as historical context.
+
 ## Configurations
 
 - `milestone2Blank01` / `devMilestone2Blank01`: the authored shared-edge topology with no installed regional practices.

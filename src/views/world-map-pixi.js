@@ -1,15 +1,4 @@
 import {
-  REGIONAL_PRACTICE_IDS,
-  regionalPracticeDefs,
-} from "../defs/gamepieces/regional-practice-defs.js";
-import {
-  evaluateInstalledRegionalPractice,
-  evaluateRegionalPracticePlacement,
-  getRegionalPracticeScoreboard,
-  validateRegionalPracticeInstallation,
-  validateRegionalPracticeUninstallation,
-} from "../model/regional-practices.js";
-import {
   getConnectedRegionIds,
   getRegionDefinition,
   getRegionPolygon,
@@ -18,395 +7,52 @@ import {
   getWorldDefinition,
   getWorldVertex,
 } from "../model/world-state.js";
-import {
-  clearChildren,
-  createText,
-  createWrappedText,
-  roundedRect,
-} from "./settlement-view-primitives.js";
+import { getDetailedSettlementViewModel } from "../model/detailed-settlements.js";
+import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 104, width: 1640, height: 704 });
 const DETAIL_RECT = Object.freeze({ x: 1734, y: 104, width: 626, height: 704 });
 const REGION_COLOURS = Object.freeze({
-  red: 0xb9574d,
-  blue: 0x527da3,
-  green: 0x638c62,
-  black: 0x4d4d52,
+  red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
 });
 const CONTROLLER_COLOURS = Object.freeze({
-  player: 0xe8c96c,
-  frontier: 0xd5d0c6,
-  "external-a": 0xc17a57,
-  "external-b": 0x8b72b1,
+  player: 0xe8c96c, frontier: 0xd5d0c6, "external-a": 0xc17a57, "external-b": 0x8b72b1,
 });
-const CONTROLLER_MARKERS = Object.freeze({
-  player: Object.freeze({ glyph: "P", label: "Player" }),
-  frontier: Object.freeze({ glyph: "F", label: "Frontier" }),
-  "external-a": Object.freeze({ glyph: "A", label: "External A" }),
-  "external-b": Object.freeze({ glyph: "B", label: "External B" }),
-});
-const PRACTICE_BUTTON_WIDTH = 276;
-const PRACTICE_BUTTON_HEIGHT = 96;
-const PRACTICE_BUTTON_GAP_X = 14;
-const PRACTICE_BUTTON_GAP_Y = 12;
-const PRACTICE_BUTTON_START_Y = DETAIL_RECT.y + 267;
-const INSTALLED_PRACTICE_START_Y = DETAIL_RECT.y + 166;
-const INSTALLED_PRACTICE_HEIGHT = 44;
-const INSTALLED_PRACTICE_GAP = 8;
-const INSTALLED_PRACTICE_COLUMNS = 4;
-const SCORE_TIERS = Object.freeze([
-  Object.freeze({ id: "diamond", label: "Diamond", minimum: 4, color: 0x8dd5e8 }),
-  Object.freeze({ id: "gold", label: "Gold", minimum: 3, color: 0xe0bf54 }),
-  Object.freeze({ id: "silver", label: "Silver", minimum: 2, color: 0xc6ccd6 }),
-  Object.freeze({ id: "bronze", label: "Bronze", minimum: 1, color: 0xb98155 }),
-]);
 
-function pointToScreen(point) {
-  const x = Array.isArray(point) ? point[0] : point?.x;
-  const y = Array.isArray(point) ? point[1] : point?.y;
+function screenPoint(point) {
   return {
-    x: MAP_RECT.x + Number(x ?? 0) * MAP_RECT.width,
-    y: MAP_RECT.y + Number(y ?? 0) * MAP_RECT.height,
+    x: MAP_RECT.x + Number(point?.x ?? 0) * MAP_RECT.width,
+    y: MAP_RECT.y + Number(point?.y ?? 0) * MAP_RECT.height,
   };
 }
 
-function getVertexPath(definition, vertexIds) {
-  return (vertexIds ?? []).map((id) => getWorldVertex(definition, id)).filter(Boolean);
-}
-
-function drawSolidPath(gfx, points, color, width, alpha = 1) {
-  if (points.length < 2) return;
-  const first = pointToScreen(points[0]);
-  gfx.lineStyle(width, color, alpha);
-  gfx.moveTo(first.x, first.y);
-  for (let index = 1; index < points.length; index += 1) {
-    const point = pointToScreen(points[index]);
-    gfx.lineTo(point.x, point.y);
-  }
-}
-
-function titleCase(value) {
-  return String(value ?? "")
-    .split(/[-\s]+/)
-    .filter(Boolean)
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function getScoreTier(score) {
-  const safeScore = Math.max(0, Math.floor(score ?? 0));
-  return SCORE_TIERS.find((tier) => safeScore >= tier.minimum)
-    ?? SCORE_TIERS[SCORE_TIERS.length - 1];
-}
-
-function blendColor(base, tint, tintWeight) {
-  const weight = Math.max(0, Math.min(1, tintWeight));
-  const channel = (shift) => Math.round(
-    ((base >> shift) & 0xff) * (1 - weight) + ((tint >> shift) & 0xff) * weight
-  );
-  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
-}
-
-function installReasonText(reason) {
-  switch (reason) {
-    case "invalidPracticeId": return "Unknown practice";
-    case "invalidRegionId": return "Unknown region";
-    case "notPlayerControlled": return "Player-controlled regions only";
-    case "capacityFull": return "No capacity available";
-    default: return "Unavailable";
-  }
-}
-
-function practiceButtonRect(practiceId) {
-  const index = REGIONAL_PRACTICE_IDS.indexOf(practiceId);
-  if (index < 0) return null;
-  const column = index % 2;
-  const row = Math.floor(index / 2);
-  return {
-    x: DETAIL_RECT.x + 24 + column * (PRACTICE_BUTTON_WIDTH + PRACTICE_BUTTON_GAP_X),
-    y: PRACTICE_BUTTON_START_Y + row * (PRACTICE_BUTTON_HEIGHT + PRACTICE_BUTTON_GAP_Y),
-    width: PRACTICE_BUTTON_WIDTH,
-    height: PRACTICE_BUTTON_HEIGHT,
-  };
-}
-
-function installedPracticeButtonRect(installedIndex) {
-  const availableWidth = DETAIL_RECT.width - 48;
-  const width = (
-    availableWidth - INSTALLED_PRACTICE_GAP * (INSTALLED_PRACTICE_COLUMNS - 1)
-  ) / INSTALLED_PRACTICE_COLUMNS;
-  const column = installedIndex % INSTALLED_PRACTICE_COLUMNS;
-  const row = Math.floor(installedIndex / INSTALLED_PRACTICE_COLUMNS);
-  return {
-    x: DETAIL_RECT.x + 24 + column * (width + INSTALLED_PRACTICE_GAP),
-    y: INSTALLED_PRACTICE_START_Y + row * (INSTALLED_PRACTICE_HEIGHT + INSTALLED_PRACTICE_GAP),
-    width,
-    height: INSTALLED_PRACTICE_HEIGHT,
-  };
-}
-
-function addControllerMarker(parent, point, controller, { selected = false, radius = 14 } = {}) {
-  const markerDef = CONTROLLER_MARKERS[controller] ?? { glyph: "?", label: "Unknown" };
-  const marker = new PIXI.Container();
+function addButton(parent, rect, label, onPress, disabled = false) {
+  const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
-  gfx.lineStyle(selected ? 5 : 3, selected ? PALETTE.accent : 0x383532, 1);
-  gfx.beginFill(CONTROLLER_COLOURS[controller] ?? 0x777777, 1);
-  gfx.drawCircle(0, 0, selected ? radius + 2 : radius);
-  gfx.endFill();
-  marker.addChild(
-    gfx,
-    createText(
-      markerDef.glyph,
-      { ...TEXT_STYLES.chip, fontSize: radius, fill: 0x302d2a },
-      0,
-      1,
-      0.5,
-      0.5
-    )
-  );
-  marker.x = point.x;
-  marker.y = point.y;
-  marker.eventMode = "none";
-  parent.addChild(marker);
-  return marker;
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 7,
+    disabled ? PALETTE.panelSoft : PALETTE.accent, PALETTE.stroke, 2);
+  root.addChild(gfx, createText(label, {
+    ...TEXT_STYLES.title,
+    fill: disabled ? PALETTE.textMuted : 0x292622,
+  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  root.position.set(rect.x, rect.y);
+  root.eventMode = "static";
+  root.cursor = disabled ? "default" : "pointer";
+  root.on("pointertap", () => { if (!disabled) onPress?.(); });
+  parent.addChild(root);
 }
 
-function addControllerLegend(parent) {
-  parent.addChild(createText("CONTROL", { ...TEXT_STYLES.muted, fontSize: 13 }, 520, 36, 0, 0.5));
-  let x = 635;
-  for (const controller of Object.keys(CONTROLLER_MARKERS)) {
-    addControllerMarker(parent, { x, y: 36 }, controller, { radius: 10 });
-    parent.addChild(createText(
-      CONTROLLER_MARKERS[controller].label,
-      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
-      x + 18,
-      36,
-      0,
-      0.5
-    ));
-    x += controller.startsWith("external") ? 235 : 205;
-  }
-}
-
-function addPracticeScoreboard(parent, scoreboard) {
-  const rect = { x: 1510, y: 11, width: 450, height: 50 };
-  const panel = new PIXI.Graphics();
-  roundedRect(panel, rect.x, rect.y, rect.width, rect.height, 8, PALETTE.panel, PALETTE.stroke, 2);
-  parent.addChild(
-    panel,
-    createText(
-      "PRACTICE SCOREBOARD",
-      { ...TEXT_STYLES.muted, fontSize: 12 },
-      rect.x + 14,
-      rect.y + 13
-    ),
-    createText(
-      `TOTAL ${scoreboard?.totalScore ?? 0}`,
-      { ...TEXT_STYLES.header, fontSize: 21, fill: PALETTE.accent },
-      rect.x + 14,
-      rect.y + 30
-    ),
-    createText(
-      `${scoreboard?.installedCount ?? 0} installed`,
-      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
-      rect.x + rect.width - 14,
-      rect.y + 35,
-      1,
-      0.5
-    )
-  );
-}
-
-function addButton(parent, rect, label, onPress, { selected = false, disabled = false } = {}) {
-  const button = new PIXI.Container();
-  const bg = new PIXI.Graphics();
-  const fill = selected ? PALETTE.accent : PALETTE.panel;
-  roundedRect(bg, 0, 0, rect.width, rect.height, 6, fill, selected ? 0x3f3935 : PALETTE.stroke, 2);
-  button.addChild(
-    bg,
-    createText(
-      label,
-      { ...TEXT_STYLES.chip, fill: selected ? 0x2d2926 : PALETTE.text },
-      rect.width / 2,
-      rect.height / 2,
-      0.5,
-      0.5
-    )
-  );
-  button.x = rect.x;
-  button.y = rect.y;
-  button.alpha = disabled ? 0.45 : 1;
-  button.eventMode = "static";
-  button.interactive = true;
-  button.buttonMode = !disabled;
-  button.cursor = disabled ? "default" : "pointer";
-  button.on("pointertap", () => { if (!disabled) onPress?.(); });
-  parent.addChild(button);
-  return button;
-}
-
-function addPracticeButton(parent, rect, def, evaluation, validation, onPress) {
-  const disabled = !validation.ok;
-  const scoreTier = getScoreTier(evaluation?.score);
-  const button = new PIXI.Container();
-  const bg = new PIXI.Graphics();
-  roundedRect(
-    bg,
-    0,
-    0,
-    rect.width,
-    rect.height,
-    6,
-    blendColor(disabled ? PALETTE.panelSoft : PALETTE.panel, scoreTier.color, disabled ? 0.1 : 0.2),
-    disabled ? 0x696660 : scoreTier.color,
-    2
-  );
-  button.addChild(bg);
-  button.addChild(createText(def.name, { ...TEXT_STYLES.title, fontSize: 18 }, 12, 12));
-  button.addChild(createText(
-    evaluation.ok ? `${evaluation.score} · ${scoreTier.label.toUpperCase()}` : "—",
-    { ...TEXT_STYLES.header, fontSize: 17, fill: disabled ? PALETTE.textMuted : scoreTier.color },
-    rect.width - 12,
-    10,
-    1
-  ));
-  const detailText = evaluation.ok
-    ? evaluation.breakdown.filter((entry) => entry.kind !== "base").map((entry) => entry.text).join(" · ")
-    : "Unable to evaluate";
-  button.addChild(createWrappedText(
-    detailText,
-    { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted },
-    12,
-    39,
-    rect.width - 24
-  ));
-  if (disabled) {
-    button.addChild(createText(
-      installReasonText(validation.reason),
-      { ...TEXT_STYLES.chip, fontSize: 12, fill: 0xd8b9a8 },
-      12,
-      rect.height - 18
-    ));
-  }
-  button.x = rect.x;
-  button.y = rect.y;
-  button.alpha = disabled ? 0.62 : 1;
-  // Keep fixed map controls in the interaction tree across region selection.
-  // Disabled controls retain a no-op hit target so Pixi does not cache their
-  // previous event mode when the detail panel is rebuilt.
-  button.eventMode = "static";
-  button.interactive = true;
-  button.buttonMode = !disabled;
-  button.cursor = disabled ? "default" : "pointer";
-  button.on("pointertap", () => { if (!disabled) onPress?.(); });
-  parent.addChild(button);
-}
-
-function addInstalledPracticeButton(parent, rect, def, installedIndex, evaluation, validation, onPress) {
-  const disabled = !validation.ok;
-  const scoreTier = getScoreTier(evaluation?.score);
-  const button = new PIXI.Container();
-  const bg = new PIXI.Graphics();
-  roundedRect(
-    bg,
-    0,
-    0,
-    rect.width,
-    rect.height,
-    6,
-    blendColor(disabled ? PALETTE.panelSoft : PALETTE.chip, scoreTier.color, disabled ? 0.1 : 0.24),
-    disabled ? 0x696660 : scoreTier.color,
-    2
-  );
-  button.addChild(
-    bg,
-    createText(
-      String(installedIndex + 1),
-      { ...TEXT_STYLES.muted, fontSize: 12 },
-      10,
-      rect.height / 2,
-      0,
-      0.5
-    ),
-    createText(
-      def?.name ?? "Unknown",
-      { ...TEXT_STYLES.chip, fontSize: 13 },
-      rect.width / 2 - 6,
-      rect.height / 2,
-      0.5,
-      0.5
-    ),
-    createText(
-      evaluation?.ok ? String(evaluation.score) : "—",
-      { ...TEXT_STYLES.chip, fontSize: 13, fill: disabled ? PALETTE.textMuted : scoreTier.color },
-      rect.width - 29,
-      rect.height / 2,
-      1,
-      0.5
-    ),
-    createText(
-      "×",
-      { ...TEXT_STYLES.title, fontSize: 19, fill: disabled ? PALETTE.textMuted : PALETTE.accent },
-      rect.width - 10,
-      rect.height / 2 - 1,
-      1,
-      0.5
-    )
-  );
-  button.x = rect.x;
-  button.y = rect.y;
-  button.alpha = disabled ? 0.58 : 1;
-  button.eventMode = "static";
-  button.interactive = true;
-  button.buttonMode = !disabled;
-  button.cursor = disabled ? "default" : "pointer";
-  button.on("pointertap", () => { if (!disabled) onPress?.(); });
-  parent.addChild(button);
-}
-
-function worldMechanicsSignature(state) {
-  return (state?.world?.regions ?? [])
-    .map((region) => [
-      region.id,
-      region.colour,
-      region.capacity,
-      region.controller,
-      region.installedPracticeIds.join(","),
-    ].join(":"))
-    .join("|");
-}
-
-function selectedRegionSnapshot(state, selectedRegionId) {
-  const region = getRegionState(state, selectedRegionId);
-  if (!region) return null;
-  return {
-    id: region.id,
-    colour: region.colour,
-    controller: region.controller,
-    capacity: region.capacity,
-    usedCapacity: region.installedPracticeIds.length,
-    installedPracticeIds: [...region.installedPracticeIds],
-    installedPractices: region.installedPracticeIds.map((practiceId, installedIndex) => {
-      const evaluation = evaluateInstalledRegionalPractice(state, { regionId: region.id, installedIndex });
-      return {
-        practiceId,
-        installedIndex,
-        evaluation,
-        scoreTier: evaluation.ok ? getScoreTier(evaluation.score).id : null,
-      };
-    }),
-    connectedRegionIds: getConnectedRegionIds(state, region.id),
-    practiceOptions: REGIONAL_PRACTICE_IDS.map((practiceId) => {
-      const evaluation = evaluateRegionalPracticePlacement(state, { regionId: region.id, practiceId });
-      return {
-        practiceId,
-        evaluation,
-        scoreTier: evaluation.ok ? getScoreTier(evaluation.score).id : null,
-        installation: validateRegionalPracticeInstallation(state, { regionId: region.id, practiceId }),
-      };
-    }),
-  };
+function signature(state, selectedRegionId) {
+  return JSON.stringify({
+    selectedRegionId,
+    regions: state?.world?.regions,
+    sites: state?.world?.sites?.map((site) => ({
+      regionId: site.regionId,
+      food: [site.detailedState?.storedFood, site.detailedState?.looseFood],
+      structures: site.detailedState?.structureSlots,
+    })),
+  });
 }
 
 export function createWorldMapView({
@@ -414,293 +60,162 @@ export function createWorldMapView({
   getState,
   getSelectedRegionId,
   setSelectedRegionId,
-  onInstallPractice,
-  onUninstallPractice,
   onOpenDetailedSite,
 }) {
   const root = new PIXI.Container();
-  root.zIndex = 1;
   layer.addChild(root);
-  let lastKey = "";
+  let lastSignature = "";
   let lastPointerRegionId = null;
-  let lastPracticeResult = null;
 
   function render(force = false) {
     if (!root.visible) return;
     const state = getState?.();
     const definition = getWorldDefinition(state);
     if (!definition) return;
-    const selectedRegionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId ?? null;
-    const scoreboard = getRegionalPracticeScoreboard(state);
-    const key = [definition.id, selectedRegionId, worldMechanicsSignature(state), JSON.stringify(lastPracticeResult)].join("|");
-    if (!force && key === lastKey) return;
-    lastKey = key;
+    const selectedRegionId = getSelectedRegionId?.() ?? state.civilization.capitalRegionId;
+    const nextSignature = signature(state, selectedRegionId);
+    if (!force && nextSignature === lastSignature) return;
+    lastSignature = nextSignature;
     clearChildren(root);
 
-    const background = new PIXI.Graphics();
-    background.beginFill(0x6f756b, 1);
-    background.drawRect(0, 0, 2424, 860);
-    background.endFill();
-    root.addChild(background);
+    const bg = new PIXI.Graphics();
+    bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
+    root.addChild(bg, createText("MAP-DRIVEN SETTLEMENTS", TEXT_STYLES.header, 70, 38, 0, 0.5));
 
-    const topbar = new PIXI.Graphics();
-    topbar.beginFill(PALETTE.topbar, 1);
-    topbar.drawRect(0, 0, 2424, 72);
-    topbar.endFill();
-    root.addChild(topbar);
-    root.addChild(createText(definition.name, TEXT_STYLES.header, 74, 35, 0, 0.5));
-    addControllerLegend(root);
-    addPracticeScoreboard(root, scoreboard);
-    root.addChild(createText("MINIMAL REGIONAL GRAPH", { ...TEXT_STYLES.muted, fontSize: 15 }, 2290, 36, 1, 0.5));
-
-    const context = definition.mapContext;
-    const contextLayer = new PIXI.Graphics();
-    roundedRect(contextLayer, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 6, context.landColor, 0x3d514f, 3);
-    const oceanPolygon = [
-      ...getVertexPath(definition, context.coastlineVertexIds),
-      ...context.oceanBoundaryPoints,
-    ].flatMap((point) => {
-      const screen = pointToScreen(point);
-      return [screen.x, screen.y];
-    });
-    contextLayer.beginFill(context.oceanColor, 1);
-    contextLayer.drawPolygon(oceanPolygon);
-    contextLayer.endFill();
-    root.addChild(contextLayer);
+    const mapPanel = new PIXI.Graphics();
+    roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
+      definition.mapContext.landColor, 0x3d514f, 3);
+    root.addChild(mapPanel);
 
     for (const regionDef of definition.regions) {
       const region = getRegionState(state, regionDef.id);
-      const polygon = getRegionPolygon(definition, regionDef);
-      const screenPolygon = polygon.flatMap((point) => {
-        const screen = pointToScreen(point);
-        return [screen.x, screen.y];
+      const points = getRegionPolygon(definition, regionDef).flatMap((point) => {
+        const p = screenPoint(point);
+        return [p.x, p.y];
       });
-      const selected = regionDef.id === selectedRegionId;
+      const selected = region.id === selectedRegionId;
       const shape = new PIXI.Graphics();
-      shape.lineStyle(
-        selected ? 5 : region?.controller === "player" ? 3 : 2,
-        selected ? PALETTE.accent : CONTROLLER_COLOURS[region?.controller] ?? 0x676767,
-        selected ? 1 : 0.9
-      );
-      shape.beginFill(REGION_COLOURS[region?.colour] ?? 0x777777, selected ? 0.94 : 0.82);
-      shape.drawPolygon(screenPolygon);
+      shape.lineStyle(selected ? 5 : 2,
+        selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
+      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, 0.86);
+      shape.drawPolygon(points);
       shape.endFill();
-      const regionHit = new PIXI.Container();
-      regionHit.hitArea = new PIXI.Polygon(screenPolygon);
-      regionHit.eventMode = "static";
-      regionHit.interactive = true;
-      regionHit.buttonMode = true;
-      regionHit.cursor = "pointer";
-      regionHit.addChild(shape);
-      regionHit.on("pointertap", () => {
-        lastPointerRegionId = regionDef.id;
-        lastPracticeResult = null;
-        setSelectedRegionId?.(regionDef.id);
-        lastKey = "";
+      const hit = new PIXI.Container();
+      hit.hitArea = new PIXI.Polygon(points);
+      hit.eventMode = "static";
+      hit.cursor = "pointer";
+      hit.addChild(shape);
+      hit.on("pointertap", () => {
+        lastPointerRegionId = region.id;
+        setSelectedRegionId?.(region.id);
+        lastSignature = "";
       });
-      root.addChild(regionHit);
+      root.addChild(hit);
     }
 
-    const connectionLayer = new PIXI.Graphics();
-    for (const connection of state.world.connections ?? []) {
-      const a = definition.regions.find((entry) => entry.id === connection.regionAId)?.display?.labelPoint;
-      const b = definition.regions.find((entry) => entry.id === connection.regionBId)?.display?.labelPoint;
-      if (!a || !b) continue;
-      const from = pointToScreen(a);
-      const to = pointToScreen(b);
-      connectionLayer.lineStyle(2, 0xf0eadc, 0.42);
-      connectionLayer.moveTo(from.x, from.y);
-      connectionLayer.lineTo(to.x, to.y);
+    const edges = new PIXI.Graphics();
+    for (const edge of state.world.connections) {
+      const a = definition.regions.find((entry) => entry.id === edge.regionAId);
+      const b = definition.regions.find((entry) => entry.id === edge.regionBId);
+      const from = screenPoint(a.display.labelPoint);
+      const to = screenPoint(b.display.labelPoint);
+      edges.lineStyle(2, 0xf0eadc, 0.45).moveTo(from.x, from.y).lineTo(to.x, to.y);
     }
-    connectionLayer.eventMode = "none";
-    root.addChild(connectionLayer);
-
-    const coastlineLayer = new PIXI.Graphics();
-    const coastline = getVertexPath(definition, context.coastlineVertexIds);
-    drawSolidPath(coastlineLayer, coastline, 0x344a4c, 6, 0.75);
-    drawSolidPath(coastlineLayer, coastline, context.coastlineColor, 2.5, 0.82);
-    coastlineLayer.eventMode = "none";
-    root.addChild(coastlineLayer);
+    edges.eventMode = "none";
+    root.addChild(edges);
 
     for (const regionDef of definition.regions) {
       const region = getRegionState(state, regionDef.id);
-      const labelPoint = pointToScreen(regionDef.display.labelPoint);
-      const selected = regionDef.id === selectedRegionId;
-      addControllerMarker(root, labelPoint, region?.controller, { selected });
-      const label = createWrappedText(
-        regionDef.name,
-        {
-          ...TEXT_STYLES.chip,
-          fontSize: selected ? 15 : 13,
-          fontWeight: selected ? "bold" : "normal",
-          fill: 0xf4eee3,
-          align: "center",
-          stroke: 0x343632,
-          strokeThickness: selected ? 4 : 3,
-        },
-        labelPoint.x,
-        labelPoint.y - 28,
-        150,
-        0.5,
-        0.5
-      );
-      label.eventMode = "none";
-      root.addChild(label);
-      const capacityLabel = createText(
-        `${region?.installedPracticeIds.length ?? 0}/${region?.capacity ?? 0}`,
-        { ...TEXT_STYLES.muted, fontSize: 12, fill: 0xf4eee3, stroke: 0x343632, strokeThickness: 3 },
-        labelPoint.x,
-        labelPoint.y + 28,
-        0.5,
-        0.5
-      );
+      const point = screenPoint(regionDef.display.labelPoint);
+      const site = getSitesInRegion(state, region.id)[0] ?? null;
+      const viewModel = site ? getDetailedSettlementViewModel(state, region.id) : null;
+      const nameLabel = createWrappedText(regionDef.name, {
+        ...TEXT_STYLES.chip, fontSize: 13, align: "center", stroke: 0x333333, strokeThickness: 3,
+      }, point.x, point.y - 16, 150, 0.5, 0.5);
+      nameLabel.eventMode = "none";
+      root.addChild(nameLabel);
+      const summary = viewModel
+        ? `${viewModel.usedStructureCapacity}/${viewModel.structureCapacity} structures`
+        : `${region.structureCapacity} spaces`;
+      const capacityLabel = createText(summary, {
+        ...TEXT_STYLES.muted, fontSize: 11, fill: 0xffffff, stroke: 0x333333, strokeThickness: 3,
+      }, point.x, point.y + 16, 0.5, 0.5);
       capacityLabel.eventMode = "none";
       root.addChild(capacityLabel);
     }
 
-    const detail = new PIXI.Graphics();
-    roundedRect(detail, DETAIL_RECT.x, DETAIL_RECT.y, DETAIL_RECT.width, DETAIL_RECT.height, 6, PALETTE.panelSoft, PALETTE.stroke, 3);
-    root.addChild(detail);
-
+    const detailPanel = new PIXI.Graphics();
+    roundedRect(detailPanel, DETAIL_RECT.x, DETAIL_RECT.y, DETAIL_RECT.width, DETAIL_RECT.height,
+      7, PALETTE.panelSoft, PALETTE.stroke, 3);
+    root.addChild(detailPanel);
     const selectedDef = getRegionDefinition(state, selectedRegionId);
-    const selectedRegion = getRegionState(state, selectedRegionId);
-    if (!selectedDef || !selectedRegion) return;
-    const connectedIds = getConnectedRegionIds(state, selectedRegionId);
-    let y = DETAIL_RECT.y + 38;
-    root.addChild(createText(selectedDef.name, TEXT_STYLES.header, DETAIL_RECT.x + 24, y));
-    y += 42;
+    const region = getRegionState(state, selectedRegionId);
+    const viewModel = getDetailedSettlementViewModel(state, selectedRegionId);
+    root.addChild(createText(selectedDef?.name ?? selectedRegionId, TEXT_STYLES.header,
+      DETAIL_RECT.x + 24, DETAIL_RECT.y + 30));
     root.addChild(createText(
-      `${titleCase(selectedRegion.colour)} · ${titleCase(selectedRegion.controller)} · ${selectedRegion.installedPracticeIds.length}/${selectedRegion.capacity} capacity`,
-      { ...TEXT_STYLES.title, fontSize: 18 },
-      DETAIL_RECT.x + 24,
-      y
-    ));
-    y += 31;
+      `${region.colour} · ${region.controller} · ${getConnectedRegionIds(state, region.id).length} edges`,
+      { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 76));
     root.addChild(createText(
-      `${connectedIds.length} connection${connectedIds.length === 1 ? "" : "s"}`,
-      { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted },
-      DETAIL_RECT.x + 24,
-      y
-    ));
-    y += 31;
-    root.addChild(createText("INSTALLED PRACTICES · TAP TO REMOVE", TEXT_STYLES.muted, DETAIL_RECT.x + 24, y));
-    if (selectedRegion.installedPracticeIds.length === 0) {
+      `Structure space: ${viewModel?.usedStructureCapacity ?? 0} used / ${region.structureCapacity} available`,
+      { ...TEXT_STYLES.title, fontSize: 18 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 122));
+    if (viewModel) {
       root.addChild(createText(
-        "None",
-        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted },
-        DETAIL_RECT.x + 24,
-        INSTALLED_PRACTICE_START_Y + INSTALLED_PRACTICE_HEIGHT / 2,
-        0,
-        0.5
-      ));
+        `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose`,
+        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 170));
+      root.addChild(createText(
+        `Population ${viewModel.population.total} · Meal demand ${viewModel.population.mealDemand}`,
+        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 206));
+      root.addChild(createText(
+        `Elder Order ${viewModel.elderOrder.count} elders · Resistance ${viewModel.elderOrder.resistance}`,
+        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 242));
     } else {
-      selectedRegion.installedPracticeIds.forEach((practiceId, installedIndex) => {
-        const rect = installedPracticeButtonRect(installedIndex);
-        const evaluation = evaluateInstalledRegionalPractice(state, {
-          regionId: selectedRegionId,
-          installedIndex,
-        });
-        const validation = validateRegionalPracticeUninstallation(state, {
-          regionId: selectedRegionId,
-          installedIndex,
-        });
-        addInstalledPracticeButton(
-          root,
-          rect,
-          regionalPracticeDefs[practiceId],
-          installedIndex,
-          evaluation,
-          validation,
-          () => {
-            const result = onUninstallPractice?.(selectedRegionId, installedIndex) ?? null;
-            lastPracticeResult = result ? { ...result, operation: "uninstall" } : null;
-            lastKey = "";
-          }
-        );
-      });
+      root.addChild(createText("No detailed settlement at this region.",
+        { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 170));
     }
-    root.addChild(createText("HYPOTHETICAL SCORE / INSTALL", TEXT_STYLES.muted, DETAIL_RECT.x + 24, DETAIL_RECT.y + 239));
-
-    for (const practiceId of REGIONAL_PRACTICE_IDS) {
-      const rect = practiceButtonRect(practiceId);
-      const evaluation = evaluateRegionalPracticePlacement(state, { regionId: selectedRegionId, practiceId });
-      const validation = validateRegionalPracticeInstallation(state, { regionId: selectedRegionId, practiceId });
-      addPracticeButton(root, rect, regionalPracticeDefs[practiceId], evaluation, validation, () => {
-        const result = onInstallPractice?.(selectedRegionId, practiceId) ?? null;
-        lastPracticeResult = result ? { ...result, operation: "install" } : null;
-        lastKey = "";
-      });
-    }
-
-    if (lastPracticeResult) {
-      const removing = lastPracticeResult.operation === "uninstall";
-      const message = lastPracticeResult.ok
-        ? lastPracticeResult.scheduled
-          ? `${removing ? "Removal" : "Installation"} scheduled for the next second`
-          : `Practice ${removing ? "removed" : "installed"}`
-        : `Practice change failed: ${installReasonText(lastPracticeResult.reason)}`;
-      root.addChild(createText(
-        message,
-        { ...TEXT_STYLES.chip, fontSize: 12 },
-        DETAIL_RECT.x + DETAIL_RECT.width - 24,
-        DETAIL_RECT.y + 239,
-        1
-      ));
-    }
-
-    const detailedSite = getSitesInRegion(state, selectedRegionId)
-      .find((site) => site.simulationMode === "detailed");
-    addButton(
-      root,
-      { x: DETAIL_RECT.x + 24, y: DETAIL_RECT.y + DETAIL_RECT.height - 68, width: DETAIL_RECT.width - 48, height: 44 },
-      detailedSite ? "Open settlement" : "No detailed settlement",
-      () => onOpenDetailedSite?.(detailedSite?.id),
-      { selected: !!detailedSite, disabled: !detailedSite }
-    );
+    addButton(root, {
+      x: DETAIL_RECT.x + 24,
+      y: DETAIL_RECT.y + DETAIL_RECT.height - 70,
+      width: DETAIL_RECT.width - 48,
+      height: 46,
+    }, viewModel ? "Open settlement" : "No detailed settlement",
+    () => onOpenDetailedSite?.(viewModel.siteId, selectedRegionId), !viewModel);
   }
 
   return {
     init: () => render(true),
-    update: () => render(false),
-    refresh: () => { lastKey = ""; render(true); },
+    update: () => render(),
+    refresh: () => { lastSignature = ""; render(true); },
     setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
     getSemanticSnapshot: () => {
       const state = getState?.();
-      const selectedRegionId = getSelectedRegionId?.() ?? null;
-      const scoreboard = getRegionalPracticeScoreboard(state);
+      const regionId = getSelectedRegionId?.();
+      const region = getRegionState(state, regionId);
+      const viewModel = getDetailedSettlementViewModel(state, regionId);
       return {
         visible: root.visible === true,
-        selectedRegionId,
+        selectedRegionId: regionId,
         lastPointerRegionId,
-        regionCount: getWorldDefinition(state)?.regions?.length ?? 0,
-        selectedRegion: selectedRegionSnapshot(state, selectedRegionId),
-        controllerMarkers: getWorldDefinition(state)?.regions?.map((regionDef) => ({
-          regionId: regionDef.id,
-          controller: getRegionState(state, regionDef.id)?.controller ?? null,
-          point: pointToScreen(regionDef.display.labelPoint),
-        })) ?? [],
-        detailedSiteMarkerCount: 0,
-        scoreboard: scoreboard.ok ? {
-          ok: true,
-          installedCount: scoreboard.installedCount,
-          totalScore: scoreboard.totalScore,
-          byPracticeId: scoreboard.byPracticeId,
-        } : scoreboard,
-        lastPracticeResult,
+        regionCount: getWorldDefinition(state)?.regions.length ?? 0,
+        selectedRegion: region ? {
+          ...region,
+          usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
+          detailedSettlement: viewModel,
+        } : null,
+        detailedSiteMarkerCount: getDetailedSettlementViewModel
+          ? state?.world?.sites?.length ?? 0 : 0,
       };
     },
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
-      return region ? pointToScreen(region.display.labelPoint) : null;
+      return region ? screenPoint(region.display.labelPoint) : null;
     },
-    getPracticeClickPoint: (practiceId) => {
-      const rect = practiceButtonRect(practiceId);
-      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
+    getPracticeClickPoint: () => null,
+    getInstalledPracticeClickPoint: () => null,
+    destroy: () => {
+      clearChildren(root);
+      root.removeFromParent();
+      root.destroy({ children: true });
     },
-    getInstalledPracticeClickPoint: (installedIndex) => {
-      const rect = installedPracticeButtonRect(installedIndex);
-      return rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 } : null;
-    },
-    destroy: () => { clearChildren(root); root.removeFromParent(); root.destroy({ children: true }); },
   };
 }

@@ -1,260 +1,171 @@
-# Project Context And Current Settlement Prototype Rules
+# Project Context: Map-Driven Detailed Settlements
 
-This document is the current authoritative AI-facing context for the repo.
+This is the authoritative AI-facing description of the current implementation.
+The approved design and impact analysis are in
+[`ai/detailed-settlement-redesign-plan.md`](./detailed-settlement-redesign-plan.md).
+The old Milestone 2 report is superseded historical context.
 
-It has three jobs:
+## Engine invariants
 
-1. Preserve the engine/runtime invariants that must stay true across refactors.
-2. Describe the current settlement prototype as it actually exists now, especially the timegraph, projection, and vassal flow.
-3. Record approved prototype milestones when they intentionally supersede current gameplay assumptions. A milestone plan describes the next experiment; it does not claim that the source already implements it.
+- Determinism: all randomness uses `state.rng`; `Math.random()` is forbidden.
+- Time: `tSec` advances only through simulation ticks.
+- Replay: `rebuildStateAtSecond(tSec)` is authoritative.
+- Serialization: `GameState` is JSON-only. Runtime RNG helpers are stripped
+  during serialization and restored on deserialize.
+- Layering: definitions are data, model modules own rules, controllers
+  orchestrate, and views render/emit input.
+- Gamepiece behavior is DSL-first. New content should use existing settlement
+  operations or add a generalized operation before authoring data.
 
-When older docs, comments, or legacy system affordances disagree with this file, follow this file.
+## Current schemas
 
-## 1. Project Overview
+- Game state is schema v4 (`gameStateSchemaVersion: 4`).
+- Runner saves use schema v4.
+- Map Lab drafts and scenario libraries use schema v2 and new `.v2` browser
+  storage keys.
+- Older saves and Map Lab data are rejected. There is no migration path.
 
-### Genre
-Deterministic, time-driven strategy/city-builder prototype with replay, forecast, and timeline browsing.
+## World and detailed sites
 
-### Technology
-- JavaScript ES modules
-- PixiJS for rendering only
-- Pure JavaScript authoritative model
+The immutable map contains 15 authored polygon regions with undirected,
+shared-edge connections. Mutable region mechanics are:
 
-### Current board framing
-The player-facing prototype now starts on a 15-region minimal graph. Region07 hosts the existing detailed settlement/vassal simulation; the other regions are regional nodes only.
+- `colour`
+- `controller`
+- `structureCapacity`
+- `detailedSettlementEnabled`
 
-The codebase still carries generic timegraph and timeline-edit affordances, but the active simulation remains the Region07 settlement/vassal flow.
+Region01–15 structure capacities are
+`3/4/4/3/3/5/3/4/4/4/4/3/4/5/3`.
 
-The prototype is intentionally more locked down than the generic engine:
-- the player does not freely edit the timeline
-- the player does not freely branch around prior vassal choices
-- projection is primarily used for browsing and for the settlement timegraph UX
+Detailed settlements exist in Regions01, 03, 06, 07, and 11. All are
+player-controlled. Region01 is green, Regions03/06/07 are red, and Region11 is
+blue. Their path is Region01–03–06–07–11; Region07 is the capital.
 
-## Approved Milestone 2: Minimal Nodal Geography
+Each site owns:
 
-### Purpose
-Test whether a minimal nodal geography can make regions non-interchangeable before adding diplomacy, logistics, terrain rules, or detailed content.
+- Villager and Stranger children, adults, and anonymous elder age cohorts
+- stored and loose food
+- exactly five shared practice slots
+- regional structure slots
+- an aggregate Elder Order policy
+- last meal and last annual result summaries
 
-### Minimal grammar
-- Each displayed region is one graph node.
-- A region has a colour (`red`, `blue`, `green`, or `black`), capacity, ordered installed practices (duplicates allowed), and a controller (`player`, `frontier`, `external-a`, or `external-b`).
-- Connections are only connected or not connected. They are undirected, unweighted, and mechanically identical.
+Every authored site starts with 30 Villager adults, three Villager elders aged
+50/53/56, Gold faith, Neutral happiness, 60 stored food, Cultivate,
+Administrate, Preserve, one Granary, and two Mud Houses.
 
-### Practice evaluators
-- **Cultivate:** matching-colour adjacent player regions.
-- **Store:** additional Store copies in the same region.
-- **Study:** distinct non-Study practices in the same region.
-- **Mobilize:** adjacent non-player regions.
-- **Administer:** connected player-controlled Administer component.
-- **Exchange:** adjacent regions whose colour differs from the host region.
+## Practices and worker policy
 
-Evaluators must score a proposed placement without mutating the supplied game state. Scores use base `1` plus the full applicable bonus with no cap.
+Current definitions live in
+`src/defs/gamepieces/detailed-settlement-defs.js`.
 
-### Development stages
-1. Minimal grammar and evaluator implementation.
-2. Development-only Map Lab (implemented).
-3. First authored topology and balancing experiment (implemented as `milestone2Blank01` and `milestone2Sparse01`).
+- Cultivate: capacity 2, seasonal, produces
+  `10 × map score × effective workers` food.
+- Administrate: capacity 2, new moon, one food packet-edge move per token.
+- Preserve: capacity 2, passive, subtracts two percentage points of stored-food
+  decay per effective worker.
+- Build Granary and Build Mud Houses: capacity 1, new-moon work. Completed work
+  waits when physical structure capacity is full.
+- VassalDummyPractice01–03: capacity zero, inert.
 
-### Non-goals
-Diplomacy, conquest, logistics, resource packets, edge weights or types, directionality, terrain modifiers, deposits, procedural generation, and final content balance.
+The Elder Order creates `floor((adults + elders) / 10)` tokens independently
+for each class. Villagers assign before Strangers, practices left-to-right.
+Villagers contribute 1 and Strangers 0.5.
 
-### Success criteria
-The six practices prefer meaningfully different spatial or tableau arrangements. Capacity, topology, colour, and political boundaries create competing placement choices without any region becoming universally optimal.
+The generalized detailed-settlement operations are:
 
-### Relationship to the current prototype
-The current authored world includes terrain, deposits, crossing kinds, transport modes, and travel costs, while current practices are settlement-local. Those systems are not part of this milestone's mechanical grammar. Stage 1 must decide how the minimal graph relates to the existing world representation without treating the richer geography as Milestone 2 rules.
+- `addLocalFood`
+- `routeLocalFood`
+- `modifyStoredFoodDecay`
+- `advanceWork`
+- `createLocalStructureAtWork`
 
-## 2. Non-Negotiable Engine Invariants
+## Food, structures, and boundaries
 
-### Determinism
-- All randomness must flow through `state.rng`.
-- `Math.random()` is forbidden.
-- Simulation cannot depend on wall-clock time, frame timing, UI state, or platform-specific behavior.
+- Granary storage is `100 × local granary count²`.
+- Housing is `20 × local mud-house count²`.
+- Food fills stored capacity first, then loose food.
+- Meals consume loose food first.
+- Food arithmetic is rounded to four decimal places.
+- Administration plans from one activation-start snapshot, applies moves
+  together, resolves authored order ties, and cannot multi-hop in one moon.
 
-### Time authority
-- `tSec` is the universal authoritative timeline axis.
-- Time advances only through simulation ticks.
-- Replay, forecast, graph sampling, and browsing all resolve against `tSec`.
+Boundary order:
 
-### Serialization
-- `GameState` must remain 100 percent JSON-serializable.
-- No classes, functions, closures, Maps, Sets, or circular references in authoritative state.
-- Derived/runtime-only data must stay outside serialized state or be rebuilt after deserialize.
+1. Seasonal Cultivate.
+2. New-moon Administration and build work, stored decay, loose-food halving.
+3. Full-moon meal, then loose-food halving.
+4. At the annual rollover: demographics/social state, global chaos, vassal
+   interventions, then vassal death.
 
-### Replay authority
-- `rebuildStateAtSecond(tSec)` is authoritative.
-- Replay must produce the same state for the same base state, actions, and seed.
-- Forecast and graph reads may use caches, but caches are never authority.
+## Demographics and social state
 
-### Layering
-- `src/defs/*`: immutable data and declarative behavior description only.
-- `src/model/*`: authoritative rules, state transitions, replay, effects, simulation.
-- `src/controllers/*`: orchestration and runtime-only coordination.
-- `src/views/*`: render/input only. No gameplay rules.
+Annual rolls use the pre-transition snapshot and consume RNG in authored region,
+class, then elder-age order.
 
-### DSL-first behavior authoring
-For gamepiece behavior:
-1. Use existing DSL affordances first.
-2. If needed, add a generalized DSL capability.
-3. Express content behavior as data using that capability.
+- Faith childbirth: Bronze 0%, Silver 10%, Gold 20%, Diamond 50%.
+- Child-to-adult: 10%.
+- Adult-to-elder: 2%, entering age 45.
+- Mortality after aging: 1% through 49; 3% at 50–54; 8% at 55–59; 18% at
+  60–64; 35% at 65–69; 60% at 70–74; 85% at 75+.
+- New elders do not face mortality in their transition year.
+- Probability modifiers resolve base plus additions, then multipliers, clamped
+  to `[0,1]`.
 
-Avoid content-specific one-off imperative gameplay logic when a reusable DSL primitive can cover it.
+Meal demand is adults plus elders plus half the children rounded up. Full/missed
+feed streaks, partial-feed memory, starvation, faith movement, and housing loss
+operate per class.
 
-## 3. Timegraph Terminology
+## Elder Orders and vassals
 
-Use these names consistently.
+Elders are anonymous aggregate cohorts. There is no recruitment, named council
+member, portrait, modifier, agenda, vote, or class tableau state.
 
-- `historyEndSec`: authoritative committed history frontier on the active branch.
-- `computedCoverageEndSec`: farthest future second the projection system has actually computed.
-- `revealedCoverageEndSec`: farthest future second the settlement timegraph has visually unveiled.
-- `browseCapSec`: strict player browse cap. In the current prototype this is equal to `revealedCoverageEndSec`.
-- `displayedLossSec`: dynamic right-edge/header target used while exact civilization loss is unresolved.
-- `projectedLossSec`: exact projected civilization loss second, when known.
-- `currentVassalDeathSec`: death second of the active vassal.
-- `currentVassalDeathResolved`: whether forecast coverage has reached that death second.
+Elder prestige is `age − 44`. For `N > 0`, resistance is
+`floor(total prestige / N) + 10 × (N − 1)`; otherwise zero. The authored
+50/53/56 cohort has resistance 29.
 
-These are runtime/controller concepts. They are not authoritative serialized model state.
+The civilization has one global vassal lineage. Candidate preview and selection
+use deterministic RNG/replay. Three candidates target distinct eligible sites
+where possible and each draws three unique ordered interventions. Requirements
+are the target resistance snapshot plus 20/30/40 (initially 49/59/69).
 
-## 4. Timeline Zones In The Current Prototype
+Vassal prestige is current age plus trait modifier. Profession has no prestige
+effect. Newly passed interventions apply in order before same-boundary death.
+Applied practices become a priority prefix without duplicates and retain
+existing progress.
 
-The architecture still supports more generic zone concepts, but the current player-facing prototype uses a simplified interpretation:
+## Global chaos and loss
 
-- Fixed history:
-  - committed prior play
-  - not editable in the normal prototype UI
-- Active projection:
-  - future forecast beyond committed history
-  - preview-only
-  - browsable only up to the current reveal edge
+Chaos, monsters, loss, and vassal lineage are civilization-global. At annual
+boundaries each detailed site contributes local base chaos minus faith
+mitigation with a zero floor. Gold mitigates one per five population and
+Diamond one per two. The existing global monster threshold ends the run.
 
-The generic engine still retains concepts like editable history windows, truncation, and broader timeline operations because later debug tools or future gameplay may need them. Those affordances are not normal player powers in the current prototype.
+## UI and Map Lab
 
-## 5. Projection, Reveal, And Commit Contract
+The map shows site structure usage. Selecting/opening a detailed region produces
+a site-scoped settlement view with Overview and Demographics tabs. The Elder
+Order panel is aggregate and shows resistance plus target intervention status.
 
-### Projection
-- Projection is pure read-side simulation.
-- Projection never mutates authoritative model state.
-- Projection starts from timeline truth and may be accelerated by caches or worker-built chunks.
+Map Lab v2 edits region mechanics, the independent detailed toggle, cohorts,
+elder ages, local food, five practice slots, structures, and connections. It:
 
-### Reveal
-- The settlement prototype uses a strict reveal gate.
-- The player may only browse forecast up to `revealedCoverageEndSec`.
-- Computed-but-not-yet-revealed forecast remains inaccessible to the player.
+- prevents capacity below occupied structures
+- warns but permits over-housing
+- rejects stored food above Granary capacity
+- deep-copies the viewed game without mutating it
+- starts an explicit fresh deterministic `tSec = 0` run on apply
 
-### Dynamic right edge
-- On boot and after timeline invalidation, the graph must render immediately without waiting for exact civ-loss resolution.
-- The header year, right-side graph extent, and reveal target all derive from the same `displayedLossSec`.
-- While exact loss is unresolved, `displayedLossSec` advances from revealed/computed progress plus a display buffer.
-- Once exact loss resolves, `displayedLossSec` clamps to the resolved loss and the reveal closes the remaining gap.
+## Verification
 
-### Reveal shape
-- The current prototype uses a fixed-seconds reveal-gap model.
-- Pending-commit reveal may be faster than idle/default reveal.
-- The buffer proportion naturally shrinks as the total displayed span grows.
+- `npm run verify`
+- `npm run probe:settlement` after a build
+- `npm run probe:map-lab` after a build
 
-### Commit
-- Committed history remains authoritative.
-- Projection browsing is preview-only.
-- Converting forecast into fixed history still happens through commit/replay truth, not by promoting view state.
-
-## 6. Current Settlement Prototype Rules
-
-### Regional world foundation
-- Immutable shared-vertex polygon/coastline artwork, labels, authored initial region values, and authored default connections live in `src/defs/world/*`.
-- `GameState.world` stores the world definition ID, ordered mutable region instances, canonical undirected connections, and the detailed Region07 site instance.
-- `GameState.civilization` stores the current capital region/site designation; capital status is not intrinsic geography.
-- Detailed settlement-local state (`board`, `hub`, local resources, discovery, environment runs, pawns, inventories, and passive timing) lives under the detailed site.
-- Each region state has a colour, capacity, controller, and ordered `installedPracticeIds`; duplicate practices are allowed.
-- Connections are immutable, undirected, unweighted, and mechanically identical. A connection is valid only when the two immutable region polygons share a complete edge. Region15 shares no polygon edge and is therefore isolated in the current artwork.
-- Regional practices are separate from settlement-local practices. Hypothetical and installed-practice evaluators are pure and use base score 1 with no cap.
-- The global regional-practice scoreboard sums the current score of every installed practice. Score presentation uses bronze for 1, silver for 2, gold for 3, and diamond for 4 or more.
-- Installing or uninstalling a regional practice is a timeline action and therefore follows normal deterministic replay and projection authority. Uninstallation targets the installed slot index so duplicate IDs and order remain unambiguous.
-- The authored geometry depicts a coastal basin within a larger continent: land continues beyond the north and west frontier, while the eastern coastline and Region15 meet the ocean.
-- Region colour, controller, capacity, installed-practice order, connection count, and hypothetical practice scores are visible on the map.
-- Controller markers sit at each region's graph-connection nexus. The detailed Region07 settlement has no separate map marker; it remains accessible from the selected-region panel.
-- Installed-practice slots in player-controlled regions are tappable removal controls.
-- Terrain, deposits, route types/weights, directionality, crossings, logistics, resource flow, and summary sites are absent from the active world schema and map UI.
-- Map selection and map/settlement view mode are runtime UI state and never timeline actions.
-- Debug > Map Lab edits a versioned plain-data draft outside `GameState`, time, RNG, timeline, replay, and projection. It supports mechanical JSON import/export, one autosaved working draft, a browser-local library of named scenarios, score overlays, and compact evaluator diagnostics. Authored scenarios are read-only; named browser scenarios can be explicitly saved, overwritten, loaded, and deleted from the scenario selector. The currently viewed game geography can be deep-copied into the working draft without mutating the run; when browsing the timeline, the copy reflects the viewed second.
-- Applying a valid Map Lab draft is explicit and destructive to the current run: after confirmation it creates a fresh deterministic `tSec = 0` scenario and timeline while retaining the authored Region07 settlement data.
-- Disconnected Map Lab drafts are valid but display a connected-component warning. Connection editing shows both active edges and available shared-edge candidates, and rejects non-adjacent pairs. The tool does not optimize or balance maps.
-- The revised first authored Milestone 2 configuration uses four connected player regions, three frontier regions, eight external regions, and 17 active shared-edge connections. The blank form is the default map; Map Lab can load blank and sparse-interaction presets. The sparse form demonstrates Store, Study, and Administer while leaving one open slot in every player region.
-- The authoritative Substage 3 diagnostic record and score matrices live in `ai/milestone2-substage3-report.md`.
-
-### Vassal progression
-- Vassal choice is permanent.
-- The player works forward through vassals in sequence.
-- The player does not freely revisit earlier choices or freely branch around prior selected vassals.
-
-### Unlock rule
-- The `Next Vassal` control becomes available once the current vassal's death has reached the visible reveal edge.
-- It does not wait for exact civilization-loss resolution or for the broader projection to finish.
-- Computed-but-not-yet-revealed death coverage is not enough to unlock the next vassal.
-
-### Selection timing rule
-- Even though the button unlocks on forecast readiness, the next selection still needs to be recorded at the authoritative current second.
-- In practice, opening the next-vassal selection first commits the timeline to the already-computed death second of the current vassal, then opens the chooser there.
-- This preserves the prototype rule that the next vassal is chosen at the prior vassal's death boundary while keeping the UX responsive.
-
-### History vs projection
-- Selected vassal history becomes fixed history once committed.
-- Future vassal effects remain forecast until committed.
-- The normal prototype UI does not expose general-purpose timeline editing.
-
-## 7. Current Non-Goals For Normal Player UX
-
-The following engine affordances may exist in code, but they are not normal player-facing features in the current prototype:
-
-- freeform pawn-move timeline editing
-- crop-selection timeline editing
-- tag toggle or recipe-order timeline editing
-- broad editable-history gameplay
-- full-timegraph authoring tools
-
-If work touches those systems, treat them as retained engine/debug affordances unless the task explicitly changes the prototype design.
-
-## 8. Debug And Future Affordances
-
-The system should keep supporting future or debug-only extensions, even though they are locked off in the prototype:
-
-- broader timegraph zone policies
-- truncation-based editing
-- more editable moments within a vassal life
-- future projection caps for gameplay or performance reasons
-- a debug menu exposing fuller timeline controls
-
-Preserve these as architectural affordances where practical, but do not let them distort the current prototype contract.
-
-## 9. Testing And Audit Expectations
-
-Before changing timegraph, replay, or projection behavior, perform an impact analysis:
-
-1. Determinism
-2. Serialization
-3. Replay authority
-4. Layering
-5. Naming clarity
-
-### Expected verification
-- `rebuildStateAtSecond(tSec)` remains authoritative.
-- Determinism suite passes.
-- Projection parity remains aligned with replay.
-- Timeline invalidation clears stale forecast state.
-- Settlement debug/probe surfaces expose the current runtime forecast lanes clearly.
-
-### Current profiling focus
-When auditing projection performance, pay particular attention to:
-- full-state serialize/deserialize churn in projection
-- canonicalization cost on projection reads
-- worker-built coverage versus main-thread fallback coverage
-- exact-loss probing cost from repeated future-state reads
-- lag between computed coverage, revealed coverage, and committed history
-
-## 10. Guidance For AI Assistance
-
-- Do not assume older generic timegraph affordances are currently player-facing.
-- Use explicit names that match the runtime lanes in this document.
-- Keep settlement-specific forecast policy in controllers/runtime modules, not in Pixi views.
-- Keep generic timegraph controller logic generic.
-- Explain what changed, why it changed, and how to test it.
-- When the local `grill-me` skill is requested, read `ai/skills/grill-me/SKILL.md` and use code exploration to answer questions that the codebase can answer.
+Tests cover definitions, worker assignment, map scores, boundary food behavior,
+N² capacity, decay, snapshot transport, build waiting/completion, demographics,
+mortality, probability composition, Order resistance, candidate gates,
+same-boundary intervention/death order, JSON round trips, Map Lab validation,
+and authoritative replay parity.

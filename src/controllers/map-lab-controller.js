@@ -1,20 +1,19 @@
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
-import { milestone2MapConfigDefs } from "../defs/world/milestone2-map-configs.js";
 import { createInitialState } from "../model/init.js";
 import {
   MAP_LAB_STORAGE_KEY,
-  addMapLabPractice,
   canonicalizeMapLabDraft,
   createAuthoredMapLabDraft,
   createMapLabDraftFromGameState,
   evaluateMapLabPractice,
   getMapLabConnectionCandidates,
   getMapLabDiagnostics,
-  moveMapLabPractice,
   parseMapLabDraftJson,
-  removeMapLabPractice,
   serializeMapLabDraft,
+  setMapLabPracticeSlot,
+  setMapLabStructureSlot,
   toggleMapLabConnection,
+  updateMapLabDetailedState,
   updateMapLabRegion,
   validateMapLabDraft,
 } from "../model/map-lab-draft.js";
@@ -46,7 +45,7 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
   let draft = createAuthoredMapLabDraft(definitionId);
   let selectedRegionId = draft.regions[0]?.id ?? null;
   let selectedPracticeId = "cultivate";
-  let selectedPresetId = "milestone2Blank01";
+  let selectedPresetId = "detailedSettlementAuthored01";
   let selectedLocalScenarioId = null;
   let scenarioLibrary = createEmptyMapLabScenarioLibrary();
   let connectionStartRegionId = null;
@@ -149,7 +148,9 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
     if (selectedLocalScenarioId) {
       return scenarioLibrary.scenarios.find((entry) => entry.id === selectedLocalScenarioId)?.draft ?? null;
     }
-    if (selectedPresetId) return milestone2MapConfigDefs[selectedPresetId]?.draft ?? null;
+    if (selectedPresetId === "detailedSettlementAuthored01") {
+      return createAuthoredMapLabDraft(definitionId);
+    }
     return null;
   }
 
@@ -170,10 +171,10 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       selectedScenarioDirty: isSelectedScenarioDirty(),
       connectionStartRegionId,
       status,
-      presetOptions: Object.values(milestone2MapConfigDefs).map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-      })),
+      presetOptions: [{
+        id: "detailedSettlementAuthored01",
+        name: "Detailed Settlements — Authored",
+      }],
       localScenarioOptions: scenarioLibrary.scenarios.map((entry) => ({
         id: entry.id,
         name: entry.name,
@@ -206,13 +207,47 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       return applyEdit(updateMapLabRegion(draft, regionId, patch), "Region updated.");
     },
     addPractice(regionId, practiceId) {
-      return applyEdit(addMapLabPractice(draft, regionId, practiceId), "Practice added.");
+      const region = draft.regions.find((entry) => entry.id === regionId);
+      const slotIndex = region?.detailedState?.practiceSlots?.findIndex((slot) => !slot) ?? -1;
+      return applyEdit(
+        setMapLabPracticeSlot(draft, regionId, slotIndex, practiceId),
+        "Practice added."
+      );
     },
     removePractice(regionId, index) {
-      return applyEdit(removeMapLabPractice(draft, regionId, index), "Practice removed.");
+      return applyEdit(setMapLabPracticeSlot(draft, regionId, index, null), "Practice removed.");
     },
     movePractice(regionId, fromIndex, toIndex) {
-      return applyEdit(moveMapLabPractice(draft, regionId, fromIndex, toIndex), "Practice reordered.");
+      const slots = draft.regions.find((entry) => entry.id === regionId)
+        ?.detailedState?.practiceSlots;
+      if (!Array.isArray(slots) || !slots[fromIndex] || toIndex < 0 || toIndex >= slots.length) {
+        return { ok: false, reason: "invalidSlotIndex" };
+      }
+      const nextSlots = clone(slots);
+      const [slot] = nextSlots.splice(fromIndex, 1);
+      nextSlots.splice(toIndex, 0, slot);
+      return applyEdit(
+        updateMapLabDetailedState(draft, regionId, { practiceSlots: nextSlots }),
+        "Practice reordered."
+      );
+    },
+    setPracticeSlot(regionId, slotIndex, practiceId) {
+      return applyEdit(
+        setMapLabPracticeSlot(draft, regionId, slotIndex, practiceId),
+        "Practice slot updated."
+      );
+    },
+    setStructureSlot(regionId, slotIndex, structureId) {
+      return applyEdit(
+        setMapLabStructureSlot(draft, regionId, slotIndex, structureId),
+        "Structure slot updated."
+      );
+    },
+    updateDetailedState(regionId, patch) {
+      return applyEdit(
+        updateMapLabDetailedState(draft, regionId, patch),
+        "Detailed settlement updated."
+      );
     },
     beginOrToggleConnection(regionId) {
       if (!connectionStartRegionId) {
@@ -245,18 +280,17 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       return replaceDraft(
         createAuthoredMapLabDraft(definitionId),
         "Reset to authored default.",
-        { presetId: "milestone2Blank01", localScenarioId: null }
+        { presetId: "detailedSettlementAuthored01", localScenarioId: null }
       );
     },
     loadPreset(presetId) {
-      const preset = milestone2MapConfigDefs[presetId];
-      if (!preset) {
+      if (presetId !== "detailedSettlementAuthored01") {
         setStatus(`Unknown Map Lab scenario: ${presetId}`, "error");
         notify();
         return { ok: false, reason: "invalidPresetId" };
       }
-      return replaceDraft(preset.draft, `Loaded ${preset.name}.`, {
-        presetId: preset.id,
+      return replaceDraft(createAuthoredMapLabDraft(definitionId), "Loaded authored detailed settlements.", {
+        presetId,
         localScenarioId: null,
       });
     },

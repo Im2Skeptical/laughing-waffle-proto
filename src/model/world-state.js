@@ -1,5 +1,9 @@
-import { regionalPracticeDefs } from "../defs/gamepieces/regional-practice-defs.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
+import { createInitialDetailedSettlementData } from "../defs/world/detailed-settlement-scenario.js";
+import {
+  detailedSettlementPracticeDefs,
+  settlementStructureDefs,
+} from "../defs/gamepieces/detailed-settlement-defs.js";
 
 export const REGION_COLOURS = Object.freeze(["red", "blue", "green", "black"]);
 export const REGION_CONTROLLERS = Object.freeze([
@@ -119,20 +123,42 @@ function validateRegionMechanics(region, errors, label = "region") {
   if (!REGION_CONTROLLERS.includes(region?.controller)) {
     errors.push(`${label} ${region?.id ?? "?"} has invalid controller`);
   }
-  if (!Number.isInteger(region?.capacity) || region.capacity < 0) {
-    errors.push(`${label} ${region?.id ?? "?"} has invalid capacity`);
+  if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 0) {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid structure capacity`);
   }
-  if (!Array.isArray(region?.installedPracticeIds)) {
-    errors.push(`${label} ${region?.id ?? "?"} has invalid installed practices`);
+  if (typeof region?.detailedSettlementEnabled !== "boolean") {
+    errors.push(`${label} ${region?.id ?? "?"} has invalid detailed-settlement toggle`);
+  }
+}
+
+function validateDetailedSettlement(site, region, errors) {
+  const settlement = site?.detailedState;
+  if (!settlement || typeof settlement !== "object") {
+    errors.push(`site ${site?.id ?? "?"} has no detailed state`);
     return;
   }
-  if (region.installedPracticeIds.length > region.capacity) {
-    errors.push(`${label} ${region?.id ?? "?"} exceeds capacity`);
-  }
-  for (const practiceId of region.installedPracticeIds) {
-    if (!regionalPracticeDefs[practiceId]) {
-      errors.push(`${label} ${region?.id ?? "?"} has invalid practice ${practiceId}`);
+  if (!Array.isArray(settlement.practiceSlots) || settlement.practiceSlots.length !== 5) {
+    errors.push(`site ${site.id} must have five practice slots`);
+  } else {
+    for (const slot of settlement.practiceSlots) {
+      if (slot && !detailedSettlementPracticeDefs[slot.practiceId]) {
+        errors.push(`site ${site.id} has invalid practice ${slot.practiceId}`);
+      }
     }
+  }
+  if (!Array.isArray(settlement.structureSlots)
+      || settlement.structureSlots.length !== region?.structureCapacity) {
+    errors.push(`site ${site.id} structure slots do not match regional capacity`);
+  } else {
+    for (const slot of settlement.structureSlots) {
+      if (slot && !settlementStructureDefs[slot.structureId]) {
+        errors.push(`site ${site.id} has invalid structure ${slot.structureId}`);
+      }
+    }
+  }
+  if (!Number.isFinite(settlement.storedFood) || settlement.storedFood < 0
+      || !Number.isFinite(settlement.looseFood) || settlement.looseFood < 0) {
+    errors.push(`site ${site.id} has invalid food`);
   }
 }
 
@@ -311,6 +337,14 @@ export function validateWorldState(state) {
   validateConnections(state?.world?.connections, new Map(
     definition.regions.map((entry) => [entry.id, entry])
   ), errors, "world-state connection", definition);
+  for (const site of state?.world?.sites ?? []) {
+    const region = regions.find((entry) => entry.id === site?.regionId);
+    if (!region || region.detailedSettlementEnabled !== true) {
+      errors.push(`site ${site?.id ?? "?"} is not enabled by its region`);
+      continue;
+    }
+    validateDetailedSettlement(site, region, errors);
+  }
   return { ok: errors.length === 0, errors };
 }
 
@@ -322,7 +356,7 @@ export function canonicalizeWorldState(state) {
   state.world.connections = canonicalizeWorldConnections(state.world.connections, definition);
 }
 
-export function createWorldState(definitionId, detailedState, mechanicalDraft = null) {
+export function createWorldState(definitionId, _legacyDetailedState = null, mechanicalDraft = null) {
   const definition = worldMapDefs[definitionId];
   const validation = validateWorldDefinition(definition);
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
@@ -332,16 +366,49 @@ export function createWorldState(definitionId, detailedState, mechanicalDraft = 
   );
   const regions = definition.regions.map((entry) => {
     const mechanics = draftRegionById.get(entry.id) ?? entry.initialState;
-    return { id: entry.id, ...cloneSerializable(mechanics) };
+    return {
+      id: entry.id,
+      colour: mechanics.colour,
+      controller: mechanics.controller,
+      structureCapacity: mechanics.structureCapacity,
+      detailedSettlementEnabled: mechanics.detailedSettlementEnabled === true,
+    };
   });
   const connections = canonicalizeWorldConnections(
     mechanicalDraft?.connections ?? definition.connections,
     definition
   );
-  const sites = definition.sites.map((site) => ({
-    ...cloneSerializable(site),
-    ...(site.simulationMode === "detailed" ? { detailedState } : {}),
-  }));
+  const draftDetailedByRegion = new Map(
+    (Array.isArray(mechanicalDraft?.regions) ? mechanicalDraft.regions : [])
+      .filter((entry) => entry?.detailedSettlementEnabled === true && entry?.detailedState)
+      .map((entry) => [entry.id, entry.detailedState])
+  );
+  const sites = definition.regions
+    .filter((regionDef) => {
+      const mechanics = regions.find((entry) => entry.id === regionDef.id);
+      return mechanics?.detailedSettlementEnabled === true;
+    })
+    .map((regionDef) => {
+      const authoredSite = definition.sites.find((entry) => entry.regionId === regionDef.id);
+      const region = regions.find((entry) => entry.id === regionDef.id);
+      const detailedState = cloneSerializable(
+        draftDetailedByRegion.get(regionDef.id) ?? createInitialDetailedSettlementData()
+      );
+      const capacity = Math.max(0, Math.floor(region.structureCapacity));
+      detailedState.structureSlots = Array.isArray(detailedState.structureSlots)
+        ? detailedState.structureSlots.slice(0, capacity)
+        : [];
+      while (detailedState.structureSlots.length < capacity) detailedState.structureSlots.push(null);
+      return {
+        ...(authoredSite ? cloneSerializable(authoredSite) : {
+          id: `${regionDef.id}-settlement`,
+          regionId: regionDef.id,
+          simulationMode: "detailed",
+          name: regionDef.name,
+        }),
+        detailedState,
+      };
+    });
   const world = { definitionId, regions, connections, sites };
   const stateValidation = validateWorldState({ world });
   if (!stateValidation.ok) {

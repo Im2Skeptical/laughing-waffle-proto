@@ -20,7 +20,7 @@ import {
   getSettlementVassalBoundarySeconds,
   getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
-import { buildSettlementVassalSelectionPool } from "../model/settlement-vassal-exec.js";
+import { buildDetailedVassalSelectionPool } from "../model/detailed-settlements.js";
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
@@ -664,42 +664,20 @@ function syncSettlementVassalSelectionPauseState() {
 
 function openNextSettlementVassalSelection() {
   settlementLastVassalSelectionResult = null;
-  let frontierState = getSettlementFrontierState();
-  let frontierSec = getSettlementFrontierSec();
-  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
+  const frontierState = getSettlementFrontierState();
+  const frontierSec = getSettlementFrontierSec();
   if (isSettlementStateRunComplete(frontierState)) {
     return { ok: false, reason: "runComplete" };
   }
-  if (forecastStatus?.nextVassalEnabled !== true) {
-    return { ok: false, reason: "currentVassalDeathUnresolved" };
-  }
   const currentVassal = getSettlementCurrentVassal(frontierState);
-  if (currentVassal && currentVassal.isDead !== true) {
-    const deathSec = Number.isFinite(forecastStatus?.currentVassalDeathSec)
-      ? Math.max(frontierSec, Math.floor(forecastStatus.currentVassalDeathSec))
-      : null;
-    if (deathSec == null || forecastStatus?.currentVassalDeathResolved !== true) {
-      return { ok: false, reason: "currentVassalDeathUnresolved" };
-    }
-    const commitRes = runner.commitCursorSecond?.(deathSec);
-    if (commitRes?.ok !== true) {
-      return commitRes ?? { ok: false, reason: "commitFailed" };
-    }
-    clearSettlementPendingCommitJob();
-    settlementGraphView?.clearForecastRevealRestart?.();
-    runner.clearPreviewState?.();
-    runner.browseCursorSecond?.(deathSec);
-    invalidateSettlementProjectedLossCache();
-    frontierState = getSettlementFrontierState();
-    frontierSec = getSettlementFrontierSec();
-  }
+  if (currentVassal && currentVassal.isDead !== true) return { ok: false, reason: "currentVassalAlive" };
   settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection()
     ? getSettlementPlaybackTarget()
     : 0;
   requestPauseBeforeDrag();
   setSettlementViewedSecond(frontierSec);
   settlementGraphView?.resetForecastPreviewState?.();
-  settlementPendingVassalSelection = buildSettlementVassalSelectionPool(frontierState, frontierSec);
+  settlementPendingVassalSelection = buildDetailedVassalSelectionPool(frontierState);
   const result = settlementPendingVassalSelection
     ? { ok: true, poolId: settlementPendingVassalSelection.poolId }
     : { ok: false, reason: "poolFailed" };
@@ -709,80 +687,29 @@ function openNextSettlementVassalSelection() {
 }
 
 function selectSettlementVassal(candidateIndex) {
-  const frontierSec = getSettlementFrontierSec();
   const selectionPool = settlementPendingVassalSelection;
   if (!selectionPool) {
     return { ok: false, reason: "missingSelectionPool" };
   }
-  const selectionSec = Number.isFinite(selectionPool?.createdSec)
-    ? Math.max(0, Math.floor(selectionPool.createdSec))
-    : frontierSec;
-  const isFirstVassalSelection =
-    selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
-  const moveRes = setSettlementViewedSecond(selectionSec);
-  if (moveRes?.ok !== true) {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-    settlementVassalChooserView?.refresh?.();
-    settlementLastVassalSelectionResult =
-      moveRes ?? { ok: false, reason: "selectionSeekFailed" };
-    return settlementLastVassalSelectionResult;
-  }
-  settlementGraphView?.resetForecastPreviewState?.();
-  settlementGraphView?.stageProjectionReplacementTransition?.({
-    truncationStartSec: selectionSec,
-    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
-    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
-    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
-  });
   const actionPayload = {
     candidateIndex,
     expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
-    tSec: selectionSec,
+    tSec: getSettlementFrontierSec(),
   };
-  const result = isFirstVassalSelection
-    ? runner.dispatchActionAtSecond?.(
-        ActionKinds.SETTLEMENT_SELECT_VASSAL,
-        actionPayload,
-        selectionSec,
-        { reason: "settlementFirstVassalSelection" }
-      )
-    : runner.dispatchActionAtCurrentSecond?.(
-        ActionKinds.SETTLEMENT_SELECT_VASSAL,
-        actionPayload
-      );
+  const result = runner.dispatchActionAtCurrentSecond?.(
+    ActionKinds.SETTLEMENT_SELECT_VASSAL,
+    actionPayload
+  );
   settlementLastVassalSelectionResult = result ?? { ok: false, reason: "dispatchFailed" };
   if (result?.ok) {
-    if (isFirstVassalSelection) {
-      runner.browseCursorSecond?.(selectionSec);
-    }
     settlementPendingVassalSelection = null;
     invalidateSettlementProjectedLossCache();
-    const frontierState = getSettlementFrontierState();
-    const currentVassal = getSettlementCurrentVassal(frontierState);
-    scheduleSettlementPendingCommit(selectionSec, currentVassal);
-    syncSettlementGraphHorizon();
-    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
-      activateProjectionReplacementTransition: true,
-      extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
-    });
-    returnSettlementViewToPresent(selectionSec);
     settlementVassalSelectionResumeSpeed = 0;
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-    const latestFrontierSec = getSettlementFrontierSec();
-    settlementPendingVassalSelection = buildSettlementVassalSelectionPool(
-      getSettlementFrontierState(),
-      latestFrontierSec
-    );
-    settlementVassalChooserView?.refresh?.();
-  } else if (result?.reason === "currentVassalAlive") {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-    settlementPendingVassalSelection = null;
-    syncSettlementVassalSelectionPauseState();
+    settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
     settlementVassalChooserView?.refresh?.();
   } else {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementVassalChooserView?.refresh?.();
   }
   return result;
@@ -915,7 +842,7 @@ function applySettlementDebugOverrides(overrides) {
       const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
       settlementPendingVassalSelection =
         forecastStatus?.nextVassalEnabled === true
-          ? buildSettlementVassalSelectionPool(frontierState, frontierSec)
+          ? buildDetailedVassalSelectionPool(frontierState)
           : null;
       settlementVassalChooserView?.refresh?.();
     }
@@ -987,9 +914,9 @@ function jumpCurrentVassalToDeath() {
 
 function getSettlementPrimaryVassalState() {
   const frontierState = getSettlementFrontierState();
-  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   const hasPendingSelection = !!settlementPendingVassalSelection;
   const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
+  const currentVassal = getSettlementCurrentVassal(frontierState);
   const runComplete = isSettlementStateRunComplete(frontierState);
   const runCompleteEntry = getLatestRunCompleteEntry(frontierState);
   if (runComplete) {
@@ -1002,7 +929,7 @@ function getSettlementPrimaryVassalState() {
     enabled:
       hasPendingSelection !== true &&
       runComplete !== true &&
-      forecastStatus?.nextVassalEnabled === true,
+      !currentVassal,
     label: hasSelectedVassal ? "Next Vassal" : "Intervene",
   };
 }
@@ -1098,6 +1025,10 @@ settlementGraphController = createTimeGraphController({
   nonFocusStablePrefixStrideSec:
     SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC,
 });
+settlementGraphController.setSubject?.(
+  { regionId: selectedWorldRegionId },
+  selectedWorldRegionId
+);
 settlementForecastController = createSettlementForecastController({
   getTimeline: () => runner.getTimeline?.(),
   ensureControllerCache: () => settlementGraphController?.ensureCache?.(),
@@ -1157,6 +1088,7 @@ prototypeView = createSettlementPrototypeView({
   app,
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
+  getSelectedRegionId: () => selectedWorldRegionId,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
@@ -1174,6 +1106,7 @@ worldMapView = createWorldMapView({
   getSelectedRegionId: () => selectedWorldRegionId,
   setSelectedRegionId: (regionId) => {
     selectedWorldRegionId = regionId;
+    settlementGraphController?.setSubject?.({ regionId }, regionId);
   },
   onInstallPractice: (regionId, practiceId) =>
     runner.dispatchAction(
@@ -1187,7 +1120,13 @@ worldMapView = createWorldMapView({
       { regionId, installedIndex },
       { apCost: 0 }
     ),
-  onOpenDetailedSite: () => setWorldViewMode("settlement"),
+  onOpenDetailedSite: (_siteId, regionId) => {
+    if (typeof regionId === "string") {
+      selectedWorldRegionId = regionId;
+      settlementGraphController?.setSubject?.({ regionId }, regionId);
+    }
+    setWorldViewMode("settlement");
+  },
 });
 
 const DISK_LAYOUT = {
@@ -1519,6 +1458,13 @@ function publishSettlementDebugApi() {
       mode: worldViewMode,
     }),
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
+    selectWorldRegion: (regionId) => {
+      if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) return false;
+      selectedWorldRegionId = regionId;
+      settlementGraphController?.setSubject?.({ regionId }, regionId);
+      worldMapView?.refresh?.();
+      return true;
+    },
     getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>
       worldMapView?.getInstalledPracticeClickPoint?.(installedIndex) ?? null,

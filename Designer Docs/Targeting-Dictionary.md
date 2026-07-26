@@ -1,94 +1,56 @@
 # Targeting Dictionary
 
-Reference for effect `target` specs used by effect ops.
+Current detailed-settlement DSL targeting and evaluator scopes.
 
-## Board Targets (`resolveBoardTargets`)
-Used by system ops, tag ops, event ops, and prop ops.
+## Local site target
 
-### Supported layers
-- `tile`
-- `event`
-- `hub`
+Practice effects target the detailed settlement hosting the practice. The
+authoritative identifier is `regionId`; sites are resolved from the ordered
+`state.world.sites` list.
 
-### Common shapes
-- `{ all: true, layer: "tile" }`
-- `{ at: { layer: "tile", col: 3 } }`
-- `{ ref: "self" }`
-- `{ ref: "self", layer: "tile" }`
-- `{ ref: "pawn" }`
-- `{ ref: { kind: "tileWhere", where: { ... } }, layer: "tile" }`
-- `{ ref: "self", layer: "tile", area: { kind: "adjacent", radius: 1 } }`
-- `{ layer: "hub", where: { hasTag: "distributor" } }`
+Local fields used by operations:
 
-### Selection behavior
+- `storedFood`
+- `looseFood`
+- `practiceSlots[slotIndex]`
+- `structureSlots`
+- `populationByClass`
 
-#### `all`
-- `{ all: true, layer }`
-- `tile` / `event`: scans occupancy array, dedupes by anchor/instance.
-- `hub`: uses `state.hub.anchors` when present, otherwise structures from `state.hub.slots`.
+## Map evaluator
 
-#### `at`
-- `{ at: { layer, col } }`
-- Returns the single target occupying that column (if any).
+`{ evaluator: "adjacentPlayerSameColour" }`
 
-#### `ref`
-- `ref: "self"`
-  - If no `layer` and no `at`/`area`: returns `[context.source]`.
-  - With `layer`: uses `context.source.col` and `context.source.span` to resolve columns.
-- `ref: "pawn"`
-  - Resolves from `context.pawn`, else `context.pawnId`, else `context.ownerId`.
-- `ref: { kind: "tileWhere", where }`
-  - Builds reference columns from tiles matching `where`.
+Returns base score 1 plus directly connected regions whose controller is
+`player` and whose colour matches the host. Evaluation is pure and does not
+mutate state.
 
-#### `area`
-- Supported shape: `{ kind: "adjacent", radius }`.
-- Applies to resolved ref columns and expands by `-radius..+radius`, clamped to board.
+## Topology transfer target
 
-#### `where`
-`where` filters the selected targets by `defId`, `tags`, and system-state numeric checks.
+`routeLocalFood` may choose only a directly connected detailed site. The
+planner:
 
-- `tileId: string | string[]`
-- `hasTag: string | string[]`
-- `hasAllTags: string[]`
-- `hasAnyTags: string[]`
-- `notTag: string`
-- `excludeTags: string[]`
-- `systemAtLeast: { system, key, gte } | Array<...>`
-- `systemAtMost: { system, key, lte } | Array<...>`
-- `systemBetween: { system, key, min, max } | Array<...>`
+- reads one activation-start food/capacity/demand snapshot
+- resolves hosts and neighbour ties in authored region order
+- tracks planned source availability separately from planned destination fill
+- cannot use incoming food as a source in the same moon
 
-### Determinism
-- Column scans are ascending.
-- Dedupe is stable by first encounter (instance id/object identity).
-- Ref/area column expansion is deterministic.
+Destinations fill local stored capacity before creating loose food.
 
-## Owner Targets (`resolveOwnerTargets`)
-Used by `ConsumeItem`, `TransferUnits`, `SpawnItem`, `SpawnFromDropTable`.
+## Local structure target
 
-### Supported shapes
-- `{ ref: "selfInv" }`
-  - In `context.kind === "item"`: uses `context.ownerId`.
-  - Otherwise: uses `context.source.instanceId`.
-- `{ kind: "tileOccupants" }`
-  - If `context.pawn` exists: returns `[context.pawn]`.
-  - Else if `context.pawnId` or `context.ownerId` resolves to a character: returns that pawn only.
-  - Else resolves env column in this order:
-    - `target.envCol`
-    - `context.envCol`
-    - `context.source.col`
-  - Returns characters on that env col in `state.characters` order.
-- `{ ownerId: ... }`
-- `{ ownerIds: [...] }`
+`createLocalStructureAtWork` targets the first free slot within the host
+region's `structureCapacity`. If no slot is free, completed work remains waiting.
 
-### Return type notes
-- Resolver may return pawn objects or raw owner ids depending on spec.
-- Game ops normalize each target by using `target.id` when object, otherwise raw id.
+## Vassal intervention target
 
-## Skill Tree Targeting Scope (Outside Effect Target Resolvers)
-- Skill tree node effects do not use `target` specs or `resolveBoardTargets` / `resolveOwnerTargets`.
-- Targeting is implied by effect bucket:
-  - `effects.characterMods`: applies only to the character that unlocked the node.
-  - `effects.globalMods`: aggregates across all characters and applies globally.
-  - `effects.unlocks.recipes` / `effects.unlocks.hubStructures`: global unlock gates for recipe and build availability.
-  - `effects.unlocks.features`: global feature flags (for example UI feature visibility gates).
-- Aggregation is deterministic (character and node id ordering is normalized in `src/model/skills.js`).
+Every candidate stores one `targetRegionId` and a resistance snapshot from that
+site's Elder Order. Applied intervention practices are inserted only into that
+site's five practice slots.
+
+## Global targets
+
+The following live under `state.civilization` and are never site-local:
+
+- `chaos`
+- run loss status
+- `vassalLineage`

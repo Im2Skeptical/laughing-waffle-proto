@@ -13,6 +13,7 @@ function summarizeGraphControllerData(data) {
       ? Array.from(data.cache.stateDataByBoundary.keys()).sort((a, b) => a - b)
       : null;
   return {
+    subjectKey: data.subjectKey ?? null,
     horizonSec: nonNegativeFloor(data.horizonSec),
     forecastStepSec: nonNegativeFloor(data.forecastStepSec),
     computedCoverageEndSec: nonNegativeFloor(data.forecastCoverageEndSec),
@@ -50,14 +51,16 @@ function summarizeTimeline(timeline) {
 }
 
 function summarizeLineage(state) {
-  const lineage = getPrimaryDetailedSiteState(state)?.hub?.core?.systemState?.vassalLineage ?? null;
+  const lineage = state?.civilization?.vassalLineage ?? null;
   return lineage
     ? {
-        currentVassalId: lineage.currentVassalId ?? null,
-        selectedVassalIds: Array.isArray(lineage.selectedVassalIds)
-          ? [...lineage.selectedVassalIds]
+        currentVassalId: lineage.currentVassal?.vassalId ?? null,
+        selectedVassalIds: Array.isArray(lineage.selectedVassals)
+          ? lineage.selectedVassals.map((entry) => entry.vassalId)
           : [],
-        vassalIds: lineage.vassalsById ? Object.keys(lineage.vassalsById) : [],
+        vassalIds: Array.isArray(lineage.selectedVassals)
+          ? lineage.selectedVassals.map((entry) => entry.vassalId)
+          : [],
       }
     : null;
 }
@@ -78,6 +81,7 @@ export function publishSettlementDebugApi({
   getViewSemanticSnapshot,
   getWorldMapSnapshot,
   getWorldMapClickPoint,
+  selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
   getViewedSlotSummary,
@@ -148,6 +152,7 @@ export function publishSettlementDebugApi({
       };
     },
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
+    selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>

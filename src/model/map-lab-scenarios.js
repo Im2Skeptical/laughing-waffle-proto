@@ -3,8 +3,8 @@ import {
   validateMapLabDraft,
 } from "./map-lab-draft.js";
 
-export const MAP_LAB_SCENARIO_LIBRARY_SCHEMA_VERSION = 1;
-export const MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY = "civsurvivor.mapLabScenarios.v1";
+export const MAP_LAB_SCENARIO_LIBRARY_SCHEMA_VERSION = 2;
+export const MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY = "civsurvivor.mapLabScenarios.v2";
 export const MAP_LAB_SCENARIO_NAME_MAX_LENGTH = 80;
 
 function clone(value) {
