@@ -14,10 +14,10 @@ function clampYear(value, fallback = 1) {
   return Math.max(1, Math.floor(value));
 }
 
-function buildSettlementGraphValues(state) {
+function buildSettlementGraphValues(state, subject = null) {
   const series =
     typeof GRAPH_METRICS?.settlement?.getSeries === "function"
-      ? GRAPH_METRICS.settlement.getSeries(null, state)
+      ? GRAPH_METRICS.settlement.getSeries(subject, state)
       : Array.isArray(GRAPH_METRICS?.settlement?.series)
         ? GRAPH_METRICS.settlement.series
         : [];
@@ -27,7 +27,7 @@ function buildSettlementGraphValues(state) {
     if (!seriesId || typeof seriesDef?.getValueFromSnapshot !== "function") {
       continue;
     }
-    const value = seriesDef.getValueFromSnapshot(state, null);
+    const value = seriesDef.getValueFromSnapshot(state, subject);
     if (!Number.isFinite(value)) continue;
     out[seriesId] = Number(value);
   }
@@ -53,6 +53,12 @@ export function buildProjectionSummaryFromState(state) {
     runLossYear,
     graphValues: {
       settlement: buildSettlementGraphValues(state),
+      settlementByRegion: Object.fromEntries(
+        (state?.world?.sites ?? []).map((site) => [
+          site.regionId,
+          buildSettlementGraphValues(state, { regionId: site.regionId }),
+        ])
+      ),
     },
     settlement: {
       currentVassalId:

@@ -1,16 +1,20 @@
 // Human-authored regional graphs. Pure data only.
 
-import { milestone2BlankDraft } from "./milestone2-map-configs.js";
+import {
+  DETAILED_REGION_COLOURS,
+  DETAILED_REGION_IDS,
+  REGION_STRUCTURE_CAPACITIES,
+} from "./detailed-settlement-scenario.js";
 
 const vertex = (id, x, y) => ({ id, x, y });
 
-const initialStateForRegion = (id) => {
-  const entry = milestone2BlankDraft.regions.find((regionEntry) => regionEntry.id === id);
+const initialStateForRegion = (id, index) => {
+  const isDetailed = DETAILED_REGION_IDS.includes(id);
   return {
-    colour: entry.colour,
-    capacity: entry.capacity,
-    controller: entry.controller,
-    installedPracticeIds: [...entry.installedPracticeIds],
+    colour: DETAILED_REGION_COLOURS[id] ?? ["black", "green", "blue", "red"][index % 4],
+    structureCapacity: REGION_STRUCTURE_CAPACITIES[index],
+    controller: isDetailed ? "player" : index < 7 ? "frontier" : index < 11 ? "external-a" : "external-b",
+    detailedSettlementEnabled: isDetailed,
   };
 };
 
@@ -25,7 +29,7 @@ const region = (
   name,
   polygonVertexIds,
   display: { labelPoint, sitePoint: sitePoint ?? labelPoint },
-  initialState: initialStateForRegion(id),
+  initialState: null,
 });
 
 const vertices = [
@@ -64,16 +68,40 @@ const regions = [
   region("outer-isles", "Region15", ["i0","i1","i2","i3","i4"], {x:0.96,y:0.65}, {x:0.96,y:0.70}),
 ];
 
-const connections = milestone2BlankDraft.connections;
+regions.forEach((entry, index) => {
+  entry.initialState = initialStateForRegion(entry.id, index);
+});
 
-const sites = [
-  {
-    id: "river-crown-settlement",
-    regionId: "river-crown",
-    simulationMode: "detailed",
-    name: "Settlement07",
-  },
+const connection = (regionAId, regionBId) => ({ regionAId, regionBId });
+const connections = [
+  connection("cedar-woods", "west-levee"),
+  connection("iron-hills", "west-levee"),
+  connection("iron-hills", "high-pass"),
+  connection("west-levee", "southern-savanna"),
+  connection("west-levee", "upper-floodplain"),
+  connection("southern-savanna", "reed-delta"),
+  connection("high-pass", "copper-basin"),
+  connection("upper-floodplain", "river-crown"),
+  connection("river-crown", "reed-delta"),
+  connection("river-crown", "lake-country"),
+  connection("copper-basin", "east-steppe"),
+  connection("copper-basin", "obsidian-ridge"),
+  connection("east-steppe", "lake-country"),
+  connection("east-steppe", "obsidian-ridge"),
+  connection("lake-country", "black-marsh"),
+  connection("lake-country", "obsidian-ridge"),
+  connection("black-marsh", "salt-coast"),
 ];
+
+const sites = DETAILED_REGION_IDS.map((regionId) => {
+  const regionIndex = regions.findIndex((entry) => entry.id === regionId);
+  return {
+    id: `${regionId}-settlement`,
+    regionId,
+    simulationMode: "detailed",
+    name: `Settlement${String(regionIndex + 1).padStart(2, "0")}`,
+  };
+});
 
 export const worldMapDefs = Object.freeze({
   riverBasin01: Object.freeze({

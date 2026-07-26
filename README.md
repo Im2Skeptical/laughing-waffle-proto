@@ -1,148 +1,89 @@
 # laughing-waffle-proto
-Sparse prototype fork for the next core gameplay rework.
 
-## Status
-Created from the verified archive tag `pre-prototype-archive` on 2026-03-25.
+Deterministic map-driven settlement strategy prototype.
 
-- Source archive repo: `../laughing-waffle`
-- Intended GitHub repo: `https://github.com/Im2Skeptical/laughing-waffle-proto`
-- Intended GitHub Pages URL: `https://im2skeptical.github.io/laughing-waffle-proto/`
+## Current prototype
 
-## Prototype Direction
-- Keep deterministic simulation, replay authority, process handling, and defs-driven systems where they still fit.
-- Remove or replace pawn, inventory, and old turn-flow assumptions directly instead of preserving compatibility shims.
-- Rebuild from a minimal vertical slice: one map/state model, one new turn loop, one or two player interactions, and enough UI for desktop/mobile playtests.
+The 15-region map hosts five connected detailed settlements in Regions01, 03,
+06, 07, and 11. Each site simulates local cohorts, perishable capacity-limited
+food, fixed practice slots, physical structure space, and an aggregate Elder
+Order. Administration is the only way to move food between adjacent sites.
 
-## Local Run
-`npm start`
+The single civilization-wide vassal lineage targets a local settlement with
+three deterministic interventions. Chaos and loss are global; population,
+food, practices, buildings, happiness, and faith are site-local.
 
-This serves the readable source modules directly for development. To preview the same optimized
-artifact used by GitHub Pages:
+Game state is schema v4. Old saves are intentionally unsupported.
 
-1. Run `npm run build`.
-2. Run `npx serve dist`.
+## Run and verify
 
-## Install
-`npm ci`
+```text
+npm ci
+npm start
+npm run verify
+```
 
-## Verify
-`npm run verify`
+Browser probes use the built site:
 
-## Strict Env Def Validation
-`set STRICT_ENV_DEFS=1 && npm run test`
+```text
+npm run build
+npm run probe:settlement
+npm run probe:map-lab
+```
 
-## Debug Checks
-- Determinism: `window.__DBG__.test()`
-- Check state: `window.__DBG__.getCursorState()`
+`npm run build` writes generated output to `dist/`.
 
-## Map Lab
+## Map Lab v2
 
-Open **Debug** and choose **Map Lab**. The development tool is also present in GitHub Pages
-playtest builds. It edits a separate browser draft and does not change the running game until
-**Start fresh test run** is confirmed.
+Open **Debug → Map Lab**. The editor works on a separate browser-local draft and
+changes the game only when **Start fresh test run** is used.
 
-The editor supports region colour, controller, capacity, ordered duplicate practices, undirected
-connections between polygons that share an edge, hypothetical scores, and all-practice diagnostics.
-Connection editing shows active edges in cyan and currently available shared-edge pairs as dashed
-lines. A valid draft autosaves under
-`civsurvivor.mapLabDraft.v1`. **Save scenario** adds a named copy of the current draft directly to
-the scenario selector. Named scenarios can be loaded, explicitly overwritten by saving with the
-same name, or deleted; authored scenarios remain read-only. The named library is stored under
-`civsurvivor.mapLabScenarios.v1`.
+Map Lab edits:
 
-**Copy current game** replaces the working draft with the mechanical geography currently visible
-in the game, including installed-practice order. This is a deep, read-only copy: it does not change
-the running game or its timeline. If the timeline is being browsed, the copied draft reflects that
-viewed second. The copy can then be edited or saved as a named browser scenario.
+- region colour, controller, `structureCapacity`, and connections
+- an independent detailed-settlement toggle
+- Villager/Stranger children, adults, and elder ages
+- stored and loose food
+- exactly five practice slots
+- structure slots up to the regional capacity
 
-Both the working draft and named scenarios are local to the current browser and site origin. They
-do not automatically transfer between a desktop browser and a phone, and clearing site data removes
-them. Import / Export remains available for backup or transfer. Reset restores the authored map.
+It prevents capacity below occupied structure slots, warns about over-housing,
+and rejects stored food above the derived Granary capacity. **Copy current
+game** is a deep read-only copy of the viewed second.
 
-The exported schema is version 1 and contains mechanical data only:
+Drafts use schema v2 and browser key `civsurvivor.mapLabDraft.v2`; named scenario
+libraries use `civsurvivor.mapLabScenarios.v2`. Map Lab v1 data is rejected
+without migration.
+
+Example region entry:
 
 ```json
 {
-  "schemaVersion": 1,
-  "worldDefinitionId": "riverBasin01",
-  "regions": [
-    {
-      "id": "cedar-woods",
-      "colour": "green",
-      "capacity": 2,
-      "controller": "frontier",
-      "installedPracticeIds": []
-    }
-  ],
-  "connections": [
-    { "regionAId": "cedar-woods", "regionBId": "iron-hills" }
-  ]
+  "id": "cedar-woods",
+  "colour": "green",
+  "controller": "player",
+  "structureCapacity": 3,
+  "detailedSettlementEnabled": true,
+  "detailedState": {
+    "storedFood": 60,
+    "looseFood": 0,
+    "practiceSlots": [
+      { "practiceId": "cultivate", "charge": 0, "work": 0 },
+      { "practiceId": "administrate", "charge": 0, "work": 0 },
+      { "practiceId": "preserve", "charge": 0, "work": 0 },
+      null,
+      null
+    ]
+  }
 }
 ```
 
-Region geometry, labels, decorative map context, sites, and the detailed Region07 settlement
-are not duplicated. Applying a draft creates a new deterministic scenario at `tSec = 0`, with a
-fresh timeline and the normal authored settlement. Active connections are copied into that new
-`GameState` for save/replay authority. Save schema version 3 is intentionally incompatible with
-older prototype saves.
+See [`ai/ai-context.md`](ai/ai-context.md) for current gameplay and engine
+invariants, and
+[`ai/detailed-settlement-redesign-plan.md`](ai/detailed-settlement-redesign-plan.md)
+for the approved redesign record.
 
-Run `npm run probe:map-lab` after `npm run build` for the dedicated browser smoke test.
+## Deployment
 
-### Milestone 2 authored test scenarios
-
-Map Lab's scenario selector includes:
-
-- **Milestone 2 — Blank Suitability** (`devMilestone2Blank01`)
-- **Milestone 2 — Sparse Interactions** (`devMilestone2Sparse01`)
-
-The blank configuration is also the authored default used by `devPlaytesting01`. All authored
-connections follow visible shared polygon edges. Region15 has no shared polygon edge and is
-therefore an isolated component in this experiment. Mechanical JSON
-exports are available at `exports/milestone2-blank-01.json` and
-`exports/milestone2-sparse-01.json`. The diagnostic matrices and first-pass revision notes are in
-`ai/milestone2-substage3-report.md`.
-
-## Mobile Playtest With GitHub Pages
-
-### One-time setup
-1. Open `https://github.com/Im2Skeptical/laughing-waffle-proto`.
-2. Go to `Settings` -> `Pages`.
-3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
-4. Save.
-5. Wait for initial deployment.
-6. Open: `https://im2skeptical.github.io/laughing-waffle-proto/`
-
-### Per playtest cycle
-1. Commit changes on your working branch.
-2. Run `npm run verify`.
-3. Merge to `main`.
-4. Push `main`.
-5. Wait for the `Deploy GitHub Pages` workflow to finish (normally about 1-3 minutes).
-6. Open the Pages URL on phone and playtest.
-
-### Deployment artifact and cache behavior
-- `npm run build` creates `dist/`; it is generated output and is not committed.
-- esbuild bundles the browser code into one content-hashed file such as
-  `assets/app-ABC123.js`.
-- The stylesheet also receives a content-derived filename.
-- `dist/build-manifest.json` records the generated browser entry points for inspection.
-- A code or stylesheet change therefore produces a new URL, so a phone cannot reuse the prior
-  release's cached bundle.
-- Images retain stable paths under `images/`; replacing an image may still require the normal
-  GitHub Pages cache interval to expire.
-- GitHub Actions publishes only `dist/`, not source files, tests, documentation, or repository
-  metadata.
-
-### Mobile behavior notes
-- The game keeps its existing landscape canvas design.
-- There is no portrait warning overlay.
-- Portrait still renders, but UI may be small.
-- Best playtest mode is physical landscape orientation.
-
-### Quick troubleshooting
-- If deployment fails, inspect the `Deploy GitHub Pages` run in the repository's `Actions` tab.
-- Blank screen or missing art usually means a bad asset path. Runtime image paths must remain
-  relative to the deployed root, for example `images/...`.
-- If the bundle name in `build-manifest.json` changed but a phone still looks stale, verify the
-  workflow deployed successfully; clearing site data should no longer be required for code or CSS.
-- If drag/tap feels wrong, reopen in landscape and ensure browser gesture handling is not interfering.
+GitHub Pages should publish only `dist/`. Bundled JavaScript and CSS use
+content-hashed filenames recorded in `dist/build-manifest.json`.

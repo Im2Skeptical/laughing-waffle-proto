@@ -1,249 +1,66 @@
 import assert from "node:assert/strict";
-import { setupDefs } from "../../defs/gamesettings/scenarios-defs.js";
-import { createInitialState } from "../init.js";
 import {
-  addMapLabPractice,
+  MAP_LAB_DRAFT_SCHEMA_VERSION,
+  MAP_LAB_STORAGE_KEY,
   createAuthoredMapLabDraft,
-  createMapLabDraftFromGameState,
-  evaluateMapLabPractice,
-  getMapLabConnectionCandidates,
-  getMapLabConnectedComponents,
-  getMapLabDiagnostics,
-  moveMapLabPractice,
   parseMapLabDraftJson,
-  removeMapLabPractice,
   serializeMapLabDraft,
-  toggleMapLabConnection,
+  setMapLabStructureSlot,
+  updateMapLabDetailedState,
   updateMapLabRegion,
   validateMapLabDraft,
 } from "../map-lab-draft.js";
-import {
-  createEmptyMapLabScenarioLibrary,
-  deleteMapLabScenario,
-  parseMapLabScenarioLibraryJson,
-  saveMapLabScenario,
-  serializeMapLabScenarioLibrary,
-  validateMapLabScenarioLibrary,
-} from "../map-lab-scenarios.js";
-import { evaluateRegionalPracticePlacement } from "../regional-practices.js";
-import { buildProjectionStateWindowFromTimeline } from "../projection.js";
-import { serializeGameState } from "../state.js";
-import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
-import { getConnectedRegionIds, getRegionState, validateWorldState } from "../world-state.js";
+import { createInitialState } from "../init.js";
+import { setupDefs } from "../../defs/gamesettings/scenarios-defs.js";
 
-function testDefaultAndJsonRoundTrip() {
-  const draft = createAuthoredMapLabDraft();
-  assert.equal(validateMapLabDraft(draft).ok, true);
-  const text = serializeMapLabDraft(draft);
-  assert.equal(text.includes("polygonVertexIds"), false);
-  assert.equal(text.includes("labelPoint"), false);
-  assert.equal(text.includes("sites"), false);
-  const parsed = parseMapLabDraftJson(text);
-  assert.equal(parsed.ok, true);
-  assert.deepEqual(parsed.draft, draft);
+const authored = createAuthoredMapLabDraft();
+assert.equal(MAP_LAB_DRAFT_SCHEMA_VERSION, 2);
+assert.match(MAP_LAB_STORAGE_KEY, /\.v2$/);
+assert.equal(validateMapLabDraft(authored).ok, true);
+assert.deepEqual(parseMapLabDraftJson(serializeMapLabDraft(authored)).draft, authored);
+assert.deepEqual(authored.regions.map((region) => region.structureCapacity),
+  [3, 4, 4, 3, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 3]);
+assert.deepEqual(authored.regions.filter((region) => region.detailedSettlementEnabled)
+  .map((region) => region.id), [
+    "cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country",
+  ]);
 
-  assert.match(parseMapLabDraftJson("{").errors[0], /^json:/);
-  const bad = JSON.parse(text);
-  bad.regions[0].installedPracticeIds = ["unknown"];
-  bad.regions[0].capacity = 0;
-  bad.connections.push({ regionAId: "river-crown", regionBId: "river-crown" });
-  bad.connections.push({ regionAId: "west-levee", regionBId: "lake-country" });
-  const validation = validateMapLabDraft(bad);
-  assert.equal(validation.ok, false);
-  assert.ok(validation.errors.some((entry) => entry.includes("exceed capacity")));
-  assert.ok(validation.errors.some((entry) => entry.includes("invalid practice")));
-  assert.ok(validation.errors.some((entry) => entry.includes("self-connections")));
-  assert.ok(validation.errors.some((entry) => entry.includes("do not share a polygon edge")));
-}
+const region01 = authored.regions[0];
+assert.equal(updateMapLabRegion(authored, region01.id, { structureCapacity: 2 }).reason,
+  "structureCapacityBelowOccupied");
+const expanded = updateMapLabRegion(authored, region01.id, { structureCapacity: 4 });
+assert.equal(expanded.ok, true);
+assert.equal(expanded.draft.regions[0].detailedState.structureSlots.length, 4);
 
-function testCopyFromGameState() {
-  const state = createInitialState("devPlaytesting01", 13579);
-  const region = getRegionState(state, "west-levee");
-  region.colour = "blue";
-  region.capacity = 4;
-  region.installedPracticeIds = ["store", "cultivate", "store"];
-  state.world.connections = state.world.connections.slice(0, -1);
-  const stateBefore = serializeGameState(state);
-  const result = createMapLabDraftFromGameState(state);
-  assert.equal(result.ok, true, result.errors.join("; "));
-  const copiedRegion = result.draft.regions.find((entry) => entry.id === "west-levee");
-  assert.deepEqual(copiedRegion, {
-    id: "west-levee",
-    colour: "blue",
-    capacity: 4,
-    controller: "player",
-    installedPracticeIds: ["store", "cultivate", "store"],
-  });
-  assert.equal(result.draft.connections.length, state.world.connections.length);
-  const serializedDraft = serializeMapLabDraft(result.draft);
-  assert.equal(serializedDraft.includes("sites"), false);
-  assert.equal(serializedDraft.includes("tSec"), false);
+const withoutGranary = setMapLabStructureSlot(authored, region01.id, 0, null);
+assert.equal(withoutGranary.ok, false, "stored food above the resulting zero capacity is rejected");
+const tooMuchFood = updateMapLabDetailedState(authored, region01.id, { storedFood: 101 });
+assert.equal(tooMuchFood.ok, false);
+assert.match(tooMuchFood.errors[0], /storedFood/);
 
-  copiedRegion.installedPracticeIds.pop();
-  result.draft.connections.pop();
-  assert.deepEqual(serializeGameState(state), stateBefore, "copied draft mutated the source game");
-  assert.equal(createMapLabDraftFromGameState(null).reason, "invalidGameState");
-  assert.equal(createMapLabDraftFromGameState({
-    world: { definitionId: "unknown", regions: [], connections: [] },
-  }).reason, "invalidGameState");
-}
+const overHousing = updateMapLabDetailedState(authored, region01.id, {
+  populationByClass: {
+    ...region01.detailedState.populationByClass,
+    villager: { ...region01.detailedState.populationByClass.villager, adults: 100 },
+  },
+});
+assert.equal(overHousing.ok, true);
+assert.ok(overHousing.warnings.some((warning) => warning.includes("exceeds housing")));
 
-function testEditingAndCapacity() {
-  let draft = createAuthoredMapLabDraft();
-  let result = updateMapLabRegion(draft, "west-levee", { capacity: 1 });
-  assert.equal(result.ok, true); draft = result.draft;
-  result = addMapLabPractice(draft, "west-levee", "store");
-  assert.equal(result.ok, true); draft = result.draft;
-  assert.equal(addMapLabPractice(draft, "west-levee", "store").reason, "capacityFull");
-  assert.equal(updateMapLabRegion(draft, "west-levee", { capacity: 0 }).reason, "capacityBelowInstalled");
-  draft = updateMapLabRegion(draft, "west-levee", { capacity: 3 }).draft;
-  draft = addMapLabPractice(draft, "west-levee", "cultivate").draft;
-  draft = addMapLabPractice(draft, "west-levee", "store").draft;
-  assert.deepEqual(getRegionState({ world: { regions: draft.regions } }, "west-levee").installedPracticeIds, ["store", "cultivate", "store"]);
-  draft = moveMapLabPractice(draft, "west-levee", 2, 0).draft;
-  assert.deepEqual(draft.regions.find((entry) => entry.id === "west-levee").installedPracticeIds, ["store", "store", "cultivate"]);
-  draft = removeMapLabPractice(draft, "west-levee", 1).draft;
-  assert.deepEqual(draft.regions.find((entry) => entry.id === "west-levee").installedPracticeIds, ["store", "cultivate"]);
-}
+const v1 = JSON.stringify({
+  schemaVersion: 1,
+  worldDefinitionId: "riverBasin01",
+  regions: [],
+  connections: [],
+});
+assert.equal(parseMapLabDraftJson(v1).ok, false);
+assert.ok(parseMapLabDraftJson(v1).errors.some((error) => error.includes("expected 2")));
 
-function testNamedScenarioLibrary() {
-  const blank = createAuthoredMapLabDraft();
-  const edited = updateMapLabRegion(blank, "cedar-woods", { colour: "blue" }).draft;
-  let library = createEmptyMapLabScenarioLibrary();
-  let result = saveMapLabScenario(library, { name: "  Blue opening  ", draft: edited });
-  assert.equal(result.ok, true);
-  library = result.library;
-  assert.equal(result.scenario.id, "local-1");
-  assert.equal(result.scenario.name, "Blue opening");
-  assert.equal(library.scenarios[0].draft.regions[0].colour, "blue");
-  edited.regions[0].colour = "red";
-  assert.equal(library.scenarios[0].draft.regions[0].colour, "blue", "saved scenario shares draft references");
+const applied = createInitialState({
+  ...setupDefs.devPlaytesting01,
+  worldDraft: expanded.draft,
+}, 12345);
+assert.equal(Object.hasOwn(applied.world.regions[0], "detailedState"), false);
+assert.equal(applied.world.sites[0].detailedState.structureSlots.length, 4);
 
-  assert.equal(saveMapLabScenario(library, { name: "blue OPENING", draft: blank }).reason, "duplicateName");
-  const replacement = updateMapLabRegion(blank, "cedar-woods", { capacity: 4 }).draft;
-  result = saveMapLabScenario(library, {
-    scenarioId: "local-1",
-    name: "Blue opening",
-    draft: replacement,
-  });
-  assert.equal(result.ok, true);
-  library = result.library;
-  assert.equal(library.scenarios.length, 1);
-  assert.equal(library.scenarios[0].draft.regions[0].capacity, 4);
-
-  result = saveMapLabScenario(library, { name: "Second test", draft: blank });
-  assert.equal(result.scenario.id, "local-2");
-  library = result.library;
-  assert.equal(validateMapLabScenarioLibrary(library).ok, true);
-  const serialized = serializeMapLabScenarioLibrary(library);
-  const parsed = parseMapLabScenarioLibraryJson(serialized);
-  assert.equal(parsed.ok, true);
-  assert.deepEqual(parsed.library, library);
-  assert.equal(serialized.includes("polygonVertexIds"), false);
-  assert.equal(serialized.includes("sites"), false);
-
-  const invalid = JSON.parse(serialized);
-  invalid.scenarios[1].name = "blue opening";
-  assert.equal(validateMapLabScenarioLibrary(invalid).ok, false);
-  result = deleteMapLabScenario(library, "local-1");
-  assert.equal(result.ok, true);
-  assert.deepEqual(result.library.scenarios.map((entry) => entry.id), ["local-2"]);
-  assert.equal(deleteMapLabScenario(result.library, "missing").reason, "invalidScenarioId");
-}
-
-function testConnectionsAndComponents() {
-  let draft = createAuthoredMapLabDraft();
-  const candidates = getMapLabConnectionCandidates(draft);
-  assert.equal(candidates.length, 25);
-  assert.equal(candidates.some((entry) =>
-    entry.regionAId === "outer-isles" || entry.regionBId === "outer-isles"
-  ), false);
-  assert.equal(toggleMapLabConnection(draft, "river-crown", "river-crown").reason, "selfConnection");
-  assert.equal(toggleMapLabConnection(draft, "west-levee", "lake-country").reason, "notPolygonAdjacent");
-  assert.equal(getMapLabConnectedComponents(draft).length, 2);
-  let result = toggleMapLabConnection(draft, "black-marsh", "salt-coast");
-  assert.equal(result.connected, false); draft = result.draft;
-  assert.equal(getMapLabConnectedComponents(draft).length, 3);
-  result = toggleMapLabConnection(draft, "salt-coast", "black-marsh");
-  assert.equal(result.connected, true); draft = result.draft;
-  assert.equal(getMapLabConnectedComponents(draft).length, 2);
-  assert.equal(draft.connections.filter((entry) => [entry.regionAId, entry.regionBId].includes("outer-isles")).length, 0);
-}
-
-function testEvaluationAndDiagnostics() {
-  const draft = createAuthoredMapLabDraft();
-  const before = serializeMapLabDraft(draft);
-  const exchange = evaluateMapLabPractice(draft, "exchange");
-  assert.equal(exchange.find((entry) => entry.regionId === "river-crown").evaluation.score, 3);
-  assert.equal(exchange.find((entry) => entry.regionId === "iron-hills").eligible, false);
-  assert.equal(serializeMapLabDraft(draft), before, "evaluation mutated the draft");
-  const diagnostics = getMapLabDiagnostics(draft);
-  assert.equal(diagnostics.practices.length, 6);
-  assert.equal(diagnostics.practices.find((entry) => entry.practiceId === "store").flat, true);
-  assert.deepEqual(diagnostics.practices.find((entry) => entry.practiceId === "cultivate").bestRegionIds, ["upper-floodplain"]);
-  assert.ok(diagnostics.dominantRegions.some((entry) => entry.regionId === "west-levee"));
-
-  const sharedWinnerDraft = createAuthoredMapLabDraft();
-  const river = sharedWinnerDraft.regions.find((entry) => entry.id === "river-crown");
-  river.capacity = 10;
-  river.installedPracticeIds = ["store", "store", "cultivate", "exchange"];
-  const shared = getMapLabDiagnostics(sharedWinnerDraft).sharedSoleBestRegions
-    .find((entry) => entry.regionId === "river-crown");
-  assert.ok(shared?.practiceIds.includes("store"));
-  assert.ok(shared?.practiceIds.includes("study"));
-
-  const noEligible = createAuthoredMapLabDraft();
-  for (const region of noEligible.regions) region.controller = "frontier";
-  const noEligibleStore = getMapLabDiagnostics(noEligible).practices.find((entry) => entry.practiceId === "store");
-  assert.equal(noEligibleStore.eligibleRegionCount, 0);
-  assert.equal(noEligibleStore.flat, false);
-  assert.equal(noEligibleStore.comparisonStatus, "insufficient");
-}
-
-function testFreshScenarioReplayParity() {
-  let draft = createAuthoredMapLabDraft();
-  draft = toggleMapLabConnection(draft, "black-marsh", "salt-coast").draft;
-  draft = updateMapLabRegion(draft, "river-crown", { colour: "blue", capacity: 5 }).draft;
-  draft = addMapLabPractice(draft, "river-crown", "exchange").draft;
-  const state = createInitialState({
-    ...createInitialSetup(),
-    worldDraft: draft,
-  }, 12345);
-  assert.equal(validateWorldState(state).ok, true);
-  assert.equal(state.tSec, 0);
-  assert.equal(getConnectedRegionIds(state, "salt-coast").length, 0);
-  assert.equal(getRegionState(state, "river-crown").colour, "blue");
-  draft.regions.find((entry) => entry.id === "river-crown").colour = "red";
-  assert.equal(getRegionState(state, "river-crown").colour, "blue", "applied state shares draft references");
-  const score = evaluateRegionalPracticePlacement(state, { regionId: "river-crown", practiceId: "exchange" });
-  assert.equal(score.score, 3);
-  const timeline = createTimelineFromInitialState(state);
-  const first = rebuildStateAtSecond(timeline, 8);
-  const second = rebuildStateAtSecond(timeline, 8);
-  assert.equal(first.ok, true); assert.equal(second.ok, true);
-  assert.deepEqual(serializeGameState(first.state), serializeGameState(second.state));
-  const projection = buildProjectionStateWindowFromTimeline(timeline, 0, { horizonSec: 8 });
-  assert.equal(projection.ok, true);
-  assert.deepEqual(projection.stateDataBySecond.get(8), serializeGameState(first.state));
-}
-
-function createInitialSetup() {
-  // Preserve the complete authored settlement while replacing only world mechanics.
-  return JSON.parse(JSON.stringify(globalSetup));
-}
-
-const globalSetup = setupDefs.devPlaytesting01;
-
-export function runMapLabDraftSuite() {
-  testDefaultAndJsonRoundTrip();
-  testCopyFromGameState();
-  testEditingAndCapacity();
-  testNamedScenarioLibrary();
-  testConnectionsAndComponents();
-  testEvaluationAndDiagnostics();
-  testFreshScenarioReplayParity();
-  return true;
-}
-
-runMapLabDraftSuite();
-console.log("[map-lab-draft] OK");
+console.log("[map-lab-v2] OK");

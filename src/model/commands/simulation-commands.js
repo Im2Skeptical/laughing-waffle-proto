@@ -1,10 +1,8 @@
 import { SEASON_DURATION_SEC } from "../../defs/gamesettings/gamerules-defs.js";
 import { runLiveSecondStages } from "../live-second-stage-scheduler.js";
 import {
-  buildSeasonDeckForCurrentSeason,
   getCurrentSeasonKey,
 } from "../state.js";
-import { getPrimaryDetailedSiteState } from "../world-state.js";
 import {
   getApCapForSecond,
   getApIncomePerSecond,
@@ -30,8 +28,6 @@ export function cmdAdvanceSeason(state) {
 
   const newSeasonKey = getCurrentSeasonKey(state);
 
-  getPrimaryDetailedSiteState(state).currentSeasonDeck = null;
-  buildSeasonDeckForCurrentSeason(state);
   state._seasonChanged = true;
 
   return { ok: true, oldSeasonKey, newSeasonKey };

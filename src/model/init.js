@@ -30,6 +30,7 @@ import {
 } from "./settlement-state.js";
 import { syncSettlementDerivedState } from "./settlement-exec.js";
 import { stepSettlementOrders } from "./settlement-order-exec.js";
+import { initializeDetailedSettlementCivilization } from "./detailed-settlements.js";
 import { getGlobalSkillModifier } from "./skills.js";
 import { getPrimaryDetailedSiteState } from "./world-state.js";
 
@@ -357,6 +358,12 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   state.year = 1;
   state.seasonTimeRemaining = 0;
   state.paused = false;
+
+  // Map-driven settlement schema v4 is assembled by createWorldState. Legacy
+  // board/hub setup is intentionally not constructed or migrated.
+  initializeDetailedSettlementCivilization(state);
+  recomputeInitialActionPoints(state);
+  return state;
 
   // resources
   local.resources = {

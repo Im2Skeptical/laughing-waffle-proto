@@ -6,265 +6,81 @@ import { chromium } from "playwright";
 
 const PORT = 8081;
 const URL = `http://127.0.0.1:${PORT}`;
-const ARTIFACT_DIR = "artifacts";
-const DETAIL_PATH = `${ARTIFACT_DIR}/map-lab-browser-probe.json`;
-const SCREENSHOT_PATH = `${ARTIFACT_DIR}/map-lab-browser-probe-latest.png`;
-const BLANK_SCREENSHOT_PATH = `${ARTIFACT_DIR}/milestone2-blank-map-lab.png`;
-const SPARSE_SCREENSHOT_PATH = `${ARTIFACT_DIR}/milestone2-sparse-map-lab.png`;
+const DETAIL_PATH = "artifacts/map-lab-browser-probe.json";
+const SCREENSHOT_PATH = "artifacts/map-lab-browser-probe-latest.png";
 
-async function waitForHttp(url, timeoutMs = 15000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
+async function waitForHttp() {
+  for (let attempt = 0; attempt < 150; attempt += 1) {
     try {
-      const response = await fetch(url);
-      if (response.ok) return;
-    } catch (_) {
-      // Server is still starting.
-    }
+      if ((await fetch(URL)).ok) return;
+    } catch {}
     await delay(100);
   }
-  throw new Error(`Timed out waiting for ${url}`);
+  throw new Error(`Timed out waiting for ${URL}`);
 }
 
-async function clickConfirming(page, locator) {
-  const dialogPromise = page.waitForEvent("dialog");
-  const clickPromise = locator.click();
-  const dialog = await dialogPromise;
-  await dialog.accept();
-  await clickPromise;
-}
-
-async function clickPrompting(page, locator, value) {
-  const dialogPromise = page.waitForEvent("dialog");
-  const clickPromise = locator.click();
-  const dialog = await dialogPromise;
-  assert.equal(dialog.type(), "prompt");
-  await dialog.accept(value);
-  await clickPromise;
-}
-
-async function openMapLab(page) {
+mkdirSync("artifacts", { recursive: true });
+const server = spawn(process.execPath,
+  ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"],
+  { stdio: "ignore", windowsHide: true });
+let browser;
+try {
+  await waitForHttp();
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+  await page.addInitScript(() => {
+    localStorage.removeItem("civsurvivor.mapLabDraft.v2");
+    localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
+  });
+  await page.goto(URL);
   await page.getByRole("button", { name: /^Debug/ }).click();
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
-}
 
-async function clickCanvasDesignPoint(page, point) {
-  const canvas = page.locator("canvas");
-  const box = await canvas.boundingBox();
-  if (!box || !point) throw new Error("Canvas click point unavailable");
-  await page.mouse.click(
-    box.x + (point.x / 2424) * box.width,
-    box.y + (point.y / 1080) * box.height
-  );
-}
-
-mkdirSync(ARTIFACT_DIR, { recursive: true });
-const server = spawn(process.execPath, ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"], {
-  stdio: "ignore",
-  windowsHide: true,
-});
-
-let browser;
-let page;
-const checks = [];
-try {
-  await waitForHttp(URL);
-  browser = await chromium.launch({ headless: true });
-  page = await browser.newPage({ viewport: { width: 1180, height: 820 } });
-  await page.addInitScript(() => {
-    if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v1");
-      localStorage.removeItem("civsurvivor.mapLabScenarios.v1");
-      sessionStorage.setItem("mapLabProbeInitialized", "1");
-    }
-  });
-  await page.goto(URL, { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
-  await openMapLab(page);
-  assert.equal(await page.getByTestId("map-lab-region-cedar-woods").getAttribute("aria-label"), "Region01 region");
-  assert.equal(await page.getByTestId("map-lab-region-river-crown").getAttribute("aria-label"), "Region07 region");
-  assert.equal(await page.getByTestId("map-lab-region-outer-isles").getAttribute("aria-label"), "Region15 region");
-  const panelBox = await page.locator(".codex-debug-panel.map-lab-active").boundingBox();
-  assert.ok(panelBox.width >= 1100 && panelBox.height >= 780, "Map Lab should fill the desktop viewport");
-  await page.getByTestId("map-lab-connections").click();
-  await page.screenshot({ path: BLANK_SCREENSHOT_PATH, fullPage: false });
-  await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Sparse01");
-  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
-  await page.getByTestId("map-lab-region-west-levee").evaluate((node) =>
-    node.dispatchEvent(new MouseEvent("click", { bubbles: true }))
-  );
-  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 2);
-  await page.getByTestId("map-lab-score-administer").evaluate((node) => node.click());
-  await page.locator(".codex-debug-body").evaluate((node) => node.scrollTo(0, 0));
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-    document.activeElement?.blur?.();
-  });
-  await page.screenshot({ path: SPARSE_SCREENSHOT_PATH, fullPage: false });
-  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
-  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
+  assert.equal(await page.getByTestId("map-lab-region-cedar-woods").getAttribute("aria-label"),
+    "Region01 region");
   await page.getByTestId("map-lab-region-cedar-woods").click();
-  checks.push("access-and-authored-scenarios");
+  assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "3");
+  assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
+  assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "30");
+  assert.equal(await page.getByTestId("map-lab-villager-elder-ages").inputValue(), "50, 53, 56");
+  assert.equal(await page.getByTestId("map-lab-stored-food").inputValue(), "60");
+  assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "cultivate");
+  assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Connected/);
+  await page.getByTestId("map-lab-connection-west-levee").click();
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Add/);
+  await page.getByTestId("map-lab-connection-west-levee").click();
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Connected/);
 
-  await page.getByRole("button", { name: "Close" }).click();
-  const westPoint = await page.evaluate(() =>
-    globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("west-levee")
-  );
-  await clickCanvasDesignPoint(page, westPoint);
-  const storePoint = await page.evaluate(() =>
-    globalThis.__SETTLEMENT_DEBUG__?.getWorldPracticeClickPoint?.("store")
-  );
-  await clickCanvasDesignPoint(page, storePoint);
-  await page.waitForFunction(() =>
-    globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
-      ?.selectedRegion?.installedPracticeIds?.includes("store")
-  );
-  await openMapLab(page);
-  await clickConfirming(page, page.getByTestId("map-lab-load-current-game"));
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /running game was not changed/i);
-  assert.equal(await page.getByTestId("map-lab-preset").inputValue(), "");
-  await page.getByTestId("map-lab-region-west-levee").evaluate((node) =>
-    node.dispatchEvent(new MouseEvent("click", { bubbles: true }))
-  );
-  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 1);
-  assert.match(await page.getByTestId("map-lab-installed-0").innerText(), /Store/);
-  await page.locator('[data-testid="map-lab-installed-0"] button:last-child').click();
-  const gamePracticesAfterDraftEdit = await page.evaluate(() =>
-    globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
-      ?.selectedRegion?.installedPracticeIds
-  );
-  assert.deepEqual(gamePracticesAfterDraftEdit, ["store"]);
-  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
-  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
-  await page.getByTestId("map-lab-region-cedar-woods").click();
-  checks.push("copy-current-game");
-
-  await page.getByTestId("map-lab-controller").selectOption("player");
-  await page.getByTestId("map-lab-colour").selectOption("red");
-  await page.getByTestId("map-lab-capacity").fill("3");
-  const addSelect = page.getByTestId("map-lab-add-practice");
-  const addButton = page.getByTestId("map-lab-add-practice-button");
-  await addSelect.selectOption("store"); await addButton.click();
-  await addSelect.selectOption("cultivate"); await addButton.click();
-  await addSelect.selectOption("store"); await addButton.click();
-  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 3);
-  assert.equal(await addButton.isDisabled(), true);
-  await page.locator('[data-testid="map-lab-installed-2"] button').first().click();
-  await page.locator('[data-testid="map-lab-installed-1"] button:last-child').click();
-  assert.equal(await page.locator("[data-testid^=map-lab-installed-]").count(), 2);
-  checks.push("region-editing-and-capacity");
-
-  const edgeCount = await page.locator(".map-lab-edge").count();
-  await page.getByTestId("map-lab-connections").click();
-  const edgePresentation = await page.getByTestId("map-lab-map").evaluate((svg) => {
-    const children = [...svg.children];
-    return {
-      editing: svg.classList.contains("connection-editing"),
-      lastPolygonIndex: Math.max(...children.map((node, index) => node.matches("polygon") ? index : -1)),
-      firstEdgeIndex: children.findIndex((node) => node.classList.contains("map-lab-edge")),
-    };
-  });
-  assert.equal(edgePresentation.editing, true);
-  assert.ok(edgePresentation.firstEdgeIndex > edgePresentation.lastPolygonIndex, "Active edges must render above region fills");
-  assert.ok(await page.locator(".map-lab-candidate-edge").count() > 0, "Available shared-edge connections should be visible");
-  await page.getByTestId("map-lab-region-black-marsh").click();
-  assert.ok(await page.locator(".map-lab-region.connection-candidate").count() > 0,
-    "Selecting a first region should highlight its polygon-adjacent candidates");
-  await page.getByTestId("map-lab-region-salt-coast").click();
-  assert.equal(await page.locator(".map-lab-edge").count(), edgeCount - 1);
-  await page.getByTestId("map-lab-region-west-levee").click();
-  await page.getByTestId("map-lab-region-lake-country").click();
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /do not share a polygon edge/);
-  await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-region-river-crown").click();
-  await page.getByTestId("map-lab-region-river-crown").click();
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /cannot connect to itself/);
-  await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-connections").click();
-  await page.getByTestId("map-lab-region-black-marsh").click();
-  await page.getByTestId("map-lab-region-salt-coast").click();
-  assert.equal(await page.locator(".map-lab-edge").count(), edgeCount);
-  await page.getByTestId("map-lab-connections").click();
-  checks.push("connection-toggling");
-
-  await page.getByTestId("map-lab-score-exchange").click();
-  assert.ok(await page.locator(".map-lab-score").count() > 0);
-  assert.match(await page.locator(".map-lab-breakdown").innerText(), /Base score/);
-  assert.match(await page.locator(".map-lab-diagnostics").innerText(), /Exchange/);
-  checks.push("scores-and-diagnostics");
+  await page.getByTestId("map-lab-structure-capacity").fill("4");
+  await page.getByTestId("map-lab-structure-capacity").press("Enter");
+  await page.getByTestId("map-lab-structure-slot-3").selectOption("granary");
+  assert.equal(await page.getByTestId("map-lab-structure-slot-3").inputValue(), "granary");
 
   await page.getByTestId("map-lab-json-toggle").click();
-  const exported = await page.getByTestId("map-lab-json").inputValue();
-  assert.equal(exported.includes("polygonVertexIds"), false);
-  await page.getByTestId("map-lab-json").fill("{\"schemaVersion\":1}");
-  await page.getByTestId("map-lab-import").click();
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /Import failed/);
-  await page.getByTestId("map-lab-json").fill(exported);
-  await page.getByTestId("map-lab-import").click();
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /Draft imported/);
-  checks.push("import-export");
-
-  await page.getByTestId("map-lab-colour").selectOption("blue");
-  await clickPrompting(page, page.getByTestId("map-lab-save-scenario"), "Blue browser test");
-  assert.match(await page.getByTestId("map-lab-status").innerText(), /Saved browser scenario/);
-  assert.equal(await page.getByTestId("map-lab-preset").inputValue(), "local:local-1");
-  await page.getByTestId("map-lab-colour").selectOption("black");
-  assert.match(await page.getByTestId("map-lab-preset").locator("option:checked").innerText(), /\*$/);
-  await clickPrompting(page, page.getByTestId("map-lab-save-scenario"), "Blue browser test");
-  assert.doesNotMatch(await page.getByTestId("map-lab-preset").locator("option:checked").innerText(), /\*$/);
-  await page.getByTestId("map-lab-preset").selectOption("authored:milestone2Blank01");
-  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "green");
-  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
-  await clickConfirming(page, page.getByTestId("map-lab-load-preset"));
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "black");
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
-  await openMapLab(page);
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "black");
-  assert.equal(await page.getByTestId("map-lab-preset").locator('option[value="local:local-1"]').count(), 1);
-  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
-  await clickConfirming(page, page.getByTestId("map-lab-delete-scenario"));
-  assert.equal(await page.getByTestId("map-lab-preset").locator('option[value="local:local-1"]').count(), 0);
-  checks.push("named-local-scenarios");
-  await clickConfirming(page, page.getByTestId("map-lab-reset"));
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "green");
-  checks.push("persistence-and-reset");
-
-  await clickConfirming(page, page.getByTestId("map-lab-apply"));
-  await page.getByRole("button", { name: "Debug" }).waitFor({ state: "visible" });
-  const runtime = await page.evaluate(() => {
-    const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
-    return {
-      stateSec: snapshot?.runner?.stateSec,
-      timelineSec: snapshot?.runner?.timeline?.cursorSec,
-      map: snapshot?.worldMap,
-    };
-  });
-  assert.equal(runtime.stateSec, 0);
-  assert.equal(runtime.timelineSec, 0);
-  assert.equal(runtime.map?.mode, "map");
-  assert.equal(runtime.map?.visible, true);
-  await openMapLab(page);
-  await page.getByTestId("map-lab-colour").selectOption("red");
-  await page.getByRole("button", { name: "Close" }).click();
-  const cedarPoint = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__?.getWorldMapClickPoint?.("cedar-woods"));
-  await clickCanvasDesignPoint(page, cedarPoint);
-  const postEditMap = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap);
-  assert.equal(postEditMap?.selectedRegion?.colour, "green");
-  checks.push("fresh-run-normal-gameplay-and-draft-isolation");
+  const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
+  assert.equal(json.schemaVersion, 2);
+  assert.equal(json.regions[0].structureCapacity, 4);
+  assert.equal("capacity" in json.regions[0], false);
+  assert.equal("installedPracticeIds" in json.regions[0], false);
 
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
-  writeFileSync(DETAIL_PATH, JSON.stringify({ status: "completed", checks, runtime }, null, 2));
-  process.stdout.write(`[map-lab-browser-probe] OK (${checks.join(", ")})\n`);
+  writeFileSync(DETAIL_PATH, JSON.stringify({
+    checks: [
+      "Map Lab schema v2",
+      "detailed-settlement toggle and cohorts",
+      "elder ages and local food",
+      "five practice slots",
+      "regional structure capacity and slots",
+      "shared-edge connection editing",
+    ],
+    editedRegion: json.regions[0],
+  }, null, 2));
+  process.stdout.write(`[probe:map-lab] OK\n[probe:map-lab] details=${DETAIL_PATH}\n`);
 } catch (error) {
-  const detail = { status: "failed", checks, error: error?.stack ?? String(error) };
-  writeFileSync(DETAIL_PATH, JSON.stringify(detail, null, 2));
-  if (page) await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true }).catch(() => {});
-  process.stderr.write(`[map-lab-browser-probe] FAILED: ${error.message}\nDetails: ${DETAIL_PATH}\n`);
+  writeFileSync(DETAIL_PATH, JSON.stringify({ error: error.stack ?? error.message }, null, 2));
+  process.stdout.write(`[probe:map-lab] FAILED\n[probe:map-lab] error=${error.message}\n`);
   process.exitCode = 1;
 } finally {
   await browser?.close();

@@ -17,6 +17,11 @@ import {
   isSettlementPrototypeEnabled,
 } from "./settlement-state.js";
 import { getPrimaryDetailedSiteState } from "./world-state.js";
+import {
+  assignDetailedSettlementWorkers,
+  getDetailedSettlement,
+  getPopulationSummary as getDetailedPopulationSummary,
+} from "./detailed-settlements.js";
 
 const DEFAULT_SETTLEMENT_GRAPH_CLASS_IDS = Object.freeze(["villager", "stranger"]);
 const SETTLEMENT_CLASS_METRIC_COLOR_PALETTES = Object.freeze({
@@ -190,8 +195,39 @@ function formatClassLabel(classId) {
   return capitalizeLabel(typeof classId === "string" ? classId : "villager");
 }
 
-function getSettlementGraphValueFromSummary(summary, seriesId) {
-  const graphValues = summary?.graphValues?.settlement;
+function getSettlementMetricRegionId(state, subject = null) {
+  if (typeof subject === "string" && subject.length > 0) return subject;
+  if (typeof subject?.regionId === "string") return subject.regionId;
+  return state?.civilization?.capitalRegionId ?? null;
+}
+
+function getDetailedClassMetricValue(state, subject, classId, metricId) {
+  const regionId = getSettlementMetricRegionId(state, subject);
+  const summary = getDetailedPopulationSummary(state, regionId);
+  const classSummary = summary.byClass[classId] ?? { children: 0, adults: 0, elders: 0, total: 0 };
+  const classState = getDetailedSettlement(state, regionId)?.populationByClass?.[classId];
+  if (metricId === "population") return classSummary.total;
+  if (metricId === "freePopulation") {
+    const assigned = assignDetailedSettlementWorkers(state, regionId).reduce(
+      (sum, entry) => sum + entry.tokens.filter((token) => token.classId === classId).length, 0
+    );
+    return Math.max(0, classSummary.adults + classSummary.elders - assigned);
+  }
+  if (metricId === "faith") {
+    return (["bronze", "silver", "gold", "diamond"].indexOf(classState?.faith?.tier) + 1) * 25;
+  }
+  if (metricId === "happiness") {
+    return classState?.happiness?.status === "positive"
+      ? 100 : classState?.happiness?.status === "negative" ? 0 : 50;
+  }
+  return 0;
+}
+
+function getSettlementGraphValueFromSummary(summary, seriesId, subject = null) {
+  const regionId = getSettlementMetricRegionId(null, subject);
+  const graphValues = regionId
+    ? summary?.graphValues?.settlementByRegion?.[regionId]
+    : summary?.graphValues?.settlement;
   if (!graphValues || typeof graphValues !== "object") return null;
   const value = graphValues[seriesId];
   return Number.isFinite(value) ? Number(value) : null;
@@ -295,11 +331,12 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
     pickerMetricId: metricId,
     pickerMetricLabel: metricLabel,
     pickerMetricShortLabel: metricShortLabel,
-    getValue: (state) => safeMetricDef.getValue(state, safeClassId),
-    getValueFromSnapshot: (snapshot) =>
-      safeMetricDef.getValueFromSnapshot(snapshot, safeClassId),
-    getValueFromSummary: (summary) =>
-      getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`),
+    getValue: (state, subject) =>
+      getDetailedClassMetricValue(state, subject, safeClassId, metricId),
+    getValueFromSnapshot: (snapshot, subject) =>
+      getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId),
+    getValueFromSummary: (summary, subject) =>
+      getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject),
     getLegendTooltipSpec: (state) =>
       safeMetricDef.getLegendTooltipSpec(state, safeClassId),
     formatValue: safeMetricDef.formatValue,
@@ -326,11 +363,12 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     scaleMode: "dynamic",
     scaleMin: 0,
     pickerGroup: "global",
-    getValue: (state) => getSettlementPopulationSummary(state).total,
-    getValueFromSnapshot: (snapshot) =>
-      getSettlementPopulationSummary(snapshot).total,
-    getValueFromSummary: (summary) =>
-      getSettlementGraphValueFromSummary(summary, "totalPopulation"),
+    getValue: (state, subject) =>
+      getDetailedPopulationSummary(state, getSettlementMetricRegionId(state, subject)).total,
+    getValueFromSnapshot: (snapshot, subject) =>
+      getDetailedPopulationSummary(snapshot, getSettlementMetricRegionId(snapshot, subject)).total,
+    getValueFromSummary: (summary, subject) =>
+      getSettlementGraphValueFromSummary(summary, "totalPopulation", subject),
     getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -343,10 +381,16 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     scaleMode: "dynamic",
     scaleMin: 0,
     pickerGroup: "global",
-    getValue: (state) => getSettlementTotalFood(state),
-    getValueFromSnapshot: (snapshot) => getSettlementTotalFood(snapshot),
-    getValueFromSummary: (summary) =>
-      getSettlementGraphValueFromSummary(summary, "food"),
+    getValue: (state, subject) => {
+      const local = getDetailedSettlement(state, getSettlementMetricRegionId(state, subject));
+      return (local?.storedFood ?? 0) + (local?.looseFood ?? 0);
+    },
+    getValueFromSnapshot: (snapshot, subject) => {
+      const local = getDetailedSettlement(snapshot, getSettlementMetricRegionId(snapshot, subject));
+      return (local?.storedFood ?? 0) + (local?.looseFood ?? 0);
+    },
+    getValueFromSummary: (summary, subject) =>
+      getSettlementGraphValueFromSummary(summary, "food", subject),
     getLegendTooltipSpec: (state) => getSettlementFoodTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
@@ -382,22 +426,6 @@ const SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     getValueFromSummary: (summary) =>
       getSettlementGraphValueFromSummary(summary, "monsterCount"),
     getLegendTooltipSpec: (state) => getSettlementMonstersTooltipSpec(state),
-    formatValue: (value) =>
-      Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-  },
-  {
-    id: "redResource",
-    label: "Red",
-    color: 0xc55c4a,
-    scaleGroupId: "settlementRedResource",
-    scaleMode: "dynamic",
-    scaleMin: 0,
-    pickerGroup: "global",
-    getValue: (state) => getSettlementStockpile(state, "redResource"),
-    getValueFromSnapshot: (snapshot) => getSettlementStockpile(snapshot, "redResource"),
-    getValueFromSummary: (summary) =>
-      getSettlementGraphValueFromSummary(summary, "redResource"),
-    getLegendTooltipSpec: (state) => getSettlementRedTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
   },
