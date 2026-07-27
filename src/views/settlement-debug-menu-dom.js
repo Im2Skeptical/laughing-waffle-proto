@@ -1,5 +1,36 @@
 import { createMapLabDom } from "./map-lab-dom.js";
 
+function getFullscreenElement() {
+  return (
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    null
+  );
+}
+
+function requestFullscreen(target) {
+  if (typeof target?.requestFullscreen === "function") return target.requestFullscreen();
+  if (typeof target?.webkitRequestFullscreen === "function") {
+    return target.webkitRequestFullscreen();
+  }
+  if (typeof target?.msRequestFullscreen === "function") {
+    return target.msRequestFullscreen();
+  }
+  return Promise.reject(new Error("Fullscreen unavailable"));
+}
+
+function exitFullscreen() {
+  if (typeof document.exitFullscreen === "function") return document.exitFullscreen();
+  if (typeof document.webkitExitFullscreen === "function") {
+    return document.webkitExitFullscreen();
+  }
+  if (typeof document.msExitFullscreen === "function") {
+    return document.msExitFullscreen();
+  }
+  return Promise.reject(new Error("Fullscreen exit unavailable"));
+}
+
 export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   const openButton = document.createElement("button");
   openButton.type = "button";
@@ -8,6 +39,17 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   openButton.style.cssText = [
     "position:fixed", "right:12px", "top:10px", "z-index:1000",
     "min-height:34px", "padding:5px 12px", "border-radius:6px",
+    "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
+  ].join(";");
+
+  const fullscreenButton = document.createElement("button");
+  fullscreenButton.type = "button";
+  fullscreenButton.textContent = "Full";
+  fullscreenButton.title = "Enter fullscreen";
+  fullscreenButton.dataset.testid = "fullscreen-toggle";
+  fullscreenButton.style.cssText = [
+    "position:fixed", "right:84px", "top:10px", "z-index:1000",
+    "min-width:64px", "min-height:34px", "padding:5px 12px", "border-radius:6px",
     "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
   ].join(";");
 
@@ -44,6 +86,26 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   panel.append(mapLab.element);
   let initialized = false;
 
+  function syncFullscreenButton() {
+    const fullscreen = !!getFullscreenElement();
+    fullscreenButton.textContent = fullscreen ? "Exit" : "Full";
+    fullscreenButton.title = fullscreen ? "Exit fullscreen" : "Enter fullscreen";
+  }
+
+  async function toggleFullscreen() {
+    try {
+      if (getFullscreenElement()) {
+        await exitFullscreen();
+      } else {
+        await requestFullscreen(document.documentElement);
+      }
+    } catch (error) {
+      fullscreenButton.title = `Fullscreen unavailable: ${error?.message ?? "unknown error"}`;
+    } finally {
+      syncFullscreenButton();
+    }
+  }
+
   function open() {
     panel.style.display = "block";
     openButton.style.display = "none";
@@ -52,6 +114,9 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   }
 
   openButton.addEventListener("click", open);
+  fullscreenButton.addEventListener("click", () => {
+    void toggleFullscreen();
+  });
   mapLabTab.addEventListener("click", open);
   close.addEventListener("click", () => {
     panel.style.display = "none";
@@ -62,7 +127,11 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
     init() {
       if (initialized) return;
       initialized = true;
-      document.body.append(openButton, panel);
+      document.body.append(openButton, fullscreenButton, panel);
+      document.addEventListener("fullscreenchange", syncFullscreenButton);
+      document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
+      document.addEventListener("MSFullscreenChange", syncFullscreenButton);
+      syncFullscreenButton();
       mapLab.init();
     },
     update() {},
@@ -71,7 +140,11 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
     },
     destroy() {
       mapLab.destroy();
+      document.removeEventListener("fullscreenchange", syncFullscreenButton);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
+      document.removeEventListener("MSFullscreenChange", syncFullscreenButton);
       openButton.remove();
+      fullscreenButton.remove();
       panel.remove();
     },
   };

@@ -40,6 +40,9 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.goto(URL);
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
+  const fullscreenButton = page.getByTestId("fullscreen-toggle");
+  assert.equal(await fullscreenButton.count(), 1, "fullscreen control is present");
+  assert.equal(await fullscreenButton.innerText(), "Full");
 
   const initial = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(initial.worldMap.mode, "map");
@@ -56,11 +59,16 @@ try {
   assert.equal(selected.controller.subjectKey, "cedar-woods", "timegraph follows selected site");
   assert.equal(selected.worldMap.selectedRegion.detailedSettlement.elderOrder.resistance, 29);
 
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(100);
   await clickDesignPoint(page, { x: 2047, y: 762 });
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods", "opened selected settlement");
   assert.equal(overview.view.activeTab, "overview");
+  assert.equal(overview.view.calendar.seasonKey, "spring");
+  assert.equal(overview.view.calendar.year, 1);
+  assert.equal(overview.view.calendar.label, "Spring · Year 1");
   assert.equal(overview.view.overview.practices.length, 5);
   assert.equal(overview.view.elderOrder.resistance, 29);
 
@@ -74,8 +82,36 @@ try {
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()), true);
   const selectResult = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
   assert.equal(selectResult.ok, true);
+  await delay(100);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(afterVassal.lineage.selectedVassalIds.length, 1);
+  assert.ok(
+    afterVassal.forecastStatus.currentVassalDeathSec > afterVassal.frontierSec,
+    "selected vassal exposes a future death boundary"
+  );
+  assert.equal(
+    afterVassal.pendingCommitJob.deathSec,
+    afterVassal.forecastStatus.currentVassalDeathSec,
+    "forecast commitment targets the lifespan boundary"
+  );
+  assert.equal(afterVassal.graph.projectionReplacement.active, true);
+  assert.equal(afterVassal.graph.projectionReplacement.hasSnapshot, true);
+  await delay(3200);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  const committedVassalHistory = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.ok(
+    committedVassalHistory.frontierSec > afterVassal.frontierSec,
+    "revealed vassal history is committed progressively"
+  );
+  assert.ok(
+    committedVassalHistory.graph.historyZones.some(
+      (zone) => zone.kind === "fixedHistory" && zone.endSec > zone.startSec
+    ),
+    "committed vassal history is visibly classified as fixed"
+  );
 
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
@@ -83,14 +119,24 @@ try {
       "15-region map and five detailed sites",
       "site selection and structure capacity",
       "Overview and Demographics tabs",
+      "fullscreen control and season/year heading",
       "aggregate Elder Order resistance",
-      "deterministic vassal chooser and selection",
+      "deterministic vassal chooser, lifespan forecast, and graph replacement",
     ],
     initial: initial.worldMap,
     selected: selected.worldMap,
     overview: overview.view,
     demographics: demographics.view,
     lineage: afterVassal.lineage,
+    timelineRepair: {
+      forecastStatus: afterVassal.forecastStatus,
+      pendingCommitJob: afterVassal.pendingCommitJob,
+      projectionReplacement: afterVassal.graph.projectionReplacement,
+      committedHistory: {
+        frontierSec: committedVassalHistory.frontierSec,
+        historyZones: committedVassalHistory.graph.historyZones,
+      },
+    },
   }, null, 2));
   process.stdout.write(`[probe:settlement] OK\n[probe:settlement] details=${DETAIL_PATH}\n`);
 } catch (error) {

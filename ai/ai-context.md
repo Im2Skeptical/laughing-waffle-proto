@@ -148,6 +148,16 @@ Diamond one per two. The existing global monster threshold ends the run.
 The map shows site structure usage. Selecting/opening a detailed region produces
 a site-scoped settlement view with Overview and Demographics tabs. The Elder
 Order panel is aggregate and shows resistance plus target intervention status.
+The settlement HUD shows the current season/year and exposes independent
+fullscreen and Debug controls.
+
+The timegraph remains site-scoped for settlement metrics and global for chaos,
+loss, and the vassal lineage. Selecting a vassal snapshots the prior forecast,
+shows it being replaced, and progressively commits history through the
+vassal's deterministic death boundary. Selected-vassal lifespan segments are
+fixed history; unreached graph time remains forecast. Lifecycle boundaries are
+plain serialized state derived from the candidate's selected year and
+already-drawn initial/death ages, so replay consumes no extra randomness.
 
 Map Lab v2 edits region mechanics, the independent detailed toggle, cohorts,
 elder ages, local food, five practice slots, structures, and connections. It:
@@ -167,5 +177,6 @@ elder ages, local food, five practice slots, structures, and connections. It:
 Tests cover definitions, worker assignment, map scores, boundary food behavior,
 N² capacity, decay, snapshot transport, build waiting/completion, demographics,
 mortality, probability composition, Order resistance, candidate gates,
-same-boundary intervention/death order, JSON round trips, Map Lab validation,
-and authoritative replay parity.
+same-boundary intervention/death order, lifespan boundaries, fixed-history
+segments, forecast replacement, JSON round trips, Map Lab validation, and
+authoritative replay parity.

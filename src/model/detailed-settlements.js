@@ -36,6 +36,24 @@ const PROFESSIONS = Object.freeze([
   "fisher", "farmer", "potter", "builder", "herder", "scribe",
 ]);
 
+function getDetailedYearDurationSec(state) {
+  const seasonCount = Array.isArray(state?.seasons) && state.seasons.length > 0
+    ? state.seasons.length
+    : 4;
+  const seasonDurationSec = Number.isFinite(state?.seasonDurationSec)
+    ? Math.max(1, Math.floor(state.seasonDurationSec))
+    : 8;
+  return seasonCount * seasonDurationSec;
+}
+
+function getDetailedYearStartSec(state, year) {
+  const safeYear = Number.isFinite(year) ? Math.max(1, Math.floor(year)) : 1;
+  if (safeYear <= 1) return 0;
+  // Seasonal clocks advance on fractional simulation ticks. The annual stage
+  // therefore observes a completed nominal year on the following whole second.
+  return (safeYear - 1) * getDetailedYearDurationSec(state) + 1;
+}
+
 export function roundFood(value) {
   return Math.max(0, Math.round((Number(value) || 0) * FOOD_SCALE) / FOOD_SCALE);
 }
@@ -732,11 +750,21 @@ export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoo
   }
   const candidate = lineage?.pendingCandidates?.[candidateIndex];
   if (!candidate) return { ok: false, reason: "invalidCandidate" };
+  const selectedYear = Math.max(1, Math.floor(state.year ?? 1));
+  const selectedSec = Math.max(0, Math.floor(state.tSec ?? 0));
+  const yearsUntilDeath = Math.max(
+    1,
+    Math.floor(candidate.deathAge) - Math.floor(candidate.initialAge)
+  );
+  const deathYear = selectedYear + yearsUntilDeath;
+  const deathSec = getDetailedYearStartSec(state, deathYear);
   const selected = {
     ...clone(candidate),
     vassalId: `vassal-${lineage.nextVassalId++}`,
-    selectedYear: state.year,
-    selectedSec: state.tSec,
+    selectedYear,
+    selectedSec,
+    deathYear,
+    deathSec,
     isDead: false,
   };
   lineage.currentVassal = selected;

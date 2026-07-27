@@ -13,6 +13,11 @@ The single civilization-wide vassal lineage targets a local settlement with
 three deterministic interventions. Chaos and loss are global; population,
 food, practices, buildings, happiness, and faith are site-local.
 
+The settlement HUD includes the current season/year and fullscreen controls.
+Its site-scoped timegraph preserves the previous forecast when a vassal is
+chosen, progressively commits the selected vassal's deterministic lifespan,
+and distinguishes fixed history from the remaining forecast.
+
 Game state is schema v4. Old saves are intentionally unsupported.
 
 ## Run and verify
