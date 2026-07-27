@@ -20,7 +20,9 @@ export function getCivilizationSurvivalViewModel(
   const projectedLossYear =
     actualLossYear ??
     positiveYear(civilizationLossInfo?.finalLossYear) ??
-    positiveYear(civilizationLossInfo?.lossYear);
+    (civilizationLossInfo?.resolved === true
+      ? positiveYear(civilizationLossInfo?.lossYear)
+      : null);
   const rememberedBest = positiveYear(
     state?.persistentKnowledge?.maxObservedCivilizationSurvivalYear
   );

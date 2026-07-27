@@ -157,7 +157,7 @@ export function createWorldMapView({
       hit.eventMode = "static";
       hit.cursor = "pointer";
       hit.addChild(shape);
-      hit.on("pointertap", () => {
+      hit.on("pointerdown", () => {
         lastPointerRegionId = region.id;
         setSelectedRegionId?.(region.id);
         lastSignature = "";

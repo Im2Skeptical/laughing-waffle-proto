@@ -152,8 +152,10 @@ the local Overview and Demographics tabs. The Elder Order panel is aggregate
 and shows resistance plus target intervention status.
 
 A shared map/settlement survival strip shows the viewed civilization
-season/year, projected loss year, and the best projected or actual loss year
-observed. The best is monotonic
+season/year, a resolved projected loss year (or `Forecastingâ€¦` while the
+forecast is unresolved), and the best resolved projected or actual loss year
+observed. Expanding graph coverage is not a loss prediction and never changes
+the record. The best is monotonic
 `persistentKnowledge.maxObservedCivilizationSurvivalYear`; it survives rewinds,
 branches, and save/load, resets on a fresh run, and never affects simulation.
 Fullscreen and Debug controls remain independent.

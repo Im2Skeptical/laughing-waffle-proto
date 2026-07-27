@@ -17,6 +17,9 @@ import {
   rebuildStateAtSecond,
 } from "../timeline/index.js";
 import { createSimRunner } from "../../controllers/sim-runner.js";
+import {
+  createSettlementForecastController,
+} from "../../controllers/settlement-forecast-controller.js";
 import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
@@ -145,6 +148,81 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 4;
 assert.throws(() => deserializeGameState(old), /expected v5/);
+
+const forecastState = createInitialState("devPlaytesting01", 24680);
+const forecastTimeline = { revision: 0 };
+let observedSurvivalYear = null;
+const forecastController = createSettlementForecastController({
+  getTimeline: () => forecastTimeline,
+  ensureControllerCache: () => {},
+  getControllerData: () => ({ forecastCoverageEndSec: 320 }),
+  getControllerStateAt: () => null,
+  getControllerStateDataAt: () => null,
+  getControllerSummaryAt: () => ({ runComplete: false }),
+  getFrontierSec: () => 0,
+  getFrontierState: () => forecastState,
+  getViewedState: () => forecastState,
+  getViewedSec: () => 0,
+  getRevealedCoverageEndSec: () => 128,
+  getEffectiveGraphHorizonSec: () => 320,
+  setHorizonSecOverride: () => {},
+  commitCursorSecond: () => ({ ok: true }),
+  browseCursorSecond: () => ({ ok: true }),
+  clearPreviewState: () => {},
+  setPlaybackViewSec: () => {},
+  getMaxObservedSurvivalYear: () => observedSurvivalYear,
+  rememberObservedSurvivalYear: (year) => {
+    const previous = observedSurvivalYear;
+    observedSurvivalYear =
+      previous == null ? year : Math.max(previous, year);
+    return {
+      ok: true,
+      changed: observedSurvivalYear !== previous,
+      value: observedSurvivalYear,
+    };
+  },
+  graphWindowSec: 320,
+  lossSearchCapacitySec: 320,
+  dynamicDisplayBufferYears: 4,
+  dynamicDisplayQuantumSec: 1,
+  exactLossSearchBucketSec: 16,
+});
+const unresolvedDisplay = forecastController.getLossInfoForDisplay();
+assert.equal(unresolvedDisplay.resolved, false);
+assert.ok(
+  unresolvedDisplay.lossYear > 1,
+  "unresolved graph extent still supplies an internal display horizon"
+);
+assert.equal(unresolvedDisplay.maxLossYear, null);
+assert.equal(observedSurvivalYear, null, "render-facing getter stays pure");
+assert.deepEqual(forecastController.syncObservedSurvivalYear(), {
+  changed: false,
+  value: null,
+});
+assert.equal(
+  observedSurvivalYear,
+  null,
+  "unresolved forecast coverage never updates the survival record"
+);
+
+forecastState.year = 12;
+forecastState.runStatus = {
+  complete: true,
+  tSec: 352,
+  year: 12,
+  reason: "test",
+};
+forecastTimeline.revision += 1;
+forecastController.invalidateLossCache();
+assert.deepEqual(forecastController.syncObservedSurvivalYear(), {
+  changed: true,
+  value: 12,
+});
+assert.equal(
+  forecastController.getLossInfoForDisplay().maxLossYear,
+  12,
+  "resolved loss years are exposed and remembered"
+);
 
 assert.equal(
   rememberMaxObservedCivilizationSurvivalYear(state, 75),

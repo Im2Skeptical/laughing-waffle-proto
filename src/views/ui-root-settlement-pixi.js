@@ -1677,6 +1677,7 @@ app.ticker.add((delta) => {
   const frameDt = delta / 60;
   runner.update(frameDt);
   settlementGraphController.update?.();
+  settlementForecastController?.syncObservedSurvivalYear?.();
   processSettlementPendingCommit();
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
