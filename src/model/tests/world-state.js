@@ -2,10 +2,21 @@ import assert from "node:assert/strict";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
+  getDetailedCivilizationSummary,
   getDetailedSettlementSites,
+  getDetailedSettlement,
   getDetailedSettlementViewModel,
 } from "../detailed-settlements.js";
-import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
+import { GRAPH_METRICS } from "../graph-metrics.js";
+import {
+  rememberMaxObservedCivilizationSurvivalYear,
+} from "../persistent-memory.js";
+import { buildProjectionSummaryFromState } from "../projection-summary.js";
+import {
+  createTimelineFromInitialState,
+  rebuildStateAtSecond,
+} from "../timeline/index.js";
+import { createSimRunner } from "../../controllers/sim-runner.js";
 import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
@@ -13,7 +24,7 @@ import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlemen
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 4);
+assert.equal(state.gameStateSchemaVersion, 5);
 assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
   REGION_STRUCTURE_CAPACITIES);
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
@@ -27,6 +38,104 @@ for (const site of getDetailedSettlementSites(state)) {
   assert.equal(view.storedFood, 60);
 }
 
+const civilizationSummary = getDetailedCivilizationSummary(state);
+assert.deepEqual(civilizationSummary.regionIds, [
+  "cedar-woods",
+  "west-levee",
+  "upper-floodplain",
+  "river-crown",
+  "lake-country",
+]);
+assert.equal(civilizationSummary.settlementCount, 5);
+assert.deepEqual(
+  {
+    children: civilizationSummary.population.children,
+    adults: civilizationSummary.population.adults,
+    elders: civilizationSummary.population.elders,
+    total: civilizationSummary.population.total,
+    mealDemand: civilizationSummary.population.mealDemand,
+    housingCapacity: civilizationSummary.population.housingCapacity,
+  },
+  {
+    children: 0,
+    adults: 150,
+    elders: 15,
+    total: 165,
+    mealDemand: 165,
+    housingCapacity: 400,
+  }
+);
+assert.deepEqual(civilizationSummary.food, {
+  stored: 300,
+  loose: 0,
+  total: 300,
+  storedCapacity: 500,
+});
+assert.equal(civilizationSummary.population.byClass.villager.total, 165);
+assert.equal(civilizationSummary.population.byClass.stranger.total, 0);
+
+const filteredState = deserializeGameState(serializeGameState(state));
+filteredState.world.regions.find(
+  (region) => region.id === "lake-country"
+).controller = "external-a";
+assert.equal(getDetailedCivilizationSummary(filteredState).settlementCount, 4);
+assert.equal(getDetailedCivilizationSummary(filteredState).population.total, 132);
+
+const roundedFoodState = deserializeGameState(serializeGameState(state));
+getDetailedSettlement(roundedFoodState, "cedar-woods").storedFood = 0.33336;
+getDetailedSettlement(roundedFoodState, "west-levee").storedFood = 0.33336;
+getDetailedSettlement(roundedFoodState, "upper-floodplain").storedFood = 0.33336;
+getDetailedSettlement(roundedFoodState, "river-crown").storedFood = 0;
+getDetailedSettlement(roundedFoodState, "lake-country").storedFood = 0;
+assert.equal(getDetailedCivilizationSummary(roundedFoodState).food.stored, 1.0001);
+
+const civilizationSeries = GRAPH_METRICS.civilization.getSeries(null, state);
+const localSeries = GRAPH_METRICS.settlement.getSeries(
+  { regionId: "cedar-woods" },
+  state
+);
+assert.equal(
+  civilizationSeries.find((series) => series.id === "totalPopulation")
+    .getValue(state),
+  165
+);
+assert.equal(
+  localSeries.find((series) => series.id === "totalPopulation")
+    .getValue(state, { regionId: "cedar-woods" }),
+  33
+);
+assert.equal(
+  localSeries.some((series) => series.id === "chaosPower"),
+  false,
+  "global chaos is not mixed into local graph series"
+);
+assert.deepEqual(
+  civilizationSeries
+    .filter((series) => series.pickerGroup === "classMetric")
+    .map((series) => series.id),
+  [
+    "population:villager",
+    "population:stranger",
+    "freePopulation:villager",
+    "freePopulation:stranger",
+  ]
+);
+
+const projectionSummary = buildProjectionSummaryFromState(state);
+assert.equal(
+  Object.prototype.hasOwnProperty.call(
+    projectionSummary.graphValues,
+    "settlement"
+  ),
+  false
+);
+assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 165);
+assert.equal(
+  projectionSummary.graphValues.settlementByRegion["cedar-woods"]
+    .totalPopulation,
+  33
+);
+
 const roundTrip = deserializeGameState(serializeGameState(state));
 assert.deepEqual(serializeGameState(roundTrip), serializeGameState(state));
 const serializedText = JSON.stringify(serializeGameState(state));
@@ -34,8 +143,21 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 3;
-assert.throws(() => deserializeGameState(old), /expected v4/);
+old.gameStateSchemaVersion = 4;
+assert.throws(() => deserializeGameState(old), /expected v5/);
+
+assert.equal(
+  rememberMaxObservedCivilizationSurvivalYear(state, 75),
+  true
+);
+assert.equal(
+  rememberMaxObservedCivilizationSurvivalYear(state, 60),
+  false
+);
+assert.equal(
+  state.persistentKnowledge.maxObservedCivilizationSurvivalYear,
+  75
+);
 
 const timeline = createTimelineFromInitialState(state);
 const first = rebuildStateAtSecond(timeline, 96);
@@ -43,5 +165,47 @@ const second = rebuildStateAtSecond(timeline, 96);
 assert.equal(first.ok, true);
 assert.equal(second.ok, true);
 assert.deepEqual(serializeGameState(first.state), serializeGameState(second.state));
+assert.equal(
+  first.state.persistentKnowledge.maxObservedCivilizationSurvivalYear,
+  75,
+  "survival record is retained by authoritative rebuilds"
+);
 
-console.log("[world-state-v4] OK");
+const storage = new Map();
+const priorLocalStorage = globalThis.localStorage;
+globalThis.localStorage = {
+  getItem: (key) => storage.get(key) ?? null,
+  setItem: (key, value) => storage.set(key, value),
+  removeItem: (key) => storage.delete(key),
+};
+try {
+  const runner = createSimRunner({ setupId: "devPlaytesting01" });
+  assert.equal(runner.init().ok, true);
+  runner.rememberCivilizationSurvivalYear(91);
+  assert.equal(runner.saveToSlot(1).ok, true);
+  assert.equal(runner.resetToSetup("devPlaytesting01").ok, true);
+  assert.equal(
+    runner.getState().persistentKnowledge.maxObservedCivilizationSurvivalYear,
+    null,
+    "a new run resets the record"
+  );
+  assert.equal(runner.loadFromSlot(1).ok, true);
+  assert.equal(
+    runner.getState().persistentKnowledge.maxObservedCivilizationSurvivalYear,
+    91,
+    "save/load restores the record"
+  );
+  const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
+  const oldSave = JSON.parse(storage.get(saveKey));
+  oldSave.meta.schemaVersion = 4;
+  storage.set(saveKey, JSON.stringify(oldSave));
+  assert.equal(runner.loadFromSlot(1).reason, "versionMismatch");
+} finally {
+  if (priorLocalStorage === undefined) {
+    delete globalThis.localStorage;
+  } else {
+    globalThis.localStorage = priorLocalStorage;
+  }
+}
+
+console.log("[world-state-v5] OK");

@@ -159,6 +159,108 @@ export function getPopulationSummary(state, regionId) {
   };
 }
 
+export function getDetailedCivilizationSummary(state) {
+  const sites = getDetailedSettlementSites(state, { playerOnly: true });
+  const byClass = Object.fromEntries(
+    POPULATION_CLASS_ORDER.map((classId) => [
+      classId,
+      {
+        children: 0,
+        adults: 0,
+        elders: 0,
+        total: 0,
+        assignedWorkers: 0,
+        freePopulation: 0,
+      },
+    ])
+  );
+  const population = {
+    children: 0,
+    adults: 0,
+    elders: 0,
+    total: 0,
+    mealDemand: 0,
+    housingCapacity: 0,
+    byClass,
+  };
+  let storedFood = 0;
+  let looseFood = 0;
+  let storedFoodCapacity = 0;
+  let overHousingSiteCount = 0;
+
+  for (const site of sites) {
+    const regionId = site.regionId;
+    const localPopulation = getPopulationSummary(state, regionId);
+    const workerAssignments = assignDetailedSettlementWorkers(state, regionId);
+    const assignedByClass = Object.fromEntries(
+      POPULATION_CLASS_ORDER.map((classId) => [classId, 0])
+    );
+    for (const assignment of workerAssignments) {
+      for (const token of assignment.tokens ?? []) {
+        if (!Object.prototype.hasOwnProperty.call(assignedByClass, token?.classId)) {
+          continue;
+        }
+        assignedByClass[token.classId] += 1;
+      }
+    }
+
+    population.children += localPopulation.children;
+    population.adults += localPopulation.adults;
+    population.elders += localPopulation.elders;
+    population.total += localPopulation.total;
+    population.mealDemand += localPopulation.mealDemand;
+    population.housingCapacity += localPopulation.housingCapacity;
+    if (localPopulation.total > localPopulation.housingCapacity) {
+      overHousingSiteCount += 1;
+    }
+
+    for (const classId of POPULATION_CLASS_ORDER) {
+      const source = localPopulation.byClass[classId] ?? {};
+      const target = byClass[classId];
+      target.children += source.children ?? 0;
+      target.adults += source.adults ?? 0;
+      target.elders += source.elders ?? 0;
+      target.total += source.total ?? 0;
+      target.assignedWorkers += assignedByClass[classId] ?? 0;
+      target.freePopulation += Math.max(
+        0,
+        (source.adults ?? 0) +
+          (source.elders ?? 0) -
+          (assignedByClass[classId] ?? 0)
+      );
+    }
+
+    storedFood += site.detailedState.storedFood ?? 0;
+    looseFood += site.detailedState.looseFood ?? 0;
+    storedFoodCapacity += getStoredFoodCapacity(state, regionId);
+  }
+
+  storedFood = roundFood(storedFood);
+  looseFood = roundFood(looseFood);
+  storedFoodCapacity = roundFood(storedFoodCapacity);
+
+  return {
+    settlementCount: sites.length,
+    regionIds: sites.map((site) => site.regionId),
+    population,
+    food: {
+      stored: storedFood,
+      loose: looseFood,
+      total: roundFood(storedFood + looseFood),
+      storedCapacity: storedFoodCapacity,
+    },
+    overHousingSiteCount,
+    chaos: {
+      chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
+      monsterCount: Math.max(0, Math.floor(state?.civilization?.chaos?.monsterCount ?? 0)),
+      monsterLossThreshold: Math.max(
+        1,
+        Math.floor(state?.civilization?.chaos?.monsterLossThreshold ?? 1000)
+      ),
+    },
+  };
+}
+
 export function getElderOrderSummary(state, regionId) {
   const settlement = getDetailedSettlement(state, regionId);
   const ages = [];
@@ -833,7 +935,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 4;
+  state.gameStateSchemaVersion = 5;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

@@ -35,11 +35,18 @@ function normalizeDroppedItemKindsByPoolId(raw) {
   return out;
 }
 
+function normalizeObservedSurvivalYear(value) {
+  return Number.isFinite(value) ? Math.max(1, Math.floor(value)) : null;
+}
+
 function normalizePersistentKnowledge(value) {
   const raw = isPlainRecord(value) ? value : {};
   return {
     droppedItemKindsByPoolId: normalizeDroppedItemKindsByPoolId(
       raw.droppedItemKindsByPoolId
+    ),
+    maxObservedCivilizationSurvivalYear: normalizeObservedSurvivalYear(
+      raw.maxObservedCivilizationSurvivalYear
     ),
   };
 }
@@ -71,18 +78,37 @@ function isNormalizedDroppedItemKindsByPoolId(raw) {
 function isNormalizedPersistentKnowledge(raw) {
   if (!isPlainRecord(raw)) return false;
   const keys = Object.keys(raw);
-  if (keys.length !== 1 || keys[0] !== "droppedItemKindsByPoolId") return false;
-  return isNormalizedDroppedItemKindsByPoolId(raw.droppedItemKindsByPoolId);
+  if (
+    keys.length !== 2 ||
+    keys[0] !== "droppedItemKindsByPoolId" ||
+    keys[1] !== "maxObservedCivilizationSurvivalYear"
+  ) {
+    return false;
+  }
+  return (
+    isNormalizedDroppedItemKindsByPoolId(raw.droppedItemKindsByPoolId) &&
+    (raw.maxObservedCivilizationSurvivalYear == null ||
+      normalizeObservedSurvivalYear(raw.maxObservedCivilizationSurvivalYear) ===
+        raw.maxObservedCivilizationSurvivalYear)
+  );
 }
 
 function resolveKnowledgeLike(value) {
   if (!value || typeof value !== "object") return null;
   if (
     Object.prototype.hasOwnProperty.call(value, "droppedItemKindsByPoolId") ||
+    Object.prototype.hasOwnProperty.call(
+      value,
+      "maxObservedCivilizationSurvivalYear"
+    ) ||
     Object.prototype.hasOwnProperty.call(value, "persistentKnowledge")
   ) {
     if (
-      Object.prototype.hasOwnProperty.call(value, "droppedItemKindsByPoolId") &&
+      (Object.prototype.hasOwnProperty.call(value, "droppedItemKindsByPoolId") ||
+        Object.prototype.hasOwnProperty.call(
+          value,
+          "maxObservedCivilizationSurvivalYear"
+        )) &&
       !Object.prototype.hasOwnProperty.call(value, "persistentKnowledge")
     ) {
       return value;
@@ -152,6 +178,23 @@ export function getDroppedItemKindsForPool(
   return normalizeStringList(map[poolId]);
 }
 
+export function rememberMaxObservedCivilizationSurvivalYear(
+  stateLike,
+  year
+) {
+  if (!stateLike || typeof stateLike !== "object") return false;
+  const normalizedYear = normalizeObservedSurvivalYear(year);
+  if (normalizedYear == null) return false;
+  const knowledge = ensurePersistentKnowledgeState(stateLike);
+  const previous = normalizeObservedSurvivalYear(
+    knowledge.maxObservedCivilizationSurvivalYear
+  );
+  const next = previous == null ? normalizedYear : Math.max(previous, normalizedYear);
+  if (next === previous) return false;
+  knowledge.maxObservedCivilizationSurvivalYear = next;
+  return true;
+}
+
 export function mergePersistentKnowledge(targetLike, sourceLike) {
   if (!targetLike || typeof targetLike !== "object") return false;
   const targetKnowledge = ensurePersistentKnowledgeState(targetLike);
@@ -178,6 +221,20 @@ export function mergePersistentKnowledge(targetLike, sourceLike) {
       if (same) continue;
     }
     targetMap[poolId] = merged;
+    changed = true;
+  }
+
+  const sourceSurvivalYear = normalizeObservedSurvivalYear(
+    sourceKnowledge.maxObservedCivilizationSurvivalYear
+  );
+  const targetSurvivalYear = normalizeObservedSurvivalYear(
+    targetKnowledge.maxObservedCivilizationSurvivalYear
+  );
+  if (
+    sourceSurvivalYear != null &&
+    (targetSurvivalYear == null || sourceSurvivalYear > targetSurvivalYear)
+  ) {
+    targetKnowledge.maxObservedCivilizationSurvivalYear = sourceSurvivalYear;
     changed = true;
   }
 

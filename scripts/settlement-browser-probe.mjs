@@ -8,6 +8,8 @@ const PORT = 8080;
 const URL = `http://127.0.0.1:${PORT}`;
 const DETAIL_PATH = "artifacts/settlement-browser-probe.json";
 const SCREENSHOT_PATH = "artifacts/settlement-browser-probe-latest.png";
+const OVERVIEW_SCREENSHOT_PATH =
+  "artifacts/settlement-browser-probe-overview.png";
 
 async function waitForHttp() {
   for (let attempt = 0; attempt < 150; attempt += 1) {
@@ -51,12 +53,24 @@ try {
   assert.equal(initial.worldMap.selectedRegionId, "river-crown");
   assert.equal(initial.worldMap.selectedRegion.structureCapacity, 3);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
+  assert.equal(initial.worldMap.civilizationSummary.settlementCount, 5);
+  assert.equal(initial.worldMap.civilizationSummary.population.total, 165);
+  assert.equal(initial.worldMap.civilizationSummary.population.adults, 150);
+  assert.equal(initial.worldMap.civilizationSummary.population.elders, 15);
+  assert.equal(initial.controller.scope, "civilization");
+  assert.equal(initial.controller.subjectKey, "civilization");
+  assert.equal(initial.controller.label, "Civilization • All player settlements");
+  assert.deepEqual(initial.controller.seriesIds,
+    ["totalPopulation", "food", "chaosPower"]);
+  assert.equal(initial.worldMap.survivalTracker.year, 1);
+  assert.ok(initial.worldMap.survivalTracker.calendarLabel.includes("Civilization Year 1"));
 
   assert.equal(await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion("cedar-woods")), true);
   const selected = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(selected.worldMap.selectedRegionId, "cedar-woods", "debug map selection");
-  assert.equal(selected.controller.subjectKey, "cedar-woods", "timegraph follows selected site");
+  assert.equal(selected.controller.subjectKey, "civilization",
+    "map browsing leaves the timegraph civilization-wide");
   assert.equal(selected.worldMap.selectedRegion.detailedSettlement.elderOrder.resistance, 29);
 
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
@@ -68,9 +82,15 @@ try {
   assert.equal(overview.view.activeTab, "overview");
   assert.equal(overview.view.calendar.seasonKey, "spring");
   assert.equal(overview.view.calendar.year, 1);
-  assert.equal(overview.view.calendar.label, "Spring · Year 1");
+  assert.ok(overview.view.calendar.label.includes("Civilization Year 1"));
+  assert.equal(overview.controller.scope, "settlement");
+  assert.equal(overview.controller.subjectKey, "cedar-woods");
+  assert.ok(overview.controller.label.includes("Local"));
+  assert.deepEqual(overview.controller.seriesIds,
+    ["totalPopulation", "food", "population:villager"]);
   assert.equal(overview.view.overview.practices.length, 5);
   assert.equal(overview.view.elderOrder.resistance, 29);
+  await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
 
   await clickDesignPoint(page, { x: 2145, y: 36 });
   const demographics = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
@@ -80,12 +100,20 @@ try {
   const openResult = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
   assert.equal(openResult.ok, true);
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()), true);
+  const pendingSelection = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
+  );
+  const chosenTargetRegionId = pendingSelection.candidates[0].targetRegionId;
   const selectResult = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
   assert.equal(selectResult.ok, true);
   await delay(100);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(afterVassal.lineage.selectedVassalIds.length, 1);
+  assert.equal(afterVassal.view.regionId, chosenTargetRegionId,
+    "vassal choice focuses its target settlement");
+  assert.equal(afterVassal.controller.subjectKey, chosenTargetRegionId,
+    "local graph follows the focused vassal target");
   assert.ok(
     afterVassal.forecastStatus.currentVassalDeathSec > afterVassal.frontierSec,
     "selected vassal exposes a future death boundary"
@@ -112,6 +140,24 @@ try {
     ),
     "committed vassal history is visibly classified as fixed"
   );
+  assert.ok(
+    Number.isFinite(committedVassalHistory.view.survivalTracker.bestSurvivalYear),
+    "best civilization survival year is visible"
+  );
+
+  await clickDesignPoint(page, { x: 2313, y: 36 });
+  const returnedToMap = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(returnedToMap.worldMap.mode, "map");
+  assert.equal(returnedToMap.controller.scope, "civilization");
+  assert.equal(returnedToMap.controller.subjectKey, "civilization");
+  assert.equal(returnedToMap.graph.projectionReplacement?.active ?? false, false,
+    "scope changes never reuse a local comparison snapshot");
+  assert.ok(
+    returnedToMap.graph.historyZones.some((zone) => zone.kind === "fixedHistory"),
+    "vassal history brackets remain after returning to civilization scope"
+  );
 
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
@@ -120,6 +166,8 @@ try {
       "site selection and structure capacity",
       "Overview and Demographics tabs",
       "fullscreen control and season/year heading",
+      "civilization/local graph scope and automatic focus",
+      "civilization summary and persistent survival record",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",
     ],
@@ -128,6 +176,11 @@ try {
     overview: overview.view,
     demographics: demographics.view,
     lineage: afterVassal.lineage,
+    returnedToMap: {
+      worldMap: returnedToMap.worldMap,
+      controller: returnedToMap.controller,
+      graph: returnedToMap.graph,
+    },
     timelineRepair: {
       forecastStatus: afterVassal.forecastStatus,
       pendingCommitJob: afterVassal.pendingCommitJob,

@@ -35,7 +35,11 @@ function getSeriesId(series) {
   return String(series?.id ?? "");
 }
 
-function getDefaultSeriesIds(allSeries, maxVisibleSeries) {
+function getDefaultSeriesIds(
+  allSeries,
+  maxVisibleSeries,
+  preferredSeriesIds = DEFAULT_SERIES_IDS
+) {
   const list = Array.isArray(allSeries) ? allSeries : [];
   const preferred = [];
   const pushUnique = (seriesId) => {
@@ -43,7 +47,7 @@ function getDefaultSeriesIds(allSeries, maxVisibleSeries) {
     preferred.push(seriesId);
   };
 
-  for (const preferredSeriesId of DEFAULT_SERIES_IDS) {
+  for (const preferredSeriesId of preferredSeriesIds) {
     const series = list.find((entry) => getSeriesId(entry) === preferredSeriesId);
     if (!series) continue;
     pushUnique(getSeriesId(series));
@@ -122,6 +126,7 @@ export function createSettlementGraphSeriesMenu({
   getGraphScreenRect,
   applySeriesSelection,
   renderGraph,
+  getPreferredSeriesIds,
   maxVisibleSeries = DEFAULT_MAX_VISIBLE_SERIES,
   viewportWidth = VIEWPORT_DESIGN_WIDTH,
   viewportHeight = VIEWPORT_DESIGN_HEIGHT,
@@ -131,7 +136,9 @@ export function createSettlementGraphSeriesMenu({
 
   let open = false;
   let signature = "";
+  let contextId = "default";
   let visibleSeriesIds = [];
+  const visibleSeriesIdsByContext = new Map();
 
   function getAllMenuSeries() {
     const series = getAllSeries?.();
@@ -146,7 +153,16 @@ export function createSettlementGraphSeriesMenu({
       availableSeriesIds.has(seriesId)
     );
     if (!nextVisibleSeriesIds.length) {
-      nextVisibleSeriesIds.push(...getDefaultSeriesIds(allSeries, maxVisibleSeries));
+      const preferredSeriesIds = getPreferredSeriesIds?.(contextId);
+      nextVisibleSeriesIds.push(
+        ...getDefaultSeriesIds(
+          allSeries,
+          maxVisibleSeries,
+          Array.isArray(preferredSeriesIds)
+            ? preferredSeriesIds
+            : DEFAULT_SERIES_IDS
+        )
+      );
     }
     const changed =
       nextVisibleSeriesIds.length !== visibleSeriesIds.length ||
@@ -162,6 +178,7 @@ export function createSettlementGraphSeriesMenu({
       allSeries,
       visibleSeriesIds: [...visibleSeriesIds],
     });
+    visibleSeriesIdsByContext.set(contextId, [...visibleSeriesIds]);
     return allSeries;
   }
 
@@ -173,6 +190,7 @@ export function createSettlementGraphSeriesMenu({
         allSeries,
         visibleSeriesIds: [...visibleSeriesIds],
       });
+      visibleSeriesIdsByContext.set(contextId, [...visibleSeriesIds]);
     }
     return allSeries;
   }
@@ -493,6 +511,23 @@ export function createSettlementGraphSeriesMenu({
 
   return {
     applySelection,
+    setContext: (nextContextId) => {
+      const normalized =
+        typeof nextContextId === "string" && nextContextId.length
+          ? nextContextId
+          : "default";
+      if (normalized === contextId) return false;
+      visibleSeriesIdsByContext.set(contextId, [...visibleSeriesIds]);
+      contextId = normalized;
+      visibleSeriesIds = [
+        ...(visibleSeriesIdsByContext.get(contextId) ?? []),
+      ];
+      signature = "";
+      applySelection();
+      render();
+      return true;
+    },
+    getContext: () => contextId,
     getButtonLabel: () => {
       const allSeries = syncSelection();
       return `Series ${visibleSeriesIds.length}/${allSeries.length}`;

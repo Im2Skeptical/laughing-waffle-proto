@@ -35,6 +35,7 @@ import {
   clonePersistentKnowledge,
   ensurePersistentKnowledgeState,
   mergePersistentKnowledge,
+  rememberMaxObservedCivilizationSurvivalYear,
 } from "../model/persistent-memory.js";
 import { resolveEditWindowStatusAtSecond } from "../model/timegraph/edit-policy.js";
 import { getGlobalSkillModifier } from "../model/skills.js";
@@ -53,7 +54,7 @@ const TICKS_PER_SEC = 60;
 const MAX_SIM_STEPS_PER_FRAME = 8;
 const TIME_SCALE_MAX = 16;
 const TIME_SCALE_EASE_PER_SEC = 10;
-const SAVE_SCHEMA_VERSION = 4;
+const SAVE_SCHEMA_VERSION = 5;
 const SAVE_KEY_PREFIX = "civsurvivor.save";
 const ACTION_PATH_CHECKPOINT_OPTS = Object.freeze({
   writeMemo: true,
@@ -428,6 +429,27 @@ export function createSimRunner({
         error,
       };
     }
+  }
+
+  function rememberCivilizationSurvivalYear(year) {
+    const changedCursor = rememberMaxObservedCivilizationSurvivalYear(
+      cursorState,
+      year
+    );
+    const changedPreview = rememberMaxObservedCivilizationSurvivalYear(
+      dragPreviewState,
+      year
+    );
+    const changedTimeline = cursorState
+      ? absorbTimelinePersistentKnowledge(timeline, cursorState)?.changed === true
+      : false;
+    return {
+      ok: true,
+      changed: changedCursor || changedPreview || changedTimeline,
+      value:
+        timeline?.persistentKnowledge
+          ?.maxObservedCivilizationSurvivalYear ?? null,
+    };
   }
 
   function getSaveSlotKey(slot) {
@@ -1766,6 +1788,7 @@ export function createSimRunner({
     }),
 
     getTimeline: () => timeline,
+    rememberCivilizationSurvivalYear,
     getCursorState: () => {
       applyTimelinePersistentKnowledgeToState(cursorState);
       return cursorState;

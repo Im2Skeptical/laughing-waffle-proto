@@ -62,8 +62,12 @@ const projectionSummary = buildProjectionSummaryFromState(first.state);
 assert.ok(projectionSummary.graphValues.settlementByRegion["cedar-woods"]);
 assert.ok(projectionSummary.graphValues.settlementByRegion["river-crown"]);
 assert.equal(
+  projectionSummary.graphValues.civilization.chaosPower,
+  first.state.civilization.chaos.chaosPower,
+  "global chaos is stored only in the civilization graph summary"
+);
+assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"].chaosPower,
-  projectionSummary.graphValues.settlementByRegion["river-crown"].chaosPower,
-  "chaos remains global while site series are separately keyed"
+  undefined
 );
 console.log("[detailed-replay] OK");
