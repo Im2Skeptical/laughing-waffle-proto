@@ -13,12 +13,19 @@ The single civilization-wide vassal lineage targets a local settlement with
 three deterministic interventions. Chaos and loss are global; population,
 food, practices, buildings, happiness, and faith are site-local.
 
-The settlement HUD includes the current season/year and fullscreen controls.
-Its site-scoped timegraph preserves the previous forecast when a vassal is
-chosen, progressively commits the selected vassal's deterministic lifespan,
-and distinguishes fixed history from the remaining forecast.
+The shared HUD shows the viewed civilization year, projected survival year,
+and the best survival year observed across rewinds and saved sessions. The map
+adds a civilization-wide demographic/food/housing/chaos summary above the
+selected-region card. Fullscreen and Debug controls remain available.
 
-Game state is schema v4. Old saves are intentionally unsupported.
+The timegraph is civilization-wide on the map and automatically becomes local
+when a settlement is opened. Its title always identifies that scope. Choosing a
+vassal focuses the target settlement, preserves the prior local forecast for
+comparison, progressively commits the deterministic lifespan, and
+distinguishes fixed history from editable history and forecast.
+
+Game state and runner saves are schema v5. Old saves are intentionally
+unsupported.
 
 ## Run and verify
 

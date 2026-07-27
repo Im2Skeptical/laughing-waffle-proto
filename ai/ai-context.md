@@ -19,8 +19,8 @@ The old Milestone 2 report is superseded historical context.
 
 ## Current schemas
 
-- Game state is schema v4 (`gameStateSchemaVersion: 4`).
-- Runner saves use schema v4.
+- Game state is schema v5 (`gameStateSchemaVersion: 5`).
+- Runner saves use schema v5.
 - Map Lab drafts and scenario libraries use schema v2 and new `.v2` browser
   storage keys.
 - Older saves and Map Lab data are rejected. There is no migration path.
@@ -145,15 +145,31 @@ Diamond one per two. The existing global monster threshold ends the run.
 
 ## UI and Map Lab
 
-The map shows site structure usage. Selecting/opening a detailed region produces
-a site-scoped settlement view with Overview and Demographics tabs. The Elder
-Order panel is aggregate and shows resistance plus target intervention status.
-The settlement HUD shows the current season/year and exposes independent
-fullscreen and Debug controls.
+The map shows site structure usage and a civilization summary derived from all
+player-controlled detailed sites. It totals cohorts/classes, food, meal demand,
+housing, chaos, and monster loss progress. A smaller selected-region card opens
+the local Overview and Demographics tabs. The Elder Order panel is aggregate
+and shows resistance plus target intervention status.
 
-The timegraph remains site-scoped for settlement metrics and global for chaos,
-loss, and the vassal lineage. Selecting a vassal snapshots the prior forecast,
-shows it being replaced, and progressively commits history through the
+A shared map/settlement survival strip shows the viewed civilization
+season/year, projected loss year, and the best projected or actual loss year
+observed. The best is monotonic
+`persistentKnowledge.maxObservedCivilizationSurvivalYear`; it survives rewinds,
+branches, and save/load, resets on a fresh run, and never affects simulation.
+Fullscreen and Debug controls remain independent.
+
+The timegraph has two explicit automatic scopes:
+
+- Map: `Civilization • All player settlements`, aggregating population/food and
+  showing global chaos/monsters.
+- Settlement: `Local • <region>`, showing only that site's population, food,
+  faith, happiness, and worker availability.
+
+Map browsing does not silently retarget the civilization graph. Opening a site
+switches to local scope; returning to the map restores civilization scope.
+Series choices are retained independently per scope. Choosing a vassal focuses
+its target site before snapshotting the prior local forecast, shows that
+forecast being replaced, and progressively commits history through the
 vassal's deterministic death boundary. Selected-vassal lifespan segments are
 fixed history; unreached graph time remains forecast. Lifecycle boundaries are
 plain serialized state derived from the candidate's selected year and
@@ -177,6 +193,7 @@ elder ages, local food, five practice slots, structures, and connections. It:
 Tests cover definitions, worker assignment, map scores, boundary food behavior,
 N² capacity, decay, snapshot transport, build waiting/completion, demographics,
 mortality, probability composition, Order resistance, candidate gates,
-same-boundary intervention/death order, lifespan boundaries, fixed-history
-segments, forecast replacement, JSON round trips, Map Lab validation, and
+same-boundary intervention/death order, civilization aggregation, explicit
+graph scopes, persistent survival records, lifespan boundaries, fixed-history
+segments, forecast replacement, JSON/save round trips, Map Lab validation, and
 authoritative replay parity.

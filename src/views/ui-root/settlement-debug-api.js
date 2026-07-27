@@ -13,7 +13,18 @@ function summarizeGraphControllerData(data) {
       ? Array.from(data.cache.stateDataByBoundary.keys()).sort((a, b) => a - b)
       : null;
   return {
+    metricId: data.metric?.id ?? null,
+    scope:
+      data.metric?.id === "civilization"
+        ? "civilization"
+        : data.metric?.id === "settlement"
+          ? "settlement"
+          : null,
+    label: data.label ?? null,
     subjectKey: data.subjectKey ?? null,
+    seriesIds: Array.isArray(data.series)
+      ? data.series.map((series) => series?.id).filter(Boolean)
+      : [],
     horizonSec: nonNegativeFloor(data.horizonSec),
     forecastStepSec: nonNegativeFloor(data.forecastStepSec),
     computedCoverageEndSec: nonNegativeFloor(data.forecastCoverageEndSec),
@@ -103,6 +114,7 @@ export function publishSettlementDebugApi({
   selectCandidate,
   selectCheatVassal,
   getLastVassalSelectionResult,
+  getVassalSelectionPool,
   isVassalSelectionOpen,
 } = {}) {
   if (typeof globalThis === "undefined") return;
@@ -137,6 +149,7 @@ export function publishSettlementDebugApi({
           stateSec: nonNegativeFloor(state?.tSec),
         },
         lineage: summarizeLineage(getFrontierState?.()),
+        vassalSelectionPool: getVassalSelectionPool?.() ?? null,
         lastVassalSelectionResult: getLastVassalSelectionResult?.() ?? null,
         vassalSelectionOpen: isVassalSelectionOpen?.() === true,
       };

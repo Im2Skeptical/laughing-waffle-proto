@@ -14,12 +14,12 @@ function clampYear(value, fallback = 1) {
   return Math.max(1, Math.floor(value));
 }
 
-function buildSettlementGraphValues(state, subject = null) {
+function buildGraphValues(metric, state, subject = null) {
   const series =
-    typeof GRAPH_METRICS?.settlement?.getSeries === "function"
-      ? GRAPH_METRICS.settlement.getSeries(subject, state)
-      : Array.isArray(GRAPH_METRICS?.settlement?.series)
-        ? GRAPH_METRICS.settlement.series
+    typeof metric?.getSeries === "function"
+      ? metric.getSeries(subject, state)
+      : Array.isArray(metric?.series)
+        ? metric.series
         : [];
   const out = {};
   for (const seriesDef of series) {
@@ -52,11 +52,15 @@ export function buildProjectionSummaryFromState(state) {
     runLossSec,
     runLossYear,
     graphValues: {
-      settlement: buildSettlementGraphValues(state),
+      civilization: buildGraphValues(GRAPH_METRICS.civilization, state),
       settlementByRegion: Object.fromEntries(
         (state?.world?.sites ?? []).map((site) => [
           site.regionId,
-          buildSettlementGraphValues(state, { regionId: site.regionId }),
+          buildGraphValues(
+            GRAPH_METRICS.settlement,
+            state,
+            { regionId: site.regionId }
+          ),
         ])
       ),
     },

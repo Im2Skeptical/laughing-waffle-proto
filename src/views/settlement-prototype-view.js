@@ -3,9 +3,11 @@ import {
   getDetailedVassalPrestige,
   getElderMortalityRate,
 } from "../model/detailed-settlements.js";
-import { SEASON_DISPLAY } from "../defs/gamesettings/gamerules-defs.js";
-import { getCurrentSeasonKey } from "../model/state.js";
 import { getRegionDefinition } from "../model/world-state.js";
+import {
+  addCivilizationSurvivalStrip,
+  getCivilizationSurvivalViewModel,
+} from "./civilization-survival-hud.js";
 import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
@@ -42,6 +44,7 @@ export function createSettlementPrototypeView({
   layer,
   getState,
   getSelectedRegionId,
+  getCivilizationLossInfo,
   onReturnToMap,
 }) {
   const root = new PIXI.Container();
@@ -56,8 +59,14 @@ export function createSettlementPrototypeView({
     const regionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId;
     const vm = getDetailedSettlementViewModel(state, regionId);
     if (!vm) return;
+    const civilizationLossInfo = getCivilizationLossInfo?.() ?? null;
+    const survivalTracker = getCivilizationSurvivalViewModel(
+      state,
+      civilizationLossInfo
+    );
     const signature = JSON.stringify({ tSec: state.tSec, regionId, activeTab, vm,
-      lineage: state.civilization.vassalLineage, chaos: state.civilization.chaos });
+      lineage: state.civilization.vassalLineage, chaos: state.civilization.chaos,
+      survivalTracker });
     if (!force && signature === lastSignature) return;
     lastSignature = signature;
     clearChildren(root);
@@ -66,19 +75,13 @@ export function createSettlementPrototypeView({
     bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
     root.addChild(bg);
     const regionDef = getRegionDefinition(state, regionId);
-    const seasonKey = getCurrentSeasonKey(state);
-    const year = Math.max(1, Math.floor(state?.year ?? 1));
-    const calendarLabel = `${SEASON_DISPLAY[seasonKey] ?? seasonKey} · Year ${year}`;
-    root.addChild(createText(
-      calendarLabel,
-      { ...TEXT_STYLES.header, fontSize: 24 },
-      1212,
-      35,
-      0.5,
-      0.5
-    ));
     root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
-      TEXT_STYLES.header, 48, 35, 0, 0.5));
+      { ...TEXT_STYLES.header, fontSize: 28 }, 48, 35, 0, 0.5));
+    addCivilizationSurvivalStrip(root, {
+      state,
+      civilizationLossInfo,
+      rect: { x: 590, y: 9, width: 1260, height: 54 },
+    });
     addButton(root, { x: 1890, y: 14, width: 150, height: 44 }, "Overview",
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
     addButton(root, { x: 2050, y: 14, width: 190, height: 44 }, "Demographics",
@@ -208,10 +211,11 @@ export function createSettlementPrototypeView({
       activeTab,
       regionId,
       calendar: {
-        seasonKey,
-        year,
-        label: calendarLabel,
+        seasonKey: survivalTracker.seasonKey,
+        year: survivalTracker.year,
+        label: survivalTracker.calendarLabel,
       },
+      survivalTracker,
       overview: vm,
       demographics: {
         population: vm.population,

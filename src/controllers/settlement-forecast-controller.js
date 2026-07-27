@@ -92,6 +92,8 @@ export function createSettlementForecastController({
   browseCursorSecond,
   clearPreviewState,
   setPlaybackViewSec,
+  getMaxObservedSurvivalYear,
+  rememberObservedSurvivalYear,
   graphWindowSec = 0,
   lossSearchCapacitySec = 0,
   autoCommitBufferSec = 0,
@@ -108,7 +110,6 @@ export function createSettlementForecastController({
   let horizonOverrideSec = null;
   let projectedLossCacheKey = "";
   let projectedLossCacheValue = null;
-  let maxObservedLossYear = null;
   let pendingCommitJob = null;
 
   function invalidateLossCache() {
@@ -481,15 +482,23 @@ export function createSettlementForecastController({
       Number.isFinite(lossInfo?.lossYear) ? Math.floor(lossInfo.lossYear) : null,
       Number.isFinite(lossInfo?.finalLossYear) ? Math.floor(lossInfo.finalLossYear) : null,
     ].filter((value) => value != null);
+    const persistedMaxObservedLossYear = getMaxObservedSurvivalYear?.();
+    let maxObservedLossYear = Number.isFinite(persistedMaxObservedLossYear)
+      ? Math.max(1, Math.floor(persistedMaxObservedLossYear))
+      : null;
     if (candidateYears.length > 0) {
       const bestKnownYear = candidateYears.reduce(
         (maxYear, value) => Math.max(maxYear, value),
         0
       );
-      maxObservedLossYear =
+      const nextMaxObservedLossYear =
         maxObservedLossYear == null
           ? bestKnownYear
           : Math.max(maxObservedLossYear, bestKnownYear);
+      if (nextMaxObservedLossYear !== maxObservedLossYear) {
+        rememberObservedSurvivalYear?.(nextMaxObservedLossYear);
+        maxObservedLossYear = nextMaxObservedLossYear;
+      }
     }
     return {
       ...lossInfo,

@@ -155,6 +155,7 @@ app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltip
 let prototypeView = null;
 let worldMapView = null;
 let worldViewMode = "map";
+let settlementGraphScope = "civilization";
 let selectedWorldRegionId = "river-crown";
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
@@ -188,6 +189,47 @@ function setWorldViewMode(mode) {
   prototypeView?.setVisible?.(settlementVisible);
   worldMapView?.setVisible?.(!settlementVisible);
   settlementVassalControlsView?.setVisible?.(settlementVisible);
+  setSettlementGraphContext(
+    settlementVisible ? "settlement" : "civilization",
+    selectedWorldRegionId
+  );
+}
+
+function getSettlementGraphMetric() {
+  return settlementGraphScope === "settlement"
+    ? GRAPH_METRICS.settlement
+    : GRAPH_METRICS.civilization;
+}
+
+function setSettlementGraphContext(scope, regionId = selectedWorldRegionId) {
+  const nextScope = scope === "settlement" ? "settlement" : "civilization";
+  const nextRegionId =
+    typeof regionId === "string" && regionId.length
+      ? regionId
+      : selectedWorldRegionId;
+  const previousScope = settlementGraphScope;
+  const previousSubjectKey =
+    settlementGraphController?.getData?.()?.subjectKey ?? null;
+  const nextSubjectKey =
+    nextScope === "settlement" ? nextRegionId : "civilization";
+  const contextChanged =
+    previousScope !== nextScope || previousSubjectKey !== nextSubjectKey;
+
+  if (contextChanged && previousSubjectKey != null) {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+  }
+
+  settlementGraphScope = nextScope;
+  const metric = getSettlementGraphMetric();
+  settlementGraphController?.setMetric?.(metric);
+  settlementGraphController?.setSubject?.(
+    nextScope === "settlement" ? { regionId: nextRegionId } : null,
+    nextSubjectKey
+  );
+  settlementGraphSeriesMenu?.setContext?.(nextScope);
+  settlementGraphSeriesMenu?.syncSelection?.();
+  settlementGraphView?.render?.();
+  return contextChanged;
 }
 const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
 const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
@@ -717,6 +759,15 @@ function selectSettlementVassal(candidateIndex) {
   const selectionSec = Number.isFinite(selectionPool?.createdSec)
     ? Math.max(0, Math.floor(selectionPool.createdSec))
     : frontierSec;
+  const candidate = Array.isArray(selectionPool?.candidates)
+    ? selectionPool.candidates[candidateIndex] ?? null
+    : null;
+  const previousRegionId = selectedWorldRegionId;
+  const targetRegionId =
+    typeof candidate?.targetRegionId === "string" &&
+    candidate.targetRegionId.length
+      ? candidate.targetRegionId
+      : previousRegionId;
   const isFirstVassalSelection =
     selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
   const moveRes = setSettlementViewedSecond(selectionSec);
@@ -728,6 +779,12 @@ function selectSettlementVassal(candidateIndex) {
     return settlementLastVassalSelectionResult;
   }
   settlementGraphView?.resetForecastPreviewState?.();
+  if (targetRegionId !== selectedWorldRegionId) {
+    selectedWorldRegionId = targetRegionId;
+    setSettlementGraphContext("settlement", targetRegionId);
+    prototypeView?.refresh?.();
+    settlementGraphView?.render?.();
+  }
   settlementGraphView?.stageProjectionReplacementTransition?.({
     truncationStartSec: selectionSec,
     transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
@@ -769,15 +826,24 @@ function selectSettlementVassal(candidateIndex) {
     settlementVassalSelectionResumeSpeed = 0;
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
+    selectedWorldRegionId = previousRegionId;
+    setSettlementGraphContext("settlement", previousRegionId);
+    prototypeView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
     settlementVassalChooserView?.refresh?.();
   } else if (result?.reason === "currentVassalAlive") {
+    selectedWorldRegionId = previousRegionId;
+    setSettlementGraphContext("settlement", previousRegionId);
+    prototypeView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = null;
     syncSettlementVassalSelectionPauseState();
     settlementVassalChooserView?.refresh?.();
   } else {
+    selectedWorldRegionId = previousRegionId;
+    setSettlementGraphContext("settlement", previousRegionId);
+    prototypeView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementVassalChooserView?.refresh?.();
   }
@@ -1085,7 +1151,7 @@ const runner = createSimRunner({
 settlementGraphController = createTimeGraphController({
   getTimeline: () => runner.getTimeline?.(),
   getCursorState: () => runner.getCursorState?.(),
-  metric: GRAPH_METRICS.settlement,
+  metric: GRAPH_METRICS.civilization,
   projectionCache: settlementProjectionCache,
   forecastWorkerService,
   forecastStepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
@@ -1095,8 +1161,8 @@ settlementGraphController = createTimeGraphController({
     SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC,
 });
 settlementGraphController.setSubject?.(
-  { regionId: selectedWorldRegionId },
-  selectedWorldRegionId
+  null,
+  "civilization"
 );
 settlementForecastController = createSettlementForecastController({
   getTimeline: () => runner.getTimeline?.(),
@@ -1118,6 +1184,11 @@ settlementForecastController = createSettlementForecastController({
   browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
   clearPreviewState: () => runner.clearPreviewState?.(),
   setPlaybackViewSec: () => {},
+  getMaxObservedSurvivalYear: () =>
+    runner.getTimeline?.()?.persistentKnowledge
+      ?.maxObservedCivilizationSurvivalYear ?? null,
+  rememberObservedSurvivalYear: (year) =>
+    runner.rememberCivilizationSurvivalYear?.(year),
   graphWindowSec: SETTLEMENT_GRAPH_WINDOW_SEC,
   lossSearchCapacitySec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
   autoCommitBufferSec: SETTLEMENT_AUTO_COMMIT_BUFFER_SEC,
@@ -1136,21 +1207,32 @@ settlementGraphSeriesMenu = createSettlementGraphSeriesMenu({
   layer: controlLayer,
   getAllSeries: () => {
     const state = runner?.getCursorState?.() ?? runner?.getState?.() ?? null;
-    if (typeof GRAPH_METRICS.settlement?.getSeries === "function") {
-      return GRAPH_METRICS.settlement.getSeries(null, state);
+    const metric = getSettlementGraphMetric();
+    if (typeof metric?.getSeries === "function") {
+      return metric.getSeries(
+        settlementGraphScope === "settlement"
+          ? { regionId: selectedWorldRegionId }
+          : null,
+        state
+      );
     }
-    return Array.isArray(GRAPH_METRICS.settlement?.series)
-      ? GRAPH_METRICS.settlement.series
+    return Array.isArray(metric?.series)
+      ? metric.series
       : [];
   },
   getGraphScreenRect: () => settlementGraphView?.getScreenRect?.() ?? null,
   applySeriesSelection: (visibleSeries) =>
     settlementGraphController?.setSeries?.(visibleSeries),
   renderGraph: () => settlementGraphView?.render?.(),
+  getPreferredSeriesIds: (contextId) =>
+    contextId === "settlement"
+      ? ["totalPopulation", "food", "population:villager"]
+      : ["totalPopulation", "food", "chaosPower"],
   maxVisibleSeries: MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
   viewportWidth: VIEWPORT_DESIGN_WIDTH,
   viewportHeight: VIEWPORT_DESIGN_HEIGHT,
 });
+settlementGraphSeriesMenu.setContext("civilization");
 settlementGraphSeriesMenu.applySelection();
 
 prototypeView = createSettlementPrototypeView({
@@ -1172,10 +1254,10 @@ prototypeView.setVisible(false);
 worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedRegionId: () => selectedWorldRegionId,
   setSelectedRegionId: (regionId) => {
     selectedWorldRegionId = regionId;
-    settlementGraphController?.setSubject?.({ regionId }, regionId);
   },
   onInstallPractice: (regionId, practiceId) =>
     runner.dispatchAction(
@@ -1192,7 +1274,6 @@ worldMapView = createWorldMapView({
   onOpenDetailedSite: (_siteId, regionId) => {
     if (typeof regionId === "string") {
       selectedWorldRegionId = regionId;
-      settlementGraphController?.setSubject?.({ regionId }, regionId);
     }
     setWorldViewMode("settlement");
   },
@@ -1530,7 +1611,10 @@ function publishSettlementDebugApi() {
     selectWorldRegion: (regionId) => {
       if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) return false;
       selectedWorldRegionId = regionId;
-      settlementGraphController?.setSubject?.({ regionId }, regionId);
+      if (worldViewMode === "settlement") {
+        setSettlementGraphContext("settlement", regionId);
+        prototypeView?.refresh?.();
+      }
       worldMapView?.refresh?.();
       return true;
     },
@@ -1558,6 +1642,7 @@ function publishSettlementDebugApi() {
     selectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
     selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
     getLastVassalSelectionResult: () => settlementLastVassalSelectionResult,
+    getVassalSelectionPool: () => settlementPendingVassalSelection,
     isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
   });
 }
