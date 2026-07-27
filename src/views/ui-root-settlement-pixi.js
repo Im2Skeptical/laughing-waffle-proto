@@ -228,6 +228,10 @@ function setSettlementGraphContext(scope, regionId = selectedWorldRegionId) {
   );
   settlementGraphSeriesMenu?.setContext?.(nextScope);
   settlementGraphSeriesMenu?.syncSelection?.();
+  if (contextChanged) {
+    settlementGraphController?.ensureCache?.();
+    settlementGraphView?.resetDataContext?.();
+  }
   settlementGraphView?.render?.();
   return contextChanged;
 }
