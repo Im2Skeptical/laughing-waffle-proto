@@ -657,6 +657,16 @@ export function createMetricGraphView({
     lastPlotBoundsKey = "";
   }
 
+  function resetDataContext() {
+    invalidatePlotSnapshot();
+    seriesScaleMaxFlashBySeriesId.clear();
+    clearProjectionReplacementTransition();
+    hoveredLegendSeriesId = null;
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+    tooltipView?.hide?.();
+  }
+
   function beginBootFadeTransition(nowMs = performance.now()) {
     bootFadeTransition =
       bootFadeDurationMsCur > 0
@@ -3115,6 +3125,33 @@ export function createMetricGraphView({
           : displayHistoryEndSec
       )
     );
+    const renderedSeriesSamples = Array.isArray(snapshot?.seriesList)
+      ? snapshot.seriesList.map((series) => {
+          const values = snapshot?.seriesValues?.get?.(series?.id);
+          let first = null;
+          let last = null;
+          if (Array.isArray(values)) {
+            for (let index = 0; index < values.length; index += 1) {
+              const value = values[index];
+              if (!Number.isFinite(value)) continue;
+              const sample = {
+                tSec: Math.max(
+                  0,
+                  Math.floor(pointsForDraw[index]?.tSec ?? 0)
+                ),
+                value,
+              };
+              if (!first) first = sample;
+              last = sample;
+            }
+          }
+          return {
+            seriesId: series?.id ?? null,
+            first,
+            last,
+          };
+        })
+      : [];
     return {
       minSec,
       maxSec,
@@ -3179,6 +3216,7 @@ export function createMetricGraphView({
           .slice(0, 96)
           .map((point) => point?.pending === true),
       },
+      renderedSeriesSamples,
       eventMarkers: Array.isArray(snapshot?.eventMarkers)
         ? snapshot.eventMarkers.map((marker) => ({
             tSec: marker.tSec,
@@ -3368,6 +3406,7 @@ export function createMetricGraphView({
     setEventMarkerResolver,
     setForecastRevealConfig,
     resetForecastPreviewState,
+    resetDataContext,
     stageProjectionReplacementTransition,
     clearProjectionReplacementTransition,
     restartForecastRevealFrom,

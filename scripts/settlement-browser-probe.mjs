@@ -62,6 +62,18 @@ try {
   assert.equal(initial.controller.label, "Civilization • All player settlements");
   assert.deepEqual(initial.controller.seriesIds,
     ["totalPopulation", "food", "chaosPower"]);
+  assert.deepEqual(
+    initial.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
+      seriesId,
+      value: first?.value,
+    })),
+    [
+      { seriesId: "totalPopulation", value: 165 },
+      { seriesId: "food", value: 300 },
+      { seriesId: "chaosPower", value: 0 },
+    ],
+    "civilization graph renders aggregate values"
+  );
   assert.equal(initial.worldMap.survivalTracker.year, 1);
   assert.ok(initial.worldMap.survivalTracker.calendarLabel.includes("Civilization Year 1"));
 
@@ -88,6 +100,18 @@ try {
   assert.ok(overview.controller.label.includes("Local"));
   assert.deepEqual(overview.controller.seriesIds,
     ["totalPopulation", "food", "population:villager"]);
+  assert.deepEqual(
+    overview.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
+      seriesId,
+      value: first?.value,
+    })),
+    [
+      { seriesId: "totalPopulation", value: 33 },
+      { seriesId: "food", value: 60 },
+      { seriesId: "population:villager", value: 33 },
+    ],
+    "local graph replaces aggregate lines with the selected settlement values"
+  );
   assert.equal(overview.view.overview.practices.length, 5);
   assert.equal(overview.view.elderOrder.resistance, 29);
   await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
@@ -154,6 +178,18 @@ try {
   assert.equal(returnedToMap.controller.subjectKey, "civilization");
   assert.equal(returnedToMap.graph.projectionReplacement?.active ?? false, false,
     "scope changes never reuse a local comparison snapshot");
+  assert.deepEqual(
+    returnedToMap.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
+      seriesId,
+      value: first?.value,
+    })),
+    [
+      { seriesId: "totalPopulation", value: 165 },
+      { seriesId: "food", value: 300 },
+      { seriesId: "chaosPower", value: 0 },
+    ],
+    "returning to the map restores civilization graph values"
+  );
   assert.ok(
     returnedToMap.graph.historyZones.some((zone) => zone.kind === "fixedHistory"),
     "vassal history brackets remain after returning to civilization scope"
