@@ -31,6 +31,18 @@ async function clickDesignPoint(page, point) {
   await delay(150);
 }
 
+async function pressDesignPoint(page, point, holdMs = 120) {
+  const box = await page.locator("canvas").boundingBox();
+  if (!box || !point) throw new Error("Canvas point unavailable");
+  const x = box.x + point.x / 2424 * box.width;
+  const y = box.y + point.y / 1080 * box.height;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await delay(holdMs);
+  await page.mouse.up();
+  await delay(150);
+}
+
 mkdirSync("artifacts", { recursive: true });
 const server = spawn(process.execPath,
   ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"],
@@ -76,14 +88,36 @@ try {
   );
   assert.equal(initial.worldMap.survivalTracker.year, 1);
   assert.ok(initial.worldMap.survivalTracker.calendarLabel.includes("Civilization Year 1"));
+  assert.equal(initial.worldMap.survivalTracker.projectedLossYear, null);
+  assert.equal(initial.worldMap.survivalTracker.bestSurvivalYear, null);
+  assert.ok(initial.worldMap.survivalTracker.forecastLabel.includes("Forecasting"));
 
-  assert.equal(await page.evaluate(() =>
-    globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion("cedar-woods")), true);
+  await page.waitForFunction(() => {
+    const graph = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.graph;
+    return (
+      Number.isFinite(graph?.revealedCoverageEndSec) &&
+      graph.revealedCoverageEndSec > 0 &&
+      graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec
+    );
+  });
+  const cedarPoint = await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
+  await pressDesignPoint(page, cedarPoint);
   const selected = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
-  assert.equal(selected.worldMap.selectedRegionId, "cedar-woods", "debug map selection");
+  assert.equal(
+    selected.worldMap.selectedRegionId,
+    "cedar-woods",
+    "a human-duration press selects a region while the graph is unveiling"
+  );
+  assert.equal(selected.worldMap.lastPointerRegionId, "cedar-woods");
   assert.equal(selected.controller.subjectKey, "civilization",
     "map browsing leaves the timegraph civilization-wide");
   assert.equal(selected.worldMap.selectedRegion.detailedSettlement.elderOrder.resistance, 29);
+  if (selected.displayedLossInfo?.resolved !== true) {
+    assert.equal(selected.worldMap.survivalTracker.projectedLossYear, null);
+    assert.equal(selected.worldMap.survivalTracker.bestSurvivalYear, null);
+    assert.ok(selected.worldMap.survivalTracker.forecastLabel.includes("Forecasting"));
+  }
 
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
@@ -164,10 +198,21 @@ try {
     ),
     "committed vassal history is visibly classified as fixed"
   );
-  assert.ok(
-    Number.isFinite(committedVassalHistory.view.survivalTracker.bestSurvivalYear),
-    "best civilization survival year is visible"
-  );
+  if (committedVassalHistory.forecastStatus.projectedLossResolved === true) {
+    assert.ok(
+      Number.isFinite(
+        committedVassalHistory.view.survivalTracker.bestSurvivalYear
+      ),
+      "a resolved projected loss updates the best civilization survival year"
+    );
+  } else {
+    assert.ok(
+      committedVassalHistory.view.survivalTracker.forecastLabel.includes(
+        "Forecasting"
+      ),
+      "unresolved loss coverage remains explicitly marked as forecasting"
+    );
+  }
 
   await clickDesignPoint(page, { x: 2313, y: 36 });
   const returnedToMap = await page.evaluate(
@@ -204,6 +249,7 @@ try {
       "fullscreen control and season/year heading",
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
+      "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",
     ],

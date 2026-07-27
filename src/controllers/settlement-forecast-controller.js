@@ -476,30 +476,66 @@ export function createSettlementForecastController({
     };
   }
 
+  function getResolvedObservedLossYear(lossInfo, frontierState = null) {
+    const candidates = [
+      isRunComplete(frontierState) &&
+      Number.isFinite(frontierState?.runStatus?.year)
+        ? Math.max(1, Math.floor(frontierState.runStatus.year))
+        : null,
+      Number.isFinite(lossInfo?.finalLossYear)
+        ? Math.max(1, Math.floor(lossInfo.finalLossYear))
+        : null,
+      lossInfo?.resolved === true && Number.isFinite(lossInfo?.lossYear)
+        ? Math.max(1, Math.floor(lossInfo.lossYear))
+        : null,
+    ].filter((value) => value != null);
+    return candidates.length
+      ? candidates.reduce((maxYear, value) => Math.max(maxYear, value), 0)
+      : null;
+  }
+
+  function syncObservedSurvivalYear() {
+    const frontierState = getFrontierState?.() ?? null;
+    const lossInfo = getDisplayedLossInfo();
+    const observedLossYear = getResolvedObservedLossYear(
+      lossInfo,
+      frontierState
+    );
+    const persistedYear = getMaxObservedSurvivalYear?.();
+    const previous = Number.isFinite(persistedYear)
+      ? Math.max(1, Math.floor(persistedYear))
+      : null;
+    if (
+      observedLossYear == null ||
+      (previous != null && observedLossYear <= previous)
+    ) {
+      return { changed: false, value: previous };
+    }
+    const result = rememberObservedSurvivalYear?.(observedLossYear) ?? null;
+    return {
+      changed: result?.changed === true,
+      value: Number.isFinite(result?.value)
+        ? Math.max(1, Math.floor(result.value))
+        : observedLossYear,
+    };
+  }
+
   function getLossInfoForDisplay() {
     const lossInfo = getDisplayedLossInfo();
-    const candidateYears = [
-      Number.isFinite(lossInfo?.lossYear) ? Math.floor(lossInfo.lossYear) : null,
-      Number.isFinite(lossInfo?.finalLossYear) ? Math.floor(lossInfo.finalLossYear) : null,
-    ].filter((value) => value != null);
+    const resolvedObservedLossYear = getResolvedObservedLossYear(
+      lossInfo,
+      getFrontierState?.() ?? null
+    );
     const persistedMaxObservedLossYear = getMaxObservedSurvivalYear?.();
-    let maxObservedLossYear = Number.isFinite(persistedMaxObservedLossYear)
+    const persistedYear = Number.isFinite(persistedMaxObservedLossYear)
       ? Math.max(1, Math.floor(persistedMaxObservedLossYear))
       : null;
-    if (candidateYears.length > 0) {
-      const bestKnownYear = candidateYears.reduce(
-        (maxYear, value) => Math.max(maxYear, value),
-        0
-      );
-      const nextMaxObservedLossYear =
-        maxObservedLossYear == null
-          ? bestKnownYear
-          : Math.max(maxObservedLossYear, bestKnownYear);
-      if (nextMaxObservedLossYear !== maxObservedLossYear) {
-        rememberObservedSurvivalYear?.(nextMaxObservedLossYear);
-        maxObservedLossYear = nextMaxObservedLossYear;
-      }
-    }
+    const maxObservedLossYear =
+      resolvedObservedLossYear == null
+        ? persistedYear
+        : persistedYear == null
+          ? resolvedObservedLossYear
+          : Math.max(persistedYear, resolvedObservedLossYear);
     return {
       ...lossInfo,
       maxLossYear:
@@ -818,6 +854,7 @@ export function createSettlementForecastController({
     getProjectedLossInfo,
     getDisplayedLossInfo,
     getLossInfoForDisplay,
+    syncObservedSurvivalYear,
     getForecastStatus,
     getVisibleVassalTimeSec,
     getRenderedHistoryEndSec,
