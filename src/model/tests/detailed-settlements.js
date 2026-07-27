@@ -14,6 +14,10 @@ import {
   stepDetailedSettlementsSecond,
   validateDetailedPracticeDefinitions,
 } from "../detailed-settlements.js";
+import {
+  getSettlementSelectedVassalRealizedSegments,
+  getSettlementVassalBoundarySeconds,
+} from "../settlement-state.js";
 
 function fresh(seed = 12345) {
   return createInitialState("devPlaytesting01", seed);
@@ -133,6 +137,65 @@ assert.equal(new Set(pool.candidates.map((candidate) => candidate.targetRegionId
 assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredPrestige), [49, 59, 69]);
 assert.equal(selectDetailedVassalCandidate(vassalState, 0, pool.expectedPoolHash).ok, true);
 const vassal = vassalState.civilization.vassalLineage.currentVassal;
+assert.equal(vassal.selectedSec, 0);
+assert.equal(
+  vassal.deathYear,
+  vassal.selectedYear + vassal.deathAge - vassal.initialAge,
+  "death year is known when the vassal is selected"
+);
+assert.equal(vassal.deathSec, (vassal.deathYear - 1) * 32 + 1);
+assert.equal(
+  vassalState.civilization.vassalLineage.selectedVassals[0].deathSec,
+  vassal.deathSec,
+  "lineage snapshot retains the planned lifespan boundary"
+);
+const realizedThroughSec = Math.min(vassal.deathSec - 1, 96);
+assert.deepEqual(
+  getSettlementSelectedVassalRealizedSegments(vassalState, realizedThroughSec),
+  [{
+    vassalId: vassal.vassalId,
+    startSec: 0,
+    endSec: realizedThroughSec,
+    complete: false,
+  }],
+  "committed history within the active lifespan is fixed"
+);
+assert.deepEqual(
+  getSettlementVassalBoundarySeconds(vassalState, realizedThroughSec),
+  [realizedThroughSec],
+  "the active lifespan bracket follows committed history"
+);
+const bracketState = fresh(779);
+const firstBracketVassal = {
+  vassalId: "vassal-1",
+  selectedSec: 0,
+  deathSec: 100,
+  isDead: true,
+};
+const secondBracketVassal = {
+  vassalId: "vassal-2",
+  selectedSec: 100,
+  deathSec: 300,
+  isDead: false,
+};
+bracketState.civilization.vassalLineage.currentVassal = secondBracketVassal;
+bracketState.civilization.vassalLineage.selectedVassals = [
+  firstBracketVassal,
+  secondBracketVassal,
+];
+assert.deepEqual(
+  getSettlementSelectedVassalRealizedSegments(bracketState, 250),
+  [
+    { vassalId: "vassal-1", startSec: 0, endSec: 100, complete: true },
+    { vassalId: "vassal-2", startSec: 100, endSec: 250, complete: false },
+  ],
+  "successive vassal lifespans preserve committed-history brackets"
+);
+assert.deepEqual(
+  getSettlementVassalBoundarySeconds(bracketState, 250),
+  [100, 250],
+  "completed and active lifespan boundaries remain distinct"
+);
 vassal.initialAge = vassal.interventions[0].requiredPrestige - vassal.traitPrestigeModifier;
 vassal.deathAge = vassal.initialAge;
 vassalState._seasonChanged = true;

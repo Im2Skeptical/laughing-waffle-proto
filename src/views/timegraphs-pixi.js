@@ -3145,6 +3145,26 @@ export function createMetricGraphView({
         0,
         Math.floor(forecastRevealTargetEndSec ?? 0)
       ),
+      projectionReplacement: projectionReplacement
+        ? {
+            active: true,
+            truncationStartSec: Math.max(
+              0,
+              Math.floor(projectionReplacement.truncationStartSec ?? 0)
+            ),
+            maxSecFloor: Number.isFinite(projectionReplacement.maxSecFloor)
+              ? Math.max(0, Math.floor(projectionReplacement.maxSecFloor))
+              : null,
+            hasSnapshot: !!projectionReplacement.snapshot,
+          }
+        : null,
+      historyZones: Array.isArray(snapshot?.historyZones)
+        ? snapshot.historyZones.map((zone) => ({
+            kind: zone.kind,
+            startSec: Math.max(0, Math.floor(zone.startSec ?? 0)),
+            endSec: Math.max(0, Math.floor(zone.endSec ?? 0)),
+          }))
+        : [],
       samplePointCount: pointsForDraw.length,
       samplePointSecs: {
         first: pointsForDraw

@@ -21,6 +21,35 @@ appendActionAtCursor(timeline, {
     tSec: 0,
   },
 }, base);
+const selectedAtZero = rebuildStateAtSecond(timeline, 0);
+assert.equal(selectedAtZero.ok, true);
+const selectedVassal = selectedAtZero.state.civilization.vassalLineage.currentVassal;
+assert.ok(selectedVassal.deathSec > selectedVassal.selectedSec);
+const beforeDeath = rebuildStateAtSecond(timeline, selectedVassal.deathSec - 1);
+const atDeath = rebuildStateAtSecond(timeline, selectedVassal.deathSec);
+const atDeathAgain = rebuildStateAtSecond(timeline, selectedVassal.deathSec);
+assert.equal(beforeDeath.ok, true);
+assert.equal(atDeath.ok, true);
+assert.equal(atDeathAgain.ok, true);
+assert.equal(
+  beforeDeath.state.civilization.vassalLineage.currentVassal?.vassalId,
+  selectedVassal.vassalId,
+  "vassal remains active immediately before the planned boundary"
+);
+assert.equal(
+  atDeath.state.civilization.vassalLineage.currentVassal,
+  null,
+  "vassal dies at the deterministic planned boundary"
+);
+assert.equal(
+  atDeath.state.civilization.vassalLineage.selectedVassals.at(-1).deathSec,
+  selectedVassal.deathSec
+);
+assert.deepEqual(
+  serializeGameState(atDeath.state),
+  serializeGameState(atDeathAgain.state),
+  "rebuilding the lifespan boundary is authoritative"
+);
 const first = rebuildStateAtSecond(timeline, 160);
 const second = rebuildStateAtSecond(timeline, 160);
 assert.equal(first.ok, true);

@@ -3,6 +3,8 @@ import {
   getDetailedVassalPrestige,
   getElderMortalityRate,
 } from "../model/detailed-settlements.js";
+import { SEASON_DISPLAY } from "../defs/gamesettings/gamerules-defs.js";
+import { getCurrentSeasonKey } from "../model/state.js";
 import { getRegionDefinition } from "../model/world-state.js";
 import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -64,6 +66,17 @@ export function createSettlementPrototypeView({
     bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
     root.addChild(bg);
     const regionDef = getRegionDefinition(state, regionId);
+    const seasonKey = getCurrentSeasonKey(state);
+    const year = Math.max(1, Math.floor(state?.year ?? 1));
+    const calendarLabel = `${SEASON_DISPLAY[seasonKey] ?? seasonKey} · Year ${year}`;
+    root.addChild(createText(
+      calendarLabel,
+      { ...TEXT_STYLES.header, fontSize: 24 },
+      1212,
+      35,
+      0.5,
+      0.5
+    ));
     root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
       TEXT_STYLES.header, 48, 35, 0, 0.5));
     addButton(root, { x: 1890, y: 14, width: 150, height: 44 }, "Overview",
@@ -194,6 +207,11 @@ export function createSettlementPrototypeView({
       visible: root.visible === true,
       activeTab,
       regionId,
+      calendar: {
+        seasonKey,
+        year,
+        label: calendarLabel,
+      },
       overview: vm,
       demographics: {
         population: vm.population,

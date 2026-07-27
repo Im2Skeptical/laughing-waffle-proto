@@ -664,13 +664,35 @@ function syncSettlementVassalSelectionPauseState() {
 
 function openNextSettlementVassalSelection() {
   settlementLastVassalSelectionResult = null;
-  const frontierState = getSettlementFrontierState();
-  const frontierSec = getSettlementFrontierSec();
+  let frontierState = getSettlementFrontierState();
+  let frontierSec = getSettlementFrontierSec();
+  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   if (isSettlementStateRunComplete(frontierState)) {
     return { ok: false, reason: "runComplete" };
   }
+  if (forecastStatus?.nextVassalEnabled !== true) {
+    return { ok: false, reason: "currentVassalDeathUnresolved" };
+  }
   const currentVassal = getSettlementCurrentVassal(frontierState);
-  if (currentVassal && currentVassal.isDead !== true) return { ok: false, reason: "currentVassalAlive" };
+  if (currentVassal && currentVassal.isDead !== true) {
+    const deathSec = Number.isFinite(forecastStatus?.currentVassalDeathSec)
+      ? Math.max(frontierSec, Math.floor(forecastStatus.currentVassalDeathSec))
+      : null;
+    if (deathSec == null || forecastStatus?.currentVassalDeathResolved !== true) {
+      return { ok: false, reason: "currentVassalDeathUnresolved" };
+    }
+    const commitRes = runner.commitCursorSecond?.(deathSec);
+    if (commitRes?.ok !== true) {
+      return commitRes ?? { ok: false, reason: "commitFailed" };
+    }
+    clearSettlementPendingCommitJob();
+    settlementGraphView?.clearForecastRevealRestart?.();
+    runner.clearPreviewState?.();
+    runner.browseCursorSecond?.(deathSec);
+    invalidateSettlementProjectedLossCache();
+    frontierState = getSettlementFrontierState();
+    frontierSec = getSettlementFrontierSec();
+  }
   settlementVassalSelectionResumeSpeed = shouldResumeAfterBlockingVassalSelection()
     ? getSettlementPlaybackTarget()
     : 0;
@@ -687,29 +709,76 @@ function openNextSettlementVassalSelection() {
 }
 
 function selectSettlementVassal(candidateIndex) {
+  const frontierSec = getSettlementFrontierSec();
   const selectionPool = settlementPendingVassalSelection;
   if (!selectionPool) {
     return { ok: false, reason: "missingSelectionPool" };
   }
+  const selectionSec = Number.isFinite(selectionPool?.createdSec)
+    ? Math.max(0, Math.floor(selectionPool.createdSec))
+    : frontierSec;
+  const isFirstVassalSelection =
+    selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
+  const moveRes = setSettlementViewedSecond(selectionSec);
+  if (moveRes?.ok !== true) {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementVassalChooserView?.refresh?.();
+    settlementLastVassalSelectionResult =
+      moveRes ?? { ok: false, reason: "selectionSeekFailed" };
+    return settlementLastVassalSelectionResult;
+  }
+  settlementGraphView?.resetForecastPreviewState?.();
+  settlementGraphView?.stageProjectionReplacementTransition?.({
+    truncationStartSec: selectionSec,
+    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
+    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
+  });
   const actionPayload = {
     candidateIndex,
     expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
-    tSec: getSettlementFrontierSec(),
+    tSec: selectionSec,
   };
-  const result = runner.dispatchActionAtCurrentSecond?.(
-    ActionKinds.SETTLEMENT_SELECT_VASSAL,
-    actionPayload
-  );
+  const result = isFirstVassalSelection
+    ? runner.dispatchActionAtSecond?.(
+        ActionKinds.SETTLEMENT_SELECT_VASSAL,
+        actionPayload,
+        selectionSec,
+        { reason: "settlementFirstVassalSelection" }
+      )
+    : runner.dispatchActionAtCurrentSecond?.(
+        ActionKinds.SETTLEMENT_SELECT_VASSAL,
+        actionPayload
+      );
   settlementLastVassalSelectionResult = result ?? { ok: false, reason: "dispatchFailed" };
   if (result?.ok) {
+    if (isFirstVassalSelection) {
+      runner.browseCursorSecond?.(selectionSec);
+    }
     settlementPendingVassalSelection = null;
     invalidateSettlementProjectedLossCache();
+    const frontierState = getSettlementFrontierState();
+    const currentVassal = getSettlementCurrentVassal(frontierState);
+    scheduleSettlementPendingCommit(selectionSec, currentVassal);
+    syncSettlementGraphHorizon();
+    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
+      activateProjectionReplacementTransition: true,
+      extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    });
+    returnSettlementViewToPresent(selectionSec);
     settlementVassalSelectionResumeSpeed = 0;
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
     settlementVassalChooserView?.refresh?.();
+  } else if (result?.reason === "currentVassalAlive") {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
+    settlementPendingVassalSelection = null;
+    syncSettlementVassalSelectionPauseState();
+    settlementVassalChooserView?.refresh?.();
   } else {
+    settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementVassalChooserView?.refresh?.();
   }
   return result;
@@ -914,9 +983,9 @@ function jumpCurrentVassalToDeath() {
 
 function getSettlementPrimaryVassalState() {
   const frontierState = getSettlementFrontierState();
+  const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
   const hasPendingSelection = !!settlementPendingVassalSelection;
   const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
-  const currentVassal = getSettlementCurrentVassal(frontierState);
   const runComplete = isSettlementStateRunComplete(frontierState);
   const runCompleteEntry = getLatestRunCompleteEntry(frontierState);
   if (runComplete) {
@@ -929,7 +998,7 @@ function getSettlementPrimaryVassalState() {
     enabled:
       hasPendingSelection !== true &&
       runComplete !== true &&
-      !currentVassal,
+      forecastStatus?.nextVassalEnabled === true,
     label: hasSelectedVassal ? "Next Vassal" : "Intervene",
   };
 }
@@ -1217,8 +1286,8 @@ settlementGraphView = createMetricGraphView({
       forecastPreviewSec: preview?.isForecastPreview ? preview.previewSec : null,
       horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
       zoomed,
-      lineageStartSec: firstSelectedVassal?.birthSec ?? null,
-      currentVassalStartSec: currentVassal?.birthSec ?? null,
+      lineageStartSec: firstSelectedVassal?.selectedSec ?? null,
+      currentVassalStartSec: currentVassal?.selectedSec ?? null,
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
