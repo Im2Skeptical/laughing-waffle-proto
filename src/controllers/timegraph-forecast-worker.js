@@ -99,15 +99,17 @@ function runBuildChunkJob(message) {
         return;
       }
 
-      const done = sliceEndSec >= targetEndSec;
+      const resultEndSec = clampSec(result.endSec, currentBaseSec);
+      const done =
+        result.terminal === true || resultEndSec >= targetEndSec;
       postChunkResult(message, result, {
         baseSec: currentBaseSec,
-        endSec: sliceEndSec,
+        endSec: resultEndSec,
         done,
       });
       if (done) return;
 
-      currentBaseSec = sliceEndSec;
+      currentBaseSec = resultEndSec;
       currentBoundaryStateData = result.lastStateData;
       setTimeout(stepSlice, 0);
     } catch (error) {

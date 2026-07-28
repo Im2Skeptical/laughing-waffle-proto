@@ -220,6 +220,9 @@ export function createTimegraphForecastWorkerService({
         clampSec(entry.coverageEndSec),
         clampSec(message.endSec)
       );
+      if (message.result?.terminal === true) {
+        entry.terminalEndSec = clampSec(message.endSec);
+      }
       entry.lastProgressMs = timeNowMs();
     } else if (message.result?.ok === true) {
       recordSettlementForecastWorkerReject(merged?.reason ?? "mergeFailed");
@@ -309,7 +312,7 @@ export function createTimegraphForecastWorkerService({
       timelineToken,
       historyEndSec: baseSec,
       baseSec: sliceBaseSec,
-      endSec: sliceEndSec,
+      endSec: sliceRes.endSec,
       stepSec: normalizedStepSec,
       stateDataBySecond: Array.from(sliceRes.stateDataBySecond.entries()),
       summaryBySecond: Array.from(sliceRes.summaryBySecond.entries()),
@@ -321,15 +324,20 @@ export function createTimegraphForecastWorkerService({
       });
       entry.coverageEndSec = Math.max(
         clampSec(entry.coverageEndSec),
-        clampSec(sliceEndSec)
+        clampSec(sliceRes.endSec)
       );
+      if (sliceRes.terminal === true) {
+        entry.terminalEndSec = clampSec(sliceRes.endSec);
+      }
       entry.lastProgressMs = timeNowMs();
     }
     return {
       ok: merged?.ok === true,
       reason: merged?.ok === true ? "localFallback" : merged?.reason ?? "localFallbackMergeFailed",
       coverageEndSec: clampSec(entry.coverageEndSec),
-      pending: clampSec(entry.requestedEndSec) > clampSec(entry.coverageEndSec),
+      pending:
+        entry.terminalEndSec == null &&
+        clampSec(entry.requestedEndSec) > clampSec(entry.coverageEndSec),
       requestedEndSec: clampSec(entry.requestedEndSec),
     };
   }
@@ -396,6 +404,7 @@ export function createTimegraphForecastWorkerService({
         lastProgressMs: timeNowMs(),
         inFlight: null,
         primedInitialChunk: false,
+        terminalEndSec: null,
       };
       requestsByKey.set(requestKey, entry);
     } else {
@@ -412,7 +421,9 @@ export function createTimegraphForecastWorkerService({
       entry.coverageEndSec = coverage.coverageEndSec;
     }
 
-    const pending = entry.requestedEndSec > entry.coverageEndSec;
+    const pending =
+      entry.terminalEndSec == null &&
+      entry.requestedEndSec > entry.coverageEndSec;
     if (!pending) {
       return {
         ok: true,
@@ -447,7 +458,7 @@ export function createTimegraphForecastWorkerService({
             timelineToken,
             historyEndSec: baseSec,
             baseSec,
-            endSec: primeEndSec,
+            endSec: primeRes.endSec,
             stepSec: normalizedStepSec,
             stateDataBySecond: Array.from(primeRes.stateDataBySecond.entries()),
             summaryBySecond: Array.from(primeRes.summaryBySecond.entries()),
@@ -459,8 +470,11 @@ export function createTimegraphForecastWorkerService({
             });
             entry.coverageEndSec = Math.max(
               entry.coverageEndSec,
-              clampSec(primeEndSec)
+              clampSec(primeRes.endSec)
             );
+            if (primeRes.terminal === true) {
+              entry.terminalEndSec = clampSec(primeRes.endSec);
+            }
             entry.lastProgressMs = timeNowMs();
           }
         }
@@ -468,7 +482,9 @@ export function createTimegraphForecastWorkerService({
       entry.primedInitialChunk = true;
     }
 
-    const pendingAfterPrime = entry.requestedEndSec > entry.coverageEndSec;
+    const pendingAfterPrime =
+      entry.terminalEndSec == null &&
+      entry.requestedEndSec > entry.coverageEndSec;
     if (!pendingAfterPrime) {
       return {
         ok: true,

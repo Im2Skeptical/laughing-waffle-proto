@@ -14,8 +14,9 @@ three deterministic interventions. Chaos and loss are global; population,
 food, practices, buildings, happiness, and faith are site-local.
 
 The shared HUD shows the viewed civilization year, projected survival year,
-and the best survival year observed across rewinds and saved sessions. The map
-adds a civilization-wide demographic/food/housing/chaos summary above the
+and the best survival year observed across rewinds and saved sessions. A
+completed forecast resolves both values at the civilization-loss boundary. The
+map adds a civilization-wide demographic/food/housing/chaos summary above the
 selected-region card. Fullscreen and Debug controls remain available.
 
 The timegraph is civilization-wide on the map and automatically becomes local

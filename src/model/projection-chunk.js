@@ -173,6 +173,10 @@ function advanceProjectionChunkOneSecond(runtime, sec) {
   };
 }
 
+function isTerminalProjectionSummary(summary) {
+  return summary?.runComplete === true;
+}
+
 export function buildProjectionChunkFromStateData(
   boundaryStateData,
   baseSec,
@@ -192,19 +196,29 @@ export function buildProjectionChunkFromStateData(
   const stateDataBySecond = new Map();
   const summaryBySecond = new Map();
   let lastStateData = serializeProjectionState(runtime.state);
-  summaryBySecond.set(startSec, buildProjectionSummaryFromState(runtime.state));
+  const startSummary = buildProjectionSummaryFromState(runtime.state);
+  summaryBySecond.set(startSec, startSummary);
+  let actualEndSec = startSec;
+  let terminal = isTerminalProjectionSummary(startSummary);
 
-  for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
+  for (
+    let sec = startSec + 1;
+    sec <= targetEndSec && terminal !== true;
+    sec += 1
+  ) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
     if (!stepRes?.ok) return stepRes;
+    actualEndSec = sec;
+    terminal = isTerminalProjectionSummary(stepRes.summary);
     const shouldStoreAnchor =
       (sec - startSec) % stepSec === 0 &&
       shouldStoreStateAnchor(sec, startSec, targetEndSec, stateAnchorStrideSec);
-    const needsSerializedState = shouldStoreAnchor || sec === targetEndSec;
+    const needsSerializedState =
+      shouldStoreAnchor || sec === targetEndSec || terminal;
     if (needsSerializedState) {
       const stateData = serializeProjectionState(runtime.state);
       lastStateData = stateData;
-      if (shouldStoreAnchor) {
+      if (shouldStoreAnchor || terminal) {
         stateDataBySecond.set(sec, stateData);
       }
     }
@@ -214,7 +228,8 @@ export function buildProjectionChunkFromStateData(
   return {
     ok: true,
     baseSec: startSec,
-    endSec: targetEndSec,
+    endSec: actualEndSec,
+    terminal,
     stepSec,
     stateDataBySecond,
     summaryBySecond,
@@ -246,23 +261,33 @@ export function streamProjectionChunkFromStateData(
   let sliceStateDataBySecond = new Map();
   let sliceSummaryBySecond = new Map();
   let lastStateData = serializeProjectionState(runtime.state);
-  sliceSummaryBySecond.set(startSec, buildProjectionSummaryFromState(runtime.state));
+  const startSummary = buildProjectionSummaryFromState(runtime.state);
+  sliceSummaryBySecond.set(startSec, startSummary);
+  let actualEndSec = startSec;
+  let terminal = isTerminalProjectionSummary(startSummary);
 
-  for (let sec = startSec + 1; sec <= targetEndSec; sec += 1) {
+  for (
+    let sec = startSec + 1;
+    sec <= targetEndSec && terminal !== true;
+    sec += 1
+  ) {
     const stepRes = advanceProjectionChunkOneSecond(runtime, sec);
     if (!stepRes?.ok) return stepRes;
+    actualEndSec = sec;
+    terminal = isTerminalProjectionSummary(stepRes.summary);
     sliceSummaryBySecond.set(sec, stepRes.summary);
 
     const reachedSliceBoundary =
-      sec === targetEndSec || sec - sliceBaseSec >= emitSliceSec;
+      terminal || sec === targetEndSec || sec - sliceBaseSec >= emitSliceSec;
     const shouldStoreAnchor =
       (sec - startSec) % stepSec === 0 &&
       shouldStoreStateAnchor(sec, startSec, targetEndSec, stateAnchorStrideSec);
-    const needsSerializedState = shouldStoreAnchor || reachedSliceBoundary;
+    const needsSerializedState =
+      shouldStoreAnchor || reachedSliceBoundary || terminal;
     if (needsSerializedState) {
       const stateData = serializeProjectionState(runtime.state);
       lastStateData = stateData;
-      if (shouldStoreAnchor) {
+      if (shouldStoreAnchor || terminal) {
         sliceStateDataBySecond.set(sec, stateData);
       }
     }
@@ -276,8 +301,10 @@ export function streamProjectionChunkFromStateData(
       stateDataBySecond: sliceStateDataBySecond,
       summaryBySecond: sliceSummaryBySecond,
       lastStateData,
+      terminal,
     };
-    onChunk?.(chunk, { done: sec === targetEndSec });
+    onChunk?.(chunk, { done: terminal || sec === targetEndSec });
+    if (terminal) break;
     sliceBaseSec = sec;
     sliceStateDataBySecond = new Map();
     sliceSummaryBySecond = new Map();
@@ -287,7 +314,8 @@ export function streamProjectionChunkFromStateData(
   return {
     ok: true,
     baseSec: startSec,
-    endSec: targetEndSec,
+    endSec: actualEndSec,
+    terminal,
     stepSec,
     lastStateData,
   };
