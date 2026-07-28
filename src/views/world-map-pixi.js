@@ -108,6 +108,36 @@ export function getEdgeTransferPacketPose({
   };
 }
 
+export function getEdgeTransferPacketFacing(from, to) {
+  const dx = Number(to?.x ?? from?.x ?? 0) - Number(from?.x ?? 0);
+  const dy = Number(to?.y ?? from?.y ?? 0) - Number(from?.y ?? 0);
+  const length = Math.max(0.0001, Math.hypot(dx, dy));
+  const directionX = dx / length;
+  const directionY = dy / length;
+  return {
+    directionX,
+    directionY,
+    angle: Math.atan2(directionY, directionX),
+  };
+}
+
+export function getEdgeTransferPacketVisualSpec({
+  sourcePoint,
+  destinationPoint,
+  reversed = false,
+  laneOffset = 0,
+} = {}) {
+  const isReversed = reversed === true;
+  const authoredLaneOffset = Number(laneOffset ?? 0);
+  return {
+    from: isReversed ? destinationPoint : sourcePoint,
+    to: isReversed ? sourcePoint : destinationPoint,
+    facingFrom: sourcePoint,
+    facingTo: destinationPoint,
+    laneOffset: isReversed ? -authoredLaneOffset : authoredLaneOffset,
+  };
+}
+
 function viewNowMs() {
   return typeof performance !== "undefined" &&
     typeof performance.now === "function"
@@ -509,21 +539,24 @@ export function createWorldMapView({
       const routeIndex = routeCounts.get(routeKey) ?? 0;
       routeCounts.set(routeKey, routeIndex + 1);
       const reversed = edgeTransferPlaybackDirection < 0;
+      const sourcePoint = screenPoint(source.display.labelPoint);
+      const destinationPoint = screenPoint(destination.display.labelPoint);
+      const authoredLaneOffset = [0, -9, 9][routeIndex % 3];
+      const visualSpec = getEdgeTransferPacketVisualSpec({
+        sourcePoint,
+        destinationPoint,
+        reversed,
+        laneOffset: authoredLaneOffset,
+      });
       activeEdgeTransferPackets.push({
         ...transfer,
+        ...visualSpec,
         reversed,
         playbackDirection: reversed ? "backward" : "forward",
         startedMs:
           nowMs +
           routeIndex * EDGE_TRANSFER_PACKET_STAGGER_MS,
         durationMs: EDGE_TRANSFER_PACKET_DURATION_MS,
-        laneOffset: [0, -9, 9][routeIndex % 3],
-        from: screenPoint(
-          (reversed ? destination : source).display.labelPoint
-        ),
-        to: screenPoint(
-          (reversed ? source : destination).display.labelPoint
-        ),
       });
     }
     if (activeEdgeTransferPackets.length > EDGE_TRANSFER_PACKET_MAX_ACTIVE) {
@@ -549,6 +582,10 @@ export function createWorldMapView({
         progress: rawProgress,
         laneOffset: packet.laneOffset,
       });
+      const facing = getEdgeTransferPacketFacing(
+        packet.facingFrom,
+        packet.facingTo
+      );
       const fadeIn = Math.min(1, rawProgress / 0.12);
       const fadeOut = Math.min(1, (1 - rawProgress) / 0.2);
       const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
@@ -556,36 +593,36 @@ export function createWorldMapView({
         EDGE_TRANSFER_RESOURCE_COLOURS[packet.resourceId] ?? PALETTE.text;
       const size =
         9 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
-      const tailX = pose.x - pose.directionX * (size + 9);
-      const tailY = pose.y - pose.directionY * (size + 9);
-      const perpendicularX = -pose.directionY;
-      const perpendicularY = pose.directionX;
+      const tailX = pose.x - facing.directionX * (size + 9);
+      const tailY = pose.y - facing.directionY * (size + 9);
+      const perpendicularX = -facing.directionY;
+      const perpendicularY = facing.directionX;
       edgeTransferGraphics.lineStyle(5, color, alpha * 0.42);
       edgeTransferGraphics.moveTo(tailX, tailY);
       edgeTransferGraphics.lineTo(pose.x, pose.y);
       edgeTransferGraphics.lineStyle(2, 0x302d2a, alpha);
       edgeTransferGraphics.beginFill(color, alpha);
       edgeTransferGraphics.drawPolygon([
-        pose.x + pose.directionX * size,
-        pose.y + pose.directionY * size,
+        pose.x + facing.directionX * size,
+        pose.y + facing.directionY * size,
         pose.x -
-          pose.directionX * size * 0.72 +
+          facing.directionX * size * 0.72 +
           perpendicularX * size * 0.7,
         pose.y -
-          pose.directionY * size * 0.72 +
+          facing.directionY * size * 0.72 +
           perpendicularY * size * 0.7,
         pose.x -
-          pose.directionX * size * 0.72 -
+          facing.directionX * size * 0.72 -
           perpendicularX * size * 0.7,
         pose.y -
-          pose.directionY * size * 0.72 -
+          facing.directionY * size * 0.72 -
           perpendicularY * size * 0.7,
       ]);
       edgeTransferGraphics.endFill();
       edgeTransferGraphics.beginFill(0xfff4bf, alpha * 0.9);
       edgeTransferGraphics.drawCircle(
-        pose.x - pose.directionX * size * 0.22,
-        pose.y - pose.directionY * size * 0.22,
+        pose.x - facing.directionX * size * 0.22,
+        pose.y - facing.directionY * size * 0.22,
         Math.max(2, size * 0.24)
       );
       edgeTransferGraphics.endFill();
@@ -912,6 +949,10 @@ export function createWorldMapView({
             progress: rawProgress,
             laneOffset: packet.laneOffset,
           });
+          const facing = getEdgeTransferPacketFacing(
+            packet.facingFrom,
+            packet.facingTo
+          );
           return {
             transferId: packet.transferId,
             resourceId: packet.resourceId,
@@ -923,7 +964,9 @@ export function createWorldMapView({
             progress: clamp01(rawProgress),
             x: pose.x,
             y: pose.y,
-            angle: pose.angle,
+            angle: facing.angle,
+            facingAngle: facing.angle,
+            travelAngle: pose.angle,
           };
         }),
       };

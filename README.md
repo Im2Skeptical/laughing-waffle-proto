@@ -25,8 +25,9 @@ identity and details. Administration food packets appear as staggered gold
 directional markers travelling between connected regions, making supply routes
 visible during forecast unveiling and timeline browsing. Their playback follows
 the playhead: forward time shows the transfer normally, while rewinding shows
-the marker travelling back toward its source. Changing direction replaces any
-in-flight markers so their triangle noses always face their actual travel.
+the marker travelling backward toward its source while its triangle remains
+oriented toward the historical destination, like film running in reverse.
+Changing direction replaces any stale in-flight presentation markers.
 
 The timegraph is civilization-wide on the map and automatically becomes local
 when a settlement is opened. Its title always identifies that scope. The

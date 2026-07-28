@@ -28,7 +28,9 @@ import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
 import {
+  getEdgeTransferPacketFacing,
   getEdgeTransferPacketPose,
+  getEdgeTransferPacketVisualSpec,
   getWorkerIndicatorPresentation,
   resolveEdgeTransferPlaybackDirection,
 } from "../../views/world-map-pixi.js";
@@ -141,6 +143,40 @@ assert.equal(packetPose.x, 60);
 assert.equal(packetPose.y, 20);
 assert.equal(packetPose.directionX, 1);
 assert.equal(packetPose.directionY, 0);
+const rewindPacketPose = getEdgeTransferPacketPose({
+  from: { x: 100, y: 20 },
+  to: { x: 0, y: 20 },
+  progress: 0.4,
+  laneOffset: 9,
+});
+const matchingForwardPose = getEdgeTransferPacketPose({
+  from: { x: 0, y: 20 },
+  to: { x: 100, y: 20 },
+  progress: 0.6,
+  laneOffset: -9,
+});
+const fixedPacketFacing = getEdgeTransferPacketFacing(
+  { x: 0, y: 20 },
+  { x: 100, y: 20 }
+);
+const rewindVisualSpec = getEdgeTransferPacketVisualSpec({
+  sourcePoint: { x: 0, y: 20 },
+  destinationPoint: { x: 100, y: 20 },
+  reversed: true,
+  laneOffset: -9,
+});
+assert.equal(rewindPacketPose.directionX, -1);
+assert.ok(Math.abs(rewindPacketPose.x - matchingForwardPose.x) < 0.0001);
+assert.ok(Math.abs(rewindPacketPose.y - matchingForwardPose.y) < 0.0001);
+assert.equal(fixedPacketFacing.directionX, 1);
+assert.equal(fixedPacketFacing.angle, 0);
+assert.deepEqual(rewindVisualSpec, {
+  from: { x: 100, y: 20 },
+  to: { x: 0, y: 20 },
+  facingFrom: { x: 0, y: 20 },
+  facingTo: { x: 100, y: 20 },
+  laneOffset: 9,
+});
 assert.equal(resolveEdgeTransferPlaybackDirection(null, 12), 1);
 assert.equal(resolveEdgeTransferPlaybackDirection(12, 18), 1);
 assert.equal(resolveEdgeTransferPlaybackDirection(18, 12), -1);
