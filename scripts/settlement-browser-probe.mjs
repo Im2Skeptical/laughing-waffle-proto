@@ -154,6 +154,28 @@ try {
       graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec
     );
   });
+  const revealFollowStart = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
+  );
+  assert.equal(revealFollowStart.forecastRevealPlayheadFollowEnabled, true);
+  assert.ok(
+    Math.abs(
+      revealFollowStart.scrubSec -
+      revealFollowStart.revealedCoverageEndSec
+    ) <= 1,
+    "playhead begins on the visible reveal edge"
+  );
+  await page.waitForFunction(
+    (startSec) => {
+      const graph = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.graph;
+      return (
+        graph?.forecastRevealPlayheadFollowEnabled === true &&
+        graph.revealedCoverageEndSec > startSec + 1 &&
+        Math.abs(graph.scrubSec - graph.revealedCoverageEndSec) <= 1
+      );
+    },
+    revealFollowStart.revealedCoverageEndSec
+  );
   const cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);
@@ -298,6 +320,47 @@ try {
     viewport: { width: 1280, height: 800 },
   });
   await terminalPage.goto(URL);
+  await terminalPage.waitForFunction(() => {
+    const graph = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.graph;
+    return (
+      graph?.forecastRevealPlayheadFollowEnabled === true &&
+      graph.revealedCoverageEndSec > 320 &&
+      graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec
+    );
+  });
+  const followingGraph = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
+  );
+  const manualTarget = {
+    x: followingGraph.plotScreenRect.x +
+      followingGraph.plotScreenRect.width * 0.2,
+    y: followingGraph.plotScreenRect.y +
+      followingGraph.plotScreenRect.height * 0.5,
+  };
+  await terminalPage.mouse.click(manualTarget.x, manualTarget.y);
+  await delay(100);
+  const manualGraph = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
+  );
+  assert.equal(
+    manualGraph.forecastRevealPlayheadFollowEnabled,
+    false,
+    "manual scrubbing takes ownership of the playhead"
+  );
+  const manualScrubSec = manualGraph.scrubSec;
+  await delay(350);
+  await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.forceRender()
+  );
+  const manualGraphLater = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
+  );
+  assert.equal(manualGraphLater.scrubSec, manualScrubSec);
+  assert.ok(
+    manualGraphLater.revealedCoverageEndSec >= manualGraph.revealedCoverageEndSec,
+    "forecast reveal continues without stealing back a manually placed playhead"
+  );
+  await terminalPage.reload();
   await terminalPage.waitForFunction(
     () => {
       const tracker =
@@ -333,6 +396,7 @@ try {
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",
+      "forecast unveil advances the playhead until manual scrub ownership",
       "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",

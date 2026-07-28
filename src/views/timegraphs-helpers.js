@@ -22,6 +22,32 @@ export function resolveDefaultGraphScrubSec({
   return Math.max(0, Math.floor(currentSec ?? 0));
 }
 
+export function resolveForecastRevealPlayheadSec({
+  followEnabled,
+  isScrubbing,
+  latchedForecastScrubSec,
+  forecastPreviewSec,
+  visibleForecastCoverageEndSec,
+  minSec = 0,
+  maxSec = Number.POSITIVE_INFINITY,
+} = {}) {
+  if (
+    followEnabled !== true ||
+    isScrubbing === true ||
+    Number.isFinite(latchedForecastScrubSec) ||
+    Number.isFinite(forecastPreviewSec) ||
+    !Number.isFinite(visibleForecastCoverageEndSec)
+  ) {
+    return null;
+  }
+  const min = Math.max(0, Math.floor(minSec ?? 0));
+  const max = Math.max(min, Math.floor(maxSec ?? min));
+  return Math.max(
+    min,
+    Math.min(max, Math.floor(visibleForecastCoverageEndSec))
+  );
+}
+
 export function reconcileLatchedForecastPreview({
   previewStatus,
   statusNote,

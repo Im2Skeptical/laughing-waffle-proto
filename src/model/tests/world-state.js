@@ -24,6 +24,7 @@ import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
 import { getWorkerIndicatorPresentation } from "../../views/world-map-pixi.js";
+import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers.js";
 
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
@@ -56,6 +57,33 @@ assert.deepEqual(getWorkerIndicatorPresentation(7), {
   renderedPawnCount: 5,
   badgeValue: 7,
 });
+assert.equal(
+  resolveForecastRevealPlayheadSec({
+    followEnabled: true,
+    visibleForecastCoverageEndSec: 127.9,
+    minSec: 0,
+    maxSec: 320,
+  }),
+  127,
+  "automatic playhead follows the visible reveal edge"
+);
+assert.equal(
+  resolveForecastRevealPlayheadSec({
+    followEnabled: false,
+    visibleForecastCoverageEndSec: 180,
+  }),
+  null,
+  "manual playhead ownership disables reveal following"
+);
+assert.equal(
+  resolveForecastRevealPlayheadSec({
+    followEnabled: true,
+    latchedForecastScrubSec: 90,
+    visibleForecastCoverageEndSec: 180,
+  }),
+  null,
+  "a latched forecast preview is never overwritten by reveal following"
+);
 
 const civilizationSummary = getDetailedCivilizationSummary(state);
 assert.deepEqual(civilizationSummary.regionIds, [
