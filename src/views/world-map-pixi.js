@@ -3,9 +3,7 @@ import {
   getRegionDefinition,
   getRegionPolygon,
   getRegionState,
-  getSitesInRegion,
   getWorldDefinition,
-  getWorldVertex,
 } from "../model/world-state.js";
 import {
   getDetailedCivilizationSummary,
@@ -15,7 +13,7 @@ import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
 } from "./civilization-survival-hud.js";
-import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
+import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 104, width: 1640, height: 704 });
@@ -37,6 +35,7 @@ const REGION_COLOURS = Object.freeze({
 const CONTROLLER_COLOURS = Object.freeze({
   player: 0xe8c96c, frontier: 0xd5d0c6, "external-a": 0xc17a57, "external-b": 0x8b72b1,
 });
+const MAX_RENDERED_WORKER_PAWNS = 5;
 
 function screenPoint(point) {
   return {
@@ -61,17 +60,253 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   parent.addChild(root);
 }
 
+function getActiveWorkerCount(viewModel) {
+  return (viewModel?.practices ?? []).reduce(
+    (total, practice) =>
+      total + (Array.isArray(practice?.workers?.tokens)
+        ? practice.workers.tokens.length
+        : 0),
+    0
+  );
+}
+
+export function getWorkerIndicatorPresentation(workerCount) {
+  const activeWorkerCount = Number.isFinite(workerCount)
+    ? Math.max(0, Math.floor(workerCount))
+    : 0;
+  return {
+    activeWorkerCount,
+    renderedPawnCount: Math.min(
+      activeWorkerCount,
+      MAX_RENDERED_WORKER_PAWNS
+    ),
+    badgeValue:
+      activeWorkerCount > MAX_RENDERED_WORKER_PAWNS
+        ? activeWorkerCount
+        : null,
+  };
+}
+
+function buildRegionMapIndicators(state, definition) {
+  return definition.regions.map((regionDef) => {
+    const region = getRegionState(state, regionDef.id);
+    const viewModel = getDetailedSettlementViewModel(state, regionDef.id);
+    const activeWorkerCount = getActiveWorkerCount(viewModel);
+    const workerPresentation =
+      getWorkerIndicatorPresentation(activeWorkerCount);
+    return {
+      regionId: regionDef.id,
+      controller: region?.controller ?? null,
+      showsPlayerMarker: region?.controller === "player",
+      hasDetailedSettlement: viewModel != null,
+      ...workerPresentation,
+      usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
+      structureCapacity: viewModel?.structureCapacity ?? 0,
+      structureSlots: (viewModel?.structures ?? []).map((slot) =>
+        slot?.structureId ?? null
+      ),
+    };
+  });
+}
+
+function addPawnGlyph(
+  parent,
+  x,
+  y,
+  { color = PALETTE.text, alpha = 1, scale = 1 } = {}
+) {
+  const pawn = new PIXI.Graphics();
+  pawn.lineStyle(2 * scale, 0x302d2a, Math.min(1, alpha + 0.1));
+  pawn.beginFill(color, alpha);
+  pawn.drawCircle(x, y - 6 * scale, 4 * scale);
+  pawn.drawPolygon([
+    x - 5 * scale, y + 8 * scale,
+    x + 5 * scale, y + 8 * scale,
+    x + 3 * scale, y - 1 * scale,
+    x - 3 * scale, y - 1 * scale,
+  ]);
+  pawn.endFill();
+  pawn.eventMode = "none";
+  parent.addChild(pawn);
+}
+
+function addWorkerIndicator(parent, point, workerCount) {
+  const presentation = getWorkerIndicatorPresentation(workerCount);
+  const renderedCount = presentation.renderedPawnCount;
+  const displayCount = Math.max(1, renderedCount);
+  const gap = 19;
+  const pillWidth = displayCount * gap + 15;
+  const pill = new PIXI.Graphics();
+  roundedRect(
+    pill,
+    point.x - pillWidth / 2,
+    point.y - 46,
+    pillWidth,
+    28,
+    14,
+    PALETTE.black,
+    0x302d2a,
+    2,
+    0.62,
+    0.75
+  );
+  pill.eventMode = "none";
+  parent.addChild(pill);
+
+  const startX = point.x - ((displayCount - 1) * gap) / 2;
+  if (renderedCount === 0) {
+    addPawnGlyph(parent, startX, point.y - 32, {
+      color: PALETTE.textMuted,
+      alpha: 0.28,
+    });
+  } else {
+    for (let index = 0; index < renderedCount; index += 1) {
+      addPawnGlyph(parent, startX + index * gap, point.y - 32, {
+        color: PALETTE.text,
+      });
+    }
+  }
+
+  if (presentation.badgeValue != null) {
+    const badgeX = startX + (renderedCount - 1) * gap + 7;
+    const badgeY = point.y - 43;
+    const badge = new PIXI.Graphics();
+    badge.lineStyle(2, 0x302d2a, 1);
+    badge.beginFill(PALETTE.accent, 1);
+    badge.drawCircle(badgeX, badgeY, 10);
+    badge.endFill();
+    badge.eventMode = "none";
+    parent.addChild(
+      badge,
+      createText(
+        String(presentation.badgeValue),
+        { ...TEXT_STYLES.chip, fontSize: 11, fill: 0x302d2a },
+        badgeX,
+        badgeY + 1,
+        0.5,
+        0.5
+      )
+    );
+  }
+}
+
+function addStructureGlyph(parent, x, y, structureId) {
+  const occupied = typeof structureId === "string";
+  const building = new PIXI.Graphics();
+  const color = occupied ? PALETTE.accent : PALETTE.textMuted;
+  const alpha = occupied ? 1 : 0.3;
+  building.lineStyle(2, color, occupied ? 1 : 0.65);
+
+  if (occupied && structureId.toLowerCase().includes("granary")) {
+    building.beginFill(color, alpha);
+    building.drawRoundedRect(x - 6, y - 8, 12, 16, 4);
+    building.endFill();
+    building.moveTo(x - 7, y - 8);
+    building.lineTo(x, y - 13);
+    building.lineTo(x + 7, y - 8);
+  } else {
+    if (occupied) building.beginFill(color, alpha);
+    building.drawRect(x - 7, y - 5, 14, 13);
+    if (occupied) building.endFill();
+    building.moveTo(x - 9, y - 5);
+    building.lineTo(x, y - 13);
+    building.lineTo(x + 9, y - 5);
+  }
+
+  building.lineStyle(2, color, alpha);
+  building.moveTo(x - 9, y + 10);
+  building.lineTo(x + 9, y + 10);
+  building.eventMode = "none";
+  parent.addChild(building);
+}
+
+function addStructureIndicator(parent, point, structureSlots) {
+  const slots = Array.isArray(structureSlots) ? structureSlots : [];
+  if (slots.length === 0) return;
+  const gap = 27;
+  const pillWidth = slots.length * gap + 16;
+  const pill = new PIXI.Graphics();
+  roundedRect(
+    pill,
+    point.x - pillWidth / 2,
+    point.y + 18,
+    pillWidth,
+    32,
+    8,
+    PALETTE.black,
+    0x302d2a,
+    2,
+    0.62,
+    0.75
+  );
+  pill.eventMode = "none";
+  parent.addChild(pill);
+  const startX = point.x - ((slots.length - 1) * gap) / 2;
+  slots.forEach((structureId, index) => {
+    addStructureGlyph(parent, startX + index * gap, point.y + 36, structureId);
+  });
+}
+
+function addPlayerOwnershipMarker(parent, point, { selected = false } = {}) {
+  const marker = new PIXI.Graphics();
+  const radius = selected ? 17 : 14;
+  marker.lineStyle(selected ? 5 : 3, selected ? PALETTE.text : 0x302d2a, 1);
+  marker.beginFill(PALETTE.accent, 1);
+  marker.drawCircle(point.x, point.y, radius);
+  marker.endFill();
+  marker.lineStyle(3, 0x302d2a, 1);
+  marker.moveTo(point.x - 3, point.y + 7);
+  marker.lineTo(point.x - 3, point.y - 8);
+  marker.beginFill(0x302d2a, 1);
+  marker.drawPolygon([
+    point.x - 2, point.y - 8,
+    point.x + 8, point.y - 4,
+    point.x - 2, point.y,
+  ]);
+  marker.endFill();
+  marker.eventMode = "none";
+  parent.addChild(marker);
+}
+
+function addMapIndicatorLegend(parent) {
+  addPawnGlyph(parent, 382, 81, { color: PALETTE.text, scale: 0.8 });
+  parent.addChild(
+    createText(
+      "active workers",
+      { ...TEXT_STYLES.muted, fontSize: 13 },
+      397,
+      81,
+      0,
+      0.5
+    )
+  );
+  addStructureGlyph(parent, 548, 82, "mudHouses");
+  addStructureGlyph(parent, 572, 82, null);
+  parent.addChild(
+    createText(
+      "occupied / open structure slots",
+      { ...TEXT_STYLES.muted, fontSize: 13 },
+      590,
+      81,
+      0,
+      0.5
+    )
+  );
+}
+
 function signature(
   state,
   selectedRegionId,
   civilizationSummary,
-  survivalTracker
+  survivalTracker,
+  regionMapIndicators
 ) {
   return JSON.stringify({
     selectedRegionId,
     regions: state?.world?.regions,
     civilizationSummary,
     survivalTracker,
+    regionMapIndicators,
     sites: state?.world?.sites?.map((site) => ({
       regionId: site.regionId,
       food: [site.detailedState?.storedFood, site.detailedState?.looseFood],
@@ -105,11 +340,13 @@ export function createWorldMapView({
       state,
       civilizationLossInfo
     );
+    const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const nextSignature = signature(
       state,
       selectedRegionId,
       civilizationSummary,
-      survivalTracker
+      survivalTracker,
+      regionMapIndicators
     );
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
@@ -133,6 +370,7 @@ export function createWorldMapView({
       civilizationLossInfo,
       rect: { x: 660, y: 9, width: 1030, height: 54 },
     });
+    addMapIndicatorLegend(root);
 
     const mapPanel = new PIXI.Graphics();
     roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
@@ -176,24 +414,24 @@ export function createWorldMapView({
     edges.eventMode = "none";
     root.addChild(edges);
 
-    for (const regionDef of definition.regions) {
-      const region = getRegionState(state, regionDef.id);
+    for (const indicator of regionMapIndicators) {
+      if (!indicator.showsPlayerMarker && !indicator.hasDetailedSettlement) {
+        continue;
+      }
+      const regionDef = definition.regions.find(
+        (entry) => entry.id === indicator.regionId
+      );
+      if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
-      const site = getSitesInRegion(state, region.id)[0] ?? null;
-      const viewModel = site ? getDetailedSettlementViewModel(state, region.id) : null;
-      const nameLabel = createWrappedText(regionDef.name, {
-        ...TEXT_STYLES.chip, fontSize: 13, align: "center", stroke: 0x333333, strokeThickness: 3,
-      }, point.x, point.y - 16, 150, 0.5, 0.5);
-      nameLabel.eventMode = "none";
-      root.addChild(nameLabel);
-      const summary = viewModel
-        ? `${viewModel.usedStructureCapacity}/${viewModel.structureCapacity} structures`
-        : `${region.structureCapacity} spaces`;
-      const capacityLabel = createText(summary, {
-        ...TEXT_STYLES.muted, fontSize: 11, fill: 0xffffff, stroke: 0x333333, strokeThickness: 3,
-      }, point.x, point.y + 16, 0.5, 0.5);
-      capacityLabel.eventMode = "none";
-      root.addChild(capacityLabel);
+      if (indicator.hasDetailedSettlement) {
+        addWorkerIndicator(root, point, indicator.activeWorkerCount);
+        addStructureIndicator(root, point, indicator.structureSlots);
+      }
+      if (indicator.showsPlayerMarker) {
+        addPlayerOwnershipMarker(root, point, {
+          selected: indicator.regionId === selectedRegionId,
+        });
+      }
     }
 
     const civilizationPanel = new PIXI.Graphics();
@@ -335,6 +573,10 @@ export function createWorldMapView({
         state,
         getCivilizationLossInfo?.() ?? null
       );
+      const definition = getWorldDefinition(state);
+      const regionMapIndicators = definition
+        ? buildRegionMapIndicators(state, definition)
+        : [];
       return {
         visible: root.visible === true,
         selectedRegionId: regionId,
@@ -349,6 +591,8 @@ export function createWorldMapView({
         } : null,
         detailedSiteMarkerCount: getDetailedSettlementViewModel
           ? state?.world?.sites?.length ?? 0 : 0,
+        regionNameLabelsVisible: false,
+        regionMapIndicators,
       };
     },
     getRegionClickPoint: (regionId) => {

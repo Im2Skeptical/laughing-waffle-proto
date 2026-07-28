@@ -23,6 +23,7 @@ import {
 import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
+import { getWorkerIndicatorPresentation } from "../../views/world-map-pixi.js";
 
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
@@ -40,6 +41,21 @@ for (const site of getDetailedSettlementSites(state)) {
   assert.equal(view.usedStructureCapacity, 3);
   assert.equal(view.storedFood, 60);
 }
+assert.deepEqual(getWorkerIndicatorPresentation(0), {
+  activeWorkerCount: 0,
+  renderedPawnCount: 0,
+  badgeValue: null,
+});
+assert.deepEqual(getWorkerIndicatorPresentation(3), {
+  activeWorkerCount: 3,
+  renderedPawnCount: 3,
+  badgeValue: null,
+});
+assert.deepEqual(getWorkerIndicatorPresentation(7), {
+  activeWorkerCount: 7,
+  renderedPawnCount: 5,
+  badgeValue: 7,
+});
 
 const civilizationSummary = getDetailedCivilizationSummary(state);
 assert.deepEqual(civilizationSummary.regionIds, [
