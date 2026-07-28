@@ -12,6 +12,13 @@ import { clearChildren, createText, createWrappedText, roundedRect } from "./set
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 756 });
+export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
+  survival: Object.freeze({ x: 590, y: 9, width: 1080, height: 54 }),
+  overview: Object.freeze({ x: 1690, y: 14, width: 150, height: 44 }),
+  demographics: Object.freeze({ x: 1850, y: 14, width: 190, height: 44 }),
+  map: Object.freeze({ x: 2050, y: 14, width: 126, height: 44 }),
+  utilityReserve: Object.freeze({ x: 2190, y: 0, width: 234, height: 70 }),
+});
 
 function addButton(parent, rect, label, selected, onPress) {
   const root = new PIXI.Container();
@@ -80,13 +87,13 @@ export function createSettlementPrototypeView({
     addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
-      rect: { x: 590, y: 9, width: 1260, height: 54 },
+      rect: SETTLEMENT_HEADER_LAYOUT.survival,
     });
-    addButton(root, { x: 1890, y: 14, width: 150, height: 44 }, "Overview",
+    addButton(root, SETTLEMENT_HEADER_LAYOUT.overview, "Overview",
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
-    addButton(root, { x: 2050, y: 14, width: 190, height: 44 }, "Demographics",
+    addButton(root, SETTLEMENT_HEADER_LAYOUT.demographics, "Demographics",
       activeTab === "demographics", () => { activeTab = "demographics"; lastSignature = ""; });
-    addButton(root, { x: 2250, y: 14, width: 126, height: 44 }, "Map", false, onReturnToMap);
+    addButton(root, SETTLEMENT_HEADER_LAYOUT.map, "Map", false, onReturnToMap);
 
     if (activeTab === "overview") {
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
@@ -216,6 +223,7 @@ export function createSettlementPrototypeView({
         label: survivalTracker.calendarLabel,
       },
       survivalTracker,
+      headerControls: SETTLEMENT_HEADER_LAYOUT,
       overview: vm,
       demographics: {
         population: vm.population,
