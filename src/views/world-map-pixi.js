@@ -476,7 +476,13 @@ export function createWorldMapView({
       viewedSec
     );
     if (nextPlaybackDirection !== 0) {
+      const playbackDirectionChanged =
+        nextPlaybackDirection !== edgeTransferPlaybackDirection;
       edgeTransferPlaybackDirection = nextPlaybackDirection;
+      if (playbackDirectionChanged) {
+        lastEdgeTransferBatchKey = null;
+        activeEdgeTransferPackets = [];
+      }
     }
     lastEdgeTransferViewedSec = viewedSec;
     const batch = getEdgeTransferBatch?.() ?? null;

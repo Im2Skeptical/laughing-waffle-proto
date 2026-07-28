@@ -439,7 +439,8 @@ try {
       graph?.forecastRevealPlayheadFollowEnabled === true &&
       graph.revealedCoverageEndSec > 320 &&
       graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec &&
-      snapshot?.worldMap?.activeEdgeTransferPackets?.some(
+      snapshot?.worldMap?.activeEdgeTransferPackets?.length > 0 &&
+      snapshot.worldMap.activeEdgeTransferPackets.every(
         (packet) => packet.reversed === false
       )
     );
@@ -482,7 +483,8 @@ try {
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
     return (
       worldMap.edgeTransferPlaybackDirection === "backward" &&
-      worldMap.activeEdgeTransferPackets?.some(
+      worldMap.activeEdgeTransferPackets?.length > 0 &&
+      worldMap.activeEdgeTransferPackets.every(
         (packet) => packet.reversed === true
       )
     );
@@ -490,9 +492,7 @@ try {
   const rewindAnimation = await terminalPage.evaluate(() => {
     const debug = globalThis.__SETTLEMENT_DEBUG__;
     const worldMap = debug.getSnapshot().worldMap;
-    const packet = worldMap.activeEdgeTransferPackets.find(
-      (entry) => entry.reversed === true
-    );
+    const packet = worldMap.activeEdgeTransferPackets[0];
     return {
       playbackDirection: worldMap.edgeTransferPlaybackDirection,
       packet,
