@@ -21,7 +21,9 @@ selected-region card. Fullscreen and Debug controls remain available.
 On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
 and filled/open structure-slot glyphs. Non-detailed regions show their authored
 capacity as open slots; the selected-region card retains the full regional
-identity and details.
+identity and details. Administration food packets appear as staggered gold
+directional markers travelling between connected regions, making supply routes
+visible during forecast unveiling and timeline browsing.
 
 The timegraph is civilization-wide on the map and automatically becomes local
 when a settlement is opened. Its title always identifies that scope. The

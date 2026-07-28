@@ -9,6 +9,10 @@ import {
 } from "../detailed-settlements.js";
 import { GRAPH_METRICS } from "../graph-metrics.js";
 import {
+  buildEdgeTransferBatchAtBoundary,
+  getLatestEdgeTransferBoundarySec,
+} from "../edge-transfers.js";
+import {
   rememberMaxObservedCivilizationSurvivalYear,
 } from "../persistent-memory.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
@@ -23,7 +27,10 @@ import {
 import { validateWorldDefinition, validateWorldState } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
-import { getWorkerIndicatorPresentation } from "../../views/world-map-pixi.js";
+import {
+  getEdgeTransferPacketPose,
+  getWorkerIndicatorPresentation,
+} from "../../views/world-map-pixi.js";
 import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers.js";
 
 const state = createInitialState("devPlaytesting01", 24680);
@@ -84,6 +91,55 @@ assert.equal(
   null,
   "a latched forecast preview is never overwritten by reveal following"
 );
+assert.equal(getLatestEdgeTransferBoundarySec(17), 12);
+const transferTimeline = createTimelineFromInitialState(
+  createInitialState("devPlaytesting01", 24680)
+);
+const preTransferBoundary = rebuildStateAtSecond(transferTimeline, 11);
+assert.equal(preTransferBoundary.ok, true);
+const preTransferStateData = serializeGameState(preTransferBoundary.state);
+const transferBatch = buildEdgeTransferBatchAtBoundary(
+  preTransferBoundary.state,
+  12
+);
+assert.ok(transferBatch.transfers.length > 0);
+assert.deepEqual(
+  serializeGameState(preTransferBoundary.state),
+  preTransferStateData,
+  "edge-transfer selection is pure"
+);
+for (const transfer of transferBatch.transfers) {
+  assert.equal(transfer.systemId, "administrate");
+  assert.equal(transfer.resourceId, "food");
+  assert.ok(transfer.amount > 0);
+  assert.ok(
+    preTransferBoundary.state.world.connections.some(
+      (edge) =>
+        (edge.regionAId === transfer.sourceRegionId &&
+          edge.regionBId === transfer.destinationRegionId) ||
+        (edge.regionBId === transfer.sourceRegionId &&
+          edge.regionAId === transfer.destinationRegionId)
+    ),
+    "rendered packets only use authored map edges"
+  );
+}
+assert.deepEqual(
+  buildEdgeTransferBatchAtBoundary(
+    rebuildStateAtSecond(transferTimeline, 11).state,
+    12
+  ),
+  transferBatch,
+  "edge-transfer batches are replay deterministic"
+);
+const packetPose = getEdgeTransferPacketPose({
+  from: { x: 10, y: 20 },
+  to: { x: 110, y: 20 },
+  progress: 0.5,
+});
+assert.equal(packetPose.x, 60);
+assert.equal(packetPose.y, 20);
+assert.equal(packetPose.directionX, 1);
+assert.equal(packetPose.directionY, 0);
 
 const civilizationSummary = getDetailedCivilizationSummary(state);
 assert.deepEqual(civilizationSummary.regionIds, [

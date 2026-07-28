@@ -217,6 +217,43 @@ try {
     revealPreview.worldMap.survivalTracker.year > 1,
     "the map calendar advances with the unveiling playhead"
   );
+  await page.waitForFunction(() => {
+    const worldMap =
+      globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap;
+    return (
+      worldMap?.activeEdgeTransferPacketCount > 0 &&
+      worldMap?.edgeTransferBatch?.transfers?.length > 0
+    );
+  });
+  const transferAnimation = await page.evaluate(() => {
+    const debug = globalThis.__SETTLEMENT_DEBUG__;
+    const worldMap = debug.getSnapshot().worldMap;
+    const packet = worldMap.activeEdgeTransferPackets[0];
+    return {
+      packet,
+      source: debug.getWorldMapClickPoint(packet.sourceRegionId),
+      destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
+    };
+  });
+  assert.equal(transferAnimation.packet.resourceId, "food");
+  assert.ok(transferAnimation.packet.amount > 0);
+  assert.ok(
+    transferAnimation.packet.progress >= 0 &&
+      transferAnimation.packet.progress <= 1
+  );
+  const expectedAngle = Math.atan2(
+    transferAnimation.destination.y - transferAnimation.source.y,
+    transferAnimation.destination.x - transferAnimation.source.x
+  );
+  assert.ok(
+    Math.abs(
+      Math.atan2(
+        Math.sin(transferAnimation.packet.angle - expectedAngle),
+        Math.cos(transferAnimation.packet.angle - expectedAngle)
+      )
+    ) < 0.001,
+    "food packet points from its source region toward its destination"
+  );
   const cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);

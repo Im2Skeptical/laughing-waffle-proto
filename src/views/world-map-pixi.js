@@ -36,12 +36,69 @@ const CONTROLLER_COLOURS = Object.freeze({
   player: 0xe8c96c, frontier: 0xd5d0c6, "external-a": 0xc17a57, "external-b": 0x8b72b1,
 });
 const MAX_RENDERED_WORKER_PAWNS = 5;
+const EDGE_TRANSFER_PACKET_DURATION_MS = 900;
+const EDGE_TRANSFER_PACKET_STAGGER_MS = 85;
+const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
+const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
+  food: 0xf3cf67,
+});
 
 function screenPoint(point) {
   return {
     x: MAP_RECT.x + Number(point?.x ?? 0) * MAP_RECT.width,
     y: MAP_RECT.y + Number(point?.y ?? 0) * MAP_RECT.height,
   };
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, Number(value ?? 0)));
+}
+
+export function getEdgeTransferPacketPose({
+  from,
+  to,
+  progress,
+  laneOffset = 0,
+} = {}) {
+  const start = {
+    x: Number(from?.x ?? 0),
+    y: Number(from?.y ?? 0),
+  };
+  const end = {
+    x: Number(to?.x ?? start.x),
+    y: Number(to?.y ?? start.y),
+  };
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const length = Math.max(0.0001, Math.hypot(dx, dy));
+  const directionX = dx / length;
+  const directionY = dy / length;
+  const easedProgress = (() => {
+    const t = clamp01(progress);
+    return t * t * (3 - 2 * t);
+  })();
+  const offset = Number(laneOffset ?? 0);
+  return {
+    x:
+      start.x +
+      dx * easedProgress -
+      directionY * offset,
+    y:
+      start.y +
+      dy * easedProgress +
+      directionX * offset,
+    directionX,
+    directionY,
+    angle: Math.atan2(directionY, directionX),
+    progress: easedProgress,
+  };
+}
+
+function viewNowMs() {
+  return typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
 }
 
 function addButton(parent, rect, label, onPress, disabled = false) {
@@ -308,6 +365,31 @@ function addMapIndicatorLegend(parent) {
       0.5
     )
   );
+  const transfer = new PIXI.Graphics();
+  const transferColor = EDGE_TRANSFER_RESOURCE_COLOURS.food;
+  transfer.lineStyle(4, transferColor, 0.55);
+  transfer.moveTo(886, 81);
+  transfer.lineTo(914, 81);
+  transfer.lineStyle(2, 0x302d2a, 1);
+  transfer.beginFill(transferColor, 1);
+  transfer.drawPolygon([
+    922, 81,
+    908, 72,
+    908, 90,
+  ]);
+  transfer.endFill();
+  transfer.eventMode = "none";
+  parent.addChild(
+    transfer,
+    createText(
+      "food transfer",
+      { ...TEXT_STYLES.muted, fontSize: 13 },
+      934,
+      81,
+      0,
+      0.5
+    )
+  );
 }
 
 function signature(
@@ -334,15 +416,153 @@ function signature(
 export function createWorldMapView({
   layer,
   getState,
+  getEdgeTransferBatch,
   getSelectedRegionId,
   setSelectedRegionId,
   getCivilizationLossInfo,
   onOpenDetailedSite,
 }) {
   const root = new PIXI.Container();
-  layer.addChild(root);
+  const edgeTransferLayer = new PIXI.Container();
+  const edgeTransferGraphics = new PIXI.Graphics();
+  edgeTransferLayer.eventMode = "none";
+  edgeTransferGraphics.eventMode = "none";
+  edgeTransferLayer.addChild(edgeTransferGraphics);
+  layer.addChild(root, edgeTransferLayer);
   let lastSignature = "";
   let lastPointerRegionId = null;
+  let lastEdgeTransferBatchKey = null;
+  let lastEdgeTransferBatch = null;
+  let activeEdgeTransferPackets = [];
+
+  function getEdgeTransferBatchKey(batch) {
+    if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
+    return JSON.stringify({
+      batchId: batch.batchId ?? null,
+      boundarySec: Math.max(0, Math.floor(batch.boundarySec)),
+      transfers: (Array.isArray(batch.transfers) ? batch.transfers : []).map(
+        (transfer) => [
+          transfer?.transferId ?? null,
+          transfer?.systemId ?? null,
+          transfer?.resourceId ?? null,
+          transfer?.sourceRegionId ?? null,
+          transfer?.destinationRegionId ?? null,
+          Number(transfer?.amount ?? 0),
+        ]
+      ),
+    });
+  }
+
+  function syncEdgeTransferPackets(nowMs, definition) {
+    const batch = getEdgeTransferBatch?.() ?? null;
+    const batchKey = getEdgeTransferBatchKey(batch);
+    lastEdgeTransferBatch = batch;
+    if (batchKey == null) {
+      lastEdgeTransferBatchKey = null;
+      return;
+    }
+    if (batchKey === lastEdgeTransferBatchKey) return;
+    lastEdgeTransferBatchKey = batchKey;
+    const transfers = Array.isArray(batch?.transfers) ? batch.transfers : [];
+    const routeCounts = new Map();
+    for (const transfer of transfers) {
+      const source = definition.regions.find(
+        (entry) => entry.id === transfer?.sourceRegionId
+      );
+      const destination = definition.regions.find(
+        (entry) => entry.id === transfer?.destinationRegionId
+      );
+      if (!source || !destination) continue;
+      const routeKey =
+        `${transfer.sourceRegionId}->${transfer.destinationRegionId}`;
+      const routeIndex = routeCounts.get(routeKey) ?? 0;
+      routeCounts.set(routeKey, routeIndex + 1);
+      activeEdgeTransferPackets.push({
+        ...transfer,
+        startedMs:
+          nowMs +
+          routeIndex * EDGE_TRANSFER_PACKET_STAGGER_MS,
+        durationMs: EDGE_TRANSFER_PACKET_DURATION_MS,
+        laneOffset: [0, -9, 9][routeIndex % 3],
+        from: screenPoint(source.display.labelPoint),
+        to: screenPoint(destination.display.labelPoint),
+      });
+    }
+    if (activeEdgeTransferPackets.length > EDGE_TRANSFER_PACKET_MAX_ACTIVE) {
+      activeEdgeTransferPackets = activeEdgeTransferPackets.slice(
+        -EDGE_TRANSFER_PACKET_MAX_ACTIVE
+      );
+    }
+  }
+
+  function drawEdgeTransferPackets(nowMs) {
+    edgeTransferGraphics.clear();
+    const surviving = [];
+    for (const packet of activeEdgeTransferPackets) {
+      const rawProgress =
+        (nowMs - packet.startedMs) /
+        Math.max(1, Number(packet.durationMs ?? 1));
+      if (rawProgress >= 1) continue;
+      surviving.push(packet);
+      if (rawProgress < 0) continue;
+      const pose = getEdgeTransferPacketPose({
+        from: packet.from,
+        to: packet.to,
+        progress: rawProgress,
+        laneOffset: packet.laneOffset,
+      });
+      const fadeIn = Math.min(1, rawProgress / 0.12);
+      const fadeOut = Math.min(1, (1 - rawProgress) / 0.2);
+      const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
+      const color =
+        EDGE_TRANSFER_RESOURCE_COLOURS[packet.resourceId] ?? PALETTE.text;
+      const size =
+        9 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
+      const tailX = pose.x - pose.directionX * (size + 9);
+      const tailY = pose.y - pose.directionY * (size + 9);
+      const perpendicularX = -pose.directionY;
+      const perpendicularY = pose.directionX;
+      edgeTransferGraphics.lineStyle(5, color, alpha * 0.42);
+      edgeTransferGraphics.moveTo(tailX, tailY);
+      edgeTransferGraphics.lineTo(pose.x, pose.y);
+      edgeTransferGraphics.lineStyle(2, 0x302d2a, alpha);
+      edgeTransferGraphics.beginFill(color, alpha);
+      edgeTransferGraphics.drawPolygon([
+        pose.x + pose.directionX * size,
+        pose.y + pose.directionY * size,
+        pose.x -
+          pose.directionX * size * 0.72 +
+          perpendicularX * size * 0.7,
+        pose.y -
+          pose.directionY * size * 0.72 +
+          perpendicularY * size * 0.7,
+        pose.x -
+          pose.directionX * size * 0.72 -
+          perpendicularX * size * 0.7,
+        pose.y -
+          pose.directionY * size * 0.72 -
+          perpendicularY * size * 0.7,
+      ]);
+      edgeTransferGraphics.endFill();
+      edgeTransferGraphics.beginFill(0xfff4bf, alpha * 0.9);
+      edgeTransferGraphics.drawCircle(
+        pose.x - pose.directionX * size * 0.22,
+        pose.y - pose.directionY * size * 0.22,
+        Math.max(2, size * 0.24)
+      );
+      edgeTransferGraphics.endFill();
+    }
+    activeEdgeTransferPackets = surviving;
+  }
+
+  function updateEdgeTransferPackets() {
+    if (!root.visible) return;
+    const definition = getWorldDefinition(getState?.());
+    if (!definition) return;
+    const nowMs = viewNowMs();
+    syncEdgeTransferPackets(nowMs, definition);
+    drawEdgeTransferPackets(nowMs);
+  }
 
   function render(force = false) {
     if (!root.visible) return;
@@ -574,10 +794,27 @@ export function createWorldMapView({
   }
 
   return {
-    init: () => render(true),
-    update: () => render(),
+    init: () => {
+      render(true);
+      updateEdgeTransferPackets();
+    },
+    update: () => {
+      render();
+      updateEdgeTransferPackets();
+    },
     refresh: () => { lastSignature = ""; render(true); },
-    setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
+    setVisible: (visible) => {
+      root.visible = visible === true;
+      edgeTransferLayer.visible = root.visible;
+      if (root.visible) {
+        lastEdgeTransferBatchKey = null;
+        render(true);
+        updateEdgeTransferPackets();
+      } else {
+        activeEdgeTransferPackets = [];
+        edgeTransferGraphics.clear();
+      }
+    },
     getSemanticSnapshot: () => {
       const state = getState?.();
       const regionId = getSelectedRegionId?.();
@@ -608,6 +845,43 @@ export function createWorldMapView({
           ? state?.world?.sites?.length ?? 0 : 0,
         regionNameLabelsVisible: false,
         regionMapIndicators,
+        edgeTransferBatch: lastEdgeTransferBatch
+          ? {
+              batchId: lastEdgeTransferBatch.batchId ?? null,
+              boundarySec: Math.max(
+                0,
+                Math.floor(lastEdgeTransferBatch.boundarySec ?? 0)
+              ),
+              transfers: (
+                Array.isArray(lastEdgeTransferBatch.transfers)
+                  ? lastEdgeTransferBatch.transfers
+                  : []
+              ).map((transfer) => ({ ...transfer })),
+            }
+          : null,
+        activeEdgeTransferPacketCount: activeEdgeTransferPackets.length,
+        activeEdgeTransferPackets: activeEdgeTransferPackets.map((packet) => {
+          const rawProgress =
+            (viewNowMs() - packet.startedMs) /
+            Math.max(1, Number(packet.durationMs ?? 1));
+          const pose = getEdgeTransferPacketPose({
+            from: packet.from,
+            to: packet.to,
+            progress: rawProgress,
+            laneOffset: packet.laneOffset,
+          });
+          return {
+            transferId: packet.transferId,
+            resourceId: packet.resourceId,
+            sourceRegionId: packet.sourceRegionId,
+            destinationRegionId: packet.destinationRegionId,
+            amount: packet.amount,
+            progress: clamp01(rawProgress),
+            x: pose.x,
+            y: pose.y,
+            angle: pose.angle,
+          };
+        }),
       };
     },
     getRegionClickPoint: (regionId) => {
@@ -620,6 +894,8 @@ export function createWorldMapView({
       clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
+      edgeTransferLayer.removeFromParent();
+      edgeTransferLayer.destroy({ children: true });
     },
   };
 }
