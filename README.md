@@ -25,7 +25,11 @@ identity and details.
 
 The timegraph is civilization-wide on the map and automatically becomes local
 when a settlement is opened. Its title always identifies that scope. The
-playhead follows an unveiling forecast until the player scrubs manually.
+playhead follows an unveiling forecast and drives a read-only viewed preview,
+so the calendar, season/moon wheel, map workers, and other stateful HUD details
+advance with it while committed history stays unchanged. The preview refresh is
+rate-limited for responsive map input. Manual scrubbing takes control
+immediately.
 Choosing a vassal focuses the target settlement, preserves the prior local
 forecast for comparison, progressively commits the deterministic lifespan, and
 distinguishes fixed history from editable history and forecast.
