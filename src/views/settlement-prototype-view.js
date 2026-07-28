@@ -13,11 +13,11 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 756 });
 export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
-  survival: Object.freeze({ x: 590, y: 9, width: 1080, height: 54 }),
-  overview: Object.freeze({ x: 1690, y: 14, width: 150, height: 44 }),
-  demographics: Object.freeze({ x: 1850, y: 14, width: 190, height: 44 }),
-  map: Object.freeze({ x: 2050, y: 14, width: 126, height: 44 }),
-  utilityReserve: Object.freeze({ x: 2190, y: 0, width: 234, height: 70 }),
+  survival: Object.freeze({ x: 590, y: 9, width: 850, height: 54 }),
+  overview: Object.freeze({ x: 1460, y: 14, width: 150, height: 44 }),
+  demographics: Object.freeze({ x: 1620, y: 14, width: 190, height: 44 }),
+  map: Object.freeze({ x: 1820, y: 14, width: 126, height: 44 }),
+  utilityReserve: Object.freeze({ x: 1960, y: 0, width: 464, height: 70 }),
 });
 
 function addButton(parent, rect, label, selected, onPress) {

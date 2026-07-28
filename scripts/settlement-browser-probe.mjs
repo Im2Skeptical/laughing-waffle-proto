@@ -323,7 +323,7 @@ try {
   assert.ok(overview.view.elderOrder.resistance >= 0);
   await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
 
-  await clickDesignPoint(page, { x: 1945, y: 36 });
+  await clickDesignPoint(page, { x: 1715, y: 36 });
   const demographics = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(demographics.view.activeTab, "demographics");
   assert.equal(
@@ -413,7 +413,7 @@ try {
     );
   }
 
-  await clickDesignPoint(page, { x: 2113, y: 36 });
+  await clickDesignPoint(page, { x: 1883, y: 36 });
   const returnedToMap = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -436,7 +436,7 @@ try {
   );
 
   const widePage = await browser.newPage({
-    viewport: { width: 1600, height: 700 },
+    viewport: { width: 1280, height: 600 },
   });
   await widePage.goto(URL);
   await widePage.waitForFunction(
@@ -448,6 +448,14 @@ try {
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===
       "settlement"
   );
+  await widePage.evaluate(() => {
+    for (const testId of ["fullscreen-toggle", "debug-open"]) {
+      const element = document.querySelector(`[data-testid="${testId}"]`);
+      element.style.minWidth = "92px";
+      element.style.minHeight = "48px";
+      element.style.fontSize = "20px";
+    }
+  });
   const wideHeaderLayout = await widePage.evaluate(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     const canvasRect = document.querySelector("canvas").getBoundingClientRect();
@@ -496,6 +504,14 @@ try {
     a.right > b.left &&
     a.top < b.bottom &&
     a.bottom > b.top;
+  assert.equal(
+    overlaps(
+      wideHeaderLayout.utilities.fullscreen,
+      wideHeaderLayout.utilities.debug
+    ),
+    false,
+    "Pixel-sized fullscreen and debug controls remain separate"
+  );
   for (const [tabId, tabRect] of Object.entries(wideHeaderLayout.tabs)) {
     assert.equal(
       overlaps(tabRect, wideHeaderLayout.utilities.fullscreen),
@@ -639,7 +655,7 @@ try {
       "site selection and structure capacity",
       "Overview and Demographics tabs",
       "fullscreen control and season/year heading",
-      "wide/fullscreen settlement header controls do not overlap",
+      "Pixel-sized fullscreen settlement header controls do not overlap",
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",

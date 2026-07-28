@@ -19,7 +19,9 @@ completed forecast resolves both values at the civilization-loss boundary. The
 map adds a civilization-wide demographic/food/housing/chaos summary above the
 selected-region card. Fullscreen and Debug controls remain available.
 The local settlement header reserves its right edge for those global controls,
-keeping Overview, Demographics, and Map accessible on wide/fullscreen displays.
+keeping Overview, Demographics, and Map accessible on desktop and
+mobile-landscape fullscreen displays. Full/Exit and Debug share one responsive
+utility rail so mobile text sizing cannot make them drift into one another.
 On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
 and filled/open structure-slot glyphs. Non-detailed regions show their authored
 capacity as open slots; the selected-region card retains the full regional
