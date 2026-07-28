@@ -452,7 +452,7 @@ function buildFoodSnapshot(state) {
   }));
 }
 
-function planAdministrationMoves(state) {
+export function planDetailedAdministrationMoves(state) {
   const snapshot = buildFoodSnapshot(state);
   const sourceAvailable = clone(snapshot);
   const destinationProjected = clone(snapshot);
@@ -505,6 +505,27 @@ function planAdministrationMoves(state) {
   return moves;
 }
 
+export function planDetailedAdministrationMovesAtBoundary(
+  preBoundaryState,
+  boundarySec
+) {
+  const planningState = deserializeGameState(
+    serializeGameState(preBoundaryState)
+  );
+  const sec = Math.max(0, Math.floor(boundarySec ?? 0));
+  const seasonDurationSec = Math.max(
+    1,
+    Math.floor(planningState?.seasonDurationSec ?? 1)
+  );
+  // Seasonal production resolves before new-moon Administration when both
+  // stages share a second. Mirror that order without running the later
+  // transfer, decay, meal, demographic, or RNG-consuming stages.
+  if (sec > 0 && sec % seasonDurationSec === 0) {
+    runPracticeActivation(planningState, "season");
+  }
+  return planDetailedAdministrationMoves(planningState);
+}
+
 function applyAdministrationMoves(state, moves) {
   // Remove every packet from its activation-start source before any
   // destination receives food. This preserves simultaneous resolution even
@@ -524,7 +545,7 @@ function applyAdministrationMoves(state, moves) {
 }
 
 function runNewMoon(state) {
-  applyAdministrationMoves(state, planAdministrationMoves(state));
+  applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
   runPracticeActivation(state, "newMoon");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;

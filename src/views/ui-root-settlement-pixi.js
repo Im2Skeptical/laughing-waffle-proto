@@ -9,6 +9,10 @@ import {
   SETTLEMENT_VISIBLE_WINDOW_YEARS,
 } from "../defs/gamesettings/gamerules-defs.js";
 import { ActionKinds } from "../model/actions.js";
+import {
+  buildEdgeTransferBatchAtBoundary,
+  getLatestEdgeTransferBoundarySec,
+} from "../model/edge-transfers.js";
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
 import {
   getSettlementClassIds,
@@ -177,6 +181,10 @@ let settlementPlaybackSpeedCurrent = 0;
 let settlementPlaybackViewSecFloat = null;
 let settlementGraphRevealMode = "";
 let settlementPendingPreviewRestoreSec = null;
+let settlementEdgeTransferBatchCache = {
+  key: null,
+  batch: null,
+};
 let settlementFrontierStateCache = {
   historyEndSec: -1,
   revision: -1,
@@ -1132,6 +1140,39 @@ function syncSettlementRunCompletePresentation() {
   runCompleteView?.setBackdropVisible?.(isSettlementStateRunComplete(viewedState));
 }
 
+function invalidateSettlementEdgeTransferBatchCache() {
+  settlementEdgeTransferBatchCache = {
+    key: null,
+    batch: null,
+  };
+}
+
+function getSettlementViewedEdgeTransferBatch() {
+  const viewedSec = getSettlementViewedSec();
+  const boundarySec = getLatestEdgeTransferBoundarySec(viewedSec);
+  if (boundarySec <= 0) return null;
+  const timeline = runner.getTimeline?.() ?? null;
+  const cacheKey = [
+    boundarySec,
+    Math.max(0, Math.floor(timeline?.revision ?? 0)),
+    Math.max(0, Math.floor(timeline?._actionContentVersion ?? 0)),
+    Math.max(0, Math.floor(timeline?.historyEndSec ?? 0)),
+  ].join(":");
+  if (settlementEdgeTransferBatchCache.key === cacheKey) {
+    return settlementEdgeTransferBatchCache.batch;
+  }
+  const preBoundaryState =
+    settlementGraphController?.getStateAt?.(boundarySec - 1) ?? null;
+  const batch = preBoundaryState
+    ? buildEdgeTransferBatchAtBoundary(preBoundaryState, boundarySec)
+    : null;
+  settlementEdgeTransferBatchCache = {
+    key: cacheKey,
+    batch,
+  };
+  return batch;
+}
+
 const runner = createSimRunner({
   setupId: BOOT_SETUP_ID,
   onInvalidate: (reason) => {
@@ -1139,12 +1180,14 @@ const runner = createSimRunner({
       forecastWorkerService.handleTimelineInvalidation?.(reason);
       settlementGraphController?.handleInvalidate?.(reason);
     }
+    invalidateSettlementEdgeTransferBatchCache();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
     settlementDebugMenu?.refresh?.();
   },
   onRebuildViews: () => {
+    invalidateSettlementEdgeTransferBatchCache();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
@@ -1258,6 +1301,7 @@ prototypeView.setVisible(false);
 worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
+  getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedRegionId: () => selectedWorldRegionId,
   setSelectedRegionId: (regionId) => {

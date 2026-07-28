@@ -158,6 +158,16 @@ connections meet. Detailed sites render assigned worker tokens as pawn glyphs
 building glyphs plus outlined open slots. Non-detailed regions render all
 authored structure capacity as quieter outlined open slots.
 
+Administration transfers are exposed through the pure
+`buildEdgeTransferBatchAtBoundary` selector. It reconstructs normalized
+`systemId`, `resourceId`, source, destination, and amount records from the
+cached pre-boundary replay state, including seasonal production that precedes
+Administration on shared boundaries. The map renders each food packet as a
+staggered gold directional marker along its authored connection. Animation
+timing is view-only; transfer ordering, simulation state, RNG, saves, and replay
+are unchanged. The normalized batch format is intended for later edge-transfer
+systems.
+
 A shared map/settlement survival strip shows the viewed civilization
 season/year, a resolved projected loss year (or `Forecastingâ€¦` while the
 forecast is unresolved), and the best resolved projected or actual loss year
