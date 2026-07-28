@@ -24,9 +24,10 @@ capacity as open slots; the selected-region card retains the full regional
 identity and details.
 
 The timegraph is civilization-wide on the map and automatically becomes local
-when a settlement is opened. Its title always identifies that scope. Choosing a
-vassal focuses the target settlement, preserves the prior local forecast for
-comparison, progressively commits the deterministic lifespan, and
+when a settlement is opened. Its title always identifies that scope. The
+playhead follows an unveiling forecast until the player scrubs manually.
+Choosing a vassal focuses the target settlement, preserves the prior local
+forecast for comparison, progressively commits the deterministic lifespan, and
 distinguishes fixed history from editable history and forecast.
 
 Game state and runner saves are schema v5. Old saves are intentionally

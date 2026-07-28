@@ -31,12 +31,14 @@ import {
   normalizeItemUnavailableZones,
   reconcileLatchedForecastPreview,
   resolveDefaultGraphScrubSec,
+  resolveForecastRevealPlayheadSec,
 } from "./timegraphs-helpers.js";
 export {
   clampForecastScrubTargetSec,
   computeGraphSeriesScaleRanges,
   reconcileLatchedForecastPreview,
   resolveDefaultGraphScrubSec,
+  resolveForecastRevealPlayheadSec,
 } from "./timegraphs-helpers.js";
 
 const TIMEGRAPH_THEME = Object.freeze({
@@ -629,6 +631,7 @@ export function createMetricGraphView({
   let forecastRevealDelayUntilMs = 0;
   let forecastRevealStartSecOverride = null;
   let forecastRevealVelocitySecPerSec = 0;
+  let forecastRevealPlayheadFollowEnabled = true;
   let plotSnapshotKey = "";
   let plotSnapshot = null;
   let latchedForecastScrubSec = null;
@@ -658,6 +661,7 @@ export function createMetricGraphView({
   }
 
   function resetDataContext() {
+    forecastRevealPlayheadFollowEnabled = true;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
@@ -1108,6 +1112,28 @@ export function createMetricGraphView({
     }
   }
 
+  function syncForecastRevealPlayhead(visibleForecastCoverageEndSec) {
+    const preview =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+    const forecastPreviewSec =
+      preview?.isForecastPreview === true &&
+      Number.isFinite(preview?.previewSec)
+        ? preview.previewSec
+        : null;
+    const followSec = resolveForecastRevealPlayheadSec({
+      followEnabled: forecastRevealPlayheadFollowEnabled,
+      isScrubbing,
+      latchedForecastScrubSec,
+      forecastPreviewSec,
+      visibleForecastCoverageEndSec,
+      minSec,
+      maxSec,
+    });
+    if (Number.isFinite(followSec)) {
+      scrubSec = clampScrubSecToRevealCap(followSec);
+    }
+  }
+
   function getVisibleForecastScrubCapSec() {
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
@@ -1286,6 +1312,7 @@ export function createMetricGraphView({
   }
 
   function restartForecastRevealFrom(startSec, opts = {}) {
+    forecastRevealPlayheadFollowEnabled = true;
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const actualHistoryEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
@@ -2980,6 +3007,7 @@ export function createMetricGraphView({
 
   plotHit.on("pointerdown", (e) => {
     statusNote = "";
+    forecastRevealPlayheadFollowEnabled = false;
     isScrubbing = true;
     updateScrubFromPointer(e.global);
     applyPreviewThrottled(true);
@@ -3024,6 +3052,7 @@ export function createMetricGraphView({
     root.x = openPosition?.x ?? defaultX;
     root.y = openPosition?.y ?? defaultY;
     const nowMs = performance.now();
+    forecastRevealPlayheadFollowEnabled = true;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
@@ -3182,6 +3211,7 @@ export function createMetricGraphView({
         0,
         Math.floor(forecastRevealTargetEndSec ?? 0)
       ),
+      forecastRevealPlayheadFollowEnabled,
       projectionReplacement: projectionReplacement
         ? {
             active: true,
@@ -3258,6 +3288,7 @@ export function createMetricGraphView({
     updateTimeBounds();
     syncLatchedForecastPreviewStatus();
     tryRestoreLatchedForecastPreview();
+    syncForecastRevealPlayhead(visibleForecastCoverageEndSec);
     updateHeaderButtons();
     drawLegend(getActiveSeries());
     const projectionReplacementKey = getProjectionReplacementRenderKey(now);
