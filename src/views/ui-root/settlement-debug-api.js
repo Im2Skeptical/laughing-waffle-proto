@@ -92,6 +92,7 @@ export function publishSettlementDebugApi({
   getViewSemanticSnapshot,
   getWorldMapSnapshot,
   getWorldMapClickPoint,
+  getVassalCandidateClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
@@ -165,6 +166,10 @@ export function publishSettlementDebugApi({
       };
     },
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
+    getVassalCandidateClickPoint: (candidateIndex = 0) =>
+      getVassalCandidateClickPoint?.(
+        Math.max(0, Math.floor(candidateIndex ?? 0))
+      ) ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,

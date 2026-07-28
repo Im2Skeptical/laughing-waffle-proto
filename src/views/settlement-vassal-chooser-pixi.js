@@ -13,7 +13,10 @@ function candidateCard(parent, rect, candidate, onSelect) {
   root.eventMode = "static";
   root.cursor = "pointer";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", () => onSelect?.(candidate.candidateIndex));
+  root.on("pointerdown", (event) => {
+    event?.stopPropagation?.();
+    onSelect?.(candidate.candidateIndex);
+  });
   const gfx = new PIXI.Graphics();
   gfx.lineStyle(3, 0xd7b450, 0.95);
   gfx.beginFill(0x4d4740, 0.98);
@@ -43,6 +46,7 @@ function candidateCard(parent, rect, candidate, onSelect) {
     root.addChild(text);
   });
   parent.addChild(root);
+  return root;
 }
 
 export function createSettlementVassalChooserView({
@@ -65,12 +69,14 @@ export function createSettlementVassalChooserView({
     defaultLayout: { widthPx: 2100, heightPx: 820, marginPx: 24, zIndex: 20 },
   });
   let signature = "";
+  let candidateRoots = [];
 
   function render(force = false) {
     const open = isOpen?.() === true;
     frame.setOpenVisible(open);
     if (!open) {
       signature = "";
+      candidateRoots = [];
       clear(frame.body);
       return;
     }
@@ -87,12 +93,19 @@ export function createSettlementVassalChooserView({
     const candidates = pool?.candidates ?? [];
     const gap = 24;
     const width = Math.floor((layout.bodyWidth - 24 - gap * 2) / 3);
-    candidates.slice(0, 3).forEach((candidate, index) => candidateCard(
-      frame.body,
-      { x: 12 + index * (width + gap), y: 18, width, height: layout.bodyHeight - 36 },
-      candidate,
-      onSelectCandidate
-    ));
+    candidateRoots = candidates.slice(0, 3).map((candidate, index) =>
+      candidateCard(
+        frame.body,
+        {
+          x: 12 + index * (width + gap),
+          y: 18,
+          width,
+          height: layout.bodyHeight - 36,
+        },
+        candidate,
+        onSelectCandidate
+      )
+    );
   }
 
   return {
@@ -100,5 +113,20 @@ export function createSettlementVassalChooserView({
     update: () => render(),
     refresh: () => render(true),
     getScreenRect: () => frame.getScreenRect?.() ?? null,
+    getCandidateClickPoint: (candidateIndex = 0) => {
+      const root = candidateRoots[Math.max(0, Math.floor(candidateIndex))];
+      if (!root?.visible || typeof root.toGlobal !== "function") return null;
+      const bounds = root.hitArea;
+      const point = root.toGlobal(
+        new PIXI.Point(
+          Number(bounds?.width ?? 0) * 0.5,
+          Number(bounds?.height ?? 0) * 0.5
+        )
+      );
+      return {
+        x: Number(point?.x ?? 0),
+        y: Number(point?.y ?? 0),
+      };
+    },
   };
 }

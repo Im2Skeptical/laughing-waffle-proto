@@ -1351,6 +1351,7 @@ settlementGraphView = createMetricGraphView({
   getTimeline: () => runner.getTimeline?.(),
   getCursorState: () => runner.getCursorState?.(),
   getPreviewStatus: () => runner.getPreviewStatus?.(),
+  canAutoPreviewForecastReveal: () => !settlementPendingVassalSelection,
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
   setPreviewState: (state) => runner.setPreviewState?.(state),
   clearPreviewState: () => runner.clearPreviewState?.(),
@@ -1612,6 +1613,9 @@ function publishSettlementDebugApi() {
       mode: worldViewMode,
     }),
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
+    getVassalCandidateClickPoint: (candidateIndex) =>
+      settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
+      null,
     selectWorldRegion: (regionId) => {
       if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) return false;
       selectedWorldRegionId = regionId;

@@ -101,6 +101,7 @@ export function createMetricGraphView({
   getTimeline,
   getCursorState,
   getPreviewStatus,
+  canAutoPreviewForecastReveal = null,
   getSeriesValueOverride,
   getEventMarkers,
   getEditableHistoryBounds,
@@ -1178,6 +1179,8 @@ export function createMetricGraphView({
   ) {
     if (
       forecastRevealPlayheadFollowEnabled !== true ||
+      (typeof canAutoPreviewForecastReveal === "function" &&
+        canAutoPreviewForecastReveal() !== true) ||
       isScrubbing ||
       Number.isFinite(latchedForecastScrubSec) ||
       !Number.isFinite(visibleForecastCoverageEndSec)
