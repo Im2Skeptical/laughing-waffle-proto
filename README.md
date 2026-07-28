@@ -19,8 +19,9 @@ completed forecast resolves both values at the civilization-loss boundary. The
 map adds a civilization-wide demographic/food/housing/chaos summary above the
 selected-region card. Fullscreen and Debug controls remain available.
 On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
-and filled/open structure-slot glyphs; the selected-region card retains the
-full regional identity and details.
+and filled/open structure-slot glyphs. Non-detailed regions show their authored
+capacity as open slots; the selected-region card retains the full regional
+identity and details.
 
 The timegraph is civilization-wide on the map and automatically becomes local
 when a settlement is opened. Its title always identifies that scope. Choosing a
