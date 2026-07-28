@@ -166,9 +166,11 @@ Administration on shared boundaries. The map renders each food packet as a
 staggered gold directional marker along its authored connection. Animation
 timing and playback direction are view-only: increasing viewed `tSec` animates
 source-to-destination, while a backward timeline scrub swaps the visual
-endpoints and animates destination-to-source. Transfer metadata, ordering,
-simulation state, RNG, saves, and replay are unchanged. The normalized batch
-format is intended for later edge-transfer systems.
+endpoints and animates destination-to-source. A direction change discards
+in-flight presentation packets and reopens the current visual batch, preventing
+stale triangles from retaining the previous orientation. Transfer metadata,
+ordering, simulation state, RNG, saves, and replay are unchanged. The normalized
+batch format is intended for later edge-transfer systems.
 
 A shared map/settlement survival strip shows the viewed civilization
 season/year, a resolved projected loss year (or `Forecastingâ€¦` while the
