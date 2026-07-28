@@ -254,6 +254,15 @@ try {
     ) < 0.001,
     "food packet points from its source region toward its destination"
   );
+  assert.ok(
+    Math.abs(
+      Math.atan2(
+        Math.sin(transferAnimation.packet.travelAngle - expectedAngle),
+        Math.cos(transferAnimation.packet.travelAngle - expectedAngle)
+      )
+    ) < 0.001,
+    "forward playback moves the packet from source toward destination"
+  );
   const cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);
@@ -454,8 +463,8 @@ try {
     (boundarySec) => {
       const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
       return (
-        snapshot.graph.revealedCoverageEndSec > boundarySec + 12 &&
-        snapshot.viewedSec > boundarySec + 12
+        snapshot.graph.revealedCoverageEndSec > boundarySec + 48 &&
+        snapshot.viewedSec > boundarySec + 48
       );
     },
     rewindBoundarySec
@@ -463,57 +472,31 @@ try {
   const followingGraph = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
   );
-  const rewindRatio = Math.max(
+  const latchRatio = Math.max(
     0,
     Math.min(
       1,
-      (rewindBoundarySec - followingGraph.minSec) /
+      (rewindBoundarySec + 24 - followingGraph.minSec) /
         Math.max(1, followingGraph.maxSec - followingGraph.minSec)
     )
   );
-  const manualTarget = {
+  const latchTarget = {
     x: followingGraph.plotScreenRect.x +
-      followingGraph.plotScreenRect.width * rewindRatio,
+      followingGraph.plotScreenRect.width * latchRatio,
     y: followingGraph.plotScreenRect.y +
       followingGraph.plotScreenRect.height * 0.5,
   };
-  await terminalPage.mouse.click(manualTarget.x, manualTarget.y);
-  await terminalPage.waitForFunction(() => {
-    const worldMap =
-      globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
-    return (
-      worldMap.edgeTransferPlaybackDirection === "backward" &&
-      worldMap.activeEdgeTransferPackets?.length > 0 &&
-      worldMap.activeEdgeTransferPackets.every(
-        (packet) => packet.reversed === true
-      )
-    );
-  });
-  const rewindAnimation = await terminalPage.evaluate(() => {
-    const debug = globalThis.__SETTLEMENT_DEBUG__;
-    const worldMap = debug.getSnapshot().worldMap;
-    const packet = worldMap.activeEdgeTransferPackets[0];
-    return {
-      playbackDirection: worldMap.edgeTransferPlaybackDirection,
-      packet,
-      source: debug.getWorldMapClickPoint(packet.sourceRegionId),
-      destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
-    };
-  });
-  assert.equal(rewindAnimation.playbackDirection, "backward");
-  assert.equal(rewindAnimation.packet.playbackDirection, "backward");
-  const rewindExpectedAngle = Math.atan2(
-    rewindAnimation.source.y - rewindAnimation.destination.y,
-    rewindAnimation.source.x - rewindAnimation.destination.x
-  );
-  assert.ok(
-    Math.abs(
-      Math.atan2(
-        Math.sin(rewindAnimation.packet.angle - rewindExpectedAngle),
-        Math.cos(rewindAnimation.packet.angle - rewindExpectedAngle)
-      )
-    ) < 0.001,
-    "rewinding plays the packet from destination back toward source"
+  await terminalPage.mouse.click(latchTarget.x, latchTarget.y);
+  await terminalPage.waitForFunction(
+    (boundarySec) => {
+      const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+      return (
+        snapshot.graph.forecastRevealPlayheadFollowEnabled === false &&
+        snapshot.graph.scrubSec > boundarySec &&
+        snapshot.worldMap.edgeTransferPlaybackDirection === "backward"
+      );
+    },
+    rewindBoundarySec
   );
   const manualGraph = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
@@ -573,7 +556,7 @@ try {
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",
       "forecast unveil advances the playhead until manual scrub ownership",
-      "edge-transfer packets reverse when the timeline scrubs backward",
+      "timeline rewind mode separates packet travel from historical facing",
       "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",
