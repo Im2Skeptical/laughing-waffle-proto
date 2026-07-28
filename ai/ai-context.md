@@ -179,9 +179,12 @@ The timegraph has two explicit automatic scopes:
 Map browsing does not silently retarget the civilization graph. Opening a site
 switches to local scope; returning to the map restores civilization scope.
 Series choices are retained independently per scope. During forecast unveiling,
-the graph playhead follows the visible reveal edge without changing the viewed
-or committed simulation state. Manual scrubbing takes ownership and is not
-overridden until a new reveal/context reset. Choosing a vassal focuses
+the graph playhead follows the visible reveal edge and rate-limits that edge
+through the existing read-only forecast-preview path. The viewed state therefore
+updates the survival strip, season/moon wheel, map workers, structures, and
+settlement details without advancing the committed timeline or consuming RNG.
+Manual scrubbing takes ownership and is not overridden until a new
+reveal/context reset. Choosing a vassal focuses
 its target site before snapshotting the prior local forecast, shows that
 forecast being replaced, and progressively commits history through the
 vassal's deterministic death boundary. Selected-vassal lifespan segments are
