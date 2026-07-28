@@ -70,6 +70,24 @@ try {
     (indicator) => indicator.hasDetailedSettlement
   );
   assert.equal(detailedMapIndicators.length, 5);
+  assert.deepEqual(
+    initial.worldMap.regionMapIndicators.map(
+      (indicator) => indicator.structureCapacity
+    ),
+    [3, 4, 4, 3, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 3],
+    "all regions expose their authored structure capacity"
+  );
+  assert.ok(
+    initial.worldMap.regionMapIndicators
+      .filter((indicator) => !indicator.hasDetailedSettlement)
+      .every(
+        (indicator) =>
+          indicator.usedStructureCapacity === 0 &&
+          indicator.structureSlots.length === indicator.structureCapacity &&
+          indicator.structureSlots.every((slot) => slot == null)
+      ),
+    "non-detailed regions render their capacity as open building slots"
+  );
   assert.equal(
     initial.worldMap.regionMapIndicators.filter(
       (indicator) => indicator.showsPlayerMarker

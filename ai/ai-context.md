@@ -155,7 +155,8 @@ The map polygons intentionally omit region-name text. Names remain in the
 selected-region card. Player-owned regions have gold flag nodes where graph
 connections meet. Detailed sites render assigned worker tokens as pawn glyphs
 (up to five, then a numeric badge) and physical structure capacity as filled
-building glyphs plus outlined open slots.
+building glyphs plus outlined open slots. Non-detailed regions render all
+authored structure capacity as quieter outlined open slots.
 
 A shared map/settlement survival strip shows the viewed civilization
 season/year, a resolved projected loss year (or `Forecastingâ€¦` while the

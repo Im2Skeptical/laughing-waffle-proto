@@ -94,6 +94,13 @@ function buildRegionMapIndicators(state, definition) {
     const activeWorkerCount = getActiveWorkerCount(viewModel);
     const workerPresentation =
       getWorkerIndicatorPresentation(activeWorkerCount);
+    const structureCapacity = Math.max(
+      0,
+      Math.floor(region?.structureCapacity ?? 0)
+    );
+    const structureSlots = viewModel
+      ? (viewModel.structures ?? []).map((slot) => slot?.structureId ?? null)
+      : Array.from({ length: structureCapacity }, () => null);
     return {
       regionId: regionDef.id,
       controller: region?.controller ?? null,
@@ -101,10 +108,8 @@ function buildRegionMapIndicators(state, definition) {
       hasDetailedSettlement: viewModel != null,
       ...workerPresentation,
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
-      structureCapacity: viewModel?.structureCapacity ?? 0,
-      structureSlots: (viewModel?.structures ?? []).map((slot) =>
-        slot?.structureId ?? null
-      ),
+      structureCapacity,
+      structureSlots,
     };
   });
 }
@@ -220,16 +225,22 @@ function addStructureGlyph(parent, x, y, structureId) {
   parent.addChild(building);
 }
 
-function addStructureIndicator(parent, point, structureSlots) {
+function addStructureIndicator(
+  parent,
+  point,
+  structureSlots,
+  { centered = false } = {}
+) {
   const slots = Array.isArray(structureSlots) ? structureSlots : [];
   if (slots.length === 0) return;
   const gap = 27;
   const pillWidth = slots.length * gap + 16;
+  const verticalOffset = centered ? -34 : 0;
   const pill = new PIXI.Graphics();
   roundedRect(
     pill,
     point.x - pillWidth / 2,
-    point.y + 18,
+    point.y + 18 + verticalOffset,
     pillWidth,
     32,
     8,
@@ -243,7 +254,12 @@ function addStructureIndicator(parent, point, structureSlots) {
   parent.addChild(pill);
   const startX = point.x - ((slots.length - 1) * gap) / 2;
   slots.forEach((structureId, index) => {
-    addStructureGlyph(parent, startX + index * gap, point.y + 36, structureId);
+    addStructureGlyph(
+      parent,
+      startX + index * gap,
+      point.y + 36 + verticalOffset,
+      structureId
+    );
   });
 }
 
@@ -415,9 +431,6 @@ export function createWorldMapView({
     root.addChild(edges);
 
     for (const indicator of regionMapIndicators) {
-      if (!indicator.showsPlayerMarker && !indicator.hasDetailedSettlement) {
-        continue;
-      }
       const regionDef = definition.regions.find(
         (entry) => entry.id === indicator.regionId
       );
@@ -425,8 +438,10 @@ export function createWorldMapView({
       const point = screenPoint(regionDef.display.labelPoint);
       if (indicator.hasDetailedSettlement) {
         addWorkerIndicator(root, point, indicator.activeWorkerCount);
-        addStructureIndicator(root, point, indicator.structureSlots);
       }
+      addStructureIndicator(root, point, indicator.structureSlots, {
+        centered: !indicator.hasDetailedSettlement,
+      });
       if (indicator.showsPlayerMarker) {
         addPlayerOwnershipMarker(root, point, {
           selected: indicator.regionId === selectedRegionId,
