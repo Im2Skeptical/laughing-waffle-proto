@@ -240,6 +240,35 @@ try {
     "vassal history brackets remain after returning to civilization scope"
   );
 
+  const terminalPage = await browser.newPage({
+    viewport: { width: 1280, height: 800 },
+  });
+  await terminalPage.goto(URL);
+  await terminalPage.waitForFunction(
+    () => {
+      const tracker =
+        globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
+          ?.survivalTracker;
+      return (
+        Number.isFinite(tracker?.projectedLossYear) &&
+        Number.isFinite(tracker?.bestSurvivalYear)
+      );
+    },
+    null,
+    { timeout: 45000 }
+  );
+  const terminalSurvival = await terminalPage.evaluate(
+    () =>
+      globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.survivalTracker
+  );
+  assert.equal(terminalSurvival.projectedLossYear, 73);
+  assert.equal(
+    terminalSurvival.bestSurvivalYear,
+    73,
+    "the completed forecast records a numeric best civilization survival year"
+  );
+  await terminalPage.close();
+
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
@@ -249,6 +278,7 @@ try {
       "fullscreen control and season/year heading",
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
+      "completed forecast resolves projected and best survival years",
       "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",
@@ -258,6 +288,7 @@ try {
     overview: overview.view,
     demographics: demographics.view,
     lineage: afterVassal.lineage,
+    terminalSurvival,
     returnedToMap: {
       worldMap: returnedToMap.worldMap,
       controller: returnedToMap.controller,

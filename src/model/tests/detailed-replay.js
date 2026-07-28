@@ -3,6 +3,7 @@ import { createInitialState } from "../init.js";
 import { buildDetailedVassalSelectionPool } from "../detailed-settlements.js";
 import { serializeGameState } from "../state.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
+import { buildProjectionChunkFromStateData } from "../projection-chunk.js";
 import {
   appendActionAtCursor,
   createTimelineFromInitialState,
@@ -69,5 +70,36 @@ assert.equal(
 assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"].chaosPower,
   undefined
+);
+
+const terminalProjectionBase = createInitialState("devPlaytesting01");
+const terminalProjection = buildProjectionChunkFromStateData(
+  serializeGameState(terminalProjectionBase),
+  0,
+  3000
+);
+assert.equal(terminalProjection.ok, true);
+assert.equal(
+  terminalProjection.terminal,
+  true,
+  "forecast chunks finish successfully at civilization loss"
+);
+assert.ok(
+  terminalProjection.endSec < 3000,
+  "terminal forecast reports its actual end rather than requested coverage"
+);
+const terminalSummary = terminalProjection.summaryBySecond.get(
+  terminalProjection.endSec
+);
+assert.equal(terminalSummary?.runComplete, true);
+assert.equal(terminalSummary?.runLossYear, 73);
+assert.ok(
+  terminalProjection.stateDataBySecond.has(terminalProjection.endSec),
+  "terminal state remains available to the survival tracker"
+);
+assert.equal(
+  terminalProjection.summaryBySecond.has(terminalProjection.endSec + 1),
+  false,
+  "forecast does not simulate beyond completed history"
 );
 console.log("[detailed-replay] OK");

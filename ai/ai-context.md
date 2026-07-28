@@ -155,7 +155,9 @@ A shared map/settlement survival strip shows the viewed civilization
 season/year, a resolved projected loss year (or `Forecastingâ€¦` while the
 forecast is unresolved), and the best resolved projected or actual loss year
 observed. Expanding graph coverage is not a loss prediction and never changes
-the record. The best is monotonic
+the record. Forecast projection stops cleanly at civilization loss and retains
+that terminal snapshot, so the projected and best years resolve when the
+unveil reaches the actual loss boundary. The best is monotonic
 `persistentKnowledge.maxObservedCivilizationSurvivalYear`; it survives rewinds,
 branches, and save/load, resets on a fresh run, and never affects simulation.
 Fullscreen and Debug controls remain independent.
