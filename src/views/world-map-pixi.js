@@ -54,6 +54,20 @@ function clamp01(value) {
   return Math.max(0, Math.min(1, Number(value ?? 0)));
 }
 
+export function resolveEdgeTransferPlaybackDirection(
+  previousViewedSec,
+  viewedSec
+) {
+  if (
+    !Number.isFinite(previousViewedSec) ||
+    !Number.isFinite(viewedSec)
+  ) {
+    return 1;
+  }
+  if (Math.floor(previousViewedSec) === Math.floor(viewedSec)) return 0;
+  return Math.floor(viewedSec) < Math.floor(previousViewedSec) ? -1 : 1;
+}
+
 export function getEdgeTransferPacketPose({
   from,
   to,
@@ -433,6 +447,8 @@ export function createWorldMapView({
   let lastPointerRegionId = null;
   let lastEdgeTransferBatchKey = null;
   let lastEdgeTransferBatch = null;
+  let lastEdgeTransferViewedSec = null;
+  let edgeTransferPlaybackDirection = 1;
   let activeEdgeTransferPackets = [];
 
   function getEdgeTransferBatchKey(batch) {
@@ -454,6 +470,15 @@ export function createWorldMapView({
   }
 
   function syncEdgeTransferPackets(nowMs, definition) {
+    const viewedSec = Math.max(0, Math.floor(getState?.()?.tSec ?? 0));
+    const nextPlaybackDirection = resolveEdgeTransferPlaybackDirection(
+      lastEdgeTransferViewedSec,
+      viewedSec
+    );
+    if (nextPlaybackDirection !== 0) {
+      edgeTransferPlaybackDirection = nextPlaybackDirection;
+    }
+    lastEdgeTransferViewedSec = viewedSec;
     const batch = getEdgeTransferBatch?.() ?? null;
     const batchKey = getEdgeTransferBatchKey(batch);
     lastEdgeTransferBatch = batch;
@@ -477,15 +502,22 @@ export function createWorldMapView({
         `${transfer.sourceRegionId}->${transfer.destinationRegionId}`;
       const routeIndex = routeCounts.get(routeKey) ?? 0;
       routeCounts.set(routeKey, routeIndex + 1);
+      const reversed = edgeTransferPlaybackDirection < 0;
       activeEdgeTransferPackets.push({
         ...transfer,
+        reversed,
+        playbackDirection: reversed ? "backward" : "forward",
         startedMs:
           nowMs +
           routeIndex * EDGE_TRANSFER_PACKET_STAGGER_MS,
         durationMs: EDGE_TRANSFER_PACKET_DURATION_MS,
         laneOffset: [0, -9, 9][routeIndex % 3],
-        from: screenPoint(source.display.labelPoint),
-        to: screenPoint(destination.display.labelPoint),
+        from: screenPoint(
+          (reversed ? destination : source).display.labelPoint
+        ),
+        to: screenPoint(
+          (reversed ? source : destination).display.labelPoint
+        ),
       });
     }
     if (activeEdgeTransferPackets.length > EDGE_TRANSFER_PACKET_MAX_ACTIVE) {
@@ -808,6 +840,8 @@ export function createWorldMapView({
       edgeTransferLayer.visible = root.visible;
       if (root.visible) {
         lastEdgeTransferBatchKey = null;
+        lastEdgeTransferViewedSec = null;
+        edgeTransferPlaybackDirection = 1;
         render(true);
         updateEdgeTransferPackets();
       } else {
@@ -859,6 +893,8 @@ export function createWorldMapView({
               ).map((transfer) => ({ ...transfer })),
             }
           : null,
+        edgeTransferPlaybackDirection:
+          edgeTransferPlaybackDirection < 0 ? "backward" : "forward",
         activeEdgeTransferPacketCount: activeEdgeTransferPackets.length,
         activeEdgeTransferPackets: activeEdgeTransferPackets.map((packet) => {
           const rawProgress =
@@ -876,6 +912,8 @@ export function createWorldMapView({
             sourceRegionId: packet.sourceRegionId,
             destinationRegionId: packet.destinationRegionId,
             amount: packet.amount,
+            reversed: packet.reversed === true,
+            playbackDirection: packet.playbackDirection,
             progress: clamp01(rawProgress),
             x: pose.x,
             y: pose.y,

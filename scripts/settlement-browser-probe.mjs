@@ -433,24 +433,88 @@ try {
   });
   await terminalPage.goto(URL);
   await terminalPage.waitForFunction(() => {
-    const graph = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.graph;
+    const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
+    const graph = snapshot?.graph;
     return (
       graph?.forecastRevealPlayheadFollowEnabled === true &&
       graph.revealedCoverageEndSec > 320 &&
-      graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec
+      graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec &&
+      snapshot?.worldMap?.activeEdgeTransferPackets?.some(
+        (packet) => packet.reversed === false
+      )
     );
   });
+  const followingSnapshot = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  const rewindBoundarySec =
+    followingSnapshot.worldMap.edgeTransferBatch.boundarySec;
+  await terminalPage.waitForFunction(
+    (boundarySec) => {
+      const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+      return (
+        snapshot.graph.revealedCoverageEndSec > boundarySec + 12 &&
+        snapshot.viewedSec > boundarySec + 12
+      );
+    },
+    rewindBoundarySec
+  );
   const followingGraph = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
   );
+  const rewindRatio = Math.max(
+    0,
+    Math.min(
+      1,
+      (rewindBoundarySec - followingGraph.minSec) /
+        Math.max(1, followingGraph.maxSec - followingGraph.minSec)
+    )
+  );
   const manualTarget = {
     x: followingGraph.plotScreenRect.x +
-      followingGraph.plotScreenRect.width * 0.2,
+      followingGraph.plotScreenRect.width * rewindRatio,
     y: followingGraph.plotScreenRect.y +
       followingGraph.plotScreenRect.height * 0.5,
   };
   await terminalPage.mouse.click(manualTarget.x, manualTarget.y);
-  await delay(100);
+  await terminalPage.waitForFunction(() => {
+    const worldMap =
+      globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+    return (
+      worldMap.edgeTransferPlaybackDirection === "backward" &&
+      worldMap.activeEdgeTransferPackets?.some(
+        (packet) => packet.reversed === true
+      )
+    );
+  });
+  const rewindAnimation = await terminalPage.evaluate(() => {
+    const debug = globalThis.__SETTLEMENT_DEBUG__;
+    const worldMap = debug.getSnapshot().worldMap;
+    const packet = worldMap.activeEdgeTransferPackets.find(
+      (entry) => entry.reversed === true
+    );
+    return {
+      playbackDirection: worldMap.edgeTransferPlaybackDirection,
+      packet,
+      source: debug.getWorldMapClickPoint(packet.sourceRegionId),
+      destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
+    };
+  });
+  assert.equal(rewindAnimation.playbackDirection, "backward");
+  assert.equal(rewindAnimation.packet.playbackDirection, "backward");
+  const rewindExpectedAngle = Math.atan2(
+    rewindAnimation.source.y - rewindAnimation.destination.y,
+    rewindAnimation.source.x - rewindAnimation.destination.x
+  );
+  assert.ok(
+    Math.abs(
+      Math.atan2(
+        Math.sin(rewindAnimation.packet.angle - rewindExpectedAngle),
+        Math.cos(rewindAnimation.packet.angle - rewindExpectedAngle)
+      )
+    ) < 0.001,
+    "rewinding plays the packet from destination back toward source"
+  );
   const manualGraph = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
   );
@@ -509,6 +573,7 @@ try {
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",
       "forecast unveil advances the playhead until manual scrub ownership",
+      "edge-transfer packets reverse when the timeline scrubs backward",
       "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",
       "deterministic vassal chooser, lifespan forecast, and graph replacement",
