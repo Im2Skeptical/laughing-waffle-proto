@@ -30,6 +30,7 @@ import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlemen
 import {
   getEdgeTransferPacketPose,
   getWorkerIndicatorPresentation,
+  resolveEdgeTransferPlaybackDirection,
 } from "../../views/world-map-pixi.js";
 import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers.js";
 
@@ -140,6 +141,10 @@ assert.equal(packetPose.x, 60);
 assert.equal(packetPose.y, 20);
 assert.equal(packetPose.directionX, 1);
 assert.equal(packetPose.directionY, 0);
+assert.equal(resolveEdgeTransferPlaybackDirection(null, 12), 1);
+assert.equal(resolveEdgeTransferPlaybackDirection(12, 18), 1);
+assert.equal(resolveEdgeTransferPlaybackDirection(18, 12), -1);
+assert.equal(resolveEdgeTransferPlaybackDirection(12, 12), 0);
 
 const civilizationSummary = getDetailedCivilizationSummary(state);
 assert.deepEqual(civilizationSummary.regionIds, [

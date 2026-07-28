@@ -23,7 +23,9 @@ and filled/open structure-slot glyphs. Non-detailed regions show their authored
 capacity as open slots; the selected-region card retains the full regional
 identity and details. Administration food packets appear as staggered gold
 directional markers travelling between connected regions, making supply routes
-visible during forecast unveiling and timeline browsing.
+visible during forecast unveiling and timeline browsing. Their playback follows
+the playhead: forward time shows the transfer normally, while rewinding shows
+the marker travelling back toward its source.
 
 The timegraph is civilization-wide on the map and automatically becomes local
 when a settlement is opened. Its title always identifies that scope. The

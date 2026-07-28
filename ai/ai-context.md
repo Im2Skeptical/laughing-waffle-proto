@@ -164,9 +164,11 @@ Administration transfers are exposed through the pure
 cached pre-boundary replay state, including seasonal production that precedes
 Administration on shared boundaries. The map renders each food packet as a
 staggered gold directional marker along its authored connection. Animation
-timing is view-only; transfer ordering, simulation state, RNG, saves, and replay
-are unchanged. The normalized batch format is intended for later edge-transfer
-systems.
+timing and playback direction are view-only: increasing viewed `tSec` animates
+source-to-destination, while a backward timeline scrub swaps the visual
+endpoints and animates destination-to-source. Transfer metadata, ordering,
+simulation state, RNG, saves, and replay are unchanged. The normalized batch
+format is intended for later edge-transfer systems.
 
 A shared map/settlement survival strip shows the viewed civilization
 season/year, a resolved projected loss year (or `Forecastingâ€¦` while the
