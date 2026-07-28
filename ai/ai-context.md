@@ -184,9 +184,11 @@ unveil reaches the actual loss boundary. The best is monotonic
 `persistentKnowledge.maxObservedCivilizationSurvivalYear`; it survives rewinds,
 branches, and save/load, resets on a fresh run, and never affects simulation.
 Fullscreen and Debug controls remain independent.
-The detailed-settlement header reserves the far-right utility area for those
-DOM controls; its survival strip and Overview/Demographics/Map buttons end
-before that area, including when a wide viewport removes the top letterbox.
+The detailed-settlement header reserves a mobile-landscape-sized far-right
+utility area for those DOM controls; its survival strip and
+Overview/Demographics/Map buttons end before that area. Full/Exit and Debug live
+in one flex rail, so Android text sizing expands the rail leftward without
+covering the settlement navigation.
 
 The timegraph has two explicit automatic scopes:
 

@@ -32,12 +32,18 @@ function exitFullscreen() {
 }
 
 export function createSettlementDebugMenuDom({ mapLabController } = {}) {
+  const utilityControls = document.createElement("div");
+  utilityControls.dataset.testid = "utility-controls";
+  utilityControls.style.cssText = [
+    "position:fixed", "right:12px", "top:10px", "z-index:1000",
+    "display:flex", "gap:8px", "align-items:center",
+  ].join(";");
+
   const openButton = document.createElement("button");
   openButton.type = "button";
   openButton.textContent = "Debug";
   openButton.dataset.testid = "debug-open";
   openButton.style.cssText = [
-    "position:fixed", "right:12px", "top:10px", "z-index:1000",
     "min-height:34px", "padding:5px 12px", "border-radius:6px",
     "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
   ].join(";");
@@ -48,10 +54,10 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   fullscreenButton.title = "Enter fullscreen";
   fullscreenButton.dataset.testid = "fullscreen-toggle";
   fullscreenButton.style.cssText = [
-    "position:fixed", "right:84px", "top:10px", "z-index:1000",
     "min-width:64px", "min-height:34px", "padding:5px 12px", "border-radius:6px",
     "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
   ].join(";");
+  utilityControls.append(fullscreenButton, openButton);
 
   const panel = document.createElement("section");
   panel.className = "codex-debug-panel";
@@ -127,7 +133,7 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
     init() {
       if (initialized) return;
       initialized = true;
-      document.body.append(openButton, fullscreenButton, panel);
+      document.body.append(utilityControls, panel);
       document.addEventListener("fullscreenchange", syncFullscreenButton);
       document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
       document.addEventListener("MSFullscreenChange", syncFullscreenButton);
@@ -143,8 +149,7 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
       document.removeEventListener("fullscreenchange", syncFullscreenButton);
       document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
       document.removeEventListener("MSFullscreenChange", syncFullscreenButton);
-      openButton.remove();
-      fullscreenButton.remove();
+      utilityControls.remove();
       panel.remove();
     },
   };
