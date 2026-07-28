@@ -65,6 +65,42 @@ try {
   assert.equal(initial.worldMap.selectedRegionId, "river-crown");
   assert.equal(initial.worldMap.selectedRegion.structureCapacity, 3);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
+  assert.equal(initial.worldMap.regionNameLabelsVisible, false);
+  const detailedMapIndicators = initial.worldMap.regionMapIndicators.filter(
+    (indicator) => indicator.hasDetailedSettlement
+  );
+  assert.equal(detailedMapIndicators.length, 5);
+  assert.equal(
+    initial.worldMap.regionMapIndicators.filter(
+      (indicator) => indicator.showsPlayerMarker
+    ).length,
+    5,
+    "player-owned regions have ownership nodes"
+  );
+  assert.ok(
+    detailedMapIndicators.every(
+      (indicator) =>
+        indicator.activeWorkerCount === 3 &&
+        indicator.renderedPawnCount === 3 &&
+        indicator.badgeValue == null
+    ),
+    "starting sites render three assigned worker pawns"
+  );
+  assert.deepEqual(
+    detailedMapIndicators.map((indicator) => ({
+      regionId: indicator.regionId,
+      used: indicator.usedStructureCapacity,
+      capacity: indicator.structureCapacity,
+    })),
+    [
+      { regionId: "cedar-woods", used: 3, capacity: 3 },
+      { regionId: "west-levee", used: 3, capacity: 4 },
+      { regionId: "upper-floodplain", used: 3, capacity: 5 },
+      { regionId: "river-crown", used: 3, capacity: 3 },
+      { regionId: "lake-country", used: 3, capacity: 4 },
+    ],
+    "filled and open building glyphs follow local structure slots"
+  );
   assert.equal(initial.worldMap.civilizationSummary.settlementCount, 5);
   assert.equal(initial.worldMap.civilizationSummary.population.total, 165);
   assert.equal(initial.worldMap.civilizationSummary.population.adults, 150);
