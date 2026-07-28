@@ -32,7 +32,8 @@ rate-limited for responsive map input. Manual scrubbing takes control
 immediately.
 Choosing a vassal focuses the target settlement, preserves the prior local
 forecast for comparison, progressively commits the deterministic lifespan, and
-distinguishes fixed history from editable history and forecast.
+distinguishes fixed history from editable history and forecast. The blocking
+chooser suspends automatic forecast preview until a candidate is selected.
 
 Game state and runner saves are schema v5. Old saves are intentionally
 unsupported.

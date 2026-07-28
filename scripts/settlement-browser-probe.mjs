@@ -286,12 +286,35 @@ try {
   const openResult = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
   assert.equal(openResult.ok, true);
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()), true);
+  await delay(180);
   const pendingSelection = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
   );
+  const chooserSnapshot = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(
+    chooserSnapshot.runner.previewStatus.active,
+    false,
+    "blocking vassal selection suspends automatic forecast preview"
+  );
   const chosenTargetRegionId = pendingSelection.candidates[0].targetRegionId;
-  const selectResult = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
-  assert.equal(selectResult.ok, true);
+  const candidatePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)
+  );
+  assert.ok(candidatePoint, "candidate card exposes a browser click point");
+  await clickDesignPoint(page, candidatePoint);
+  const selectResult = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLastVassalSelectionResult()
+  );
+  assert.equal(selectResult?.ok, true, "candidate card dispatches vassal selection");
+  assert.equal(
+    await page.evaluate(
+      () => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()
+    ),
+    false,
+    "candidate card closes the chooser after selection"
+  );
   await delay(100);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());

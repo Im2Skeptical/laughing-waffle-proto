@@ -184,7 +184,9 @@ through the existing read-only forecast-preview path. The viewed state therefore
 updates the survival strip, season/moon wheel, map workers, structures, and
 settlement details without advancing the committed timeline or consuming RNG.
 Manual scrubbing takes ownership and is not overridden until a new
-reveal/context reset. Choosing a vassal focuses
+reveal/context reset. The blocking vassal chooser suspends automatic viewed
+forecast refresh and handles candidate selection on press, preventing an
+unveil redraw from swallowing the choice. Choosing a vassal focuses
 its target site before snapshotting the prior local forecast, shows that
 forecast being replaced, and progressively commits history through the
 vassal's deterministic death boundary. Selected-vassal lifespan segments are
