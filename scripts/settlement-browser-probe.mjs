@@ -10,6 +10,8 @@ const DETAIL_PATH = "artifacts/settlement-browser-probe.json";
 const SCREENSHOT_PATH = "artifacts/settlement-browser-probe-latest.png";
 const OVERVIEW_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-overview.png";
+const WIDE_HEADER_SCREENSHOT_PATH =
+  "artifacts/settlement-browser-probe-wide-header.png";
 
 async function waitForHttp() {
   for (let attempt = 0; attempt < 150; attempt += 1) {
@@ -321,7 +323,7 @@ try {
   assert.ok(overview.view.elderOrder.resistance >= 0);
   await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
 
-  await clickDesignPoint(page, { x: 2145, y: 36 });
+  await clickDesignPoint(page, { x: 1945, y: 36 });
   const demographics = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(demographics.view.activeTab, "demographics");
   assert.equal(
@@ -411,7 +413,7 @@ try {
     );
   }
 
-  await clickDesignPoint(page, { x: 2313, y: 36 });
+  await clickDesignPoint(page, { x: 2113, y: 36 });
   const returnedToMap = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -432,6 +434,91 @@ try {
     ],
     "returning to the map restores civilization graph values"
   );
+
+  const widePage = await browser.newPage({
+    viewport: { width: 1600, height: 700 },
+  });
+  await widePage.goto(URL);
+  await widePage.waitForFunction(
+    () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
+  );
+  await clickDesignPoint(widePage, { x: 2047, y: 762 });
+  await widePage.waitForFunction(
+    () =>
+      globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===
+      "settlement"
+  );
+  const wideHeaderLayout = await widePage.evaluate(() => {
+    const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    const canvasRect = document.querySelector("canvas").getBoundingClientRect();
+    const toScreenRect = (rect) => ({
+      left: canvasRect.left + rect.x / 2424 * canvasRect.width,
+      top: canvasRect.top + rect.y / 1080 * canvasRect.height,
+      right:
+        canvasRect.left +
+        (rect.x + rect.width) / 2424 * canvasRect.width,
+      bottom:
+        canvasRect.top +
+        (rect.y + rect.height) / 1080 * canvasRect.height,
+    });
+    const domRect = (testId) => {
+      const rect = document.querySelector(
+        `[data-testid="${testId}"]`
+      ).getBoundingClientRect();
+      return {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+      };
+    };
+    return {
+      canvas: {
+        left: canvasRect.left,
+        top: canvasRect.top,
+        right: canvasRect.right,
+        bottom: canvasRect.bottom,
+      },
+      tabs: Object.fromEntries(
+        ["overview", "demographics", "map"].map((key) => [
+          key,
+          toScreenRect(snapshot.view.headerControls[key]),
+        ])
+      ),
+      utilities: {
+        fullscreen: domRect("fullscreen-toggle"),
+        debug: domRect("debug-open"),
+      },
+    };
+  });
+  const overlaps = (a, b) =>
+    a.left < b.right &&
+    a.right > b.left &&
+    a.top < b.bottom &&
+    a.bottom > b.top;
+  for (const [tabId, tabRect] of Object.entries(wideHeaderLayout.tabs)) {
+    assert.equal(
+      overlaps(tabRect, wideHeaderLayout.utilities.fullscreen),
+      false,
+      `${tabId} remains clear of the fullscreen control`
+    );
+    assert.equal(
+      overlaps(tabRect, wideHeaderLayout.utilities.debug),
+      false,
+      `${tabId} remains clear of the debug control`
+    );
+    assert.ok(
+      tabRect.left >= wideHeaderLayout.canvas.left &&
+        tabRect.right <= wideHeaderLayout.canvas.right,
+      `${tabId} stays fully inside the canvas`
+    );
+  }
+  await widePage.screenshot({
+    path: WIDE_HEADER_SCREENSHOT_PATH,
+    fullPage: true,
+  });
+  await widePage.close();
+
   assert.ok(
     returnedToMap.graph.historyZones.some((zone) => zone.kind === "fixedHistory"),
     "vassal history brackets remain after returning to civilization scope"
@@ -552,6 +639,7 @@ try {
       "site selection and structure capacity",
       "Overview and Demographics tabs",
       "fullscreen control and season/year heading",
+      "wide/fullscreen settlement header controls do not overlap",
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",
