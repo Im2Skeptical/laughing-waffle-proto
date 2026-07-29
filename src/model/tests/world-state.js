@@ -39,7 +39,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 5);
+assert.equal(state.gameStateSchemaVersion, 6);
 assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
   REGION_STRUCTURE_CAPACITIES);
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
@@ -287,8 +287,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 4;
-assert.throws(() => deserializeGameState(old), /expected v5/);
+old.gameStateSchemaVersion = 5;
+assert.throws(() => deserializeGameState(old), /expected v6/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -416,7 +416,7 @@ try {
   );
   const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
   const oldSave = JSON.parse(storage.get(saveKey));
-  oldSave.meta.schemaVersion = 4;
+  oldSave.meta.schemaVersion = 5;
   storage.set(saveKey, JSON.stringify(oldSave));
   assert.equal(runner.loadFromSlot(1).reason, "versionMismatch");
 } finally {
@@ -427,4 +427,4 @@ try {
   }
 }
 
-console.log("[world-state-v5] OK");
+console.log("[world-state-v6] OK");

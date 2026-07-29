@@ -10,17 +10,15 @@ import {
   DETAILED_REGION_IDS,
   createInitialDetailedSettlementData,
 } from "../defs/world/detailed-settlement-scenario.js";
-import { MOON_CYCLE_SEC } from "../defs/gamesettings/gamerules-defs.js";
 import { getConnectedRegionIds, getRegionState } from "./world-state.js";
 import { deserializeGameState, serializeGameState } from "./state.js";
+import {
+  getDetailedPracticeDef,
+  getDetailedStructureDef,
+  getGameSetting,
+} from "./game-config.js";
 
 const FOOD_SCALE = 10000;
-const FAITH_BIRTH_RATE = Object.freeze({
-  bronze: 0,
-  silver: 0.1,
-  gold: 0.2,
-  diamond: 0.5,
-});
 const FAITH_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 const HAPPINESS_ORDER = Object.freeze(["negative", "neutral", "positive"]);
 const TRAITS = Object.freeze([
@@ -121,12 +119,12 @@ export function getStructureCount(state, regionId, structureId) {
 
 export function getStoredFoodCapacity(state, regionId) {
   const count = getStructureCount(state, regionId, "granary");
-  return settlementStructureDefs.granary.capacityPerCountSquared * count * count;
+  return getDetailedStructureDef(state, "granary").capacityPerCountSquared * count * count;
 }
 
 export function getHousingCapacity(state, regionId) {
   const count = getStructureCount(state, regionId, "mudHouses");
-  return settlementStructureDefs.mudHouses.capacityPerCountSquared * count * count;
+  return getDetailedStructureDef(state, "mudHouses").capacityPerCountSquared * count * count;
 }
 
 export function getPopulationSummary(state, regionId) {
@@ -153,7 +151,10 @@ export function getPopulationSummary(state, regionId) {
     adults,
     elders,
     total: children + adults + elders,
-    mealDemand: adults + elders + Math.ceil(children / 2),
+    mealDemand:
+      Math.ceil(children * getGameSetting(state, "childMealConsumption"))
+      + Math.ceil(adults * getGameSetting(state, "adultMealConsumption"))
+      + Math.ceil(elders * getGameSetting(state, "elderMealConsumption")),
     housingCapacity: getHousingCapacity(state, regionId),
     byClass,
   };
@@ -272,7 +273,15 @@ export function getElderOrderSummary(state, regionId) {
     }
   }
   ages.sort((a, b) => a - b);
-  const totalPrestige = ages.reduce((sum, age) => sum + Math.max(0, age - 44), 0);
+  const prestigeBaseAge = getGameSetting(state, "elderPrestigeBaseAge");
+  const resistancePerAdditionalElder = getGameSetting(
+    state,
+    "resistancePerAdditionalElder"
+  );
+  const totalPrestige = ages.reduce(
+    (sum, age) => sum + Math.max(0, age - prestigeBaseAge),
+    0
+  );
   const count = ages.length;
   const averagePrestige = count > 0 ? Math.floor(totalPrestige / count) : 0;
   return {
@@ -282,8 +291,9 @@ export function getElderOrderSummary(state, regionId) {
     count,
     totalPrestige,
     averagePrestige,
-    coordinationResistance: count > 0 ? 10 * (count - 1) : 0,
-    resistance: count > 0 ? averagePrestige + 10 * (count - 1) : 0,
+    coordinationResistance: count > 0 ? resistancePerAdditionalElder * (count - 1) : 0,
+    resistance:
+      count > 0 ? averagePrestige + resistancePerAdditionalElder * (count - 1) : 0,
   };
 }
 
@@ -308,16 +318,20 @@ export function assignDetailedSettlementWorkers(state, regionId) {
   for (const classId of POPULATION_CLASS_ORDER) {
     const classState = settlement?.populationByClass?.[classId];
     let tokens = Math.floor(
-      (Math.max(0, Math.floor(classState?.adults ?? 0)) + eldersCount(classState)) / 10
+      (Math.max(0, Math.floor(classState?.adults ?? 0)) + eldersCount(classState))
+        / Math.max(1, getGameSetting(state, "populationPerToken"))
     );
     for (let slotIndex = 0; slotIndex < slots.length && tokens > 0; slotIndex += 1) {
-      const def = detailedSettlementPracticeDefs[slots[slotIndex]?.practiceId];
+      const def = getDetailedPracticeDef(state, slots[slotIndex]?.practiceId);
       const room = Math.max(0, (def?.workerCapacity ?? 0) - assignments[slotIndex].length);
       const count = Math.min(tokens, room);
       for (let index = 0; index < count; index += 1) {
         assignments[slotIndex].push({
           classId,
-          effectiveness: classId === "villager" ? 1 : 0.5,
+          effectiveness: getGameSetting(
+            state,
+            classId === "villager" ? "villagerEffectiveness" : "strangerEffectiveness"
+          ),
         });
       }
       tokens -= count;
@@ -361,7 +375,7 @@ function compactPracticeSlots(settlement) {
 function tryCreateStructure(state, regionId, structureId) {
   const settlement = getDetailedSettlement(state, regionId);
   const region = getRegionState(state, regionId);
-  if (!settlement || !region || !settlementStructureDefs[structureId]) return false;
+  if (!settlement || !region || !getDetailedStructureDef(state, structureId)) return false;
   const slots = settlement.structureSlots;
   const capacity = Math.max(0, Math.floor(region.structureCapacity ?? 0));
   while (slots.length < capacity) slots.push(null);
@@ -387,7 +401,7 @@ function markCompletedBuildInterventionResolved(state, regionId, practiceId) {
 function executePracticeEffects(state, site, assignment, activationType) {
   const settlement = site.detailedState;
   const slot = settlement.practiceSlots[assignment.slotIndex];
-  const def = detailedSettlementPracticeDefs[slot?.practiceId];
+  const def = getDetailedPracticeDef(state, slot?.practiceId);
   if (!def || def.activation.type !== activationType) return;
   if ((def.workerCapacity ?? 0) > 0 && assignment.tokens.length === 0) return;
   if ((def.activation.type === "season" || def.activation.type === "newMoon")
@@ -432,7 +446,7 @@ function runPracticeActivation(state, activationType) {
 
 function getPreserveReduction(state, site) {
   return assignDetailedSettlementWorkers(state, site.regionId).reduce((sum, assignment) => {
-    const def = detailedSettlementPracticeDefs[assignment.practiceId];
+    const def = getDetailedPracticeDef(state, assignment.practiceId);
     return sum + (def?.effects ?? []).reduce((effectSum, effect) =>
       effect.op === "modifyStoredFoodDecay"
         ? effectSum - effect.additivePercentPerEffectiveWorker * assignment.effectiveWorkers
@@ -465,8 +479,11 @@ export function planDetailedAdministrationMoves(state) {
       .flatMap((assignment) => assignment.tokens);
     const neighbours = getConnectedRegionIds(state, site.regionId)
       .filter((id) => snapshot[id]);
+    const packetPerEffectiveWorker = (
+      getDetailedPracticeDef(state, "administrate")?.effects ?? []
+    ).find((effect) => effect?.op === "routeLocalFood")?.packetPerEffectiveWorker ?? 0;
     for (const token of adminTokens) {
-      const packet = roundFood(10 * token.effectiveness);
+      const packet = roundFood(packetPerEffectiveWorker * token.effectiveness);
       const host = snapshot[site.regionId];
       const shortage = Math.max(0, host.demand - host.loose - host.stored);
       let sourceId = null;
@@ -549,27 +566,35 @@ function runNewMoon(state) {
   runPracticeActivation(state, "newMoon");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
-    const decayRate = Math.max(0, 0.1 - getPreserveReduction(state, site) / 100);
+    const decayRate = Math.max(
+      0,
+      getGameSetting(state, "storedFoodDecayRate") - getPreserveReduction(state, site) / 100
+    );
     settlement.storedFood = roundFood(settlement.storedFood * (1 - decayRate));
-    settlement.looseFood = roundFood(settlement.looseFood * 0.5);
+    settlement.looseFood = roundFood(
+      settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
+    );
   }
 }
 
-function updateHappiness(classState, ratio) {
+function updateHappiness(state, classState, ratio) {
   const happiness = classState.happiness;
   const previousStatus = happiness.status;
   if (ratio >= 1) {
     happiness.fullFeedStreak += 1;
     happiness.missedFeedStreak = 0;
     happiness.partialFeedRatios = [];
-    if (happiness.fullFeedStreak >= 3) {
+    if (happiness.fullFeedStreak >= getGameSetting(state, "fullFeedStreakForIncrease")) {
       happiness.status = "positive";
       happiness.fullFeedStreak = 0;
     }
-  } else if (ratio < 0.5) {
+  } else if (ratio < getGameSetting(state, "partialFeedMinimumRatio")) {
     happiness.fullFeedStreak = 0;
     happiness.partialFeedRatios = [];
-    happiness.missedFeedStreak = Math.min(3, happiness.missedFeedStreak + 1);
+    happiness.missedFeedStreak = Math.min(
+      getGameSetting(state, "missedFeedStreakForStarvation"),
+      happiness.missedFeedStreak + 1
+    );
   } else {
     const previousRatio = happiness.partialFeedRatios.at(-1);
     happiness.fullFeedStreak = 0;
@@ -579,8 +604,13 @@ function updateHappiness(classState, ratio) {
       happiness.status = shiftStatus(previousStatus, HAPPINESS_ORDER, -1);
       happiness.partialFeedRatios = [normalized];
     } else {
-      happiness.partialFeedRatios = [...happiness.partialFeedRatios, normalized].slice(-3);
-      if (happiness.partialFeedRatios.length >= 3) {
+      happiness.partialFeedRatios = [...happiness.partialFeedRatios, normalized].slice(
+        -getGameSetting(state, "partialFeedMemoryLength")
+      );
+      if (
+        happiness.partialFeedRatios.length
+        >= getGameSetting(state, "partialFeedMemoryLength")
+      ) {
         happiness.status = shiftStatus(previousStatus, HAPPINESS_ORDER, 1);
         happiness.partialFeedRatios = [];
       }
@@ -589,7 +619,10 @@ function updateHappiness(classState, ratio) {
   return {
     previousStatus,
     nextStatus: happiness.status,
-    starvationTriggered: ratio < 0.5 && happiness.missedFeedStreak >= 3,
+    starvationTriggered:
+      ratio < getGameSetting(state, "partialFeedMinimumRatio")
+      && happiness.missedFeedStreak
+        >= getGameSetting(state, "missedFeedStreakForStarvation"),
   };
 }
 
@@ -628,10 +661,13 @@ function runFullMoon(state) {
     const ratio = demand > 0 ? consumed / demand : 1;
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
-      const happiness = updateHappiness(classState, ratio);
+      const happiness = updateHappiness(state, classState, ratio);
       if (happiness.starvationTriggered) {
         const classTotal = classState.children + classState.adults + eldersCount(classState);
-        removePopulationProportionally(classState, Math.ceil(classTotal * 0.2));
+        removePopulationProportionally(
+          classState,
+          Math.ceil(classTotal * getGameSetting(state, "starvationPopulationLossRate"))
+        );
       }
     }
     settlement.lastMeal = {
@@ -640,7 +676,9 @@ function runFullMoon(state) {
       consumed,
       ratio: roundFood(ratio),
     };
-    settlement.looseFood = roundFood(settlement.looseFood * 0.5);
+    settlement.looseFood = roundFood(
+      settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
+    );
   }
 }
 
@@ -654,14 +692,14 @@ export function resolveProbability(base, modifiers = null) {
   return Math.max(0, Math.min(1, (base + additions) * multiplier));
 }
 
-export function getElderMortalityRate(age) {
-  if (age <= 49) return 0.01;
-  if (age <= 54) return 0.03;
-  if (age <= 59) return 0.08;
-  if (age <= 64) return 0.18;
-  if (age <= 69) return 0.35;
-  if (age <= 74) return 0.6;
-  return 0.85;
+export function getElderMortalityRate(age, state = null) {
+  if (age <= 49) return getGameSetting(state, "elderMortalityThrough49");
+  if (age <= 54) return getGameSetting(state, "elderMortality50To54");
+  if (age <= 59) return getGameSetting(state, "elderMortality55To59");
+  if (age <= 64) return getGameSetting(state, "elderMortality60To64");
+  if (age <= 69) return getGameSetting(state, "elderMortality65To69");
+  if (age <= 74) return getGameSetting(state, "elderMortality70To74");
+  return getGameSetting(state, "elderMortality75Plus");
 }
 
 function rollCount(state, count, probability) {
@@ -684,21 +722,30 @@ function runDemographics(state) {
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const snapshot = clone(classState);
-      const birthRate = resolveProbability(FAITH_BIRTH_RATE[snapshot.faith.tier] ?? 0.2);
+      const faithLabel = String(snapshot.faith.tier ?? "gold")
+        .replace(/^./, (letter) => letter.toUpperCase());
+      const birthRate = resolveProbability(getGameSetting(state, `birthRate${faithLabel}`));
       const births = rollCount(state, snapshot.adults, birthRate);
-      const matured = rollCount(state, snapshot.children, 0.1);
-      const newElders = rollCount(state, snapshot.adults, 0.02);
+      const childToAdultRate = getGameSetting(state, "childToAdultRate");
+      const adultToElderRate = getGameSetting(state, "adultToElderRate");
+      const matured = rollCount(state, snapshot.children, childToAdultRate);
+      const newElders = rollCount(state, snapshot.adults, adultToElderRate);
       const nextElders = [];
       let elderDeaths = 0;
       for (const cohort of [...snapshot.eldersByAge].sort((a, b) => a.age - b.age)) {
         const nextAge = cohort.age + 1;
-        const deaths = rollCount(state, cohort.count, getElderMortalityRate(nextAge));
+        const deaths = rollCount(state, cohort.count, getElderMortalityRate(nextAge, state));
         elderDeaths += deaths;
         if (cohort.count - deaths > 0) {
           nextElders.push({ age: nextAge, count: cohort.count - deaths });
         }
       }
-      if (newElders > 0) nextElders.push({ age: 45, count: newElders });
+      if (newElders > 0) {
+        nextElders.push({
+          age: getGameSetting(state, "newElderAge"),
+          count: newElders,
+        });
+      }
       classState.children = snapshot.children - matured + births;
       classState.adults = snapshot.adults + matured - newElders;
       classState.eldersByAge = nextElders;
@@ -709,15 +756,16 @@ function runDemographics(state) {
         newElders,
         elderDeaths,
         birthRate,
-        childToAdultRate: 0.1,
-        adultToElderRate: 0.02,
+        childToAdultRate,
+        adultToElderRate,
       };
     }
     const population = getPopulationSummary(state, site.regionId);
     const overflow = Math.max(0, population.total - population.housingCapacity);
     const housingCapStatus = population.total <= population.housingCapacity
       ? "positive"
-      : population.total * 5 > population.housingCapacity * 6
+      : population.total
+          > population.housingCapacity * getGameSetting(state, "overHousingNegativeRatio")
         ? "negative"
         : "neutral";
     for (const classId of POPULATION_CLASS_ORDER) {
@@ -736,7 +784,13 @@ function runDemographics(state) {
       } else if (classState.happiness.status === "negative") {
         if (classState.faith.tier === "bronze") {
           const classTotal = classState.children + classState.adults + eldersCount(classState);
-          const collapseLoss = Math.min(classTotal, Math.max(1, Math.floor(classTotal * 0.5)));
+          const collapseLoss = Math.min(
+            classTotal,
+            Math.max(
+              1,
+              Math.floor(classTotal * getGameSetting(state, "bronzeCollapseLossRate"))
+            )
+          );
           removePopulationProportionally(classState, collapseLoss);
           result.byClass[classId].bronzeCollapseLoss = collapseLoss;
         } else {
@@ -768,20 +822,33 @@ function runGlobalChaos(state) {
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = site.detailedState.populationByClass[classId];
       const classPop = population.byClass[classId].total;
-      if (classState.faith.tier === "gold") mitigation += Math.floor(classPop / 5);
-      else if (classState.faith.tier === "diamond") mitigation += Math.floor(classPop / 2);
+      if (classState.faith.tier === "gold") {
+        mitigation += Math.floor(
+          classPop / getGameSetting(state, "goldMitigationPerPopulation")
+        ) * getGameSetting(state, "goldMitigationAmount");
+      } else if (classState.faith.tier === "diamond") {
+        mitigation += Math.floor(
+          classPop / getGameSetting(state, "diamondMitigationPerPopulation")
+        ) * getGameSetting(state, "diamondMitigationAmount");
+      }
     }
-    const growthSteps = Math.floor(Math.max(0, state.year - 1) / 12);
-    let baseIncome = 10;
+    const growthSteps = Math.floor(
+      Math.max(0, state.year - 1) / getGameSetting(state, "chaosGrowthYears")
+    );
+    let baseIncome = getGameSetting(state, "baseChaosIncomePerSite");
     for (let step = 0; step < growthSteps; step += 1) {
-      baseIncome = Math.ceil(baseIncome * 1.03);
+      baseIncome = Math.ceil(
+        baseIncome * (1 + getGameSetting(state, "chaosGrowthRate"))
+      );
     }
     const income = Math.max(0, baseIncome - mitigation);
     totalIncome += income;
     byRegion.push({ regionId: site.regionId, baseIncome, mitigation, income });
   }
   civilization.chaos.chaosPower += totalIncome;
-  const spawned = Math.floor(civilization.chaos.chaosPower / 100);
+  const spawned = Math.floor(
+    civilization.chaos.chaosPower / getGameSetting(state, "chaosPerMonster")
+  );
   civilization.chaos.monsterCount += spawned;
   civilization.chaos.lastAnnualIncome = { totalIncome, byRegion, spawned };
   if (civilization.chaos.monsterCount >= civilization.chaos.monsterLossThreshold) {
@@ -818,8 +885,19 @@ export function generateDetailedVassalCandidates(state) {
     const interventions = shuffleWithStateRng(state, VASSAL_INTERVENTION_PRACTICE_IDS).slice(0, 3);
     const resistance = getElderOrderSummary(state, targetRegionId).resistance;
     const trait = TRAITS[state.rngNextInt(0, TRAITS.length - 1)];
-    const initialAge = state.rngNextInt(6, 12);
-    const deathAge = state.rngNextInt(45, 85);
+    const initialAge = state.rngNextInt(
+      getGameSetting(state, "vassalStartingAgeMin"),
+      getGameSetting(state, "vassalStartingAgeMax")
+    );
+    const deathAge = state.rngNextInt(
+      getGameSetting(state, "vassalDeathAgeMin"),
+      getGameSetting(state, "vassalDeathAgeMax")
+    );
+    const requirementOffsets = [
+      getGameSetting(state, "interventionRequirement01"),
+      getGameSetting(state, "interventionRequirement02"),
+      getGameSetting(state, "interventionRequirement03"),
+    ];
     candidates.push({
       candidateId: `candidate-${state.civilization.vassalLineage.nextVassalId}-${candidateIndex + 1}`,
       targetRegionId,
@@ -831,7 +909,7 @@ export function generateDetailedVassalCandidates(state) {
       professionId: PROFESSIONS[state.rngNextInt(0, PROFESSIONS.length - 1)],
       interventions: interventions.map((practiceId, index) => ({
         practiceId,
-        requiredPrestige: resistance + 20 + index * 10,
+        requiredPrestige: resistance + requirementOffsets[index],
         status: "pending",
         appliedYear: null,
       })),
@@ -858,6 +936,106 @@ export function buildDetailedVassalSelectionPool(state) {
     candidates,
     expectedPoolHash: candidatePoolHash(candidates.map(({ candidateIndex, ...candidate }) => candidate)),
   };
+}
+
+export function getDetailedVassalDebugOptions(state) {
+  return {
+    targetRegions: getDetailedSettlementSites(state, { playerOnly: true }).map((site) => ({
+      id: site.regionId,
+      label: site.name ?? site.regionId,
+    })),
+    traits: TRAITS.map((entry) => ({ ...entry })),
+    professions: PROFESSIONS.map((id) => ({ id, label: id })),
+    interventionPracticeIds: VASSAL_INTERVENTION_PRACTICE_IDS.filter(
+      (id) => !!getDetailedPracticeDef(state, id)
+    ),
+  };
+}
+
+export function selectDetailedCheatVassal(state, rawSpec = {}) {
+  const lineage = state?.civilization?.vassalLineage;
+  if (!lineage) return { ok: false, reason: "noLineage" };
+  const targetRegionId =
+    typeof rawSpec.targetRegionId === "string" ? rawSpec.targetRegionId : null;
+  if (!getDetailedVassalDebugOptions(state).targetRegions.some(
+    (entry) => entry.id === targetRegionId
+  )) {
+    return { ok: false, reason: "invalidTargetRegion" };
+  }
+  if (lineage.currentVassal && rawSpec.replaceCurrent !== true) {
+    return { ok: false, reason: "currentVassalAlive" };
+  }
+  const initialAge = Number.isFinite(rawSpec.initialAge)
+    ? Math.max(0, Math.floor(rawSpec.initialAge))
+    : getGameSetting(state, "vassalStartingAgeMin");
+  const deathAge = Number.isFinite(rawSpec.deathAge)
+    ? Math.max(initialAge + 1, Math.floor(rawSpec.deathAge))
+    : Math.max(initialAge + 1, getGameSetting(state, "vassalDeathAgeMin"));
+  const options = getDetailedVassalDebugOptions(state);
+  const trait = options.traits.find((entry) => entry.id === rawSpec.traitId)
+    ?? options.traits[0];
+  const traitPrestigeModifier = Number.isFinite(rawSpec.traitPrestigeModifier)
+    ? Number(rawSpec.traitPrestigeModifier)
+    : trait?.prestigeDelta ?? 0;
+  const professionId = options.professions.some((entry) => entry.id === rawSpec.professionId)
+    ? rawSpec.professionId
+    : options.professions[0]?.id ?? null;
+  const interventionPracticeIds = Array.isArray(rawSpec.interventionPracticeIds)
+    ? rawSpec.interventionPracticeIds
+    : options.interventionPracticeIds.slice(0, 3);
+  if (
+    interventionPracticeIds.length !== 3
+    || new Set(interventionPracticeIds).size !== 3
+    || interventionPracticeIds.some((id) => !options.interventionPracticeIds.includes(id))
+  ) {
+    return { ok: false, reason: "invalidInterventions" };
+  }
+  const resistanceSnapshot = Number.isFinite(rawSpec.resistanceSnapshot)
+    ? Math.max(0, Math.floor(rawSpec.resistanceSnapshot))
+    : getElderOrderSummary(state, targetRegionId).resistance;
+  const defaultOffsets = [
+    getGameSetting(state, "interventionRequirement01"),
+    getGameSetting(state, "interventionRequirement02"),
+    getGameSetting(state, "interventionRequirement03"),
+  ];
+  const requiredPrestige = interventionPracticeIds.map((_, index) =>
+    Number.isFinite(rawSpec.requiredPrestige?.[index])
+      ? Math.max(0, Math.floor(rawSpec.requiredPrestige[index]))
+      : resistanceSnapshot + defaultOffsets[index]
+  );
+
+  if (lineage.currentVassal) {
+    const replaced = lineage.currentVassal;
+    replaced.isDead = true;
+    replaced.deathYear = state.year;
+    replaced.deathSec = state.tSec;
+    for (const intervention of replaced.interventions ?? []) {
+      if (intervention.status === "pending") intervention.status = "expired";
+    }
+    if (lineage.selectedVassals.length > 0) {
+      lineage.selectedVassals[lineage.selectedVassals.length - 1] = clone(replaced);
+    }
+    lineage.currentVassal = null;
+  }
+
+  lineage.pendingCandidates = [{
+    candidateId: `debug-candidate-${lineage.nextVassalId}`,
+    targetRegionId,
+    resistanceSnapshot,
+    initialAge,
+    deathAge,
+    traitId: trait?.id ?? "debug",
+    traitPrestigeModifier,
+    professionId,
+    interventions: interventionPracticeIds.map((practiceId, index) => ({
+      practiceId,
+      requiredPrestige: requiredPrestige[index],
+      status: "pending",
+      appliedYear: null,
+    })),
+    debugInjected: true,
+  }];
+  return selectDetailedVassalCandidate(state, 0);
 }
 
 export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash = null) {
@@ -956,7 +1134,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 5;
+  state.gameStateSchemaVersion = 6;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -972,7 +1150,7 @@ export function initializeDetailedSettlementCivilization(state) {
   state.civilization.chaos = {
     chaosPower: 0,
     monsterCount: 0,
-    monsterLossThreshold: 1000,
+    monsterLossThreshold: getGameSetting(state, "monsterLossThreshold"),
     lastAnnualIncome: null,
   };
   state.civilization.vassalLineage = {
@@ -986,8 +1164,9 @@ export function initializeDetailedSettlementCivilization(state) {
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
   if (state._seasonChanged === true) runPracticeActivation(state, "season");
-  if (tSec > 0 && tSec % Math.max(1, MOON_CYCLE_SEC) === 0) runNewMoon(state);
-  if (tSec > 0 && tSec % Math.max(1, MOON_CYCLE_SEC) === Math.floor(MOON_CYCLE_SEC / 2)) {
+  const moonCycleSec = Math.max(2, getGameSetting(state, "moonCycleSec"));
+  if (tSec > 0 && tSec % moonCycleSec === 0) runNewMoon(state);
+  if (tSec > 0 && tSec % moonCycleSec === Math.floor(moonCycleSec / 2)) {
     runFullMoon(state);
   }
   if (state._seasonChanged === true && state.currentSeasonIndex === 0) {
@@ -1014,7 +1193,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
     population,
     practices: settlement.practiceSlots.map((slot, index) => ({
       ...slot,
-      label: slot ? detailedSettlementPracticeDefs[slot.practiceId]?.label ?? slot.practiceId : null,
+      label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,
       workers: workers[index],
     })),
     structures: settlement.structureSlots,

@@ -39,7 +39,12 @@ function safeStorage() {
   }
 }
 
-export function createMapLabController({ runner, setupId = "devPlaytesting01", onApplied } = {}) {
+export function createMapLabController({
+  runner,
+  setupId = "devPlaytesting01",
+  onApplied,
+  getGameConfig,
+} = {}) {
   const authoredSetup = setupDefs[setupId];
   const definitionId = authoredSetup?.worldDefinitionId ?? "riverBasin01";
   let draft = createAuthoredMapLabDraft(definitionId);
@@ -398,6 +403,8 @@ export function createMapLabController({ runner, setupId = "devPlaytesting01", o
       try {
         const scenario = clone(authoredSetup);
         scenario.worldDraft = canonicalizeMapLabDraft(draft);
+        const gameConfig = getGameConfig?.();
+        if (gameConfig) scenario.gameConfig = clone(gameConfig);
         const freshState = createInitialState(scenario, scenario.rngSeed);
         const result = runner?.resetToState?.(freshState, "mapLabDraft")
           ?? { ok: false, reason: "runnerUnavailable" };

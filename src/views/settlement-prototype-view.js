@@ -4,6 +4,7 @@ import {
   getElderMortalityRate,
 } from "../model/detailed-settlements.js";
 import { getRegionDefinition } from "../model/world-state.js";
+import { getGameSetting } from "../model/game-config.js";
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
@@ -42,9 +43,14 @@ function panel(parent, rect, title) {
   parent.addChild(gfx, createText(title, TEXT_STYLES.title, rect.x + 18, rect.y + 15));
 }
 
-function faithRates(classState) {
-  const birth = { bronze: 0, silver: 10, gold: 20, diamond: 50 }[classState?.faith?.tier] ?? 20;
-  return `Birth ${birth}% · child→adult 10% · adult→elder 2%`;
+function faithRates(state, classState) {
+  const faith = String(classState?.faith?.tier ?? "gold")
+    .replace(/^./, (letter) => letter.toUpperCase());
+  const birth = getGameSetting(state, `birthRate${faith}`) * 100;
+  return `Birth ${birth}% · child→adult ${getGameSetting(
+    state,
+    "childToAdultRate"
+  ) * 100}% · adult→elder ${getGameSetting(state, "adultToElderRate") * 100}%`;
 }
 
 export function createSettlementPrototypeView({
@@ -73,7 +79,7 @@ export function createSettlementPrototypeView({
     );
     const signature = JSON.stringify({ tSec: state.tSec, regionId, activeTab, vm,
       lineage: state.civilization.vassalLineage, chaos: state.civilization.chaos,
-      survivalTracker });
+      gameConfig: state.gameConfig, survivalTracker });
     if (!force && signature === lastSignature) return;
     lastSignature = signature;
     clearChildren(root);
@@ -127,7 +133,10 @@ export function createSettlementPrototypeView({
       });
       const order = vm.elderOrder;
       root.addChild(
-        createText(`Worker policy: one token per ten adults + elders, per class`,
+        createText(`Worker policy: one token per ${getGameSetting(
+          state,
+          "populationPerToken"
+        )} adults + elders, per class`,
           TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 60),
         createText(`Elders: ${order.count} · Ages ${order.ages.join(", ") || "none"}`,
           TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 102),
@@ -179,22 +188,36 @@ export function createSettlementPrototypeView({
       let y = right.y + 64;
       for (const classId of ["villager", "stranger"]) {
         const classState = site.populationByClass[classId];
-        const birthRate = { bronze: 0, silver: 0.1, gold: 0.2, diamond: 0.5 }[
-          classState.faith.tier
-        ] ?? 0.2;
+        const faith = String(classState.faith.tier)
+          .replace(/^./, (letter) => letter.toUpperCase());
+        const birthRate = getGameSetting(state, `birthRate${faith}`);
         const expectedElderDeaths = (classState.eldersByAge ?? []).reduce(
-          (sum, cohort) => sum + cohort.count * getElderMortalityRate(cohort.age + 1), 0
+          (sum, cohort) =>
+            sum + cohort.count * getElderMortalityRate(cohort.age + 1, state),
+          0
         );
         root.addChild(
           createText(classId.toUpperCase(), TEXT_STYLES.title, right.x + 18, y),
-          createText(`${faithRates(classState)} · Faith ${classState.faith.tier}`,
+          createText(`${faithRates(state, classState)} · Faith ${classState.faith.tier}`,
             TEXT_STYLES.body, right.x + 18, y + 34),
-          createText(`Happiness ${classState.happiness.status} · full ${classState.happiness.fullFeedStreak}/3 · missed ${classState.happiness.missedFeedStreak}/3`,
+          createText(`Happiness ${classState.happiness.status} · full ${classState.happiness.fullFeedStreak}/${getGameSetting(
+            state,
+            "fullFeedStreakForIncrease"
+          )} · missed ${classState.happiness.missedFeedStreak}/${getGameSetting(
+            state,
+            "missedFeedStreakForStarvation"
+          )}`,
             TEXT_STYLES.body, right.x + 18, y + 66),
           createText(
             `Expected: ${(
               classState.adults * birthRate
-            ).toFixed(1)} births · ${(classState.children * 0.1).toFixed(1)} adults · ${(classState.adults * 0.02).toFixed(1)} elders · ${expectedElderDeaths.toFixed(2)} elder deaths`,
+            ).toFixed(1)} births · ${(classState.children * getGameSetting(
+              state,
+              "childToAdultRate"
+            )).toFixed(1)} adults · ${(classState.adults * getGameSetting(
+              state,
+              "adultToElderRate"
+            )).toFixed(1)} elders · ${expectedElderDeaths.toFixed(2)} elder deaths`,
             { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted },
             right.x + 18,
             y + 94
@@ -203,7 +226,7 @@ export function createSettlementPrototypeView({
         y += 150;
       }
       root.addChild(createWrappedText(
-        "Elder mortality after aging: 1% through 49; 3% at 50–54; 8% at 55–59; 18% at 60–64; 35% at 65–69; 60% at 70–74; 85% at 75+.",
+        `Elder mortality after aging: ${getGameSetting(state, "elderMortalityThrough49") * 100}% through 49; ${getGameSetting(state, "elderMortality50To54") * 100}% at 50–54; ${getGameSetting(state, "elderMortality55To59") * 100}% at 55–59; ${getGameSetting(state, "elderMortality60To64") * 100}% at 60–64; ${getGameSetting(state, "elderMortality65To69") * 100}% at 65–69; ${getGameSetting(state, "elderMortality70To74") * 100}% at 70–74; ${getGameSetting(state, "elderMortality75Plus") * 100}% at 75+.`,
         TEXT_STYLES.body, right.x + 18, y, right.width - 36));
       y += 90;
       root.addChild(createWrappedText(

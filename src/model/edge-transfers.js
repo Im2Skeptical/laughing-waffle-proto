@@ -1,11 +1,11 @@
-import { MOON_CYCLE_SEC } from "../defs/gamesettings/gamerules-defs.js";
 import {
   planDetailedAdministrationMovesAtBoundary,
 } from "./detailed-settlements.js";
+import { getGameSetting } from "./game-config.js";
 
-export function getLatestEdgeTransferBoundarySec(tSec) {
+export function getLatestEdgeTransferBoundarySec(tSec, state = null) {
   const sec = Math.max(0, Math.floor(tSec ?? 0));
-  const cadence = Math.max(1, Math.floor(MOON_CYCLE_SEC ?? 1));
+  const cadence = Math.max(1, getGameSetting(state, "moonCycleSec"));
   return Math.floor(sec / cadence) * cadence;
 }
 
@@ -14,7 +14,7 @@ export function buildEdgeTransferBatchAtBoundary(
   boundarySec
 ) {
   const sec = Math.max(0, Math.floor(boundarySec ?? 0));
-  const cadence = Math.max(1, Math.floor(MOON_CYCLE_SEC ?? 1));
+  const cadence = Math.max(1, getGameSetting(preBoundaryState, "moonCycleSec"));
   const transfers =
     preBoundaryState?.runStatus?.complete !== true &&
     sec > 0 &&

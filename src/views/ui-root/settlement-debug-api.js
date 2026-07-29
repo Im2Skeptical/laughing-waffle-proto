@@ -66,6 +66,17 @@ function summarizeLineage(state) {
   return lineage
     ? {
         currentVassalId: lineage.currentVassal?.vassalId ?? null,
+        currentVassal: lineage.currentVassal
+          ? {
+              vassalId: lineage.currentVassal.vassalId,
+              targetRegionId: lineage.currentVassal.targetRegionId,
+              initialAge: lineage.currentVassal.initialAge,
+              deathAge: lineage.currentVassal.deathAge,
+              traitId: lineage.currentVassal.traitId,
+              professionId: lineage.currentVassal.professionId,
+              debugInjected: lineage.currentVassal.debugInjected === true,
+            }
+          : null,
         selectedVassalIds: Array.isArray(lineage.selectedVassals)
           ? lineage.selectedVassals.map((entry) => entry.vassalId)
           : [],
@@ -149,6 +160,7 @@ export function publishSettlementDebugApi({
           cursorStateSec: nonNegativeFloor(cursorState?.tSec),
           stateSec: nonNegativeFloor(state?.tSec),
         },
+        gameConfig: state?.gameConfig ?? null,
         lineage: summarizeLineage(getFrontierState?.()),
         vassalSelectionPool: getVassalSelectionPool?.() ?? null,
         lastVassalSelectionResult: getLastVassalSelectionResult?.() ?? null,

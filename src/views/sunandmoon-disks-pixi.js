@@ -3,10 +3,9 @@
 // Pure view module: reads state and dispatches scrub/commit intents only.
 
 import {
-  SEASON_DURATION_SEC,
-  MOON_CYCLE_SEC,
   MOON_PHASE_OFFSET_SEC,
 } from "../defs/gamesettings/gamerules-defs.js";
+import { getGameSetting } from "../model/game-config.js";
 import { VIEW_LAYOUT } from "./layout-pixi.js";
 
 export const SUN_AND_MOON_DISKS_LAYOUT = {
@@ -72,12 +71,12 @@ function getDiskLayout(diskId, layout) {
   return diskId === DISK_ID_SEASON ? layout?.season : layout?.moon;
 }
 
-function getDiskSecondsPerRevolution(diskId, layout) {
+function getDiskSecondsPerRevolution(diskId, layout, state = null) {
   if (diskId === DISK_ID_SEASON) {
     const quadrants = Math.max(1, clampInt(layout?.season?.quadrants, 4));
-    return Math.max(1, clampInt(SEASON_DURATION_SEC, 30)) * quadrants;
+    return Math.max(1, getGameSetting(state, "seasonDurationSec")) * quadrants;
   }
-  return Math.max(1, clampInt(MOON_CYCLE_SEC, 30));
+  return Math.max(1, getGameSetting(state, "moonCycleSec"));
 }
 
 function phase01ToRotationRad(phase01, diskLayout) {
@@ -86,8 +85,8 @@ function phase01ToRotationRad(phase01, diskLayout) {
   return (diskLayout?.rotationOffsetRad || 0) + dir * p * TWO_PI;
 }
 
-function getMoonOrbitPhase01AtTime(timeSec) {
-  const cycleSec = Math.max(1, clampInt(MOON_CYCLE_SEC, 30));
+function getMoonOrbitPhase01AtTime(state, timeSec) {
+  const cycleSec = Math.max(1, getGameSetting(state, "moonCycleSec"));
   const offsetSec = clampInt(MOON_PHASE_OFFSET_SEC, Math.floor(cycleSec / 2));
   const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
   const phaseSec = (t + offsetSec) % cycleSec;
@@ -95,7 +94,7 @@ function getMoonOrbitPhase01AtTime(timeSec) {
 }
 
 function getSeasonProgress01(state, timeSec) {
-  const seasonLen = Math.max(1, clampInt(SEASON_DURATION_SEC, 30));
+  const seasonLen = Math.max(1, getGameSetting(state, "seasonDurationSec"));
 
   const remaining = state?.seasonTimeRemaining;
   if (Number.isFinite(remaining)) {
@@ -125,7 +124,7 @@ function getDiskPhase01AtTime(diskId, state, timeSec, layout) {
     const quadrants = Math.max(1, clampInt(layout?.season?.quadrants, 4));
     return getSeasonWheelPhase01(state, timeSec, quadrants);
   }
-  return getMoonOrbitPhase01AtTime(timeSec);
+  return getMoonOrbitPhase01AtTime(state, timeSec);
 }
 
 function getDiskPlayheadOffsetRad(diskId, layout) {
@@ -152,7 +151,7 @@ function getDiskRingAngleAtSecond({
 
   const fromSec = Number.isFinite(fromTimeSec) ? fromTimeSec : 0;
   const toSec = Number.isFinite(targetSec) ? targetSec : fromSec;
-  const secPerRev = getDiskSecondsPerRevolution(diskId, layout);
+  const secPerRev = getDiskSecondsPerRevolution(diskId, layout, state);
   const basePhase = getDiskPhase01AtTime(diskId, state, fromSec, layout);
   const deltaPhase = (toSec - fromSec) / Math.max(1, secPerRev);
   const phase = wrap01(basePhase + deltaPhase);
@@ -163,13 +162,14 @@ function getDiskRingAngleAtSecond({
 function getDragRingAngleFromAnchorRad(
   diskId,
   layout,
+  state,
   dragStartSec,
   targetSec,
   anchorAngleRad
 ) {
   const startSec = Number.isFinite(dragStartSec) ? dragStartSec : 0;
   const endSec = Number.isFinite(targetSec) ? targetSec : startSec;
-  const secPerRev = getDiskSecondsPerRevolution(diskId, layout);
+  const secPerRev = getDiskSecondsPerRevolution(diskId, layout, state);
   const diskLayout = getDiskLayout(diskId, layout) || {};
   const dir = diskLayout.clockwise ? 1 : -1;
   const deltaPhase = (endSec - startSec) / Math.max(1, secPerRev);
@@ -511,7 +511,7 @@ let feedbackText = null;
         angleDeltaRad < 0 ? ROTATION_ANTICLOCKWISE : ROTATION_CLOCKWISE;
     }
 
-    const secPerRev = getDiskSecondsPerRevolution(dragSession.diskId, layout);
+    const secPerRev = getDiskSecondsPerRevolution(dragSession.diskId, layout, state);
     const diskLayout = getDiskLayout(dragSession.diskId, layout) || {};
     const direction = diskLayout.clockwise ? 1 : -1;
     const deltaPhase = (angleDeltaRad / TWO_PI) * direction;
@@ -633,6 +633,7 @@ let feedbackText = null;
       const dragMarkerAngleRad = getDragRingAngleFromAnchorRad(
         diskId,
         layout,
+        state,
         dragSession.dragStartSec,
         dragSession.visualTargetSec,
         dragSession.dragAnchorRingAngleRad
@@ -716,6 +717,7 @@ let feedbackText = null;
     const targetAngleRad = getDragRingAngleFromAnchorRad(
       diskId,
       layout,
+      state,
       dragSession.dragStartSec,
       targetSec,
       dragSession.dragAnchorRingAngleRad
@@ -858,7 +860,7 @@ let feedbackText = null;
     const baseTimeSec = getTimeSecForRotation(state);
 
     if (moonSprite && moonSprite.visible !== false) {
-      const orbit01 = getMoonOrbitPhase01AtTime(baseTimeSec);
+      const orbit01 = getMoonOrbitPhase01AtTime(state, baseTimeSec);
       moonSprite.rotation = phase01ToRotationRad(orbit01, layout.moon);
     }
 

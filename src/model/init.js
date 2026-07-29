@@ -33,6 +33,7 @@ import { stepSettlementOrders } from "./settlement-order-exec.js";
 import { initializeDetailedSettlementCivilization } from "./detailed-settlements.js";
 import { getGlobalSkillModifier } from "./skills.js";
 import { getPrimaryDetailedSiteState } from "./world-state.js";
+import { canonicalizeGameConfig, getGameSetting } from "./game-config.js";
 
 const HUB_COLS = 10;
 const DEV =
@@ -337,6 +338,8 @@ export function createInitialState(scenario = "devGym01", seed = null) {
     setup?.worldDefinitionId ?? "riverBasin01",
     setup?.worldDraft ?? null
   );
+  state.gameConfig = canonicalizeGameConfig(setup?.gameConfig);
+  state.seasonDurationSec = getGameSetting(state, "seasonDurationSec");
   const local = getPrimaryDetailedSiteState(state);
   state.civilization = {
     capitalRegionId:
@@ -359,7 +362,7 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   state.seasonTimeRemaining = 0;
   state.paused = false;
 
-  // Map-driven settlement schema v5 is assembled by createWorldState. Legacy
+  // Map-driven settlement schema v6 is assembled by createWorldState. Legacy
   // board/hub setup is intentionally not constructed or migrated.
   initializeDetailedSettlementCivilization(state);
   recomputeInitialActionPoints(state);

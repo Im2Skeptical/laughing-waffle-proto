@@ -1,4 +1,10 @@
 import { createMapLabDom } from "./map-lab-dom.js";
+import {
+  GAMEPIECES_DRAFT_KIND,
+  GAME_SETTINGS_DRAFT_KIND,
+  createDebugConfigurationDom,
+} from "./debug-configuration-dom.js";
+import { createVassalDebugDom } from "./vassal-debug-dom.js";
 
 function getFullscreenElement() {
   return (
@@ -31,7 +37,12 @@ function exitFullscreen() {
   return Promise.reject(new Error("Fullscreen exit unavailable"));
 }
 
-export function createSettlementDebugMenuDom({ mapLabController } = {}) {
+export function createSettlementDebugMenuDom({
+  mapLabController,
+  debugConfigurationController,
+  getState,
+  selectCheatVassal,
+} = {}) {
   const utilityControls = document.createElement("div");
   utilityControls.dataset.testid = "utility-controls";
   utilityControls.style.cssText = [
@@ -78,11 +89,23 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   mapLabTab.type = "button";
   mapLabTab.textContent = "Map Lab";
   mapLabTab.dataset.testid = "debug-map-lab-tab";
+  const gameSettingsTab = document.createElement("button");
+  gameSettingsTab.type = "button";
+  gameSettingsTab.textContent = "Game Settings";
+  gameSettingsTab.dataset.testid = "debug-game-settings-tab";
+  const gamepiecesTab = document.createElement("button");
+  gamepiecesTab.type = "button";
+  gamepiecesTab.textContent = "Gamepieces";
+  gamepiecesTab.dataset.testid = "debug-gamepieces-tab";
+  const vassalTab = document.createElement("button");
+  vassalTab.type = "button";
+  vassalTab.textContent = "Vassal Lab";
+  vassalTab.dataset.testid = "debug-vassal-tab";
   const close = document.createElement("button");
   close.type = "button";
   close.textContent = "Close";
   close.style.marginLeft = "auto";
-  header.append(title, mapLabTab, close);
+  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab, close);
   panel.append(header);
 
   const mapLab = createMapLabDom({
@@ -92,8 +115,41 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
       openButton.style.display = "";
     },
   });
-  panel.append(mapLab.element);
+  const gameSettings = createDebugConfigurationDom({
+    controller: debugConfigurationController,
+    kind: GAME_SETTINGS_DRAFT_KIND,
+    title: "Game Settings",
+  });
+  const gamepieces = createDebugConfigurationDom({
+    controller: debugConfigurationController,
+    kind: GAMEPIECES_DRAFT_KIND,
+    title: "Gamepieces",
+  });
+  const vassalLab = createVassalDebugDom({ getState, selectCheatVassal });
+  const pages = {
+    mapLab,
+    gameSettings,
+    gamepieces,
+    vassalLab,
+  };
+  const pageContainer = document.createElement("div");
+  pageContainer.append(
+    mapLab.element,
+    gameSettings.element,
+    gamepieces.element,
+    vassalLab.element
+  );
+  panel.append(pageContainer);
+  let activePage = "mapLab";
   let initialized = false;
+
+  function setActivePage(pageId) {
+    activePage = pages[pageId] ? pageId : "mapLab";
+    for (const [id, page] of Object.entries(pages)) {
+      page.element.style.display = id === activePage ? "" : "none";
+    }
+    pages[activePage].render?.();
+  }
 
   function syncFullscreenButton() {
     const fullscreen = !!getFullscreenElement();
@@ -118,15 +174,17 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   function open() {
     panel.style.display = "block";
     openButton.style.display = "none";
-    panel.classList.add("map-lab-active");
-    mapLab.render();
+    setActivePage(activePage);
   }
 
   openButton.addEventListener("click", open);
   fullscreenButton.addEventListener("click", () => {
     void toggleFullscreen();
   });
-  mapLabTab.addEventListener("click", open);
+  mapLabTab.addEventListener("click", () => setActivePage("mapLab"));
+  gameSettingsTab.addEventListener("click", () => setActivePage("gameSettings"));
+  gamepiecesTab.addEventListener("click", () => setActivePage("gamepieces"));
+  vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
   close.addEventListener("click", () => {
     panel.style.display = "none";
     openButton.style.display = "";
@@ -142,11 +200,18 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
       document.addEventListener("MSFullscreenChange", syncFullscreenButton);
       syncFullscreenButton();
       mapLab.init();
+      gameSettings.init();
+      gamepieces.init();
+      vassalLab.init();
+      setActivePage(activePage);
     },
     update() {},
     refresh() {},
     destroy() {
       mapLab.destroy();
+      gameSettings.destroy();
+      gamepieces.destroy();
+      vassalLab.destroy();
       document.removeEventListener("fullscreenchange", syncFullscreenButton);
       document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
       document.removeEventListener("MSFullscreenChange", syncFullscreenButton);

@@ -34,6 +34,11 @@ import {
   getPrimaryDetailedSiteState,
   validateWorldState,
 } from "./world-state.js";
+import {
+  canonicalizeGameConfig,
+  createAuthoredGameConfig,
+  validateGameConfig,
+} from "./game-config.js";
 
 const BOARD_COLS = 12;
 const BOARD_LAYERS = ["tile", "event", "envStructure"];
@@ -562,7 +567,7 @@ export function createEmptyState(
   const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 5,
+    gameStateSchemaVersion: 6,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -591,6 +596,7 @@ export function createEmptyState(
     actionPointCap: 100,
     apCapOverride: null,
     variantFlags: normalizeVariantFlags(null),
+    gameConfig: createAuthoredGameConfig(),
 
     world,
     civilization: {
@@ -1166,9 +1172,14 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 5) {
-    throw new Error("Unsupported game-state schema: expected v5");
+  if (state?.gameStateSchemaVersion !== 6) {
+    throw new Error("Unsupported game-state schema: expected v6");
   }
+  const gameConfigValidation = validateGameConfig(state.gameConfig);
+  if (!gameConfigValidation.ok) {
+    throw new Error(`Invalid serialized game config: ${gameConfigValidation.errors.join("; ")}`);
+  }
+  state.gameConfig = canonicalizeGameConfig(state.gameConfig);
   canonicalizeWorldState(state);
   const worldValidation = validateWorldState(state);
   if (!worldValidation.ok) {

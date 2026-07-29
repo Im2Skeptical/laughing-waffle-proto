@@ -45,13 +45,25 @@ forecast for comparison, progressively commits the deterministic lifespan, and
 distinguishes fixed history from editable history and forecast. The blocking
 chooser suspends automatic forecast preview until a candidate is selected.
 
-Game state and runner saves are schema v5. Old saves are intentionally
+Game state and runner saves are schema v6. Each run serializes the exact game
+settings and detailed gamepiece tuning used by deterministic replay. Old saves are intentionally
 unsupported.
 
-Map Lab keeps focused mobile form fields mounted while the game refreshes, so
-the on-screen keyboard remains open during an edit. Its schema-v2 browser
-scenario library is available in the toolbar for named save/overwrite, load,
-delete, and reload persistence.
+Development Tools has separate Map Lab, Game Settings, Gamepieces, and Vassal
+Lab sections. Map Lab and the generated configuration editors keep focused
+mobile form fields mounted while the game refreshes, so the on-screen keyboard
+remains open during an edit. Each configuration editor supports named browser
+presets plus JSON import/export. Starting a fresh test run combines the current
+map, settings, and gamepiece drafts.
+
+Game Settings covers active map-driven timing, worker policy, food consumption
+and decay, demographics, elder mortality, happiness/starvation/housing,
+civilization chaos/loss, Elder Order resistance, and vassal generation.
+Gamepieces dynamically lists every detailed structure and practice, exposing
+numeric structure scaling, worker capacity, charge, and declarative effect
+parameters. Vassal Lab records a fully specified target, lifespan, trait,
+profession, and ordered interventions as a deterministic timeline action
+without consuming RNG.
 
 ## Run and verify
 
@@ -92,6 +104,22 @@ game** is a deep read-only copy of the viewed second.
 Drafts use schema v2 and browser key `civsurvivor.mapLabDraft.v2`; named scenario
 libraries use `civsurvivor.mapLabScenarios.v2`. Map Lab v1 data is rejected
 without migration.
+
+## Data-driven debug configuration
+
+Open **Debug -> Game Settings** or **Debug -> Gamepieces**. Drafts and their
+named preset libraries use independent schema-v1 browser keys. They do not
+change a running simulation until **Start fresh test run** is pressed.
+
+The resulting `gameConfig` is JSON-only state. Rewinds, branches, projections,
+save/load, and `rebuildStateAtSecond(tSec)` therefore use the same values. The
+Gamepieces editor tunes the existing generalized DSL effect operations; it
+does not introduce view-side or one-off simulation behavior.
+
+Open **Debug -> Vassal Lab** to inject a custom vassal at the viewed second.
+Replacing a living vassal is explicit. The complete normalized specification is
+stored in the timeline action, so injection is replayable and leaves
+`state.rng` unchanged.
 
 Example region entry:
 
