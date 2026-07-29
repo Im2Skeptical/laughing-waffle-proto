@@ -68,7 +68,10 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
   ].join(";");
 
   const header = document.createElement("header");
-  header.style.cssText = "display:flex;gap:8px;align-items:center;margin-bottom:10px";
+  header.style.cssText = [
+    "display:flex", "gap:8px", "align-items:center",
+    "margin-bottom:10px", "padding-right:100px",
+  ].join(";");
   const title = document.createElement("strong");
   title.textContent = "Development Tools";
   const mapLabTab = document.createElement("button");
@@ -141,9 +144,7 @@ export function createSettlementDebugMenuDom({ mapLabController } = {}) {
       mapLab.init();
     },
     update() {},
-    refresh() {
-      if (panel.style.display !== "none") mapLab.render();
-    },
+    refresh() {},
     destroy() {
       mapLab.destroy();
       document.removeEventListener("fullscreenchange", syncFullscreenButton);

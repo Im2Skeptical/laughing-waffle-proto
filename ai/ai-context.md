@@ -218,6 +218,10 @@ already-drawn initial/death ages, so replay consumes no extra randomness.
 Map Lab v2 edits region mechanics, the independent detailed toggle, cohorts,
 elder ages, local food, five practice slots, structures, and connections. It:
 
+- preserves focused DOM fields across unrelated game/view refreshes, avoiding
+  mobile keyboard dismissal while an edit is in progress
+- exposes the schema-v2 local scenario library for named save/overwrite, load,
+  delete, and browser-reload persistence
 - prevents capacity below occupied structures
 - warns but permits over-housing
 - rejects stored food above Granary capacity
