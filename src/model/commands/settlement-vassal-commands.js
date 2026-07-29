@@ -1,4 +1,7 @@
-import { selectDetailedVassalCandidate } from "../detailed-settlements.js";
+import {
+  selectDetailedCheatVassal,
+  selectDetailedVassalCandidate,
+} from "../detailed-settlements.js";
 
 export function cmdSelectSettlementVassal(state, payload = {}) {
   const candidateIndex = Number.isFinite(payload?.candidateIndex)
@@ -13,5 +16,5 @@ export function cmdSelectSettlementVassal(state, payload = {}) {
 }
 
 export function cmdDebugSelectCheatVassal(state, payload = {}) {
-  return { ok: false, reason: "cheatVassalsRemoved" };
+  return selectDetailedCheatVassal(state, payload?.spec ?? payload);
 }

@@ -2,6 +2,7 @@ const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
 import { createMapLabController } from "../controllers/map-lab-controller.js";
+import { createDebugConfigurationController } from "../controllers/debug-configuration-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import {
@@ -171,6 +172,7 @@ let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
 let mapLabController = null;
+let debugConfigurationController = null;
 let settlementPendingVassalSelection = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
@@ -865,12 +867,9 @@ function selectSettlementVassal(candidateIndex) {
 function selectSettlementCheatVassal(spec) {
   const frontierSec = getSettlementFrontierSec();
   const selectionPool = settlementPendingVassalSelection;
-  if (!selectionPool) {
-    return { ok: false, reason: "missingSelectionPool" };
-  }
   const selectionSec = Number.isFinite(selectionPool?.createdSec)
     ? Math.max(0, Math.floor(selectionPool.createdSec))
-    : frontierSec;
+    : getSettlementViewedSec();
   const isFirstVassalSelection =
     selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
   const moveRes = setSettlementViewedSecond(selectionSec);
@@ -909,6 +908,12 @@ function selectSettlementCheatVassal(spec) {
       runner.browseCursorSecond?.(selectionSec);
     }
     settlementPendingVassalSelection = null;
+    if (typeof spec?.targetRegionId === "string") {
+      selectedWorldRegionId = spec.targetRegionId;
+      setWorldViewMode("settlement");
+      setSettlementGraphContext("settlement", spec.targetRegionId);
+      prototypeView?.refresh?.();
+    }
     settlementVassalChooserView?.refresh?.();
     invalidateSettlementProjectedLossCache();
     const frontierState = getSettlementFrontierState();
@@ -1149,7 +1154,10 @@ function invalidateSettlementEdgeTransferBatchCache() {
 
 function getSettlementViewedEdgeTransferBatch() {
   const viewedSec = getSettlementViewedSec();
-  const boundarySec = getLatestEdgeTransferBoundarySec(viewedSec);
+  const boundarySec = getLatestEdgeTransferBoundarySec(
+    viewedSec,
+    getSettlementViewedState()
+  );
   if (boundarySec <= 0) return null;
   const timeline = runner.getTimeline?.() ?? null;
   const cacheKey = [
@@ -1569,17 +1577,25 @@ runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
 });
+function handleDebugFreshRunApplied(reason) {
+  settlementPendingVassalSelection = null;
+  settlementLastVassalSelectionResult = null;
+  settlementPendingPreviewRestoreSec = null;
+  runCompleteView?.close?.(reason);
+  setWorldViewMode("map");
+  worldMapView?.refresh?.();
+}
 mapLabController = createMapLabController({
   runner,
   setupId: BOOT_SETUP_ID,
-  onApplied: () => {
-    settlementPendingVassalSelection = null;
-    settlementLastVassalSelectionResult = null;
-    settlementPendingPreviewRestoreSec = null;
-    runCompleteView?.close?.("mapLabApply");
-    setWorldViewMode("map");
-    worldMapView?.refresh?.();
-  },
+  getGameConfig: () => debugConfigurationController?.getGameConfig?.() ?? null,
+  onApplied: () => handleDebugFreshRunApplied("mapLabApply"),
+});
+debugConfigurationController = createDebugConfigurationController({
+  runner,
+  mapLabController,
+  setupId: BOOT_SETUP_ID,
+  onApplied: () => handleDebugFreshRunApplied("debugConfigurationApply"),
 });
 settlementDebugMenu = createSettlementDebugMenuDom({
   getState: () => getSettlementViewedState(),
@@ -1593,6 +1609,7 @@ settlementDebugMenu = createSettlementDebugMenuDom({
   getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
   isInteractionBlocked: () => !!settlementPendingVassalSelection,
   mapLabController,
+  debugConfigurationController,
 });
 
 function requestPauseBeforeDrag() {

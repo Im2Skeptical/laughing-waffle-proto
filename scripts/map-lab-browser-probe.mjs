@@ -32,6 +32,10 @@ try {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v2");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v1");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v1");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v1");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
   });
@@ -131,6 +135,117 @@ try {
     "saved scenarios can be deleted"
   );
 
+  await page.getByTestId("debug-game-settings-tab").click();
+  await page.getByTestId("debug-gameSettings").waitFor({ state: "visible" });
+  const birthRate = page.getByTestId("setting-birthRateGold");
+  assert.equal(await birthRate.inputValue(), "0.2");
+  await birthRate.fill("0.35");
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.dataset?.testid ?? null),
+    "setting-birthRateGold",
+    "game setting inputs preserve mobile focus"
+  );
+  await page.getByTestId("gameSettings-preset-name").fill("Fast growth");
+  await page.getByTestId("gameSettings-save-preset").click();
+  assert.equal(
+    await page.getByTestId("gameSettings-preset").inputValue(),
+    "local-1"
+  );
+  await page.getByTestId("gameSettings-import-export").click();
+  const settingsJson = JSON.parse(
+    await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
+  );
+  assert.equal(settingsJson.values.birthRateGold, 0.35);
+  await page.getByTestId("gameSettings-close-json").click();
+
+  await page.getByTestId("debug-gamepieces-tab").click();
+  await page.getByTestId("debug-gamepieces").waitFor({ state: "visible" });
+  const granaryCapacity = page.getByTestId(
+    "gamepiece-structures-granary-capacityPerCountSquared"
+  );
+  assert.equal(await granaryCapacity.inputValue(), "100");
+  await granaryCapacity.fill("150");
+  const packetSize = page.getByTestId(
+    "gamepiece-practices-administrate-effects.0.packetPerEffectiveWorker"
+  );
+  assert.equal(await packetSize.inputValue(), "10");
+  await packetSize.fill("15");
+  await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
+  await page.getByTestId("gamepieces-save-preset").click();
+  await page.getByTestId("gamepieces-apply").click();
+  const configuredSnapshot = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(
+    configuredSnapshot.gameConfig.settings.values.birthRateGold,
+    0.35
+  );
+  assert.equal(
+    configuredSnapshot.gameConfig.gamepieces.structures.granary
+      .capacityPerCountSquared,
+    150
+  );
+  assert.equal(
+    configuredSnapshot.gameConfig.gamepieces.practices.administrate.effects[0]
+      .packetPerEffectiveWorker,
+    15
+  );
+
+  await page.getByTestId("debug-vassal-tab").click();
+  await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
+  await page.getByTestId("vassal-debug-target").selectOption("river-crown");
+  await page.getByTestId("vassal-debug-initial-age").fill("20");
+  await page.getByTestId("vassal-debug-death-age").fill("60");
+  await page.getByTestId("vassal-debug-inject").click();
+  await page.waitForFunction(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage?.currentVassal?.debugInjected
+  );
+  const injected = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal
+  );
+  assert.equal(injected.targetRegionId, "river-crown");
+  assert.equal(injected.initialAge, 20);
+  assert.equal(injected.deathAge, 60);
+
+  await page.reload();
+  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId("debug-game-settings-tab").click();
+  assert.equal(
+    await page.getByTestId("gameSettings-preset")
+      .locator('option[value="local-1"]').count(),
+    1,
+    "game settings presets survive reload"
+  );
+  await page.getByTestId("setting-birthRateGold").fill("0.1");
+  await page.getByTestId("gameSettings-preset").selectOption("local-1");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByTestId("gameSettings-load-preset").click();
+  assert.equal(await page.getByTestId("setting-birthRateGold").inputValue(), "0.35");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByTestId("gameSettings-delete-preset").click();
+  assert.equal(
+    await page.getByTestId("gameSettings-preset")
+      .locator('option[value="local-1"]').count(),
+    0,
+    "game settings presets can be loaded and deleted"
+  );
+  await page.getByTestId("debug-gamepieces-tab").click();
+  assert.equal(
+    await page.getByTestId("gamepieces-preset")
+      .locator('option[value="local-1"]').count(),
+    1,
+    "gamepiece presets survive reload"
+  );
+  await page.getByTestId("gamepieces-preset").selectOption("local-1");
+  await page.getByTestId("gamepieces-load-preset").click();
+  assert.equal(
+    await page.getByTestId(
+      "gamepiece-structures-granary-capacityPerCountSquared"
+    ).inputValue(),
+    "150"
+  );
+
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
@@ -142,6 +257,9 @@ try {
       "shared-edge connection editing",
       "mobile keyboard focus survives game refreshes",
       "named scenario save, overwrite, reload, load, and delete",
+      "generated game-settings editor, JSON, apply, and saved presets",
+      "dynamic gamepiece editor, apply, and saved presets",
+      "deterministic custom vassal injection",
     ],
     editedRegion: json.regions[0],
   }, null, 2));
