@@ -48,6 +48,11 @@ chooser suspends automatic forecast preview until a candidate is selected.
 Game state and runner saves are schema v5. Old saves are intentionally
 unsupported.
 
+Map Lab keeps focused mobile form fields mounted while the game refreshes, so
+the on-screen keyboard remains open during an edit. Its schema-v2 browser
+scenario library is available in the toolbar for named save/overwrite, load,
+delete, and reload persistence.
+
 ## Run and verify
 
 ```text
