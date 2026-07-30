@@ -40,6 +40,7 @@ const EDGE_TRANSFER_PACKET_DURATION_MS = 900;
 const EDGE_TRANSFER_PACKET_STAGGER_MS = 85;
 const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
 const REGION_DOUBLE_TAP_WINDOW_MS = 350;
+const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;
 const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
   food: 0xf3cf67,
 });
@@ -484,7 +485,11 @@ export function createWorldMapView({
   layer.addChild(root, edgeTransferLayer);
   let lastSignature = "";
   let lastPointerRegionId = null;
-  let lastRegionTap = { regionId: null, atMs: -Infinity };
+  let lastRegionTap = {
+    regionId: null,
+    atMs: -Infinity,
+    nearFlag: false,
+  };
   let lastEdgeTransferBatchKey = null;
   let lastEdgeTransferBatch = null;
   let lastEdgeTransferViewedSec = null;
@@ -722,18 +727,36 @@ export function createWorldMapView({
       hit.eventMode = "static";
       hit.cursor = "pointer";
       hit.addChild(shape);
-      hit.on("pointerdown", () => {
+      hit.on("pointerdown", (event) => {
         const tappedAtMs = viewNowMs();
+        const flagPoint = screenPoint(regionDef.display.labelPoint);
+        const pointerX = Number(event?.global?.x);
+        const pointerY = Number(event?.global?.y);
+        const nearFlag =
+          Number.isFinite(pointerX) &&
+          Number.isFinite(pointerY) &&
+          Math.hypot(pointerX - flagPoint.x, pointerY - flagPoint.y) <=
+            REGION_FLAG_DOUBLE_TAP_RADIUS;
         const isDoubleTap =
           lastRegionTap.regionId === region.id &&
+          lastRegionTap.nearFlag &&
+          nearFlag &&
           tappedAtMs - lastRegionTap.atMs <= REGION_DOUBLE_TAP_WINDOW_MS;
         lastPointerRegionId = region.id;
         const viewModel = getDetailedSettlementViewModel(state, region.id);
         if (isDoubleTap && viewModel) {
-          lastRegionTap = { regionId: null, atMs: -Infinity };
+          lastRegionTap = {
+            regionId: null,
+            atMs: -Infinity,
+            nearFlag: false,
+          };
           onOpenDetailedSite?.(viewModel.siteId, region.id);
         } else {
-          lastRegionTap = { regionId: region.id, atMs: tappedAtMs };
+          lastRegionTap = {
+            regionId: region.id,
+            atMs: tappedAtMs,
+            nearFlag,
+          };
           setSelectedRegionId?.(region.id);
         }
         lastSignature = "";
@@ -794,7 +817,11 @@ export function createWorldMapView({
       CIVILIZATION_RECT.height
     );
     civilizationPanel.on("pointertap", () => {
-      lastRegionTap = { regionId: null, atMs: -Infinity };
+      lastRegionTap = {
+        regionId: null,
+        atMs: -Infinity,
+        nearFlag: false,
+      };
       onShowCivilizationGraph?.();
       lastSignature = "";
     });
@@ -887,7 +914,11 @@ export function createWorldMapView({
     );
     detailPanel.on("pointertap", () => {
       if (!viewModel) return;
-      lastRegionTap = { regionId: null, atMs: -Infinity };
+      lastRegionTap = {
+        regionId: null,
+        atMs: -Infinity,
+        nearFlag: false,
+      };
       onShowSelectedRegionGraph?.(selectedRegionId);
       lastSignature = "";
     });
