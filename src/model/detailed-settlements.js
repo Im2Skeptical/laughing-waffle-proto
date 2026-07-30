@@ -798,15 +798,6 @@ function runDemographics(state) {
         }
       }
     }
-    if (overflow > 0) {
-      for (const classId of POPULATION_CLASS_ORDER) {
-        const classTotal = population.byClass[classId].total;
-        removePopulationProportionally(
-          settlement.populationByClass[classId],
-          Math.floor(overflow * classTotal / Math.max(1, population.total))
-        );
-      }
-    }
     result.housingOverflow = overflow;
     settlement.lastAnnualResult = result;
   }

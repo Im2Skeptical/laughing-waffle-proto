@@ -118,8 +118,11 @@ class, then elder-age order.
   to `[0,1]`.
 
 Meal demand is adults plus elders plus half the children rounded up. Full/missed
-feed streaks, partial-feed memory, starvation, faith movement, and housing loss
-operate per class.
+feed streaks, partial-feed memory, starvation, and faith movement operate per
+class. Housing is a soft limit: over-housing is retained, caps happiness at
+Neutral, and caps it at Negative above the configured pressure ratio. Population
+falls through the resulting faith/collapse pressure or through starvation, not
+through direct removal of the housing overflow.
 
 ## Elder Orders and vassals
 

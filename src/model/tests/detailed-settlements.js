@@ -130,6 +130,24 @@ assert.ok(getDetailedSettlement(collapse, "cedar-woods")
 assert.equal(collapseClass.faith.tier, "bronze");
 assert.ok(collapse.civilization.chaos.lastAnnualIncome.byRegion.length === 5);
 
+const overHousing = fresh(882);
+const overHousingSite = getDetailedSettlement(overHousing, "cedar-woods");
+overHousingSite.populationByClass.villager.children = 0;
+overHousingSite.populationByClass.villager.adults = 90;
+overHousingSite.populationByClass.villager.eldersByAge = [];
+overHousingSite.populationByClass.villager.faith.tier = "bronze";
+overHousingSite.populationByClass.villager.happiness.status = "positive";
+overHousing._seasonChanged = true;
+overHousing.currentSeasonIndex = 0;
+stepDetailedSettlementsSecond(overHousing, 32);
+const retainedPopulation = getDetailedSettlementViewModel(overHousing, "cedar-woods").population;
+assert.equal(retainedPopulation.housingCapacity, 80);
+assert.equal(retainedPopulation.total, 90,
+  "housing pressure retains overflow instead of enforcing a hard population cap");
+assert.equal(overHousingSite.lastAnnualResult.housingOverflow, 10);
+assert.equal(overHousingSite.populationByClass.villager.happiness.status, "neutral",
+  "moderate over-housing caps happiness at Neutral");
+
 const vassalState = fresh(777);
 const pool = buildDetailedVassalSelectionPool(vassalState);
 assert.equal(pool.candidates.length, 3);
