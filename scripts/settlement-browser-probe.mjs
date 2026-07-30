@@ -334,6 +334,18 @@ try {
 
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
+  await doubleClickDesignPoint(page, {
+    x: cedarPoint.x + 100,
+    y: cedarPoint.y,
+  });
+  const awayFromFlag = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(awayFromFlag.worldMap.mode, "map");
+  assert.equal(awayFromFlag.controller.scope, "civilization",
+    "double-clicking away from the player flag does not open a settlement");
+
+  await delay(400);
   await doubleClickDesignPoint(page, cedarPoint);
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
