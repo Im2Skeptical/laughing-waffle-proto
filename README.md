@@ -73,6 +73,10 @@ npm start
 npm run verify
 ```
 
+`npm run verify` checks architectural constraints, confirms every source module
+is routed from the app/worker/tests, builds the Pages artifact, and runs the
+model suite.
+
 Browser probes use the built site:
 
 ```text
@@ -85,7 +89,7 @@ npm run probe:map-lab
 
 ## Map Lab v2
 
-Open **Debug → Map Lab**. The editor works on a separate browser-local draft and
+Open **Debug -> Map Lab**. The editor works on a separate browser-local draft and
 changes the game only when **Start fresh test run** is used.
 
 Map Lab edits:
@@ -145,11 +149,14 @@ Example region entry:
 ```
 
 See [`ai/ai-context.md`](ai/ai-context.md) for current gameplay and engine
-invariants, and
+invariants, [`ai/repository-map.md`](ai/repository-map.md) for surgical code and
+test routing, and
 [`ai/detailed-settlement-redesign-plan.md`](ai/detailed-settlement-redesign-plan.md)
 for the approved redesign record.
 
 ## Deployment
 
 GitHub Pages should publish only `dist/`. Bundled JavaScript and CSS use
-content-hashed filenames recorded in `dist/build-manifest.json`.
+content-hashed filenames recorded in `dist/build-manifest.json`. The manifest
+also records the separately bundled forecast worker so production forecasting
+does not fall back to the main UI thread.

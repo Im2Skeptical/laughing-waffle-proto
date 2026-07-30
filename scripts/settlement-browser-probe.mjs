@@ -54,6 +54,8 @@ try {
   await waitForHttp();
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const workerUrls = [];
+  page.on("worker", (worker) => workerUrls.push(worker.url()));
   await page.goto(URL);
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
   const fullscreenButton = page.getByTestId("fullscreen-toggle");
@@ -189,6 +191,10 @@ try {
       );
     },
     revealFollowStart.revealedCoverageEndSec
+  );
+  assert.ok(
+    workerUrls.some((url) => url.includes("timegraph-forecast-worker-")),
+    "forecast unveiling runs through the bundled worker"
   );
   await page.waitForFunction(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();

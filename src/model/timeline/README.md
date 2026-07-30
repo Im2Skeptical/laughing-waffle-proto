@@ -13,7 +13,5 @@ Timeline internals were split so `index.js` stays focused on orchestration.
 - `mutation-signature.js`
   - Mutation signature computation/comparison utilities.
 
-## Compatibility
-
-- `src/model/timeline.js` re-exports from `src/model/timeline/index.js` so
-  existing imports keep working during migration.
+Import the public API directly from `src/model/timeline/index.js`. There is no
+legacy compatibility re-export.
