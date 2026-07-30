@@ -11,6 +11,7 @@ import path from "node:path";
 import { build } from "esbuild";
 
 const entryPoint = "src/views/ui-root-pixi.js";
+const workerEntryPoint = "src/controllers/timegraph-forecast-worker.js";
 const outDir = "dist";
 const assetsDir = path.join(outDir, "assets");
 
@@ -26,6 +27,26 @@ async function buildPagesArtifact() {
   await rm(outDir, { recursive: true, force: true });
   await mkdir(assetsDir, { recursive: true });
 
+  const workerResult = await build({
+    entryPoints: { "timegraph-forecast-worker": workerEntryPoint },
+    bundle: true,
+    outdir: assetsDir,
+    entryNames: "[name]-[hash]",
+    platform: "browser",
+    format: "esm",
+    target: ["es2020"],
+    legalComments: "none",
+    metafile: true,
+    logLevel: "silent",
+  });
+  const workerOutput = Object.entries(workerResult.metafile.outputs).find(
+    ([, metadata]) => metadata.entryPoint === workerEntryPoint,
+  )?.[0];
+  if (!workerOutput) {
+    throw new Error(`esbuild did not report an output for ${workerEntryPoint}`);
+  }
+  const workerModuleUrl = `./${path.basename(workerOutput)}`;
+
   const result = await build({
     entryPoints: { app: entryPoint },
     bundle: true,
@@ -34,6 +55,9 @@ async function buildPagesArtifact() {
     platform: "browser",
     format: "esm",
     target: ["es2020"],
+    define: {
+      __TIMEGRAPH_FORECAST_WORKER_URL__: JSON.stringify(workerModuleUrl),
+    },
     legalComments: "none",
     metafile: true,
     logLevel: "silent",
@@ -76,6 +100,7 @@ async function buildPagesArtifact() {
   const manifest = {
     entryPoint,
     bundle: bundleUrl,
+    worker: relativeUrl(workerOutput),
     stylesheet: stylesheetUrl,
   };
   await Promise.all([
@@ -86,7 +111,9 @@ async function buildPagesArtifact() {
     ),
   ]);
 
-  console.log(`[build] OK: ${bundleUrl} + ${stylesheetUrl}`);
+  console.log(
+    `[build] OK: ${bundleUrl} + ${relativeUrl(workerOutput)} + ${stylesheetUrl}`,
+  );
 }
 
 try {

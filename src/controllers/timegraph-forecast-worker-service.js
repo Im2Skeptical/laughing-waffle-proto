@@ -14,6 +14,11 @@ export const TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC = 180;
 export const TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC = 20;
 export const TIMEGRAPH_FORECAST_EARLY_REQUEST_CADENCE_MS = 20;
 
+const DEFAULT_FORECAST_WORKER_URL =
+  typeof __TIMEGRAPH_FORECAST_WORKER_URL__ === "string"
+    ? __TIMEGRAPH_FORECAST_WORKER_URL__
+    : new URL("./timegraph-forecast-worker.js", import.meta.url);
+
 function nowMs() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
     return performance.now();
@@ -76,6 +81,7 @@ function estimateMessageBytes(payload) {
 
 export function createTimegraphForecastWorkerService({
   createWorker = null,
+  workerUrl = DEFAULT_FORECAST_WORKER_URL,
   timeNowMs = nowMs,
   primeChunkSizeSec = TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
   chunkSizeSec = TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
@@ -152,10 +158,7 @@ export function createTimegraphForecastWorkerService({
       if (typeof createWorker === "function") {
         worker = createWorker();
       } else if (typeof Worker === "function") {
-        worker = new Worker(
-          new URL("./timegraph-forecast-worker.js", import.meta.url),
-          { type: "module" }
-        );
+        worker = new Worker(workerUrl, { type: "module" });
       } else {
         return null;
       }

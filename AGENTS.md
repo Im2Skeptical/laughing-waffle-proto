@@ -4,11 +4,15 @@ Local instructions for Codex agents working in this repo.
 
 ## Project context
 - Read `ai/ai-context.md` before making changes.
+- Consult only the relevant section of `ai/repository-map.md` to locate the
+  narrow implementation and test path. Do not read historical plans unless the
+  task touches their design decisions.
 
 ## Current goal context
-- We are doing a large refactor. Core assumtions about gameplay may be drastically different to ai-context and other documentation
-- The approved target for this refactor is `ai/detailed-settlement-redesign-plan.md`.
-- The approved debug-tool expansion target is `ai/debug-tools-expansion-plan.md`.
+- The map-driven detailed-settlement redesign and data-driven debug tools are
+  implemented. Current work is iterative gameplay and UI development.
+- `ai/ai-context.md` describes current behavior. The redesign and debug-tool
+  plans are historical decision records, not descriptions of unfinished work.
 
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.
@@ -21,7 +25,14 @@ Local instructions for Codex agents working in this repo.
 ## AI workflow
 - Before coding, do an impact analysis (determinism, serialization, replay, layering).
 - Mention how to test any behavior you touch.
-- Refactors are to be clean with no migratory shim style code. We are prototyping and so there is no need to preserve functionality of older saves
+- Keep the analysis proportional. For a view-only edit, explicitly confirm that
+  simulation state, RNG, schemas, and replay are untouched rather than
+  re-auditing unrelated model systems.
+- Refactors are clean cuts with no migration shims. This prototype does not
+  preserve obsolete saves.
+- `npm run verify` includes architecture and source-reachability checks. New
+  source modules must be imported by the app, forecast worker, or a supported
+  test.
 
 ## Context hygiene
 - Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.
