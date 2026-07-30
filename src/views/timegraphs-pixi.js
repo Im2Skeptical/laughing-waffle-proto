@@ -675,8 +675,9 @@ export function createMetricGraphView({
   }
 
   function resetDataContext() {
-    forecastRevealPlayheadFollowEnabled = true;
-    forecastRevealPreviewSec = getActiveForecastPreviewSec();
+    forecastRevealPreviewSec = forecastRevealPlayheadFollowEnabled
+      ? getActiveForecastPreviewSec()
+      : null;
     forecastRevealPreviewLastRefreshMs = 0;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
@@ -1141,6 +1142,12 @@ export function createMetricGraphView({
     if (!isScrubbing && Number.isFinite(synced.forecastPreviewSec)) {
       scrubSec = clampScrubSecToRevealCap(synced.forecastPreviewSec);
     }
+  }
+
+  function suspendForecastRevealPlayheadFollow() {
+    forecastRevealPlayheadFollowEnabled = false;
+    forecastRevealPreviewSec = null;
+    forecastRevealPreviewLastRefreshMs = 0;
   }
 
   function syncForecastRevealPlayhead(visibleForecastCoverageEndSec) {
@@ -3085,9 +3092,7 @@ export function createMetricGraphView({
 
   plotHit.on("pointerdown", (e) => {
     statusNote = "";
-    forecastRevealPlayheadFollowEnabled = false;
-    forecastRevealPreviewSec = null;
-    forecastRevealPreviewLastRefreshMs = 0;
+    suspendForecastRevealPlayheadFollow();
     isScrubbing = true;
     updateScrubFromPointer(e.global);
     applyPreviewThrottled(true);
@@ -3522,6 +3527,7 @@ export function createMetricGraphView({
     setHistoryZoneResolver,
     setEventMarkerResolver,
     setForecastRevealConfig,
+    suspendForecastRevealPlayheadFollow,
     resetForecastPreviewState,
     resetDataContext,
     stageProjectionReplacementTransition,

@@ -1401,7 +1401,10 @@ const timeControlsView = createTimeControlsView({
   getReturnToPresentState: () => ({ visible: false, enabled: false, targetSec: null }),
   onReturnToPresent: () => ({ ok: false, reason: "settlementNoReturnButton" }),
   getTimeScale: () => getSettlementPlaybackState(),
-  setTimeScaleTarget: (speed, opts) => setSettlementPlaybackTarget(speed, opts),
+  setTimeScaleTarget: (speed, opts) => {
+    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+    return setSettlementPlaybackTarget(speed, opts);
+  },
   layout: {
     enabled: true,
     zIndex: 4,
@@ -1649,11 +1652,13 @@ settlementDebugMenu = createSettlementDebugMenuDom({
 });
 
 function requestPauseBeforeDrag() {
+  settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
   setSettlementPlaybackTarget(0);
   ensureSettlementRunnerPaused();
 }
 
 function togglePause() {
+  settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
   if (getSettlementPlaybackTarget() !== 0) return requestPauseBeforeDrag();
   return setSettlementPlaybackTarget(1);
 }
@@ -1710,6 +1715,8 @@ function publishSettlementDebugApi() {
       mode: worldViewMode,
     }),
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
+    getTimeLeverScreenRect: () =>
+      timeControlsView?.getTimeLeverScreenRect?.() ?? null,
     getVassalCandidateClickPoint: (candidateIndex) =>
       settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
       null,

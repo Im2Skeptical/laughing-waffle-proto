@@ -159,7 +159,7 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   root.position.set(rect.x, rect.y);
   root.eventMode = "static";
   root.cursor = disabled ? "default" : "pointer";
-  root.on("pointertap", () => { if (!disabled) onPress?.(); });
+  root.on("pointerdown", () => { if (!disabled) onPress?.(); });
   parent.addChild(root);
 }
 
@@ -816,7 +816,7 @@ export function createWorldMapView({
       CIVILIZATION_RECT.width,
       CIVILIZATION_RECT.height
     );
-    civilizationPanel.on("pointertap", () => {
+    civilizationPanel.on("pointerdown", () => {
       lastRegionTap = {
         regionId: null,
         atMs: -Infinity,
@@ -912,7 +912,7 @@ export function createWorldMapView({
       DETAIL_RECT.width,
       DETAIL_RECT.height
     );
-    detailPanel.on("pointertap", () => {
+    detailPanel.on("pointerdown", () => {
       if (!viewModel) return;
       lastRegionTap = {
         regionId: null,
