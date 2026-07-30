@@ -45,6 +45,17 @@ async function pressDesignPoint(page, point, holdMs = 120) {
   await delay(150);
 }
 
+async function doubleClickDesignPoint(page, point) {
+  const box = await page.locator("canvas").boundingBox();
+  if (!box || !point) throw new Error("Canvas point unavailable");
+  await page.mouse.dblclick(
+    box.x + point.x / 2424 * box.width,
+    box.y + point.y / 1080 * box.height,
+    { delay: 80 }
+  );
+  await delay(150);
+}
+
 mkdirSync("artifacts", { recursive: true });
 const server = spawn(process.execPath,
   ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"],
@@ -67,6 +78,8 @@ try {
   assert.equal(initial.worldMap.regionCount, 15);
   assert.equal(initial.worldMap.detailedSiteMarkerCount, 5);
   assert.equal(initial.worldMap.selectedRegionId, "river-crown");
+  assert.equal(initial.worldMap.regionSelectionActive, false);
+  assert.equal(initial.worldMap.graphScope, "civilization");
   assert.equal(initial.worldMap.selectedRegion.structureCapacity, 3);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
   assert.equal(initial.worldMap.regionNameLabelsVisible, false);
@@ -281,8 +294,10 @@ try {
     "a human-duration press selects a region while the graph is unveiling"
   );
   assert.equal(selected.worldMap.lastPointerRegionId, "cedar-woods");
-  assert.equal(selected.controller.subjectKey, "civilization",
-    "map browsing leaves the timegraph civilization-wide");
+  assert.equal(selected.worldMap.regionSelectionActive, true);
+  assert.equal(selected.worldMap.graphScope, "settlement");
+  assert.equal(selected.controller.subjectKey, "cedar-woods",
+    "selecting a detailed region shows its local timegraph");
   assert.ok(
     selected.worldMap.selectedRegion.detailedSettlement.elderOrder.resistance >= 0
   );
@@ -292,12 +307,38 @@ try {
     assert.ok(selected.worldMap.survivalTracker.forecastLabel.includes("Forecasting"));
   }
 
+  await delay(400);
+  await clickDesignPoint(page, cedarPoint);
+  const deselected = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(deselected.worldMap.regionSelectionActive, false);
+  assert.equal(deselected.controller.scope, "civilization",
+    "clicking the selected region again restores the civilization timegraph");
+
+  await clickDesignPoint(page, { x: 2047, y: 620 });
+  const localPanelSelected = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(localPanelSelected.worldMap.regionSelectionActive, true);
+  assert.equal(localPanelSelected.controller.subjectKey, "cedar-woods",
+    "the selected-region panel switches back to the local timegraph");
+
+  await clickDesignPoint(page, { x: 2047, y: 280 });
+  const civilizationPanelSelected = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(civilizationPanelSelected.worldMap.regionSelectionActive, false);
+  assert.equal(civilizationPanelSelected.controller.scope, "civilization",
+    "the civilization panel switches to the global timegraph");
+
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(page, { x: 2047, y: 762 });
+  await doubleClickDesignPoint(page, cedarPoint);
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
-  assert.equal(overview.view.regionId, "cedar-woods", "opened selected settlement");
+  assert.equal(overview.view.regionId, "cedar-woods",
+    "double-clicking a detailed region opens its settlement");
   assert.equal(overview.view.activeTab, "overview");
   assert.ok(
     overview.view.calendar.year >= selected.worldMap.survivalTracker.year,
