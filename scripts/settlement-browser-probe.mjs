@@ -316,7 +316,7 @@ try {
   assert.equal(deselected.controller.scope, "civilization",
     "clicking the selected region again restores the civilization timegraph");
 
-  await clickDesignPoint(page, { x: 2047, y: 620 });
+  await pressDesignPoint(page, { x: 2047, y: 620 }, 180);
   const localPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -324,7 +324,7 @@ try {
   assert.equal(localPanelSelected.controller.subjectKey, "cedar-woods",
     "the selected-region panel switches back to the local timegraph");
 
-  await clickDesignPoint(page, { x: 2047, y: 280 });
+  await pressDesignPoint(page, { x: 2047, y: 280 }, 180);
   const civilizationPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -382,7 +382,7 @@ try {
   assert.ok(overview.view.elderOrder.resistance >= 0);
   await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
 
-  await clickDesignPoint(page, { x: 1715, y: 36 });
+  await pressDesignPoint(page, { x: 1715, y: 36 }, 180);
   const demographics = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(demographics.view.activeTab, "demographics");
   assert.equal(
@@ -441,6 +441,11 @@ try {
   );
   assert.equal(afterVassal.graph.projectionReplacement.active, true);
   assert.equal(afterVassal.graph.projectionReplacement.hasSnapshot, true);
+  assert.equal(
+    afterVassal.graph.forecastRevealPlayheadFollowEnabled,
+    true,
+    "a committed vassal selection restores forecast auto-follow"
+  );
   await delay(3200);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const committedVassalHistory = await page.evaluate(
@@ -631,6 +636,61 @@ try {
     },
     rewindBoundarySec
   );
+  const timeLeverRect = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getTimeLeverScreenRect()
+  );
+  assert.ok(timeLeverRect, "time lever exposes its rendered interaction bounds");
+  await pressDesignPoint(terminalPage, {
+    x: timeLeverRect.x + timeLeverRect.width * 0.37,
+    y: timeLeverRect.y + Math.min(25, timeLeverRect.height * 0.4),
+  }, 180);
+  const timeControlBrowse = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(
+    timeControlBrowse.graph.forecastRevealPlayheadFollowEnabled,
+    false,
+    "using the time lever takes ownership from forecast auto-follow"
+  );
+  assert.equal(timeControlBrowse.playbackTarget, 0);
+  const manuallyViewedSec = timeControlBrowse.viewedSec;
+  assert.equal(
+    await terminalPage.evaluate(() =>
+      globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion("cedar-woods")),
+    true
+  );
+  await terminalPage.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(100);
+  await clickDesignPoint(terminalPage, { x: 2047, y: 762 });
+  const manualSettlementView = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(manualSettlementView.worldMap.mode, "settlement");
+  assert.equal(
+    manualSettlementView.graph.forecastRevealPlayheadFollowEnabled,
+    false,
+    "opening a settlement preserves manual time browsing"
+  );
+  await pressDesignPoint(terminalPage, { x: 1883, y: 36 }, 180);
+  const manualMapView = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(manualMapView.worldMap.mode, "map");
+  assert.equal(
+    manualMapView.graph.forecastRevealPlayheadFollowEnabled,
+    false,
+    "returning to the map preserves manual time browsing"
+  );
+  await delay(350);
+  const manualMapViewLater = await terminalPage.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(
+    manualMapViewLater.viewedSec,
+    manuallyViewedSec,
+    "view navigation does not pull a manual time selection back to the frontier"
+  );
   const followingGraph = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph
   );
@@ -719,6 +779,8 @@ try {
       "civilization summary and persistent survival record",
       "completed forecast resolves projected and best survival years",
       "forecast unveil advances the playhead until manual scrub ownership",
+      "time controls preserve manual browsing across map and settlement views",
+      "timeline commits restore forecast auto-follow",
       "timeline rewind mode separates packet travel from historical facing",
       "map selection during active forecast unveiling",
       "aggregate Elder Order resistance",

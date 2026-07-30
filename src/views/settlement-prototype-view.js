@@ -33,7 +33,7 @@ function addButton(parent, rect, label, selected, onPress) {
   root.position.set(rect.x, rect.y);
   root.eventMode = "static";
   root.cursor = "pointer";
-  root.on("pointertap", onPress);
+  root.on("pointerdown", onPress);
   parent.addChild(root);
 }
 

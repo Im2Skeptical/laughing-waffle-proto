@@ -263,6 +263,22 @@ export function createTimeControlsView({
     init,
     refresh,
     update,
+    getTimeLeverScreenRect: () => {
+      if (
+        !root.visible ||
+        !timeLeverView.container.visible ||
+        typeof timeLeverView.container.getBounds !== "function"
+      ) {
+        return null;
+      }
+      const bounds = timeLeverView.container.getBounds();
+      return {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+      };
+    },
     getScreenRect: () =>
       !root.visible || typeof root.getBounds !== "function"
         ? null
