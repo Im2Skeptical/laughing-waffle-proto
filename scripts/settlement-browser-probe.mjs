@@ -48,11 +48,10 @@ async function pressDesignPoint(page, point, holdMs = 120) {
 async function doubleClickDesignPoint(page, point) {
   const box = await page.locator("canvas").boundingBox();
   if (!box || !point) throw new Error("Canvas point unavailable");
-  await page.mouse.dblclick(
-    box.x + point.x / 2424 * box.width,
-    box.y + point.y / 1080 * box.height,
-    { delay: 80 }
-  );
+  const x = box.x + point.x / 2424 * box.width;
+  const y = box.y + point.y / 1080 * box.height;
+  await page.mouse.move(x, y);
+  await page.mouse.dblclick(x, y, { delay: 80 });
   await delay(150);
 }
 
@@ -116,14 +115,19 @@ try {
     detailedMapIndicators.every(
       (indicator) =>
         indicator.activeWorkerCount >= 0 &&
+        indicator.unusedWorkerCount >= 0 &&
+        indicator.totalWorkerCount ===
+          indicator.activeWorkerCount + indicator.unusedWorkerCount &&
         indicator.renderedPawnCount ===
-          Math.min(5, indicator.activeWorkerCount) &&
+          Math.min(5, indicator.totalWorkerCount) &&
+        (indicator.unusedWorkerCount === 0 ||
+          indicator.renderedUnusedPawnCount >= 1) &&
         indicator.badgeValue ===
-          (indicator.activeWorkerCount > 5
-            ? indicator.activeWorkerCount
+          (indicator.totalWorkerCount > 5
+            ? indicator.totalWorkerCount
             : null)
     ),
-    "worker pawn and overflow-badge graphics match the unveiled state"
+    "active and unused worker pawns match the unveiled worker pools"
   );
   assert.deepEqual(
     detailedMapIndicators.map((indicator) => ({
@@ -345,12 +349,18 @@ try {
   assert.equal(awayFromFlag.controller.scope, "civilization",
     "double-clicking away from the player flag does not open a settlement");
 
-  await delay(400);
-  await doubleClickDesignPoint(page, cedarPoint);
+  assert.equal(
+    await page.evaluate(() =>
+      globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion("cedar-woods")),
+    true
+  );
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(100);
+  await clickDesignPoint(page, { x: 2047, y: 762 });
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods",
-    "double-clicking a detailed region opens its settlement");
+    "the selected settlement opens from its region card");
   assert.equal(overview.view.activeTab, "overview");
   assert.ok(
     overview.view.calendar.year >= selected.worldMap.survivalTracker.year,

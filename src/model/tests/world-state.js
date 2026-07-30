@@ -51,22 +51,54 @@ for (const site of getDetailedSettlementSites(state)) {
   assert.equal(view.elderOrder.resistance, 29);
   assert.equal(view.usedStructureCapacity, 3);
   assert.equal(view.storedFood, 60);
+  assert.deepEqual(view.workerPool, {
+    availableWorkerCount: 3,
+    activeWorkerCount: 3,
+    unusedWorkerCount: 0,
+  });
 }
 assert.deepEqual(getWorkerIndicatorPresentation(0), {
   activeWorkerCount: 0,
+  unusedWorkerCount: 0,
+  totalWorkerCount: 0,
+  renderedActivePawnCount: 0,
+  renderedUnusedPawnCount: 0,
   renderedPawnCount: 0,
   badgeValue: null,
 });
 assert.deepEqual(getWorkerIndicatorPresentation(3), {
   activeWorkerCount: 3,
+  unusedWorkerCount: 0,
+  totalWorkerCount: 3,
+  renderedActivePawnCount: 3,
+  renderedUnusedPawnCount: 0,
   renderedPawnCount: 3,
   badgeValue: null,
 });
-assert.deepEqual(getWorkerIndicatorPresentation(7), {
+assert.deepEqual(getWorkerIndicatorPresentation(7, 3), {
   activeWorkerCount: 7,
+  unusedWorkerCount: 3,
+  totalWorkerCount: 10,
+  renderedActivePawnCount: 4,
+  renderedUnusedPawnCount: 1,
   renderedPawnCount: 5,
-  badgeValue: 7,
+  badgeValue: 10,
 });
+const unusedWorkerState = createInitialState("devPlaytesting01", 24680);
+const unusedWorkerSettlement = getDetailedSettlement(
+  unusedWorkerState,
+  "cedar-woods"
+);
+unusedWorkerSettlement.populationByClass.villager.adults = 100;
+unusedWorkerSettlement.practiceSlots = Array.from({ length: 5 }, () => null);
+assert.deepEqual(
+  getDetailedSettlementViewModel(unusedWorkerState, "cedar-woods").workerPool,
+  {
+    availableWorkerCount: 10,
+    activeWorkerCount: 0,
+    unusedWorkerCount: 10,
+  }
+);
 assert.equal(
   resolveForecastRevealPlayheadSec({
     followEnabled: true,

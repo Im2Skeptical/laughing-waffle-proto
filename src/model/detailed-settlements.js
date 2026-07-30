@@ -1174,6 +1174,20 @@ export function getDetailedSettlementViewModel(state, regionId) {
   const settlement = site.detailedState;
   const population = getPopulationSummary(state, regionId);
   const workers = assignDetailedSettlementWorkers(state, regionId);
+  const availableWorkerCount = POPULATION_CLASS_ORDER.reduce(
+    (total, classId) => {
+      const cohort = population.byClass[classId] ?? {};
+      return total + Math.floor(
+        (Math.max(0, cohort.adults ?? 0) + Math.max(0, cohort.elders ?? 0)) /
+          Math.max(1, getGameSetting(state, "populationPerToken"))
+      );
+    },
+    0
+  );
+  const activeWorkerCount = workers.reduce(
+    (total, assignment) => total + (assignment.tokens?.length ?? 0),
+    0
+  );
   return {
     regionId,
     siteId: site.id,
@@ -1182,6 +1196,14 @@ export function getDetailedSettlementViewModel(state, regionId) {
     looseFood: settlement.looseFood,
     storedFoodCapacity: getStoredFoodCapacity(state, regionId),
     population,
+    workerPool: {
+      availableWorkerCount,
+      activeWorkerCount,
+      unusedWorkerCount: Math.max(
+        0,
+        availableWorkerCount - activeWorkerCount
+      ),
+    },
     practices: settlement.practiceSlots.map((slot, index) => ({
       ...slot,
       label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,

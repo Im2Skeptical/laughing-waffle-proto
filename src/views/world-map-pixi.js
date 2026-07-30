@@ -164,6 +164,9 @@ function addButton(parent, rect, label, onPress, disabled = false) {
 }
 
 function getActiveWorkerCount(viewModel) {
+  if (Number.isFinite(viewModel?.workerPool?.activeWorkerCount)) {
+    return Math.max(0, Math.floor(viewModel.workerPool.activeWorkerCount));
+  }
   return (viewModel?.practices ?? []).reduce(
     (total, practice) =>
       total + (Array.isArray(practice?.workers?.tokens)
@@ -173,19 +176,51 @@ function getActiveWorkerCount(viewModel) {
   );
 }
 
-export function getWorkerIndicatorPresentation(workerCount) {
-  const activeWorkerCount = Number.isFinite(workerCount)
-    ? Math.max(0, Math.floor(workerCount))
+function getUnusedWorkerCount(viewModel) {
+  return Number.isFinite(viewModel?.workerPool?.unusedWorkerCount)
+    ? Math.max(0, Math.floor(viewModel.workerPool.unusedWorkerCount))
     : 0;
+}
+
+export function getWorkerIndicatorPresentation(
+  activeCount,
+  unusedCount = 0
+) {
+  const activeWorkerCount = Number.isFinite(activeCount)
+    ? Math.max(0, Math.floor(activeCount))
+    : 0;
+  const unusedWorkerCount = Number.isFinite(unusedCount)
+    ? Math.max(0, Math.floor(unusedCount))
+    : 0;
+  const totalWorkerCount = activeWorkerCount + unusedWorkerCount;
+  let renderedActivePawnCount = Math.min(
+    activeWorkerCount,
+    MAX_RENDERED_WORKER_PAWNS
+  );
+  let renderedUnusedPawnCount = Math.min(
+    unusedWorkerCount,
+    MAX_RENDERED_WORKER_PAWNS - renderedActivePawnCount
+  );
+  if (
+    unusedWorkerCount > 0 &&
+    renderedUnusedPawnCount === 0 &&
+    renderedActivePawnCount > 0
+  ) {
+    renderedActivePawnCount -= 1;
+    renderedUnusedPawnCount = 1;
+  }
+  const renderedPawnCount =
+    renderedActivePawnCount + renderedUnusedPawnCount;
   return {
     activeWorkerCount,
-    renderedPawnCount: Math.min(
-      activeWorkerCount,
-      MAX_RENDERED_WORKER_PAWNS
-    ),
+    unusedWorkerCount,
+    totalWorkerCount,
+    renderedActivePawnCount,
+    renderedUnusedPawnCount,
+    renderedPawnCount,
     badgeValue:
-      activeWorkerCount > MAX_RENDERED_WORKER_PAWNS
-        ? activeWorkerCount
+      totalWorkerCount > MAX_RENDERED_WORKER_PAWNS
+        ? totalWorkerCount
         : null,
   };
 }
@@ -195,8 +230,9 @@ function buildRegionMapIndicators(state, definition) {
     const region = getRegionState(state, regionDef.id);
     const viewModel = getDetailedSettlementViewModel(state, regionDef.id);
     const activeWorkerCount = getActiveWorkerCount(viewModel);
+    const unusedWorkerCount = getUnusedWorkerCount(viewModel);
     const workerPresentation =
-      getWorkerIndicatorPresentation(activeWorkerCount);
+      getWorkerIndicatorPresentation(activeWorkerCount, unusedWorkerCount);
     const structureCapacity = Math.max(
       0,
       Math.floor(region?.structureCapacity ?? 0)
@@ -238,8 +274,11 @@ function addPawnGlyph(
   parent.addChild(pawn);
 }
 
-function addWorkerIndicator(parent, point, workerCount) {
-  const presentation = getWorkerIndicatorPresentation(workerCount);
+function addWorkerIndicator(parent, point, activeWorkerCount, unusedWorkerCount) {
+  const presentation = getWorkerIndicatorPresentation(
+    activeWorkerCount,
+    unusedWorkerCount
+  );
   const renderedCount = presentation.renderedPawnCount;
   const displayCount = Math.max(1, renderedCount);
   const gap = 19;
@@ -268,10 +307,26 @@ function addWorkerIndicator(parent, point, workerCount) {
       alpha: 0.28,
     });
   } else {
-    for (let index = 0; index < renderedCount; index += 1) {
+    for (
+      let index = 0;
+      index < presentation.renderedActivePawnCount;
+      index += 1
+    ) {
       addPawnGlyph(parent, startX + index * gap, point.y - 32, {
-        color: PALETTE.text,
+        color: PALETTE.accent,
       });
+    }
+    for (
+      let index = 0;
+      index < presentation.renderedUnusedPawnCount;
+      index += 1
+    ) {
+      addPawnGlyph(
+        parent,
+        startX + (presentation.renderedActivePawnCount + index) * gap,
+        point.y - 32,
+        { color: PALETTE.text }
+      );
     }
   }
 
@@ -388,12 +443,23 @@ function addPlayerOwnershipMarker(parent, point, { selected = false } = {}) {
 }
 
 function addMapIndicatorLegend(parent) {
-  addPawnGlyph(parent, 382, 81, { color: PALETTE.text, scale: 0.8 });
+  addPawnGlyph(parent, 282, 81, { color: PALETTE.accent, scale: 0.8 });
   parent.addChild(
     createText(
       "active workers",
       { ...TEXT_STYLES.muted, fontSize: 13 },
-      397,
+      297,
+      81,
+      0,
+      0.5
+    )
+  );
+  addPawnGlyph(parent, 412, 81, { color: PALETTE.text, scale: 0.8 });
+  parent.addChild(
+    createText(
+      "unused workers",
+      { ...TEXT_STYLES.muted, fontSize: 13 },
+      427,
       81,
       0,
       0.5
@@ -782,7 +848,12 @@ export function createWorldMapView({
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
       if (indicator.hasDetailedSettlement) {
-        addWorkerIndicator(root, point, indicator.activeWorkerCount);
+        addWorkerIndicator(
+          root,
+          point,
+          indicator.activeWorkerCount,
+          indicator.unusedWorkerCount
+        );
       }
       addStructureIndicator(root, point, indicator.structureSlots, {
         centered: !indicator.hasDetailedSettlement,
