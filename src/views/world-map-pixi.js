@@ -39,6 +39,7 @@ const MAX_RENDERED_WORKER_PAWNS = 5;
 const EDGE_TRANSFER_PACKET_DURATION_MS = 900;
 const EDGE_TRANSFER_PACKET_STAGGER_MS = 85;
 const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
+const REGION_DOUBLE_TAP_WINDOW_MS = 350;
 const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
   food: 0xf3cf67,
 });
@@ -439,12 +440,16 @@ function addMapIndicatorLegend(parent) {
 function signature(
   state,
   selectedRegionId,
+  regionSelectionActive,
+  graphScope,
   civilizationSummary,
   survivalTracker,
   regionMapIndicators
 ) {
   return JSON.stringify({
     selectedRegionId,
+    regionSelectionActive,
+    graphScope,
     regions: state?.world?.regions,
     civilizationSummary,
     survivalTracker,
@@ -462,8 +467,12 @@ export function createWorldMapView({
   getState,
   getEdgeTransferBatch,
   getSelectedRegionId,
+  getRegionSelectionActive,
+  getGraphScope,
   setSelectedRegionId,
   getCivilizationLossInfo,
+  onShowCivilizationGraph,
+  onShowSelectedRegionGraph,
   onOpenDetailedSite,
 }) {
   const root = new PIXI.Container();
@@ -475,6 +484,7 @@ export function createWorldMapView({
   layer.addChild(root, edgeTransferLayer);
   let lastSignature = "";
   let lastPointerRegionId = null;
+  let lastRegionTap = { regionId: null, atMs: -Infinity };
   let lastEdgeTransferBatchKey = null;
   let lastEdgeTransferBatch = null;
   let lastEdgeTransferViewedSec = null;
@@ -645,6 +655,9 @@ export function createWorldMapView({
     const definition = getWorldDefinition(state);
     if (!definition) return;
     const selectedRegionId = getSelectedRegionId?.() ?? state.civilization.capitalRegionId;
+    const regionSelectionActive = getRegionSelectionActive?.() === true;
+    const graphScope =
+      getGraphScope?.() === "settlement" ? "settlement" : "civilization";
     const civilizationSummary = getDetailedCivilizationSummary(state);
     const civilizationLossInfo = getCivilizationLossInfo?.() ?? null;
     const survivalTracker = getCivilizationSurvivalViewModel(
@@ -655,6 +668,8 @@ export function createWorldMapView({
     const nextSignature = signature(
       state,
       selectedRegionId,
+      regionSelectionActive,
+      graphScope,
       civilizationSummary,
       survivalTracker,
       regionMapIndicators
@@ -694,7 +709,8 @@ export function createWorldMapView({
         const p = screenPoint(point);
         return [p.x, p.y];
       });
-      const selected = region.id === selectedRegionId;
+      const selected =
+        regionSelectionActive && region.id === selectedRegionId;
       const shape = new PIXI.Graphics();
       shape.lineStyle(selected ? 5 : 2,
         selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
@@ -707,8 +723,19 @@ export function createWorldMapView({
       hit.cursor = "pointer";
       hit.addChild(shape);
       hit.on("pointerdown", () => {
+        const tappedAtMs = viewNowMs();
+        const isDoubleTap =
+          lastRegionTap.regionId === region.id &&
+          tappedAtMs - lastRegionTap.atMs <= REGION_DOUBLE_TAP_WINDOW_MS;
         lastPointerRegionId = region.id;
-        setSelectedRegionId?.(region.id);
+        const viewModel = getDetailedSettlementViewModel(state, region.id);
+        if (isDoubleTap && viewModel) {
+          lastRegionTap = { regionId: null, atMs: -Infinity };
+          onOpenDetailedSite?.(viewModel.siteId, region.id);
+        } else {
+          lastRegionTap = { regionId: region.id, atMs: tappedAtMs };
+          setSelectedRegionId?.(region.id);
+        }
         lastSignature = "";
       });
       root.addChild(hit);
@@ -739,7 +766,9 @@ export function createWorldMapView({
       });
       if (indicator.showsPlayerMarker) {
         addPlayerOwnershipMarker(root, point, {
-          selected: indicator.regionId === selectedRegionId,
+          selected:
+            regionSelectionActive &&
+            indicator.regionId === selectedRegionId,
         });
       }
     }
@@ -753,9 +782,22 @@ export function createWorldMapView({
       CIVILIZATION_RECT.height,
       7,
       PALETTE.panel,
-      PALETTE.stroke,
-      3
+      graphScope === "civilization" ? PALETTE.accent : PALETTE.stroke,
+      graphScope === "civilization" ? 5 : 3
     );
+    civilizationPanel.eventMode = "static";
+    civilizationPanel.cursor = "pointer";
+    civilizationPanel.hitArea = new PIXI.Rectangle(
+      CIVILIZATION_RECT.x,
+      CIVILIZATION_RECT.y,
+      CIVILIZATION_RECT.width,
+      CIVILIZATION_RECT.height
+    );
+    civilizationPanel.on("pointertap", () => {
+      lastRegionTap = { regionId: null, atMs: -Infinity };
+      onShowCivilizationGraph?.();
+      lastSignature = "";
+    });
     root.addChild(
       civilizationPanel,
       createText(
@@ -820,6 +862,9 @@ export function createWorldMapView({
       )
     );
 
+    const selectedDef = getRegionDefinition(state, selectedRegionId);
+    const region = getRegionState(state, selectedRegionId);
+    const viewModel = getDetailedSettlementViewModel(state, selectedRegionId);
     const detailPanel = new PIXI.Graphics();
     roundedRect(
       detailPanel,
@@ -829,13 +874,24 @@ export function createWorldMapView({
       DETAIL_RECT.height,
       7,
       PALETTE.panelSoft,
-      PALETTE.stroke,
-      3
+      graphScope === "settlement" ? PALETTE.accent : PALETTE.stroke,
+      graphScope === "settlement" ? 5 : 3
     );
+    detailPanel.eventMode = "static";
+    detailPanel.cursor = viewModel ? "pointer" : "default";
+    detailPanel.hitArea = new PIXI.Rectangle(
+      DETAIL_RECT.x,
+      DETAIL_RECT.y,
+      DETAIL_RECT.width,
+      DETAIL_RECT.height
+    );
+    detailPanel.on("pointertap", () => {
+      if (!viewModel) return;
+      lastRegionTap = { regionId: null, atMs: -Infinity };
+      onShowSelectedRegionGraph?.(selectedRegionId);
+      lastSignature = "";
+    });
     root.addChild(detailPanel);
-    const selectedDef = getRegionDefinition(state, selectedRegionId);
-    const region = getRegionState(state, selectedRegionId);
-    const viewModel = getDetailedSettlementViewModel(state, selectedRegionId);
     root.addChild(createText(selectedDef?.name ?? selectedRegionId,
       { ...TEXT_STYLES.header, fontSize: 26 },
       DETAIL_RECT.x + 24, DETAIL_RECT.y + 30));
@@ -909,6 +965,11 @@ export function createWorldMapView({
       return {
         visible: root.visible === true,
         selectedRegionId: regionId,
+        regionSelectionActive: getRegionSelectionActive?.() === true,
+        graphScope:
+          getGraphScope?.() === "settlement"
+            ? "settlement"
+            : "civilization",
         lastPointerRegionId,
         regionCount: getWorldDefinition(state)?.regions.length ?? 0,
         civilizationSummary,

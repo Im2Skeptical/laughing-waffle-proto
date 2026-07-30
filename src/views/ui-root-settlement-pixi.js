@@ -162,6 +162,7 @@ let worldMapView = null;
 let worldViewMode = "map";
 let settlementGraphScope = "civilization";
 let selectedWorldRegionId = "river-crown";
+let worldMapRegionSelectionActive = false;
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
@@ -196,6 +197,7 @@ let settlementFrontierStateCache = {
 function setWorldViewMode(mode) {
   worldViewMode = mode === "settlement" ? "settlement" : "map";
   const settlementVisible = worldViewMode === "settlement";
+  worldMapRegionSelectionActive = settlementVisible;
   prototypeView?.setVisible?.(settlementVisible);
   worldMapView?.setVisible?.(!settlementVisible);
   settlementVassalControlsView?.setVisible?.(settlementVisible);
@@ -1306,14 +1308,47 @@ prototypeView = createSettlementPrototypeView({
 });
 prototypeView.setVisible(false);
 
+function selectWorldMapRegion(regionId) {
+  const state = runner.getState?.();
+  if (!state?.world?.regions?.some((entry) => entry.id === regionId)) {
+    return false;
+  }
+  const isSelectedAgain =
+    worldMapRegionSelectionActive && selectedWorldRegionId === regionId;
+  selectedWorldRegionId = regionId;
+  worldMapRegionSelectionActive = !isSelectedAgain;
+  const hasDetailedSettlement = state.world.sites?.some(
+    (site) => site.regionId === regionId
+  );
+  setSettlementGraphContext(
+    worldMapRegionSelectionActive && hasDetailedSettlement
+      ? "settlement"
+      : "civilization",
+    regionId
+  );
+  worldMapView?.refresh?.();
+  return true;
+}
+
 worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedRegionId: () => selectedWorldRegionId,
-  setSelectedRegionId: (regionId) => {
+  getRegionSelectionActive: () => worldMapRegionSelectionActive,
+  getGraphScope: () => settlementGraphScope,
+  setSelectedRegionId: selectWorldMapRegion,
+  onShowCivilizationGraph: () => {
+    worldMapRegionSelectionActive = false;
+    setSettlementGraphContext("civilization");
+    worldMapView?.refresh?.();
+  },
+  onShowSelectedRegionGraph: (regionId) => {
     selectedWorldRegionId = regionId;
+    worldMapRegionSelectionActive = true;
+    setSettlementGraphContext("settlement", regionId);
+    worldMapView?.refresh?.();
   },
   onInstallPractice: (regionId, practiceId) =>
     runner.dispatchAction(
@@ -1331,6 +1366,7 @@ worldMapView = createWorldMapView({
     if (typeof regionId === "string") {
       selectedWorldRegionId = regionId;
     }
+    worldMapRegionSelectionActive = true;
     setWorldViewMode("settlement");
   },
 });
@@ -1678,14 +1714,17 @@ function publishSettlementDebugApi() {
       settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
       null,
     selectWorldRegion: (regionId) => {
-      if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) return false;
-      selectedWorldRegionId = regionId;
       if (worldViewMode === "settlement") {
+        if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) {
+          return false;
+        }
+        selectedWorldRegionId = regionId;
         setSettlementGraphContext("settlement", regionId);
         prototypeView?.refresh?.();
+        worldMapView?.refresh?.();
+        return true;
       }
-      worldMapView?.refresh?.();
-      return true;
+      return selectWorldMapRegion(regionId);
     },
     getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>
