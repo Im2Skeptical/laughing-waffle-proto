@@ -11,7 +11,8 @@ second stages.
 
 Within the detailed-settlement stage, boundaries resolve in this order:
 
-1. `season`: every practice whose `activation.type` is `season`
+1. `season`: matching practices whose activation either has no season filter or
+   includes the entered season in `activation.seasonKeys`
 2. `newMoon`: when `tSec > 0 && tSec % MOON_CYCLE_SEC === 0`
 3. `fullMoon`: at the midpoint of the moon cycle
 4. annual: when a season change enters season index zero
@@ -23,12 +24,12 @@ vassal interventions, then same-boundary vassal death.
 
 ### `season`
 
-Currently used by Cultivate. Only player-controlled detailed settlements
-activate map production.
+Currently used by Cultivate, which activates only when entering Summer. Only
+player-controlled detailed settlements activate map production.
 
 ### `newMoon`
 
-Currently used by Administrate and build practices. Administration plans from
+Currently used by Administration and build practices. Administration plans from
 one activation-start snapshot before moves are applied. Build work uses assigned
 worker effectiveness.
 
@@ -36,7 +37,7 @@ After new-moon practices, stored-food decay and loose-food halving resolve.
 
 ### `passive`
 
-Currently used by Preserve and inert vassal placeholders. Passive effects are
+Currently used by Preservation and inert vassal placeholders. Passive effects are
 queried by the boundary that consumes them; they do not create their own time
 advance.
 
@@ -46,6 +47,10 @@ Assignments are recalculated from current site cohorts for every activation or
 passive query. Each class creates
 `floor((adults + elders) / 10)` tokens. Villager tokens assign before Stranger
 tokens, practices left-to-right.
+
+Scaled-value practices use `1 + effective workers` and therefore retain their
+base effect with no assigned token. Build practices keep their worker-required,
+effective-worker-only behavior.
 
 ## Vassal selection
 

@@ -26,8 +26,8 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v6; older saves are rejected.
-- Each run serializes schema-v1 Game Settings and Gamepieces in `gameConfig`.
+- Game state and runner saves use schema v7; older saves are rejected.
+- Each run serializes schema-v2 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts and scenario libraries use schema v2.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -44,12 +44,14 @@ survival knowledge, and the single vassal lineage are civilization-global.
 
 ## Current simulation
 
-- Cultivate produces local food from effective workers and the declarative
-  adjacent-player-same-colour map evaluator.
-- Administration is the only food transport. Moves use one activation-start
-  snapshot, traverse one authored edge per token, and cannot multi-hop within a
-  moon.
-- Preserve reduces stored-food decay. Build practices create Granaries or Mud
+- Cultivate produces food each Summer from a player same-colour connected-region
+  evaluator and a baseline-preserving effective-worker multiplier.
+- Administration is the only food transport. Each card has one evaluated shared
+  cap, moves meal-safe surplus toward shortages from one activation-start
+  snapshot, and cannot relay received food within a moon. Preservation expands
+  its endpoints across fully player-controlled paths.
+- Preservation relatively reduces stored-food decay and remains effective with
+  no workers. Build practices create Granaries or Mud
   Houses and wait at full regional structure capacity.
 - Granary and Mud House capacities scale with local count squared.
 - Food fills stored capacity first, then loose food; meals consume loose first.

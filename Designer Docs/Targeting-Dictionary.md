@@ -16,23 +16,33 @@ Local fields used by operations:
 - `structureSlots`
 - `populationByClass`
 
-## Map evaluator
+## Region scopes and map evaluators
 
-`{ evaluator: "adjacentPlayerSameColour" }`
+Region scopes are JSON-only descriptors interpreted by the model:
 
-Returns base score 1 plus directly connected regions whose controller is
-`player` and whose colour matches the host. Evaluation is pure and does not
-mutate state.
+- `adjacent` selects authored neighbours, with optional endpoint filters.
+- `connectedComponent` traverses only regions matching its traversal filters,
+  then applies endpoint filters.
+- `conditionalHostPractice` selects one of two scopes based on local practice
+  presence.
+
+Filters can constrain controller, host-relative colour, detailed-settlement
+presence, and practice presence. `countRegions` evaluators return a score,
+readable breakdown, and matching-region diagnostics. Cultivate counts its
+player-controlled same-colour component; Administration counts regions with
+Administration in its current routing scope. Evaluation is pure.
 
 ## Topology transfer target
 
-`routeLocalFood` may choose only a directly connected detailed site. The
-planner:
+`routeLocalFood` uses its declarative `targetScope`. Administration normally
+selects adjacent player detailed settlements; local Preservation changes that
+scope to the player-controlled connected component. The planner:
 
 - reads one activation-start food/capacity/demand snapshot
-- resolves hosts and neighbour ties in authored region order
+- prioritizes greatest shortages/surpluses and resolves ties in authored region order
 - tracks planned source availability separately from planned destination fill
 - cannot use incoming food as a source in the same moon
+- spends one shared evaluated cap per Administration card
 
 Destinations fill local stored capacity before creating loose food.
 

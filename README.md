@@ -7,7 +7,9 @@ Deterministic map-driven settlement strategy prototype.
 The 15-region map hosts five connected detailed settlements in Regions01, 03,
 06, 07, and 11. Each site simulates local cohorts, perishable capacity-limited
 food, fixed practice slots, physical structure space, and an aggregate Elder
-Order. Administration is the only way to move food between adjacent sites.
+Order. Administration is the only way to move food between sites. Preservation
+extends its reach from adjacent sites to detailed settlements connected by a
+fully player-controlled path.
 
 The single civilization-wide vassal lineage targets a local settlement with
 three deterministic interventions. Chaos and loss are global; population,
@@ -26,7 +28,7 @@ On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
 and filled/open structure-slot glyphs. Non-detailed regions show their authored
 capacity as open slots; the selected-region card retains the full regional
 identity and details. Administration food packets appear as staggered gold
-directional markers travelling between connected regions, making supply routes
+directional markers travelling between source and destination regions, making supply routes
 visible during forecast unveiling and timeline browsing. Their playback follows
 the playhead: forward time shows the transfer normally, while rewinding shows
 the marker travelling backward toward its source while its triangle remains
@@ -45,7 +47,7 @@ forecast for comparison, progressively commits the deterministic lifespan, and
 distinguishes fixed history from editable history and forecast. The blocking
 chooser suspends automatic forecast preview until a candidate is selected.
 
-Game state and runner saves are schema v6. Each run serializes the exact game
+Game state and runner saves are schema v7. Each run serializes the exact game
 settings and detailed gamepiece tuning used by deterministic replay. Old saves are intentionally
 unsupported.
 
@@ -112,7 +114,7 @@ without migration.
 ## Data-driven debug configuration
 
 Open **Debug -> Game Settings** or **Debug -> Gamepieces**. Drafts and their
-named preset libraries use independent schema-v1 browser keys. They do not
+named preset libraries use independent schema-v2 browser keys. They do not
 change a running simulation until **Start fresh test run** is pressed.
 
 The resulting `gameConfig` is JSON-only state. Rewinds, branches, projections,

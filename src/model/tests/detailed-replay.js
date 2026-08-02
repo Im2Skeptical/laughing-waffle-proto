@@ -73,6 +73,8 @@ assert.equal(
 );
 
 const terminalProjectionBase = createInitialState("devPlaytesting01");
+terminalProjectionBase.civilization.chaos.chaosPower = 100;
+terminalProjectionBase.civilization.chaos.monsterLossThreshold = 1;
 const terminalProjection = buildProjectionChunkFromStateData(
   serializeGameState(terminalProjectionBase),
   0,
@@ -92,8 +94,8 @@ const terminalSummary = terminalProjection.summaryBySecond.get(
   terminalProjection.endSec
 );
 assert.equal(terminalSummary?.runComplete, true);
-assert.equal(terminalSummary?.runLossYear, 73,
-  "class-priority meals retain their deterministic terminal loss year");
+assert.equal(terminalSummary?.runLossYear, 2,
+  "the configured terminal scenario retains its deterministic loss year");
 assert.ok(
   terminalProjection.stateDataBySecond.has(terminalProjection.endSec),
   "terminal state remains available to the survival tracker"

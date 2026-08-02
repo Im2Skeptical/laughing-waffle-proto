@@ -10,8 +10,16 @@ import {
   DETAILED_REGION_IDS,
   createInitialDetailedSettlementData,
 } from "../defs/world/detailed-settlement-scenario.js";
-import { getConnectedRegionIds, getRegionState } from "./world-state.js";
-import { deserializeGameState, serializeGameState } from "./state.js";
+import {
+  getConnectedRegionIds,
+  getRegionState,
+  getWorldDefinition,
+} from "./world-state.js";
+import {
+  deserializeGameState,
+  getCurrentSeasonKey,
+  serializeGameState,
+} from "./state.js";
 import {
   getDetailedPracticeDef,
   getDetailedStructureDef,
@@ -90,6 +98,50 @@ export function createDetailedSettlementState() {
   return clone(createInitialDetailedSettlementData());
 }
 
+function validateRegionScopeDefinition(scope, label, errors) {
+  if (!scope || typeof scope !== "object") {
+    errors.push(`${label}: missing region scope`);
+    return;
+  }
+  if (scope.kind === "conditionalHostPractice") {
+    if (typeof scope.practiceId !== "string") errors.push(`${label}: invalid practice condition`);
+    validateRegionScopeDefinition(scope.whenPresent, `${label}.whenPresent`, errors);
+    validateRegionScopeDefinition(scope.otherwise, `${label}.otherwise`, errors);
+    return;
+  }
+  if (!["adjacent", "connectedComponent"].includes(scope.kind)) {
+    errors.push(`${label}: invalid region scope ${scope.kind}`);
+  }
+}
+
+function validateScaledValueDefinition(scaledValue, label, errors) {
+  if (!scaledValue || typeof scaledValue !== "object") {
+    errors.push(`${label}: missing scaledValue`);
+    return;
+  }
+  if (!Number.isFinite(scaledValue.baseAmount) || scaledValue.baseAmount < 0) {
+    errors.push(`${label}: invalid baseAmount`);
+  }
+  if (!Number.isFinite(scaledValue.workerMultiplier?.base)
+      || scaledValue.workerMultiplier.base < 0) {
+    errors.push(`${label}: invalid worker multiplier base`);
+  }
+  if (!Number.isFinite(scaledValue.workerMultiplier?.perEffectiveWorker)
+      || scaledValue.workerMultiplier.perEffectiveWorker < 0) {
+    errors.push(`${label}: invalid worker multiplier contribution`);
+  }
+  const evaluator = scaledValue.evaluator;
+  if (evaluator?.kind === "constant") {
+    if (!Number.isFinite(evaluator.score) || evaluator.score < 0) {
+      errors.push(`${label}: invalid constant evaluator score`);
+    }
+  } else if (evaluator?.kind === "countRegions") {
+    validateRegionScopeDefinition(evaluator.scope, `${label}.evaluator.scope`, errors);
+  } else {
+    errors.push(`${label}: invalid evaluator ${evaluator?.kind}`);
+  }
+}
+
 export function validateDetailedPracticeDefinitions() {
   const errors = [];
   const validOps = new Set(detailedSettlementEffectOps);
@@ -101,8 +153,23 @@ export function validateDetailedPracticeDefinitions() {
     if (!["season", "newMoon", "passive"].includes(def.activation?.type)) {
       errors.push(`${id}: invalid activation`);
     }
+    if (def.activation?.seasonKeys != null
+        && (!Array.isArray(def.activation.seasonKeys)
+          || def.activation.seasonKeys.some((key) => typeof key !== "string"))) {
+      errors.push(`${id}: invalid season keys`);
+    }
     for (const effect of def.effects ?? []) {
       if (!validOps.has(effect?.op)) errors.push(`${id}: invalid effect op ${effect?.op}`);
+      if (["addLocalFood", "routeLocalFood", "reduceFoodDecay"].includes(effect?.op)) {
+        validateScaledValueDefinition(effect.scaledValue, `${id}.${effect.op}`, errors);
+      }
+      if (effect?.op === "routeLocalFood") {
+        validateRegionScopeDefinition(effect.targetScope, `${id}.routeLocalFood.targets`, errors);
+      }
+      if (effect?.op === "reduceFoodDecay"
+          && !["stored", "loose"].includes(effect.foodKind)) {
+        errors.push(`${id}: invalid food decay kind ${effect.foodKind}`);
+      }
       if (effect?.op === "createLocalStructureAtWork"
           && !settlementStructureDefs[effect.structureDefId]) {
         errors.push(`${id}: invalid structure ${effect.structureDefId}`);
@@ -300,18 +367,150 @@ export function getElderOrderSummary(state, regionId) {
   };
 }
 
-export function evaluateDetailedMapScore(state, regionId, evaluatorId) {
-  if (evaluatorId !== "adjacentPlayerSameColour") {
-    return { ok: false, reason: "unknownEvaluator", score: 0 };
+function getWorldRegionOrder(state) {
+  return new Map((getWorldDefinition(state)?.regions ?? []).map(
+    (region, index) => [region.id, index]
+  ));
+}
+
+function orderRegionIds(state, regionIds) {
+  const order = getWorldRegionOrder(state);
+  return [...new Set(regionIds)].sort((left, right) =>
+    (order.get(left) ?? Number.MAX_SAFE_INTEGER)
+      - (order.get(right) ?? Number.MAX_SAFE_INTEGER)
+      || (String(left) < String(right) ? -1 : String(left) > String(right) ? 1 : 0)
+  );
+}
+
+function regionHasDetailedPractice(state, regionId, practiceId) {
+  return (getDetailedSettlement(state, regionId)?.practiceSlots ?? [])
+    .some((slot) => slot?.practiceId === practiceId);
+}
+
+function regionMatchesFilters(state, host, regionId, filters) {
+  if (!filters) return true;
+  const region = getRegionState(state, regionId);
+  if (!region) return false;
+  if (filters.controller && region.controller !== filters.controller) return false;
+  if (filters.colour === "host" && region.colour !== host.colour) return false;
+  if (typeof filters.colour === "string"
+      && filters.colour !== "host"
+      && region.colour !== filters.colour) return false;
+  if (filters.detailedSettlement === true && !getDetailedSettlement(state, regionId)) {
+    return false;
   }
+  if (filters.practiceId
+      && !regionHasDetailedPractice(state, regionId, filters.practiceId)) {
+    return false;
+  }
+  return true;
+}
+
+export function resolveDetailedRegionScope(state, regionId, scope) {
+  const host = getRegionState(state, regionId);
+  if (!host) return [];
+  if (scope?.kind === "conditionalHostPractice") {
+    const selectedScope = regionHasDetailedPractice(state, regionId, scope.practiceId)
+      ? scope.whenPresent
+      : scope.otherwise;
+    return resolveDetailedRegionScope(state, regionId, selectedScope);
+  }
+
+  let candidateIds = [];
+  if (scope?.kind === "adjacent") {
+    candidateIds = getConnectedRegionIds(state, regionId);
+  } else if (scope?.kind === "connectedComponent") {
+    if (!regionMatchesFilters(state, host, regionId, scope.traversalFilters)) return [];
+    const visited = new Set();
+    const queue = [regionId];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (visited.has(current)) continue;
+      visited.add(current);
+      for (const next of orderRegionIds(state, getConnectedRegionIds(state, current))) {
+        if (!visited.has(next)
+            && regionMatchesFilters(state, host, next, scope.traversalFilters)) {
+          queue.push(next);
+        }
+      }
+    }
+    candidateIds = [...visited];
+  } else {
+    return [];
+  }
+
+  if (scope.includeHost === true) candidateIds.push(regionId);
+  else candidateIds = candidateIds.filter((id) => id !== regionId);
+  return orderRegionIds(state, candidateIds).filter(
+    (id) => regionMatchesFilters(state, host, id, scope.regionFilters)
+  );
+}
+
+export function evaluateDetailedMapScore(state, regionId, evaluator) {
   const host = getRegionState(state, regionId);
   if (!host) return { ok: false, reason: "unknownRegion", score: 0 };
-  let bonus = 0;
-  for (const neighbourId of getConnectedRegionIds(state, regionId)) {
-    const neighbour = getRegionState(state, neighbourId);
-    if (neighbour?.controller === "player" && neighbour.colour === host.colour) bonus += 1;
+  if (evaluator?.kind === "constant") {
+    const score = Math.max(0, Number(evaluator.score) || 0);
+    return {
+      ok: true,
+      score,
+      breakdown: [{ kind: "constant", amount: score, text: evaluator.label ?? "constant" }],
+      diagnostics: { matchingRegionIds: [] },
+    };
   }
-  return { ok: true, score: 1 + bonus };
+  if (evaluator?.kind !== "countRegions") {
+    return { ok: false, reason: "unknownEvaluator", score: 0 };
+  }
+  const scopeRegionIds = resolveDetailedRegionScope(state, regionId, evaluator.scope);
+  const candidateIds = evaluator.includeHost === true
+    ? orderRegionIds(state, [regionId, ...scopeRegionIds])
+    : scopeRegionIds;
+  const matchingRegionIds = candidateIds.filter(
+    (id) => regionMatchesFilters(state, host, id, evaluator.regionFilters)
+  );
+  const score = matchingRegionIds.length;
+  return {
+    ok: true,
+    score,
+    breakdown: [{
+      kind: "regionCount",
+      amount: score,
+      text: `${score} ${evaluator.label ?? "qualifying regions"}`,
+    }],
+    diagnostics: { scopeRegionIds, matchingRegionIds },
+  };
+}
+
+function resolveScaledValue(state, site, assignment, scaledValue) {
+  const evaluation = evaluateDetailedMapScore(
+    state,
+    site.regionId,
+    scaledValue?.evaluator
+  );
+  const baseAmount = Math.max(0, Number(scaledValue?.baseAmount) || 0);
+  const evaluatorScore = evaluation.ok ? evaluation.score : 0;
+  const baseValue = roundFood(baseAmount * evaluatorScore);
+  const multiplierBase = Math.max(
+    0,
+    Number(scaledValue?.workerMultiplier?.base) || 0
+  );
+  const perEffectiveWorker = Math.max(
+    0,
+    Number(scaledValue?.workerMultiplier?.perEffectiveWorker) || 0
+  );
+  const workerMultiplier = roundFood(
+    multiplierBase + assignment.effectiveWorkers * perEffectiveWorker
+  );
+  return {
+    ok: evaluation.ok,
+    baseAmount,
+    evaluatorScore,
+    evaluatorBreakdown: evaluation.breakdown ?? [],
+    diagnostics: evaluation.diagnostics ?? {},
+    baseValue,
+    workerMultiplier,
+    effectiveValue: roundFood(baseValue * workerMultiplier),
+  };
 }
 
 export function assignDetailedSettlementWorkers(state, regionId) {
@@ -346,6 +545,36 @@ export function assignDetailedSettlementWorkers(state, regionId) {
     tokens,
     effectiveWorkers: tokens.reduce((sum, token) => sum + token.effectiveness, 0),
   }));
+}
+
+function buildDetailedPracticeEvaluation(state, site, assignment) {
+  const slot = site?.detailedState?.practiceSlots?.[assignment.slotIndex] ?? null;
+  const def = getDetailedPracticeDef(state, slot?.practiceId);
+  if (!def) return null;
+  return {
+    practiceId: def.id,
+    label: def.label,
+    workerCapacity: def.workerCapacity,
+    activation: clone(def.activation),
+    rule: def.ui?.rule ?? "",
+    effects: (def.effects ?? []).map((effect) => ({
+      op: effect.op,
+      foodKind: effect.foodKind ?? null,
+      scaledValue: effect.scaledValue
+        ? resolveScaledValue(state, site, assignment, effect.scaledValue)
+        : null,
+      targetRegionIds: effect.targetScope
+        ? resolveDetailedRegionScope(state, site.regionId, effect.targetScope)
+        : [],
+    })),
+  };
+}
+
+export function evaluateDetailedPracticeSlot(state, regionId, slotIndex) {
+  const site = getDetailedSettlementSite(state, regionId);
+  if (!site || !Number.isInteger(slotIndex)) return null;
+  const assignment = assignDetailedSettlementWorkers(state, regionId)[slotIndex];
+  return assignment ? buildDetailedPracticeEvaluation(state, site, assignment) : null;
 }
 
 function addFoodToSettlement(state, regionId, amount) {
@@ -401,12 +630,23 @@ function markCompletedBuildInterventionResolved(state, regionId, practiceId) {
   }
 }
 
+function practiceMatchesActivation(state, def, activationType) {
+  if (def?.activation?.type !== activationType) return false;
+  if (activationType !== "season" || !Array.isArray(def.activation.seasonKeys)) {
+    return true;
+  }
+  return def.activation.seasonKeys.includes(getCurrentSeasonKey(state));
+}
+
 function executePracticeEffects(state, site, assignment, activationType) {
   const settlement = site.detailedState;
   const slot = settlement.practiceSlots[assignment.slotIndex];
   const def = getDetailedPracticeDef(state, slot?.practiceId);
-  if (!def || def.activation.type !== activationType) return;
-  if ((def.workerCapacity ?? 0) > 0 && assignment.tokens.length === 0) return;
+  if (!def || !practiceMatchesActivation(state, def, activationType)) return;
+  const hasBaselineEffect = (def.effects ?? []).some((effect) => effect.scaledValue);
+  if (!hasBaselineEffect
+      && (def.workerCapacity ?? 0) > 0
+      && assignment.tokens.length === 0) return;
   if ((def.activation.type === "season" || def.activation.type === "newMoon")
       && getRegionState(state, site.regionId)?.controller !== "player"
       && (def.effects ?? []).some((effect) =>
@@ -414,15 +654,11 @@ function executePracticeEffects(state, site, assignment, activationType) {
 
   for (const effect of def.effects ?? []) {
     if (effect.op === "addLocalFood") {
-      const multiplier = evaluateDetailedMapScore(
-        state,
-        site.regionId,
-        effect.multiplier?.evaluator
-      ).score;
+      const resolved = resolveScaledValue(state, site, assignment, effect.scaledValue);
       addFoodToSettlement(
         state,
         site.regionId,
-        effect.amountPerEffectiveWorker * assignment.effectiveWorkers * multiplier
+        resolved.effectiveValue
       );
     } else if (effect.op === "advanceWork") {
       slot.work = roundFood((slot.work ?? 0)
@@ -451,8 +687,13 @@ function getPreserveReduction(state, site) {
   return assignDetailedSettlementWorkers(state, site.regionId).reduce((sum, assignment) => {
     const def = getDetailedPracticeDef(state, assignment.practiceId);
     return sum + (def?.effects ?? []).reduce((effectSum, effect) =>
-      effect.op === "modifyStoredFoodDecay"
-        ? effectSum - effect.additivePercentPerEffectiveWorker * assignment.effectiveWorkers
+      effect.op === "reduceFoodDecay" && effect.foodKind === "stored"
+        ? effectSum + resolveScaledValue(
+          state,
+          site,
+          assignment,
+          effect.scaledValue
+        ).effectiveValue
         : effectSum, 0);
   }, 0);
 }
@@ -474,52 +715,85 @@ export function planDetailedAdministrationMoves(state) {
   const sourceAvailable = clone(snapshot);
   const destinationProjected = clone(snapshot);
   const moves = [];
+  const worldOrder = getWorldRegionOrder(state);
+  const compareByAmountThenWorldOrder = (amountFor) => (left, right) =>
+    amountFor(right) - amountFor(left)
+      || (worldOrder.get(left) ?? Number.MAX_SAFE_INTEGER)
+        - (worldOrder.get(right) ?? Number.MAX_SAFE_INTEGER)
+      || (String(left) < String(right) ? -1 : String(left) > String(right) ? 1 : 0);
+  const shortage = (entry) => roundFood(Math.max(
+    0,
+    (entry?.demand ?? 0) - (entry?.loose ?? 0) - (entry?.stored ?? 0)
+  ));
+  const surplus = (entry) => roundFood(Math.max(
+    0,
+    (entry?.loose ?? 0) + (entry?.stored ?? 0) - (entry?.demand ?? 0)
+  ));
+  const reserveMove = (sourceId, destinationId, amount) => {
+    const source = sourceAvailable[sourceId];
+    const destination = destinationProjected[destinationId];
+    const safeAmount = roundFood(Math.max(0, amount));
+    if (!source || !destination || safeAmount <= 0) return 0;
+    const looseAmount = Math.min(source.loose, safeAmount);
+    source.loose = roundFood(source.loose - looseAmount);
+    source.stored = roundFood(source.stored - (safeAmount - looseAmount));
+    const room = Math.max(0, destination.capacity - destination.stored);
+    const storedAmount = Math.min(room, safeAmount);
+    destination.stored = roundFood(destination.stored + storedAmount);
+    destination.loose = roundFood(destination.loose + safeAmount - storedAmount);
+    moves.push({ sourceId, destinationId, amount: safeAmount, looseAmount });
+    return safeAmount;
+  };
+
   for (const site of getDetailedSettlementSites(state)) {
     if (getRegionState(state, site.regionId)?.controller !== "player") continue;
     const assignments = assignDetailedSettlementWorkers(state, site.regionId);
-    const adminTokens = assignments
-      .filter((assignment) => assignment.practiceId === "administrate")
-      .flatMap((assignment) => assignment.tokens);
-    const neighbours = getConnectedRegionIds(state, site.regionId)
-      .filter((id) => snapshot[id]);
-    const packetPerEffectiveWorker = (
-      getDetailedPracticeDef(state, "administrate")?.effects ?? []
-    ).find((effect) => effect?.op === "routeLocalFood")?.packetPerEffectiveWorker ?? 0;
-    for (const token of adminTokens) {
-      const packet = roundFood(packetPerEffectiveWorker * token.effectiveness);
-      const host = snapshot[site.regionId];
-      const shortage = Math.max(0, host.demand - host.loose - host.stored);
-      let sourceId = null;
-      let destinationId = null;
-      if (shortage > 0) {
-        sourceId = neighbours.find((id) =>
-          sourceAvailable[id].loose
-            + Math.max(0, sourceAvailable[id].stored - sourceAvailable[id].demand) > 0
-        ) ?? null;
-        destinationId = sourceId ? site.regionId : null;
-      } else if (sourceAvailable[site.regionId].loose > 0
-          || sourceAvailable[site.regionId].stored > host.demand) {
-        destinationId = neighbours.find((id) =>
-          destinationProjected[id].loose + destinationProjected[id].stored
-            < destinationProjected[id].demand
-        ) ?? neighbours.find((id) =>
-          destinationProjected[id].stored < destinationProjected[id].capacity) ?? null;
-        sourceId = destinationId ? site.regionId : null;
+    for (const assignment of assignments.filter(
+      (entry) => entry.practiceId === "administrate"
+    )) {
+      const def = getDetailedPracticeDef(state, assignment.practiceId);
+      const effect = (def?.effects ?? []).find((entry) => entry?.op === "routeLocalFood");
+      if (!effect) continue;
+      let remainingCapacity = resolveScaledValue(
+        state,
+        site,
+        assignment,
+        effect.scaledValue
+      ).effectiveValue;
+      const targets = resolveDetailedRegionScope(state, site.regionId, effect.targetScope)
+        .filter((id) => snapshot[id]);
+      const hostShortage = shortage(destinationProjected[site.regionId]);
+      if (hostShortage > 0) {
+        const sources = targets
+          .filter((id) => surplus(sourceAvailable[id]) > 0)
+          .sort(compareByAmountThenWorldOrder((id) => surplus(sourceAvailable[id])));
+        for (const sourceId of sources) {
+          if (remainingCapacity <= 0) break;
+          const amount = Math.min(
+            remainingCapacity,
+            shortage(destinationProjected[site.regionId]),
+            surplus(sourceAvailable[sourceId])
+          );
+          remainingCapacity = roundFood(
+            remainingCapacity - reserveMove(sourceId, site.regionId, amount)
+          );
+        }
+      } else {
+        const destinations = targets
+          .filter((id) => shortage(destinationProjected[id]) > 0)
+          .sort(compareByAmountThenWorldOrder((id) => shortage(destinationProjected[id])));
+        for (const destinationId of destinations) {
+          if (remainingCapacity <= 0) break;
+          const amount = Math.min(
+            remainingCapacity,
+            surplus(sourceAvailable[site.regionId]),
+            shortage(destinationProjected[destinationId])
+          );
+          remainingCapacity = roundFood(
+            remainingCapacity - reserveMove(site.regionId, destinationId, amount)
+          );
+        }
       }
-      if (!sourceId || !destinationId) continue;
-      const source = sourceAvailable[sourceId];
-      const destination = destinationProjected[destinationId];
-      const movable = source.loose + Math.max(0, source.stored - source.demand);
-      const amount = roundFood(Math.min(packet, movable));
-      if (amount <= 0) continue;
-      const looseAmount = Math.min(source.loose, amount);
-      source.loose = roundFood(source.loose - looseAmount);
-      source.stored = roundFood(source.stored - (amount - looseAmount));
-      const room = Math.max(0, destination.capacity - destination.stored);
-      const storedAmount = Math.min(room, amount);
-      destination.stored = roundFood(destination.stored + storedAmount);
-      destination.loose = roundFood(destination.loose + amount - storedAmount);
-      moves.push({ sourceId, destinationId, amount, looseAmount });
     }
   }
   return moves;
@@ -541,6 +815,12 @@ export function planDetailedAdministrationMovesAtBoundary(
   // stages share a second. Mirror that order without running the later
   // transfer, decay, meal, demographic, or RNG-consuming stages.
   if (sec > 0 && sec % seasonDurationSec === 0) {
+    const seasons = Array.isArray(planningState.seasons) ? planningState.seasons : [];
+    if (seasons.length > 0) {
+      const nextSeasonIndex = ((planningState.currentSeasonIndex ?? 0) + 1) % seasons.length;
+      planningState.currentSeasonIndex = nextSeasonIndex;
+      if (nextSeasonIndex === 0) planningState.year = Math.max(1, planningState.year + 1);
+    }
     runPracticeActivation(planningState, "season");
   }
   return planDetailedAdministrationMoves(planningState);
@@ -569,9 +849,10 @@ function runNewMoon(state) {
   runPracticeActivation(state, "newMoon");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
+    const preservationRatio = Math.min(1, getPreserveReduction(state, site) / 100);
     const decayRate = Math.max(
       0,
-      getGameSetting(state, "storedFoodDecayRate") - getPreserveReduction(state, site) / 100
+      getGameSetting(state, "storedFoodDecayRate") * (1 - preservationRatio)
     );
     settlement.storedFood = roundFood(settlement.storedFood * (1 - decayRate));
     settlement.looseFood = roundFood(
@@ -1782,7 +2063,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 6;
+  state.gameStateSchemaVersion = 7;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -1868,6 +2149,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
       ...slot,
       label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,
       workers: workers[index],
+      evaluation: slot ? buildDetailedPracticeEvaluation(state, site, workers[index]) : null,
     })),
     structures: settlement.structureSlots,
     structureCapacity: region?.structureCapacity ?? 0,
