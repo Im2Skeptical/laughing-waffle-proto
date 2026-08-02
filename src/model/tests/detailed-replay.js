@@ -92,8 +92,8 @@ const terminalSummary = terminalProjection.summaryBySecond.get(
   terminalProjection.endSec
 );
 assert.equal(terminalSummary?.runComplete, true);
-assert.equal(terminalSummary?.runLossYear, 64,
-  "migration-adjusted terminal forecast retains its deterministic loss year");
+assert.equal(terminalSummary?.runLossYear, 73,
+  "class-priority meals retain their deterministic terminal loss year");
 assert.ok(
   terminalProjection.stateDataBySecond.has(terminalProjection.endSec),
   "terminal state remains available to the survival tracker"

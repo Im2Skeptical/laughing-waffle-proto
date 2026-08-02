@@ -779,10 +779,10 @@ try {
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.survivalTracker
   );
-  assert.equal(terminalSurvival.projectedLossYear, 64);
+  assert.equal(terminalSurvival.projectedLossYear, 73);
   assert.equal(
     terminalSurvival.bestSurvivalYear,
-    64,
+    73,
     "the completed forecast records a numeric best civilization survival year"
   );
   await terminalPage.close();

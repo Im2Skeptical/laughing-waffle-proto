@@ -53,12 +53,14 @@ survival knowledge, and the single vassal lineage are civilization-global.
   Houses and wait at full regional structure capacity.
 - Granary and Mud House capacities scale with local count squared.
 - Food fills stored capacity first, then loose food; meals consume loose first.
+- Full-moon native meals feed Villagers before Strangers and track happiness,
+  partial feeding, and starvation independently for each class.
 - Annual demographics consume RNG in authored region, class, and elder-age
   order using pre-transition snapshots.
 - Housing is a soft limit with migration pressure. Annual over-cap sites first
   cap happiness at Neutral (or Negative above the configured ratio), then send
   population above the configured 80% target to connected detailed sites with
-  reserved housing headroom.
+  reserved housing headroom. Overcrowding displaces Strangers before Villagers.
 - Worsening partial meals, starvation, and bronze-faith collapse can also move
   population one edge. Migrants join the destination Stranger cohort and must
   eat on arrival for hunger/collapse movement; unfed arrivals die. Transfer
