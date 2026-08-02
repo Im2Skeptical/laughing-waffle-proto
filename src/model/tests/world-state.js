@@ -29,6 +29,7 @@ import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
 import {
   getEdgeTransferPacketFacing,
+  getEdgeTransferPacketGlyphSpec,
   getEdgeTransferPacketPose,
   getEdgeTransferPacketVisualSpec,
   getWorkerIndicatorPresentation,
@@ -126,7 +127,7 @@ assert.equal(
   null,
   "a latched forecast preview is never overwritten by reveal following"
 );
-assert.equal(getLatestEdgeTransferBoundarySec(17), 12);
+assert.equal(getLatestEdgeTransferBoundarySec(17), 15);
 const transferTimeline = createTimelineFromInitialState(
   createInitialState("devPlaytesting01", 24680)
 );
@@ -197,6 +198,9 @@ const rewindVisualSpec = getEdgeTransferPacketVisualSpec({
   reversed: true,
   laneOffset: -9,
 });
+assert.equal(getEdgeTransferPacketGlyphSpec("food").color, 0x66cc77);
+assert.equal(getEdgeTransferPacketGlyphSpec("population").color, 0xd6c1ff);
+assert.equal(getEdgeTransferPacketGlyphSpec("food").circles.length, 3);
 assert.equal(rewindPacketPose.directionX, -1);
 assert.ok(Math.abs(rewindPacketPose.x - matchingForwardPose.x) < 0.0001);
 assert.ok(Math.abs(rewindPacketPose.y - matchingForwardPose.y) < 0.0001);

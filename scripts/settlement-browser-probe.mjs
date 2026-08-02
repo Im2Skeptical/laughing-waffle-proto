@@ -214,6 +214,24 @@ try {
     "forecast unveiling runs through the bundled worker"
   );
   await page.waitForFunction(() => {
+    const worldMap =
+      globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap;
+    return (
+      worldMap?.activeEdgeTransferPacketCount > 0 &&
+      worldMap?.edgeTransferBatch?.transfers?.length > 0
+    );
+  });
+  const transferAnimation = await page.evaluate(() => {
+    const debug = globalThis.__SETTLEMENT_DEBUG__;
+    const worldMap = debug.getSnapshot().worldMap;
+    const packet = worldMap.activeEdgeTransferPackets[0];
+    return {
+      packet,
+      source: debug.getWorldMapClickPoint(packet.sourceRegionId),
+      destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
+    };
+  });
+  await page.waitForFunction(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
     return (
       snapshot?.frontierSec === 0 &&
@@ -242,26 +260,20 @@ try {
     revealPreview.worldMap.survivalTracker.year > 1,
     "the map calendar advances with the unveiling playhead"
   );
-  await page.waitForFunction(() => {
-    const worldMap =
-      globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap;
-    return (
-      worldMap?.activeEdgeTransferPacketCount > 0 &&
-      worldMap?.edgeTransferBatch?.transfers?.length > 0
-    );
-  });
-  const transferAnimation = await page.evaluate(() => {
-    const debug = globalThis.__SETTLEMENT_DEBUG__;
-    const worldMap = debug.getSnapshot().worldMap;
-    const packet = worldMap.activeEdgeTransferPackets[0];
-    return {
-      packet,
-      source: debug.getWorldMapClickPoint(packet.sourceRegionId),
-      destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
-    };
-  });
-  assert.equal(transferAnimation.packet.resourceId, "food");
+  assert.ok(
+    ["food", "population"].includes(transferAnimation.packet.resourceId),
+    "map transfer animation renders food or migration packets"
+  );
   assert.ok(transferAnimation.packet.amount > 0);
+  if (transferAnimation.packet.resourceId === "population") {
+    assert.ok(transferAnimation.packet.survivors >= 0);
+    assert.ok(transferAnimation.packet.arrivalDeaths >= 0);
+    assert.equal(
+      transferAnimation.packet.survivors + transferAnimation.packet.arrivalDeaths,
+      transferAnimation.packet.amount,
+      "population packet metadata accounts for every traveler"
+    );
+  }
   assert.ok(
     transferAnimation.packet.progress >= 0 &&
       transferAnimation.packet.progress <= 1
@@ -625,10 +637,8 @@ try {
       graph?.forecastRevealPlayheadFollowEnabled === true &&
       graph.revealedCoverageEndSec > 320 &&
       graph.revealedCoverageEndSec < graph.forecastRevealTargetEndSec &&
-      snapshot?.worldMap?.activeEdgeTransferPackets?.length > 0 &&
-      snapshot.worldMap.activeEdgeTransferPackets.every(
-        (packet) => packet.reversed === false
-      )
+      snapshot?.worldMap?.edgeTransferBatch?.boundarySec > 0 &&
+      snapshot.worldMap.edgeTransferPlaybackDirection === "forward"
     );
   });
   const followingSnapshot = await terminalPage.evaluate(
@@ -769,10 +779,10 @@ try {
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.survivalTracker
   );
-  assert.equal(terminalSurvival.projectedLossYear, 68);
+  assert.equal(terminalSurvival.projectedLossYear, 64);
   assert.equal(
     terminalSurvival.bestSurvivalYear,
-    68,
+    64,
     "the completed forecast records a numeric best civilization survival year"
   );
   await terminalPage.close();

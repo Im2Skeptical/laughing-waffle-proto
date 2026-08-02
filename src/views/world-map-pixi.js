@@ -9,6 +9,7 @@ import {
   getDetailedCivilizationSummary,
   getDetailedSettlementViewModel,
 } from "../model/detailed-settlements.js";
+import { SETTLEMENT_RESOURCE_COLOURS } from "../model/graph-metrics.js";
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
@@ -42,8 +43,32 @@ const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
 const REGION_DOUBLE_TAP_WINDOW_MS = 350;
 const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;
 const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
-  food: 0xf3cf67,
+  food: SETTLEMENT_RESOURCE_COLOURS.food,
+  population: SETTLEMENT_RESOURCE_COLOURS.totalPopulation,
 });
+
+export function getEdgeTransferPacketGlyphSpec(resourceId) {
+  if (resourceId === "population") {
+    return {
+      color: EDGE_TRANSFER_RESOURCE_COLOURS.population,
+      circles: [
+        { forward: -0.1, side: 0, radius: 0.34 },
+        { forward: -0.52, side: -0.34, radius: 0.3 },
+        { forward: -0.52, side: 0.34, radius: 0.3 },
+      ],
+      triangleScale: 0.48,
+    };
+  }
+  return {
+    color: EDGE_TRANSFER_RESOURCE_COLOURS.food,
+    circles: [
+      { forward: -0.08, side: 0, radius: 0.32 },
+      { forward: -0.48, side: -0.3, radius: 0.28 },
+      { forward: -0.48, side: 0.3, radius: 0.28 },
+    ],
+    triangleScale: 0.44,
+  };
+}
 
 function screenPoint(point) {
   return {
@@ -575,6 +600,8 @@ export function createWorldMapView({
           transfer?.sourceRegionId ?? null,
           transfer?.destinationRegionId ?? null,
           Number(transfer?.amount ?? 0),
+          Number(transfer?.survivors ?? transfer?.amount ?? 0),
+          Number(transfer?.arrivalDeaths ?? 0),
         ]
       ),
     });
@@ -670,43 +697,51 @@ export function createWorldMapView({
       const fadeIn = Math.min(1, rawProgress / 0.12);
       const fadeOut = Math.min(1, (1 - rawProgress) / 0.2);
       const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
-      const color =
-        EDGE_TRANSFER_RESOURCE_COLOURS[packet.resourceId] ?? PALETTE.text;
+      const glyph = getEdgeTransferPacketGlyphSpec(packet.resourceId);
+      const color = glyph.color ?? PALETTE.text;
       const size =
         9 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
       const tailX = pose.x - facing.directionX * (size + 9);
       const tailY = pose.y - facing.directionY * (size + 9);
       const perpendicularX = -facing.directionY;
       const perpendicularY = facing.directionX;
-      edgeTransferGraphics.lineStyle(5, color, alpha * 0.42);
+      edgeTransferGraphics.lineStyle(4, color, alpha * 0.34);
       edgeTransferGraphics.moveTo(tailX, tailY);
       edgeTransferGraphics.lineTo(pose.x, pose.y);
       edgeTransferGraphics.lineStyle(2, 0x302d2a, alpha);
       edgeTransferGraphics.beginFill(color, alpha);
+      const triangleSize = size * glyph.triangleScale;
       edgeTransferGraphics.drawPolygon([
         pose.x + facing.directionX * size,
         pose.y + facing.directionY * size,
         pose.x -
-          facing.directionX * size * 0.72 +
-          perpendicularX * size * 0.7,
+          facing.directionX * triangleSize * 0.2 +
+          perpendicularX * triangleSize * 0.62,
         pose.y -
-          facing.directionY * size * 0.72 +
-          perpendicularY * size * 0.7,
+          facing.directionY * triangleSize * 0.2 +
+          perpendicularY * triangleSize * 0.62,
         pose.x -
-          facing.directionX * size * 0.72 -
-          perpendicularX * size * 0.7,
+          facing.directionX * triangleSize * 0.2 -
+          perpendicularX * triangleSize * 0.62,
         pose.y -
-          facing.directionY * size * 0.72 -
-          perpendicularY * size * 0.7,
+          facing.directionY * triangleSize * 0.2 -
+          perpendicularY * triangleSize * 0.62,
       ]);
       edgeTransferGraphics.endFill();
-      edgeTransferGraphics.beginFill(0xfff4bf, alpha * 0.9);
-      edgeTransferGraphics.drawCircle(
-        pose.x - facing.directionX * size * 0.22,
-        pose.y - facing.directionY * size * 0.22,
-        Math.max(2, size * 0.24)
-      );
-      edgeTransferGraphics.endFill();
+      for (const circle of glyph.circles) {
+        edgeTransferGraphics.lineStyle(1.5, 0x302d2a, alpha);
+        edgeTransferGraphics.beginFill(color, alpha);
+        edgeTransferGraphics.drawCircle(
+          pose.x
+            + facing.directionX * size * circle.forward
+            + perpendicularX * size * circle.side,
+          pose.y
+            + facing.directionY * size * circle.forward
+            + perpendicularY * size * circle.side,
+          Math.max(2, size * circle.radius)
+        );
+        edgeTransferGraphics.endFill();
+      }
     }
     activeEdgeTransferPackets = surviving;
   }
@@ -1122,6 +1157,9 @@ export function createWorldMapView({
             sourceRegionId: packet.sourceRegionId,
             destinationRegionId: packet.destinationRegionId,
             amount: packet.amount,
+            reason: packet.reason ?? null,
+            survivors: packet.survivors ?? packet.amount,
+            arrivalDeaths: packet.arrivalDeaths ?? 0,
             reversed: packet.reversed === true,
             playbackDirection: packet.playbackDirection,
             progress: clamp01(rawProgress),

@@ -24,6 +24,11 @@ import {
   getPopulationSummary as getDetailedPopulationSummary,
 } from "./detailed-settlements.js";
 
+export const SETTLEMENT_RESOURCE_COLOURS = Object.freeze({
+  totalPopulation: 0xd6c1ff,
+  food: 0x66cc77,
+});
+
 const DEFAULT_SETTLEMENT_GRAPH_CLASS_IDS = Object.freeze(["villager", "stranger"]);
 const SETTLEMENT_CLASS_METRIC_COLOR_PALETTES = Object.freeze({
   population: Object.freeze([
@@ -404,7 +409,7 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
   {
     id: "totalPopulation",
     label: "Total Pop",
-    color: 0xd6c1ff,
+    color: SETTLEMENT_RESOURCE_COLOURS.totalPopulation,
     scaleGroupId: "settlementPopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
@@ -422,7 +427,7 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
   {
     id: "food",
     label: "Food",
-    color: 0x66cc77,
+    color: SETTLEMENT_RESOURCE_COLOURS.food,
     scaleGroupId: "settlementFood",
     scaleMode: "dynamic",
     scaleMin: 0,
@@ -447,7 +452,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
   {
     id: "totalPopulation",
     label: "Total Pop",
-    color: 0xd6c1ff,
+    color: SETTLEMENT_RESOURCE_COLOURS.totalPopulation,
     scaleGroupId: "settlementPopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
@@ -463,7 +468,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
   {
     id: "food",
     label: "Food",
-    color: 0x66cc77,
+    color: SETTLEMENT_RESOURCE_COLOURS.food,
     scaleGroupId: "settlementFood",
     scaleMode: "dynamic",
     scaleMin: 0,
@@ -552,7 +557,7 @@ export const GRAPH_METRICS = {
       {
         id: "food",
         label: "Food",
-        color: 0x66cc77,
+        color: SETTLEMENT_RESOURCE_COLOURS.food,
         getValue: (state, _subject) => {
           if (isSettlementPrototypeEnabled(state)) {
             return getSettlementTotalFood(state);
