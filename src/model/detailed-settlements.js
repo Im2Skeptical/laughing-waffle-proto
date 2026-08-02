@@ -626,34 +626,518 @@ function updateHappiness(state, classState, ratio) {
   };
 }
 
-function removePopulationProportionally(classState, count) {
-  let remaining = Math.max(0, Math.floor(count));
-  const total = Math.max(1,
-    Math.floor(classState.children ?? 0) + Math.floor(classState.adults ?? 0) + eldersCount(classState));
-  const childLoss = Math.min(classState.children, Math.floor(remaining * classState.children / total));
-  classState.children -= childLoss;
-  remaining -= childLoss;
-  const adultLoss = Math.min(classState.adults, Math.floor(remaining * classState.adults / total));
-  classState.adults -= adultLoss;
-  remaining -= adultLoss;
-  for (let index = classState.eldersByAge.length - 1; index >= 0 && remaining > 0; index -= 1) {
-    const cohort = classState.eldersByAge[index];
-    const loss = Math.min(cohort.count, remaining);
-    cohort.count -= loss;
-    remaining -= loss;
+function classPopulationTotal(classState) {
+  return Math.max(0, Math.floor(classState?.children ?? 0))
+    + Math.max(0, Math.floor(classState?.adults ?? 0))
+    + eldersCount(classState);
+}
+
+function emptyPopulationComposition() {
+  return Object.fromEntries(POPULATION_CLASS_ORDER.map((classId) => [classId, {
+    children: 0,
+    adults: 0,
+    eldersByAge: [],
+  }]));
+}
+
+function clonePopulationComposition(composition) {
+  const result = emptyPopulationComposition();
+  for (const classId of POPULATION_CLASS_ORDER) {
+    const source = composition?.[classId] ?? {};
+    result[classId] = {
+      children: Math.max(0, Math.floor(source.children ?? 0)),
+      adults: Math.max(0, Math.floor(source.adults ?? 0)),
+      eldersByAge: (source.eldersByAge ?? []).map((cohort) => ({
+        age: Math.max(0, Math.floor(cohort?.age ?? 0)),
+        count: Math.max(0, Math.floor(cohort?.count ?? 0)),
+      })).filter((cohort) => cohort.count > 0),
+    };
   }
-  classState.eldersByAge = classState.eldersByAge.filter((cohort) => cohort.count > 0);
-  while (remaining > 0 && classState.adults > 0) {
-    classState.adults -= 1;
+  return result;
+}
+
+function compositionBins(composition) {
+  const bins = [];
+  for (const [classIndex, classId] of POPULATION_CLASS_ORDER.entries()) {
+    const cohort = composition?.[classId] ?? {};
+    bins.push({ classId, kind: "children", age: null, count: cohort.children ?? 0, order: classIndex * 1000 });
+    bins.push({ classId, kind: "adults", age: null, count: cohort.adults ?? 0, order: classIndex * 1000 + 1 });
+    for (const [ageIndex, elder] of [...(cohort.eldersByAge ?? [])]
+      .sort((a, b) => a.age - b.age).entries()) {
+      bins.push({
+        classId,
+        kind: "elder",
+        age: elder.age,
+        count: elder.count,
+        order: classIndex * 1000 + 2 + ageIndex,
+      });
+    }
+  }
+  return bins.filter((bin) => bin.count > 0);
+}
+
+function compositionFromBins(bins) {
+  const result = emptyPopulationComposition();
+  for (const bin of bins) {
+    if (!result[bin.classId] || bin.count <= 0) continue;
+    if (bin.kind === "children") result[bin.classId].children += bin.count;
+    else if (bin.kind === "adults") result[bin.classId].adults += bin.count;
+    else result[bin.classId].eldersByAge.push({ age: bin.age, count: bin.count });
+  }
+  for (const classId of POPULATION_CLASS_ORDER) {
+    const merged = new Map();
+    for (const cohort of result[classId].eldersByAge) {
+      merged.set(cohort.age, (merged.get(cohort.age) ?? 0) + cohort.count);
+    }
+    result[classId].eldersByAge = [...merged.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([age, count]) => ({ age, count }));
+  }
+  return result;
+}
+
+function compositionTotal(composition) {
+  return compositionBins(composition).reduce((sum, bin) => sum + bin.count, 0);
+}
+
+function selectPopulationComposition(settlement, classIds, requestedCount) {
+  const source = emptyPopulationComposition();
+  for (const classId of classIds) {
+    const classState = settlement?.populationByClass?.[classId];
+    if (!classState) continue;
+    source[classId] = {
+      children: Math.max(0, Math.floor(classState.children ?? 0)),
+      adults: Math.max(0, Math.floor(classState.adults ?? 0)),
+      eldersByAge: (classState.eldersByAge ?? []).map((cohort) => ({
+        age: cohort.age,
+        count: Math.max(0, Math.floor(cohort.count ?? 0)),
+      })),
+    };
+  }
+  const bins = compositionBins(source);
+  const available = bins.reduce((sum, bin) => sum + bin.count, 0);
+  const target = Math.min(available, Math.max(0, Math.floor(requestedCount)));
+  if (target <= 0 || available <= 0) return emptyPopulationComposition();
+  const allocations = bins.map((bin) => {
+    const exact = target * bin.count / available;
+    const count = Math.min(bin.count, Math.floor(exact));
+    return { ...bin, count, remainder: exact - count, capacity: bin.count };
+  });
+  let remaining = target - allocations.reduce((sum, bin) => sum + bin.count, 0);
+  for (const bin of [...allocations].sort((a, b) =>
+    b.remainder - a.remainder || a.order - b.order)) {
+    if (remaining <= 0) break;
+    if (bin.count >= bin.capacity) continue;
+    bin.count += 1;
     remaining -= 1;
   }
-  while (remaining > 0 && classState.children > 0) {
-    classState.children -= 1;
-    remaining -= 1;
+  return compositionFromBins(allocations);
+}
+
+function removePopulationComposition(settlement, composition) {
+  for (const classId of POPULATION_CLASS_ORDER) {
+    const classState = settlement?.populationByClass?.[classId];
+    const removal = composition?.[classId];
+    if (!classState || !removal) continue;
+    classState.children = Math.max(0, classState.children - removal.children);
+    classState.adults = Math.max(0, classState.adults - removal.adults);
+    const removalsByAge = new Map(
+      (removal.eldersByAge ?? []).map((cohort) => [cohort.age, cohort.count])
+    );
+    classState.eldersByAge = (classState.eldersByAge ?? []).map((cohort) => ({
+      ...cohort,
+      count: Math.max(0, cohort.count - (removalsByAge.get(cohort.age) ?? 0)),
+    })).filter((cohort) => cohort.count > 0);
+  }
+}
+
+function takeFromComposition(composition, count) {
+  const holder = { populationByClass: clonePopulationComposition(composition) };
+  const selected = selectPopulationComposition(holder, POPULATION_CLASS_ORDER, count);
+  removePopulationComposition(holder, selected);
+  for (const classId of POPULATION_CLASS_ORDER) {
+    composition[classId] = holder.populationByClass[classId];
+  }
+  return selected;
+}
+
+function resetEmptyStrangerCohort(settlement) {
+  const stranger = settlement?.populationByClass?.stranger;
+  if (!stranger || classPopulationTotal(stranger) > 0) return;
+  stranger.faith = { tier: "gold" };
+  stranger.happiness = {
+    status: "neutral",
+    fullFeedStreak: 0,
+    missedFeedStreak: 0,
+    partialFeedRatios: [],
+  };
+}
+
+function addCompositionToStrangers(settlement, composition) {
+  const stranger = settlement?.populationByClass?.stranger;
+  if (!stranger) return;
+  const wasEmpty = classPopulationTotal(stranger) === 0;
+  if (wasEmpty) resetEmptyStrangerCohort(settlement);
+  for (const classId of POPULATION_CLASS_ORDER) {
+    const incoming = composition?.[classId];
+    if (!incoming) continue;
+    stranger.children += incoming.children;
+    stranger.adults += incoming.adults;
+    const merged = new Map((stranger.eldersByAge ?? []).map(
+      (cohort) => [cohort.age, cohort.count]
+    ));
+    for (const cohort of incoming.eldersByAge ?? []) {
+      merged.set(cohort.age, (merged.get(cohort.age) ?? 0) + cohort.count);
+    }
+    stranger.eldersByAge = [...merged.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([age, count]) => ({ age, count }));
+  }
+}
+
+function getMigrationHousingTarget(state, regionId) {
+  return Math.floor(
+    getHousingCapacity(state, regionId)
+      * getGameSetting(state, "migrationHousingTargetRatio")
+  );
+}
+
+function getSettlementFoodTotal(settlement) {
+  return roundFood((settlement?.storedFood ?? 0) + (settlement?.looseFood ?? 0));
+}
+
+function compareAuthoredRegionIds(state, regionAId, regionBId) {
+  const sites = getDetailedSettlementSites(state);
+  const indexA = sites.findIndex((site) => site.regionId === regionAId);
+  const indexB = sites.findIndex((site) => site.regionId === regionBId);
+  return (indexA < 0 ? Number.MAX_SAFE_INTEGER : indexA)
+    - (indexB < 0 ? Number.MAX_SAFE_INTEGER : indexB);
+}
+
+function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) {
+  const sourceSummary = getPopulationSummary(state, intent.sourceId);
+  const sourceRatio = sourceSummary.housingCapacity > 0
+    ? sourceSummary.total / sourceSummary.housingCapacity
+    : Number.POSITIVE_INFINITY;
+  const sourceFaithIndex = FAITH_ORDER.indexOf(intent.sourceFaith);
+  const sourceHappinessIndex = HAPPINESS_ORDER.indexOf(intent.sourceHappiness);
+  const candidates = getConnectedRegionIds(state, intent.sourceId)
+    .filter((regionId) => getDetailedSettlement(state, regionId))
+    .filter((regionId) => !emitterIds.has(regionId))
+    .map((regionId) => {
+      const settlement = getDetailedSettlement(state, regionId);
+      resetEmptyStrangerCohort(settlement);
+      const summary = getPopulationSummary(state, regionId);
+      const target = getMigrationHousingTarget(state, regionId);
+      const projected = projectedPopulation[regionId] ?? summary.total;
+      const headroom = Math.max(0, target - projected);
+      const occupancyRatio = summary.housingCapacity > 0
+        ? projected / summary.housingCapacity
+        : Number.POSITIVE_INFINITY;
+      const food = getSettlementFoodTotal(settlement);
+      const faithIndex = FAITH_ORDER.indexOf(settlement.populationByClass.stranger.faith.tier);
+      const happinessIndex = HAPPINESS_ORDER.indexOf(
+        settlement.populationByClass.stranger.happiness.status
+      );
+      return { regionId, headroom, occupancyRatio, food, faithIndex, happinessIndex };
+    })
+    .filter((candidate) => candidate.headroom > 0)
+    .filter((candidate) => {
+      if (intent.reason === "overcrowding") return candidate.occupancyRatio < sourceRatio;
+      if (intent.reason === "faithCollapse") {
+        return candidate.food > 0
+          && candidate.faithIndex > sourceFaithIndex
+          && candidate.happinessIndex > sourceHappinessIndex;
+      }
+      return candidate.food > 0;
+    });
+  return candidates.sort((a, b) => {
+    if (intent.reason === "overcrowding") {
+      return a.occupancyRatio - b.occupancyRatio
+        || b.headroom - a.headroom
+        || compareAuthoredRegionIds(state, a.regionId, b.regionId);
+    }
+    if (intent.reason === "faithCollapse") {
+      return b.faithIndex - a.faithIndex
+        || b.happinessIndex - a.happinessIndex
+        || b.food - a.food
+        || b.headroom - a.headroom
+        || compareAuthoredRegionIds(state, a.regionId, b.regionId);
+    }
+    return b.food - a.food
+      || b.headroom - a.headroom
+      || compareAuthoredRegionIds(state, a.regionId, b.regionId);
+  }).map((candidate) => candidate.regionId);
+}
+
+function allocateMigrationHousing(state, intents, emitterIds) {
+  const projectedPopulation = Object.fromEntries(
+    getDetailedSettlementSites(state).map((site) => [
+      site.regionId,
+      getPopulationSummary(state, site.regionId).total,
+    ])
+  );
+  const work = intents.map((intent, index) => ({
+    ...intent,
+    intentIndex: index,
+    remaining: intent.requested,
+    candidateIndex: 0,
+    candidates: getMigrationCandidates(state, intent, emitterIds, projectedPopulation),
+  }));
+  const allocations = [];
+  while (work.some((intent) =>
+    intent.remaining > 0 && intent.candidateIndex < intent.candidates.length)) {
+    const proposalsByDestination = new Map();
+    for (const intent of work) {
+      if (intent.remaining <= 0 || intent.candidateIndex >= intent.candidates.length) continue;
+      const destinationId = intent.candidates[intent.candidateIndex];
+      if (!proposalsByDestination.has(destinationId)) {
+        proposalsByDestination.set(destinationId, []);
+      }
+      proposalsByDestination.get(destinationId).push(intent);
+    }
+    for (const [destinationId, proposals] of [...proposalsByDestination.entries()]
+      .sort((a, b) => compareAuthoredRegionIds(state, a[0], b[0]))) {
+      const target = getMigrationHousingTarget(state, destinationId);
+      const room = Math.max(0, target - projectedPopulation[destinationId]);
+      const requested = proposals.reduce((sum, intent) => sum + intent.remaining, 0);
+      const grantedTotal = Math.min(room, requested);
+      const shares = proposals.map((intent) => {
+        const exact = requested > 0 ? grantedTotal * intent.remaining / requested : 0;
+        return {
+          intent,
+          count: Math.min(intent.remaining, Math.floor(exact)),
+          remainder: exact - Math.floor(exact),
+        };
+      });
+      let remainder = grantedTotal - shares.reduce((sum, share) => sum + share.count, 0);
+      for (const share of [...shares].sort((a, b) =>
+        b.remainder - a.remainder
+          || compareAuthoredRegionIds(state, a.intent.sourceId, b.intent.sourceId)
+          || POPULATION_CLASS_ORDER.indexOf(a.intent.sourceClassId)
+            - POPULATION_CLASS_ORDER.indexOf(b.intent.sourceClassId))) {
+        if (remainder <= 0) break;
+        if (share.count >= share.intent.remaining) continue;
+        share.count += 1;
+        remainder -= 1;
+      }
+      for (const share of shares) {
+        if (share.count > 0) {
+          allocations.push({
+            intentIndex: share.intent.intentIndex,
+            destinationId,
+            count: share.count,
+          });
+          share.intent.remaining -= share.count;
+          projectedPopulation[destinationId] += share.count;
+        }
+        share.intent.candidateIndex += 1;
+      }
+    }
+  }
+  return { allocations, unresolved: work.map((intent) => intent.remaining) };
+}
+
+function getBinMealCost(state, kind) {
+  if (kind === "children") return getGameSetting(state, "childMealConsumption");
+  if (kind === "adults") return getGameSetting(state, "adultMealConsumption");
+  return getGameSetting(state, "elderMealConsumption");
+}
+
+function allocateArrivalMeals(state, movements) {
+  const byDestination = new Map();
+  for (const movement of movements) {
+    if (!byDestination.has(movement.destinationRegionId)) {
+      byDestination.set(movement.destinationRegionId, []);
+    }
+    byDestination.get(movement.destinationRegionId).push(movement);
+  }
+  for (const destinationMovements of byDestination.values()) {
+    const destination = getDetailedSettlement(
+      state,
+      destinationMovements[0].destinationRegionId
+    );
+    const bins = [];
+    for (const [movementIndex, movement] of destinationMovements.entries()) {
+      for (const bin of compositionBins(movement.composition)) {
+        bins.push({
+          ...bin,
+          movementIndex,
+          mealCost: getBinMealCost(state, bin.kind),
+          survivorCount: 0,
+        });
+      }
+    }
+    const availableFood = getSettlementFoodTotal(destination);
+    const paidDemand = bins.reduce(
+      (sum, bin) => sum + bin.count * Math.max(0, bin.mealCost),
+      0
+    );
+    const coverage = paidDemand > 0 ? Math.min(1, availableFood / paidDemand) : 1;
+    let usedFood = 0;
+    for (const bin of bins) {
+      if (bin.mealCost <= 0) {
+        bin.survivorCount = bin.count;
+        bin.remainder = 0;
+      } else {
+        const exact = bin.count * coverage;
+        bin.survivorCount = Math.floor(exact);
+        bin.remainder = exact - bin.survivorCount;
+        usedFood += bin.survivorCount * bin.mealCost;
+      }
+    }
+    let remainingFood = roundFood(Math.max(0, availableFood - usedFood));
+    let progressed = true;
+    const rankedBins = [...bins].sort((a, b) =>
+      b.remainder - a.remainder
+        || a.movementIndex - b.movementIndex
+        || a.order - b.order);
+    while (progressed) {
+      progressed = false;
+      for (const bin of rankedBins) {
+        if (bin.survivorCount >= bin.count || bin.mealCost <= 0) continue;
+        if (bin.mealCost > remainingFood + 0.00001) continue;
+        bin.survivorCount += 1;
+        remainingFood = roundFood(remainingFood - bin.mealCost);
+        usedFood += bin.mealCost;
+        progressed = true;
+      }
+    }
+    consumeFood(destination, roundFood(usedFood));
+    for (const [movementIndex, movement] of destinationMovements.entries()) {
+      const survivorBins = bins
+        .filter((bin) => bin.movementIndex === movementIndex)
+        .map((bin) => ({ ...bin, count: bin.survivorCount }));
+      movement.survivorComposition = compositionFromBins(survivorBins);
+      movement.survivors = compositionTotal(movement.survivorComposition);
+      movement.arrivalDeaths = movement.amount - movement.survivors;
+    }
+  }
+}
+
+function compactMigrationMovement(movement) {
+  return {
+    transferId: movement.transferId,
+    reason: movement.reason,
+    sourceRegionId: movement.sourceRegionId,
+    destinationRegionId: movement.destinationRegionId,
+    sourceClassId: movement.sourceClassId,
+    amount: movement.amount,
+    survivors: movement.survivors,
+    arrivalDeaths: movement.arrivalDeaths,
+    composition: clonePopulationComposition(movement.composition),
+    survivorComposition: clonePopulationComposition(movement.survivorComposition),
+  };
+}
+
+function resolveMigrationIntents(state, intents, {
+  requiresArrivalMeal = false,
+  unresolvedAreLost = false,
+  tSec = state.tSec,
+} = {}) {
+  const active = intents.filter((intent) => intent.requested > 0);
+  const emitterIds = new Set(active.map((intent) => intent.sourceId));
+  const { allocations, unresolved } = allocateMigrationHousing(state, active, emitterIds);
+  const remainingCompositions = active.map((intent) =>
+    clonePopulationComposition(intent.composition));
+  const movements = allocations.map((allocation) => {
+    const intent = active[allocation.intentIndex];
+    return {
+      reason: intent.reason,
+      sourceRegionId: intent.sourceId,
+      destinationRegionId: allocation.destinationId,
+      sourceClassId: intent.sourceClassId,
+      amount: allocation.count,
+      composition: takeFromComposition(
+        remainingCompositions[allocation.intentIndex],
+        allocation.count
+      ),
+      survivors: allocation.count,
+      arrivalDeaths: 0,
+      survivorComposition: null,
+    };
+  });
+  for (const movement of movements) {
+    removePopulationComposition(
+      getDetailedSettlement(state, movement.sourceRegionId),
+      movement.composition
+    );
+  }
+  const sourceLosses = [];
+  if (unresolvedAreLost) {
+    for (const [index, count] of unresolved.entries()) {
+      if (count <= 0) continue;
+      const intent = active[index];
+      const source = getDetailedSettlement(state, intent.sourceId);
+      const lossComposition = selectPopulationComposition(
+        source,
+        [intent.sourceClassId],
+        count
+      );
+      removePopulationComposition(source, lossComposition);
+      sourceLosses.push({
+        reason: intent.reason,
+        sourceRegionId: intent.sourceId,
+        sourceClassId: intent.sourceClassId,
+        count: compositionTotal(lossComposition),
+        composition: lossComposition,
+      });
+    }
+  }
+  if (requiresArrivalMeal) allocateArrivalMeals(state, movements);
+  for (const [index, movement] of movements.entries()) {
+    if (!requiresArrivalMeal) {
+      movement.survivorComposition = clonePopulationComposition(movement.composition);
+    }
+    addCompositionToStrangers(
+      getDetailedSettlement(state, movement.destinationRegionId),
+      movement.survivorComposition
+    );
+    movement.transferId = `migration:${Math.max(0, Math.floor(tSec))}:${movement.reason}:${index}`;
+  }
+  for (const site of getDetailedSettlementSites(state)) {
+    resetEmptyStrangerCohort(site.detailedState);
+  }
+  return {
+    movements,
+    sourceLosses,
+    intentSummaries: active.map((intent, index) => ({
+      reason: intent.reason,
+      sourceRegionId: intent.sourceId,
+      sourceClassId: intent.sourceClassId,
+      requested: intent.requested,
+      admitted: intent.requested - unresolved[index],
+      unresolved: unresolved[index],
+      unresolvedOutcome: unresolvedAreLost ? "lost" : "stayed",
+    })),
+  };
+}
+
+function attachMigrationSummary(state, result, getContainer) {
+  for (const site of getDetailedSettlementSites(state)) {
+    const container = getContainer(site.detailedState);
+    if (!container) continue;
+    container.migration = { intents: [], outbound: [], inbound: [], sourceLosses: [] };
+  }
+  for (const intent of result.intentSummaries ?? []) {
+    getContainer(getDetailedSettlement(state, intent.sourceRegionId))
+      ?.migration.intents.push({ ...intent });
+  }
+  for (const movement of result.movements) {
+    const compact = compactMigrationMovement(movement);
+    getContainer(getDetailedSettlement(state, movement.sourceRegionId))
+      ?.migration.outbound.push(compact);
+    getContainer(getDetailedSettlement(state, movement.destinationRegionId))
+      ?.migration.inbound.push(compact);
+  }
+  for (const loss of result.sourceLosses) {
+    getContainer(getDetailedSettlement(state, loss.sourceRegionId))
+      ?.migration.sourceLosses.push({ ...loss });
   }
 }
 
 function runFullMoon(state) {
+  const hungerIntents = { starvation: [], partialMeal: [] };
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const demand = getPopulationSummary(state, site.regionId).mealDemand;
@@ -661,13 +1145,39 @@ function runFullMoon(state) {
     const ratio = demand > 0 ? consumed / demand : 1;
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
+      const classTotal = classPopulationTotal(classState);
+      if (classId === "stranger" && classTotal <= 0) {
+        resetEmptyStrangerCohort(settlement);
+        continue;
+      }
       const happiness = updateHappiness(state, classState, ratio);
       if (happiness.starvationTriggered) {
-        const classTotal = classState.children + classState.adults + eldersCount(classState);
-        removePopulationProportionally(
-          classState,
-          Math.ceil(classTotal * getGameSetting(state, "starvationPopulationLossRate"))
+        const requested = Math.ceil(
+          classTotal * getGameSetting(state, "starvationPopulationLossRate")
         );
+        hungerIntents.starvation.push({
+          reason: "starvation",
+          sourceId: site.regionId,
+          sourceClassId: classId,
+          sourceFaith: classState.faith.tier,
+          sourceHappiness: classState.happiness.status,
+          requested,
+          composition: selectPopulationComposition(settlement, [classId], requested),
+        });
+      } else if (
+        HAPPINESS_ORDER.indexOf(happiness.nextStatus)
+          < HAPPINESS_ORDER.indexOf(happiness.previousStatus)
+      ) {
+        const requested = Math.ceil(classTotal * Math.max(0, 1 - ratio));
+        hungerIntents.partialMeal.push({
+          reason: "partialMeal",
+          sourceId: site.regionId,
+          sourceClassId: classId,
+          sourceFaith: classState.faith.tier,
+          sourceHappiness: classState.happiness.status,
+          requested,
+          composition: selectPopulationComposition(settlement, [classId], requested),
+        });
       }
     }
     settlement.lastMeal = {
@@ -676,6 +1186,29 @@ function runFullMoon(state) {
       consumed,
       ratio: roundFood(ratio),
     };
+  }
+  const starvationResult = resolveMigrationIntents(state, hungerIntents.starvation, {
+    requiresArrivalMeal: true,
+    unresolvedAreLost: true,
+  });
+  const partialResult = resolveMigrationIntents(state, hungerIntents.partialMeal, {
+    requiresArrivalMeal: true,
+    unresolvedAreLost: false,
+  });
+  const result = {
+    movements: [...starvationResult.movements, ...partialResult.movements],
+    sourceLosses: [...starvationResult.sourceLosses, ...partialResult.sourceLosses],
+    intentSummaries: [
+      ...starvationResult.intentSummaries,
+      ...partialResult.intentSummaries,
+    ],
+  };
+  result.movements.forEach((movement, index) => {
+    movement.transferId = `migration:${Math.max(0, Math.floor(state.tSec))}:${index}`;
+  });
+  attachMigrationSummary(state, result, (settlement) => settlement?.lastMeal);
+  for (const site of getDetailedSettlementSites(state)) {
+    const settlement = site.detailedState;
     settlement.looseFood = roundFood(
       settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
     );
@@ -716,9 +1249,12 @@ function shiftStatus(value, order, delta) {
 }
 
 function runDemographics(state) {
+  const annualResults = new Map();
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
-    const result = { year: state.year, byClass: {} };
+    const result = { year: state.year, tSec: state.tSec, byClass: {} };
+    annualResults.set(site.regionId, result);
+    settlement.lastAnnualResult = result;
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const snapshot = clone(classState);
@@ -760,6 +1296,12 @@ function runDemographics(state) {
         adultToElderRate,
       };
     }
+  }
+
+  const overcrowdingIntents = [];
+  for (const site of getDetailedSettlementSites(state)) {
+    const settlement = site.detailedState;
+    const result = annualResults.get(site.regionId);
     const population = getPopulationSummary(state, site.regionId);
     const overflow = Math.max(0, population.total - population.housingCapacity);
     const housingCapStatus = population.total <= population.housingCapacity
@@ -777,13 +1319,60 @@ function runDemographics(state) {
         capIndex < 0 ? 1 : capIndex
       )];
     }
+    if (overflow > 0) {
+      const requested = Math.max(
+        0,
+        population.total - getMigrationHousingTarget(state, site.regionId)
+      );
+      overcrowdingIntents.push({
+        reason: "overcrowding",
+        sourceId: site.regionId,
+        sourceClassId: null,
+        sourceFaith: null,
+        sourceHappiness: null,
+        requested,
+        composition: selectPopulationComposition(
+          settlement,
+          POPULATION_CLASS_ORDER,
+          requested
+        ),
+      });
+    }
+    result.housingOverflow = overflow;
+  }
+
+  const overcrowdingResult = resolveMigrationIntents(state, overcrowdingIntents, {
+    requiresArrivalMeal: false,
+    unresolvedAreLost: false,
+  });
+  attachMigrationSummary(
+    state,
+    overcrowdingResult,
+    (settlement) => settlement?.lastAnnualResult
+  );
+  for (const site of getDetailedSettlementSites(state)) {
+    site.detailedState.lastAnnualResult.housingOverflowAfterMigration = Math.max(
+      0,
+      getPopulationSummary(state, site.regionId).total
+        - getHousingCapacity(state, site.regionId)
+    );
+  }
+
+  const collapseIntents = [];
+  for (const site of getDetailedSettlementSites(state)) {
+    const settlement = site.detailedState;
+    const result = annualResults.get(site.regionId);
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
+      if (classId === "stranger" && classPopulationTotal(classState) <= 0) {
+        resetEmptyStrangerCohort(settlement);
+        continue;
+      }
       if (classState.happiness.status === "positive") {
         classState.faith.tier = shiftStatus(classState.faith.tier, FAITH_ORDER, 1);
       } else if (classState.happiness.status === "negative") {
         if (classState.faith.tier === "bronze") {
-          const classTotal = classState.children + classState.adults + eldersCount(classState);
+          const classTotal = classPopulationTotal(classState);
           const collapseLoss = Math.min(
             classTotal,
             Math.max(
@@ -791,15 +1380,53 @@ function runDemographics(state) {
               Math.floor(classTotal * getGameSetting(state, "bronzeCollapseLossRate"))
             )
           );
-          removePopulationProportionally(classState, collapseLoss);
-          result.byClass[classId].bronzeCollapseLoss = collapseLoss;
+          collapseIntents.push({
+            reason: "faithCollapse",
+            sourceId: site.regionId,
+            sourceClassId: classId,
+            sourceFaith: classState.faith.tier,
+            sourceHappiness: classState.happiness.status,
+            requested: collapseLoss,
+            composition: selectPopulationComposition(settlement, [classId], collapseLoss),
+          });
         } else {
           classState.faith.tier = shiftStatus(classState.faith.tier, FAITH_ORDER, -1);
         }
       }
     }
-    result.housingOverflow = overflow;
-    settlement.lastAnnualResult = result;
+  }
+
+  const collapseResult = resolveMigrationIntents(state, collapseIntents, {
+    requiresArrivalMeal: true,
+    unresolvedAreLost: true,
+  });
+  for (const movement of collapseResult.movements) {
+    const sourceResult = annualResults.get(movement.sourceRegionId);
+    const byClass = sourceResult?.byClass?.[movement.sourceClassId];
+    if (byClass) {
+      byClass.bronzeCollapseLoss = (byClass.bronzeCollapseLoss ?? 0)
+        + movement.arrivalDeaths;
+    }
+  }
+  for (const loss of collapseResult.sourceLosses) {
+    const sourceResult = annualResults.get(loss.sourceRegionId);
+    const byClass = sourceResult?.byClass?.[loss.sourceClassId];
+    if (byClass) {
+      byClass.bronzeCollapseLoss = (byClass.bronzeCollapseLoss ?? 0) + loss.count;
+    }
+  }
+  for (const site of getDetailedSettlementSites(state)) {
+    const migration = site.detailedState.lastAnnualResult.migration;
+    migration.intents.push(...collapseResult.intentSummaries
+      .filter((intent) => intent.sourceRegionId === site.regionId));
+    migration.outbound.push(...collapseResult.movements
+      .filter((movement) => movement.sourceRegionId === site.regionId)
+      .map(compactMigrationMovement));
+    migration.inbound.push(...collapseResult.movements
+      .filter((movement) => movement.destinationRegionId === site.regionId)
+      .map(compactMigrationMovement));
+    migration.sourceLosses.push(...collapseResult.sourceLosses
+      .filter((loss) => loss.sourceRegionId === site.regionId));
   }
 }
 
@@ -1154,6 +1781,9 @@ export function initializeDetailedSettlementCivilization(state) {
 
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
+  for (const site of getDetailedSettlementSites(state)) {
+    resetEmptyStrangerCohort(site.detailedState);
+  }
   if (state._seasonChanged === true) runPracticeActivation(state, "season");
   const moonCycleSec = Math.max(2, getGameSetting(state, "moonCycleSec"));
   if (tSec > 0 && tSec % moonCycleSec === 0) runNewMoon(state);

@@ -67,6 +67,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("partialFeedMemoryLength", "Improving partial meals required", 3, 1, 100, 1, true),
       field("missedFeedStreakForStarvation", "Missed meals before starvation", 3, 1, 100, 1, true),
       field("starvationPopulationLossRate", "Starvation population loss", 0.2, 0, 1, 0.01),
+      field("migrationHousingTargetRatio", "Migration destination housing ratio", 0.8, 0, 1, 0.01),
       field("overHousingNegativeRatio", "Population/capacity for negative housing", 1.2, 1, 100, 0.05),
       field("bronzeCollapseLossRate", "Bronze collapse population loss", 0.5, 0, 1, 0.01),
     ]),

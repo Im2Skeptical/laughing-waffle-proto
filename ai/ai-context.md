@@ -55,22 +55,28 @@ survival knowledge, and the single vassal lineage are civilization-global.
 - Food fills stored capacity first, then loose food; meals consume loose first.
 - Annual demographics consume RNG in authored region, class, and elder-age
   order using pre-transition snapshots.
-- Housing is a soft limit. Overflow is retained, caps happiness at Neutral, and
-  caps it at Negative above the configured ratio. Starvation and the resulting
-  faith/collapse pressure reduce population naturally.
+- Housing is a soft limit with migration pressure. Annual over-cap sites first
+  cap happiness at Neutral (or Negative above the configured ratio), then send
+  population above the configured 80% target to connected detailed sites with
+  reserved housing headroom.
+- Worsening partial meals, starvation, and bronze-faith collapse can also move
+  population one edge. Migrants join the destination Stranger cohort and must
+  eat on arrival for hunger/collapse movement; unfed arrivals die. Transfer
+  allocation is snapshot-based, globally reserved, and deterministic.
 - Elder Orders are aggregates. Vassal interventions use resistance snapshots,
   ordered prestige gates, deterministic lifespan boundaries, and replayable
   timeline actions.
 
 Boundary order is seasonal Cultivate; new-moon Administration/build/decay;
-full-moon meal/loose decay; then annual demographics/social state, global
+full-moon native meals, happiness, migration/arrival meals, and loose decay;
+then annual demographics, housing migration, faith/collapse migration, global
 chaos, vassal interventions, and vassal death.
 
 ## Current UI
 
 - The map shows all-region polygons, player ownership nodes, worker pawns,
-  structure-capacity glyphs, Administration packets, a civilization summary,
-  and a compact selected-region card.
+  structure-capacity glyphs, food and population transfer packets, a
+  civilization summary, and a compact selected-region card.
 - Settlement Overview and Demographics are local to the opened detailed site.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.

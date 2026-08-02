@@ -4,16 +4,24 @@ import {
   assignDetailedSettlementWorkers,
   buildDetailedVassalSelectionPool,
   evaluateDetailedMapScore,
+  getDetailedCivilizationSummary,
   getDetailedSettlement,
   getDetailedSettlementViewModel,
   getElderMortalityRate,
   getHousingCapacity,
+  getPopulationSummary,
   getStoredFoodCapacity,
   resolveProbability,
   selectDetailedVassalCandidate,
   stepDetailedSettlementsSecond,
   validateDetailedPracticeDefinitions,
 } from "../detailed-settlements.js";
+import { buildEdgeTransferBatchAtBoundary } from "../edge-transfers.js";
+import { serializeGameState } from "../state.js";
+import {
+  createTimelineFromInitialState,
+  rebuildStateAtSecond,
+} from "../timeline/index.js";
 import {
   getSettlementSelectedVassalRealizedSegments,
   getSettlementVassalBoundarySeconds,
@@ -21,6 +29,28 @@ import {
 
 function fresh(seed = 12345) {
   return createInitialState("devPlaytesting01", seed);
+}
+
+function clearDetailedPopulationAndFood(state) {
+  for (const site of state.world.sites) {
+    const settlement = site.detailedState;
+    settlement.practiceSlots = [null, null, null, null, null];
+    settlement.storedFood = 0;
+    settlement.looseFood = 0;
+    for (const classState of Object.values(settlement.populationByClass)) {
+      classState.children = 0;
+      classState.adults = 0;
+      classState.eldersByAge = [];
+      classState.faith = { tier: "gold" };
+      classState.happiness = {
+        status: "neutral",
+        fullFeedStreak: 0,
+        missedFeedStreak: 0,
+        partialFeedRatios: [],
+      };
+    }
+  }
+  return state;
 }
 
 assert.equal(validateDetailedPracticeDefinitions().ok, true);
@@ -125,8 +155,11 @@ collapseClass.happiness.status = "negative";
 collapse._seasonChanged = true;
 collapse.currentSeasonIndex = 0;
 stepDetailedSettlementsSecond(collapse, 32);
-assert.ok(getDetailedSettlement(collapse, "cedar-woods")
-  .lastAnnualResult.byClass.villager.bronzeCollapseLoss > 0);
+const collapseResult = getDetailedSettlement(collapse, "cedar-woods").lastAnnualResult;
+assert.equal(collapseResult.byClass.villager.bronzeCollapseLoss, 0,
+  "fed collapse migrants survive instead of becoming population loss");
+assert.equal(collapseResult.migration.outbound[0].reason, "faithCollapse");
+assert.equal(collapseResult.migration.outbound[0].arrivalDeaths, 0);
 assert.equal(collapseClass.faith.tier, "bronze");
 assert.ok(collapse.civilization.chaos.lastAnnualIncome.byRegion.length === 5);
 
@@ -142,11 +175,174 @@ overHousing.currentSeasonIndex = 0;
 stepDetailedSettlementsSecond(overHousing, 32);
 const retainedPopulation = getDetailedSettlementViewModel(overHousing, "cedar-woods").population;
 assert.equal(retainedPopulation.housingCapacity, 80);
-assert.equal(retainedPopulation.total, 90,
-  "housing pressure retains overflow instead of enforcing a hard population cap");
+assert.equal(retainedPopulation.total, 64,
+  "over-cap housing migration reduces the source to the configured 80% target");
 assert.equal(overHousingSite.lastAnnualResult.housingOverflow, 10);
+assert.equal(overHousingSite.lastAnnualResult.housingOverflowAfterMigration, 0);
+assert.equal(overHousingSite.lastAnnualResult.migration.outbound[0].amount, 26);
 assert.equal(overHousingSite.populationByClass.villager.happiness.status, "neutral",
-  "moderate over-housing caps happiness at Neutral");
+  "housing happiness remains Neutral after the cap is removed");
+
+const partialMigration = clearDetailedPopulationAndFood(fresh(883));
+const partialSource = getDetailedSettlement(partialMigration, "cedar-woods");
+partialSource.populationByClass.villager.children = 10;
+partialSource.populationByClass.villager.adults = 5;
+partialSource.populationByClass.villager.eldersByAge = [{ age: 50, count: 5 }];
+partialSource.populationByClass.villager.happiness.status = "positive";
+partialSource.populationByClass.villager.happiness.partialFeedRatios = [0.8];
+partialSource.looseFood = 9;
+const partialDestination = getDetailedSettlement(partialMigration, "west-levee");
+partialDestination.storedFood = 3;
+const staleDormantStranger = getDetailedSettlement(partialMigration, "upper-floodplain")
+  .populationByClass.stranger;
+staleDormantStranger.faith.tier = "bronze";
+staleDormantStranger.happiness.status = "negative";
+staleDormantStranger.happiness.fullFeedStreak = 9;
+partialMigration.world.regions.find((region) => region.id === "west-levee").controller = "external-a";
+partialMigration.tSec = 3;
+stepDetailedSettlementsSecond(partialMigration, 3);
+const partialMove = partialSource.lastMeal.migration.outbound[0];
+assert.deepEqual(partialSource.lastMeal.migration.intents[0], {
+  reason: "partialMeal",
+  sourceRegionId: "cedar-woods",
+  sourceClassId: "villager",
+  requested: 8,
+  admitted: 8,
+  unresolved: 0,
+  unresolvedOutcome: "stayed",
+});
+assert.deepEqual({
+  reason: partialMove.reason,
+  amount: partialMove.amount,
+  survivors: partialMove.survivors,
+  arrivalDeaths: partialMove.arrivalDeaths,
+}, {
+  reason: "partialMeal",
+  amount: 8,
+  survivors: 4,
+  arrivalDeaths: 4,
+}, "worsening partial meals move the unfed share and kill unfed arrivals");
+assert.equal(getPopulationSummary(partialMigration, "cedar-woods").total, 12);
+assert.equal(getPopulationSummary(partialMigration, "west-levee").total, 4);
+assert.equal(partialDestination.populationByClass.villager.adults, 0);
+assert.deepEqual({
+  children: partialDestination.populationByClass.stranger.children,
+  adults: partialDestination.populationByClass.stranger.adults,
+  eldersByAge: partialDestination.populationByClass.stranger.eldersByAge,
+}, {
+  children: 2,
+  adults: 1,
+  eldersByAge: [{ age: 50, count: 1 }],
+},
+  "arrivals join the destination Stranger cohort across controller boundaries");
+assert.equal(partialDestination.storedFood + partialDestination.looseFood, 0,
+  "arrival meals consume destination food before loose-food decay");
+const dormantStranger = getDetailedSettlement(partialMigration, "upper-floodplain")
+  .populationByClass.stranger;
+assert.deepEqual({
+  faith: dormantStranger.faith.tier,
+  happiness: dormantStranger.happiness.status,
+  fullFeedStreak: dormantStranger.happiness.fullFeedStreak,
+}, { faith: "gold", happiness: "neutral", fullFeedStreak: 0 },
+"empty Stranger cohorts remain at their dormant defaults");
+
+const starvationMigration = clearDetailedPopulationAndFood(fresh(884));
+const starvationSource = getDetailedSettlement(starvationMigration, "cedar-woods");
+starvationSource.populationByClass.villager.adults = 20;
+starvationSource.populationByClass.villager.happiness.missedFeedStreak = 2;
+getDetailedSettlement(starvationMigration, "west-levee").storedFood = 4;
+starvationMigration.tSec = 3;
+stepDetailedSettlementsSecond(starvationMigration, 3);
+const starvationMove = starvationSource.lastMeal.migration.outbound[0];
+assert.equal(starvationMove.reason, "starvation");
+assert.equal(starvationMove.amount, 4);
+assert.equal(starvationMove.survivors, 4);
+assert.equal(starvationSource.lastMeal.migration.sourceLosses.length, 0);
+assert.equal(getDetailedCivilizationSummary(starvationMigration).population.total, 20,
+  "successful starvation migration prevents the original population loss");
+
+const failedStarvation = clearDetailedPopulationAndFood(fresh(885));
+const failedSource = getDetailedSettlement(failedStarvation, "cedar-woods");
+failedSource.populationByClass.villager.adults = 20;
+failedSource.populationByClass.villager.happiness.missedFeedStreak = 2;
+failedStarvation.tSec = 3;
+stepDetailedSettlementsSecond(failedStarvation, 3);
+assert.equal(failedSource.lastMeal.migration.outbound.length, 0);
+assert.equal(failedSource.lastMeal.migration.sourceLosses[0].count, 4);
+assert.equal(getPopulationSummary(failedStarvation, "cedar-woods").total, 16);
+
+const contestedHousing = clearDetailedPopulationAndFood(fresh(886));
+for (const id of ["west-levee", "river-crown"]) {
+  const settlement = getDetailedSettlement(contestedHousing, id);
+  settlement.populationByClass.villager.adults = 120;
+  settlement.populationByClass.villager.faith.tier = "silver";
+  settlement.populationByClass.villager.happiness.status = "positive";
+}
+for (const id of ["cedar-woods", "lake-country"]) {
+  const settlement = getDetailedSettlement(contestedHousing, id);
+  settlement.populationByClass.villager.adults = 63;
+  settlement.populationByClass.villager.faith.tier = "bronze";
+}
+contestedHousing._seasonChanged = true;
+contestedHousing.currentSeasonIndex = 0;
+contestedHousing.tSec = 32;
+stepDetailedSettlementsSecond(contestedHousing, 32);
+const contestedInbound = getDetailedSettlement(contestedHousing, "upper-floodplain")
+  .lastAnnualResult.migration.inbound;
+assert.deepEqual(contestedInbound.map((move) => move.amount), [32, 32],
+  "two over-cap sources receive fair deterministic shares of contested room");
+assert.equal(getPopulationSummary(contestedHousing, "upper-floodplain").total, 64);
+assert.equal(getDetailedSettlement(contestedHousing, "west-levee")
+  .populationByClass.villager.happiness.status, "negative",
+"the severe-overcrowding Negative cap is not immediately restored after migration");
+
+const failedCollapse = clearDetailedPopulationAndFood(fresh(888));
+const failedCollapseClass = getDetailedSettlement(failedCollapse, "cedar-woods")
+  .populationByClass.villager;
+failedCollapseClass.adults = 10;
+failedCollapseClass.faith.tier = "bronze";
+failedCollapseClass.happiness.status = "negative";
+failedCollapse._seasonChanged = true;
+failedCollapse.currentSeasonIndex = 0;
+failedCollapse.tSec = 32;
+stepDetailedSettlementsSecond(failedCollapse, 32);
+assert.equal(getPopulationSummary(failedCollapse, "cedar-woods").total, 5);
+assert.equal(failedCollapseClass.faith.tier, "bronze");
+assert.equal(getDetailedSettlement(failedCollapse, "cedar-woods")
+  .lastAnnualResult.byClass.villager.bronzeCollapseLoss, 5,
+"collapse population still disappears when no higher fed refuge exists");
+
+const migrationTimelineState = clearDetailedPopulationAndFood(fresh(887));
+const timelineSource = getDetailedSettlement(migrationTimelineState, "cedar-woods");
+timelineSource.populationByClass.villager.adults = 20;
+timelineSource.populationByClass.villager.happiness.status = "positive";
+timelineSource.populationByClass.villager.happiness.partialFeedRatios = [0.8];
+timelineSource.looseFood = 12;
+getDetailedSettlement(migrationTimelineState, "west-levee").storedFood = 5;
+const migrationTimeline = createTimelineFromInitialState(migrationTimelineState);
+const preMigrationBoundary = rebuildStateAtSecond(migrationTimeline, 2);
+const migrationBatch = buildEdgeTransferBatchAtBoundary(preMigrationBoundary.state, 3);
+const migrationTransfer = migrationBatch.transfers.find(
+  (transfer) => transfer.resourceId === "population"
+);
+assert.deepEqual({
+  amount: migrationTransfer.amount,
+  survivors: migrationTransfer.survivors,
+  arrivalDeaths: migrationTransfer.arrivalDeaths,
+}, { amount: 8, survivors: 5, arrivalDeaths: 3 });
+assert.deepEqual(
+  buildEdgeTransferBatchAtBoundary(
+    rebuildStateAtSecond(migrationTimeline, 2).state,
+    3
+  ),
+  migrationBatch,
+  "migration packet reconstruction is replay deterministic"
+);
+assert.deepEqual(
+  serializeGameState(preMigrationBoundary.state),
+  serializeGameState(rebuildStateAtSecond(migrationTimeline, 2).state),
+  "migration packet reconstruction does not mutate its boundary state"
+);
 
 const vassalState = fresh(777);
 const pool = buildDetailedVassalSelectionPool(vassalState);
