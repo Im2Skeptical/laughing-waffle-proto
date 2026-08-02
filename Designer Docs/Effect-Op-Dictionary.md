@@ -4,15 +4,27 @@ Declarative detailed-settlement effects are defined in
 `src/defs/gamepieces/detailed-settlement-defs.js` and interpreted by
 `src/model/detailed-settlements.js`.
 
-All arithmetic uses effective worker contribution. Villagers contribute 1;
-Strangers contribute 0.5.
+Scaled effects use a shared `scaledValue` descriptor:
+
+- `baseAmount`
+- an evaluator that returns a score, breakdown, and diagnostics
+- `workerMultiplier: { base, perEffectiveWorker }`
+
+The result is `baseAmount × evaluator score × (base + effective workers ×
+perEffectiveWorker)`. Cultivate, Administration, and Preservation use a base of
+1 and contribution of 1, so they remain active without workers. Villagers
+contribute 1 effective worker and Strangers contribute 0.5.
+
+Region-count evaluators use JSON-only scopes for adjacent regions, filtered
+connected components, practice presence, and a host-practice conditional. The
+same scopes can select routing endpoints, keeping displayed diagnostics and
+simulation behavior aligned.
 
 ## `addLocalFood`
 
 Fields:
 
-- `amountPerEffectiveWorker`
-- optional `multiplier: { evaluator }`
+- `scaledValue`
 
 Adds the resolved amount to the host. Stored capacity fills first; overflow is
 loose. Food is rounded to four decimal places.
@@ -21,20 +33,23 @@ loose. Food is rounded to four decimal places.
 
 Fields:
 
-- `packetPerEffectiveWorker`
+- `scaledValue`
+- `targetScope`
 
-Each assigned token permits one adjacent packet-edge move. Packet strength is
-the configured amount times that token's effectiveness. Planning is
-snapshot-based and applied together.
+The resolved value is one shared movement cap for the card. Planning moves only
+meal-safe surplus toward current shortages, may split the cap across endpoints,
+and is snapshot-based and applied together.
 
-## `modifyStoredFoodDecay`
+## `reduceFoodDecay`
 
 Fields:
 
-- `additivePercentPerEffectiveWorker`
+- `foodKind`: `stored` or `loose`
+- `scaledValue`
 
-Adds the signed percentage-point modifier for effective workers. Preserve uses
-`-2`. The final stored-food decay rate has a 0% floor.
+Relatively reduces the selected food-decay loss by the resolved percentage.
+Combined reduction is capped at 100%. Preservation currently targets stored
+food only.
 
 ## `advanceWork`
 
@@ -64,4 +79,5 @@ compacts. When capacity is full, no work is lost and the practice stays.
 ## Validation
 
 `validateDetailedPracticeDefinitions()` rejects unknown activation types,
-unknown operations, invalid worker capacities, and unknown structure IDs.
+unknown operations, malformed scaled values/scopes, invalid worker capacities,
+and unknown structure IDs.

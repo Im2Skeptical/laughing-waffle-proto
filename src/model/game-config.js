@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 1;
+export const GAME_CONFIG_SCHEMA_VERSION = 2;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -292,7 +292,6 @@ export function validateGamepiecesDraft(value) {
         continue;
       }
       const key = String(entry.path.at(-1));
-      if (key === "additivePercentPerEffectiveWorker") continue;
       if (current < 0) errors.push(`${entry.path.join(".")}: expected zero or greater`);
       if ((key === "workerCapacity" || key === "chargePeriodMoons") && !Number.isInteger(current)) {
         errors.push(`${entry.path.join(".")}: expected an integer`);

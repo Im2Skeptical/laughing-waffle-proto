@@ -33,6 +33,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
+assert.equal(authoredConfig.schemaVersion, 2);
+assert.equal(authoredConfig.settings.schemaVersion, 2);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 2);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -43,6 +46,10 @@ assert.equal(
   ).ok,
   true
 );
+assert.equal(validateGamepiecesDraft({
+  ...createAuthoredGamepiecesDraft(),
+  schemaVersion: 1,
+}).ok, false, "schema-v1 Gamepieces drafts are rejected after the clean cut");
 assert.equal(
   parseDebugDraftJson(
     serializeDebugDraft(authoredConfig.gamepieces, GAMEPIECES_DRAFT_KIND),
@@ -66,7 +73,7 @@ let gamepieces = setAtPath(
 );
 gamepieces = setAtPath(
   gamepieces,
-  ["practices", "cultivate", "effects", 0, "amountPerEffectiveWorker"],
+  ["practices", "cultivate", "effects", 0, "scaledValue", "baseAmount"],
   15
 );
 const setup = clone(setupDefs.devPlaytesting01);
@@ -90,13 +97,15 @@ cultivateSetup.gameConfig = canonicalizeGameConfig({
   gamepieces,
 });
 const cultivate = createInitialState(cultivateSetup, 902);
+cultivate.currentSeasonIndex = 1;
 cultivate._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivate, 8);
 assert.equal(
   getDetailedSettlement(cultivate, "cedar-woods").storedFood,
-  90,
+  120,
   "Cultivate reads its state-scoped declarative effect amount"
 );
+assert.equal(getDetailedSettlement(cultivate, "cedar-woods").looseFood, 0);
 assert.equal(
   serializeGameState(configured).gameConfig.gamepieces.structures.granary
     .capacityPerCountSquared,
@@ -149,4 +158,4 @@ assert.equal(
   true
 );
 
-console.log("[debug-game-config-v1] OK");
+console.log("[debug-game-config-v2] OK");

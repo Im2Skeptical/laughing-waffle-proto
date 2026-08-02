@@ -43,6 +43,139 @@ function panel(parent, rect, title) {
   parent.addChild(gfx, createText(title, TEXT_STYLES.title, rect.x + 18, rect.y + 15));
 }
 
+function formatPracticeNumber(value) {
+  const safe = Number.isFinite(value) ? Number(value) : 0;
+  return Number.isInteger(safe) ? String(safe) : String(Math.round(safe * 100) / 100);
+}
+
+function getPracticeTimingLabel(activation) {
+  if (activation?.type === "season") {
+    const season = activation.seasonKeys?.[0];
+    return season ? `Each ${season.replace(/^./, (letter) => letter.toUpperCase())}` : "Each season";
+  }
+  if (activation?.type === "newMoon") return "Each Moon";
+  return "Passive";
+}
+
+function getPracticeResultLabel(practiceId, value) {
+  const formatted = formatPracticeNumber(value);
+  if (practiceId === "cultivate") return `Effect  +${formatted} food`;
+  if (practiceId === "administrate") return `Cap  ${formatted} food`;
+  if (practiceId === "preserve") return `Effect  ${formatted}% less rot`;
+  return `Effect  ${formatted}`;
+}
+
+function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
+  const filled = Boolean(entry?.practiceId);
+  const evaluation = entry?.evaluation ?? null;
+  const scaled = evaluation?.effects?.find((effect) => effect.scaledValue)?.scaledValue ?? null;
+  const card = new PIXI.Container();
+  card.position.set(rect.x, rect.y);
+  const gfx = new PIXI.Graphics();
+  roundedRect(
+    gfx,
+    0,
+    0,
+    rect.width,
+    rect.height,
+    14,
+    filled ? PALETTE.card : PALETTE.slot,
+    evaluation?.activation?.type === "passive" ? PALETTE.passiveBorder : PALETTE.stroke,
+    filled ? 3 : 2
+  );
+  card.addChild(gfx);
+  card.addChild(createText(
+    `${slotIndex + 1}. ${filled ? entry.label : "Empty"}`,
+    { ...TEXT_STYLES.title, fontSize: 16, wordWrap: true, wordWrapWidth: rect.width - 20 },
+    10,
+    12
+  ));
+  if (!filled) {
+    card.addChild(createText(
+      "Available practice slot",
+      { ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.textMuted },
+      10,
+      54
+    ));
+    parent.addChild(card);
+    return;
+  }
+
+  const badge = new PIXI.Graphics();
+  roundedRect(
+    badge,
+    10,
+    48,
+    rect.width - 20,
+    24,
+    12,
+    PALETTE.chip,
+    evaluation.activation?.type === "passive" ? PALETTE.passiveBorder : PALETTE.accent,
+    1
+  );
+  card.addChild(
+    badge,
+    createText(
+      getPracticeTimingLabel(evaluation.activation),
+      { ...TEXT_STYLES.chip, fontSize: 11 },
+      rect.width / 2,
+      60,
+      0.5,
+      0.5
+    ),
+    createText(
+      `Workers ${entry.workers.tokens.length}/${evaluation.workerCapacity}`,
+      { ...TEXT_STYLES.body, fontSize: 12 },
+      10,
+      86
+    ),
+    createText(
+      `${formatPracticeNumber(entry.workers.effectiveWorkers)} effective`,
+      { ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted },
+      10,
+      106
+    ),
+    createWrappedText(
+      evaluation.rule,
+      { ...TEXT_STYLES.body, fontSize: 11, lineHeight: 14, fill: PALETTE.textMuted },
+      10,
+      132,
+      rect.width - 20
+    )
+  );
+  if (scaled) {
+    const mathY = rect.height - 82;
+    card.addChild(
+      createText(
+        `Base  ${formatPracticeNumber(scaled.baseAmount)} × ${formatPracticeNumber(scaled.evaluatorScore)} = ${formatPracticeNumber(scaled.baseValue)}`,
+        { ...TEXT_STYLES.body, fontSize: 11 },
+        10,
+        mathY
+      ),
+      createText(
+        `Workers  ×${formatPracticeNumber(scaled.workerMultiplier)}`,
+        { ...TEXT_STYLES.body, fontSize: 11 },
+        10,
+        mathY + 21
+      ),
+      createText(
+        getPracticeResultLabel(entry.practiceId, scaled.effectiveValue),
+        { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent },
+        10,
+        mathY + 45
+      )
+    );
+  } else if (entry.work) {
+    card.addChild(createText(
+      `Work  ${formatPracticeNumber(entry.work)}`,
+      { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent },
+      10,
+      rect.height - 36
+    ));
+  }
+  parent.addChild(card);
+}
+
 function faithRates(state, classState) {
   const faith = String(classState?.faith?.tier ?? "gold")
     .replace(/^./, (letter) => letter.toUpperCase());
@@ -120,17 +253,16 @@ export function createSettlementPrototypeView({
         createText(`Last meal  ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand}` : "none"}`,
           TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 208)
       );
-      vm.practices.forEach((entry, index) => {
-        const y = practiceRect.y + 58 + index * 68;
-        root.addChild(createText(
-          `${index + 1}. ${entry.label ?? "Empty"}`,
-          { ...TEXT_STYLES.title, fontSize: 17 }, practiceRect.x + 18, y));
-        if (entry.practiceId) {
-          root.addChild(createText(
-            `${entry.work ? `work ${entry.work} · ` : ""}${entry.workers.tokens.length} tokens · ${entry.workers.effectiveWorkers} effective`,
-            { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, practiceRect.x + 360, y + 2));
-        }
-      });
+      const practiceGap = 10;
+      const practiceCardWidth = Math.floor(
+        (practiceRect.width - 36 - practiceGap * 4) / 5
+      );
+      vm.practices.forEach((entry, index) => drawPracticeSlotCard(root, {
+        x: practiceRect.x + 18 + index * (practiceCardWidth + practiceGap),
+        y: practiceRect.y + 56,
+        width: practiceCardWidth,
+        height: practiceRect.height - 70,
+      }, entry, index));
       const order = vm.elderOrder;
       root.addChild(
         createText(`Worker policy: one token per ${getGameSetting(

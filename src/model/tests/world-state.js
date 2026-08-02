@@ -24,7 +24,11 @@ import { createSimRunner } from "../../controllers/sim-runner.js";
 import {
   createSettlementForecastController,
 } from "../../controllers/settlement-forecast-controller.js";
-import { validateWorldDefinition, validateWorldState } from "../world-state.js";
+import {
+  getRegionState,
+  validateWorldDefinition,
+  validateWorldState,
+} from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
 import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
 import {
@@ -40,7 +44,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 6);
+assert.equal(state.gameStateSchemaVersion, 7);
 assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
   REGION_STRUCTURE_CAPACITIES);
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
@@ -133,6 +137,12 @@ const transferTimeline = createTimelineFromInitialState(
 );
 const preTransferBoundary = rebuildStateAtSecond(transferTimeline, 11);
 assert.equal(preTransferBoundary.ok, true);
+getDetailedSettlement(preTransferBoundary.state, "cedar-woods").looseFood = 500;
+for (const regionId of ["west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
+  const settlement = getDetailedSettlement(preTransferBoundary.state, regionId);
+  settlement.storedFood = 0;
+  settlement.looseFood = 0;
+}
 const preTransferStateData = serializeGameState(preTransferBoundary.state);
 const transferBatch = buildEdgeTransferBatchAtBoundary(
   preTransferBoundary.state,
@@ -148,20 +158,16 @@ for (const transfer of transferBatch.transfers) {
   assert.equal(transfer.systemId, "administrate");
   assert.equal(transfer.resourceId, "food");
   assert.ok(transfer.amount > 0);
-  assert.ok(
-    preTransferBoundary.state.world.connections.some(
-      (edge) =>
-        (edge.regionAId === transfer.sourceRegionId &&
-          edge.regionBId === transfer.destinationRegionId) ||
-        (edge.regionBId === transfer.sourceRegionId &&
-          edge.regionAId === transfer.destinationRegionId)
-    ),
-    "rendered packets only use authored map edges"
-  );
+  assert.equal(getRegionState(preTransferBoundary.state, transfer.sourceRegionId)?.controller,
+    "player");
+  assert.equal(getRegionState(preTransferBoundary.state, transfer.destinationRegionId)?.controller,
+    "player");
+  assert.ok(getDetailedSettlement(preTransferBoundary.state, transfer.sourceRegionId));
+  assert.ok(getDetailedSettlement(preTransferBoundary.state, transfer.destinationRegionId));
 }
 assert.deepEqual(
   buildEdgeTransferBatchAtBoundary(
-    rebuildStateAtSecond(transferTimeline, 11).state,
+    deserializeGameState(preTransferStateData),
     12
   ),
   transferBatch,
@@ -323,8 +329,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 5;
-assert.throws(() => deserializeGameState(old), /expected v6/);
+old.gameStateSchemaVersion = 6;
+assert.throws(() => deserializeGameState(old), /expected v7/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -452,7 +458,7 @@ try {
   );
   const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
   const oldSave = JSON.parse(storage.get(saveKey));
-  oldSave.meta.schemaVersion = 5;
+  oldSave.meta.schemaVersion = 6;
   storage.set(saveKey, JSON.stringify(oldSave));
   assert.equal(runner.loadFromSlot(1).reason, "versionMismatch");
 } finally {
@@ -463,4 +469,4 @@ try {
   }
 }
 
-console.log("[world-state-v6] OK");
+console.log("[world-state-v7] OK");

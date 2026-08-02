@@ -32,9 +32,10 @@ try {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v2");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v1");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v1");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v1");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v2");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v2");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v2");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v2");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
@@ -166,11 +167,11 @@ try {
   );
   assert.equal(await granaryCapacity.inputValue(), "100");
   await granaryCapacity.fill("150");
-  const packetSize = page.getByTestId(
-    "gamepiece-practices-administrate-effects.0.packetPerEffectiveWorker"
+  const administrationBase = page.getByTestId(
+    "gamepiece-practices-administrate-effects.0.scaledValue.baseAmount"
   );
-  assert.equal(await packetSize.inputValue(), "10");
-  await packetSize.fill("15");
+  assert.equal(await administrationBase.inputValue(), "50");
+  await administrationBase.fill("75");
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
   await page.getByTestId("gamepieces-apply").click();
@@ -188,8 +189,8 @@ try {
   );
   assert.equal(
     configuredSnapshot.gameConfig.gamepieces.practices.administrate.effects[0]
-      .packetPerEffectiveWorker,
-    15
+      .scaledValue.baseAmount,
+    75
   );
 
   await page.getByTestId("debug-vassal-tab").click();

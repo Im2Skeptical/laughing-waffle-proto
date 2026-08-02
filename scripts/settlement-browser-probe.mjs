@@ -401,6 +401,17 @@ try {
     "local graph replaces aggregate lines with the selected settlement values"
   );
   assert.equal(overview.view.overview.practices.length, 5);
+  assert.deepEqual(
+    overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
+    ["Cultivate", "Administration", "Preservation"]
+  );
+  for (const practice of overview.view.overview.practices.slice(0, 3)) {
+    const scaled = practice.evaluation.effects.find((effect) => effect.scaledValue)?.scaledValue;
+    assert.ok(scaled, `${practice.label} exposes its live card calculation`);
+    assert.ok(Number.isFinite(scaled.baseValue));
+    assert.ok(Number.isFinite(scaled.workerMultiplier));
+    assert.ok(Number.isFinite(scaled.effectiveValue));
+  }
   assert.ok(overview.view.elderOrder.resistance >= 0);
   await page.screenshot({ path: OVERVIEW_SCREENSHOT_PATH, fullPage: true });
 
@@ -779,10 +790,10 @@ try {
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.survivalTracker
   );
-  assert.equal(terminalSurvival.projectedLossYear, 73);
+  assert.equal(terminalSurvival.projectedLossYear, 117);
   assert.equal(
     terminalSurvival.bestSurvivalYear,
-    73,
+    117,
     "the completed forecast records a numeric best civilization survival year"
   );
   await terminalPage.close();

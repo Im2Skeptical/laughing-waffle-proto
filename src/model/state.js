@@ -567,7 +567,7 @@ export function createEmptyState(
   const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 6,
+    gameStateSchemaVersion: 7,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -1172,8 +1172,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 6) {
-    throw new Error("Unsupported game-state schema: expected v6");
+  if (state?.gameStateSchemaVersion !== 7) {
+    throw new Error("Unsupported game-state schema: expected v7");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

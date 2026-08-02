@@ -3,6 +3,37 @@
 export const DETAILED_PRACTICE_SLOT_COUNT = 5;
 export const POPULATION_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 
+const workerMultiplier = () => Object.freeze({
+  base: 1,
+  perEffectiveWorker: 1,
+});
+
+const adjacentPlayerDetailedScope = Object.freeze({
+  kind: "adjacent",
+  includeHost: false,
+  regionFilters: Object.freeze({
+    controller: "player",
+    detailedSettlement: true,
+  }),
+});
+
+const connectedPlayerDetailedScope = Object.freeze({
+  kind: "connectedComponent",
+  includeHost: false,
+  traversalFilters: Object.freeze({ controller: "player" }),
+  regionFilters: Object.freeze({
+    controller: "player",
+    detailedSettlement: true,
+  }),
+});
+
+const administrationReachScope = Object.freeze({
+  kind: "conditionalHostPractice",
+  practiceId: "preserve",
+  whenPresent: connectedPlayerDetailedScope,
+  otherwise: adjacentPlayerDetailedScope,
+});
+
 export const settlementStructureDefs = Object.freeze({
   granary: Object.freeze({
     id: "granary",
@@ -22,35 +53,91 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   cultivate: Object.freeze({
     id: "cultivate",
     label: "Cultivate",
-    workerCapacity: 2,
-    activation: Object.freeze({ type: "season" }),
+    workerCapacity: 3,
+    activation: Object.freeze({
+      type: "season",
+      seasonKeys: Object.freeze(["summer"]),
+    }),
+    ui: Object.freeze({
+      rule: "Gain food for every player-controlled region in this settlement's connected same-colour chain.",
+    }),
     costs: Object.freeze([]),
     effects: Object.freeze([
       Object.freeze({
         op: "addLocalFood",
-        amountPerEffectiveWorker: 10,
-        multiplier: Object.freeze({ evaluator: "adjacentPlayerSameColour" }),
+        scaledValue: Object.freeze({
+          baseAmount: 40,
+          evaluator: Object.freeze({
+            kind: "countRegions",
+            label: "same-colour connected regions",
+            scope: Object.freeze({
+              kind: "connectedComponent",
+              includeHost: true,
+              traversalFilters: Object.freeze({
+                controller: "player",
+                colour: "host",
+              }),
+              regionFilters: Object.freeze({
+                controller: "player",
+                colour: "host",
+              }),
+            }),
+          }),
+          workerMultiplier: workerMultiplier(),
+        }),
       }),
     ]),
   }),
   administrate: Object.freeze({
     id: "administrate",
-    label: "Administrate",
+    label: "Administration",
     workerCapacity: 2,
     activation: Object.freeze({ type: "newMoon", chargePeriodMoons: 1 }),
+    ui: Object.freeze({
+      rule: "Move meal-safe surplus to resolve meal shortages. Preservation expands reach across player-controlled paths.",
+    }),
     costs: Object.freeze([]),
     effects: Object.freeze([
-      Object.freeze({ op: "routeLocalFood", packetPerEffectiveWorker: 10 }),
+      Object.freeze({
+        op: "routeLocalFood",
+        scaledValue: Object.freeze({
+          baseAmount: 50,
+          evaluator: Object.freeze({
+            kind: "countRegions",
+            label: "Administration regions in reach",
+            includeHost: true,
+            scope: administrationReachScope,
+            regionFilters: Object.freeze({ practiceId: "administrate" }),
+          }),
+          workerMultiplier: workerMultiplier(),
+        }),
+        targetScope: administrationReachScope,
+      }),
     ]),
   }),
   preserve: Object.freeze({
     id: "preserve",
-    label: "Preserve",
+    label: "Preservation",
     workerCapacity: 2,
     activation: Object.freeze({ type: "passive" }),
+    ui: Object.freeze({
+      rule: "Reduce stored-food rot. Local Administration treats player-connected settlements as adjacent.",
+    }),
     costs: Object.freeze([]),
     effects: Object.freeze([
-      Object.freeze({ op: "modifyStoredFoodDecay", additivePercentPerEffectiveWorker: -2 }),
+      Object.freeze({
+        op: "reduceFoodDecay",
+        foodKind: "stored",
+        scaledValue: Object.freeze({
+          baseAmount: 20,
+          evaluator: Object.freeze({
+            kind: "constant",
+            score: 1,
+            label: "base preservation",
+          }),
+          workerMultiplier: workerMultiplier(),
+        }),
+      }),
     ]),
   }),
   vassalDummyPractice01: Object.freeze({
@@ -112,7 +199,7 @@ export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze([
 export const detailedSettlementEffectOps = Object.freeze([
   "addLocalFood",
   "routeLocalFood",
-  "modifyStoredFoodDecay",
+  "reduceFoodDecay",
   "advanceWork",
   "createLocalStructureAtWork",
 ]);

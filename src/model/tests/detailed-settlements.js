@@ -3,7 +3,7 @@ import { createInitialState } from "../init.js";
 import {
   assignDetailedSettlementWorkers,
   buildDetailedVassalSelectionPool,
-  evaluateDetailedMapScore,
+  evaluateDetailedPracticeSlot,
   getDetailedCivilizationSummary,
   getDetailedSettlement,
   getDetailedSettlementViewModel,
@@ -11,6 +11,7 @@ import {
   getHousingCapacity,
   getPopulationSummary,
   getStoredFoodCapacity,
+  planDetailedAdministrationMoves,
   resolveProbability,
   selectDetailedVassalCandidate,
   stepDetailedSettlementsSecond,
@@ -18,6 +19,7 @@ import {
 } from "../detailed-settlements.js";
 import { buildEdgeTransferBatchAtBoundary } from "../edge-transfers.js";
 import { serializeGameState } from "../state.js";
+import { getRegionState } from "../world-state.js";
 import {
   createTimelineFromInitialState,
   rebuildStateAtSecond,
@@ -57,11 +59,12 @@ assert.equal(validateDetailedPracticeDefinitions().ok, true);
 const state = fresh();
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
-    .map((id) => evaluateDetailedMapScore(state, id, "adjacentPlayerSameColour").score),
-  [1, 2, 3, 2, 1]
+    .map((id) => evaluateDetailedPracticeSlot(state, id, 0)
+      .effects[0].scaledValue.evaluatorScore),
+  [1, 3, 3, 3, 1]
 );
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
-  .map((entry) => entry.effectiveWorkers), [2, 1, 0, 0, 0]);
+  .map((entry) => entry.effectiveWorkers), [3, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
 const strangerSite = getDetailedSettlement(strangerWorkers, "river-crown");
 strangerSite.populationByClass.villager.adults = 0;
@@ -77,18 +80,42 @@ assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 400);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 180);
 
 const cultivate = fresh();
+cultivate.currentSeasonIndex = 1;
 cultivate._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivate, 8);
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).storedFood),
-  [80, 100, 100, 100, 80]
+  [100, 100, 100, 100, 100]
 );
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).looseFood),
-  [0, 0, 20, 0, 0]
+  [120, 440, 440, 440, 120]
 );
+
+const cultivateTiming = clearDetailedPopulationAndFood(fresh());
+const cultivateTimingSite = getDetailedSettlement(cultivateTiming, "cedar-woods");
+cultivateTimingSite.practiceSlots = [
+  { practiceId: "cultivate", charge: 0, work: 0 }, null, null, null, null,
+];
+cultivateTiming.currentSeasonIndex = 0;
+cultivateTiming._seasonChanged = true;
+stepDetailedSettlementsSecond(cultivateTiming, 8);
+assert.equal(cultivateTimingSite.storedFood, 0, "Cultivate does not activate in Spring");
+cultivateTiming.currentSeasonIndex = 1;
+cultivateTiming._seasonChanged = true;
+stepDetailedSettlementsSecond(cultivateTiming, 16);
+assert.equal(cultivateTimingSite.storedFood, 40, "zero-worker Cultivate keeps its base value");
+
+const multiplierState = fresh();
+const multiplierSite = getDetailedSettlement(multiplierState, "cedar-woods");
+multiplierSite.populationByClass.villager.adults = 10;
+multiplierSite.populationByClass.villager.eldersByAge = [];
+multiplierSite.populationByClass.stranger.adults = 10;
+const multiplierEvaluation = evaluateDetailedPracticeSlot(multiplierState, "cedar-woods", 0);
+assert.equal(multiplierEvaluation.effects[0].scaledValue.workerMultiplier, 2.5,
+  "one Villager and one Stranger worker produce a x2.5 multiplier");
 
 const decay = fresh();
 const decaySite = getDetailedSettlement(decay, "cedar-woods");
@@ -99,7 +126,9 @@ decaySite.practiceSlots = [
   { practiceId: "preserve", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(decay, 6);
-assert.equal(decaySite.storedFood, 56.4, "two Preserve-capacity workers reduce decay to 6%");
+assert.equal(decaySite.storedFood, 57.6,
+  "two Preservation workers reduce the 10% stored decay loss by 60%");
+assert.equal(decaySite.looseFood, 0, "Preservation does not change loose-food decay");
 
 const build = fresh();
 const buildSite = getDetailedSettlement(build, "river-crown");
@@ -132,6 +161,101 @@ stepDetailedSettlementsSecond(route, 6);
 assert.ok(getDetailedSettlement(route, "west-levee").storedFood > 0);
 assert.equal(getDetailedSettlement(route, "upper-floodplain").storedFood, 0,
   "snapshot routing prevents same-moon Region01→03→06 transport");
+
+const cultivateOwnership = fresh();
+getRegionState(cultivateOwnership, "upper-floodplain").controller = "frontier";
+assert.equal(
+  evaluateDetailedPracticeSlot(cultivateOwnership, "west-levee", 0)
+    .effects[0].scaledValue.evaluatorScore,
+  1,
+  "a non-player region breaks the same-colour connected component"
+);
+
+const baselineAdmin = clearDetailedPopulationAndFood(fresh());
+const baselineAdminSource = getDetailedSettlement(baselineAdmin, "cedar-woods");
+baselineAdminSource.practiceSlots = [
+  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null,
+];
+baselineAdminSource.looseFood = 200;
+getDetailedSettlement(baselineAdmin, "west-levee").populationByClass.villager.children = 200;
+const baselineAdminMoves = planDetailedAdministrationMoves(baselineAdmin);
+assert.deepEqual(
+  baselineAdminMoves.map(({ sourceId, destinationId, amount }) => ({
+    sourceId, destinationId, amount,
+  })),
+  [{ sourceId: "cedar-woods", destinationId: "west-levee", amount: 50 }],
+  "zero-worker Administration retains its base 50 shared cap"
+);
+
+getDetailedSettlement(baselineAdmin, "west-levee").populationByClass.villager.children = 0;
+assert.deepEqual(planDetailedAdministrationMoves(baselineAdmin), [],
+  "Administration does not move food merely to balance storage");
+
+const splitAdmin = clearDetailedPopulationAndFood(fresh());
+const splitSource = getDetailedSettlement(splitAdmin, "river-crown");
+splitSource.practiceSlots = [
+  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null,
+];
+splitSource.looseFood = 200;
+getDetailedSettlement(splitAdmin, "upper-floodplain")
+  .populationByClass.villager.children = 60;
+getDetailedSettlement(splitAdmin, "lake-country")
+  .populationByClass.villager.children = 80;
+assert.deepEqual(
+  planDetailedAdministrationMoves(splitAdmin).map(
+    ({ sourceId, destinationId, amount }) => ({ sourceId, destinationId, amount })
+  ),
+  [
+    { sourceId: "river-crown", destinationId: "lake-country", amount: 40 },
+    { sourceId: "river-crown", destinationId: "upper-floodplain", amount: 10 },
+  ],
+  "one shared cap splits across the greatest meal shortages first"
+);
+
+const preservedAdmin = clearDetailedPopulationAndFood(fresh());
+const preservedSource = getDetailedSettlement(preservedAdmin, "cedar-woods");
+preservedSource.practiceSlots = [
+  { practiceId: "administrate", charge: 0, work: 0 },
+  { practiceId: "preserve", charge: 0, work: 0 },
+  null, null, null,
+];
+preservedSource.looseFood = 200;
+const preservedDestination = getDetailedSettlement(preservedAdmin, "lake-country");
+preservedDestination.practiceSlots = [
+  { practiceId: "administrate", charge: 0, work: 0 },
+  { practiceId: "administrate", charge: 0, work: 0 },
+  null, null, null,
+];
+preservedDestination.populationByClass.villager.children = 200;
+const preservedEvaluation = evaluateDetailedPracticeSlot(preservedAdmin, "cedar-woods", 0);
+assert.equal(preservedEvaluation.effects[0].scaledValue.evaluatorScore, 2,
+  "Administration presence is counted once per reachable region");
+assert.deepEqual(
+  planDetailedAdministrationMoves(preservedAdmin).map(
+    ({ sourceId, destinationId, amount }) => ({ sourceId, destinationId, amount })
+  ),
+  [{ sourceId: "cedar-woods", destinationId: "lake-country", amount: 100 }],
+  "local Preservation expands Administration across a player-controlled path"
+);
+getRegionState(preservedAdmin, "upper-floodplain").controller = "frontier";
+assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
+  "non-player control breaks Preservation's Administration path");
+
+const cappedPreservation = clearDetailedPopulationAndFood(fresh());
+const cappedPreservationSite = getDetailedSettlement(cappedPreservation, "cedar-woods");
+cappedPreservationSite.populationByClass.villager.adults = 40;
+cappedPreservationSite.storedFood = 60;
+cappedPreservationSite.looseFood = 20;
+cappedPreservationSite.practiceSlots = [
+  { practiceId: "preserve", charge: 0, work: 0 },
+  { practiceId: "preserve", charge: 0, work: 0 },
+  null, null, null,
+];
+stepDetailedSettlementsSecond(cappedPreservation, 6);
+assert.equal(cappedPreservationSite.storedFood, 60,
+  "combined Preservation is capped at a 100% stored-food decay reduction");
+assert.equal(cappedPreservationSite.looseFood, 10,
+  "even capped Preservation leaves loose-food decay unchanged");
 
 assert.deepEqual([49, 50, 55, 60, 65, 70, 75].map(getElderMortalityRate),
   [0.01, 0.03, 0.08, 0.18, 0.35, 0.6, 0.85]);
