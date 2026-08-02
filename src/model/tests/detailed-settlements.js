@@ -166,10 +166,13 @@ assert.ok(collapse.civilization.chaos.lastAnnualIncome.byRegion.length === 5);
 const overHousing = fresh(882);
 const overHousingSite = getDetailedSettlement(overHousing, "cedar-woods");
 overHousingSite.populationByClass.villager.children = 0;
-overHousingSite.populationByClass.villager.adults = 90;
+overHousingSite.populationByClass.villager.adults = 60;
 overHousingSite.populationByClass.villager.eldersByAge = [];
 overHousingSite.populationByClass.villager.faith.tier = "bronze";
 overHousingSite.populationByClass.villager.happiness.status = "positive";
+overHousingSite.populationByClass.stranger.adults = 30;
+overHousingSite.populationByClass.stranger.faith.tier = "bronze";
+overHousingSite.populationByClass.stranger.happiness.status = "positive";
 overHousing._seasonChanged = true;
 overHousing.currentSeasonIndex = 0;
 stepDetailedSettlementsSecond(overHousing, 32);
@@ -180,8 +183,38 @@ assert.equal(retainedPopulation.total, 64,
 assert.equal(overHousingSite.lastAnnualResult.housingOverflow, 10);
 assert.equal(overHousingSite.lastAnnualResult.housingOverflowAfterMigration, 0);
 assert.equal(overHousingSite.lastAnnualResult.migration.outbound[0].amount, 26);
+assert.equal(retainedPopulation.byClass.villager.total, 60,
+  "overcrowding leaves Villagers in place while Strangers can satisfy displacement");
+assert.equal(retainedPopulation.byClass.stranger.total, 4);
+assert.equal(
+  overHousingSite.lastAnnualResult.migration.outbound[0]
+    .composition.villager.children
+    + overHousingSite.lastAnnualResult.migration.outbound[0].composition.villager.adults
+    + overHousingSite.lastAnnualResult.migration.outbound[0]
+      .composition.villager.eldersByAge.reduce((sum, cohort) => sum + cohort.count, 0),
+  0,
+  "overcrowding displacement exhausts the Stranger cohort before selecting Villagers"
+);
 assert.equal(overHousingSite.populationByClass.villager.happiness.status, "neutral",
   "housing happiness remains Neutral after the cap is removed");
+
+const classPriorityMeal = clearDetailedPopulationAndFood(fresh(889));
+const classPrioritySite = getDetailedSettlement(classPriorityMeal, "cedar-woods");
+classPrioritySite.populationByClass.villager.adults = 10;
+classPrioritySite.populationByClass.stranger.adults = 10;
+classPrioritySite.populationByClass.stranger.happiness.missedFeedStreak = 2;
+classPrioritySite.storedFood = 10;
+classPriorityMeal.tSec = 3;
+stepDetailedSettlementsSecond(classPriorityMeal, 3);
+assert.deepEqual(classPrioritySite.lastMeal.byClass, {
+  villager: { demand: 10, consumed: 10, ratio: 1 },
+  stranger: { demand: 10, consumed: 0, ratio: 0 },
+}, "Villagers consume native meals before Strangers");
+assert.equal(getPopulationSummary(classPriorityMeal, "cedar-woods")
+  .byClass.villager.total, 10);
+assert.equal(getPopulationSummary(classPriorityMeal, "cedar-woods")
+  .byClass.stranger.total, 8,
+"unfed Strangers take starvation loss only after Villagers receive their meals");
 
 const partialMigration = clearDetailedPopulationAndFood(fresh(883));
 const partialSource = getDetailedSettlement(partialMigration, "cedar-woods");

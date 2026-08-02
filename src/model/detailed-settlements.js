@@ -133,6 +133,7 @@ export function getPopulationSummary(state, regionId) {
   let children = 0;
   let adults = 0;
   let elders = 0;
+  let mealDemand = 0;
   for (const classId of POPULATION_CLASS_ORDER) {
     const cohort = settlement?.populationByClass?.[classId] ?? {};
     const entry = {
@@ -141,20 +142,22 @@ export function getPopulationSummary(state, regionId) {
       elders: eldersCount(cohort),
     };
     entry.total = entry.children + entry.adults + entry.elders;
+    entry.mealDemand =
+      Math.ceil(entry.children * getGameSetting(state, "childMealConsumption"))
+      + Math.ceil(entry.adults * getGameSetting(state, "adultMealConsumption"))
+      + Math.ceil(entry.elders * getGameSetting(state, "elderMealConsumption"));
     byClass[classId] = entry;
     children += entry.children;
     adults += entry.adults;
     elders += entry.elders;
+    mealDemand += entry.mealDemand;
   }
   return {
     children,
     adults,
     elders,
     total: children + adults + elders,
-    mealDemand:
-      Math.ceil(children * getGameSetting(state, "childMealConsumption"))
-      + Math.ceil(adults * getGameSetting(state, "adultMealConsumption"))
-      + Math.ceil(elders * getGameSetting(state, "elderMealConsumption")),
+    mealDemand,
     housingCapacity: getHousingCapacity(state, regionId),
     byClass,
   };
@@ -734,6 +737,22 @@ function selectPopulationComposition(settlement, classIds, requestedCount) {
   return compositionFromBins(allocations);
 }
 
+function selectPopulationCompositionByClassPriority(
+  settlement,
+  classIds,
+  requestedCount
+) {
+  const result = emptyPopulationComposition();
+  let remaining = Math.max(0, Math.floor(requestedCount));
+  for (const classId of classIds) {
+    if (remaining <= 0) break;
+    const selected = selectPopulationComposition(settlement, [classId], remaining);
+    result[classId] = selected[classId];
+    remaining -= compositionTotal(selected);
+  }
+  return result;
+}
+
 function removePopulationComposition(settlement, composition) {
   for (const classId of POPULATION_CLASS_ORDER) {
     const classState = settlement?.populationByClass?.[classId];
@@ -1140,12 +1159,22 @@ function runFullMoon(state) {
   const hungerIntents = { starvation: [], partialMeal: [] };
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
-    const demand = getPopulationSummary(state, site.regionId).mealDemand;
-    const consumed = consumeFood(settlement, demand);
-    const ratio = demand > 0 ? consumed / demand : 1;
+    const population = getPopulationSummary(state, site.regionId);
+    const demand = population.mealDemand;
+    let consumed = 0;
+    const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const classTotal = classPopulationTotal(classState);
+      const classDemand = population.byClass[classId]?.mealDemand ?? 0;
+      const classConsumed = consumeFood(settlement, classDemand);
+      const ratio = classDemand > 0 ? classConsumed / classDemand : 1;
+      consumed = roundFood(consumed + classConsumed);
+      byClass[classId] = {
+        demand: classDemand,
+        consumed: classConsumed,
+        ratio: roundFood(ratio),
+      };
       if (classId === "stranger" && classTotal <= 0) {
         resetEmptyStrangerCohort(settlement);
         continue;
@@ -1184,7 +1213,8 @@ function runFullMoon(state) {
       tSec: state.tSec,
       demand,
       consumed,
-      ratio: roundFood(ratio),
+      ratio: roundFood(demand > 0 ? consumed / demand : 1),
+      byClass,
     };
   }
   const starvationResult = resolveMigrationIntents(state, hungerIntents.starvation, {
@@ -1331,9 +1361,9 @@ function runDemographics(state) {
         sourceFaith: null,
         sourceHappiness: null,
         requested,
-        composition: selectPopulationComposition(
+        composition: selectPopulationCompositionByClassPriority(
           settlement,
-          POPULATION_CLASS_ORDER,
+          ["stranger", "villager"],
           requested
         ),
       });
