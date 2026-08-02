@@ -26,9 +26,9 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v7; older saves are rejected.
-- Each run serializes schema-v2 Game Settings and Gamepieces in `gameConfig`.
-- Map Lab drafts and scenario libraries use schema v2.
+- Game state and runner saves use schema v8; older saves are rejected.
+- Each run serializes schema-v3 Game Settings and Gamepieces in `gameConfig`.
+- Map Lab drafts use schema v3; scenario libraries use their existing schema.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
 
@@ -39,7 +39,7 @@ detailed-settlement toggle.
 
 Each detailed site owns Villager/Stranger cohorts, anonymous elder ages, stored
 and loose food, five practice slots, regional structure slots, aggregate Elder
-Order state, and local annual/meal summaries. Chaos, monsters, loss, persistent
+Order state, and local moon/meal summaries. Chaos, monsters, loss, persistent
 survival knowledge, and the single vassal lineage are civilization-global.
 
 ## Current simulation
@@ -55,26 +55,30 @@ survival knowledge, and the single vassal lineage are civilization-global.
   Houses and wait at full regional structure capacity.
 - Granary and Mud House capacities scale with local count squared.
 - Food fills stored capacity first, then loose food; meals consume loose first.
-- Full-moon native meals feed Villagers before Strangers and track happiness,
-  partial feeding, and starvation independently for each class.
-- Annual demographics consume RNG in authored region, class, and elder-age
-  order using pre-transition snapshots.
-- Housing is a soft limit with migration pressure. Annual over-cap sites first
-  cap happiness at Neutral (or Negative above the configured ratio), then send
-  population above the configured 80% target to connected detailed sites with
-  reserved housing headroom. Overcrowding displaces Strangers before Villagers.
-- Worsening partial meals, starvation, and bronze-faith collapse can also move
-  population one edge. Migrants join the destination Stranger cohort and must
-  eat on arrival for hunger/collapse movement; unfed arrivals die. Transfer
-  allocation is snapshot-based, globally reserved, and deterministic.
+- The moon uses six fixed phases with configurable `phaseDurationSec`: Birth,
+  Food, Housing, Faith, Migration, and Death. At the default one second per
+  phase, a moon remains six seconds and stays independent of the 32-second year.
+- Birth resolves building practices, births, child maturation, and adult-to-elder
+  transitions. Elder ages advance annually at the first following Birth phase.
+- Food runs Administration, feeds Villagers before Strangers, maintains class
+  meal streaks, and reserves the unfed share into the current moon's migrant bucket.
+- Housing assesses the population not already reserved for migration, caps
+  happiness at Neutral or Negative when overcrowded, and adds exactly the
+  unhoused overflow, displacing Strangers before Villagers.
+- Faith applies Food/Housing happiness evidence, advances a three-result faith
+  streak, and adds newly Bronze-and-Negative cohorts to the same migrant bucket.
+- Migration resolves all food, housing, and faith causes identically using
+  snapshot-based, globally reserved housing. Death then resolves arrival meals,
+  unplaced-migrant hardship, monthly elder mortality, and stored/loose food rot.
+  Surviving migrants join the destination Stranger cohort.
 - Elder Orders are aggregates. Vassal interventions use resistance snapshots,
   ordered prestige gates, deterministic lifespan boundaries, and replayable
   timeline actions.
 
-Boundary order is seasonal Cultivate; new-moon Administration/build/decay;
-full-moon native meals, happiness, migration/arrival meals, and loose decay;
-then annual demographics, housing migration, faith/collapse migration, global
-chaos, vassal interventions, and vassal death.
+Boundary order is seasonal Cultivate followed by whichever lunar phase is due.
+Faith resolves chaos after faith changes; annual vassal aging/interventions/death
+resolve at the first following Faith phase. Current and previous moon reports are
+bounded JSON state used for replay and phase tooltips.
 
 ## Current UI
 
@@ -88,6 +92,9 @@ chaos, vassal interventions, and vassal death.
   scope in a settlement. Series choices are independent by scope.
 - Forecast unveiling drives the read-only viewed state and playhead without
   advancing committed history or consuming RNG.
+- The season/moon wheel shows fixed icons for all six lunar phases. The active
+  icon is highlighted and each tooltip combines the phase rules with live or
+  previous-moon totals.
 - Vassal selection focuses its target and preserves the old/new forecast
   comparison, lifespan brackets, and fixed/editable/forecast history zones.
 - Fullscreen and Debug share a responsive utility rail that must remain clear

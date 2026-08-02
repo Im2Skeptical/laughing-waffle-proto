@@ -53,7 +53,8 @@ function getPracticeTimingLabel(activation) {
     const season = activation.seasonKeys?.[0];
     return season ? `Each ${season.replace(/^./, (letter) => letter.toUpperCase())}` : "Each season";
   }
-  if (activation?.type === "newMoon") return "Each Moon";
+  if (activation?.type === "birth") return "Birth phase";
+  if (activation?.type === "food") return "Food phase";
   return "Passive";
 }
 
@@ -362,9 +363,9 @@ export function createSettlementPrototypeView({
         TEXT_STYLES.body, right.x + 18, y, right.width - 36));
       y += 90;
       root.addChild(createWrappedText(
-        site.lastAnnualResult
-          ? `Previous annual result (Year ${site.lastAnnualResult.year}): ${JSON.stringify(site.lastAnnualResult.byClass)}`
-          : "Previous annual result: none.",
+        site.lastMoonResult
+          ? `Previous moon result: ${JSON.stringify(site.lastMoonResult)}`
+          : "Previous moon result: none.",
         { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, right.x + 18, y, right.width - 36));
     }
 
@@ -383,7 +384,8 @@ export function createSettlementPrototypeView({
       demographics: {
         population: vm.population,
         lastMeal: vm.lastMeal,
-        lastAnnualResult: vm.lastAnnualResult,
+        currentMoonResult: vm.currentMoonResult,
+        lastMoonResult: vm.lastMoonResult,
       },
       elderOrder: vm.elderOrder,
     };

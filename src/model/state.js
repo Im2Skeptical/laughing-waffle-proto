@@ -567,7 +567,7 @@ export function createEmptyState(
   const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 7,
+    gameStateSchemaVersion: 8,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -606,7 +606,7 @@ export function createEmptyState(
         chaosPower: 0,
         monsterCount: 0,
         monsterLossThreshold: 1000,
-        lastAnnualIncome: null,
+        lastMoonIncome: null,
       },
       vassalLineage: {
         nextVassalId: 1,
@@ -1172,8 +1172,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 7) {
-    throw new Error("Unsupported game-state schema: expected v7");
+  if (state?.gameStateSchemaVersion !== 8) {
+    throw new Error("Unsupported game-state schema: expected v8");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

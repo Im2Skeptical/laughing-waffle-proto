@@ -25,6 +25,11 @@ import {
   getDetailedStructureDef,
   getGameSetting,
 } from "./game-config.js";
+import { MOON_PHASE_INDEX_BY_ID } from "../defs/gamesettings/moon-phase-defs.js";
+import {
+  getMoonPhaseAtSecond,
+  getNextMoonPhaseBoundarySec,
+} from "./moon-phases.js";
 
 const FOOD_SCALE = 10000;
 const FAITH_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
@@ -150,7 +155,7 @@ export function validateDetailedPracticeDefinitions() {
     if (!Number.isInteger(def.workerCapacity) || def.workerCapacity < 0) {
       errors.push(`${id}: invalid workerCapacity`);
     }
-    if (!["season", "newMoon", "passive"].includes(def.activation?.type)) {
+    if (!["season", "birth", "food", "passive"].includes(def.activation?.type)) {
       errors.push(`${id}: invalid activation`);
     }
     if (def.activation?.seasonKeys != null
@@ -647,7 +652,7 @@ function executePracticeEffects(state, site, assignment, activationType) {
   if (!hasBaselineEffect
       && (def.workerCapacity ?? 0) > 0
       && assignment.tokens.length === 0) return;
-  if ((def.activation.type === "season" || def.activation.type === "newMoon")
+  if ((def.activation.type === "season" || def.activation.type === "food")
       && getRegionState(state, site.regionId)?.controller !== "player"
       && (def.effects ?? []).some((effect) =>
         effect.op === "addLocalFood" || effect.op === "routeLocalFood")) return;
@@ -844,23 +849,6 @@ function applyAdministrationMoves(state, moves) {
   }
 }
 
-function runNewMoon(state) {
-  applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
-  runPracticeActivation(state, "newMoon");
-  for (const site of getDetailedSettlementSites(state)) {
-    const settlement = site.detailedState;
-    const preservationRatio = Math.min(1, getPreserveReduction(state, site) / 100);
-    const decayRate = Math.max(
-      0,
-      getGameSetting(state, "storedFoodDecayRate") * (1 - preservationRatio)
-    );
-    settlement.storedFood = roundFood(settlement.storedFood * (1 - decayRate));
-    settlement.looseFood = roundFood(
-      settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
-    );
-  }
-}
-
 function updateHappiness(state, classState, ratio) {
   const happiness = classState.happiness;
   const previousStatus = happiness.status;
@@ -1018,20 +1006,105 @@ function selectPopulationComposition(settlement, classIds, requestedCount) {
   return compositionFromBins(allocations);
 }
 
-function selectPopulationCompositionByClassPriority(
+function createMoonRegionResult(regionId) {
+  return {
+    regionId,
+    birth: null,
+    food: null,
+    housing: null,
+    faith: null,
+    migration: null,
+    death: null,
+  };
+}
+
+function createMoonTurn(state, phase) {
+  return {
+    moonIndex: phase.moonIndex,
+    startedSec: state.tSec,
+    phaseId: phase.id,
+    phaseIndex: phase.phaseIndex,
+    regions: Object.fromEntries(
+      getDetailedSettlementSites(state).map((site) => [
+        site.regionId,
+        createMoonRegionResult(site.regionId),
+      ])
+    ),
+    migrationIntents: [],
+    movements: [],
+    unresolved: [],
+  };
+}
+
+function beginMoonTurn(state, phase) {
+  const civilization = state.civilization;
+  const previous = civilization.currentMoonTurn;
+  if (previous) {
+    civilization.lastMoonTurn = clone(previous);
+    for (const site of getDetailedSettlementSites(state)) {
+      site.detailedState.lastMoonResult = clone(
+        previous.regions?.[site.regionId] ?? createMoonRegionResult(site.regionId)
+      );
+    }
+  }
+  civilization.currentMoonTurn = createMoonTurn(state, phase);
+  return civilization.currentMoonTurn;
+}
+
+function ensureMoonTurn(state, phase = getMoonPhaseAtSecond(state)) {
+  const current = state?.civilization?.currentMoonTurn;
+  if (current?.moonIndex === phase.moonIndex) return current;
+  return beginMoonTurn(state, phase);
+}
+
+function setMoonTurnPhase(state, phase) {
+  const turn = ensureMoonTurn(state, phase);
+  turn.phaseId = phase.id;
+  turn.phaseIndex = phase.phaseIndex;
+  return turn;
+}
+
+function getReservedSourceComposition(turn, sourceRegionId) {
+  const result = emptyPopulationComposition();
+  for (const intent of turn?.migrationIntents ?? []) {
+    if (intent.sourceId !== sourceRegionId) continue;
+    for (const classId of POPULATION_CLASS_ORDER) {
+      const target = result[classId];
+      const source = intent.composition?.[classId];
+      if (!source) continue;
+      target.children += source.children;
+      target.adults += source.adults;
+      const byAge = new Map(target.eldersByAge.map((cohort) => [cohort.age, cohort.count]));
+      for (const cohort of source.eldersByAge ?? []) {
+        byAge.set(cohort.age, (byAge.get(cohort.age) ?? 0) + cohort.count);
+      }
+      target.eldersByAge = [...byAge.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([age, count]) => ({ age, count }));
+    }
+  }
+  return result;
+}
+
+function selectUnreservedPopulation(
+  turn,
+  sourceRegionId,
   settlement,
   classIds,
   requestedCount
 ) {
-  const result = emptyPopulationComposition();
-  let remaining = Math.max(0, Math.floor(requestedCount));
-  for (const classId of classIds) {
-    if (remaining <= 0) break;
-    const selected = selectPopulationComposition(settlement, [classId], remaining);
-    result[classId] = selected[classId];
-    remaining -= compositionTotal(selected);
-  }
-  return result;
+  const holder = { populationByClass: clonePopulationComposition(settlement.populationByClass) };
+  removePopulationComposition(holder, getReservedSourceComposition(turn, sourceRegionId));
+  return selectPopulationComposition(holder, classIds, requestedCount);
+}
+
+function addMoonMigrationIntent(state, turn, intent) {
+  const composition = clonePopulationComposition(intent.composition);
+  const requested = compositionTotal(composition);
+  if (requested <= 0) return null;
+  const next = { ...intent, requested, composition };
+  turn.migrationIntents.push(next);
+  return next;
 }
 
 function removePopulationComposition(settlement, composition) {
@@ -1064,7 +1137,7 @@ function takeFromComposition(composition, count) {
 function resetEmptyStrangerCohort(settlement) {
   const stranger = settlement?.populationByClass?.stranger;
   if (!stranger || classPopulationTotal(stranger) > 0) return;
-  stranger.faith = { tier: "gold" };
+  stranger.faith = { tier: "gold", trend: null, streak: 0 };
   stranger.happiness = {
     status: "neutral",
     fullFeedStreak: 0,
@@ -1096,10 +1169,7 @@ function addCompositionToStrangers(settlement, composition) {
 }
 
 function getMigrationHousingTarget(state, regionId) {
-  return Math.floor(
-    getHousingCapacity(state, regionId)
-      * getGameSetting(state, "migrationHousingTargetRatio")
-  );
+  return Math.floor(getHousingCapacity(state, regionId));
 }
 
 function getSettlementFoodTotal(settlement) {
@@ -1119,8 +1189,6 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
   const sourceRatio = sourceSummary.housingCapacity > 0
     ? sourceSummary.total / sourceSummary.housingCapacity
     : Number.POSITIVE_INFINITY;
-  const sourceFaithIndex = FAITH_ORDER.indexOf(intent.sourceFaith);
-  const sourceHappinessIndex = HAPPINESS_ORDER.indexOf(intent.sourceHappiness);
   const candidates = getConnectedRegionIds(state, intent.sourceId)
     .filter((regionId) => getDetailedSettlement(state, regionId))
     .filter((regionId) => !emitterIds.has(regionId))
@@ -1135,36 +1203,15 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
         ? projected / summary.housingCapacity
         : Number.POSITIVE_INFINITY;
       const food = getSettlementFoodTotal(settlement);
-      const faithIndex = FAITH_ORDER.indexOf(settlement.populationByClass.stranger.faith.tier);
-      const happinessIndex = HAPPINESS_ORDER.indexOf(
-        settlement.populationByClass.stranger.happiness.status
-      );
-      return { regionId, headroom, occupancyRatio, food, faithIndex, happinessIndex };
+      return { regionId, headroom, occupancyRatio, food };
     })
     .filter((candidate) => candidate.headroom > 0)
     .filter((candidate) => {
-      if (intent.reason === "overcrowding") return candidate.occupancyRatio < sourceRatio;
-      if (intent.reason === "faithCollapse") {
-        return candidate.food > 0
-          && candidate.faithIndex > sourceFaithIndex
-          && candidate.happinessIndex > sourceHappinessIndex;
-      }
-      return candidate.food > 0;
+      return candidate.occupancyRatio < sourceRatio && candidate.food > 0;
     });
   return candidates.sort((a, b) => {
-    if (intent.reason === "overcrowding") {
-      return a.occupancyRatio - b.occupancyRatio
-        || b.headroom - a.headroom
-        || compareAuthoredRegionIds(state, a.regionId, b.regionId);
-    }
-    if (intent.reason === "faithCollapse") {
-      return b.faithIndex - a.faithIndex
-        || b.happinessIndex - a.happinessIndex
-        || b.food - a.food
-        || b.headroom - a.headroom
-        || compareAuthoredRegionIds(state, a.regionId, b.regionId);
-    }
-    return b.food - a.food
+    return a.occupancyRatio - b.occupancyRatio
+      || b.food - a.food
       || b.headroom - a.headroom
       || compareAuthoredRegionIds(state, a.regionId, b.regionId);
   }).map((candidate) => candidate.regionId);
@@ -1333,6 +1380,7 @@ function compactMigrationMovement(movement) {
 function resolveMigrationIntents(state, intents, {
   requiresArrivalMeal = false,
   unresolvedAreLost = false,
+  deferArrival = false,
   tSec = state.tSec,
 } = {}) {
   const active = intents.filter((intent) => intent.requested > 0);
@@ -1384,15 +1432,17 @@ function resolveMigrationIntents(state, intents, {
       });
     }
   }
-  if (requiresArrivalMeal) allocateArrivalMeals(state, movements);
+  if (requiresArrivalMeal && !deferArrival) allocateArrivalMeals(state, movements);
   for (const [index, movement] of movements.entries()) {
     if (!requiresArrivalMeal) {
       movement.survivorComposition = clonePopulationComposition(movement.composition);
     }
-    addCompositionToStrangers(
-      getDetailedSettlement(state, movement.destinationRegionId),
-      movement.survivorComposition
-    );
+    if (!deferArrival) {
+      addCompositionToStrangers(
+        getDetailedSettlement(state, movement.destinationRegionId),
+        movement.survivorComposition
+      );
+    }
     movement.transferId = `migration:${Math.max(0, Math.floor(tSec))}:${movement.reason}:${index}`;
   }
   for (const site of getDetailedSettlementSites(state)) {
@@ -1401,6 +1451,13 @@ function resolveMigrationIntents(state, intents, {
   return {
     movements,
     sourceLosses,
+    unresolvedCompositions: active.map((intent, index) => ({
+      reason: intent.reason,
+      sourceRegionId: intent.sourceId,
+      sourceClassId: intent.sourceClassId,
+      count: unresolved[index],
+      composition: clonePopulationComposition(remainingCompositions[index]),
+    })).filter((entry) => entry.count > 0),
     intentSummaries: active.map((intent, index) => ({
       reason: intent.reason,
       sourceRegionId: intent.sourceId,
@@ -1413,116 +1470,379 @@ function resolveMigrationIntents(state, intents, {
   };
 }
 
-function attachMigrationSummary(state, result, getContainer) {
+function runBirthPhase(state, phase) {
+  const turn = beginMoonTurn(state, phase);
+  runPracticeActivation(state, "birth");
+  const lastAgedYear = Math.max(1, Math.floor(
+    state.civilization.lastPopulationAgingYear ?? 1
+  ));
+  const ageAdvance = Math.max(0, Math.floor(state.year ?? 1) - lastAgedYear);
   for (const site of getDetailedSettlementSites(state)) {
-    const container = getContainer(site.detailedState);
-    if (!container) continue;
-    container.migration = { intents: [], outbound: [], inbound: [], sourceLosses: [] };
+    const settlement = site.detailedState;
+    const result = { tSec: state.tSec, year: state.year, byClass: {} };
+    for (const classId of POPULATION_CLASS_ORDER) {
+      const classState = settlement.populationByClass[classId];
+      const snapshot = clone(classState);
+      if (ageAdvance > 0) {
+        snapshot.eldersByAge = snapshot.eldersByAge.map((cohort) => ({
+          ...cohort,
+          age: cohort.age + ageAdvance,
+        }));
+      }
+      const faithLabel = String(snapshot.faith.tier ?? "gold")
+        .replace(/^./, (letter) => letter.toUpperCase());
+      const birthRate = resolveProbability(getGameSetting(state, `birthRate${faithLabel}`));
+      const childToAdultRate = getGameSetting(state, "childToAdultRate");
+      const adultToElderRate = getGameSetting(state, "adultToElderRate");
+      const births = rollCount(state, snapshot.adults, birthRate);
+      const matured = rollCount(state, snapshot.children, childToAdultRate);
+      const newElders = rollCount(state, snapshot.adults, adultToElderRate);
+      const nextElders = snapshot.eldersByAge.map((cohort) => ({ ...cohort }));
+      if (newElders > 0) {
+        const newElderAge = getGameSetting(state, "newElderAge");
+        const existing = nextElders.find((cohort) => cohort.age === newElderAge);
+        if (existing) existing.count += newElders;
+        else nextElders.push({ age: newElderAge, count: newElders });
+      }
+      classState.children = snapshot.children - matured + births;
+      classState.adults = snapshot.adults + matured - newElders;
+      classState.eldersByAge = nextElders.sort((a, b) => a.age - b.age);
+      result.byClass[classId] = {
+        births,
+        matured,
+        newElders,
+        ageAdvance,
+        birthRate,
+        childToAdultRate,
+        adultToElderRate,
+      };
+    }
+    turn.regions[site.regionId].birth = result;
   }
-  for (const intent of result.intentSummaries ?? []) {
-    getContainer(getDetailedSettlement(state, intent.sourceRegionId))
-      ?.migration.intents.push({ ...intent });
-  }
-  for (const movement of result.movements) {
-    const compact = compactMigrationMovement(movement);
-    getContainer(getDetailedSettlement(state, movement.sourceRegionId))
-      ?.migration.outbound.push(compact);
-    getContainer(getDetailedSettlement(state, movement.destinationRegionId))
-      ?.migration.inbound.push(compact);
-  }
-  for (const loss of result.sourceLosses) {
-    getContainer(getDetailedSettlement(state, loss.sourceRegionId))
-      ?.migration.sourceLosses.push({ ...loss });
-  }
+  state.civilization.lastPopulationAgingYear = Math.max(
+    lastAgedYear,
+    Math.floor(state.year ?? 1)
+  );
 }
 
-function runFullMoon(state) {
-  const hungerIntents = { starvation: [], partialMeal: [] };
+function evaluateFoodHappiness(state, classState, ratio) {
+  const previousStatus = classState.happiness.status;
+  const result = updateHappiness(state, classState, ratio);
+  const targetStatus = result.starvationTriggered
+    ? shiftStatus(previousStatus, HAPPINESS_ORDER, -1)
+    : classState.happiness.status;
+  classState.happiness.status = previousStatus;
+  return { ...result, targetStatus };
+}
+
+function runFoodPhase(state, phase) {
+  const turn = setMoonTurnPhase(state, phase);
+  applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
+  runPracticeActivation(state, "food");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
-    const demand = population.mealDemand;
     let consumed = 0;
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const classTotal = classPopulationTotal(classState);
-      const classDemand = population.byClass[classId]?.mealDemand ?? 0;
-      const classConsumed = consumeFood(settlement, classDemand);
-      const ratio = classDemand > 0 ? classConsumed / classDemand : 1;
+      const demand = population.byClass[classId]?.mealDemand ?? 0;
+      const classConsumed = consumeFood(settlement, demand);
+      const ratio = demand > 0 ? classConsumed / demand : 1;
       consumed = roundFood(consumed + classConsumed);
+      if (classId === "stranger" && classTotal <= 0) {
+        resetEmptyStrangerCohort(settlement);
+        byClass[classId] = { demand, consumed: classConsumed, ratio: 1, migrants: 0 };
+        continue;
+      }
+      const happiness = evaluateFoodHappiness(state, classState, ratio);
+      const requested = ratio < 1
+        ? Math.ceil(classTotal * (1 - ratio) - 0.00001)
+        : 0;
+      const composition = selectUnreservedPopulation(
+        turn,
+        site.regionId,
+        settlement,
+        [classId],
+        requested
+      );
+      const intent = addMoonMigrationIntent(state, turn, {
+        reason: "food",
+        sourceId: site.regionId,
+        sourceClassId: classId,
+        composition,
+      });
       byClass[classId] = {
-        demand: classDemand,
+        demand,
         consumed: classConsumed,
         ratio: roundFood(ratio),
+        migrants: intent?.requested ?? 0,
+        previousHappiness: happiness.previousStatus,
+        targetHappiness: happiness.targetStatus,
       };
-      if (classId === "stranger" && classTotal <= 0) {
+    }
+    const result = {
+      tSec: state.tSec,
+      demand: population.mealDemand,
+      consumed,
+      ratio: roundFood(population.mealDemand > 0 ? consumed / population.mealDemand : 1),
+      byClass,
+      migration: { intents: [], outbound: [], inbound: [], sourceLosses: [] },
+    };
+    settlement.lastMeal = result;
+    turn.regions[site.regionId].food = clone(result);
+  }
+}
+
+function runHousingPhase(state, phase) {
+  const turn = setMoonTurnPhase(state, phase);
+  for (const site of getDetailedSettlementSites(state)) {
+    const settlement = site.detailedState;
+    const population = getPopulationSummary(state, site.regionId);
+    const alreadyMigrating = compositionTotal(
+      getReservedSourceComposition(turn, site.regionId)
+    );
+    const assessedPopulation = Math.max(0, population.total - alreadyMigrating);
+    const capacity = population.housingCapacity;
+    const overflow = Math.max(0, assessedPopulation - capacity);
+    const happinessCap = assessedPopulation <= capacity
+      ? "positive"
+      : assessedPopulation > capacity * getGameSetting(state, "overHousingNegativeRatio")
+        ? "negative"
+        : "neutral";
+    const composition = selectUnreservedPopulation(
+      turn,
+      site.regionId,
+      settlement,
+      ["stranger", "villager"],
+      overflow
+    );
+    const intent = addMoonMigrationIntent(state, turn, {
+      reason: "housing",
+      sourceId: site.regionId,
+      sourceClassId: null,
+      composition,
+    });
+    turn.regions[site.regionId].housing = {
+      tSec: state.tSec,
+      population: assessedPopulation,
+      capacity,
+      overflow,
+      migrants: intent?.requested ?? 0,
+      happinessCap,
+    };
+  }
+}
+
+function normalizeFaithRuntime(faith) {
+  faith.trend = faith.trend === "positive" || faith.trend === "negative"
+    ? faith.trend
+    : null;
+  faith.streak = Math.max(0, Math.floor(faith.streak ?? 0));
+  faith.collapseActive = faith.collapseActive === true;
+  return faith;
+}
+
+function applyFaithOutcome(state, classState) {
+  const faith = normalizeFaithRuntime(classState.faith);
+  const happiness = classState.happiness.status;
+  const trend = happiness === "positive" || happiness === "negative" ? happiness : null;
+  if (!trend) {
+    faith.trend = null;
+    faith.streak = 0;
+    return { shifted: false, previousTier: faith.tier, nextTier: faith.tier };
+  }
+  faith.streak = faith.trend === trend ? faith.streak + 1 : 1;
+  faith.trend = trend;
+  const previousTier = faith.tier;
+  if (faith.streak >= getGameSetting(state, "faithStreakForShift")) {
+    faith.tier = shiftStatus(faith.tier, FAITH_ORDER, trend === "positive" ? 1 : -1);
+    faith.streak = 0;
+  }
+  return { shifted: faith.tier !== previousTier, previousTier, nextTier: faith.tier };
+}
+
+function runFaithPhase(state, phase) {
+  const turn = setMoonTurnPhase(state, phase);
+  for (const site of getDetailedSettlementSites(state)) {
+    const settlement = site.detailedState;
+    const byClass = {};
+    const housingCap = turn.regions[site.regionId].housing?.happinessCap ?? "positive";
+    for (const classId of POPULATION_CLASS_ORDER) {
+      const classState = settlement.populationByClass[classId];
+      if (classId === "stranger" && classPopulationTotal(classState) <= 0) {
         resetEmptyStrangerCohort(settlement);
         continue;
       }
-      const happiness = updateHappiness(state, classState, ratio);
-      if (happiness.starvationTriggered) {
+      const food = turn.regions[site.regionId].food?.byClass?.[classId];
+      const previousHappiness = classState.happiness.status;
+      const foodTarget = food?.targetHappiness ?? previousHappiness;
+      const foodIndex = Math.max(0, HAPPINESS_ORDER.indexOf(foodTarget));
+      const capIndex = Math.max(0, HAPPINESS_ORDER.indexOf(housingCap));
+      classState.happiness.status = HAPPINESS_ORDER[Math.min(foodIndex, capIndex)];
+      const faithResult = applyFaithOutcome(state, classState);
+      const collapseCondition = classState.faith.tier === "bronze"
+        && classState.happiness.status === "negative";
+      let displaced = 0;
+      if (collapseCondition && classState.faith.collapseActive !== true) {
         const requested = Math.ceil(
-          classTotal * getGameSetting(state, "starvationPopulationLossRate")
+          classPopulationTotal(classState) * getGameSetting(state, "bronzeCollapseLossRate")
         );
-        hungerIntents.starvation.push({
-          reason: "starvation",
+        const composition = selectUnreservedPopulation(
+          turn,
+          site.regionId,
+          settlement,
+          [classId],
+          requested
+        );
+        displaced = addMoonMigrationIntent(state, turn, {
+          reason: "faith",
           sourceId: site.regionId,
           sourceClassId: classId,
-          sourceFaith: classState.faith.tier,
-          sourceHappiness: classState.happiness.status,
-          requested,
-          composition: selectPopulationComposition(settlement, [classId], requested),
-        });
-      } else if (
-        HAPPINESS_ORDER.indexOf(happiness.nextStatus)
-          < HAPPINESS_ORDER.indexOf(happiness.previousStatus)
-      ) {
-        const requested = Math.ceil(classTotal * Math.max(0, 1 - ratio));
-        hungerIntents.partialMeal.push({
-          reason: "partialMeal",
-          sourceId: site.regionId,
-          sourceClassId: classId,
-          sourceFaith: classState.faith.tier,
-          sourceHappiness: classState.happiness.status,
-          requested,
-          composition: selectPopulationComposition(settlement, [classId], requested),
-        });
+          composition,
+        })?.requested ?? 0;
       }
+      classState.faith.collapseActive = collapseCondition;
+      byClass[classId] = {
+        previousHappiness,
+        happiness: classState.happiness.status,
+        previousFaith: faithResult.previousTier,
+        faith: faithResult.nextTier,
+        faithShifted: faithResult.shifted,
+        faithTrend: classState.faith.trend,
+        faithStreak: classState.faith.streak,
+        collapseEntered: collapseCondition && displaced > 0,
+        displaced,
+      };
     }
-    settlement.lastMeal = {
-      tSec: state.tSec,
-      demand,
-      consumed,
-      ratio: roundFood(demand > 0 ? consumed / demand : 1),
-      byClass,
-    };
+    turn.regions[site.regionId].faith = { tSec: state.tSec, byClass };
   }
-  const starvationResult = resolveMigrationIntents(state, hungerIntents.starvation, {
-    requiresArrivalMeal: true,
-    unresolvedAreLost: true,
-  });
-  const partialResult = resolveMigrationIntents(state, hungerIntents.partialMeal, {
+  runGlobalChaos(state);
+  runVassalAnnualBoundary(state);
+}
+
+function buildMoonMigrationSummary(result, regionId) {
+  return {
+    intents: result.intentSummaries
+      .filter((intent) => intent.sourceRegionId === regionId),
+    outbound: result.movements
+      .filter((movement) => movement.sourceRegionId === regionId)
+      .map(compactMigrationMovement),
+    inbound: result.movements
+      .filter((movement) => movement.destinationRegionId === regionId)
+      .map(compactMigrationMovement),
+    sourceLosses: [],
+  };
+}
+
+function runMigrationPhase(state, phase) {
+  const turn = setMoonTurnPhase(state, phase);
+  const result = resolveMigrationIntents(state, turn.migrationIntents, {
     requiresArrivalMeal: true,
     unresolvedAreLost: false,
+    deferArrival: true,
   });
-  const result = {
-    movements: [...starvationResult.movements, ...partialResult.movements],
-    sourceLosses: [...starvationResult.sourceLosses, ...partialResult.sourceLosses],
-    intentSummaries: [
-      ...starvationResult.intentSummaries,
-      ...partialResult.intentSummaries,
-    ],
-  };
-  result.movements.forEach((movement, index) => {
-    movement.transferId = `migration:${Math.max(0, Math.floor(state.tSec))}:${index}`;
-  });
-  attachMigrationSummary(state, result, (settlement) => settlement?.lastMeal);
+  turn.movements = result.movements;
+  turn.unresolved = result.unresolvedCompositions;
+  turn.migrationIntentSummaries = result.intentSummaries;
+  for (const site of getDetailedSettlementSites(state)) {
+    const summary = buildMoonMigrationSummary(result, site.regionId);
+    turn.regions[site.regionId].migration = {
+      tSec: state.tSec,
+      ...summary,
+    };
+    if (site.detailedState.lastMeal) {
+      site.detailedState.lastMeal.migration = clone(summary);
+    }
+  }
+}
+
+function rollCompositionDeaths(state, composition, probability) {
+  const deaths = emptyPopulationComposition();
+  for (const classId of POPULATION_CLASS_ORDER) {
+    const source = composition?.[classId];
+    const target = deaths[classId];
+    if (!source) continue;
+    target.children = rollCount(state, source.children, probability);
+    target.adults = rollCount(state, source.adults, probability);
+    target.eldersByAge = (source.eldersByAge ?? []).map((cohort) => ({
+      age: cohort.age,
+      count: rollCount(state, cohort.count, probability),
+    })).filter((cohort) => cohort.count > 0);
+  }
+  return deaths;
+}
+
+function runDeathPhase(state, phase) {
+  const turn = setMoonTurnPhase(state, phase);
+  allocateArrivalMeals(state, turn.movements);
+  for (const movement of turn.movements) {
+    addCompositionToStrangers(
+      getDetailedSettlement(state, movement.destinationRegionId),
+      movement.survivorComposition
+    );
+  }
+  const hardshipDeathsByRegion = Object.fromEntries(
+    getDetailedSettlementSites(state).map((site) => [site.regionId, 0])
+  );
+  for (const unresolved of turn.unresolved) {
+    const deaths = rollCompositionDeaths(
+      state,
+      unresolved.composition,
+      getGameSetting(state, "migrationHardshipDeathRate")
+    );
+    removePopulationComposition(
+      getDetailedSettlement(state, unresolved.sourceRegionId),
+      deaths
+    );
+    hardshipDeathsByRegion[unresolved.sourceRegionId] += compositionTotal(deaths);
+  }
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
+    const byClass = {};
+    for (const classId of POPULATION_CLASS_ORDER) {
+      const classState = settlement.populationByClass[classId];
+      let naturalDeaths = 0;
+      classState.eldersByAge = (classState.eldersByAge ?? []).map((cohort) => {
+        const deaths = rollCount(state, cohort.count, getElderMortalityRate(cohort.age, state));
+        naturalDeaths += deaths;
+        return { ...cohort, count: cohort.count - deaths };
+      }).filter((cohort) => cohort.count > 0);
+      byClass[classId] = { naturalDeaths };
+    }
+    const storedBefore = settlement.storedFood;
+    const looseBefore = settlement.looseFood;
+    const preservationRatio = Math.min(1, getPreserveReduction(state, site) / 100);
+    settlement.storedFood = roundFood(settlement.storedFood * (1 - Math.max(
+      0,
+      getGameSetting(state, "storedFoodDecayRate") * (1 - preservationRatio)
+    )));
     settlement.looseFood = roundFood(
       settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
     );
+    const migration = {
+      ...(turn.regions[site.regionId].migration ?? {
+        intents: [], outbound: [], inbound: [], sourceLosses: [],
+      }),
+      outbound: turn.movements
+        .filter((movement) => movement.sourceRegionId === site.regionId)
+        .map(compactMigrationMovement),
+      inbound: turn.movements
+        .filter((movement) => movement.destinationRegionId === site.regionId)
+        .map(compactMigrationMovement),
+    };
+    turn.regions[site.regionId].migration = migration;
+    turn.regions[site.regionId].death = {
+      tSec: state.tSec,
+      byClass,
+      hardshipDeaths: hardshipDeathsByRegion[site.regionId],
+      arrivalDeaths: migration.inbound.reduce((sum, move) => sum + move.arrivalDeaths, 0),
+      storedFoodRot: roundFood(storedBefore - settlement.storedFood),
+      looseFoodRot: roundFood(looseBefore - settlement.looseFood),
+    };
+    if (settlement.lastMeal) settlement.lastMeal.migration = clone(migration);
+    resetEmptyStrangerCohort(settlement);
   }
 }
 
@@ -1559,188 +1879,6 @@ function shiftStatus(value, order, delta) {
   return order[Math.max(0, Math.min(order.length - 1, index + delta))];
 }
 
-function runDemographics(state) {
-  const annualResults = new Map();
-  for (const site of getDetailedSettlementSites(state)) {
-    const settlement = site.detailedState;
-    const result = { year: state.year, tSec: state.tSec, byClass: {} };
-    annualResults.set(site.regionId, result);
-    settlement.lastAnnualResult = result;
-    for (const classId of POPULATION_CLASS_ORDER) {
-      const classState = settlement.populationByClass[classId];
-      const snapshot = clone(classState);
-      const faithLabel = String(snapshot.faith.tier ?? "gold")
-        .replace(/^./, (letter) => letter.toUpperCase());
-      const birthRate = resolveProbability(getGameSetting(state, `birthRate${faithLabel}`));
-      const births = rollCount(state, snapshot.adults, birthRate);
-      const childToAdultRate = getGameSetting(state, "childToAdultRate");
-      const adultToElderRate = getGameSetting(state, "adultToElderRate");
-      const matured = rollCount(state, snapshot.children, childToAdultRate);
-      const newElders = rollCount(state, snapshot.adults, adultToElderRate);
-      const nextElders = [];
-      let elderDeaths = 0;
-      for (const cohort of [...snapshot.eldersByAge].sort((a, b) => a.age - b.age)) {
-        const nextAge = cohort.age + 1;
-        const deaths = rollCount(state, cohort.count, getElderMortalityRate(nextAge, state));
-        elderDeaths += deaths;
-        if (cohort.count - deaths > 0) {
-          nextElders.push({ age: nextAge, count: cohort.count - deaths });
-        }
-      }
-      if (newElders > 0) {
-        nextElders.push({
-          age: getGameSetting(state, "newElderAge"),
-          count: newElders,
-        });
-      }
-      classState.children = snapshot.children - matured + births;
-      classState.adults = snapshot.adults + matured - newElders;
-      classState.eldersByAge = nextElders;
-      result.byClass[classId] = {
-        ...(result.byClass[classId] ?? {}),
-        births,
-        matured,
-        newElders,
-        elderDeaths,
-        birthRate,
-        childToAdultRate,
-        adultToElderRate,
-      };
-    }
-  }
-
-  const overcrowdingIntents = [];
-  for (const site of getDetailedSettlementSites(state)) {
-    const settlement = site.detailedState;
-    const result = annualResults.get(site.regionId);
-    const population = getPopulationSummary(state, site.regionId);
-    const overflow = Math.max(0, population.total - population.housingCapacity);
-    const housingCapStatus = population.total <= population.housingCapacity
-      ? "positive"
-      : population.total
-          > population.housingCapacity * getGameSetting(state, "overHousingNegativeRatio")
-        ? "negative"
-        : "neutral";
-    for (const classId of POPULATION_CLASS_ORDER) {
-      const happiness = settlement.populationByClass[classId].happiness;
-      const currentIndex = HAPPINESS_ORDER.indexOf(happiness.status);
-      const capIndex = HAPPINESS_ORDER.indexOf(housingCapStatus);
-      happiness.status = HAPPINESS_ORDER[Math.min(
-        currentIndex < 0 ? 1 : currentIndex,
-        capIndex < 0 ? 1 : capIndex
-      )];
-    }
-    if (overflow > 0) {
-      const requested = Math.max(
-        0,
-        population.total - getMigrationHousingTarget(state, site.regionId)
-      );
-      overcrowdingIntents.push({
-        reason: "overcrowding",
-        sourceId: site.regionId,
-        sourceClassId: null,
-        sourceFaith: null,
-        sourceHappiness: null,
-        requested,
-        composition: selectPopulationCompositionByClassPriority(
-          settlement,
-          ["stranger", "villager"],
-          requested
-        ),
-      });
-    }
-    result.housingOverflow = overflow;
-  }
-
-  const overcrowdingResult = resolveMigrationIntents(state, overcrowdingIntents, {
-    requiresArrivalMeal: false,
-    unresolvedAreLost: false,
-  });
-  attachMigrationSummary(
-    state,
-    overcrowdingResult,
-    (settlement) => settlement?.lastAnnualResult
-  );
-  for (const site of getDetailedSettlementSites(state)) {
-    site.detailedState.lastAnnualResult.housingOverflowAfterMigration = Math.max(
-      0,
-      getPopulationSummary(state, site.regionId).total
-        - getHousingCapacity(state, site.regionId)
-    );
-  }
-
-  const collapseIntents = [];
-  for (const site of getDetailedSettlementSites(state)) {
-    const settlement = site.detailedState;
-    const result = annualResults.get(site.regionId);
-    for (const classId of POPULATION_CLASS_ORDER) {
-      const classState = settlement.populationByClass[classId];
-      if (classId === "stranger" && classPopulationTotal(classState) <= 0) {
-        resetEmptyStrangerCohort(settlement);
-        continue;
-      }
-      if (classState.happiness.status === "positive") {
-        classState.faith.tier = shiftStatus(classState.faith.tier, FAITH_ORDER, 1);
-      } else if (classState.happiness.status === "negative") {
-        if (classState.faith.tier === "bronze") {
-          const classTotal = classPopulationTotal(classState);
-          const collapseLoss = Math.min(
-            classTotal,
-            Math.max(
-              1,
-              Math.floor(classTotal * getGameSetting(state, "bronzeCollapseLossRate"))
-            )
-          );
-          collapseIntents.push({
-            reason: "faithCollapse",
-            sourceId: site.regionId,
-            sourceClassId: classId,
-            sourceFaith: classState.faith.tier,
-            sourceHappiness: classState.happiness.status,
-            requested: collapseLoss,
-            composition: selectPopulationComposition(settlement, [classId], collapseLoss),
-          });
-        } else {
-          classState.faith.tier = shiftStatus(classState.faith.tier, FAITH_ORDER, -1);
-        }
-      }
-    }
-  }
-
-  const collapseResult = resolveMigrationIntents(state, collapseIntents, {
-    requiresArrivalMeal: true,
-    unresolvedAreLost: true,
-  });
-  for (const movement of collapseResult.movements) {
-    const sourceResult = annualResults.get(movement.sourceRegionId);
-    const byClass = sourceResult?.byClass?.[movement.sourceClassId];
-    if (byClass) {
-      byClass.bronzeCollapseLoss = (byClass.bronzeCollapseLoss ?? 0)
-        + movement.arrivalDeaths;
-    }
-  }
-  for (const loss of collapseResult.sourceLosses) {
-    const sourceResult = annualResults.get(loss.sourceRegionId);
-    const byClass = sourceResult?.byClass?.[loss.sourceClassId];
-    if (byClass) {
-      byClass.bronzeCollapseLoss = (byClass.bronzeCollapseLoss ?? 0) + loss.count;
-    }
-  }
-  for (const site of getDetailedSettlementSites(state)) {
-    const migration = site.detailedState.lastAnnualResult.migration;
-    migration.intents.push(...collapseResult.intentSummaries
-      .filter((intent) => intent.sourceRegionId === site.regionId));
-    migration.outbound.push(...collapseResult.movements
-      .filter((movement) => movement.sourceRegionId === site.regionId)
-      .map(compactMigrationMovement));
-    migration.inbound.push(...collapseResult.movements
-      .filter((movement) => movement.destinationRegionId === site.regionId)
-      .map(compactMigrationMovement));
-    migration.sourceLosses.push(...collapseResult.sourceLosses
-      .filter((loss) => loss.sourceRegionId === site.regionId));
-  }
-}
-
 function runGlobalChaos(state) {
   const civilization = state.civilization;
   let totalIncome = 0;
@@ -1774,12 +1912,15 @@ function runGlobalChaos(state) {
     totalIncome += income;
     byRegion.push({ regionId: site.regionId, baseIncome, mitigation, income });
   }
-  civilization.chaos.chaosPower += totalIncome;
-  const spawned = Math.floor(
+  civilization.chaos.chaosPower = roundFood(
+    civilization.chaos.chaosPower + totalIncome
+  );
+  const spawnedTotal = Math.floor(
     civilization.chaos.chaosPower / getGameSetting(state, "chaosPerMonster")
   );
+  const spawned = Math.max(0, spawnedTotal - civilization.chaos.monsterCount);
   civilization.chaos.monsterCount += spawned;
-  civilization.chaos.lastAnnualIncome = { totalIncome, byRegion, spawned };
+  civilization.chaos.lastMoonIncome = { totalIncome, byRegion, spawned };
   if (civilization.chaos.monsterCount >= civilization.chaos.monsterLossThreshold) {
     state.runStatus = {
       complete: true,
@@ -1987,7 +2128,11 @@ export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoo
     Math.floor(candidate.deathAge) - Math.floor(candidate.initialAge)
   );
   const deathYear = selectedYear + yearsUntilDeath;
-  const deathSec = getDetailedYearStartSec(state, deathYear);
+  const deathSec = getNextMoonPhaseBoundarySec(
+    state,
+    getDetailedYearStartSec(state, deathYear),
+    MOON_PHASE_INDEX_BY_ID.faith
+  );
   const selected = {
     ...clone(candidate),
     vassalId: `vassal-${lineage.nextVassalId++}`,
@@ -1995,6 +2140,7 @@ export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoo
     selectedSec,
     deathYear,
     deathSec,
+    lastFaithYear: selectedYear,
     isDead: false,
   };
   lineage.currentVassal = selected;
@@ -2043,6 +2189,11 @@ function runVassalAnnualBoundary(state) {
   const lineage = state.civilization.vassalLineage;
   const vassal = lineage.currentVassal;
   if (!vassal || vassal.isDead) return;
+  const processedYear = Math.max(
+    vassal.selectedYear,
+    Math.floor(vassal.lastFaithYear ?? vassal.selectedYear)
+  );
+  if (state.year <= processedYear) return;
   const prestige = getDetailedVassalPrestige(state, vassal);
   for (const intervention of vassal.interventions) {
     if (intervention.status === "pending" && prestige >= intervention.requiredPrestige) {
@@ -2059,11 +2210,14 @@ function runVassalAnnualBoundary(state) {
     }
     lineage.selectedVassals[lineage.selectedVassals.length - 1] = clone(vassal);
     lineage.currentVassal = null;
+  } else {
+    vassal.lastFaithYear = state.year;
+    lineage.selectedVassals[lineage.selectedVassals.length - 1] = clone(vassal);
   }
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 7;
+  state.gameStateSchemaVersion = 8;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -2080,7 +2234,7 @@ export function initializeDetailedSettlementCivilization(state) {
     chaosPower: 0,
     monsterCount: 0,
     monsterLossThreshold: getGameSetting(state, "monsterLossThreshold"),
-    lastAnnualIncome: null,
+    lastMoonIncome: null,
   };
   state.civilization.vassalLineage = {
     nextVassalId: 1,
@@ -2088,6 +2242,9 @@ export function initializeDetailedSettlementCivilization(state) {
     pendingCandidates: [],
     selectedVassals: [],
   };
+  state.civilization.currentMoonTurn = null;
+  state.civilization.lastMoonTurn = null;
+  state.civilization.lastPopulationAgingYear = 1;
 }
 
 export function stepDetailedSettlementsSecond(state, tSec) {
@@ -2096,16 +2253,14 @@ export function stepDetailedSettlementsSecond(state, tSec) {
     resetEmptyStrangerCohort(site.detailedState);
   }
   if (state._seasonChanged === true) runPracticeActivation(state, "season");
-  const moonCycleSec = Math.max(2, getGameSetting(state, "moonCycleSec"));
-  if (tSec > 0 && tSec % moonCycleSec === 0) runNewMoon(state);
-  if (tSec > 0 && tSec % moonCycleSec === Math.floor(moonCycleSec / 2)) {
-    runFullMoon(state);
-  }
-  if (state._seasonChanged === true && state.currentSeasonIndex === 0) {
-    runDemographics(state);
-    runGlobalChaos(state);
-    runVassalAnnualBoundary(state);
-  }
+  const phase = getMoonPhaseAtSecond(state, tSec);
+  if (!phase.boundary) return;
+  if (phase.id === "birth") runBirthPhase(state, phase);
+  else if (phase.id === "food") runFoodPhase(state, phase);
+  else if (phase.id === "housing") runHousingPhase(state, phase);
+  else if (phase.id === "faith") runFaithPhase(state, phase);
+  else if (phase.id === "migration") runMigrationPhase(state, phase);
+  else if (phase.id === "death") runDeathPhase(state, phase);
 }
 
 export function getDetailedSettlementViewModel(state, regionId) {
@@ -2156,7 +2311,8 @@ export function getDetailedSettlementViewModel(state, regionId) {
     usedStructureCapacity: settlement.structureSlots.filter(Boolean).length,
     elderOrder: getElderOrderSummary(state, regionId),
     lastMeal: settlement.lastMeal,
-    lastAnnualResult: settlement.lastAnnualResult,
+    currentMoonResult: state.civilization.currentMoonTurn?.regions?.[regionId] ?? null,
+    lastMoonResult: settlement.lastMoonResult,
   };
 }
 

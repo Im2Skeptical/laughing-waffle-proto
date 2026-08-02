@@ -189,8 +189,8 @@ function getClassRedGodChaosMitigationBreakdown(state, classId) {
 export function getSettlementChaosIncomeSummary(state, godId) {
   const safeGodId =
     typeof godId === "string" && CHAOS_GOD_IDS.includes(godId) ? godId : "redGod";
-  if (state?.gameStateSchemaVersion === 7) {
-    const last = state?.civilization?.chaos?.lastAnnualIncome;
+  if (state?.gameStateSchemaVersion === 8) {
+    const last = state?.civilization?.chaos?.lastMoonIncome;
     return {
       godId: safeGodId,
       totalIncome: safeGodId === "redGod" ? last?.totalIncome ?? 0 : 0,
@@ -251,13 +251,13 @@ function getRedGodNextSpawnCount(chaosPower) {
 export function getSettlementChaosGodSummary(state, godId) {
   const safeGodId =
     typeof godId === "string" && CHAOS_GOD_IDS.includes(godId) ? godId : "redGod";
-  if (state?.gameStateSchemaVersion === 7) {
+  if (state?.gameStateSchemaVersion === 8) {
     const chaos = state?.civilization?.chaos ?? {};
     return {
       godId: safeGodId,
       enabled: safeGodId === "redGod",
       chaosPower: safeGodId === "redGod" ? chaos.chaosPower ?? 0 : 0,
-      chaosIncome: safeGodId === "redGod" ? chaos.lastAnnualIncome?.totalIncome ?? 0 : 0,
+      chaosIncome: safeGodId === "redGod" ? chaos.lastMoonIncome?.totalIncome ?? 0 : 0,
       monsterCount: safeGodId === "redGod" ? chaos.monsterCount ?? 0 : 0,
       monsterWinCount: chaos.monsterLossThreshold ?? 1000,
       nextSpawnSec: null,

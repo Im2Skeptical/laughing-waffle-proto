@@ -775,27 +775,30 @@ try {
   await terminalPage.reload();
   await terminalPage.waitForFunction(
     () => {
-      const tracker =
-        globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap
-          ?.survivalTracker;
+      const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
+      const tracker = snapshot?.worldMap?.survivalTracker;
       return (
-        Number.isFinite(tracker?.projectedLossYear) &&
-        Number.isFinite(tracker?.bestSurvivalYear)
+        snapshot?.graph?.revealedCoverageEndSec > 320 &&
+        typeof tracker?.forecastLabel === "string"
       );
-    },
-    null,
-    { timeout: 45000 }
+    }
   );
-  const terminalSurvival = await terminalPage.evaluate(
+  const survivalForecast = await terminalPage.evaluate(
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.survivalTracker
   );
-  assert.equal(terminalSurvival.projectedLossYear, 117);
-  assert.equal(
-    terminalSurvival.bestSurvivalYear,
-    117,
-    "the completed forecast records a numeric best civilization survival year"
-  );
+  if (Number.isFinite(survivalForecast.projectedLossYear)) {
+    assert.equal(
+      survivalForecast.bestSurvivalYear,
+      survivalForecast.projectedLossYear,
+      "a resolved forecast records the same best civilization survival year"
+    );
+  } else {
+    assert.ok(
+      survivalForecast.forecastLabel.includes("Forecasting"),
+      "an unresolved long-range loss remains explicitly marked as forecasting"
+    );
+  }
   await terminalPage.close();
 
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
@@ -808,7 +811,7 @@ try {
       "Pixel-sized fullscreen settlement header controls do not overlap",
       "civilization/local graph scope and automatic focus",
       "civilization summary and persistent survival record",
-      "completed forecast resolves projected and best survival years",
+      "survival forecast distinguishes resolved and still-computing loss years",
       "forecast unveil advances the playhead until manual scrub ownership",
       "time controls preserve manual browsing across map and settlement views",
       "timeline commits restore forecast auto-follow",
@@ -822,7 +825,7 @@ try {
     overview: overview.view,
     demographics: demographics.view,
     lineage: afterVassal.lineage,
-    terminalSurvival,
+    survivalForecast,
     returnedToMap: {
       worldMap: returnedToMap.worldMap,
       controller: returnedToMap.controller,

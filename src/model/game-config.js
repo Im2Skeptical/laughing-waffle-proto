@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 2;
+export const GAME_CONFIG_SCHEMA_VERSION = 3;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -15,7 +15,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     label: "Timing",
     fields: Object.freeze([
       field("seasonDurationSec", "Season duration (seconds)", 8, 1, 120, 1, true),
-      field("moonCycleSec", "Moon cycle (seconds)", 6, 2, 120, 1, true),
+      field("phaseDurationSec", "Moon phase duration (seconds)", 1, 1, 20, 1, true),
     ]),
   }),
   Object.freeze({
@@ -35,7 +35,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
       field("elderMealConsumption", "Food per elder", 1, 0, 100, 0.05),
       field("storedFoodDecayRate", "Stored food decay", 0.1, 0, 1, 0.01),
-      field("looseFoodDecayRate", "Loose food decay", 0.5, 0, 1, 0.01),
+      field("looseFoodDecayRate", "Loose food decay", 0.75, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({
@@ -43,19 +43,19 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     label: "Demographics",
     fields: Object.freeze([
       field("birthRateBronze", "Birth chance: Bronze", 0, 0, 1, 0.01),
-      field("birthRateSilver", "Birth chance: Silver", 0.1, 0, 1, 0.01),
-      field("birthRateGold", "Birth chance: Gold", 0.2, 0, 1, 0.01),
-      field("birthRateDiamond", "Birth chance: Diamond", 0.5, 0, 1, 0.01),
-      field("childToAdultRate", "Child-to-adult chance", 0.1, 0, 1, 0.01),
-      field("adultToElderRate", "Adult-to-elder chance", 0.02, 0, 1, 0.01),
+      field("birthRateSilver", "Birth chance: Silver", 0.02, 0, 1, 0.005),
+      field("birthRateGold", "Birth chance: Gold", 0.04, 0, 1, 0.005),
+      field("birthRateDiamond", "Birth chance: Diamond", 0.08, 0, 1, 0.005),
+      field("childToAdultRate", "Child-to-adult chance", 0.02, 0, 1, 0.005),
+      field("adultToElderRate", "Adult-to-elder chance", 0.005, 0, 1, 0.005),
       field("newElderAge", "New elder age", 45, 1, 200, 1, true),
-      field("elderMortalityThrough49", "Elder mortality through 49", 0.01, 0, 1, 0.01),
-      field("elderMortality50To54", "Elder mortality 50-54", 0.03, 0, 1, 0.01),
-      field("elderMortality55To59", "Elder mortality 55-59", 0.08, 0, 1, 0.01),
-      field("elderMortality60To64", "Elder mortality 60-64", 0.18, 0, 1, 0.01),
-      field("elderMortality65To69", "Elder mortality 65-69", 0.35, 0, 1, 0.01),
-      field("elderMortality70To74", "Elder mortality 70-74", 0.6, 0, 1, 0.01),
-      field("elderMortality75Plus", "Elder mortality 75+", 0.85, 0, 1, 0.01),
+      field("elderMortalityThrough49", "Elder mortality through 49", 0.0025, 0, 1, 0.0025),
+      field("elderMortality50To54", "Elder mortality 50-54", 0.005, 0, 1, 0.005),
+      field("elderMortality55To59", "Elder mortality 55-59", 0.015, 0, 1, 0.005),
+      field("elderMortality60To64", "Elder mortality 60-64", 0.04, 0, 1, 0.01),
+      field("elderMortality65To69", "Elder mortality 65-69", 0.08, 0, 1, 0.01),
+      field("elderMortality70To74", "Elder mortality 70-74", 0.16, 0, 1, 0.01),
+      field("elderMortality75Plus", "Elder mortality 75+", 0.3, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({
@@ -66,23 +66,23 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("partialFeedMinimumRatio", "Partial-feed minimum ratio", 0.5, 0, 1, 0.01),
       field("partialFeedMemoryLength", "Improving partial meals required", 3, 1, 100, 1, true),
       field("missedFeedStreakForStarvation", "Missed meals before starvation", 3, 1, 100, 1, true),
-      field("starvationPopulationLossRate", "Starvation population loss", 0.2, 0, 1, 0.01),
-      field("migrationHousingTargetRatio", "Migration destination housing ratio", 0.8, 0, 1, 0.01),
       field("overHousingNegativeRatio", "Population/capacity for negative housing", 1.2, 1, 100, 0.05),
-      field("bronzeCollapseLossRate", "Bronze collapse population loss", 0.5, 0, 1, 0.01),
+      field("faithStreakForShift", "Faith outcomes for tier shift", 3, 1, 100, 1, true),
+      field("migrationHardshipDeathRate", "Unplaced migrant hardship mortality", 0.2, 0, 1, 0.01),
+      field("bronzeCollapseLossRate", "Bronze collapse displacement", 0.25, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({
     id: "chaos",
     label: "Chaos and civilization loss",
     fields: Object.freeze([
-      field("baseChaosIncomePerSite", "Base chaos per settlement", 10, 0, 100000, 1, true),
+      field("baseChaosIncomePerSite", "Base chaos per settlement per moon", 2, 0, 100000, 0.25),
       field("chaosGrowthRate", "Chaos growth rate", 0.03, 0, 100, 0.01),
       field("chaosGrowthYears", "Years per chaos growth step", 12, 1, 10000, 1, true),
       field("goldMitigationAmount", "Gold mitigation amount", 1, 0, 10000, 1, true),
-      field("goldMitigationPerPopulation", "Population per Gold mitigation", 5, 1, 10000, 1, true),
+      field("goldMitigationPerPopulation", "Population per Gold mitigation", 25, 1, 10000, 1, true),
       field("diamondMitigationAmount", "Diamond mitigation amount", 1, 0, 10000, 1, true),
-      field("diamondMitigationPerPopulation", "Population per Diamond mitigation", 2, 1, 10000, 1, true),
+      field("diamondMitigationPerPopulation", "Population per Diamond mitigation", 10, 1, 10000, 1, true),
       field("chaosPerMonster", "Chaos per monster", 100, 1, 1000000, 1, true),
       field("monsterLossThreshold", "Monster loss threshold", 1000, 1, 10000000, 1, true),
     ]),

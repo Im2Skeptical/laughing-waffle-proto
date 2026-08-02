@@ -1,29 +1,28 @@
 import {
   planDetailedAdministrationMovesAtBoundary,
 } from "./detailed-settlements.js";
-import { getGameSetting } from "./game-config.js";
+import { MOON_PHASE_INDEX_BY_ID } from "../defs/gamesettings/moon-phase-defs.js";
+import {
+  getMoonCycleDurationSec,
+  getMoonPhaseAtSecond,
+  getMoonPhaseDurationSec,
+} from "./moon-phases.js";
 import { advanceReplayStateOneSecond } from "./replay-second-runner.js";
 import { deserializeGameState, serializeGameState } from "./state.js";
 
 export function getLatestEdgeTransferBoundarySec(tSec, state = null) {
   const sec = Math.max(0, Math.floor(tSec ?? 0));
-  const cadence = Math.max(1, getGameSetting(state, "moonCycleSec"));
-  const fullMoonOffset = Math.floor(cadence / 2);
-  const latestNewMoon = Math.floor(sec / cadence) * cadence;
-  const latestFullMoon = sec >= fullMoonOffset
-    ? Math.floor((sec - fullMoonOffset) / cadence) * cadence + fullMoonOffset
-    : 0;
-  const seasonCount = Array.isArray(state?.seasons) && state.seasons.length > 0
-    ? state.seasons.length
-    : 4;
-  const seasonDurationSec = Math.max(1, Math.floor(
-    state?.seasonDurationSec ?? getGameSetting(state, "seasonDurationSec")
-  ));
-  const yearDurationSec = seasonCount * seasonDurationSec;
-  const latestAnnual = sec > yearDurationSec
-    ? Math.floor((sec - 1) / yearDurationSec) * yearDurationSec + 1
-    : 0;
-  return Math.max(latestNewMoon, latestFullMoon, latestAnnual);
+  const phaseDurationSec = getMoonPhaseDurationSec(state);
+  const cycleSec = getMoonCycleDurationSec(state);
+  const latestFor = (phaseIndex) => {
+    const first = 1 + phaseIndex * phaseDurationSec;
+    if (sec < first) return 0;
+    return first + Math.floor((sec - first) / cycleSec) * cycleSec;
+  };
+  return Math.max(
+    latestFor(MOON_PHASE_INDEX_BY_ID.food),
+    latestFor(MOON_PHASE_INDEX_BY_ID.migration)
+  );
 }
 
 function collectMigrationTransfers(postBoundaryState, boundarySec) {
@@ -35,8 +34,10 @@ function collectMigrationTransfers(postBoundaryState, boundarySec) {
     if (settlement.lastMeal?.tSec === boundarySec) {
       summaries.push(settlement.lastMeal.migration);
     }
-    if (settlement.lastAnnualResult?.tSec === boundarySec) {
-      summaries.push(settlement.lastAnnualResult.migration);
+    const currentMigration = postBoundaryState?.civilization?.currentMoonTurn
+      ?.regions?.[site.regionId]?.migration;
+    if (currentMigration?.tSec === boundarySec) {
+      summaries.push(currentMigration);
     }
     for (const summary of summaries) {
       for (const movement of summary?.outbound ?? []) {
@@ -64,11 +65,11 @@ export function buildEdgeTransferBatchAtBoundary(
   boundarySec
 ) {
   const sec = Math.max(0, Math.floor(boundarySec ?? 0));
-  const cadence = Math.max(1, getGameSetting(preBoundaryState, "moonCycleSec"));
+  const phase = getMoonPhaseAtSecond(preBoundaryState, sec);
   const administrationTransfers =
     preBoundaryState?.runStatus?.complete !== true &&
     sec > 0 &&
-    sec % cadence === 0
+    phase.boundary && phase.id === "food"
       ? planDetailedAdministrationMovesAtBoundary(
           preBoundaryState,
           sec

@@ -30,11 +30,11 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v2");
+      localStorage.removeItem("civsurvivor.mapLabDraft.v3");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v2");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v3");
       localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v2");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v2");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v3");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v2");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
@@ -107,7 +107,7 @@ try {
 
   await page.getByTestId("map-lab-json-toggle").click();
   const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
-  assert.equal(json.schemaVersion, 2);
+  assert.equal(json.schemaVersion, 3);
   assert.equal(json.regions[0].structureCapacity, 4);
   assert.equal("capacity" in json.regions[0], false);
   assert.equal("installedPracticeIds" in json.regions[0], false);
@@ -139,7 +139,7 @@ try {
   await page.getByTestId("debug-game-settings-tab").click();
   await page.getByTestId("debug-gameSettings").waitFor({ state: "visible" });
   const birthRate = page.getByTestId("setting-birthRateGold");
-  assert.equal(await birthRate.inputValue(), "0.2");
+  assert.equal(await birthRate.inputValue(), "0.04");
   await birthRate.fill("0.35");
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   assert.equal(

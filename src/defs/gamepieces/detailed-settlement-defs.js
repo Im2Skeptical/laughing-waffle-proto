@@ -92,7 +92,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     id: "administrate",
     label: "Administration",
     workerCapacity: 2,
-    activation: Object.freeze({ type: "newMoon", chargePeriodMoons: 1 }),
+    activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
     ui: Object.freeze({
       rule: "Move meal-safe surplus to resolve meal shortages. Preservation expands reach across player-controlled paths.",
     }),
@@ -168,7 +168,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     id: "buildGranary",
     label: "Build Granary",
     workerCapacity: 1,
-    activation: Object.freeze({ type: "newMoon", chargePeriodMoons: 1 }),
+    activation: Object.freeze({ type: "birth", chargePeriodMoons: 1 }),
     costs: Object.freeze([]),
     effects: Object.freeze([
       Object.freeze({ op: "advanceWork", amountPerEffectiveWorker: 1 }),
@@ -179,7 +179,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     id: "buildMudHouses",
     label: "Build Mud Houses",
     workerCapacity: 1,
-    activation: Object.freeze({ type: "newMoon", chargePeriodMoons: 1 }),
+    activation: Object.freeze({ type: "birth", chargePeriodMoons: 1 }),
     costs: Object.freeze([]),
     effects: Object.freeze([
       Object.freeze({ op: "advanceWork", amountPerEffectiveWorker: 1 }),

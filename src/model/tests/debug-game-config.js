@@ -33,9 +33,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 2);
-assert.equal(authoredConfig.settings.schemaVersion, 2);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 2);
+assert.equal(authoredConfig.schemaVersion, 3);
+assert.equal(authoredConfig.settings.schemaVersion, 3);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 3);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -102,8 +102,8 @@ cultivate._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivate, 8);
 assert.equal(
   getDetailedSettlement(cultivate, "cedar-woods").storedFood,
-  120,
-  "Cultivate reads its state-scoped declarative effect amount"
+  87,
+  "Cultivate uses the state-scoped effect before the same Food phase meal"
 );
 assert.equal(getDetailedSettlement(cultivate, "cedar-woods").looseFood, 0);
 assert.equal(
@@ -158,4 +158,4 @@ assert.equal(
   true
 );
 
-console.log("[debug-game-config-v2] OK");
+console.log("[debug-game-config-v3] OK");

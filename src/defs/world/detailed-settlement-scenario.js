@@ -28,7 +28,7 @@ export const createInitialDetailedSettlementData = () => ({
         { age: 53, count: 1 },
         { age: 56, count: 1 },
       ],
-      faith: { tier: "gold" },
+      faith: { tier: "gold", trend: null, streak: 0 },
       happiness: {
         status: "neutral",
         fullFeedStreak: 0,
@@ -40,7 +40,7 @@ export const createInitialDetailedSettlementData = () => ({
       children: 0,
       adults: 0,
       eldersByAge: [],
-      faith: { tier: "gold" },
+      faith: { tier: "gold", trend: null, streak: 0 },
       happiness: {
         status: "neutral",
         fullFeedStreak: 0,
@@ -68,5 +68,5 @@ export const createInitialDetailedSettlementData = () => ({
     workerPolicyId: "populationDecileVillagersFirst",
   },
   lastMeal: null,
-  lastAnnualResult: null,
+  lastMoonResult: null,
 });
