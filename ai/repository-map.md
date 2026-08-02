@@ -70,6 +70,8 @@ for ordinary label/layout work.
 - Detailed settlements, workers, food, demographics, housing, Elder Orders,
   vassal selection/interventions, and view models:
   `src/model/detailed-settlements.js`
+- Lunar phase definitions/timing: `src/defs/gamesettings/moon-phase-defs.js`,
+  `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
   `src/defs/gamepieces/detailed-settlement-defs.js`
 - World definitions/state: `src/defs/world/` and `src/model/world-state.js`

@@ -14,8 +14,8 @@ import {
   isWorldConnectionCandidate,
 } from "./world-state.js";
 
-export const MAP_LAB_DRAFT_SCHEMA_VERSION = 2;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v2";
+export const MAP_LAB_DRAFT_SCHEMA_VERSION = 3;
+export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v3";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
@@ -36,7 +36,7 @@ function normalizeDetailedState(raw, capacity) {
   while (state.structureSlots.length < capacity) state.structureSlots.push(null);
   state.elderOrder = state.elderOrder ?? fallback.elderOrder;
   state.lastMeal = null;
-  state.lastAnnualResult = null;
+  state.lastMoonResult = null;
   return state;
 }
 

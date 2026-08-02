@@ -362,7 +362,7 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   state.seasonTimeRemaining = 0;
   state.paused = false;
 
-  // Map-driven settlement schema v7 is assembled by createWorldState. Legacy
+  // Map-driven settlement schema v8 is assembled by createWorldState. Legacy
   // board/hub setup is intentionally not constructed or migrated.
   initializeDetailedSettlementCivilization(state);
   recomputeInitialActionPoints(state);

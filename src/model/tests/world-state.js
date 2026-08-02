@@ -44,7 +44,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 7);
+assert.equal(state.gameStateSchemaVersion, 8);
 assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
   REGION_STRUCTURE_CAPACITIES);
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
@@ -131,11 +131,11 @@ assert.equal(
   null,
   "a latched forecast preview is never overwritten by reveal following"
 );
-assert.equal(getLatestEdgeTransferBoundarySec(17), 15);
+assert.equal(getLatestEdgeTransferBoundarySec(17), 17);
 const transferTimeline = createTimelineFromInitialState(
   createInitialState("devPlaytesting01", 24680)
 );
-const preTransferBoundary = rebuildStateAtSecond(transferTimeline, 11);
+const preTransferBoundary = rebuildStateAtSecond(transferTimeline, 13);
 assert.equal(preTransferBoundary.ok, true);
 getDetailedSettlement(preTransferBoundary.state, "cedar-woods").looseFood = 500;
 for (const regionId of ["west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
@@ -146,7 +146,7 @@ for (const regionId of ["west-levee", "upper-floodplain", "river-crown", "lake-c
 const preTransferStateData = serializeGameState(preTransferBoundary.state);
 const transferBatch = buildEdgeTransferBatchAtBoundary(
   preTransferBoundary.state,
-  12
+  14
 );
 assert.ok(transferBatch.transfers.length > 0);
 assert.deepEqual(
@@ -168,7 +168,7 @@ for (const transfer of transferBatch.transfers) {
 assert.deepEqual(
   buildEdgeTransferBatchAtBoundary(
     deserializeGameState(preTransferStateData),
-    12
+    14
   ),
   transferBatch,
   "edge-transfer batches are replay deterministic"
@@ -329,8 +329,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 6;
-assert.throws(() => deserializeGameState(old), /expected v7/);
+old.gameStateSchemaVersion = 7;
+assert.throws(() => deserializeGameState(old), /expected v8/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -469,4 +469,4 @@ try {
   }
 }
 
-console.log("[world-state-v7] OK");
+console.log("[world-state-v8] OK");

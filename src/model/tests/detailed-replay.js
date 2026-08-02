@@ -94,8 +94,8 @@ const terminalSummary = terminalProjection.summaryBySecond.get(
   terminalProjection.endSec
 );
 assert.equal(terminalSummary?.runComplete, true);
-assert.equal(terminalSummary?.runLossYear, 2,
-  "the configured terminal scenario retains its deterministic loss year");
+assert.equal(terminalSummary?.runLossYear, 1,
+  "the configured terminal scenario resolves at its first Faith phase");
 assert.ok(
   terminalProjection.stateDataBySecond.has(terminalProjection.endSec),
   "terminal state remains available to the survival tracker"

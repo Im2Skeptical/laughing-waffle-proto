@@ -1430,6 +1430,7 @@ const sunMoonDisksView = createSunAndMoonDisksView({
   clearPreviewState: () => runner.clearPreviewState?.(),
   commitPreviewToLive: () => ({ ok: true, previewOnly: true }),
   requestPauseBeforeDrag: requestPauseBeforeDrag,
+  tooltipView,
   layout: DISK_LAYOUT,
 });
 
