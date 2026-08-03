@@ -1624,12 +1624,16 @@ function handleDebugFreshRunApplied(reason) {
   settlementDebugMenu?.close?.();
   runCompleteView?.close?.(reason);
   worldMapView?.resetEdgeTransferPackets?.();
-  setWorldViewMode("map");
+  forecastWorkerService.handleTimelineInvalidation?.(`${reason}:freshRun`);
+  settlementProjectionCache.clear?.();
+  settlementGraphController?.handleInvalidate?.("init");
+  runner.clearPreviewState?.();
   settlementGraphView?.resetForecastPreviewState?.();
   settlementGraphView?.resetDataContext?.();
   settlementGraphView?.restartForecastRevealFrom?.(0, {
     clearProjectionReplacementTransition: true,
   });
+  setWorldViewMode("map");
   worldMapView?.refresh?.();
   settlementGraphView?.render?.();
 }

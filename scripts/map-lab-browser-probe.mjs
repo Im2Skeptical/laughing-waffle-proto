@@ -28,6 +28,10 @@ try {
   await waitForHttp();
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+  await page.route("**/timegraph-forecast-worker-*.js", async (route) => {
+    await delay(750);
+    await route.continue();
+  });
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v3");
@@ -212,6 +216,15 @@ try {
   await page.waitForFunction(
     (viewedSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec > viewedSec,
     configuredSnapshot.viewedSec
+  );
+  const followedConfiguredSnapshot = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(
+    followedConfiguredSnapshot.gameConfig.gamepieces.practices.administrate
+      .effects[0].scaledValue.baseAmount,
+    75,
+    "forecast auto-follow keeps the freshly configured gamepiece definitions"
   );
 
   await page.getByTestId("debug-open").click();
