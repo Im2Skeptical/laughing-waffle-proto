@@ -110,6 +110,14 @@ function validateRegionScopeDefinition(scope, label, errors) {
   }
   if (scope.kind === "conditionalHostPractice") {
     if (typeof scope.practiceId !== "string") errors.push(`${label}: invalid practice condition`);
+    if (scope.requiredDefinitionPath != null
+        && (!Array.isArray(scope.requiredDefinitionPath)
+          || scope.requiredDefinitionPath.length === 0
+          || scope.requiredDefinitionPath.some(
+            (part) => typeof part !== "string" && !Number.isInteger(part)
+          ))) {
+      errors.push(`${label}: invalid required definition path`);
+    }
     validateRegionScopeDefinition(scope.whenPresent, `${label}.whenPresent`, errors);
     validateRegionScopeDefinition(scope.otherwise, `${label}.otherwise`, errors);
     return;
@@ -415,7 +423,15 @@ export function resolveDetailedRegionScope(state, regionId, scope) {
   const host = getRegionState(state, regionId);
   if (!host) return [];
   if (scope?.kind === "conditionalHostPractice") {
+    const practiceDef = getDetailedPracticeDef(state, scope.practiceId);
+    const requiredValue = (scope.requiredDefinitionPath ?? []).reduce(
+      (current, key) => current?.[key],
+      practiceDef
+    );
+    const conditionEnabled = scope.requiredDefinitionPath == null
+      || requiredValue === true;
     const selectedScope = regionHasDetailedPractice(state, regionId, scope.practiceId)
+      && conditionEnabled
       ? scope.whenPresent
       : scope.otherwise;
     return resolveDetailedRegionScope(state, regionId, selectedScope);
@@ -2217,7 +2233,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 8;
+  state.gameStateSchemaVersion = 9;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

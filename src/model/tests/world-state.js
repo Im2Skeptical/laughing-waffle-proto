@@ -44,7 +44,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 8);
+assert.equal(state.gameStateSchemaVersion, 9);
 assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
   REGION_STRUCTURE_CAPACITIES);
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
@@ -329,8 +329,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 7;
-assert.throws(() => deserializeGameState(old), /expected v8/);
+old.gameStateSchemaVersion = 8;
+assert.throws(() => deserializeGameState(old), /expected v9/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -469,4 +469,4 @@ try {
   }
 }
 
-console.log("[world-state-v8] OK");
+console.log("[world-state-v9] OK");

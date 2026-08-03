@@ -43,6 +43,19 @@ function numberInput(value, { min = 0, max = 1000000, step = "any" } = {}) {
   return input;
 }
 
+function booleanInput(value) {
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = value === true;
+  input.style.cssText = [
+    "width:22px",
+    "height:22px",
+    "margin:6px 0",
+    "accent-color:#d7b450",
+  ].join(";");
+  return input;
+}
+
 function fieldRow(labelText, input) {
   const label = document.createElement("label");
   label.style.cssText = "display:grid;gap:4px;min-width:0;font-size:12px;color:#e8dfcb";
@@ -177,6 +190,13 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
     });
   }
 
+  function bindBoolean(input, path) {
+    input.addEventListener("change", () => {
+      const result = controller.updateValue(kind, path, input.checked);
+      input.setAttribute("aria-invalid", result?.ok ? "false" : "true");
+    });
+  }
+
   function renderSettings(parent, draft) {
     for (const section of GAME_SETTING_EDITOR_SECTIONS) {
       const group = document.createElement("fieldset");
@@ -185,16 +205,24 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
       legend.textContent = section.label;
       legend.style.color = "#e0c789";
       group.appendChild(legend);
-      const grid = document.createElement("div");
-      grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px";
-      for (const field of section.fields) {
-        const input = numberInput(draft.values[field.id], field);
-        input.dataset.testid = `setting-${field.id}`;
-        input.setAttribute("aria-label", field.label);
-        bindNumber(input, ["values", field.id]);
-        grid.appendChild(fieldRow(field.label, input));
+      if (section.description) {
+        const description = document.createElement("p");
+        description.textContent = section.description;
+        description.style.cssText = "margin:0 0 9px;color:#c9d1d8;font-size:12px;line-height:1.35";
+        group.appendChild(description);
       }
-      group.appendChild(grid);
+      if (section.fields.length > 0) {
+        const grid = document.createElement("div");
+        grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px";
+        for (const field of section.fields) {
+          const input = numberInput(draft.values[field.id], field);
+          input.dataset.testid = `setting-${field.id}`;
+          input.setAttribute("aria-label", field.label);
+          bindNumber(input, ["values", field.id]);
+          grid.appendChild(fieldRow(field.label, input));
+        }
+        group.appendChild(grid);
+      }
       parent.appendChild(group);
     }
   }
@@ -210,13 +238,17 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
       const grid = document.createElement("div");
       grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px";
       for (const field of groupData.fields) {
-        const input = numberInput(getAtPath(draft, field.path), {
-          min: String(field.path.at(-1)).startsWith("additive") ? -1000 : 0,
-          step: "any",
-        });
+        const value = getAtPath(draft, field.path);
+        const input = field.type === "boolean"
+          ? booleanInput(value)
+          : numberInput(value, {
+            min: String(field.path.at(-1)).startsWith("additive") ? -1000 : 0,
+            step: "any",
+          });
         input.dataset.testid = `gamepiece-${groupData.kind}-${groupData.id}-${field.id}`;
         input.setAttribute("aria-label", `${groupData.label} ${field.label}`);
-        bindNumber(input, field.path);
+        if (field.type === "boolean") bindBoolean(input, field.path);
+        else bindNumber(input, field.path);
         grid.appendChild(fieldRow(field.label, input));
       }
       group.appendChild(grid);

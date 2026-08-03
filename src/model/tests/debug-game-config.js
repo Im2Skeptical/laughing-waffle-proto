@@ -8,6 +8,7 @@ import {
   createAuthoredGameConfig,
   createAuthoredGamepiecesDraft,
   createAuthoredGameSettingsDraft,
+  getGamepieceEditorGroups,
   parseDebugDraftJson,
   serializeDebugDraft,
   setAtPath,
@@ -33,9 +34,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 3);
-assert.equal(authoredConfig.settings.schemaVersion, 3);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 3);
+assert.equal(authoredConfig.schemaVersion, 4);
+assert.equal(authoredConfig.settings.schemaVersion, 4);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 4);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -45,6 +46,40 @@ assert.equal(
     GAME_SETTINGS_DRAFT_KIND
   ).ok,
   true
+);
+assert.equal(
+  authoredConfig.gamepieces.practices.preserve.connectedAdministrationReach,
+  true,
+  "Preservation expands Administration reach by default"
+);
+assert.deepEqual(
+  getGamepieceEditorGroups(authoredConfig.gamepieces)
+    .flatMap((group) => group.fields)
+    .filter((field) => field.type === "boolean")
+    .map((field) => field.path.join(".")),
+  ["practices.preserve.connectedAdministrationReach"],
+  "only explicitly declared boolean gamepiece fields appear in the editor"
+);
+const disabledReachGamepieces = setAtPath(
+  authoredConfig.gamepieces,
+  ["practices", "preserve", "connectedAdministrationReach"],
+  false
+);
+assert.equal(validateGamepiecesDraft(disabledReachGamepieces).ok, true);
+assert.equal(
+  canonicalizeGameConfig({
+    settings: authoredConfig.settings,
+    gamepieces: disabledReachGamepieces,
+  }).gamepieces.practices.preserve.connectedAdministrationReach,
+  false,
+  "boolean gamepiece controls survive canonicalization"
+);
+const invalidBooleanGamepieces = clone(disabledReachGamepieces);
+invalidBooleanGamepieces.practices.preserve.connectedAdministrationReach = 0;
+assert.equal(
+  validateGamepiecesDraft(invalidBooleanGamepieces).ok,
+  false,
+  "boolean gamepiece controls reject numeric substitutes"
 );
 assert.equal(validateGamepiecesDraft({
   ...createAuthoredGamepiecesDraft(),
@@ -158,4 +193,4 @@ assert.equal(
   true
 );
 
-console.log("[debug-game-config-v3] OK");
+console.log("[debug-game-config-v4] OK");

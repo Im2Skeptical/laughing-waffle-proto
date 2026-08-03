@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 3;
+export const GAME_CONFIG_SCHEMA_VERSION = 4;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -11,8 +11,9 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 
 export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
-    id: "timing",
-    label: "Timing",
+    id: "clockwork",
+    label: "Clockwork",
+    description: "The seasonal and lunar clocks remain independent. A full moon turn contains all six lunar phases.",
     fields: Object.freeze([
       field("seasonDurationSec", "Season duration (seconds)", 8, 1, 120, 1, true),
       field("phaseDurationSec", "Moon phase duration (seconds)", 1, 1, 20, 1, true),
@@ -20,7 +21,8 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "workers",
-    label: "Workers",
+    label: "Shared population and workers",
+    description: "These values are shared by practices regardless of their activation phase.",
     fields: Object.freeze([
       field("populationPerToken", "Population per worker token", 10, 1, 1000, 1, true),
       field("villagerEffectiveness", "Villager effectiveness", 1, 0, 100, 0.1),
@@ -28,19 +30,9 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     ]),
   }),
   Object.freeze({
-    id: "food",
-    label: "Food and meals",
-    fields: Object.freeze([
-      field("childMealConsumption", "Food per child", 0.5, 0, 100, 0.05),
-      field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
-      field("elderMealConsumption", "Food per elder", 1, 0, 100, 0.05),
-      field("storedFoodDecayRate", "Stored food decay", 0.1, 0, 1, 0.01),
-      field("looseFoodDecayRate", "Loose food decay", 0.75, 0, 1, 0.01),
-    ]),
-  }),
-  Object.freeze({
-    id: "demographics",
-    label: "Demographics",
+    id: "birthPhase",
+    label: "1. Birth phase",
+    description: "Finishes construction, rolls births, matures children, and promotes adults into the Elder Order.",
     fields: Object.freeze([
       field("birthRateBronze", "Birth chance: Bronze", 0, 0, 1, 0.01),
       field("birthRateSilver", "Birth chance: Silver", 0.02, 0, 1, 0.005),
@@ -49,33 +41,37 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("childToAdultRate", "Child-to-adult chance", 0.02, 0, 1, 0.005),
       field("adultToElderRate", "Adult-to-elder chance", 0.005, 0, 1, 0.005),
       field("newElderAge", "New elder age", 45, 1, 200, 1, true),
-      field("elderMortalityThrough49", "Elder mortality through 49", 0.0025, 0, 1, 0.0025),
-      field("elderMortality50To54", "Elder mortality 50-54", 0.005, 0, 1, 0.005),
-      field("elderMortality55To59", "Elder mortality 55-59", 0.015, 0, 1, 0.005),
-      field("elderMortality60To64", "Elder mortality 60-64", 0.04, 0, 1, 0.01),
-      field("elderMortality65To69", "Elder mortality 65-69", 0.08, 0, 1, 0.01),
-      field("elderMortality70To74", "Elder mortality 70-74", 0.16, 0, 1, 0.01),
-      field("elderMortality75Plus", "Elder mortality 75+", 0.3, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({
-    id: "social",
-    label: "Happiness, housing, and collapse",
+    id: "foodPhase",
+    label: "2. Food phase",
+    description: "Runs Administration, feeds the population, records meal evidence, and marks unfed people for migration.",
     fields: Object.freeze([
+      field("childMealConsumption", "Food per child", 0.5, 0, 100, 0.05),
+      field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
+      field("elderMealConsumption", "Food per elder", 1, 0, 100, 0.05),
       field("fullFeedStreakForIncrease", "Full meals for happiness increase", 3, 1, 100, 1, true),
       field("partialFeedMinimumRatio", "Partial-feed minimum ratio", 0.5, 0, 1, 0.01),
       field("partialFeedMemoryLength", "Improving partial meals required", 3, 1, 100, 1, true),
       field("missedFeedStreakForStarvation", "Missed meals before starvation", 3, 1, 100, 1, true),
-      field("overHousingNegativeRatio", "Population/capacity for negative housing", 1.2, 1, 100, 0.05),
-      field("faithStreakForShift", "Faith outcomes for tier shift", 3, 1, 100, 1, true),
-      field("migrationHardshipDeathRate", "Unplaced migrant hardship mortality", 0.2, 0, 1, 0.01),
-      field("bronzeCollapseLossRate", "Bronze collapse displacement", 0.25, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({
-    id: "chaos",
-    label: "Chaos and civilization loss",
+    id: "housingPhase",
+    label: "3. Housing phase",
+    description: "Caps happiness when overcrowded and adds the unhoused overflow to the shared migrant population.",
     fields: Object.freeze([
+      field("overHousingNegativeRatio", "Population/capacity for negative housing", 1.2, 1, 100, 0.05),
+    ]),
+  }),
+  Object.freeze({
+    id: "faithPhase",
+    label: "4. Faith phase",
+    description: "Applies happiness evidence, shifts faith, displaces collapsed Bronze populations, and resolves chaos.",
+    fields: Object.freeze([
+      field("faithStreakForShift", "Faith outcomes for tier shift", 3, 1, 100, 1, true),
+      field("bronzeCollapseLossRate", "Bronze collapse displacement", 0.25, 0, 1, 0.01),
       field("baseChaosIncomePerSite", "Base chaos per settlement per moon", 2, 0, 100000, 0.25),
       field("chaosGrowthRate", "Chaos growth rate", 0.03, 0, 100, 0.01),
       field("chaosGrowthYears", "Years per chaos growth step", 12, 1, 10000, 1, true),
@@ -88,8 +84,32 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     ]),
   }),
   Object.freeze({
+    id: "migrationPhase",
+    label: "5. Migration phase",
+    description: "All migration causes share one bucket. Destinations are chosen from current food need and available housing; there are no independent numeric tunables for this phase.",
+    fields: Object.freeze([]),
+  }),
+  Object.freeze({
+    id: "deathPhase",
+    label: "6. Death phase",
+    description: "Resolves arrival meals, hardship among unplaced migrants, elder mortality, and food rot.",
+    fields: Object.freeze([
+      field("migrationHardshipDeathRate", "Unplaced migrant hardship mortality", 0.2, 0, 1, 0.01),
+      field("elderMortalityThrough49", "Elder mortality through 49", 0.0025, 0, 1, 0.0025),
+      field("elderMortality50To54", "Elder mortality 50-54", 0.005, 0, 1, 0.005),
+      field("elderMortality55To59", "Elder mortality 55-59", 0.015, 0, 1, 0.005),
+      field("elderMortality60To64", "Elder mortality 60-64", 0.04, 0, 1, 0.01),
+      field("elderMortality65To69", "Elder mortality 65-69", 0.08, 0, 1, 0.01),
+      field("elderMortality70To74", "Elder mortality 70-74", 0.16, 0, 1, 0.01),
+      field("elderMortality75Plus", "Elder mortality 75+", 0.3, 0, 1, 0.01),
+      field("storedFoodDecayRate", "Stored food decay", 0.1, 0, 1, 0.01),
+      field("looseFoodDecayRate", "Loose food decay", 0.75, 0, 1, 0.01),
+    ]),
+  }),
+  Object.freeze({
     id: "order",
     label: "Elder Order and vassals",
+    description: "Annual Elder Order and vassal rules resolve at their next thematically matching lunar phase.",
     fields: Object.freeze([
       field("elderPrestigeBaseAge", "Elder prestige base age", 44, 0, 200, 1, true),
       field("resistancePerAdditionalElder", "Resistance per additional elder", 10, 0, 10000, 1, true),
@@ -177,35 +197,39 @@ export function createAuthoredGamepiecesDraft() {
   };
 }
 
-function copyNumericLeaves(template, source) {
+function copyEditableLeaves(template, source) {
   if (Array.isArray(template)) {
-    return template.map((entry, index) => copyNumericLeaves(entry, source?.[index]));
+    return template.map((entry, index) => copyEditableLeaves(entry, source?.[index]));
   }
   if (template && typeof template === "object") {
     return Object.fromEntries(
       Object.entries(template).map(([key, entry]) => [
         key,
-        copyNumericLeaves(entry, source?.[key]),
+        copyEditableLeaves(entry, source?.[key]),
       ])
     );
   }
-  return typeof template === "number" && Number.isFinite(source)
-    ? Number(source)
-    : template;
+  if (typeof template === "number") {
+    return Number.isFinite(source) ? Number(source) : template;
+  }
+  if (typeof template === "boolean") {
+    return typeof source === "boolean" ? source : template;
+  }
+  return template;
 }
 
 export function canonicalizeGamepiecesDraft(value) {
   const authored = createAuthoredGamepiecesDraft();
   return {
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
-    structures: copyNumericLeaves(authored.structures, value?.structures),
-    practices: copyNumericLeaves(authored.practices, value?.practices),
+    structures: copyEditableLeaves(authored.structures, value?.structures),
+    practices: copyEditableLeaves(authored.practices, value?.practices),
   };
 }
 
 function collectNumericLeafPaths(value, prefix = [], result = []) {
   if (typeof value === "number") {
-    result.push(prefix);
+    result.push({ path: prefix, type: "number" });
     return result;
   }
   if (Array.isArray(value)) {
@@ -220,6 +244,19 @@ function collectNumericLeafPaths(value, prefix = [], result = []) {
   return result;
 }
 
+function collectDeclaredEditorFields(definition) {
+  return (definition?.editor?.fields ?? []).map((entry) => ({
+    path: Array.isArray(entry?.path) ? entry.path : [],
+    type: entry?.type,
+    label: entry?.label,
+  })).filter((entry) =>
+    entry.path.length > 0
+    && entry.type === "boolean"
+    && typeof entry.label === "string"
+    && entry.label.length > 0
+  );
+}
+
 export function getGamepieceEditorGroups(draft) {
   const safe = canonicalizeGamepiecesDraft(draft);
   const groups = [];
@@ -232,10 +269,14 @@ export function getGamepieceEditorGroups(draft) {
         kind,
         id,
         label: definition.label ?? id,
-        fields: collectNumericLeafPaths(definition).map((path) => ({
+        fields: [
+          ...collectNumericLeafPaths(definition),
+          ...collectDeclaredEditorFields(definition),
+        ].map(({ path, type, label }) => ({
           path: [kind, id, ...path],
           id: path.join("."),
-          label: path
+          type,
+          label: label ?? path
             .map((part) => typeof part === "number" ? `Effect ${part + 1}` : splitCamel(part))
             .join(" / "),
           value: getAtPath(safe, [kind, id, ...path]),
@@ -287,6 +328,12 @@ export function validateGamepiecesDraft(value) {
   for (const group of getGamepieceEditorGroups(value)) {
     for (const entry of group.fields) {
       const current = getAtPath(value, entry.path);
+      if (entry.type === "boolean") {
+        if (typeof current !== "boolean") {
+          errors.push(`${entry.path.join(".")}: expected a boolean`);
+        }
+        continue;
+      }
       if (!Number.isFinite(current)) {
         errors.push(`${entry.path.join(".")}: expected a finite number`);
         continue;
