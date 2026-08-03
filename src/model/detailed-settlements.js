@@ -1574,7 +1574,7 @@ function runFoodPhase(state, phase) {
         continue;
       }
       const happiness = evaluateFoodHappiness(state, classState, ratio);
-      const requested = ratio < 1
+      const requested = happiness.starvationTriggered
         ? Math.ceil(classTotal * (1 - ratio) - 0.00001)
         : 0;
       const composition = selectUnreservedPopulation(

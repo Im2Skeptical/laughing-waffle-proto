@@ -46,7 +46,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
     id: "foodPhase",
     label: "2. Food phase",
-    description: "Runs Administration, feeds the population, records meal evidence, and marks unfed people for migration.",
+    description: "Runs Administration, feeds the population, records meal evidence, and marks the unfed share for migration when starvation triggers.",
     fields: Object.freeze([
       field("childMealConsumption", "Food per child", 0.5, 0, 100, 0.05),
       field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
