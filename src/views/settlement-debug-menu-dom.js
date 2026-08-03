@@ -101,19 +101,16 @@ export function createSettlementDebugMenuDom({
   vassalTab.type = "button";
   vassalTab.textContent = "Vassal Lab";
   vassalTab.dataset.testid = "debug-vassal-tab";
-  const close = document.createElement("button");
-  close.type = "button";
-  close.textContent = "Close";
-  close.style.marginLeft = "auto";
-  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab, close);
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.textContent = "Close";
+  closeButton.style.marginLeft = "auto";
+  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab, closeButton);
   panel.append(header);
 
   const mapLab = createMapLabDom({
     controller: mapLabController,
-    onRequestClose: () => {
-      panel.style.display = "none";
-      openButton.style.display = "";
-    },
+    onRequestClose: () => close(),
   });
   const gameSettings = createDebugConfigurationDom({
     controller: debugConfigurationController,
@@ -177,6 +174,11 @@ export function createSettlementDebugMenuDom({
     setActivePage(activePage);
   }
 
+  function close() {
+    panel.style.display = "none";
+    openButton.style.display = "";
+  }
+
   openButton.addEventListener("click", open);
   fullscreenButton.addEventListener("click", () => {
     void toggleFullscreen();
@@ -185,10 +187,7 @@ export function createSettlementDebugMenuDom({
   gameSettingsTab.addEventListener("click", () => setActivePage("gameSettings"));
   gamepiecesTab.addEventListener("click", () => setActivePage("gamepieces"));
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
-  close.addEventListener("click", () => {
-    panel.style.display = "none";
-    openButton.style.display = "";
-  });
+  closeButton.addEventListener("click", close);
 
   return {
     init() {
@@ -207,6 +206,7 @@ export function createSettlementDebugMenuDom({
     },
     update() {},
     refresh() {},
+    close,
     destroy() {
       mapLab.destroy();
       gameSettings.destroy();

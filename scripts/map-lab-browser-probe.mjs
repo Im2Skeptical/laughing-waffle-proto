@@ -181,6 +181,7 @@ try {
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
   await page.getByTestId("gamepieces-apply").click();
+  await page.getByTestId("debug-open").waitFor({ state: "visible" });
   const configuredSnapshot = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -203,7 +204,17 @@ try {
       .connectedAdministrationReach,
     false
   );
+  assert.equal(
+    configuredSnapshot.graph.forecastRevealPlayheadFollowEnabled,
+    true,
+    "fresh configured runs resume boot-style forecast following"
+  );
+  await page.waitForFunction(
+    (viewedSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec > viewedSec,
+    configuredSnapshot.viewedSec
+  );
 
+  await page.getByTestId("debug-open").click();
   await page.getByTestId("debug-vassal-tab").click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
   await page.getByTestId("vassal-debug-target").selectOption("river-crown");

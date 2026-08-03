@@ -1621,6 +1621,7 @@ function handleDebugFreshRunApplied(reason) {
   settlementPendingVassalSelection = null;
   settlementLastVassalSelectionResult = null;
   settlementPendingPreviewRestoreSec = null;
+  settlementDebugMenu?.close?.();
   runCompleteView?.close?.(reason);
   worldMapView?.resetEdgeTransferPackets?.();
   setWorldViewMode("map");
