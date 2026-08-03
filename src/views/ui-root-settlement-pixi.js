@@ -1622,8 +1622,15 @@ function handleDebugFreshRunApplied(reason) {
   settlementLastVassalSelectionResult = null;
   settlementPendingPreviewRestoreSec = null;
   runCompleteView?.close?.(reason);
+  worldMapView?.resetEdgeTransferPackets?.();
   setWorldViewMode("map");
+  settlementGraphView?.resetForecastPreviewState?.();
+  settlementGraphView?.resetDataContext?.();
+  settlementGraphView?.restartForecastRevealFrom?.(0, {
+    clearProjectionReplacementTransition: true,
+  });
   worldMapView?.refresh?.();
+  settlementGraphView?.render?.();
 }
 mapLabController = createMapLabController({
   runner,
