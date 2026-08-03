@@ -883,6 +883,7 @@ function updateHappiness(state, classState, ratio) {
       getGameSetting(state, "missedFeedStreakForStarvation"),
       happiness.missedFeedStreak + 1
     );
+    happiness.status = shiftStatus(previousStatus, HAPPINESS_ORDER, -1);
   } else {
     const previousRatio = happiness.partialFeedRatios.at(-1);
     happiness.fullFeedStreak = 0;

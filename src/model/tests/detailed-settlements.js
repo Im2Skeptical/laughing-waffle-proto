@@ -298,6 +298,34 @@ for (const [index, ratio] of [0.6, 0.7, 0.8].entries()) {
 assert.equal(partialSite.populationByClass.villager.happiness.status, "positive",
   "three rising partial meals improve happiness");
 
+const underHalfFed = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8801)));
+const underHalfSite = getDetailedSettlement(underHalfFed, "cedar-woods");
+const underHalfClass = underHalfSite.populationByClass.villager;
+underHalfClass.adults = 10;
+underHalfClass.happiness.status = "positive";
+underHalfSite.looseFood = 4.9;
+stepDetailedSettlementsSecond(underHalfFed, 1);
+stepDetailedSettlementsSecond(underHalfFed, 2);
+assert.equal(underHalfSite.lastMeal.byClass.villager.ratio, 0.49);
+assert.equal(underHalfSite.lastMeal.byClass.villager.targetHappiness, "neutral",
+  "feeding less than half of a cohort always targets one happiness step lower");
+assert.equal(underHalfClass.happiness.missedFeedStreak, 1,
+  "an immediate happiness loss still advances the starvation streak");
+
+const halfFed = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8802)));
+const halfFedSite = getDetailedSettlement(halfFed, "cedar-woods");
+const halfFedClass = halfFedSite.populationByClass.villager;
+halfFedClass.adults = 10;
+halfFedClass.happiness.status = "positive";
+halfFedSite.looseFood = 5;
+stepDetailedSettlementsSecond(halfFed, 1);
+stepDetailedSettlementsSecond(halfFed, 2);
+assert.equal(halfFedSite.lastMeal.byClass.villager.ratio, 0.5);
+assert.equal(halfFedSite.lastMeal.byClass.villager.targetHappiness, "positive",
+  "feeding exactly half remains part of the partial-meal improvement rules");
+assert.equal(halfFedClass.happiness.missedFeedStreak, 0);
+assert.deepEqual(halfFedClass.happiness.partialFeedRatios, [0.5]);
+
 const combined = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(883)));
 const combinedSource = getDetailedSettlement(combined, "cedar-woods");
 combinedSource.populationByClass.villager.adults = 100;
