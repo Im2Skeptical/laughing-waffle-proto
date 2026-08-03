@@ -30,6 +30,7 @@ const connectedPlayerDetailedScope = Object.freeze({
 const administrationReachScope = Object.freeze({
   kind: "conditionalHostPractice",
   practiceId: "preserve",
+  requiredDefinitionPath: Object.freeze(["connectedAdministrationReach"]),
   whenPresent: connectedPlayerDetailedScope,
   otherwise: adjacentPlayerDetailedScope,
 });
@@ -119,6 +120,16 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     id: "preserve",
     label: "Preservation",
     workerCapacity: 2,
+    connectedAdministrationReach: true,
+    editor: Object.freeze({
+      fields: Object.freeze([
+        Object.freeze({
+          path: Object.freeze(["connectedAdministrationReach"]),
+          type: "boolean",
+          label: "Connected Administration Reach",
+        }),
+      ]),
+    }),
     activation: Object.freeze({ type: "passive" }),
     ui: Object.freeze({
       rule: "Reduce stored-food rot. Local Administration treats player-connected settlements as adjacent.",

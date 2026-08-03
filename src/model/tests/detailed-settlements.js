@@ -251,6 +251,10 @@ assert.deepEqual(
   [{ sourceId: "cedar-woods", destinationId: "lake-country", amount: 100 }],
   "local Preservation expands Administration across a player-controlled path"
 );
+preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = false;
+assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
+  "disabled Preservation reach leaves Administration limited to adjacent settlements");
+preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = true;
 getRegionState(preservedAdmin, "upper-floodplain").controller = "frontier";
 assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
   "non-player control breaks Preservation's Administration path");

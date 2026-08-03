@@ -32,10 +32,10 @@ try {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v3");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v3");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v2");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v3");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v2");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v4");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v4");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v4");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v4");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
@@ -157,6 +157,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
+  assert.equal(settingsJson.schemaVersion, 4);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
@@ -172,6 +173,11 @@ try {
   );
   assert.equal(await administrationBase.inputValue(), "50");
   await administrationBase.fill("75");
+  const connectedAdministrationReach = page.getByTestId(
+    "gamepiece-practices-preserve-connectedAdministrationReach"
+  );
+  assert.equal(await connectedAdministrationReach.isChecked(), true);
+  await connectedAdministrationReach.uncheck();
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
   await page.getByTestId("gamepieces-apply").click();
@@ -191,6 +197,11 @@ try {
     configuredSnapshot.gameConfig.gamepieces.practices.administrate.effects[0]
       .scaledValue.baseAmount,
     75
+  );
+  assert.equal(
+    configuredSnapshot.gameConfig.gamepieces.practices.preserve
+      .connectedAdministrationReach,
+    false
   );
 
   await page.getByTestId("debug-vassal-tab").click();

@@ -26,8 +26,8 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v8; older saves are rejected.
-- Each run serializes schema-v3 Game Settings and Gamepieces in `gameConfig`.
+- Game state and runner saves use schema v9; older saves are rejected.
+- Each run serializes schema-v4 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v3; scenario libraries use their existing schema.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -51,7 +51,8 @@ survival knowledge, and the single vassal lineage are civilization-global.
   snapshot, and cannot relay received food within a moon. Preservation expands
   its endpoints across fully player-controlled paths.
 - Preservation relatively reduces stored-food decay and remains effective with
-  no workers. Build practices create Granaries or Mud
+  no workers. Its data-driven `connectedAdministrationReach` flag controls
+  whether local Administration expands across player-controlled paths. Build practices create Granaries or Mud
   Houses and wait at full regional structure capacity.
 - Granary and Mud House capacities scale with local count squared.
 - Food fills stored capacity first, then loose food; meals consume loose first.
