@@ -311,6 +311,20 @@ assert.equal(underHalfSite.lastMeal.byClass.villager.targetHappiness, "neutral",
   "feeding less than half of a cohort always targets one happiness step lower");
 assert.equal(underHalfClass.happiness.missedFeedStreak, 1,
   "an immediate happiness loss still advances the starvation streak");
+assert.equal(underHalfSite.lastMeal.byClass.villager.migrants, 0,
+  "the first missed meal does not put the unfed share into the migrant bucket");
+for (const sec of [3, 4, 5, 6, 7]) stepDetailedSettlementsSecond(underHalfFed, sec);
+underHalfSite.looseFood = 4.9;
+stepDetailedSettlementsSecond(underHalfFed, 8);
+assert.equal(underHalfClass.happiness.missedFeedStreak, 2);
+assert.equal(underHalfSite.lastMeal.byClass.villager.migrants, 0,
+  "the unfed share waits until the configured starvation trigger");
+for (const sec of [9, 10, 11, 12, 13]) stepDetailedSettlementsSecond(underHalfFed, sec);
+underHalfSite.looseFood = 4.9;
+stepDetailedSettlementsSecond(underHalfFed, 14);
+assert.equal(underHalfClass.happiness.missedFeedStreak, 3);
+assert.equal(underHalfSite.lastMeal.byClass.villager.migrants, 6,
+  "the triggering missed meal puts only the unfed share into the migrant bucket");
 
 const halfFed = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8802)));
 const halfFedSite = getDetailedSettlement(halfFed, "cedar-woods");
@@ -329,17 +343,21 @@ assert.deepEqual(halfFedClass.happiness.partialFeedRatios, [0.5]);
 const combined = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(883)));
 const combinedSource = getDetailedSettlement(combined, "cedar-woods");
 combinedSource.populationByClass.villager.adults = 100;
-combinedSource.looseFood = 90;
+combinedSource.populationByClass.villager.happiness.missedFeedStreak = 2;
+combinedSource.looseFood = 40;
+combinedSource.structureSlots = [{ structureId: "mudHouses" }, null, null];
 const combinedDestination = getDetailedSettlement(combined, "west-levee");
 combinedDestination.storedFood = 100;
+combinedDestination.structureSlots = combinedDestination.structureSlots
+  .map(() => ({ structureId: "mudHouses" }));
 for (const sec of [1, 2, 3, 4, 5, 6]) stepDetailedSettlementsSecond(combined, sec);
 const combinedTurn = combined.civilization.currentMoonTurn;
 assert.deepEqual(combinedTurn.migrationIntents.map((intent) => intent.reason), ["food", "housing"],
-  "food migrants are reserved before housing selects from the remainder");
-assert.deepEqual(combinedTurn.migrationIntents.map((intent) => intent.requested), [10, 10]);
-assert.equal(combinedTurn.movements.reduce((sum, move) => sum + move.amount, 0), 20);
-assert.equal(getPopulationSummary(combined, "cedar-woods").total, 80);
-assert.equal(getPopulationSummary(combined, "west-levee").byClass.stranger.total, 20,
+  "starvation migrants are reserved before housing selects from the remainder");
+assert.deepEqual(combinedTurn.migrationIntents.map((intent) => intent.requested), [60, 20]);
+assert.equal(combinedTurn.movements.reduce((sum, move) => sum + move.amount, 0), 80);
+assert.equal(getPopulationSummary(combined, "cedar-woods").total, 20);
+assert.equal(getPopulationSummary(combined, "west-levee").byClass.stranger.total, 80,
   "all migrant causes share destination and arrival rules");
 
 const collapse = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(881)));
@@ -354,11 +372,11 @@ for (const sec of [1, 2, 3, 4]) stepDetailedSettlementsSecond(collapse, sec);
 assert.equal(collapseSource.populationByClass.villager.happiness.status, "negative");
 assert.deepEqual(
   collapse.civilization.currentMoonTurn.migrationIntents.map((intent) => intent.reason),
-  ["food", "faith"],
-  "entering Bronze plus Negative adds only unreserved people to the shared bucket"
+  ["faith"],
+  "an ordinary food shortfall stays out of the bucket while faith collapse still adds migrants"
 );
 assert.equal(collapse.civilization.currentMoonTurn.migrationIntents
-  .reduce((sum, intent) => sum + intent.requested, 0), 6);
+  .reduce((sum, intent) => sum + intent.requested, 0), 3);
 assert.ok(collapse.civilization.chaos.lastMoonIncome.byRegion.length === 5);
 
 const faithStreak = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(884)));
@@ -379,10 +397,11 @@ assert.equal(faithClass.faith.tier, "gold",
 const hardship = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(885)));
 const hardshipSource = getDetailedSettlement(hardship, "cedar-woods");
 hardshipSource.populationByClass.villager.adults = 10;
+hardshipSource.populationByClass.villager.happiness.missedFeedStreak = 2;
 hardship.gameConfig.settings.values.migrationHardshipDeathRate = 1;
 for (const sec of [1, 2, 3, 4, 5, 6]) stepDetailedSettlementsSecond(hardship, sec);
 assert.equal(getPopulationSummary(hardship, "cedar-woods").total, 0,
-  "unplaced migrants remain until Death and then take hardship mortality");
+  "unplaced starvation migrants remain until Death and then take hardship mortality");
 assert.equal(hardship.civilization.currentMoonTurn.regions["cedar-woods"]
   .death.hardshipDeaths, 10);
 
@@ -423,7 +442,8 @@ assert.deepEqual(serializeGameState(midMoonA), serializeGameState(midMoonB),
 const migrationTimelineState = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(887)));
 const timelineSource = getDetailedSettlement(migrationTimelineState, "cedar-woods");
 timelineSource.populationByClass.villager.adults = 20;
-timelineSource.looseFood = 12;
+timelineSource.populationByClass.villager.happiness.missedFeedStreak = 2;
+timelineSource.looseFood = 8;
 getDetailedSettlement(migrationTimelineState, "west-levee").storedFood = 5;
 const migrationTimeline = createTimelineFromInitialState(migrationTimelineState);
 const preMigrationBoundary = rebuildStateAtSecond(migrationTimeline, 4);
@@ -433,7 +453,7 @@ const migrationTransfer = migrationBatch.transfers.find(
 );
 assert.deepEqual({
   amount: migrationTransfer.amount,
-}, { amount: 8 });
+}, { amount: 12 });
 assert.deepEqual(
   buildEdgeTransferBatchAtBoundary(
     rebuildStateAtSecond(migrationTimeline, 4).state,

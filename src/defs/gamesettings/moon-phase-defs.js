@@ -9,13 +9,13 @@ export const MOON_PHASE_DEFS = Object.freeze([
     id: "food",
     label: "Food",
     glyph: "F",
-    summary: "Administration moves food, then Villagers and Strangers eat in that order.",
+    summary: "Administration moves food, then eating records shortages and starvation migrants.",
   }),
   Object.freeze({
     id: "housing",
     label: "Housing",
     glyph: "H",
-    summary: "Housing is checked after food migrants have already been reserved.",
+    summary: "Housing is checked after any starvation migrants have already been reserved.",
   }),
   Object.freeze({
     id: "faith",
