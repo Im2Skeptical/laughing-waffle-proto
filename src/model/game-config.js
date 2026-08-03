@@ -52,7 +52,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
       field("elderMealConsumption", "Food per elder", 1, 0, 100, 0.05),
       field("fullFeedStreakForIncrease", "Full meals for happiness increase", 3, 1, 100, 1, true),
-      field("partialFeedMinimumRatio", "Partial-feed minimum ratio", 0.5, 0, 1, 0.01),
+      field("partialFeedMinimumRatio", "Immediate happiness-loss feed ratio", 0.5, 0, 1, 0.01),
       field("partialFeedMemoryLength", "Improving partial meals required", 3, 1, 100, 1, true),
       field("missedFeedStreakForStarvation", "Missed meals before starvation", 3, 1, 100, 1, true),
     ]),

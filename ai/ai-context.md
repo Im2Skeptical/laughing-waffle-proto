@@ -61,8 +61,10 @@ survival knowledge, and the single vassal lineage are civilization-global.
   phase, a moon remains six seconds and stays independent of the 32-second year.
 - Birth resolves building practices, births, child maturation, and adult-to-elder
   transitions. Elder ages advance annually at the first following Birth phase.
-- Food runs Administration, feeds Villagers before Strangers, maintains class
-  meal streaks, and reserves the unfed share into the current moon's migrant bucket.
+- Food runs Administration and feeds Villagers before Strangers. Cohorts fed
+  below the configured partial-feed minimum (50% by default) immediately lose
+  one happiness step while still advancing their missed-meal starvation streak;
+  the unfed share is reserved into the current moon's migrant bucket.
 - Housing assesses the population not already reserved for migration, caps
   happiness at Neutral or Negative when overcrowded, and adds exactly the
   unhoused overflow, displacing Strangers before Villagers.
