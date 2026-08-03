@@ -746,6 +746,15 @@ export function createWorldMapView({
     activeEdgeTransferPackets = surviving;
   }
 
+  function resetEdgeTransferPackets() {
+    lastEdgeTransferBatchKey = null;
+    lastEdgeTransferBatch = null;
+    lastEdgeTransferViewedSec = null;
+    edgeTransferPlaybackDirection = 1;
+    activeEdgeTransferPackets = [];
+    edgeTransferGraphics.clear();
+  }
+
   function updateEdgeTransferPackets() {
     if (!root.visible) return;
     const definition = getWorldDefinition(getState?.());
@@ -1071,6 +1080,7 @@ export function createWorldMapView({
       updateEdgeTransferPackets();
     },
     refresh: () => { lastSignature = ""; render(true); },
+    resetEdgeTransferPackets,
     setVisible: (visible) => {
       root.visible = visible === true;
       edgeTransferLayer.visible = root.visible;

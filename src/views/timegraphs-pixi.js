@@ -2384,6 +2384,7 @@ export function createMetricGraphView({
     const previousSnapshotCompatible =
       freezeRevealedPlotPrefixCur &&
       plotSnapshot &&
+      Number(plotSnapshot?.data?.cacheVersion ?? -1) === cacheVersion &&
       Math.floor(plotSnapshot?.snapshotMinSec ?? -1) === snapshotMinSec &&
       Math.floor(plotSnapshot?.displayHistoryEndSec ?? -1) === displayHistoryEndSec &&
       Math.floor(plotSnapshot?.zoomed ? 1 : 0) === (zoomed ? 1 : 0) &&
