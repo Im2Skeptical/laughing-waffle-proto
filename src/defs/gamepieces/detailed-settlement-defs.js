@@ -35,6 +35,11 @@ const administrationReachScope = Object.freeze({
   otherwise: adjacentPlayerDetailedScope,
 });
 
+const commercialAdjacentScope = Object.freeze({
+  kind: "commercialAdjacent",
+  includeHost: false,
+});
+
 export const settlementStructureDefs = Object.freeze({
   granary: Object.freeze({
     id: "granary",
@@ -95,7 +100,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     workerCapacity: 2,
     activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
     ui: Object.freeze({
-      rule: "Move meal-safe surplus to resolve meal shortages. Preservation expands reach across player-controlled paths.",
+      rule: "Move meal-safe surplus to resolve meal shortages in adjacent settlements.",
     }),
     costs: Object.freeze([]),
     effects: Object.freeze([
@@ -120,7 +125,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     id: "preserve",
     label: "Preservation",
     workerCapacity: 2,
-    connectedAdministrationReach: true,
+    connectedAdministrationReach: false,
     editor: Object.freeze({
       fields: Object.freeze([
         Object.freeze({
@@ -132,7 +137,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
     }),
     activation: Object.freeze({ type: "passive" }),
     ui: Object.freeze({
-      rule: "Reduce stored-food rot. Local Administration treats player-connected settlements as adjacent.",
+      rule: "Reduce stored-food rot.",
     }),
     costs: Object.freeze([]),
     effects: Object.freeze([
@@ -150,6 +155,64 @@ export const detailedSettlementPracticeDefs = Object.freeze({
         }),
       }),
     ]),
+  }),
+  exchange: Object.freeze({
+    id: "exchange",
+    label: "Exchange",
+    workerCapacity: 2,
+    activation: Object.freeze({ type: "season" }),
+    ui: Object.freeze({
+      rule: "Each Season, gain Currency for commercially adjacent regions of a different colour.",
+    }),
+    costs: Object.freeze([]),
+    effects: Object.freeze([
+      Object.freeze({
+        op: "addLocalCurrency",
+        scaledValue: Object.freeze({
+          baseAmount: 1,
+          evaluator: Object.freeze({
+            kind: "countRegions",
+            label: "different-colour commercial regions",
+            scope: commercialAdjacentScope,
+            regionFilters: Object.freeze({ colour: "differentFromHost" }),
+          }),
+          workerMultiplier: workerMultiplier(),
+        }),
+      }),
+    ]),
+  }),
+  import: Object.freeze({
+    id: "import",
+    label: "Import",
+    workerCapacity: 0,
+    activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
+    ui: Object.freeze({
+      rule: "During Food, spend Currency to cover missing Food.",
+    }),
+    costs: Object.freeze([]),
+    effects: Object.freeze([Object.freeze({ op: "importMissingFood" })]),
+  }),
+  caravanRoutes: Object.freeze({
+    id: "caravanRoutes",
+    label: "Caravan Routes",
+    workerCapacity: 0,
+    activation: Object.freeze({ type: "passive" }),
+    ui: Object.freeze({
+      rule: "Caravan-connected allied settlements are commercially adjacent.",
+    }),
+    costs: Object.freeze([]),
+    effects: Object.freeze([]),
+  }),
+  clearingHouse: Object.freeze({
+    id: "clearingHouse",
+    label: "Clearing House",
+    workerCapacity: 0,
+    activation: Object.freeze({ type: "passive" }),
+    ui: Object.freeze({
+      rule: "Import may spend Currency from commercially adjacent allied settlements.",
+    }),
+    costs: Object.freeze([]),
+    effects: Object.freeze([]),
   }),
   vassalDummyPractice01: Object.freeze({
     id: "vassalDummyPractice01",
@@ -209,7 +272,9 @@ export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze([
 
 export const detailedSettlementEffectOps = Object.freeze([
   "addLocalFood",
+  "addLocalCurrency",
   "routeLocalFood",
+  "importMissingFood",
   "reduceFoodDecay",
   "advanceWork",
   "createLocalStructureAtWork",

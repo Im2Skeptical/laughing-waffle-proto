@@ -330,8 +330,10 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
     foodFields.append(
       labelled("Stored food", numberField(state.storedFood, "map-lab-stored-food",
         (storedFood) => controller.updateDetailedState(region.id, { storedFood }), { step: 0.0001 })),
-      labelled("Loose food", numberField(state.looseFood, "map-lab-loose-food",
-        (looseFood) => controller.updateDetailedState(region.id, { looseFood }), { step: 0.0001 }))
+        labelled("Loose food", numberField(state.looseFood, "map-lab-loose-food",
+          (looseFood) => controller.updateDetailedState(region.id, { looseFood }), { step: 0.0001 })),
+        labelled("Currency", numberField(state.currency, "map-lab-currency",
+          (currency) => controller.updateDetailedState(region.id, { currency }), { step: 0.0001 }))
     );
     detail.append(foodFields);
 
