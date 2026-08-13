@@ -241,6 +241,9 @@ preservedDestination.practiceSlots = [
   null, null, null,
 ];
 preservedDestination.populationByClass.villager.children = 200;
+assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
+  "Administration defaults to adjacent-only even when Preservation is present");
+preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = true;
 const preservedEvaluation = evaluateDetailedPracticeSlot(preservedAdmin, "cedar-woods", 0);
 assert.equal(preservedEvaluation.effects[0].scaledValue.evaluatorScore, 2,
   "Administration presence is counted once per reachable region");
@@ -254,10 +257,89 @@ assert.deepEqual(
 preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = false;
 assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
   "disabled Preservation reach leaves Administration limited to adjacent settlements");
-preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = true;
 getRegionState(preservedAdmin, "upper-floodplain").controller = "frontier";
 assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
   "non-player control breaks Preservation's Administration path");
+
+const commerce = clearDetailedPopulationAndFood(fresh());
+for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
+  getDetailedSettlement(commerce, id).practiceSlots = [
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
+  ];
+}
+getDetailedSettlement(commerce, "cedar-woods").practiceSlots[1] =
+  { practiceId: "exchange", charge: 0, work: 0 };
+getDetailedSettlement(commerce, "cedar-woods").populationByClass.villager.adults = 20;
+const exchangeEvaluation = evaluateDetailedPracticeSlot(commerce, "cedar-woods", 1);
+assert.equal(exchangeEvaluation.effects[0].scaledValue.evaluatorScore, 4,
+  "Exchange counts different-colour regions across its Caravan component");
+assert.deepEqual(exchangeEvaluation.effects[0].scaledValue.diagnostics.matchingRegionIds,
+  ["west-levee", "upper-floodplain", "river-crown", "lake-country"]);
+commerce._seasonChanged = true;
+stepDetailedSettlementsSecond(commerce, 8);
+assert.equal(getDetailedSettlement(commerce, "cedar-woods").currency, 12,
+  "Exchange uses the normal base-plus-effective-worker multiplier");
+
+const directCommerce = clearDetailedPopulationAndFood(fresh());
+getDetailedSettlement(directCommerce, "cedar-woods").practiceSlots = [
+  { practiceId: "exchange", charge: 0, work: 0 }, null, null, null, null,
+];
+getRegionState(directCommerce, "west-levee").controller = "frontier";
+assert.equal(evaluateDetailedPracticeSlot(directCommerce, "cedar-woods", 0)
+  .effects[0].scaledValue.evaluatorScore, 1,
+"ordinary commercial adjacency includes a directly adjacent region regardless of controller");
+
+const commerceReplay = clearDetailedPopulationAndFood(fresh(734));
+for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
+  getDetailedSettlement(commerceReplay, id).practiceSlots = [
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
+  ];
+}
+getDetailedSettlement(commerceReplay, "cedar-woods").practiceSlots[1] =
+  { practiceId: "exchange", charge: 0, work: 0 };
+const commerceTimeline = createTimelineFromInitialState(commerceReplay);
+const commerceReplayA = rebuildStateAtSecond(commerceTimeline, 8);
+const commerceReplayB = rebuildStateAtSecond(commerceTimeline, 8);
+assert.deepEqual(serializeGameState(commerceReplayA.state), serializeGameState(commerceReplayB.state),
+  "Currency and commercial reach replay deterministically");
+
+const localImport = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh()));
+const localImportSite = getDetailedSettlement(localImport, "cedar-woods");
+localImportSite.populationByClass.villager.adults = 10;
+localImportSite.looseFood = 2;
+localImportSite.currency = 5;
+localImportSite.practiceSlots = [
+  { practiceId: "import", charge: 0, work: 0 }, null, null, null, null,
+];
+stepDetailedSettlementsSecond(localImport, 1);
+stepDetailedSettlementsSecond(localImport, 2);
+assert.equal(localImportSite.lastMeal.consumed, 7,
+  "Import adds only the affordable portion of the current meal shortfall");
+assert.equal(localImportSite.currency, 0, "Import spends local Currency first");
+assert.equal(localImportSite.looseFood, 0, "Import does not leave surplus Food");
+
+const clearingImport = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh()));
+for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
+  getDetailedSettlement(clearingImport, id).practiceSlots = [
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
+  ];
+}
+const clearingSite = getDetailedSettlement(clearingImport, "cedar-woods");
+clearingSite.populationByClass.villager.adults = 10;
+clearingSite.looseFood = 2;
+clearingSite.currency = 3;
+clearingSite.practiceSlots[1] = { practiceId: "clearingHouse", charge: 0, work: 0 };
+clearingSite.practiceSlots[2] = { practiceId: "import", charge: 0, work: 0 };
+getDetailedSettlement(clearingImport, "west-levee").currency = 9;
+stepDetailedSettlementsSecond(clearingImport, 1);
+stepDetailedSettlementsSecond(clearingImport, 2);
+assert.equal(clearingSite.lastMeal.consumed, 10,
+  "Clearing House makes commercially adjacent allied Currency available to Import");
+assert.equal(clearingSite.currency, 0);
+assert.equal(getDetailedSettlement(clearingImport, "west-levee").currency, 4,
+  "Clearing House spends remote Currency after local Currency in authored region order");
+const importedVm = getDetailedSettlementViewModel(clearingImport, "cedar-woods");
+assert.equal(importedVm.currency, 0, "Currency is exposed in the local settlement view model");
 
 const cappedPreservation = clearDetailedPopulationAndFood(fresh());
 const cappedPreservationSite = getDetailedSettlement(cappedPreservation, "cedar-woods");

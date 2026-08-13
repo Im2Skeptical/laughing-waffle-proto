@@ -51,6 +51,7 @@ export const createInitialDetailedSettlementData = () => ({
   },
   storedFood: 60,
   looseFood: 0,
+  currency: 0,
   practiceSlots: [
     { practiceId: "cultivate", charge: 0, work: 0 },
     { practiceId: "administrate", charge: 0, work: 0 },

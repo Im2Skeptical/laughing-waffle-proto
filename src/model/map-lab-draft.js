@@ -26,6 +26,7 @@ function normalizeDetailedState(raw, capacity) {
   state.populationByClass = state.populationByClass ?? fallback.populationByClass;
   state.storedFood = Number.isFinite(state.storedFood) ? state.storedFood : 0;
   state.looseFood = Number.isFinite(state.looseFood) ? state.looseFood : 0;
+  state.currency = Number.isFinite(state.currency) ? Math.max(0, state.currency) : 0;
   state.practiceSlots = Array.isArray(state.practiceSlots)
     ? state.practiceSlots.slice(0, DETAILED_PRACTICE_SLOT_COUNT)
     : [];
@@ -158,6 +159,9 @@ function validateDetailedState(region, path, errors, warnings) {
   }
   if (!Number.isFinite(state.looseFood) || state.looseFood < 0) {
     errors.push(`${path}.detailedState.looseFood: expected non-negative number`);
+  }
+  if (!Number.isFinite(state.currency) || state.currency < 0) {
+    errors.push(`${path}.detailedState.currency: expected non-negative number`);
   }
   for (const [classId, classState] of Object.entries(state.populationByClass ?? {})) {
     if (!Number.isInteger(classState?.children) || classState.children < 0

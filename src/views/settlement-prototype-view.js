@@ -63,6 +63,7 @@ function getPracticeResultLabel(practiceId, value) {
   if (practiceId === "cultivate") return `Effect  +${formatted} food`;
   if (practiceId === "administrate") return `Cap  ${formatted} food`;
   if (practiceId === "preserve") return `Effect  ${formatted}% less rot`;
+  if (practiceId === "exchange") return `Effect  +${formatted} Currency`;
   return `Effect  ${formatted}`;
 }
 
@@ -70,6 +71,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
   const filled = Boolean(entry?.practiceId);
   const evaluation = entry?.evaluation ?? null;
   const scaled = evaluation?.effects?.find((effect) => effect.scaledValue)?.scaledValue ?? null;
+  const imported = evaluation?.effects?.find((effect) => effect.importCalculation)?.importCalculation ?? null;
   const card = new PIXI.Container();
   card.position.set(rect.x, rect.y);
   const gfx = new PIXI.Graphics();
@@ -174,6 +176,20 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
       rect.height - 36
     ));
   }
+  if (imported) {
+    card.addChild(createText(
+      `Meal shortfall  ${formatPracticeNumber(imported.missingFood)} food`,
+      { ...TEXT_STYLES.body, fontSize: 11 }, 10, rect.height - 82
+    ));
+    card.addChild(createText(
+      `Funds  ${formatPracticeNumber(imported.localCurrency)} local + ${formatPracticeNumber(imported.remoteCurrency)} remote`,
+      { ...TEXT_STYLES.body, fontSize: 11 }, 10, rect.height - 61
+    ));
+    card.addChild(createText(
+      `Import  +${formatPracticeNumber(imported.importedFood)} food`,
+      { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent }, 10, rect.height - 36
+    ));
+  }
   parent.addChild(card);
 }
 
@@ -248,11 +264,12 @@ export function createSettlementPrototypeView({
         createText(`Stored food  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
           foodRect.x + 18, foodRect.y + 64),
         createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 100),
-        createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 136),
+        createText(`Currency  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 118),
+        createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 154),
         createText(`Population  ${vm.population.total} / ${vm.population.housingCapacity} housing`,
-          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 172),
+          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 190),
         createText(`Last meal  ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand}` : "none"}`,
-          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 208)
+          TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 226)
       );
       const practiceGap = 10;
       const practiceCardWidth = Math.floor(

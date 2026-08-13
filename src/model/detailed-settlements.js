@@ -122,7 +122,7 @@ function validateRegionScopeDefinition(scope, label, errors) {
     validateRegionScopeDefinition(scope.otherwise, `${label}.otherwise`, errors);
     return;
   }
-  if (!["adjacent", "connectedComponent"].includes(scope.kind)) {
+  if (!["adjacent", "connectedComponent", "commercialAdjacent"].includes(scope.kind)) {
     errors.push(`${label}: invalid region scope ${scope.kind}`);
   }
 }
@@ -173,7 +173,7 @@ export function validateDetailedPracticeDefinitions() {
     }
     for (const effect of def.effects ?? []) {
       if (!validOps.has(effect?.op)) errors.push(`${id}: invalid effect op ${effect?.op}`);
-      if (["addLocalFood", "routeLocalFood", "reduceFoodDecay"].includes(effect?.op)) {
+      if (["addLocalFood", "addLocalCurrency", "routeLocalFood", "reduceFoodDecay"].includes(effect?.op)) {
         validateScaledValueDefinition(effect.scaledValue, `${id}.${effect.op}`, errors);
       }
       if (effect?.op === "routeLocalFood") {
@@ -406,8 +406,10 @@ function regionMatchesFilters(state, host, regionId, filters) {
   if (!region) return false;
   if (filters.controller && region.controller !== filters.controller) return false;
   if (filters.colour === "host" && region.colour !== host.colour) return false;
+  if (filters.colour === "differentFromHost" && region.colour === host.colour) return false;
   if (typeof filters.colour === "string"
       && filters.colour !== "host"
+      && filters.colour !== "differentFromHost"
       && region.colour !== filters.colour) return false;
   if (filters.detailedSettlement === true && !getDetailedSettlement(state, regionId)) {
     return false;
@@ -440,6 +442,28 @@ export function resolveDetailedRegionScope(state, regionId, scope) {
   let candidateIds = [];
   if (scope?.kind === "adjacent") {
     candidateIds = getConnectedRegionIds(state, regionId);
+  } else if (scope?.kind === "commercialAdjacent") {
+    // Commercial reach is deliberately separate from ordinary adjacency. All
+    // graph neighbours qualify, while a Caravan-only player settlement chain
+    // adds its participating detailed settlements.
+    candidateIds = getConnectedRegionIds(state, regionId);
+    const isCaravanNode = (candidateId) =>
+      getRegionState(state, candidateId)?.controller === "player"
+      && Boolean(getDetailedSettlement(state, candidateId))
+      && regionHasDetailedPractice(state, candidateId, "caravanRoutes");
+    if (isCaravanNode(regionId)) {
+      const visited = new Set();
+      const queue = [regionId];
+      while (queue.length > 0) {
+        const current = queue.shift();
+        if (visited.has(current)) continue;
+        visited.add(current);
+        for (const next of orderRegionIds(state, getConnectedRegionIds(state, current))) {
+          if (!visited.has(next) && isCaravanNode(next)) queue.push(next);
+        }
+      }
+      candidateIds.push(...visited);
+    }
   } else if (scope?.kind === "connectedComponent") {
     if (!regionMatchesFilters(state, host, regionId, scope.traversalFilters)) return [];
     const visited = new Set();
@@ -581,6 +605,9 @@ function buildDetailedPracticeEvaluation(state, site, assignment) {
     effects: (def.effects ?? []).map((effect) => ({
       op: effect.op,
       foodKind: effect.foodKind ?? null,
+      importCalculation: effect.op === "importMissingFood"
+        ? getImportCalculation(state, site.regionId)
+        : null,
       scaledValue: effect.scaledValue
         ? resolveScaledValue(state, site, assignment, effect.scaledValue)
         : null,
@@ -609,6 +636,13 @@ function addFoodToSettlement(state, regionId, amount) {
   return roundFood(amount);
 }
 
+function addCurrencyToSettlement(state, regionId, amount) {
+  const settlement = getDetailedSettlement(state, regionId);
+  if (!settlement || amount <= 0) return 0;
+  settlement.currency = roundFood(Math.max(0, settlement.currency ?? 0) + amount);
+  return roundFood(amount);
+}
+
 function consumeFood(settlement, amount) {
   const demand = roundFood(amount);
   const fromLoose = Math.min(settlement.looseFood, demand);
@@ -617,6 +651,58 @@ function consumeFood(settlement, amount) {
   const fromStored = Math.min(settlement.storedFood, remainder);
   settlement.storedFood = roundFood(settlement.storedFood - fromStored);
   return roundFood(fromLoose + fromStored);
+}
+
+function getImportFunding(state, regionId) {
+  const local = getDetailedSettlement(state, regionId);
+  if (!local) return [];
+  const sources = [{ regionId, settlement: local }];
+  if (!regionHasDetailedPractice(state, regionId, "clearingHouse")) return sources;
+  for (const remoteId of resolveDetailedRegionScope(state, regionId, {
+    kind: "commercialAdjacent",
+    includeHost: false,
+    regionFilters: { controller: "player", detailedSettlement: true },
+  })) {
+    const settlement = getDetailedSettlement(state, remoteId);
+    if (settlement) sources.push({ regionId: remoteId, settlement });
+  }
+  return sources;
+}
+
+function getImportCalculation(state, regionId) {
+  const settlement = getDetailedSettlement(state, regionId);
+  if (!settlement) return { missingFood: 0, localCurrency: 0, remoteCurrency: 0, importedFood: 0 };
+  const mealDemand = getPopulationSummary(state, regionId).mealDemand;
+  const missingFood = roundFood(Math.max(0, mealDemand - settlement.looseFood - settlement.storedFood));
+  const sources = getImportFunding(state, regionId);
+  const localCurrency = roundFood(Math.max(0, sources[0]?.settlement?.currency ?? 0));
+  const remoteCurrency = roundFood(sources.slice(1).reduce(
+    (sum, source) => sum + Math.max(0, source.settlement.currency ?? 0), 0
+  ));
+  return {
+    missingFood,
+    localCurrency,
+    remoteCurrency,
+    importedFood: roundFood(Math.min(missingFood, localCurrency + remoteCurrency)),
+    remoteRegionIds: sources.slice(1).map((source) => source.regionId),
+  };
+}
+
+function importMissingFood(state, regionId) {
+  const calculation = getImportCalculation(state, regionId);
+  let remaining = calculation.importedFood;
+  for (const source of getImportFunding(state, regionId)) {
+    if (remaining <= 0) break;
+    const spent = Math.min(remaining, Math.max(0, source.settlement.currency ?? 0));
+    source.settlement.currency = roundFood(source.settlement.currency - spent);
+    remaining = roundFood(remaining - spent);
+  }
+  if (calculation.importedFood > 0) {
+    // Imported Food exists only for this meal, so add it directly to loose Food.
+    const settlement = getDetailedSettlement(state, regionId);
+    settlement.looseFood = roundFood(settlement.looseFood + calculation.importedFood);
+  }
+  return calculation;
 }
 
 function compactPracticeSlots(settlement) {
@@ -671,7 +757,7 @@ function executePracticeEffects(state, site, assignment, activationType) {
   if ((def.activation.type === "season" || def.activation.type === "food")
       && getRegionState(state, site.regionId)?.controller !== "player"
       && (def.effects ?? []).some((effect) =>
-        effect.op === "addLocalFood" || effect.op === "routeLocalFood")) return;
+        effect.op === "addLocalFood" || effect.op === "addLocalCurrency" || effect.op === "routeLocalFood")) return;
 
   for (const effect of def.effects ?? []) {
     if (effect.op === "addLocalFood") {
@@ -681,6 +767,11 @@ function executePracticeEffects(state, site, assignment, activationType) {
         site.regionId,
         resolved.effectiveValue
       );
+    } else if (effect.op === "addLocalCurrency") {
+      const resolved = resolveScaledValue(state, site, assignment, effect.scaledValue);
+      addCurrencyToSettlement(state, site.regionId, resolved.effectiveValue);
+    } else if (effect.op === "importMissingFood") {
+      importMissingFood(state, site.regionId);
     } else if (effect.op === "advanceWork") {
       slot.work = roundFood((slot.work ?? 0)
         + effect.amountPerEffectiveWorker * assignment.effectiveWorkers);
@@ -2234,7 +2325,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 9;
+  state.gameStateSchemaVersion = 10;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -2307,6 +2398,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
     name: site.name,
     storedFood: settlement.storedFood,
     looseFood: settlement.looseFood,
+    currency: roundFood(Math.max(0, settlement.currency ?? 0)),
     storedFoodCapacity: getStoredFoodCapacity(state, regionId),
     population,
     workerPool: {

@@ -49,8 +49,8 @@ assert.equal(
 );
 assert.equal(
   authoredConfig.gamepieces.practices.preserve.connectedAdministrationReach,
-  true,
-  "Preservation expands Administration reach by default"
+  false,
+  "Preservation leaves Administration adjacent-only by default"
 );
 assert.deepEqual(
   getGamepieceEditorGroups(authoredConfig.gamepieces)
@@ -60,21 +60,21 @@ assert.deepEqual(
   ["practices.preserve.connectedAdministrationReach"],
   "only explicitly declared boolean gamepiece fields appear in the editor"
 );
-const disabledReachGamepieces = setAtPath(
+const enabledReachGamepieces = setAtPath(
   authoredConfig.gamepieces,
   ["practices", "preserve", "connectedAdministrationReach"],
-  false
+  true
 );
-assert.equal(validateGamepiecesDraft(disabledReachGamepieces).ok, true);
+assert.equal(validateGamepiecesDraft(enabledReachGamepieces).ok, true);
 assert.equal(
   canonicalizeGameConfig({
     settings: authoredConfig.settings,
-    gamepieces: disabledReachGamepieces,
+    gamepieces: enabledReachGamepieces,
   }).gamepieces.practices.preserve.connectedAdministrationReach,
-  false,
+  true,
   "boolean gamepiece controls survive canonicalization"
 );
-const invalidBooleanGamepieces = clone(disabledReachGamepieces);
+const invalidBooleanGamepieces = clone(enabledReachGamepieces);
 invalidBooleanGamepieces.practices.preserve.connectedAdministrationReach = 0;
 assert.equal(
   validateGamepiecesDraft(invalidBooleanGamepieces).ok,
