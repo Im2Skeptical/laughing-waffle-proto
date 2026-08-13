@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .vscode/
+.codex-remote-attachments/
 .codex/config.toml
 Trace-*.json
 npm-debug.log*
