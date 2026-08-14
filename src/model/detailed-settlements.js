@@ -2407,6 +2407,36 @@ export function getDetailedVassalPrestige(state, vassal = null) {
   return age + current.traitPrestigeModifier;
 }
 
+// This is deliberately a selector, rather than a forecast mutation. The
+// timeline can therefore describe a pending intervention at the exact Faith
+// boundary where the annual Vassal stage will evaluate it.
+export function getDetailedVassalInterventionEffectSec(state, vassal, intervention) {
+  if (!state || !vassal || !intervention) return null;
+  if (Number.isFinite(intervention.appliedSec)) {
+    return Math.max(0, Math.floor(intervention.appliedSec));
+  }
+  if (intervention.status !== "pending" || !Number.isFinite(intervention.requiredPrestige)) {
+    return null;
+  }
+  const selectedYear = Math.max(1, Math.floor(vassal.selectedYear ?? state.year ?? 1));
+  const initialAge = Math.max(0, Math.floor(vassal.initialAge ?? 0));
+  const traitModifier = Math.floor(vassal.traitPrestigeModifier ?? 0);
+  const yearsUntilGate = Math.max(
+    1,
+    Math.ceil(Math.floor(intervention.requiredPrestige) - initialAge - traitModifier)
+  );
+  const effectYear = selectedYear + yearsUntilGate;
+  const effectSec = getNextMoonPhaseBoundarySec(
+    state,
+    getDetailedYearStartSec(state, effectYear),
+    MOON_PHASE_INDEX_BY_ID.faith
+  );
+  const deathSec = Number.isFinite(vassal.deathSec)
+    ? Math.max(0, Math.floor(vassal.deathSec))
+    : null;
+  return deathSec != null && effectSec > deathSec ? null : effectSec;
+}
+
 function applyIntervention(state, vassal, intervention) {
   const settlement = getDetailedSettlement(state, vassal.targetRegionId);
   let result = { ok: false, reason: "missingSettlement" };

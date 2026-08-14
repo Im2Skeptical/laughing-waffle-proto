@@ -485,6 +485,12 @@ try {
   );
   assert.equal(afterVassal.graph.projectionReplacement.active, true);
   assert.equal(afterVassal.graph.projectionReplacement.hasSnapshot, true);
+  assert.ok(
+    afterVassal.graph.eventMarkers.some(
+      (marker) => marker.tooltipTitle?.startsWith("Vassal change · R")
+    ),
+    "pending Vassal changes are marked on the timegraph with hover detail"
+  );
   assert.equal(
     afterVassal.graph.forecastRevealPlayheadFollowEnabled,
     true,

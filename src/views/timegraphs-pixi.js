@@ -646,6 +646,7 @@ export function createMetricGraphView({
   let stagedProjectionReplacement = null;
   let projectionReplacement = null;
   let bootFadeTransition = null;
+  let hoveredEventMarkerKey = null;
 
   function clampInt(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v | 0));
@@ -685,6 +686,7 @@ export function createMetricGraphView({
     hoveredLegendSeriesId = null;
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
+    hoveredEventMarkerKey = null;
     tooltipView?.hide?.();
   }
 
@@ -1601,6 +1603,53 @@ export function createMetricGraphView({
   function timeToX(t) {
     const ratio = (t - minSec) / Math.max(1, maxSec - minSec);
     return plot.x + ratio * plot.w;
+  }
+
+  function updateEventMarkerTooltip(globalPoint) {
+    if (!tooltipView || isScrubbing) return;
+    if (interaction && interaction?.canShowHoverUI?.() === false) return;
+    const local = globalPoint && typeof root.toLocal === "function"
+      ? root.toLocal(globalPoint)
+      : null;
+    if (!local) return;
+    const markers = getPlotSnapshot()?.eventMarkers ?? [];
+    let nearest = null;
+    let nearestDistance = Infinity;
+    for (const marker of markers) {
+      if (!marker?.tooltip) continue;
+      const distance = Math.abs(timeToX(marker.tSec) - Number(local.x ?? 0));
+      if (distance <= 9 && distance < nearestDistance) {
+        nearest = marker;
+        nearestDistance = distance;
+      }
+    }
+    if (!nearest) {
+      if (hoveredEventMarkerKey) tooltipView.hide?.();
+      hoveredEventMarkerKey = null;
+      return;
+    }
+    const key = `${nearest.tSec}:${nearest.tooltip.title}:${nearest.tooltip.lines.join("|")}`;
+    if (key === hoveredEventMarkerKey) return;
+    hoveredEventMarkerKey = key;
+    const anchor = typeof root.toGlobal === "function"
+      ? root.toGlobal(new PIXI.Point(timeToX(nearest.tSec), plot.y + 7))
+      : { x: timeToX(nearest.tSec), y: plot.y + 7 };
+    tooltipView.show({
+      ...nearest.tooltip,
+      scale: Math.max(
+        Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+        tooltipView?.getRelativeDisplayScale?.(root, 1) ??
+          getDisplayObjectWorldScale(root, 1)
+      ),
+    }, {
+      x: anchor.x,
+      y: anchor.y,
+      width: 2,
+      height: 12,
+      side: "right",
+      alignY: "top",
+      coordinateSpace: "screen",
+    });
   }
 
   function updateScrubFromPointer(globalPoint) {
@@ -3100,13 +3149,22 @@ export function createMetricGraphView({
   });
 
   plotHit.on("pointermove", (e) => {
-    if (!isScrubbing) return;
+    if (!isScrubbing) {
+      updateEventMarkerTooltip(e.global);
+      return;
+    }
     updateScrubFromPointer(e.global);
     applyPreviewThrottled(false);
   });
 
   plotHit.on("pointerup", () => endScrub(true));
   plotHit.on("pointerupoutside", () => endScrub(true));
+  plotHit.on("pointerout", () => {
+    if (!isScrubbing && hoveredEventMarkerKey) {
+      hoveredEventMarkerKey = null;
+      tooltipView?.hide?.();
+    }
+  });
 
   zoomBtn.on("pointerdown", (e) => {
     e.stopPropagation();
@@ -3343,6 +3401,7 @@ export function createMetricGraphView({
             tSec: marker.tSec,
             severity: marker.severity,
             color: marker.color,
+            tooltipTitle: marker.tooltip?.title ?? null,
           }))
         : [],
       seriesScaleRanges:

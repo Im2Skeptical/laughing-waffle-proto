@@ -191,6 +191,122 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   parent.addChild(root);
 }
 
+function getPracticeCardState(entry) {
+  if (!entry?.practiceId) return "Open slot";
+  const activation = entry?.evaluation?.activation?.type;
+  const timing = activation === "passive"
+    ? "Passive"
+    : activation === "season"
+      ? "Seasonal"
+      : activation === "birth"
+        ? "Birth"
+        : activation === "food"
+          ? "Food"
+          : "Practice";
+  const assigned = Array.isArray(entry?.workers?.tokens)
+    ? entry.workers.tokens.length
+    : 0;
+  const capacity = Math.max(0, Math.floor(entry?.evaluation?.workerCapacity ?? 0));
+  return `${timing} · ${assigned}/${capacity} workers`;
+}
+
+function drawCompactPracticeSlot(parent, rect, entry, slotIndex) {
+  const filled = Boolean(entry?.practiceId);
+  const passive = entry?.evaluation?.activation?.type === "passive";
+  const card = new PIXI.Graphics();
+  card.eventMode = "none";
+  roundedRect(
+    card,
+    rect.x,
+    rect.y,
+    rect.width,
+    rect.height,
+    8,
+    filled ? PALETTE.card : PALETTE.slot,
+    passive ? PALETTE.passiveBorder : PALETTE.stroke,
+    filled ? 2 : 1
+  );
+  parent.addChild(
+    card,
+    createText(
+      `${slotIndex + 1}. ${filled ? entry.label : "Empty"}`,
+      {
+        ...TEXT_STYLES.title,
+        fontSize: 12,
+        wordWrap: true,
+        wordWrapWidth: rect.width - 16,
+        fill: filled ? PALETTE.text : PALETTE.textMuted,
+      },
+      rect.x + 8,
+      rect.y + 7
+    ),
+    createText(
+      getPracticeCardState(entry),
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 10,
+        fill: filled ? PALETTE.textMuted : PALETTE.textMuted,
+      },
+      rect.x + 8,
+      rect.y + 33
+    )
+  );
+}
+
+function structureSlotLabel(slot) {
+  if (!slot?.structureId) return "Open";
+  return String(slot.structureId)
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function drawCompactStructureSlot(parent, rect, slot, slotIndex) {
+  const filled = Boolean(slot?.structureId);
+  const card = new PIXI.Graphics();
+  card.eventMode = "none";
+  roundedRect(
+    card,
+    rect.x,
+    rect.y,
+    rect.width,
+    rect.height,
+    7,
+    filled ? PALETTE.cardMuted : PALETTE.slot,
+    filled ? PALETTE.stroke : PALETTE.textMuted,
+    1
+  );
+  parent.addChild(
+    card,
+    createText(
+      `${slotIndex + 1} · ${structureSlotLabel(slot)}`,
+      {
+        ...TEXT_STYLES.body,
+        fontSize: 11,
+        wordWrap: true,
+        wordWrapWidth: rect.width - 12,
+        fill: filled ? PALETTE.text : PALETTE.textMuted,
+      },
+      rect.x + 6,
+      rect.y + 13
+    )
+  );
+}
+
+function getRegionReferenceCorner(definition, regionDef) {
+  const points = getRegionPolygon(definition, regionDef);
+  if (!points.length) return null;
+  const corner = points.reduce((best, point) =>
+    point.x + point.y < best.x + best.y ? point : best
+  );
+  const center = regionDef?.display?.labelPoint ?? corner;
+  // Pull the label just inside the nearest top-left vertex, leaving the
+  // settlement glyphs at the authored display point unobstructed.
+  return screenPoint({
+    x: corner.x * 0.88 + center.x * 0.12,
+    y: corner.y * 0.88 + center.y * 0.12,
+  });
+}
+
 function getActiveWorkerCount(viewModel) {
   if (Number.isFinite(viewModel?.workerPool?.activeWorkerCount)) {
     return Math.max(0, Math.floor(viewModel.workerPool.activeWorkerCount));
@@ -573,8 +689,6 @@ export function createWorldMapView({
   onShowSelectedRegionGraph,
   onOpenDetailedSite,
   getVassalHighlight,
-  getVassalPrimaryState,
-  onOpenVassalSelection,
 }) {
   const root = new PIXI.Container();
   const edgeTransferLayer = new PIXI.Container();
@@ -903,12 +1017,13 @@ export function createWorldMapView({
     root.addChild(edges);
 
     for (const regionDef of definition.regions) {
-      const point = screenPoint(regionDef.display.labelPoint);
+      const point = getRegionReferenceCorner(definition, regionDef)
+        ?? screenPoint(regionDef.display.labelPoint);
       root.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
-        fontSize: 13,
+        fontSize: 12,
         fill: PALETTE.textMuted,
-      }, point.x, point.y + 39, 0.5, 0.5));
+      }, point.x, point.y, 0, 0));
     }
 
     for (const indicator of regionMapIndicators) {
@@ -1035,43 +1150,54 @@ export function createWorldMapView({
     if (viewModel) {
       root.addChild(createText(
         `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose · Currency ${viewModel.currency}`,
-        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 142));
+        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 140));
       root.addChild(createText(
-        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 178));
-      viewModel.practices.forEach((practice, index) => root.addChild(createText(
-        `${index + 1}. ${practice?.label ?? "Empty"}`,
-        { ...TEXT_STYLES.body, fontSize: 14, fill: practice?.practiceId ? PALETTE.text : PALETTE.textMuted },
-        DETAIL_RECT.x + 30 + (index % 2) * 280, DETAIL_RECT.y + 206 + Math.floor(index / 2) * 25
-      )));
+        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 164));
+      const practiceGap = 8;
+      const practiceWidth = Math.floor((DETAIL_RECT.width - 48 - practiceGap * 2) / 3);
+      viewModel.practices.forEach((practice, index) => {
+        drawCompactPracticeSlot(root, {
+          x: DETAIL_RECT.x + 24 + (index % 3) * (practiceWidth + practiceGap),
+          y: DETAIL_RECT.y + 188 + Math.floor(index / 3) * 58,
+          width: practiceWidth,
+          height: 52,
+        }, practice, index);
+      });
       root.addChild(createText(
-        `Structures ${viewModel.usedStructureCapacity}/${viewModel.structureCapacity} · ${viewModel.structures.map((slot) => slot?.structureId ?? "Open").join(" · ")}`,
-        { ...TEXT_STYLES.body, fontSize: 14 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 292));
+        `Structures ${viewModel.usedStructureCapacity}/${viewModel.structureCapacity}`,
+        { ...TEXT_STYLES.title, fontSize: 15 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 314));
+      const structureGap = 7;
+      const structureCount = Math.max(1, viewModel.structures.length);
+      const structureWidth = Math.floor(
+        (DETAIL_RECT.width - 48 - structureGap * (structureCount - 1)) / structureCount
+      );
+      viewModel.structures.forEach((slot, index) => {
+        drawCompactStructureSlot(root, {
+          x: DETAIL_RECT.x + 24 + index * (structureWidth + structureGap),
+          y: DETAIL_RECT.y + 336,
+          width: structureWidth,
+          height: 44,
+        }, slot, index);
+      });
       const activeVassal = state.civilization?.vassalLineage?.currentVassal;
       if (activeVassal) {
         const targetRef = getRegionReference(state, activeVassal.targetRegionId) ?? activeVassal.targetRegionId;
         root.addChild(createText(
           `ACTIVE VASSAL · Target ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)} · dies Year ${activeVassal.deathYear}`,
-          { ...TEXT_STYLES.title, fontSize: 15, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 330));
+          { ...TEXT_STYLES.title, fontSize: 14, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 396));
         activeVassal.interventions.forEach((entry, index) => root.addChild(createText(
           `${index + 1}. ${describeDetailedVassalIntervention(state, activeVassal.targetRegionId, entry)} · ${entry.status}`,
-          { ...TEXT_STYLES.body, fontSize: 13, fill: entry.status === "applied" ? PALETTE.accent : PALETTE.text },
-          DETAIL_RECT.x + 30, DETAIL_RECT.y + 358 + index * 24
+          { ...TEXT_STYLES.body, fontSize: 12, fill: entry.status === "applied" ? PALETTE.accent : PALETTE.text },
+          DETAIL_RECT.x + 30, DETAIL_RECT.y + 424 + index * 20
         )));
       } else {
         root.addChild(createText("No active Vassal.", { ...TEXT_STYLES.body, fill: PALETTE.textMuted },
-          DETAIL_RECT.x + 24, DETAIL_RECT.y + 330));
+          DETAIL_RECT.x + 24, DETAIL_RECT.y + 396));
       }
     } else {
       root.addChild(createText("No detailed settlement at this region.",
         { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 142));
     }
-    addButton(root, {
-      x: DETAIL_RECT.x + 24,
-      y: DETAIL_RECT.y + DETAIL_RECT.height - 128,
-      width: DETAIL_RECT.width - 48,
-      height: 42,
-    }, getVassalPrimaryState?.()?.label ?? "Intervene",
-    () => onOpenVassalSelection?.(), !viewModel || getVassalPrimaryState?.()?.enabled !== true);
     addButton(root, {
       x: DETAIL_RECT.x + 24,
       y: DETAIL_RECT.y + DETAIL_RECT.height - 70,

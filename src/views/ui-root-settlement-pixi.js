@@ -25,8 +25,15 @@ import {
   getSettlementVassalBoundarySeconds,
   getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
-import { buildDetailedVassalSelectionPool } from "../model/detailed-settlements.js";
-import { getPrimaryDetailedSiteState } from "../model/world-state.js";
+import {
+  buildDetailedVassalSelectionPool,
+  describeDetailedVassalIntervention,
+  getDetailedVassalInterventionEffectSec,
+} from "../model/detailed-settlements.js";
+import {
+  getPrimaryDetailedSiteState,
+  getRegionReference,
+} from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
 import {
@@ -201,7 +208,9 @@ function setWorldViewMode(mode) {
   worldMapRegionSelectionActive = settlementVisible;
   prototypeView?.setVisible?.(settlementVisible);
   worldMapView?.setVisible?.(!settlementVisible);
-  settlementVassalControlsView?.setVisible?.(settlementVisible);
+  // The Vassal controls are a shared time-control affordance. Keeping them in
+  // the control layer makes the route available from both map and settlement.
+  settlementVassalControlsView?.setVisible?.(true);
   setSettlementGraphContext(
     settlementVisible ? "settlement" : "civilization",
     selectedWorldRegionId
@@ -1361,20 +1370,6 @@ worldMapView = createWorldMapView({
       intervention: candidate.interventions?.find((entry) => entry?.kind === "connection") ?? null,
     };
   },
-  getVassalPrimaryState: () => getSettlementPrimaryVassalState(),
-  onOpenVassalSelection: () => openNextSettlementVassalSelection(),
-  onInstallPractice: (regionId, practiceId) =>
-    runner.dispatchAction(
-      ActionKinds.REGION_INSTALL_PRACTICE,
-      { regionId, practiceId },
-      { apCost: 0 }
-    ),
-  onUninstallPractice: (regionId, installedIndex) =>
-    runner.dispatchAction(
-      ActionKinds.REGION_UNINSTALL_PRACTICE,
-      { regionId, installedIndex },
-      { apCost: 0 }
-    ),
   onOpenDetailedSite: (_siteId, regionId) => {
     if (typeof regionId === "string") {
       selectedWorldRegionId = regionId;
@@ -1559,6 +1554,52 @@ settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
   }
   return { allow: true };
 });
+
+function getSettlementVassalInterventionMarkers(state) {
+  const selected = Array.isArray(state?.civilization?.vassalLineage?.selectedVassals)
+    ? state.civilization.vassalLineage.selectedVassals
+    : [];
+  const markerByKey = new Map();
+  for (const vassal of selected) {
+    for (const [index, intervention] of (vassal?.interventions ?? []).entries()) {
+      const tSec = getDetailedVassalInterventionEffectSec(state, vassal, intervention);
+      if (!Number.isFinite(tSec)) continue;
+      const targetRef = getRegionReference(state, vassal.targetRegionId) ?? vassal.targetRegionId;
+      const status = intervention.status === "applied"
+        ? "Applied"
+        : intervention.status === "pending"
+          ? "Pending"
+          : intervention.status === "expired"
+            ? "Expired before its gate"
+            : "Failed";
+      const description = describeDetailedVassalIntervention(
+        state,
+        vassal.targetRegionId,
+        intervention
+      );
+      const key = `${vassal.vassalId ?? "vassal"}:${index}:${tSec}`;
+      markerByKey.set(key, {
+        tSec,
+        severity: "critical",
+        color: 0xd48f3f,
+        lineWidth: 2,
+        radius: 4,
+        alpha: 0.92,
+        tooltip: {
+          title: `Vassal change · ${targetRef}`,
+          lines: [
+            description,
+            `Prestige gate ${Math.max(0, Math.floor(intervention.requiredPrestige ?? 0))}`,
+            status,
+          ],
+          maxWidth: 280,
+        },
+      });
+    }
+  }
+  return [...markerByKey.values()];
+}
+
 settlementGraphView.setEventMarkerResolver?.(({
   historyEndSec,
   visibleForecastCoverageEndSec,
@@ -1601,7 +1642,13 @@ settlementGraphView.setEventMarkerResolver?.(({
     radius: 4,
     alpha: 0.9,
   }));
-  return [...boundaryMarkers, ...elderMarkers, ...debugMarkers];
+  const interventionMarkers = getSettlementVassalInterventionMarkers(frontierState);
+  return [
+    ...boundaryMarkers,
+    ...elderMarkers,
+    ...debugMarkers,
+    ...interventionMarkers,
+  ];
 });
 
 settlementVassalControlsView = createSettlementVassalControlsView({

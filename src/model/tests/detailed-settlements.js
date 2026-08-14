@@ -7,6 +7,7 @@ import {
   getDetailedCivilizationSummary,
   getDetailedSettlement,
   getDetailedSettlementViewModel,
+  getDetailedVassalInterventionEffectSec,
   getElderMortalityRate,
   getHousingCapacity,
   getPopulationSummary,
@@ -649,6 +650,15 @@ interventionVassal.interventions = [
   { kind: "structure", structureId: "granary", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
   { kind: "connection", mode: "add", regionAId: "upper-floodplain", regionBId: "east-steppe", requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
 ];
+assert.equal(
+  getDetailedVassalInterventionEffectSec(
+    interventionState,
+    interventionVassal,
+    interventionVassal.interventions[0]
+  ),
+  34,
+  "a pending intervention forecasts the first eligible Faith boundary"
+);
 interventionState._seasonChanged = true;
 interventionState.currentSeasonIndex = 0;
 interventionState.year += 1;
@@ -660,6 +670,15 @@ assert.ok(interventionState.world.connections.some((entry) =>
   && [entry.regionAId, entry.regionBId].includes("east-steppe")
 ), "Vassal connection intervention updates the shared world graph");
 assert.ok(interventionVassal.interventions.every((entry) => entry.status === "applied" && Number.isFinite(entry.appliedSec)));
+assert.equal(
+  getDetailedVassalInterventionEffectSec(
+    interventionState,
+    interventionVassal,
+    interventionVassal.interventions[0]
+  ),
+  interventionVassal.interventions[0].appliedSec,
+  "an applied intervention keeps its authoritative timeline second"
+);
 
 const vm = getDetailedSettlementViewModel(state, "river-crown");
 assert.equal(vm.elderOrder.resistance, 29);
