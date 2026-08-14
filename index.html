@@ -2,13 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>HTML + CSS</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div id="app"></div>
+    <section id="mobile-landscape-gate" aria-live="polite">
+      <div class="mobile-landscape-gate__card">
+        <p class="mobile-landscape-gate__eyebrow">Civilization Survivor</p>
+        <h1>Rotate to landscape</h1>
+        <p>This prototype is designed to be played sideways on a phone.</p>
+        <button type="button" data-testid="mobile-landscape-request">Use landscape</button>
+      </div>
+    </section>
 
     <!-- Pixi 7 CDN (global PIXI) -->
     <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>

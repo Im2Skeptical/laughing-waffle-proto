@@ -11,3 +11,62 @@ body {
 canvas {
   touch-action: none;
 }
+
+#mobile-landscape-gate {
+  display: none;
+}
+
+@media (max-width: 900px) and (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  #app,
+  [data-testid="utility-controls"],
+  .codex-debug-panel {
+    display: none !important;
+  }
+
+  #mobile-landscape-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+    background: #252c33;
+    color: #f6efe3;
+    text-align: center;
+  }
+
+  .mobile-landscape-gate__card {
+    max-width: 22rem;
+  }
+
+  .mobile-landscape-gate__eyebrow {
+    margin: 0 0 10px;
+    color: #d7b450;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobile-landscape-gate h1 {
+    margin: 0;
+    text-decoration: none;
+  }
+
+  .mobile-landscape-gate__card p:not(.mobile-landscape-gate__eyebrow) {
+    line-height: 1.45;
+  }
+
+  [data-testid="mobile-landscape-request"] {
+    min-height: 44px;
+    padding: 9px 18px;
+    border: 1px solid #d7b450;
+    border-radius: 7px;
+    background: #384755;
+    color: #f6efe3;
+    font: inherit;
+    font-weight: 700;
+  }
+}
