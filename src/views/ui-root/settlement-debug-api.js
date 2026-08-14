@@ -105,6 +105,7 @@ export function publishSettlementDebugApi({
   getWorldMapClickPoint,
   getTimeLeverScreenRect,
   getVassalCandidateClickPoint,
+  getVassalRerollClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
@@ -184,6 +185,7 @@ export function publishSettlementDebugApi({
       getVassalCandidateClickPoint?.(
         Math.max(0, Math.floor(candidateIndex ?? 0))
       ) ?? null,
+    getVassalRerollClickPoint: () => getVassalRerollClickPoint?.() ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,

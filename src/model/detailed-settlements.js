@@ -2196,20 +2196,31 @@ function candidatePoolHash(candidates) {
   return JSON.stringify(candidates);
 }
 
-function generateDetailedVassalCandidatesFromRngSnapshot(state) {
+function generateDetailedVassalCandidatesFromRngSnapshot(state, rerollIndex = 0) {
   const cloneState = deserializeGameState(serializeGameState(state));
-  return generateDetailedVassalCandidates(cloneState);
+  const safeRerollIndex = Number.isFinite(rerollIndex)
+    ? Math.max(0, Math.min(999, Math.floor(rerollIndex)))
+    : 0;
+  let candidates = [];
+  for (let index = 0; index <= safeRerollIndex; index += 1) {
+    candidates = generateDetailedVassalCandidates(cloneState);
+  }
+  return candidates;
 }
 
-export function buildDetailedVassalSelectionPool(state) {
+export function buildDetailedVassalSelectionPool(state, rerollIndex = 0) {
   if (!state || state.civilization?.vassalLineage?.currentVassal) return null;
-  const candidates = generateDetailedVassalCandidatesFromRngSnapshot(state).map((candidate, index) => ({
+  const safeRerollIndex = Number.isFinite(rerollIndex)
+    ? Math.max(0, Math.min(999, Math.floor(rerollIndex)))
+    : 0;
+  const candidates = generateDetailedVassalCandidatesFromRngSnapshot(state, safeRerollIndex).map((candidate, index) => ({
     ...candidate,
     candidateIndex: index,
   }));
   return {
-    poolId: `detailed-vassal-${state.civilization.vassalLineage.nextVassalId}`,
+    poolId: `detailed-vassal-${state.civilization.vassalLineage.nextVassalId}-reroll-${safeRerollIndex}`,
     createdSec: state.tSec,
+    rerollIndex: safeRerollIndex,
     candidates,
     expectedPoolHash: candidatePoolHash(candidates.map(({ candidateIndex, ...candidate }) => candidate)),
   };
@@ -2363,14 +2374,22 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
   return selectDetailedVassalCandidate(state, 0);
 }
 
-export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash = null) {
+export function selectDetailedVassalCandidate(
+  state,
+  candidateIndex,
+  expectedPoolHash = null,
+  rerollIndex = 0
+) {
   const lineage = state?.civilization?.vassalLineage;
   if (lineage?.currentVassal) return { ok: false, reason: "currentVassalAlive" };
+  const safeRerollIndex = Number.isFinite(rerollIndex)
+    ? Math.max(0, Math.min(999, Math.floor(rerollIndex)))
+    : 0;
   let candidates = Array.isArray(lineage?.pendingCandidates)
     ? lineage.pendingCandidates
     : [];
   if (!Array.isArray(lineage?.pendingCandidates) || lineage.pendingCandidates.length === 0) {
-    candidates = generateDetailedVassalCandidatesFromRngSnapshot(state);
+    candidates = generateDetailedVassalCandidatesFromRngSnapshot(state, safeRerollIndex);
     const actualHash = candidatePoolHash(candidates);
     if (expectedPoolHash && expectedPoolHash !== actualHash) {
       lineage.pendingCandidates = [];
