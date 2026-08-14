@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { createInitialState } from "../init.js";
-import { buildDetailedVassalSelectionPool } from "../detailed-settlements.js";
+import {
+  buildDetailedVassalSelectionPool,
+  getDetailedVassalInterventionEffectSec,
+} from "../detailed-settlements.js";
 import { serializeGameState } from "../state.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { buildProjectionChunkFromStateData } from "../projection-chunk.js";
@@ -25,7 +28,47 @@ appendActionAtCursor(timeline, {
 const selectedAtZero = rebuildStateAtSecond(timeline, 0);
 assert.equal(selectedAtZero.ok, true);
 const selectedVassal = selectedAtZero.state.civilization.vassalLineage.currentVassal;
+assert.equal(
+  selectedAtZero.state.rng.seed,
+  base.rng.seed,
+  "selecting a Vassal does not advance the authoritative simulation RNG"
+);
 assert.ok(selectedVassal.deathSec > selectedVassal.selectedSec);
+const firstInterventionSec = Math.min(
+  ...selectedVassal.interventions
+    .map((intervention) => getDetailedVassalInterventionEffectSec(
+      selectedAtZero.state,
+      selectedVassal,
+      intervention
+    ))
+    .filter(Number.isFinite)
+);
+assert.ok(firstInterventionSec > 1);
+const unchangedPrefixEndSec = firstInterventionSec - 1;
+const baselinePrefix = buildProjectionChunkFromStateData(
+  serializeGameState(base),
+  0,
+  unchangedPrefixEndSec
+);
+const selectedPrefix = buildProjectionChunkFromStateData(
+  serializeGameState(selectedAtZero.state),
+  0,
+  unchangedPrefixEndSec
+);
+assert.equal(baselinePrefix.ok, true);
+assert.equal(selectedPrefix.ok, true);
+assert.equal(
+  selectedPrefix.endSec,
+  baselinePrefix.endSec,
+  "Vassal metadata does not alter the pre-intervention run boundary"
+);
+for (let tSec = 0; tSec <= baselinePrefix.endSec; tSec += 1) {
+  assert.deepEqual(
+    selectedPrefix.summaryBySecond.get(tSec)?.graphValues,
+    baselinePrefix.summaryBySecond.get(tSec)?.graphValues,
+    `Vassal selection leaves graph values unchanged before interventions at t=${tSec}`
+  );
+}
 const beforeDeath = rebuildStateAtSecond(timeline, selectedVassal.deathSec - 1);
 const atDeath = rebuildStateAtSecond(timeline, selectedVassal.deathSec);
 const atDeathAgain = rebuildStateAtSecond(timeline, selectedVassal.deathSec);

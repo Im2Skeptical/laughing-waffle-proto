@@ -824,6 +824,8 @@ export function createMetricGraphView({
         );
     return {
       snapshot: overlay.snapshot,
+      unchangedStartSec: Math.floor(lineDrawEndSec ?? truncationStartSec),
+      unchangedEndSec: Math.min(truncationStartSec, maxSecFloor),
       drawStartSec: activeStartSec,
       drawEndSec: maxSecFloor,
       maxSecFloor,
@@ -2853,6 +2855,19 @@ export function createMetricGraphView({
       lineDrawEndSec
     );
     if (projectionReplacementState) {
+      if (
+        projectionReplacementState.unchangedEndSec >
+        projectionReplacementState.unchangedStartSec
+      ) {
+        drawSeriesLinesForRange({
+          sourceSeriesList: seriesList,
+          sourcePoints: projectionReplacementState.snapshot?.pointsForDraw,
+          sourceSeriesValues:
+            projectionReplacementState.snapshot?.seriesValues ?? new Map(),
+          drawStartSec: projectionReplacementState.unchangedStartSec,
+          drawEndSec: projectionReplacementState.unchangedEndSec,
+        });
+      }
       drawZone(
         projectionReplacementState.drawStartSec,
         projectionReplacementState.drawEndSec,
