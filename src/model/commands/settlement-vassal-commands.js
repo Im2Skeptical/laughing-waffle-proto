@@ -1,5 +1,4 @@
 import {
-  selectDetailedCheatVassal,
   selectDetailedVassalCandidate,
 } from "../detailed-settlements.js";
 
@@ -15,9 +14,11 @@ export function cmdSelectSettlementVassal(state, payload = {}) {
   const rerollIndex = Number.isFinite(payload?.rerollIndex)
     ? Math.max(0, Math.min(999, Math.floor(payload.rerollIndex)))
     : 0;
-  return selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash, rerollIndex);
-}
-
-export function cmdDebugSelectCheatVassal(state, payload = {}) {
-  return selectDetailedCheatVassal(state, payload?.spec ?? payload);
+  return selectDetailedVassalCandidate(
+    state,
+    candidateIndex,
+    expectedPoolHash,
+    rerollIndex,
+    payload?.candidateOverride ?? null
+  );
 }

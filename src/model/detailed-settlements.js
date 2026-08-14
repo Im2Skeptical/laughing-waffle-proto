@@ -2055,26 +2055,28 @@ function shuffleWithStateRng(state, values) {
   return result;
 }
 
-const VASSAL_INTERVENTION_TEMPLATES = Object.freeze([
-  Object.freeze(["practice", "structure", "removeConnection"]),
-  Object.freeze(["practice", "addConnection", "structure"]),
-  Object.freeze(["practice", "removeConnection", "addConnection"]),
+const VASSAL_INTERVENTION_KINDS = Object.freeze([
+  "practice",
+  "structure",
+  "addConnection",
+  "removeConnection",
 ]);
 
-function getCandidateConnectionEntries(state, targetRegionId, mode) {
+function getCandidateConnectionEntries(state, targetRegionId, mode, connectionKeys = null) {
   const definition = getWorldDefinition(state);
   const connections = Array.isArray(state?.world?.connections) ? state.world.connections : [];
+  const existing = connectionKeys ?? new Set(connections.map((entry) =>
+    getWorldConnectionKey(entry.regionAId, entry.regionBId)
+  ));
+  const touchingTarget = (entry) =>
+    entry.regionAId === targetRegionId || entry.regionBId === targetRegionId;
   if (mode === "add") {
-    const existing = new Set(connections.map((entry) =>
-      getWorldConnectionKey(entry.regionAId, entry.regionBId)
-    ));
     return getWorldConnectionCandidates(definition).filter((entry) =>
-      (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
-      && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
+      touchingTarget(entry) && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
     );
   }
-  return connections.filter((entry) =>
-    entry.regionAId === targetRegionId || entry.regionBId === targetRegionId
+  return getWorldConnectionCandidates(definition).filter((entry) =>
+    touchingTarget(entry) && existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
   );
 }
 
@@ -2109,13 +2111,23 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     return { kind: "structure", structureId, slotIndex };
   }
   if (kind === "addConnection" || kind === "removeConnection") {
+    const connectionKeys = reserved.connectionKeys ?? new Set(
+      (state.world.connections ?? []).map((entry) =>
+        getWorldConnectionKey(entry.regionAId, entry.regionBId)
+      )
+    );
     const entries = getCandidateConnectionEntries(
       state,
       targetRegionId,
-      kind === "addConnection" ? "add" : "remove"
+      kind === "addConnection" ? "add" : "remove",
+      connectionKeys
     );
     const entry = shuffleWithStateRng(state, entries)[0] ?? null;
     if (!entry) return null;
+    const key = getWorldConnectionKey(entry.regionAId, entry.regionBId);
+    if (kind === "addConnection") connectionKeys.add(key);
+    else connectionKeys.delete(key);
+    reserved.connectionKeys = connectionKeys;
     return {
       kind: "connection",
       mode: kind === "addConnection" ? "add" : "remove",
@@ -2126,11 +2138,18 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
   return null;
 }
 
-function buildCandidateAgenda(state, targetRegionId, kinds) {
+function buildRandomCandidateAgenda(state, targetRegionId) {
   const reserved = {};
   const agenda = [];
-  for (const kind of kinds) {
-    const intervention = buildCandidateIntervention(state, targetRegionId, kind, reserved);
+  for (let interventionIndex = 0; interventionIndex < 3; interventionIndex += 1) {
+    let intervention = null;
+    for (const kind of shuffleWithStateRng(state, VASSAL_INTERVENTION_KINDS)) {
+      intervention = buildCandidateIntervention(state, targetRegionId, kind, reserved);
+      if (intervention) break;
+    }
+    if (!intervention) {
+      intervention = buildCandidateIntervention(state, targetRegionId, "practice", reserved);
+    }
     if (!intervention) return null;
     agenda.push(intervention);
   }
@@ -2146,14 +2165,11 @@ export function generateDetailedVassalCandidates(state) {
   }
   const candidates = [];
   for (let candidateIndex = 0; candidateIndex < 3; candidateIndex += 1) {
-    const template = VASSAL_INTERVENTION_TEMPLATES[candidateIndex];
     const targetRegionId = shuffleWithStateRng(state, targetIds).find((id) =>
-      buildCandidateAgenda(state, id, template) != null
+      buildRandomCandidateAgenda(state, id) != null
     );
     if (!targetRegionId) continue;
-    // Candidate eligibility is sampled on a clone-equivalent RNG sequence. Rebuild
-    // the actual agenda once for the selected target so its descriptors are saved.
-    const interventions = buildCandidateAgenda(state, targetRegionId, template);
+    const interventions = buildRandomCandidateAgenda(state, targetRegionId);
     if (!interventions) continue;
     const resistance = getElderOrderSummary(state, targetRegionId).resistance;
     const trait = TRAITS[state.rngNextInt(0, TRAITS.length - 1)];
@@ -2285,7 +2301,7 @@ function normalizeDebugIntervention(state, targetRegionId, raw, index) {
   return null;
 }
 
-export function selectDetailedCheatVassal(state, rawSpec = {}) {
+export function buildDetailedDebugVassalCandidate(state, rawSpec = {}, candidateIndex = 0) {
   const lineage = state?.civilization?.vassalLineage;
   if (!lineage) return { ok: false, reason: "noLineage" };
   const targetRegionId =
@@ -2294,9 +2310,6 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
     (entry) => entry.id === targetRegionId
   )) {
     return { ok: false, reason: "invalidTargetRegion" };
-  }
-  if (lineage.currentVassal && rawSpec.replaceCurrent !== true) {
-    return { ok: false, reason: "currentVassalAlive" };
   }
   const initialAge = Number.isFinite(rawSpec.initialAge)
     ? Math.max(0, Math.floor(rawSpec.initialAge))
@@ -2336,49 +2349,68 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
   const requiredPrestige = interventions.map((_, index) =>
     Number.isFinite(rawSpec.requiredPrestige?.[index])
       ? Math.max(0, Math.floor(rawSpec.requiredPrestige[index]))
+      : Number.isFinite(rawInterventions[index]?.requiredPrestige)
+        ? Math.max(0, Math.floor(rawInterventions[index].requiredPrestige))
       : resistanceSnapshot + defaultOffsets[index]
   );
 
-  if (lineage.currentVassal) {
-    const replaced = lineage.currentVassal;
-    replaced.isDead = true;
-    replaced.deathYear = state.year;
-    replaced.deathSec = state.tSec;
-    for (const intervention of replaced.interventions ?? []) {
-      if (intervention.status === "pending") intervention.status = "expired";
-    }
-    if (lineage.selectedVassals.length > 0) {
-      lineage.selectedVassals[lineage.selectedVassals.length - 1] = clone(replaced);
-    }
-    lineage.currentVassal = null;
-  }
+  return {
+    ok: true,
+    candidate: {
+      candidateId: `debug-candidate-${lineage.nextVassalId}-${Math.max(1, Math.floor(candidateIndex) + 1)}`,
+      targetRegionId,
+      resistanceSnapshot,
+      initialAge,
+      deathAge,
+      traitId: trait?.id ?? "debug",
+      traitPrestigeModifier,
+      professionId,
+      interventions: interventions.map((entry, index) => ({
+        ...entry,
+        requiredPrestige: requiredPrestige[index],
+        status: "pending",
+        appliedYear: null,
+        appliedSec: null,
+      })),
+      debugInjected: true,
+    },
+  };
+}
 
-  lineage.pendingCandidates = [{
-    candidateId: `debug-candidate-${lineage.nextVassalId}`,
-    targetRegionId,
-    resistanceSnapshot,
-    initialAge,
-    deathAge,
-    traitId: trait?.id ?? "debug",
-    traitPrestigeModifier,
-    professionId,
-    interventions: interventions.map((entry, index) => ({
-      ...entry,
-      requiredPrestige: requiredPrestige[index],
-      status: "pending",
-      appliedYear: null,
-      appliedSec: null,
-    })),
-    debugInjected: true,
-  }];
-  return selectDetailedVassalCandidate(state, 0);
+export function replaceDetailedVassalSelectionCandidate(
+  state,
+  selectionPool,
+  candidateIndex,
+  rawSpec = {}
+) {
+  const safeIndex = Number.isFinite(candidateIndex) ? Math.floor(candidateIndex) : -1;
+  if (!Array.isArray(selectionPool?.candidates) || safeIndex < 0
+      || safeIndex >= selectionPool.candidates.length) {
+    return { ok: false, reason: "invalidCandidate" };
+  }
+  const debugCandidate = buildDetailedDebugVassalCandidate(state, rawSpec, safeIndex);
+  if (!debugCandidate.ok) return debugCandidate;
+  const candidates = selectionPool.candidates.map((candidate, index) =>
+    index === safeIndex
+      ? { ...debugCandidate.candidate, candidateIndex: safeIndex }
+      : { ...candidate, candidateIndex: index }
+  );
+  return {
+    ok: true,
+    pool: {
+      ...selectionPool,
+      candidates,
+      expectedPoolHash: candidatePoolHash(candidates.map(({ candidateIndex: _candidateIndex, ...candidate }) => candidate)),
+    },
+  };
 }
 
 export function selectDetailedVassalCandidate(
   state,
   candidateIndex,
   expectedPoolHash = null,
-  rerollIndex = 0
+  rerollIndex = 0,
+  candidateOverride = null
 ) {
   const lineage = state?.civilization?.vassalLineage;
   if (lineage?.currentVassal) return { ok: false, reason: "currentVassalAlive" };
@@ -2390,6 +2422,16 @@ export function selectDetailedVassalCandidate(
     : [];
   if (!Array.isArray(lineage?.pendingCandidates) || lineage.pendingCandidates.length === 0) {
     candidates = generateDetailedVassalCandidatesFromRngSnapshot(state, safeRerollIndex);
+    if (candidateOverride != null) {
+      const overrideResult = buildDetailedDebugVassalCandidate(state, candidateOverride, candidateIndex);
+      if (!overrideResult.ok) return overrideResult;
+      if (candidateIndex < 0 || candidateIndex >= candidates.length) {
+        return { ok: false, reason: "invalidCandidate" };
+      }
+      candidates = candidates.map((candidate, index) =>
+        index === candidateIndex ? overrideResult.candidate : candidate
+      );
+    }
     const actualHash = candidatePoolHash(candidates);
     if (expectedPoolHash && expectedPoolHash !== actualHash) {
       lineage.pendingCandidates = [];

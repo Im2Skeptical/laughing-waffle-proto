@@ -21,7 +21,7 @@ async function waitForHttp() {
 
 mkdirSync("artifacts", { recursive: true });
 const server = spawn(process.execPath,
-  ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"],
+  ["./node_modules/serve/bin/serve.js", "-l", String(PORT), "--no-clipboard", "dist"],
   { stdio: "ignore", windowsHide: true });
 let browser;
 try {
@@ -180,8 +180,7 @@ try {
   const connectedAdministrationReach = page.getByTestId(
     "gamepiece-practices-preserve-connectedAdministrationReach"
   );
-  assert.equal(await connectedAdministrationReach.isChecked(), true);
-  await connectedAdministrationReach.uncheck();
+  assert.equal(await connectedAdministrationReach.isChecked(), false);
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
   await page.getByTestId("gamepieces-apply").click();
@@ -230,10 +229,18 @@ try {
   await page.getByTestId("debug-open").click();
   await page.getByTestId("debug-vassal-tab").click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
-  await page.getByTestId("vassal-debug-target").selectOption("river-crown");
+  await page.evaluate(() => {
+    const target = document.querySelector('[data-testid="vassal-debug-target"]');
+    target.value = "river-crown";
+    target.dispatchEvent(new Event("change", { bubbles: true }));
+  });
   await page.getByTestId("vassal-debug-initial-age").fill("20");
   await page.getByTestId("vassal-debug-death-age").fill("60");
-  await page.getByTestId("vassal-debug-inject").click();
+  await page.getByTestId("vassal-debug-replace-candidate").click();
+  await page.waitForFunction(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool?.candidates?.[0]?.debugInjected
+  );
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
   await page.waitForFunction(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage?.currentVassal?.debugInjected
   );

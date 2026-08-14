@@ -30,6 +30,7 @@ import {
   describeDetailedVassalIntervention,
   getDetailedVassalCandidateSchedule,
   getDetailedVassalInterventionEffectSec,
+  replaceDetailedVassalSelectionCandidate,
 } from "../model/detailed-settlements.js";
 import {
   getPrimaryDetailedSiteState,
@@ -649,10 +650,7 @@ function getSettlementDebugOverrideMarkerSeconds() {
   if (!Array.isArray(actions) || actions.length <= 0) return [];
   const seconds = [];
   for (const action of actions) {
-    if (
-      action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES &&
-      action?.kind !== ActionKinds.DEBUG_SELECT_CHEAT_VASSAL
-    ) {
+    if (action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES) {
       continue;
     }
     const tSec = Math.max(0, Math.floor(action?.tSec ?? 0));
@@ -834,6 +832,7 @@ function selectSettlementVassal(candidateIndex) {
     candidateIndex,
     expectedPoolHash: selectionPool?.expectedPoolHash ?? null,
     rerollIndex: selectionPool?.rerollIndex ?? settlementVassalRerollIndex,
+    candidateOverride: candidate?.debugInjected === true ? candidate : null,
     tSec: selectionSec,
   };
   const result = isFirstVassalSelection
@@ -909,74 +908,36 @@ function rerollSettlementVassalSelection() {
     : { ok: false, reason: "poolFailed" };
 }
 
-function selectSettlementCheatVassal(spec) {
-  const frontierSec = getSettlementFrontierSec();
-  const selectionPool = settlementPendingVassalSelection;
-  const selectionSec = Number.isFinite(selectionPool?.createdSec)
-    ? Math.max(0, Math.floor(selectionPool.createdSec))
-    : getSettlementViewedSec();
-  const isFirstVassalSelection =
-    selectionSec === 0 && !getSettlementFirstSelectedVassal(getSettlementFrontierState());
-  const moveRes = setSettlementViewedSecond(selectionSec);
-  if (moveRes?.ok !== true) {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-    settlementVassalChooserView?.refresh?.();
-    settlementLastVassalSelectionResult =
-      moveRes ?? { ok: false, reason: "selectionSeekFailed" };
-    return settlementLastVassalSelectionResult;
+function closeSettlementVassalSelection() {
+  if (!settlementPendingVassalSelection) return { ok: false, reason: "missingSelectionPool" };
+  settlementPendingVassalSelection = null;
+  settlementHoveredVassalCandidate = null;
+  settlementVassalRerollIndex = 0;
+  settlementVassalSelectionResumeSpeed = 0;
+  settlementGraphView?.clearProjectionReplacementTransition?.();
+  worldMapView?.refresh?.();
+  settlementVassalChooserView?.refresh?.();
+  syncSettlementVassalSelectionPauseState();
+  return { ok: true };
+}
+
+function replaceSettlementVassalCandidate(candidateIndex, spec) {
+  if (!settlementPendingVassalSelection) {
+    const opened = openNextSettlementVassalSelection();
+    if (!opened?.ok) return opened;
   }
-  settlementGraphView?.resetForecastPreviewState?.();
-  settlementGraphView?.stageProjectionReplacementTransition?.({
-    truncationStartSec: selectionSec,
-    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
-    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
-    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
-  });
-  const actionPayload = {
-    tSec: selectionSec,
-    spec,
-  };
-  const result = isFirstVassalSelection
-    ? runner.dispatchActionAtSecond?.(
-        ActionKinds.DEBUG_SELECT_CHEAT_VASSAL,
-        actionPayload,
-        selectionSec,
-        { reason: "settlementFirstCheatVassalSelection" }
-      )
-    : runner.dispatchActionAtCurrentSecond?.(
-        ActionKinds.DEBUG_SELECT_CHEAT_VASSAL,
-        actionPayload
-      );
-  settlementLastVassalSelectionResult = result ?? { ok: false, reason: "dispatchFailed" };
-  if (result?.ok) {
-    if (isFirstVassalSelection) {
-      runner.browseCursorSecond?.(selectionSec);
-    }
-    settlementPendingVassalSelection = null;
-    if (typeof spec?.targetRegionId === "string") {
-      selectedWorldRegionId = spec.targetRegionId;
-      setWorldViewMode("settlement");
-      setSettlementGraphContext("settlement", spec.targetRegionId);
-      prototypeView?.refresh?.();
-    }
-    settlementVassalChooserView?.refresh?.();
-    invalidateSettlementProjectedLossCache();
-    const frontierState = getSettlementFrontierState();
-    const currentVassal = getSettlementCurrentVassal(frontierState);
-    scheduleSettlementPendingCommit(selectionSec, currentVassal);
-    syncSettlementGraphHorizon();
-    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
-      activateProjectionReplacementTransition: true,
-      extraStartDelayMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
-    });
-    returnSettlementViewToPresent(selectionSec);
-    settlementVassalSelectionResumeSpeed = 0;
-    syncSettlementVassalSelectionPauseState();
-  } else {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-    settlementVassalChooserView?.refresh?.();
-  }
-  return result;
+  const result = replaceDetailedVassalSelectionCandidate(
+    getSettlementFrontierState(),
+    settlementPendingVassalSelection,
+    candidateIndex,
+    spec
+  );
+  if (!result.ok) return result;
+  settlementPendingVassalSelection = result.pool;
+  settlementHoveredVassalCandidate = null;
+  worldMapView?.refresh?.();
+  settlementVassalChooserView?.refresh?.();
+  return { ok: true, candidate: result.pool.candidates[candidateIndex] ?? null };
 }
 
 function applySettlementDebugOverrides(overrides) {
@@ -1704,6 +1665,7 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
   isOpen: () => worldViewMode === "map" && !!settlementPendingVassalSelection,
   onSelectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
   onReroll: () => rerollSettlementVassalSelection(),
+  onClose: () => closeSettlementVassalSelection(),
   onHoverCandidate: (candidate) => {
     settlementHoveredVassalCandidate = candidate;
     worldMapView?.refresh?.();
@@ -1754,7 +1716,8 @@ settlementDebugMenu = createSettlementDebugMenuDom({
   applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
   getVassalSelectionPool: () => settlementPendingVassalSelection,
   isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
-  selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
+  replaceVassalCandidate: (candidateIndex, spec) =>
+    replaceSettlementVassalCandidate(candidateIndex, spec),
   getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
   isInteractionBlocked: () => !!settlementPendingVassalSelection,
   mapLabController,
@@ -1831,6 +1794,7 @@ function publishSettlementDebugApi() {
       settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
       null,
     getVassalRerollClickPoint: () => settlementVassalChooserView?.getRerollClickPoint?.() ?? null,
+    getVassalCloseClickPoint: () => settlementVassalChooserView?.getCloseClickPoint?.() ?? null,
     selectWorldRegion: (regionId) => {
       if (worldViewMode === "settlement") {
         if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) {
@@ -1866,7 +1830,7 @@ function publishSettlementDebugApi() {
     applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
     openNextSelection: () => openNextSettlementVassalSelection(),
     selectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
-    selectCheatVassal: (spec) => selectSettlementCheatVassal(spec),
+    closeVassalSelection: () => closeSettlementVassalSelection(),
     getLastVassalSelectionResult: () => settlementLastVassalSelectionResult,
     getVassalSelectionPool: () => settlementPendingVassalSelection,
     isVassalSelectionOpen: () => !!settlementPendingVassalSelection,

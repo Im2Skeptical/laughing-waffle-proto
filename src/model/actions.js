@@ -2,7 +2,6 @@
 // Active settlement timeline action registry.
 
 import {
-  cmdDebugSelectCheatVassal,
   cmdSelectSettlementVassal,
 } from "./commands/settlement-vassal-commands.js";
 import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
@@ -50,7 +49,6 @@ export const ActionKinds = {
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
   DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES: "debugSetSettlementSlotOverrides",
-  DEBUG_SELECT_CHEAT_VASSAL: "debugSelectCheatVassal",
   REGION_INSTALL_PRACTICE: "regionInstallPractice",
   REGION_UNINSTALL_PRACTICE: "regionUninstallPractice",
 };
@@ -151,9 +149,6 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES:
       result = cmdDebugSetSettlementSlotOverrides(state, payload);
-      break;
-    case ActionKinds.DEBUG_SELECT_CHEAT_VASSAL:
-      result = cmdDebugSelectCheatVassal(state, payload);
       break;
     case ActionKinds.REGION_INSTALL_PRACTICE:
       result = cmdInstallRegionalPractice(state, payload);

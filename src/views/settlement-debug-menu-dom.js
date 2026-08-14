@@ -52,7 +52,7 @@ export function createSettlementDebugMenuDom({
   mapLabController,
   debugConfigurationController,
   getState,
-  selectCheatVassal,
+  replaceVassalCandidate,
 } = {}) {
   const utilityControls = document.createElement("div");
   utilityControls.dataset.testid = "utility-controls";
@@ -136,7 +136,7 @@ export function createSettlementDebugMenuDom({
     kind: GAMEPIECES_DRAFT_KIND,
     title: "Gamepieces",
   });
-  const vassalLab = createVassalDebugDom({ getState, selectCheatVassal });
+  const vassalLab = createVassalDebugDom({ getState, replaceVassalCandidate });
   const pages = {
     mapLab,
     gameSettings,

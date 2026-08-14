@@ -45,7 +45,7 @@ function addField(grid, labelText, input) {
   return input;
 }
 
-export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
+export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) {
   const root = document.createElement("section");
   root.dataset.testid = "debug-vassal-lab";
 
@@ -64,7 +64,7 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
 
     const intro = document.createElement("p");
     intro.textContent =
-      "Inject a fully specified vassal at the viewed second. This creates a deterministic timeline action and consumes no RNG.";
+      "Replace one displayed Vassal choice with a fully specified test candidate. The candidate still must be selected from the map drawer to create a timeline action.";
     intro.style.cssText = "margin-top:0;color:#d8e2ef";
     root.appendChild(intro);
 
@@ -104,6 +104,12 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
     traitModifier.dataset.testid = "vassal-debug-trait-modifier";
     const profession = addField(grid, "Profession", makeSelect(options.professions));
     profession.dataset.testid = "vassal-debug-profession";
+    const candidateSlot = addField(grid, "Replace choice", makeSelect([
+      { id: "1", label: "Vassal 1" },
+      { id: "2", label: "Vassal 2" },
+      { id: "3", label: "Vassal 3" },
+    ]));
+    candidateSlot.dataset.testid = "vassal-debug-candidate-slot";
 
     const interventionSelects = [];
     const requirementInputs = [];
@@ -136,25 +142,17 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
     const resistance = addField(grid, "Resistance snapshot", makeNumber(0));
     resistance.dataset.testid = "vassal-debug-resistance";
 
-    const replaceLabel = document.createElement("label");
-    replaceLabel.style.cssText = "display:flex;gap:7px;align-items:center;margin:12px 0;color:#e8dfcb";
-    const replaceCurrent = document.createElement("input");
-    replaceCurrent.type = "checkbox";
-    replaceCurrent.dataset.testid = "vassal-debug-replace-current";
-    replaceLabel.append(replaceCurrent, document.createTextNode("Replace the current living vassal"));
-    root.appendChild(replaceLabel);
-
     const actions = document.createElement("div");
     actions.style.cssText = "display:flex;gap:8px;align-items:center;flex-wrap:wrap";
-    const inject = document.createElement("button");
-    inject.type = "button";
-    inject.textContent = "Inject Vassal";
-    inject.dataset.testid = "vassal-debug-inject";
-    inject.style.cssText =
+    const replaceCandidate = document.createElement("button");
+    replaceCandidate.type = "button";
+    replaceCandidate.textContent = "Replace choice";
+    replaceCandidate.dataset.testid = "vassal-debug-replace-candidate";
+    replaceCandidate.style.cssText =
       "min-height:36px;padding:6px 14px;border:1px solid #d7b450;border-radius:6px;background:#526846;color:#fff";
     const status = document.createElement("span");
     status.style.color = "#d8e2ef";
-    actions.append(inject, status);
+    actions.append(replaceCandidate, status);
     root.appendChild(actions);
 
     function updateTargetDefaults() {
@@ -178,7 +176,7 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
       );
     });
 
-    inject.addEventListener("click", async () => {
+    replaceCandidate.addEventListener("click", async () => {
       const currentState = getState?.() ?? state;
       const interventionSpecs = interventionSelects.map((select) => {
         const [kind, value] = select.value.split(":");
@@ -201,7 +199,7 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
         );
         return edge ? { kind: "connection", mode: "remove", ...edge } : null;
       });
-      const result = await selectCheatVassal?.({
+      const result = await replaceVassalCandidate?.(Number(candidateSlot.value) - 1, {
         targetRegionId: target.value,
         initialAge: Number(initialAge.value),
         deathAge: Number(deathAge.value),
@@ -211,11 +209,10 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
         interventions: interventionSpecs,
         resistanceSnapshot: Number(resistance.value),
         requiredPrestige: requirementInputs.map((input) => Number(input.value)),
-        replaceCurrent: replaceCurrent.checked,
       });
       status.textContent = result?.ok
-        ? `Injected ${result.vassal?.vassalId ?? "vassal"}.`
-        : `Injection failed: ${result?.reason ?? "unknown error"}`;
+        ? `Replaced Vassal ${candidateSlot.value}. Choose it from the map drawer to apply it.`
+        : `Replacement failed: ${result?.reason ?? "unknown error"}`;
       status.style.color = result?.ok ? "#b9f5c7" : "#ffb4a8";
     });
   }

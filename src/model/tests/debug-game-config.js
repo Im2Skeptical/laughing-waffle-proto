@@ -18,10 +18,11 @@ import {
 } from "../game-config.js";
 import {
   assignDetailedSettlementWorkers,
+  buildDetailedVassalSelectionPool,
   getDetailedSettlement,
   getPopulationSummary,
   getStoredFoodCapacity,
-  selectDetailedCheatVassal,
+  replaceDetailedVassalSelectionCandidate,
   stepDetailedSettlementsSecond,
 } from "../detailed-settlements.js";
 import { serializeGameState } from "../state.js";
@@ -149,6 +150,7 @@ assert.equal(
 
 const cheatState = createInitialState("devPlaytesting01", 903);
 const seedBefore = cheatState.rng.seed;
+const selectionPool = buildDetailedVassalSelectionPool(cheatState);
 const cheatSpec = {
   targetRegionId: "river-crown",
   initialAge: 20,
@@ -164,25 +166,31 @@ const cheatSpec = {
   resistanceSnapshot: 29,
   requiredPrestige: [30, 40, 50],
 };
-const cheatResult = selectDetailedCheatVassal(cheatState, cheatSpec);
-assert.equal(cheatResult.ok, true);
-assert.equal(cheatState.rng.seed, seedBefore, "debug injection consumes no RNG");
-assert.equal(
-  cheatState.civilization.vassalLineage.currentVassal.targetRegionId,
-  "river-crown"
+const replacementResult = replaceDetailedVassalSelectionCandidate(
+  cheatState,
+  selectionPool,
+  0,
+  cheatSpec
 );
+assert.equal(replacementResult.ok, true);
+assert.equal(cheatState.rng.seed, seedBefore, "debug candidate replacement consumes no RNG");
 assert.deepEqual(
-  cheatState.civilization.vassalLineage.currentVassal.interventions
+  replacementResult.pool.candidates[0].interventions
     .map((entry) => entry.requiredPrestige),
   [30, 40, 50]
 );
 
-const replayBase = createInitialState("devPlaytesting01", 904);
+const replayBase = createInitialState("devPlaytesting01", 903);
 const timeline = createTimelineFromInitialState(replayBase);
 appendActionAtCursor(timeline, {
-  kind: "debugSelectCheatVassal",
+  kind: "settlementSelectVassal",
   tSec: 0,
-  payload: { spec: cheatSpec },
+  payload: {
+    candidateIndex: 0,
+    expectedPoolHash: replacementResult.pool.expectedPoolHash,
+    rerollIndex: replacementResult.pool.rerollIndex,
+    candidateOverride: replacementResult.pool.candidates[0],
+  },
 }, replayBase);
 const rebuiltA = rebuildStateAtSecond(timeline, 64);
 const rebuiltB = rebuildStateAtSecond(timeline, 64);
