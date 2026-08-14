@@ -453,6 +453,24 @@ try {
   assert.equal(pendingSelection.rerollIndex, 1, "reroll advances the candidate-pool index");
   assert.notEqual(pendingSelection.expectedPoolHash, initialPoolHash,
     "reroll replaces all displayed candidate options");
+  const closePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getVassalCloseClickPoint()
+  );
+  assert.ok(closePoint, "close button exposes a browser click point");
+  await clickDesignPoint(page, closePoint);
+  assert.equal(
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()),
+    false,
+    "close button returns to timeline inspection without selecting a Vassal"
+  );
+  const reopenResult = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.openNextSelection()
+  );
+  assert.equal(reopenResult.ok, true, "closed Vassal selection can be reopened");
+  await delay(100);
+  pendingSelection = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
+  );
   const chosenTargetRegionId = pendingSelection.candidates[0].targetRegionId;
   const candidatePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)

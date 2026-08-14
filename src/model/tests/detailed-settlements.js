@@ -21,7 +21,11 @@ import {
 import { buildEdgeTransferBatchAtBoundary } from "../edge-transfers.js";
 import { serializeGameState } from "../state.js";
 import { deserializeGameState } from "../state.js";
-import { getRegionState } from "../world-state.js";
+import {
+  getRegionState,
+  getWorldConnectionCandidates,
+  getWorldDefinition,
+} from "../world-state.js";
 import {
   createTimelineFromInitialState,
   rebuildStateAtSecond,
@@ -555,15 +559,25 @@ assert.deepEqual(
 const vassalState = fresh(777);
 const pool = buildDetailedVassalSelectionPool(vassalState);
 assert.equal(pool.candidates.length, 3);
-assert.equal(new Set(pool.candidates.map((candidate) => candidate.targetRegionId)).size, 3);
 assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredPrestige), [49, 59, 69]);
-assert.deepEqual(
-  new Set(pool.candidates.flatMap((candidate) => candidate.interventions.map((entry) =>
-    entry.kind === "connection" ? `${entry.mode}Connection` : entry.kind
-  ))),
-  new Set(["practice", "structure", "addConnection", "removeConnection"]),
-  "each candidate pool exposes all coarse Vassal intervention verbs"
+assert.ok(pool.candidates.every((candidate) => candidate.interventions.length === 3),
+  "each candidate rolls three valid interventions independently");
+assert.ok(pool.candidates.flatMap((candidate) => candidate.interventions).every((entry) =>
+  entry.kind === "practice" || entry.kind === "structure" || entry.kind === "connection"
+), "candidate interventions use the supported coarse vocabulary");
+const constrainedVassalState = fresh(780);
+for (const site of constrainedVassalState.world.sites) {
+  site.detailedState.structureSlots = site.detailedState.structureSlots.map(() => ({ structureId: "granary" }));
+}
+constrainedVassalState.world.connections = getWorldConnectionCandidates(
+  getWorldDefinition(constrainedVassalState)
 );
+const constrainedPool = buildDetailedVassalSelectionPool(constrainedVassalState);
+assert.equal(constrainedPool.candidates.length, 3,
+  "candidate rolls retry another intervention type when structures are unavailable");
+assert.ok(constrainedPool.candidates.flatMap((candidate) => candidate.interventions).every(
+  (entry) => entry.kind !== "structure"
+), "the fallback skips unavailable structure interventions");
 assert.equal(selectDetailedVassalCandidate(vassalState, 0, pool.expectedPoolHash).ok, true);
 const vassal = vassalState.civilization.vassalLineage.currentVassal;
 assert.equal(vassal.selectedSec, 0);

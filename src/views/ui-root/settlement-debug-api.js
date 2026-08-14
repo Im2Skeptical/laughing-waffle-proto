@@ -106,6 +106,7 @@ export function publishSettlementDebugApi({
   getTimeLeverScreenRect,
   getVassalCandidateClickPoint,
   getVassalRerollClickPoint,
+  getVassalCloseClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
@@ -126,7 +127,7 @@ export function publishSettlementDebugApi({
   applyOverrides,
   openNextSelection,
   selectCandidate,
-  selectCheatVassal,
+  closeVassalSelection,
   getLastVassalSelectionResult,
   getVassalSelectionPool,
   isVassalSelectionOpen,
@@ -186,6 +187,7 @@ export function publishSettlementDebugApi({
         Math.max(0, Math.floor(candidateIndex ?? 0))
       ) ?? null,
     getVassalRerollClickPoint: () => getVassalRerollClickPoint?.() ?? null,
+    getVassalCloseClickPoint: () => getVassalCloseClickPoint?.() ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,
@@ -208,7 +210,7 @@ export function publishSettlementDebugApi({
     openNextSelection: () => openNextSelection?.(),
     selectCandidate: (candidateIndex) =>
       selectCandidate?.(Math.max(0, Math.floor(candidateIndex ?? 0))),
-    selectCheatVassal: (spec) => selectCheatVassal?.(spec),
+    closeVassalSelection: () => closeVassalSelection?.(),
     getLastVassalSelectionResult: () => getLastVassalSelectionResult?.() ?? null,
     isVassalSelectionOpen: () => isVassalSelectionOpen?.() === true,
   };
