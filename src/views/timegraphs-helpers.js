@@ -354,10 +354,24 @@ export function normalizeEventMarkers(rawMarkers, { minSec, maxSec }) {
     const alpha = Number.isFinite(marker?.alpha)
       ? Math.max(0, Math.min(1, Number(marker.alpha)))
       : null;
-    const dedupeKey = `${sec}:${severity}:${color ?? "default"}:${lineWidth ?? "default"}:${radius ?? "default"}:${alpha ?? "default"}`;
+    const tooltip = marker?.tooltip && typeof marker.tooltip === "object"
+      ? {
+          title: typeof marker.tooltip.title === "string" ? marker.tooltip.title : "Event",
+          lines: Array.isArray(marker.tooltip.lines)
+            ? marker.tooltip.lines.filter((line) => typeof line === "string" && line.length > 0)
+            : [],
+          maxWidth: Number.isFinite(marker.tooltip.maxWidth)
+            ? marker.tooltip.maxWidth
+            : undefined,
+        }
+      : null;
+    const tooltipKey = tooltip
+      ? `${tooltip.title}:${tooltip.lines.join("|")}`
+      : "";
+    const dedupeKey = `${sec}:${severity}:${color ?? "default"}:${lineWidth ?? "default"}:${radius ?? "default"}:${alpha ?? "default"}:${tooltipKey}`;
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
-    out.push({ tSec: sec, severity, color, lineWidth, radius, alpha });
+    out.push({ tSec: sec, severity, color, lineWidth, radius, alpha, tooltip });
   }
 
   out.sort(
