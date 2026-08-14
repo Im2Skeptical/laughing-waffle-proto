@@ -57,7 +57,7 @@ async function doubleClickDesignPoint(page, point) {
 
 mkdirSync("artifacts", { recursive: true });
 const server = spawn(process.execPath,
-  ["./node_modules/serve/bin/serve.js", "dist", "-l", String(PORT), "--no-clipboard"],
+  ["./node_modules/serve/bin/serve.js", "-l", String(PORT), "--no-clipboard", "dist"],
   { stdio: "ignore", windowsHide: true });
 let browser;
 try {
@@ -429,7 +429,7 @@ try {
   assert.equal(openResult.ok, true);
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()), true);
   await delay(180);
-  const pendingSelection = await page.evaluate(
+  let pendingSelection = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
   );
   const chooserSnapshot = await page.evaluate(
@@ -440,6 +440,19 @@ try {
     false,
     "blocking vassal selection suspends automatic forecast preview"
   );
+  const rerollPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getVassalRerollClickPoint()
+  );
+  assert.ok(rerollPoint, "reroll button exposes a browser click point");
+  const initialPoolHash = pendingSelection.expectedPoolHash;
+  await clickDesignPoint(page, rerollPoint);
+  await delay(100);
+  pendingSelection = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
+  );
+  assert.equal(pendingSelection.rerollIndex, 1, "reroll advances the candidate-pool index");
+  assert.notEqual(pendingSelection.expectedPoolHash, initialPoolHash,
+    "reroll replaces all displayed candidate options");
   const chosenTargetRegionId = pendingSelection.candidates[0].targetRegionId;
   const candidatePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)

@@ -12,7 +12,10 @@ export function cmdSelectSettlementVassal(state, payload = {}) {
     typeof payload?.expectedPoolHash === "string" && payload.expectedPoolHash.length > 0
       ? payload.expectedPoolHash
       : null;
-  return selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash);
+  const rerollIndex = Number.isFinite(payload?.rerollIndex)
+    ? Math.max(0, Math.min(999, Math.floor(payload.rerollIndex)))
+    : 0;
+  return selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash, rerollIndex);
 }
 
 export function cmdDebugSelectCheatVassal(state, payload = {}) {

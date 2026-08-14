@@ -4,6 +4,7 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const DRAWER_RECT = Object.freeze({ x: 58, y: 610, width: 1640, height: 198 });
+const REROLL_RECT = Object.freeze({ x: 1422, y: 620, width: 256, height: 30 });
 
 function candidateCard(parent, rect, state, candidate, { onSelect, onHover }) {
   const root = new PIXI.Container();
@@ -48,12 +49,14 @@ export function createWorldMapVassalDrawerView({
   isOpen,
   onSelectCandidate,
   onHoverCandidate,
+  onReroll,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 12;
   layer?.addChild(root);
   let signature = "";
   let candidateRoots = [];
+  let rerollRoot = null;
 
   function render(force = false) {
     const open = isOpen?.() === true;
@@ -61,6 +64,7 @@ export function createWorldMapVassalDrawerView({
     if (!open) {
       signature = "";
       candidateRoots = [];
+      rerollRoot = null;
       clearChildren(root);
       return;
     }
@@ -77,6 +81,23 @@ export function createWorldMapVassalDrawerView({
       ...TEXT_STYLES.header,
       fontSize: 16,
     }, DRAWER_RECT.x + 16, DRAWER_RECT.y + 12));
+    rerollRoot = new PIXI.Container();
+    rerollRoot.position.set(REROLL_RECT.x, REROLL_RECT.y);
+    rerollRoot.eventMode = "static";
+    rerollRoot.cursor = "pointer";
+    rerollRoot.hitArea = new PIXI.Rectangle(0, 0, REROLL_RECT.width, REROLL_RECT.height);
+    rerollRoot.on("pointerdown", (event) => {
+      event?.stopPropagation?.();
+      onReroll?.();
+    });
+    const rerollBackground = new PIXI.Graphics();
+    roundedRect(rerollBackground, 0, 0, REROLL_RECT.width, REROLL_RECT.height,
+      8, 0x314c2b, PALETTE.accent, 2);
+    rerollRoot.addChild(
+      rerollBackground,
+      createText("REROLL VASSALS", { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.text }, 64, 7)
+    );
+    root.addChild(rerollRoot);
     const candidates = pool?.candidates ?? [];
     const gap = 14;
     const cardY = DRAWER_RECT.y + 42;
@@ -101,6 +122,11 @@ export function createWorldMapVassalDrawerView({
       const card = candidateRoots[Math.max(0, Math.floor(candidateIndex))];
       if (!card?.visible || typeof card.toGlobal !== "function") return null;
       const point = card.toGlobal(new PIXI.Point(card.hitArea.width / 2, card.hitArea.height / 2));
+      return { x: Number(point?.x ?? 0), y: Number(point?.y ?? 0) };
+    },
+    getRerollClickPoint: () => {
+      if (!rerollRoot?.visible || typeof rerollRoot.toGlobal !== "function") return null;
+      const point = rerollRoot.toGlobal(new PIXI.Point(REROLL_RECT.width / 2, REROLL_RECT.height / 2));
       return { x: Number(point?.x ?? 0), y: Number(point?.y ?? 0) };
     },
   };

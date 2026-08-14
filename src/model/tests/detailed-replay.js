@@ -15,6 +15,11 @@ import {
 
 const base = createInitialState("devPlaytesting01", 99117);
 const pool = buildDetailedVassalSelectionPool(base);
+const rerolledPool = buildDetailedVassalSelectionPool(base, 1);
+assert.equal(rerolledPool.rerollIndex, 1, "rerolled pools retain their deterministic index");
+assert.notEqual(rerolledPool.expectedPoolHash, pool.expectedPoolHash,
+  "rerolling derives a new candidate pool without changing simulation state");
+assert.equal(base.rng.seed, 99117, "building candidate rerolls does not advance simulation RNG");
 const timeline = createTimelineFromInitialState(base);
 appendActionAtCursor(timeline, {
   kind: "settlementSelectVassal",
@@ -102,6 +107,27 @@ assert.deepEqual(serializeGameState(first.state), serializeGameState(second.stat
 assert.equal(first.state.rng.seed, second.state.rng.seed);
 assert.equal(first.state.world.sites.length, 5);
 assert.equal(first.state.civilization.vassalLineage.selectedVassals.length, 1);
+
+const rerollTimeline = createTimelineFromInitialState(base);
+appendActionAtCursor(rerollTimeline, {
+  kind: "settlementSelectVassal",
+  tSec: 0,
+  payload: {
+    candidateIndex: 0,
+    expectedPoolHash: rerolledPool.expectedPoolHash,
+    rerollIndex: rerolledPool.rerollIndex,
+    tSec: 0,
+  },
+}, base);
+const rerollSelected = rebuildStateAtSecond(rerollTimeline, 0);
+assert.equal(rerollSelected.ok, true, "a selection from a rerolled pool replays");
+assert.equal(rerollSelected.state.rng.seed, base.rng.seed,
+  "rerolled selection keeps the authoritative RNG unchanged");
+assert.equal(
+  rerollSelected.state.civilization.vassalLineage.currentVassal?.candidateId,
+  rerolledPool.candidates[0]?.candidateId,
+  "replay selects the candidate shown by the rerolled pool"
+);
 const projectionSummary = buildProjectionSummaryFromState(first.state);
 assert.ok(projectionSummary.graphValues.settlementByRegion["cedar-woods"]);
 assert.ok(projectionSummary.graphValues.settlementByRegion["river-crown"]);
