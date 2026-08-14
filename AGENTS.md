@@ -34,6 +34,17 @@ Local instructions for Codex agents working in this repo.
   source modules must be imported by the app, forecast worker, or a supported
   test.
 
+## Development deployment
+- This prototype uses `main` as its active development branch and GitHub Pages
+  mobile-testing deployment. After completing a requested change and the
+  relevant verification, commit only the task's changes and push `main` to
+  `origin` so the mobile build is current.
+- Do not hold changes for a separate release branch or preserve `main` as a
+  stable release line; use Git history to revert a bad development change.
+- Do not commit or push when the user explicitly asks to keep work local, when
+  verification identifies an unresolved failure, or when the working tree also
+  contains unrelated user changes.
+
 ## Context hygiene
 - Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.
 - Treat `artifacts/`, `coverage/`, `test-results/`, `playwright-report/`, screenshots/videos/traces/logs, and `*.bak` files as generated output by default.
