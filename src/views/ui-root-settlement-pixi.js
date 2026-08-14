@@ -821,9 +821,8 @@ function selectSettlementVassal(candidateIndex) {
   settlementGraphView?.resetForecastPreviewState?.();
   if (targetRegionId !== selectedWorldRegionId) {
     selectedWorldRegionId = targetRegionId;
-    setSettlementGraphContext("settlement", targetRegionId);
     prototypeView?.refresh?.();
-    settlementGraphView?.render?.();
+    worldMapView?.refresh?.();
   }
   settlementGraphView?.stageProjectionReplacementTransition?.({
     truncationStartSec: firstInterventionSec,
@@ -869,8 +868,8 @@ function selectSettlementVassal(candidateIndex) {
     syncSettlementVassalSelectionPauseState();
   } else if (result?.reason === "selectionPoolMismatch") {
     selectedWorldRegionId = previousRegionId;
-    setSettlementGraphContext("settlement", previousRegionId);
     prototypeView?.refresh?.();
+    worldMapView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(
       getSettlementFrontierState(),
@@ -879,16 +878,16 @@ function selectSettlementVassal(candidateIndex) {
     settlementVassalChooserView?.refresh?.();
   } else if (result?.reason === "currentVassalAlive") {
     selectedWorldRegionId = previousRegionId;
-    setSettlementGraphContext("settlement", previousRegionId);
     prototypeView?.refresh?.();
+    worldMapView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementPendingVassalSelection = null;
     syncSettlementVassalSelectionPauseState();
     settlementVassalChooserView?.refresh?.();
   } else {
     selectedWorldRegionId = previousRegionId;
-    setSettlementGraphContext("settlement", previousRegionId);
     prototypeView?.refresh?.();
+    worldMapView?.refresh?.();
     settlementGraphView?.clearProjectionReplacementTransition?.();
     settlementVassalChooserView?.refresh?.();
   }

@@ -483,6 +483,11 @@ try {
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(afterVassal.lineage.selectedVassalIds.length, 1);
+  assert.equal(
+    afterVassal.controller.scope,
+    chooserSnapshot.controller.scope,
+    "choosing a Vassal preserves the current timegraph scope"
+  );
   assert.equal(afterVassal.worldMap.selectedRegionId, chosenTargetRegionId,
     "vassal choice focuses its target region on the map");
   assert.equal(afterVassal.controller.subjectKey, chosenTargetRegionId,
