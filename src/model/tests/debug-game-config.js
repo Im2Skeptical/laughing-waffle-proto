@@ -118,7 +118,7 @@ assert.equal(getStoredFoodCapacity(configured, "cedar-woods"), 125);
 assert.deepEqual(
   assignDetailedSettlementWorkers(configured, "river-crown")
     .map((entry) => entry.effectiveWorkers),
-  [1, 0, 0, 0, 0]
+  [1, 0, 0, 0, 0, 0]
 );
 assert.equal(
   getPopulationSummary(configured, "cedar-woods").mealDemand,

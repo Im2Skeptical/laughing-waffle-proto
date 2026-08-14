@@ -1,13 +1,16 @@
 import {
   getConnectedRegionIds,
   getRegionDefinition,
+  getRegionReference,
   getRegionPolygon,
   getRegionState,
   getWorldDefinition,
 } from "../model/world-state.js";
 import {
+  describeDetailedVassalIntervention,
   getDetailedCivilizationSummary,
   getDetailedSettlementViewModel,
+  getDetailedVassalPrestige,
 } from "../model/detailed-settlements.js";
 import { SETTLEMENT_RESOURCE_COLOURS } from "../model/graph-metrics.js";
 import {
@@ -22,13 +25,13 @@ const CIVILIZATION_RECT = Object.freeze({
   x: 1734,
   y: 104,
   width: 626,
-  height: 356,
+  height: 126,
 });
 const DETAIL_RECT = Object.freeze({
   x: 1734,
-  y: 476,
+  y: 246,
   width: 626,
-  height: 332,
+  height: 562,
 });
 const REGION_COLOURS = Object.freeze({
   red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
@@ -536,7 +539,8 @@ function signature(
   graphScope,
   civilizationSummary,
   survivalTracker,
-  regionMapIndicators
+  regionMapIndicators,
+  vassalHighlight
 ) {
   return JSON.stringify({
     selectedRegionId,
@@ -546,6 +550,8 @@ function signature(
     civilizationSummary,
     survivalTracker,
     regionMapIndicators,
+    vassalHighlight,
+    vassal: state?.civilization?.vassalLineage?.currentVassal ?? null,
     sites: state?.world?.sites?.map((site) => ({
       regionId: site.regionId,
       food: [site.detailedState?.storedFood, site.detailedState?.looseFood],
@@ -566,6 +572,9 @@ export function createWorldMapView({
   onShowCivilizationGraph,
   onShowSelectedRegionGraph,
   onOpenDetailedSite,
+  getVassalHighlight,
+  getVassalPrimaryState,
+  onOpenVassalSelection,
 }) {
   const root = new PIXI.Container();
   const edgeTransferLayer = new PIXI.Container();
@@ -780,6 +789,7 @@ export function createWorldMapView({
       civilizationLossInfo
     );
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
+    const vassalHighlight = getVassalHighlight?.() ?? null;
     const nextSignature = signature(
       state,
       selectedRegionId,
@@ -787,7 +797,8 @@ export function createWorldMapView({
       graphScope,
       civilizationSummary,
       survivalTracker,
-      regionMapIndicators
+      regionMapIndicators,
+      vassalHighlight
     );
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
@@ -818,6 +829,11 @@ export function createWorldMapView({
       definition.mapContext.landColor, 0x3d514f, 3);
     root.addChild(mapPanel);
 
+    const highlightedRegionIds = new Set([
+      vassalHighlight?.targetRegionId,
+      vassalHighlight?.intervention?.regionAId,
+      vassalHighlight?.intervention?.regionBId,
+    ].filter(Boolean));
     for (const regionDef of definition.regions) {
       const region = getRegionState(state, regionDef.id);
       const points = getRegionPolygon(definition, regionDef).flatMap((point) => {
@@ -826,9 +842,10 @@ export function createWorldMapView({
       });
       const selected =
         regionSelectionActive && region.id === selectedRegionId;
+      const highlighted = highlightedRegionIds.has(region.id);
       const shape = new PIXI.Graphics();
-      shape.lineStyle(selected ? 5 : 2,
-        selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
+      shape.lineStyle(selected || highlighted ? 5 : 2,
+        highlighted ? 0xf0d269 : selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
       shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, 0.86);
       shape.drawPolygon(points);
       shape.endFill();
@@ -884,6 +901,15 @@ export function createWorldMapView({
     }
     edges.eventMode = "none";
     root.addChild(edges);
+
+    for (const regionDef of definition.regions) {
+      const point = screenPoint(regionDef.display.labelPoint);
+      root.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
+        ...TEXT_STYLES.chip,
+        fontSize: 13,
+        fill: PALETTE.textMuted,
+      }, point.x, point.y + 39, 0.5, 0.5));
+    }
 
     for (const indicator of regionMapIndicators) {
       const regionDef = definition.regions.find(
@@ -949,58 +975,16 @@ export function createWorldMapView({
         CIVILIZATION_RECT.y + 24
       ),
       createText(
-        `${civilizationSummary.settlementCount} player settlements · ${civilizationSummary.population.total} people`,
+        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total}`,
         { ...TEXT_STYLES.title, fontSize: 18 },
         CIVILIZATION_RECT.x + 24,
         CIVILIZATION_RECT.y + 66
       ),
       createText(
-        `Cohorts  ${civilizationSummary.population.children} children · ${civilizationSummary.population.adults} adults · ${civilizationSummary.population.elders} elders`,
-        TEXT_STYLES.body,
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 102
-      ),
-      createText(
-        `Villagers  ${civilizationSummary.population.byClass.villager.children} C · ${civilizationSummary.population.byClass.villager.adults} A · ${civilizationSummary.population.byClass.villager.elders} E`,
-        TEXT_STYLES.body,
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 136
-      ),
-      createText(
-        `Strangers  ${civilizationSummary.population.byClass.stranger.children} C · ${civilizationSummary.population.byClass.stranger.adults} A · ${civilizationSummary.population.byClass.stranger.elders} E`,
-        TEXT_STYLES.body,
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 168
-      ),
-      createText(
-        `Food  ${civilizationSummary.food.stored}/${civilizationSummary.food.storedCapacity} stored · ${civilizationSummary.food.loose} loose`,
-        TEXT_STYLES.body,
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 208
-      ),
-      createText(
-        `Meals  ${civilizationSummary.population.mealDemand} · Housing ${civilizationSummary.population.total}/${civilizationSummary.population.housingCapacity}`,
-        TEXT_STYLES.body,
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 240
-      ),
-      createText(
-        `${civilizationSummary.overHousingSiteCount} over-housed sites`,
-        {
-          ...TEXT_STYLES.body,
-          fill:
-            civilizationSummary.overHousingSiteCount > 0
-              ? PALETTE.red
-              : PALETTE.textMuted,
-        },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 272
-      ),
-      createText(
         `Chaos ${civilizationSummary.chaos.chaosPower} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
-        { ...TEXT_STYLES.title, fontSize: 18, fill: PALETTE.accent },
+        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.accent },
         CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 310
+        CIVILIZATION_RECT.y + 96
       )
     );
 
@@ -1038,29 +1022,56 @@ export function createWorldMapView({
       lastSignature = "";
     });
     root.addChild(detailPanel);
-    root.addChild(createText(selectedDef?.name ?? selectedRegionId,
+    const regionRef = getRegionReference(state, selectedRegionId) ?? selectedRegionId;
+    root.addChild(createText(`${regionRef} · ${viewModel?.name ?? selectedDef?.name ?? selectedRegionId}`,
       { ...TEXT_STYLES.header, fontSize: 26 },
       DETAIL_RECT.x + 24, DETAIL_RECT.y + 30));
     root.addChild(createText(
-      `${region.colour} · ${region.controller} · ${getConnectedRegionIds(state, region.id).length} edges`,
+      `${region.colour} · ${region.controller} · Connections: ${getConnectedRegionIds(state, region.id).map((id) => getRegionReference(state, id) ?? id).join(", ") || "none"}`,
       { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 68));
     root.addChild(createText(
-      `Structure space: ${viewModel?.usedStructureCapacity ?? 0} used / ${region.structureCapacity} available`,
+      `Population ${viewModel?.population.total ?? 0}/${viewModel?.population.housingCapacity ?? 0} housing · Resistance ${viewModel?.elderOrder.resistance ?? 0}`,
       { ...TEXT_STYLES.title, fontSize: 17 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 104));
     if (viewModel) {
       root.addChild(createText(
-        `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose`,
+        `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose · Currency ${viewModel.currency}`,
         TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 142));
       root.addChild(createText(
-        `Population ${viewModel.population.total} · Meal demand ${viewModel.population.mealDemand}`,
-        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 174));
+        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 178));
+      viewModel.practices.forEach((practice, index) => root.addChild(createText(
+        `${index + 1}. ${practice?.label ?? "Empty"}`,
+        { ...TEXT_STYLES.body, fontSize: 14, fill: practice?.practiceId ? PALETTE.text : PALETTE.textMuted },
+        DETAIL_RECT.x + 30 + (index % 2) * 280, DETAIL_RECT.y + 206 + Math.floor(index / 2) * 25
+      )));
       root.addChild(createText(
-        `Elder Order ${viewModel.elderOrder.count} elders · Resistance ${viewModel.elderOrder.resistance}`,
-        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 206));
+        `Structures ${viewModel.usedStructureCapacity}/${viewModel.structureCapacity} · ${viewModel.structures.map((slot) => slot?.structureId ?? "Open").join(" · ")}`,
+        { ...TEXT_STYLES.body, fontSize: 14 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 292));
+      const activeVassal = state.civilization?.vassalLineage?.currentVassal;
+      if (activeVassal) {
+        const targetRef = getRegionReference(state, activeVassal.targetRegionId) ?? activeVassal.targetRegionId;
+        root.addChild(createText(
+          `ACTIVE VASSAL · Target ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)} · dies Year ${activeVassal.deathYear}`,
+          { ...TEXT_STYLES.title, fontSize: 15, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 330));
+        activeVassal.interventions.forEach((entry, index) => root.addChild(createText(
+          `${index + 1}. ${describeDetailedVassalIntervention(state, activeVassal.targetRegionId, entry)} · ${entry.status}`,
+          { ...TEXT_STYLES.body, fontSize: 13, fill: entry.status === "applied" ? PALETTE.accent : PALETTE.text },
+          DETAIL_RECT.x + 30, DETAIL_RECT.y + 358 + index * 24
+        )));
+      } else {
+        root.addChild(createText("No active Vassal.", { ...TEXT_STYLES.body, fill: PALETTE.textMuted },
+          DETAIL_RECT.x + 24, DETAIL_RECT.y + 330));
+      }
     } else {
       root.addChild(createText("No detailed settlement at this region.",
         { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 142));
     }
+    addButton(root, {
+      x: DETAIL_RECT.x + 24,
+      y: DETAIL_RECT.y + DETAIL_RECT.height - 128,
+      width: DETAIL_RECT.width - 48,
+      height: 42,
+    }, getVassalPrimaryState?.()?.label ?? "Intervene",
+    () => onOpenVassalSelection?.(), !viewModel || getVassalPrimaryState?.()?.enabled !== true);
     addButton(root, {
       x: DETAIL_RECT.x + 24,
       y: DETAIL_RECT.y + DETAIL_RECT.height - 70,
@@ -1123,12 +1134,18 @@ export function createWorldMapView({
         survivalTracker,
         selectedRegion: region ? {
           ...region,
+          reference: getRegionReference(state, regionId),
           usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
           detailedSettlement: viewModel,
         } : null,
         detailedSiteMarkerCount: getDetailedSettlementViewModel
           ? state?.world?.sites?.length ?? 0 : 0,
-        regionNameLabelsVisible: false,
+        regionNameLabelsVisible: true,
+        regionReferences: (definition?.regions ?? []).map((entry) => ({
+          regionId: entry.id,
+          reference: getRegionReference(state, entry.id),
+        })),
+        vassalHighlight: getVassalHighlight?.() ?? null,
         regionMapIndicators,
         edgeTransferBatch: lastEdgeTransferBatch
           ? {

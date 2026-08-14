@@ -35,7 +35,6 @@ import {
 } from "./layout-pixi.js";
 import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
 import { createRunCompleteView } from "./run-complete-pixi.js";
-import { createSettlementVassalChooserView } from "./settlement-vassal-chooser-pixi.js";
 import { createSettlementVassalControlsView } from "./settlement-vassal-controls-pixi.js";
 import { createTimeControlsView } from "./time-controls-pixi.js";
 import { createMetricGraphView } from "./timegraphs-pixi.js";
@@ -57,6 +56,7 @@ import {
 import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-series-menu.js";
 import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
 import { createWorldMapView } from "./world-map-pixi.js";
+import { createWorldMapVassalDrawerView } from "./world-map-vassal-drawer-pixi.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -175,6 +175,7 @@ let settlementDebugMenu = null;
 let mapLabController = null;
 let debugConfigurationController = null;
 let settlementPendingVassalSelection = null;
+let settlementHoveredVassalCandidate = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
 let settlementLastVassalSelectionResult = null;
@@ -722,6 +723,7 @@ function syncSettlementVassalSelectionPauseState() {
 
 function openNextSettlementVassalSelection() {
   settlementLastVassalSelectionResult = null;
+  if (worldViewMode !== "map") setWorldViewMode("map");
   let frontierState = getSettlementFrontierState();
   let frontierSec = getSettlementFrontierSec();
   const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
@@ -829,6 +831,7 @@ function selectSettlementVassal(candidateIndex) {
       runner.browseCursorSecond?.(selectionSec);
     }
     settlementPendingVassalSelection = null;
+    settlementHoveredVassalCandidate = null;
     invalidateSettlementProjectedLossCache();
     const frontierState = getSettlementFrontierState();
     const currentVassal = getSettlementCurrentVassal(frontierState);
@@ -1350,6 +1353,16 @@ worldMapView = createWorldMapView({
     setSettlementGraphContext("settlement", regionId);
     worldMapView?.refresh?.();
   },
+  getVassalHighlight: () => {
+    const candidate = settlementHoveredVassalCandidate;
+    if (!candidate) return null;
+    return {
+      targetRegionId: candidate.targetRegionId,
+      intervention: candidate.interventions?.find((entry) => entry?.kind === "connection") ?? null,
+    };
+  },
+  getVassalPrimaryState: () => getSettlementPrimaryVassalState(),
+  onOpenVassalSelection: () => openNextSettlementVassalSelection(),
   onInstallPractice: (regionId, practiceId) =>
     runner.dispatchAction(
       ActionKinds.REGION_INSTALL_PRACTICE,
@@ -1601,17 +1614,21 @@ settlementVassalControlsView = createSettlementVassalControlsView({
     if (isSettlementStateRunComplete(getSettlementFrontierState())) {
       return openSettlementRunCompleteOverlay();
     }
+    setWorldViewMode("map");
     return openNextSettlementVassalSelection();
   },
 });
 
-settlementVassalChooserView = createSettlementVassalChooserView({
-  app,
-  layer: modalLayer,
+settlementVassalChooserView = createWorldMapVassalDrawerView({
+  layer: controlLayer,
+  getState: () => runner.getState?.(),
   getSelectionPool: () => settlementPendingVassalSelection,
-  isOpen: () => worldViewMode === "settlement" && !!settlementPendingVassalSelection,
+  isOpen: () => worldViewMode === "map" && !!settlementPendingVassalSelection,
   onSelectCandidate: (candidateIndex) => selectSettlementVassal(candidateIndex),
-  tooltipView,
+  onHoverCandidate: (candidate) => {
+    settlementHoveredVassalCandidate = candidate;
+    worldMapView?.refresh?.();
+  },
 });
 runCompleteView = createRunCompleteView({
   app,
@@ -1619,6 +1636,7 @@ runCompleteView = createRunCompleteView({
 });
 function handleDebugFreshRunApplied(reason) {
   settlementPendingVassalSelection = null;
+  settlementHoveredVassalCandidate = null;
   settlementLastVassalSelectionResult = null;
   settlementPendingPreviewRestoreSec = null;
   settlementDebugMenu?.close?.();

@@ -1,6 +1,6 @@
 // Declarative content for the map-driven detailed-settlement prototype.
 
-export const DETAILED_PRACTICE_SLOT_COUNT = 5;
+export const DETAILED_PRACTICE_SLOT_COUNT = 6;
 export const POPULATION_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 
 const workerMultiplier = () => Object.freeze({
@@ -263,11 +263,13 @@ export const detailedSettlementPracticeDefs = Object.freeze({
 });
 
 export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze([
-  "vassalDummyPractice01",
-  "vassalDummyPractice02",
-  "vassalDummyPractice03",
-  "buildGranary",
-  "buildMudHouses",
+  "cultivate",
+  "administrate",
+  "preserve",
+  "exchange",
+  "import",
+  "caravanRoutes",
+  "clearingHouse",
 ]);
 
 export const detailedSettlementEffectOps = Object.freeze([

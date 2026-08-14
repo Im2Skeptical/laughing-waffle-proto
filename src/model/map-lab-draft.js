@@ -133,7 +133,7 @@ function validateDetailedState(region, path, errors, warnings) {
   }
   if (!Array.isArray(state.practiceSlots)
       || state.practiceSlots.length !== DETAILED_PRACTICE_SLOT_COUNT) {
-    errors.push(`${path}.detailedState.practiceSlots: expected five slots`);
+    errors.push(`${path}.detailedState.practiceSlots: expected ${DETAILED_PRACTICE_SLOT_COUNT} slots`);
   } else {
     state.practiceSlots.forEach((slot, index) => {
       if (slot && !detailedSettlementPracticeDefs[slot.practiceId]) {

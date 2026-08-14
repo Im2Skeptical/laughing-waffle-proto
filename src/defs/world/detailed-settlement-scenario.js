@@ -58,6 +58,7 @@ export const createInitialDetailedSettlementData = () => ({
     { practiceId: "preserve", charge: 0, work: 0 },
     null,
     null,
+    null,
   ],
   structureSlots: [
     { structureId: "granary" },

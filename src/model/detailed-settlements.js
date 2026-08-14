@@ -11,9 +11,15 @@ import {
   createInitialDetailedSettlementData,
 } from "../defs/world/detailed-settlement-scenario.js";
 import {
+  addWorldConnection,
   getConnectedRegionIds,
+  getRegionReference,
   getRegionState,
   getWorldDefinition,
+  getWorldConnectionCandidates,
+  getWorldConnectionKey,
+  isWorldConnectionCandidate,
+  removeWorldConnection,
 } from "./world-state.js";
 import {
   deserializeGameState,
@@ -2049,6 +2055,88 @@ function shuffleWithStateRng(state, values) {
   return result;
 }
 
+const VASSAL_INTERVENTION_TEMPLATES = Object.freeze([
+  Object.freeze(["practice", "structure", "removeConnection"]),
+  Object.freeze(["practice", "addConnection", "structure"]),
+  Object.freeze(["practice", "removeConnection", "addConnection"]),
+]);
+
+function getCandidateConnectionEntries(state, targetRegionId, mode) {
+  const definition = getWorldDefinition(state);
+  const connections = Array.isArray(state?.world?.connections) ? state.world.connections : [];
+  if (mode === "add") {
+    const existing = new Set(connections.map((entry) =>
+      getWorldConnectionKey(entry.regionAId, entry.regionBId)
+    ));
+    return getWorldConnectionCandidates(definition).filter((entry) =>
+      (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
+      && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
+    );
+  }
+  return connections.filter((entry) =>
+    entry.regionAId === targetRegionId || entry.regionBId === targetRegionId
+  );
+}
+
+function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) {
+  const settlement = getDetailedSettlement(state, targetRegionId);
+  if (!settlement) return null;
+  if (kind === "practice") {
+    const slots = reserved.practiceSlots ?? settlement.practiceSlots.map((slot) => slot?.practiceId ?? null);
+    const slotIndex = slots.findIndex((entry) => entry == null);
+    const replacementIndex = slotIndex >= 0 ? slotIndex : slots.length - 1;
+    const replacedPracticeId = slots[replacementIndex] ?? null;
+    const practiceId = shuffleWithStateRng(state, VASSAL_INTERVENTION_PRACTICE_IDS)
+      .find((id) => id !== slots[replacementIndex]) ?? null;
+    if (!practiceId || replacementIndex < 0) return null;
+    slots[replacementIndex] = practiceId;
+    reserved.practiceSlots = slots;
+    return {
+      kind: "practice",
+      mode: replacedPracticeId ? "replace" : "add",
+      replacedPracticeId,
+      practiceId,
+      slotIndex: replacementIndex,
+    };
+  }
+  if (kind === "structure") {
+    const slots = reserved.structureSlots ?? settlement.structureSlots.map((slot) => slot?.structureId ?? null);
+    const slotIndex = slots.findIndex((entry) => entry == null);
+    const structureId = shuffleWithStateRng(state, Object.keys(settlementStructureDefs))[0] ?? null;
+    if (!structureId || slotIndex < 0) return null;
+    slots[slotIndex] = structureId;
+    reserved.structureSlots = slots;
+    return { kind: "structure", structureId, slotIndex };
+  }
+  if (kind === "addConnection" || kind === "removeConnection") {
+    const entries = getCandidateConnectionEntries(
+      state,
+      targetRegionId,
+      kind === "addConnection" ? "add" : "remove"
+    );
+    const entry = shuffleWithStateRng(state, entries)[0] ?? null;
+    if (!entry) return null;
+    return {
+      kind: "connection",
+      mode: kind === "addConnection" ? "add" : "remove",
+      regionAId: entry.regionAId,
+      regionBId: entry.regionBId,
+    };
+  }
+  return null;
+}
+
+function buildCandidateAgenda(state, targetRegionId, kinds) {
+  const reserved = {};
+  const agenda = [];
+  for (const kind of kinds) {
+    const intervention = buildCandidateIntervention(state, targetRegionId, kind, reserved);
+    if (!intervention) return null;
+    agenda.push(intervention);
+  }
+  return agenda;
+}
+
 export function generateDetailedVassalCandidates(state) {
   const targetIds = getDetailedSettlementSites(state, { playerOnly: true })
     .map((site) => site.regionId);
@@ -2056,11 +2144,17 @@ export function generateDetailedVassalCandidates(state) {
     state.civilization.vassalLineage.pendingCandidates = [];
     return [];
   }
-  const shuffledTargets = shuffleWithStateRng(state, targetIds);
   const candidates = [];
   for (let candidateIndex = 0; candidateIndex < 3; candidateIndex += 1) {
-    const targetRegionId = shuffledTargets[candidateIndex % shuffledTargets.length];
-    const interventions = shuffleWithStateRng(state, VASSAL_INTERVENTION_PRACTICE_IDS).slice(0, 3);
+    const template = VASSAL_INTERVENTION_TEMPLATES[candidateIndex];
+    const targetRegionId = shuffleWithStateRng(state, targetIds).find((id) =>
+      buildCandidateAgenda(state, id, template) != null
+    );
+    if (!targetRegionId) continue;
+    // Candidate eligibility is sampled on a clone-equivalent RNG sequence. Rebuild
+    // the actual agenda once for the selected target so its descriptors are saved.
+    const interventions = buildCandidateAgenda(state, targetRegionId, template);
+    if (!interventions) continue;
     const resistance = getElderOrderSummary(state, targetRegionId).resistance;
     const trait = TRAITS[state.rngNextInt(0, TRAITS.length - 1)];
     const initialAge = state.rngNextInt(
@@ -2085,11 +2179,12 @@ export function generateDetailedVassalCandidates(state) {
       traitId: trait.id,
       traitPrestigeModifier: trait.prestigeDelta,
       professionId: PROFESSIONS[state.rngNextInt(0, PROFESSIONS.length - 1)],
-      interventions: interventions.map((practiceId, index) => ({
-        practiceId,
+      interventions: interventions.map((entry, index) => ({
+        ...entry,
         requiredPrestige: resistance + requirementOffsets[index],
         status: "pending",
         appliedYear: null,
+        appliedSec: null,
       })),
     });
   }
@@ -2127,7 +2222,52 @@ export function getDetailedVassalDebugOptions(state) {
     interventionPracticeIds: VASSAL_INTERVENTION_PRACTICE_IDS.filter(
       (id) => !!getDetailedPracticeDef(state, id)
     ),
+    interventionStructureIds: Object.keys(settlementStructureDefs),
   };
+}
+
+function normalizeDebugIntervention(state, targetRegionId, raw, index) {
+  const source = typeof raw === "string" ? { kind: "practice", practiceId: raw } : raw;
+  if (!source || typeof source !== "object") return null;
+  const settlement = getDetailedSettlement(state, targetRegionId);
+  if (!settlement) return null;
+  if (source.kind === "practice") {
+    if (!getDetailedPracticeDef(state, source.practiceId)) return null;
+    const firstEmpty = settlement.practiceSlots.findIndex((slot) => slot == null);
+    const slotIndex = Number.isInteger(source.slotIndex)
+      ? source.slotIndex
+      : (firstEmpty >= 0 ? firstEmpty : settlement.practiceSlots.length - 1);
+    if (slotIndex < 0 || slotIndex >= settlement.practiceSlots.length) return null;
+    return {
+      kind: "practice",
+      mode: settlement.practiceSlots[slotIndex] ? "replace" : "add",
+      replacedPracticeId: settlement.practiceSlots[slotIndex]?.practiceId ?? null,
+      practiceId: source.practiceId,
+      slotIndex,
+    };
+  }
+  if (source.kind === "structure") {
+    const slotIndex = Number.isInteger(source.slotIndex)
+      ? source.slotIndex
+      : settlement.structureSlots.findIndex((slot) => slot == null);
+    if (!settlementStructureDefs[source.structureId] || slotIndex < 0
+        || slotIndex >= settlement.structureSlots.length || settlement.structureSlots[slotIndex]) return null;
+    return { kind: "structure", structureId: source.structureId, slotIndex };
+  }
+  if (source.kind === "connection" && ["add", "remove"].includes(source.mode)) {
+    const a = source.regionAId;
+    const b = source.regionBId;
+    const touchesTarget = a === targetRegionId || b === targetRegionId;
+    if (!touchesTarget) return null;
+    const key = getWorldConnectionKey(a, b);
+    const exists = (state.world.connections ?? []).some((entry) =>
+      getWorldConnectionKey(entry.regionAId, entry.regionBId) === key
+    );
+    if (source.mode === "add" && !isWorldConnectionCandidate(getWorldDefinition(state), a, b)) return null;
+    if ((source.mode === "add" && exists) || (source.mode === "remove" && !exists)) return null;
+    return { kind: "connection", mode: source.mode, regionAId: a, regionBId: b };
+  }
+  return null;
 }
 
 export function selectDetailedCheatVassal(state, rawSpec = {}) {
@@ -2158,16 +2298,18 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
   const professionId = options.professions.some((entry) => entry.id === rawSpec.professionId)
     ? rawSpec.professionId
     : options.professions[0]?.id ?? null;
-  const interventionPracticeIds = Array.isArray(rawSpec.interventionPracticeIds)
-    ? rawSpec.interventionPracticeIds
-    : options.interventionPracticeIds.slice(0, 3);
-  if (
-    interventionPracticeIds.length !== 3
-    || new Set(interventionPracticeIds).size !== 3
-    || interventionPracticeIds.some((id) => !options.interventionPracticeIds.includes(id))
-  ) {
+  const rawInterventions = Array.isArray(rawSpec.interventions)
+    ? rawSpec.interventions
+    : (Array.isArray(rawSpec.interventionPracticeIds)
+      ? rawSpec.interventionPracticeIds
+      : options.interventionPracticeIds.slice(0, 3));
+  if (rawInterventions.length !== 3) {
     return { ok: false, reason: "invalidInterventions" };
   }
+  const interventions = rawInterventions.map((entry, index) =>
+    normalizeDebugIntervention(state, targetRegionId, entry, index)
+  );
+  if (interventions.some((entry) => !entry)) return { ok: false, reason: "invalidInterventions" };
   const resistanceSnapshot = Number.isFinite(rawSpec.resistanceSnapshot)
     ? Math.max(0, Math.floor(rawSpec.resistanceSnapshot))
     : getElderOrderSummary(state, targetRegionId).resistance;
@@ -2176,7 +2318,7 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
     getGameSetting(state, "interventionRequirement02"),
     getGameSetting(state, "interventionRequirement03"),
   ];
-  const requiredPrestige = interventionPracticeIds.map((_, index) =>
+  const requiredPrestige = interventions.map((_, index) =>
     Number.isFinite(rawSpec.requiredPrestige?.[index])
       ? Math.max(0, Math.floor(rawSpec.requiredPrestige[index]))
       : resistanceSnapshot + defaultOffsets[index]
@@ -2205,11 +2347,12 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
     traitId: trait?.id ?? "debug",
     traitPrestigeModifier,
     professionId,
-    interventions: interventionPracticeIds.map((practiceId, index) => ({
-      practiceId,
+    interventions: interventions.map((entry, index) => ({
+      ...entry,
       requiredPrestige: requiredPrestige[index],
       status: "pending",
       appliedYear: null,
+      appliedSec: null,
     })),
     debugInjected: true,
   }];
@@ -2266,31 +2409,69 @@ export function getDetailedVassalPrestige(state, vassal = null) {
 
 function applyIntervention(state, vassal, intervention) {
   const settlement = getDetailedSettlement(state, vassal.targetRegionId);
-  if (!settlement) return false;
-  const existing = settlement.practiceSlots.find(
-    (slot) => slot?.practiceId === intervention.practiceId
-  ) ?? { practiceId: intervention.practiceId, charge: 0, work: 0 };
-  const prefix = vassal.interventions
-    .filter((entry) => entry.status === "applied" || entry === intervention)
-    .map((entry) => entry.practiceId);
-  const byId = new Map(settlement.practiceSlots.filter(Boolean)
-    .map((slot) => [slot.practiceId, slot]));
-  byId.set(intervention.practiceId, existing);
-  const ordered = [];
-  for (const practiceId of prefix) {
-    const slot = byId.get(practiceId) ?? { practiceId, charge: 0, work: 0 };
-    if (!ordered.some((entry) => entry.practiceId === practiceId)) ordered.push(slot);
+  let result = { ok: false, reason: "missingSettlement" };
+  if (settlement && intervention?.kind === "practice") {
+    const slotIndex = Math.floor(intervention.slotIndex);
+    result = getDetailedPracticeDef(state, intervention.practiceId)
+      && slotIndex >= 0 && slotIndex < DETAILED_PRACTICE_SLOT_COUNT
+      ? { ok: true }
+      : { ok: false, reason: "invalidPractice" };
+    if (result.ok) {
+      settlement.practiceSlots[slotIndex] = {
+        practiceId: intervention.practiceId,
+        charge: 0,
+        work: 0,
+      };
+    }
+  } else if (settlement && intervention?.kind === "structure") {
+    const slotIndex = Math.floor(intervention.slotIndex);
+    result = settlementStructureDefs[intervention.structureId]
+      && slotIndex >= 0 && slotIndex < settlement.structureSlots.length
+      && settlement.structureSlots[slotIndex] == null
+      ? { ok: true }
+      : { ok: false, reason: "structureSlotUnavailable" };
+    if (result.ok) settlement.structureSlots[slotIndex] = { structureId: intervention.structureId };
+  } else if (intervention?.kind === "connection") {
+    result = intervention.mode === "add"
+      ? addWorldConnection(state, intervention.regionAId, intervention.regionBId)
+      : intervention.mode === "remove"
+        ? removeWorldConnection(state, intervention.regionAId, intervention.regionBId)
+        : { ok: false, reason: "invalidConnectionMode" };
   }
-  for (const slot of settlement.practiceSlots.filter(Boolean)) {
-    if (!ordered.some((entry) => entry.practiceId === slot.practiceId)) ordered.push(slot);
-  }
-  settlement.practiceSlots = ordered.slice(0, DETAILED_PRACTICE_SLOT_COUNT);
-  while (settlement.practiceSlots.length < DETAILED_PRACTICE_SLOT_COUNT) {
-    settlement.practiceSlots.push(null);
-  }
-  intervention.status = "applied";
   intervention.appliedYear = state.year;
-  return true;
+  intervention.appliedSec = state.tSec;
+  if (result.ok) {
+    intervention.status = "applied";
+    return true;
+  }
+  intervention.status = "failed";
+  intervention.failureReason = result.reason ?? "applyFailed";
+  return false;
+}
+
+export function describeDetailedVassalIntervention(state, targetRegionId, intervention) {
+  if (!intervention || typeof intervention !== "object") return "Unknown intervention";
+  const targetRef = getRegionReference(state, targetRegionId) ?? targetRegionId;
+  if (intervention.kind === "practice") {
+    const label = getDetailedPracticeDef(state, intervention.practiceId)?.label
+      ?? intervention.practiceId;
+    const replaced = getDetailedPracticeDef(state, intervention.replacedPracticeId)?.label
+      ?? intervention.replacedPracticeId;
+    return intervention.mode === "replace" && replaced
+      ? `Replace ${replaced} with ${label} — ${targetRef} slot ${Number(intervention.slotIndex) + 1}`
+      : `Add ${label} — ${targetRef} slot ${Number(intervention.slotIndex) + 1}`;
+  }
+  if (intervention.kind === "structure") {
+    const label = settlementStructureDefs[intervention.structureId]?.label
+      ?? intervention.structureId;
+    return `Add ${label} — ${targetRef}`;
+  }
+  if (intervention.kind === "connection") {
+    const left = getRegionReference(state, intervention.regionAId) ?? intervention.regionAId;
+    const right = getRegionReference(state, intervention.regionBId) ?? intervention.regionBId;
+    return `${intervention.mode === "remove" ? "Remove" : "Connect"} ${left} ↔ ${right}`;
+  }
+  return "Unknown intervention";
 }
 
 function runVassalAnnualBoundary(state) {
