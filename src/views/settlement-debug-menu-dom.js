@@ -37,6 +37,17 @@ function exitFullscreen() {
   return Promise.reject(new Error("Fullscreen exit unavailable"));
 }
 
+async function lockLandscapeOrientation() {
+  const orientation = globalThis.screen?.orientation;
+  if (typeof orientation?.lock !== "function") return;
+  try {
+    await orientation.lock("landscape");
+  } catch {
+    // Browsers commonly allow this only in fullscreen; the portrait gate still
+    // prevents the game from being rendered at an unusable scale.
+  }
+}
+
 export function createSettlementDebugMenuDom({
   mapLabController,
   debugConfigurationController,
@@ -69,6 +80,9 @@ export function createSettlementDebugMenuDom({
     "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
   ].join(";");
   utilityControls.append(fullscreenButton, openButton);
+  const mobileLandscapeButton = document.querySelector(
+    '[data-testid="mobile-landscape-request"]'
+  );
 
   const panel = document.createElement("section");
   panel.className = "codex-debug-panel";
@@ -160,6 +174,7 @@ export function createSettlementDebugMenuDom({
         await exitFullscreen();
       } else {
         await requestFullscreen(document.documentElement);
+        await lockLandscapeOrientation();
       }
     } catch (error) {
       fullscreenButton.title = `Fullscreen unavailable: ${error?.message ?? "unknown error"}`;
@@ -181,6 +196,9 @@ export function createSettlementDebugMenuDom({
 
   openButton.addEventListener("click", open);
   fullscreenButton.addEventListener("click", () => {
+    void toggleFullscreen();
+  });
+  mobileLandscapeButton?.addEventListener("click", () => {
     void toggleFullscreen();
   });
   mapLabTab.addEventListener("click", () => setActivePage("mapLab"));
