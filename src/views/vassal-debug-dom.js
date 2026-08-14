@@ -1,9 +1,17 @@
-import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
+import {
+  detailedSettlementPracticeDefs,
+  settlementStructureDefs,
+} from "../defs/gamepieces/detailed-settlement-defs.js";
 import {
   getDetailedVassalDebugOptions,
   getElderOrderSummary,
 } from "../model/detailed-settlements.js";
 import { getGameSetting } from "../model/game-config.js";
+import {
+  getWorldConnectionCandidates,
+  getWorldConnectionKey,
+  getWorldDefinition,
+} from "../model/world-state.js";
 
 function makeSelect(options) {
   const select = document.createElement("select");
@@ -100,9 +108,18 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
     const interventionSelects = [];
     const requirementInputs = [];
     const interventionOptions = options.interventionPracticeIds.map((id) => ({
-      id,
+      id: `practice:${id}`,
       label: detailedSettlementPracticeDefs[id]?.label ?? id,
-    }));
+    })).concat(
+      options.interventionStructureIds.map((id) => ({
+        id: `structure:${id}`,
+        label: `Add ${settlementStructureDefs[id]?.label ?? id}`,
+      })),
+      [
+        { id: "connection:add", label: "Add a valid connection" },
+        { id: "connection:remove", label: "Remove a current connection" },
+      ]
+    );
     for (let index = 0; index < 3; index += 1) {
       const select = addField(
         grid,
@@ -162,6 +179,28 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
     });
 
     inject.addEventListener("click", async () => {
+      const currentState = getState?.() ?? state;
+      const interventionSpecs = interventionSelects.map((select) => {
+        const [kind, value] = select.value.split(":");
+        if (kind === "practice") return { kind, practiceId: value };
+        if (kind === "structure") return { kind, structureId: value };
+        const targetRegionId = target.value;
+        const currentConnections = currentState?.world?.connections ?? [];
+        if (value === "add") {
+          const existing = new Set(currentConnections.map((entry) =>
+            getWorldConnectionKey(entry.regionAId, entry.regionBId)
+          ));
+          const edge = getWorldConnectionCandidates(getWorldDefinition(currentState)).find((entry) =>
+            (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
+            && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
+          );
+          return edge ? { kind: "connection", mode: "add", ...edge } : null;
+        }
+        const edge = currentConnections.find((entry) =>
+          entry.regionAId === targetRegionId || entry.regionBId === targetRegionId
+        );
+        return edge ? { kind: "connection", mode: "remove", ...edge } : null;
+      });
       const result = await selectCheatVassal?.({
         targetRegionId: target.value,
         initialAge: Number(initialAge.value),
@@ -169,7 +208,7 @@ export function createVassalDebugDom({ getState, selectCheatVassal } = {}) {
         traitId: trait.value,
         traitPrestigeModifier: Number(traitModifier.value),
         professionId: profession.value,
-        interventionPracticeIds: interventionSelects.map((select) => select.value),
+        interventions: interventionSpecs,
         resistanceSnapshot: Number(resistance.value),
         requiredPrestige: requirementInputs.map((input) => Number(input.value)),
         replaceCurrent: replaceCurrent.checked,

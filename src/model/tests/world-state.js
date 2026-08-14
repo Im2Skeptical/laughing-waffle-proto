@@ -25,7 +25,11 @@ import {
   createSettlementForecastController,
 } from "../../controllers/settlement-forecast-controller.js";
 import {
+  addWorldConnection,
+  getConnectedRegionIds,
+  getRegionReference,
   getRegionState,
+  removeWorldConnection,
   validateWorldDefinition,
   validateWorldState,
 } from "../world-state.js";
@@ -51,6 +55,13 @@ assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId),
   "cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country",
 ]);
 assert.equal(state.civilization.capitalRegionId, "river-crown");
+assert.deepEqual(worldMapDefs.riverBasin01.regions.map((region) => getRegionReference(state, region.id)),
+  Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
+assert.equal(addWorldConnection(state, "upper-floodplain", "east-steppe").ok, true);
+assert.ok(getConnectedRegionIds(state, "upper-floodplain").includes("east-steppe"));
+assert.equal(removeWorldConnection(state, "upper-floodplain", "east-steppe").ok, true);
+assert.equal(getConnectedRegionIds(state, "upper-floodplain").includes("east-steppe"), false);
+assert.equal(validateWorldState(state).ok, true);
 for (const site of getDetailedSettlementSites(state)) {
   const view = getDetailedSettlementViewModel(state, site.regionId);
   assert.equal(view.elderOrder.resistance, 29);
@@ -95,7 +106,7 @@ const unusedWorkerSettlement = getDetailedSettlement(
   "cedar-woods"
 );
 unusedWorkerSettlement.populationByClass.villager.adults = 100;
-unusedWorkerSettlement.practiceSlots = Array.from({ length: 5 }, () => null);
+unusedWorkerSettlement.practiceSlots = Array.from({ length: 6 }, () => null);
 assert.deepEqual(
   getDetailedSettlementViewModel(unusedWorkerState, "cedar-woods").workerPool,
   {

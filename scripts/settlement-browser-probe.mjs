@@ -81,7 +81,9 @@ try {
   assert.equal(initial.worldMap.graphScope, "civilization");
   assert.equal(initial.worldMap.selectedRegion.structureCapacity, 3);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
-  assert.equal(initial.worldMap.regionNameLabelsVisible, false);
+  assert.equal(initial.worldMap.regionNameLabelsVisible, true);
+  assert.deepEqual(initial.worldMap.regionReferences.map((entry) => entry.reference),
+    Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
   const detailedMapIndicators = initial.worldMap.regionMapIndicators.filter(
     (indicator) => indicator.hasDetailedSettlement
   );
@@ -340,7 +342,7 @@ try {
   assert.equal(localPanelSelected.controller.subjectKey, "cedar-woods",
     "the selected-region panel switches back to the local timegraph");
 
-  await pressDesignPoint(page, { x: 2047, y: 280 }, 180);
+  await pressDesignPoint(page, { x: 2047, y: 160 }, 180);
   const civilizationPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -400,7 +402,7 @@ try {
     ],
     "local graph replaces aggregate lines with the selected settlement values"
   );
-  assert.equal(overview.view.overview.practices.length, 5);
+  assert.equal(overview.view.overview.practices.length, 6);
   assert.deepEqual(
     overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
     ["Cultivate", "Administration", "Preservation"]
@@ -443,6 +445,15 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)
   );
   assert.ok(candidatePoint, "candidate card exposes a browser click point");
+  const candidateCanvas = await page.locator("canvas").boundingBox();
+  await page.mouse.move(
+    candidateCanvas.x + candidatePoint.x / 2424 * candidateCanvas.width,
+    candidateCanvas.y + candidatePoint.y / 1080 * candidateCanvas.height
+  );
+  await delay(100);
+  const hoveredCandidate = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(hoveredCandidate.worldMap.vassalHighlight?.targetRegionId, chosenTargetRegionId,
+    "hovering a map drawer candidate highlights its target region");
   await clickDesignPoint(page, candidatePoint);
   const selectResult = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLastVassalSelectionResult()
@@ -459,8 +470,8 @@ try {
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(afterVassal.lineage.selectedVassalIds.length, 1);
-  assert.equal(afterVassal.view.regionId, chosenTargetRegionId,
-    "vassal choice focuses its target settlement");
+  assert.equal(afterVassal.worldMap.selectedRegionId, chosenTargetRegionId,
+    "vassal choice focuses its target region on the map");
   assert.equal(afterVassal.controller.subjectKey, chosenTargetRegionId,
     "local graph follows the focused vassal target");
   assert.ok(
@@ -510,7 +521,7 @@ try {
     );
   }
 
-  await clickDesignPoint(page, { x: 1883, y: 36 });
+  await pressDesignPoint(page, { x: 2047, y: 160 }, 180);
   const returnedToMap = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

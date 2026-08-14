@@ -1,6 +1,7 @@
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { createInitialDetailedSettlementData } from "../defs/world/detailed-settlement-scenario.js";
 import {
+  DETAILED_PRACTICE_SLOT_COUNT,
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
@@ -23,6 +24,15 @@ function isPoint(point) {
 
 export function getWorldConnectionKey(regionAId, regionBId) {
   return [String(regionAId), String(regionBId)].sort().join("|");
+}
+
+// Region references are deliberately derived from immutable definition order so
+// they remain stable without becoming save data or a second naming system.
+export function getRegionReference(state, regionId) {
+  const index = (getWorldDefinition(state)?.regions ?? []).findIndex(
+    (region) => region?.id === regionId
+  );
+  return index >= 0 ? `R${String(index + 1).padStart(2, "0")}` : null;
 }
 
 function getPolygonEdgeKey(vertexAId, vertexBId) {
@@ -137,8 +147,9 @@ function validateDetailedSettlement(site, region, errors) {
     errors.push(`site ${site?.id ?? "?"} has no detailed state`);
     return;
   }
-  if (!Array.isArray(settlement.practiceSlots) || settlement.practiceSlots.length !== 5) {
-    errors.push(`site ${site.id} must have five practice slots`);
+  if (!Array.isArray(settlement.practiceSlots)
+      || settlement.practiceSlots.length !== DETAILED_PRACTICE_SLOT_COUNT) {
+    errors.push(`site ${site.id} must have ${DETAILED_PRACTICE_SLOT_COUNT} practice slots`);
   } else {
     for (const slot of settlement.practiceSlots) {
       if (slot && !detailedSettlementPracticeDefs[slot.practiceId]) {
@@ -291,6 +302,40 @@ export function getConnectedRegionIds(state, regionId) {
     else if (entry.regionBId === regionId) out.push(entry.regionAId);
   }
   return out;
+}
+
+export function addWorldConnection(state, regionAId, regionBId) {
+  const definition = getWorldDefinition(state);
+  if (!definition || !isWorldConnectionCandidate(definition, regionAId, regionBId)) {
+    return { ok: false, reason: "invalidConnection" };
+  }
+  const key = getWorldConnectionKey(regionAId, regionBId);
+  const connections = Array.isArray(state?.world?.connections)
+    ? state.world.connections
+    : null;
+  if (!connections) return { ok: false, reason: "missingConnections" };
+  if (connections.some((entry) => getWorldConnectionKey(entry.regionAId, entry.regionBId) === key)) {
+    return { ok: false, reason: "connectionExists" };
+  }
+  connections.push({ regionAId, regionBId });
+  state.world.connections = canonicalizeWorldConnections(connections, definition);
+  return { ok: true, connectionKey: key };
+}
+
+export function removeWorldConnection(state, regionAId, regionBId) {
+  const definition = getWorldDefinition(state);
+  const connections = Array.isArray(state?.world?.connections)
+    ? state.world.connections
+    : null;
+  if (!definition || !connections) return { ok: false, reason: "missingConnections" };
+  const key = getWorldConnectionKey(regionAId, regionBId);
+  const index = connections.findIndex(
+    (entry) => getWorldConnectionKey(entry.regionAId, entry.regionBId) === key
+  );
+  if (index < 0) return { ok: false, reason: "connectionMissing" };
+  connections.splice(index, 1);
+  state.world.connections = canonicalizeWorldConnections(connections, definition);
+  return { ok: true, connectionKey: key };
 }
 
 export function getSiteById(state, siteId) {

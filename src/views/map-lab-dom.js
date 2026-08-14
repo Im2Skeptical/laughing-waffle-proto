@@ -371,7 +371,7 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
       detail.append(group);
     }
 
-    detail.append(element("h4", "", "Five practice slots"));
+    detail.append(element("h4", "", `${state.practiceSlots.length} practice slots`));
     const practices = element("div", "map-lab-slots");
     const practiceOptions = [
       { value: "", label: "Empty" },

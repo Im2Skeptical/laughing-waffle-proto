@@ -257,7 +257,7 @@ export function createSettlementPrototypeView({
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
       const structureRect = { x: BODY.x, y: 356, width: 540, height: 410 };
       panel(root, foodRect, "Local food and population");
-      panel(root, practiceRect, "Five practice slots");
+      panel(root, practiceRect, `${vm.practices.length} practice slots`);
       panel(root, orderRect, "Elder Order");
       panel(root, structureRect, "Regional structure space");
       root.addChild(
@@ -273,7 +273,8 @@ export function createSettlementPrototypeView({
       );
       const practiceGap = 10;
       const practiceCardWidth = Math.floor(
-        (practiceRect.width - 36 - practiceGap * 4) / 5
+        (practiceRect.width - 36 - practiceGap * Math.max(0, vm.practices.length - 1)) /
+          Math.max(1, vm.practices.length)
       );
       vm.practices.forEach((entry, index) => drawPracticeSlotCard(root, {
         x: practiceRect.x + 18 + index * (practiceCardWidth + practiceGap),
