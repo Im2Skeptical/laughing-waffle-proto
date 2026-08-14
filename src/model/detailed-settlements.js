@@ -2196,10 +2196,14 @@ function candidatePoolHash(candidates) {
   return JSON.stringify(candidates);
 }
 
+function generateDetailedVassalCandidatesFromRngSnapshot(state) {
+  const cloneState = deserializeGameState(serializeGameState(state));
+  return generateDetailedVassalCandidates(cloneState);
+}
+
 export function buildDetailedVassalSelectionPool(state) {
   if (!state || state.civilization?.vassalLineage?.currentVassal) return null;
-  const cloneState = deserializeGameState(serializeGameState(state));
-  const candidates = generateDetailedVassalCandidates(cloneState).map((candidate, index) => ({
+  const candidates = generateDetailedVassalCandidatesFromRngSnapshot(state).map((candidate, index) => ({
     ...candidate,
     candidateIndex: index,
   }));
@@ -2362,16 +2366,40 @@ export function selectDetailedCheatVassal(state, rawSpec = {}) {
 export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoolHash = null) {
   const lineage = state?.civilization?.vassalLineage;
   if (lineage?.currentVassal) return { ok: false, reason: "currentVassalAlive" };
+  let candidates = Array.isArray(lineage?.pendingCandidates)
+    ? lineage.pendingCandidates
+    : [];
   if (!Array.isArray(lineage?.pendingCandidates) || lineage.pendingCandidates.length === 0) {
-    const generated = generateDetailedVassalCandidates(state);
-    const actualHash = candidatePoolHash(generated);
+    candidates = generateDetailedVassalCandidatesFromRngSnapshot(state);
+    const actualHash = candidatePoolHash(candidates);
     if (expectedPoolHash && expectedPoolHash !== actualHash) {
       lineage.pendingCandidates = [];
       return { ok: false, reason: "selectionPoolMismatch", actualPoolHash: actualHash };
     }
   }
-  const candidate = lineage?.pendingCandidates?.[candidateIndex];
+  const candidate = candidates[candidateIndex];
   if (!candidate) return { ok: false, reason: "invalidCandidate" };
+  const schedule = getDetailedVassalCandidateSchedule(state, candidate);
+  if (!schedule) return { ok: false, reason: "invalidCandidateSchedule" };
+  const selected = {
+    ...clone(candidate),
+    vassalId: `vassal-${lineage.nextVassalId++}`,
+    selectedYear: schedule.selectedYear,
+    selectedSec: schedule.selectedSec,
+    deathYear: schedule.deathYear,
+    deathSec: schedule.deathSec,
+    lastFaithYear: schedule.selectedYear,
+    isDead: false,
+  };
+  lineage.currentVassal = selected;
+  lineage.selectedVassals.push(clone(selected));
+  lineage.pendingCandidates = [];
+  return { ok: true, vassal: selected };
+}
+
+export function getDetailedVassalCandidateSchedule(state, candidate) {
+  if (!state || !candidate || !Number.isFinite(candidate.initialAge)
+      || !Number.isFinite(candidate.deathAge)) return null;
   const selectedYear = Math.max(1, Math.floor(state.year ?? 1));
   const selectedSec = Math.max(0, Math.floor(state.tSec ?? 0));
   const yearsUntilDeath = Math.max(
@@ -2384,20 +2412,31 @@ export function selectDetailedVassalCandidate(state, candidateIndex, expectedPoo
     getDetailedYearStartSec(state, deathYear),
     MOON_PHASE_INDEX_BY_ID.faith
   );
-  const selected = {
-    ...clone(candidate),
-    vassalId: `vassal-${lineage.nextVassalId++}`,
+  const scheduledVassal = {
+    ...candidate,
     selectedYear,
     selectedSec,
     deathYear,
     deathSec,
-    lastFaithYear: selectedYear,
-    isDead: false,
   };
-  lineage.currentVassal = selected;
-  lineage.selectedVassals.push(clone(selected));
-  lineage.pendingCandidates = [];
-  return { ok: true, vassal: selected };
+  const interventionEffectSecs = (candidate.interventions ?? []).map(
+    (intervention) => getDetailedVassalInterventionEffectSec(
+      state,
+      scheduledVassal,
+      intervention
+    )
+  );
+  const finiteEffectSecs = interventionEffectSecs.filter(Number.isFinite);
+  return {
+    selectedYear,
+    selectedSec,
+    deathYear,
+    deathSec,
+    interventionEffectSecs,
+    firstInterventionSec: finiteEffectSecs.length
+      ? Math.min(...finiteEffectSecs)
+      : null,
+  };
 }
 
 export function getDetailedVassalPrestige(state, vassal = null) {

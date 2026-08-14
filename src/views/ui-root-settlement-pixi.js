@@ -28,6 +28,7 @@ import {
 import {
   buildDetailedVassalSelectionPool,
   describeDetailedVassalIntervention,
+  getDetailedVassalCandidateSchedule,
   getDetailedVassalInterventionEffectSec,
 } from "../model/detailed-settlements.js";
 import {
@@ -789,6 +790,13 @@ function selectSettlementVassal(candidateIndex) {
   const candidate = Array.isArray(selectionPool?.candidates)
     ? selectionPool.candidates[candidateIndex] ?? null
     : null;
+  const candidateSchedule = getDetailedVassalCandidateSchedule(
+    getSettlementFrontierState(),
+    candidate
+  );
+  const firstInterventionSec = Number.isFinite(candidateSchedule?.firstInterventionSec)
+    ? Math.max(selectionSec, Math.floor(candidateSchedule.firstInterventionSec))
+    : selectionSec;
   const previousRegionId = selectedWorldRegionId;
   const targetRegionId =
     typeof candidate?.targetRegionId === "string" &&
@@ -813,7 +821,7 @@ function selectSettlementVassal(candidateIndex) {
     settlementGraphView?.render?.();
   }
   settlementGraphView?.stageProjectionReplacementTransition?.({
-    truncationStartSec: selectionSec,
+    truncationStartSec: firstInterventionSec,
     transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
     flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
     fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,

@@ -485,11 +485,17 @@ try {
   );
   assert.equal(afterVassal.graph.projectionReplacement.active, true);
   assert.equal(afterVassal.graph.projectionReplacement.hasSnapshot, true);
+  const firstVassalChangeMarker = afterVassal.graph.eventMarkers.find(
+    (marker) => marker.tooltipTitle?.startsWith("Vassal change · R")
+  );
   assert.ok(
-    afterVassal.graph.eventMarkers.some(
-      (marker) => marker.tooltipTitle?.startsWith("Vassal change · R")
-    ),
+    firstVassalChangeMarker,
     "pending Vassal changes are marked on the timegraph with hover detail"
+  );
+  assert.equal(
+    afterVassal.graph.projectionReplacement.truncationStartSec,
+    firstVassalChangeMarker.tSec,
+    "the replacement fade begins at the first actual Vassal intervention"
   );
   assert.equal(
     afterVassal.graph.forecastRevealPlayheadFollowEnabled,
