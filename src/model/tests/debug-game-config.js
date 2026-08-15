@@ -31,6 +31,7 @@ import {
   createTimelineFromInitialState,
   rebuildStateAtSecond,
 } from "../timeline/index.js";
+import { createVassalDebugPresetController } from "../../controllers/vassal-debug-preset-controller.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -179,6 +180,53 @@ assert.deepEqual(
     .map((entry) => entry.requiredPrestige),
   [30, 40, 50]
 );
+assert.deepEqual(
+  replacementResult.pool.candidates[0].interventions.map((entry) => entry.slotIndex),
+  [3, 4, 5],
+  "repeated debug practices reserve successive practice slots"
+);
+
+const structureResult = replaceDetailedVassalSelectionCandidate(
+  cheatState,
+  selectionPool,
+  1,
+  {
+    ...cheatSpec,
+    targetRegionId: "upper-floodplain",
+    interventions: [
+      { kind: "structure", structureId: "granary" },
+      { kind: "structure", structureId: "mudHouses" },
+      { kind: "practice", practiceId: "exchange" },
+    ],
+  }
+);
+assert.equal(structureResult.ok, true);
+assert.deepEqual(
+  structureResult.pool.candidates[1].interventions.slice(0, 2).map((entry) => entry.slotIndex),
+  [3, 4],
+  "repeated debug structures reserve successive empty structure slots"
+);
+
+const connectionResult = replaceDetailedVassalSelectionCandidate(
+  cheatState,
+  selectionPool,
+  2,
+  {
+    ...cheatSpec,
+    targetRegionId: "upper-floodplain",
+    interventions: [
+      { kind: "connection", mode: "add" },
+      { kind: "connection", mode: "add" },
+      { kind: "practice", practiceId: "exchange" },
+    ],
+  }
+);
+assert.equal(connectionResult.ok, true);
+assert.notEqual(
+  `${connectionResult.pool.candidates[2].interventions[0].regionAId}|${connectionResult.pool.candidates[2].interventions[0].regionBId}`,
+  `${connectionResult.pool.candidates[2].interventions[1].regionAId}|${connectionResult.pool.candidates[2].interventions[1].regionBId}`,
+  "repeated debug connections reserve different eligible edges"
+);
 
 const replayBase = createInitialState("devPlaytesting01", 903);
 const timeline = createTimelineFromInitialState(replayBase);
@@ -200,5 +248,30 @@ assert.equal(
   rebuiltA.state.civilization.vassalLineage.selectedVassals[0].debugInjected,
   true
 );
+
+const storage = new Map();
+const previousStorage = globalThis.localStorage;
+globalThis.localStorage = {
+  getItem: (key) => storage.get(key) ?? null,
+  setItem: (key, value) => storage.set(key, value),
+};
+try {
+  const presetController = createVassalDebugPresetController();
+  const saved = presetController.savePreset("Two practices", {
+    ...cheatSpec,
+    candidateSlot: 1,
+    interventions: [
+      { kind: "practice", practiceId: "exchange" },
+      { kind: "practice", practiceId: "import" },
+      { kind: "connection", mode: "add" },
+    ],
+  });
+  assert.equal(saved.ok, true);
+  const restored = createVassalDebugPresetController().loadPreset(saved.preset.id);
+  assert.deepEqual(restored.preset.draft.interventions, saved.preset.draft.interventions);
+} finally {
+  if (previousStorage === undefined) delete globalThis.localStorage;
+  else globalThis.localStorage = previousStorage;
+}
 
 console.log("[debug-game-config-v4] OK");

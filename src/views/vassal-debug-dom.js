@@ -7,11 +7,6 @@ import {
   getElderOrderSummary,
 } from "../model/detailed-settlements.js";
 import { getGameSetting } from "../model/game-config.js";
-import {
-  getWorldConnectionCandidates,
-  getWorldConnectionKey,
-  getWorldDefinition,
-} from "../model/world-state.js";
 
 function makeSelect(options) {
   const select = document.createElement("select");
@@ -45,9 +40,15 @@ function addField(grid, labelText, input) {
   return input;
 }
 
-export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) {
+export function createVassalDebugDom({
+  getState,
+  replaceVassalCandidate,
+  presetController,
+} = {}) {
   const root = document.createElement("section");
   root.dataset.testid = "debug-vassal-lab";
+  let loadedDraft = null;
+  let selectedPresetId = null;
 
   function render() {
     const state = getState?.();
@@ -67,6 +68,42 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) 
       "Replace one displayed Vassal choice with a fully specified test candidate. The candidate still must be selected from the map drawer to create a timeline action.";
     intro.style.cssText = "margin-top:0;color:#d8e2ef";
     root.appendChild(intro);
+
+    const presetSnapshot = presetController?.getSnapshot?.() ?? { presetOptions: [] };
+    const presetToolbar = document.createElement("div");
+    presetToolbar.style.cssText = "display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px";
+    const preset = makeSelect([
+      { id: "", label: "Custom / unsaved Vassal" },
+      ...presetSnapshot.presetOptions.map((entry) => ({
+        id: entry.id,
+        label: `Saved - ${entry.name}`,
+      })),
+    ]);
+    preset.style.cssText = "min-height:34px;max-width:320px";
+    preset.value = selectedPresetId ?? "";
+    preset.dataset.testid = "vassal-debug-preset";
+    const loadPreset = document.createElement("button");
+    loadPreset.type = "button";
+    loadPreset.textContent = "Load preset";
+    loadPreset.dataset.testid = "vassal-debug-load-preset";
+    const presetName = document.createElement("input");
+    presetName.type = "text";
+    presetName.placeholder = "Preset name";
+    presetName.value = presetSnapshot.presetOptions.find((entry) => entry.id === selectedPresetId)?.name ?? "";
+    presetName.dataset.testid = "vassal-debug-preset-name";
+    const savePreset = document.createElement("button");
+    savePreset.type = "button";
+    savePreset.textContent = "Save preset";
+    savePreset.dataset.testid = "vassal-debug-save-preset";
+    const deletePreset = document.createElement("button");
+    deletePreset.type = "button";
+    deletePreset.textContent = "Delete saved";
+    deletePreset.dataset.testid = "vassal-debug-delete-preset";
+    deletePreset.disabled = !selectedPresetId;
+    const presetStatus = document.createElement("span");
+    presetStatus.style.color = "#d8e2ef";
+    presetToolbar.append(preset, loadPreset, presetName, savePreset, deletePreset, presetStatus);
+    root.appendChild(presetToolbar);
 
     const grid = document.createElement("div");
     grid.style.cssText =
@@ -142,6 +179,33 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) 
     const resistance = addField(grid, "Resistance snapshot", makeNumber(0));
     resistance.dataset.testid = "vassal-debug-resistance";
 
+    const draft = loadedDraft;
+    function setSelectValue(select, value) {
+      if ([...select.options].some((option) => option.value === value)) select.value = value;
+    }
+    if (draft) {
+      setSelectValue(target, draft.targetRegionId);
+      initialAge.value = String(draft.initialAge);
+      deathAge.value = String(draft.deathAge);
+      setSelectValue(trait, draft.traitId);
+      traitModifier.value = String(draft.traitPrestigeModifier);
+      setSelectValue(profession, draft.professionId);
+      if (Number.isInteger(draft.candidateSlot)) setSelectValue(candidateSlot, String(draft.candidateSlot));
+      draft.interventions.forEach((entry, index) => {
+        if (!entry) return;
+        const value = entry.kind === "practice"
+          ? `practice:${entry.practiceId}`
+          : entry.kind === "structure"
+            ? `structure:${entry.structureId}`
+            : `connection:${entry.mode}`;
+        setSelectValue(interventionSelects[index], value);
+      });
+      draft.requiredPrestige.forEach((value, index) => {
+        requirementInputs[index].value = String(value);
+      });
+      resistance.value = String(draft.resistanceSnapshot);
+    }
+
     const actions = document.createElement("div");
     actions.style.cssText = "display:flex;gap:8px;align-items:center;flex-wrap:wrap";
     const replaceCandidate = document.createElement("button");
@@ -154,6 +218,26 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) 
     status.style.color = "#d8e2ef";
     actions.append(replaceCandidate, status);
     root.appendChild(actions);
+
+    function readDraft() {
+      return {
+        targetRegionId: target.value,
+        initialAge: Number(initialAge.value),
+        deathAge: Number(deathAge.value),
+        traitId: trait.value,
+        traitPrestigeModifier: Number(traitModifier.value),
+        professionId: profession.value,
+        candidateSlot: Number(candidateSlot.value),
+        interventions: interventionSelects.map((select) => {
+          const [kind, value] = select.value.split(":");
+          if (kind === "practice") return { kind, practiceId: value };
+          if (kind === "structure") return { kind, structureId: value };
+          return { kind: "connection", mode: value };
+        }),
+        resistanceSnapshot: Number(resistance.value),
+        requiredPrestige: requirementInputs.map((input) => Number(input.value)),
+      };
+    }
 
     function updateTargetDefaults() {
       const currentState = getState?.() ?? state;
@@ -169,6 +253,13 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) 
       });
     }
     updateTargetDefaults();
+    if (draft) {
+      // Loaded values are intentional test data, not target-derived defaults.
+      resistance.value = String(draft.resistanceSnapshot);
+      draft.requiredPrestige.forEach((value, index) => {
+        requirementInputs[index].value = String(value);
+      });
+    }
     target.addEventListener("change", updateTargetDefaults);
     trait.addEventListener("change", () => {
       traitModifier.value = String(
@@ -177,43 +268,57 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate } = {}) 
     });
 
     replaceCandidate.addEventListener("click", async () => {
-      const currentState = getState?.() ?? state;
-      const interventionSpecs = interventionSelects.map((select) => {
-        const [kind, value] = select.value.split(":");
-        if (kind === "practice") return { kind, practiceId: value };
-        if (kind === "structure") return { kind, structureId: value };
-        const targetRegionId = target.value;
-        const currentConnections = currentState?.world?.connections ?? [];
-        if (value === "add") {
-          const existing = new Set(currentConnections.map((entry) =>
-            getWorldConnectionKey(entry.regionAId, entry.regionBId)
-          ));
-          const edge = getWorldConnectionCandidates(getWorldDefinition(currentState)).find((entry) =>
-            (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
-            && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
-          );
-          return edge ? { kind: "connection", mode: "add", ...edge } : null;
-        }
-        const edge = currentConnections.find((entry) =>
-          entry.regionAId === targetRegionId || entry.regionBId === targetRegionId
-        );
-        return edge ? { kind: "connection", mode: "remove", ...edge } : null;
-      });
-      const result = await replaceVassalCandidate?.(Number(candidateSlot.value) - 1, {
-        targetRegionId: target.value,
-        initialAge: Number(initialAge.value),
-        deathAge: Number(deathAge.value),
-        traitId: trait.value,
-        traitPrestigeModifier: Number(traitModifier.value),
-        professionId: profession.value,
-        interventions: interventionSpecs,
-        resistanceSnapshot: Number(resistance.value),
-        requiredPrestige: requirementInputs.map((input) => Number(input.value)),
-      });
+      const draftToInject = readDraft();
+      const result = await replaceVassalCandidate?.(draftToInject.candidateSlot - 1, draftToInject);
       status.textContent = result?.ok
         ? `Replaced Vassal ${candidateSlot.value}. Choose it from the map drawer to apply it.`
         : `Replacement failed: ${result?.reason ?? "unknown error"}`;
       status.style.color = result?.ok ? "#b9f5c7" : "#ffb4a8";
+    });
+
+    loadPreset.addEventListener("click", () => {
+      if (!preset.value) return;
+      const result = presetController?.loadPreset?.(preset.value);
+      if (!result?.ok) {
+        presetStatus.textContent = "Preset could not be loaded.";
+        presetStatus.style.color = "#ffb4a8";
+        return;
+      }
+      loadedDraft = result.preset.draft;
+      selectedPresetId = result.preset.id;
+      render();
+    });
+    savePreset.addEventListener("click", () => {
+      const name = presetName.value;
+      let result = presetController?.savePreset?.(name, readDraft(), {
+        overwritePresetId: selectedPresetId,
+      });
+      if (result?.requiresOverwrite && typeof confirm === "function"
+          && confirm(`Replace the saved Vassal preset "${result.existingPresetName ?? name}"?`)) {
+        result = presetController.savePreset(name, readDraft(), {
+          overwritePresetId: result.existingPresetId,
+        });
+      }
+      if (result?.ok) {
+        loadedDraft = result.preset.draft;
+        selectedPresetId = result.preset.id;
+        render();
+        return;
+      }
+      presetStatus.textContent = `Save failed: ${result?.reason ?? "unknown error"}`;
+      presetStatus.style.color = "#ffb4a8";
+    });
+    deletePreset.addEventListener("click", () => {
+      if (!selectedPresetId) return;
+      const result = presetController?.deletePreset?.(selectedPresetId);
+      if (result?.ok) {
+        loadedDraft = null;
+        selectedPresetId = null;
+        render();
+        return;
+      }
+      presetStatus.textContent = "Saved preset could not be deleted.";
+      presetStatus.style.color = "#ffb4a8";
     });
   }
 

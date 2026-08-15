@@ -51,6 +51,7 @@ async function lockLandscapeOrientation() {
 export function createSettlementDebugMenuDom({
   mapLabController,
   debugConfigurationController,
+  vassalDebugPresetController,
   getState,
   replaceVassalCandidate,
 } = {}) {
@@ -136,7 +137,11 @@ export function createSettlementDebugMenuDom({
     kind: GAMEPIECES_DRAFT_KIND,
     title: "Gamepieces",
   });
-  const vassalLab = createVassalDebugDom({ getState, replaceVassalCandidate });
+  const vassalLab = createVassalDebugDom({
+    getState,
+    replaceVassalCandidate,
+    presetController: vassalDebugPresetController,
+  });
   const pages = {
     mapLab,
     gameSettings,
