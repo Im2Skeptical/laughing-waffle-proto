@@ -3,6 +3,7 @@ const BOOT_SETUP_ID = "devPlaytesting01";
 import { createSimRunner } from "../controllers/sim-runner.js";
 import { createMapLabController } from "../controllers/map-lab-controller.js";
 import { createDebugConfigurationController } from "../controllers/debug-configuration-controller.js";
+import { createVassalDebugPresetController } from "../controllers/vassal-debug-preset-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import {
@@ -183,6 +184,7 @@ let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
 let mapLabController = null;
 let debugConfigurationController = null;
+let vassalDebugPresetController = null;
 let settlementPendingVassalSelection = null;
 let settlementHoveredVassalCandidate = null;
 let settlementVassalRerollIndex = 0;
@@ -1708,6 +1710,7 @@ debugConfigurationController = createDebugConfigurationController({
   setupId: BOOT_SETUP_ID,
   onApplied: () => handleDebugFreshRunApplied("debugConfigurationApply"),
 });
+vassalDebugPresetController = createVassalDebugPresetController();
 settlementDebugMenu = createSettlementDebugMenuDom({
   getState: () => getSettlementViewedState(),
   getFrontierSec: () => getSettlementFrontierSec(),
@@ -1722,6 +1725,7 @@ settlementDebugMenu = createSettlementDebugMenuDom({
   isInteractionBlocked: () => !!settlementPendingVassalSelection,
   mapLabController,
   debugConfigurationController,
+  vassalDebugPresetController,
 });
 
 function requestPauseBeforeDrag() {

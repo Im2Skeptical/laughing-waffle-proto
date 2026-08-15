@@ -18,7 +18,6 @@ import {
   getWorldDefinition,
   getWorldConnectionCandidates,
   getWorldConnectionKey,
-  isWorldConnectionCandidate,
   removeWorldConnection,
 } from "./world-state.js";
 import {
@@ -2257,45 +2256,75 @@ export function getDetailedVassalDebugOptions(state) {
   };
 }
 
-function normalizeDebugIntervention(state, targetRegionId, raw, index) {
+function createDebugInterventionReservation(state, targetRegionId) {
+  const settlement = getDetailedSettlement(state, targetRegionId);
+  return {
+    practiceSlots: settlement?.practiceSlots.map((slot) => slot?.practiceId ?? null) ?? [],
+    structureSlots: settlement?.structureSlots.map((slot) => slot?.structureId ?? null) ?? [],
+    connectionKeys: new Set((state?.world?.connections ?? []).map((entry) =>
+      getWorldConnectionKey(entry.regionAId, entry.regionBId)
+    )),
+    connectionCandidates: getWorldConnectionCandidates(getWorldDefinition(state)),
+  };
+}
+
+function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
   const source = typeof raw === "string" ? { kind: "practice", practiceId: raw } : raw;
   if (!source || typeof source !== "object") return null;
   const settlement = getDetailedSettlement(state, targetRegionId);
   if (!settlement) return null;
   if (source.kind === "practice") {
     if (!getDetailedPracticeDef(state, source.practiceId)) return null;
-    const firstEmpty = settlement.practiceSlots.findIndex((slot) => slot == null);
+    const firstEmpty = reservation.practiceSlots.findIndex((practiceId) => practiceId == null);
     const slotIndex = Number.isInteger(source.slotIndex)
       ? source.slotIndex
-      : (firstEmpty >= 0 ? firstEmpty : settlement.practiceSlots.length - 1);
-    if (slotIndex < 0 || slotIndex >= settlement.practiceSlots.length) return null;
-    return {
+      : (firstEmpty >= 0 ? firstEmpty : reservation.practiceSlots.length - 1);
+    if (slotIndex < 0 || slotIndex >= reservation.practiceSlots.length) return null;
+    const intervention = {
       kind: "practice",
-      mode: settlement.practiceSlots[slotIndex] ? "replace" : "add",
-      replacedPracticeId: settlement.practiceSlots[slotIndex]?.practiceId ?? null,
+      mode: reservation.practiceSlots[slotIndex] ? "replace" : "add",
+      replacedPracticeId: reservation.practiceSlots[slotIndex] ?? null,
       practiceId: source.practiceId,
       slotIndex,
     };
+    reservation.practiceSlots[slotIndex] = source.practiceId;
+    return intervention;
   }
   if (source.kind === "structure") {
     const slotIndex = Number.isInteger(source.slotIndex)
       ? source.slotIndex
-      : settlement.structureSlots.findIndex((slot) => slot == null);
+      : reservation.structureSlots.findIndex((structureId) => structureId == null);
     if (!settlementStructureDefs[source.structureId] || slotIndex < 0
-        || slotIndex >= settlement.structureSlots.length || settlement.structureSlots[slotIndex]) return null;
+        || slotIndex >= reservation.structureSlots.length || reservation.structureSlots[slotIndex]) return null;
+    reservation.structureSlots[slotIndex] = source.structureId;
     return { kind: "structure", structureId: source.structureId, slotIndex };
   }
   if (source.kind === "connection" && ["add", "remove"].includes(source.mode)) {
-    const a = source.regionAId;
-    const b = source.regionBId;
+    const sourceHasEndpoints = typeof source.regionAId === "string"
+      && typeof source.regionBId === "string";
+    const candidate = sourceHasEndpoints
+      ? reservation.connectionCandidates.find((entry) =>
+        getWorldConnectionKey(entry.regionAId, entry.regionBId) ===
+          getWorldConnectionKey(source.regionAId, source.regionBId)
+      )
+      : reservation.connectionCandidates.find((entry) => {
+        const key = getWorldConnectionKey(entry.regionAId, entry.regionBId);
+        const touchesTarget = entry.regionAId === targetRegionId || entry.regionBId === targetRegionId;
+        return touchesTarget && (source.mode === "add"
+          ? !reservation.connectionKeys.has(key)
+          : reservation.connectionKeys.has(key));
+      });
+    const a = candidate?.regionAId;
+    const b = candidate?.regionBId;
     const touchesTarget = a === targetRegionId || b === targetRegionId;
     if (!touchesTarget) return null;
     const key = getWorldConnectionKey(a, b);
-    const exists = (state.world.connections ?? []).some((entry) =>
-      getWorldConnectionKey(entry.regionAId, entry.regionBId) === key
-    );
-    if (source.mode === "add" && !isWorldConnectionCandidate(getWorldDefinition(state), a, b)) return null;
-    if ((source.mode === "add" && exists) || (source.mode === "remove" && !exists)) return null;
+    const exists = reservation.connectionKeys.has(key);
+    if (!candidate || (source.mode === "add" && exists) || (source.mode === "remove" && !exists)) {
+      return null;
+    }
+    if (source.mode === "add") reservation.connectionKeys.add(key);
+    else reservation.connectionKeys.delete(key);
     return { kind: "connection", mode: source.mode, regionAId: a, regionBId: b };
   }
   return null;
@@ -2334,8 +2363,9 @@ export function buildDetailedDebugVassalCandidate(state, rawSpec = {}, candidate
   if (rawInterventions.length !== 3) {
     return { ok: false, reason: "invalidInterventions" };
   }
-  const interventions = rawInterventions.map((entry, index) =>
-    normalizeDebugIntervention(state, targetRegionId, entry, index)
+  const reservation = createDebugInterventionReservation(state, targetRegionId);
+  const interventions = rawInterventions.map((entry) =>
+    normalizeDebugIntervention(state, targetRegionId, entry, reservation)
   );
   if (interventions.some((entry) => !entry)) return { ok: false, reason: "invalidInterventions" };
   const resistanceSnapshot = Number.isFinite(rawSpec.resistanceSnapshot)
