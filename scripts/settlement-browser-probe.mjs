@@ -68,9 +68,11 @@ try {
   page.on("worker", (worker) => workerUrls.push(worker.url()));
   await page.goto(URL);
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
-  const fullscreenButton = page.getByTestId("fullscreen-toggle");
-  assert.equal(await fullscreenButton.count(), 1, "fullscreen control is present");
-  assert.equal(await fullscreenButton.innerText(), "Full");
+  assert.equal(
+    await page.getByTestId("fullscreen-toggle").count(),
+    0,
+    "desktop fullscreen control is absent"
+  );
 
   const initial = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(initial.worldMap.mode, "map");
@@ -613,12 +615,10 @@ try {
       "settlement"
   );
   await widePage.evaluate(() => {
-    for (const testId of ["fullscreen-toggle", "debug-open"]) {
-      const element = document.querySelector(`[data-testid="${testId}"]`);
-      element.style.minWidth = "92px";
-      element.style.minHeight = "48px";
-      element.style.fontSize = "20px";
-    }
+    const element = document.querySelector('[data-testid="debug-open"]');
+    element.style.minWidth = "92px";
+    element.style.minHeight = "48px";
+    element.style.fontSize = "20px";
   });
   const wideHeaderLayout = await widePage.evaluate(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
@@ -658,7 +658,6 @@ try {
         ])
       ),
       utilities: {
-        fullscreen: domRect("fullscreen-toggle"),
         debug: domRect("debug-open"),
       },
     };
@@ -668,20 +667,7 @@ try {
     a.right > b.left &&
     a.top < b.bottom &&
     a.bottom > b.top;
-  assert.equal(
-    overlaps(
-      wideHeaderLayout.utilities.fullscreen,
-      wideHeaderLayout.utilities.debug
-    ),
-    false,
-    "Pixel-sized fullscreen and debug controls remain separate"
-  );
   for (const [tabId, tabRect] of Object.entries(wideHeaderLayout.tabs)) {
-    assert.equal(
-      overlaps(tabRect, wideHeaderLayout.utilities.fullscreen),
-      false,
-      `${tabId} remains clear of the fullscreen control`
-    );
     assert.equal(
       overlaps(tabRect, wideHeaderLayout.utilities.debug),
       false,
