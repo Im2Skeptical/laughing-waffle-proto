@@ -59,7 +59,7 @@ try {
   assert.equal(await page.getByTestId("map-lab-stored-food").inputValue(), "60");
   assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "cultivate");
   assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Connected/);
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
 
   const adultsField = page.getByTestId("map-lab-villager-adults");
   await adultsField.fill("31");
@@ -82,9 +82,9 @@ try {
     "31"
   );
   await page.getByTestId("map-lab-connection-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Add/);
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Add: R03$/);
   await page.getByTestId("map-lab-connection-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /Connected/);
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
 
   await page.getByTestId("map-lab-structure-capacity").fill("4");
   await page.getByTestId("map-lab-structure-capacity").press("Enter");
