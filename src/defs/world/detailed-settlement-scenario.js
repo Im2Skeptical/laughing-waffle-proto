@@ -6,9 +6,8 @@ export const DETAILED_REGION_IDS = Object.freeze([
   "lake-country",
 ]);
 
-export const REGION_STRUCTURE_CAPACITIES = Object.freeze([
-  3, 4, 4, 3, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 3,
-]);
+export const DEFAULT_REGION_STRUCTURE_CAPACITY_MIN = 5;
+export const DEFAULT_REGION_STRUCTURE_CAPACITY_MAX = 8;
 
 export const DETAILED_REGION_COLOURS = Object.freeze({
   "cedar-woods": "green",
@@ -56,7 +55,6 @@ export const createInitialDetailedSettlementData = () => ({
     { practiceId: "cultivate", charge: 0, work: 0 },
     { practiceId: "administrate", charge: 0, work: 0 },
     { practiceId: "preserve", charge: 0, work: 0 },
-    null,
     null,
     null,
   ],

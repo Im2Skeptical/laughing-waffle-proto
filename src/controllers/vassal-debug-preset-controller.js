@@ -29,6 +29,9 @@ const libraryOptions = Object.freeze({
 
 export function createVassalDebugPresetController() {
   let library = createEmptyDebugDraftLibrary(VASSAL_DEBUG_DRAFT_KIND);
+  let currentDraft = null;
+  let selectedPresetId = null;
+  const currentDraftStorageKey = "civsurvivor.debugVassalDraft.v2";
 
   function persist() {
     const storage = safeStorage();
@@ -52,18 +55,41 @@ export function createVassalDebugPresetController() {
         const parsed = parseDebugDraftLibraryJson(text, libraryOptions);
         if (parsed.ok) library = parsed.library;
       }
+      const currentText = storage.getItem(currentDraftStorageKey);
+      if (currentText) {
+        const parsed = JSON.parse(currentText);
+        if (validateVassalDebugDraft(parsed).ok) currentDraft = canonicalizeVassalDebugDraft(parsed);
+      }
     } catch (_) {
       // Browser storage is optional for this development-only convenience.
     }
   }
 
+  function setCurrentDraft(draft, { presetId = null } = {}) {
+    const validation = validateVassalDebugDraft(draft);
+    if (!validation.ok) return { ok: false, reason: "invalidDraft", errors: validation.errors };
+    currentDraft = canonicalizeVassalDebugDraft(draft);
+    selectedPresetId = presetId;
+    try {
+      safeStorage()?.setItem(currentDraftStorageKey, JSON.stringify(currentDraft));
+    } catch (_) {}
+    return { ok: true, draft: currentDraft };
+  }
+
   return {
     getSnapshot() {
-      return { presetOptions: library.presets.map(({ id, name }) => ({ id, name })) };
+      return {
+        currentDraft,
+        selectedPresetId,
+        presetOptions: library.presets.map(({ id, name }) => ({ id, name })),
+      };
     },
+    setCurrentDraft,
     loadPreset(presetId) {
       const preset = library.presets.find((entry) => entry.id === presetId);
-      return preset ? { ok: true, preset } : { ok: false, reason: "invalidPresetId" };
+      if (!preset) return { ok: false, reason: "invalidPresetId" };
+      setCurrentDraft(preset.draft, { presetId: preset.id });
+      return { ok: true, preset };
     },
     savePreset(name, draft, { overwritePresetId = null } = {}) {
       const duplicate = findDebugDraftPresetByName(library, name);
@@ -78,12 +104,14 @@ export function createVassalDebugPresetController() {
         existingPresetId: duplicate?.id ?? result.existingPresetId,
       };
       library = result.library;
+      setCurrentDraft(result.preset.draft, { presetId: result.preset.id });
       return { ...result, stored: persist() };
     },
     deletePreset(presetId) {
       const result = deleteDebugDraftPreset(library, presetId);
       if (!result.ok) return result;
       library = result.library;
+      if (selectedPresetId === presetId) selectedPresetId = null;
       return { ...result, stored: persist() };
     },
   };

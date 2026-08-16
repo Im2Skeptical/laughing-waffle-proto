@@ -26,16 +26,20 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v11; older saves are rejected.
-- Each run serializes schema-v5 Game Settings and Gamepieces in `gameConfig`.
-- Map Lab drafts use schema v3; scenario libraries use their existing schema.
+- Game state and runner saves use schema v12; older saves are rejected.
+- Each run serializes schema-v6 Game Settings and Gamepieces in `gameConfig`.
+- Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
 
 The 15-region world has detailed settlements in Regions01, 03, 06, 07, and 11.
-All five are player-controlled; Region07 is the capital. Region state owns
+All five are player-controlled; Region07 is the capital. Every other authored
+region starts as frontier. Region state owns
 colour, controller, connections, `structureCapacity`, and the independent
 detailed-settlement toggle.
+
+New runs roll every region's structure capacity from 5–8 in authored order
+through `state.rng`; Map Lab regions can instead pin an explicit capacity.
 
 Each detailed site owns Villager/Stranger cohorts, anonymous elder ages, stored
 and loose food, five practice slots, regional structure slots, aggregate Elder
@@ -44,6 +48,8 @@ survival knowledge, and the single vassal lineage are civilization-global.
 
 ## Current simulation
 
+- Forage produces food at the start of each Food phase, before Administration
+  routes food, with a baseline output that scales through its one worker slot.
 - Cultivate produces food each Summer from a player same-colour connected-region
   evaluator and a baseline-preserving effective-worker multiplier.
 - Administration is the only food transport. Each card has one evaluated shared
@@ -77,7 +83,9 @@ survival knowledge, and the single vassal lineage are civilization-global.
   Surviving migrants join the destination Stranger cohort.
 - Elder Orders are aggregates. Vassal interventions use resistance snapshots,
   ordered prestige gates, deterministic lifespan boundaries, and replayable
-  timeline actions.
+  timeline actions. Vassals can expand their target into an adjacent frontier,
+  add one rolled structure civilization-wide, or apply the existing local
+  practice, structure, and player-settlement connection interventions.
 
 Boundary order is seasonal Cultivate followed by whichever lunar phase is due.
 Faith resolves chaos after faith changes; annual vassal aging/interventions/death

@@ -40,6 +40,7 @@ async function lockLandscapeOrientation() {
 export function createSettlementDebugMenuDom({
   mapLabController,
   debugConfigurationController,
+  debugProfileController,
   vassalDebugPresetController,
   getState,
   replaceVassalCandidate,
@@ -119,6 +120,47 @@ export function createSettlementDebugMenuDom({
   header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab);
   panel.append(header);
 
+  const profileToolbar = document.createElement("div");
+  profileToolbar.dataset.testid = "debug-profile-toolbar";
+  profileToolbar.style.cssText = [
+    "display:flex", "flex-wrap:wrap", "gap:7px", "align-items:center",
+    "margin:0 112px 10px", "padding:8px", "border:1px solid #586876",
+    "border-radius:6px", "background:#1d252c",
+  ].join(";");
+  const profileSelect = document.createElement("select");
+  profileSelect.dataset.testid = "debug-profile-select";
+  profileSelect.style.minHeight = "32px";
+  const profileName = document.createElement("input");
+  profileName.type = "text";
+  profileName.placeholder = "Combined profile name";
+  profileName.dataset.testid = "debug-profile-name";
+  profileName.style.cssText = "min-height:32px;padding:4px 7px;box-sizing:border-box";
+  const profileButton = (label, testid) => {
+    const node = document.createElement("button");
+    node.type = "button";
+    node.textContent = label;
+    node.dataset.testid = testid;
+    node.style.minHeight = "32px";
+    return node;
+  };
+  const loadProfileButton = profileButton("Load", "debug-profile-load");
+  const saveProfileButton = profileButton("Save all", "debug-profile-save");
+  const deleteProfileButton = profileButton("Delete", "debug-profile-delete");
+  const bootProfileButton = profileButton("Use on boot", "debug-profile-boot");
+  const profileStatus = document.createElement("span");
+  profileStatus.dataset.testid = "debug-profile-status";
+  profileStatus.style.fontSize = "12px";
+  profileToolbar.append(
+    profileSelect,
+    profileName,
+    loadProfileButton,
+    saveProfileButton,
+    deleteProfileButton,
+    bootProfileButton,
+    profileStatus
+  );
+  panel.append(profileToolbar);
+
   const mapLab = createMapLabDom({ controller: mapLabController });
   const gameSettings = createDebugConfigurationDom({
     controller: debugConfigurationController,
@@ -149,7 +191,7 @@ export function createSettlementDebugMenuDom({
     vassalLab.element
   );
   panel.append(pageContainer);
-  let activePage = "mapLab";
+  let activePage = debugProfileController?.getSnapshot?.().activePage ?? "mapLab";
   let initialized = false;
 
   function setActivePage(pageId) {
@@ -158,6 +200,40 @@ export function createSettlementDebugMenuDom({
       page.element.style.display = id === activePage ? "" : "none";
     }
     pages[activePage].render?.();
+    debugProfileController?.setActivePage?.(activePage);
+  }
+
+  function syncProfileToolbar() {
+    const snapshot = debugProfileController?.getSnapshot?.() ?? {
+      profileOptions: [],
+      selectedProfileId: null,
+      bootProfileId: null,
+      status: { message: "", tone: "info" },
+    };
+    const selectedValue = profileSelect.value || snapshot.selectedProfileId || "";
+    profileSelect.replaceChildren();
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "Combined debug profile";
+    profileSelect.append(empty);
+    for (const entry of snapshot.profileOptions) {
+      const option = document.createElement("option");
+      option.value = entry.id;
+      option.textContent = `${entry.id === snapshot.bootProfileId ? "Boot — " : ""}${entry.name}`;
+      profileSelect.append(option);
+    }
+    profileSelect.value = snapshot.profileOptions.some((entry) => entry.id === selectedValue)
+      ? selectedValue
+      : snapshot.selectedProfileId ?? "";
+    const selected = snapshot.profileOptions.find((entry) => entry.id === profileSelect.value);
+    if (selected && !profileName.value) profileName.value = selected.name;
+    deleteProfileButton.disabled = !selected;
+    bootProfileButton.disabled = !selected;
+    bootProfileButton.textContent = selected?.id === snapshot.bootProfileId
+      ? "Clear boot"
+      : "Use on boot";
+    profileStatus.textContent = snapshot.status?.message ?? "";
+    profileStatus.style.color = snapshot.status?.tone === "warning" ? "#ffd98a" : "#b9f5c7";
   }
 
   async function requestLandscapeFullscreen() {
@@ -197,16 +273,58 @@ export function createSettlementDebugMenuDom({
   gamepiecesTab.addEventListener("click", () => setActivePage("gamepieces"));
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
   closeButton.addEventListener("click", close);
+  profileSelect.addEventListener("change", () => {
+    const selected = debugProfileController?.getSnapshot?.().profileOptions
+      ?.find((entry) => entry.id === profileSelect.value);
+    profileName.value = selected?.name ?? "";
+    syncProfileToolbar();
+  });
+  loadProfileButton.addEventListener("click", () => {
+    const result = debugProfileController?.loadProfile?.(profileSelect.value);
+    if (result?.ok) setActivePage(result.entry.profile.activePage);
+    syncProfileToolbar();
+  });
+  saveProfileButton.addEventListener("click", () => {
+    const selected = debugProfileController?.getSnapshot?.().profileOptions
+      ?.find((entry) => entry.id === profileSelect.value);
+    let result = debugProfileController?.saveProfile?.(profileName.value, {
+      overwriteProfileId: selected?.id ?? null,
+    });
+    if (result?.reason === "duplicateName" && typeof confirm === "function"
+        && confirm(`Overwrite “${result.existingProfileName}”?`)) {
+      result = debugProfileController.saveProfile(profileName.value, {
+        overwriteProfileId: result.existingProfileId,
+      });
+    }
+    if (result?.ok) profileSelect.value = result.entry.id;
+    syncProfileToolbar();
+  });
+  deleteProfileButton.addEventListener("click", () => {
+    debugProfileController?.deleteProfile?.(profileSelect.value);
+    profileName.value = "";
+    syncProfileToolbar();
+  });
+  bootProfileButton.addEventListener("click", () => {
+    const snapshot = debugProfileController?.getSnapshot?.();
+    if (profileSelect.value === snapshot?.bootProfileId) {
+      debugProfileController.clearBootProfile();
+    } else {
+      debugProfileController?.setBootProfile?.(profileSelect.value);
+    }
+    syncProfileToolbar();
+  });
 
   return {
     init() {
       if (initialized) return;
       initialized = true;
+      activePage = debugProfileController?.getSnapshot?.().activePage ?? activePage;
       document.body.append(utilityControls, panel, closeButton);
       mapLab.init();
       gameSettings.init();
       gamepieces.init();
       vassalLab.init();
+      syncProfileToolbar();
       setActivePage(activePage);
     },
     update() {},

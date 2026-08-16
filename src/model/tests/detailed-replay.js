@@ -15,12 +15,14 @@ import {
 } from "../timeline/index.js";
 
 const base = createInitialState("devPlaytesting01", 99117);
+const postInitializationSeed = base.rng.seed;
 const pool = buildDetailedVassalSelectionPool(base);
 const rerolledPool = buildDetailedVassalSelectionPool(base, 1);
 assert.equal(rerolledPool.rerollIndex, 1, "rerolled pools retain their deterministic index");
 assert.notEqual(rerolledPool.expectedPoolHash, pool.expectedPoolHash,
   "rerolling derives a new candidate pool without changing simulation state");
-assert.equal(base.rng.seed, 99117, "building candidate rerolls does not advance simulation RNG");
+assert.equal(base.rng.seed, postInitializationSeed,
+  "building candidate rerolls does not advance simulation RNG");
 const timeline = createTimelineFromInitialState(base);
 appendActionAtCursor(timeline, {
   kind: "settlementSelectVassal",

@@ -14,8 +14,8 @@ import {
   isWorldConnectionCandidate,
 } from "./world-state.js";
 
-export const MAP_LAB_DRAFT_SCHEMA_VERSION = 3;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v3";
+export const MAP_LAB_DRAFT_SCHEMA_VERSION = 4;
+export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v4";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
@@ -58,6 +58,7 @@ export function canonicalizeMapLabDraft(value) {
       colour: source.colour,
       controller: source.controller,
       structureCapacity,
+      randomizeStructureCapacity: source.randomizeStructureCapacity === true,
       detailedSettlementEnabled,
       detailedState: detailedSettlementEnabled
         ? normalizeDetailedState(source.detailedState, structureCapacity)
@@ -95,6 +96,7 @@ export function createMapLabDraftFromGameState(state) {
         colour: region.colour,
         controller: region.controller,
         structureCapacity: region.structureCapacity,
+        randomizeStructureCapacity: false,
         detailedSettlementEnabled: region.detailedSettlementEnabled === true,
         detailedState: site?.detailedState ? clone(site.detailedState) : null,
       };
@@ -213,6 +215,9 @@ export function validateMapLabDraft(value) {
     if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 0) {
       errors.push(`${path}.structureCapacity: expected non-negative integer`);
     }
+    if (typeof region?.randomizeStructureCapacity !== "boolean") {
+      errors.push(`${path}.randomizeStructureCapacity: expected boolean`);
+    }
     if (typeof region?.detailedSettlementEnabled !== "boolean") {
       errors.push(`${path}.detailedSettlementEnabled: expected boolean`);
     }
@@ -258,6 +263,10 @@ export function updateMapLabRegion(draft, regionId, patch) {
     if (Object.hasOwn(patch, "colour")) region.colour = patch.colour;
     if (Object.hasOwn(patch, "controller")) region.controller = patch.controller;
     if (Object.hasOwn(patch, "structureCapacity")) region.structureCapacity = capacity;
+    if (Object.hasOwn(patch, "structureCapacity")) region.randomizeStructureCapacity = false;
+    if (Object.hasOwn(patch, "randomizeStructureCapacity")) {
+      region.randomizeStructureCapacity = patch.randomizeStructureCapacity === true;
+    }
     if (Object.hasOwn(patch, "detailedSettlementEnabled")) {
       region.detailedSettlementEnabled = patch.detailedSettlementEnabled === true;
       region.detailedState = region.detailedSettlementEnabled

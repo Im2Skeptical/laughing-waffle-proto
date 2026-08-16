@@ -1,5 +1,5 @@
 export const VASSAL_DEBUG_DRAFT_KIND = "vassal-candidate";
-export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v1";
+export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v2";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -11,6 +11,10 @@ function isIntervention(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   if (value.kind === "practice") return typeof value.practiceId === "string";
   if (value.kind === "structure") return typeof value.structureId === "string";
+  if (value.kind === "expandSettlement") {
+    return value.regionId == null || typeof value.regionId === "string";
+  }
+  if (value.kind === "globalStructure") return typeof value.structureId === "string";
   return value.kind === "connection" && ["add", "remove"].includes(value.mode);
 }
 

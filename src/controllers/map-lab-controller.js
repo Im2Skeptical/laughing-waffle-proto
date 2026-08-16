@@ -199,6 +199,16 @@ export function createMapLabController({
       return () => listeners.delete(listener);
     },
     getSnapshot,
+    replaceDraftFromProfile(nextDraft) {
+      const validation = validateMapLabDraft(nextDraft);
+      if (!validation.ok) {
+        return { ok: false, reason: "invalidDraft", errors: validation.errors };
+      }
+      return replaceDraft(nextDraft, "Loaded combined debug profile.", {
+        presetId: null,
+        localScenarioId: null,
+      });
+    },
     selectRegion(regionId) {
       if (!draft.regions.some((entry) => entry.id === regionId)) return;
       selectedRegionId = regionId;

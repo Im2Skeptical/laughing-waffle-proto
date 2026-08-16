@@ -47,9 +47,6 @@ export function createVassalDebugDom({
 } = {}) {
   const root = document.createElement("section");
   root.dataset.testid = "debug-vassal-lab";
-  let loadedDraft = null;
-  let selectedPresetId = null;
-
   function render() {
     const state = getState?.();
     root.replaceChildren();
@@ -70,6 +67,7 @@ export function createVassalDebugDom({
     root.appendChild(intro);
 
     const presetSnapshot = presetController?.getSnapshot?.() ?? { presetOptions: [] };
+    const selectedPresetId = presetSnapshot.selectedPresetId ?? null;
     const presetToolbar = document.createElement("div");
     presetToolbar.style.cssText = "display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px";
     const preset = makeSelect([
@@ -158,7 +156,12 @@ export function createVassalDebugDom({
         id: `structure:${id}`,
         label: `Add ${settlementStructureDefs[id]?.label ?? id}`,
       })),
+      options.interventionStructureIds.map((id) => ({
+        id: `globalStructure:${id}`,
+        label: `Add ${settlementStructureDefs[id]?.label ?? id} everywhere`,
+      })),
       [
+        { id: "expandSettlement:frontier", label: "Expand to adjacent frontier" },
         { id: "connection:add", label: "Add a valid connection" },
         { id: "connection:remove", label: "Remove a current connection" },
       ]
@@ -179,7 +182,7 @@ export function createVassalDebugDom({
     const resistance = addField(grid, "Resistance snapshot", makeNumber(0));
     resistance.dataset.testid = "vassal-debug-resistance";
 
-    const draft = loadedDraft;
+    const draft = presetSnapshot.currentDraft ?? null;
     function setSelectValue(select, value) {
       if ([...select.options].some((option) => option.value === value)) select.value = value;
     }
@@ -197,7 +200,11 @@ export function createVassalDebugDom({
           ? `practice:${entry.practiceId}`
           : entry.kind === "structure"
             ? `structure:${entry.structureId}`
-            : `connection:${entry.mode}`;
+            : entry.kind === "globalStructure"
+              ? `globalStructure:${entry.structureId}`
+              : entry.kind === "expandSettlement"
+                ? "expandSettlement:frontier"
+                : `connection:${entry.mode}`;
         setSelectValue(interventionSelects[index], value);
       });
       draft.requiredPrestige.forEach((value, index) => {
@@ -232,6 +239,8 @@ export function createVassalDebugDom({
           const [kind, value] = select.value.split(":");
           if (kind === "practice") return { kind, practiceId: value };
           if (kind === "structure") return { kind, structureId: value };
+          if (kind === "globalStructure") return { kind, structureId: value };
+          if (kind === "expandSettlement") return { kind };
           return { kind: "connection", mode: value };
         }),
         resistanceSnapshot: Number(resistance.value),
@@ -266,6 +275,23 @@ export function createVassalDebugDom({
         options.traits.find((entry) => entry.id === trait.value)?.prestigeDelta ?? 0
       );
     });
+    for (const input of [
+      target,
+      initialAge,
+      deathAge,
+      trait,
+      traitModifier,
+      profession,
+      candidateSlot,
+      ...interventionSelects,
+      ...requirementInputs,
+      resistance,
+    ]) {
+      input.addEventListener("change", () => {
+        presetController?.setCurrentDraft?.(readDraft());
+      });
+    }
+    if (!draft) presetController?.setCurrentDraft?.(readDraft());
 
     replaceCandidate.addEventListener("click", async () => {
       const draftToInject = readDraft();
@@ -284,8 +310,6 @@ export function createVassalDebugDom({
         presetStatus.style.color = "#ffb4a8";
         return;
       }
-      loadedDraft = result.preset.draft;
-      selectedPresetId = result.preset.id;
       render();
     });
     savePreset.addEventListener("click", () => {
@@ -300,8 +324,6 @@ export function createVassalDebugDom({
         });
       }
       if (result?.ok) {
-        loadedDraft = result.preset.draft;
-        selectedPresetId = result.preset.id;
         render();
         return;
       }
@@ -312,8 +334,6 @@ export function createVassalDebugDom({
       if (!selectedPresetId) return;
       const result = presetController?.deletePreset?.(selectedPresetId);
       if (result?.ok) {
-        loadedDraft = null;
-        selectedPresetId = null;
         render();
         return;
       }

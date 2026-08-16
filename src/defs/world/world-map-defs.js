@@ -3,7 +3,7 @@
 import {
   DETAILED_REGION_COLOURS,
   DETAILED_REGION_IDS,
-  REGION_STRUCTURE_CAPACITIES,
+  DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
 } from "./detailed-settlement-scenario.js";
 
 const vertex = (id, x, y) => ({ id, x, y });
@@ -12,8 +12,9 @@ const initialStateForRegion = (id, index) => {
   const isDetailed = DETAILED_REGION_IDS.includes(id);
   return {
     colour: DETAILED_REGION_COLOURS[id] ?? ["black", "green", "blue", "red"][index % 4],
-    structureCapacity: REGION_STRUCTURE_CAPACITIES[index],
-    controller: isDetailed ? "player" : index < 7 ? "frontier" : index < 11 ? "external-a" : "external-b",
+    structureCapacity: DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
+    randomizeStructureCapacity: true,
+    controller: isDetailed ? "player" : "frontier",
     detailedSettlementEnabled: isDetailed,
   };
 };
