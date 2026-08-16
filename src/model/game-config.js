@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 4;
+export const GAME_CONFIG_SCHEMA_VERSION = 5;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -72,13 +72,14 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     fields: Object.freeze([
       field("faithStreakForShift", "Faith outcomes for tier shift", 3, 1, 100, 1, true),
       field("bronzeCollapseLossRate", "Bronze collapse displacement", 0.25, 0, 1, 0.01),
-      field("baseChaosIncomePerSite", "Base chaos per settlement per moon", 2, 0, 100000, 0.25),
-      field("chaosGrowthRate", "Chaos growth rate", 0.03, 0, 100, 0.01),
-      field("chaosGrowthYears", "Years per chaos growth step", 12, 1, 10000, 1, true),
-      field("goldMitigationAmount", "Gold mitigation amount", 1, 0, 10000, 1, true),
-      field("goldMitigationPerPopulation", "Population per Gold mitigation", 25, 1, 10000, 1, true),
-      field("diamondMitigationAmount", "Diamond mitigation amount", 1, 0, 10000, 1, true),
-      field("diamondMitigationPerPopulation", "Population per Diamond mitigation", 10, 1, 10000, 1, true),
+      field("prematureDeathChaosWeight", "Chaos per premature death", 1, 0, 100000, 0.05),
+      field("externalEmigrationChaosWeight", "Chaos per external emigrant", 0.5, 0, 100000, 0.05),
+      field("oldAgeDeathChaosWeight", "Chaos per old-age death", 0, 0, 100000, 0.05),
+      field("internalMigrationChaosWeight", "Chaos per internal migrant", 0, 0, 100000, 0.05),
+      field("bronzeChaosResistancePopulation", "Bronze people per Chaos resistance", 100, 1, 100000, 1, true),
+      field("silverChaosResistancePopulation", "Silver people per Chaos resistance", 50, 1, 100000, 1, true),
+      field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 25, 1, 100000, 1, true),
+      field("diamondChaosResistancePopulation", "Diamond people per Chaos resistance", 10, 1, 100000, 1, true),
       field("chaosPerMonster", "Chaos per monster", 100, 1, 1000000, 1, true),
       field("monsterLossThreshold", "Monster loss threshold", 1000, 1, 10000000, 1, true),
     ]),
@@ -88,6 +89,25 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     label: "5. Migration phase",
     description: "All migration causes share one bucket. Destinations are chosen from current food need and available housing; there are no independent numeric tunables for this phase.",
     fields: Object.freeze([]),
+  }),
+  Object.freeze({
+    id: "greenAscendancy",
+    label: "Green Ascendancy",
+    description: "An external escalation clock. Forced tier is for debug only and never depends on Chaos.",
+    fields: Object.freeze([
+      booleanField("greenAutomaticTier", "Automatic Green tier", true),
+      field("greenForcedTier", "Forced Green tier (0-3)", 0, 0, 3, 1, true),
+      field("greenCadenceYears", "Years per Green tier", 100, 1, 100000, 1, true),
+      field("greenStoredDecayReductionI", "Green I stored-food decay reduction (%)", 25, 0, 100, 1),
+      field("greenStoredDecayReductionII", "Green II stored-food decay reduction (%)", 50, 0, 100, 1),
+      field("greenStoredDecayReductionIII", "Green III stored-food decay reduction (%)", 75, 0, 100, 1),
+      field("greenElderMortalityReductionI", "Green I elder mortality reduction (%)", 20, 0, 100, 1),
+      field("greenElderMortalityReductionII", "Green II elder mortality reduction (%)", 40, 0, 100, 1),
+      field("greenElderMortalityReductionIII", "Green III elder mortality reduction (%)", 60, 0, 100, 1),
+      field("greenMigrationSuccessI", "Green I migration success (%)", 90, 0, 100, 1),
+      field("greenMigrationSuccessII", "Green II migration success (%)", 75, 0, 100, 1),
+      field("greenMigrationSuccessIII", "Green III migration success (%)", 60, 0, 100, 1),
+    ]),
   }),
   Object.freeze({
     id: "deathPhase",
@@ -125,7 +145,11 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
 ]);
 
 function field(id, label, defaultValue, min, max, step, integer = false) {
-  return Object.freeze({ id, label, defaultValue, min, max, step, integer });
+  return Object.freeze({ id, label, defaultValue, min, max, step, integer, type: "number" });
+}
+
+function booleanField(id, label, defaultValue) {
+  return Object.freeze({ id, label, defaultValue, type: "boolean" });
 }
 
 const SETTING_FIELDS = GAME_SETTING_EDITOR_SECTIONS.flatMap((section) => section.fields);
@@ -149,7 +173,9 @@ export function canonicalizeGameSettingsDraft(value) {
     values: Object.fromEntries(
       SETTING_FIELDS.map((entry) => [
         entry.id,
-        Number.isFinite(source[entry.id]) ? Number(source[entry.id]) : entry.defaultValue,
+        entry.type === "boolean"
+          ? (typeof source[entry.id] === "boolean" ? source[entry.id] : entry.defaultValue)
+          : (Number.isFinite(source[entry.id]) ? Number(source[entry.id]) : entry.defaultValue),
       ])
     ),
   };
@@ -169,6 +195,10 @@ export function validateGameSettingsDraft(value) {
   }
   for (const entry of SETTING_FIELDS) {
     const current = value.values[entry.id];
+    if (entry.type === "boolean") {
+      if (typeof current !== "boolean") errors.push(`${entry.id}: expected a boolean`);
+      continue;
+    }
     if (!Number.isFinite(current)) {
       errors.push(`${entry.id}: expected a finite number`);
       continue;
@@ -381,6 +411,12 @@ export function getGameSetting(state, id) {
   const fallback = SETTING_FIELD_BY_ID[id]?.defaultValue;
   const value = state?.gameConfig?.settings?.values?.[id];
   return Number.isFinite(value) ? Number(value) : fallback;
+}
+
+export function getBooleanGameSetting(state, id) {
+  const fallback = SETTING_FIELD_BY_ID[id]?.defaultValue;
+  const value = state?.gameConfig?.settings?.values?.[id];
+  return typeof value === "boolean" ? value : fallback === true;
 }
 
 export function getDetailedStructureDef(state, id) {

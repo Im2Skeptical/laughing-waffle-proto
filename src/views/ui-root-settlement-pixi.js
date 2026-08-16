@@ -1364,6 +1364,7 @@ worldMapView = createWorldMapView({
       intervention: candidate.interventions?.find((entry) => entry?.kind === "connection") ?? null,
     };
   },
+  tooltipView,
   onOpenDetailedSite: (_siteId, regionId) => {
     if (typeof regionId === "string") {
       selectedWorldRegionId = regionId;

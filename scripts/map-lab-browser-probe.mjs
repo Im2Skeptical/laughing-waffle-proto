@@ -36,10 +36,10 @@ try {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v3");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v4");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v4");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v4");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v4");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v5");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v5");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v5");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v5");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
@@ -161,7 +161,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 4);
+  assert.equal(settingsJson.schemaVersion, 5);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 

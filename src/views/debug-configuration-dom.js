@@ -215,10 +215,13 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
         const grid = document.createElement("div");
         grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px";
         for (const field of section.fields) {
-          const input = numberInput(draft.values[field.id], field);
+          const input = field.type === "boolean"
+            ? booleanInput(draft.values[field.id])
+            : numberInput(draft.values[field.id], field);
           input.dataset.testid = `setting-${field.id}`;
           input.setAttribute("aria-label", field.label);
-          bindNumber(input, ["values", field.id]);
+          if (field.type === "boolean") bindBoolean(input, ["values", field.id]);
+          else bindNumber(input, ["values", field.id]);
           grid.appendChild(fieldRow(field.label, input));
         }
         group.appendChild(grid);
