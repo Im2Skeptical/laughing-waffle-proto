@@ -131,13 +131,20 @@ export function createProjectionCache({
     return bytes;
   }
 
-  function removeSec(sec) {
+  function removeSec(sec, { removeSummary = true } = {}) {
     if (!stateDataBySecond.has(sec)) return;
     const removedBytes = bytesBySecond.get(sec) ?? 0;
     stateDataBySecond.delete(sec);
-    summaryBySecond.delete(sec);
+    if (removeSummary) summaryBySecond.delete(sec);
     bytesBySecond.delete(sec);
     approxBytesTotal = Math.max(0, approxBytesTotal - removedBytes);
+  }
+
+  function findEvictionCandidate(protectedSecs) {
+    for (const sec of stateDataBySecond.keys()) {
+      if (!protectedSecs.has(sec)) return sec;
+    }
+    return null;
   }
 
   function setSummary(sec, summary) {
@@ -170,9 +177,18 @@ export function createProjectionCache({
       stateDataBySecond.size > maxEntriesBudget ||
       approxBytesTotal > maxBytesBudget
     ) {
-      const oldest = stateDataBySecond.keys().next().value;
+      // The graph only needs summaries for old forecast points, while worker
+      // continuation needs the current sync/async tail state. Evict heavy
+      // snapshots without erasing their summaries and never discard either
+      // active tail while a replacement point is being inserted.
+      const protectedSecs = new Set([
+        t,
+        clampSec(forecastEndSec),
+        clampSec(forecastAsyncEndSec),
+      ]);
+      const oldest = findEvictionCandidate(protectedSecs);
       if (oldest == null) break;
-      removeSec(oldest);
+      removeSec(oldest, { removeSummary: false });
     }
   }
 

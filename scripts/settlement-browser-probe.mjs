@@ -508,8 +508,13 @@ try {
   );
   assert.equal(afterVassal.worldMap.selectedRegionId, chosenTargetRegionId,
     "vassal choice focuses its target region on the map");
-  assert.equal(afterVassal.controller.subjectKey, chosenTargetRegionId,
-    "local graph follows the focused vassal target");
+  assert.equal(
+    afterVassal.controller.subjectKey,
+    chooserSnapshot.controller.scope === "settlement"
+      ? chosenTargetRegionId
+      : "civilization",
+    "graph subject follows the focused target only in settlement scope"
+  );
   assert.ok(
     afterVassal.forecastStatus.currentVassalDeathSec > afterVassal.frontierSec,
     "selected vassal exposes a future death boundary"
@@ -576,8 +581,11 @@ try {
   assert.equal(returnedToMap.worldMap.mode, "map");
   assert.equal(returnedToMap.controller.scope, "civilization");
   assert.equal(returnedToMap.controller.subjectKey, "civilization");
-  assert.equal(returnedToMap.graph.projectionReplacement?.active ?? false, false,
-    "scope changes never reuse a local comparison snapshot");
+  assert.equal(
+    returnedToMap.graph.projectionReplacement?.active ?? false,
+    chooserSnapshot.controller.scope === "civilization",
+    "comparison snapshots persist only when returning to the same graph scope"
+  );
   assert.deepEqual(
     returnedToMap.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
       seriesId,

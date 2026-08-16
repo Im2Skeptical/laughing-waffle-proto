@@ -96,6 +96,8 @@ bounded JSON state used for replay and phase tooltips.
   scope in a settlement. Series choices are independent by scope.
 - Forecast unveiling drives the read-only viewed state and playhead without
   advancing committed history or consuming RNG.
+- Long forecasts retain lightweight graph summaries after heavy state snapshots
+  are evicted, while active forecast tails remain pinned for worker continuation.
 - The season/moon wheel shows fixed icons for all six lunar phases. The active
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.

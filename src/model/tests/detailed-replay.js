@@ -7,6 +7,7 @@ import {
 import { serializeGameState } from "../state.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { buildProjectionChunkFromStateData } from "../projection-chunk.js";
+import { createProjectionCache } from "../timegraph/projection-cache.js";
 import {
   appendActionAtCursor,
   createTimelineFromInitialState,
@@ -174,4 +175,49 @@ assert.equal(
   false,
   "forecast does not simulate beyond completed history"
 );
+
+const evictionTimeline = createTimelineFromInitialState(
+  createInitialState("devPlaytesting01", 99118)
+);
+const evictionCache = createProjectionCache({
+  maxEntries: 256,
+  maxBytes: 1024 * 1024 * 1024,
+});
+const evictionToken = evictionCache.getTimelineToken(evictionTimeline);
+const evictionStateData = serializeGameState(evictionTimeline.baseStateData);
+const firstEvictionMerge = evictionCache.mergeForecastChunk(evictionTimeline, {
+  timelineToken: evictionToken,
+  historyEndSec: 0,
+  baseSec: 0,
+  endSec: 256,
+  stepSec: 1,
+  stateDataBySecond: Array.from({ length: 256 }, (_, index) => [
+    index + 1,
+    evictionStateData,
+  ]),
+  summaryBySecond: Array.from({ length: 256 }, (_, index) => [
+    index + 1,
+    { tSec: index + 1 },
+  ]),
+  lastStateData: evictionStateData,
+});
+assert.equal(firstEvictionMerge.ok, true);
+for (let sec = 1; sec < 256; sec += 1) evictionCache.getStateData(sec);
+const tailMerge = evictionCache.mergeForecastChunk(evictionTimeline, {
+  timelineToken: evictionToken,
+  historyEndSec: 0,
+  baseSec: 256,
+  endSec: 257,
+  stepSec: 1,
+  stateDataBySecond: [[257, evictionStateData]],
+  summaryBySecond: [[257, { tSec: 257 }]],
+  lastStateData: evictionStateData,
+});
+assert.equal(tailMerge.ok, true);
+assert.ok(evictionCache.getStateData(256),
+  "forecast eviction preserves the worker continuation boundary");
+assert.equal(evictionCache.getStateData(1), null,
+  "old heavy forecast state is still evicted at the configured capacity");
+assert.deepEqual(evictionCache.getSummary(1), { tSec: 1 },
+  "old graph summaries survive heavy-state eviction");
 console.log("[detailed-replay] OK");
