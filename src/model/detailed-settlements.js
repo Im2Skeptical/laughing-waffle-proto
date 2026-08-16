@@ -28,6 +28,7 @@ import {
 import {
   getDetailedPracticeDef,
   getDetailedStructureDef,
+  getBooleanGameSetting,
   getGameSetting,
 } from "./game-config.js";
 import { MOON_PHASE_INDEX_BY_ID } from "../defs/gamesettings/moon-phase-defs.js";
@@ -346,8 +347,50 @@ export function getDetailedCivilizationSummary(state) {
         1,
         Math.floor(state?.civilization?.chaos?.monsterLossThreshold ?? 1000)
       ),
+      lastReckoning: clone(state?.civilization?.chaos?.lastMoonIncome ?? null),
     },
+    green: getGreenAscendancySummary(state),
   };
+}
+
+const GREEN_TIER_LABELS = Object.freeze(["Dormant", "Green I", "Green II", "Green III"]);
+
+function getGreenTierValue(state) {
+  if (!getBooleanGameSetting(state, "greenAutomaticTier")) {
+    return Math.max(0, Math.min(3, Math.floor(getGameSetting(state, "greenForcedTier"))));
+  }
+  const cadence = Math.max(1, Math.floor(getGameSetting(state, "greenCadenceYears")));
+  return Math.max(0, Math.min(3, Math.floor(Math.max(1, state?.year ?? 1) / cadence)));
+}
+
+function getGreenTierSetting(state, prefix, tier) {
+  if (tier <= 0) return 0;
+  return Math.max(0, getGameSetting(state, `${prefix}${["I", "II", "III"][tier - 1]}`));
+}
+
+export function getGreenAscendancySummary(state) {
+  const tier = getGreenTierValue(state);
+  const automatic = getBooleanGameSetting(state, "greenAutomaticTier");
+  const cadenceYears = Math.max(1, Math.floor(getGameSetting(state, "greenCadenceYears")));
+  const year = Math.max(1, Math.floor(state?.year ?? 1));
+  return {
+    tier,
+    label: GREEN_TIER_LABELS[tier],
+    automatic,
+    cadenceYears,
+    nextEscalationYears: automatic && tier < 3
+      ? Math.max(0, cadenceYears * (tier + 1) - year)
+      : null,
+    storedFoodDecayReduction: getGreenTierSetting(state, "greenStoredDecayReduction", tier),
+    elderMortalityReduction: getGreenTierSetting(state, "greenElderMortalityReduction", tier),
+    migrationSuccess: tier <= 0 ? 100 : getGreenTierSetting(state, "greenMigrationSuccess", tier),
+  };
+}
+
+function refreshGreenAscendancy(state) {
+  const green = getGreenAscendancySummary(state);
+  state.civilization.green = { tier: green.tier };
+  return green;
 }
 
 export function getElderOrderSummary(state, regionId) {
@@ -1330,6 +1373,14 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
   }).map((candidate) => candidate.regionId);
 }
 
+function getExternalMigrationDestinations(state, sourceRegionId) {
+  const order = new Map((state?.world?.regions ?? []).map((region, index) => [region.id, index]));
+  return getConnectedRegionIds(state, sourceRegionId)
+    .filter((regionId) => getRegionState(state, regionId)?.controller !== "player")
+    .sort((a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER)
+      || String(a).localeCompare(String(b)));
+}
+
 function allocateMigrationHousing(state, intents, emitterIds) {
   const projectedPopulation = Object.fromEntries(
     getDetailedSettlementSites(state).map((site) => [
@@ -1485,6 +1536,7 @@ function compactMigrationMovement(movement) {
     amount: movement.amount,
     survivors: movement.survivors,
     arrivalDeaths: movement.arrivalDeaths,
+    external: movement.external === true,
     composition: clonePopulationComposition(movement.composition),
     survivorComposition: clonePopulationComposition(movement.survivorComposition),
   };
@@ -1496,8 +1548,20 @@ function resolveMigrationIntents(state, intents, {
   deferArrival = false,
   tSec = state.tSec,
 } = {}) {
-  const active = intents.filter((intent) => intent.requested > 0);
-  const emitterIds = new Set(active.map((intent) => intent.sourceId));
+  const green = getGreenAscendancySummary(state);
+  const requestedIntents = intents.filter((intent) => intent.requested > 0);
+  const blocked = [];
+  const active = requestedIntents.map((intent, originalIndex) => {
+    const allowed = Math.floor(intent.requested * green.migrationSuccess / 100);
+    const remainder = clonePopulationComposition(intent.composition);
+    const composition = takeFromComposition(remainder, allowed);
+    if (compositionTotal(remainder) > 0) blocked.push({
+      reason: intent.reason, sourceRegionId: intent.sourceId, sourceClassId: intent.sourceClassId,
+      count: compositionTotal(remainder), composition: clonePopulationComposition(remainder),
+    });
+    return { ...intent, requested: allowed, composition, originalIndex };
+  }).filter((intent) => intent.requested > 0);
+  const emitterIds = new Set(requestedIntents.map((intent) => intent.sourceId));
   const { allocations, unresolved } = allocateMigrationHousing(state, active, emitterIds);
   const remainingCompositions = active.map((intent) =>
     clonePopulationComposition(intent.composition));
@@ -1523,6 +1587,24 @@ function resolveMigrationIntents(state, intents, {
       getDetailedSettlement(state, movement.sourceRegionId),
       movement.composition
     );
+  }
+  const externalMovements = [];
+  for (const [index, count] of unresolved.entries()) {
+    if (count <= 0) continue;
+    const intent = active[index];
+    const destinationRegionId = getExternalMigrationDestinations(state, intent.sourceId)[0] ?? null;
+    if (!destinationRegionId) continue;
+    const composition = takeFromComposition(remainingCompositions[index], count);
+    const amount = compositionTotal(composition);
+    if (amount <= 0) continue;
+    removePopulationComposition(getDetailedSettlement(state, intent.sourceId), composition);
+    externalMovements.push({
+      reason: intent.reason, sourceRegionId: intent.sourceId, destinationRegionId,
+      sourceClassId: intent.sourceClassId, amount, survivors: amount, arrivalDeaths: 0,
+      composition, survivorComposition: clonePopulationComposition(composition), external: true,
+      originalIndex: intent.originalIndex,
+    });
+    unresolved[index] = 0;
   }
   const sourceLosses = [];
   if (unresolvedAreLost) {
@@ -1558,28 +1640,40 @@ function resolveMigrationIntents(state, intents, {
     }
     movement.transferId = `migration:${Math.max(0, Math.floor(tSec))}:${movement.reason}:${index}`;
   }
+  for (const [index, movement] of externalMovements.entries()) {
+    movement.transferId = `migration:${Math.max(0, Math.floor(tSec))}:external:${movement.reason}:${index}`;
+  }
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);
   }
   return {
-    movements,
+    movements: [...movements, ...externalMovements],
+    externalEmigrants: externalMovements.reduce((sum, movement) => sum + movement.amount, 0),
     sourceLosses,
-    unresolvedCompositions: active.map((intent, index) => ({
+    unresolvedCompositions: [...active.map((intent, index) => ({
       reason: intent.reason,
       sourceRegionId: intent.sourceId,
       sourceClassId: intent.sourceClassId,
       count: unresolved[index],
       composition: clonePopulationComposition(remainingCompositions[index]),
-    })).filter((entry) => entry.count > 0),
-    intentSummaries: active.map((intent, index) => ({
+    })).filter((entry) => entry.count > 0), ...blocked],
+    intentSummaries: requestedIntents.map((intent, originalIndex) => {
+      const activeIndex = active.findIndex((entry) => entry.originalIndex === originalIndex);
+      const eligible = Math.floor(intent.requested * green.migrationSuccess / 100);
+      const unplaced = activeIndex < 0 ? 0 : unresolved[activeIndex];
+      const external = externalMovements.filter((movement) => movement.originalIndex === originalIndex)
+        .reduce((sum, movement) => sum + movement.amount, 0);
+      return {
       reason: intent.reason,
       sourceRegionId: intent.sourceId,
       sourceClassId: intent.sourceClassId,
       requested: intent.requested,
-      admitted: intent.requested - unresolved[index],
-      unresolved: unresolved[index],
+      eligible, greenBlocked: intent.requested - eligible,
+      admitted: eligible - unplaced, external,
+      unresolved: unplaced + intent.requested - eligible,
       unresolvedOutcome: unresolvedAreLost ? "lost" : "stayed",
-    })),
+      };
+    }),
   };
 }
 
@@ -1857,6 +1951,7 @@ function runMigrationPhase(state, phase) {
     deferArrival: true,
   });
   turn.movements = result.movements;
+  recordChaosLosses(state, { externalEmigrants: result.externalEmigrants });
   turn.unresolved = result.unresolvedCompositions;
   turn.migrationIntentSummaries = result.intentSummaries;
   for (const site of getDetailedSettlementSites(state)) {
@@ -1889,8 +1984,9 @@ function rollCompositionDeaths(state, composition, probability) {
 
 function runDeathPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
-  allocateArrivalMeals(state, turn.movements);
-  for (const movement of turn.movements) {
+  const internalMovements = turn.movements.filter((movement) => movement.external !== true);
+  allocateArrivalMeals(state, internalMovements);
+  for (const movement of internalMovements) {
     addCompositionToStrangers(
       getDetailedSettlement(state, movement.destinationRegionId),
       movement.survivorComposition
@@ -1899,6 +1995,8 @@ function runDeathPhase(state, phase) {
   const hardshipDeathsByRegion = Object.fromEntries(
     getDetailedSettlementSites(state).map((site) => [site.regionId, 0])
   );
+  let prematureDeaths = 0;
+  let oldAgeDeaths = 0;
   for (const unresolved of turn.unresolved) {
     const deaths = rollCompositionDeaths(
       state,
@@ -1910,6 +2008,7 @@ function runDeathPhase(state, phase) {
       deaths
     );
     hardshipDeathsByRegion[unresolved.sourceRegionId] += compositionTotal(deaths);
+    prematureDeaths += compositionTotal(deaths);
   }
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
@@ -1918,15 +2017,22 @@ function runDeathPhase(state, phase) {
       const classState = settlement.populationByClass[classId];
       let naturalDeaths = 0;
       classState.eldersByAge = (classState.eldersByAge ?? []).map((cohort) => {
-        const deaths = rollCount(state, cohort.count, getElderMortalityRate(cohort.age, state));
+        const green = getGreenAscendancySummary(state);
+        const mortality = getElderMortalityRate(cohort.age, state)
+          * (1 - Math.min(1, green.elderMortalityReduction / 100));
+        const deaths = rollCount(state, cohort.count, mortality);
         naturalDeaths += deaths;
         return { ...cohort, count: cohort.count - deaths };
       }).filter((cohort) => cohort.count > 0);
       byClass[classId] = { naturalDeaths };
+      oldAgeDeaths += naturalDeaths;
     }
     const storedBefore = settlement.storedFood;
     const looseBefore = settlement.looseFood;
-    const preservationRatio = Math.min(1, getPreserveReduction(state, site) / 100);
+    const green = getGreenAscendancySummary(state);
+    const preservationRatio = Math.min(1, (
+      getPreserveReduction(state, site) + green.storedFoodDecayReduction
+    ) / 100);
     settlement.storedFood = roundFood(settlement.storedFood * (1 - Math.max(
       0,
       getGameSetting(state, "storedFoodDecayRate") * (1 - preservationRatio)
@@ -1957,6 +2063,8 @@ function runDeathPhase(state, phase) {
     if (settlement.lastMeal) settlement.lastMeal.migration = clone(migration);
     resetEmptyStrangerCohort(settlement);
   }
+  prematureDeaths += internalMovements.reduce((sum, movement) => sum + movement.arrivalDeaths, 0);
+  recordChaosLosses(state, { prematureDeaths, oldAgeDeaths });
 }
 
 export function resolveProbability(base, modifiers = null) {
@@ -1994,37 +2102,27 @@ function shiftStatus(value, order, delta) {
 
 function runGlobalChaos(state) {
   const civilization = state.civilization;
-  let totalIncome = 0;
-  const byRegion = [];
+  const pending = civilization.chaos.pendingLosses ?? {
+    prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
+  };
+  const faithPopulation = { bronze: 0, silver: 0, gold: 0, diamond: 0 };
   for (const site of getDetailedSettlementSites(state)) {
-    const population = getPopulationSummary(state, site.regionId);
-    let mitigation = 0;
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = site.detailedState.populationByClass[classId];
-      const classPop = population.byClass[classId].total;
-      if (classState.faith.tier === "gold") {
-        mitigation += Math.floor(
-          classPop / getGameSetting(state, "goldMitigationPerPopulation")
-        ) * getGameSetting(state, "goldMitigationAmount");
-      } else if (classState.faith.tier === "diamond") {
-        mitigation += Math.floor(
-          classPop / getGameSetting(state, "diamondMitigationPerPopulation")
-        ) * getGameSetting(state, "diamondMitigationAmount");
+      const tier = classState?.faith?.tier;
+      if (Object.hasOwn(faithPopulation, tier)) {
+        faithPopulation[tier] += classPopulationTotal(classState);
       }
     }
-    const growthSteps = Math.floor(
-      Math.max(0, state.year - 1) / getGameSetting(state, "chaosGrowthYears")
-    );
-    let baseIncome = getGameSetting(state, "baseChaosIncomePerSite");
-    for (let step = 0; step < growthSteps; step += 1) {
-      baseIncome = Math.ceil(
-        baseIncome * (1 + getGameSetting(state, "chaosGrowthRate"))
-      );
-    }
-    const income = Math.max(0, baseIncome - mitigation);
-    totalIncome += income;
-    byRegion.push({ regionId: site.regionId, baseIncome, mitigation, income });
   }
+  const resistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
+    return sum + Math.floor(population / getGameSetting(state, `${tier}ChaosResistancePopulation`));
+  }, 0);
+  const rawLossPressure = pending.prematureDeaths * getGameSetting(state, "prematureDeathChaosWeight")
+    + pending.externalEmigrants * getGameSetting(state, "externalEmigrationChaosWeight")
+    + pending.oldAgeDeaths * getGameSetting(state, "oldAgeDeathChaosWeight")
+    + pending.internalMigrants * getGameSetting(state, "internalMigrationChaosWeight");
+  const totalIncome = Math.max(0, rawLossPressure - resistance);
   civilization.chaos.chaosPower = roundFood(
     civilization.chaos.chaosPower + totalIncome
   );
@@ -2033,7 +2131,21 @@ function runGlobalChaos(state) {
   );
   const spawned = Math.max(0, spawnedTotal - civilization.chaos.monsterCount);
   civilization.chaos.monsterCount += spawned;
-  civilization.chaos.lastMoonIncome = { totalIncome, byRegion, spawned };
+  civilization.chaos.lastMoonIncome = {
+    prematureDeaths: pending.prematureDeaths,
+    oldAgeDeaths: pending.oldAgeDeaths,
+    externalEmigrants: pending.externalEmigrants,
+    rawLossPressure: roundFood(rawLossPressure),
+    faithPopulation,
+    resistance,
+    incomingChaos: roundFood(totalIncome),
+    totalIncome: roundFood(totalIncome),
+    accumulatedChaos: civilization.chaos.chaosPower,
+    spawned,
+  };
+  civilization.chaos.pendingLosses = {
+    prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
+  };
   if (civilization.chaos.monsterCount >= civilization.chaos.monsterLossThreshold) {
     state.runStatus = {
       complete: true,
@@ -2077,6 +2189,17 @@ function getCandidateConnectionEntries(state, targetRegionId, mode, connectionKe
   return getWorldConnectionCandidates(definition).filter((entry) =>
     touchingTarget(entry) && existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
   );
+}
+
+function recordChaosLosses(state, losses) {
+  const chaos = state.civilization.chaos;
+  const pending = chaos.pendingLosses ?? {
+    prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
+  };
+  for (const key of Object.keys(pending)) {
+    pending[key] += Math.max(0, Math.floor(losses?.[key] ?? 0));
+  }
+  chaos.pendingLosses = pending;
 }
 
 function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) {
@@ -2666,7 +2789,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 10;
+  state.gameStateSchemaVersion = 11;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -2684,7 +2807,14 @@ export function initializeDetailedSettlementCivilization(state) {
     monsterCount: 0,
     monsterLossThreshold: getGameSetting(state, "monsterLossThreshold"),
     lastMoonIncome: null,
+    pendingLosses: {
+      prematureDeaths: 0,
+      oldAgeDeaths: 0,
+      externalEmigrants: 0,
+      internalMigrants: 0,
+    },
   };
+  refreshGreenAscendancy(state);
   state.civilization.vassalLineage = {
     nextVassalId: 1,
     currentVassal: null,
@@ -2698,6 +2828,7 @@ export function initializeDetailedSettlementCivilization(state) {
 
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
+  refreshGreenAscendancy(state);
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);
   }

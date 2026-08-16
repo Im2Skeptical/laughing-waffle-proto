@@ -689,6 +689,7 @@ export function createWorldMapView({
   onShowSelectedRegionGraph,
   onOpenDetailedSite,
   getVassalHighlight,
+  tooltipView = null,
 }) {
   const root = new PIXI.Container();
   const edgeTransferLayer = new PIXI.Container();
@@ -1081,6 +1082,23 @@ export function createWorldMapView({
       onShowCivilizationGraph?.();
       lastSignature = "";
     });
+    civilizationPanel.on("pointerover", () => {
+      const reckoning = civilizationSummary.chaos.lastReckoning;
+      const green = civilizationSummary.green;
+      tooltipView?.show?.({
+        title: `${green.label} · Chaos reckoning`,
+        lines: [
+          `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
+          `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
+          `Migration success: ${green.migrationSuccess}%`,
+          `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
+          `Raw loss pressure: ${reckoning?.rawLossPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
+          `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
+          `Monsters: ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
+        ],
+      }, civilizationPanel.getBounds());
+    });
+    civilizationPanel.on("pointerout", () => tooltipView?.hide?.());
     root.addChild(
       civilizationPanel,
       createText(
@@ -1100,6 +1118,14 @@ export function createWorldMapView({
         { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.accent },
         CIVILIZATION_RECT.x + 24,
         CIVILIZATION_RECT.y + 96
+      ),
+      createText(
+        civilizationSummary.green.nextEscalationYears == null
+          ? civilizationSummary.green.label.toUpperCase()
+          : `${civilizationSummary.green.label.toUpperCase()} · Next escalation: ${civilizationSummary.green.nextEscalationYears} years`,
+        { ...TEXT_STYLES.body, fontSize: 14, fill: REGION_COLOURS.green },
+        CIVILIZATION_RECT.x + 24,
+        CIVILIZATION_RECT.y + 122
       )
     );
 

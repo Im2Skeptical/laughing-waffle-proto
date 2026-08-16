@@ -36,9 +36,9 @@ import { createVassalDebugPresetController } from "../../controllers/vassal-debu
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 4);
-assert.equal(authoredConfig.settings.schemaVersion, 4);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 4);
+assert.equal(authoredConfig.schemaVersion, 5);
+assert.equal(authoredConfig.settings.schemaVersion, 5);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 5);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -274,4 +274,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v4] OK");
+console.log("[debug-game-config-v5] OK");

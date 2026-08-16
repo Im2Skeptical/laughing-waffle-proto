@@ -5,6 +5,7 @@ import {
   buildDetailedVassalSelectionPool,
   evaluateDetailedPracticeSlot,
   getDetailedCivilizationSummary,
+  getGreenAscendancySummary,
   getDetailedSettlement,
   getDetailedSettlementViewModel,
   getDetailedVassalInterventionEffectSec,
@@ -75,6 +76,12 @@ function disableMonthlyDemographics(state) {
 
 assert.equal(validateDetailedPracticeDefinitions().ok, true);
 const state = fresh();
+assert.equal(getGreenAscendancySummary(state).tier, 0);
+state.year = 100;
+assert.equal(getGreenAscendancySummary(state).tier, 1, "Green I begins at Year 100");
+state.gameConfig.settings.values.greenAutomaticTier = false;
+state.gameConfig.settings.values.greenForcedTier = 3;
+assert.equal(getGreenAscendancySummary(state).tier, 3, "debug can force Green tier");
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => evaluateDetailedPracticeSlot(state, id, 0)
@@ -465,7 +472,8 @@ assert.deepEqual(
 );
 assert.equal(collapse.civilization.currentMoonTurn.migrationIntents
   .reduce((sum, intent) => sum + intent.requested, 0), 3);
-assert.ok(collapse.civilization.chaos.lastMoonIncome.byRegion.length === 5);
+assert.equal(collapse.civilization.chaos.lastMoonIncome.incomingChaos, 0,
+  "Chaos has no automatic settlement-tax income");
 
 const faithStreak = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(884)));
 const faithClass = getDetailedSettlement(faithStreak, "cedar-woods").populationByClass.villager;
@@ -492,6 +500,54 @@ assert.equal(getPopulationSummary(hardship, "cedar-woods").total, 0,
   "unplaced starvation migrants remain until Death and then take hardship mortality");
 assert.equal(hardship.civilization.currentMoonTurn.regions["cedar-woods"]
   .death.hardshipDeaths, 10);
+
+const rootedness = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8851)));
+rootedness.gameConfig.settings.values.greenAutomaticTier = false;
+rootedness.gameConfig.settings.values.greenForcedTier = 2;
+rootedness.gameConfig.settings.values.migrationHardshipDeathRate = 0;
+const rootedSource = getDetailedSettlement(rootedness, "west-levee");
+rootedSource.populationByClass.villager.adults = 100;
+rootedSource.populationByClass.villager.happiness.missedFeedStreak = 2;
+for (const sec of [1, 2, 3, 4, 5, 6]) stepDetailedSettlementsSecond(rootedness, sec);
+assert.equal(getPopulationSummary(rootedness, "west-levee").total, 25,
+  "Green-blocked migrants stay at their source as unresolved migrants");
+assert.equal(rootedness.civilization.chaos.pendingLosses.externalEmigrants, 75,
+  "eligible migrants use direct external exits after player destinations");
+const rootednessReloaded = deserializeGameState(serializeGameState(rootedness));
+for (const sec of [7, 8, 9, 10]) {
+  stepDetailedSettlementsSecond(rootedness, sec);
+  stepDetailedSettlementsSecond(rootednessReloaded, sec);
+}
+assert.deepEqual(serializeGameState(rootednessReloaded), serializeGameState(rootedness),
+  "pending Green/external loss accounting survives serialization and deterministic replay");
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.externalEmigrants, 75,
+  "Faith consumes migration losses one moon later");
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.rawLossPressure, 37.5);
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.resistance, 1,
+  "Faith resistance uses the surviving full cohort population");
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.incomingChaos, 36.5);
+
+const greenPreservation = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8852)));
+greenPreservation.gameConfig.settings.values.greenAutomaticTier = false;
+greenPreservation.gameConfig.settings.values.greenForcedTier = 1;
+greenPreservation.gameConfig.settings.values.greenStoredDecayReductionI = 100;
+const preservationSite = getDetailedSettlement(greenPreservation, "cedar-woods");
+preservationSite.storedFood = 10;
+preservationSite.looseFood = 10;
+stepDetailedSettlementsSecond(greenPreservation, 6);
+assert.equal(preservationSite.storedFood, 10, "Green preservation affects stored food only");
+assert.equal(preservationSite.looseFood, 2.5, "Green preservation leaves loose-food rot unchanged");
+
+const greenLongevity = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8853)));
+greenLongevity.gameConfig.settings.values.greenAutomaticTier = false;
+greenLongevity.gameConfig.settings.values.greenForcedTier = 1;
+greenLongevity.gameConfig.settings.values.greenElderMortalityReductionI = 100;
+greenLongevity.gameConfig.settings.values.elderMortality75Plus = 1;
+const longevityClass = getDetailedSettlement(greenLongevity, "cedar-woods").populationByClass.villager;
+longevityClass.eldersByAge = [{ age: 75, count: 3 }];
+stepDetailedSettlementsSecond(greenLongevity, 6);
+assert.equal(longevityClass.eldersByAge[0].count, 3,
+  "Green longevity reduces only the existing elder mortality roll");
 
 const ageDeath = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(886)));
 const ageClass = getDetailedSettlement(ageDeath, "cedar-woods").populationByClass.villager;
