@@ -2,6 +2,11 @@ import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
 
+function getMapLabRegionReference(definition, regionId) {
+  const index = (definition?.regions ?? []).findIndex((entry) => entry.id === regionId);
+  return index >= 0 ? `R${String(index + 1).padStart(2, "0")}` : regionId;
+}
+
 function element(tag, className = "", text = null) {
   const node = document.createElement(tag);
   node.className = className;
@@ -306,7 +311,7 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
         const neighbourId = entry.regionAId === region.id ? entry.regionBId : entry.regionAId;
         const connected = activeConnectionKeys.has(connectionKey(region.id, neighbourId));
         connectionButtons.append(button(
-          `${connected ? "Connected" : "Add"}: ${neighbourId}`,
+          `${connected ? "Connected" : "Add"}: ${getMapLabRegionReference(definition, neighbourId)}`,
           `map-lab-connection-${neighbourId}`,
           () => {
             controller.beginOrToggleConnection(region.id);
