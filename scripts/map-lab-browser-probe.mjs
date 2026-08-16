@@ -46,6 +46,26 @@ try {
   });
   await page.goto(URL);
   await page.getByRole("button", { name: /^Debug/ }).click();
+  const startNewRun = page.getByTestId("debug-start-new-run");
+  const closeDebug = page.getByTestId("debug-close");
+  await startNewRun.waitFor({ state: "visible" });
+  await closeDebug.waitFor({ state: "visible" });
+  assert.equal(await page.getByTestId("fullscreen-toggle").count(), 0);
+  assert.equal(await page.getByTestId("map-lab-apply").count(), 0);
+  assert.equal(await page.getByTestId("gameSettings-apply").count(), 0);
+  assert.equal(await page.getByTestId("gamepieces-apply").count(), 0);
+  const floatingDebugControls = await page.evaluate(() => {
+    const toRect = (testId) => {
+      const rect = document.querySelector(`[data-testid="${testId}"]`).getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top };
+    };
+    return { close: toRect("debug-close"), start: toRect("debug-start-new-run") };
+  });
+  assert.ok(floatingDebugControls.close.left < 100, "close control floats at the left");
+  assert.ok(floatingDebugControls.start.right > 1100, "new-run control floats at the right");
+  await closeDebug.click();
+  await page.getByTestId("debug-open").waitFor({ state: "visible" });
+  await page.getByTestId("debug-open").click();
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
 
@@ -183,7 +203,7 @@ try {
   assert.equal(await connectedAdministrationReach.isChecked(), false);
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
-  await page.getByTestId("gamepieces-apply").click();
+  await page.getByTestId("debug-start-new-run").click();
   await page.getByTestId("debug-open").waitFor({ state: "visible" });
   const configuredSnapshot = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()

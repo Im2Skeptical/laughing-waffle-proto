@@ -26,17 +26,6 @@ function requestFullscreen(target) {
   return Promise.reject(new Error("Fullscreen unavailable"));
 }
 
-function exitFullscreen() {
-  if (typeof document.exitFullscreen === "function") return document.exitFullscreen();
-  if (typeof document.webkitExitFullscreen === "function") {
-    return document.webkitExitFullscreen();
-  }
-  if (typeof document.msExitFullscreen === "function") {
-    return document.msExitFullscreen();
-  }
-  return Promise.reject(new Error("Fullscreen exit unavailable"));
-}
-
 async function lockLandscapeOrientation() {
   const orientation = globalThis.screen?.orientation;
   if (typeof orientation?.lock !== "function") return;
@@ -71,16 +60,16 @@ export function createSettlementDebugMenuDom({
     "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
   ].join(";");
 
-  const fullscreenButton = document.createElement("button");
-  fullscreenButton.type = "button";
-  fullscreenButton.textContent = "Full";
-  fullscreenButton.title = "Enter fullscreen";
-  fullscreenButton.dataset.testid = "fullscreen-toggle";
-  fullscreenButton.style.cssText = [
-    "min-width:64px", "min-height:34px", "padding:5px 12px", "border-radius:6px",
-    "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
+  const startNewRunButton = document.createElement("button");
+  startNewRunButton.type = "button";
+  startNewRunButton.textContent = "Start new run";
+  startNewRunButton.title = "Start a fresh run with the current debug drafts";
+  startNewRunButton.dataset.testid = "debug-start-new-run";
+  startNewRunButton.style.cssText = [
+    "display:none", "min-height:34px", "padding:5px 12px", "border-radius:6px",
+    "border:1px solid #d7b450", "background:#59613b", "color:#f6efe3",
   ].join(";");
-  utilityControls.append(fullscreenButton, openButton);
+  utilityControls.append(openButton, startNewRunButton);
   const mobileLandscapeButton = document.querySelector(
     '[data-testid="mobile-landscape-request"]'
   );
@@ -93,10 +82,21 @@ export function createSettlementDebugMenuDom({
     "border-radius:8px", "background:#252c33",
   ].join(";");
 
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.textContent = "Close debug";
+  closeButton.title = "Close development tools";
+  closeButton.dataset.testid = "debug-close";
+  closeButton.style.cssText = [
+    "display:none", "position:fixed", "left:12px", "top:10px", "z-index:1000",
+    "min-height:34px", "padding:5px 12px", "border-radius:6px",
+    "border:1px solid #d7b450", "background:#384755", "color:#f6efe3",
+  ].join(";");
+
   const header = document.createElement("header");
   header.style.cssText = [
     "display:flex", "gap:8px", "align-items:center",
-    "margin-bottom:10px", "padding-right:100px",
+    "margin:0 112px 10px", "padding:0",
   ].join(";");
   const title = document.createElement("strong");
   title.textContent = "Development Tools";
@@ -116,17 +116,10 @@ export function createSettlementDebugMenuDom({
   vassalTab.type = "button";
   vassalTab.textContent = "Vassal Lab";
   vassalTab.dataset.testid = "debug-vassal-tab";
-  const closeButton = document.createElement("button");
-  closeButton.type = "button";
-  closeButton.textContent = "Close";
-  closeButton.style.marginLeft = "auto";
-  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab, closeButton);
+  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab);
   panel.append(header);
 
-  const mapLab = createMapLabDom({
-    controller: mapLabController,
-    onRequestClose: () => close(),
-  });
+  const mapLab = createMapLabDom({ controller: mapLabController });
   const gameSettings = createDebugConfigurationDom({
     controller: debugConfigurationController,
     kind: GAME_SETTINGS_DRAFT_KIND,
@@ -167,44 +160,37 @@ export function createSettlementDebugMenuDom({
     pages[activePage].render?.();
   }
 
-  function syncFullscreenButton() {
-    const fullscreen = !!getFullscreenElement();
-    fullscreenButton.textContent = fullscreen ? "Exit" : "Full";
-    fullscreenButton.title = fullscreen ? "Exit fullscreen" : "Enter fullscreen";
-  }
-
-  async function toggleFullscreen() {
+  async function requestLandscapeFullscreen() {
     try {
-      if (getFullscreenElement()) {
-        await exitFullscreen();
-      } else {
-        await requestFullscreen(document.documentElement);
-        await lockLandscapeOrientation();
-      }
-    } catch (error) {
-      fullscreenButton.title = `Fullscreen unavailable: ${error?.message ?? "unknown error"}`;
-    } finally {
-      syncFullscreenButton();
+      if (!getFullscreenElement()) await requestFullscreen(document.documentElement);
+      await lockLandscapeOrientation();
+    } catch {
+      // The portrait gate remains available when fullscreen cannot be entered.
     }
   }
 
   function open() {
     panel.style.display = "block";
     openButton.style.display = "none";
+    startNewRunButton.style.display = "";
+    closeButton.style.display = "";
     setActivePage(activePage);
   }
 
   function close() {
     panel.style.display = "none";
     openButton.style.display = "";
+    startNewRunButton.style.display = "none";
+    closeButton.style.display = "none";
   }
 
   openButton.addEventListener("click", open);
-  fullscreenButton.addEventListener("click", () => {
-    void toggleFullscreen();
+  startNewRunButton.addEventListener("click", () => {
+    const result = debugConfigurationController.applyToFreshRun();
+    if (result?.ok) close();
   });
   mobileLandscapeButton?.addEventListener("click", () => {
-    void toggleFullscreen();
+    void requestLandscapeFullscreen();
   });
   mapLabTab.addEventListener("click", () => setActivePage("mapLab"));
   gameSettingsTab.addEventListener("click", () => setActivePage("gameSettings"));
@@ -216,11 +202,7 @@ export function createSettlementDebugMenuDom({
     init() {
       if (initialized) return;
       initialized = true;
-      document.body.append(utilityControls, panel);
-      document.addEventListener("fullscreenchange", syncFullscreenButton);
-      document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
-      document.addEventListener("MSFullscreenChange", syncFullscreenButton);
-      syncFullscreenButton();
+      document.body.append(utilityControls, panel, closeButton);
       mapLab.init();
       gameSettings.init();
       gamepieces.init();
@@ -235,11 +217,9 @@ export function createSettlementDebugMenuDom({
       gameSettings.destroy();
       gamepieces.destroy();
       vassalLab.destroy();
-      document.removeEventListener("fullscreenchange", syncFullscreenButton);
-      document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
-      document.removeEventListener("MSFullscreenChange", syncFullscreenButton);
       utilityControls.remove();
       panel.remove();
+      closeButton.remove();
     },
   };
 }

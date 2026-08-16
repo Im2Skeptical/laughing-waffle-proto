@@ -79,7 +79,7 @@ function elderTextToCohorts(text) {
     .map(([age, count]) => ({ age, count }));
 }
 
-export function createMapLabDom({ controller, onRequestClose } = {}) {
+export function createMapLabDom({ controller } = {}) {
   const root = element("div", "map-lab-root");
   root.dataset.testid = "map-lab";
   const style = document.createElement("style");
@@ -235,10 +235,6 @@ export function createMapLabDom({ controller, onRequestClose } = {}) {
         showJson = !showJson;
         jsonText = controller.exportJson();
         render();
-      }),
-      button("Start fresh test run", "map-lab-apply", () => {
-        const result = controller.applyToFreshRun();
-        if (result.ok) onRequestClose?.();
       })
     );
     root.append(toolbar);

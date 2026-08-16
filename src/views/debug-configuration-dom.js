@@ -117,8 +117,7 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
     );
     const reset = button("Authored values", `${kind}-authored`);
     const io = button("Import / Export", `${kind}-import-export`);
-    const apply = button("Start fresh test run", `${kind}-apply`);
-    toolbar.append(preset, load, name, save, remove, reset, io, apply);
+    toolbar.append(preset, load, name, save, remove, reset, io);
     root.appendChild(toolbar);
 
     const status = document.createElement("div");
@@ -173,13 +172,6 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
       controller.deletePreset(kind, selected.id);
     });
     io.addEventListener("click", () => appendImportExport(root));
-    apply.addEventListener("click", () => {
-      const result = controller.applyToFreshRun();
-      if (!result?.ok) {
-        status.textContent = `Could not start run: ${result?.reason ?? "unknown error"}`;
-        status.style.color = "#ffb4a8";
-      }
-    });
   }
 
   function bindNumber(input, path) {
