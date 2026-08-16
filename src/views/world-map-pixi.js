@@ -20,18 +20,24 @@ import {
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const MAP_RECT = Object.freeze({ x: 58, y: 104, width: 1640, height: 704 });
+const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 1640, height: 720 });
+const CIVILIZATION_HEADER_RECT = Object.freeze({
+  x: 58,
+  y: 16,
+  width: 520,
+  height: 54,
+});
 const CIVILIZATION_RECT = Object.freeze({
   x: 1734,
-  y: 104,
+  y: 16,
   width: 626,
-  height: 126,
+  height: 208,
 });
 const DETAIL_RECT = Object.freeze({
   x: 1734,
-  y: 246,
+  y: 240,
   width: 626,
-  height: 562,
+  height: 568,
 });
 const REGION_COLOURS = Object.freeze({
   red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
@@ -921,13 +927,34 @@ export function createWorldMapView({
 
     const bg = new PIXI.Graphics();
     bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
+    const civilizationHeader = new PIXI.Graphics();
+    roundedRect(
+      civilizationHeader,
+      CIVILIZATION_HEADER_RECT.x,
+      CIVILIZATION_HEADER_RECT.y,
+      CIVILIZATION_HEADER_RECT.width,
+      CIVILIZATION_HEADER_RECT.height,
+      8,
+      PALETTE.panel,
+      PALETTE.stroke,
+      2
+    );
     root.addChild(
       bg,
+      civilizationHeader,
       createText(
-        "MAP-DRIVEN SETTLEMENTS",
-        { ...TEXT_STYLES.header, fontSize: 30 },
-        70,
-        38,
+        "CIVILIZATION ·",
+        { ...TEXT_STYLES.header, fontSize: 19 },
+        CIVILIZATION_HEADER_RECT.x + 20,
+        CIVILIZATION_HEADER_RECT.y + 27,
+        0,
+        0.5
+      ),
+      createText(
+        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total}`,
+        { ...TEXT_STYLES.title, fontSize: 15 },
+        CIVILIZATION_HEADER_RECT.x + 190,
+        CIVILIZATION_HEADER_RECT.y + 27,
         0,
         0.5
       )
@@ -935,9 +962,8 @@ export function createWorldMapView({
     addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
-      rect: { x: 660, y: 9, width: 1030, height: 54 },
+      rect: { x: 590, y: 16, width: 1108, height: 54 },
     });
-    addMapIndicatorLegend(root);
 
     const mapPanel = new PIXI.Graphics();
     roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
@@ -1102,30 +1128,46 @@ export function createWorldMapView({
     root.addChild(
       civilizationPanel,
       createText(
-        "CIVILIZATION",
-        { ...TEXT_STYLES.header, fontSize: 26 },
+        "CHAOS & GREEN",
+        { ...TEXT_STYLES.header, fontSize: 22 },
         CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 24
+        CIVILIZATION_RECT.y + 22
       ),
-      createText(
-        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total}`,
-        { ...TEXT_STYLES.title, fontSize: 18 },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 66
-      ),
-      createText(
-        `Chaos ${civilizationSummary.chaos.chaosPower} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
-        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.accent },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 96
-      ),
+    );
+
+    const chaosReckoning = civilizationSummary.chaos.lastReckoning;
+    root.addChild(
       createText(
         civilizationSummary.green.nextEscalationYears == null
           ? civilizationSummary.green.label.toUpperCase()
           : `${civilizationSummary.green.label.toUpperCase()} · Next escalation: ${civilizationSummary.green.nextEscalationYears} years`,
-        { ...TEXT_STYLES.body, fontSize: 14, fill: REGION_COLOURS.green },
+        { ...TEXT_STYLES.title, fontSize: 18, fill: REGION_COLOURS.green },
         CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 122
+        CIVILIZATION_RECT.y + 58
+      ),
+      createText(
+        `Preservation ${civilizationSummary.green.storedFoodDecayReduction}% · Longevity ${civilizationSummary.green.elderMortalityReduction}% · Rootedness ${civilizationSummary.green.migrationSuccess}%`,
+        { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted },
+        CIVILIZATION_RECT.x + 24,
+        CIVILIZATION_RECT.y + 88
+      ),
+      createText(
+        `Incoming ${chaosReckoning?.incomingChaos ?? 0} · Accumulated ${civilizationSummary.chaos.chaosPower}`,
+        { ...TEXT_STYLES.title, fontSize: 17, fill: PALETTE.accent },
+        CIVILIZATION_RECT.x + 24,
+        CIVILIZATION_RECT.y + 120
+      ),
+      createText(
+        `Premature ${chaosReckoning?.prematureDeaths ?? 0} · Emigrants ${chaosReckoning?.externalEmigrants ?? 0} · Pressure ${chaosReckoning?.rawLossPressure ?? 0}`,
+        { ...TEXT_STYLES.body, fontSize: 14 },
+        CIVILIZATION_RECT.x + 24,
+        CIVILIZATION_RECT.y + 150
+      ),
+      createText(
+        `Resistance ${chaosReckoning?.resistance ?? 0} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
+        { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.accent },
+        CIVILIZATION_RECT.x + 24,
+        CIVILIZATION_RECT.y + 180
       )
     );
 
