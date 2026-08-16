@@ -89,7 +89,7 @@ assert.deepEqual(
   [1, 3, 3, 3, 1]
 );
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
-  .map((entry) => entry.effectiveWorkers), [3, 0, 0, 0, 0, 0]);
+  .map((entry) => entry.effectiveWorkers), [3, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
 const strangerSite = getDetailedSettlement(strangerWorkers, "river-crown");
 strangerSite.populationByClass.villager.adults = 0;
@@ -122,7 +122,7 @@ assert.deepEqual(
 const cultivateTiming = clearDetailedPopulationAndFood(fresh());
 const cultivateTimingSite = getDetailedSettlement(cultivateTiming, "cedar-woods");
 cultivateTimingSite.practiceSlots = [
-  { practiceId: "cultivate", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "cultivate", charge: 0, work: 0 }, null, null, null, null,
 ];
 cultivateTiming.currentSeasonIndex = 0;
 cultivateTiming._seasonChanged = true;
@@ -132,6 +132,47 @@ cultivateTiming.currentSeasonIndex = 1;
 cultivateTiming._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivateTiming, 16);
 assert.equal(cultivateTimingSite.storedFood, 40, "zero-worker Cultivate keeps its base value");
+
+const forageTiming = clearDetailedPopulationAndFood(fresh(8890));
+const forageSource = getDetailedSettlement(forageTiming, "cedar-woods");
+const forageDestination = getDetailedSettlement(forageTiming, "west-levee");
+forageSource.practiceSlots[0] = { practiceId: "forage", charge: 0, work: 0 };
+forageSource.practiceSlots[1] = { practiceId: "administrate", charge: 0, work: 0 };
+forageDestination.populationByClass.villager.adults = 10;
+const forageProjectionBefore = serializeGameState(forageTiming);
+const forageTransfers = buildEdgeTransferBatchAtBoundary(forageTiming, 2).transfers
+  .filter((transfer) => transfer.systemId === "administrate");
+assert.equal(forageTransfers.reduce((sum, transfer) => sum + transfer.amount, 0), 5,
+  "projection includes pre-routing Forage in the same Food phase");
+assert.deepEqual(serializeGameState(forageTiming), forageProjectionBefore,
+  "projecting Forage does not mutate authoritative state");
+stepDetailedSettlementsSecond(forageTiming, 2);
+assert.equal(forageDestination.lastMeal.consumed, 5,
+  "unstaffed Forage produces its base 5 before same-phase Administration routing");
+assert.equal(forageSource.storedFood + forageSource.looseFood, 0);
+const staffedForage = clearDetailedPopulationAndFood(fresh(8891));
+const staffedForageSite = getDetailedSettlement(staffedForage, "cedar-woods");
+staffedForageSite.practiceSlots[0] = { practiceId: "forage", charge: 0, work: 0 };
+staffedForageSite.populationByClass.villager.adults = 10;
+stepDetailedSettlementsSecond(staffedForage, 2);
+assert.equal(staffedForageSite.lastMeal.consumed, 10,
+  "one Villager worker raises Forage from 5 to 10");
+const configuredForage = clearDetailedPopulationAndFood(fresh(8895));
+const configuredForageSite = getDetailedSettlement(configuredForage, "cedar-woods");
+configuredForageSite.practiceSlots[0] = { practiceId: "forage", charge: 0, work: 0 };
+configuredForageSite.populationByClass.villager.adults = 10;
+configuredForage.gameConfig.gamepieces.practices.forage.effects[0]
+  .scaledValue.baseAmount = 7;
+const configuredForageReload = deserializeGameState(serializeGameState(configuredForage));
+stepDetailedSettlementsSecond(configuredForage, 2);
+stepDetailedSettlementsSecond(configuredForageReload, 2);
+assert.equal(
+  configuredForageSite.lastMeal.consumed
+    + configuredForageSite.storedFood
+    + configuredForageSite.looseFood,
+  14,
+  "Forage output remains configurable through serialized gamepiece data");
+assert.deepEqual(serializeGameState(configuredForageReload), serializeGameState(configuredForage));
 
 const multiplierState = fresh();
 const multiplierSite = getDetailedSettlement(multiplierState, "cedar-woods");
@@ -148,7 +189,7 @@ for (const site of decay.world.sites) {
   site.detailedState.practiceSlots = Array.from({ length: DETAILED_PRACTICE_SLOT_COUNT }, () => null);
 }
 decaySite.practiceSlots = [
-  { practiceId: "preserve", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "preserve", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(decay, 6);
 assert.equal(decaySite.storedFood, 57.6,
@@ -157,16 +198,18 @@ assert.equal(decaySite.looseFood, 0, "Preservation does not change loose-food de
 
 const build = fresh();
 const buildSite = getDetailedSettlement(build, "river-crown");
+buildSite.structureSlots = buildSite.structureSlots.map(() => ({ structureId: "granary" }));
 buildSite.practiceSlots = [
-  { practiceId: "buildGranary", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "buildGranary", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(build, 1);
 assert.equal(buildSite.practiceSlots[0].work, 1);
-assert.equal(buildSite.structureSlots.filter(Boolean).length, 3,
+assert.equal(buildSite.structureSlots.filter(Boolean).length, buildSite.structureSlots.length,
   "full structure capacity makes completed work wait");
-buildSite.structureSlots[2] = null;
+const buildSlotIndex = buildSite.structureSlots.length - 1;
+buildSite.structureSlots[buildSlotIndex] = null;
 stepDetailedSettlementsSecond(build, 7);
-assert.equal(buildSite.structureSlots[2].structureId, "granary");
+assert.equal(buildSite.structureSlots[buildSlotIndex].structureId, "granary");
 assert.equal(buildSite.practiceSlots[0], null);
 
 const route = fresh();
@@ -178,7 +221,7 @@ for (const site of route.world.sites) {
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain"]) {
   const site = getDetailedSettlement(route, id);
   site.practiceSlots = [
-    { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null, null,
+    { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null,
   ];
 }
 getDetailedSettlement(route, "cedar-woods").looseFood = 90;
@@ -201,7 +244,7 @@ assert.equal(
 const baselineAdmin = clearDetailedPopulationAndFood(fresh());
 const baselineAdminSource = getDetailedSettlement(baselineAdmin, "cedar-woods");
 baselineAdminSource.practiceSlots = [
-  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null,
 ];
 baselineAdminSource.looseFood = 200;
 getDetailedSettlement(baselineAdmin, "west-levee").populationByClass.villager.children = 200;
@@ -221,7 +264,7 @@ assert.deepEqual(planDetailedAdministrationMoves(baselineAdmin), [],
 const splitAdmin = clearDetailedPopulationAndFood(fresh());
 const splitSource = getDetailedSettlement(splitAdmin, "river-crown");
 splitSource.practiceSlots = [
-  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "administrate", charge: 0, work: 0 }, null, null, null, null,
 ];
 splitSource.looseFood = 200;
 getDetailedSettlement(splitAdmin, "upper-floodplain")
@@ -277,7 +320,7 @@ assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
 const commerce = clearDetailedPopulationAndFood(fresh());
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
   getDetailedSettlement(commerce, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null, null,
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
   ];
 }
 getDetailedSettlement(commerce, "cedar-woods").practiceSlots[1] =
@@ -295,7 +338,7 @@ assert.equal(getDetailedSettlement(commerce, "cedar-woods").currency, 12,
 
 const directCommerce = clearDetailedPopulationAndFood(fresh());
 getDetailedSettlement(directCommerce, "cedar-woods").practiceSlots = [
-  { practiceId: "exchange", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "exchange", charge: 0, work: 0 }, null, null, null, null,
 ];
 getRegionState(directCommerce, "west-levee").controller = "frontier";
 assert.equal(evaluateDetailedPracticeSlot(directCommerce, "cedar-woods", 0)
@@ -305,7 +348,7 @@ assert.equal(evaluateDetailedPracticeSlot(directCommerce, "cedar-woods", 0)
 const commerceReplay = clearDetailedPopulationAndFood(fresh(734));
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
   getDetailedSettlement(commerceReplay, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null, null,
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
   ];
 }
 getDetailedSettlement(commerceReplay, "cedar-woods").practiceSlots[1] =
@@ -322,7 +365,7 @@ localImportSite.populationByClass.villager.adults = 10;
 localImportSite.looseFood = 2;
 localImportSite.currency = 5;
 localImportSite.practiceSlots = [
-  { practiceId: "import", charge: 0, work: 0 }, null, null, null, null, null,
+  { practiceId: "import", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(localImport, 1);
 stepDetailedSettlementsSecond(localImport, 2);
@@ -334,7 +377,7 @@ assert.equal(localImportSite.looseFood, 0, "Import does not leave surplus Food")
 const clearingImport = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh()));
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
   getDetailedSettlement(clearingImport, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null, null,
+    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
   ];
 }
 const clearingSite = getDetailedSettlement(clearingImport, "cedar-woods");
@@ -619,8 +662,51 @@ assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredP
 assert.ok(pool.candidates.every((candidate) => candidate.interventions.length === 3),
   "each candidate rolls three valid interventions independently");
 assert.ok(pool.candidates.flatMap((candidate) => candidate.interventions).every((entry) =>
-  entry.kind === "practice" || entry.kind === "structure" || entry.kind === "connection"
+  ["practice", "structure", "connection", "expandSettlement", "globalStructure"]
+    .includes(entry.kind)
 ), "candidate interventions use the supported coarse vocabulary");
+const sampledInterventions = [];
+for (let seed = 790; seed < 830; seed += 1) {
+  const sampledState = fresh(seed);
+  const sampledPool = buildDetailedVassalSelectionPool(sampledState);
+  for (const candidate of sampledPool.candidates) {
+    const expansionIds = candidate.interventions
+      .filter((entry) => entry.kind === "expandSettlement")
+      .map((entry) => entry.regionId);
+    assert.equal(new Set(expansionIds).size, expansionIds.length,
+      "repeated expansion agenda entries reserve distinct frontiers");
+    sampledInterventions.push(...candidate.interventions.map((entry) => ({
+      state: sampledState,
+      targetRegionId: candidate.targetRegionId,
+      entry,
+    })));
+  }
+}
+assert.ok(sampledInterventions.some(({ entry }) => entry.kind === "expandSettlement"));
+assert.ok(sampledInterventions.some(({ entry }) => entry.kind === "globalStructure"));
+for (const { state: sampledState, targetRegionId, entry } of sampledInterventions) {
+  assert.notEqual(entry.kind, "removeConnection",
+    "normal Vassal candidate generation never removes connections");
+  if (entry.kind === "connection") {
+    assert.equal(entry.mode, "add");
+    for (const regionId of [entry.regionAId, entry.regionBId]) {
+      const region = getRegionState(sampledState, regionId);
+      assert.equal(region.controller, "player");
+      assert.equal(region.detailedSettlementEnabled, true);
+    }
+  }
+  if (entry.kind === "expandSettlement") {
+    const region = getRegionState(sampledState, entry.regionId);
+    assert.equal(region.controller, "frontier");
+    assert.equal(region.detailedSettlementEnabled, false);
+    assert.ok(sampledState.world.connections.some((connection) =>
+      [connection.regionAId, connection.regionBId].includes(targetRegionId)
+      && [connection.regionAId, connection.regionBId].includes(entry.regionId)));
+  }
+  if (entry.kind === "globalStructure") {
+    assert.ok(["granary", "mudHouses"].includes(entry.structureId));
+  }
+}
 const constrainedVassalState = fresh(780);
 for (const site of constrainedVassalState.world.sites) {
   site.detailedState.structureSlots = site.detailedState.structureSlots.map(() => ({ structureId: "granary" }));
@@ -713,12 +799,15 @@ const interventionPool = buildDetailedVassalSelectionPool(interventionState);
 selectDetailedVassalCandidate(interventionState, 0, interventionPool.expectedPoolHash);
 const interventionVassal = interventionState.civilization.vassalLineage.currentVassal;
 interventionVassal.targetRegionId = "upper-floodplain";
+interventionState.world.connections = interventionState.world.connections.filter((entry) =>
+  ![entry.regionAId, entry.regionBId].includes("west-levee")
+  || ![entry.regionAId, entry.regionBId].includes("upper-floodplain"));
 interventionVassal.initialAge = 50;
 interventionVassal.deathAge = 99;
 interventionVassal.interventions = [
   { kind: "practice", practiceId: "exchange", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
   { kind: "structure", structureId: "granary", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
-  { kind: "connection", mode: "add", regionAId: "upper-floodplain", regionBId: "east-steppe", requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
+  { kind: "connection", mode: "add", regionAId: "upper-floodplain", regionBId: "west-levee", requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
 ];
 assert.equal(
   getDetailedVassalInterventionEffectSec(
@@ -737,7 +826,7 @@ assert.equal(getDetailedSettlement(interventionState, "upper-floodplain").practi
 assert.equal(getDetailedSettlement(interventionState, "upper-floodplain").structureSlots[3].structureId, "granary");
 assert.ok(interventionState.world.connections.some((entry) =>
   [entry.regionAId, entry.regionBId].includes("upper-floodplain")
-  && [entry.regionAId, entry.regionBId].includes("east-steppe")
+  && [entry.regionAId, entry.regionBId].includes("west-levee")
 ), "Vassal connection intervention updates the shared world graph");
 assert.ok(interventionVassal.interventions.every((entry) => entry.status === "applied" && Number.isFinite(entry.appliedSec)));
 assert.equal(
@@ -750,7 +839,81 @@ assert.equal(
   "an applied intervention keeps its authoritative timeline second"
 );
 
+const expansionState = fresh(8892);
+const expansionPool = buildDetailedVassalSelectionPool(expansionState);
+selectDetailedVassalCandidate(expansionState, 0, expansionPool.expectedPoolHash);
+const expansionVassal = expansionState.civilization.vassalLineage.currentVassal;
+expansionVassal.targetRegionId = "west-levee";
+expansionVassal.initialAge = 50;
+expansionVassal.deathAge = 99;
+expansionVassal.interventions = [
+  { kind: "expandSettlement", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
+];
+expansionState.year += 1;
+stepDetailedSettlementsSecond(expansionState, 34);
+const expandedRegion = getRegionState(expansionState, "iron-hills");
+const expandedSite = getDetailedSettlement(expansionState, "iron-hills");
+assert.equal(expandedRegion.controller, "player");
+assert.equal(expandedRegion.detailedSettlementEnabled, true);
+assert.equal(expandedSite.populationByClass.villager.adults, 10);
+assert.equal(expandedSite.populationByClass.villager.faith.tier, "gold");
+assert.equal(expandedSite.looseFood, 20);
+assert.equal(expandedSite.storedFood, 0);
+assert.equal(expandedSite.currency, 0);
+assert.equal(expandedSite.populationByClass.villager.happiness.status, "neutral");
+assert.equal(expandedSite.populationByClass.stranger.adults, 0);
+assert.equal(expandedSite.practiceSlots.length, 5);
+assert.equal(expandedSite.practiceSlots[0].practiceId, "forage");
+assert.ok(expandedSite.practiceSlots.slice(1).every((slot) => slot == null));
+assert.equal(expandedSite.structureSlots[0].structureId, "mudHouses");
+assert.ok(expandedSite.structureSlots.slice(1).every((slot) => slot == null));
+assert.deepEqual(
+  expansionState.world.sites.map((site) => site.regionId),
+  ["cedar-woods", "iron-hills", "west-levee", "upper-floodplain", "river-crown", "lake-country"],
+  "expanded sites retain authored world order"
+);
+
+const globalState = fresh(8894);
+const globalPool = buildDetailedVassalSelectionPool(globalState);
+selectDetailedVassalCandidate(globalState, 0, globalPool.expectedPoolHash);
+const globalVassal = globalState.civilization.vassalLineage.currentVassal;
+globalVassal.initialAge = 50;
+globalVassal.deathAge = 99;
+const fullSite = getDetailedSettlement(globalState, "cedar-woods");
+fullSite.structureSlots = fullSite.structureSlots.map(() => ({ structureId: "granary" }));
+globalVassal.interventions = [
+  { kind: "globalStructure", structureId: "mudHouses", requiredPrestige: 0, status: "pending" },
+];
+globalState.year += 1;
+stepDetailedSettlementsSecond(globalState, 34);
+const globalIntervention = globalVassal.interventions[0];
+assert.deepEqual(globalIntervention.appliedRegionIds,
+  ["west-levee", "upper-floodplain", "river-crown", "lake-country"]);
+assert.deepEqual(globalIntervention.skippedRegionIds, ["cedar-woods"]);
+for (const regionId of globalIntervention.appliedRegionIds) {
+  assert.ok(getDetailedSettlement(globalState, regionId).structureSlots.some(
+    (slot) => slot?.structureId === "mudHouses"));
+}
+
+const failedExpansionState = fresh(8893);
+const failedExpansionPool = buildDetailedVassalSelectionPool(failedExpansionState);
+selectDetailedVassalCandidate(failedExpansionState, 0, failedExpansionPool.expectedPoolHash);
+const failedExpansionVassal = failedExpansionState.civilization.vassalLineage.currentVassal;
+failedExpansionVassal.targetRegionId = "west-levee";
+failedExpansionVassal.initialAge = 50;
+failedExpansionVassal.deathAge = 99;
+failedExpansionVassal.interventions = [
+  { kind: "expandSettlement", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
+];
+failedExpansionState.world.connections = failedExpansionState.world.connections.filter((entry) =>
+  !([entry.regionAId, entry.regionBId].includes("iron-hills")
+    && [entry.regionAId, entry.regionBId].includes("west-levee")));
+failedExpansionState.year += 1;
+stepDetailedSettlementsSecond(failedExpansionState, 34);
+assert.equal(failedExpansionVassal.interventions[0].status, "failed");
+assert.equal(getRegionState(failedExpansionState, "iron-hills").controller, "frontier");
+
 const vm = getDetailedSettlementViewModel(state, "river-crown");
 assert.equal(vm.elderOrder.resistance, 29);
-assert.equal(vm.structureCapacity, 3);
+assert.equal(vm.structureCapacity, getRegionState(state, "river-crown").structureCapacity);
 console.log("[detailed-settlements] OK");

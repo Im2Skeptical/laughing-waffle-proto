@@ -564,10 +564,17 @@ export function createEmptyState(
     pawns: [],
     passiveTimingRuntime: null,
   };
-  const world = createWorldState(worldDefinitionId, detailedState, worldDraft);
+  const rngOwner = { rng: { seed, baseSeed: seed } };
+  attachRngHelpers(rngOwner);
+  const world = createWorldState(
+    worldDefinitionId,
+    detailedState,
+    worldDraft,
+    rngOwner.rngNextInt
+  );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 11,
+    gameStateSchemaVersion: 12,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -640,7 +647,7 @@ export function createEmptyState(
       maxObservedCivilizationSurvivalYear: null,
     },
 
-    rng: { seed, baseSeed: seed },
+    rng: rngOwner.rng,
   };
 
   ensureSkillRuntimeState(state);
@@ -1178,8 +1185,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 11) {
-    throw new Error("Unsupported game-state schema: expected v11");
+  if (state?.gameStateSchemaVersion !== 12) {
+    throw new Error("Unsupported game-state schema: expected v12");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

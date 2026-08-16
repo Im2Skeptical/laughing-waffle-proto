@@ -14,12 +14,13 @@ import { createInitialState } from "../init.js";
 import { setupDefs } from "../../defs/gamesettings/scenarios-defs.js";
 
 const authored = createAuthoredMapLabDraft();
-assert.equal(MAP_LAB_DRAFT_SCHEMA_VERSION, 3);
-assert.match(MAP_LAB_STORAGE_KEY, /\.v3$/);
+assert.equal(MAP_LAB_DRAFT_SCHEMA_VERSION, 4);
+assert.match(MAP_LAB_STORAGE_KEY, /\.v4$/);
 assert.equal(validateMapLabDraft(authored).ok, true);
 assert.deepEqual(parseMapLabDraftJson(serializeMapLabDraft(authored)).draft, authored);
 assert.deepEqual(authored.regions.map((region) => region.structureCapacity),
-  [3, 4, 4, 3, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 3]);
+  new Array(15).fill(5));
+assert.ok(authored.regions.every((region) => region.randomizeStructureCapacity));
 assert.deepEqual(authored.regions.filter((region) => region.detailedSettlementEnabled)
   .map((region) => region.id), [
     "cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country",
@@ -31,6 +32,7 @@ assert.equal(updateMapLabRegion(authored, region01.id, { structureCapacity: 2 })
 const expanded = updateMapLabRegion(authored, region01.id, { structureCapacity: 4 });
 assert.equal(expanded.ok, true);
 assert.equal(expanded.draft.regions[0].detailedState.structureSlots.length, 4);
+assert.equal(expanded.draft.regions[0].randomizeStructureCapacity, false);
 
 const withoutGranary = setMapLabStructureSlot(authored, region01.id, 0, null);
 assert.equal(withoutGranary.ok, false, "stored food above the resulting zero capacity is rejected");
@@ -54,7 +56,7 @@ const v1 = JSON.stringify({
   connections: [],
 });
 assert.equal(parseMapLabDraftJson(v1).ok, false);
-assert.ok(parseMapLabDraftJson(v1).errors.some((error) => error.includes("expected 3")));
+assert.ok(parseMapLabDraftJson(v1).errors.some((error) => error.includes("expected 4")));
 
 const applied = createInitialState({
   ...setupDefs.devPlaytesting01,
@@ -62,5 +64,7 @@ const applied = createInitialState({
 }, 12345);
 assert.equal(Object.hasOwn(applied.world.regions[0], "detailedState"), false);
 assert.equal(applied.world.sites[0].detailedState.structureSlots.length, 4);
+assert.equal(applied.world.regions[0].structureCapacity, 4,
+  "fixed Map Lab capacity bypasses the default run roll");
 
-console.log("[map-lab-v3] OK");
+console.log("[map-lab-v4] OK");

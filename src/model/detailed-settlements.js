@@ -12,6 +12,7 @@ import {
 } from "../defs/world/detailed-settlement-scenario.js";
 import {
   addWorldConnection,
+  establishDetailedSettlement,
   getConnectedRegionIds,
   getRegionReference,
   getRegionState,
@@ -171,6 +172,11 @@ export function validateDetailedPracticeDefinitions() {
     }
     if (!["season", "birth", "food", "passive"].includes(def.activation?.type)) {
       errors.push(`${id}: invalid activation`);
+    }
+    if (def.activation?.stage != null
+        && (def.activation.type !== "food"
+          || !["preRouting", "postRouting"].includes(def.activation.stage))) {
+      errors.push(`${id}: invalid activation stage`);
     }
     if (def.activation?.seasonKeys != null
         && (!Array.isArray(def.activation.seasonKeys)
@@ -785,19 +791,21 @@ function markCompletedBuildInterventionResolved(state, regionId, practiceId) {
   }
 }
 
-function practiceMatchesActivation(state, def, activationType) {
+function practiceMatchesActivation(state, def, activationType, stage = null) {
   if (def?.activation?.type !== activationType) return false;
+  if (activationType === "food" && stage != null
+      && (def.activation.stage ?? "postRouting") !== stage) return false;
   if (activationType !== "season" || !Array.isArray(def.activation.seasonKeys)) {
     return true;
   }
   return def.activation.seasonKeys.includes(getCurrentSeasonKey(state));
 }
 
-function executePracticeEffects(state, site, assignment, activationType) {
+function executePracticeEffects(state, site, assignment, activationType, stage = null) {
   const settlement = site.detailedState;
   const slot = settlement.practiceSlots[assignment.slotIndex];
   const def = getDetailedPracticeDef(state, slot?.practiceId);
-  if (!def || !practiceMatchesActivation(state, def, activationType)) return;
+  if (!def || !practiceMatchesActivation(state, def, activationType, stage)) return;
   const hasBaselineEffect = (def.effects ?? []).some((effect) => effect.scaledValue);
   if (!hasBaselineEffect
       && (def.workerCapacity ?? 0) > 0
@@ -834,11 +842,11 @@ function executePracticeEffects(state, site, assignment, activationType) {
   }
 }
 
-function runPracticeActivation(state, activationType) {
+function runPracticeActivation(state, activationType, stage = null) {
   for (const site of getDetailedSettlementSites(state)) {
     const assignments = assignDetailedSettlementWorkers(state, site.regionId);
     for (const assignment of assignments) {
-      executePracticeEffects(state, site, assignment, activationType);
+      executePracticeEffects(state, site, assignment, activationType, stage);
     }
   }
 }
@@ -983,6 +991,7 @@ export function planDetailedAdministrationMovesAtBoundary(
     }
     runPracticeActivation(planningState, "season");
   }
+  runPracticeActivation(planningState, "food", "preRouting");
   return planDetailedAdministrationMoves(planningState);
 }
 
@@ -1744,8 +1753,9 @@ function evaluateFoodHappiness(state, classState, ratio) {
 
 function runFoodPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
+  runPracticeActivation(state, "food", "preRouting");
   applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
-  runPracticeActivation(state, "food");
+  runPracticeActivation(state, "food", "postRouting");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
@@ -1956,7 +1966,7 @@ function runMigrationPhase(state, phase) {
   turn.migrationIntentSummaries = result.intentSummaries;
   for (const site of getDetailedSettlementSites(state)) {
     const summary = buildMoonMigrationSummary(result, site.regionId);
-    turn.regions[site.regionId].migration = {
+    ensureMoonRegionResult(turn, site.regionId).migration = {
       tSec: state.tSec,
       ...summary,
     };
@@ -2012,6 +2022,7 @@ function runDeathPhase(state, phase) {
   }
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
+    const regionResult = ensureMoonRegionResult(turn, site.regionId);
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
@@ -2041,7 +2052,7 @@ function runDeathPhase(state, phase) {
       settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
     );
     const migration = {
-      ...(turn.regions[site.regionId].migration ?? {
+      ...(regionResult.migration ?? {
         intents: [], outbound: [], inbound: [], sourceLosses: [],
       }),
       outbound: turn.movements
@@ -2051,8 +2062,8 @@ function runDeathPhase(state, phase) {
         .filter((movement) => movement.destinationRegionId === site.regionId)
         .map(compactMigrationMovement),
     };
-    turn.regions[site.regionId].migration = migration;
-    turn.regions[site.regionId].death = {
+    regionResult.migration = migration;
+    regionResult.death = {
       tSec: state.tSec,
       byClass,
       hardshipDeaths: hardshipDeathsByRegion[site.regionId],
@@ -2170,8 +2181,23 @@ const VASSAL_INTERVENTION_KINDS = Object.freeze([
   "practice",
   "structure",
   "addConnection",
-  "removeConnection",
+  "expandSettlement",
+  "globalStructure",
 ]);
+
+function isPlayerDetailedRegion(state, regionId) {
+  const region = getRegionState(state, regionId);
+  return region?.controller === "player" && region.detailedSettlementEnabled === true;
+}
+
+function getExpansionCandidates(state, targetRegionId, reservedRegionIds = new Set()) {
+  return getConnectedRegionIds(state, targetRegionId).filter((regionId) => {
+    const region = getRegionState(state, regionId);
+    return region?.controller === "frontier"
+      && region.detailedSettlementEnabled !== true
+      && !reservedRegionIds.has(regionId);
+  });
+}
 
 function getCandidateConnectionEntries(state, targetRegionId, mode, connectionKeys = null) {
   const definition = getWorldDefinition(state);
@@ -2183,7 +2209,10 @@ function getCandidateConnectionEntries(state, targetRegionId, mode, connectionKe
     entry.regionAId === targetRegionId || entry.regionBId === targetRegionId;
   if (mode === "add") {
     return getWorldConnectionCandidates(definition).filter((entry) =>
-      touchingTarget(entry) && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
+      touchingTarget(entry)
+      && isPlayerDetailedRegion(state, entry.regionAId)
+      && isPlayerDetailedRegion(state, entry.regionBId)
+      && !existing.has(getWorldConnectionKey(entry.regionAId, entry.regionBId))
     );
   }
   return getWorldConnectionCandidates(definition).filter((entry) =>
@@ -2231,6 +2260,42 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     slots[slotIndex] = structureId;
     reserved.structureSlots = slots;
     return { kind: "structure", structureId, slotIndex };
+  }
+  if (kind === "expandSettlement") {
+    const expandedRegionIds = reserved.expandedRegionIds ?? new Set();
+    const regionId = shuffleWithStateRng(
+      state,
+      getExpansionCandidates(state, targetRegionId, expandedRegionIds)
+    )[0] ?? null;
+    if (!regionId) return null;
+    expandedRegionIds.add(regionId);
+    reserved.expandedRegionIds = expandedRegionIds;
+    return { kind: "expandSettlement", regionId };
+  }
+  if (kind === "globalStructure") {
+    const globalSlots = reserved.globalStructureSlots ?? Object.fromEntries(
+      getDetailedSettlementSites(state, { playerOnly: true }).map((site) => [
+        site.regionId,
+        site.detailedState.structureSlots.map((slot) => slot?.structureId ?? null),
+      ])
+    );
+    const structureId = shuffleWithStateRng(
+      state,
+      Object.keys(settlementStructureDefs)
+    )[0] ?? null;
+    if (!structureId) return null;
+    let reservedCount = 0;
+    for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
+      const slots = globalSlots[site.regionId] ?? [];
+      const slotIndex = slots.findIndex((entry) => entry == null);
+      if (slotIndex < 0) continue;
+      slots[slotIndex] = structureId;
+      globalSlots[site.regionId] = slots;
+      reservedCount += 1;
+    }
+    if (reservedCount === 0) return null;
+    reserved.globalStructureSlots = globalSlots;
+    return { kind: "globalStructure", structureId };
   }
   if (kind === "addConnection" || kind === "removeConnection") {
     const connectionKeys = reserved.connectionKeys ?? new Set(
@@ -2379,6 +2444,13 @@ export function getDetailedVassalDebugOptions(state) {
   };
 }
 
+function ensureMoonRegionResult(turn, regionId) {
+  if (!turn.regions[regionId]) {
+    turn.regions[regionId] = createMoonRegionResult(regionId);
+  }
+  return turn.regions[regionId];
+}
+
 function createDebugInterventionReservation(state, targetRegionId) {
   const settlement = getDetailedSettlement(state, targetRegionId);
   return {
@@ -2388,6 +2460,7 @@ function createDebugInterventionReservation(state, targetRegionId) {
       getWorldConnectionKey(entry.regionAId, entry.regionBId)
     )),
     connectionCandidates: getWorldConnectionCandidates(getWorldDefinition(state)),
+    expandedRegionIds: new Set(),
   };
 }
 
@@ -2422,21 +2495,49 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
     reservation.structureSlots[slotIndex] = source.structureId;
     return { kind: "structure", structureId: source.structureId, slotIndex };
   }
+  if (source.kind === "expandSettlement") {
+    const candidates = getExpansionCandidates(
+      state,
+      targetRegionId,
+      reservation.expandedRegionIds
+    );
+    const regionId = typeof source.regionId === "string"
+      ? candidates.find((id) => id === source.regionId)
+      : candidates[0];
+    if (!regionId) return null;
+    reservation.expandedRegionIds.add(regionId);
+    return { kind: "expandSettlement", regionId };
+  }
+  if (source.kind === "globalStructure") {
+    if (!settlementStructureDefs[source.structureId]) return null;
+    const hasRoom = getDetailedSettlementSites(state, { playerOnly: true }).some(
+      (site) => site.detailedState.structureSlots.some((slot) => slot == null)
+    );
+    return hasRoom
+      ? { kind: "globalStructure", structureId: source.structureId }
+      : null;
+  }
   if (source.kind === "connection" && ["add", "remove"].includes(source.mode)) {
+    const candidates = source.mode === "add"
+      ? getCandidateConnectionEntries(
+        state,
+        targetRegionId,
+        "add",
+        reservation.connectionKeys
+      )
+      : reservation.connectionCandidates.filter((entry) => {
+        const key = getWorldConnectionKey(entry.regionAId, entry.regionBId);
+        return (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
+          && reservation.connectionKeys.has(key);
+      });
     const sourceHasEndpoints = typeof source.regionAId === "string"
       && typeof source.regionBId === "string";
     const candidate = sourceHasEndpoints
-      ? reservation.connectionCandidates.find((entry) =>
+      ? candidates.find((entry) =>
         getWorldConnectionKey(entry.regionAId, entry.regionBId) ===
           getWorldConnectionKey(source.regionAId, source.regionBId)
       )
-      : reservation.connectionCandidates.find((entry) => {
-        const key = getWorldConnectionKey(entry.regionAId, entry.regionBId);
-        const touchesTarget = entry.regionAId === targetRegionId || entry.regionBId === targetRegionId;
-        return touchesTarget && (source.mode === "add"
-          ? !reservation.connectionKeys.has(key)
-          : reservation.connectionKeys.has(key));
-      });
+      : candidates[0];
     const a = candidate?.regionAId;
     const b = candidate?.regionBId;
     const touchesTarget = a === targetRegionId || b === targetRegionId;
@@ -2660,6 +2761,91 @@ export function getDetailedVassalPrestige(state, vassal = null) {
   return age + current.traitPrestigeModifier;
 }
 
+function createExpansionDetailedState(structureCapacity) {
+  const state = createInitialDetailedSettlementData();
+  state.populationByClass.villager = {
+    children: 0,
+    adults: 10,
+    eldersByAge: [],
+    faith: { tier: "gold", trend: null, streak: 0 },
+    happiness: {
+      status: "neutral",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
+    },
+  };
+  state.populationByClass.stranger = {
+    children: 0,
+    adults: 0,
+    eldersByAge: [],
+    faith: { tier: "gold", trend: null, streak: 0 },
+    happiness: {
+      status: "neutral",
+      fullFeedStreak: 0,
+      missedFeedStreak: 0,
+      partialFeedRatios: [],
+    },
+  };
+  state.storedFood = 0;
+  state.looseFood = 20;
+  state.currency = 0;
+  state.practiceSlots = [
+    { practiceId: "forage", charge: 0, work: 0 },
+    null,
+    null,
+    null,
+    null,
+  ];
+  state.structureSlots = Array.from(
+    { length: Math.max(0, Math.floor(structureCapacity ?? 0)) },
+    (_, index) => index === 0 ? { structureId: "mudHouses" } : null
+  );
+  state.lastMeal = null;
+  state.lastMoonResult = null;
+  return state;
+}
+
+function applyExpansionIntervention(state, vassal, intervention) {
+  const regionId = intervention.regionId;
+  if (!getConnectedRegionIds(state, vassal.targetRegionId).includes(regionId)) {
+    return { ok: false, reason: "frontierNotConnected" };
+  }
+  const region = getRegionState(state, regionId);
+  if (region?.controller !== "frontier" || region.detailedSettlementEnabled === true) {
+    return { ok: false, reason: "frontierUnavailable" };
+  }
+  return establishDetailedSettlement(
+    state,
+    regionId,
+    createExpansionDetailedState(region.structureCapacity)
+  );
+}
+
+function applyGlobalStructureIntervention(state, intervention) {
+  if (!settlementStructureDefs[intervention.structureId]) {
+    return { ok: false, reason: "invalidStructure" };
+  }
+  const appliedRegionIds = [];
+  const skippedRegionIds = [];
+  for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
+    const slotIndex = site.detailedState.structureSlots.findIndex((slot) => slot == null);
+    if (slotIndex < 0) {
+      skippedRegionIds.push(site.regionId);
+      continue;
+    }
+    site.detailedState.structureSlots[slotIndex] = {
+      structureId: intervention.structureId,
+    };
+    appliedRegionIds.push(site.regionId);
+  }
+  intervention.appliedRegionIds = appliedRegionIds;
+  intervention.skippedRegionIds = skippedRegionIds;
+  return appliedRegionIds.length > 0
+    ? { ok: true }
+    : { ok: false, reason: "structureSlotsUnavailable" };
+}
+
 // This is deliberately a selector, rather than a forecast mutation. The
 // timeline can therefore describe a pending intervention at the exact Faith
 // boundary where the annual Vassal stage will evaluate it.
@@ -2714,9 +2900,16 @@ function applyIntervention(state, vassal, intervention) {
       ? { ok: true }
       : { ok: false, reason: "structureSlotUnavailable" };
     if (result.ok) settlement.structureSlots[slotIndex] = { structureId: intervention.structureId };
+  } else if (intervention?.kind === "expandSettlement") {
+    result = applyExpansionIntervention(state, vassal, intervention);
+  } else if (intervention?.kind === "globalStructure") {
+    result = applyGlobalStructureIntervention(state, intervention);
   } else if (intervention?.kind === "connection") {
     result = intervention.mode === "add"
-      ? addWorldConnection(state, intervention.regionAId, intervention.regionBId)
+      ? isPlayerDetailedRegion(state, intervention.regionAId)
+          && isPlayerDetailedRegion(state, intervention.regionBId)
+        ? addWorldConnection(state, intervention.regionAId, intervention.regionBId)
+        : { ok: false, reason: "playerSettlementUnavailable" }
       : intervention.mode === "remove"
         ? removeWorldConnection(state, intervention.regionAId, intervention.regionBId)
         : { ok: false, reason: "invalidConnectionMode" };
@@ -2748,6 +2941,15 @@ export function describeDetailedVassalIntervention(state, targetRegionId, interv
     const label = settlementStructureDefs[intervention.structureId]?.label
       ?? intervention.structureId;
     return `Add ${label} — ${targetRef}`;
+  }
+  if (intervention.kind === "expandSettlement") {
+    const regionRef = getRegionReference(state, intervention.regionId) ?? intervention.regionId;
+    return `Establish settlement ${regionRef} from ${targetRef}`;
+  }
+  if (intervention.kind === "globalStructure") {
+    const label = settlementStructureDefs[intervention.structureId]?.label
+      ?? intervention.structureId;
+    return `Add ${label} to all settlements with space`;
   }
   if (intervention.kind === "connection") {
     const left = getRegionReference(state, intervention.regionAId) ?? intervention.regionAId;
@@ -2789,7 +2991,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 11;
+  state.gameStateSchemaVersion = 12;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

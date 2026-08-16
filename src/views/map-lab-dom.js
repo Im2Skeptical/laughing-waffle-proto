@@ -281,6 +281,16 @@ export function createMapLabDom({ controller } = {}) {
         region.controller, "map-lab-controller", (value) => controller.updateRegion(region.id, { controller: value }))),
       labelled("Structure capacity", numberField(region.structureCapacity, "map-lab-structure-capacity",
         (structureCapacity) => controller.updateRegion(region.id, { structureCapacity }))),
+      labelled("Automatic capacity 5–8", (() => {
+        const toggle = element("input", "");
+        toggle.type = "checkbox";
+        toggle.checked = region.randomizeStructureCapacity;
+        toggle.dataset.testid = "map-lab-structure-capacity-random";
+        toggle.addEventListener("change", () => controller.updateRegion(region.id, {
+          randomizeStructureCapacity: toggle.checked,
+        }));
+        return toggle;
+      })()),
       labelled("Detailed settlement", (() => {
         const toggle = element("input", "");
         toggle.type = "checkbox";

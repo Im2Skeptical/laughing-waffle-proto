@@ -81,7 +81,8 @@ try {
   assert.equal(initial.worldMap.selectedRegionId, "river-crown");
   assert.equal(initial.worldMap.regionSelectionActive, false);
   assert.equal(initial.worldMap.graphScope, "civilization");
-  assert.equal(initial.worldMap.selectedRegion.structureCapacity, 3);
+  assert.ok(initial.worldMap.selectedRegion.structureCapacity >= 5);
+  assert.ok(initial.worldMap.selectedRegion.structureCapacity <= 8);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
   assert.equal(initial.worldMap.regionNameLabelsVisible, true);
   assert.deepEqual(initial.worldMap.regionReferences.map((entry) => entry.reference),
@@ -90,12 +91,12 @@ try {
     (indicator) => indicator.hasDetailedSettlement
   );
   assert.equal(detailedMapIndicators.length, 5);
-  assert.deepEqual(
-    initial.worldMap.regionMapIndicators.map(
-      (indicator) => indicator.structureCapacity
+  assert.ok(
+    initial.worldMap.regionMapIndicators.every(
+      (indicator) => indicator.structureCapacity >= 5
+        && indicator.structureCapacity <= 8
     ),
-    [3, 4, 4, 3, 3, 5, 3, 4, 4, 4, 4, 3, 4, 5, 3],
-    "all regions expose their authored structure capacity"
+    "all regions expose their deterministic 5-8 structure capacity roll"
   );
   assert.ok(
     initial.worldMap.regionMapIndicators
@@ -137,17 +138,18 @@ try {
     detailedMapIndicators.map((indicator) => ({
       regionId: indicator.regionId,
       used: indicator.usedStructureCapacity,
-      capacity: indicator.structureCapacity,
     })),
     [
-      { regionId: "cedar-woods", used: 3, capacity: 3 },
-      { regionId: "west-levee", used: 3, capacity: 4 },
-      { regionId: "upper-floodplain", used: 3, capacity: 5 },
-      { regionId: "river-crown", used: 3, capacity: 3 },
-      { regionId: "lake-country", used: 3, capacity: 4 },
+      { regionId: "cedar-woods", used: 3 },
+      { regionId: "west-levee", used: 3 },
+      { regionId: "upper-floodplain", used: 3 },
+      { regionId: "river-crown", used: 3 },
+      { regionId: "lake-country", used: 3 },
     ],
     "filled and open building glyphs follow local structure slots"
   );
+  assert.ok(detailedMapIndicators.every((indicator) =>
+    indicator.structureCapacity >= 5 && indicator.structureCapacity <= 8));
   assert.equal(initial.worldMap.civilizationSummary.settlementCount, 5);
   assert.ok(initial.worldMap.civilizationSummary.population.total >= 0);
   assert.ok(initial.worldMap.civilizationSummary.population.adults >= 0);
@@ -404,7 +406,7 @@ try {
     ],
     "local graph replaces aggregate lines with the selected settlement values"
   );
-  assert.equal(overview.view.overview.practices.length, 6);
+  assert.equal(overview.view.overview.practices.length, 5);
   assert.deepEqual(
     overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
     ["Cultivate", "Administration", "Preservation"]

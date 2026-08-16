@@ -32,13 +32,16 @@ import {
   rebuildStateAtSecond,
 } from "../timeline/index.js";
 import { createVassalDebugPresetController } from "../../controllers/vassal-debug-preset-controller.js";
+import { createMapLabController } from "../../controllers/map-lab-controller.js";
+import { createDebugConfigurationController } from "../../controllers/debug-configuration-controller.js";
+import { createDebugProfileController } from "../../controllers/debug-profile-controller.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 5);
-assert.equal(authoredConfig.settings.schemaVersion, 5);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 5);
+assert.equal(authoredConfig.schemaVersion, 6);
+assert.equal(authoredConfig.settings.schemaVersion, 6);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -53,6 +56,11 @@ assert.equal(
   authoredConfig.gamepieces.practices.preserve.connectedAdministrationReach,
   false,
   "Preservation leaves Administration adjacent-only by default"
+);
+assert.equal(authoredConfig.gamepieces.practices.forage.workerCapacity, 1);
+assert.equal(
+  authoredConfig.gamepieces.practices.forage.effects[0].scaledValue.baseAmount,
+  5
 );
 assert.deepEqual(
   getGamepieceEditorGroups(authoredConfig.gamepieces)
@@ -120,7 +128,7 @@ assert.equal(getStoredFoodCapacity(configured, "cedar-woods"), 125);
 assert.deepEqual(
   assignDetailedSettlementWorkers(configured, "river-crown")
     .map((entry) => entry.effectiveWorkers),
-  [1, 0, 0, 0, 0, 0]
+  [1, 0, 0, 0, 0]
 );
 assert.equal(
   getPopulationSummary(configured, "cedar-woods").mealDemand,
@@ -182,7 +190,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   replacementResult.pool.candidates[0].interventions.map((entry) => entry.slotIndex),
-  [3, 4, 5],
+  [3, 4, 4],
   "repeated debug practices reserve successive practice slots"
 );
 
@@ -207,6 +215,11 @@ assert.deepEqual(
   "repeated debug structures reserve successive empty structure slots"
 );
 
+cheatState.world.connections = cheatState.world.connections.filter((entry) => {
+  const ids = [entry.regionAId, entry.regionBId];
+  return !(ids.includes("upper-floodplain")
+    && (ids.includes("west-levee") || ids.includes("river-crown")));
+});
 const connectionResult = replaceDetailedVassalSelectionCandidate(
   cheatState,
   selectionPool,
@@ -254,6 +267,7 @@ const previousStorage = globalThis.localStorage;
 globalThis.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, value),
+  removeItem: (key) => storage.delete(key),
 };
 try {
   const presetController = createVassalDebugPresetController();
@@ -269,9 +283,88 @@ try {
   assert.equal(saved.ok, true);
   const restored = createVassalDebugPresetController().loadPreset(saved.preset.id);
   assert.deepEqual(restored.preset.draft.interventions, saved.preset.draft.interventions);
+
+  let resetState = null;
+  const runner = {
+    resetToState(state) {
+      resetState = state;
+      return { ok: true };
+    },
+  };
+  const mapController = createMapLabController({ runner });
+  const configController = createDebugConfigurationController({
+    runner,
+    mapLabController: mapController,
+  });
+  const profileVassalController = createVassalDebugPresetController();
+  profileVassalController.setCurrentDraft({
+    ...cheatSpec,
+    candidateSlot: 1,
+    interventions: [
+      { kind: "expandSettlement" },
+      { kind: "globalStructure", structureId: "mudHouses" },
+      { kind: "practice", practiceId: "forage" },
+    ],
+  });
+  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
+  mapController.updateRegion("cedar-woods", { structureCapacity: 7 });
+  const profileController = createDebugProfileController({
+    mapLabController: mapController,
+    debugConfigurationController: configController,
+    vassalDebugPresetController: profileVassalController,
+  });
+  profileController.setActivePage("vassalLab");
+  const profileSaved = profileController.saveProfile("Full boot profile");
+  assert.equal(profileSaved.ok, true);
+  assert.equal(profileController.setBootProfile(profileSaved.entry.id).ok, true);
+  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 99);
+  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
+
+  const restoredProfileController = createDebugProfileController({
+    mapLabController: mapController,
+    debugConfigurationController: configController,
+    vassalDebugPresetController: profileVassalController,
+  });
+  const bootLoaded = restoredProfileController.loadBootProfile();
+  assert.equal(bootLoaded.applied, true);
+  assert.equal(restoredProfileController.getSnapshot().activePage, "vassalLab");
+  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7);
+  assert.equal(
+    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken,
+    12,
+    "boot profile replaces the independently persisted panel draft"
+  );
+  assert.equal(profileVassalController.getSnapshot().currentDraft.interventions[0].kind,
+    "expandSettlement");
+  assert.equal(configController.applyToFreshRun().ok, true);
+  assert.equal(resetState.gameConfig.settings.values.populationPerToken, 12);
+  assert.equal(resetState.world.regions[0].structureCapacity, 7);
+  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
+  assert.equal(restoredProfileController.loadProfile(profileSaved.entry.id).ok, true);
+  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7,
+    "loading a combined profile restores every stored panel draft together");
+  const overwritten = restoredProfileController.saveProfile("Full boot profile", {
+    overwriteProfileId: profileSaved.entry.id,
+  });
+  assert.equal(overwritten.ok, true);
+  assert.equal(overwritten.entry.id, profileSaved.entry.id);
+  assert.equal(restoredProfileController.deleteProfile(profileSaved.entry.id).ok, true);
+  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 0);
+
+  storage.set("civsurvivor.debugProfiles.boot.v1", "profile-999");
+  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
+  const invalidBootController = createDebugProfileController({
+    mapLabController: mapController,
+    debugConfigurationController: configController,
+    vassalDebugPresetController: profileVassalController,
+  });
+  assert.equal(invalidBootController.loadBootProfile().reason, "missingBootProfile");
+  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 8,
+    "an invalid boot profile does not partially replace current drafts");
+  assert.equal(invalidBootController.getSnapshot().status.tone, "warning");
 } finally {
   if (previousStorage === undefined) delete globalThis.localStorage;
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v5] OK");
+console.log("[debug-game-config-v6] OK");

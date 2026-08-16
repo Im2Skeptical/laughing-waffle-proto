@@ -34,7 +34,10 @@ import {
   validateWorldState,
 } from "../world-state.js";
 import { worldMapDefs } from "../../defs/world/world-map-defs.js";
-import { REGION_STRUCTURE_CAPACITIES } from "../../defs/world/detailed-settlement-scenario.js";
+import {
+  DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,
+  DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
+} from "../../defs/world/detailed-settlement-scenario.js";
 import {
   getEdgeTransferPacketFacing,
   getEdgeTransferPacketGlyphSpec,
@@ -48,9 +51,23 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 11);
-assert.deepEqual(state.world.regions.map((region) => region.structureCapacity),
-  REGION_STRUCTURE_CAPACITIES);
+assert.equal(state.gameStateSchemaVersion, 12);
+assert.ok(state.world.regions.every((region) =>
+  region.structureCapacity >= DEFAULT_REGION_STRUCTURE_CAPACITY_MIN
+  && region.structureCapacity <= DEFAULT_REGION_STRUCTURE_CAPACITY_MAX));
+assert.deepEqual(
+  createInitialState("devPlaytesting01", 24680).world.regions.map((region) => region.structureCapacity),
+  state.world.regions.map((region) => region.structureCapacity),
+  "equal seeds reproduce regional capacity rolls"
+);
+assert.notDeepEqual(
+  createInitialState("devPlaytesting01", 24681).world.regions.map((region) => region.structureCapacity),
+  state.world.regions.map((region) => region.structureCapacity),
+  "different seeds can produce different regional capacity rolls"
+);
+assert.ok(state.world.regions.every((region) =>
+  region.detailedSettlementEnabled || region.controller === "frontier"),
+"all authored non-detailed regions begin as frontier");
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
   "cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country",
 ]);
@@ -106,7 +123,7 @@ const unusedWorkerSettlement = getDetailedSettlement(
   "cedar-woods"
 );
 unusedWorkerSettlement.populationByClass.villager.adults = 100;
-unusedWorkerSettlement.practiceSlots = Array.from({ length: 6 }, () => null);
+unusedWorkerSettlement.practiceSlots = Array.from({ length: 5 }, () => null);
 assert.deepEqual(
   getDetailedSettlementViewModel(unusedWorkerState, "cedar-woods").workerPool,
   {
@@ -340,8 +357,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 9;
-assert.throws(() => deserializeGameState(old), /expected v11/);
+old.gameStateSchemaVersion = 11;
+assert.throws(() => deserializeGameState(old), /expected v12/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -480,4 +497,4 @@ try {
   }
 }
 
-console.log("[world-state-v11] OK");
+console.log("[world-state-v12] OK");

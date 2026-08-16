@@ -1,6 +1,6 @@
 // Declarative content for the map-driven detailed-settlement prototype.
 
-export const DETAILED_PRACTICE_SLOT_COUNT = 6;
+export const DETAILED_PRACTICE_SLOT_COUNT = 5;
 export const POPULATION_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 
 const workerMultiplier = () => Object.freeze({
@@ -156,6 +156,30 @@ export const detailedSettlementPracticeDefs = Object.freeze({
       }),
     ]),
   }),
+  forage: Object.freeze({
+    id: "forage",
+    label: "Forage",
+    workerCapacity: 1,
+    activation: Object.freeze({ type: "food", stage: "preRouting" }),
+    ui: Object.freeze({
+      rule: "Gather Food before Administration routes this phase's supplies.",
+    }),
+    costs: Object.freeze([]),
+    effects: Object.freeze([
+      Object.freeze({
+        op: "addLocalFood",
+        scaledValue: Object.freeze({
+          baseAmount: 5,
+          evaluator: Object.freeze({
+            kind: "constant",
+            score: 1,
+            label: "local forage",
+          }),
+          workerMultiplier: workerMultiplier(),
+        }),
+      }),
+    ]),
+  }),
   exchange: Object.freeze({
     id: "exchange",
     label: "Exchange",
@@ -264,6 +288,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
 
 export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze([
   "cultivate",
+  "forage",
   "administrate",
   "preserve",
   "exchange",

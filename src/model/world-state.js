@@ -1,5 +1,9 @@
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
-import { createInitialDetailedSettlementData } from "../defs/world/detailed-settlement-scenario.js";
+import {
+  DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,
+  DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
+  createInitialDetailedSettlementData,
+} from "../defs/world/detailed-settlement-scenario.js";
 import {
   DETAILED_PRACTICE_SLOT_COUNT,
   detailedSettlementPracticeDefs,
@@ -338,6 +342,43 @@ export function removeWorldConnection(state, regionAId, regionBId) {
   return { ok: true, connectionKey: key };
 }
 
+export function establishDetailedSettlement(state, regionId, detailedState) {
+  const definition = getWorldDefinition(state);
+  const regionDef = definition?.regions?.find((entry) => entry.id === regionId);
+  const region = getRegionState(state, regionId);
+  if (!definition || !regionDef || !region) return { ok: false, reason: "invalidRegion" };
+  if (region.controller !== "frontier" || region.detailedSettlementEnabled === true) {
+    return { ok: false, reason: "regionUnavailable" };
+  }
+  if (!detailedState || typeof detailedState !== "object") {
+    return { ok: false, reason: "invalidDetailedState" };
+  }
+  const nextState = cloneSerializable(detailedState);
+  const capacity = Math.max(0, Math.floor(region.structureCapacity));
+  nextState.structureSlots = Array.isArray(nextState.structureSlots)
+    ? nextState.structureSlots.slice(0, capacity)
+    : [];
+  while (nextState.structureSlots.length < capacity) nextState.structureSlots.push(null);
+  region.controller = "player";
+  region.detailedSettlementEnabled = true;
+  state.world.sites.push({
+    id: `${regionId}-settlement`,
+    regionId,
+    simulationMode: "detailed",
+    name: regionDef.name,
+    detailedState: nextState,
+  });
+  canonicalizeWorldState(state);
+  const validation = validateWorldState(state);
+  if (!validation.ok) {
+    state.world.sites = state.world.sites.filter((site) => site.regionId !== regionId);
+    region.controller = "frontier";
+    region.detailedSettlementEnabled = false;
+    return { ok: false, reason: "invalidDetailedState", errors: validation.errors };
+  }
+  return { ok: true, siteId: `${regionId}-settlement` };
+}
+
 export function getSiteById(state, siteId) {
   return state?.world?.sites?.find((site) => site?.id === siteId) ?? null;
 }
@@ -399,9 +440,19 @@ export function canonicalizeWorldState(state) {
   const order = new Map(definition.regions.map((entry, index) => [entry.id, index]));
   state.world.regions.sort((a, b) => (order.get(a?.id) ?? Number.MAX_SAFE_INTEGER) - (order.get(b?.id) ?? Number.MAX_SAFE_INTEGER));
   state.world.connections = canonicalizeWorldConnections(state.world.connections, definition);
+  if (Array.isArray(state.world.sites)) {
+    state.world.sites.sort((a, b) =>
+      (order.get(a?.regionId) ?? Number.MAX_SAFE_INTEGER)
+      - (order.get(b?.regionId) ?? Number.MAX_SAFE_INTEGER));
+  }
 }
 
-export function createWorldState(definitionId, _legacyDetailedState = null, mechanicalDraft = null) {
+export function createWorldState(
+  definitionId,
+  _legacyDetailedState = null,
+  mechanicalDraft = null,
+  rngNextInt = null
+) {
   const definition = worldMapDefs[definitionId];
   const validation = validateWorldDefinition(definition);
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
@@ -411,11 +462,18 @@ export function createWorldState(definitionId, _legacyDetailedState = null, mech
   );
   const regions = definition.regions.map((entry) => {
     const mechanics = draftRegionById.get(entry.id) ?? entry.initialState;
+    const structureCapacity = mechanics.randomizeStructureCapacity === true
+      && typeof rngNextInt === "function"
+      ? rngNextInt(
+        DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
+        DEFAULT_REGION_STRUCTURE_CAPACITY_MAX
+      )
+      : mechanics.structureCapacity;
     return {
       id: entry.id,
       colour: mechanics.colour,
       controller: mechanics.controller,
-      structureCapacity: mechanics.structureCapacity,
+      structureCapacity,
       detailedSettlementEnabled: mechanics.detailedSettlementEnabled === true,
     };
   });

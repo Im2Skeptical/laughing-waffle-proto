@@ -27,20 +27,24 @@ let browser;
 try {
   await waitForHttp();
   browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.route("**/timegraph-forecast-worker-*.js", async (route) => {
     await delay(750);
     await route.continue();
   });
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v3");
-      localStorage.removeItem("civsurvivor.mapLabScenarios.v2");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v5");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v5");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v5");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v5");
+      localStorage.removeItem("civsurvivor.mapLabDraft.v4");
+      localStorage.removeItem("civsurvivor.mapLabScenarios.v3");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v6");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v6");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v6");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v6");
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
+      localStorage.removeItem("civsurvivor.debugVassalDraft.v2");
+      localStorage.removeItem("civsurvivor.debugVassalPresets.v2");
+      localStorage.removeItem("civsurvivor.debugProfiles.v1");
+      localStorage.removeItem("civsurvivor.debugProfiles.boot.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
   });
@@ -72,7 +76,8 @@ try {
   assert.equal(await page.getByTestId("map-lab-region-cedar-woods").getAttribute("aria-label"),
     "Region01 region");
   await page.getByTestId("map-lab-region-cedar-woods").click();
-  assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "3");
+  assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "5");
+  assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), true);
   assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
   assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "30");
   assert.equal(await page.getByTestId("map-lab-villager-elder-ages").inputValue(), "50, 53, 56");
@@ -108,6 +113,7 @@ try {
 
   await page.getByTestId("map-lab-structure-capacity").fill("4");
   await page.getByTestId("map-lab-structure-capacity").press("Enter");
+  assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), false);
   await page.getByTestId("map-lab-structure-slot-3").selectOption("granary");
   assert.equal(await page.getByTestId("map-lab-structure-slot-3").inputValue(), "granary");
 
@@ -131,8 +137,9 @@ try {
 
   await page.getByTestId("map-lab-json-toggle").click();
   const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
-  assert.equal(json.schemaVersion, 3);
+  assert.equal(json.schemaVersion, 4);
   assert.equal(json.regions[0].structureCapacity, 4);
+  assert.equal(json.regions[0].randomizeStructureCapacity, false);
   assert.equal("capacity" in json.regions[0], false);
   assert.equal("installedPracticeIds" in json.regions[0], false);
 
@@ -181,7 +188,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 5);
+  assert.equal(settingsJson.schemaVersion, 6);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
@@ -309,10 +316,32 @@ try {
     "150"
   );
 
+  await page.getByTestId("debug-vassal-tab").click();
+  await page.getByTestId("debug-profile-name").fill("Boot expansion profile");
+  await page.getByTestId("debug-profile-save").click();
+  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-1");
+  await page.getByTestId("debug-profile-boot").click();
+  assert.match(await page.getByTestId("debug-profile-status").innerText(), /boot profile/i);
+  await page.getByTestId("debug-game-settings-tab").click();
+  await page.getByTestId("setting-birthRateGold").fill("0.1");
+  await page.reload();
+  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
+  const bootSnapshot = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(bootSnapshot.gameConfig.settings.values.birthRateGold, 0.35);
+  assert.equal(
+    bootSnapshot.worldMap.regionMapIndicators
+      .find((region) => region.regionId === "cedar-woods").structureCapacity,
+    4,
+    "the selected combined profile starts a fresh run automatically"
+  );
+
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
-      "Map Lab schema v2",
+      "Map Lab schema v4",
       "detailed-settlement toggle and cohorts",
       "elder ages and local food",
       "five practice slots",
@@ -323,6 +352,7 @@ try {
       "generated game-settings editor, JSON, apply, and saved presets",
       "dynamic gamepiece editor, apply, and saved presets",
       "deterministic custom vassal injection",
+      "combined profile boot run and active-panel restoration",
     ],
     editedRegion: json.regions[0],
   }, null, 2));

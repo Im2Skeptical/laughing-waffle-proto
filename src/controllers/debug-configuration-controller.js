@@ -32,16 +32,16 @@ const CONFIG_BY_KIND = Object.freeze({
     createAuthored: createAuthoredGameSettingsDraft,
     canonicalize: canonicalizeGameSettingsDraft,
     validate: validateGameSettingsDraft,
-    draftStorageKey: "civsurvivor.debugGameSettingsDraft.v5",
-    libraryStorageKey: "civsurvivor.debugGameSettingsPresets.v5",
+    draftStorageKey: "civsurvivor.debugGameSettingsDraft.v6",
+    libraryStorageKey: "civsurvivor.debugGameSettingsPresets.v6",
     label: "game settings",
   }),
   [GAMEPIECES_DRAFT_KIND]: Object.freeze({
     createAuthored: createAuthoredGamepiecesDraft,
     canonicalize: canonicalizeGamepiecesDraft,
     validate: validateGamepiecesDraft,
-    draftStorageKey: "civsurvivor.debugGamepiecesDraft.v5",
-    libraryStorageKey: "civsurvivor.debugGamepiecePresets.v5",
+    draftStorageKey: "civsurvivor.debugGamepiecesDraft.v6",
+    libraryStorageKey: "civsurvivor.debugGamepiecePresets.v6",
     label: "gamepieces",
   }),
 });
@@ -183,6 +183,22 @@ export function createDebugConfigurationController({
       return () => listeners.delete(listener);
     },
     getSnapshot,
+    replaceDraftsFromProfile({ gameSettings, gamepieces } = {}) {
+      const drafts = {
+        [GAME_SETTINGS_DRAFT_KIND]: gameSettings,
+        [GAMEPIECES_DRAFT_KIND]: gamepieces,
+      };
+      for (const [kind, draft] of Object.entries(drafts)) {
+        const validation = CONFIG_BY_KIND[kind].validate(draft);
+        if (!validation.ok) {
+          return { ok: false, reason: "invalidDraft", kind, errors: validation.errors };
+        }
+      }
+      for (const [kind, draft] of Object.entries(drafts)) {
+        replaceDraft(kind, draft, "Loaded combined debug profile.");
+      }
+      return { ok: true };
+    },
     getGameConfig() {
       return canonicalizeGameConfig({
         settings: states[GAME_SETTINGS_DRAFT_KIND].draft,

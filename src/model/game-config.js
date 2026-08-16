@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 5;
+export const GAME_CONFIG_SCHEMA_VERSION = 6;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
