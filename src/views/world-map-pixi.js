@@ -55,6 +55,10 @@ const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
   food: SETTLEMENT_RESOURCE_COLOURS.food,
   population: SETTLEMENT_RESOURCE_COLOURS.totalPopulation,
 });
+const PRESSURE_COLOURS = Object.freeze({
+  starvation: 0xd9554d,
+  overcrowding: 0xe2a83b,
+});
 
 export function getEdgeTransferPacketGlyphSpec(resourceId) {
   if (resourceId === "population") {
@@ -399,6 +403,7 @@ function buildRegionMapIndicators(state, definition) {
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
       structureCapacity,
       structureSlots,
+      pressure: viewModel?.pressure ?? null,
     };
   });
 }
@@ -590,6 +595,53 @@ function addPlayerOwnershipMarker(parent, point, { selected = false } = {}) {
   marker.endFill();
   marker.eventMode = "none";
   parent.addChild(marker);
+}
+
+function addSettlementPressureIndicator(parent, point, pressure) {
+  const active = [
+    pressure?.starvation === true ? "starvation" : null,
+    pressure?.overcrowding === true ? "overcrowding" : null,
+  ].filter(Boolean);
+  if (active.length === 0) return;
+  const gap = 30;
+  const startX = point.x - ((active.length - 1) * gap) / 2;
+  const y = point.y - 70;
+  active.forEach((kind, index) => {
+    const x = startX + index * gap;
+    const glyph = new PIXI.Graphics();
+    glyph.lineStyle(2, 0x302d2a, 1);
+    if (kind === "starvation") {
+      glyph.beginFill(PRESSURE_COLOURS.starvation, 1);
+      glyph.drawPolygon([x, y - 13, x - 13, y + 11, x + 13, y + 11]);
+      glyph.endFill();
+      glyph.eventMode = "none";
+      parent.addChild(
+        glyph,
+        createText("!", {
+          ...TEXT_STYLES.title,
+          fontSize: 16,
+          fill: PALETTE.text,
+        }, x, y + 3, 0.5, 0.5)
+      );
+      return;
+    }
+    glyph.beginFill(PRESSURE_COLOURS.overcrowding, 1);
+    glyph.drawPolygon([
+      x - 13, y - 2,
+      x, y - 13,
+      x + 13, y - 2,
+      x + 10, y - 2,
+      x + 10, y + 11,
+      x - 10, y + 11,
+      x - 10, y - 2,
+    ]);
+    glyph.endFill();
+    glyph.beginFill(0x302d2a, 1);
+    for (const offset of [-5, 0, 5]) glyph.drawCircle(x + offset, y + 3, 2.2);
+    glyph.endFill();
+    glyph.eventMode = "none";
+    parent.addChild(glyph);
+  });
 }
 
 function addMapIndicatorLegend(parent) {
@@ -983,6 +1035,9 @@ export function createWorldMapView({
       });
       const selected =
         regionSelectionActive && region.id === selectedRegionId;
+      const mapIndicator = regionMapIndicators.find(
+        (indicator) => indicator.regionId === region.id
+      );
       const highlighted = highlightedRegionIds.has(region.id);
       const shape = new PIXI.Graphics();
       shape.lineStyle(selected || highlighted ? 5 : 2,
@@ -1029,6 +1084,25 @@ export function createWorldMapView({
         }
         lastSignature = "";
       });
+      hit.on("pointerover", () => {
+        const pressure = mapIndicator?.pressure;
+        if (!pressure?.starvation && !pressure?.overcrowding) return;
+        const lines = [];
+        if (pressure.starvation) {
+          lines.push(
+            `Starvation: ${pressure.starvationMigrants} people entered migration after the latest meal`,
+            `Unfed meal demand: ${pressure.unfedMealDemand}`
+          );
+        }
+        if (pressure.overcrowding) {
+          lines.push(`Overcrowding: ${pressure.housingOverflow} people over housing capacity`);
+        }
+        tooltipView?.show?.({
+          title: `${getRegionReference(state, region.id) ?? region.id} pressure`,
+          lines,
+        }, hit.getBounds());
+      });
+      hit.on("pointerout", () => tooltipView?.hide?.());
       root.addChild(hit);
     }
 
@@ -1077,6 +1151,7 @@ export function createWorldMapView({
             indicator.regionId === selectedRegionId,
         });
       }
+      addSettlementPressureIndicator(root, point, indicator.pressure);
     }
 
     const civilizationPanel = new PIXI.Graphics();
@@ -1216,24 +1291,45 @@ export function createWorldMapView({
       `Population ${viewModel?.population.total ?? 0}/${viewModel?.population.housingCapacity ?? 0} housing · Resistance ${viewModel?.elderOrder.resistance ?? 0}`,
       { ...TEXT_STYLES.title, fontSize: 17 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 104));
     if (viewModel) {
+      const pressureLabels = [
+        viewModel.pressure?.starvation
+          ? `STARVATION - ${viewModel.pressure.starvationMigrants} migrating`
+          : null,
+        viewModel.pressure?.overcrowding
+          ? `OVERCROWDED - +${viewModel.pressure.housingOverflow}`
+          : null,
+      ].filter(Boolean);
+      root.addChild(createText(
+        pressureLabels.length > 0
+          ? pressureLabels.join("   ")
+          : "No starvation or overcrowding pressure",
+        {
+          ...TEXT_STYLES.body,
+          fontSize: 14,
+          fill: viewModel.pressure?.starvation
+            ? PRESSURE_COLOURS.starvation
+            : viewModel.pressure?.overcrowding
+              ? PRESSURE_COLOURS.overcrowding
+              : PALETTE.textMuted,
+        }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 130));
       root.addChild(createText(
         `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose · Currency ${viewModel.currency}`,
-        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 140));
+        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 154));
       root.addChild(createText(
-        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 164));
+        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 178));
       const practiceGap = 8;
       const practiceWidth = Math.floor((DETAIL_RECT.width - 48 - practiceGap * 2) / 3);
       viewModel.practices.forEach((practice, index) => {
         drawCompactPracticeSlot(root, {
           x: DETAIL_RECT.x + 24 + (index % 3) * (practiceWidth + practiceGap),
-          y: DETAIL_RECT.y + 188 + Math.floor(index / 3) * 58,
+          y: DETAIL_RECT.y + 202 + Math.floor(index / 3) * 58,
           width: practiceWidth,
           height: 52,
         }, practice, index);
       });
       root.addChild(createText(
         `Structures ${viewModel.usedStructureCapacity}/${viewModel.structureCapacity}`,
-        { ...TEXT_STYLES.title, fontSize: 15 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 314));
+        { ...TEXT_STYLES.title, fontSize: 15 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 328));
       const structureGap = 7;
       const structureCount = Math.max(1, viewModel.structures.length);
       const structureWidth = Math.floor(
@@ -1242,7 +1338,7 @@ export function createWorldMapView({
       viewModel.structures.forEach((slot, index) => {
         drawCompactStructureSlot(root, {
           x: DETAIL_RECT.x + 24 + index * (structureWidth + structureGap),
-          y: DETAIL_RECT.y + 336,
+          y: DETAIL_RECT.y + 350,
           width: structureWidth,
           height: 44,
         }, slot, index);
@@ -1252,15 +1348,15 @@ export function createWorldMapView({
         const targetRef = getRegionReference(state, activeVassal.targetRegionId) ?? activeVassal.targetRegionId;
         root.addChild(createText(
           `ACTIVE VASSAL · Target ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)} · dies Year ${activeVassal.deathYear}`,
-          { ...TEXT_STYLES.title, fontSize: 14, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 396));
+          { ...TEXT_STYLES.title, fontSize: 14, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));
         activeVassal.interventions.forEach((entry, index) => root.addChild(createText(
           `${index + 1}. ${describeDetailedVassalIntervention(state, activeVassal.targetRegionId, entry)} · ${entry.status}`,
           { ...TEXT_STYLES.body, fontSize: 12, fill: entry.status === "applied" ? PALETTE.accent : PALETTE.text },
-          DETAIL_RECT.x + 30, DETAIL_RECT.y + 424 + index * 20
+          DETAIL_RECT.x + 30, DETAIL_RECT.y + 438 + index * 20
         )));
       } else {
         root.addChild(createText("No active Vassal.", { ...TEXT_STYLES.body, fill: PALETTE.textMuted },
-          DETAIL_RECT.x + 24, DETAIL_RECT.y + 396));
+          DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));
       }
     } else {
       root.addChild(createText("No detailed settlement at this region.",

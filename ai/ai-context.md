@@ -96,7 +96,9 @@ bounded JSON state used for replay and phase tooltips.
 
 - The map shows all-region polygons, player ownership nodes, worker pawns,
   structure-capacity glyphs, food and population transfer packets, a
-  civilization summary, and a compact selected-region card.
+  civilization summary, and a compact selected-region card. Detailed regions
+  show red starvation and amber overcrowding glyphs from the currently viewed
+  state; hover and the selected-region card expose the underlying counts.
 - Settlement Overview and Demographics are local to the opened detailed site.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.

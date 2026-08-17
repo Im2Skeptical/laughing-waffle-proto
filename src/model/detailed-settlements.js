@@ -359,6 +359,35 @@ export function getDetailedCivilizationSummary(state) {
   };
 }
 
+export function getSettlementPressureSummary(state, regionId) {
+  const settlement = getDetailedSettlement(state, regionId);
+  if (!settlement) return null;
+  const population = getPopulationSummary(state, regionId);
+  const lastMeal = settlement.lastMeal;
+  const starvationMigrants = POPULATION_CLASS_ORDER.reduce(
+    (total, classId) => total + Math.max(
+      0,
+      Math.floor(lastMeal?.byClass?.[classId]?.migrants ?? 0)
+    ),
+    0
+  );
+  const unfedMealDemand = Math.max(
+    0,
+    roundFood((lastMeal?.demand ?? 0) - (lastMeal?.consumed ?? 0))
+  );
+  const housingOverflow = Math.max(
+    0,
+    population.total - population.housingCapacity
+  );
+  return {
+    starvation: starvationMigrants > 0,
+    starvationMigrants,
+    unfedMealDemand,
+    overcrowding: housingOverflow > 0,
+    housingOverflow,
+  };
+}
+
 const GREEN_TIER_LABELS = Object.freeze(["Dormant", "Green I", "Green II", "Green III"]);
 
 function getGreenTierValue(state) {
@@ -3075,6 +3104,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
     currency: roundFood(Math.max(0, settlement.currency ?? 0)),
     storedFoodCapacity: getStoredFoodCapacity(state, regionId),
     population,
+    pressure: getSettlementPressureSummary(state, regionId),
     workerPool: {
       availableWorkerCount,
       activeWorkerCount,
