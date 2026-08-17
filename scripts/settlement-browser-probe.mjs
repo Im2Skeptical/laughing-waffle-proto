@@ -91,6 +91,10 @@ try {
     (indicator) => indicator.hasDetailedSettlement
   );
   assert.equal(detailedMapIndicators.length, 5);
+  assert.ok(detailedMapIndicators.every((indicator) =>
+    typeof indicator.pressure?.starvation === "boolean"
+      && typeof indicator.pressure?.overcrowding === "boolean"
+  ), "detailed region indicators expose starvation and overcrowding state");
   assert.ok(
     initial.worldMap.regionMapIndicators.every(
       (indicator) => indicator.structureCapacity >= 5
@@ -860,6 +864,7 @@ try {
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
       "15-region map and five detailed sites",
+      "starvation and overcrowding region-pressure indicators",
       "site selection and structure capacity",
       "Overview and Demographics tabs",
       "fullscreen control and season/year heading",

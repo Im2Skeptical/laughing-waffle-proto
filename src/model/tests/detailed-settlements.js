@@ -463,6 +463,17 @@ stepDetailedSettlementsSecond(underHalfFed, 14);
 assert.equal(underHalfClass.happiness.missedFeedStreak, 3);
 assert.equal(underHalfSite.lastMeal.byClass.villager.migrants, 6,
   "the triggering missed meal puts only the unfed share into the migrant bucket");
+assert.deepEqual(
+  getDetailedSettlementViewModel(underHalfFed, "cedar-woods").pressure,
+  {
+    starvation: true,
+    starvationMigrants: 6,
+    unfedMealDemand: 5.1,
+    overcrowding: false,
+    housingOverflow: 0,
+  },
+  "map pressure marks an actual starvation-triggering meal"
+);
 
 const halfFed = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8802)));
 const halfFedSite = getDetailedSettlement(halfFed, "cedar-woods");

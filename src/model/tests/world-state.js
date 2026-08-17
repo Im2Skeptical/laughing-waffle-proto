@@ -6,6 +6,7 @@ import {
   getDetailedSettlementSites,
   getDetailedSettlement,
   getDetailedSettlementViewModel,
+  getSettlementPressureSummary,
 } from "../detailed-settlements.js";
 import { GRAPH_METRICS } from "../graph-metrics.js";
 import {
@@ -90,6 +91,47 @@ for (const site of getDetailedSettlementSites(state)) {
     unusedWorkerCount: 0,
   });
 }
+const pressureState = createInitialState("devPlaytesting01", 24680);
+const pressuredSettlement = getDetailedSettlement(pressureState, "cedar-woods");
+const pressuredPopulation = getDetailedSettlementViewModel(
+  pressureState,
+  "cedar-woods"
+).population;
+pressuredSettlement.populationByClass.villager.adults += 100;
+pressuredSettlement.lastMeal = {
+  tSec: 2,
+  demand: 40,
+  consumed: 25,
+  ratio: 0.625,
+  byClass: {
+    villager: { migrants: 4 },
+    stranger: { migrants: 2 },
+  },
+};
+assert.deepEqual(getSettlementPressureSummary(pressureState, "cedar-woods"), {
+  starvation: true,
+  starvationMigrants: 6,
+  unfedMealDemand: 15,
+  overcrowding: true,
+  housingOverflow: Math.max(
+    0,
+    pressuredPopulation.total + 100 - pressuredPopulation.housingCapacity
+  ),
+});
+assert.deepEqual(
+  getDetailedSettlementViewModel(pressureState, "cedar-woods").pressure,
+  getSettlementPressureSummary(pressureState, "cedar-woods")
+);
+const rebuiltPressure = rebuildStateAtSecond(
+  createTimelineFromInitialState(pressureState),
+  0
+);
+assert.equal(rebuiltPressure.ok, true);
+assert.deepEqual(
+  getSettlementPressureSummary(rebuiltPressure.state, "cedar-woods"),
+  getSettlementPressureSummary(pressureState, "cedar-woods"),
+  "map pressure derives identically from replayed viewed state"
+);
 assert.deepEqual(getWorkerIndicatorPresentation(0), {
   activeWorkerCount: 0,
   unusedWorkerCount: 0,
