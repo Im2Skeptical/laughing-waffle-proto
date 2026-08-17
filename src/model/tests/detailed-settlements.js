@@ -12,6 +12,7 @@ import {
   getElderMortalityRate,
   getHousingCapacity,
   getPopulationSummary,
+  getPrimordialChaosPressure,
   getStoredFoodCapacity,
   planDetailedAdministrationMoves,
   resolveProbability,
@@ -88,6 +89,19 @@ assert.deepEqual(
       .effects[0].scaledValue.evaluatorScore),
   [1, 3, 3, 3, 1]
 );
+const primordial = fresh(8896);
+assert.equal(getPrimordialChaosPressure(primordial), 2);
+primordial.year = 12;
+assert.equal(getPrimordialChaosPressure(primordial), 2,
+  "Primordial growth waits until a full cadence has elapsed");
+primordial.year = 13;
+assert.equal(getPrimordialChaosPressure(primordial), 2.06);
+primordial.gameConfig.settings.values.primordialBasePressure = 4;
+primordial.gameConfig.settings.values.primordialGrowthFactor = 2;
+primordial.gameConfig.settings.values.primordialGrowthCadenceYears = 3;
+primordial.year = 7;
+assert.equal(getPrimordialChaosPressure(primordial), 16,
+  "Primordial base, factor, and cadence are configurable without a cap");
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
   .map((entry) => entry.effectiveWorkers), [3, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
@@ -526,8 +540,25 @@ assert.deepEqual(
 );
 assert.equal(collapse.civilization.currentMoonTurn.migrationIntents
   .reduce((sum, intent) => sum + intent.requested, 0), 3);
-assert.equal(collapse.civilization.chaos.lastMoonIncome.incomingChaos, 0,
-  "Chaos has no automatic settlement-tax income");
+assert.equal(collapse.civilization.chaos.lastMoonIncome.incomingChaos, 2,
+  "Primordial pressure contributes even without settlement-tax income");
+assert.equal(collapse.civilization.chaos.lastMoonIncome.primordialPressure, 2);
+
+const weightedLegacyLosses = clearDetailedPopulationAndFood(fresh(8897));
+weightedLegacyLosses.gameConfig.settings.values.primordialBasePressure = 0;
+weightedLegacyLosses.gameConfig.settings.values.oldAgeDeathChaosWeight = 2;
+weightedLegacyLosses.gameConfig.settings.values.internalMigrationChaosWeight = 3;
+weightedLegacyLosses.civilization.chaos.pendingLosses.oldAgeDeaths = 2;
+weightedLegacyLosses.civilization.chaos.pendingLosses.internalMigrants = 4;
+for (const sec of [1, 2, 3, 4]) stepDetailedSettlementsSecond(weightedLegacyLosses, sec);
+assert.equal(weightedLegacyLosses.civilization.chaos.lastMoonIncome.oldAgeDeathPressure, 4);
+assert.equal(weightedLegacyLosses.civilization.chaos.lastMoonIncome.internalMigrationPressure, 12);
+assert.equal(weightedLegacyLosses.civilization.chaos.lastMoonIncome.rawPressure, 16,
+  "existing nonzero legacy loss weights remain part of raw Primordial reckoning");
+assert.equal(weightedLegacyLosses.civilization.chaos.lastMoonIncome.incomingChaos, 16);
+for (const sec of [5, 6, 7, 8, 9, 10]) stepDetailedSettlementsSecond(weightedLegacyLosses, sec);
+assert.equal(weightedLegacyLosses.civilization.chaos.chaosPower, 16,
+  "resistance and zero incoming pressure never subtract accumulated Chaos");
 
 const faithStreak = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(884)));
 const faithClass = getDetailedSettlement(faithStreak, "cedar-woods").populationByClass.villager;
@@ -576,10 +607,10 @@ assert.deepEqual(serializeGameState(rootednessReloaded), serializeGameState(root
   "pending Green/external loss accounting survives serialization and deterministic replay");
 assert.equal(rootedness.civilization.chaos.lastMoonIncome.externalEmigrants, 75,
   "Faith consumes migration losses one moon later");
-assert.equal(rootedness.civilization.chaos.lastMoonIncome.rawLossPressure, 37.5);
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.rawPressure, 39.5);
 assert.equal(rootedness.civilization.chaos.lastMoonIncome.resistance, 1,
   "Faith resistance uses the surviving full cohort population");
-assert.equal(rootedness.civilization.chaos.lastMoonIncome.incomingChaos, 36.5);
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.incomingChaos, 38.5);
 
 const greenPreservation = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8852)));
 greenPreservation.gameConfig.settings.values.greenAutomaticTier = false;

@@ -2140,6 +2140,18 @@ function shiftStatus(value, order, delta) {
   return order[Math.max(0, Math.min(order.length - 1, index + delta))];
 }
 
+export function getPrimordialChaosPressure(state) {
+  const basePressure = Math.max(0, getGameSetting(state, "primordialBasePressure"));
+  const growthFactor = Math.max(1, getGameSetting(state, "primordialGrowthFactor"));
+  const growthCadenceYears = Math.max(
+    1,
+    Math.floor(getGameSetting(state, "primordialGrowthCadenceYears"))
+  );
+  const elapsedYears = Math.max(0, Math.floor(state?.year ?? 1) - 1);
+  const growthSteps = Math.floor(elapsedYears / growthCadenceYears);
+  return roundFood(basePressure * (growthFactor ** growthSteps));
+}
+
 function runGlobalChaos(state) {
   const civilization = state.civilization;
   const pending = civilization.chaos.pendingLosses ?? {
@@ -2158,11 +2170,21 @@ function runGlobalChaos(state) {
   const resistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
     return sum + Math.floor(population / getGameSetting(state, `${tier}ChaosResistancePopulation`));
   }, 0);
-  const rawLossPressure = pending.prematureDeaths * getGameSetting(state, "prematureDeathChaosWeight")
-    + pending.externalEmigrants * getGameSetting(state, "externalEmigrationChaosWeight")
-    + pending.oldAgeDeaths * getGameSetting(state, "oldAgeDeathChaosWeight")
-    + pending.internalMigrants * getGameSetting(state, "internalMigrationChaosWeight");
-  const totalIncome = Math.max(0, rawLossPressure - resistance);
+  const primordialPressure = getPrimordialChaosPressure(state);
+  const prematureDeathPressure = pending.prematureDeaths
+    * getGameSetting(state, "prematureDeathChaosWeight");
+  const externalEmigrationPressure = pending.externalEmigrants
+    * getGameSetting(state, "externalEmigrationChaosWeight");
+  const oldAgeDeathPressure = pending.oldAgeDeaths
+    * getGameSetting(state, "oldAgeDeathChaosWeight");
+  const internalMigrationPressure = pending.internalMigrants
+    * getGameSetting(state, "internalMigrationChaosWeight");
+  const rawPressure = primordialPressure
+    + prematureDeathPressure
+    + externalEmigrationPressure
+    + oldAgeDeathPressure
+    + internalMigrationPressure;
+  const totalIncome = Math.max(0, rawPressure - resistance);
   civilization.chaos.chaosPower = roundFood(
     civilization.chaos.chaosPower + totalIncome
   );
@@ -2175,7 +2197,12 @@ function runGlobalChaos(state) {
     prematureDeaths: pending.prematureDeaths,
     oldAgeDeaths: pending.oldAgeDeaths,
     externalEmigrants: pending.externalEmigrants,
-    rawLossPressure: roundFood(rawLossPressure),
+    primordialPressure,
+    prematureDeathPressure: roundFood(prematureDeathPressure),
+    externalEmigrationPressure: roundFood(externalEmigrationPressure),
+    oldAgeDeathPressure: roundFood(oldAgeDeathPressure),
+    internalMigrationPressure: roundFood(internalMigrationPressure),
+    rawPressure: roundFood(rawPressure),
     faithPopulation,
     resistance,
     incomingChaos: roundFood(totalIncome),

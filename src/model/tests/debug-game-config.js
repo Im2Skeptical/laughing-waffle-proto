@@ -39,9 +39,9 @@ import { createDebugProfileController } from "../../controllers/debug-profile-co
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 6);
-assert.equal(authoredConfig.settings.schemaVersion, 6);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 6);
+assert.equal(authoredConfig.schemaVersion, 7);
+assert.equal(authoredConfig.settings.schemaVersion, 7);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 7);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -62,6 +62,9 @@ assert.equal(
   authoredConfig.gamepieces.practices.forage.effects[0].scaledValue.baseAmount,
   5
 );
+assert.equal(authoredConfig.settings.values.primordialBasePressure, 2);
+assert.equal(authoredConfig.settings.values.primordialGrowthFactor, 1.03);
+assert.equal(authoredConfig.settings.values.primordialGrowthCadenceYears, 12);
 assert.deepEqual(
   getGamepieceEditorGroups(authoredConfig.gamepieces)
     .flatMap((group) => group.fields)
@@ -95,6 +98,10 @@ assert.equal(validateGamepiecesDraft({
   ...createAuthoredGamepiecesDraft(),
   schemaVersion: 1,
 }).ok, false, "schema-v1 Gamepieces drafts are rejected after the clean cut");
+assert.equal(validateGameSettingsDraft({
+  ...createAuthoredGameSettingsDraft(),
+  schemaVersion: 6,
+}).ok, false, "schema-v6 Game Settings drafts are rejected after the Primordial cut");
 assert.equal(
   parseDebugDraftJson(
     serializeDebugDraft(authoredConfig.gamepieces, GAMEPIECES_DRAFT_KIND),
@@ -367,4 +374,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v6] OK");
+console.log("[debug-game-config-v7] OK");

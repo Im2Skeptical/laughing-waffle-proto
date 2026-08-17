@@ -27,7 +27,7 @@ task lists.
 ## Current state and schemas
 
 - Game state and runner saves use schema v12; older saves are rejected.
-- Each run serializes schema-v6 Game Settings and Gamepieces in `gameConfig`.
+- Each run serializes schema-v7 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -77,6 +77,10 @@ survival knowledge, and the single vassal lineage are civilization-global.
   unhoused overflow, displacing Strangers before Villagers.
 - Faith applies Food/Housing happiness evidence, advances a three-result faith
   streak, and adds newly Bronze-and-Negative cohorts to the same migrant bucket.
+  Each Faith reckoning also adds uncapped civilization-wide Primordial pressure:
+  base pressure grows by cadence-based exponentiation independent of settlement
+  count, then loss pressure and current population/Faith resistance determine
+  incoming Chaos.
 - Migration resolves all food, housing, and faith causes identically using
   snapshot-based, globally reserved housing. Death then resolves arrival meals,
   unplaced-migrant hardship, monthly elder mortality, and stored/loose food rot.
