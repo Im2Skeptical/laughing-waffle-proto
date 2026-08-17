@@ -36,6 +36,10 @@ try {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
       localStorage.removeItem("civsurvivor.mapLabDraft.v4");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v3");
+      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v7");
+      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v7");
+      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v7");
+      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v7");
       localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v6");
       localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v6");
       localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v6");
@@ -171,6 +175,9 @@ try {
   await page.getByTestId("debug-gameSettings").waitFor({ state: "visible" });
   const birthRate = page.getByTestId("setting-birthRateGold");
   assert.equal(await birthRate.inputValue(), "0.04");
+  assert.equal(await page.getByTestId("setting-primordialBasePressure").inputValue(), "2");
+  assert.equal(await page.getByTestId("setting-primordialGrowthFactor").inputValue(), "1.03");
+  assert.equal(await page.getByTestId("setting-primordialGrowthCadenceYears").inputValue(), "12");
   await birthRate.fill("0.35");
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   assert.equal(
@@ -188,7 +195,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 6);
+  assert.equal(settingsJson.schemaVersion, 7);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 

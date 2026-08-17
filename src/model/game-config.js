@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 6;
+export const GAME_CONFIG_SCHEMA_VERSION = 7;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -76,6 +76,9 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("externalEmigrationChaosWeight", "Chaos per external emigrant", 0.5, 0, 100000, 0.05),
       field("oldAgeDeathChaosWeight", "Chaos per old-age death", 0, 0, 100000, 0.05),
       field("internalMigrationChaosWeight", "Chaos per internal migrant", 0, 0, 100000, 0.05),
+      field("primordialBasePressure", "Primordial base pressure", 2, 0, 1000000000, 0.05),
+      field("primordialGrowthFactor", "Primordial growth factor", 1.03, 1, 100, 0.001),
+      field("primordialGrowthCadenceYears", "Primordial growth cadence (years)", 12, 1, 100000, 1, true),
       field("bronzeChaosResistancePopulation", "Bronze people per Chaos resistance", 100, 1, 100000, 1, true),
       field("silverChaosResistancePopulation", "Silver people per Chaos resistance", 50, 1, 100000, 1, true),
       field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 25, 1, 100000, 1, true),

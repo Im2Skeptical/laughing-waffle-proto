@@ -270,6 +270,9 @@ try {
     revealPreview.worldMap.survivalTracker.year > 1,
     "the map calendar advances with the unveiling playhead"
   );
+  assert.ok(Number.isFinite(
+    revealPreview.worldMap.civilizationSummary.chaos.lastReckoning?.primordialPressure
+  ), "projected Chaos reckoning exposes Primordial pressure");
   assert.ok(
     ["food", "population"].includes(transferAnimation.packet.resourceId),
     "map transfer animation renders food or migration packets"

@@ -1192,8 +1192,11 @@ export function createWorldMapView({
           `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
           `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
           `Migration success: ${green.migrationSuccess}%`,
+          `Primordial pressure: ${reckoning?.primordialPressure ?? 0}`,
           `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
-          `Raw loss pressure: ${reckoning?.rawLossPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
+          `Premature pressure: ${reckoning?.prematureDeathPressure ?? 0} · Emigration pressure: ${reckoning?.externalEmigrationPressure ?? 0}`,
+          `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
+          `Raw pressure: ${reckoning?.rawPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
           `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
           `Monsters: ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
         ],
@@ -1233,13 +1236,13 @@ export function createWorldMapView({
         CIVILIZATION_RECT.y + 120
       ),
       createText(
-        `Premature ${chaosReckoning?.prematureDeaths ?? 0} · Emigrants ${chaosReckoning?.externalEmigrants ?? 0} · Pressure ${chaosReckoning?.rawLossPressure ?? 0}`,
+        `Primordial ${chaosReckoning?.primordialPressure ?? 0} · Premature ${chaosReckoning?.prematureDeaths ?? 0} · Emigrants ${chaosReckoning?.externalEmigrants ?? 0}`,
         { ...TEXT_STYLES.body, fontSize: 14 },
         CIVILIZATION_RECT.x + 24,
         CIVILIZATION_RECT.y + 150
       ),
       createText(
-        `Resistance ${chaosReckoning?.resistance ?? 0} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
+        `Raw pressure ${chaosReckoning?.rawPressure ?? 0} · Resistance ${chaosReckoning?.resistance ?? 0} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
         { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.accent },
         CIVILIZATION_RECT.x + 24,
         CIVILIZATION_RECT.y + 180
