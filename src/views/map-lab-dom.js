@@ -88,14 +88,18 @@ export function createMapLabDom({ controller } = {}) {
     .codex-debug-panel.map-lab-active{inset:8px;width:auto;max-width:none;max-height:none}
     .map-lab-root{display:grid;gap:10px;color:#f6efe3}
     .map-lab-toolbar,.map-lab-regions,.map-lab-slots{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-    .map-lab-layout{display:grid;grid-template-columns:minmax(280px,.7fr) minmax(420px,1.3fr);gap:10px}
+    .map-lab-workspace{display:grid;grid-template-columns:minmax(360px,.62fr) minmax(620px,1.38fr);gap:10px;align-items:start}
+    .map-lab-layout{display:grid;grid-template-columns:minmax(250px,.7fr) minmax(420px,1.3fr);gap:10px;min-width:0}
+    .map-lab-workspace>.map-lab-card{min-width:0}
     .map-lab-card{background:rgba(14,18,23,.38);border:1px solid rgba(248,234,208,.22);border-radius:7px;padding:10px}
     .map-lab-button,.map-lab-input{min-height:30px;border:1px solid rgba(224,199,137,.65);border-radius:5px;padding:4px 8px}
     .map-lab-button{background:#455463;color:#f8ead0;cursor:pointer}.map-lab-button.active{background:#7a5f32}
     .map-lab-input{background:#f8f0df;color:#1d2430}.map-lab-field{display:grid;gap:3px;font-size:12px}
     .map-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .map-lab-warning{color:#ffd18d;font-size:12px}.map-lab-error{color:#ffb4a8;font-size:12px}
+    .map-lab-controller-warning{margin:10px 0 0;padding:8px 10px;border:1px solid rgba(255,180,110,.75);border-radius:5px;background:rgba(117,66,36,.28);color:#ffd18d;font-size:13px;line-height:1.35}
     .map-lab-json{width:100%;min-height:220px;font-family:monospace}
+    @media(max-width:1100px){.map-lab-workspace,.map-lab-layout{grid-template-columns:1fr}}
   `;
   let unsubscribe = null;
   let showJson = false;
@@ -280,23 +284,24 @@ export function createMapLabDom({ controller } = {}) {
     mapCard.append(element("p", "map-lab-warning", mapMode === "connection"
       ? "Click two polygon-adjacent regions to add or remove their shared-edge connection."
       : "Click a region to edit it. Solid gold lines are active; dashed lines are valid shared edges."));
-    root.append(mapCard);
-
     const status = element("div",
       snapshot.status.tone === "error" ? "map-lab-error" : "map-lab-warning",
       snapshot.status.message);
     status.dataset.testid = "map-lab-status";
-    root.append(status);
 
     if (showJson) {
       const area = element("textarea", "map-lab-input map-lab-json");
       area.dataset.testid = "map-lab-json";
       area.value = jsonText;
       area.addEventListener("input", () => { jsonText = area.value; });
-      root.append(area, button("Import JSON", "map-lab-import", () => controller.importJson(jsonText)));
+      root.append(mapCard, status, area,
+        button("Import JSON", "map-lab-import", () => controller.importJson(jsonText)));
       return;
     }
-    if (!region) return;
+    if (!region) {
+      root.append(mapCard, status);
+      return;
+    }
 
     const layout = element("div", "map-lab-layout");
     const mechanics = element("section", "map-lab-card");
@@ -332,6 +337,15 @@ export function createMapLabDom({ controller } = {}) {
       })())
     );
     mechanics.append(fields);
+    if (region.detailedSettlementEnabled && region.controller !== "player") {
+      const warning = element(
+        "p",
+        "map-lab-controller-warning",
+        "This detailed settlement is not player controlled. Player practices such as Forage, Cultivate, and Administration will not produce or route resources until its Controller is set to player."
+      );
+      warning.dataset.testid = "map-lab-nonplayer-detailed-warning";
+      mechanics.append(warning);
+    }
     const used = region.detailedState?.structureSlots?.filter(Boolean).length ?? 0;
     mechanics.append(element("p", "map-lab-warning",
       `${used} / ${region.structureCapacity} structure slots used`));
@@ -361,7 +375,10 @@ export function createMapLabDom({ controller } = {}) {
     if (!region.detailedSettlementEnabled || !region.detailedState) {
       detail.append(element("p", "", "This region has no detailed settlement."));
       layout.append(detail);
-      root.append(layout);
+      const workspace = element("div", "map-lab-workspace");
+      workspace.dataset.testid = "map-lab-workspace";
+      workspace.append(mapCard, layout);
+      root.append(workspace, status);
       return;
     }
     const state = region.detailedState;
@@ -440,7 +457,10 @@ export function createMapLabDom({ controller } = {}) {
       }
     }
     layout.append(detail);
-    root.append(layout);
+    const workspace = element("div", "map-lab-workspace");
+    workspace.dataset.testid = "map-lab-workspace";
+    workspace.append(mapCard, layout);
+    root.append(workspace, status);
   }
 
   return {

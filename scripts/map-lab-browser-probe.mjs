@@ -92,6 +92,25 @@ try {
   assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "cultivate");
   assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
+  const mapLabDesktopLayout = await page.getByTestId("map-lab-workspace").evaluate((workspace) => {
+    const map = workspace.querySelector('[data-testid="map-lab-world-map"]');
+    const editor = document.querySelector('[data-testid="map-lab-controller"]');
+    return {
+      mapRight: map?.getBoundingClientRect().right ?? 0,
+      editorLeft: editor?.closest(".map-lab-card")?.getBoundingClientRect().left ?? 0,
+    };
+  });
+  assert.ok(
+    mapLabDesktopLayout.editorLeft >= mapLabDesktopLayout.mapRight,
+    "at 1280px, the selected-region editor uses the space to the right of the map"
+  );
+  await page.getByTestId("map-lab-controller").selectOption("frontier");
+  assert.match(
+    await page.getByTestId("map-lab-nonplayer-detailed-warning").innerText(),
+    /not player controlled/i
+  );
+  await page.getByTestId("map-lab-controller").selectOption("player");
+  assert.equal(await page.getByTestId("map-lab-nonplayer-detailed-warning").count(), 0);
 
   const adultsField = page.getByTestId("map-lab-villager-adults");
   await adultsField.fill("31");
