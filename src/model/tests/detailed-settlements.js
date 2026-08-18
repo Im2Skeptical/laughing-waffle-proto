@@ -737,7 +737,13 @@ for (const { state: sampledState, targetRegionId, entry } of sampledIntervention
       assert.equal(region.detailedSettlementEnabled, true);
     }
   }
+  if (entry.kind === "practice" || entry.kind === "structure") {
+    assert.equal(entry.targetRegionId, targetRegionId,
+      "normal Vassal local interventions remain targeted at the Vassal home");
+  }
   if (entry.kind === "expandSettlement") {
+    assert.equal(entry.sourceRegionId, targetRegionId,
+      "normal Vassal expansion keeps the Vassal home as its source");
     const region = getRegionState(sampledState, entry.regionId);
     assert.equal(region.controller, "frontier");
     assert.equal(region.detailedSettlementEnabled, false);
@@ -847,8 +853,8 @@ interventionState.world.connections = interventionState.world.connections.filter
 interventionVassal.initialAge = 50;
 interventionVassal.deathAge = 99;
 interventionVassal.interventions = [
-  { kind: "practice", practiceId: "exchange", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
-  { kind: "structure", structureId: "granary", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
+  { kind: "practice", targetRegionId: "river-crown", practiceId: "exchange", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
+  { kind: "structure", targetRegionId: "river-crown", structureId: "granary", slotIndex: 3, requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
   { kind: "connection", mode: "add", regionAId: "upper-floodplain", regionBId: "west-levee", requiredPrestige: 0, status: "pending", appliedYear: null, appliedSec: null },
 ];
 assert.equal(
@@ -864,8 +870,8 @@ interventionState._seasonChanged = true;
 interventionState.currentSeasonIndex = 0;
 interventionState.year += 1;
 stepDetailedSettlementsSecond(interventionState, 34);
-assert.equal(getDetailedSettlement(interventionState, "upper-floodplain").practiceSlots[3].practiceId, "exchange");
-assert.equal(getDetailedSettlement(interventionState, "upper-floodplain").structureSlots[3].structureId, "granary");
+assert.equal(getDetailedSettlement(interventionState, "river-crown").practiceSlots[3].practiceId, "exchange");
+assert.equal(getDetailedSettlement(interventionState, "river-crown").structureSlots[3].structureId, "granary");
 assert.ok(interventionState.world.connections.some((entry) =>
   [entry.regionAId, entry.regionBId].includes("upper-floodplain")
   && [entry.regionAId, entry.regionBId].includes("west-levee")
@@ -889,7 +895,7 @@ expansionVassal.targetRegionId = "west-levee";
 expansionVassal.initialAge = 50;
 expansionVassal.deathAge = 99;
 expansionVassal.interventions = [
-  { kind: "expandSettlement", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
+  { kind: "expandSettlement", sourceRegionId: "west-levee", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
 ];
 expansionState.year += 1;
 stepDetailedSettlementsSecond(expansionState, 34);
@@ -945,7 +951,7 @@ failedExpansionVassal.targetRegionId = "west-levee";
 failedExpansionVassal.initialAge = 50;
 failedExpansionVassal.deathAge = 99;
 failedExpansionVassal.interventions = [
-  { kind: "expandSettlement", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
+  { kind: "expandSettlement", sourceRegionId: "west-levee", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
 ];
 failedExpansionState.world.connections = failedExpansionState.world.connections.filter((entry) =>
   !([entry.regionAId, entry.regionBId].includes("iron-hills")

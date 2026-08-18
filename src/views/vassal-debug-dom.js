@@ -7,46 +7,100 @@ import {
   getElderOrderSummary,
 } from "../model/detailed-settlements.js";
 import { getGameSetting } from "../model/game-config.js";
+import { getWorldConnectionCandidates, getWorldDefinition } from "../model/world-state.js";
+import { createDebugWorldMapDom } from "./debug-world-map-dom.js";
 
-function makeSelect(options) {
-  const select = document.createElement("select");
-  select.style.cssText = "min-height:34px;width:100%;box-sizing:border-box";
-  for (const entry of options) {
-    const option = document.createElement("option");
-    option.value = entry.id;
-    option.textContent = entry.label ?? entry.id;
-    select.appendChild(option);
+const clone = (value) => JSON.parse(JSON.stringify(value));
+
+function select(options, value, testid, onChange) {
+  const node = document.createElement("select");
+  node.dataset.testid = testid;
+  node.style.cssText = "min-height:34px;width:100%;box-sizing:border-box";
+  for (const option of options) {
+    const entry = document.createElement("option");
+    entry.value = option.id;
+    entry.textContent = option.label ?? option.id;
+    node.append(entry);
   }
-  return select;
+  node.value = value ?? "";
+  node.addEventListener("change", () => onChange(node.value));
+  return node;
 }
 
-function makeNumber(value, min = 0) {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.value = String(value);
-  input.min = String(min);
-  input.step = "1";
-  input.style.cssText = "min-height:34px;width:100%;box-sizing:border-box;padding:5px";
-  return input;
+function number(value, testid, onChange, min = 0) {
+  const node = document.createElement("input");
+  node.type = "number";
+  node.value = String(value ?? 0);
+  node.min = String(min);
+  node.step = "1";
+  node.dataset.testid = testid;
+  node.style.cssText = "min-height:34px;width:100%;box-sizing:border-box;padding:5px";
+  node.addEventListener("change", () => onChange(Number(node.value)));
+  return node;
 }
 
-function addField(grid, labelText, input) {
+function button(label, testid, onClick) {
+  const node = document.createElement("button");
+  node.type = "button";
+  node.textContent = label;
+  node.dataset.testid = testid;
+  node.style.cssText = "min-height:34px;padding:5px 9px";
+  node.addEventListener("click", onClick);
+  return node;
+}
+
+function field(parent, labelText, control) {
   const label = document.createElement("label");
-  label.style.cssText = "display:grid;gap:4px;color:#e8dfcb;font-size:12px";
+  label.style.cssText = "display:grid;gap:3px;color:#e8dfcb;font-size:12px";
   const caption = document.createElement("span");
   caption.textContent = labelText;
-  label.append(caption, input);
-  grid.appendChild(label);
-  return input;
+  label.append(caption, control);
+  parent.append(label);
 }
 
-export function createVassalDebugDom({
-  getState,
-  replaceVassalCandidate,
-  presetController,
-} = {}) {
+function playerRegionOptions(state) {
+  return (state?.world?.regions ?? [])
+    .filter((region) => region.controller === "player" && region.detailedSettlementEnabled)
+    .map((region) => ({ id: region.id, label: region.id }));
+}
+
+function frontierRegionOptions(state, sourceRegionId) {
+  const connected = new Set((state?.world?.connections ?? [])
+    .filter((entry) => entry.regionAId === sourceRegionId || entry.regionBId === sourceRegionId)
+    .map((entry) => entry.regionAId === sourceRegionId ? entry.regionBId : entry.regionAId));
+  return (state?.world?.regions ?? [])
+    .filter((region) => connected.has(region.id)
+      && region.controller === "frontier" && !region.detailedSettlementEnabled)
+    .map((region) => ({ id: region.id, label: region.id }));
+}
+
+function makeDefaultDraft(state, options) {
+  const home = options.targetRegions[0]?.id ?? "";
+  const players = playerRegionOptions(state);
+  return {
+    targetRegionId: home,
+    initialAge: getGameSetting(state, "vassalStartingAgeMin"),
+    deathAge: getGameSetting(state, "vassalDeathAgeMin"),
+    traitId: options.traits[0]?.id ?? "",
+    traitPrestigeModifier: options.traits[0]?.prestigeDelta ?? 0,
+    professionId: options.professions[0]?.id ?? "",
+    candidateSlot: 1,
+    interventions: [
+      { kind: "practice", targetRegionId: home, practiceId: options.interventionPracticeIds[0] ?? "forage" },
+      { kind: "structure", targetRegionId: home, structureId: options.interventionStructureIds[0] ?? "mudHouses" },
+      { kind: "globalStructure", structureId: options.interventionStructureIds[0] ?? "mudHouses" },
+    ],
+    resistanceSnapshot: getElderOrderSummary(state, home).resistance,
+    requiredPrestige: [0, 0, 0],
+  };
+}
+
+export function createVassalDebugDom({ getState, replaceVassalCandidate, presetController } = {}) {
   const root = document.createElement("section");
   root.dataset.testid = "debug-vassal-lab";
+  let editingDraft = null;
+  let mapAction = null;
+
   function render() {
     const state = getState?.();
     root.replaceChildren();
@@ -55,291 +109,255 @@ export function createVassalDebugDom({
       return;
     }
     const options = getDetailedVassalDebugOptions(state);
-    if (options.targetRegions.length === 0) {
+    if (!options.targetRegions.length) {
       root.textContent = "No player-controlled detailed settlement is available.";
       return;
     }
+    const presetSnapshot = presetController?.getSnapshot?.() ?? { presetOptions: [] };
+    if (!editingDraft) editingDraft = clone(presetSnapshot.currentDraft ?? makeDefaultDraft(state, options));
+    const players = playerRegionOptions(state);
+    const definition = getWorldDefinition(state);
+
+    function update(mutator) {
+      const next = clone(editingDraft);
+      mutator(next);
+      editingDraft = next;
+      presetController?.setCurrentDraft?.(next);
+      render();
+    }
 
     const intro = document.createElement("p");
-    intro.textContent =
-      "Replace one displayed Vassal choice with a fully specified test candidate. The candidate still must be selected from the map drawer to create a timeline action.";
+    intro.textContent = "The Vassal home determines identity and prestige. Each intervention may target its own valid region.";
     intro.style.cssText = "margin-top:0;color:#d8e2ef";
-    root.appendChild(intro);
+    root.append(intro);
 
-    const presetSnapshot = presetController?.getSnapshot?.() ?? { presetOptions: [] };
-    const selectedPresetId = presetSnapshot.selectedPresetId ?? null;
-    const presetToolbar = document.createElement("div");
-    presetToolbar.style.cssText = "display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px";
-    const preset = makeSelect([
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText = "display:flex;gap:7px;flex-wrap:wrap;align-items:center";
+    const saved = select([
       { id: "", label: "Custom / unsaved Vassal" },
-      ...presetSnapshot.presetOptions.map((entry) => ({
-        id: entry.id,
-        label: `Saved - ${entry.name}`,
-      })),
-    ]);
-    preset.style.cssText = "min-height:34px;max-width:320px";
-    preset.value = selectedPresetId ?? "";
-    preset.dataset.testid = "vassal-debug-preset";
-    const loadPreset = document.createElement("button");
-    loadPreset.type = "button";
-    loadPreset.textContent = "Load preset";
-    loadPreset.dataset.testid = "vassal-debug-load-preset";
+      ...presetSnapshot.presetOptions.map((entry) => ({ id: entry.id, label: "Saved - " + entry.name })),
+    ], presetSnapshot.selectedPresetId, "vassal-debug-preset", () => {});
     const presetName = document.createElement("input");
-    presetName.type = "text";
     presetName.placeholder = "Preset name";
-    presetName.value = presetSnapshot.presetOptions.find((entry) => entry.id === selectedPresetId)?.name ?? "";
     presetName.dataset.testid = "vassal-debug-preset-name";
-    const savePreset = document.createElement("button");
-    savePreset.type = "button";
-    savePreset.textContent = "Save preset";
-    savePreset.dataset.testid = "vassal-debug-save-preset";
-    const deletePreset = document.createElement("button");
-    deletePreset.type = "button";
-    deletePreset.textContent = "Delete saved";
-    deletePreset.dataset.testid = "vassal-debug-delete-preset";
-    deletePreset.disabled = !selectedPresetId;
-    const presetStatus = document.createElement("span");
-    presetStatus.style.color = "#d8e2ef";
-    presetToolbar.append(preset, loadPreset, presetName, savePreset, deletePreset, presetStatus);
-    root.appendChild(presetToolbar);
-
-    const grid = document.createElement("div");
-    grid.style.cssText =
-      "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px";
-    root.appendChild(grid);
-
-    const target = addField(grid, "Target settlement", makeSelect(options.targetRegions));
-    target.dataset.testid = "vassal-debug-target";
-    const initialAge = addField(
-      grid,
-      "Starting age",
-      makeNumber(getGameSetting(state, "vassalStartingAgeMin"))
-    );
-    initialAge.dataset.testid = "vassal-debug-initial-age";
-    const deathAge = addField(
-      grid,
-      "Death age",
-      makeNumber(getGameSetting(state, "vassalDeathAgeMin"), 1)
-    );
-    deathAge.dataset.testid = "vassal-debug-death-age";
-    const trait = addField(
-      grid,
-      "Trait",
-      makeSelect(options.traits.map((entry) => ({
-        id: entry.id,
-        label: `${entry.id} (${entry.prestigeDelta >= 0 ? "+" : ""}${entry.prestigeDelta})`,
-      })))
-    );
-    trait.dataset.testid = "vassal-debug-trait";
-    const traitModifier = addField(
-      grid,
-      "Trait prestige modifier",
-      makeNumber(options.traits[0]?.prestigeDelta ?? 0, -1000)
-    );
-    traitModifier.dataset.testid = "vassal-debug-trait-modifier";
-    const profession = addField(grid, "Profession", makeSelect(options.professions));
-    profession.dataset.testid = "vassal-debug-profession";
-    const candidateSlot = addField(grid, "Replace choice", makeSelect([
-      { id: "1", label: "Vassal 1" },
-      { id: "2", label: "Vassal 2" },
-      { id: "3", label: "Vassal 3" },
-    ]));
-    candidateSlot.dataset.testid = "vassal-debug-candidate-slot";
-
-    const interventionSelects = [];
-    const requirementInputs = [];
-    const interventionOptions = options.interventionPracticeIds.map((id) => ({
-      id: `practice:${id}`,
-      label: detailedSettlementPracticeDefs[id]?.label ?? id,
-    })).concat(
-      options.interventionStructureIds.map((id) => ({
-        id: `structure:${id}`,
-        label: `Add ${settlementStructureDefs[id]?.label ?? id}`,
-      })),
-      options.interventionStructureIds.map((id) => ({
-        id: `globalStructure:${id}`,
-        label: `Add ${settlementStructureDefs[id]?.label ?? id} everywhere`,
-      })),
-      [
-        { id: "expandSettlement:frontier", label: "Expand to adjacent frontier" },
-        { id: "connection:add", label: "Add a valid connection" },
-        { id: "connection:remove", label: "Remove a current connection" },
-      ]
-    );
-    for (let index = 0; index < 3; index += 1) {
-      const select = addField(
-        grid,
-        `Intervention ${index + 1}`,
-        makeSelect(interventionOptions)
-      );
-      select.value = interventionOptions[index]?.id ?? "";
-      select.dataset.testid = `vassal-debug-intervention-${index + 1}`;
-      interventionSelects.push(select);
-      const requirement = addField(grid, `Required prestige ${index + 1}`, makeNumber(0));
-      requirement.dataset.testid = `vassal-debug-requirement-${index + 1}`;
-      requirementInputs.push(requirement);
-    }
-    const resistance = addField(grid, "Resistance snapshot", makeNumber(0));
-    resistance.dataset.testid = "vassal-debug-resistance";
-
-    const draft = presetSnapshot.currentDraft ?? null;
-    function setSelectValue(select, value) {
-      if ([...select.options].some((option) => option.value === value)) select.value = value;
-    }
-    if (draft) {
-      setSelectValue(target, draft.targetRegionId);
-      initialAge.value = String(draft.initialAge);
-      deathAge.value = String(draft.deathAge);
-      setSelectValue(trait, draft.traitId);
-      traitModifier.value = String(draft.traitPrestigeModifier);
-      setSelectValue(profession, draft.professionId);
-      if (Number.isInteger(draft.candidateSlot)) setSelectValue(candidateSlot, String(draft.candidateSlot));
-      draft.interventions.forEach((entry, index) => {
-        if (!entry) return;
-        const value = entry.kind === "practice"
-          ? `practice:${entry.practiceId}`
-          : entry.kind === "structure"
-            ? `structure:${entry.structureId}`
-            : entry.kind === "globalStructure"
-              ? `globalStructure:${entry.structureId}`
-              : entry.kind === "expandSettlement"
-                ? "expandSettlement:frontier"
-                : `connection:${entry.mode}`;
-        setSelectValue(interventionSelects[index], value);
-      });
-      draft.requiredPrestige.forEach((value, index) => {
-        requirementInputs[index].value = String(value);
-      });
-      resistance.value = String(draft.resistanceSnapshot);
-    }
-
-    const actions = document.createElement("div");
-    actions.style.cssText = "display:flex;gap:8px;align-items:center;flex-wrap:wrap";
-    const replaceCandidate = document.createElement("button");
-    replaceCandidate.type = "button";
-    replaceCandidate.textContent = "Replace choice";
-    replaceCandidate.dataset.testid = "vassal-debug-replace-candidate";
-    replaceCandidate.style.cssText =
-      "min-height:36px;padding:6px 14px;border:1px solid #d7b450;border-radius:6px;background:#526846;color:#fff";
+    presetName.value = presetSnapshot.presetOptions.find((entry) =>
+      entry.id === presetSnapshot.selectedPresetId)?.name ?? "";
     const status = document.createElement("span");
+    status.dataset.testid = "vassal-debug-status";
     status.style.color = "#d8e2ef";
-    actions.append(replaceCandidate, status);
-    root.appendChild(actions);
+    toolbar.append(
+      saved,
+      button("Load preset", "vassal-debug-load-preset", () => {
+        const result = presetController?.loadPreset?.(saved.value);
+        if (result?.ok) editingDraft = clone(result.preset.draft);
+        render();
+      }),
+      presetName,
+      button("Save preset", "vassal-debug-save-preset", () => {
+        presetController?.savePreset?.(presetName.value, editingDraft);
+        render();
+      }),
+      button("Delete saved", "vassal-debug-delete-preset", () => {
+        if (presetSnapshot.selectedPresetId) presetController?.deletePreset?.(presetSnapshot.selectedPresetId);
+        render();
+      }),
+      status
+    );
+    root.append(toolbar);
 
-    function readDraft() {
-      return {
-        targetRegionId: target.value,
-        initialAge: Number(initialAge.value),
-        deathAge: Number(deathAge.value),
-        traitId: trait.value,
-        traitPrestigeModifier: Number(traitModifier.value),
-        professionId: profession.value,
-        candidateSlot: Number(candidateSlot.value),
-        interventions: interventionSelects.map((select) => {
-          const [kind, value] = select.value.split(":");
-          if (kind === "practice") return { kind, practiceId: value };
-          if (kind === "structure") return { kind, structureId: value };
-          if (kind === "globalStructure") return { kind, structureId: value };
-          if (kind === "expandSettlement") return { kind };
-          return { kind: "connection", mode: value };
-        }),
-        resistanceSnapshot: Number(resistance.value),
-        requiredPrestige: requirementInputs.map((input) => Number(input.value)),
-      };
-    }
+    const layout = document.createElement("div");
+    layout.style.cssText = "display:grid;grid-template-columns:minmax(300px,.9fr) minmax(360px,1.1fr);gap:12px;margin-top:10px";
+    const mapPanel = document.createElement("section");
+    mapPanel.style.cssText = "background:rgba(14,18,23,.38);border:1px solid rgba(248,234,208,.22);border-radius:7px;padding:10px";
+    const actionText = mapAction
+      ? "Map selection: " + mapAction.label
+      : "Choose Select on map from a Vassal home or intervention card.";
+    const actionHint = document.createElement("p");
+    actionHint.textContent = actionText;
+    actionHint.style.cssText = "margin:0 0 8px;color:#ffd98a;font-size:12px";
+    mapPanel.append(actionHint);
 
-    function updateTargetDefaults() {
-      const currentState = getState?.() ?? state;
-      const currentResistance = getElderOrderSummary(currentState, target.value).resistance;
-      resistance.value = String(currentResistance);
-      requirementInputs.forEach((input, index) => {
-        input.value = String(
-          currentResistance + getGameSetting(
-            currentState,
-            `interventionRequirement0${index + 1}`
-          )
-        );
-      });
-    }
-    updateTargetDefaults();
-    if (draft) {
-      // Loaded values are intentional test data, not target-derived defaults.
-      resistance.value = String(draft.resistanceSnapshot);
-      draft.requiredPrestige.forEach((value, index) => {
-        requirementInputs[index].value = String(value);
-      });
-    }
-    target.addEventListener("change", updateTargetDefaults);
-    trait.addEventListener("change", () => {
-      traitModifier.value = String(
-        options.traits.find((entry) => entry.id === trait.value)?.prestigeDelta ?? 0
-      );
+    const validIds = (() => {
+      if (!mapAction) return null;
+      if (mapAction.kind === "home" || mapAction.kind === "practice" || mapAction.kind === "structure") {
+        return new Set(players.map((entry) => entry.id));
+      }
+      if (mapAction.kind === "expandSource") return new Set(players.map((entry) => entry.id));
+      if (mapAction.kind === "expandDestination") {
+        return new Set(frontierRegionOptions(state, editingDraft.interventions[mapAction.index].sourceRegionId)
+          .map((entry) => entry.id));
+      }
+      if (mapAction.kind === "connectionA") return new Set(players.map((entry) => entry.id));
+      if (mapAction.kind === "connectionB") {
+        const first = editingDraft.interventions[mapAction.index].regionAId;
+        return new Set(getWorldConnectionCandidates(definition)
+          .filter((entry) => entry.regionAId === first || entry.regionBId === first)
+          .map((entry) => entry.regionAId === first ? entry.regionBId : entry.regionAId)
+          .filter((id) => players.some((entry) => entry.id === id)));
+      }
+      return null;
+    })();
+    mapPanel.append(createDebugWorldMapDom({
+      definition,
+      regions: state.world.regions,
+      connections: state.world.connections,
+      connectionCandidates: getWorldConnectionCandidates(definition),
+      selectedRegionId: editingDraft.targetRegionId,
+      validRegionIds: validIds,
+      pendingRegionIds: mapAction?.kind === "connectionB"
+        ? [editingDraft.interventions[mapAction.index].regionAId] : [],
+      testid: "vassal-debug-world-map",
+      onRegionClick: (regionId, valid) => {
+        if (!mapAction || !valid) return;
+        const action = mapAction;
+        mapAction = action.kind === "connectionA"
+          ? { kind: "connectionB", index: action.index, label: "choose connection endpoint B" }
+          : null;
+        update((draft) => {
+          if (action.kind === "home") draft.targetRegionId = regionId;
+          else if (action.kind === "practice" || action.kind === "structure") {
+            draft.interventions[action.index].targetRegionId = regionId;
+          } else if (action.kind === "expandSource") {
+            draft.interventions[action.index].sourceRegionId = regionId;
+            draft.interventions[action.index].regionId = frontierRegionOptions(state, regionId)[0]?.id ?? "";
+          } else if (action.kind === "expandDestination") {
+            draft.interventions[action.index].regionId = regionId;
+          } else if (action.kind === "connectionA") {
+            draft.interventions[action.index].regionAId = regionId;
+          } else if (action.kind === "connectionB") {
+            draft.interventions[action.index].regionBId = regionId;
+          }
+        });
+      },
+    }));
+    layout.append(mapPanel);
+
+    const controls = document.createElement("section");
+    controls.style.cssText = "display:grid;gap:10px";
+    const vassalCard = document.createElement("fieldset");
+    vassalCard.style.cssText = "border:1px solid #586876;border-radius:6px;padding:10px";
+    const vassalGrid = document.createElement("div");
+    vassalGrid.style.cssText = "display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px";
+    field(vassalGrid, "Vassal home", select(players, editingDraft.targetRegionId, "vassal-debug-target",
+      (value) => update((draft) => { draft.targetRegionId = value; })));
+    field(vassalGrid, "Home map", button("Select home on map", "vassal-debug-select-home-map",
+      () => { mapAction = { kind: "home", label: "choose Vassal home settlement" }; render(); }));
+    field(vassalGrid, "Starting age", number(editingDraft.initialAge, "vassal-debug-initial-age",
+      (value) => update((draft) => { draft.initialAge = value; })));
+    field(vassalGrid, "Death age", number(editingDraft.deathAge, "vassal-debug-death-age",
+      (value) => update((draft) => { draft.deathAge = value; }), 1));
+    field(vassalGrid, "Trait", select(options.traits.map((entry) => ({ id: entry.id, label: entry.id })),
+      editingDraft.traitId, "vassal-debug-trait", (value) => update((draft) => { draft.traitId = value; })));
+    field(vassalGrid, "Trait prestige", number(editingDraft.traitPrestigeModifier,
+      "vassal-debug-trait-modifier", (value) => update((draft) => { draft.traitPrestigeModifier = value; }), -1000));
+    field(vassalGrid, "Profession", select(options.professions, editingDraft.professionId,
+      "vassal-debug-profession", (value) => update((draft) => { draft.professionId = value; })));
+    field(vassalGrid, "Replace choice", select([{ id: "1", label: "Vassal 1" }, { id: "2", label: "Vassal 2" }, { id: "3", label: "Vassal 3" }],
+      String(editingDraft.candidateSlot), "vassal-debug-candidate-slot",
+      (value) => update((draft) => { draft.candidateSlot = Number(value); })));
+    vassalCard.append(vassalGrid);
+    controls.append(vassalCard);
+
+    const kindOptions = [
+      { id: "practice", label: "Practice" }, { id: "structure", label: "Structure" },
+      { id: "expandSettlement", label: "Expand settlement" },
+      { id: "globalStructure", label: "Global structure" },
+      { id: "connection", label: "Connection" },
+    ];
+    editingDraft.interventions.forEach((intervention, index) => {
+      const card = document.createElement("fieldset");
+      card.style.cssText = "border:1px solid #586876;border-radius:6px;padding:10px";
+      const legend = document.createElement("legend");
+      legend.textContent = "Intervention " + (index + 1);
+      card.append(legend);
+      const grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px";
+      field(grid, "Type", select(kindOptions, intervention.kind, "vassal-debug-intervention-" + (index + 1),
+        (kind) => update((draft) => {
+          const home = draft.targetRegionId;
+          const replacement = kind === "practice"
+            ? { kind, targetRegionId: home, practiceId: options.interventionPracticeIds[0] ?? "forage" }
+            : kind === "structure"
+              ? { kind, targetRegionId: home, structureId: options.interventionStructureIds[0] ?? "mudHouses" }
+              : kind === "expandSettlement"
+                ? { kind, sourceRegionId: home, regionId: frontierRegionOptions(state, home)[0]?.id ?? "" }
+                : kind === "globalStructure"
+                  ? { kind, structureId: options.interventionStructureIds[0] ?? "mudHouses" }
+                  : { kind, mode: "add", regionAId: home, regionBId: home };
+          draft.interventions[index] = replacement;
+        })));
+      field(grid, "Required prestige", number(editingDraft.requiredPrestige[index],
+        "vassal-debug-requirement-" + (index + 1),
+        (value) => update((draft) => { draft.requiredPrestige[index] = value; })));
+      if (intervention.kind === "practice") {
+        field(grid, "Target settlement", select(players, intervention.targetRegionId, "vassal-debug-intervention-target-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].targetRegionId = value; })));
+        field(grid, "Target map", button("Select on map", "vassal-debug-select-target-map-" + (index + 1),
+          () => { mapAction = { kind: "practice", index, label: "choose practice target" }; render(); }));
+        field(grid, "Practice", select(options.interventionPracticeIds.map((id) => ({ id, label: detailedSettlementPracticeDefs[id]?.label ?? id })),
+          intervention.practiceId, "vassal-debug-practice-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].practiceId = value; })));
+        field(grid, "Slot", number(intervention.slotIndex ?? 0, "vassal-debug-slot-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].slotIndex = value; })));
+      } else if (intervention.kind === "structure") {
+        field(grid, "Target settlement", select(players, intervention.targetRegionId, "vassal-debug-intervention-target-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].targetRegionId = value; })));
+        field(grid, "Target map", button("Select on map", "vassal-debug-select-target-map-" + (index + 1),
+          () => { mapAction = { kind: "structure", index, label: "choose structure target" }; render(); }));
+        field(grid, "Structure", select(options.interventionStructureIds.map((id) => ({ id, label: settlementStructureDefs[id]?.label ?? id })),
+          intervention.structureId, "vassal-debug-structure-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].structureId = value; })));
+        field(grid, "Slot", number(intervention.slotIndex ?? 0, "vassal-debug-slot-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].slotIndex = value; })));
+      } else if (intervention.kind === "expandSettlement") {
+        const frontiers = frontierRegionOptions(state, intervention.sourceRegionId);
+        field(grid, "Source settlement", select(players, intervention.sourceRegionId, "vassal-debug-expand-source-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].sourceRegionId = value; draft.interventions[index].regionId = frontierRegionOptions(state, value)[0]?.id ?? ""; })));
+        field(grid, "Source map", button("Select on map", "vassal-debug-select-source-map-" + (index + 1),
+          () => { mapAction = { kind: "expandSource", index, label: "choose expansion source" }; render(); }));
+        field(grid, "Frontier destination", select(frontiers, intervention.regionId, "vassal-debug-expand-destination-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].regionId = value; })));
+        field(grid, "Destination map", button("Select on map", "vassal-debug-select-destination-map-" + (index + 1),
+          () => { mapAction = { kind: "expandDestination", index, label: "choose adjacent frontier" }; render(); }));
+      } else if (intervention.kind === "connection") {
+        field(grid, "Mode", select([{ id: "add", label: "Add" }, { id: "remove", label: "Remove" }], intervention.mode,
+          "vassal-debug-connection-mode-" + (index + 1), (value) => update((draft) => { draft.interventions[index].mode = value; })));
+        field(grid, "Endpoint A", select(players, intervention.regionAId, "vassal-debug-connection-a-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].regionAId = value; })));
+        field(grid, "Endpoint B", select(players, intervention.regionBId, "vassal-debug-connection-b-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].regionBId = value; })));
+        field(grid, "Endpoints map", button("Select endpoints", "vassal-debug-select-connection-map-" + (index + 1),
+          () => { mapAction = { kind: "connectionA", index, label: "choose connection endpoint A" }; render(); }));
+      } else {
+        field(grid, "Structure", select(options.interventionStructureIds.map((id) => ({ id, label: settlementStructureDefs[id]?.label ?? id })),
+          intervention.structureId, "vassal-debug-global-structure-" + (index + 1),
+          (value) => update((draft) => { draft.interventions[index].structureId = value; })));
+        const global = document.createElement("p");
+        global.textContent = "Applies to every player settlement with an empty structure slot.";
+        global.style.cssText = "margin:0;color:#d8e2ef;font-size:12px";
+        grid.append(global);
+      }
+      card.append(grid);
+      controls.append(card);
     });
-    for (const input of [
-      target,
-      initialAge,
-      deathAge,
-      trait,
-      traitModifier,
-      profession,
-      candidateSlot,
-      ...interventionSelects,
-      ...requirementInputs,
-      resistance,
-    ]) {
-      input.addEventListener("change", () => {
-        presetController?.setCurrentDraft?.(readDraft());
-      });
-    }
-    if (!draft) presetController?.setCurrentDraft?.(readDraft());
-
-    replaceCandidate.addEventListener("click", async () => {
-      const draftToInject = readDraft();
-      const result = await replaceVassalCandidate?.(draftToInject.candidateSlot - 1, draftToInject);
+    field(controls, "Resistance snapshot", number(editingDraft.resistanceSnapshot, "vassal-debug-resistance",
+      (value) => update((draft) => { draft.resistanceSnapshot = value; })));
+    const replace = button("Replace choice", "vassal-debug-replace-candidate", async () => {
+      const result = await replaceVassalCandidate?.(editingDraft.candidateSlot - 1, editingDraft);
       status.textContent = result?.ok
-        ? `Replaced Vassal ${candidateSlot.value}. Choose it from the map drawer to apply it.`
-        : `Replacement failed: ${result?.reason ?? "unknown error"}`;
+        ? "Replaced Vassal " + editingDraft.candidateSlot + ". Choose it from the map drawer to apply it."
+        : "Replacement failed: " + (result?.reason ?? "unknown error");
       status.style.color = result?.ok ? "#b9f5c7" : "#ffb4a8";
     });
-
-    loadPreset.addEventListener("click", () => {
-      if (!preset.value) return;
-      const result = presetController?.loadPreset?.(preset.value);
-      if (!result?.ok) {
-        presetStatus.textContent = "Preset could not be loaded.";
-        presetStatus.style.color = "#ffb4a8";
-        return;
-      }
-      render();
-    });
-    savePreset.addEventListener("click", () => {
-      const name = presetName.value;
-      const result = presetController?.savePreset?.(name, readDraft());
-      if (result?.ok) {
-        render();
-        return;
-      }
-      presetStatus.textContent = `Save failed: ${result?.reason ?? "unknown error"}`;
-      presetStatus.style.color = "#ffb4a8";
-    });
-    deletePreset.addEventListener("click", () => {
-      if (!selectedPresetId) return;
-      const result = presetController?.deletePreset?.(selectedPresetId);
-      if (result?.ok) {
-        render();
-        return;
-      }
-      presetStatus.textContent = "Saved preset could not be deleted.";
-      presetStatus.style.color = "#ffb4a8";
-    });
+    controls.append(replace);
+    layout.append(controls);
+    root.append(layout);
   }
 
   return {
     element: root,
     init: render,
     render,
-    destroy() {
-      root.remove();
-    },
+    destroy() { root.remove(); },
   };
 }

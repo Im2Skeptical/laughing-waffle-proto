@@ -282,9 +282,9 @@ try {
     ...cheatSpec,
     candidateSlot: 1,
     interventions: [
-      { kind: "practice", practiceId: "exchange" },
-      { kind: "practice", practiceId: "import" },
-      { kind: "connection", mode: "add" },
+      { kind: "practice", targetRegionId: "river-crown", practiceId: "exchange" },
+      { kind: "practice", targetRegionId: "river-crown", practiceId: "import" },
+      { kind: "connection", mode: "add", regionAId: "river-crown", regionBId: "upper-floodplain" },
     ],
   });
   assert.equal(saved.ok, true);
@@ -350,9 +350,9 @@ try {
     ...cheatSpec,
     candidateSlot: 1,
     interventions: [
-      { kind: "expandSettlement" },
+      { kind: "expandSettlement", sourceRegionId: "river-crown", regionId: "reed-delta" },
       { kind: "globalStructure", structureId: "mudHouses" },
-      { kind: "practice", practiceId: "forage" },
+      { kind: "practice", targetRegionId: "river-crown", practiceId: "forage" },
     ],
   });
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);

@@ -1,6 +1,7 @@
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
+import { createDebugWorldMapDom } from "./debug-world-map-dom.js";
 
 function getMapLabRegionReference(definition, regionId) {
   const index = (definition?.regions ?? []).findIndex((entry) => entry.id === regionId);
@@ -101,6 +102,7 @@ export function createMapLabDom({ controller } = {}) {
   let jsonText = "";
   let scenarioNameText = "";
   let scenarioNameSelectionId = null;
+  let mapMode = "inspect";
 
   function render() {
     const snapshot = controller.getSnapshot();
@@ -239,7 +241,46 @@ export function createMapLabDom({ controller } = {}) {
       node.classList.toggle("active", entry.id === snapshot.selectedRegionId);
       regions.append(node);
     });
-    root.append(regions);
+    const mapCard = element("section", "map-lab-card");
+    const mapActions = element("div", "map-lab-toolbar");
+    const connectionModeButton = button(
+      mapMode === "connection" ? "Connection mode: on" : "Edit shared-edge connections",
+      "map-lab-connection-mode",
+      () => {
+        mapMode = mapMode === "connection" ? "inspect" : "connection";
+        controller.cancelConnection();
+        render();
+      }
+    );
+    connectionModeButton.classList.toggle("active", mapMode === "connection");
+    mapActions.append(connectionModeButton);
+    mapCard.append(mapActions);
+    mapCard.append(createDebugWorldMapDom({
+      definition,
+      regions: snapshot.draft.regions,
+      connections: snapshot.draft.connections,
+      connectionCandidates: snapshot.connectionCandidates,
+      selectedRegionId: snapshot.selectedRegionId,
+      validRegionIds: mapMode === "connection"
+        ? new Set(snapshot.draft.regions.map((entry) => entry.id))
+        : null,
+      pendingRegionIds: snapshot.connectionStartRegionId
+        ? [snapshot.connectionStartRegionId] : [],
+      onRegionClick: (regionId, valid) => {
+        if (!valid) return;
+        if (mapMode === "connection") {
+          controller.beginOrToggleConnection(regionId);
+          if (!controller.getSnapshot().connectionStartRegionId) mapMode = "inspect";
+          return;
+        }
+        controller.selectRegion(regionId);
+      },
+      testid: "map-lab-world-map",
+    }));
+    mapCard.append(element("p", "map-lab-warning", mapMode === "connection"
+      ? "Click two polygon-adjacent regions to add or remove their shared-edge connection."
+      : "Click a region to edit it. Solid gold lines are active; dashed lines are valid shared edges."));
+    root.append(mapCard);
 
     const status = element("div",
       snapshot.status.tone === "error" ? "map-lab-error" : "map-lab-warning",
