@@ -144,6 +144,7 @@ export function createSettlementDebugMenuDom({
     return node;
   };
   const loadProfileButton = profileButton("Load", "debug-profile-load");
+  const newProfileButton = profileButton("New", "debug-profile-new");
   const saveProfileButton = profileButton("Save all", "debug-profile-save");
   const deleteProfileButton = profileButton("Delete", "debug-profile-delete");
   const bootProfileButton = profileButton("Use on boot", "debug-profile-boot");
@@ -154,6 +155,7 @@ export function createSettlementDebugMenuDom({
     profileSelect,
     profileName,
     loadProfileButton,
+    newProfileButton,
     saveProfileButton,
     deleteProfileButton,
     bootProfileButton,
@@ -210,7 +212,6 @@ export function createSettlementDebugMenuDom({
       bootProfileId: null,
       status: { message: "", tone: "info" },
     };
-    const selectedValue = profileSelect.value || snapshot.selectedProfileId || "";
     profileSelect.replaceChildren();
     const empty = document.createElement("option");
     empty.value = "";
@@ -222,11 +223,12 @@ export function createSettlementDebugMenuDom({
       option.textContent = `${entry.id === snapshot.bootProfileId ? "Boot — " : ""}${entry.name}`;
       profileSelect.append(option);
     }
-    profileSelect.value = snapshot.profileOptions.some((entry) => entry.id === selectedValue)
-      ? selectedValue
-      : snapshot.selectedProfileId ?? "";
+    profileSelect.value = snapshot.profileOptions.some(
+      (entry) => entry.id === snapshot.selectedProfileId
+    ) ? snapshot.selectedProfileId : "";
     const selected = snapshot.profileOptions.find((entry) => entry.id === profileSelect.value);
     if (selected && !profileName.value) profileName.value = selected.name;
+    loadProfileButton.disabled = !selected;
     deleteProfileButton.disabled = !selected;
     bootProfileButton.disabled = !selected;
     bootProfileButton.textContent = selected?.id === snapshot.bootProfileId
@@ -274,6 +276,7 @@ export function createSettlementDebugMenuDom({
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
   closeButton.addEventListener("click", close);
   profileSelect.addEventListener("change", () => {
+    debugProfileController?.selectProfile?.(profileSelect.value || null);
     const selected = debugProfileController?.getSnapshot?.().profileOptions
       ?.find((entry) => entry.id === profileSelect.value);
     profileName.value = selected?.name ?? "";
@@ -282,6 +285,11 @@ export function createSettlementDebugMenuDom({
   loadProfileButton.addEventListener("click", () => {
     const result = debugProfileController?.loadProfile?.(profileSelect.value);
     if (result?.ok) setActivePage(result.entry.profile.activePage);
+    syncProfileToolbar();
+  });
+  newProfileButton.addEventListener("click", () => {
+    debugProfileController?.selectProfile?.(null);
+    profileName.value = "";
     syncProfileToolbar();
   });
   saveProfileButton.addEventListener("click", () => {

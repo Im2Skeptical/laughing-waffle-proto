@@ -96,6 +96,17 @@ export function createDebugProfileController({
     setActivePage(pageId) {
       if (DEBUG_PROFILE_PAGE_IDS.includes(pageId)) activePage = pageId;
     },
+    selectProfile(profileId = null) {
+      if (profileId == null || profileId === "") {
+        selectedProfileId = null;
+        return { ok: true, selectedProfileId: null };
+      }
+      if (!library.profiles.some((entry) => entry.id === profileId)) {
+        return { ok: false, reason: "invalidProfileId" };
+      }
+      selectedProfileId = profileId;
+      return { ok: true, selectedProfileId };
+    },
     loadProfile(profileId) {
       const entry = library.profiles.find((item) => item.id === profileId);
       return entry ? applyEntry(entry) : { ok: false, reason: "invalidProfileId" };
