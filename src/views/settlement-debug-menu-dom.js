@@ -293,17 +293,7 @@ export function createSettlementDebugMenuDom({
     syncProfileToolbar();
   });
   saveProfileButton.addEventListener("click", () => {
-    const selected = debugProfileController?.getSnapshot?.().profileOptions
-      ?.find((entry) => entry.id === profileSelect.value);
-    let result = debugProfileController?.saveProfile?.(profileName.value, {
-      overwriteProfileId: selected?.id ?? null,
-    });
-    if (result?.reason === "duplicateName" && typeof confirm === "function"
-        && confirm(`Overwrite “${result.existingProfileName}”?`)) {
-      result = debugProfileController.saveProfile(profileName.value, {
-        overwriteProfileId: result.existingProfileId,
-      });
-    }
+    const result = debugProfileController?.saveProfile?.(profileName.value);
     if (result?.ok) profileSelect.value = result.entry.id;
     syncProfileToolbar();
   });

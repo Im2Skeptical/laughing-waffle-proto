@@ -91,18 +91,17 @@ export function createVassalDebugPresetController() {
       setCurrentDraft(preset.draft, { presetId: preset.id });
       return { ok: true, preset };
     },
-    savePreset(name, draft, { overwritePresetId = null } = {}) {
+    savePreset(name, draft) {
       const duplicate = findDebugDraftPresetByName(library, name);
+      // Names define save identity. Do not let the currently selected preset
+      // turn a uniquely named Vassal draft into an overwrite.
+      const presetId = duplicate?.id ?? null;
       const result = saveDebugDraftPreset(
         library,
-        { name, draft, presetId: overwritePresetId },
+        { name, draft, presetId },
         libraryOptions
       );
-      if (!result.ok) return {
-        ...result,
-        requiresOverwrite: result.reason === "duplicateName",
-        existingPresetId: duplicate?.id ?? result.existingPresetId,
-      };
+      if (!result.ok) return result;
       library = result.library;
       setCurrentDraft(result.preset.draft, { presetId: result.preset.id });
       return { ...result, stored: persist() };

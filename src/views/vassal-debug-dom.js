@@ -314,15 +314,7 @@ export function createVassalDebugDom({
     });
     savePreset.addEventListener("click", () => {
       const name = presetName.value;
-      let result = presetController?.savePreset?.(name, readDraft(), {
-        overwritePresetId: selectedPresetId,
-      });
-      if (result?.requiresOverwrite && typeof confirm === "function"
-          && confirm(`Replace the saved Vassal preset "${result.existingPresetName ?? name}"?`)) {
-        result = presetController.savePreset(name, readDraft(), {
-          overwritePresetId: result.existingPresetId,
-        });
-      }
+      const result = presetController?.savePreset?.(name, readDraft());
       if (result?.ok) {
         render();
         return;

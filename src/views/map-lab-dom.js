@@ -181,19 +181,7 @@ export function createMapLabDom({ controller } = {}) {
       "Save scenario",
       "map-lab-save-scenario",
       () => {
-        const result = controller.saveLocalScenario(scenarioNameInput.value);
-        if (
-          result.requiresOverwrite &&
-          globalThis.confirm(
-            `Replace the saved browser scenario "${
-              result.existingScenarioName
-            }"?`
-          )
-        ) {
-          controller.saveLocalScenario(scenarioNameInput.value, {
-            overwriteScenarioId: result.existingScenarioId,
-          });
-        }
+        controller.saveLocalScenario(scenarioNameInput.value);
       }
     );
     const deleteScenarioButton = button(
