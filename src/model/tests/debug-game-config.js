@@ -288,8 +288,23 @@ try {
     ],
   });
   assert.equal(saved.ok, true);
+  const separatelyNamedVassal = presetController.savePreset("A second Vassal", {
+    ...saved.preset.draft,
+    candidateSlot: 2,
+  });
+  assert.equal(separatelyNamedVassal.ok, true);
+  assert.notEqual(separatelyNamedVassal.preset.id, saved.preset.id,
+    "a unique Vassal preset name creates a new slot despite the active selection");
+  const overwrittenVassal = presetController.savePreset("two practices", {
+    ...saved.preset.draft,
+    candidateSlot: 3,
+  });
+  assert.equal(overwrittenVassal.ok, true);
+  assert.equal(overwrittenVassal.preset.id, saved.preset.id,
+    "a matching Vassal preset name overwrites case-insensitively");
+  assert.equal(presetController.getSnapshot().presetOptions.length, 2);
   const restored = createVassalDebugPresetController().loadPreset(saved.preset.id);
-  assert.deepEqual(restored.preset.draft.interventions, saved.preset.draft.interventions);
+  assert.equal(restored.preset.draft.candidateSlot, 3);
 
   let resetState = null;
   const runner = {
@@ -303,6 +318,33 @@ try {
     runner,
     mapLabController: mapController,
   });
+  const settingsPreset = configController.savePreset(GAME_SETTINGS_DRAFT_KIND, "Test settings");
+  const secondSettingsPreset = configController.savePreset(
+    GAME_SETTINGS_DRAFT_KIND,
+    "Alternative settings"
+  );
+  assert.notEqual(secondSettingsPreset.preset.id, settingsPreset.preset.id,
+    "a unique Game Settings name creates a new slot despite the active selection");
+  const overwrittenSettingsPreset = configController.savePreset(
+    GAME_SETTINGS_DRAFT_KIND,
+    "TEST SETTINGS"
+  );
+  assert.equal(overwrittenSettingsPreset.preset.id, settingsPreset.preset.id);
+  const gamepiecesPreset = configController.savePreset(GAMEPIECES_DRAFT_KIND, "Test gamepieces");
+  const secondGamepiecesPreset = configController.savePreset(
+    GAMEPIECES_DRAFT_KIND,
+    "Alternative gamepieces"
+  );
+  assert.notEqual(secondGamepiecesPreset.preset.id, gamepiecesPreset.preset.id);
+  assert.equal(
+    configController.savePreset(GAMEPIECES_DRAFT_KIND, "test GAMEPIECES").preset.id,
+    gamepiecesPreset.preset.id
+  );
+  const mapScenario = mapController.saveLocalScenario("Test map");
+  const secondMapScenario = mapController.saveLocalScenario("Alternative map");
+  assert.notEqual(secondMapScenario.scenario.id, mapScenario.scenario.id,
+    "a unique Map Lab scenario name creates a new slot despite the active selection");
+  assert.equal(mapController.saveLocalScenario("TEST MAP").scenario.id, mapScenario.scenario.id);
   const profileVassalController = createVassalDebugPresetController();
   profileVassalController.setCurrentDraft({
     ...cheatSpec,
@@ -359,14 +401,17 @@ try {
     "a cleared selection creates a distinct combined profile instead of overwriting");
   assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 2);
   assert.equal(restoredProfileController.selectProfile(profileSaved.entry.id).ok, true);
-  const overwritten = restoredProfileController.saveProfile("Full boot profile", {
-    overwriteProfileId: profileSaved.entry.id,
-  });
+  const overwritten = restoredProfileController.saveProfile("FULL BOOT PROFILE");
   assert.equal(overwritten.ok, true);
   assert.equal(overwritten.entry.id, profileSaved.entry.id);
+  const thirdProfile = restoredProfileController.saveProfile("Third profile");
+  assert.notEqual(thirdProfile.entry.id, profileSaved.entry.id,
+    "a unique combined profile name creates a new slot despite the active selection");
   assert.equal(restoredProfileController.deleteProfile(profileSaved.entry.id).ok, true);
-  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 1);
+  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 2);
   assert.equal(restoredProfileController.deleteProfile(secondProfile.entry.id).ok, true);
+  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 1);
+  assert.equal(restoredProfileController.deleteProfile(thirdProfile.entry.id).ok, true);
   assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 0);
 
   storage.set("civsurvivor.debugProfiles.boot.v1", "profile-999");

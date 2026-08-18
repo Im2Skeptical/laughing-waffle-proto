@@ -101,6 +101,10 @@ export function serializeDebugProfileLibrary(library) {
   return JSON.stringify(library);
 }
 
+export function findDebugProfileByName(library, name) {
+  return library.profiles.find((entry) => nameKey(entry.name) === nameKey(name)) ?? null;
+}
+
 export function saveDebugProfile(library, name, profile, overwriteId = null) {
   const normalized = normalizedName(name);
   if (!normalized) return { ok: false, reason: "emptyName" };

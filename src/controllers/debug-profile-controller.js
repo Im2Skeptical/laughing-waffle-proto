@@ -8,6 +8,7 @@ import {
   DEBUG_PROFILE_PAGE_IDS,
   createEmptyDebugProfileLibrary,
   deleteDebugProfile,
+  findDebugProfileByName,
   parseDebugProfileLibraryJson,
   saveDebugProfile,
   serializeDebugProfileLibrary,
@@ -111,8 +112,11 @@ export function createDebugProfileController({
       const entry = library.profiles.find((item) => item.id === profileId);
       return entry ? applyEntry(entry) : { ok: false, reason: "invalidProfileId" };
     },
-    saveProfile(name, { overwriteProfileId = null } = {}) {
-      const result = saveDebugProfile(library, name, currentProfile(), overwriteProfileId);
+    saveProfile(name) {
+      // Profile names define save identity. A new name must always create a
+      // new profile even when another profile happens to be selected.
+      const overwriteId = findDebugProfileByName(library, name)?.id ?? null;
+      const result = saveDebugProfile(library, name, currentProfile(), overwriteId);
       if (!result.ok) return result;
       library = result.library;
       selectedProfileId = result.entry.id;

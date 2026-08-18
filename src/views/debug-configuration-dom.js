@@ -150,16 +150,7 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
     });
     reset.addEventListener("click", () => controller.reset(kind));
     save.addEventListener("click", () => {
-      let result = controller.savePreset(kind, scenarioName);
-      if (
-        result?.requiresOverwrite
-        && typeof confirm === "function"
-        && confirm(`Overwrite "${result.existingPresetName}"?`)
-      ) {
-        result = controller.savePreset(kind, scenarioName, {
-          overwritePresetId: result.existingPresetId,
-        });
-      }
+      const result = controller.savePreset(kind, scenarioName);
       if (result?.ok) scenarioName = result.preset.name;
       render();
     });

@@ -336,18 +336,13 @@ export function createMapLabController({
         localScenarioId: scenario.id,
       });
     },
-    saveLocalScenario(name, { overwriteScenarioId = null } = {}) {
+    saveLocalScenario(name) {
       const sameName = findMapLabScenarioByName(scenarioLibrary, name);
-      const selectedScenario = scenarioLibrary.scenarios
-        .find((entry) => entry.id === selectedLocalScenarioId);
-      let scenarioId = overwriteScenarioId;
-      if (!scenarioId && selectedScenario
-          && sameName?.id === selectedScenario.id) {
-        scenarioId = selectedScenario.id;
-      }
+      // Scenario names define save identity. Selecting an existing scenario
+      // must not make a newly named draft replace it.
+      const scenarioId = sameName?.id ?? null;
       const result = saveMapLabScenario(scenarioLibrary, { name, draft, scenarioId });
       if (!result.ok) {
-        if (result.reason === "duplicateName") return { ...result, requiresOverwrite: true };
         const message = result.reason === "emptyName"
           ? "Enter a name for the scenario."
           : result.reason === "nameTooLong"

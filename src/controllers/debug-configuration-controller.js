@@ -231,19 +231,17 @@ export function createDebugConfigurationController({
       if (!preset) return { ok: false, reason: "invalidPresetId" };
       return replaceDraft(kind, preset.draft, `Loaded "${preset.name}".`, preset.id);
     },
-    savePreset(kind, name, { overwritePresetId = null } = {}) {
+    savePreset(kind, name) {
       const sameName = findDebugDraftPresetByName(states[kind].library, name);
-      let presetId = overwritePresetId;
-      if (!presetId && sameName?.id === states[kind].selectedPresetId) presetId = sameName.id;
+      // Names define save identity. A selected preset is only a load/delete target;
+      // renaming a draft must create a new entry rather than overwrite that selection.
+      const presetId = sameName?.id ?? null;
       const result = saveDebugDraftPreset(
         states[kind].library,
         { name, draft: states[kind].draft, presetId },
         libraryOptions(kind)
       );
-      if (!result.ok) return {
-        ...result,
-        requiresOverwrite: result.reason === "duplicateName",
-      };
+      if (!result.ok) return result;
       states[kind].library = result.library;
       states[kind].selectedPresetId = result.preset.id;
       const stored = persistLibrary(kind);
