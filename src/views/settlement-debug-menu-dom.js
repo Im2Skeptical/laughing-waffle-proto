@@ -146,6 +146,7 @@ export function createSettlementDebugMenuDom({
   const loadProfileButton = profileButton("Load", "debug-profile-load");
   const newProfileButton = profileButton("New", "debug-profile-new");
   const saveProfileButton = profileButton("Save all", "debug-profile-save");
+  const exportProfileButton = profileButton("Import / Export", "debug-profile-json-toggle");
   const deleteProfileButton = profileButton("Delete", "debug-profile-delete");
   const bootProfileButton = profileButton("Use on boot", "debug-profile-boot");
   const profileStatus = document.createElement("span");
@@ -157,11 +158,36 @@ export function createSettlementDebugMenuDom({
     loadProfileButton,
     newProfileButton,
     saveProfileButton,
+    exportProfileButton,
     deleteProfileButton,
     bootProfileButton,
     profileStatus
   );
   panel.append(profileToolbar);
+
+  const profileJsonBox = document.createElement("div");
+  profileJsonBox.dataset.testid = "debug-profile-json";
+  profileJsonBox.style.cssText = [
+    "display:none", "margin:0 112px 10px", "padding:8px",
+    "border:1px solid #586876", "border-radius:6px", "background:#1d252c",
+  ].join(";");
+  const profileJsonArea = document.createElement("textarea");
+  profileJsonArea.setAttribute("aria-label", "Combined debug profile JSON");
+  profileJsonArea.style.cssText = "display:block;width:100%;height:220px;box-sizing:border-box;font-family:monospace";
+  const profileJsonActions = document.createElement("div");
+  profileJsonActions.style.cssText = "display:flex;flex-wrap:wrap;gap:7px;margin-top:7px";
+  const copyProfileJsonButton = profileButton("Copy JSON", "debug-profile-json-copy");
+  const refreshProfileJsonButton = profileButton("Refresh export", "debug-profile-json-refresh");
+  const importProfileJsonButton = profileButton("Import profile", "debug-profile-json-import");
+  const closeProfileJsonButton = profileButton("Close", "debug-profile-json-close");
+  profileJsonActions.append(
+    copyProfileJsonButton,
+    refreshProfileJsonButton,
+    importProfileJsonButton,
+    closeProfileJsonButton
+  );
+  profileJsonBox.append(profileJsonArea, profileJsonActions);
+  panel.append(profileJsonBox);
 
   const mapLab = createMapLabDom({ controller: mapLabController });
   const gameSettings = createDebugConfigurationDom({
@@ -195,6 +221,21 @@ export function createSettlementDebugMenuDom({
   panel.append(pageContainer);
   let activePage = debugProfileController?.getSnapshot?.().activePage ?? "mapLab";
   let initialized = false;
+
+  function exportCurrentProfile() {
+    const result = debugProfileController?.exportProfile?.(profileName.value);
+    if (!result?.ok) {
+      syncProfileToolbar();
+      return result;
+    }
+    profileName.value = result.name;
+    profileJsonArea.value = result.text;
+    profileJsonBox.style.display = "block";
+    profileJsonArea.focus();
+    profileJsonArea.select();
+    syncProfileToolbar();
+    return result;
+  }
 
   function setActivePage(pageId) {
     activePage = pages[pageId] ? pageId : "mapLab";
@@ -296,6 +337,34 @@ export function createSettlementDebugMenuDom({
     const result = debugProfileController?.saveProfile?.(profileName.value);
     if (result?.ok) profileSelect.value = result.entry.id;
     syncProfileToolbar();
+  });
+  exportProfileButton.addEventListener("click", exportCurrentProfile);
+  refreshProfileJsonButton.addEventListener("click", exportCurrentProfile);
+  copyProfileJsonButton.addEventListener("click", async () => {
+    profileJsonArea.focus();
+    profileJsonArea.select();
+    try {
+      await globalThis.navigator?.clipboard?.writeText(profileJsonArea.value);
+      profileStatus.textContent = "Profile JSON copied.";
+    } catch (_) {
+      document.execCommand?.("copy");
+      profileStatus.textContent = "Profile JSON selected; copy it from this field.";
+    }
+  });
+  importProfileJsonButton.addEventListener("click", () => {
+    const result = debugProfileController?.importProfile?.(
+      profileJsonArea.value,
+      profileName.value
+    );
+    if (result?.ok) {
+      profileName.value = result.entry.name;
+      profileJsonBox.style.display = "none";
+      setActivePage(result.entry.profile.activePage);
+    }
+    syncProfileToolbar();
+  });
+  closeProfileJsonButton.addEventListener("click", () => {
+    profileJsonBox.style.display = "none";
   });
   deleteProfileButton.addEventListener("click", () => {
     debugProfileController?.deleteProfile?.(profileSelect.value);
