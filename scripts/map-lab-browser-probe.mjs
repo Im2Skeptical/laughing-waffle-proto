@@ -47,6 +47,8 @@ try {
       localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
       localStorage.removeItem("civsurvivor.debugVassalDraft.v2");
       localStorage.removeItem("civsurvivor.debugVassalPresets.v2");
+      localStorage.removeItem("civsurvivor.debugVassalDraft.v3");
+      localStorage.removeItem("civsurvivor.debugVassalPresets.v3");
       localStorage.removeItem("civsurvivor.debugProfiles.v1");
       localStorage.removeItem("civsurvivor.debugProfiles.boot.v1");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
@@ -77,9 +79,10 @@ try {
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
 
-  assert.equal(await page.getByTestId("map-lab-region-cedar-woods").getAttribute("aria-label"),
-    "Region01 region");
-  await page.getByTestId("map-lab-region-cedar-woods").click();
+  assert.equal(await page.getByTestId("map-lab-world-map").count(), 1);
+  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
+  assert.equal(await page.getByTestId("map-lab-world-map-region-cedar-woods")
+    .getAttribute("data-testid"), "map-lab-world-map-region-cedar-woods");
   assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "5");
   assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), true);
   assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
@@ -113,6 +116,14 @@ try {
   await page.getByTestId("map-lab-connection-west-levee").click();
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Add: R03$/);
   await page.getByTestId("map-lab-connection-west-levee").click();
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
+  await page.getByTestId("map-lab-connection-mode").click();
+  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
+  await page.getByTestId("map-lab-world-map-region-west-levee").click();
+  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Add: R03$/);
+  await page.getByTestId("map-lab-connection-mode").click();
+  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
+  await page.getByTestId("map-lab-world-map-region-west-levee").click();
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
 
   await page.getByTestId("map-lab-structure-capacity").fill("4");
@@ -268,9 +279,19 @@ try {
     target.value = "river-crown";
     target.dispatchEvent(new Event("change", { bubbles: true }));
   });
+  await page.getByTestId("vassal-debug-select-home-map").click();
+  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
+  await page.getByTestId("vassal-debug-select-target-map-1").click();
+  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
+  await page.getByTestId("vassal-debug-select-target-map-2").click();
+  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
   await page.getByTestId("vassal-debug-initial-age").fill("20");
+  await page.getByTestId("vassal-debug-initial-age").press("Enter");
   await page.getByTestId("vassal-debug-death-age").fill("60");
+  await page.getByTestId("vassal-debug-death-age").press("Enter");
   await page.getByTestId("vassal-debug-replace-candidate").click();
+  await page.waitForTimeout(100);
+  assert.match(await page.getByTestId("vassal-debug-status").innerText(), /Replaced Vassal/);
   await page.waitForFunction(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool?.candidates?.[0]?.debugInjected
   );

@@ -2302,6 +2302,7 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     reserved.practiceSlots = slots;
     return {
       kind: "practice",
+      targetRegionId,
       mode: replacedPracticeId ? "replace" : "add",
       replacedPracticeId,
       practiceId,
@@ -2315,7 +2316,7 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     if (!structureId || slotIndex < 0) return null;
     slots[slotIndex] = structureId;
     reserved.structureSlots = slots;
-    return { kind: "structure", structureId, slotIndex };
+    return { kind: "structure", targetRegionId, structureId, slotIndex };
   }
   if (kind === "expandSettlement") {
     const expandedRegionIds = reserved.expandedRegionIds ?? new Set();
@@ -2326,7 +2327,7 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     if (!regionId) return null;
     expandedRegionIds.add(regionId);
     reserved.expandedRegionIds = expandedRegionIds;
-    return { kind: "expandSettlement", regionId };
+    return { kind: "expandSettlement", sourceRegionId: targetRegionId, regionId };
   }
   if (kind === "globalStructure") {
     const globalSlots = reserved.globalStructureSlots ?? Object.fromEntries(
@@ -2510,8 +2511,12 @@ function ensureMoonRegionResult(turn, regionId) {
 function createDebugInterventionReservation(state, targetRegionId) {
   const settlement = getDetailedSettlement(state, targetRegionId);
   return {
-    practiceSlots: settlement?.practiceSlots.map((slot) => slot?.practiceId ?? null) ?? [],
-    structureSlots: settlement?.structureSlots.map((slot) => slot?.structureId ?? null) ?? [],
+    practiceSlotsByRegion: {
+      [targetRegionId]: settlement?.practiceSlots.map((slot) => slot?.practiceId ?? null) ?? [],
+    },
+    structureSlotsByRegion: {
+      [targetRegionId]: settlement?.structureSlots.map((slot) => slot?.structureId ?? null) ?? [],
+    },
     connectionKeys: new Set((state?.world?.connections ?? []).map((entry) =>
       getWorldConnectionKey(entry.regionAId, entry.regionBId)
     )),
@@ -2520,41 +2525,70 @@ function createDebugInterventionReservation(state, targetRegionId) {
   };
 }
 
+function getDebugTargetSlots(state, reservation, regionId, kind) {
+  const field = kind === "practice" ? "practiceSlotsByRegion" : "structureSlotsByRegion";
+  const collection = reservation[field];
+  if (Array.isArray(collection?.[regionId])) return collection[regionId];
+  const settlement = getDetailedSettlement(state, regionId);
+  const slots = kind === "practice"
+    ? settlement?.practiceSlots.map((slot) => slot?.practiceId ?? null)
+    : settlement?.structureSlots.map((slot) => slot?.structureId ?? null);
+  collection[regionId] = slots ?? [];
+  return collection[regionId];
+}
+
 function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
   const source = typeof raw === "string" ? { kind: "practice", practiceId: raw } : raw;
   if (!source || typeof source !== "object") return null;
-  const settlement = getDetailedSettlement(state, targetRegionId);
-  if (!settlement) return null;
   if (source.kind === "practice") {
+    const interventionTargetRegionId = typeof source.targetRegionId === "string"
+      ? source.targetRegionId : targetRegionId;
+    if (!isPlayerDetailedRegion(state, interventionTargetRegionId)) return null;
+    const practiceSlots = getDebugTargetSlots(
+      state, reservation, interventionTargetRegionId, "practice"
+    );
     if (!getDetailedPracticeDef(state, source.practiceId)) return null;
-    const firstEmpty = reservation.practiceSlots.findIndex((practiceId) => practiceId == null);
+    const firstEmpty = practiceSlots.findIndex((practiceId) => practiceId == null);
     const slotIndex = Number.isInteger(source.slotIndex)
       ? source.slotIndex
-      : (firstEmpty >= 0 ? firstEmpty : reservation.practiceSlots.length - 1);
-    if (slotIndex < 0 || slotIndex >= reservation.practiceSlots.length) return null;
+      : (firstEmpty >= 0 ? firstEmpty : practiceSlots.length - 1);
+    if (slotIndex < 0 || slotIndex >= practiceSlots.length) return null;
     const intervention = {
       kind: "practice",
-      mode: reservation.practiceSlots[slotIndex] ? "replace" : "add",
-      replacedPracticeId: reservation.practiceSlots[slotIndex] ?? null,
+      targetRegionId: interventionTargetRegionId,
+      mode: practiceSlots[slotIndex] ? "replace" : "add",
+      replacedPracticeId: practiceSlots[slotIndex] ?? null,
       practiceId: source.practiceId,
       slotIndex,
     };
-    reservation.practiceSlots[slotIndex] = source.practiceId;
+    practiceSlots[slotIndex] = source.practiceId;
     return intervention;
   }
   if (source.kind === "structure") {
+    const interventionTargetRegionId = typeof source.targetRegionId === "string"
+      ? source.targetRegionId : targetRegionId;
+    if (!isPlayerDetailedRegion(state, interventionTargetRegionId)) return null;
+    const structureSlots = getDebugTargetSlots(
+      state, reservation, interventionTargetRegionId, "structure"
+    );
     const slotIndex = Number.isInteger(source.slotIndex)
       ? source.slotIndex
-      : reservation.structureSlots.findIndex((structureId) => structureId == null);
+      : structureSlots.findIndex((structureId) => structureId == null);
     if (!settlementStructureDefs[source.structureId] || slotIndex < 0
-        || slotIndex >= reservation.structureSlots.length || reservation.structureSlots[slotIndex]) return null;
-    reservation.structureSlots[slotIndex] = source.structureId;
-    return { kind: "structure", structureId: source.structureId, slotIndex };
+        || slotIndex >= structureSlots.length || structureSlots[slotIndex]) return null;
+    structureSlots[slotIndex] = source.structureId;
+    return {
+      kind: "structure", targetRegionId: interventionTargetRegionId,
+      structureId: source.structureId, slotIndex,
+    };
   }
   if (source.kind === "expandSettlement") {
+    const sourceRegionId = typeof source.sourceRegionId === "string"
+      ? source.sourceRegionId : targetRegionId;
+    if (!isPlayerDetailedRegion(state, sourceRegionId)) return null;
     const candidates = getExpansionCandidates(
       state,
-      targetRegionId,
+      sourceRegionId,
       reservation.expandedRegionIds
     );
     const regionId = typeof source.regionId === "string"
@@ -2562,7 +2596,7 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
       : candidates[0];
     if (!regionId) return null;
     reservation.expandedRegionIds.add(regionId);
-    return { kind: "expandSettlement", regionId };
+    return { kind: "expandSettlement", sourceRegionId, regionId };
   }
   if (source.kind === "globalStructure") {
     if (!settlementStructureDefs[source.structureId]) return null;
@@ -2574,17 +2608,13 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
       : null;
   }
   if (source.kind === "connection" && ["add", "remove"].includes(source.mode)) {
-    const candidates = source.mode === "add"
-      ? getCandidateConnectionEntries(
-        state,
-        targetRegionId,
-        "add",
-        reservation.connectionKeys
-      )
-      : reservation.connectionCandidates.filter((entry) => {
+    const candidates = reservation.connectionCandidates.filter((entry) => {
         const key = getWorldConnectionKey(entry.regionAId, entry.regionBId);
-        return (entry.regionAId === targetRegionId || entry.regionBId === targetRegionId)
-          && reservation.connectionKeys.has(key);
+        const playerPair = isPlayerDetailedRegion(state, entry.regionAId)
+          && isPlayerDetailedRegion(state, entry.regionBId);
+        return playerPair && (source.mode === "add"
+          ? !reservation.connectionKeys.has(key)
+          : reservation.connectionKeys.has(key));
       });
     const sourceHasEndpoints = typeof source.regionAId === "string"
       && typeof source.regionBId === "string";
@@ -2596,8 +2626,6 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
       : candidates[0];
     const a = candidate?.regionAId;
     const b = candidate?.regionBId;
-    const touchesTarget = a === targetRegionId || b === targetRegionId;
-    if (!touchesTarget) return null;
     const key = getWorldConnectionKey(a, b);
     const exists = reservation.connectionKeys.has(key);
     if (!candidate || (source.mode === "add" && exists) || (source.mode === "remove" && !exists)) {
@@ -2864,7 +2892,8 @@ function createExpansionDetailedState(structureCapacity) {
 
 function applyExpansionIntervention(state, vassal, intervention) {
   const regionId = intervention.regionId;
-  if (!getConnectedRegionIds(state, vassal.targetRegionId).includes(regionId)) {
+  const sourceRegionId = intervention.sourceRegionId ?? vassal.targetRegionId;
+  if (!getConnectedRegionIds(state, sourceRegionId).includes(regionId)) {
     return { ok: false, reason: "frontierNotConnected" };
   }
   const region = getRegionState(state, regionId);
@@ -2933,7 +2962,8 @@ export function getDetailedVassalInterventionEffectSec(state, vassal, interventi
 }
 
 function applyIntervention(state, vassal, intervention) {
-  const settlement = getDetailedSettlement(state, vassal.targetRegionId);
+  const localTargetRegionId = intervention?.targetRegionId ?? vassal.targetRegionId;
+  const settlement = getDetailedSettlement(state, localTargetRegionId);
   let result = { ok: false, reason: "missingSettlement" };
   if (settlement && intervention?.kind === "practice") {
     const slotIndex = Math.floor(intervention.slotIndex);
@@ -2984,23 +3014,25 @@ function applyIntervention(state, vassal, intervention) {
 export function describeDetailedVassalIntervention(state, targetRegionId, intervention) {
   if (!intervention || typeof intervention !== "object") return "Unknown intervention";
   const targetRef = getRegionReference(state, targetRegionId) ?? targetRegionId;
+  const localTargetRef = getRegionReference(state, intervention.targetRegionId) ?? targetRef;
   if (intervention.kind === "practice") {
     const label = getDetailedPracticeDef(state, intervention.practiceId)?.label
       ?? intervention.practiceId;
     const replaced = getDetailedPracticeDef(state, intervention.replacedPracticeId)?.label
       ?? intervention.replacedPracticeId;
     return intervention.mode === "replace" && replaced
-      ? `Replace ${replaced} with ${label} — ${targetRef} slot ${Number(intervention.slotIndex) + 1}`
-      : `Add ${label} — ${targetRef} slot ${Number(intervention.slotIndex) + 1}`;
+      ? `Replace ${replaced} with ${label} — ${localTargetRef} slot ${Number(intervention.slotIndex) + 1}`
+      : `Add ${label} — ${localTargetRef} slot ${Number(intervention.slotIndex) + 1}`;
   }
   if (intervention.kind === "structure") {
     const label = settlementStructureDefs[intervention.structureId]?.label
       ?? intervention.structureId;
-    return `Add ${label} — ${targetRef}`;
+    return `Add ${label} — ${localTargetRef}`;
   }
   if (intervention.kind === "expandSettlement") {
     const regionRef = getRegionReference(state, intervention.regionId) ?? intervention.regionId;
-    return `Establish settlement ${regionRef} from ${targetRef}`;
+    const sourceRef = getRegionReference(state, intervention.sourceRegionId) ?? targetRef;
+    return `Establish settlement ${regionRef} from ${sourceRef}`;
   }
   if (intervention.kind === "globalStructure") {
     const label = settlementStructureDefs[intervention.structureId]?.label
@@ -3047,7 +3079,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 12;
+  state.gameStateSchemaVersion = 13;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

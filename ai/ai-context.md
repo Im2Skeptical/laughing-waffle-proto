@@ -26,7 +26,7 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v12; older saves are rejected.
+- Game state and runner saves use schema v13; older saves are rejected.
 - Each run serializes schema-v7 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
