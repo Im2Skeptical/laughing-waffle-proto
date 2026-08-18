@@ -350,12 +350,23 @@ try {
   assert.equal(restoredProfileController.loadProfile(profileSaved.entry.id).ok, true);
   assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7,
     "loading a combined profile restores every stored panel draft together");
+  assert.equal(restoredProfileController.selectProfile(null).ok, true);
+  assert.equal(restoredProfileController.getSnapshot().selectedProfileId, null,
+    "clearing the profile selection enters new-profile mode");
+  const secondProfile = restoredProfileController.saveProfile("Separate profile");
+  assert.equal(secondProfile.ok, true);
+  assert.notEqual(secondProfile.entry.id, profileSaved.entry.id,
+    "a cleared selection creates a distinct combined profile instead of overwriting");
+  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 2);
+  assert.equal(restoredProfileController.selectProfile(profileSaved.entry.id).ok, true);
   const overwritten = restoredProfileController.saveProfile("Full boot profile", {
     overwriteProfileId: profileSaved.entry.id,
   });
   assert.equal(overwritten.ok, true);
   assert.equal(overwritten.entry.id, profileSaved.entry.id);
   assert.equal(restoredProfileController.deleteProfile(profileSaved.entry.id).ok, true);
+  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 1);
+  assert.equal(restoredProfileController.deleteProfile(secondProfile.entry.id).ok, true);
   assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 0);
 
   storage.set("civsurvivor.debugProfiles.boot.v1", "profile-999");

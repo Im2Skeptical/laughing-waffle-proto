@@ -327,6 +327,14 @@ try {
   await page.getByTestId("debug-profile-name").fill("Boot expansion profile");
   await page.getByTestId("debug-profile-save").click();
   assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-1");
+  await page.getByTestId("debug-profile-new").click();
+  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "");
+  await page.getByTestId("debug-profile-name").fill("Second combined profile");
+  await page.getByTestId("debug-profile-save").click();
+  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-2");
+  assert.equal(await page.getByTestId("debug-profile-select").locator("option").count(), 3,
+    "New creates a second combined profile without overwriting the first");
+  await page.getByTestId("debug-profile-select").selectOption("profile-1");
   await page.getByTestId("debug-profile-boot").click();
   assert.match(await page.getByTestId("debug-profile-status").innerText(), /boot profile/i);
   await page.getByTestId("debug-game-settings-tab").click();
