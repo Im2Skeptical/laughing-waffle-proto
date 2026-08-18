@@ -90,12 +90,12 @@ assert.deepEqual(
   [1, 3, 3, 3, 1]
 );
 const primordial = fresh(8896);
-assert.equal(getPrimordialChaosPressure(primordial), 2);
+assert.equal(getPrimordialChaosPressure(primordial), 100);
 primordial.year = 12;
-assert.equal(getPrimordialChaosPressure(primordial), 2,
+assert.equal(getPrimordialChaosPressure(primordial), 100,
   "Primordial growth waits until a full cadence has elapsed");
 primordial.year = 13;
-assert.equal(getPrimordialChaosPressure(primordial), 2.06);
+assert.equal(getPrimordialChaosPressure(primordial), 103);
 primordial.gameConfig.settings.values.primordialBasePressure = 4;
 primordial.gameConfig.settings.values.primordialGrowthFactor = 2;
 primordial.gameConfig.settings.values.primordialGrowthCadenceYears = 3;
@@ -103,7 +103,7 @@ primordial.year = 7;
 assert.equal(getPrimordialChaosPressure(primordial), 16,
   "Primordial base, factor, and cadence are configurable without a cap");
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
-  .map((entry) => entry.effectiveWorkers), [3, 0, 0, 0, 0]);
+  .map((entry) => entry.effectiveWorkers), [2, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
 const strangerSite = getDetailedSettlement(strangerWorkers, "river-crown");
 strangerSite.populationByClass.villager.adults = 0;
@@ -111,12 +111,12 @@ strangerSite.populationByClass.villager.eldersByAge = [];
 strangerSite.populationByClass.stranger.adults = 20;
 assert.equal(assignDetailedSettlementWorkers(strangerWorkers, "river-crown")[0].effectiveWorkers, 1);
 
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 100);
-assert.equal(getHousingCapacity(state, "upper-floodplain"), 80);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 180);
+assert.equal(getHousingCapacity(state, "upper-floodplain"), 35);
 getDetailedSettlement(state, "upper-floodplain").structureSlots[3] = { structureId: "granary" };
 getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structureId: "mudHouses" };
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 400);
-assert.equal(getHousingCapacity(state, "upper-floodplain"), 180);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 720);
+assert.equal(getHousingCapacity(state, "upper-floodplain"), 140);
 
 const cultivate = fresh();
 cultivate.currentSeasonIndex = 1;
@@ -125,12 +125,12 @@ stepDetailedSettlementsSecond(cultivate, 8);
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).storedFood),
-  [100, 100, 100, 100, 100]
+  [47, 180, 180, 180, 180]
 );
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).looseFood),
-  [87, 407, 407, 407, 87]
+  [0, 937, 937, 937, 217]
 );
 
 const cultivateTiming = clearDetailedPopulationAndFood(fresh());
@@ -145,7 +145,7 @@ assert.equal(cultivateTimingSite.storedFood, 0, "Cultivate does not activate in 
 cultivateTiming.currentSeasonIndex = 1;
 cultivateTiming._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivateTiming, 16);
-assert.equal(cultivateTimingSite.storedFood, 40, "zero-worker Cultivate keeps its base value");
+assert.equal(cultivateTimingSite.storedFood, 120, "zero-worker Cultivate keeps its base value");
 
 const forageTiming = clearDetailedPopulationAndFood(fresh(8890));
 const forageSource = getDetailedSettlement(forageTiming, "cedar-woods");
@@ -189,11 +189,11 @@ assert.equal(
 assert.deepEqual(serializeGameState(configuredForageReload), serializeGameState(configuredForage));
 
 const multiplierState = fresh();
-const multiplierSite = getDetailedSettlement(multiplierState, "cedar-woods");
+const multiplierSite = getDetailedSettlement(multiplierState, "west-levee");
 multiplierSite.populationByClass.villager.adults = 10;
 multiplierSite.populationByClass.villager.eldersByAge = [];
 multiplierSite.populationByClass.stranger.adults = 10;
-const multiplierEvaluation = evaluateDetailedPracticeSlot(multiplierState, "cedar-woods", 0);
+const multiplierEvaluation = evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0);
 assert.equal(multiplierEvaluation.effects[0].scaledValue.workerMultiplier, 2.5,
   "one Villager and one Stranger worker produce a x2.5 multiplier");
 
@@ -433,6 +433,7 @@ assert.equal(resolveProbability(0.2, { additive: [0.2], multipliers: [2] }), 0.8
 assert.equal(resolveProbability(0.8, { additive: [0.4], multipliers: [2] }), 1);
 
 const partial = disableMonthlyDemographics(fresh(880));
+partial.gameConfig.settings.values.partialFeedMemoryLength = 3;
 const partialSite = getDetailedSettlement(partial, "cedar-woods");
 for (const site of partial.world.sites) {
   site.detailedState.storedFood = 0;
@@ -442,7 +443,7 @@ for (const site of partial.world.sites) {
 for (const [index, ratio] of [0.6, 0.7, 0.8].entries()) {
   const start = 1 + index * 6;
   stepDetailedSettlementsSecond(partial, start);
-  partialSite.looseFood = 33 * ratio;
+  partialSite.looseFood = getPopulationSummary(partial, "cedar-woods").mealDemand * ratio;
   stepDetailedSettlementsSecond(partial, start + 1);
   stepDetailedSettlementsSecond(partial, start + 2);
   stepDetailedSettlementsSecond(partial, start + 3);
@@ -504,6 +505,7 @@ assert.equal(halfFedClass.happiness.missedFeedStreak, 0);
 assert.deepEqual(halfFedClass.happiness.partialFeedRatios, [0.5]);
 
 const combined = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(883)));
+combined.gameConfig.gamepieces.structures.mudHouses.capacityPerCountSquared = 20;
 const combinedSource = getDetailedSettlement(combined, "cedar-woods");
 combinedSource.populationByClass.villager.adults = 100;
 combinedSource.populationByClass.villager.happiness.missedFeedStreak = 2;
@@ -540,9 +542,9 @@ assert.deepEqual(
 );
 assert.equal(collapse.civilization.currentMoonTurn.migrationIntents
   .reduce((sum, intent) => sum + intent.requested, 0), 3);
-assert.equal(collapse.civilization.chaos.lastMoonIncome.incomingChaos, 2,
+assert.equal(collapse.civilization.chaos.lastMoonIncome.incomingChaos, 99,
   "Primordial pressure contributes even without settlement-tax income");
-assert.equal(collapse.civilization.chaos.lastMoonIncome.primordialPressure, 2);
+assert.equal(collapse.civilization.chaos.lastMoonIncome.primordialPressure, 100);
 
 const weightedLegacyLosses = clearDetailedPopulationAndFood(fresh(8897));
 weightedLegacyLosses.gameConfig.settings.values.primordialBasePressure = 0;
@@ -607,10 +609,10 @@ assert.deepEqual(serializeGameState(rootednessReloaded), serializeGameState(root
   "pending Green/external loss accounting survives serialization and deterministic replay");
 assert.equal(rootedness.civilization.chaos.lastMoonIncome.externalEmigrants, 75,
   "Faith consumes migration losses one moon later");
-assert.equal(rootedness.civilization.chaos.lastMoonIncome.rawPressure, 39.5);
-assert.equal(rootedness.civilization.chaos.lastMoonIncome.resistance, 1,
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.rawPressure, 175);
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.resistance, 12,
   "Faith resistance uses the surviving full cohort population");
-assert.equal(rootedness.civilization.chaos.lastMoonIncome.incomingChaos, 38.5);
+assert.equal(rootedness.civilization.chaos.lastMoonIncome.incomingChaos, 163);
 
 const greenPreservation = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh(8852)));
 greenPreservation.gameConfig.settings.values.greenAutomaticTier = false;
@@ -700,7 +702,7 @@ assert.deepEqual(
 const vassalState = fresh(777);
 const pool = buildDetailedVassalSelectionPool(vassalState);
 assert.equal(pool.candidates.length, 3);
-assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredPrestige), [49, 59, 69]);
+assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredPrestige), [23, 33, 43]);
 assert.ok(pool.candidates.every((candidate) => candidate.interventions.length === 3),
   "each candidate rolls three valid interventions independently");
 assert.ok(pool.candidates.flatMap((candidate) => candidate.interventions).every((entry) =>
@@ -962,6 +964,6 @@ assert.equal(failedExpansionVassal.interventions[0].status, "failed");
 assert.equal(getRegionState(failedExpansionState, "iron-hills").controller, "frontier");
 
 const vm = getDetailedSettlementViewModel(state, "river-crown");
-assert.equal(vm.elderOrder.resistance, 29);
+assert.equal(vm.elderOrder.resistance, 13);
 assert.equal(vm.structureCapacity, getRegionState(state, "river-crown").structureCapacity);
 console.log("[detailed-settlements] OK");

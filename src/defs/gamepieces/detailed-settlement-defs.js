@@ -45,13 +45,13 @@ export const settlementStructureDefs = Object.freeze({
     id: "granary",
     label: "Granary",
     capacityKind: "storedFood",
-    capacityPerCountSquared: 100,
+    capacityPerCountSquared: 180,
   }),
   mudHouses: Object.freeze({
     id: "mudHouses",
     label: "Mud Houses",
     capacityKind: "housing",
-    capacityPerCountSquared: 20,
+    capacityPerCountSquared: 35,
   }),
 });
 
@@ -72,7 +72,7 @@ export const detailedSettlementPracticeDefs = Object.freeze({
       Object.freeze({
         op: "addLocalFood",
         scaledValue: Object.freeze({
-          baseAmount: 40,
+          baseAmount: 120,
           evaluator: Object.freeze({
             kind: "countRegions",
             label: "same-colour connected regions",

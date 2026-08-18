@@ -65,9 +65,47 @@ assert.equal(
   authoredConfig.gamepieces.practices.forage.effects[0].scaledValue.baseAmount,
   5
 );
-assert.equal(authoredConfig.settings.values.primordialBasePressure, 2);
+assert.equal(authoredConfig.settings.values.primordialBasePressure, 100);
 assert.equal(authoredConfig.settings.values.primordialGrowthFactor, 1.03);
 assert.equal(authoredConfig.settings.values.primordialGrowthCadenceYears, 12);
+assert.deepEqual(
+  Object.fromEntries([
+    "birthRateSilver", "birthRateGold", "birthRateDiamond", "childToAdultRate",
+    "fullFeedStreakForIncrease", "partialFeedMemoryLength",
+    "prematureDeathChaosWeight", "externalEmigrationChaosWeight",
+    "bronzeChaosResistancePopulation", "silverChaosResistancePopulation",
+    "goldChaosResistancePopulation", "diamondChaosResistancePopulation",
+    "chaosPerMonster", "monsterLossThreshold", "migrationHardshipDeathRate",
+    "resistancePerAdditionalElder", "vassalDeathAgeMin",
+    "interventionRequirement01", "interventionRequirement02", "interventionRequirement03",
+  ].map((id) => [id, authoredConfig.settings.values[id]])),
+  {
+    birthRateSilver: 0,
+    birthRateGold: 0.02,
+    birthRateDiamond: 0.04,
+    childToAdultRate: 0.01,
+    fullFeedStreakForIncrease: 12,
+    partialFeedMemoryLength: 12,
+    prematureDeathChaosWeight: 5,
+    externalEmigrationChaosWeight: 1,
+    bronzeChaosResistancePopulation: 10,
+    silverChaosResistancePopulation: 5,
+    goldChaosResistancePopulation: 2,
+    diamondChaosResistancePopulation: 1,
+    chaosPerMonster: 10,
+    monsterLossThreshold: 100,
+    migrationHardshipDeathRate: 0.8,
+    resistancePerAdditionalElder: 2,
+    vassalDeathAgeMin: 65,
+    interventionRequirement01: 10,
+    interventionRequirement02: 20,
+    interventionRequirement03: 30,
+  },
+  "Cultivate_01 game-setting values are the authored baseline"
+);
+assert.equal(authoredConfig.gamepieces.structures.granary.capacityPerCountSquared, 180);
+assert.equal(authoredConfig.gamepieces.structures.mudHouses.capacityPerCountSquared, 35);
+assert.equal(authoredConfig.gamepieces.practices.cultivate.effects[0].scaledValue.baseAmount, 120);
 assert.deepEqual(
   getGamepieceEditorGroups(authoredConfig.gamepieces)
     .flatMap((group) => group.fields)
@@ -142,7 +180,7 @@ assert.deepEqual(
 );
 assert.equal(
   getPopulationSummary(configured, "cedar-woods").mealDemand,
-  60,
+  40,
   "meal demand uses the state-scoped class consumption rates"
 );
 
@@ -152,12 +190,15 @@ cultivateSetup.gameConfig = canonicalizeGameConfig({
   gamepieces,
 });
 const cultivate = createInitialState(cultivateSetup, 902);
+cultivate.world.sites.find((site) => site.regionId === "cedar-woods").detailedState.practiceSlots[0] = {
+  practiceId: "cultivate", charge: 0, work: 0,
+};
 cultivate.currentSeasonIndex = 1;
 cultivate._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivate, 8);
 assert.equal(
   getDetailedSettlement(cultivate, "cedar-woods").storedFood,
-  87,
+  82,
   "Cultivate uses the state-scoped effect before the same Food phase meal"
 );
 assert.equal(getDetailedSettlement(cultivate, "cedar-woods").looseFood, 0);
@@ -200,7 +241,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   replacementResult.pool.candidates[0].interventions.map((entry) => entry.slotIndex),
-  [3, 4, 4],
+  [2, 3, 4],
   "repeated debug practices reserve successive practice slots"
 );
 
@@ -221,7 +262,7 @@ const structureResult = replaceDetailedVassalSelectionCandidate(
 assert.equal(structureResult.ok, true);
 assert.deepEqual(
   structureResult.pool.candidates[1].interventions.slice(0, 2).map((entry) => entry.slotIndex),
-  [3, 4],
+  [2, 3],
   "repeated debug structures reserve successive empty structure slots"
 );
 

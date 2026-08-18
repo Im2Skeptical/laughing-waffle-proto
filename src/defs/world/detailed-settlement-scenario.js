@@ -17,11 +17,11 @@ export const DETAILED_REGION_COLOURS = Object.freeze({
   "lake-country": "blue",
 });
 
-export const createInitialDetailedSettlementData = () => ({
+export const createInitialDetailedSettlementData = (regionId = null) => ({
   populationByClass: {
     villager: {
       children: 0,
-      adults: 30,
+      adults: 20,
       eldersByAge: [
         { age: 50, count: 1 },
         { age: 53, count: 1 },
@@ -52,15 +52,14 @@ export const createInitialDetailedSettlementData = () => ({
   looseFood: 0,
   currency: 0,
   practiceSlots: [
-    { practiceId: "cultivate", charge: 0, work: 0 },
-    { practiceId: "administrate", charge: 0, work: 0 },
-    { practiceId: "preserve", charge: 0, work: 0 },
+    { practiceId: regionId === "cedar-woods" ? "forage" : "cultivate", charge: 0, work: 0 },
+    regionId === "cedar-woods" ? null : { practiceId: "administrate", charge: 0, work: 0 },
+    null,
     null,
     null,
   ],
   structureSlots: [
     { structureId: "granary" },
-    { structureId: "mudHouses" },
     { structureId: "mudHouses" },
   ],
   elderOrder: {

@@ -495,7 +495,7 @@ export function createWorldState(
       const authoredSite = definition.sites.find((entry) => entry.regionId === regionDef.id);
       const region = regions.find((entry) => entry.id === regionDef.id);
       const detailedState = cloneSerializable(
-        draftDetailedByRegion.get(regionDef.id) ?? createInitialDetailedSettlementData()
+        draftDetailedByRegion.get(regionDef.id) ?? createInitialDetailedSettlementData(regionDef.id)
       );
       const capacity = Math.max(0, Math.floor(region.structureCapacity));
       detailedState.structureSlots = Array.isArray(detailedState.structureSlots)
