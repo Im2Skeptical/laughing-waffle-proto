@@ -368,6 +368,11 @@ assert.equal(
   3
 );
 assert.equal(
+  civilizationSeries.find((series) => series.id === "chaosRawPressure").scaleGroupId,
+  civilizationSeries.find((series) => series.id === "chaosResistance").scaleGroupId,
+  "raw Chaos pressure and Chaos resistance share a scale for direct comparison"
+);
+assert.equal(
   localSeries.find((series) => series.id === "totalPopulation")
     .getValue(state, { regionId: "cedar-woods" }),
   33
