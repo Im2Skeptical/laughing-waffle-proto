@@ -27,7 +27,7 @@ assert.deepEqual(authored.regions.filter((region) => region.detailedSettlementEn
   ]);
 
 const region01 = authored.regions[0];
-assert.equal(updateMapLabRegion(authored, region01.id, { structureCapacity: 2 }).reason,
+assert.equal(updateMapLabRegion(authored, region01.id, { structureCapacity: 1 }).reason,
   "structureCapacityBelowOccupied");
 const expanded = updateMapLabRegion(authored, region01.id, { structureCapacity: 4 });
 assert.equal(expanded.ok, true);
@@ -36,7 +36,7 @@ assert.equal(expanded.draft.regions[0].randomizeStructureCapacity, false);
 
 const withoutGranary = setMapLabStructureSlot(authored, region01.id, 0, null);
 assert.equal(withoutGranary.ok, false, "stored food above the resulting zero capacity is rejected");
-const tooMuchFood = updateMapLabDetailedState(authored, region01.id, { storedFood: 101 });
+const tooMuchFood = updateMapLabDetailedState(authored, region01.id, { storedFood: 181 });
 assert.equal(tooMuchFood.ok, false);
 assert.match(tooMuchFood.errors[0], /storedFood/);
 

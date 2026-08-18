@@ -72,6 +72,24 @@ assert.ok(state.world.regions.every((region) =>
 assert.deepEqual(getDetailedSettlementSites(state).map((site) => site.regionId), [
   "cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country",
 ]);
+assert.deepEqual(
+  getDetailedSettlementSites(state).map((site) => ({
+    regionId: site.regionId,
+    adults: site.detailedState.populationByClass.villager.adults,
+    practices: site.detailedState.practiceSlots.map((slot) => slot?.practiceId ?? null),
+    structures: site.detailedState.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null),
+  })),
+  [
+    { regionId: "cedar-woods", adults: 20, practices: ["forage", null, null, null, null], structures: ["granary", "mudHouses"] },
+    ...["west-levee", "upper-floodplain", "river-crown", "lake-country"].map((regionId) => ({
+      regionId,
+      adults: 20,
+      practices: ["cultivate", "administrate", null, null, null],
+      structures: ["granary", "mudHouses"],
+    })),
+  ],
+  "Cultivate_01 authored settlements retain their profile-specific starting state"
+);
 assert.equal(state.civilization.capitalRegionId, "river-crown");
 assert.deepEqual(worldMapDefs.riverBasin01.regions.map((region) => getRegionReference(state, region.id)),
   Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
@@ -82,12 +100,16 @@ assert.equal(getConnectedRegionIds(state, "upper-floodplain").includes("east-ste
 assert.equal(validateWorldState(state).ok, true);
 for (const site of getDetailedSettlementSites(state)) {
   const view = getDetailedSettlementViewModel(state, site.regionId);
-  assert.equal(view.elderOrder.resistance, 29);
-  assert.equal(view.usedStructureCapacity, 3);
+  assert.equal(view.elderOrder.resistance, 13);
+  assert.equal(view.usedStructureCapacity, 2);
   assert.equal(view.storedFood, 60);
-  assert.deepEqual(view.workerPool, {
-    availableWorkerCount: 3,
-    activeWorkerCount: 3,
+  assert.deepEqual(view.workerPool, site.regionId === "cedar-woods" ? {
+    availableWorkerCount: 2,
+    activeWorkerCount: 1,
+    unusedWorkerCount: 1,
+  } : {
+    availableWorkerCount: 2,
+    activeWorkerCount: 2,
     unusedWorkerCount: 0,
   });
 }
@@ -314,20 +336,20 @@ assert.deepEqual(
   },
   {
     children: 0,
-    adults: 150,
+    adults: 100,
     elders: 15,
-    total: 165,
-    mealDemand: 165,
-    housingCapacity: 400,
+    total: 115,
+    mealDemand: 115,
+    housingCapacity: 175,
   }
 );
 assert.deepEqual(civilizationSummary.food, {
   stored: 300,
   loose: 0,
   total: 300,
-  storedCapacity: 500,
+  storedCapacity: 900,
 });
-assert.equal(civilizationSummary.population.byClass.villager.total, 165);
+assert.equal(civilizationSummary.population.byClass.villager.total, 115);
 assert.equal(civilizationSummary.population.byClass.stranger.total, 0);
 
 const filteredState = deserializeGameState(serializeGameState(state));
@@ -335,7 +357,7 @@ filteredState.world.regions.find(
   (region) => region.id === "lake-country"
 ).controller = "external-a";
 assert.equal(getDetailedCivilizationSummary(filteredState).settlementCount, 4);
-assert.equal(getDetailedCivilizationSummary(filteredState).population.total, 132);
+assert.equal(getDetailedCivilizationSummary(filteredState).population.total, 92);
 
 const roundedFoodState = deserializeGameState(serializeGameState(state));
 getDetailedSettlement(roundedFoodState, "cedar-woods").storedFood = 0.33336;
@@ -357,7 +379,7 @@ const localSeries = GRAPH_METRICS.settlement.getSeries(
 assert.equal(
   civilizationSeries.find((series) => series.id === "totalPopulation")
     .getValue(state),
-  165
+  115
 );
 assert.equal(
   civilizationSeries.find((series) => series.id === "chaosRawPressure").getValue(state),
@@ -375,7 +397,7 @@ assert.equal(
 assert.equal(
   localSeries.find((series) => series.id === "totalPopulation")
     .getValue(state, { regionId: "cedar-woods" }),
-  33
+  23
 );
 assert.equal(
   localSeries.some((series) => series.id === "chaosPower"),
@@ -402,13 +424,13 @@ assert.equal(
   ),
   false
 );
-assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 165);
+assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 115);
 assert.equal(projectionSummary.graphValues.civilization.chaosRawPressure, 12.5);
 assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 3);
 assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"]
     .totalPopulation,
-  33
+  23
 );
 
 const roundTrip = deserializeGameState(serializeGameState(state));

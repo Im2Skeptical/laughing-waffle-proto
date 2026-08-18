@@ -15,6 +15,7 @@ import {
 } from "../timeline/index.js";
 
 const base = createInitialState("devPlaytesting01", 99117);
+base.gameConfig.settings.values.primordialBasePressure = 0;
 const postInitializationSeed = base.rng.seed;
 const pool = buildDetailedVassalSelectionPool(base);
 const rerolledPool = buildDetailedVassalSelectionPool(base, 1);

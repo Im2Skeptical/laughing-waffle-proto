@@ -20,8 +20,8 @@ export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v4";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
 
-function normalizeDetailedState(raw, capacity) {
-  const fallback = createInitialDetailedSettlementData();
+function normalizeDetailedState(raw, capacity, regionId = null) {
+  const fallback = createInitialDetailedSettlementData(regionId);
   const state = raw && typeof raw === "object" ? clone(raw) : fallback;
   state.populationByClass = state.populationByClass ?? fallback.populationByClass;
   state.storedFood = Number.isFinite(state.storedFood) ? state.storedFood : 0;
@@ -61,7 +61,7 @@ export function canonicalizeMapLabDraft(value) {
       randomizeStructureCapacity: source.randomizeStructureCapacity === true,
       detailedSettlementEnabled,
       detailedState: detailedSettlementEnabled
-        ? normalizeDetailedState(source.detailedState, structureCapacity)
+        ? normalizeDetailedState(source.detailedState, structureCapacity, regionDef.id)
         : null,
     };
   });
@@ -79,7 +79,9 @@ export function createAuthoredMapLabDraft(worldDefinitionId = "riverBasin01") {
     regions: definition.regions.map((entry) => ({
       id: entry.id,
       ...clone(entry.initialState),
-      detailedState: siteByRegion.has(entry.id) ? createInitialDetailedSettlementData() : null,
+      detailedState: siteByRegion.has(entry.id)
+        ? createInitialDetailedSettlementData(entry.id)
+        : null,
     })),
     connections: clone(definition.connections),
   });

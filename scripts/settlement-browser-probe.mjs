@@ -83,7 +83,7 @@ try {
   assert.equal(initial.worldMap.graphScope, "civilization");
   assert.ok(initial.worldMap.selectedRegion.structureCapacity >= 5);
   assert.ok(initial.worldMap.selectedRegion.structureCapacity <= 8);
-  assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 3);
+  assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 2);
   assert.equal(initial.worldMap.regionNameLabelsVisible, true);
   assert.deepEqual(initial.worldMap.regionReferences.map((entry) => entry.reference),
     Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
@@ -144,11 +144,11 @@ try {
       used: indicator.usedStructureCapacity,
     })),
     [
-      { regionId: "cedar-woods", used: 3 },
-      { regionId: "west-levee", used: 3 },
-      { regionId: "upper-floodplain", used: 3 },
-      { regionId: "river-crown", used: 3 },
-      { regionId: "lake-country", used: 3 },
+      { regionId: "cedar-woods", used: 2 },
+      { regionId: "west-levee", used: 2 },
+      { regionId: "upper-floodplain", used: 2 },
+      { regionId: "river-crown", used: 2 },
+      { regionId: "lake-country", used: 2 },
     ],
     "filled and open building glyphs follow local structure slots"
   );
@@ -169,7 +169,7 @@ try {
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 165 },
+      { seriesId: "totalPopulation", value: 115 },
       { seriesId: "food", value: 300 },
       { seriesId: "chaosPower", value: 0 },
       { seriesId: "chaosRawPressure", value: 0 },
@@ -409,18 +409,18 @@ try {
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 33 },
+      { seriesId: "totalPopulation", value: 23 },
       { seriesId: "food", value: 60 },
-      { seriesId: "population:villager", value: 33 },
+      { seriesId: "population:villager", value: 23 },
     ],
     "local graph replaces aggregate lines with the selected settlement values"
   );
   assert.equal(overview.view.overview.practices.length, 5);
   assert.deepEqual(
     overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
-    ["Cultivate", "Administration", "Preservation"]
+    ["Forage", null, null]
   );
-  for (const practice of overview.view.overview.practices.slice(0, 3)) {
+  for (const practice of overview.view.overview.practices.slice(0, 3).filter((practice) => practice.label)) {
     const scaled = practice.evaluation.effects.find((effect) => effect.scaledValue)?.scaledValue;
     assert.ok(scaled, `${practice.label} exposes its live card calculation`);
     assert.ok(Number.isFinite(scaled.baseValue));
@@ -579,11 +579,10 @@ try {
       "a resolved projected loss updates the best civilization survival year"
     );
   } else {
-    assert.ok(
-      committedVassalHistory.view.survivalTracker.forecastLabel.includes(
-        "Forecasting"
-      ),
-      "unresolved loss coverage remains explicitly marked as forecasting"
+    assert.match(
+      committedVassalHistory.view.survivalTracker.forecastLabel,
+      /^(Projected survival:|Civilization lasted)/,
+      "the survival strip remains explicit when the new baseline resolves loss coverage faster"
     );
   }
 
@@ -605,7 +604,7 @@ try {
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 165 },
+      { seriesId: "totalPopulation", value: 115 },
       { seriesId: "food", value: 300 },
       { seriesId: "chaosPower", value: 0 },
       { seriesId: "chaosRawPressure", value: 0 },

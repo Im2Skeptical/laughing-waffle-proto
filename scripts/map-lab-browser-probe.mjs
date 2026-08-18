@@ -86,10 +86,10 @@ try {
   assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "5");
   assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), true);
   assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
-  assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "30");
+  assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "20");
   assert.equal(await page.getByTestId("map-lab-villager-elder-ages").inputValue(), "50, 53, 56");
   assert.equal(await page.getByTestId("map-lab-stored-food").inputValue(), "60");
-  assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "cultivate");
+  assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "forage");
   assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
   const mapLabDesktopLayout = await page.getByTestId("map-lab-workspace").evaluate((workspace) => {
@@ -204,8 +204,8 @@ try {
   await page.getByTestId("debug-game-settings-tab").click();
   await page.getByTestId("debug-gameSettings").waitFor({ state: "visible" });
   const birthRate = page.getByTestId("setting-birthRateGold");
-  assert.equal(await birthRate.inputValue(), "0.04");
-  assert.equal(await page.getByTestId("setting-primordialBasePressure").inputValue(), "2");
+  assert.equal(await birthRate.inputValue(), "0.02");
+  assert.equal(await page.getByTestId("setting-primordialBasePressure").inputValue(), "100");
   assert.equal(await page.getByTestId("setting-primordialGrowthFactor").inputValue(), "1.03");
   assert.equal(await page.getByTestId("setting-primordialGrowthCadenceYears").inputValue(), "12");
   await birthRate.fill("0.35");
@@ -234,7 +234,7 @@ try {
   const granaryCapacity = page.getByTestId(
     "gamepiece-structures-granary-capacityPerCountSquared"
   );
-  assert.equal(await granaryCapacity.inputValue(), "100");
+  assert.equal(await granaryCapacity.inputValue(), "180");
   await granaryCapacity.fill("150");
   const administrationBase = page.getByTestId(
     "gamepiece-practices-administrate-effects.0.scaledValue.baseAmount"
