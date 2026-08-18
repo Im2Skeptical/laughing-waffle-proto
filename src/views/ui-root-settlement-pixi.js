@@ -1292,7 +1292,7 @@ settlementGraphSeriesMenu = createSettlementGraphSeriesMenu({
   getPreferredSeriesIds: (contextId) =>
     contextId === "settlement"
       ? ["totalPopulation", "food", "population:villager"]
-      : ["totalPopulation", "food", "chaosPower"],
+      : ["totalPopulation", "food", "chaosPower", "chaosRawPressure", "chaosResistance"],
   maxVisibleSeries: MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
   viewportWidth: VIEWPORT_DESIGN_WIDTH,
   viewportHeight: VIEWPORT_DESIGN_HEIGHT,
