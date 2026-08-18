@@ -8,6 +8,8 @@ import { validateVassalDebugDraft } from "./vassal-debug-draft.js";
 export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 1;
 export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v1";
 export const DEBUG_PROFILE_BOOT_STORAGE_KEY = "civsurvivor.debugProfiles.boot.v1";
+export const DEBUG_PROFILE_EXPORT_KIND = "civsurvivor.debugProfile";
+export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 1;
 export const DEBUG_PROFILE_PAGE_IDS = Object.freeze([
   "mapLab",
   "gameSettings",
@@ -40,6 +42,51 @@ export function validateDebugProfile(profile) {
     errors.push(`vassalLab.${error}`);
   }
   return { ok: errors.length === 0, errors };
+}
+
+export function validateDebugProfileExport(value) {
+  const errors = [];
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ok: false, errors: ["export: expected an object"] };
+  }
+  if (value.kind !== DEBUG_PROFILE_EXPORT_KIND) {
+    errors.push(`kind: expected ${DEBUG_PROFILE_EXPORT_KIND}`);
+  }
+  if (value.schemaVersion !== DEBUG_PROFILE_EXPORT_SCHEMA_VERSION) {
+    errors.push(`schemaVersion: expected ${DEBUG_PROFILE_EXPORT_SCHEMA_VERSION}`);
+  }
+  const name = normalizedName(value.name);
+  if (!name || name.length > 80) errors.push("name: invalid");
+  for (const error of validateDebugProfile(value.profile).errors ?? []) {
+    errors.push(`profile.${error}`);
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+export function createDebugProfileExport(name, profile) {
+  const value = {
+    kind: DEBUG_PROFILE_EXPORT_KIND,
+    schemaVersion: DEBUG_PROFILE_EXPORT_SCHEMA_VERSION,
+    name: normalizedName(name),
+    profile: clone(profile),
+  };
+  const validation = validateDebugProfileExport(value);
+  if (!validation.ok) throw new Error(validation.errors.join("; "));
+  return value;
+}
+
+export function parseDebugProfileExportJson(text) {
+  try {
+    const value = JSON.parse(text);
+    const validation = validateDebugProfileExport(value);
+    return validation.ok ? { ok: true, value: clone(value) } : validation;
+  } catch (error) {
+    return { ok: false, errors: [`json: ${error.message}`] };
+  }
+}
+
+export function serializeDebugProfileExport(name, profile) {
+  return JSON.stringify(createDebugProfileExport(name, profile), null, 2);
 }
 
 export function createEmptyDebugProfileLibrary() {

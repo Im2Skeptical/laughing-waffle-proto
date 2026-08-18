@@ -35,6 +35,9 @@ import { createVassalDebugPresetController } from "../../controllers/vassal-debu
 import { createMapLabController } from "../../controllers/map-lab-controller.js";
 import { createDebugConfigurationController } from "../../controllers/debug-configuration-controller.js";
 import { createDebugProfileController } from "../../controllers/debug-profile-controller.js";
+import {
+  parseDebugProfileExportJson,
+} from "../debug-profile-library.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -413,6 +416,27 @@ try {
   assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 1);
   assert.equal(restoredProfileController.deleteProfile(thirdProfile.entry.id).ok, true);
   assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 0);
+
+  const exportedProfile = restoredProfileController.exportProfile("Portable baseline");
+  assert.equal(exportedProfile.ok, true);
+  const parsedExport = parseDebugProfileExportJson(exportedProfile.text);
+  assert.equal(parsedExport.ok, true);
+  assert.equal(parsedExport.value.name, "Portable baseline");
+  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
+  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 99);
+  const importedProfile = restoredProfileController.importProfile(exportedProfile.text);
+  assert.equal(importedProfile.ok, true);
+  assert.equal(importedProfile.entry.name, "Portable baseline");
+  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7);
+  assert.equal(
+    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken,
+    12,
+    "combined profile imports atomically restore every debug draft"
+  );
+  const beforeInvalidImport = mapController.getSnapshot().draft.regions[0].structureCapacity;
+  assert.equal(restoredProfileController.importProfile("{}").ok, false);
+  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, beforeInvalidImport,
+    "invalid combined profile exports do not partially replace current drafts");
 
   storage.set("civsurvivor.debugProfiles.boot.v1", "profile-999");
   mapController.updateRegion("cedar-woods", { structureCapacity: 8 });

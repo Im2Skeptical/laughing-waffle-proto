@@ -367,6 +367,14 @@ try {
   await page.getByTestId("debug-profile-name").fill("Boot expansion profile");
   await page.getByTestId("debug-profile-save").click();
   assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-1");
+  await page.getByTestId("debug-profile-json-toggle").click();
+  const exportedProfile = JSON.parse(
+    await page.getByRole("textbox", { name: "Combined debug profile JSON" }).inputValue()
+  );
+  assert.equal(exportedProfile.kind, "civsurvivor.debugProfile");
+  assert.equal(exportedProfile.name, "Boot expansion profile");
+  await page.getByTestId("debug-profile-json-import").click();
+  assert.match(await page.getByTestId("debug-profile-status").innerText(), /Imported/);
   await page.getByTestId("debug-profile-new").click();
   assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "");
   await page.getByTestId("debug-profile-name").fill("Second combined profile");

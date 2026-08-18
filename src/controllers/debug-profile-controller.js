@@ -9,8 +9,10 @@ import {
   createEmptyDebugProfileLibrary,
   deleteDebugProfile,
   findDebugProfileByName,
+  parseDebugProfileExportJson,
   parseDebugProfileLibraryJson,
   saveDebugProfile,
+  serializeDebugProfileExport,
   serializeDebugProfileLibrary,
   validateDebugProfile,
 } from "../model/debug-profile-library.js";
@@ -67,6 +69,13 @@ export function createDebugProfileController({
       vassalLab: vassalDebugPresetController.getSnapshot().currentDraft,
       activePage,
     };
+  }
+
+  function defaultProfileName(name = "") {
+    const supplied = String(name ?? "").trim();
+    if (supplied) return supplied;
+    return library.profiles.find((entry) => entry.id === selectedProfileId)?.name
+      ?? "Exported debug profile";
   }
 
   function applyEntry(entry) {
@@ -126,6 +135,52 @@ export function createDebugProfileController({
         tone: stored ? "ok" : "warning",
       };
       return { ...result, stored };
+    },
+    exportProfile(name = "") {
+      try {
+        const profileName = defaultProfileName(name);
+        return {
+          ok: true,
+          name: profileName,
+          text: serializeDebugProfileExport(profileName, currentProfile()),
+        };
+      } catch (error) {
+        status = { message: `Profile export failed: ${error.message}`, tone: "error" };
+        return { ok: false, reason: "invalidProfile", error };
+      }
+    },
+    importProfile(text, name = "") {
+      const parsed = parseDebugProfileExportJson(text);
+      if (!parsed.ok) {
+        status = { message: `Profile import failed: ${parsed.errors[0]}`, tone: "error" };
+        return { ok: false, reason: "invalidExport", errors: parsed.errors };
+      }
+      const suppliedName = String(name ?? "").trim();
+      const profileName = suppliedName || parsed.value.name;
+      const overwriteId = findDebugProfileByName(library, profileName)?.id ?? null;
+      const saved = saveDebugProfile(
+        library,
+        profileName,
+        parsed.value.profile,
+        overwriteId
+      );
+      if (!saved.ok) {
+        status = { message: `Profile import failed: ${saved.reason}`, tone: "error" };
+        return saved;
+      }
+      const applied = applyEntry(saved.entry);
+      if (!applied.ok) {
+        status = { message: `Profile import failed: ${applied.reason}`, tone: "error" };
+        return applied;
+      }
+      library = saved.library;
+      selectedProfileId = saved.entry.id;
+      const stored = persistLibrary();
+      status = {
+        message: stored ? `Imported â€œ${saved.entry.name}â€.` : "Imported profile could not be stored.",
+        tone: stored ? "ok" : "warning",
+      };
+      return { ...saved, stored };
     },
     deleteProfile(profileId) {
       const result = deleteDebugProfile(library, profileId);
