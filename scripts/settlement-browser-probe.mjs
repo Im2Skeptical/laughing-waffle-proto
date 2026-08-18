@@ -162,7 +162,7 @@ try {
   assert.equal(initial.controller.subjectKey, "civilization");
   assert.equal(initial.controller.label, "Civilization • All player settlements");
   assert.deepEqual(initial.controller.seriesIds,
-    ["totalPopulation", "food", "chaosPower"]);
+    ["totalPopulation", "food", "chaosPower", "chaosRawPressure", "chaosResistance"]);
   assert.deepEqual(
     initial.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
       seriesId,
@@ -172,6 +172,8 @@ try {
       { seriesId: "totalPopulation", value: 165 },
       { seriesId: "food", value: 300 },
       { seriesId: "chaosPower", value: 0 },
+      { seriesId: "chaosRawPressure", value: 0 },
+      { seriesId: "chaosResistance", value: 0 },
     ],
     "civilization graph renders aggregate values"
   );
@@ -606,6 +608,8 @@ try {
       { seriesId: "totalPopulation", value: 165 },
       { seriesId: "food", value: 300 },
       { seriesId: "chaosPower", value: 0 },
+      { seriesId: "chaosRawPressure", value: 0 },
+      { seriesId: "chaosResistance", value: 0 },
     ],
     "returning to the map restores civilization graph values"
   );

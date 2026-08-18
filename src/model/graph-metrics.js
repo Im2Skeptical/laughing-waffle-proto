@@ -376,6 +376,38 @@ function getSettlementClassMetricSeries(state) {
   return series;
 }
 
+function getChaosReckoningValue(state, key) {
+  const value = state?.civilization?.chaos?.lastMoonIncome?.[key];
+  return Number.isFinite(value) ? Number(value) : 0;
+}
+
+function formatChaosReckoningValue(value) {
+  if (!Number.isFinite(value)) return "0";
+  return Number(value.toFixed(4)).toString();
+}
+
+function getChaosRawPressureTooltipSpec(state) {
+  return {
+    title: "Raw Chaos Pressure",
+    lines: [
+      `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "rawPressure"))}`,
+      "Primordial pressure plus recorded civilization losses, before resistance.",
+      "Reckoned during Faith and held until the next Faith phase.",
+    ],
+  };
+}
+
+function getChaosResistanceTooltipSpec(state) {
+  return {
+    title: "Chaos Resistance",
+    lines: [
+      `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "resistance"))}`,
+      "Living population contributes resistance according to its Faith tier.",
+      "Resistance only reduces new incoming Chaos; it never removes accumulated Chaos.",
+    ],
+  };
+}
+
 function createCivilizationClassMetricSeries(classId, classIndex, metricDef) {
   const series = createSettlementClassMetricSeries(classId, classIndex, metricDef);
   return {
@@ -497,6 +529,38 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     getLegendTooltipSpec: (state) => getSettlementChaosPowerTooltipSpec(state),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  },
+  {
+    id: "chaosRawPressure",
+    label: "Raw Pressure",
+    color: 0xe89a55,
+    scaleGroupId: "chaosRawPressure",
+    scaleMode: "dynamic",
+    scaleMin: 0,
+    pickerGroup: "global",
+    getValue: (state) => getChaosReckoningValue(state, "rawPressure"),
+    getValueFromSnapshot: (snapshot) =>
+      getChaosReckoningValue(snapshot, "rawPressure"),
+    getValueFromSummary: (summary) =>
+      getCivilizationGraphValueFromSummary(summary, "chaosRawPressure"),
+    getLegendTooltipSpec: (state) => getChaosRawPressureTooltipSpec(state),
+    formatValue: formatChaosReckoningValue,
+  },
+  {
+    id: "chaosResistance",
+    label: "Chaos Resistance",
+    color: 0x73c9c8,
+    scaleGroupId: "chaosResistance",
+    scaleMode: "dynamic",
+    scaleMin: 0,
+    pickerGroup: "global",
+    getValue: (state) => getChaosReckoningValue(state, "resistance"),
+    getValueFromSnapshot: (snapshot) =>
+      getChaosReckoningValue(snapshot, "resistance"),
+    getValueFromSummary: (summary) =>
+      getCivilizationGraphValueFromSummary(summary, "chaosResistance"),
+    getLegendTooltipSpec: (state) => getChaosResistanceTooltipSpec(state),
+    formatValue: formatChaosReckoningValue,
   },
   {
     id: "monsterCount",

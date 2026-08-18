@@ -346,6 +346,10 @@ getDetailedSettlement(roundedFoodState, "lake-country").storedFood = 0;
 assert.equal(getDetailedCivilizationSummary(roundedFoodState).food.stored, 1.0001);
 
 const civilizationSeries = GRAPH_METRICS.civilization.getSeries(null, state);
+state.civilization.chaos.lastMoonIncome = {
+  rawPressure: 12.5,
+  resistance: 3,
+};
 const localSeries = GRAPH_METRICS.settlement.getSeries(
   { regionId: "cedar-woods" },
   state
@@ -354,6 +358,14 @@ assert.equal(
   civilizationSeries.find((series) => series.id === "totalPopulation")
     .getValue(state),
   165
+);
+assert.equal(
+  civilizationSeries.find((series) => series.id === "chaosRawPressure").getValue(state),
+  12.5
+);
+assert.equal(
+  civilizationSeries.find((series) => series.id === "chaosResistance").getValue(state),
+  3
 );
 assert.equal(
   localSeries.find((series) => series.id === "totalPopulation")
@@ -386,6 +398,8 @@ assert.equal(
   false
 );
 assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 165);
+assert.equal(projectionSummary.graphValues.civilization.chaosRawPressure, 12.5);
+assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 3);
 assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"]
     .totalPopulation,
