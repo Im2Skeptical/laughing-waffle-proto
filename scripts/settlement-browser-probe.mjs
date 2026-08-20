@@ -531,11 +531,24 @@ try {
   );
   assert.equal(afterVassal.forecastStatus.currentVassalResolutionSec, null,
     "selection alone does not schedule a hidden lifespan boundary");
+  assert.equal(afterVassal.graph.projectionReplacement?.active, true,
+    "selecting a Vassal keeps the prior timeline as a tinted comparison");
+  assert.equal(afterVassal.graph.forecastRevealTargetEndSec, afterVassal.frontierSec,
+    "selection does not unveil the new timeline beyond committed history");
   const nodePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint("life-01-1")
   );
   assert.ok(nodePoint, "the visible Life Map exposes its first Patronage node");
   await clickDesignPoint(page, nodePoint);
+  const inspectedOnly = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId
+  );
+  assert.equal(inspectedOnly, null, "a single click inspects a node without entering it");
+  const enterNodePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()
+  );
+  assert.ok(enterNodePoint, "the inspected available node has an explicit entry button");
+  await clickDesignPoint(page, enterNodePoint);
   const optionPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)
   );
@@ -554,6 +567,8 @@ try {
     "confirmation creates a future node-resolution boundary");
   assert.equal(resolvingVassal.pendingCommitJob.resolutionSec, resolutionSec,
     "forecast commitment targets the node resolution");
+  assert.equal(resolvingVassal.graph.forecastRevealTargetEndSec, resolutionSec,
+    "node confirmation unveils only through that node's resolution boundary");
   await page.waitForFunction(
     (targetSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().frontierSec >= targetSec,
     resolutionSec,
@@ -598,11 +613,8 @@ try {
   assert.equal(returnedToMap.worldMap.mode, "map");
   assert.equal(returnedToMap.controller.scope, "civilization");
   assert.equal(returnedToMap.controller.subjectKey, "civilization");
-  assert.equal(
-    returnedToMap.graph.projectionReplacement?.active ?? false,
-    false,
-    "Life Map decisions do not expose a hidden intervention projection"
-  );
+  assert.equal(returnedToMap.graph.projectionReplacement?.active, true,
+    "the prior timeline remains available for comparison between resolved nodes");
   assert.deepEqual(
     returnedToMap.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
       seriesId,

@@ -280,6 +280,9 @@ const SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC =
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS * 32;
 const SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC = 16;
 const SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS = 1500;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS = 1500;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS = 360;
+const SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH = 0.5;
 const SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC = 16;
 const SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC = 16;
 const SETTLEMENT_HORIZON_LEAD_BUFFER_SEC = 256;
@@ -702,10 +705,21 @@ function syncSettlementGraphHorizon() {
 }
 
 function processSettlementPendingCommit() {
+  const beforeState = getSettlementFrontierState();
+  const beforeVassalId = beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
   settlementForecastController?.processPendingCommit?.({
     clearForecastRevealRestart: () =>
       settlementGraphView?.clearForecastRevealRestart?.(),
   });
+  if (!beforeVassalId) return;
+  const afterState = getSettlementFrontierState();
+  const endedVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[beforeVassalId] ?? null;
+  if (afterState?.civilization?.vassalLineage?.currentVassalId == null && endedVassal?.endedReason === "died") {
+    syncSettlementGraphHorizon();
+    settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
+      allowForecastStart: true,
+    });
+  }
 }
 
 function syncSettlementVassalSelectionPauseState() {
@@ -781,6 +795,7 @@ function dispatchLifeMapAction(kind, payload = {}) {
     syncSettlementGraphHorizon();
     settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
       allowForecastStart: true,
+      revealTargetEndSec: pending.resolveSec,
     });
   }
   vassalLifeMapView?.refresh?.();
@@ -793,6 +808,18 @@ function selectLifeMapCandidate(candidateIndex) {
   const pool = settlementPendingVassalSelection;
   if (!pool) return { ok: false, reason: "missingSelectionPool" };
   const candidate = pool.candidates?.[candidateIndex] ?? null;
+  const selectionSec = getSettlementFrontierSec();
+  const priorLoss = getSettlementLossInfoForDisplay();
+  const priorCoverageSec = settlementGraphController?.getData?.()?.forecastCoverageEndSec;
+  settlementGraphView?.stageProjectionReplacementTransition?.({
+    truncationStartSec: selectionSec,
+    maxSecFloor: Number.isFinite(priorLoss?.lossSec)
+      ? priorLoss.lossSec
+      : priorCoverageSec,
+    transitionDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS,
+    flashDurationMs: SETTLEMENT_VASSAL_GRAPH_REPLACE_FLASH_MS,
+    fadeStrength: SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH,
+  });
   const result = dispatchLifeMapAction(ActionKinds.SETTLEMENT_SELECT_VASSAL, {
     candidateIndex,
     expectedPoolHash: pool.expectedPoolHash,
@@ -804,6 +831,12 @@ function selectLifeMapCandidate(candidateIndex) {
     settlementPendingVassalSelection = null;
     settlementHoveredVassalCandidate = null;
     syncSettlementVassalSelectionPauseState();
+    syncSettlementGraphHorizon();
+    settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
+      allowForecastStart: true,
+      revealTargetEndSec: selectionSec,
+      activateProjectionReplacementTransition: true,
+    });
     setWorldViewMode("vassalLife");
   } else if (result.reason === "selectionPoolMismatch") {
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
@@ -1714,6 +1747,7 @@ function publishSettlementDebugApi() {
     getVassalSelectionPool: () => settlementPendingVassalSelection,
     isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
     getLifeMapNodeClickPoint: (nodeId) => vassalLifeMapView?.getNodeClickPoint?.(nodeId) ?? null,
+    getLifeMapEnterNodeClickPoint: () => vassalLifeMapView?.getEnterNodeClickPoint?.() ?? null,
     getLifeMapOptionClickPoint: (index) => vassalLifeMapView?.getOptionClickPoint?.(index) ?? null,
     getLifeMapOfferClickPoint: (index) => vassalLifeMapView?.getOfferClickPoint?.(index) ?? null,
     getLifeMapConfirmClickPoint: () => vassalLifeMapView?.getConfirmClickPoint?.() ?? null,

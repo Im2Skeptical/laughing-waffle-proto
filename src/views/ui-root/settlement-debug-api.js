@@ -110,6 +110,7 @@ export function publishSettlementDebugApi({
   getVassalRerollClickPoint,
   getVassalCloseClickPoint,
   getLifeMapNodeClickPoint,
+  getLifeMapEnterNodeClickPoint,
   getLifeMapOptionClickPoint,
   getLifeMapOfferClickPoint,
   getLifeMapConfirmClickPoint,
@@ -195,6 +196,7 @@ export function publishSettlementDebugApi({
     getVassalRerollClickPoint: () => getVassalRerollClickPoint?.() ?? null,
     getVassalCloseClickPoint: () => getVassalCloseClickPoint?.() ?? null,
     getLifeMapNodeClickPoint: (nodeId) => getLifeMapNodeClickPoint?.(nodeId) ?? null,
+    getLifeMapEnterNodeClickPoint: () => getLifeMapEnterNodeClickPoint?.() ?? null,
     getLifeMapOptionClickPoint: (index = 0) =>
       getLifeMapOptionClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     getLifeMapOfferClickPoint: (index = 0) =>

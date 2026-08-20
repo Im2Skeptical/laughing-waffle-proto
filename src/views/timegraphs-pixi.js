@@ -629,6 +629,7 @@ export function createMetricGraphView({
   let forecastRevealTargetEndSec = 0;
   let forecastRevealLastTickMs = 0;
   let forecastRevealHistoryEndSec = 0;
+  let forecastRevealCapEndSec = null;
   let forecastRevealVisibleEndSec = 0;
   let forecastRevealDelayUntilMs = 0;
   let forecastRevealStartSecOverride = null;
@@ -680,6 +681,7 @@ export function createMetricGraphView({
       ? getActiveForecastPreviewSec()
       : null;
     forecastRevealPreviewLastRefreshMs = 0;
+    forecastRevealCapEndSec = null;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
@@ -969,6 +971,7 @@ export function createMetricGraphView({
       historyEnd,
       Math.min(targetEnd, Number(currentEndSec ?? historyEnd))
     );
+    if (Number.isFinite(forecastRevealCapEndSec)) return targetEnd;
     const configuredGapSec = Math.max(
       0,
       Number(forecastRevealFollowGapSecCur ?? 0)
@@ -1418,6 +1421,16 @@ export function createMetricGraphView({
       0,
       Math.min(Math.floor(startSec ?? actualHistoryEndSec), maxRestartSec)
     );
+    const requestedRevealEndSec = Number.isFinite(opts?.revealTargetEndSec)
+      ? Math.max(normalizedStartSec, Math.floor(opts.revealTargetEndSec))
+      : actualForecastCoverageEndSec;
+    forecastRevealCapEndSec = Number.isFinite(opts?.revealTargetEndSec)
+      ? requestedRevealEndSec
+      : null;
+    const revealTargetEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.min(actualForecastCoverageEndSec, requestedRevealEndSec)
+    );
     forecastRevealStartSecOverride =
       normalizedStartSec <= actualForecastCoverageEndSec ? normalizedStartSec : null;
     const nowMs = performance.now();
@@ -1437,7 +1450,7 @@ export function createMetricGraphView({
     }
     resetForecastReveal(
       Math.max(displayHistoryEndSec, normalizedStartSec),
-      actualForecastCoverageEndSec,
+      revealTargetEndSec,
       displayHistoryEndSec,
       nowMs
     );
@@ -1544,10 +1557,16 @@ export function createMetricGraphView({
       0,
       Math.floor(forecastRevealHistoryEndSec ?? 0)
     );
-    const actualEnd = Math.max(
+    const uncappedActualEnd = Math.max(
       historyEnd,
       Math.floor(actualCoverageEndSec ?? historyEnd)
     );
+    const actualEnd = Number.isFinite(forecastRevealCapEndSec)
+      ? Math.max(
+          historyEnd,
+          Math.min(uncappedActualEnd, Math.floor(forecastRevealCapEndSec))
+        )
+      : uncappedActualEnd;
     const targetEnd = Math.max(
       historyEnd,
       Math.floor(forecastRevealTargetEndSec ?? historyEnd)
@@ -3214,6 +3233,7 @@ export function createMetricGraphView({
     forecastRevealPlayheadFollowEnabled = true;
     forecastRevealPreviewSec = null;
     forecastRevealPreviewLastRefreshMs = 0;
+    forecastRevealCapEndSec = null;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
@@ -3242,6 +3262,7 @@ export function createMetricGraphView({
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
+    forecastRevealCapEndSec = null;
     clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
     animatedMinSec = null;
