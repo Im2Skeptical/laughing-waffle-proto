@@ -572,7 +572,7 @@ try {
   await page.waitForFunction(
     (targetSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().frontierSec >= targetSec,
     resolutionSec,
-    { timeout: 12000 }
+    { timeout: 6000 }
   );
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const committedVassalHistory = await page.evaluate(
