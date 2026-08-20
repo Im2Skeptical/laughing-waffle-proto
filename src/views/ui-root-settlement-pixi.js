@@ -705,6 +705,20 @@ function syncSettlementGraphHorizon() {
   settlementForecastController?.syncHorizon?.();
 }
 
+function revealCivilizationAfterVassalDeath(vassalId, state = getSettlementFrontierState()) {
+  const endedVassal = state?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
+  if (
+    !vassalId ||
+    state?.civilization?.vassalLineage?.currentVassalId != null ||
+    endedVassal?.endedReason !== "died"
+  ) return false;
+  syncSettlementGraphHorizon();
+  settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
+    allowForecastStart: true,
+  });
+  return true;
+}
+
 function processSettlementPendingCommit() {
   const beforeState = getSettlementFrontierState();
   const beforeVassalId = beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
@@ -714,13 +728,7 @@ function processSettlementPendingCommit() {
   });
   if (!beforeVassalId) return;
   const afterState = getSettlementFrontierState();
-  const endedVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[beforeVassalId] ?? null;
-  if (afterState?.civilization?.vassalLineage?.currentVassalId == null && endedVassal?.endedReason === "died") {
-    syncSettlementGraphHorizon();
-    settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
-      allowForecastStart: true,
-    });
-  }
+  revealCivilizationAfterVassalDeath(beforeVassalId, afterState);
 }
 
 function syncSettlementVassalSelectionPauseState() {
@@ -781,14 +789,16 @@ function openLifeMapVassalSelection() {
 
 function dispatchLifeMapAction(kind, payload = {}) {
   requestPauseBeforeDrag();
+  const activeVassalId = getCurrentLifeMapVassal(getSettlementFrontierState())?.vassalId ?? null;
   const result = runner.dispatchActionAtCurrentSecond?.(kind, payload, {
     reason: `vassalLife:${kind}`,
   }) ?? { ok: false, reason: "dispatchFailed" };
   if (!result.ok) return result;
   invalidateSettlementProjectedLossCache();
   const state = getSettlementFrontierState();
+  const diedImmediately = revealCivilizationAfterVassalDeath(activeVassalId, state);
   const pending = getVassalPendingResolution(state);
-  if (pending?.resolveSec > getSettlementFrontierSec()) {
+  if (!diedImmediately && pending?.resolveSec > getSettlementFrontierSec()) {
     settlementForecastController?.schedulePendingCommit?.(
       getSettlementFrontierSec(),
       getCurrentLifeMapVassal(state)
