@@ -17,14 +17,38 @@ export const VASSAL_LIFE_MAP_DEPTH_COUNT = FAMILY_LAYOUT.length;
 export const VASSAL_LIFE_MAP_LANE_COUNT = 4;
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
-  patronage: Object.freeze({ id: "patronage", label: "Patronage", glyph: "P" }),
-  development: Object.freeze({ id: "development", label: "Development", glyph: "D" }),
-  travel: Object.freeze({ id: "travel", label: "Travel", glyph: "T" }),
-  practiceReform: Object.freeze({ id: "practiceReform", label: "Practice Reform", glyph: "PR" }),
-  publicWorks: Object.freeze({ id: "publicWorks", label: "Public Works", glyph: "PW" }),
-  routes: Object.freeze({ id: "routes", label: "Routes", glyph: "R" }),
-  crisis: Object.freeze({ id: "crisis", label: "Crisis", glyph: "!" }),
-  legacy: Object.freeze({ id: "legacy", label: "Legacy", glyph: "L" }),
+  patronage: Object.freeze({
+    id: "patronage", label: "Patronage", glyph: "P", color: 0xb88449,
+    description: "Opportunities to gain Prestige.",
+  }),
+  development: Object.freeze({
+    id: "development", label: "Development", glyph: "D", color: 0x5e9bcf,
+    description: "Study to improve this Vassal's abilities.",
+  }),
+  travel: Object.freeze({
+    id: "travel", label: "Travel", glyph: "T", color: 0x62ad82,
+    description: "Move this Vassal to another player settlement.",
+  }),
+  practiceReform: Object.freeze({
+    id: "practiceReform", label: "Practice Reform", glyph: "PR", color: 0xa46fc4,
+    description: "Add or replace a Practice at this Vassal's current settlement.",
+  }),
+  publicWorks: Object.freeze({
+    id: "publicWorks", label: "Public Works", glyph: "PW", color: 0xd17e68,
+    description: "Build a Structure at this Vassal's current settlement.",
+  }),
+  routes: Object.freeze({
+    id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
+    description: "Add or remove a world connection at this Vassal's current settlement.",
+  }),
+  crisis: Object.freeze({
+    id: "crisis", label: "Crisis", glyph: "!", color: 0xca5b5b,
+    description: "Take a risky action with immediate consequences.",
+  }),
+  legacy: Object.freeze({
+    id: "legacy", label: "Legacy", glyph: "L", color: 0x8a86d1,
+    description: "Secure an advantage for future Vassal candidates.",
+  }),
 });
 
 function getBand(depth) {

@@ -20,6 +20,7 @@ const PANEL_RECT = Object.freeze({ x: 1722, y: 88, width: 654, height: 720 });
 const NODE_X_STEP = 142;
 const NODE_Y_STEP = 142;
 const NODE_RADIUS = 25;
+const DOUBLE_CLICK_WINDOW_MS = 360;
 
 function addButton(parent, rect, label, enabled, onClick, selected = false) {
   const root = new PIXI.Container();
@@ -43,7 +44,8 @@ function addButton(parent, rect, label, enabled, onClick, selected = false) {
     fill: enabled ? PALETTE.text : PALETTE.textMuted,
     wordWrap: true,
     wordWrapWidth: rect.width - 18,
-  }, 9, 8);
+    lineHeight: 18,
+  }, 9, 7);
   root.addChild(gfx, text);
   parent.addChild(root);
   return root;
@@ -56,12 +58,51 @@ function nodePoint(node) {
   };
 }
 
-function optionCostLabel(vassal, option) {
-  const prestigeBase = Math.max(0, option?.prestigeCost ?? 0);
-  const yearBase = Math.max(0, option?.yearCost ?? 0);
+function formatAdjustedCost(vassal, { prestigeCost = 0, yearCost = 0 } = {}) {
+  const prestigeBase = Math.max(0, prestigeCost);
+  const yearBase = Math.max(0, yearCost);
   const prestige = getAdjustedVassalPrestigeCost(vassal, prestigeBase);
   const years = getAdjustedVassalYearCost(vassal, yearBase);
-  return `${prestigeBase > 0 ? `${prestigeBase}→${prestige} Prestige · ` : ""}${yearBase}→${years} years`;
+  const costs = [];
+  if (prestigeBase > 0) {
+    costs.push(prestige === prestigeBase
+      ? `${prestige} Prestige`
+      : `${prestige} Prestige (base ${prestigeBase})`);
+  }
+  if (yearBase > 0) {
+    costs.push(years === yearBase
+      ? `${years} ${years === 1 ? "Year" : "Years"}`
+      : `${years} ${years === 1 ? "Year" : "Years"} (base ${yearBase})`);
+  }
+  return costs.length ? `Cost: ${costs.join(" · ")}` : "Cost: No time or Prestige";
+}
+
+function formatOptionEffect(option) {
+  const effects = [];
+  let hasNegativeEffect = false;
+  if (Number.isFinite(option?.prestigeDelta) && option.prestigeDelta !== 0) {
+    hasNegativeEffect ||= option.prestigeDelta < 0;
+    effects.push(`${option.prestigeDelta > 0 ? "+" : ""}${option.prestigeDelta} Prestige`);
+  }
+  if (option?.statId && Number.isFinite(option?.statDelta) && option.statDelta !== 0) {
+    hasNegativeEffect ||= option.statDelta < 0;
+    effects.push(`${option.statDelta > 0 ? "+" : ""}${option.statDelta} ${option.statId[0].toUpperCase()}${option.statId.slice(1)}`);
+  }
+  if (option?.locationRegionId) effects.push("Move to the target settlement");
+  if (option?.forcedRelocation) effects.push("Relocate to a safe player settlement");
+  if (Number.isFinite(option?.legacyStartingPrestigeBonus)) {
+    effects.push(`Future candidates: +${option.legacyStartingPrestigeBonus} starting Prestige`);
+  }
+  if (Number.isFinite(option?.immediateDeathChance)) {
+    effects.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
+  }
+  return effects.length
+    ? `${hasNegativeEffect ? "Effect" : "Gain"}: ${effects.join(" · ")}`
+    : "Effect: Apply this choice on resolution";
+}
+
+function getNode(nodeId) {
+  return VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nodeId) ?? null;
 }
 
 export function createVassalLifeMapView({
@@ -84,7 +125,24 @@ export function createVassalLifeMapView({
   let optionRoots = [];
   let offerRoots = [];
   let rerollRoot = null;
+  let enterNodeRoot = null;
   let confirmRoot = null;
+  let inspectedNodeId = null;
+  let lastNodeClick = { nodeId: null, atMs: 0 };
+
+  function inspectNode(nodeId, display) {
+    const nowMs = performance.now();
+    const doubleClicked = display.available &&
+      lastNodeClick.nodeId === nodeId &&
+      nowMs - lastNodeClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
+    lastNodeClick = { nodeId, atMs: nowMs };
+    inspectedNodeId = nodeId;
+    if (doubleClicked) {
+      onEnterNode?.(nodeId);
+      return;
+    }
+    render(true);
+  }
 
   function render(force = false) {
     const visible = isVisible?.() === true;
@@ -96,7 +154,9 @@ export function createVassalLifeMapView({
     }
     const state = getState?.();
     const vassal = getCurrentLifeMapVassal(state);
-    const nextSignature = JSON.stringify({ tSec: state?.tSec, vassal });
+    const activeNodeId = vassal?.lifeMap?.currentNodeId ?? null;
+    const effectiveInspectedNodeId = inspectedNodeId ?? activeNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
+    const nextSignature = JSON.stringify({ tSec: state?.tSec, vassal, effectiveInspectedNodeId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -104,6 +164,7 @@ export function createVassalLifeMapView({
     optionRoots = [];
     offerRoots = [];
     rerollRoot = null;
+    enterNodeRoot = null;
     confirmRoot = null;
     if (!vassal) return;
 
@@ -115,6 +176,9 @@ export function createVassalLifeMapView({
     root.addChild(bg);
     root.addChild(createText("VASSAL LIFE MAP", { ...TEXT_STYLES.header, fontSize: 22 },
       MAP_RECT.x + 22, MAP_RECT.y + 22));
+    root.addChild(createText("Click any node to inspect it. Double-click an available node to enter it.", {
+      ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted,
+    }, MAP_RECT.x + 250, MAP_RECT.y + 26));
     root.addChild(createText("EARLY", TEXT_STYLES.body, MAP_RECT.x + 40, MAP_RECT.y + 60));
     root.addChild(createText("MID", TEXT_STYLES.body, MAP_RECT.x + 478, MAP_RECT.y + 60));
     root.addChild(createText("LATE", TEXT_STYLES.body, MAP_RECT.x + 900, MAP_RECT.y + 60));
@@ -125,7 +189,7 @@ export function createVassalLifeMapView({
     for (const node of VASSAL_LIFE_MAP_NODES) {
       const from = nodePoint(node);
       for (const nextId of node.outgoingNodeIds) {
-        const nextNode = VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nextId);
+        const nextNode = getNode(nextId);
         if (!nextNode) continue;
         const to = nodePoint(nextNode);
         edges.moveTo(from.x, from.y);
@@ -137,21 +201,28 @@ export function createVassalLifeMapView({
     for (const node of VASSAL_LIFE_MAP_NODES) {
       const display = getVassalNodeDisplayState(state, node.id);
       const point = nodePoint(node);
+      const family = VASSAL_NODE_FAMILIES[node.family] ?? {};
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
-      nodeRoot.eventMode = display.available ? "static" : "none";
-      nodeRoot.cursor = display.available ? "pointer" : "default";
+      nodeRoot.eventMode = "static";
+      nodeRoot.cursor = "pointer";
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 8);
-      nodeRoot.on("pointerdown", () => display.available && onEnterNode?.(node.id));
+      nodeRoot.on("pointerdown", (event) => {
+        event?.stopPropagation?.();
+        inspectNode(node.id, display);
+      });
+      const selected = effectiveInspectedNodeId === node.id;
       const circle = new PIXI.Graphics();
-      const fill = display.current ? 0x8c6339
-        : display.completed ? 0x44613d
-          : display.available ? 0x76652f : 0x494641;
-      circle.lineStyle(display.current || display.available ? 4 : 2,
-        display.current ? 0xf2c86f : display.available ? PALETTE.accent : PALETTE.stroke, 1);
-      circle.beginFill(fill, 1).drawCircle(0, 0, NODE_RADIUS).endFill();
-      const glyph = createText(VASSAL_NODE_FAMILIES[node.family]?.glyph ?? "?", {
-        ...TEXT_STYLES.title, fontSize: node.family === "practiceReform" || node.family === "publicWorks" ? 12 : 16,
+      const fillAlpha = display.current || display.available ? 1 : display.completed ? 0.68 : 0.38;
+      circle.lineStyle(
+        selected || display.current || display.available ? 4 : 2,
+        selected ? 0xf4e7bd : display.current || display.available ? PALETTE.accent : PALETTE.stroke,
+        1
+      );
+      circle.beginFill(family.color ?? 0x494641, fillAlpha).drawCircle(0, 0, NODE_RADIUS).endFill();
+      const glyph = createText(family.glyph ?? "?", {
+        ...TEXT_STYLES.title,
+        fontSize: node.family === "practiceReform" || node.family === "publicWorks" ? 12 : 16,
       }, 0, 0, 0.5, 0.5);
       nodeRoot.addChild(circle, glyph);
       root.addChild(nodeRoot);
@@ -159,7 +230,7 @@ export function createVassalLifeMapView({
     }
     Object.values(VASSAL_NODE_FAMILIES).forEach((family, index) => {
       root.addChild(createText(`${family.glyph}  ${family.label}`, {
-        ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
+        ...TEXT_STYLES.body, fontSize: 14, fill: family.color ?? PALETTE.textMuted,
       }, MAP_RECT.x + 36 + index * 196, MAP_RECT.y + MAP_RECT.height - 38));
     });
 
@@ -179,62 +250,100 @@ export function createVassalLifeMapView({
     addButton(root, { x: PANEL_RECT.x + PANEL_RECT.width - 150, y: PANEL_RECT.y + 18, width: 126, height: 34 },
       "WORLD MAP", true, onReturnWorld);
 
+    const inspectedNode = getNode(effectiveInspectedNodeId);
+    const inspectedDisplay = inspectedNode ? getVassalNodeDisplayState(state, inspectedNode.id) : null;
+    const inspectedFamily = inspectedNode ? VASSAL_NODE_FAMILIES[inspectedNode.family] : null;
+    if (!inspectedNode || !inspectedFamily) return;
+
+    root.addChild(
+      createText(inspectedFamily.label, { ...TEXT_STYLES.header, fontSize: 19, fill: inspectedFamily.color }, px, PANEL_RECT.y + 250),
+      createText(inspectedFamily.description, {
+        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted, wordWrap: true,
+        wordWrapWidth: PANEL_RECT.width - 44, lineHeight: 19,
+      }, px, PANEL_RECT.y + 278)
+    );
+
     if (vassal.pendingDevelopmentChoices > 0) {
-      root.addChild(createText("CHOOSE DEVELOPMENT", { ...TEXT_STYLES.header, fontSize: 16 }, px, PANEL_RECT.y + 252));
+      root.addChild(createText("Spend your development choice before entering the next node.", {
+        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.accent, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 44,
+      }, px, PANEL_RECT.y + 332));
       ["cunning", "effectiveness", "intelligence"].forEach((statId, index) => {
-        addButton(root, { x: px, y: PANEL_RECT.y + 286 + index * 52, width: PANEL_RECT.width - 44, height: 42 },
-          `+1 ${statId}`, true, () => onChooseDevelopmentStat?.(statId));
+        addButton(root, { x: px, y: PANEL_RECT.y + 380 + index * 54, width: PANEL_RECT.width - 44, height: 44 },
+          `Gain: +1 ${statId[0].toUpperCase()}${statId.slice(1)}`, true, () => onChooseDevelopmentStat?.(statId));
       });
       return;
     }
 
-    const nodeId = vassal.lifeMap.currentNodeId;
-    const nodeState = nodeId ? vassal.lifeMap.nodeStates[nodeId] : null;
+    const nodeState = activeNodeId ? vassal.lifeMap.nodeStates[activeNodeId] : null;
     if (!nodeState) {
-      root.addChild(createText("Choose a highlighted node.", { ...TEXT_STYLES.title, fontSize: 17 }, px, PANEL_RECT.y + 266));
+      if (inspectedDisplay?.available) {
+        root.addChild(createText("This node is ready to enter. Its choices will be revealed once entered.", {
+          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 44,
+        }, px, PANEL_RECT.y + 340));
+        enterNodeRoot = addButton(root, { x: px, y: PANEL_RECT.y + 404, width: PANEL_RECT.width - 44, height: 50 },
+          `ENTER ${inspectedFamily.label.toUpperCase()} NODE`, true, () => onEnterNode?.(inspectedNode.id));
+      } else {
+        root.addChild(createText(inspectedDisplay?.completed
+          ? "Completed. Follow its outgoing paths through the map."
+          : "Locked. Complete a connected available node to unlock this path.", {
+          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 44,
+        }, px, PANEL_RECT.y + 340));
+      }
       return;
     }
-    root.addChild(createText(VASSAL_NODE_FAMILIES[nodeState.family]?.label ?? nodeState.family,
-      { ...TEXT_STYLES.header, fontSize: 18 }, px, PANEL_RECT.y + 250));
-    root.addChild(createText(`Accumulated node time: ${nodeState.accumulatedYearCost} years`,
-      { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, px, PANEL_RECT.y + 280));
+
+    if (inspectedNode.id !== activeNodeId) {
+      root.addChild(createText("Another node is active. Inspect it again to make its choices and resolve it.", {
+        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 44,
+      }, px, PANEL_RECT.y + 340));
+      return;
+    }
+
+    root.addChild(createText(`Time committed on confirmation: ${nodeState.accumulatedYearCost} ${nodeState.accumulatedYearCost === 1 ? "year" : "years"}`,
+      { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, px, PANEL_RECT.y + 332));
     if (nodeState.resolving) {
       const pending = vassal.lifeMap.pendingResolution;
       root.addChild(createText(
         `RESOLVING · advancing ${pending?.yearCost ?? 0} years`,
-        { ...TEXT_STYLES.header, fill: PALETTE.accent, fontSize: 18 }, px, PANEL_RECT.y + 330
+        { ...TEXT_STYLES.header, fill: PALETTE.accent, fontSize: 18 }, px, PANEL_RECT.y + 382
       ));
       return;
     }
 
-    let y = PANEL_RECT.y + 316;
-    if (nodeState.options.length) {
+    let y = PANEL_RECT.y + 364;
+    const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
+    if (!isShop && nodeState.options.length) {
       optionRoots = nodeState.options.map((option, index) => {
         const enabled = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0) <= vassal.prestige;
-        const button = addButton(root, { x: px, y: y + index * 70, width: PANEL_RECT.width - 44, height: 60 },
-          `${option.label}\n${optionCostLabel(vassal, option)}`, enabled,
-          () => onSelectOption?.(nodeId, option.id), nodeState.selectedOptionId === option.id);
-        return button;
+        return addButton(root, { x: px, y: y + index * 82, width: PANEL_RECT.width - 44, height: 74 },
+          `${option.label}\n${formatAdjustedCost(vassal, option)}\n${formatOptionEffect(option)}`, enabled,
+          () => onSelectOption?.(activeNodeId, option.id), nodeState.selectedOptionId === option.id);
       });
-      y += nodeState.options.length * 70 + 8;
-    } else {
+      y += nodeState.options.length * 82 + 6;
+    } else if (isShop) {
       offerRoots = nodeState.inventory.map((offer, index) => {
         const cost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-        const years = getAdjustedVassalYearCost(vassal, offer.baseYearCost);
-        return addButton(root, { x: px, y: y + index * 64, width: PANEL_RECT.width - 44, height: 54 },
-          `${offer.label} · ${offer.basePrestigeCost}→${cost} Prestige · ${offer.baseYearCost}→${years} years`,
-          cost <= vassal.prestige, () => onPurchaseOffer?.(nodeId, offer.offerId));
+        return addButton(root, { x: px, y: y + index * 76, width: PANEL_RECT.width - 44, height: 68 },
+          `${offer.label}\n${formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, yearCost: offer.baseYearCost })}\nEffect: Applied when this node resolves`,
+          cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
       });
-      y += nodeState.inventory.length * 64 + 6;
+      y += nodeState.inventory.length * 76 + 6;
       const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
-      rerollRoot = addButton(root, { x: px, y, width: PANEL_RECT.width - 44, height: 42 },
-        nodeState.rerollUsed ? "REROLL USED" : `REROLL · 6→${rerollCost} Prestige · 2→${getAdjustedVassalYearCost(vassal, 2)} years`,
-        !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(nodeId));
-      y += 50;
+      rerollRoot = addButton(root, { x: px, y, width: PANEL_RECT.width - 44, height: 52 },
+        nodeState.rerollUsed
+          ? "REROLL USED"
+          : `Reroll remaining offers\n${formatAdjustedCost(vassal, { prestigeCost: 6, yearCost: 2 })}`,
+        !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(activeNodeId));
+      y += 58;
+    } else {
+      root.addChild(createText("No choices are currently available for this node.", {
+        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
+      }, px, y));
+      y += 52;
     }
-    const canConfirm = nodeState.options.length === 0 || !!nodeState.selectedOptionId;
+    const canConfirm = isShop || !!nodeState.selectedOptionId;
     confirmRoot = addButton(root, { x: px, y: Math.min(PANEL_RECT.y + PANEL_RECT.height - 62, y), width: PANEL_RECT.width - 44, height: 48 },
-      "CONFIRM & RESOLVE NODE", canConfirm, () => onConfirmNode?.(nodeId));
+      "CONFIRM & RESOLVE NODE", canConfirm, () => onConfirmNode?.(activeNodeId));
   }
 
   return {
@@ -247,6 +356,8 @@ export function createVassalLifeMapView({
       const point = target?.toGlobal?.(new PIXI.Point(0, 0));
       return point ? { x: point.x, y: point.y } : null;
     },
+    getEnterNodeClickPoint: () => enterNodeRoot?.toGlobal
+      ? enterNodeRoot.toGlobal(new PIXI.Point(enterNodeRoot.hitArea.width / 2, enterNodeRoot.hitArea.height / 2)) : null,
     getOptionClickPoint(index = 0) {
       const target = optionRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));

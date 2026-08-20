@@ -128,12 +128,18 @@ bounded JSON state used for replay and phase tooltips.
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.
 - Candidate cards reveal age, settlement, Prestige, and four stats but keep the
-  Life Map hidden. Selection opens a dedicated full-topology Life Map screen;
-  only the active node reveals options or inventory. Confirmation locks map input
-  while its accumulated years auto-advance to the pending resolution boundary.
-- The World Map toggle allows settlement inspection. Timegraph Vassal markers
-  come only from persisted life events; no future inventory or mortality result
-  is exposed.
+  Life Map hidden. Selection opens a dedicated full-topology Life Map screen.
+  Every node can be inspected; its family description is shown in the right
+  panel, while only entering an available node reveals its persisted options or
+  inventory. Single click inspects, the panel button enters, and double-click
+  enters an available node. Family colors distinguish the node types.
+  Confirmation locks map input while its accumulated years auto-advance to the
+  pending resolution boundary.
+- Selecting a Vassal retains the prior timeline as a tinted comparison. Each
+  confirmed node unveils only through that node's pending resolution boundary;
+  after a Vassal dies, the new timeline can continue unveiling to civilization
+  extinction. Timegraph Vassal markers come only from persisted life events; no
+  future inventory or mortality result is exposed.
 - Fullscreen and Debug share a responsive utility rail that must remain clear
   of settlement navigation on mobile landscape.
 

@@ -777,7 +777,9 @@ export function createSettlementForecastController({
       historyEndSec,
       browseCapSec - clampSec(autoCommitBufferSec, 0)
     );
-    const desiredCommitSec = Math.min(finalTargetSec, bufferedRevealCommitCapSec);
+    const desiredCommitSec = browseCapSec >= finalTargetSec
+      ? finalTargetSec
+      : Math.min(finalTargetSec, bufferedRevealCommitCapSec);
     if (desiredCommitSec <= historyEndSec) {
       return;
     }
