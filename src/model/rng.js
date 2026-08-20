@@ -13,6 +13,19 @@ function _rngNextInt(state, min, max) {
   return a + Math.floor(_rngNextFloat(state) * (b - a + 1));
 }
 
+function _rngNextVassalFloat(state) {
+  let t = (state.rng.vassalSeed += 0x6d2b79f5);
+  t = Math.imul(t ^ (t >>> 15), 1 | t);
+  t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function _rngNextVassalInt(state, min, max) {
+  const a = Math.ceil(min);
+  const b = Math.floor(max);
+  return a + Math.floor(_rngNextVassalFloat(state) * (b - a + 1));
+}
+
 function _rngNextFloatSeed(seedState) {
   let t = (seedState.seed += 0x6d2b79f5);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
@@ -41,4 +54,6 @@ export function createRng(seed) {
 export function attachRngHelpers(state) {
   state.rngNextFloat = () => _rngNextFloat(state);
   state.rngNextInt = (min, max) => _rngNextInt(state, min, max);
+  state.rngNextVassalFloat = () => _rngNextVassalFloat(state);
+  state.rngNextVassalInt = (min, max) => _rngNextVassalInt(state, min, max);
 }

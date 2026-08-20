@@ -39,6 +39,7 @@ import {
   createAuthoredGameConfig,
   validateGameConfig,
 } from "./game-config.js";
+import { validateVassalLifeMapState } from "./vassal-life-map.js";
 
 const BOARD_COLS = 12;
 const BOARD_LAYERS = ["tile", "event", "envStructure"];
@@ -564,7 +565,7 @@ export function createEmptyState(
     pawns: [],
     passiveTimingRuntime: null,
   };
-  const rngOwner = { rng: { seed, baseSeed: seed } };
+  const rngOwner = { rng: { seed, baseSeed: seed, vassalSeed: (Math.floor(seed) ^ 0x56a55a19) | 0 } };
   attachRngHelpers(rngOwner);
   const world = createWorldState(
     worldDefinitionId,
@@ -574,7 +575,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 13,
+    gameStateSchemaVersion: 14,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -623,9 +624,11 @@ export function createEmptyState(
       },
       vassalLineage: {
         nextVassalId: 1,
-        currentVassal: null,
+        currentVassalId: null,
+        selectedVassalIds: [],
+        vassalsById: {},
         pendingCandidates: [],
-        selectedVassals: [],
+        candidateRerollCount: 0,
       },
     },
     nextHubStructureInstanceId: 1,
@@ -1156,6 +1159,8 @@ export function serializeGameState(state) {
 
   delete clean.rngNextFloat;
   delete clean.rngNextInt;
+  delete clean.rngNextVassalFloat;
+  delete clean.rngNextVassalInt;
   delete clean._boardDirty;
   delete clean._seasonChanged;
   for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
@@ -1185,8 +1190,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 13) {
-    throw new Error("Unsupported game-state schema: expected v13");
+  if (state?.gameStateSchemaVersion !== 14) {
+    throw new Error("Unsupported game-state schema: expected v14");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {
@@ -1198,7 +1203,12 @@ export function deserializeGameState(data) {
   if (!worldValidation.ok) {
     throw new Error(`Invalid serialized world state: ${worldValidation.errors.join("; ")}`);
   }
-  if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)) {
+  const vassalValidation = validateVassalLifeMapState(state);
+  if (!vassalValidation.ok) {
+    throw new Error(`Invalid serialized Vassal Life Map: ${vassalValidation.errors.join("; ")}`);
+  }
+  if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)
+      || !Number.isFinite(state.rng.vassalSeed)) {
     throw new Error("Invalid serialized RNG state");
   }
   attachRngHelpers(state);

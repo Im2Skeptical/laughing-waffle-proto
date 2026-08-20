@@ -6,10 +6,10 @@ import {
 } from "../model/perf.js";
 import {
   getSettlementCurrentVassal,
-  getSettlementFirstSelectedVassal,
-  getSettlementLatestSelectedVassalDeathSec,
+  getSettlementLatestSelectedVassalEndSec,
   getSettlementYearDurationSec,
 } from "../model/settlement-state.js";
+import { getVassalPendingResolution } from "../model/vassal-life-map.js";
 
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));
@@ -139,9 +139,7 @@ export function createSettlementForecastController({
     if (!pendingCommitJob) return null;
     const targetSec = Number.isFinite(pendingCommitJob?.targetSec)
       ? Math.max(historyEnd, Math.floor(pendingCommitJob.targetSec))
-      : Number.isFinite(pendingCommitJob?.deathSec)
-        ? Math.max(historyEnd, Math.floor(pendingCommitJob.deathSec))
-        : null;
+      : null;
     if (targetSec == null || targetSec <= historyEnd) return null;
     return targetSec;
   }
@@ -155,7 +153,7 @@ export function createSettlementForecastController({
       ? {
           ...pendingCommitJob,
           startSec: clampSec(pendingCommitJob.startSec, 0),
-          deathSec: clampSec(pendingCommitJob.deathSec, 0),
+          resolutionSec: clampSec(pendingCommitJob.resolutionSec, 0),
           targetSec: clampSec(pendingCommitJob.targetSec, 0),
         }
       : null;
@@ -163,17 +161,18 @@ export function createSettlementForecastController({
 
   function schedulePendingCommit(frontierSec, currentVassal) {
     const safeFrontierSec = clampSec(frontierSec, 0);
-    const deathSec = Number.isFinite(currentVassal?.deathSec)
-      ? Math.max(safeFrontierSec, Math.floor(currentVassal.deathSec))
+    const pendingResolution = currentVassal?.lifeMap?.pendingResolution ?? null;
+    const resolutionSec = Number.isFinite(pendingResolution?.resolveSec)
+      ? Math.max(safeFrontierSec, Math.floor(pendingResolution.resolveSec))
       : safeFrontierSec;
-    if (deathSec <= safeFrontierSec) {
+    if (resolutionSec <= safeFrontierSec) {
       clearPendingCommitJob();
       return null;
     }
     pendingCommitJob = {
       startSec: safeFrontierSec,
-      deathSec,
-      targetSec: deathSec,
+      resolutionSec,
+      targetSec: resolutionSec,
       lastCommitMs: Number.NEGATIVE_INFINITY,
       sourceVassalId:
         typeof currentVassal?.vassalId === "string" && currentVassal.vassalId.length > 0
@@ -545,26 +544,27 @@ export function createSettlementForecastController({
     };
   }
 
-  function getCurrentVassalDeathState(frontierState = getFrontierState?.()) {
+  function getCurrentVassalResolutionState(frontierState = getFrontierState?.()) {
     const currentVassal = getSettlementCurrentVassal(frontierState);
-    const deathSec = Number.isFinite(currentVassal?.deathSec)
-      ? Math.max(0, Math.floor(currentVassal.deathSec))
+    const pendingResolution = getVassalPendingResolution(frontierState);
+    const resolutionSec = Number.isFinite(pendingResolution?.resolveSec)
+      ? Math.max(0, Math.floor(pendingResolution.resolveSec))
       : null;
     const historyEndSec = clampSec(getFrontierSec?.(), 0);
     const computedCoverageEndSec = getComputedCoverageEndSec();
     const revealedCoverageEndSec = getBrowseCapSec();
-    const currentVassalDeathComputed =
-      deathSec != null &&
-      Math.max(historyEndSec, computedCoverageEndSec) >= deathSec;
-    const currentVassalDeathRevealed =
-      deathSec != null &&
-      Math.max(historyEndSec, revealedCoverageEndSec) >= deathSec;
+    const currentVassalResolutionComputed =
+      resolutionSec != null &&
+      Math.max(historyEndSec, computedCoverageEndSec) >= resolutionSec;
+    const currentVassalResolutionRevealed =
+      resolutionSec != null &&
+      Math.max(historyEndSec, revealedCoverageEndSec) >= resolutionSec;
     return {
       currentVassal,
-      currentVassalDeathSec: deathSec,
-      currentVassalDeathComputed,
-      currentVassalDeathRevealed,
-      currentVassalDeathResolved: currentVassalDeathRevealed,
+      currentVassalResolutionSec: resolutionSec,
+      currentVassalResolutionComputed,
+      currentVassalResolutionRevealed,
+      currentVassalResolutionResolved: currentVassalResolutionRevealed,
     };
   }
 
@@ -578,16 +578,12 @@ export function createSettlementForecastController({
     const pendingCommitTargetSec = getPendingCommitTargetSec(historyEndSec);
     const {
       currentVassal,
-      currentVassalDeathSec,
-      currentVassalDeathComputed,
-      currentVassalDeathRevealed,
-      currentVassalDeathResolved,
+      currentVassalResolutionSec,
+      currentVassalResolutionComputed,
+      currentVassalResolutionRevealed,
+      currentVassalResolutionResolved,
     } =
-      getCurrentVassalDeathState(frontierState);
-    const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
-    const nextVassalEnabled =
-      isRunComplete(frontierState) !== true &&
-      (hasSelectedVassal !== true || !currentVassal || currentVassalDeathResolved === true);
+      getCurrentVassalResolutionState(frontierState);
 
     recordSettlementForecastLag({
       computedToRevealedLagSec: Math.max(0, computedCoverageEndSec - revealedCoverageEndSec),
@@ -612,12 +608,12 @@ export function createSettlementForecastController({
         ? Math.max(1, Math.floor(projectedLossInfo.lossYear))
         : null,
       projectedLossResolved: projectedLossInfo?.resolved === true,
-      currentVassalDeathSec,
-      currentVassalDeathComputed,
-      currentVassalDeathRevealed,
-      currentVassalDeathResolved,
+      currentVassalResolutionSec,
+      currentVassalResolutionComputed,
+      currentVassalResolutionRevealed,
+      currentVassalResolutionResolved,
       pendingCommitTargetSec,
-      nextVassalEnabled,
+      nextVassalEnabled: isRunComplete(frontierState) !== true && !currentVassal,
     };
   }
 
@@ -627,11 +623,12 @@ export function createSettlementForecastController({
     const currentVassal = getSettlementCurrentVassal(currentState);
     if (!currentVassal) return committedSec;
     const visibleSec = Math.max(committedSec, getBrowseCapSec());
-    const deathSec = Number.isFinite(currentVassal?.deathSec)
-      ? Math.max(0, Math.floor(currentVassal.deathSec))
+    const pendingResolution = getVassalPendingResolution(currentState);
+    const resolutionSec = Number.isFinite(pendingResolution?.resolveSec)
+      ? Math.max(0, Math.floor(pendingResolution.resolveSec))
       : null;
-    if (deathSec == null) return visibleSec;
-    return Math.min(visibleSec, deathSec);
+    if (resolutionSec == null) return visibleSec;
+    return Math.min(visibleSec, resolutionSec);
   }
 
   function getRenderedHistoryEndSec({
@@ -653,22 +650,23 @@ export function createSettlementForecastController({
     if (!currentVassal) {
       return safeDisplayHistoryEndSec;
     }
-    const deathSec = Number.isFinite(currentVassal?.deathSec)
-      ? Math.max(0, Math.floor(currentVassal.deathSec))
+    const pendingResolution = getVassalPendingResolution(frontierState);
+    const resolutionSec = Number.isFinite(pendingResolution?.resolveSec)
+      ? Math.max(0, Math.floor(pendingResolution.resolveSec))
       : null;
-    if (deathSec == null) {
+    if (resolutionSec == null) {
       return safeRevealedCoverageEndSec;
     }
     return Math.max(
       safeDisplayHistoryEndSec,
-      Math.min(safeRevealedCoverageEndSec, deathSec)
+      Math.min(safeRevealedCoverageEndSec, resolutionSec)
     );
   }
 
   function syncHorizon() {
     const frontierState = getFrontierState?.() ?? null;
     const historyEndSec = clampSec(getFrontierSec?.(), 0);
-    const latestDeathSec = getSettlementLatestSelectedVassalDeathSec(frontierState);
+    const latestEndSec = getSettlementLatestSelectedVassalEndSec(frontierState);
     const forecastStatus = getForecastStatus();
     const displayedLossInfo = getDisplayedLossInfo();
     const displayedLossSec = Number.isFinite(displayedLossInfo?.lossSec)
@@ -679,21 +677,21 @@ export function createSettlementForecastController({
     if (forecastStatus.pendingCommitTargetSec != null) {
       requiredHorizonSec = Math.max(
         0,
-        latestDeathSec - historyEndSec,
+        latestEndSec - historyEndSec,
         forecastStatus.pendingCommitTargetSec - historyEndSec,
         forecastStatus.browseCapSec - historyEndSec
       );
     } else if (forecastStatus.projectedLossResolved === true) {
       requiredHorizonSec = Math.max(
         0,
-        latestDeathSec - historyEndSec,
+        latestEndSec - historyEndSec,
         clampSec(forecastStatus.projectedLossSec, historyEndSec) - historyEndSec
       );
     } else {
       const unresolvedBrowseLead = clampSec(unresolvedBrowseLeadSec, 0);
       requiredHorizonSec = Math.max(
         0,
-        latestDeathSec - historyEndSec,
+        latestEndSec - historyEndSec,
         displayedLossSec - historyEndSec,
         forecastStatus.browseCapSec - historyEndSec + unresolvedBrowseLead
       );
@@ -765,7 +763,7 @@ export function createSettlementForecastController({
     const finalTargetSec =
       pendingTargetSec != null
         ? pendingTargetSec
-        : Math.max(historyEndSec, clampSec(job?.deathSec, historyEndSec));
+        : Math.max(historyEndSec, clampSec(job?.resolutionSec, historyEndSec));
     job.targetSec = finalTargetSec;
 
     if (historyEndSec >= finalTargetSec) {

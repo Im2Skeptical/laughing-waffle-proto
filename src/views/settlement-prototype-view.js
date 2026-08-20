@@ -3,6 +3,7 @@ import {
   getDetailedVassalPrestige,
   getElderMortalityRate,
 } from "../model/detailed-settlements.js";
+import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import { getRegionDefinition } from "../model/world-state.js";
 import { getGameSetting } from "../model/game-config.js";
 import {
@@ -298,18 +299,15 @@ export function createSettlementPrototypeView({
         createText(`Local resistance: ${order.resistance}`,
           { ...TEXT_STYLES.header, fill: PALETTE.accent }, orderRect.x + 18, orderRect.y + 232)
       );
-      const vassal = state.civilization.vassalLineage.currentVassal;
-      if (vassal?.targetRegionId === regionId) {
+      const vassal = getCurrentLifeMapVassal(state);
+      if (vassal?.locationRegionId === regionId) {
         root.addChild(createText(
-          `Vassal prestige ${getDetailedVassalPrestige(state, vassal)} · target here`,
+          `Vassal age ${getVassalAge(state, vassal)} · Prestige ${getDetailedVassalPrestige(state, vassal)} · currently here`,
           TEXT_STYLES.title, orderRect.x + 18, orderRect.y + 286));
-        vassal.interventions.forEach((entry, index) => {
-          root.addChild(createText(
-            `${index + 1}. ${entry.practiceId} · ${entry.requiredPrestige} · ${entry.status}`,
-            TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 326 + index * 28));
-        });
+        root.addChild(createText("Elder resistance does not affect Life Map interventions.",
+          TEXT_STYLES.body, orderRect.x + 18, orderRect.y + 326));
       } else {
-        root.addChild(createText("No current vassal targets this Order.",
+        root.addChild(createText("No current Vassal is located here.",
           { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, orderRect.x + 18, orderRect.y + 286));
       }
       root.addChild(createText(

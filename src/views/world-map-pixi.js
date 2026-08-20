@@ -7,11 +7,11 @@ import {
   getWorldDefinition,
 } from "../model/world-state.js";
 import {
-  describeDetailedVassalIntervention,
   getDetailedCivilizationSummary,
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
 } from "../model/detailed-settlements.js";
+import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import { SETTLEMENT_RESOURCE_COLOURS } from "../model/graph-metrics.js";
 import {
   addCivilizationSurvivalStrip,
@@ -725,7 +725,7 @@ function signature(
     survivalTracker,
     regionMapIndicators,
     vassalHighlight,
-    vassal: state?.civilization?.vassalLineage?.currentVassal ?? null,
+    vassal: getCurrentLifeMapVassal(state),
     sites: state?.world?.sites?.map((site) => ({
       regionId: site.regionId,
       food: [site.detailedState?.storedFood, site.detailedState?.looseFood],
@@ -1346,17 +1346,15 @@ export function createWorldMapView({
           height: 44,
         }, slot, index);
       });
-      const activeVassal = state.civilization?.vassalLineage?.currentVassal;
+      const activeVassal = getCurrentLifeMapVassal(state);
       if (activeVassal) {
-        const targetRef = getRegionReference(state, activeVassal.targetRegionId) ?? activeVassal.targetRegionId;
+        const targetRef = getRegionReference(state, activeVassal.locationRegionId) ?? activeVassal.locationRegionId;
         root.addChild(createText(
-          `ACTIVE VASSAL · Target ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)} · dies Year ${activeVassal.deathYear}`,
+          `ACTIVE VASSAL · Age ${getVassalAge(state, activeVassal)} · ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)}`,
           { ...TEXT_STYLES.title, fontSize: 14, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));
-        activeVassal.interventions.forEach((entry, index) => root.addChild(createText(
-          `${index + 1}. ${describeDetailedVassalIntervention(state, activeVassal.targetRegionId, entry)} · ${entry.status}`,
-          { ...TEXT_STYLES.body, fontSize: 12, fill: entry.status === "applied" ? PALETTE.accent : PALETTE.text },
-          DETAIL_RECT.x + 30, DETAIL_RECT.y + 438 + index * 20
-        )));
+        root.addChild(createText("Open Life Map to continue this Vassal's path.",
+          { ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.text },
+          DETAIL_RECT.x + 30, DETAIL_RECT.y + 438));
       } else {
         root.addChild(createText("No active Vassal.", { ...TEXT_STYLES.body, fill: PALETTE.textMuted },
           DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));

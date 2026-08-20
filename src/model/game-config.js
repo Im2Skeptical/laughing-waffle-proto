@@ -3,7 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 7;
+export const GAME_CONFIG_SCHEMA_VERSION = 8;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -131,18 +131,11 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "order",
-    label: "Elder Order and vassals",
-    description: "Annual Elder Order and vassal rules resolve at their next thematically matching lunar phase.",
+    label: "Elder Order",
+    description: "Elder cohort simulation remains independent of the Vassal Life Map.",
     fields: Object.freeze([
       field("elderPrestigeBaseAge", "Elder prestige base age", 44, 0, 200, 1, true),
       field("resistancePerAdditionalElder", "Resistance per additional elder", 2, 0, 10000, 1, true),
-      field("vassalStartingAgeMin", "Generated vassal starting age minimum", 6, 0, 200, 1, true),
-      field("vassalStartingAgeMax", "Generated vassal starting age maximum", 12, 0, 200, 1, true),
-      field("vassalDeathAgeMin", "Generated vassal death age minimum", 65, 1, 250, 1, true),
-      field("vassalDeathAgeMax", "Generated vassal death age maximum", 85, 1, 250, 1, true),
-      field("interventionRequirement01", "Intervention 1 resistance offset", 10, 0, 10000, 1, true),
-      field("interventionRequirement02", "Intervention 2 resistance offset", 20, 0, 10000, 1, true),
-      field("interventionRequirement03", "Intervention 3 resistance offset", 30, 0, 10000, 1, true),
     ]),
   }),
 ]);
@@ -212,12 +205,6 @@ export function validateGameSettingsDraft(value) {
     if (entry.integer && !Number.isInteger(current)) {
       errors.push(`${entry.id}: expected an integer`);
     }
-  }
-  if (value.values.vassalStartingAgeMin > value.values.vassalStartingAgeMax) {
-    errors.push("vassalStartingAgeMin: must not exceed maximum");
-  }
-  if (value.values.vassalDeathAgeMin > value.values.vassalDeathAgeMax) {
-    errors.push("vassalDeathAgeMin: must not exceed maximum");
   }
   return { ok: errors.length === 0, errors };
 }

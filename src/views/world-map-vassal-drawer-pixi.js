@@ -1,4 +1,3 @@
-import { describeDetailedVassalIntervention } from "../model/detailed-settlements.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -22,23 +21,20 @@ function candidateCard(parent, rect, state, candidate, { onSelect, onHover }) {
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 10, 0x4d4740, PALETTE.accent, 2);
   root.addChild(gfx);
-  const targetRef = getRegionReference(state, candidate.targetRegionId) ?? candidate.targetRegionId;
-  const lifespan = `Age ${candidate.initialAge} → ${candidate.deathAge} · ${Math.max(1, candidate.deathAge - candidate.initialAge)} years`;
+  const locationRef = getRegionReference(state, candidate.locationRegionId) ?? candidate.locationRegionId;
+  const stats = candidate.stats ?? {};
   root.addChild(
-    createText(`VASSAL ${candidate.candidateIndex + 1} · Target: ${targetRef} Settlement`,
+    createText(`VASSAL ${candidate.candidateIndex + 1} · ${locationRef}`,
       { ...TEXT_STYLES.title, fontSize: 17 }, 16, 14),
-    createText(lifespan, { ...TEXT_STYLES.body, fontSize: 13 }, 16, 42),
-    createText(`Resistance ${candidate.resistanceSnapshot} · ${candidate.traitId} ${candidate.traitPrestigeModifier >= 0 ? "+" : ""}${candidate.traitPrestigeModifier}`,
-      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted }, 16, 64)
+    createText(`Age ${candidate.age} · Prestige ${candidate.prestige}`,
+      { ...TEXT_STYLES.body, fontSize: 14 }, 16, 44),
+    createText(`Cunning ${stats.cunning ?? 0} · Wisdom ${stats.wisdom ?? 0}`,
+      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted }, 16, 74),
+    createText(`Effectiveness ${stats.effectiveness ?? 0} · Intelligence ${stats.intelligence ?? 0}`,
+      { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted }, 16, 100),
+    createText("Life map hidden until selection",
+      { ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.accent }, 16, 132)
   );
-  (candidate.interventions ?? []).forEach((entry, index) => {
-    root.addChild(createText(
-      `${index + 1}. ${describeDetailedVassalIntervention(state, candidate.targetRegionId, entry)} · gate ${entry.requiredPrestige}`,
-      { ...TEXT_STYLES.body, fontSize: 13, fill: index === 0 ? PALETTE.accent : PALETTE.text },
-      16,
-      94 + index * 25
-    ));
-  });
   parent.addChild(root);
   return root;
 }

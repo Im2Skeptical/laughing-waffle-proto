@@ -7,6 +7,7 @@ const SUPPORTED_ENTRY_POINTS = Object.freeze([
   { path: "src/controllers/timegraph-forecast-worker.js", platform: "browser" },
   { path: "src/model/tests/world-state.js", platform: "node" },
   { path: "src/model/tests/detailed-settlements.js", platform: "node" },
+  { path: "src/model/tests/vassal-life-map.js", platform: "node" },
   { path: "src/model/tests/debug-game-config.js", platform: "node" },
   { path: "src/model/tests/map-lab-draft.js", platform: "node" },
   { path: "src/model/tests/detailed-replay.js", platform: "node" },

@@ -37,6 +37,12 @@ import {
   getMoonPhaseAtSecond,
   getNextMoonPhaseBoundarySec,
 } from "./moon-phases.js";
+import {
+  getVassalAge,
+  getVassalCandidatePool,
+  initializeVassalLifeMapCivilization,
+  stepVassalLifeMapSecond,
+} from "./vassal-life-map.js";
 
 const FOOD_SCALE = 10000;
 const FAITH_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
@@ -809,15 +815,11 @@ function tryCreateStructure(state, regionId, structureId) {
 }
 
 function markCompletedBuildInterventionResolved(state, regionId, practiceId) {
-  const vassal = state?.civilization?.vassalLineage?.currentVassal;
-  if (!vassal || vassal.targetRegionId !== regionId) return;
-  const intervention = vassal.interventions.find(
-    (entry) => entry.practiceId === practiceId && entry.status === "applied"
-  );
-  if (intervention) {
-    intervention.status = "resolved";
-    intervention.resolvedYear = state.year;
-  }
+  // Life-map purchases are complete when the Practice is installed. A later
+  // build-Practice completion no longer mutates a Vassal agenda.
+  void state;
+  void regionId;
+  void practiceId;
 }
 
 function practiceMatchesActivation(state, def, activationType, stage = null) {
@@ -1965,7 +1967,6 @@ function runFaithPhase(state, phase) {
     turn.regions[site.regionId].faith = { tSec: state.tSec, byClass };
   }
   runGlobalChaos(state);
-  runVassalAnnualBoundary(state);
 }
 
 function buildMoonMigrationSummary(result, regionId) {
@@ -2469,21 +2470,9 @@ function generateDetailedVassalCandidatesFromRngSnapshot(state, rerollIndex = 0)
 }
 
 export function buildDetailedVassalSelectionPool(state, rerollIndex = 0) {
-  if (!state || state.civilization?.vassalLineage?.currentVassal) return null;
-  const safeRerollIndex = Number.isFinite(rerollIndex)
-    ? Math.max(0, Math.min(999, Math.floor(rerollIndex)))
-    : 0;
-  const candidates = generateDetailedVassalCandidatesFromRngSnapshot(state, safeRerollIndex).map((candidate, index) => ({
-    ...candidate,
-    candidateIndex: index,
-  }));
-  return {
-    poolId: `detailed-vassal-${state.civilization.vassalLineage.nextVassalId}-reroll-${safeRerollIndex}`,
-    createdSec: state.tSec,
-    rerollIndex: safeRerollIndex,
-    candidates,
-    expectedPoolHash: candidatePoolHash(candidates.map(({ candidateIndex, ...candidate }) => candidate)),
-  };
+  void rerollIndex;
+  if (!state || state.civilization?.vassalLineage?.currentVassalId) return null;
+  return getVassalCandidatePool(state);
 }
 
 export function getDetailedVassalDebugOptions(state) {
@@ -2492,12 +2481,6 @@ export function getDetailedVassalDebugOptions(state) {
       id: site.regionId,
       label: site.name ?? site.regionId,
     })),
-    traits: TRAITS.map((entry) => ({ ...entry })),
-    professions: PROFESSIONS.map((id) => ({ id, label: id })),
-    interventionPracticeIds: VASSAL_INTERVENTION_PRACTICE_IDS.filter(
-      (id) => !!getDetailedPracticeDef(state, id)
-    ),
-    interventionStructureIds: Object.keys(settlementStructureDefs),
   };
 }
 
@@ -2641,75 +2624,28 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
 export function buildDetailedDebugVassalCandidate(state, rawSpec = {}, candidateIndex = 0) {
   const lineage = state?.civilization?.vassalLineage;
   if (!lineage) return { ok: false, reason: "noLineage" };
-  const targetRegionId =
-    typeof rawSpec.targetRegionId === "string" ? rawSpec.targetRegionId : null;
+  const locationRegionId = typeof rawSpec.locationRegionId === "string"
+    ? rawSpec.locationRegionId : null;
   if (!getDetailedVassalDebugOptions(state).targetRegions.some(
-    (entry) => entry.id === targetRegionId
+    (entry) => entry.id === locationRegionId
   )) {
-    return { ok: false, reason: "invalidTargetRegion" };
+    return { ok: false, reason: "invalidLocationRegion" };
   }
-  const initialAge = Number.isFinite(rawSpec.initialAge)
-    ? Math.max(0, Math.floor(rawSpec.initialAge))
-    : getGameSetting(state, "vassalStartingAgeMin");
-  const deathAge = Number.isFinite(rawSpec.deathAge)
-    ? Math.max(initialAge + 1, Math.floor(rawSpec.deathAge))
-    : Math.max(initialAge + 1, getGameSetting(state, "vassalDeathAgeMin"));
-  const options = getDetailedVassalDebugOptions(state);
-  const trait = options.traits.find((entry) => entry.id === rawSpec.traitId)
-    ?? options.traits[0];
-  const traitPrestigeModifier = Number.isFinite(rawSpec.traitPrestigeModifier)
-    ? Number(rawSpec.traitPrestigeModifier)
-    : trait?.prestigeDelta ?? 0;
-  const professionId = options.professions.some((entry) => entry.id === rawSpec.professionId)
-    ? rawSpec.professionId
-    : options.professions[0]?.id ?? null;
-  const rawInterventions = Array.isArray(rawSpec.interventions)
-    ? rawSpec.interventions
-    : (Array.isArray(rawSpec.interventionPracticeIds)
-      ? rawSpec.interventionPracticeIds
-      : options.interventionPracticeIds.slice(0, 3));
-  if (rawInterventions.length !== 3) {
-    return { ok: false, reason: "invalidInterventions" };
-  }
-  const reservation = createDebugInterventionReservation(state, targetRegionId);
-  const interventions = rawInterventions.map((entry) =>
-    normalizeDebugIntervention(state, targetRegionId, entry, reservation)
-  );
-  if (interventions.some((entry) => !entry)) return { ok: false, reason: "invalidInterventions" };
-  const resistanceSnapshot = Number.isFinite(rawSpec.resistanceSnapshot)
-    ? Math.max(0, Math.floor(rawSpec.resistanceSnapshot))
-    : getElderOrderSummary(state, targetRegionId).resistance;
-  const defaultOffsets = [
-    getGameSetting(state, "interventionRequirement01"),
-    getGameSetting(state, "interventionRequirement02"),
-    getGameSetting(state, "interventionRequirement03"),
-  ];
-  const requiredPrestige = interventions.map((_, index) =>
-    Number.isFinite(rawSpec.requiredPrestige?.[index])
-      ? Math.max(0, Math.floor(rawSpec.requiredPrestige[index]))
-      : Number.isFinite(rawInterventions[index]?.requiredPrestige)
-        ? Math.max(0, Math.floor(rawInterventions[index].requiredPrestige))
-      : resistanceSnapshot + defaultOffsets[index]
-  );
-
+  const read = (key, fallback) => Number.isFinite(rawSpec[key])
+    ? Math.max(0, Math.floor(rawSpec[key])) : fallback;
   return {
     ok: true,
     candidate: {
       candidateId: `debug-candidate-${lineage.nextVassalId}-${Math.max(1, Math.floor(candidateIndex) + 1)}`,
-      targetRegionId,
-      resistanceSnapshot,
-      initialAge,
-      deathAge,
-      traitId: trait?.id ?? "debug",
-      traitPrestigeModifier,
-      professionId,
-      interventions: interventions.map((entry, index) => ({
-        ...entry,
-        requiredPrestige: requiredPrestige[index],
-        status: "pending",
-        appliedYear: null,
-        appliedSec: null,
-      })),
+      locationRegionId,
+      age: read("age", 22),
+      prestige: read("prestige", 11),
+      stats: {
+        cunning: read("cunning", 1),
+        wisdom: read("wisdom", 1),
+        effectiveness: read("effectiveness", 1),
+        intelligence: read("intelligence", 1),
+      },
       debugInjected: true,
     },
   };
@@ -2839,10 +2775,10 @@ export function getDetailedVassalCandidateSchedule(state, candidate) {
 }
 
 export function getDetailedVassalPrestige(state, vassal = null) {
-  const current = vassal ?? state?.civilization?.vassalLineage?.currentVassal;
-  if (!current) return 0;
-  const age = current.initialAge + Math.max(0, state.year - current.selectedYear);
-  return age + current.traitPrestigeModifier;
+  const current = vassal ?? state?.civilization?.vassalLineage?.vassalsById?.[
+    state?.civilization?.vassalLineage?.currentVassalId
+  ];
+  return current ? Math.max(0, Math.floor(current.prestige ?? 0)) : 0;
 }
 
 function createExpansionDetailedState(structureCapacity) {
@@ -3079,7 +3015,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 13;
+  state.gameStateSchemaVersion = 14;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -3105,12 +3041,7 @@ export function initializeDetailedSettlementCivilization(state) {
     },
   };
   refreshGreenAscendancy(state);
-  state.civilization.vassalLineage = {
-    nextVassalId: 1,
-    currentVassal: null,
-    pendingCandidates: [],
-    selectedVassals: [],
-  };
+  initializeVassalLifeMapCivilization(state);
   state.civilization.currentMoonTurn = null;
   state.civilization.lastMoonTurn = null;
   state.civilization.lastPopulationAgingYear = 1;
@@ -3124,13 +3055,15 @@ export function stepDetailedSettlementsSecond(state, tSec) {
   }
   if (state._seasonChanged === true) runPracticeActivation(state, "season");
   const phase = getMoonPhaseAtSecond(state, tSec);
-  if (!phase.boundary) return;
-  if (phase.id === "birth") runBirthPhase(state, phase);
-  else if (phase.id === "food") runFoodPhase(state, phase);
-  else if (phase.id === "housing") runHousingPhase(state, phase);
-  else if (phase.id === "faith") runFaithPhase(state, phase);
-  else if (phase.id === "migration") runMigrationPhase(state, phase);
-  else if (phase.id === "death") runDeathPhase(state, phase);
+  if (phase.boundary) {
+    if (phase.id === "birth") runBirthPhase(state, phase);
+    else if (phase.id === "food") runFoodPhase(state, phase);
+    else if (phase.id === "housing") runHousingPhase(state, phase);
+    else if (phase.id === "faith") runFaithPhase(state, phase);
+    else if (phase.id === "migration") runMigrationPhase(state, phase);
+    else if (phase.id === "death") runDeathPhase(state, phase);
+  }
+  if (state?.runStatus?.complete !== true) stepVassalLifeMapSecond(state, tSec);
 }
 
 export function getDetailedSettlementViewModel(state, regionId) {

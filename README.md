@@ -11,9 +11,12 @@ Order. Administration is the only way to move food between sites. Preservation
 extends its reach from adjacent sites to detailed settlements connected by a
 fully player-controlled path.
 
-The single civilization-wide vassal lineage targets a local settlement with
-three deterministic interventions. Chaos and loss are global; population,
-food, practices, buildings, happiness, and faith are site-local.
+The single civilization-wide Vassal lineage routes through a visible 44-node
+Life Map. Nodes provide Patronage, Development, Travel, local intervention
+shops, Crisis, and Legacy opportunities. Choices spend Vassal Prestige and
+years; each explicitly confirmed node pays recurring income once and then
+checks age-based mortality once. Chaos and loss are global; population, food,
+practices, buildings, happiness, and faith are site-local.
 
 The shared HUD shows the viewed civilization year, projected survival year,
 and the best survival year observed across rewinds and saved sessions. A
@@ -42,12 +45,12 @@ so the calendar, season/moon wheel, map workers, and other stateful HUD details
 advance with it while committed history stays unchanged. The preview refresh is
 rate-limited for responsive map input. Manual scrubbing takes control
 immediately.
-Choosing a vassal focuses the target settlement, preserves the prior local
-forecast for comparison, progressively commits the deterministic lifespan, and
-distinguishes fixed history from editable history and forecast. The blocking
+Choosing a Vassal reveals the Life Map but not future node inventory. Confirming
+a node progressively commits its accumulated years through normal simulation
+ticks, then pauses for the mortality result and next decision. The blocking
 chooser suspends automatic forecast preview until a candidate is selected.
 
-Game state and runner saves are schema v7. Each run serializes the exact game
+Game state is schema v14 and runner saves are schema v8. Each run serializes the exact game
 settings and detailed gamepiece tuning used by deterministic replay. Old saves are intentionally
 unsupported.
 
@@ -59,12 +62,12 @@ presets plus JSON import/export. Starting a fresh test run combines the current
 map, settings, and gamepiece drafts.
 
 Game Settings covers active map-driven timing, worker policy, food consumption
-and decay, demographics, elder mortality, happiness/starvation/housing,
-civilization chaos/loss, Elder Order resistance, and vassal generation.
+and decay, demographics, elder mortality, happiness/starvation/housing, and
+civilization chaos/loss.
 Gamepieces dynamically lists every detailed structure and practice, exposing
 numeric structure scaling, worker capacity, charge, and declarative effect
-parameters. Vassal Lab records a fully specified target, lifespan, trait,
-profession, and ordered interventions as a deterministic timeline action
+parameters. Vassal Lab records a fully specified settlement, age, Prestige,
+and four stats as a deterministic timeline action
 without consuming RNG.
 
 ## Run and verify
@@ -89,7 +92,7 @@ npm run probe:map-lab
 
 `npm run build` writes generated output to `dist/`.
 
-## Map Lab v2
+## Map Lab v4
 
 Open **Debug -> Map Lab**. The editor works on a separate browser-local draft and
 changes the game only when **Start fresh test run** is used.
@@ -107,14 +110,14 @@ It prevents capacity below occupied structure slots, warns about over-housing,
 and rejects stored food above the derived Granary capacity. **Copy current
 game** is a deep read-only copy of the viewed second.
 
-Drafts use schema v2 and browser key `civsurvivor.mapLabDraft.v2`; named scenario
-libraries use `civsurvivor.mapLabScenarios.v2`. Map Lab v1 data is rejected
+Drafts use schema v4 and browser key `civsurvivor.mapLabDraft.v4`; named scenario
+libraries use schema v3 at `civsurvivor.mapLabScenarios.v3`. Older data is rejected
 without migration.
 
 ## Data-driven debug configuration
 
 Open **Debug -> Game Settings** or **Debug -> Gamepieces**. Drafts and their
-named preset libraries use independent schema-v2 browser keys. They do not
+named preset libraries use independent browser keys. They do not
 change a running simulation until **Start fresh test run** is pressed.
 
 The resulting `gameConfig` is JSON-only state. Rewinds, branches, projections,
@@ -122,10 +125,9 @@ save/load, and `rebuildStateAtSecond(tSec)` therefore use the same values. The
 Gamepieces editor tunes the existing generalized DSL effect operations; it
 does not introduce view-side or one-off simulation behavior.
 
-Open **Debug -> Vassal Lab** to inject a custom vassal at the viewed second.
-Replacing a living vassal is explicit. The complete normalized specification is
-stored in the timeline action, so injection is replayable and leaves
-`state.rng` unchanged.
+Open **Debug -> Vassal Lab** to replace one unrevealed candidate. The complete
+normalized starting specification is stored in the selection action, so
+injection is replayable and leaves `state.rng` unchanged.
 
 Example region entry:
 

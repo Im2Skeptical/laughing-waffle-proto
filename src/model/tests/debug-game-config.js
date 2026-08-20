@@ -42,9 +42,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 7);
-assert.equal(authoredConfig.settings.schemaVersion, 7);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 7);
+assert.equal(authoredConfig.schemaVersion, 8);
+assert.equal(authoredConfig.settings.schemaVersion, 8);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 8);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -76,8 +76,7 @@ assert.deepEqual(
     "bronzeChaosResistancePopulation", "silverChaosResistancePopulation",
     "goldChaosResistancePopulation", "diamondChaosResistancePopulation",
     "chaosPerMonster", "monsterLossThreshold", "migrationHardshipDeathRate",
-    "resistancePerAdditionalElder", "vassalDeathAgeMin",
-    "interventionRequirement01", "interventionRequirement02", "interventionRequirement03",
+    "resistancePerAdditionalElder",
   ].map((id) => [id, authoredConfig.settings.values[id]])),
   {
     birthRateSilver: 0,
@@ -96,10 +95,6 @@ assert.deepEqual(
     monsterLossThreshold: 100,
     migrationHardshipDeathRate: 0.8,
     resistancePerAdditionalElder: 2,
-    vassalDeathAgeMin: 65,
-    interventionRequirement01: 10,
-    interventionRequirement02: 20,
-    interventionRequirement03: 30,
   },
   "Cultivate_01 game-setting values are the authored baseline"
 );
@@ -209,22 +204,18 @@ assert.equal(
 );
 
 const cheatState = createInitialState("devPlaytesting01", 903);
-const seedBefore = cheatState.rng.seed;
+const seedBefore = structuredClone(cheatState.rng);
 const selectionPool = buildDetailedVassalSelectionPool(cheatState);
 const cheatSpec = {
-  targetRegionId: "river-crown",
-  initialAge: 20,
-  deathAge: 60,
-  traitId: "pious",
-  traitPrestigeModifier: 9,
-  professionId: "scribe",
-  interventionPracticeIds: [
-    "buildGranary",
-    "buildMudHouses",
-    "vassalDummyPractice01",
-  ],
-  resistanceSnapshot: 29,
-  requiredPrestige: [30, 40, 50],
+  schemaVersion: 4,
+  locationRegionId: "river-crown",
+  age: 20,
+  prestige: 42,
+  cunning: 3,
+  wisdom: 2,
+  effectiveness: 4,
+  intelligence: 5,
+  candidateSlot: 1,
 };
 const replacementResult = replaceDetailedVassalSelectionCandidate(
   cheatState,
@@ -233,64 +224,11 @@ const replacementResult = replaceDetailedVassalSelectionCandidate(
   cheatSpec
 );
 assert.equal(replacementResult.ok, true);
-assert.equal(cheatState.rng.seed, seedBefore, "debug candidate replacement consumes no RNG");
-assert.deepEqual(
-  replacementResult.pool.candidates[0].interventions
-    .map((entry) => entry.requiredPrestige),
-  [30, 40, 50]
-);
-assert.deepEqual(
-  replacementResult.pool.candidates[0].interventions.map((entry) => entry.slotIndex),
-  [2, 3, 4],
-  "repeated debug practices reserve successive practice slots"
-);
-
-const structureResult = replaceDetailedVassalSelectionCandidate(
-  cheatState,
-  selectionPool,
-  1,
-  {
-    ...cheatSpec,
-    targetRegionId: "upper-floodplain",
-    interventions: [
-      { kind: "structure", structureId: "granary" },
-      { kind: "structure", structureId: "mudHouses" },
-      { kind: "practice", practiceId: "exchange" },
-    ],
-  }
-);
-assert.equal(structureResult.ok, true);
-assert.deepEqual(
-  structureResult.pool.candidates[1].interventions.slice(0, 2).map((entry) => entry.slotIndex),
-  [2, 3],
-  "repeated debug structures reserve successive empty structure slots"
-);
-
-cheatState.world.connections = cheatState.world.connections.filter((entry) => {
-  const ids = [entry.regionAId, entry.regionBId];
-  return !(ids.includes("upper-floodplain")
-    && (ids.includes("west-levee") || ids.includes("river-crown")));
+assert.deepEqual(cheatState.rng, seedBefore, "debug candidate replacement consumes no RNG");
+assert.equal(replacementResult.pool.candidates[0].prestige, 42);
+assert.deepEqual(replacementResult.pool.candidates[0].stats, {
+  cunning: 3, wisdom: 2, effectiveness: 4, intelligence: 5,
 });
-const connectionResult = replaceDetailedVassalSelectionCandidate(
-  cheatState,
-  selectionPool,
-  2,
-  {
-    ...cheatSpec,
-    targetRegionId: "upper-floodplain",
-    interventions: [
-      { kind: "connection", mode: "add" },
-      { kind: "connection", mode: "add" },
-      { kind: "practice", practiceId: "exchange" },
-    ],
-  }
-);
-assert.equal(connectionResult.ok, true);
-assert.notEqual(
-  `${connectionResult.pool.candidates[2].interventions[0].regionAId}|${connectionResult.pool.candidates[2].interventions[0].regionBId}`,
-  `${connectionResult.pool.candidates[2].interventions[1].regionAId}|${connectionResult.pool.candidates[2].interventions[1].regionBId}`,
-  "repeated debug connections reserve different eligible edges"
-);
 
 const replayBase = createInitialState("devPlaytesting01", 903);
 const timeline = createTimelineFromInitialState(replayBase);
@@ -309,7 +247,7 @@ const rebuiltB = rebuildStateAtSecond(timeline, 64);
 assert.equal(rebuiltA.ok, true);
 assert.deepEqual(serializeGameState(rebuiltA.state), serializeGameState(rebuiltB.state));
 assert.equal(
-  rebuiltA.state.civilization.vassalLineage.selectedVassals[0].debugInjected,
+  rebuiltA.state.civilization.vassalLineage.vassalsById["vassal-1"].debugInjected,
   true
 );
 
@@ -325,11 +263,6 @@ try {
   const saved = presetController.savePreset("Two practices", {
     ...cheatSpec,
     candidateSlot: 1,
-    interventions: [
-      { kind: "practice", targetRegionId: "river-crown", practiceId: "exchange" },
-      { kind: "practice", targetRegionId: "river-crown", practiceId: "import" },
-      { kind: "connection", mode: "add", regionAId: "river-crown", regionBId: "upper-floodplain" },
-    ],
   });
   assert.equal(saved.ok, true);
   const separatelyNamedVassal = presetController.savePreset("A second Vassal", {
@@ -393,11 +326,6 @@ try {
   profileVassalController.setCurrentDraft({
     ...cheatSpec,
     candidateSlot: 1,
-    interventions: [
-      { kind: "expandSettlement", sourceRegionId: "river-crown", regionId: "reed-delta" },
-      { kind: "globalStructure", structureId: "mudHouses" },
-      { kind: "practice", targetRegionId: "river-crown", practiceId: "forage" },
-    ],
   });
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
   mapController.updateRegion("cedar-woods", { structureCapacity: 7 });
@@ -427,8 +355,7 @@ try {
     12,
     "boot profile replaces the independently persisted panel draft"
   );
-  assert.equal(profileVassalController.getSnapshot().currentDraft.interventions[0].kind,
-    "expandSettlement");
+  assert.equal(profileVassalController.getSnapshot().currentDraft.prestige, 42);
   assert.equal(configController.applyToFreshRun().ok, true);
   assert.equal(resetState.gameConfig.settings.values.populationPerToken, 12);
   assert.equal(resetState.world.regions[0].structureCapacity, 7);
@@ -495,4 +422,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v7] OK");
+console.log("[debug-game-config-v8] OK");
