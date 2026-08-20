@@ -728,6 +728,7 @@ export function getSettlementCurrentVassal(state) {
   if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
     return lineage.vassalsById[currentVassalId];
   }
+  if (lineage?.vassalsById && typeof lineage.vassalsById === "object") return null;
   const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
   for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
     const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
@@ -748,15 +749,17 @@ export function getSettlementFirstSelectedVassal(state) {
   return getSettlementSelectedVassals(state)[0] ?? null;
 }
 
-export function getSettlementLatestSelectedVassalDeathSec(state) {
-  let latestDeathSec = 0;
+export function getSettlementLatestSelectedVassalEndSec(state) {
+  let latestEndSec = 0;
   for (const vassal of getSettlementSelectedVassals(state)) {
-    latestDeathSec = Math.max(
-      latestDeathSec,
-      Number.isFinite(vassal?.deathSec) ? Math.max(0, Math.floor(vassal.deathSec)) : 0
+    latestEndSec = Math.max(
+      latestEndSec,
+      Number.isFinite(vassal?.endSec)
+        ? Math.max(0, Math.floor(vassal.endSec))
+        : Number.isFinite(vassal?.deathSec) ? Math.max(0, Math.floor(vassal.deathSec)) : 0
     );
   }
-  return latestDeathSec;
+  return latestEndSec;
 }
 
 export function getSettlementSelectedVassalRealizedSegments(state, historyEndSec = null) {
@@ -782,9 +785,11 @@ export function getSettlementSelectedVassalRealizedSegments(state, historyEndSec
       : Number.isFinite(next?.selectedSec)
         ? Math.max(0, Math.floor(next.selectedSec))
         : null;
-    const deathSec = Number.isFinite(current?.deathSec)
-      ? Math.max(0, Math.floor(current.deathSec))
-      : startSec;
+    const deathSec = Number.isFinite(current?.endSec)
+      ? Math.max(0, Math.floor(current.endSec))
+      : Number.isFinite(current?.deathSec)
+        ? Math.max(0, Math.floor(current.deathSec))
+        : safeHistoryEndSec;
     const nominalEndSec = nextStartSec != null
       ? nextStartSec
       : runComplete
@@ -827,9 +832,11 @@ export function getSettlementVassalBoundarySeconds(state, historyEndSec = null) 
       : Number.isFinite(currentVassal?.selectedSec)
         ? Math.max(0, Math.floor(currentVassal.selectedSec))
         : null;
-    const deathSec = Number.isFinite(currentVassal?.deathSec)
-      ? Math.max(0, Math.floor(currentVassal.deathSec))
-      : null;
+    const deathSec = Number.isFinite(currentVassal?.endSec)
+      ? Math.max(0, Math.floor(currentVassal.endSec))
+      : Number.isFinite(currentVassal?.deathSec)
+        ? Math.max(0, Math.floor(currentVassal.deathSec))
+        : null;
     const activeBoundarySec =
       deathSec == null ? safeHistoryEndSec : Math.min(safeHistoryEndSec, deathSec);
     if (currentStartSec == null || activeBoundarySec >= currentStartSec) {

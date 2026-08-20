@@ -63,26 +63,28 @@ function summarizeTimeline(timeline) {
 
 function summarizeLineage(state) {
   const lineage = state?.civilization?.vassalLineage ?? null;
+  const current = lineage?.currentVassalId
+    ? lineage.vassalsById?.[lineage.currentVassalId] ?? null
+    : null;
   return lineage
     ? {
-        currentVassalId: lineage.currentVassal?.vassalId ?? null,
-        currentVassal: lineage.currentVassal
+        currentVassalId: lineage.currentVassalId ?? null,
+        currentVassal: current
           ? {
-              vassalId: lineage.currentVassal.vassalId,
-              targetRegionId: lineage.currentVassal.targetRegionId,
-              initialAge: lineage.currentVassal.initialAge,
-              deathAge: lineage.currentVassal.deathAge,
-              traitId: lineage.currentVassal.traitId,
-              professionId: lineage.currentVassal.professionId,
-              debugInjected: lineage.currentVassal.debugInjected === true,
+              vassalId: current.vassalId,
+              locationRegionId: current.locationRegionId,
+              initialAge: current.initialAge,
+              prestige: current.prestige,
+              stats: current.stats,
+              currentNodeId: current.lifeMap?.currentNodeId ?? null,
+              availableNodeIds: current.lifeMap?.availableNodeIds ?? [],
+              pendingResolution: current.lifeMap?.pendingResolution ?? null,
+              debugInjected: current.debugInjected === true,
             }
           : null,
-        selectedVassalIds: Array.isArray(lineage.selectedVassals)
-          ? lineage.selectedVassals.map((entry) => entry.vassalId)
-          : [],
-        vassalIds: Array.isArray(lineage.selectedVassals)
-          ? lineage.selectedVassals.map((entry) => entry.vassalId)
-          : [],
+        selectedVassalIds: lineage.selectedVassalIds ?? [],
+        vassalIds: Object.keys(lineage.vassalsById ?? {}),
+        futureStartingPrestigeBonus: lineage.futureStartingPrestigeBonus ?? 0,
       }
     : null;
 }
@@ -107,6 +109,10 @@ export function publishSettlementDebugApi({
   getVassalCandidateClickPoint,
   getVassalRerollClickPoint,
   getVassalCloseClickPoint,
+  getLifeMapNodeClickPoint,
+  getLifeMapOptionClickPoint,
+  getLifeMapOfferClickPoint,
+  getLifeMapConfirmClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
@@ -188,6 +194,12 @@ export function publishSettlementDebugApi({
       ) ?? null,
     getVassalRerollClickPoint: () => getVassalRerollClickPoint?.() ?? null,
     getVassalCloseClickPoint: () => getVassalCloseClickPoint?.() ?? null,
+    getLifeMapNodeClickPoint: (nodeId) => getLifeMapNodeClickPoint?.(nodeId) ?? null,
+    getLifeMapOptionClickPoint: (index = 0) =>
+      getLifeMapOptionClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
+    getLifeMapOfferClickPoint: (index = 0) =>
+      getLifeMapOfferClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
+    getLifeMapConfirmClickPoint: () => getLifeMapConfirmClickPoint?.() ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,

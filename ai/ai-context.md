@@ -13,6 +13,9 @@ task lists.
 ## Non-negotiable engine rules
 
 - All simulation randomness uses `state.rng`; never use `Math.random()`.
+- Vassal candidates, node content, Crisis, and mortality use the serialized
+  `state.rng.vassalSeed` substream so Elder cohort rolls cannot perturb Vassal
+  outcomes.
 - `GameState` is JSON-only. Runtime RNG helpers are removed for serialization
   and restored on deserialize.
 - `rebuildStateAtSecond(tSec)` is the authoritative deterministic replay path.
@@ -26,8 +29,8 @@ task lists.
 
 ## Current state and schemas
 
-- Game state and runner saves use schema v13; older saves are rejected.
-- Each run serializes schema-v7 Game Settings and Gamepieces in `gameConfig`.
+- Game state uses schema v14 and runner saves use schema v8; older saves are rejected.
+- Each run serializes schema-v8 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -85,15 +88,24 @@ survival knowledge, and the single vassal lineage are civilization-global.
   snapshot-based, globally reserved housing. Death then resolves arrival meals,
   unplaced-migrant hardship, monthly elder mortality, and stored/loose food rot.
   Surviving migrants join the destination Stranger cohort.
-- Elder Orders are aggregates. Vassal interventions use resistance snapshots,
-  ordered prestige gates, deterministic lifespan boundaries, and replayable
-  timeline actions. Vassals can expand their target into an adjacent frontier,
-  add one rolled structure civilization-wide, or apply the existing local
-  practice, structure, and player-settlement connection interventions.
+- Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
+  prices, inventories, or resolutions. The Vassal Life Map is a centralized,
+  declarative 44-node DAG with four visible lanes and 11 depths. Entered nodes
+  persist their content while choices, purchases, and one shop reroll are staged.
+- Explicit node confirmation applies staged effects, advances accumulated years
+  through normal ticks, pays recurring Prestige/development once, and makes one
+  post-age natural-mortality roll. Only surviving completion exposes outgoing
+  nodes; terminal survival retires the Vassal and death or retirement persists
+  the completed life before generating the next three candidates.
+- Cunning and Wisdom drive recurring income; Effectiveness and Intelligence
+  discount year and Prestige costs. Practice/Structure prices live beside their
+  gamepiece definitions, while route prices and all other Life Map tuning are in
+  `vassal-life-map-defs.js`.
 
 Boundary order is seasonal Cultivate followed by whichever lunar phase is due.
-Faith resolves chaos after faith changes; annual vassal aging/interventions/death
-resolve at the first following Faith phase. Current and previous moon reports are
+Faith resolves chaos after faith changes. Vassal node time uses the same
+authoritative one-second stepping path but resolves independently of lunar phases.
+Current and previous moon reports are
 bounded JSON state used for replay and phase tooltips.
 
 ## Current UI
@@ -115,8 +127,13 @@ bounded JSON state used for replay and phase tooltips.
 - The season/moon wheel shows fixed icons for all six lunar phases. The active
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.
-- Vassal selection focuses its target and preserves the old/new forecast
-  comparison, lifespan brackets, and fixed/editable/forecast history zones.
+- Candidate cards reveal age, settlement, Prestige, and four stats but keep the
+  Life Map hidden. Selection opens a dedicated full-topology Life Map screen;
+  only the active node reveals options or inventory. Confirmation locks map input
+  while its accumulated years auto-advance to the pending resolution boundary.
+- The World Map toggle allows settlement inspection. Timegraph Vassal markers
+  come only from persisted life events; no future inventory or mortality result
+  is exposed.
 - Fullscreen and Debug share a responsive utility rail that must remain clear
   of settlement navigation on mobile landscape.
 
@@ -132,8 +149,8 @@ fallback.
 - Game Settings is generated from the active setting registry.
 - Gamepieces is generated from detailed structure/practice definitions and
   exposes numeric DSL parameters.
-- Vassal Lab records a fully specified deterministic timeline action without
-  consuming RNG.
+- Vassal Lab replaces an unrevealed candidate with explicit age, settlement,
+  Prestige, and four stats without consuming RNG. Its draft/preset schema is v4.
 
 ## Verification
 

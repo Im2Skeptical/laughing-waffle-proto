@@ -2,7 +2,14 @@
 // Active settlement timeline action registry.
 
 import {
+  cmdChooseVassalDevelopmentStat,
+  cmdConfirmVassalLifeNode,
+  cmdEnterVassalLifeNode,
+  cmdPurchaseVassalShopOffer,
+  cmdRerollSettlementVassals,
+  cmdRerollVassalShop,
   cmdSelectSettlementVassal,
+  cmdSelectVassalLifeOption,
 } from "./commands/settlement-vassal-commands.js";
 import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
 import {
@@ -45,6 +52,13 @@ export const ActionKinds = {
   ADJUST_FOLLOWER_COUNT: "adjustFollowerCount",
   ADJUST_WORKER_COUNT: "adjustWorkerCount",
   SETTLEMENT_SELECT_VASSAL: "settlementSelectVassal",
+  SETTLEMENT_REROLL_VASSALS: "settlementRerollVassals",
+  VASSAL_ENTER_LIFE_NODE: "vassalEnterLifeNode",
+  VASSAL_SELECT_LIFE_OPTION: "vassalSelectLifeOption",
+  VASSAL_PURCHASE_SHOP_OFFER: "vassalPurchaseShopOffer",
+  VASSAL_REROLL_SHOP: "vassalRerollShop",
+  VASSAL_CONFIRM_LIFE_NODE: "vassalConfirmLifeNode",
+  VASSAL_CHOOSE_DEVELOPMENT_STAT: "vassalChooseDevelopmentStat",
   UNLOCK_SKILL_NODE: "unlockSkillNode",
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
@@ -143,6 +157,27 @@ export function applyAction(state, action, context = {}) {
   switch (kind) {
     case ActionKinds.SETTLEMENT_SELECT_VASSAL:
       result = cmdSelectSettlementVassal(state, payload);
+      break;
+    case ActionKinds.SETTLEMENT_REROLL_VASSALS:
+      result = cmdRerollSettlementVassals(state, payload);
+      break;
+    case ActionKinds.VASSAL_ENTER_LIFE_NODE:
+      result = cmdEnterVassalLifeNode(state, payload);
+      break;
+    case ActionKinds.VASSAL_SELECT_LIFE_OPTION:
+      result = cmdSelectVassalLifeOption(state, payload);
+      break;
+    case ActionKinds.VASSAL_PURCHASE_SHOP_OFFER:
+      result = cmdPurchaseVassalShopOffer(state, payload);
+      break;
+    case ActionKinds.VASSAL_REROLL_SHOP:
+      result = cmdRerollVassalShop(state, payload);
+      break;
+    case ActionKinds.VASSAL_CONFIRM_LIFE_NODE:
+      result = cmdConfirmVassalLifeNode(state, payload);
+      break;
+    case ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT:
+      result = cmdChooseVassalDevelopmentStat(state, payload);
       break;
     case ActionKinds.DEBUG_SET_CAP:
       result = cmdDebugSetCap(state, payload);

@@ -1,7 +1,7 @@
 import { GRAPH_METRICS } from "./graph-metrics.js";
 import {
   getSettlementCurrentVassal,
-  getSettlementLatestSelectedVassalDeathSec,
+  getSettlementLatestSelectedVassalEndSec,
 } from "./settlement-state.js";
 
 function clampSec(value, fallback = 0) {
@@ -36,7 +36,7 @@ function buildGraphValues(metric, state, subject = null) {
 
 export function buildProjectionSummaryFromState(state) {
   const currentVassal = getSettlementCurrentVassal(state);
-  const latestSelectedVassalDeathSec = getSettlementLatestSelectedVassalDeathSec(state);
+  const latestSelectedVassalEndSec = getSettlementLatestSelectedVassalEndSec(state);
   const runComplete = state?.runStatus?.complete === true;
   const runLossSec = runComplete
     ? clampSec(state?.runStatus?.tSec, state?.tSec ?? 0)
@@ -69,11 +69,11 @@ export function buildProjectionSummaryFromState(state) {
         typeof currentVassal?.vassalId === "string" && currentVassal.vassalId.length > 0
           ? currentVassal.vassalId
           : null,
-      currentVassalDeathSec: Number.isFinite(currentVassal?.deathSec)
-        ? clampSec(currentVassal.deathSec, 0)
+      currentVassalResolutionSec: Number.isFinite(currentVassal?.lifeMap?.pendingResolution?.resolveSec)
+        ? clampSec(currentVassal.lifeMap.pendingResolution.resolveSec, 0)
         : null,
-      latestSelectedVassalDeathSec: Number.isFinite(latestSelectedVassalDeathSec)
-        ? clampSec(latestSelectedVassalDeathSec, 0)
+      latestSelectedVassalEndSec: Number.isFinite(latestSelectedVassalEndSec)
+        ? clampSec(latestSelectedVassalEndSec, 0)
         : null,
     },
   };

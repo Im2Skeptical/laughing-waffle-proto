@@ -484,7 +484,7 @@ try {
   pendingSelection = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
   );
-  const chosenTargetRegionId = pendingSelection.candidates[0].targetRegionId;
+  const chosenTargetRegionId = pendingSelection.candidates[0].locationRegionId;
   const candidatePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)
   );
@@ -514,6 +514,7 @@ try {
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const afterVassal = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(afterVassal.lineage.selectedVassalIds.length, 1);
+  assert.equal(afterVassal.worldMap.mode, "vassalLife");
   assert.equal(
     afterVassal.controller.scope,
     chooserSnapshot.controller.scope,
@@ -528,43 +529,47 @@ try {
       : "civilization",
     "graph subject follows the focused target only in settlement scope"
   );
-  assert.ok(
-    afterVassal.forecastStatus.currentVassalDeathSec > afterVassal.frontierSec,
-    "selected vassal exposes a future death boundary"
+  assert.equal(afterVassal.forecastStatus.currentVassalResolutionSec, null,
+    "selection alone does not schedule a hidden lifespan boundary");
+  const nodePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint("life-01-1")
   );
-  assert.equal(
-    afterVassal.pendingCommitJob.deathSec,
-    afterVassal.forecastStatus.currentVassalDeathSec,
-    "forecast commitment targets the lifespan boundary"
+  assert.ok(nodePoint, "the visible Life Map exposes its first Patronage node");
+  await clickDesignPoint(page, nodePoint);
+  const optionPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)
   );
-  assert.equal(afterVassal.graph.projectionReplacement.active, true);
-  assert.equal(afterVassal.graph.projectionReplacement.hasSnapshot, true);
-  const firstVassalChangeMarker = afterVassal.graph.eventMarkers.find(
-    (marker) => marker.tooltipTitle?.startsWith("Vassal change · R")
+  assert.ok(optionPoint, "the active node reveals its choices only after entry");
+  await clickDesignPoint(page, optionPoint);
+  const confirmPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapConfirmClickPoint()
   );
-  assert.ok(
-    firstVassalChangeMarker,
-    "pending Vassal changes are marked on the timegraph with hover detail"
+  assert.ok(confirmPoint, "the active node has explicit confirmation");
+  await clickDesignPoint(page, confirmPoint);
+  const resolvingVassal = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
-  assert.equal(
-    afterVassal.graph.projectionReplacement.truncationStartSec,
-    firstVassalChangeMarker.tSec,
-    "the replacement fade begins at the first actual Vassal intervention"
+  const resolutionSec = resolvingVassal.forecastStatus.currentVassalResolutionSec;
+  assert.ok(resolutionSec > resolvingVassal.frontierSec,
+    "confirmation creates a future node-resolution boundary");
+  assert.equal(resolvingVassal.pendingCommitJob.resolutionSec, resolutionSec,
+    "forecast commitment targets the node resolution");
+  await page.waitForFunction(
+    (targetSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().frontierSec >= targetSec,
+    resolutionSec,
+    { timeout: 12000 }
   );
-  assert.equal(
-    afterVassal.graph.forecastRevealPlayheadFollowEnabled,
-    true,
-    "a committed vassal selection restores forecast auto-follow"
-  );
-  await delay(3200);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   const committedVassalHistory = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
   assert.ok(
     committedVassalHistory.frontierSec > afterVassal.frontierSec,
-    "revealed vassal history is committed progressively"
+    "confirmed node time is committed through authoritative ticks"
   );
+  assert.equal(committedVassalHistory.lineage.currentVassal.currentNodeId, null);
+  assert.equal(committedVassalHistory.lineage.currentVassal.availableNodeIds.length, 2,
+    "outgoing nodes become available only after survival");
   assert.ok(
     committedVassalHistory.graph.historyZones.some(
       (zone) => zone.kind === "fixedHistory" && zone.endSec > zone.startSec
@@ -586,7 +591,7 @@ try {
     );
   }
 
-  await pressDesignPoint(page, { x: 2047, y: 160 }, 180);
+  await pressDesignPoint(page, { x: 2288, y: 123 }, 180);
   const returnedToMap = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -595,8 +600,8 @@ try {
   assert.equal(returnedToMap.controller.subjectKey, "civilization");
   assert.equal(
     returnedToMap.graph.projectionReplacement?.active ?? false,
-    chooserSnapshot.controller.scope === "civilization",
-    "comparison snapshots persist only when returning to the same graph scope"
+    false,
+    "Life Map decisions do not expose a hidden intervention projection"
   );
   assert.deepEqual(
     returnedToMap.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({

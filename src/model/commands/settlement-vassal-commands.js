@@ -1,24 +1,36 @@
 import {
-  selectDetailedVassalCandidate,
-} from "../detailed-settlements.js";
+  chooseVassalDevelopmentStat,
+  confirmVassalLifeNode,
+  enterVassalLifeNode,
+  purchaseVassalShopOffer,
+  rerollVassalCandidates,
+  rerollVassalShop,
+  selectLifeMapVassal,
+  selectVassalNodeOption,
+} from "../vassal-life-map.js";
 
 export function cmdSelectSettlementVassal(state, payload = {}) {
   const candidateIndex = Number.isFinite(payload?.candidateIndex)
-    ? Math.floor(payload.candidateIndex)
-    : null;
+    ? Math.floor(payload.candidateIndex) : null;
   if (candidateIndex == null) return { ok: false, reason: "missingCandidateIndex" };
-  const expectedPoolHash =
-    typeof payload?.expectedPoolHash === "string" && payload.expectedPoolHash.length > 0
-      ? payload.expectedPoolHash
-      : null;
-  const rerollIndex = Number.isFinite(payload?.rerollIndex)
-    ? Math.max(0, Math.min(999, Math.floor(payload.rerollIndex)))
-    : 0;
-  return selectDetailedVassalCandidate(
+  return selectLifeMapVassal(
     state,
     candidateIndex,
-    expectedPoolHash,
-    rerollIndex,
-    payload?.candidateOverride ?? null
+    typeof payload.expectedPoolHash === "string" ? payload.expectedPoolHash : null,
+    payload.candidateOverride ?? null
   );
 }
+
+export const cmdRerollSettlementVassals = (state) => rerollVassalCandidates(state);
+export const cmdEnterVassalLifeNode = (state, payload = {}) =>
+  enterVassalLifeNode(state, payload.nodeId);
+export const cmdSelectVassalLifeOption = (state, payload = {}) =>
+  selectVassalNodeOption(state, payload.nodeId, payload.optionId);
+export const cmdPurchaseVassalShopOffer = (state, payload = {}) =>
+  purchaseVassalShopOffer(state, payload.nodeId, payload.offerId);
+export const cmdRerollVassalShop = (state, payload = {}) =>
+  rerollVassalShop(state, payload.nodeId);
+export const cmdConfirmVassalLifeNode = (state, payload = {}) =>
+  confirmVassalLifeNode(state, payload.nodeId);
+export const cmdChooseVassalDevelopmentStat = (state, payload = {}) =>
+  chooseVassalDevelopmentStat(state, payload.statId);

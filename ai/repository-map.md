@@ -31,8 +31,9 @@ for new rendering or model rules.
 
 - Overview/Demographics layout and labels:
   `src/views/settlement-prototype-view.js`
-- Elder/vassal chooser and controls:
-  `src/views/settlement-vassal-chooser-pixi.js` and
+- Vassal candidate drawer, Life Map, and primary control:
+  `src/views/world-map-vassal-drawer-pixi.js`,
+  `src/views/vassal-life-map-pixi.js`, and
   `src/views/settlement-vassal-controls-pixi.js`
 - Shared survival strip: `src/views/civilization-survival-hud.js`
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
@@ -68,8 +69,10 @@ for ordinary label/layout work.
 ## Simulation routes
 
 - Detailed settlements, workers, food, demographics, housing, Elder Orders,
-  vassal selection/interventions, and view models:
-  `src/model/detailed-settlements.js`
+  and view models: `src/model/detailed-settlements.js`
+- Vassal Life Map definitions and authoritative lifecycle:
+  `src/defs/gamepieces/vassal-life-map-defs.js` and
+  `src/model/vassal-life-map.js`
 - Lunar phase definitions/timing: `src/defs/gamesettings/moon-phase-defs.js`,
   `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
@@ -80,8 +83,7 @@ for ordinary label/layout work.
 - Serialization and schema validation: `src/model/state.js`
 - Projection building: `src/model/projection.js`,
   `src/model/projection-chunk.js`, and `src/model/projection-summary.js`
-- Vassal timeline lifecycle helpers: `src/model/settlement-state.js` and
-  `src/model/settlement-vassal-exec.js`
+- Vassal history/timegraph selectors: `src/model/settlement-state.js`
 
 Some active state/replay modules still contain substrate inherited from the
 pre-redesign prototype. Do not extend that substrate for new detailed-settlement

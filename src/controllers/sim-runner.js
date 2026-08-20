@@ -54,7 +54,7 @@ const TICKS_PER_SEC = 60;
 const MAX_SIM_STEPS_PER_FRAME = 8;
 const TIME_SCALE_MAX = 16;
 const TIME_SCALE_EASE_PER_SEC = 10;
-const SAVE_SCHEMA_VERSION = 7;
+const SAVE_SCHEMA_VERSION = 8;
 const SAVE_KEY_PREFIX = "civsurvivor.save";
 const ACTION_PATH_CHECKPOINT_OPTS = Object.freeze({
   writeMemo: true,

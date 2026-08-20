@@ -44,12 +44,16 @@ export const settlementStructureDefs = Object.freeze({
   granary: Object.freeze({
     id: "granary",
     label: "Granary",
+    vassalPrestigeCost: 18,
+    vassalYearCost: 4,
     capacityKind: "storedFood",
     capacityPerCountSquared: 180,
   }),
   mudHouses: Object.freeze({
     id: "mudHouses",
     label: "Mud Houses",
+    vassalPrestigeCost: 14,
+    vassalYearCost: 3,
     capacityKind: "housing",
     capacityPerCountSquared: 35,
   }),
@@ -59,6 +63,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   cultivate: Object.freeze({
     id: "cultivate",
     label: "Cultivate",
+    vassalPrestigeCost: 18,
+    vassalYearCost: 4,
     workerCapacity: 3,
     activation: Object.freeze({
       type: "season",
@@ -97,6 +103,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   administrate: Object.freeze({
     id: "administrate",
     label: "Administration",
+    vassalPrestigeCost: 20,
+    vassalYearCost: 4,
     workerCapacity: 2,
     activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
     ui: Object.freeze({
@@ -124,6 +132,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   preserve: Object.freeze({
     id: "preserve",
     label: "Preservation",
+    vassalPrestigeCost: 22,
+    vassalYearCost: 4,
     workerCapacity: 2,
     connectedAdministrationReach: false,
     editor: Object.freeze({
@@ -159,6 +169,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   forage: Object.freeze({
     id: "forage",
     label: "Forage",
+    vassalPrestigeCost: 10,
+    vassalYearCost: 2,
     workerCapacity: 1,
     activation: Object.freeze({ type: "food", stage: "preRouting" }),
     ui: Object.freeze({
@@ -183,6 +195,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   exchange: Object.freeze({
     id: "exchange",
     label: "Exchange",
+    vassalPrestigeCost: 16,
+    vassalYearCost: 3,
     workerCapacity: 2,
     activation: Object.freeze({ type: "season" }),
     ui: Object.freeze({
@@ -208,6 +222,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   import: Object.freeze({
     id: "import",
     label: "Import",
+    vassalPrestigeCost: 18,
+    vassalYearCost: 3,
     workerCapacity: 0,
     activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
     ui: Object.freeze({
@@ -219,6 +235,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   caravanRoutes: Object.freeze({
     id: "caravanRoutes",
     label: "Caravan Routes",
+    vassalPrestigeCost: 20,
+    vassalYearCost: 4,
     workerCapacity: 0,
     activation: Object.freeze({ type: "passive" }),
     ui: Object.freeze({
@@ -230,6 +248,8 @@ export const detailedSettlementPracticeDefs = Object.freeze({
   clearingHouse: Object.freeze({
     id: "clearingHouse",
     label: "Clearing House",
+    vassalPrestigeCost: 20,
+    vassalYearCost: 4,
     workerCapacity: 0,
     activation: Object.freeze({ type: "passive" }),
     ui: Object.freeze({

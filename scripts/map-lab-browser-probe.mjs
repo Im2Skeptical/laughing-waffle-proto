@@ -225,7 +225,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 7);
+  assert.equal(settingsJson.schemaVersion, 8);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
@@ -293,24 +293,16 @@ try {
   await page.getByTestId("debug-open").click();
   await page.getByTestId("debug-vassal-tab").click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
-  await page.evaluate(() => {
-    const target = document.querySelector('[data-testid="vassal-debug-target"]');
-    target.value = "river-crown";
-    target.dispatchEvent(new Event("change", { bubbles: true }));
-  });
-  await page.getByTestId("vassal-debug-select-home-map").click();
-  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
-  await page.getByTestId("vassal-debug-select-target-map-1").click();
-  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
-  await page.getByTestId("vassal-debug-select-target-map-2").click();
-  await page.getByTestId("vassal-debug-world-map-region-river-crown").click();
-  await page.getByTestId("vassal-debug-initial-age").fill("20");
-  await page.getByTestId("vassal-debug-initial-age").press("Enter");
-  await page.getByTestId("vassal-debug-death-age").fill("60");
-  await page.getByTestId("vassal-debug-death-age").press("Enter");
-  await page.getByTestId("vassal-debug-replace-candidate").click();
+  await page.getByTestId("vassal-debug-location").selectOption("river-crown");
+  await page.getByTestId("vassal-debug-age").fill("20");
+  await page.getByTestId("vassal-debug-age").press("Enter");
+  await page.getByTestId("vassal-debug-prestige").fill("42");
+  await page.getByTestId("vassal-debug-prestige").press("Enter");
+  await page.getByTestId("vassal-debug-cunning").fill("3");
+  await page.getByTestId("vassal-debug-cunning").press("Enter");
+  await page.getByTestId("vassal-debug-apply").click();
   await page.waitForTimeout(100);
-  assert.match(await page.getByTestId("vassal-debug-status").innerText(), /Replaced Vassal/);
+  assert.match(await page.getByTestId("vassal-debug-status").innerText(), /Candidate replaced/);
   await page.waitForFunction(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool?.candidates?.[0]?.debugInjected
   );
@@ -321,9 +313,10 @@ try {
   const injected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal
   );
-  assert.equal(injected.targetRegionId, "river-crown");
+  assert.equal(injected.locationRegionId, "river-crown");
   assert.equal(injected.initialAge, 20);
-  assert.equal(injected.deathAge, 60);
+  assert.equal(injected.prestige, 42);
+  assert.equal(injected.stats.cunning, 3);
 
   await page.reload();
   await page.getByRole("button", { name: /^Debug/ }).click();

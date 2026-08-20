@@ -1,5 +1,6 @@
 export const VASSAL_DEBUG_DRAFT_KIND = "vassal-candidate";
-export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v3";
+export const VASSAL_DEBUG_DRAFT_SCHEMA_VERSION = 4;
+export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v4";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -7,40 +8,25 @@ function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
 }
 
-function isIntervention(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  if (value.kind === "practice") {
-    return typeof value.practiceId === "string" && typeof value.targetRegionId === "string";
-  }
-  if (value.kind === "structure") {
-    return typeof value.structureId === "string" && typeof value.targetRegionId === "string";
-  }
-  if (value.kind === "expandSettlement") {
-    return typeof value.sourceRegionId === "string" && typeof value.regionId === "string";
-  }
-  if (value.kind === "globalStructure") return typeof value.structureId === "string";
-  return value.kind === "connection" && ["add", "remove"].includes(value.mode);
-}
-
 export function validateVassalDebugDraft(draft) {
   const errors = [];
   if (!draft || typeof draft !== "object" || Array.isArray(draft)) {
     return { ok: false, errors: ["draft: expected an object"] };
   }
-  if (typeof draft.targetRegionId !== "string") errors.push("targetRegionId: expected a string");
-  for (const key of ["initialAge", "deathAge", "traitPrestigeModifier", "resistanceSnapshot"]) {
+  if (draft.schemaVersion !== VASSAL_DEBUG_DRAFT_SCHEMA_VERSION) {
+    errors.push(`schemaVersion: expected ${VASSAL_DEBUG_DRAFT_SCHEMA_VERSION}`);
+  }
+  if (typeof draft.locationRegionId !== "string" || !draft.locationRegionId) {
+    errors.push("locationRegionId: expected a non-empty string");
+  }
+  for (const key of [
+    "age", "prestige", "cunning", "wisdom", "effectiveness", "intelligence",
+  ]) {
     if (!isFiniteNumber(draft[key])) errors.push(`${key}: expected a finite number`);
   }
-  for (const key of ["traitId", "professionId"]) {
-    if (typeof draft[key] !== "string") errors.push(`${key}: expected a string`);
-  }
-  if (!Array.isArray(draft.interventions) || draft.interventions.length !== 3
-      || draft.interventions.some((entry) => !isIntervention(entry))) {
-    errors.push("interventions: expected three valid interventions");
-  }
-  if (!Array.isArray(draft.requiredPrestige) || draft.requiredPrestige.length !== 3
-      || draft.requiredPrestige.some((value) => !isFiniteNumber(value))) {
-    errors.push("requiredPrestige: expected three finite numbers");
+  if (!Number.isInteger(draft.candidateSlot)
+      || draft.candidateSlot < 1 || draft.candidateSlot > 3) {
+    errors.push("candidateSlot: expected 1, 2, or 3");
   }
   return { ok: errors.length === 0, errors };
 }
@@ -48,5 +34,15 @@ export function validateVassalDebugDraft(draft) {
 export function canonicalizeVassalDebugDraft(draft) {
   const validation = validateVassalDebugDraft(draft);
   if (!validation.ok) throw new Error(validation.errors.join("; "));
-  return clone(draft);
+  return clone({
+    schemaVersion: VASSAL_DEBUG_DRAFT_SCHEMA_VERSION,
+    locationRegionId: draft.locationRegionId,
+    age: Math.max(0, Math.floor(draft.age)),
+    prestige: Math.max(0, Math.floor(draft.prestige)),
+    cunning: Math.max(0, Math.floor(draft.cunning)),
+    wisdom: Math.max(0, Math.floor(draft.wisdom)),
+    effectiveness: Math.max(0, Math.floor(draft.effectiveness)),
+    intelligence: Math.max(0, Math.floor(draft.intelligence)),
+    candidateSlot: draft.candidateSlot,
+  });
 }
