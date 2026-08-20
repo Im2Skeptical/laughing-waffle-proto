@@ -100,6 +100,7 @@ export function createSettlementForecastController({
   autoCommitChunkSec = 0,
   autoCommitMinIntervalMs = 0,
   autoCommitForceLagSec = 0,
+  autoCommitFallbackMs = 0,
   dynamicDisplayBufferYears = 0,
   dynamicDisplayQuantumSec = 1,
   exactLossSearchBucketSec = 1,
@@ -174,6 +175,7 @@ export function createSettlementForecastController({
       resolutionSec,
       targetSec: resolutionSec,
       lastCommitMs: Number.NEGATIVE_INFINITY,
+      startedMs: perfEnabled() ? perfNowMs() : Date.now(),
       sourceVassalId:
         typeof currentVassal?.vassalId === "string" && currentVassal.vassalId.length > 0
           ? currentVassal.vassalId
@@ -730,6 +732,28 @@ export function createSettlementForecastController({
     return pendingCommitJob ? "pendingCommit" : "default";
   }
 
+  function commitResolutionTickIfNeeded(frontierState, committedSec) {
+    const pendingResolution = getVassalPendingResolution(frontierState);
+    const safeCommittedSec = clampSec(committedSec, 0);
+    if (
+      !pendingResolution ||
+      clampSec(pendingResolution.resolveSec, safeCommittedSec + 1) > safeCommittedSec
+    ) {
+      return { ok: true, advanced: false };
+    }
+    // Timeline actions at a boundary are replayed after the preceding second's
+    // state. A direct commit can therefore land immediately before the
+    // resolution-stage tick. Advance that one authoritative tick so a pending
+    // node cannot remain stranded at its displayed resolution second.
+    return {
+      ...(commitCursorSecond?.(
+        safeCommittedSec + 1,
+        getControllerStateDataAt?.(safeCommittedSec + 1) ?? null
+      ) ?? { ok: false, reason: "commitFailed" }),
+      advanced: true,
+    };
+  }
+
   function processPendingCommit({ clearForecastRevealRestart } = {}) {
     const job = pendingCommitJob;
     if (!job) return;
@@ -772,24 +796,28 @@ export function createSettlementForecastController({
       return;
     }
 
+    const nowMs = perfEnabled() ? perfNowMs() : Date.now();
+    const fallbackWaitMs = Math.max(0, Number(autoCommitFallbackMs ?? 0));
+    const shouldFallbackCommit = fallbackWaitMs > 0 &&
+      nowMs - Math.max(0, Number(job.startedMs ?? nowMs)) >= fallbackWaitMs;
     const browseCapSec = getBrowseCapSec();
     const bufferedRevealCommitCapSec = Math.max(
       historyEndSec,
       browseCapSec - clampSec(autoCommitBufferSec, 0)
     );
-    const desiredCommitSec = browseCapSec >= finalTargetSec
+    const desiredCommitSec = shouldFallbackCommit || browseCapSec >= finalTargetSec
       ? finalTargetSec
       : Math.min(finalTargetSec, bufferedRevealCommitCapSec);
     if (desiredCommitSec <= historyEndSec) {
       return;
     }
 
-    const nowMs = perfEnabled() ? perfNowMs() : Date.now();
     const lastCommitMs = Number.isFinite(job?.lastCommitMs)
       ? Number(job.lastCommitMs)
       : Number.NEGATIVE_INFINITY;
     const revealLagSec = Math.max(0, desiredCommitSec - historyEndSec);
     if (
+      shouldFallbackCommit !== true &&
       nowMs - lastCommitMs < Math.max(0, Number(autoCommitMinIntervalMs ?? 0)) &&
       revealLagSec < clampSec(autoCommitForceLagSec, 0)
     ) {
@@ -834,9 +862,15 @@ export function createSettlementForecastController({
     invalidateLossCache();
 
     const committedState = getFrontierState?.() ?? null;
+    const resolutionTickRes = commitResolutionTickIfNeeded(
+      committedState,
+      getFrontierSec?.()
+    );
+    if (resolutionTickRes?.ok !== true) return;
+    const resolvedState = getFrontierState?.() ?? committedState;
     if (
-      isRunComplete(committedState) ||
-      (getSettlementCurrentVassal(committedState)?.isDead === true &&
+      isRunComplete(resolvedState) ||
+      (getSettlementCurrentVassal(resolvedState)?.isDead === true &&
         clampSec(getFrontierSec?.(), 0) >= finalTargetSec)
     ) {
       clearForecastRevealRestart?.();
