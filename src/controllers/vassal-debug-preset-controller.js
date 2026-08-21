@@ -31,7 +31,7 @@ export function createVassalDebugPresetController() {
   let library = createEmptyDebugDraftLibrary(VASSAL_DEBUG_DRAFT_KIND);
   let currentDraft = null;
   let selectedPresetId = null;
-  const currentDraftStorageKey = "civsurvivor.debugVassalDraft.v3";
+  const currentDraftStorageKey = "civsurvivor.debugVassalDraft.v5";
 
   function persist() {
     const storage = safeStorage();

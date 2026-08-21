@@ -1,6 +1,6 @@
 export const VASSAL_DEBUG_DRAFT_KIND = "vassal-candidate";
-export const VASSAL_DEBUG_DRAFT_SCHEMA_VERSION = 4;
-export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v4";
+export const VASSAL_DEBUG_DRAFT_SCHEMA_VERSION = 5;
+export const VASSAL_DEBUG_PRESETS_STORAGE_KEY = "civsurvivor.debugVassalPresets.v5";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 

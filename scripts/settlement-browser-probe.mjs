@@ -606,11 +606,20 @@ try {
     );
   }
 
-  await pressDesignPoint(page, { x: 2288, y: 123 }, 180);
+  const mapTogglePoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getVassalPrimaryClickPoint()
+  );
+  assert.ok(mapTogglePoint, "the lower-left Vassal control exposes the map toggle");
+  await clickDesignPoint(page, mapTogglePoint);
   const returnedToMap = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
   assert.equal(returnedToMap.worldMap.mode, "map");
+  assert.equal(
+    returnedToMap.worldMap.activeVassalLocationRegionId,
+    returnedToMap.lineage.currentVassal.locationRegionId,
+    "the World Map exposes the active Vassal location marker"
+  );
   assert.equal(returnedToMap.controller.scope, "civilization");
   assert.equal(returnedToMap.controller.subjectKey, "civilization");
   assert.equal(returnedToMap.graph.projectionReplacement?.active, true,

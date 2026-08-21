@@ -63,9 +63,8 @@ export function createSettlementVassalControlsView({
   }
 
   function layout() {
-    const screenWidth = Math.floor(app?.screen?.width ?? 2424);
     const screenHeight = Math.floor(app?.screen?.height ?? 1080);
-    primaryButton.container.x = screenWidth - PRIMARY_BUTTON_WIDTH - 28;
+    primaryButton.container.x = 28;
     primaryButton.container.y = screenHeight - PRIMARY_BUTTON_HEIGHT - 52;
   }
 
@@ -83,5 +82,8 @@ export function createSettlementVassalControlsView({
     },
     setVisible: (visible) => { root.visible = visible === true; },
     getScreenRect: () => (!root.visible || typeof root.getBounds !== "function" ? null : root.getBounds()),
+    getPrimaryClickPoint: () => primaryButton.container?.toGlobal
+      ? primaryButton.container.toGlobal(new PIXI.Point(PRIMARY_BUTTON_WIDTH * 0.5, PRIMARY_BUTTON_HEIGHT * 0.5))
+      : null,
   };
 }

@@ -713,8 +713,8 @@ const lifeMapState = fresh(777);
 lifeMapState.paused = true;
 lifeMapState.gameConfig.settings.values.primordialBasePressure = 0;
 lifeMapState.civilization.chaos.monsterLossThreshold = 1000000;
-assert.equal(VASSAL_LIFE_MAP_NODES.length, 44, "reference life map has 44 nodes");
-assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 4, "four Early nodes are initially available");
+assert.equal(VASSAL_LIFE_MAP_NODES.length, 31, "reference life map has 31 nodes");
+assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2, "two Early nodes are initially available");
 for (const node of VASSAL_LIFE_MAP_NODES) {
   assert.ok(node.outgoingNodeIds.every((id) =>
     VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === id)?.depth === node.depth + 1
@@ -771,7 +771,7 @@ applyAction(shopState, { kind: ActionKinds.SETTLEMENT_SELECT_VASSAL,
   payload: { candidateIndex: 0, expectedPoolHash: shopPool.expectedPoolHash } }, { isReplay: true });
 let shopVassal = getCurrentLifeMapVassal(shopState);
 shopVassal.prestige = 100;
-const practiceNodeId = "life-02-4";
+const practiceNodeId = "life-02-3";
 shopVassal.lifeMap.availableNodeIds = [practiceNodeId];
 applyAction(shopState, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE,
   payload: { nodeId: practiceNodeId } }, { isReplay: true });

@@ -106,6 +106,7 @@ export function publishSettlementDebugApi({
   getWorldMapSnapshot,
   getWorldMapClickPoint,
   getTimeLeverScreenRect,
+  getVassalPrimaryClickPoint,
   getVassalCandidateClickPoint,
   getVassalRerollClickPoint,
   getVassalCloseClickPoint,
@@ -189,6 +190,7 @@ export function publishSettlementDebugApi({
     },
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () => getTimeLeverScreenRect?.() ?? null,
+    getVassalPrimaryClickPoint: () => getVassalPrimaryClickPoint?.() ?? null,
     getVassalCandidateClickPoint: (candidateIndex = 0) =>
       getVassalCandidateClickPoint?.(
         Math.max(0, Math.floor(candidateIndex ?? 0))
