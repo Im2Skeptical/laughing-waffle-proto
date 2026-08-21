@@ -705,17 +705,18 @@ function syncSettlementGraphHorizon() {
   settlementForecastController?.syncHorizon?.();
 }
 
-function revealCivilizationAfterVassalDeath(vassalId, state = getSettlementFrontierState()) {
+function revealCivilizationAfterVassalEnd(vassalId, state = getSettlementFrontierState()) {
   const endedVassal = state?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
   if (
     !vassalId ||
     state?.civilization?.vassalLineage?.currentVassalId != null ||
-    endedVassal?.endedReason !== "died"
+    !["died", "retired"].includes(endedVassal?.endedReason)
   ) return false;
   syncSettlementGraphHorizon();
   settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
     allowForecastStart: true,
   });
+  setWorldViewMode("map");
   return true;
 }
 
@@ -728,7 +729,7 @@ function processSettlementPendingCommit() {
   });
   if (!beforeVassalId) return;
   const afterState = getSettlementFrontierState();
-  revealCivilizationAfterVassalDeath(beforeVassalId, afterState);
+  revealCivilizationAfterVassalEnd(beforeVassalId, afterState);
 }
 
 function syncSettlementVassalSelectionPauseState() {
@@ -796,9 +797,9 @@ function dispatchLifeMapAction(kind, payload = {}) {
   if (!result.ok) return result;
   invalidateSettlementProjectedLossCache();
   const state = getSettlementFrontierState();
-  const diedImmediately = revealCivilizationAfterVassalDeath(activeVassalId, state);
+  const vassalEndedImmediately = revealCivilizationAfterVassalEnd(activeVassalId, state);
   const pending = getVassalPendingResolution(state);
-  if (!diedImmediately && pending?.resolveSec > getSettlementFrontierSec()) {
+  if (!vassalEndedImmediately && pending?.resolveSec > getSettlementFrontierSec()) {
     settlementForecastController?.schedulePendingCommit?.(
       getSettlementFrontierSec(),
       getCurrentLifeMapVassal(state)
@@ -1799,12 +1800,6 @@ app.ticker.add((delta) => {
   settlementGraphController.update?.();
   settlementForecastController?.syncObservedSurvivalYear?.();
   processSettlementPendingCommit();
-  if (worldViewMode === "vassalLife"
-      && !getCurrentLifeMapVassal(getSettlementFrontierState())
-      && !settlementPendingVassalSelection
-      && !isSettlementStateRunComplete(getSettlementFrontierState())) {
-    openLifeMapVassalSelection();
-  }
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
   restoreSettlementPendingPreviewTarget();
