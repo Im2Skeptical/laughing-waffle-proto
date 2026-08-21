@@ -52,7 +52,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 14);
+assert.equal(state.gameStateSchemaVersion, 15);
 assert.ok(state.world.regions.every((region) =>
   region.structureCapacity >= DEFAULT_REGION_STRUCTURE_CAPACITY_MIN
   && region.structureCapacity <= DEFAULT_REGION_STRUCTURE_CAPACITY_MAX));
@@ -441,7 +441,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 12;
-assert.throws(() => deserializeGameState(old), /expected v14/);
+assert.throws(() => deserializeGameState(old), /expected v15/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -580,4 +580,4 @@ try {
   }
 }
 
-console.log("[world-state-v14] OK");
+console.log("[world-state-v15] OK");

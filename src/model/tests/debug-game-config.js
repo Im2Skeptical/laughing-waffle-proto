@@ -42,9 +42,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 8);
-assert.equal(authoredConfig.settings.schemaVersion, 8);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 8);
+assert.equal(authoredConfig.schemaVersion, 9);
+assert.equal(authoredConfig.settings.schemaVersion, 9);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 9);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -207,7 +207,7 @@ const cheatState = createInitialState("devPlaytesting01", 903);
 const seedBefore = structuredClone(cheatState.rng);
 const selectionPool = buildDetailedVassalSelectionPool(cheatState);
 const cheatSpec = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   locationRegionId: "river-crown",
   age: 20,
   prestige: 42,
@@ -422,4 +422,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v8] OK");
+console.log("[debug-game-config-v9] OK");

@@ -16,6 +16,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { getDetailedPracticeDef } from "./game-config.js";
+import { getMoonPhaseDurationSec } from "./moon-phases.js";
 import {
   addWorldConnection,
   getRegionReference,
@@ -109,7 +110,7 @@ export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
   return adjustedCost(baseCost, vassal?.stats?.intelligence, { allowZero: true });
 }
 
-export function getAdjustedVassalYearCost(vassal, baseCost) {
+export function getAdjustedVassalPhaseCost(vassal, baseCost) {
   return adjustedCost(baseCost, vassal?.stats?.effectiveness, { allowZero: false });
 }
 
@@ -267,7 +268,10 @@ function buildTravelOptions(state, vassal) {
       graphDistance: shortestDistance(state, vassal.locationRegionId, site.regionId),
     }))
     .filter((option) => Number.isFinite(option.graphDistance))
-    .map((option) => ({ ...option, yearCost: Math.max(1, option.graphDistance) }))
+    .map((option) => ({
+      ...option,
+      phaseCost: Math.max(1, option.graphDistance) * VASSAL_LIFE_TUNING.phasesPerTravelStep,
+    }))
     .sort((a, b) => a.graphDistance - b.graphDistance || a.locationRegionId.localeCompare(b.locationRegionId));
 }
 
@@ -318,7 +322,7 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
       offerId: `${nodeState.nodeId}:r${roll}:practice:${offers.length}`,
       label: replacedPracticeId ? `Replace ${replacedPracticeId} with ${def.label}` : `Add ${def.label}`,
       basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-      baseYearCost: Math.max(0, def.vassalYearCost ?? 0),
+      basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
       intervention,
     });
   }
@@ -340,7 +344,7 @@ function buildStructureOffers(state, vassal, nodeState, roll) {
       offerId: `${nodeState.nodeId}:r${roll}:structure:${offers.length}`,
       label: `Build ${def.label}`,
       basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-      baseYearCost: Math.max(0, def.vassalYearCost ?? 0),
+      basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
       intervention: { kind: "structure", targetRegionId: vassal.locationRegionId, structureId, slotIndex },
     });
     defIndex += 1;
@@ -374,8 +378,8 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
       label: `${mode === "add" ? "Connect" : "Remove"} ${left} ↔ ${right}`,
       basePrestigeCost: mode === "add"
         ? VASSAL_LIFE_TUNING.routeAddPrestigeCost : VASSAL_LIFE_TUNING.routeRemovePrestigeCost,
-      baseYearCost: mode === "add"
-        ? VASSAL_LIFE_TUNING.routeAddYearCost : VASSAL_LIFE_TUNING.routeRemoveYearCost,
+      basePhaseCost: mode === "add"
+        ? VASSAL_LIFE_TUNING.routeAddPhaseCost : VASSAL_LIFE_TUNING.routeRemovePhaseCost,
       intervention: { kind: "connection", mode, regionAId: edge.regionAId, regionBId: edge.regionBId },
     };
   });
@@ -403,7 +407,7 @@ function createNodeState(state, vassal, node) {
     rerollUsed: false,
     inventoryRoll: 0,
     selectedOptionId: null,
-    accumulatedYearCost: 0,
+    accumulatedPhaseCost: 0,
     resolutionResult: null,
   };
   if (node.family === "patronage") nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS);
@@ -459,14 +463,14 @@ export function purchaseVassalShopOffer(state, nodeId, offerId) {
   if (index < 0) return { ok: false, reason: "offerUnavailable" };
   const offer = nodeState.inventory[index];
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-  const yearCost = getAdjustedVassalYearCost(vassal, offer.baseYearCost);
+  const phaseCost = getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost);
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
   nodeState.inventory.splice(index, 1);
   nodeState.purchasedOfferIds.push(offer.offerId);
-  nodeState.purchasedOffers.push({ ...clone(offer), prestigeCost, yearCost, purchasedSec: state.tSec });
-  nodeState.accumulatedYearCost += yearCost;
-  return { ok: true, offerId, prestigeCost, yearCost };
+  nodeState.purchasedOffers.push({ ...clone(offer), prestigeCost, phaseCost, purchasedSec: state.tSec });
+  nodeState.accumulatedPhaseCost += phaseCost;
+  return { ok: true, offerId, prestigeCost, phaseCost };
 }
 
 export function rerollVassalShop(state, nodeId) {
@@ -478,14 +482,14 @@ export function rerollVassalShop(state, nodeId) {
   const prestigeCost = getAdjustedVassalPrestigeCost(
     vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost
   );
-  const yearCost = getAdjustedVassalYearCost(vassal, VASSAL_LIFE_TUNING.shopRerollYearCost);
+  const phaseCost = getAdjustedVassalPhaseCost(vassal, VASSAL_LIFE_TUNING.shopRerollPhaseCost);
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
-  nodeState.accumulatedYearCost += yearCost;
+  nodeState.accumulatedPhaseCost += phaseCost;
   nodeState.rerollUsed = true;
   nodeState.inventoryRoll += 1;
   nodeState.inventory = generateShopInventory(state, vassal, nodeState);
-  return { ok: true, prestigeCost, yearCost, inventory: clone(nodeState.inventory) };
+  return { ok: true, prestigeCost, phaseCost, inventory: clone(nodeState.inventory) };
 }
 
 function applyIntervention(state, intervention) {
@@ -567,10 +571,10 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       && state.rngNextVassalFloat() < option.immediateDeathChance) {
     nodeState.resolutionResult = "crisisDeath";
     finishVassal(state, vassal, { reason: "died", cause: "crisis" });
-    return { ok: true, immediateDeath: true, prestigeCost, yearCost: 0 };
+    return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
   }
-  const yearCost = getAdjustedVassalYearCost(vassal, option?.yearCost ?? 0);
-  return { ok: true, prestigeCost, yearCost };
+  const phaseCost = getAdjustedVassalPhaseCost(vassal, option?.phaseCost ?? 0);
+  return { ok: true, prestigeCost, phaseCost };
 }
 
 function completeNodeResolution(state, vassal, nodeState) {
@@ -628,17 +632,17 @@ export function confirmVassalLifeNode(state, nodeId) {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
   }
-  let optionResult = { ok: true, yearCost: 0 };
+  let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);
   if (!optionResult.ok || optionResult.immediateDeath) return optionResult;
-  nodeState.accumulatedYearCost += optionResult.yearCost;
+  nodeState.accumulatedPhaseCost += optionResult.phaseCost;
   nodeState.resolving = true;
   nodeState.confirmedSec = Math.max(0, Math.floor(state.tSec ?? 0));
   const resolveSec = nodeState.confirmedSec
-    + Math.max(0, Math.floor(nodeState.accumulatedYearCost)) * getYearDurationSec(state);
+    + Math.max(0, Math.floor(nodeState.accumulatedPhaseCost)) * getMoonPhaseDurationSec(state);
   vassal.lifeMap.pendingResolution = {
     kind: "nodeResolution", nodeId, startSec: nodeState.confirmedSec,
-    resolveSec, yearCost: Math.max(0, Math.floor(nodeState.accumulatedYearCost)),
+    resolveSec, phaseCost: Math.max(0, Math.floor(nodeState.accumulatedPhaseCost)),
   };
   if (resolveSec <= nodeState.confirmedSec) {
     return completeNodeResolution(state, vassal, nodeState);

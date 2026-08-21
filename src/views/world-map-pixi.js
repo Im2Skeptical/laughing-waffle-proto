@@ -597,6 +597,34 @@ function addPlayerOwnershipMarker(parent, point, { selected = false } = {}) {
   parent.addChild(marker);
 }
 
+function addActiveVassalMarker(parent, point, vassal, state) {
+  const marker = new PIXI.Graphics();
+  marker.lineStyle(4, 0x2b2721, 1);
+  marker.beginFill(0x87c96a, 1);
+  marker.drawCircle(point.x, point.y - 50, 18);
+  marker.endFill();
+  marker.lineStyle(3, 0xf4e7bd, 1);
+  marker.drawCircle(point.x, point.y - 50, 11);
+  marker.moveTo(point.x, point.y - 66);
+  marker.lineTo(point.x, point.y - 35);
+  marker.moveTo(point.x - 10, point.y - 50);
+  marker.lineTo(point.x + 10, point.y - 50);
+  marker.eventMode = "none";
+  parent.addChild(
+    marker,
+    createText("VASSAL", {
+      ...TEXT_STYLES.chip,
+      fontSize: 11,
+      fill: 0xf4e7bd,
+    }, point.x, point.y - 79, 0.5, 0.5),
+    createText(`Age ${getVassalAge(state, vassal)}`, {
+      ...TEXT_STYLES.body,
+      fontSize: 10,
+      fill: PALETTE.text,
+    }, point.x, point.y - 22, 0.5, 0.5)
+  );
+}
+
 function addSettlementPressureIndicator(parent, point, pressure) {
   const active = [
     pressure?.starvation === true ? "starvation" : null,
@@ -1153,6 +1181,11 @@ export function createWorldMapView({
       }
       addSettlementPressureIndicator(root, point, indicator.pressure);
     }
+    const activeVassal = getCurrentLifeMapVassal(state);
+    if (activeVassal?.locationRegionId) {
+      const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
+      if (regionDef) addActiveVassalMarker(root, screenPoint(regionDef.display.labelPoint), activeVassal, state);
+    }
 
     const civilizationPanel = new PIXI.Graphics();
     roundedRect(
@@ -1437,6 +1470,7 @@ export function createWorldMapView({
           reference: getRegionReference(state, entry.id),
         })),
         vassalHighlight: getVassalHighlight?.() ?? null,
+        activeVassalLocationRegionId: getCurrentLifeMapVassal(state)?.locationRegionId ?? null,
         regionMapIndicators,
         edgeTransferBatch: lastEdgeTransferBatch
           ? {

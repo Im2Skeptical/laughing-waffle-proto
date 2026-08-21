@@ -7,11 +7,12 @@ import {
   VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
   VASSAL_LIFE_MAP_NODES,
   VASSAL_LIFE_TUNING,
+  VASSAL_PHASES_PER_YEAR,
   getVassalMortalityChance,
 } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getAdjustedVassalPrestigeCost,
-  getAdjustedVassalYearCost,
+  getAdjustedVassalPhaseCost,
   getCurrentLifeMapVassal,
   getVassalCandidatePool,
   getVassalDevelopmentIncome,
@@ -65,27 +66,44 @@ function findSeed(predicate) {
   throw new Error("No deterministic RNG seed matched the predicate");
 }
 
-assert.equal(VASSAL_LIFE_MAP_NODES.length, 44);
+assert.equal(VASSAL_LIFE_MAP_NODES.length, 31);
+assert.deepEqual(
+  Array.from({ length: 11 }, (_, depth) => VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth).length),
+  [2, 3, 3, 2, 3, 4, 3, 2, 3, 3, 3]
+);
+assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2);
 assert.deepEqual(
   Object.fromEntries([...new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.family))]
     .map((family) => [family, VASSAL_LIFE_MAP_NODES.filter((node) => node.family === family).length])),
   {
-    patronage: 7,
-    development: 6,
-    travel: 5,
-    practiceReform: 7,
-    publicWorks: 7,
-    routes: 5,
-    crisis: 5,
+    patronage: 3,
+    development: 4,
+    travel: 4,
+    practiceReform: 6,
+    publicWorks: 5,
+    routes: 3,
+    crisis: 4,
     legacy: 2,
   }
 );
-assert.equal(new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.id)).size, 44);
+assert.equal(new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.id)).size, 31);
 assert.ok(VASSAL_LIFE_MAP_NODES.every((node) =>
   node.outgoingNodeIds.every((nextId) =>
     VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nextId)?.depth === node.depth + 1
-  )
+ )
 ));
+assert.ok(VASSAL_LIFE_MAP_NODES.filter((node) => node.depth < 10).every((node) =>
+  node.outgoingNodeIds.length >= 1 && node.outgoingNodeIds.length <= 2
+));
+for (let depth = 0; depth < 10; depth += 1) {
+  const nodes = VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth);
+  let previousMax = -1;
+  for (const node of nodes) {
+    const targets = node.outgoingNodeIds.map((id) => VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === id).lane);
+    assert.ok(Math.min(...targets) >= previousMax, `depth ${depth + 1} edges preserve vertical order`);
+    previousMax = Math.max(...targets);
+  }
+}
 
 const formulaState = selectedState(100);
 const formulaVassal = getCurrentLifeMapVassal(formulaState);
@@ -93,18 +111,18 @@ formulaVassal.stats = { cunning: 4, wisdom: 5, effectiveness: 20, intelligence: 
 assert.equal(getVassalPrestigeIncome(formulaVassal), 7);
 assert.equal(getVassalDevelopmentIncome(formulaVassal), 7);
 assert.equal(getAdjustedVassalPrestigeCost(formulaVassal, 20), 8, "Intelligence caps at 60%");
-assert.equal(getAdjustedVassalYearCost(formulaVassal, 4), 2, "year costs round upward");
-assert.equal(getAdjustedVassalYearCost(formulaVassal, 1), 1, "nonzero years keep a minimum of one");
+assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 120), 48, "Phase costs round upward");
+assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 1), 1, "nonzero Phase costs keep a minimum of one");
 
 const travelState = selectedState(101);
 const travelVassal = getCurrentLifeMapVassal(travelState);
 const originalLocation = travelVassal.locationRegionId;
-const travelNode = forceEnter(travelState, VASSAL_LIFE_MAP_ENTRY_NODE_IDS[2]);
+const travelNode = forceEnter(travelState, "life-02-2");
 assert.ok(travelNode.options.length > 0);
 assert.ok(travelNode.options.every((option) =>
   option.locationRegionId !== originalLocation
     && Number.isFinite(option.graphDistance)
-    && option.yearCost === Math.max(1, option.graphDistance)
+    && option.phaseCost === Math.max(1, option.graphDistance) * VASSAL_PHASES_PER_YEAR
 ));
 const destination = travelNode.options[0];
 dispatch(travelState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
@@ -119,7 +137,7 @@ const shopVassal = getCurrentLifeMapVassal(shopState);
 shopVassal.prestige = 500;
 shopVassal.stats.intelligence = 0;
 shopVassal.stats.effectiveness = 0;
-const shopNode = forceEnter(shopState, "life-02-4");
+const shopNode = forceEnter(shopState, "life-02-3");
 const entryInventory = serializeGameState(shopState).civilization.vassalLineage
   .vassalsById[shopVassal.vassalId].lifeMap.nodeStates[shopNode.nodeId].inventory;
 dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
@@ -156,8 +174,8 @@ assert.equal(applyAction(shopState, {
   kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
 }, { isReplay: true }).ok, false, "reroll remains unavailable after resolution");
 
-for (const nodeId of ["life-03-3", "life-04-4"]) {
-  const state = selectedState(nodeId === "life-03-3" ? 103 : 104);
+for (const nodeId of ["life-03-2", "life-06-2"]) {
+  const state = selectedState(nodeId === "life-03-2" ? 103 : 104);
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 500;
   const node = forceEnter(state, nodeId);
@@ -188,17 +206,17 @@ for (const site of elderIndependentB.world.sites) {
 for (const state of [elderIndependentA, elderIndependentB]) {
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 500;
-  const node = forceEnter(state, "life-02-4");
+  const node = forceEnter(state, "life-02-3");
   dispatch(state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
     nodeId: node.nodeId, offerId: node.inventory[0].offerId,
   });
 }
-const elderNodeA = getCurrentLifeMapVassal(elderIndependentA).lifeMap.nodeStates["life-02-4"];
-const elderNodeB = getCurrentLifeMapVassal(elderIndependentB).lifeMap.nodeStates["life-02-4"];
+const elderNodeA = getCurrentLifeMapVassal(elderIndependentA).lifeMap.nodeStates["life-02-3"];
+const elderNodeB = getCurrentLifeMapVassal(elderIndependentB).lifeMap.nodeStates["life-02-3"];
 assert.deepEqual(elderNodeA.inventory, elderNodeB.inventory);
 assert.deepEqual(elderNodeA.purchasedOffers, elderNodeB.purchasedOffers);
 for (const state of [elderIndependentA, elderIndependentB]) {
-  dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: "life-02-4" });
+  dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: "life-02-3" });
   resolvePending(state);
 }
 assert.deepEqual(elderNodeA.mortality, elderNodeB.mortality,
@@ -212,7 +230,7 @@ assert.deepEqual(
 const developmentState = selectedState(105);
 const developmentVassal = getCurrentLifeMapVassal(developmentState);
 developmentVassal.stats.wisdom = 8;
-const zeroPurchaseNode = forceEnter(developmentState, "life-02-4");
+const zeroPurchaseNode = forceEnter(developmentState, "life-02-3");
 const seedBeforeMortality = developmentState.rng.vassalSeed;
 dispatch(developmentState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: zeroPurchaseNode.nodeId });
 assert.equal(zeroPurchaseNode.mortality.roll >= 0, true, "zero-purchase shop still resolves once");
@@ -249,7 +267,7 @@ assert.equal(getVassalCandidatePool(crisisState).candidates.length, 3);
 const naturalDeathState = selectedState(107);
 const naturalDeathVassal = getCurrentLifeMapVassal(naturalDeathState);
 naturalDeathVassal.initialAge = 80;
-const naturalDeathNode = forceEnter(naturalDeathState, "life-02-4");
+const naturalDeathNode = forceEnter(naturalDeathState, "life-02-3");
 naturalDeathState.rng.vassalSeed = findSeed((roll) => roll < getVassalMortalityChance(80));
 dispatch(naturalDeathState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: naturalDeathNode.nodeId });
 assert.equal(getCurrentLifeMapVassal(naturalDeathState), null);

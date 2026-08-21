@@ -991,7 +991,7 @@ function getSettlementPrimaryVassalState() {
   if (currentVassal) {
     return {
       enabled: hasPendingSelection !== true,
-      label: "Life Map",
+      label: worldViewMode === "vassalLife" ? "World Map" : "Life Map",
     };
   }
   return {
@@ -1379,7 +1379,7 @@ settlementGraphView = createMetricGraphView({
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
-  openPosition: { x: 110, y: 884 },
+  openPosition: { x: 432, y: 884 },
   windowWidth: 1560,
   windowHeight: 190,
   headerHeight: 34,
@@ -1473,7 +1473,6 @@ vassalLifeMapView = createVassalLifeMapView({
   onChooseDevelopmentStat: (statId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, { statId }
   ),
-  onReturnWorld: () => setWorldViewMode("map"),
 });
 vassalLifeMapView.setVisible(false);
 
@@ -1567,7 +1566,7 @@ settlementVassalControlsView = createSettlementVassalControlsView({
     }
     const current = getCurrentLifeMapVassal(getSettlementFrontierState());
     if (current) {
-      setWorldViewMode("vassalLife");
+      setWorldViewMode(worldViewMode === "vassalLife" ? "map" : "vassalLife");
       return { ok: true };
     }
     setWorldViewMode("map");
@@ -1715,6 +1714,7 @@ function publishSettlementDebugApi() {
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
+    getVassalPrimaryClickPoint: () => settlementVassalControlsView?.getPrimaryClickPoint?.() ?? null,
     getVassalCandidateClickPoint: (candidateIndex) =>
       settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
       null,

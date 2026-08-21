@@ -29,8 +29,8 @@ task lists.
 
 ## Current state and schemas
 
-- Game state uses schema v14 and runner saves use schema v8; older saves are rejected.
-- Each run serializes schema-v8 Game Settings and Gamepieces in `gameConfig`.
+- Game state uses schema v15 and runner saves use schema v9; older saves are rejected.
+- Each run serializes schema-v9 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -90,15 +90,16 @@ survival knowledge, and the single vassal lineage are civilization-global.
   Surviving migrants join the destination Stranger cohort.
 - Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
   prices, inventories, or resolutions. The Vassal Life Map is a centralized,
-  declarative 44-node DAG with four visible lanes and 11 depths. Entered nodes
+  declarative 31-node DAG with two initial entries, variable two-to-four-node
+  depths, and non-crossing ordered edges. Entered nodes
   persist their content while choices, purchases, and one shop reroll are staged.
-- Explicit node confirmation applies staged effects, advances accumulated years
+- Explicit node confirmation applies staged effects, advances accumulated Phases
   through normal ticks, pays recurring Prestige/development once, and makes one
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
 - Cunning and Wisdom drive recurring income; Effectiveness and Intelligence
-  discount year and Prestige costs. Practice/Structure prices live beside their
+  discount Phase and Prestige costs. Practice/Structure prices live beside their
   gamepiece definitions, while route prices and all other Life Map tuning are in
   `vassal-life-map-defs.js`.
 
@@ -131,9 +132,9 @@ bounded JSON state used for replay and phase tooltips.
   Life Map hidden. Selection opens a dedicated full-topology Life Map screen.
   Every node can be inspected; its family description is shown in the right
   panel, while only entering an available node reveals its persisted options or
-  inventory. Single click inspects, the panel button enters, and double-click
+  inventory. Hovering temporarily inspects, single click pins, the panel button enters, and double-click
   enters an available node. Family colors distinguish the node types.
-  Confirmation locks map input while its accumulated years auto-advance to the
+  Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;
@@ -141,7 +142,8 @@ bounded JSON state used for replay and phase tooltips.
   civilization extinction. The candidate drawer remains closed until the player
   explicitly chooses Next Vassal. Timegraph Vassal markers come only from
   persisted life events; no future inventory or mortality result is exposed.
-- Fullscreen and Debug share a responsive utility rail that must remain clear
+- The lower-left Vassal control toggles Life Map and World Map for an active
+  Vassal; the World Map shows an active-Vassal location marker. Fullscreen and Debug share a responsive utility rail that must remain clear
   of settlement navigation on mobile landscape.
 
 The forecast worker is a separately bundled Pages asset recorded in
@@ -157,7 +159,7 @@ fallback.
 - Gamepieces is generated from detailed structure/practice definitions and
   exposes numeric DSL parameters.
 - Vassal Lab replaces an unrevealed candidate with explicit age, settlement,
-  Prestige, and four stats without consuming RNG. Its draft/preset schema is v4.
+  Prestige, and four stats without consuming RNG. Its draft/preset schema is v5.
 
 ## Verification
 

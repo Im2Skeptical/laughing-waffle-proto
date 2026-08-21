@@ -1,20 +1,24 @@
-const FAMILY_LAYOUT = Object.freeze([
-  ["patronage", "development", "travel", "patronage"],
-  ["development", "patronage", "travel", "practiceReform"],
-  ["patronage", "development", "publicWorks", "travel"],
-  ["patronage", "development", "practiceReform", "routes"],
-  ["travel", "development", "publicWorks", "patronage"],
-  ["practiceReform", "routes", "publicWorks", "crisis"],
-  ["practiceReform", "publicWorks", "routes", "travel"],
-  ["crisis", "practiceReform", "publicWorks", "development"],
-  ["routes", "crisis", "practiceReform", "patronage"],
-  ["legacy", "publicWorks", "routes", "crisis"],
-  ["legacy", "practiceReform", "publicWorks", "crisis"],
+// Each depth lists its visible nodes in top-to-bottom order.  Outgoing indices
+// refer to the following depth and are intentionally data rather than a graph
+// generation rule: preserving index order makes the drawn edges non-crossing.
+const DEPTH_LAYOUT = Object.freeze([
+  Object.freeze([{ family: "patronage", outgoing: [0, 1] }, { family: "development", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "development", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }, { family: "practiceReform", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "patronage", outgoing: [0] }, { family: "publicWorks", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }]),
+  Object.freeze([{ family: "patronage", outgoing: [0, 1] }, { family: "practiceReform", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "travel", outgoing: [0, 1] }, { family: "development", outgoing: [1, 2] }, { family: "publicWorks", outgoing: [2, 3] }]),
+  Object.freeze([{ family: "practiceReform", outgoing: [0] }, { family: "routes", outgoing: [0, 1] }, { family: "publicWorks", outgoing: [1, 2] }, { family: "crisis", outgoing: [2] }]),
+  Object.freeze([{ family: "practiceReform", outgoing: [0] }, { family: "publicWorks", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }]),
+  Object.freeze([{ family: "crisis", outgoing: [0, 1] }, { family: "practiceReform", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "routes", outgoing: [0, 1] }, { family: "crisis", outgoing: [1] }, { family: "development", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "legacy", outgoing: [0, 1] }, { family: "publicWorks", outgoing: [1] }, { family: "routes", outgoing: [1, 2] }]),
+  Object.freeze([{ family: "legacy", outgoing: [] }, { family: "practiceReform", outgoing: [] }, { family: "crisis", outgoing: [] }]),
 ]);
 
 export const VASSAL_LIFE_MAP_ID = "reference-life-map-01";
-export const VASSAL_LIFE_MAP_DEPTH_COUNT = FAMILY_LAYOUT.length;
+export const VASSAL_LIFE_MAP_DEPTH_COUNT = DEPTH_LAYOUT.length;
 export const VASSAL_LIFE_MAP_LANE_COUNT = 4;
+export const VASSAL_PHASES_PER_YEAR = 30;
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
   patronage: Object.freeze({
@@ -62,25 +66,16 @@ function nodeId(depth, lane) {
   return `life-${String(depth + 1).padStart(2, "0")}-${lane + 1}`;
 }
 
-function outgoingLanes(depth, lane) {
-  if (depth % 2 === 0) {
-    if (lane === 3) return [2, 3];
-    return [lane, lane + 1];
-  }
-  if (lane === 0) return [0, 1];
-  return [lane - 1, lane];
-}
-
-export const VASSAL_LIFE_MAP_NODES = Object.freeze(FAMILY_LAYOUT.flatMap(
-  (families, depth) => families.map((family, lane) => Object.freeze({
+export const VASSAL_LIFE_MAP_NODES = Object.freeze(DEPTH_LAYOUT.flatMap(
+  (nodes, depth) => nodes.map((node, lane) => Object.freeze({
     id: nodeId(depth, lane),
-    family,
+    family: node.family,
     band: getBand(depth),
     depth,
     lane,
-    outgoingNodeIds: depth === FAMILY_LAYOUT.length - 1
+    outgoingNodeIds: depth === DEPTH_LAYOUT.length - 1
       ? Object.freeze([])
-      : Object.freeze(outgoingLanes(depth, lane).map((nextLane) => nodeId(depth + 1, nextLane))),
+      : Object.freeze(node.outgoing.map((nextLane) => nodeId(depth + 1, nextLane))),
   }))
 ));
 
@@ -105,36 +100,37 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   developmentThreshold: 10,
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
+  phasesPerTravelStep: VASSAL_PHASES_PER_YEAR,
   shopRerollPrestigeCost: 6,
-  shopRerollYearCost: 2,
+  shopRerollPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
   routeAddPrestigeCost: 16,
-  routeAddYearCost: 3,
+  routeAddPhaseCost: VASSAL_PHASES_PER_YEAR * 3,
   routeRemovePrestigeCost: 10,
-  routeRemoveYearCost: 2,
+  routeRemovePhaseCost: VASSAL_PHASES_PER_YEAR * 2,
   legacyPrestigeCost: 20,
-  legacyYearCost: 4,
+  legacyPhaseCost: VASSAL_PHASES_PER_YEAR * 4,
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
 });
 
 export const VASSAL_PATRONAGE_OPTIONS = Object.freeze([
-  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, yearCost: 1 }),
-  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, yearCost: 4 }),
-  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, yearCost: 3 }),
+  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, phaseCost: VASSAL_PHASES_PER_YEAR }),
+  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, phaseCost: VASSAL_PHASES_PER_YEAR * 4 }),
+  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 3 }),
 ]);
 
 export const VASSAL_DEVELOPMENT_OPTIONS = Object.freeze([
-  Object.freeze({ id: "studyStatecraft", label: "Study Statecraft", statId: "intelligence", statDelta: 1, yearCost: 2 }),
-  Object.freeze({ id: "practiceLeadership", label: "Practice Leadership", statId: "effectiveness", statDelta: 1, yearCost: 2 }),
-  Object.freeze({ id: "studyIntrigue", label: "Study Intrigue", statId: "cunning", statDelta: 1, yearCost: 2 }),
-  Object.freeze({ id: "broadEducation", label: "Broad Education", statId: "wisdom", statDelta: 1, yearCost: 4 }),
+  Object.freeze({ id: "studyStatecraft", label: "Study Statecraft", statId: "intelligence", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
+  Object.freeze({ id: "practiceLeadership", label: "Practice Leadership", statId: "effectiveness", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
+  Object.freeze({ id: "studyIntrigue", label: "Study Intrigue", statId: "cunning", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
+  Object.freeze({ id: "broadEducation", label: "Broad Education", statId: "wisdom", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 4 }),
 ]);
 
 export const VASSAL_CRISIS_OPTIONS = Object.freeze([
-  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, yearCost: 3 }),
-  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, yearCost: 2, immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
-  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, yearCost: 1, forcedRelocation: true }),
+  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, phaseCost: VASSAL_PHASES_PER_YEAR * 3 }),
+  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, phaseCost: VASSAL_PHASES_PER_YEAR * 2, immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
+  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, phaseCost: VASSAL_PHASES_PER_YEAR, forcedRelocation: true }),
 ]);
 
 export const VASSAL_LEGACY_OPTIONS = Object.freeze([
@@ -142,7 +138,7 @@ export const VASSAL_LEGACY_OPTIONS = Object.freeze([
     id: "enduringOffice",
     label: "Enduring Office",
     prestigeCost: VASSAL_LIFE_TUNING.legacyPrestigeCost,
-    yearCost: VASSAL_LIFE_TUNING.legacyYearCost,
+    phaseCost: VASSAL_LIFE_TUNING.legacyPhaseCost,
     legacyStartingPrestigeBonus: VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus,
   }),
 ]);
