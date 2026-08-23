@@ -21,6 +21,8 @@ import {
   createTimelineFromInitialState,
   rebuildStateAtSecond,
 } from "../timeline/index.js";
+import { createTimeGraphController } from "../timegraph-controller.js";
+import { createProjectionCache } from "../timegraph/projection-cache.js";
 import { createSimRunner } from "../../controllers/sim-runner.js";
 import {
   createSettlementForecastController,
@@ -541,6 +543,51 @@ assert.equal(
   first.state.persistentKnowledge.maxObservedCivilizationSurvivalYear,
   75,
   "survival record is retained by authoritative rebuilds"
+);
+
+const graphRefreshTimeline = createTimelineFromInitialState(
+  createInitialState("devPlaytesting01", 24680)
+);
+let graphRefreshCursorState = rebuildStateAtSecond(
+  graphRefreshTimeline,
+  0
+).state;
+const graphRefreshController = createTimeGraphController({
+  getTimeline: () => graphRefreshTimeline,
+  getCursorState: () => graphRefreshCursorState,
+  metric: GRAPH_METRICS.civilization,
+  projectionCache: createProjectionCache(),
+  forecastStepSec: 1,
+  horizonSec: 96,
+});
+graphRefreshController.setSubject(null, "civilization");
+graphRefreshController.setActive(true);
+assert.equal(graphRefreshController.ensureForecastCoverageTo(64).ok, true);
+graphRefreshTimeline.historyEndSec = 32;
+graphRefreshTimeline.cursorSec = 32;
+graphRefreshCursorState = rebuildStateAtSecond(
+  graphRefreshTimeline,
+  32
+).state;
+const graphRefreshResult =
+  graphRefreshController.refreshAuthoritativeRangeFrom(0);
+assert.deepEqual(
+  {
+    ok: graphRefreshResult.ok,
+    startSec: graphRefreshResult.startSec,
+    historyEndSec: graphRefreshResult.historyEndSec,
+  },
+  { ok: true, startSec: 0, historyEndSec: 32 },
+  "committed forecast spans can be re-materialized from authoritative replay"
+);
+const refreshedFrontierValues = graphRefreshController
+  .getSeriesValuesForSeconds([32], { focus: true })
+  .get(32);
+assert.deepEqual(
+  refreshedFrontierValues,
+  buildProjectionSummaryFromState(graphRefreshCursorState).graphValues
+    .civilization,
+  "authoritative graph refresh exposes the replayed frontier values"
 );
 
 const storage = new Map();
