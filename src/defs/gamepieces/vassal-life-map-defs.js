@@ -2,17 +2,17 @@
 // refer to the following depth and are intentionally data rather than a graph
 // generation rule: preserving index order makes the drawn edges non-crossing.
 const DEPTH_LAYOUT = Object.freeze([
-  Object.freeze([{ family: "patronage", outgoing: [0, 1] }, { family: "development", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "development", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }, { family: "practiceReform", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "patronage", outgoing: [0] }, { family: "publicWorks", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }]),
-  Object.freeze([{ family: "patronage", outgoing: [0, 1] }, { family: "practiceReform", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "travel", outgoing: [0, 1] }, { family: "development", outgoing: [1, 2] }, { family: "publicWorks", outgoing: [2, 3] }]),
-  Object.freeze([{ family: "practiceReform", outgoing: [0] }, { family: "routes", outgoing: [0, 1] }, { family: "publicWorks", outgoing: [1, 2] }, { family: "crisis", outgoing: [2] }]),
-  Object.freeze([{ family: "practiceReform", outgoing: [0] }, { family: "publicWorks", outgoing: [0, 1] }, { family: "travel", outgoing: [1] }]),
-  Object.freeze([{ family: "crisis", outgoing: [0, 1] }, { family: "practiceReform", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "routes", outgoing: [0, 1] }, { family: "crisis", outgoing: [1] }, { family: "development", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "legacy", outgoing: [0, 1] }, { family: "publicWorks", outgoing: [1] }, { family: "routes", outgoing: [1, 2] }]),
-  Object.freeze([{ family: "legacy", outgoing: [] }, { family: "practiceReform", outgoing: [] }, { family: "crisis", outgoing: [] }]),
+  Object.freeze([{ family: "patronage", mapY: 0.38, outgoing: [0, 1] }, { family: "development", mapY: 0.64, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "development", mapY: 0.20, outgoing: [0, 1] }, { family: "travel", mapY: 0.49, outgoing: [1] }, { family: "practiceReform", mapY: 0.77, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "patronage", mapY: 0.30, outgoing: [0] }, { family: "publicWorks", mapY: 0.56, outgoing: [0, 1] }, { family: "travel", mapY: 0.80, outgoing: [1] }]),
+  Object.freeze([{ family: "patronage", mapY: 0.40, outgoing: [0, 1] }, { family: "practiceReform", mapY: 0.68, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "travel", mapY: 0.24, outgoing: [0, 1] }, { family: "development", mapY: 0.51, outgoing: [1, 2] }, { family: "publicWorks", mapY: 0.78, outgoing: [2, 3] }]),
+  Object.freeze([{ family: "practiceReform", mapY: 0.14, outgoing: [0] }, { family: "routes", mapY: 0.38, outgoing: [0, 1] }, { family: "publicWorks", mapY: 0.62, outgoing: [1, 2] }, { family: "crisis", mapY: 0.86, outgoing: [2] }]),
+  Object.freeze([{ family: "practiceReform", mapY: 0.25, outgoing: [0] }, { family: "publicWorks", mapY: 0.49, outgoing: [0, 1] }, { family: "travel", mapY: 0.73, outgoing: [1] }]),
+  Object.freeze([{ family: "crisis", mapY: 0.37, outgoing: [0, 1] }, { family: "practiceReform", mapY: 0.65, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "routes", mapY: 0.22, outgoing: [0, 1] }, { family: "crisis", mapY: 0.50, outgoing: [1] }, { family: "development", mapY: 0.78, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "legacy", mapY: 0.28, outgoing: [0, 1] }, { family: "publicWorks", mapY: 0.54, outgoing: [1] }, { family: "routes", mapY: 0.80, outgoing: [1, 2] }]),
+  Object.freeze([{ family: "legacy", mapY: 0.36, outgoing: [] }, { family: "practiceReform", mapY: 0.62, outgoing: [] }, { family: "crisis", mapY: 0.84, outgoing: [] }]),
 ]);
 
 export const VASSAL_LIFE_MAP_ID = "reference-life-map-01";
@@ -26,7 +26,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     description: "Opportunities to gain Prestige.",
   }),
   development: Object.freeze({
-    id: "development", label: "Development", glyph: "D", color: 0x5e9bcf,
+    id: "development", label: "EXP", glyph: "XP", color: 0x5e9bcf,
     description: "Study to improve this Vassal's abilities.",
   }),
   travel: Object.freeze({
@@ -73,6 +73,7 @@ export const VASSAL_LIFE_MAP_NODES = Object.freeze(DEPTH_LAYOUT.flatMap(
     band: getBand(depth),
     depth,
     lane,
+    mapY: node.mapY,
     outgoingNodeIds: depth === DEPTH_LAYOUT.length - 1
       ? Object.freeze([])
       : Object.freeze(node.outgoing.map((nextLane) => nodeId(depth + 1, nextLane))),

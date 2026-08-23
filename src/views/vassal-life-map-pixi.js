@@ -13,7 +13,12 @@ import {
 } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
-import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import {
+  ELDER_BUST_ACCENT_TONES,
+  ELDER_BUST_SKIN_TONES,
+  PALETTE,
+  TEXT_STYLES,
+} from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 1640, height: 720 });
 const PANEL_RECT = Object.freeze({ x: 1722, y: 88, width: 654, height: 720 });
@@ -54,10 +59,62 @@ function nodePoint(node) {
   const countAtDepth = VASSAL_LIFE_MAP_NODES.filter((entry) => entry.depth === node.depth).length;
   const top = MAP_RECT.y + 142;
   const bottom = MAP_RECT.y + MAP_RECT.height - 102;
+  const fallbackY = countAtDepth <= 1 ? 0.5 : node.lane / (countAtDepth - 1);
   return {
     x: MAP_RECT.x + 76 + node.depth * NODE_X_STEP,
-    y: countAtDepth <= 1 ? (top + bottom) * 0.5 : top + (bottom - top) * node.lane / (countAtDepth - 1),
+    y: top + (bottom - top) * (Number.isFinite(node.mapY) ? node.mapY : fallbackY),
   };
+}
+
+function stableIdHash(value) {
+  let hash = 2166136261;
+  for (const character of String(value ?? "vassal")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function addVassalPortrait(parent, vassal, x, y) {
+  const hash = stableIdHash(vassal?.vassalId);
+  const skin = ELDER_BUST_SKIN_TONES[hash % ELDER_BUST_SKIN_TONES.length];
+  const accent = ELDER_BUST_ACCENT_TONES[(hash >>> 7) % ELDER_BUST_ACCENT_TONES.length];
+  const portrait = new PIXI.Container();
+  portrait.position.set(x, y);
+  const gfx = new PIXI.Graphics();
+  gfx.lineStyle(2, PALETTE.accent, 0.9);
+  gfx.beginFill(PALETTE.bustBackdrop).drawCircle(0, 0, 34).endFill();
+  gfx.beginFill(accent).drawRoundedRect(-25, 10, 50, 31, 15).endFill();
+  gfx.beginFill(PALETTE.bustDark).drawCircle(0, -7, 17).endFill();
+  gfx.beginFill(skin).drawCircle(0, -4, 14).endFill();
+  gfx.beginFill(PALETTE.bustDark).drawRoundedRect(-15, -21, 30, 13, 7).endFill();
+  gfx.beginFill(PALETTE.bustDark).drawCircle(-5, -4, 1.6).drawCircle(5, -4, 1.6).endFill();
+  portrait.addChild(gfx);
+  parent.addChild(portrait);
+}
+
+function addStatChip(parent, tooltipView, spec) {
+  const root = new PIXI.Container();
+  root.position.set(spec.x, spec.y);
+  root.eventMode = "static";
+  root.cursor = "help";
+  root.hitArea = new PIXI.Rectangle(0, 0, spec.width, spec.height);
+  root.on("pointerover", () => tooltipView?.show?.({
+    title: spec.label,
+    lines: spec.tooltipLines,
+  }, root.getBounds()));
+  root.on("pointerout", () => tooltipView?.hide?.());
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, 0, 0, spec.width, spec.height, 6, 0x3a403b, spec.color, 1.5);
+  gfx.beginFill(spec.color, 0.95).drawCircle(17, 17, 10).endFill();
+  root.addChild(
+    gfx,
+    createText(spec.abbrev, { ...TEXT_STYLES.chip, fontSize: 9, fill: PALETTE.black }, 17, 17, 0.5, 0.5),
+    createText(spec.label.toUpperCase(), { ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted }, 33, 7),
+    createText(String(spec.value ?? 0), { ...TEXT_STYLES.title, fontSize: 23, fill: spec.color }, 33, 20),
+    createText(spec.summary, { ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted }, 68, 29)
+  );
+  parent.addChild(root);
 }
 
 function formatAdjustedCost(vassal, { prestigeCost = 0, phaseCost = 0 } = {}) {
@@ -117,6 +174,7 @@ export function createVassalLifeMapView({
   onRerollShop,
   onConfirmNode,
   onChooseDevelopmentStat,
+  tooltipView,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
@@ -150,6 +208,7 @@ export function createVassalLifeMapView({
     const visible = isVisible?.() === true;
     root.visible = visible;
     if (!visible) {
+      tooltipView?.hide?.();
       signature = "";
       clearChildren(root);
       return;
@@ -255,24 +314,43 @@ export function createVassalLifeMapView({
     const stats = vassal.stats ?? {};
     const px = PANEL_RECT.x + 22;
     const cards = new PIXI.Graphics();
-    roundedRect(cards, px, PANEL_RECT.y + 18, PANEL_RECT.width - 44, 72, 8, 0x343a34, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 100, PANEL_RECT.width - 44, 102, 8, 0x303633, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 212, PANEL_RECT.width - 44, 104, 8, 0x343a34, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 326, PANEL_RECT.width - 44, PANEL_RECT.height - 348, 8, 0x2c312e, PALETTE.accent, 1);
+    roundedRect(cards, px, PANEL_RECT.y + 18, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
+    roundedRect(cards, px, PANEL_RECT.y + 124, PANEL_RECT.width - 44, 116, 8, 0x303633, PALETTE.stroke, 1);
+    roundedRect(cards, px, PANEL_RECT.y + 250, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
+    roundedRect(cards, px, PANEL_RECT.y + 354, PANEL_RECT.width - 44, PANEL_RECT.height - 376, 8, 0x2c312e, PALETTE.accent, 1);
     root.addChild(cards);
+    addVassalPortrait(root, vassal, PANEL_RECT.x + PANEL_RECT.width - 76, PANEL_RECT.y + 64);
     root.addChild(
       createText("VASSAL", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 30),
-      createText(`Age ${getVassalAge(state, vassal)} · ${location}`, { ...TEXT_STYLES.header, fontSize: 20 }, px + 14, PANEL_RECT.y + 50),
-      createText(`Prestige ${vassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 72),
-      createText("ATTRIBUTES", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 112),
-      createText(`Cunning  ${stats.cunning}     Wisdom  ${stats.wisdom}`, { ...TEXT_STYLES.body, fontSize: 18 }, px + 14, PANEL_RECT.y + 138),
-      createText(`Effectiveness  ${stats.effectiveness}     Intelligence  ${stats.intelligence}`, { ...TEXT_STYLES.body, fontSize: 18 }, px + 14, PANEL_RECT.y + 166),
-      createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 224),
-      createText(`Prestige income: +${getVassalPrestigeIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 17 }, px + 14, PANEL_RECT.y + 248),
-      createText(`Development income: +${getVassalDevelopmentIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 17 }, px + 14, PANEL_RECT.y + 272),
-      createText(`Development ${vassal.developmentProgress}/10${vassal.pendingDevelopmentChoices ? ` · ${vassal.pendingDevelopmentChoices} choice` : ""}`,
-        { ...TEXT_STYLES.body, fontSize: 17 }, px + 14, PANEL_RECT.y + 294)
+      createText(`Age ${getVassalAge(state, vassal)}`, { ...TEXT_STYLES.header, fontSize: 22 }, px + 14, PANEL_RECT.y + 50),
+      createText(location, { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 190 }, px + 14, PANEL_RECT.y + 76),
+      createText(`Prestige  ${vassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 94),
+      createText("ATTRIBUTES · HOVER FOR DETAILS", { ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 136),
+      createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 262),
+      createText(`Prestige income: +${getVassalPrestigeIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 286),
+      createText(`EXP income: +${getVassalDevelopmentIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 308),
+      createText(`EXP ${vassal.developmentProgress}/10${vassal.pendingDevelopmentChoices ? ` · ${vassal.pendingDevelopmentChoices} choice` : ""}`,
+        { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 330)
     );
+    const statWidth = (PANEL_RECT.width - 86) / 2;
+    [
+      { abbrev: "CUN", label: "Cunning", value: stats.cunning, summary: "+ Prestige / node", color: 0xc58b5b,
+        tooltipLines: ["Adds +1 Prestige income for each completed node."] },
+      { abbrev: "WIS", label: "Wisdom", value: stats.wisdom, summary: "+ EXP / node", color: 0x6ca6d7,
+        tooltipLines: ["Adds +1 EXP income for each completed node."] },
+      { abbrev: "EFF", label: "Effectiveness", value: stats.effectiveness, summary: "-8% Phases", color: 0x7faf6d,
+        tooltipLines: ["Reduces Phase costs by 8% per point, up to 60%.", "Costs round up and never fall below 1 Phase."] },
+      { abbrev: "INT", label: "Intelligence", value: stats.intelligence, summary: "-8% Prestige", color: 0xaf87cf,
+        tooltipLines: ["Reduces Prestige costs by 8% per point, up to 60%."] },
+    ].forEach((stat, index) => {
+      addStatChip(root, tooltipView, {
+        ...stat,
+        x: px + 14 + (index % 2) * (statWidth + 10),
+        y: PANEL_RECT.y + 156 + Math.floor(index / 2) * 48,
+        width: statWidth,
+        height: 42,
+      });
+    });
 
     const inspectedNode = getNode(effectiveInspectedNodeId);
     const inspectedDisplay = inspectedNode ? getVassalNodeDisplayState(state, inspectedNode.id) : null;
@@ -280,19 +358,19 @@ export function createVassalLifeMapView({
     if (!inspectedNode || !inspectedFamily) return;
 
     root.addChild(
-      createText(inspectedFamily.label, { ...TEXT_STYLES.header, fontSize: 21, fill: inspectedFamily.color }, px + 14, PANEL_RECT.y + 342),
+      createText(inspectedFamily.label, { ...TEXT_STYLES.header, fontSize: 21, fill: inspectedFamily.color }, px + 14, PANEL_RECT.y + 370),
       createText(inspectedFamily.description, {
         ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted, wordWrap: true,
         wordWrapWidth: PANEL_RECT.width - 72, lineHeight: 19,
-      }, px + 14, PANEL_RECT.y + 370)
+      }, px + 14, PANEL_RECT.y + 398)
     );
 
     if (vassal.pendingDevelopmentChoices > 0) {
-      root.addChild(createText("Spend your development choice before entering the next node.", {
+      root.addChild(createText("Spend your EXP choice before entering the next node.", {
         ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.accent, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-      }, px + 14, PANEL_RECT.y + 414));
+      }, px + 14, PANEL_RECT.y + 434));
       ["cunning", "effectiveness", "intelligence"].forEach((statId, index) => {
-        addButton(root, { x: px + 14, y: PANEL_RECT.y + 454 + index * 50, width: PANEL_RECT.width - 72, height: 42 },
+        addButton(root, { x: px + 14, y: PANEL_RECT.y + 474 + index * 50, width: PANEL_RECT.width - 72, height: 42 },
           `Gain: +1 ${statId[0].toUpperCase()}${statId.slice(1)}`, true, () => onChooseDevelopmentStat?.(statId));
       });
       return;
@@ -303,15 +381,15 @@ export function createVassalLifeMapView({
       if (inspectedDisplay?.available) {
         root.addChild(createText("This node is ready to enter. Its choices will be revealed once entered.", {
           ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-        }, px + 14, PANEL_RECT.y + 420));
-        enterNodeRoot = addButton(root, { x: px + 14, y: PANEL_RECT.y + 474, width: PANEL_RECT.width - 72, height: 46 },
+        }, px + 14, PANEL_RECT.y + 440));
+        enterNodeRoot = addButton(root, { x: px + 14, y: PANEL_RECT.y + 494, width: PANEL_RECT.width - 72, height: 46 },
           `ENTER ${inspectedFamily.label.toUpperCase()} NODE`, true, () => onEnterNode?.(inspectedNode.id));
       } else {
         root.addChild(createText(inspectedDisplay?.completed
           ? "Completed. Follow its outgoing paths through the map."
           : "Locked. Complete a connected available node to unlock this path.", {
           ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-        }, px + 14, PANEL_RECT.y + 420));
+        }, px + 14, PANEL_RECT.y + 440));
       }
       return;
     }
@@ -319,22 +397,22 @@ export function createVassalLifeMapView({
     if (inspectedNode.id !== activeNodeId) {
       root.addChild(createText("Another node is active. Inspect it again to make its choices and resolve it.", {
         ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-      }, px + 14, PANEL_RECT.y + 420));
+      }, px + 14, PANEL_RECT.y + 440));
       return;
     }
 
     root.addChild(createText(`Committed on confirmation: ${nodeState.accumulatedPhaseCost} ${nodeState.accumulatedPhaseCost === 1 ? "Phase" : "Phases"}`,
-      { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 414));
+      { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 434));
     if (nodeState.resolving) {
       const pending = vassal.lifeMap.pendingResolution;
       root.addChild(createText(
         `RESOLVING · advancing ${pending?.phaseCost ?? 0} Phases`,
-        { ...TEXT_STYLES.header, fill: PALETTE.accent, fontSize: 18 }, px + 14, PANEL_RECT.y + 450
+        { ...TEXT_STYLES.header, fill: PALETTE.accent, fontSize: 18 }, px + 14, PANEL_RECT.y + 470
       ));
       return;
     }
 
-    let y = PANEL_RECT.y + 440;
+    let y = PANEL_RECT.y + 462;
     const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
     if (!isShop && nodeState.options.length) {
       optionRoots = nodeState.options.map((option, index) => {

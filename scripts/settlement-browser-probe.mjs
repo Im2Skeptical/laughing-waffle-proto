@@ -12,6 +12,8 @@ const OVERVIEW_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-overview.png";
 const WIDE_HEADER_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-wide-header.png";
+const LIFE_MAP_SCREENSHOT_PATH =
+  "artifacts/settlement-browser-probe-lifemap-1280x800.png";
 
 async function waitForHttp() {
   for (let attempt = 0; attempt < 150; attempt += 1) {
@@ -535,6 +537,7 @@ try {
     "selecting a Vassal keeps the prior timeline as a tinted comparison");
   assert.equal(afterVassal.graph.forecastRevealTargetEndSec, afterVassal.frontierSec,
     "selection does not unveil the new timeline beyond committed history");
+  await page.screenshot({ path: LIFE_MAP_SCREENSHOT_PATH, fullPage: true });
   const nodePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint("life-01-1")
   );
