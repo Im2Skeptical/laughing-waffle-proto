@@ -1481,6 +1481,7 @@ vassalLifeMapView = createVassalLifeMapView({
   onChooseDevelopmentStat: (statId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, { statId }
   ),
+  tooltipView,
 });
 vassalLifeMapView.setVisible(false);
 

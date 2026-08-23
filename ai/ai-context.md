@@ -94,11 +94,11 @@ survival knowledge, and the single vassal lineage are civilization-global.
   depths, and non-crossing ordered edges. Entered nodes
   persist their content while choices, purchases, and one shop reroll are staged.
 - Explicit node confirmation applies staged effects, advances accumulated Phases
-  through normal ticks, pays recurring Prestige/development once, and makes one
+  through normal ticks, pays recurring Prestige/EXP once, and makes one
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
-- Cunning and Wisdom drive recurring income; Effectiveness and Intelligence
+- Cunning and Wisdom drive recurring Prestige and EXP income; Effectiveness and Intelligence
   discount Phase and Prestige costs. Practice/Structure prices live beside their
   gamepiece definitions, while route prices and all other Life Map tuning are in
   `vassal-life-map-defs.js`.

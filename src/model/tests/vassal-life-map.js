@@ -6,6 +6,7 @@ import { deserializeGameState, serializeGameState } from "../state.js";
 import {
   VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
   VASSAL_LIFE_MAP_NODES,
+  VASSAL_NODE_FAMILIES,
   VASSAL_LIFE_TUNING,
   VASSAL_PHASES_PER_YEAR,
   getVassalMortalityChance,
@@ -72,6 +73,7 @@ assert.deepEqual(
   [2, 3, 3, 2, 3, 4, 3, 2, 3, 3, 3]
 );
 assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2);
+assert.equal(VASSAL_NODE_FAMILIES.development.label, "EXP");
 assert.deepEqual(
   Object.fromEntries([...new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.family))]
     .map((family) => [family, VASSAL_LIFE_MAP_NODES.filter((node) => node.family === family).length])),
@@ -103,6 +105,12 @@ for (let depth = 0; depth < 10; depth += 1) {
     assert.ok(Math.min(...targets) >= previousMax, `depth ${depth + 1} edges preserve vertical order`);
     previousMax = Math.max(...targets);
   }
+}
+for (let depth = 0; depth < 11; depth += 1) {
+  const nodes = VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth);
+  assert.ok(nodes.every((node) => node.mapY > 0 && node.mapY < 1), `depth ${depth + 1} has bounded map positions`);
+  assert.ok(nodes.every((node, index) => index === 0 || node.mapY > nodes[index - 1].mapY),
+    `depth ${depth + 1} map positions preserve edge order`);
 }
 
 const formulaState = selectedState(100);
