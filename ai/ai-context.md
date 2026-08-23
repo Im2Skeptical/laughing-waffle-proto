@@ -138,6 +138,8 @@ bounded JSON state used for replay and phase tooltips.
   pending resolution boundary.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;
+  the resolved span is then re-materialized from authoritative replay so the
+  committed graph lines include that node's interventions immediately;
   after a Vassal dies or retires, the new timeline can continue unveiling to
   civilization extinction. The candidate drawer remains closed until the player
   explicitly chooses Next Vassal. Timegraph Vassal markers come only from

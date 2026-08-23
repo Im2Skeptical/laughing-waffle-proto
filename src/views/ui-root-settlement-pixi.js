@@ -723,12 +723,20 @@ function revealCivilizationAfterVassalEnd(vassalId, state = getSettlementFrontie
 function processSettlementPendingCommit() {
   const beforeState = getSettlementFrontierState();
   const beforeVassalId = beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
+  const beforePendingResolution = getVassalPendingResolution(beforeState);
   settlementForecastController?.processPendingCommit?.({
     clearForecastRevealRestart: () =>
       settlementGraphView?.clearForecastRevealRestart?.(),
   });
   if (!beforeVassalId) return;
   const afterState = getSettlementFrontierState();
+  const afterPendingResolution = getVassalPendingResolution(afterState);
+  if (beforePendingResolution && !afterPendingResolution) {
+    settlementGraphController?.refreshAuthoritativeRangeFrom?.(
+      beforePendingResolution.startSec
+    );
+    settlementGraphView?.render?.();
+  }
   revealCivilizationAfterVassalEnd(beforeVassalId, afterState);
 }
 

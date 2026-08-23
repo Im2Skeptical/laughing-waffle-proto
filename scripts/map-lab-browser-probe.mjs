@@ -225,7 +225,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 8);
+  assert.equal(settingsJson.schemaVersion, 9);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 

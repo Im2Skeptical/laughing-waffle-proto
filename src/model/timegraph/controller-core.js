@@ -1228,6 +1228,52 @@ export function createTimeGraphController({
     requestAsyncForecastCoverage(tl);
   }
 
+  function refreshAuthoritativeRangeFrom(startSec) {
+    const tl = getTimeline?.();
+    const cs = getCursorState?.();
+    if (!tl || !cs) return { ok: false, reason: "no state" };
+
+    if (!graphCache) {
+      const cacheRes = ensureCache();
+      if (!cacheRes?.ok) return cacheRes;
+    }
+
+    const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    const refreshStartSec = Math.min(historyEndSec, clampSec(startSec));
+
+    // A committed forecast span is now authoritative history. Re-read that
+    // span from timeline replay instead of retaining values sampled while it
+    // was still a forecast, then branch a fresh forecast from the new frontier.
+    // This deliberately leaves view-owned comparison snapshots untouched.
+    forecastWorkerService?.handleTimelineInvalidation?.(
+      "authoritativeRangeCommitted"
+    );
+    projection.invalidateFromSecond?.(tl, refreshStartSec);
+    invalidateGraphCacheFromSecond(refreshStartSec, historyEndSec);
+    const patched = patchHistoryFromSecond(
+      tl,
+      refreshStartSec,
+      historyEndSec
+    );
+    if (!patched) {
+      stateDirty = true;
+      windowDirty = true;
+      return rebuildGraphCache();
+    }
+
+    lastKnownHistoryEndSec = historyEndSec;
+    stateDirty = false;
+    windowDirty = false;
+    seriesDirty = false;
+    valuesDirty = false;
+    requestAsyncForecastCoverage(tl, { force: true });
+    return {
+      ok: true,
+      startSec: refreshStartSec,
+      historyEndSec,
+    };
+  }
+
   function ensureCache() {
     syncDynamicHorizon();
     const tl = getTimeline?.();
@@ -1844,6 +1890,7 @@ export function createTimeGraphController({
     getSummaryAt,
     getStateAt,
     ensureForecastCoverageTo,
+    refreshAuthoritativeRangeFrom,
     setMetric,
     setSeries,
     invalidateSeries,
