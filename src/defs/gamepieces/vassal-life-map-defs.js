@@ -26,7 +26,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     description: "Opportunities to gain Prestige.",
   }),
   development: Object.freeze({
-    id: "development", label: "EXP", glyph: "XP", color: 0x5e9bcf,
+    id: "development", label: "Development", glyph: "D", color: 0x5e9bcf,
     description: "Study to improve this Vassal's abilities.",
   }),
   travel: Object.freeze({

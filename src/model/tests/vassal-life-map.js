@@ -73,7 +73,7 @@ assert.deepEqual(
   [2, 3, 3, 2, 3, 4, 3, 2, 3, 3, 3]
 );
 assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2);
-assert.equal(VASSAL_NODE_FAMILIES.development.label, "EXP");
+assert.equal(VASSAL_NODE_FAMILIES.development.label, "Development");
 assert.deepEqual(
   Object.fromEntries([...new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.family))]
     .map((family) => [family, VASSAL_LIFE_MAP_NODES.filter((node) => node.family === family).length])),

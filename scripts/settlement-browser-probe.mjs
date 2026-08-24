@@ -14,6 +14,8 @@ const WIDE_HEADER_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-wide-header.png";
 const LIFE_MAP_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-lifemap-1280x800.png";
+const ACTIVE_NODE_SCREENSHOT_PATH =
+  "artifacts/settlement-browser-probe-active-node-1280x800.png";
 
 async function waitForHttp() {
   for (let attempt = 0; attempt < 150; attempt += 1) {
@@ -557,6 +559,7 @@ try {
   );
   assert.ok(optionPoint, "the active node reveals its choices only after entry");
   await clickDesignPoint(page, optionPoint);
+  await page.screenshot({ path: ACTIVE_NODE_SCREENSHOT_PATH, fullPage: true });
   const confirmPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapConfirmClickPoint()
   );
