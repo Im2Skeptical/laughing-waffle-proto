@@ -378,19 +378,19 @@ export function createVassalLifeMapView({
       createText("VASSAL", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 30),
       createText(`Age ${getVassalAge(state, vassal)}`, { ...TEXT_STYLES.header, fontSize: 22 }, px + 14, PANEL_RECT.y + 50),
       createText(location, { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 190 }, px + 14, PANEL_RECT.y + 76),
-      createText(`Prestige  ${vassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 94),
+      createText(`Prestige  ${vassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 88),
       createText("ATTRIBUTES · HOVER FOR DETAILS", { ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 136),
-      createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 262),
-      createText(`Prestige income: +${getVassalPrestigeIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 286),
-      createText(`EXP income: +${getVassalDevelopmentIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 308),
+      createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 260),
+      createText(`Prestige income: +${getVassalPrestigeIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 282),
+      createText(`EXP income: +${getVassalDevelopmentIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 304),
       createText(`EXP ${vassal.developmentProgress}/10${vassal.pendingDevelopmentChoices ? ` · ${vassal.pendingDevelopmentChoices} choice` : ""}`,
-        { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 330)
+        { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 324)
     );
     const statWidth = (PANEL_RECT.width - 86) / 2;
     [
-      { abbrev: "CUN", label: "Cunning", value: stats.cunning, summary: "+ Prestige / node", color: 0xc58b5b,
+      { abbrev: "CUN", label: "Cunning", value: stats.cunning, summary: "+ Prestige", color: 0xc58b5b,
         tooltipLines: ["Adds +1 Prestige income for each completed node."] },
-      { abbrev: "WIS", label: "Wisdom", value: stats.wisdom, summary: "+ EXP / node", color: 0x6ca6d7,
+      { abbrev: "WIS", label: "Wisdom", value: stats.wisdom, summary: "+ EXP", color: 0x6ca6d7,
         tooltipLines: ["Adds +1 EXP income for each completed node."] },
       { abbrev: "EFF", label: "Effectiveness", value: stats.effectiveness, summary: "-8% Phases", color: 0x7faf6d,
         tooltipLines: ["Reduces Phase costs by 8% per point, up to 60%.", "Costs round up and never fall below 1 Phase."] },
@@ -400,7 +400,7 @@ export function createVassalLifeMapView({
       addStatChip(root, tooltipView, {
         ...stat,
         x: px + 14 + (index % 2) * (statWidth + 10),
-        y: PANEL_RECT.y + 156 + Math.floor(index / 2) * 48,
+        y: PANEL_RECT.y + 154 + Math.floor(index / 2) * 42,
         width: statWidth,
         height: 42,
       });
