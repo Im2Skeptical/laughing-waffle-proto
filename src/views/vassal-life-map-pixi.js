@@ -55,6 +55,60 @@ function addButton(parent, rect, label, enabled, onClick, selected = false) {
   return root;
 }
 
+function addActionCard(parent, rect, { title, cost, effect }, enabled, onClick, selected = false) {
+  const root = new PIXI.Container();
+  root.position.set(rect.x, rect.y);
+  root.eventMode = enabled ? "static" : "none";
+  root.cursor = enabled ? "pointer" : "default";
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.on("pointerdown", (event) => {
+    event?.stopPropagation?.();
+    if (enabled) onClick?.();
+  });
+  const gfx = new PIXI.Graphics();
+  roundedRect(
+    gfx, 0, 0, rect.width, rect.height, 7,
+    enabled ? (selected ? 0x47623e : 0x353b36) : 0x4b4945,
+    enabled ? (selected ? PALETTE.green : PALETTE.stroke) : PALETTE.stroke,
+    selected ? 3 : 1
+  );
+  root.addChild(
+    gfx,
+    createText(title, { ...TEXT_STYLES.cardTitle, fontSize: 16, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 18 }, 9, 8),
+    createText(cost, { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.accent, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 15 }, 9, 46),
+    createText(effect, { ...TEXT_STYLES.body, fontSize: 14, fill: enabled ? PALETTE.textMuted : PALETTE.textMuted, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 15 }, 9, 99)
+  );
+  parent.addChild(root);
+  return root;
+}
+
+function addFooterButton(parent, rect, label, enabled, onClick, selected = false) {
+  const root = new PIXI.Container();
+  root.position.set(rect.x, rect.y);
+  root.eventMode = enabled ? "static" : "none";
+  root.cursor = enabled ? "pointer" : "default";
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.on("pointerdown", (event) => {
+    event?.stopPropagation?.();
+    if (enabled) onClick?.();
+  });
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 7,
+    enabled ? (selected ? 0x47623e : 0x3f4f39) : 0x4b4945,
+    enabled ? PALETTE.accent : PALETTE.stroke, selected ? 3 : 1);
+  const text = createText(label, {
+    ...TEXT_STYLES.chip,
+    fontSize: 13,
+    fill: enabled ? PALETTE.text : PALETTE.textMuted,
+    wordWrap: true,
+    wordWrapWidth: rect.width - 16,
+    lineHeight: 14,
+  }, 8, 9);
+  root.addChild(gfx, text);
+  parent.addChild(root);
+  return root;
+}
+
 function nodePoint(node) {
   const countAtDepth = VASSAL_LIFE_MAP_NODES.filter((entry) => entry.depth === node.depth).length;
   const top = MAP_RECT.y + 142;
@@ -412,40 +466,54 @@ export function createVassalLifeMapView({
       return;
     }
 
-    let y = PANEL_RECT.y + 462;
+    const actionX = px + 14;
+    const actionWidth = PANEL_RECT.width - 72;
+    const actionGap = 10;
+    const cardWidth = (actionWidth - actionGap * 2) / 3;
+    const cardY = PANEL_RECT.y + 462;
+    const cardHeight = 164;
+    const footerY = cardY + cardHeight + 12;
     const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
     if (!isShop && nodeState.options.length) {
       optionRoots = nodeState.options.map((option, index) => {
         const enabled = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0) <= vassal.prestige;
-        return addButton(root, { x: px + 14, y: y + index * 66, width: PANEL_RECT.width - 72, height: 62 },
-          `${option.label}\n${formatAdjustedCost(vassal, option)}\n${formatOptionEffect(option)}`, enabled,
-          () => onSelectOption?.(activeNodeId, option.id), nodeState.selectedOptionId === option.id);
+        return addActionCard(root, {
+          x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
+        }, {
+          title: option.label,
+          cost: formatAdjustedCost(vassal, option),
+          effect: formatOptionEffect(option),
+        }, enabled, () => onSelectOption?.(activeNodeId, option.id), nodeState.selectedOptionId === option.id);
       });
-      y += nodeState.options.length * 66 + 4;
     } else if (isShop) {
       offerRoots = nodeState.inventory.map((offer, index) => {
         const cost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-        return addButton(root, { x: px + 14, y: y + index * 58, width: PANEL_RECT.width - 72, height: 56 },
-          `${offer.label}\n${formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, phaseCost: offer.basePhaseCost })}\nEffect: Applied when this node resolves`,
-          cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
+        return addActionCard(root, {
+          x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
+        }, {
+          title: offer.label,
+          cost: formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, phaseCost: offer.basePhaseCost }),
+          effect: "Effect: Applied when this node resolves.",
+        }, cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
       });
-      y += nodeState.inventory.length * 58 + 4;
       const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
-      rerollRoot = addButton(root, { x: px + 14, y, width: PANEL_RECT.width - 72, height: 46 },
+      rerollRoot = addFooterButton(root, { x: actionX, y: footerY, width: (actionWidth - actionGap) / 2, height: 50 },
         nodeState.rerollUsed
           ? "REROLL USED"
-          : `Reroll remaining offers\n${formatAdjustedCost(vassal, { prestigeCost: 6, phaseCost: 60 })}`,
+          : `REROLL OFFERS\n${formatAdjustedCost(vassal, { prestigeCost: 6, phaseCost: 60 })}`,
         !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(activeNodeId));
-      y += 50;
     } else {
       root.addChild(createText("No choices are currently available for this node.", {
         ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-      }, px + 14, y));
-      y += 52;
+      }, actionX, cardY));
     }
     const canConfirm = isShop || !!nodeState.selectedOptionId;
-    confirmRoot = addButton(root, { x: px + 14, y: Math.min(PANEL_RECT.y + PANEL_RECT.height - 56, y), width: PANEL_RECT.width - 72, height: 42 },
-      "CONFIRM & RESOLVE NODE", canConfirm, () => onConfirmNode?.(activeNodeId));
+    confirmRoot = addFooterButton(root, {
+      x: isShop ? actionX + (actionWidth + actionGap) / 2 : actionX,
+      y: footerY,
+      width: isShop ? (actionWidth - actionGap) / 2 : actionWidth,
+      height: 50,
+    }, "CONFIRM & RESOLVE", canConfirm, () => onConfirmNode?.(activeNodeId));
   }
 
   return {
