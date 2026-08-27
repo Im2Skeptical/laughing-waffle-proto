@@ -264,14 +264,20 @@ export function createMetricGraphView({
     scaleHighWaterMaxByGroupId.clear();
   }
 
-  function applyRunScaleHighWaterRanges(nextRanges, seriesList = []) {
+  function applyRunScaleHighWaterRanges(
+    nextRanges,
+    seriesList = [],
+    subjectKey = null
+  ) {
     if (!(nextRanges instanceof Map)) return nextRanges;
     const merged = new Map(nextRanges);
     for (const seriesDef of Array.isArray(seriesList) ? seriesList : []) {
       const seriesId = String(seriesDef?.id ?? "");
       const range = merged.get(seriesId);
       if (!seriesId || !range || range.scaleMode === "fixed") continue;
-      const groupId = String(range.groupId ?? seriesId);
+      const groupId = `${String(subjectKey ?? "__global__")}:${String(
+        range.groupId ?? seriesId
+      )}`;
       const maxValue = Number.isFinite(range.maxValue) ? range.maxValue : null;
       const seenMax = scaleHighWaterMaxByGroupId.get(groupId);
       const highWater = Number.isFinite(seenMax)
@@ -2386,7 +2392,8 @@ export function createMetricGraphView({
       }
       refreshedScaleRanges = applyRunScaleHighWaterRanges(
         refreshedScaleRanges,
-        seriesList
+        seriesList,
+        data?.subjectKey
       );
 
       return {
@@ -2577,7 +2584,11 @@ export function createMetricGraphView({
         [getProjectionReplacementScaleRanges()]
       );
     }
-    seriesScaleRanges = applyRunScaleHighWaterRanges(seriesScaleRanges, seriesList);
+    seriesScaleRanges = applyRunScaleHighWaterRanges(
+      seriesScaleRanges,
+      seriesList,
+      data?.subjectKey
+    );
 
     const markerActionSecs = getMarkerActionSecs(
       minSec,
