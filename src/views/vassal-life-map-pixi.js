@@ -212,6 +212,57 @@ function formatOptionEffect(option) {
     : "Effect: Apply this choice on resolution";
 }
 
+function formatPurchaseEffect(purchase) {
+  const intervention = purchase?.intervention ?? {};
+  if (intervention.kind === "practice") {
+    return intervention.mode === "replace"
+      ? "Replaces the selected practice on resolution."
+      : "Adds this practice on resolution.";
+  }
+  if (intervention.kind === "structure") return "Builds this structure on resolution.";
+  if (intervention.kind === "connection") {
+    return intervention.mode === "remove"
+      ? "Removes this route on resolution."
+      : "Connects this route on resolution.";
+  }
+  return "Applied when this node resolves.";
+}
+
+function addShopTabs(parent, { x, y, width, activeTab, purchaseCount, onSelect }) {
+  const gap = 10;
+  const tabWidth = (width - gap) / 2;
+  addButton(parent, { x, y, width: tabWidth, height: 32 }, "OFFERS", true,
+    () => onSelect?.("offers"), activeTab === "offers");
+  addButton(parent, { x: x + tabWidth + gap, y, width: tabWidth, height: 32 },
+    `PURCHASES (${purchaseCount})`, true, () => onSelect?.("purchases"),
+    activeTab === "purchases");
+}
+
+function addPurchaseReceipt(parent, purchases, { x, y, width }) {
+  const list = Array.isArray(purchases) ? purchases : [];
+  if (!list.length) {
+    parent.addChild(createText("No purchase was made in this shop.", {
+      ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
+    }, x, y));
+    return;
+  }
+  list.forEach((purchase, index) => {
+    const prestigeCost = Math.max(0, Math.floor(purchase?.prestigeCost ?? 0));
+    const phaseCost = Math.max(0, Math.floor(purchase?.phaseCost ?? 0));
+    const rowY = y + index * 36;
+    parent.addChild(
+      createText(`${index + 1}. ${purchase?.label ?? purchase?.offerId ?? "Committed purchase"}`, {
+        ...TEXT_STYLES.title, fontSize: 15, wordWrap: true, wordWrapWidth: width,
+      }, x, rowY),
+      createText(
+        `${prestigeCost} Prestige · ${phaseCost} ${phaseCost === 1 ? "Phase" : "Phases"} · ${formatPurchaseEffect(purchase)}`,
+        { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: width },
+        x, rowY + 18
+      )
+    );
+  });
+}
+
 function getNode(nodeId) {
   return VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nodeId) ?? null;
 }
@@ -271,6 +322,8 @@ export function createVassalLifeMapView({
   let hoveredNodeId = null;
   let lastNodeClick = { nodeId: null, atMs: 0 };
   let displayedVassalId = null;
+  let shopPanelTab = "offers";
+  let shopPanelTabKey = null;
 
   function inspectNode(nodeId, display) {
     const nowMs = performance.now();
@@ -470,6 +523,15 @@ export function createVassalLifeMapView({
     const inspectedFamily = inspectedNode ? VASSAL_NODE_FAMILIES[inspectedNode.family] : null;
     if (!inspectedNode || !inspectedFamily) return;
 
+    const inspectedIsShop = ["practiceReform", "publicWorks", "routes"].includes(inspectedNode.family);
+    const nextShopPanelTabKey = inspectedIsShop
+      ? `${readOnly ? "history" : "live"}:${inspectedNode.id}`
+      : null;
+    if (nextShopPanelTabKey !== shopPanelTabKey) {
+      shopPanelTabKey = nextShopPanelTabKey;
+      shopPanelTab = readOnly ? "purchases" : "offers";
+    }
+
     root.addChild(
       createText(inspectedFamily.label, { ...TEXT_STYLES.header, fontSize: 21, fill: inspectedFamily.color }, px + 14, PANEL_RECT.y + 370),
       createText(inspectedFamily.description, {
@@ -512,19 +574,35 @@ export function createVassalLifeMapView({
         return;
       }
       const purchases = historicalNodeState.purchasedOffers ?? [];
-      if (purchases.length) {
-        purchases.slice(0, 3).forEach((purchase, index) => {
-          const prestigeCost = Math.max(0, Math.floor(purchase.prestigeCost ?? 0));
-          const phaseCost = Math.max(0, Math.floor(purchase.phaseCost ?? 0));
-          root.addChild(
-            createText(purchase.label ?? purchase.offerId ?? "Committed purchase", {
-              ...TEXT_STYLES.title, fontSize: 17,
-            }, px + 14, PANEL_RECT.y + 480 + index * 54),
-            createText(`${prestigeCost} Prestige · ${phaseCost} ${phaseCost === 1 ? "Phase" : "Phases"}`, {
-              ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
-            }, px + 14, PANEL_RECT.y + 505 + index * 54)
-          );
+      if (inspectedIsShop) {
+        const actionX = px + 14;
+        const actionWidth = PANEL_RECT.width - 72;
+        addShopTabs(root, {
+          x: actionX, y: PANEL_RECT.y + 474, width: actionWidth,
+          activeTab: shopPanelTab, purchaseCount: purchases.length,
+          onSelect: (tab) => {
+            shopPanelTab = tab;
+            render(true);
+          },
         });
+        if (shopPanelTab === "offers") {
+          const actionGap = 10;
+          const cardWidth = (actionWidth - actionGap * 2) / 3;
+          historicalNodeState.inventory?.forEach((offer, index) => {
+            addActionCard(root, {
+              x: actionX + index * (cardWidth + actionGap), y: PANEL_RECT.y + 518,
+              width: cardWidth, height: 164,
+            }, {
+              title: offer.label,
+              cost: `Unbought · ${offer.basePrestigeCost ?? 0} Prestige · ${offer.basePhaseCost ?? 0} Phases`,
+              effect: "Offer remaining when this shop was confirmed.",
+            }, false, null);
+          });
+        } else {
+          addPurchaseReceipt(root, purchases, {
+            x: actionX, y: PANEL_RECT.y + 520, width: actionWidth,
+          });
+        }
       } else {
         root.addChild(createText("No purchase was made in this committed node.", {
           ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
@@ -584,10 +662,10 @@ export function createVassalLifeMapView({
     const actionWidth = PANEL_RECT.width - 72;
     const actionGap = 10;
     const cardWidth = (actionWidth - actionGap * 2) / 3;
-    const cardY = PANEL_RECT.y + 462;
+    const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
+    const cardY = PANEL_RECT.y + (isShop ? 506 : 462);
     const cardHeight = 164;
     const footerY = cardY + cardHeight + 12;
-    const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
     if (!isShop && nodeState.options.length) {
       optionRoots = nodeState.options.map((option, index) => {
         const enabled = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0) <= vassal.prestige;
@@ -600,22 +678,37 @@ export function createVassalLifeMapView({
         }, enabled, () => onSelectOption?.(activeNodeId, option.id), nodeState.selectedOptionId === option.id);
       });
     } else if (isShop) {
-      offerRoots = nodeState.inventory.map((offer, index) => {
-        const cost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-        return addActionCard(root, {
-          x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
-        }, {
-          title: offer.label,
-          cost: formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, phaseCost: offer.basePhaseCost }),
-          effect: "Effect: Applied when this node resolves.",
-        }, cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
+      const purchases = nodeState.purchasedOffers ?? [];
+      addShopTabs(root, {
+        x: actionX, y: PANEL_RECT.y + 462, width: actionWidth,
+        activeTab: shopPanelTab, purchaseCount: purchases.length,
+        onSelect: (tab) => {
+          shopPanelTab = tab;
+          render(true);
+        },
       });
-      const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
-      rerollRoot = addFooterButton(root, { x: actionX, y: footerY, width: (actionWidth - actionGap) / 2, height: 50 },
-        nodeState.rerollUsed
-          ? "REROLL USED"
-          : `REROLL OFFERS\n${formatAdjustedCost(vassal, { prestigeCost: 6, phaseCost: 60 })}`,
-        !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(activeNodeId));
+      if (shopPanelTab === "offers") {
+        offerRoots = nodeState.inventory.map((offer, index) => {
+          const cost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
+          return addActionCard(root, {
+            x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
+          }, {
+            title: offer.label,
+            cost: formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, phaseCost: offer.basePhaseCost }),
+            effect: "Effect: Applied when this node resolves.",
+          }, cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
+        });
+        const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
+        rerollRoot = addFooterButton(root, { x: actionX, y: footerY, width: (actionWidth - actionGap) / 2, height: 50 },
+          nodeState.rerollUsed
+            ? "REROLL USED"
+            : `REROLL OFFERS\n${formatAdjustedCost(vassal, { prestigeCost: 6, phaseCost: 60 })}`,
+          !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(activeNodeId));
+      } else {
+        addPurchaseReceipt(root, purchases, {
+          x: actionX, y: cardY, width: actionWidth,
+        });
+      }
     } else {
       root.addChild(createText("No choices are currently available for this node.", {
         ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
@@ -623,9 +716,9 @@ export function createVassalLifeMapView({
     }
     const canConfirm = isShop || !!nodeState.selectedOptionId;
     confirmRoot = addFooterButton(root, {
-      x: isShop ? actionX + (actionWidth + actionGap) / 2 : actionX,
+      x: isShop && shopPanelTab === "offers" ? actionX + (actionWidth + actionGap) / 2 : actionX,
       y: footerY,
-      width: isShop ? (actionWidth - actionGap) / 2 : actionWidth,
+      width: isShop && shopPanelTab === "offers" ? (actionWidth - actionGap) / 2 : actionWidth,
       height: 50,
     }, "CONFIRM & RESOLVE", canConfirm, () => onConfirmNode?.(activeNodeId));
   }
