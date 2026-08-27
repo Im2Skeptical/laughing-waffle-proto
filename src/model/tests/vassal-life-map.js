@@ -12,11 +12,14 @@ import {
   getVassalMortalityChance,
 } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import {
+  getCommittedVassalLifeMapNodeIds,
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
   getCurrentLifeMapVassal,
+  getLifeMapVassalAtSecond,
   getVassalCandidatePool,
   getVassalDevelopmentIncome,
+  getVassalLifeMapPlayheadNodeId,
   getVassalNodeDisplayState,
   getVassalPrestigeIncome,
   validateVassalLifeMapState,
@@ -72,6 +75,26 @@ assert.deepEqual(
   Array.from({ length: 11 }, (_, depth) => VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth).length),
   [2, 3, 3, 2, 3, 4, 3, 2, 3, 3, 3]
 );
+
+const historicalSelectionState = {
+  tSec: 30,
+  civilization: {
+    vassalLineage: {
+      selectedVassalIds: ["v1", "v2", "v3"],
+      vassalsById: {
+        v1: { vassalId: "v1", selectedSec: 10 },
+        v2: { vassalId: "v2", selectedSec: 20 },
+        v3: { vassalId: "v3", selectedSec: 20 },
+      },
+    },
+  },
+};
+assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 9), null);
+assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 19)?.vassalId, "v1");
+assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 20)?.vassalId, "v3",
+  "the newest Vassal wins when selections share a timeline second");
+assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 30)?.vassalId, "v3",
+  "the latest Vassal remains selected through a gap after their life");
 assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2);
 assert.equal(VASSAL_NODE_FAMILIES.development.label, "Development");
 assert.deepEqual(
@@ -261,6 +284,7 @@ assert.equal(applyAction(developmentState, {
 
 const crisisState = selectedState(106);
 const crisisVassal = getCurrentLifeMapVassal(crisisState);
+crisisState.tSec = 5;
 const crisisNode = forceEnter(crisisState, "life-06-4");
 dispatch(crisisState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: crisisNode.nodeId, optionId: "rallyLoyalists",
@@ -270,6 +294,11 @@ dispatch(crisisState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: crisisNode
 assert.equal(getCurrentLifeMapVassal(crisisState), null);
 assert.equal(crisisVassal.deathCause, "crisis");
 assert.equal(crisisNode.mortality, undefined, "Crisis death precedes natural mortality");
+assert.deepEqual(getCommittedVassalLifeMapNodeIds(crisisVassal), [crisisNode.nodeId],
+  "an immediately fatal confirmed choice remains part of the committed route");
+assert.equal(getVassalLifeMapPlayheadNodeId(crisisVassal, crisisVassal.endSec - 1), null);
+assert.equal(getVassalLifeMapPlayheadNodeId(crisisVassal, crisisVassal.endSec), crisisNode.nodeId,
+  "the historical highlight advances when the fatal choice is confirmed");
 assert.equal(getVassalCandidatePool(crisisState).candidates.length, 3);
 
 const naturalDeathState = selectedState(107);

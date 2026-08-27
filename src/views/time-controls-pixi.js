@@ -279,6 +279,13 @@ export function createTimeControlsView({
         height: bounds.height,
       };
     },
+    getActionButtonClickPoint: () => {
+      if (!root.visible || !commitButton.visible || typeof commitButton.toGlobal !== "function") {
+        return null;
+      }
+      const point = commitButton.toGlobal(new PIXI.Point(BUTTON_WIDTH * 0.5, BUTTON_HEIGHT * 0.5));
+      return { x: point.x, y: point.y };
+    },
     getScreenRect: () =>
       !root.visible || typeof root.getBounds !== "function"
         ? null

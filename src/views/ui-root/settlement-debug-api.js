@@ -106,6 +106,9 @@ export function publishSettlementDebugApi({
   getWorldMapSnapshot,
   getWorldMapClickPoint,
   getTimeLeverScreenRect,
+  getTimeActionClickPoint,
+  getLifeMapPresentation,
+  browseSecond,
   getVassalPrimaryClickPoint,
   getVassalCandidateClickPoint,
   getVassalRerollClickPoint,
@@ -163,6 +166,7 @@ export function publishSettlementDebugApi({
         projectionKeys: getProjectionDebugSecondKeys?.(32) ?? null,
         view: getViewSemanticSnapshot?.() ?? null,
         worldMap: getWorldMapSnapshot?.() ?? null,
+        lifeMap: getLifeMapPresentation?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
@@ -190,6 +194,8 @@ export function publishSettlementDebugApi({
     },
     getWorldMapClickPoint: (regionId) => getWorldMapClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () => getTimeLeverScreenRect?.() ?? null,
+    getTimeActionClickPoint: () => getTimeActionClickPoint?.() ?? null,
+    browseSecond: (tSec) => browseSecond?.(nonNegativeFloor(tSec)),
     getVassalPrimaryClickPoint: () => getVassalPrimaryClickPoint?.() ?? null,
     getVassalCandidateClickPoint: (candidateIndex = 0) =>
       getVassalCandidateClickPoint?.(
