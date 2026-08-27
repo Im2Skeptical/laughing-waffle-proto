@@ -333,4 +333,68 @@ const invalid = structuredClone(serialized);
 invalid.civilization.vassalLineage.currentVassalId = "missing-vassal";
 assert.throws(() => deserializeGameState(invalid), /Invalid serialized Vassal Life Map/);
 
+const practiceTierState = selectedState(1600);
+const practiceTierVassal = getCurrentLifeMapVassal(practiceTierState);
+practiceTierVassal.prestige = 500;
+const practiceTierSettlement = practiceTierState.world.sites.find(
+  (site) => site.regionId === practiceTierVassal.locationRegionId
+).detailedState;
+practiceTierSettlement.practiceSlots = [
+  { practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "cultivate", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "administrate", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "preserve", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "exchange", tier: "bronze", charge: 0, work: 0 },
+];
+const practiceTierNode = forceEnter(practiceTierState, "life-02-3");
+assert.equal(new Set(practiceTierNode.inventory.map((offer) => offer.intervention.practiceId)).size,
+  practiceTierNode.inventory.length, "practice shop offers have unique identities");
+assert.ok(practiceTierNode.inventory.every((offer) =>
+  offer.intervention.mode === "learn" || offer.intervention.tier === "bronze"),
+"installed practices roll at their matching tier");
+const learnOffer = practiceTierNode.inventory.find((offer) => offer.intervention.mode === "learn");
+assert.ok(learnOffer, "a shop with uninstalled practices offers a Learn purchase");
+dispatch(practiceTierState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: practiceTierNode.nodeId, offerId: learnOffer.offerId,
+});
+dispatch(practiceTierState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: practiceTierNode.nodeId });
+resolvePending(practiceTierState);
+assert.equal(practiceTierSettlement.practiceSlots[0].practiceId, learnOffer.intervention.practiceId,
+  "learning inserts the practice into the leftmost slot");
+assert.equal(practiceTierSettlement.practiceSlots[0].tier, "bronze");
+assert.equal(practiceTierSettlement.practiceSlots.length, 5);
+assert.equal(practiceTierSettlement.practiceSlots.some((slot) => slot?.practiceId === "exchange"), false,
+  "a full board discards its rightmost practice when learning");
+
+let upgradeShop = null;
+for (let seed = 1601; seed < 1700 && !upgradeShop; seed += 1) {
+  const state = selectedState(seed);
+  const vassal = getCurrentLifeMapVassal(state);
+  vassal.prestige = 500;
+  const settlement = state.world.sites.find((site) => site.regionId === vassal.locationRegionId).detailedState;
+  settlement.practiceSlots = [{ practiceId: "forage", tier: "gold", charge: 0, work: 0 }, null, null, null, null];
+  const node = forceEnter(state, "life-02-3");
+  const offer = node.inventory.find((entry) => entry.intervention.practiceId === "forage");
+  if (offer) upgradeShop = { state, settlement, node, offer };
+}
+assert.ok(upgradeShop, "a deterministic practice roll can produce the installed practice");
+assert.equal(upgradeShop.offer.intervention.tier, "gold");
+assert.equal(upgradeShop.offer.intervention.resultingTier, "diamond");
+dispatch(upgradeShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: upgradeShop.node.nodeId, offerId: upgradeShop.offer.offerId,
+});
+dispatch(upgradeShop.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: upgradeShop.node.nodeId });
+resolvePending(upgradeShop.state);
+assert.deepEqual(upgradeShop.settlement.practiceSlots[0],
+  { practiceId: "forage", tier: "diamond", charge: 0, work: 0 },
+  "matching-tier purchases upgrade and move the practice leftmost");
+
+const diamondShopState = selectedState(1701);
+const diamondVassal = getCurrentLifeMapVassal(diamondShopState);
+diamondShopState.world.sites.find((site) => site.regionId === diamondVassal.locationRegionId)
+  .detailedState.practiceSlots[0] = { practiceId: "forage", tier: "diamond", charge: 0, work: 0 };
+const diamondShopNode = forceEnter(diamondShopState, "life-02-3");
+assert.equal(diamondShopNode.inventory.some((offer) => offer.intervention.practiceId === "forage"), false,
+  "Diamond practices are excluded from future shop rolls");
+
 console.log("[vassal-life-map] OK");

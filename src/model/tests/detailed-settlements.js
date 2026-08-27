@@ -206,6 +206,9 @@ multiplierSite.populationByClass.stranger.adults = 10;
 const multiplierEvaluation = evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0);
 assert.equal(multiplierEvaluation.effects[0].scaledValue.workerMultiplier, 2.5,
   "one Villager and one Stranger worker produce a x2.5 multiplier");
+multiplierSite.practiceSlots[0].tier = "gold";
+assert.equal(evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0).workerCapacity, 7,
+  "Gold practices add four worker slots to their Bronze capacity");
 
 const decay = fresh();
 const decaySite = getDetailedSettlement(decay, "cedar-woods");

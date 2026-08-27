@@ -13,6 +13,7 @@ import {
   getWorldConnectionKey,
   isWorldConnectionCandidate,
 } from "./world-state.js";
+import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
 
 export const MAP_LAB_DRAFT_SCHEMA_VERSION = 4;
 export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v4";
@@ -31,6 +32,8 @@ function normalizeDetailedState(raw, capacity, regionId = null) {
     ? state.practiceSlots.slice(0, DETAILED_PRACTICE_SLOT_COUNT)
     : [];
   while (state.practiceSlots.length < DETAILED_PRACTICE_SLOT_COUNT) state.practiceSlots.push(null);
+  state.practiceSlots = state.practiceSlots.map((slot) =>
+    slot && slot.tier == null ? { ...slot, tier: "bronze" } : slot);
   state.structureSlots = Array.isArray(state.structureSlots)
     ? state.structureSlots.slice(0, capacity)
     : [];
@@ -139,10 +142,18 @@ function validateDetailedState(region, path, errors, warnings) {
       || state.practiceSlots.length !== DETAILED_PRACTICE_SLOT_COUNT) {
     errors.push(`${path}.detailedState.practiceSlots: expected ${DETAILED_PRACTICE_SLOT_COUNT} slots`);
   } else {
+    const practiceIds = new Set();
     state.practiceSlots.forEach((slot, index) => {
       if (slot && !detailedSettlementPracticeDefs[slot.practiceId]) {
         errors.push(`${path}.detailedState.practiceSlots[${index}]: invalid practice`);
       }
+      if (slot && !isDetailedPracticeTier(slot.tier)) {
+        errors.push(`${path}.detailedState.practiceSlots[${index}]: invalid tier`);
+      }
+      if (slot && practiceIds.has(slot.practiceId)) {
+        errors.push(`${path}.detailedState.practiceSlots[${index}]: duplicate practice`);
+      }
+      if (slot) practiceIds.add(slot.practiceId);
     });
   }
   if (!Array.isArray(state.structureSlots)
@@ -307,7 +318,7 @@ export function setMapLabPracticeSlot(draft, regionId, slotIndex, practiceId) {
     practiceSlots: draft.regions.find((entry) => entry.id === regionId)
       ?.detailedState?.practiceSlots.map((slot, index) =>
         index === slotIndex
-          ? practiceId == null ? null : { practiceId, charge: 0, work: 0 }
+          ? practiceId == null ? null : { practiceId, tier: "bronze", charge: 0, work: 0 }
           : slot),
   });
 }

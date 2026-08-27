@@ -215,9 +215,15 @@ function formatOptionEffect(option) {
 function formatPurchaseEffect(purchase) {
   const intervention = purchase?.intervention ?? {};
   if (intervention.kind === "practice") {
-    return intervention.mode === "replace"
-      ? "Replaces the selected practice on resolution."
-      : "Adds this practice on resolution.";
+    const tier = intervention.tier
+      ? `${intervention.tier[0].toUpperCase()}${intervention.tier.slice(1)}`
+      : "Bronze";
+    const result = intervention.resultingTier
+      ? `${intervention.resultingTier[0].toUpperCase()}${intervention.resultingTier.slice(1)}`
+      : tier;
+    return intervention.mode === "upgrade"
+      ? `Upgrades ${tier} to ${result} and moves it to the leftmost slot on resolution.`
+      : `Learns ${result} and inserts it in the leftmost slot on resolution.`;
   }
   if (intervention.kind === "structure") return "Builds this structure on resolution.";
   if (intervention.kind === "connection") {

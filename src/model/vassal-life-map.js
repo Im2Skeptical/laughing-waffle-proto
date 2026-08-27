@@ -13,9 +13,14 @@ import {
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   VASSAL_INTERVENTION_PRACTICE_IDS,
+  DETAILED_PRACTICE_SLOT_COUNT,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { getDetailedPracticeDef } from "./game-config.js";
+import {
+  createDetailedPracticeSlot,
+  getNextDetailedPracticeTier,
+} from "./detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "./moon-phases.js";
 import {
   addWorldConnection,
@@ -337,9 +342,29 @@ function buildTravelOptions(state, vassal) {
     .sort((a, b) => a.graphDistance - b.graphDistance || a.locationRegionId.localeCompare(b.locationRegionId));
 }
 
+function applyPracticeIntervention(practiceSlots, intervention) {
+  const existingIndex = practiceSlots.findIndex((slot) =>
+    slot?.practiceId === intervention.practiceId);
+  let nextSlot;
+  if (intervention.mode === "upgrade") {
+    const existing = practiceSlots[existingIndex];
+    if (!existing || existing.tier !== intervention.tier
+        || existing.tier === "diamond") return false;
+    nextSlot = createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier);
+    practiceSlots.splice(existingIndex, 1);
+  } else {
+    if (existingIndex >= 0 || intervention.mode !== "learn") return false;
+    nextSlot = createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier);
+  }
+  practiceSlots.unshift(nextSlot);
+  practiceSlots.length = DETAILED_PRACTICE_SLOT_COUNT;
+  while (practiceSlots.length < DETAILED_PRACTICE_SLOT_COUNT) practiceSlots.push(null);
+  return true;
+}
+
 function applyReservedIntervention(reservation, intervention) {
   if (intervention.kind === "practice") {
-    reservation.practiceSlots[intervention.slotIndex] = intervention.practiceId;
+    applyPracticeIntervention(reservation.practiceSlots, intervention);
   } else if (intervention.kind === "structure") {
     reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
   } else if (intervention.kind === "connection") {
@@ -352,7 +377,9 @@ function applyReservedIntervention(reservation, intervention) {
 function buildReservation(state, vassal, nodeState) {
   const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
   const reservation = {
-    practiceSlots: (settlement?.practiceSlots ?? []).map((slot) => slot?.practiceId ?? null),
+    practiceSlots: (settlement?.practiceSlots ?? []).map((slot) => slot
+      ? { practiceId: slot.practiceId, tier: slot.tier }
+      : null),
     structureSlots: (settlement?.structureSlots ?? []).map((slot) => slot?.structureId ?? null),
     connectionKeys: new Set((state?.world?.connections ?? []).map((edge) =>
       getWorldConnectionKey(edge.regionAId, edge.regionBId)
@@ -371,18 +398,21 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
     if (offers.length >= 3) break;
     const def = getDetailedPracticeDef(state, practiceId);
     if (!def) continue;
-    let slotIndex = reservation.practiceSlots.findIndex((value) => value == null);
-    if (slotIndex < 0) slotIndex = reservation.practiceSlots.findIndex((value) => value !== practiceId);
-    if (slotIndex < 0) continue;
-    const replacedPracticeId = reservation.practiceSlots[slotIndex];
+    const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
+    if (installed?.tier === "diamond") continue;
+    const tier = installed?.tier ?? "bronze";
+    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : "bronze";
+    if (!resultingTier) continue;
     const intervention = {
-      kind: "practice", targetRegionId: vassal.locationRegionId, practiceId, slotIndex,
-      mode: replacedPracticeId ? "replace" : "add", replacedPracticeId: replacedPracticeId ?? null,
+      kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
+      mode: installed ? "upgrade" : "learn", tier, resultingTier,
     };
-    reservation.practiceSlots[slotIndex] = practiceId;
+    applyPracticeIntervention(reservation.practiceSlots, intervention);
     offers.push({
       offerId: `${nodeState.nodeId}:r${roll}:practice:${offers.length}`,
-      label: replacedPracticeId ? `Replace ${replacedPracticeId} with ${def.label}` : `Add ${def.label}`,
+      label: installed
+        ? `Upgrade ${def.label} ${tier[0].toUpperCase()}${tier.slice(1)} → ${resultingTier[0].toUpperCase()}${resultingTier.slice(1)}`
+        : `Learn ${def.label} Bronze`,
       basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
       basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
       intervention,
@@ -557,10 +587,9 @@ export function rerollVassalShop(state, nodeId) {
 function applyIntervention(state, intervention) {
   const settlement = getDetailedSite(state, intervention.targetRegionId)?.detailedState;
   if (intervention.kind === "practice" && settlement) {
-    settlement.practiceSlots[intervention.slotIndex] = {
-      practiceId: intervention.practiceId, charge: 0, work: 0,
-    };
-    return { ok: true };
+    return applyPracticeIntervention(settlement.practiceSlots, intervention)
+      ? { ok: true }
+      : { ok: false, reason: "practiceUnavailable" };
   }
   if (intervention.kind === "structure" && settlement
       && settlement.structureSlots[intervention.slotIndex] == null) {
