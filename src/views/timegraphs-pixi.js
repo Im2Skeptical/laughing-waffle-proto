@@ -173,6 +173,10 @@ export function createMetricGraphView({
   );
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
+  // View-only comparison ceilings: rendering must not affect simulation,
+  // serialization, or authoritative replay.
+  let scaleHighWaterTimeline = null;
+  const scaleHighWaterMaxByGroupId = new Map();
   let windowSpecResolver =
     typeof getWindowSpec === "function" ? getWindowSpec : null;
   let commitPolicyResolver =
@@ -250,6 +254,32 @@ export function createMetricGraphView({
     for (const source of Array.isArray(sources) ? sources : []) {
       if (!(source instanceof Map)) continue;
       merged = mergeStickySeriesScaleRanges(source, merged, seriesList);
+    }
+    return merged;
+  }
+
+  function syncScaleHighWaterTimeline(timeline) {
+    if (scaleHighWaterTimeline === timeline) return;
+    scaleHighWaterTimeline = timeline ?? null;
+    scaleHighWaterMaxByGroupId.clear();
+  }
+
+  function applyRunScaleHighWaterRanges(nextRanges, seriesList = []) {
+    if (!(nextRanges instanceof Map)) return nextRanges;
+    const merged = new Map(nextRanges);
+    for (const seriesDef of Array.isArray(seriesList) ? seriesList : []) {
+      const seriesId = String(seriesDef?.id ?? "");
+      const range = merged.get(seriesId);
+      if (!seriesId || !range || range.scaleMode === "fixed") continue;
+      const groupId = String(range.groupId ?? seriesId);
+      const maxValue = Number.isFinite(range.maxValue) ? range.maxValue : null;
+      const seenMax = scaleHighWaterMaxByGroupId.get(groupId);
+      const highWater = Number.isFinite(seenMax)
+        ? Number.isFinite(maxValue) ? Math.max(seenMax, maxValue) : seenMax
+        : maxValue;
+      if (!Number.isFinite(highWater)) continue;
+      scaleHighWaterMaxByGroupId.set(groupId, highWater);
+      merged.set(seriesId, { ...range, maxValue: highWater });
     }
     return merged;
   }
@@ -2131,6 +2161,7 @@ export function createMetricGraphView({
     const cacheVersion =
       Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
     const tl = getTimeline?.();
+    syncScaleHighWaterTimeline(tl);
     const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
     const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
     const actualForecastCoverageEndSec = Math.max(
@@ -2353,6 +2384,10 @@ export function createMetricGraphView({
           visibleMaxValues: refreshedVisibleMaxValues,
         });
       }
+      refreshedScaleRanges = applyRunScaleHighWaterRanges(
+        refreshedScaleRanges,
+        seriesList
+      );
 
       return {
         pointsForDraw: refreshedPoints,
@@ -2542,6 +2577,7 @@ export function createMetricGraphView({
         [getProjectionReplacementScaleRanges()]
       );
     }
+    seriesScaleRanges = applyRunScaleHighWaterRanges(seriesScaleRanges, seriesList);
 
     const markerActionSecs = getMarkerActionSecs(
       minSec,
