@@ -575,7 +575,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 15,
+    gameStateSchemaVersion: 16,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -1166,6 +1166,9 @@ export function serializeGameState(state) {
   for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
     const local = site?.detailedState;
     if (!local) continue;
+    for (const slot of local.practiceSlots ?? []) {
+      if (slot && slot.tier == null) slot.tier = "bronze";
+    }
     if (local.board?.occ) delete local.board.occ;
     if (local.hub) {
       delete local.hub.occ;
@@ -1190,8 +1193,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 15) {
-    throw new Error("Unsupported game-state schema: expected v15");
+  if (state?.gameStateSchemaVersion !== 16) {
+    throw new Error("Unsupported game-state schema: expected v16");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

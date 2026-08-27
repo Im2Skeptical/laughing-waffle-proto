@@ -89,7 +89,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
   );
   card.addChild(gfx);
   card.addChild(createText(
-    `${slotIndex + 1}. ${filled ? entry.label : "Empty"}`,
+    `${slotIndex + 1}. ${filled ? `${entry.label} · ${entry.tier[0].toUpperCase()}${entry.tier.slice(1)}` : "Empty"}`,
     { ...TEXT_STYLES.title, fontSize: 16, wordWrap: true, wordWrapWidth: rect.width - 20 },
     10,
     12

@@ -43,6 +43,10 @@ import {
   initializeVassalLifeMapCivilization,
   stepVassalLifeMapSecond,
 } from "./vassal-life-map.js";
+import {
+  createDetailedPracticeSlot,
+  getDetailedPracticeWorkerCapacity,
+} from "./detailed-practice-tiers.js";
 
 const FOOD_SCALE = 10000;
 const FAITH_ORDER = Object.freeze(["bronze", "silver", "gold", "diamond"]);
@@ -659,7 +663,8 @@ export function assignDetailedSettlementWorkers(state, regionId) {
     );
     for (let slotIndex = 0; slotIndex < slots.length && tokens > 0; slotIndex += 1) {
       const def = getDetailedPracticeDef(state, slots[slotIndex]?.practiceId);
-      const room = Math.max(0, (def?.workerCapacity ?? 0) - assignments[slotIndex].length);
+      const room = Math.max(0, getDetailedPracticeWorkerCapacity(def, slots[slotIndex]?.tier)
+        - assignments[slotIndex].length);
       const count = Math.min(tokens, room);
       for (let index = 0; index < count; index += 1) {
         assignments[slotIndex].push({
@@ -688,7 +693,7 @@ function buildDetailedPracticeEvaluation(state, site, assignment) {
   return {
     practiceId: def.id,
     label: def.label,
-    workerCapacity: def.workerCapacity,
+    workerCapacity: getDetailedPracticeWorkerCapacity(def, slot.tier),
     activation: clone(def.activation),
     rule: def.ui?.rule ?? "",
     effects: (def.effects ?? []).map((effect) => ({
@@ -2811,7 +2816,7 @@ function createExpansionDetailedState(structureCapacity) {
   state.looseFood = 20;
   state.currency = 0;
   state.practiceSlots = [
-    { practiceId: "forage", charge: 0, work: 0 },
+    createDetailedPracticeSlot("forage"),
     null,
     null,
     null,
@@ -2908,11 +2913,7 @@ function applyIntervention(state, vassal, intervention) {
       ? { ok: true }
       : { ok: false, reason: "invalidPractice" };
     if (result.ok) {
-      settlement.practiceSlots[slotIndex] = {
-        practiceId: intervention.practiceId,
-        charge: 0,
-        work: 0,
-      };
+      settlement.practiceSlots[slotIndex] = createDetailedPracticeSlot(intervention.practiceId);
     }
   } else if (settlement && intervention?.kind === "structure") {
     const slotIndex = Math.floor(intervention.slotIndex);
@@ -3015,7 +3016,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 15;
+  state.gameStateSchemaVersion = 16;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

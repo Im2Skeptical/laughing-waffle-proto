@@ -9,6 +9,7 @@ import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
 
 export const REGION_COLOURS = Object.freeze(["red", "blue", "green", "black"]);
 export const REGION_CONTROLLERS = Object.freeze([
@@ -155,10 +156,18 @@ function validateDetailedSettlement(site, region, errors) {
       || settlement.practiceSlots.length !== DETAILED_PRACTICE_SLOT_COUNT) {
     errors.push(`site ${site.id} must have ${DETAILED_PRACTICE_SLOT_COUNT} practice slots`);
   } else {
+    const practiceIds = new Set();
     for (const slot of settlement.practiceSlots) {
       if (slot && !detailedSettlementPracticeDefs[slot.practiceId]) {
         errors.push(`site ${site.id} has invalid practice ${slot.practiceId}`);
       }
+      if (slot && !isDetailedPracticeTier(slot.tier)) {
+        errors.push(`site ${site.id} has invalid practice tier ${slot.tier ?? "?"}`);
+      }
+      if (slot && practiceIds.has(slot.practiceId)) {
+        errors.push(`site ${site.id} has duplicate practice ${slot.practiceId}`);
+      }
+      if (slot) practiceIds.add(slot.practiceId);
     }
   }
   if (!Array.isArray(settlement.structureSlots)
@@ -444,6 +453,11 @@ export function canonicalizeWorldState(state) {
     state.world.sites.sort((a, b) =>
       (order.get(a?.regionId) ?? Number.MAX_SAFE_INTEGER)
       - (order.get(b?.regionId) ?? Number.MAX_SAFE_INTEGER));
+    for (const site of state.world.sites) {
+      for (const slot of site?.detailedState?.practiceSlots ?? []) {
+        if (slot && slot.tier == null) slot.tier = "bronze";
+      }
+    }
   }
 }
 

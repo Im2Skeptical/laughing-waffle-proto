@@ -52,8 +52,8 @@ export const createInitialDetailedSettlementData = (regionId = null) => ({
   looseFood: 0,
   currency: 0,
   practiceSlots: [
-    { practiceId: regionId === "cedar-woods" ? "forage" : "cultivate", charge: 0, work: 0 },
-    regionId === "cedar-woods" ? null : { practiceId: "administrate", charge: 0, work: 0 },
+    { practiceId: regionId === "cedar-woods" ? "forage" : "cultivate", tier: "bronze", charge: 0, work: 0 },
+    regionId === "cedar-woods" ? null : { practiceId: "administrate", tier: "bronze", charge: 0, work: 0 },
     null,
     null,
     null,
