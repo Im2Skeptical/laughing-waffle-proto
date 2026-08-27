@@ -612,6 +612,52 @@ try {
     );
   }
 
+  const historicalBrowseSec = afterVassal.frontierSec;
+  const historicalBrowse = await page.evaluate(
+    (tSec) => globalThis.__SETTLEMENT_DEBUG__.browseSecond(tSec),
+    historicalBrowseSec
+  );
+  assert.equal(historicalBrowse?.ok, true, "committed Vassal time can be browsed without rewriting it");
+  await delay(100);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  const historicalLifeMap = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(historicalLifeMap.worldMap.mode, "vassalLife",
+    "timeline browsing keeps the open Life Map visible");
+  assert.equal(historicalLifeMap.lifeMap.readOnly, true,
+    "a Life Map behind the committed frontier is inspect-only");
+  assert.equal(historicalLifeMap.lifeMap.vassalId,
+    committedVassalHistory.lineage.currentVassal.vassalId);
+  assert.ok(historicalLifeMap.lifeMap.committedNodeIds.includes("life-01-1"),
+    "the full committed route remains visible behind the playhead");
+  assert.equal(historicalLifeMap.lifeMap.playheadNodeId, "life-01-1",
+    "the temporal highlight follows the latest confirmed node");
+  assert.equal(
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()),
+    null,
+    "historical Life Maps expose no node-entry action"
+  );
+  assert.equal(
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getLifeMapConfirmClickPoint()),
+    null,
+    "historical Life Maps expose no confirmation action"
+  );
+  const lifePresentPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint()
+  );
+  assert.ok(lifePresentPoint, "the shared timeline controls expose Return to Present");
+  await clickDesignPoint(page, lifePresentPoint);
+  await delay(100);
+  const presentLifeMap = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(presentLifeMap.viewedSec, presentLifeMap.frontierSec);
+  assert.equal(presentLifeMap.worldMap.mode, "vassalLife",
+    "Return to Present preserves the Life Map screen");
+  assert.equal(presentLifeMap.lifeMap.readOnly, false,
+    "the living Vassal becomes actionable again at the frontier");
+
   const mapTogglePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalPrimaryClickPoint()
   );
@@ -644,6 +690,23 @@ try {
     ],
     "returning to the map restores civilization graph values"
   );
+  await page.evaluate(
+    (tSec) => globalThis.__SETTLEMENT_DEBUG__.browseSecond(tSec),
+    historicalBrowseSec
+  );
+  await delay(100);
+  const mapPresentPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint()
+  );
+  assert.ok(mapPresentPoint, "Return to Present is also available on the World Map");
+  await clickDesignPoint(page, mapPresentPoint);
+  await delay(100);
+  const worldMapPresent = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+  );
+  assert.equal(worldMapPresent.viewedSec, worldMapPresent.frontierSec);
+  assert.equal(worldMapPresent.worldMap.mode, "map",
+    "Return to Present preserves the World Map screen");
 
   const widePage = await browser.newPage({
     viewport: { width: 1280, height: 600 },

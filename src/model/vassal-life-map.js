@@ -76,6 +76,68 @@ export function getSelectedLifeMapVassals(state) {
     .filter(Boolean);
 }
 
+export function getLifeMapVassalAtSecond(state, tSec = null) {
+  const safeTSec = Number.isFinite(tSec)
+    ? Math.max(0, Math.floor(tSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  let selected = null;
+  for (const vassal of getSelectedLifeMapVassals(state)) {
+    const selectedSec = Number.isFinite(vassal?.selectedSec)
+      ? Math.max(0, Math.floor(vassal.selectedSec))
+      : null;
+    if (selectedSec == null || selectedSec > safeTSec) continue;
+    if (
+      !selected ||
+      selectedSec >= Math.max(0, Math.floor(selected.selectedSec ?? 0))
+    ) {
+      selected = vassal;
+    }
+  }
+  return selected;
+}
+
+function getCommittedNodeSec(vassal, nodeId) {
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId] ?? null;
+  if (Number.isFinite(nodeState?.confirmedSec)) {
+    return Math.max(0, Math.floor(nodeState.confirmedSec));
+  }
+  if (
+    vassal?.lifeMap?.currentNodeId === nodeId &&
+    ["died", "retired"].includes(vassal?.endedReason) &&
+    Number.isFinite(vassal?.endSec)
+  ) {
+    return Math.max(0, Math.floor(vassal.endSec));
+  }
+  return null;
+}
+
+export function getCommittedVassalLifeMapNodeIds(vassal) {
+  const completedIds = Array.isArray(vassal?.lifeMap?.completedNodeIds)
+    ? vassal.lifeMap.completedNodeIds
+    : [];
+  const committedIds = [...completedIds];
+  for (const nodeId of Object.keys(vassal?.lifeMap?.nodeStates ?? {})) {
+    if (getCommittedNodeSec(vassal, nodeId) != null && !committedIds.includes(nodeId)) {
+      committedIds.push(nodeId);
+    }
+  }
+  return committedIds;
+}
+
+export function getVassalLifeMapPlayheadNodeId(vassal, tSec = null) {
+  const safeTSec = Number.isFinite(tSec) ? Math.max(0, Math.floor(tSec)) : null;
+  if (safeTSec == null) return null;
+  let latest = null;
+  let latestSec = -1;
+  for (const nodeId of getCommittedVassalLifeMapNodeIds(vassal)) {
+    const committedSec = getCommittedNodeSec(vassal, nodeId);
+    if (committedSec == null || committedSec > safeTSec || committedSec < latestSec) continue;
+    latest = nodeId;
+    latestSec = committedSec;
+  }
+  return latest;
+}
+
 export function getVassalAge(state, vassal = null, tSec = null) {
   const current = vassal ?? getCurrentLifeMapVassal(state);
   if (!current) return 0;

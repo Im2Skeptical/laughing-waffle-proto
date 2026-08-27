@@ -5,10 +5,8 @@ import {
 import {
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
-  getCurrentLifeMapVassal,
   getVassalAge,
   getVassalDevelopmentIncome,
-  getVassalNodeDisplayState,
   getVassalPrestigeIncome,
 } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
@@ -218,9 +216,38 @@ function getNode(nodeId) {
   return VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nodeId) ?? null;
 }
 
+function getNodeDisplayState(vassal, nodeId, committedNodeIds, readOnly) {
+  const node = getNode(nodeId);
+  if (!node) return null;
+  const committed = committedNodeIds.has(nodeId);
+  return {
+    node,
+    nodeState: vassal?.lifeMap?.nodeStates?.[nodeId] ?? null,
+    available: !readOnly && !!vassal?.lifeMap?.availableNodeIds?.includes(nodeId)
+      && (vassal?.pendingDevelopmentChoices ?? 0) === 0,
+    current: !readOnly && vassal?.lifeMap?.currentNodeId === nodeId,
+    completed: committed,
+  };
+}
+
+function getNodeCommittedSec(vassal, nodeId) {
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId] ?? null;
+  if (Number.isFinite(nodeState?.confirmedSec)) {
+    return Math.max(0, Math.floor(nodeState.confirmedSec));
+  }
+  if (
+    vassal?.lifeMap?.currentNodeId === nodeId &&
+    ["died", "retired"].includes(vassal?.endedReason) &&
+    Number.isFinite(vassal?.endSec)
+  ) {
+    return Math.max(0, Math.floor(vassal.endSec));
+  }
+  return null;
+}
+
 export function createVassalLifeMapView({
   layer,
-  getState,
+  getPresentation,
   isVisible,
   onEnterNode,
   onSelectOption,
@@ -243,6 +270,7 @@ export function createVassalLifeMapView({
   let inspectedNodeId = null;
   let hoveredNodeId = null;
   let lastNodeClick = { nodeId: null, atMs: 0 };
+  let displayedVassalId = null;
 
   function inspectNode(nodeId, display) {
     const nowMs = performance.now();
@@ -267,11 +295,23 @@ export function createVassalLifeMapView({
       clearChildren(root);
       return;
     }
-    const state = getState?.();
-    const vassal = getCurrentLifeMapVassal(state);
-    const activeNodeId = vassal?.lifeMap?.currentNodeId ?? null;
-    const effectiveInspectedNodeId = hoveredNodeId ?? inspectedNodeId ?? activeNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
-    const nextSignature = JSON.stringify({ tSec: state?.tSec, vassal, effectiveInspectedNodeId, hoveredNodeId });
+    const presentation = getPresentation?.() ?? {};
+    const state = presentation.state ?? null;
+    const vassal = presentation.vassal ?? null;
+    const profileVassal = presentation.profileVassal ?? vassal;
+    const readOnly = presentation.readOnly === true;
+    const committedNodeIds = new Set(presentation.committedNodeIds ?? []);
+    const playheadNodeId = presentation.playheadNodeId ?? null;
+    if ((vassal?.vassalId ?? null) !== displayedVassalId) {
+      displayedVassalId = vassal?.vassalId ?? null;
+      inspectedNodeId = playheadNodeId;
+      hoveredNodeId = null;
+      lastNodeClick = { nodeId: null, atMs: 0 };
+    }
+    const activeNodeId = readOnly ? null : vassal?.lifeMap?.currentNodeId ?? null;
+    const effectiveInspectedNodeId = hoveredNodeId ?? inspectedNodeId ?? activeNodeId ?? playheadNodeId
+      ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? presentation.committedNodeIds?.at?.(-1) ?? null;
+    const nextSignature = JSON.stringify({ presentation, effectiveInspectedNodeId, hoveredNodeId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -281,7 +321,19 @@ export function createVassalLifeMapView({
     rerollRoot = null;
     enterNodeRoot = null;
     confirmRoot = null;
-    if (!vassal) return;
+    if (!vassal) {
+      const emptyBg = new PIXI.Graphics();
+      roundedRect(emptyBg, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width + PANEL_RECT.width + 24,
+        MAP_RECT.height, 10, PALETTE.panel, PALETTE.stroke, 2);
+      root.addChild(
+        emptyBg,
+        createText("VASSAL LIFE MAP", { ...TEXT_STYLES.header, fontSize: 22 }, MAP_RECT.x + 22, MAP_RECT.y + 22),
+        createText("No Vassal had been appointed at this point in the timeline.", {
+          ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
+        }, MAP_RECT.x + 70, MAP_RECT.y + 180)
+      );
+      return;
+    }
 
     const bg = new PIXI.Graphics();
     roundedRect(bg, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 10,
@@ -291,7 +343,9 @@ export function createVassalLifeMapView({
     root.addChild(bg);
     root.addChild(createText("VASSAL LIFE MAP", { ...TEXT_STYLES.header, fontSize: 22 },
       MAP_RECT.x + 22, MAP_RECT.y + 22));
-    root.addChild(createText("Hover to inspect. Click to pin. Double-click an available node to enter it.", {
+    root.addChild(createText(readOnly
+      ? "LOCKED HISTORY · FULL COMMITTED PATH"
+      : "Hover to inspect. Click to pin. Double-click an available node to enter it.", {
       ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 250, MAP_RECT.y + 26));
     root.addChild(createText("EARLY", TEXT_STYLES.body, MAP_RECT.x + 40, MAP_RECT.y + 60));
@@ -299,9 +353,9 @@ export function createVassalLifeMapView({
     root.addChild(createText("LATE", TEXT_STYLES.body, MAP_RECT.x + 900, MAP_RECT.y + 60));
     root.addChild(createText("DEEP / LEGACY", TEXT_STYLES.body, MAP_RECT.x + 1318, MAP_RECT.y + 60));
 
-    const completedNodeIds = vassal.lifeMap.completedNodeIds ?? [];
-    const completedEdges = new Set(completedNodeIds.slice(1).map(
-      (nodeId, index) => `${completedNodeIds[index]}:${nodeId}`
+    const committedPathNodeIds = presentation.committedNodeIds ?? [];
+    const completedEdges = new Set(committedPathNodeIds.slice(1).map(
+      (nodeId, index) => `${committedPathNodeIds[index]}:${nodeId}`
     ));
     const edges = new PIXI.Graphics();
     for (const node of VASSAL_LIFE_MAP_NODES) {
@@ -319,7 +373,7 @@ export function createVassalLifeMapView({
     root.addChild(edges);
 
     for (const node of VASSAL_LIFE_MAP_NODES) {
-      const display = getVassalNodeDisplayState(state, node.id);
+      const display = getNodeDisplayState(vassal, node.id, committedNodeIds, readOnly);
       const point = nodePoint(node);
       const family = VASSAL_NODE_FAMILIES[node.family] ?? {};
       const nodeRoot = new PIXI.Container();
@@ -350,6 +404,9 @@ export function createVassalLifeMapView({
         1
       );
       circle.beginFill(family.color ?? 0x494641, fillAlpha).drawCircle(0, 0, NODE_RADIUS).endFill();
+      if (playheadNodeId === node.id) {
+        circle.lineStyle(5, 0xe3c46c, 1).drawCircle(0, 0, NODE_RADIUS + 7);
+      }
       const glyph = createText(family.glyph ?? "?", {
         ...TEXT_STYLES.title,
         fontSize: node.family === "practiceReform" || node.family === "publicWorks" ? 12 : 16,
@@ -364,8 +421,8 @@ export function createVassalLifeMapView({
       }, MAP_RECT.x + 36 + index * 196, MAP_RECT.y + MAP_RECT.height - 38));
     });
 
-    const location = getRegionReference(state, vassal.locationRegionId) ?? vassal.locationRegionId;
-    const stats = vassal.stats ?? {};
+    const location = getRegionReference(state, profileVassal.locationRegionId) ?? profileVassal.locationRegionId;
+    const stats = profileVassal.stats ?? {};
     const px = PANEL_RECT.x + 22;
     const cards = new PIXI.Graphics();
     roundedRect(cards, px, PANEL_RECT.y + 18, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
@@ -373,17 +430,17 @@ export function createVassalLifeMapView({
     roundedRect(cards, px, PANEL_RECT.y + 250, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
     roundedRect(cards, px, PANEL_RECT.y + 354, PANEL_RECT.width - 44, PANEL_RECT.height - 376, 8, 0x2c312e, PALETTE.accent, 1);
     root.addChild(cards);
-    addVassalPortrait(root, vassal, PANEL_RECT.x + PANEL_RECT.width - 76, PANEL_RECT.y + 64);
+    addVassalPortrait(root, profileVassal, PANEL_RECT.x + PANEL_RECT.width - 76, PANEL_RECT.y + 64);
     root.addChild(
       createText("VASSAL", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 30),
-      createText(`Age ${getVassalAge(state, vassal)}`, { ...TEXT_STYLES.header, fontSize: 22 }, px + 14, PANEL_RECT.y + 50),
+      createText(`Age ${getVassalAge(state, profileVassal, presentation.profileSec)}`, { ...TEXT_STYLES.header, fontSize: 22 }, px + 14, PANEL_RECT.y + 50),
       createText(location, { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 190 }, px + 14, PANEL_RECT.y + 76),
-      createText(`Prestige  ${vassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 88),
+      createText(`Prestige  ${profileVassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 88),
       createText("ATTRIBUTES · HOVER FOR DETAILS", { ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 136),
       createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 260),
-      createText(`Prestige income: +${getVassalPrestigeIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 282),
-      createText(`EXP income: +${getVassalDevelopmentIncome(vassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 304),
-      createText(`EXP ${vassal.developmentProgress}/10${vassal.pendingDevelopmentChoices ? ` · ${vassal.pendingDevelopmentChoices} choice` : ""}`,
+      createText(`Prestige income: +${getVassalPrestigeIncome(profileVassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 282),
+      createText(`EXP income: +${getVassalDevelopmentIncome(profileVassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 304),
+      createText(`EXP ${profileVassal.developmentProgress}/10${profileVassal.pendingDevelopmentChoices ? ` · ${profileVassal.pendingDevelopmentChoices} choice` : ""}`,
         { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 324)
     );
     const statWidth = (PANEL_RECT.width - 86) / 2;
@@ -407,7 +464,9 @@ export function createVassalLifeMapView({
     });
 
     const inspectedNode = getNode(effectiveInspectedNodeId);
-    const inspectedDisplay = inspectedNode ? getVassalNodeDisplayState(state, inspectedNode.id) : null;
+    const inspectedDisplay = inspectedNode
+      ? getNodeDisplayState(vassal, inspectedNode.id, committedNodeIds, readOnly)
+      : null;
     const inspectedFamily = inspectedNode ? VASSAL_NODE_FAMILIES[inspectedNode.family] : null;
     if (!inspectedNode || !inspectedFamily) return;
 
@@ -418,6 +477,61 @@ export function createVassalLifeMapView({
         wordWrapWidth: PANEL_RECT.width - 72, lineHeight: 19,
       }, px + 14, PANEL_RECT.y + 398)
     );
+
+    if (readOnly) {
+      const historicalNodeState = inspectedDisplay?.nodeState ?? null;
+      const committedSec = getNodeCommittedSec(vassal, inspectedNode.id);
+      if (!inspectedDisplay?.completed || !historicalNodeState) {
+        root.addChild(createText("Not part of this Vassal's committed path.", {
+          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
+          wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
+        }, px + 14, PANEL_RECT.y + 450));
+        return;
+      }
+      const laterThanPlayhead = committedSec != null
+        && committedSec > Math.max(0, Math.floor(presentation.viewedSec ?? 0));
+      root.addChild(createText(
+        `${laterThanPlayhead ? "LATER " : ""}COMMITTED CHOICE`,
+        { ...TEXT_STYLES.chip, fontSize: 14, fill: laterThanPlayhead ? PALETTE.textMuted : 0xe3c46c },
+        px + 14, PANEL_RECT.y + 444
+      ));
+      const selectedOption = historicalNodeState.options?.find(
+        (option) => option.id === historicalNodeState.selectedOptionId
+      ) ?? null;
+      if (selectedOption) {
+        root.addChild(
+          createText(selectedOption.label, {
+            ...TEXT_STYLES.header, fontSize: 19, wordWrap: true,
+            wordWrapWidth: PANEL_RECT.width - 72,
+          }, px + 14, PANEL_RECT.y + 478),
+          createText(formatOptionEffect(selectedOption), {
+            ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
+            wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72, lineHeight: 19,
+          }, px + 14, PANEL_RECT.y + 514)
+        );
+        return;
+      }
+      const purchases = historicalNodeState.purchasedOffers ?? [];
+      if (purchases.length) {
+        purchases.slice(0, 3).forEach((purchase, index) => {
+          const prestigeCost = Math.max(0, Math.floor(purchase.prestigeCost ?? 0));
+          const phaseCost = Math.max(0, Math.floor(purchase.phaseCost ?? 0));
+          root.addChild(
+            createText(purchase.label ?? purchase.offerId ?? "Committed purchase", {
+              ...TEXT_STYLES.title, fontSize: 17,
+            }, px + 14, PANEL_RECT.y + 480 + index * 54),
+            createText(`${prestigeCost} Prestige · ${phaseCost} ${phaseCost === 1 ? "Phase" : "Phases"}`, {
+              ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
+            }, px + 14, PANEL_RECT.y + 505 + index * 54)
+          );
+        });
+      } else {
+        root.addChild(createText("No purchase was made in this committed node.", {
+          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
+        }, px + 14, PANEL_RECT.y + 484));
+      }
+      return;
+    }
 
     if (vassal.pendingDevelopmentChoices > 0) {
       root.addChild(createText("Spend your EXP choice before entering the next node.", {
