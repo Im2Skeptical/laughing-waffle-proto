@@ -134,6 +134,12 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
       86
     ),
     createText(
+      `Tags  ${(entry.tags ?? []).join(" · ") || "—"}${evaluation.activation?.type === "trigger" ? ` · Charge ${formatPracticeNumber(entry.charge)}/${evaluation.activation.chargeThreshold}` : ""}`,
+      { ...TEXT_STYLES.body, fontSize: 10, fill: PALETTE.textMuted },
+      10,
+      122
+    ),
+    createText(
       `${formatPracticeNumber(entry.workers.effectiveWorkers)} effective`,
       { ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted },
       10,
@@ -143,7 +149,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
       evaluation.rule,
       { ...TEXT_STYLES.body, fontSize: 11, lineHeight: 14, fill: PALETTE.textMuted },
       10,
-      132,
+      146,
       rect.width - 20
     )
   );

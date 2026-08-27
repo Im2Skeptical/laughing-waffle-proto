@@ -59,8 +59,8 @@ export const createInitialDetailedSettlementData = (regionId = null) => ({
     null,
   ],
   structureSlots: [
-    { structureId: "granary" },
-    { structureId: "mudHouses" },
+    { structureId: "granary", tier: "bronze" },
+    { structureId: "mudHouses", tier: "bronze" },
   ],
   elderOrder: {
     definitionId: "elderOrder",

@@ -124,4 +124,9 @@ const devPlaytestingSetup = {
 
 export const setupDefs = {
   devPlaytesting01: devPlaytestingSetup,
+  twoRegionStarter01: {
+    ...devPlaytestingSetup,
+    worldDraft: { starterRandomization: { kind: "twoRegionStarter" } },
+    civilization: {},
+  },
 };

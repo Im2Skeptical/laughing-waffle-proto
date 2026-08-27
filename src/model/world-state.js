@@ -178,6 +178,9 @@ function validateDetailedSettlement(site, region, errors) {
       if (slot && !settlementStructureDefs[slot.structureId]) {
         errors.push(`site ${site.id} has invalid structure ${slot.structureId}`);
       }
+      if (slot && !isDetailedPracticeTier(slot.tier ?? "bronze")) {
+        errors.push(`site ${site.id} has invalid structure tier ${slot.tier ?? "?"}`);
+      }
     }
   }
   if (!Number.isFinite(settlement.storedFood) || settlement.storedFood < 0
@@ -457,6 +460,9 @@ export function canonicalizeWorldState(state) {
       for (const slot of site?.detailedState?.practiceSlots ?? []) {
         if (slot && slot.tier == null) slot.tier = "bronze";
       }
+      for (const slot of site?.detailedState?.structureSlots ?? []) {
+        if (slot && slot.tier == null) slot.tier = "bronze";
+      }
     }
   }
 }
@@ -470,6 +476,30 @@ export function createWorldState(
   const definition = worldMapDefs[definitionId];
   const validation = validateWorldDefinition(definition);
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
+  if (mechanicalDraft?.starterRandomization?.kind === "twoRegionStarter" && typeof rngNextInt === "function") {
+    const starterEdge = definition.connections[rngNextInt(0, definition.connections.length - 1)];
+    const playerIds = new Set([starterEdge.regionAId, starterEdge.regionBId]);
+    const remaining = definition.connections.filter((edge) => edge !== starterEdge);
+    for (let i = remaining.length - 1; i > 0; i -= 1) {
+      const j = rngNextInt(0, i); [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+    }
+    const connections = [starterEdge, ...remaining.slice(0, 8)];
+    mechanicalDraft = {
+      ...mechanicalDraft,
+      regions: definition.regions.map((entry) => ({
+        id: entry.id, colour: entry.initialState.colour, structureCapacity: entry.initialState.structureCapacity,
+        randomizeStructureCapacity: true, controller: playerIds.has(entry.id) ? "player" : "frontier",
+        detailedSettlementEnabled: playerIds.has(entry.id),
+        detailedState: playerIds.has(entry.id) ? (() => {
+          const start = createInitialDetailedSettlementData("cedar-woods");
+          start.practiceSlots = [{ practiceId: "forage", tier: "bronze", charge: 0, work: 0 }, null, null, null, null];
+          start.structureSlots = [{ structureId: "granary", tier: "bronze" }, { structureId: "mudHouses", tier: "bronze" }];
+          return start;
+        })() : null,
+      })),
+      connections,
+    };
+  }
   const draftRegionById = new Map(
     (Array.isArray(mechanicalDraft?.regions) ? mechanicalDraft.regions : [])
       .map((entry) => [entry?.id, entry])

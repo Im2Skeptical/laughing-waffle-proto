@@ -1,328 +1,49 @@
-// Declarative content for the map-driven detailed-settlement prototype.
-
+// Declarative civilization content. Numeric values remain Gamepieces-editable.
 export const DETAILED_PRACTICE_SLOT_COUNT = 5;
 export const POPULATION_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
-
-const workerMultiplier = () => Object.freeze({
-  base: 1,
-  perEffectiveWorker: 1,
-});
-
-const adjacentPlayerDetailedScope = Object.freeze({
-  kind: "adjacent",
-  includeHost: false,
-  regionFilters: Object.freeze({
-    controller: "player",
-    detailedSettlement: true,
-  }),
-});
-
-const connectedPlayerDetailedScope = Object.freeze({
-  kind: "connectedComponent",
-  includeHost: false,
-  traversalFilters: Object.freeze({ controller: "player" }),
-  regionFilters: Object.freeze({
-    controller: "player",
-    detailedSettlement: true,
-  }),
-});
-
-const administrationReachScope = Object.freeze({
-  kind: "conditionalHostPractice",
-  practiceId: "preserve",
-  requiredDefinitionPath: Object.freeze(["connectedAdministrationReach"]),
-  whenPresent: connectedPlayerDetailedScope,
-  otherwise: adjacentPlayerDetailedScope,
-});
-
-const commercialAdjacentScope = Object.freeze({
-  kind: "commercialAdjacent",
-  includeHost: false,
-});
+export const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
+const tags = (...x) => Object.freeze(x);
+const mult = () => Object.freeze({ base: 1, perEffectiveWorker: 1 });
+const scaled = (baseAmount, evaluator = { kind: "constant", score: 1, label: "local" }) => Object.freeze({ baseAmount, evaluator: Object.freeze(evaluator), workerMultiplier: mult() });
+const P = (id, label, tagList, minimumQuality, activation, effects = [], extra = {}) => Object.freeze({ id, label, tags: tags(...tagList), minimumQuality, workerCapacity: 0, vassalPrestigeCost: 18, vassalPhaseCost: 90, activation: Object.freeze(activation), costs: Object.freeze([]), effects: Object.freeze(effects), ui: Object.freeze({ rule: "" }), ...extra });
+const S = (id, label, tagList, minimumQuality, extra = {}) => Object.freeze({ id, label, tags: tags(...tagList), minimumQuality, vassalPrestigeCost: 18, vassalPhaseCost: 90, qualityMultiplierPerLevel: .25, ...extra });
+const sameColour = { kind: "countRegions", label: "same-colour connected regions", scope: { kind: "connectedComponent", includeHost: true, traversalFilters: { controller: "player", colour: "host" }, regionFilters: { controller: "player", colour: "host" } } };
+const commercialDifferent = { kind: "countRegions", label: "different-colour commercial regions", scope: { kind: "commercialAdjacent", includeHost: false }, regionFilters: { colour: "differentFromHost" } };
 
 export const settlementStructureDefs = Object.freeze({
-  granary: Object.freeze({
-    id: "granary",
-    label: "Granary",
-    vassalPrestigeCost: 18,
-    vassalPhaseCost: 120,
-    capacityKind: "storedFood",
-    capacityPerCountSquared: 180,
-  }),
-  mudHouses: Object.freeze({
-    id: "mudHouses",
-    label: "Mud Houses",
-    vassalPrestigeCost: 14,
-    vassalPhaseCost: 90,
-    capacityKind: "housing",
-    capacityPerCountSquared: 35,
-  }),
+  granary: S("granary", "Granary", ["Food"], "bronze", { capacityKind: "storedFood", capacityPerCountSquared: 180 }),
+  mudHouses: S("mudHouses", "Mud House", ["Housing"], "bronze", { capacityKind: "housing", capacityPerCountSquared: 35 }),
+  hostel: S("hostel", "Hostel", ["Housing", "Mobility"], "silver", { migrantHousingReserve: 12 }),
+  library: S("library", "Library", ["Knowledge"], "bronze", { knowledgeResearchMultiplierPerLevel: .2 }),
+  archive: S("archive", "Archive", ["Knowledge", "Ancestral"], "silver", { researchPerRetiredIntelligence: .25 }),
+  hallOfSages: S("hallOfSages", "Hall of Sages", ["Faith", "Ancestral"], "gold", { faithResistancePerRetiredWisdom: .2 }),
+  agrarianGuild: S("agrarianGuild", "Agrarian Guild", ["Food", "Civic"], "silver", { foodOutputBonusPerOtherFoodPiece: .08 }),
+  forum: S("forum", "Forum", ["Civic"], "silver", { faithResistancePerDistinctTag: 1 }),
+  academy: S("academy", "Academy", ["Knowledge", "Civic"], "silver", { candidateIntelligenceBonus: 1 }),
+  university: S("university", "University", ["Knowledge", "Civic"], "gold", { qualityMultiplierPerLevel: 0 }),
 });
 
 export const detailedSettlementPracticeDefs = Object.freeze({
-  cultivate: Object.freeze({
-    id: "cultivate",
-    label: "Cultivate",
-    vassalPrestigeCost: 18,
-    vassalPhaseCost: 120,
-    workerCapacity: 3,
-    activation: Object.freeze({
-      type: "season",
-      seasonKeys: Object.freeze(["summer"]),
-    }),
-    ui: Object.freeze({
-      rule: "Gain food for every player-controlled region in this settlement's connected same-colour chain.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({
-        op: "addLocalFood",
-        scaledValue: Object.freeze({
-          baseAmount: 120,
-          evaluator: Object.freeze({
-            kind: "countRegions",
-            label: "same-colour connected regions",
-            scope: Object.freeze({
-              kind: "connectedComponent",
-              includeHost: true,
-              traversalFilters: Object.freeze({
-                controller: "player",
-                colour: "host",
-              }),
-              regionFilters: Object.freeze({
-                controller: "player",
-                colour: "host",
-              }),
-            }),
-          }),
-          workerMultiplier: workerMultiplier(),
-        }),
-      }),
-    ]),
-  }),
-  administrate: Object.freeze({
-    id: "administrate",
-    label: "Administration",
-    vassalPrestigeCost: 20,
-    vassalPhaseCost: 120,
-    workerCapacity: 2,
-    activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
-    ui: Object.freeze({
-      rule: "Move meal-safe surplus to resolve meal shortages in adjacent settlements.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({
-        op: "routeLocalFood",
-        scaledValue: Object.freeze({
-          baseAmount: 50,
-          evaluator: Object.freeze({
-            kind: "countRegions",
-            label: "Administration regions in reach",
-            includeHost: true,
-            scope: administrationReachScope,
-            regionFilters: Object.freeze({ practiceId: "administrate" }),
-          }),
-          workerMultiplier: workerMultiplier(),
-        }),
-        targetScope: administrationReachScope,
-      }),
-    ]),
-  }),
-  preserve: Object.freeze({
-    id: "preserve",
-    label: "Preservation",
-    vassalPrestigeCost: 22,
-    vassalPhaseCost: 120,
-    workerCapacity: 2,
-    connectedAdministrationReach: false,
-    editor: Object.freeze({
-      fields: Object.freeze([
-        Object.freeze({
-          path: Object.freeze(["connectedAdministrationReach"]),
-          type: "boolean",
-          label: "Connected Administration Reach",
-        }),
-      ]),
-    }),
-    activation: Object.freeze({ type: "passive" }),
-    ui: Object.freeze({
-      rule: "Reduce stored-food rot.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({
-        op: "reduceFoodDecay",
-        foodKind: "stored",
-        scaledValue: Object.freeze({
-          baseAmount: 20,
-          evaluator: Object.freeze({
-            kind: "constant",
-            score: 1,
-            label: "base preservation",
-          }),
-          workerMultiplier: workerMultiplier(),
-        }),
-      }),
-    ]),
-  }),
-  forage: Object.freeze({
-    id: "forage",
-    label: "Forage",
-    vassalPrestigeCost: 10,
-    vassalPhaseCost: 60,
-    workerCapacity: 1,
-    activation: Object.freeze({ type: "food", stage: "preRouting" }),
-    ui: Object.freeze({
-      rule: "Gather Food before Administration routes this phase's supplies.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({
-        op: "addLocalFood",
-        scaledValue: Object.freeze({
-          baseAmount: 5,
-          evaluator: Object.freeze({
-            kind: "constant",
-            score: 1,
-            label: "local forage",
-          }),
-          workerMultiplier: workerMultiplier(),
-        }),
-      }),
-    ]),
-  }),
-  exchange: Object.freeze({
-    id: "exchange",
-    label: "Exchange",
-    vassalPrestigeCost: 16,
-    vassalPhaseCost: 90,
-    workerCapacity: 2,
-    activation: Object.freeze({ type: "season" }),
-    ui: Object.freeze({
-      rule: "Each Season, gain Currency for commercially adjacent regions of a different colour.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({
-        op: "addLocalCurrency",
-        scaledValue: Object.freeze({
-          baseAmount: 1,
-          evaluator: Object.freeze({
-            kind: "countRegions",
-            label: "different-colour commercial regions",
-            scope: commercialAdjacentScope,
-            regionFilters: Object.freeze({ colour: "differentFromHost" }),
-          }),
-          workerMultiplier: workerMultiplier(),
-        }),
-      }),
-    ]),
-  }),
-  import: Object.freeze({
-    id: "import",
-    label: "Import",
-    vassalPrestigeCost: 18,
-    vassalPhaseCost: 90,
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "food", chargePeriodMoons: 1 }),
-    ui: Object.freeze({
-      rule: "During Food, spend Currency to cover missing Food.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([Object.freeze({ op: "importMissingFood" })]),
-  }),
-  caravanRoutes: Object.freeze({
-    id: "caravanRoutes",
-    label: "Caravan Routes",
-    vassalPrestigeCost: 20,
-    vassalPhaseCost: 120,
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "passive" }),
-    ui: Object.freeze({
-      rule: "Caravan-connected allied settlements are commercially adjacent.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([]),
-  }),
-  clearingHouse: Object.freeze({
-    id: "clearingHouse",
-    label: "Clearing House",
-    vassalPrestigeCost: 20,
-    vassalPhaseCost: 120,
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "passive" }),
-    ui: Object.freeze({
-      rule: "Import may spend Currency from commercially adjacent allied settlements.",
-    }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([]),
-  }),
-  vassalDummyPractice01: Object.freeze({
-    id: "vassalDummyPractice01",
-    label: "Vassal Dummy Practice 01",
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "passive" }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([]),
-  }),
-  vassalDummyPractice02: Object.freeze({
-    id: "vassalDummyPractice02",
-    label: "Vassal Dummy Practice 02",
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "passive" }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([]),
-  }),
-  vassalDummyPractice03: Object.freeze({
-    id: "vassalDummyPractice03",
-    label: "Vassal Dummy Practice 03",
-    workerCapacity: 0,
-    activation: Object.freeze({ type: "passive" }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([]),
-  }),
-  buildGranary: Object.freeze({
-    id: "buildGranary",
-    label: "Build Granary",
-    workerCapacity: 1,
-    activation: Object.freeze({ type: "birth", chargePeriodMoons: 1 }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({ op: "advanceWork", amountPerEffectiveWorker: 1 }),
-      Object.freeze({ op: "createLocalStructureAtWork", structureDefId: "granary", requiredWork: 1 }),
-    ]),
-  }),
-  buildMudHouses: Object.freeze({
-    id: "buildMudHouses",
-    label: "Build Mud Houses",
-    workerCapacity: 1,
-    activation: Object.freeze({ type: "birth", chargePeriodMoons: 1 }),
-    costs: Object.freeze([]),
-    effects: Object.freeze([
-      Object.freeze({ op: "advanceWork", amountPerEffectiveWorker: 1 }),
-      Object.freeze({ op: "createLocalStructureAtWork", structureDefId: "mudHouses", requiredWork: 1 }),
-    ]),
-  }),
+  forage: P("forage", "Forage", ["Food"], "bronze", { type: "food", stage: "preRouting" }, [{ op: "addLocalFood", scaledValue: scaled(5) }], { workerCapacity: 1, vassalPrestigeCost: 10, vassalPhaseCost: 60, ui: { rule: "Gather Food before Administration routes supplies." } }),
+  cultivate: P("cultivate", "Cultivate", ["Food"], "bronze", { type: "season", seasonKeys: ["summer"] }, [{ op: "addLocalFood", scaledValue: scaled(120, sameColour) }], { workerCapacity: 3, ui: { rule: "Summer Food from same-colour player territory." } }),
+  raiseHouses: P("raiseHouses", "Raise Houses", ["Housing"], "bronze", { type: "birth" }, [{ op: "advanceWork", amountPerEffectiveWorker: 1 }, { op: "createLocalStructureAtWork", structureDefId: "mudHouses", requiredWork: 1, repeat: true }], { workerCapacity: 1, ui: { rule: "Build repeatable local Mud Houses." } }),
+  preserve: P("preserve", "Preserve", ["Food"], "bronze", { type: "passive" }, [{ op: "reduceFoodDecay", foodKind: "stored", scaledValue: scaled(20) }], { workerCapacity: 2, connectedAdministrationReach: false, editor: { fields: [{ path: ["connectedAdministrationReach"], type: "boolean", label: "Connected Administration Reach" }] }, ui: { rule: "Reduce stored-Food decay." } }),
+  administrate: P("administrate", "Administrate", ["Civic", "Food"], "bronze", { type: "food", stage: "postRouting" }, [{ op: "routeLocalFood", scaledValue: scaled(50, { kind: "countRegions", label: "Administration regions in reach", includeHost: true, scope: { kind: "conditionalHostPractice", practiceId: "preserve", requiredDefinitionPath: ["connectedAdministrationReach"], whenPresent: { kind: "connectedComponent", includeHost: false, traversalFilters: { controller: "player" }, regionFilters: { controller: "player", detailedSettlement: true } }, otherwise: { kind: "adjacent", includeHost: false, regionFilters: { controller: "player", detailedSettlement: true } } }, regionFilters: { practiceId: "administrate" } }), targetScope: { kind: "conditionalHostPractice", practiceId: "preserve", requiredDefinitionPath: ["connectedAdministrationReach"], whenPresent: { kind: "connectedComponent", includeHost: false, traversalFilters: { controller: "player" }, regionFilters: { controller: "player", detailedSettlement: true } }, otherwise: { kind: "adjacent", includeHost: false, regionFilters: { controller: "player", detailedSettlement: true } } } }], { workerCapacity: 2, vassalPrestigeCost: 20, vassalPhaseCost: 120, ui: { rule: "Move meal-safe surplus before feeding." } }),
+  exchange: P("exchange", "Exchange", ["Trade"], "bronze", { type: "season" }, [{ op: "addLocalCurrency", scaledValue: scaled(1, commercialDifferent) }], { workerCapacity: 2, vassalPrestigeCost: 16, ui: { rule: "Gain Currency from different-colour commercial neighbours." } }),
+  import: P("import", "Import", ["Trade", "Food"], "bronze", { type: "food", stage: "postRouting" }, [{ op: "importMissingFood" }], { ui: { rule: "Spend Currency to cover missing Food." } }),
+  caravanRoutes: P("caravanRoutes", "Caravan Routes", ["Trade", "Mobility"], "silver", { type: "passive" }, [], { ui: { rule: "Caravan-connected allied settlements are commercially adjacent." } }),
+  clearingHouse: P("clearingHouse", "Clearing House", ["Trade", "Civic"], "silver", { type: "passive" }, [], { ui: { rule: "Import may draw remote allied Currency, local first." } }),
+  mixedFarming: P("mixedFarming", "Mixed Farming", ["Food"], "silver", { type: "season", seasonKeys: ["summer"] }, [{ op: "addLocalFood", scaledValue: scaled(24, { kind: "countDistinctRegionalColours", label: "connected allied colours" }) }], { workerCapacity: 3, ui: { rule: "Summer Food from regional colour diversity." } }),
+  efficientKitchens: P("efficientKitchens", "Efficient Kitchens", ["Food", "Civic"], "silver", { type: "food", stage: "postRouting" }, [{ op: "reduceLocalFoodRequirement", scaledValue: scaled(3) }], { workerCapacity: 2, ui: { rule: "Reduce Food requirement before meals." } }),
+  homesteading: P("homesteading", "Homesteading", ["Housing", "Mobility"], "silver", { type: "housing" }, [{ op: "addHousingForPhase", scaledValue: scaled(4, { kind: "countAlliedConnectedRegions", label: "allied network regions" }) }], { workerCapacity: 2, ui: { rule: "Temporary Housing during Housing." } }),
+  lodgingHouses: P("lodgingHouses", "Lodging Houses", ["Housing", "Trade"], "silver", { type: "housing" }, [{ op: "spendCurrencyForHousing", currencyPerHousing: 1, scaledValue: scaled(4) }], { workerCapacity: 2, ui: { rule: "Spend Currency for temporary Housing." } }),
+  study: P("study", "Study", ["Knowledge"], "bronze", { type: "season" }, [{ op: "addCivilizationResearch", scaledValue: scaled(2) }], { workerCapacity: 2, ui: { rule: "Produce civilization Research." } }),
+  mill: P("mill", "Mill", ["Food"], "silver", { type: "trigger", trigger: { event: "practiceActivated", sourceTagsAny: ["Food"], other: true }, chargeThreshold: 2 }, [{ op: "addLocalFood", scaledValue: scaled(12) }], { workerCapacity: 2, ui: { rule: "Charge from other Food Practices, then produce Food." } }),
+  harvestFestival: P("harvestFestival", "Harvest Festival", ["Food", "Faith"], "silver", { type: "trigger", trigger: { event: "practiceActivated", sourceTagsAny: ["Food"], other: true }, chargeThreshold: 3 }, [{ op: "setMoonHappinessFloor", status: "positive" }], { ui: { rule: "Charge from Food Practices; set Positive Happiness for this moon." } }),
+  marketFeast: P("marketFeast", "Market Feast", ["Trade", "Food"], "silver", { type: "trigger", trigger: { event: "practiceActivated", sourceTagsAny: ["Trade"], other: true }, chargeThreshold: 2 }, [{ op: "addLocalFood", scaledValue: scaled(10) }], { workerCapacity: 2, ui: { rule: "Charge from Trade Practices, then produce Food." } }),
+  symposium: P("symposium", "Symposium", ["Knowledge", "Civic"], "silver", { type: "trigger", trigger: { event: "practiceActivated", sourceMissingTagsAll: ["Knowledge"], other: true }, chargeThreshold: 3 }, [{ op: "addCivilizationResearch", scaledValue: scaled(4) }], { workerCapacity: 2, ui: { rule: "Charge from non-Knowledge Practices, then produce Research." } }),
+  vigil: P("vigil", "Vigil", ["Faith"], "silver", { type: "faith" }, [{ op: "addFaithChaosResistance", scaledValue: scaled(3) }], { workerCapacity: 2, ui: { rule: "Provide temporary Faith Chaos resistance." } }),
+  exodus: P("exodus", "Exodus", ["Faith", "Mobility"], "gold", { type: "passive" }, [{ op: "reduceExternalEmigrationPressure", scaledValue: scaled(.1) }], { workerCapacity: 2, ui: { rule: "Reduce external-emigration Chaos pressure." } }),
 });
-
-export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze([
-  "cultivate",
-  "forage",
-  "administrate",
-  "preserve",
-  "exchange",
-  "import",
-  "caravanRoutes",
-  "clearingHouse",
-]);
-
-export const detailedSettlementEffectOps = Object.freeze([
-  "addLocalFood",
-  "addLocalCurrency",
-  "routeLocalFood",
-  "importMissingFood",
-  "reduceFoodDecay",
-  "advanceWork",
-  "createLocalStructureAtWork",
-]);
+export const VASSAL_INTERVENTION_PRACTICE_IDS = Object.freeze(Object.keys(detailedSettlementPracticeDefs));
+export const detailedSettlementEffectOps = Object.freeze(["addLocalFood", "addLocalCurrency", "routeLocalFood", "importMissingFood", "reduceFoodDecay", "advanceWork", "createLocalStructureAtWork", "reduceLocalFoodRequirement", "addHousingForPhase", "spendCurrencyForHousing", "addCivilizationResearch", "setMoonHappinessFloor", "addFaithChaosResistance", "reduceExternalEmigrationPressure"]);

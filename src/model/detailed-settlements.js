@@ -45,7 +45,9 @@ import {
 } from "./vassal-life-map.js";
 import {
   createDetailedPracticeSlot,
+  getDetailedPracticeTierIndex,
   getDetailedPracticeWorkerCapacity,
+  getQualityMultiplier,
 } from "./detailed-practice-tiers.js";
 
 const FOOD_SCALE = 10000;
@@ -167,6 +169,8 @@ function validateScaledValueDefinition(scaledValue, label, errors) {
     }
   } else if (evaluator?.kind === "countRegions") {
     validateRegionScopeDefinition(evaluator.scope, `${label}.evaluator.scope`, errors);
+  } else if (["countDistinctRegionalColours", "countAlliedConnectedRegions"].includes(evaluator?.kind)) {
+    // These evaluators have fixed local/allied scopes and need no nested scope.
   } else {
     errors.push(`${label}: invalid evaluator ${evaluator?.kind}`);
   }
@@ -180,7 +184,7 @@ export function validateDetailedPracticeDefinitions() {
     if (!Number.isInteger(def.workerCapacity) || def.workerCapacity < 0) {
       errors.push(`${id}: invalid workerCapacity`);
     }
-    if (!["season", "birth", "food", "passive"].includes(def.activation?.type)) {
+    if (!["season", "birth", "food", "passive", "housing", "faith", "trigger"].includes(def.activation?.type)) {
       errors.push(`${id}: invalid activation`);
     }
     if (def.activation?.stage != null
@@ -219,13 +223,20 @@ export function getStructureCount(state, regionId, structureId) {
     .filter((slot) => slot?.structureId === structureId).length;
 }
 
+export function getStructureQualityUnits(state, regionId, structureId) {
+  const def = getDetailedStructureDef(state, structureId);
+  return (getDetailedSettlement(state, regionId)?.structureSlots ?? [])
+    .filter((slot) => slot?.structureId === structureId)
+    .reduce((sum, slot) => sum + getQualityMultiplier(slot.tier ?? "bronze", def?.qualityMultiplierPerLevel ?? 0), 0);
+}
+
 export function getStoredFoodCapacity(state, regionId) {
-  const count = getStructureCount(state, regionId, "granary");
+  const count = getStructureQualityUnits(state, regionId, "granary");
   return getDetailedStructureDef(state, "granary").capacityPerCountSquared * count * count;
 }
 
 export function getHousingCapacity(state, regionId) {
-  const count = getStructureCount(state, regionId, "mudHouses");
+  const count = getStructureQualityUnits(state, regionId, "mudHouses");
   return getDetailedStructureDef(state, "mudHouses").capacityPerCountSquared * count * count;
 }
 
@@ -596,6 +607,15 @@ export function evaluateDetailedMapScore(state, regionId, evaluator) {
       diagnostics: { matchingRegionIds: [] },
     };
   }
+  if (evaluator?.kind === "countAlliedConnectedRegions") {
+    const ids = resolveDetailedRegionScope(state, regionId, { kind: "connectedComponent", includeHost: true, traversalFilters: { controller: "player" }, regionFilters: { controller: "player" } });
+    return { ok: true, score: ids.length, breakdown: [{ kind: "regionCount", amount: ids.length, text: evaluator.label ?? "allied regions" }], diagnostics: { matchingRegionIds: ids } };
+  }
+  if (evaluator?.kind === "countDistinctRegionalColours") {
+    const ids = resolveDetailedRegionScope(state, regionId, { kind: "connectedComponent", includeHost: true, traversalFilters: { controller: "player" }, regionFilters: { controller: "player" } });
+    const colours = [...new Set(ids.map((id) => getRegionState(state, id)?.colour).filter(Boolean))];
+    return { ok: true, score: colours.length, breakdown: [{ kind: "colourCount", amount: colours.length, text: evaluator.label ?? "regional colours" }], diagnostics: { matchingRegionIds: ids, colours } };
+  }
   if (evaluator?.kind !== "countRegions") {
     return { ok: false, reason: "unknownEvaluator", score: 0 };
   }
@@ -814,7 +834,7 @@ function tryCreateStructure(state, regionId, structureId) {
   while (slots.length < capacity) slots.push(null);
   const index = slots.slice(0, capacity).findIndex((slot) => !slot);
   if (index < 0) return false;
-  slots[index] = { structureId };
+  slots[index] = { structureId, tier: "bronze" };
   slots.length = capacity;
   return true;
 }
@@ -837,27 +857,75 @@ function practiceMatchesActivation(state, def, activationType, stage = null) {
   return def.activation.seasonKeys.includes(getCurrentSeasonKey(state));
 }
 
-function executePracticeEffects(state, site, assignment, activationType, stage = null) {
+function getPracticeTags(state, practiceId) {
+  return getDetailedPracticeDef(state, practiceId)?.tags ?? [];
+}
+
+export function getLocalTaggedPieceCount(state, regionId, tag, { excludeStructureId = null } = {}) {
+  const settlement = getDetailedSettlement(state, regionId);
+  const practices = (settlement?.practiceSlots ?? []).filter((slot) =>
+    slot && getPracticeTags(state, slot.practiceId).includes(tag)).length;
+  const structures = (settlement?.structureSlots ?? []).filter((slot) =>
+    slot && slot.structureId !== excludeStructureId && (getDetailedStructureDef(state, slot.structureId)?.tags ?? []).includes(tag)).length;
+  return practices + structures;
+}
+
+export function getLocalDistinctPieceTags(state, regionId) {
+  const settlement = getDetailedSettlement(state, regionId);
+  return [...new Set([
+    ...(settlement?.practiceSlots ?? []).flatMap((slot) => slot ? getPracticeTags(state, slot.practiceId) : []),
+    ...(settlement?.structureSlots ?? []).flatMap((slot) => slot ? (getDetailedStructureDef(state, slot.structureId)?.tags ?? []) : []),
+  ])].sort();
+}
+
+function getPhaseModifiers(state) {
+  if (!state.civilization.phaseModifiers || typeof state.civilization.phaseModifiers !== "object") {
+    state.civilization.phaseModifiers = { housingByRegion: {}, foodByRegion: {}, faithResistance: 0 };
+  }
+  return state.civilization.phaseModifiers;
+}
+
+function addPracticeTrace(site, entry) {
+  const trace = Array.isArray(site.detailedState.practiceActivationTrace) ? site.detailedState.practiceActivationTrace : [];
+  trace.push(entry);
+  site.detailedState.practiceActivationTrace = trace.slice(-20);
+}
+
+function getResearchStructureBonus(state, regionId, practiceId) {
+  if (!getPracticeTags(state, practiceId).includes("Knowledge")) return 1;
+  const library = getDetailedStructureDef(state, "library");
+  const units = getStructureQualityUnits(state, regionId, "library");
+  const archive = getDetailedStructureDef(state, "archive");
+  const retired = (state.civilization.retiredVassals ?? []).filter((entry) => entry.retirementRegionId === regionId)
+    .reduce((sum, entry) => sum + Math.max(0, Number(entry.finalIntelligence) || 0), 0);
+  return Math.max(0, 1 + units * (library?.knowledgeResearchMultiplierPerLevel ?? 0)
+    + retired * (archive?.researchPerRetiredIntelligence ?? 0) * getStructureQualityUnits(state, regionId, "archive"));
+}
+
+function executePracticeEffects(state, site, assignment, activationType, stage = null, { force = false } = {}) {
   const settlement = site.detailedState;
   const slot = settlement.practiceSlots[assignment.slotIndex];
   const def = getDetailedPracticeDef(state, slot?.practiceId);
-  if (!def || !practiceMatchesActivation(state, def, activationType, stage)) return;
+  if (!def || (!force && !practiceMatchesActivation(state, def, activationType, stage))) return false;
   const hasBaselineEffect = (def.effects ?? []).some((effect) => effect.scaledValue);
   if (!hasBaselineEffect
       && (def.workerCapacity ?? 0) > 0
-      && assignment.tokens.length === 0) return;
+    && assignment.tokens.length === 0) return false;
   if ((def.activation.type === "season" || def.activation.type === "food")
       && getRegionState(state, site.regionId)?.controller !== "player"
       && (def.effects ?? []).some((effect) =>
-        effect.op === "addLocalFood" || effect.op === "addLocalCurrency" || effect.op === "routeLocalFood")) return;
+        effect.op === "addLocalFood" || effect.op === "addLocalCurrency" || effect.op === "routeLocalFood")) return false;
 
   for (const effect of def.effects ?? []) {
     if (effect.op === "addLocalFood") {
       const resolved = resolveScaledValue(state, site, assignment, effect.scaledValue);
+      const otherFoodPieces = getLocalTaggedPieceCount(state, site.regionId, "Food", { excludeStructureId: "agrarianGuild" });
+      const guild = getDetailedStructureDef(state, "agrarianGuild");
+      const guildUnits = getStructureQualityUnits(state, site.regionId, "agrarianGuild");
       addFoodToSettlement(
         state,
         site.regionId,
-        resolved.effectiveValue
+        resolved.effectiveValue * (1 + Math.max(0, otherFoodPieces - 1) * (guild?.foodOutputBonusPerOtherFoodPiece ?? 0) * guildUnits)
       );
     } else if (effect.op === "addLocalCurrency") {
       const resolved = resolveScaledValue(state, site, assignment, effect.scaledValue);
@@ -871,19 +939,84 @@ function executePracticeEffects(state, site, assignment, activationType, stage =
       if ((slot.work ?? 0) < effect.requiredWork) continue;
       if (!tryCreateStructure(state, site.regionId, effect.structureDefId)) continue;
       markCompletedBuildInterventionResolved(state, site.regionId, slot.practiceId);
-      settlement.practiceSlots[assignment.slotIndex] = null;
-      compactPracticeSlots(settlement);
-      break;
+      if (effect.repeat === true) slot.work = roundFood((slot.work ?? 0) - effect.requiredWork);
+      else { settlement.practiceSlots[assignment.slotIndex] = null; compactPracticeSlots(settlement); break; }
+    } else if (effect.op === "addCivilizationResearch") {
+      const amount = resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue
+        * getResearchStructureBonus(state, site.regionId, slot.practiceId);
+      state.civilization.research = state.civilization.research ?? { total: 0 };
+      state.civilization.research.total = roundFood((state.civilization.research.total ?? 0) + amount);
+    } else if (effect.op === "reduceLocalFoodRequirement") {
+      getPhaseModifiers(state).foodByRegion[site.regionId] = roundFood((getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0) + resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue);
+    } else if (effect.op === "addHousingForPhase") {
+      getPhaseModifiers(state).housingByRegion[site.regionId] = roundFood((getPhaseModifiers(state).housingByRegion[site.regionId] ?? 0) + resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue);
+    } else if (effect.op === "spendCurrencyForHousing") {
+      const cap = resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue;
+      const amount = Math.min(cap, Math.floor(Math.max(0, settlement.currency ?? 0) / Math.max(0.0001, effect.currencyPerHousing ?? 1)));
+      settlement.currency = roundFood(Math.max(0, settlement.currency - amount * (effect.currencyPerHousing ?? 1)));
+      getPhaseModifiers(state).housingByRegion[site.regionId] = roundFood((getPhaseModifiers(state).housingByRegion[site.regionId] ?? 0) + amount);
+    } else if (effect.op === "setMoonHappinessFloor") {
+      settlement.moonHappinessFloor = effect.status;
+    } else if (effect.op === "addFaithChaosResistance") {
+      getPhaseModifiers(state).faithResistance = roundFood((getPhaseModifiers(state).faithResistance ?? 0) + resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue);
     }
   }
+  return true;
 }
 
 function runPracticeActivation(state, activationType, stage = null) {
+  const events = [];
   for (const site of getDetailedSettlementSites(state)) {
     const assignments = assignDetailedSettlementWorkers(state, site.regionId);
     for (const assignment of assignments) {
-      executePracticeEffects(state, site, assignment, activationType, stage);
+      if (executePracticeEffects(state, site, assignment, activationType, stage)) {
+        events.push({ rootEventId: `${state.tSec}:${site.regionId}:${assignment.slotIndex}:${activationType}:${stage ?? ""}`, sourceRegionId: site.regionId, sourceSlotIndex: assignment.slotIndex });
+      }
     }
+  }
+  resolvePracticeActivatedEvents(state, events);
+}
+
+function triggerMatches(def, sourceTags) {
+  const trigger = def?.activation?.trigger;
+  if (trigger?.event !== "practiceActivated") return false;
+  if (Array.isArray(trigger.sourceTagsAny) && !trigger.sourceTagsAny.some((tag) => sourceTags.includes(tag))) return false;
+  if (Array.isArray(trigger.sourceMissingTagsAll) && trigger.sourceMissingTagsAll.some((tag) => sourceTags.includes(tag))) return false;
+  return true;
+}
+
+function resolvePracticeActivatedEvents(state, initialEvents) {
+  const queue = [...initialEvents];
+  const reacted = new Set();
+  const cap = Math.max(20, Math.floor(getGameSetting(state, "practiceReactionResolutionCap") || 200));
+  let processed = 0;
+  while (queue.length && processed < cap) {
+    const event = queue.shift(); processed += 1;
+    const source = getDetailedSettlement(state, event.sourceRegionId)?.practiceSlots?.[event.sourceSlotIndex];
+    if (!source) continue;
+    const sourceTags = getPracticeTags(state, source.practiceId);
+    const site = getDetailedSettlementSite(state, event.sourceRegionId);
+    for (const assignment of assignDetailedSettlementWorkers(state, event.sourceRegionId)) {
+      const slot = site?.detailedState?.practiceSlots?.[assignment.slotIndex];
+      const def = getDetailedPracticeDef(state, slot?.practiceId);
+      if (!slot || !def || def.activation?.type !== "trigger" || assignment.slotIndex === event.sourceSlotIndex || !triggerMatches(def, sourceTags)) continue;
+      const key = `${event.rootEventId}:${event.sourceRegionId}:${event.sourceSlotIndex}:${assignment.slotIndex}`;
+      if (reacted.has(key)) continue;
+      reacted.add(key);
+      slot.charge = roundFood((slot.charge ?? 0) + 1);
+      addPracticeTrace(site, { tSec: state.tSec, rootEventId: event.rootEventId, kind: "charged", sourcePracticeId: source.practiceId, targetPracticeId: slot.practiceId, charge: slot.charge });
+      const threshold = Math.max(1, Math.floor((def.activation.chargeThreshold ?? 1) - getDetailedPracticeTierIndex(slot.tier) * .5));
+      while (slot.charge >= threshold && processed < cap) {
+        slot.charge = roundFood(slot.charge - threshold);
+        if (executePracticeEffects(state, site, assignment, "trigger", null, { force: true })) {
+          addPracticeTrace(site, { tSec: state.tSec, rootEventId: event.rootEventId, kind: "activated", sourcePracticeId: source.practiceId, targetPracticeId: slot.practiceId, charge: slot.charge });
+          queue.push({ rootEventId: event.rootEventId, sourceRegionId: event.sourceRegionId, sourceSlotIndex: assignment.slotIndex });
+        }
+      }
+    }
+  }
+  if (queue.length) {
+    state.civilization.lastPracticeReactionDiagnostic = { tSec: state.tSec, kind: "reactionCapReached", cap, remaining: queue.length };
   }
 }
 
@@ -1724,6 +1857,7 @@ function resolveMigrationIntents(state, intents, {
 
 function runBirthPhase(state, phase) {
   const turn = beginMoonTurn(state, phase);
+  for (const site of getDetailedSettlementSites(state)) delete site.detailedState.moonHappinessFloor;
   runPracticeActivation(state, "birth");
   const lastAgedYear = Math.max(1, Math.floor(
     state.civilization.lastPopulationAgingYear ?? 1
@@ -1789,6 +1923,7 @@ function evaluateFoodHappiness(state, classState, ratio) {
 
 function runFoodPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
+  getPhaseModifiers(state).foodByRegion = {};
   runPracticeActivation(state, "food", "preRouting");
   applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
   runPracticeActivation(state, "food", "postRouting");
@@ -1797,10 +1932,13 @@ function runFoodPhase(state, phase) {
     const population = getPopulationSummary(state, site.regionId);
     let consumed = 0;
     const byClass = {};
+    let foodReduction = Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0);
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const classTotal = classPopulationTotal(classState);
-      const demand = population.byClass[classId]?.mealDemand ?? 0;
+      const baseDemand = population.byClass[classId]?.mealDemand ?? 0;
+      const demand = Math.max(0, baseDemand - Math.min(baseDemand, foodReduction));
+      foodReduction = Math.max(0, foodReduction - baseDemand);
       const classConsumed = consumeFood(settlement, demand);
       const ratio = demand > 0 ? classConsumed / demand : 1;
       consumed = roundFood(consumed + classConsumed);
@@ -1850,6 +1988,8 @@ function runFoodPhase(state, phase) {
 
 function runHousingPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
+  getPhaseModifiers(state).housingByRegion = {};
+  runPracticeActivation(state, "housing");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
@@ -1857,7 +1997,7 @@ function runHousingPhase(state, phase) {
       getReservedSourceComposition(turn, site.regionId)
     );
     const assessedPopulation = Math.max(0, population.total - alreadyMigrating);
-    const capacity = population.housingCapacity;
+    const capacity = population.housingCapacity + (getPhaseModifiers(state).housingByRegion[site.regionId] ?? 0);
     const overflow = Math.max(0, assessedPopulation - capacity);
     const happinessCap = assessedPopulation <= capacity
       ? "positive"
@@ -1918,6 +2058,8 @@ function applyFaithOutcome(state, classState) {
 
 function runFaithPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
+  getPhaseModifiers(state).faithResistance = 0;
+  runPracticeActivation(state, "faith");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const byClass = {};
@@ -1933,7 +2075,8 @@ function runFaithPhase(state, phase) {
       const foodTarget = food?.targetHappiness ?? previousHappiness;
       const foodIndex = Math.max(0, HAPPINESS_ORDER.indexOf(foodTarget));
       const capIndex = Math.max(0, HAPPINESS_ORDER.indexOf(housingCap));
-      classState.happiness.status = HAPPINESS_ORDER[Math.min(foodIndex, capIndex)];
+      classState.happiness.status = settlement.moonHappinessFloor === "positive"
+        ? "positive" : HAPPINESS_ORDER[Math.min(foodIndex, capIndex)];
       const faithResult = applyFaithOutcome(state, classState);
       const collapseCondition = classState.faith.tier === "bronze"
         && classState.happiness.status === "negative";
@@ -2173,9 +2316,21 @@ function runGlobalChaos(state) {
       }
     }
   }
-  const resistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
+  const populationResistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
     return sum + Math.floor(population / getGameSetting(state, `${tier}ChaosResistancePopulation`));
   }, 0);
+  const forumResistance = getDetailedSettlementSites(state).reduce((sum, site) => {
+    const def = getDetailedStructureDef(state, "forum");
+    return sum + getLocalDistinctPieceTags(state, site.regionId).length
+      * (def?.faithResistancePerDistinctTag ?? 0) * getStructureQualityUnits(state, site.regionId, "forum");
+  }, 0);
+  const sagesResistance = getDetailedSettlementSites(state).reduce((sum, site) => {
+    const wisdom = (state.civilization.retiredVassals ?? []).filter((entry) => entry.retirementRegionId === site.regionId)
+      .reduce((inner, entry) => inner + Math.max(0, Number(entry.finalWisdom) || 0), 0);
+    const def = getDetailedStructureDef(state, "hallOfSages");
+    return sum + wisdom * (def?.faithResistancePerRetiredWisdom ?? 0) * getStructureQualityUnits(state, site.regionId, "hallOfSages");
+  }, 0);
+  const resistance = roundFood(populationResistance + forumResistance + sagesResistance + (getPhaseModifiers(state).faithResistance ?? 0));
   const primordialPressure = getPrimordialChaosPressure(state);
   const prematureDeathPressure = pending.prematureDeaths
     * getGameSetting(state, "prematureDeathChaosWeight");
@@ -2211,6 +2366,9 @@ function runGlobalChaos(state) {
     rawPressure: roundFood(rawPressure),
     faithPopulation,
     resistance,
+    populationResistance,
+    forumResistance: roundFood(forumResistance),
+    sagesResistance: roundFood(sagesResistance),
     incomingChaos: roundFood(totalIncome),
     totalIncome: roundFood(totalIncome),
     accumulatedChaos: civilization.chaos.chaosPower,
@@ -3041,6 +3199,9 @@ export function initializeDetailedSettlementCivilization(state) {
       internalMigrants: 0,
     },
   };
+  state.civilization.research = { total: Math.max(0, getGameSetting(state, "startingResearch") || 0) };
+  state.civilization.retiredVassals = [];
+  state.civilization.phaseModifiers = { housingByRegion: {}, foodByRegion: {}, faithResistance: 0 };
   refreshGreenAscendancy(state);
   initializeVassalLifeMapCivilization(state);
   state.civilization.currentMoonTurn = null;
@@ -3109,16 +3270,21 @@ export function getDetailedSettlementViewModel(state, regionId) {
     practices: settlement.practiceSlots.map((slot, index) => ({
       ...slot,
       label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,
+      tags: slot ? getPracticeTags(state, slot.practiceId) : [],
       workers: workers[index],
       evaluation: slot ? buildDetailedPracticeEvaluation(state, site, workers[index]) : null,
     })),
-    structures: settlement.structureSlots,
+    structures: settlement.structureSlots.map((slot) => slot ? ({ ...slot, label: getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId, tags: getDetailedStructureDef(state, slot.structureId)?.tags ?? [] }) : null),
     structureCapacity: region?.structureCapacity ?? 0,
     usedStructureCapacity: settlement.structureSlots.filter(Boolean).length,
     elderOrder: getElderOrderSummary(state, regionId),
     lastMeal: settlement.lastMeal,
     currentMoonResult: state.civilization.currentMoonTurn?.regions?.[regionId] ?? null,
     lastMoonResult: settlement.lastMoonResult,
+    research: roundFood(state.civilization.research?.total ?? 0),
+    localTags: getLocalDistinctPieceTags(state, regionId),
+    retiredVassals: (state.civilization.retiredVassals ?? []).filter((entry) => entry.retirementRegionId === regionId),
+    activationTrace: settlement.practiceActivationTrace ?? [],
   };
 }
 
