@@ -227,7 +227,7 @@ const build = fresh();
 const buildSite = getDetailedSettlement(build, "river-crown");
 buildSite.structureSlots = buildSite.structureSlots.map(() => ({ structureId: "granary" }));
 buildSite.practiceSlots = [
-  { practiceId: "buildGranary", charge: 0, work: 0 }, null, null, null, null,
+  { practiceId: "raiseHouses", tier: "bronze", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(build, 1);
 assert.equal(buildSite.practiceSlots[0].work, 1);
@@ -236,8 +236,8 @@ assert.equal(buildSite.structureSlots.filter(Boolean).length, buildSite.structur
 const buildSlotIndex = buildSite.structureSlots.length - 1;
 buildSite.structureSlots[buildSlotIndex] = null;
 stepDetailedSettlementsSecond(build, 7);
-assert.equal(buildSite.structureSlots[buildSlotIndex].structureId, "granary");
-assert.equal(buildSite.practiceSlots[0], null);
+assert.equal(buildSite.structureSlots[buildSlotIndex].structureId, "mudHouses");
+assert.ok(buildSite.practiceSlots[0], "Raise Houses remains as a repeatable Practice");
 
 const route = fresh();
 for (const site of route.world.sites) {

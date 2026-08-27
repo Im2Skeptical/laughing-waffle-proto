@@ -30,6 +30,18 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     ]),
   }),
   Object.freeze({
+    id: "civilizationResearch",
+    label: "Civilization Research",
+    description: "Cumulative Research unlocks content and biases shop quality. Starting Research is a fresh-run debug control.",
+    fields: Object.freeze([
+      field("startingResearch", "Starting Research (debug)", 0, 0, 1000000, 1, true),
+      field("researchSilverThreshold", "Silver unlock Research", 100, 0, 1000000, 1, true),
+      field("researchGoldThreshold", "Gold unlock Research", 500, 0, 1000000, 1, true),
+      field("researchDiamondThreshold", "Diamond unlock Research", 2000, 0, 1000000, 1, true),
+      field("practiceReactionResolutionCap", "Practice reaction hard cap", 200, 20, 10000, 1, true),
+    ]),
+  }),
+  Object.freeze({
     id: "birthPhase",
     label: "1. Birth phase",
     description: "Finishes construction, rolls births, matures children, and promotes adults into the Elder Order.",

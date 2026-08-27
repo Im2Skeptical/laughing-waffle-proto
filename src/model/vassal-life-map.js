@@ -16,9 +16,10 @@ import {
   DETAILED_PRACTICE_SLOT_COUNT,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
-import { getDetailedPracticeDef } from "./game-config.js";
+import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from "./game-config.js";
 import {
   createDetailedPracticeSlot,
+  getDetailedPracticeTierIndex,
   getNextDetailedPracticeTier,
 } from "./detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "./moon-phases.js";
@@ -34,6 +35,31 @@ import {
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
+const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
+
+function qualityLabel(tier) { return `${tier[0].toUpperCase()}${tier.slice(1)}`; }
+function getUnlockedQualityIndex(state) {
+  const research = Math.max(0, Number(state?.civilization?.research?.total) || 0);
+  if (research >= getGameSetting(state, "researchDiamondThreshold")) return 3;
+  if (research >= getGameSetting(state, "researchGoldThreshold")) return 2;
+  if (research >= getGameSetting(state, "researchSilverThreshold")) return 1;
+  return 0;
+}
+function getUniversityFloor(state, regionId) {
+  const tiers = (getDetailedSite(state, regionId)?.detailedState?.structureSlots ?? [])
+    .filter((slot) => slot?.structureId === "university")
+    .map((slot) => getDetailedPracticeTierIndex(slot.tier ?? "bronze"));
+  const highest = tiers.length ? Math.max(...tiers) : -1;
+  return highest >= 3 ? 3 : highest >= 2 ? 2 : 0;
+}
+function rollOfferQuality(state, regionId, floor = 0) {
+  const max = getUnlockedQualityIndex(state);
+  const min = Math.min(max, Math.max(0, floor, getUniversityFloor(state, regionId)));
+  return QUALITY_IDS[state.rngNextVassalInt(min, max)];
+}
+function isDefinitionUnlocked(state, def) {
+  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= getUnlockedQualityIndex(state);
+}
 
 function getYearDurationSec(state) {
   const seasons = Array.isArray(state?.seasons) && state.seasons.length > 0
@@ -207,19 +233,24 @@ function generateCandidatePool(state) {
   ));
   lineage.pendingCandidates = locations.length === 0 ? [] : Array.from(
     { length: VASSAL_LIFE_TUNING.candidateCount },
-    (_, index) => ({
+    (_, index) => {
+      const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
+      const academyBonus = (getDetailedSite(state, locationRegionId)?.detailedState?.structureSlots ?? [])
+        .filter((slot) => slot?.structureId === "academy")
+        .reduce((sum, slot) => sum + Math.max(0, getDetailedStructureDef(state, "academy")?.candidateIntelligenceBonus ?? 0) * (1 + getDetailedPracticeTierIndex(slot.tier ?? "bronze")), 0);
+      return ({
       candidateId: `candidate-${Math.max(1, Math.floor(lineage.nextVassalId ?? 1))}-${index + 1}`,
       age: state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateAgeMin, VASSAL_LIFE_TUNING.candidateAgeMax),
-      locationRegionId: locations[state.rngNextVassalInt(0, locations.length - 1)],
+      locationRegionId, originRegionId: locationRegionId,
       prestige: state.rngNextVassalInt(
         VASSAL_LIFE_TUNING.candidatePrestigeMin,
         VASSAL_LIFE_TUNING.candidatePrestigeMax
       ) + legacyBonus,
       stats: Object.fromEntries(VASSAL_STAT_IDS.map((statId) => [
         statId,
-        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax),
+        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === "intelligence" ? academyBonus : 0),
       ])),
-    })
+    }); }
   );
   return lineage.pendingCandidates;
 }
@@ -397,11 +428,12 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
   for (const practiceId of shuffle(state, VASSAL_INTERVENTION_PRACTICE_IDS)) {
     if (offers.length >= 3) break;
     const def = getDetailedPracticeDef(state, practiceId);
-    if (!def) continue;
+    if (!def || !isDefinitionUnlocked(state, def)) continue;
     const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
     if (installed?.tier === "diamond") continue;
     const tier = installed?.tier ?? "bronze";
-    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : "bronze";
+    const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
+    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
     if (!resultingTier) continue;
     const intervention = {
       kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
@@ -412,7 +444,7 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
       offerId: `${nodeState.nodeId}:r${roll}:practice:${offers.length}`,
       label: installed
         ? `Upgrade ${def.label} ${tier[0].toUpperCase()}${tier.slice(1)} → ${resultingTier[0].toUpperCase()}${resultingTier.slice(1)}`
-        : `Learn ${def.label} Bronze`,
+        : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
       basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
       basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
       intervention,
@@ -424,20 +456,21 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
 function buildStructureOffers(state, vassal, nodeState, roll) {
   const reservation = buildReservation(state, vassal, nodeState);
   const offers = [];
-  const defIds = shuffle(state, Object.keys(settlementStructureDefs));
+  const defIds = shuffle(state, Object.keys(settlementStructureDefs)).filter((id) => isDefinitionUnlocked(state, settlementStructureDefs[id]));
   let defIndex = 0;
   while (offers.length < 3) {
     const slotIndex = reservation.structureSlots.findIndex((value) => value == null);
     if (slotIndex < 0 || defIds.length === 0) break;
     const structureId = defIds[defIndex % defIds.length];
     const def = settlementStructureDefs[structureId];
+    const tier = rollOfferQuality(state, vassal.locationRegionId);
     reservation.structureSlots[slotIndex] = structureId;
     offers.push({
       offerId: `${nodeState.nodeId}:r${roll}:structure:${offers.length}`,
-      label: `Build ${def.label}`,
+      label: `Build ${qualityLabel(tier)} ${def.label}`,
       basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
       basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-      intervention: { kind: "structure", targetRegionId: vassal.locationRegionId, structureId, slotIndex },
+      intervention: { kind: "structure", targetRegionId: vassal.locationRegionId, structureId, tier, slotIndex },
     });
     defIndex += 1;
   }
@@ -593,7 +626,7 @@ function applyIntervention(state, intervention) {
   }
   if (intervention.kind === "structure" && settlement
       && settlement.structureSlots[intervention.slotIndex] == null) {
-    settlement.structureSlots[intervention.slotIndex] = { structureId: intervention.structureId };
+    settlement.structureSlots[intervention.slotIndex] = { structureId: intervention.structureId, tier: intervention.tier ?? "bronze" };
     return { ok: true };
   }
   if (intervention.kind === "connection") {
@@ -621,6 +654,16 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
   vassal.lifeMap.pendingResolution = null;
   lineage.currentVassalId = null;
   lineage.candidateRerollCount = 0;
+  if (reason === "retired") {
+    state.civilization.retiredVassals = state.civilization.retiredVassals ?? [];
+    state.civilization.retiredVassals.push({
+      vassalId: vassal.vassalId, retirementRegionId: vassal.locationRegionId,
+      finalCunning: Math.max(0, Math.floor(vassal.stats?.cunning ?? 0)),
+      finalWisdom: Math.max(0, Math.floor(vassal.stats?.wisdom ?? 0)),
+      finalEffectiveness: Math.max(0, Math.floor(vassal.stats?.effectiveness ?? 0)),
+      finalIntelligence: Math.max(0, Math.floor(vassal.stats?.intelligence ?? 0)),
+    });
+  }
   addLifeEvent(state, vassal, reason === "died" ? "died" : "retired", {
     causeOfDeath: cause, text: reason === "died" ? `Died: ${cause}` : "Retired after completing the life map",
   });

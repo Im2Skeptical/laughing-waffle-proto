@@ -5,6 +5,16 @@ export const DETAILED_PRACTICE_TIERS = Object.freeze([
   "diamond",
 ]);
 
+// Practices and structures share this vocabulary.  The old export is kept as
+// the practice-facing name because a number of view models consume it.
+export const DETAILED_QUALITY_IDS = DETAILED_PRACTICE_TIERS;
+export const getDetailedQualityIndex = getDetailedPracticeTierIndex;
+export const getNextDetailedQuality = getNextDetailedPracticeTier;
+
+export function getQualityMultiplier(tier, perQuality = 0) {
+  return Math.max(0, 1 + Math.max(0, getDetailedPracticeTierIndex(tier)) * perQuality);
+}
+
 export function isDetailedPracticeTier(tier) {
   return DETAILED_PRACTICE_TIERS.includes(tier);
 }
