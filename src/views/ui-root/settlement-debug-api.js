@@ -108,6 +108,7 @@ export function publishSettlementDebugApi({
   getTimeLeverScreenRect,
   getTimeActionClickPoint,
   getLifeMapPresentation,
+  getLifeMapDecisionSnapshot,
   browseSecond,
   getVassalPrimaryClickPoint,
   getVassalCandidateClickPoint,
@@ -167,6 +168,7 @@ export function publishSettlementDebugApi({
         view: getViewSemanticSnapshot?.() ?? null,
         worldMap: getWorldMapSnapshot?.() ?? null,
         lifeMap: getLifeMapPresentation?.() ?? null,
+        lifeMapDecision: getLifeMapDecisionSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {

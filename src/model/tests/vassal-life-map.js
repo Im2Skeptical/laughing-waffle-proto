@@ -21,6 +21,7 @@ import {
   getVassalDevelopmentIncome,
   getVassalLifeMapPlayheadNodeId,
   getVassalNodeDisplayState,
+  getVassalNodeDecisionPresentation,
   getVassalPrestigeIncome,
   validateVassalLifeMapState,
 } from "../vassal-life-map.js";
@@ -177,17 +178,44 @@ dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
 dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
   nodeId: shopNode.nodeId, offerId: shopNode.inventory[0].offerId,
 });
+assert.equal(shopVassal.prestige, 500, "staged purchases ghost Prestige until confirmation");
+const stagedPresentation = getVassalNodeDecisionPresentation(shopState, shopNode.nodeId);
+assert.equal(stagedPresentation.projectedPrestige,
+  500 - shopNode.purchasedOffers.reduce((sum, purchase) => sum + purchase.prestigeCost, 0));
+assert.ok(stagedPresentation.purchases.every((purchase) => purchase.presentation?.rule),
+  "gamepiece purchases expose their actual rule text before confirmation");
+assert.ok(stagedPresentation.settlement.practices.some((slot) => slot?.staged),
+  "the decision presentation ghosts staged Practices into authoritative slots");
 assert.equal(shopNode.inventory.length, 1, "purchases remove offers without replenishment");
+assert.equal(applyAction(shopState, {
+  kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
+}, { isReplay: true }).reason, "stagedPurchases", "reroll requires an empty draft");
+for (const purchase of [...shopNode.purchasedOffers]) {
+  dispatch(shopState, ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, {
+    nodeId: shopNode.nodeId, offerId: purchase.offerId,
+  });
+}
+assert.equal(shopNode.inventory.length, 3, "undo restores offers to their original inventory");
 dispatch(shopState, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: shopNode.nodeId });
 assert.equal(shopNode.inventory.length, 3, "the single reroll discards and refills to three");
-dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: shopNode.nodeId, offerId: shopNode.inventory[0].offerId,
-});
+for (const offerId of shopNode.inventory.map((offer) => offer.offerId)) {
+  dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+    nodeId: shopNode.nodeId, offerId,
+  });
+}
 assert.equal(shopNode.purchasedOffers.length, 3);
 assert.notDeepEqual(shopNode.inventory, entryInventory, "rerolled inventory persists as new content");
+dispatch(shopState, ActionKinds.VASSAL_REORDER_SHOP_PURCHASE, {
+  nodeId: shopNode.nodeId,
+  offerId: shopNode.purchasedOffers[2].offerId,
+  toIndex: 0,
+});
 const purchasedOrder = shopNode.purchasedOffers.map((purchase) => purchase.offerId);
+const stagedCost = shopNode.purchasedOffers.reduce((sum, purchase) => sum + purchase.prestigeCost, 0);
 const rngBeforeShopConfirm = shopState.rng.vassalSeed;
 dispatch(shopState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: shopNode.nodeId });
+assert.equal(shopVassal.prestige, 500 - 6 - stagedCost,
+  "confirm commits reroll and staged purchase Prestige exactly once");
 assert.equal(shopNode.mortality, undefined, "shop confirmation does not roll before accumulated time");
 resolvePending(shopState);
 assert.deepEqual(

@@ -3,10 +3,12 @@ import {
   confirmVassalLifeNode,
   enterVassalLifeNode,
   purchaseVassalShopOffer,
+  reorderVassalShopPurchase,
   rerollVassalCandidates,
   rerollVassalShop,
   selectLifeMapVassal,
   selectVassalNodeOption,
+  undoVassalShopPurchase,
 } from "../vassal-life-map.js";
 
 export function cmdSelectSettlementVassal(state, payload = {}) {
@@ -28,6 +30,10 @@ export const cmdSelectVassalLifeOption = (state, payload = {}) =>
   selectVassalNodeOption(state, payload.nodeId, payload.optionId);
 export const cmdPurchaseVassalShopOffer = (state, payload = {}) =>
   purchaseVassalShopOffer(state, payload.nodeId, payload.offerId);
+export const cmdUndoVassalShopPurchase = (state, payload = {}) =>
+  undoVassalShopPurchase(state, payload.nodeId, payload.offerId);
+export const cmdReorderVassalShopPurchase = (state, payload = {}) =>
+  reorderVassalShopPurchase(state, payload.nodeId, payload.offerId, payload.toIndex);
 export const cmdRerollVassalShop = (state, payload = {}) =>
   rerollVassalShop(state, payload.nodeId);
 export const cmdConfirmVassalLifeNode = (state, payload = {}) =>

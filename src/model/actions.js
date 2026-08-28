@@ -6,10 +6,12 @@ import {
   cmdConfirmVassalLifeNode,
   cmdEnterVassalLifeNode,
   cmdPurchaseVassalShopOffer,
+  cmdReorderVassalShopPurchase,
   cmdRerollSettlementVassals,
   cmdRerollVassalShop,
   cmdSelectSettlementVassal,
   cmdSelectVassalLifeOption,
+  cmdUndoVassalShopPurchase,
 } from "./commands/settlement-vassal-commands.js";
 import { cmdDebugSetSettlementSlotOverrides } from "./commands/debug-commands.js";
 import {
@@ -56,6 +58,8 @@ export const ActionKinds = {
   VASSAL_ENTER_LIFE_NODE: "vassalEnterLifeNode",
   VASSAL_SELECT_LIFE_OPTION: "vassalSelectLifeOption",
   VASSAL_PURCHASE_SHOP_OFFER: "vassalPurchaseShopOffer",
+  VASSAL_UNDO_SHOP_PURCHASE: "vassalUndoShopPurchase",
+  VASSAL_REORDER_SHOP_PURCHASE: "vassalReorderShopPurchase",
   VASSAL_REROLL_SHOP: "vassalRerollShop",
   VASSAL_CONFIRM_LIFE_NODE: "vassalConfirmLifeNode",
   VASSAL_CHOOSE_DEVELOPMENT_STAT: "vassalChooseDevelopmentStat",
@@ -169,6 +173,12 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.VASSAL_PURCHASE_SHOP_OFFER:
       result = cmdPurchaseVassalShopOffer(state, payload);
+      break;
+    case ActionKinds.VASSAL_UNDO_SHOP_PURCHASE:
+      result = cmdUndoVassalShopPurchase(state, payload);
+      break;
+    case ActionKinds.VASSAL_REORDER_SHOP_PURCHASE:
+      result = cmdReorderVassalShopPurchase(state, payload);
       break;
     case ActionKinds.VASSAL_REROLL_SHOP:
       result = cmdRerollVassalShop(state, payload);

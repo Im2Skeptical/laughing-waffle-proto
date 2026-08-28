@@ -1,759 +1,215 @@
-import {
-  VASSAL_LIFE_MAP_NODES,
-  VASSAL_NODE_FAMILIES,
-} from "../defs/gamepieces/vassal-life-map-defs.js";
-import {
-  getAdjustedVassalPrestigeCost,
-  getAdjustedVassalPhaseCost,
-  getVassalAge,
-  getVassalDevelopmentIncome,
-  getVassalPrestigeIncome,
-} from "../model/vassal-life-map.js";
+import { VASSAL_LIFE_MAP_NODES, VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { getVassalAge } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
-import {
-  ELDER_BUST_ACCENT_TONES,
-  ELDER_BUST_SKIN_TONES,
-  PALETTE,
-  TEXT_STYLES,
-} from "./settlement-theme.js";
+import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 1640, height: 720 });
-const PANEL_RECT = Object.freeze({ x: 1722, y: 88, width: 654, height: 720 });
-const NODE_X_STEP = 142;
-const NODE_RADIUS = 25;
+const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
+const NODE_X_STEP = 198;
+const NODE_RADIUS = 26;
 const DOUBLE_CLICK_WINDOW_MS = 360;
 
-function addButton(parent, rect, label, enabled, onClick, selected = false) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
-  root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointerdown", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onClick?.();
-  });
-  const gfx = new PIXI.Graphics();
-  roundedRect(
-    gfx, 0, 0, rect.width, rect.height, 7,
-    enabled ? (selected ? 0x47623e : 0x3f4f39) : 0x4b4945,
-    enabled ? PALETTE.accent : PALETTE.stroke, selected ? 3 : 1
-  );
-  const text = createText(label, {
-    ...TEXT_STYLES.body,
-    fontSize: 16,
-    fill: enabled ? PALETTE.text : PALETTE.textMuted,
-    wordWrap: true,
-    wordWrapWidth: rect.width - 18,
-    lineHeight: 18,
-  }, 9, 7);
-  root.addChild(gfx, text);
-  parent.addChild(root);
-  return root;
-}
-
-function addActionCard(parent, rect, { title, cost, effect }, enabled, onClick, selected = false) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
-  root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointerdown", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onClick?.();
-  });
-  const gfx = new PIXI.Graphics();
-  roundedRect(
-    gfx, 0, 0, rect.width, rect.height, 7,
-    enabled ? (selected ? 0x47623e : 0x353b36) : 0x4b4945,
-    enabled ? (selected ? PALETTE.green : PALETTE.stroke) : PALETTE.stroke,
-    selected ? 3 : 1
-  );
-  root.addChild(
-    gfx,
-    createText(title, { ...TEXT_STYLES.cardTitle, fontSize: 16, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 18 }, 9, 8),
-    createText(cost, { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.accent, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 15 }, 9, 46),
-    createText(effect, { ...TEXT_STYLES.body, fontSize: 14, fill: enabled ? PALETTE.textMuted : PALETTE.textMuted, wordWrap: true, wordWrapWidth: rect.width - 18, lineHeight: 15 }, 9, 99)
-  );
-  parent.addChild(root);
-  return root;
-}
-
-function addFooterButton(parent, rect, label, enabled, onClick, selected = false) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
-  root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointerdown", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onClick?.();
-  });
-  const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 7,
-    enabled ? (selected ? 0x47623e : 0x3f4f39) : 0x4b4945,
-    enabled ? PALETTE.accent : PALETTE.stroke, selected ? 3 : 1);
-  const text = createText(label, {
-    ...TEXT_STYLES.chip,
-    fontSize: 13,
-    fill: enabled ? PALETTE.text : PALETTE.textMuted,
-    wordWrap: true,
-    wordWrapWidth: rect.width - 16,
-    lineHeight: 14,
-  }, 8, 9);
-  root.addChild(gfx, text);
-  parent.addChild(root);
-  return root;
+function getNode(nodeId) {
+  return VASSAL_LIFE_MAP_NODES.find((node) => node.id === nodeId) ?? null;
 }
 
 function nodePoint(node) {
-  const countAtDepth = VASSAL_LIFE_MAP_NODES.filter((entry) => entry.depth === node.depth).length;
+  const count = VASSAL_LIFE_MAP_NODES.filter((entry) => entry.depth === node.depth).length;
   const top = MAP_RECT.y + 142;
   const bottom = MAP_RECT.y + MAP_RECT.height - 102;
-  const fallbackY = countAtDepth <= 1 ? 0.5 : node.lane / (countAtDepth - 1);
   return {
-    x: MAP_RECT.x + 76 + node.depth * NODE_X_STEP,
-    y: top + (bottom - top) * (Number.isFinite(node.mapY) ? node.mapY : fallbackY),
+    x: MAP_RECT.x + 92 + node.depth * NODE_X_STEP,
+    y: top + (bottom - top) * (Number.isFinite(node.mapY)
+      ? node.mapY : count <= 1 ? 0.5 : node.lane / (count - 1)),
   };
 }
 
-function stableIdHash(value) {
-  let hash = 2166136261;
-  for (const character of String(value ?? "vassal")) {
-    hash ^= character.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function addVassalPortrait(parent, vassal, x, y) {
-  const hash = stableIdHash(vassal?.vassalId);
-  const skin = ELDER_BUST_SKIN_TONES[hash % ELDER_BUST_SKIN_TONES.length];
-  const accent = ELDER_BUST_ACCENT_TONES[(hash >>> 7) % ELDER_BUST_ACCENT_TONES.length];
-  const portrait = new PIXI.Container();
-  portrait.position.set(x, y);
-  const gfx = new PIXI.Graphics();
-  gfx.lineStyle(2, PALETTE.accent, 0.9);
-  gfx.beginFill(PALETTE.bustBackdrop).drawCircle(0, 0, 34).endFill();
-  gfx.beginFill(accent).drawRoundedRect(-25, 10, 50, 31, 15).endFill();
-  gfx.beginFill(PALETTE.bustDark).drawCircle(0, -7, 17).endFill();
-  gfx.beginFill(skin).drawCircle(0, -4, 14).endFill();
-  gfx.beginFill(PALETTE.bustDark).drawRoundedRect(-15, -21, 30, 13, 7).endFill();
-  gfx.beginFill(PALETTE.bustDark).drawCircle(-5, -4, 1.6).drawCircle(5, -4, 1.6).endFill();
-  portrait.addChild(gfx);
-  parent.addChild(portrait);
-}
-
-function addStatChip(parent, tooltipView, spec) {
+function addButton(parent, rect, label, enabled, onClick) {
   const root = new PIXI.Container();
-  root.position.set(spec.x, spec.y);
-  root.eventMode = "static";
-  root.cursor = "help";
-  root.hitArea = new PIXI.Rectangle(0, 0, spec.width, spec.height);
-  root.on("pointerover", () => tooltipView?.show?.({
-    title: spec.label,
-    lines: spec.tooltipLines,
-  }, root.getBounds()));
-  root.on("pointerout", () => tooltipView?.hide?.());
+  root.position.set(rect.x, rect.y);
+  root.eventMode = enabled ? "static" : "none";
+  root.cursor = enabled ? "pointer" : "default";
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.on("pointertap", (event) => { event?.stopPropagation?.(); if (enabled) onClick?.(); });
   const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, spec.width, spec.height, 6, 0x3a403b, spec.color, 1.5);
-  gfx.beginFill(spec.color, 0.95).drawCircle(17, 17, 10).endFill();
-  root.addChild(
-    gfx,
-    createText(spec.abbrev, { ...TEXT_STYLES.chip, fontSize: 9, fill: PALETTE.black }, 17, 17, 0.5, 0.5),
-    createText(spec.label.toUpperCase(), { ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted }, 33, 7),
-    createText(String(spec.value ?? 0), { ...TEXT_STYLES.title, fontSize: 23, fill: spec.color }, 33, 20),
-    createText(spec.summary, { ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted }, 68, 29)
-  );
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
+    enabled ? 0x40533b : 0x464743, enabled ? PALETTE.accent : PALETTE.stroke, 2);
+  root.addChild(gfx, createText(label, {
+    ...TEXT_STYLES.title, fontSize: 15, fill: enabled ? PALETTE.text : PALETTE.textMuted,
+  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   parent.addChild(root);
+  return root;
 }
 
-function formatAdjustedCost(vassal, { prestigeCost = 0, phaseCost = 0 } = {}) {
-  const prestigeBase = Math.max(0, prestigeCost);
-  const phaseBase = Math.max(0, phaseCost);
-  const prestige = getAdjustedVassalPrestigeCost(vassal, prestigeBase);
-  const phases = getAdjustedVassalPhaseCost(vassal, phaseBase);
-  const costs = [];
-  if (prestigeBase > 0) {
-    costs.push(prestige === prestigeBase
-      ? `${prestige} Prestige`
-      : `${prestige} Prestige (base ${prestigeBase})`);
-  }
-  if (phaseBase > 0) {
-    costs.push(phases === phaseBase
-      ? `${phases} ${phases === 1 ? "Phase" : "Phases"}`
-      : `${phases} ${phases === 1 ? "Phase" : "Phases"} (base ${phaseBase})`);
-  }
-  return costs.length ? `Cost: ${costs.join(" · ")}` : "Cost: No Prestige or Phases";
-}
-
-function formatOptionEffect(option) {
-  const effects = [];
-  let hasNegativeEffect = false;
-  if (Number.isFinite(option?.prestigeDelta) && option.prestigeDelta !== 0) {
-    hasNegativeEffect ||= option.prestigeDelta < 0;
-    effects.push(`${option.prestigeDelta > 0 ? "+" : ""}${option.prestigeDelta} Prestige`);
-  }
-  if (option?.statId && Number.isFinite(option?.statDelta) && option.statDelta !== 0) {
-    hasNegativeEffect ||= option.statDelta < 0;
-    effects.push(`${option.statDelta > 0 ? "+" : ""}${option.statDelta} ${option.statId[0].toUpperCase()}${option.statId.slice(1)}`);
-  }
-  if (option?.locationRegionId) effects.push("Move to the target settlement");
-  if (option?.forcedRelocation) effects.push("Relocate to a safe player settlement");
-  if (Number.isFinite(option?.legacyStartingPrestigeBonus)) {
-    effects.push(`Future candidates: +${option.legacyStartingPrestigeBonus} starting Prestige`);
-  }
-  if (Number.isFinite(option?.immediateDeathChance)) {
-    effects.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
-  }
-  return effects.length
-    ? `${hasNegativeEffect ? "Effect" : "Gain"}: ${effects.join(" · ")}`
-    : "Effect: Apply this choice on resolution";
-}
-
-function formatPurchaseEffect(purchase) {
-  const intervention = purchase?.intervention ?? {};
-  if (intervention.kind === "practice") {
-    const tier = intervention.tier
-      ? `${intervention.tier[0].toUpperCase()}${intervention.tier.slice(1)}`
-      : "Bronze";
-    const result = intervention.resultingTier
-      ? `${intervention.resultingTier[0].toUpperCase()}${intervention.resultingTier.slice(1)}`
-      : tier;
-    return intervention.mode === "upgrade"
-      ? `Upgrades ${tier} to ${result} and moves it to the leftmost slot on resolution.`
-      : `Learns ${result} and inserts it in the leftmost slot on resolution.`;
-  }
-  if (intervention.kind === "structure") return "Builds this structure on resolution.";
-  if (intervention.kind === "connection") {
-    return intervention.mode === "remove"
-      ? "Removes this route on resolution."
-      : "Connects this route on resolution.";
-  }
-  return "Applied when this node resolves.";
-}
-
-function addShopTabs(parent, { x, y, width, activeTab, purchaseCount, onSelect }) {
-  const gap = 10;
-  const tabWidth = (width - gap) / 2;
-  addButton(parent, { x, y, width: tabWidth, height: 32 }, "OFFERS", true,
-    () => onSelect?.("offers"), activeTab === "offers");
-  addButton(parent, { x: x + tabWidth + gap, y, width: tabWidth, height: 32 },
-    `PURCHASES (${purchaseCount})`, true, () => onSelect?.("purchases"),
-    activeTab === "purchases");
-}
-
-function addPurchaseReceipt(parent, purchases, { x, y, width }) {
-  const list = Array.isArray(purchases) ? purchases : [];
-  if (!list.length) {
-    parent.addChild(createText("No purchase was made in this shop.", {
-      ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-    }, x, y));
-    return;
-  }
-  list.forEach((purchase, index) => {
-    const prestigeCost = Math.max(0, Math.floor(purchase?.prestigeCost ?? 0));
-    const phaseCost = Math.max(0, Math.floor(purchase?.phaseCost ?? 0));
-    const rowY = y + index * 36;
-    parent.addChild(
-      createText(`${index + 1}. ${purchase?.label ?? purchase?.offerId ?? "Committed purchase"}`, {
-        ...TEXT_STYLES.title, fontSize: 15, wordWrap: true, wordWrapWidth: width,
-      }, x, rowY),
-      createText(
-        `${prestigeCost} Prestige · ${phaseCost} ${phaseCost === 1 ? "Phase" : "Phases"} · ${formatPurchaseEffect(purchase)}`,
-        { ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: width },
-        x, rowY + 18
-      )
-    );
-  });
-}
-
-function getNode(nodeId) {
-  return VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nodeId) ?? null;
-}
-
-function getNodeDisplayState(vassal, nodeId, committedNodeIds, readOnly) {
-  const node = getNode(nodeId);
-  if (!node) return null;
-  const committed = committedNodeIds.has(nodeId);
+function getDisplay(vassal, nodeId, committed, readOnly) {
   return {
-    node,
-    nodeState: vassal?.lifeMap?.nodeStates?.[nodeId] ?? null,
-    available: !readOnly && !!vassal?.lifeMap?.availableNodeIds?.includes(nodeId)
+    available: !readOnly && (vassal?.lifeMap?.availableNodeIds ?? []).includes(nodeId)
       && (vassal?.pendingDevelopmentChoices ?? 0) === 0,
     current: !readOnly && vassal?.lifeMap?.currentNodeId === nodeId,
-    completed: committed,
+    completed: committed.has(nodeId),
   };
-}
-
-function getNodeCommittedSec(vassal, nodeId) {
-  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId] ?? null;
-  if (Number.isFinite(nodeState?.confirmedSec)) {
-    return Math.max(0, Math.floor(nodeState.confirmedSec));
-  }
-  if (
-    vassal?.lifeMap?.currentNodeId === nodeId &&
-    ["died", "retired"].includes(vassal?.endedReason) &&
-    Number.isFinite(vassal?.endSec)
-  ) {
-    return Math.max(0, Math.floor(vassal.endSec));
-  }
-  return null;
 }
 
 export function createVassalLifeMapView({
-  layer,
-  getPresentation,
-  isVisible,
-  onEnterNode,
-  onSelectOption,
-  onPurchaseOffer,
-  onRerollShop,
-  onConfirmNode,
-  onChooseDevelopmentStat,
-  tooltipView,
+  layer, getPresentation, isVisible, onEnterNode, onOpenDecision,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
+  root.eventMode = "static";
+  root.hitArea = new PIXI.Rectangle(MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height);
   layer?.addChild(root);
-  let signature = "";
   const nodeRoots = new Map();
-  let optionRoots = [];
-  let offerRoots = [];
-  let rerollRoot = null;
-  let enterNodeRoot = null;
-  let confirmRoot = null;
+  let signature = "";
   let inspectedNodeId = null;
   let hoveredNodeId = null;
-  let lastNodeClick = { nodeId: null, atMs: 0 };
   let displayedVassalId = null;
-  let shopPanelTab = "offers";
-  let shopPanelTabKey = null;
+  let lastClick = { nodeId: null, atMs: 0 };
+  let openRoot = null;
 
-  function inspectNode(nodeId, display) {
-    const nowMs = performance.now();
-    const doubleClicked = display.available &&
-      lastNodeClick.nodeId === nodeId &&
-      nowMs - lastNodeClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
-    lastNodeClick = { nodeId, atMs: nowMs };
-    inspectedNodeId = nodeId;
-    if (doubleClicked) {
-      onEnterNode?.(nodeId);
-      return;
-    }
+  root.on("pointerdown", (event) => {
+    const local = root.toLocal(event.global);
+    const node = VASSAL_LIFE_MAP_NODES.find((candidate) => {
+      const point = nodePoint(candidate);
+      return Math.hypot(local.x - point.x, local.y - point.y) <= NODE_RADIUS + 10;
+    });
+    if (!node) return;
+    const presentation = getPresentation?.() ?? {};
+    inspect(node, getDisplay(
+      presentation.vassal,
+      node.id,
+      new Set(presentation.committedNodeIds ?? []),
+      presentation.readOnly === true
+    ));
+  });
+
+  function inspect(node, display) {
+    const now = performance.now();
+    const doubleClick = display.available && lastClick.nodeId === node.id
+      && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
+    lastClick = { nodeId: node.id, atMs: now };
+    inspectedNodeId = node.id;
+    if (doubleClick) onEnterNode?.(node.id);
+    onOpenDecision?.(node.id);
     render(true);
   }
 
   function render(force = false) {
     const visible = isVisible?.() === true;
     root.visible = visible;
-    if (!visible) {
-      tooltipView?.hide?.();
-      signature = "";
-      clearChildren(root);
-      return;
-    }
+    if (!visible) { signature = ""; clearChildren(root); return; }
     const presentation = getPresentation?.() ?? {};
-    const state = presentation.state ?? null;
-    const vassal = presentation.vassal ?? null;
-    const profileVassal = presentation.profileVassal ?? vassal;
+    const state = presentation.state;
+    const vassal = presentation.vassal;
+    const profile = presentation.profileVassal ?? vassal;
     const readOnly = presentation.readOnly === true;
-    const committedNodeIds = new Set(presentation.committedNodeIds ?? []);
-    const playheadNodeId = presentation.playheadNodeId ?? null;
+    const committed = new Set(presentation.committedNodeIds ?? []);
     if ((vassal?.vassalId ?? null) !== displayedVassalId) {
       displayedVassalId = vassal?.vassalId ?? null;
-      inspectedNodeId = playheadNodeId;
-      hoveredNodeId = null;
-      lastNodeClick = { nodeId: null, atMs: 0 };
+      inspectedNodeId = presentation.playheadNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
     }
-    const activeNodeId = readOnly ? null : vassal?.lifeMap?.currentNodeId ?? null;
-    const effectiveInspectedNodeId = hoveredNodeId ?? inspectedNodeId ?? activeNodeId ?? playheadNodeId
-      ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? presentation.committedNodeIds?.at?.(-1) ?? null;
-    const nextSignature = JSON.stringify({ presentation, effectiveInspectedNodeId, hoveredNodeId });
+    const effectiveNodeId = hoveredNodeId ?? inspectedNodeId ?? vassal?.lifeMap?.currentNodeId
+      ?? presentation.playheadNodeId ?? null;
+    const nextSignature = JSON.stringify({ presentation, effectiveNodeId, hoveredNodeId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
     nodeRoots.clear();
-    optionRoots = [];
-    offerRoots = [];
-    rerollRoot = null;
-    enterNodeRoot = null;
-    confirmRoot = null;
-    if (!vassal) {
-      const emptyBg = new PIXI.Graphics();
-      roundedRect(emptyBg, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width + PANEL_RECT.width + 24,
-        MAP_RECT.height, 10, PALETTE.panel, PALETTE.stroke, 2);
-      root.addChild(
-        emptyBg,
-        createText("VASSAL LIFE MAP", { ...TEXT_STYLES.header, fontSize: 22 }, MAP_RECT.x + 22, MAP_RECT.y + 22),
-        createText("No Vassal had been appointed at this point in the timeline.", {
-          ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
-        }, MAP_RECT.x + 70, MAP_RECT.y + 180)
-      );
-      return;
-    }
+    openRoot = null;
 
     const bg = new PIXI.Graphics();
     roundedRect(bg, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 10,
       PALETTE.panel, PALETTE.stroke, 2);
-    roundedRect(bg, PANEL_RECT.x, PANEL_RECT.y, PANEL_RECT.width, PANEL_RECT.height, 10,
-      PALETTE.panel, PALETTE.accent, 2);
-    root.addChild(bg);
-    root.addChild(createText("VASSAL LIFE MAP", { ...TEXT_STYLES.header, fontSize: 22 },
-      MAP_RECT.x + 22, MAP_RECT.y + 22));
+    root.addChild(bg, createText("VASSAL LIFE MAP", {
+      ...TEXT_STYLES.header, fontSize: 22,
+    }, MAP_RECT.x + 22, MAP_RECT.y + 22));
+    if (!vassal) {
+      root.addChild(createText("No Vassal had been appointed at this point in the timeline.", {
+        ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
+      }, MAP_RECT.x + 70, MAP_RECT.y + 180));
+      return;
+    }
+
     root.addChild(createText(readOnly
-      ? "LOCKED HISTORY · FULL COMMITTED PATH"
-      : "Hover to inspect. Click to pin. Double-click an available node to enter it.", {
+      ? "LOCKED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
+      : "Click a node to open its decision. Double-click an available node to enter immediately.", {
       ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 250, MAP_RECT.y + 26));
-    root.addChild(createText("EARLY", TEXT_STYLES.body, MAP_RECT.x + 40, MAP_RECT.y + 60));
-    root.addChild(createText("MID", TEXT_STYLES.body, MAP_RECT.x + 478, MAP_RECT.y + 60));
-    root.addChild(createText("LATE", TEXT_STYLES.body, MAP_RECT.x + 900, MAP_RECT.y + 60));
-    root.addChild(createText("DEEP / LEGACY", TEXT_STYLES.body, MAP_RECT.x + 1318, MAP_RECT.y + 60));
+    [["EARLY", 46], ["MID", 650], ["LATE", 1240], ["DEEP / LEGACY", 1818]]
+      .forEach(([label, x]) => root.addChild(createText(label, TEXT_STYLES.body, MAP_RECT.x + x, MAP_RECT.y + 62)));
 
-    const committedPathNodeIds = presentation.committedNodeIds ?? [];
-    const completedEdges = new Set(committedPathNodeIds.slice(1).map(
-      (nodeId, index) => `${committedPathNodeIds[index]}:${nodeId}`
-    ));
+    const committedPath = presentation.committedNodeIds ?? [];
+    const completedEdges = new Set(committedPath.slice(1).map((id, index) => `${committedPath[index]}:${id}`));
     const edges = new PIXI.Graphics();
     for (const node of VASSAL_LIFE_MAP_NODES) {
       const from = nodePoint(node);
       for (const nextId of node.outgoingNodeIds) {
-        const nextNode = getNode(nextId);
-        if (!nextNode) continue;
-        const to = nodePoint(nextNode);
-        const completed = completedEdges.has(`${node.id}:${nextId}`);
-        edges.lineStyle(completed ? 5 : 3, completed ? 0x87c96a : PALETTE.stroke, completed ? 1 : 0.75);
-        edges.moveTo(from.x, from.y);
-        edges.lineTo(to.x, to.y);
+        const next = getNode(nextId);
+        if (!next) continue;
+        const to = nodePoint(next);
+        const complete = completedEdges.has(`${node.id}:${nextId}`);
+        edges.lineStyle(complete ? 5 : 3, complete ? 0x87c96a : PALETTE.stroke, complete ? 1 : 0.72)
+          .moveTo(from.x, from.y).lineTo(to.x, to.y);
       }
     }
     root.addChild(edges);
 
     for (const node of VASSAL_LIFE_MAP_NODES) {
-      const display = getNodeDisplayState(vassal, node.id, committedNodeIds, readOnly);
+      const display = getDisplay(vassal, node.id, committed, readOnly);
       const point = nodePoint(node);
       const family = VASSAL_NODE_FAMILIES[node.family] ?? {};
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
       nodeRoot.eventMode = "static";
       nodeRoot.cursor = "pointer";
-      nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 8);
-      nodeRoot.on("pointerdown", (event) => {
-        event?.stopPropagation?.();
-        inspectNode(node.id, display);
-      });
-      nodeRoot.on("pointerover", () => {
-        if (hoveredNodeId === node.id) return;
-        hoveredNodeId = node.id;
-        render(true);
-      });
-      nodeRoot.on("pointerout", () => {
-        if (hoveredNodeId !== node.id) return;
-        hoveredNodeId = null;
-        render(true);
-      });
-      const selected = effectiveInspectedNodeId === node.id;
+      nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
+      nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
+      nodeRoot.on("pointerover", () => { hoveredNodeId = node.id; render(true); });
+      nodeRoot.on("pointerout", () => { hoveredNodeId = null; render(true); });
+      const selected = effectiveNodeId === node.id;
       const circle = new PIXI.Graphics();
-      const fillAlpha = display.current || display.available ? 1 : display.completed ? 0.68 : 0.38;
-      circle.lineStyle(
-        selected || display.current || display.available || display.completed ? 4 : 2,
-        selected ? 0xf4e7bd : display.completed ? 0x87c96a : display.current || display.available ? PALETTE.accent : PALETTE.stroke,
-        1
-      );
-      circle.beginFill(family.color ?? 0x494641, fillAlpha).drawCircle(0, 0, NODE_RADIUS).endFill();
-      if (playheadNodeId === node.id) {
-        circle.lineStyle(5, 0xe3c46c, 1).drawCircle(0, 0, NODE_RADIUS + 7);
-      }
-      const glyph = createText(family.glyph ?? "?", {
-        ...TEXT_STYLES.title,
-        fontSize: node.family === "practiceReform" || node.family === "publicWorks" ? 12 : 16,
-      }, 0, 0, 0.5, 0.5);
-      nodeRoot.addChild(circle, glyph);
+      const alpha = display.current || display.available ? 1 : display.completed ? 0.7 : 0.38;
+      circle.lineStyle(selected || display.current || display.available || display.completed ? 4 : 2,
+        selected ? 0xf4e7bd : display.completed ? 0x87c96a : display.current || display.available ? PALETTE.accent : PALETTE.stroke, 1)
+        .beginFill(family.color ?? 0x494641, alpha).drawCircle(0, 0, NODE_RADIUS).endFill();
+      if (presentation.playheadNodeId === node.id) circle.lineStyle(5, 0xe3c46c, 1).drawCircle(0, 0, NODE_RADIUS + 7);
+      nodeRoot.addChild(circle, createText(family.glyph ?? "?", {
+        ...TEXT_STYLES.title, fontSize: ["practiceReform", "publicWorks"].includes(node.family) ? 12 : 16,
+      }, 0, 0, 0.5, 0.5));
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
-    Object.values(VASSAL_NODE_FAMILIES).forEach((family, index) => {
-      root.addChild(createText(`${family.glyph}  ${family.label}`, {
-        ...TEXT_STYLES.body, fontSize: 14, fill: family.color ?? PALETTE.textMuted,
-      }, MAP_RECT.x + 36 + index * 196, MAP_RECT.y + MAP_RECT.height - 38));
-    });
 
-    const location = getRegionReference(state, profileVassal.locationRegionId) ?? profileVassal.locationRegionId;
-    const stats = profileVassal.stats ?? {};
-    const px = PANEL_RECT.x + 22;
-    const cards = new PIXI.Graphics();
-    roundedRect(cards, px, PANEL_RECT.y + 18, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 124, PANEL_RECT.width - 44, 116, 8, 0x303633, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 250, PANEL_RECT.width - 44, 94, 8, 0x343a34, PALETTE.stroke, 1);
-    roundedRect(cards, px, PANEL_RECT.y + 354, PANEL_RECT.width - 44, PANEL_RECT.height - 376, 8, 0x2c312e, PALETTE.accent, 1);
-    root.addChild(cards);
-    addVassalPortrait(root, profileVassal, PANEL_RECT.x + PANEL_RECT.width - 76, PANEL_RECT.y + 64);
-    root.addChild(
-      createText("VASSAL", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 30),
-      createText(`Age ${getVassalAge(state, profileVassal, presentation.profileSec)}`, { ...TEXT_STYLES.header, fontSize: 22 }, px + 14, PANEL_RECT.y + 50),
-      createText(location, { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 190 }, px + 14, PANEL_RECT.y + 76),
-      createText(`Prestige  ${profileVassal.prestige}`, { ...TEXT_STYLES.title, fontSize: 19, fill: PALETTE.accent }, px + 14, PANEL_RECT.y + 88),
-      createText("ATTRIBUTES · HOVER FOR DETAILS", { ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 136),
-      createText("NODE ECONOMY", { ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 260),
-      createText(`Prestige income: +${getVassalPrestigeIncome(profileVassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 282),
-      createText(`EXP income: +${getVassalDevelopmentIncome(profileVassal)} per completion`, { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 304),
-      createText(`EXP ${profileVassal.developmentProgress}/10${profileVassal.pendingDevelopmentChoices ? ` · ${profileVassal.pendingDevelopmentChoices} choice` : ""}`,
-        { ...TEXT_STYLES.body, fontSize: 16 }, px + 14, PANEL_RECT.y + 324)
-    );
-    const statWidth = (PANEL_RECT.width - 86) / 2;
-    [
-      { abbrev: "CUN", label: "Cunning", value: stats.cunning, summary: "+ Prestige", color: 0xc58b5b,
-        tooltipLines: ["Adds +1 Prestige income for each completed node."] },
-      { abbrev: "WIS", label: "Wisdom", value: stats.wisdom, summary: "+ EXP", color: 0x6ca6d7,
-        tooltipLines: ["Adds +1 EXP income for each completed node."] },
-      { abbrev: "EFF", label: "Effectiveness", value: stats.effectiveness, summary: "-8% Phases", color: 0x7faf6d,
-        tooltipLines: ["Reduces Phase costs by 8% per point, up to 60%.", "Costs round up and never fall below 1 Phase."] },
-      { abbrev: "INT", label: "Intelligence", value: stats.intelligence, summary: "-8% Prestige", color: 0xaf87cf,
-        tooltipLines: ["Reduces Prestige costs by 8% per point, up to 60%."] },
-    ].forEach((stat, index) => {
-      addStatChip(root, tooltipView, {
-        ...stat,
-        x: px + 14 + (index % 2) * (statWidth + 10),
-        y: PANEL_RECT.y + 154 + Math.floor(index / 2) * 42,
-        width: statWidth,
-        height: 42,
-      });
-    });
+    Object.values(VASSAL_NODE_FAMILIES).forEach((family, index) => root.addChild(createText(
+      `${family.glyph}  ${family.label}`, {
+        ...TEXT_STYLES.body, fontSize: 13, fill: family.color ?? PALETTE.textMuted,
+      }, MAP_RECT.x + 28 + index * 220, MAP_RECT.y + MAP_RECT.height - 34)));
 
-    const inspectedNode = getNode(effectiveInspectedNodeId);
-    const inspectedDisplay = inspectedNode
-      ? getNodeDisplayState(vassal, inspectedNode.id, committedNodeIds, readOnly)
-      : null;
-    const inspectedFamily = inspectedNode ? VASSAL_NODE_FAMILIES[inspectedNode.family] : null;
-    if (!inspectedNode || !inspectedFamily) return;
-
-    const inspectedIsShop = ["practiceReform", "publicWorks", "routes"].includes(inspectedNode.family);
-    const nextShopPanelTabKey = inspectedIsShop
-      ? `${readOnly ? "history" : "live"}:${inspectedNode.id}`
-      : null;
-    if (nextShopPanelTabKey !== shopPanelTabKey) {
-      shopPanelTabKey = nextShopPanelTabKey;
-      shopPanelTab = readOnly ? "purchases" : "offers";
-    }
-
-    root.addChild(
-      createText(inspectedFamily.label, { ...TEXT_STYLES.header, fontSize: 21, fill: inspectedFamily.color }, px + 14, PANEL_RECT.y + 370),
-      createText(inspectedFamily.description, {
-        ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted, wordWrap: true,
-        wordWrapWidth: PANEL_RECT.width - 72, lineHeight: 19,
-      }, px + 14, PANEL_RECT.y + 398)
-    );
-
-    if (readOnly) {
-      const historicalNodeState = inspectedDisplay?.nodeState ?? null;
-      const committedSec = getNodeCommittedSec(vassal, inspectedNode.id);
-      if (!inspectedDisplay?.completed || !historicalNodeState) {
-        root.addChild(createText("Not part of this Vassal's committed path.", {
-          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-          wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-        }, px + 14, PANEL_RECT.y + 450));
-        return;
-      }
-      const laterThanPlayhead = committedSec != null
-        && committedSec > Math.max(0, Math.floor(presentation.viewedSec ?? 0));
-      root.addChild(createText(
-        `${laterThanPlayhead ? "LATER " : ""}COMMITTED CHOICE`,
-        { ...TEXT_STYLES.chip, fontSize: 14, fill: laterThanPlayhead ? PALETTE.textMuted : 0xe3c46c },
-        px + 14, PANEL_RECT.y + 444
-      ));
-      const selectedOption = historicalNodeState.options?.find(
-        (option) => option.id === historicalNodeState.selectedOptionId
-      ) ?? null;
-      if (selectedOption) {
-        root.addChild(
-          createText(selectedOption.label, {
-            ...TEXT_STYLES.header, fontSize: 19, wordWrap: true,
-            wordWrapWidth: PANEL_RECT.width - 72,
-          }, px + 14, PANEL_RECT.y + 478),
-          createText(formatOptionEffect(selectedOption), {
-            ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-            wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72, lineHeight: 19,
-          }, px + 14, PANEL_RECT.y + 514)
-        );
-        return;
-      }
-      const purchases = historicalNodeState.purchasedOffers ?? [];
-      if (inspectedIsShop) {
-        const actionX = px + 14;
-        const actionWidth = PANEL_RECT.width - 72;
-        addShopTabs(root, {
-          x: actionX, y: PANEL_RECT.y + 474, width: actionWidth,
-          activeTab: shopPanelTab, purchaseCount: purchases.length,
-          onSelect: (tab) => {
-            shopPanelTab = tab;
-            render(true);
-          },
-        });
-        if (shopPanelTab === "offers") {
-          const actionGap = 10;
-          const cardWidth = (actionWidth - actionGap * 2) / 3;
-          historicalNodeState.inventory?.forEach((offer, index) => {
-            addActionCard(root, {
-              x: actionX + index * (cardWidth + actionGap), y: PANEL_RECT.y + 518,
-              width: cardWidth, height: 164,
-            }, {
-              title: offer.label,
-              cost: `Unbought · ${offer.basePrestigeCost ?? 0} Prestige · ${offer.basePhaseCost ?? 0} Phases`,
-              effect: "Offer remaining when this shop was confirmed.",
-            }, false, null);
-          });
-        } else {
-          addPurchaseReceipt(root, purchases, {
-            x: actionX, y: PANEL_RECT.y + 520, width: actionWidth,
-          });
-        }
-      } else {
-        root.addChild(createText("No purchase was made in this committed node.", {
-          ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-        }, px + 14, PANEL_RECT.y + 484));
-      }
-      return;
-    }
-
-    if (vassal.pendingDevelopmentChoices > 0) {
-      root.addChild(createText("Spend your EXP choice before entering the next node.", {
-        ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.accent, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-      }, px + 14, PANEL_RECT.y + 434));
-      ["cunning", "effectiveness", "intelligence"].forEach((statId, index) => {
-        addButton(root, { x: px + 14, y: PANEL_RECT.y + 474 + index * 50, width: PANEL_RECT.width - 72, height: 42 },
-          `Gain: +1 ${statId[0].toUpperCase()}${statId.slice(1)}`, true, () => onChooseDevelopmentStat?.(statId));
-      });
-      return;
-    }
-
-    const nodeState = activeNodeId ? vassal.lifeMap.nodeStates[activeNodeId] : null;
-    if (!nodeState) {
-      if (inspectedDisplay?.available) {
-        root.addChild(createText("This node is ready to enter. Its choices will be revealed once entered.", {
-          ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-        }, px + 14, PANEL_RECT.y + 440));
-        enterNodeRoot = addButton(root, { x: px + 14, y: PANEL_RECT.y + 494, width: PANEL_RECT.width - 72, height: 46 },
-          `ENTER ${inspectedFamily.label.toUpperCase()} NODE`, true, () => onEnterNode?.(inspectedNode.id));
-      } else {
-        root.addChild(createText(inspectedDisplay?.completed
-          ? "Completed. Follow its outgoing paths through the map."
-          : "Locked. Complete a connected available node to unlock this path.", {
-          ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-        }, px + 14, PANEL_RECT.y + 440));
-      }
-      return;
-    }
-
-    if (inspectedNode.id !== activeNodeId) {
-      root.addChild(createText("Another node is active. Inspect it again to make its choices and resolve it.", {
-        ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted, wordWrap: true, wordWrapWidth: PANEL_RECT.width - 72,
-      }, px + 14, PANEL_RECT.y + 440));
-      return;
-    }
-
-    root.addChild(createText(`Committed on confirmation: ${nodeState.accumulatedPhaseCost} ${nodeState.accumulatedPhaseCost === 1 ? "Phase" : "Phases"}`,
-      { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted }, px + 14, PANEL_RECT.y + 434));
-    if (nodeState.resolving) {
-      const pending = vassal.lifeMap.pendingResolution;
-      root.addChild(createText(
-        `RESOLVING · advancing ${pending?.phaseCost ?? 0} Phases`,
-        { ...TEXT_STYLES.header, fill: PALETTE.accent, fontSize: 18 }, px + 14, PANEL_RECT.y + 470
-      ));
-      return;
-    }
-
-    const actionX = px + 14;
-    const actionWidth = PANEL_RECT.width - 72;
-    const actionGap = 10;
-    const cardWidth = (actionWidth - actionGap * 2) / 3;
-    const isShop = ["practiceReform", "publicWorks", "routes"].includes(nodeState.family);
-    const cardY = PANEL_RECT.y + (isShop ? 506 : 462);
-    const cardHeight = 164;
-    const footerY = cardY + cardHeight + 12;
-    if (!isShop && nodeState.options.length) {
-      optionRoots = nodeState.options.map((option, index) => {
-        const enabled = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0) <= vassal.prestige;
-        return addActionCard(root, {
-          x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
-        }, {
-          title: option.label,
-          cost: formatAdjustedCost(vassal, option),
-          effect: formatOptionEffect(option),
-        }, enabled, () => onSelectOption?.(activeNodeId, option.id), nodeState.selectedOptionId === option.id);
-      });
-    } else if (isShop) {
-      const purchases = nodeState.purchasedOffers ?? [];
-      addShopTabs(root, {
-        x: actionX, y: PANEL_RECT.y + 462, width: actionWidth,
-        activeTab: shopPanelTab, purchaseCount: purchases.length,
-        onSelect: (tab) => {
-          shopPanelTab = tab;
-          render(true);
-        },
-      });
-      if (shopPanelTab === "offers") {
-        offerRoots = nodeState.inventory.map((offer, index) => {
-          const cost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-          return addActionCard(root, {
-            x: actionX + index * (cardWidth + actionGap), y: cardY, width: cardWidth, height: cardHeight,
-          }, {
-            title: offer.label,
-            cost: formatAdjustedCost(vassal, { prestigeCost: offer.basePrestigeCost, phaseCost: offer.basePhaseCost }),
-            effect: "Effect: Applied when this node resolves.",
-          }, cost <= vassal.prestige, () => onPurchaseOffer?.(activeNodeId, offer.offerId));
-        });
-        const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
-        rerollRoot = addFooterButton(root, { x: actionX, y: footerY, width: (actionWidth - actionGap) / 2, height: 50 },
-          nodeState.rerollUsed
-            ? "REROLL USED"
-            : `REROLL OFFERS\n${formatAdjustedCost(vassal, { prestigeCost: 6, phaseCost: 60 })}`,
-          !nodeState.rerollUsed && rerollCost <= vassal.prestige, () => onRerollShop?.(activeNodeId));
-      } else {
-        addPurchaseReceipt(root, purchases, {
-          x: actionX, y: cardY, width: actionWidth,
-        });
-      }
-    } else {
-      root.addChild(createText("No choices are currently available for this node.", {
-        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-      }, actionX, cardY));
-    }
-    const canConfirm = isShop || !!nodeState.selectedOptionId;
-    confirmRoot = addFooterButton(root, {
-      x: isShop && shopPanelTab === "offers" ? actionX + (actionWidth + actionGap) / 2 : actionX,
-      y: footerY,
-      width: isShop && shopPanelTab === "offers" ? (actionWidth - actionGap) / 2 : actionWidth,
-      height: 50,
-    }, "CONFIRM & RESOLVE", canConfirm, () => onConfirmNode?.(activeNodeId));
+    const location = getRegionReference(state, profile.locationRegionId) ?? profile.locationRegionId;
+    const hudX = MAP_RECT.x + MAP_RECT.width - 580;
+    const hud = new PIXI.Graphics();
+    roundedRect(hud, hudX, MAP_RECT.y + 18, 552, 78, 10, 0x303833, PALETTE.accent, 1);
+    root.addChild(hud,
+      createText(`VASSAL · AGE ${getVassalAge(state, profile, presentation.profileSec)} · ${location}`, {
+        ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
+        wordWrap: true, wordWrapWidth: 340,
+      }, hudX + 16, MAP_RECT.y + 31),
+      createText(`Prestige  ${profile.prestige}`, {
+        ...TEXT_STYLES.header, fontSize: 21, fill: PALETTE.accent,
+      }, hudX + 16, MAP_RECT.y + 55));
+    const openNodeId = vassal.lifeMap.currentNodeId ?? effectiveNodeId;
+    openRoot = addButton(root, { x: hudX + 372, y: MAP_RECT.y + 34, width: 162, height: 46 },
+      vassal.lifeMap.currentNodeId ? "RESUME DECISION" : "OPEN DETAILS", !!openNodeId,
+      () => onOpenDecision?.(openNodeId));
   }
 
   return {
-    init: () => render(true),
-    update: () => render(),
-    refresh: () => render(true),
+    init: () => render(true), update: () => render(), refresh: () => render(true),
     setVisible: (visible) => { root.visible = visible === true; },
     getNodeClickPoint(nodeId) {
-      const target = nodeRoots.get(nodeId);
-      const point = target?.toGlobal?.(new PIXI.Point(0, 0));
+      const point = nodeRoots.get(nodeId)?.toGlobal?.(new PIXI.Point(0, 0));
       return point ? { x: point.x, y: point.y } : null;
     },
-    getEnterNodeClickPoint: () => enterNodeRoot?.toGlobal
-      ? enterNodeRoot.toGlobal(new PIXI.Point(enterNodeRoot.hitArea.width / 2, enterNodeRoot.hitArea.height / 2)) : null,
-    getOptionClickPoint(index = 0) {
-      const target = optionRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));
-      return point ? { x: point.x, y: point.y } : null;
-    },
-    getOfferClickPoint(index = 0) {
-      const target = offerRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));
-      return point ? { x: point.x, y: point.y } : null;
-    },
-    getRerollClickPoint: () => rerollRoot?.toGlobal
-      ? rerollRoot.toGlobal(new PIXI.Point(rerollRoot.hitArea.width / 2, rerollRoot.hitArea.height / 2)) : null,
-    getConfirmClickPoint: () => confirmRoot?.toGlobal
-      ? confirmRoot.toGlobal(new PIXI.Point(confirmRoot.hitArea.width / 2, confirmRoot.hitArea.height / 2)) : null,
+    getOpenDecisionClickPoint: () => openRoot?.toGlobal
+      ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
   };
 }

@@ -36,6 +36,7 @@ import {
   getCurrentLifeMapVassal,
   getLifeMapVassalAtSecond,
   getVassalLifeMapPlayheadNodeId,
+  getVassalNodeDecisionPresentation,
   getVassalPendingResolution,
 } from "../model/vassal-life-map.js";
 import {
@@ -72,6 +73,7 @@ import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
 import { createWorldMapView } from "./world-map-pixi.js";
 import { createWorldMapVassalDrawerView } from "./world-map-vassal-drawer-pixi.js";
 import { createVassalLifeMapView } from "./vassal-life-map-pixi.js";
+import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -184,6 +186,7 @@ let settlementGraphView = null;
 let settlementVassalChooserView = null;
 let settlementVassalControlsView = null;
 let vassalLifeMapView = null;
+let vassalNodeDecisionModalView = null;
 let runCompleteView = null;
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
@@ -221,6 +224,7 @@ function setWorldViewMode(mode) {
   prototypeView?.setVisible?.(settlementVisible);
   worldMapView?.setVisible?.(!settlementVisible && !lifeMapVisible);
   vassalLifeMapView?.setVisible?.(lifeMapVisible);
+  if (!lifeMapVisible) vassalNodeDecisionModalView?.close?.();
   // The Vassal controls are a shared time-control affordance. Keeping them in
   // the control layer makes the route available from both map and settlement.
   settlementVassalControlsView?.setVisible?.(true);
@@ -861,6 +865,7 @@ function dispatchLifeMapAction(kind, payload = {}) {
     });
   }
   vassalLifeMapView?.refresh?.();
+  vassalNodeDecisionModalView?.refresh?.();
   worldMapView?.refresh?.();
   prototypeView?.refresh?.();
   return result;
@@ -1528,20 +1533,41 @@ vassalLifeMapView = createVassalLifeMapView({
   getPresentation: () => getSettlementLifeMapPresentation(),
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
+  onOpenDecision: (nodeId) => vassalNodeDecisionModalView?.open?.(nodeId),
+});
+vassalLifeMapView.setVisible(false);
+
+vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
+  app,
+  layer: modalLayer,
+  getPresentation: () => getSettlementLifeMapPresentation(),
+  getDecisionPresentation: (nodeId) => getVassalNodeDecisionPresentation(
+    getSettlementFrontierState(), nodeId
+  ),
+  onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
   onSelectOption: (nodeId, optionId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId }
   ),
   onPurchaseOffer: (nodeId, offerId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId }
   ),
+  onUndoPurchase: (nodeId, offerId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, { nodeId, offerId }
+  ),
+  onReorderPurchase: (nodeId, offerId, toIndex) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_REORDER_SHOP_PURCHASE, { nodeId, offerId, toIndex }
+  ),
   onRerollShop: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_REROLL_SHOP, { nodeId }),
   onConfirmNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId }),
   onChooseDevelopmentStat: (statId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, { statId }
   ),
-  tooltipView,
+  onWorldMap: (regionId) => {
+    if (regionId) selectedWorldRegionId = regionId;
+    setWorldViewMode("map");
+    worldMapView?.refresh?.();
+  },
 });
-vassalLifeMapView.setVisible(false);
 
 function getSettlementVassalInterventionMarkers(state) {
   const lineage = state?.civilization?.vassalLineage;
@@ -1741,6 +1767,11 @@ function isTypingTarget(target) {
 
 function handleGlobalKeyDown(ev) {
   if (!ev || ev.repeat || isTypingTarget(ev.target)) return;
+  if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
+    ev.preventDefault();
+    vassalNodeDecisionModalView.close();
+    return;
+  }
   if (ev.code === "Space" || ev.key === " ") {
     ev.preventDefault();
     togglePause();
@@ -1758,6 +1789,7 @@ function resizeCanvas() {
   sunMoonDisksView.applyLayout?.();
   settlementVassalChooserView?.refresh?.();
   runCompleteView?.resize?.();
+  vassalNodeDecisionModalView?.resize?.();
 }
 
 function publishSettlementDebugApi() {
@@ -1798,6 +1830,7 @@ function publishSettlementDebugApi() {
         } : null,
       };
     },
+    getLifeMapDecisionSnapshot: () => vassalNodeDecisionModalView?.getSemanticSnapshot?.() ?? null,
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
@@ -1850,10 +1883,10 @@ function publishSettlementDebugApi() {
     getVassalSelectionPool: () => settlementPendingVassalSelection,
     isVassalSelectionOpen: () => !!settlementPendingVassalSelection,
     getLifeMapNodeClickPoint: (nodeId) => vassalLifeMapView?.getNodeClickPoint?.(nodeId) ?? null,
-    getLifeMapEnterNodeClickPoint: () => vassalLifeMapView?.getEnterNodeClickPoint?.() ?? null,
-    getLifeMapOptionClickPoint: (index) => vassalLifeMapView?.getOptionClickPoint?.(index) ?? null,
-    getLifeMapOfferClickPoint: (index) => vassalLifeMapView?.getOfferClickPoint?.(index) ?? null,
-    getLifeMapConfirmClickPoint: () => vassalLifeMapView?.getConfirmClickPoint?.() ?? null,
+    getLifeMapEnterNodeClickPoint: () => vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
+    getLifeMapOptionClickPoint: (index) => vassalNodeDecisionModalView?.getOptionClickPoint?.(index) ?? null,
+    getLifeMapOfferClickPoint: (index) => vassalNodeDecisionModalView?.getOfferClickPoint?.(index) ?? null,
+    getLifeMapConfirmClickPoint: () => vassalNodeDecisionModalView?.getConfirmClickPoint?.() ?? null,
   });
 }
 
@@ -1869,6 +1902,7 @@ syncSettlementVassalSelectionPauseState();
 prototypeView.init();
 worldMapView.init();
 vassalLifeMapView.init();
+vassalNodeDecisionModalView.init();
 setWorldViewMode("map");
 settlementGraphView.open();
 settlementGraphSeriesMenu?.render?.();
@@ -1899,6 +1933,7 @@ app.ticker.add((delta) => {
   prototypeView.update(frameDt);
   worldMapView.update(frameDt);
   vassalLifeMapView.update(frameDt);
+  vassalNodeDecisionModalView.update(frameDt);
   settlementGraphView.render();
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);
