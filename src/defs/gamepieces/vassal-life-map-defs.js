@@ -102,6 +102,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
   phasesPerTravelStep: VASSAL_PHASES_PER_YEAR,
+  travelOptionCount: 3,
   shopRerollPrestigeCost: 6,
   shopRerollPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
   routeAddPrestigeCost: 16,

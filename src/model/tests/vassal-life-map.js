@@ -151,6 +151,8 @@ const travelVassal = getCurrentLifeMapVassal(travelState);
 const originalLocation = travelVassal.locationRegionId;
 const travelNode = forceEnter(travelState, "life-02-2");
 assert.ok(travelNode.options.length > 0);
+assert.equal(travelNode.options.length, VASSAL_LIFE_TUNING.travelOptionCount,
+  "Travel reveals the configured three closest deterministic destinations");
 assert.ok(travelNode.options.every((option) =>
   option.locationRegionId !== originalLocation
     && Number.isFinite(option.graphDistance)
