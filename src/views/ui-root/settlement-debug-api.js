@@ -109,6 +109,7 @@ export function publishSettlementDebugApi({
   getTimeActionClickPoint,
   getLifeMapPresentation,
   getLifeMapDecisionSnapshot,
+  getLifeMapLevelUpSnapshot,
   browseSecond,
   getVassalPrimaryClickPoint,
   getVassalCandidateClickPoint,
@@ -119,6 +120,7 @@ export function publishSettlementDebugApi({
   getLifeMapOptionClickPoint,
   getLifeMapOfferClickPoint,
   getLifeMapConfirmClickPoint,
+  getLifeMapLevelUpChoiceClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   getWorldInstalledPracticeClickPoint,
@@ -169,6 +171,7 @@ export function publishSettlementDebugApi({
         worldMap: getWorldMapSnapshot?.() ?? null,
         lifeMap: getLifeMapPresentation?.() ?? null,
         lifeMapDecision: getLifeMapDecisionSnapshot?.() ?? null,
+        lifeMapLevelUp: getLifeMapLevelUpSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
@@ -212,6 +215,8 @@ export function publishSettlementDebugApi({
     getLifeMapOfferClickPoint: (index = 0) =>
       getLifeMapOfferClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     getLifeMapConfirmClickPoint: () => getLifeMapConfirmClickPoint?.() ?? null,
+    getLifeMapLevelUpChoiceClickPoint: (index = 0) =>
+      getLifeMapLevelUpChoiceClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,

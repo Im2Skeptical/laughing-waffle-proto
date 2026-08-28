@@ -15,7 +15,9 @@ task lists.
 - All simulation randomness uses `state.rng`; never use `Math.random()`.
 - Vassal candidates, node content, Crisis, and mortality use the serialized
   `state.rng.vassalSeed` substream so Elder cohort rolls cannot perturb Vassal
-  outcomes.
+  outcomes. Level-up offer pools use the separate serialized
+  `state.rng.vassalDevelopmentSeed` substream, so choosing or earning levels
+  cannot perturb those existing outcomes.
 - `GameState` is JSON-only. Runtime RNG helpers are removed for serialization
   and restored on deserialize.
 - `rebuildStateAtSecond(tSec)` is the authoritative deterministic replay path.
@@ -29,7 +31,7 @@ task lists.
 
 ## Current state and schemas
 
-- Game state uses schema v16 and runner saves use schema v9; older saves are rejected.
+- Game state uses schema v17 and runner saves use schema v9; older saves are rejected.
 - Each run serializes schema-v9 Game Settings and Gamepieces in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
@@ -102,6 +104,9 @@ survival knowledge, and the single vassal lineage are civilization-global.
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
+- Each EXP threshold earned by a surviving, non-terminal Vassal queues a
+  serialized three-of-four stat choice rolled from all four Vassal stats. These
+  choices resolve one at a time and block entry into another Lifegraph node.
 - Cunning and Wisdom drive recurring Prestige and EXP income; Effectiveness and Intelligence
   discount Phase and Prestige costs. Practice/Structure prices live beside their
   gamepiece definitions, while route prices and all other Life Map tuning are in
@@ -134,15 +139,23 @@ bounded JSON state used for replay and phase tooltips.
   previous-moon totals.
 - Candidate cards reveal age, settlement, Prestige, and four stats but keep the
   Life Map hidden. Selection opens a dedicated full-topology Life Map screen.
-  The Lifegraph uses the full playfield plus a compact Vassal HUD. Clicking any
+  The Lifegraph uses the full playfield plus a compact Vassal HUD containing
+  Prestige and all four stats. Stat hover/tap details show the current
+  calculated income or discount power. Clicking any
   node opens a large shared decision modal; only entering an available node
   reveals its persisted options or inventory. The modal shows complete effects,
-  quality/tags, current-to-projected Prestige, and the current settlement with
-  staged Practices/Structures ghosted into their authoritative slots. Shop
+  quality/tags, and current-to-projected Prestige. Practice/Public Works show
+  the current settlement with staged Practices/Structures ghosted into their
+  authoritative slots; Routes/Travel show a cropped polygon regional preview;
+  Patronage/Development show immediate and surviving-completion Vassal impact;
+  Crisis/Legacy center their choices without an irrelevant side panel. Shop
   drafts support undo and pointer/touch drag ordering. Closing the modal or
   focusing the Vassal's settlement on the World Map preserves the draft, and
   the active node/HUD reopens it. Double-click still enters an available node.
   Family colors distinguish the node types.
+  EXP level-ups use a separate non-dismissible modal while the Lifegraph is
+  visible. The player may inspect the World Map, but returning to the Lifegraph
+  restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
