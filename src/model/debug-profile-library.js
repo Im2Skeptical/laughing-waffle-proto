@@ -38,8 +38,13 @@ export function validateDebugProfile(profile) {
   for (const error of validateGamepiecesDraft(profile.gamepieces).errors ?? []) {
     errors.push(`gamepieces.${error}`);
   }
-  for (const error of validateVassalDebugDraft(profile.vassalLab).errors ?? []) {
-    errors.push(`vassalLab.${error}`);
+  // Vassal Lab is intentionally lazy: before the player opens that panel there
+  // is no candidate override to capture. Null records that explicit no-override
+  // state without forcing unrelated panels to manufacture a Vassal draft.
+  if (profile.vassalLab !== null) {
+    for (const error of validateVassalDebugDraft(profile.vassalLab).errors ?? []) {
+      errors.push(`vassalLab.${error}`);
+    }
   }
   return { ok: errors.length === 0, errors };
 }

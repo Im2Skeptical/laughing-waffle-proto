@@ -85,7 +85,9 @@ export function createDebugProfileController({
     if (!mapResult.ok) return mapResult;
     const configResult = debugConfigurationController.replaceDraftsFromProfile(entry.profile);
     if (!configResult.ok) return configResult;
-    const vassalResult = vassalDebugPresetController.setCurrentDraft(entry.profile.vassalLab);
+    const vassalResult = entry.profile.vassalLab === null
+      ? vassalDebugPresetController.clearCurrentDraft()
+      : vassalDebugPresetController.setCurrentDraft(entry.profile.vassalLab);
     if (!vassalResult.ok) return vassalResult;
     activePage = entry.profile.activePage;
     selectedProfileId = entry.id;
