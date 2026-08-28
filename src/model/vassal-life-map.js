@@ -423,7 +423,8 @@ function buildTravelOptions(state, vassal) {
       ...option,
       phaseCost: Math.max(1, option.graphDistance) * VASSAL_LIFE_TUNING.phasesPerTravelStep,
     }))
-    .sort((a, b) => a.graphDistance - b.graphDistance || a.locationRegionId.localeCompare(b.locationRegionId));
+    .sort((a, b) => a.graphDistance - b.graphDistance || a.locationRegionId.localeCompare(b.locationRegionId))
+    .slice(0, VASSAL_LIFE_TUNING.travelOptionCount);
 }
 
 function applyPracticeIntervention(practiceSlots, intervention) {
