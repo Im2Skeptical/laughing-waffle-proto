@@ -148,9 +148,7 @@ export const VASSAL_STAT_IDS = Object.freeze([
   "cunning", "wisdom", "effectiveness", "intelligence",
 ]);
 
-export const VASSAL_RECURRING_DEVELOPMENT_STAT_IDS = Object.freeze([
-  "cunning", "effectiveness", "intelligence",
-]);
+export const VASSAL_LEVEL_UP_STAT_IDS = VASSAL_STAT_IDS;
 
 export function getVassalMortalityChance(age) {
   const safeAge = Math.max(0, Math.floor(age ?? 0));

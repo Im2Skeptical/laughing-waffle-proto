@@ -39,4 +39,4 @@ export const cmdRerollVassalShop = (state, payload = {}) =>
 export const cmdConfirmVassalLifeNode = (state, payload = {}) =>
   confirmVassalLifeNode(state, payload.nodeId);
 export const cmdChooseVassalDevelopmentStat = (state, payload = {}) =>
-  chooseVassalDevelopmentStat(state, payload.statId);
+  chooseVassalDevelopmentStat(state, payload.choiceId, payload.statId);

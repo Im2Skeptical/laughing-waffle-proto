@@ -1,5 +1,5 @@
 import { VASSAL_LIFE_MAP_NODES, VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
-import { getVassalAge } from "../model/vassal-life-map.js";
+import { getVassalAge, getVassalStatsPresentation } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -44,14 +44,14 @@ function addButton(parent, rect, label, enabled, onClick) {
 function getDisplay(vassal, nodeId, committed, readOnly) {
   return {
     available: !readOnly && (vassal?.lifeMap?.availableNodeIds ?? []).includes(nodeId)
-      && (vassal?.pendingDevelopmentChoices ?? 0) === 0,
+      && (vassal?.developmentChoiceQueue ?? []).length === 0,
     current: !readOnly && vassal?.lifeMap?.currentNodeId === nodeId,
     completed: committed.has(nodeId),
   };
 }
 
 export function createVassalLifeMapView({
-  layer, getPresentation, isVisible, onEnterNode, onOpenDecision,
+  layer, getPresentation, isVisible, onEnterNode, onOpenDecision, tooltipView,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
@@ -65,6 +65,27 @@ export function createVassalLifeMapView({
   let displayedVassalId = null;
   let lastClick = { nodeId: null, atMs: 0 };
   let openRoot = null;
+  let pinnedStatId = null;
+
+  function hideStatTooltip() {
+    pinnedStatId = null;
+    tooltipView?.hide?.();
+  }
+
+  function showStatTooltip(stat, target) {
+    tooltipView?.show?.({
+      title: `${stat.label} ${stat.value}`,
+      lines: [
+        stat.powerLabel,
+        stat.formula,
+        Number.isFinite(stat.pointsToCap)
+          ? stat.pointsToCap > 0
+            ? `${stat.pointsToCap} ${stat.pointsToCap === 1 ? "point" : "points"} to the discount cap.`
+            : "Discount cap reached."
+          : "This income has no cap.",
+      ],
+    }, target.getBounds());
+  }
 
   root.on("pointerdown", (event) => {
     const local = root.toLocal(event.global);
@@ -72,7 +93,10 @@ export function createVassalLifeMapView({
       const point = nodePoint(candidate);
       return Math.hypot(local.x - point.x, local.y - point.y) <= NODE_RADIUS + 10;
     });
-    if (!node) return;
+    if (!node) {
+      hideStatTooltip();
+      return;
+    }
     const presentation = getPresentation?.() ?? {};
     inspect(node, getDisplay(
       presentation.vassal,
@@ -96,7 +120,7 @@ export function createVassalLifeMapView({
   function render(force = false) {
     const visible = isVisible?.() === true;
     root.visible = visible;
-    if (!visible) { signature = ""; clearChildren(root); return; }
+    if (!visible) { signature = ""; clearChildren(root); hideStatTooltip(); return; }
     const presentation = getPresentation?.() ?? {};
     const state = presentation.state;
     const vassal = presentation.vassal;
@@ -185,19 +209,54 @@ export function createVassalLifeMapView({
       }, MAP_RECT.x + 28 + index * 220, MAP_RECT.y + MAP_RECT.height - 34)));
 
     const location = getRegionReference(state, profile.locationRegionId) ?? profile.locationRegionId;
-    const hudX = MAP_RECT.x + MAP_RECT.width - 580;
+    const hudWidth = 1040;
+    const hudX = MAP_RECT.x + MAP_RECT.width - hudWidth - 28;
     const hud = new PIXI.Graphics();
-    roundedRect(hud, hudX, MAP_RECT.y + 18, 552, 78, 10, 0x303833, PALETTE.accent, 1);
+    roundedRect(hud, hudX, MAP_RECT.y + 18, hudWidth, 78, 10, 0x303833, PALETTE.accent, 1);
     root.addChild(hud,
       createText(`VASSAL · AGE ${getVassalAge(state, profile, presentation.profileSec)} · ${location}`, {
         ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
-        wordWrap: true, wordWrapWidth: 340,
+        wordWrap: true, wordWrapWidth: 235,
       }, hudX + 16, MAP_RECT.y + 31),
       createText(`Prestige  ${profile.prestige}`, {
         ...TEXT_STYLES.header, fontSize: 21, fill: PALETTE.accent,
       }, hudX + 16, MAP_RECT.y + 55));
+    getVassalStatsPresentation(profile).forEach((stat, index) => {
+      const chip = new PIXI.Container();
+      chip.position.set(hudX + 258 + index * 142, MAP_RECT.y + 31);
+      chip.eventMode = "static";
+      chip.cursor = "help";
+      chip.hitArea = new PIXI.Rectangle(0, 0, 132, 50);
+      chip.on("pointerdown", (event) => event?.stopPropagation?.());
+      chip.on("pointerover", () => {
+        if (!pinnedStatId) showStatTooltip(stat, chip);
+      });
+      chip.on("pointerout", () => {
+        if (!pinnedStatId) tooltipView?.hide?.();
+      });
+      chip.on("pointertap", (event) => {
+        event?.stopPropagation?.();
+        if (pinnedStatId === stat.statId) hideStatTooltip();
+        else {
+          pinnedStatId = stat.statId;
+          showStatTooltip(stat, chip);
+        }
+      });
+      const chipBg = new PIXI.Graphics();
+      roundedRect(chipBg, 0, 0, 132, 50, 7, 0x39413b,
+        pinnedStatId === stat.statId ? PALETTE.accent : PALETTE.stroke,
+        pinnedStatId === stat.statId ? 2 : 1);
+      chip.addChild(chipBg,
+        createText(stat.label.toUpperCase(), {
+          ...TEXT_STYLES.chip, fontSize: 10, fill: PALETTE.textMuted,
+        }, 9, 7),
+        createText(String(stat.value), {
+          ...TEXT_STYLES.header, fontSize: 24, fill: PALETTE.text,
+        }, 9, 20));
+      root.addChild(chip);
+    });
     const openNodeId = vassal.lifeMap.currentNodeId ?? effectiveNodeId;
-    openRoot = addButton(root, { x: hudX + 372, y: MAP_RECT.y + 34, width: 162, height: 46 },
+    openRoot = addButton(root, { x: hudX + 836, y: MAP_RECT.y + 34, width: 184, height: 46 },
       vassal.lifeMap.currentNodeId ? "RESUME DECISION" : "OPEN DETAILS", !!openNodeId,
       () => onOpenDecision?.(openNodeId));
   }

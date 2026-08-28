@@ -157,6 +157,15 @@ assert.ok(travelNode.options.every((option) =>
     && option.phaseCost === Math.max(1, option.graphDistance) * VASSAL_PHASES_PER_YEAR
 ));
 const destination = travelNode.options[0];
+const travelPresentation = getVassalNodeDecisionPresentation(travelState, travelNode.nodeId, {
+  previewOptionId: destination.id,
+});
+assert.equal(travelPresentation.contextKind, "regionalMap");
+assert.equal(travelPresentation.regionalMap.currentRegionId, originalLocation);
+assert.equal(travelPresentation.regionalMap.selectedDestinationId, destination.locationRegionId);
+assert.equal(travelPresentation.regionalMap.selectedPath[0], originalLocation);
+assert.equal(travelPresentation.regionalMap.selectedPath.at(-1), destination.locationRegionId);
+assert.ok(travelPresentation.regionalMap.regions.some((region) => region.current));
 dispatch(travelState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: travelNode.nodeId, optionId: destination.id,
 });
@@ -251,8 +260,35 @@ for (const nodeId of ["life-03-2", "life-06-2"]) {
       [offer.intervention.regionAId, offer.intervention.regionBId]
         .includes(vassal.locationRegionId)
     ));
+    const routePreview = getVassalNodeDecisionPresentation(state, node.nodeId, {
+      previewOfferId: node.inventory[0]?.offerId,
+    });
+    assert.equal(routePreview.contextKind, "regionalMap");
+    assert.ok(routePreview.regionalMap.regions.some((region) => region.current));
+    if (node.inventory[0]) {
+      assert.ok(routePreview.regionalMap.connections.some((connection) =>
+        connection.status.startsWith("preview-")));
+    }
   }
 }
+
+const patronagePresentationState = selectedState(1041);
+const patronagePresentationVassal = getCurrentLifeMapVassal(patronagePresentationState);
+const patronagePresentationNode = forceEnter(patronagePresentationState, "life-01-1");
+const patronageOption = patronagePresentationNode.options.find((option) => option.statId)
+  ?? patronagePresentationNode.options[0];
+const patronagePresentation = getVassalNodeDecisionPresentation(
+  patronagePresentationState, patronagePresentationNode.nodeId,
+  { previewOptionId: patronageOption.id }
+);
+assert.equal(patronagePresentation.contextKind, "vassal");
+assert.equal(patronagePresentation.vassalProjection.optionId, patronageOption.id);
+assert.equal(patronagePresentation.vassalProjection.ifSurvives.prestigeIncome,
+  getVassalPrestigeIncome({
+    ...patronagePresentationVassal,
+    stats: Object.fromEntries(patronagePresentation.vassalProjection.immediate.stats
+      .map((stat) => [stat.statId, stat.value])),
+  }));
 
 const elderIndependentA = selectedState(109);
 const elderIndependentB = selectedState(109);
@@ -291,24 +327,67 @@ const developmentVassal = getCurrentLifeMapVassal(developmentState);
 developmentVassal.stats.wisdom = 8;
 const zeroPurchaseNode = forceEnter(developmentState, "life-02-3");
 const seedBeforeMortality = developmentState.rng.vassalSeed;
+const developmentSeedBeforeLevel = developmentState.rng.vassalDevelopmentSeed;
 dispatch(developmentState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: zeroPurchaseNode.nodeId });
 assert.equal(zeroPurchaseNode.mortality.roll >= 0, true, "zero-purchase shop still resolves once");
 assert.equal(developmentState.rng.vassalSeed, seedBeforeMortality + 0x6d2b79f5,
   "one completed node consumes exactly one natural-mortality roll");
-assert.equal(developmentVassal.pendingDevelopmentChoices, 1);
+assert.equal(developmentVassal.developmentChoiceQueue.length, 1);
+assert.equal(developmentVassal.developmentChoiceQueue[0].offeredStatIds.length, 3);
+assert.equal(new Set(developmentVassal.developmentChoiceQueue[0].offeredStatIds).size, 3);
+assert.notEqual(developmentState.rng.vassalDevelopmentSeed, developmentSeedBeforeLevel,
+  "level pools consume only their isolated RNG stream");
 assert.ok(developmentVassal.lifeMap.availableNodeIds.every((nodeId) =>
   getVassalNodeDisplayState(developmentState, nodeId).available === false
 ));
+const levelChoice = developmentVassal.developmentChoiceQueue[0];
+const chosenLevelStat = levelChoice.offeredStatIds[0];
+const excludedLevelStat = ["cunning", "wisdom", "effectiveness", "intelligence"]
+  .find((statId) => !levelChoice.offeredStatIds.includes(statId));
+assert.equal(applyAction(developmentState, {
+  kind: ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT,
+  payload: { choiceId: "stale-choice", statId: chosenLevelStat },
+}, { isReplay: true }).reason, "staleDevelopmentChoice");
+assert.equal(applyAction(developmentState, {
+  kind: ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT,
+  payload: { choiceId: levelChoice.choiceId, statId: excludedLevelStat },
+}, { isReplay: true }).reason, "invalidStat");
 dispatch(developmentState, ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, {
-  statId: "intelligence",
+  choiceId: levelChoice.choiceId, statId: chosenLevelStat,
 });
-assert.equal(developmentVassal.pendingDevelopmentChoices, 0);
+assert.equal(developmentVassal.developmentChoiceQueue.length, 0);
 assert.ok(developmentVassal.lifeMap.availableNodeIds.every((nodeId) =>
   getVassalNodeDisplayState(developmentState, nodeId).available === true
 ));
 assert.equal(applyAction(developmentState, {
-  kind: ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, payload: { statId: "wisdom" },
-}, { isReplay: true }).reason, "invalidStat", "recurring choices cannot increase Wisdom");
+  kind: ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT,
+  payload: { choiceId: levelChoice.choiceId, statId: excludedLevelStat },
+}, { isReplay: true }).reason, "noDevelopmentChoice");
+
+const multiLevelState = selectedState(1051);
+const multiLevelVassal = getCurrentLifeMapVassal(multiLevelState);
+multiLevelVassal.stats.wisdom = 20;
+multiLevelVassal.developmentProgress = 9;
+const multiLevelNode = forceEnter(multiLevelState, "life-02-3");
+dispatch(multiLevelState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: multiLevelNode.nodeId });
+assert.equal(multiLevelVassal.developmentChoiceQueue.length, 3,
+  "each earned level persists as its own independently rolled choice");
+assert.equal(new Set(multiLevelVassal.developmentChoiceQueue.map((choice) => choice.choiceId)).size, 3);
+const serializedChoices = serializeGameState(multiLevelState);
+assert.deepEqual(deserializeGameState(serializedChoices).civilization.vassalLineage
+  .vassalsById[multiLevelVassal.vassalId].developmentChoiceQueue,
+multiLevelVassal.developmentChoiceQueue, "level-up pools survive save/replay serialization");
+
+let wisdomWasOffered = false;
+for (let seed = 1052; seed < 1072 && !wisdomWasOffered; seed += 1) {
+  const state = selectedState(seed);
+  const vassal = getCurrentLifeMapVassal(state);
+  vassal.stats.wisdom = 8;
+  const node = forceEnter(state, "life-02-3");
+  dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: node.nodeId });
+  wisdomWasOffered = vassal.developmentChoiceQueue[0]?.offeredStatIds.includes("wisdom") === true;
+}
+assert.equal(wisdomWasOffered, true, "Wisdom participates in the three-of-four level pool");
 
 const crisisState = selectedState(106);
 const crisisVassal = getCurrentLifeMapVassal(crisisState);
@@ -332,12 +411,16 @@ assert.equal(getVassalCandidatePool(crisisState).candidates.length, 3);
 const naturalDeathState = selectedState(107);
 const naturalDeathVassal = getCurrentLifeMapVassal(naturalDeathState);
 naturalDeathVassal.initialAge = 80;
+naturalDeathVassal.stats.wisdom = 20;
+naturalDeathVassal.developmentProgress = 9;
 const naturalDeathNode = forceEnter(naturalDeathState, "life-02-3");
 naturalDeathState.rng.vassalSeed = findSeed((roll) => roll < getVassalMortalityChance(80));
 dispatch(naturalDeathState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: naturalDeathNode.nodeId });
 assert.equal(getCurrentLifeMapVassal(naturalDeathState), null);
 assert.equal(naturalDeathVassal.deathCause, "naturalMortality");
 assert.equal(naturalDeathNode.mortality.age, 80);
+assert.equal(naturalDeathVassal.developmentChoiceQueue.length, 0,
+  "fatal completion never queues unusable level-up decisions");
 
 const legacyState = selectedState(108);
 const legacyVassal = getCurrentLifeMapVassal(legacyState);
@@ -352,6 +435,8 @@ assert.equal(legacyState.civilization.vassalLegacy.futureStartingPrestigeBonus, 
 resolvePending(legacyState);
 assert.equal(getCurrentLifeMapVassal(legacyState), null);
 assert.equal(legacyVassal.endedReason, "retired");
+assert.equal(legacyVassal.developmentChoiceQueue.length, 0,
+  "terminal retirement never queues unusable level-up decisions");
 assert.ok(getVassalCandidatePool(legacyState).candidates.every((candidate) => candidate.prestige >= 11));
 
 const serialized = serializeGameState(legacyState);

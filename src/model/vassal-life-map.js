@@ -7,7 +7,7 @@ import {
   VASSAL_LIFE_MAP_NODE_BY_ID,
   VASSAL_LIFE_TUNING,
   VASSAL_PATRONAGE_OPTIONS,
-  VASSAL_RECURRING_DEVELOPMENT_STAT_IDS,
+  VASSAL_LEVEL_UP_STAT_IDS,
   VASSAL_STAT_IDS,
   getVassalMortalityChance,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
@@ -28,6 +28,7 @@ import { getMoonPhaseDurationSec } from "./moon-phases.js";
 import {
   addWorldConnection,
   getRegionReference,
+  getRegionPolygon,
   getRegionState,
   getWorldConnectionCandidates,
   getWorldConnectionKey,
@@ -190,6 +191,55 @@ export function getVassalDevelopmentIncome(vassal) {
     + Math.max(0, Math.floor(vassal?.stats?.wisdom ?? 0));
 }
 
+const VASSAL_STAT_LABELS = Object.freeze({
+  cunning: "Cunning",
+  wisdom: "Wisdom",
+  effectiveness: "Effectiveness",
+  intelligence: "Intelligence",
+});
+
+export function getVassalStatPresentation(vassal, statId, valueOverride = null) {
+  const value = Number.isFinite(valueOverride)
+    ? Math.max(0, Math.floor(valueOverride))
+    : Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
+  const cap = VASSAL_LIFE_TUNING.maximumDiscount;
+  const discount = Math.min(cap, value * VASSAL_LIFE_TUNING.discountPerStat);
+  const pointsToCap = Math.max(0, Math.ceil(
+    (cap - discount) / VASSAL_LIFE_TUNING.discountPerStat
+  ));
+  if (statId === "cunning") {
+    const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
+    return {
+      statId, label: VASSAL_STAT_LABELS[statId], value,
+      powerLabel: `+${power} Prestige per completed node`,
+      formula: `${VASSAL_LIFE_TUNING.basePrestigeIncome} base + ${value} Cunning`,
+      pointsToCap: null,
+    };
+  }
+  if (statId === "wisdom") {
+    const power = VASSAL_LIFE_TUNING.baseDevelopmentIncome + value;
+    return {
+      statId, label: VASSAL_STAT_LABELS[statId], value,
+      powerLabel: `+${power} EXP per completed node`,
+      formula: `${VASSAL_LIFE_TUNING.baseDevelopmentIncome} base + ${value} Wisdom`,
+      pointsToCap: null,
+    };
+  }
+  const percent = Math.round(discount * 100);
+  const noun = statId === "effectiveness" ? "Phase" : "Prestige";
+  return {
+    statId, label: VASSAL_STAT_LABELS[statId] ?? statId, value,
+    powerLabel: `${percent}% ${noun}-cost discount`,
+    formula: `${Math.round(VASSAL_LIFE_TUNING.discountPerStat * 100)}% per point · ${Math.round(cap * 100)}% cap · costs round up`,
+    pointsToCap,
+    multiplier: Math.round((1 - discount) * 100) / 100,
+  };
+}
+
+export function getVassalStatsPresentation(vassal) {
+  return VASSAL_STAT_IDS.map((statId) => getVassalStatPresentation(vassal, statId));
+}
+
 function adjustedCost(base, stat, { allowZero = true } = {}) {
   const safeBase = Math.max(0, Number(base) || 0);
   if (safeBase <= 0) return 0;
@@ -314,7 +364,8 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     selectedSec: Math.max(0, Math.floor(state.tSec ?? 0)),
     selectedYear: Math.max(1, Math.floor(state.year ?? 1)),
     developmentProgress: 0,
-    pendingDevelopmentChoices: 0,
+    developmentChoiceQueue: [],
+    nextDevelopmentChoiceId: 1,
     lifeMap: createLifeMapState(),
     lifeEvents: [{
       eventId: `${vassalId}:selected`, kind: "selected", tSec: state.tSec,
@@ -581,7 +632,9 @@ function createNodeState(state, vassal, node) {
 export function enterVassalLifeNode(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
   if (!vassal) return { ok: false, reason: "noCurrentVassal" };
-  if (vassal.pendingDevelopmentChoices > 0) return { ok: false, reason: "developmentChoiceRequired" };
+  if ((vassal.developmentChoiceQueue ?? []).length > 0) {
+    return { ok: false, reason: "developmentChoiceRequired" };
+  }
   if (vassal.lifeMap.pendingResolution) return { ok: false, reason: "resolutionPending" };
   if (vassal.lifeMap.currentNodeId) return { ok: false, reason: "nodeAlreadyActive" };
   if (!(vassal.lifeMap.availableNodeIds ?? []).includes(nodeId)) return { ok: false, reason: "nodeUnavailable" };
@@ -798,12 +851,33 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   return { ok: true, prestigeCost, phaseCost };
 }
 
+function enqueueVassalDevelopmentChoices(state, vassal, count) {
+  const queue = vassal.developmentChoiceQueue ?? [];
+  let nextId = Math.max(1, Math.floor(vassal.nextDevelopmentChoiceId ?? 1));
+  for (let index = 0; index < Math.max(0, Math.floor(count ?? 0)); index += 1) {
+    const excludedIndex = state.rngNextVassalDevelopmentInt(
+      0, VASSAL_LEVEL_UP_STAT_IDS.length - 1
+    );
+    queue.push({
+      choiceId: `${vassal.vassalId}:level:${nextId}`,
+      offeredStatIds: VASSAL_LEVEL_UP_STAT_IDS.filter(
+        (_statId, statIndex) => statIndex !== excludedIndex
+      ),
+    });
+    nextId += 1;
+  }
+  vassal.developmentChoiceQueue = queue;
+  vassal.nextDevelopmentChoiceId = nextId;
+  return queue;
+}
+
 function completeNodeResolution(state, vassal, nodeState) {
   vassal.prestige += getVassalPrestigeIncome(vassal);
   vassal.developmentProgress += getVassalDevelopmentIncome(vassal);
+  let earnedDevelopmentChoices = 0;
   while (vassal.developmentProgress >= VASSAL_LIFE_TUNING.developmentThreshold) {
     vassal.developmentProgress -= VASSAL_LIFE_TUNING.developmentThreshold;
-    vassal.pendingDevelopmentChoices += 1;
+    earnedDevelopmentChoices += 1;
   }
   const age = getVassalAge(state, vassal);
   const mortalityChance = getVassalMortalityChance(age);
@@ -827,11 +901,11 @@ function completeNodeResolution(state, vassal, nodeState) {
   const node = VASSAL_LIFE_MAP_NODE_BY_ID[nodeState.nodeId];
   vassal.lifeMap.currentNodeId = null;
   if (!node?.outgoingNodeIds?.length) {
-    vassal.pendingDevelopmentChoices = 0;
     finishVassal(state, vassal, { reason: "retired" });
     return { ok: true, ended: true, retired: true };
   }
   vassal.lifeMap.availableNodeIds = [...node.outgoingNodeIds];
+  enqueueVassalDevelopmentChoices(state, vassal, earnedDevelopmentChoices);
   return { ok: true, ended: false };
 }
 
@@ -920,7 +994,178 @@ export function getVassalGamepiecePresentation(state, kind, definitionId, tier =
   };
 }
 
-export function getVassalNodeDecisionPresentation(state, nodeId = null) {
+function buildShortestRegionPath(state, startId, targetId) {
+  if (startId === targetId) return [startId];
+  const definition = getWorldDefinition(state);
+  const order = new Map((definition?.regions ?? []).map((region, index) => [region.id, index]));
+  const adjacency = new Map((definition?.regions ?? []).map((region) => [region.id, []]));
+  for (const edge of state?.world?.connections ?? []) {
+    adjacency.get(edge.regionAId)?.push(edge.regionBId);
+    adjacency.get(edge.regionBId)?.push(edge.regionAId);
+  }
+  for (const neighbours of adjacency.values()) {
+    neighbours.sort((left, right) => (order.get(left) ?? 0) - (order.get(right) ?? 0));
+  }
+  const queue = [startId];
+  const previous = new Map([[startId, null]]);
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of adjacency.get(current) ?? []) {
+      if (previous.has(next)) continue;
+      previous.set(next, current);
+      if (next === targetId) {
+        const path = [targetId];
+        let cursor = current;
+        while (cursor != null) {
+          path.unshift(cursor);
+          cursor = previous.get(cursor) ?? null;
+        }
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return [];
+}
+
+function buildRegionalMapPresentation(state, vassal, nodeState, {
+  previewOptionId = null,
+  previewOfferId = null,
+} = {}) {
+  if (!vassal || !nodeState || !["travel", "routes"].includes(nodeState.family)) return null;
+  const definition = getWorldDefinition(state);
+  const currentRegionId = vassal.locationRegionId;
+  const selectedOption = nodeState.options?.find((option) =>
+    option.id === (previewOptionId ?? nodeState.selectedOptionId)) ?? null;
+  const previewOffer = [
+    ...(nodeState.inventory ?? []),
+    ...(nodeState.purchasedOffers ?? []),
+  ].find((offer) => offer.offerId === previewOfferId) ?? null;
+  const geographicAdjacentIds = getWorldConnectionCandidates(definition).flatMap((edge) => {
+    if (edge.regionAId === currentRegionId) return [edge.regionBId];
+    if (edge.regionBId === currentRegionId) return [edge.regionAId];
+    return [];
+  });
+  const offeredRegionIds = nodeState.family === "travel"
+    ? (nodeState.options ?? []).map((option) => option.locationRegionId)
+    : [...(nodeState.inventory ?? []), ...(nodeState.purchasedOffers ?? [])]
+      .flatMap((offer) => [offer.intervention?.regionAId, offer.intervention?.regionBId])
+      .filter(Boolean);
+  const selectedPath = nodeState.family === "travel" && selectedOption?.locationRegionId
+    ? buildShortestRegionPath(state, currentRegionId, selectedOption.locationRegionId)
+    : [];
+  const includedIds = new Set([
+    currentRegionId,
+    ...geographicAdjacentIds,
+    ...offeredRegionIds,
+    ...selectedPath,
+  ]);
+  const regionOrder = new Map((definition?.regions ?? []).map((region, index) => [region.id, index]));
+  const regions = (definition?.regions ?? []).filter((region) => includedIds.has(region.id)).map((region) => {
+    const runtime = getRegionState(state, region.id);
+    return {
+      regionId: region.id,
+      reference: getRegionReference(state, region.id),
+      name: region.name,
+      colour: runtime?.colour ?? "black",
+      controller: runtime?.controller ?? "frontier",
+      polygon: getRegionPolygon(definition, region).map(({ x, y }) => ({ x, y })),
+      labelPoint: clone(region.display?.labelPoint ?? { x: 0, y: 0 }),
+      current: region.id === currentRegionId,
+      offered: offeredRegionIds.includes(region.id),
+      selected: region.id === selectedOption?.locationRegionId,
+      onSelectedPath: selectedPath.includes(region.id),
+    };
+  });
+  const actualKeys = new Set((state?.world?.connections ?? []).map((edge) =>
+    getWorldConnectionKey(edge.regionAId, edge.regionBId)));
+  const stagedByKey = new Map((nodeState.purchasedOffers ?? [])
+    .filter((purchase) => purchase.intervention?.kind === "connection")
+    .map((purchase) => [
+      getWorldConnectionKey(purchase.intervention.regionAId, purchase.intervention.regionBId),
+      purchase.intervention.mode,
+    ]));
+  const previewIntervention = previewOffer?.intervention?.kind === "connection"
+    ? previewOffer.intervention : null;
+  const previewKey = previewIntervention
+    ? getWorldConnectionKey(previewIntervention.regionAId, previewIntervention.regionBId) : null;
+  const candidateEdges = new Map();
+  for (const edge of state?.world?.connections ?? []) {
+    candidateEdges.set(getWorldConnectionKey(edge.regionAId, edge.regionBId), edge);
+  }
+  for (const purchase of nodeState.purchasedOffers ?? []) {
+    const intervention = purchase.intervention;
+    if (intervention?.kind === "connection") {
+      candidateEdges.set(getWorldConnectionKey(intervention.regionAId, intervention.regionBId), intervention);
+    }
+  }
+  if (previewIntervention) candidateEdges.set(previewKey, previewIntervention);
+  const connections = [...candidateEdges.entries()].filter(([, edge]) =>
+    includedIds.has(edge.regionAId) && includedIds.has(edge.regionBId)).map(([key, edge]) => ({
+      regionAId: edge.regionAId,
+      regionBId: edge.regionBId,
+      status: previewKey === key
+        ? `preview-${previewIntervention.mode}`
+        : stagedByKey.has(key)
+          ? `staged-${stagedByKey.get(key)}`
+          : actualKeys.has(key) ? "existing" : "absent",
+      onSelectedPath: selectedPath.slice(1).some((regionId, index) =>
+        getWorldConnectionKey(selectedPath[index], regionId) === key),
+    }));
+  return {
+    kind: nodeState.family,
+    currentRegionId,
+    selectedDestinationId: selectedOption?.locationRegionId ?? null,
+    selectedPath,
+    distance: selectedPath.length > 0 ? selectedPath.length - 1 : null,
+    regions: regions.sort((left, right) =>
+      (regionOrder.get(left.regionId) ?? 0) - (regionOrder.get(right.regionId) ?? 0)),
+    connections,
+  };
+}
+
+function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
+  if (!vassal || !nodeState || !["patronage", "development"].includes(nodeState.family)) {
+    return null;
+  }
+  const option = nodeState.options?.find((entry) =>
+    entry.id === (optionId ?? nodeState.selectedOptionId)) ?? null;
+  const immediate = clone(vassal);
+  if (option) {
+    const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
+    immediate.prestige = Math.max(0, immediate.prestige - cost + Math.floor(option.prestigeDelta ?? 0));
+    if (option.statId && Number.isFinite(option.statDelta)) {
+      immediate.stats[option.statId] = Math.max(
+        0, Math.floor(immediate.stats[option.statId] ?? 0) + Math.floor(option.statDelta)
+      );
+    }
+  }
+  const completionPrestigeIncome = getVassalPrestigeIncome(immediate);
+  const completionExpIncome = getVassalDevelopmentIncome(immediate);
+  const completionExpTotal = Math.max(0, immediate.developmentProgress ?? 0) + completionExpIncome;
+  return {
+    optionId: option?.id ?? null,
+    baseline: {
+      prestige: vassal.prestige,
+      developmentProgress: vassal.developmentProgress,
+      stats: getVassalStatsPresentation(vassal),
+    },
+    immediate: {
+      prestige: immediate.prestige,
+      developmentProgress: immediate.developmentProgress,
+      stats: getVassalStatsPresentation(immediate),
+    },
+    ifSurvives: {
+      prestige: immediate.prestige + completionPrestigeIncome,
+      developmentProgress: completionExpTotal % VASSAL_LIFE_TUNING.developmentThreshold,
+      earnedLevelCount: Math.floor(completionExpTotal / VASSAL_LIFE_TUNING.developmentThreshold),
+      prestigeIncome: completionPrestigeIncome,
+      developmentIncome: completionExpIncome,
+    },
+  };
+}
+
+export function getVassalNodeDecisionPresentation(state, nodeId = null, preview = {}) {
   const vassal = getCurrentLifeMapVassal(state);
   const activeNodeId = nodeId ?? vassal?.lifeMap?.currentNodeId ?? null;
   const node = VASSAL_LIFE_MAP_NODE_BY_ID[activeNodeId] ?? null;
@@ -929,7 +1174,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null) {
   const stagedPrestigeCost = (nodeState?.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
   const selectedOption = nodeState?.options?.find(
-    (option) => option.id === nodeState.selectedOptionId
+    (option) => option.id === (preview.previewOptionId ?? nodeState.selectedOptionId)
   ) ?? null;
   const optionPrestigeCost = selectedOption
     ? getAdjustedVassalPrestigeCost(vassal, selectedOption.prestigeCost ?? 0) : 0;
@@ -1000,19 +1245,31 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null) {
     } : null,
     offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
     purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),
+    contextKind: ["practiceReform", "publicWorks"].includes(nodeState?.family)
+      ? "settlement"
+      : ["travel", "routes"].includes(nodeState?.family)
+        ? "regionalMap"
+        : ["patronage", "development"].includes(nodeState?.family)
+          ? "vassal" : "none",
+    regionalMap: buildRegionalMapPresentation(state, vassal, nodeState, preview),
+    vassalProjection: buildVassalOptionProjection(
+      vassal, nodeState, preview.previewOptionId ?? null
+    ),
   };
 }
 
-export function chooseVassalDevelopmentStat(state, statId) {
+export function chooseVassalDevelopmentStat(state, choiceId, statId) {
   const vassal = getCurrentLifeMapVassal(state);
   if (!vassal) return { ok: false, reason: "noCurrentVassal" };
-  if (!VASSAL_RECURRING_DEVELOPMENT_STAT_IDS.includes(statId)) {
+  const choice = vassal.developmentChoiceQueue?.[0] ?? null;
+  if (!choice) return { ok: false, reason: "noDevelopmentChoice" };
+  if (choice.choiceId !== choiceId) return { ok: false, reason: "staleDevelopmentChoice" };
+  if (!choice.offeredStatIds.includes(statId)) {
     return { ok: false, reason: "invalidStat" };
   }
-  if (vassal.pendingDevelopmentChoices <= 0) return { ok: false, reason: "noDevelopmentChoice" };
   vassal.stats[statId] = Math.max(0, Math.floor(vassal.stats[statId] ?? 0)) + 1;
-  vassal.pendingDevelopmentChoices -= 1;
-  addLifeEvent(state, vassal, "developmentChosen", { statId });
+  vassal.developmentChoiceQueue.shift();
+  addLifeEvent(state, vassal, "developmentChosen", { choiceId, statId });
   return { ok: true, statId, value: vassal.stats[statId] };
 }
 
@@ -1041,7 +1298,7 @@ export function getVassalNodeDisplayState(state, nodeId) {
     node,
     nodeState,
     available: !!vassal?.lifeMap?.availableNodeIds?.includes(nodeId)
-      && (vassal.pendingDevelopmentChoices ?? 0) === 0,
+      && (vassal.developmentChoiceQueue ?? []).length === 0,
     current: vassal?.lifeMap?.currentNodeId === nodeId,
     completed: !!vassal?.lifeMap?.completedNodeIds?.includes(nodeId),
   };
@@ -1079,6 +1336,20 @@ export function validateVassalLifeMapState(state) {
     }
     if (!VASSAL_STAT_IDS.every((statId) => Number.isFinite(vassal?.stats?.[statId]))) {
       errors.push(`${vassalId}.stats: expected all four finite stats`);
+    }
+    if (!Array.isArray(vassal?.developmentChoiceQueue)
+        || !Number.isInteger(vassal?.nextDevelopmentChoiceId)
+        || vassal.nextDevelopmentChoiceId < 1) {
+      errors.push(`${vassalId}.developmentChoiceQueue: invalid queue state`);
+    } else {
+      for (const choice of vassal.developmentChoiceQueue) {
+        const offered = choice?.offeredStatIds;
+        if (typeof choice?.choiceId !== "string" || !Array.isArray(offered)
+            || offered.length !== 3 || new Set(offered).size !== 3
+            || offered.some((statId) => !VASSAL_LEVEL_UP_STAT_IDS.includes(statId))) {
+          errors.push(`${vassalId}.developmentChoiceQueue: invalid choice`);
+        }
+      }
     }
     if (vassal?.lifeMap?.mapId !== VASSAL_LIFE_MAP_ID
         || !Array.isArray(vassal?.lifeMap?.completedNodeIds)

@@ -565,7 +565,12 @@ export function createEmptyState(
     pawns: [],
     passiveTimingRuntime: null,
   };
-  const rngOwner = { rng: { seed, baseSeed: seed, vassalSeed: (Math.floor(seed) ^ 0x56a55a19) | 0 } };
+  const rngOwner = { rng: {
+    seed,
+    baseSeed: seed,
+    vassalSeed: (Math.floor(seed) ^ 0x56a55a19) | 0,
+    vassalDevelopmentSeed: (Math.floor(seed) ^ 0x3d7e10af) | 0,
+  } };
   attachRngHelpers(rngOwner);
   const world = createWorldState(
     worldDefinitionId,
@@ -575,7 +580,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 16,
+    gameStateSchemaVersion: 17,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -1161,6 +1166,8 @@ export function serializeGameState(state) {
   delete clean.rngNextInt;
   delete clean.rngNextVassalFloat;
   delete clean.rngNextVassalInt;
+  delete clean.rngNextVassalDevelopmentFloat;
+  delete clean.rngNextVassalDevelopmentInt;
   delete clean._boardDirty;
   delete clean._seasonChanged;
   for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
@@ -1193,8 +1200,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 16) {
-    throw new Error("Unsupported game-state schema: expected v16");
+  if (state?.gameStateSchemaVersion !== 17) {
+    throw new Error("Unsupported game-state schema: expected v17");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {
@@ -1211,7 +1218,8 @@ export function deserializeGameState(data) {
     throw new Error(`Invalid serialized Vassal Life Map: ${vassalValidation.errors.join("; ")}`);
   }
   if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)
-      || !Number.isFinite(state.rng.vassalSeed)) {
+      || !Number.isFinite(state.rng.vassalSeed)
+      || !Number.isFinite(state.rng.vassalDevelopmentSeed)) {
     throw new Error("Invalid serialized RNG state");
   }
   attachRngHelpers(state);

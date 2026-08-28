@@ -3174,7 +3174,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 16;
+  state.gameStateSchemaVersion = 17;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
