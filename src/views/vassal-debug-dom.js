@@ -82,8 +82,9 @@ export function createVassalDebugDom({ getState, replaceVassalCandidate, presetC
       return;
     }
     const snapshot = presetController?.getSnapshot?.() ?? { presetOptions: [] };
-    if (!editingDraft) {
-      editingDraft = clone(snapshot.currentDraft ?? makeDefaultDraft(options));
+    const storedDraft = snapshot.currentDraft ?? null;
+    if (!editingDraft || JSON.stringify(editingDraft) !== JSON.stringify(storedDraft)) {
+      editingDraft = clone(storedDraft ?? makeDefaultDraft(options));
     }
 
     function update(mutator) {

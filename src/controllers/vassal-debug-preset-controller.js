@@ -76,6 +76,15 @@ export function createVassalDebugPresetController() {
     return { ok: true, draft: currentDraft };
   }
 
+  function clearCurrentDraft() {
+    currentDraft = null;
+    selectedPresetId = null;
+    try {
+      safeStorage()?.removeItem(currentDraftStorageKey);
+    } catch (_) {}
+    return { ok: true };
+  }
+
   return {
     getSnapshot() {
       return {
@@ -85,6 +94,7 @@ export function createVassalDebugPresetController() {
       };
     },
     setCurrentDraft,
+    clearCurrentDraft,
     loadPreset(presetId) {
       const preset = library.presets.find((entry) => entry.id === presetId);
       if (!preset) return { ok: false, reason: "invalidPresetId" };

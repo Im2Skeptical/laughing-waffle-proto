@@ -323,10 +323,7 @@ try {
     "a unique Map Lab scenario name creates a new slot despite the active selection");
   assert.equal(mapController.saveLocalScenario("TEST MAP").scenario.id, mapScenario.scenario.id);
   const profileVassalController = createVassalDebugPresetController();
-  profileVassalController.setCurrentDraft({
-    ...cheatSpec,
-    candidateSlot: 1,
-  });
+  profileVassalController.clearCurrentDraft();
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
   mapController.updateRegion("cedar-woods", { structureCapacity: 7 });
   const profileController = createDebugProfileController({
@@ -334,6 +331,22 @@ try {
     debugConfigurationController: configController,
     vassalDebugPresetController: profileVassalController,
   });
+  const noVassalProfile = profileController.saveProfile("No Vassal override");
+  assert.equal(noVassalProfile.ok, true,
+    "combined profiles save before Vassal Lab has created a candidate override");
+  assert.equal(noVassalProfile.entry.profile.vassalLab, null);
+  profileVassalController.setCurrentDraft({
+    ...cheatSpec,
+    candidateSlot: 1,
+  });
+  assert.equal(profileController.loadProfile(noVassalProfile.entry.id).ok, true);
+  assert.equal(profileVassalController.getSnapshot().currentDraft, null,
+    "loading a profile without a Vassal override clears an existing override");
+  profileVassalController.setCurrentDraft({
+    ...cheatSpec,
+    candidateSlot: 1,
+  });
+  assert.equal(profileController.deleteProfile(noVassalProfile.entry.id).ok, true);
   profileController.setActivePage("vassalLab");
   assert.equal(profileController.saveProfile("").reason, "emptyName");
   assert.match(profileController.getSnapshot().status.message, /name before saving/i,
