@@ -335,6 +335,9 @@ try {
     vassalDebugPresetController: profileVassalController,
   });
   profileController.setActivePage("vassalLab");
+  assert.equal(profileController.saveProfile("").reason, "emptyName");
+  assert.match(profileController.getSnapshot().status.message, /name before saving/i,
+    "a rejected blank combined-profile save reports why it failed");
   const profileSaved = profileController.saveProfile("Full boot profile");
   assert.equal(profileSaved.ok, true);
   assert.equal(profileController.setBootProfile(profileSaved.entry.id).ok, true);

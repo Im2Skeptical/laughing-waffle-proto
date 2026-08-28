@@ -126,7 +126,17 @@ export function createDebugProfileController({
       // new profile even when another profile happens to be selected.
       const overwriteId = findDebugProfileByName(library, name)?.id ?? null;
       const result = saveDebugProfile(library, name, currentProfile(), overwriteId);
-      if (!result.ok) return result;
+      if (!result.ok) {
+        const message = result.reason === "emptyName"
+          ? "Enter a combined profile name before saving."
+          : result.reason === "nameTooLong"
+            ? "Combined profile names must be 80 characters or fewer."
+            : result.errors?.[0]
+              ? `Profile could not be saved: ${result.errors[0]}`
+              : "Profile could not be saved.";
+        status = { message, tone: "warning" };
+        return result;
+      }
       library = result.library;
       selectedProfileId = result.entry.id;
       const stored = persistLibrary();
