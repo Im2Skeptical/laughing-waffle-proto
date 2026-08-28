@@ -93,6 +93,10 @@ survival knowledge, and the single vassal lineage are civilization-global.
   declarative 31-node DAG with two initial entries, variable two-to-four-node
   depths, and non-crossing ordered edges. Entered nodes
   persist their content while choices, purchases, and one shop reroll are staged.
+  Shop purchases are ordered drafts: they reserve offers and project their
+  Prestige/Phase costs but do not deduct Prestige or apply interventions until
+  confirmation. Draft purchases can be undone or deterministically reordered;
+  rerolling is available only while the draft is empty.
 - Explicit node confirmation applies staged effects, advances accumulated Phases
   through normal ticks, pays recurring Prestige/EXP once, and makes one
   post-age natural-mortality roll. Only surviving completion exposes outgoing
@@ -130,10 +134,15 @@ bounded JSON state used for replay and phase tooltips.
   previous-moon totals.
 - Candidate cards reveal age, settlement, Prestige, and four stats but keep the
   Life Map hidden. Selection opens a dedicated full-topology Life Map screen.
-  Every node can be inspected; its family description is shown in the right
-  panel, while only entering an available node reveals its persisted options or
-  inventory. Hovering temporarily inspects, single click pins, the panel button enters, and double-click
-  enters an available node. Family colors distinguish the node types.
+  The Lifegraph uses the full playfield plus a compact Vassal HUD. Clicking any
+  node opens a large shared decision modal; only entering an available node
+  reveals its persisted options or inventory. The modal shows complete effects,
+  quality/tags, current-to-projected Prestige, and the current settlement with
+  staged Practices/Structures ghosted into their authoritative slots. Shop
+  drafts support undo and pointer/touch drag ordering. Closing the modal or
+  focusing the Vassal's settlement on the World Map preserves the draft, and
+  the active node/HUD reopens it. Double-click still enters an available node.
+  Family colors distinguish the node types.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each

@@ -788,6 +788,11 @@ assert.equal(shopNode.purchasedOfferIds.length, 1);
 assert.equal(shopNode.mortality, undefined, "purchase does not resolve mortality");
 applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,
   payload: { nodeId: practiceNodeId } }, { isReplay: true });
+assert.equal(shopNode.rerollUsed, false, "reroll is blocked while a purchase is staged");
+applyAction(shopState, { kind: ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,
+  payload: { nodeId: practiceNodeId, offerId: initialOfferIds[0] } }, { isReplay: true });
+applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,
+  payload: { nodeId: practiceNodeId } }, { isReplay: true });
 assert.equal(shopNode.rerollUsed, true);
 assert.equal(shopNode.inventory.length, 3, "reroll refills remaining inventory to three");
 assert.equal(applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,

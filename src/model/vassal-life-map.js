@@ -20,7 +20,9 @@ import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from 
 import {
   createDetailedPracticeSlot,
   getDetailedPracticeTierIndex,
+  getDetailedPracticeWorkerCapacity,
   getNextDetailedPracticeTier,
+  getQualityMultiplier,
 } from "./detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "./moon-phases.js";
 import {
@@ -405,6 +407,34 @@ function applyReservedIntervention(reservation, intervention) {
   }
 }
 
+function validatePurchaseInterventions(state, vassal, purchases) {
+  const reservation = buildReservation(state, vassal, { purchasedOffers: [] });
+  for (const purchase of purchases ?? []) {
+    const intervention = purchase?.intervention;
+    if (intervention?.kind === "practice") {
+      if (!applyPracticeIntervention(reservation.practiceSlots, intervention)) {
+        return { ok: false, reason: "practiceUnavailable" };
+      }
+    } else if (intervention?.kind === "structure") {
+      if (reservation.structureSlots[intervention.slotIndex] != null) {
+        return { ok: false, reason: "structureUnavailable" };
+      }
+      reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
+    } else if (intervention?.kind === "connection") {
+      const key = getWorldConnectionKey(intervention.regionAId, intervention.regionBId);
+      const exists = reservation.connectionKeys.has(key);
+      if ((intervention.mode === "add" && exists) || (intervention.mode === "remove" && !exists)) {
+        return { ok: false, reason: "connectionUnavailable" };
+      }
+      if (intervention.mode === "add") reservation.connectionKeys.add(key);
+      else reservation.connectionKeys.delete(key);
+    } else {
+      return { ok: false, reason: "interventionUnavailable" };
+    }
+  }
+  return { ok: true, reservation };
+}
+
 function buildReservation(state, vassal, nodeState) {
   const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
   const reservation = {
@@ -512,9 +542,12 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
 
 function generateShopInventory(state, vassal, nodeState) {
   const roll = Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0));
-  if (nodeState.family === "practiceReform") return buildPracticeOffers(state, vassal, nodeState, roll);
-  if (nodeState.family === "publicWorks") return buildStructureOffers(state, vassal, nodeState, roll);
-  return buildRouteOffers(state, vassal, nodeState, roll);
+  const offers = nodeState.family === "practiceReform"
+    ? buildPracticeOffers(state, vassal, nodeState, roll)
+    : nodeState.family === "publicWorks"
+      ? buildStructureOffers(state, vassal, nodeState, roll)
+      : buildRouteOffers(state, vassal, nodeState, roll);
+  return offers.map((offer, inventoryIndex) => ({ ...offer, inventoryIndex }));
 }
 
 function createNodeState(state, vassal, node) {
@@ -589,13 +622,64 @@ export function purchaseVassalShopOffer(state, nodeId, offerId) {
   const offer = nodeState.inventory[index];
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
   const phaseCost = getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost);
-  if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
-  vassal.prestige -= prestigeCost;
+  const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  if (prestigeCost > vassal.prestige - stagedPrestigeCost) {
+    return { ok: false, reason: "insufficientPrestige" };
+  }
   nodeState.inventory.splice(index, 1);
   nodeState.purchasedOfferIds.push(offer.offerId);
-  nodeState.purchasedOffers.push({ ...clone(offer), prestigeCost, phaseCost, purchasedSec: state.tSec });
+  nodeState.purchasedOffers.push({
+    ...clone(offer), prestigeCost, phaseCost, purchasedSec: state.tSec,
+    sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
+    sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
+  });
   nodeState.accumulatedPhaseCost += phaseCost;
   return { ok: true, offerId, prestigeCost, phaseCost };
+}
+
+export function undoVassalShopPurchase(state, nodeId, offerId) {
+  const vassal = getCurrentLifeMapVassal(state);
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+      || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  const index = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
+  if (index < 0) return { ok: false, reason: "purchaseUnavailable" };
+  const [purchase] = nodeState.purchasedOffers.splice(index, 1);
+  nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
+  const restored = clone(purchase);
+  delete restored.prestigeCost;
+  delete restored.phaseCost;
+  delete restored.purchasedSec;
+  delete restored.sourceInventoryRoll;
+  const originalIndex = Math.max(0, Math.floor(restored.sourceInventoryIndex ?? nodeState.inventory.length));
+  delete restored.sourceInventoryIndex;
+  restored.inventoryIndex = originalIndex;
+  nodeState.inventory.push(restored);
+  nodeState.inventory.sort((left, right) =>
+    Math.floor(left.inventoryIndex ?? 0) - Math.floor(right.inventoryIndex ?? 0));
+  nodeState.accumulatedPhaseCost = Math.max(
+    0, nodeState.accumulatedPhaseCost - Math.max(0, purchase.phaseCost ?? 0)
+  );
+  return { ok: true, offerId, prestigeCost: purchase.prestigeCost, phaseCost: purchase.phaseCost };
+}
+
+export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
+  const vassal = getCurrentLifeMapVassal(state);
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+      || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  const fromIndex = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
+  const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
+  if (fromIndex < 0 || targetIndex < 0 || targetIndex >= nodeState.purchasedOffers.length) {
+    return { ok: false, reason: "invalidPurchaseOrder" };
+  }
+  if (fromIndex !== targetIndex) {
+    const [purchase] = nodeState.purchasedOffers.splice(fromIndex, 1);
+    nodeState.purchasedOffers.splice(targetIndex, 0, purchase);
+    nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
+  }
+  return { ok: true, offerId, fromIndex, toIndex: targetIndex };
 }
 
 export function rerollVassalShop(state, nodeId) {
@@ -604,6 +688,9 @@ export function rerollVassalShop(state, nodeId) {
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   if (nodeState.rerollUsed) return { ok: false, reason: "rerollUsed" };
+  if ((nodeState.purchasedOffers ?? []).length > 0) {
+    return { ok: false, reason: "stagedPurchases" };
+  }
   const prestigeCost = getAdjustedVassalPrestigeCost(
     vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost
   );
@@ -759,6 +846,14 @@ export function confirmVassalLifeNode(state, nodeId) {
     option = nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
   }
+  const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  if (stagedPrestigeCost > vassal.prestige) {
+    return { ok: false, reason: "insufficientPrestige" };
+  }
+  const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
+  if (!validation.ok) return validation;
+  vassal.prestige -= stagedPrestigeCost;
   for (const purchase of nodeState.purchasedOffers) {
     const result = applyIntervention(state, purchase.intervention);
     if (!result.ok) return result;
@@ -782,6 +877,130 @@ export function confirmVassalLifeNode(state, nodeId) {
     return completeNodeResolution(state, vassal, nodeState);
   }
   return { ok: true, pendingResolution: clone(vassal.lifeMap.pendingResolution) };
+}
+
+function capitalize(value) {
+  const text = String(value ?? "");
+  return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
+}
+
+function structureNumericDetails(def, tier) {
+  const multiplier = getQualityMultiplier(tier, def?.qualityMultiplierPerLevel ?? 0);
+  const scaled = (value) => Math.round(Math.max(0, Number(value) || 0) * multiplier * 100) / 100;
+  if (Number.isFinite(def?.capacityPerCountSquared)) {
+    return [`${scaled(def.capacityPerCountSquared)} ${def.capacityKind === "housing" ? "Housing" : "stored-Food capacity"} coefficient`];
+  }
+  if (Number.isFinite(def?.migrantHousingReserve)) return [`${scaled(def.migrantHousingReserve)} reserved Housing`];
+  if (Number.isFinite(def?.knowledgeResearchMultiplierPerLevel)) return [`+${Math.round(scaled(def.knowledgeResearchMultiplierPerLevel) * 100)}% Knowledge Research`];
+  if (Number.isFinite(def?.researchPerRetiredIntelligence)) return [`${scaled(def.researchPerRetiredIntelligence)} Research per retired Intelligence`];
+  if (Number.isFinite(def?.faithResistancePerRetiredWisdom)) return [`${scaled(def.faithResistancePerRetiredWisdom)} resistance per retired Wisdom`];
+  if (Number.isFinite(def?.foodOutputBonusPerOtherFoodPiece)) return [`+${Math.round(scaled(def.foodOutputBonusPerOtherFoodPiece) * 100)}% Food output per other Food piece`];
+  if (Number.isFinite(def?.faithResistancePerDistinctTag)) return [`${scaled(def.faithResistancePerDistinctTag)} resistance per distinct tag`];
+  if (Number.isFinite(def?.candidateIntelligenceBonus)) return [`+${scaled(def.candidateIntelligenceBonus)} candidate Intelligence`];
+  if (def?.id === "university") return [`${tier === "diamond" ? "Diamond" : "Gold"} offer floor`];
+  return [];
+}
+
+export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze") {
+  const def = kind === "practice"
+    ? getDetailedPracticeDef(state, definitionId)
+    : getDetailedStructureDef(state, definitionId);
+  if (!def) return null;
+  return {
+    kind,
+    definitionId,
+    label: def.label ?? definitionId,
+    tier,
+    qualityLabel: capitalize(tier),
+    tags: [...(def.tags ?? [])],
+    rule: def.ui?.rule ?? "",
+    details: kind === "practice"
+      ? [`${getDetailedPracticeWorkerCapacity(def, tier)} worker capacity`]
+      : structureNumericDetails(def, tier),
+  };
+}
+
+export function getVassalNodeDecisionPresentation(state, nodeId = null) {
+  const vassal = getCurrentLifeMapVassal(state);
+  const activeNodeId = nodeId ?? vassal?.lifeMap?.currentNodeId ?? null;
+  const node = VASSAL_LIFE_MAP_NODE_BY_ID[activeNodeId] ?? null;
+  const nodeState = vassal?.lifeMap?.nodeStates?.[activeNodeId] ?? null;
+  if (!vassal || !node) return null;
+  const stagedPrestigeCost = (nodeState?.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  const selectedOption = nodeState?.options?.find(
+    (option) => option.id === nodeState.selectedOptionId
+  ) ?? null;
+  const optionPrestigeCost = selectedOption
+    ? getAdjustedVassalPrestigeCost(vassal, selectedOption.prestigeCost ?? 0) : 0;
+  const previewRegionId = selectedOption?.locationRegionId ?? vassal.locationRegionId;
+  const previewSite = getDetailedSite(state, previewRegionId);
+  const beforePractices = (previewSite?.detailedState?.practiceSlots ?? []).map((slot) => slot ? clone(slot) : null);
+  const beforeStructures = (previewSite?.detailedState?.structureSlots ?? []).map((slot) => slot ? clone(slot) : null);
+  const afterPractices = beforePractices.map((slot) => slot ? clone(slot) : null);
+  const afterStructures = beforeStructures.map((slot) => slot ? clone(slot) : null);
+  if (previewRegionId === vassal.locationRegionId) {
+    for (const purchase of nodeState?.purchasedOffers ?? []) {
+      const intervention = purchase.intervention;
+      if (intervention?.kind === "practice") applyPracticeIntervention(afterPractices, intervention);
+      if (intervention?.kind === "structure") {
+        afterStructures[intervention.slotIndex] = {
+          structureId: intervention.structureId, tier: intervention.tier ?? "bronze",
+        };
+      }
+    }
+  }
+  const decorate = (kind, slots, before) => slots.map((slot, index) => {
+    if (!slot) return null;
+    const idKey = kind === "practice" ? "practiceId" : "structureId";
+    const original = before[index];
+    const staged = !original || original[idKey] !== slot[idKey]
+      || (original.tier ?? "bronze") !== (slot.tier ?? "bronze");
+    return {
+      ...slot,
+      staged,
+      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], slot.tier ?? "bronze"),
+    };
+  });
+  const decorateOffer = (offer, purchased = false) => {
+    const intervention = offer.intervention;
+    const kind = intervention?.kind;
+    const definitionId = kind === "practice" ? intervention.practiceId
+      : kind === "structure" ? intervention.structureId : null;
+    return {
+      ...clone(offer),
+      purchased,
+      presentation: definitionId
+        ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze")
+        : null,
+      prestigeCost: purchased ? offer.prestigeCost
+        : getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost ?? 0),
+      phaseCost: purchased ? offer.phaseCost
+        : getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost ?? 0),
+    };
+  };
+  const displacedPractices = beforePractices.filter((slot) => slot
+    && !afterPractices.some((after) => after?.practiceId === slot.practiceId));
+  return {
+    node, nodeState,
+    currentPrestige: vassal.prestige,
+    projectedPrestige: Math.max(0, vassal.prestige - stagedPrestigeCost - optionPrestigeCost),
+    stagedPrestigeCost,
+    previewRegionId,
+    previewRegionLabel: getRegionReference(state, previewRegionId) ?? previewSite?.name ?? previewRegionId,
+    settlement: previewSite ? {
+      storedFood: previewSite.detailedState.storedFood,
+      looseFood: previewSite.detailedState.looseFood,
+      currency: previewSite.detailedState.currency ?? 0,
+      practices: decorate("practice", afterPractices, beforePractices),
+      displacedPractices: displacedPractices.map((slot) =>
+        getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
+      structures: decorate("structure", afterStructures, beforeStructures),
+      structureCapacity: afterStructures.length,
+    } : null,
+    offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
+    purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),
+  };
 }
 
 export function chooseVassalDevelopmentStat(state, statId) {

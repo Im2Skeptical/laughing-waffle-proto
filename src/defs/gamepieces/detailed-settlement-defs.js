@@ -6,21 +6,21 @@ const tags = (...x) => Object.freeze(x);
 const mult = () => Object.freeze({ base: 1, perEffectiveWorker: 1 });
 const scaled = (baseAmount, evaluator = { kind: "constant", score: 1, label: "local" }) => Object.freeze({ baseAmount, evaluator: Object.freeze(evaluator), workerMultiplier: mult() });
 const P = (id, label, tagList, minimumQuality, activation, effects = [], extra = {}) => Object.freeze({ id, label, tags: tags(...tagList), minimumQuality, workerCapacity: 0, vassalPrestigeCost: 18, vassalPhaseCost: 90, activation: Object.freeze(activation), costs: Object.freeze([]), effects: Object.freeze(effects), ui: Object.freeze({ rule: "" }), ...extra });
-const S = (id, label, tagList, minimumQuality, extra = {}) => Object.freeze({ id, label, tags: tags(...tagList), minimumQuality, vassalPrestigeCost: 18, vassalPhaseCost: 90, qualityMultiplierPerLevel: .25, ...extra });
+const S = (id, label, tagList, minimumQuality, extra = {}) => Object.freeze({ id, label, tags: tags(...tagList), minimumQuality, vassalPrestigeCost: 18, vassalPhaseCost: 90, qualityMultiplierPerLevel: .25, ui: Object.freeze({ rule: "" }), ...extra });
 const sameColour = { kind: "countRegions", label: "same-colour connected regions", scope: { kind: "connectedComponent", includeHost: true, traversalFilters: { controller: "player", colour: "host" }, regionFilters: { controller: "player", colour: "host" } } };
 const commercialDifferent = { kind: "countRegions", label: "different-colour commercial regions", scope: { kind: "commercialAdjacent", includeHost: false }, regionFilters: { colour: "differentFromHost" } };
 
 export const settlementStructureDefs = Object.freeze({
-  granary: S("granary", "Granary", ["Food"], "bronze", { capacityKind: "storedFood", capacityPerCountSquared: 180 }),
-  mudHouses: S("mudHouses", "Mud House", ["Housing"], "bronze", { capacityKind: "housing", capacityPerCountSquared: 35 }),
-  hostel: S("hostel", "Hostel", ["Housing", "Mobility"], "silver", { migrantHousingReserve: 12 }),
-  library: S("library", "Library", ["Knowledge"], "bronze", { knowledgeResearchMultiplierPerLevel: .2 }),
-  archive: S("archive", "Archive", ["Knowledge", "Ancestral"], "silver", { researchPerRetiredIntelligence: .25 }),
-  hallOfSages: S("hallOfSages", "Hall of Sages", ["Faith", "Ancestral"], "gold", { faithResistancePerRetiredWisdom: .2 }),
-  agrarianGuild: S("agrarianGuild", "Agrarian Guild", ["Food", "Civic"], "silver", { foodOutputBonusPerOtherFoodPiece: .08 }),
-  forum: S("forum", "Forum", ["Civic"], "silver", { faithResistancePerDistinctTag: 1 }),
-  academy: S("academy", "Academy", ["Knowledge", "Civic"], "silver", { candidateIntelligenceBonus: 1 }),
-  university: S("university", "University", ["Knowledge", "Civic"], "gold", { qualityMultiplierPerLevel: 0 }),
+  granary: S("granary", "Granary", ["Food"], "bronze", { capacityKind: "storedFood", capacityPerCountSquared: 180, ui: { rule: "Increase local stored-Food capacity." } }),
+  mudHouses: S("mudHouses", "Mud House", ["Housing"], "bronze", { capacityKind: "housing", capacityPerCountSquared: 35, ui: { rule: "Increase local Housing capacity." } }),
+  hostel: S("hostel", "Hostel", ["Housing", "Mobility"], "silver", { migrantHousingReserve: 12, ui: { rule: "Reserve Housing capacity for incoming migrants and Strangers." } }),
+  library: S("library", "Library", ["Knowledge"], "bronze", { knowledgeResearchMultiplierPerLevel: .2, ui: { rule: "Increase Research from local Knowledge Practices." } }),
+  archive: S("archive", "Archive", ["Knowledge", "Ancestral"], "silver", { researchPerRetiredIntelligence: .25, ui: { rule: "Convert regional retired-Vassal Intelligence into local Research output." } }),
+  hallOfSages: S("hallOfSages", "Hall of Sages", ["Faith", "Ancestral"], "gold", { faithResistancePerRetiredWisdom: .2, ui: { rule: "Convert regional retired-Vassal Wisdom into Faith Chaos resistance." } }),
+  agrarianGuild: S("agrarianGuild", "Agrarian Guild", ["Food", "Civic"], "silver", { foodOutputBonusPerOtherFoodPiece: .08, ui: { rule: "Increase local Food-Practice output for each other local Food piece." } }),
+  forum: S("forum", "Forum", ["Civic"], "silver", { faithResistancePerDistinctTag: 1, ui: { rule: "Provide Faith Chaos resistance for each distinct local piece tag." } }),
+  academy: S("academy", "Academy", ["Knowledge", "Civic"], "silver", { candidateIntelligenceBonus: 1, ui: { rule: "Give future Vassal candidates originating here bonus Intelligence." } }),
+  university: S("university", "University", ["Knowledge", "Civic"], "gold", { qualityMultiplierPerLevel: 0, ui: { rule: "Set local Practice Reform and Public Works offer quality floor." } }),
 });
 
 export const detailedSettlementPracticeDefs = Object.freeze({
