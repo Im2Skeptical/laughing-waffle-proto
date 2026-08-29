@@ -137,11 +137,25 @@ export const VASSAL_CRISIS_OPTIONS = Object.freeze([
 
 export const VASSAL_LEGACY_OPTIONS = Object.freeze([
   Object.freeze({
+    id: "foundDynasty",
+    label: "Found a Dynasty",
+    prestigeCost: VASSAL_LIFE_TUNING.legacyPrestigeCost * 2,
+    phaseCost: VASSAL_LIFE_TUNING.legacyPhaseCost,
+    legacyStartingPrestigeBonus: VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus * 2,
+  }),
+  Object.freeze({
     id: "enduringOffice",
     label: "Enduring Office",
     prestigeCost: VASSAL_LIFE_TUNING.legacyPrestigeCost,
     phaseCost: VASSAL_LIFE_TUNING.legacyPhaseCost,
     legacyStartingPrestigeBonus: VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus,
+  }),
+  Object.freeze({
+    id: "humbleRemembrance",
+    label: "Humble Remembrance",
+    prestigeCost: 0,
+    phaseCost: 0,
+    legacyStartingPrestigeBonus: 1,
   }),
 ]);
 

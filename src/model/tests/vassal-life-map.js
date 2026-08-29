@@ -4,6 +4,7 @@ import { createInitialState } from "../init.js";
 import { createRng } from "../rng.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
+  VASSAL_LEGACY_OPTIONS,
   VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
   VASSAL_LIFE_MAP_NODES,
   VASSAL_NODE_FAMILIES,
@@ -145,6 +146,12 @@ assert.equal(getVassalDevelopmentIncome(formulaVassal), 7);
 assert.equal(getAdjustedVassalPrestigeCost(formulaVassal, 20), 8, "Intelligence caps at 60%");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 120), 48, "Phase costs round upward");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 1), 1, "nonzero Phase costs keep a minimum of one");
+assert.deepEqual(VASSAL_LEGACY_OPTIONS.map((option) => option.id), [
+  "foundDynasty", "enduringOffice", "humbleRemembrance",
+]);
+assert.equal(VASSAL_LEGACY_OPTIONS[0].prestigeCost, VASSAL_LIFE_TUNING.legacyPrestigeCost * 2);
+assert.equal(VASSAL_LEGACY_OPTIONS[0].legacyStartingPrestigeBonus,
+  VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus * 2);
 
 const travelState = selectedState(101);
 const travelVassal = getCurrentLifeMapVassal(travelState);
@@ -440,6 +447,23 @@ assert.equal(legacyVassal.endedReason, "retired");
 assert.equal(legacyVassal.developmentChoiceQueue.length, 0,
   "terminal retirement never queues unusable level-up decisions");
 assert.ok(getVassalCandidatePool(legacyState).candidates.every((candidate) => candidate.prestige >= 11));
+
+const freeLegacyState = selectedState(1081);
+const freeLegacyVassal = getCurrentLifeMapVassal(freeLegacyState);
+freeLegacyVassal.prestige = 0;
+const freeLegacyNode = forceEnter(freeLegacyState, "life-11-1");
+const freeLegacyOption = freeLegacyNode.options.find((option) => option.id === "humbleRemembrance");
+assert.equal(freeLegacyNode.options.length, 3);
+assert.equal(freeLegacyOption.prestigeCost, 0);
+assert.equal(freeLegacyOption.phaseCost, 0);
+dispatch(freeLegacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: freeLegacyNode.nodeId, optionId: freeLegacyOption.id,
+});
+dispatch(freeLegacyState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: freeLegacyNode.nodeId });
+assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBonus, 1,
+  "the free Legacy choice grants its weaker future-Vassal benefit");
+assert.equal(getCurrentLifeMapVassal(freeLegacyState), null,
+  "a zero-Prestige Vassal can always complete a terminal Legacy node");
 
 const serialized = serializeGameState(legacyState);
 assert.equal(validateVassalLifeMapState(serialized).ok, true);
