@@ -19,6 +19,8 @@ export const VASSAL_LIFE_MAP_ID = "reference-life-map-01";
 export const VASSAL_LIFE_MAP_DEPTH_COUNT = DEPTH_LAYOUT.length;
 export const VASSAL_LIFE_MAP_LANE_COUNT = 4;
 export const VASSAL_PHASES_PER_YEAR = 30;
+const VASSAL_TIME_COST_MULTIPLIER = 1.8;
+const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
   patronage: Object.freeze({
@@ -101,38 +103,38 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   developmentThreshold: 10,
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
-  phasesPerTravelStep: VASSAL_PHASES_PER_YEAR,
+  phasesPerTravelStep: increasedPhaseCost(VASSAL_PHASES_PER_YEAR),
   travelOptionCount: 3,
   shopRerollPrestigeCost: 6,
-  shopRerollPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
+  shopRerollPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
   routeAddPrestigeCost: 16,
-  routeAddPhaseCost: VASSAL_PHASES_PER_YEAR * 3,
+  routeAddPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3),
   routeRemovePrestigeCost: 10,
-  routeRemovePhaseCost: VASSAL_PHASES_PER_YEAR * 2,
+  routeRemovePhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
   legacyPrestigeCost: 20,
-  legacyPhaseCost: VASSAL_PHASES_PER_YEAR * 4,
+  legacyPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4),
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
 });
 
 export const VASSAL_PATRONAGE_OPTIONS = Object.freeze([
-  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, phaseCost: VASSAL_PHASES_PER_YEAR }),
-  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, phaseCost: VASSAL_PHASES_PER_YEAR * 4 }),
-  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 3 }),
+  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR) }),
+  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4) }),
+  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3) }),
 ]);
 
 export const VASSAL_DEVELOPMENT_OPTIONS = Object.freeze([
-  Object.freeze({ id: "studyStatecraft", label: "Study Statecraft", statId: "intelligence", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
-  Object.freeze({ id: "practiceLeadership", label: "Practice Leadership", statId: "effectiveness", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
-  Object.freeze({ id: "studyIntrigue", label: "Study Intrigue", statId: "cunning", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 2 }),
-  Object.freeze({ id: "broadEducation", label: "Broad Education", statId: "wisdom", statDelta: 1, phaseCost: VASSAL_PHASES_PER_YEAR * 4 }),
+  Object.freeze({ id: "studyStatecraft", label: "Study Statecraft", statId: "intelligence", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
+  Object.freeze({ id: "practiceLeadership", label: "Practice Leadership", statId: "effectiveness", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
+  Object.freeze({ id: "studyIntrigue", label: "Study Intrigue", statId: "cunning", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
+  Object.freeze({ id: "broadEducation", label: "Broad Education", statId: "wisdom", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4) }),
 ]);
 
 export const VASSAL_CRISIS_OPTIONS = Object.freeze([
-  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, phaseCost: VASSAL_PHASES_PER_YEAR * 3 }),
-  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, phaseCost: VASSAL_PHASES_PER_YEAR * 2, immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
-  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, phaseCost: VASSAL_PHASES_PER_YEAR, forcedRelocation: true }),
+  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3) }),
+  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2), immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
+  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR), forcedRelocation: true }),
 ]);
 
 export const VASSAL_LEGACY_OPTIONS = Object.freeze([
