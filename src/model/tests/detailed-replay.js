@@ -45,9 +45,9 @@ const selected = rebuildStateAtSecond(timeline, 0);
 assert.equal(selected.ok, true);
 const selectedVassal = getCurrentLifeMapVassal(selected.state);
 assert.ok(selectedVassal);
-assert.equal(selectedVassal.lifeMap.pendingResolution.phaseCost, 162);
+assert.equal(selectedVassal.lifeMap.pendingResolution.phaseCost, 324);
 const resolutionSec = selectedVassal.lifeMap.pendingResolution.resolveSec;
-assert.equal(resolutionSec, 162);
+assert.equal(resolutionSec, 324);
 
 const beforeResolution = rebuildStateAtSecond(timeline, resolutionSec - 1);
 const atResolution = rebuildStateAtSecond(timeline, resolutionSec);

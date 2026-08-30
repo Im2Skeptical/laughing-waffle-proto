@@ -19,7 +19,7 @@ export const VASSAL_LIFE_MAP_ID = "reference-life-map-01";
 export const VASSAL_LIFE_MAP_DEPTH_COUNT = DEPTH_LAYOUT.length;
 export const VASSAL_LIFE_MAP_LANE_COUNT = 4;
 export const VASSAL_PHASES_PER_YEAR = 30;
-const VASSAL_TIME_COST_MULTIPLIER = 1.8;
+const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
@@ -105,6 +105,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   maximumDiscount: 0.6,
   phasesPerTravelStep: increasedPhaseCost(VASSAL_PHASES_PER_YEAR),
   travelOptionCount: 3,
+  emptyShopConfirmPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
   shopRerollPrestigeCost: 6,
   shopRerollPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
   routeAddPrestigeCost: 16,
