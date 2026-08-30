@@ -9,7 +9,6 @@ import {
   VASSAL_LIFE_MAP_NODES,
   VASSAL_NODE_FAMILIES,
   VASSAL_LIFE_TUNING,
-  VASSAL_PHASES_PER_YEAR,
   getVassalMortalityChance,
 } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import {
@@ -167,7 +166,7 @@ assert.equal(travelNode.options.length, VASSAL_LIFE_TUNING.travelOptionCount,
 assert.ok(travelNode.options.every((option) =>
   option.locationRegionId !== originalLocation
     && Number.isFinite(option.graphDistance)
-    && option.phaseCost === Math.max(1, option.graphDistance) * VASSAL_PHASES_PER_YEAR
+    && option.phaseCost === Math.max(1, option.graphDistance) * VASSAL_LIFE_TUNING.phasesPerTravelStep
 ));
 const destination = travelNode.options[0];
 const travelPresentation = getVassalNodeDecisionPresentation(travelState, travelNode.nodeId, {
