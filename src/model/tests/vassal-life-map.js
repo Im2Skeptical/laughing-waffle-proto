@@ -16,6 +16,7 @@ import {
   getCommittedVassalLifeMapNodeIds,
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
+  formatVassalPhaseDuration,
   getCurrentLifeMapVassal,
   getLifeMapVassalAtSecond,
   getVassalCandidatePool,
@@ -146,6 +147,9 @@ assert.equal(getVassalDevelopmentIncome(formulaVassal), 7);
 assert.equal(getAdjustedVassalPrestigeCost(formulaVassal, 20), 8, "Intelligence caps at 60%");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 120), 48, "Phase costs round upward");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 1), 1, "nonzero Phase costs keep a minimum of one");
+assert.equal(formatVassalPhaseDuration(0), "0ph");
+assert.equal(formatVassalPhaseDuration(32), "1yr, 2ph");
+assert.equal(formatVassalPhaseDuration(80), "2yr, 3mo, 2ph");
 assert.deepEqual(VASSAL_LEGACY_OPTIONS.map((option) => option.id), [
   "foundDynasty", "enduringOffice", "humbleRemembrance",
 ]);
@@ -175,6 +179,9 @@ assert.equal(travelPresentation.regionalMap.selectedDestinationId, destination.l
 assert.equal(travelPresentation.regionalMap.selectedPath[0], originalLocation);
 assert.equal(travelPresentation.regionalMap.selectedPath.at(-1), destination.locationRegionId);
 assert.ok(travelPresentation.regionalMap.regions.some((region) => region.current));
+assert.equal(travelPresentation.mortalityEstimate.timeLabel,
+  formatVassalPhaseDuration(destination.phaseCost),
+  "decision presentation exposes the selected option's human-readable elapsed time");
 dispatch(travelState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: travelNode.nodeId, optionId: destination.id,
 });
@@ -204,6 +211,9 @@ assert.ok(stagedPresentation.purchases.every((purchase) => purchase.presentation
   "gamepiece purchases expose their actual rule text before confirmation");
 assert.ok(stagedPresentation.settlement.practices.some((slot) => slot?.staged),
   "the decision presentation ghosts staged Practices into authoritative slots");
+assert.equal(stagedPresentation.mortalityEstimate.totalPhaseCost,
+  shopNode.accumulatedPhaseCost,
+  "shop mortality includes all staged elapsed time");
 assert.equal(shopNode.inventory.length, 1, "purchases remove offers without replenishment");
 assert.equal(applyAction(shopState, {
   kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
