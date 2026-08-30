@@ -1,5 +1,9 @@
 import { VASSAL_LIFE_MAP_NODE_BY_ID, VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
-import { getAdjustedVassalPhaseCost, getAdjustedVassalPrestigeCost } from "../model/vassal-life-map.js";
+import {
+  formatVassalPhaseDuration,
+  getAdjustedVassalPhaseCost,
+  getAdjustedVassalPrestigeCost,
+} from "../model/vassal-life-map.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
@@ -73,6 +77,43 @@ function offerEffect(offer) {
     return `${intervention.mode === "add" ? "Create" : "Remove"} this commercial route.`;
   }
   return "Apply this intervention when the node is confirmed.";
+}
+
+function formatCost(prestigeCost, phaseCost) {
+  return `${prestigeCost} Prestige · ${formatVassalPhaseDuration(phaseCost)}`;
+}
+
+function renderMortalityEstimate(parent, estimate, rect, enabled) {
+  if (!estimate) return;
+  const totalPercent = Math.round(estimate.totalDeathChance * 1000) / 10;
+  const naturalPercent = Math.round(estimate.naturalDeathChance * 1000) / 10;
+  const immediatePercent = Math.round(estimate.immediateDeathChance * 1000) / 10;
+  const riskColor = estimate.totalDeathChance >= 0.25 ? 0xd58c7c
+    : estimate.totalDeathChance > 0 ? PALETTE.accent : PALETTE.green;
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 10,
+    enabled ? 0x353a35 : 0x30332f, riskColor, 2);
+  parent.addChild(gfx,
+    createText("MORTALITY ESTIMATE", {
+      ...TEXT_STYLES.chip, fontSize: 12, fill: riskColor,
+    }, rect.x + 14, rect.y + 10),
+    createText(`${totalPercent}% chance of death`, {
+      ...TEXT_STYLES.header, fontSize: 19, fill: enabled ? riskColor : PALETTE.textMuted,
+    }, rect.x + 14, rect.y + 29),
+    createText(`Time ${estimate.timeLabel}  ·  Age ${estimate.currentAge} → ${estimate.projectedAge}`, {
+      ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted,
+      wordWrap: true, wordWrapWidth: rect.width - 28,
+    }, rect.x + 14, rect.y + 54)
+  );
+  const factors = [];
+  if (immediatePercent) factors.push(`Selection ${immediatePercent}% now`);
+  if (naturalPercent) factors.push(`Age after time ${naturalPercent}%`);
+  parent.addChild(createText(factors.length
+    ? factors.join("  ·  ")
+    : "No immediate or age-based risk at this resolution.", {
+    ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.textMuted,
+    wordWrap: true, wordWrapWidth: rect.width - 28,
+  }, rect.x + 14, rect.y + 74));
 }
 
 function actionCard(parent, rect, spec) {
@@ -462,7 +503,7 @@ export function createVassalNodeDecisionModalView({
           }, {
             title: offer.label,
             presentation: offer.presentation,
-            cost: `${offer.prestigeCost} Prestige · ${offer.phaseCost} ${offer.phaseCost === 1 ? "Phase" : "Phases"}`,
+            cost: formatCost(offer.prestigeCost, offer.phaseCost),
             effect: offerEffect(offer), enabled,
             onClick: () => onPurchaseOffer?.(node.id, offer.offerId),
             onHover: () => {
@@ -508,7 +549,7 @@ export function createVassalNodeDecisionModalView({
             createText(purchase.label, {
               ...TEXT_STYLES.title, fontSize: 15, wordWrap: true, wordWrapWidth: 220,
             }, 58, 12),
-            createText(`${purchase.prestigeCost} Prestige · ${purchase.phaseCost} Phases`, {
+            createText(formatCost(purchase.prestigeCost, purchase.phaseCost), {
               ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted,
             }, 58, 72));
           root.addChild(card);
@@ -527,7 +568,7 @@ export function createVassalNodeDecisionModalView({
             width: cardWidth, height: 292,
           }, {
             title: option.label,
-            cost: `${prestigeCost} Prestige · ${phaseCost} ${phaseCost === 1 ? "Phase" : "Phases"}`,
+            cost: formatCost(prestigeCost, phaseCost),
             effect: optionEffect(option), enabled: !readOnly && prestigeCost <= vassal.prestige,
             selected: nodeState.selectedOptionId === option.id,
             onClick: () => onSelectOption?.(node.id, option.id),
@@ -597,6 +638,11 @@ export function createVassalNodeDecisionModalView({
     }
     button(root, { x: PANEL.x + PANEL.width - 652, y: PANEL.y + PANEL.height - 72, width: 250, height: 50 },
       "VIEW WORLD MAP", !readOnly, () => { close(); onWorldMap?.(vassal.locationRegionId); });
+    if (nodeState) {
+      renderMortalityEstimate(root, decision?.mortalityEstimate, {
+        x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 178, width: 340, height: 94,
+      }, canConfirm);
+    }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
       readOnly ? "READ-ONLY HISTORY" : "CONFIRM & RESOLVE", canConfirm, () => {
         const result = onConfirmNode?.(node.id);
@@ -637,6 +683,7 @@ export function createVassalNodeDecisionModalView({
         open: root.visible, nodeId: openNodeId,
         currentPrestige: decision?.currentPrestige ?? null,
         projectedPrestige: decision?.projectedPrestige ?? null,
+        mortalityEstimate: decision?.mortalityEstimate ?? null,
         offers: (decision?.offers ?? []).map((offer) => ({ label: offer.label, rule: offer.presentation?.rule ?? offerEffect(offer) })),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),
         practices: decision?.settlement?.practices ?? [],

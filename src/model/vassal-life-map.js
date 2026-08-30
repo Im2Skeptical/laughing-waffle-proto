@@ -6,6 +6,7 @@ import {
   VASSAL_LIFE_MAP_ID,
   VASSAL_LIFE_MAP_NODE_BY_ID,
   VASSAL_LIFE_TUNING,
+  VASSAL_PHASES_PER_YEAR,
   VASSAL_PATRONAGE_OPTIONS,
   VASSAL_LEVEL_UP_STAT_IDS,
   VASSAL_STAT_IDS,
@@ -16,6 +17,7 @@ import {
   DETAILED_PRACTICE_SLOT_COUNT,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { MOON_PHASE_COUNT } from "../defs/gamesettings/moon-phase-defs.js";
 import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from "./game-config.js";
 import {
   createDetailedPracticeSlot,
@@ -257,6 +259,19 @@ export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
 
 export function getAdjustedVassalPhaseCost(vassal, baseCost) {
   return adjustedCost(baseCost, vassal?.stats?.effectiveness, { allowZero: false });
+}
+
+export function formatVassalPhaseDuration(phaseCost) {
+  let remaining = Math.max(0, Math.floor(phaseCost ?? 0));
+  const years = Math.floor(remaining / VASSAL_PHASES_PER_YEAR);
+  remaining %= VASSAL_PHASES_PER_YEAR;
+  const moons = Math.floor(remaining / MOON_PHASE_COUNT);
+  const phases = remaining % MOON_PHASE_COUNT;
+  const parts = [];
+  if (years) parts.push(`${years}yr`);
+  if (moons) parts.push(`${moons}mo`);
+  if (phases || !parts.length) parts.push(`${phases}ph`);
+  return parts.join(", ");
 }
 
 function candidatePoolHash(candidates) {
@@ -1179,6 +1194,19 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   ) ?? null;
   const optionPrestigeCost = selectedOption
     ? getAdjustedVassalPrestigeCost(vassal, selectedOption.prestigeCost ?? 0) : 0;
+  const selectedOptionPhaseCost = selectedOption
+    ? getAdjustedVassalPhaseCost(vassal, selectedOption.phaseCost ?? 0) : 0;
+  const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
+  const totalPhaseCost = accumulatedPhaseCost + (SHOP_FAMILIES.has(nodeState?.family)
+    ? 0 : selectedOptionPhaseCost);
+  const currentAge = getVassalAge(state, vassal);
+  const projectedAge = getVassalAge(
+    state, vassal, Math.floor(state.tSec ?? 0) + totalPhaseCost * getMoonPhaseDurationSec(state)
+  );
+  const immediateDeathChance = Math.max(0, Math.min(1,
+    Number(selectedOption?.immediateDeathChance) || 0
+  ));
+  const naturalDeathChance = getVassalMortalityChance(projectedAge);
   const previewRegionId = selectedOption?.locationRegionId ?? vassal.locationRegionId;
   const previewSite = getDetailedSite(state, previewRegionId);
   const beforePractices = (previewSite?.detailedState?.practiceSlots ?? []).map((slot) => slot ? clone(slot) : null);
@@ -1232,6 +1260,15 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     currentPrestige: vassal.prestige,
     projectedPrestige: Math.max(0, vassal.prestige - stagedPrestigeCost - optionPrestigeCost),
     stagedPrestigeCost,
+    mortalityEstimate: {
+      totalPhaseCost,
+      timeLabel: formatVassalPhaseDuration(totalPhaseCost),
+      currentAge,
+      projectedAge,
+      immediateDeathChance,
+      naturalDeathChance,
+      totalDeathChance: immediateDeathChance + (1 - immediateDeathChance) * naturalDeathChance,
+    },
     previewRegionId,
     previewRegionLabel: getRegionReference(state, previewRegionId) ?? previewSite?.name ?? previewRegionId,
     settlement: previewSite ? {
