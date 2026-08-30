@@ -344,9 +344,18 @@ const developmentState = selectedState(105);
 const developmentVassal = getCurrentLifeMapVassal(developmentState);
 developmentVassal.stats.wisdom = 8;
 const zeroPurchaseNode = forceEnter(developmentState, "life-02-3");
+assert.equal(
+  getVassalNodeDecisionPresentation(developmentState, zeroPurchaseNode.nodeId).mortalityEstimate.totalPhaseCost,
+  VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost,
+  "empty-shop presentation includes the confirmation time"
+);
 const seedBeforeMortality = developmentState.rng.vassalSeed;
 const developmentSeedBeforeLevel = developmentState.rng.vassalDevelopmentSeed;
 dispatch(developmentState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: zeroPurchaseNode.nodeId });
+assert.equal(developmentVassal.lifeMap.pendingResolution.phaseCost,
+  VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost,
+  "empty shops charge their two-year confirmation time");
+resolvePending(developmentState);
 assert.equal(zeroPurchaseNode.mortality.roll >= 0, true, "zero-purchase shop still resolves once");
 assert.equal(developmentState.rng.vassalSeed, seedBeforeMortality + 0x6d2b79f5,
   "one completed node consumes exactly one natural-mortality roll");
@@ -388,6 +397,7 @@ multiLevelVassal.stats.wisdom = 20;
 multiLevelVassal.developmentProgress = 9;
 const multiLevelNode = forceEnter(multiLevelState, "life-02-3");
 dispatch(multiLevelState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: multiLevelNode.nodeId });
+resolvePending(multiLevelState);
 assert.equal(multiLevelVassal.developmentChoiceQueue.length, 3,
   "each earned level persists as its own independently rolled choice");
 assert.equal(new Set(multiLevelVassal.developmentChoiceQueue.map((choice) => choice.choiceId)).size, 3);
@@ -403,6 +413,7 @@ for (let seed = 1052; seed < 1072 && !wisdomWasOffered; seed += 1) {
   vassal.stats.wisdom = 8;
   const node = forceEnter(state, "life-02-3");
   dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: node.nodeId });
+  resolvePending(state);
   wisdomWasOffered = vassal.developmentChoiceQueue[0]?.offeredStatIds.includes("wisdom") === true;
 }
 assert.equal(wisdomWasOffered, true, "Wisdom participates in the three-of-four level pool");
@@ -434,9 +445,11 @@ naturalDeathVassal.developmentProgress = 9;
 const naturalDeathNode = forceEnter(naturalDeathState, "life-02-3");
 naturalDeathState.rng.vassalSeed = findSeed((roll) => roll < getVassalMortalityChance(80));
 dispatch(naturalDeathState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: naturalDeathNode.nodeId });
+resolvePending(naturalDeathState);
 assert.equal(getCurrentLifeMapVassal(naturalDeathState), null);
 assert.equal(naturalDeathVassal.deathCause, "naturalMortality");
-assert.equal(naturalDeathNode.mortality.age, 80);
+assert.equal(naturalDeathNode.mortality.age, 81,
+  "empty-shop confirmation time advances age before mortality");
 assert.equal(naturalDeathVassal.developmentChoiceQueue.length, 0,
   "fatal completion never queues unusable level-up decisions");
 

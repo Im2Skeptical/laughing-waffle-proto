@@ -951,6 +951,9 @@ export function confirmVassalLifeNode(state, nodeId) {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
   }
+  if (SHOP_FAMILIES.has(nodeState.family) && nodeState.purchasedOffers.length === 0) {
+    nodeState.accumulatedPhaseCost += VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost;
+  }
   let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);
   if (!optionResult.ok || optionResult.immediateDeath) return optionResult;
@@ -1197,7 +1200,10 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const selectedOptionPhaseCost = selectedOption
     ? getAdjustedVassalPhaseCost(vassal, selectedOption.phaseCost ?? 0) : 0;
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
-  const totalPhaseCost = accumulatedPhaseCost + (SHOP_FAMILIES.has(nodeState?.family)
+  const emptyShopConfirmPhaseCost = SHOP_FAMILIES.has(nodeState?.family)
+    && (nodeState?.purchasedOffers ?? []).length === 0
+    ? VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost : 0;
+  const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (SHOP_FAMILIES.has(nodeState?.family)
     ? 0 : selectedOptionPhaseCost);
   const currentAge = getVassalAge(state, vassal);
   const projectedAge = getVassalAge(
