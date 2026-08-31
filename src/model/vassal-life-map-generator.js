@@ -6,12 +6,12 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
 const DEFAULT_WEIGHTS = Object.freeze({
-  early: Object.freeze([5, 5, 5, 1, 1, 1, 0]),
-  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1]),
-  late: Object.freeze([1, 2, 2, 4, 4, 4, 5]),
+  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 0]),
+  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 1]),
+  late: Object.freeze([1, 2, 2, 4, 4, 4, 0, 5]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 1;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 2;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {
