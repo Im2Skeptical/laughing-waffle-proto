@@ -12,13 +12,22 @@ import {
 import {
   getCurrentLifeMapVassal,
   getVassalCandidatePool,
+  selectLifeMapVassal,
 } from "../vassal-life-map.js";
-import { VASSAL_LIFE_MAP_ENTRY_NODE_IDS } from "../../defs/gamepieces/vassal-life-map-defs.js";
 
 const base = createInitialState("devPlaytesting01", 99117);
 base.gameConfig.settings.values.primordialBasePressure = 0;
 const initialPool = getVassalCandidatePool(base);
 const timeline = createTimelineFromInitialState(base);
+const selectedPreview = createInitialState("devPlaytesting01", 99117);
+const previewPool = getVassalCandidatePool(selectedPreview);
+const previewSelection = selectLifeMapVassal(
+  selectedPreview, 1, previewPool.expectedPoolHash
+);
+assert.equal(previewSelection.ok, true);
+const previewVassal = getCurrentLifeMapVassal(selectedPreview);
+const entryNodeId = previewVassal.lifeMap.availableNodeIds.find((id) =>
+  previewVassal.lifeMap.graph.nodes.find((node) => node.id === id)?.family === "patronage");
 
 for (const action of [
   {
@@ -27,15 +36,15 @@ for (const action of [
   },
   {
     kind: ActionKinds.VASSAL_ENTER_LIFE_NODE,
-    payload: { nodeId: VASSAL_LIFE_MAP_ENTRY_NODE_IDS[0] },
+    payload: { nodeId: entryNodeId },
   },
   {
     kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
-    payload: { nodeId: VASSAL_LIFE_MAP_ENTRY_NODE_IDS[0], optionId: "cultivateConnections" },
+    payload: { nodeId: entryNodeId, optionId: "cultivateConnections" },
   },
   {
     kind: ActionKinds.VASSAL_CONFIRM_LIFE_NODE,
-    payload: { nodeId: VASSAL_LIFE_MAP_ENTRY_NODE_IDS[0] },
+    payload: { nodeId: entryNodeId },
   },
 ]) {
   appendActionAtCursor(timeline, { ...action, tSec: 0 }, base);
@@ -60,9 +69,9 @@ assert.deepEqual(
   "node completion replay is authoritative"
 );
 const resolvedVassal = getCurrentLifeMapVassal(atResolution.state);
-assert.equal(resolvedVassal.lifeMap.nodeStates[VASSAL_LIFE_MAP_ENTRY_NODE_IDS[0]].resolved, true);
+assert.equal(resolvedVassal.lifeMap.nodeStates[entryNodeId].resolved, true);
 assert.equal(resolvedVassal.lifeMap.pendingResolution, null);
-assert.equal(resolvedVassal.lifeMap.availableNodeIds.length, 2);
+assert.ok(resolvedVassal.lifeMap.availableNodeIds.length >= 1);
 assert.equal(
   atResolution.state.rng.vassalSeed,
   atResolutionAgain.state.rng.vassalSeed,

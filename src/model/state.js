@@ -570,6 +570,7 @@ export function createEmptyState(
     baseSeed: seed,
     vassalSeed: (Math.floor(seed) ^ 0x56a55a19) | 0,
     vassalDevelopmentSeed: (Math.floor(seed) ^ 0x3d7e10af) | 0,
+    vassalLifeMapSeed: (Math.floor(seed) ^ 0x19a7c4e3) | 0,
   } };
   attachRngHelpers(rngOwner);
   const world = createWorldState(
@@ -580,7 +581,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 17,
+    gameStateSchemaVersion: 18,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -1168,6 +1169,8 @@ export function serializeGameState(state) {
   delete clean.rngNextVassalInt;
   delete clean.rngNextVassalDevelopmentFloat;
   delete clean.rngNextVassalDevelopmentInt;
+  delete clean.rngNextVassalLifeMapFloat;
+  delete clean.rngNextVassalLifeMapInt;
   delete clean._boardDirty;
   delete clean._seasonChanged;
   for (const site of Array.isArray(clean?.world?.sites) ? clean.world.sites : []) {
@@ -1200,8 +1203,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 17) {
-    throw new Error("Unsupported game-state schema: expected v17");
+  if (state?.gameStateSchemaVersion !== 18) {
+    throw new Error("Unsupported game-state schema: expected v18");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {
@@ -1219,7 +1222,8 @@ export function deserializeGameState(data) {
   }
   if (!state.rng || !Number.isFinite(state.rng.seed) || !Number.isFinite(state.rng.baseSeed)
       || !Number.isFinite(state.rng.vassalSeed)
-      || !Number.isFinite(state.rng.vassalDevelopmentSeed)) {
+      || !Number.isFinite(state.rng.vassalDevelopmentSeed)
+      || !Number.isFinite(state.rng.vassalLifeMapSeed)) {
     throw new Error("Invalid serialized RNG state");
   }
   attachRngHelpers(state);

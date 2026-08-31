@@ -1,23 +1,4 @@
-// Each depth lists its visible nodes in top-to-bottom order.  Outgoing indices
-// refer to the following depth and are intentionally data rather than a graph
-// generation rule: preserving index order makes the drawn edges non-crossing.
-const DEPTH_LAYOUT = Object.freeze([
-  Object.freeze([{ family: "patronage", mapY: 0.38, outgoing: [0, 1] }, { family: "development", mapY: 0.64, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "development", mapY: 0.20, outgoing: [0, 1] }, { family: "travel", mapY: 0.49, outgoing: [1] }, { family: "practiceReform", mapY: 0.77, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "patronage", mapY: 0.30, outgoing: [0] }, { family: "publicWorks", mapY: 0.56, outgoing: [0, 1] }, { family: "travel", mapY: 0.80, outgoing: [1] }]),
-  Object.freeze([{ family: "patronage", mapY: 0.40, outgoing: [0, 1] }, { family: "practiceReform", mapY: 0.68, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "travel", mapY: 0.24, outgoing: [0, 1] }, { family: "development", mapY: 0.51, outgoing: [1, 2] }, { family: "publicWorks", mapY: 0.78, outgoing: [2, 3] }]),
-  Object.freeze([{ family: "practiceReform", mapY: 0.14, outgoing: [0] }, { family: "routes", mapY: 0.38, outgoing: [0, 1] }, { family: "publicWorks", mapY: 0.62, outgoing: [1, 2] }, { family: "crisis", mapY: 0.86, outgoing: [2] }]),
-  Object.freeze([{ family: "practiceReform", mapY: 0.25, outgoing: [0] }, { family: "publicWorks", mapY: 0.49, outgoing: [0, 1] }, { family: "travel", mapY: 0.73, outgoing: [1] }]),
-  Object.freeze([{ family: "crisis", mapY: 0.37, outgoing: [0, 1] }, { family: "practiceReform", mapY: 0.65, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "routes", mapY: 0.22, outgoing: [0, 1] }, { family: "crisis", mapY: 0.50, outgoing: [1] }, { family: "development", mapY: 0.78, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "legacy", mapY: 0.28, outgoing: [0, 1] }, { family: "publicWorks", mapY: 0.54, outgoing: [1] }, { family: "routes", mapY: 0.80, outgoing: [1, 2] }]),
-  Object.freeze([{ family: "legacy", mapY: 0.36, outgoing: [] }, { family: "practiceReform", mapY: 0.62, outgoing: [] }, { family: "crisis", mapY: 0.84, outgoing: [] }]),
-]);
-
-export const VASSAL_LIFE_MAP_ID = "reference-life-map-01";
-export const VASSAL_LIFE_MAP_DEPTH_COUNT = DEPTH_LAYOUT.length;
-export const VASSAL_LIFE_MAP_LANE_COUNT = 4;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 1;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
@@ -57,38 +38,10 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   }),
 });
 
-function getBand(depth) {
-  if (depth <= 2) return "early";
-  if (depth <= 5) return "mid";
-  if (depth <= 8) return "late";
-  return "deep";
-}
-
-function nodeId(depth, lane) {
-  return `life-${String(depth + 1).padStart(2, "0")}-${lane + 1}`;
-}
-
-export const VASSAL_LIFE_MAP_NODES = Object.freeze(DEPTH_LAYOUT.flatMap(
-  (nodes, depth) => nodes.map((node, lane) => Object.freeze({
-    id: nodeId(depth, lane),
-    family: node.family,
-    band: getBand(depth),
-    depth,
-    lane,
-    mapY: node.mapY,
-    outgoingNodeIds: depth === DEPTH_LAYOUT.length - 1
-      ? Object.freeze([])
-      : Object.freeze(node.outgoing.map((nextLane) => nodeId(depth + 1, nextLane))),
-  }))
-));
-
-export const VASSAL_LIFE_MAP_NODE_BY_ID = Object.freeze(Object.fromEntries(
-  VASSAL_LIFE_MAP_NODES.map((node) => [node.id, node])
-));
-
-export const VASSAL_LIFE_MAP_ENTRY_NODE_IDS = Object.freeze(
-  VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === 0).map((node) => node.id)
-);
+export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
+  "patronage", "development", "travel", "practiceReform",
+  "publicWorks", "routes", "crisis",
+]);
 
 export const VASSAL_LIFE_TUNING = Object.freeze({
   candidateCount: 3,

@@ -4,16 +4,18 @@ import {
 } from "./game-config.js";
 import { validateMapLabDraft } from "./map-lab-draft.js";
 import { validateVassalDebugDraft } from "./vassal-debug-draft.js";
+import { validateLifeMapLabDraft } from "./life-map-lab-draft.js";
 
-export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 1;
-export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v1";
-export const DEBUG_PROFILE_BOOT_STORAGE_KEY = "civsurvivor.debugProfiles.boot.v1";
+export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 2;
+export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v2";
+export const DEBUG_PROFILE_BOOT_STORAGE_KEY = "civsurvivor.debugProfiles.boot.v2";
 export const DEBUG_PROFILE_EXPORT_KIND = "civsurvivor.debugProfile";
-export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 1;
+export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 2;
 export const DEBUG_PROFILE_PAGE_IDS = Object.freeze([
   "mapLab",
   "gameSettings",
   "gamepieces",
+  "lifeMapLab",
   "vassalLab",
 ]);
 
@@ -37,6 +39,9 @@ export function validateDebugProfile(profile) {
   }
   for (const error of validateGamepiecesDraft(profile.gamepieces).errors ?? []) {
     errors.push(`gamepieces.${error}`);
+  }
+  for (const error of validateLifeMapLabDraft(profile.lifeMapLab).errors ?? []) {
+    errors.push(`lifeMapLab.${error}`);
   }
   // Vassal Lab is intentionally lazy: before the player opens that panel there
   // is no candidate override to capture. Null records that explicit no-override

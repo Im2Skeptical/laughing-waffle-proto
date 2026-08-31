@@ -5,8 +5,6 @@ import { createRng } from "../rng.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
   VASSAL_LEGACY_OPTIONS,
-  VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
-  VASSAL_LIFE_MAP_NODES,
   VASSAL_NODE_FAMILIES,
   VASSAL_LIFE_TUNING,
   getVassalMortalityChance,
@@ -21,11 +19,18 @@ import {
   getVassalCandidatePool,
   getVassalDevelopmentIncome,
   getVassalLifeMapPlayheadNodeId,
+  getVassalLifeMapNodes,
+  getVassalLifeMapOutgoingNodeIds,
   getVassalNodeDisplayState,
   getVassalNodeDecisionPresentation,
   getVassalPrestigeIncome,
   validateVassalLifeMapState,
 } from "../vassal-life-map.js";
+import {
+  createAuthoredVassalLifeMapGeneratorConfig,
+  generateVassalLifeMap,
+  validateVassalLifeMapGraph,
+} from "../vassal-life-map-generator.js";
 import { stepDetailedSettlementsSecond } from "../detailed-settlements.js";
 
 function dispatch(state, kind, payload = {}) {
@@ -54,6 +59,13 @@ function forceEnter(state, nodeId) {
   return vassal.lifeMap.nodeStates[nodeId];
 }
 
+function nodeIdForFamily(state, family, index = 0) {
+  const nodes = getVassalLifeMapNodes(getCurrentLifeMapVassal(state))
+    .filter((node) => node.family === family);
+  assert.ok(nodes[index], `expected generated ${family} node ${index}`);
+  return nodes[index].id;
+}
+
 function resolvePending(state) {
   const vassal = getCurrentLifeMapVassal(state);
   const resolveSec = vassal.lifeMap.pendingResolution.resolveSec;
@@ -72,11 +84,87 @@ function findSeed(predicate) {
   throw new Error("No deterministic RNG seed matched the predicate");
 }
 
-assert.equal(VASSAL_LIFE_MAP_NODES.length, 31);
+const isolatedMapState = createInitialState("devPlaytesting01", 8877);
+const isolatedPool = getVassalCandidatePool(isolatedMapState);
+const isolatedSeedsBefore = { ...isolatedMapState.rng };
+dispatch(isolatedMapState, ActionKinds.SETTLEMENT_SELECT_VASSAL, {
+  candidateIndex: 0, expectedPoolHash: isolatedPool.expectedPoolHash,
+});
+assert.equal(isolatedMapState.rng.seed, isolatedSeedsBefore.seed);
+assert.equal(isolatedMapState.rng.vassalSeed, isolatedSeedsBefore.vassalSeed);
+assert.equal(isolatedMapState.rng.vassalDevelopmentSeed, isolatedSeedsBefore.vassalDevelopmentSeed);
+assert.notEqual(isolatedMapState.rng.vassalLifeMapSeed, isolatedSeedsBefore.vassalLifeMapSeed,
+  "selecting a Vassal advances only the topology RNG substream");
 assert.deepEqual(
-  Array.from({ length: 11 }, (_, depth) => VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth).length),
-  [2, 3, 3, 2, 3, 4, 3, 2, 3, 3, 3]
+  deserializeGameState(serializeGameState(isolatedMapState)).civilization.vassalLineage,
+  isolatedMapState.civilization.vassalLineage,
+  "the generated graph survives JSON serialization"
 );
+
+const generatorConfig = createAuthoredVassalLifeMapGeneratorConfig();
+assert.deepEqual([
+  generatorConfig.earlyDepthCount,
+  generatorConfig.midDepthCount,
+  generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
+], [4, 4, 3]);
+assert.deepEqual(
+  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis"]
+    .map((family) => generatorConfig.weights.early[family]),
+  [5, 5, 5, 1, 1, 1, 0]
+);
+assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
+const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
+const generatedB = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
+assert.equal(generatedA.ok, true);
+assert.deepEqual(generatedA, generatedB, "Life Map generation is deterministic");
+assert.notDeepEqual(
+  generatedA.graph,
+  generateVassalLifeMap(generatorConfig, createRng(124), { generationSeed: 124 }).graph,
+  "different topology seeds produce different maps"
+);
+assert.equal(generatedA.routeTraces.length, 6);
+assert.equal(new Set(generatedA.routeTraces.map((route) => route.join(","))).size, 6);
+assert.notEqual(generatedA.routeTraces[0][0], generatedA.routeTraces[1][0]);
+const generatedGraph = generatedA.graph;
+assert.equal(validateVassalLifeMapGraph(generatedGraph).ok, true);
+assert.equal(generatedGraph.nodes.filter((node) => node.family === "legacy").length, 1);
+assert.equal(generatedGraph.nodes.find((node) => node.id === generatedGraph.bossNodeId).depth, 11);
+assert.ok(generatedGraph.entryNodeIds.length >= 2);
+assert.notEqual(
+  generatedGraph.nodes.find((node) => node.id === generatedGraph.entryNodeIds[0]).family,
+  generatedGraph.nodes.find((node) => node.id === generatedGraph.entryNodeIds[1]).family
+);
+const generatedNodeById = new Map(generatedGraph.nodes.map((node) => [node.id, node]));
+for (const edge of generatedGraph.edges) {
+  const from = generatedNodeById.get(edge.fromNodeId);
+  const to = generatedNodeById.get(edge.toNodeId);
+  assert.equal(to.depth, from.depth + 1);
+  if (to.family !== "legacy") assert.ok(Math.abs(to.lane - from.lane) <= 1);
+  assert.equal(from.family === "crisis" && to.family === "crisis", false);
+}
+for (let depth = 0; depth < 10; depth += 1) {
+  const edges = generatedGraph.edges.filter((edge) => generatedNodeById.get(edge.fromNodeId).depth === depth);
+  for (const edgeA of edges) for (const edgeB of edges) {
+    const a0 = generatedNodeById.get(edgeA.fromNodeId).lane;
+    const a1 = generatedNodeById.get(edgeA.toNodeId).lane;
+    const b0 = generatedNodeById.get(edgeB.fromNodeId).lane;
+    const b1 = generatedNodeById.get(edgeB.toNodeId).lane;
+    assert.equal((a0 < b0 && a1 > b1) || (a0 > b0 && a1 < b1), false, "edges do not cross");
+  }
+}
+const branchSignatures = new Map();
+for (let depth = 11; depth >= 0; depth -= 1) {
+  for (const node of generatedGraph.nodes.filter((entry) => entry.depth === depth)) {
+    const childSignatures = generatedGraph.edges.filter((edge) => edge.fromNodeId === node.id)
+      .map((edge) => branchSignatures.get(edge.toNodeId)).sort();
+    assert.equal(new Set(childSignatures).size, childSignatures.length,
+      "a node does not offer recursively equivalent choices");
+    branchSignatures.set(node.id, `${node.family}[${childSignatures.join("|")}]`);
+  }
+}
+const entrySignatures = generatedGraph.entryNodeIds.map((id) => branchSignatures.get(id));
+assert.equal(new Set(entrySignatures).size, entrySignatures.length,
+  "virtual-root choices are recursively distinct");
 
 const historicalSelectionState = {
   tSec: 30,
@@ -97,46 +185,7 @@ assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 20)?.vassalId, "
   "the newest Vassal wins when selections share a timeline second");
 assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 30)?.vassalId, "v3",
   "the latest Vassal remains selected through a gap after their life");
-assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2);
 assert.equal(VASSAL_NODE_FAMILIES.development.label, "Development");
-assert.deepEqual(
-  Object.fromEntries([...new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.family))]
-    .map((family) => [family, VASSAL_LIFE_MAP_NODES.filter((node) => node.family === family).length])),
-  {
-    patronage: 3,
-    development: 4,
-    travel: 4,
-    practiceReform: 6,
-    publicWorks: 5,
-    routes: 3,
-    crisis: 4,
-    legacy: 2,
-  }
-);
-assert.equal(new Set(VASSAL_LIFE_MAP_NODES.map((node) => node.id)).size, 31);
-assert.ok(VASSAL_LIFE_MAP_NODES.every((node) =>
-  node.outgoingNodeIds.every((nextId) =>
-    VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === nextId)?.depth === node.depth + 1
- )
-));
-assert.ok(VASSAL_LIFE_MAP_NODES.filter((node) => node.depth < 10).every((node) =>
-  node.outgoingNodeIds.length >= 1 && node.outgoingNodeIds.length <= 2
-));
-for (let depth = 0; depth < 10; depth += 1) {
-  const nodes = VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth);
-  let previousMax = -1;
-  for (const node of nodes) {
-    const targets = node.outgoingNodeIds.map((id) => VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === id).lane);
-    assert.ok(Math.min(...targets) >= previousMax, `depth ${depth + 1} edges preserve vertical order`);
-    previousMax = Math.max(...targets);
-  }
-}
-for (let depth = 0; depth < 11; depth += 1) {
-  const nodes = VASSAL_LIFE_MAP_NODES.filter((node) => node.depth === depth);
-  assert.ok(nodes.every((node) => node.mapY > 0 && node.mapY < 1), `depth ${depth + 1} has bounded map positions`);
-  assert.ok(nodes.every((node, index) => index === 0 || node.mapY > nodes[index - 1].mapY),
-    `depth ${depth + 1} map positions preserve edge order`);
-}
 
 const formulaState = selectedState(100);
 const formulaVassal = getCurrentLifeMapVassal(formulaState);
@@ -159,7 +208,7 @@ assert.equal(VASSAL_LEGACY_OPTIONS[0].legacyStartingPrestigeBonus,
 const travelState = selectedState(101);
 const travelVassal = getCurrentLifeMapVassal(travelState);
 const originalLocation = travelVassal.locationRegionId;
-const travelNode = forceEnter(travelState, "life-02-2");
+const travelNode = forceEnter(travelState, nodeIdForFamily(travelState, "travel"));
 assert.ok(travelNode.options.length > 0);
 assert.equal(travelNode.options.length, VASSAL_LIFE_TUNING.travelOptionCount,
   "Travel reveals the configured three closest deterministic destinations");
@@ -193,7 +242,7 @@ const shopVassal = getCurrentLifeMapVassal(shopState);
 shopVassal.prestige = 500;
 shopVassal.stats.intelligence = 0;
 shopVassal.stats.effectiveness = 0;
-const shopNode = forceEnter(shopState, "life-02-3");
+const shopNode = forceEnter(shopState, nodeIdForFamily(shopState, "practiceReform"));
 const entryInventory = serializeGameState(shopState).civilization.vassalLineage
   .vassalsById[shopVassal.vassalId].lifeMap.nodeStates[shopNode.nodeId].inventory;
 dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
@@ -260,8 +309,9 @@ assert.equal(applyAction(shopState, {
   kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
 }, { isReplay: true }).ok, false, "reroll remains unavailable after resolution");
 
-for (const nodeId of ["life-03-2", "life-06-2"]) {
-  const state = selectedState(nodeId === "life-03-2" ? 103 : 104);
+for (const [family, seed] of [["publicWorks", 103], ["routes", 104]]) {
+  const state = selectedState(seed);
+  const nodeId = nodeIdForFamily(state, family);
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 500;
   const node = forceEnter(state, nodeId);
@@ -292,7 +342,8 @@ for (const nodeId of ["life-03-2", "life-06-2"]) {
 
 const patronagePresentationState = selectedState(1041);
 const patronagePresentationVassal = getCurrentLifeMapVassal(patronagePresentationState);
-const patronagePresentationNode = forceEnter(patronagePresentationState, "life-01-1");
+const patronagePresentationNode = forceEnter(patronagePresentationState,
+  nodeIdForFamily(patronagePresentationState, "patronage"));
 const patronageOption = patronagePresentationNode.options.find((option) => option.statId)
   ?? patronagePresentationNode.options[0];
 const patronagePresentation = getVassalNodeDecisionPresentation(
@@ -319,17 +370,18 @@ for (const site of elderIndependentB.world.sites) {
 for (const state of [elderIndependentA, elderIndependentB]) {
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 500;
-  const node = forceEnter(state, "life-02-3");
+  const node = forceEnter(state, nodeIdForFamily(state, "practiceReform"));
   dispatch(state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
     nodeId: node.nodeId, offerId: node.inventory[0].offerId,
   });
 }
-const elderNodeA = getCurrentLifeMapVassal(elderIndependentA).lifeMap.nodeStates["life-02-3"];
-const elderNodeB = getCurrentLifeMapVassal(elderIndependentB).lifeMap.nodeStates["life-02-3"];
+const elderPracticeId = nodeIdForFamily(elderIndependentA, "practiceReform");
+const elderNodeA = getCurrentLifeMapVassal(elderIndependentA).lifeMap.nodeStates[elderPracticeId];
+const elderNodeB = getCurrentLifeMapVassal(elderIndependentB).lifeMap.nodeStates[elderPracticeId];
 assert.deepEqual(elderNodeA.inventory, elderNodeB.inventory);
 assert.deepEqual(elderNodeA.purchasedOffers, elderNodeB.purchasedOffers);
 for (const state of [elderIndependentA, elderIndependentB]) {
-  dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: "life-02-3" });
+  dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: elderPracticeId });
   resolvePending(state);
 }
 assert.deepEqual(elderNodeA.mortality, elderNodeB.mortality,
@@ -343,7 +395,8 @@ assert.deepEqual(
 const developmentState = selectedState(105);
 const developmentVassal = getCurrentLifeMapVassal(developmentState);
 developmentVassal.stats.wisdom = 8;
-const zeroPurchaseNode = forceEnter(developmentState, "life-02-3");
+const zeroPurchaseNode = forceEnter(developmentState,
+  nodeIdForFamily(developmentState, "practiceReform"));
 assert.equal(
   getVassalNodeDecisionPresentation(developmentState, zeroPurchaseNode.nodeId).mortalityEstimate.totalPhaseCost,
   VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost,
@@ -395,7 +448,8 @@ const multiLevelState = selectedState(1051);
 const multiLevelVassal = getCurrentLifeMapVassal(multiLevelState);
 multiLevelVassal.stats.wisdom = 20;
 multiLevelVassal.developmentProgress = 9;
-const multiLevelNode = forceEnter(multiLevelState, "life-02-3");
+const multiLevelNode = forceEnter(multiLevelState,
+  nodeIdForFamily(multiLevelState, "practiceReform"));
 dispatch(multiLevelState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: multiLevelNode.nodeId });
 resolvePending(multiLevelState);
 assert.equal(multiLevelVassal.developmentChoiceQueue.length, 3,
@@ -411,7 +465,7 @@ for (let seed = 1052; seed < 1072 && !wisdomWasOffered; seed += 1) {
   const state = selectedState(seed);
   const vassal = getCurrentLifeMapVassal(state);
   vassal.stats.wisdom = 8;
-  const node = forceEnter(state, "life-02-3");
+  const node = forceEnter(state, nodeIdForFamily(state, "practiceReform"));
   dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: node.nodeId });
   resolvePending(state);
   wisdomWasOffered = vassal.developmentChoiceQueue[0]?.offeredStatIds.includes("wisdom") === true;
@@ -421,7 +475,7 @@ assert.equal(wisdomWasOffered, true, "Wisdom participates in the three-of-four l
 const crisisState = selectedState(106);
 const crisisVassal = getCurrentLifeMapVassal(crisisState);
 crisisState.tSec = 5;
-const crisisNode = forceEnter(crisisState, "life-06-4");
+const crisisNode = forceEnter(crisisState, nodeIdForFamily(crisisState, "crisis"));
 dispatch(crisisState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: crisisNode.nodeId, optionId: "rallyLoyalists",
 });
@@ -442,7 +496,8 @@ const naturalDeathVassal = getCurrentLifeMapVassal(naturalDeathState);
 naturalDeathVassal.initialAge = 80;
 naturalDeathVassal.stats.wisdom = 20;
 naturalDeathVassal.developmentProgress = 9;
-const naturalDeathNode = forceEnter(naturalDeathState, "life-02-3");
+const naturalDeathNode = forceEnter(naturalDeathState,
+  nodeIdForFamily(naturalDeathState, "practiceReform"));
 naturalDeathState.rng.vassalSeed = findSeed((roll) => roll < getVassalMortalityChance(80));
 dispatch(naturalDeathState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: naturalDeathNode.nodeId });
 resolvePending(naturalDeathState);
@@ -456,7 +511,7 @@ assert.equal(naturalDeathVassal.developmentChoiceQueue.length, 0,
 const legacyState = selectedState(108);
 const legacyVassal = getCurrentLifeMapVassal(legacyState);
 legacyVassal.prestige = 100;
-const legacyNode = forceEnter(legacyState, "life-11-1");
+const legacyNode = forceEnter(legacyState, nodeIdForFamily(legacyState, "legacy"));
 dispatch(legacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: legacyNode.nodeId, optionId: "enduringOffice",
 });
@@ -473,7 +528,7 @@ assert.ok(getVassalCandidatePool(legacyState).candidates.every((candidate) => ca
 const freeLegacyState = selectedState(1081);
 const freeLegacyVassal = getCurrentLifeMapVassal(freeLegacyState);
 freeLegacyVassal.prestige = 0;
-const freeLegacyNode = forceEnter(freeLegacyState, "life-11-1");
+const freeLegacyNode = forceEnter(freeLegacyState, nodeIdForFamily(freeLegacyState, "legacy"));
 const freeLegacyOption = freeLegacyNode.options.find((option) => option.id === "humbleRemembrance");
 assert.equal(freeLegacyNode.options.length, 3);
 assert.equal(freeLegacyOption.prestigeCost, 0);
@@ -507,7 +562,8 @@ practiceTierSettlement.practiceSlots = [
   { practiceId: "preserve", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "exchange", tier: "bronze", charge: 0, work: 0 },
 ];
-const practiceTierNode = forceEnter(practiceTierState, "life-02-3");
+const practiceTierNode = forceEnter(practiceTierState,
+  nodeIdForFamily(practiceTierState, "practiceReform"));
 assert.equal(new Set(practiceTierNode.inventory.map((offer) => offer.intervention.practiceId)).size,
   practiceTierNode.inventory.length, "practice shop offers have unique identities");
 assert.ok(practiceTierNode.inventory.every((offer) =>
@@ -534,7 +590,7 @@ for (let seed = 1601; seed < 1700 && !upgradeShop; seed += 1) {
   vassal.prestige = 500;
   const settlement = state.world.sites.find((site) => site.regionId === vassal.locationRegionId).detailedState;
   settlement.practiceSlots = [{ practiceId: "forage", tier: "gold", charge: 0, work: 0 }, null, null, null, null];
-  const node = forceEnter(state, "life-02-3");
+  const node = forceEnter(state, nodeIdForFamily(state, "practiceReform"));
   const offer = node.inventory.find((entry) => entry.intervention.practiceId === "forage");
   if (offer) upgradeShop = { state, settlement, node, offer };
 }
@@ -554,7 +610,8 @@ const diamondShopState = selectedState(1701);
 const diamondVassal = getCurrentLifeMapVassal(diamondShopState);
 diamondShopState.world.sites.find((site) => site.regionId === diamondVassal.locationRegionId)
   .detailedState.practiceSlots[0] = { practiceId: "forage", tier: "diamond", charge: 0, work: 0 };
-const diamondShopNode = forceEnter(diamondShopState, "life-02-3");
+const diamondShopNode = forceEnter(diamondShopState,
+  nodeIdForFamily(diamondShopState, "practiceReform"));
 assert.equal(diamondShopNode.inventory.some((offer) => offer.intervention.practiceId === "forage"), false,
   "Diamond practices are excluded from future shop rolls");
 

@@ -225,7 +225,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 9);
+  assert.equal(settingsJson.schemaVersion, 10);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
@@ -247,6 +247,25 @@ try {
   assert.equal(await connectedAdministrationReach.isChecked(), false);
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
   await page.getByTestId("gamepieces-save-preset").click();
+  await page.getByTestId("debug-life-map-lab-tab").click();
+  await page.getByTestId("life-map-lab").waitFor({ state: "visible" });
+  assert.equal(await page.getByTestId("life-map-lab-preview").count(), 1);
+  assert.ok(await page.getByTestId("life-map-lab-preview").locator("g").count() > 2);
+  await page.getByTestId("life-map-lab-laneCount").fill("5");
+  await page.getByTestId("life-map-lab-laneCount").press("Enter");
+  assert.equal(await page.getByTestId("life-map-lab-laneCount").inputValue(), "5");
+  const lifeMapPreviewSeed = Number(await page.getByTestId("life-map-lab-preview-seed").inputValue());
+  await page.getByTestId("life-map-lab-next-seed").click();
+  assert.equal(
+    Number(await page.getByTestId("life-map-lab-preview-seed").inputValue()),
+    lifeMapPreviewSeed + 1
+  );
+  await page.getByTestId("life-map-lab-preset-name").fill("Five-lane routes");
+  await page.getByTestId("life-map-lab-save-preset").click();
+  assert.match(await page.getByTestId("life-map-lab-status").innerText(), /Saved/);
+  await page.getByTestId("life-map-lab-json-toggle").click();
+  const lifeMapJson = JSON.parse(await page.getByTestId("life-map-lab-json").inputValue());
+  assert.equal(lifeMapJson.generatorConfig.laneCount, 5);
   await page.getByTestId("debug-start-new-run").click();
   await page.getByTestId("debug-open").waitFor({ state: "visible" });
   const configuredSnapshot = await page.evaluate(
@@ -271,6 +290,7 @@ try {
       .connectedAdministrationReach,
     false
   );
+  assert.equal(configuredSnapshot.gameConfig.lifeMapGenerator.laneCount, 5);
   assert.equal(
     configuredSnapshot.graph.forecastRevealPlayheadFollowEnabled,
     true,

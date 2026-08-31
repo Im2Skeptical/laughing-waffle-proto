@@ -17,7 +17,9 @@ task lists.
   `state.rng.vassalSeed` substream so Elder cohort rolls cannot perturb Vassal
   outcomes. Level-up offer pools use the separate serialized
   `state.rng.vassalDevelopmentSeed` substream, so choosing or earning levels
-  cannot perturb those existing outcomes.
+  cannot perturb those existing outcomes. Generated Life Map topology and room
+  families use `state.rng.vassalLifeMapSeed`, so generator experiments cannot
+  perturb candidates, node contents, Crisis, mortality, or development offers.
 - `GameState` is JSON-only. Runtime RNG helpers are removed for serialization
   and restored on deserialize.
 - `rebuildStateAtSecond(tSec)` is the authoritative deterministic replay path.
@@ -31,8 +33,9 @@ task lists.
 
 ## Current state and schemas
 
-- Game state uses schema v17 and runner saves use schema v9; older saves are rejected.
-- Each run serializes schema-v9 Game Settings and Gamepieces in `gameConfig`.
+- Game state uses schema v18 and runner saves use schema v10; older saves are rejected.
+- Each run serializes schema-v10 Game Settings, Gamepieces, and Life Map generator
+  settings in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
@@ -91,9 +94,11 @@ survival knowledge, and the single vassal lineage are civilization-global.
   unplaced-migrant hardship, monthly elder mortality, and stored/loose food rot.
   Surviving migrants join the destination Stranger cohort.
 - Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
-  prices, inventories, or resolutions. The Vassal Life Map is a centralized,
-  declarative 31-node DAG with two initial entries, variable two-to-four-node
-  depths, and non-crossing ordered edges. Entered nodes
+  prices, inventories, or resolutions. Each selected Vassal owns a deterministic,
+  serialized Life Map DAG generated from six non-crossing route traces across six
+  lanes and eleven normal depths. The first two traces start separately, room
+  families use Early/Mid/Late weights, and every final normal node connects to a
+  single twelfth-depth Legacy node. Entered nodes
   persist their content while choices, purchases, and one shop reroll are staged.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
@@ -184,6 +189,10 @@ fallback.
   exposes numeric DSL parameters.
 - Vassal Lab replaces an unrevealed candidate with explicit age, settlement,
   Prestige, and four stats without consuming RNG. Its draft/preset schema is v5.
+- Life Map Lab edits generator dimensions, routes, band weights, repeat rules,
+  and layout cleanup, with deterministic seeded previews, browser presets, and
+  JSON import/export. Its preview seed is debug-only; fresh runs serialize only
+  the generator configuration and generate each Vassal from simulation RNG.
 
 ## Verification
 

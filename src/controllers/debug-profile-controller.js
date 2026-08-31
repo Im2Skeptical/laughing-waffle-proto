@@ -28,6 +28,7 @@ function safeStorage() {
 export function createDebugProfileController({
   mapLabController,
   debugConfigurationController,
+  lifeMapLabController,
   vassalDebugPresetController,
 } = {}) {
   let library = createEmptyDebugProfileLibrary();
@@ -66,6 +67,7 @@ export function createDebugProfileController({
       mapLab: mapLabController.getSnapshot().draft,
       gameSettings: debugConfigurationController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft,
       gamepieces: debugConfigurationController.getSnapshot(GAMEPIECES_DRAFT_KIND).draft,
+      lifeMapLab: lifeMapLabController.getSnapshot().draft,
       vassalLab: vassalDebugPresetController.getSnapshot().currentDraft,
       activePage,
     };
@@ -85,6 +87,8 @@ export function createDebugProfileController({
     if (!mapResult.ok) return mapResult;
     const configResult = debugConfigurationController.replaceDraftsFromProfile(entry.profile);
     if (!configResult.ok) return configResult;
+    const lifeMapResult = lifeMapLabController.replaceDraftFromProfile(entry.profile.lifeMapLab);
+    if (!lifeMapResult.ok) return lifeMapResult;
     const vassalResult = entry.profile.vassalLab === null
       ? vassalDebugPresetController.clearCurrentDraft()
       : vassalDebugPresetController.setCurrentDraft(entry.profile.vassalLab);

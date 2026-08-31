@@ -57,6 +57,7 @@ function safeStorage() {
 export function createDebugConfigurationController({
   runner,
   mapLabController,
+  lifeMapLabController,
   setupId = "devPlaytesting01",
   onApplied,
 } = {}) {
@@ -203,6 +204,7 @@ export function createDebugConfigurationController({
       return canonicalizeGameConfig({
         settings: states[GAME_SETTINGS_DRAFT_KIND].draft,
         gamepieces: states[GAMEPIECES_DRAFT_KIND].draft,
+        lifeMapGenerator: lifeMapLabController?.getGeneratorConfig?.(),
       });
     },
     updateValue(kind, path, value) {

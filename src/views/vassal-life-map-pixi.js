@@ -1,26 +1,24 @@
-import { VASSAL_LIFE_MAP_NODES, VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
-import { getVassalAge, getVassalStatsPresentation } from "../model/vassal-life-map.js";
+import { VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import {
+  getVassalAge,
+  getVassalLifeMapNode,
+  getVassalLifeMapNodes,
+  getVassalStatsPresentation,
+} from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
-const NODE_X_STEP = 198;
 const NODE_RADIUS = 26;
 const DOUBLE_CLICK_WINDOW_MS = 360;
 
-function getNode(nodeId) {
-  return VASSAL_LIFE_MAP_NODES.find((node) => node.id === nodeId) ?? null;
-}
-
 function nodePoint(node) {
-  const count = VASSAL_LIFE_MAP_NODES.filter((entry) => entry.depth === node.depth).length;
   const top = MAP_RECT.y + 142;
   const bottom = MAP_RECT.y + MAP_RECT.height - 102;
   return {
-    x: MAP_RECT.x + 92 + node.depth * NODE_X_STEP,
-    y: top + (bottom - top) * (Number.isFinite(node.mapY)
-      ? node.mapY : count <= 1 ? 0.5 : node.lane / (count - 1)),
+    x: MAP_RECT.x + 92 + (MAP_RECT.width - 184) * (node.position?.x ?? 0),
+    y: top + (bottom - top) * (node.position?.y ?? 0.5),
   };
 }
 
@@ -89,7 +87,8 @@ export function createVassalLifeMapView({
 
   root.on("pointerdown", (event) => {
     const local = root.toLocal(event.global);
-    const node = VASSAL_LIFE_MAP_NODES.find((candidate) => {
+    const presentation = getPresentation?.() ?? {};
+    const node = getVassalLifeMapNodes(presentation.vassal).find((candidate) => {
       const point = nodePoint(candidate);
       return Math.hypot(local.x - point.x, local.y - point.y) <= NODE_RADIUS + 10;
     });
@@ -97,7 +96,6 @@ export function createVassalLifeMapView({
       hideStatTooltip();
       return;
     }
-    const presentation = getPresentation?.() ?? {};
     inspect(node, getDisplay(
       presentation.vassal,
       node.id,
@@ -127,6 +125,7 @@ export function createVassalLifeMapView({
     const profile = presentation.profileVassal ?? vassal;
     const readOnly = presentation.readOnly === true;
     const committed = new Set(presentation.committedNodeIds ?? []);
+    const nodes = getVassalLifeMapNodes(vassal);
     if ((vassal?.vassalId ?? null) !== displayedVassalId) {
       displayedVassalId = vassal?.vassalId ?? null;
       inspectedNodeId = presentation.playheadNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
@@ -158,16 +157,28 @@ export function createVassalLifeMapView({
       : "Click a node to open its decision. Double-click an available node to enter immediately.", {
       ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 250, MAP_RECT.y + 26));
-    [["EARLY", 46], ["MID", 650], ["LATE", 1240], ["DEEP / LEGACY", 1818]]
-      .forEach(([label, x]) => root.addChild(createText(label, TEXT_STYLES.body, MAP_RECT.x + x, MAP_RECT.y + 62)));
+    const config = vassal.lifeMap.graph.generatorConfig;
+    const bandLabels = [
+      ["EARLY", 0],
+      ["MID", config.earlyDepthCount / config.normalDepthCount],
+      ["LATE", (config.earlyDepthCount + config.midDepthCount) / config.normalDepthCount],
+      ["LEGACY", 1],
+    ];
+    bandLabels.forEach(([label, ratio]) => root.addChild(createText(
+      label, TEXT_STYLES.body,
+      MAP_RECT.x + 52 + ratio * (MAP_RECT.width - 150), MAP_RECT.y + 62
+    )));
 
     const committedPath = presentation.committedNodeIds ?? [];
     const completedEdges = new Set(committedPath.slice(1).map((id, index) => `${committedPath[index]}:${id}`));
     const edges = new PIXI.Graphics();
-    for (const node of VASSAL_LIFE_MAP_NODES) {
+    for (const node of nodes) {
       const from = nodePoint(node);
-      for (const nextId of node.outgoingNodeIds) {
-        const next = getNode(nextId);
+      const outgoing = vassal.lifeMap.graph.edges
+        .filter((edge) => edge.fromNodeId === node.id)
+        .map((edge) => edge.toNodeId);
+      for (const nextId of outgoing) {
+        const next = getVassalLifeMapNode(vassal, nextId);
         if (!next) continue;
         const to = nodePoint(next);
         const complete = completedEdges.has(`${node.id}:${nextId}`);
@@ -177,7 +188,7 @@ export function createVassalLifeMapView({
     }
     root.addChild(edges);
 
-    for (const node of VASSAL_LIFE_MAP_NODES) {
+    for (const node of nodes) {
       const display = getDisplay(vassal, node.id, committed, readOnly);
       const point = nodePoint(node);
       const family = VASSAL_NODE_FAMILIES[node.family] ?? {};

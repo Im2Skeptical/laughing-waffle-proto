@@ -1,4 +1,5 @@
-import { VASSAL_LIFE_MAP_NODE_BY_ID, VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
   formatVassalPhaseDuration,
   getAdjustedVassalPhaseCost,
@@ -347,6 +348,19 @@ export function createVassalNodeDecisionModalView({
   let undoRoots = [];
   let hoveredOptionId = null;
   let hoveredOfferId = null;
+  let previewOptionId = null;
+  let previewOfferId = null;
+  let hoverRenderTimer = null;
+
+  function scheduleHoverRender() {
+    if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
+    hoverRenderTimer = setTimeout(() => {
+      hoverRenderTimer = null;
+      previewOptionId = hoveredOptionId;
+      previewOfferId = hoveredOfferId;
+      render(true);
+    }, 120);
+  }
 
   function close() {
     root.visible = false;
@@ -355,6 +369,10 @@ export function createVassalNodeDecisionModalView({
     dragTargetIndex = null;
     hoveredOptionId = null;
     hoveredOfferId = null;
+    previewOptionId = null;
+    previewOfferId = null;
+    if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
+    hoverRenderTimer = null;
   }
 
   function open(nodeId = null) {
@@ -362,6 +380,8 @@ export function createVassalNodeDecisionModalView({
     root.visible = true;
     hoveredOptionId = null;
     hoveredOfferId = null;
+    previewOptionId = null;
+    previewOfferId = null;
     render(true);
   }
 
@@ -398,14 +418,14 @@ export function createVassalNodeDecisionModalView({
     const readOnly = presentation.readOnly === true;
     const currentNodeId = vassal?.lifeMap?.currentNodeId ?? null;
     const decision = getDecisionPresentation?.(openNodeId, {
-      previewOptionId: hoveredOptionId,
-      previewOfferId: hoveredOfferId,
+      previewOptionId,
+      previewOfferId,
     }) ?? null;
-    const node = decision?.node ?? VASSAL_LIFE_MAP_NODE_BY_ID[openNodeId] ?? null;
+    const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
     const family = node ? VASSAL_NODE_FAMILIES[node.family] : null;
     const nextSignature = JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
-      hoveredOptionId, hoveredOfferId });
+      previewOptionId, previewOfferId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -509,12 +529,12 @@ export function createVassalNodeDecisionModalView({
             onHover: () => {
               if (hoveredOfferId === offer.offerId) return;
               hoveredOfferId = offer.offerId;
-              render();
+              scheduleHoverRender();
             },
             onOut: () => {
               if (hoveredOfferId !== offer.offerId) return;
               hoveredOfferId = null;
-              render();
+              scheduleHoverRender();
             },
           });
         });
@@ -575,12 +595,12 @@ export function createVassalNodeDecisionModalView({
             onHover: () => {
               if (hoveredOptionId === option.id) return;
               hoveredOptionId = option.id;
-              render();
+              scheduleHoverRender();
             },
             onOut: () => {
               if (hoveredOptionId !== option.id) return;
               hoveredOptionId = null;
-              render();
+              scheduleHoverRender();
             },
           });
         });
@@ -677,10 +697,13 @@ export function createVassalNodeDecisionModalView({
     },
     getSemanticSnapshot: () => {
       const decision = getDecisionPresentation?.(openNodeId, {
-        previewOptionId: hoveredOptionId, previewOfferId: hoveredOfferId,
+        previewOptionId, previewOfferId,
       });
       return {
         open: root.visible, nodeId: openNodeId,
+        family: decision?.node?.family ?? null,
+        selectedOptionId: decision?.nodeState?.selectedOptionId ?? null,
+        resolving: decision?.nodeState?.resolving === true,
         currentPrestige: decision?.currentPrestige ?? null,
         projectedPrestige: decision?.projectedPrestige ?? null,
         mortalityEstimate: decision?.mortalityEstimate ?? null,

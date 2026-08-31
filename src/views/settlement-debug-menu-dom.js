@@ -5,6 +5,7 @@ import {
   createDebugConfigurationDom,
 } from "./debug-configuration-dom.js";
 import { createVassalDebugDom } from "./vassal-debug-dom.js";
+import { createLifeMapLabDom } from "./life-map-lab-dom.js";
 
 function getFullscreenElement() {
   return (
@@ -39,6 +40,7 @@ async function lockLandscapeOrientation() {
 
 export function createSettlementDebugMenuDom({
   mapLabController,
+  lifeMapLabController,
   debugConfigurationController,
   debugProfileController,
   vassalDebugPresetController,
@@ -117,7 +119,11 @@ export function createSettlementDebugMenuDom({
   vassalTab.type = "button";
   vassalTab.textContent = "Vassal Lab";
   vassalTab.dataset.testid = "debug-vassal-tab";
-  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, vassalTab);
+  const lifeMapLabTab = document.createElement("button");
+  lifeMapLabTab.type = "button";
+  lifeMapLabTab.textContent = "Life Map Lab";
+  lifeMapLabTab.dataset.testid = "debug-life-map-lab-tab";
+  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, lifeMapLabTab, vassalTab);
   panel.append(header);
 
   const profileToolbar = document.createElement("div");
@@ -200,6 +206,7 @@ export function createSettlementDebugMenuDom({
     kind: GAMEPIECES_DRAFT_KIND,
     title: "Gamepieces",
   });
+  const lifeMapLab = createLifeMapLabDom({ controller: lifeMapLabController });
   const vassalLab = createVassalDebugDom({
     getState,
     replaceVassalCandidate,
@@ -209,6 +216,7 @@ export function createSettlementDebugMenuDom({
     mapLab,
     gameSettings,
     gamepieces,
+    lifeMapLab,
     vassalLab,
   };
   const pageContainer = document.createElement("div");
@@ -216,6 +224,7 @@ export function createSettlementDebugMenuDom({
     mapLab.element,
     gameSettings.element,
     gamepieces.element,
+    lifeMapLab.element,
     vassalLab.element
   );
   panel.append(pageContainer);
@@ -314,6 +323,7 @@ export function createSettlementDebugMenuDom({
   mapLabTab.addEventListener("click", () => setActivePage("mapLab"));
   gameSettingsTab.addEventListener("click", () => setActivePage("gameSettings"));
   gamepiecesTab.addEventListener("click", () => setActivePage("gamepieces"));
+  lifeMapLabTab.addEventListener("click", () => setActivePage("lifeMapLab"));
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
   closeButton.addEventListener("click", close);
   profileSelect.addEventListener("change", () => {
@@ -390,6 +400,7 @@ export function createSettlementDebugMenuDom({
       mapLab.init();
       gameSettings.init();
       gamepieces.init();
+      lifeMapLab.init();
       vassalLab.init();
       syncProfileToolbar();
       setActivePage(activePage);
@@ -401,6 +412,7 @@ export function createSettlementDebugMenuDom({
       mapLab.destroy();
       gameSettings.destroy();
       gamepieces.destroy();
+      lifeMapLab.destroy();
       vassalLab.destroy();
       utilityControls.remove();
       panel.remove();

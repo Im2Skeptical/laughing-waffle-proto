@@ -64,6 +64,9 @@ for ordinary label/layout work.
   `src/controllers/debug-configuration-controller.js`,
   `src/model/game-config.js`
 - Vassal Lab: `src/views/vassal-debug-dom.js`
+- Life Map Lab view/controller/model:
+  `src/views/life-map-lab-dom.js`, `src/controllers/life-map-lab-controller.js`,
+  `src/model/life-map-lab-draft.js`
 - Named browser presets: `src/model/debug-draft-library.js`
 
 ## Simulation routes
@@ -72,7 +75,8 @@ for ordinary label/layout work.
   and view models: `src/model/detailed-settlements.js`
 - Vassal Life Map definitions and authoritative lifecycle:
   `src/defs/gamepieces/vassal-life-map-defs.js` and
-  `src/model/vassal-life-map.js`
+  `src/model/vassal-life-map.js`; generated topology and validation live in
+  `src/model/vassal-life-map-generator.js`
 - Lunar phase definitions/timing: `src/defs/gamesettings/moon-phase-defs.js`,
   `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
