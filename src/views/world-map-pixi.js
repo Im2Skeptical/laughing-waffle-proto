@@ -59,6 +59,10 @@ const PRESSURE_COLOURS = Object.freeze({
   starvation: 0xd9554d,
   overcrowding: 0xe2a83b,
 });
+const CURRENCY_COLOURS = Object.freeze({
+  spending: 0xe2a83b,
+  empty: 0xd9554d,
+});
 
 export function getEdgeTransferPacketGlyphSpec(resourceId) {
   if (resourceId === "population") {
@@ -404,6 +408,12 @@ function buildRegionMapIndicators(state, definition) {
       structureCapacity,
       structureSlots,
       pressure: viewModel?.pressure ?? null,
+      currency: viewModel?.currency ?? null,
+      currencySpent: Math.max(
+        0,
+        Number(viewModel?.currencySpentThisMoon ?? 0),
+        Number(viewModel?.currencySpentLastMoon ?? 0)
+      ),
     };
   });
 }
@@ -667,6 +677,38 @@ function addSettlementPressureIndicator(parent, point, pressure) {
     glyph.beginFill(0x302d2a, 1);
     for (const offset of [-5, 0, 5]) glyph.drawCircle(x + offset, y + 3, 2.2);
     glyph.endFill();
+    glyph.eventMode = "none";
+    parent.addChild(glyph);
+  });
+}
+
+function addSettlementCurrencyIndicator(parent, point, { currency, currencySpent } = {}) {
+  if (!Number.isFinite(currency)) return;
+  const spending = Number(currencySpent ?? 0) > 0;
+  const empty = currency <= 0;
+  if (!spending && !empty) return;
+  const kinds = [spending ? "spending" : null, empty ? "empty" : null].filter(Boolean);
+  const gap = 30;
+  const startX = point.x - ((kinds.length - 1) * gap) / 2;
+  const y = point.y - 102;
+  kinds.forEach((kind, index) => {
+    const x = startX + index * gap;
+    const glyph = new PIXI.Graphics();
+    glyph.lineStyle(2, 0x302d2a, 1);
+    glyph.beginFill(CURRENCY_COLOURS[kind], 1);
+    glyph.drawCircle(x, y, 12);
+    glyph.endFill();
+    glyph.lineStyle(2.5, 0x302d2a, 1);
+    if (kind === "spending") {
+      glyph.moveTo(x, y - 7);
+      glyph.lineTo(x, y + 6);
+      glyph.moveTo(x - 5, y + 1);
+      glyph.lineTo(x, y + 6);
+      glyph.lineTo(x + 5, y + 1);
+    } else {
+      glyph.moveTo(x - 7, y - 7);
+      glyph.lineTo(x + 7, y + 7);
+    }
     glyph.eventMode = "none";
     parent.addChild(glyph);
   });
@@ -1031,8 +1073,8 @@ export function createWorldMapView({
         0.5
       ),
       createText(
-        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total}`,
-        { ...TEXT_STYLES.title, fontSize: 15 },
+        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total} · Research ${civilizationSummary.research ?? 0}`,
+        { ...TEXT_STYLES.title, fontSize: 14 },
         CIVILIZATION_HEADER_RECT.x + 190,
         CIVILIZATION_HEADER_RECT.y + 27,
         0,
@@ -1114,7 +1156,9 @@ export function createWorldMapView({
       });
       hit.on("pointerover", () => {
         const pressure = mapIndicator?.pressure;
-        if (!pressure?.starvation && !pressure?.overcrowding) return;
+        const spending = Number(mapIndicator?.currencySpent ?? 0) > 0;
+        const emptyCurrency = mapIndicator?.currency === 0;
+        if (!pressure?.starvation && !pressure?.overcrowding && !spending && !emptyCurrency) return;
         const lines = [];
         if (pressure.starvation) {
           lines.push(
@@ -1125,8 +1169,10 @@ export function createWorldMapView({
         if (pressure.overcrowding) {
           lines.push(`Overcrowding: ${pressure.housingOverflow} people over housing capacity`);
         }
+        if (spending) lines.push(`Gold spent this or last moon: ${mapIndicator.currencySpent}`);
+        if (emptyCurrency) lines.push("Gold reserve is empty");
         tooltipView?.show?.({
-          title: `${getRegionReference(state, region.id) ?? region.id} pressure`,
+          title: `${getRegionReference(state, region.id) ?? region.id} alerts`,
           lines,
         }, hit.getBounds());
       });
@@ -1180,6 +1226,7 @@ export function createWorldMapView({
         });
       }
       addSettlementPressureIndicator(root, point, indicator.pressure);
+      addSettlementCurrencyIndicator(root, point, indicator);
     }
     const activeVassal = getCurrentLifeMapVassal(state);
     if (activeVassal?.locationRegionId) {

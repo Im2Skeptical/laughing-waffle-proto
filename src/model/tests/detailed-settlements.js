@@ -421,6 +421,10 @@ assert.equal(getDetailedSettlement(clearingImport, "west-levee").currency, 4,
   "Clearing House spends remote Currency after local Currency in authored region order");
 const importedVm = getDetailedSettlementViewModel(clearingImport, "cedar-woods");
 assert.equal(importedVm.currency, 0, "Currency is exposed in the local settlement view model");
+assert.equal(importedVm.currencySpentThisMoon, 3,
+  "Currency spending is exposed for world-map indicators");
+assert.equal(getDetailedSettlementViewModel(clearingImport, "west-levee").currencySpentThisMoon, 5,
+  "Remote import funding records the spending settlement");
 
 const cappedPreservation = clearDetailedPopulationAndFood(fresh());
 const cappedPreservationSite = getDetailedSettlement(cappedPreservation, "cedar-woods");
