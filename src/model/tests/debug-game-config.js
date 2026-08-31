@@ -35,6 +35,7 @@ import { createVassalDebugPresetController } from "../../controllers/vassal-debu
 import { createMapLabController } from "../../controllers/map-lab-controller.js";
 import { createDebugConfigurationController } from "../../controllers/debug-configuration-controller.js";
 import { createDebugProfileController } from "../../controllers/debug-profile-controller.js";
+import { createLifeMapLabController } from "../../controllers/life-map-lab-controller.js";
 import {
   parseDebugProfileExportJson,
 } from "../debug-profile-library.js";
@@ -42,9 +43,10 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 9);
-assert.equal(authoredConfig.settings.schemaVersion, 9);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 9);
+assert.equal(authoredConfig.schemaVersion, 10);
+assert.equal(authoredConfig.settings.schemaVersion, 10);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 10);
+assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
@@ -291,9 +293,11 @@ try {
     },
   };
   const mapController = createMapLabController({ runner });
+  const lifeMapController = createLifeMapLabController();
   const configController = createDebugConfigurationController({
     runner,
     mapLabController: mapController,
+    lifeMapLabController: lifeMapController,
   });
   const settingsPreset = configController.savePreset(GAME_SETTINGS_DRAFT_KIND, "Test settings");
   const secondSettingsPreset = configController.savePreset(
@@ -325,10 +329,16 @@ try {
   const profileVassalController = createVassalDebugPresetController();
   profileVassalController.clearCurrentDraft();
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
+  assert.equal(lifeMapController.updateValue(["generatorConfig", "laneCount"], 5).ok, true);
+  const lifeMapSeedBefore = lifeMapController.getSnapshot().draft.previewSeed;
+  lifeMapController.nextPreviewSeed();
+  assert.equal(lifeMapController.getSnapshot().draft.previewSeed, lifeMapSeedBefore + 1);
+  assert.equal(lifeMapController.savePreset("Five lanes").ok, true);
   mapController.updateRegion("cedar-woods", { structureCapacity: 7 });
   const profileController = createDebugProfileController({
     mapLabController: mapController,
     debugConfigurationController: configController,
+    lifeMapLabController: lifeMapController,
     vassalDebugPresetController: profileVassalController,
   });
   const noVassalProfile = profileController.saveProfile("No Vassal override");
@@ -355,11 +365,13 @@ try {
   assert.equal(profileSaved.ok, true);
   assert.equal(profileController.setBootProfile(profileSaved.entry.id).ok, true);
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 99);
+  lifeMapController.updateValue(["generatorConfig", "laneCount"], 6);
   mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
 
   const restoredProfileController = createDebugProfileController({
     mapLabController: mapController,
     debugConfigurationController: configController,
+    lifeMapLabController: lifeMapController,
     vassalDebugPresetController: profileVassalController,
   });
   const bootLoaded = restoredProfileController.loadBootProfile();
@@ -372,8 +384,10 @@ try {
     "boot profile replaces the independently persisted panel draft"
   );
   assert.equal(profileVassalController.getSnapshot().currentDraft.prestige, 42);
+  assert.equal(lifeMapController.getSnapshot().draft.generatorConfig.laneCount, 5);
   assert.equal(configController.applyToFreshRun().ok, true);
   assert.equal(resetState.gameConfig.settings.values.populationPerToken, 12);
+  assert.equal(resetState.gameConfig.lifeMapGenerator.laneCount, 5);
   assert.equal(resetState.world.regions[0].structureCapacity, 7);
   mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
   assert.equal(restoredProfileController.loadProfile(profileSaved.entry.id).ok, true);
@@ -422,11 +436,12 @@ try {
   assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, beforeInvalidImport,
     "invalid combined profile exports do not partially replace current drafts");
 
-  storage.set("civsurvivor.debugProfiles.boot.v1", "profile-999");
+  storage.set("civsurvivor.debugProfiles.boot.v2", "profile-999");
   mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
   const invalidBootController = createDebugProfileController({
     mapLabController: mapController,
     debugConfigurationController: configController,
+    lifeMapLabController: lifeMapController,
     vassalDebugPresetController: profileVassalController,
   });
   assert.equal(invalidBootController.loadBootProfile().reason, "missingBootProfile");
@@ -438,4 +453,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v9] OK");
+console.log("[debug-game-config-v10] OK");

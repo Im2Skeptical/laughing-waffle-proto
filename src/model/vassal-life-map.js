@@ -2,9 +2,6 @@ import {
   VASSAL_CRISIS_OPTIONS,
   VASSAL_DEVELOPMENT_OPTIONS,
   VASSAL_LEGACY_OPTIONS,
-  VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
-  VASSAL_LIFE_MAP_ID,
-  VASSAL_LIFE_MAP_NODE_BY_ID,
   VASSAL_LIFE_TUNING,
   VASSAL_PHASES_PER_YEAR,
   VASSAL_PATRONAGE_OPTIONS,
@@ -37,6 +34,10 @@ import {
   getWorldDefinition,
   removeWorldConnection,
 } from "./world-state.js";
+import {
+  generateVassalLifeMap,
+  validateVassalLifeMapGraph,
+} from "./vassal-life-map-generator.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
@@ -103,6 +104,24 @@ export function getVassalLineage(state) {
 export function getCurrentLifeMapVassal(state) {
   const lineage = getVassalLineage(state);
   return lineage?.currentVassalId ? lineage?.vassalsById?.[lineage.currentVassalId] ?? null : null;
+}
+
+export function getVassalLifeMapGraph(vassal) {
+  return vassal?.lifeMap?.graph ?? null;
+}
+
+export function getVassalLifeMapNodes(vassal) {
+  return getVassalLifeMapGraph(vassal)?.nodes ?? [];
+}
+
+export function getVassalLifeMapNode(vassal, nodeId) {
+  return getVassalLifeMapNodes(vassal).find((node) => node.id === nodeId) ?? null;
+}
+
+export function getVassalLifeMapOutgoingNodeIds(vassal, nodeId) {
+  return (getVassalLifeMapGraph(vassal)?.edges ?? [])
+    .filter((edge) => edge.fromNodeId === nodeId)
+    .map((edge) => edge.toNodeId);
 }
 
 export function getSelectedLifeMapVassals(state) {
@@ -343,12 +362,23 @@ export function rerollVassalCandidates(state) {
   return { ok: true, pool: getVassalCandidatePool(state) };
 }
 
-function createLifeMapState() {
+function createLifeMapState(state, vassalId) {
+  const generationSeed = Math.floor(state?.rng?.vassalLifeMapSeed ?? 0);
+  const generated = generateVassalLifeMap(state?.gameConfig?.lifeMapGenerator, {
+    nextFloat: () => state.rngNextVassalLifeMapFloat(),
+    nextInt: (min, max) => state.rngNextVassalLifeMapInt(min, max),
+  }, {
+    graphId: `${vassalId}-life-map`,
+    generationSeed,
+  });
+  if (!generated.ok) {
+    throw new Error(`Could not generate Vassal Life Map: ${generated.errors?.join("; ") ?? generated.reason}`);
+  }
   return {
-    mapId: VASSAL_LIFE_MAP_ID,
+    graph: generated.graph,
     currentNodeId: null,
     completedNodeIds: [],
-    availableNodeIds: [...VASSAL_LIFE_MAP_ENTRY_NODE_IDS],
+    availableNodeIds: [...generated.graph.entryNodeIds],
     nodeStates: {},
     pendingResolution: null,
   };
@@ -381,7 +411,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     developmentProgress: 0,
     developmentChoiceQueue: [],
     nextDevelopmentChoiceId: 1,
-    lifeMap: createLifeMapState(),
+    lifeMap: createLifeMapState(state, vassalId),
     lifeEvents: [{
       eventId: `${vassalId}:selected`, kind: "selected", tSec: state.tSec,
       text: `Selected at ${getRegionReference(state, source.locationRegionId) ?? source.locationRegionId}`,
@@ -654,7 +684,7 @@ export function enterVassalLifeNode(state, nodeId) {
   if (vassal.lifeMap.pendingResolution) return { ok: false, reason: "resolutionPending" };
   if (vassal.lifeMap.currentNodeId) return { ok: false, reason: "nodeAlreadyActive" };
   if (!(vassal.lifeMap.availableNodeIds ?? []).includes(nodeId)) return { ok: false, reason: "nodeUnavailable" };
-  const node = VASSAL_LIFE_MAP_NODE_BY_ID[nodeId];
+  const node = getVassalLifeMapNode(vassal, nodeId);
   if (!node) return { ok: false, reason: "invalidNode" };
   const nodeState = vassal.lifeMap.nodeStates[nodeId] ?? createNodeState(state, vassal, node);
   vassal.lifeMap.nodeStates[nodeId] = nodeState;
@@ -914,13 +944,13 @@ function completeNodeResolution(state, vassal, nodeState) {
     finishVassal(state, vassal, { reason: "died", cause: "naturalMortality" });
     return { ok: true, ended: true, died: true };
   }
-  const node = VASSAL_LIFE_MAP_NODE_BY_ID[nodeState.nodeId];
+  const node = getVassalLifeMapNode(vassal, nodeState.nodeId);
   vassal.lifeMap.currentNodeId = null;
-  if (!node?.outgoingNodeIds?.length) {
+  if (getVassalLifeMapOutgoingNodeIds(vassal, node?.id).length === 0) {
     finishVassal(state, vassal, { reason: "retired" });
     return { ok: true, ended: true, retired: true };
   }
-  vassal.lifeMap.availableNodeIds = [...node.outgoingNodeIds];
+  vassal.lifeMap.availableNodeIds = getVassalLifeMapOutgoingNodeIds(vassal, node.id);
   enqueueVassalDevelopmentChoices(state, vassal, earnedDevelopmentChoices);
   return { ok: true, ended: false };
 }
@@ -1187,7 +1217,7 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
 export function getVassalNodeDecisionPresentation(state, nodeId = null, preview = {}) {
   const vassal = getCurrentLifeMapVassal(state);
   const activeNodeId = nodeId ?? vassal?.lifeMap?.currentNodeId ?? null;
-  const node = VASSAL_LIFE_MAP_NODE_BY_ID[activeNodeId] ?? null;
+  const node = getVassalLifeMapNode(vassal, activeNodeId);
   const nodeState = vassal?.lifeMap?.nodeStates?.[activeNodeId] ?? null;
   if (!vassal || !node) return null;
   const stagedPrestigeCost = (nodeState?.purchasedOffers ?? [])
@@ -1335,7 +1365,7 @@ export function getVassalPendingResolution(state) {
 
 export function getVassalNodeDisplayState(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
-  const node = VASSAL_LIFE_MAP_NODE_BY_ID[nodeId];
+  const node = getVassalLifeMapNode(vassal, nodeId);
   if (!node) return null;
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId] ?? null;
   return {
@@ -1395,18 +1425,22 @@ export function validateVassalLifeMapState(state) {
         }
       }
     }
-    if (vassal?.lifeMap?.mapId !== VASSAL_LIFE_MAP_ID
+    const graphValidation = validateVassalLifeMapGraph(vassal?.lifeMap?.graph);
+    if (!graphValidation.ok
         || !Array.isArray(vassal?.lifeMap?.completedNodeIds)
         || !Array.isArray(vassal?.lifeMap?.availableNodeIds)
         || !vassal?.lifeMap?.nodeStates || Array.isArray(vassal.lifeMap.nodeStates)) {
       errors.push(`${vassalId}.lifeMap: invalid Life Map state`);
+      for (const error of graphValidation.errors ?? []) {
+        errors.push(`${vassalId}.lifeMap.graph.${error}`);
+      }
     }
     const nodeIds = [
       ...(vassal?.lifeMap?.completedNodeIds ?? []),
       ...(vassal?.lifeMap?.availableNodeIds ?? []),
       ...Object.keys(vassal?.lifeMap?.nodeStates ?? {}),
     ];
-    if (nodeIds.some((nodeId) => !VASSAL_LIFE_MAP_NODE_BY_ID[nodeId])) {
+    if (nodeIds.some((nodeId) => !getVassalLifeMapNode(vassal, nodeId))) {
       errors.push(`${vassalId}.lifeMap: unknown node id`);
     }
   }

@@ -40,12 +40,10 @@ import { getMoonPhaseAtSecond } from "../moon-phases.js";
 import { DETAILED_PRACTICE_SLOT_COUNT } from "../../defs/gamepieces/detailed-settlement-defs.js";
 import { ActionKinds, applyAction } from "../actions.js";
 import {
-  VASSAL_LIFE_MAP_NODES,
-  VASSAL_LIFE_MAP_ENTRY_NODE_IDS,
-} from "../../defs/gamepieces/vassal-life-map-defs.js";
-import {
   getCurrentLifeMapVassal,
   getVassalCandidatePool,
+  getVassalLifeMapNodes,
+  getVassalLifeMapOutgoingNodeIds,
   getVassalPrestigeIncome,
 } from "../vassal-life-map.js";
 
@@ -716,13 +714,6 @@ const lifeMapState = fresh(777);
 lifeMapState.paused = true;
 lifeMapState.gameConfig.settings.values.primordialBasePressure = 0;
 lifeMapState.civilization.chaos.monsterLossThreshold = 1000000;
-assert.equal(VASSAL_LIFE_MAP_NODES.length, 31, "reference life map has 31 nodes");
-assert.equal(VASSAL_LIFE_MAP_ENTRY_NODE_IDS.length, 2, "two Early nodes are initially available");
-for (const node of VASSAL_LIFE_MAP_NODES) {
-  assert.ok(node.outgoingNodeIds.every((id) =>
-    VASSAL_LIFE_MAP_NODES.find((entry) => entry.id === id)?.depth === node.depth + 1
-  ), `${node.id} has only forward edges`);
-}
 const lifePool = getVassalCandidatePool(lifeMapState);
 assert.equal(lifePool.candidates.length, 3);
 assert.ok(lifePool.candidates.every((candidate) =>
@@ -736,8 +727,16 @@ assert.equal(applyAction(lifeMapState, {
   payload: { candidateIndex: 0, expectedPoolHash: lifePool.expectedPoolHash },
 }, { isReplay: true }).ok, true);
 let lifeVassal = getCurrentLifeMapVassal(lifeMapState);
-assert.deepEqual(lifeVassal.lifeMap.availableNodeIds, VASSAL_LIFE_MAP_ENTRY_NODE_IDS);
-const patronageNodeId = VASSAL_LIFE_MAP_ENTRY_NODE_IDS[0];
+const lifeNodes = getVassalLifeMapNodes(lifeVassal);
+assert.equal(lifeNodes.filter((node) => node.family === "legacy").length, 1);
+assert.ok(lifeVassal.lifeMap.availableNodeIds.length >= 2, "generated map has an opening choice");
+for (const node of lifeNodes) {
+  assert.ok(getVassalLifeMapOutgoingNodeIds(lifeVassal, node.id).every((id) =>
+    lifeNodes.find((entry) => entry.id === id)?.depth === node.depth + 1
+  ), `${node.id} has only forward edges`);
+}
+const patronageNodeId = lifeNodes.find((node) => node.family === "patronage").id;
+lifeVassal.lifeMap.availableNodeIds = [patronageNodeId];
 assert.equal(applyAction(lifeMapState, {
   kind: ActionKinds.VASSAL_ENTER_LIFE_NODE, payload: { nodeId: patronageNodeId },
 }, { isReplay: true }).ok, true);
@@ -765,7 +764,7 @@ assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].resolved, true);
 assert.equal(lifeVassal.prestige, prestigeBefore + 5 + incomeBefore + 1,
   "Cultivate Cunning affects the one recurring Prestige grant");
 assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].mortality.roll >= 0, true);
-assert.equal(lifeVassal.lifeMap.availableNodeIds.length, 2);
+assert.ok(lifeVassal.lifeMap.availableNodeIds.length >= 1);
 
 const shopState = fresh(778);
 shopState.paused = true;
@@ -774,7 +773,8 @@ applyAction(shopState, { kind: ActionKinds.SETTLEMENT_SELECT_VASSAL,
   payload: { candidateIndex: 0, expectedPoolHash: shopPool.expectedPoolHash } }, { isReplay: true });
 let shopVassal = getCurrentLifeMapVassal(shopState);
 shopVassal.prestige = 100;
-const practiceNodeId = "life-02-3";
+const practiceNodeId = getVassalLifeMapNodes(shopVassal)
+  .find((node) => node.family === "practiceReform").id;
 shopVassal.lifeMap.availableNodeIds = [practiceNodeId];
 applyAction(shopState, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE,
   payload: { nodeId: practiceNodeId } }, { isReplay: true });

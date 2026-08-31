@@ -2,8 +2,13 @@ import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
+import {
+  canonicalizeVassalLifeMapGeneratorConfig,
+  createAuthoredVassalLifeMapGeneratorConfig,
+  validateVassalLifeMapGeneratorConfig,
+} from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 9;
+export const GAME_CONFIG_SCHEMA_VERSION = 10;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -385,6 +390,7 @@ export function createAuthoredGameConfig() {
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
     settings: createAuthoredGameSettingsDraft(),
     gamepieces: createAuthoredGamepiecesDraft(),
+    lifeMapGenerator: createAuthoredVassalLifeMapGeneratorConfig(),
   };
 }
 
@@ -393,15 +399,18 @@ export function canonicalizeGameConfig(value) {
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
     settings: canonicalizeGameSettingsDraft(value?.settings),
     gamepieces: canonicalizeGamepiecesDraft(value?.gamepieces),
+    lifeMapGenerator: canonicalizeVassalLifeMapGeneratorConfig(value?.lifeMapGenerator),
   };
 }
 
 export function validateGameConfig(value) {
   const settings = validateGameSettingsDraft(value?.settings);
   const gamepieces = validateGamepiecesDraft(value?.gamepieces);
+  const lifeMapGenerator = validateVassalLifeMapGeneratorConfig(value?.lifeMapGenerator);
   const errors = [
     ...settings.errors.map((error) => `settings.${error}`),
     ...gamepieces.errors.map((error) => `gamepieces.${error}`),
+    ...lifeMapGenerator.errors.map((error) => `lifeMapGenerator.${error}`),
   ];
   if (value?.schemaVersion !== GAME_CONFIG_SCHEMA_VERSION) {
     errors.unshift(`schemaVersion: expected ${GAME_CONFIG_SCHEMA_VERSION}`);
