@@ -398,6 +398,8 @@ function buildRegionMapIndicators(state, definition) {
     const structureSlots = viewModel
       ? (viewModel.structures ?? []).map((slot) => slot?.structureId ?? null)
       : Array.from({ length: structureCapacity }, () => null);
+    const hasCurrencyPractice = (viewModel?.practices ?? []).some((practice) =>
+      practice?.tags?.includes("Currency"));
     return {
       regionId: regionDef.id,
       controller: region?.controller ?? null,
@@ -408,11 +410,11 @@ function buildRegionMapIndicators(state, definition) {
       structureCapacity,
       structureSlots,
       pressure: viewModel?.pressure ?? null,
-      currency: viewModel?.currency ?? null,
+      currency: hasCurrencyPractice ? viewModel?.currency ?? null : null,
       currencySpent: Math.max(
         0,
-        Number(viewModel?.currencySpentThisMoon ?? 0),
-        Number(viewModel?.currencySpentLastMoon ?? 0)
+        hasCurrencyPractice ? Number(viewModel?.currencySpentThisMoon ?? 0) : 0,
+        hasCurrencyPractice ? Number(viewModel?.currencySpentLastMoon ?? 0) : 0
       ),
     };
   });

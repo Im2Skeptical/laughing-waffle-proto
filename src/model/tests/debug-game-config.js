@@ -5,6 +5,7 @@ import {
   GAMEPIECES_DRAFT_KIND,
   GAME_SETTINGS_DRAFT_KIND,
   canonicalizeGameConfig,
+  canonicalizeGamepiecesDraft,
   createAuthoredGameConfig,
   createAuthoredGamepiecesDraft,
   createAuthoredGameSettingsDraft,
@@ -43,9 +44,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 10);
-assert.equal(authoredConfig.settings.schemaVersion, 10);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 10);
+assert.equal(authoredConfig.schemaVersion, 11);
+assert.equal(authoredConfig.settings.schemaVersion, 11);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 11);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -63,6 +64,8 @@ assert.equal(
   "Preservation leaves Administration adjacent-only by default"
 );
 assert.equal(authoredConfig.gamepieces.practices.forage.workerCapacity, 1);
+assert.ok(authoredConfig.gamepieces.practices.exchange.tags.includes("Currency"),
+  "Currency-facing practices declare the Currency tag");
 assert.equal(
   authoredConfig.gamepieces.practices.forage.effects[0].scaledValue.baseAmount,
   5
@@ -117,6 +120,18 @@ const enabledReachGamepieces = setAtPath(
   true
 );
 assert.equal(validateGamepiecesDraft(enabledReachGamepieces).ok, true);
+const retaggedGamepieces = setAtPath(
+  authoredConfig.gamepieces,
+  ["practices", "exchange", "tags"],
+  ["Commerce"]
+);
+assert.equal(validateGamepiecesDraft(retaggedGamepieces).ok, true);
+assert.deepEqual(canonicalizeGamepiecesDraft(retaggedGamepieces).practices.exchange.tags, ["Commerce"],
+  "editable gamepiece tags survive canonicalization");
+assert.ok(getGamepieceEditorGroups(authoredConfig.gamepieces)
+  .flatMap((group) => group.fields)
+  .some((field) => field.path.join(".") === "practices.exchange.tags"),
+"Gamepieces exposes tags to the debug editor");
 assert.equal(
   canonicalizeGameConfig({
     settings: authoredConfig.settings,
@@ -453,4 +468,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v10] OK");
+console.log("[debug-game-config-v11] OK");

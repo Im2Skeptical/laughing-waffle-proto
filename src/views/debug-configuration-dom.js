@@ -56,6 +56,19 @@ function booleanInput(value) {
   return input;
 }
 
+function tagsInput(value) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = Array.isArray(value) ? value.join(", ") : "";
+  input.placeholder = "Food, Trade";
+  input.style.cssText = [
+    "width:100%", "min-width:90px", "min-height:34px", "box-sizing:border-box",
+    "border:1px solid #8fa0ae", "border-radius:5px", "background:#f8f0df",
+    "color:#1d2430", "padding:5px 8px",
+  ].join(";");
+  return input;
+}
+
 function fieldRow(labelText, input) {
   const label = document.createElement("label");
   label.style.cssText = "display:grid;gap:4px;min-width:0;font-size:12px;color:#e8dfcb";
@@ -180,6 +193,14 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
     });
   }
 
+  function bindTags(input, path) {
+    input.addEventListener("change", () => {
+      const tags = [...new Set(input.value.split(",").map((tag) => tag.trim()).filter(Boolean))];
+      const result = controller.updateValue(kind, path, tags);
+      input.setAttribute("aria-invalid", result?.ok ? "false" : "true");
+    });
+  }
+
   function renderSettings(parent, draft) {
     for (const section of GAME_SETTING_EDITOR_SECTIONS) {
       const group = document.createElement("fieldset");
@@ -227,13 +248,16 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
         const value = getAtPath(draft, field.path);
         const input = field.type === "boolean"
           ? booleanInput(value)
-          : numberInput(value, {
+          : field.type === "tags"
+            ? tagsInput(value)
+            : numberInput(value, {
             min: String(field.path.at(-1)).startsWith("additive") ? -1000 : 0,
             step: "any",
           });
         input.dataset.testid = `gamepiece-${groupData.kind}-${groupData.id}-${field.id}`;
         input.setAttribute("aria-label", `${groupData.label} ${field.label}`);
         if (field.type === "boolean") bindBoolean(input, field.path);
+        else if (field.type === "tags") bindTags(input, field.path);
         else bindNumber(input, field.path);
         grid.appendChild(fieldRow(field.label, input));
       }
