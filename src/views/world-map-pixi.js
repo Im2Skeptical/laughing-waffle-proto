@@ -1067,17 +1067,9 @@ export function createWorldMapView({
       bg,
       civilizationHeader,
       createText(
-        "CIVILIZATION ·",
-        { ...TEXT_STYLES.header, fontSize: 19 },
-        CIVILIZATION_HEADER_RECT.x + 20,
-        CIVILIZATION_HEADER_RECT.y + 27,
-        0,
-        0.5
-      ),
-      createText(
         `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total} · Research ${civilizationSummary.research ?? 0}`,
         { ...TEXT_STYLES.title, fontSize: 14 },
-        CIVILIZATION_HEADER_RECT.x + 190,
+        CIVILIZATION_HEADER_RECT.x + 20,
         CIVILIZATION_HEADER_RECT.y + 27,
         0,
         0.5
