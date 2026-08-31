@@ -366,6 +366,7 @@ export function getDetailedCivilizationSummary(state) {
       total: roundFood(storedFood + looseFood),
       storedCapacity: storedFoodCapacity,
     },
+    research: roundFood(state?.civilization?.research?.total ?? 0),
     overHousingSiteCount,
     chaos: {
       chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
@@ -757,6 +758,14 @@ function addCurrencyToSettlement(state, regionId, amount) {
   return roundFood(amount);
 }
 
+function recordCurrencySpent(state, regionId, amount) {
+  const spent = roundFood(Math.max(0, amount ?? 0));
+  const turn = state?.civilization?.currentMoonTurn;
+  if (!turn || spent <= 0) return;
+  const result = ensureMoonRegionResult(turn, regionId);
+  result.currencySpent = roundFood((result.currencySpent ?? 0) + spent);
+}
+
 function consumeFood(settlement, amount) {
   const demand = roundFood(amount);
   const fromLoose = Math.min(settlement.looseFood, demand);
@@ -809,6 +818,7 @@ function importMissingFood(state, regionId) {
     if (remaining <= 0) break;
     const spent = Math.min(remaining, Math.max(0, source.settlement.currency ?? 0));
     source.settlement.currency = roundFood(source.settlement.currency - spent);
+    recordCurrencySpent(state, source.regionId, spent);
     remaining = roundFood(remaining - spent);
   }
   if (calculation.importedFood > 0) {
@@ -954,6 +964,7 @@ function executePracticeEffects(state, site, assignment, activationType, stage =
       const cap = resolveScaledValue(state, site, assignment, effect.scaledValue).effectiveValue;
       const amount = Math.min(cap, Math.floor(Math.max(0, settlement.currency ?? 0) / Math.max(0.0001, effect.currencyPerHousing ?? 1)));
       settlement.currency = roundFood(Math.max(0, settlement.currency - amount * (effect.currencyPerHousing ?? 1)));
+      recordCurrencySpent(state, site.regionId, amount * (effect.currencyPerHousing ?? 1));
       getPhaseModifiers(state).housingByRegion[site.regionId] = roundFood((getPhaseModifiers(state).housingByRegion[site.regionId] ?? 0) + amount);
     } else if (effect.op === "setMoonHappinessFloor") {
       settlement.moonHappinessFloor = effect.status;
@@ -1349,6 +1360,7 @@ function createMoonRegionResult(regionId) {
     faith: null,
     migration: null,
     death: null,
+    currencySpent: 0,
   };
 }
 
@@ -3256,6 +3268,8 @@ export function getDetailedSettlementViewModel(state, regionId) {
     storedFood: settlement.storedFood,
     looseFood: settlement.looseFood,
     currency: roundFood(Math.max(0, settlement.currency ?? 0)),
+    currencySpentThisMoon: roundFood(state.civilization.currentMoonTurn?.regions?.[regionId]?.currencySpent ?? 0),
+    currencySpentLastMoon: roundFood(settlement.lastMoonResult?.currencySpent ?? 0),
     storedFoodCapacity: getStoredFoodCapacity(state, regionId),
     population,
     pressure: getSettlementPressureSummary(state, regionId),
