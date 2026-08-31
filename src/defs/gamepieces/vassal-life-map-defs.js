@@ -28,6 +28,10 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
     description: "Add or remove a world connection at this Vassal's current settlement.",
   }),
+  settlement: Object.freeze({
+    id: "settlement", label: "Settlement", glyph: "S", color: 0x77aa65,
+    description: "Found a nearby settlement and move this Vassal there.",
+  }),
   crisis: Object.freeze({
     id: "crisis", label: "Crisis", glyph: "!", color: 0xca5b5b,
     description: "Take a risky action with immediate consequences.",
@@ -40,7 +44,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "crisis",
+  "publicWorks", "routes", "settlement", "crisis",
 ]);
 
 export const VASSAL_LIFE_TUNING = Object.freeze({
@@ -65,6 +69,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   routeAddPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3),
   routeRemovePrestigeCost: 10,
   routeRemovePhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
+  settlementPrestigeCost: 40,
   legacyPrestigeCost: 20,
   legacyPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4),
   legacyStartingPrestigeBonus: 3,
@@ -79,10 +84,9 @@ export const VASSAL_PATRONAGE_OPTIONS = Object.freeze([
 ]);
 
 export const VASSAL_DEVELOPMENT_OPTIONS = Object.freeze([
-  Object.freeze({ id: "studyStatecraft", label: "Study Statecraft", statId: "intelligence", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
-  Object.freeze({ id: "practiceLeadership", label: "Practice Leadership", statId: "effectiveness", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
-  Object.freeze({ id: "studyIntrigue", label: "Study Intrigue", statId: "cunning", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
-  Object.freeze({ id: "broadEducation", label: "Broad Education", statId: "wisdom", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4) }),
+  Object.freeze({ id: "deepStudy", label: "Deep Study", statDelta: 2, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 6) }),
+  Object.freeze({ id: "hardLesson", label: "Hard Lesson", statDelta: 2, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2), lossStatDelta: -1 }),
+  Object.freeze({ id: "steadyPractice", label: "Steady Practice", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
 ]);
 
 export const VASSAL_CRISIS_OPTIONS = Object.freeze([

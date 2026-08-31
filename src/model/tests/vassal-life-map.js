@@ -108,9 +108,9 @@ assert.deepEqual([
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
 ], [4, 4, 3]);
 assert.deepEqual(
-  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis"]
+  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "settlement", "crisis"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 5, 1, 1, 1, 0]
+  [5, 5, 5, 1, 1, 1, 0, 0]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
@@ -513,12 +513,15 @@ const legacyVassal = getCurrentLifeMapVassal(legacyState);
 legacyVassal.prestige = 100;
 const legacyNode = forceEnter(legacyState, nodeIdForFamily(legacyState, "legacy"));
 dispatch(legacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-  nodeId: legacyNode.nodeId, optionId: "enduringOffice",
+  nodeId: legacyNode.nodeId,
+  optionId: legacyNode.options.find((option) => option.id === "enduringOffice")?.id
+    ?? "humbleRemembrance",
 });
 dispatch(legacyState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: legacyNode.nodeId });
-assert.equal(legacyState.civilization.vassalLegacy.futureStartingPrestigeBonus, 3,
+assert.equal(legacyState.civilization.vassalLegacy.futureStartingPrestigeBonus,
+  legacyNode.options.find((option) => option.id === "enduringOffice")?.legacyStartingPrestigeBonus ?? 1,
   "Legacy applies before the delayed mortality boundary");
-resolvePending(legacyState);
+if (getCurrentLifeMapVassal(legacyState)) resolvePending(legacyState);
 assert.equal(getCurrentLifeMapVassal(legacyState), null);
 assert.equal(legacyVassal.endedReason, "retired");
 assert.equal(legacyVassal.developmentChoiceQueue.length, 0,
@@ -541,6 +544,57 @@ assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBon
   "the free Legacy choice grants its weaker future-Vassal benefit");
 assert.equal(getCurrentLifeMapVassal(freeLegacyState), null,
   "a zero-Prestige Vassal can always complete a terminal Legacy node");
+
+const settlementState = selectedState(1);
+const settlementVassal = getCurrentLifeMapVassal(settlementState);
+settlementVassal.prestige = 100;
+const sourceRegionId = settlementVassal.locationRegionId;
+const sourceAdults = settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
+  .detailedState.populationByClass.villager.adults;
+const settlementNode = forceEnter(settlementState, nodeIdForFamily(settlementState, "settlement"));
+const settlementOption = settlementNode.options.find((option) => option.settlementRegionId);
+assert.ok(settlementOption, "Settlement offers a connected frontier region when affordable");
+assert.ok(settlementNode.options.length <= 3);
+dispatch(settlementState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: settlementNode.nodeId, optionId: settlementOption.id,
+});
+dispatch(settlementState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: settlementNode.nodeId });
+const settledRegionId = settlementOption.settlementRegionId;
+const settled = settlementState.world.sites.find((site) => site.regionId === settledRegionId)?.detailedState;
+assert.equal(settlementState.world.regions.find((region) => region.id === settledRegionId).controller, "player");
+assert.equal(settlementVassal.locationRegionId, settledRegionId);
+assert.equal(settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
+  .detailedState.populationByClass.villager.adults, sourceAdults - 10);
+assert.equal(settled.populationByClass.villager.adults, 10);
+assert.equal(settled.storedFood, 60);
+assert.deepEqual(settled.practiceSlots.slice(0, 2).map((slot) => slot?.practiceId ?? null), ["forage", null]);
+assert.deepEqual(settled.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null), ["granary", "mudHouses"]);
+assert.equal(validateVassalLifeMapState(serializeGameState(settlementState)).ok, true,
+  "settlement choices remain serializable after confirmation");
+
+const developmentOptionsState = selectedState(1);
+const developmentNode = forceEnter(developmentOptionsState, nodeIdForFamily(developmentOptionsState, "development"));
+assert.equal(developmentNode.options.length, 3);
+assert.equal(new Set(developmentNode.options.map((option) => option.statId)).size, 3,
+  "Development options award distinct stats");
+const hardLesson = developmentNode.options.find((option) => option.id === "hardLesson");
+assert.notEqual(hardLesson.statId, hardLesson.lossStatId);
+assert.equal(hardLesson.statDelta, 2);
+assert.equal(hardLesson.lossStatDelta, -1);
+assert.equal(developmentNode.options.find((option) => option.id === "deepStudy").phaseCost,
+  hardLesson.phaseCost * 3, "Deep Study costs three times normal Development time");
+
+const pooledCrisisState = selectedState(1);
+const pooledCrisis = forceEnter(pooledCrisisState, nodeIdForFamily(pooledCrisisState, "crisis"));
+assert.equal(pooledCrisis.options.length, 3);
+assert.equal(new Set(pooledCrisis.options.map((option) => option.id)).size, 3,
+  "Crisis rolls a unique three-choice pool");
+
+const pooledLegacyState = selectedState(1);
+const pooledLegacy = forceEnter(pooledLegacyState, nodeIdForFamily(pooledLegacyState, "legacy"));
+assert.equal(pooledLegacy.options.length, 3);
+assert.ok(pooledLegacy.options.some((option) => option.id === "humbleRemembrance"),
+  "Legacy always keeps its free terminal choice");
 
 const serialized = serializeGameState(legacyState);
 assert.equal(validateVassalLifeMapState(serialized).ok, true);
