@@ -8,7 +8,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 10;
+export const GAME_CONFIG_SCHEMA_VERSION = 11;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -234,15 +234,22 @@ export function createAuthoredGamepiecesDraft() {
   };
 }
 
-function copyEditableLeaves(template, source) {
+function normalizeTags(value, fallback) {
+  if (!Array.isArray(value)) return fallback;
+  return [...new Set(value.filter((tag) => typeof tag === "string")
+    .map((tag) => tag.trim()).filter(Boolean))];
+}
+
+function copyEditableLeaves(template, source, path = []) {
+  if (path.at(-1) === "tags") return normalizeTags(source, template);
   if (Array.isArray(template)) {
-    return template.map((entry, index) => copyEditableLeaves(entry, source?.[index]));
+    return template.map((entry, index) => copyEditableLeaves(entry, source?.[index], [...path, index]));
   }
   if (template && typeof template === "object") {
     return Object.fromEntries(
       Object.entries(template).map(([key, entry]) => [
         key,
-        copyEditableLeaves(entry, source?.[key]),
+        copyEditableLeaves(entry, source?.[key], [...path, key]),
       ])
     );
   }
@@ -307,6 +314,7 @@ export function getGamepieceEditorGroups(draft) {
         id,
         label: definition.label ?? id,
         fields: [
+          { path: ["tags"], type: "tags", label: "Tags" },
           ...collectNumericLeafPaths(definition),
           ...collectDeclaredEditorFields(definition),
         ].map(({ path, type, label }) => ({
@@ -365,6 +373,12 @@ export function validateGamepiecesDraft(value) {
   for (const group of getGamepieceEditorGroups(value)) {
     for (const entry of group.fields) {
       const current = getAtPath(value, entry.path);
+      if (entry.type === "tags") {
+        if (!Array.isArray(current) || current.some((tag) => typeof tag !== "string" || !tag.trim())) {
+          errors.push(`${entry.path.join(".")}: expected non-empty tag strings`);
+        }
+        continue;
+      }
       if (entry.type === "boolean") {
         if (typeof current !== "boolean") {
           errors.push(`${entry.path.join(".")}: expected a boolean`);
