@@ -562,6 +562,13 @@ export function createMetricGraphView({
     w: WIN_W - (16 + LEGEND_GUTTER_W + LEGEND_GUTTER_GAP) - 16,
     h: WIN_H - HEADER_H - 26,
   };
+  legendContainer.eventMode = "static";
+  legendContainer.hitArea = new PIXI.Rectangle(
+    16,
+    plot.y,
+    LEGEND_GUTTER_W,
+    plot.h
+  );
 
   const plotHit = new PIXI.Graphics();
   plotHit.alpha = 0;
@@ -1923,6 +1930,38 @@ export function createMetricGraphView({
     drawScrub();
   }
 
+  function updateLegendTooltip(globalPoint) {
+    const local = globalPoint && typeof root.toLocal === "function"
+      ? root.toLocal(globalPoint)
+      : null;
+    const entry = local
+      ? Array.from(legendEntriesBySeriesId.values()).find((candidate) => {
+          const x = Number(candidate?.container?.x ?? 0);
+          const y = Number(candidate?.container?.y ?? 0);
+          return local.x >= x && local.x <= x + LEGEND_ICON_SIZE &&
+            local.y >= y && local.y <= y + LEGEND_ICON_SIZE;
+        })
+      : null;
+    const seriesId = entry?.seriesId ?? null;
+    if (seriesId === hoveredLegendSeriesId) return;
+    if (!seriesId) {
+      clearLegendHoverSeries();
+      tooltipView?.hide?.();
+      return;
+    }
+    setLegendHoverSeries(seriesId);
+    if (!tooltipView || (interaction && interaction?.canShowHoverUI?.() === false)) return;
+    const spec = {
+      ...buildLegendTooltipSpec(entry.seriesDef),
+      scale: Math.max(
+        Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+        tooltipView?.getRelativeDisplayScale?.(entry.container, 1) ??
+          getDisplayObjectWorldScale(entry.container, 1)
+      ),
+    };
+    tooltipView.show(spec, entry.container.getBounds());
+  }
+
   function clearLegendEntries() {
     legendContainer.removeChildren();
     legendEntriesBySeriesId.clear();
@@ -1969,27 +2008,6 @@ export function createMetricGraphView({
         entryContainer.on("pointertap", (event) => {
           event?.stopPropagation?.();
         });
-        const showLegendTooltip = () => {
-          setLegendHoverSeries(seriesId);
-          if (!tooltipView) return;
-          if (interaction && interaction?.canShowHoverUI?.() === false) return;
-          const spec = {
-            ...buildLegendTooltipSpec(s),
-            scale: Math.max(
-              Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
-              tooltipView?.getRelativeDisplayScale?.(entryContainer, 1) ??
-                getDisplayObjectWorldScale(entryContainer, 1)
-            ),
-          };
-          tooltipView.show(spec, entryContainer.getBounds());
-        };
-        const hideLegendTooltip = () => {
-          setLegendHoverSeries(null);
-          tooltipView?.hide?.();
-        };
-        entryContainer.on("pointerenter", showLegendTooltip);
-        entryContainer.on("pointerleave", hideLegendTooltip);
-
         const bg = new PIXI.Graphics();
         const iconText = new PIXI.Text(iconTextValue, {
           fill: TIMEGRAPH_THEME.textPrimary,
@@ -2004,6 +2022,8 @@ export function createMetricGraphView({
         legendContainer.addChild(entryContainer);
 
         legendEntriesBySeriesId.set(seriesId, {
+          seriesId,
+          seriesDef: s,
           container: entryContainer,
           bg,
           lineColor,
@@ -2025,6 +2045,12 @@ export function createMetricGraphView({
     }
     refreshLegendStyles();
   }
+
+  legendContainer.on("pointermove", (event) => updateLegendTooltip(event.global));
+  legendContainer.on("pointerleave", () => {
+    clearLegendHoverSeries();
+    tooltipView?.hide?.();
+  });
 
   function updateHeaderButtons() {
     const zoomX = HEADER_LEFT_X;
