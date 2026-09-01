@@ -44,9 +44,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 11);
-assert.equal(authoredConfig.settings.schemaVersion, 11);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 11);
+assert.equal(authoredConfig.schemaVersion, 12);
+assert.equal(authoredConfig.settings.schemaVersion, 12);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 12);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -490,4 +490,4 @@ try {
   else globalThis.localStorage = previousStorage;
 }
 
-console.log("[debug-game-config-v11] OK");
+console.log("[debug-game-config-v12] OK");

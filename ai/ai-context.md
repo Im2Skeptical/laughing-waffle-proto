@@ -20,6 +20,8 @@ task lists.
   cannot perturb those existing outcomes. Generated Life Map topology and room
   families use `state.rng.vassalLifeMapSeed`, so generator experiments cannot
   perturb candidates, node contents, Crisis, mortality, or development offers.
+  Procedural portrait traits use `state.rng.vassalPortraitSeed`, so cosmetic
+  generation cannot perturb any gameplay outcome.
 - `GameState` is JSON-only. Runtime RNG helpers are removed for serialization
   and restored on deserialize.
 - `rebuildStateAtSecond(tSec)` is the authoritative deterministic replay path.
@@ -33,8 +35,8 @@ task lists.
 
 ## Current state and schemas
 
-- Game state uses schema v18 and runner saves use schema v10; older saves are rejected.
-- Each run serializes schema-v11 Game Settings, Gamepieces, and Life Map generator
+- Game state uses schema v19 and runner saves use schema v11; older saves are rejected.
+- Each run serializes schema-v12 Game Settings, Gamepieces, and Life Map generator
   settings in `gameConfig`.
 - Map Lab drafts use schema v4; scenario libraries use schema v3.
 - Debug drafts in browser storage are inert until a fresh test run is started.
@@ -100,6 +102,12 @@ survival knowledge, and the single vassal lineage are civilization-global.
   families use Early/Mid/Late weights, and every final normal node connects to a
   single twelfth-depth Legacy node. Entered nodes
   persist their content while choices, purchases, and one shop reroll are staged.
+  Each candidate also owns a serialized procedural portrait and one signature
+  node descriptor. Three candidates always advertise distinct broad signature
+  groups. Generation replaces one mid-band node with that signature after the
+  ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
+  Ordinary graphs no longer roll Settlement nodes, and regular Route shops are
+  add-only.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
   confirmation. Draft purchases can be undone or deterministically reordered;
@@ -142,10 +150,15 @@ bounded JSON state used for replay and phase tooltips.
 - The season/moon wheel shows fixed icons for all six lunar phases. The active
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.
-- Candidate cards reveal age, settlement, Prestige, and four stats but keep the
-  Life Map hidden. Selection opens a dedicated full-topology Life Map screen.
-  The Lifegraph uses the full playfield plus a compact Vassal HUD containing
-  Prestige and all four stats. Stat hover/tap details show the current
+- The World Map candidate chooser begins below the map and overlays the graph
+  region. Its three expanded cards show procedural portraits, age, settlement,
+  Prestige, four stats, and the advertised signature node. Hover temporarily
+  previews a starting region; click/tap locks a preview, and the lower-left
+  control confirms it. Clicking outside dismisses the chooser without changing
+  its authoritative pool. Selection opens a dedicated full-topology Life Map
+  screen. The Lifegraph uses the full playfield plus the same portrait and a
+  compact Vassal HUD containing Prestige and all four stats. Stat hover/tap
+  details show the current
   calculated income or discount power. Clicking any
   node opens a large shared decision modal; only entering an available node
   reveals its persisted options or inventory. The modal shows complete effects,
@@ -153,7 +166,9 @@ bounded JSON state used for replay and phase tooltips.
   the current settlement with staged Practices/Structures ghosted into their
   authoritative slots; Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show immediate and surviving-completion Vassal impact;
-  Crisis/Legacy center their choices without an irrelevant side panel. Shop
+  Crisis/Legacy and non-shop signature nodes center their choices without an
+  irrelevant side panel. Signature nodes have a distinct double-ring marker,
+  badge, glyph, label, description, and legend treatment. Shop
   drafts support undo and pointer/touch drag ordering. Closing the modal or
   focusing the Vassal's settlement on the World Map preserves the draft, and
   the active node/HUD reopens it. Double-click still enters an available node.

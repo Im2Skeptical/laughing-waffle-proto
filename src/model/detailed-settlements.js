@@ -2841,7 +2841,14 @@ export function replaceDetailedVassalSelectionCandidate(
   if (!debugCandidate.ok) return debugCandidate;
   const candidates = selectionPool.candidates.map((candidate, index) =>
     index === safeIndex
-      ? { ...debugCandidate.candidate, candidateIndex: safeIndex }
+      ? {
+        ...candidate,
+        ...debugCandidate.candidate,
+        originRegionId: debugCandidate.candidate.locationRegionId,
+        portrait: clone(candidate.portrait),
+        signatureNode: clone(candidate.signatureNode),
+        candidateIndex: safeIndex,
+      }
       : { ...candidate, candidateIndex: index }
   );
   return {
@@ -3186,7 +3193,7 @@ function runVassalAnnualBoundary(state) {
 }
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 18;
+  state.gameStateSchemaVersion = 19;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",

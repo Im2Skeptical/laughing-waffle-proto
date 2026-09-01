@@ -51,6 +51,7 @@ try {
       localStorage.removeItem("civsurvivor.debugVassalPresets.v3");
       localStorage.removeItem("civsurvivor.debugProfiles.v1");
       localStorage.removeItem("civsurvivor.debugProfiles.boot.v1");
+      localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
       sessionStorage.setItem("mapLabProbeInitialized", "1");
     }
   });
@@ -225,7 +226,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 11);
+  assert.equal(settingsJson.schemaVersion, 12);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 

@@ -1,17 +1,27 @@
 import {
   VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION,
   VASSAL_NORMAL_NODE_FAMILY_IDS,
+  VASSAL_SIGNATURE_NODE_VARIANTS,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
+
+function isCanonicalSignatureDescriptor(descriptor) {
+  const variant = VASSAL_SIGNATURE_NODE_VARIANTS[descriptor?.variantId];
+  return !!variant
+    && descriptor.id === variant.id && descriptor.groupId === variant.groupId
+    && descriptor.label === variant.label && descriptor.glyph === variant.glyph
+    && descriptor.color === variant.color && descriptor.description === variant.description
+    && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
+}
 const DEFAULT_WEIGHTS = Object.freeze({
-  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 0]),
-  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 1]),
-  late: Object.freeze([1, 2, 2, 4, 4, 4, 0, 5]),
+  early: Object.freeze([5, 5, 5, 1, 1, 1, 0]),
+  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1]),
+  late: Object.freeze([1, 2, 2, 4, 4, 4, 5]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 2;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 3;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {
@@ -318,7 +328,7 @@ function applyLayout(config, nodes, edges) {
 }
 
 export function generateVassalLifeMap(rawConfig, rng, {
-  graphId = "generated-life-map", generationSeed = null,
+  graphId = "generated-life-map", generationSeed = null, signatureNode = null,
 } = {}) {
   const config = canonicalizeVassalLifeMapGeneratorConfig(rawConfig);
   const validation = validateVassalLifeMapGeneratorConfig(config);
@@ -391,7 +401,19 @@ export function generateVassalLifeMap(rawConfig, rng, {
     edges,
     nodes.filter((node) => node.depth === 0).map((node) => node.id)
   );
-  nodes = applyLayout(config, deduped.nodes, deduped.edges);
+  nodes = deduped.nodes;
+  if (signatureNode?.variantId === "legacyPlus") {
+    const boss = nodes.find((node) => node.id === bossNodeId);
+    if (boss) boss.signatureNode = clone(signatureNode);
+  } else if (signatureNode?.variantId && VASSAL_SIGNATURE_NODE_VARIANTS[signatureNode.variantId]) {
+    const eligible = nodes.filter((node) => node.band === "mid" && node.family !== "legacy");
+    if (eligible.length > 0) {
+      const target = eligible[rng.nextInt(0, eligible.length - 1)];
+      target.family = "signature";
+      target.signatureNode = clone(signatureNode);
+    }
+  }
+  nodes = applyLayout(config, nodes, deduped.edges);
   edges = deduped.edges.sort((a, b) =>
     a.fromNodeId.localeCompare(b.fromNodeId) || a.toNodeId.localeCompare(b.toNodeId));
   return {
@@ -432,7 +454,18 @@ export function validateVassalLifeMapGraph(graph) {
     ids.add(node?.id);
     nodeById.set(node?.id, node);
     if (!Number.isInteger(node?.depth) || !Number.isInteger(node?.lane)) errors.push(`nodes[${index}]: invalid grid position`);
-    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, "legacy"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, "legacy", "signature"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (node?.family === "signature") {
+      if (!isCanonicalSignatureDescriptor(node?.signatureNode)
+          || node.signatureNode.variantId === "legacyPlus") {
+        errors.push(`nodes[${index}].signatureNode: invalid signature variant`);
+      }
+    } else if (node?.signatureNode != null) {
+      if (node.id !== graph.bossNodeId || node.signatureNode?.variantId !== "legacyPlus"
+          || !isCanonicalSignatureDescriptor(node.signatureNode)) {
+        errors.push(`nodes[${index}].signatureNode: only Legacy may carry Legacy+`);
+      }
+    }
     if (!Number.isFinite(node?.position?.x) || node.position.x < 0 || node.position.x > 1
         || !Number.isFinite(node?.position?.y) || node.position.y < 0 || node.position.y > 1) {
       errors.push(`nodes[${index}].position: invalid`);
@@ -462,6 +495,9 @@ export function validateVassalLifeMapGraph(graph) {
   if (boss && boss.depth !== config?.normalDepthCount) errors.push("bossNodeId: invalid depth");
   if (graph.nodes.filter((node) => node.family === "legacy").length !== 1) {
     errors.push("nodes: expected exactly one Legacy node");
+  }
+  if (graph.nodes.filter((node) => node.family === "signature").length > 1) {
+    errors.push("nodes: expected at most one inserted signature node");
   }
   for (const entryId of graph.entryNodeIds) {
     if (nodeById.get(entryId)?.depth !== 0) errors.push("entryNodeIds: entries must be at depth zero");

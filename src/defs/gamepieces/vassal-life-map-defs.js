@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 1;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 2;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
@@ -26,7 +26,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   }),
   routes: Object.freeze({
     id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
-    description: "Add or remove a world connection at this Vassal's current settlement.",
+    description: "Add a world connection at this Vassal's current settlement.",
   }),
   settlement: Object.freeze({
     id: "settlement", label: "Settlement", glyph: "S", color: 0x77aa65,
@@ -40,12 +40,76 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "legacy", label: "Legacy", glyph: "L", color: 0x8a86d1,
     description: "Secure an advantage for future Vassal candidates.",
   }),
+  signature: Object.freeze({
+    id: "signature", label: "Signature", glyph: "★", color: 0xe3c46c,
+    description: "A defining opportunity unique to this Vassal.",
+  }),
 });
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "settlement", "crisis",
+  "publicWorks", "routes", "crisis",
 ]);
+
+export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([
+  "settlement", "legacyPlus", "monsterHunt", "removal", "tagShop",
+]);
+
+export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
+  settlement: Object.freeze({
+    id: "settlement", groupId: "settlement", label: "Found Settlement",
+    glyph: "FS", color: 0x77aa65,
+    description: "Found a nearby settlement and move this Vassal there.",
+  }),
+  legacyPlus: Object.freeze({
+    id: "legacyPlus", groupId: "legacyPlus", label: "Legacy+",
+    glyph: "L+", color: 0xa29ee8,
+    description: "Legacy choices are twice as powerful for their usual cost.",
+  }),
+  monsterHunt: Object.freeze({
+    id: "monsterHunt", groupId: "monsterHunt", label: "Kill Monsters",
+    glyph: "KM", color: 0xcf6b5d,
+    description: "Trade Prestige or immediate danger to reduce the redGod host.",
+  }),
+  removePractice: Object.freeze({
+    id: "removePractice", groupId: "removal", removalKind: "practice",
+    label: "Remove Practice", glyph: "−P", color: 0xa46fc4,
+    description: "Pay to remove Practices from the Vassal's current settlement.",
+  }),
+  removeStructure: Object.freeze({
+    id: "removeStructure", groupId: "removal", removalKind: "structure",
+    label: "Remove Structure", glyph: "−S", color: 0xd17e68,
+    description: "Pay to remove Structures from the Vassal's current settlement.",
+  }),
+  removeRoute: Object.freeze({
+    id: "removeRoute", groupId: "removal", removalKind: "connection",
+    label: "Remove Routes", glyph: "−R", color: 0xd0ac55,
+    description: "Pay to remove routes incident to the Vassal's current settlement.",
+  }),
+  foodShop: Object.freeze({
+    id: "foodShop", groupId: "tagShop", tag: "Food", label: "Food Shop",
+    glyph: "FO", color: 0xc7974e,
+    description: "A mixed shop containing only Food-tagged gamepieces.",
+  }),
+  knowledgeShop: Object.freeze({
+    id: "knowledgeShop", groupId: "tagShop", tag: "Knowledge", label: "Knowledge Shop",
+    glyph: "KN", color: 0x5e9bcf,
+    description: "A mixed shop containing only Knowledge-tagged gamepieces.",
+  }),
+  housingShop: Object.freeze({
+    id: "housingShop", groupId: "tagShop", tag: "Housing", label: "Housing Shop",
+    glyph: "HO", color: 0x62ad82,
+    description: "A mixed shop containing only Housing-tagged gamepieces.",
+  }),
+});
+
+export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
+  settlement: Object.freeze(["settlement"]),
+  legacyPlus: Object.freeze(["legacyPlus"]),
+  monsterHunt: Object.freeze(["monsterHunt"]),
+  removal: Object.freeze(["removePractice", "removeStructure", "removeRoute"]),
+  tagShop: Object.freeze(["foodShop", "knowledgeShop", "housingShop"]),
+});
 
 export const VASSAL_LIFE_TUNING = Object.freeze({
   candidateCount: 3,
@@ -69,6 +133,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   routeAddPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3),
   routeRemovePrestigeCost: 10,
   routeRemovePhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
+  signatureRemovalPrestigeCost: 10,
   settlementPrestigeCost: 40,
   legacyPrestigeCost: 20,
   legacyPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4),
@@ -76,6 +141,24 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
 });
+
+export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([
+  Object.freeze({
+    id: "dangerousHunt", label: "Risk Immediate Death: Kill 15 Monsters",
+    phaseCost: 0, immediateDeathChance: 0.35,
+    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -15, min: 0 }]),
+  }),
+  Object.freeze({
+    id: "fundedHunt", label: "Pay Prestige: Kill 10 Monsters",
+    prestigeCost: 10, phaseCost: 0,
+    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -10, min: 0 }]),
+  }),
+  Object.freeze({
+    id: "recklessHunt", label: "Higher Risk: Kill 5 Monsters, Gain 30 Prestige",
+    prestigeDelta: 30, phaseCost: 0, immediateDeathChance: 0.6,
+    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -5, min: 0 }]),
+  }),
+]);
 
 export const VASSAL_PATRONAGE_OPTIONS = Object.freeze([
   Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR) }),

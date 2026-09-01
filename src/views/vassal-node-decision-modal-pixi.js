@@ -1,4 +1,4 @@
-import { VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
   formatVassalPhaseDuration,
@@ -9,7 +9,6 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const PANEL = Object.freeze({ x: 128, y: 62, width: 2180, height: 780 });
-const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
 const QUALITY_COLORS = Object.freeze({
   bronze: 0xb07a4b, silver: 0xbfc7d5, gold: 0xe2bd55, diamond: 0x83dbea,
 });
@@ -70,6 +69,11 @@ function optionEffect(option) {
   if (option?.forcedRelocation) parts.push("Relocate to a safe settlement");
   if (Number.isFinite(option?.legacyStartingPrestigeBonus)) parts.push(`Future Vassals +${option.legacyStartingPrestigeBonus} starting Prestige`);
   if (Number.isFinite(option?.immediateDeathChance)) parts.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
+  for (const effect of option?.effects ?? []) {
+    if (effect.op === "AdjustSettlementChaosGodState" && effect.key === "monsterCount") {
+      parts.push(`Kill up to ${Math.abs(Math.floor(effect.amount ?? 0))} monsters`);
+    }
+  }
   return parts.join(" · ") || "Apply this choice when the node is confirmed.";
 }
 
@@ -426,7 +430,9 @@ export function createVassalNodeDecisionModalView({
     }) ?? null;
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
-    const family = node ? VASSAL_NODE_FAMILIES[node.family] : null;
+    const family = node?.signatureNode?.variantId
+      ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
+      : node ? VASSAL_NODE_FAMILIES[node.family] : null;
     const nextSignature = JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
       previewOptionId, previewOfferId });
     if (!force && nextSignature === signature) return;
@@ -506,7 +512,7 @@ export function createVassalNodeDecisionModalView({
         ...TEXT_STYLES.header, fontSize: 25, fill: PALETTE.accent,
       }, PANEL.x + 54, PANEL.y + 170));
     } else {
-      const isShop = SHOP_FAMILIES.has(nodeState.family);
+      const isShop = nodeState.contentMode === "shop";
       const cardWidth = hasContext ? 338 : 520;
       const cardGap = 22;
       const cardY = PANEL.y + 136;
@@ -648,7 +654,7 @@ export function createVassalNodeDecisionModalView({
     }
 
     const isCurrent = currentNodeId === node.id;
-    const isShop = SHOP_FAMILIES.has(nodeState?.family);
+    const isShop = nodeState?.contentMode === "shop";
     const canConfirm = !readOnly && isCurrent && !nodeState?.resolving
       && (isShop || !!nodeState?.selectedOptionId);
     if (isShop && nodeState && !nodeState.resolving) {

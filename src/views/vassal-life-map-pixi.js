@@ -1,4 +1,4 @@
-import { VASSAL_NODE_FAMILIES } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getVassalAge,
   getVassalLifeMapNode,
@@ -8,6 +8,7 @@ import {
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 26;
@@ -20,23 +21,6 @@ function nodePoint(node) {
     x: MAP_RECT.x + 92 + (MAP_RECT.width - 184) * (node.position?.x ?? 0),
     y: top + (bottom - top) * (node.position?.y ?? 0.5),
   };
-}
-
-function addButton(parent, rect, label, enabled, onClick) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
-  root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => { event?.stopPropagation?.(); if (enabled) onClick?.(); });
-  const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
-    enabled ? 0x40533b : 0x464743, enabled ? PALETTE.accent : PALETTE.stroke, 2);
-  root.addChild(gfx, createText(label, {
-    ...TEXT_STYLES.title, fontSize: 15, fill: enabled ? PALETTE.text : PALETTE.textMuted,
-  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
-  parent.addChild(root);
-  return root;
 }
 
 function getDisplay(vassal, nodeId, committed, readOnly) {
@@ -66,7 +50,9 @@ export function createVassalLifeMapView({
   let pinnedStatId = null;
 
   function showNodeTooltip(node, target) {
-    const family = VASSAL_NODE_FAMILIES[node?.family] ?? null;
+    const family = node?.signatureNode?.variantId
+      ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
+      : VASSAL_NODE_FAMILIES[node?.family] ?? null;
     if (!family || !target) return;
     tooltipView?.show?.({
       title: `${family.glyph}  ${family.label}`,
@@ -232,7 +218,9 @@ export function createVassalLifeMapView({
     for (const node of nodes) {
       const display = getDisplay(vassal, node.id, committed, readOnly);
       const point = nodePoint(node);
-      const family = VASSAL_NODE_FAMILIES[node.family] ?? {};
+      const family = node.signatureNode?.variantId
+        ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? {}
+        : VASSAL_NODE_FAMILIES[node.family] ?? {};
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
       nodeRoot.eventMode = "static";
@@ -246,14 +234,27 @@ export function createVassalLifeMapView({
         selected ? 0xf4e7bd : display.completed ? 0x87c96a : display.current || display.available ? PALETTE.accent : PALETTE.stroke, 1)
         .beginFill(family.color ?? 0x494641, alpha).drawCircle(0, 0, NODE_RADIUS).endFill();
       if (presentation.playheadNodeId === node.id) circle.lineStyle(5, 0xe3c46c, 1).drawCircle(0, 0, NODE_RADIUS + 7);
+      if (node.signatureNode) {
+        circle.lineStyle(3, 0xf1d77a, 1).drawCircle(0, 0, NODE_RADIUS + 10);
+        circle.beginFill(0xf1d77a, 1).drawCircle(NODE_RADIUS + 7, -NODE_RADIUS - 4, 9).endFill();
+      }
       nodeRoot.addChild(circle, createText(family.glyph ?? "?", {
-        ...TEXT_STYLES.title, fontSize: ["practiceReform", "publicWorks"].includes(node.family) ? 12 : 16,
+        ...TEXT_STYLES.title, fontSize: node.signatureNode || ["practiceReform", "publicWorks"].includes(node.family) ? 12 : 16,
       }, 0, 0, 0.5, 0.5));
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
 
-    Object.values(VASSAL_NODE_FAMILIES).forEach((family, index) => root.addChild(createText(
+    const legendFamilies = [];
+    const seenLegend = new Set();
+    for (const node of nodes) {
+      const family = node.signatureNode?.variantId
+        ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
+        : VASSAL_NODE_FAMILIES[node.family];
+      const key = node.signatureNode?.variantId ?? node.family;
+      if (family && !seenLegend.has(key)) { seenLegend.add(key); legendFamilies.push(family); }
+    }
+    legendFamilies.forEach((family, index) => root.addChild(createText(
       `${family.glyph}  ${family.label}`, {
         ...TEXT_STYLES.body, fontSize: 13, fill: family.color ?? PALETTE.textMuted,
       }, MAP_RECT.x + 28 + index * 220, MAP_RECT.y + MAP_RECT.height - 34)));
@@ -263,7 +264,9 @@ export function createVassalLifeMapView({
     const hudX = MAP_RECT.x + MAP_RECT.width - hudWidth - 28;
     const hud = new PIXI.Graphics();
     roundedRect(hud, hudX, MAP_RECT.y + 18, hudWidth, 78, 10, 0x303833, PALETTE.accent, 1);
-    root.addChild(hud,
+    const portrait = createVassalPortraitView(profile.portrait, { size: 84, borderColor: PALETTE.accent });
+    portrait.position.set(hudX - 98, MAP_RECT.y + 15);
+    root.addChild(portrait, hud,
       createText(`VASSAL · AGE ${getVassalAge(state, profile, presentation.profileSec)} · ${location}`, {
         ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 235,
@@ -273,10 +276,10 @@ export function createVassalLifeMapView({
       }, hudX + 16, MAP_RECT.y + 55));
     getVassalStatsPresentation(profile).forEach((stat, index) => {
       const chip = new PIXI.Container();
-      chip.position.set(hudX + 258 + index * 142, MAP_RECT.y + 31);
+      chip.position.set(hudX + 258 + index * 180, MAP_RECT.y + 31);
       chip.eventMode = "static";
       chip.cursor = "help";
-      chip.hitArea = new PIXI.Rectangle(0, 0, 132, 50);
+      chip.hitArea = new PIXI.Rectangle(0, 0, 164, 50);
       chip.on("pointerdown", (event) => event?.stopPropagation?.());
       chip.on("pointerover", () => {
         if (!pinnedStatId) showStatTooltip(stat, chip);
@@ -293,7 +296,7 @@ export function createVassalLifeMapView({
         }
       });
       const chipBg = new PIXI.Graphics();
-      roundedRect(chipBg, 0, 0, 132, 50, 7, 0x39413b,
+      roundedRect(chipBg, 0, 0, 164, 50, 7, 0x39413b,
         pinnedStatId === stat.statId ? PALETTE.accent : PALETTE.stroke,
         pinnedStatId === stat.statId ? 2 : 1);
       chip.addChild(chipBg,
@@ -305,10 +308,6 @@ export function createVassalLifeMapView({
         }, 9, 20));
       root.addChild(chip);
     });
-    const openNodeId = vassal.lifeMap.currentNodeId ?? effectiveNodeId;
-    openRoot = addButton(root, { x: hudX + 836, y: MAP_RECT.y + 34, width: 184, height: 46 },
-      vassal.lifeMap.currentNodeId ? "RESUME DECISION" : "OPEN DETAILS", !!openNodeId,
-      () => onOpenDecision?.(openNodeId));
   }
 
   return {
