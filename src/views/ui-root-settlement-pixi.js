@@ -221,7 +221,13 @@ let settlementFrontierStateCache = {
 };
 
 function setWorldViewMode(mode) {
-  worldViewMode = mode === "settlement" ? "settlement" : mode === "vassalLife" ? "vassalLife" : "map";
+  const nextWorldViewMode = mode === "settlement" ? "settlement" : mode === "vassalLife" ? "vassalLife" : "map";
+  if (nextWorldViewMode !== worldViewMode) {
+    // Navigation is passive: preserve the current visual forecast edge until
+    // an explicit game action begins a new reveal.
+    settlementGraphView?.pauseForecastReveal?.();
+  }
+  worldViewMode = nextWorldViewMode;
   const settlementVisible = worldViewMode === "settlement";
   const lifeMapVisible = worldViewMode === "vassalLife";
   worldMapRegionSelectionActive = settlementVisible;
