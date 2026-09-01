@@ -96,13 +96,24 @@ export function createVassalLifeMapView({
     }, target.getBounds());
   }
 
+  function getNodeAtPoint(local, presentation) {
+    return getVassalLifeMapNodes(presentation?.vassal).find((candidate) => {
+      const point = nodePoint(candidate);
+      return Math.hypot(local.x - point.x, local.y - point.y) <= NODE_RADIUS + 10;
+    }) ?? null;
+  }
+
+  function clearNodeHover() {
+    if (hoveredNodeId == null) return;
+    hoveredNodeId = null;
+    tooltipView?.hide?.();
+    render(true);
+  }
+
   root.on("pointerdown", (event) => {
     const local = root.toLocal(event.global);
     const presentation = getPresentation?.() ?? {};
-    const node = getVassalLifeMapNodes(presentation.vassal).find((candidate) => {
-      const point = nodePoint(candidate);
-      return Math.hypot(local.x - point.x, local.y - point.y) <= NODE_RADIUS + 10;
-    });
+    const node = getNodeAtPoint(local, presentation);
     if (!node) {
       hideStatTooltip();
       return;
@@ -115,12 +126,28 @@ export function createVassalLifeMapView({
     ));
   });
 
+  root.on("pointermove", (event) => {
+    const presentation = getPresentation?.() ?? {};
+    const node = getNodeAtPoint(root.toLocal(event.global), presentation);
+    if (node?.id === hoveredNodeId) return;
+    if (!node) {
+      clearNodeHover();
+      return;
+    }
+    hoveredNodeId = node.id;
+    render(true);
+    showNodeTooltip(node, nodeRoots.get(node.id));
+  });
+  root.on("pointerout", clearNodeHover);
+
   function inspect(node, display) {
     const now = performance.now();
     const doubleClick = display.available && lastClick.nodeId === node.id
       && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
     lastClick = { nodeId: node.id, atMs: now };
     inspectedNodeId = node.id;
+    hoveredNodeId = null;
+    tooltipView?.hide?.();
     if (doubleClick) onEnterNode?.(node.id);
     onOpenDecision?.(node.id);
     render(true);
@@ -209,16 +236,6 @@ export function createVassalLifeMapView({
       nodeRoot.cursor = "pointer";
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
       nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
-      nodeRoot.on("pointerover", () => {
-        hoveredNodeId = node.id;
-        showNodeTooltip(node, nodeRoot);
-        render(true);
-      });
-      nodeRoot.on("pointerout", () => {
-        hoveredNodeId = null;
-        tooltipView?.hide?.();
-        render(true);
-      });
       const selected = effectiveNodeId === node.id;
       const circle = new PIXI.Graphics();
       const alpha = display.current || display.available ? 1 : display.completed ? 0.7 : 0.38;
