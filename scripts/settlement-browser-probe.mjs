@@ -404,6 +404,8 @@ try {
   );
   assert.equal(overview.controller.scope, "settlement");
   assert.equal(overview.controller.subjectKey, "cedar-woods");
+  assert.equal(overview.graph.forecastRevealPaused, true,
+    "opening a settlement preserves the paused forecast unveil edge");
   assert.ok(overview.controller.label.includes("Local"));
   assert.deepEqual(overview.controller.seriesIds,
     ["totalPopulation", "food", "population:villager"]);

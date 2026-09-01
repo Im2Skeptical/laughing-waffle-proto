@@ -65,6 +65,17 @@ export function createVassalLifeMapView({
   let openRoot = null;
   let pinnedStatId = null;
 
+  function showNodeTooltip(node, target) {
+    const family = VASSAL_NODE_FAMILIES[node?.family] ?? null;
+    if (!family || !target) return;
+    tooltipView?.show?.({
+      title: `${family.glyph}  ${family.label}`,
+      lines: [family.description],
+      accentColor: family.color,
+      maxWidth: 310,
+    }, target.getBounds());
+  }
+
   function hideStatTooltip() {
     pinnedStatId = null;
     tooltipView?.hide?.();
@@ -198,8 +209,16 @@ export function createVassalLifeMapView({
       nodeRoot.cursor = "pointer";
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
       nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
-      nodeRoot.on("pointerover", () => { hoveredNodeId = node.id; render(true); });
-      nodeRoot.on("pointerout", () => { hoveredNodeId = null; render(true); });
+      nodeRoot.on("pointerover", () => {
+        hoveredNodeId = node.id;
+        showNodeTooltip(node, nodeRoot);
+        render(true);
+      });
+      nodeRoot.on("pointerout", () => {
+        hoveredNodeId = null;
+        tooltipView?.hide?.();
+        render(true);
+      });
       const selected = effectiveNodeId === node.id;
       const circle = new PIXI.Graphics();
       const alpha = display.current || display.available ? 1 : display.completed ? 0.7 : 0.38;

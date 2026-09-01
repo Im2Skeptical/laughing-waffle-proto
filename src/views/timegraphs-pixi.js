@@ -670,6 +670,7 @@ export function createMetricGraphView({
   let forecastRevealDelayUntilMs = 0;
   let forecastRevealStartSecOverride = null;
   let forecastRevealVelocitySecPerSec = 0;
+  let forecastRevealPaused = false;
   let forecastRevealPlayheadFollowEnabled = true;
   let forecastRevealPreviewSec = null;
   let forecastRevealPreviewLastRefreshMs = 0;
@@ -1193,6 +1194,11 @@ export function createMetricGraphView({
     forecastRevealPreviewLastRefreshMs = 0;
   }
 
+  function pauseForecastReveal() {
+    forecastRevealPaused = true;
+    forecastRevealVelocitySecPerSec = 0;
+  }
+
   function syncForecastRevealPlayhead(visibleForecastCoverageEndSec) {
     const preview =
       typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
@@ -1438,6 +1444,7 @@ export function createMetricGraphView({
   }
 
   function restartForecastRevealFrom(startSec, opts = {}) {
+    forecastRevealPaused = false;
     forecastRevealPlayheadFollowEnabled = true;
     forecastRevealPreviewSec = getActiveForecastPreviewSec();
     forecastRevealPreviewLastRefreshMs = 0;
@@ -1525,6 +1532,11 @@ export function createMetricGraphView({
       historyEnd,
       Number(forecastRevealAnimatedEndSec ?? historyEnd)
     );
+    if (forecastRevealPaused) {
+      forecastRevealLastTickMs = nowMs;
+      forecastRevealVisibleEndSec = currentEnd;
+      return currentEnd;
+    }
     if (targetEnd <= currentEnd) {
       forecastRevealAnimatedEndSec = targetEnd;
       forecastRevealLastTickMs = nowMs;
@@ -3277,6 +3289,7 @@ export function createMetricGraphView({
     root.x = openPosition?.x ?? defaultX;
     root.y = openPosition?.y ?? defaultY;
     const nowMs = performance.now();
+    forecastRevealPaused = false;
     forecastRevealPlayheadFollowEnabled = true;
     forecastRevealPreviewSec = null;
     forecastRevealPreviewLastRefreshMs = 0;
@@ -3441,6 +3454,7 @@ export function createMetricGraphView({
         Math.floor(forecastRevealTargetEndSec ?? 0)
       ),
       forecastRevealPlayheadFollowEnabled,
+      forecastRevealPaused,
       forecastRevealPreviewSec: Number.isFinite(forecastRevealPreviewSec)
         ? Math.max(0, Math.floor(forecastRevealPreviewSec))
         : null,
@@ -3670,6 +3684,7 @@ export function createMetricGraphView({
     setHistoryZoneResolver,
     setEventMarkerResolver,
     setForecastRevealConfig,
+    pauseForecastReveal,
     suspendForecastRevealPlayheadFollow,
     resetForecastPreviewState,
     resetDataContext,
