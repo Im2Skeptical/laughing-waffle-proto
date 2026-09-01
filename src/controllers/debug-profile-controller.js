@@ -16,6 +16,10 @@ import {
   serializeDebugProfileLibrary,
   validateDebugProfile,
 } from "../model/debug-profile-library.js";
+import {
+  createStarterBootProfile,
+  STARTER_BOOT_PROFILE_NAME,
+} from "../model/starter-boot-profile.js";
 
 function safeStorage() {
   try {
@@ -227,7 +231,15 @@ export function createDebugProfileController({
       return { ok: true };
     },
     loadBootProfile() {
-      if (!bootProfileId) return { ok: true, applied: false };
+      if (!bootProfileId) {
+        const entry = {
+          id: "built-in-starter",
+          name: STARTER_BOOT_PROFILE_NAME,
+          profile: createStarterBootProfile(),
+        };
+        const loaded = applyEntry(entry);
+        return loaded.ok ? { ...loaded, applied: true, builtIn: true } : loaded;
+      }
       const entry = library.profiles.find((item) => item.id === bootProfileId);
       if (!entry) {
         status = { message: "Boot profile is missing; using authored setup.", tone: "warning" };

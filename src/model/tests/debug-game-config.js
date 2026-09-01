@@ -463,6 +463,28 @@ try {
   assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 8,
     "an invalid boot profile does not partially replace current drafts");
   assert.equal(invalidBootController.getSnapshot().status.tone, "warning");
+
+  storage.delete("civsurvivor.debugProfiles.boot.v2");
+  const builtInBootController = createDebugProfileController({
+    mapLabController: mapController,
+    debugConfigurationController: configController,
+    lifeMapLabController: lifeMapController,
+    vassalDebugPresetController: profileVassalController,
+  });
+  const builtInBoot = builtInBootController.loadBootProfile();
+  assert.equal(builtInBoot.applied, true);
+  assert.equal(builtInBoot.builtIn, true);
+  assert.equal(mapController.getSnapshot().draft.regions[10].id, "lake-country");
+  assert.equal(mapController.getSnapshot().draft.regions[10].detailedState.populationByClass.villager.children, 5);
+  assert.equal(
+    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.primordialBasePressure,
+    1
+  );
+  assert.equal(
+    configController.getSnapshot(GAMEPIECES_DRAFT_KIND).draft.practices.forage.effects[0]
+      .scaledValue.baseAmount,
+    8
+  );
 } finally {
   if (previousStorage === undefined) delete globalThis.localStorage;
   else globalThis.localStorage = previousStorage;
