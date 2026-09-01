@@ -768,11 +768,14 @@ function revealCivilizationAfterVassalEnd(vassalId, state = getSettlementFrontie
     state?.civilization?.vassalLineage?.currentVassalId != null ||
     !["died", "retired"].includes(endedVassal?.endedReason)
   ) return false;
+  // Changing screen pauses a reveal. Navigate first, then explicitly restart
+  // the civilization reveal so a completed Vassal immediately exposes the
+  // next forecast span rather than leaving it frozen at the boundary.
+  setWorldViewMode("map");
   syncSettlementGraphHorizon();
   settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
     allowForecastStart: true,
   });
-  setWorldViewMode("map");
   return true;
 }
 

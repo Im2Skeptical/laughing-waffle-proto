@@ -1969,7 +1969,7 @@ export function createMetricGraphView({
         entryContainer.on("pointertap", (event) => {
           event?.stopPropagation?.();
         });
-        entryContainer.on("pointerover", () => {
+        const showLegendTooltip = () => {
           setLegendHoverSeries(seriesId);
           if (!tooltipView) return;
           if (interaction && interaction?.canShowHoverUI?.() === false) return;
@@ -1982,11 +1982,13 @@ export function createMetricGraphView({
             ),
           };
           tooltipView.show(spec, entryContainer.getBounds());
-        });
-        entryContainer.on("pointerout", () => {
+        };
+        const hideLegendTooltip = () => {
           setLegendHoverSeries(null);
           tooltipView?.hide?.();
-        });
+        };
+        entryContainer.on("pointerenter", showLegendTooltip);
+        entryContainer.on("pointerleave", hideLegendTooltip);
 
         const bg = new PIXI.Graphics();
         const iconText = new PIXI.Text(iconTextValue, {
@@ -3252,7 +3254,7 @@ export function createMetricGraphView({
 
   plotHit.on("pointerup", () => endScrub(true));
   plotHit.on("pointerupoutside", () => endScrub(true));
-  plotHit.on("pointerout", () => {
+  plotHit.on("pointerleave", () => {
     if (!isScrubbing && hoveredEventMarkerKey) {
       hoveredEventMarkerKey = null;
       tooltipView?.hide?.();
