@@ -1545,7 +1545,10 @@ vassalLifeMapView = createVassalLifeMapView({
   getPresentation: () => getSettlementLifeMapPresentation(),
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
-  onOpenDecision: (nodeId) => vassalNodeDecisionModalView?.open?.(nodeId),
+  onOpenDecision: (nodeId) => {
+    tooltipView?.hide?.();
+    vassalNodeDecisionModalView?.open?.(nodeId);
+  },
 });
 vassalLifeMapView.setVisible(false);
 
