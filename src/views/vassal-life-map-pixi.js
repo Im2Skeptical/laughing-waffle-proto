@@ -138,7 +138,10 @@ export function createVassalLifeMapView({
     render(true);
     showNodeTooltip(node, nodeRoots.get(node.id));
   });
-  root.on("pointerout", clearNodeHover);
+  // `pointerout` bubbles from every child. Nodes are redrawn as their hover
+  // state changes, so use the non-bubbling leave event from the stable map
+  // surface to avoid clearing and restoring the tooltip every frame.
+  root.on("pointerleave", clearNodeHover);
 
   function inspect(node, display) {
     const now = performance.now();
