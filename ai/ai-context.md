@@ -151,7 +151,8 @@ bounded JSON state used for replay and phase tooltips.
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.
 - The World Map candidate chooser begins below the map and overlays the graph
-  region. Its three expanded cards show procedural portraits, age, settlement,
+  region. Its three expanded cards show deterministic carved-style busts based
+  on the prototype's original Elder Council renderer, plus age, settlement,
   Prestige, four stats, and the advertised signature node. Hover temporarily
   previews a starting region; click/tap locks a preview, and the lower-left
   control confirms it. Clicking outside dismisses the chooser without changing
