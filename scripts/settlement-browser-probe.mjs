@@ -16,6 +16,8 @@ const LIFE_MAP_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-lifemap-1280x800.png";
 const ACTIVE_NODE_SCREENSHOT_PATH =
   "artifacts/settlement-browser-probe-active-node-1280x800.png";
+const VASSAL_CHOOSER_SCREENSHOT_PATH =
+  "artifacts/settlement-browser-probe-vassal-chooser-1280x800.png";
 
 async function waitForHttp() {
   for (let attempt = 0; attempt < 150; attempt += 1) {
@@ -68,6 +70,9 @@ try {
   await waitForHttp();
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.addInitScript(() => {
+    localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
+  });
   const workerUrls = [];
   page.on("worker", (worker) => workerUrls.push(worker.url()));
   await page.goto(URL);
@@ -451,6 +456,23 @@ try {
   let pendingSelection = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool
   );
+  assert.equal(pendingSelection.candidates.length, 3);
+  assert.equal(
+    new Set(pendingSelection.candidates.map((candidate) => candidate.signatureNode.groupId)).size,
+    3,
+    "each candidate pool advertises three distinct signature groups"
+  );
+  assert.ok(
+    pendingSelection.candidates.every((candidate) => (
+      candidate.portrait
+      && typeof candidate.portrait.skinTone === "string"
+      && typeof candidate.portrait.hairStyle === "string"
+      && candidate.signatureNode?.label
+    )),
+    "all expanded candidate cards have portrait and signature presentation data"
+  );
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await page.screenshot({ path: VASSAL_CHOOSER_SCREENSHOT_PATH, fullPage: true });
   const chooserSnapshot = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -475,12 +497,12 @@ try {
   const closePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCloseClickPoint()
   );
-  assert.ok(closePoint, "close button exposes a browser click point");
-  await clickDesignPoint(page, closePoint);
+  assert.equal(closePoint, null, "the chooser has no dedicated close button");
+  await clickDesignPoint(page, { x: 2200, y: 520 });
   assert.equal(
     await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()),
     false,
-    "close button returns to timeline inspection without selecting a Vassal"
+    "clicking outside returns to timeline inspection without selecting a Vassal"
   );
   const reopenResult = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.openNextSelection()
@@ -495,6 +517,8 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0)
   );
   assert.ok(candidatePoint, "candidate card exposes a browser click point");
+  assert.ok(candidatePoint.y > 808,
+    "candidate cards occupy the graph area below the World Map polygons");
   const candidateCanvas = await page.locator("canvas").boundingBox();
   await page.mouse.move(
     candidateCanvas.x + candidatePoint.x / 2424 * candidateCanvas.width,
@@ -505,16 +529,30 @@ try {
   assert.equal(hoveredCandidate.worldMap.vassalHighlight?.targetRegionId, chosenTargetRegionId,
     "hovering a map drawer candidate highlights its target region");
   await clickDesignPoint(page, candidatePoint);
+  assert.equal(
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()),
+    true,
+    "tapping a candidate locks its preview without immediately selecting it"
+  );
+  const tappedCandidate = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(tappedCandidate.worldMap.vassalHighlight?.targetRegionId, chosenTargetRegionId,
+    "the locked touch preview preserves the candidate region highlight");
+  assert.equal(tappedCandidate.lineage.selectedVassalIds.length, 0);
+  const confirmVassalPoint = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getVassalPrimaryClickPoint()
+  );
+  assert.ok(confirmVassalPoint, "the lower-left control exposes candidate confirmation");
+  await clickDesignPoint(page, confirmVassalPoint);
   const selectResult = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLastVassalSelectionResult()
   );
-  assert.equal(selectResult?.ok, true, "candidate card dispatches vassal selection");
+  assert.equal(selectResult?.ok, true, "the lower-left control dispatches vassal selection");
   assert.equal(
     await page.evaluate(
       () => globalThis.__SETTLEMENT_DEBUG__.isVassalSelectionOpen()
     ),
     false,
-    "candidate card closes the chooser after selection"
+    "confirmation closes the chooser after selection"
   );
   await delay(100);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
@@ -541,6 +579,7 @@ try {
     "selecting a Vassal keeps the prior timeline as a tinted comparison");
   assert.equal(afterVassal.graph.forecastRevealTargetEndSec, afterVassal.frontierSec,
     "selection does not unveil the new timeline beyond committed history");
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await page.screenshot({ path: LIFE_MAP_SCREENSHOT_PATH, fullPage: true });
   const firstLifeMapNodeId = afterVassal.lineage.currentVassal.availableNodeIds[0];
   const nodePoint = await page.evaluate(
@@ -568,6 +607,7 @@ try {
   );
   assert.ok(stagedLifeMapDecision.selectedOptionId,
     `generated ${stagedLifeMapDecision.family} node stages its selected option`);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await page.screenshot({ path: ACTIVE_NODE_SCREENSHOT_PATH, fullPage: true });
   const confirmPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapConfirmClickPoint()
@@ -725,6 +765,9 @@ try {
   const widePage = await browser.newPage({
     viewport: { width: 1280, height: 600 },
   });
+  await widePage.addInitScript(() => {
+    localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
+  });
   await widePage.goto(URL);
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
@@ -813,6 +856,9 @@ try {
 
   const terminalPage = await browser.newPage({
     viewport: { width: 1280, height: 800 },
+  });
+  await terminalPage.addInitScript(() => {
+    localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
   });
   await terminalPage.goto(URL);
   await terminalPage.waitForFunction(() => {

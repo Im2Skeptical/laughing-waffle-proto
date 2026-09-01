@@ -5,6 +5,7 @@ import { createRng } from "../rng.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
   VASSAL_LEGACY_OPTIONS,
+  VASSAL_MONSTER_HUNT_OPTIONS,
   VASSAL_NODE_FAMILIES,
   VASSAL_LIFE_TUNING,
   getVassalMortalityChance,
@@ -32,6 +33,7 @@ import {
   validateVassalLifeMapGraph,
 } from "../vassal-life-map-generator.js";
 import { stepDetailedSettlementsSecond } from "../detailed-settlements.js";
+import { getDetailedPracticeDef, getDetailedStructureDef } from "../game-config.js";
 
 function dispatch(state, kind, payload = {}) {
   const result = applyAction(state, { kind, payload }, { isReplay: true });
@@ -50,6 +52,28 @@ function selectedState(seed = 1, candidateIndex = 0) {
     candidateIndex, expectedPoolHash: pool.expectedPoolHash,
   });
   return state;
+}
+
+function selectedStateForSignature(variantId) {
+  for (let seed = 0; seed < 1000; seed += 1) {
+    const state = createInitialState("devPlaytesting01", seed);
+    const pool = getVassalCandidatePool(state);
+    const candidateIndex = pool.candidates.findIndex((candidate) =>
+      candidate.signatureNode?.variantId === variantId);
+    if (candidateIndex < 0) continue;
+    dispatch(state, ActionKinds.SETTLEMENT_SELECT_VASSAL, {
+      candidateIndex, expectedPoolHash: pool.expectedPoolHash,
+    });
+    return state;
+  }
+  throw new Error(`No candidate rolled signature ${variantId}`);
+}
+
+function nodeIdForSignature(state, variantId) {
+  const node = getVassalLifeMapNodes(getCurrentLifeMapVassal(state)).find((entry) =>
+    entry.signatureNode?.variantId === variantId);
+  assert.ok(node, `expected generated signature node ${variantId}`);
+  return node.id;
 }
 
 function forceEnter(state, nodeId) {
@@ -108,9 +132,9 @@ assert.deepEqual([
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
 ], [4, 4, 3]);
 assert.deepEqual(
-  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "settlement", "crisis"]
+  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 5, 1, 1, 1, 0, 0]
+  [5, 5, 5, 1, 1, 1, 0]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
@@ -319,6 +343,10 @@ for (const [family, seed] of [["publicWorks", 103], ["routes", 104]]) {
   assert.ok(node.inventory.every((offer) =>
     offer.intervention.kind === (node.family === "publicWorks" ? "structure" : "connection")
   ));
+  if (node.family === "routes") {
+    assert.ok(node.inventory.every((offer) => offer.intervention.mode === "add"),
+      "ordinary Route shops never offer removal");
+  }
   if (node.family === "publicWorks") {
     assert.ok(node.inventory.every((offer) =>
       offer.intervention.targetRegionId === vassal.locationRegionId
@@ -545,15 +573,30 @@ assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBon
 assert.equal(getCurrentLifeMapVassal(freeLegacyState), null,
   "a zero-Prestige Vassal can always complete a terminal Legacy node");
 
-const settlementState = selectedState(1);
-const settlementVassal = getCurrentLifeMapVassal(settlementState);
-settlementVassal.prestige = 100;
+let settlementFixture = null;
+for (let seed = 0; seed < 1000 && !settlementFixture; seed += 1) {
+  const candidateState = createInitialState("devPlaytesting01", seed);
+  const candidatePool = getVassalCandidatePool(candidateState);
+  for (const candidate of candidatePool.candidates.filter((entry) =>
+    entry.signatureNode?.variantId === "settlement")) {
+    const state = createInitialState("devPlaytesting01", seed);
+    const pool = getVassalCandidatePool(state);
+    dispatch(state, ActionKinds.SETTLEMENT_SELECT_VASSAL, {
+      candidateIndex: candidate.candidateIndex, expectedPoolHash: pool.expectedPoolHash,
+    });
+    const vassal = getCurrentLifeMapVassal(state);
+    vassal.prestige = 100;
+    const node = forceEnter(state, nodeIdForSignature(state, "settlement"));
+    const option = node.options.find((entry) => entry.settlementRegionId);
+    if (option) { settlementFixture = { state, vassal, node, option }; break; }
+  }
+}
+assert.ok(settlementFixture, "Settlement offers a connected frontier region when affordable");
+const { state: settlementState, vassal: settlementVassal,
+  node: settlementNode, option: settlementOption } = settlementFixture;
 const sourceRegionId = settlementVassal.locationRegionId;
 const sourceAdults = settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
   .detailedState.populationByClass.villager.adults;
-const settlementNode = forceEnter(settlementState, nodeIdForFamily(settlementState, "settlement"));
-const settlementOption = settlementNode.options.find((option) => option.settlementRegionId);
-assert.ok(settlementOption, "Settlement offers a connected frontier region when affordable");
 assert.ok(settlementNode.options.length <= 3);
 dispatch(settlementState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: settlementNode.nodeId, optionId: settlementOption.id,
@@ -668,5 +711,172 @@ const diamondShopNode = forceEnter(diamondShopState,
   nodeIdForFamily(diamondShopState, "practiceReform"));
 assert.equal(diamondShopNode.inventory.some((offer) => offer.intervention.practiceId === "forage"), false,
   "Diamond practices are excluded from future shop rolls");
+
+const signaturePoolState = createInitialState("devPlaytesting01", 2201);
+const signaturePool = getVassalCandidatePool(signaturePoolState);
+assert.equal(new Set(signaturePool.candidates.map((candidate) => candidate.signatureNode.groupId)).size, 3,
+  "a candidate pool contains three distinct signature groups");
+assert.ok(signaturePool.candidates.every((candidate) => candidate.portrait
+  && Object.values(candidate.portrait).every((value) => typeof value === "string")),
+"every candidate has a JSON-only procedural portrait descriptor");
+
+const portraitIsolationA = createInitialState("devPlaytesting01", 2202);
+const portraitIsolationB = createInitialState("devPlaytesting01", 2202);
+for (let index = 0; index < 12; index += 1) portraitIsolationB.rngNextVassalPortraitInt(0, 99);
+dispatch(portraitIsolationA, ActionKinds.SETTLEMENT_REROLL_VASSALS);
+dispatch(portraitIsolationB, ActionKinds.SETTLEMENT_REROLL_VASSALS);
+const mechanicalCandidate = (candidate) => {
+  const copy = structuredClone(candidate);
+  delete copy.portrait;
+  delete copy.candidateIndex;
+  return copy;
+};
+assert.deepEqual(getVassalCandidatePool(portraitIsolationA).candidates.map(mechanicalCandidate),
+  getVassalCandidatePool(portraitIsolationB).candidates.map(mechanicalCandidate),
+  "portrait RNG changes do not perturb candidate mechanics or signature rolls");
+
+for (const variantId of ["settlement", "monsterHunt", "removePractice", "foodShop"]) {
+  const signatureState = selectedStateForSignature(variantId);
+  const signatureNode = getVassalLifeMapNodes(getCurrentLifeMapVassal(signatureState))
+    .find((node) => node.signatureNode?.variantId === variantId);
+  assert.equal(signatureNode.band, "mid", `${variantId} replaces a mid-band node`);
+  assert.equal(signatureNode.family, "signature");
+}
+const plusPlacementState = selectedStateForSignature("legacyPlus");
+const plusPlacementVassal = getCurrentLifeMapVassal(plusPlacementState);
+const plusNodeDef = getVassalLifeMapNodes(plusPlacementVassal)
+  .find((node) => node.signatureNode?.variantId === "legacyPlus");
+assert.equal(plusNodeDef.id, plusPlacementVassal.lifeMap.graph.bossNodeId);
+assert.equal(plusNodeDef.family, "legacy");
+const ordinaryFamilyState = selectedState(2203);
+assert.ok(getVassalLifeMapNodes(getCurrentLifeMapVassal(ordinaryFamilyState))
+  .every((node) => node.family !== "settlement"), "Settlement is absent from ordinary family rolls");
+
+plusPlacementVassal.prestige = 500;
+const plusNode = forceEnter(plusPlacementState, plusNodeDef.id);
+for (const option of plusNode.options) {
+  const standard = VASSAL_LEGACY_OPTIONS.find((entry) => entry.id === option.id);
+  assert.equal(option.prestigeCost, standard.prestigeCost);
+  assert.equal(option.phaseCost, standard.phaseCost);
+  assert.equal(option.legacyStartingPrestigeBonus, standard.legacyStartingPrestigeBonus * 2);
+}
+
+const monsterState = selectedStateForSignature("monsterHunt");
+const monsterVassal = getCurrentLifeMapVassal(monsterState);
+monsterVassal.prestige = 100;
+const redGod = monsterState.civilization.chaos;
+redGod.monsterCount = 7;
+const monsterNode = forceEnter(monsterState, nodeIdForSignature(monsterState, "monsterHunt"));
+assert.deepEqual(monsterNode.options.map((option) => option.immediateDeathChance ?? 0),
+  VASSAL_MONSTER_HUNT_OPTIONS.map((option) => option.immediateDeathChance ?? 0));
+dispatch(monsterState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: monsterNode.nodeId, optionId: "fundedHunt",
+});
+const fundedHuntCost = getAdjustedVassalPrestigeCost(monsterVassal, 10);
+dispatch(monsterState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: monsterNode.nodeId });
+assert.equal(redGod.monsterCount, 0, "monster removal clamps at zero");
+assert.equal(monsterVassal.prestige, 100 - fundedHuntCost + getVassalPrestigeIncome(monsterVassal),
+  "the safe hunt pays its full adjusted cost on a shortfall");
+
+for (const [optionId, expectedGain] of [["dangerousHunt", 0], ["recklessHunt", 30]]) {
+  const riskState = selectedStateForSignature("monsterHunt");
+  const riskVassal = getCurrentLifeMapVassal(riskState);
+  riskVassal.prestige = 100;
+  riskState.civilization.chaos.monsterCount = 3;
+  const riskNode = forceEnter(riskState, nodeIdForSignature(riskState, "monsterHunt"));
+  dispatch(riskState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+    nodeId: riskNode.nodeId, optionId,
+  });
+  dispatch(riskState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: riskNode.nodeId });
+  assert.equal(riskState.civilization.chaos.monsterCount, 0,
+    `${optionId} clamps monster shortfalls at zero`);
+  assert.ok(riskVassal.prestige >= 100 + expectedGain,
+    `${optionId} applies its full Prestige result even if immediate death is rolled`);
+}
+
+const removalState = selectedStateForSignature("removePractice");
+const removalVassal = getCurrentLifeMapVassal(removalState);
+removalVassal.prestige = 500;
+const removalSite = removalState.world.sites.find((site) =>
+  site.regionId === removalVassal.locationRegionId).detailedState;
+const removalNode = forceEnter(removalState, nodeIdForSignature(removalState, "removePractice"));
+assert.ok(removalNode.inventory.length > 0);
+const removedPracticeId = removalNode.inventory[0].intervention.practiceId;
+dispatch(removalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: removalNode.nodeId, offerId: removalNode.inventory[0].offerId,
+});
+dispatch(removalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: removalNode.nodeId });
+assert.equal(removalSite.practiceSlots.some((slot) => slot?.practiceId === removedPracticeId), false,
+  "a staged signature removal is applied on confirmation");
+
+const structureRemovalState = selectedStateForSignature("removeStructure");
+const structureRemovalVassal = getCurrentLifeMapVassal(structureRemovalState);
+structureRemovalVassal.prestige = 500;
+const structureRemovalSite = structureRemovalState.world.sites.find((site) =>
+  site.regionId === structureRemovalVassal.locationRegionId).detailedState;
+const structureRemovalNode = forceEnter(structureRemovalState,
+  nodeIdForSignature(structureRemovalState, "removeStructure"));
+assert.ok(structureRemovalNode.inventory.length > 0);
+const structureRemovalOffer = structureRemovalNode.inventory[0];
+dispatch(structureRemovalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: structureRemovalNode.nodeId, offerId: structureRemovalOffer.offerId,
+});
+dispatch(structureRemovalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: structureRemovalNode.nodeId,
+});
+assert.equal(structureRemovalSite.structureSlots[structureRemovalOffer.intervention.slotIndex], null,
+  "Structure removal uses the generalized staged intervention path");
+
+const routeRemovalState = selectedStateForSignature("removeRoute");
+const routeRemovalVassal = getCurrentLifeMapVassal(routeRemovalState);
+routeRemovalVassal.prestige = 500;
+const routeRemovalNode = forceEnter(routeRemovalState,
+  nodeIdForSignature(routeRemovalState, "removeRoute"));
+assert.ok(routeRemovalNode.inventory.length > 0);
+const initialConnectionCount = routeRemovalState.world.connections.length;
+dispatch(routeRemovalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: routeRemovalNode.nodeId, offerId: routeRemovalNode.inventory[0].offerId,
+});
+dispatch(routeRemovalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: routeRemovalNode.nodeId,
+});
+assert.equal(routeRemovalState.world.connections.length, initialConnectionCount - 1,
+  "Route removal is available only through its signature shop");
+
+const removalFallbackState = selectedStateForSignature("removePractice");
+const removalFallbackVassal = getCurrentLifeMapVassal(removalFallbackState);
+removalFallbackVassal.prestige = 100;
+removalFallbackState.world.sites.find((site) =>
+  site.regionId === removalFallbackVassal.locationRegionId).detailedState.practiceSlots.fill(null);
+const removalFallbackNode = forceEnter(removalFallbackState,
+  nodeIdForSignature(removalFallbackState, "removePractice"));
+assert.equal(removalFallbackNode.contentMode, "choice");
+assert.equal(removalFallbackNode.options[0].prestigeDelta, 10);
+dispatch(removalFallbackState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: removalFallbackNode.nodeId, optionId: "removalFallback",
+});
+dispatch(removalFallbackState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: removalFallbackNode.nodeId,
+});
+assert.ok(removalFallbackVassal.prestige >= 110,
+  "empty removal nodes grant their zero-time Prestige fallback");
+
+const foodShopState = selectedStateForSignature("foodShop");
+const foodShopVassal = getCurrentLifeMapVassal(foodShopState);
+foodShopVassal.prestige = 500;
+const foodShopNode = forceEnter(foodShopState, nodeIdForSignature(foodShopState, "foodShop"));
+assert.ok(foodShopNode.inventory.length > 0);
+const taggedOfferKinds = new Set(foodShopNode.inventory.map((offer) => offer.intervention.kind));
+assert.ok(foodShopNode.inventory.every((offer) => {
+  const intervention = offer.intervention;
+  const def = intervention.kind === "practice"
+    ? getDetailedPracticeDef(foodShopState, intervention.practiceId)
+    : getDetailedStructureDef(foodShopState, intervention.structureId);
+  return def.tags.includes("Food");
+}), "tagged shops contain only gamepieces carrying their advertised tag");
+dispatch(foodShopState, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: foodShopNode.nodeId });
+foodShopNode.inventory.forEach((offer) => taggedOfferKinds.add(offer.intervention.kind));
+assert.deepEqual([...taggedOfferKinds].sort(), ["practice", "structure"],
+  "tagged shops mix eligible Practices and Structures across their draft and reroll");
 
 console.log("[vassal-life-map] OK");

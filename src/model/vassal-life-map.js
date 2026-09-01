@@ -3,9 +3,13 @@ import {
   VASSAL_DEVELOPMENT_OPTIONS,
   VASSAL_LEGACY_OPTIONS,
   VASSAL_LIFE_TUNING,
+  VASSAL_MONSTER_HUNT_OPTIONS,
   VASSAL_PHASES_PER_YEAR,
   VASSAL_PATRONAGE_OPTIONS,
   VASSAL_LEVEL_UP_STAT_IDS,
+  VASSAL_SIGNATURE_NODE_GROUP_IDS,
+  VASSAL_SIGNATURE_NODE_VARIANTS,
+  VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP,
   VASSAL_STAT_IDS,
   getVassalMortalityChance,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
@@ -25,6 +29,7 @@ import {
   getQualityMultiplier,
 } from "./detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "./moon-phases.js";
+import { getSettlementChaosGodState } from "./settlement-chaos.js";
 import {
   addWorldConnection,
   establishDetailedSettlement,
@@ -44,6 +49,28 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
+const VASSAL_PORTRAIT_KEYS = Object.freeze([
+  "skinTone", "hairStyle", "hairColor", "faceShape",
+  "clothingColor", "accessory", "expression",
+]);
+
+function isValidPortraitDescriptor(portrait) {
+  return !!portrait && typeof portrait === "object" && !Array.isArray(portrait)
+    && VASSAL_PORTRAIT_KEYS.every((key) => typeof portrait[key] === "string" && portrait[key]);
+}
+
+function isValidSignatureDescriptor(descriptor) {
+  const variant = VASSAL_SIGNATURE_NODE_VARIANTS[descriptor?.variantId];
+  return !!variant
+    && descriptor.id === variant.id
+    && descriptor.groupId === variant.groupId
+    && descriptor.label === variant.label
+    && descriptor.glyph === variant.glyph
+    && descriptor.color === variant.color
+    && descriptor.description === variant.description
+    && descriptor.removalKind === variant.removalKind
+    && descriptor.tag === variant.tag;
+}
 
 function qualityLabel(tier) { return `${tier[0].toUpperCase()}${tier.slice(1)}`; }
 function getUnlockedQualityIndex(state) {
@@ -84,6 +111,28 @@ function shuffle(state, values) {
     [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
   return result;
+}
+
+function generateVassalPortrait(state) {
+  const pick = (values) => values[state.rngNextVassalPortraitInt(0, values.length - 1)];
+  return {
+    skinTone: pick(["umber", "sienna", "ochre", "olive", "rose", "ivory"]),
+    hairStyle: pick(["crop", "waves", "braids", "coils", "long", "shaved"]),
+    hairColor: pick(["black", "brown", "auburn", "gold", "silver"]),
+    faceShape: pick(["round", "oval", "angular"]),
+    clothingColor: pick(["red", "blue", "green", "gold", "purple", "charcoal"]),
+    accessory: pick(["none", "band", "pin", "beads", "earring"]),
+    expression: pick(["calm", "bright", "stern"]),
+  };
+}
+
+function generateSignatureNodes(state) {
+  const groups = shuffle(state, VASSAL_SIGNATURE_NODE_GROUP_IDS).slice(0, VASSAL_LIFE_TUNING.candidateCount);
+  return groups.map((groupId) => {
+    const variants = VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP[groupId];
+    const variantId = variants[state.rngNextVassalInt(0, variants.length - 1)];
+    return { ...clone(VASSAL_SIGNATURE_NODE_VARIANTS[variantId]), variantId };
+  });
 }
 
 function getDetailedSite(state, regionId) {
@@ -319,7 +368,7 @@ function generateCandidatePool(state) {
   const legacyBonus = Math.max(0, Math.floor(
     state?.civilization?.vassalLegacy?.futureStartingPrestigeBonus ?? 0
   ));
-  lineage.pendingCandidates = locations.length === 0 ? [] : Array.from(
+  const candidates = locations.length === 0 ? [] : Array.from(
     { length: VASSAL_LIFE_TUNING.candidateCount },
     (_, index) => {
       const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
@@ -338,8 +387,14 @@ function generateCandidatePool(state) {
         statId,
         state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === "intelligence" ? academyBonus : 0),
       ])),
+      portrait: generateVassalPortrait(state),
     }); }
   );
+  const signatureNodes = generateSignatureNodes(state);
+  lineage.pendingCandidates = candidates.map((candidate, index) => ({
+    ...candidate,
+    signatureNode: signatureNodes[index],
+  }));
   return lineage.pendingCandidates;
 }
 
@@ -364,7 +419,7 @@ export function rerollVassalCandidates(state) {
   return { ok: true, pool: getVassalCandidatePool(state) };
 }
 
-function createLifeMapState(state, vassalId) {
+function createLifeMapState(state, vassalId, signatureNode = null) {
   const generationSeed = Math.floor(state?.rng?.vassalLifeMapSeed ?? 0);
   const generated = generateVassalLifeMap(state?.gameConfig?.lifeMapGenerator, {
     nextFloat: () => state.rngNextVassalLifeMapFloat(),
@@ -372,6 +427,7 @@ function createLifeMapState(state, vassalId) {
   }, {
     graphId: `${vassalId}-life-map`,
     generationSeed,
+    signatureNode,
   });
   if (!generated.ok) {
     throw new Error(`Could not generate Vassal Life Map: ${generated.errors?.join("; ") ?? generated.reason}`);
@@ -413,7 +469,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     developmentProgress: 0,
     developmentChoiceQueue: [],
     nextDevelopmentChoiceId: 1,
-    lifeMap: createLifeMapState(state, vassalId),
+    lifeMap: createLifeMapState(state, vassalId, source.signatureNode),
     lifeEvents: [{
       eventId: `${vassalId}:selected`, kind: "selected", tSec: state.tSec,
       text: `Selected at ${getRegionReference(state, source.locationRegionId) ?? source.locationRegionId}`,
@@ -477,6 +533,11 @@ function buildTravelOptions(state, vassal) {
 function applyPracticeIntervention(practiceSlots, intervention) {
   const existingIndex = practiceSlots.findIndex((slot) =>
     slot?.practiceId === intervention.practiceId);
+  if (intervention.mode === "remove") {
+    if (existingIndex < 0) return false;
+    practiceSlots[existingIndex] = null;
+    return true;
+  }
   let nextSlot;
   if (intervention.mode === "upgrade") {
     const existing = practiceSlots[existingIndex];
@@ -498,7 +559,8 @@ function applyReservedIntervention(reservation, intervention) {
   if (intervention.kind === "practice") {
     applyPracticeIntervention(reservation.practiceSlots, intervention);
   } else if (intervention.kind === "structure") {
-    reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
+    reservation.structureSlots[intervention.slotIndex] = intervention.mode === "remove"
+      ? null : intervention.structureId;
   } else if (intervention.kind === "connection") {
     const key = getWorldConnectionKey(intervention.regionAId, intervention.regionBId);
     if (intervention.mode === "add") reservation.connectionKeys.add(key);
@@ -515,10 +577,14 @@ function validatePurchaseInterventions(state, vassal, purchases) {
         return { ok: false, reason: "practiceUnavailable" };
       }
     } else if (intervention?.kind === "structure") {
-      if (reservation.structureSlots[intervention.slotIndex] != null) {
-        return { ok: false, reason: "structureUnavailable" };
+      const occupied = reservation.structureSlots[intervention.slotIndex];
+      if (intervention.mode === "remove") {
+        if (occupied !== intervention.structureId) return { ok: false, reason: "structureUnavailable" };
+        reservation.structureSlots[intervention.slotIndex] = null;
+      } else {
+        if (occupied != null) return { ok: false, reason: "structureUnavailable" };
+        reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
       }
-      reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
     } else if (intervention?.kind === "connection") {
       const key = getWorldConnectionKey(intervention.regionAId, intervention.regionBId);
       const exists = reservation.connectionKeys.has(key);
@@ -606,6 +672,98 @@ function buildStructureOffers(state, vassal, nodeState, roll) {
   return offers;
 }
 
+function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
+  const reservation = buildReservation(state, vassal, nodeState);
+  const candidates = [
+    ...VASSAL_INTERVENTION_PRACTICE_IDS.flatMap((practiceId) => {
+      const def = getDetailedPracticeDef(state, practiceId);
+      return def && isDefinitionUnlocked(state, def) && (def.tags ?? []).includes(requiredTag)
+        ? [{ kind: "practice", definitionId: practiceId }] : [];
+    }),
+    ...Object.keys(settlementStructureDefs).flatMap((structureId) => {
+      const def = settlementStructureDefs[structureId];
+      return isDefinitionUnlocked(state, def) && (def.tags ?? []).includes(requiredTag)
+        ? [{ kind: "structure", definitionId: structureId }] : [];
+    }),
+  ];
+  const offers = [];
+  for (const candidate of shuffle(state, candidates)) {
+    if (offers.length >= 3) break;
+    if (candidate.kind === "practice") {
+      const practiceId = candidate.definitionId;
+      const def = getDetailedPracticeDef(state, practiceId);
+      const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
+      if (installed?.tier === "diamond") continue;
+      const tier = installed?.tier ?? "bronze";
+      const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
+      const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
+      if (!resultingTier) continue;
+      const intervention = {
+        kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
+        mode: installed ? "upgrade" : "learn", tier, resultingTier,
+      };
+      applyPracticeIntervention(reservation.practiceSlots, intervention);
+      offers.push({
+        offerId: `${nodeState.nodeId}:r${roll}:tag:${offers.length}`,
+        label: installed ? `Upgrade ${def.label} ${qualityLabel(tier)} → ${qualityLabel(resultingTier)}`
+          : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
+        basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
+        basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
+        intervention,
+      });
+    } else {
+      const slotIndex = reservation.structureSlots.findIndex((value) => value == null);
+      if (slotIndex < 0) continue;
+      const structureId = candidate.definitionId;
+      const def = settlementStructureDefs[structureId];
+      const tier = rollOfferQuality(state, vassal.locationRegionId);
+      reservation.structureSlots[slotIndex] = structureId;
+      offers.push({
+        offerId: `${nodeState.nodeId}:r${roll}:tag:${offers.length}`,
+        label: `Build ${qualityLabel(tier)} ${def.label}`,
+        basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
+        basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
+        intervention: { kind: "structure", mode: "add", targetRegionId: vassal.locationRegionId, structureId, tier, slotIndex },
+      });
+    }
+  }
+  return offers;
+}
+
+function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
+  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+  let targets = [];
+  if (removalKind === "practice") {
+    targets = (settlement?.practiceSlots ?? []).flatMap((slot) => slot ? [{
+      label: `Remove ${getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId}`,
+      intervention: { kind: "practice", mode: "remove", targetRegionId: vassal.locationRegionId,
+        practiceId: slot.practiceId, tier: slot.tier ?? "bronze" },
+    }] : []);
+  } else if (removalKind === "structure") {
+    targets = (settlement?.structureSlots ?? []).flatMap((slot, slotIndex) => slot ? [{
+      label: `Remove ${getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId}`,
+      intervention: { kind: "structure", mode: "remove", targetRegionId: vassal.locationRegionId,
+        structureId: slot.structureId, tier: slot.tier ?? "bronze", slotIndex },
+    }] : []);
+  } else {
+    targets = (state?.world?.connections ?? []).flatMap((edge) => {
+      if (edge.regionAId !== vassal.locationRegionId && edge.regionBId !== vassal.locationRegionId) return [];
+      const left = getRegionReference(state, edge.regionAId) ?? edge.regionAId;
+      const right = getRegionReference(state, edge.regionBId) ?? edge.regionBId;
+      return [{
+        label: `Remove ${left} ↔ ${right}`,
+        intervention: { kind: "connection", mode: "remove", regionAId: edge.regionAId, regionBId: edge.regionBId },
+      }];
+    });
+  }
+  return shuffle(state, targets).slice(0, 3).map((target, index) => ({
+    offerId: `${nodeState.nodeId}:r${roll}:remove:${index}`,
+    ...target,
+    basePrestigeCost: VASSAL_LIFE_TUNING.signatureRemovalPrestigeCost,
+    basePhaseCost: VASSAL_LIFE_TUNING.routeRemovePhaseCost,
+  }));
+}
+
 function isPlayerDetailedRegion(state, regionId) {
   return getRegionState(state, regionId)?.controller === "player" && !!getDetailedSite(state, regionId);
 }
@@ -683,7 +841,7 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
         && isPlayerDetailedRegion(state, edge.regionBId)) {
       return [{ mode: "add", edge }];
     }
-    return exists ? [{ mode: "remove", edge }] : [];
+    return [];
   });
   return shuffle(state, candidates).slice(0, 3).map((candidate, index) => {
     const { edge, mode } = candidate;
@@ -703,7 +861,11 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
 
 function generateShopInventory(state, vassal, nodeState) {
   const roll = Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0));
-  const offers = nodeState.family === "practiceReform"
+  const offers = nodeState.signatureNode?.groupId === "tagShop"
+    ? buildTaggedOffers(state, vassal, nodeState, roll, nodeState.signatureNode.tag)
+    : nodeState.signatureNode?.groupId === "removal"
+      ? buildRemovalOffers(state, vassal, nodeState, roll, nodeState.signatureNode.removalKind)
+      : nodeState.family === "practiceReform"
     ? buildPracticeOffers(state, vassal, nodeState, roll)
     : nodeState.family === "publicWorks"
       ? buildStructureOffers(state, vassal, nodeState, roll)
@@ -711,10 +873,16 @@ function generateShopInventory(state, vassal, nodeState) {
   return offers.map((offer, inventoryIndex) => ({ ...offer, inventoryIndex }));
 }
 
+function isShopNodeState(nodeState) {
+  return nodeState?.contentMode === "shop" || SHOP_FAMILIES.has(nodeState?.family);
+}
+
 function createNodeState(state, vassal, node) {
   const nodeState = {
     nodeId: node.id,
     family: node.family,
+    signatureNode: node.signatureNode ? clone(node.signatureNode) : null,
+    contentMode: "choice",
     entered: true,
     enteredSec: Math.max(0, Math.floor(state.tSec ?? 0)),
     resolved: false,
@@ -729,21 +897,35 @@ function createNodeState(state, vassal, node) {
     accumulatedPhaseCost: 0,
     resolutionResult: null,
   };
-  if (node.family === "patronage") nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS);
+  if (node.signatureNode?.variantId === "settlement") {
+    nodeState.options = buildSettlementOptions(state, vassal);
+  } else if (node.signatureNode?.variantId === "legacyPlus") {
+    nodeState.options = clone(VASSAL_LEGACY_OPTIONS).map((option) => ({
+      ...option,
+      legacyStartingPrestigeBonus: Math.max(0, option.legacyStartingPrestigeBonus ?? 0) * 2,
+    }));
+  } else if (node.signatureNode?.variantId === "monsterHunt") {
+    nodeState.options = clone(VASSAL_MONSTER_HUNT_OPTIONS);
+  } else if (["removal", "tagShop"].includes(node.signatureNode?.groupId)) {
+    nodeState.contentMode = "shop";
+    nodeState.inventory = generateShopInventory(state, vassal, nodeState);
+    if (node.signatureNode.groupId === "removal" && nodeState.inventory.length === 0) {
+      nodeState.contentMode = "choice";
+      nodeState.options = [{
+        id: "removalFallback", label: "Reorganize Local Affairs",
+        prestigeDelta: 10, phaseCost: 0,
+      }];
+    }
+  } else if (node.family === "patronage") nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS);
   else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state);
   else if (node.family === "travel") nodeState.options = buildTravelOptions(state, vassal);
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
-  else if (node.family === "crisis") nodeState.options = shuffle(state, [
-    ...clone(VASSAL_CRISIS_OPTIONS), ...buildSettlementOptions(state, vassal),
-  ]).slice(0, 3);
-  else if (node.family === "legacy") {
-    const humble = clone(VASSAL_LEGACY_OPTIONS.find((option) => option.id === "humbleRemembrance"));
-    nodeState.options = [humble, ...shuffle(state, [
-      ...clone(VASSAL_LEGACY_OPTIONS.filter((option) => option.id !== "humbleRemembrance")),
-      ...buildSettlementOptions(state, vassal),
-    ]).slice(0, 2)];
+  else if (node.family === "crisis") nodeState.options = clone(VASSAL_CRISIS_OPTIONS);
+  else if (node.family === "legacy") nodeState.options = clone(VASSAL_LEGACY_OPTIONS);
+  else if (SHOP_FAMILIES.has(node.family)) {
+    nodeState.contentMode = "shop";
+    nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   }
-  else if (SHOP_FAMILIES.has(node.family)) nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   return nodeState;
 }
 
@@ -786,7 +968,7 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
 export function purchaseVassalShopOffer(state, nodeId, offerId) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
-  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   const index = nodeState.inventory.findIndex((offer) => offer.offerId === offerId);
   if (index < 0) return { ok: false, reason: "offerUnavailable" };
@@ -812,7 +994,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId) {
 export function undoVassalShopPurchase(state, nodeId, offerId) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
-  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   const index = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
   if (index < 0) return { ok: false, reason: "purchaseUnavailable" };
@@ -838,7 +1020,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
 export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
-  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   const fromIndex = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
   const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
@@ -856,7 +1038,7 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
 export function rerollVassalShop(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
-  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !SHOP_FAMILIES.has(nodeState?.family)
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   if (nodeState.rerollUsed) return { ok: false, reason: "rerollUsed" };
   if ((nodeState.purchasedOffers ?? []).length > 0) {
@@ -883,9 +1065,18 @@ function applyIntervention(state, intervention) {
       : { ok: false, reason: "practiceUnavailable" };
   }
   if (intervention.kind === "structure" && settlement
-      && settlement.structureSlots[intervention.slotIndex] == null) {
-    settlement.structureSlots[intervention.slotIndex] = { structureId: intervention.structureId, tier: intervention.tier ?? "bronze" };
-    return { ok: true };
+      && Number.isInteger(intervention.slotIndex)) {
+    if (intervention.mode === "remove") {
+      if (settlement.structureSlots[intervention.slotIndex]?.structureId !== intervention.structureId) {
+        return { ok: false, reason: "structureUnavailable" };
+      }
+      settlement.structureSlots[intervention.slotIndex] = null;
+      return { ok: true };
+    }
+    if (settlement.structureSlots[intervention.slotIndex] == null) {
+      settlement.structureSlots[intervention.slotIndex] = { structureId: intervention.structureId, tier: intervention.tier ?? "bronze" };
+      return { ok: true };
+    }
   }
   if (intervention.kind === "connection") {
     return intervention.mode === "add"
@@ -893,6 +1084,26 @@ function applyIntervention(state, intervention) {
       : removeWorldConnection(state, intervention.regionAId, intervention.regionBId);
   }
   return { ok: false, reason: "interventionUnavailable" };
+}
+
+function applyVassalNodeEffects(state, effects = []) {
+  for (const effect of effects) {
+    if (effect?.op === "AdjustSettlementChaosGodState") {
+      const god = getSettlementChaosGodState(state, effect.godId)
+        ?? (effect.godId === "redGod" ? state?.civilization?.chaos : null);
+      if (!god || typeof effect.key !== "string" || !Number.isFinite(god[effect.key])) {
+        return { ok: false, reason: "chaosGodStateUnavailable" };
+      }
+      const minimum = Number.isFinite(effect.min) ? effect.min : Number.NEGATIVE_INFINITY;
+      const maximum = Number.isFinite(effect.max) ? effect.max : Number.POSITIVE_INFINITY;
+      god[effect.key] = Math.floor(Math.min(maximum, Math.max(
+        minimum, Math.floor(god[effect.key]) + Math.floor(effect.amount ?? 0)
+      )));
+    } else {
+      return { ok: false, reason: "unsupportedVassalNodeEffect" };
+    }
+  }
+  return { ok: true };
 }
 
 function addLifeEvent(state, vassal, kind, extra = {}) {
@@ -998,6 +1209,8 @@ function applyOptionEffect(state, vassal, nodeState, option) {
         + Math.max(0, Math.floor(option.legacyStartingPrestigeBonus))
     );
   }
+  const effectsResult = applyVassalNodeEffects(state, option?.effects);
+  if (!effectsResult.ok) return effectsResult;
   if (Number.isFinite(option?.immediateDeathChance)
       && state.rngNextVassalFloat() < option.immediateDeathChance) {
     nodeState.resolutionResult = "crisisDeath";
@@ -1073,7 +1286,7 @@ export function confirmVassalLifeNode(state, nodeId) {
     return { ok: false, reason: "nodeUnavailable" };
   }
   let option = null;
-  if (!SHOP_FAMILIES.has(nodeState.family)) {
+  if (!isShopNodeState(nodeState)) {
     option = nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
   }
@@ -1092,7 +1305,7 @@ export function confirmVassalLifeNode(state, nodeId) {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
   }
-  if (SHOP_FAMILIES.has(nodeState.family) && nodeState.purchasedOffers.length === 0) {
+  if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
     nodeState.accumulatedPhaseCost += VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost;
   }
   let optionResult = { ok: true, phaseCost: 0 };
@@ -1192,7 +1405,9 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
   previewOptionId = null,
   previewOfferId = null,
 } = {}) {
-  if (!vassal || !nodeState || !["travel", "routes", "settlement", "crisis", "legacy"].includes(nodeState.family)) return null;
+  if (!vassal || !nodeState || !["travel", "routes", "settlement", "crisis", "legacy"].includes(nodeState.family)
+      && nodeState.signatureNode?.removalKind !== "connection"
+      && nodeState.signatureNode?.variantId !== "settlement") return null;
   const definition = getWorldDefinition(state);
   const currentRegionId = vassal.locationRegionId;
   const selectedOption = nodeState.options?.find((option) =>
@@ -1345,10 +1560,10 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const selectedOptionPhaseCost = selectedOption
     ? getAdjustedVassalPhaseCost(vassal, selectedOption.phaseCost ?? 0) : 0;
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
-  const emptyShopConfirmPhaseCost = SHOP_FAMILIES.has(nodeState?.family)
+  const emptyShopConfirmPhaseCost = isShopNodeState(nodeState)
     && (nodeState?.purchasedOffers ?? []).length === 0
     ? VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost : 0;
-  const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (SHOP_FAMILIES.has(nodeState?.family)
+  const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (isShopNodeState(nodeState)
     ? 0 : selectedOptionPhaseCost);
   const currentAge = getVassalAge(state, vassal);
   const projectedAge = getVassalAge(
@@ -1369,7 +1584,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       const intervention = purchase.intervention;
       if (intervention?.kind === "practice") applyPracticeIntervention(afterPractices, intervention);
       if (intervention?.kind === "structure") {
-        afterStructures[intervention.slotIndex] = {
+        afterStructures[intervention.slotIndex] = intervention.mode === "remove" ? null : {
           structureId: intervention.structureId, tier: intervention.tier ?? "bronze",
         };
       }
@@ -1434,7 +1649,13 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     } : null,
     offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
     purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),
-    contextKind: ["practiceReform", "publicWorks"].includes(nodeState?.family)
+    contextKind: nodeState?.signatureNode?.groupId === "tagShop"
+      || ["practice", "structure"].includes(nodeState?.signatureNode?.removalKind)
+      ? "settlement"
+      : nodeState?.signatureNode?.removalKind === "connection"
+        || nodeState?.signatureNode?.variantId === "settlement"
+        ? "regionalMap"
+        : ["practiceReform", "publicWorks"].includes(nodeState?.family)
       ? "settlement"
       : ["travel", "routes"].includes(nodeState?.family)
         ? "regionalMap"
@@ -1512,6 +1733,19 @@ export function validateVassalLifeMapState(state) {
   }
   if (!Array.isArray(lineage.pendingCandidates)) {
     errors.push("vassalLineage.pendingCandidates: expected an array");
+  } else {
+    const groups = new Set();
+    for (const [index, candidate] of lineage.pendingCandidates.entries()) {
+      const variant = VASSAL_SIGNATURE_NODE_VARIANTS[candidate?.signatureNode?.variantId];
+      if (!isValidSignatureDescriptor(candidate?.signatureNode)) {
+        errors.push(`vassalLineage.pendingCandidates[${index}].signatureNode: invalid`);
+      } else if (groups.has(variant.groupId)) {
+        errors.push("vassalLineage.pendingCandidates: duplicate signature group");
+      } else groups.add(variant.groupId);
+      if (!isValidPortraitDescriptor(candidate?.portrait)) {
+        errors.push(`vassalLineage.pendingCandidates[${index}].portrait: invalid`);
+      }
+    }
   }
   if (lineage.currentVassalId != null
       && !lineage.vassalsById?.[lineage.currentVassalId]) {
@@ -1525,6 +1759,10 @@ export function validateVassalLifeMapState(state) {
     }
     if (!VASSAL_STAT_IDS.every((statId) => Number.isFinite(vassal?.stats?.[statId]))) {
       errors.push(`${vassalId}.stats: expected all four finite stats`);
+    }
+    if (!isValidSignatureDescriptor(vassal?.signatureNode)
+        || !isValidPortraitDescriptor(vassal?.portrait)) {
+      errors.push(`${vassalId}: invalid signature node or portrait`);
     }
     if (!Array.isArray(vassal?.developmentChoiceQueue)
         || !Number.isInteger(vassal?.nextDevelopmentChoiceId)

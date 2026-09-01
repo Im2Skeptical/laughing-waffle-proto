@@ -35,12 +35,13 @@ export function createSettlementVassalControlsView({
   onPrimary,
 } = {}) {
   const root = new PIXI.Container();
-  root.zIndex = 6;
+  root.zIndex = 20;
   layer?.addChild(root);
   const primaryButton = makeButton(root, "Intervene", PRIMARY_BUTTON_WIDTH, PRIMARY_BUTTON_HEIGHT, {
     fontSize: 22,
   });
-  primaryButton.container.on("pointertap", () => {
+  primaryButton.container.on("pointertap", (event) => {
+    event?.stopPropagation?.();
     if (getPrimaryState?.()?.enabled !== true) return;
     onPrimary?.();
   });

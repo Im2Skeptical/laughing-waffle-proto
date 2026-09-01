@@ -165,6 +165,7 @@ stylePage();
 const playfieldLayer = new PIXI.Container();
 const graphLayer = new PIXI.Container();
 const controlLayer = new PIXI.Container();
+controlLayer.sortableChildren = true;
 const tooltipLayer = new PIXI.Container();
 const modalLayer = new PIXI.Container();
 const SETTLEMENT_GRAPH_WINDOW_SEC =
@@ -201,6 +202,7 @@ let vassalDebugPresetController = null;
 let debugProfileController = null;
 let settlementPendingVassalSelection = null;
 let settlementHoveredVassalCandidate = null;
+let settlementSelectedVassalCandidateIndex = null;
 let settlementVassalSelectionWasOpen = false;
 let settlementVassalSelectionResumeSpeed = 0;
 let settlementLastVassalSelectionResult = null;
@@ -829,6 +831,7 @@ function closeSettlementVassalSelection() {
   if (!settlementPendingVassalSelection) return { ok: false, reason: "missingSelectionPool" };
   settlementPendingVassalSelection = null;
   settlementHoveredVassalCandidate = null;
+  settlementSelectedVassalCandidateIndex = null;
   settlementVassalSelectionResumeSpeed = 0;
   settlementGraphView?.clearProjectionReplacementTransition?.();
   worldMapView?.refresh?.();
@@ -848,6 +851,7 @@ function openLifeMapVassalSelection() {
   settlementGraphView?.resetForecastPreviewState?.();
   settlementPendingVassalSelection = buildDetailedVassalSelectionPool(state);
   settlementHoveredVassalCandidate = null;
+  settlementSelectedVassalCandidateIndex = null;
   settlementVassalChooserView?.refresh?.();
   syncSettlementVassalSelectionPauseState();
   return settlementPendingVassalSelection
@@ -911,6 +915,7 @@ function selectLifeMapCandidate(candidateIndex) {
     if (candidate?.locationRegionId) selectedWorldRegionId = candidate.locationRegionId;
     settlementPendingVassalSelection = null;
     settlementHoveredVassalCandidate = null;
+    settlementSelectedVassalCandidateIndex = null;
     syncSettlementVassalSelectionPauseState();
     syncSettlementGraphHorizon();
     settlementGraphView?.restartForecastRevealFrom?.(selectionSec, {
@@ -921,9 +926,21 @@ function selectLifeMapCandidate(candidateIndex) {
     setWorldViewMode("vassalLife");
   } else if (result.reason === "selectionPoolMismatch") {
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
+    settlementHoveredVassalCandidate = null;
+    settlementSelectedVassalCandidateIndex = null;
     settlementVassalChooserView?.refresh?.();
   }
   return result;
+}
+
+function previewLifeMapCandidate(candidateIndex) {
+  const candidate = settlementPendingVassalSelection?.candidates?.[candidateIndex] ?? null;
+  if (!candidate) return { ok: false, reason: "invalidCandidate" };
+  settlementSelectedVassalCandidateIndex = candidateIndex;
+  settlementHoveredVassalCandidate = candidate;
+  settlementVassalChooserView?.refresh?.();
+  worldMapView?.refresh?.();
+  return { ok: true, candidateIndex };
 }
 
 function rerollLifeMapCandidates() {
@@ -932,6 +949,7 @@ function rerollLifeMapCandidates() {
   if (result.ok) {
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(getSettlementFrontierState());
     settlementHoveredVassalCandidate = null;
+    settlementSelectedVassalCandidateIndex = null;
     settlementVassalChooserView?.refresh?.();
   }
   return result;
@@ -951,6 +969,7 @@ function replaceSettlementVassalCandidate(candidateIndex, spec) {
   if (!result.ok) return result;
   settlementPendingVassalSelection = result.pool;
   settlementHoveredVassalCandidate = null;
+  settlementSelectedVassalCandidateIndex = null;
   worldMapView?.refresh?.();
   settlementVassalChooserView?.refresh?.();
   return { ok: true, candidate: result.pool.candidates[candidateIndex] ?? null };
@@ -968,6 +987,8 @@ function applySettlementDebugOverrides(overrides) {
   const frontierBeforeEdit = getSettlementFrontierSec();
   const hadPendingSelection = !!settlementPendingVassalSelection;
   settlementPendingVassalSelection = null;
+  settlementHoveredVassalCandidate = null;
+  settlementSelectedVassalCandidateIndex = null;
   let moveResult = { ok: true };
   if (targetSec <= frontierBeforeEdit) {
     moveResult = setSettlementViewedSecond(targetSec, { mode: "commit" });
@@ -1064,6 +1085,13 @@ function getSettlementPrimaryVassalState() {
     return {
       enabled: hasPendingSelection !== true,
       label: worldViewMode === "vassalLife" ? "World Map" : "Life Map",
+    };
+  }
+  if (hasPendingSelection) {
+    return {
+      enabled: Number.isInteger(settlementSelectedVassalCandidateIndex),
+      label: Number.isInteger(settlementSelectedVassalCandidateIndex)
+        ? "Confirm Vassal" : "Choose a Vassal",
     };
   }
   if (browsingHistoricalVassal) {
@@ -1684,6 +1712,11 @@ settlementVassalControlsView = createSettlementVassalControlsView({
   layer: controlLayer,
   getPrimaryState: () => getSettlementPrimaryVassalState(),
   onPrimary: () => {
+    if (settlementPendingVassalSelection) {
+      return Number.isInteger(settlementSelectedVassalCandidateIndex)
+        ? selectLifeMapCandidate(settlementSelectedVassalCandidateIndex)
+        : { ok: false, reason: "candidateRequired" };
+    }
     const current = getCurrentLifeMapVassal(getSettlementFrontierState());
     const historical = getSettlementViewedSec() < getSettlementFrontierSec()
       ? getSettlementLifeMapPresentation().vassal
@@ -1704,12 +1737,15 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
   layer: controlLayer,
   getState: () => runner.getState?.(),
   getSelectionPool: () => settlementPendingVassalSelection,
+  getSelectedCandidateIndex: () => settlementSelectedVassalCandidateIndex,
   isOpen: () => worldViewMode === "map" && !!settlementPendingVassalSelection,
-  onSelectCandidate: (candidateIndex) => selectLifeMapCandidate(candidateIndex),
+  onPreviewCandidate: (candidateIndex) => previewLifeMapCandidate(candidateIndex),
   onReroll: () => rerollLifeMapCandidates(),
   onClose: () => closeSettlementVassalSelection(),
   onHoverCandidate: (candidate) => {
-    settlementHoveredVassalCandidate = candidate;
+    settlementHoveredVassalCandidate = candidate
+      ?? settlementPendingVassalSelection?.candidates?.[settlementSelectedVassalCandidateIndex]
+      ?? null;
     worldMapView?.refresh?.();
   },
 });
@@ -1720,6 +1756,7 @@ runCompleteView = createRunCompleteView({
 function handleDebugFreshRunApplied(reason) {
   settlementPendingVassalSelection = null;
   settlementHoveredVassalCandidate = null;
+  settlementSelectedVassalCandidateIndex = null;
   settlementLastVassalSelectionResult = null;
   settlementPendingPreviewRestoreSec = null;
   settlementDebugMenu?.close?.();

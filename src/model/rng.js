@@ -52,6 +52,19 @@ function _rngNextVassalLifeMapInt(state, min, max) {
   return a + Math.floor(_rngNextVassalLifeMapFloat(state) * (b - a + 1));
 }
 
+function _rngNextVassalPortraitFloat(state) {
+  let t = (state.rng.vassalPortraitSeed += 0x6d2b79f5);
+  t = Math.imul(t ^ (t >>> 15), 1 | t);
+  t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function _rngNextVassalPortraitInt(state, min, max) {
+  const a = Math.ceil(min);
+  const b = Math.floor(max);
+  return a + Math.floor(_rngNextVassalPortraitFloat(state) * (b - a + 1));
+}
+
 function _rngNextFloatSeed(seedState) {
   let t = (seedState.seed += 0x6d2b79f5);
   t = Math.imul(t ^ (t >>> 15), 1 | t);
@@ -88,4 +101,7 @@ export function attachRngHelpers(state) {
   state.rngNextVassalLifeMapFloat = () => _rngNextVassalLifeMapFloat(state);
   state.rngNextVassalLifeMapInt = (min, max) =>
     _rngNextVassalLifeMapInt(state, min, max);
+  state.rngNextVassalPortraitFloat = () => _rngNextVassalPortraitFloat(state);
+  state.rngNextVassalPortraitInt = (min, max) =>
+    _rngNextVassalPortraitInt(state, min, max);
 }
