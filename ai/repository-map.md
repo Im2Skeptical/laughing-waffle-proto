@@ -22,10 +22,23 @@ for new rendering or model rules.
 
 ## UI routes
 
+### Shared presentation
+
+- Frame, stone materials, astrolabe: `src/views/chronicle-skin.js`
+- Original atlases and texture regions: `src/views/chronicle-art.js`,
+  `images/dark-fantasy/README.md`
+- Illustrated cards and inspection: `src/views/chronicle-card.js` and
+  `src/views/chronicle-inspection.js`
+- Pure time samplers and scene effects: `src/views/timeline-presentation.js`
+  and `src/views/chronicle-effects-pixi.js`
+- Reversible sound: `src/views/timeline-audio.js`
+- Design and time-first extension contract: `ai/visual-overhaul.md`
+
 ### Map
 
 - Rendering, region selection, ownership/worker/structure glyphs, packet
   animation, and map panels: `src/views/world-map-pixi.js`
+- Selected-region/chaos panel content: `src/views/chronicle-world-panels.js`
 - Pure map/civilization selectors: `src/model/world-state.js` and
   `src/model/detailed-settlements.js`
 - Administration packet reconstruction: `src/model/edge-transfers.js`
@@ -116,6 +129,9 @@ in `ai/ai-context.md`.
   `npm run verify` and `npm run probe:game-menu`
 - Shared mobile layout or input changes:
   all three browser probes and a 1280x800 visual check
+- Timeline-driven art, sound, or card inspection:
+  `npm run test:presentation`, `npm run probe:chronicle`, and the relevant
+  existing interaction probe; inspect 844x390 screenshots as well
 
 Browser probes write details under `artifacts/` and print concise failures.
 Do not paste their full artifact JSON into chat.

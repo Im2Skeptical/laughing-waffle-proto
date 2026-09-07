@@ -82,16 +82,16 @@ export function addCivilizationSurvivalStrip(
     PALETTE.stroke,
     2
   );
-  parent.addChild(
-    background,
-    createText(
-      viewModel.label,
-      { ...TEXT_STYLES.title, fontSize: 18 },
-      rect.x + rect.width / 2,
-      rect.y + rect.height / 2,
-      0.5,
-      0.5
-    )
-  );
+  parent.addChild(background);
+  const columns=[
+    [`YEAR ${viewModel.year}`, SEASON_DISPLAY[viewModel.seasonKey]??viewModel.seasonKey],
+    [viewModel.projectedLossYear?`YEAR ${viewModel.projectedLossYear}`:'Unfolding…',viewModel.runComplete?'Civilization ended':'Foreseen survival'],
+    [viewModel.bestSurvivalYear?`YEAR ${viewModel.bestSurvivalYear}`:'—','Best remembered'],
+  ];
+  columns.forEach(([value,label],i)=>{
+    const x=rect.x+(i+.5)*rect.width/3;
+    parent.addChild(createText(value,{...TEXT_STYLES.title,fontSize:22,fill:i===0?PALETTE.text:PALETTE.accent},x,rect.y+7,.5,0),
+      createText(label,{...TEXT_STYLES.body,fontSize:17,fill:PALETTE.textMuted},x,rect.y+32,.5,0));
+  });
   return viewModel;
 }

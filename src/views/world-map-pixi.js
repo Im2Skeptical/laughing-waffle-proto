@@ -1,3 +1,7 @@
+import { sampleEventProgress } from './timeline-presentation.js';
+import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
+import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
+import { addChaosPanelContent, addRegionPanelContent } from './chronicle-world-panels.js';
 import {
   getConnectedRegionIds,
   getRegionDefinition,
@@ -29,9 +33,9 @@ const CIVILIZATION_HEADER_RECT = Object.freeze({
 });
 const CIVILIZATION_RECT = Object.freeze({
   x: 1734,
-  y: 16,
+  y: 88,
   width: 626,
-  height: 208,
+  height: 136,
 });
 const DETAIL_RECT = Object.freeze({
   x: 1734,
@@ -43,11 +47,9 @@ const REGION_COLOURS = Object.freeze({
   red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
 });
 const CONTROLLER_COLOURS = Object.freeze({
-  player: 0xe8c96c, frontier: 0xd5d0c6, "external-a": 0xc17a57, "external-b": 0x8b72b1,
+  player: 0xe8c96c, frontier: 0x8f936e, "external-a": 0xc17a57, "external-b": 0x8b72b1,
 });
 const MAX_RENDERED_WORKER_PAWNS = 5;
-const EDGE_TRANSFER_PACKET_DURATION_MS = 900;
-const EDGE_TRANSFER_PACKET_STAGGER_MS = 85;
 const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
 const REGION_DOUBLE_TAP_WINDOW_MS = 350;
 const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;
@@ -203,107 +205,6 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   root.cursor = disabled ? "default" : "pointer";
   root.on("pointerdown", () => { if (!disabled) onPress?.(); });
   parent.addChild(root);
-}
-
-function getPracticeCardState(entry) {
-  if (!entry?.practiceId) return "Open slot";
-  const activation = entry?.evaluation?.activation?.type;
-  const timing = activation === "passive"
-    ? "Passive"
-    : activation === "season"
-      ? "Seasonal"
-      : activation === "birth"
-        ? "Birth"
-        : activation === "food"
-          ? "Food"
-          : "Practice";
-  const assigned = Array.isArray(entry?.workers?.tokens)
-    ? entry.workers.tokens.length
-    : 0;
-  const capacity = Math.max(0, Math.floor(entry?.evaluation?.workerCapacity ?? 0));
-  return `${timing} · ${assigned}/${capacity} workers`;
-}
-
-function drawCompactPracticeSlot(parent, rect, entry, slotIndex) {
-  const filled = Boolean(entry?.practiceId);
-  const passive = entry?.evaluation?.activation?.type === "passive";
-  const card = new PIXI.Graphics();
-  card.eventMode = "none";
-  roundedRect(
-    card,
-    rect.x,
-    rect.y,
-    rect.width,
-    rect.height,
-    8,
-    filled ? PALETTE.card : PALETTE.slot,
-    passive ? PALETTE.passiveBorder : PALETTE.stroke,
-    filled ? 2 : 1
-  );
-  parent.addChild(
-    card,
-    createText(
-      `${slotIndex + 1}. ${filled ? `${entry.label} · ${entry.tier[0].toUpperCase()}${entry.tier.slice(1)}` : "Empty"}`,
-      {
-        ...TEXT_STYLES.title,
-        fontSize: 12,
-        wordWrap: true,
-        wordWrapWidth: rect.width - 16,
-        fill: filled ? PALETTE.text : PALETTE.textMuted,
-      },
-      rect.x + 8,
-      rect.y + 7
-    ),
-    createText(
-      getPracticeCardState(entry),
-      {
-        ...TEXT_STYLES.body,
-        fontSize: 10,
-        fill: filled ? PALETTE.textMuted : PALETTE.textMuted,
-      },
-      rect.x + 8,
-      rect.y + 33
-    )
-  );
-}
-
-function structureSlotLabel(slot) {
-  if (!slot?.structureId) return "Open";
-  return String(slot.structureId)
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function drawCompactStructureSlot(parent, rect, slot, slotIndex) {
-  const filled = Boolean(slot?.structureId);
-  const card = new PIXI.Graphics();
-  card.eventMode = "none";
-  roundedRect(
-    card,
-    rect.x,
-    rect.y,
-    rect.width,
-    rect.height,
-    7,
-    filled ? PALETTE.cardMuted : PALETTE.slot,
-    filled ? PALETTE.stroke : PALETTE.textMuted,
-    1
-  );
-  parent.addChild(
-    card,
-    createText(
-      `${slotIndex + 1} · ${structureSlotLabel(slot)}`,
-      {
-        ...TEXT_STYLES.body,
-        fontSize: 11,
-        wordWrap: true,
-        wordWrapWidth: rect.width - 12,
-        fill: filled ? PALETTE.text : PALETTE.textMuted,
-      },
-      rect.x + 6,
-      rect.y + 13
-    )
-  );
 }
 
 function getRegionReferenceCorner(definition, regionDef) {
@@ -558,6 +459,8 @@ function addStructureIndicator(
 ) {
   const slots = Array.isArray(structureSlots) ? structureSlots : [];
   if (slots.length === 0) return;
+  const filled=slots.filter(Boolean);
+  if(!filled.length)return;
   const gap = 27;
   const pillWidth = slots.length * gap + 16;
   const verticalOffset = centered ? -34 : 0;
@@ -716,68 +619,6 @@ function addSettlementCurrencyIndicator(parent, point, { currency, currencySpent
   });
 }
 
-function addMapIndicatorLegend(parent) {
-  addPawnGlyph(parent, 282, 81, { color: PALETTE.accent, scale: 0.8 });
-  parent.addChild(
-    createText(
-      "active workers",
-      { ...TEXT_STYLES.muted, fontSize: 13 },
-      297,
-      81,
-      0,
-      0.5
-    )
-  );
-  addPawnGlyph(parent, 412, 81, { color: PALETTE.text, scale: 0.8 });
-  parent.addChild(
-    createText(
-      "unused workers",
-      { ...TEXT_STYLES.muted, fontSize: 13 },
-      427,
-      81,
-      0,
-      0.5
-    )
-  );
-  addStructureGlyph(parent, 548, 82, "mudHouses");
-  addStructureGlyph(parent, 572, 82, null);
-  parent.addChild(
-    createText(
-      "occupied / open structure slots",
-      { ...TEXT_STYLES.muted, fontSize: 13 },
-      590,
-      81,
-      0,
-      0.5
-    )
-  );
-  const transfer = new PIXI.Graphics();
-  const transferColor = EDGE_TRANSFER_RESOURCE_COLOURS.food;
-  transfer.lineStyle(4, transferColor, 0.55);
-  transfer.moveTo(886, 81);
-  transfer.lineTo(914, 81);
-  transfer.lineStyle(2, 0x302d2a, 1);
-  transfer.beginFill(transferColor, 1);
-  transfer.drawPolygon([
-    922, 81,
-    908, 72,
-    908, 90,
-  ]);
-  transfer.endFill();
-  transfer.eventMode = "none";
-  parent.addChild(
-    transfer,
-    createText(
-      "food transfer",
-      { ...TEXT_STYLES.muted, fontSize: 13 },
-      934,
-      81,
-      0,
-      0.5
-    )
-  );
-}
-
 function signature(
   state,
   selectedRegionId,
@@ -810,6 +651,7 @@ export function createWorldMapView({
   layer,
   getState,
   getEdgeTransferBatch,
+  getVisualTime,
   getSelectedRegionId,
   getRegionSelectionActive,
   getGraphScope,
@@ -840,6 +682,10 @@ export function createWorldMapView({
   let lastEdgeTransferViewedSec = null;
   let edgeTransferPlaybackDirection = 1;
   let activeEdgeTransferPackets = [];
+  let edgeTransferPacketDescriptors = [];
+  const visualTime=()=>getVisualTime?.()??getState?.()?.tSec??0;
+  const effects=createChronicleEffects(edgeTransferLayer,visualTime);
+  let landmarks=[];
 
   function getEdgeTransferBatchKey(batch) {
     if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
@@ -861,83 +707,38 @@ export function createWorldMapView({
     });
   }
 
-  function syncEdgeTransferPackets(nowMs, definition) {
-    const viewedSec = Math.max(0, Math.floor(getState?.()?.tSec ?? 0));
-    const nextPlaybackDirection = resolveEdgeTransferPlaybackDirection(
-      lastEdgeTransferViewedSec,
-      viewedSec
-    );
-    if (nextPlaybackDirection !== 0) {
-      const playbackDirectionChanged =
-        nextPlaybackDirection !== edgeTransferPlaybackDirection;
-      edgeTransferPlaybackDirection = nextPlaybackDirection;
-      if (playbackDirectionChanged) {
-        lastEdgeTransferBatchKey = null;
-        activeEdgeTransferPackets = [];
-      }
+  function syncEdgeTransferPackets(definition) {
+    const viewedSec=visualTime();
+    const direction=resolveEdgeTransferPlaybackDirection(lastEdgeTransferViewedSec,viewedSec);
+    if(direction!==0)edgeTransferPlaybackDirection=direction;
+    lastEdgeTransferViewedSec=viewedSec;
+    const batch=getEdgeTransferBatch?.()??null;
+    lastEdgeTransferBatch=batch;
+    const key=getEdgeTransferBatchKey(batch);
+    if(key===lastEdgeTransferBatchKey)return;
+    lastEdgeTransferBatchKey=key;
+    edgeTransferPacketDescriptors=[];
+    const routes=new Map();
+    for(const transfer of batch?.transfers??[]){
+      const source=definition.regions.find(r=>r.id===transfer.sourceRegionId);
+      const destination=definition.regions.find(r=>r.id===transfer.destinationRegionId);
+      if(!source||!destination)continue;
+      const route=transfer.sourceRegionId+'>'+transfer.destinationRegionId;
+      const index=routes.get(route)??0;routes.set(route,index+1);
+      const from=screenPoint(source.display.labelPoint),to=screenPoint(destination.display.labelPoint);
+      edgeTransferPacketDescriptors.push({...transfer,from,to,facingFrom:from,facingTo:to,
+        laneOffset:[0,-9,9][index%3],startedSec:batch.boundarySec+index*.06,durationSec:1.8});
     }
-    lastEdgeTransferViewedSec = viewedSec;
-    const batch = getEdgeTransferBatch?.() ?? null;
-    const batchKey = getEdgeTransferBatchKey(batch);
-    lastEdgeTransferBatch = batch;
-    if (batchKey == null) {
-      lastEdgeTransferBatchKey = null;
-      return;
-    }
-    if (batchKey === lastEdgeTransferBatchKey) return;
-    lastEdgeTransferBatchKey = batchKey;
-    const transfers = Array.isArray(batch?.transfers) ? batch.transfers : [];
-    const routeCounts = new Map();
-    for (const transfer of transfers) {
-      const source = definition.regions.find(
-        (entry) => entry.id === transfer?.sourceRegionId
-      );
-      const destination = definition.regions.find(
-        (entry) => entry.id === transfer?.destinationRegionId
-      );
-      if (!source || !destination) continue;
-      const routeKey =
-        `${transfer.sourceRegionId}->${transfer.destinationRegionId}`;
-      const routeIndex = routeCounts.get(routeKey) ?? 0;
-      routeCounts.set(routeKey, routeIndex + 1);
-      const reversed = edgeTransferPlaybackDirection < 0;
-      const sourcePoint = screenPoint(source.display.labelPoint);
-      const destinationPoint = screenPoint(destination.display.labelPoint);
-      const authoredLaneOffset = [0, -9, 9][routeIndex % 3];
-      const visualSpec = getEdgeTransferPacketVisualSpec({
-        sourcePoint,
-        destinationPoint,
-        reversed,
-        laneOffset: authoredLaneOffset,
-      });
-      activeEdgeTransferPackets.push({
-        ...transfer,
-        ...visualSpec,
-        reversed,
-        playbackDirection: reversed ? "backward" : "forward",
-        startedMs:
-          nowMs +
-          routeIndex * EDGE_TRANSFER_PACKET_STAGGER_MS,
-        durationMs: EDGE_TRANSFER_PACKET_DURATION_MS,
-      });
-    }
-    if (activeEdgeTransferPackets.length > EDGE_TRANSFER_PACKET_MAX_ACTIVE) {
-      activeEdgeTransferPackets = activeEdgeTransferPackets.slice(
-        -EDGE_TRANSFER_PACKET_MAX_ACTIVE
-      );
-    }
+    edgeTransferPacketDescriptors=edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE);
   }
 
-  function drawEdgeTransferPackets(nowMs) {
+  function drawEdgeTransferPackets(timeSec) {
     edgeTransferGraphics.clear();
     const surviving = [];
-    for (const packet of activeEdgeTransferPackets) {
-      const rawProgress =
-        (nowMs - packet.startedMs) /
-        Math.max(1, Number(packet.durationMs ?? 1));
-      if (rawProgress >= 1) continue;
+    for (const packet of edgeTransferPacketDescriptors) {
+      const rawProgress=sampleEventProgress(timeSec,packet.startedSec,packet.durationSec);
+      if(rawProgress==null)continue;
       surviving.push(packet);
-      if (rawProgress < 0) continue;
       const pose = getEdgeTransferPacketPose({
         from: packet.from,
         to: packet.to,
@@ -1006,6 +807,7 @@ export function createWorldMapView({
     lastEdgeTransferViewedSec = null;
     edgeTransferPlaybackDirection = 1;
     activeEdgeTransferPackets = [];
+    edgeTransferPacketDescriptors = [];
     edgeTransferGraphics.clear();
   }
 
@@ -1013,9 +815,10 @@ export function createWorldMapView({
     if (!root.visible) return;
     const definition = getWorldDefinition(getState?.());
     if (!definition) return;
-    const nowMs = viewNowMs();
-    syncEdgeTransferPackets(nowMs, definition);
-    drawEdgeTransferPackets(nowMs);
+    syncEdgeTransferPackets(definition);
+    drawEdgeTransferPackets(visualTime());
+    effects.update();
+    for(const landmark of landmarks)landmark?.sample(visualTime());
   }
 
   function render(force = false) {
@@ -1035,7 +838,7 @@ export function createWorldMapView({
     );
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const vassalHighlight = getVassalHighlight?.() ?? null;
-    const nextSignature = signature(
+    const nextSignature = getArtRevision() + signature(
       state,
       selectedRegionId,
       regionSelectionActive,
@@ -1048,9 +851,10 @@ export function createWorldMapView({
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
     clearChildren(root);
+    landmarks=[];
 
     const bg = new PIXI.Graphics();
-    bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
+    bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
     const civilizationHeader = new PIXI.Graphics();
     roundedRect(
       civilizationHeader,
@@ -1067,8 +871,8 @@ export function createWorldMapView({
       bg,
       civilizationHeader,
       createText(
-        `${civilizationSummary.settlementCount} settlements · ${civilizationSummary.population.total} people · Food ${civilizationSummary.food.total} · Research ${civilizationSummary.research ?? 0}`,
-        { ...TEXT_STYLES.title, fontSize: 14 },
+        `${civilizationSummary.settlementCount} SETTLEMENTS  ·  ${civilizationSummary.population.total} SOULS\nFood ${Math.round(civilizationSummary.food.total)}   /   Research ${civilizationSummary.research ?? 0}`,
+        { ...TEXT_STYLES.title, fontSize: 20, lineHeight: 23 },
         CIVILIZATION_HEADER_RECT.x + 20,
         CIVILIZATION_HEADER_RECT.y + 27,
         0,
@@ -1083,7 +887,7 @@ export function createWorldMapView({
 
     const mapPanel = new PIXI.Graphics();
     roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
-      definition.mapContext.landColor, 0x3d514f, 3);
+      0x152426, PALETTE.stroke, 3);
     root.addChild(mapPanel);
 
     const highlightedRegionIds = new Set([
@@ -1106,13 +910,14 @@ export function createWorldMapView({
       const shape = new PIXI.Graphics();
       shape.lineStyle(selected || highlighted ? 5 : 2,
         highlighted ? 0xf0d269 : selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
-      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, 0.86);
+      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, selected || highlighted ? 0.2 : 0.04);
       shape.drawPolygon(points);
       shape.endFill();
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
       hit.cursor = "pointer";
+      addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
       hit.on("pointerdown", (event) => {
         const tappedAtMs = viewNowMs();
@@ -1180,20 +985,11 @@ export function createWorldMapView({
       const b = definition.regions.find((entry) => entry.id === edge.regionBId);
       const from = screenPoint(a.display.labelPoint);
       const to = screenPoint(b.display.labelPoint);
-      edges.lineStyle(2, 0xf0eadc, 0.45).moveTo(from.x, from.y).lineTo(to.x, to.y);
+      edges.lineStyle(9, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+      edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
     }
     edges.eventMode = "none";
     root.addChild(edges);
-
-    for (const regionDef of definition.regions) {
-      const point = getRegionReferenceCorner(definition, regionDef)
-        ?? screenPoint(regionDef.display.labelPoint);
-      root.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
-        ...TEXT_STYLES.chip,
-        fontSize: 12,
-        fill: PALETTE.textMuted,
-      }, point.x, point.y, 0, 0));
-    }
 
     for (const indicator of regionMapIndicators) {
       const regionDef = definition.regions.find(
@@ -1202,6 +998,10 @@ export function createWorldMapView({
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
       if (indicator.hasDetailedSettlement) {
+        landmarks.push(addTimelineLandmark(root,{x:point.x-100,y:point.y-102,width:104,height:118},
+          {startSec:definition.regions.indexOf(regionDef)*.37}));
+        landmarks.push(addTimelineLandmark(root,{x:point.x+58,y:point.y-21,width:42,height:35},
+          {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
         addWorkerIndicator(
           root,
           point,
@@ -1222,6 +1022,16 @@ export function createWorldMapView({
       addSettlementPressureIndicator(root, point, indicator.pressure);
       addSettlementCurrencyIndicator(root, point, indicator);
     }
+    for (const regionDef of definition.regions) {
+      const point = getRegionReferenceCorner(definition, regionDef)
+        ?? screenPoint(regionDef.display.labelPoint);
+      root.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
+        ...TEXT_STYLES.chip,
+        fontSize: 21,
+        fill: PALETTE.text, stroke: 0x111713, strokeThickness: 4,
+      }, point.x, point.y, 0, 0));
+    }
+
     const activeVassal = getCurrentLifeMapVassal(state);
     if (activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
@@ -1277,51 +1087,8 @@ export function createWorldMapView({
       }, civilizationPanel.getBounds());
     });
     civilizationPanel.on("pointerout", () => tooltipView?.hide?.());
-    root.addChild(
-      civilizationPanel,
-      createText(
-        "CHAOS & GREEN",
-        { ...TEXT_STYLES.header, fontSize: 22 },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 22
-      ),
-    );
-
-    const chaosReckoning = civilizationSummary.chaos.lastReckoning;
-    root.addChild(
-      createText(
-        civilizationSummary.green.nextEscalationYears == null
-          ? civilizationSummary.green.label.toUpperCase()
-          : `${civilizationSummary.green.label.toUpperCase()} · Next escalation: ${civilizationSummary.green.nextEscalationYears} years`,
-        { ...TEXT_STYLES.title, fontSize: 18, fill: REGION_COLOURS.green },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 58
-      ),
-      createText(
-        `Preservation ${civilizationSummary.green.storedFoodDecayReduction}% · Longevity ${civilizationSummary.green.elderMortalityReduction}% · Rootedness ${civilizationSummary.green.migrationSuccess}%`,
-        { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 88
-      ),
-      createText(
-        `Incoming ${chaosReckoning?.incomingChaos ?? 0} · Accumulated ${civilizationSummary.chaos.chaosPower}`,
-        { ...TEXT_STYLES.title, fontSize: 17, fill: PALETTE.accent },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 120
-      ),
-      createText(
-        `Primordial ${chaosReckoning?.primordialPressure ?? 0} · Premature ${chaosReckoning?.prematureDeaths ?? 0} · Emigrants ${chaosReckoning?.externalEmigrants ?? 0}`,
-        { ...TEXT_STYLES.body, fontSize: 14 },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 150
-      ),
-      createText(
-        `Raw pressure ${chaosReckoning?.rawPressure ?? 0} · Resistance ${chaosReckoning?.resistance ?? 0} · Monsters ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
-        { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.accent },
-        CIVILIZATION_RECT.x + 24,
-        CIVILIZATION_RECT.y + 180
-      )
-    );
+    root.addChild(civilizationPanel);
+    addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
 
     const selectedDef = getRegionDefinition(state, selectedRegionId);
     const region = getRegionState(state, selectedRegionId);
@@ -1358,85 +1125,10 @@ export function createWorldMapView({
     });
     root.addChild(detailPanel);
     const regionRef = getRegionReference(state, selectedRegionId) ?? selectedRegionId;
-    root.addChild(createText(`${regionRef} · ${viewModel?.name ?? selectedDef?.name ?? selectedRegionId}`,
-      { ...TEXT_STYLES.header, fontSize: 26 },
-      DETAIL_RECT.x + 24, DETAIL_RECT.y + 30));
-    root.addChild(createText(
-      `${region.colour} · ${region.controller} · Connections: ${getConnectedRegionIds(state, region.id).map((id) => getRegionReference(state, id) ?? id).join(", ") || "none"}`,
-      { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 68));
-    root.addChild(createText(
-      `Population ${viewModel?.population.total ?? 0}/${viewModel?.population.housingCapacity ?? 0} housing · Resistance ${viewModel?.elderOrder.resistance ?? 0}`,
-      { ...TEXT_STYLES.title, fontSize: 17 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 104));
-    if (viewModel) {
-      const pressureLabels = [
-        viewModel.pressure?.starvation
-          ? `STARVATION - ${viewModel.pressure.starvationMigrants} migrating`
-          : null,
-        viewModel.pressure?.overcrowding
-          ? `OVERCROWDED - +${viewModel.pressure.housingOverflow}`
-          : null,
-      ].filter(Boolean);
-      root.addChild(createText(
-        pressureLabels.length > 0
-          ? pressureLabels.join("   ")
-          : "No starvation or overcrowding pressure",
-        {
-          ...TEXT_STYLES.body,
-          fontSize: 14,
-          fill: viewModel.pressure?.starvation
-            ? PRESSURE_COLOURS.starvation
-            : viewModel.pressure?.overcrowding
-              ? PRESSURE_COLOURS.overcrowding
-              : PALETTE.textMuted,
-        }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 130));
-      root.addChild(createText(
-        `Food ${viewModel.storedFood}/${viewModel.storedFoodCapacity} stored · ${viewModel.looseFood} loose · Currency ${viewModel.currency}`,
-        TEXT_STYLES.body, DETAIL_RECT.x + 24, DETAIL_RECT.y + 154));
-      root.addChild(createText(
-        "Practices (ordered)", { ...TEXT_STYLES.title, fontSize: 16 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 178));
-      const practiceGap = 8;
-      const practiceWidth = Math.floor((DETAIL_RECT.width - 48 - practiceGap * 2) / 3);
-      viewModel.practices.forEach((practice, index) => {
-        drawCompactPracticeSlot(root, {
-          x: DETAIL_RECT.x + 24 + (index % 3) * (practiceWidth + practiceGap),
-          y: DETAIL_RECT.y + 202 + Math.floor(index / 3) * 58,
-          width: practiceWidth,
-          height: 52,
-        }, practice, index);
-      });
-      root.addChild(createText(
-        `Structures ${viewModel.usedStructureCapacity}/${viewModel.structureCapacity}`,
-        { ...TEXT_STYLES.title, fontSize: 15 }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 328));
-      const structureGap = 7;
-      const structureCount = Math.max(1, viewModel.structures.length);
-      const structureWidth = Math.floor(
-        (DETAIL_RECT.width - 48 - structureGap * (structureCount - 1)) / structureCount
-      );
-      viewModel.structures.forEach((slot, index) => {
-        drawCompactStructureSlot(root, {
-          x: DETAIL_RECT.x + 24 + index * (structureWidth + structureGap),
-          y: DETAIL_RECT.y + 350,
-          width: structureWidth,
-          height: 44,
-        }, slot, index);
-      });
-      const activeVassal = getCurrentLifeMapVassal(state);
-      if (activeVassal) {
-        const targetRef = getRegionReference(state, activeVassal.locationRegionId) ?? activeVassal.locationRegionId;
-        root.addChild(createText(
-          `ACTIVE VASSAL · Age ${getVassalAge(state, activeVassal)} · ${targetRef} · Prestige ${getDetailedVassalPrestige(state, activeVassal)}`,
-          { ...TEXT_STYLES.title, fontSize: 14, fill: PALETTE.accent }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));
-        root.addChild(createText("Open Life Map to continue this Vassal's path.",
-          { ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.text },
-          DETAIL_RECT.x + 30, DETAIL_RECT.y + 438));
-      } else {
-        root.addChild(createText("No active Vassal.", { ...TEXT_STYLES.body, fill: PALETTE.textMuted },
-          DETAIL_RECT.x + 24, DETAIL_RECT.y + 410));
-      }
-    } else {
-      root.addChild(createText("No detailed settlement at this region.",
-        { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, DETAIL_RECT.x + 24, DETAIL_RECT.y + 142));
-    }
+    addRegionPanelContent(root, DETAIL_RECT, {
+      region, reference: regionRef, name: viewModel?.name ?? selectedDef?.name ?? selectedRegionId,
+      vm: viewModel, tooltipView,
+    });
     addButton(root, {
       x: DETAIL_RECT.x + 24,
       y: DETAIL_RECT.y + DETAIL_RECT.height - 70,
@@ -1532,8 +1224,7 @@ export function createWorldMapView({
         activeEdgeTransferPacketCount: activeEdgeTransferPackets.length,
         activeEdgeTransferPackets: activeEdgeTransferPackets.map((packet) => {
           const rawProgress =
-            (viewNowMs() - packet.startedMs) /
-            Math.max(1, Number(packet.durationMs ?? 1));
+            (visualTime() - packet.startedSec) / packet.durationSec;
           const pose = getEdgeTransferPacketPose({
             from: packet.from,
             to: packet.to,
@@ -1553,14 +1244,14 @@ export function createWorldMapView({
             reason: packet.reason ?? null,
             survivors: packet.survivors ?? packet.amount,
             arrivalDeaths: packet.arrivalDeaths ?? 0,
-            reversed: packet.reversed === true,
-            playbackDirection: packet.playbackDirection,
+            reversed: edgeTransferPlaybackDirection < 0,
+            playbackDirection: edgeTransferPlaybackDirection < 0 ? "backward" : "forward",
             progress: clamp01(rawProgress),
             x: pose.x,
             y: pose.y,
             angle: facing.angle,
             facingAngle: facing.angle,
-            travelAngle: pose.angle,
+            travelAngle: pose.angle + (edgeTransferPlaybackDirection < 0 ? Math.PI : 0),
           };
         }),
       };

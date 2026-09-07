@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { getIllustrationSpec } from '../src/views/chronicle-art.js';
+import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
+import {
+  loopPhase, sampleSpriteFrame, sampleEventProgress, sampleMote,
+  resolveVisualTime, sampleChronicleScore, audioOffsetAtTime, layoutChronicleNodes,
+} from '../src/views/timeline-presentation.js';
+
+const clip={frameCount:8,framesPerSecond:12,startSec:3};
+const artKeys=new Set();
+for(const id of [...Object.keys(detailedSettlementPracticeDefs),...Object.keys(settlementStructureDefs)]){
+  const art=getIllustrationSpec(id);
+  assert.ok(art,`${id} needs an explicit gamepiece illustration`);
+  const key=`${art.file}:${art.index}`;
+  assert.ok(!artKeys.has(key),`${id} must be distinguishable from other gamepieces by its illustration`);
+  artKeys.add(key);
+}
+const rect={x:0,y:0,width:1400,height:600};
+const times=[0,.01,3,3.125,8.25,100.75,1e6+.5];
+const frames=times.map(t=>({frame:sampleSpriteFrame(t,clip),motes:Array.from({length:16},(_,i)=>sampleMote(t,i,rect)),sound:sampleChronicleScore(t)}));
+for(const index of [6,2,0,4,3,1,5,2,6,0]) {
+  const t=times[index];
+  assert.deepEqual({frame:sampleSpriteFrame(t,clip),motes:Array.from({length:16},(_,i)=>sampleMote(t,i,rect)),sound:sampleChronicleScore(t)},frames[index],
+    'Non-sequential and reverse seeks must reproduce the identical picture and audio sample');
+}
+assert.equal(resolveVisualTime(12,12.75),12.75);
+assert.equal(resolveVisualTime(12,13.1),12,'Unavailable simulation snapshots cannot be visually extrapolated');
+assert.equal(resolveVisualTime(12,NaN),12);
+assert.equal(sampleEventProgress(4,5,2),null);
+assert.equal(sampleEventProgress(6,5,2),.5);
+assert.equal(sampleEventProgress(8,5,2),null);
+assert.equal(sampleEventProgress(Infinity,5,2),null);
+assert.equal(sampleSpriteFrame(NaN,clip),0);
+assert.equal(loopPhase(123,0),0);
+// An asymmetric bell decay must become a swell on rewind. The actual backward
+// buffer reads forward PCM at duration-offset, independent of browser support.
+for(const t of [0,.13,2.9,5.73,23.9,24,100.13]) {
+  const offset=audioOffsetAtTime(t,true);
+  assert.ok(Math.abs(sampleChronicleScore(t)-sampleChronicleScore(24-offset))<1e-9);
+}
+for(let i=0;i<24000;i++)assert.ok(Math.abs(sampleChronicleScore(i/1000))<=.15,'The original score remains quiet and cannot clip');
+const nodes=Array.from({length:6},(_,i)=>({id:`n${i}`,depth:1,position:{x:0,y:.2+i*.01}}));
+const original=JSON.stringify(nodes);
+const positions=layoutChronicleNodes(nodes,{x:0,y:0,width:1000,height:400});
+for(let i=1;i<6;i++)assert.ok(positions.get(`n${i}`).y-positions.get(`n${i-1}`).y>=79.9);
+assert.equal(JSON.stringify(nodes),original,'Presentation layout cannot modify serialized graph coordinates');
+console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, and topology layout');

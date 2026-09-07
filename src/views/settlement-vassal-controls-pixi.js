@@ -1,5 +1,6 @@
-const PRIMARY_BUTTON_WIDTH = 180;
-const PRIMARY_BUTTON_HEIGHT = 88;
+import { paintRelicPanel, RELIC, drawHourglass } from './chronicle-skin.js';
+const PRIMARY_BUTTON_WIDTH = 308;
+const PRIMARY_BUTTON_HEIGHT = 98;
 
 function makeButton(root, label, width, height, textStyle = {}) {
   const container = new PIXI.Container();
@@ -22,10 +23,8 @@ function makeButton(root, label, width, height, textStyle = {}) {
 
 function drawButton(bg, enabled, width, height, radius, fillColor) {
   bg.clear();
-  bg.lineStyle(2, enabled ? 0x9ec087 : 0x5f5a55, 0.95);
-  bg.beginFill(enabled ? fillColor : 0x4a4743, 0.98);
-  bg.drawRoundedRect(0, 0, width, height, radius);
-  bg.endFill();
+  paintRelicPanel(bg,0,0,width,height,enabled?RELIC.raised:RELIC.stone,enabled?RELIC.gold:RELIC.brass,3);
+  drawHourglass(bg,width/2,18,17,RELIC.gold);
 }
 
 export function createSettlementVassalControlsView({
@@ -38,7 +37,7 @@ export function createSettlementVassalControlsView({
   root.zIndex = 20;
   layer?.addChild(root);
   const primaryButton = makeButton(root, "Intervene", PRIMARY_BUTTON_WIDTH, PRIMARY_BUTTON_HEIGHT, {
-    fontSize: 22,
+    fontSize: 27,
   });
   primaryButton.container.on("pointertap", (event) => {
     event?.stopPropagation?.();

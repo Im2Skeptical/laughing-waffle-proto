@@ -1,6 +1,7 @@
 import { getVassalStatPresentation, getVassalStatsPresentation } from "../model/vassal-life-map.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { addIllustration, getArtRevision } from './chronicle-art.js';
 
 const PANEL = Object.freeze({ x: 330, y: 150, width: 1764, height: 620 });
 const STAT_COLORS = Object.freeze({
@@ -46,7 +47,10 @@ function addChoiceCard(parent, vassal, choice, statId, rect, onChoose) {
   const color = STAT_COLORS[statId] ?? PALETTE.accent;
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 14, 0x303733, color, 3);
-  root.addChild(gfx,
+  root.addChild(gfx);
+  addIllustration(root,{cunning:'patronage',wisdom:'legacy',effectiveness:'crisis',intelligence:'study'}[statId],
+    {x:rect.width-160,y:8,width:150,height:100},{alpha:.85});
+  root.addChild(
     createText(before.label.toUpperCase(), {
       ...TEXT_STYLES.chip, fontSize: 15, fill: color,
     }, 22, 20),
@@ -97,7 +101,7 @@ export function createVassalLevelUpModalView({
       return;
     }
     const choice = queue[0];
-    const nextSignature = JSON.stringify({
+    const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal.vassalId,
       stats: vassal.stats,
       queue,

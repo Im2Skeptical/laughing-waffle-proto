@@ -1,22 +1,22 @@
 // mucha-ui-palette.js
-// Shared warm Art Nouveau-inspired UI palette for panel/chrome surfaces.
+// Shared palette for the stone-and-brass chronicle interface.
 
 export const MUCHA_UI_COLORS = Object.freeze({
   ink: Object.freeze({
-    primary: 0xf2e6cf,
-    secondary: 0xd8c8a7,
+    primary: 0xe6dcc4,
+    secondary: 0xa9b0a2,
     muted: 0xb8aa8b,
     contrast: 0x2e2418,
     alert: 0xf2b0b0,
   }),
   surfaces: Object.freeze({
-    panelDeep: 0x2f2a1e,
-    panel: 0x353129, //#353129
-    panelRaised: 0x5d4523,
-    panelSoft: 0xcc7d32,
-    header: 0x3f3e3a, //#3f3e3a
-    border: 0x8b7856,
-    borderSoft: 0x6f6248,
+    panelDeep: 0x111c1c,
+    panel: 0x222a28,
+    panelRaised: 0x3e4134,
+    panelSoft: 0x353c32,
+    header: 0x30372e,
+    border: 0x9b8053,
+    borderSoft: 0x776343,
   }),
   accents: Object.freeze({
     sage: 0x809464,

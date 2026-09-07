@@ -1,5 +1,9 @@
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
+import { preloadChronicleArt } from './chronicle-art.js';
+import { createChronicleFrame } from './chronicle-skin.js';
+import { resolveVisualTime } from './timeline-presentation.js';
+import { createTimelineAudio } from './timeline-audio.js';
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
@@ -86,14 +90,17 @@ if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
 export const app = new PIXI.Application({
   width: VIEWPORT_DESIGN_WIDTH,
   height: VIEWPORT_DESIGN_HEIGHT,
-  backgroundColor: 0x847b68,
-  antialias: true,
+  backgroundColor: 0x121819,
+  antialias: false,
 });
 
 installGlobalTextStylePolicy(PIXI, {
   fontFamily: "Georgia",
   titleVariant: "small-caps",
+  titleMinSize: 32,
+  titleWeightMinSize: 26,
 });
+preloadChronicleArt();
 
 document.body.appendChild(app.view);
 app.view.style.touchAction = "none";
@@ -153,11 +160,11 @@ function fitCanvasToViewport(view) {
 }
 
 function stylePage() {
-  document.body.style.backgroundColor = "#302a28";
+  document.body.style.backgroundColor = "#090e10";
   document.body.style.margin = "0";
   document.body.style.overflow = "hidden";
   document.body.style.height = "100%";
-  document.documentElement.style.backgroundColor = "#302a28";
+  document.documentElement.style.backgroundColor = "#090e10";
   document.documentElement.style.height = "100%";
 }
 
@@ -165,6 +172,7 @@ fitCanvasToViewport(app.view);
 stylePage();
 
 const playfieldLayer = new PIXI.Container();
+createChronicleFrame(app.stage);
 const graphLayer = new PIXI.Container();
 const controlLayer = new PIXI.Container();
 controlLayer.sortableChildren = true;
@@ -395,6 +403,10 @@ function getSettlementViewedSec() {
   return Math.max(0, Math.floor(getSettlementViewedState()?.tSec ?? getSettlementFrontierSec()));
 }
 
+function getSettlementVisualTime() {
+  return resolveVisualTime(getSettlementViewedSec(), settlementPlaybackViewSecFloat);
+}
+
 function ensureSettlementRunnerPaused() {
   runner.setTimeScaleTarget?.(0, { requestPause: true });
   if (runner.getCursorState?.()?.paused !== true && !(runner.getPreviewStatus?.()?.active)) {
@@ -427,6 +439,7 @@ function promoteSettlementPreviewToLive() {
 }
 
 function setSettlementPlaybackTarget(speed, opts = {}) {
+  const visualSec = getSettlementVisualTime();
   const next = clampSettlementPlaybackSpeed(speed);
   const result = runner.setTimeScaleTarget?.(0, {
     ...opts,
@@ -438,8 +451,7 @@ function setSettlementPlaybackTarget(speed, opts = {}) {
   };
   settlementPlaybackSpeedTarget = result?.ok ? next : 0;
   settlementPlaybackSpeedCurrent = settlementPlaybackSpeedTarget;
-  settlementPlaybackViewSecFloat =
-    settlementPlaybackSpeedTarget !== 0 ? getSettlementViewedSec() : null;
+  settlementPlaybackViewSecFloat = visualSec;
   if (result?.ok) {
     ensureSettlementRunnerPaused();
   }
@@ -1355,6 +1367,7 @@ worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
+  getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedRegionId: () => selectedWorldRegionId,
   getRegionSelectionActive: () => worldMapRegionSelectionActive,
@@ -1393,15 +1406,16 @@ const DISK_LAYOUT = {
   ...SUN_AND_MOON_DISKS_LAYOUT,
   moon: {
     ...SUN_AND_MOON_DISKS_LAYOUT.moon,
-    x: 2105,
-    y: 895,
-    scale: 0.42,
+    x: 2170,
+    y: 900,
+    scale: 0.27,
+    phaseIconRadius: 74,
   },
   season: {
     ...SUN_AND_MOON_DISKS_LAYOUT.season,
-    x: 2105,
-    y: 895,
-    scale: 0.58,
+    x: 2170,
+    y: 900,
+    scale: 0.38,
   },
 };
 
@@ -1433,11 +1447,9 @@ const timeControlsView = createTimeControlsView({
   layout: {
     enabled: true,
     zIndex: 4,
-    gap: 14,
     screenPadding: 16,
-    verticalGapFromDiskPx: -38,
+    verticalGapFromDiskPx: 0,
     diskTextureRadiusPx: 220,
-    buttonAlignOffsetY: 0,
   },
   sunMoonLayout: DISK_LAYOUT,
 });
@@ -1446,6 +1458,7 @@ const sunMoonDisksView = createSunAndMoonDisksView({
   app,
   layer: controlLayer,
   getState: () => getSettlementViewedState(),
+  getVisualTime: getSettlementVisualTime,
   getTimeline: () => runner.getTimeline?.(),
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
   getForecastPreviewCapSec: () => getSettlementPreviewCapSec(),
@@ -1494,10 +1507,10 @@ settlementGraphView = createMetricGraphView({
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
-  openPosition: { x: 432, y: 884 },
+  openPosition: { x: 366, y: 854 },
   windowWidth: 1560,
-  windowHeight: 190,
-  headerHeight: 34,
+  windowHeight: 216,
+  headerHeight: 44,
   getRenderedHistoryEndSec: (spec) =>
     getSettlementRenderedHistoryEndSec({
       actualHistoryEndSec: spec?.actualHistoryEndSec,
@@ -1573,6 +1586,7 @@ settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
 });
 
 vassalLifeMapView = createVassalLifeMapView({
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   layer: playfieldLayer,
   tooltipView,
   getPresentation: () => getSettlementLifeMapPresentation(),
@@ -1886,6 +1900,8 @@ function publishSettlementDebugApi() {
     getWorldMapSnapshot: () => ({
       ...(worldMapView?.getSemanticSnapshot?.() ?? {}),
       mode: worldViewMode,
+      presentationTimeSec: getSettlementVisualTime(),
+      audio: timelineAudio.getSnapshot(),
     }),
     getLifeMapPresentation: () => {
       const presentation = getSettlementLifeMapPresentation();
@@ -2017,8 +2033,18 @@ window.addEventListener("keydown", handleGlobalKeyDown);
 const portraitGameplayGate = window.matchMedia(
   "(max-width: 900px) and (hover: none) and (pointer: coarse) and (orientation: portrait)"
 );
+const timelineAudio = createTimelineAudio({
+  getTime:getSettlementVisualTime,
+  getRate:getSettlementPlaybackTarget,
+  isSuspended:()=>gameSession.isInMenu()||portraitGameplayGate.matches,
+  parent:document.querySelector('[data-testid="utility-controls"]'),
+});
+
 app.ticker.add((delta) => {
-  if (gameSession.isInMenu() || portraitGameplayGate.matches) return;
+  if (gameSession.isInMenu() || portraitGameplayGate.matches) {
+    timelineAudio.update(0);
+    return;
+  }
   const frameDt = delta / 60;
   runner.update(frameDt);
   settlementGraphController.update?.();
@@ -2039,6 +2065,7 @@ app.ticker.add((delta) => {
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);
   sunMoonDisksView.update(frameDt);
+  timelineAudio.update(frameDt);
   settlementVassalControlsView.update(frameDt);
   settlementVassalChooserView.update(frameDt);
   syncSettlementRunCompletePresentation();

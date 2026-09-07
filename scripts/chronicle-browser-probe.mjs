@@ -1,0 +1,165 @@
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {mkdirSync,writeFileSync} from 'node:fs';
+import {setTimeout as delay} from 'node:timers/promises';
+import {chromium} from 'playwright';
+import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
+
+async function countImageColours(page,png) {
+  return page.evaluate(async base64=>{
+    const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();
+    const canvas=document.createElement('canvas');canvas.width=64;canvas.height=28;
+    const context=canvas.getContext('2d');context.drawImage(img,0,0,64,28);
+    const pixels=context.getImageData(0,0,64,28).data,colours=new Set();
+    for(let i=0;i<pixels.length;i+=4)colours.add(`${pixels[i]},${pixels[i+1]},${pixels[i+2]}`);
+    return colours.size;
+  },png.toString('base64'));
+}
+
+const url='http://127.0.0.1:8083';
+const artifact='artifacts/chronicle-browser-probe.json';
+mkdirSync('artifacts',{recursive:true});
+const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l','8083','--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
+let browser;
+const errors=[],failedAssets=[],graphicsWarnings=[],consoleTrail=[];
+try {
+  for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
+  browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
+  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',message=>{if(consoleTrail.length<40)consoleTrail.push(message.text().slice(0,1600));});
+  page.on('console',message=>{if(graphicsWarnings.length<20&&/INVALID_(OPERATION|VALUE|ENUM)|CONTEXT_LOST|GL_INVALID|framebuffer.*(invalid|incomplete)|Could not initialize shader/i.test(message.text()))graphicsWarnings.push(message.text());});
+  page.on('response',r=>{if(r.url().includes('/images/')&&r.status()>=400)failedAssets.push(r.url());});
+  await page.addInitScript(()=>localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup'));
+  await page.goto(url);
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__);
+  await page.waitForFunction(()=>['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png']
+    .every(name=>performance.getEntriesByType('resource').some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)));
+  await page.screenshot({path:'artifacts/chronicle-menu.png'});
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().browseCapSec>60);
+  const seal=page.getByTestId('debug-open');
+  await seal.click();
+  assert.equal(await page.getByTestId('debug-close').isVisible(),false,'A short tap cannot expose the workshop');
+  await seal.click({delay:950});
+  await page.getByTestId('debug-close').waitFor({state:'visible'});
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Control+Shift+D');
+  await page.getByTestId('debug-close').waitFor({state:'visible'});
+  await page.keyboard.press('Escape');
+  const click=async point=>{
+    const b=await page.locator('canvas').boundingBox();
+    await page.mouse.click(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
+  };
+  const lever=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeLeverScreenRect());
+  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  await delay(100);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),0);
+  const seek=async t=>{
+    const result=await page.evaluate(t=>globalThis.__SETTLEMENT_DEBUG__.browseSecond(t),t);
+    assert.equal(result.ok,true,'The authoritative preview must be available for a visual seek');
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+    await delay(70);
+  };
+  const canvas=await page.locator('canvas').boundingBox();
+  const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
+    width:1640/2424*canvas.width,height:720/1080*canvas.height};
+  const diskCrop={x:canvas.x+2078/2424*canvas.width,y:canvas.y+808/1080*canvas.height,
+    width:184/2424*canvas.width,height:184/1080*canvas.height};
+  await seek(12);
+  const first=await page.screenshot({clip:crop});
+  assert.ok(await countImageColours(page,first)>64,'The world must be painted before pause and rewind comparisons');
+  const firstDisks=await page.screenshot({clip:diskCrop});
+  await delay(220);
+  assert.deepEqual(await page.screenshot({clip:crop}),first,'Paused world pixels must remain exactly frozen');
+  assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Held time discs must remain exactly frozen');
+  await seek(48);await seek(12);
+  assert.deepEqual(await page.screenshot({clip:crop}),first,'Returning to the same time must restore identical world pixels after rewind');
+  assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
+  await page.screenshot({path:'artifacts/chronicle-world.png'});
+  await page.getByTestId('chronicle-audio').click();
+  await click({x:lever.x+lever.width-10,y:lever.y+20});
+  await page.waitForFunction(()=>{
+    const audio=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio;
+    return audio.enabled&&audio.playing&&audio.rate>0;
+  },null,{timeout:5000});
+  let sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
+  assert.equal(sound.enabled,true);assert.equal(sound.playing,true);assert.ok(sound.rate>0);
+  await click({x:lever.x+10,y:lever.y+20});
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio.rate<0,null,{timeout:5000});
+  sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
+  assert.ok(sound.rate<0,'Rewind uses the negative timeline direction');
+  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  // Sound follows the rendered frame. Wait for that frame on software-rendered
+  // hosts instead of assuming a fixed wall-clock delay contains multiple ticks.
+  await page.waitForFunction(()=>{
+    const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return snapshot.playbackTarget===0&&!snapshot.worldMap.audio.playing;
+  },null,{timeout:5000});
+  sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
+  assert.equal(sound.playing,false,'A held timeline is silent');
+  await seek(0);
+  await click({x:lever.x+10,y:lever.y+20});
+  await page.waitForFunction(()=>{
+    const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return snapshot.playbackTarget===0&&snapshot.viewedSec===0&&!snapshot.worldMap.audio.playing;
+  },null,{timeout:5000});
+  sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
+  assert.equal(sound.sourceTime,0,'Sound cannot run past the beginning of visible history');
+  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  await page.getByTestId('chronicle-audio').click();
+  for(const viewport of [{width:844,height:390},{width:1280,height:800},{width:844,height:390}]){
+    await page.setViewportSize(viewport);await delay(150);
+  }
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const mobileCanvas=await page.locator('canvas').boundingBox();
+  const mobileClip={
+    x:mobileCanvas.x+58/2424*mobileCanvas.width,y:mobileCanvas.y+88/1080*mobileCanvas.height,
+    width:1640/2424*mobileCanvas.width,height:720/1080*mobileCanvas.height,
+  };
+  const countPaintedColours=async()=>countImageColours(page,await page.screenshot({clip:mobileClip}));
+  // Viewport changes replace the compositor surface asynchronously. Wait for
+  // actual painted terrain instead of assuming a fixed number of frames.
+  let worldColours=await countPaintedColours();
+  for(let attempt=0;attempt<10&&worldColours<=64;attempt++){
+    await delay(150);worldColours=await countPaintedColours();
+  }
+  await page.screenshot({path:'artifacts/chronicle-mobile.png'});
+  if(worldColours<=64){
+    const diagnostics=await page.evaluate(()=>{
+      const canvas=document.querySelector('canvas'),gl=canvas.getContext('webgl2')??canvas.getContext('webgl');
+      const state=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+      const debugRenderer=gl?.getExtension('WEBGL_debug_renderer_info');
+      return {contextLost:gl?.isContextLost(),canvas:{width:canvas.width,height:canvas.height,display:getComputedStyle(canvas).display},
+        mode:state.worldMap.mode,time:state.viewedSec,visibility:document.visibilityState,
+        renderer:debugRenderer?gl.getParameter(debugRenderer.UNMASKED_RENDERER_WEBGL):null};
+    });
+    writeFileSync('artifacts/chronicle-mobile-diagnostics.json',JSON.stringify({worldColours,diagnostics,graphicsWarnings},null,2));
+  }
+  assert.ok(worldColours>64,'Phone resize must retain painted terrain, not a blank canvas');
+  await page.evaluate(()=>{const debug=globalThis.__SETTLEMENT_DEBUG__;debug.openNextSelection();debug.selectCandidate(0);});
+  await delay(250);
+  const node=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
+  await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),node));
+  await delay(150);
+  const enter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
+  if(enter){await click(enter);await delay(150);}
+  const choice=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
+    ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
+  assert.ok(choice,'The first life node exposes an illustrated choice');
+  const beforeInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  await click({x:choice.x,y:choice.y-100});await delay(200);
+  const afterInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  assert.ok(afterInspection.inspectedCardId,'Tapping card art opens its full inspection');
+  assert.equal(afterInspection.selectedOptionId,beforeInspection.selectedOptionId,'Inspection cannot select a choice');
+  assert.deepEqual(afterInspection.purchaseOrder,beforeInspection.purchaseOrder,'Inspection cannot stage a purchase');
+  await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
+  assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
+  assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','phone landscape','inspection preserves choices'],graphicsWarnings},null,2));
+  console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
+}catch(error){
+  writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
+  console.error('[probe:chronicle] FAILED: '+error.message.split('\n')[0]+' · '+artifact);process.exitCode=1;
+}finally{await browser?.close();server.kill();}

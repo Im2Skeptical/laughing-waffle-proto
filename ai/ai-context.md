@@ -138,6 +138,13 @@ bounded JSON state used for replay and phase tooltips.
 
 ## Current UI
 
+- Main screens share a fixed-landscape dark stone/brass frame, pixel-art terrain,
+  illustrated gamepiece cards with distinct art for all current Practices and
+  Structures, and an engraved astrolabe. New presentation
+  modules sample viewed timeline time for hamlet/fire sprites, dust, transfer
+  packets, and optional reversible ambient audio. Fractional presentation time
+  never substitutes for a missing authoritative snapshot. The architecture,
+  asset inventory, and extension contract are in `ai/visual-overhaul.md`.
 - Boot opens a responsive landing menu with New game, Continue for the latest
   valid save, and Load game for selecting among three browser-local slots.
   New game asks for a slot and confirms replacement of occupied/unavailable
@@ -167,9 +174,9 @@ bounded JSON state used for replay and phase tooltips.
 - The season/moon wheel shows fixed icons for all six lunar phases. The active
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals.
-- The World Map candidate chooser begins below the map and overlays the graph
-  region. Its three expanded cards show deterministic carved-style busts based
-  on the prototype's original Elder Council renderer, plus age, settlement,
+- The World Map candidate chooser overlays the lower map and graph
+  region. Its three expanded cards show original pixel-art portraits assigned
+  deterministically from serialized portrait traits, plus age, settlement,
   Prestige, four stats, and the advertised signature node. Hover temporarily
   previews a starting region; click/tap locks a preview, and the lower-left
   control confirms it. Clicking outside dismisses the chooser without changing
@@ -179,8 +186,10 @@ bounded JSON state used for replay and phase tooltips.
   details show the current
   calculated income or discount power. Clicking any
   node opens a large shared decision modal; only entering an available node
-  reveals its persisted options or inventory. The modal shows complete effects,
-  quality/tags, and current-to-projected Prestige. Practice/Public Works show
+  reveals its persisted options or inventory. Card art opens a readable,
+  scrollable inspection of complete effects and quality/tags; the footer stages
+  or chooses, and confirmation remains separate. The modal shows
+  current-to-projected Prestige. Practice/Public Works show
   the current settlement with staged Practices/Structures ghosted into their
   authoritative slots; Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show immediate and surviving-completion Vassal impact;
@@ -205,8 +214,10 @@ bounded JSON state used for replay and phase tooltips.
   explicitly chooses Next Vassal. Timegraph Vassal markers come only from
   persisted life events; no future inventory or mortality result is exposed.
 - The lower-left Vassal control toggles Life Map and World Map for an active
-  Vassal; the World Map shows an active-Vassal location marker. Fullscreen and Debug share a responsive utility rail that must remain clear
-  of settlement navigation on mobile landscape.
+  Vassal; the World Map shows an active-Vassal location marker. Save & menu,
+  timeline sound, and a small workshop seal share the utility rail, clear of
+  settlement navigation on mobile landscape. Hold the seal for 850 ms or use
+  Ctrl+Shift+D for development tools; Escape closes them. Sound is opt-in.
 
 The forecast worker is a separately bundled Pages asset recorded in
 `dist/build-manifest.json`; production should not silently rely on main-thread
@@ -236,5 +247,8 @@ fallback.
 - `npm run probe:map-lab`: Map Lab and development-tool interaction probe.
 - `npm run probe:game-menu`: slot creation/loading/replacement, storage failures,
   menu pause, reload Continue, and portrait/landscape transitions.
+- `npm run test:presentation`: pure frame/event/audio sampling and view layout.
+- `npm run probe:chronicle`: art loading, hidden workshop gestures, identical
+  paused/rewound pixels, reversible audio, phone terrain, and card inspection.
 
 Detailed test selection and file routes are in `ai/repository-map.md`.

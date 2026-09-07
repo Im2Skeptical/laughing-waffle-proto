@@ -1,3 +1,5 @@
+import { addGamepieceCard } from './chronicle-card.js';
+import { addIllustration, getArtRevision } from './chronicle-art.js';
 import {
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
@@ -69,136 +71,21 @@ function getPracticeResultLabel(practiceId, value) {
   return `Effect  ${formatted}`;
 }
 
-function drawPracticeSlotCard(parent, rect, entry, slotIndex) {
-  const filled = Boolean(entry?.practiceId);
-  const evaluation = entry?.evaluation ?? null;
-  const scaled = evaluation?.effects?.find((effect) => effect.scaledValue)?.scaledValue ?? null;
-  const imported = evaluation?.effects?.find((effect) => effect.importCalculation)?.importCalculation ?? null;
-  const card = new PIXI.Container();
-  card.position.set(rect.x, rect.y);
-  const gfx = new PIXI.Graphics();
-  roundedRect(
-    gfx,
-    0,
-    0,
-    rect.width,
-    rect.height,
-    14,
-    filled ? PALETTE.card : PALETTE.slot,
-    evaluation?.activation?.type === "passive" ? PALETTE.passiveBorder : PALETTE.stroke,
-    filled ? 3 : 2
-  );
-  card.addChild(gfx);
-  card.addChild(createText(
-    `${slotIndex + 1}. ${filled ? `${entry.label} · ${entry.tier[0].toUpperCase()}${entry.tier.slice(1)}` : "Empty"}`,
-    { ...TEXT_STYLES.title, fontSize: 16, wordWrap: true, wordWrapWidth: rect.width - 20 },
-    10,
-    12
-  ));
-  if (!filled) {
-    card.addChild(createText(
-      "Available practice slot",
-      { ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.textMuted },
-      10,
-      54
-    ));
-    parent.addChild(card);
-    return;
-  }
-
-  const badge = new PIXI.Graphics();
-  roundedRect(
-    badge,
-    10,
-    48,
-    rect.width - 20,
-    24,
-    12,
-    PALETTE.chip,
-    evaluation.activation?.type === "passive" ? PALETTE.passiveBorder : PALETTE.accent,
-    1
-  );
-  card.addChild(
-    badge,
-    createText(
-      getPracticeTimingLabel(evaluation.activation),
-      { ...TEXT_STYLES.chip, fontSize: 11 },
-      rect.width / 2,
-      60,
-      0.5,
-      0.5
-    ),
-    createText(
-      `Workers ${entry.workers.tokens.length}/${evaluation.workerCapacity}`,
-      { ...TEXT_STYLES.body, fontSize: 12 },
-      10,
-      86
-    ),
-    createText(
-      `Tags  ${(entry.tags ?? []).join(" · ") || "—"}${evaluation.activation?.type === "trigger" ? ` · Charge ${formatPracticeNumber(entry.charge)}/${evaluation.activation.chargeThreshold}` : ""}`,
-      { ...TEXT_STYLES.body, fontSize: 10, fill: PALETTE.textMuted },
-      10,
-      122
-    ),
-    createText(
-      `${formatPracticeNumber(entry.workers.effectiveWorkers)} effective`,
-      { ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted },
-      10,
-      106
-    ),
-    createWrappedText(
-      evaluation.rule,
-      { ...TEXT_STYLES.body, fontSize: 11, lineHeight: 14, fill: PALETTE.textMuted },
-      10,
-      146,
-      rect.width - 20
-    )
-  );
-  if (scaled) {
-    const mathY = rect.height - 82;
-    card.addChild(
-      createText(
-        `Base  ${formatPracticeNumber(scaled.baseAmount)} × ${formatPracticeNumber(scaled.evaluatorScore)} = ${formatPracticeNumber(scaled.baseValue)}`,
-        { ...TEXT_STYLES.body, fontSize: 11 },
-        10,
-        mathY
-      ),
-      createText(
-        `Workers  ×${formatPracticeNumber(scaled.workerMultiplier)}`,
-        { ...TEXT_STYLES.body, fontSize: 11 },
-        10,
-        mathY + 21
-      ),
-      createText(
-        getPracticeResultLabel(entry.practiceId, scaled.effectiveValue),
-        { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent },
-        10,
-        mathY + 45
-      )
-    );
-  } else if (entry.work) {
-    card.addChild(createText(
-      `Work  ${formatPracticeNumber(entry.work)}`,
-      { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent },
-      10,
-      rect.height - 36
-    ));
-  }
-  if (imported) {
-    card.addChild(createText(
-      `Meal shortfall  ${formatPracticeNumber(imported.missingFood)} food`,
-      { ...TEXT_STYLES.body, fontSize: 11 }, 10, rect.height - 82
-    ));
-    card.addChild(createText(
-      `Funds  ${formatPracticeNumber(imported.localCurrency)} local + ${formatPracticeNumber(imported.remoteCurrency)} remote`,
-      { ...TEXT_STYLES.body, fontSize: 11 }, 10, rect.height - 61
-    ));
-    card.addChild(createText(
-      `Import  +${formatPracticeNumber(imported.importedFood)} food`,
-      { ...TEXT_STYLES.title, fontSize: 12, fill: PALETTE.accent }, 10, rect.height - 36
-    ));
-  }
-  parent.addChild(card);
+function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
+  const evaluation=entry?.evaluation;
+  const scaled=evaluation?.effects?.find(effect=>effect.scaledValue)?.scaledValue;
+  const imported=evaluation?.effects?.find(effect=>effect.importCalculation)?.importCalculation;
+  const details=[evaluation?.rule,
+    evaluation?getPracticeTimingLabel(evaluation.activation):'An available practice slot.',
+    entry?.practiceId?entry.tier+' · '+(entry.tags??[]).join(' / '):'',
+    entry?.practiceId&&evaluation?entry.workers.tokens.length+'/'+evaluation.workerCapacity+' workers · '+entry.workers.effectiveWorkers+' effective':'',
+    scaled?'Base '+formatPracticeNumber(scaled.baseAmount)+' × '+formatPracticeNumber(scaled.evaluatorScore)+' × workers '+formatPracticeNumber(scaled.workerMultiplier):'',
+    scaled?getPracticeResultLabel(entry.practiceId,scaled.effectiveValue):'',
+    imported?'Import '+imported.importedFood+' food · shortfall '+imported.missingFood:'',
+  ].filter(Boolean).join('\n');
+  addGamepieceCard(parent,rect,{artId:entry?.practiceId,title:entry?.label,
+    empty:!entry?.practiceId,tier:entry?.tier,
+    value:entry?.practiceId?(entry.workers?.effectiveWorkers??0)+' work':'',detail:details,tooltipView});
 }
 
 function faithRates(state, classState) {
@@ -217,6 +104,7 @@ export function createSettlementPrototypeView({
   getSelectedRegionId,
   getCivilizationLossInfo,
   onReturnToMap,
+  tooltipView,
 }) {
   const root = new PIXI.Container();
   layer.addChild(root);
@@ -235,7 +123,7 @@ export function createSettlementPrototypeView({
       state,
       civilizationLossInfo
     );
-    const signature = JSON.stringify({ tSec: state.tSec, regionId, activeTab, vm,
+    const signature = getArtRevision() + JSON.stringify({ tSec: state.tSec, regionId, activeTab, vm,
       lineage: state.civilization.vassalLineage, chaos: state.civilization.chaos,
       gameConfig: state.gameConfig, survivalTracker });
     if (!force && signature === lastSignature) return;
@@ -243,7 +131,7 @@ export function createSettlementPrototypeView({
     clearChildren(root);
 
     const bg = new PIXI.Graphics();
-    bg.beginFill(0x6f756b).drawRect(0, 0, 2424, 860).endFill();
+    bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
     root.addChild(bg);
     const regionDef = getRegionDefinition(state, regionId);
     root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
@@ -271,8 +159,8 @@ export function createSettlementPrototypeView({
       root.addChild(
         createText(`Stored food  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
           foodRect.x + 18, foodRect.y + 64),
-        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 100),
-        createText(`Currency  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 118),
+        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 96),
+        createText(`Currency  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 128),
         createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 154),
         createText(`Population  ${vm.population.total} / ${vm.population.housingCapacity} housing`,
           TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 190),
@@ -289,7 +177,9 @@ export function createSettlementPrototypeView({
         y: practiceRect.y + 56,
         width: practiceCardWidth,
         height: practiceRect.height - 70,
-      }, entry, index));
+      }, entry, index, tooltipView));
+      addIllustration(root,"legacy",{x:1544,y:534,width:390,height:270},{alpha:.62});
+      addIllustration(root,"settlement",{x:606,y:534,width:906,height:270},{alpha:.7});
       const order = vm.elderOrder;
       root.addChild(
         createText(`Worker policy: one token per ${getGameSetting(
@@ -320,9 +210,10 @@ export function createSettlementPrototypeView({
       root.addChild(createText(
         `${vm.usedStructureCapacity} used / ${vm.structureCapacity} available`,
         TEXT_STYLES.header, structureRect.x + 18, structureRect.y + 60));
-      vm.structures.forEach((slot, index) => root.addChild(createText(
-        `${index + 1}. ${slot?.structureId ?? "Empty"}`,
-        TEXT_STYLES.body, structureRect.x + 18, structureRect.y + 112 + index * 42)));
+      vm.structures.forEach((slot,index)=>addGamepieceCard(root,{
+        x:structureRect.x+18+(index%4)*126,y:structureRect.y+112+Math.floor(index/4)*132,width:116,height:122,
+      },{artId:slot?.structureId,title:slot?.label??slot?.structureId,tier:slot?.tier,
+        empty:!slot?.structureId,detail:slot?.rule??slot?.structureId??'Available structure space',tooltipView}));
     } else {
       const villager = vm.population.byClass.villager;
       const stranger = vm.population.byClass.stranger;
@@ -374,7 +265,7 @@ export function createSettlementPrototypeView({
               state,
               "adultToElderRate"
             )).toFixed(1)} elders · ${expectedElderDeaths.toFixed(2)} elder deaths`,
-            { ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted },
+            { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted },
             right.x + 18,
             y + 94
           )
@@ -385,10 +276,14 @@ export function createSettlementPrototypeView({
         `Elder mortality after aging: ${getGameSetting(state, "elderMortalityThrough49") * 100}% through 49; ${getGameSetting(state, "elderMortality50To54") * 100}% at 50–54; ${getGameSetting(state, "elderMortality55To59") * 100}% at 55–59; ${getGameSetting(state, "elderMortality60To64") * 100}% at 60–64; ${getGameSetting(state, "elderMortality65To69") * 100}% at 65–69; ${getGameSetting(state, "elderMortality70To74") * 100}% at 70–74; ${getGameSetting(state, "elderMortality75Plus") * 100}% at 75+.`,
         TEXT_STYLES.body, right.x + 18, y, right.width - 36));
       y += 90;
+      const lastMoon=site.lastMoonResult;
+      const births=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.births??0),0);
+      const matured=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.matured??0),0);
+      const spoiled=(lastMoon?.death?.storedFoodRot??0)+(lastMoon?.death?.looseFoodRot??0);
       root.addChild(createWrappedText(
-        site.lastMoonResult
-          ? `Previous moon result: ${JSON.stringify(site.lastMoonResult)}`
-          : "Previous moon result: none.",
+        lastMoon
+          ? `THE LAST MOON\n${births} births · ${matured} came of age\n${formatPracticeNumber(spoiled)} food spoiled · ${lastMoon.currencySpent??0} currency spent`
+          : "The first moon has yet to pass.",
         { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, right.x + 18, y, right.width - 36));
     }
 

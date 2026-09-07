@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const url = 'http://127.0.0.1:8082';
 const artifact = 'artifacts/game-menu-browser-probe.json';
@@ -15,7 +16,7 @@ try {
     try { if ((await fetch(url)).ok) break; } catch {}
     await delay(100);
   }
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
