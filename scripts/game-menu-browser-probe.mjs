@@ -33,6 +33,27 @@ try {
   assert.equal(await page.locator('.game-save-slot').count(), 3);
   await page.getByTestId('game-slot-1').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  const waitForRide=async()=>{
+    await page.waitForFunction(()=>{
+      const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+      return snapshot.graph.forecastRevealPlayheadFollowEnabled &&
+        snapshot.viewedSec>snapshot.frontierSec &&
+        Math.abs(snapshot.viewedSec-snapshot.graph.revealedCoverageEndSec)<=2;
+    });
+  };
+  await waitForRide();
+  const ride=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(ride.runner.cursorStateSec,initialSecond,'Riding the unveil does not advance authoritative history');
+  const present=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint());
+  assert.ok(present);
+  const canvas=await page.locator('canvas').boundingBox();
+  await page.mouse.click(canvas.x+present.x/2424*canvas.width,canvas.y+present.y/1080*canvas.height);
+  await page.waitForFunction(()=>{
+    const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return !snapshot.graph.forecastRevealPlayheadFollowEnabled&&snapshot.viewedSec===snapshot.frontierSec;
+  });
+  await delay(250);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),initialSecond,'Present remains detached while the reveal continues');
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('civsurvivor.save.slot1')));
   assert.equal(saved.state.world.sites.length, 2);
   await page.getByTestId('game-menu-open').click();
@@ -52,6 +73,14 @@ try {
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), saved.state.rng.baseSeed);
   await page.reload();
   await page.getByTestId('game-continue').click();
+  await waitForRide();
+  await page.evaluate(()=>document.activeElement.blur());
+  await page.keyboard.press('Space');
+  const held=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(held.graph.forecastRevealPlayheadFollowEnabled,false,'Pause releases automatic unveil follow');
+  assert.equal(held.playbackTarget,0,'Pause holds the moving unveil instead of starting normal playback');
+  await delay(250);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),held.viewedSec);
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), saved.state.rng.baseSeed);
   await page.getByTestId('game-menu-open').click();
   await page.getByTestId('game-new').click();

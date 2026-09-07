@@ -3712,6 +3712,8 @@ export function createMetricGraphView({
     setEventMarkerResolver,
     setForecastRevealConfig,
     pauseForecastReveal,
+    isFollowingForecastReveal: () => forecastRevealPlayheadFollowEnabled &&
+      !forecastRevealPaused && forecastRevealAnimatedEndSec < forecastRevealTargetEndSec,
     suspendForecastRevealPlayheadFollow,
     resetForecastPreviewState,
     resetDataContext,

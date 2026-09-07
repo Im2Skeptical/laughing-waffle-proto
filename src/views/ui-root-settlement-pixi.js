@@ -1424,7 +1424,8 @@ const timeControlsView = createTimeControlsView({
   layer: controlLayer,
   getGameState: () => ({
     ...(getSettlementViewedState() ?? {}),
-    paused: getSettlementPlaybackTarget() === 0,
+    paused: getSettlementPlaybackTarget() === 0 && !settlementGraphView?.isFollowingForecastReveal?.(),
+    followingForecast: settlementGraphView?.isFollowingForecastReveal?.() === true,
   }),
   togglePause,
   isPausePending: () => false,
@@ -1438,7 +1439,10 @@ const timeControlsView = createTimeControlsView({
       targetSec: frontierSec,
     };
   },
-  onReturnToPresent: (targetSec) => returnSettlementViewToPresent(targetSec),
+  onReturnToPresent: (targetSec) => {
+    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+    return returnSettlementViewToPresent(targetSec);
+  },
   getTimeScale: () => getSettlementPlaybackState(),
   setTimeScaleTarget: (speed, opts) => {
     settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
@@ -1771,6 +1775,7 @@ runCompleteView = createRunCompleteView({
   layer: modalLayer,
 });
 function handleDebugFreshRunApplied(reason) {
+  requestPauseBeforeDrag();
   settlementPendingVassalSelection = null;
   settlementHoveredVassalCandidate = null;
   settlementSelectedVassalCandidateIndex = null;
@@ -1785,10 +1790,12 @@ function handleDebugFreshRunApplied(reason) {
   runner.clearPreviewState?.();
   settlementGraphView?.resetForecastPreviewState?.();
   settlementGraphView?.resetDataContext?.();
+  // Navigation and transport reset must precede the new reveal: neither is
+  // player intervention that should detach or pause its default follow.
+  setWorldViewMode("map");
   settlementGraphView?.restartForecastRevealFrom?.(0, {
     clearProjectionReplacementTransition: true,
   });
-  setWorldViewMode("map");
   worldMapView?.refresh?.();
   settlementGraphView?.render?.();
 }
@@ -1839,8 +1846,9 @@ function requestPauseBeforeDrag() {
 }
 
 function togglePause() {
+  const following = settlementGraphView?.isFollowingForecastReveal?.() === true;
   settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
-  if (getSettlementPlaybackTarget() !== 0) return requestPauseBeforeDrag();
+  if (following || getSettlementPlaybackTarget() !== 0) return requestPauseBeforeDrag();
   return setSettlementPlaybackTarget(1);
 }
 
@@ -2017,7 +2025,6 @@ const gameSession = createGameSessionController({
   runner,
   onEnter: () => {
     handleDebugFreshRunApplied("sessionEnter");
-    requestPauseBeforeDrag();
   },
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),
