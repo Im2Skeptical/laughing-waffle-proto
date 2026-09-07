@@ -1079,18 +1079,23 @@ assert.equal(vm.structureCapacity, getRegionState(state, "river-crown").structur
 console.log("[detailed-settlements] OK");
 }
 
-for (const [tier, threshold] of [["bronze", 2], ["silver", 1]]) {
+for (const [tier, threshold] of [["silver", 6], ["gold", 4], ["diamond", 2]]) {
   const millState = clearDetailedPopulationAndFood(fresh(8910));
   const millSite = getDetailedSettlement(millState, "cedar-woods");
   millSite.practiceSlots = [{ practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
     { practiceId: "mill", tier, charge: 0, work: 0 }, null, null, null];
   assert.equal(evaluateDetailedPracticeSlot(millState, "cedar-woods", 1).activation.chargeThreshold, threshold);
-  stepDetailedSettlementsSecond(millState, 2);
-  assert.equal(millSite.practiceSlots[1].charge, threshold === 2 ? 1 : 0);
-  assert.ok(millSite.practiceActivationTrace.some((entry) =>
-    entry.kind === "charged" && entry.sourcePracticeId === "forage" && entry.targetPracticeId === "mill"));
-  if (threshold === 1) {
-    assert.ok(millSite.storedFood > 5, "Silver Mill spends its Forage charge immediately to produce food");
-    assert.ok(millSite.practiceActivationTrace.some((entry) => entry.kind === "activated" && entry.targetPracticeId === "mill"));
+  for (let activation = 1; activation <= threshold; activation += 1) {
+    millState.tSec = 2 + (activation - 1) * 6;
+    stepDetailedSettlementsSecond(millState, millState.tSec);
+    assert.equal(millSite.practiceSlots[1].charge, activation % threshold,
+      `${tier} Mill spends its charge only on activation ${threshold}`);
+    assert.equal(millSite.storedFood, activation * 5 + (activation === threshold ? 12 : 0),
+      `${tier} Mill adds 12 food only when fully charged`);
   }
+  assert.ok(millSite.practiceActivationTrace.some((entry) =>
+    entry.kind === "activated" && entry.targetPracticeId === "mill"));
+  const restored = deserializeGameState(serializeGameState(millState));
+  assert.equal(evaluateDetailedPracticeSlot(restored, "cedar-woods", 1).activation.chargeThreshold, threshold,
+    "quality thresholds survive serialization");
 }
