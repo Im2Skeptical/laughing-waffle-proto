@@ -194,14 +194,16 @@ function viewNowMs() {
 function addButton(parent, rect, label, onPress, disabled = false) {
   const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 7,
+  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 7,
     disabled ? PALETTE.panelSoft : PALETTE.accent, PALETTE.stroke, 2);
   root.addChild(gfx, createText(label, {
     ...TEXT_STYLES.title,
     fill: disabled ? PALETTE.textMuted : 0x292622,
-  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
-  root.position.set(rect.x, rect.y);
+  }, rect.x + rect.width / 2, rect.y + rect.height / 2, 0.5, 0.5));
   root.eventMode = "static";
+  // Map redraws can replace this button between input and the next paint.
+  // Use map coordinates so the hit target needs no newly cached translation.
+  root.hitArea = new PIXI.Rectangle(rect.x, rect.y, rect.width, rect.height);
   root.cursor = disabled ? "default" : "pointer";
   root.on("pointerdown", () => { if (!disabled) onPress?.(); });
   parent.addChild(root);

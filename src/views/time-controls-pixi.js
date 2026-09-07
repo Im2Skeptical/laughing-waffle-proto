@@ -131,9 +131,9 @@ export function createTimeControlsView({
     const screenPadding = Math.max(0, Number(layout?.screenPadding ?? 16));
     // Keep the wheel unobstructed and all controls fixed when Present appears.
     timeLeverView.container.position.set(
-      clamp(anchor.x + anchor.radius + 20, screenPadding,
+      clamp(anchor.x - anchor.radius - 20 - timeLeverView.width, screenPadding,
         app.screen.width - timeLeverView.width - screenPadding), anchor.y - 100);
-    const buttonX = anchor.x - anchor.radius - 18 - BUTTON_WIDTH;
+    const buttonX = timeLeverView.container.x - 18 - BUTTON_WIDTH;
     pauseButton.position.set(buttonX, anchor.y - BUTTON_HEIGHT - 8);
     commitButton.position.set(buttonX, anchor.y + 8);
   }

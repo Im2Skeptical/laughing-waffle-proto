@@ -72,7 +72,7 @@ try {
   const canvas=await page.locator('canvas').boundingBox();
   const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
     width:1640/2424*canvas.width,height:720/1080*canvas.height};
-  const diskCrop={x:canvas.x+2064/2424*canvas.width,y:canvas.y+810/1080*canvas.height,
+  const diskCrop={x:canvas.x+2150/2424*canvas.width,y:canvas.y+810/1080*canvas.height,
     width:260/2424*canvas.width,height:260/1080*canvas.height};
   await seek(12);
   const first=await page.screenshot({clip:crop});
@@ -89,7 +89,7 @@ try {
   const wheelTouch=await page.context().newCDPSession(page);
   for(const [radius,startAngle] of [[60,0],[105,0],[111,-Math.PI/2]]) {
     await seek(48);
-    const point=angle=>({x:canvas.x+(2194+radius*Math.cos(angle))/2424*canvas.width,
+    const point=angle=>({x:canvas.x+(2280+radius*Math.cos(angle))/2424*canvas.width,
       y:canvas.y+(940+radius*Math.sin(angle))/1080*canvas.height});
     const start=point(startAngle);
     await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});

@@ -1406,14 +1406,14 @@ const DISK_LAYOUT = {
   ...SUN_AND_MOON_DISKS_LAYOUT,
   moon: {
     ...SUN_AND_MOON_DISKS_LAYOUT.moon,
-    x: 2194,
+    x: 2280,
     y: 940,
     scale: 0.405,
     phaseIconRadius: 111,
   },
   season: {
     ...SUN_AND_MOON_DISKS_LAYOUT.season,
-    x: 2194,
+    x: 2280,
     y: 940,
     scale: 0.57,
   },
