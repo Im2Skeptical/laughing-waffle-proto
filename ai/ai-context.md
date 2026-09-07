@@ -110,7 +110,9 @@ survival knowledge, and the single vassal lineage are civilization-global.
   groups. Generation replaces one mid-band node with that signature after the
   ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
   Ordinary graphs no longer roll Settlement nodes, and regular Route shops are
-  add-only.
+  add-only and can connect adjacent frontier regions. Settlement choices remain
+  visible when unavailable and list their live Prestige, adult Villager, route,
+  frontier, and structure-capacity requirements.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
   confirmation. Draft purchases can be undone or deterministically reordered;

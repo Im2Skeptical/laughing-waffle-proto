@@ -138,7 +138,7 @@ function actionCard(parent, rect, spec) {
   root.on("pointerout", () => spec.onOut?.());
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 12,
-    spec.selected ? 0x42583d : 0x303733,
+    spec.selected ? 0x42583d : spec.enabled ? 0x303733 : 0x252b28,
     spec.selected ? PALETTE.green : spec.presentation?.tier
       ? QUALITY_COLORS[spec.presentation.tier] : PALETTE.stroke,
     spec.selected ? 4 : 2);
@@ -150,7 +150,7 @@ function actionCard(parent, rect, spec) {
       wordWrapWidth: rect.width - 36, lineHeight: 23,
     }, 18, spec.presentation ? 38 : 18),
     createText(spec.cost, {
-      ...TEXT_STYLES.title, fontSize: 15, fill: PALETTE.accent,
+      ...TEXT_STYLES.title, fontSize: 15, fill: spec.costUnmet ? 0xf28b82 : PALETTE.accent,
       wordWrap: true, wordWrapWidth: rect.width - 36,
     }, 18, 94),
     createText(spec.effect, {
@@ -592,13 +592,18 @@ export function createVassalNodeDecisionModalView({
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getAdjustedVassalPhaseCost(vassal, option.phaseCost ?? 0);
+          const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return actionCard(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: 292,
           }, {
-            title: option.label,
+            title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
             cost: formatCost(prestigeCost, phaseCost),
-            effect: optionEffect(option), enabled: !readOnly && prestigeCost <= vassal.prestige,
+            costUnmet: prestigeCost > vassal.prestige,
+            effect: requirements.length
+              ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
+              : optionEffect(option),
+            enabled: !readOnly && prestigeCost <= vassal.prestige && requirements.every((entry) => entry.met),
             selected: nodeState.selectedOptionId === option.id,
             onClick: () => onSelectOption?.(node.id, option.id),
             onHover: () => {

@@ -1078,3 +1078,19 @@ assert.equal(vm.elderOrder.resistance, 13);
 assert.equal(vm.structureCapacity, getRegionState(state, "river-crown").structureCapacity);
 console.log("[detailed-settlements] OK");
 }
+
+for (const [tier, threshold] of [["bronze", 2], ["silver", 1]]) {
+  const millState = clearDetailedPopulationAndFood(fresh(8910));
+  const millSite = getDetailedSettlement(millState, "cedar-woods");
+  millSite.practiceSlots = [{ practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
+    { practiceId: "mill", tier, charge: 0, work: 0 }, null, null, null];
+  assert.equal(evaluateDetailedPracticeSlot(millState, "cedar-woods", 1).activation.chargeThreshold, threshold);
+  stepDetailedSettlementsSecond(millState, 2);
+  assert.equal(millSite.practiceSlots[1].charge, threshold === 2 ? 1 : 0);
+  assert.ok(millSite.practiceActivationTrace.some((entry) =>
+    entry.kind === "charged" && entry.sourcePracticeId === "forage" && entry.targetPracticeId === "mill"));
+  if (threshold === 1) {
+    assert.ok(millSite.storedFood > 5, "Silver Mill spends its Forage charge immediately to produce food");
+    assert.ok(millSite.practiceActivationTrace.some((entry) => entry.kind === "activated" && entry.targetPracticeId === "mill"));
+  }
+}
