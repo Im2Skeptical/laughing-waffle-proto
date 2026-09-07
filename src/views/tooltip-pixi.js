@@ -53,6 +53,17 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   let activeSpec = null;
   let activeResolvedAnchor = null;
   let hideTimeoutId = null;
+  let pinnedKey = null;
+  let pinRevision = 0;
+  // Let the Pixi card handler claim this press by advancing the revision.
+  // Otherwise it was an outside press, which dismisses the retained details.
+  document.addEventListener('pointerdown', () => {
+    if(pinnedKey===null)return;
+    const revision=pinRevision;
+    setTimeout(()=>{
+      if(pinRevision===revision)hide({force:true});
+    },0);
+  },true);
 
   function getScreenSize() {
     return {
@@ -480,7 +491,8 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     };
   }
 
-  function show(spec, anchor) {
+  function show(spec, anchor, {force=false}={}) {
+    if(pinnedKey!==null&&!force)return;
     const resolvedAnchor = resolveAnchor(anchor);
     if (!resolvedAnchor) return;
     if (hideTimeoutId !== null) {
@@ -514,7 +526,9 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     container.visible = true;
   }
 
-  function hide() {
+  function hide({force=false}={}) {
+    if(pinnedKey!==null&&!force)return;
+    if(force)pinnedKey=null;
     if (hideTimeoutId !== null) clearTimeout(hideTimeoutId);
     hideTimeoutId = setTimeout(() => {
       activeAnchor = null;
@@ -535,9 +549,17 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
 
   function init() {}
 
+  function pin(spec, anchor, key) {
+    pinRevision++;
+    if(pinnedKey===key){hide({force:true});return;}
+    pinnedKey=key;
+    show(spec,anchor,{force:true});
+  }
+
   return {
     init,
     show,
+    pin,
     hide,
     isVisible: () => container.visible,
     getContainer: () => container,
@@ -546,6 +568,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     getActiveSpec: () => activeSpec,
     getDebugState: () => ({
       visible: container.visible === true,
+      pinned: pinnedKey !== null,
       x: Number(container.x) || 0,
       y: Number(container.y) || 0,
       scale: Number.isFinite(activeScale) ? activeScale : 1,

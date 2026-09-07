@@ -748,10 +748,12 @@ try {
     (tSec) => globalThis.__SETTLEMENT_DEBUG__.browseSecond(tSec),
     historicalBrowseSec
   );
-  await delay(100);
-  const mapPresentPoint = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint()
-  );
+  // The control updates on the next rendered frame; software rendering can
+  // take longer than a fixed 100 ms after a historical seek.
+  const mapPresentPoint = await (await page.waitForFunction(
+    () => globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint(),
+    null, { timeout: 5000 }
+  )).jsonValue();
   assert.ok(mapPresentPoint, "Return to Present is also available on the World Map");
   await clickDesignPoint(page, mapPresentPoint);
   await delay(100);

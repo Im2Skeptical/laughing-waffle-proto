@@ -163,6 +163,8 @@ bounded JSON state used for replay and phase tooltips.
   show red starvation and amber overcrowding glyphs from the currently viewed
   state; hover and the selected-region card expose the underlying counts.
 - Settlement Overview and Demographics are local to the opened detailed site.
+  Tapping or holding a Practice/Structure pins its details across visual redraws;
+  tapping it again or elsewhere dismisses those details.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.
 - The timegraph automatically uses civilization scope on the map and local
@@ -179,7 +181,8 @@ bounded JSON state used for replay and phase tooltips.
   deterministically from serialized portrait traits, plus age, settlement,
   Prestige, four stats, and the advertised signature node. Hover temporarily
   previews a starting region; click/tap locks a preview, and the lower-left
-  control confirms it. Clicking outside dismisses the chooser without changing
+  control or a double-tap on the selected candidate confirms it. Clicking
+  outside dismisses the chooser without changing
   its authoritative pool. Selection opens a dedicated full-topology Life Map
   screen. The Lifegraph uses the full playfield plus the same portrait and a
   compact Vassal HUD containing Prestige and all four stats. Stat hover/tap

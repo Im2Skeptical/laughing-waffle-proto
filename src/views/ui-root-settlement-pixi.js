@@ -1756,6 +1756,7 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
   getSelectedCandidateIndex: () => settlementSelectedVassalCandidateIndex,
   isOpen: () => worldViewMode === "map" && !!settlementPendingVassalSelection,
   onPreviewCandidate: (candidateIndex) => previewLifeMapCandidate(candidateIndex),
+  onConfirmCandidate: (candidateIndex) => selectLifeMapCandidate(candidateIndex),
   onReroll: () => rerollLifeMapCandidates(),
   onClose: () => closeSettlementVassalSelection(),
   onHoverCandidate: (candidate) => {
@@ -1888,6 +1889,7 @@ function publishSettlementDebugApi() {
     getPreviewCapSec: () => getSettlementPreviewCapSec(),
     getPlaybackTarget: () => getSettlementPlaybackState().target,
     getPlaybackCurrent: () => getSettlementPlaybackState().current,
+    getTooltipDebugState: () => tooltipView.getDebugState(),
     getProjectedLossInfo: () => getProjectedSettlementLossInfo(),
     getDisplayedLossInfo: () => getSettlementLossInfoForDisplay(),
     getGraphDebugState: () => settlementGraphView?.getDebugState?.() ?? null,
