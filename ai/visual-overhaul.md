@@ -6,7 +6,7 @@ Implemented September 2026. This document describes the shipped presentation and
 
 The references in `ai/References/` were accessible and inspected before design: Diablo II, Age of Empires II, Baldur's Gate II, and the supplied pixel illustration/card references. They informed the palette, material treatment, and composition; the shipped paintings and sprites are newly generated originals.
 
-The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; gameplay still uses the landscape gate. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the primary Vassal action, Chronicle graph, astrolabe, and time lever.
+The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the primary Vassal action, Chronicle graph, astrolabe, and time lever.
 
 - Region polygons and roads still come from the world definition. Terrain is clipped to those polygons; no authored map image determines geography.
 - Hamlet smoke, braziers, dust, and transfer packets follow the viewed timeline.
@@ -33,7 +33,7 @@ PixiJS 7 remains appropriate: textures and sprite frames can be selected manuall
 
 ## Audio
 
-The initial original ambient score is a quiet 24-second synthesized drone, wind, and asymmetric bell loop. The implementation builds forward and reversed PCM buffers and follows timeline position, speed, and direction with Web Audio. Reverse playback uses a reversed buffer at a positive rate, avoiding dependence on negative browser playbackRate support. The held timeline, menu, hidden page, and portrait gate are silent. Sound also stops when viewed time cannot move at a history/forecast boundary, even if the lever requests movement. Seeks restart at the appropriate buffer offset; short de-click fades are intentional.
+The initial original ambient score is a quiet 24-second synthesized drone, wind, and asymmetric bell loop. The implementation builds forward and reversed PCM buffers and follows timeline position, speed, and direction with Web Audio. Reverse playback uses a reversed buffer at a positive rate, avoiding dependence on negative browser playbackRate support. The held timeline, menu, hidden page, and portrait viewport are silent. Sound also stops when viewed time cannot move at a history/forecast boundary, even if the lever requests movement. Seeks restart at the appropriate buffer offset; short de-click fades are intentional.
 
 This is an implemented reversible ambient layer, not a complete authored soundtrack or a library of simulation-event sound effects. Browser playback resynchronizes when phase drift exceeds 90 ms, so it is not a claim of sample-exact audio/display hardware synchronization. Future sound effects should use deterministic event times and the same transport, including a reversed PCM version where appropriate. [Web Audio playbackRate](https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/playbackRate).
 

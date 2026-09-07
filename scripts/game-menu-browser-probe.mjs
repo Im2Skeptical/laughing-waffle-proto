@@ -33,8 +33,8 @@ try {
   assert.equal(await page.locator('.game-save-slot').count(), 3);
   await page.getByTestId('game-slot-1').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
-  const waitForRide=async()=>{
-    await page.waitForFunction(()=>{
+  const waitForRide=async(target=page)=>{
+    await target.waitForFunction(()=>{
       const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
       return snapshot.graph.forecastRevealPlayheadFollowEnabled &&
         snapshot.viewedSec>snapshot.frontierSec &&
@@ -44,6 +44,18 @@ try {
   await waitForRide();
   const ride=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(ride.runner.cursorStateSec,initialSecond,'Riding the unveil does not advance authoritative history');
+  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  await page.getByTestId('game-menu').waitFor({state:'visible'});
+  const pausedRide=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  await delay(350);
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  const frozenRide=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(frozenRide.viewedSec,pausedRide.viewedSec,'Background renders cannot move the paused playhead');
+  assert.equal(frozenRide.graph.revealedCoverageEndSec,pausedRide.graph.revealedCoverageEndSec);
+  await page.getByTestId('game-continue').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});
+  await waitForRide();
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.forecastRevealPlayheadFollowEnabled),true,'Continue preserves riding the unveil');
   const present=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint());
   assert.ok(present);
   const canvas=await page.locator('canvas').boundingBox();
@@ -70,6 +82,7 @@ try {
   await page.getByTestId('game-load').click();
   await page.screenshot({ path: 'artifacts/game-menu-slots.png' });
   await page.getByTestId('game-slot-1').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), saved.state.rng.baseSeed);
   await page.reload();
   await page.getByTestId('game-continue').click();
@@ -81,11 +94,18 @@ try {
   assert.equal(held.playbackTarget,0,'Pause holds the moving unveil instead of starting normal playback');
   await delay(250);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),held.viewedSec);
+  assert.equal(await page.evaluate(()=>!!document.fullscreenElement),true,'Continue requests fullscreen directly from its click');
+  await page.evaluate(()=>document.exitFullscreen());
+  await page.getByTestId('game-menu').waitFor({state:'visible'});
+  await page.getByTestId('game-continue').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),held.viewedSec,'Continue resumes the held picture without reloading');
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), saved.state.rng.baseSeed);
   await page.getByTestId('game-menu-open').click();
   await page.getByTestId('game-new').click();
   await page.getByTestId('game-slot-1').click();
   await page.getByTestId('game-replace-confirm').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});
   const replacementSeed = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed);
   assert.notEqual(replacementSeed, saved.state.rng.baseSeed);
   await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
@@ -94,25 +114,55 @@ try {
   assert.equal(await page.locator('.game-save-error').isVisible(), true);
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  phone.on('pageerror',error=>errors.push(error.message));
+  // Exercise the unsupported-phone path as well as native desktop fullscreen.
+  await phone.addInitScript(()=>{
+    globalThis.__displayRequests=[];
+    globalThis.__originalSetItem=Storage.prototype.setItem;
+    Element.prototype.requestFullscreen=async()=>{
+      globalThis.__displayRequests.push('fullscreen');throw new Error('Unavailable');
+    };
+    screen.orientation.lock=async(value)=>{
+      globalThis.__displayRequests.push(value);throw new Error('Unavailable');
+    };
+  });
   await phone.goto(url);
   await phone.getByTestId('game-new').waitFor();
-  assert.equal(await phone.locator('#mobile-landscape-gate').isVisible(), false);
+  assert.equal(await phone.locator('#mobile-landscape-gate').count(), 0);
   await phone.screenshot({ path: 'artifacts/game-menu-portrait.png' });
   await phone.getByTestId('game-new').click();
   await phone.getByTestId('game-slot-1').click();
-  assert.equal(await phone.locator('#mobile-landscape-gate').isVisible(), true);
-  await phone.getByTestId('mobile-menu-return').click();
+  await phone.getByTestId('game-display-hint').waitFor({state:'visible'});
   assert.equal(await phone.getByTestId('game-menu').isVisible(), true);
-  await phone.getByTestId('game-continue').click();
-  assert.equal(await phone.locator('#mobile-landscape-gate').isVisible(), true);
+  assert.equal(await phone.evaluate(()=>localStorage.getItem('civsurvivor.save.slot1')),null,'Portrait entry cannot create a game behind the menu');
+  assert.deepEqual(await phone.evaluate(()=>globalThis.__displayRequests),['fullscreen','landscape']);
   await phone.setViewportSize({ width: 844, height: 390 });
-  assert.equal(await phone.locator('#mobile-landscape-gate').isVisible(), false);
-  await phone.getByTestId('game-menu-open').click();
+  await phone.getByTestId('game-slot-1').click();
+  await phone.getByTestId('game-menu').waitFor({state:'hidden'});
+  await waitForRide(phone);
+  await phone.evaluate(()=>document.activeElement.blur());
+  await phone.keyboard.press('Space');
+  const phoneHeld=await phone.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  await phone.evaluate(()=>{Storage.prototype.setItem=()=>{throw new Error('quota');};});
+  // Headless contexts do not model OS window focus; deliver its native event.
+  await phone.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  await phone.getByTestId('game-menu').waitFor({state:'visible'});
+  await delay(350);
+  assert.equal(await phone.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),phoneHeld.viewedSec,'Focus loss pauses even when saving fails');
+  await phone.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Regaining focus does not auto-resume');
+  await phone.evaluate(()=>{Storage.prototype.setItem=globalThis.__originalSetItem;});
+  await phone.getByTestId('game-continue').click();
+  await phone.getByTestId('game-menu').waitFor({state:'hidden'});
+  const phoneResumed=await phone.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(phoneResumed.viewedSec,phoneHeld.viewedSec);
+  assert.equal(phoneResumed.runner.baseSeed,phoneHeld.runner.baseSeed);
   await phone.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await phone.getByTestId('game-menu').isVisible(), true);
-  assert.equal(await phone.locator('#mobile-landscape-gate').isVisible(), false);
+  await phone.getByTestId('game-menu').waitFor({state:'visible'});
+  await phone.setViewportSize({width:844,height:390});
+  assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Rotation alone does not resume a paused game');
   assert.deepEqual(errors, []);
-  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'menu pause', 'portrait gate'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'fullscreen entry and exit', 'portrait menu fallback', 'focus pause and memory resume'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
   console.log('[probe:game-menu] OK');
 } catch (error) {
   writeFileSync(artifact, JSON.stringify({ error: error.stack }));

@@ -7,37 +7,6 @@ import {
 import { createVassalDebugDom } from "./vassal-debug-dom.js";
 import { createLifeMapLabDom } from "./life-map-lab-dom.js";
 
-function getFullscreenElement() {
-  return (
-    document.fullscreenElement ||
-    document.webkitFullscreenElement ||
-    document.msFullscreenElement ||
-    null
-  );
-}
-
-function requestFullscreen(target) {
-  if (typeof target?.requestFullscreen === "function") return target.requestFullscreen();
-  if (typeof target?.webkitRequestFullscreen === "function") {
-    return target.webkitRequestFullscreen();
-  }
-  if (typeof target?.msRequestFullscreen === "function") {
-    return target.msRequestFullscreen();
-  }
-  return Promise.reject(new Error("Fullscreen unavailable"));
-}
-
-async function lockLandscapeOrientation() {
-  const orientation = globalThis.screen?.orientation;
-  if (typeof orientation?.lock !== "function") return;
-  try {
-    await orientation.lock("landscape");
-  } catch {
-    // Browsers commonly allow this only in fullscreen; the portrait gate still
-    // prevents the game from being rendered at an unusable scale.
-  }
-}
-
 export function createSettlementDebugMenuDom({
   mapLabController,
   lifeMapLabController,
@@ -76,10 +45,6 @@ export function createSettlementDebugMenuDom({
     "border:1px solid #d7b450", "background:#59613b", "color:#f6efe3",
   ].join(";");
   utilityControls.append(openButton, startNewRunButton);
-  const mobileLandscapeButton = document.querySelector(
-    '[data-testid="mobile-landscape-request"]'
-  );
-
   const panel = document.createElement("section");
   panel.className = "codex-debug-panel";
   panel.style.cssText = [
@@ -291,15 +256,6 @@ export function createSettlementDebugMenuDom({
     profileStatus.style.color = snapshot.status?.tone === "warning" ? "#ffd98a" : "#b9f5c7";
   }
 
-  async function requestLandscapeFullscreen() {
-    try {
-      if (!getFullscreenElement()) await requestFullscreen(document.documentElement);
-      await lockLandscapeOrientation();
-    } catch {
-      // The portrait gate remains available when fullscreen cannot be entered.
-    }
-  }
-
   function open() {
     panel.style.display = "block";
     openButton.style.display = "none";
@@ -354,9 +310,6 @@ export function createSettlementDebugMenuDom({
   startNewRunButton.addEventListener("click", () => {
     const result = debugConfigurationController.applyToFreshRun();
     if (result?.ok) close();
-  });
-  mobileLandscapeButton?.addEventListener("click", () => {
-    void requestLandscapeFullscreen();
   });
   mapLabTab.addEventListener("click", () => setActivePage("mapLab"));
   gameSettingsTab.addEventListener("click", () => setActivePage("gameSettings"));

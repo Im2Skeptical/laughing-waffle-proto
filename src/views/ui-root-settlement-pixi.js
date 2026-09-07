@@ -2029,28 +2029,28 @@ const gameSession = createGameSessionController({
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),
 });
-gameMenu = createGameMenuDom({ session: gameSession });
-setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
-window.addEventListener("pagehide", () => gameSession.save());
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") gameSession.save();
+gameMenu = createGameMenuDom({
+  session: gameSession,
+  onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
+  onPause: () => {
+    settlementGraphView?.setPresentationSuspended?.(true);
+    timelineAudio?.update(0);
+  },
 });
+setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
 
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleGlobalKeyDown);
 
-const portraitGameplayGate = window.matchMedia(
-  "(max-width: 900px) and (hover: none) and (pointer: coarse) and (orientation: portrait)"
-);
 const timelineAudio = createTimelineAudio({
   getTime:getSettlementVisualTime,
   getRate:getSettlementPlaybackTarget,
-  isSuspended:()=>gameSession.isInMenu()||portraitGameplayGate.matches,
+  isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape(),
   parent:document.querySelector('[data-testid="utility-controls"]'),
 });
 
 app.ticker.add((delta) => {
-  if (gameSession.isInMenu() || portraitGameplayGate.matches) {
+  if (gameSession.isInMenu() || gameMenu.requiresLandscape()) {
     timelineAudio.update(0);
     return;
   }
