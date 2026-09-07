@@ -198,7 +198,8 @@ export function createTimeLeverView({
     const speedAbs = Math.abs(displaySpeed);
     const speedText = `${displaySpeed < 0 ? "-" : ""}x${speedAbs.toFixed(1)}`;
     const showPauseHint = speedAbs < stickySpeed && !leverDragging;
-    leverLabel.text = showPauseHint || state?.paused ? 'TIME HELD' : `${displaySpeed < 0 ? 'REWIND' : 'ADVANCE'}  ${speedText}`;
+    leverLabel.text = state?.followingForecast ? 'FOLLOWING UNVEIL' :
+      showPauseHint || state?.paused ? 'TIME HELD' : `${displaySpeed < 0 ? 'REWIND' : 'ADVANCE'}  ${speedText}`;
     leverLabel.x = (width - leverLabel.width) / 2;
     leverLabel.y = height + labelGap;
   }
