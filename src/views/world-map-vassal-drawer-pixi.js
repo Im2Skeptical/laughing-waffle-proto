@@ -51,7 +51,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
       ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
       wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 25,
     }, 18, 219),
-    createText(selected ? "SELECTED · CONFIRM WITH THE LOWER-LEFT CONTROL" : "TAP TO PREVIEW", {
+    createText(selected ? "SELECTED · DOUBLE-TAP TO CONFIRM" : "TAP TO PREVIEW", {
       ...TEXT_STYLES.chip, fontSize: 17, fill: selected ? PALETTE.green : PALETTE.accent,
     }, 18, rect.height - 22)
   );
@@ -61,7 +61,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
 
 export function createWorldMapVassalDrawerView({
   layer, getState, getSelectionPool, getSelectedCandidateIndex, isOpen,
-  onPreviewCandidate, onHoverCandidate, onReroll, onClose,
+  onPreviewCandidate, onConfirmCandidate, onHoverCandidate, onReroll, onClose,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 12;
@@ -69,11 +69,20 @@ export function createWorldMapVassalDrawerView({
   let signature = "";
   let candidateRoots = [];
   let rerollRoot = null;
+  let lastTapIndex=null,lastTapTime=0;
+  function tapCandidate(index){
+    const now=performance.now();
+    const confirm=getSelectedCandidateIndex?.()===index&&lastTapIndex===index&&now-lastTapTime<=450;
+    lastTapIndex=index;lastTapTime=now;
+    if(confirm){lastTapIndex=null;onConfirmCandidate?.(index);}
+    else onPreviewCandidate?.(index);
+  }
 
   function render(force = false) {
     const open = isOpen?.() === true;
     root.visible = open;
     if (!open) {
+      lastTapIndex=null;
       signature = ""; candidateRoots = []; rerollRoot = null; clearChildren(root); return;
     }
     const state = getState?.();
@@ -104,7 +113,7 @@ export function createWorldMapVassalDrawerView({
     rerollRoot.eventMode = "static";
     rerollRoot.cursor = "pointer";
     rerollRoot.hitArea = new PIXI.Rectangle(0, 0, REROLL_RECT.width, REROLL_RECT.height);
-    rerollRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); onReroll?.(); });
+    rerollRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); lastTapIndex=null; onReroll?.(); });
     const rerollBackground = new PIXI.Graphics();
     roundedRect(rerollBackground, 0, 0, REROLL_RECT.width, REROLL_RECT.height,
       8, 0x314c2b, PALETTE.accent, 2);
@@ -121,7 +130,7 @@ export function createWorldMapVassalDrawerView({
       x: DRAWER_RECT.x + 16 + index * (cardWidth + gap), y: cardY,
       width: cardWidth, height: DRAWER_RECT.height - 82,
     }, state, candidate, selectedIndex === candidate.candidateIndex, {
-      onPreview: onPreviewCandidate, onHover: onHoverCandidate,
+      onPreview: tapCandidate, onHover: onHoverCandidate,
     }));
   }
 

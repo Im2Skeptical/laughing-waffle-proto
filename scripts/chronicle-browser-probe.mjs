@@ -25,7 +25,7 @@ const errors=[],failedAssets=[],graphicsWarnings=[],consoleTrail=[];
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page=await browser.newPage({viewport:{width:1280,height:800}});
+  const page=await browser.newPage({viewport:{width:1280,height:800},hasTouch:true});
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',message=>{if(consoleTrail.length<40)consoleTrail.push(message.text().slice(0,1600));});
   page.on('console',message=>{if(graphicsWarnings.length<20&&/INVALID_(OPERATION|VALUE|ENUM)|CONTEXT_LOST|GL_INVALID|framebuffer.*(invalid|incomplete)|Could not initialize shader/i.test(message.text()))graphicsWarnings.push(message.text());});
@@ -38,6 +38,14 @@ try {
   await page.screenshot({path:'artifacts/chronicle-menu.png'});
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().browseCapSec>60);
+  const checkUtility=async()=>{
+    await page.waitForFunction(()=>{
+      const canvas=document.querySelector('canvas').getBoundingClientRect();
+      const rail=document.querySelector('[data-testid="utility-controls"]').getBoundingClientRect();
+      return Math.abs(rail.top-canvas.top-5)<2&&Math.abs(canvas.right-rail.right-10)<2;
+    });
+  };
+  await checkUtility();
   const seal=page.getByTestId('debug-open');
   await seal.click();
   assert.equal(await page.getByTestId('debug-close').isVisible(),false,'A short tap cannot expose the workshop');
@@ -138,7 +146,45 @@ try {
     writeFileSync('artifacts/chronicle-mobile-diagnostics.json',JSON.stringify({worldColours,diagnostics,graphicsWarnings},null,2));
   }
   assert.ok(worldColours>64,'Phone resize must retain painted terrain, not a blank canvas');
-  await page.evaluate(()=>{const debug=globalThis.__SETTLEMENT_DEBUG__;debug.openNextSelection();debug.selectCandidate(0);});
+  await checkUtility();
+  const touch=await page.context().newCDPSession(page);
+  const holdCard=async point=>{
+    const box=await page.locator('canvas').boundingBox();
+    const x=box.x+point.x/2424*box.width,y=box.y+point.y/1080*box.height;
+    await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().pinned);
+    const title=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title);
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+    await delay(600);
+    await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await delay(150);
+    const tooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
+    assert.ok(tooltip.visible&&tooltip.pinned,'Touch details survive redraw and release');
+    assert.equal(tooltip.title,title);
+    await click({x:20,y:100});await delay(50);
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Outside tap dismisses details');
+    await page.touchscreen.tap(x,y);
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+    await delay(100);
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().pinned),true,'Short tap pins details across redraw');
+    await page.touchscreen.tap(x,y);await delay(50);
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Tapping the same card again dismisses details');
+  };
+  await holdCard({x:1800,y:550});
+  await holdCard({x:1800,y:695});
+  await click({x:2047,y:762});await delay(150);
+  await holdCard({x:700,y:220});
+  await holdCard({x:110,y:510});
+  await click({x:1883,y:36});
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
+  const candidate=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
+  const candidateBox=await page.locator('canvas').boundingBox();
+  const candidateX=candidateBox.x+candidate.x/2424*candidateBox.width;
+  const candidateY=candidateBox.y+candidate.y/1080*candidateBox.height;
+  await page.touchscreen.tap(candidateX,candidateY);
+  await page.touchscreen.tap(candidateX,candidateY);
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal);
   await delay(250);
   const node=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
   await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),node));
@@ -157,7 +203,7 @@ try {
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','phone landscape','inspection preserves choices'],graphicsWarnings},null,2));
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','phone landscape','utility rail alignment','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
   console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
 }catch(error){
   writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));

@@ -344,9 +344,12 @@ export function createSettlementDebugMenuDom({
     if(event.code==='Escape'&&panel.style.display!=='none')close();
   }
   function positionUtility(){
-    const box=document.querySelector('canvas')?.getBoundingClientRect();if(!box)return;
-    utilityControls.style.top=`${box.top+5}px`;
-    utilityControls.style.right=`${Math.max(5,window.innerWidth-box.right+10)}px`;
+    const box=document.querySelector('canvas')?.getBoundingClientRect();
+    if(!box?.width||!box?.height)return;
+    const top=`${box.top+5}px`;
+    const right=`${Math.max(5,window.innerWidth-box.right+10)}px`;
+    if(utilityControls.style.top!==top)utilityControls.style.top=top;
+    if(utilityControls.style.right!==right)utilityControls.style.right=right;
   }
   startNewRunButton.addEventListener("click", () => {
     const result = debugConfigurationController.applyToFreshRun();
@@ -444,7 +447,9 @@ export function createSettlementDebugMenuDom({
       syncProfileToolbar();
       setActivePage(activePage);
     },
-    update() {},
+    // Menu visibility and mobile browser chrome can move the canvas without a
+    // window resize. Sample its final visible bounds, after layout has settled.
+    update: positionUtility,
     refresh() {},
     close,
     destroy() {
