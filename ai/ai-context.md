@@ -206,7 +206,9 @@ bounded JSON state used for replay and phase tooltips.
   current-to-projected Prestige. Practice/Public Works show
   the current settlement with staged Practices/Structures ghosted into their
   authoritative slots; Routes/Travel show a cropped polygon regional preview;
-  Patronage/Development show immediate and surviving-completion Vassal impact;
+  Patronage/Development show every option's gains, losses, and time cost on
+  text-first cards without inspection overlays; tapping anywhere on a card
+  selects it, while immediate and surviving-completion Vassal impact stays visible;
   Crisis/Legacy and non-shop signature nodes center their choices without an
   irrelevant side panel. Signature nodes have a distinct double-ring marker,
   badge, glyph, label, description, and legend treatment. Shop

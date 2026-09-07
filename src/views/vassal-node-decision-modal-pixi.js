@@ -167,6 +167,51 @@ function actionCard(parent,rect,spec){
   parent.addChild(root);return root;
 }
 
+// Simple personal choices expose every tradeoff without an inspection overlay.
+function outcomeCard(parent, rect, spec) {
+  const root = new PIXI.Container();
+  root.position.set(rect.x, rect.y);
+  root.eventMode = spec.enabled ? 'static' : 'none';
+  root.cursor = spec.enabled ? 'pointer' : 'default';
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.on('pointertap', event => {
+    event?.stopPropagation?.();
+    if (spec.enabled) spec.onClick?.();
+  });
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 8, PALETTE.card,
+    spec.selected ? PALETTE.green : PALETTE.stroke, spec.selected ? 3 : 1);
+  root.addChild(gfx);
+  const title = createText(spec.title, {
+    ...TEXT_STYLES.cardTitle, fontSize: 30, lineHeight: 34,
+    wordWrap: true, wordWrapWidth: rect.width - 40,
+  }, 20, 20);
+  root.addChild(title);
+  let y = Math.max(110, title.y + title.height + 24);
+  for (const effect of spec.effect.split(' · ')) {
+    const label = effect.replace(/\b(cunning|wisdom|effectiveness|intelligence)\b/g,
+      stat => stat[0].toUpperCase() + stat.slice(1));
+    const text = createText(label, {
+      ...TEXT_STYLES.title, fontSize: 28, lineHeight: 32,
+      fill: effect.startsWith('-') ? PALETTE.red : PALETTE.green,
+      wordWrap: true, wordWrapWidth: rect.width - 40,
+    }, 20, y);
+    root.addChild(text);
+    y += text.height + 18;
+  }
+  root.addChild(createText(spec.cost, {
+    ...TEXT_STYLES.body, fontSize: 24, lineHeight: 29,
+    fill: spec.costUnmet ? PALETTE.red : PALETTE.accent,
+    wordWrap: true, wordWrapWidth: rect.width - 40,
+  }, 20, rect.height - 150));
+  root.addChild(createText(spec.enabled ? (spec.selected ? '✓ SELECTED' : 'CHOOSE') : 'UNAVAILABLE', {
+    ...TEXT_STYLES.title, fontSize: 23,
+    fill: spec.enabled ? PALETTE.accent : PALETTE.textMuted,
+  }, rect.width / 2, rect.height - 30, 0.5, 0.5));
+  parent.addChild(root);
+  return root;
+}
+
 const REGION_COLORS = Object.freeze({
   red: 0xa85d52, blue: 0x587f9e, green: 0x668d63, yellow: 0xb19a57,
   purple: 0x80668f, orange: 0xb77d4f, black: 0x555750, white: 0xb7b5a8,
@@ -494,6 +539,7 @@ export function createVassalNodeDecisionModalView({
     button(root, { x: PANEL.x + PANEL.width - 146, y: PANEL.y + 24, width: 106, height: 44 }, "CLOSE", true, close);
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
+    const simpleOutcomes = node.family === 'patronage' || node.family === 'development';
     if (hasContext) {
       const divider = new PIXI.Graphics();
       divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + 112)
@@ -605,9 +651,9 @@ export function createVassalNodeDecisionModalView({
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getAdjustedVassalPhaseCost(vassal, option.phaseCost ?? 0);
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
-          return actionCard(root, {
+          return (simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: 320,
+            width: cardWidth, height: simpleOutcomes ? 450 : 320,
           }, {
             artId:node.family,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
@@ -699,7 +745,7 @@ export function createVassalNodeDecisionModalView({
       });
     const inspectedOffer=(decision?.offers??[]).find(offer=>offer.offerId===pinnedInspectionId);
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
-    if(inspectedOffer||inspectedOption){
+    if(inspectedOffer||(inspectedOption && !simpleOutcomes)){
       const piece=inspectedOffer??inspectedOption;
       const requirements=decision?.optionRequirements?.[piece.id]??[];
       addChronicleInspection(root,{
