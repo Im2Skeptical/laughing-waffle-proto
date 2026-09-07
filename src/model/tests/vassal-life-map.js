@@ -587,7 +587,9 @@ for (let seed = 0; seed < 1000 && !settlementFixture; seed += 1) {
     const vassal = getCurrentLifeMapVassal(state);
     vassal.prestige = 100;
     const node = forceEnter(state, nodeIdForSignature(state, "settlement"));
-    const option = node.options.find((entry) => entry.settlementRegionId);
+    const requirements = getVassalNodeDecisionPresentation(state, node.nodeId).optionRequirements;
+    const option = node.options.find((entry) => entry.settlementRegionId
+      && requirements[entry.id].every((requirement) => requirement.met));
     if (option) { settlementFixture = { state, vassal, node, option }; break; }
   }
 }
@@ -880,3 +882,54 @@ assert.deepEqual([...taggedOfferKinds].sort(), ["practice", "structure"],
   "tagged shops mix eligible Practices and Structures across their draft and reroll");
 
 console.log("[vassal-life-map] OK");
+
+// Development previews must apply both sides of a trade, including income changes.
+const tradeState = selectedState(102);
+const tradeVassal = getCurrentLifeMapVassal(tradeState);
+tradeVassal.prestige = 500;
+const tradeNode = forceEnter(tradeState, nodeIdForFamily(tradeState, "development"));
+const tradeOption = tradeNode.options.find((option) => option.lossStatId);
+assert.ok(tradeOption);
+tradeVassal.stats[tradeOption.lossStatId] = 4;
+const tradePreview = getVassalNodeDecisionPresentation(tradeState, tradeNode.nodeId,
+  { previewOptionId: tradeOption.id }).vassalProjection;
+const expectedTrade = structuredClone(tradeVassal);
+expectedTrade.stats[tradeOption.statId] += tradeOption.statDelta;
+expectedTrade.stats[tradeOption.lossStatId] += tradeOption.lossStatDelta;
+assert.equal(tradePreview.ifSurvives.prestigeIncome, getVassalPrestigeIncome(expectedTrade));
+assert.equal(tradePreview.ifSurvives.developmentIncome, getVassalDevelopmentIncome(expectedTrade));
+assert.equal(tradePreview.immediate.stats.find((stat) => stat.statId === tradeOption.lossStatId).value,
+  expectedTrade.stats[tradeOption.lossStatId]);
+assert.equal(tradeVassal.stats[tradeOption.lossStatId], 4, "preview leaves state untouched");
+
+const blockedSettlementState = selectedStateForSignature("settlement");
+const blockedVassal = getCurrentLifeMapVassal(blockedSettlementState);
+blockedVassal.prestige = 0;
+blockedSettlementState.world.sites.find((site) => site.regionId === blockedVassal.locationRegionId)
+  .detailedState.populationByClass.villager.adults = 0;
+const blockedNode = forceEnter(blockedSettlementState, nodeIdForSignature(blockedSettlementState, "settlement"));
+const blockedChoice = blockedNode.options.find((option) => option.settlementRegionId || option.id === "settlement-unavailable");
+assert.ok(blockedChoice, "unavailable settlement remains visible");
+const blockedRequirements = getVassalNodeDecisionPresentation(blockedSettlementState, blockedNode.nodeId)
+  .optionRequirements[blockedChoice.id];
+assert.equal(blockedRequirements[0].met, false);
+assert.equal(blockedRequirements[1].met, false);
+assert.equal(applyAction(blockedSettlementState, { kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
+  payload: { nodeId: blockedNode.nodeId, optionId: blockedChoice.id } }, { isReplay: true }).ok, false);
+assert.ok(blockedNode.options.some((option) => option.id === "settlement-favor"), "fallback allows progress");
+
+const frontierRouteState = selectedState(104);
+const frontierVassal = getCurrentLifeMapVassal(frontierRouteState);
+frontierRouteState.world.connections = [];
+for (const region of frontierRouteState.world.regions) {
+  if (region.id !== frontierVassal.locationRegionId) region.controller = "frontier";
+}
+const frontierRouteNode = forceEnter(frontierRouteState, nodeIdForFamily(frontierRouteState, "routes"));
+assert.ok(frontierRouteNode.inventory.length > 0, "Routes offers adjacent frontier connections");
+frontierVassal.prestige = 500;
+const frontierOffer = frontierRouteNode.inventory[0];
+dispatch(frontierRouteState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,
+  { nodeId: frontierRouteNode.nodeId, offerId: frontierOffer.offerId });
+dispatch(frontierRouteState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: frontierRouteNode.nodeId });
+assert.ok(frontierRouteState.world.connections.some((edge) =>
+  edge.regionAId === frontierOffer.intervention.regionAId && edge.regionBId === frontierOffer.intervention.regionBId));

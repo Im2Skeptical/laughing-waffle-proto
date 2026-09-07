@@ -764,10 +764,6 @@ function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
   }));
 }
 
-function isPlayerDetailedRegion(state, regionId) {
-  return getRegionState(state, regionId)?.controller === "player" && !!getDetailedSite(state, regionId);
-}
-
 function getSettlementTargets(state, vassal) {
   const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
   const adults = Math.max(0, Math.floor(source?.populationByClass?.villager?.adults ?? 0));
@@ -804,17 +800,48 @@ function buildSettlementFallbackOptions(state, vassal) {
   return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
 }
 
+function getSettlementRequirements(state, vassal, option) {
+  if (!option?.settlementRegionId && option?.id !== "settlement-unavailable") return [];
+  const targetId = option.settlementRegionId;
+  const target = getRegionState(state, targetId);
+  const adults = Math.floor(getDetailedSite(state, vassal.locationRegionId)
+    ?.detailedState?.populationByClass?.villager?.adults ?? 0);
+  const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
+  const connected = (state.world.connections ?? []).some((edge) =>
+    getWorldConnectionKey(edge.regionAId, edge.regionBId)
+      === getWorldConnectionKey(vassal.locationRegionId, targetId));
+  return [
+    { label: `${cost} Prestige (have ${vassal.prestige})`, met: vassal.prestige >= cost },
+    { label: `10 adult Villagers move (have ${adults})`, met: adults >= 10 },
+    { label: "Frontier destination", met: target?.controller === "frontier" },
+    { label: "Existing route to destination", met: connected },
+    { label: "Destination capacity: at least 1", met: (target?.structureCapacity ?? 0) >= 1 },
+  ];
+}
+
 function buildSettlementOptions(state, vassal) {
-  const targets = vassal.prestige >= VASSAL_LIFE_TUNING.settlementPrestigeCost
-    ? getSettlementTargets(state, vassal) : [];
-  if (!targets.length) return buildSettlementFallbackOptions(state, vassal);
-  return shuffle(state, targets).slice(0, 3).map((targetRegionId) => ({
+  const eligible = getSettlementTargets(state, vassal);
+  const targets = eligible.length ? eligible : getWorldConnectionCandidates(getWorldDefinition(state))
+    .flatMap((edge) => {
+      const otherId = edge.regionAId === vassal.locationRegionId ? edge.regionBId
+        : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
+      return otherId && getRegionState(state, otherId)?.controller === "frontier" ? [otherId] : [];
+    });
+  const options = shuffle(state, targets).slice(0, 3).map((targetRegionId) => ({
     id: `small-settlement:${targetRegionId}`,
     label: `Found ${getRegionReference(state, targetRegionId)}`,
     prestigeCost: VASSAL_LIFE_TUNING.settlementPrestigeCost,
     phaseCost: 0,
     settlementRegionId: targetRegionId,
   }));
+  if (!options.length) options.push({
+    id: "settlement-unavailable", label: "Found Settlement",
+    prestigeCost: VASSAL_LIFE_TUNING.settlementPrestigeCost, phaseCost: 0,
+  });
+  if (!options.some((option) => getSettlementRequirements(state, vassal, option).every((entry) => entry.met))) {
+    return [...options.slice(0, 2), ...buildSettlementFallbackOptions(state, vassal)];
+  }
+  return options;
 }
 
 function buildDevelopmentOptions(state) {
@@ -837,8 +864,7 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
     if (edge.regionAId !== currentId && edge.regionBId !== currentId) return [];
     const key = getWorldConnectionKey(edge.regionAId, edge.regionBId);
     const exists = reservation.connectionKeys.has(key);
-    if (!exists && isPlayerDetailedRegion(state, edge.regionAId)
-        && isPlayerDetailedRegion(state, edge.regionBId)) {
+    if (!exists) {
       return [{ mode: "add", edge }];
     }
     return [];
@@ -959,6 +985,9 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
   }
   const option = nodeState.options.find((entry) => entry.id === optionId);
   if (!option) return { ok: false, reason: "invalidOption" };
+  if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
+    return { ok: false, reason: "settlementUnavailable" };
+  }
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   nodeState.selectedOptionId = optionId;
@@ -1140,6 +1169,9 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
 }
 
 function applyOptionEffect(state, vassal, nodeState, option) {
+  if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
+    return { ok: false, reason: "settlementUnavailable" };
+  }
   if (option?.settlementRegionId) {
     const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
     if (Math.floor(source?.populationByClass?.villager?.adults ?? 0) < 10
@@ -1519,6 +1551,11 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
       );
     }
   }
+  if (option?.lossStatId && Number.isFinite(option.lossStatDelta)) {
+    immediate.stats[option.lossStatId] = Math.max(
+      0, Math.floor(immediate.stats[option.lossStatId] ?? 0) + Math.floor(option.lossStatDelta)
+    );
+  }
   const completionPrestigeIncome = getVassalPrestigeIncome(immediate);
   const completionExpIncome = getVassalDevelopmentIncome(immediate);
   const completionExpTotal = Math.max(0, immediate.developmentProgress ?? 0) + completionExpIncome;
@@ -1623,6 +1660,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     && !afterPractices.some((after) => after?.practiceId === slot.practiceId));
   return {
     node, nodeState,
+    optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
+      [option.id, getSettlementRequirements(state, vassal, option)])),
     currentPrestige: vassal.prestige,
     projectedPrestige: Math.max(0, vassal.prestige - stagedPrestigeCost - optionPrestigeCost),
     stagedPrestigeCost,

@@ -56,6 +56,7 @@ function getPracticeTimingLabel(activation) {
   }
   if (activation?.type === "birth") return "Birth phase";
   if (activation?.type === "food") return "Food phase";
+  if (activation?.type === "trigger") return `Activates at ${activation.chargeThreshold} charge`;
   return "Passive";
 }
 

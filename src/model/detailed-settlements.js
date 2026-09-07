@@ -707,6 +707,10 @@ export function assignDetailedSettlementWorkers(state, regionId) {
   }));
 }
 
+function getPracticeChargeThreshold(def, tier) {
+  return Math.max(1, Math.floor((def.activation.chargeThreshold ?? 1) - getDetailedPracticeTierIndex(tier) * .5));
+}
+
 function buildDetailedPracticeEvaluation(state, site, assignment) {
   const slot = site?.detailedState?.practiceSlots?.[assignment.slotIndex] ?? null;
   const def = getDetailedPracticeDef(state, slot?.practiceId);
@@ -715,7 +719,8 @@ function buildDetailedPracticeEvaluation(state, site, assignment) {
     practiceId: def.id,
     label: def.label,
     workerCapacity: getDetailedPracticeWorkerCapacity(def, slot.tier),
-    activation: clone(def.activation),
+    activation: { ...clone(def.activation), ...(def.activation.type === "trigger"
+      ? { chargeThreshold: getPracticeChargeThreshold(def, slot.tier) } : {}) },
     rule: def.ui?.rule ?? "",
     effects: (def.effects ?? []).map((effect) => ({
       op: effect.op,
@@ -1016,7 +1021,7 @@ function resolvePracticeActivatedEvents(state, initialEvents) {
       reacted.add(key);
       slot.charge = roundFood((slot.charge ?? 0) + 1);
       addPracticeTrace(site, { tSec: state.tSec, rootEventId: event.rootEventId, kind: "charged", sourcePracticeId: source.practiceId, targetPracticeId: slot.practiceId, charge: slot.charge });
-      const threshold = Math.max(1, Math.floor((def.activation.chargeThreshold ?? 1) - getDetailedPracticeTierIndex(slot.tier) * .5));
+      const threshold = getPracticeChargeThreshold(def, slot.tier);
       while (slot.charge >= threshold && processed < cap) {
         slot.charge = roundFood(slot.charge - threshold);
         if (executePracticeEffects(state, site, assignment, "trigger", null, { force: true })) {
