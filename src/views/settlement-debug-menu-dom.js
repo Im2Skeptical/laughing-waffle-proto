@@ -56,7 +56,10 @@ export function createSettlementDebugMenuDom({
 
   const openButton = document.createElement("button");
   openButton.type = "button";
-  openButton.textContent = "Debug";
+  openButton.textContent = "⌛";
+  openButton.className = 'chronicle-workshop-seal';
+  openButton.title = 'Hold the seal to open the workshop · Ctrl+Shift+D';
+  openButton.setAttribute('aria-label','Hold to open development workshop');
   openButton.dataset.testid = "debug-open";
   openButton.style.cssText = [
     "min-height:34px", "padding:5px 12px", "border-radius:6px",
@@ -312,7 +315,39 @@ export function createSettlementDebugMenuDom({
     closeButton.style.display = "none";
   }
 
-  openButton.addEventListener("click", open);
+  // Gesture timers belong to UI input only; world effects use timeline time.
+  let holdTimer=null, holdOrigin=null;
+  function cancelHold(){
+    clearTimeout(holdTimer);holdTimer=null;holdOrigin=null;
+    openButton.classList.remove('is-holding');
+  }
+  openButton.addEventListener('pointerdown',(event)=>{
+    if(event.button!==0)return;
+    cancelHold();holdOrigin={x:event.clientX,y:event.clientY,startedAt:performance.now()};
+    openButton.classList.add('is-holding');
+    holdTimer=setTimeout(()=>{cancelHold();open();},850);
+  });
+  openButton.addEventListener('pointermove',(event)=>{
+    if(holdOrigin&&Math.hypot(event.clientX-holdOrigin.x,event.clientY-holdOrigin.y)>12)cancelHold();
+  });
+  openButton.addEventListener('pointerup',()=>{
+    // A busy forecast/render frame can delay the timer behind the release event.
+    const completed=holdOrigin&&performance.now()-holdOrigin.startedAt>=850;
+    cancelHold();if(completed)open();
+  });
+  for(const event of ['pointercancel','pointerleave','lostpointercapture'])openButton.addEventListener(event,cancelHold);
+  openButton.addEventListener('contextmenu',event=>event.preventDefault());
+  function workshopKey(event){
+    if(event.ctrlKey&&event.shiftKey&&event.code==='KeyD'){
+      event.preventDefault();cancelHold();if(panel.style.display==='none')open();else close();
+    }
+    if(event.code==='Escape'&&panel.style.display!=='none')close();
+  }
+  function positionUtility(){
+    const box=document.querySelector('canvas')?.getBoundingClientRect();if(!box)return;
+    utilityControls.style.top=`${box.top+5}px`;
+    utilityControls.style.right=`${Math.max(5,window.innerWidth-box.right+10)}px`;
+  }
   startNewRunButton.addEventListener("click", () => {
     const result = debugConfigurationController.applyToFreshRun();
     if (result?.ok) close();
@@ -397,6 +432,10 @@ export function createSettlementDebugMenuDom({
       initialized = true;
       activePage = debugProfileController?.getSnapshot?.().activePage ?? activePage;
       document.body.append(utilityControls, panel, closeButton);
+      document.addEventListener('keydown',workshopKey);
+      window.addEventListener('resize',positionUtility);
+      window.visualViewport?.addEventListener('resize',positionUtility);
+      positionUtility();
       mapLab.init();
       gameSettings.init();
       gamepieces.init();
@@ -417,6 +456,10 @@ export function createSettlementDebugMenuDom({
       utilityControls.remove();
       panel.remove();
       closeButton.remove();
+      cancelHold();
+      document.removeEventListener('keydown',workshopKey);
+      window.removeEventListener('resize',positionUtility);
+      window.visualViewport?.removeEventListener('resize',positionUtility);
     },
   };
 }

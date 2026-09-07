@@ -95,3 +95,57 @@ body.game-menu-open #mobile-landscape-gate { display: none !important; }
 .game-save-slot p { margin-top: 4px; color: #d0d4c8; font: 13px/1.5 sans-serif; }
 .game-menu-note { margin-top: 28px; color: #b1bfb4; font: 13px/1.5 sans-serif; }
 .game-save-error { position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 4000; padding: 14px; background: #6b3028; color: white; }
+
+/* The chronicle occupies one fixed landscape stage. Browser chrome follows its
+   outer edge; the playfield never rearranges itself at different breakpoints. */
+canvas { image-rendering: auto; }
+#game-menu {
+  background-color:#101617;
+  background-image:linear-gradient(90deg,rgba(7,12,14,.94),rgba(7,12,14,.7) 32%,rgba(7,12,14,.04) 62%),var(--chronicle-backdrop);
+  background-size:cover; background-position:center;
+  border:8px ridge #766544;
+  box-shadow:inset 0 0 0 2px #171e1c,inset 0 0 85px #05090b;
+  padding:28px 5vw;
+}
+.game-menu-content { width:390px; max-width:85vw; margin:10vh 0 0; }
+#game-menu h1 {
+  text-transform:uppercase; color:#e2d0a4; font-family:Georgia,serif;
+  font-size:54px; line-height:1.08; font-weight:normal;
+  letter-spacing:.04em; text-shadow:2px 3px #060b0c,0 0 20px #51412a;
+  margin:22px 0; padding:18px 0; border-top:1px solid #7b6744;
+  border-bottom:1px solid #7b6744;
+}
+.game-menu-eyebrow { color:#aa8c57; font:11px Georgia,serif; letter-spacing:.18em; }
+#game-menu p { color:#b1b5a7; font-size:15px; line-height:1.7; }
+#game-menu button {
+  background:linear-gradient(#34392f,#202722);
+  border-radius:1px; border:1px solid #967d4f;
+  box-shadow:inset 0 0 0 3px #151c18,inset 0 5px 9px #4d4d3544,2px 3px 0 #050809;
+  color:#decda7; font:18px Georgia,serif; letter-spacing:.08em;
+  padding:14px; text-transform:uppercase;
+}
+#game-menu button:hover { background:linear-gradient(#4b4731,#2d3428); border-color:#d3b272; }
+#game-menu button:focus-visible { outline:2px solid #c6a166; outline-offset:4px; }
+.game-save-slot {border-radius:0;border:1px solid #736447;background:#141d1bdc;}
+.game-menu-note {font-size:11px!important;color:#7f887d!important;}
+[data-testid="utility-controls"] {gap:5px!important;}
+[data-testid="utility-controls"] button {
+  border-radius:1px!important; background:#222b26!important; color:#c9b58b!important;
+  border:1px solid #776541!important; font:12px Georgia,serif!important;
+  min-height:27px!important; padding:4px 8px!important;
+}
+.chronicle-workshop-seal {width:28px; touch-action:none; user-select:none; opacity:.55;}
+.chronicle-workshop-seal.is-holding {opacity:1;background:#786344!important;box-shadow:0 0 10px #b18d4e;}
+.chronicle-audio {width:28px;opacity:.6;}
+.chronicle-audio[aria-pressed="true"] {opacity:1;border-color:#c2a05d!important;}
+@media (max-height:550px) and (orientation:landscape) {
+  .game-menu-content {margin:1vh 0 0;width:330px;}
+  #game-menu h1 {font-size:35px;margin:12px 0;padding:10px 0;}
+  #game-menu button {padding:9px;margin:9px 0;min-height:40px;font-size:15px;}
+  .game-menu-note {margin-top:12px;}
+  [data-testid="utility-controls"] button {min-height:22px!important;padding:3px 5px!important;font-size:10px!important;}
+}
+@media (orientation:portrait) {
+  #game-menu {background-position:65% center;}
+  #game-menu h1 {font-size:40px;}
+}

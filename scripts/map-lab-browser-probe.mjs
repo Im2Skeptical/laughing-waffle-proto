@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const PORT = 8081;
 const URL = `http://127.0.0.1:${PORT}`;
@@ -26,7 +27,7 @@ const server = spawn(process.execPath,
 let browser;
 try {
   await waitForHttp();
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.route("**/timegraph-forecast-worker-*.js", async (route) => {
     await delay(750);
@@ -58,7 +59,7 @@ try {
   await page.goto(URL);
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId('debug-open').click({delay:950});
   const startNewRun = page.getByTestId("debug-start-new-run");
   const closeDebug = page.getByTestId("debug-close");
   await startNewRun.waitFor({ state: "visible" });
@@ -78,7 +79,7 @@ try {
   assert.ok(floatingDebugControls.start.right > 1100, "new-run control floats at the right");
   await closeDebug.click();
   await page.getByTestId("debug-open").waitFor({ state: "visible" });
-  await page.getByTestId("debug-open").click();
+  await page.getByTestId("debug-open").click({ delay: 950 });
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
 
@@ -183,7 +184,7 @@ try {
   await page.reload();
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId('debug-open').click({delay:950});
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
   assert.equal(
@@ -315,7 +316,7 @@ try {
     "forecast auto-follow keeps the freshly configured gamepiece definitions"
   );
 
-  await page.getByTestId("debug-open").click();
+  await page.getByTestId("debug-open").click({ delay: 950 });
   await page.getByTestId("debug-vassal-tab").click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
   await page.getByTestId("vassal-debug-location").selectOption("river-crown");
@@ -346,7 +347,7 @@ try {
   await page.reload();
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId('debug-open').click({delay:950});
   await page.getByTestId("debug-game-settings-tab").click();
   assert.equal(
     await page.getByTestId("gameSettings-preset")
@@ -410,7 +411,7 @@ try {
   await page.reload();
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByRole("button", { name: /^Debug/ }).click();
+  await page.getByTestId('debug-open').click({delay:950});
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
   const bootSnapshot = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()

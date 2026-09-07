@@ -12,6 +12,7 @@ import {
   getMoonPhaseAtSecond,
 } from "../model/moon-phases.js";
 import { VIEW_LAYOUT } from "./layout-pixi.js";
+import { createAstrolabeTexture } from './chronicle-skin.js';
 
 export const SUN_AND_MOON_DISKS_LAYOUT = {
   ...VIEW_LAYOUT.sunMoonDisks,
@@ -100,15 +101,16 @@ function getMoonOrbitPhase01AtTime(state, timeSec) {
 
 function getSeasonProgress01(state, timeSec) {
   const seasonLen = Math.max(1, getGameSetting(state, "seasonDurationSec"));
+  const fraction=Number.isFinite(timeSec)?timeSec-Math.floor(timeSec):0;
 
   const remaining = state?.seasonTimeRemaining;
   if (Number.isFinite(remaining)) {
-    return clamp01(1 - remaining / seasonLen);
+    return clamp01(1 - remaining / seasonLen + fraction / seasonLen);
   }
 
   const clock = state?.seasonClockSec;
   if (Number.isFinite(clock)) {
-    return clamp01(clock / seasonLen - Math.floor(clock / seasonLen));
+    return clamp01(clock / seasonLen - Math.floor(clock / seasonLen) + fraction / seasonLen);
   }
 
   const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
@@ -261,6 +263,7 @@ export function createSunAndMoonDisksView({
   app,
   layer,
   getState,
+  getVisualTime,
   getDiskVisibility,
   getTimeline,
   getEditableHistoryBounds,
@@ -850,9 +853,10 @@ let feedbackText = null;
     root.zIndex = layout?.zIndex ?? 0;
 
     {
-      const tex = PIXI.Texture.from(layout.season.texturePath);
+      const tex = createAstrolabeTexture('season');
       seasonSprite = new PIXI.Sprite(tex);
       seasonSprite.anchor.set(0.5);
+      seasonSprite.hitArea = new PIXI.Circle(0,0,216);
       seasonSprite.eventMode = "static";
       seasonSprite.cursor = "grab";
       seasonSprite.on("pointerdown", (event) => startDrag(DISK_ID_SEASON, event));
@@ -860,9 +864,10 @@ let feedbackText = null;
     }
 
     {
-      const tex = PIXI.Texture.from(layout.moon.texturePath);
+      const tex = createAstrolabeTexture('moon');
       moonSprite = new PIXI.Sprite(tex);
       moonSprite.anchor.set(0.5);
+      moonSprite.hitArea = new PIXI.Circle(0,0,197);
       moonSprite.eventMode = "static";
       moonSprite.cursor = "grab";
       moonSprite.on("pointerdown", (event) => startDrag(DISK_ID_MOON, event));
@@ -993,7 +998,7 @@ let feedbackText = null;
       return;
     }
 
-    const baseTimeSec = getTimeSecForRotation(state);
+    const baseTimeSec = getVisualTime?.() ?? getTimeSecForRotation(state);
 
     if (moonSprite && moonSprite.visible !== false) {
       const orbit01 = getMoonOrbitPhase01AtTime(state, baseTimeSec);

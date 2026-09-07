@@ -3,6 +3,7 @@
 // STAGE 3: tSec aware.
 
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import { paintRelicPanel } from './chronicle-skin.js';
 import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
 import {
   getActionSecondsInRange,
@@ -51,8 +52,8 @@ const TIMEGRAPH_THEME = Object.freeze({
   buttonBgActive: MUCHA_UI_COLORS.surfaces.borderSoft,
   legendStroke: MUCHA_UI_COLORS.surfaces.borderSoft,
   legendStrokeHover: MUCHA_UI_COLORS.ink.primary,
-  gridMajor: 0x6d6248,
-  gridMinor: 0x5a523f,
+  gridMajor: 0x4c6158,
+  gridMinor: 0x31453e,
   actionMarker: MUCHA_UI_COLORS.accents.sage,
   eventMarkerNormal: MUCHA_UI_COLORS.intent.softPop,
   eventMarkerCritical: MUCHA_UI_COLORS.intent.dangerPop,
@@ -544,7 +545,7 @@ export function createMetricGraphView({
   const legendContainer = new PIXI.Container();
   const text = new PIXI.Text("", {
     fontFamily: "Arial",
-    fontSize: 14,
+    fontSize: 21,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
 
@@ -552,9 +553,9 @@ export function createMetricGraphView({
 
   const LEGEND_GUTTER_W = 46;
   const LEGEND_GUTTER_GAP = 4;
-  const LEGEND_ICON_SIZE = 22;
-  const LEGEND_ICON_GAP = 6;
-  const LEGEND_ICON_TEXT_SIZE = 11;
+  const LEGEND_ICON_SIZE = 26;
+  const LEGEND_ICON_GAP = 2;
+  const LEGEND_ICON_TEXT_SIZE = 16;
 
   const plot = {
     x: 16 + LEGEND_GUTTER_W + LEGEND_GUTTER_GAP,
@@ -590,9 +591,9 @@ export function createMetricGraphView({
     onClose: () => close(),
   });
 
-  const ZOOM_BTN_W = 70;
-  const ZOOM_BTN_H = 22;
-  const TARGET_BTN_W = 110;
+  const ZOOM_BTN_W = 90;
+  const ZOOM_BTN_H = 32;
+  const TARGET_BTN_W = 150;
   const HEADER_LEFT_X = 16;
   const HEADER_CONTENT_GAP = 14;
   const hasTargetModeButton = typeof onToggleSystemTargetMode === "function";
@@ -605,7 +606,7 @@ export function createMetricGraphView({
   const zoomBg = new PIXI.Graphics();
   const zoomText = new PIXI.Text("", {
     fontFamily: "Arial",
-    fontSize: 12,
+    fontSize: 19,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
   zoomBtn.addChild(zoomBg, zoomText);
@@ -616,7 +617,7 @@ export function createMetricGraphView({
   const targetBg = new PIXI.Graphics();
   const targetText = new PIXI.Text("", {
     fontFamily: "Arial",
-    fontSize: 11,
+    fontSize: 19,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
   targetBtn.addChild(targetBg, targetText);
@@ -2096,10 +2097,8 @@ export function createMetricGraphView({
     headerUi.setWidth(WIN_W);
 
     body.clear();
-    body.lineStyle(1, TIMEGRAPH_THEME.panelBorder, 0.72);
-    body.beginFill(TIMEGRAPH_THEME.panelBodyBg, 0.92);
-    body.drawRoundedRect(0, HEADER_H, WIN_W, WIN_H - HEADER_H, 14);
-    body.endFill();
+    paintRelicPanel(body, 0, HEADER_H, WIN_W, WIN_H - HEADER_H,
+      TIMEGRAPH_THEME.panelBodyBg, TIMEGRAPH_THEME.panelBorder, 2);
 
     plotHit.clear();
     plotHit.beginFill(0xffffff);
@@ -3140,7 +3139,7 @@ export function createMetricGraphView({
     const zone = scrubSec <= historyEnd ? "History" : "Forecast";
     const note = statusNote ? ` • ${statusNote}` : "";
 
-    text.text = `${metricLabel} • Time: ${scrubSec}s (${zone}) • Live: ${curT}s${note}`;
+    text.text = `CHRONICLE · ${metricLabel} / ${zone.toUpperCase()} · ${scrubSec}s / Present ${curT}s${note}`;
   }
 
   function applyPreviewThrottled(force) {

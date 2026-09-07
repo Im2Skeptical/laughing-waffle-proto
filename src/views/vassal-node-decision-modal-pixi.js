@@ -1,3 +1,5 @@
+import { addIllustration, addRegionTerrain, getArtRevision } from './chronicle-art.js';
+import { addChronicleInspection } from './chronicle-inspection.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
@@ -29,7 +31,7 @@ function button(parent, rect, label, enabled, onClick, selected = false) {
     enabled ? (selected ? PALETTE.green : PALETTE.accent) : PALETTE.stroke,
     selected ? 3 : 1);
   root.addChild(gfx, createText(label, {
-    ...TEXT_STYLES.title, fontSize: 16, fill: enabled ? PALETTE.text : PALETTE.textMuted,
+    ...TEXT_STYLES.title, fontSize: 22, fill: enabled ? PALETTE.text : PALETTE.textMuted,
     wordWrap: true, wordWrapWidth: rect.width - 18, align: "center",
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   parent.addChild(root);
@@ -124,43 +126,45 @@ function renderMortalityEstimate(parent, estimate, rect, enabled) {
   }, rect.x + 14, rect.y + 74));
 }
 
-function actionCard(parent, rect, spec) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = spec.enabled ? "static" : "none";
-  root.cursor = spec.enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    if (spec.enabled) spec.onClick?.();
+function actionCard(parent,rect,spec){
+  const root=new PIXI.Container();root.position.set(rect.x,rect.y);
+  root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
+  root.on('pointertap',event=>{
+    event.stopPropagation();const local=root.toLocal(event.global);
+    if(local.y>=rect.height-44){if(spec.enabled)spec.onClick?.();}
+    else spec.onInspect?.();
   });
-  root.on("pointerover", () => spec.onHover?.());
-  root.on("pointerout", () => spec.onOut?.());
-  const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 12,
-    spec.selected ? 0x42583d : spec.enabled ? 0x303733 : 0x252b28,
-    spec.selected ? PALETTE.green : spec.presentation?.tier
-      ? QUALITY_COLORS[spec.presentation.tier] : PALETTE.stroke,
-    spec.selected ? 4 : 2);
-  root.addChild(gfx);
-  qualityLabel(root, spec.presentation, 18, 14);
-  root.addChild(
-    createText(spec.title, {
-      ...TEXT_STYLES.header, fontSize: 21, wordWrap: true,
-      wordWrapWidth: rect.width - 36, lineHeight: 23,
-    }, 18, spec.presentation ? 38 : 18),
-    createText(spec.cost, {
-      ...TEXT_STYLES.title, fontSize: 15, fill: spec.costUnmet ? 0xf28b82 : PALETTE.accent,
-      wordWrap: true, wordWrapWidth: rect.width - 36,
-    }, 18, 94),
-    createText(spec.effect, {
-      ...TEXT_STYLES.body, fontSize: 16, fill: spec.enabled ? PALETTE.text : PALETTE.textMuted,
-      wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 19,
-    }, 18, 132)
-  );
-  tagRow(root, spec.presentation?.tags, 18, rect.height - 34, rect.width - 36);
-  parent.addChild(root);
-  return root;
+  root.on('pointerover',()=>spec.onHover?.());root.on('pointerout',()=>spec.onOut?.());
+  const g=new PIXI.Graphics();
+  roundedRect(g,0,0,rect.width,rect.height,8,PALETTE.card,
+    spec.selected?PALETTE.green:QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,3);
+  root.addChild(g);
+  addIllustration(root,spec.artId,{x:6,y:6,width:rect.width-12,height:rect.height-52},{alpha:spec.enabled?1:.8});
+  const plate=new PIXI.Graphics();
+  plate.beginFill(0x101918,.92).drawRect(7,7,rect.width-14,100).endFill();
+  root.addChild(plate,createText(spec.presentation?.label??spec.title,{...TEXT_STYLES.cardTitle,fontSize:32,
+    wordWrap:true,wordWrapWidth:rect.width-36,lineHeight:30},18,13),
+    createText(spec.cost,{...TEXT_STYLES.body,fontSize:24,fill:spec.costUnmet?PALETTE.red:PALETTE.accent,
+      wordWrap:true,wordWrapWidth:rect.width-36,lineHeight:25},18,52));
+  if(spec.expanded){
+    const veil=new PIXI.Graphics();veil.beginFill(0x111b1a,.94).drawRect(7,106,rect.width-14,rect.height-152).endFill();
+    const metadata=[spec.presentation?.qualityLabel,...(spec.presentation?.tags??[])].filter(Boolean).join(' · ');
+    const detail=createText([metadata,spec.effect].filter(Boolean).join('\n'),{...TEXT_STYLES.body,fontSize:23,
+      fill:PALETTE.text,wordWrap:true,wordWrapWidth:rect.width-32,lineHeight:26},16,113);
+    const maxHeight=rect.height-169;
+    if(detail.height>maxHeight) {
+      const fit=Math.max(17,23*maxHeight/detail.height);
+      detail.style.fontSize=fit;detail.style.lineHeight=fit+2;
+    }
+    root.addChild(veil,detail);
+  } else root.addChild(createText('ⓘ  Inspect',{...TEXT_STYLES.body,fontSize:17,fill:PALETTE.text,
+    stroke:0x111714,strokeThickness:4},18,rect.height-78));
+  const footer=new PIXI.Graphics();
+  roundedRect(footer,6,rect.height-45,rect.width-12,39,1,spec.enabled?0x354131:0x222a27,
+    spec.enabled?PALETTE.accent:PALETTE.stroke,1);
+  root.addChild(footer,createText(spec.enabled?(spec.selected?'SELECTED':spec.actionLabel):'UNAVAILABLE',
+    {...TEXT_STYLES.title,fontSize:23,fill:spec.costUnmet?PALETTE.red:PALETTE.accent},rect.width/2,rect.height-25,.5,.5));
+  parent.addChild(root);return root;
 }
 
 const REGION_COLORS = Object.freeze({
@@ -211,10 +215,11 @@ function renderRegionalMap(parent, map, rect) {
       return [projected.x, projected.y];
     });
     if (polygon.length < 6) continue;
+    addRegionTerrain(parent,polygon,region.colour,region.controller==='player'?.9:.6);
     gfx.lineStyle(region.current ? 4 : region.selected ? 3 : 1,
       region.current ? PALETTE.accent : region.selected ? PALETTE.green : PALETTE.stroke, 1);
     gfx.beginFill(REGION_COLORS[region.colour] ?? REGION_COLORS.black,
-      region.controller === "player" ? 0.88 : 0.52);
+      region.controller === "player" ? 0.08 : 0.12);
     gfx.drawPolygon(polygon).endFill();
   }
   for (const connection of map.connections ?? []) {
@@ -319,8 +324,10 @@ function pieceSlot(parent, piece, rect, emptyLabel) {
     return;
   }
   const p = piece.presentation;
+  addIllustration(parent,p?.id??piece.practiceId??piece.structureId,
+    {x:rect.x+4,y:rect.y+4,width:rect.width-8,height:rect.height-8},{alpha:piece.staged?.36:.48});
   parent.addChild(
-    createText(piece.staged ? "GHOST PREVIEW" : p?.qualityLabel?.toUpperCase?.() ?? "BRONZE", {
+    createText(piece.staged ? "PLANNED" : p?.qualityLabel?.toUpperCase?.() ?? "BRONZE", {
       ...TEXT_STYLES.chip, fontSize: 10,
       fill: piece.staged ? PALETTE.accent : QUALITY_COLORS[p?.tier] ?? PALETTE.textMuted,
     }, rect.x + 10, rect.y + 8),
@@ -357,6 +364,7 @@ export function createVassalNodeDecisionModalView({
   let hoveredOfferId = null;
   let previewOptionId = null;
   let previewOfferId = null;
+  let pinnedInspectionId = null;
   let hoverRenderTimer = null;
 
   function scheduleHoverRender() {
@@ -383,6 +391,7 @@ export function createVassalNodeDecisionModalView({
   }
 
   function open(nodeId = null) {
+    pinnedInspectionId = null;
     openNodeId = nodeId ?? getPresentation?.()?.vassal?.lifeMap?.currentNodeId ?? null;
     root.visible = true;
     hoveredOptionId = null;
@@ -433,8 +442,8 @@ export function createVassalNodeDecisionModalView({
     const family = node?.signatureNode?.variantId
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : node ? VASSAL_NODE_FAMILIES[node.family] : null;
-    const nextSignature = JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
-      previewOptionId, previewOfferId });
+    const nextSignature = getArtRevision() + JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
+      previewOptionId, previewOfferId, pinnedInspectionId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -528,9 +537,12 @@ export function createVassalNodeDecisionModalView({
           const enabled = !readOnly && offer.prestigeCost <= projected;
           return actionCard(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: 292,
+            width: cardWidth, height: 320,
           }, {
             title: offer.label,
+            artId: offer.intervention?.practiceId ?? offer.intervention?.structureId ?? offer.presentation?.id ?? node.family,
+            expanded:pinnedInspectionId===offer.offerId||previewOfferId===offer.offerId,actionLabel:'STAGE',
+            onInspect:()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);},
             presentation: offer.presentation,
             cost: formatCost(offer.prestigeCost, offer.phaseCost),
             effect: offerEffect(offer), enabled,
@@ -549,16 +561,16 @@ export function createVassalNodeDecisionModalView({
         });
         root.addChild(createText("STAGED PURCHASE ORDER · DRAG TO REORDER", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 450));
+        }, PANEL.x + 54, PANEL.y + 476));
         const purchases = decision?.purchases ?? [];
         if (!purchases.length) {
           root.addChild(createText("No purchases staged. You may confirm a shop without buying.", {
             ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted,
-          }, PANEL.x + 54, PANEL.y + 490));
+          }, PANEL.x + 54, PANEL.y + 512));
         }
         purchases.forEach((purchase, index) => {
           const x = PANEL.x + 54 + index * 332;
-          const y = PANEL.y + 480;
+          const y = PANEL.y + 520;
           const card = new PIXI.Container();
           card.position.set(x, y);
           card.eventMode = readOnly ? "none" : "static";
@@ -595,8 +607,11 @@ export function createVassalNodeDecisionModalView({
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return actionCard(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: 292,
+            width: cardWidth, height: 320,
           }, {
+            artId:node.family,
+            expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
+            onInspect:()=>{pinnedInspectionId=pinnedInspectionId===option.id?null:option.id;render(true);},
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
             cost: formatCost(prestigeCost, phaseCost),
             costUnmet: prestigeCost > vassal.prestige,
@@ -682,6 +697,24 @@ export function createVassalNodeDecisionModalView({
         const result = onConfirmNode?.(node.id);
         if (result?.ok !== false) close();
       });
+    const inspectedOffer=(decision?.offers??[]).find(offer=>offer.offerId===pinnedInspectionId);
+    const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
+    if(inspectedOffer||inspectedOption){
+      const piece=inspectedOffer??inspectedOption;
+      const requirements=decision?.optionRequirements?.[piece.id]??[];
+      addChronicleInspection(root,{
+        x:hasContext?PANEL.x+1190:PANEL.x+650,y:PANEL.y+110,width:930,height:484,
+      },{
+        title:piece.presentation?.label??piece.label,
+        artId:piece.intervention?.practiceId??piece.intervention?.structureId??node.family,
+        cost:formatCost(inspectedOffer?piece.prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),
+          inspectedOffer?piece.phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0)),
+        metadata:[piece.presentation?.qualityLabel,...(piece.presentation?.tags??[])].filter(Boolean).join(' · '),
+        detail:[inspectedOffer?offerEffect(piece):optionEffect(piece),
+          ...requirements.map(entry=>`${entry.met?'✓':'✗'} ${entry.label}`)].join('\n'),
+        onClose:()=>{pinnedInspectionId=null;render(true);},
+      });
+    }
   }
 
   return {
@@ -692,13 +725,13 @@ export function createVassalNodeDecisionModalView({
     getOptionClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = optionRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));
+      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
       return point ? { x: point.x, y: point.y } : null;
     },
     getOfferClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = offerRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));
+      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
       return point ? { x: point.x, y: point.y } : null;
     },
     getConfirmClickPoint: () => root.visible && confirmRoot?.toGlobal
@@ -706,7 +739,7 @@ export function createVassalNodeDecisionModalView({
     getUndoClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = undoRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2));
+      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
       return point ? { x: point.x, y: point.y } : null;
     },
     getSemanticSnapshot: () => {
@@ -715,6 +748,7 @@ export function createVassalNodeDecisionModalView({
       });
       return {
         open: root.visible, nodeId: openNodeId,
+        inspectedCardId: pinnedInspectionId,
         family: decision?.node?.family ?? null,
         selectedOptionId: decision?.nodeState?.selectedOptionId ?? null,
         resolving: decision?.nodeState?.resolving === true,

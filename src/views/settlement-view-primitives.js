@@ -1,3 +1,5 @@
+import { paintRelicPanel } from './chronicle-skin.js';
+
 export function roundedRect(
   gfx,
   x,
@@ -11,10 +13,7 @@ export function roundedRect(
   fillAlpha = 1,
   strokeAlpha = 0.95
 ) {
-  gfx.lineStyle(strokeWidth, stroke, strokeAlpha);
-  gfx.beginFill(fill, fillAlpha);
-  gfx.drawRoundedRect(x, y, width, height, radius);
-  gfx.endFill();
+  paintRelicPanel(gfx, x, y, width, height, fill, stroke, strokeWidth, fillAlpha);
 }
 
 export function clearChildren(container) {

@@ -443,7 +443,7 @@ export const TIME_STATE_COLORS = Object.freeze({
   itemUnavailable: 0x141414, // dark gray
   runLost: 0x141414, // dark gray
 });
-export const TIME_STATE_GRAPH_BG_ALPHA = 0.2;
+export const TIME_STATE_GRAPH_BG_ALPHA = 0.075;
 export const TIME_STATE_FILTER_ALPHA = 0.12;
 
 function getBoardTotalWidth() {

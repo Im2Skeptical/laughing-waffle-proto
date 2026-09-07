@@ -1,5 +1,6 @@
 // time-lever-pixi.js
 // Time lever widget (Pixi): drag to set time scale with magnetic lock points.
+import { paintRelicPanel, RELIC, drawHourglass } from './chronicle-skin.js';
 
 export function createTimeLeverView({
   app,
@@ -137,18 +138,8 @@ export function createTimeLeverView({
     lastTrackSignature = signature;
 
     leverTrack.clear();
-    leverTrack.beginFill(0x444444, 0.95);
-    leverTrack.drawRoundedRect(0, 0, width, height, height / 2);
-    leverTrack.endFill();
-    leverTrack.beginFill(0x6a6a6a, 0.9);
-    leverTrack.drawRoundedRect(
-      3,
-      3,
-      width - 6,
-      height - 6,
-      (height - 6) / 2
-    );
-    leverTrack.endFill();
+    paintRelicPanel(leverTrack,0,0,width,height,RELIC.stone,RELIC.brass,2);
+    leverTrack.beginFill(RELIC.shadow).drawRect(8,height*.4,width-16,height*.2).endFill();
     leverTrack.lineStyle(1, 0x333333, 0.7);
     leverTrack.moveTo(width / 2, 6);
     leverTrack.lineTo(width / 2, height - 6);
@@ -174,15 +165,8 @@ export function createTimeLeverView({
 
   function drawLeverHandle(color) {
     leverHandle.clear();
-    leverHandle.beginFill(color);
-    leverHandle.drawRoundedRect(
-      0,
-      0,
-      handleWidth,
-      handleHeight,
-      handleHeight / 2
-    );
-    leverHandle.endFill();
+    paintRelicPanel(leverHandle,0,0,handleWidth,handleHeight,RELIC.raised,color,2);
+    drawHourglass(leverHandle,handleWidth/2,handleHeight/2,handleHeight*.57,color);
   }
 
   function updateTimeLever(state) {
@@ -197,13 +181,13 @@ export function createTimeLeverView({
     leverHandle.x = leverNormToHandleX(norm);
     leverHandle.y = (height - handleHeight) / 2;
 
-    let color = 0xdddddd;
+    let color = RELIC.gold;
     if (Math.abs(displaySpeed) < stickySpeed) {
-      color = 0xffcc66;
+      color = RELIC.bone;
     } else if (displaySpeed < 0) {
-      color = 0xcc8888;
+      color = RELIC.red;
     } else if (displaySpeed > 1.05) {
-      color = 0x88cc88;
+      color = RELIC.teal;
     }
 
     if (color !== lastHandleColor) {
@@ -214,9 +198,7 @@ export function createTimeLeverView({
     const speedAbs = Math.abs(displaySpeed);
     const speedText = `${displaySpeed < 0 ? "-" : ""}x${speedAbs.toFixed(1)}`;
     const showPauseHint = speedAbs < stickySpeed && !leverDragging;
-    const pauseText = showPauseHint || state?.paused ? " (release: pause)" : "";
-
-    leverLabel.text = `Time: ${speedText}${pauseText}`;
+    leverLabel.text = showPauseHint || state?.paused ? 'TIME HELD' : `${displaySpeed < 0 ? 'REWIND' : 'ADVANCE'}  ${speedText}`;
     leverLabel.x = (width - leverLabel.width) / 2;
     leverLabel.y = height + labelGap;
   }

@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const PORT = 8080;
 const URL = `http://127.0.0.1:${PORT}`;
@@ -68,7 +69,7 @@ const server = spawn(process.execPath,
 let browser;
 try {
   await waitForHttp();
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.addInitScript(() => {
     localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
@@ -236,24 +237,21 @@ try {
     workerUrls.some((url) => url.includes("timegraph-forecast-worker-")),
     "forecast unveiling runs through the bundled worker"
   );
-  await page.waitForFunction(() => {
-    const worldMap =
-      globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.worldMap;
-    return (
-      worldMap?.activeEdgeTransferPacketCount > 0 &&
-      worldMap?.edgeTransferBatch?.transfers?.length > 0
-    );
-  });
-  const transferAnimation = await page.evaluate(() => {
+  // Timeline-sampled packets may pass entirely between two browser frames at
+  // forecast-unveiling speed. Capture the visible sample atomically.
+  const transferHandle = await page.waitForFunction(() => {
     const debug = globalThis.__SETTLEMENT_DEBUG__;
     const worldMap = debug.getSnapshot().worldMap;
     const packet = worldMap.activeEdgeTransferPackets[0];
+    if (!packet || !worldMap.edgeTransferBatch?.transfers?.length) return false;
     return {
       packet,
       source: debug.getWorldMapClickPoint(packet.sourceRegionId),
       destination: debug.getWorldMapClickPoint(packet.destinationRegionId),
     };
   });
+  const transferAnimation = await transferHandle.jsonValue();
+  await transferHandle.dispose();
   await page.waitForFunction(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
     return (

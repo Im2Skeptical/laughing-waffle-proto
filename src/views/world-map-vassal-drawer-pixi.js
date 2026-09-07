@@ -3,10 +3,11 @@ import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
+import { getArtRevision } from './chronicle-art.js';
 
 const VIEWPORT = Object.freeze({ width: 2424, height: 1080 });
-const DRAWER_RECT = Object.freeze({ x: 432, y: 808, width: 1560, height: 266 });
-const REROLL_RECT = Object.freeze({ x: 1714, y: 818, width: 256, height: 34 });
+const DRAWER_RECT = Object.freeze({ x: 432, y: 636, width: 1560, height: 438 });
+const REROLL_RECT = Object.freeze({ x: 1714, y: 648, width: 256, height: 40 });
 
 function candidateCard(parent, rect, state, candidate, selected, { onPreview, onHover }) {
   const root = new PIXI.Container();
@@ -24,9 +25,9 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
   root.addChild(gfx);
 
   const portrait = createVassalPortraitView(candidate.portrait, {
-    size: 104, borderColor: selected ? PALETTE.green : PALETTE.accent,
+    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent,
   });
-  portrait.position.set(18, -50);
+  portrait.position.set(18, 15);
   root.addChild(portrait);
   const locationRef = getRegionReference(state, candidate.locationRegionId) ?? candidate.locationRegionId;
   const stats = candidate.stats ?? {};
@@ -34,23 +35,24 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
     ?? candidate.signatureNode ?? {};
   root.addChild(
     createText(`VASSAL ${candidate.candidateIndex + 1}`, {
-      ...TEXT_STYLES.title, fontSize: 18, fill: selected ? PALETTE.green : PALETTE.text,
-    }, 138, 13),
+      ...TEXT_STYLES.title, fontSize: 25, fill: selected ? PALETTE.green : PALETTE.text,
+    }, 168, 18),
     createText(`${locationRef}  ·  Age ${candidate.age}  ·  Prestige ${candidate.prestige}`, {
-      ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
-    }, 138, 42),
+      ...TEXT_STYLES.body, fontSize: 19, fill: PALETTE.textMuted,
+    }, 168, 59),
     createText(`CUN ${stats.cunning ?? 0}   WIS ${stats.wisdom ?? 0}   EFF ${stats.effectiveness ?? 0}   INT ${stats.intelligence ?? 0}`, {
-      ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.text,
-    }, 138, 70),
+      ...TEXT_STYLES.chip, fontSize: 18, fill: PALETTE.text,
+      wordWrap:true,wordWrapWidth:rect.width-188,
+    }, 168, 96),
     createText(`${signature.glyph ?? "★"}  ${signature.label ?? "Signature Node"}`, {
-      ...TEXT_STYLES.header, fontSize: 18, fill: signature.color ?? PALETTE.accent,
-    }, 18, 108),
+      ...TEXT_STYLES.header, fontSize: 24, fill: signature.color ?? PALETTE.accent,
+    }, 18, 178),
     createText(signature.description ?? "A defining opportunity unique to this Vassal.", {
-      ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted,
-      wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 16,
-    }, 18, 137),
+      ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
+      wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 25,
+    }, 18, 219),
     createText(selected ? "SELECTED · CONFIRM WITH THE LOWER-LEFT CONTROL" : "TAP TO PREVIEW", {
-      ...TEXT_STYLES.chip, fontSize: 11, fill: selected ? PALETTE.green : PALETTE.accent,
+      ...TEXT_STYLES.chip, fontSize: 17, fill: selected ? PALETTE.green : PALETTE.accent,
     }, 18, rect.height - 22)
   );
   parent.addChild(root);
@@ -77,7 +79,7 @@ export function createWorldMapVassalDrawerView({
     const state = getState?.();
     const pool = getSelectionPool?.();
     const selectedIndex = getSelectedCandidateIndex?.() ?? null;
-    const next = JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
+    const next = getArtRevision() + JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
     if (!force && next === signature) return;
     signature = next;
     clearChildren(root);
@@ -94,8 +96,8 @@ export function createWorldMapVassalDrawerView({
     frame.eventMode = "static";
     frame.on("pointerdown", (event) => event?.stopPropagation?.());
     root.addChild(frame, createText("CHOOSE A VASSAL", {
-      ...TEXT_STYLES.header, fontSize: 16,
-    }, DRAWER_RECT.x + 158, DRAWER_RECT.y + 12));
+      ...TEXT_STYLES.header, fontSize: 27,
+    }, DRAWER_RECT.x + 24, DRAWER_RECT.y + 17));
 
     rerollRoot = new PIXI.Container();
     rerollRoot.position.set(REROLL_RECT.x, REROLL_RECT.y);
