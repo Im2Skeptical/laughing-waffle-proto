@@ -11,6 +11,7 @@ and its direct dependencies.
 - Simulation runner/save/load: `src/controllers/sim-runner.js`
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
+- Fullscreen/landscape entry: `src/views/game-display-mode.js`
 - Player fresh-run setup: `src/model/new-game.js` and `src/model/starter-boot-profile.js`
 - Forecast orchestration: `src/controllers/settlement-forecast-controller.js`
 - Forecast worker service: `src/controllers/timegraph-forecast-worker-service.js`

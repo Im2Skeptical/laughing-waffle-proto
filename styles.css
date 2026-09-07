@@ -12,70 +12,9 @@ canvas {
   touch-action: none;
 }
 
-#mobile-landscape-gate {
-  display: none;
-}
-
-@media (max-width: 900px) and (hover: none) and (pointer: coarse) and (orientation: portrait) {
-  #app,
-  [data-testid="utility-controls"],
-  .codex-debug-panel {
-    display: none !important;
-  }
-
-  #mobile-landscape-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    display: grid;
-    place-items: center;
-    box-sizing: border-box;
-    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
-      max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
-    background: #252c33;
-    color: #f6efe3;
-    text-align: center;
-  }
-
-  .mobile-landscape-gate__card {
-    max-width: 22rem;
-  }
-
-  .mobile-landscape-gate__eyebrow {
-    margin: 0 0 10px;
-    color: #d7b450;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .mobile-landscape-gate h1 {
-    margin: 0;
-    text-decoration: none;
-  }
-
-  .mobile-landscape-gate__card p:not(.mobile-landscape-gate__eyebrow) {
-    line-height: 1.45;
-  }
-
-  [data-testid="mobile-landscape-request"],
-  [data-testid="mobile-menu-return"] {
-    min-height: 44px;
-    padding: 9px 18px;
-    border: 1px solid #d7b450;
-    border-radius: 7px;
-    background: #384755;
-    color: #f6efe3;
-    font: inherit;
-    font-weight: 700;
-  }
-}
-
 body.game-menu-open #app,
 body.game-menu-open [data-testid="utility-controls"],
-body.game-menu-open .codex-debug-panel,
-body.game-menu-open #mobile-landscape-gate { display: none !important; }
+body.game-menu-open .codex-debug-panel { display: none !important; }
 #game-menu { position: fixed; inset: 0; z-index: 3000; overflow: auto; color: #f6efe3;
   background: radial-gradient(ellipse at 50% 0%, #405444, #20292d 70%); font-family: Georgia, serif;
   padding: max(24px, env(safe-area-inset-top)) 20px; box-sizing: border-box; }
@@ -94,6 +33,8 @@ body.game-menu-open #mobile-landscape-gate { display: none !important; }
 .game-save-slot h3 { margin-bottom: 4px; }
 .game-save-slot p { margin-top: 4px; color: #d0d4c8; font: 13px/1.5 sans-serif; }
 .game-menu-note { margin-top: 28px; color: #b1bfb4; font: 13px/1.5 sans-serif; }
+.game-display-hint { padding:12px 16px; border-left:3px solid #b89b5c;
+  background:#1b2524; color:#e4d5ac; font:15px/1.5 Georgia,serif; }
 .game-save-error { position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 4000; padding: 14px; background: #6b3028; color: white; }
 
 /* The chronicle occupies one fixed landscape stage. Browser chrome follows its

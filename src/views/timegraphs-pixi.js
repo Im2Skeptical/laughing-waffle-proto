@@ -679,6 +679,7 @@ export function createMetricGraphView({
   let forecastRevealStartSecOverride = null;
   let forecastRevealVelocitySecPerSec = 0;
   let forecastRevealPaused = false;
+  let presentationSuspended = false;
   let forecastRevealPlayheadFollowEnabled = true;
   let forecastRevealPreviewSec = null;
   let forecastRevealPreviewLastRefreshMs = 0;
@@ -1242,7 +1243,7 @@ export function createMetricGraphView({
     nowMs
   ) {
     if (
-      forecastRevealPlayheadFollowEnabled !== true ||
+      presentationSuspended || forecastRevealPlayheadFollowEnabled !== true ||
       (typeof canAutoPreviewForecastReveal === "function" &&
         canAutoPreviewForecastReveal() !== true) ||
       isScrubbing ||
@@ -1540,7 +1541,7 @@ export function createMetricGraphView({
       historyEnd,
       Number(forecastRevealAnimatedEndSec ?? historyEnd)
     );
-    if (forecastRevealPaused) {
+    if (forecastRevealPaused || presentationSuspended) {
       forecastRevealLastTickMs = nowMs;
       forecastRevealVisibleEndSec = currentEnd;
       return currentEnd;
@@ -3712,8 +3713,12 @@ export function createMetricGraphView({
     setEventMarkerResolver,
     setForecastRevealConfig,
     pauseForecastReveal,
+    setPresentationSuspended: (suspended) => {
+      presentationSuspended = suspended === true;
+      forecastRevealLastTickMs = performance.now();
+    },
     isFollowingForecastReveal: () => forecastRevealPlayheadFollowEnabled &&
-      !forecastRevealPaused && forecastRevealAnimatedEndSec < forecastRevealTargetEndSec,
+      !forecastRevealPaused && !presentationSuspended && forecastRevealAnimatedEndSec < forecastRevealTargetEndSec,
     suspendForecastRevealPlayheadFollow,
     resetForecastPreviewState,
     resetDataContext,

@@ -148,14 +148,19 @@ bounded JSON state used for replay and phase tooltips.
 - Boot opens a responsive landing menu with New game, Continue for the latest
   valid save, and Load game for selecting among three browser-local slots.
   New game asks for a slot and confirms replacement of occupied/unavailable
-  saves. The active slot saves every ten seconds during play, on page hide,
+  saves. The active slot saves every ten seconds during play, on focus loss,
   and through Save & menu. Storage failures remain visible and prevent leaving
-  an unsaved game through that control. Loading validates and rebuilds the
+  an unsaved game through that control; focus loss still pauses and preserves
+  the live game in memory if saving fails. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot
   continue. No save-schema migration is introduced.
-- The menu works in portrait. Entering gameplay activates the existing phone
-  landscape gate, which also offers Back to menu. Gameplay updates stop while
-  the landing menu or portrait gate is visible.
+- The menu is also the pause screen. Focus loss, page hiding, fullscreen exit,
+  or rotating a touch device into portrait returns to it. Regaining focus does
+  not resume automatically. Continue resumes the live playhead, choices, and
+  unveil-follow state without reloading. Game entry requests fullscreen and
+  landscape from the button gesture; unsupported portrait devices stay in the
+  same menu with a rotate-device hint. There is no separate landscape screen.
+  Gameplay, reveal motion, and audio stop while the menu is open.
 
 - The map shows all-region polygons, player ownership nodes, worker pawns,
   structure-capacity glyphs, food and population transfer packets, a

@@ -3,6 +3,7 @@ import { createNewGameState } from "../model/new-game.js";
 export function createGameSessionController({ runner, onEnter, onError, onSaved }) {
   let activeSlot = null;
   let inMenu = true;
+  let hasLiveGame = false;
   function save() {
     if (activeSlot === null) return { ok: true };
     const result = runner.saveToSlot(activeSlot);
@@ -11,6 +12,7 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
     return result;
   }
   function enter(slot) {
+    hasLiveGame = true;
     activeSlot = slot;
     inMenu = false;
     onSaved?.();
@@ -19,6 +21,7 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
   }
   return {
     isInMenu: () => inMenu,
+    canResume: () => hasLiveGame,
     getActiveSlot: () => activeSlot,
     slots: () => [1, 2, 3].map((slot) => {
       const result = runner.inspectSaveSlot(slot);
@@ -28,6 +31,7 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
       // Entropy only chooses the seed; every world roll uses serialized state.rng.
       const seed = globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
       activeSlot = null;
+      hasLiveGame = false;
       const result = runner.resetToState(createNewGameState(seed), "twoRegionStarter01");
       if (!result.ok) return result;
       const saved = runner.saveToSlot(slot);
@@ -42,12 +46,14 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
       if (!result.ok) { onError?.("This save could not be loaded."); return result; }
       return enter(slot);
     },
-    openMenu() {
-      if (!save().ok) return false;
+    openMenu({ force = false } = {}) {
+      // Losing focus must pause even if storage fails. Keep the live game in
+      // memory so Continue can resume it without loading an older save.
+      if (!save().ok && !force) return false;
       inMenu = true;
       return true;
     },
-    resume() { inMenu = false; },
+    resume() { hasLiveGame = true; inMenu = false; return { ok: true }; },
     save,
   };
 }
