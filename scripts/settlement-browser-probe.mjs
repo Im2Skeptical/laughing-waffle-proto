@@ -898,8 +898,8 @@ try {
   );
   assert.ok(timeLeverRect, "time lever exposes its rendered interaction bounds");
   await pressDesignPoint(terminalPage, {
-    x: timeLeverRect.x + timeLeverRect.width * 0.37,
-    y: timeLeverRect.y + Math.min(25, timeLeverRect.height * 0.4),
+    x: timeLeverRect.x + timeLeverRect.width / 2,
+    y: timeLeverRect.y + timeLeverRect.height / 2,
   }, 180);
   const timeControlBrowse = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()

@@ -898,7 +898,7 @@ let feedbackText = null;
         if (hoveredPhaseId === phase.id) hoveredPhaseId = null;
         tooltipView?.hide?.();
       });
-      container.on("pointerdown", (event) => event?.stopPropagation?.());
+      container.on("pointerdown", (event) => startDrag(DISK_ID_MOON, event));
       phaseIconLayer.addChild(container);
       return { phase, phaseIndex, container, background, label };
     });

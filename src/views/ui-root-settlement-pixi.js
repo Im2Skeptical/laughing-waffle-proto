@@ -1406,16 +1406,16 @@ const DISK_LAYOUT = {
   ...SUN_AND_MOON_DISKS_LAYOUT,
   moon: {
     ...SUN_AND_MOON_DISKS_LAYOUT.moon,
-    x: 2170,
-    y: 900,
-    scale: 0.27,
-    phaseIconRadius: 74,
+    x: 2194,
+    y: 940,
+    scale: 0.405,
+    phaseIconRadius: 111,
   },
   season: {
     ...SUN_AND_MOON_DISKS_LAYOUT.season,
-    x: 2170,
-    y: 900,
-    scale: 0.38,
+    x: 2194,
+    y: 940,
+    scale: 0.57,
   },
 };
 
@@ -1452,7 +1452,6 @@ const timeControlsView = createTimeControlsView({
     enabled: true,
     zIndex: 4,
     screenPadding: 16,
-    verticalGapFromDiskPx: 0,
     diskTextureRadiusPx: 220,
   },
   sunMoonLayout: DISK_LAYOUT,

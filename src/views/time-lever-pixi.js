@@ -1,5 +1,5 @@
 // time-lever-pixi.js
-// Time lever widget (Pixi): drag to set time scale with magnetic lock points.
+// Vertical secondary transport: up advances, down rewinds, centre holds.
 import { paintRelicPanel, RELIC, drawHourglass } from './chronicle-skin.js';
 
 export function createTimeLeverView({
@@ -7,10 +7,10 @@ export function createTimeLeverView({
   layer,
   getTimeScale,
   setTimeScaleTarget,
-  width = 220,
-  height = 50,
-  handleWidth = 44,
-  handleHeight = 28,
+  width = 64,
+  height = 200,
+  handleWidth = 52,
+  handleHeight = 32,
   margin = 4,
   curve = 1.5,
   stickySpeed = 0.5,
@@ -66,30 +66,24 @@ export function createTimeLeverView({
     const maxSpeed = getActiveUiMaxSpeed();
     const n = Math.max(-1, Math.min(1, norm));
     const t = Math.pow(Math.abs(n), curve);
-    if (n >= 0) return 1 + t * (maxSpeed - 1);
-    return 1 - t * (maxSpeed + 1);
+    return Math.sign(n) * t * maxSpeed;
   }
 
   function speedToLeverNorm(speed) {
     const maxSpeed = getActiveUiMaxSpeed();
     const s = Number.isFinite(speed) ? speed : 1;
-    if (s >= 1) {
-      const t = (s - 1) / Math.max(1, maxSpeed - 1);
-      return Math.pow(Math.max(0, Math.min(1, t)), 1 / curve);
-    }
-    const t = (1 - s) / Math.max(1, maxSpeed + 1);
-    return -Math.pow(Math.max(0, Math.min(1, t)), 1 / curve);
+    return Math.sign(s) * Math.pow(Math.min(1, Math.abs(s) / maxSpeed), 1 / curve);
   }
 
-  function leverNormToHandleX(norm) {
-    const minX = margin;
-    const maxX = width - margin - handleWidth;
-    const t = (clampNorm(norm) + 1) / 2;
-    return minX + t * (maxX - minX);
+  function leverNormToHandleY(norm) {
+    const minY = margin;
+    const maxY = height - margin - handleHeight;
+    const t = (1 - clampNorm(norm)) / 2;
+    return minY + t * (maxY - minY);
   }
 
-  function leverNormToTrackX(norm) {
-    return leverNormToHandleX(norm) + handleWidth * 0.5;
+  function leverNormToTrackY(norm) {
+    return leverNormToHandleY(norm) + handleHeight * 0.5;
   }
 
   function getActiveLockSpeeds() {
@@ -139,28 +133,29 @@ export function createTimeLeverView({
 
     leverTrack.clear();
     paintRelicPanel(leverTrack,0,0,width,height,RELIC.stone,RELIC.brass,2);
-    leverTrack.beginFill(RELIC.shadow).drawRect(8,height*.4,width-16,height*.2).endFill();
+    leverTrack.beginFill(RELIC.shadow).drawRect(width*.4,8,width*.2,height-16).endFill();
     leverTrack.lineStyle(1, 0x333333, 0.7);
-    leverTrack.moveTo(width / 2, 6);
-    leverTrack.lineTo(width / 2, height - 6);
+    leverTrack.moveTo(6, height / 2);
+    leverTrack.lineTo(width - 6, height / 2);
 
     for (const speed of activeLocks) {
-      const notchX = leverNormToTrackX(speedToLeverNorm(speed));
+      const notchY = leverNormToTrackY(speedToLeverNorm(speed));
       const isMajor = Math.abs(speed) >= 4;
       const notchInset = isMajor ? 7 : 9;
       const notchColor = isMajor ? 0xe4dcc5 : 0xc4baa1;
       const notchAlpha = isMajor ? 0.92 : 0.78;
       const notchWidth = isMajor ? 2 : 1;
       leverTrack.lineStyle(notchWidth, notchColor, notchAlpha);
-      leverTrack.moveTo(notchX, notchInset);
-      leverTrack.lineTo(notchX, height - notchInset);
+      leverTrack.moveTo(notchInset, notchY);
+      leverTrack.lineTo(width - notchInset, notchY);
     }
 
     leverHit.clear();
     leverHit.beginFill(0xffffff);
-    leverHit.drawRoundedRect(0, 0, width, height, height / 2);
+    leverHit.drawRect(0, 0, width, height);
     leverHit.endFill();
     leverHit.alpha = 0;
+    leverHit.hitArea = new PIXI.Rectangle(-10,0,width+20,height);
   }
 
   function drawLeverHandle(color) {
@@ -178,8 +173,8 @@ export function createTimeLeverView({
     const displaySpeed = leverDragging ? leverDragSpeed : speed;
     const norm = leverDragging ? leverDragNorm : speedToLeverNorm(displaySpeed);
 
-    leverHandle.x = leverNormToHandleX(norm);
-    leverHandle.y = (height - handleHeight) / 2;
+    leverHandle.x = (width - handleWidth) / 2;
+    leverHandle.y = leverNormToHandleY(norm);
 
     let color = RELIC.gold;
     if (Math.abs(displaySpeed) < stickySpeed) {
@@ -198,22 +193,22 @@ export function createTimeLeverView({
     const speedAbs = Math.abs(displaySpeed);
     const speedText = `${displaySpeed < 0 ? "-" : ""}x${speedAbs.toFixed(1)}`;
     const showPauseHint = speedAbs < stickySpeed && !leverDragging;
-    leverLabel.text = state?.followingForecast ? 'FOLLOWING UNVEIL' :
-      showPauseHint || state?.paused ? 'TIME HELD' : `${displaySpeed < 0 ? 'REWIND' : 'ADVANCE'}  ${speedText}`;
+    leverLabel.text = state?.followingForecast ? 'AUTO' :
+      showPauseHint || state?.paused ? 'HOLD' : speedText;
     leverLabel.x = (width - leverLabel.width) / 2;
     leverLabel.y = height + labelGap;
   }
 
   function updateLeverFromPointer(globalPos) {
     const local = timeLever.toLocal(globalPos);
-    const minX = margin;
-    const maxX = width - margin - handleWidth;
-    const handleX = Math.max(
-      minX,
-      Math.min(maxX, local.x - handleWidth / 2)
+    const minY = margin;
+    const maxY = height - margin - handleHeight;
+    const handleY = Math.max(
+      minY,
+      Math.min(maxY, local.y - handleHeight / 2)
     );
-    const ratio = (handleX - minX) / Math.max(1, maxX - minX);
-    const norm = ratio * 2 - 1;
+    const ratio = (handleY - minY) / Math.max(1, maxY - minY);
+    const norm = 1 - ratio * 2;
     const snappedNorm = applyLockSnap(norm);
     leverDragNorm = snappedNorm;
     leverDragSpeed = leverNormToSpeed(snappedNorm);
@@ -262,6 +257,7 @@ export function createTimeLeverView({
     width,
     trackHeight: height,
     height: fullHeight,
+    getTrackBounds: () => leverHit.getBounds(),
     update: updateTimeLever,
   };
 }
