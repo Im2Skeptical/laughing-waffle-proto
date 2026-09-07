@@ -708,7 +708,8 @@ export function assignDetailedSettlementWorkers(state, regionId) {
 }
 
 function getPracticeChargeThreshold(def, tier) {
-  return Math.max(1, Math.floor((def.activation.chargeThreshold ?? 1) - getDetailedPracticeTierIndex(tier) * .5));
+  const reduction = def.activation.chargeThresholdReductionPerQuality ?? .5;
+  return Math.max(1, Math.floor((def.activation.chargeThreshold ?? 1) - getDetailedPracticeTierIndex(tier) * reduction));
 }
 
 function buildDetailedPracticeEvaluation(state, site, assignment) {
