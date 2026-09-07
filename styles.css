@@ -59,7 +59,8 @@ canvas {
     line-height: 1.45;
   }
 
-  [data-testid="mobile-landscape-request"] {
+  [data-testid="mobile-landscape-request"],
+  [data-testid="mobile-menu-return"] {
     min-height: 44px;
     padding: 9px 18px;
     border: 1px solid #d7b450;
@@ -70,3 +71,27 @@ canvas {
     font-weight: 700;
   }
 }
+
+body.game-menu-open #app,
+body.game-menu-open [data-testid="utility-controls"],
+body.game-menu-open .codex-debug-panel,
+body.game-menu-open #mobile-landscape-gate { display: none !important; }
+#game-menu { position: fixed; inset: 0; z-index: 3000; overflow: auto; color: #f6efe3;
+  background: radial-gradient(ellipse at 50% 0%, #405444, #20292d 70%); font-family: Georgia, serif;
+  padding: max(24px, env(safe-area-inset-top)) 20px; box-sizing: border-box; }
+#game-menu[hidden] { display: none; }
+.game-menu-content { max-width: 620px; margin: 5vh auto; }
+#game-menu h1 { font-size: clamp(32px, 7vw, 54px); text-decoration: none; margin: 18px 0; line-height: 1.05; }
+.game-menu-eyebrow { color: #d7b450; text-transform: uppercase; letter-spacing: .13em; font: 12px/1.6 sans-serif; }
+#game-menu p { line-height: 1.5; }
+#game-menu button, [data-testid="game-menu-open"] { min-height: 44px; padding: 10px 18px;
+  border: 1px solid #b89b5c; border-radius: 7px; background: #394a43; color: #f6efe3; font: 15px sans-serif; cursor: pointer; }
+#game-menu button { display: block; width: 100%; margin: 12px 0; }
+#game-menu button:hover { background: #53654d; }
+#game-menu button:focus-visible { outline: 3px solid #f4d78c; outline-offset: 3px; }
+#game-menu button:disabled { opacity: .45; cursor: default; }
+.game-save-slot { border: 1px solid #627365; border-radius: 10px; padding: 0 18px 6px; margin: 12px 0; background: #273632; }
+.game-save-slot h3 { margin-bottom: 4px; }
+.game-save-slot p { margin-top: 4px; color: #d0d4c8; font: 13px/1.5 sans-serif; }
+.game-menu-note { margin-top: 28px; color: #b1bfb4; font: 13px/1.5 sans-serif; }
+.game-save-error { position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 4000; padding: 14px; background: #6b3028; color: white; }

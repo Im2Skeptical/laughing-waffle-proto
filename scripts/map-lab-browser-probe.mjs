@@ -56,6 +56,8 @@ try {
     }
   });
   await page.goto(URL);
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.getByRole("button", { name: /^Debug/ }).click();
   const startNewRun = page.getByTestId("debug-start-new-run");
   const closeDebug = page.getByTestId("debug-close");
@@ -179,6 +181,8 @@ try {
   assert.equal("installedPracticeIds" in json.regions[0], false);
 
   await page.reload();
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.getByRole("button", { name: /^Debug/ }).click();
   await page.getByTestId("debug-map-lab-tab").click();
   await page.getByTestId("map-lab").waitFor({ state: "visible" });
@@ -340,6 +344,8 @@ try {
   assert.equal(injected.stats.cunning, 3);
 
   await page.reload();
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.getByRole("button", { name: /^Debug/ }).click();
   await page.getByTestId("debug-game-settings-tab").click();
   assert.equal(
@@ -402,6 +408,8 @@ try {
   await page.getByTestId("debug-game-settings-tab").click();
   await page.getByTestId("setting-birthRateGold").fill("0.1");
   await page.reload();
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.getByRole("button", { name: /^Debug/ }).click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
   const bootSnapshot = await page.evaluate(

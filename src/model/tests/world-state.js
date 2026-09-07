@@ -1,3 +1,8 @@
+import { ActionKinds } from "../actions.js";
+import { getVassalCandidatePool } from "../vassal-life-map.js";
+import { createNewGameState } from "../new-game.js";
+import { createStarterBootProfile } from "../starter-boot-profile.js";
+import { createGameSessionController } from "../../controllers/game-session-controller.js";
 import assert from "node:assert/strict";
 import { createInitialState } from "../init.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
@@ -594,6 +599,30 @@ assert.deepEqual(
   "authoritative graph refresh exposes the replayed frontier values"
 );
 
+// Player starts retain the fixed map and roll only eligible connected pairs.
+const starterProfile = createStarterBootProfile();
+const startingPairs = new Set();
+for (let seed = 1; seed <= 64; seed += 1) {
+  const fresh = createNewGameState(seed * 7919);
+  const players = fresh.world.regions.filter((region) => region.controller === "player");
+  assert.equal(players.length, 2);
+  assert.equal(fresh.world.sites.length, 2);
+  const ids = players.map((region) => region.id).sort();
+  startingPairs.add(ids.join("|"));
+  assert.ok(fresh.world.connections.some((edge) =>
+    [edge.regionAId, edge.regionBId].sort().join("|") === ids.join("|")));
+  assert.deepEqual(fresh.world.connections, starterProfile.mapLab.connections);
+  assert.ok(players.every((region) => region.detailedSettlementEnabled));
+  assert.ok(ids.includes(fresh.civilization.capitalRegionId));
+  assert.deepEqual(serializeGameState(fresh), serializeGameState(createNewGameState(seed * 7919)));
+  assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(fresh))), serializeGameState(fresh));
+}
+assert.equal(startingPairs.size, starterProfile.mapLab.connections.length, "seed coverage reaches all fixed-map roads");
+const freshRun = createNewGameState(735);
+const freshTimeline = createTimelineFromInitialState(freshRun);
+assert.deepEqual(serializeGameState(rebuildStateAtSecond(freshTimeline, 12).state),
+  serializeGameState(rebuildStateAtSecond(createTimelineFromInitialState(createNewGameState(735)), 12).state));
+
 const storage = new Map();
 const priorLocalStorage = globalThis.localStorage;
 globalThis.localStorage = {
@@ -618,6 +647,38 @@ try {
     91,
     "save/load restores the record"
   );
+  const session = createGameSessionController({ runner });
+  assert.equal(session.isInMenu(), true);
+  assert.equal(session.newGame(2).ok, true);
+  assert.equal(session.getActiveSlot(), 2);
+  const candidatePool = getVassalCandidatePool(runner.getState());
+  assert.equal(runner.dispatchActionAtCurrentSecond(ActionKinds.SETTLEMENT_SELECT_VASSAL, {
+    candidateIndex: 0, expectedPoolHash: candidatePool.expectedPoolHash,
+  }).ok, true);
+  runner.setPaused(false);
+  for (let second = 0; second < 12; second += 1) runner.update(1);
+  assert.ok(runner.getState().tSec > 0, "save contains progressed simulation");
+  assert.equal(session.openMenu(), true);
+  const slot2 = storage.get("civsurvivor.save.slot2");
+  assert.equal(session.newGame(3).ok, true);
+  assert.ok(storage.get("civsurvivor.save.slot2") === slot2, "starting slot 3 preserves slot 2");
+  assert.equal(session.continueGame(2).ok, true);
+  assert.equal(runner.getState().rng.baseSeed, JSON.parse(slot2).state.rng.baseSeed);
+  const savedSlot2 = JSON.parse(slot2);
+  assert.equal(runner.getState().tSec, savedSlot2.state.tSec);
+  assert.ok(JSON.stringify(serializeGameState(runner.getState()).world) === JSON.stringify(savedSlot2.state.world),
+    "load restores progressed settlements");
+  assert.ok(JSON.stringify(serializeGameState(runner.getState()).civilization) === JSON.stringify(savedSlot2.state.civilization),
+    "load restores the selected Vassal and civilization");
+  const beforeBadLoad = serializeGameState(runner.getState());
+  storage.set("civsurvivor.save.slot3", "{broken");
+  assert.equal(runner.loadFromSlot(3).ok, false);
+  assert.deepEqual(serializeGameState(runner.getState()), beforeBadLoad);
+  const originalSetItem = globalThis.localStorage.setItem;
+  globalThis.localStorage.setItem = () => { throw new Error("quota"); };
+  assert.equal(session.save().reason, "storageFailed");
+  assert.equal(session.openMenu(), false);
+  globalThis.localStorage.setItem = originalSetItem;
   const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
   const oldSave = JSON.parse(storage.get(saveKey));
   oldSave.meta.schemaVersion = 6;

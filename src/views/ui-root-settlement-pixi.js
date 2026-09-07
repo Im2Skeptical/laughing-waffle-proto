@@ -1,3 +1,5 @@
+import { createGameSessionController } from "../controllers/game-session-controller.js";
+import { createGameMenuDom } from "./game-menu-dom.js";
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
@@ -1837,7 +1839,7 @@ function isTypingTarget(target) {
 }
 
 function handleGlobalKeyDown(ev) {
-  if (!ev || ev.repeat || isTypingTarget(ev.target)) return;
+  if (gameSession.isInMenu() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
     ev.preventDefault();
     vassalNodeDecisionModalView.close();
@@ -1929,6 +1931,7 @@ function publishSettlementDebugApi() {
       }
       return selectWorldMapRegion(regionId);
     },
+    enterBootTestRun: () => { gameSession.resume(); gameMenu.hide(); },
     getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>
       worldMapView?.getInstalledPracticeClickPoint?.(installedIndex) ?? null,
@@ -1991,10 +1994,31 @@ settlementDebugMenu.init();
 syncSettlementRunCompletePresentation();
 publishSettlementDebugApi();
 
+let gameMenu;
+const gameSession = createGameSessionController({
+  runner,
+  onEnter: () => {
+    handleDebugFreshRunApplied("sessionEnter");
+    requestPauseBeforeDrag();
+  },
+  onError: (message) => gameMenu?.showError(message),
+  onSaved: () => gameMenu?.clearError(),
+});
+gameMenu = createGameMenuDom({ session: gameSession });
+setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
+window.addEventListener("pagehide", () => gameSession.save());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") gameSession.save();
+});
+
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleGlobalKeyDown);
 
+const portraitGameplayGate = window.matchMedia(
+  "(max-width: 900px) and (hover: none) and (pointer: coarse) and (orientation: portrait)"
+);
 app.ticker.add((delta) => {
+  if (gameSession.isInMenu() || portraitGameplayGate.matches) return;
   const frameDt = delta / 60;
   runner.update(frameDt);
   settlementGraphController.update?.();

@@ -123,6 +123,7 @@ export function publishSettlementDebugApi({
   getLifeMapLevelUpChoiceClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
+  enterBootTestRun,
   getWorldInstalledPracticeClickPoint,
   getViewedSlotSummary,
   getPendingCommitJob,
@@ -177,6 +178,7 @@ export function publishSettlementDebugApi({
         runner: {
           timeline: summarizeTimeline(timeline),
           previewStatus: getPreviewStatus?.() ?? null,
+          baseSeed: cursorState?.rng?.baseSeed ?? null,
           cursorStateSec: nonNegativeFloor(cursorState?.tSec),
           stateSec: nonNegativeFloor(state?.tSec),
         },
@@ -218,6 +220,7 @@ export function publishSettlementDebugApi({
     getLifeMapLevelUpChoiceClickPoint: (index = 0) =>
       getLifeMapLevelUpChoiceClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
+    enterBootTestRun: () => enterBootTestRun?.(),
     getWorldPracticeClickPoint: (practiceId) =>
       getWorldPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>

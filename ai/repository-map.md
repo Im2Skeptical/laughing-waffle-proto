@@ -9,6 +9,9 @@ and its direct dependencies.
 - Browser entry: `src/views/ui-root-pixi.js`
 - Main UI/controller wiring: `src/views/ui-root-settlement-pixi.js`
 - Simulation runner/save/load: `src/controllers/sim-runner.js`
+- Landing menu and active save slot: `src/views/game-menu-dom.js` and
+  `src/controllers/game-session-controller.js`
+- Player fresh-run setup: `src/model/new-game.js` and `src/model/starter-boot-profile.js`
 - Forecast orchestration: `src/controllers/settlement-forecast-controller.js`
 - Forecast worker service: `src/controllers/timegraph-forecast-worker-service.js`
 - Forecast worker entry: `src/controllers/timegraph-forecast-worker.js`
@@ -109,8 +112,10 @@ in `ai/ai-context.md`.
   `npm run verify`, then `npm run probe:settlement`
 - Map Lab/debug form changes:
   `npm run verify`, then `npm run probe:map-lab`
+- Landing menu, save slots, or new-run setup:
+  `npm run verify` and `npm run probe:game-menu`
 - Shared mobile layout or input changes:
-  both browser probes and a 1280x800 visual check
+  all three browser probes and a 1280x800 visual check
 
 Browser probes write details under `artifacts/` and print concise failures.
 Do not paste their full artifact JSON into chat.

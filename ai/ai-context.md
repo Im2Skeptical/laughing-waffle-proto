@@ -42,9 +42,12 @@ task lists.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
 
-The 15-region world has detailed settlements in Regions01, 03, 06, 07, and 11.
-All five are player-controlled; Region07 is the capital. Every other authored
-region starts as frontier. Region state owns
+Player New Game uses the Starter_02 map, nine fixed roads, and tuning. Each run
+chooses one existing road through `state.rng`; its two adjacent regions become
+the only player-controlled detailed settlements, with the first in authored
+region order serving as capital. All other regions are frontier. The authored
+debug fixture still has five detailed settlements in Regions01, 03, 06, 07,
+and 11. Debug profiles and Map Lab can explicitly replace that setup. Region state owns
 colour, controller, connections, `structureCapacity`, and the independent
 detailed-settlement toggle.
 
@@ -133,6 +136,18 @@ bounded JSON state used for replay and phase tooltips.
 
 ## Current UI
 
+- Boot opens a responsive landing menu with New game, Continue for the latest
+  valid save, and Load game for selecting among three browser-local slots.
+  New game asks for a slot and confirms replacement of occupied/unavailable
+  saves. The active slot saves every ten seconds during play, on page hide,
+  and through Save & menu. Storage failures remain visible and prevent leaving
+  an unsaved game through that control. Loading validates and rebuilds the
+  saved timeline before replacing the active state; incompatible saves cannot
+  continue. No save-schema migration is introduced.
+- The menu works in portrait. Entering gameplay activates the existing phone
+  landscape gate, which also offers Back to menu. Gameplay updates stop while
+  the landing menu or portrait gate is visible.
+
 - The map shows all-region polygons, player ownership nodes, worker pawns,
   structure-capacity glyphs, food and population transfer packets, a
   civilization summary, and a compact selected-region card. Detailed regions
@@ -217,5 +232,7 @@ fallback.
 - `npm run probe:settlement`: map, settlement, graph, vassal, survival, and
   responsive interaction probe against the built site.
 - `npm run probe:map-lab`: Map Lab and development-tool interaction probe.
+- `npm run probe:game-menu`: slot creation/loading/replacement, storage failures,
+  menu pause, reload Continue, and portrait/landscape transitions.
 
 Detailed test selection and file routes are in `ai/repository-map.md`.
