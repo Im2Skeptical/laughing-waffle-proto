@@ -182,7 +182,10 @@ bounded JSON state used for replay and phase tooltips.
   are evicted, while active forecast tails remain pinned for worker continuation.
 - The season/moon wheel shows fixed icons for all six lunar phases. The active
   icon is highlighted and each tooltip combines the phase rules with live or
-  previous-moon totals.
+  previous-moon totals. The enlarged wheel is the primary time control; phase
+  badges also accept moon-wheel drags. Pause/Present sit to its left. A compact
+  vertical lever on its right locks forward above centre, rewind below centre,
+  and holds time at centre, with symmetric 2x/4x speed notches.
 - The World Map candidate chooser overlays the lower map and graph
   region. Its three expanded cards show original pixel-art portraits assigned
   deterministically from serialized portrait traits, plus age, settlement,

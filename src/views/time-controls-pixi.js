@@ -1,5 +1,5 @@
 // time-controls-pixi.js
-// Pause/commit/time-lever controls, positioned under the sun/moon disks.
+// Secondary transport controls flank the primary sun/moon wheels.
 
 import { createTimeLeverView } from "./time-lever-pixi.js";
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
@@ -15,7 +15,6 @@ export const TIME_CONTROLS_LAYOUT = {
   enabled: true,
   zIndex: 2,
   screenPadding: 16,
-  verticalGapFromDiskPx: 0,
   diskTextureRadiusPx: 220,
 };
 
@@ -68,10 +67,10 @@ function getControlsAnchor(layout, sunMoonLayout, app) {
     ? Math.max(0, sunMoonLayout.season.scale)
     : 0.75;
   const diskRadiusPx = Math.max(48, Number(layout?.diskTextureRadiusPx ?? 256));
-  const gapY = Math.max(0, Number(layout?.verticalGapFromDiskPx ?? 18));
   return {
     x: seasonX,
-    y: seasonY + diskRadiusPx * seasonScale + gapY,
+    y: seasonY,
+    radius: diskRadiusPx * seasonScale,
   };
 }
 
@@ -119,25 +118,24 @@ export function createTimeControlsView({
     uiMaxAbsSpeed: BASIC_TIME_LEVER_UI_MAX_ABS_SPEED,
     lockSpeeds: BASIC_TIME_LEVER_LOCK_SPEEDS,
     lockSnapNormRadius: BASIC_TIME_LEVER_LOCK_SNAP_NORM_RADIUS,
-    width: 400,
-    height: 60,
-    handleWidth: 60,
-    handleHeight: 40,
-    labelFontSize: 20,
+    width: 64,
+    height: 200,
+    handleWidth: 52,
+    handleHeight: 32,
+    labelFontSize: 18,
   });
 
   function applyLayout() {
     if (!app?.screen) return;
     const anchor = getControlsAnchor(layout, sunMoonLayout, app);
     const screenPadding = Math.max(0, Number(layout?.screenPadding ?? 16));
-    // A broad lower lever with separate buttons flanking the astrolabe.
-    // Keeping its position fixed also avoids a jump when Present appears.
+    // Keep the wheel unobstructed and all controls fixed when Present appears.
     timeLeverView.container.position.set(
-      clamp(anchor.x - timeLeverView.width / 2, screenPadding,
-        app.screen.width - timeLeverView.width - screenPadding), anchor.y + 4);
-    const buttonY = (sunMoonLayout?.season?.y ?? anchor.y - 84) - BUTTON_HEIGHT / 2;
-    pauseButton.position.set(anchor.x - 170 - BUTTON_WIDTH / 2, buttonY);
-    commitButton.position.set(anchor.x + 170 - BUTTON_WIDTH / 2, buttonY);
+      clamp(anchor.x + anchor.radius + 20, screenPadding,
+        app.screen.width - timeLeverView.width - screenPadding), anchor.y - 100);
+    const buttonX = anchor.x - anchor.radius - 18 - BUTTON_WIDTH;
+    pauseButton.position.set(buttonX, anchor.y - BUTTON_HEIGHT - 8);
+    commitButton.position.set(buttonX, anchor.y + 8);
   }
   function update(frameDt) {
     const enabled = layout?.enabled !== false;
@@ -225,7 +223,7 @@ export function createTimeControlsView({
       ) {
         return null;
       }
-      const bounds = timeLeverView.container.getBounds();
+      const bounds = timeLeverView.getTrackBounds();
       return {
         x: bounds.x,
         y: bounds.y,

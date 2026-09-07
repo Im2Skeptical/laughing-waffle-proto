@@ -60,7 +60,7 @@ try {
     await page.mouse.click(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
   };
   const lever=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeLeverScreenRect());
-  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  await click({x:lever.x+lever.width/2,y:lever.y+lever.height/2});
   await delay(100);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),0);
   const seek=async t=>{
@@ -72,8 +72,8 @@ try {
   const canvas=await page.locator('canvas').boundingBox();
   const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
     width:1640/2424*canvas.width,height:720/1080*canvas.height};
-  const diskCrop={x:canvas.x+2078/2424*canvas.width,y:canvas.y+808/1080*canvas.height,
-    width:184/2424*canvas.width,height:184/1080*canvas.height};
+  const diskCrop={x:canvas.x+2064/2424*canvas.width,y:canvas.y+810/1080*canvas.height,
+    width:260/2424*canvas.width,height:260/1080*canvas.height};
   await seek(12);
   const first=await page.screenshot({clip:crop});
   assert.ok(await countImageColours(page,first)>64,'The world must be painted before pause and rewind comparisons');
@@ -85,19 +85,42 @@ try {
   assert.deepEqual(await page.screenshot({clip:crop}),first,'Returning to the same time must restore identical world pixels after rewind');
   assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
   await page.screenshot({path:'artifacts/chronicle-world.png'});
+  // Touch both wheel faces and a lunar badge as primary drag controls.
+  const wheelTouch=await page.context().newCDPSession(page);
+  for(const [radius,startAngle] of [[60,0],[105,0],[111,-Math.PI/2]]) {
+    await seek(48);
+    const point=angle=>({x:canvas.x+(2194+radius*Math.cos(angle))/2424*canvas.width,
+      y:canvas.y+(940+radius*Math.sin(angle))/1080*canvas.height});
+    const start=point(startAngle);
+    await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
+    for(let step=1;step<=8;step++) {
+      const next=point(startAngle+step*Math.PI/32);
+      await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[next]});
+    }
+    await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec!==48);
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),0,
+      'Rotating a wheel detaches automatic movement and holds the chosen time');
+  }
+  await wheelTouch.detach();
+  await seek(12);
   await page.getByTestId('chronicle-audio').click();
-  await click({x:lever.x+lever.width-10,y:lever.y+20});
+  await click({x:lever.x+lever.width/2,y:lever.y+10});
   await page.waitForFunction(()=>{
     const audio=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio;
     return audio.enabled&&audio.playing&&audio.rate>0;
   },null,{timeout:5000});
   let sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
   assert.equal(sound.enabled,true);assert.equal(sound.playing,true);assert.ok(sound.rate>0);
-  await click({x:lever.x+10,y:lever.y+20});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),4,
+    'The upper lever lock retains forward speed after release');
+  await click({x:lever.x+lever.width/2,y:lever.y+lever.height-10});
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio.rate<0,null,{timeout:5000});
   sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
   assert.ok(sound.rate<0,'Rewind uses the negative timeline direction');
-  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),-4,
+    'The lower lever lock retains rewind speed after release');
+  await click({x:lever.x+lever.width/2,y:lever.y+lever.height/2});
   // Sound follows the rendered frame. Wait for that frame on software-rendered
   // hosts instead of assuming a fixed wall-clock delay contains multiple ticks.
   await page.waitForFunction(()=>{
@@ -107,14 +130,14 @@ try {
   sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
   assert.equal(sound.playing,false,'A held timeline is silent');
   await seek(0);
-  await click({x:lever.x+10,y:lever.y+20});
+  await click({x:lever.x+lever.width/2,y:lever.y+lever.height-10});
   await page.waitForFunction(()=>{
     const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     return snapshot.playbackTarget===0&&snapshot.viewedSec===0&&!snapshot.worldMap.audio.playing;
   },null,{timeout:5000});
   sound=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.audio);
   assert.equal(sound.sourceTime,0,'Sound cannot run past the beginning of visible history');
-  await click({x:lever.x+lever.width*.37,y:lever.y+20});
+  await click({x:lever.x+lever.width/2,y:lever.y+lever.height/2});
   await page.getByTestId('chronicle-audio').click();
   for(const viewport of [{width:844,height:390},{width:1280,height:800},{width:844,height:390}]){
     await page.setViewportSize(viewport);await delay(150);
@@ -161,7 +184,8 @@ try {
     const tooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
     assert.ok(tooltip.visible&&tooltip.pinned,'Touch details survive redraw and release');
     assert.equal(tooltip.title,title);
-    await click({x:20,y:100});await delay(50);
+    await page.touchscreen.tap(box.x+20/2424*box.width,box.y+100/1080*box.height);
+    await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
     assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Outside tap dismisses details');
     await page.touchscreen.tap(x,y);
     await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
@@ -203,7 +227,7 @@ try {
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','phone landscape','utility rail alignment','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','wheel and lunar badge touch drags','vertical lever direction locks','phone landscape','utility rail alignment','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
   console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
 }catch(error){
   writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
