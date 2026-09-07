@@ -64,10 +64,24 @@ export function layoutChronicleNodes(nodes, rect) {
   const result=new Map();
   for(const column of columns.values()){
     column.sort((a,b)=>(a.position?.y??0)-(b.position?.y??0)||String(a.id).localeCompare(String(b.id)));
-    column.forEach((node,i)=>result.set(node.id,{
-      x:rect.x+(node.position?.x??0)*rect.width,
-      y:rect.y+(column.length===1?.5:i/(column.length-1))*rect.height,
-    }));
+    const gap = Math.min(84, rect.height / Math.max(1, column.length - 1));
+    const ys = column.map(node => (node.position?.y ?? .5) * rect.height);
+    // Keep the generated lanes; separate crowded icons without stretching
+    // every depth into an identical full-height column.
+    for(let i=1;i<ys.length;i++) ys[i]=Math.max(ys[i],ys[i-1]+gap);
+    if(ys.length && ys.at(-1)>rect.height){
+      ys[ys.length-1]=rect.height;
+      for(let i=ys.length-2;i>=0;i--) ys[i]=Math.min(ys[i],ys[i+1]-gap);
+    }
+    column.forEach((node,i)=>{
+      const x = (node.position?.x ?? 0) * rect.width;
+      // A fixed lane/depth wave is cosmetic, stable across seeks, and consumes no RNG.
+      const stagger = Math.sin((node.depth ?? 0)*2.4+(node.position?.y ?? .5)*9)*18;
+      result.set(node.id,{
+        x:rect.x+Math.max(0,Math.min(rect.width,x+stagger)),
+        y:rect.y+ys[i],
+      });
+    });
   }
   return result;
 }

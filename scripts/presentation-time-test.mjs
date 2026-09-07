@@ -44,4 +44,16 @@ const original=JSON.stringify(nodes);
 const positions=layoutChronicleNodes(nodes,{x:0,y:0,width:1000,height:400});
 for(let i=1;i<6;i++)assert.ok(positions.get(`n${i}`).y-positions.get(`n${i-1}`).y>=79.9);
 assert.equal(JSON.stringify(nodes),original,'Presentation layout cannot modify serialized graph coordinates');
+const sparseNodes = [
+  {id:'a',depth:1,position:{x:.1,y:.3}},
+  {id:'b',depth:1,position:{x:.1,y:.55}},
+  {id:'c',depth:2,position:{x:.2,y:.7}},
+];
+const sparseLayout = layoutChronicleNodes(sparseNodes,{x:0,y:0,width:2000,height:500});
+assert.equal(sparseLayout.get('a').y,150,'Sparse columns preserve generated lane positions');
+assert.equal(sparseLayout.get('b').y,275);
+assert.equal(sparseLayout.get('c').y,350,'Single nodes are not forced to the centre');
+assert.deepEqual(layoutChronicleNodes([...sparseNodes].reverse(),{x:0,y:0,width:2000,height:500}),sparseLayout,
+  'Layout is stable regardless of iteration order');
+
 console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, and topology layout');
