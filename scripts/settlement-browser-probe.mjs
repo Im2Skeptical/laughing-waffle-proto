@@ -76,6 +76,8 @@ try {
   const workerUrls = [];
   page.on("worker", (worker) => workerUrls.push(worker.url()));
   await page.goto(URL);
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
   assert.equal(
     await page.getByTestId("fullscreen-toggle").count(),
@@ -769,6 +771,8 @@ try {
     localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
   });
   await widePage.goto(URL);
+  await widePage.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await widePage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
   );
@@ -861,6 +865,8 @@ try {
     localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
   });
   await terminalPage.goto(URL);
+  await terminalPage.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await terminalPage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await terminalPage.waitForFunction(() => {
     const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();
     const graph = snapshot?.graph;
@@ -993,6 +999,8 @@ try {
     "forecast reveal continues without stealing back a manually placed playhead"
   );
   await terminalPage.reload();
+  await terminalPage.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  await terminalPage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await terminalPage.waitForFunction(
     () => {
       const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.();

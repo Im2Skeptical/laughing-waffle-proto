@@ -532,9 +532,9 @@ export function createSimRunner({
     const store = getLocalStorageSafe();
     if (!store) return { ok: false, reason: "noStorage" };
     const key = getSaveSlotKey(slot);
-    const raw = store.getItem(key);
-    if (!raw) return { ok: false, reason: "emptySlot" };
     try {
+      const raw = store.getItem(key);
+      if (!raw) return { ok: false, reason: "emptySlot" };
       const parsed = JSON.parse(raw);
       return { ok: true, data: parsed };
     } catch (err) {
@@ -562,30 +562,38 @@ export function createSimRunner({
       timeline: timelineData,
     };
 
-    store.setItem(key, JSON.stringify(payload));
-    return { ok: true, meta };
+    try {
+      store.setItem(key, JSON.stringify(payload));
+      return { ok: true, meta };
+    } catch (error) {
+      return { ok: false, reason: "storageFailed", error };
+    }
   }
 
-  function loadFromSlot(slot) {
+  function inspectSaveSlot(slot) {
     const res = readSaveSlot(slot);
     if (!res.ok) return res;
     const data = res.data;
     const meta = data?.meta ?? null;
-    if (meta?.schemaVersion !== SAVE_SCHEMA_VERSION) {
-      return { ok: false, reason: "versionMismatch", meta };
+    if (meta?.schemaVersion !== SAVE_SCHEMA_VERSION) return { ok: false, reason: "versionMismatch", meta };
+    try {
+      deserializeGameState(data.state);
+      const nextTimeline = normalizeSavedTimeline(data.timeline, data.state);
+      if (!nextTimeline) return { ok: false, reason: "missingTimeline" };
+      deserializeGameState(nextTimeline.baseStateData);
+      const rebuilt = rebuildStateAtSecond(nextTimeline, nextTimeline.cursorSec);
+      if (!rebuilt?.ok) return { ok: false, reason: "badSaveData" };
+      return { ok: true, meta, data, nextTimeline, state: rebuilt.state };
+    } catch (error) {
+      return { ok: false, reason: "badSaveData", error };
     }
-    if (typeof meta?.setupId === "string" && meta.setupId.length > 0) {
-      activeSetupId = meta.setupId;
-    }
-    if (!data?.state) return { ok: false, reason: "missingState" };
-    const nextTimeline = normalizeSavedTimeline(
-      data?.timeline,
-      data?.state ?? null
-    );
-    if (!nextTimeline) {
-      return { ok: false, reason: "missingTimeline" };
-    }
+  }
 
+  function loadFromSlot(slot) {
+    const res = inspectSaveSlot(slot);
+    if (!res.ok) return res;
+    const { meta, nextTimeline } = res;
+    activeSetupId = meta.setupId;
     dragPreviewState = null;
     pauseRequested = false;
     timeScaleTarget = 0;
@@ -597,7 +605,7 @@ export function createSimRunner({
     timeline = nextTimeline;
     clearPlannerBoundaryCache();
 
-    loadIntoGameState(data.state);
+    loadStateObjectIntoGameState(res.state);
     cursorState = gameState;
 
     const desiredSec = Math.floor(timeline.cursorSec ?? cursorState.tSec ?? 0);
@@ -1846,6 +1854,7 @@ export function createSimRunner({
     resetToState: (nextState, nextSetupId = "mapLabDraft") =>
       initializeFromState(nextState, nextSetupId, "init"),
     getSaveSlotMeta,
+    inspectSaveSlot,
     getSetupId: () => activeSetupId,
     getSaveSlotCount: () => saveSlotCount,
   };

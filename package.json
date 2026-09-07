@@ -21,6 +21,7 @@
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose",
+    "probe:game-menu": "node scripts/game-menu-browser-probe.mjs",
     "probe:map-lab": "node scripts/map-lab-browser-probe.mjs"
   },
   "keywords": [
