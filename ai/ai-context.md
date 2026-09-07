@@ -210,12 +210,14 @@ bounded JSON state used for replay and phase tooltips.
   text-first cards without inspection overlays; tapping anywhere on a card
   selects it, while immediate and surviving-completion Vassal impact stays visible;
   Crisis/Legacy and non-shop signature nodes center their choices without an
-  irrelevant side panel. Signature nodes have a distinct double-ring marker,
-  badge, glyph, label, description, and legend treatment. Shop
+  irrelevant side panel. Lifegraph nodes use freestanding silhouettes with secondary color accents;
+  signature nodes add a small four-point sparkle. Generated lane positions are
+  preserved with collision spacing and a slight stable depth stagger, with no
+  age-band headings or bottom legend. Shop
   drafts support undo and pointer/touch drag ordering. Closing the modal or
   focusing the Vassal's settlement on the World Map preserves the draft, and
   the active node/HUD reopens it. Double-click still enters an available node.
-  Family colors distinguish the node types.
+  Hover/tap details identify each node type.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
   visible. The player may inspect the World Map, but returning to the Lifegraph
   restores the unresolved choice before further node entry.

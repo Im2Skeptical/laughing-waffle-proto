@@ -9,7 +9,8 @@ import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
-import { addIllustration, addGateBackdrop, getArtRevision } from './chronicle-art.js';
+import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
+import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip } from './civilization-survival-hud.js';
 
@@ -18,8 +19,8 @@ const NODE_RADIUS = 32;
 const DOUBLE_CLICK_WINDOW_MS = 360;
 
 function fallbackNodePoint(node) {
-  const top = MAP_RECT.y + 204;
-  const bottom = MAP_RECT.y + MAP_RECT.height - 102;
+  const top = MAP_RECT.y + 158;
+  const bottom = MAP_RECT.y + MAP_RECT.height - 60;
   return {
     x: MAP_RECT.x + 92 + (MAP_RECT.width - 184) * (node.position?.x ?? 0),
     y: top + (bottom - top) * (node.position?.y ?? 0.5),
@@ -160,8 +161,8 @@ export function createVassalLifeMapView({
     const readOnly = presentation.readOnly === true;
     const committed = new Set(presentation.committedNodeIds ?? []);
     const nodes = getVassalLifeMapNodes(vassal);
-    layoutPoints=layoutChronicleNodes(nodes,{x:MAP_RECT.x+92,y:MAP_RECT.y+218,
-      width:MAP_RECT.width-184,height:MAP_RECT.height-338});
+    layoutPoints=layoutChronicleNodes(nodes,{x:MAP_RECT.x+92,y:MAP_RECT.y+158,
+      width:MAP_RECT.width-184,height:MAP_RECT.height-218});
     if ((vassal?.vassalId ?? null) !== displayedVassalId) {
       displayedVassalId = vassal?.vassalId ?? null;
       inspectedNodeId = presentation.playheadNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
@@ -197,18 +198,6 @@ export function createVassalLifeMapView({
       : "Choose a turning point. Rewrite what follows.", {
       ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 22, MAP_RECT.y + 68));
-    const config = vassal.lifeMap.graph.generatorConfig;
-    const bandLabels = [
-      ["YOUTH", 0],
-      ["SERVICE", config.earlyDepthCount / config.normalDepthCount],
-      ["TWILIGHT", (config.earlyDepthCount + config.midDepthCount) / config.normalDepthCount],
-      ["LEGACY", 1],
-    ];
-    bandLabels.forEach(([label, ratio]) => root.addChild(createText(
-      label, TEXT_STYLES.body,
-      MAP_RECT.x + 52 + ratio * (MAP_RECT.width - 150), MAP_RECT.y + 130
-    )));
-
     const committedPath = presentation.committedNodeIds ?? [];
     const completedEdges = new Set(committedPath.slice(1).map((id, index) => `${committedPath[index]}:${id}`));
     const edges = new PIXI.Graphics();
@@ -244,47 +233,27 @@ export function createVassalLifeMapView({
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
       nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
       const selected = effectiveNodeId === node.id;
-      const circle = new PIXI.Graphics();
-      const alpha = display.current || display.available ? 1 : display.completed ? 0.7 : 0.38;
-      circle.lineStyle(selected || display.current || display.available || display.completed ? 4 : 2,
-        selected ? 0xf4e7bd : display.completed ? 0x87c96a : display.current || display.available ? PALETTE.accent : PALETTE.stroke, 1)
-        .beginFill(family.color ?? 0x494641, alpha).drawCircle(0, 0, NODE_RADIUS).endFill();
-      if (presentation.playheadNodeId === node.id) circle.lineStyle(5, 0xe3c46c, 1).drawCircle(0, 0, NODE_RADIUS + 7);
-      if (node.signatureNode) {
-        circle.lineStyle(3, 0xf1d77a, 1).drawCircle(0, 0, NODE_RADIUS + 10);
-        circle.beginFill(0xf1d77a, 1).drawCircle(NODE_RADIUS + 7, -NODE_RADIUS - 4, 9).endFill();
+      const icon = new PIXI.Graphics();
+      const active = display.current || display.available;
+      drawLifeMapNodeIcon(icon, node, {
+        fill: selected || active ? 0xf4e7bd : display.completed ? 0xb6baa0 : 0x929a89,
+        accent: family.color ?? PALETTE.accent,
+        outline: 0x111714,
+      });
+      // Brackets and a check distinguish route state without enclosing every icon.
+      const marker = new PIXI.Graphics();
+      if (selected || active || presentation.playheadNodeId === node.id) {
+        marker.lineStyle(3, selected ? PALETTE.text : PALETTE.accent, 1);
+        for (const side of [-1, 1]) marker.moveTo(side*29,-39)
+          .lineTo(side*39,-39).lineTo(side*39,-24)
+          .moveTo(side*39,24).lineTo(side*39,39).lineTo(side*29,39);
       }
-      const portrait=addIllustration(nodeRoot,node.family,{x:-NODE_RADIUS+3,y:-NODE_RADIUS+3,width:NODE_RADIUS*2-6,height:NODE_RADIUS*2-6},
-        {alpha:display.completed||display.current||display.available?1:.78});
-      if(portrait){
-        const mask=new PIXI.Graphics().beginFill(0xffffff).drawCircle(0,0,NODE_RADIUS-3).endFill();
-        mask.eventMode='none';nodeRoot.addChild(mask);portrait.mask=mask;
-        // The ring is laid over the illustration without obscuring it.
-        circle.clear().lineStyle(selected?4:2,selected?PALETTE.text:display.completed||display.available||display.current?PALETTE.accent:family.color??PALETTE.stroke,1).drawCircle(0,0,NODE_RADIUS);
-        if(node.signatureNode) circle.lineStyle(2,PALETTE.accent,1).drawCircle(0,0,NODE_RADIUS+7);
-        if(presentation.playheadNodeId===node.id) circle.lineStyle(3,PALETTE.text,1).drawCircle(0,0,NODE_RADIUS+5);
-      }
-      nodeRoot.addChild(circle, createText(family.glyph ?? "?", {
-        ...TEXT_STYLES.title, fontSize: node.signatureNode || ["practiceReform", "publicWorks"].includes(node.family) ? 12 : 16,
-        stroke:0x111714,strokeThickness:4,
-      }, 0, NODE_RADIUS-4, 0.5, 0.5));
+      if (display.completed) marker.lineStyle(4, 0xb5cd93, 1)
+        .moveTo(-9,37).lineTo(-2,44).lineTo(12,32);
+      nodeRoot.addChild(icon, marker);
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
-
-    const legendFamilies = [];
-    const seenLegend = new Set();
-    for (const node of nodes) {
-      const family = node.signatureNode?.variantId
-        ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
-        : VASSAL_NODE_FAMILIES[node.family];
-      const key = node.signatureNode?.variantId ?? node.family;
-      if (family && !seenLegend.has(key)) { seenLegend.add(key); legendFamilies.push(family); }
-    }
-    legendFamilies.forEach((family, index) => root.addChild(createText(
-      `${family.glyph}  ${family.label}`, {
-        ...TEXT_STYLES.body, fontSize: 19, fill: family.color ?? PALETTE.textMuted,
-      }, MAP_RECT.x + 28 + index * 220, MAP_RECT.y + MAP_RECT.height - 34)));
 
     const location = getRegionReference(state, profile.locationRegionId) ?? profile.locationRegionId;
     const hudWidth = 1040;
