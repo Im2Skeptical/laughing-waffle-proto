@@ -392,7 +392,7 @@ try {
   );
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(page, { x: 2047, y: 685 });
+  await clickDesignPoint(page, { x: 2047, y: 762 });
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods",
@@ -806,7 +806,7 @@ try {
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
   );
-  await clickDesignPoint(widePage, { x: 2047, y: 685 });
+  await clickDesignPoint(widePage, { x: 2047, y: 762 });
   await widePage.waitForFunction(
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===
@@ -949,7 +949,7 @@ try {
   await terminalPage.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(terminalPage, { x: 2047, y: 685 });
+  await clickDesignPoint(terminalPage, { x: 2047, y: 762 });
   const manualSettlementView = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

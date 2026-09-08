@@ -24,7 +24,7 @@ import {
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 1640, height: 644 });
+const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 1640, height: 720 });
 const CIVILIZATION_HEADER_RECT = Object.freeze({
   x: 58,
   y: 16,
@@ -41,7 +41,7 @@ const DETAIL_RECT = Object.freeze({
   x: 1734,
   y: 240,
   width: 626,
-  height: 492,
+  height: 568,
 });
 const REGION_COLOURS = Object.freeze({
   red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
