@@ -1,10 +1,25 @@
 import { SETTLEMENT_GRAPH_GROUPS } from "./ui-root/settlement-graph-groups.js";
-import { paintRelicPanel, RELIC } from "./chronicle-skin.js";
+import { RELIC } from "./chronicle-skin.js";
 
+// Fixed design-space measurements follow the painted recesses in the atlas.
 export const TIMEGRAPH_CHROME = Object.freeze({
-  headerHeight: 42, buttonWidth: 168, buttonHeight: 32, buttonGap: 8,
-  iconSize: 28, iconPitch: 34, keyPadding: 8,
+  headerHeight: 42, iconSize: 28, keyRows: 4, keyCapacity: 8,
 });
+const ASSEMBLY_FRAME = Object.freeze({ x: 0, y: 108, width: 2172, height: 504 });
+const CONTROL_RECTS = Object.freeze({
+  chaos: { x: 228, y: 17, width: 129, height: 24 },
+  resources: { x: 389, y: 17, width: 129, height: 24 },
+  population: { x: 550, y: 17, width: 131, height: 24 },
+  series: { x: 744, y: 17, width: 39, height: 27 },
+  focus: { x: 1504, y: 17, width: 105, height: 24 },
+});
+export function getTimegraphLayout() {
+  return {
+    plot: { x: 233, y: 60, w: 1365, h: 156 },
+    key: { x: 28, y: 46, width: 125, height: 189 },
+    controls: CONTROL_RECTS,
+  };
+}
 const INKS = Object.freeze({
   monsterCount: 0x962f32, chaosResistance: 0x176f74, chaosRawPressure: 0xa4541d,
   food: 0x326e38, gold: 0x987018, totalPopulation: 0x623982,
@@ -19,20 +34,27 @@ export function getTimegraphInk(series) {
     (((color >> 8 & 255) * .6) << 8) | ((color & 255) * .6);
 }
 
-// Fill each column vertically before adding a column. Custom selections stay
-// inside the bottom assembly without reducing the graph's height.
-export function layoutTimegraphKey(count, height, headerHeight = TIMEGRAPH_CHROME.headerHeight) {
-  const { iconPitch, iconSize, keyPadding } = TIMEGRAPH_CHROME;
-  const rows = Math.max(1, Math.floor((height - headerHeight - keyPadding * 2 - 4) / iconPitch));
-  const columns = Math.max(1, Math.ceil(count / rows));
+// Only the contents page. The key cabinet, parchment and plot never move.
+export function layoutTimegraphKey(count, requestedPage = 0) {
+  const total = Math.max(0, Math.floor(Number(count) || 0));
+  const { keyCapacity, keyRows } = TIMEGRAPH_CHROME;
+  const pageCount = Math.max(1, Math.ceil(total / keyCapacity));
+  const page = Math.max(0, Math.min(pageCount - 1, Math.floor(Number(requestedPage) || 0)));
+  const startIndex = page * keyCapacity;
   return {
-    rows, width: columns * iconPitch + keyPadding * 2,
-    height: Math.min(rows, Math.max(1, count)) * iconPitch + keyPadding * 2,
-    points: Array.from({ length: count }, (_, index) => ({
-      x: keyPadding + Math.floor(index / rows) * iconPitch + (iconPitch - iconSize) / 2,
-      y: headerHeight + 4 + keyPadding + (index % rows) * iconPitch,
+    ...getTimegraphLayout().key, page, pageCount, startIndex, total,
+    points: Array.from({ length: Math.min(keyCapacity, total - startIndex) }, (_, index) => ({
+      x: 50 + Math.floor(index / keyRows) * 55,
+      y: 56 + (index % keyRows) * 35,
     })),
   };
+}
+
+export function getTimegraphGlyphInk(color) {
+  // Keep the paper line's hue legible on the cabinet's dark bronze sockets.
+  const mix = (channel, light) => Math.round(channel * .55 + light * .45);
+  return mix(color >> 16 & 255, 255) << 16 |
+    mix(color >> 8 & 255, 240) << 8 | mix(color & 255, 200);
 }
 
 // Engraved symbols use the same ink as their line; names live in details.
@@ -74,75 +96,122 @@ export function drawTimegraphGlyph(g, seriesId, color) {
   }
 }
 
-export function createTimegraphScroll({ root, width, height, headerHeight, onToggleGroup, getActiveGroups }) {
-  const { buttonWidth, buttonHeight, buttonGap } = TIMEGRAPH_CHROME;
+export function createTimegraphScroll({ root, width, height, onToggleGroup, getActiveGroups, onKeyPage }) {
   const backing = new PIXI.Container();
   backing.eventMode = "none";
   root.addChildAt(backing, 0);
-  const parchment = PIXI.Sprite.from("images/dark-fantasy/timegraph-scroll-side-rollers.png");
-  parchment.y = headerHeight;
-  parchment.height = height - headerHeight;
-  const housing = new PIXI.Graphics();
-  paintRelicPanel(housing, 0, 0, width, headerHeight - 2, RELIC.stone, RELIC.brass, 2);
-  paintRelicPanel(housing, 630, 4, width - 762, buttonHeight, RELIC.night, RELIC.brass, 1);
-  const keyPanel = new PIXI.Graphics();
-  backing.addChild(parchment, housing, keyPanel);
-  const scopeHeading = new PIXI.Text("VIEWING", { fontFamily: "Georgia", fontSize: 16, fill: RELIC.gold });
-  scopeHeading.position.set(644, 12);
-  const scopeValue = new PIXI.Text("Civilization", { fontFamily: "Georgia", fontSize: 21, fill: RELIC.bone });
-  scopeValue.position.set(738, 8);
+  const illustration = new PIXI.Sprite();
+  illustration.eventMode = "none";
+  backing.addChild(illustration);
+  const atlas = PIXI.Texture.from("images/dark-fantasy/timegraph-chronicle-assembly.png");
+  const mountIllustration = () => {
+    if (illustration.destroyed) return;
+    const { x, y, width: frameWidth, height: frameHeight } = ASSEMBLY_FRAME;
+    illustration.texture = new PIXI.Texture(atlas.baseTexture, new PIXI.Rectangle(x, y, frameWidth, frameHeight));
+    illustration.width = width;
+    illustration.height = height;
+  };
+  if (atlas.baseTexture.valid) mountIllustration();
+  else atlas.baseTexture.once("loaded", mountIllustration);
+
+  const scopeHeading = new PIXI.Text("VIEWING", { fontFamily: "Georgia", fontSize: 14, fill: RELIC.gold });
+  scopeHeading.position.set(850, 21);
+  const scopeValue = new PIXI.Text("Civilization", { fontFamily: "Georgia", fontSize: 20, fill: RELIC.bone });
+  scopeValue.position.set(931, 17);
   backing.addChild(scopeHeading, scopeValue);
-  const buttons = SETTLEMENT_GRAPH_GROUPS.map(({ id, label }, index) => {
+  const keyCaption = new PIXI.Text("KEY", { fontFamily: "Georgia", fontSize: 17, fontWeight: "bold", fill: 0x21190f });
+  keyCaption.anchor.set(.5);
+  keyCaption.position.set(91, 31);
+  backing.addChild(keyCaption);
+
+  function paintButtonState(g, id, active, hovered = false) {
+    const rect = CONTROL_RECTS[id];
+    g.clear();
+    if (!active && !hovered) return;
+    g.lineStyle(1, active ? 0xefc575 : RELIC.bone, active ? .8 : .35)
+      .beginFill(0xe7b65b, active ? .13 : .06)
+      .drawRoundedRect(3, 2, rect.width - 6, rect.height - 4, rect.height / 3).endFill();
+  }
+  const buttons = SETTLEMENT_GRAPH_GROUPS.map(({ id, label }) => {
+    const rect = CONTROL_RECTS[id];
     const container = new PIXI.Container();
-    container.position.set(12 + index * (buttonWidth + buttonGap), 4);
+    container.position.set(rect.x, rect.y);
     container.eventMode = "static";
     container.cursor = "pointer";
-    container.hitArea = new PIXI.Rectangle(0, 0, buttonWidth, buttonHeight);
+    container.hitArea = new PIXI.Rectangle(-5, -5, rect.width + 10, rect.height + 10);
     const bg = new PIXI.Graphics();
-    const text = new PIXI.Text(label, { fontFamily: "Georgia", fontSize: 22, fontWeight: "bold", fill: RELIC.bone });
+    const text = new PIXI.Text(label, { fontFamily: "Georgia", fontSize: 20, fontWeight: "bold", fill: RELIC.bone });
     text.anchor.set(.5);
-    text.position.set(buttonWidth / 2, buttonHeight / 2);
+    text.position.set(rect.width / 2, rect.height / 2 - 1);
     container.addChild(bg, text);
     container.on("pointerdown", (event) => event.stopPropagation());
     container.on("pointertap", (event) => { event.stopPropagation(); onToggleGroup?.(id); });
+    const button = { id, container, bg, text, hovered: false };
+    container.on("pointerover", () => { button.hovered = true; updateButtons(); });
+    container.on("pointerout", () => { button.hovered = false; updateButtons(); });
     root.addChild(container);
-    return { id, container, bg, text };
+    return button;
   });
-  let signature = null, keySignature = null;
+  function updateButtons() {
+    const active = getActiveGroups?.() ?? [];
+    for (const button of buttons) {
+      const selected = active.includes(button.id);
+      paintButtonState(button.bg, button.id, selected, button.hovered);
+      button.text.style.fill = selected ? 0xffdda0 : RELIC.bone;
+    }
+  }
+
+  let keyLayout = layoutTimegraphKey(0);
+  const pageButtons = [-1, 1].map((direction) => {
+    const button = new PIXI.Container();
+    button.position.set(direction < 0 ? 42 : 100, 197);
+    button.eventMode = "static";
+    button.hitArea = new PIXI.Rectangle(-2, -2, 46, 38);
+    const shade = new PIXI.Graphics();
+    button.addChild(shade);
+    button.on("pointerdown", event => event.stopPropagation());
+    button.on("pointertap", event => {
+      event.stopPropagation();
+      onKeyPage?.(keyLayout.page + direction);
+    });
+    root.addChild(button);
+    return { button, shade, direction };
+  });
+
   return {
     setScope(label) {
-      const local = label.startsWith("Local");
-      scopeValue.text = local ? "Settlement · " + label.replace("Local • ", "") : "Civilization · All settlements";
+      scopeValue.text = label.startsWith("Local")
+        ? "Settlement · " + label.replace("Local • ", "")
+        : "Civilization · All settlements";
       scopeValue.scale.set(1);
-      scopeValue.scale.set(Math.min(1, (width - 884) / Math.max(1, scopeValue.width)));
+      scopeValue.scale.set(Math.min(1, 500 / Math.max(1, scopeValue.width)));
     },
-    layoutKey(count) {
-      const spec = layoutTimegraphKey(count, height, headerHeight);
-      if (keySignature !== count) {
-        keySignature = count;
-        keyPanel.clear();
-        if (count) paintRelicPanel(keyPanel, 0, headerHeight + 4, spec.width, spec.height, RELIC.night, RELIC.brass, 2);
-        parchment.x = spec.width + 8;
-        parchment.width = width - parchment.x;
+    layoutKey(count, page) {
+      keyLayout = layoutTimegraphKey(count, page);
+      keyCaption.text = keyLayout.pageCount > 1 ? `KEY  ${keyLayout.page + 1}/${keyLayout.pageCount}` : "KEY";
+      keyCaption.style.fontSize = keyLayout.pageCount > 1 ? 15 : 17;
+      for (const { button, shade, direction } of pageButtons) {
+        const enabled = direction < 0 ? keyLayout.page > 0 : keyLayout.page < keyLayout.pageCount - 1;
+        button.cursor = enabled ? "pointer" : "default";
+        shade.clear();
+        if (!enabled) shade.beginFill(0x15120e, .68).drawRoundedRect(2, 2, 39, 28, 3).endFill();
       }
-      return spec;
+      return keyLayout;
     },
-    update() {
-      const active = getActiveGroups?.() ?? [];
-      const next = active.join("|");
-      if (signature === next) return;
-      signature = next;
-      for (const button of buttons) {
-        const selected = active.includes(button.id);
-        button.bg.clear();
-        paintRelicPanel(button.bg, 0, 0, buttonWidth, buttonHeight,
-          selected ? 0x6b5132 : RELIC.raised, selected ? RELIC.gold : RELIC.brass, selected ? 2 : 1);
-        button.text.style.fill = selected ? 0xffe6b5 : RELIC.bone;
-      }
-    },
+    update: updateButtons,
+    paintButtonState,
     getScopeLabel: () => scopeValue.text,
+    getKeyDebugState: () => ({
+      page: keyLayout.page, pageCount: keyLayout.pageCount, total: keyLayout.total,
+      capacity: TIMEGRAPH_CHROME.keyCapacity, zone: { ...getTimegraphLayout().key },
+      pageButtons: pageButtons.map(({ button, direction }) => {
+        const point = button.toGlobal(new PIXI.Point(21, 17));
+        return { direction, x: point.x, y: point.y };
+      }),
+    }),
     getButtons: () => buttons.map(({ id, container }) => {
-      const point = container.toGlobal(new PIXI.Point(buttonWidth / 2, buttonHeight / 2));
+      const rect = CONTROL_RECTS[id];
+      const point = container.toGlobal(new PIXI.Point(rect.width / 2, rect.height / 2));
       return { id, x: point.x, y: point.y };
     }),
   };

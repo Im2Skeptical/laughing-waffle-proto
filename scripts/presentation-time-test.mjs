@@ -3,7 +3,7 @@ import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
 import { computeGraphSeriesScaleRanges } from '../src/views/timegraphs-helpers.js';
-import { layoutTimegraphKey, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
+import { layoutTimegraphKey, getTimegraphLayout, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import {
   loopPhase, sampleSpriteFrame, sampleEventProgress, sampleMote,
@@ -11,20 +11,28 @@ import {
 } from '../src/views/timeline-presentation.js';
 
 const clip={frameCount:8,framesPerSecond:12,startSec:3};
-for (const count of [0, 3, 5, 6, 17, 24]) {
-  const key = layoutTimegraphKey(count, 258);
-  assert.equal(key.points.length, count);
-  assert.ok(key.width <= 186, 'Even the maximum custom selection leaves most of the scroll for plotting');
-  for (let i = 0; i < key.points.length; i++) {
-    const point = key.points[i];
-    assert.ok(point.y >= TIMEGRAPH_CHROME.headerHeight + 4);
-    assert.ok(point.y + TIMEGRAPH_CHROME.iconSize < 258, 'Key symbols stay inside the bottom assembly');
-    if (i % key.rows) {
-      assert.equal(point.x, key.points[i - 1].x, 'Symbols fill vertically before adding another column');
-      assert.ok(point.y >= key.points[i - 1].y + TIMEGRAPH_CHROME.iconSize);
-    }
+const graphLayout = getTimegraphLayout();
+for (const count of [0, 3, 5, 8, 9, 17, 24]) {
+  const firstPage = layoutTimegraphKey(count);
+  const covered = [];
+  for (let page = 0; page < firstPage.pageCount; page++) {
+    const key = layoutTimegraphKey(count, page);
+    assert.deepEqual({ x: key.x, y: key.y, width: key.width, height: key.height }, graphLayout.key,
+      'The key housing is fixed for every selection and page');
+    assert.ok(key.points.length <= 8, 'Overflow never adds sockets or shrinks the graph');
+    key.points.forEach((point, index) => {
+      covered.push(key.startIndex + index);
+      assert.ok(point.x >= key.x && point.x + TIMEGRAPH_CHROME.iconSize <= key.x + key.width);
+      assert.ok(point.y >= key.y && point.y + TIMEGRAPH_CHROME.iconSize <= key.y + key.height);
+    });
+    assert.deepEqual(getTimegraphLayout().plot, graphLayout.plot);
   }
+  assert.deepEqual(covered, Array.from({ length: count }, (_, index) => index), 'Every selected series appears exactly once across key pages');
+  assert.equal(layoutTimegraphKey(count, -1).page, 0);
+  assert.equal(layoutTimegraphKey(count, 100).page, firstPage.pageCount - 1);
 }
+assert.equal(layoutTimegraphKey(8).pageCount, 1);
+assert.equal(layoutTimegraphKey(9).pageCount, 2);
 const civSeries = GRAPH_METRICS.civilization.getSeries(null, null);
 const localSeries = GRAPH_METRICS.settlement.getSeries(null, null);
 assert.deepEqual(getGraphGroupSeriesIds('chaos', 'civilization', civSeries), ['monsterCount', 'chaosResistance', 'chaosRawPressure']);
