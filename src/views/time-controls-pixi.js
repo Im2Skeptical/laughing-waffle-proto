@@ -5,8 +5,8 @@ import { createTimeLeverView } from "./time-lever-pixi.js";
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { VIEWPORT_DESIGN_WIDTH } from "./layout-pixi.js";
 
-const BUTTON_WIDTH = 104;
-const BUTTON_HEIGHT = 64;
+const BUTTON_WIDTH = 180;
+const BUTTON_HEIGHT = 58;
 const BASIC_TIME_LEVER_UI_MAX_ABS_SPEED = 4;
 const BASIC_TIME_LEVER_LOCK_SPEEDS = Object.freeze([-4, -2, 2, 4]);
 const BASIC_TIME_LEVER_LOCK_SNAP_NORM_RADIUS = 0.07;
@@ -32,6 +32,7 @@ function makeButton(layer, label, onClick) {
   paintRelicPanel(bg,0,0,BUTTON_WIDTH,BUTTON_HEIGHT,RELIC.stone,RELIC.brass,2);
 
   const text = new PIXI.Text(label, {
+    fontFamily: "Georgia",
     fill: 0xffffff,
     fontSize: 24,
   });
@@ -78,8 +79,6 @@ export function createTimeControlsView({
   app,
   layer,
   getGameState,
-  togglePause,
-  isPausePending,
   getCommitPreviewState,
   onCommitPreview,
   getReturnToPresentState,
@@ -94,9 +93,6 @@ export function createTimeControlsView({
   root.zIndex = Number.isFinite(layout?.zIndex) ? layout.zIndex : 2;
   layer?.addChild(root);
 
-  const pauseButton = makeButton(root, "Pause", () => {
-    togglePause?.();
-  });
   let actionButtonMode = "commit";
   let actionButtonTargetSec = null;
   const commitButton = makeButton(root, "Commit", () => {
@@ -133,9 +129,7 @@ export function createTimeControlsView({
     timeLeverView.container.position.set(
       clamp(anchor.x - anchor.radius - 20 - timeLeverView.width, screenPadding,
         app.screen.width - timeLeverView.width - screenPadding), anchor.y - 100);
-    const buttonX = timeLeverView.container.x - 18 - BUTTON_WIDTH;
-    pauseButton.position.set(buttonX, anchor.y - BUTTON_HEIGHT - 8);
-    commitButton.position.set(buttonX, anchor.y + 8);
+    commitButton.position.set(28 + (308 - BUTTON_WIDTH) / 2, app.screen.height - 98 - 52 - BUTTON_HEIGHT - 14);
   }
   function update(frameDt) {
     const enabled = layout?.enabled !== false;
@@ -144,22 +138,6 @@ export function createTimeControlsView({
 
     const state = typeof getGameState === "function" ? getGameState() : null;
     if (!state) return;
-
-    const pausePending =
-      typeof isPausePending === "function" ? !!isPausePending() : false;
-    const pauseLabel = pauseButton.children[1];
-    const pauseBg = pauseButton.children[0];
-
-    if (state.paused) {
-      pauseLabel.text = "Paused";
-      pauseBg.tint = 0xffffff;
-    } else if (pausePending) {
-      pauseLabel.text = "Pausing...";
-      pauseBg.tint = 0xffcc66;
-    } else {
-      pauseLabel.text = "Pause";
-      pauseBg.tint = 0xffffff;
-    }
 
     const commitState =
       typeof getCommitPreviewState === "function"

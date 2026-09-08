@@ -3,7 +3,7 @@
 // STAGE 3: tSec aware.
 
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
-import { paintRelicPanel } from './chronicle-skin.js';
+import { createTimegraphScroll, getTimegraphInk } from './timegraph-scroll-pixi.js';
 import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
 import {
   getActionSecondsInRange,
@@ -44,21 +44,21 @@ export {
 
 const TIMEGRAPH_THEME = Object.freeze({
   panelHeaderBg: MUCHA_UI_COLORS.surfaces.header,
-  panelBodyBg: MUCHA_UI_COLORS.surfaces.panelDeep,
-  panelBorder: MUCHA_UI_COLORS.surfaces.borderSoft,
-  textPrimary: MUCHA_UI_COLORS.ink.primary,
-  textMuted: MUCHA_UI_COLORS.ink.secondary,
-  buttonBg: MUCHA_UI_COLORS.surfaces.borderSoft,
-  buttonBgActive: MUCHA_UI_COLORS.surfaces.borderSoft,
+  panelBodyBg: 0xe8cea0,
+  panelBorder: 0x765438,
+  textPrimary: 0x412e20,
+  textMuted: 0x735b40,
+  buttonBg: 0xdabd86,
+  buttonBgActive: 0xb39461,
   legendStroke: MUCHA_UI_COLORS.surfaces.borderSoft,
   legendStrokeHover: MUCHA_UI_COLORS.ink.primary,
-  gridMajor: 0x4c6158,
-  gridMinor: 0x31453e,
+  gridMajor: 0x806847,
+  gridMinor: 0x967e5b,
   actionMarker: MUCHA_UI_COLORS.accents.sage,
   eventMarkerNormal: MUCHA_UI_COLORS.intent.softPop,
   eventMarkerCritical: MUCHA_UI_COLORS.intent.dangerPop,
-  forecastMarker: MUCHA_UI_COLORS.accents.sage,
-  scrubMarker: MUCHA_UI_COLORS.ink.secondary,
+  forecastMarker: 0x5a6541,
+  scrubMarker: 0x483624,
   scrubLiveMarker: MUCHA_UI_COLORS.accents.gold,
 });
 
@@ -113,8 +113,9 @@ export function createMetricGraphView({
   historyWindowSec = null,
   getWindowSpec = null,
   canCommitScrubSecond = null,
-  getSystemTargetModeLabel = null,
   onToggleSystemTargetMode = null,
+  getActiveSeriesGroups = null,
+  onToggleSeriesGroup = null,
   windowWidth = 1200,
   windowHeight = 176,
   headerHeight = 38,
@@ -204,7 +205,7 @@ export function createMetricGraphView({
 
   function getActiveSeries() {
     const data = controller?.getData?.() ?? null;
-    if (Array.isArray(data?.series) && data.series.length) {
+    if (Array.isArray(data?.series)) {
       return data.series;
     }
     resolveMetric();
@@ -539,36 +540,32 @@ export function createMetricGraphView({
     ? Math.max(24, Math.min(WIN_H - 24, Math.floor(headerHeight)))
     : 38;
 
-  const body = new PIXI.Graphics();
   const plotG = new PIXI.Graphics();
   const scrubG = new PIXI.Graphics();
   const legendContainer = new PIXI.Container();
   const text = new PIXI.Text("", {
-    fontFamily: "Arial",
-    fontSize: 21,
+    fontFamily: "Georgia",
+    fontSize: 22,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
 
-  root.addChild(body, legendContainer, plotG, scrubG);
+  root.addChild(legendContainer, plotG, scrubG);
 
   const LEGEND_GUTTER_W = 46;
   const LEGEND_GUTTER_GAP = 4;
   const LEGEND_ICON_SIZE = 26;
-  const LEGEND_ICON_GAP = 2;
-  const LEGEND_ICON_TEXT_SIZE = 16;
+  const LEGEND_CELL_WIDTH = Math.floor((WIN_W - 80) / 8);
+  const LEGEND_ICON_TEXT_SIZE = 20;
 
   const plot = {
     x: 16 + LEGEND_GUTTER_W + LEGEND_GUTTER_GAP,
-    y: HEADER_H + 12,
-    w: WIN_W - (16 + LEGEND_GUTTER_W + LEGEND_GUTTER_GAP) - 16,
-    h: WIN_H - HEADER_H - 26,
+    y: HEADER_H + 38,
+    w: WIN_W - (16 + LEGEND_GUTTER_W + LEGEND_GUTTER_GAP) - 36,
+    h: WIN_H - HEADER_H - 66,
   };
   legendContainer.eventMode = "static";
   legendContainer.hitArea = new PIXI.Rectangle(
-    16,
-    plot.y,
-    LEGEND_GUTTER_W,
-    plot.h
+    36, HEADER_H, WIN_W - 72, 52
   );
 
   const plotHit = new PIXI.Graphics();
@@ -591,22 +588,23 @@ export function createMetricGraphView({
     onClose: () => close(),
   });
 
-  const ZOOM_BTN_W = 90;
-  const ZOOM_BTN_H = 32;
-  const TARGET_BTN_W = 150;
-  const HEADER_LEFT_X = 16;
-  const HEADER_CONTENT_GAP = 14;
+  headerUi.bg.visible = false;
+  const scroll = createTimegraphScroll({ root, width: WIN_W, height: WIN_H,
+    getActiveGroups: getActiveSeriesGroups, onToggleGroup: onToggleSeriesGroup });
+  const axisLabels = new PIXI.Container();
+  axisLabels.eventMode = "none";
+  root.addChild(axisLabels);
+
+  const ZOOM_BTN_W = 118;
+  const ZOOM_BTN_H = 46;
+  const TARGET_BTN_W = 50;
+  const HEADER_LEFT_X = 40;
   const hasTargetModeButton = typeof onToggleSystemTargetMode === "function";
-  const HEADER_TEXT_X =
-    HEADER_LEFT_X +
-    ZOOM_BTN_W +
-    HEADER_CONTENT_GAP +
-    (hasTargetModeButton ? TARGET_BTN_W + HEADER_CONTENT_GAP : 0);
   const zoomBtn = new PIXI.Container();
   const zoomBg = new PIXI.Graphics();
   const zoomText = new PIXI.Text("", {
-    fontFamily: "Arial",
-    fontSize: 19,
+    fontFamily: "Georgia",
+    fontSize: 26,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
   zoomBtn.addChild(zoomBg, zoomText);
@@ -617,7 +615,7 @@ export function createMetricGraphView({
   const targetBg = new PIXI.Graphics();
   const targetText = new PIXI.Text("", {
     fontFamily: "Arial",
-    fontSize: 19,
+    fontSize: 30,
     fill: TIMEGRAPH_THEME.textPrimary,
   });
   targetBtn.addChild(targetBg, targetText);
@@ -626,6 +624,7 @@ export function createMetricGraphView({
   targetBtn.visible = hasTargetModeButton;
   root.addChild(targetBtn);
   root.addChild(text);
+  text.position.set(790, 32);
 
   let isScrubbing = false;
   let scrubSec = 0;
@@ -658,7 +657,7 @@ export function createMetricGraphView({
   const ACTION_SNAP_THRESHOLD_SEC = 0.75;
   const MAX_ACTION_MARKERS_DENSITY = 2;
   const FORECAST_PREVIEW_MARKER_COLOR = TIMEGRAPH_THEME.forecastMarker;
-  const SERIES_LINE_WIDTH_DEFAULT = 2;
+  const SERIES_LINE_WIDTH_DEFAULT = 2.8;
   const SERIES_LINE_WIDTH_HOVERED = 3;
   const SERIES_LINE_WIDTH_DIMMED = 1.5;
   const SERIES_LINE_ALPHA_DEFAULT = 1;
@@ -1851,16 +1850,6 @@ export function createMetricGraphView({
       .join("|");
   }
 
-  function toLegendIconText(rawText) {
-    const text = String(rawText ?? "").trim();
-    if (!text) return "?";
-    const words = text.split(/\s+/).filter(Boolean);
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase().slice(0, 2);
-    }
-    return text.slice(0, 2).toUpperCase();
-  }
-
   function getSeriesLegendTitle(seriesDef) {
     const label = String(seriesDef?.legendLabel ?? "").trim();
     if (label) return label;
@@ -1905,9 +1894,9 @@ export function createMetricGraphView({
           isHovered ? TIMEGRAPH_THEME.legendStrokeHover : TIMEGRAPH_THEME.legendStroke,
           isHovered ? 0.95 : 0.85
         )
-        .beginFill(lineColor, baseAlpha)
-        .drawCircle(LEGEND_ICON_SIZE / 2, LEGEND_ICON_SIZE / 2, LEGEND_ICON_SIZE / 2)
-        .endFill();
+        .lineStyle(isHovered ? 5 : 4, lineColor, baseAlpha)
+        .moveTo(0, LEGEND_ICON_SIZE / 2)
+        .lineTo(22, LEGEND_ICON_SIZE / 2);
       entry.container.alpha = hasHovered && !isHovered ? 0.65 : 1;
     }
   }
@@ -1940,7 +1929,7 @@ export function createMetricGraphView({
       ? Array.from(legendEntriesBySeriesId.values()).find((candidate) => {
           const x = Number(candidate?.container?.x ?? 0);
           const y = Number(candidate?.container?.y ?? 0);
-          return local.x >= x && local.x <= x + LEGEND_ICON_SIZE &&
+          return local.x >= x && local.x <= x + LEGEND_CELL_WIDTH &&
             local.y >= y && local.y <= y + LEGEND_ICON_SIZE;
         })
       : null;
@@ -1961,6 +1950,8 @@ export function createMetricGraphView({
           getDisplayObjectWorldScale(entry.container, 1)
       ),
     };
+    const range = getPlotSnapshot()?.seriesScaleRanges?.get(seriesId);
+    if (range) spec.lines = [...(spec.lines ?? []), `Graph scale: ${range.minValue}–${range.maxValue}${entry.seriesDef.scaleMode === "fixed" ? " (fixed)" : ""}`];
     tooltipView.show(spec, entry.container.getBounds());
   }
 
@@ -1988,12 +1979,8 @@ export function createMetricGraphView({
       for (const s of list) {
         const seriesId = String(s?.id ?? "");
         if (!seriesId) continue;
-        const lineColor = Number.isFinite(s?.color)
-          ? s.color
-          : MUCHA_UI_COLORS.accents.gold;
-        const iconTextValue = toLegendIconText(
-          String(s?.legendIcon ?? s?.legendLabel ?? s?.label ?? seriesId)
-        );
+        const lineColor = getTimegraphInk(s);
+        const iconTextValue = String(s?.label ?? seriesId);
 
         const entryContainer = new PIXI.Container();
         entryContainer.eventMode = "static";
@@ -2001,7 +1988,7 @@ export function createMetricGraphView({
         entryContainer.hitArea = new PIXI.Rectangle(
           0,
           0,
-          LEGEND_ICON_SIZE,
+          LEGEND_CELL_WIDTH,
           LEGEND_ICON_SIZE
         );
         entryContainer.on("pointerdown", (event) => {
@@ -2017,9 +2004,10 @@ export function createMetricGraphView({
           fontWeight: "bold",
         });
         applyTextResolution(iconText, 1.5);
-        iconText.anchor.set(0.5);
-        iconText.x = LEGEND_ICON_SIZE / 2;
+        iconText.anchor.set(0, 0.5);
+        iconText.x = 28;
         iconText.y = LEGEND_ICON_SIZE / 2;
+        if (iconText.width > LEGEND_CELL_WIDTH - 34) iconText.scale.set((LEGEND_CELL_WIDTH - 34) / iconText.width);
         entryContainer.addChild(bg, iconText);
         legendContainer.addChild(entryContainer);
 
@@ -2034,16 +2022,18 @@ export function createMetricGraphView({
     }
 
     const entries = Array.from(legendEntriesBySeriesId.values());
-    const totalHeight = entries.length
-      ? entries.length * LEGEND_ICON_SIZE + (entries.length - 1) * LEGEND_ICON_GAP
-      : 0;
-    const startY = plot.y + Math.max(0, Math.floor((plot.h - totalHeight) / 2));
-    let y = startY;
-    const x = 16 + Math.floor((LEGEND_GUTTER_W - LEGEND_ICON_SIZE) / 2);
-    for (const entry of entries) {
-      entry.container.x = x;
-      entry.container.y = y;
-      y += LEGEND_ICON_SIZE + LEGEND_ICON_GAP;
+    entries.forEach((entry, index) => {
+      entry.container.x = 40 + (index % 8) * LEGEND_CELL_WIDTH;
+      entry.container.y = HEADER_H + Math.floor(index / 8) * 26;
+    });
+    const nextPlotY = HEADER_H + Math.max(1, Math.ceil(entries.length / 8)) * 26 + 12;
+    if (nextPlotY !== plot.y) {
+      plot.y = nextPlotY;
+      plot.h = WIN_H - plot.y - 28;
+      legendContainer.hitArea.height = plot.y - HEADER_H - 12;
+      lastScrubSignature = "";
+      drawWindow();
+      invalidatePlotSnapshot();
     }
     refreshLegendStyles();
   }
@@ -2055,8 +2045,9 @@ export function createMetricGraphView({
   });
 
   function updateHeaderButtons() {
-    const zoomX = HEADER_LEFT_X;
-    const y = Math.floor((HEADER_H - ZOOM_BTN_H) / 2);
+    const zoomX = WIN_W - ZOOM_BTN_W - HEADER_LEFT_X;
+    const y = 20;
+    scroll.update();
 
     zoomBg.clear();
     zoomBg.lineStyle(1, TIMEGRAPH_THEME.panelBorder, 0.92);
@@ -2074,32 +2065,22 @@ export function createMetricGraphView({
     zoomBtn.y = y;
 
     if (hasTargetModeButton) {
-      const targetX = zoomX + ZOOM_BTN_W + HEADER_CONTENT_GAP;
+      const targetX = HEADER_LEFT_X + 3 * 222;
       targetBg.clear();
       targetBg.lineStyle(1, TIMEGRAPH_THEME.panelBorder, 0.92);
       targetBg.beginFill(TIMEGRAPH_THEME.buttonBg, 1);
       targetBg.drawRoundedRect(0, 0, TARGET_BTN_W, ZOOM_BTN_H, 6);
       targetBg.endFill();
-      const labelRaw =
-        typeof getSystemTargetModeLabel === "function"
-          ? getSystemTargetModeLabel()
-          : "Target";
-      targetText.text = String(labelRaw || "Target");
+      targetText.text = "☷";
       targetText.x = Math.floor((TARGET_BTN_W - targetText.width) / 2);
       targetText.y = Math.floor((ZOOM_BTN_H - targetText.height) / 2);
       targetBtn.x = targetX;
       targetBtn.y = y;
     }
-    text.x = HEADER_TEXT_X;
-    text.y = 10;
   }
 
   function drawWindow() {
     headerUi.setWidth(WIN_W);
-
-    body.clear();
-    paintRelicPanel(body, 0, HEADER_H, WIN_W, WIN_H - HEADER_H,
-      TIMEGRAPH_THEME.panelBodyBg, TIMEGRAPH_THEME.panelBorder, 2);
 
     plotHit.clear();
     plotHit.beginFill(0xffffff);
@@ -2674,6 +2655,7 @@ export function createMetricGraphView({
     const pointsForDraw = Array.isArray(snapshot?.pointsForDraw)
       ? snapshot.pointsForDraw
       : [];
+    axisLabels.removeChildren().forEach((child) => child.destroy());
     if (!pointsForDraw.length || !seriesList.length) return;
 
     const tl = snapshot?.tl ?? getTimeline?.();
@@ -2774,9 +2756,7 @@ export function createMetricGraphView({
         hoveredLegendSeriesId.length > 0;
 
       for (const s of list) {
-        const baseLineColor = Number.isFinite(s?.color)
-          ? s.color
-          : MUCHA_UI_COLORS.accents.gold;
+        const baseLineColor = getTimegraphInk(s);
         const isHovered = hasHoveredSeries && s.id === hoveredLegendSeriesId;
         const lineWidth = hasHoveredSeries
           ? isHovered
@@ -2939,6 +2919,24 @@ export function createMetricGraphView({
         TIME_STATE_COLORS.itemUnavailable,
         ITEM_UNAVAILABLE_ZONE_ALPHA
       );
+    }
+
+    // Monsters always owns the visible left axis when enabled.
+    const axisSeries = seriesList.find((series) => series.id === "monsterCount") ?? seriesList[0];
+    const axisRange = seriesScaleRanges.get(axisSeries?.id);
+    if (axisRange) {
+      for (let step = 0; step <= 2; step += 1) {
+        const ratio = step / 2;
+        const value = axisRange.maxValue - ratio * (axisRange.maxValue - axisRange.minValue);
+        const label = new PIXI.Text(Number(value.toFixed(1)).toLocaleString(), {
+          fontFamily: "Georgia", fontSize: 18, fill: getTimegraphInk(axisSeries),
+        });
+        label.anchor.set(1, .5);
+        label.position.set(plot.x - 8, plot.y + ratio * plot.h);
+        axisLabels.addChild(label);
+        plotG.lineStyle(1, TIMEGRAPH_THEME.gridMinor, .24)
+          .moveTo(plot.x, plot.y + ratio * plot.h).lineTo(plot.x + plot.w, plot.y + ratio * plot.h);
+      }
     }
 
     // Grid
@@ -3137,10 +3135,8 @@ export function createMetricGraphView({
       }
     }
 
-    const zone = scrubSec <= historyEnd ? "History" : "Forecast";
-    const note = statusNote ? ` • ${statusNote}` : "";
-
-    text.text = `CHRONICLE · ${metricLabel} / ${zone.toUpperCase()} · ${scrubSec}s / Present ${curT}s${note}`;
+    text.text = metricLabel.startsWith("Local") ? metricLabel.replace("Local • ", "") : "Civilization";
+    text.scale.set(Math.min(1, (WIN_W - 990) / Math.max(1, text.width / text.scale.x)));
   }
 
   function applyPreviewThrottled(force) {
@@ -3452,6 +3448,10 @@ export function createMetricGraphView({
         })
       : [];
     return {
+      groupButtons: scroll.getButtons(),
+      activeGroups: getActiveSeriesGroups?.() ?? [],
+      seriesMenuButton: targetBtn.toGlobal(new PIXI.Point(TARGET_BTN_W / 2, ZOOM_BTN_H / 2)),
+      focusButton: zoomBtn.toGlobal(new PIXI.Point(ZOOM_BTN_W / 2, ZOOM_BTN_H / 2)),
       minSec,
       maxSec,
       scrubSec,

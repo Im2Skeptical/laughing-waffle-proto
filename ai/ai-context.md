@@ -175,11 +175,20 @@ bounded JSON state used for replay and phase tooltips.
   tapping it again or elsewhere dismisses those details.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.
-- The timegraph automatically uses civilization scope on the map and local
-  scope in a settlement. Series choices are independent by scope.
+- The enlarged timegraph uses an illustrated parchment scroll with Chaos,
+  Resources, and Population toggles, a compact individual-series picker, and
+  Focus at the right. A new run starts with Chaos only (Monsters, Chaos
+  Resistance, Chaos Pressure); Monsters always uses a fixed 0–100 axis.
+  Selecting a detailed region switches to local scope and defaults to Resources
+  (Food, Gold, Total Population, local Housing Capacity). Civilization Resources
+  omits local housing. Population shows population and Villager/Stranger subgroups
+  for the current scope, civilization housing, and local housing when selected.
+  Gold reads settlement currency, summed over player settlements in civilization
+  scope. Groups can be combined; shared series survive removing another group.
+  Civilization series choices are remembered while browsing settlements.
 - Forecast unveiling drives the read-only viewed state and playhead without
   advancing committed history or consuming RNG. Each new unveil starts with
-  the playhead following its speed. Player use of the lever, pause, Present,
+  the playhead following its speed. Player use of the lever, Present,
   graph scrub, or time discs detaches that follow until the next unveil.
 - Long forecasts retain lightweight graph summaries after heavy state snapshots
   are evicted, while active forecast tails remain pinned for worker continuation.
@@ -187,7 +196,8 @@ bounded JSON state used for replay and phase tooltips.
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals. The enlarged wheel is the primary time control; phase
   badges also accept moon-wheel drags. The wheel sits in the right corner, with
-  Pause/Present and a compact vertical lever to its left. The lever locks forward
+  a compact vertical lever to its left. Present sits above the lower-left Vassal
+  control; there is no separate Pause button. The lever locks forward
   above centre, rewind below centre, and holds time at centre, with symmetric
   2x/4x speed notches.
 - The World Map candidate chooser overlays the lower map and graph

@@ -1,5 +1,9 @@
 # Original visual assets
 
+The illustrated timegraph scroll was added on 2026-09-08 with the built-in image
+generation tool. Its saved PNG and exact prompt are documented in
+[timegraph-scroll-prompt.md](timegraph-scroll-prompt.md).
+
 Generated for this project on 2026-09-07 with the built-in image generation tool, then copied into this directory. No CLI fallback or external game textures were used. Original supplied references remain in `ai/References/` and are not shipped by the build.
 
 The runtime atlas mapping is in `src/views/chronicle-art.js`. Native PNGs are preserved; atlas sampling and aspect-preserving crops happen in Pixi. Full design, time contract, and validation notes: [visual overhaul](../../ai/visual-overhaul.md).

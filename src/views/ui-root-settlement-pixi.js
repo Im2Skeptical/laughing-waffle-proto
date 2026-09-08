@@ -182,7 +182,7 @@ const SETTLEMENT_GRAPH_WINDOW_SEC =
   Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
   4 *
   Math.max(1, Math.floor(SETTLEMENT_VISIBLE_WINDOW_YEARS));
-const MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES = 5;
+const MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES = 24;
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
 app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltipLayer);
@@ -288,6 +288,7 @@ function setSettlementGraphContext(scope, regionId = selectedWorldRegionId) {
     nextSubjectKey
   );
   settlementGraphSeriesMenu?.setContext?.(nextScope);
+  if (contextChanged && nextScope === "settlement") settlementGraphSeriesMenu?.selectDefaultGroup?.();
   settlementGraphSeriesMenu?.syncSelection?.();
   if (contextChanged) {
     settlementGraphController?.ensureCache?.();
@@ -1316,8 +1317,8 @@ settlementGraphSeriesMenu = createSettlementGraphSeriesMenu({
   renderGraph: () => settlementGraphView?.render?.(),
   getPreferredSeriesIds: (contextId) =>
     contextId === "settlement"
-      ? ["totalPopulation", "food", "population:villager"]
-      : ["totalPopulation", "food", "chaosPower", "chaosRawPressure", "chaosResistance"],
+      ? ["food", "gold", "totalPopulation", "housingCapacity"]
+      : ["monsterCount", "chaosResistance", "chaosRawPressure"],
   maxVisibleSeries: MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
   viewportWidth: VIEWPORT_DESIGN_WIDTH,
   viewportHeight: VIEWPORT_DESIGN_HEIGHT,
@@ -1427,8 +1428,6 @@ const timeControlsView = createTimeControlsView({
     paused: getSettlementPlaybackTarget() === 0 && !settlementGraphView?.isFollowingForecastReveal?.(),
     followingForecast: settlementGraphView?.isFollowingForecastReveal?.() === true,
   }),
-  togglePause,
-  isPausePending: () => false,
   getCommitPreviewState: () => ({ visible: false, enabled: false }),
   onCommitPreview: () => ({ ok: false, reason: "settlementPreviewOnly" }),
   getReturnToPresentState: () => {
@@ -1510,10 +1509,10 @@ settlementGraphView = createMetricGraphView({
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
-  openPosition: { x: 366, y: 854 },
-  windowWidth: 1560,
-  windowHeight: 216,
-  headerHeight: 44,
+  openPosition: { x: 356, y: 744 },
+  windowWidth: 1700,
+  windowHeight: 326,
+  headerHeight: 70,
   getRenderedHistoryEndSec: (spec) =>
     getSettlementRenderedHistoryEndSec({
       actualHistoryEndSec: spec?.actualHistoryEndSec,
@@ -1538,8 +1537,9 @@ settlementGraphView = createMetricGraphView({
   freezeScaleMaxDuringReveal: true,
   bootFadeDurationMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
   bootRevealDelayMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
-  getSystemTargetModeLabel: () => settlementGraphSeriesMenu?.getButtonLabel?.() ?? "Series 0/0",
   onToggleSystemTargetMode: () => settlementGraphSeriesMenu?.toggle?.(),
+  getActiveSeriesGroups: () => settlementGraphSeriesMenu?.getActiveGroups?.() ?? [],
+  onToggleSeriesGroup: (id) => settlementGraphSeriesMenu?.toggleGroup?.(id),
   showClose: false,
   showPin: false,
   draggable: false,
@@ -1792,6 +1792,7 @@ function handleDebugFreshRunApplied(reason) {
   // Navigation and transport reset must precede the new reveal: neither is
   // player intervention that should detach or pause its default follow.
   setWorldViewMode("map");
+  settlementGraphSeriesMenu?.reset?.();
   settlementGraphView?.restartForecastRevealFrom?.(0, {
     clearProjectionReplacementTransition: true,
   });
@@ -1899,7 +1900,7 @@ function publishSettlementDebugApi() {
     getTooltipDebugState: () => tooltipView.getDebugState(),
     getProjectedLossInfo: () => getProjectedSettlementLossInfo(),
     getDisplayedLossInfo: () => getSettlementLossInfoForDisplay(),
-    getGraphDebugState: () => settlementGraphView?.getDebugState?.() ?? null,
+    getGraphDebugState: () => ({ ...settlementGraphView?.getDebugState?.(), seriesMenu: settlementGraphSeriesMenu?.getDebugState?.() }),
     getGraphControllerData: () => settlementGraphController?.getData?.() ?? null,
     getProjectionForecastMeta: () =>
       settlementProjectionCache?.getForecastMeta?.() ?? null,

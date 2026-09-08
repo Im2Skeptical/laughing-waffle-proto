@@ -32,17 +32,17 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
   const alert=vm.pressure?.starvation?'STARVATION':vm.pressure?.overcrowding?'OVERCROWDED':'PRACTICES';
-  root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+238));
+  root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+225));
   const gap=9, pw=(rect.width-44-gap*4)/5;
-  vm.practices.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(pw+gap),y:y+268,width:pw,height:109},{
+  vm.practices.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(pw+gap),y:y+250,width:pw,height:85},{
     artId:p.practiceId,title:p.label,empty:!p.practiceId,tier:p.tier,
     value:p.practiceId?`${p.workers?.effectiveWorkers??0} work`:'',
     detail:`${p.rule??p.evaluation?.rule??''}\n${(p.tags??[]).join(' · ')}\n${p.workers?.effectiveWorkers??0} effective workers`,tooltipView,
   }));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
-    ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+393));
+    ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+345));
   const sw=Math.min(88,(rect.width-44-(vm.structures.length-1)*7)/Math.max(1,vm.structures.length));
-  vm.structures.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(sw+7),y:y+421,width:sw,height:64},{
+  vm.structures.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(sw+7),y:y+369,width:sw,height:52},{
     artId:p?.structureId,title:p?.label??p?.structureId,empty:!p?.structureId,tier:p?.tier,tooltipView,
     detail:p?.structureId??'Available structure space',
   }));
