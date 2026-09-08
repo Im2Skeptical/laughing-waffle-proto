@@ -1,11 +1,12 @@
 # Original visual assets
 
-The illustrated timegraph scroll was added on 2026-09-08 with the built-in image
-generation tool. The current compact scroll has upright left/right rollers;
-its saved PNG and exact edit prompts are documented in
-[timegraph-scroll-side-rollers-prompt.md](timegraph-scroll-side-rollers-prompt.md).
-The original top/bottom roller version is documented in
-[timegraph-scroll-prompt.md](timegraph-scroll-prompt.md).
+The current timegraph is one illustrated walnut/brass assembly with inset
+controls, a fixed key cabinet, upright scroll rollers and a transparent
+exterior. Its PNG, runtime sampling rectangle and exact built-in image
+generation prompt are documented in
+[timegraph-chronicle-assembly-prompt.md](timegraph-chronicle-assembly-prompt.md).
+Earlier scroll variants are documented in [timegraph-scroll-prompt.md](timegraph-scroll-prompt.md)
+and [timegraph-scroll-side-rollers-prompt.md](timegraph-scroll-side-rollers-prompt.md).
 
 Generated for this project on 2026-09-07 with the built-in image generation tool, then copied into this directory. No CLI fallback or external game textures were used. Original supplied references remain in `ai/References/` and are not shipped by the build.
 

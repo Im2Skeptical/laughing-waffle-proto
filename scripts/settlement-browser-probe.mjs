@@ -437,6 +437,24 @@ try {
   assert.deepEqual(grouped.graph.activeGroups, ["resources", "population"]);
   assert.deepEqual([...grouped.controller.seriesIds].sort(),
     ["food", "gold", "totalPopulation", "housingCapacity", "civilizationHousingCapacity", "population:villager", "population:stranger"].sort());
+  const allGroups = await clickGraphGroup("chaos");
+  assert.deepEqual(allGroups.graph.plotScreenRect, overview.graph.plotScreenRect,
+    "Adding groups cannot move or resize the parchment plot");
+  assert.deepEqual(allGroups.graph.key.zone, overview.graph.key.zone,
+    "The illustrated key cabinet has fixed bounds");
+  assert.equal(allGroups.graph.key.pageCount, 2);
+  assert.equal(allGroups.graph.legendButtons.length, 8);
+  await clickDesignPoint(page, allGroups.graph.key.pageButtons.find(button => button.direction === 1));
+  const secondKeyPage = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(secondKeyPage.graph.key.page, 1);
+  assert.deepEqual(secondKeyPage.graph.legendButtons.map(button => button.id), allGroups.controller.seriesIds.slice(8),
+    "The next page exposes every remaining series");
+  assert.deepEqual(secondKeyPage.controller.seriesIds, allGroups.controller.seriesIds,
+    "Paging the key does not change the plotted series");
+  assert.deepEqual(secondKeyPage.graph.plotScreenRect, overview.graph.plotScreenRect);
+  await clickDesignPoint(page, allGroups.graph.key.pageButtons.find(button => button.direction === -1));
+  assert.equal((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot())).graph.key.page, 0);
+  await clickGraphGroup("chaos");
   grouped = await clickGraphGroup("resources");
   assert.deepEqual(grouped.graph.activeGroups, ["population"]);
   assert.ok(grouped.controller.seriesIds.includes("housingCapacity"), "overlapping group series are retained");

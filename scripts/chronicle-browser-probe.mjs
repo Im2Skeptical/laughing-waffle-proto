@@ -33,8 +33,16 @@ try {
   await page.addInitScript(()=>localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup'));
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__);
-  await page.waitForFunction(()=>['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png']
+  await page.waitForFunction(()=>['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png']
     .every(name=>performance.getEntriesByType('resource').some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)));
+  const scrollAlpha=await page.evaluate(async()=>{
+    const art=new Image();art.src='images/dark-fantasy/timegraph-chronicle-assembly.png';await art.decode();
+    const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
+    const context=canvas.getContext('2d');context.drawImage(art,0,0);
+    return [[0,0],[1000,50],[1000,400]].map(([x,y])=>context.getImageData(x,y,1,1).data[3]);
+  });
+  assert.deepEqual(scrollAlpha.slice(0,2),[0,0],'The illustrated frame has no opaque rectangular backing');
+  assert.ok(scrollAlpha[2]>240,'The parchment remains a readable solid plotting surface');
   await page.screenshot({path:'artifacts/chronicle-menu.png'});
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().browseCapSec>60);

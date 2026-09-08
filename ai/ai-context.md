@@ -175,12 +175,14 @@ bounded JSON state used for replay and phase tooltips.
   tapping it again or elsewhere dismisses those details.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.
-- The timegraph uses an illustrated parchment scroll with upright left/right
-  rollers. Its compact framed control strip aligns with the timewheel overhang,
-  below the Lifegraph playfield. Chaos, Resources, and Population toggles sit
-  beside the individual-series picker, a labelled Viewing zone, and Focus at
-  the right. A framed glyph key fills vertically at the left, adding columns
-  for large selections; hover or tap shows series details. Numeric y-axis labels
+- The timegraph is one illustrated walnut/brass assembly containing a parchment
+  scroll with upright left/right rollers, inset controls, a Viewing plaque and
+  a fixed eight-socket key cabinet. Its exterior is transparent. The compact
+  assembly aligns with the timewheel overhang below the Lifegraph playfield.
+  Chaos, Resources, and Population toggles sit beside the individual-series
+  picker; Focus is at the right. Overflow key entries use previous/next page
+  arrows or the mouse wheel over the cabinet. Changing groups or key pages
+  never moves or resizes the plot. Hover or tap shows series details. Numeric y-axis labels
   are hidden because series use different scales. A new run starts with Chaos
   only (Monsters, Chaos Resistance, Chaos Pressure); Monsters always uses a
   fixed 0–100 axis.
