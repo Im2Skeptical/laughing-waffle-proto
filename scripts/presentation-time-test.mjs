@@ -3,6 +3,7 @@ import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
 import { computeGraphSeriesScaleRanges } from '../src/views/timegraphs-helpers.js';
+import { layoutTimegraphKey, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import {
   loopPhase, sampleSpriteFrame, sampleEventProgress, sampleMote,
@@ -10,6 +11,20 @@ import {
 } from '../src/views/timeline-presentation.js';
 
 const clip={frameCount:8,framesPerSecond:12,startSec:3};
+for (const count of [0, 3, 5, 6, 17, 24]) {
+  const key = layoutTimegraphKey(count, 258);
+  assert.equal(key.points.length, count);
+  assert.ok(key.width <= 186, 'Even the maximum custom selection leaves most of the scroll for plotting');
+  for (let i = 0; i < key.points.length; i++) {
+    const point = key.points[i];
+    assert.ok(point.y >= TIMEGRAPH_CHROME.headerHeight + 4);
+    assert.ok(point.y + TIMEGRAPH_CHROME.iconSize < 258, 'Key symbols stay inside the bottom assembly');
+    if (i % key.rows) {
+      assert.equal(point.x, key.points[i - 1].x, 'Symbols fill vertically before adding another column');
+      assert.ok(point.y >= key.points[i - 1].y + TIMEGRAPH_CHROME.iconSize);
+    }
+  }
+}
 const civSeries = GRAPH_METRICS.civilization.getSeries(null, null);
 const localSeries = GRAPH_METRICS.settlement.getSeries(null, null);
 assert.deepEqual(getGraphGroupSeriesIds('chaos', 'civilization', civSeries), ['monsterCount', 'chaosResistance', 'chaosRawPressure']);

@@ -15,7 +15,7 @@ import {
 import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 654 });
+const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 730 });
 export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
   survival: Object.freeze({ x: 590, y: 9, width: 850, height: 54 }),
   overview: Object.freeze({ x: 1460, y: 14, width: 150, height: 44 }),
@@ -151,7 +151,7 @@ export function createSettlementPrototypeView({
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
       const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
-      const structureRect = { x: BODY.x, y: 356, width: 540, height: 376 };
+      const structureRect = { x: BODY.x, y: 356, width: 540, height: 410 };
       panel(root, foodRect, "Local food and population");
       panel(root, practiceRect, `${vm.practices.length} practice slots`);
       panel(root, orderRect, "Elder Order");
@@ -178,8 +178,8 @@ export function createSettlementPrototypeView({
         width: practiceCardWidth,
         height: practiceRect.height - 70,
       }, entry, index, tooltipView));
-      addIllustration(root,"legacy",{x:1544,y:534,width:390,height:198},{alpha:.62});
-      addIllustration(root,"settlement",{x:606,y:534,width:906,height:198},{alpha:.7});
+      addIllustration(root,"legacy",{x:1544,y:534,width:390,height:270},{alpha:.62});
+      addIllustration(root,"settlement",{x:606,y:534,width:906,height:270},{alpha:.7});
       const order = vm.elderOrder;
       root.addChild(
         createText(`Worker policy: one token per ${getGameSetting(
@@ -218,8 +218,8 @@ export function createSettlementPrototypeView({
       const villager = vm.population.byClass.villager;
       const stranger = vm.population.byClass.stranger;
       const site = state.world.sites.find((entry) => entry.regionId === regionId).detailedState;
-      const left = { x: BODY.x, y: BODY.y, width: 1128, height: 654 };
-      const right = { x: 1194, y: BODY.y, width: 1182, height: 654 };
+      const left = { x: BODY.x, y: BODY.y, width: 1128, height: 688 };
+      const right = { x: 1194, y: BODY.y, width: 1182, height: 688 };
       panel(root, left, "Cohorts, housing, and meals");
       panel(root, right, "Annual probabilities and previous result");
       const lines = [

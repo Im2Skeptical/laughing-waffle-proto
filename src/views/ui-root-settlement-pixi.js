@@ -1509,10 +1509,10 @@ settlementGraphView = createMetricGraphView({
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
-  openPosition: { x: 356, y: 744 },
+  openPosition: { x: 356, y: 812 },
   windowWidth: 1700,
-  windowHeight: 326,
-  headerHeight: 70,
+  windowHeight: 258,
+  headerHeight: 42,
   getRenderedHistoryEndSec: (spec) =>
     getSettlementRenderedHistoryEndSec({
       actualHistoryEndSec: spec?.actualHistoryEndSec,
