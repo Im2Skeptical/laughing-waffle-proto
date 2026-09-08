@@ -589,7 +589,7 @@ try {
     "the locked touch preview preserves the candidate region highlight");
   assert.equal(tappedCandidate.lineage.selectedVassalIds.length, 0);
   const confirmVassalPoint = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getVassalPrimaryClickPoint()
+    () => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("vassal")
   );
   assert.ok(confirmVassalPoint, "the lower-left control exposes candidate confirmation");
   await clickDesignPoint(page, confirmVassalPoint);
@@ -763,7 +763,7 @@ try {
     "the living Vassal becomes actionable again at the frontier");
 
   const mapTogglePoint = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getVassalPrimaryClickPoint()
+    () => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("map")
   );
   assert.ok(mapTogglePoint, "the lower-left Vassal control exposes the map toggle");
   await clickDesignPoint(page, mapTogglePoint);
@@ -868,7 +868,7 @@ try {
         bottom: canvasRect.bottom,
       },
       tabs: Object.fromEntries(
-        ["overview", "demographics", "map"].map((key) => [
+        ["overview", "demographics"].map((key) => [
           key,
           toScreenRect(snapshot.view.headerControls[key]),
         ])
@@ -977,7 +977,8 @@ try {
     false,
     "opening a settlement preserves manual time browsing"
   );
-  await pressDesignPoint(terminalPage, { x: 1883, y: 36 }, 180);
+  await pressDesignPoint(terminalPage,
+    await terminalPage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("map")), 180);
   const manualMapView = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

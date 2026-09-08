@@ -48,13 +48,13 @@ for new rendering or model rules.
 
 - Overview/Demographics layout and labels:
   `src/views/settlement-prototype-view.js`
-- Vassal candidate drawer, Life Map, and primary control:
+- Vassal candidate drawer, Life Map, and shared navigation/time-status dock:
   `src/views/world-map-vassal-drawer-pixi.js`,
   `src/views/vassal-life-map-pixi.js`, and
-  `src/views/settlement-vassal-controls-pixi.js`
+  `src/views/settlement-navigation-pixi.js`
 - Shared survival strip: `src/views/civilization-survival-hud.js`
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
-- Pause/time controls: `src/views/time-controls-pixi.js`
+- Time lever: `src/views/time-controls-pixi.js`
 
 ### Timegraph
 
@@ -127,6 +127,8 @@ in `ai/ai-context.md`.
   `npm run probe:settlement`
 - Map/settlement visual or interaction changes:
   `npm run verify`, then `npm run probe:settlement`
+- Shared screen navigation, portrait shortcuts, or Present/time-state feedback:
+  `npm run probe:navigation`
 - Map Lab/debug form changes:
   `npm run verify`, then `npm run probe:map-lab`
 - Landing menu, save slots, or new-run setup:

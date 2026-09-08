@@ -37,7 +37,7 @@ function getDisplay(vassal, nodeId, committed, readOnly) {
 }
 
 export function createVassalLifeMapView({
-  layer, getPresentation, getCivilizationLossInfo, isVisible, onEnterNode, onOpenDecision, tooltipView,
+  layer, getPresentation, getCivilizationLossInfo, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
@@ -138,6 +138,8 @@ export function createVassalLifeMapView({
   root.on("pointerleave", clearNodeHover);
 
   function inspect(node, display) {
+    const presentation = getPresentation?.() ?? {};
+    if (presentation.readOnly && !display.completed) onReadOnlyAction?.();
     const now = performance.now();
     const doubleClick = display.available && lastClick.nodeId === node.id
       && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
@@ -204,7 +206,9 @@ export function createVassalLifeMapView({
     }
 
     root.addChild(createText(readOnly
-      ? "LOCKED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
+      ? presentation.viewedSec > presentation.frontierSec
+        ? "PROJECTED FUTURE · RETURN TO PRESENT TO MAKE DECISIONS"
+        : "FIXED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
       : "Choose a turning point. Rewrite what follows.", {
       ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 22, MAP_RECT.y + 68));

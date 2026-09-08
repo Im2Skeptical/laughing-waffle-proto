@@ -21,6 +21,7 @@
     "test:detailed-replay": "node src/model/tests/detailed-replay.js",
     "test:debug-config": "node src/model/tests/debug-game-config.js",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
+    "probe:navigation": "node scripts/navigation-browser-probe.mjs",
     "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose",
     "probe:game-menu": "node scripts/game-menu-browser-probe.mjs",
