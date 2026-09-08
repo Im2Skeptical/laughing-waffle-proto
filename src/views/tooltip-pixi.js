@@ -55,6 +55,22 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   let hideTimeoutId = null;
   let pinnedKey = null;
   let pinRevision = 0;
+  let dismissOnPointerExit = false;
+  // Cards may be replaced during a redraw, so their old Pixi pointerout
+  // handler cannot reliably dismiss a hover. Track its retained screen bounds.
+  document.addEventListener('pointermove', (event) => {
+    if (!dismissOnPointerExit || pinnedKey !== null || event.pointerType === 'touch') return;
+    const anchor = resolveAnchor(activeAnchor);
+    const canvas = app?.view?.getBoundingClientRect();
+    if (!anchor || !canvas?.width || !canvas?.height) return;
+    const x = (event.clientX - canvas.x) / canvas.width * app.screen.width;
+    const y = (event.clientY - canvas.y) / canvas.height * app.screen.height;
+    if (x < anchor.x || x > anchor.x + anchor.width ||
+        y < anchor.y || y > anchor.y + anchor.height) hide();
+  });
+  app?.view?.addEventListener('pointerleave', () => {
+    if (dismissOnPointerExit) hide();
+  });
   // Let the Pixi card handler claim this press by advancing the revision.
   // Otherwise it was an outside press, which dismisses the retained details.
   document.addEventListener('pointerdown', () => {
@@ -491,7 +507,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     };
   }
 
-  function show(spec, anchor, {force=false}={}) {
+  function show(spec, anchor, {force=false, dismissOnExit=false}={}) {
     if(pinnedKey!==null&&!force)return;
     const resolvedAnchor = resolveAnchor(anchor);
     if (!resolvedAnchor) return;
@@ -516,6 +532,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     bg.endFill();
 
     activeAnchor = anchor;
+    dismissOnPointerExit = dismissOnExit && resolvedAnchor.coordinateSpace === 'screen';
     activeScale = Number.isFinite(scale) ? scale : 1;
     activeWidth = contentSize.width;
     activeHeight = contentSize.height;

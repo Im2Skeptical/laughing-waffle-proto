@@ -32,7 +32,7 @@ export function addGamepieceCard(parent, rect, {
   root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
   const spec={title:title??'Vacant slot',lines:detail.split('\n').filter(Boolean),accentColor:border,maxWidth:290,scale:3};
   const key=`gamepiece:${rect.x}:${rect.y}:${artId}:${title}`;
-  root.on('pointerover',(event)=>{bg.tint=0xffe6b8;if(event.pointerType!=='touch')tooltipView?.show?.(spec,root.getBounds());});
+  root.on('pointerover',(event)=>{bg.tint=0xffe6b8;if(event.pointerType!=='touch')tooltipView?.show?.(spec,root.getBounds(),{dismissOnExit:true});});
   root.on('pointerout',()=>{bg.tint=0xffffff;tooltipView?.hide?.();});
   // Pin on press, so a hold works even if a timeline redraw replaces this card
   // before release. The shared tooltip owns the pin, not the transient sprite.

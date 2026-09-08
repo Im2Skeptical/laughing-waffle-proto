@@ -1,11 +1,16 @@
 export const PHONE_PORTRAIT_QUERY = '(hover: none) and (pointer: coarse) and (orientation: portrait)';
 
+export function usesTouchGameDisplay() {
+  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
 export function getGameFullscreenElement() {
   return document.fullscreenElement ?? document.webkitFullscreenElement ?? null;
 }
 
 // Call directly from the entry button's gesture, before doing any game work.
 export async function requestGameDisplayMode() {
+  if (!usesTouchGameDisplay()) return;
   const target = document.documentElement;
   try {
     if (!getGameFullscreenElement()) {

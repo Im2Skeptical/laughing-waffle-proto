@@ -150,15 +150,18 @@ bounded JSON state used for replay and phase tooltips.
   New game asks for a slot and confirms replacement of occupied/unavailable
   saves. The active slot saves every ten seconds during play, on focus loss,
   and through Save & menu. Storage failures remain visible and prevent leaving
-  an unsaved game through that control; focus loss still pauses and preserves
-  the live game in memory if saving fails. Loading validates and rebuilds the
+  an unsaved game through that control; touch-device focus loss still pauses and
+  preserves the live game in memory if saving fails. Desktop focus loss saves
+  without opening the menu. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot
   continue. No save-schema migration is introduced.
-- The menu is also the pause screen. Focus loss, page hiding, fullscreen exit,
-  or rotating a touch device into portrait returns to it. Regaining focus does
-  not resume automatically. Continue resumes the live playhead, choices, and
-  unveil-follow state without reloading. Game entry requests fullscreen and
-  landscape from the button gesture; unsupported portrait devices stay in the
+- The menu is also the pause screen. On devices whose primary input has no hover
+  and a coarse pointer, focus loss, page hiding, fullscreen exit, or rotating
+  into portrait returns to it. Regaining focus does not resume automatically.
+  Desktop play stays windowed and does not open the menu on focus loss or
+  fullscreen exit. Continue resumes the live playhead, choices, and
+  unveil-follow state without reloading. Touch-device entry requests fullscreen
+  and landscape from the button gesture; unsupported portrait devices stay in the
   same menu with a rotate-device hint. There is no separate landscape screen.
   Gameplay, reveal motion, and audio stop while the menu is open.
 

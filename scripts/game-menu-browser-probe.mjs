@@ -45,6 +45,12 @@ try {
   const ride=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(ride.runner.cursorStateSec,initialSecond,'Riding the unveil does not advance authoritative history');
   await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  await delay(100);
+  assert.equal(await page.getByTestId('game-menu').isVisible(),false,'Desktop focus loss keeps gameplay open');
+  assert.equal(await page.evaluate(()=>!!document.fullscreenElement),false,'Desktop entry stays windowed');
+  await page.evaluate(()=>document.dispatchEvent(new Event('fullscreenchange')));
+  assert.equal(await page.getByTestId('game-menu').isVisible(),false,'Desktop fullscreen exit does not pause');
+  await page.getByTestId('game-menu-open').click();
   await page.getByTestId('game-menu').waitFor({state:'visible'});
   const pausedRide=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   await delay(350);
@@ -94,8 +100,8 @@ try {
   assert.equal(held.playbackTarget,0,'Pause holds the moving unveil instead of starting normal playback');
   await delay(250);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),held.viewedSec);
-  assert.equal(await page.evaluate(()=>!!document.fullscreenElement),true,'Continue requests fullscreen directly from its click');
-  await page.evaluate(()=>document.exitFullscreen());
+  assert.equal(await page.evaluate(()=>!!document.fullscreenElement),false,'Desktop Continue stays windowed');
+  await page.getByTestId('game-menu-open').click();
   await page.getByTestId('game-menu').waitFor({state:'visible'});
   await page.getByTestId('game-continue').click();
   await page.getByTestId('game-menu').waitFor({state:'hidden'});
@@ -162,7 +168,7 @@ try {
   await phone.setViewportSize({width:844,height:390});
   assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Rotation alone does not resume a paused game');
   assert.deepEqual(errors, []);
-  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'fullscreen entry and exit', 'portrait menu fallback', 'focus pause and memory resume'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
   console.log('[probe:game-menu] OK');
 } catch (error) {
   writeFileSync(artifact, JSON.stringify({ error: error.stack }));

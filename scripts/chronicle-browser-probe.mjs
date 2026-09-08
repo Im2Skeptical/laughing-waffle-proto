@@ -59,6 +59,23 @@ try {
     const b=await page.locator('canvas').boundingBox();
     await page.mouse.click(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
   };
+  const hoverCard=async point=>{
+    // Screen transitions replace Pixi nodes; let their world transforms paint
+    // before sending a mouse event against the new screen coordinates.
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const b=await page.locator('canvas').boundingBox();
+    await page.mouse.move(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
+    const title=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title);
+    assert.ok(title,'Mouse hover shows card details');
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+    await delay(600);
+    const tooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
+    assert.ok(tooltip.visible&&!tooltip.pinned,'Stationary mouse details survive redraw without pinning');
+    assert.equal(tooltip.title,title);
+    await page.mouse.move(b.x+20/2424*b.width,b.y+100/1080*b.height);
+    await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
+  };
   const lever=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeLeverScreenRect());
   await click({x:lever.x+lever.width/2,y:lever.y+lever.height/2});
   await delay(100);
@@ -85,6 +102,16 @@ try {
   assert.deepEqual(await page.screenshot({clip:crop}),first,'Returning to the same time must restore identical world pixels after rewind');
   assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
   await page.screenshot({path:'artifacts/chronicle-world.png'});
+  await hoverCard({x:1800,y:550});
+  await hoverCard({x:1800,y:695});
+  await click({x:2047,y:762});
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await hoverCard({x:700,y:220});
+  await hoverCard({x:110,y:510});
+  await click({x:1883,y:36});
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='map');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   // Touch both wheel faces and a lunar badge as primary drag controls.
   const wheelTouch=await page.context().newCDPSession(page);
   for(const [radius,startAngle] of [[60,0],[105,0],[111,-Math.PI/2]]) {
@@ -227,7 +254,7 @@ try {
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','wheel and lunar badge touch drags','vertical lever direction locks','phone landscape','utility rail alignment','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','wheel and lunar badge touch drags','vertical lever direction locks','phone landscape','utility rail alignment','desktop hover survives redraw and dismisses on exit','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
   console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
 }catch(error){
   writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
