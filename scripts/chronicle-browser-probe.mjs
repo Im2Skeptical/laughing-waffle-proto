@@ -118,7 +118,7 @@ try {
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await hoverCard({x:700,y:220});
   await hoverCard({x:110,y:510});
-  await click({x:1883,y:36});
+  await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='map');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   // Touch both wheel faces and a lunar badge as primary drag controls.
@@ -236,7 +236,7 @@ try {
   await click({x:2047,y:762});await delay(150);
   await holdCard({x:700,y:220});
   await holdCard({x:110,y:510});
-  await click({x:1883,y:36});
+  await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
   const candidate=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));

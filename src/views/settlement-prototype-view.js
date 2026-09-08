@@ -20,7 +20,6 @@ export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
   survival: Object.freeze({ x: 590, y: 9, width: 850, height: 54 }),
   overview: Object.freeze({ x: 1460, y: 14, width: 150, height: 44 }),
   demographics: Object.freeze({ x: 1620, y: 14, width: 190, height: 44 }),
-  map: Object.freeze({ x: 1820, y: 14, width: 126, height: 44 }),
   utilityReserve: Object.freeze({ x: 1960, y: 0, width: 464, height: 70 }),
 });
 
@@ -103,7 +102,6 @@ export function createSettlementPrototypeView({
   getState,
   getSelectedRegionId,
   getCivilizationLossInfo,
-  onReturnToMap,
   tooltipView,
 }) {
   const root = new PIXI.Container();
@@ -145,7 +143,6 @@ export function createSettlementPrototypeView({
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
     addButton(root, SETTLEMENT_HEADER_LAYOUT.demographics, "Demographics",
       activeTab === "demographics", () => { activeTab = "demographics"; lastSignature = ""; });
-    addButton(root, SETTLEMENT_HEADER_LAYOUT.map, "Map", false, onReturnToMap);
 
     if (activeTab === "overview") {
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };

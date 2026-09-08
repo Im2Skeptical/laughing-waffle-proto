@@ -131,7 +131,7 @@ function actionCard(parent,rect,spec){
   root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
   root.on('pointertap',event=>{
     event.stopPropagation();const local=root.toLocal(event.global);
-    if(local.y>=rect.height-44){if(spec.enabled)spec.onClick?.();}
+    if(local.y>=rect.height-44){if(spec.enabled)spec.onClick?.();else spec.onUnavailable?.();}
     else spec.onInspect?.();
   });
   root.on('pointerover',()=>spec.onHover?.());root.on('pointerout',()=>spec.onOut?.());
@@ -171,12 +171,13 @@ function actionCard(parent,rect,spec){
 function outcomeCard(parent, rect, spec) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
-  root.eventMode = spec.enabled ? 'static' : 'none';
+  root.eventMode = spec.enabled || spec.onUnavailable ? 'static' : 'none';
   root.cursor = spec.enabled ? 'pointer' : 'default';
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
   root.on('pointertap', event => {
     event?.stopPropagation?.();
     if (spec.enabled) spec.onClick?.();
+    else spec.onUnavailable?.();
   });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8, PALETTE.card,
@@ -389,7 +390,7 @@ function pieceSlot(parent, piece, rect, emptyLabel) {
 export function createVassalNodeDecisionModalView({
   app, layer, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onRerollShop, onConfirmNode,
-  onWorldMap,
+  onWorldMap, onReadOnlyAction,
 } = {}) {
   const root = new PIXI.Container();
   root.visible = false;
@@ -411,6 +412,14 @@ export function createVassalNodeDecisionModalView({
   let previewOfferId = null;
   let pinnedInspectionId = null;
   let hoverRenderTimer = null;
+
+  function explainReadOnly(control, readOnly) {
+    if (readOnly) {
+      control.eventMode = "static";
+      control.on("pointertap", () => onReadOnlyAction?.());
+    }
+    return control;
+  }
 
   function scheduleHoverRender() {
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
@@ -477,6 +486,7 @@ export function createVassalNodeDecisionModalView({
     const presentation = getPresentation?.() ?? {};
     const vassal = presentation.vassal;
     const readOnly = presentation.readOnly === true;
+    const projection = presentation.viewedSec > presentation.frontierSec;
     const currentNodeId = vassal?.lifeMap?.currentNodeId ?? null;
     const decision = getDecisionPresentation?.(openNodeId, {
       previewOptionId,
@@ -549,7 +559,8 @@ export function createVassalNodeDecisionModalView({
 
     if (!nodeState) {
       root.addChild(createText(readOnly
-        ? "This node was not part of the committed path."
+        ? projection ? "Return to Present to enter this node. This future is a projection."
+          : "This node was not part of the committed path. Return to Present to make decisions."
         : "Enter this node to reveal its choices and begin the decision.", {
         ...TEXT_STYLES.header, fontSize: 23, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 900,
@@ -562,6 +573,7 @@ export function createVassalNodeDecisionModalView({
           openNodeId = node.id;
           render(true);
         });
+      explainReadOnly(enterRoot, readOnly);
     } else if (nodeState.resolving) {
       root.addChild(createText("DECISION COMMITTED · RESOLUTION IN PROGRESS", {
         ...TEXT_STYLES.header, fontSize: 25, fill: PALETTE.accent,
@@ -592,6 +604,7 @@ export function createVassalNodeDecisionModalView({
             presentation: offer.presentation,
             cost: formatCost(offer.prestigeCost, offer.phaseCost),
             effect: offerEffect(offer), enabled,
+            onUnavailable: readOnly ? onReadOnlyAction : null,
             onClick: () => onPurchaseOffer?.(node.id, offer.offerId),
             onHover: () => {
               if (hoveredOfferId === offer.offerId) return;
@@ -619,11 +632,12 @@ export function createVassalNodeDecisionModalView({
           const y = PANEL.y + 520;
           const card = new PIXI.Container();
           card.position.set(x, y);
-          card.eventMode = readOnly ? "none" : "static";
+          card.eventMode = "static";
           card.cursor = readOnly ? "default" : "grab";
           card.hitArea = new PIXI.Rectangle(0, 0, 318, 104);
           card.on("pointerdown", (event) => {
             event?.stopPropagation?.();
+            if (readOnly) { onReadOnlyAction?.(); return; }
             dragged = { offerId: purchase.offerId, fromIndex: index, count: purchases.length };
             dragTargetIndex = index;
           });
@@ -642,6 +656,7 @@ export function createVassalNodeDecisionModalView({
           root.addChild(card);
           undoRoots[index] = button(root, { x: x + 258, y: y + 61, width: 48, height: 32 }, "UNDO", !readOnly,
             () => onUndoPurchase?.(node.id, purchase.offerId));
+          explainReadOnly(undoRoots[index], readOnly);
         });
       } else {
         root.addChild(createText("CHOOSE ONE", {
@@ -665,6 +680,7 @@ export function createVassalNodeDecisionModalView({
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
               : optionEffect(option),
             enabled: !readOnly && prestigeCost <= vassal.prestige && requirements.every((entry) => entry.met),
+            onUnavailable: readOnly ? onReadOnlyAction : null,
             selected: nodeState.selectedOptionId === option.id,
             onClick: () => onSelectOption?.(node.id, option.id),
             onHover: () => {
@@ -727,22 +743,24 @@ export function createVassalNodeDecisionModalView({
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
         && (nodeState.purchasedOffers ?? []).length === 0
         && getAdjustedVassalPrestigeCost(vassal, 6) <= vassal.prestige;
-      button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
+      const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
         nodeState.rerollUsed ? "REROLL USED" : "REROLL · 6 PRESTIGE", rerollEnabled,
         () => onRerollShop?.(node.id));
+      explainReadOnly(reroll, readOnly);
     }
     button(root, { x: PANEL.x + PANEL.width - 652, y: PANEL.y + PANEL.height - 72, width: 250, height: 50 },
-      "VIEW WORLD MAP", !readOnly, () => { close(); onWorldMap?.(vassal.locationRegionId); });
+      "REGIONAL MAP", true, () => { close(); onWorldMap?.(vassal.locationRegionId); });
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
         x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 178, width: 340, height: 94,
       }, canConfirm);
     }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
-      readOnly ? "READ-ONLY HISTORY" : "CONFIRM & RESOLVE", canConfirm, () => {
+      readOnly ? projection ? "READ-ONLY PROJECTION" : "READ-ONLY HISTORY" : "CONFIRM & RESOLVE", canConfirm, () => {
         const result = onConfirmNode?.(node.id);
         if (result?.ok !== false) close();
       });
+    explainReadOnly(confirmRoot, readOnly);
     const inspectedOffer=(decision?.offers??[]).find(offer=>offer.offerId===pinnedInspectionId);
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
     if(inspectedOffer||(inspectedOption && !simpleOutcomes)){

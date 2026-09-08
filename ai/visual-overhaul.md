@@ -6,7 +6,7 @@ Implemented September 2026. This document describes the shipped presentation and
 
 The references in `ai/References/` were accessible and inspected before design: Diablo II, Age of Empires II, Baldur's Gate II, and the supplied pixel illustration/card references. They informed the palette, material treatment, and composition; the shipped paintings and sprites are newly generated originals.
 
-The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the primary Vassal action, Chronicle graph, and enlarged astrolabe. The wheel sits in the right corner, with a compact vertical lever immediately to its left and Pause/Present farther left. The lever locks forward/rewind movement around a neutral centre. The wheel, including its lunar badges, is the primary drag control.
+The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the shared navigation dock, Chronicle graph, and enlarged astrolabe. The dock combines direct screen links, a Vassal portrait/location shortcut outside the Life Map, and persistent Present/History/Projected future status. A brief, reduced-motion-aware input highlight explains attempts to edit fixed history or projections. The wheel sits in the right corner, with a compact vertical lever immediately to its left. The lever locks forward/rewind movement around a neutral centre. The wheel, including its lunar badges, is the primary drag control.
 
 - Region polygons and roads still come from the world definition. Terrain is clipped to those polygons; no authored map image determines geography.
 - Hamlet smoke, braziers, dust, and transfer packets follow the viewed timeline.
@@ -54,6 +54,7 @@ The current library contains thirty-six paintings, including a distinct illustra
 - Sprite and particle sampling: `src/views/chronicle-effects-pixi.js`, `src/views/timeline-presentation.js`
 - Audio transport: `src/views/timeline-audio.js`
 - Main composition/transport getters: `src/views/ui-root-settlement-pixi.js`
+- Navigation dock, portrait gestures, and time-lock feedback: `src/views/settlement-navigation-pixi.js`
 
 ## Verification and manual review
 

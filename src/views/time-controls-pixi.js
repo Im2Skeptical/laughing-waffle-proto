@@ -2,11 +2,8 @@
 // Secondary transport controls flank the primary sun/moon wheels.
 
 import { createTimeLeverView } from "./time-lever-pixi.js";
-import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { VIEWPORT_DESIGN_WIDTH } from "./layout-pixi.js";
 
-const BUTTON_WIDTH = 180;
-const BUTTON_HEIGHT = 58;
 const BASIC_TIME_LEVER_UI_MAX_ABS_SPEED = 4;
 const BASIC_TIME_LEVER_LOCK_SPEEDS = Object.freeze([-4, -2, 2, 4]);
 const BASIC_TIME_LEVER_LOCK_SNAP_NORM_RADIUS = 0.07;
@@ -23,38 +20,6 @@ function clamp(value, min, max) {
   if (value < min) return min;
   if (value > max) return max;
   return value;
-}
-
-function makeButton(layer, label, onClick) {
-  const container = new PIXI.Container();
-
-  const bg = new PIXI.Graphics();
-  paintRelicPanel(bg,0,0,BUTTON_WIDTH,BUTTON_HEIGHT,RELIC.stone,RELIC.brass,2);
-
-  const text = new PIXI.Text(label, {
-    fontFamily: "Georgia",
-    fill: 0xffffff,
-    fontSize: 24,
-  });
-  text.anchor.set(0.5, 0.5);
-  text.position.set(BUTTON_WIDTH * 0.5, BUTTON_HEIGHT * 0.5);
-
-  container.addChild(bg, text);
-  container.eventMode = "static";
-  container.cursor = "pointer";
-
-  container.on("pointerover", () => {
-    bg.tint = 0x888888;
-  });
-  container.on("pointerout", () => {
-    bg.tint = 0xffffff;
-  });
-  container.on("pointertap", () => {
-    onClick?.();
-  });
-
-  layer?.addChild(container);
-  return container;
 }
 
 function getControlsAnchor(layout, sunMoonLayout, app) {
@@ -79,10 +44,6 @@ export function createTimeControlsView({
   app,
   layer,
   getGameState,
-  getCommitPreviewState,
-  onCommitPreview,
-  getReturnToPresentState,
-  onReturnToPresent,
   getTimeScale,
   setTimeScaleTarget,
   layout = TIME_CONTROLS_LAYOUT,
@@ -93,19 +54,6 @@ export function createTimeControlsView({
   root.zIndex = Number.isFinite(layout?.zIndex) ? layout.zIndex : 2;
   layer?.addChild(root);
 
-  let actionButtonMode = "commit";
-  let actionButtonTargetSec = null;
-  const commitButton = makeButton(root, "Commit", () => {
-    if (actionButtonMode === "present") {
-      if (Number.isFinite(actionButtonTargetSec)) {
-        onReturnToPresent?.(actionButtonTargetSec);
-        return;
-      }
-      onReturnToPresent?.();
-      return;
-    }
-    onCommitPreview?.();
-  });
   const timeLeverView = createTimeLeverView({
     app,
     layer: root,
@@ -125,11 +73,10 @@ export function createTimeControlsView({
     if (!app?.screen) return;
     const anchor = getControlsAnchor(layout, sunMoonLayout, app);
     const screenPadding = Math.max(0, Number(layout?.screenPadding ?? 16));
-    // Keep the wheel unobstructed and all controls fixed when Present appears.
+    // The Present control belongs to the shared navigation dock.
     timeLeverView.container.position.set(
       clamp(anchor.x - anchor.radius - 20 - timeLeverView.width, screenPadding,
         app.screen.width - timeLeverView.width - screenPadding), anchor.y - 100);
-    commitButton.position.set(28 + (308 - BUTTON_WIDTH) / 2, app.screen.height - 98 - 52 - BUTTON_HEIGHT - 14);
   }
   function update(frameDt) {
     const enabled = layout?.enabled !== false;
@@ -138,44 +85,6 @@ export function createTimeControlsView({
 
     const state = typeof getGameState === "function" ? getGameState() : null;
     if (!state) return;
-
-    const commitState =
-      typeof getCommitPreviewState === "function"
-        ? getCommitPreviewState()
-        : null;
-    const returnState =
-      typeof getReturnToPresentState === "function"
-        ? getReturnToPresentState()
-        : null;
-    const showCommit = !!commitState?.visible;
-    const showReturn = !showCommit && !!returnState?.visible;
-    const showActionButton = showCommit || showReturn;
-    const canCommit =
-      showCommit &&
-      commitState?.enabled !== false &&
-      typeof onCommitPreview === "function";
-    const canReturn =
-      showReturn &&
-      returnState?.enabled !== false &&
-      typeof onReturnToPresent === "function";
-    const canAction = showCommit ? canCommit : canReturn;
-    actionButtonMode = showReturn ? "present" : "commit";
-    actionButtonTargetSec =
-      showReturn && Number.isFinite(returnState?.targetSec)
-        ? Math.floor(returnState.targetSec)
-        : null;
-
-    commitButton.visible = showActionButton;
-    commitButton.eventMode = canAction ? "static" : "none";
-    commitButton.cursor = canAction ? "pointer" : "default";
-    const commitBg = commitButton.children[0];
-    const commitLabel = commitButton.children[1];
-    if (commitLabel) {
-      commitLabel.text = showReturn ? "Present" : "Commit";
-    }
-    if (commitBg) {
-      commitBg.tint = canAction ? 0xffffff : 0x666666;
-    }
 
     timeLeverView.update(state, frameDt);
     applyLayout();
@@ -208,13 +117,6 @@ export function createTimeControlsView({
         width: bounds.width,
         height: bounds.height,
       };
-    },
-    getActionButtonClickPoint: () => {
-      if (!root.visible || !commitButton.visible || typeof commitButton.toGlobal !== "function") {
-        return null;
-      }
-      const point = commitButton.toGlobal(new PIXI.Point(BUTTON_WIDTH * 0.5, BUTTON_HEIGHT * 0.5));
-      return { x: point.x, y: point.y };
     },
     getScreenRect: () =>
       !root.visible || typeof root.getBounds !== "function"

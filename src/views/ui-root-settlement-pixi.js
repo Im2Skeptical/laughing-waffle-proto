@@ -48,6 +48,7 @@ import {
 } from "../model/vassal-life-map.js";
 import {
   getPrimaryDetailedSiteState,
+  getRegionReference,
 } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import { createTimeGraphController } from "../model/timegraph-controller.js";
@@ -57,7 +58,7 @@ import {
 } from "./layout-pixi.js";
 import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
 import { createRunCompleteView } from "./run-complete-pixi.js";
-import { createSettlementVassalControlsView } from "./settlement-vassal-controls-pixi.js";
+import { createSettlementNavigationView } from "./settlement-navigation-pixi.js";
 import { createTimeControlsView } from "./time-controls-pixi.js";
 import { createMetricGraphView } from "./timegraphs-pixi.js";
 import { createTooltipView } from "./tooltip-pixi.js";
@@ -197,7 +198,7 @@ let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
 let settlementGraphView = null;
 let settlementVassalChooserView = null;
-let settlementVassalControlsView = null;
+let settlementNavigationView = null;
 let vassalLifeMapView = null;
 let vassalNodeDecisionModalView = null;
 let vassalLevelUpModalView = null;
@@ -247,9 +248,6 @@ function setWorldViewMode(mode) {
   worldMapView?.setVisible?.(!settlementVisible && !lifeMapVisible);
   vassalLifeMapView?.setVisible?.(lifeMapVisible);
   if (!lifeMapVisible) vassalNodeDecisionModalView?.close?.();
-  // The Vassal controls are a shared time-control affordance. Keeping them in
-  // the control layer makes the route available from both map and settlement.
-  settlementVassalControlsView?.setVisible?.(true);
   setSettlementGraphContext(
     settlementVisible ? "settlement" : "civilization",
     selectedWorldRegionId
@@ -875,6 +873,10 @@ function openLifeMapVassalSelection() {
 }
 
 function dispatchLifeMapAction(kind, payload = {}) {
+  if (getSettlementViewedSec() !== getSettlementFrontierSec()) {
+    settlementNavigationView?.showReadOnlyFeedback?.();
+    return { ok: false, reason: "readOnlyTimeline" };
+  }
   requestPauseBeforeDrag();
   const activeVassalId = getCurrentLifeMapVassal(getSettlementFrontierState())?.vassalId ?? null;
   const result = runner.dispatchActionAtCurrentSecond?.(kind, payload, {
@@ -1080,45 +1082,90 @@ function applySettlementDebugOverrides(overrides) {
   };
 }
 
-function getSettlementPrimaryVassalState() {
+function getSettlementNavigationState() {
   const frontierState = getSettlementFrontierState();
-  const lifeMapPresentation = getSettlementLifeMapPresentation();
-  const hasPendingSelection = !!settlementPendingVassalSelection;
-  const hasSelectedVassal = !!getSettlementFirstSelectedVassal(frontierState);
+  const viewedState = getSettlementViewedState();
+  const frontierSec = getSettlementFrontierSec();
+  const viewedSec = getSettlementViewedSec();
+  const timeMode = viewedSec < frontierSec ? "history" : viewedSec > frontierSec ? "projection" : "present";
+  const presentation = getSettlementLifeMapPresentation();
   const currentVassal = getCurrentLifeMapVassal(frontierState);
-  const runComplete = isSettlementStateRunComplete(frontierState);
-  const runCompleteEntry = getLatestRunCompleteEntry(frontierState);
-  const browsingHistoricalVassal = getSettlementViewedSec() < getSettlementFrontierSec()
-    && !!lifeMapPresentation.vassal;
-  if (runComplete && !browsingHistoricalVassal) {
-    return {
-      enabled: !!runCompleteEntry,
-      label: "Gameover",
-    };
-  }
-  if (currentVassal) {
-    return {
-      enabled: hasPendingSelection !== true,
-      label: worldViewMode === "vassalLife" ? "World Map" : "Life Map",
-    };
-  }
-  if (hasPendingSelection) {
-    return {
-      enabled: Number.isInteger(settlementSelectedVassalCandidateIndex),
-      label: Number.isInteger(settlementSelectedVassalCandidateIndex)
-        ? "Confirm Vassal" : "Choose a Vassal",
-    };
-  }
-  if (browsingHistoricalVassal) {
-    return {
-      enabled: hasPendingSelection !== true,
-      label: worldViewMode === "vassalLife" ? "World Map" : "Life Map",
-    };
+  // Historical location/portrait comes from the viewed life, never a later one.
+  const profile = timeMode === "history" ? presentation.profileVassal : currentVassal;
+  const locationRegionId = profile?.locationRegionId ?? null;
+  const hasSettlement = (regionId) => !!regionId && !!viewedState?.world?.sites?.some(
+    (site) => site.regionId === regionId && site.detailedState
+  );
+  const location = locationRegionId ? {
+    regionId: locationRegionId,
+    locationLabel: getRegionReference(viewedState, locationRegionId) ?? locationRegionId,
+    hasSettlement: hasSettlement(locationRegionId),
+  } : null;
+  const destinations = [];
+  if (worldViewMode !== "map") destinations.push({ id: "map", label: "Regional Map" });
+  if (settlementPendingVassalSelection) {
+    const selected = Number.isInteger(settlementSelectedVassalCandidateIndex);
+    destinations.push({ id: "vassal", label: selected ? "Confirm Vassal" : "Choose a Vassal",
+      detail: selected ? "Begin their life" : "Select a candidate above", enabled: selected });
+  } else {
+    if (profile && worldViewMode !== "vassalLife") {
+      destinations.push({ id: "life", label: "Life Map",
+        detail: timeMode === "history" ? "View this life" : null });
+    } else if (!currentVassal && timeMode !== "history") {
+      const complete = isSettlementStateRunComplete(frontierState);
+      destinations.push({ id: "vassal", label: complete ? "Game over"
+        : getSettlementFirstSelectedVassal(frontierState) ? "Next Vassal" : "Choose Vassal",
+      detail: complete ? "View the chronicle" : "Shape what follows",
+      enabled: !complete || !!getLatestRunCompleteEntry(frontierState) });
+    }
+    // Life Map always leads to its vassal's location. The Regional Map prefers
+    // an explicitly selected detailed region, then the vassal, then the last site.
+    const settlementRegionId = worldViewMode === "vassalLife" ? locationRegionId
+      : worldMapRegionSelectionActive && hasSettlement(selectedWorldRegionId) ? selectedWorldRegionId
+        : location?.hasSettlement ? locationRegionId : selectedWorldRegionId;
+    if (worldViewMode !== "settlement" && hasSettlement(settlementRegionId)) {
+      const isVassalLocation = settlementRegionId === locationRegionId;
+      const reference = getRegionReference(viewedState, settlementRegionId) ?? settlementRegionId;
+      destinations.push({ id: "settlement", label: "Settlement", regionId: settlementRegionId,
+        detail: `${reference}${isVassalLocation ? " · Vassal here" : " · Selected"}` });
+    }
   }
   return {
-    enabled: hasPendingSelection !== true && runComplete !== true,
-    label: hasSelectedVassal ? "Next Vassal" : "Intervene",
+    mode: worldViewMode,
+    time: { mode: timeMode, viewedSec, frontierSec },
+    destinations,
+    location,
+    portrait: profile && location && worldViewMode !== "vassalLife" && !settlementPendingVassalSelection
+      ? { ...location, vassalId: profile.vassalId, traits: profile.portrait } : null,
   };
+}
+
+function focusSettlementVassalLocation({ openSettlement = false } = {}) {
+  const location = getSettlementNavigationState().location;
+  if (!location || (openSettlement && !location.hasSettlement)) return;
+  if (settlementPendingVassalSelection) closeSettlementVassalSelection();
+  selectedWorldRegionId = location.regionId;
+  setWorldViewMode(openSettlement ? "settlement" : "map");
+  worldMapRegionSelectionActive = true;
+  setSettlementGraphContext(location.hasSettlement ? "settlement" : "civilization", location.regionId);
+  worldMapView?.refresh?.();
+  prototypeView?.refresh?.();
+}
+
+function navigateSettlementControl(id) {
+  const destination = getSettlementNavigationState().destinations.find((entry) => entry.id === id);
+  if (!destination || destination.enabled === false) return;
+  tooltipView?.hide?.();
+  if (id === "vassal") {
+    if (settlementPendingVassalSelection) return selectLifeMapCandidate(settlementSelectedVassalCandidateIndex);
+    if (isSettlementStateRunComplete(getSettlementFrontierState())) return openSettlementRunCompleteOverlay();
+    return openLifeMapVassalSelection();
+  }
+  if (settlementPendingVassalSelection) closeSettlementVassalSelection();
+  if (id === "settlement") selectedWorldRegionId = destination.regionId;
+  setWorldViewMode(id === "life" ? "vassalLife" : id === "settlement" ? "settlement" : "map");
+  prototypeView?.refresh?.();
+  worldMapView?.refresh?.();
 }
 
 function getSettlementLossInfoForDisplay() {
@@ -1335,7 +1382,6 @@ prototypeView = createSettlementPrototypeView({
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
-  onReturnToMap: () => setWorldViewMode("map"),
   setSelectedPracticeClassId: (classId) => {
     selectedPracticeClassId = typeof classId === "string" && classId.length > 0 ? classId : "villager";
   },
@@ -1428,20 +1474,6 @@ const timeControlsView = createTimeControlsView({
     paused: getSettlementPlaybackTarget() === 0 && !settlementGraphView?.isFollowingForecastReveal?.(),
     followingForecast: settlementGraphView?.isFollowingForecastReveal?.() === true,
   }),
-  getCommitPreviewState: () => ({ visible: false, enabled: false }),
-  onCommitPreview: () => ({ ok: false, reason: "settlementPreviewOnly" }),
-  getReturnToPresentState: () => {
-    const frontierSec = getSettlementFrontierSec();
-    return {
-      visible: getSettlementViewedSec() !== frontierSec,
-      enabled: true,
-      targetSec: frontierSec,
-    };
-  },
-  onReturnToPresent: (targetSec) => {
-    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
-    return returnSettlementViewToPresent(targetSec);
-  },
   getTimeScale: () => getSettlementPlaybackState(),
   setTimeScaleTarget: (speed, opts) => {
     settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
@@ -1595,6 +1627,7 @@ vassalLifeMapView = createVassalLifeMapView({
   getPresentation: () => getSettlementLifeMapPresentation(),
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
+  onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
   onOpenDecision: (nodeId) => {
     tooltipView?.hide?.();
     vassalNodeDecisionModalView?.open?.(nodeId);
@@ -1606,6 +1639,7 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   app,
   layer: modalLayer,
   getPresentation: () => getSettlementLifeMapPresentation(),
+  onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
   getDecisionPresentation: (nodeId, preview) => getVassalNodeDecisionPresentation(
     getSettlementFrontierState(), nodeId, preview
   ),
@@ -1726,30 +1760,19 @@ settlementGraphView.setEventMarkerResolver?.(({
   ];
 });
 
-settlementVassalControlsView = createSettlementVassalControlsView({
+settlementNavigationView = createSettlementNavigationView({
   app,
-  layer: controlLayer,
-  getPrimaryState: () => getSettlementPrimaryVassalState(),
-  onPrimary: () => {
-    if (settlementPendingVassalSelection) {
-      return Number.isInteger(settlementSelectedVassalCandidateIndex)
-        ? selectLifeMapCandidate(settlementSelectedVassalCandidateIndex)
-        : { ok: false, reason: "candidateRequired" };
-    }
-    const current = getCurrentLifeMapVassal(getSettlementFrontierState());
-    const historical = getSettlementViewedSec() < getSettlementFrontierSec()
-      ? getSettlementLifeMapPresentation().vassal
-      : null;
-    if (current || historical) {
-      setWorldViewMode(worldViewMode === "vassalLife" ? "map" : "vassalLife");
-      return { ok: true };
-    }
-    if (isSettlementStateRunComplete(getSettlementFrontierState())) {
-      return openSettlementRunCompleteOverlay();
-    }
-    setWorldViewMode("map");
-    return openLifeMapVassalSelection();
+  layer: modalLayer,
+  getState: getSettlementNavigationState,
+  onNavigate: navigateSettlementControl,
+  onLocateVassal: () => focusSettlementVassalLocation(),
+  onOpenVassalSettlement: () => focusSettlementVassalLocation({ openSettlement: true }),
+  onReturnToPresent: () => {
+    tooltipView?.hide?.();
+    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+    return returnSettlementViewToPresent();
   },
+  tooltipView,
 });
 
 settlementVassalChooserView = createWorldMapVassalDrawerView({
@@ -1936,9 +1959,10 @@ function publishSettlementDebugApi() {
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
     getTimeActionClickPoint: () =>
-      timeControlsView?.getActionButtonClickPoint?.() ?? null,
+      settlementNavigationView?.getClickPoint?.("present") ?? null,
     browseSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "browse" }),
-    getVassalPrimaryClickPoint: () => settlementVassalControlsView?.getPrimaryClickPoint?.() ?? null,
+    getNavigationSnapshot: () => settlementNavigationView?.getSemanticSnapshot?.() ?? null,
+    getNavigationClickPoint: (id) => settlementNavigationView?.getClickPoint?.(id) ?? null,
     getVassalCandidateClickPoint: (candidateIndex) =>
       settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
       null,
@@ -2013,7 +2037,7 @@ settlementGraphView.open();
 settlementGraphSeriesMenu?.render?.();
 timeControlsView.init();
 sunMoonDisksView.init();
-settlementVassalControlsView.init();
+settlementNavigationView.init();
 settlementVassalChooserView.init();
 runCompleteView.init();
 settlementDebugMenu.init();
@@ -2075,7 +2099,7 @@ app.ticker.add((delta) => {
   timeControlsView.update(frameDt);
   sunMoonDisksView.update(frameDt);
   timelineAudio.update(frameDt);
-  settlementVassalControlsView.update(frameDt);
+  settlementNavigationView.update(frameDt);
   settlementVassalChooserView.update(frameDt);
   syncSettlementRunCompletePresentation();
   runCompleteView.update(frameDt);

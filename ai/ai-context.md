@@ -203,8 +203,13 @@ bounded JSON state used for replay and phase tooltips.
   icon is highlighted and each tooltip combines the phase rules with live or
   previous-moon totals. The enlarged wheel is the primary time control; phase
   badges also accept moon-wheel drags. The wheel sits in the right corner, with
-  a compact vertical lever to its left. Present sits above the lower-left Vassal
-  control; there is no separate Pause button. The lever locks forward
+  a compact vertical lever to its left. The lower-left navigation dock always
+  shows Present, History, or Projected future, with a directional icon and an
+  explicit Return to Present action when away from the committed frontier.
+  Returning holds the playhead and preserves the current screen. Attempts to
+  enter or change a read-only Life Map decision briefly highlight this control
+  and explain the time lock; reduced-motion preference keeps the highlight
+  static. There is no separate Pause button. The lever locks forward
   above centre, rewind below centre, and holds time at centre, with symmetric
   2x/4x speed notches.
 - The World Map candidate chooser overlays the lower map and graph
@@ -239,7 +244,7 @@ bounded JSON state used for replay and phase tooltips.
   the active node/HUD reopens it. Double-click still enters an available node.
   Hover/tap details identify each node type.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
-  visible. The player may inspect the World Map, but returning to the Lifegraph
+  visible. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
   restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary.
@@ -251,8 +256,17 @@ bounded JSON state used for replay and phase tooltips.
   civilization extinction. The candidate drawer remains closed until the player
   explicitly chooses Next Vassal. Timegraph Vassal markers come only from
   persisted life events; no future inventory or mortality result is exposed.
-- The lower-left Vassal control toggles Life Map and World Map for an active
-  Vassal; the World Map shows an active-Vassal location marker. Save & menu,
+- The lower-left dock offers single-click Regional Map, Life Map, and detailed
+  Settlement navigation, omitting the current screen and unavailable destinations.
+  Life Map opens its viewed Vassal's settlement; the Regional Map prefers an
+  explicitly selected detailed region, then the Vassal's location. The Vassal
+  portrait appears beside these links except on the Life Map, which already has
+  its portrait HUD. One portrait click focuses their region; double-click or
+  double-tap opens its detailed settlement. Historical portraits and locations
+  follow the viewed life. Candidate selection uses the same dock for confirmation.
+  Navigation remains reachable below Life Map decision and level-up panels and
+  preserves staged choices. Detailed settlement has no separate header Map button.
+  The Regional Map shows an active-Vassal location marker. Save & menu,
   timeline sound, and a small workshop seal share the utility rail, clear of
   settlement navigation on mobile landscape. Hold the seal for 850 ms or use
   Ctrl+Shift+D for development tools; Escape closes them. Sound is opt-in.
@@ -282,6 +296,8 @@ fallback.
   tests.
 - `npm run probe:settlement`: map, settlement, graph, vassal, survival, and
   responsive interaction probe against the built site.
+- `npm run probe:navigation`: direct screen routes, portrait mouse/touch input,
+  preserved drafts, historical time locks, and desktop/mobile dock layout.
 - `npm run probe:map-lab`: Map Lab and development-tool interaction probe.
 - `npm run probe:game-menu`: slot creation/loading/replacement, storage failures,
   menu pause, reload Continue, and portrait/landscape transitions.

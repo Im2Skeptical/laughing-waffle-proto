@@ -112,7 +112,8 @@ export function publishSettlementDebugApi({
   getLifeMapDecisionSnapshot,
   getLifeMapLevelUpSnapshot,
   browseSecond,
-  getVassalPrimaryClickPoint,
+  getNavigationSnapshot,
+  getNavigationClickPoint,
   getVassalCandidateClickPoint,
   getVassalRerollClickPoint,
   getVassalCloseClickPoint,
@@ -171,6 +172,7 @@ export function publishSettlementDebugApi({
         projectionKeys: getProjectionDebugSecondKeys?.(32) ?? null,
         view: getViewSemanticSnapshot?.() ?? null,
         worldMap: getWorldMapSnapshot?.() ?? null,
+        navigation: getNavigationSnapshot?.() ?? null,
         lifeMap: getLifeMapPresentation?.() ?? null,
         lifeMapDecision: getLifeMapDecisionSnapshot?.() ?? null,
         lifeMapLevelUp: getLifeMapLevelUpSnapshot?.() ?? null,
@@ -205,7 +207,7 @@ export function publishSettlementDebugApi({
     getTooltipDebugState: () => getTooltipDebugState?.() ?? null,
     getTimeActionClickPoint: () => getTimeActionClickPoint?.() ?? null,
     browseSecond: (tSec) => browseSecond?.(nonNegativeFloor(tSec)),
-    getVassalPrimaryClickPoint: () => getVassalPrimaryClickPoint?.() ?? null,
+    getNavigationClickPoint: (id) => getNavigationClickPoint?.(id) ?? null,
     getVassalCandidateClickPoint: (candidateIndex = 0) =>
       getVassalCandidateClickPoint?.(
         Math.max(0, Math.floor(candidateIndex ?? 0))
