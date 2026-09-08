@@ -153,7 +153,17 @@ export function createVassalLifeMapView({
   function render(force = false) {
     const visible = isVisible?.() === true;
     root.visible = visible;
-    if (!visible) { signature = ""; clearChildren(root); hideStatTooltip(); return; }
+    if (!visible) {
+      // The tooltip is shared with the other screens. Clean up once on exit,
+      // rather than hiding their hover details on every hidden Life Map frame.
+      if (root.children.length > 0) {
+        clearChildren(root);
+        hideStatTooltip();
+      }
+      hoveredNodeId = null;
+      signature = "";
+      return;
+    }
     const presentation = getPresentation?.() ?? {};
     const state = presentation.state;
     const vassal = presentation.vassal;

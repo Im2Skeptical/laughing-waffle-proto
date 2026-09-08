@@ -975,7 +975,7 @@ export function createWorldMapView({
         tooltipView?.show?.({
           title: `${getRegionReference(state, region.id) ?? region.id} alerts`,
           lines,
-        }, hit.getBounds());
+        }, hit.getBounds(), { dismissOnExit: true });
       });
       hit.on("pointerout", () => tooltipView?.hide?.());
       root.addChild(hit);
@@ -1086,7 +1086,7 @@ export function createWorldMapView({
           `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
           `Monsters: ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
         ],
-      }, civilizationPanel.getBounds());
+      }, civilizationPanel.getBounds(), { dismissOnExit: true });
     });
     civilizationPanel.on("pointerout", () => tooltipView?.hide?.());
     root.addChild(civilizationPanel);

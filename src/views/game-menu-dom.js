@@ -1,4 +1,4 @@
-import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode } from './game-display-mode.js';
+import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 
 export function createGameMenuDom({ session, onResume, onPause }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
@@ -127,6 +127,10 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     if (session.openMenu({ force })) { onPause?.(); show(); }
   }
   function pauseForFocusLoss() {
+    if (!usesTouchGameDisplay()) {
+      if (!session.isInMenu()) session.save();
+      return;
+    }
     if (entering && !document.hidden) return;
     entryVersion++;
     if (!session.isInMenu()) returnToMenu({ force: true });
@@ -140,7 +144,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     if (portrait.matches && !session.isInMenu()) returnToMenu({ force: true });
   });
   const fullscreenChanged = () => {
-    if (!getGameFullscreenElement() && !session.isInMenu()) returnToMenu({ force: true });
+    if (usesTouchGameDisplay() && !getGameFullscreenElement() && !session.isInMenu()) returnToMenu({ force: true });
   };
   document.addEventListener('fullscreenchange', fullscreenChanged);
   document.addEventListener('webkitfullscreenchange', fullscreenChanged);
