@@ -174,18 +174,18 @@ try {
   assert.equal(initial.controller.subjectKey, "civilization");
   assert.equal(initial.controller.label, "Civilization • All player settlements");
   assert.deepEqual(initial.controller.seriesIds,
-    ["totalPopulation", "food", "chaosPower", "chaosRawPressure", "chaosResistance"]);
+    ["monsterCount", "chaosResistance", "chaosRawPressure"]);
+  assert.deepEqual(initial.graph.activeGroups, ["chaos"]);
+  assert.equal(initial.graph.seriesScaleRanges.find((series) => series.seriesId === "monsterCount").maxValue, 100);
   assert.deepEqual(
     initial.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
       seriesId,
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 115 },
-      { seriesId: "food", value: 300 },
-      { seriesId: "chaosPower", value: 0 },
-      { seriesId: "chaosRawPressure", value: 0 },
+      { seriesId: "monsterCount", value: 0 },
       { seriesId: "chaosResistance", value: 0 },
+      { seriesId: "chaosRawPressure", value: 0 },
     ],
     "civilization graph renders aggregate values"
   );
@@ -392,7 +392,7 @@ try {
   );
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(page, { x: 2047, y: 762 });
+  await clickDesignPoint(page, { x: 2047, y: 685 });
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods",
@@ -413,19 +413,51 @@ try {
     "opening a settlement preserves the paused forecast unveil edge");
   assert.ok(overview.controller.label.includes("Local"));
   assert.deepEqual(overview.controller.seriesIds,
-    ["totalPopulation", "food", "population:villager"]);
+    ["food", "gold", "totalPopulation", "housingCapacity"]);
   assert.deepEqual(
     overview.graph.renderedSeriesSamples.map(({ seriesId, first }) => ({
       seriesId,
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 23 },
       { seriesId: "food", value: 60 },
-      { seriesId: "population:villager", value: 23 },
+      { seriesId: "gold", value: 0 },
+      { seriesId: "totalPopulation", value: 23 },
+      { seriesId: "housingCapacity", value: 35 },
     ],
     "local graph replaces aggregate lines with the selected settlement values"
   );
+  assert.deepEqual(overview.graph.activeGroups, ["resources"]);
+  const clickGraphGroup = async (id) => {
+    const point = await page.evaluate((groupId) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.groupButtons.find((button) => button.id === groupId), id);
+    await clickDesignPoint(page, point);
+    return page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  };
+  let grouped = await clickGraphGroup("population");
+  assert.deepEqual(grouped.graph.activeGroups, ["resources", "population"]);
+  assert.deepEqual([...grouped.controller.seriesIds].sort(),
+    ["food", "gold", "totalPopulation", "housingCapacity", "civilizationHousingCapacity", "population:villager", "population:stranger"].sort());
+  grouped = await clickGraphGroup("resources");
+  assert.deepEqual(grouped.graph.activeGroups, ["population"]);
+  assert.ok(grouped.controller.seriesIds.includes("housingCapacity"), "overlapping group series are retained");
+  assert.equal(grouped.graph.renderedSeriesSamples.find((series) => series.seriesId === "population:villager").first.value, 23,
+    "Population follows the selected settlement");
+  grouped = await clickGraphGroup("chaos");
+  assert.equal(grouped.graph.seriesScaleRanges.find((series) => series.seriesId === "monsterCount").maxValue, 100);
+  await clickGraphGroup("chaos");
+  grouped = await clickGraphGroup("population");
+  assert.deepEqual(grouped.controller.seriesIds, [], "all groups can be switched off without falling back to hidden defaults");
+  await clickGraphGroup("resources");
+  await clickDesignPoint(page, overview.graph.seriesMenuButton);
+  const menu = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.seriesMenu);
+  assert.equal(menu.open, true, "the compact icon opens the current series picker");
+  await clickDesignPoint(page, menu.togglePoints["freePopulation:villager"]);
+  assert.ok((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().controller.seriesIds)).includes("freePopulation:villager"));
+  await clickDesignPoint(page, menu.togglePoints["freePopulation:villager"]);
+  await clickDesignPoint(page, overview.graph.seriesMenuButton);
+  await clickDesignPoint(page, overview.graph.focusButton);
+  assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.zoomed), true);
+  await clickDesignPoint(page, overview.graph.focusButton);
   assert.equal(overview.view.overview.practices.length, 5);
   assert.deepEqual(
     overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
@@ -736,11 +768,9 @@ try {
       value: first?.value,
     })),
     [
-      { seriesId: "totalPopulation", value: 115 },
-      { seriesId: "food", value: 300 },
-      { seriesId: "chaosPower", value: 0 },
-      { seriesId: "chaosRawPressure", value: 0 },
+      { seriesId: "monsterCount", value: 0 },
       { seriesId: "chaosResistance", value: 0 },
+      { seriesId: "chaosRawPressure", value: 0 },
     ],
     "returning to the map restores civilization graph values"
   );
@@ -776,7 +806,7 @@ try {
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
   );
-  await clickDesignPoint(widePage, { x: 2047, y: 762 });
+  await clickDesignPoint(widePage, { x: 2047, y: 685 });
   await widePage.waitForFunction(
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===
@@ -919,7 +949,7 @@ try {
   await terminalPage.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(terminalPage, { x: 2047, y: 762 });
+  await clickDesignPoint(terminalPage, { x: 2047, y: 685 });
   const manualSettlementView = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

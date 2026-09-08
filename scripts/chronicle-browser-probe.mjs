@@ -103,8 +103,8 @@ try {
   assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
   await page.screenshot({path:'artifacts/chronicle-world.png'});
   await hoverCard({x:1800,y:550});
-  await hoverCard({x:1800,y:695});
-  await click({x:2047,y:762});
+  await hoverCard({x:1800,y:635});
+  await click({x:2047,y:685});
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await hoverCard({x:700,y:220});
@@ -222,8 +222,8 @@ try {
     assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Tapping the same card again dismisses details');
   };
   await holdCard({x:1800,y:550});
-  await holdCard({x:1800,y:695});
-  await click({x:2047,y:762});await delay(150);
+  await holdCard({x:1800,y:635});
+  await click({x:2047,y:685});await delay(150);
   await holdCard({x:700,y:220});
   await holdCard({x:110,y:510});
   await click({x:1883,y:36});

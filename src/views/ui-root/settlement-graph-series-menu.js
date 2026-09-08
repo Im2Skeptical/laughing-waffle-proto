@@ -1,7 +1,9 @@
 import { VIEWPORT_DESIGN_HEIGHT, VIEWPORT_DESIGN_WIDTH } from "../layout-pixi.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
+import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from "./settlement-graph-groups.js";
+import { getTimegraphInk } from "../timegraph-scroll-pixi.js";
 
-const DEFAULT_MAX_VISIBLE_SERIES = 5;
+const DEFAULT_MAX_VISIBLE_SERIES = 24;
 const MENU_MARGIN = 12;
 const MENU_RECT = Object.freeze({
   x: 1410,
@@ -19,17 +21,13 @@ const MENU_LAYOUT = Object.freeze({
   rowHeight: 28,
   rowGap: 6,
   globalColumns: 3,
-  globalCellWidth: 116,
+  globalCellWidth: 180,
   metricLabelWidth: 86,
   classColumnWidth: 98,
   classColumnGap: 8,
   maxClassColumnsPerBlock: 5,
 });
-const DEFAULT_SERIES_IDS = Object.freeze([
-  "totalPopulation",
-  "food",
-  "chaosPower",
-]);
+const DEFAULT_SERIES_IDS = Object.freeze(["monsterCount", "chaosResistance", "chaosRawPressure"]);
 
 function getSeriesId(series) {
   return String(series?.id ?? "");
@@ -66,7 +64,7 @@ function getDefaultSeriesIds(
 
 function getVisibleSeriesFromList(allSeries, visibleSeriesIds) {
   const list = Array.isArray(allSeries) ? allSeries : [];
-  return list.filter((series) => visibleSeriesIds.includes(getSeriesId(series)));
+  return visibleSeriesIds.map((id) => list.find((series) => getSeriesId(series) === id)).filter(Boolean);
 }
 
 function partitionMenuSeries(allSeries) {
@@ -139,6 +137,7 @@ export function createSettlementGraphSeriesMenu({
   let contextId = "default";
   let visibleSeriesIds = [];
   const visibleSeriesIdsByContext = new Map();
+  const togglePoints = new Map();
 
   function getAllMenuSeries() {
     const series = getAllSeries?.();
@@ -152,7 +151,7 @@ export function createSettlementGraphSeriesMenu({
     const nextVisibleSeriesIds = visibleSeriesIds.filter((seriesId) =>
       availableSeriesIds.has(seriesId)
     );
-    if (!nextVisibleSeriesIds.length) {
+    if (!nextVisibleSeriesIds.length && !visibleSeriesIdsByContext.has(contextId)) {
       const preferredSeriesIds = getPreferredSeriesIds?.(contextId);
       nextVisibleSeriesIds.push(
         ...getDefaultSeriesIds(
@@ -200,7 +199,6 @@ export function createSettlementGraphSeriesMenu({
     if (!safeSeriesId) return false;
     const visible = visibleSeriesIds.includes(safeSeriesId);
     if (visible) {
-      if (visibleSeriesIds.length <= 1) return false;
       visibleSeriesIds = visibleSeriesIds.filter((id) => id !== safeSeriesId);
       return true;
     }
@@ -290,6 +288,7 @@ export function createSettlementGraphSeriesMenu({
     if (nextSignature === signature) return;
     signature = nextSignature;
     container.removeChildren();
+    togglePoints.clear();
     container.visible = open;
     if (!open) return;
 
@@ -310,7 +309,7 @@ export function createSettlementGraphSeriesMenu({
     container.addChild(title);
     cursorY += MENU_LAYOUT.titleHeight;
 
-    const subtitle = new PIXI.Text("Toggle any mix of globals and class metrics", {
+    const subtitle = new PIXI.Text("Choose individual series", {
       ...TEXT_STYLES.muted,
       fontSize: 11,
     });
@@ -343,6 +342,7 @@ export function createSettlementGraphSeriesMenu({
       const seriesId = getSeriesId(series);
       if (!seriesId) return;
       const visible = visibleSeriesIds.includes(seriesId);
+      togglePoints.set(seriesId, { x: x + width / 2, y: y + height / 2 });
       const atCap = !visible && visibleSeriesIds.length >= maxVisibleSeries;
       const cell = new PIXI.Container();
       cell.eventMode = "static";
@@ -365,7 +365,7 @@ export function createSettlementGraphSeriesMenu({
       cell.addChild(bg);
 
       const dot = new PIXI.Graphics();
-      dot.beginFill(Number.isFinite(series?.color) ? series.color : PALETTE.accent, atCap ? 0.45 : 1);
+      dot.beginFill(getTimegraphInk(series), atCap ? 0.45 : 1);
       dot.drawCircle(0, 0, compact ? 5 : 6);
       dot.endFill();
       dot.x = x + 12;
@@ -511,6 +511,30 @@ export function createSettlementGraphSeriesMenu({
 
   return {
     applySelection,
+    getActiveGroups: () => getActiveGraphGroups(visibleSeriesIds, contextId, getAllMenuSeries()),
+    toggleGroup: (groupId) => {
+      visibleSeriesIds = toggleGraphGroup(groupId, visibleSeriesIds, contextId, getAllMenuSeries());
+      visibleSeriesIdsByContext.set(contextId, [...visibleSeriesIds]);
+      applySelection();
+      signature = "";
+      renderGraph?.();
+      render();
+    },
+    selectDefaultGroup: () => {
+      visibleSeriesIds = getGraphGroupSeriesIds(contextId === "settlement" ? "resources" : "chaos", contextId, getAllMenuSeries());
+      applySelection();
+      open = false;
+      signature = "";
+      render();
+    },
+    reset: () => {
+      visibleSeriesIdsByContext.clear();
+      visibleSeriesIds = [];
+      open = false;
+      signature = "";
+      applySelection();
+      render();
+    },
     setContext: (nextContextId) => {
       const normalized =
         typeof nextContextId === "string" && nextContextId.length
@@ -519,6 +543,7 @@ export function createSettlementGraphSeriesMenu({
       if (normalized === contextId) return false;
       visibleSeriesIdsByContext.set(contextId, [...visibleSeriesIds]);
       contextId = normalized;
+      open = false;
       visibleSeriesIds = [
         ...(visibleSeriesIdsByContext.get(contextId) ?? []),
       ];
@@ -528,10 +553,7 @@ export function createSettlementGraphSeriesMenu({
       return true;
     },
     getContext: () => contextId,
-    getButtonLabel: () => {
-      const allSeries = syncSelection();
-      return `Series ${visibleSeriesIds.length}/${allSeries.length}`;
-    },
+    getDebugState: () => ({ open, togglePoints: Object.fromEntries(togglePoints) }),
     render,
     syncSelection,
     toggle,

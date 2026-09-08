@@ -412,9 +412,26 @@ assert.equal(
 );
 assert.equal(
   localSeries.some((series) => series.id === "chaosPower"),
-  false,
-  "global chaos is not mixed into local graph series"
+  true,
+  "Chaos remains available from the local graph's group controls"
 );
+assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMode, "fixed");
+assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMax, 100);
+assert.equal(civilizationSeries.find((series) => series.id === "civilizationHousingCapacity").getValue(state), 175);
+assert.equal(localSeries.find((series) => series.id === "housingCapacity").getValue(state, { regionId: "cedar-woods" }), 35);
+const fundedState = deserializeGameState(serializeGameState(state));
+getDetailedSettlement(fundedState, "cedar-woods").currency = 17;
+getDetailedSettlement(fundedState, "river-crown").currency = 29;
+const fundedSummary = buildProjectionSummaryFromState(fundedState);
+assert.equal(civilizationSeries.find((series) => series.id === "gold").getValue(fundedState), 46,
+  "Gold sums actual settlement currency, independently of the obsolete global gold resource");
+assert.equal(localSeries.find((series) => series.id === "gold").getValue(fundedState, { regionId: "cedar-woods" }), 17);
+for (const [seriesList, subject] of [[civilizationSeries, null], [localSeries, { regionId: "cedar-woods" }]]) {
+  for (const series of seriesList) {
+    assert.equal(series.getValueFromSummary(fundedSummary, subject), series.getValueFromSnapshot(fundedState, subject),
+      `${series.id} survives forecast snapshot eviction with the correct scope`);
+  }
+}
 assert.deepEqual(
   civilizationSeries
     .filter((series) => series.pickerGroup === "classMetric")

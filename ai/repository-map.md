@@ -62,6 +62,8 @@ for new rendering or model rules.
   versus new projection drawing: `src/views/timegraphs-pixi.js`
 - Scope and series definitions: `src/model/graph-metrics.js`
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
+- Series groups: `src/views/ui-root/settlement-graph-groups.js`
+- Scroll frame, group buttons, and ink palette: `src/views/timegraph-scroll-pixi.js`
 - Window/horizon helpers: `src/views/ui-root/settlement-timegraph-window.js`
 - Graph controller/cache internals: `src/model/timegraph/`
 - Projection summaries: `src/model/projection-summary.js`

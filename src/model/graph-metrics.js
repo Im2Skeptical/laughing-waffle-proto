@@ -20,6 +20,7 @@ import { getPrimaryDetailedSiteState, getRegionDefinition } from "./world-state.
 import {
   assignDetailedSettlementWorkers,
   getDetailedCivilizationSummary,
+  getDetailedSettlementSites,
   getDetailedSettlement,
   getPopulationSummary as getDetailedPopulationSummary,
 } from "./detailed-settlements.js";
@@ -532,7 +533,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
   },
   {
     id: "chaosRawPressure",
-    label: "Raw Pressure",
+    label: "Chaos Pressure",
     color: 0xe89a55,
     scaleGroupId: "chaosReckoning",
     scaleMode: "dynamic",
@@ -567,8 +568,9 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     label: "Monsters",
     color: 0xb84e4e,
     scaleGroupId: "settlementMonsterCount",
-    scaleMode: "dynamic",
+    scaleMode: "fixed",
     scaleMin: 0,
+    scaleMax: 100,
     pickerGroup: "global",
     getValue: (state) => getSettlementChaosGodSummary(state, "redGod").monsterCount,
     getValueFromSnapshot: (snapshot) =>
@@ -580,6 +582,46 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
   },
 ]);
+
+// Read-only metrics share the same selectors for live state, replay snapshots,
+// and retained forecast summaries.
+function createResourceGraphSeries({ id, label, color, scaleGroupId, read, local = false }) {
+  return {
+    id, label, color, scaleGroupId, scaleMode: "dynamic", scaleMin: 0,
+    pickerGroup: "global", getValue: read, getValueFromSnapshot: read,
+    getValueFromSummary: (summary, subject) => local
+      ? getSettlementGraphValueFromSummary(summary, id, subject)
+      : getCivilizationGraphValueFromSummary(summary, id),
+    formatValue: (value) => Number.isFinite(value) ? `${Math.floor(value)}` : "0",
+  };
+}
+
+const GOLD_GRAPH_SERIES = createResourceGraphSeries({
+  id: "gold", label: "Gold", color: 0xc99d35, scaleGroupId: "gold",
+  read: (state) => getDetailedSettlementSites(state, { playerOnly: true })
+    .reduce((total, site) => total + Math.max(0, site.detailedState?.currency ?? 0), 0),
+});
+const LOCAL_GOLD_GRAPH_SERIES = createResourceGraphSeries({
+  id: "gold", label: "Gold", color: 0xc99d35, scaleGroupId: "gold", local: true,
+  read: (state, subject) => Math.max(0, getDetailedSettlement(state, getSettlementMetricRegionId(subject))?.currency ?? 0),
+});
+const CIVILIZATION_HOUSING_SERIES = createResourceGraphSeries({
+  id: "civilizationHousingCapacity", label: "Civ Housing", color: 0x936445,
+  scaleGroupId: "settlementPopulation",
+  read: (state) => getDetailedCivilizationSummary(state).population.housingCapacity,
+});
+const LOCAL_HOUSING_SERIES = createResourceGraphSeries({
+  id: "housingCapacity", label: "Local Housing", color: 0x877650,
+  scaleGroupId: "settlementPopulation", local: true,
+  read: (state, subject) => getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject)).housingCapacity,
+});
+
+function getLocalCivilizationSeries() {
+  return [
+    ...CIVILIZATION_RESOURCE_SERIES.filter((series) => series.id.startsWith("chaos") || series.id === "monsterCount"),
+    LOCAL_GOLD_GRAPH_SERIES, CIVILIZATION_HOUSING_SERIES, LOCAL_HOUSING_SERIES,
+  ];
+}
 
 export const GRAPH_METRICS = {
   gold: {
@@ -705,10 +747,12 @@ export const GRAPH_METRICS = {
     label: "Local",
     series: [
       ...LOCAL_SETTLEMENT_RESOURCE_SERIES,
+      ...getLocalCivilizationSeries(),
       ...getSettlementClassMetricSeries(null),
     ],
     getSeries: (_subject, state) => [
       ...LOCAL_SETTLEMENT_RESOURCE_SERIES,
+      ...getLocalCivilizationSeries(),
       ...getSettlementClassMetricSeries(state),
     ],
     getLabel: (subject, state) => {
@@ -725,10 +769,12 @@ export const GRAPH_METRICS = {
     label: "Civilization • All player settlements",
     series: [
       ...CIVILIZATION_RESOURCE_SERIES,
+      GOLD_GRAPH_SERIES, CIVILIZATION_HOUSING_SERIES,
       ...getCivilizationClassMetricSeries(null),
     ],
     getSeries: (_subject, state) => [
       ...CIVILIZATION_RESOURCE_SERIES,
+      GOLD_GRAPH_SERIES, CIVILIZATION_HOUSING_SERIES,
       ...getCivilizationClassMetricSeries(state),
     ],
     getSubjectKey: () => "civilization",

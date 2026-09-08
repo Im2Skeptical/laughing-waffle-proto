@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { getIllustrationSpec } from '../src/views/chronicle-art.js';
+import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
+import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
+import { computeGraphSeriesScaleRanges } from '../src/views/timegraphs-helpers.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import {
   loopPhase, sampleSpriteFrame, sampleEventProgress, sampleMote,
@@ -7,6 +10,25 @@ import {
 } from '../src/views/timeline-presentation.js';
 
 const clip={frameCount:8,framesPerSecond:12,startSec:3};
+const civSeries = GRAPH_METRICS.civilization.getSeries(null, null);
+const localSeries = GRAPH_METRICS.settlement.getSeries(null, null);
+assert.deepEqual(getGraphGroupSeriesIds('chaos', 'civilization', civSeries), ['monsterCount', 'chaosResistance', 'chaosRawPressure']);
+assert.deepEqual(getGraphGroupSeriesIds('resources', 'civilization', civSeries), ['food', 'gold', 'totalPopulation']);
+assert.deepEqual(getGraphGroupSeriesIds('resources', 'settlement', localSeries), ['food', 'gold', 'totalPopulation', 'housingCapacity']);
+assert.deepEqual(getGraphGroupSeriesIds('population', 'settlement', localSeries),
+  ['civilizationHousingCapacity', 'totalPopulation', 'population:villager', 'population:stranger', 'housingCapacity']);
+const resources = getGraphGroupSeriesIds('resources', 'settlement', localSeries);
+const combined = toggleGraphGroup('population', resources, 'settlement', localSeries);
+assert.deepEqual(getActiveGraphGroups(combined, 'settlement', localSeries), ['resources', 'population']);
+assert.deepEqual(toggleGraphGroup('population', combined, 'settlement', localSeries), resources,
+  'Removing Population retains the population and housing shared with Resources');
+assert.deepEqual(toggleGraphGroup('resources', resources, 'settlement', localSeries), []);
+const monsterSeries = civSeries.filter((series) => series.id === 'monsterCount');
+for (const values of [[0, 0], [12, 27], [100, 150]]) {
+  const scale = computeGraphSeriesScaleRanges(monsterSeries, new Map([['monsterCount', values]])).get('monsterCount');
+  assert.equal(scale.minValue, 0);
+  assert.equal(scale.maxValue, 100, 'Monster scale is stable before and after the endgame threshold');
+}
 const artKeys=new Set();
 for(const id of [...Object.keys(detailedSettlementPracticeDefs),...Object.keys(settlementStructureDefs)]){
   const art=getIllustrationSpec(id);

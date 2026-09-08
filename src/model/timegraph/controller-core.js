@@ -430,7 +430,7 @@ export function createTimeGraphController({
   }
 
   function resolveActiveSeries(cursorState) {
-    if (Array.isArray(seriesOverride) && seriesOverride.length) {
+    if (Array.isArray(seriesOverride)) {
       return seriesOverride;
     }
     return resolveSeries(metricDef, subject, cursorState);
@@ -1843,7 +1843,7 @@ export function createTimeGraphController({
     const normalized = ensureSeriesArray(nextSeries);
     const nextSig = getSeriesSignature(normalized);
     const curSig = getSeriesSignature(
-      Array.isArray(seriesOverride) && seriesOverride.length
+      Array.isArray(seriesOverride)
         ? seriesOverride
         : activeSeries
     );
