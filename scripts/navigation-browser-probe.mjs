@@ -261,6 +261,26 @@ try {
   assert.equal(s.navigation.time.mode, 'present');
   assert.equal(s.navigation.feedbackVisible, false);
 
+  // Check the dock during a held drag, rather than refreshing it by navigating.
+  const scrubGraph = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph);
+  const scrubX = (sec) => scrubGraph.plotScreenRect.x +
+    (sec - scrubGraph.minSec) / (scrubGraph.maxSec - scrubGraph.minSec) * scrubGraph.plotScreenRect.width;
+  const scrubY = scrubGraph.plotScreenRect.y + scrubGraph.plotScreenRect.height / 2;
+  await page.mouse.move(scrubX(draft.frontierSec + 0.5), scrubY);
+  await page.mouse.down();
+  await page.waitForFunction((regionId) => {
+    const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return s.navigation.time.mode === 'history' && s.navigation.portrait?.regionId === regionId;
+  }, history.life.profile.locationRegionId);
+  await page.mouse.move(scrubX(resolved.frontierSec + 2), scrubY, { steps: 8 });
+  await page.waitForFunction((regionId) => {
+    const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return s.navigation.time.mode !== 'history' && s.navigation.portrait?.regionId === regionId;
+  }, resolved.current.locationRegionId);
+  await page.mouse.up();
+  assert.deepEqual((await snapshot()).timeline, resolved.timeline, 'portrait scrubbing remains read-only');
+  await navigate('present');
+
   await page.setViewportSize({ width: 844, height: 390 });
   await delay(250);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
