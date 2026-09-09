@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Chronicle — Resource language study</title>
+  <script>
+    // The development server removes /index.html from directory URLs.
+    if (!location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+      const base = document.createElement('base');
+      base.href = location.pathname + '/';
+      document.head.appendChild(base);
+    }
+  </script>
+  <link rel="stylesheet" href="study.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="wordmark" href="#">CIVILIZATION SURVIVOR <span>ART STUDY 01</span></a>
+    <nav aria-label="Design board"><a href="#symbols">Symbols</a><a href="#time">Timepiece</a><a href="#costs">Costs</a><a href="#context">In context</a></nav>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">THE CHRONICLE / A SHARED VISUAL LANGUAGE</p><h1>Time has a shape.<br>Every choice has a cost.</h1><p class="lede">A first study in readable relics. Sun and moon, grain and gold — carried from the clock into the choices you make.</p><p class="review-note">Design review · Proposed presentation · Existing game rules preserved</p></div>
+      <div class="intro-seal" aria-hidden="true"><img src="year.png" alt=""><span>01</span></div>
+    </section>
+
+    <section id="symbols" class="section">
+      <div class="section-heading"><div><p class="eyebrow">01 / THE SYMBOLS</p><h2>Six resources. One vocabulary.</h2></div><label class="quiet-toggle"><input id="monochrome" type="checkbox"> Check silhouettes</label></div>
+      <div id="resource-grid" class="resource-grid"></div>
+      <div class="section-heading secondary"><div><p class="eyebrow">THE LUNAR FAMILY</p><h3>Six reckonings of a moon</h3></div><p class="caption">The grain is shared. Its lunar setting makes it a phase.</p></div>
+      <div id="phase-grid" class="phase-grid"></div>
+    </section>
+
+    <section id="time" class="section time-section">
+      <div class="time-display"><div id="hero-wheel" class="wheel-mount"></div></div>
+      <div class="time-copy"><p class="eyebrow">02 / THE TIMEPIECE</p><h2>Two cycles.<br>One point in time.</h2><p>The warm outer disc follows the seasons. The pale inner disc carries the six phases. Its centre always shows the current reckoning.</p>
+        <div class="time-readout"><span id="season-readout"></span><span id="phase-readout"></span></div>
+        <label class="scrub-label" for="time-range">Viewed time <output id="time-output">2 seconds</output></label>
+        <input id="time-range" type="range" min="0" max="96" step="1" value="2">
+        <div class="time-actions"><button id="previous-phase" class="outline-button" type="button">← Previous phase</button><button id="next-phase" class="outline-button" type="button">Next phase →</button></div>
+        <p class="caption">Drag either disc, or use the slider. Tap the centre for the six-phase reference. A year is 32 seconds; a moon is 6 seconds in this study.</p>
+      </div>
+    </section>
+
+    <section id="costs" class="section">
+      <div class="section-heading"><div><p class="eyebrow">03 / THE COST FOOTER</p><h2>The price becomes the button.</h2></div><p class="caption">Time above. Prestige below.<br>Amounts remain visible in every state.</p></div>
+      <div id="cost-states" class="cost-states"></div>
+      <div class="specimen-line"><div><span class="eyebrow">SAME SYMBOLS, OTHER CONTEXTS</span><div id="resource-examples" class="resource-examples"></div></div><p>Money and Food are resource specimens.<br>They do not add new shop costs.</p></div>
+      <div class="duration-explainer"><div><strong>80 phases</strong><span>Same elapsed time, aligned with the wheel.</span></div><div id="duration-example"></div><p>2 × 32 + 2 × 6 + 4 = 80 seconds</p></div>
+    </section>
+
+    <section id="context" class="section">
+      <div class="section-heading"><div><p class="eyebrow">04 / IN THE GAME'S FRAME</p><h2>A choice you can read at a glance.</h2></div><div class="segmented" aria-label="Review viewport"><button type="button" data-viewport="phone" aria-pressed="true">844 × 390</button><button type="button" data-viewport="desktop" aria-pressed="false">1280 × 800</button></div></div>
+      <div class="context-toolbar"><div class="segmented" aria-label="Example scenario"><button type="button" data-scenario="travel" aria-pressed="true">Travel</button><button type="button" data-scenario="practices" aria-pressed="false">Practice shop</button><button type="button" data-scenario="structures" aria-pressed="false">Structure shop</button></div><p id="viewport-note" class="caption">Shown at actual screen size. Scroll horizontally if needed.</p></div>
+      <div class="viewport-scroll"><div id="review-viewport" class="review-viewport phone"><div id="game-stage" class="game-stage"></div></div></div>
+      <p id="context-status" class="caption context-status" role="status">Tap a cost footer to preview selection. These are isolated design examples.</p>
+    </section>
+
+    <section class="section boundaries"><div><p class="eyebrow">NEXT / AFTER THIS REVIEW</p><h2>Practice types keep their character.</h2><p>The later card pass keeps one portrait outline, with distinct headers and crests for seasonal, lunar, passive, and charged practices. Charge fill belongs to charged practices only.</p></div><div class="review-questions"><h3>What to judge</h3><p>Can you distinguish the units at phone size?</p><p>Does the lunar centre explain the moving disc?</p><p>Is the cost footer visibly an action?</p></div></section>
+  </main>
+  <footer class="page-footer">RESOURCE LANGUAGE / FIRST STUDY <span>Original generated sprite art · Live type · September 2026</span></footer>
+  <dialog id="phase-dialog"><div class="dialog-heading"><div><p class="eyebrow">THE LUNAR CYCLE</p><h2>Six phases of a moon</h2></div><button type="button" class="close-button" aria-label="Close phase reference">×</button></div><div id="phase-reference-tabs" class="phase-reference-tabs" role="tablist" aria-label="Phases"></div><div id="phase-reference-content" class="phase-reference-content" role="tabpanel"></div><p class="dialog-note">Reference preview. Live and previous-moon totals will come from the viewed game snapshot during integration.</p></dialog>
+  <dialog id="inspection-dialog"><div class="dialog-heading"><h2 id="inspection-title"></h2><button type="button" class="close-button" aria-label="Close card inspection">×</button></div><div id="inspection-content"></div></dialog>
+  <script type="module" src="study.js"></script>
+</body>
+</html>

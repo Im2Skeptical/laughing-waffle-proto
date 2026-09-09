@@ -1,0 +1,110 @@
+{
+  "study": "Readable relics — resource language v1",
+  "assets": [
+    {
+      "id": "year",
+      "file": "year.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite: a RADIANT SUN representing a year, isolated on true transparent RGBA background. Square 1024x1024. One centered emblem occupying 84 percent of the canvas, no crop. Original dark medieval strategy-game 'readable relic' style: extremely bold recognizable silhouette, a simple solid round solar disc surrounded by eight broad tapered rays, aged warm brass and golden bone highlights, only three or four broad tones, subtle carved-metal wear, crisp intentionally chunky pixel-art clusters as if designed at 48x48 and enlarged. The disc has a very restrained small embossed circle, no face. Designed to read instantly when reduced to 22 screen pixels. NO thin filigree, NO letters, numbers, runes, captions, extra symbols, framing badge, ground shadow, bloom or background texture. Flat front view, consistent upper-left light. This is a single transparent asset, not a sheet or mockup.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "moon",
+      "file": "moon.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with generous clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single broad, solid silver crescent moon, open on the right, with a thick lower belly and very clear negative space. Pale bone-silver highlight, cool slate shadows, subtly engraved metal. NO face or stars.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "phase",
+      "file": "phase.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with generous clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single unmistakable SIXTH OF A MOON time-unit emblem. A silver circular ring divided into exactly six broad equal wedge sectors by dark radial grooves. Only the upper-right one-sixth wedge is filled bright bone-silver; the other five wedges are very dark cool slate enamel. A small circular central void. The whole ring is thick and sturdy with a simple clean outer contour. No crescent, no rays, no arrow. It must clearly read as one part of the same lunar cycle.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "prestige",
+      "file": "prestige.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with generous clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single heraldic LAUREL CREST for prestige: two broad ivory laurel branches rising symmetrically from a short antique brass tie at the base, each branch has exactly four large solid leaf shapes, framing a small four-point diamond-shaped brass star in the upper middle. Wide open negative space. Tall crest silhouette, not a coin, crown or circular medallion. Pale bone leaves with subtle bronze edges.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "money",
+      "file": "money.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a compact stack of THREE thick worn GOLD COINS. One round upright coin at the front left, two coins slightly offset behind to the right; just enough offset to give a distinct asymmetric coin-stack silhouette. Muted ochre gold, deep bronze edge and bone highlight. Coins have simple blank recessed faces with NO sun, crown or other symbols. Substantial shapes; no tiny coin piles.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "food",
+      "file": "food.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a compact GRAIN SHEAF with exactly three large ripe wheat heads rising from a short tied stalk bundle. Three broad ochre-gold seed heads, each built from a few big bold grain shapes; an ivory highlight, earthy bronze shadow, a simple tie at the bottom. Strong tall silhouette. No grass, leaves, tools, basket or background. The three wheat heads are the entire symbol.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "birth",
+      "file": "birth.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single SWADDLED INFANT as a medieval silver-and-bone relief emblem. Round simple face with a tiny suggestion of eyes above a broad tapered cocoon of folded ivory cloth. Two large diagonal folds only, pale bone highlights and cool slate shadows. Protective bundled shape, not a realistic baby portrait. Highly simplified symbolic object.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "housing",
+      "file": "housing.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single HOME as a medieval silver-and-bone relief emblem. A broad steep triangular roof over a sturdy square cottage wall with one very dark central doorway. Simple small chimney at right. Thick solid roofline, pale bone-silver highlights and cool slate shadows. No wood grain, landscape, windows or ornamental details. Instantly recognizable house silhouette.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "faith",
+      "file": "faith.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single short thick ivory CANDLE with a very broad pale gold flame. Wide melted wax body, one deep slate vertical shadow, and a simple low silver base integrated with the candle. The flame and candle make a single clear tall silhouette. No rays, halo, cross, religious logo or ornate candlestick. Warm bone light, cool slate metal shadows.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "migration",
+      "file": "migration.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a pair of thick SOLE FOOTPRINTS walking diagonally toward the upper right. Two offset ivory-silver footprint silhouettes, each made of one broad forefoot and one separated broad heel, minimal dark slate relief edge. They clearly suggest travel or movement. No toes, shoe laces, arrows, trail dots, landscapes or framing. Balanced centered pair, strong negative space between the two feet.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "death",
+      "file": "death.png",
+      "prompt": "Use case: stylized-concept. ONE production UI sprite, square 1024x1024, isolated on true transparent RGBA background. One centered emblem occupies 84 percent of the canvas, with clear margin and no crop. Original dark medieval strategy-game 'readable relic' style. Extremely bold instantly recognizable silhouette, three or four broad tones, restrained carved-metal wear, crisp chunky pixel-art clusters as if designed at 48x48 and enlarged. Must read at 22 screen pixels. Flat front view, upper-left lighting. NO text, letters, numbers, runes, captions, ground shadow, bloom, background texture, tiny filigree, extra objects or framing badge. Single transparent asset, not a sheet or mockup. Subject: a single compact stylized HUMAN SKULL in bone-silver relief. Broad rounded cranium, two large dark eye sockets, a small triangular nose opening, and one simple squared lower jaw with only two tooth divisions. Graphic icon, no gore, no jaw gap, no crossed bones. Pale bone highlights with cool slate shadows. Very readable compact silhouette.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "solar-wheel",
+      "file": "solar-wheel.png",
+      "prompt": "Use case: stylized-concept. ONE production raster UI asset for an original dark medieval strategy game. 'Readable relics': aged brass, bone silver, cool slate, deep charcoal. Bold restrained carved forms, crisp deliberately chunky late-1990s pixel-art clusters, limited palette, front-on orthographic view, upper-left light. No text, letters, numbers, runes, labels, clock hands, extra objects, bloom, scenery, shadows outside the silhouette or background texture. True transparent RGBA background. This is a reusable production sprite, not a mockup. Square 1024x1024. A perfectly circular SOLAR YEAR WHEEL, centered exactly in the canvas, outer diameter 96 percent of canvas. A substantial antique-gold outer rim with sixteen short broad triangular solar rays integrated into its silhouette, echoing a bold eight-ray brass sun icon. Inside the gold rim, ONE broad annular enamel band divided into exactly FOUR equal quarter-circle sections by sturdy brass separators: muted sage for Spring, ochre for Summer, rusty brown for Autumn, smoky blue for Winter, clockwise from top right. The band spans from diameter 66 percent of canvas to 85 percent. The entire central circular hole, diameter 64 percent of canvas, is FULLY TRANSPARENT, suitable for placing a separate lunar wheel above it. Small broad square brass ticks on the rim, with nothing suggesting hours or numbers. Radially balanced; tactile restrained engraved edges, strong four-season division. No decorative pictures inside the quadrants.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "moon-wheel",
+      "file": "moon-wheel.png",
+      "prompt": "Use case: stylized-concept. ONE production raster UI asset for an original dark medieval strategy game. 'Readable relics': aged brass, bone silver, cool slate, deep charcoal. Bold restrained carved forms, crisp deliberately chunky late-1990s pixel-art clusters, limited palette, front-on orthographic view, upper-left light. No text, letters, numbers, runes, labels, clock hands, extra objects, bloom, scenery, shadows outside the silhouette or background texture. True transparent RGBA background. This is a reusable production sprite, not a mockup. Square 1024x1024. A perfectly circular LUNAR WHEEL FACE, centered exactly, outer diameter 94 percent of canvas. Round pale worn-silver outer frame, smooth circular contour with subtle crescent relief at the left and right sides. Inside, a broad dark slate-blue enamel annulus divided into exactly SIX equal wedge compartments with thick silver separators. Dividing spokes at clock positions 1, 3, 5, 7, 9, 11; one blank compartment is centered at 12 o'clock. All six compartments equally dark, empty and spacious, designed to receive separately composited pictograms. Central circular hole, diameter 40 percent of canvas, FULLY TRANSPARENT. The outer frame is only 7 percent of diameter thick, leaving generous enamel interiors. No phase icons, no symbols in compartments, no highlighted sector, no rays or points on the exterior. Outer corners transparent.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "lunar-bezel",
+      "file": "lunar-bezel.png",
+      "prompt": "Use case: stylized-concept. ONE production raster UI asset for an original dark medieval strategy game. 'Readable relics': aged brass, bone silver, cool slate, deep charcoal. Bold restrained carved forms, crisp deliberately chunky late-1990s pixel-art clusters, limited palette, front-on orthographic view, upper-left light. No text, letters, numbers, runes, labels, clock hands, extra objects, bloom, scenery, shadows outside the silhouette or background texture. True transparent RGBA background. This is a reusable production sprite, not a mockup. Square 1024x1024. A single small circular LUNAR BEZEL for a phase icon. Smooth round silver-and-bone metal ring occupying 94 percent of canvas diameter, with a very small crescent-shaped relief integrated into its left and right sides. Ring thickness 12 percent of total diameter. Centre and exterior are FULLY TRANSPARENT; no backing disc. Very simple substantial edge, one thin inner slate keyline. No radial rays, jewels, symbols in the centre, inner subdivisions, sun designs, or asymmetrical protrusions. It must look like the stationary centre socket of a moon instrument.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    },
+    {
+      "id": "cost-frame",
+      "file": "cost-frame.png",
+      "prompt": "Use case: stylized-concept. ONE production raster UI asset for an original dark medieval strategy game. 'Readable relics': aged brass, bone silver, cool slate, deep charcoal. Bold restrained carved forms, crisp deliberately chunky late-1990s pixel-art clusters, limited palette, front-on orthographic view, upper-left light. No text, letters, numbers, runes, labels, clock hands, extra objects, bloom, scenery, shadows outside the silhouette or background texture. True transparent RGBA background. This is a reusable production sprite, not a mockup. Wide horizontal image 1536x512, exactly 3:1 aspect. A single rectangular COST BUTTON FRAME that reaches the image edges; no surrounding margin. Straight thin weathered brass rails, substantial but simple clipped-corner brass joints, dark slate recessed centre. Entire centre is plain near-black green enamel (#17201d), no symbols or writing, leaving maximum room for two rows of live UI text. Border thickness approximately 30 pixels on all four edges at 1536x512; corner ornaments stay within 90x90 pixels. Corners are chamfered, with actual transparent pixels outside those clipped corners only. Symmetrical calm shape, subtle inset metal bevel, NO scrollwork, leaves, studs, controls, coin imagery or ornate flares. Intended for nine-slice scaling to a compact 154x58 pixel touch button.",
+      "tool": "built-in image_gen",
+      "generationDate": "2026-09-10"
+    }
+  ]
+}
