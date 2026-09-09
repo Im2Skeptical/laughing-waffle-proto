@@ -50,6 +50,10 @@ async function clickPoint(point, { touch = false, double = false } = {}) {
 async function navigate(id, options) {
   const point = await page.evaluate((id) => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint(id), id);
   await clickPoint(point, options);
+  if (id === 'present') await page.waitForFunction(() => {
+    const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return s.viewedSec === s.frontierSec && s.navigation.time.mode === 'present';
+  });
 }
 
 async function controlPoint(method, arg) {
@@ -62,10 +66,70 @@ async function waitMode(mode) {
 
 function destinations(s) { return s.navigation.destinations.map((entry) => entry.id); }
 
+function assertThumbLayout(s) {
+  const { targets, rect } = s.navigation;
+  const main = targets.filter((entry) => entry.role !== 'auxiliary').sort((a, b) => a.x - b.x);
+  const clock = targets.find((entry) => entry.id === 'present');
+  assert.equal(clock.role, 'auxiliary');
+  assert.equal(clock.shape, 'circle');
+  assert.ok(main.every((entry) => entry.width * entry.height > clock.width * clock.height * 3),
+    'navigation has more physical area than the auxiliary clock');
+  assert.ok(s.navigation.destinations.every((entry) => !Object.hasOwn(entry, 'detail')),
+    'context belongs in hover help rather than button subtitles');
+  for (const target of targets) {
+    assert.ok(target.x >= rect.x && target.x + target.width <= rect.x + rect.width,
+      `${target.id} stays clear of the graph`);
+    assert.ok(target.y >= rect.y && target.y + target.height <= rect.y + rect.height,
+      `${target.id} fits the dock`);
+    const minimum = target.role === 'primary' ? 44 : target.role === 'secondary' ? 36 : 24;
+    assert.ok(Math.min(target.width, target.height) * 844 / 2424 >= minimum,
+      `${target.id} has a useful phone-sized touch area for its priority`);
+  }
+  if (main.length === 2) {
+    assert.equal(main[0].y, main[1].y, 'main buttons sit beside one another');
+    assert.ok(main[1].x > main[0].x + main[0].width, 'the halves have an inert gap');
+    if (main[1].id === 'map') {
+      assert.equal(main[1].role, 'secondary');
+      assert.ok(main[0].width > main[1].width, 'the main destination is larger than Map');
+    } else assert.equal(main[0].width, main[1].width, 'Life Map and Settlement have equal emphasis');
+  } else assert.equal(main[0].shape, 'whole', 'a sole action uses the whole pad');
+}
+
+async function checkPadGaps(touch = false) {
+  const before = await snapshot();
+  const main = before.navigation.targets.filter((entry) => entry.role !== 'auxiliary').sort((a, b) => a.x - b.x);
+  const left = main[0];
+  await clickPoint({ x: left.x + 1, y: left.y + 1 }, { touch });
+  if (main.length === 2) {
+    await clickPoint({ x: (left.x + left.width + main[1].x) / 2, y: left.y + left.height / 2 }, { touch });
+  }
+  const after = await snapshot();
+  assert.equal(after.mode, before.mode, 'curved corners and the seam do not navigate');
+  assert.deepEqual(after.timeline, before.timeline, 'missed thumb presses do not change the timeline');
+}
+
+async function checkCancelledPress() {
+  const before = await snapshot();
+  const target = before.navigation.targets.find((entry) => entry.role === 'primary');
+  const box = await page.locator('canvas').boundingBox();
+  await page.mouse.move(box.x + (target.x + target.width / 2) * box.width / 2424,
+    box.y + (target.y + target.height / 2) * box.height / 1080);
+  await page.mouse.down();
+  await page.screenshot({ path: `${OUTPUT}/pressed-1280x800.png` });
+  await page.mouse.move(box.x + (target.x + 1) * box.width / 2424,
+    box.y + (target.y + 1) * box.height / 1080);
+  await page.mouse.up();
+  await delay(180);
+  const after = await snapshot();
+  assert.equal(after.mode, before.mode, 'sliding off the curved face cancels the press');
+  assert.deepEqual(after.timeline, before.timeline, 'a cancelled press leaves the timeline intact');
+}
+
 async function capture(name) {
   await page.mouse.move(1200, 100);
   await page.screenshot({ path: `${OUTPUT}/${name}.png` });
   const s = await snapshot();
+  assertThumbLayout(s);
   checkpoints.push({ name, navigation: s.navigation });
 }
 
@@ -138,6 +202,8 @@ try {
   assert.equal(s.selectedRegionId, regionId);
   assert.equal(s.regionSelectionActive, true);
   await capture('regional-map-1280x800');
+  await checkPadGaps();
+  await checkCancelledPress();
   await delay(450);
   await navigate('portrait', { double: true });
   s = await snapshot();
@@ -205,11 +271,7 @@ try {
   assert.equal(s.selectedRegionId, resolved.current.locationRegionId,
     'the portrait follows the vassal after a node relocates them');
   await capture('regional-map-844x390');
-  for (const target of s.navigation.targets) {
-    assert.ok(target.x >= 28 && target.x + target.width <= 336, `${target.id} stays out of the graph`);
-    assert.ok(target.y >= 840 && target.y + target.height <= 1064, `${target.id} stays inside the lower band`);
-    assert.ok(target.height * 844 / 2424 >= 23.5, `${target.id} keeps its mobile hit height`);
-  }
+  await checkPadGaps(true);
   await delay(450);
   await navigate('portrait', { touch: true, double: true });
   assert.equal((await snapshot()).mode, 'settlement', 'portrait double-tap works on touch input');

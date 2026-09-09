@@ -1102,20 +1102,22 @@ function getSettlementNavigationState() {
     hasSettlement: hasSettlement(locationRegionId),
   } : null;
   const destinations = [];
-  if (worldViewMode !== "map") destinations.push({ id: "map", label: "Regional Map" });
+  if (worldViewMode !== "map") destinations.push({ id: "map", label: "Map", hint: ["Regional Map"] });
   if (settlementPendingVassalSelection) {
     const selected = Number.isInteger(settlementSelectedVassalCandidateIndex);
-    destinations.push({ id: "vassal", label: selected ? "Confirm Vassal" : "Choose a Vassal",
-      detail: selected ? "Begin their life" : "Select a candidate above", enabled: selected });
+    destinations.push({ id: "vassal", label: selected ? "Confirm" : "Choose Vassal",
+      icon: selected ? "confirm" : "vassal",
+      hint: [selected ? "Confirm this Vassal and begin their life." : "Select a candidate above."], enabled: selected });
   } else {
     if (profile && worldViewMode !== "vassalLife") {
       destinations.push({ id: "life", label: "Life Map",
-        detail: timeMode === "history" ? "View this life" : null });
+        hint: [timeMode === "history" ? "Inspect this Vassal's life." : "Open this Vassal's Life Map."] });
     } else if (!currentVassal && timeMode !== "history") {
       const complete = isSettlementStateRunComplete(frontierState);
       destinations.push({ id: "vassal", label: complete ? "Game over"
         : getSettlementFirstSelectedVassal(frontierState) ? "Next Vassal" : "Choose Vassal",
-      detail: complete ? "View the chronicle" : "Shape what follows",
+      icon: complete ? "chronicle" : "vassal",
+      hint: [complete ? "View the chronicle." : "Choose the next Vassal."],
       enabled: !complete || !!getLatestRunCompleteEntry(frontierState) });
     }
     // Life Map always leads to its vassal's location. The Regional Map prefers
@@ -1127,7 +1129,7 @@ function getSettlementNavigationState() {
       const isVassalLocation = settlementRegionId === locationRegionId;
       const reference = getRegionReference(viewedState, settlementRegionId) ?? settlementRegionId;
       destinations.push({ id: "settlement", label: "Settlement", regionId: settlementRegionId,
-        detail: `${reference}${isVassalLocation ? " · Vassal here" : " · Selected"}` });
+        hint: [`${reference}${isVassalLocation ? " · Vassal's location" : " · Selected settlement"}`] });
     }
   }
   return {
