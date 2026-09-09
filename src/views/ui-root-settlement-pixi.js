@@ -58,7 +58,7 @@ import {
 } from "./layout-pixi.js";
 import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
 import { createRunCompleteView } from "./run-complete-pixi.js";
-import { createSettlementNavigationView } from "./settlement-navigation-pixi.js";
+import { createSettlementNavigationView, getNavigationVassalPortrait } from "./settlement-navigation-pixi.js";
 import { createTimeControlsView } from "./time-controls-pixi.js";
 import { createMetricGraphView } from "./timegraphs-pixi.js";
 import { createTooltipView } from "./tooltip-pixi.js";
@@ -1090,8 +1090,9 @@ function getSettlementNavigationState() {
   const timeMode = viewedSec < frontierSec ? "history" : viewedSec > frontierSec ? "projection" : "present";
   const presentation = getSettlementLifeMapPresentation();
   const currentVassal = getCurrentLifeMapVassal(frontierState);
-  // Historical location/portrait comes from the viewed life, never a later one.
+  // Screen destinations can retain an ended historical life for inspection.
   const profile = timeMode === "history" ? presentation.profileVassal : currentVassal;
+  const viewedPortrait = getNavigationVassalPortrait(viewedState);
   const locationRegionId = profile?.locationRegionId ?? null;
   const hasSettlement = (regionId) => !!regionId && !!viewedState?.world?.sites?.some(
     (site) => site.regionId === regionId && site.detailedState
@@ -1136,9 +1137,9 @@ function getSettlementNavigationState() {
     mode: worldViewMode,
     time: { mode: timeMode, viewedSec, frontierSec },
     destinations,
-    location,
-    portrait: profile && location && worldViewMode !== "vassalLife" && !settlementPendingVassalSelection
-      ? { ...location, vassalId: profile.vassalId, traits: profile.portrait } : null,
+    location: viewedPortrait ?? location,
+    portrait: worldViewMode !== "vassalLife" && !settlementPendingVassalSelection
+      ? viewedPortrait : null,
   };
 }
 

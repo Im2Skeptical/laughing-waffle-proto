@@ -1,6 +1,24 @@
 import { getStoneTexture, paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createVassalPortraitView } from './vassal-portrait-pixi.js';
 import { getArtRevision } from './chronicle-art.js';
+import { getCurrentLifeMapVassal } from '../model/vassal-life-map.js';
+import { getRegionReference } from '../model/world-state.js';
+
+// Unlike the Life Map's retained historical profile, this shortcut describes
+// the active Vassal in the snapshot under the playhead, including drag previews.
+export function getNavigationVassalPortrait(viewedState) {
+  const vassal = getCurrentLifeMapVassal(viewedState);
+  const regionId = vassal?.locationRegionId;
+  if (!vassal || !regionId) return null;
+  return {
+    vassalId: vassal.vassalId,
+    traits: vassal.portrait,
+    regionId,
+    locationLabel: getRegionReference(viewedState, regionId) ?? regionId,
+    hasSettlement: !!viewedState?.world?.sites?.some(
+      (site) => site.regionId === regionId && site.detailedState),
+  };
+}
 
 // A thumb pad below the playfield, clear of the graph and modal action footers.
 export const SETTLEMENT_NAVIGATION_LAYOUT = Object.freeze({

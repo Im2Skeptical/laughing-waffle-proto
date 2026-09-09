@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { getNavigationVassalPortrait } from '../src/views/settlement-navigation-pixi.js';
 import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
@@ -9,6 +10,32 @@ import {
   loopPhase, sampleSpriteFrame, sampleEventProgress, sampleMote,
   resolveVisualTime, sampleChronicleScore, audioOffsetAtTime, layoutChronicleNodes,
 } from '../src/views/timeline-presentation.js';
+
+const firstPortrait = { face: 'first' };
+const secondPortrait = { face: 'second' };
+const viewedLife = (tSec, currentVassalId, regionId = 'a') => ({
+  tSec,
+  world: { sites: [{ regionId: 'a', detailedState: {} }] },
+  civilization: { vassalLineage: { currentVassalId, vassalsById: {
+    first: { vassalId: 'first', locationRegionId: regionId, portrait: firstPortrait },
+    second: { vassalId: 'second', locationRegionId: 'b', portrait: secondPortrait },
+  } } },
+});
+const portraitSnapshots = [viewedLife(0, null), viewedLife(10, 'first'),
+  viewedLife(20, 'first', 'b'), viewedLife(30, null), viewedLife(40, 'second')];
+const untouchedSnapshots = JSON.stringify(portraitSnapshots);
+for (const index of [0, 1, 2, 3, 4, 3, 2, 1, 0, 4, 1]) {
+  const portrait = getNavigationVassalPortrait(portraitSnapshots[index]);
+  assert.equal(portrait?.vassalId ?? null, [null, 'first', 'first', null, 'second'][index],
+    'Scrubbing both directions follows the active life, including gaps between Vassals');
+  if (portrait) {
+    assert.equal(portrait.traits, index === 4 ? secondPortrait : firstPortrait);
+    assert.equal(portrait.regionId, index === 1 ? 'a' : 'b');
+    assert.equal(portrait.hasSettlement, index === 1,
+      'Portrait shortcuts follow the viewed location and settlement availability');
+  }
+}
+assert.equal(JSON.stringify(portraitSnapshots), untouchedSnapshots, 'Portrait selection never mutates snapshots');
 
 const clip={frameCount:8,framesPerSecond:12,startSec:3};
 const graphLayout = getTimegraphLayout();

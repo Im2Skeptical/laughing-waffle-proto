@@ -270,8 +270,10 @@ bounded JSON state used for replay and phase tooltips.
   Vassal portrait sits above the pad opposite the auxiliary clock, except on
   the Life Map, which already has its portrait HUD. One portrait click focuses
   their region; double-click or
-  double-tap opens its detailed settlement. Historical portraits and locations
-  follow the viewed life. Candidate selection uses the same dock for confirmation.
+  double-tap opens its detailed settlement. Portraits and their location shortcuts
+  follow the active Vassal in the viewed snapshot, including live scrub previews;
+  they disappear before selection and between lives. The Life Map can still
+  retain an ended life for inspection. Candidate selection uses the same dock for confirmation.
   Navigation remains reachable below Life Map decision and level-up panels and
   preserves staged choices. Detailed settlement has no separate header Map button.
   The Regional Map shows an active-Vassal location marker. Save & menu,
