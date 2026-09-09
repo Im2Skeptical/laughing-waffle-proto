@@ -204,8 +204,9 @@ bounded JSON state used for replay and phase tooltips.
   previous-moon totals. The enlarged wheel is the primary time control; phase
   badges also accept moon-wheel drags. The wheel sits in the right corner, with
   a compact vertical lever to its left. The lower-left navigation dock always
-  shows Present, History, or Projected future, with a directional icon and an
-  explicit Return to Present action when away from the committed frontier.
+  carries a small circular clock: gold hands at Present, a warm backward arrow
+  for History, and a cool forward arrow for a projected future. Hover explains
+  the viewed time state; one click returns to Present from either direction.
   Returning holds the playhead and preserves the current screen. Attempts to
   enter or change a read-only Life Map decision briefly highlight this control
   and explain the time lock; reduced-motion preference keeps the highlight
@@ -258,10 +259,17 @@ bounded JSON state used for replay and phase tooltips.
   persisted life events; no future inventory or mortality result is exposed.
 - The lower-left dock offers single-click Regional Map, Life Map, and detailed
   Settlement navigation, omitting the current screen and unavailable destinations.
+  The main destinations share a large split capsule under the landscape thumb.
+  Life Map and Settlement have equal halves on the Regional Map; on either
+  destination screen, the other gets the larger half with Map as a smaller
+  companion. Short titles and engraved icons replace button subtitles; hover
+  help supplies context. Painted contours also define touch targets, leaving
+  the curved corners and central gap inert. A sole action uses the full capsule.
   Life Map opens its viewed Vassal's settlement; the Regional Map prefers an
-  explicitly selected detailed region, then the Vassal's location. The Vassal
-  portrait appears beside these links except on the Life Map, which already has
-  its portrait HUD. One portrait click focuses their region; double-click or
+  explicitly selected detailed region, then the Vassal's location. The circular
+  Vassal portrait sits above the pad opposite the auxiliary clock, except on
+  the Life Map, which already has its portrait HUD. One portrait click focuses
+  their region; double-click or
   double-tap opens its detailed settlement. Historical portraits and locations
   follow the viewed life. Candidate selection uses the same dock for confirmation.
   Navigation remains reachable below Life Map decision and level-up panels and

@@ -40,6 +40,15 @@ async function clickDesignPoint(page, point) {
   await delay(150);
 }
 
+async function getNavigationPoint(page, id) {
+  // Screen state changes before the next frame publishes its navigation targets.
+  const handle = await page.waitForFunction((id) =>
+    globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint(id), id);
+  const point = await handle.jsonValue();
+  await handle.dispose();
+  return point;
+}
+
 async function pressDesignPoint(page, point, holdMs = 120) {
   const box = await page.locator("canvas").boundingBox();
   if (!box || !point) throw new Error("Canvas point unavailable");
@@ -588,9 +597,7 @@ try {
   assert.equal(tappedCandidate.worldMap.vassalHighlight?.targetRegionId, chosenTargetRegionId,
     "the locked touch preview preserves the candidate region highlight");
   assert.equal(tappedCandidate.lineage.selectedVassalIds.length, 0);
-  const confirmVassalPoint = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("vassal")
-  );
+  const confirmVassalPoint = await getNavigationPoint(page, "vassal");
   assert.ok(confirmVassalPoint, "the lower-left control exposes candidate confirmation");
   await clickDesignPoint(page, confirmVassalPoint);
   const selectResult = await page.evaluate(
@@ -762,9 +769,7 @@ try {
   assert.equal(presentLifeMap.lifeMap.readOnly, false,
     "the living Vassal becomes actionable again at the frontier");
 
-  const mapTogglePoint = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("map")
-  );
+  const mapTogglePoint = await getNavigationPoint(page, "map");
   assert.ok(mapTogglePoint, "the lower-left Vassal control exposes the map toggle");
   await clickDesignPoint(page, mapTogglePoint);
   const returnedToMap = await page.evaluate(
@@ -978,7 +983,7 @@ try {
     "opening a settlement preserves manual time browsing"
   );
   await pressDesignPoint(terminalPage,
-    await terminalPage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint("map")), 180);
+    await getNavigationPoint(terminalPage, "map"), 180);
   const manualMapView = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
