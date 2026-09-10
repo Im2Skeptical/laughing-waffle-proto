@@ -4,6 +4,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
+import {RESOURCE_ART_IDS} from '../src/views/chronicle-art.js';
 
 async function countImageColours(page,png) {
   return page.evaluate(async base64=>{
@@ -33,8 +34,10 @@ try {
   await page.addInitScript(()=>localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup'));
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__);
-  await page.waitForFunction(()=>['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png']
-    .every(name=>performance.getEntriesByType('resource').some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)));
+  await page.waitForFunction(names=>names.every(name=>performance.getEntriesByType('resource')
+    .some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)),
+    ['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png',
+      ...RESOURCE_ART_IDS.map(id=>'resource-language-v1/'+id+'.png')], { timeout: 45000 });
   const scrollAlpha=await page.evaluate(async()=>{
     const art=new Image();art.src='images/dark-fantasy/timegraph-chronicle-assembly.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
@@ -97,8 +100,10 @@ try {
   const canvas=await page.locator('canvas').boundingBox();
   const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
     width:1640/2424*canvas.width,height:720/1080*canvas.height};
-  const diskCrop={x:canvas.x+2150/2424*canvas.width,y:canvas.y+810/1080*canvas.height,
-    width:260/2424*canvas.width,height:260/1080*canvas.height};
+  const wheels=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeWheelSnapshot());
+  const diskCrop={x:canvas.x+(wheels.season.x-wheels.season.radius-8)/2424*canvas.width,
+    y:canvas.y+(wheels.season.y-wheels.season.radius-20)/1080*canvas.height,
+    width:(wheels.season.radius*2+16)/2424*canvas.width,height:(wheels.season.radius*2+26)/1080*canvas.height};
   await seek(12);
   const first=await page.screenshot({clip:crop});
   assert.ok(await countImageColours(page,first)>64,'The world must be painted before pause and rewind comparisons');
@@ -121,25 +126,40 @@ try {
   await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='map');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
-  // Touch both wheel faces and a lunar badge as primary drag controls.
+  // Both faces scrub; the larger centre distinguishes a tap from a drag.
   const wheelTouch=await page.context().newCDPSession(page);
-  for(const [radius,startAngle] of [[60,0],[105,0],[111,-Math.PI/2]]) {
+  for(const [radius,startAngle] of [[wheels.moon.radius*.83,0],[wheels.season.radius*.88,0],[wheels.centre.diameter*.25,-Math.PI/2]]) {
     await seek(48);
-    const point=angle=>({x:canvas.x+(2280+radius*Math.cos(angle))/2424*canvas.width,
-      y:canvas.y+(940+radius*Math.sin(angle))/1080*canvas.height});
+    const point=angle=>({x:canvas.x+(wheels.moon.x+radius*Math.cos(angle))/2424*canvas.width,
+      y:canvas.y+(wheels.moon.y+radius*Math.sin(angle))/1080*canvas.height});
     const start=point(startAngle);
     await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
     for(let step=1;step<=8;step++) {
-      const next=point(startAngle+step*Math.PI/32);
+      const next=point(startAngle+step*Math.PI/16);
       await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[next]});
     }
     await wheelTouch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec!==48);
     assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),0,
       'Rotating a wheel detaches automatic movement and holds the chosen time');
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceSnapshot().open),false,
+      'A centre drag cannot accidentally open the phase reference');
   }
   await wheelTouch.detach();
   await seek(12);
+  await click(wheels.centre);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceSnapshot().open);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceSnapshot().phaseId),'death');
+  for (const id of ['birth','food','housing','faith','migration','death']) {
+    await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceClickPoint(id),id));
+    const reference=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceSnapshot());
+    assert.equal(reference.phaseId,id);
+    assert.ok(reference.report.sections.find(section=>section.type==='table').rows.length>0);
+    assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),12,
+      'Inspecting a phase never scrubs or advances time');
+  }
+  await page.screenshot({path:'artifacts/chronicle-phase-reference.png'});
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPhaseReferenceClickPoint('close')));
   await page.getByTestId('chronicle-audio').click();
   await click({x:lever.x+lever.width/2,y:lever.y+10});
   await page.waitForFunction(()=>{
@@ -256,15 +276,109 @@ try {
     ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   assert.ok(choice,'The first life node exposes an illustrated choice');
   const beforeInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  for (const panel of beforeInspection.costPanels) {
+    assert.ok(panel.rect.height / 1080 * candidateBox.height >= 44, 'Cost footers stay touch-sized on a phone');
+    assert.ok(panel.description.includes('phase') || panel.description.includes('moon') || panel.description.includes('year'),
+      'Icon amounts retain a readable duration description');
+  }
   await click({x:choice.x,y:choice.y-100});await delay(200);
   const afterInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.ok(afterInspection.inspectedCardId,'Tapping card art opens its full inspection');
   assert.equal(afterInspection.selectedOptionId,beforeInspection.selectedOptionId,'Inspection cannot select a choice');
   assert.deepEqual(afterInspection.purchaseOrder,beforeInspection.purchaseOrder,'Inspection cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
+  const costTouch=await page.context().newCDPSession(page);
+  await costTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{
+    x:candidateBox.x+choice.x/2424*candidateBox.width, y:candidateBox.y+choice.y/1080*candidateBox.height,
+  }]});
+  await delay(220);
+  await costTouch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await costTouch.detach();
+  await page.waitForFunction(()=>{
+    const decision=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision;
+    return decision.costPanels.some(panel=>panel.selected)||decision.purchaseOrder.length>0;
+  },null,{timeout:5000});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.resolving),false,
+    'A held cost press stages or selects; confirmation stays separate');
+
+  // Use the supported authoring controls to reach a real shop on a fresh run.
+  // This exercises Prestige, affordability and staged cards in the same modal
+  // as the zero-Prestige travel choices above, without editing simulation state.
+  await page.keyboard.press('Escape');
+  await page.getByTestId('debug-open').click({delay:950});
+  await page.getByTestId('debug-life-map-lab-tab').click();
+  for (const family of ['patronage','development','travel','routes','crisis']) {
+    const weight=page.getByTestId('life-map-lab-weight-early-'+family);
+    await weight.fill('0');await weight.press('Enter');
+  }
+  await page.getByTestId('debug-vassal-tab').click();
+  for (const [field,value] of [['prestige',40],['age',20],['cunning',0],['wisdom',0],['effectiveness',0],['intelligence',0]]) {
+    const input=page.getByTestId('vassal-debug-'+field);
+    await input.fill(String(value));await input.press('Enter');
+  }
+  await page.getByTestId('debug-start-new-run').click();
+  await page.getByTestId('debug-open').waitFor({state:'visible'});
+  await page.getByTestId('debug-open').click({delay:950});
+  await page.getByTestId('debug-vassal-tab').click();
+  await page.getByTestId('vassal-debug-apply').click();
+  await page.keyboard.press('Escape');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal?.debugInjected);
+  await delay(250);
+  const shopNode=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
+  await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),shopNode));
+  await delay(150);
+  const shopEnter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
+  if(shopEnter){await click(shopEnter);await delay(150);}
+  const shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  assert.ok(['practiceReform','publicWorks'].includes(shopBefore.family),'The configured opening leads to a shop');
+  assert.equal(shopBefore.costPanels.length,3,'All three shop offers show their prices');
+  const affordableIndex=shopBefore.costPanels.findIndex(panel=>!panel.disabled&&panel.prestigeCost>0);
+  assert.ok(affordableIndex>=0,'The fixture exposes a paid, affordable offer');
+  const shopChoice=await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(index),affordableIndex);
+  const tap=async point=>{
+    const b=await page.locator('canvas').boundingBox();
+    await page.touchscreen.tap(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
+  };
+  await tap(shopChoice);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===1);
+  const shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  assert.equal(shopAfter.currentPrestige,shopBefore.currentPrestige,'Staging leaves actual Prestige unchanged');
+  assert.equal(shopAfter.projectedPrestige,shopBefore.currentPrestige-shopBefore.costPanels[affordableIndex].prestigeCost);
+  assert.equal(shopAfter.costPanels.length,3,'Staging keeps full-size prices visible');
+  assert.ok(shopAfter.costPanels[affordableIndex].staged,'The purchased offer is visibly staged in its original position');
+  const panelCentres=decision=>decision.costPanels.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
+  assert.deepEqual(panelCentres(shopAfter),panelCentres(shopBefore),
+    'The remaining offer touch targets cannot shift after staging');
+  for (const panel of shopAfter.costPanels) {
+    assert.equal(panel.unaffordable,!panel.staged&&panel.prestigeCost>shopAfter.projectedPrestige);
+    assert.equal(panel.disabled,panel.staged||panel.unaffordable);
+    assert.ok(panel.description.includes('Prestige'),'The accessible price includes its Prestige row');
+  }
+  await tap(shopChoice);await delay(200);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),1,
+    'A staged footer cannot buy the same offer twice');
+  await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
+  await tap({x:shopChoice.x,y:shopChoice.y-100});
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),shopAfter.purchaseOrder[0],
+    'Staged offers retain their full inspection');
+  await page.screenshot({path:'artifacts/chronicle-mobile-shop-inspection.png'});
+  await tap({x:shopChoice.x,y:shopChoice.y-100});
+  const secondOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
+  await tap(secondOffer);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===2);
+  const limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  assert.ok(limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled),
+    'Spending the projected balance visibly disables an unaffordable offer');
+  const unavailableOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
+  await tap(unavailableOffer);await delay(150);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),2,
+    'Tapping an unaffordable footer cannot stage a purchase');
+  await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','wheel and lunar badge touch drags','vertical lever direction locks','phone landscape','utility rail alignment','desktop hover survives redraw and dismisses on exit','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices'],graphicsWarnings},null,2));
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['resource sprite assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','solar, moon and centre touch drags','six-phase reference without time changes','vertical lever direction locks','phone landscape','touch-sized cost footers','utility rail alignment','desktop hover survives redraw and dismisses on exit','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices','shop staging preserves positions and full inspections','projected Prestige and affordability'],graphicsWarnings},null,2));
   console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
 }catch(error){
   writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));

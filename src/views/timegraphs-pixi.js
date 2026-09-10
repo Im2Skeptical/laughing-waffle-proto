@@ -117,6 +117,7 @@ export function createMetricGraphView({
   onToggleSeriesGroup = null,
   windowWidth = 1200,
   windowHeight = 176,
+  displayScale = 1,
   headerHeight = 38,
   showPin = false,
   showClose = true,
@@ -521,6 +522,7 @@ export function createMetricGraphView({
   }
 
   const root = new PIXI.Container();
+  root.scale.set(displayScale);
   root.visible = false;
   layer.addChild(root);
   const solidHitArea = installSolidUiHitArea(root, () => {

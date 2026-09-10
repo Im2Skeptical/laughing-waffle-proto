@@ -1134,7 +1134,8 @@ export function createWorldMapView({
     addButton(root, {
       x: DETAIL_RECT.x + 24,
       y: DETAIL_RECT.y + DETAIL_RECT.height - 70,
-      width: DETAIL_RECT.width - 48,
+      // Leave the lower-right corner to the enlarged timepiece.
+      width: 312,
       height: 46,
     }, viewModel ? "Open settlement" : "No detailed settlement",
     () => onOpenDetailedSite?.(viewModel.siteId, selectedRegionId), !viewModel);

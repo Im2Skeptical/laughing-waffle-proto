@@ -1456,16 +1456,15 @@ const DISK_LAYOUT = {
   ...SUN_AND_MOON_DISKS_LAYOUT,
   moon: {
     ...SUN_AND_MOON_DISKS_LAYOUT.moon,
-    x: 2280,
-    y: 940,
-    scale: 0.405,
-    phaseIconRadius: 111,
+    x: 2227,
+    y: 891,
+    scale: 0.5478,
   },
   season: {
     ...SUN_AND_MOON_DISKS_LAYOUT.season,
-    x: 2280,
-    y: 940,
-    scale: 0.57,
+    x: 2227,
+    y: 891,
+    scale: 0.83,
   },
 };
 
@@ -1494,6 +1493,7 @@ const timeControlsView = createTimeControlsView({
 const sunMoonDisksView = createSunAndMoonDisksView({
   app,
   layer: controlLayer,
+  referenceLayer: modalLayer,
   getState: () => getSettlementViewedState(),
   getVisualTime: getSettlementVisualTime,
   getTimeline: () => runner.getTimeline?.(),
@@ -1544,9 +1544,10 @@ settlementGraphView = createMetricGraphView({
       projectedLossSec: displayedLossInfo?.lossSec ?? null,
     });
   },
-  openPosition: { x: 356, y: 812 },
+  openPosition: { x: 356, y: 828 },
   windowWidth: 1700,
   windowHeight: 258,
+  displayScale: 0.935,
   headerHeight: 42,
   getRenderedHistoryEndSec: (spec) =>
     getSettlementRenderedHistoryEndSec({
@@ -1641,6 +1642,7 @@ vassalLifeMapView.setVisible(false);
 vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   app,
   layer: modalLayer,
+  getState: () => getSettlementViewedState(),
   getPresentation: () => getSettlementLifeMapPresentation(),
   onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
   getDecisionPresentation: (nodeId, preview) => getVassalNodeDecisionPresentation(
@@ -1961,6 +1963,9 @@ function publishSettlementDebugApi() {
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
+    getTimeWheelSnapshot: () => sunMoonDisksView?.getSemanticSnapshot?.() ?? null,
+    getPhaseReferenceSnapshot: () => sunMoonDisksView?.getPhaseReferenceSnapshot?.() ?? null,
+    getPhaseReferenceClickPoint: id => sunMoonDisksView?.getPhaseReferenceClickPoint?.(id) ?? null,
     getTimeActionClickPoint: () =>
       settlementNavigationView?.getClickPoint?.("present") ?? null,
     browseSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "browse" }),

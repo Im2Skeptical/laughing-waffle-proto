@@ -199,10 +199,11 @@ bounded JSON state used for replay and phase tooltips.
   graph scrub, or time discs detaches that follow until the next unveil.
 - Long forecasts retain lightweight graph summaries after heavy state snapshots
   are evicted, while active forecast tails remain pinned for worker continuation.
-- The season/moon wheel shows fixed icons for all six lunar phases. The active
-  icon is highlighted and each tooltip combines the phase rules with live or
-  previous-moon totals. The enlarged wheel is the primary time control; phase
-  badges also accept moon-wheel drags. The wheel sits in the right corner, with
+- The season/moon wheel uses the shared Sun and Moon sprite family. Six phase
+  emblems rotate with the moon face, while an upright centre shows the active
+  phase. Its phone-sized target opens a six-phase reference containing the rules
+  and live or previous-moon civilization totals. Both faces and centre drags
+  scrub through the existing viewed-time controller. The wheel sits in the right corner, with
   a compact vertical lever to its left. The lower-left navigation dock always
   carries a small circular clock: gold hands at Present, a warm backward arrow
   for History, and a cool forward arrow for a projected future. Hover explains
@@ -227,8 +228,14 @@ bounded JSON state used for replay and phase tooltips.
   calculated income or discount power. Clicking any
   node opens a large shared decision modal; only entering an available node
   reveals its persisted options or inventory. Card art opens a readable,
-  scrollable inspection of complete effects and quality/tags; the footer stages
-  or chooses, and confirmation remains separate. The modal shows
+  scrollable inspection of complete effects and quality/tags; the full raster
+  cost footer stages or chooses, and confirmation remains separate. Time costs
+  use Sun/year, Moon, and Phase sprites with live numeric amounts, followed by
+  Prestige when needed. The displayed units follow the run's calendar: at the
+  defaults, 80 phases is 2 years, 2 moons, and 4 phases. Non-integral solar/lunar
+  ratios use moons and phases to stay exact. Authored prices are unchanged.
+  Selected, staged, and unaffordable costs remain visible. Prestige, Food, and
+  Money use the same resource symbols in their existing HUDs. The modal shows
   current-to-projected Prestige. Practice/Public Works show
   the current settlement with staged Practices/Structures ghosted into their
   authoritative slots; Routes/Travel show a cropped polygon regional preview;

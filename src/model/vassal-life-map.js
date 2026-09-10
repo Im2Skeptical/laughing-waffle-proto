@@ -4,7 +4,6 @@ import {
   VASSAL_LEGACY_OPTIONS,
   VASSAL_LIFE_TUNING,
   VASSAL_MONSTER_HUNT_OPTIONS,
-  VASSAL_PHASES_PER_YEAR,
   VASSAL_PATRONAGE_OPTIONS,
   VASSAL_LEVEL_UP_STAT_IDS,
   VASSAL_SIGNATURE_NODE_GROUP_IDS,
@@ -331,16 +330,26 @@ export function getAdjustedVassalPhaseCost(vassal, baseCost) {
   return adjustedCost(baseCost, vassal?.stats?.effectiveness, { allowZero: false });
 }
 
-export function formatVassalPhaseDuration(phaseCost) {
+// Display units follow the run's two independent clocks. This never changes
+// the phase prices authored in definitions or the seconds paid on confirmation.
+export function getVassalPhaseDurationParts(phaseCost, state = null) {
   let remaining = Math.max(0, Math.floor(phaseCost ?? 0));
-  const years = Math.floor(remaining / VASSAL_PHASES_PER_YEAR);
-  remaining %= VASSAL_PHASES_PER_YEAR;
+  const phasesPerYear = getGameSetting(state, "seasonDurationSec") * 4 / getMoonPhaseDurationSec(state);
+  // A fractional phase cannot be spent. Use lunar units for calendars whose
+  // solar year does not contain an integral number of phases.
+  const years = Number.isInteger(phasesPerYear) ? Math.floor(remaining / phasesPerYear) : 0;
+  remaining -= years * phasesPerYear;
   const moons = Math.floor(remaining / MOON_PHASE_COUNT);
   const phases = remaining % MOON_PHASE_COUNT;
+  return { years, moons, phases };
+}
+
+export function formatVassalPhaseDuration(phaseCost, state = null) {
+  const { years, moons, phases } = getVassalPhaseDurationParts(phaseCost, state);
   const parts = [];
-  if (years) parts.push(`${years}yr`);
-  if (moons) parts.push(`${moons}mo`);
-  if (phases || !parts.length) parts.push(`${phases}ph`);
+  if (years) parts.push(`${years} ${years === 1 ? 'year' : 'years'}`);
+  if (moons) parts.push(`${moons} ${moons === 1 ? 'moon' : 'moons'}`);
+  if (phases || !parts.length) parts.push(`${phases} ${phases === 1 ? 'phase' : 'phases'}`);
   return parts.join(", ");
 }
 
@@ -1667,7 +1676,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     stagedPrestigeCost,
     mortalityEstimate: {
       totalPhaseCost,
-      timeLabel: formatVassalPhaseDuration(totalPhaseCost),
+      timeLabel: formatVassalPhaseDuration(totalPhaseCost, state),
       currentAge,
       projectedAge,
       immediateDeathChance,

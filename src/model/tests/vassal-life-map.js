@@ -15,6 +15,7 @@ import {
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
   formatVassalPhaseDuration,
+  getVassalPhaseDurationParts,
   getCurrentLifeMapVassal,
   getLifeMapVassalAtSecond,
   getVassalCandidatePool,
@@ -219,9 +220,22 @@ assert.equal(getVassalDevelopmentIncome(formulaVassal), 7);
 assert.equal(getAdjustedVassalPrestigeCost(formulaVassal, 20), 8, "Intelligence caps at 60%");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 120), 48, "Phase costs round upward");
 assert.equal(getAdjustedVassalPhaseCost(formulaVassal, 1), 1, "nonzero Phase costs keep a minimum of one");
-assert.equal(formatVassalPhaseDuration(0), "0ph");
-assert.equal(formatVassalPhaseDuration(32), "1yr, 2ph");
-assert.equal(formatVassalPhaseDuration(80), "2yr, 3mo, 2ph");
+assert.equal(formatVassalPhaseDuration(0), "0 phases");
+assert.equal(formatVassalPhaseDuration(32), "1 year");
+assert.equal(formatVassalPhaseDuration(80), "2 years, 2 moons, 4 phases");
+for (const phaseDurationSec of [1, 2, 3, 5, 20]) {
+  for (const seasonDurationSec of [1, 8, 17, 120]) {
+    const calendarState = { gameConfig: { settings: { values: { phaseDurationSec, seasonDurationSec } } } };
+    const untouched = JSON.stringify(calendarState);
+    for (const phaseCost of [0, 1, 5, 6, 30, 31, 32, 33, 80, 216, 432, 9999]) {
+      const parts = getVassalPhaseDurationParts(phaseCost, calendarState);
+      assert.equal(parts.years * seasonDurationSec * 4 + (parts.moons * 6 + parts.phases) * phaseDurationSec,
+        phaseCost * phaseDurationSec, 'Cost units reconstruct the exact configured elapsed time');
+      if ((seasonDurationSec * 4) % phaseDurationSec !== 0) assert.equal(parts.years, 0);
+    }
+    assert.equal(JSON.stringify(calendarState), untouched, 'Formatting cannot change a run');
+  }
+}
 assert.deepEqual(VASSAL_LEGACY_OPTIONS.map((option) => option.id), [
   "foundDynasty", "enduringOffice", "humbleRemembrance",
 ]);

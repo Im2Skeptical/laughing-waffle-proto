@@ -1,9 +1,9 @@
 import { addIllustration, addRegionTerrain, getArtRevision } from './chronicle-art.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
+import { addCostPanel, addResourceAmount } from './resource-cost-pixi.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
-  formatVassalPhaseDuration,
   getAdjustedVassalPhaseCost,
   getAdjustedVassalPrestigeCost,
 } from "../model/vassal-life-map.js";
@@ -89,10 +89,6 @@ function offerEffect(offer) {
   return "Apply this intervention when the node is confirmed.";
 }
 
-function formatCost(prestigeCost, phaseCost) {
-  return `${prestigeCost} Prestige · ${formatVassalPhaseDuration(phaseCost)}`;
-}
-
 function renderMortalityEstimate(parent, estimate, rect, enabled) {
   if (!estimate) return;
   const totalPercent = Math.round(estimate.totalDeathChance * 1000) / 10;
@@ -126,45 +122,38 @@ function renderMortalityEstimate(parent, estimate, rect, enabled) {
   }, rect.x + 14, rect.y + 74));
 }
 
-function actionCard(parent,rect,spec){
-  const root=new PIXI.Container();root.position.set(rect.x,rect.y);
-  root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
-  root.on('pointertap',event=>{
-    event.stopPropagation();const local=root.toLocal(event.global);
-    if(local.y>=rect.height-44){if(spec.enabled)spec.onClick?.();else spec.onUnavailable?.();}
-    else spec.onInspect?.();
-  });
-  root.on('pointerover',()=>spec.onHover?.());root.on('pointerout',()=>spec.onOut?.());
-  const g=new PIXI.Graphics();
-  roundedRect(g,0,0,rect.width,rect.height,8,PALETTE.card,
-    spec.selected?PALETTE.green:QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,3);
+const COST_FOOTER_HEIGHT = 148;
+
+function actionCard(parent, rect, spec) {
+  const root = new PIXI.Container();
+  root.position.set(rect.x, rect.y);
+  root.eventMode = 'static'; root.cursor = 'pointer';
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.on('pointertap', event => { event.stopPropagation(); spec.onInspect?.(); });
+  // A touch press must keep its target until release; hover previews can redraw
+  // the cards, so they belong only to a mouse/pen with hover.
+  root.on('pointerover', event => { if (event.pointerType !== 'touch') spec.onHover?.(); });
+  root.on('pointerout', event => { if (event.pointerType !== 'touch') spec.onOut?.(); });
+  const artHeight = rect.height - COST_FOOTER_HEIGHT - 12;
+  const g = new PIXI.Graphics();
+  roundedRect(g, 0, 0, rect.width, rect.height, 8, PALETTE.card,
+    spec.selected ? PALETTE.green : QUALITY_COLORS[spec.presentation?.tier] ?? PALETTE.stroke, 2);
   root.addChild(g);
-  addIllustration(root,spec.artId,{x:6,y:6,width:rect.width-12,height:rect.height-52},{alpha:spec.enabled?1:.8});
-  const plate=new PIXI.Graphics();
-  plate.beginFill(0x101918,.92).drawRect(7,7,rect.width-14,100).endFill();
-  root.addChild(plate,createText(spec.presentation?.label??spec.title,{...TEXT_STYLES.cardTitle,fontSize:32,
-    wordWrap:true,wordWrapWidth:rect.width-36,lineHeight:30},18,13),
-    createText(spec.cost,{...TEXT_STYLES.body,fontSize:24,fill:spec.costUnmet?PALETTE.red:PALETTE.accent,
-      wordWrap:true,wordWrapWidth:rect.width-36,lineHeight:25},18,52));
-  if(spec.expanded){
-    const veil=new PIXI.Graphics();veil.beginFill(0x111b1a,.94).drawRect(7,106,rect.width-14,rect.height-152).endFill();
-    const metadata=[spec.presentation?.qualityLabel,...(spec.presentation?.tags??[])].filter(Boolean).join(' · ');
-    const detail=createText([metadata,spec.effect].filter(Boolean).join('\n'),{...TEXT_STYLES.body,fontSize:23,
-      fill:PALETTE.text,wordWrap:true,wordWrapWidth:rect.width-32,lineHeight:26},16,113);
-    const maxHeight=rect.height-169;
-    if(detail.height>maxHeight) {
-      const fit=Math.max(17,23*maxHeight/detail.height);
-      detail.style.fontSize=fit;detail.style.lineHeight=fit+2;
-    }
-    root.addChild(veil,detail);
-  } else root.addChild(createText('ⓘ  Inspect',{...TEXT_STYLES.body,fontSize:17,fill:PALETTE.text,
-    stroke:0x111714,strokeThickness:4},18,rect.height-78));
-  const footer=new PIXI.Graphics();
-  roundedRect(footer,6,rect.height-45,rect.width-12,39,1,spec.enabled?0x354131:0x222a27,
-    spec.enabled?PALETTE.accent:PALETTE.stroke,1);
-  root.addChild(footer,createText(spec.enabled?(spec.selected?'SELECTED':spec.actionLabel):'UNAVAILABLE',
-    {...TEXT_STYLES.title,fontSize:23,fill:spec.costUnmet?PALETTE.red:PALETTE.accent},rect.width/2,rect.height-25,.5,.5));
-  parent.addChild(root);return root;
+  addIllustration(root, spec.artId, { x: 6, y: 6, width: rect.width - 12, height: artHeight }, { alpha: spec.enabled ? 1 : .8 });
+  const plate = new PIXI.Graphics().beginFill(0x101918, .92).drawRect(7, 7, rect.width - 14, 83).endFill();
+  root.addChild(plate, createText(spec.presentation?.label ?? spec.title, {
+    ...TEXT_STYLES.cardTitle, fontSize: 36, wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 36,
+  }, 18, 15), createText('ⓘ  Inspect', {
+    ...TEXT_STYLES.body, fontSize: 24, fill: PALETTE.text, stroke: 0x111714, strokeThickness: 4,
+  }, 18, artHeight - 33));
+  root.costPanel = addCostPanel(root, {
+    x: 6, y: rect.height - COST_FOOTER_HEIGHT - 6, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+  }, {
+    ...spec.cost, selected: spec.selected, staged: spec.staged, disabled: !spec.enabled, unaffordable: spec.costUnmet,
+    label: spec.actionLabel + ' ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
+  });
+  parent.addChild(root);
+  return root;
 }
 
 // Simple personal choices expose every tradeoff without an inspection overlay.
@@ -200,15 +189,12 @@ function outcomeCard(parent, rect, spec) {
     root.addChild(text);
     y += text.height + 18;
   }
-  root.addChild(createText(spec.cost, {
-    ...TEXT_STYLES.body, fontSize: 24, lineHeight: 29,
-    fill: spec.costUnmet ? PALETTE.red : PALETTE.accent,
-    wordWrap: true, wordWrapWidth: rect.width - 40,
-  }, 20, rect.height - 150));
-  root.addChild(createText(spec.enabled ? (spec.selected ? '✓ SELECTED' : 'CHOOSE') : 'UNAVAILABLE', {
-    ...TEXT_STYLES.title, fontSize: 23,
-    fill: spec.enabled ? PALETTE.accent : PALETTE.textMuted,
-  }, rect.width / 2, rect.height - 30, 0.5, 0.5));
+  root.costPanel = addCostPanel(root, {
+    x: 6, y: rect.height - COST_FOOTER_HEIGHT - 6, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+  }, {
+    ...spec.cost, selected: spec.selected, disabled: !spec.enabled, unaffordable: spec.costUnmet,
+    label: 'Choose ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
+  });
   parent.addChild(root);
   return root;
 }
@@ -388,7 +374,7 @@ function pieceSlot(parent, piece, rect, emptyLabel) {
 }
 
 export function createVassalNodeDecisionModalView({
-  app, layer, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
+  app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onRerollShop, onConfirmNode,
   onWorldMap, onReadOnlyAction,
 } = {}) {
@@ -404,6 +390,7 @@ export function createVassalNodeDecisionModalView({
   let enterRoot = null;
   let optionRoots = [];
   let offerRoots = [];
+  let shopCardRoots = [];
   let confirmRoot = null;
   let undoRoots = [];
   let hoveredOptionId = null;
@@ -484,6 +471,7 @@ export function createVassalNodeDecisionModalView({
   function render(force = false) {
     if (!root.visible) return;
     const presentation = getPresentation?.() ?? {};
+    const state = getState?.() ?? null;
     const vassal = presentation.vassal;
     const readOnly = presentation.readOnly === true;
     const projection = presentation.viewedSec > presentation.frontierSec;
@@ -505,6 +493,7 @@ export function createVassalNodeDecisionModalView({
     enterRoot = null;
     optionRoots = [];
     offerRoots = [];
+    shopCardRoots = [];
     confirmRoot = null;
     undoRoots = [];
 
@@ -540,12 +529,10 @@ export function createVassalNodeDecisionModalView({
       createText(`VASSAL · ${decision?.previewRegionLabel ?? vassal.locationRegionId}`, {
         ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
       }, PANEL.x + 1130, PANEL.y + 28),
-      createText(projected === vassal.prestige
-        ? `Prestige  ${vassal.prestige}`
-        : `Prestige  ${vassal.prestige}  →  ${projected}`,
-      { ...TEXT_STYLES.header, fontSize: 26, fill: projected < vassal.prestige ? PALETTE.accent : PALETTE.text },
-      PANEL.x + 1130, PANEL.y + 52)
     );
+    addResourceAmount(root, 'prestige', projected === vassal.prestige ? vassal.prestige : vassal.prestige + ' → ' + projected, {
+      x: PANEL.x + 1130, y: PANEL.y + 47, fontSize: 32, iconSize: 42, fill: PALETTE.accent,
+    });
     button(root, { x: PANEL.x + PANEL.width - 146, y: PANEL.y + 24, width: 106, height: 44 }, "CLOSE", true, close);
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
@@ -583,26 +570,33 @@ export function createVassalNodeDecisionModalView({
       const cardWidth = hasContext ? 338 : 520;
       const cardGap = 22;
       const cardY = PANEL.y + 136;
-      const itemCount = isShop ? (decision?.offers ?? []).length : (nodeState.options ?? []).length;
+      // Keep staged offers in their original places so their prices and full
+      // inspections remain available throughout the draft. The model still
+      // removes purchases from the available inventory until they are undone.
+      const shopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? [])]
+        .sort((a, b) => (a.sourceInventoryIndex ?? a.inventoryIndex ?? 0)
+          - (b.sourceInventoryIndex ?? b.inventoryIndex ?? 0));
+      const itemCount = isShop ? shopCards.length : (nodeState.options ?? []).length;
       const actionWidth = hasContext ? 1060 : PANEL.width - 108;
       const cardsWidth = Math.max(0, itemCount * cardWidth + Math.max(0, itemCount - 1) * cardGap);
       const cardStartX = PANEL.x + 54 + Math.max(0, (actionWidth - cardsWidth) / 2);
       if (isShop) {
-        root.addChild(createText("AVAILABLE OFFERS", {
+        root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
         }, PANEL.x + 54, PANEL.y + 112));
-        offerRoots = (decision?.offers ?? []).map((offer, index) => {
-          const enabled = !readOnly && offer.prestigeCost <= projected;
+        shopCardRoots = shopCards.map((offer, index) => {
+          const enabled = !readOnly && !offer.purchased && offer.prestigeCost <= projected;
           return actionCard(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: 320,
+            width: cardWidth, height: 380,
           }, {
             title: offer.label,
             artId: offer.intervention?.practiceId ?? offer.intervention?.structureId ?? offer.presentation?.id ?? node.family,
-            expanded:pinnedInspectionId===offer.offerId||previewOfferId===offer.offerId,actionLabel:'STAGE',
+            actionLabel: offer.purchased ? 'STAGED' : 'STAGE', staged: offer.purchased,
             onInspect:()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);},
             presentation: offer.presentation,
-            cost: formatCost(offer.prestigeCost, offer.phaseCost),
+            cost: { prestigeCost: offer.prestigeCost, phaseCost: offer.phaseCost, state },
+            costUnmet: !offer.purchased && offer.prestigeCost > projected,
             effect: offerEffect(offer), enabled,
             onUnavailable: readOnly ? onReadOnlyAction : null,
             onClick: () => onPurchaseOffer?.(node.id, offer.offerId),
@@ -618,18 +612,19 @@ export function createVassalNodeDecisionModalView({
             },
           });
         });
+        offerRoots = shopCardRoots.filter((_, index) => !shopCards[index].purchased);
         root.addChild(createText("STAGED PURCHASE ORDER · DRAG TO REORDER", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 476));
+        }, PANEL.x + 54, PANEL.y + 528));
         const purchases = decision?.purchases ?? [];
         if (!purchases.length) {
           root.addChild(createText("No purchases staged. You may confirm a shop without buying.", {
             ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted,
-          }, PANEL.x + 54, PANEL.y + 512));
+          }, PANEL.x + 54, PANEL.y + 564));
         }
         purchases.forEach((purchase, index) => {
           const x = PANEL.x + 54 + index * 332;
-          const y = PANEL.y + 520;
+          const y = PANEL.y + 560;
           const card = new PIXI.Container();
           card.position.set(x, y);
           card.eventMode = "static";
@@ -650,9 +645,11 @@ export function createVassalNodeDecisionModalView({
             createText(purchase.label, {
               ...TEXT_STYLES.title, fontSize: 15, wordWrap: true, wordWrapWidth: 220,
             }, 58, 12),
-            createText(formatCost(purchase.prestigeCost, purchase.phaseCost), {
-              ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted,
-            }, 58, 72));
+          );
+          addCostPanel(card, { x: 52, y: 40, width: 200, height: 60 }, {
+            prestigeCost: purchase.prestigeCost, phaseCost: purchase.phaseCost, state,
+            staged: true, interactive: false, fontSize: 21, iconSize: 28,
+          });
           root.addChild(card);
           undoRoots[index] = button(root, { x: x + 258, y: y + 61, width: 48, height: 32 }, "UNDO", !readOnly,
             () => onUndoPurchase?.(node.id, purchase.offerId));
@@ -668,13 +665,13 @@ export function createVassalNodeDecisionModalView({
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return (simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: simpleOutcomes ? 450 : 320,
+            width: cardWidth, height: simpleOutcomes ? 450 : 380,
           }, {
             artId:node.family,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:()=>{pinnedInspectionId=pinnedInspectionId===option.id?null:option.id;render(true);},
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
-            cost: formatCost(prestigeCost, phaseCost),
+            cost: { prestigeCost, phaseCost, state },
             costUnmet: prestigeCost > vassal.prestige,
             effect: requirements.length
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
@@ -743,9 +740,11 @@ export function createVassalNodeDecisionModalView({
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
         && (nodeState.purchasedOffers ?? []).length === 0
         && getAdjustedVassalPrestigeCost(vassal, 6) <= vassal.prestige;
+      const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
       const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
-        nodeState.rerollUsed ? "REROLL USED" : "REROLL · 6 PRESTIGE", rerollEnabled,
+        nodeState.rerollUsed ? "REROLL USED" : "REROLL", rerollEnabled,
         () => onRerollShop?.(node.id));
+      if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
     button(root, { x: PANEL.x + PANEL.width - 652, y: PANEL.y + PANEL.height - 72, width: 250, height: 50 },
@@ -761,18 +760,21 @@ export function createVassalNodeDecisionModalView({
         if (result?.ok !== false) close();
       });
     explainReadOnly(confirmRoot, readOnly);
-    const inspectedOffer=(decision?.offers??[]).find(offer=>offer.offerId===pinnedInspectionId);
+    const inspectedOffer=[...(decision?.offers??[]), ...(decision?.purchases??[])]
+      .find(offer=>offer.offerId===pinnedInspectionId);
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
     if(inspectedOffer||(inspectedOption && !simpleOutcomes)){
       const piece=inspectedOffer??inspectedOption;
       const requirements=decision?.optionRequirements?.[piece.id]??[];
       addChronicleInspection(root,{
-        x:hasContext?PANEL.x+1190:PANEL.x+650,y:PANEL.y+110,width:930,height:484,
+        x:hasContext?PANEL.x+1190:PANEL.x+650,y:PANEL.y+110,width:930,height:590,
       },{
         title:piece.presentation?.label??piece.label,
         artId:piece.intervention?.practiceId??piece.intervention?.structureId??node.family,
-        cost:formatCost(inspectedOffer?piece.prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),
-          inspectedOffer?piece.phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0)),
+        cost: {
+          prestigeCost: inspectedOffer ? piece.prestigeCost : getAdjustedVassalPrestigeCost(vassal, piece.prestigeCost ?? 0),
+          phaseCost: inspectedOffer ? piece.phaseCost : getAdjustedVassalPhaseCost(vassal, piece.phaseCost ?? 0), state,
+        },
         metadata:[piece.presentation?.qualityLabel,...(piece.presentation?.tags??[])].filter(Boolean).join(' · '),
         detail:[inspectedOffer?offerEffect(piece):optionEffect(piece),
           ...requirements.map(entry=>`${entry.met?'✓':'✗'} ${entry.label}`)].join('\n'),
@@ -789,13 +791,13 @@ export function createVassalNodeDecisionModalView({
     getOptionClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = optionRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
+      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
     },
     getOfferClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = offerRoots[index];
-      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
+      const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
     },
     getConfirmClickPoint: () => root.visible && confirmRoot?.toGlobal
@@ -821,6 +823,9 @@ export function createVassalNodeDecisionModalView({
         mortalityEstimate: decision?.mortalityEstimate ?? null,
         offers: (decision?.offers ?? []).map((offer) => ({ label: offer.label, rule: offer.presentation?.rule ?? offerEffect(offer) })),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),
+        costPanels: [...shopCardRoots, ...optionRoots].map(card => ({ ...card.costPanel.costSummary,
+          rect: card.costPanel.getBounds(),
+        })),
         practices: decision?.settlement?.practices ?? [],
         structures: decision?.settlement?.structures ?? [],
         contextKind: decision?.contextKind ?? null,
