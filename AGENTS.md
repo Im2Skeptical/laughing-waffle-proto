@@ -52,3 +52,17 @@ Local instructions for Codex agents working in this repo.
 - Do not dump full DOM snapshots, full game state, every frame log, every entity, browser traces, or large JSON blobs to chat or stdout.
 - For probes/debugging, write detailed output to an artifact file and print only the failed check, expected result, actual result, shortest reproduction command, relevant file/subsystem, and artifact path.
 - Preserve runtime/game behavior when changing workflow, scripts, ignores, or test-output formatting.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repository using root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
