@@ -1,9 +1,10 @@
 # Resource language — first design study
 
-This is the first review deliverable of the resource-language redesign. It is a
-separate interactive art board, not an integrated gameplay change. Practice
-mechanics, simulation state, RNG, saves, replay, production duration formatting,
-and the existing game entry point remain unchanged.
+This preserves the first interactive review board of the resource-language
+redesign. Its approved PNGs are now integrated into the game through
+`chronicle-art.js`, `resource-cost-pixi.js`, and the season/moon wheel. The board
+itself stays isolated from game state. Practice mechanics, simulation state,
+RNG, saves, replay, and authored prices are unchanged by the integration.
 
 ## Open
 
@@ -59,11 +60,30 @@ the distinction between the generic phase unit and a named gameplay phase, and
 whether the framed costs read as actions. The phone cost footers are 152×58
 screen pixels; the moon-centre target is 44×44 screen pixels.
 
-After approval, integrate the selected sprites, cost component, and
-calendar-aware formatting into the game. Then review that result before the
-shared card pass. Practice types will keep a common portrait outline and use
+The selected sprites, cost component, and calendar-aware formatting are now in
+the game. Review that integration before the shared card pass. Practice types
+will keep a common portrait outline and use
 distinct headers/crests for seasonal, lunar, passive, and charged behavior.
 Charge fill remains exclusive to practices that actually accumulate charge.
+
+## Integrated behavior
+
+The game reuses the original PNGs without new generated/vector resource art.
+The six phase emblems turn with the lunar face. Its upright centre changes with
+the viewed phase and opens a reference with rules and current/previous moon
+totals. Solar, lunar, and centre drags retain the existing time controller.
+
+Options and shop offers share a full-width, touch-sized cost footer. Card art
+opens inspection; the footer chooses or stages, and confirmation remains
+separate. Staged offers keep their original positions and full inspections.
+Prestige affordability uses the projected balance. Duration units reconstruct
+the exact price using the run's configured solar and lunar calendars.
+
+Integration validation covers `npm run verify`, the Chronicle, settlement,
+navigation, Map Lab, and game-menu browser probes, plus inspection of desktop
+and 844×390 phone screenshots. Simulation, RNG, schemas, and replay rules were
+not changed. The Chronicle probe also checks held touch presses, rotating disc
+drags, the six-phase reference, staged shop positions, and projected Prestige.
 
 ## Validation
 
@@ -81,8 +101,9 @@ and the grayscale silhouette toggle. Phone dialogs and controls were inspected
 visually. This is presentation QA; no running-game simulation was exercised by
 the board.
 
-`npm run verify` passed, including architecture, source reachability, replay,
-and presentation checks. Production bundle hashes remained unchanged:
+For the original isolated board, `npm run verify` passed, including architecture,
+source reachability, replay, and presentation checks. Its original production
+bundle hashes remained unchanged before integration:
 `app-BST7XSC4.js`, `timegraph-forecast-worker-Z3DCAH5J.js`, and
 `styles-c8023c9e9200.css`. Original PNGs decoded as RGBA, and all three circular
 frame assets retain transparent centres.

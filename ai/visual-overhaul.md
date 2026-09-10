@@ -6,7 +6,7 @@ Implemented September 2026. This document describes the shipped presentation and
 
 The references in `ai/References/` were accessible and inspected before design: Diablo II, Age of Empires II, Baldur's Gate II, and the supplied pixel illustration/card references. They informed the palette, material treatment, and composition; the shipped paintings and sprites are newly generated originals.
 
-The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the shared navigation dock, Chronicle graph, and enlarged astrolabe. The dock is a thumb pad: two sculpted capsule halves with large icons and short titles, without subtitles. Life Map and Settlement share equal emphasis on the Regional Map; elsewhere Map is the smaller companion to the main destination. A circular Vassal portrait/location shortcut sits above the pad outside the Life Map, opposite a small auxiliary clock. Clock hands and colored directional arrows distinguish Present, History, and projected future; hover supplies context. A brief, reduced-motion-aware input highlight explains attempts to edit fixed history or projections. The wheel sits in the right corner, with a compact vertical lever immediately to its left. The lever locks forward/rewind movement around a neutral centre. The wheel, including its lunar badges, is the primary drag control.
+The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the shared navigation dock, Chronicle graph, and enlarged astrolabe. The dock is a thumb pad: two sculpted capsule halves with large icons and short titles, without subtitles. Life Map and Settlement share equal emphasis on the Regional Map; elsewhere Map is the smaller companion to the main destination. A circular Vassal portrait/location shortcut sits above the pad outside the Life Map, opposite a small auxiliary clock. Clock hands and colored directional arrows distinguish Present, History, and projected future; hover supplies context. A brief, reduced-motion-aware input highlight explains attempts to edit fixed history or projections. The wheel sits in the right corner, with a compact vertical lever immediately to its left. The lever locks forward/rewind movement around a neutral centre. The two discs and central phase medallion accept drags. Six phase sprites turn with the moon face; a tap on the upright centre opens the six-phase rules and results reference. The approved Sun, Moon, Phase, Prestige, Food, and Money sprites also label live resource amounts and framed choice/shop costs.
 
 - Region polygons and roads still come from the world definition. Terrain is clipped to those polygons; no authored map image determines geography.
 - Hamlet smoke, braziers, dust, and transfer packets follow the viewed timeline.
@@ -41,13 +41,15 @@ This is an implemented reversible ambient layer, not a complete authored soundtr
 
 All seven atlases live in `images/dark-fantasy/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
 
-See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md).
+See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md), including the approved [resource and timepiece family](../images/dark-fantasy/resource-language-v1/README.md).
 
 The current library contains thirty-six paintings, including a distinct illustration for each of the thirty current Practices and Structures, eight portraits, four terrain types, one menu panorama, and four-frame hamlet/fire loops. The presentation test guards unique gamepiece illustration coverage. Additional terrain variants, portrait archetypes, and combat/weather animation sets would expand its production depth; those extra sets are not represented as completed assets.
 
 ## Implementation routes
 
-- Shared frame, materials, astrolabe: `src/views/chronicle-skin.js`
+- Shared frame and materials: `src/views/chronicle-skin.js`
+- Resource sprites and framed costs: `src/views/resource-cost-pixi.js`
+- Solar/lunar discs and phase reference: `src/views/sunandmoon-disks-pixi.js`, `src/views/moon-phase-reference-pixi.js`
 - Asset loading, atlas regions, aspect-preserving crops: `src/views/chronicle-art.js`
 - Gamepiece cards and readable inspection: `src/views/chronicle-card.js`, `src/views/chronicle-inspection.js`
 - Map information: `src/views/chronicle-world-panels.js`

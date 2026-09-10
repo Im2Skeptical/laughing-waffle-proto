@@ -13,6 +13,7 @@ import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip } from './civilization-survival-hud.js';
+import { addResourceAmount } from './resource-cost-pixi.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -280,10 +281,10 @@ export function createVassalLifeMapView({
       createText(`VASSAL · AGE ${getVassalAge(state, profile, presentation.profileSec)} · ${location}`, {
         ...TEXT_STYLES.chip, fontSize: 18, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 235,
-      }, hudX + 16, MAP_RECT.y + 31),
-      createText(`Prestige  ${profile.prestige}`, {
-        ...TEXT_STYLES.header, fontSize: 21, fill: PALETTE.accent,
-      }, hudX + 16, MAP_RECT.y + 55));
+      }, hudX + 16, MAP_RECT.y + 31));
+    addResourceAmount(root, 'prestige', profile.prestige, {
+      x: hudX + 16, y: MAP_RECT.y + 56, fontSize: 26, iconSize: 32, fill: PALETTE.accent,
+    });
     getVassalStatsPresentation(profile).forEach((stat, index) => {
       const chip = new PIXI.Container();
       chip.position.set(hudX + 258 + index * 180, MAP_RECT.y + 31);

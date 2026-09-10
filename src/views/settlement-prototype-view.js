@@ -1,5 +1,6 @@
 import { addGamepieceCard } from './chronicle-card.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
+import { addResourceIcon } from './resource-cost-pixi.js';
 import {
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
@@ -155,15 +156,18 @@ export function createSettlementPrototypeView({
       panel(root, structureRect, "Regional structure space");
       root.addChild(
         createText(`Stored food  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
-          foodRect.x + 18, foodRect.y + 64),
-        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 96),
-        createText(`Currency  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 128),
+          foodRect.x + 54, foodRect.y + 64),
+        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 96),
+        createText(`Money  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 128),
         createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 154),
         createText(`Population  ${vm.population.total} / ${vm.population.housingCapacity} housing`,
           TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 190),
         createText(`Last meal  ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand}` : "none"}`,
           TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 226)
       );
+      addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 74, 32);
+      addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 106, 32);
+      addResourceIcon(root, 'money', foodRect.x + 31, foodRect.y + 138, 32);
       const practiceGap = 10;
       const practiceCardWidth = Math.floor(
         (practiceRect.width - 36 - practiceGap * Math.max(0, vm.practices.length - 1)) /

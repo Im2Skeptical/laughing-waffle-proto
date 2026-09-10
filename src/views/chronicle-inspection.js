@@ -2,6 +2,7 @@ import { addIllustration } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
+import { addCostPanel } from './resource-cost-pixi.js';
 
 // A view-local reading surface; scrolling never changes a card or its draft.
 export function addChronicleInspection(parent, rect, {title, artId, cost, metadata, detail, onClose}) {
@@ -12,16 +13,18 @@ export function addChronicleInspection(parent, rect, {title, artId, cost, metada
   root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
   addIllustration(root,artId,{x:18,y:18,width:156,height:142});
   root.addChild(createText(title,{...TEXT_STYLES.header,fontSize:36,wordWrap:true,wordWrapWidth:rect.width-280},196,20));
-  root.addChild(createText(cost,{...TEXT_STYLES.body,fontSize:28,fill:RELIC.brass,wordWrap:true,wordWrapWidth:rect.width-238},196,94));
+  addCostPanel(root, {x:196,y:112,width:rect.width-238,height:128}, {
+    ...cost, interactive:false, fontSize:36, iconSize:46,
+  });
   const close=new PIXI.Container();close.position.set(rect.width-66,14);
   const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,50,50,RELIC.stone,RELIC.brass,1);
   close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:38},25,25,.5,.5));
   close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(0,0,50,50);
   close.on('pointertap',event=>{event.stopPropagation();onClose();});root.addChild(close);
-  const viewport=new PIXI.Container();viewport.position.set(22,184);root.addChild(viewport);
-  const height=rect.height-214,width=rect.width-44;
+  const viewport=new PIXI.Container();viewport.position.set(22,266);root.addChild(viewport);
+  const height=rect.height-306,width=rect.width-44;
   const copy=createText([metadata,detail].filter(Boolean).join('\n\n'),{
-    ...TEXT_STYLES.body,fontSize:28,lineHeight:36,wordWrap:true,wordWrapWidth:width-16,
+    ...TEXT_STYLES.body,fontSize:32,lineHeight:42,wordWrap:true,wordWrapWidth:width-16,
   },0,0);
   viewport.addChild(copy);
   const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(0,0,width,height).endFill();

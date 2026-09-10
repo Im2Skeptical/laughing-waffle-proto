@@ -25,11 +25,13 @@ for new rendering or model rules.
 
 ### Shared presentation
 
-- Frame, stone materials, astrolabe: `src/views/chronicle-skin.js`
+- Frame and stone materials: `src/views/chronicle-skin.js`
 - Original atlases and texture regions: `src/views/chronicle-art.js`,
   `images/dark-fantasy/README.md`
 - Illustrated cards and inspection: `src/views/chronicle-card.js` and
   `src/views/chronicle-inspection.js`
+- Shared resource symbols and cost footers: `src/views/resource-cost-pixi.js`
+  and `images/dark-fantasy/resource-language-v1/`
 - Pure time samplers and scene effects: `src/views/timeline-presentation.js`
   and `src/views/chronicle-effects-pixi.js`
 - Reversible sound: `src/views/timeline-audio.js`
@@ -54,6 +56,7 @@ for new rendering or model rules.
   `src/views/settlement-navigation-pixi.js`
 - Shared survival strip: `src/views/civilization-survival-hud.js`
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
+- Six-phase reference and viewed moon totals: `src/views/moon-phase-reference-pixi.js`
 - Time lever: `src/views/time-controls-pixi.js`
 
 ### Timegraph

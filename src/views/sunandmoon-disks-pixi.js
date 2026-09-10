@@ -2,9 +2,7 @@
 // Two rotating HUD disks: Moon cycle + Season cycle.
 // Pure view module: reads state and dispatches scrub/commit intents only.
 
-import {
-  MOON_PHASE_OFFSET_SEC,
-} from "../defs/gamesettings/gamerules-defs.js";
+
 import { MOON_PHASE_DEFS } from "../defs/gamesettings/moon-phase-defs.js";
 import { getGameSetting } from "../model/game-config.js";
 import {
@@ -12,7 +10,9 @@ import {
   getMoonPhaseAtSecond,
 } from "../model/moon-phases.js";
 import { VIEW_LAYOUT } from "./layout-pixi.js";
-import { createAstrolabeTexture } from './chronicle-skin.js';
+import { getArtRevision, getResourceTexture } from './chronicle-art.js';
+import { addResourceIcon } from './resource-cost-pixi.js';
+import { buildPhaseTooltipSpec, createMoonPhaseReferenceView } from './moon-phase-reference-pixi.js';
 
 export const SUN_AND_MOON_DISKS_LAYOUT = {
   ...VIEW_LAYOUT.sunMoonDisks,
@@ -25,7 +25,7 @@ const DISK_ID_MOON = "moon";
 const DISK_ID_SEASON = "season";
 const ROTATION_CLOCKWISE = "clockwise";
 const ROTATION_ANTICLOCKWISE = "anticlockwise";
-const SEASON_COMPANION_MARKER_STEP_RAD = Math.PI / 2;
+
 
 function clamp01(v) {
   if (!Number.isFinite(v)) return 0;
@@ -93,9 +93,8 @@ function phase01ToRotationRad(phase01, diskLayout) {
 
 function getMoonOrbitPhase01AtTime(state, timeSec) {
   const cycleSec = getMoonCycleDurationSec(state);
-  const offsetSec = clampInt(MOON_PHASE_OFFSET_SEC, Math.floor(cycleSec / 2));
   const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
-  const phaseSec = (t + offsetSec) % cycleSec;
+  const phaseSec = Math.max(0, t - 1) % cycleSec;
   return clamp01(phaseSec / cycleSec);
 }
 
@@ -275,15 +274,24 @@ export function createSunAndMoonDisksView({
   commitPreviewToLive,
   requestPauseBeforeDrag,
   tooltipView,
+  referenceLayer = layer,
   layout = SUN_AND_MOON_DISKS_LAYOUT,
 } = {}) {
 let root = null;
 let moonSprite = null;
 let seasonSprite = null;
-let phaseIconLayer = null;
 let phaseIconEntries = [];
-let hoveredPhaseId = null;
+let phaseCentre = null;
+let centreIcon = null;
+let centreBezel = null;
+let seasonArt = null;
+let moonArt = null;
+let phaseReference = null;
+let centrePress = null;
+let suppressCentreTap = false;
+let hoveredCentre = false;
 let lastTooltipSecond = null;
+let artRevision = -1;
 let feedbackGraphics = null;
 let feedbackText = null;
   let lastEnabled = null;
@@ -338,87 +346,14 @@ let feedbackText = null;
     return null;
   }
 
-  function sumRegionValues(turn, phaseId, read) {
-    return Object.values(turn?.regions ?? {}).reduce(
-      (sum, region) => sum + (Number(read(region?.[phaseId])) || 0),
-      0
-    );
-  }
-
-  function buildPhaseTooltipSpec(state, phaseDef) {
-    const current = state?.civilization?.currentMoonTurn ?? null;
-    const fallback = state?.civilization?.lastMoonTurn ?? null;
-    const hasCurrentResult = Object.values(current?.regions ?? {})
-      .some((region) => region?.[phaseDef.id] != null);
-    const turn = hasCurrentResult ? current : fallback;
-    const rows = [];
-    if (phaseDef.id === "birth") {
-      rows.push(
-        { label: "Births", value: sumRegionValues(turn, "birth", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.births ?? 0), 0)) },
-        { label: "Became adults", value: sumRegionValues(turn, "birth", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.matured ?? 0), 0)) },
-        { label: "Became elders", value: sumRegionValues(turn, "birth", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.newElders ?? 0), 0)) }
-      );
-    } else if (phaseDef.id === "food") {
-      rows.push(
-        { label: "Meal demand", value: sumRegionValues(turn, "food", (v) => v?.demand) },
-        { label: "Food eaten", value: sumRegionValues(turn, "food", (v) => v?.consumed) },
-        { label: "Food migrants", value: sumRegionValues(turn, "food", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.migrants ?? 0), 0)) }
-      );
-    } else if (phaseDef.id === "housing") {
-      rows.push(
-        { label: "Population assessed", value: sumRegionValues(turn, "housing", (v) => v?.population) },
-        { label: "Housing capacity", value: sumRegionValues(turn, "housing", (v) => v?.capacity) },
-        { label: "Housing migrants", value: sumRegionValues(turn, "housing", (v) => v?.migrants) }
-      );
-    } else if (phaseDef.id === "faith") {
-      rows.push(
-        { label: "Faith shifts", value: sumRegionValues(turn, "faith", (v) =>
-          Object.values(v?.byClass ?? {}).filter((c) => c?.faithShifted).length) },
-        { label: "Faith migrants", value: sumRegionValues(turn, "faith", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.displaced ?? 0), 0)) },
-        { label: "Chaos this moon", value: state?.civilization?.chaos?.lastMoonIncome?.totalIncome ?? 0 }
-      );
-    } else if (phaseDef.id === "migration") {
-      rows.push(
-        { label: "Requested", value: (turn?.migrationIntentSummaries ?? [])
-          .reduce((n, intent) => n + (intent?.requested ?? 0), 0) },
-        { label: "Moved", value: (turn?.movements ?? [])
-          .reduce((n, move) => n + (move?.amount ?? 0), 0) },
-        { label: "Unplaced", value: (turn?.unresolved ?? [])
-          .reduce((n, entry) => n + (entry?.count ?? 0), 0) }
-      );
-    } else if (phaseDef.id === "death") {
-      rows.push(
-        { label: "Arrival deaths", value: sumRegionValues(turn, "death", (v) => v?.arrivalDeaths) },
-        { label: "Hardship deaths", value: sumRegionValues(turn, "death", (v) => v?.hardshipDeaths) },
-        { label: "Natural deaths", value: sumRegionValues(turn, "death", (v) =>
-          Object.values(v?.byClass ?? {}).reduce((n, c) => n + (c?.naturalDeaths ?? 0), 0)) },
-        { label: "Food rotted", value: Math.round(100 * (
-          sumRegionValues(turn, "death", (v) => v?.storedFoodRot)
-          + sumRegionValues(turn, "death", (v) => v?.looseFoodRot)
-        )) / 100 }
-      );
-    }
-    return {
-      title: `${phaseDef.label} phase`,
-      subtitle: hasCurrentResult ? "Current moon" : turn ? "Previous moon" : "Not yet resolved",
-      sections: [
-        { type: "paragraph", text: phaseDef.summary },
-        { type: "table", title: "Civilization", rows },
-      ],
-      maxWidth: 310,
-    };
-  }
-
-  function showPhaseTooltip(phaseId) {
-    const entry = phaseIconEntries.find((item) => item.phase.id === phaseId);
+  function showPhaseTooltip() {
     const state = getState?.();
-    if (!entry || !state || !tooltipView) return;
-    tooltipView.show(buildPhaseTooltipSpec(state, entry.phase), entry.container.getBounds());
+    if (!state || !phaseCentre || !tooltipView) return;
+    const phase = getMoonPhaseAtSecond(state);
+    tooltipView.show({
+      ...buildPhaseTooltipSpec(state, phase),
+      subtitle: 'Tap the centre to explore all six phases',
+    }, phaseCentre.getBounds());
     lastTooltipSecond = getTSecInt(state);
   }
 
@@ -507,8 +442,9 @@ let feedbackText = null;
   }
 
   function startDrag(diskId, event) {
-    if (!event) return;
+    if (!event || (Number.isFinite(event.button) && event.button !== 0)) return;
     if (layout?.enabled === false) return;
+    tooltipView?.hide?.();
 
     const state = typeof getState === "function" ? getState() : null;
     const visibility = resolveDiskVisibility(state);
@@ -654,6 +590,12 @@ let feedbackText = null;
     if (!app?.stage) return;
 
     stageMoveHandler = (event) => {
+      if (centrePress && !dragSession && event.pointerId === centrePress.pointerId) {
+        const distance = Math.hypot(event.global.x - centrePress.x, event.global.y - centrePress.y);
+        if (distance < 16) return;
+        suppressCentreTap = true;
+        startDrag(DISK_ID_MOON, event);
+      }
       if (!dragSession) return;
       const global = event?.global;
       const pointerId = Number.isFinite(event?.pointerId) ? event.pointerId : null;
@@ -674,6 +616,7 @@ let feedbackText = null;
     };
 
     stageUpHandler = () => {
+      centrePress = null;
       lastStageMovePointerId = null;
       lastStageMoveX = null;
       lastStageMoveY = null;
@@ -686,6 +629,7 @@ let feedbackText = null;
     app.stage.on("pointermove", stageMoveHandler);
     app.stage.on("pointerup", stageUpHandler);
     app.stage.on("pointerupoutside", stageUpHandler);
+    app.stage.on("pointercancel", stageUpHandler);
     stageListenersBound = true;
   }
 
@@ -696,6 +640,7 @@ let feedbackText = null;
     if (stageUpHandler) {
       app.stage.off("pointerup", stageUpHandler);
       app.stage.off("pointerupoutside", stageUpHandler);
+      app.stage.off("pointercancel", stageUpHandler);
     }
     stageMoveHandler = null;
     stageUpHandler = null;
@@ -743,18 +688,6 @@ let feedbackText = null;
     return committedMarkerAngleRad;
   }
 
-  function drawCompanionSeasonMarkers(cx, cy, ringRadius, baseAngleRad) {
-    feedbackGraphics.lineStyle(1, 0x8ec3f2, 0.42);
-    feedbackGraphics.beginFill(0x8ec3f2, 0.42);
-    for (let i = 1; i <= 3; i++) {
-      const markerAngleRad = baseAngleRad + SEASON_COMPANION_MARKER_STEP_RAD * i;
-      const markerX = cx + Math.cos(markerAngleRad) * ringRadius;
-      const markerY = cy + Math.sin(markerAngleRad) * ringRadius;
-      feedbackGraphics.drawCircle(markerX, markerY, 3);
-    }
-    feedbackGraphics.endFill();
-  }
-
   function drawRingFeedback({ state, baseTimeSec, visibility }) {
     if (!feedbackGraphics) return;
 
@@ -775,37 +708,12 @@ let feedbackText = null;
     const ringRadius = Number.isFinite(baseRadius) && baseRadius > 0 ? baseRadius + 10 : 36;
     const committedSec = getTSecInt(state);
 
-    feedbackGraphics.lineStyle(1, 0x8ec3f2, 0.45);
-    feedbackGraphics.drawCircle(cx, cy, ringRadius);
-
     const playheadAngleRad = getDiskPlayheadAngleRad(diskId, layout);
     drawInwardPlayheadTriangle(feedbackGraphics, cx, cy, playheadAngleRad, {
-      tipRadius: ringRadius - 0.5,
-      baseRadius: ringRadius + 9,
-      halfWidth: 5.5,
-      fillColor: 0xffffff,
-      fillAlpha: 0.98,
-      strokeColor: 0x0f1220,
-      strokeAlpha: 0.98,
-      strokeWidth: 2,
+      tipRadius: baseRadius - 8, baseRadius: baseRadius + 5, halfWidth: 7,
+      fillColor: 0xe8cf94, strokeColor: 0x151b1b, strokeWidth: 1,
     });
-
-    const ringMarkerAngleRad = resolveRingMarkerAngleRad({
-      diskId,
-      state,
-      baseTimeSec,
-      committedSec,
-    });
-    const baseDotX = cx + Math.cos(ringMarkerAngleRad) * ringRadius;
-    const baseDotY = cy + Math.sin(ringMarkerAngleRad) * ringRadius;
-    feedbackGraphics.lineStyle(1, 0x8ec3f2, 0.5);
-    feedbackGraphics.beginFill(0x8ec3f2, 0.55);
-    feedbackGraphics.drawCircle(baseDotX, baseDotY, 4);
-    feedbackGraphics.endFill();
-
-    if (diskId === DISK_ID_SEASON) {
-      drawCompanionSeasonMarkers(cx, cy, ringRadius, ringMarkerAngleRad);
-    }
+    resolveRingMarkerAngleRad({ diskId, state, baseTimeSec, committedSec });
 
     if (!dragSession || dragSession.diskId !== diskId) return;
     if (!Number.isFinite(dragSession.visualTargetSec)) return;
@@ -838,7 +746,7 @@ let feedbackText = null;
       const startSec = clampNonNegativeSec(dragSession.dragStartSec, 0);
       const dragDeltaSec = Math.floor(targetSec - startSec);
       const sign = dragDeltaSec >= 0 ? "+" : "-";
-      feedbackText.text = `${sign}${Math.abs(dragDeltaSec)} tSec`;
+      feedbackText.text = `${sign}${Math.abs(dragDeltaSec)} seconds`;
       feedbackText.x = Math.round(cx - feedbackText.width * 0.5);
       feedbackText.y = Math.round(cy - ringRadius - feedbackText.height - 6);
       feedbackText.visible = true;
@@ -852,57 +760,51 @@ let feedbackText = null;
     root = new PIXI.Container();
     root.zIndex = layout?.zIndex ?? 0;
 
-    {
-      const tex = createAstrolabeTexture('season');
-      seasonSprite = new PIXI.Sprite(tex);
-      seasonSprite.anchor.set(0.5);
-      seasonSprite.hitArea = new PIXI.Circle(0,0,216);
-      seasonSprite.eventMode = "static";
-      seasonSprite.cursor = "grab";
-      seasonSprite.on("pointerdown", (event) => startDrag(DISK_ID_SEASON, event));
-      root.addChild(seasonSprite);
-    }
+    seasonSprite = new PIXI.Container();
+    seasonArt = addResourceIcon(seasonSprite, 'solar-wheel', 0, 0, 440);
+    seasonArt.scale.x *= -1; // Spring → Summer → Autumn → Winter under the top pointer.
+    seasonSprite.hitArea = new PIXI.Circle(0, 0, 220);
+    seasonSprite.eventMode = 'static'; seasonSprite.cursor = 'grab';
+    seasonSprite.on('pointerdown', event => startDrag(DISK_ID_SEASON, event));
+    root.addChild(seasonSprite);
 
-    {
-      const tex = createAstrolabeTexture('moon');
-      moonSprite = new PIXI.Sprite(tex);
-      moonSprite.anchor.set(0.5);
-      moonSprite.hitArea = new PIXI.Circle(0,0,197);
-      moonSprite.eventMode = "static";
-      moonSprite.cursor = "grab";
-      moonSprite.on("pointerdown", (event) => startDrag(DISK_ID_MOON, event));
-      root.addChild(moonSprite);
-    }
-
-    phaseIconLayer = new PIXI.Container();
-    phaseIconEntries = MOON_PHASE_DEFS.map((phase, phaseIndex) => {
-      const container = new PIXI.Container();
-      const background = new PIXI.Graphics();
-      const label = new PIXI.Text(phase.glyph, {
-        fill: 0xf5f0e6,
-        fontSize: 12,
-        fontFamily: "Arial",
-        fontWeight: "bold",
-        align: "center",
-      });
-      label.anchor.set(0.5);
-      label.eventMode = "none";
-      container.addChild(background, label);
-      container.eventMode = "static";
-      container.cursor = "help";
-      container.on("pointerover", () => {
-        hoveredPhaseId = phase.id;
-        showPhaseTooltip(phase.id);
-      });
-      container.on("pointerout", () => {
-        if (hoveredPhaseId === phase.id) hoveredPhaseId = null;
-        tooltipView?.hide?.();
-      });
-      container.on("pointerdown", (event) => startDrag(DISK_ID_MOON, event));
-      phaseIconLayer.addChild(container);
-      return { phase, phaseIndex, container, background, label };
+    moonSprite = new PIXI.Container();
+    moonArt = addResourceIcon(moonSprite, 'moon-wheel', 0, 0, 440);
+    moonSprite.hitArea = new PIXI.Circle(0, 0, 220);
+    moonSprite.eventMode = 'static'; moonSprite.cursor = 'grab';
+    moonSprite.on('pointerdown', event => startDrag(DISK_ID_MOON, event));
+    phaseIconEntries = MOON_PHASE_DEFS.map((phase, index) => {
+      const angle = -Math.PI / 2 - index / MOON_PHASE_DEFS.length * TWO_PI;
+      const icon = addResourceIcon(moonSprite, phase.id, Math.cos(angle) * 155, Math.sin(angle) * 155, 78);
+      icon.rotation = -index / MOON_PHASE_DEFS.length * TWO_PI;
+      return { phase, icon };
     });
-    root.addChild(phaseIconLayer);
+    root.addChild(moonSprite);
+
+    phaseCentre = new PIXI.Container();
+    const centreGround = new PIXI.Graphics().beginFill(0x16272a).drawCircle(0, 0, 47).endFill();
+    phaseCentre.addChild(centreGround);
+    centreBezel = addResourceIcon(phaseCentre, 'lunar-bezel', 0, 0, 100);
+    centreIcon = addResourceIcon(phaseCentre, 'birth', 0, 0, 58);
+    phaseCentre.hitArea = new PIXI.Circle(0, 0, 50);
+    phaseCentre.eventMode = 'static'; phaseCentre.cursor = 'pointer';
+    phaseCentre.accessible = true; phaseCentre.accessibleType = 'button';
+    phaseCentre.on('pointerover', event => {
+      if (event.pointerType !== 'touch' && !dragSession) { hoveredCentre = true; showPhaseTooltip(); }
+    });
+    phaseCentre.on('pointerout', () => { hoveredCentre = false; tooltipView?.hide?.(); });
+    phaseCentre.on('pointerdown', event => {
+      event.stopPropagation();
+      suppressCentreTap = false;
+      centrePress = { pointerId: event.pointerId, x: event.global.x, y: event.global.y };
+    });
+    phaseCentre.on('pointertap', event => {
+      event.stopPropagation();
+      if (!suppressCentreTap) { tooltipView?.hide?.(); phaseReference.open(); }
+      suppressCentreTap = false;
+    });
+    root.addChild(phaseCentre);
+    phaseReference = createMoonPhaseReferenceView({ app, layer: referenceLayer, getState });
 
     feedbackGraphics = new PIXI.Graphics();
     feedbackGraphics.eventMode = "none";
@@ -945,16 +847,10 @@ let feedbackText = null;
       seasonSprite.scale.set(layout.season.scale);
       seasonSprite.alpha = layout.season.alpha;
     }
-    if (phaseIconLayer) {
-      phaseIconLayer.visible = enabled;
-      const radius = Number.isFinite(layout.moon?.phaseIconRadius)
-        ? layout.moon.phaseIconRadius
-        : 112;
-      for (const entry of phaseIconEntries) {
-        const angle = -Math.PI / 2 + entry.phaseIndex / MOON_PHASE_DEFS.length * TWO_PI;
-        entry.container.x = layout.moon.x + Math.cos(angle) * radius;
-        entry.container.y = layout.moon.y + Math.sin(angle) * radius;
-      }
+    if (phaseCentre) {
+      phaseCentre.position.set(layout.moon.x, layout.moon.y);
+      // At least 44 CSS pixels at the supported 844-wide phone size.
+      phaseCentre.scale.set(Math.max(128, 440 * layout.season.scale * .34) / 100);
     }
   }
 
@@ -988,7 +884,7 @@ let feedbackText = null;
 
     if (moonSprite) moonSprite.visible = moonVisible;
     if (seasonSprite) seasonSprite.visible = seasonVisible;
-    if (phaseIconLayer) phaseIconLayer.visible = moonVisible;
+    if (phaseCentre) phaseCentre.visible = moonVisible;
     root.visible = enabled && (moonVisible || seasonVisible);
 
     if (!root.visible) {
@@ -1006,18 +902,19 @@ let feedbackText = null;
     }
 
     const activePhase = getMoonPhaseAtSecond(state, getTSecInt(state));
-    for (const entry of phaseIconEntries) {
-      const active = entry.phaseIndex === activePhase.phaseIndex;
-      entry.background.clear();
-      entry.background.lineStyle(active ? 3 : 1, active ? 0xffd77a : 0x8f7c60, 1);
-      entry.background.beginFill(active ? 0x6d5230 : 0x2a241d, active ? 0.98 : 0.88);
-      entry.background.drawCircle(0, 0, active ? 13 : 11);
-      entry.background.endFill();
-      entry.label.style.fill = active ? 0xfff0b8 : 0xf5f0e6;
+    if (getArtRevision() !== artRevision) {
+      artRevision = getArtRevision();
+      for (const [sprite, id] of [[seasonArt, 'solar-wheel'], [moonArt, 'moon-wheel'],
+        [centreBezel, 'lunar-bezel'], ...phaseIconEntries.map(entry => [entry.icon, entry.phase.id])]) {
+        const texture = getResourceTexture(id);
+        if (texture?.baseTexture.valid) sprite.texture = texture;
+      }
     }
-    if (hoveredPhaseId && lastTooltipSecond !== getTSecInt(state)) {
-      showPhaseTooltip(hoveredPhaseId);
-    }
+    const activeTexture = getResourceTexture(activePhase.id);
+    if (activeTexture?.baseTexture.valid) centreIcon.texture = activeTexture;
+    phaseCentre.accessibleTitle = activePhase.label + ' phase — open all six phases';
+    if (hoveredCentre && !dragSession && lastTooltipSecond !== getTSecInt(state)) showPhaseTooltip();
+    phaseReference?.update();
 
     if (seasonSprite && seasonSprite.visible !== false) {
       const q =
@@ -1056,11 +953,7 @@ let feedbackText = null;
 
     if (moonSprite) moonSprite.off("pointerdown");
     if (seasonSprite) seasonSprite.off("pointerdown");
-    for (const entry of phaseIconEntries) {
-      entry.container.off("pointerover");
-      entry.container.off("pointerout");
-      entry.container.off("pointerdown");
-    }
+    phaseReference?.destroy();
     tooltipView?.hide?.();
 
     root.removeFromParent();
@@ -1068,9 +961,10 @@ let feedbackText = null;
     root = null;
     moonSprite = null;
     seasonSprite = null;
-    phaseIconLayer = null;
     phaseIconEntries = [];
-    hoveredPhaseId = null;
+    phaseCentre = null;
+    phaseReference = null;
+    centrePress = null;
     feedbackGraphics = null;
     feedbackText = null;
   }
@@ -1082,6 +976,14 @@ let feedbackText = null;
     destroy,
     getRoot: () => root,
     isDragging: () => !!dragSession,
+    getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
+    getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
+    getSemanticSnapshot: () => ({
+      activePhaseId: getMoonPhaseAtSecond(getState?.()).id,
+      centre: phaseCentre ? { x: phaseCentre.x, y: phaseCentre.y, diameter: 100 * phaseCentre.scale.x } : null,
+      moon: moonSprite ? { x: moonSprite.x, y: moonSprite.y, radius: 220 * layout.moon.scale, rotation: moonSprite.rotation } : null,
+      season: seasonSprite ? { x: seasonSprite.x, y: seasonSprite.y, radius: 220 * layout.season.scale, rotation: seasonSprite.rotation } : null,
+    }),
     getScreenRect: () =>
       !root || !root.visible || typeof root.getBounds !== "function"
         ? null

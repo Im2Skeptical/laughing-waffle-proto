@@ -4,9 +4,15 @@ const atlases = new Map();
 const cells = new Map();
 let revision = 0;
 export const getArtRevision = () => revision;
+export const RESOURCE_ART_IDS = Object.freeze([
+  'year', 'moon', 'phase', 'prestige', 'money', 'food', 'birth', 'housing',
+  'faith', 'migration', 'death', 'solar-wheel', 'moon-wheel', 'lunar-bezel', 'cost-frame',
+]);
+export const getResourceTexture = id => atlases.get(`resource-language-v1/${id}.png`) ?? null;
 
 export function preloadChronicleArt() {
-  for (const file of ['chronicle-cards.png', 'chronicle-practices.png', 'chronicle-civic.png', 'realm-terrain.png', 'chronicle-gate.png', 'vassal-portraits.png', 'realm-landmarks.png']) {
+  for (const file of ['chronicle-cards.png', 'chronicle-practices.png', 'chronicle-civic.png', 'realm-terrain.png', 'chronicle-gate.png', 'vassal-portraits.png', 'realm-landmarks.png',
+    ...RESOURCE_ART_IDS.map(id => `resource-language-v1/${id}.png`)]) {
     const texture = PIXI.Texture.from(ASSET_ROOT + file);
     texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
     texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
