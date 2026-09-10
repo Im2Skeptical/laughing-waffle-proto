@@ -849,8 +849,10 @@ let feedbackText = null;
     }
     if (phaseCentre) {
       phaseCentre.position.set(layout.moon.x, layout.moon.y);
-      // At least 44 CSS pixels at the supported 844-wide phone size.
-      phaseCentre.scale.set(Math.max(128, 440 * layout.season.scale * .34) / 100);
+      // Scale the medallion with the wheel, keeping its invisible touch target
+      // at least 44 CSS pixels at the supported 844-wide phone size.
+      phaseCentre.scale.set(440 * layout.season.scale * .34 / 100);
+      phaseCentre.hitArea.radius = Math.max(50, 64 / phaseCentre.scale.x);
     }
   }
 
@@ -980,7 +982,7 @@ let feedbackText = null;
     getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
     getSemanticSnapshot: () => ({
       activePhaseId: getMoonPhaseAtSecond(getState?.()).id,
-      centre: phaseCentre ? { x: phaseCentre.x, y: phaseCentre.y, diameter: 100 * phaseCentre.scale.x } : null,
+      centre: phaseCentre ? { x: phaseCentre.x, y: phaseCentre.y, diameter: 2 * phaseCentre.hitArea.radius * phaseCentre.scale.x } : null,
       moon: moonSprite ? { x: moonSprite.x, y: moonSprite.y, radius: 220 * layout.moon.scale, rotation: moonSprite.rotation } : null,
       season: seasonSprite ? { x: seasonSprite.x, y: seasonSprite.y, radius: 220 * layout.season.scale, rotation: seasonSprite.rotation } : null,
     }),

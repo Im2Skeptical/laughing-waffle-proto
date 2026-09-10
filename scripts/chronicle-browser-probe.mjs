@@ -101,9 +101,12 @@ try {
   const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
     width:1640/2424*canvas.width,height:720/1080*canvas.height};
   const wheels=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeWheelSnapshot());
-  const diskCrop={x:canvas.x+(wheels.season.x-wheels.season.radius-8)/2424*canvas.width,
-    y:canvas.y+(wheels.season.y-wheels.season.radius-20)/1080*canvas.height,
-    width:(wheels.season.radius*2+16)/2424*canvas.width,height:(wheels.season.radius*2+26)/1080*canvas.height};
+  const diskLeft=wheels.season.x-wheels.season.radius-8;
+  const diskTop=wheels.season.y-wheels.season.radius-20;
+  const diskCrop={x:canvas.x+diskLeft/2424*canvas.width,
+    y:canvas.y+diskTop/1080*canvas.height,
+    width:(Math.min(2424,wheels.season.x+wheels.season.radius+8)-diskLeft)/2424*canvas.width,
+    height:(Math.min(1080,wheels.season.y+wheels.season.radius+6)-diskTop)/1080*canvas.height};
   await seek(12);
   const first=await page.screenshot({clip:crop});
   assert.ok(await countImageColours(page,first)>64,'The world must be painted before pause and rewind comparisons');
@@ -128,7 +131,7 @@ try {
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   // Both faces scrub; the larger centre distinguishes a tap from a drag.
   const wheelTouch=await page.context().newCDPSession(page);
-  for(const [radius,startAngle] of [[wheels.moon.radius*.83,0],[wheels.season.radius*.88,0],[wheels.centre.diameter*.25,-Math.PI/2]]) {
+  for(const [radius,startAngle] of [[wheels.moon.radius*.83,Math.PI],[wheels.season.radius*.88,Math.PI],[wheels.centre.diameter*.25,-Math.PI/2]]) {
     await seek(48);
     const point=angle=>({x:canvas.x+(wheels.moon.x+radius*Math.cos(angle))/2424*canvas.width,
       y:canvas.y+(wheels.moon.y+radius*Math.sin(angle))/1080*canvas.height});

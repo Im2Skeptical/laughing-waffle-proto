@@ -203,8 +203,9 @@ bounded JSON state used for replay and phase tooltips.
   emblems rotate with the moon face, while an upright centre shows the active
   phase. Its phone-sized target opens a six-phase reference containing the rules
   and live or previous-moon civilization totals. Both faces and centre drags
-  scrub through the existing viewed-time controller. The wheel sits in the right corner, with
-  a compact vertical lever to its left. The lower-left navigation dock always
+  scrub through the existing viewed-time controller. The compact wheel sits low
+  in the bottom-right corner, with its outer right/bottom rim slightly offscreen
+  and a compact vertical lever to its left. The lower-left navigation dock always
   carries a small circular clock: gold hands at Present, a warm backward arrow
   for History, and a cool forward arrow for a projected future. Hover explains
   the viewed time state; one click returns to Present from either direction.
