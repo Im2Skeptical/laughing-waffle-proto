@@ -1,14 +1,17 @@
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const ASSET_ROOT = 'images/dark-fantasy/';
+const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const atlases = new Map();
 const cells = new Map();
+const packedTextures = new Map();
+const packedLoads = new Map();
 let revision = 0;
 export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
   'year', 'moon', 'phase', 'prestige', 'money', 'food', 'birth', 'housing',
   'faith', 'migration', 'death', 'solar-wheel', 'moon-wheel', 'lunar-bezel', 'cost-frame',
 ]);
-export const getResourceTexture = id => atlases.get(`resource-language-v1/${id}.png`) ?? null;
+export const getResourceTexture = id => loadTexture(`resource-language-v1/${id}.png`);
 export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
   'forage', 'cultivate', 'raiseHouses', 'administrate', 'exchange', 'import',
   'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study', 'mill',
@@ -18,6 +21,8 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
 ]);
 
 function loadTexture(file) {
+  const packed = getPackedTexture(file);
+  if (packed) return packed;
   if (atlases.has(file)) return atlases.get(file);
   const texture = PIXI.Texture.from(ASSET_ROOT + file);
   texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
@@ -27,11 +32,51 @@ function loadTexture(file) {
   return texture;
 }
 
+const PACKED_GROUPS = Object.freeze({
+  resources: Object.freeze({
+    prefix: 'resource-language-v1/',
+    files: Object.freeze(['resource-language.json']),
+  }),
+  settlementPieces: Object.freeze({
+    prefix: 'settlement-pieces-v2/',
+    files: Object.freeze(['settlement-pieces.json']),
+  }),
+});
+
+function getPackedTexture(file) {
+  const group = Object.values(PACKED_GROUPS).find(({prefix}) => file.startsWith(prefix));
+  if (!group) return null;
+  const key = `${group.prefix}${file.slice(group.prefix.length)}`;
+  if (packedTextures.has(key)) return packedTextures.get(key);
+  loadPackedGroup(group);
+  return null;
+}
+
+async function loadPackedGroup(group) {
+  if (packedLoads.has(group)) return packedLoads.get(group);
+  const load = Promise.all(group.files.map(file => PIXI.Assets.load(`${SPRITE_SHEET_ROOT}${file}`)))
+    .then(sheets => {
+      sheets.forEach(sheet => Object.entries(sheet.textures).forEach(([name, texture]) => {
+        const file = `${group.prefix}${name}`;
+        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+        texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+        packedTextures.set(file, texture);
+      }));
+      revision += 1;
+    })
+    .catch(error => {
+      console.error('[art] failed to load packed sprite sheet', error);
+    });
+  packedLoads.set(group, load);
+  return load;
+}
+
 export function preloadChronicleArt() {
   for (const file of ['chronicle-cards.png', 'chronicle-practices.png', 'chronicle-civic.png', 'realm-terrain.png', 'chronicle-gate.png', 'vassal-portraits.png', 'realm-landmarks.png',
     ...RESOURCE_ART_IDS.map(id => `resource-language-v1/${id}.png`)]) {
     loadTexture(file);
   }
+  loadPackedGroup(PACKED_GROUPS.resources);
 }
 
 const ART = Object.freeze({

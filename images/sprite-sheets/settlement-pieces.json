@@ -1,0 +1,252 @@
+{"frames": {
+
+"academy.webp":
+{
+	"frame": {"x":1998,"y":726,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"administrate.webp":
+{
+	"frame": {"x":2,"y":726,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"agrarianGuild.webp":
+{
+	"frame": {"x":2962,"y":726,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"archive.webp":
+{
+	"frame": {"x":1998,"y":1210,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"caravanserai.webp":
+{
+	"frame": {"x":1034,"y":1450,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"countingHouse.webp":
+{
+	"frame": {"x":2,"y":2,"w":960,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":720},
+	"sourceSize": {"w":960,"h":720}
+},
+"cultivate.webp":
+{
+	"frame": {"x":2,"y":1498,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"efficientKitchens.webp":
+{
+	"frame": {"x":2,"y":2270,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"exchange.webp":
+{
+	"frame": {"x":2,"y":3042,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"forage.webp":
+{
+	"frame": {"x":518,"y":726,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"forum.webp":
+{
+	"frame": {"x":2962,"y":1210,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"granary.webp":
+{
+	"frame": {"x":966,"y":2,"w":960,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":720},
+	"sourceSize": {"w":960,"h":720}
+},
+"hallOfSages.webp":
+{
+	"frame": {"x":1998,"y":1694,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"harvestFestival.webp":
+{
+	"frame": {"x":518,"y":1498,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"homesteading.webp":
+{
+	"frame": {"x":518,"y":2270,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"hostel.webp":
+{
+	"frame": {"x":1034,"y":1934,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"import.webp":
+{
+	"frame": {"x":518,"y":3042,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"library.webp":
+{
+	"frame": {"x":1930,"y":2,"w":960,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":720},
+	"sourceSize": {"w":960,"h":720}
+},
+"lodgingHouses.webp":
+{
+	"frame": {"x":1034,"y":2418,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"marketFeast.webp":
+{
+	"frame": {"x":1550,"y":2418,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"mill.webp":
+{
+	"frame": {"x":2066,"y":2178,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"mixedFarming.webp":
+{
+	"frame": {"x":2066,"y":2950,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"mudHouses.webp":
+{
+	"frame": {"x":2894,"y":2,"w":960,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":720},
+	"sourceSize": {"w":960,"h":720}
+},
+"raiseHouses.webp":
+{
+	"frame": {"x":2582,"y":2178,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"resettlementHall.webp":
+{
+	"frame": {"x":2962,"y":1694,"w":960,"h":480},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":480},
+	"sourceSize": {"w":960,"h":480}
+},
+"smokehouse.webp":
+{
+	"frame": {"x":1034,"y":726,"w":960,"h":720},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":720},
+	"sourceSize": {"w":960,"h":720}
+},
+"study.webp":
+{
+	"frame": {"x":2582,"y":2950,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"symposium.webp":
+{
+	"frame": {"x":3098,"y":2178,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+},
+"university.webp":
+{
+	"frame": {"x":1034,"y":3190,"w":960,"h":320},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":960,"h":320},
+	"sourceSize": {"w":960,"h":320}
+},
+"vigil.webp":
+{
+	"frame": {"x":3098,"y":2950,"w":512,"h":768},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":512,"h":768},
+	"sourceSize": {"w":512,"h":768}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "settlement-pieces.png",
+	"format": "RGBA8888",
+	"size": {"w":3924,"h":3812},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:d4b37034f5276a60aa38de091eb72d65:7a746e34140e4f04839add4a639bda62:950fc12091c06873185d4006671efd07$"
+}
+}
