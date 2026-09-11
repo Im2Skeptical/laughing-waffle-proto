@@ -167,8 +167,43 @@ try {
   await phone.getByTestId('game-menu').waitFor({state:'visible'});
   await phone.setViewportSize({width:844,height:390});
   assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Rotation alone does not resume a paused game');
+
+  const hostileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const hostile = await hostileContext.newPage();
+  hostile.on('pageerror', error => errors.push(error.message));
+  await hostile.addInitScript(() => {
+    globalThis.__displayRequests = [];
+    let fullscreenEl = null;
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get() { return fullscreenEl; },
+    });
+    document.hasFocus = () => false;
+    Element.prototype.requestFullscreen = async function requestFullscreen() {
+      globalThis.__displayRequests.push('fullscreen');
+      fullscreenEl = this;
+      document.dispatchEvent(new Event('fullscreenchange'));
+      window.dispatchEvent(new Event('blur'));
+    };
+    screen.orientation.lock = (value) => {
+      globalThis.__displayRequests.push(value);
+      return new Promise(() => {});
+    };
+  });
+  await hostile.goto(url);
+  await hostile.getByTestId('game-new').waitFor();
+  await hostile.getByTestId('game-new').click();
+  const lockRequested = hostile.waitForFunction(() => globalThis.__displayRequests.includes('landscape'));
+  await hostile.getByTestId('game-slot-1').click();
+  await lockRequested;
+  await hostile.setViewportSize({ width: 844, height: 390 });
+  await hostile.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  assert.deepEqual(await hostile.evaluate(() => globalThis.__displayRequests), ['fullscreen', 'landscape']);
+  assert.equal(await hostile.evaluate(() => document.hasFocus()), false);
+  await waitForRide(hostile);
+
   assert.deepEqual(errors, []);
-  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
   console.log('[probe:game-menu] OK');
 } catch (error) {
   writeFileSync(artifact, JSON.stringify({ error: error.stack }));
