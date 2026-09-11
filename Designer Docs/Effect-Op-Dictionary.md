@@ -1,8 +1,9 @@
 # Effect Operation Dictionary
 
 Declarative detailed-settlement effects are defined in
-`src/defs/gamepieces/detailed-settlement-defs.js` and interpreted by
-`src/model/detailed-settlements.js`.
+`src/defs/gamepieces/detailed-settlement-defs.js` and interpreted by the
+`src/model/detailed-settlements.js` barrel and
+`src/model/detailed-settlements/practices.js`.
 
 Scaled effects use a shared `scaledValue` descriptor:
 
@@ -11,12 +12,12 @@ Scaled effects use a shared `scaledValue` descriptor:
 - `workerMultiplier: { base, perEffectiveWorker }`
 
 The result is `baseAmount × evaluator score × (base + effective workers ×
-perEffectiveWorker)`. Cultivate, Administration, and Preservation use a base of
-1 and contribution of 1, so they remain active without workers. Villagers
+perEffectiveWorker)`. Cultivate, Administration, and Smokehouse use a
+workerMultiplier base of 1, so they remain active without workers. Villagers
 contribute 1 effective worker and Strangers contribute 0.5.
 
 Region-count evaluators use JSON-only scopes for adjacent regions, filtered
-connected components, practice presence, and a host-practice conditional. The
+connected components, practice presence, and a host-structure conditional. The
 same scopes can select routing endpoints, keeping displayed diagnostics and
 simulation behavior aligned.
 
@@ -48,8 +49,8 @@ Fields:
 - `scaledValue`
 
 Relatively reduces the selected food-decay loss by the resolved percentage.
-Combined reduction is capped at 100%. Preservation currently targets stored
-food only.
+Combined reduction is capped at 100%. `reduceFoodDecay` is Smokehouse targeting
+stored food.
 
 ## `advanceWork`
 

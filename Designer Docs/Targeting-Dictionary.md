@@ -23,7 +23,7 @@ Region scopes are JSON-only descriptors interpreted by the model:
 - `adjacent` selects authored neighbours, with optional endpoint filters.
 - `connectedComponent` traverses only regions matching its traversal filters,
   then applies endpoint filters.
-- `conditionalHostPractice` selects one of two scopes based on local practice
+- `conditionalHostStructure` selects one of two scopes based on local structure
   presence.
 
 Filters can constrain controller, host-relative colour, detailed-settlement
@@ -35,8 +35,9 @@ Administration in its current routing scope. Evaluation is pure.
 ## Topology transfer target
 
 `routeLocalFood` uses its declarative `targetScope`. Administration normally
-selects adjacent player detailed settlements; local Preservation changes that
-scope to the player-controlled connected component. The planner:
+selects adjacent player detailed settlements; Smokehouse
+`connectedAdministrationReach` changes that scope to the player-controlled
+connected component. The planner:
 
 - reads one activation-start food/capacity/demand snapshot
 - prioritizes greatest shortages/surpluses and resolves ties in authored region order

@@ -1,6 +1,6 @@
 # Chronicle visual overhaul
 
-Implemented September 2026. This document describes the shipped presentation and its extension points. Current game rules remain in `ai-context.md`.
+Implemented September 2026. This document describes the shipped presentation and its extension points. Current game rules live in `ai/ai-context.md` (invariants), `ai/sim.md`, and `ai/ui.md`.
 
 ## Art direction and layout
 
