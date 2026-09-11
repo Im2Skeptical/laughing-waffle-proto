@@ -57,6 +57,10 @@ Local instructions for agents working in this repo.
 
 ## Agent skills
 
+Repo-specific routing skills live in `ai/skills/repo/` (`add-gamepiece`,
+`change-settlement-sim`, `change-view`). Prefer those over loading a whole
+subsystem.
+
 ### Issue tracker
 
 Issues and specs live in GitHub Issues using the `gh` CLI. See `docs/agents/issue-tracker.md`.
