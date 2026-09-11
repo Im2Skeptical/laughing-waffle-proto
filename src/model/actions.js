@@ -6,6 +6,7 @@ import {
   cmdConfirmVassalLifeNode,
   cmdEnterVassalLifeNode,
   cmdPurchaseVassalShopOffer,
+  cmdMoveVassalShopStructure,
   cmdReorderVassalShopPurchase,
   cmdRerollSettlementVassals,
   cmdRerollVassalShop,
@@ -57,6 +58,7 @@ export const ActionKinds = {
   SETTLEMENT_REROLL_VASSALS: "settlementRerollVassals",
   VASSAL_ENTER_LIFE_NODE: "vassalEnterLifeNode",
   VASSAL_SELECT_LIFE_OPTION: "vassalSelectLifeOption",
+  VASSAL_MOVE_SHOP_STRUCTURE: "vassalMoveShopStructure",
   VASSAL_PURCHASE_SHOP_OFFER: "vassalPurchaseShopOffer",
   VASSAL_UNDO_SHOP_PURCHASE: "vassalUndoShopPurchase",
   VASSAL_REORDER_SHOP_PURCHASE: "vassalReorderShopPurchase",
@@ -170,6 +172,9 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.VASSAL_SELECT_LIFE_OPTION:
       result = cmdSelectVassalLifeOption(state, payload);
+      break;
+    case ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE:
+      result = cmdMoveVassalShopStructure(state, payload);
       break;
     case ActionKinds.VASSAL_PURCHASE_SHOP_OFFER:
       result = cmdPurchaseVassalShopOffer(state, payload);

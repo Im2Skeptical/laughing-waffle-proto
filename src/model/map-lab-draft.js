@@ -1,3 +1,4 @@
+import { normalizeStructureLayout, validateStructureLayout, occupiedCells, applyBuild, applyDemolish } from "./structure-layout.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import {
   DETAILED_PRACTICE_SLOT_COUNT,
@@ -13,10 +14,10 @@ import {
   getWorldConnectionKey,
   isWorldConnectionCandidate,
 } from "./world-state.js";
-import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
+import { isDetailedPracticeTier, getQualityMultiplier } from "./detailed-practice-tiers.js";
 
-export const MAP_LAB_DRAFT_SCHEMA_VERSION = 4;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v4";
+export const MAP_LAB_DRAFT_SCHEMA_VERSION = 5;
+export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v5";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
@@ -34,10 +35,7 @@ function normalizeDetailedState(raw, capacity, regionId = null) {
   while (state.practiceSlots.length < DETAILED_PRACTICE_SLOT_COUNT) state.practiceSlots.push(null);
   state.practiceSlots = state.practiceSlots.map((slot) =>
     slot && slot.tier == null ? { ...slot, tier: "bronze" } : slot);
-  state.structureSlots = Array.isArray(state.structureSlots)
-    ? state.structureSlots.slice(0, capacity)
-    : [];
-  while (state.structureSlots.length < capacity) state.structureSlots.push(null);
+  state.structureSlots = normalizeStructureLayout(state.structureSlots, capacity, id => settlementStructureDefs[id], regionId);
   state.elderOrder = state.elderOrder ?? fallback.elderOrder;
   state.lastMeal = null;
   state.lastMoonResult = null;
@@ -117,7 +115,7 @@ export function createMapLabDraftFromGameState(state) {
 function countStructures(detailedState, structureId) {
   return (detailedState?.structureSlots ?? []).filter(
     (slot) => slot?.structureId === structureId
-  ).length;
+  ).reduce((sum, slot) => sum + getQualityMultiplier(slot.tier ?? 'bronze', settlementStructureDefs[structureId].qualityMultiplierPerLevel ?? 0), 0);
 }
 
 function populationTotal(detailedState) {
@@ -160,6 +158,7 @@ function validateDetailedState(region, path, errors, warnings) {
       || state.structureSlots.length !== region.structureCapacity) {
     errors.push(`${path}.detailedState.structureSlots: expected ${region.structureCapacity} slots`);
   } else {
+    errors.push(...validateStructureLayout(state.structureSlots, region.structureCapacity).errors.map(error => `${path}: ${error}`));
     state.structureSlots.forEach((slot, index) => {
       if (slot && !settlementStructureDefs[slot.structureId]) {
         errors.push(`${path}.detailedState.structureSlots[${index}]: invalid structure`);
@@ -167,7 +166,7 @@ function validateDetailedState(region, path, errors, warnings) {
     });
   }
   const granaries = countStructures(state, "granary");
-  const foodCapacity = 100 * granaries * granaries;
+  const foodCapacity = settlementStructureDefs.granary.capacityPerCountSquared * granaries * granaries;
   if (!Number.isFinite(state.storedFood) || state.storedFood < 0
       || state.storedFood > foodCapacity) {
     errors.push(`${path}.detailedState.storedFood: expected 0..${foodCapacity}`);
@@ -191,7 +190,7 @@ function validateDetailedState(region, path, errors, warnings) {
     }
   }
   const houses = countStructures(state, "mudHouses");
-  const housing = 20 * houses * houses;
+  const housing = settlementStructureDefs.mudHouses.capacityPerCountSquared * houses * houses;
   if (populationTotal(state) > housing) {
     warnings.push(`${path}: population ${populationTotal(state)} exceeds housing ${housing}`);
   }
@@ -225,8 +224,8 @@ export function validateMapLabDraft(value) {
     seen.add(region?.id);
     if (!REGION_COLOURS.includes(region?.colour)) errors.push(`${path}.colour: invalid`);
     if (!REGION_CONTROLLERS.includes(region?.controller)) errors.push(`${path}.controller: invalid`);
-    if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 0) {
-      errors.push(`${path}.structureCapacity: expected non-negative integer`);
+    if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 5 || region.structureCapacity > 8) {
+      errors.push(`${path}.structureCapacity: expected 5–8 construction cells`);
     }
     if (typeof region?.randomizeStructureCapacity !== "boolean") {
       errors.push(`${path}.randomizeStructureCapacity: expected boolean`);
@@ -269,10 +268,11 @@ export function updateMapLabRegion(draft, regionId, patch) {
     const capacity = Object.hasOwn(patch, "structureCapacity")
       ? Number(patch.structureCapacity)
       : region.structureCapacity;
-    const occupied = region.detailedState?.structureSlots?.filter(Boolean).length ?? 0;
-    if (!Number.isInteger(capacity) || capacity < occupied) {
+    const occupiedEnd = Math.max(0, ...(region.detailedState?.structureSlots ?? []).filter(Boolean).map(p => p.origin + p.width));
+    if (!Number.isInteger(capacity) || capacity < occupiedEnd) {
       return { ok: false, reason: "structureCapacityBelowOccupied" };
     }
+    if (capacity < 5 || capacity > 8) return { ok: false, reason: "invalidStructureCapacity" };
     if (Object.hasOwn(patch, "colour")) region.colour = patch.colour;
     if (Object.hasOwn(patch, "controller")) region.controller = patch.controller;
     if (Object.hasOwn(patch, "structureCapacity")) region.structureCapacity = capacity;
@@ -330,10 +330,17 @@ export function setMapLabStructureSlot(draft, regionId, slotIndex, structureId) 
   if (structureId != null && !settlementStructureDefs[structureId]) {
     return { ok: false, reason: "invalidStructureId" };
   }
-  return updateMapLabDetailedState(draft, regionId, {
-    structureSlots: region.detailedState?.structureSlots.map((slot, index) =>
-      index === slotIndex ? structureId == null ? null : { structureId } : slot),
+  const slots = region.detailedState?.structureSlots;
+  if (!slots) return { ok: false, reason: "detailedSettlementDisabled" };
+  const occupant = occupiedCells(slots)[slotIndex];
+  if (occupant && occupant.origin !== slotIndex) return { ok: false, reason: "coveredConstructionCell" };
+  const cleared = applyDemolish(slots, occupant ? [occupant.placementId] : []);
+  const result = structureId == null ? { ok: true, slots: cleared } : applyBuild(cleared, {
+    structureId, tier: "bronze", origin: slotIndex, width: settlementStructureDefs[structureId].footprint,
+    placementId: `${regionId}:authored:${slotIndex}`,
   });
+  if (!result.ok) return result;
+  return updateMapLabDetailedState(draft, regionId, { structureSlots: result.slots });
 }
 
 export function toggleMapLabConnection(draft, regionAId, regionBId) {

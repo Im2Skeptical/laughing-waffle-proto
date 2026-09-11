@@ -28,7 +28,7 @@ for new rendering or model rules.
 - Frame and stone materials: `src/views/chronicle-skin.js`
 - Original atlases and texture regions: `src/views/chronicle-art.js`,
   `images/dark-fantasy/README.md`
-- Illustrated cards and inspection: `src/views/chronicle-card.js` and
+- Illustrated pieces and inspection: `src/views/settlement-piece-pixi.js` and
   `src/views/chronicle-inspection.js`
 - Shared resource symbols and cost footers: `src/views/resource-cost-pixi.js`
   and `images/dark-fantasy/resource-language-v1/`
@@ -104,6 +104,11 @@ for ordinary label/layout work.
   `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
   `src/defs/gamepieces/detailed-settlement-defs.js`
+- Pure construction placement and practice draft projection:
+  `src/model/structure-layout.js`, `src/model/practice-draft.js`
+- Shared sparse face and inspection data: `src/model/gamepiece-presentation.js`
+- Draft gesture/preview/confirmation replay checks:
+  `src/model/tests/settlement-redesign.js`, `npm run probe:settlement-draft`
 - World definitions/state: `src/defs/world/` and `src/model/world-state.js`
 - Timeline and authoritative rebuild: `src/model/timeline/index.js`
 - One-second replay path: `src/model/replay-second-runner.js`

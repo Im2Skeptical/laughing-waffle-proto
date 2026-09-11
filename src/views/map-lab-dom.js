@@ -2,6 +2,7 @@ import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
 import { createDebugWorldMapDom } from "./debug-world-map-dom.js";
+import { occupiedCells } from "../model/structure-layout.js";
 
 function getMapLabRegionReference(definition, regionId) {
   const index = (definition?.regions ?? []).findIndex((entry) => entry.id === regionId);
@@ -346,9 +347,9 @@ export function createMapLabDom({ controller } = {}) {
       warning.dataset.testid = "map-lab-nonplayer-detailed-warning";
       mechanics.append(warning);
     }
-    const used = region.detailedState?.structureSlots?.filter(Boolean).length ?? 0;
+    const used = occupiedCells(region.detailedState?.structureSlots ?? []).filter(Boolean).length;
     mechanics.append(element("p", "map-lab-warning",
-      `${used} / ${region.structureCapacity} structure slots used`));
+      `${used} / ${region.structureCapacity} construction cells used`));
     mechanics.append(element("h4", "", "Shared-edge connections"));
     const connectionButtons = element("div", "map-lab-slots");
     const connectionKey = (a, b) => [a, b].sort().join("|");
@@ -443,12 +444,17 @@ export function createMapLabDom({ controller } = {}) {
     const structures = element("div", "map-lab-slots");
     const structureOptions = [
       { value: "", label: "Empty" },
-      ...Object.values(settlementStructureDefs).map((def) => ({ value: def.id, label: def.label })),
+      ...Object.values(settlementStructureDefs).map((def) => ({ value: def.id, label: `${def.label} (${def.footprint} cells)` })),
     ];
+    const occupied = occupiedCells(state.structureSlots);
     state.structureSlots.forEach((slot, index) => {
-      structures.append(selectField(structureOptions, slot?.structureId ?? "",
+      const covered = occupied[index] && !slot;
+      const field = selectField(structureOptions, occupied[index]?.structureId ?? "",
         `map-lab-structure-slot-${index}`, (structureId) =>
-          controller.setStructureSlot(region.id, index, structureId || null)));
+          controller.setStructureSlot(region.id, index, structureId || null));
+      field.disabled = !!covered;
+      field.title = covered ? `Covered by construction at cell ${occupied[index].origin + 1}` : `Construction origin ${index + 1}`;
+      structures.append(field);
     });
     detail.append(structures);
     for (const warning of snapshot.diagnostics.warnings ?? []) {

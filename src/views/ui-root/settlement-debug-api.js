@@ -124,6 +124,8 @@ export function publishSettlementDebugApi({
   getLifeMapEnterNodeClickPoint,
   getLifeMapOptionClickPoint,
   getLifeMapOfferClickPoint,
+  getLifeMapOfferFacePoint, getLifeMapTableauClickPoint, getLifeMapConstructionPoint,
+  getLifeMapUndoClickPoint, getLifeMapInspectionClosePoint, getLifeMapInspectionCostPoint,
   getLifeMapConfirmClickPoint,
   getLifeMapLevelUpChoiceClickPoint,
   selectWorldRegion,
@@ -226,6 +228,12 @@ export function publishSettlementDebugApi({
       getLifeMapOptionClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     getLifeMapOfferClickPoint: (index = 0) =>
       getLifeMapOfferClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
+    getLifeMapOfferFacePoint: index => getLifeMapOfferFacePoint?.(index) ?? null,
+    getLifeMapTableauClickPoint: index => getLifeMapTableauClickPoint?.(index) ?? null,
+    getLifeMapConstructionPoint: origin => getLifeMapConstructionPoint?.(origin) ?? null,
+    getLifeMapUndoClickPoint: index => getLifeMapUndoClickPoint?.(index) ?? null,
+    getLifeMapInspectionClosePoint: () => getLifeMapInspectionClosePoint?.() ?? null,
+    getLifeMapInspectionCostPoint: () => getLifeMapInspectionCostPoint?.() ?? null,
     getLifeMapConfirmClickPoint: () => getLifeMapConfirmClickPoint?.() ?? null,
     getLifeMapLevelUpChoiceClickPoint: (index = 0) =>
       getLifeMapLevelUpChoiceClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,

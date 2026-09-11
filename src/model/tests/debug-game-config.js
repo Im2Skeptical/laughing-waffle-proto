@@ -44,9 +44,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 12);
-assert.equal(authoredConfig.settings.schemaVersion, 12);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 12);
+assert.equal(authoredConfig.schemaVersion, 13);
+assert.equal(authoredConfig.settings.schemaVersion, 13);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 13);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -59,7 +59,7 @@ assert.equal(
   true
 );
 assert.equal(
-  authoredConfig.gamepieces.practices.preserve.connectedAdministrationReach,
+  authoredConfig.gamepieces.structures.smokehouse.connectedAdministrationReach,
   false,
   "Preservation leaves Administration adjacent-only by default"
 );
@@ -111,12 +111,12 @@ assert.deepEqual(
     .flatMap((group) => group.fields)
     .filter((field) => field.type === "boolean")
     .map((field) => field.path.join(".")),
-  ["practices.preserve.connectedAdministrationReach"],
+  ["structures.smokehouse.connectedAdministrationReach"],
   "only explicitly declared boolean gamepiece fields appear in the editor"
 );
 const enabledReachGamepieces = setAtPath(
   authoredConfig.gamepieces,
-  ["practices", "preserve", "connectedAdministrationReach"],
+  ["structures", "smokehouse", "connectedAdministrationReach"],
   true
 );
 assert.equal(validateGamepiecesDraft(enabledReachGamepieces).ok, true);
@@ -136,12 +136,12 @@ assert.equal(
   canonicalizeGameConfig({
     settings: authoredConfig.settings,
     gamepieces: enabledReachGamepieces,
-  }).gamepieces.practices.preserve.connectedAdministrationReach,
+  }).gamepieces.structures.smokehouse.connectedAdministrationReach,
   true,
   "boolean gamepiece controls survive canonicalization"
 );
 const invalidBooleanGamepieces = clone(enabledReachGamepieces);
-invalidBooleanGamepieces.practices.preserve.connectedAdministrationReach = 0;
+invalidBooleanGamepieces.structures.smokehouse.connectedAdministrationReach = 0;
 assert.equal(
   validateGamepiecesDraft(invalidBooleanGamepieces).ok,
   false,
@@ -210,7 +210,7 @@ cultivate._seasonChanged = true;
 stepDetailedSettlementsSecond(cultivate, 8);
 assert.equal(
   getDetailedSettlement(cultivate, "cedar-woods").storedFood,
-  82,
+  59.5,
   "Cultivate uses the state-scoped effect before the same Food phase meal"
 );
 assert.equal(getDetailedSettlement(cultivate, "cedar-woods").looseFood, 0);

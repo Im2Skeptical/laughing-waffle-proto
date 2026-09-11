@@ -1,5 +1,5 @@
 import { addIllustration } from './chronicle-art.js';
-import { addGamepieceCard } from './chronicle-card.js';
+import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pixi.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
@@ -39,16 +39,8 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   const alert=vm.pressure?.starvation?'STARVATION':vm.pressure?.overcrowding?'OVERCROWDED':'PRACTICES';
   root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+238));
   const gap=9, pw=(rect.width-44-gap*4)/5;
-  vm.practices.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(pw+gap),y:y+268,width:pw,height:99},{
-    artId:p.practiceId,title:p.label,empty:!p.practiceId,tier:p.tier,
-    value:p.practiceId?`${p.workers?.effectiveWorkers??0} work`:'',
-    detail:`${p.rule??p.evaluation?.rule??''}\n${(p.tags??[]).join(' · ')}\n${p.workers?.effectiveWorkers??0} effective workers`,tooltipView,
-  }));
+  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+268,width:pw,height:99},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
     ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+375));
-  const sw=Math.min(88,(rect.width-44-(vm.structures.length-1)*7)/Math.max(1,vm.structures.length));
-  vm.structures.forEach((p,i)=>addGamepieceCard(root,{x:x+i*(sw+7),y:y+400,width:sw,height:64},{
-    artId:p?.structureId,title:p?.label??p?.structureId,empty:!p?.structureId,tier:p?.tier,tooltipView,
-    detail:p?.structureId??'Available structure space',
-  }));
+  addConstructionStrip(root,{x,y:y+400,width:rect.width-44,height:64},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,compact:true});
 }

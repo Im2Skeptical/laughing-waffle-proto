@@ -1,3 +1,4 @@
+import { normalizeStructureLayout, validateStructureLayout } from "./structure-layout.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import {
   DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,
@@ -138,7 +139,7 @@ function validateRegionMechanics(region, errors, label = "region") {
   if (!REGION_CONTROLLERS.includes(region?.controller)) {
     errors.push(`${label} ${region?.id ?? "?"} has invalid controller`);
   }
-  if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 0) {
+  if (!Number.isInteger(region?.structureCapacity) || region.structureCapacity < 5 || region.structureCapacity > 8) {
     errors.push(`${label} ${region?.id ?? "?"} has invalid structure capacity`);
   }
   if (typeof region?.detailedSettlementEnabled !== "boolean") {
@@ -174,6 +175,7 @@ function validateDetailedSettlement(site, region, errors) {
       || settlement.structureSlots.length !== region?.structureCapacity) {
     errors.push(`site ${site.id} structure slots do not match regional capacity`);
   } else {
+    errors.push(...validateStructureLayout(settlement.structureSlots, region.structureCapacity).errors.map(error => `site ${site.id}: ${error}`));
     for (const slot of settlement.structureSlots) {
       if (slot && !settlementStructureDefs[slot.structureId]) {
         errors.push(`site ${site.id} has invalid structure ${slot.structureId}`);
@@ -367,10 +369,7 @@ export function establishDetailedSettlement(state, regionId, detailedState) {
   }
   const nextState = cloneSerializable(detailedState);
   const capacity = Math.max(0, Math.floor(region.structureCapacity));
-  nextState.structureSlots = Array.isArray(nextState.structureSlots)
-    ? nextState.structureSlots.slice(0, capacity)
-    : [];
-  while (nextState.structureSlots.length < capacity) nextState.structureSlots.push(null);
+  nextState.structureSlots = normalizeStructureLayout(nextState.structureSlots, capacity, id => settlementStructureDefs[id], regionId);
   region.controller = "player";
   region.detailedSettlementEnabled = true;
   state.world.sites.push({
@@ -541,10 +540,7 @@ export function createWorldState(
         draftDetailedByRegion.get(regionDef.id) ?? createInitialDetailedSettlementData(regionDef.id)
       );
       const capacity = Math.max(0, Math.floor(region.structureCapacity));
-      detailedState.structureSlots = Array.isArray(detailedState.structureSlots)
-        ? detailedState.structureSlots.slice(0, capacity)
-        : [];
-      while (detailedState.structureSlots.length < capacity) detailedState.structureSlots.push(null);
+      detailedState.structureSlots = normalizeStructureLayout(detailedState.structureSlots, capacity, id => settlementStructureDefs[id], regionDef.id);
       return {
         ...(authoredSite ? cloneSerializable(authoredSite) : {
           id: `${regionDef.id}-settlement`,

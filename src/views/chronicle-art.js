@@ -9,15 +9,28 @@ export const RESOURCE_ART_IDS = Object.freeze([
   'faith', 'migration', 'death', 'solar-wheel', 'moon-wheel', 'lunar-bezel', 'cost-frame',
 ]);
 export const getResourceTexture = id => atlases.get(`resource-language-v1/${id}.png`) ?? null;
+export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
+  'forage', 'cultivate', 'raiseHouses', 'administrate', 'exchange', 'import',
+  'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study', 'mill',
+  'harvestFestival', 'marketFeast', 'symposium', 'vigil',
+  'mudHouses', 'granary', 'library', 'smokehouse', 'countingHouse', 'hostel', 'archive',
+  'hallOfSages', 'agrarianGuild', 'forum', 'academy', 'caravanserai', 'resettlementHall', 'university',
+]);
+
+function loadTexture(file) {
+  if (atlases.has(file)) return atlases.get(file);
+  const texture = PIXI.Texture.from(ASSET_ROOT + file);
+  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+  texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  texture.baseTexture.on('loaded', () => { revision += 1; });
+  atlases.set(file, texture);
+  return texture;
+}
 
 export function preloadChronicleArt() {
   for (const file of ['chronicle-cards.png', 'chronicle-practices.png', 'chronicle-civic.png', 'realm-terrain.png', 'chronicle-gate.png', 'vassal-portraits.png', 'realm-landmarks.png',
     ...RESOURCE_ART_IDS.map(id => `resource-language-v1/${id}.png`)]) {
-    const texture = PIXI.Texture.from(ASSET_ROOT + file);
-    texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-    texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
-    texture.baseTexture.on('loaded', () => { revision += 1; });
-    atlases.set(file, texture);
+    loadTexture(file);
   }
 }
 
@@ -39,6 +52,8 @@ export function resolveIllustrationId(piece = {}) {
 }
 
 export function getIllustrationSpec(id) {
+  const pieceId = resolveIllustrationId(id);
+  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v2/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
   if(index==null)return null;
   return {file:['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png'][Math.floor(index/12)],index:index%12};
@@ -60,7 +75,17 @@ export function atlasCell(file, index, columns, rows) {
 }
 
 export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
-  const {file,index}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
+  const {file,index,whole}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
+  if (whole) {
+    const texture = loadTexture(file);
+    if (!texture.baseTexture.valid) return null;
+    const sprite = new PIXI.Sprite(texture);
+    const scale = Math.min(rect.width / texture.width, rect.height / texture.height);
+    sprite.scale.set(scale);
+    sprite.position.set(rect.x + (rect.width - sprite.width) / 2, rect.y + (rect.height - sprite.height) / 2);
+    sprite.alpha = alpha; sprite.eventMode = 'none'; parent.addChild(sprite);
+    return sprite;
+  }
   const source = atlasCell(file, index, 4, 3);
   if (!source) return null;
   // Crop to cover; paintings must never stretch when a compact slot becomes a tall card.

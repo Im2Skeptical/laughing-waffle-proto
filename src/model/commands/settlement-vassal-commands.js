@@ -3,6 +3,7 @@ import {
   confirmVassalLifeNode,
   enterVassalLifeNode,
   purchaseVassalShopOffer,
+  moveVassalShopStructure,
   reorderVassalShopPurchase,
   rerollVassalCandidates,
   rerollVassalShop,
@@ -29,7 +30,7 @@ export const cmdEnterVassalLifeNode = (state, payload = {}) =>
 export const cmdSelectVassalLifeOption = (state, payload = {}) =>
   selectVassalNodeOption(state, payload.nodeId, payload.optionId);
 export const cmdPurchaseVassalShopOffer = (state, payload = {}) =>
-  purchaseVassalShopOffer(state, payload.nodeId, payload.offerId);
+  purchaseVassalShopOffer(state, payload.nodeId, payload.offerId, payload.origin, payload.toIndex);
 export const cmdUndoVassalShopPurchase = (state, payload = {}) =>
   undoVassalShopPurchase(state, payload.nodeId, payload.offerId);
 export const cmdReorderVassalShopPurchase = (state, payload = {}) =>
@@ -40,3 +41,6 @@ export const cmdConfirmVassalLifeNode = (state, payload = {}) =>
   confirmVassalLifeNode(state, payload.nodeId);
 export const cmdChooseVassalDevelopmentStat = (state, payload = {}) =>
   chooseVassalDevelopmentStat(state, payload.choiceId, payload.statId);
+
+export const cmdMoveVassalShopStructure = (state, payload = {}) =>
+  moveVassalShopStructure(state, payload.nodeId, payload.offerId, payload.origin);

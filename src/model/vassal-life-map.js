@@ -1,3 +1,6 @@
+import { getGamepieceFace } from "./gamepiece-presentation.js";
+import { findStructurePlacement, projectStructureDraft } from "./structure-layout.js";
+import { projectPracticeDraft } from "./practice-draft.js";
 import {
   VASSAL_CRISIS_OPTIONS,
   VASSAL_DEVELOPMENT_OPTIONS,
@@ -25,7 +28,6 @@ import {
   getDetailedPracticeTierIndex,
   getDetailedPracticeWorkerCapacity,
   getNextDetailedPracticeTier,
-  getQualityMultiplier,
 } from "./detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "./moon-phases.js";
 import { getSettlementChaosGodState } from "./settlement-chaos.js";
@@ -84,7 +86,7 @@ function getUniversityFloor(state, regionId) {
     .filter((slot) => slot?.structureId === "university")
     .map((slot) => getDetailedPracticeTierIndex(slot.tier ?? "bronze"));
   const highest = tiers.length ? Math.max(...tiers) : -1;
-  return highest >= 3 ? 3 : highest >= 2 ? 2 : 0;
+  return highest >= 0 ? 2 : 0;
 }
 function rollOfferQuality(state, regionId, floor = 0) {
   const max = getUnlockedQualityIndex(state);
@@ -564,66 +566,48 @@ function applyPracticeIntervention(practiceSlots, intervention) {
   return true;
 }
 
-function applyReservedIntervention(reservation, intervention) {
-  if (intervention.kind === "practice") {
-    applyPracticeIntervention(reservation.practiceSlots, intervention);
-  } else if (intervention.kind === "structure") {
-    reservation.structureSlots[intervention.slotIndex] = intervention.mode === "remove"
-      ? null : intervention.structureId;
-  } else if (intervention.kind === "connection") {
-    const key = getWorldConnectionKey(intervention.regionAId, intervention.regionBId);
-    if (intervention.mode === "add") reservation.connectionKeys.add(key);
-    else reservation.connectionKeys.delete(key);
+function validatePurchaseInterventions(state, vassal, purchases = []) {
+  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+  const practices = projectPracticeDraft(settlement?.practiceSlots ?? [], purchases);
+  if (!practices.ok) return practices;
+  const structures = projectStructureDraft(settlement?.structureSlots ?? [], purchases.filter(p => p.intervention?.kind === 'structure').map(p => p.placement));
+  if (!structures.ok) return structures;
+  const connectionKeys = new Set((state?.world?.connections ?? []).map(edge => getWorldConnectionKey(edge.regionAId, edge.regionBId)));
+  for (const purchase of purchases) {
+    const action = purchase.intervention;
+    if (action?.kind !== 'connection') continue;
+    const key = getWorldConnectionKey(action.regionAId, action.regionBId);
+    if ((action.mode === 'add') === connectionKeys.has(key)) return { ok: false, reason: 'connectionUnavailable' };
+    if (action.mode === 'add') connectionKeys.add(key); else connectionKeys.delete(key);
   }
-}
-
-function validatePurchaseInterventions(state, vassal, purchases) {
-  const reservation = buildReservation(state, vassal, { purchasedOffers: [] });
-  for (const purchase of purchases ?? []) {
-    const intervention = purchase?.intervention;
-    if (intervention?.kind === "practice") {
-      if (!applyPracticeIntervention(reservation.practiceSlots, intervention)) {
-        return { ok: false, reason: "practiceUnavailable" };
-      }
-    } else if (intervention?.kind === "structure") {
-      const occupied = reservation.structureSlots[intervention.slotIndex];
-      if (intervention.mode === "remove") {
-        if (occupied !== intervention.structureId) return { ok: false, reason: "structureUnavailable" };
-        reservation.structureSlots[intervention.slotIndex] = null;
-      } else {
-        if (occupied != null) return { ok: false, reason: "structureUnavailable" };
-        reservation.structureSlots[intervention.slotIndex] = intervention.structureId;
-      }
-    } else if (intervention?.kind === "connection") {
-      const key = getWorldConnectionKey(intervention.regionAId, intervention.regionBId);
-      const exists = reservation.connectionKeys.has(key);
-      if ((intervention.mode === "add" && exists) || (intervention.mode === "remove" && !exists)) {
-        return { ok: false, reason: "connectionUnavailable" };
-      }
-      if (intervention.mode === "add") reservation.connectionKeys.add(key);
-      else reservation.connectionKeys.delete(key);
-    } else {
-      return { ok: false, reason: "interventionUnavailable" };
-    }
-  }
-  return { ok: true, reservation };
+  return { ok: true, reservation: { practiceSlots: practices.slots, structureSlots: structures.slots, connectionKeys }, structures, practices };
 }
 
 function buildReservation(state, vassal, nodeState) {
-  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-  const reservation = {
-    practiceSlots: (settlement?.practiceSlots ?? []).map((slot) => slot
-      ? { practiceId: slot.practiceId, tier: slot.tier }
-      : null),
-    structureSlots: (settlement?.structureSlots ?? []).map((slot) => slot?.structureId ?? null),
-    connectionKeys: new Set((state?.world?.connections ?? []).map((edge) =>
-      getWorldConnectionKey(edge.regionAId, edge.regionBId)
-    )),
-  };
-  for (const purchase of nodeState?.purchasedOffers ?? []) {
-    applyReservedIntervention(reservation, purchase.intervention);
+  return validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []).reservation;
+}
+
+function prepareStructurePlacement(state, vassal, nodeState, offer, origin = null, purchases = nodeState.purchasedOffers) {
+  const def = getDetailedStructureDef(state, offer.intervention.structureId);
+  const width = def?.footprint ?? 1;
+  const action = offer.intervention;
+  if (action.mode === 'upgrade') {
+    const target = getDetailedSite(state, vassal.locationRegionId)?.detailedState?.structureSlots.find(p => p?.placementId === action.targetPlacementId);
+    if (!target || (origin != null && origin !== target.origin)) return { ok: false, reason: 'incompatibleUpgrade' };
+    return { ok: true, placement: {
+    mode: 'upgrade', targetPlacementId: action.targetPlacementId, structureId: action.structureId,
+    previousTier: action.previousTier, tier: action.tier, width,
+    } };
   }
-  return reservation;
+  if (action.mode === 'remove') return { ok: false, reason: 'standaloneDemolitionUnavailable' };
+  const validation = validatePurchaseInterventions(state, vassal, purchases);
+  if (!validation.ok) return validation;
+  const location = origin == null ? findStructurePlacement(validation.reservation.structureSlots, width, {
+    allowDemolition: true, stagedIds: validation.structures.stagedIds,
+  }) : { ok: true, origin };
+  if (!location.ok) return location;
+  return { ok: true, placement: { placementId: vassal.vassalId + ':' + offer.offerId,
+    origin: location.origin, width, structureId: action.structureId, tier: action.tier ?? 'bronze' } };
 }
 
 function buildPracticeOffers(state, vassal, nodeState, roll) {
@@ -643,7 +627,6 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
       kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
       mode: installed ? "upgrade" : "learn", tier, resultingTier,
     };
-    applyPracticeIntervention(reservation.practiceSlots, intervention);
     offers.push({
       offerId: `${nodeState.nodeId}:r${roll}:practice:${offers.length}`,
       label: installed
@@ -657,28 +640,28 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
   return offers;
 }
 
+function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, category = 'structure') {
+  const def = getDetailedStructureDef(state, structureId);
+  const installed = getDetailedSite(state, vassal.locationRegionId)?.detailedState.structureSlots.find(p =>
+    p?.structureId === structureId && p.width === (def.footprint ?? 1) && p.tier !== 'diamond');
+  const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
+  const tier = installed ? getNextDetailedPracticeTier(installed.tier) : offeredTier;
+  return {
+    offerId: nodeState.nodeId + ':r' + roll + ':' + category + ':' + index,
+    label: (installed ? 'Upgrade ' : 'Build ') + qualityLabel(tier) + ' ' + def.label,
+    basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
+    basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
+    intervention: { kind: 'structure', mode: installed ? 'upgrade' : 'add',
+      targetRegionId: vassal.locationRegionId, structureId, tier,
+      ...(installed ? { targetPlacementId: installed.placementId, previousTier: installed.tier } : {}),
+    },
+  };
+}
+
 function buildStructureOffers(state, vassal, nodeState, roll) {
-  const reservation = buildReservation(state, vassal, nodeState);
-  const offers = [];
-  const defIds = shuffle(state, Object.keys(settlementStructureDefs)).filter((id) => isDefinitionUnlocked(state, settlementStructureDefs[id]));
-  let defIndex = 0;
-  while (offers.length < 3) {
-    const slotIndex = reservation.structureSlots.findIndex((value) => value == null);
-    if (slotIndex < 0 || defIds.length === 0) break;
-    const structureId = defIds[defIndex % defIds.length];
-    const def = settlementStructureDefs[structureId];
-    const tier = rollOfferQuality(state, vassal.locationRegionId);
-    reservation.structureSlots[slotIndex] = structureId;
-    offers.push({
-      offerId: `${nodeState.nodeId}:r${roll}:structure:${offers.length}`,
-      label: `Build ${qualityLabel(tier)} ${def.label}`,
-      basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-      basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-      intervention: { kind: "structure", targetRegionId: vassal.locationRegionId, structureId, tier, slotIndex },
-    });
-    defIndex += 1;
-  }
-  return offers;
+  return shuffle(state, Object.keys(settlementStructureDefs))
+    .filter(id => isDefinitionUnlocked(state, getDetailedStructureDef(state, id)))
+    .slice(0, 3).map((id, index) => makeStructureOffer(state, vassal, nodeState, roll, id, index));
 }
 
 function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
@@ -711,8 +694,7 @@ function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
         kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
         mode: installed ? "upgrade" : "learn", tier, resultingTier,
       };
-      applyPracticeIntervention(reservation.practiceSlots, intervention);
-      offers.push({
+        offers.push({
         offerId: `${nodeState.nodeId}:r${roll}:tag:${offers.length}`,
         label: installed ? `Upgrade ${def.label} ${qualityLabel(tier)} → ${qualityLabel(resultingTier)}`
           : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
@@ -721,19 +703,7 @@ function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
         intervention,
       });
     } else {
-      const slotIndex = reservation.structureSlots.findIndex((value) => value == null);
-      if (slotIndex < 0) continue;
-      const structureId = candidate.definitionId;
-      const def = settlementStructureDefs[structureId];
-      const tier = rollOfferQuality(state, vassal.locationRegionId);
-      reservation.structureSlots[slotIndex] = structureId;
-      offers.push({
-        offerId: `${nodeState.nodeId}:r${roll}:tag:${offers.length}`,
-        label: `Build ${qualityLabel(tier)} ${def.label}`,
-        basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-        basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-        intervention: { kind: "structure", mode: "add", targetRegionId: vassal.locationRegionId, structureId, tier, slotIndex },
-      });
+      offers.push(makeStructureOffer(state, vassal, nodeState, roll, candidate.definitionId, offers.length, 'tag'));
     }
   }
   return offers;
@@ -747,12 +717,6 @@ function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
       label: `Remove ${getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId}`,
       intervention: { kind: "practice", mode: "remove", targetRegionId: vassal.locationRegionId,
         practiceId: slot.practiceId, tier: slot.tier ?? "bronze" },
-    }] : []);
-  } else if (removalKind === "structure") {
-    targets = (settlement?.structureSlots ?? []).flatMap((slot, slotIndex) => slot ? [{
-      label: `Remove ${getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId}`,
-      intervention: { kind: "structure", mode: "remove", targetRegionId: vassal.locationRegionId,
-        structureId: slot.structureId, tier: slot.tier ?? "bronze", slotIndex },
     }] : []);
   } else {
     targets = (state?.world?.connections ?? []).flatMap((edge) => {
@@ -1003,7 +967,7 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
   return { ok: true, optionId };
 }
 
-export function purchaseVassalShopOffer(state, nodeId, offerId) {
+export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, toIndex = null) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
@@ -1018,13 +982,24 @@ export function purchaseVassalShopOffer(state, nodeId, offerId) {
   if (prestigeCost > vassal.prestige - stagedPrestigeCost) {
     return { ok: false, reason: "insufficientPrestige" };
   }
-  nodeState.inventory.splice(index, 1);
-  nodeState.purchasedOfferIds.push(offer.offerId);
-  nodeState.purchasedOffers.push({
-    ...clone(offer), prestigeCost, phaseCost, purchasedSec: state.tSec,
+  const prepared = offer.intervention?.kind === 'structure'
+    ? prepareStructurePlacement(state, vassal, nodeState, offer, origin) : { ok: true };
+  if (!prepared.ok) return prepared;
+  const purchase = {
+    ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, phaseCost, purchasedSec: state.tSec,
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
-  });
+  };
+  const next = [...nodeState.purchasedOffers];
+  const practicePositions = next.flatMap((p, i) => p.intervention.kind === 'practice' ? [i] : []);
+  const insertionIndex = purchase.intervention.kind === 'practice' && Number.isInteger(toIndex)
+    ? practicePositions[Math.max(0, toIndex)] ?? next.length : 0;
+  next.splice(insertionIndex, 0, purchase);
+  const validation = validatePurchaseInterventions(state, vassal, next);
+  if (!validation.ok) return validation;
+  nodeState.inventory.splice(index, 1);
+  nodeState.purchasedOffers = next;
+  nodeState.purchasedOfferIds = next.map(p => p.offerId);
   nodeState.accumulatedPhaseCost += phaseCost;
   return { ok: true, offerId, prestigeCost, phaseCost };
 }
@@ -1039,6 +1014,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   const [purchase] = nodeState.purchasedOffers.splice(index, 1);
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
+  delete restored.placement;
   delete restored.prestigeCost;
   delete restored.phaseCost;
   delete restored.purchasedSec;
@@ -1060,17 +1036,33 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
-  const fromIndex = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
+  const ordered = nodeState.purchasedOffers.filter(p => p.intervention.kind === 'practice');
+  const fromIndex = ordered.findIndex((purchase) => purchase.offerId === offerId);
   const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
-  if (fromIndex < 0 || targetIndex < 0 || targetIndex >= nodeState.purchasedOffers.length) {
+  if (fromIndex < 0 || targetIndex < 0 || targetIndex >= ordered.length) {
     return { ok: false, reason: "invalidPurchaseOrder" };
   }
   if (fromIndex !== targetIndex) {
-    const [purchase] = nodeState.purchasedOffers.splice(fromIndex, 1);
-    nodeState.purchasedOffers.splice(targetIndex, 0, purchase);
+    const [purchase] = ordered.splice(fromIndex, 1);
+    ordered.splice(targetIndex, 0, purchase);
+    let cursor = 0;
+    nodeState.purchasedOffers = nodeState.purchasedOffers.map(p => p.intervention.kind === 'practice' ? ordered[cursor++] : p);
     nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   }
   return { ok: true, offerId, fromIndex, toIndex: targetIndex };
+}
+
+export function moveVassalShopStructure(state, nodeId, offerId, origin) {
+  const vassal = getCurrentLifeMapVassal(state);
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
+  if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState) || nodeState.resolving) return { ok: false, reason: 'shopUnavailable' };
+  const purchase = nodeState.purchasedOffers.find(p => p.offerId === offerId);
+  if (!purchase?.placement || purchase.placement.mode === 'upgrade') return { ok: false, reason: 'placementLocked' };
+  const next = nodeState.purchasedOffers.map(p => p === purchase ? { ...p, placement: { ...p.placement, origin } } : p);
+  const validation = validatePurchaseInterventions(state, vassal, next);
+  if (!validation.ok) return validation;
+  nodeState.purchasedOffers = next;
+  return { ok: true };
 }
 
 export function rerollVassalShop(state, nodeId) {
@@ -1101,20 +1093,6 @@ function applyIntervention(state, intervention) {
     return applyPracticeIntervention(settlement.practiceSlots, intervention)
       ? { ok: true }
       : { ok: false, reason: "practiceUnavailable" };
-  }
-  if (intervention.kind === "structure" && settlement
-      && Number.isInteger(intervention.slotIndex)) {
-    if (intervention.mode === "remove") {
-      if (settlement.structureSlots[intervention.slotIndex]?.structureId !== intervention.structureId) {
-        return { ok: false, reason: "structureUnavailable" };
-      }
-      settlement.structureSlots[intervention.slotIndex] = null;
-      return { ok: true };
-    }
-    if (settlement.structureSlots[intervention.slotIndex] == null) {
-      settlement.structureSlots[intervention.slotIndex] = { structureId: intervention.structureId, tier: intervention.tier ?? "bronze" };
-      return { ok: true };
-    }
   }
   if (intervention.kind === "connection") {
     return intervention.mode === "add"
@@ -1339,9 +1317,16 @@ export function confirmVassalLifeNode(state, nodeId) {
   const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
   if (!validation.ok) return validation;
   vassal.prestige -= stagedPrestigeCost;
-  for (const purchase of nodeState.purchasedOffers) {
-    const result = applyIntervention(state, purchase.intervention);
-    if (!result.ok) return result;
+  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+  if (settlement) {
+    settlement.practiceSlots = validation.reservation.practiceSlots;
+    settlement.structureSlots = validation.reservation.structureSlots;
+  }
+  for (const purchase of [...nodeState.purchasedOffers].reverse()) {
+    if (purchase.intervention.kind === 'connection') {
+      const result = applyIntervention(state, purchase.intervention);
+      if (!result.ok) return result;
+    }
     addLifeEvent(state, vassal, "interventionApplied", {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
@@ -1372,29 +1357,14 @@ function capitalize(value) {
   return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
 }
 
-function structureNumericDetails(def, tier) {
-  const multiplier = getQualityMultiplier(tier, def?.qualityMultiplierPerLevel ?? 0);
-  const scaled = (value) => Math.round(Math.max(0, Number(value) || 0) * multiplier * 100) / 100;
-  if (Number.isFinite(def?.capacityPerCountSquared)) {
-    return [`${scaled(def.capacityPerCountSquared)} ${def.capacityKind === "housing" ? "Housing" : "stored-Food capacity"} coefficient`];
-  }
-  if (Number.isFinite(def?.migrantHousingReserve)) return [`${scaled(def.migrantHousingReserve)} reserved Housing`];
-  if (Number.isFinite(def?.knowledgeResearchMultiplierPerLevel)) return [`+${Math.round(scaled(def.knowledgeResearchMultiplierPerLevel) * 100)}% Knowledge Research`];
-  if (Number.isFinite(def?.researchPerRetiredIntelligence)) return [`${scaled(def.researchPerRetiredIntelligence)} Research per retired Intelligence`];
-  if (Number.isFinite(def?.faithResistancePerRetiredWisdom)) return [`${scaled(def.faithResistancePerRetiredWisdom)} resistance per retired Wisdom`];
-  if (Number.isFinite(def?.foodOutputBonusPerOtherFoodPiece)) return [`+${Math.round(scaled(def.foodOutputBonusPerOtherFoodPiece) * 100)}% Food output per other Food piece`];
-  if (Number.isFinite(def?.faithResistancePerDistinctTag)) return [`${scaled(def.faithResistancePerDistinctTag)} resistance per distinct tag`];
-  if (Number.isFinite(def?.candidateIntelligenceBonus)) return [`+${scaled(def.candidateIntelligenceBonus)} candidate Intelligence`];
-  if (def?.id === "university") return [`${tier === "diamond" ? "Diamond" : "Gold"} offer floor`];
-  return [];
-}
-
 export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze") {
   const def = kind === "practice"
     ? getDetailedPracticeDef(state, definitionId)
     : getDetailedStructureDef(state, definitionId);
   if (!def) return null;
+  const face = getGamepieceFace(state, kind, definitionId, tier);
   return {
+    ...face,
     kind,
     definitionId,
     label: def.label ?? definitionId,
@@ -1402,9 +1372,7 @@ export function getVassalGamepiecePresentation(state, kind, definitionId, tier =
     qualityLabel: capitalize(tier),
     tags: [...(def.tags ?? [])],
     rule: def.ui?.rule ?? "",
-    details: kind === "practice"
-      ? [`${getDetailedPracticeWorkerCapacity(def, tier)} worker capacity`]
-      : structureNumericDetails(def, tier),
+    details: face.detailLines,
   };
 }
 
@@ -1623,29 +1591,21 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const previewSite = getDetailedSite(state, previewRegionId);
   const beforePractices = (previewSite?.detailedState?.practiceSlots ?? []).map((slot) => slot ? clone(slot) : null);
   const beforeStructures = (previewSite?.detailedState?.structureSlots ?? []).map((slot) => slot ? clone(slot) : null);
-  const afterPractices = beforePractices.map((slot) => slot ? clone(slot) : null);
-  const afterStructures = beforeStructures.map((slot) => slot ? clone(slot) : null);
-  if (previewRegionId === vassal.locationRegionId) {
-    for (const purchase of nodeState?.purchasedOffers ?? []) {
-      const intervention = purchase.intervention;
-      if (intervention?.kind === "practice") applyPracticeIntervention(afterPractices, intervention);
-      if (intervention?.kind === "structure") {
-        afterStructures[intervention.slotIndex] = intervention.mode === "remove" ? null : {
-          structureId: intervention.structureId, tier: intervention.tier ?? "bronze",
-        };
-      }
-    }
-  }
-  const decorate = (kind, slots, before) => slots.map((slot, index) => {
+  const projected = previewRegionId === vassal.locationRegionId
+    ? validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []) : null;
+  const afterPractices = projected?.reservation?.practiceSlots ?? beforePractices;
+  const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
+  const decorate = (kind, slots) => slots.map(slot => {
     if (!slot) return null;
-    const idKey = kind === "practice" ? "practiceId" : "structureId";
-    const original = before[index];
-    const staged = !original || original[idKey] !== slot[idKey]
-      || (original.tier ?? "bronze") !== (slot.tier ?? "bronze");
-    return {
-      ...slot,
-      staged,
-      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], slot.tier ?? "bronze"),
+    const idKey = kind === 'practice' ? 'practiceId' : 'structureId';
+    const purchase = (nodeState?.purchasedOffers ?? []).find(p => p.intervention.kind === kind
+      && (kind === 'practice' ? p.intervention.practiceId === slot.practiceId
+        : (p.placement?.targetPlacementId ?? p.placement?.placementId) === slot.placementId));
+    return { ...slot, staged: !!purchase, offerId: purchase?.offerId ?? null,
+      upgraded: purchase?.intervention?.mode === 'upgrade',
+      previousPresentation: purchase?.intervention?.mode === 'upgrade'
+        ? getVassalGamepiecePresentation(state, kind, slot[idKey], kind === 'practice' ? purchase.intervention.tier : purchase.intervention.previousTier) : null,
+      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], slot.tier ?? 'bronze'),
     };
   });
   const decorateOffer = (offer, purchased = false) => {
@@ -1653,14 +1613,25 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const kind = intervention?.kind;
     const definitionId = kind === "practice" ? intervention.practiceId
       : kind === "structure" ? intervention.structureId : null;
+    const prestigeCost = purchased ? offer.prestigeCost : getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost ?? 0);
+    const remaining = (nodeState?.purchasedOffers ?? []).filter(p => p.offerId !== offer.offerId);
+    const checkPlacement = origin => {
+      const prepared = kind === 'structure' ? prepareStructurePlacement(state, vassal, nodeState, offer, origin, remaining) : { ok: true };
+      if (!prepared.ok) return prepared;
+      return validatePurchaseInterventions(state, vassal, [{ ...offer, ...(prepared.placement ? { placement: prepared.placement } : {}) }, ...remaining]);
+    };
+    const legality = checkPlacement(null);
+    const affordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
     return {
       ...clone(offer),
       purchased,
+      canStage: affordable && legality.ok,
+      stageBlockedReason: !affordable ? 'Insufficient Prestige' : legality.ok ? null : 'No compatible space in the staged settlement',
+      validOrigins: kind === 'structure' ? Array.from({ length: beforeStructures.length }, (_, i) => i).filter(origin => checkPlacement(origin).ok) : [],
       presentation: definitionId
         ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze")
         : null,
-      prestigeCost: purchased ? offer.prestigeCost
-        : getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost ?? 0),
+      prestigeCost,
       phaseCost: purchased ? offer.phaseCost
         : getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost ?? 0),
     };
@@ -1694,6 +1665,9 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
         getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
       structures: decorate("structure", afterStructures, beforeStructures),
       structureCapacity: afterStructures.length,
+      demolishedStructures: (projected?.structures?.demolished ?? []).map(slot => ({ ...slot,
+        presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId, slot.tier) })),
+      upgradedStructures: projected?.structures?.upgrades ?? [],
     } : null,
     offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
     purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),
@@ -1843,6 +1817,30 @@ export function validateVassalLifeMapState(state) {
     ];
     if (nodeIds.some((nodeId) => !getVassalLifeMapNode(vassal, nodeId))) {
       errors.push(`${vassalId}.lifeMap: unknown node id`);
+    }
+    for (const [nodeId, nodeState] of Object.entries(vassal?.lifeMap?.nodeStates ?? {})) {
+      if (!isShopNodeState(nodeState)) continue;
+      const purchases = nodeState.purchasedOffers;
+      if (!Array.isArray(purchases) || !Array.isArray(nodeState.purchasedOfferIds)
+          || JSON.stringify(purchases.map(p => p?.offerId)) !== JSON.stringify(nodeState.purchasedOfferIds)
+          || new Set(purchases.map(p => p?.offerId)).size !== purchases.length) {
+        errors.push(`${vassalId}.${nodeId}: invalid staged purchases`);
+        continue;
+      }
+      const malformed = purchases.some(p => {
+        if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)) return true;
+        if (p.intervention.kind !== 'structure') return false;
+        const placement = p.placement, def = getDetailedStructureDef(state, p.intervention.structureId);
+        return !placement || !def || placement.structureId !== def.id || placement.width !== def.footprint
+          || (placement.mode === 'upgrade' ? typeof placement.targetPlacementId !== 'string'
+            : typeof placement.placementId !== 'string' || !Number.isInteger(placement.origin));
+      });
+      if (malformed) errors.push(`${vassalId}.${nodeId}: invalid staged placement`);
+      else if (lineage.currentVassalId === vassalId && vassal.lifeMap.currentNodeId === nodeId
+          && !nodeState.resolving && !vassal.lifeMap.completedNodeIds.includes(nodeId)
+          && !validatePurchaseInterventions(state, vassal, purchases).ok) {
+        errors.push(`${vassalId}.${nodeId}: incompatible staged settlement`);
+      }
     }
   }
   if (!legacy || !Number.isFinite(legacy.futureStartingPrestigeBonus)

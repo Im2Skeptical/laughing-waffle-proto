@@ -5,6 +5,22 @@ import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 
 // The approved PNGs remain original assets; Pixi only places/scales their sprites.
 export function addResourceIcon(parent, id, x, y, size) {
+  if (['trade','knowledge','research','housingCapacity','foodCapacity','activation'].includes(id)) {
+    const symbol = new PIXI.Graphics(); symbol.position.set(x-size/2,y-size/2);
+    symbol.scale.set(size/32);symbol.lineStyle(2,0xe7ca8c,1);
+    if(id==='trade') {
+      symbol.moveTo(4,10).lineTo(27,10).lineTo(22,5).moveTo(27,10).lineTo(22,15);
+      symbol.moveTo(28,23).lineTo(5,23).lineTo(10,18).moveTo(5,23).lineTo(10,28);
+    } else if(id==='knowledge'||id==='research') {
+      symbol.beginFill(0x617e87,.8).drawPolygon([3,6,15,9,15,28,3,25]).drawPolygon([17,9,29,6,29,25,17,28]).endFill();
+      if(id==='research')symbol.moveTo(11,3).lineTo(21,3).moveTo(16,0).lineTo(16,6);
+    } else if(id==='housingCapacity') {
+      symbol.moveTo(2,16).lineTo(16,4).lineTo(30,16).moveTo(7,13).lineTo(7,28).lineTo(25,28).lineTo(25,13);
+    } else if(id==='foodCapacity') {
+      symbol.drawRoundedRect(6,7,20,21,3).moveTo(6,13).lineTo(26,13).moveTo(12,3).lineTo(20,3);
+    } else symbol.beginFill(0xf7df92).drawPolygon([16,1,20,12,30,16,20,20,16,31,12,20,2,16,12,12]).endFill();
+    symbol.eventMode='none';parent.addChild(symbol);return symbol;
+  }
   const texture = getResourceTexture(id);
   const sprite = new PIXI.Sprite(texture ?? PIXI.Texture.EMPTY);
   sprite.anchor.set(.5);

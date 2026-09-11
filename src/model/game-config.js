@@ -8,7 +8,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 12;
+export const GAME_CONFIG_SCHEMA_VERSION = 13;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -390,8 +390,9 @@ export function validateGamepiecesDraft(value) {
         continue;
       }
       const key = String(entry.path.at(-1));
+      if (key === "footprint" && (current < 1 || current > 3)) errors.push(`${entry.path.join(".")}: expected 1–3 cells`);
       if (current < 0) errors.push(`${entry.path.join(".")}: expected zero or greater`);
-      if ((key === "workerCapacity" || key === "chargePeriodMoons") && !Number.isInteger(current)) {
+      if ((["workerCapacity", "workerCapacityPerQuality", "chargePeriodMoons", "footprint", "durationResolutions", "maximumResolutions"].includes(key)) && !Number.isInteger(current)) {
         errors.push(`${entry.path.join(".")}: expected an integer`);
       }
     }
