@@ -18,8 +18,9 @@ and its direct dependencies.
 - Forecast worker entry: `src/controllers/timegraph-forecast-worker.js`
 
 `ui-root-settlement-pixi.js` is a high-coupling orchestration file. Search for
-the relevant function before reading it. Do not use it as the default location
-for new rendering or model rules.
+the relevant function before reading it. Playback, vassal chooser flow, and
+navigation-state helpers live in `src/views/ui-root/`. Do not use the root
+file as the default location for new rendering or model rules.
 
 ## UI routes
 
@@ -61,8 +62,10 @@ for new rendering or model rules.
 
 ### Timegraph
 
-- Graph rendering, reveal/playhead animation, history zones, brackets, and old
-  versus new projection drawing: `src/views/timegraphs-pixi.js`
+- Graph orchestrator (`createMetricGraphView`): `src/views/timegraphs-pixi.js`.
+  Constants, plot math, plot ink, and key-cabinet paging live in
+  `src/views/timegraphs/`. Search the orchestrator for reveal/scrub/playhead;
+  do not read it end-to-end for ordinary label/layout work.
 - Scope and series definitions: `src/model/graph-metrics.js`
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
 - Series groups: `src/views/ui-root/settlement-graph-groups.js`
@@ -71,10 +74,6 @@ for new rendering or model rules.
 - Window/horizon helpers: `src/views/ui-root/settlement-timegraph-window.js`
 - Graph controller/cache internals: `src/model/timegraph/`
 - Projection summaries: `src/model/projection-summary.js`
-
-`timegraphs-pixi.js` is large. Search for the visible behavior, exported
-`createMetricGraphView`, or the relevant constant; do not read it end-to-end
-for ordinary label/layout work.
 
 ### Debug tools
 
@@ -94,12 +93,15 @@ for ordinary label/layout work.
 
 ## Simulation routes
 
-- Detailed settlements, workers, food, demographics, housing, Elder Orders,
-  and view models: `src/model/detailed-settlements.js`
-- Vassal Life Map definitions and authoritative lifecycle:
+- Detailed settlements barrel (keep this import path):
+  `src/model/detailed-settlements.js`. Internals:
+  `queries.js`, `scopes.js`, `practices.js`, `phases.js` (stepper),
+  `vassals.js`, `view-model.js`. See that folder's README.
+- Vassal Life Map definitions and barrel:
   `src/defs/gamepieces/vassal-life-map-defs.js` and
-  `src/model/vassal-life-map.js`; generated topology and validation live in
-  `src/model/vassal-life-map-generator.js`
+  `src/model/vassal-life-map.js`. Internals: `selectors.js`, `shop.js`,
+  `lifecycle.js`, `presentation.js`. Generated topology lives in
+  `src/model/vassal-life-map-generator.js`.
 - Lunar phase definitions/timing: `src/defs/gamesettings/moon-phase-defs.js`,
   `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
@@ -179,17 +181,15 @@ should not be loaded for routine UI work.
 
 ## Known, bounded debt
 
-- `src/views/timegraphs-pixi.js` is the largest active UI module. Extract a
-  focused helper only when a real graph change gives that helper a stable
-  boundary; avoid speculative rewrites of the working timeline behavior.
-- `src/views/ui-root-settlement-pixi.js` still coordinates many graph, preview,
-  vassal, and screen-mode concerns. New drawing belongs in focused views, while
-  runner/timeline mutations belong in controllers.
-- `src/controllers/sim-runner.js`, `src/model/state.js`, and the active
-  settlement/timeline modules retain some pre-redesign substrate because it is
-  still on serialization or replay paths. Reachability is not proof that those
-  internals are good extension points.
+- `src/views/timegraphs-pixi.js` still owns reveal/scrub/playhead state.
+  Constants and draw helpers are in `src/views/timegraphs/`. Do not rewrite
+  forecast/worker/state together (see `codex/abandoned-timegraph-refactor-do-not-merge`).
+- `src/views/ui-root-settlement-pixi.js` still wires graph, preview, and
+  screen mode. Playback, vassal-flow, and navigation-state helpers live in
+  `src/views/ui-root/`. New drawing belongs in focused views.
+- `src/controllers/sim-runner.js`, `src/model/state.js`, and
+  `src/model/settlement-exec.js` retain pre-redesign substrate on the
+  serialization/replay path. File-top comments mark them as non-extension
+  points for new detailed-settlement rules.
 
-These hotspots are manageable with symbol-first reads and the verification
-matrix above. Split them incrementally alongside concrete features rather than
-performing a high-risk whole-file rewrite.
+Repo navigation skills: `ai/skills/repo/`.
