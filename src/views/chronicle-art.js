@@ -5,6 +5,7 @@ const atlases = new Map();
 const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
+const standaloneLoads = new Map();
 let revision = 0;
 export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
@@ -20,36 +21,79 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
   'hallOfSages', 'agrarianGuild', 'forum', 'academy', 'caravanserai', 'resettlementHall', 'university',
 ]);
 
-function loadTexture(file) {
-  const packed = getPackedTexture(file);
-  if (packed) return packed;
-  if (atlases.has(file)) return atlases.get(file);
-  const texture = PIXI.Texture.from(ASSET_ROOT + file);
-  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-  texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
-  texture.baseTexture.on('loaded', () => { revision += 1; });
-  atlases.set(file, texture);
-  return texture;
-}
+const STANDALONE_FILES = Object.freeze([
+  'chronicle-cards.png', 'chronicle-civic.png', 'chronicle-gate.png',
+  'chronicle-practices.png', 'realm-landmarks.png', 'realm-terrain.png',
+  'timegraph-chronicle-assembly.png', 'timegraph-scroll-side-rollers.png',
+  'timegraph-scroll.png', 'vassal-portraits.png',
+]);
 
 const PACKED_GROUPS = Object.freeze({
   resources: Object.freeze({
     prefix: 'resource-language-v1/',
     files: Object.freeze(['resource-language.json']),
+    eager: true,
   }),
   settlementPieces: Object.freeze({
     prefix: 'settlement-pieces-v2/',
     files: Object.freeze(['settlement-pieces.json']),
+    eager: false,
   }),
 });
 
-function getPackedTexture(file) {
-  const group = Object.values(PACKED_GROUPS).find(({prefix}) => file.startsWith(prefix));
-  if (!group) return null;
-  const key = `${group.prefix}${file.slice(group.prefix.length)}`;
-  if (packedTextures.has(key)) return packedTextures.get(key);
-  loadPackedGroup(group);
+function bumpRevision() {
+  revision += 1;
+}
+
+function configureTexture(texture) {
+  if (!texture?.baseTexture) return texture;
+  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+  texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  return texture;
+}
+
+function packedGroupFor(file) {
+  return Object.values(PACKED_GROUPS).find(({ prefix }) => file.startsWith(prefix)) ?? null;
+}
+
+function packedKeyFor(file, group) {
+  return `${group.prefix}${file.slice(group.prefix.length)}`;
+}
+
+function loadTexture(file) {
+  const group = packedGroupFor(file);
+  if (group) {
+    const key = packedKeyFor(file, group);
+    if (packedTextures.has(key)) return packedTextures.get(key);
+    // Packed sources are 4× larger than the runtime atlas. Never fetch them
+    // while the sheet is in flight — that queue is what stalls desktop GPUs.
+    loadPackedGroup(group);
+    return null;
+  }
+  if (atlases.has(file)) return atlases.get(file);
+  loadStandalone(file);
   return null;
+}
+
+export function getChronicleTexture(file) {
+  return loadTexture(file);
+}
+
+function loadStandalone(file) {
+  if (atlases.has(file)) return Promise.resolve(atlases.get(file));
+  if (standaloneLoads.has(file)) return standaloneLoads.get(file);
+  const load = PIXI.Assets.load(`${ASSET_ROOT}${file}`)
+    .then(texture => {
+      configureTexture(texture);
+      atlases.set(file, texture);
+      bumpRevision();
+      return texture;
+    })
+    .catch(error => {
+      console.error('[art] failed to load atlas', file, error);
+    });
+  standaloneLoads.set(file, load);
+  return load;
 }
 
 async function loadPackedGroup(group) {
@@ -58,11 +102,10 @@ async function loadPackedGroup(group) {
     .then(sheets => {
       sheets.forEach(sheet => Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
-        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-        texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+        configureTexture(texture);
         packedTextures.set(file, texture);
       }));
-      revision += 1;
+      bumpRevision();
     })
     .catch(error => {
       console.error('[art] failed to load packed sprite sheet', error);
@@ -72,11 +115,15 @@ async function loadPackedGroup(group) {
 }
 
 export function preloadChronicleArt() {
-  for (const file of ['chronicle-cards.png', 'chronicle-practices.png', 'chronicle-civic.png', 'realm-terrain.png', 'chronicle-gate.png', 'vassal-portraits.png', 'realm-landmarks.png',
-    ...RESOURCE_ART_IDS.map(id => `resource-language-v1/${id}.png`)]) {
-    loadTexture(file);
-  }
-  loadPackedGroup(PACKED_GROUPS.resources);
+  try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
+  const eager = [
+    loadPackedGroup(PACKED_GROUPS.resources),
+    ...STANDALONE_FILES.map(loadStandalone),
+  ];
+  // Warm the on-demand settlement atlas after HUD/map art has claimed the
+  // first connections, so opening a settlement does not wait on a 20MB hitch.
+  Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
+  return Promise.all(eager);
 }
 
 const ART = Object.freeze({
@@ -123,7 +170,7 @@ export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
   const {file,index,whole}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
   if (whole) {
     const texture = loadTexture(file);
-    if (!texture.baseTexture.valid) return null;
+    if (!texture?.baseTexture.valid) return null;
     const sprite = new PIXI.Sprite(texture);
     const scale = Math.min(rect.width / texture.width, rect.height / texture.height);
     sprite.scale.set(scale);
