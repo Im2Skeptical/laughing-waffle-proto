@@ -41,7 +41,8 @@ file as the default location for new rendering or model rules.
 ### Map
 
 - Map orchestrator (`createWorldMapView`): `src/views/world-map-pixi.js`.
-  Packet pose/glyph helpers and map constants live in `src/views/world-map/`.
+  Glyphs: `src/views/world-map/glyphs.js`. Packet pose helpers and map
+  constants live in `src/views/world-map/`.
 - Selected-region/chaos panel content: `src/views/chronicle-world-panels.js`
 - Pure map/civilization selectors: `src/model/world-state.js` and
   `src/model/detailed-settlements.js`
@@ -55,6 +56,10 @@ file as the default location for new rendering or model rules.
   `src/views/world-map-vassal-drawer-pixi.js`,
   `src/views/vassal-life-map-pixi.js`, and
   `src/views/settlement-navigation-pixi.js`
+- Vassal node-decision modal (`createVassalNodeDecisionModalView`):
+  `src/views/vassal-node-decision-modal-pixi.js`. Cards, mortality plate,
+  regional preview, and vassal-impact helpers live in
+  `src/views/vassal-node-decision/`. Drag/confirm stay in the orchestrator.
 - Shared survival strip: `src/views/civilization-survival-hud.js`
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
 - Six-phase reference and viewed moon totals: `src/views/moon-phase-reference-pixi.js`
@@ -66,7 +71,7 @@ file as the default location for new rendering or model rules.
   Constants, plot math, plot ink, and key-cabinet paging live in
   `src/views/timegraphs/`. Search the orchestrator for reveal/scrub/playhead;
   do not read it end-to-end for ordinary label/layout work.
-- Scope and series definitions: `src/model/graph-metrics.js`
+- Scope, series, and labels: `src/model/graph-metrics.js`
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
 - Series groups: `src/views/ui-root/settlement-graph-groups.js`
 - Illustrated assembly, fixed key paging layout, controls, and ink palette:
@@ -74,7 +79,8 @@ file as the default location for new rendering or model rules.
 - Window/horizon helpers: `src/views/ui-root/settlement-timegraph-window.js`
 - Graph controller/cache internals: `src/model/timegraph/`
   (`controller-core.js` orchestrator, `forecast-state-cache.js` for
-  retained-anchor/cache helpers; do not rewrite with the forecast worker)
+  retained-anchor/cache helpers; do not rewrite with the forecast worker).
+  See that folder's README.
 - Projection summaries: `src/model/projection-summary.js`
 
 ### Debug tools
@@ -97,13 +103,15 @@ file as the default location for new rendering or model rules.
 
 - Detailed settlements barrel (keep this import path):
   `src/model/detailed-settlements.js`. Internals:
-  `queries.js`, `scopes.js`, `practices.js`, `phases.js` (stepper),
-  `vassals.js`, `view-model.js`. See that folder's README.
+  `queries.js`, `scopes.js`, `practices.js`, `phases.js` (stepper;
+  phase bodies in `phases/`), `vassals.js`, `view-model.js`. See that
+  folder's README and `phases/README.md`.
 - Vassal Life Map definitions and barrel:
   `src/defs/gamepieces/vassal-life-map-defs.js` and
   `src/model/vassal-life-map.js`. Internals: `selectors.js`, `shop.js`,
-  `lifecycle.js`, `presentation.js`. Generated topology lives in
-  `src/model/vassal-life-map-generator.js`.
+  `lifecycle.js` (candidates / node-confirm / step in `lifecycle/`),
+  `presentation.js`. Generated topology lives in
+  `src/model/vassal-life-map-generator.js`. See `lifecycle/README.md`.
 - Lunar phase definitions/timing: `src/defs/gamesettings/moon-phase-defs.js`,
   `src/model/moon-phases.js`
 - Detailed structure/practice definitions:
