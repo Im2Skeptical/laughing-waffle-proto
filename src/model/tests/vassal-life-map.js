@@ -335,8 +335,8 @@ resolvePending(shopState);
 assert.deepEqual(
   shopVassal.lifeEvents.filter((event) => event.kind === "interventionApplied")
     .map((event) => event.offerId),
-  purchasedOrder,
-  "staged interventions apply in purchase order"
+  [...purchasedOrder].reverse(),
+  "unshift execution maps back to visible staged order"
 );
 assert.notEqual(shopState.rng.vassalSeed, rngBeforeShopConfirm);
 const prestigeAfterShopResolution = shopVassal.prestige;
@@ -662,7 +662,7 @@ const invalid = structuredClone(serialized);
 invalid.civilization.vassalLineage.currentVassalId = "missing-vassal";
 assert.throws(() => deserializeGameState(invalid), /Invalid serialized Vassal Life Map/);
 
-const practiceTierState = selectedState(1600);
+const practiceTierState = selectedState(1602);
 const practiceTierVassal = getCurrentLifeMapVassal(practiceTierState);
 practiceTierVassal.prestige = 500;
 const practiceTierSettlement = practiceTierState.world.sites.find(
@@ -672,7 +672,7 @@ practiceTierSettlement.practiceSlots = [
   { practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "cultivate", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "administrate", tier: "bronze", charge: 0, work: 0 },
-  { practiceId: "preserve", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "vigil", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "exchange", tier: "bronze", charge: 0, work: 0 },
 ];
 const practiceTierNode = forceEnter(practiceTierState,
@@ -824,24 +824,6 @@ dispatch(removalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
 dispatch(removalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: removalNode.nodeId });
 assert.equal(removalSite.practiceSlots.some((slot) => slot?.practiceId === removedPracticeId), false,
   "a staged signature removal is applied on confirmation");
-
-const structureRemovalState = selectedStateForSignature("removeStructure");
-const structureRemovalVassal = getCurrentLifeMapVassal(structureRemovalState);
-structureRemovalVassal.prestige = 500;
-const structureRemovalSite = structureRemovalState.world.sites.find((site) =>
-  site.regionId === structureRemovalVassal.locationRegionId).detailedState;
-const structureRemovalNode = forceEnter(structureRemovalState,
-  nodeIdForSignature(structureRemovalState, "removeStructure"));
-assert.ok(structureRemovalNode.inventory.length > 0);
-const structureRemovalOffer = structureRemovalNode.inventory[0];
-dispatch(structureRemovalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: structureRemovalNode.nodeId, offerId: structureRemovalOffer.offerId,
-});
-dispatch(structureRemovalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
-  nodeId: structureRemovalNode.nodeId,
-});
-assert.equal(structureRemovalSite.structureSlots[structureRemovalOffer.intervention.slotIndex], null,
-  "Structure removal uses the generalized staged intervention path");
 
 const routeRemovalState = selectedStateForSignature("removeRoute");
 const routeRemovalVassal = getCurrentLifeMapVassal(routeRemovalState);

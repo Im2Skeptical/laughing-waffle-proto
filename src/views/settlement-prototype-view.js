@@ -1,4 +1,4 @@
-import { addGamepieceCard } from './chronicle-card.js';
+import { addSettlementPiece, addConstructionStrip, PIECE_SIZE } from './settlement-piece-pixi.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import {
@@ -59,14 +59,13 @@ function getPracticeTimingLabel(activation) {
   if (activation?.type === "birth") return "Birth phase";
   if (activation?.type === "food") return "Food phase";
   if (activation?.type === "trigger") return `Activates at ${activation.chargeThreshold} charge`;
-  return "Passive";
+  return `${activation?.type ?? 'Scheduled'} phase`;
 }
 
 function getPracticeResultLabel(practiceId, value) {
   const formatted = formatPracticeNumber(value);
   if (practiceId === "cultivate") return `Effect  +${formatted} food`;
   if (practiceId === "administrate") return `Cap  ${formatted} food`;
-  if (practiceId === "preserve") return `Effect  ${formatted}% less rot`;
   if (practiceId === "exchange") return `Effect  +${formatted} Currency`;
   return `Effect  ${formatted}`;
 }
@@ -75,7 +74,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
   const evaluation=entry?.evaluation;
   const scaled=evaluation?.effects?.find(effect=>effect.scaledValue)?.scaledValue;
   const imported=evaluation?.effects?.find(effect=>effect.importCalculation)?.importCalculation;
-  const details=[evaluation?.rule,
+  const details=[evaluation?.rule, ...(entry?.face?.detailLines ?? []),
     evaluation?getPracticeTimingLabel(evaluation.activation):'An available practice slot.',
     entry?.practiceId?entry.tier+' · '+(entry.tags??[]).join(' / '):'',
     entry?.practiceId&&evaluation?entry.workers.tokens.length+'/'+evaluation.workerCapacity+' workers · '+entry.workers.effectiveWorkers+' effective':'',
@@ -83,9 +82,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
     scaled?getPracticeResultLabel(entry.practiceId,scaled.effectiveValue):'',
     imported?'Import '+imported.importedFood+' food · shortfall '+imported.missingFood:'',
   ].filter(Boolean).join('\n');
-  addGamepieceCard(parent,rect,{artId:entry?.practiceId,title:entry?.label,
-    empty:!entry?.practiceId,tier:entry?.tier,
-    value:entry?.practiceId?(entry.workers?.effectiveWorkers??0)+' work':'',detail:details,tooltipView});
+  addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:details.split('\n'),tooltipView});
 }
 
 function faithRates(state, classState) {
@@ -149,7 +146,7 @@ export function createSettlementPrototypeView({
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
       const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
-      const structureRect = { x: BODY.x, y: 356, width: 540, height: 410 };
+      const structureRect = { x: 606, y: 534, width: 1770, height: 232 };
       panel(root, foodRect, "Local food and population");
       panel(root, practiceRect, `${vm.practices.length} practice slots`);
       panel(root, orderRect, "Elder Order");
@@ -168,19 +165,15 @@ export function createSettlementPrototypeView({
       addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 74, 32);
       addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 106, 32);
       addResourceIcon(root, 'money', foodRect.x + 31, foodRect.y + 138, 32);
-      const practiceGap = 10;
-      const practiceCardWidth = Math.floor(
-        (practiceRect.width - 36 - practiceGap * Math.max(0, vm.practices.length - 1)) /
-          Math.max(1, vm.practices.length)
-      );
+      const practiceGap = PIECE_SIZE.gap;
+      const practiceCardWidth = PIECE_SIZE.practiceWidth;
       vm.practices.forEach((entry, index) => drawPracticeSlotCard(root, {
         x: practiceRect.x + 18 + index * (practiceCardWidth + practiceGap),
         y: practiceRect.y + 56,
         width: practiceCardWidth,
-        height: practiceRect.height - 70,
+        height: PIECE_SIZE.practiceHeight,
       }, entry, index, tooltipView));
-      addIllustration(root,"legacy",{x:1544,y:534,width:390,height:270},{alpha:.62});
-      addIllustration(root,"settlement",{x:606,y:534,width:906,height:270},{alpha:.7});
+      addIllustration(root,"settlement",{x:48,y:356,width:540,height:410},{alpha:.7});
       const order = vm.elderOrder;
       root.addChild(
         createText(`Worker policy: one token per ${getGameSetting(
@@ -209,12 +202,9 @@ export function createSettlementPrototypeView({
           { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, orderRect.x + 18, orderRect.y + 286));
       }
       root.addChild(createText(
-        `${vm.usedStructureCapacity} used / ${vm.structureCapacity} available`,
+        `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`,
         TEXT_STYLES.header, structureRect.x + 18, structureRect.y + 60));
-      vm.structures.forEach((slot,index)=>addGamepieceCard(root,{
-        x:structureRect.x+18+(index%4)*126,y:structureRect.y+112+Math.floor(index/4)*132,width:116,height:122,
-      },{artId:slot?.structureId,title:slot?.label??slot?.structureId,tier:slot?.tier,
-        empty:!slot?.structureId,detail:slot?.rule??slot?.structureId??'Available structure space',tooltipView}));
+      addConstructionStrip(root,{x:structureRect.x+18,y:structureRect.y+104,width:vm.structureCapacity*PIECE_SIZE.cellWidth,height:PIECE_SIZE.structureHeight},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,time:state.tSec});
     } else {
       const villager = vm.population.byClass.villager;
       const stranger = vm.population.byClass.stranger;

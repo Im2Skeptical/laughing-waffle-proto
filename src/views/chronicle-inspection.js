@@ -1,3 +1,4 @@
+import { addSettlementPiece } from "./settlement-piece-pixi.js";
 import { addIllustration } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
@@ -5,26 +6,32 @@ import { TEXT_STYLES } from './settlement-theme.js';
 import { addCostPanel } from './resource-cost-pixi.js';
 
 // A view-local reading surface; scrolling never changes a card or its draft.
-export function addChronicleInspection(parent, rect, {title, artId, cost, metadata, detail, onClose}) {
+export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate}) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   const frame=new PIXI.Graphics();
   paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,3);
   root.addChild(frame);
   root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
-  addIllustration(root,artId,{x:18,y:18,width:156,height:142});
-  root.addChild(createText(title,{...TEXT_STYLES.header,fontSize:36,wordWrap:true,wordWrapWidth:rect.width-280},196,20));
-  addCostPanel(root, {x:196,y:112,width:rect.width-238,height:128}, {
-    ...cost, interactive:false, fontSize:36, iconSize:46,
+  const artWidth = face?.kind === 'structure' ? 180 * (face.footprint ?? 1) : 234;
+  const artHeight = face?.kind === 'structure' ? 150 : 340;
+  const columnWidth = Math.max(234, artWidth);
+  const artRect = { x: 22 + (columnWidth - artWidth) / 2, y: 78, width: artWidth, height: artHeight };
+  if(face)addSettlementPiece(root,artRect,{face});
+  else addIllustration(root,artId,artRect);
+  root.addChild(createText(title,{...TEXT_STYLES.header,fontSize:30,wordWrap:true,wordWrapWidth:rect.width-120},22,20));
+  if(cost)root.costPanel=addCostPanel(root,{x:22,y:artHeight+100,width:columnWidth,height:130},{
+    ...cost, interactive:!!onActivate, onActivate, fontSize:30, iconSize:38,
   });
   const close=new PIXI.Container();close.position.set(rect.width-66,14);
   const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,50,50,RELIC.stone,RELIC.brass,1);
   close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:38},25,25,.5,.5));
   close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(0,0,50,50);
   close.on('pointertap',event=>{event.stopPropagation();onClose();});root.addChild(close);
-  const viewport=new PIXI.Container();viewport.position.set(22,266);root.addChild(viewport);
-  const height=rect.height-306,width=rect.width-44;
+  root.closeControl = close;
+  const viewport=new PIXI.Container();viewport.position.set(columnWidth+50,92);root.addChild(viewport);
+  const height=rect.height-140,width=rect.width-columnWidth-78;
   const copy=createText([metadata,detail].filter(Boolean).join('\n\n'),{
-    ...TEXT_STYLES.body,fontSize:32,lineHeight:42,wordWrap:true,wordWrapWidth:width-16,
+    ...TEXT_STYLES.body,fontSize:24,lineHeight:32,wordWrap:true,wordWrapWidth:width-16,
   },0,0);
   viewport.addChild(copy);
   const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(0,0,width,height).endFill();

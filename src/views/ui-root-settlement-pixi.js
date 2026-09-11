@@ -1652,8 +1652,11 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   onSelectOption: (nodeId, optionId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId }
   ),
-  onPurchaseOffer: (nodeId, offerId) => dispatchLifeMapAction(
-    ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId }
+  onPurchaseOffer: (nodeId, offerId, origin, toIndex) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId, origin, toIndex }
+  ),
+  onMoveStructure: (nodeId, offerId, origin) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE, { nodeId, offerId, origin }
   ),
   onUndoPurchase: (nodeId, offerId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, { nodeId, offerId }
@@ -2019,6 +2022,12 @@ function publishSettlementDebugApi() {
     getLifeMapNodeClickPoint: (nodeId) => vassalLifeMapView?.getNodeClickPoint?.(nodeId) ?? null,
     getLifeMapEnterNodeClickPoint: () => vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
     getLifeMapOptionClickPoint: (index) => vassalNodeDecisionModalView?.getOptionClickPoint?.(index) ?? null,
+    getLifeMapOfferFacePoint: index => vassalNodeDecisionModalView?.getOfferFacePoint?.(index) ?? null,
+    getLifeMapInspectionClosePoint: () => vassalNodeDecisionModalView?.getInspectionClosePoint?.() ?? null,
+    getLifeMapInspectionCostPoint: () => vassalNodeDecisionModalView?.getInspectionCostPoint?.() ?? null,
+    getLifeMapTableauClickPoint: index => vassalNodeDecisionModalView?.getTableauClickPoint?.(index) ?? null,
+    getLifeMapConstructionPoint: origin => vassalNodeDecisionModalView?.getConstructionPoint?.(origin) ?? null,
+    getLifeMapUndoClickPoint: index => vassalNodeDecisionModalView?.getUndoClickPoint?.(index) ?? null,
     getLifeMapOfferClickPoint: (index) => vassalNodeDecisionModalView?.getOfferClickPoint?.(index) ?? null,
     getLifeMapConfirmClickPoint: () => vassalNodeDecisionModalView?.getConfirmClickPoint?.() ?? null,
     getLifeMapLevelUpChoiceClickPoint: (index) =>

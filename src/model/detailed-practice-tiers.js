@@ -31,8 +31,9 @@ export function getNextDetailedPracticeTier(tier) {
 }
 
 export function getDetailedPracticeWorkerCapacity(definition, tier) {
-  const base = Math.max(0, Math.floor(definition?.workerCapacity ?? 0));
-  return base + Math.max(0, getDetailedPracticeTierIndex(tier)) * 2;
+  if (!definition) return 0;
+  const base = Math.max(0, Math.floor(definition?.workerCapacity ?? 2));
+  return base + Math.max(0, getDetailedPracticeTierIndex(tier)) * Math.max(0, definition?.workerCapacityPerQuality ?? 0);
 }
 
 export function createDetailedPracticeSlot(practiceId, tier = "bronze") {

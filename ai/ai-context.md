@@ -35,10 +35,10 @@ task lists.
 
 ## Current state and schemas
 
-- Game state uses schema v19 and runner saves use schema v11; older saves are rejected.
-- Each run serializes schema-v12 Game Settings, Gamepieces, and Life Map generator
+- Game state uses schema v20 and runner saves use schema v12; older saves are rejected.
+- Each run serializes schema-v13 Game Settings, Gamepieces, and Life Map generator
   settings in `gameConfig`.
-- Map Lab drafts use schema v4; scenario libraries use schema v3.
+- Map Lab drafts use schema v5; scenario libraries use schema v4.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs intentionally do not migrate obsolete saves or presets.
 
@@ -55,7 +55,7 @@ New runs roll every region's structure capacity from 5–8 in authored order
 through `state.rng`; Map Lab regions can instead pin an explicit capacity.
 
 Each detailed site owns Villager/Stranger cohorts, anonymous elder ages, stored
-and loose food, five practice slots, regional structure slots, aggregate Elder
+and loose food, five practice slots, a regional construction strip, aggregate Elder
 Order state, and local moon/meal summaries. Chaos, monsters, loss, persistent
 survival knowledge, and the single vassal lineage are civilization-global.
 
@@ -67,12 +67,26 @@ survival knowledge, and the single vassal lineage are civilization-global.
   evaluator and a baseline-preserving effective-worker multiplier.
 - Administration is the only food transport. Each card has one evaluated shared
   cap, moves meal-safe surplus toward shortages from one activation-start
-  snapshot, and cannot relay received food within a moon. Preservation expands
-  its endpoints across fully player-controlled paths.
-- Preservation relatively reduces stored-food decay and remains effective with
-  no workers. Its data-driven `connectedAdministrationReach` flag controls
-  whether local Administration expands across player-controlled paths. Build practices create Granaries or Mud
-  Houses and wait at full regional structure capacity.
+  snapshot, and cannot relay received food within a moon. Smokehouse's
+  `connectedAdministrationReach` flag can expand its endpoints across fully
+  player-controlled paths.
+- Every practice belongs to a scheduled or charge lane and works without workers.
+  Worker capacity and effective-worker bonus are tuned per definition; undeclared
+  defaults are two sockets and +25% per effective worker. Raise Houses accumulates
+  work at Birth. Build practices wait when no free contiguous footprint exists.
+- Smokehouse reduces stored-food decay; Caravanserai allows commercial relay;
+  Counting House permits remote Import funding. These replace the former passive
+  practices. Resettlement Hall retains external-emigration pressure reduction as
+  explicitly nonfunctional data; Hostel's migrant housing reserve is also
+  nonfunctional. Binary capabilities are complete at Bronze, while numeric
+  passive values scale with quality.
+- Harvest Festival adds a positive-Happiness floor for future Faith resolutions,
+  stacking duration to three. Each Faith consumes one unit; Birth does not reset it.
+- Construction capacity is 5–8 horizontal cells. Each structure has a stable
+  placement ID, origin, width (1–3), definition and quality. `structureSlots` stores
+  placements at their origins; covered cells remain null. Occupancy is derived
+  through the pure `structure-layout.js` operations shared by gameplay, shop
+  projection, Map Lab and debug authoring.
 - Granary and Mud House capacities scale with local count squared.
 - Food fills stored capacity first, then loose food; meals consume loose first.
 - The moon uses six fixed phases with configurable `phaseDurationSec`: Birth,
@@ -115,7 +129,14 @@ survival knowledge, and the single vassal lineage are civilization-global.
   frontier, and structure-capacity requirements.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
-  confirmation. Draft purchases can be undone or deterministically reordered;
+  confirmation. Practice purchases form a reorderable prefix ahead of locked
+  confirmed survivors, including upgrades. Structure purchases retain explicit
+  origins and footprints; automatic placement seeks a free span before staging
+  demolition at the leftmost compatible origin. Builds may cover confirmed
+  structures, never other staged structures; upgrades replace compatible confirmed
+  structures in place. Undo reprojects from the confirmed settlement and restores
+  covered buildings. There is no standalone demolition, refund or salvage.
+  Confirmation applies the projected final order and layout atomically;
   rerolling is available only while the draft is empty.
 - Explicit node confirmation applies staged effects, advances accumulated Phases
   through normal ticks, pays recurring Prestige/EXP once, and makes one
@@ -238,8 +259,18 @@ bounded JSON state used for replay and phase tooltips.
   Selected, staged, and unaffordable costs remain visible. Prestige, Food, and
   Money use the same resource symbols in their existing HUDs. The modal shows
   current-to-projected Prestige. Practice/Public Works show
-  the current settlement with staged Practices/Structures ghosted into their
-  authoritative slots; Routes/Travel show a cropped polygon regional preview;
+  the final settlement preview on the right. Offers, detached cost tags, source
+  undo and enlarged inspection occupy the left. Faces inspect; costs stage; an
+  offer-to-tableau drag also stages. Staged practices drag within their prefix;
+  staged builds drag to valid origins; dragging back left undoes either. Incoming
+  blueprints reveal cracked/faded buildings beneath them, and upgrades crossfade
+  from the previous quality. Inspection never covers the right tableau.
+  Shared sparse faces show illustration, quality, at most three output badges,
+  worker sockets, and scheduled readiness or charge source/fill. Charge fill has
+  no numeric counter. The 30 individual illustrations load on demand from
+  `images/dark-fantasy/settlement-pieces-v2/`; frames and Trade/Knowledge symbols
+  remain code. Reduced motion keeps static fill/upgrade states.
+  Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on
   text-first cards without inspection overlays; tapping anywhere on a card
   selects it, while immediate and surviving-completion Vassal impact stays visible;

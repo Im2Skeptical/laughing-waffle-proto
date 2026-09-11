@@ -299,7 +299,7 @@ function buildRegionMapIndicators(state, definition) {
       Math.floor(region?.structureCapacity ?? 0)
     );
     const structureSlots = viewModel
-      ? (viewModel.structures ?? []).map((slot) => slot?.structureId ?? null)
+      ? (viewModel.structures ?? []).map((slot) => slot ? { structureId: slot.structureId, origin: slot.origin, width: slot.width, placementId: slot.placementId } : null)
       : Array.from({ length: structureCapacity }, () => null);
     const hasCurrencyPractice = (viewModel?.practices ?? []).some((practice) =>
       practice?.tags?.includes("Currency"));
@@ -483,12 +483,16 @@ function addStructureIndicator(
   pill.eventMode = "none";
   parent.addChild(pill);
   const startX = point.x - ((slots.length - 1) * gap) / 2;
-  slots.forEach((structureId, index) => {
+  slots.forEach((placement, index) => {
+    if (!placement) return;
+    const span = new PIXI.Graphics().lineStyle(1,0xa89164,.9).beginFill(0x30413b,.8)
+      .drawRoundedRect(startX + index * gap - 12,point.y + 22 + verticalOffset,placement.width * gap - 3,27,3).endFill();
+    span.eventMode = 'none'; parent.addChild(span);
     addStructureGlyph(
       parent,
-      startX + index * gap,
+      startX + (index + (placement.width - 1) / 2) * gap,
       point.y + 36 + verticalOffset,
-      structureId
+      placement.structureId
     );
   });
 }

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import './settlement-redesign.js';
 import { ActionKinds } from "../actions.js";
 import { createInitialState } from "../init.js";
 import { buildProjectionChunkFromStateData } from "../projection-chunk.js";

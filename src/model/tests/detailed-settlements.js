@@ -1,3 +1,6 @@
+import "./structure-layout.js";
+import { normalizeStructureLayout } from "../structure-layout.js";
+import { settlementStructureDefs } from "../../defs/gamepieces/detailed-settlement-defs.js";
 import assert from "node:assert/strict";
 import { createInitialState } from "../init.js";
 import {
@@ -46,6 +49,12 @@ import {
   getVassalLifeMapOutgoingNodeIds,
   getVassalPrestigeIncome,
 } from "../vassal-life-map.js";
+
+function putStructure(settlement, structureId, origin = 2, tier = 'bronze') {
+  const entries = [...settlement.structureSlots];
+  entries[origin] = { structureId, tier, origin, width: settlementStructureDefs[structureId].footprint, placementId: 'fixture:' + origin };
+  settlement.structureSlots = normalizeStructureLayout(entries, entries.length, id => settlementStructureDefs[id]);
+}
 
 function fresh(seed = 12345) {
   return createInitialState("devPlaytesting01", seed);
@@ -133,12 +142,12 @@ stepDetailedSettlementsSecond(cultivate, 8);
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).storedFood),
-  [47, 180, 180, 180, 180]
+  [44.5, 180, 180, 180, 180]
 );
 assert.deepEqual(
   ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]
     .map((id) => getDetailedSettlement(cultivate, id).looseFood),
-  [0, 937, 937, 937, 217]
+  [0, 397, 397, 397, 37]
 );
 
 const cultivateTiming = clearDetailedPopulationAndFood(fresh());
@@ -177,8 +186,8 @@ const staffedForageSite = getDetailedSettlement(staffedForage, "cedar-woods");
 staffedForageSite.practiceSlots[0] = { practiceId: "forage", charge: 0, work: 0 };
 staffedForageSite.populationByClass.villager.adults = 10;
 stepDetailedSettlementsSecond(staffedForage, 2);
-assert.equal(staffedForageSite.lastMeal.consumed, 10,
-  "one Villager worker raises Forage from 5 to 10");
+assert.equal(staffedForageSite.lastMeal.consumed, 7.5,
+  "one Villager worker raises Forage from 5 to 7.5");
 const configuredForage = clearDetailedPopulationAndFood(fresh(8895));
 const configuredForageSite = getDetailedSettlement(configuredForage, "cedar-woods");
 configuredForageSite.practiceSlots[0] = { practiceId: "forage", charge: 0, work: 0 };
@@ -192,7 +201,7 @@ assert.equal(
   configuredForageSite.lastMeal.consumed
     + configuredForageSite.storedFood
     + configuredForageSite.looseFood,
-  14,
+  10.5,
   "Forage output remains configurable through serialized gamepiece data");
 assert.deepEqual(serializeGameState(configuredForageReload), serializeGameState(configuredForage));
 
@@ -202,33 +211,31 @@ multiplierSite.populationByClass.villager.adults = 10;
 multiplierSite.populationByClass.villager.eldersByAge = [];
 multiplierSite.populationByClass.stranger.adults = 10;
 const multiplierEvaluation = evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0);
-assert.equal(multiplierEvaluation.effects[0].scaledValue.workerMultiplier, 2.5,
-  "one Villager and one Stranger worker produce a x2.5 multiplier");
+assert.equal(multiplierEvaluation.effects[0].scaledValue.workerMultiplier, 1.375,
+  "one Villager and one Stranger worker produce a x1.375 multiplier");
 multiplierSite.practiceSlots[0].tier = "gold";
-assert.equal(evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0).workerCapacity, 7,
-  "Gold practices add four worker slots to their Bronze capacity");
+assert.equal(evaluateDetailedPracticeSlot(multiplierState, "west-levee", 0).workerCapacity, 3,
+  "Quality keeps the independently configured worker cap");
 
 const decay = fresh();
 const decaySite = getDetailedSettlement(decay, "cedar-woods");
 for (const site of decay.world.sites) {
   site.detailedState.practiceSlots = Array.from({ length: DETAILED_PRACTICE_SLOT_COUNT }, () => null);
 }
-decaySite.practiceSlots = [
-  { practiceId: "preserve", charge: 0, work: 0 }, null, null, null, null,
-];
+putStructure(decaySite, "smokehouse");
 stepDetailedSettlementsSecond(decay, 6);
-assert.equal(decaySite.storedFood, 57.6,
-  "two Preservation workers reduce the 10% stored decay loss by 60%");
+assert.equal(decaySite.storedFood, 55.2,
+  "an unstaffed Smokehouse reduces the 10% stored decay loss by 20%");
 assert.equal(decaySite.looseFood, 0, "Preservation does not change loose-food decay");
 
 const build = fresh();
 const buildSite = getDetailedSettlement(build, "river-crown");
-buildSite.structureSlots = buildSite.structureSlots.map(() => ({ structureId: "granary" }));
+buildSite.structureSlots = buildSite.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
 buildSite.practiceSlots = [
   { practiceId: "raiseHouses", tier: "bronze", charge: 0, work: 0 }, null, null, null, null,
 ];
 stepDetailedSettlementsSecond(build, 1);
-assert.equal(buildSite.practiceSlots[0].work, 1);
+assert.equal(buildSite.practiceSlots[0].work, 1.5);
 assert.equal(buildSite.structureSlots.filter(Boolean).length, buildSite.structureSlots.length,
   "full structure capacity makes completed work wait");
 const buildSlotIndex = buildSite.structureSlots.length - 1;
@@ -311,9 +318,10 @@ const preservedAdmin = clearDetailedPopulationAndFood(fresh());
 const preservedSource = getDetailedSettlement(preservedAdmin, "cedar-woods");
 preservedSource.practiceSlots = [
   { practiceId: "administrate", charge: 0, work: 0 },
-  { practiceId: "preserve", charge: 0, work: 0 },
+  null,
   null, null, null, null,
 ];
+putStructure(preservedSource, "smokehouse");
 preservedSource.looseFood = 200;
 const preservedDestination = getDetailedSettlement(preservedAdmin, "lake-country");
 preservedDestination.practiceSlots = [
@@ -324,7 +332,7 @@ preservedDestination.practiceSlots = [
 preservedDestination.populationByClass.villager.children = 200;
 assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
   "Administration defaults to adjacent-only even when Preservation is present");
-preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = true;
+preservedAdmin.gameConfig.gamepieces.structures.smokehouse.connectedAdministrationReach = true;
 const preservedEvaluation = evaluateDetailedPracticeSlot(preservedAdmin, "cedar-woods", 0);
 assert.equal(preservedEvaluation.effects[0].scaledValue.evaluatorScore, 2,
   "Administration presence is counted once per reachable region");
@@ -335,7 +343,7 @@ assert.deepEqual(
   [{ sourceId: "cedar-woods", destinationId: "lake-country", amount: 100 }],
   "local Preservation expands Administration across a player-controlled path"
 );
-preservedAdmin.gameConfig.gamepieces.practices.preserve.connectedAdministrationReach = false;
+preservedAdmin.gameConfig.gamepieces.structures.smokehouse.connectedAdministrationReach = false;
 assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
   "disabled Preservation reach leaves Administration limited to adjacent settlements");
 getRegionState(preservedAdmin, "upper-floodplain").controller = "frontier";
@@ -344,9 +352,7 @@ assert.deepEqual(planDetailedAdministrationMoves(preservedAdmin), [],
 
 const commerce = clearDetailedPopulationAndFood(fresh());
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
-  getDetailedSettlement(commerce, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
-  ];
+  putStructure(getDetailedSettlement(commerce, id), "caravanserai");
 }
 getDetailedSettlement(commerce, "cedar-woods").practiceSlots[1] =
   { practiceId: "exchange", charge: 0, work: 0 };
@@ -358,7 +364,7 @@ assert.deepEqual(exchangeEvaluation.effects[0].scaledValue.diagnostics.matchingR
   ["west-levee", "upper-floodplain", "river-crown", "lake-country"]);
 commerce._seasonChanged = true;
 stepDetailedSettlementsSecond(commerce, 8);
-assert.equal(getDetailedSettlement(commerce, "cedar-woods").currency, 12,
+assert.equal(getDetailedSettlement(commerce, "cedar-woods").currency, 8,
   "Exchange uses the normal base-plus-effective-worker multiplier");
 
 const directCommerce = clearDetailedPopulationAndFood(fresh());
@@ -372,9 +378,7 @@ assert.equal(evaluateDetailedPracticeSlot(directCommerce, "cedar-woods", 0)
 
 const commerceReplay = clearDetailedPopulationAndFood(fresh(734));
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
-  getDetailedSettlement(commerceReplay, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
-  ];
+  putStructure(getDetailedSettlement(commerceReplay, id), "caravanserai");
 }
 getDetailedSettlement(commerceReplay, "cedar-woods").practiceSlots[1] =
   { practiceId: "exchange", charge: 0, work: 0 };
@@ -401,15 +405,13 @@ assert.equal(localImportSite.looseFood, 0, "Import does not leave surplus Food")
 
 const clearingImport = disableMonthlyDemographics(clearDetailedPopulationAndFood(fresh()));
 for (const id of ["cedar-woods", "west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
-  getDetailedSettlement(clearingImport, id).practiceSlots = [
-    { practiceId: "caravanRoutes", charge: 0, work: 0 }, null, null, null, null,
-  ];
+  putStructure(getDetailedSettlement(clearingImport, id), "caravanserai");
 }
 const clearingSite = getDetailedSettlement(clearingImport, "cedar-woods");
 clearingSite.populationByClass.villager.adults = 10;
 clearingSite.looseFood = 2;
 clearingSite.currency = 3;
-clearingSite.practiceSlots[1] = { practiceId: "clearingHouse", charge: 0, work: 0 };
+putStructure(clearingSite, "countingHouse", 4);
 clearingSite.practiceSlots[2] = { practiceId: "import", charge: 0, work: 0 };
 getDetailedSettlement(clearingImport, "west-levee").currency = 9;
 stepDetailedSettlementsSecond(clearingImport, 1);
@@ -431,11 +433,9 @@ const cappedPreservationSite = getDetailedSettlement(cappedPreservation, "cedar-
 cappedPreservationSite.populationByClass.villager.adults = 40;
 cappedPreservationSite.storedFood = 60;
 cappedPreservationSite.looseFood = 20;
-cappedPreservationSite.practiceSlots = [
-  { practiceId: "preserve", charge: 0, work: 0 },
-  { practiceId: "preserve", charge: 0, work: 0 },
-  null, null, null, null,
-];
+cappedPreservation.gameConfig.gamepieces.structures.smokehouse.effects[0].amount = 60;
+putStructure(cappedPreservationSite, 'smokehouse', 2);
+putStructure(cappedPreservationSite, 'smokehouse', 3);
 stepDetailedSettlementsSecond(cappedPreservation, 6);
 assert.equal(cappedPreservationSite.storedFood, 60,
   "combined Preservation is capped at a 100% stored-food decay reduction");
@@ -869,7 +869,7 @@ for (const { state: sampledState, targetRegionId, entry } of sampledIntervention
 }
 const constrainedVassalState = fresh(780);
 for (const site of constrainedVassalState.world.sites) {
-  site.detailedState.structureSlots = site.detailedState.structureSlots.map(() => ({ structureId: "granary" }));
+  site.detailedState.structureSlots = site.detailedState.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
 }
 constrainedVassalState.world.connections = getWorldConnectionCandidates(
   getWorldDefinition(constrainedVassalState)
@@ -1040,7 +1040,7 @@ const globalVassal = globalState.civilization.vassalLineage.currentVassal;
 globalVassal.initialAge = 50;
 globalVassal.deathAge = 99;
 const fullSite = getDetailedSettlement(globalState, "cedar-woods");
-fullSite.structureSlots = fullSite.structureSlots.map(() => ({ structureId: "granary" }));
+fullSite.structureSlots = fullSite.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
 globalVassal.interventions = [
   { kind: "globalStructure", structureId: "mudHouses", requiredPrestige: 0, status: "pending" },
 ];

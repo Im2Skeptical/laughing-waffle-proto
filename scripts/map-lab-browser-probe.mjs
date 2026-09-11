@@ -35,8 +35,8 @@ try {
   });
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v4");
-      localStorage.removeItem("civsurvivor.mapLabScenarios.v3");
+      localStorage.removeItem("civsurvivor.mapLabDraft.v5");
+      localStorage.removeItem("civsurvivor.mapLabScenarios.v4");
       localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v7");
       localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v7");
       localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v7");
@@ -149,7 +149,7 @@ try {
   await page.getByTestId("map-lab-world-map-region-west-levee").click();
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
 
-  await page.getByTestId("map-lab-structure-capacity").fill("4");
+  await page.getByTestId("map-lab-structure-capacity").fill("8");
   await page.getByTestId("map-lab-structure-capacity").press("Enter");
   assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), false);
   await page.getByTestId("map-lab-structure-slot-3").selectOption("granary");
@@ -175,8 +175,8 @@ try {
 
   await page.getByTestId("map-lab-json-toggle").click();
   const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
-  assert.equal(json.schemaVersion, 4);
-  assert.equal(json.regions[0].structureCapacity, 4);
+  assert.equal(json.schemaVersion, 5);
+  assert.equal(json.regions[0].structureCapacity, 8);
   assert.equal(json.regions[0].randomizeStructureCapacity, false);
   assert.equal("capacity" in json.regions[0], false);
   assert.equal("installedPracticeIds" in json.regions[0], false);
@@ -231,7 +231,7 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 12);
+  assert.equal(settingsJson.schemaVersion, 13);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
@@ -248,7 +248,7 @@ try {
   assert.equal(await administrationBase.inputValue(), "50");
   await administrationBase.fill("75");
   const connectedAdministrationReach = page.getByTestId(
-    "gamepiece-practices-preserve-connectedAdministrationReach"
+    "gamepiece-structures-smokehouse-connectedAdministrationReach"
   );
   assert.equal(await connectedAdministrationReach.isChecked(), false);
   await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
@@ -292,7 +292,7 @@ try {
     75
   );
   assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.practices.preserve
+    configuredSnapshot.gameConfig.gamepieces.structures.smokehouse
       .connectedAdministrationReach,
     false
   );
@@ -420,14 +420,14 @@ try {
   assert.equal(
     bootSnapshot.worldMap.regionMapIndicators
       .find((region) => region.regionId === "cedar-woods").structureCapacity,
-    4,
+    8,
     "the selected combined profile starts a fresh run automatically"
   );
 
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
-      "Map Lab schema v4",
+      "Map Lab schema v5",
       "detailed-settlement toggle and cohorts",
       "elder ages and local food",
       "five practice slots",

@@ -125,7 +125,7 @@ try {
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await hoverCard({x:700,y:220});
-  await hoverCard({x:110,y:510});
+  await hoverCard({x:675,y:680});
   await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='map');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
@@ -258,7 +258,7 @@ try {
   await holdCard(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]));
   await click({x:2047,y:762});await delay(150);
   await holdCard({x:700,y:220});
-  await holdCard({x:110,y:510});
+  await holdCard({x:675,y:680});
   await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
@@ -290,9 +290,10 @@ try {
   assert.equal(afterInspection.selectedOptionId,beforeInspection.selectedOptionId,'Inspection cannot select a choice');
   assert.deepEqual(afterInspection.purchaseOrder,beforeInspection.purchaseOrder,'Inspection cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
+  const inspectedCost=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionCostPoint());
   const costTouch=await page.context().newCDPSession(page);
   await costTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{
-    x:candidateBox.x+choice.x/2424*candidateBox.width, y:candidateBox.y+choice.y/1080*candidateBox.height,
+    x:candidateBox.x+inspectedCost.x/2424*candidateBox.width, y:candidateBox.y+inspectedCost.y/1080*candidateBox.height,
   }]});
   await delay(220);
   await costTouch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
@@ -362,12 +363,13 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),1,
     'A staged footer cannot buy the same offer twice');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
-  await tap({x:shopChoice.x,y:shopChoice.y-100});
+  await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),shopAfter.purchaseOrder[0],
     'Staged offers retain their full inspection');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop-inspection.png'});
-  await tap({x:shopChoice.x,y:shopChoice.y-100});
+  await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
+  await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   const secondOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
   await tap(secondOffer);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===2);

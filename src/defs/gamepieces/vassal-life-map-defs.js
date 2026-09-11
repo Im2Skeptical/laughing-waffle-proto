@@ -76,11 +76,6 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
     label: "Remove Practice", glyph: "−P", color: 0xa46fc4,
     description: "Pay to remove Practices from the Vassal's current settlement.",
   }),
-  removeStructure: Object.freeze({
-    id: "removeStructure", groupId: "removal", removalKind: "structure",
-    label: "Remove Structure", glyph: "−S", color: 0xd17e68,
-    description: "Pay to remove Structures from the Vassal's current settlement.",
-  }),
   removeRoute: Object.freeze({
     id: "removeRoute", groupId: "removal", removalKind: "connection",
     label: "Remove Routes", glyph: "−R", color: 0xd0ac55,
@@ -107,7 +102,7 @@ export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
   settlement: Object.freeze(["settlement"]),
   legacyPlus: Object.freeze(["legacyPlus"]),
   monsterHunt: Object.freeze(["monsterHunt"]),
-  removal: Object.freeze(["removePractice", "removeStructure", "removeRoute"]),
+  removal: Object.freeze(["removePractice", "removeRoute"]),
   tagShop: Object.freeze(["foodShop", "knowledgeShop", "housingShop"]),
 });
 
