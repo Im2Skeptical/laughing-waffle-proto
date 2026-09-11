@@ -1,5 +1,9 @@
 // src/controllers/sim-runner.js
-// Simulation runner (fixed-step, second-boundary pause, replay injection)
+// Simulation runner (fixed-step, second-boundary pause, replay injection).
+// On the serialization/replay path; retains pre-redesign substrate.
+// Do not add new detailed-settlement gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+// New Vassal Life Map rules belong in src/model/vassal-life-map.js.
 
 import {
   createInitialState,
