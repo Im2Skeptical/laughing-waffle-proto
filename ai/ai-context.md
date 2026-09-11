@@ -182,7 +182,9 @@ bounded JSON state used for replay and phase tooltips.
   Desktop play stays windowed and does not open the menu on focus loss or
   fullscreen exit. Continue resumes the live playhead, choices, and
   unveil-follow state without reloading. Touch-device entry requests fullscreen
-  and landscape from the button gesture; unsupported portrait devices stay in the
+  and landscape from the button gesture. Entry proceeds once the viewport is
+  landscape and the page is visible, even if the lock promise never settles or
+  fullscreen stole focus. Unsupported portrait devices stay in the
   same menu with a rotate-device hint. There is no separate landscape screen.
   Gameplay, reveal motion, and audio stop while the menu is open.
 

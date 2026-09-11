@@ -49,7 +49,9 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     const version = ++entryVersion;
     try {
       await requestGameDisplayMode();
-      if (version !== entryVersion || document.hidden || !document.hasFocus()) return;
+      // Fullscreen/orientation steal window focus on phones; visibility is the
+      // signal that the player actually left during the request.
+      if (version !== entryVersion || document.hidden) return;
       if (portrait.matches) {
         displayHint.textContent = 'Turn your device sideways, then continue your chronicle.';
         displayHint.hidden = false;
@@ -131,7 +133,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       if (!session.isInMenu()) session.save();
       return;
     }
-    if (entering && !document.hidden) return;
+    if (entering) return;
     entryVersion++;
     if (!session.isInMenu()) returnToMenu({ force: true });
   }
