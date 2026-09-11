@@ -1,18 +1,20 @@
 # Agent Instructions
 
-Local instructions for Codex agents working in this repo.
+Local instructions for agents working in this repo.
 
 ## Project context
-- Read `ai/ai-context.md` before making changes.
-- Consult only the relevant section of `ai/repository-map.md` to locate the
-  narrow implementation and test path. Do not read historical plans unless the
-  task touches their design decisions.
+- Read `ai/ai-context.md` (invariants and schema numbers) before making changes.
+- Then read only the relevant of `ai/sim.md`, `ai/ui.md`, or the matching
+  section of `ai/repository-map.md`. Do not load all three by default.
+- Use root `CONTEXT.md` for ubiquitous language.
+- Do not read historical plans unless the task touches their design decisions.
 
 ## Current goal context
 - The map-driven detailed-settlement redesign and data-driven debug tools are
   implemented. Current work is iterative gameplay and UI development.
-- `ai/ai-context.md` describes current behavior. The redesign and debug-tool
-  plans are historical decision records, not descriptions of unfinished work.
+- `ai/ai-context.md` is the invariants sheet. Simulation and UI behavior live
+  in `ai/sim.md` and `ai/ui.md`. The redesign and debug-tool plans are
+  historical decision records, not descriptions of unfinished work.
 
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.
@@ -65,4 +67,6 @@ Use the default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-
 
 ### Domain docs
 
-This is a single-context repository using root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+This is a single-context repository. Root `CONTEXT.md` is the glossary;
+`ai/ai-context.md` holds engine invariants. `docs/adr/` does not exist; do not
+assume ADRs are present. See `docs/agents/domain.md`.

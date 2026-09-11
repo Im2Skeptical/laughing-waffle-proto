@@ -4,12 +4,17 @@ Deterministic map-driven settlement strategy prototype.
 
 ## Current prototype
 
-The 15-region map hosts five connected detailed settlements in Regions01, 03,
-06, 07, and 11. Each site simulates local cohorts, perishable capacity-limited
-food, fixed practice slots, physical structure space, and an aggregate Elder
-Order. Administration is the only way to move food between sites. Preservation
-extends its reach from adjacent sites to detailed settlements connected by a
-fully player-controlled path.
+Player New Game is the Starter_02 two-site setup in `ai/ai-context.md`. The
+15-region authored debug fixture still hosts five connected detailed
+settlements in Regions01, 03, 06, 07, and 11. Each detailed site simulates
+local cohorts, perishable capacity-limited food, fixed practice slots, physical
+structure space, and an aggregate Elder Order. Administration is the only way
+to move food between sites. Smokehouse can expand Administration reach from adjacent sites to detailed
+settlements connected by a fully player-controlled path.
+
+Current schemas live in [`ai/ai-context.md`](ai/ai-context.md). Simulation
+behavior lives in [`ai/sim.md`](ai/sim.md); UI behavior in
+[`ai/ui.md`](ai/ui.md). Do not treat this README as the rules document.
 
 The single civilization-wide Vassal lineage routes through a visible 44-node
 Life Map. Nodes provide Patronage, Development, Travel, local intervention
@@ -50,9 +55,9 @@ a node progressively commits its accumulated years through normal simulation
 ticks, then pauses for the mortality result and next decision. The blocking
 chooser suspends automatic forecast preview until a candidate is selected.
 
-Game state is schema v14 and runner saves are schema v8. Each run serializes the exact game
-settings and detailed gamepiece tuning used by deterministic replay. Old saves are intentionally
-unsupported.
+Each run serializes the exact game settings and detailed gamepiece tuning used
+by deterministic replay. Old saves are intentionally unsupported. Schema
+numbers are in `ai/ai-context.md`, not here.
 
 Development Tools has separate Map Lab, Game Settings, Gamepieces, and Vassal
 Lab sections. Map Lab and the generated configuration editors keep focused
@@ -92,7 +97,7 @@ npm run probe:map-lab
 
 `npm run build` writes generated output to `dist/`.
 
-## Map Lab v4
+## Map Lab
 
 Open **Debug -> Map Lab**. The editor works on a separate browser-local draft and
 changes the game only when **Start fresh test run** is used.
@@ -110,9 +115,8 @@ It prevents capacity below occupied structure slots, warns about over-housing,
 and rejects stored food above the derived Granary capacity. **Copy current
 game** is a deep read-only copy of the viewed second.
 
-Drafts use schema v4 and browser key `civsurvivor.mapLabDraft.v4`; named scenario
-libraries use schema v3 at `civsurvivor.mapLabScenarios.v3`. Older data is rejected
-without migration.
+Draft and scenario-library schema numbers live in `ai/ai-context.md`. Older
+data is rejected without migration.
 
 ## Data-driven debug configuration
 
@@ -152,9 +156,10 @@ Example region entry:
 }
 ```
 
-See [`ai/ai-context.md`](ai/ai-context.md) for current gameplay and engine
-invariants, [`ai/repository-map.md`](ai/repository-map.md) for surgical code and
-test routing, and
+See [`ai/ai-context.md`](ai/ai-context.md) for engine invariants and schemas,
+[`ai/sim.md`](ai/sim.md) and [`ai/ui.md`](ai/ui.md) for current behavior,
+[`ai/repository-map.md`](ai/repository-map.md) for surgical code and test
+routing, and
 [`ai/detailed-settlement-redesign-plan.md`](ai/detailed-settlement-redesign-plan.md)
 for the approved redesign record.
 

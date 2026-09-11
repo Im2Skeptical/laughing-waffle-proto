@@ -163,9 +163,13 @@ Do not paste their full artifact JSON into chat.
 
 ## Documentation status
 
-- Current behavior: `ai/ai-context.md`
+- Invariants and schema numbers: `ai/ai-context.md`
+- Simulation behavior: `ai/sim.md`
+- UI behavior: `ai/ui.md`
+- Ubiquitous language: `CONTEXT.md`
+- Art/presentation contract: `ai/visual-overhaul.md`
 - Current routing: this file
-- Implemented design records:
+- Implemented design records (historical, not pending work):
   `ai/detailed-settlement-redesign-plan.md` and
   `ai/debug-tools-expansion-plan.md`
 - Superseded history: `ai/milestone2-substage3-report.md` and older prompts
