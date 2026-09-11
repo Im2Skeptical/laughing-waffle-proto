@@ -14,10 +14,11 @@ file is the legacy tick substrate.
   the region-order / filter helpers they share.
 - `practices.js` — worker assignment, slot evaluation, practice activation and
   effects, administration routing (`planDetailedAdministrationMoves*`).
-- `phases.js` — **the stepper**. Moon-turn bookkeeping, `runBirthPhase` /
-  `runFoodPhase` / `runHousingPhase` / `runFaithPhase` / `runMigrationPhase` /
-  `runDeathPhase`, chaos, `initializeDetailedSettlementCivilization`, and
-  `stepDetailedSettlementsSecond`.
+- `phases.js` — **the stepper**. `initializeDetailedSettlementCivilization`
+  and `stepDetailedSettlementsSecond`. Phase bodies live in `phases/`
+  (`birth.js`, `food.js`, `housing.js`, `faith.js`, `migration.js`,
+  `death.js`, plus `moon-turn.js`, `chaos.js`, `shared.js`). See
+  `phases/README.md`.
 - `vassals.js` — candidate generation, selection pool, debug inject, prestige,
   and intervention apply/describe.
 - `view-model.js` — `getDetailedSettlementViewModel` plus
