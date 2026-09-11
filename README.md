@@ -19,7 +19,7 @@ behavior lives in [`ai/sim.md`](ai/sim.md); UI behavior in
 The single civilization-wide Vassal lineage routes through a visible 44-node
 Life Map. Nodes provide Patronage, Development, Travel, local intervention
 shops, Crisis, and Legacy opportunities. Choices spend Vassal Prestige and
-years; each explicitly confirmed node pays recurring income once and then
+Phases; each explicitly confirmed node pays recurring Prestige/EXP once and then
 checks age-based mortality once. Chaos and loss are global; population, food,
 practices, buildings, happiness, and faith are site-local.
 
@@ -28,9 +28,10 @@ and the best survival year observed across rewinds and saved sessions. A
 completed forecast resolves both values at the civilization-loss boundary. The
 map adds a civilization-wide demographic/food/housing/chaos summary above the
 selected-region card. Fullscreen and Debug controls remain available.
-The local settlement header reserves its right edge for those global controls,
-keeping Overview, Demographics, and Map accessible on desktop and
-mobile-landscape fullscreen displays. Full/Exit and Debug share one responsive
+The local settlement header reserves its right edge for those global controls.
+Overview and Demographics stay local to the opened site; the lower-left dock
+handles Regional Map, Life Map, and Settlement navigation. Detailed settlement
+has no separate header Map button. Full/Exit and Debug share one responsive
 utility rail so mobile text sizing cannot make them drift into one another.
 On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
 and filled/open structure-slot glyphs. Non-detailed regions show their authored
@@ -51,7 +52,7 @@ advance with it while committed history stays unchanged. The preview refresh is
 rate-limited for responsive map input. Manual scrubbing takes control
 immediately.
 Choosing a Vassal reveals the Life Map but not future node inventory. Confirming
-a node progressively commits its accumulated years through normal simulation
+a node progressively commits its accumulated Phases through normal simulation
 ticks, then pauses for the mortality result and next decision. The blocking
 chooser suspends automatic forecast preview until a candidate is selected.
 
@@ -148,7 +149,7 @@ Example region entry:
     "practiceSlots": [
       { "practiceId": "cultivate", "charge": 0, "work": 0 },
       { "practiceId": "administrate", "charge": 0, "work": 0 },
-      { "practiceId": "preserve", "charge": 0, "work": 0 },
+      { "practiceId": "forage", "charge": 0, "work": 0 },
       null,
       null
     ]
