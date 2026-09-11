@@ -3,7 +3,7 @@
 // STAGE 3: tSec aware.
 
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
-import { createTimegraphScroll, getTimegraphInk, getTimegraphGlyphInk, drawTimegraphGlyph, getTimegraphLayout, layoutTimegraphKey, TIMEGRAPH_CHROME } from './timegraph-scroll-pixi.js';
+import { createTimegraphScroll, getTimegraphInk, getTimegraphLayout, TIMEGRAPH_CHROME } from './timegraph-scroll-pixi.js';
 import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
 import {
   getActionSecondsInRange,
@@ -12,10 +12,7 @@ import {
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import {
   GAMEPIECE_HOVER_SCALE,
-  TIME_STATE_COLORS,
-  TIME_STATE_GRAPH_BG_ALPHA,
 } from "./layout-pixi.js";
-import { MUCHA_UI_COLORS } from "./ui-helpers/mucha-ui-palette.js";
 import { createWindowHeader } from "./ui-helpers/window-header.js";
 import { installSolidUiHitArea } from "./ui-helpers/solid-ui-hit-area.js";
 import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
@@ -23,7 +20,6 @@ import {
   blendColor,
   clamp01,
   clampForecastScrubTargetSec,
-  computeGraphSeriesScaleRanges,
   getSeriesValue,
   lerpNumber,
   normalizeEventMarkers,
@@ -33,6 +29,61 @@ import {
   resolveDefaultGraphScrubSec,
   resolveForecastRevealPlayheadSec,
 } from "./timegraphs-helpers.js";
+import {
+  ACTION_SNAP_THRESHOLD_SEC,
+  FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
+  FORECAST_REVEAL_PLOT_THROTTLE_MS,
+  FORECAST_REVEAL_PREVIEW_REFRESH_MS,
+  FORECAST_REVEAL_TARGET_DURATION_SEC,
+  GRAPH_BOOT_FADE_FRAME_MS,
+  MAX_ACTION_MARKERS_DENSITY,
+  MAX_PLOT_POINTS,
+  PLOT_REFRESH_OVERSCAN_POINTS,
+  PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  PLOT_THROTTLE_MS,
+  PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS,
+  PROJECTION_REPLACEMENT_DIM_ALPHA,
+  PROJECTION_REPLACEMENT_DIM_LINE_ALPHA,
+  PROJECTION_REPLACEMENT_FLASH_ALPHA,
+  PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
+  RESTORE_THROTTLE_MS,
+  SERIES_SCALE_MAX_FLASH_DURATION_MS,
+  TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
+  TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
+  TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC,
+  TIMEGRAPH_THEME,
+} from "./timegraphs/constants.js";
+import {
+  getSeriesLegendTitle,
+  makeLegendSignature,
+  paintKeyCabinetStyles,
+  resolveKeyCabinetPage,
+  sliceKeyCabinetPage,
+} from "./timegraphs/key-cabinet.js";
+import {
+  applyActionSnap as snapTimeToActions,
+  getMarkerSeconds as sampleMarkerSeconds,
+  timeToX as mapTimeToX,
+} from "./timegraphs/plot-math.js";
+import {
+  drawActionMarkers,
+  drawBootFadeOverlay,
+  drawEventMarkers,
+  drawForecastRevealMarker,
+  drawPlotGrid,
+  drawScrubMarkers,
+  drawSeriesLinesForRange as paintSeriesLinesForRange,
+  drawZone,
+  fillHistoryZones,
+  getSeriesScaleMaxFlashRenderKey as computeSeriesScaleMaxFlashRenderKey,
+  getSeriesScaleMaxFlashStrength as computeSeriesScaleMaxFlashStrength,
+} from "./timegraphs/plot-draw.js";
+import {
+  applyStickyScaleRangeSources,
+  computeSeriesScaleRangesForReveal as computeSeriesScaleRangesForRevealRange,
+  computeVisibleSeriesMaxValues,
+} from "./timegraphs/scale.js";
+
 export {
   clampForecastScrubTargetSec,
   computeGraphSeriesScaleRanges,
@@ -40,55 +91,6 @@ export {
   resolveDefaultGraphScrubSec,
   resolveForecastRevealPlayheadSec,
 } from "./timegraphs-helpers.js";
-
-const TIMEGRAPH_THEME = Object.freeze({
-  panelHeaderBg: MUCHA_UI_COLORS.surfaces.header,
-  panelBodyBg: 0xe8cea0,
-  panelBorder: 0x765438,
-  textPrimary: 0x412e20,
-  textMuted: 0x735b40,
-  buttonBg: 0xdabd86,
-  buttonBgActive: 0xb39461,
-  legendStroke: MUCHA_UI_COLORS.surfaces.borderSoft,
-  legendStrokeHover: MUCHA_UI_COLORS.ink.primary,
-  gridMajor: 0x806847,
-  gridMinor: 0x967e5b,
-  actionMarker: MUCHA_UI_COLORS.accents.sage,
-  eventMarkerNormal: MUCHA_UI_COLORS.intent.softPop,
-  eventMarkerCritical: MUCHA_UI_COLORS.intent.dangerPop,
-  forecastMarker: 0x5a6541,
-  scrubMarker: 0x483624,
-  scrubLiveMarker: MUCHA_UI_COLORS.accents.gold,
-});
-
-const ITEM_UNAVAILABLE_ZONE_ALPHA = Math.min(
-  1,
-  TIME_STATE_GRAPH_BG_ALPHA * 3.5
-);
-const FORECAST_PENDING_ZONE_ALPHA = Math.min(
-  1,
-  TIME_STATE_GRAPH_BG_ALPHA * 4.5
-);
-const FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC = 480;
-const FORECAST_REVEAL_TARGET_DURATION_SEC = 0.6;
-const FORECAST_REVEAL_PLOT_THROTTLE_MS = 16;
-const FORECAST_REVEAL_PREVIEW_REFRESH_MS = 120;
-const FORECAST_REVEAL_MARKER_ALPHA = 0.92;
-const TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC = 0.22;
-const TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC = 480;
-const TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC = 9600;
-const PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC = 32;
-const PLOT_REFRESH_OVERSCAN_POINTS = 1;
-const PROJECTION_REPLACEMENT_FLASH_ALPHA = 0.22;
-const PROJECTION_REPLACEMENT_DIM_ALPHA = 0.07;
-const PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA = 0.88;
-const PROJECTION_REPLACEMENT_DIM_LINE_ALPHA = 0.24;
-const PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS = 32;
-const GRAPH_BOOT_FADE_FRAME_MS = 32;
-const SERIES_SCALE_MAX_FLASH_DURATION_MS = 520;
-const SERIES_SCALE_MAX_FLASH_FRAME_MS = 32;
-const SERIES_SCALE_MAX_FLASH_COLOR = 0xffffff;
-const SERIES_SCALE_MAX_FLASH_WIDTH_BONUS = 2.5;
 
 export function createMetricGraphView({
   app,
@@ -219,47 +221,6 @@ export function createMetricGraphView({
 
   resolveMetric();
 
-  function mergeStickySeriesScaleRanges(
-    previousRanges,
-    nextRanges,
-    seriesList = []
-  ) {
-    if (!(previousRanges instanceof Map) || !(nextRanges instanceof Map)) {
-      return nextRanges instanceof Map ? nextRanges : new Map();
-    }
-    const merged = new Map(nextRanges);
-    for (const seriesDef of Array.isArray(seriesList) ? seriesList : []) {
-      const seriesId = String(seriesDef?.id ?? "");
-      if (!seriesId) continue;
-      const previousRange = previousRanges.get(seriesId);
-      const nextRange = merged.get(seriesId);
-      if (!previousRange || !nextRange) continue;
-      merged.set(seriesId, {
-        ...nextRange,
-        minValue: Number.isFinite(previousRange.minValue)
-          ? previousRange.minValue
-          : nextRange.minValue,
-        maxValue:
-          Number.isFinite(previousRange.maxValue) &&
-          Number.isFinite(nextRange.maxValue)
-            ? Math.max(previousRange.maxValue, nextRange.maxValue)
-            : Number.isFinite(previousRange.maxValue)
-              ? previousRange.maxValue
-              : nextRange.maxValue,
-      });
-    }
-    return merged;
-  }
-
-  function applyStickyScaleRangeSources(nextRanges, seriesList = [], sources = []) {
-    let merged = nextRanges instanceof Map ? nextRanges : new Map();
-    for (const source of Array.isArray(sources) ? sources : []) {
-      if (!(source instanceof Map)) continue;
-      merged = mergeStickySeriesScaleRanges(source, merged, seriesList);
-    }
-    return merged;
-  }
-
   function syncScaleHighWaterTimeline(timeline) {
     if (scaleHighWaterTimeline === timeline) return;
     scaleHighWaterTimeline = timeline ?? null;
@@ -297,145 +258,19 @@ export function createMetricGraphView({
     return ranges instanceof Map ? ranges : null;
   }
 
-  function buildSeriesValuesForVisibleScaleRange(
-    points,
-    seriesValues,
-    seriesList,
-    visibleEndSec
-  ) {
-    const list = Array.isArray(seriesList) ? seriesList : [];
-    const pointList = Array.isArray(points) ? points : [];
-    const sourceValues =
-      seriesValues instanceof Map ? seriesValues : new Map();
-    const scaleEnd = Number.isFinite(visibleEndSec)
-      ? Math.max(0, Number(visibleEndSec))
-      : Number.POSITIVE_INFINITY;
-    const out = new Map();
-
-    for (const seriesDef of list) {
-      const seriesId = String(seriesDef?.id ?? "");
-      if (!seriesId) continue;
-      const values = sourceValues.get(seriesId);
-      const scaleValues = [];
-      let previousT = null;
-      let previousValue = null;
-
-      for (let i = 0; i < pointList.length; i++) {
-        const point = pointList[i];
-        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
-        const value = Array.isArray(values) ? values[i] : null;
-
-        if (!Number.isFinite(value)) {
-          if (t <= scaleEnd) {
-            previousT = null;
-            previousValue = null;
-          }
-          continue;
-        }
-
-        if (t <= scaleEnd) {
-          scaleValues.push(value);
-          previousT = t;
-          previousValue = value;
-          continue;
-        }
-
-        if (
-          Number.isFinite(previousT) &&
-          Number.isFinite(previousValue) &&
-          scaleEnd > previousT
-        ) {
-          const ratio = (scaleEnd - previousT) / Math.max(1e-6, t - previousT);
-          scaleValues.push(previousValue + (value - previousValue) * ratio);
-        }
-        break;
-      }
-
-      out.set(seriesId, scaleValues);
-    }
-
-    return out;
-  }
-
   function computeSeriesScaleRangesForReveal(
     seriesList,
     points,
     seriesValues,
     visibleEndSec
   ) {
-    const scaleValues = freezeScaleMaxDuringRevealCur
-      ? buildSeriesValuesForVisibleScaleRange(
-          points,
-          seriesValues,
-          seriesList,
-          visibleEndSec
-        )
-      : seriesValues;
-    return computeGraphSeriesScaleRanges(seriesList, scaleValues, {
-      defaultMin: 0,
-      defaultMax: 100,
-    });
-  }
-
-  function computeVisibleSeriesMaxValues(
-    points,
-    seriesValues,
-    seriesList,
-    visibleEndSec
-  ) {
-    const list = Array.isArray(seriesList) ? seriesList : [];
-    const pointList = Array.isArray(points) ? points : [];
-    const sourceValues =
-      seriesValues instanceof Map ? seriesValues : new Map();
-    const scaleEnd = Number.isFinite(visibleEndSec)
-      ? Math.max(0, Number(visibleEndSec))
-      : Number.POSITIVE_INFINITY;
-    const out = new Map();
-
-    for (const seriesDef of list) {
-      const seriesId = String(seriesDef?.id ?? "");
-      if (!seriesId) continue;
-      const values = sourceValues.get(seriesId);
-      let maxValue = -Infinity;
-      let previousT = null;
-      let previousValue = null;
-
-      for (let i = 0; i < pointList.length; i++) {
-        const point = pointList[i];
-        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
-        const value = Array.isArray(values) ? values[i] : null;
-
-        if (!Number.isFinite(value)) {
-          if (t <= scaleEnd) {
-            previousT = null;
-            previousValue = null;
-          }
-          continue;
-        }
-
-        if (t <= scaleEnd) {
-          maxValue = Math.max(maxValue, value);
-          previousT = t;
-          previousValue = value;
-          continue;
-        }
-
-        if (
-          Number.isFinite(previousT) &&
-          Number.isFinite(previousValue) &&
-          scaleEnd > previousT
-        ) {
-          const ratio = (scaleEnd - previousT) / Math.max(1e-6, t - previousT);
-          const edgeValue = previousValue + (value - previousValue) * ratio;
-          maxValue = Math.max(maxValue, edgeValue);
-        }
-        break;
-      }
-
-      out.set(seriesId, maxValue);
-    }
-
-    return out;
+    return computeSeriesScaleRangesForRevealRange(
+      seriesList,
+      points,
+      seriesValues,
+      visibleEndSec,
+      freezeScaleMaxDuringRevealCur
+    );
   }
 
   function triggerSeriesScaleMaxFlash({
@@ -482,43 +317,18 @@ export function createMetricGraphView({
   }
 
   function getSeriesScaleMaxFlashStrength(seriesId, nowMs = performance.now()) {
-    const flash = seriesScaleMaxFlashBySeriesId.get(seriesId);
-    if (!flash) return 0;
-    const durationMs = Math.max(
-      1,
-      Number(flash.durationMs ?? SERIES_SCALE_MAX_FLASH_DURATION_MS)
+    return computeSeriesScaleMaxFlashStrength(
+      seriesScaleMaxFlashBySeriesId,
+      seriesId,
+      nowMs
     );
-    const elapsedMs = Math.max(
-      0,
-      nowMs - Math.max(0, Number(flash.startedMs ?? nowMs))
-    );
-    if (elapsedMs >= durationMs) {
-      seriesScaleMaxFlashBySeriesId.delete(seriesId);
-      return 0;
-    }
-    const progress = clamp01(elapsedMs / durationMs);
-    const pulse = 0.5 + 0.5 * Math.cos(progress * Math.PI * 2);
-    return Math.max(0, (1 - progress) * (0.65 + 0.35 * pulse));
   }
 
   function getSeriesScaleMaxFlashRenderKey(nowMs = performance.now()) {
-    const parts = [];
-    for (const [seriesId, flash] of seriesScaleMaxFlashBySeriesId.entries()) {
-      const durationMs = Math.max(
-        1,
-        Number(flash.durationMs ?? SERIES_SCALE_MAX_FLASH_DURATION_MS)
-      );
-      const elapsedMs = Math.max(
-        0,
-        nowMs - Math.max(0, Number(flash.startedMs ?? nowMs))
-      );
-      if (elapsedMs >= durationMs) {
-        seriesScaleMaxFlashBySeriesId.delete(seriesId);
-        continue;
-      }
-      parts.push(`${seriesId}:${Math.floor(elapsedMs / SERIES_SCALE_MAX_FLASH_FRAME_MS)}`);
-    }
-    return parts.join("|");
+    return computeSeriesScaleMaxFlashRenderKey(
+      seriesScaleMaxFlashBySeriesId,
+      nowMs
+    );
   }
 
   const root = new PIXI.Container();
@@ -615,11 +425,8 @@ export function createMetricGraphView({
   let lastPlotMs = 0;
   let lastPlotVersion = -1;
   let lastPlotBoundsKey = "";
-  const PLOT_THROTTLE_MS = 80;
-  const MAX_PLOT_POINTS = 150000;
 
   let lastRestoreMs = 0;
-  const RESTORE_THROTTLE_MS = 33;
   let statusNote = "";
   const forecastPreviewStatusNote = commitForecastOnScrubRelease
     ? "Release to jump"
@@ -635,15 +442,6 @@ export function createMetricGraphView({
   let lastMarkerActionSecondsVersion = null;
   let lastMarkerRangeKey = "";
   let lastMarkerCap = 0;
-  const ACTION_SNAP_THRESHOLD_SEC = 0.75;
-  const MAX_ACTION_MARKERS_DENSITY = 2;
-  const FORECAST_PREVIEW_MARKER_COLOR = TIMEGRAPH_THEME.forecastMarker;
-  const SERIES_LINE_WIDTH_DEFAULT = 2.8;
-  const SERIES_LINE_WIDTH_HOVERED = 3;
-  const SERIES_LINE_WIDTH_DIMMED = 1.5;
-  const SERIES_LINE_ALPHA_DEFAULT = 1;
-  const SERIES_LINE_ALPHA_HOVERED = 1;
-  const SERIES_LINE_ALPHA_DIMMED = 0.22;
 
   let legendSignature = "";
   let legendSelectionSignature = "";
@@ -676,10 +474,6 @@ export function createMetricGraphView({
   let projectionReplacement = null;
   let bootFadeTransition = null;
   let hoveredEventMarkerKey = null;
-
-  function clampInt(v, lo, hi) {
-    return Math.max(lo, Math.min(hi, v | 0));
-  }
 
   function invalidatePlotSnapshot() {
     plotSnapshotKey = "";
@@ -1644,25 +1438,8 @@ export function createMetricGraphView({
     return forecastRevealAnimatedEndSec;
   }
 
-  function getGridStep(rangeSec, targetLines = 12) {
-    const range = Math.max(1, Math.floor(rangeSec));
-    const rough = range / Math.max(1, targetLines);
-    const pow10 = Math.pow(10, Math.floor(Math.log10(rough)));
-    const candidates = [1, 2, 5, 10];
-    let step = candidates[candidates.length - 1] * pow10;
-    for (const c of candidates) {
-      const s = c * pow10;
-      if (s >= rough) {
-        step = s;
-        break;
-      }
-    }
-    return Math.max(1, Math.round(step));
-  }
-
   function timeToX(t) {
-    const ratio = (t - minSec) / Math.max(1, maxSec - minSec);
-    return plot.x + ratio * plot.w;
+    return mapTimeToX(t, minSec, maxSec, plot);
   }
 
   function updateEventMarkerTooltip(globalPoint) {
@@ -1724,34 +1501,11 @@ export function createMetricGraphView({
   }
 
   function applyActionSnap(t) {
-    const list = getActionSecs(minSec, maxSec);
-    if (!list.length) return t;
-
-    let lo = 0;
-    let hi = list.length - 1;
-    while (lo <= hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      const val = list[mid];
-      if (val < t) lo = mid + 1;
-      else if (val > t) hi = mid - 1;
-      else return val;
-    }
-
-    const candidates = [];
-    if (lo >= 0 && lo < list.length) candidates.push(list[lo]);
-    if (hi >= 0 && hi < list.length) candidates.push(list[hi]);
-
-    let best = t;
-    let bestDist = Infinity;
-    for (const c of candidates) {
-      const dist = Math.abs(c - t);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = c;
-      }
-    }
-
-    return bestDist <= ACTION_SNAP_THRESHOLD_SEC ? best : t;
+    return snapTimeToActions(
+      t,
+      getActionSecs(minSec, maxSec),
+      ACTION_SNAP_THRESHOLD_SEC
+    );
   }
 
   function getActionSecs(startSec, endSec) {
@@ -1800,44 +1554,11 @@ export function createMetricGraphView({
   }
 
   function getMarkerSeconds(actionSecs) {
-    const list = Array.isArray(actionSecs) ? actionSecs : [];
-    if (!list.length) return [];
-    const maxMarkers = Math.max(
-      64,
-      Math.floor(plot.w * MAX_ACTION_MARKERS_DENSITY)
+    return sampleMarkerSeconds(
+      actionSecs,
+      plot.w,
+      MAX_ACTION_MARKERS_DENSITY
     );
-    if (list.length <= maxMarkers) return list;
-
-    const stride = Math.max(1, Math.ceil(list.length / maxMarkers));
-    const sampled = [];
-    for (let i = 0; i < list.length; i += stride) {
-      sampled.push(list[i]);
-    }
-    const last = list[list.length - 1];
-    if (sampled[sampled.length - 1] !== last) {
-      sampled.push(last);
-    }
-    return sampled;
-  }
-
-  function makeLegendSignature(seriesList) {
-    if (!Array.isArray(seriesList) || !seriesList.length) return "";
-    return seriesList
-      .map((s) => {
-        const id = String(s?.id ?? "");
-        const color = Number.isFinite(s?.color) ? s.color : "";
-        const icon = String(s?.legendIcon ?? "");
-        const label = String(s?.legendLabel ?? s?.label ?? "");
-        return `${id}:${color}:${icon}:${label}`;
-      })
-      .join("|");
-  }
-
-  function getSeriesLegendTitle(seriesDef) {
-    const label = String(seriesDef?.legendLabel ?? "").trim();
-    if (label) return label;
-    const fallback = String(seriesDef?.label ?? seriesDef?.id ?? "").trim();
-    return fallback || "Series";
   }
 
   function buildLegendTooltipSpec(seriesDef) {
@@ -1862,19 +1583,7 @@ export function createMetricGraphView({
   }
 
   function refreshLegendStyles() {
-    const hasHovered =
-      typeof hoveredLegendSeriesId === "string" && hoveredLegendSeriesId.length > 0;
-    for (const [seriesId, entry] of legendEntriesBySeriesId.entries()) {
-      const isHovered = hasHovered && seriesId === hoveredLegendSeriesId;
-      const lineColor = Number.isFinite(entry?.lineColor)
-        ? entry.lineColor
-        : MUCHA_UI_COLORS.accents.gold;
-      entry.bg.clear();
-      if (isHovered) entry.bg.lineStyle(1, 0xefc575, .85)
-        .beginFill(0xe7b65b, .13).drawRoundedRect(-6, -1, 40, 30, 3).endFill();
-      drawTimegraphGlyph(entry.bg, seriesId, getTimegraphGlyphInk(lineColor));
-      entry.container.alpha = hasHovered && !isHovered ? 0.65 : 1;
-    }
+    paintKeyCabinetStyles(legendEntriesBySeriesId, hoveredLegendSeriesId);
   }
 
   function setLegendHoverSeries(seriesId) {
@@ -1954,7 +1663,7 @@ export function createMetricGraphView({
     }
     const layout = scroll.layoutKey(list.length, legendPage);
     legendPage = layout.page;
-    const visibleList = list.slice(layout.startIndex, layout.startIndex + TIMEGRAPH_CHROME.keyCapacity);
+    const visibleList = sliceKeyCabinetPage(list, layout);
     const nextSignature = selectionSignature + ":page:" + legendPage;
     if (nextSignature !== legendSignature) {
       legendContainer.removeChildren().forEach(child => child.destroy({ children: true }));
@@ -2015,7 +1724,7 @@ export function createMetricGraphView({
   });
 
   function setLegendPage(requestedPage) {
-    const next = layoutTimegraphKey(getActiveSeries().length, requestedPage).page;
+    const next = resolveKeyCabinetPage(getActiveSeries().length, requestedPage).page;
     if (next === legendPage) return;
     legendPage = next;
     hoveredLegendSeriesId = null;
@@ -2669,242 +2378,35 @@ export function createMetricGraphView({
         ? snapshot.seriesScaleRanges
         : new Map();
 
-    function yForValue(v, seriesId) {
-      const scaleRange = seriesScaleRanges.get(seriesId) ?? null;
-      const minValue = Number.isFinite(scaleRange?.minValue)
-        ? scaleRange.minValue
-        : 0;
-      const maxValue = Number.isFinite(scaleRange?.maxValue)
-        ? scaleRange.maxValue
-        : 100;
-      const tRaw = (v - minValue) / Math.max(1e-6, maxValue - minValue);
-      const t = Math.max(0, Math.min(1, tRaw));
-      // Keep min/max-aligned series inside the plot rect so long zero plateaus
-      // do not disappear into the panel border during forecast reveal.
-      const drawableHeight = Math.max(1, plot.h - 2);
-      return plot.y + 1 + (1 - t) * drawableHeight;
-    }
-
-    function drawZone(startSec, endSec, color, alpha = TIME_STATE_GRAPH_BG_ALPHA) {
-      const start = Math.max(minSec, Math.min(maxSec, startSec));
-      const end = Math.max(minSec, Math.min(maxSec, endSec));
-      if (!(end > start)) return;
-      const x0 = timeToX(start);
-      const x1 = timeToX(end);
-      const left = Math.max(plot.x, Math.min(x0, x1));
-      const right = Math.min(plot.x + plot.w, Math.max(x0, x1));
-      if (!(right > left)) return;
-      plotG.beginFill(color, alpha);
-      plotG.drawRect(left, plot.y, right - left, plot.h);
-      plotG.endFill();
-    }
-
-    function drawSeriesLinesForRange({
-      sourceSeriesList,
-      sourcePoints,
-      sourceSeriesValues,
-      drawStartSec = minSec,
-      drawEndSec = maxSec,
-      colorResolver = null,
-      alphaMultiplier = 1,
-      enableScaleMaxFlash = false,
-    } = {}) {
-      const list = Array.isArray(sourceSeriesList) ? sourceSeriesList : [];
-      const points = Array.isArray(sourcePoints) ? sourcePoints : [];
-      if (!list.length || !points.length) return;
-      const clampedDrawStartSec = Math.max(
-        minSec,
-        Math.floor(drawStartSec ?? minSec)
-      );
-      const clampedDrawEndSec = Math.max(
-        clampedDrawStartSec,
-        Math.min(maxSec, Math.floor(drawEndSec ?? maxSec))
-      );
-      if (clampedDrawEndSec <= clampedDrawStartSec) return;
-
-      const hasHoveredSeries =
-        typeof hoveredLegendSeriesId === "string" &&
-        hoveredLegendSeriesId.length > 0;
-
-      for (const s of list) {
-        const baseLineColor = getTimegraphInk(s);
-        const isHovered = hasHoveredSeries && s.id === hoveredLegendSeriesId;
-        const lineWidth = hasHoveredSeries
-          ? isHovered
-            ? SERIES_LINE_WIDTH_HOVERED
-            : SERIES_LINE_WIDTH_DIMMED
-          : SERIES_LINE_WIDTH_DEFAULT;
-        const baseAlpha = hasHoveredSeries
-          ? isHovered
-            ? SERIES_LINE_ALPHA_HOVERED
-            : SERIES_LINE_ALPHA_DIMMED
-          : SERIES_LINE_ALPHA_DEFAULT;
-        const resolvedLineColor =
-          typeof colorResolver === "function"
-            ? colorResolver(baseLineColor, s)
-            : baseLineColor;
-        const flashStrength =
-          enableScaleMaxFlash === true
-            ? getSeriesScaleMaxFlashStrength(s.id, plotNowMs)
-            : 0;
-        const lineColor =
-          flashStrength > 0
-            ? blendColor(
-                resolvedLineColor,
-                SERIES_SCALE_MAX_FLASH_COLOR,
-                Math.min(0.82, flashStrength)
-              )
-            : resolvedLineColor;
-        const flashLineWidth =
-          flashStrength > 0
-            ? lineWidth + SERIES_SCALE_MAX_FLASH_WIDTH_BONUS * flashStrength
-            : lineWidth;
-        const resolvedLineAlpha = Math.max(
-          0,
-          Math.min(
-            1,
-            baseAlpha * Math.max(0, Number(alphaMultiplier ?? 1)) +
-              flashStrength * 0.18
-          )
-        );
-        plotG.lineStyle(flashLineWidth, lineColor, resolvedLineAlpha);
-
-        const values = sourceSeriesValues?.get?.(s.id) ?? [];
-        let first = true;
-        let prevFinitePoint = null;
-
-        for (let i = 0; i < points.length; i++) {
-          const p = points[i];
-          const t = Math.max(0, Math.floor(p?.tSec ?? 0));
-          const value = values[i];
-          if (!Number.isFinite(value)) {
-            first = true;
-            prevFinitePoint = null;
-            continue;
-          }
-
-          if (t < clampedDrawStartSec) {
-            prevFinitePoint = { t, value };
-            continue;
-          }
-
-          if (first && prevFinitePoint && prevFinitePoint.t < clampedDrawStartSec) {
-            const ratio =
-              (clampedDrawStartSec - prevFinitePoint.t) /
-              Math.max(1e-6, t - prevFinitePoint.t);
-            const interpolatedValue =
-              prevFinitePoint.value +
-              (value - prevFinitePoint.value) * ratio;
-            plotG.moveTo(
-              timeToX(clampedDrawStartSec),
-              yForValue(interpolatedValue, s.id)
-            );
-            plotG.lineTo(timeToX(t), yForValue(value, s.id));
-            first = false;
-            prevFinitePoint = { t, value };
-            if (t >= clampedDrawEndSec) break;
-            continue;
-          }
-
-          if (t > clampedDrawEndSec) {
-            if (
-              prevFinitePoint &&
-              Number.isFinite(prevFinitePoint.t) &&
-              prevFinitePoint.t < clampedDrawEndSec
-            ) {
-              const ratio =
-                (clampedDrawEndSec - prevFinitePoint.t) /
-                Math.max(1e-6, t - prevFinitePoint.t);
-              const interpolatedValue =
-                prevFinitePoint.value +
-                (value - prevFinitePoint.value) * ratio;
-              const x = timeToX(clampedDrawEndSec);
-              const y = yForValue(interpolatedValue, s.id);
-              if (first) {
-                plotG.moveTo(x, y);
-              } else {
-                plotG.lineTo(x, y);
-              }
-            } else if (!first) {
-              plotG.lineTo(
-                timeToX(clampedDrawEndSec),
-                yForValue(prevFinitePoint?.value ?? value, s.id)
-              );
-            }
-            first = true;
-            break;
-          }
-
-          const x = timeToX(t);
-          const y = yForValue(value, s.id);
-          if (first) {
-            plotG.moveTo(x, y);
-            first = false;
-          } else {
-            plotG.lineTo(x, y);
-          }
-          prevFinitePoint = { t, value };
-        }
-
-        if (
-          !first &&
-          prevFinitePoint &&
-          Number.isFinite(prevFinitePoint.t) &&
-          prevFinitePoint.t < clampedDrawEndSec
-        ) {
-          plotG.lineTo(
-            timeToX(clampedDrawEndSec),
-            yForValue(prevFinitePoint.value, s.id)
-          );
-        }
-      }
-    }
     const historyZones = Array.isArray(snapshot?.historyZones)
       ? snapshot.historyZones
       : [];
     const itemUnavailableZones = Array.isArray(snapshot?.itemUnavailableZones)
       ? snapshot.itemUnavailableZones
       : [];
-    for (const zone of historyZones) {
-      if (zone.kind === "fixedHistory") {
-        drawZone(zone.startSec, zone.endSec, TIME_STATE_COLORS.fixedHistory);
-        continue;
-      }
-      if (zone.kind === "editableHistory") {
-        drawZone(zone.startSec, zone.endSec, TIME_STATE_COLORS.editableHistory);
-      }
-    }
-    drawZone(renderedHistoryEndSec, maxSec, TIME_STATE_COLORS.forecast);
-    if (lineDrawEndSec < maxSec) {
-      drawZone(
-        lineDrawEndSec,
-        maxSec,
-        TIMEGRAPH_THEME.panelBorder,
-        FORECAST_PENDING_ZONE_ALPHA
-      );
-    }
-    for (const zone of itemUnavailableZones) {
-      drawZone(
-        zone.startSec,
-        zone.endSec,
-        TIME_STATE_COLORS.itemUnavailable,
-        ITEM_UNAVAILABLE_ZONE_ALPHA
-      );
-    }
+    fillHistoryZones(plotG, {
+      historyZones,
+      itemUnavailableZones,
+      renderedHistoryEndSec,
+      lineDrawEndSec,
+      minSec,
+      maxSec,
+      plot,
+    });
 
-    // Grid
-    plotG.lineStyle(1, TIMEGRAPH_THEME.gridMajor, 0.5);
-    plotG.drawRect(plot.x, plot.y, plot.w, plot.h);
-    plotG.lineStyle(1, TIMEGRAPH_THEME.gridMinor, 0.2);
-    const gridStep = getGridStep(maxSec - minSec, 12);
-    const startGrid =
-      Math.ceil(minSec / gridStep) * gridStep;
-    for (let t = startGrid; t <= maxSec; t += gridStep) {
-      const x = timeToX(t);
-      if (x > plot.x && x < plot.x + plot.w) {
-        plotG.moveTo(x, plot.y);
-        plotG.lineTo(x, plot.y + plot.h);
-      }
+    drawPlotGrid(plotG, minSec, maxSec, plot);
+
+    const seriesInkArgs = {
+      minSec,
+      maxSec,
+      plot,
+      seriesScaleRanges,
+      hoveredLegendSeriesId,
+      getFlashStrength: (seriesId) =>
+        getSeriesScaleMaxFlashStrength(seriesId, plotNowMs),
+    };
+    function drawSeriesLinesForRange(opts) {
+      paintSeriesLinesForRange(plotG, { ...seriesInkArgs, ...opts });
     }
 
     const projectionReplacementState = buildProjectionReplacementRenderState(
@@ -2926,10 +2428,14 @@ export function createMetricGraphView({
         });
       }
       drawZone(
+        plotG,
         projectionReplacementState.drawStartSec,
         projectionReplacementState.drawEndSec,
         projectionReplacementState.zoneColor,
-        projectionReplacementState.zoneAlpha
+        projectionReplacementState.zoneAlpha,
+        minSec,
+        maxSec,
+        plot
       );
       drawSeriesLinesForRange({
         sourceSeriesList: seriesList,
@@ -2957,82 +2463,19 @@ export function createMetricGraphView({
       enableScaleMaxFlash: true,
     });
 
-    if (lineDrawEndSec < maxSec) {
-      const markerX = timeToX(lineDrawEndSec);
-      plotG.lineStyle(
-        2,
-        TIMEGRAPH_THEME.forecastMarker,
-        FORECAST_REVEAL_MARKER_ALPHA
-      );
-      plotG.moveTo(markerX, plot.y + 1);
-      plotG.lineTo(markerX, plot.y + plot.h - 1);
-      plotG.beginFill(TIMEGRAPH_THEME.forecastMarker, 0.98);
-      plotG.drawCircle(markerX, plot.y + 7, 4);
-      plotG.endFill();
-      plotG.beginFill(TIMEGRAPH_THEME.forecastMarker, 0.42);
-      plotG.drawRect(markerX, plot.y, 2, plot.h);
-      plotG.endFill();
-    }
+    drawForecastRevealMarker(plotG, lineDrawEndSec, maxSec, minSec, plot);
 
-    // Markers (actions)
     const markerSecs = Array.isArray(snapshot?.markerSecs)
       ? snapshot.markerSecs
       : [];
-    if (markerSecs.length) {
-      plotG.beginFill(TIMEGRAPH_THEME.actionMarker);
-      plotG.lineStyle(0);
-      for (const t of markerSecs) {
-        if (t >= minSec && t <= maxSec) {
-          const x = timeToX(t);
-          plotG.drawCircle(x, plot.y + plot.h - 3, 3);
-        }
-      }
-      plotG.endFill();
-    }
+    drawActionMarkers(plotG, markerSecs, minSec, maxSec, plot);
 
     const eventMarkers = Array.isArray(snapshot?.eventMarkers)
       ? snapshot.eventMarkers
       : [];
-    for (const marker of eventMarkers) {
-      const x = timeToX(marker.tSec);
-      const color = Number.isFinite(marker?.color)
-        ? marker.color
-        : marker.severity === "critical"
-          ? TIMEGRAPH_THEME.eventMarkerCritical
-          : TIMEGRAPH_THEME.eventMarkerNormal;
-      const lineAlpha = Number.isFinite(marker?.alpha)
-        ? marker.alpha
-        : marker.severity === "critical"
-          ? 0.72
-          : 0.9;
-      const markerRadius = Number.isFinite(marker?.radius)
-        ? marker.radius
-        : marker.severity === "critical"
-          ? 4
-          : 2.5;
-      const markerLineWidth = Number.isFinite(marker?.lineWidth)
-        ? marker.lineWidth
-        : 1;
-      if (marker.severity === "critical") {
-        plotG.lineStyle(markerLineWidth, color, lineAlpha);
-        plotG.moveTo(x, plot.y + 1);
-        plotG.lineTo(x, plot.y + plot.h - 1);
-        plotG.beginFill(color, Math.max(0.3, lineAlpha));
-        plotG.drawCircle(x, plot.y + 7, markerRadius);
-        plotG.endFill();
-        continue;
-      }
-      plotG.beginFill(color, lineAlpha);
-      plotG.drawCircle(x, plot.y + 8, markerRadius);
-      plotG.endFill();
-    }
+    drawEventMarkers(plotG, eventMarkers, minSec, maxSec, plot);
 
-    const bootFadeState = getBootFadeRenderState(performance.now());
-    if (bootFadeState) {
-      plotG.beginFill(bootFadeState.color, bootFadeState.alpha);
-      plotG.drawRect(plot.x, plot.y, plot.w, plot.h);
-      plotG.endFill();
-    }
+    drawBootFadeOverlay(plotG, getBootFadeRenderState(performance.now()), plot);
 
     if (perfEnabled()) {
       recordGraphRender({
@@ -3067,26 +2510,15 @@ export function createMetricGraphView({
     lastScrubSignature = signature;
 
     scrubG.clear();
-
-    const x = timeToX(scrubSec);
-
-    const color = isScrubbing
-      ? TIMEGRAPH_THEME.textPrimary
-      : hasForecastPreview
-        ? FORECAST_PREVIEW_MARKER_COLOR
-        : TIMEGRAPH_THEME.scrubMarker;
-    scrubG.lineStyle(1, color, 0.8);
-    scrubG.moveTo(x, plot.y);
-    scrubG.lineTo(x, plot.y + plot.h);
-
-    if (isScrubbing && Math.abs(scrubSec - curT) > 0) {
-      const cx = timeToX(curT);
-      if (cx >= plot.x && cx <= plot.x + plot.w) {
-        scrubG.lineStyle(1, TIMEGRAPH_THEME.scrubLiveMarker, 0.5);
-        scrubG.moveTo(cx, plot.y);
-        scrubG.lineTo(cx, plot.y + plot.h);
-      }
-    }
+    drawScrubMarkers(scrubG, {
+      scrubSec,
+      curT,
+      isScrubbing,
+      hasForecastPreview,
+      minSec,
+      maxSec,
+      plot,
+    });
 
     scroll.setScope(metricLabel);
   }
