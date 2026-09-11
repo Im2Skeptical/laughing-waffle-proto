@@ -1,0 +1,132 @@
+{"frames": {
+
+"birth.png":
+{
+	"frame": {"x":2,"y":2,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"cost-frame.png":
+{
+	"frame": {"x":2,"y":382,"w":652,"h":217},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":652,"h":217},
+	"sourceSize": {"w":652,"h":217}
+},
+"death.png":
+{
+	"frame": {"x":382,"y":2,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"faith.png":
+{
+	"frame": {"x":658,"y":382,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"food.png":
+{
+	"frame": {"x":762,"y":2,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"housing.png":
+{
+	"frame": {"x":2,"y":603,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"lunar-bezel.png":
+{
+	"frame": {"x":1038,"y":382,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"migration.png":
+{
+	"frame": {"x":1142,"y":2,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"money.png":
+{
+	"frame": {"x":1418,"y":382,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"moon-wheel.png":
+{
+	"frame": {"x":1522,"y":2,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"moon.png":
+{
+	"frame": {"x":382,"y":762,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"phase.png":
+{
+	"frame": {"x":2,"y":983,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"prestige.png":
+{
+	"frame": {"x":762,"y":762,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"solar-wheel.png":
+{
+	"frame": {"x":1142,"y":762,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"year.png":
+{
+	"frame": {"x":1522,"y":762,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "resource-language.png",
+	"format": "RGBA8888",
+	"size": {"w":1900,"h":1361},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:cfac0a6b5a435469e805bf7ac08f56cf:430d85b134002b9e7e1fb95aba9a0ce5:bdfc6173b016df7814a89b4741ce888d$"
+}
+}
