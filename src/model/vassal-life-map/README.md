@@ -14,9 +14,9 @@ re-exports the previous public API; internals live here.
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.
 - `lifecycle.js`
-  - Initialize, candidate reroll/select, enter, option select, confirm,
-    finish, development choices, `stepVassalLifeMapSecond`, pending
-    resolution, node display state, and validate.
+  - Barrel. Initialize/reroll/select, enter/confirm/finish, and
+    `stepVassalLifeMapSecond` live in `lifecycle/` (`candidates.js`,
+    `node-confirm.js`, `step.js`). See `lifecycle/README.md`.
 - `presentation.js`
   - `getVassalNodeDecisionPresentation`, `getVassalGamepiecePresentation`,
     regional map presentation, and option projection.
