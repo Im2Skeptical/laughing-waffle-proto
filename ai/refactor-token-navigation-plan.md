@@ -36,9 +36,15 @@ as a thin barrel.
 | ui-root | `src/views/ui-root-settlement-pixi.js`, `src/views/ui-root/**` | `timegraphs-pixi.js` |
 | fences | header comments on legacy `settlement-exec.js` / `settlement-state.js` / `sim-runner.js` / `state.js`; new skills under `ai/skills/repo/` | `AGENTS.md`, `ai/ai-context.md`, god-file bodies |
 
-## Wave 2 (after merge)
+## Wave 2 (parallel, after wave 1 merge)
 
-- Split `src/model/tests/detailed-settlements.js` to match folders.
-- Patch `ai/repository-map.md` with the new folders.
-- Only then consider `timegraph/controller-core.js` and `world-map-pixi.js`.
-- Do not reopen the abandoned forecast/state rewrite.
+Same shared rules. Do not reopen the abandoned forecast/state rewrite.
+Orchestrator patches `ai/repository-map.md` after the streams commit.
+
+| Stream | Owns | Must not touch |
+|---|---|---|
+| docs-drift | `README.md`, `Designer Docs/**`, `ai/visual-overhaul.md` | any `src/`, `AGENTS.md`, `ai/repository-map.md` |
+| settlement-tests | `src/model/tests/detailed-settlements.js` and new `src/model/tests/detailed-settlements/**` | implementation modules, `package.json` (keep the original runner path) |
+| vassal-tests | `src/model/tests/vassal-life-map.js` and new `src/model/tests/vassal-life-map/**` | `tests/detailed-settlements*` |
+| world-map | `src/views/world-map-pixi.js` and new `src/views/world-map/**` | ui-root, timegraphs, forecast |
+| controller-core | `src/model/timegraph/controller-core.js` and new files under `src/model/timegraph/` that do not already exist | `projection.js`, `state.js`, forecast worker, `timegraphs-pixi.js`, `sampling.js` bodies |
