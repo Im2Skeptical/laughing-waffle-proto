@@ -40,8 +40,8 @@ file as the default location for new rendering or model rules.
 
 ### Map
 
-- Rendering, region selection, ownership/worker/structure glyphs, packet
-  animation, and map panels: `src/views/world-map-pixi.js`
+- Map orchestrator (`createWorldMapView`): `src/views/world-map-pixi.js`.
+  Packet pose/glyph helpers and map constants live in `src/views/world-map/`.
 - Selected-region/chaos panel content: `src/views/chronicle-world-panels.js`
 - Pure map/civilization selectors: `src/model/world-state.js` and
   `src/model/detailed-settlements.js`
@@ -73,6 +73,8 @@ file as the default location for new rendering or model rules.
   `src/views/timegraph-scroll-pixi.js`
 - Window/horizon helpers: `src/views/ui-root/settlement-timegraph-window.js`
 - Graph controller/cache internals: `src/model/timegraph/`
+  (`controller-core.js` orchestrator, `forecast-state-cache.js` for
+  retained-anchor/cache helpers; do not rewrite with the forecast worker)
 - Projection summaries: `src/model/projection-summary.js`
 
 ### Debug tools
@@ -109,6 +111,10 @@ file as the default location for new rendering or model rules.
 - Pure construction placement and practice draft projection:
   `src/model/structure-layout.js`, `src/model/practice-draft.js`
 - Shared sparse face and inspection data: `src/model/gamepiece-presentation.js`
+- Settlement tests (runner path unchanged): `src/model/tests/detailed-settlements.js`
+  imports `queries.js` / `practices.js` / `phases.js` / `vassals.js` in that folder.
+- Vassal Life Map tests: `src/model/tests/vassal-life-map.js` imports
+  `selectors.js` / `shop.js` / `lifecycle.js` / `presentation.js`.
 - Draft gesture/preview/confirmation replay checks:
   `src/model/tests/settlement-redesign.js`, `npm run probe:settlement-draft`
 - World definitions/state: `src/defs/world/` and `src/model/world-state.js`
@@ -131,7 +137,8 @@ in `ai/ai-context.md`.
 - Pure map selectors or map glyph helpers:
   `npm run test:world`, then `npm run build`
 - Settlement simulation/game settings/gamepieces:
-  the matching `test:*` command, then `npm run verify`
+  `npm run test:detailed-settlements` (or the matching slice file), then
+  `npm run verify`
 - Timeline, forecast, survival, graph scope, or vassal history:
   `npm run test:detailed-replay`, `npm run test:world`, then
   `npm run probe:settlement`
