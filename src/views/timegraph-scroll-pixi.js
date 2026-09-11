@@ -1,5 +1,6 @@
 import { SETTLEMENT_GRAPH_GROUPS } from "./ui-root/settlement-graph-groups.js";
 import { RELIC } from "./chronicle-skin.js";
+import { getArtRevision, getChronicleTexture } from "./chronicle-art.js";
 
 // Fixed design-space measurements follow the painted recesses in the atlas.
 export const TIMEGRAPH_CHROME = Object.freeze({
@@ -103,16 +104,18 @@ export function createTimegraphScroll({ root, width, height, onToggleGroup, getA
   const illustration = new PIXI.Sprite();
   illustration.eventMode = "none";
   backing.addChild(illustration);
-  const atlas = PIXI.Texture.from("images/dark-fantasy/timegraph-chronicle-assembly.png");
+  let illustrationRevision = -1;
   const mountIllustration = () => {
     if (illustration.destroyed) return;
+    const atlas = getChronicleTexture("timegraph-chronicle-assembly.png");
+    if (!atlas?.baseTexture.valid) return;
+    illustrationRevision = getArtRevision();
     const { x, y, width: frameWidth, height: frameHeight } = ASSEMBLY_FRAME;
     illustration.texture = new PIXI.Texture(atlas.baseTexture, new PIXI.Rectangle(x, y, frameWidth, frameHeight));
     illustration.width = width;
     illustration.height = height;
   };
-  if (atlas.baseTexture.valid) mountIllustration();
-  else atlas.baseTexture.once("loaded", mountIllustration);
+  mountIllustration();
 
   const scopeHeading = new PIXI.Text("VIEWING", { fontFamily: "Georgia", fontSize: 14, fill: RELIC.gold });
   scopeHeading.position.set(850, 21);
@@ -153,6 +156,9 @@ export function createTimegraphScroll({ root, width, height, onToggleGroup, getA
     return button;
   });
   function updateButtons() {
+    if (illustrationRevision !== getArtRevision() || !illustration.texture?.baseTexture.valid) {
+      mountIllustration();
+    }
     const active = getActiveGroups?.() ?? [];
     for (const button of buttons) {
       const selected = active.includes(button.id);

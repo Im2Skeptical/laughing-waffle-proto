@@ -4,7 +4,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
-import {RESOURCE_ART_IDS} from '../src/views/chronicle-art.js';
+
 
 async function countImageColours(page,png) {
   return page.evaluate(async base64=>{
@@ -37,7 +37,7 @@ try {
   await page.waitForFunction(names=>names.every(name=>performance.getEntriesByType('resource')
     .some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)),
     ['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png',
-      ...RESOURCE_ART_IDS.map(id=>'resource-language-v1/'+id+'.png')], { timeout: 45000 });
+      'resource-language.json','resource-language.png'], { timeout: 45000 });
   const scrollAlpha=await page.evaluate(async()=>{
     const art=new Image();art.src='images/dark-fantasy/timegraph-chronicle-assembly.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;

@@ -10,7 +10,7 @@ import {
   getMoonPhaseAtSecond,
 } from "../model/moon-phases.js";
 import { VIEW_LAYOUT } from "./layout-pixi.js";
-import { getArtRevision, getResourceTexture } from './chronicle-art.js';
+import { getResourceTexture } from './chronicle-art.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { buildPhaseTooltipSpec, createMoonPhaseReferenceView } from './moon-phase-reference-pixi.js';
 
@@ -291,7 +291,6 @@ let centrePress = null;
 let suppressCentreTap = false;
 let hoveredCentre = false;
 let lastTooltipSecond = null;
-let artRevision = -1;
 let feedbackGraphics = null;
 let feedbackText = null;
   let lastEnabled = null;
@@ -904,16 +903,17 @@ let feedbackText = null;
     }
 
     const activePhase = getMoonPhaseAtSecond(state, getTSecInt(state));
-    if (getArtRevision() !== artRevision) {
-      artRevision = getArtRevision();
-      for (const [sprite, id] of [[seasonArt, 'solar-wheel'], [moonArt, 'moon-wheel'],
-        [centreBezel, 'lunar-bezel'], ...phaseIconEntries.map(entry => [entry.icon, entry.phase.id])]) {
-        const texture = getResourceTexture(id);
-        if (texture?.baseTexture.valid) sprite.texture = texture;
-      }
+    // Packed HUD textures arrive after the discs are built. Keep binding until
+    // the atlas is valid instead of waiting for a one-shot revision bump.
+    for (const [sprite, id] of [[seasonArt, 'solar-wheel'], [moonArt, 'moon-wheel'],
+      [centreBezel, 'lunar-bezel'], ...phaseIconEntries.map(entry => [entry.icon, entry.phase.id])]) {
+      const texture = getResourceTexture(id);
+      if (texture?.baseTexture.valid && sprite && sprite.texture !== texture) sprite.texture = texture;
     }
     const activeTexture = getResourceTexture(activePhase.id);
-    if (activeTexture?.baseTexture.valid) centreIcon.texture = activeTexture;
+    if (activeTexture?.baseTexture.valid && centreIcon.texture !== activeTexture) {
+      centreIcon.texture = activeTexture;
+    }
     phaseCentre.accessibleTitle = activePhase.label + ' phase — open all six phases';
     if (hoveredCentre && !dragSession && lastTooltipSecond !== getTSecInt(state)) showPhaseTooltip();
     phaseReference?.update();
