@@ -1,3 +1,9 @@
+// Legacy hub/settlement state and vassal-history selectors.
+// On the serialization/replay path; retains pre-redesign substrate.
+// Do not add new detailed-settlement gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+// New Vassal Life Map rules belong in src/model/vassal-life-map.js.
+
 import {
   RED_GOD_ENABLED,
   RED_GOD_SPAWN_CADENCE_MOONS,

@@ -1,5 +1,9 @@
-// state.js — core GameState shape + RNG helpers + season decks + serialize/deserialize
+// state.js — core GameState shape + RNG helpers + season decks + serialize/deserialize.
 // Model-only. No view imports.
+// On the serialization/replay path; retains pre-redesign substrate (board/hub/env).
+// Do not add new detailed-settlement gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+// New Vassal Life Map rules belong in src/model/vassal-life-map.js.
 
 import {
   SEASONS,
