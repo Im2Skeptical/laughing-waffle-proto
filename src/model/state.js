@@ -4,19 +4,15 @@
 // Do not add new detailed-settlement gameplay here.
 // New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
 // New Vassal Life Map rules belong in src/model/vassal-life-map.js.
+// Legacy hub/board/env constructors: ./state/board-legacy.js
+// Legacy pawn field helpers: ./state/pawn-legacy.js
 
 import {
   SEASONS,
   SEASON_DURATION_SEC,
   INITIAL_POPULATION_DEFAULT,
-  LEADER_FAITH_STARTING_TIER,
 } from "../defs/gamesettings/gamerules-defs.js";
-import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
-const hubTagDefs = Object.freeze({});
-import { hubSystemDefs } from "../defs/gamesystems/hub-system-defs.js";
-import { envEventDefs } from "../defs/gamepieces/env-events-defs.js";
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
-const envStructureDefs = Object.freeze({});
 import { attachRngHelpers, createRng } from "./rng.js";
 import { getActionPointCapAtSecond } from "./moon.js";
 import {
@@ -26,16 +22,8 @@ import {
 import { normalizeVariantFlags } from "../defs/gamesettings/variant-flags-defs.js";
 import { ensurePersistentKnowledgeState } from "./persistent-memory.js";
 import {
-  ensureHubSettlementState,
-} from "./settlement-state.js";
-import {
-  ensureSettlementStructureUpgradeState,
-  isUpgradeableSettlementStructureDef,
-} from "./settlement-upgrades.js";
-import {
   canonicalizeWorldState,
   createWorldState,
-  getPrimaryDetailedSiteState,
   validateWorldState,
 } from "./world-state.js";
 import {
@@ -44,486 +32,53 @@ import {
   validateGameConfig,
 } from "./game-config.js";
 import { validateVassalLifeMapState } from "./vassal-life-map.js";
+import {
+  BOARD_COLS,
+  BOARD_LAYERS,
+  DEFAULT_DISCOVERY_ENTRY,
+  DEFAULT_DISCOVERY_STATE,
+  DEFAULT_LOCATION_NAMES,
+  createBoardState,
+  createHubState,
+  deepCloneSerializable,
+  ensureBoardState,
+  ensureDiscoveryState,
+  ensureHubState,
+  ensureLocationNamesState,
+  getLocalState,
+  rebuildBoardOccupancy,
+} from "./state/board-legacy.js";
+import {
+  ensurePawnCollectionState,
+  ensurePawnRoleFields,
+  ensurePawnSystems,
+  getPawns,
+} from "./state/pawn-legacy.js";
 
-const BOARD_COLS = 12;
-const BOARD_LAYERS = ["tile", "event", "envStructure"];
-const HUB_COLS = 10;
-const DEFAULT_LOCATION_NAMES = Object.freeze({
-  region: "Region",
-  hub: "Hub",
-});
-const DEFAULT_DISCOVERY_ENTRY = Object.freeze({
-  exposed: true,
-  revealed: true,
-});
-const DEFAULT_DISCOVERY_STATE = Object.freeze({
-  envCols: [],
-  hubVisible: true,
-  hubRenameUnlocked: true,
-});
-const LEADER_EQUIPMENT_SLOT_ORDER = Object.freeze([
-  "head",
-  "chest",
-  "mainHand",
-  "offHand",
-  "ring1",
-  "ring2",
-  "amulet",
-]);
-
-// Board contract: layers.*.anchors are authoritative placements.
-// board.occ.* is derived in rebuildBoardOccupancy and stripped on serialize.
-
-const DEV =
-  (typeof globalThis !== "undefined" && globalThis.__DEV__ === true) ||
-  (typeof process !== "undefined" &&
-    process.env &&
-    process.env.NODE_ENV !== "production");
-
-function createBoardState(cols = BOARD_COLS) {
-  const layers = {};
-  const occ = {};
-  for (const layer of BOARD_LAYERS) {
-    layers[layer] = { anchors: [] };
-    occ[layer] = new Array(cols).fill(null);
-  }
-  return {
-    cols,
-    layers,
-    occ,
-  };
-}
-
-function createHubState(cols = HUB_COLS) {
-  const safeCols = Number.isFinite(cols) && cols > 0 ? Math.floor(cols) : HUB_COLS;
-  return ensureHubSettlementState({
-    cols: safeCols,
-    slots: new Array(safeCols).fill(null).map(() => ({ structure: null })),
-    anchors: [],
-    occ: new Array(safeCols).fill(null),
-  }, safeCols);
-}
-
-function getLocalState(state) {
-  return getPrimaryDetailedSiteState(state) ?? state;
-}
-
-function ensureBoardState(state) {
-  const local = getLocalState(state);
-  if (!local.board || typeof local.board !== "object") {
-    local.board = createBoardState();
-    return;
-  }
-
-  const board = local.board;
-  const cols =
-    typeof board.cols === "number" && board.cols > 0 ? board.cols : BOARD_COLS;
-  board.cols = cols;
-
-  if (!board.layers || typeof board.layers !== "object") {
-    board.layers = {};
-  }
-  if (board.layers.permanent) delete board.layers.permanent;
-
-  for (const layer of BOARD_LAYERS) {
-    if (!board.layers[layer] || typeof board.layers[layer] !== "object") {
-      board.layers[layer] = { anchors: [] };
-    }
-    if (!Array.isArray(board.layers[layer].anchors)) {
-      board.layers[layer].anchors = [];
-    }
-  }
-
-  if (!board.occ || typeof board.occ !== "object") {
-    board.occ = {};
-  }
-  if (board.occ.permanent) delete board.occ.permanent;
-
-  for (const layer of BOARD_LAYERS) {
-    if (!Array.isArray(board.occ[layer]) || board.occ[layer].length !== cols) {
-      board.occ[layer] = new Array(cols).fill(null);
-    }
-  }
-}
-
-function ensurePawnCollectionState(state) {
-  if (!state || typeof state !== "object") return [];
-  const local = getLocalState(state);
-  if (Array.isArray(local.pawns)) return local.pawns;
-  local.pawns = [];
-  return local.pawns;
-}
-
-export function getPawns(state) {
-  return ensurePawnCollectionState(state);
-}
-
-export function ensureLocationNamesState(state) {
-  if (!state || typeof state !== "object") {
-    return { ...DEFAULT_LOCATION_NAMES };
-  }
-  const local = getLocalState(state);
-  const raw = local.locationNames;
-  const locationNames = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-  const region =
-    typeof locationNames.region === "string" && locationNames.region.trim().length > 0
-      ? locationNames.region.trim()
-      : DEFAULT_LOCATION_NAMES.region;
-  const hub =
-    typeof locationNames.hub === "string" && locationNames.hub.trim().length > 0
-      ? locationNames.hub.trim()
-      : DEFAULT_LOCATION_NAMES.hub;
-  local.locationNames = {
-    region,
-    hub,
-  };
-  return local.locationNames;
-}
-
-export function ensureDiscoveryState(state) {
-  if (!state || typeof state !== "object") {
-    return {
-      envCols: [],
-      hubVisible: DEFAULT_DISCOVERY_STATE.hubVisible,
-      hubRenameUnlocked: DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
-    };
-  }
-  const local = getLocalState(state);
-  const raw =
-    local.discovery && typeof local.discovery === "object" && !Array.isArray(local.discovery)
-      ? local.discovery
-      : {};
-  const boardCols = Number.isFinite(local?.board?.cols)
-    ? Math.max(0, Math.floor(local.board.cols))
-    : 0;
-  const envCols = new Array(boardCols);
-  const rawEnvCols = Array.isArray(raw.envCols) ? raw.envCols : [];
-  for (let col = 0; col < boardCols; col++) {
-    const entry =
-      rawEnvCols[col] && typeof rawEnvCols[col] === "object" ? rawEnvCols[col] : null;
-    envCols[col] = {
-      exposed:
-        typeof entry?.exposed === "boolean"
-          ? entry.exposed
-          : DEFAULT_DISCOVERY_ENTRY.exposed,
-      revealed:
-        typeof entry?.revealed === "boolean"
-          ? entry.revealed
-          : DEFAULT_DISCOVERY_ENTRY.revealed,
-    };
-  }
-  local.discovery = {
-    envCols,
-    hubVisible:
-      typeof raw.hubVisible === "boolean"
-        ? raw.hubVisible
-        : DEFAULT_DISCOVERY_STATE.hubVisible,
-    hubRenameUnlocked:
-      typeof raw.hubRenameUnlocked === "boolean"
-        ? raw.hubRenameUnlocked
-        : DEFAULT_DISCOVERY_STATE.hubRenameUnlocked,
-  };
-  return local.discovery;
-}
-
-export function isEnvColExposed(state, envCol) {
-  const discovery = ensureDiscoveryState(state);
-  const col = Number.isFinite(envCol) ? Math.floor(envCol) : null;
-  if (col == null || col < 0 || col >= discovery.envCols.length) return false;
-  return discovery.envCols[col]?.exposed === true;
-}
-
-export function isEnvColRevealed(state, envCol) {
-  const discovery = ensureDiscoveryState(state);
-  const col = Number.isFinite(envCol) ? Math.floor(envCol) : null;
-  if (col == null || col < 0 || col >= discovery.envCols.length) return false;
-  return discovery.envCols[col]?.revealed === true;
-}
-
-export function getVisibleEnvColCount(state) {
-  const discovery = ensureDiscoveryState(state);
-  let count = 0;
-  for (const entry of discovery.envCols) {
-    if (entry?.exposed !== true) break;
-    count += 1;
-  }
-  return count;
-}
-
-export function isHubVisible(state) {
-  return ensureDiscoveryState(state).hubVisible === true;
-}
-
-export function isHubRenameUnlocked(state) {
-  return ensureDiscoveryState(state).hubRenameUnlocked === true;
-}
-
-export function ensureHubState(state) {
-  const local = getLocalState(state);
-  if (!local.hub || typeof local.hub !== "object") {
-    local.hub = createHubState();
-    return;
-  }
-
-  const hub = local.hub;
-  ensureHubSettlementState(
-    hub,
-    Number.isFinite(hub.cols) && hub.cols > 0 ? Math.floor(hub.cols) : HUB_COLS
-  );
-  if (!Array.isArray(hub.slots)) hub.slots = [];
-
-  const slotsLen = hub.slots.length;
-  const colHint =
-    Number.isFinite(hub.cols) && hub.cols > 0 ? Math.floor(hub.cols) : 0;
-  const cols = slotsLen > 0 ? slotsLen : colHint > 0 ? colHint : HUB_COLS;
-
-  if (slotsLen === 0) {
-    hub.slots = new Array(cols).fill(null).map(() => ({ structure: null }));
-  }
-
-  hub.cols = Array.isArray(hub.slots) ? hub.slots.length : cols;
-  hub.zones.structures.slots = hub.slots;
-
-  for (let i = 0; i < hub.slots.length; i++) {
-    const slot = hub.slots[i];
-    if (!slot || typeof slot !== "object") {
-      hub.slots[i] = { structure: null };
-      continue;
-    }
-    if (!Object.prototype.hasOwnProperty.call(slot, "structure")) {
-      slot.structure = null;
-    }
-    const structure = slot.structure;
-    if (structure) {
-      const def = hubStructureDefs[structure.defId];
-      if (def) ensureHubStructureFields(structure, def);
-    }
-  }
-
-  if (!Array.isArray(hub.anchors)) hub.anchors = [];
-  if (!Array.isArray(hub.occ) || hub.occ.length !== hub.cols) {
-    hub.occ = new Array(hub.cols).fill(null);
-  }
-
-}
-
-export function buildPawnSystemDefaults() {
-  return { systemTiers: {}, systemState: {} };
-}
-
-export function ensurePawnSystems(pawn) {
-  if (!pawn || typeof pawn !== "object") return;
-  if (!pawn.systemTiers || typeof pawn.systemTiers !== "object") {
-    pawn.systemTiers = {};
-  }
-  if (!pawn.systemState || typeof pawn.systemState !== "object") {
-    pawn.systemState = {};
-  }
-
-  ensurePawnAI(pawn);
-}
-
-export function ensurePawnAI(pawn) {
-  if (!pawn || typeof pawn !== "object") return;
-  const raw = pawn.ai;
-  const ai = raw && typeof raw === "object" ? raw : {};
-  const mode = ai.mode === "eat" || ai.mode === "rest" ? ai.mode : null;
-  const currentPlacement = normalizePawnAiPlacement(pawn, null);
-  const assignedPlacement = normalizePawnAiPlacement(
-    ai.assignedPlacement,
-    currentPlacement
-  );
-  const suppressAutoUntilSec = Number.isFinite(ai.suppressAutoUntilSec)
-    ? Math.max(0, Math.floor(ai.suppressAutoUntilSec))
-    : 0;
-  let returnState =
-    ai.returnState === "waitingForEat" ||
-    ai.returnState === "waitingForRest" ||
-    ai.returnState === "ready"
-      ? ai.returnState
-      : "none";
-  if (pawnPlacementEquals(currentPlacement, assignedPlacement)) {
-    returnState = "none";
-  }
-  ai.mode = mode;
-  ai.assignedPlacement = assignedPlacement;
-  ai.returnState = returnState;
-  ai.suppressAutoUntilSec = suppressAutoUntilSec;
-  pawn.ai = ai;
-}
-
-function normalizePawnAiPlacement(value, fallback = null) {
-  const fallbackPlacement =
-    fallback && typeof fallback === "object"
-      ? {
-          hubCol: Number.isFinite(fallback.hubCol)
-            ? Math.floor(fallback.hubCol)
-            : null,
-          envCol: Number.isFinite(fallback.envCol)
-            ? Math.floor(fallback.envCol)
-            : null,
-        }
-      : { hubCol: null, envCol: null };
-  const hubCol = Number.isFinite(value?.hubCol) ? Math.floor(value.hubCol) : null;
-  const envCol = Number.isFinite(value?.envCol) ? Math.floor(value.envCol) : null;
-  if (hubCol != null) return { hubCol, envCol: null };
-  if (envCol != null) return { hubCol: null, envCol };
-  return fallbackPlacement;
-}
-
-function pawnPlacementEquals(a, b) {
-  const left = normalizePawnAiPlacement(a, null);
-  const right = normalizePawnAiPlacement(b, null);
-  if (left.hubCol != null || right.hubCol != null) {
-    return left.hubCol != null && right.hubCol != null && left.hubCol === right.hubCol;
-  }
-  if (left.envCol != null || right.envCol != null) {
-    return left.envCol != null && right.envCol != null && left.envCol === right.envCol;
-  }
-  return true;
-}
-
-function normalizeSkillNodeIdList(value) {
-  const raw = Array.isArray(value) ? value : [];
-  const seen = new Set();
-  const out = [];
-  for (const entry of raw) {
-    if (typeof entry !== "string" || entry.length === 0) continue;
-    if (seen.has(entry)) continue;
-    seen.add(entry);
-    out.push(entry);
-  }
-  out.sort((a, b) => a.localeCompare(b));
-  return out;
-}
-
-export function ensurePawnSkillFields(pawn) {
-  if (!pawn || typeof pawn !== "object") return;
-  pawn.skillPoints = Number.isFinite(pawn.skillPoints)
-    ? Math.max(0, Math.floor(pawn.skillPoints))
-    : 0;
-  pawn.unlockedSkillNodeIds = normalizeSkillNodeIdList(
-    pawn.unlockedSkillNodeIds
-  );
-}
-
-function ensureLeaderPrestigeFields(pawn) {
-  if (!pawn || pawn.role !== "leader") return;
-  if (!pawn.totalDepositedAmountByTier || typeof pawn.totalDepositedAmountByTier !== "object") {
-    pawn.totalDepositedAmountByTier = {};
-  }
-  if (!pawn.prestigeDebtByFollowerId || typeof pawn.prestigeDebtByFollowerId !== "object") {
-    pawn.prestigeDebtByFollowerId = {};
-  }
-  if (!Number.isFinite(pawn.prestigeCapBaseFromDeposits)) {
-    pawn.prestigeCapBaseFromDeposits = 0;
-  }
-  if (!Number.isFinite(pawn.prestigeCapBonus)) pawn.prestigeCapBonus = 0;
-  if (!Number.isFinite(pawn.prestigeCapBase)) pawn.prestigeCapBase = 0;
-  if (!Number.isFinite(pawn.prestigeCapDebt)) pawn.prestigeCapDebt = 0;
-  if (!Number.isFinite(pawn.workerCount)) pawn.workerCount = 0;
-  const deposits = Math.max(0, Math.floor(pawn.prestigeCapBaseFromDeposits ?? 0));
-  const bonus = Math.max(0, Math.floor(pawn.prestigeCapBonus ?? 0));
-  const base = Math.max(0, Math.floor(pawn.prestigeCapBase ?? 0));
-  const debt = Math.max(0, Math.floor(pawn.prestigeCapDebt ?? 0));
-  pawn.prestigeCapBaseFromDeposits = deposits;
-  pawn.prestigeCapBonus = bonus;
-  pawn.prestigeCapBase = Math.max(base, deposits + bonus);
-  pawn.prestigeCapDebt = debt;
-  pawn.workerCount = Math.max(0, Math.floor(pawn.workerCount ?? 0));
-  pawn.prestigeCapEffective = Math.max(
-    0,
-    pawn.prestigeCapBase - Math.min(debt, pawn.prestigeCapBase)
-  );
-
-  if (!pawn.equipment || typeof pawn.equipment !== "object") {
-    pawn.equipment = {};
-    for (const slotId of LEADER_EQUIPMENT_SLOT_ORDER) {
-      pawn.equipment[slotId] = null;
-    }
-    return;
-  }
-  for (const slotId of LEADER_EQUIPMENT_SLOT_ORDER) {
-    if (!Object.prototype.hasOwnProperty.call(pawn.equipment, slotId)) {
-      pawn.equipment[slotId] = null;
-    }
-  }
-
-  ensureLeaderFaithFields(pawn);
-}
-
-const LEADER_FAITH_TIER_ORDER = Object.freeze([
-  "bronze",
-  "silver",
-  "gold",
-  "diamond",
-]);
-
-function normalizeLeaderFaithTier(value, fallback = "gold") {
-  const fallbackTier = LEADER_FAITH_TIER_ORDER.includes(fallback)
-    ? fallback
-    : "gold";
-  if (typeof value !== "string") return fallbackTier;
-  return LEADER_FAITH_TIER_ORDER.includes(value) ? value : fallbackTier;
-}
-
-function ensureLeaderFaithFields(pawn) {
-  if (!pawn || pawn.role !== "leader") return;
-  const existing =
-    pawn.leaderFaith && typeof pawn.leaderFaith === "object"
-      ? pawn.leaderFaith
-      : {};
-  const fallbackTier = normalizeLeaderFaithTier(LEADER_FAITH_STARTING_TIER, "gold");
-  const tier = normalizeLeaderFaithTier(existing.tier, fallbackTier);
-  const eatStreak = Number.isFinite(existing.eatStreak)
-    ? Math.max(0, Math.floor(existing.eatStreak))
-    : 0;
-  const decayElapsedSec = Number.isFinite(existing.decayElapsedSec)
-    ? Math.max(0, Math.floor(existing.decayElapsedSec))
-    : 0;
-  const failedEatWarnActive = existing.failedEatWarnActive === true;
-  pawn.leaderFaith = {
-    tier,
-    eatStreak,
-    decayElapsedSec,
-    failedEatWarnActive,
-  };
-}
-
-function ensureFollowerFields(pawn, fallbackOrderIndex = null) {
-  if (!pawn || pawn.role !== "follower") return;
-  if (pawn.leaderId == null) pawn.leaderId = null;
-  if (!Number.isFinite(pawn.followerCreationOrderIndex)) {
-    pawn.followerCreationOrderIndex =
-      Number.isFinite(fallbackOrderIndex) && fallbackOrderIndex >= 0
-        ? Math.floor(fallbackOrderIndex)
-        : 0;
-  }
-  const hunger = pawn.systemState?.hunger;
-  if (hunger && typeof hunger === "object") {
-    if (!Number.isFinite(hunger.belowThresholdSec)) hunger.belowThresholdSec = 0;
-    if (!Number.isFinite(hunger.debtCadenceSec)) hunger.debtCadenceSec = 0;
-  }
-}
-
-function ensurePawnRoleFields(state, pawn, fallbackFollowerOrderIndex = null) {
-  if (!pawn || typeof pawn !== "object") return;
-  ensurePawnSkillFields(pawn);
-  if (pawn.role !== "leader" && pawn.role !== "follower") {
-    pawn.role = "leader";
-  }
-  if (pawn.role === "leader") {
-    ensureLeaderPrestigeFields(pawn);
-    const leadership = pawn.systemState?.leadership;
-    if (leadership && typeof leadership === "object") {
-      if (typeof leadership.followersAutoFollow !== "boolean") {
-        leadership.followersAutoFollow = true;
-      }
-    }
-  } else if (pawn.role === "follower") {
-    ensureFollowerFields(pawn, fallbackFollowerOrderIndex);
-  }
-}
+export {
+  ensureDiscoveryState,
+  ensureHubState,
+  ensureLocationNamesState,
+  getVisibleEnvColCount,
+  initializeInstanceFromDef,
+  isEnvColExposed,
+  isEnvColRevealed,
+  isHubRenameUnlocked,
+  isHubVisible,
+  makeEnvEventInstance,
+  makeEnvStructureInstance,
+  makeEnvTileInstance,
+  makeHubStructureInstance,
+  rebuildBoardOccupancy,
+  rebuildHubOccupancy,
+} from "./state/board-legacy.js";
+export {
+  buildPawnSystemDefaults,
+  ensurePawnAI,
+  ensurePawnSkillFields,
+  ensurePawnSystems,
+  getPawns,
+} from "./state/pawn-legacy.js";
 
 // =============================================================================
 // PHASE / PAUSE POLICY
@@ -672,316 +227,6 @@ export function createEmptyState(
 
 // Singleton used by the running game at the app edge.
 export const gameState = createEmptyState();
-
-// =============================================================================
-// INSTANCE CREATION (core; used by init + effects)
-// =============================================================================
-
-export function makeHubStructureInstance(defId, state, options = {}) {
-  const def = hubStructureDefs[defId];
-  const span =
-    Number.isFinite(def?.defaultSpan) && def.defaultSpan > 0
-      ? Math.floor(def.defaultSpan)
-      : 1;
-  const inst = {
-    instanceId: state.nextHubStructureInstanceId++,
-    defId,
-    span,
-    tier: typeof options?.tier === "string" ? options.tier : null,
-    props: {},
-    tags: [],
-    systemTiers: {},
-    systemState: {},
-  };
-  initializeInstanceFromDef(inst, def);
-  return inst;
-}
-
-export function makeEnvTileInstance(defId, state, col, span = 1) {
-  const def = envTileDefs[defId];
-  const baseTags = Array.isArray(def?.baseTags) ? def.baseTags : [];
-  const tags = [];
-  const seen = new Set();
-  for (const tag of baseTags) {
-    if (seen.has(tag)) continue;
-    seen.add(tag);
-    tags.push(tag);
-  }
-
-  return {
-    instanceId: state.nextEnvInstanceId++,
-    defId,
-    col,
-    span,
-    tags,
-    systemTiers: {},
-    systemState: {},
-  };
-}
-
-export function makeEnvEventInstance(defId, state, col, span, tSec) {
-  const def = envEventDefs[defId];
-  const safeSpan = typeof span === "number" && span > 0 ? span : 1;
-  const inst = {
-    instanceId: state.nextEnvInstanceId++,
-    defId,
-    col,
-    span: safeSpan,
-    createdSec: tSec,
-    props: {},
-  };
-  if (def?.durationSec != null) {
-    inst.expiresSec = tSec + def.durationSec;
-  }
-  return inst;
-}
-
-function initializeEnvStructureFromDef(instance, def) {
-  if (!instance || !def) return;
-  if (!Array.isArray(instance.tags) || instance.tags.length === 0) {
-    instance.tags = normalizeTagList(def.tags);
-  }
-  if (!instance.systemTiers || typeof instance.systemTiers !== "object") {
-    instance.systemTiers = {};
-  }
-  if (!instance.systemState || typeof instance.systemState !== "object") {
-    instance.systemState = {};
-  }
-
-  const systems = def.systems;
-  if (Array.isArray(systems)) {
-    for (const systemId of systems) {
-      if (typeof systemId !== "string" || !systemId.length) continue;
-      if (instance.systemTiers[systemId] == null) {
-        instance.systemTiers[systemId] =
-          typeof instance.tier === "string" ? instance.tier : "bronze";
-      }
-      if (!instance.systemState[systemId]) {
-        instance.systemState[systemId] = {};
-      }
-    }
-    return;
-  }
-
-  if (!systems || typeof systems !== "object") return;
-  for (const [systemId, spec] of Object.entries(systems)) {
-    if (!systemId || typeof systemId !== "string") continue;
-    if (instance.systemTiers[systemId] == null) {
-      const tier =
-        typeof spec?.defaultTier === "string"
-          ? spec.defaultTier
-          : typeof instance.tier === "string"
-          ? instance.tier
-          : "bronze";
-      instance.systemTiers[systemId] = tier;
-    }
-    if (!instance.systemState[systemId]) {
-      instance.systemState[systemId] = deepCloneSerializable(
-        spec?.stateDefaults ?? {}
-      );
-    }
-  }
-}
-
-export function makeEnvStructureInstance(
-  defId,
-  state,
-  col,
-  span = 1,
-  options = {}
-) {
-  const def = envStructureDefs[defId];
-  const fallbackSpan =
-    Number.isFinite(def?.defaultSpan) && def.defaultSpan > 0
-      ? Math.floor(def.defaultSpan)
-      : 1;
-  const safeSpan =
-    Number.isFinite(span) && span > 0 ? Math.floor(span) : fallbackSpan;
-  const inst = {
-    instanceId: state.nextEnvStructureInstanceId++,
-    defId,
-    col,
-    span: safeSpan,
-    tier: typeof options?.tier === "string" ? options.tier : null,
-    props: {},
-    tags: [],
-    systemTiers: {},
-    systemState: {},
-  };
-  initializeEnvStructureFromDef(inst, def);
-  return inst;
-}
-
-export function rebuildBoardOccupancy(state) {
-  if (!state) return;
-  ensureBoardState(state);
-  ensureHubState(state);
-  if (state.permanentSlots) delete state.permanentSlots;
-  if (state.nextPermanentInstanceId) delete state.nextPermanentInstanceId;
-
-  const local = getLocalState(state);
-  const board = local.board;
-  for (const layer of BOARD_LAYERS) {
-    board.occ[layer].fill(null);
-  }
-
-  for (const layer of BOARD_LAYERS) {
-    const anchors = board.layers[layer].anchors;
-    for (const anchor of anchors) {
-      if (!anchor) continue;
-      const col = typeof anchor.col === "number" ? anchor.col : 0;
-      const span = typeof anchor.span === "number" ? anchor.span : 1;
-      for (let offset = 0; offset < span; offset++) {
-        const occupiedCol = col + offset;
-        if (occupiedCol < 0 || occupiedCol >= board.cols) continue;
-        if (
-          board.occ[layer][occupiedCol] &&
-          board.occ[layer][occupiedCol] !== anchor
-        ) {
-          console.warn(
-            `[board] occupancy collision on ${layer} col ${occupiedCol}; overwriting.`
-          );
-        }
-        board.occ[layer][occupiedCol] = anchor;
-      }
-    }
-  }
-
-  rebuildHubOccupancy(state);
-  maybeValidateState(state, "rebuildBoardOccupancy");
-}
-
-export function rebuildHubOccupancy(state) {
-  if (!state) return;
-  ensureHubState(state);
-
-  const hub = getLocalState(state).hub;
-  const slots = Array.isArray(hub.slots) ? hub.slots : [];
-  hub.cols = slots.length;
-
-  if (!Array.isArray(hub.anchors)) hub.anchors = [];
-  hub.anchors.length = 0;
-
-  if (!Array.isArray(hub.occ) || hub.occ.length !== hub.cols) {
-    hub.occ = new Array(hub.cols).fill(null);
-  } else {
-    hub.occ.fill(null);
-  }
-
-  for (let i = 0; i < slots.length; i++) {
-    const slot = slots[i];
-    if (!slot || typeof slot !== "object") {
-      slots[i] = { structure: null };
-      continue;
-    }
-    const structure = slot.structure;
-    if (!structure) continue;
-
-    const def = hubStructureDefs[structure.defId];
-    if (def) ensureHubStructureFields(structure, def);
-    const fallbackSpan =
-      Number.isFinite(def?.defaultSpan) && def.defaultSpan > 0
-        ? Math.floor(def.defaultSpan)
-        : 1;
-    if (!Number.isFinite(structure.span) || structure.span <= 0) {
-      structure.span = fallbackSpan;
-    }
-    structure.col = i;
-    hub.anchors.push(structure);
-  }
-
-  for (const anchor of hub.anchors) {
-    if (!anchor) continue;
-    const col = typeof anchor.col === "number" ? anchor.col : 0;
-    const span = typeof anchor.span === "number" ? anchor.span : 1;
-    for (let offset = 0; offset < span; offset++) {
-      const occupiedCol = col + offset;
-      if (occupiedCol < 0 || occupiedCol >= hub.cols) continue;
-      if (hub.occ[occupiedCol] && hub.occ[occupiedCol] !== anchor) {
-        if (DEV) {
-          console.warn(
-            `[hub] occupancy collision on col ${occupiedCol}; overwriting.`
-          );
-        }
-      }
-      hub.occ[occupiedCol] = anchor;
-    }
-  }
-}
-
-export function initializeInstanceFromDef(instance, def) {
-  if (!instance || !def) return;
-  ensureHubStructureFields(instance, def);
-}
-
-function ensureHubStructureFields(instance, def) {
-  if (!instance || !def) return;
-
-  if (!Array.isArray(instance.tags) || instance.tags.length === 0) {
-    instance.tags = normalizeTagList(def.tags);
-  }
-
-  if (!instance.systemTiers || typeof instance.systemTiers !== "object") {
-    instance.systemTiers = {};
-  }
-  if (!instance.systemState || typeof instance.systemState !== "object") {
-    instance.systemState = {};
-  }
-
-  function ensureHubSystemState(systemId) {
-    if (!systemId || typeof systemId !== "string") return;
-    if (instance.systemTiers[systemId] == null) {
-      const sysDef = hubSystemDefs[systemId];
-      const instanceTier =
-        typeof instance.tier === "string" ? instance.tier : null;
-      if (instanceTier) {
-        instance.systemTiers[systemId] = instanceTier;
-      } else if (sysDef?.defaultTier != null) {
-        instance.systemTiers[systemId] = sysDef.defaultTier;
-      }
-    }
-    if (!instance.systemState[systemId]) {
-      const sysDef = hubSystemDefs[systemId];
-      if (sysDef?.stateDefaults) {
-        instance.systemState[systemId] = deepCloneSerializable(
-          sysDef.stateDefaults
-        );
-      }
-    }
-  }
-
-  const tags = Array.isArray(instance.tags) ? instance.tags : [];
-  for (const tagId of tags) {
-    const tagDef = hubTagDefs[tagId];
-    const systems = Array.isArray(tagDef?.systems) ? tagDef.systems : [];
-    for (const systemId of systems) {
-      ensureHubSystemState(systemId);
-    }
-  }
-
-  const depositSystemId =
-    typeof def?.deposit?.systemId === "string" ? def.deposit.systemId : null;
-  if (depositSystemId) {
-    ensureHubSystemState(depositSystemId);
-  }
-
-  if (isUpgradeableSettlementStructureDef(def)) {
-    ensureSettlementStructureUpgradeState(instance);
-  }
-}
-
-function normalizeTagList(tags) {
-  const raw = Array.isArray(tags) ? tags : [];
-  const seen = new Set();
-  const out = [];
-  for (const tag of raw) {
-    if (typeof tag !== "string") continue;
-    if (seen.has(tag)) continue;
-    seen.add(tag);
-    out.push(tag);
-  }
-  return out;
-}
 
 // =============================================================================
 // SEASON EVENT DECKS (tile-driven)
@@ -1154,15 +399,6 @@ function rebuildInventoryDerived(inv) {
 
   inv.grid = grid;
   inv.version = inv.version ?? 0;
-}
-
-function deepCloneSerializable(value) {
-  try {
-    if (typeof structuredClone === "function") return structuredClone(value);
-  } catch (_) {
-    // ignore
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 export function serializeGameState(state) {
@@ -1658,17 +894,6 @@ export function validateState(state) {
   return { ok: errors.length === 0, errors, warnings };
 }
 
-function maybeValidateState(state, origin) {
-  if (!DEV) return;
-  const result = validateState(state);
-  if (!result.ok) {
-    console.warn(`[state] ${origin}: ${result.errors.join("; ")}`);
-  }
-  if (result.warnings.length > 0) {
-    console.warn(`[state] ${origin}: ${result.warnings.join("; ")}`);
-  }
-}
-
 // App-edge only: explicitly mutates the singleton.
 export function loadIntoGameState(data) {
   const loaded = deserializeGameState(data);
@@ -1685,4 +910,3 @@ export function loadStateObjectIntoGameState(stateObj) {
   Object.assign(gameState, stateObj);
   attachRngHelpers(gameState);
 }
-
