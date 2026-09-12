@@ -3,17 +3,20 @@
 Local instructions for agents working in this repo.
 
 ## Project context
-- Always read `ai/ai-context.md` (invariants and schema numbers) and root
-  `CONTEXT.md` (ubiquitous language).
-- Then read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and**
-  the matching section of `ai/repository-map.md`.
-- After the map lands in a split folder, read that folder's README before the
+- Always read `ai/ai-context.md` (invariants and schema numbers).
+- When a routing skill applies, read that skill first and follow it:
+  `add-gamepiece`, `change-view`, `change-timegraph`,
+  `change-vassal-life-map`, `change-settlement-sim`, `change-debug-tools`
+  (under `.grok/skills/`). Do not load the other skills.
+- Do not open `CONTEXT.md`, `ai/sim.md`, and `ai/ui.md` on every task.
+  Read `ai/sim.md` **or** `ai/ui.md` (not both) only when the matching
+  skill is not enough. Read both only when the task crosses model and
+  UI/replay.
+- Read root `CONTEXT.md` only when domain vocabulary is unclear.
+- After a split-folder map lands, read that folder's README before the
   orchestrator file.
-- Prefer `.grok/skills/` routing skills (`add-gamepiece`,
-  `change-settlement-sim`, `change-view`, `change-vassal-life-map`,
-  `change-timegraph`, `change-debug-tools`).
-- Do not read `ai/history/` unless the task is explicitly about a past design
-  decision.
+- Do not read `ai/history/` unless the task is explicitly about a past
+  design decision.
 
 ## Current goal context
 - The map-driven detailed-settlement redesign and data-driven debug tools are
