@@ -6,7 +6,8 @@ description: Change the timegraph. Use when editing series labels, plot ink, key
 # Change the timegraph
 
 Start in `ai/repository-map.md` **Timegraph**. Search the named symbol or
-visible label, then read only that file and its direct imports.
+visible label, then read only that file and its direct imports. Prefer this
+skill over `change-view` for series, plot ink, reveal, scrub, or playhead.
 
 ## Where drawing and labels go
 

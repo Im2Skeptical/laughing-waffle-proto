@@ -226,6 +226,10 @@ should not be loaded for routine work.
 
 ## Known, bounded debt
 
+- Overlay extracts from `timegraphs-pixi.js` are exhausted. Remaining inner
+  functions close over PIXI or the controller; skip rather than lift
+  `drawPlot` / metric resolution / snapshot I/O. Do not re-run
+  `.grok/workflows/modularity-extract-*.rhai` or `modularity-legacy-split.rhai`.
 - `src/views/timegraphs-pixi.js` still owns PIXI construction, pointer
   handlers, snapshot sampling I/O, and commit/preview I/O. Reveal cadence,
   scrub session math, snapshot-cache keys, run-scoped scale high-water,

@@ -8,6 +8,11 @@ description: Change prototype UI. Use when editing Pixi/DOM views, map, timegrap
 Start in `ai/repository-map.md` **UI routes**. Search the named symbol or
 visible label, then read only that file and its direct imports.
 
+Timegraph series, plot ink, reveal, scrub, and playhead: use the
+`change-timegraph` skill. The rows below still name those files so map or
+settlement work can find shared chrome without loading the graph
+orchestrator.
+
 ## Where drawing goes
 
 | Concern | File |
@@ -16,10 +21,7 @@ visible label, then read only that file and its direct imports.
 | Map glyphs | `src/views/world-map/glyphs.js` |
 | Map packets / constants | `src/views/world-map/packets.js`, `constants.js` |
 | Settlement overview/demographics | `src/views/settlement-prototype-view.js` |
-| Timegraph drawing / reveal | `src/views/timegraphs-pixi.js` |
-| Timegraph series labels | `src/model/graph-metrics.js` |
-| Timegraph plot ink / constants | `src/views/timegraphs/` |
-| Timegraph series menu / window | `src/views/ui-root/settlement-graph-*.js` |
+| Timegraph (prefer `change-timegraph`) | `src/views/timegraphs-pixi.js`, `src/views/timegraphs/`, `src/model/graph-metrics.js`, `src/views/ui-root/settlement-graph-*.js` |
 | Illustrated scroll chrome | `src/views/timegraph-scroll-pixi.js` |
 | Shared nav / time dock | `src/views/settlement-navigation-pixi.js` |
 | Piece faces / inspection | `src/views/settlement-piece-pixi.js`, `chronicle-inspection.js` |

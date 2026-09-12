@@ -76,7 +76,6 @@ knowledge, and the single vassal lineage are civilization-global.
 - File and test routing: [`ai/repository-map.md`](repository-map.md)
 - Glossary: [`CONTEXT.md`](../CONTEXT.md)
 - Art/presentation contract: [`ai/visual-overhaul.md`](visual-overhaul.md)
-- Historical decision records (not current routing): [`ai/history/`](history/)
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
 Map Lab, Game Settings, Gamepieces, Vassal Lab, and Life Map Lab start a

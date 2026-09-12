@@ -1,13 +1,13 @@
 let meta = #{
     name: "modularity-legacy-split",
-    description: "Split leftover hub/board/pawn constructors out of state.js and settlement-state.js, then save/load helpers from sim-runner if they separate cleanly. No schema change. No worker/timegraph rewrite. Does not commit.",
+    description: "COMPLETED on main (799e100). Do not re-run. Historical orchestrator: board/pawn/hub-legacy constructors and sim-runner save-slots.",
     phases: [
         #{ title: "Seam 1", detail: "state.js board/hub/pawn extract" },
         #{ title: "Seam 2", detail: "settlement-state hub leftovers" },
         #{ title: "Seam 3", detail: "sim-runner save/load helpers" },
         #{ title: "Report", detail: "hand back to parent for sanity check" },
     ],
-    when_to_use: "After timegraph overlay extracts are exhausted, split leftover serialize-path hub/board files.",
+    when_to_use: "Completed on main. Do not launch. Remaining serialize-path files (sim-runner tick/playback, controller-core, settlement-exec derived-sync) still close over their orchestrators.",
 };
 
 let verdict_schema = #{

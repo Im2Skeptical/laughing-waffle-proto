@@ -1,13 +1,13 @@
 let meta = #{
     name: "agent-context-hygiene",
-    description: "Fix agent navigation and context ownership: archive historical AI docs, delete Matt Pocock skills, register repo skills, collapse live vassal selectors, remove dead substrate. Each stream is implementer then reviewer; a failed review launches a fresh pair.",
+    description: "COMPLETED on main (eccab88). Do not re-run. Historical orchestrator: archive AI docs, delete Matt Pocock skills, register repo skills, collapse vassal selectors, remove dead substrate.",
     phases: [
         #{ title: "Docs and skills", detail: "history folder, delete Matt Pocock pack, routing skills, AGENTS/README" },
         #{ title: "Vassal ownership", detail: "move live vassal selectors into vassal-life-map" },
         #{ title: "Dead substrate", detail: "unreachable init tail, empty controller folders, moon fences" },
         #{ title: "Report", detail: "structured change report for parent sanity check" },
     ],
-    when_to_use: "After an agent-navigation audit, to apply the docs/skills/ownership fixes with implementer-reviewer pairs.",
+    when_to_use: "Completed on main. Do not launch. Remaining god files are PIXI, composition, or dead-tick-with-live-helpers, not this hygiene pass.",
 };
 
 let verdict_schema = #{

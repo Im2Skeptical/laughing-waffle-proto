@@ -1,13 +1,13 @@
 let meta = #{
     name: "modularity-extract-loop",
-    description: "Loop implementer/reviewer pairs on safe modularity extracts until no safe seam remains or three seams are done. Does not rewrite the forecast worker or state.js. Does not commit.",
+    description: "COMPLETED on main (444b0eb). Do not re-run. Historical orchestrator: graph-metrics leftovers and timegraph overlay-state extracts.",
     phases: [
         #{ title: "Seam 1", detail: "graph-metrics dual path" },
         #{ title: "Seam 2", detail: "timegraph snapshot/scale extract" },
         #{ title: "Seam 3", detail: "timegraph boot-fade/replacement extract" },
         #{ title: "Report", detail: "hand back to parent for sanity check" },
     ],
-    when_to_use: "After a successful timegraph/ui-root extract, keep thinning god files with fenced pairs.",
+    when_to_use: "Completed on main. Do not launch another overlay extract. Remaining timegraphs-pixi.js inner functions close over PIXI or the controller.",
 };
 
 let verdict_schema = #{
