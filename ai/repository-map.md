@@ -68,9 +68,10 @@ file as the default location for new rendering or model rules.
 ### Timegraph
 
 - Graph orchestrator (`createMetricGraphView`): `src/views/timegraphs-pixi.js`.
-  Constants, plot math, plot ink, and key-cabinet paging live in
-  `src/views/timegraphs/`. Search the orchestrator for reveal/scrub/playhead;
-  do not read it end-to-end for ordinary label/layout work.
+  Constants, plot math, plot ink, key-cabinet paging, forecast-reveal state,
+  and scrub-session helpers live in `src/views/timegraphs/`. Search
+  `forecast-reveal-state.js` / `scrub-session.js` for cadence and playhead;
+  do not read the orchestrator end-to-end for ordinary label/layout work.
 - Scope, series, and labels: `src/model/graph-metrics.js`
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
 - Series groups: `src/views/ui-root/settlement-graph-groups.js`
@@ -200,9 +201,12 @@ should not be loaded for routine work.
 
 ## Known, bounded debt
 
-- `src/views/timegraphs-pixi.js` still owns reveal/scrub/playhead state.
-  Constants and draw helpers are in `src/views/timegraphs/`. Do not rewrite
-  forecast/worker/state together (see `codex/abandoned-timegraph-refactor-do-not-merge`).
+- `src/views/timegraphs-pixi.js` still owns PIXI construction, pointer
+  handlers, snapshot sampling, and commit/preview I/O. Reveal cadence and
+  scrub session math live in `src/views/timegraphs/forecast-reveal-state.js`
+  and `src/views/timegraphs/scrub-session.js`. Do not rewrite those with the
+  forecast worker or `src/model/state.js` (see
+  `codex/abandoned-timegraph-refactor-do-not-merge`).
 - `src/views/ui-root-settlement-pixi.js` still wires graph, preview, and
   screen mode. Playback, vassal-flow, and navigation-state helpers live in
   `src/views/ui-root/`. New drawing belongs in focused views.

@@ -4,6 +4,33 @@ import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
 import { computeGraphSeriesScaleRanges } from '../src/views/timegraphs-helpers.js';
+import {
+  createForecastRevealState,
+  getAnimatedForecastCoverageEndSec,
+  getDisplayHistoryEndSec,
+  getForecastRevealDesiredVelocitySecPerSec,
+  getForecastRevealEffectiveStartDelayMs,
+  getForecastRevealFollowTargetEndSec,
+  getRenderedHistoryEndSec,
+  getVisibleForecastCoverageEndSec,
+  pauseForecastReveal,
+  resetForecastReveal,
+  resolveForecastRevealPlayheadFollowSec,
+  resolveForecastRevealPreviewTarget,
+  restartForecastRevealFrom,
+  setForecastRevealConfig,
+  suspendForecastRevealPlayheadFollow,
+  syncForecastRevealTarget,
+} from '../src/views/timegraphs/forecast-reveal-state.js';
+import {
+  clampScrubSecToRevealCap,
+  createScrubSession,
+  pointerLocalXToSec,
+  resetForecastPreviewState,
+  resolveLatchedForecastPreviewRestore,
+  setLatchedForecastScrub,
+  syncLatchedForecastPreview,
+} from '../src/views/timegraphs/scrub-session.js';
 import { layoutTimegraphKey, getTimegraphLayout, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import {
@@ -128,4 +155,115 @@ assert.equal(sparseLayout.get('c').y,350,'Single nodes are not forced to the cen
 assert.deepEqual(layoutChronicleNodes([...sparseNodes].reverse(),{x:0,y:0,width:2000,height:500}),sparseLayout,
   'Layout is stable regardless of iteration order');
 
-console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, and topology layout');
+const reveal = createForecastRevealState({
+  targetDurationSec: 0.6,
+  minRateSecPerSec: 480,
+  startDelayMs: 0,
+  followGapSec: 0,
+});
+reveal.startSecOverride = 40;
+assert.equal(getDisplayHistoryEndSec(reveal, 40), 40, 'matching reveal start override is used as display history');
+assert.equal(reveal.startSecOverride, 40);
+assert.equal(getDisplayHistoryEndSec(reveal, 100), 100, 'a mismatched override is discarded');
+assert.equal(reveal.startSecOverride, null);
+reveal.historyEndSec = 100;
+reveal.visibleEndSec = 180.9;
+assert.equal(getVisibleForecastCoverageEndSec(reveal, 250, 100), 180,
+  'visible coverage is the floored playhead, capped by actual forecast');
+reveal.historyEndSec = 90;
+assert.equal(getVisibleForecastCoverageEndSec(reveal, 250, 100), 100,
+  'stale reveal history does not leak coverage past display history');
+assert.equal(getForecastRevealFollowTargetEndSec(reveal, 700, 100, 100), 700,
+  'zero follow gap keeps the follow target at the actual forecast end');
+const followReveal = createForecastRevealState({ followGapSec: 60, followResponseSec: 0.9 });
+assert.equal(getForecastRevealFollowTargetEndSec(followReveal, 700, 100, 100), 640);
+assert.equal(
+  getForecastRevealDesiredVelocitySecPerSec(reveal, 700, 100, 100).desiredVelocitySecPerSec,
+  1000,
+  'ungapped reveal rate is remaining span over the target duration'
+);
+assert.equal(
+  getForecastRevealDesiredVelocitySecPerSec(followReveal, 700, 100, 100).desiredVelocitySecPerSec,
+  600
+);
+followReveal.capEndSec = 400;
+assert.equal(getForecastRevealFollowTargetEndSec(followReveal, 700, 100, 100), 700,
+  'an explicit reveal cap disables the follow gap');
+followReveal.capEndSec = null;
+resetForecastReveal(reveal, 100, 700, 100, 0);
+assert.equal(reveal.velocitySecPerSec, 1000);
+assert.equal(getAnimatedForecastCoverageEndSec(reveal, 100, 100), 200,
+  'one tenth of a second at 1000 sec/sec reveals 100 forecast seconds');
+pauseForecastReveal(reveal);
+assert.equal(getAnimatedForecastCoverageEndSec(reveal, 250, 100), 200, 'pause freezes coverage');
+const delayed = createForecastRevealState({ startDelayMs: 200, followGapSec: 0, minRateSecPerSec: 480 });
+resetForecastReveal(delayed, 695, 700, 100, 0);
+assert.equal(getForecastRevealEffectiveStartDelayMs(delayed, 700, 695, 100), 200);
+assert.equal(getAnimatedForecastCoverageEndSec(delayed, 100, 100), 695,
+  'start delay holds the playhead until the delay elapses');
+followReveal.startDelayMs = 200;
+assert.equal(getForecastRevealEffectiveStartDelayMs(followReveal, 700, 100, 100), 0,
+  'a large remaining follow gap skips the configured start delay');
+const restartReveal = createForecastRevealState({ followGapSec: 0, minRateSecPerSec: 480 });
+restartForecastRevealFrom(restartReveal, 80, { extraStartDelayMs: 50 }, {
+  actualHistoryEndSec: 100,
+  actualForecastCoverageEndSec: 400,
+  nowMs: 1000,
+  activeForecastPreviewSec: 120,
+});
+assert.equal(restartReveal.startSecOverride, 80);
+assert.equal(restartReveal.animatedEndSec, 100);
+assert.equal(restartReveal.targetEndSec, 400);
+assert.equal(restartReveal.previewSec, 120);
+assert.equal(restartReveal.delayUntilMs, 1050);
+assert.equal(getRenderedHistoryEndSec(restartReveal, 100, 400, null, { treatRevealedForecastAsHistory: false }), 100);
+restartReveal.historyEndSec = 100;
+restartReveal.visibleEndSec = 180;
+assert.equal(getRenderedHistoryEndSec(restartReveal, 100, 400, null, { treatRevealedForecastAsHistory: true }), 180);
+syncForecastRevealTarget(restartReveal, 50, 40, 2000);
+assert.equal(restartReveal.targetEndSec, 50, 'a shorter actual coverage resets the reveal');
+setForecastRevealConfig(restartReveal, { targetDurationSec: 1.2 });
+assert.equal(restartReveal.targetDurationSec, 1.2);
+setForecastRevealConfig(restartReveal, {});
+assert.equal(restartReveal.targetDurationSec, 0.6, 'omitted config fields restore constructor defaults');
+assert.equal(
+  resolveForecastRevealPlayheadFollowSec(restartReveal, {
+    visibleForecastCoverageEndSec: 180.9,
+    minSec: 0,
+    maxSec: 320,
+  }),
+  180
+);
+suspendForecastRevealPlayheadFollow(restartReveal);
+assert.equal(resolveForecastRevealPlayheadFollowSec(restartReveal, {
+  visibleForecastCoverageEndSec: 180,
+}), null);
+restartReveal.playheadFollowEnabled = true;
+restartReveal.previewSec = 150;
+assert.equal(
+  resolveForecastRevealPreviewTarget(restartReveal, 180, 200, { historyEndSec: 100 }),
+  180
+);
+assert.equal(
+  resolveForecastRevealPreviewTarget(restartReveal, 180, 200, { historyEndSec: 100, isScrubbing: true }),
+  null
+);
+assert.equal(pointerLocalXToSec(60, { x: 10, w: 100 }, 0, 100), 50);
+assert.equal(clampScrubSecToRevealCap(500, 100, 200, { minSec: 0, maxSec: 1000 }), 200);
+assert.equal(clampScrubSecToRevealCap(50, 100, 200, { minSec: 0, maxSec: 1000 }), 50);
+const scrub = createScrubSession({ forecastPreviewStatusNote: 'Viewing forecast' });
+setLatchedForecastScrub(scrub, 180.9);
+assert.equal(scrub.latchedForecastScrubSec, 180);
+assert.equal(resolveLatchedForecastPreviewRestore(scrub, 100, 200), 'restore');
+assert.equal(resolveLatchedForecastPreviewRestore(scrub, 180, 200), 'clear');
+syncLatchedForecastPreview(scrub, restartReveal, {
+  active: true,
+  isForecastPreview: true,
+  previewSec: 150,
+}, (sec) => sec);
+assert.equal(scrub.latchedForecastScrubSec, null, 'automatic reveal preview does not latch');
+resetForecastPreviewState(scrub, restartReveal);
+assert.equal(scrub.isScrubbing, false);
+assert.equal(restartReveal.previewSec, null);
+
+console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, topology layout, and timegraph reveal/scrub state');
