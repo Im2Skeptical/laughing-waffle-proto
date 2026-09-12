@@ -35,6 +35,10 @@ orchestrator file (`src/views/timegraphs/`, `src/model/timegraph/`,
 
 - Rewrite `timegraphs-pixi.js` together with the forecast worker or
   `src/model/state.js`.
+- Rewrite the forecast worker together with `controller-core.js` or
+  `timegraphs-pixi.js`. Forecast orchestration is
+  `src/controllers/settlement-forecast-controller.js`; worker files
+  stay their own.
 - Load `ai/history/` for routine graph work.
 - Add simulation rules in views; views render and emit input.
 

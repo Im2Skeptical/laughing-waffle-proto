@@ -1,3 +1,7 @@
+// Legacy order exec. On the serialization/replay path; retains pre-redesign substrate.
+// Do not add gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import {

@@ -1,3 +1,7 @@
+// Legacy practice defs. On the serialization/replay path; retains pre-redesign substrate.
+// Not Forage/Cultivate; do not add live pieces here.
+// Live detailed pieces belong in src/defs/gamepieces/detailed-settlement-defs.js.
+
 import {
   MOON_CYCLE_SEC,
   PRACTICE_OPEN_TO_STRANGERS_ATTRACTION_PER_VACANCY_PER_YEAR,

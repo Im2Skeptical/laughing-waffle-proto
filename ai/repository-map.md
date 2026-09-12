@@ -200,8 +200,9 @@ Do not paste their full artifact JSON into chat.
 
 ## Maintenance guards
 
-- `npm run check:architecture` rejects `Math.random()` and model imports from
-  view/controller layers.
+- `npm run check:architecture` rejects `Math.random()`, model imports from
+  view/controller layers, and new `src/model/` imports of leftover
+  settlement exec/defs (tests excluded; current importers allowlisted).
 - `npm run check:source` rejects JavaScript under `src/` that is unreachable
   from the app, forecast worker, or supported tests.
 - `npm run build` emits hashed app and forecast-worker bundles plus the
@@ -250,6 +251,24 @@ should not be loaded for routine work.
   inspect/read/write helpers live in `src/controllers/sim-runner/`.
   `loadFromSlot` apply wiring, tick, playback, and rebuild stay on the
   runner. Do not add new detailed-settlement rules there.
+  `src/model/actions.js` `applyAction` handles live vassal/region/debug
+  kinds. Leftover `placePawn` / inventory-move/split/stack /
+  `buildDesignate` / tile-and-hub tag kinds stay in `ActionKinds` because
+  sim-runner planner helpers still switch on those strings. Do not rewrite
+  those helpers to finish the trim.
+- Leftover hub/practice defs and settlement exec helpers
+  (`src/defs/gamepieces/hub-structure-defs.js`,
+  `src/defs/gamepieces/settlement-practice-defs.js`,
+  `src/model/settlement-vassal-exec.js`,
+  `src/model/settlement-order-exec.js`,
+  `src/model/settlement-leadership.js`,
+  `src/model/settlement-upgrades.js`, and
+  `src/model/settlement-exec.js`) are non-extension points. File-top
+  comments mark them. `npm run check:architecture` rejects new
+  `src/model/` imports of those modules (tests excluded; current
+  importers allowlisted). Live site rules belong in
+  `detailed-settlements`; live pieces in `detailed-settlement-defs.js`;
+  Life Map rules in `vassal-life-map.js`.
 - `src/model/graph-metrics.js` owns live civilization/settlement series.
   Leftover Gold/Grain/AP and hub-vs-prototype food/population metrics live
   in `src/model/graph-metrics/legacy-metrics.js`. Gold remains the unscoped
