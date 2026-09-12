@@ -9,6 +9,8 @@ root in `src/views/ui-root-settlement-pixi.js`.
   - Publishes the narrow semantic/debug snapshot used by browser probes.
 - `settlement-graph-series-menu.js`
   - Owns the scope-specific timegraph series chooser.
+- `settlement-graph-groups.js`
+  - Chaos/Resources/Population group membership for the timegraph.
 - `settlement-navigation-state.js`
   - Pure navigation snapshot and run-complete feed helpers from explicit
     viewed/frontier/selection inputs.

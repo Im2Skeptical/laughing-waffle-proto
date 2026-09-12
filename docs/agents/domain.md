@@ -1,65 +1,30 @@
 # Domain Docs
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+How agents consume this repo's domain documentation.
 
-## Before exploring, read these
-
-Domain docs that actually exist in this repo:
+## Always read first
 
 - **`CONTEXT.md`** at the repo root: ubiquitous language glossary.
 - **`ai/ai-context.md`**: engine invariants and schema numbers.
-- Then only the relevant of **`ai/sim.md`**, **`ai/ui.md`**, or a section of
-  **`ai/repository-map.md`**.
 
-Generic skill layout also mentions:
+Then read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and**
+the matching section of **`ai/repository-map.md`**. After the map lands in a
+split folder, read that folder README before the orchestrator file.
 
-- **`CONTEXT-MAP.md`** at the repo root if it exists: it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+Routing skills live in `.grok/skills/`. Prefer those over loading a whole
+subsystem.
 
-This repo is single-context. Root `CONTEXT.md` exists. `CONTEXT-MAP.md` and
-`docs/adr/` do not. If any of those files don't exist, **proceed silently**.
-Don't flag their absence; don't suggest creating them upfront. The
-`/domain-modeling` skill (reached via `/grill-with-docs` and
-`/improve-codebase-architecture`) creates them lazily when terms or decisions
-actually get resolved.
+## Off-limits unless asked
 
-## File structure
+- **`ai/history/`**: historical decision records for an older prototype or a
+  completed effort. Not current routing, not task lists, and not sources of
+  schema numbers or file paths. Read only when the task is explicitly about a
+  past design decision.
 
-Single-context repo (this repo):
-
-```
-/
-├── CONTEXT.md
-├── ai/ai-context.md
-└── src/
-```
-
-`docs/adr/` is the conventional ADR location if one is created later. It is
-not present now.
-
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
-```
+This is a single-context repository. Root `CONTEXT.md` is the glossary.
+`docs/adr/` does not exist; do not assume ADRs are present.
 
 ## Use the glossary's vocabulary
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
-
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
+When your output names a domain concept, use the term as defined in
+`CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.

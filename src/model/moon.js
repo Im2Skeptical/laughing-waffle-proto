@@ -1,5 +1,5 @@
-// moon.js
-// Deterministic moon phase and AP cap helpers driven by tSec.
+// moon.js — leftover AP / waxing helpers on MOON_CYCLE_SEC.
+// Do not add new detailed-settlement phase rules here.
 
 import {
   MOON_CYCLE_SEC,

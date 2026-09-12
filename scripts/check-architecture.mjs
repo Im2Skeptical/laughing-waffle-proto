@@ -15,6 +15,10 @@ function displayPath(filePath) {
   return filePath.split(path.sep).join("/");
 }
 
+const SETTLEMENT_EXEC_IMPORT_ALLOWLIST = new Set([
+  "src/model/commands/debug-commands.js",
+]);
+
 const sourceFiles = await listJavaScriptFiles("src");
 const failures = [];
 
@@ -37,6 +41,14 @@ for (const filePath of sourceFiles) {
     if (/(?:^|\/)(?:views|controllers)(?:\/|$)/u.test(specifier)) {
       failures.push(
         `${normalizedPath} imports UI/controller layer ${specifier}`,
+      );
+    }
+    if (
+      /(?:^|\/)settlement-exec\.js$/u.test(specifier)
+      && !SETTLEMENT_EXEC_IMPORT_ALLOWLIST.has(normalizedPath)
+    ) {
+      failures.push(
+        `${normalizedPath} imports leftover settlement-exec.js; new site sim belongs in detailed-settlements`,
       );
     }
   }

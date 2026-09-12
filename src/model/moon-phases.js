@@ -1,3 +1,5 @@
+// Live detailed-settlement named phases (Birth/Food/Housing/Faith/Migration/Death).
+
 import {
   MOON_PHASE_COUNT,
   MOON_PHASE_DEFS,

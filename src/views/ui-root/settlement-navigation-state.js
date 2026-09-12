@@ -1,5 +1,7 @@
-import { getSettlementFirstSelectedVassal } from "../../model/settlement-state.js";
-import { getCurrentLifeMapVassal } from "../../model/vassal-life-map.js";
+import {
+  getCurrentLifeMapVassal,
+  getSettlementFirstSelectedVassal,
+} from "../../model/vassal-life-map.js";
 import { getRegionReference } from "../../model/world-state.js";
 import { getNavigationVassalPortrait } from "../settlement-navigation-pixi.js";
 

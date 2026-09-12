@@ -13,6 +13,9 @@ import {
   getVassalPhaseDurationParts,
   getCurrentLifeMapVassal,
   getLifeMapVassalAtSecond,
+  getSettlementCurrentVassal,
+  getSettlementFirstSelectedVassal,
+  getSettlementSelectedVassals,
   getVassalCandidatePool,
   getVassalDevelopmentIncome,
   getVassalLifeMapNodes,
@@ -43,6 +46,50 @@ assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 20)?.vassalId, "
   "the newest Vassal wins when selections share a timeline second");
 assert.equal(getLifeMapVassalAtSecond(historicalSelectionState, 30)?.vassalId, "v3",
   "the latest Vassal remains selected through a gap after their life");
+assert.equal(getCurrentLifeMapVassal(historicalSelectionState), null,
+  "id-only current reads ignore selected ids");
+assert.equal(getSettlementCurrentVassal(historicalSelectionState), null,
+  "live current reads do not fall back through selected ids when vassalsById exists");
+assert.deepEqual(
+  getSettlementSelectedVassals(historicalSelectionState).map((vassal) => vassal.vassalId),
+  ["v1", "v2", "v3"],
+);
+assert.equal(getSettlementFirstSelectedVassal(historicalSelectionState)?.vassalId, "v1");
+
+const liveObjectState = {
+  civilization: {
+    vassalLineage: {
+      currentVassal: { vassalId: "live" },
+      currentVassalId: "idOnly",
+      selectedVassals: [{ vassalId: "selectedObject" }],
+      selectedVassalIds: ["idOnly"],
+      vassalsById: { idOnly: { vassalId: "idOnly" } },
+    },
+  },
+};
+assert.equal(getCurrentLifeMapVassal(liveObjectState)?.vassalId, "idOnly");
+assert.equal(getSettlementCurrentVassal(liveObjectState)?.vassalId, "live");
+assert.equal(getSettlementFirstSelectedVassal(liveObjectState)?.vassalId, "selectedObject");
+
+const selectedIdFallbackState = {
+  civilization: {
+    vassalLineage: {
+      selectedVassalIds: ["v1", "v2"],
+      vassalsById: undefined,
+    },
+  },
+};
+assert.equal(getSettlementCurrentVassal(selectedIdFallbackState), null);
+
+const selectedArrayFallbackState = {
+  civilization: {
+    vassalLineage: {
+      selectedVassalIds: ["v1"],
+    },
+  },
+};
+assert.equal(getSettlementCurrentVassal(selectedArrayFallbackState), null);
+assert.deepEqual(getSettlementSelectedVassals(selectedArrayFallbackState), []);
 assert.equal(VASSAL_NODE_FAMILIES.development.label, "Development");
 
 const formulaState = selectedState(100);

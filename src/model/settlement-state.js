@@ -1,4 +1,5 @@
-// Legacy hub/settlement state and vassal-history selectors.
+// Legacy hub/settlement state. Current/selected vassal reads live in
+// vassal-life-map/selectors.js; this file still owns hub/history helpers.
 // On the serialization/replay path; retains pre-redesign substrate.
 // Do not add new detailed-settlement gameplay here.
 // New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
@@ -17,6 +18,10 @@ import {
 import { envTileDefs } from "../defs/gamepieces/env-tiles-defs.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
 import { getPrimaryDetailedSiteState } from "./world-state.js";
+import {
+  getSettlementCurrentVassal,
+  getSettlementSelectedVassals,
+} from "./vassal-life-map/selectors.js";
 
 const DEFAULT_ORDER_SLOT_COUNT = 1;
 const DEFAULT_PRACTICE_SLOT_COUNT = 5;
@@ -722,37 +727,6 @@ export function getSettlementYearStartSec(state, year) {
 
 export function getSettlementVassalLineageState(state) {
   return state?.civilization?.vassalLineage ?? null;
-}
-
-export function getSettlementCurrentVassal(state) {
-  const lineage = getSettlementVassalLineageState(state);
-  if (lineage?.currentVassal) return lineage.currentVassal;
-  const currentVassalId =
-    typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
-      ? lineage.currentVassalId
-      : null;
-  if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
-    return lineage.vassalsById[currentVassalId];
-  }
-  if (lineage?.vassalsById && typeof lineage.vassalsById === "object") return null;
-  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
-  for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
-    const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
-    if (fallback) return fallback;
-  }
-  return null;
-}
-
-export function getSettlementSelectedVassals(state) {
-  const lineage = getSettlementVassalLineageState(state);
-  if (Array.isArray(lineage?.selectedVassals)) return lineage.selectedVassals;
-  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
-  const byId = lineage?.vassalsById ?? {};
-  return selectedIds.map((vassalId) => byId?.[vassalId] ?? null).filter(Boolean);
-}
-
-export function getSettlementFirstSelectedVassal(state) {
-  return getSettlementSelectedVassals(state)[0] ?? null;
 }
 
 export function getSettlementLatestSelectedVassalEndSec(state) {

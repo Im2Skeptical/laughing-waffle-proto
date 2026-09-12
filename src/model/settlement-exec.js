@@ -1,5 +1,5 @@
 // Legacy settlement tick. On the serialization/replay path; retains pre-redesign substrate.
-// Do not add new detailed-settlement gameplay here.
+// stepSettlementSecond has no callers; do not add gameplay here.
 // New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
 // New Vassal Life Map rules belong in src/model/vassal-life-map.js.
 

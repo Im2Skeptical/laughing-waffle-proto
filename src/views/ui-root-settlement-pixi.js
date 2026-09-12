@@ -25,8 +25,6 @@ import {
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
 import {
   getSettlementClassIds,
-  getSettlementCurrentVassal,
-  getSettlementFirstSelectedVassal,
   getSettlementPracticeSlotsByClass,
   getSettlementSelectedVassalRealizedSegments,
   getSettlementStructureSlots,
@@ -34,6 +32,8 @@ import {
   getSettlementVassalElderEventSeconds,
 } from "../model/settlement-state.js";
 import {
+  getSettlementCurrentVassal,
+  getSettlementFirstSelectedVassal,
   getVassalNodeDecisionPresentation,
   getVassalPendingResolution,
 } from "../model/vassal-life-map.js";
