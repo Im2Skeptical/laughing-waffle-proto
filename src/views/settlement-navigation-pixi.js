@@ -124,6 +124,8 @@ export function createSettlementNavigationView({
   let state = null;
   let portraitKey = '';
   let lastPortraitTap = { id: null, atMs: -Infinity };
+  let portraitDownAtMs = -Infinity;
+  let scheduledLocate = 0;
   let feedbackRemaining = 0;
   let feedbackMode = null;
   let feedbackCount = 0;
@@ -179,17 +181,41 @@ export function createSettlementNavigationView({
   portrait.eventMode = 'static';
   portrait.cursor = 'pointer';
   portrait.hitArea = new PIXI.Circle(auxiliaryRadius, auxiliaryRadius, auxiliaryRadius);
-  portrait.on('pointerdown', (event) => event?.stopPropagation?.());
+  function cancelScheduledLocate() {
+    if (!scheduledLocate) return;
+    if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(scheduledLocate);
+    scheduledLocate = 0;
+  }
+  function scheduleLocate() {
+    cancelScheduledLocate();
+    if (typeof requestAnimationFrame === 'function') {
+      scheduledLocate = requestAnimationFrame(() => {
+        scheduledLocate = 0;
+        onLocateVassal?.();
+      });
+      return;
+    }
+    onLocateVassal?.();
+  }
+  portrait.on('pointerdown', (event) => {
+    event?.stopPropagation?.();
+    // Time the gap from this down, before pointertap locate/refresh work.
+    portraitDownAtMs = performance.now();
+  });
   portrait.on('pointertap', (event) => {
     event?.stopPropagation?.();
     tooltipView?.hide?.();
     const profile = getState?.()?.portrait;
     if (!profile) return;
-    const now = performance.now();
+    const now = portraitDownAtMs;
     const doubleTap = lastPortraitTap.id === profile.vassalId && now - lastPortraitTap.atMs <= DOUBLE_TAP_MS;
     lastPortraitTap = { id: doubleTap ? null : profile.vassalId, atMs: now };
-    if (doubleTap && profile.hasSettlement) onOpenVassalSettlement?.();
-    else onLocateVassal?.();
+    if (doubleTap && profile.hasSettlement) {
+      cancelScheduledLocate();
+      onOpenVassalSettlement?.();
+    } else {
+      scheduleLocate();
+    }
   });
   portrait.on('pointerover', () => {
     if (!state?.portrait) return;

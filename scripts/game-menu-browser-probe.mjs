@@ -5,15 +5,17 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
-const url = 'http://127.0.0.1:8082';
+const PORT = 18182;
+const url = `http://127.0.0.1:${PORT}`;
 const artifact = 'artifacts/game-menu-browser-probe.json';
 mkdirSync('artifacts', { recursive: true });
-const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js', '-l', '8082', '--no-clipboard', 'dist'],
+const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js', '-l', String(PORT), '--no-clipboard', 'dist'],
   { stdio: 'ignore', windowsHide: true });
 let browser;
 try {
   for (let i = 0; i < 100; i++) {
     try { if ((await fetch(url)).ok) break; } catch {}
+    if (i === 99) throw new Error(`Server unavailable at ${url}`);
     await delay(100);
   }
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);

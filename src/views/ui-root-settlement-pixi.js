@@ -552,6 +552,13 @@ function focusSettlementVassalLocation({ openSettlement = false } = {}) {
   const location = getSettlementNavigationState().location;
   if (!location || (openSettlement && !location.hasSettlement)) return;
   if (settlementVassalFlow.getPendingSelection()) closeSettlementVassalSelection();
+  // setVisible(true) rebuilds even when already shown; skip a no-op locate.
+  if (!openSettlement
+    && worldViewMode === "map"
+    && selectedWorldRegionId === location.regionId
+    && worldMapRegionSelectionActive === true) {
+    return;
+  }
   selectedWorldRegionId = location.regionId;
   setWorldViewMode(openSettlement ? "settlement" : "map");
   worldMapRegionSelectionActive = true;
