@@ -5,7 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
-const PORT = 8093;
+const PORT = 18093;
 const URL = `http://127.0.0.1:${PORT}`;
 const OUTPUT = 'artifacts/navigation';
 mkdirSync(OUTPUT, { recursive: true });
@@ -48,7 +48,11 @@ async function clickPoint(point, { touch = false, double = false } = {}) {
 }
 
 async function navigate(id, options) {
-  const point = await page.evaluate((id) => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint(id), id);
+  // Screen changes publish dock hit targets on the next view update.
+  const handle = await page.waitForFunction(
+    (id) => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint(id), id);
+  const point = await handle.jsonValue();
+  await handle.dispose();
   await clickPoint(point, options);
   if (id === 'present') await page.waitForFunction(() => {
     const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
