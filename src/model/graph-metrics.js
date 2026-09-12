@@ -1,22 +1,9 @@
 // src/model/graph-metrics.js
 // Metric definitions for time graphs.
 
-import { MOON_CYCLE_SEC, YOUTH_PER_FOOD } from "../defs/gamesettings/gamerules-defs.js";
-import { getTotalFoodFromEdibles, getTotalStackByTag } from "./query.js";
 import { getSettlementChaosGodSummary } from "./settlement-chaos.js";
-import {
-  getSettlementFaithGraphValue,
-  getSettlementFaithSummary,
-  getSettlementHappinessGraphValue,
-  getSettlementHappinessSummary,
-  getSettlementClassIds,
-  getSettlementFloodplainFoodTotal,
-  getSettlementPopulationSummary,
-  getSettlementStockpile,
-  getSettlementTotalFood,
-  isSettlementPrototypeEnabled,
-} from "./settlement-state.js";
-import { getPrimaryDetailedSiteState, getRegionDefinition } from "./world-state.js";
+import { getSettlementClassIds } from "./settlement-state.js";
+import { getRegionDefinition } from "./world-state.js";
 import {
   assignDetailedSettlementWorkers,
   getDetailedCivilizationSummary,
@@ -24,6 +11,21 @@ import {
   getDetailedSettlement,
   getPopulationSummary as getDetailedPopulationSummary,
 } from "./detailed-settlements.js";
+import { LEGACY_GRAPH_METRICS } from "./graph-metrics/legacy-metrics.js";
+import {
+  formatChaosReckoningValue,
+  formatClassLabel,
+  getChaosRawPressureTooltipSpec,
+  getChaosReckoningValue,
+  getChaosResistanceTooltipSpec,
+  getSettlementChaosPowerTooltipSpec,
+  getSettlementFaithTooltipSpec,
+  getSettlementFoodTooltipSpec,
+  getSettlementFreePopulationTooltipSpec,
+  getSettlementHappinessTooltipSpec,
+  getSettlementMonstersTooltipSpec,
+  getSettlementPopulationTooltipSpec,
+} from "./graph-metrics/tooltips.js";
 
 export const SETTLEMENT_RESOURCE_COLOURS = Object.freeze({
   totalPopulation: 0xd6c1ff,
@@ -81,9 +83,6 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementPopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
-    getValue: (state, classId) => getSettlementPopulationSummary(state, classId).total,
-    getValueFromSnapshot: (snapshot, classId) =>
-      getSettlementPopulationSummary(snapshot, classId).total,
     getLegendTooltipSpec: (state, classId) =>
       getSettlementPopulationTooltipSpec(state, classId),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
@@ -95,9 +94,6 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementFreePopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
-    getValue: (state, classId) => getSettlementPopulationSummary(state, classId).free,
-    getValueFromSnapshot: (snapshot, classId) =>
-      getSettlementPopulationSummary(snapshot, classId).free,
     getLegendTooltipSpec: (state, classId) =>
       getSettlementFreePopulationTooltipSpec(state, classId),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
@@ -110,9 +106,6 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleMode: "fixed",
     scaleMin: 0,
     scaleMax: 100,
-    getValue: (state, classId) => getSettlementFaithGraphValue(state, classId),
-    getValueFromSnapshot: (snapshot, classId) =>
-      getSettlementFaithGraphValue(snapshot, classId),
     getLegendTooltipSpec: (state, classId) =>
       getSettlementFaithTooltipSpec(state, classId),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
@@ -125,82 +118,12 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleMode: "fixed",
     scaleMin: 0,
     scaleMax: 100,
-    getValue: (state, classId) => getSettlementHappinessGraphValue(state, classId),
-    getValueFromSnapshot: (snapshot, classId) =>
-      getSettlementHappinessGraphValue(snapshot, classId),
     getLegendTooltipSpec: (state, classId) =>
       getSettlementHappinessTooltipSpec(state, classId),
     formatValue: (value) =>
       value >= 75 ? "Positive" : value <= 25 ? "Negative" : "Neutral",
   },
 ]);
-
-function capitalizeLabel(value) {
-  const text = typeof value === "string" ? value : "";
-  if (!text.length) return "None";
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function getSettlementFoodTooltipSpec(state) {
-  const population = getSettlementPopulationSummary(state);
-  const food = getSettlementTotalFood(state);
-  const storedFood = getSettlementStockpile(state, "food");
-  const fieldFood = getSettlementFloodplainFoodTotal(state);
-  const foodCapacity = Math.max(0, Math.floor(getPrimaryDetailedSiteState(state)?.hub?.core?.props?.foodCapacity ?? 0));
-  const youthPerFood = Number.isFinite(YOUTH_PER_FOOD) ? Math.max(1, Math.floor(YOUTH_PER_FOOD)) : 2;
-  const weightedDemand = population.adults + Math.ceil(population.youth / youthPerFood);
-  return {
-    title: "Food",
-    lines: [
-      `Current food: ${Math.floor(food)} (${Math.floor(storedFood)}/${foodCapacity} stored, ${Math.floor(fieldFood)} in fields).`,
-      `Each full moon consumes up to ${weightedDemand} food (${population.adults} adults + ${population.youth} youth, with 1 food per ${youthPerFood} youth and odd youth rounded up).`,
-      `Full moon cadence: every ${Math.max(1, Math.floor(MOON_CYCLE_SEC || 1))}s at the midpoint of the moon cycle.`,
-      "Meals consume stored hub food first, then field food from floodplains.",
-      "Spring rollovers resolve the last year's population and faith independently of moon meals.",
-    ],
-  };
-}
-
-function getSettlementRedTooltipSpec(state) {
-  const population = getSettlementPopulationSummary(state);
-  const red = getSettlementStockpile(state, "redResource");
-  const redCap = Math.max(0, population.total);
-  return {
-    title: "Red Resource",
-    lines: [
-      `Current stockpile: ${Math.floor(red)}/${redCap}`,
-      "Generated by Flood Rites and capped by total population.",
-    ],
-  };
-}
-
-function getSettlementChaosPowerTooltipSpec(state) {
-  const redGod = getSettlementChaosGodSummary(state, "redGod");
-  return {
-    title: "Chaos Power",
-    lines: [
-      `Current chaos power: ${Math.floor(redGod?.chaosPower ?? 0)}`,
-      `Next spawn in: ${Math.floor(redGod?.spawnCountdownSec ?? 0)}s`,
-      `Projected monsters on next spawn: ${Math.floor(redGod?.nextSpawnCount ?? 0)}`,
-    ],
-  };
-}
-
-function getSettlementMonstersTooltipSpec(state) {
-  const redGod = getSettlementChaosGodSummary(state, "redGod");
-  return {
-    title: "Monsters",
-    lines: [
-      `Current monsters: ${Math.floor(redGod?.monsterCount ?? 0)}/${Math.floor(redGod?.monsterWinCount ?? 100)}`,
-      `Spawn cadence: every ${Math.floor(redGod?.cadenceSec ?? 0)}s`,
-      "If monsters reach the win threshold, the run ends.",
-    ],
-  };
-}
-
-function formatClassLabel(classId) {
-  return capitalizeLabel(typeof classId === "string" ? classId : "villager");
-}
 
 function getSettlementMetricRegionId(subject = null) {
   if (typeof subject === "string" && subject.length > 0) return subject;
@@ -254,63 +177,6 @@ function getCivilizationGraphValueFromSummary(summary, seriesId) {
   if (!graphValues || typeof graphValues !== "object") return null;
   const value = graphValues[seriesId];
   return Number.isFinite(value) ? Number(value) : null;
-}
-
-function getSettlementPopulationTooltipSpec(state, classId = null) {
-  const population = getSettlementPopulationSummary(state, classId);
-  return {
-    title: `${classId ? `${formatClassLabel(classId)} ` : ""}Population`,
-    lines: [
-      `Total population: ${population.total}`,
-      `Adults: ${population.adults}`,
-      `Youth: ${population.youth}`,
-      `Reserved by structures/practices: ${population.reserved}`,
-      `Free population: ${population.free}`,
-    ],
-  };
-}
-
-function getSettlementFreePopulationTooltipSpec(state, classId = null) {
-  const population = getSettlementPopulationSummary(state, classId);
-  return {
-    title: `${classId ? `${formatClassLabel(classId)} ` : ""}Free Population`,
-    lines: [
-      `Free population: ${population.free}`,
-      `Structure staffing: ${population.staffed}`,
-      `Practice commitments: ${population.committed}`,
-    ],
-  };
-}
-
-function getSettlementFaithTooltipSpec(state, classId = null) {
-  const faith = getSettlementFaithSummary(state, classId);
-  const happiness = getSettlementHappinessSummary(state, classId);
-  return {
-    title: `${classId ? `${formatClassLabel(classId)} ` : ""}Faith`,
-    lines: [
-      `Current tier: ${capitalizeLabel(faith.tier)}`,
-      `Current happiness: ${capitalizeLabel(happiness.status)}`,
-      "At each spring rollover, positive happiness raises faith and negative happiness lowers it.",
-    ],
-  };
-}
-
-function getSettlementHappinessTooltipSpec(state, classId = null) {
-  const happiness = getSettlementHappinessSummary(state, classId);
-  const partialMemory =
-    happiness.partialFeedRatios.length > 0
-      ? happiness.partialFeedRatios.map((value) => `${Math.round(value * 100)}%`).join(" -> ")
-      : "None";
-  return {
-    title: `${classId ? `${formatClassLabel(classId)} ` : ""}Happiness`,
-    lines: [
-      `Current state: ${capitalizeLabel(happiness.status)}`,
-      `Full-feed streak: ${happiness.fullFeedStreak}/${happiness.fullFeedThreshold}`,
-      `Missed-feed streak: ${happiness.missedFeedStreak}/${happiness.missedFeedThreshold}`,
-      `Partial memory: ${partialMemory}`,
-      "Three full seasons set happiness to positive. Three consecutive misses trigger starvation, and further misses keep triggering it until the class gets at least a 50% feed. Partial ratios improve on 3 rising steps and worsen immediately on flat-or-lower steps.",
-    ],
-  };
 }
 
 function getSettlementGraphClassIds(state) {
@@ -375,38 +241,6 @@ function getSettlementClassMetricSeries(state) {
     });
   }
   return series;
-}
-
-function getChaosReckoningValue(state, key) {
-  const value = state?.civilization?.chaos?.lastMoonIncome?.[key];
-  return Number.isFinite(value) ? Number(value) : 0;
-}
-
-function formatChaosReckoningValue(value) {
-  if (!Number.isFinite(value)) return "0";
-  return Number(value.toFixed(4)).toString();
-}
-
-function getChaosRawPressureTooltipSpec(state) {
-  return {
-    title: "Raw Chaos Pressure",
-    lines: [
-      `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "rawPressure"))}`,
-      "Primordial pressure plus recorded civilization losses, before resistance.",
-      "Reckoned during Faith and held until the next Faith phase.",
-    ],
-  };
-}
-
-function getChaosResistanceTooltipSpec(state) {
-  return {
-    title: "Chaos Resistance",
-    lines: [
-      `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "resistance"))}`,
-      "Living population contributes resistance according to its Faith tier.",
-      "Resistance only reduces new incoming Chaos; it never removes accumulated Chaos.",
-    ],
-  };
 }
 
 function createCivilizationClassMetricSeries(classId, classIndex, metricDef) {
@@ -624,124 +458,7 @@ function getLocalCivilizationSeries() {
 }
 
 export const GRAPH_METRICS = {
-  gold: {
-    id: "gold",
-    label: "Gold",
-    series: [
-      {
-        id: "gold",
-        label: "Gold",
-        color: 0xffd966,
-        getValue: (state, _subject) => state?.resources?.gold ?? state?.gold ?? 0,
-        getValueFromSnapshot: (snapshot, _subject) =>
-          snapshot?.resources?.gold ?? snapshot?.gold ?? 0,
-        formatValue: (value) =>
-          Number.isFinite(value) ? value.toFixed(1) : "0.0",
-      },
-    ],
-  },
-  grain: {
-    id: "grain",
-    label: "Grain",
-    series: [
-      {
-        id: "grain",
-        label: "Grain",
-        color: 0xd3b562,
-        getValue: (state, _subject) => getTotalStackByTag(state, "grain"),
-        getValueFromSnapshot: (snapshot, _subject) =>
-          getTotalStackByTag(snapshot, "grain"),
-        formatValue: (value) =>
-          Number.isFinite(value) ? value.toFixed(1) : "0.0",
-      },
-    ],
-  },
-  food: {
-    id: "food",
-    label: "Food",
-    series: [
-      {
-        id: "food",
-        label: "Food",
-        color: SETTLEMENT_RESOURCE_COLOURS.food,
-        getValue: (state, _subject) => {
-          if (isSettlementPrototypeEnabled(state)) {
-            return getSettlementTotalFood(state);
-          }
-          const base = state?.resources?.food ?? 0;
-          const edible = getTotalFoodFromEdibles(state);
-          const baseSafe = Number.isFinite(base) ? base : 0;
-          const edibleSafe = Number.isFinite(edible) ? edible : 0;
-          return baseSafe + edibleSafe;
-        },
-        getValueFromSnapshot: (snapshot, _subject) => {
-          if (isSettlementPrototypeEnabled(snapshot)) {
-            return getSettlementTotalFood(snapshot);
-          }
-          const base = snapshot?.resources?.food ?? 0;
-          const edible = getTotalFoodFromEdibles(snapshot);
-          const baseSafe = Number.isFinite(base) ? base : 0;
-          const edibleSafe = Number.isFinite(edible) ? edible : 0;
-          return baseSafe + edibleSafe;
-        },
-        formatValue: (value) =>
-          Number.isFinite(value) ? value.toFixed(1) : "0.0",
-      },
-    ],
-  },
-  ap: {
-    id: "ap",
-    label: "AP",
-    series: [
-      {
-        id: "apCap",
-        label: "AP Cap",
-        color: 0xffaa66,
-        scaleGroupId: "ap",
-        scaleMode: "dynamic",
-        scaleMin: 0,
-        getValue: (state, _subject) => state?.actionPointCap ?? 0,
-        getValueFromSnapshot: (snapshot, _subject) =>
-          snapshot?.actionPointCap ?? 0,
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-      {
-        id: "ap",
-        label: "AP",
-        color: 0x66ccff,
-        scaleGroupId: "ap",
-        scaleMode: "dynamic",
-        scaleMin: 0,
-        getValue: (state, _subject) => state?.actionPoints ?? 0,
-        getValueFromSnapshot: (snapshot, _subject) =>
-          snapshot?.actionPoints ?? 0,
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-    ],
-  },
-  population: {
-    id: "population",
-    label: "Population",
-    series: [
-      {
-        id: "population",
-        label: "Population",
-        color: 0xb8a4ff,
-        getValue: (state, _subject) =>
-          isSettlementPrototypeEnabled(state)
-            ? getSettlementPopulationSummary(state).total
-            : state?.resources?.population ?? state?.population ?? 0,
-        getValueFromSnapshot: (snapshot, _subject) =>
-          isSettlementPrototypeEnabled(snapshot)
-            ? getSettlementPopulationSummary(snapshot).total
-            : snapshot?.resources?.population ?? snapshot?.population ?? 0,
-        formatValue: (value) =>
-          Number.isFinite(value) ? `${Math.floor(value)}` : "0",
-      },
-    ],
-  },
+  ...LEGACY_GRAPH_METRICS,
   settlement: {
     id: "settlement",
     label: "Local",

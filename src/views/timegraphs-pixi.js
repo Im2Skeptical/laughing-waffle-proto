@@ -18,10 +18,8 @@ import { installSolidUiHitArea } from "./ui-helpers/solid-ui-hit-area.js";
 import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
 import {
   blendColor,
-  clamp01,
   clampForecastScrubTargetSec,
   getSeriesValue,
-  lerpNumber,
   normalizeEventMarkers,
   normalizeHistoryZoneSegments,
   normalizeItemUnavailableZones,
@@ -32,17 +30,11 @@ import {
   FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
   FORECAST_REVEAL_PLOT_THROTTLE_MS,
   FORECAST_REVEAL_TARGET_DURATION_SEC,
-  GRAPH_BOOT_FADE_FRAME_MS,
   MAX_ACTION_MARKERS_DENSITY,
   MAX_PLOT_POINTS,
   PLOT_REFRESH_OVERSCAN_POINTS,
   PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
   PLOT_THROTTLE_MS,
-  PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS,
-  PROJECTION_REPLACEMENT_DIM_ALPHA,
-  PROJECTION_REPLACEMENT_DIM_LINE_ALPHA,
-  PROJECTION_REPLACEMENT_FLASH_ALPHA,
-  PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
   RESTORE_THROTTLE_MS,
   SERIES_SCALE_MAX_FLASH_DURATION_MS,
   TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
@@ -50,6 +42,24 @@ import {
   TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC,
   TIMEGRAPH_THEME,
 } from "./timegraphs/constants.js";
+import {
+  beginBootFadeTransition as applyBeginBootFadeTransition,
+  clearBootFadeTransition as applyClearBootFadeTransition,
+  createBootFadeState,
+  getBootFadeRenderState as readBootFadeRenderState,
+} from "./timegraphs/boot-fade-state.js";
+import {
+  activateProjectionReplacementTransition as applyActivateProjectionReplacement,
+  buildProjectionReplacementRenderState as readProjectionReplacementRenderState,
+  clearProjectionReplacementTransition as applyClearProjectionReplacement,
+  clearStagedProjectionReplacement,
+  createProjectionReplacementState,
+  getProjectionReplacementDebugState,
+  getProjectionReplacementMaxFloorSec as readProjectionReplacementMaxFloorSec,
+  getProjectionReplacementRenderKey as readProjectionReplacementRenderKey,
+  getProjectionReplacementScaleRanges as readProjectionReplacementScaleRanges,
+  stageProjectionReplacementTransition as applyStageProjectionReplacement,
+} from "./timegraphs/projection-replacement-state.js";
 import {
   getSeriesLegendTitle,
   makeLegendSignature,
@@ -80,6 +90,23 @@ import {
   computeSeriesScaleRangesForReveal as computeSeriesScaleRangesForRevealRange,
   computeVisibleSeriesMaxValues,
 } from "./timegraphs/scale.js";
+import {
+  applyRunScaleHighWaterRanges as mergeRunScaleHighWaterRanges,
+  createScaleHighWaterState,
+  syncScaleHighWaterTimeline as applySyncScaleHighWaterTimeline,
+} from "./timegraphs/scale-high-water.js";
+import {
+  buildPlotSnapshotKey,
+  createPlotSnapshotCache,
+  invalidatePlotSnapshot as clearPlotSnapshotCache,
+  isPlotSnapshotCacheHit,
+  isPreviousPlotSnapshotCompatible,
+  quantizePlotSnapshotMaxSec,
+  quantizePlotSnapshotMinSec,
+  resolvePlotSnapshotStablePrefixEndSec,
+  resolvePlotSnapshotTargetMaxSec as resolvePlotSnapshotCacheTargetMaxSec,
+  storePlotSnapshot,
+} from "./timegraphs/plot-snapshot-cache.js";
 import {
   clearForecastRevealStartOverride,
   createForecastRevealState,
@@ -202,12 +229,15 @@ export function createMetricGraphView({
     0,
     Number(bootRevealDelayMs ?? bootFadeDurationMsCur)
   );
+  const bootFade = createBootFadeState({
+    durationMs: bootFadeDurationMsCur,
+    color: bootFadeColorCur,
+  });
   let metricDef = GRAPH_METRICS.gold;
   let series = GRAPH_METRICS.gold.series;
   // View-only comparison ceilings: rendering must not affect simulation,
   // serialization, or authoritative replay.
-  let scaleHighWaterTimeline = null;
-  const scaleHighWaterMaxByGroupId = new Map();
+  const scaleHighWater = createScaleHighWaterState();
   let windowSpecResolver =
     typeof getWindowSpec === "function" ? getWindowSpec : null;
   let commitPolicyResolver =
@@ -249,9 +279,7 @@ export function createMetricGraphView({
   resolveMetric();
 
   function syncScaleHighWaterTimeline(timeline) {
-    if (scaleHighWaterTimeline === timeline) return;
-    scaleHighWaterTimeline = timeline ?? null;
-    scaleHighWaterMaxByGroupId.clear();
+    applySyncScaleHighWaterTimeline(scaleHighWater, timeline);
   }
 
   function applyRunScaleHighWaterRanges(
@@ -259,30 +287,16 @@ export function createMetricGraphView({
     seriesList = [],
     subjectKey = null
   ) {
-    if (!(nextRanges instanceof Map)) return nextRanges;
-    const merged = new Map(nextRanges);
-    for (const seriesDef of Array.isArray(seriesList) ? seriesList : []) {
-      const seriesId = String(seriesDef?.id ?? "");
-      const range = merged.get(seriesId);
-      if (!seriesId || !range || range.scaleMode === "fixed") continue;
-      const groupId = `${String(subjectKey ?? "__global__")}:${String(
-        range.groupId ?? seriesId
-      )}`;
-      const maxValue = Number.isFinite(range.maxValue) ? range.maxValue : null;
-      const seenMax = scaleHighWaterMaxByGroupId.get(groupId);
-      const highWater = Number.isFinite(seenMax)
-        ? Number.isFinite(maxValue) ? Math.max(seenMax, maxValue) : seenMax
-        : maxValue;
-      if (!Number.isFinite(highWater)) continue;
-      scaleHighWaterMaxByGroupId.set(groupId, highWater);
-      merged.set(seriesId, { ...range, maxValue: highWater });
-    }
-    return merged;
+    return mergeRunScaleHighWaterRanges(
+      scaleHighWater,
+      nextRanges,
+      seriesList,
+      subjectKey
+    );
   }
 
   function getProjectionReplacementScaleRanges() {
-    const ranges = projectionReplacement?.snapshot?.seriesScaleRanges;
-    return ranges instanceof Map ? ranges : null;
+    return readProjectionReplacementScaleRanges(projectionReplacement);
   }
 
   function computeSeriesScaleRangesForReveal(
@@ -475,26 +489,19 @@ export function createMetricGraphView({
   const legendEntriesBySeriesId = new Map();
   const seriesScaleMaxFlashBySeriesId = new Map();
   let presentationSuspended = false;
-  let plotSnapshotKey = "";
-  let plotSnapshot = null;
+  const plotSnapshotCache = createPlotSnapshotCache();
   let animatedMinSec = null;
   let animatedMaxSec = null;
   let animatedBoundsLastTickMs = 0;
-  let plotSnapshotTargetMaxSec = null;
-  let stagedProjectionReplacement = null;
-  let projectionReplacement = null;
-  let bootFadeTransition = null;
+  const projectionReplacement = createProjectionReplacementState();
   let hoveredEventMarkerKey = null;
 
   function invalidatePlotSnapshot() {
-    plotSnapshotKey = "";
-    plotSnapshot = null;
-    plotSnapshotTargetMaxSec = null;
+    clearPlotSnapshotCache(plotSnapshotCache);
   }
 
   function clearProjectionReplacementTransition() {
-    stagedProjectionReplacement = null;
-    projectionReplacement = null;
+    applyClearProjectionReplacement(projectionReplacement);
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
   }
@@ -522,174 +529,31 @@ export function createMetricGraphView({
   }
 
   function beginBootFadeTransition(nowMs = performance.now()) {
-    bootFadeTransition =
-      bootFadeDurationMsCur > 0
-        ? {
-            startedMs: nowMs,
-            durationMs: bootFadeDurationMsCur,
-            color: bootFadeColorCur,
-          }
-        : null;
+    applyBeginBootFadeTransition(bootFade, nowMs);
   }
 
   function clearBootFadeTransition() {
-    bootFadeTransition = null;
+    applyClearBootFadeTransition(bootFade);
   }
 
   function getBootFadeRenderState(nowMs) {
-    const transition = bootFadeTransition;
-    if (!transition) return null;
-    const durationMs = Math.max(0, Number(transition.durationMs ?? 0));
-    if (durationMs <= 0) {
-      bootFadeTransition = null;
-      return null;
-    }
-    const elapsedMs = Math.max(
-      0,
-      nowMs - Math.max(0, Number(transition.startedMs ?? nowMs))
-    );
-    const progress = clamp01(elapsedMs / durationMs);
-    const alpha = Math.max(0, 1 - progress);
-    if (alpha <= 0.001) {
-      bootFadeTransition = null;
-      return null;
-    }
-    return {
-      color: Number.isFinite(transition.color) ? transition.color : bootFadeColorCur,
-      alpha,
-      key: Math.floor(elapsedMs / GRAPH_BOOT_FADE_FRAME_MS),
-    };
+    return readBootFadeRenderState(bootFade, nowMs);
   }
 
   function getProjectionReplacementMaxFloorSec() {
-    return Number.isFinite(projectionReplacement?.maxSecFloor)
-      ? Math.max(0, Math.floor(projectionReplacement.maxSecFloor))
-      : null;
+    return readProjectionReplacementMaxFloorSec(projectionReplacement);
   }
 
   function buildProjectionReplacementRenderState(nowMs, lineDrawEndSec) {
-    const overlay = projectionReplacement;
-    if (!overlay) return null;
-    const fadeStrength = clamp01(overlay.fadeStrength ?? 1);
-    const truncationStartSec = Math.max(
-      0,
-      Math.floor(overlay.truncationStartSec ?? 0)
+    return readProjectionReplacementRenderState(
+      projectionReplacement,
+      nowMs,
+      lineDrawEndSec
     );
-    const maxSecFloor = Math.max(
-      truncationStartSec + 1,
-      Math.floor(overlay.maxSecFloor ?? truncationStartSec + 1)
-    );
-    const activeStartSec = Math.max(
-      truncationStartSec,
-      Math.floor(lineDrawEndSec ?? truncationStartSec)
-    );
-    if (activeStartSec >= maxSecFloor) {
-      projectionReplacement = null;
-      return null;
-    }
-    const transitionDurationMs = Math.max(
-      0,
-      Number(overlay.transitionDurationMs ?? 0)
-    );
-    const flashDurationMs = Math.max(
-      0,
-      Math.min(
-        transitionDurationMs,
-        Number(overlay.flashDurationMs ?? transitionDurationMs)
-      )
-    );
-    const elapsedMs = Math.max(
-      0,
-      nowMs - Math.max(0, Number(overlay.startedMs ?? nowMs))
-    );
-    const flashProgress = flashDurationMs > 0 ? clamp01(elapsedMs / flashDurationMs) : 1;
-    const fadeDurationMs = Math.max(0, transitionDurationMs - flashDurationMs);
-    const fadeProgress =
-      elapsedMs <= flashDurationMs
-        ? 0
-        : fadeDurationMs > 0
-          ? clamp01((elapsedMs - flashDurationMs) / fadeDurationMs)
-          : 1;
-    const settled = elapsedMs >= transitionDurationMs;
-    const tintColor = settled
-      ? TIMEGRAPH_THEME.panelBorder
-      : elapsedMs < flashDurationMs
-        ? TIMEGRAPH_THEME.eventMarkerCritical
-        : blendColor(
-            TIMEGRAPH_THEME.eventMarkerCritical,
-            TIMEGRAPH_THEME.panelBorder,
-            fadeProgress
-          );
-    const zoneColor = settled
-      ? TIMEGRAPH_THEME.panelBorder
-      : blendColor(
-          TIMEGRAPH_THEME.eventMarkerCritical,
-          TIMEGRAPH_THEME.panelBodyBg,
-          elapsedMs < flashDurationMs ? flashProgress * 0.35 : 0.55 + fadeProgress * 0.45
-        );
-    const zoneAlpha = settled
-      ? PROJECTION_REPLACEMENT_DIM_ALPHA
-      : lerpNumber(
-          PROJECTION_REPLACEMENT_FLASH_ALPHA,
-          PROJECTION_REPLACEMENT_DIM_ALPHA,
-          elapsedMs < flashDurationMs ? 0 : fadeProgress
-        );
-    const lineAlpha = settled
-      ? lerpNumber(1, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA, fadeStrength)
-      : lerpNumber(
-          PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
-          lerpNumber(1, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA, fadeStrength),
-          elapsedMs < flashDurationMs ? 0 : fadeProgress
-        );
-    const settledZoneAlpha = lerpNumber(
-      0,
-      PROJECTION_REPLACEMENT_DIM_ALPHA,
-      fadeStrength
-    );
-    const tintStrength = settled
-      ? lerpNumber(0, 0.88, fadeStrength)
-      : lerpNumber(
-          0.74,
-          lerpNumber(0, 0.88, fadeStrength),
-          fadeProgress
-        );
-    return {
-      snapshot: overlay.snapshot,
-      unchangedStartSec: Math.floor(lineDrawEndSec ?? truncationStartSec),
-      unchangedEndSec: Math.min(truncationStartSec, maxSecFloor),
-      drawStartSec: activeStartSec,
-      drawEndSec: maxSecFloor,
-      maxSecFloor,
-      zoneColor,
-      zoneAlpha: settled ? settledZoneAlpha : zoneAlpha,
-      tintColor,
-      tintStrength,
-      lineAlpha,
-      settled,
-      transitionAnimating: elapsedMs < transitionDurationMs,
-    };
   }
 
   function getProjectionReplacementRenderKey(nowMs) {
-    const overlay = projectionReplacement;
-    if (!overlay) return "";
-    const transitionDurationMs = Math.max(
-      0,
-      Number(overlay.transitionDurationMs ?? 0)
-    );
-    const elapsedMs = Math.max(
-      0,
-      nowMs - Math.max(0, Number(overlay.startedMs ?? nowMs))
-    );
-    if (elapsedMs >= transitionDurationMs) {
-      return "";
-    }
-    const phaseBucket = Math.floor(
-      elapsedMs / PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS
-    );
-    return `${Math.floor(overlay.truncationStartSec ?? 0)}:${Math.floor(
-      overlay.maxSecFloor ?? 0
-    )}:${phaseBucket}`;
+    return readProjectionReplacementRenderKey(projectionReplacement, nowMs);
   }
 
   function stageProjectionReplacementTransition({
@@ -699,56 +563,25 @@ export function createMetricGraphView({
     flashDurationMs = 0,
     fadeStrength = 1,
   } = {}) {
-    const snapshot = plotSnapshot ?? getPlotSnapshot();
-    const points = Array.isArray(snapshot?.pointsForDraw) ? snapshot.pointsForDraw : [];
-    if (!points.length) {
-      stagedProjectionReplacement = null;
-      return false;
-    }
-    const normalizedTruncationStartSec = Math.max(
-      0,
-      Math.floor(
-        truncationStartSec ??
-          snapshot?.displayHistoryEndSec ??
-          snapshot?.historyEndSec ??
-          0
-      )
-    );
-    const normalizedMaxSecFloor = Math.max(
-      normalizedTruncationStartSec + 1,
-      Math.floor(maxSecFloor ?? maxSec ?? normalizedTruncationStartSec + 1)
-    );
-    stagedProjectionReplacement = {
+    const snapshot = plotSnapshotCache.snapshot ?? getPlotSnapshot();
+    return applyStageProjectionReplacement(projectionReplacement, {
       snapshot,
-      truncationStartSec: normalizedTruncationStartSec,
-      maxSecFloor: normalizedMaxSecFloor,
-      transitionDurationMs: Math.max(0, Number(transitionDurationMs ?? 0)),
-      flashDurationMs: Math.max(0, Number(flashDurationMs ?? 0)),
-      fadeStrength: clamp01(fadeStrength),
-    };
-    return true;
+      truncationStartSec,
+      maxSecFloor,
+      fallbackMaxSec: maxSec,
+      transitionDurationMs,
+      flashDurationMs,
+      fadeStrength,
+    });
   }
 
   function resolvePlotSnapshotTargetMaxSec(rawTargetMaxSec, snapshotMinSec) {
-    const minimumTargetMaxSec = Math.max(
-      snapshotMinSec + 1,
-      Math.floor(rawTargetMaxSec ?? snapshotMinSec + 1)
+    return resolvePlotSnapshotCacheTargetMaxSec(
+      plotSnapshotCache,
+      rawTargetMaxSec,
+      snapshotMinSec,
+      plotSnapshotLeadSecCur
     );
-    if (plotSnapshotLeadSecCur <= 0) {
-      return minimumTargetMaxSec;
-    }
-    const currentTargetMaxSec = Number.isFinite(plotSnapshotTargetMaxSec)
-      ? Math.max(snapshotMinSec + 1, Math.floor(plotSnapshotTargetMaxSec))
-      : null;
-    const shouldResetTarget =
-      currentTargetMaxSec == null ||
-      minimumTargetMaxSec > currentTargetMaxSec ||
-      minimumTargetMaxSec < currentTargetMaxSec - plotSnapshotLeadSecCur;
-    if (shouldResetTarget) {
-      plotSnapshotTargetMaxSec =
-        minimumTargetMaxSec + plotSnapshotLeadSecCur;
-    }
-    return Math.max(minimumTargetMaxSec, Math.floor(plotSnapshotTargetMaxSec));
   }
 
   function getDisplayHistoryEndSec(actualHistoryEndSec) {
@@ -1003,20 +836,7 @@ export function createMetricGraphView({
       Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
     );
     const nowMs = performance.now();
-    if (opts?.activateProjectionReplacementTransition === true) {
-      projectionReplacement = stagedProjectionReplacement
-        ? {
-            ...stagedProjectionReplacement,
-            startedMs: nowMs,
-          }
-        : null;
-      stagedProjectionReplacement = null;
-    } else {
-      stagedProjectionReplacement = null;
-      if (opts?.clearProjectionReplacementTransition === true) {
-        projectionReplacement = null;
-      }
-    }
+    applyActivateProjectionReplacement(projectionReplacement, nowMs, opts);
     restartForecastRevealState(reveal, startSec, opts, {
       actualHistoryEndSec,
       actualForecastCoverageEndSec,
@@ -1029,7 +849,7 @@ export function createMetricGraphView({
   }
 
   function clearForecastRevealRestart() {
-    stagedProjectionReplacement = null;
+    clearStagedProjectionReplacement(projectionReplacement);
     if (!clearForecastRevealStartOverride(reveal)) return;
     invalidatePlotSnapshot();
     lastPlotVersion = -1;
@@ -1507,22 +1327,27 @@ export function createMetricGraphView({
     const snapshotTargetMaxSecRaw = plotSnapshotCoverForecastCur
       ? Math.max(maxSec, actualForecastCoverageEndSec)
       : maxSec;
-    const snapshotMinSec =
-      Math.floor(Math.max(0, minSec) / snapshotBoundsQuantumSec) *
-      snapshotBoundsQuantumSec;
+    const snapshotMinSec = quantizePlotSnapshotMinSec(
+      minSec,
+      snapshotBoundsQuantumSec
+    );
     const snapshotTargetMaxSec = resolvePlotSnapshotTargetMaxSec(
       snapshotTargetMaxSecRaw,
       snapshotMinSec
     );
-    const snapshotMaxSec =
-      Math.ceil(
-        Math.max(snapshotMinSec + 1, snapshotTargetMaxSec) /
-          snapshotBoundsQuantumSec
-      ) *
-      snapshotBoundsQuantumSec;
-    const snapshotKey = `${cacheVersion}|${snapshotMinSec}:${snapshotMaxSec}|${displayHistoryEndSec}|${zoomed ? 1 : 0}|${
-      sampleCursorSec == null ? "stable" : sampleCursorSec
-    }`;
+    const snapshotMaxSec = quantizePlotSnapshotMaxSec(
+      snapshotMinSec,
+      snapshotTargetMaxSec,
+      snapshotBoundsQuantumSec
+    );
+    const snapshotKey = buildPlotSnapshotKey({
+      cacheVersion,
+      snapshotMinSec,
+      snapshotMaxSec,
+      displayHistoryEndSec,
+      zoomed,
+      sampleCursorSec,
+    });
     const editableBounds = getEditableHistoryBounds?.();
     const visibleForecastCoverageEndSec = getVisibleForecastCoverageEndSec(
       actualForecastCoverageEndSec,
@@ -1720,24 +1545,20 @@ export function createMetricGraphView({
       };
     }
 
-    if (plotSnapshot && plotSnapshotKey === snapshotKey) {
-      const stablePrefixEndSec =
-        freezeRevealedPlotPrefixCur &&
-        Number.isFinite(plotSnapshot?.visibleForecastCoverageEndSec)
-          ? Math.min(
-              maxSec,
-              Math.max(
-                displayHistoryEndSec,
-                Math.floor(plotSnapshot.visibleForecastCoverageEndSec)
-              )
-            )
-          : null;
+    if (isPlotSnapshotCacheHit(plotSnapshotCache, snapshotKey)) {
+      const stablePrefixEndSec = freezeRevealedPlotPrefixCur
+        ? resolvePlotSnapshotStablePrefixEndSec(
+            plotSnapshotCache.snapshot,
+            maxSec,
+            displayHistoryEndSec
+          )
+        : null;
       const refreshedForecastState = refreshPlotSnapshotForecastState(
-        plotSnapshot,
+        plotSnapshotCache.snapshot,
         { stablePrefixEndSec }
       );
-      plotSnapshot = {
-        ...plotSnapshot,
+      plotSnapshotCache.snapshot = {
+        ...plotSnapshotCache.snapshot,
         data,
         tl,
         cs,
@@ -1750,7 +1571,7 @@ export function createMetricGraphView({
         seriesValues: refreshedForecastState.seriesValues,
         seriesScaleRanges: refreshedForecastState.seriesScaleRanges,
       };
-      return buildDynamicSnapshotParts(plotSnapshot);
+      return buildDynamicSnapshotParts(plotSnapshotCache.snapshot);
     }
 
     const sampleRes = controller.getSamplesForWindow?.({
@@ -1810,30 +1631,28 @@ export function createMetricGraphView({
         if (arr) arr[i] = value;
       }
     }
-    const previousSnapshotCompatible =
-      freezeRevealedPlotPrefixCur &&
-      plotSnapshot &&
-      Number(plotSnapshot?.data?.cacheVersion ?? -1) === cacheVersion &&
-      Math.floor(plotSnapshot?.snapshotMinSec ?? -1) === snapshotMinSec &&
-      Math.floor(plotSnapshot?.displayHistoryEndSec ?? -1) === displayHistoryEndSec &&
-      Math.floor(plotSnapshot?.zoomed ? 1 : 0) === (zoomed ? 1 : 0) &&
-      Math.floor(plotSnapshot?.sampleCursorSec ?? -1) ===
-        Math.floor(sampleCursorSec ?? -1);
-    const previousStablePrefixEndSec =
-      previousSnapshotCompatible &&
-      Number.isFinite(plotSnapshot?.visibleForecastCoverageEndSec)
-        ? Math.min(
-            maxSec,
-            Math.max(
-              displayHistoryEndSec,
-              Math.floor(plotSnapshot.visibleForecastCoverageEndSec)
-            )
-          )
-        : null;
+    const previousSnapshotCompatible = isPreviousPlotSnapshotCompatible(
+      plotSnapshotCache.snapshot,
+      {
+        freezeRevealedPlotPrefix: freezeRevealedPlotPrefixCur,
+        cacheVersion,
+        snapshotMinSec,
+        displayHistoryEndSec,
+        zoomed,
+        sampleCursorSec,
+      }
+    );
+    const previousStablePrefixEndSec = previousSnapshotCompatible
+      ? resolvePlotSnapshotStablePrefixEndSec(
+          plotSnapshotCache.snapshot,
+          maxSec,
+          displayHistoryEndSec
+        )
+      : null;
     if (
       previousStablePrefixEndSec != null &&
-      Array.isArray(plotSnapshot?.pointsForDraw) &&
-      plotSnapshot.pointsForDraw.length
+      Array.isArray(plotSnapshotCache.snapshot?.pointsForDraw) &&
+      plotSnapshotCache.snapshot.pointsForDraw.length
     ) {
       const mergedPoints = [];
       const mergedSeriesValues = new Map();
@@ -1848,14 +1667,14 @@ export function createMetricGraphView({
           arr.push(Array.isArray(sourceArr) ? sourceArr[index] ?? null : null);
         }
       };
-      const previousPoints = Array.isArray(plotSnapshot?.pointsForDraw)
-        ? plotSnapshot.pointsForDraw
+      const previousPoints = Array.isArray(plotSnapshotCache.snapshot?.pointsForDraw)
+        ? plotSnapshotCache.snapshot.pointsForDraw
         : [];
       for (let i = 0; i < previousPoints.length; i++) {
         const point = previousPoints[i];
         const t = Math.max(0, Math.floor(point?.tSec ?? 0));
         if (t > previousStablePrefixEndSec) break;
-        appendPoint(point, plotSnapshot?.seriesValues, i);
+        appendPoint(point, plotSnapshotCache.snapshot?.seriesValues, i);
       }
       for (let i = 0; i < pointsForDraw.length; i++) {
         const point = pointsForDraw[i];
@@ -1885,12 +1704,12 @@ export function createMetricGraphView({
         seriesScaleRanges,
         seriesList,
         [
-          plotSnapshot?.seriesScaleRanges,
+          plotSnapshotCache.snapshot?.seriesScaleRanges,
           getProjectionReplacementScaleRanges(),
         ]
       );
       triggerSeriesScaleMaxFlash({
-        previousRanges: plotSnapshot?.seriesScaleRanges,
+        previousRanges: plotSnapshotCache.snapshot?.seriesScaleRanges,
         nextRanges: seriesScaleRanges,
         visibleMaxValues,
       });
@@ -1914,8 +1733,7 @@ export function createMetricGraphView({
     );
     const markerSecs = getMarkerSeconds(markerActionSecs);
 
-    plotSnapshotKey = snapshotKey;
-    plotSnapshot = {
+    storePlotSnapshot(plotSnapshotCache, snapshotKey, {
       data,
       tl,
       cs,
@@ -1933,8 +1751,8 @@ export function createMetricGraphView({
       sampleCursorSec,
       zoomed,
       markerSecs,
-    };
-    return buildDynamicSnapshotParts(plotSnapshot);
+    });
+    return buildDynamicSnapshotParts(plotSnapshotCache.snapshot);
   }
 
   function drawPlot() {
@@ -2489,19 +2307,9 @@ export function createMetricGraphView({
       forecastRevealPreviewSec: Number.isFinite(reveal.previewSec)
         ? Math.max(0, Math.floor(reveal.previewSec))
         : null,
-      projectionReplacement: projectionReplacement
-        ? {
-            active: true,
-            truncationStartSec: Math.max(
-              0,
-              Math.floor(projectionReplacement.truncationStartSec ?? 0)
-            ),
-            maxSecFloor: Number.isFinite(projectionReplacement.maxSecFloor)
-              ? Math.max(0, Math.floor(projectionReplacement.maxSecFloor))
-              : null,
-            hasSnapshot: !!projectionReplacement.snapshot,
-          }
-        : null,
+      projectionReplacement: getProjectionReplacementDebugState(
+        projectionReplacement
+      ),
       historyZones: Array.isArray(snapshot?.historyZones)
         ? snapshot.historyZones.map((zone) => ({
             kind: zone.kind,

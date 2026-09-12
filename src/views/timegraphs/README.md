@@ -6,9 +6,10 @@ exports `createMetricGraphView`, `createGoldGraphView`, and the existing helper
 re-exports from `src/views/timegraphs-helpers.js`.
 
 This split is mechanical. PIXI construction, pointer handlers, snapshot
-sampling, and the frame loop stay in the orchestrator. Reveal cadence, playhead
-follow, and scrub session math live in the modules below as explicit state
-objects plus pure updates.
+sampling I/O, and the frame loop stay in the orchestrator. Reveal cadence,
+playhead follow, scrub session math, snapshot-cache keys, run-scoped scale
+high-water, boot-fade, and projection-replacement state live in the modules
+below as explicit state objects plus pure updates.
 
 ## Extracted modules
 
@@ -19,6 +20,16 @@ objects plus pure updates.
 - `scale.js`
   - Pure sticky-scale merge, visible-range value clipping, and scale-range
     helpers. The freeze-during-reveal flag is now an explicit argument.
+- `scale-high-water.js`
+  - Run-scoped comparison ceilings keyed by timeline identity, subject, and
+    series group. Functions take the state object plus explicit args.
+  - No PIXI. Reset is object-identity of the timeline, not value equality.
+- `plot-snapshot-cache.js`
+  - Snapshot cache key, bounds quantization, lead-window target max, cache
+    hit/store/invalidate, previous-snapshot compatibility, and stable-prefix
+    end. Functions take the cache object plus explicit args.
+  - No PIXI. `getPlotSnapshot` sampling I/O stays in the orchestrator because
+    it closes over the controller.
 - `plot-math.js`
   - Grid step, time/value mapping, action-marker sampling, and action snap.
 - `plot-draw.js`
@@ -37,24 +48,25 @@ objects plus pure updates.
   - Scrubbing flag, pointer-local-x to seconds, latched forecast preview, and
     clamp-to-reveal-cap. Functions take the session object plus explicit args.
   - No PIXI. Commit / `getStateAt` / `drawScrub` stay in the orchestrator.
+- `boot-fade-state.js`
+  - Boot overlay duration, color, start time, and fade alpha/key. Functions
+    take the state object plus explicit args.
+  - No PIXI. `drawBootFadeOverlay` stays in `plot-draw.js`.
+- `projection-replacement-state.js`
+  - Staged/active overlay, truncation floor, flash/fade numbers, render key,
+    and debug snapshot. Functions take the state object plus explicit args.
+  - No PIXI. Snapshot sampling for `stageProjectionReplacementTransition`
+    stays in the orchestrator because it closes over the plot cache. Overlay
+    ink stays in `drawPlot`.
 
 ## Remaining inner-function map (`createMetricGraphView`)
 
 Stateful orchestrator work that was not extracted:
 
 - Metric/series resolution: `resolveMetric`, `getActiveSeries`, `getMetricLabel`
-- Run-scoped scale high-water: `syncScaleHighWaterTimeline`,
-  `applyRunScaleHighWaterRanges`, `getProjectionReplacementScaleRanges`,
-  `triggerSeriesScaleMaxFlash`
-- Snapshot cache and sampling: `invalidatePlotSnapshot`, `getPlotSnapshot`,
-  `buildDynamicSnapshotParts`, `refreshPlotSnapshotForecastState`,
-  `resolvePlotSnapshotTargetMaxSec`
-- Boot fade ownership: `beginBootFadeTransition`, `clearBootFadeTransition`,
-  `getBootFadeRenderState`
-- Projection replacement state machine: `clearProjectionReplacementTransition`,
-  `getProjectionReplacementMaxFloorSec`,
-  `buildProjectionReplacementRenderState`, `getProjectionReplacementRenderKey`,
-  `stageProjectionReplacementTransition`
+- Scale-flash: `triggerSeriesScaleMaxFlash`
+- Snapshot sampling I/O: `getPlotSnapshot`, `buildDynamicSnapshotParts`,
+  `refreshPlotSnapshotForecastState`
 - Time-window animation: `setTimeBounds`, `animateBoundToward`,
   `resetAnimatedTimeBounds`
 - Reveal/scrub I/O wrappers: `getVisibleForecastScrubCapSec`,
@@ -62,7 +74,7 @@ Stateful orchestrator work that was not extracted:
   `setPreviewState`), `tryRestoreLatchedForecastPreview`,
   `updateScrubFromPointer` (PIXI `toLocal` + action snap),
   `applyPreviewThrottled`, `endScrub` (commit / policy / draw),
-  `restartForecastRevealFrom` (projection-replacement activation)
+  `restartForecastRevealFrom` (timeline/controller I/O)
 - Action-second caches: `getActionSecs`, `getMarkerActionSecs`
 - Window chrome / legend wiring: `drawLegend`, `setLegendPage`,
   `updateHeaderButtons`, `drawWindow`, tooltip/hover handlers
@@ -75,14 +87,27 @@ Thin adapters in the orchestrator (`timeToX`, `applyActionSnap`,
 `getForecastRevealFollowTargetEndSec`, `getRenderedHistoryEndSec`,
 `getAnimatedForecastCoverageEndSec`, `syncForecastRevealTarget`,
 `resetForecastReveal`, `pauseForecastReveal`,
-`suspendForecastRevealPlayheadFollow`, `setForecastRevealConfig`) only pass
-explicit arguments through to the extracted helpers.
+`suspendForecastRevealPlayheadFollow`, `setForecastRevealConfig`,
+`syncScaleHighWaterTimeline`, `applyRunScaleHighWaterRanges`,
+`invalidatePlotSnapshot`, `resolvePlotSnapshotTargetMaxSec`,
+`beginBootFadeTransition`, `clearBootFadeTransition`,
+`getBootFadeRenderState`, `getProjectionReplacementScaleRanges`,
+`clearProjectionReplacementTransition`, `getProjectionReplacementMaxFloorSec`,
+`buildProjectionReplacementRenderState`, `getProjectionReplacementRenderKey`,
+`stageProjectionReplacementTransition`) only pass explicit arguments through
+to the extracted helpers. Snapshot lookup for staging still closes over the
+plot cache.
 
 ## Intentionally not extracted
 
-- `getPlotSnapshot` / forecast snapshot refresh: sampling and cache keys.
-- Projection-replacement and boot-fade ownership: they mutate transition
-  objects in the view closure.
+- `getPlotSnapshot` / `refreshPlotSnapshotForecastState` / `buildDynamicSnapshotParts`:
+  sampling I/O still closes over the controller, history-zone resolvers, and
+  series-value overrides. Cache keys and lead-window math live in
+  `plot-snapshot-cache.js`.
+- Boot-fade and projection-replacement PIXI overlays: `drawBootFadeOverlay`
+  and replacement-zone/line ink stay in the orchestrator/`plot-draw.js`.
+  Numbers, flags, and pure updates live in `boot-fade-state.js` /
+  `projection-replacement-state.js`.
 - Full key-cabinet PIXI construction: pointer handlers close over tooltip and
   hover state; only paging/paint helpers were lifted.
 - `endScrub` / `applyPreviewThrottled`: they close over controller restore,
