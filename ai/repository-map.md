@@ -69,12 +69,15 @@ not use the root file as the default location for new rendering or model rules.
 
 - Graph orchestrator (`createMetricGraphView`): `src/views/timegraphs-pixi.js`.
   Constants, plot math, plot ink, key-cabinet paging, forecast-reveal state,
-  scrub-session, snapshot-cache, scale high-water, boot-fade, and
-  projection-replacement helpers live in `src/views/timegraphs/`. Search
+  scrub-session, snapshot-cache, action-second caches, scale high-water,
+  scale-max flash, boot-fade, projection-replacement, and time-window
+  animation helpers live in `src/views/timegraphs/`. Search
   `forecast-reveal-state.js` / `scrub-session.js` for cadence and playhead;
-  `plot-snapshot-cache.js` / `scale-high-water.js` for cache keys and
-  run-scoped scale; `boot-fade-state.js` /
-  `projection-replacement-state.js` for overlay transition numbers; do not
+  `plot-snapshot-cache.js` / `action-seconds-cache.js` / `scale-high-water.js`
+  for cache keys, action-second lists, and run-scoped scale;
+  `scale-max-flash-state.js` for series scale-max flash numbers;
+  `boot-fade-state.js` / `projection-replacement-state.js` for overlay
+  transition numbers; `time-bounds-state.js` for window lerp/reset; do not
   read the orchestrator end-to-end for ordinary label/layout work.
 - Scope, series, and labels: `src/model/graph-metrics.js`.
   Fallback Gold lives in `src/model/graph-metrics/legacy-metrics.js`;
@@ -214,7 +217,7 @@ should not be loaded for routine work.
 - `src/views/timegraphs-pixi.js` still owns PIXI construction, pointer
   handlers, snapshot sampling I/O, and commit/preview I/O. Reveal cadence,
   scrub session math, snapshot-cache keys, run-scoped scale high-water,
-  boot-fade, and projection-replacement state live in
+  boot-fade, projection-replacement, and time-window animation state live in
   `src/views/timegraphs/`. Do not rewrite those with the forecast worker or
   `src/model/state.js` (see `codex/abandoned-timegraph-refactor-do-not-merge`).
 - `src/views/ui-root-settlement-pixi.js` still wires graph composition,
