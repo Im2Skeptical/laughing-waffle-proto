@@ -5,10 +5,6 @@
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
 import { createTimegraphScroll, getTimegraphInk, getTimegraphLayout, TIMEGRAPH_CHROME } from './timegraph-scroll-pixi.js';
 import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
-import {
-  getActionSecondsInRange,
-  getActionSecondsInRangeSampled,
-} from "../model/timeline/index.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
 import {
   GAMEPIECE_HOVER_SCALE,
@@ -36,10 +32,6 @@ import {
   PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
   PLOT_THROTTLE_MS,
   RESTORE_THROTTLE_MS,
-  SERIES_SCALE_MAX_FLASH_DURATION_MS,
-  TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
-  TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
-  TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC,
   TIMEGRAPH_THEME,
 } from "./timegraphs/constants.js";
 import {
@@ -48,6 +40,11 @@ import {
   createBootFadeState,
   getBootFadeRenderState as readBootFadeRenderState,
 } from "./timegraphs/boot-fade-state.js";
+import {
+  clearAnimatedTimeBounds as applyClearAnimatedTimeBounds,
+  createTimeBoundsState,
+  setTimeBounds as applySetTimeBounds,
+} from "./timegraphs/time-bounds-state.js";
 import {
   activateProjectionReplacementTransition as applyActivateProjectionReplacement,
   buildProjectionReplacementRenderState as readProjectionReplacementRenderState,
@@ -95,6 +92,16 @@ import {
   createScaleHighWaterState,
   syncScaleHighWaterTimeline as applySyncScaleHighWaterTimeline,
 } from "./timegraphs/scale-high-water.js";
+import {
+  createActionSecondsCache,
+  getActionSecs as readActionSecs,
+  getMarkerActionSecs as readMarkerActionSecs,
+} from "./timegraphs/action-seconds-cache.js";
+import {
+  clearSeriesScaleMaxFlash,
+  createSeriesScaleMaxFlashState,
+  triggerSeriesScaleMaxFlash as applyTriggerSeriesScaleMaxFlash,
+} from "./timegraphs/scale-max-flash-state.js";
 import {
   buildPlotSnapshotKey,
   createPlotSnapshotCache,
@@ -314,42 +321,8 @@ export function createMetricGraphView({
     );
   }
 
-  function triggerSeriesScaleMaxFlash({
-    previousRanges,
-    nextRanges,
-    visibleMaxValues,
-    nowMs = performance.now(),
-  } = {}) {
-    if (
-      !(previousRanges instanceof Map) ||
-      !(nextRanges instanceof Map) ||
-      !(visibleMaxValues instanceof Map)
-    ) {
-      return false;
-    }
-
-    let triggered = false;
-    for (const [seriesId, nextRange] of nextRanges.entries()) {
-      const previousRange = previousRanges.get(seriesId);
-      const previousMax = Number(previousRange?.maxValue);
-      const nextMax = Number(nextRange?.maxValue);
-      const visibleMax = Number(visibleMaxValues.get(seriesId));
-      if (
-        !Number.isFinite(previousMax) ||
-        !Number.isFinite(nextMax) ||
-        !Number.isFinite(visibleMax) ||
-        nextMax <= previousMax + 1e-6 ||
-        visibleMax < nextMax - 1e-6
-      ) {
-        continue;
-      }
-      seriesScaleMaxFlashBySeriesId.set(seriesId, {
-        startedMs: nowMs,
-        durationMs: SERIES_SCALE_MAX_FLASH_DURATION_MS,
-      });
-      triggered = true;
-    }
-
+  function triggerSeriesScaleMaxFlash(args) {
+    const triggered = applyTriggerSeriesScaleMaxFlash(seriesScaleMaxFlash, args);
     if (triggered) {
       lastPlotVersion = -1;
       lastPlotBoundsKey = "";
@@ -359,7 +332,7 @@ export function createMetricGraphView({
 
   function getSeriesScaleMaxFlashStrength(seriesId, nowMs = performance.now()) {
     return computeSeriesScaleMaxFlashStrength(
-      seriesScaleMaxFlashBySeriesId,
+      seriesScaleMaxFlash.bySeriesId,
       seriesId,
       nowMs
     );
@@ -367,7 +340,7 @@ export function createMetricGraphView({
 
   function getSeriesScaleMaxFlashRenderKey(nowMs = performance.now()) {
     return computeSeriesScaleMaxFlashRenderKey(
-      seriesScaleMaxFlashBySeriesId,
+      seriesScaleMaxFlash.bySeriesId,
       nowMs
     );
   }
@@ -465,6 +438,7 @@ export function createMetricGraphView({
       ? forecastPreviewStatusNoteOverride
       : "Preview only - click Commit to jump";
   const scrub = createScrubSession({ forecastPreviewStatusNote });
+  const timeBounds = createTimeBoundsState();
   let minSec = 0;
   let maxSec = 0;
   let zoomed = false;
@@ -474,25 +448,16 @@ export function createMetricGraphView({
 
   let lastRestoreMs = 0;
   let lastScrubSignature = "";
-  let cachedActionSecs = [];
-  let lastActionSecondsVersion = null;
-  let lastActionRangeKey = "";
-  let cachedMarkerActionSecs = [];
-  let lastMarkerActionSecondsVersion = null;
-  let lastMarkerRangeKey = "";
-  let lastMarkerCap = 0;
+  const actionSecondsCache = createActionSecondsCache();
 
   let legendSignature = "";
   let legendSelectionSignature = "";
   let legendPage = 0;
   let hoveredLegendSeriesId = null;
   const legendEntriesBySeriesId = new Map();
-  const seriesScaleMaxFlashBySeriesId = new Map();
+  const seriesScaleMaxFlash = createSeriesScaleMaxFlashState();
   let presentationSuspended = false;
   const plotSnapshotCache = createPlotSnapshotCache();
-  let animatedMinSec = null;
-  let animatedMaxSec = null;
-  let animatedBoundsLastTickMs = 0;
   const projectionReplacement = createProjectionReplacementState();
   let hoveredEventMarkerKey = null;
 
@@ -519,7 +484,7 @@ export function createMetricGraphView({
   function resetDataContext() {
     resetForecastRevealDataContext(reveal, getActiveForecastPreviewSec());
     invalidatePlotSnapshot();
-    seriesScaleMaxFlashBySeriesId.clear();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
     clearProjectionReplacementTransition();
     hoveredLegendSeriesId = null;
     lastPlotVersion = -1;
@@ -629,37 +594,6 @@ export function createMetricGraphView({
     );
   }
 
-  function resetAnimatedTimeBounds(nextMinSec, nextMaxSec, nowMs = performance.now()) {
-    animatedMinSec = Math.max(0, Math.floor(nextMinSec ?? 0));
-    animatedMaxSec = Math.max(
-      animatedMinSec + 1,
-      Math.floor(nextMaxSec ?? animatedMinSec + 1)
-    );
-    animatedBoundsLastTickMs = nowMs;
-    minSec = animatedMinSec;
-    maxSec = animatedMaxSec;
-  }
-
-  function animateBoundToward(current, target, elapsedMs) {
-    if (!Number.isFinite(current)) return Math.floor(target ?? 0);
-    const safeTarget = Math.floor(target ?? current);
-    if (safeTarget === current) return current;
-    const delta = safeTarget - current;
-    const stepMagnitude = Math.max(
-      TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
-      Math.min(
-        TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
-        Math.abs(delta) /
-          Math.max(0.05, TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC)
-      )
-    ) * (Math.max(0, elapsedMs) / 1000);
-    const step = Math.max(1, Math.floor(stepMagnitude));
-    if (delta > 0) {
-      return Math.min(safeTarget, current + step);
-    }
-    return Math.max(safeTarget, current - step);
-  }
-
   function setTimeBounds(nextMinSec, nextMaxSec, opts = {}) {
     const nextMin = Math.max(0, Math.floor(nextMinSec ?? 0));
     const projectionReplacementMaxFloorSec = getProjectionReplacementMaxFloorSec();
@@ -676,31 +610,16 @@ export function createMetricGraphView({
       root.visible === true &&
       scrub.isScrubbing !== true &&
       zoomed !== true;
-    if (!shouldAnimate) {
-      resetAnimatedTimeBounds(nextMin, nextMax, performance.now());
-      return;
-    }
+    applySetTimeBounds(timeBounds, nextMin, nextMax, {
+      animate: shouldAnimate,
+      nowMs: performance.now(),
+    });
+    minSec = timeBounds.minSec;
+    maxSec = timeBounds.maxSec;
+  }
 
-    const nowMs = performance.now();
-    if (!Number.isFinite(animatedMinSec) || !Number.isFinite(animatedMaxSec)) {
-      resetAnimatedTimeBounds(nextMin, nextMax, nowMs);
-      return;
-    }
-
-    const elapsedMs = Math.max(
-      0,
-      nowMs - (Number.isFinite(animatedBoundsLastTickMs) ? animatedBoundsLastTickMs : nowMs)
-    );
-    animatedBoundsLastTickMs = nowMs;
-    animatedMinSec = animateBoundToward(animatedMinSec, nextMin, elapsedMs);
-    animatedMaxSec = animateBoundToward(animatedMaxSec, nextMax, elapsedMs);
-
-    if (nextMin > animatedMinSec) {
-      animatedMinSec = nextMin;
-    }
-
-    minSec = Math.max(0, Math.floor(animatedMinSec));
-    maxSec = Math.max(minSec + 1, Math.floor(animatedMaxSec));
+  function clearAnimatedTimeBounds() {
+    applyClearAnimatedTimeBounds(timeBounds);
   }
 
   function resetForecastPreviewState() {
@@ -944,48 +863,17 @@ export function createMetricGraphView({
   }
 
   function getActionSecs(startSec, endSec) {
-    const tl = getTimeline?.();
-    const actionSecondsVersion = Math.floor(tl?._actionSecondsVersion ?? -1);
-    const start = Math.max(0, Math.floor(startSec ?? 0));
-    const end = Math.max(0, Math.floor(endSec ?? 0));
-    const rangeKey = `${start}:${end}`;
-    if (
-      actionSecondsVersion !== lastActionSecondsVersion ||
-      rangeKey !== lastActionRangeKey
-    ) {
-      lastActionSecondsVersion = actionSecondsVersion;
-      lastActionRangeKey = rangeKey;
-      cachedActionSecs = getActionSecondsInRange(tl, start, end, {
-        copy: false,
-      });
-    }
-    return cachedActionSecs;
+    return readActionSecs(actionSecondsCache, getTimeline?.(), startSec, endSec);
   }
 
   function getMarkerActionSecs(startSec, endSec, markerCap) {
-    const tl = getTimeline?.();
-    const actionSecondsVersion = Math.floor(tl?._actionSecondsVersion ?? -1);
-    const start = Math.max(0, Math.floor(startSec ?? 0));
-    const end = Math.max(0, Math.floor(endSec ?? 0));
-    const rangeKey = `${start}:${end}`;
-    const cap = Math.max(64, Math.floor(markerCap ?? 64));
-    if (
-      actionSecondsVersion !== lastMarkerActionSecondsVersion ||
-      rangeKey !== lastMarkerRangeKey ||
-      cap !== lastMarkerCap
-    ) {
-      lastMarkerActionSecondsVersion = actionSecondsVersion;
-      lastMarkerRangeKey = rangeKey;
-      lastMarkerCap = cap;
-      cachedMarkerActionSecs = getActionSecondsInRangeSampled(
-        tl,
-        start,
-        end,
-        cap * 2,
-        { copy: false }
-      );
-    }
-    return cachedMarkerActionSecs;
+    return readMarkerActionSecs(
+      actionSecondsCache,
+      getTimeline?.(),
+      startSec,
+      endSec,
+      markerCap
+    );
   }
 
   function getMarkerSeconds(actionSecs) {
@@ -2134,7 +2022,7 @@ export function createMetricGraphView({
     reveal.previewLastRefreshMs = 0;
     reveal.capEndSec = null;
     invalidatePlotSnapshot();
-    seriesScaleMaxFlashBySeriesId.clear();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
     clearProjectionReplacementTransition();
     beginBootFadeTransition(nowMs);
     resetForecastReveal(0, 0, 0, nowMs);
@@ -2144,9 +2032,7 @@ export function createMetricGraphView({
         nowMs + bootRevealDelayMsCur
       );
     }
-    animatedMinSec = null;
-    animatedMaxSec = null;
-    animatedBoundsLastTickMs = 0;
+    clearAnimatedTimeBounds();
     solidHitArea.refresh();
     controller?.setActive?.(true);
     controller.handleInvalidate?.("open");
@@ -2159,14 +2045,12 @@ export function createMetricGraphView({
     root.visible = false;
     resetForecastPreviewState();
     invalidatePlotSnapshot();
-    seriesScaleMaxFlashBySeriesId.clear();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
     clearProjectionReplacementTransition();
     reveal.capEndSec = null;
     clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
-    animatedMinSec = null;
-    animatedMaxSec = null;
-    animatedBoundsLastTickMs = 0;
+    clearAnimatedTimeBounds();
     clearLegendEntries();
     tooltipView?.hide?.();
     clearPreviewState?.();

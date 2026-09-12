@@ -7,8 +7,9 @@ re-exports from `src/views/timegraphs-helpers.js`.
 
 This split is mechanical. PIXI construction, pointer handlers, snapshot
 sampling I/O, and the frame loop stay in the orchestrator. Reveal cadence,
-playhead follow, scrub session math, snapshot-cache keys, run-scoped scale
-high-water, boot-fade, and projection-replacement state live in the modules
+playhead follow, scrub session math, snapshot-cache keys, action-second
+caches, run-scoped scale high-water, series scale-max flash numbers, boot-fade,
+projection-replacement, and time-window animation state live in the modules
 below as explicit state objects plus pure updates.
 
 ## Extracted modules
@@ -24,12 +25,24 @@ below as explicit state objects plus pure updates.
   - Run-scoped comparison ceilings keyed by timeline identity, subject, and
     series group. Functions take the state object plus explicit args.
   - No PIXI. Reset is object-identity of the timeline, not value equality.
+- `scale-max-flash-state.js`
+  - Series scale-max flash start times and duration numbers. Functions take
+    the state object plus explicit previous/next range maps.
+  - No PIXI. Strength/render-key and series-line overlay ink stay in
+    `plot-draw.js`. Plot-version invalidation after a trigger stays in the
+    orchestrator.
 - `plot-snapshot-cache.js`
   - Snapshot cache key, bounds quantization, lead-window target max, cache
     hit/store/invalidate, previous-snapshot compatibility, and stable-prefix
     end. Functions take the cache object plus explicit args.
   - No PIXI. `getPlotSnapshot` sampling I/O stays in the orchestrator because
     it closes over the controller.
+- `action-seconds-cache.js`
+  - Windowed action-second list and sampled marker-second list, keyed by
+    timeline action-seconds version, range, and marker cap. Functions take the
+    cache object plus explicit timeline and range args.
+  - No PIXI. Timeline range queries stay behind `getActionSecondsInRange` /
+    `getActionSecondsInRangeSampled`.
 - `plot-math.js`
   - Grid step, time/value mapping, action-marker sampling, and action snap.
 - `plot-draw.js`
@@ -58,24 +71,25 @@ below as explicit state objects plus pure updates.
   - No PIXI. Snapshot sampling for `stageProjectionReplacementTransition`
     stays in the orchestrator because it closes over the plot cache. Overlay
     ink stays in `drawPlot`.
+- `time-bounds-state.js`
+  - Displayed min/max, animated min/max, last tick, snap reset, and bound lerp.
+    Functions take the state object plus explicit args.
+  - No PIXI. Visibility, zoom, scrubbing, and projection-floor I/O stay in the
+    orchestrator `setTimeBounds` adapter.
 
 ## Remaining inner-function map (`createMetricGraphView`)
 
 Stateful orchestrator work that was not extracted:
 
 - Metric/series resolution: `resolveMetric`, `getActiveSeries`, `getMetricLabel`
-- Scale-flash: `triggerSeriesScaleMaxFlash`
 - Snapshot sampling I/O: `getPlotSnapshot`, `buildDynamicSnapshotParts`,
   `refreshPlotSnapshotForecastState`
-- Time-window animation: `setTimeBounds`, `animateBoundToward`,
-  `resetAnimatedTimeBounds`
 - Reveal/scrub I/O wrappers: `getVisibleForecastScrubCapSec`,
   `clampScrubSecToRevealCap`, `syncForecastRevealPreview` (`getStateAt` /
   `setPreviewState`), `tryRestoreLatchedForecastPreview`,
   `updateScrubFromPointer` (PIXI `toLocal` + action snap),
   `applyPreviewThrottled`, `endScrub` (commit / policy / draw),
   `restartForecastRevealFrom` (timeline/controller I/O)
-- Action-second caches: `getActionSecs`, `getMarkerActionSecs`
 - Window chrome / legend wiring: `drawLegend`, `setLegendPage`,
   `updateHeaderButtons`, `drawWindow`, tooltip/hover handlers
 - Frame loop: `drawPlot`, `drawScrub`, `render`, `open`, `close`, `destroy`,
@@ -94,9 +108,13 @@ Thin adapters in the orchestrator (`timeToX`, `applyActionSnap`,
 `getBootFadeRenderState`, `getProjectionReplacementScaleRanges`,
 `clearProjectionReplacementTransition`, `getProjectionReplacementMaxFloorSec`,
 `buildProjectionReplacementRenderState`, `getProjectionReplacementRenderKey`,
-`stageProjectionReplacementTransition`) only pass explicit arguments through
+`stageProjectionReplacementTransition`, `setTimeBounds`,
+`clearAnimatedTimeBounds`, `getActionSecs`, `getMarkerActionSecs`,
+`triggerSeriesScaleMaxFlash`) only pass explicit arguments through
 to the extracted helpers. Snapshot lookup for staging still closes over the
-plot cache.
+plot cache. `setTimeBounds` still reads PIXI visibility, zoom, scrubbing, and
+the projection max floor before calling the extracted lerp/reset.
+`triggerSeriesScaleMaxFlash` still invalidates the plot version after a hit.
 
 ## Intentionally not extracted
 

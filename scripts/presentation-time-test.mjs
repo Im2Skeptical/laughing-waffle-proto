@@ -64,6 +64,13 @@ import {
   getBootFadeRenderState,
 } from '../src/views/timegraphs/boot-fade-state.js';
 import {
+  animateBoundToward,
+  clearAnimatedTimeBounds,
+  createTimeBoundsState,
+  resetAnimatedTimeBounds,
+  setTimeBounds,
+} from '../src/views/timegraphs/time-bounds-state.js';
+import {
   activateProjectionReplacementTransition,
   buildProjectionReplacementRenderState,
   clearProjectionReplacementTransition,
@@ -76,13 +83,27 @@ import {
 } from '../src/views/timegraphs/projection-replacement-state.js';
 import {
   GRAPH_BOOT_FADE_FRAME_MS,
+  TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
+  TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
+  TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC,
   PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS,
   PROJECTION_REPLACEMENT_DIM_ALPHA,
   PROJECTION_REPLACEMENT_DIM_LINE_ALPHA,
   PROJECTION_REPLACEMENT_FLASH_ALPHA,
   PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
+  SERIES_SCALE_MAX_FLASH_DURATION_MS,
   TIMEGRAPH_THEME,
 } from '../src/views/timegraphs/constants.js';
+import {
+  createActionSecondsCache,
+  getActionSecs,
+  getMarkerActionSecs,
+} from '../src/views/timegraphs/action-seconds-cache.js';
+import {
+  clearSeriesScaleMaxFlash,
+  createSeriesScaleMaxFlashState,
+  triggerSeriesScaleMaxFlash,
+} from '../src/views/timegraphs/scale-max-flash-state.js';
 import { lerpNumber } from '../src/views/timegraphs-helpers.js';
 import { layoutTimegraphKey, getTimegraphLayout, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
@@ -458,6 +479,50 @@ assert.equal(restartReveal.previewSec, null);
 }
 
 {
+  const boundStep = (delta, elapsedMs) => Math.max(
+    1,
+    Math.floor(
+      Math.max(
+        TIME_BOUNDS_ANIMATION_MIN_RATE_SEC_PER_SEC,
+        Math.min(
+          TIME_BOUNDS_ANIMATION_MAX_RATE_SEC_PER_SEC,
+          Math.abs(delta) / Math.max(0.05, TIME_BOUNDS_ANIMATION_TARGET_DURATION_SEC)
+        )
+      ) * (Math.max(0, elapsedMs) / 1000)
+    )
+  );
+  const bounds = createTimeBoundsState();
+  assert.equal(bounds.minSec, 0);
+  assert.equal(bounds.maxSec, 0);
+  assert.equal(bounds.animatedMinSec, null);
+  resetAnimatedTimeBounds(bounds, -4.7, 12.9, 10);
+  assert.equal(bounds.minSec, 0);
+  assert.equal(bounds.maxSec, 12);
+  assert.equal(bounds.animatedMinSec, 0);
+  assert.equal(bounds.animatedMaxSec, 12);
+  assert.equal(bounds.animatedBoundsLastTickMs, 10);
+  setTimeBounds(bounds, 8, 3, { animate: false, nowMs: 20 });
+  assert.equal(bounds.minSec, 8);
+  assert.equal(bounds.maxSec, 9, 'max never falls below min + 1');
+  clearAnimatedTimeBounds(bounds);
+  assert.equal(bounds.animatedMinSec, null);
+  assert.equal(bounds.animatedMaxSec, null);
+  assert.equal(bounds.animatedBoundsLastTickMs, 0);
+  assert.equal(bounds.minSec, 8, 'clear leaves displayed bounds in place');
+  setTimeBounds(bounds, 0, 100, { animate: true, nowMs: 30 });
+  assert.equal(bounds.minSec, 0, 'null animated bounds snap even when animate is requested');
+  assert.equal(bounds.maxSec, 100);
+  setTimeBounds(bounds, 0, 10000, { animate: true, nowMs: 46 });
+  assert.equal(bounds.maxSec, 100 + boundStep(9900, 16));
+  assert.equal(animateBoundToward(100, 100, 16), 100);
+  assert.equal(animateBoundToward(Number.NaN, 50.9, 16), 50);
+  assert.equal(animateBoundToward(1000, 0, 16), 1000 - boundStep(1000, 16));
+  assert.equal(animateBoundToward(5, 8, 0), 6, 'zero elapsed still moves one second');
+  setTimeBounds(bounds, 500, 10000, { animate: true, nowMs: 62 });
+  assert.equal(bounds.minSec, 500, 'a later min snaps forward instead of waiting on the lerp');
+}
+
+{
   const replacement = createProjectionReplacementState();
   const ranges = new Map([['food', { maxValue: 12 }]]);
   const snapshot = {
@@ -562,6 +627,65 @@ assert.equal(restartReveal.previewSec, null);
   assert.equal(replacement.active, null);
   clearProjectionReplacementTransition(replacement);
   assert.equal(replacement.staged, null);
+}
+
+{
+  const cache = createActionSecondsCache();
+  const timeline = { _actionSecondsVersion: 1 };
+  const first = getActionSecs(cache, timeline, 0, 10);
+  const again = getActionSecs(cache, timeline, 0, 10);
+  assert.equal(again, first, 'same version and range reuses the cached action seconds');
+  const otherRange = getActionSecs(cache, timeline, 0, 20);
+  assert.notEqual(otherRange, first, 'a range change replaces the action-second cache');
+  const nextVersion = getActionSecs(cache, { _actionSecondsVersion: 2 }, 0, 20);
+  assert.notEqual(nextVersion, otherRange, 'an action-seconds version change replaces the cache');
+  const markers = getMarkerActionSecs(cache, timeline, 0, 10, 64);
+  const markersAgain = getMarkerActionSecs(cache, timeline, 0, 10, 64);
+  assert.equal(markersAgain, markers, 'same marker range and cap reuse the sampled cache');
+  const widerCap = getMarkerActionSecs(cache, timeline, 0, 10, 128);
+  assert.notEqual(widerCap, markers, 'a marker cap change replaces the sampled cache');
+}
+
+{
+  const flash = createSeriesScaleMaxFlashState();
+  assert.equal(triggerSeriesScaleMaxFlash(flash, {}), false);
+  const previousRanges = new Map([['food', { maxValue: 10 }], ['gold', { maxValue: 4 }]]);
+  const nextRanges = new Map([['food', { maxValue: 12 }], ['gold', { maxValue: 4 }]]);
+  const visibleMaxValues = new Map([['food', 12], ['gold', 4]]);
+  assert.equal(
+    triggerSeriesScaleMaxFlash(flash, {
+      previousRanges,
+      nextRanges,
+      visibleMaxValues,
+      nowMs: 100,
+    }),
+    true
+  );
+  assert.equal(flash.bySeriesId.get('food').startedMs, 100);
+  assert.equal(flash.bySeriesId.get('food').durationMs, SERIES_SCALE_MAX_FLASH_DURATION_MS);
+  assert.equal(flash.bySeriesId.has('gold'), false, 'unchanged series do not flash');
+  assert.equal(
+    triggerSeriesScaleMaxFlash(flash, {
+      previousRanges,
+      nextRanges: new Map([['food', { maxValue: 10 }]]),
+      visibleMaxValues,
+      nowMs: 200,
+    }),
+    false,
+    'a receding max does not flash'
+  );
+  assert.equal(
+    triggerSeriesScaleMaxFlash(flash, {
+      previousRanges,
+      nextRanges,
+      visibleMaxValues: new Map([['food', 11]]),
+      nowMs: 200,
+    }),
+    false,
+    'a max the visible window has not reached does not flash'
+  );
+  clearSeriesScaleMaxFlash(flash);
+  assert.equal(flash.bySeriesId.size, 0);
 }
 
 assert.equal(getSettlementGraphMetric('settlement'), GRAPH_METRICS.settlement);
