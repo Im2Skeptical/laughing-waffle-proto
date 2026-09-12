@@ -2,7 +2,8 @@
 
 Controller, cache, and sampling for metric graphs. Views import through
 `src/views/timegraphs-pixi.js`; series labels live in
-`src/model/graph-metrics.js`.
+`src/model/graph-metrics.js` (legacy fallback and tooltip copy in
+`src/model/graph-metrics/`).
 
 Do not rewrite this folder together with the forecast worker, `state.js`, or
 `createMetricGraphView` follow/scrub/playhead. See

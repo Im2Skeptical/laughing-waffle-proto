@@ -40,6 +40,50 @@ import {
   setLatchedForecastScrub,
   syncLatchedForecastPreview,
 } from '../src/views/timegraphs/scrub-session.js';
+import {
+  applyRunScaleHighWaterRanges,
+  createScaleHighWaterState,
+  syncScaleHighWaterTimeline,
+} from '../src/views/timegraphs/scale-high-water.js';
+import {
+  buildPlotSnapshotKey,
+  createPlotSnapshotCache,
+  invalidatePlotSnapshot,
+  isPlotSnapshotCacheHit,
+  isPreviousPlotSnapshotCompatible,
+  quantizePlotSnapshotMaxSec,
+  quantizePlotSnapshotMinSec,
+  resolvePlotSnapshotStablePrefixEndSec,
+  resolvePlotSnapshotTargetMaxSec,
+  storePlotSnapshot,
+} from '../src/views/timegraphs/plot-snapshot-cache.js';
+import {
+  beginBootFadeTransition,
+  clearBootFadeTransition,
+  createBootFadeState,
+  getBootFadeRenderState,
+} from '../src/views/timegraphs/boot-fade-state.js';
+import {
+  activateProjectionReplacementTransition,
+  buildProjectionReplacementRenderState,
+  clearProjectionReplacementTransition,
+  createProjectionReplacementState,
+  getProjectionReplacementDebugState,
+  getProjectionReplacementMaxFloorSec,
+  getProjectionReplacementRenderKey,
+  getProjectionReplacementScaleRanges,
+  stageProjectionReplacementTransition,
+} from '../src/views/timegraphs/projection-replacement-state.js';
+import {
+  GRAPH_BOOT_FADE_FRAME_MS,
+  PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS,
+  PROJECTION_REPLACEMENT_DIM_ALPHA,
+  PROJECTION_REPLACEMENT_DIM_LINE_ALPHA,
+  PROJECTION_REPLACEMENT_FLASH_ALPHA,
+  PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA,
+  TIMEGRAPH_THEME,
+} from '../src/views/timegraphs/constants.js';
+import { lerpNumber } from '../src/views/timegraphs-helpers.js';
 import { layoutTimegraphKey, getTimegraphLayout, TIMEGRAPH_CHROME } from '../src/views/timegraph-scroll-pixi.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import {
@@ -274,6 +318,251 @@ assert.equal(scrub.latchedForecastScrubSec, null, 'automatic reveal preview does
 resetForecastPreviewState(scrub, restartReveal);
 assert.equal(scrub.isScrubbing, false);
 assert.equal(restartReveal.previewSec, null);
+
+{
+  const highWater = createScaleHighWaterState();
+  const timelineA = { id: 'run-a' };
+  const timelineB = { id: 'run-b' };
+  const series = [{ id: 'food' }];
+  syncScaleHighWaterTimeline(highWater, timelineA);
+  const first = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', { maxValue: 10, groupId: 'resources' }]]),
+    series,
+    'civilization'
+  );
+  assert.equal(first.get('food').maxValue, 10);
+  const receded = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', { maxValue: 7, groupId: 'resources' }]]),
+    series,
+    'civilization'
+  );
+  assert.equal(receded.get('food').maxValue, 10, 'run-scoped high-water never recedes');
+  syncScaleHighWaterTimeline(highWater, timelineA);
+  const sameTimeline = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', { maxValue: 4, groupId: 'resources' }]]),
+    series,
+    'civilization'
+  );
+  assert.equal(sameTimeline.get('food').maxValue, 10, 'same timeline identity keeps high-water');
+  const otherSubject = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', { maxValue: 3, groupId: 'resources' }]]),
+    series,
+    'settlement:region-1'
+  );
+  assert.equal(otherSubject.get('food').maxValue, 3, 'subject keys isolate high-water groups');
+  const fixed = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['gold', { maxValue: 8, scaleMode: 'fixed' }]]),
+    [{ id: 'gold' }],
+    'civilization'
+  );
+  assert.equal(fixed.get('gold').maxValue, 8, 'fixed series are not raised to high-water');
+  syncScaleHighWaterTimeline(highWater, timelineB);
+  const reset = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', { maxValue: 4, groupId: 'resources' }]]),
+    series,
+    'civilization'
+  );
+  assert.equal(reset.get('food').maxValue, 4, 'a new timeline identity resets high-water');
+}
+
+{
+  const cache = createPlotSnapshotCache();
+  assert.equal(isPlotSnapshotCacheHit(cache, 'k'), false);
+  assert.equal(quantizePlotSnapshotMinSec(20, 32), 0);
+  assert.equal(quantizePlotSnapshotMaxSec(0, 33, 32), 64);
+  assert.equal(
+    buildPlotSnapshotKey({
+      cacheVersion: 3,
+      snapshotMinSec: 0,
+      snapshotMaxSec: 64,
+      displayHistoryEndSec: 10,
+      zoomed: false,
+      sampleCursorSec: null,
+    }),
+    '3|0:64|10|0|stable'
+  );
+  storePlotSnapshot(cache, '3|0:64|10|0|stable', {
+    data: { cacheVersion: 3 },
+    snapshotMinSec: 0,
+    displayHistoryEndSec: 10,
+    zoomed: false,
+    sampleCursorSec: null,
+    visibleForecastCoverageEndSec: 18.9,
+  });
+  assert.equal(isPlotSnapshotCacheHit(cache, '3|0:64|10|0|stable'), true);
+  assert.equal(resolvePlotSnapshotStablePrefixEndSec(cache.snapshot, 40, 10), 18);
+  assert.equal(
+    isPreviousPlotSnapshotCompatible(cache.snapshot, {
+      freezeRevealedPlotPrefix: true,
+      cacheVersion: 3,
+      snapshotMinSec: 0,
+      displayHistoryEndSec: 10,
+      zoomed: false,
+      sampleCursorSec: null,
+    }),
+    true
+  );
+  assert.equal(
+    isPreviousPlotSnapshotCompatible(cache.snapshot, {
+      freezeRevealedPlotPrefix: false,
+      cacheVersion: 3,
+      snapshotMinSec: 0,
+      displayHistoryEndSec: 10,
+      zoomed: false,
+      sampleCursorSec: null,
+    }),
+    false
+  );
+  invalidatePlotSnapshot(cache);
+  assert.equal(cache.snapshot, null);
+  assert.equal(cache.key, '');
+  assert.equal(resolvePlotSnapshotTargetMaxSec(cache, 50, 0, 0), 50);
+  assert.equal(resolvePlotSnapshotTargetMaxSec(cache, 50, 0, 16), 66);
+  assert.equal(
+    resolvePlotSnapshotTargetMaxSec(cache, 52, 0, 16),
+    66,
+    'lead hysteresis keeps the previous target'
+  );
+  assert.equal(
+    resolvePlotSnapshotTargetMaxSec(cache, 80, 0, 16),
+    96,
+    'a target past the stored high-water resets'
+  );
+}
+
+{
+  const none = createBootFadeState({ durationMs: 0, color: 0xffffff });
+  beginBootFadeTransition(none, 0);
+  assert.equal(none.transition, null, 'zero-duration boot fade never starts');
+  assert.equal(getBootFadeRenderState(none, 0), null);
+  const fade = createBootFadeState({ durationMs: 1000, color: 0x123456 });
+  beginBootFadeTransition(fade, 0);
+  const start = getBootFadeRenderState(fade, 0);
+  assert.equal(start.color, 0x123456);
+  assert.equal(start.alpha, 1);
+  assert.equal(start.key, 0);
+  const mid = getBootFadeRenderState(fade, 500);
+  assert.equal(mid.alpha, 0.5);
+  assert.equal(mid.key, Math.floor(500 / GRAPH_BOOT_FADE_FRAME_MS));
+  assert.equal(getBootFadeRenderState(fade, 1000), null, 'completed fade clears itself');
+  assert.equal(fade.transition, null);
+  beginBootFadeTransition(fade, 10);
+  clearBootFadeTransition(fade);
+  assert.equal(getBootFadeRenderState(fade, 20), null);
+}
+
+{
+  const replacement = createProjectionReplacementState();
+  const ranges = new Map([['food', { maxValue: 12 }]]);
+  const snapshot = {
+    pointsForDraw: [{ tSec: 0 }, { tSec: 10 }],
+    displayHistoryEndSec: 40,
+    historyEndSec: 30,
+    seriesScaleRanges: ranges,
+  };
+  assert.equal(
+    stageProjectionReplacementTransition(replacement, { snapshot: { pointsForDraw: [] } }),
+    false
+  );
+  assert.equal(replacement.staged, null);
+  assert.equal(
+    stageProjectionReplacementTransition(replacement, { snapshot, fallbackMaxSec: 80 }),
+    true
+  );
+  assert.equal(replacement.staged.truncationStartSec, 40);
+  assert.equal(replacement.staged.maxSecFloor, 80);
+  assert.equal(
+    stageProjectionReplacementTransition(replacement, {
+      snapshot,
+      truncationStartSec: 25.9,
+      maxSecFloor: 100.2,
+      transitionDurationMs: 1000,
+      flashDurationMs: 200,
+      fadeStrength: 1,
+    }),
+    true
+  );
+  assert.equal(replacement.staged.truncationStartSec, 25);
+  assert.equal(replacement.staged.maxSecFloor, 100);
+  activateProjectionReplacementTransition(replacement, 0, {
+    activateProjectionReplacementTransition: true,
+  });
+  assert.equal(replacement.staged, null);
+  assert.equal(replacement.active.startedMs, 0);
+  assert.equal(getProjectionReplacementMaxFloorSec(replacement), 100);
+  assert.equal(getProjectionReplacementScaleRanges(replacement), ranges);
+  assert.deepEqual(getProjectionReplacementDebugState(replacement), {
+    active: true,
+    truncationStartSec: 25,
+    maxSecFloor: 100,
+    hasSnapshot: true,
+  });
+  assert.equal(getProjectionReplacementRenderKey(replacement, 0), '25:100:0');
+  assert.equal(
+    getProjectionReplacementRenderKey(replacement, PROJECTION_REPLACEMENT_ANIMATION_FRAME_MS),
+    '25:100:1'
+  );
+  const flash = buildProjectionReplacementRenderState(replacement, 0, 50);
+  assert.equal(flash.settled, false);
+  assert.equal(flash.transitionAnimating, true);
+  assert.equal(flash.drawStartSec, 50);
+  assert.equal(flash.drawEndSec, 100);
+  assert.equal(flash.unchangedStartSec, 50);
+  assert.equal(flash.unchangedEndSec, 25);
+  assert.equal(flash.zoneAlpha, PROJECTION_REPLACEMENT_FLASH_ALPHA);
+  assert.equal(flash.lineAlpha, PROJECTION_REPLACEMENT_FLASH_LINE_ALPHA);
+  assert.equal(flash.tintStrength, 0.74);
+  assert.equal(flash.tintColor, TIMEGRAPH_THEME.eventMarkerCritical);
+  const settled = buildProjectionReplacementRenderState(replacement, 1000, 50);
+  assert.equal(settled.settled, true);
+  assert.equal(settled.transitionAnimating, false);
+  assert.equal(settled.zoneAlpha, PROJECTION_REPLACEMENT_DIM_ALPHA);
+  assert.equal(settled.lineAlpha, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA);
+  assert.equal(settled.tintStrength, 0.88);
+  assert.equal(settled.tintColor, TIMEGRAPH_THEME.panelBorder);
+  assert.equal(getProjectionReplacementRenderKey(replacement, 1000), '');
+  assert.equal(
+    buildProjectionReplacementRenderState(replacement, 1000, 100),
+    null,
+    'coverage past the replacement floor clears the overlay'
+  );
+  assert.equal(replacement.active, null);
+  stageProjectionReplacementTransition(replacement, {
+    snapshot,
+    truncationStartSec: 10,
+    maxSecFloor: 40,
+    fadeStrength: 0.5,
+  });
+  activateProjectionReplacementTransition(replacement, 5, {});
+  assert.equal(replacement.staged, null, 'restart without activate drops the staged overlay');
+  assert.equal(replacement.active, null);
+  stageProjectionReplacementTransition(replacement, {
+    snapshot,
+    truncationStartSec: 10,
+    maxSecFloor: 40,
+    transitionDurationMs: 0,
+    fadeStrength: 0.5,
+  });
+  activateProjectionReplacementTransition(replacement, 0, {
+    activateProjectionReplacementTransition: true,
+  });
+  const dimmed = buildProjectionReplacementRenderState(replacement, 0, 10);
+  assert.equal(dimmed.settled, true);
+  assert.equal(dimmed.zoneAlpha, lerpNumber(0, PROJECTION_REPLACEMENT_DIM_ALPHA, 0.5));
+  assert.equal(dimmed.lineAlpha, lerpNumber(1, PROJECTION_REPLACEMENT_DIM_LINE_ALPHA, 0.5));
+  activateProjectionReplacementTransition(replacement, 0, {
+    clearProjectionReplacementTransition: true,
+  });
+  assert.equal(replacement.active, null);
+  clearProjectionReplacementTransition(replacement);
+  assert.equal(replacement.staged, null);
+}
 
 assert.equal(getSettlementGraphMetric('settlement'), GRAPH_METRICS.settlement);
 assert.equal(getSettlementGraphMetric('civilization'), GRAPH_METRICS.civilization);

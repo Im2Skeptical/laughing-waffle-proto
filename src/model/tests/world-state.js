@@ -415,6 +415,20 @@ assert.equal(
   true,
   "Chaos remains available from the local graph's group controls"
 );
+const localFoodTooltip = localSeries
+  .find((series) => series.id === "food")
+  .getLegendTooltipSpec(state);
+assert.equal(
+  localFoodTooltip.lines.some(
+    (line) => /floodplain|hub food|in fields/i.test(line)
+  ),
+  false,
+  "detailed food tooltip uses stored/loose copy, not hub floodplain stockpiles"
+);
+assert.match(
+  localFoodTooltip.lines[0],
+  /stored, \d+ loose\)/
+);
 assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMode, "fixed");
 assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMax, 100);
 assert.equal(civilizationSeries.find((series) => series.id === "civilizationHousingCapacity").getValue(state), 175);

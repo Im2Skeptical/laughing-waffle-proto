@@ -69,10 +69,17 @@ not use the root file as the default location for new rendering or model rules.
 
 - Graph orchestrator (`createMetricGraphView`): `src/views/timegraphs-pixi.js`.
   Constants, plot math, plot ink, key-cabinet paging, forecast-reveal state,
-  and scrub-session helpers live in `src/views/timegraphs/`. Search
+  scrub-session, snapshot-cache, scale high-water, boot-fade, and
+  projection-replacement helpers live in `src/views/timegraphs/`. Search
   `forecast-reveal-state.js` / `scrub-session.js` for cadence and playhead;
-  do not read the orchestrator end-to-end for ordinary label/layout work.
-- Scope, series, and labels: `src/model/graph-metrics.js`
+  `plot-snapshot-cache.js` / `scale-high-water.js` for cache keys and
+  run-scoped scale; `boot-fade-state.js` /
+  `projection-replacement-state.js` for overlay transition numbers; do not
+  read the orchestrator end-to-end for ordinary label/layout work.
+- Scope, series, and labels: `src/model/graph-metrics.js`.
+  Fallback Gold lives in `src/model/graph-metrics/legacy-metrics.js`;
+  legend tooltip copy lives in `src/model/graph-metrics/tooltips.js`.
+  See that folder's README.
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
 - Series groups: `src/views/ui-root/settlement-graph-groups.js`
 - Graph session (reveal config, horizon/window numbers, context switching,
@@ -205,11 +212,11 @@ should not be loaded for routine work.
 ## Known, bounded debt
 
 - `src/views/timegraphs-pixi.js` still owns PIXI construction, pointer
-  handlers, snapshot sampling, and commit/preview I/O. Reveal cadence and
-  scrub session math live in `src/views/timegraphs/forecast-reveal-state.js`
-  and `src/views/timegraphs/scrub-session.js`. Do not rewrite those with the
-  forecast worker or `src/model/state.js` (see
-  `codex/abandoned-timegraph-refactor-do-not-merge`).
+  handlers, snapshot sampling I/O, and commit/preview I/O. Reveal cadence,
+  scrub session math, snapshot-cache keys, run-scoped scale high-water,
+  boot-fade, and projection-replacement state live in
+  `src/views/timegraphs/`. Do not rewrite those with the forecast worker or
+  `src/model/state.js` (see `codex/abandoned-timegraph-refactor-do-not-merge`).
 - `src/views/ui-root-settlement-pixi.js` still wires graph composition,
   preview, and screen mode. Playback, vassal-flow, navigation-state, and
   graph-session helpers live in `src/views/ui-root/`. New drawing belongs
@@ -218,5 +225,11 @@ should not be loaded for routine work.
   `src/model/settlement-exec.js` retain pre-redesign substrate on the
   serialization/replay path. File-top comments mark them as non-extension
   points for new detailed-settlement rules.
+- `src/model/graph-metrics.js` owns live civilization/settlement series.
+  Leftover Gold/Grain/AP and hub-vs-prototype food/population metrics live
+  in `src/model/graph-metrics/legacy-metrics.js`. Gold remains the unscoped
+  controller fallback (`timegraphs-pixi.js` / `controller-core.js`).
+  Grain/AP are unused by UI groups. Detailed food tooltip copy lives in
+  `src/model/graph-metrics/tooltips.js`.
 
 Repo navigation skills: `.grok/skills/`.
