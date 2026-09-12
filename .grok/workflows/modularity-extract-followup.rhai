@@ -1,13 +1,13 @@
 let meta = #{
     name: "modularity-extract-followup",
-    description: "Second extract loop: time-window animation, action-second caches/scale-flash, and metric resolution. Skip if a seam still closes over PIXI or the controller. Does not rewrite the forecast worker or state.js. Does not commit.",
+    description: "COMPLETED on main (3353f95). Do not re-run. Historical orchestrator: time-bounds, action-second caches, scale-flash. Metric resolution was skipped (closes over the controller).",
     phases: [
         #{ title: "Seam 1", detail: "time-window animation state" },
         #{ title: "Seam 2", detail: "action caches and scale-flash" },
         #{ title: "Seam 3", detail: "metric/series resolution" },
         #{ title: "Report", detail: "hand back to parent for sanity check" },
     ],
-    when_to_use: "After graph-metrics and overlay-state extracts, thin remaining pure timegraph state.",
+    when_to_use: "Completed on main. Do not launch another timegraph overlay extract.",
 };
 
 let verdict_schema = #{
