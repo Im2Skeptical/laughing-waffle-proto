@@ -13,7 +13,9 @@ Content lives in `src/defs/gamepieces/detailed-settlement-defs.js`
 ## Number-only tweaks
 
 Changing rates, caps, costs, durations, or counts on an existing
-practice or structure: edit `detailed-settlement-defs.js` and run
+practice or structure: edit `detailed-settlement-defs.js`, `rg` the
+old number in `src/model/tests/` (including fixture totals, not only
+the obvious unstaffed/staffed lines), and run
 `npm run test:detailed-settlements`. Do not load `ai/sim.md` unless
 adding a DSL op.
 

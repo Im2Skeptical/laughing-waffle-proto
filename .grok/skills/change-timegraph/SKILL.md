@@ -22,6 +22,12 @@ skill over `change-view` for series, plot ink, reveal, scrub, or playhead.
 | Window / horizon | `src/views/ui-root/settlement-timegraph-window.js` |
 | Reveal / scrub / playhead | `src/views/timegraphs/forecast-reveal-state.js`, `src/views/timegraphs/scrub-session.js` |
 
+Legend tooltip specs receive `runner.getCursorState()` after
+`browseCursorSecond` / `seekCursorSecond`. That is the playhead/viewed
+rebuild, not `historyEndSec` frontier (`getSettlementFrontierState`).
+Do not rewire Food tooltips to a second "viewed" state unless you have
+traced that the cursor is still at the frontier.
+
 `timegraphs-pixi.js` is huge. Search `forecast-reveal-state.js` /
 `scrub-session.js` for cadence and playhead, or the orchestrator for PIXI
 pointer/`drawPlot` work. Ordinary label or series work belongs in
