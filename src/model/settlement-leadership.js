@@ -1,3 +1,7 @@
+// Legacy leadership helpers. On the serialization/replay path; retains pre-redesign substrate.
+// Do not add gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 
 export function cloneSerializable(value) {

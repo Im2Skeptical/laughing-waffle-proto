@@ -18,6 +18,12 @@ These files stay on the serialization/replay path and retain pre-redesign
 substrate. Reachability is not an invitation to add gameplay:
 
 - `src/model/settlement-exec.js`
+- `src/model/settlement-vassal-exec.js`
+- `src/model/settlement-order-exec.js`
+- `src/model/settlement-leadership.js`
+- `src/model/settlement-upgrades.js`
+- `src/defs/gamepieces/settlement-practice-defs.js`
+- `src/defs/gamepieces/hub-structure-defs.js`
 - `src/model/settlement-state.js`
 - `src/controllers/sim-runner.js`
 - `src/model/state.js` (schema/serialize only unless the task is the
@@ -33,7 +39,8 @@ Before coding, confirm the change:
 - Advances time only via simulation ticks (`tSec`).
 - Does not import views or controllers from model code.
 
-`npm run check:architecture` guards RNG and layering.
+`npm run check:architecture` guards RNG, layering, and new model
+imports of leftover settlement exec/defs.
 
 ## Test
 

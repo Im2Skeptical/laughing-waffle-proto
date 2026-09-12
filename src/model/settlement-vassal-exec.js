@@ -1,3 +1,8 @@
+// Legacy vassal exec. On the serialization/replay path; retains pre-redesign substrate.
+// Not the Vassal Life Map; do not add gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+// New Vassal Life Map rules belong in src/model/vassal-life-map.js.
+
 import { settlementOrderDefs } from "../defs/gamepieces/settlement-order-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
 import {

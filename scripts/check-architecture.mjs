@@ -15,9 +15,74 @@ function displayPath(filePath) {
   return filePath.split(path.sep).join("/");
 }
 
-const SETTLEMENT_EXEC_IMPORT_ALLOWLIST = new Set([
-  "src/model/commands/debug-commands.js",
-]);
+const LEFTOVER_MODULE_IMPORT_RULES = [
+  {
+    pattern: /(?:^|\/)settlement-exec\.js$/u,
+    allowlist: new Set([
+      "src/model/commands/debug-commands.js",
+    ]),
+    message: "imports leftover settlement-exec.js; new site sim belongs in detailed-settlements",
+  },
+  {
+    pattern: /(?:^|\/)hub-structure-defs\.js$/u,
+    allowlist: new Set([
+      "src/model/commands/debug-commands.js",
+      "src/model/settlement-upgrades.js",
+      "src/model/settlement-exec.js",
+      "src/model/state/board-legacy.js",
+    ]),
+    message: "imports leftover hub-structure-defs.js; live structures belong in detailed-settlement-defs.js",
+  },
+  {
+    pattern: /(?:^|\/)settlement-practice-defs\.js$/u,
+    allowlist: new Set([
+      "src/model/commands/debug-commands.js",
+      "src/model/settlement-exec.js",
+      "src/model/settlement-leadership.js",
+      "src/model/settlement-order-exec.js",
+      "src/model/settlement-vassal-exec.js",
+      "src/model/effects/ops/system/settlement-upgrade-ops.js",
+    ]),
+    message: "imports leftover settlement-practice-defs.js; live pieces belong in detailed-settlement-defs.js",
+  },
+  {
+    pattern: /(?:^|\/)settlement-vassal-exec\.js$/u,
+    allowlist: new Set([
+      "src/model/settlement-exec.js",
+      "src/model/effects/ops/system/settlement-practice-ops.js",
+      "src/model/effects/ops/system/settlement-upgrade-ops.js",
+    ]),
+    message: "imports leftover settlement-vassal-exec.js; new Life Map rules belong in vassal-life-map.js",
+  },
+  {
+    pattern: /(?:^|\/)settlement-order-exec\.js$/u,
+    allowlist: new Set([
+      "src/model/commands/debug-commands.js",
+      "src/model/effects/ops/system/settlement-upgrade-ops.js",
+      "src/model/effects/ops/system/settlement-practice-ops.js",
+      "src/model/settlement-vassal-exec.js",
+      "src/model/settlement-exec.js",
+    ]),
+    message: "imports leftover settlement-order-exec.js; new site sim belongs in detailed-settlements",
+  },
+  {
+    pattern: /(?:^|\/)settlement-leadership\.js$/u,
+    allowlist: new Set([
+      "src/model/settlement-order-exec.js",
+      "src/model/settlement-vassal-exec.js",
+    ]),
+    message: "imports leftover settlement-leadership.js; new site sim belongs in detailed-settlements",
+  },
+  {
+    pattern: /(?:^|\/)settlement-upgrades\.js$/u,
+    allowlist: new Set([
+      "src/model/effects/ops/system/settlement-upgrade-ops.js",
+      "src/model/settlement-exec.js",
+      "src/model/state/board-legacy.js",
+    ]),
+    message: "imports leftover settlement-upgrades.js; new site sim belongs in detailed-settlements",
+  },
+];
 
 const sourceFiles = await listJavaScriptFiles("src");
 const failures = [];
@@ -43,13 +108,10 @@ for (const filePath of sourceFiles) {
         `${normalizedPath} imports UI/controller layer ${specifier}`,
       );
     }
-    if (
-      /(?:^|\/)settlement-exec\.js$/u.test(specifier)
-      && !SETTLEMENT_EXEC_IMPORT_ALLOWLIST.has(normalizedPath)
-    ) {
-      failures.push(
-        `${normalizedPath} imports leftover settlement-exec.js; new site sim belongs in detailed-settlements`,
-      );
+    for (const rule of LEFTOVER_MODULE_IMPORT_RULES) {
+      if (rule.pattern.test(specifier) && !rule.allowlist.has(normalizedPath)) {
+        failures.push(`${normalizedPath} ${rule.message}`);
+      }
     }
   }
 }

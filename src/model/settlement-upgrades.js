@@ -1,3 +1,7 @@
+// Legacy structure upgrades. On the serialization/replay path; retains pre-redesign substrate.
+// Do not add gameplay here.
+// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
+
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
 import { getSettlementStructureSlots } from "./settlement-state.js";

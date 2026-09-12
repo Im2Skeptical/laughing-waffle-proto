@@ -1,5 +1,6 @@
-// hub-structure-defs.js
-// Definitions for hub structures.
+// Legacy hub structure defs. On the serialization/replay path; retains pre-redesign substrate.
+// Not Smokehouse/Granary; do not add live pieces here.
+// Live detailed pieces belong in src/defs/gamepieces/detailed-settlement-defs.js.
 
 import { ensureTooltipCardUi } from "../tooltip-ui-utils.js";
 
