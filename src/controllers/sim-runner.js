@@ -4,6 +4,7 @@
 // Do not add new detailed-settlement gameplay here.
 // New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
 // New Vassal Life Map rules belong in src/model/vassal-life-map.js.
+// Save-slot key/meta/payload/inspect helpers: ./sim-runner/save-slots.js
 
 import {
   createInitialState,
@@ -31,12 +32,10 @@ import {
   deserializeGameState,
   serializeGameState,
   syncPhaseToPaused,
-  getCurrentSeasonKey,
 } from "../model/state.js";
 import { ActionKinds, applyAction } from "../model/actions.js";
 import { canonicalizeSnapshot } from "../model/canonicalize.js";
 import {
-  clonePersistentKnowledge,
   ensurePersistentKnowledgeState,
   mergePersistentKnowledge,
   rememberMaxObservedCivilizationSurvivalYear,
@@ -52,14 +51,33 @@ import {
   recordScrubCommit,
 } from "../model/perf.js";
 import { BASE_EDITABLE_HISTORY_WINDOW_SEC } from "../defs/gamesettings/gamerules-defs.js";
+import {
+  SAVE_SLOT_COUNT,
+  getSaveSlotMeta,
+  inspectSaveSlot,
+  writeSaveToSlot,
+} from "./sim-runner/save-slots.js";
+
+export {
+  SAVE_SCHEMA_VERSION,
+  SAVE_KEY_PREFIX,
+  SAVE_SLOT_COUNT,
+  getSaveSlotKey,
+  getLocalStorageSafe,
+  buildSaveMeta,
+  serializeTimelineForSave,
+  normalizeSavedTimeline,
+  readSaveSlot,
+  getSaveSlotMeta,
+  inspectSaveSlot,
+  writeSaveToSlot,
+} from "./sim-runner/save-slots.js";
 
 const SIM_DT_STEP = 1 / 60;
 const TICKS_PER_SEC = 60;
 const MAX_SIM_STEPS_PER_FRAME = 8;
 const TIME_SCALE_MAX = 16;
 const TIME_SCALE_EASE_PER_SEC = 10;
-const SAVE_SCHEMA_VERSION = 12;
-const SAVE_KEY_PREFIX = "civsurvivor.save";
 const ACTION_PATH_CHECKPOINT_OPTS = Object.freeze({
   writeMemo: true,
   captureCheckpoint: false,
@@ -364,7 +382,6 @@ export function createSimRunner({
   let timeScaleCurrent = 1;
   let timeScaleWantsUnpause = false;
   let rewindAccumulatorSec = 0;
-  const saveSlotCount = 3;
   let activeSetupId =
     typeof setupId === "string" && setupId.length > 0 ? setupId : "devGym01";
 
@@ -456,141 +473,12 @@ export function createSimRunner({
     };
   }
 
-  function getSaveSlotKey(slot) {
-    const idx = Number.isFinite(slot) ? Math.floor(slot) : 1;
-    const clamped = Math.max(1, Math.min(saveSlotCount, idx));
-    return `${SAVE_KEY_PREFIX}.slot${clamped}`;
-  }
-
-  function getLocalStorageSafe() {
-    try {
-      return globalThis?.localStorage ?? null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function buildSaveMeta(state) {
-    const tSec = Math.floor(state?.tSec ?? 0);
-    const seasonKey = getCurrentSeasonKey(state);
-    return {
-      schemaVersion: SAVE_SCHEMA_VERSION,
-      setupId: activeSetupId,
-      savedAt: new Date().toISOString(),
-      tSec,
-      seasonKey,
-      year: Number.isFinite(state?.year) ? Math.floor(state.year) : 1,
-      actionPoints: Math.floor(state?.actionPoints ?? 0),
-      actionPointCap: Math.floor(state?.actionPointCap ?? 0),
-    };
-  }
-
-  function serializeTimelineForSave(tl) {
-    if (!tl) return null;
-    const historyEndSec = Math.floor(tl.historyEndSec ?? 0);
-    const maxReachedHistoryEndSec = Math.max(
-      historyEndSec,
-      Math.floor(tl.maxReachedHistoryEndSec ?? historyEndSec)
-    );
-    return {
-      baseStateData: tl.baseStateData ?? null,
-      persistentKnowledge: clonePersistentKnowledge(tl),
-      actions: Array.isArray(tl.actions) ? tl.actions : [],
-      checkpoints: Array.isArray(tl.checkpoints) ? tl.checkpoints : [],
-      cursorSec: Math.floor(tl.cursorSec ?? 0),
-      historyEndSec,
-      maxReachedHistoryEndSec,
-      revision: Math.floor(tl.revision ?? 0),
-    };
-  }
-
-  function normalizeSavedTimeline(rawTimeline, fallbackStateData) {
-    if (!rawTimeline || typeof rawTimeline !== "object") return null;
-    const baseStateData = rawTimeline.baseStateData ?? fallbackStateData ?? null;
-    if (!baseStateData) return null;
-    if (!Number.isFinite(rawTimeline.historyEndSec)) return null;
-    const historyEndSec = Math.floor(rawTimeline.historyEndSec);
-    const maxReachedHistoryEndSec = Math.max(
-      historyEndSec,
-      Math.floor(rawTimeline.maxReachedHistoryEndSec ?? historyEndSec)
-    );
-    return {
-      baseStateData,
-      persistentKnowledge: clonePersistentKnowledge(
-        rawTimeline?.persistentKnowledge != null
-          ? rawTimeline.persistentKnowledge
-          : fallbackStateData
-      ),
-      actions: Array.isArray(rawTimeline.actions) ? rawTimeline.actions : [],
-      checkpoints: Array.isArray(rawTimeline.checkpoints)
-        ? rawTimeline.checkpoints
-        : [],
-      cursorSec: Math.floor(rawTimeline.cursorSec ?? 0),
-      historyEndSec,
-      maxReachedHistoryEndSec,
-      revision: Math.floor(rawTimeline.revision ?? 0),
-    };
-  }
-
-  function readSaveSlot(slot) {
-    const store = getLocalStorageSafe();
-    if (!store) return { ok: false, reason: "noStorage" };
-    const key = getSaveSlotKey(slot);
-    try {
-      const raw = store.getItem(key);
-      if (!raw) return { ok: false, reason: "emptySlot" };
-      const parsed = JSON.parse(raw);
-      return { ok: true, data: parsed };
-    } catch (err) {
-      return { ok: false, reason: "badSaveData", error: err };
-    }
-  }
-
-  function getSaveSlotMeta(slot) {
-    const res = readSaveSlot(slot);
-    if (!res.ok) return null;
-    return res.data?.meta ?? null;
-  }
-
   function saveToSlot(slot) {
-    if (!cursorState) return { ok: false, reason: "noState" };
-    const store = getLocalStorageSafe();
-    if (!store) return { ok: false, reason: "noStorage" };
-    const key = getSaveSlotKey(slot);
-
-    const meta = buildSaveMeta(cursorState);
-    const timelineData = serializeTimelineForSave(timeline);
-    const payload = {
-      meta,
-      state: serializeGameState(cursorState),
-      timeline: timelineData,
-    };
-
-    try {
-      store.setItem(key, JSON.stringify(payload));
-      return { ok: true, meta };
-    } catch (error) {
-      return { ok: false, reason: "storageFailed", error };
-    }
-  }
-
-  function inspectSaveSlot(slot) {
-    const res = readSaveSlot(slot);
-    if (!res.ok) return res;
-    const data = res.data;
-    const meta = data?.meta ?? null;
-    if (meta?.schemaVersion !== SAVE_SCHEMA_VERSION) return { ok: false, reason: "versionMismatch", meta };
-    try {
-      deserializeGameState(data.state);
-      const nextTimeline = normalizeSavedTimeline(data.timeline, data.state);
-      if (!nextTimeline) return { ok: false, reason: "missingTimeline" };
-      deserializeGameState(nextTimeline.baseStateData);
-      const rebuilt = rebuildStateAtSecond(nextTimeline, nextTimeline.cursorSec);
-      if (!rebuilt?.ok) return { ok: false, reason: "badSaveData" };
-      return { ok: true, meta, data, nextTimeline, state: rebuilt.state };
-    } catch (error) {
-      return { ok: false, reason: "badSaveData", error };
-    }
+    return writeSaveToSlot(slot, {
+      state: cursorState,
+      timeline,
+      setupId: activeSetupId,
+    });
   }
 
   function loadFromSlot(slot) {
@@ -1860,6 +1748,6 @@ export function createSimRunner({
     getSaveSlotMeta,
     inspectSaveSlot,
     getSetupId: () => activeSetupId,
-    getSaveSlotCount: () => saveSlotCount,
+    getSaveSlotCount: () => SAVE_SLOT_COUNT,
   };
 }

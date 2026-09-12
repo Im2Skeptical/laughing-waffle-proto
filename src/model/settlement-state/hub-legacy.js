@@ -1,0 +1,863 @@
+// Legacy hub-core constructors, floodplain/hinterland tile food helpers,
+// and stockpile accessors. Pre-redesign substrate on the serialization/replay
+// path. Do not add new detailed-settlement gameplay here.
+// Public names stay on src/model/settlement-state.js.
+
+import {
+  RED_GOD_ENABLED,
+  RED_GOD_SPAWN_CADENCE_MOONS,
+  MOON_CYCLE_SEC,
+  FAITH_STARTING_TIER,
+  SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
+  SETTLEMENT_HAPPINESS_STARTING_LEVEL,
+} from "../../defs/gamesettings/gamerules-defs.js";
+import { envTileDefs } from "../../defs/gamepieces/env-tiles-defs.js";
+import { TIER_ASC } from "../effects/core/tiers.js";
+import { getPrimaryDetailedSiteState } from "../world-state.js";
+
+const DEFAULT_ORDER_SLOT_COUNT = 1;
+const DEFAULT_PRACTICE_SLOT_COUNT = 5;
+const DEFAULT_STRUCTURE_SLOT_COUNT = 6;
+export const DEFAULT_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
+const HAPPINESS_ASC = Object.freeze(["negative", "neutral", "positive"]);
+export const SETTLEMENT_FLOODPLAIN_FOOD_CAP = 100;
+const DEFAULT_VASSAL_LINEAGE_STATE = Object.freeze({
+  nextVassalId: 1,
+  nextPoolId: 1,
+  selectedVassalIds: [],
+  currentVassalId: null,
+  vassalsById: {},
+});
+const DEFAULT_RED_GOD_SPAWN_CADENCE_SEC = Math.max(
+  1,
+  Math.max(1, Math.floor(RED_GOD_SPAWN_CADENCE_MOONS || 7)) *
+    Math.max(1, Math.floor(MOON_CYCLE_SEC || 6))
+);
+
+export const SETTLEMENT_STOCKPILE_KEYS = Object.freeze([
+  "food",
+  "redResource",
+  "greenResource",
+  "blueResource",
+  "blackResource",
+]);
+
+function cloneSerializable(value) {
+  if (value == null || typeof value !== "object") return value;
+  return JSON.parse(JSON.stringify(value));
+}
+
+function createZoneSlots(count, key) {
+  const safeCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  return new Array(safeCount).fill(null).map(() => ({ [key]: null }));
+}
+
+function normalizeStockpiles(raw) {
+  const next = raw && typeof raw === "object" ? { ...raw } : {};
+  for (const key of SETTLEMENT_STOCKPILE_KEYS) {
+    next[key] = Number.isFinite(next[key]) ? Number(next[key]) : 0;
+  }
+  return next;
+}
+
+export function normalizeTierId(value, fallback = "bronze") {
+  const safeFallback = TIER_ASC.includes(fallback) ? fallback : TIER_ASC[0] || "bronze";
+  if (typeof value !== "string") return safeFallback;
+  return TIER_ASC.includes(value) ? value : safeFallback;
+}
+
+export function getFaithStartingTier() {
+  return normalizeTierId(FAITH_STARTING_TIER, "gold");
+}
+
+export function normalizeHappinessStatus(value) {
+  if (typeof value !== "string") {
+    return HAPPINESS_ASC.includes(SETTLEMENT_HAPPINESS_STARTING_LEVEL)
+      ? SETTLEMENT_HAPPINESS_STARTING_LEVEL
+      : "neutral";
+  }
+  return HAPPINESS_ASC.includes(value)
+    ? value
+    : HAPPINESS_ASC.includes(SETTLEMENT_HAPPINESS_STARTING_LEVEL)
+      ? SETTLEMENT_HAPPINESS_STARTING_LEVEL
+      : "neutral";
+}
+
+export function normalizeClassId(value) {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+export function normalizeClassOrder(raw) {
+  const out = [];
+  const seen = new Set();
+  for (const entry of Array.isArray(raw) ? raw : DEFAULT_CLASS_ORDER) {
+    const classId = normalizeClassId(entry);
+    if (!classId || seen.has(classId)) continue;
+    seen.add(classId);
+    out.push(classId);
+  }
+  if (!out.length) {
+    out.push(...DEFAULT_CLASS_ORDER);
+  }
+  return out;
+}
+
+function normalizePopulationYearlyState(raw) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    year: Number.isFinite(next.year) ? Math.max(1, Math.floor(next.year)) : 1,
+    mealAttempts: Number.isFinite(next.mealAttempts)
+      ? Math.max(0, Number(next.mealAttempts))
+      : 0,
+    mealSuccesses: Number.isFinite(next.mealSuccesses)
+      ? Math.max(0, Number(next.mealSuccesses))
+      : 0,
+    attractionProgress: Number.isFinite(next.attractionProgress)
+      ? Math.max(0, Number(next.attractionProgress))
+      : 0,
+    lastMealAttempts: Number.isFinite(next.lastMealAttempts)
+      ? Math.max(0, Number(next.lastMealAttempts))
+      : 0,
+    lastMealSuccesses: Number.isFinite(next.lastMealSuccesses)
+      ? Math.max(0, Number(next.lastMealSuccesses))
+      : 0,
+    lastOutcomeKind:
+      typeof next.lastOutcomeKind === "string" && next.lastOutcomeKind.length > 0
+        ? next.lastOutcomeKind
+        : null,
+    lastSeasonOutcomeKind:
+      typeof next.lastSeasonOutcomeKind === "string" && next.lastSeasonOutcomeKind.length > 0
+        ? next.lastSeasonOutcomeKind
+        : null,
+    lastSeasonFeedRatio: Number.isFinite(next.lastSeasonFeedRatio)
+      ? Math.max(0, Math.min(1, Number(next.lastSeasonFeedRatio)))
+      : 0,
+  };
+}
+
+function normalizeFaithState(raw, fallbackTier = null) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    tier: normalizeTierId(next.tier, normalizeTierId(fallbackTier, getFaithStartingTier())),
+  };
+}
+
+function normalizeHappinessState(raw) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  const partialFeedRatios = Array.isArray(next.partialFeedRatios)
+    ? next.partialFeedRatios
+        .map((value) =>
+          Number.isFinite(value) ? Math.max(0, Math.min(1, Number(value))) : null
+        )
+        .filter((value) => value != null)
+        .slice(-Math.max(1, Math.floor(SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH || 3)))
+    : [];
+  return {
+    status: normalizeHappinessStatus(next.status),
+    fullFeedStreak: Number.isFinite(next.fullFeedStreak ?? next.positiveFeedStreak)
+      ? Math.max(0, Math.floor(next.fullFeedStreak ?? next.positiveFeedStreak))
+      : 0,
+    missedFeedStreak: Number.isFinite(next.missedFeedStreak ?? next.negativeFeedStreak)
+      ? Math.max(0, Math.floor(next.missedFeedStreak ?? next.negativeFeedStreak))
+      : 0,
+    partialFeedRatios,
+  };
+}
+
+function normalizeCommitment(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const startSec = Number.isFinite(raw.startSec)
+    ? Math.max(0, Math.floor(raw.startSec))
+    : null;
+  const releaseSec = Number.isFinite(raw.releaseSec)
+    ? Math.max(0, Math.floor(raw.releaseSec))
+    : null;
+  if (releaseSec == null) return null;
+  const amount = Number.isFinite(raw.amount) ? Math.max(0, Math.floor(raw.amount)) : 0;
+  if (amount <= 0) return null;
+  return {
+    id: Number.isFinite(raw.id) ? Math.floor(raw.id) : null,
+    amount,
+    startSec,
+    releaseSec,
+    sourceId: typeof raw.sourceId === "string" ? raw.sourceId : null,
+    label: typeof raw.label === "string" ? raw.label : null,
+    vars:
+      raw.vars && typeof raw.vars === "object" && !Array.isArray(raw.vars)
+        ? cloneSerializable(raw.vars)
+        : {},
+    onReleaseEffects: Array.isArray(raw.onReleaseEffects) || raw.onReleaseEffects
+      ? cloneSerializable(raw.onReleaseEffects)
+      : null,
+  };
+}
+
+function normalizePopulationClassState(raw, fallbackTier = null) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  const commitments = Array.isArray(next.commitments)
+    ? next.commitments.map(normalizeCommitment).filter(Boolean)
+    : [];
+  const legacyTotal = Number.isFinite(next.total) ? Math.max(0, Math.floor(next.total)) : 0;
+  const adults = Number.isFinite(next.adults)
+    ? Math.max(0, Math.floor(next.adults))
+    : legacyTotal;
+  const youth = Number.isFinite(next.youth) ? Math.max(0, Math.floor(next.youth)) : 0;
+  return {
+    adults,
+    youth,
+    commitments,
+    yearly: normalizePopulationYearlyState(next.yearly),
+    faith: normalizeFaithState(next.faith, fallbackTier),
+    happiness: normalizeHappinessState(next.happiness),
+  };
+}
+
+function normalizePopulationClasses(raw, classOrder, fallbackTier = null) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  const safeOrder = normalizeClassOrder(classOrder);
+  const out = {};
+  for (const classId of safeOrder) {
+    out[classId] = normalizePopulationClassState(next[classId], fallbackTier);
+  }
+  for (const [key, value] of Object.entries(next)) {
+    const classId = normalizeClassId(key);
+    if (!classId || Object.prototype.hasOwnProperty.call(out, classId)) continue;
+    out[classId] = normalizePopulationClassState(value, fallbackTier);
+  }
+  return out;
+}
+
+function normalizeChaosGodInactiveState(raw) {
+  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    enabled: next.enabled === true,
+  };
+}
+
+function normalizeRedGodState(raw) {
+  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    enabled: typeof next.enabled === "boolean" ? next.enabled : RED_GOD_ENABLED === true,
+    chaosPower: Number.isFinite(next.chaosPower) ? Math.max(0, Math.floor(next.chaosPower)) : 0,
+    monsterCount: Number.isFinite(next.monsterCount) ? Math.max(0, Math.floor(next.monsterCount)) : 0,
+    nextSpawnSec: Number.isFinite(next.nextSpawnSec)
+      ? Math.max(0, Math.floor(next.nextSpawnSec))
+      : DEFAULT_RED_GOD_SPAWN_CADENCE_SEC,
+    lastSpawnSec: Number.isFinite(next.lastSpawnSec) ? Math.max(0, Math.floor(next.lastSpawnSec)) : null,
+    lastSpawnCount: Number.isFinite(next.lastSpawnCount)
+      ? Math.max(0, Math.floor(next.lastSpawnCount))
+      : 0,
+  };
+}
+
+function normalizeChaosGodsState(raw) {
+  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  return {
+    redGod: normalizeRedGodState(next.redGod),
+    greenGod: normalizeChaosGodInactiveState(next.greenGod),
+    blueGod: normalizeChaosGodInactiveState(next.blueGod),
+    blackGod: normalizeChaosGodInactiveState(next.blackGod),
+  };
+}
+
+function normalizeVassalLifeEvent(raw, fallbackIndex = 0) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return {
+    eventId:
+      typeof raw.eventId === "string" && raw.eventId.length > 0
+        ? raw.eventId
+        : `vassal-event-${Math.max(0, Math.floor(fallbackIndex))}`,
+    kind: typeof raw.kind === "string" && raw.kind.length > 0 ? raw.kind : "event",
+    tSec: Number.isFinite(raw.tSec) ? Math.max(0, Math.floor(raw.tSec)) : 0,
+    ageYears: Number.isFinite(raw.ageYears) ? Math.max(0, Math.floor(raw.ageYears)) : 0,
+    classId: typeof raw.classId === "string" && raw.classId.length > 0 ? raw.classId : null,
+    professionId:
+      typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
+    traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    causeOfDeath:
+      typeof raw.causeOfDeath === "string" && raw.causeOfDeath.length > 0 ? raw.causeOfDeath : null,
+    text: typeof raw.text === "string" ? raw.text : "",
+  };
+}
+
+function normalizeVassalRecord(raw, fallbackId = null) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const vassalId =
+    typeof raw.vassalId === "string" && raw.vassalId.length > 0 ? raw.vassalId : fallbackId;
+  if (!vassalId) return null;
+  return {
+    vassalId,
+    poolId: typeof raw.poolId === "string" && raw.poolId.length > 0 ? raw.poolId : null,
+    sourceClassId:
+      typeof raw.sourceClassId === "string" && raw.sourceClassId.length > 0 ? raw.sourceClassId : "villager",
+    currentClassId:
+      typeof raw.currentClassId === "string" && raw.currentClassId.length > 0
+        ? raw.currentClassId
+        : typeof raw.sourceClassId === "string" && raw.sourceClassId.length > 0
+          ? raw.sourceClassId
+          : "villager",
+    birthSec: Number.isFinite(raw.birthSec) ? Math.max(0, Math.floor(raw.birthSec)) : 0,
+    birthYear: Number.isFinite(raw.birthYear) ? Math.max(1, Math.floor(raw.birthYear)) : 1,
+    selectedSec: Number.isFinite(raw.selectedSec) ? Math.max(0, Math.floor(raw.selectedSec)) : 0,
+    deathSec: Number.isFinite(raw.deathSec) ? Math.max(0, Math.floor(raw.deathSec)) : 0,
+    deathYear: Number.isFinite(raw.deathYear) ? Math.max(1, Math.floor(raw.deathYear)) : 1,
+    initialAgeYears: Number.isFinite(raw.initialAgeYears) ? Math.max(0, Math.floor(raw.initialAgeYears)) : 0,
+    deathAgeYears: Number.isFinite(raw.deathAgeYears) ? Math.max(0, Math.floor(raw.deathAgeYears)) : 0,
+    villagerAgeYears:
+      Number.isFinite(raw.villagerAgeYears) ? Math.max(0, Math.floor(raw.villagerAgeYears)) : null,
+    professionAgeYears:
+      Number.isFinite(raw.professionAgeYears) ? Math.max(0, Math.floor(raw.professionAgeYears)) : null,
+    traitAgeYears: Number.isFinite(raw.traitAgeYears) ? Math.max(0, Math.floor(raw.traitAgeYears)) : null,
+    elderAgeYears: Number.isFinite(raw.elderAgeYears) ? Math.max(0, Math.floor(raw.elderAgeYears)) : null,
+    agendaByClass:
+      raw.agendaByClass && typeof raw.agendaByClass === "object" && !Array.isArray(raw.agendaByClass)
+        ? cloneSerializable(raw.agendaByClass)
+        : {},
+    professionId:
+      typeof raw.professionId === "string" && raw.professionId.length > 0 ? raw.professionId : null,
+    traitId: typeof raw.traitId === "string" && raw.traitId.length > 0 ? raw.traitId : null,
+    deathCause:
+      typeof raw.deathCause === "string" && raw.deathCause.length > 0 ? raw.deathCause : null,
+    councilMemberId:
+      typeof raw.councilMemberId === "string" && raw.councilMemberId.length > 0
+        ? raw.councilMemberId
+        : null,
+    joinedCouncilSec:
+      Number.isFinite(raw.joinedCouncilSec) ? Math.max(0, Math.floor(raw.joinedCouncilSec)) : null,
+    removedFromCouncilSec:
+      Number.isFinite(raw.removedFromCouncilSec) ? Math.max(0, Math.floor(raw.removedFromCouncilSec)) : null,
+    isDead: raw.isDead === true,
+    isElder: raw.isElder === true,
+    lifeEvents: Array.isArray(raw.lifeEvents)
+      ? raw.lifeEvents.map((entry, index) => normalizeVassalLifeEvent(entry, index)).filter(Boolean)
+      : [],
+  };
+}
+
+function normalizeVassalLineageState(raw) {
+  const next =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? cloneSerializable(raw)
+      : cloneSerializable(DEFAULT_VASSAL_LINEAGE_STATE);
+  const selectedVassalIds = Array.isArray(next.selectedVassalIds)
+    ? next.selectedVassalIds.filter((entry) => typeof entry === "string" && entry.length > 0)
+    : [];
+  const vassalsById = {};
+  if (next.vassalsById && typeof next.vassalsById === "object" && !Array.isArray(next.vassalsById)) {
+    for (const [vassalId, value] of Object.entries(next.vassalsById)) {
+      const record = normalizeVassalRecord(value, vassalId);
+      if (!record) continue;
+      vassalsById[record.vassalId] = record;
+    }
+  }
+  const explicitCurrentVassalId =
+    typeof next.currentVassalId === "string" && next.currentVassalId.length > 0
+      ? next.currentVassalId
+      : null;
+  const currentVassalId =
+    explicitCurrentVassalId && vassalsById[explicitCurrentVassalId]
+      ? explicitCurrentVassalId
+      : [...selectedVassalIds].reverse().find((vassalId) => !!vassalsById[vassalId]) ?? null;
+  return {
+    nextVassalId: Number.isFinite(next.nextVassalId) ? Math.max(1, Math.floor(next.nextVassalId)) : 1,
+    nextPoolId: Number.isFinite(next.nextPoolId) ? Math.max(1, Math.floor(next.nextPoolId)) : 1,
+    selectedVassalIds,
+    currentVassalId,
+    vassalsById,
+  };
+}
+
+function getTileSettlementState(tile) {
+  const settlement = tile?.props?.settlement;
+  if (!settlement || typeof settlement !== "object" || Array.isArray(settlement)) {
+    return null;
+  }
+  return settlement;
+}
+
+function ensureTileSettlementState(tile) {
+  if (!tile || typeof tile !== "object") return null;
+  if (!tile.props || typeof tile.props !== "object" || Array.isArray(tile.props)) {
+    tile.props = {};
+  }
+  if (
+    !tile.props.settlement ||
+    typeof tile.props.settlement !== "object" ||
+    Array.isArray(tile.props.settlement)
+  ) {
+    tile.props.settlement = {};
+  }
+  const settlement = tile.props.settlement;
+  settlement.foodStored = Number.isFinite(settlement.foodStored)
+    ? Math.max(
+        0,
+        Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(settlement.foodStored))
+      )
+    : 0;
+  settlement.blueResourceStored = Number.isFinite(settlement.blueResourceStored)
+    ? Math.max(0, Math.floor(settlement.blueResourceStored))
+    : 0;
+  return settlement;
+}
+
+function getFloodplainSettlementSpec(tile) {
+  const def = envTileDefs?.[tile?.defId] ?? null;
+  const settlementSpec =
+    def?.settlementPrototype && typeof def.settlementPrototype === "object"
+      ? def.settlementPrototype
+      : null;
+  return settlementSpec?.autumnFloods ? settlementSpec : null;
+}
+
+function createDerivedProps(raw = null) {
+  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+  next.floodWindowArmed = next.floodWindowArmed === true;
+  next.foodCapacity = Number.isFinite(next.foodCapacity)
+    ? Math.max(0, Math.floor(next.foodCapacity))
+    : 0;
+  next.populationCapacity = Number.isFinite(next.populationCapacity)
+    ? Math.max(0, Math.floor(next.populationCapacity))
+    : 0;
+  next.structureStaffingReserved = Number.isFinite(next.structureStaffingReserved)
+    ? Math.max(0, Math.floor(next.structureStaffingReserved))
+    : 0;
+  next.committedPopulation = Number.isFinite(next.committedPopulation)
+    ? Math.max(0, Math.floor(next.committedPopulation))
+    : 0;
+  next.freePopulation = Number.isFinite(next.freePopulation)
+    ? Math.max(0, Math.floor(next.freePopulation))
+    : 0;
+  next.capabilities = Array.isArray(next.capabilities)
+    ? next.capabilities.filter((entry) => typeof entry === "string")
+    : [];
+  next.activeStructureIds = Array.isArray(next.activeStructureIds)
+    ? next.activeStructureIds
+        .map((entry) => (Number.isFinite(entry) ? Math.floor(entry) : null))
+        .filter((entry) => entry != null)
+    : [];
+  next.classSummaries =
+    next.classSummaries && typeof next.classSummaries === "object" && !Array.isArray(next.classSummaries)
+      ? cloneSerializable(next.classSummaries)
+      : {};
+  next.practicePassiveBonusesByClass =
+    next.practicePassiveBonusesByClass &&
+    typeof next.practicePassiveBonusesByClass === "object" &&
+    !Array.isArray(next.practicePassiveBonusesByClass)
+      ? cloneSerializable(next.practicePassiveBonusesByClass)
+      : {};
+  return next;
+}
+
+export function createHubCore() {
+  const classOrder = normalizeClassOrder(null);
+  return {
+    instanceId: "hub.core",
+    kind: "hubCore",
+    props: createDerivedProps(),
+    systemTiers: {
+      stockpiles: "bronze",
+      population: "bronze",
+    },
+    systemState: {
+      stockpiles: normalizeStockpiles(null),
+      populationClasses: normalizePopulationClasses(null, classOrder, getFaithStartingTier()),
+      chaosGods: normalizeChaosGodsState(null),
+      vassalLineage: normalizeVassalLineageState(null),
+    },
+  };
+}
+
+export function ensureHubCoreShape(core) {
+  const target =
+    core && typeof core === "object" && !Array.isArray(core) ? core : createHubCore();
+  target.instanceId = "hub.core";
+  target.kind = "hubCore";
+  if (!target.systemTiers || typeof target.systemTiers !== "object") {
+    target.systemTiers = {};
+  }
+  if (!target.systemState || typeof target.systemState !== "object") {
+    target.systemState = {};
+  }
+  if (target.systemTiers.stockpiles == null) target.systemTiers.stockpiles = "bronze";
+  if (target.systemTiers.population == null) target.systemTiers.population = "bronze";
+  const fallbackTier = normalizeTierId(target.systemTiers.faith, getFaithStartingTier());
+  target.systemState.stockpiles = normalizeStockpiles(target.systemState.stockpiles);
+
+  const legacyPopulation =
+    target.systemState.population &&
+    typeof target.systemState.population === "object" &&
+    !Array.isArray(target.systemState.population)
+      ? target.systemState.population
+      : null;
+  const legacyFaith =
+    target.systemState.faith &&
+    typeof target.systemState.faith === "object" &&
+    !Array.isArray(target.systemState.faith)
+      ? target.systemState.faith
+      : null;
+  const rawPopulationClasses =
+    target.systemState.populationClasses &&
+    typeof target.systemState.populationClasses === "object" &&
+    !Array.isArray(target.systemState.populationClasses)
+      ? target.systemState.populationClasses
+      : legacyPopulation
+        ? {
+            villager: {
+              ...legacyPopulation,
+              faith: {
+                ...(legacyFaith || {}),
+                tier: fallbackTier,
+              },
+            },
+          }
+        : null;
+  target.systemState.populationClasses = normalizePopulationClasses(
+    rawPopulationClasses,
+    null,
+    fallbackTier
+  );
+  target.systemState.chaosGods = normalizeChaosGodsState(target.systemState.chaosGods);
+  target.systemState.vassalLineage = normalizeVassalLineageState(target.systemState.vassalLineage);
+  delete target.systemState.population;
+  delete target.systemState.faith;
+  target.props = createDerivedProps(target.props);
+  return target;
+}
+
+function ensureSlotShape(slot, key) {
+  if (!slot || typeof slot !== "object" || Array.isArray(slot)) return { [key]: null };
+  if (!Object.prototype.hasOwnProperty.call(slot, key)) {
+    slot[key] = null;
+  }
+  return slot;
+}
+
+function ensureZone(zone, count, key) {
+  const target = zone && typeof zone === "object" && !Array.isArray(zone) ? zone : {};
+  const fallbackCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+  if (!Array.isArray(target.slots)) {
+    target.slots = createZoneSlots(fallbackCount, key);
+  }
+  if (target.slots.length < fallbackCount) {
+    const missing = fallbackCount - target.slots.length;
+    target.slots.push(...createZoneSlots(missing, key));
+  }
+  for (let i = 0; i < target.slots.length; i += 1) {
+    target.slots[i] = ensureSlotShape(target.slots[i], key);
+  }
+  return target;
+}
+
+function getZoneSlotCount(rawZone, fallbackCount) {
+  if (Array.isArray(rawZone?.slots)) return rawZone.slots.length;
+  return fallbackCount;
+}
+
+function countOccupiedStructures(slots) {
+  if (!Array.isArray(slots)) return 0;
+  let count = 0;
+  for (const slot of slots) {
+    if (slot?.structure) count += 1;
+  }
+  return count;
+}
+
+export function ensureHubSettlementState(hub, colHint = DEFAULT_STRUCTURE_SLOT_COUNT) {
+  const target = hub && typeof hub === "object" && !Array.isArray(hub) ? hub : {};
+  const structureCountHint = Number.isFinite(colHint)
+    ? Math.max(1, Math.floor(colHint))
+    : DEFAULT_STRUCTURE_SLOT_COUNT;
+
+  target.core = ensureHubCoreShape(target.core);
+  target.classOrder = normalizeClassOrder(
+    Array.isArray(target.classOrder)
+      ? target.classOrder
+      : Object.keys(target.core.systemState.populationClasses || {})
+  );
+  if (!target.zones || typeof target.zones !== "object" || Array.isArray(target.zones)) {
+    target.zones = {};
+  }
+
+  const zoneStructureSlots = Array.isArray(target.zones?.structures?.slots)
+    ? target.zones.structures.slots
+    : null;
+  const legacyStructureSlots = Array.isArray(target.slots) ? target.slots : null;
+  let structureSlotsSource = zoneStructureSlots ?? legacyStructureSlots;
+  if (zoneStructureSlots && legacyStructureSlots && zoneStructureSlots !== legacyStructureSlots) {
+    structureSlotsSource =
+      countOccupiedStructures(legacyStructureSlots) >= countOccupiedStructures(zoneStructureSlots)
+        ? legacyStructureSlots
+        : zoneStructureSlots;
+  }
+  if (!structureSlotsSource) {
+    structureSlotsSource = createZoneSlots(structureCountHint, "structure");
+  }
+  const structureCount = getZoneSlotCount(
+    { slots: structureSlotsSource },
+    structureCountHint
+  );
+
+  target.zones.order = ensureZone(
+    target.zones.order,
+    getZoneSlotCount(target.zones.order, DEFAULT_ORDER_SLOT_COUNT),
+    "card"
+  );
+  if (
+    !target.zones.practiceByClass ||
+    typeof target.zones.practiceByClass !== "object" ||
+    Array.isArray(target.zones.practiceByClass)
+  ) {
+    target.zones.practiceByClass = {};
+  }
+  for (const classId of target.classOrder) {
+    const existingZone =
+      target.zones.practiceByClass[classId] ??
+      (classId === target.classOrder[0] ? target.zones.practice : null);
+    target.zones.practiceByClass[classId] = ensureZone(
+      existingZone,
+      getZoneSlotCount(existingZone, DEFAULT_PRACTICE_SLOT_COUNT),
+      "card"
+    );
+  }
+  delete target.zones.practice;
+  target.zones.structures = ensureZone(
+    { ...(target.zones.structures || {}), slots: structureSlotsSource },
+    structureCount,
+    "structure"
+  );
+
+  target.slots = target.zones.structures.slots;
+  target.cols = target.zones.structures.slots.length;
+  return target;
+}
+
+export function createSettlementCardInstance(defId, cardKind, state, overrides = null) {
+  const nextId = Number.isFinite(state?.nextSettlementCardInstanceId)
+    ? Math.max(1, Math.floor(state.nextSettlementCardInstanceId))
+    : 1;
+  if (state && typeof state === "object") {
+    state.nextSettlementCardInstanceId = nextId + 1;
+  }
+  const instance = {
+    instanceId: nextId,
+    defId,
+    kind: cardKind,
+    props: {},
+    systemTiers: {},
+    systemState: {},
+  };
+  if (overrides && typeof overrides === "object") {
+    for (const key of ["tier", "props", "systemTiers", "systemState"]) {
+      if (Object.prototype.hasOwnProperty.call(overrides, key)) {
+        instance[key] = cloneSerializable(overrides[key]);
+      }
+    }
+  }
+  return instance;
+}
+
+export function getHubCore(state) {
+  return getPrimaryDetailedSiteState(state)?.hub?.core ?? null;
+}
+
+export function getSettlementFloodplainTiles(state) {
+  const board = getPrimaryDetailedSiteState(state)?.board;
+  const tiles = Array.isArray(board?.layers?.tile?.anchors)
+    ? board.layers.tile.anchors
+    : [];
+  return tiles.filter((tile) => getFloodplainSettlementSpec(tile));
+}
+
+export function getSettlementHinterlandTiles(state) {
+  const board = getPrimaryDetailedSiteState(state)?.board;
+  const tiles = Array.isArray(board?.layers?.tile?.anchors)
+    ? board.layers.tile.anchors
+    : [];
+  return tiles.filter((tile) => tile?.defId === "tile_hinterland");
+}
+
+export function getSettlementTileFood(tile) {
+  const value = getTileSettlementState(tile)?.foodStored;
+  return Number.isFinite(value)
+    ? Math.max(0, Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(value)))
+    : 0;
+}
+
+export function getSettlementTileBlueResource(tile) {
+  const value = getTileSettlementState(tile)?.blueResourceStored;
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+}
+
+export function setSettlementTileFood(tile, amount) {
+  const settlement = ensureTileSettlementState(tile);
+  if (!settlement) return 0;
+  settlement.foodStored = Number.isFinite(amount)
+    ? Math.max(
+        0,
+        Math.min(SETTLEMENT_FLOODPLAIN_FOOD_CAP, Math.floor(amount))
+      )
+    : 0;
+  return settlement.foodStored;
+}
+
+export function setSettlementTileBlueResource(tile, amount) {
+  const settlement = ensureTileSettlementState(tile);
+  if (!settlement) return 0;
+  settlement.blueResourceStored = Number.isFinite(amount)
+    ? Math.max(0, Math.floor(amount))
+    : 0;
+  return settlement.blueResourceStored;
+}
+
+export function getSettlementFloodplainFoodTotal(state) {
+  return getSettlementFloodplainTiles(state).reduce(
+    (sum, tile) => sum + getSettlementTileFood(tile),
+    0
+  );
+}
+
+export function getSettlementTotalFood(state) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (Number.isFinite(detailed?.storedFood) && Number.isFinite(detailed?.looseFood)) {
+    return Number(detailed.storedFood) + Number(detailed.looseFood);
+  }
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  const storedFood = Number.isFinite(stockpiles?.food)
+    ? Math.max(0, Number(stockpiles.food))
+    : 0;
+  return storedFood + getSettlementFloodplainFoodTotal(state);
+}
+
+export function getSettlementHinterlandBlueTotal(state) {
+  return getSettlementHinterlandTiles(state).reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
+    0
+  );
+}
+
+export function addSettlementFloodplainFood(state, amount) {
+  const floodplainTiles = getSettlementFloodplainTiles(state);
+  let remainingToAdd = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  let added = 0;
+  for (const tile of floodplainTiles) {
+    if (remainingToAdd <= 0) break;
+    const current = getSettlementTileFood(tile);
+    const room = Math.max(0, SETTLEMENT_FLOODPLAIN_FOOD_CAP - current);
+    const delta = Math.min(room, remainingToAdd);
+    if (delta <= 0) continue;
+    setSettlementTileFood(tile, current + delta);
+    remainingToAdd -= delta;
+    added += delta;
+  }
+  return added;
+}
+
+export function removeSettlementFloodplainFood(state, amount) {
+  const floodplainTiles = getSettlementFloodplainTiles(state);
+  let remainingToRemove = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  let removedTotal = 0;
+  for (const tile of floodplainTiles) {
+    if (remainingToRemove <= 0) break;
+    const current = getSettlementTileFood(tile);
+    const removed = Math.min(current, remainingToRemove);
+    if (removed <= 0) continue;
+    setSettlementTileFood(tile, current - removed);
+    remainingToRemove -= removed;
+    removedTotal += removed;
+  }
+  return removedTotal;
+}
+
+export function consumeSettlementFood(state, amount) {
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  let remainingToConsume = Number.isFinite(amount) ? Math.max(0, Number(amount)) : 0;
+  if (remainingToConsume <= 0) return 0;
+
+  let consumed = 0;
+  if (stockpiles && typeof stockpiles === "object") {
+    const storedFood = Number.isFinite(stockpiles.food) ? Math.max(0, Number(stockpiles.food)) : 0;
+    const storedConsumed = Math.min(storedFood, remainingToConsume);
+    if (storedConsumed > 0) {
+      stockpiles.food = Math.max(0, storedFood - storedConsumed);
+      remainingToConsume -= storedConsumed;
+      consumed += storedConsumed;
+    }
+  }
+
+  if (remainingToConsume > 0) {
+    const fieldConsumed = removeSettlementFloodplainFood(state, Math.ceil(remainingToConsume));
+    consumed += fieldConsumed;
+  }
+
+  return consumed;
+}
+
+export function clearSettlementFloodplainFood(state) {
+  const floodplainTiles = getSettlementFloodplainTiles(state);
+  for (const tile of floodplainTiles) {
+    setSettlementTileFood(tile, 0);
+  }
+  return 0;
+}
+
+export function syncSettlementHinterlandBlueResource(state, desiredTotal = null) {
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles ?? null;
+  const hinterlandTiles = getSettlementHinterlandTiles(state);
+  const currentTotal = hinterlandTiles.reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
+    0
+  );
+  const targetTotal = Number.isFinite(desiredTotal)
+    ? Math.max(0, Math.floor(desiredTotal))
+    : currentTotal;
+
+  if (targetTotal < currentTotal) {
+    let remainingToRemove = currentTotal - targetTotal;
+    for (let index = hinterlandTiles.length - 1; index >= 0 && remainingToRemove > 0; index -= 1) {
+      const tile = hinterlandTiles[index];
+      const current = getSettlementTileBlueResource(tile);
+      const removed = Math.min(current, remainingToRemove);
+      setSettlementTileBlueResource(tile, current - removed);
+      remainingToRemove -= removed;
+    }
+  } else if (targetTotal > currentTotal && hinterlandTiles.length > 0) {
+    let remainingToAdd = targetTotal - currentTotal;
+    for (const tile of hinterlandTiles) {
+      if (remainingToAdd <= 0) break;
+      setSettlementTileBlueResource(
+        tile,
+        getSettlementTileBlueResource(tile) + 1
+      );
+      remainingToAdd -= 1;
+    }
+    if (remainingToAdd > 0) {
+      const lastTile = hinterlandTiles[hinterlandTiles.length - 1];
+      setSettlementTileBlueResource(
+        lastTile,
+        getSettlementTileBlueResource(lastTile) + remainingToAdd
+      );
+    }
+  }
+
+  const actualTotal = hinterlandTiles.reduce(
+    (sum, tile) => sum + getSettlementTileBlueResource(tile),
+    0
+  );
+  if (stockpiles && typeof stockpiles === "object") {
+    stockpiles.blueResource = actualTotal;
+  }
+  return actualTotal;
+}
+
+export function getSettlementStockpile(state, key) {
+  const detailed = getPrimaryDetailedSiteState(state);
+  if (key === "food" && Number.isFinite(detailed?.storedFood)) return Number(detailed.storedFood);
+  const stockpiles = getHubCore(state)?.systemState?.stockpiles;
+  if (!stockpiles || typeof stockpiles !== "object") return 0;
+  return Number.isFinite(stockpiles[key]) ? Number(stockpiles[key]) : 0;
+}

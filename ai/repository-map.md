@@ -8,7 +8,10 @@ and its direct dependencies.
 
 - Browser entry: `src/views/ui-root-pixi.js`
 - Main UI/controller wiring: `src/views/ui-root-settlement-pixi.js`
-- Simulation runner/save/load: `src/controllers/sim-runner.js`
+- Simulation runner/save/load: `src/controllers/sim-runner.js`.
+  Slot key/meta, timeline payload, and inspect/read/write helpers live in
+  `src/controllers/sim-runner/save-slots.js`. Public factory stays on
+  `sim-runner.js`. See that folder's README.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
 - Fullscreen/landscape entry: `src/views/game-display-mode.js`
@@ -147,10 +150,19 @@ not use the root file as the default location for new rendering or model rules.
 - Timeline and authoritative rebuild: `src/model/timeline/index.js`
 - One-second replay path: `src/model/replay-second-runner.js`
 - Serialization and schema validation: `src/model/state.js`
+  (`createEmptyState`, serialize/deserialize, validate, load, season/RNG).
+  Legacy hub/board/env constructors and occupancy rebuilders live in
+  `src/model/state/board-legacy.js`; pawn field helpers in
+  `src/model/state/pawn-legacy.js`. Public names stay on `state.js`.
+  See that folder's README.
 - Projection building: `src/model/projection.js`,
   `src/model/projection-chunk.js`, and `src/model/projection-summary.js`
 - Current/selected vassal lineage reads: `src/model/vassal-life-map.js`
-  (`selectors.js`). Remaining hub/history helpers: `src/model/settlement-state.js`
+  (`selectors.js`). Remaining hub/history helpers, slot readers, and
+  `isSettlementPrototypeEnabled`: `src/model/settlement-state.js`.
+  Hub-core constructors, floodplain/hinterland tile food, and stockpile
+  accessors live in `src/model/settlement-state/hub-legacy.js`. Public names
+  stay on `settlement-state.js`. See that folder's README.
 
 Some active state/replay modules still contain substrate inherited from the
 pre-redesign prototype. Do not extend that substrate for new detailed-settlement
@@ -227,7 +239,13 @@ should not be loaded for routine work.
 - `src/controllers/sim-runner.js`, `src/model/state.js`, and
   `src/model/settlement-exec.js` retain pre-redesign substrate on the
   serialization/replay path. File-top comments mark them as non-extension
-  points for new detailed-settlement rules.
+  points for new detailed-settlement rules. Hub/board/pawn constructors
+  and occupancy rebuilders live in `src/model/state/`; hub-core
+  constructors, floodplain/hinterland food, and stockpile accessors live
+  in `src/model/settlement-state/`. Slot key/meta, timeline payload, and
+  inspect/read/write helpers live in `src/controllers/sim-runner/`.
+  `loadFromSlot` apply wiring, tick, playback, and rebuild stay on the
+  runner. Do not add new detailed-settlement rules there.
 - `src/model/graph-metrics.js` owns live civilization/settlement series.
   Leftover Gold/Grain/AP and hub-vs-prototype food/population metrics live
   in `src/model/graph-metrics/legacy-metrics.js`. Gold remains the unscoped
