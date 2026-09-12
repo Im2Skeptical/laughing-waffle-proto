@@ -1,8 +1,6 @@
 import { GRAPH_METRICS } from "./graph-metrics.js";
-import {
-  getSettlementCurrentVassal,
-  getSettlementLatestSelectedVassalEndSec,
-} from "./settlement-state.js";
+import { getSettlementLatestSelectedVassalEndSec } from "./settlement-state.js";
+import { getSettlementCurrentVassal } from "./vassal-life-map.js";
 
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));

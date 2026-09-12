@@ -5,11 +5,13 @@ import {
   recordSettlementLossSearch,
 } from "../model/perf.js";
 import {
-  getSettlementCurrentVassal,
   getSettlementLatestSelectedVassalEndSec,
   getSettlementYearDurationSec,
 } from "../model/settlement-state.js";
-import { getVassalPendingResolution } from "../model/vassal-life-map.js";
+import {
+  getSettlementCurrentVassal,
+  getVassalPendingResolution,
+} from "../model/vassal-life-map.js";
 
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));

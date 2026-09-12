@@ -93,11 +93,15 @@ file as the default location for new rendering or model rules.
   `src/views/debug-configuration-dom.js`,
   `src/controllers/debug-configuration-controller.js`,
   `src/model/game-config.js`
+- Debug world-map widget: `src/views/debug-world-map-dom.js`
 - Vassal Lab: `src/views/vassal-debug-dom.js`
+- Vassal Lab presets: `src/controllers/vassal-debug-preset-controller.js`
 - Life Map Lab view/controller/model:
   `src/views/life-map-lab-dom.js`, `src/controllers/life-map-lab-controller.js`,
   `src/model/life-map-lab-draft.js`
 - Named browser presets: `src/model/debug-draft-library.js`
+- Debug profiles: `src/controllers/debug-profile-controller.js`,
+  `src/model/debug-profile-library.js`
 
 ## Simulation routes
 
@@ -131,7 +135,8 @@ file as the default location for new rendering or model rules.
 - Serialization and schema validation: `src/model/state.js`
 - Projection building: `src/model/projection.js`,
   `src/model/projection-chunk.js`, and `src/model/projection-summary.js`
-- Vassal history/timegraph selectors: `src/model/settlement-state.js`
+- Current/selected vassal lineage reads: `src/model/vassal-life-map.js`
+  (`selectors.js`). Remaining hub/history helpers: `src/model/settlement-state.js`
 
 Some active state/replay modules still contain substrate inherited from the
 pre-redesign prototype. Do not extend that substrate for new detailed-settlement
@@ -186,13 +191,12 @@ Do not paste their full artifact JSON into chat.
 - Ubiquitous language: `CONTEXT.md`
 - Art/presentation contract: `ai/visual-overhaul.md`
 - Current routing: this file
-- Implemented design records (historical, not pending work):
-  `ai/detailed-settlement-redesign-plan.md` and
-  `ai/debug-tools-expansion-plan.md`
-- Superseded history: `ai/milestone2-substage3-report.md` and older prompts
+- Routing skills: `.grok/skills/`
+- Historical decision records (not pending work, not current routing):
+  `ai/history/`
 
 Historical records are useful when a design decision is questioned, but they
-should not be loaded for routine UI work.
+should not be loaded for routine work.
 
 ## Known, bounded debt
 
@@ -207,4 +211,4 @@ should not be loaded for routine UI work.
   serialization/replay path. File-top comments mark them as non-extension
   points for new detailed-settlement rules.
 
-Repo navigation skills: `ai/skills/repo/`.
+Repo navigation skills: `.grok/skills/`.

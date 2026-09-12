@@ -3,18 +3,24 @@
 Local instructions for agents working in this repo.
 
 ## Project context
-- Read `ai/ai-context.md` (invariants and schema numbers) before making changes.
-- Then read only the relevant of `ai/sim.md`, `ai/ui.md`, or the matching
-  section of `ai/repository-map.md`. Do not load all three by default.
-- Use root `CONTEXT.md` for ubiquitous language.
-- Do not read historical plans unless the task touches their design decisions.
+- Always read `ai/ai-context.md` (invariants and schema numbers) and root
+  `CONTEXT.md` (ubiquitous language).
+- Then read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and**
+  the matching section of `ai/repository-map.md`.
+- After the map lands in a split folder, read that folder's README before the
+  orchestrator file.
+- Prefer `.grok/skills/` routing skills (`add-gamepiece`,
+  `change-settlement-sim`, `change-view`, `change-vassal-life-map`,
+  `change-timegraph`, `change-debug-tools`).
+- Do not read `ai/history/` unless the task is explicitly about a past design
+  decision.
 
 ## Current goal context
 - The map-driven detailed-settlement redesign and data-driven debug tools are
   implemented. Current work is iterative gameplay and UI development.
 - `ai/ai-context.md` is the invariants sheet. Simulation and UI behavior live
-  in `ai/sim.md` and `ai/ui.md`. The redesign and debug-tool plans are
-  historical decision records, not descriptions of unfinished work.
+  in `ai/sim.md` and `ai/ui.md`. Historical decision records live in
+  `ai/history/` and are not descriptions of unfinished work.
 
 ## Core constraints (non-negotiable)
 - Determinism: no `Math.random()`; all randomness must go through `state.rng`.
@@ -57,20 +63,10 @@ Local instructions for agents working in this repo.
 
 ## Agent skills
 
-Repo-specific routing skills live in `ai/skills/repo/` (`add-gamepiece`,
-`change-settlement-sim`, `change-view`). Prefer those over loading a whole
-subsystem.
+Grok auto-loads `<repo>/.grok/skills/*/SKILL.md`. Prefer those routing skills
+over loading a whole subsystem.
 
-### Issue tracker
+## Issue tracker
 
-Issues and specs live in GitHub Issues using the `gh` CLI. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Use the default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-This is a single-context repository. Root `CONTEXT.md` is the glossary;
-`ai/ai-context.md` holds engine invariants. `docs/adr/` does not exist; do not
-assume ADRs are present. See `docs/agents/domain.md`.
+Issues and specs live in GitHub Issues using the `gh` CLI. See
+`docs/agents/issue-tracker.md`.

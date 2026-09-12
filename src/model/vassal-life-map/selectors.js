@@ -48,6 +48,25 @@ export function getCurrentLifeMapVassal(state) {
   return lineage?.currentVassalId ? lineage?.vassalsById?.[lineage.currentVassalId] ?? null : null;
 }
 
+export function getSettlementCurrentVassal(state) {
+  const lineage = getVassalLineage(state);
+  if (lineage?.currentVassal) return lineage.currentVassal;
+  const currentVassalId =
+    typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
+      ? lineage.currentVassalId
+      : null;
+  if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
+    return lineage.vassalsById[currentVassalId];
+  }
+  if (lineage?.vassalsById && typeof lineage.vassalsById === "object") return null;
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
+    const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
+    if (fallback) return fallback;
+  }
+  return null;
+}
+
 export function getVassalLifeMapGraph(vassal) {
   return vassal?.lifeMap?.graph ?? null;
 }
@@ -71,6 +90,18 @@ export function getSelectedLifeMapVassals(state) {
   return (lineage?.selectedVassalIds ?? [])
     .map((id) => lineage?.vassalsById?.[id] ?? null)
     .filter(Boolean);
+}
+
+export function getSettlementSelectedVassals(state) {
+  const lineage = getVassalLineage(state);
+  if (Array.isArray(lineage?.selectedVassals)) return lineage.selectedVassals;
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  const byId = lineage?.vassalsById ?? {};
+  return selectedIds.map((vassalId) => byId?.[vassalId] ?? null).filter(Boolean);
+}
+
+export function getSettlementFirstSelectedVassal(state) {
+  return getSettlementSelectedVassals(state)[0] ?? null;
 }
 
 export function getLifeMapVassalAtSecond(state, tSec = null) {

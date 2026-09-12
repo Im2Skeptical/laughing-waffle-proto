@@ -26,11 +26,11 @@ import {
   getSettlementClassIds,
   getSettlementOrderSlots,
   getSettlementPopulationSummary,
-  getSettlementSelectedVassals,
   getSettlementVassalLineageState,
   getSettlementYearDurationSec,
   getSettlementYearStartSec,
 } from "./settlement-state.js";
+import { getSettlementSelectedVassals } from "./vassal-life-map.js";
 import {
   syncElderCouncilMembersFromVassals,
 } from "./settlement-order-exec.js";

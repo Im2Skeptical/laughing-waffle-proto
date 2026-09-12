@@ -1,15 +1,18 @@
 # Current Project Context
 
-Concise invariants for agents. Read this first, then only the relevant of
-`ai/sim.md`, `ai/ui.md`, or a section of `ai/repository-map.md`. Ubiquitous
-language is `CONTEXT.md`. Exact tunables live in `src/model/game-config.js`
-and detailed gamepiece definitions in
+Concise invariants for agents. Always read this file and `CONTEXT.md`. Then
+read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and** the
+matching section of `ai/repository-map.md`. Exact tunables live in
+`src/model/game-config.js` and detailed gamepiece definitions in
 `src/defs/gamepieces/detailed-settlement-defs.js`; do not copy those
 registries here.
 
 The map-driven settlement redesign and data-driven debug-tool expansion are
-implemented. Their plan documents are historical decision records, not
-pending task lists.
+implemented. Their plan documents live in `ai/history/` as historical
+decision records, not pending task lists. Do not read `ai/history/` unless
+the task is explicitly about a past design decision.
+
+Routing skills live in `.grok/skills/`.
 
 ## Non-negotiable engine rules
 
@@ -40,6 +43,10 @@ Authoritative numbers:
   generator settings in `gameConfig`.
 - Map Lab drafts v5; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
+- Life Map Lab drafts v2.
+- Life Map generator settings v3; serialized Life Map graph v2.
+- Debug profile library/export v2.
+- Named debug draft libraries v1.
 - Debug drafts in browser storage are inert until a fresh test run is started.
 - Fresh runs do not migrate obsolete saves or presets.
 
@@ -69,6 +76,8 @@ knowledge, and the single vassal lineage are civilization-global.
 - File and test routing: [`ai/repository-map.md`](repository-map.md)
 - Glossary: [`CONTEXT.md`](../CONTEXT.md)
 - Art/presentation contract: [`ai/visual-overhaul.md`](visual-overhaul.md)
+- Historical decision records (not current routing): [`ai/history/`](history/)
+- Routing skills: [`.grok/skills/`](../.grok/skills/)
 
 Map Lab, Game Settings, Gamepieces, Vassal Lab, and Life Map Lab start a
 fresh deterministic run on apply. Verification commands live in

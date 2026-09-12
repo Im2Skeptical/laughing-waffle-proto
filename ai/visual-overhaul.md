@@ -14,7 +14,7 @@ The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and let
 - Long descriptions can be dragged or scrolled inside the inspection panel. The mortality estimate and confirmation controls remain visible.
 - Lifegraph geometry is spaced for readability in the view without changing serialized nodes, edges, availability, or outcomes.
 - Portrait art is assigned deterministically from the existing serialized portrait traits. Eight portrait archetypes are reused; every individual trait is not separately painted.
-- Hold the small hourglass seal in the upper-right corner for 850 ms to open development tools. Ctrl+Shift+D also toggles them; Escape closes them. A normal tap does not open the workshop.
+- Hold the small workshop seal in the upper-right corner for 850 ms to open development tools. Ctrl+Shift+D also toggles them; Escape closes them. A normal tap does not open the workshop.
 - The ♪ control enables or mutes timeline sound. Sound starts off.
 
 ## Time-first rendering contract
@@ -51,7 +51,7 @@ The current library contains thirty-six paintings, including a distinct illustra
 - Resource sprites and framed costs: `src/views/resource-cost-pixi.js`
 - Solar/lunar discs and phase reference: `src/views/sunandmoon-disks-pixi.js`, `src/views/moon-phase-reference-pixi.js`
 - Asset loading, atlas regions, aspect-preserving crops: `src/views/chronicle-art.js`
-- Gamepiece cards and readable inspection: `src/views/chronicle-card.js`, `src/views/chronicle-inspection.js`
+- Gamepiece cards and readable inspection: `src/views/settlement-piece-pixi.js`, `src/views/chronicle-inspection.js`
 - Map information: `src/views/chronicle-world-panels.js`
 - Sprite and particle sampling: `src/views/chronicle-effects-pixi.js`, `src/views/timeline-presentation.js`
 - Audio transport: `src/views/timeline-audio.js`

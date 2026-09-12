@@ -2,79 +2,14 @@
 
 Deterministic map-driven settlement strategy prototype.
 
-## Current prototype
+Player New Game is the Starter_02 two-site setup. Debug fixtures and labs can
+replace that setup. This README is not the rules document.
 
-Player New Game is the Starter_02 two-site setup in `ai/ai-context.md`. The
-15-region authored debug fixture still hosts five connected detailed
-settlements in Regions01, 03, 06, 07, and 11. Each detailed site simulates
-local cohorts, perishable capacity-limited food, fixed practice slots, physical
-structure space, and an aggregate Elder Order. Administration is the only way
-to move food between sites. Smokehouse can expand Administration reach from adjacent sites to detailed
-settlements connected by a fully player-controlled path.
-
-Current schemas live in [`ai/ai-context.md`](ai/ai-context.md). Simulation
-behavior lives in [`ai/sim.md`](ai/sim.md); UI behavior in
-[`ai/ui.md`](ai/ui.md). Do not treat this README as the rules document.
-
-The single civilization-wide Vassal lineage routes through a visible 44-node
-Life Map. Nodes provide Patronage, Development, Travel, local intervention
-shops, Crisis, and Legacy opportunities. Choices spend Vassal Prestige and
-Phases; each explicitly confirmed node pays recurring Prestige/EXP once and then
-checks age-based mortality once. Chaos and loss are global; population, food,
-practices, buildings, happiness, and faith are site-local.
-
-The shared HUD shows the viewed civilization year, projected survival year,
-and the best survival year observed across rewinds and saved sessions. A
-completed forecast resolves both values at the civilization-loss boundary. The
-map adds a civilization-wide demographic/food/housing/chaos summary above the
-selected-region card. Fullscreen and Debug controls remain available.
-The local settlement header reserves its right edge for those global controls.
-Overview and Demographics stay local to the opened site; the lower-left dock
-handles Regional Map, Life Map, and Settlement navigation. Detailed settlement
-has no separate header Map button. Full/Exit and Debug share one responsive
-utility rail so mobile text sizing cannot make them drift into one another.
-On-map names are hidden in favor of player flag nodes, assigned-worker pawns,
-and filled/open structure-slot glyphs. Non-detailed regions show their authored
-capacity as open slots; the selected-region card retains the full regional
-identity and details. Administration food packets appear as staggered gold
-directional markers travelling between source and destination regions, making supply routes
-visible during forecast unveiling and timeline browsing. Their playback follows
-the playhead: forward time shows the transfer normally, while rewinding shows
-the marker travelling backward toward its source while its triangle remains
-oriented toward the historical destination, like film running in reverse.
-Changing direction replaces any stale in-flight presentation markers.
-
-The timegraph is civilization-wide on the map and automatically becomes local
-when a settlement is opened. Its title always identifies that scope. The
-playhead follows an unveiling forecast and drives a read-only viewed preview,
-so the calendar, season/moon wheel, map workers, and other stateful HUD details
-advance with it while committed history stays unchanged. The preview refresh is
-rate-limited for responsive map input. Manual scrubbing takes control
-immediately.
-Choosing a Vassal reveals the Life Map but not future node inventory. Confirming
-a node progressively commits its accumulated Phases through normal simulation
-ticks, then pauses for the mortality result and next decision. The blocking
-chooser suspends automatic forecast preview until a candidate is selected.
-
-Each run serializes the exact game settings and detailed gamepiece tuning used
-by deterministic replay. Old saves are intentionally unsupported. Schema
-numbers are in `ai/ai-context.md`, not here.
-
-Development Tools has separate Map Lab, Game Settings, Gamepieces, and Vassal
-Lab sections. Map Lab and the generated configuration editors keep focused
-mobile form fields mounted while the game refreshes, so the on-screen keyboard
-remains open during an edit. Each configuration editor supports named browser
-presets plus JSON import/export. Starting a fresh test run combines the current
-map, settings, and gamepiece drafts.
-
-Game Settings covers active map-driven timing, worker policy, food consumption
-and decay, demographics, elder mortality, happiness/starvation/housing, and
-civilization chaos/loss.
-Gamepieces dynamically lists every detailed structure and practice, exposing
-numeric structure scaling, worker capacity, charge, and declarative effect
-parameters. Vassal Lab records a fully specified settlement, age, Prestige,
-and four stats as a deterministic timeline action
-without consuming RNG.
+- Engine invariants and schema numbers: [`ai/ai-context.md`](ai/ai-context.md)
+- Simulation: [`ai/sim.md`](ai/sim.md)
+- UI: [`ai/ui.md`](ai/ui.md)
+- File and test routing: [`ai/repository-map.md`](ai/repository-map.md)
+- Glossary: [`CONTEXT.md`](CONTEXT.md)
 
 ## Run and verify
 
@@ -94,75 +29,11 @@ Browser probes use the built site:
 npm run build
 npm run probe:settlement
 npm run probe:map-lab
+npm run probe:navigation
+npm run probe:game-menu
 ```
 
 `npm run build` writes generated output to `dist/`.
-
-## Map Lab
-
-Open **Debug -> Map Lab**. The editor works on a separate browser-local draft and
-changes the game only when **Start fresh test run** is used.
-
-Map Lab edits:
-
-- region colour, controller, `structureCapacity`, and connections
-- an independent detailed-settlement toggle
-- Villager/Stranger children, adults, and elder ages
-- stored and loose food
-- exactly five practice slots
-- structure slots up to the regional capacity
-
-It prevents capacity below occupied structure slots, warns about over-housing,
-and rejects stored food above the derived Granary capacity. **Copy current
-game** is a deep read-only copy of the viewed second.
-
-Draft and scenario-library schema numbers live in `ai/ai-context.md`. Older
-data is rejected without migration.
-
-## Data-driven debug configuration
-
-Open **Debug -> Game Settings** or **Debug -> Gamepieces**. Drafts and their
-named preset libraries use independent browser keys. They do not
-change a running simulation until **Start fresh test run** is pressed.
-
-The resulting `gameConfig` is JSON-only state. Rewinds, branches, projections,
-save/load, and `rebuildStateAtSecond(tSec)` therefore use the same values. The
-Gamepieces editor tunes the existing generalized DSL effect operations; it
-does not introduce view-side or one-off simulation behavior.
-
-Open **Debug -> Vassal Lab** to replace one unrevealed candidate. The complete
-normalized starting specification is stored in the selection action, so
-injection is replayable and leaves `state.rng` unchanged.
-
-Example region entry:
-
-```json
-{
-  "id": "cedar-woods",
-  "colour": "green",
-  "controller": "player",
-  "structureCapacity": 3,
-  "detailedSettlementEnabled": true,
-  "detailedState": {
-    "storedFood": 60,
-    "looseFood": 0,
-    "practiceSlots": [
-      { "practiceId": "cultivate", "charge": 0, "work": 0 },
-      { "practiceId": "administrate", "charge": 0, "work": 0 },
-      { "practiceId": "forage", "charge": 0, "work": 0 },
-      null,
-      null
-    ]
-  }
-}
-```
-
-See [`ai/ai-context.md`](ai/ai-context.md) for engine invariants and schemas,
-[`ai/sim.md`](ai/sim.md) and [`ai/ui.md`](ai/ui.md) for current behavior,
-[`ai/repository-map.md`](ai/repository-map.md) for surgical code and test
-routing, and
-[`ai/detailed-settlement-redesign-plan.md`](ai/detailed-settlement-redesign-plan.md)
-for the approved redesign record.
 
 ## Deployment
 

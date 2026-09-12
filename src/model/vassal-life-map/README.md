@@ -10,6 +10,13 @@ re-exports the previous public API; internals live here.
     age, prestige/development income, stat presentation, cost helpers,
     and candidate-pool reads. Also holds shared clone/shuffle/site
     helpers so shop, lifecycle, and presentation stay acyclic.
+  - Id-keyed Life Map reads (`getCurrentLifeMapVassal`,
+    `getSelectedLifeMapVassals`) resolve only `currentVassalId` /
+    `selectedVassalIds` through `vassalsById`. Internals use these.
+  - Live HUD/forecast reads (`getSettlementCurrentVassal`,
+    `getSettlementSelectedVassals`, `getSettlementFirstSelectedVassal`)
+    also accept a `currentVassal` object, a `selectedVassals` array, and
+    selected-id fallbacks when `vassalsById` is absent.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.
@@ -26,6 +33,9 @@ re-exports the previous public API; internals live here.
 Import these from `src/model/vassal-life-map.js`:
 
 - Civilization: `initializeVassalLifeMapCivilization`, `stepVassalLifeMapSecond`
+- Lineage: `getCurrentLifeMapVassal`, `getSelectedLifeMapVassals`,
+  `getSettlementCurrentVassal`, `getSettlementSelectedVassals`,
+  `getSettlementFirstSelectedVassal`
 - Shop/confirm: `purchaseVassalShopOffer`, `undoVassalShopPurchase`,
   `reorderVassalShopPurchase`, `moveVassalShopStructure`, `rerollVassalShop`,
   `confirmVassalLifeNode`
