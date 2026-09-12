@@ -232,28 +232,3 @@ export function pushSubjectValueSec(entry, sec, valuesBySec) {
 
   entry.orderHead = head;
 }
-
-export function pruneHistoryAfterSec(graphCache, limitSec) {
-  if (!graphCache) return;
-  const limit = clampSec(limitSec);
-  const history = Array.isArray(graphCache.history) ? graphCache.history : [];
-  graphCache.history = history.filter(
-    (p) => clampSec(p?.tSec ?? 0) <= limit
-  );
-
-  if (graphCache.stateDataByBoundary) {
-    for (const sec of graphCache.stateDataByBoundary.keys()) {
-      if (sec > limit) {
-        graphCache.stateDataByBoundary.delete(sec);
-      }
-    }
-    purgePastStateData(graphCache.stateDataByBoundary, limit);
-  }
-
-  if (graphCache.window) {
-    graphCache.window.baseSec = limit;
-    graphCache.window.forecast = [];
-  }
-
-  graphCache.historyEndSec = limit;
-}

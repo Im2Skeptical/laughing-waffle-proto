@@ -16,6 +16,7 @@
     "probe:settlement-draft": "node scripts/settlement-draft-browser-probe.mjs",
     "verify": "npm run check:architecture && npm run check:source && npm run check:assets && npm run build && npm test",
     "check:architecture": "node scripts/check-architecture.mjs",
+    "check:architecture:fixtures": "node scripts/check-architecture.mjs --fixtures",
     "check:source": "node scripts/check-source-reachability.mjs",
     "test:world": "node src/model/tests/world-state.js",
     "test:map-lab": "node src/model/tests/map-lab-draft.js",

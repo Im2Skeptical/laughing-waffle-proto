@@ -1,6 +1,6 @@
 ---
 name: add-gamepiece
-description: Add or tune a detailed-settlement practice or structure. Use when creating a gamepiece, editing practice/structure defs, extending DSL effect ops, or mentioning forage, cultivate, granary, or Gamepieces.
+description: Add or tune a detailed-settlement practice or structure. Use when creating a gamepiece, editing practice/structure defs, extending DSL effect ops, or mentioning forage, cultivate, granary, or Gamepieces. Number-only tweaks stay in detailed-settlement-defs.js; do not load sim.md unless adding a DSL op.
 ---
 
 # Add a practice or structure
@@ -9,6 +9,13 @@ Content lives in `src/defs/gamepieces/detailed-settlement-defs.js`
 (`detailedSettlementPracticeDefs`, `settlementStructureDefs`,
 `detailedSettlementEffectOps`). Do not add pieces to
 `settlement-practice-defs.js` or `hub-structure-defs.js`.
+
+## Number-only tweaks
+
+Changing rates, caps, costs, durations, or counts on an existing
+practice or structure: edit `detailed-settlement-defs.js` and run
+`npm run test:detailed-settlements`. Do not load `ai/sim.md` unless
+adding a DSL op.
 
 ## DSL-first
 

@@ -1,8 +1,8 @@
 # Current Project Context
 
-Concise invariants for agents. Always read this file and `CONTEXT.md`. Then
-read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and** the
-matching section of `ai/repository-map.md`. Exact tunables live in
+Concise invariants for agents. Always read this file. Which other docs to
+open is in root `AGENTS.md` — do not also load `CONTEXT.md`, `ai/sim.md`,
+and `ai/ui.md` on every task. Exact tunables live in
 `src/model/game-config.js` and detailed gamepiece definitions in
 `src/defs/gamepieces/detailed-settlement-defs.js`; do not copy those
 registries here.

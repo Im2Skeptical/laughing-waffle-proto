@@ -14,6 +14,7 @@ skill over `change-view` for series, plot ink, reveal, scrub, or playhead.
 | Concern | File |
 |---|---|
 | Series / labels / scope | `src/model/graph-metrics.js` |
+| Legend / tooltip copy | `src/model/graph-metrics/tooltips.js` |
 | Plot ink / constants / key paging | `src/views/timegraphs/` |
 | Illustrated scroll chrome | `src/views/timegraph-scroll-pixi.js` |
 | Series menu | `src/views/ui-root/settlement-graph-series-menu.js` |
@@ -24,7 +25,8 @@ skill over `change-view` for series, plot ink, reveal, scrub, or playhead.
 `timegraphs-pixi.js` is huge. Search `forecast-reveal-state.js` /
 `scrub-session.js` for cadence and playhead, or the orchestrator for PIXI
 pointer/`drawPlot` work. Ordinary label or series work belongs in
-`src/model/graph-metrics.js` or `src/views/timegraphs/`; do not read the
+`src/model/graph-metrics.js` or `src/views/timegraphs/`; tooltip body
+copy is `src/model/graph-metrics/tooltips.js`. Do not read the
 orchestrator end-to-end for that.
 
 After the map lands in a split folder, read that folder README before the
