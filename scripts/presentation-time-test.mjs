@@ -3,6 +3,15 @@ import { getNavigationVassalPortrait } from '../src/views/settlement-navigation-
 import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
+import {
+  createSettlementGraphSession,
+  getSettlementGraphMetric,
+  getSettlementGraphRevealConfig,
+  resolveEffectiveSettlementGraphHorizonSec,
+  SETTLEMENT_GRAPH_REVEAL_DEFAULT,
+  SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT,
+  SETTLEMENT_GRAPH_WINDOW_SEC,
+} from '../src/views/ui-root/settlement-graph-session.js';
 import { computeGraphSeriesScaleRanges } from '../src/views/timegraphs-helpers.js';
 import {
   createForecastRevealState,
@@ -265,5 +274,102 @@ assert.equal(scrub.latchedForecastScrubSec, null, 'automatic reveal preview does
 resetForecastPreviewState(scrub, restartReveal);
 assert.equal(scrub.isScrubbing, false);
 assert.equal(restartReveal.previewSec, null);
+
+assert.equal(getSettlementGraphMetric('settlement'), GRAPH_METRICS.settlement);
+assert.equal(getSettlementGraphMetric('civilization'), GRAPH_METRICS.civilization);
+assert.equal(getSettlementGraphRevealConfig('pendingCommit'), SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT);
+assert.equal(getSettlementGraphRevealConfig('default'), SETTLEMENT_GRAPH_REVEAL_DEFAULT);
+assert.equal(resolveEffectiveSettlementGraphHorizonSec(null), SETTLEMENT_GRAPH_WINDOW_SEC);
+assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
+
+{
+  const calls = [];
+  const graphController = {
+    getData: () => ({ subjectKey: 'civilization' }),
+    setMetric: (metric) => calls.push(['setMetric', metric]),
+    setSubject: (subject, key) => calls.push(['setSubject', subject, key]),
+    setHorizonSecOverride: (sec) => calls.push(['setHorizon', sec]),
+    ensureCache: () => calls.push(['ensureCache']),
+    refreshAuthoritativeRangeFrom: (sec) => calls.push(['refreshFrom', sec]),
+  };
+  const graphView = {
+    clearProjectionReplacementTransition: () => calls.push(['clearTransition']),
+    resetDataContext: () => calls.push(['resetDataContext']),
+    render: () => calls.push(['render']),
+    setForecastRevealConfig: (config) => calls.push(['setRevealConfig', config]),
+    restartForecastRevealFrom: (sec, opts) => calls.push(['restartReveal', sec, opts]),
+    clearForecastRevealRestart: () => calls.push(['clearRevealRestart']),
+  };
+  const seriesMenu = {
+    setContext: (scope) => calls.push(['setContext', scope]),
+    selectDefaultGroup: () => calls.push(['selectDefaultGroup']),
+    syncSelection: () => calls.push(['syncSelection']),
+  };
+  let worldMode = 'map';
+  let frontierState = {
+    civilization: {
+      vassalLineage: {
+        currentVassalId: 'v1',
+        vassalsById: {
+          v1: { endedReason: 'died' },
+        },
+      },
+    },
+  };
+  const forecastController = {
+    getRevealMode: () => (frontierState.civilization.vassalLineage.currentVassalId ? 'pendingCommit' : 'default'),
+    syncHorizon: () => calls.push(['syncHorizon']),
+    processPendingCommit: ({ clearForecastRevealRestart }) => {
+      calls.push(['processPendingCommit']);
+      clearForecastRevealRestart?.();
+      frontierState = {
+        civilization: {
+          vassalLineage: {
+            currentVassalId: null,
+            vassalsById: { v1: { endedReason: 'died' } },
+          },
+        },
+      };
+    },
+  };
+  const session = createSettlementGraphSession({
+    getGraphController: () => graphController,
+    getGraphView: () => graphView,
+    getForecastController: () => forecastController,
+    getSeriesMenu: () => seriesMenu,
+    getSelectedWorldRegionId: () => 'river-crown',
+    getFrontierState: () => frontierState,
+    getFrontierSec: () => 320,
+    setWorldViewMode: (mode) => {
+      worldMode = mode;
+      calls.push(['setWorldViewMode', mode]);
+    },
+  });
+  assert.equal(session.getSettlementGraphScope(), 'civilization');
+  assert.equal(session.getSettlementGraphMetric(), GRAPH_METRICS.civilization);
+  session.setSettlementGraphContext('settlement', 'river-crown');
+  assert.equal(session.getSettlementGraphScope(), 'settlement');
+  assert.equal(session.getSettlementGraphMetric(), GRAPH_METRICS.settlement);
+  assert.deepEqual(calls.slice(0, 7), [
+    ['clearTransition'],
+    ['setMetric', GRAPH_METRICS.settlement],
+    ['setSubject', { regionId: 'river-crown' }, 'river-crown'],
+    ['setContext', 'settlement'],
+    ['selectDefaultGroup'],
+    ['syncSelection'],
+    ['ensureCache'],
+  ]);
+  session.setSettlementGraphHorizonOverride(4096);
+  assert.equal(session.getEffectiveSettlementGraphHorizonSec(), 4096);
+  session.syncSettlementGraphRevealConfig();
+  assert.equal(calls.at(-1)?.[1], SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT);
+  session.syncSettlementGraphRevealConfig();
+  session.processSettlementPendingCommit();
+  assert.equal(worldMode, 'map');
+  assert.ok(calls.some((entry) => entry[0] === 'clearRevealRestart'));
+  assert.ok(calls.some((entry) => entry[0] === 'restartReveal' && entry[1] === 320));
+  const ended = session.revealCivilizationAfterVassalEnd('missing');
+  assert.equal(ended, false);
+}
 
 console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, topology layout, and timegraph reveal/scrub state');

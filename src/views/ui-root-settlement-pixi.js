@@ -13,10 +13,6 @@ import { createVassalDebugPresetController } from "../controllers/vassal-debug-p
 import { createDebugProfileController } from "../controllers/debug-profile-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
-import {
-  SEASON_DURATION_SEC,
-  SETTLEMENT_VISIBLE_WINDOW_YEARS,
-} from "../defs/gamesettings/gamerules-defs.js";
 import { ActionKinds } from "../model/actions.js";
 import {
   buildEdgeTransferBatchAtBoundary,
@@ -35,7 +31,6 @@ import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
   getVassalNodeDecisionPresentation,
-  getVassalPendingResolution,
 } from "../model/vassal-life-map.js";
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
@@ -57,13 +52,28 @@ import {
 import { installGlobalTextStylePolicy } from "./ui-helpers/text-style-policy.js";
 import {
   computeSettlementGraphWindowSpec,
-  SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
   createSettlementProjectionCache,
   SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+  SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
 } from "./ui-root/settlement-timegraph-window.js";
 import {
   publishSettlementDebugApi as publishSettlementDebugApiForSettlement,
 } from "./ui-root/settlement-debug-api.js";
+import {
+  createSettlementGraphSession,
+  MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
+  SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC,
+  SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
+  SETTLEMENT_GRAPH_REVEAL_DEFAULT,
+  SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC,
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC,
+  SETTLEMENT_GRAPH_WINDOW_SEC,
+  SETTLEMENT_HORIZON_LEAD_BUFFER_SEC,
+  SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC,
+  SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC,
+} from "./ui-root/settlement-graph-session.js";
 import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-series-menu.js";
 import { createSettlementPlayback } from "./ui-root/settlement-playback.js";
 import { createSettlementVassalFlow } from "./ui-root/settlement-vassal-flow.js";
@@ -173,11 +183,6 @@ const controlLayer = new PIXI.Container();
 controlLayer.sortableChildren = true;
 const tooltipLayer = new PIXI.Container();
 const modalLayer = new PIXI.Container();
-const SETTLEMENT_GRAPH_WINDOW_SEC =
-  Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
-  4 *
-  Math.max(1, Math.floor(SETTLEMENT_VISIBLE_WINDOW_YEARS));
-const MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES = 24;
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
 app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltipLayer);
@@ -185,7 +190,6 @@ app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltip
 let prototypeView = null;
 let worldMapView = null;
 let worldViewMode = "map";
-let settlementGraphScope = "civilization";
 let selectedWorldRegionId = "river-crown";
 let worldMapRegionSelectionActive = false;
 let settlementGraphController = null;
@@ -205,12 +209,32 @@ let debugConfigurationController = null;
 let lifeMapLabController = null;
 let vassalDebugPresetController = null;
 let debugProfileController = null;
-let settlementGraphHorizonOverrideSec = null;
-let settlementGraphRevealMode = "";
 let settlementEdgeTransferBatchCache = {
   key: null,
   batch: null,
 };
+
+const settlementGraphSession = createSettlementGraphSession({
+  getGraphController: () => settlementGraphController,
+  getGraphView: () => settlementGraphView,
+  getForecastController: () => settlementForecastController,
+  getSeriesMenu: () => settlementGraphSeriesMenu,
+  getSelectedWorldRegionId: () => selectedWorldRegionId,
+  getFrontierState: () => getSettlementFrontierState(),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  setWorldViewMode: (mode) => setWorldViewMode(mode),
+});
+const {
+  getSettlementGraphScope,
+  getSettlementGraphMetric,
+  setSettlementGraphContext,
+  getEffectiveSettlementGraphHorizonSec,
+  setSettlementGraphHorizonOverride,
+  syncSettlementGraphRevealConfig,
+  syncSettlementGraphHorizon,
+  revealCivilizationAfterVassalEnd,
+  processSettlementPendingCommit,
+} = settlementGraphSession;
 
 function setWorldViewMode(mode) {
   const nextWorldViewMode = mode === "settlement" ? "settlement" : mode === "vassalLife" ? "vassalLife" : "map";
@@ -233,47 +257,6 @@ function setWorldViewMode(mode) {
   );
 }
 
-function getSettlementGraphMetric() {
-  return settlementGraphScope === "settlement"
-    ? GRAPH_METRICS.settlement
-    : GRAPH_METRICS.civilization;
-}
-
-function setSettlementGraphContext(scope, regionId = selectedWorldRegionId) {
-  const nextScope = scope === "settlement" ? "settlement" : "civilization";
-  const nextRegionId =
-    typeof regionId === "string" && regionId.length
-      ? regionId
-      : selectedWorldRegionId;
-  const previousScope = settlementGraphScope;
-  const previousSubjectKey =
-    settlementGraphController?.getData?.()?.subjectKey ?? null;
-  const nextSubjectKey =
-    nextScope === "settlement" ? nextRegionId : "civilization";
-  const contextChanged =
-    previousScope !== nextScope || previousSubjectKey !== nextSubjectKey;
-
-  if (contextChanged && previousSubjectKey != null) {
-    settlementGraphView?.clearProjectionReplacementTransition?.();
-  }
-
-  settlementGraphScope = nextScope;
-  const metric = getSettlementGraphMetric();
-  settlementGraphController?.setMetric?.(metric);
-  settlementGraphController?.setSubject?.(
-    nextScope === "settlement" ? { regionId: nextRegionId } : null,
-    nextSubjectKey
-  );
-  settlementGraphSeriesMenu?.setContext?.(nextScope);
-  if (contextChanged && nextScope === "settlement") settlementGraphSeriesMenu?.selectDefaultGroup?.();
-  settlementGraphSeriesMenu?.syncSelection?.();
-  if (contextChanged) {
-    settlementGraphController?.ensureCache?.();
-    settlementGraphView?.resetDataContext?.();
-  }
-  settlementGraphView?.render?.();
-  return contextChanged;
-}
 const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
 const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
 const SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS = 900;
@@ -281,37 +264,6 @@ const SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC = 448;
 const SETTLEMENT_AUTO_COMMIT_FALLBACK_MS = 1800;
 const SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS = 4;
 const SETTLEMENT_DYNAMIC_DISPLAY_QUANTUM_SEC = 1;
-const SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC = 512;
-const SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC = 1024;
-const SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS = 100;
-const SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC =
-  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS * 32;
-const SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC = 16;
-const SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS = 1500;
-const SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC = 16;
-const SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC = 16;
-const SETTLEMENT_HORIZON_LEAD_BUFFER_SEC = 256;
-const SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC = 256;
-const SETTLEMENT_GRAPH_REVEAL_DEFAULT = Object.freeze({
-  targetDurationSec: 14,
-  minRateSecPerSec: 60,
-  maxRateSecPerSec: 112,
-  startDelayMs: 400,
-  followGapSec: 36,
-  followResponseSec: 1.1,
-  accelerationSecPerSec2: 180,
-  decelerationSecPerSec2: 260,
-});
-const SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT = Object.freeze({
-  targetDurationSec: 13,
-  minRateSecPerSec: 72,
-  maxRateSecPerSec: 132,
-  startDelayMs: 250,
-  followGapSec: 48,
-  followResponseSec: 0.95,
-  accelerationSecPerSec2: 220,
-  decelerationSecPerSec2: 320,
-});
 const forecastWorkerService = createTimegraphForecastWorkerService();
 const settlementProjectionCache = createSettlementProjectionCache({
   horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
@@ -387,19 +339,6 @@ const {
   returnSettlementViewToPresent,
 } = settlementPlayback;
 
-function getEffectiveSettlementGraphHorizonSec() {
-  return settlementGraphHorizonOverrideSec ?? SETTLEMENT_GRAPH_WINDOW_SEC;
-}
-
-function setSettlementGraphHorizonOverride(nextHorizonSec) {
-  const normalized = Number.isFinite(nextHorizonSec)
-    ? Math.max(1, Math.floor(nextHorizonSec))
-    : null;
-  if (normalized === settlementGraphHorizonOverrideSec) return;
-  settlementGraphHorizonOverrideSec = normalized;
-  settlementGraphController?.setHorizonSecOverride?.(normalized);
-}
-
 function isSettlementStateRunComplete(state) {
   return state?.runStatus?.complete === true;
 }
@@ -471,59 +410,6 @@ function getSettlementViewedSlotSummary() {
     };
   });
   return { practices, structures };
-}
-
-function syncSettlementGraphRevealConfig() {
-  const nextMode = settlementForecastController?.getRevealMode?.() ?? "default";
-  if (nextMode === settlementGraphRevealMode) return;
-  settlementGraphRevealMode = nextMode;
-  settlementGraphView?.setForecastRevealConfig?.(
-    nextMode === "pendingCommit"
-      ? SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT
-      : SETTLEMENT_GRAPH_REVEAL_DEFAULT
-  );
-}
-
-function syncSettlementGraphHorizon() {
-  settlementForecastController?.syncHorizon?.();
-}
-
-function revealCivilizationAfterVassalEnd(vassalId, state = getSettlementFrontierState()) {
-  const endedVassal = state?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
-  if (
-    !vassalId ||
-    state?.civilization?.vassalLineage?.currentVassalId != null ||
-    !["died", "retired"].includes(endedVassal?.endedReason)
-  ) return false;
-  // Changing screen pauses a reveal. Navigate first, then explicitly restart
-  // the civilization reveal so a completed Vassal immediately exposes the
-  // next forecast span rather than leaving it frozen at the boundary.
-  setWorldViewMode("map");
-  syncSettlementGraphHorizon();
-  settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
-    allowForecastStart: true,
-  });
-  return true;
-}
-
-function processSettlementPendingCommit() {
-  const beforeState = getSettlementFrontierState();
-  const beforeVassalId = beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
-  const beforePendingResolution = getVassalPendingResolution(beforeState);
-  settlementForecastController?.processPendingCommit?.({
-    clearForecastRevealRestart: () =>
-      settlementGraphView?.clearForecastRevealRestart?.(),
-  });
-  if (!beforeVassalId) return;
-  const afterState = getSettlementFrontierState();
-  const afterPendingResolution = getVassalPendingResolution(afterState);
-  if (beforePendingResolution && !afterPendingResolution) {
-    settlementGraphController?.refreshAuthoritativeRangeFrom?.(
-      beforePendingResolution.startSec
-    );
-    settlementGraphView?.render?.();
-  }
-  revealCivilizationAfterVassalEnd(beforeVassalId, afterState);
 }
 
 const settlementVassalFlow = createSettlementVassalFlow({
@@ -838,7 +724,7 @@ settlementGraphSeriesMenu = createSettlementGraphSeriesMenu({
     const metric = getSettlementGraphMetric();
     if (typeof metric?.getSeries === "function") {
       return metric.getSeries(
-        settlementGraphScope === "settlement"
+        getSettlementGraphScope() === "settlement"
           ? { regionId: selectedWorldRegionId }
           : null,
         state
@@ -908,7 +794,7 @@ worldMapView = createWorldMapView({
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   getSelectedRegionId: () => selectedWorldRegionId,
   getRegionSelectionActive: () => worldMapRegionSelectionActive,
-  getGraphScope: () => settlementGraphScope,
+  getGraphScope: () => getSettlementGraphScope(),
   setSelectedRegionId: selectWorldMapRegion,
   onShowCivilizationGraph: () => {
     worldMapRegionSelectionActive = false;

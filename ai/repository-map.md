@@ -18,9 +18,9 @@ and its direct dependencies.
 - Forecast worker entry: `src/controllers/timegraph-forecast-worker.js`
 
 `ui-root-settlement-pixi.js` is a high-coupling orchestration file. Search for
-the relevant function before reading it. Playback, vassal chooser flow, and
-navigation-state helpers live in `src/views/ui-root/`. Do not use the root
-file as the default location for new rendering or model rules.
+the relevant function before reading it. Playback, vassal chooser flow,
+navigation-state, and graph-session helpers live in `src/views/ui-root/`. Do
+not use the root file as the default location for new rendering or model rules.
 
 ## UI routes
 
@@ -75,6 +75,9 @@ file as the default location for new rendering or model rules.
 - Scope, series, and labels: `src/model/graph-metrics.js`
 - Series menu: `src/views/ui-root/settlement-graph-series-menu.js`
 - Series groups: `src/views/ui-root/settlement-graph-groups.js`
+- Graph session (reveal config, horizon/window numbers, context switching,
+  pending-commit reveal restart):
+  `src/views/ui-root/settlement-graph-session.js`
 - Illustrated assembly, fixed key paging layout, controls, and ink palette:
   `src/views/timegraph-scroll-pixi.js`
 - Window/horizon helpers: `src/views/ui-root/settlement-timegraph-window.js`
@@ -207,9 +210,10 @@ should not be loaded for routine work.
   and `src/views/timegraphs/scrub-session.js`. Do not rewrite those with the
   forecast worker or `src/model/state.js` (see
   `codex/abandoned-timegraph-refactor-do-not-merge`).
-- `src/views/ui-root-settlement-pixi.js` still wires graph, preview, and
-  screen mode. Playback, vassal-flow, and navigation-state helpers live in
-  `src/views/ui-root/`. New drawing belongs in focused views.
+- `src/views/ui-root-settlement-pixi.js` still wires graph composition,
+  preview, and screen mode. Playback, vassal-flow, navigation-state, and
+  graph-session helpers live in `src/views/ui-root/`. New drawing belongs
+  in focused views.
 - `src/controllers/sim-runner.js`, `src/model/state.js`, and
   `src/model/settlement-exec.js` retain pre-redesign substrate on the
   serialization/replay path. File-top comments mark them as non-extension
