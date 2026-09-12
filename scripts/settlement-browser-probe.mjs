@@ -365,7 +365,7 @@ try {
   assert.equal(deselected.controller.scope, "civilization",
     "clicking the selected region again restores the civilization timegraph");
 
-  await pressDesignPoint(page, { x: 2047, y: 620 }, 180);
+  await pressDesignPoint(page, { x: 2047, y: 320 }, 180);
   const localPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

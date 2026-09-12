@@ -39,6 +39,11 @@ const PACKED_GROUPS = Object.freeze({
     files: Object.freeze(['settlement-pieces.json']),
     eager: false,
   }),
+  pieceFrames: Object.freeze({
+    prefix: 'piece-frames-v1/',
+    files: Object.freeze(['piece-frames.json']),
+    eager: true,
+  }),
 });
 
 function bumpRevision() {
@@ -118,6 +123,7 @@ export function preloadChronicleArt() {
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = [
     loadPackedGroup(PACKED_GROUPS.resources),
+    loadPackedGroup(PACKED_GROUPS.pieceFrames),
     ...STANDALONE_FILES.map(loadStandalone),
   ];
   // Warm the on-demand settlement atlas after HUD/map art has claimed the
@@ -172,10 +178,12 @@ export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
     const texture = loadTexture(file);
     if (!texture?.baseTexture.valid) return null;
     const sprite = new PIXI.Sprite(texture);
-    const scale = Math.min(rect.width / texture.width, rect.height / texture.height);
+    const scale = Math.max(rect.width / texture.width, rect.height / texture.height);
     sprite.scale.set(scale);
     sprite.position.set(rect.x + (rect.width - sprite.width) / 2, rect.y + (rect.height - sprite.height) / 2);
     sprite.alpha = alpha; sprite.eventMode = 'none'; parent.addChild(sprite);
+    const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(rect.x,rect.y,rect.width,rect.height).endFill();
+    mask.eventMode='none';parent.addChild(mask);sprite.mask=mask;
     return sprite;
   }
   const source = atlasCell(file, index, 4, 3);

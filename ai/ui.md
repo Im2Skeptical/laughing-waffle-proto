@@ -98,24 +98,31 @@ contract: `ai/visual-overhaul.md`.
   reveals its persisted options or inventory. Card art opens a readable,
   scrollable inspection of complete effects and quality/tags; the full raster
   cost footer stages or chooses, and confirmation remains separate. Time costs
-  use Sun/year, Moon, and Phase sprites with live numeric amounts, followed by
+  group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
+  illustrated inset, followed by
   Prestige when needed. The displayed units follow the run's calendar: at the
   defaults, 80 phases is 2 years, 2 moons, and 4 phases. Non-integral solar/lunar
   ratios use moons and phases to stay exact. Authored prices are unchanged.
   Selected, staged, and unaffordable costs remain visible. Prestige, Food, and
   Money use the same resource symbols in their existing HUDs. The modal shows
   current-to-projected Prestige. Practice/Public Works show
-  the final settlement preview on the right. Offers, detached cost tags, source
-  undo and enlarged inspection occupy the left. Faces inspect; costs stage; an
+  the final settlement preview on the right. Offers, detached cost tags and source undo occupy the left. Offer inspection
+  overlays the right; tableau inspection overlays the left. The source stays exposed
+  and inspection dismisses during dragging. Faces inspect; costs stage; an
   offer-to-tableau drag also stages. Staged practices drag within their prefix;
   staged builds drag to valid origins; dragging back left undoes either. Incoming
   blueprints reveal cracked/faded buildings beneath them, and upgrades crossfade
-  from the previous quality. Inspection never covers the right tableau.
-  Shared sparse faces show illustration, quality, at most three output badges,
-  worker sockets, and scheduled readiness or charge source/fill. Charge fill has
+  from the previous quality. Inspection uses the same reading panel on every gamepiece surface: left on
+  the Regional Map, right in detailed settlements, and opposite the source in shops.
+  Shared physical faces use 5:7 practices and 3:4 single-cell structures, with
+  wider structures spanning contiguous cells. Pieces and slots scale uniformly.
+  Illustrated frames distinguish scheduled and charge practices; structures share
+  brass/stone framing. Outputs attach centred along the top, workers along the left.
+  Solar/lunar discs rotate at the bottom in time with scheduled triggers; charge
+  practices retain an inset source and fill. Charge fill has
   no numeric counter. The 30 individual illustrations load on demand from
-  `images/dark-fantasy/settlement-pieces-v2/`; frames and Trade/Knowledge symbols
-  remain code. Reduced motion keeps static fill/upgrade states.
+  `images/dark-fantasy/settlement-pieces-v2/`; opaque full-bleed paintings replace the former vignettes. Illustrated frames
+  load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on
   text-first cards without inspection overlays; tapping anywhere on a card
@@ -127,7 +134,8 @@ contract: `ai/visual-overhaul.md`.
   age-band headings or bottom legend. Shop
   drafts support undo and pointer/touch drag ordering. Closing the modal or
   focusing the Vassal's settlement on the World Map preserves the draft, and
-  the active node/HUD reopens it. Double-click still enters an available node.
+  the active node/HUD reopens it. The modal has no duplicate Regional Map
+  button; the lower-left dock owns navigation. Double-click still enters an available node.
   Hover/tap details identify each node type.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
   visible. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph

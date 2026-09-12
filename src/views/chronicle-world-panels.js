@@ -19,28 +19,19 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
   root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY   /   ${region.controller==='player'?'YOUR REALM':'FRONTIER'}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+58));
-  addIllustration(root,'settlement',{x,y:y+94,width:176,height:132},{alpha:vm?1:.55});
-  const stats=vm?[
-    [`${vm.population.total} / ${vm.population.housingCapacity}`, 'People / housing'],
-    [`${Math.round(vm.storedFood+vm.looseFood)}`, 'Food reserves'],
-    [`${vm.currency}`, 'Gold'],
-  ]:[['Unsettled','']];
-  stats.forEach(([value,label],i)=>root.addChild(
-    createText(value,{...TEXT_STYLES.title,fontSize:26,fill:PALETTE.accent},x+204,y+87+i*47),
-    createText(label,{...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x+350,y+94+i*47)));
-  if (vm) {
-    addResourceIcon(root, 'food', x + 330, y + 149, 34);
-    addResourceIcon(root, 'money', x + 330, y + 196, 34);
+  if(vm){
+    const stats=[['housingCapacity',`${vm.population.total} / ${vm.population.housingCapacity}`],['food',Math.round(vm.storedFood+vm.looseFood)],['money',vm.currency]];
+    stats.forEach(([icon,value],i)=>{addResourceIcon(root,icon,x+16+i*190,y+108,30);root.addChild(createText(String(value),{...TEXT_STYLES.body,fontSize:23},x+39+i*190,y+96));});
   }
   if(!vm){
     root.addChild(createText('A wilderness waiting for a future.',{...TEXT_STYLES.body,fontSize:23,fill:PALETTE.textMuted,
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
   const alert=vm.pressure?.starvation?'STARVATION':vm.pressure?.overcrowding?'OVERCROWDED':'PRACTICES';
-  root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+238));
+  root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+142));
   const gap=9, pw=(rect.width-44-gap*4)/5;
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+268,width:pw,height:99},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
+  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+178,width:pw,height:pw*7/5},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
-    ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+375));
-  addConstructionStrip(root,{x,y:y+400,width:rect.width-44,height:64},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,compact:true});
+    ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+340));
+  addConstructionStrip(root,{x,y:y+376,width:rect.width-44,height:108},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,compact:true});
 }

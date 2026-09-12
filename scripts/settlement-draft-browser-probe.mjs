@@ -87,12 +87,19 @@ try {
     await delay(900);
     await tap(await point('getOfferFacePoint',0));
     let s=await snapshot();assert.equal(s.purchaseOrder.length,0);assert.ok(s.inspectedCardId);
-    assert.ok(s.inspectionRect.x+s.inspectionRect.width<s.tableauRect.x,'Inspection stays entirely left of the settlement');
+    assert.ok(s.inspectionRect.x>=s.tableauRect.x-40,'Offer inspection occupies the right side');
+    const source=await point('getOfferFacePoint',0);
+    assert.ok(source.x<s.inspectionRect.x,'Offer inspection leaves its source exposed');
     await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}-inspection.png`});
     await tap(await point('getInspectionClosePoint'));
     await tap(await point('getOfferClickPoint',0),true);
     s=await snapshot();assert.equal(s.purchaseOrder.length,1,'Detached cost stages one purchase');
     assert.equal(s.currentPrestige,1000);assert.equal(s.projectedPrestige,990);
+    const stagedIndex=kind==='practice'?0:5+s.structures.filter(Boolean).findIndex(p=>p.staged);
+    await tap(await point('getTableauClickPoint',stagedIndex));
+    s=await snapshot();
+    assert.ok(s.inspectionRect.x+s.inspectionRect.width<s.tableauRect.x,'Tableau inspection occupies the left side');
+    await tap(await point('getInspectionClosePoint'));
     if(kind==='practice') {
       await drag(await point('getOfferFacePoint',1),await point('getTableauClickPoint',0));
       s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['vigil','study']);

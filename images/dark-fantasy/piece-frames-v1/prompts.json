@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-12",
+  "tool": "built-in ImageGen",
+  "direction": "Straight-on illustrated physical brass and dark stone frames; real alpha-transparent apertures; separate scheduled, charge, and structure families. No baked text or numeric UI.",
+  "frames": [
+    {
+      "id": "practice-scheduled",
+      "generatedSource": "exec-90d0a115-5baf-417d-9826-def57dfbf8e1.png"
+    },
+    {
+      "id": "structure-1",
+      "generatedSource": "exec-4a8a9b05-7d69-46be-8656-874d82b16fa3.png"
+    },
+    {
+      "id": "structure-3",
+      "generatedSource": "exec-9e51b66a-2a6e-48d6-a767-73fce67f4941.png"
+    },
+    {
+      "id": "time-group",
+      "generatedSource": "exec-0e556e5d-c036-4459-85c8-ad0193ab18a1.png"
+    },
+    {
+      "id": "practice-charge",
+      "prompt": "Generate a transparent PNG of one empty ornate medieval brass and dark stone poker card border, 5:7 portrait. REAL alpha transparency in the large empty artwork window and outside. Large clean open central aperture. Small dark round emblem socket bottom centre above a narrow inset teal glass reservoir across bottom frame edge. Tactile engraved beveled brass, dark stone, restrained painted pixel art. Straight on orthographic. This is a frame overlay, so all empty space is fully transparent. Do not draw a checkerboard pattern or background. No text, no painting inside.",
+      "generatedSource": "exec-06a03224-7c8f-48f9-9c6d-a17f48381012.png"
+    },
+    {
+      "id": "structure-2",
+      "prompt": "Generate a transparent PNG of one empty ornate medieval brass and dark stone rectangular tile border, 3:2 landscape. REAL alpha transparency in large empty artwork window and outside. Large clean open central aperture. Tactile engraved beveled brass dark stone with small corner fleur-de-lis, restrained painted pixel art. Straight on orthographic. This is a frame overlay, so all empty space is fully transparent. Do not draw a checkerboard pattern or background. No text, no painting inside, no discs or meters.",
+      "generatedSource": "exec-d3e11a7c-9185-472a-b95e-b1e7262555c7.png"
+    }
+  ]
+}

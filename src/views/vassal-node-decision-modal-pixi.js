@@ -1,4 +1,5 @@
 import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
+import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
 import { addCostPanel, addResourceAmount } from './resource-cost-pixi.js';
@@ -52,9 +53,12 @@ export function createVassalNodeDecisionModalView({
   let undoRoots = [];
   let hoveredOptionId = null;
   let hoveredOfferId = null;
+  let hoveredTableauId = null;
+  let previewTableauId = null;
   let previewOptionId = null;
   let previewOfferId = null;
   let pinnedInspectionId = null;
+  const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},lastDecision?.settlement?.structureCapacity??8);
   let hoverRenderTimer = null;
 
   function explainReadOnly(control, readOnly) {
@@ -71,6 +75,7 @@ export function createVassalNodeDecisionModalView({
       hoverRenderTimer = null;
       previewOptionId = hoveredOptionId;
       previewOfferId = hoveredOfferId;
+      previewTableauId = hoveredTableauId;
       render(true);
     }, 120);
   }
@@ -91,6 +96,7 @@ export function createVassalNodeDecisionModalView({
     dragTargetIndex = null;
     hoveredOptionId = null;
     hoveredOfferId = null;
+    hoveredTableauId = null;previewTableauId = null;
     previewOptionId = null;
     previewOfferId = null;
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
@@ -103,6 +109,7 @@ export function createVassalNodeDecisionModalView({
     root.visible = true;
     hoveredOptionId = null;
     hoveredOfferId = null;
+    hoveredTableauId = null;previewTableauId = null;
     previewOptionId = null;
     previewOfferId = null;
     render(true);
@@ -140,7 +147,7 @@ export function createVassalNodeDecisionModalView({
     if(local.x<PANEL.x+1160) {
       if(!drag.fromOffer)onUndoPurchase?.(openNodeId,offerId);
     } else if(kind==='structure' && local.y>=tableau.structureY-35 && local.y<tableau.structureY+PIECE_SIZE.structureHeight+35) {
-      const origin=Math.floor((local.x-tableau.x)/(tableau.width/(lastDecision?.settlement?.structureCapacity??8)));
+      const origin=Math.floor((local.x-tableau.x)/(construction().cell));
       if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,origin);
       else onMoveStructure?.(openNodeId,offerId,origin);
     } else if(kind==='practice' && local.y>=tableau.practiceY-25 && local.y<tableau.practiceY+PIECE_SIZE.practiceHeight+25) {
@@ -156,8 +163,10 @@ export function createVassalNodeDecisionModalView({
     const local=root.toLocal(event.global);dragged.point=local;
     if(!dragged.active&&Math.hypot(local.x-dragged.start.x,local.y-dragged.start.y)>10) {
       dragged.active=true;dragged.card.dragConsumed=true;
+      pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;
+      inspectionRoot?.destroy({children:true});inspectionRoot=null;
       const face=dragged.piece.presentation;
-      dragGhost=addSettlementPiece(root,{x:local.x-48,y:local.y-64,width:face?.kind==='structure'?108*(face.footprint??1):PIECE_SIZE.practiceWidth,height:face?.kind==='structure'?PIECE_SIZE.structureHeight:PIECE_SIZE.practiceHeight},{face,state:'staged'});
+      dragGhost=addSettlementPiece(root,{x:local.x-48,y:local.y-64,width:face?.kind==='structure'?PIECE_SIZE.cellWidth*(face.footprint??1):PIECE_SIZE.practiceWidth,height:face?.kind==='structure'?PIECE_SIZE.structureHeight:PIECE_SIZE.practiceHeight},{face,state:'staged'});
       dragGhost.eventMode='none';dragGhost.alpha=.65;
     }
     if(dragGhost)dragGhost.position.set(local.x-48,local.y-64);
@@ -165,10 +174,10 @@ export function createVassalNodeDecisionModalView({
       placementGuide?.destroy(); placementGuide = new PIXI.Graphics();
       const offer = [...(lastDecision?.offers ?? []), ...(lastDecision?.purchases ?? [])].find(p => p.offerId === dragged.piece.offerId);
       const origins = offer?.validOrigins ?? [], width = dragged.piece.presentation.footprint ?? 1;
-      const origin = Math.floor((local.x - tableau.x) / PIECE_SIZE.cellWidth);
-      for (const cell of origins) placementGuide.beginFill(0xaedbc9,.8).drawCircle(tableau.x + cell * PIECE_SIZE.cellWidth + 8, tableau.structureY - 9, 4).endFill();
+      const origin = Math.floor((local.x - tableau.x) / construction().cell);
+      for (const cell of origins) placementGuide.beginFill(0xaedbc9,.8).drawCircle(tableau.x + cell * construction().cell + 8, tableau.structureY - 9, 4).endFill();
       if (local.x >= tableau.x && origin >= 0 && origin < (lastDecision?.settlement?.structureCapacity ?? 0)) {
-        placementGuide.lineStyle(4,origins.includes(origin)?0xaedbc9:0xd97d68).drawRect(tableau.x + origin * PIECE_SIZE.cellWidth,tableau.structureY,width * PIECE_SIZE.cellWidth,PIECE_SIZE.structureHeight);
+        placementGuide.lineStyle(4,origins.includes(origin)?0xaedbc9:0xd97d68).drawRect(tableau.x + origin * construction().cell,tableau.structureY,width * construction().cell,construction().height);
       }
       placementGuide.eventMode = 'none'; root.addChild(placementGuide);
     }
@@ -190,14 +199,14 @@ export function createVassalNodeDecisionModalView({
       previewOfferId,
     }) ?? null;
     lastDecision = decision;
-    tableau.width = (decision?.settlement?.structureCapacity ?? 8) * PIECE_SIZE.cellWidth;
+    tableau.width = Math.min(928,(decision?.settlement?.structureCapacity ?? 8)*PIECE_SIZE.cellWidth);
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
     const family = node?.signatureNode?.variantId
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : node ? VASSAL_NODE_FAMILIES[node.family] : null;
     const nextSignature = getArtRevision() + JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
-      previewOptionId, previewOfferId, pinnedInspectionId });
+      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -297,8 +306,11 @@ export function createVassalNodeDecisionModalView({
         root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
         }, PANEL.x + 54, PANEL.y + 112));
-        const objectWidths=shopCards.map(offer=>offer.presentation?.kind==='structure'?PIECE_SIZE.cellWidth*(offer.presentation.footprint??1):offer.presentation?PIECE_SIZE.practiceWidth:cardWidth);
-        const widths=objectWidths.map(width=>Math.max(164,width));
+        let objectWidths=shopCards.map(offer=>offer.presentation?.kind==='structure'?PIECE_SIZE.cellWidth*1.5*(offer.presentation.footprint??1):offer.presentation?PIECE_SIZE.practiceWidth:cardWidth);
+        const naturalWidths=objectWidths.map(width=>Math.max(170,width));
+        const offerScale=Math.min(1,1060/(naturalWidths.reduce((sum,w)=>sum+w,0)+(naturalWidths.length-1)*22));
+        objectWidths=objectWidths.map(w=>w*offerScale);
+        const widths=naturalWidths.map(w=>w*offerScale);
         let cursor=PANEL.x+54+Math.max(0,(1060-widths.reduce((sum,w)=>sum+w,0)-(widths.length-1)*22)/2);
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
@@ -307,7 +319,7 @@ export function createVassalNodeDecisionModalView({
           if(offer.presentation) {
             card=new PIXI.Container();card.position.set(cursor,cardY);root.addChild(card);
             card.hitArea=new PIXI.Rectangle(0,0,widths[index],PIECE_SIZE.practiceHeight+12+COST_FOOTER_HEIGHT);
-            const h=offer.presentation.kind==='structure'?PIECE_SIZE.structureHeight:PIECE_SIZE.practiceHeight;
+            const h=(offer.presentation.kind==='structure'?PIECE_SIZE.structureHeight*1.5:PIECE_SIZE.practiceHeight)*offerScale;
             const face=addSettlementPiece(card,{x:(widths[index]-objectWidths[index])/2,y:PIECE_SIZE.practiceHeight-h,width:objectWidths[index],height:h},{
               face:offer.presentation,state:offer.purchased?'withdrawn':'confirmed',onInspect:inspect,
               onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
@@ -383,11 +395,13 @@ export function createVassalNodeDecisionModalView({
       root.addChild(createText(
         `Food ${Math.round(settlement.looseFood ?? 0)} loose / ${Math.round(settlement.storedFood ?? 0)} stored    Currency ${Math.round(settlement.currency ?? 0)}`,
         { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + 150));
-      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+180));
+      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+170));
       (settlement.practices??[]).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
-          onInspect:piece?()=>{pinnedInspectionId=piece.offerId??'practice:'+piece.practiceId;render(true);}:undefined,
+          onHover:piece?()=>{hoveredTableauId='practice:'+piece.practiceId;scheduleHoverRender();}:undefined,
+          onOut:()=>{hoveredTableauId=null;scheduleHoverRender();},
+          onInspect:piece?()=>{pinnedInspectionId='practice:'+piece.practiceId;render(true);}:undefined,
         });
         if(piece?.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));
         animateUpgrade(card, piece, readOnly);
@@ -397,11 +411,11 @@ export function createVassalNodeDecisionModalView({
         const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:()=>{pinnedInspectionId='displaced:'+face.definitionId;render(true);}});
         card.rotation=.12;
       });
-      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+450));
+      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+438));
       addConstructionStrip(root,{x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},{
         slots:settlement.structures,capacity:settlement.structureCapacity,demolished:settlement.demolishedStructures,time:state?.tSec??0,
-        onInspect:piece=>{pinnedInspectionId=piece.offerId??'structure:'+piece.placementId;render(true);},
-        onPiece:(card,piece)=>{tableauRoots.push({card,piece});animateUpgrade(card,piece,readOnly);if(piece.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));},
+        onInspect:piece=>{pinnedInspectionId='structure:'+piece.placementId;render(true);},
+        onPiece:(card,piece)=>{card.on('pointerover',event=>{if(event.pointerType!=='touch'){hoveredTableauId='structure:'+piece.placementId;scheduleHoverRender();}});card.on('pointerout',()=>{hoveredTableauId=null;scheduleHoverRender();});tableauRoots.push({card,piece});animateUpgrade(card,piece,readOnly);if(piece.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));},
       });
     } else if (decision?.contextKind === "regionalMap") {
       renderRegionalMap(root, decision.regionalMap, {
@@ -428,11 +442,9 @@ export function createVassalNodeDecisionModalView({
       if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
-    button(root, { x: PANEL.x + PANEL.width - 652, y: PANEL.y + PANEL.height - 72, width: 250, height: 50 },
-      "REGIONAL MAP", true, () => { close(); onWorldMap?.(vassal.locationRegionId); });
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
-        x: sx, y: PANEL.y + PANEL.height - 178, width: 510, height: 102,
+        x: PANEL.x + 380, y: PANEL.y + PANEL.height - 178, width: 640, height: 102,
       }, canConfirm);
     }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
@@ -444,13 +456,13 @@ export function createVassalNodeDecisionModalView({
     const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(pinnedInspectionId??previewOfferId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(
-      'practice:'+piece.practiceId===pinnedInspectionId||'structure:'+piece.placementId===pinnedInspectionId));
+      'practice:'+piece.practiceId===(pinnedInspectionId??previewTableauId)||'structure:'+piece.placementId===(pinnedInspectionId??previewTableauId)));
     const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===pinnedInspectionId);
     if(inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
       const piece=inspectedOffer??inspectedOption??inspectedTableau;
       const face=piece?.presentation??displaced;
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
-      inspectionRoot=addChronicleInspection(root,{x:PANEL.x+36,y:PANEL.y+110,width:1092,height:580},{
+      inspectionRoot=addChronicleInspection(root,{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
@@ -464,7 +476,7 @@ export function createVassalNodeDecisionModalView({
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,
           displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
-        onClose:()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;render(true);},
+        onClose:()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);},
       });
       if(!pinnedInspectionId){inspectionRoot.eventMode="none";inspectionRoot.interactiveChildren=false;}
     }
@@ -500,7 +512,7 @@ export function createVassalNodeDecisionModalView({
     getOfferFacePoint(index=0) { const card=shopCardRoots[index]?.faceRoot; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.hitArea.height/2)):null; },
     getInspectionClosePoint() { const c=inspectionRoot?.closeControl;return c?c.toGlobal(new PIXI.Point(25,25)):null; },
     getInspectionCostPoint() { const c=inspectionRoot?.costPanel;return c?c.toGlobal(new PIXI.Point(c.hitArea.width/2,c.hitArea.height/2)):null; },
-    getConstructionPoint(origin=0) { return {x:tableau.x+(origin+.5)*tableau.width/(lastDecision?.settlement?.structureCapacity??8),y:tableau.structureY+64}; },
+    getConstructionPoint(origin=0) { return {x:tableau.x+(origin+.5)*construction().cell,y:tableau.structureY+64}; },
     getSemanticSnapshot: () => {
       const decision = getDecisionPresentation?.(openNodeId, {
         previewOptionId, previewOfferId,
@@ -509,7 +521,7 @@ export function createVassalNodeDecisionModalView({
         open: root.visible, nodeId: openNodeId,
         inspectedCardId: pinnedInspectionId,
         inspectionRect: inspectionRoot?.getBounds?.()??null,
-        tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+128-tableau.practiceY},
+        tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+construction().height-tableau.practiceY},
         family: decision?.node?.family ?? null,
         selectedOptionId: decision?.nodeState?.selectedOptionId ?? null,
         resolving: decision?.nodeState?.resolving === true,

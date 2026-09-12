@@ -7,6 +7,7 @@ import { applyTextResolution } from "./ui-helpers/text-resolution.js";
 import { MUCHA_UI_COLORS } from "./ui-helpers/mucha-ui-palette.js";
 import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
 import { normalizeTooltipSpec } from "./tooltip-spec.js";
+import { addChronicleInspection } from './chronicle-inspection.js';
 
 const BG_FILL = MUCHA_UI_COLORS?.surfaces?.panelDeep ?? 0x2a241d;
 const BG_STROKE = MUCHA_UI_COLORS?.surfaces?.border ?? 0x8f7c60;
@@ -56,6 +57,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   let pinnedKey = null;
   let pinRevision = 0;
   let dismissOnPointerExit = false;
+  let pieceInspection = null;
   // Cards may be replaced during a redraw, so their old Pixi pointerout
   // handler cannot reliably dismiss a hover. Track its retained screen bounds.
   document.addEventListener('pointermove', (event) => {
@@ -80,6 +82,9 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       if(pinRevision===revision)hide({force:true});
     },0);
   },true);
+  container.on('pointerdown',()=>{pinRevision++;});
+  // The reading viewport stops bubbling so scrolling cannot act on the scene.
+  container.on('pointerdowncapture',()=>{pinRevision++;});
 
   function getScreenSize() {
     return {
@@ -202,7 +207,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
 
   function clearChildren() {
     while (container.children.length > 1) {
-      container.removeChildAt(1);
+      container.removeChildAt(1).destroy({children:true});
     }
   }
 
@@ -515,8 +520,28 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       clearTimeout(hideTimeoutId);
       hideTimeoutId = null;
     }
+    const retainedScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getScroll?.()??0:0;
     clearChildren();
+    pieceInspection=null;
     bg.clear();
+
+    if(spec.face){
+      container.eventMode=dismissOnExit?'none':'static';
+      activeAnchor=anchor;activeSpec=spec;activeScale=1;activeWidth=840;activeHeight=650;
+      activeResolvedAnchor=summarizeAnchor(resolvedAnchor);
+      dismissOnPointerExit=dismissOnExit;
+      container.scale.set(1);
+      container.position.set(spec.inspectionSide==='right'?1538:70,100);
+      pieceInspection=addChronicleInspection(container,{x:0,y:0,width:activeWidth,height:activeHeight},{
+        face:spec.face,title:spec.title,metadata:[spec.face.tier,...(spec.face.tags??[])].join(' · '),
+        detail:(spec.lines??[]).join('\n'),onClose:()=>hide({force:true}),
+      });
+      pieceInspection.setScroll(retainedScroll);
+      container.interactiveChildren=!dismissOnExit;
+      container.visible=true;return;
+    }
+    container.eventMode='none';
+    container.interactiveChildren=true;
 
     const normalizedSpec = normalizeTooltipSpec(spec);
     const scale =
@@ -558,6 +583,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
 
   function update() {
     if (!container.visible || !activeAnchor) return;
+    if(activeSpec?.face)return;
     const resolvedAnchor = resolveAnchor(activeAnchor);
     if (!resolvedAnchor) return;
     activeResolvedAnchor = summarizeAnchor(resolvedAnchor);
@@ -577,6 +603,11 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     init,
     show,
     pin,
+    refreshPiece(spec,anchor) {
+      if(!container.visible||!spec.face||activeSpec?.inspectionKey!==spec.inspectionKey)return;
+      activeAnchor=anchor;
+      if(JSON.stringify(spec)!==JSON.stringify(activeSpec))show(spec,anchor,{force:true,dismissOnExit:pinnedKey===null});
+    },
     hide,
     isVisible: () => container.visible,
     getContainer: () => container,

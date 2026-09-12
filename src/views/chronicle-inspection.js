@@ -1,3 +1,4 @@
+import { pieceDimensions, fitPiece } from './piece-geometry.js';
 import { addSettlementPiece } from "./settlement-piece-pixi.js";
 import { addIllustration } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
@@ -12,10 +13,11 @@ export function addChronicleInspection(parent, rect, {title, artId, face, cost, 
   paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,3);
   root.addChild(frame);
   root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
-  const artWidth = face?.kind === 'structure' ? 180 * (face.footprint ?? 1) : 234;
-  const artHeight = face?.kind === 'structure' ? 150 : 340;
-  const columnWidth = Math.max(234, artWidth);
-  const artRect = { x: 22 + (columnWidth - artWidth) / 2, y: 78, width: artWidth, height: artHeight };
+  const dimensions=pieceDimensions(face?.kind,face?.footprint);
+  const fitted=fitPiece({x:22,y:82,width:Math.min(330,rect.width*.36),height:cost?300:350},face?.kind,face?.footprint);
+  const artWidth=dimensions.width*fitted.scale, artHeight=dimensions.height*fitted.scale;
+  const columnWidth=Math.max(234,artWidth);
+  const artRect={x:22+(columnWidth-artWidth)/2,y:82,width:artWidth,height:artHeight};
   if(face)addSettlementPiece(root,artRect,{face});
   else addIllustration(root,artId,artRect);
   root.addChild(createText(title,{...TEXT_STYLES.header,fontSize:30,wordWrap:true,wordWrapWidth:rect.width-120},22,20));
@@ -26,7 +28,7 @@ export function addChronicleInspection(parent, rect, {title, artId, face, cost, 
   const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,50,50,RELIC.stone,RELIC.brass,1);
   close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:38},25,25,.5,.5));
   close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(0,0,50,50);
-  close.on('pointertap',event=>{event.stopPropagation();onClose();});root.addChild(close);
+  close.on('pointertap',event=>{event.stopPropagation();onClose?.();});root.addChild(close);
   root.closeControl = close;
   const viewport=new PIXI.Container();viewport.position.set(columnWidth+50,92);root.addChild(viewport);
   const height=rect.height-140,width=rect.width-columnWidth-78;
@@ -39,6 +41,8 @@ export function addChronicleInspection(parent, rect, {title, artId, face, cost, 
   const maxScroll=Math.max(0,copy.height-height);
   let scroll=0,drag=null;
   const move=value=>{scroll=Math.max(0,Math.min(maxScroll,value));copy.y=-scroll;};
+  root.getScroll=()=>scroll;
+  root.setScroll=move;
   viewport.eventMode='static';viewport.hitArea=new PIXI.Rectangle(0,0,width,height);
   viewport.on('wheel',event=>{event.stopPropagation();move(scroll+(event.deltaY??event.nativeEvent?.deltaY??0));});
   viewport.on('pointerdown',event=>{event.stopPropagation();drag={y:viewport.toLocal(event.global).y,scroll};});

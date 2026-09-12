@@ -34,10 +34,15 @@ try {
   await page.addInitScript(()=>localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup'));
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__);
-  await page.waitForFunction(names=>names.every(name=>performance.getEntriesByType('resource')
-    .some(entry=>entry.name.endsWith(name)&&entry.responseEnd>0)),
+  // Worker image decoding does not report every request on the page timeline.
+  // Assert the loaded textures instead of mistaking absent timing entries for a stall.
+  await page.waitForFunction(names=>names.every(name=>{
+    const key=name.endsWith('.json')?`images/sprite-sheets/${name}`:`images/dark-fantasy/${name}`;
+    const asset=PIXI.Assets.get(key);
+    return name.endsWith('.json')?!!asset?.textures&&Object.keys(asset.textures).length>0:asset?.baseTexture?.valid;
+  }),
     ['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png',
-      'resource-language.json','resource-language.png'], { timeout: 45000 });
+      'resource-language.json','piece-frames.json'], { timeout: 45000 });
   const scrollAlpha=await page.evaluate(async()=>{
     const art=new Image();art.src='images/dark-fantasy/timegraph-chronicle-assembly.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
@@ -70,7 +75,7 @@ try {
     const b=await page.locator('canvas').boundingBox();
     await page.mouse.click(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
   };
-  const hoverCard=async point=>{
+  const hoverCard=async (point,inspectionSide=null)=>{
     // Screen transitions replace Pixi nodes; let their world transforms paint
     // before sending a mouse event against the new screen coordinates.
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -84,6 +89,11 @@ try {
     const tooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
     assert.ok(tooltip.visible&&!tooltip.pinned,'Stationary mouse details survive redraw without pinning');
     assert.equal(tooltip.title,title);
+    if(inspectionSide){
+      assert.ok(inspectionSide==='right'?tooltip.x>point.x:tooltip.x+tooltip.width<point.x,
+        `${inspectionSide} inspection leaves its source exposed`);
+      await page.screenshot({path:`artifacts/chronicle-${inspectionSide}-${title.replace(/[^a-z0-9]/gi,'-')}-inspection.png`});
+    }
     await page.mouse.move(b.x+20/2424*b.width,b.y+100/1080*b.height);
     await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
   };
@@ -118,14 +128,14 @@ try {
   assert.deepEqual(await page.screenshot({clip:crop}),first,'Returning to the same time must restore identical world pixels after rewind');
   assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
   await page.screenshot({path:'artifacts/chronicle-world.png'});
-  await hoverCard({x:1800,y:550});
-  await hoverCard({x:1800,y:695});
+  await hoverCard({x:1800,y:550},'left');
+  await hoverCard({x:1800,y:665},'left');
   await hoverCard(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]));
   await click({x:2047,y:762});
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
-  await hoverCard({x:700,y:220});
-  await hoverCard({x:675,y:680});
+  await hoverCard({x:700,y:220},'right');
+  await hoverCard({x:675,y:680},'right');
   await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='map');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
@@ -254,7 +264,7 @@ try {
     assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Tapping the same card again dismisses details');
   };
   await holdCard({x:1800,y:550});
-  await holdCard({x:1800,y:695});
+  await holdCard({x:1800,y:665});
   await holdCard(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]));
   await click({x:2047,y:762});await delay(150);
   await holdCard({x:700,y:220});
@@ -368,6 +378,9 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),shopAfter.purchaseOrder[0],
     'Staged offers retain their full inspection');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop-inspection.png'});
+  await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()),null,
+    'Tapping the exposed source again dismisses inspection');
   await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   const secondOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
