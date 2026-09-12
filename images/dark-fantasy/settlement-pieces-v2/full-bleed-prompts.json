@@ -1,0 +1,156 @@
+{
+  "date": "2026-09-12",
+  "tool": "built-in ImageGen",
+  "paintings": [
+    {
+      "id": "cultivate",
+      "prompt": "Preserve existing subjects and style; extend to opaque full-bleed 5:7 painting.",
+      "generatedSource": "exec-49755fd2-cfde-430e-8784-023221f5c9e9.png"
+    },
+    {
+      "id": "mudHouses",
+      "prompt": "Edit the supplied mudHouses game illustration. Preserve the recognizable building, detailed medieval painted pixel-art style, materials, palette and atmosphere. Recompose into a COMPLETE OPAQUE full-bleed rectangular scene at EXACT 3:4 aspect ratio (upright portrait). Surround the building with a coherent medieval setting: sky, distant environment, neighbouring context, and ground extending to ALL FOUR EDGES. Keep the entire characteristic building readable in the central 80 percent of the canvas, enlarge surrounding scene as needed. Remove ALL transparent or flat dark vignette areas; every pixel opaque. No floating island, cutout silhouette, feathering, border, frame, UI, labels or letters. It is a full environmental painting, not an isolated building sprite. Preserve original building design as much as possible.",
+      "generatedSource": "exec-6b7c39e1-ad9d-43e0-a131-0aa1f1120d83.png"
+    },
+    {
+      "id": "forage",
+      "prompt": "Edit the supplied forage game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-64f703f5-6886-4b9b-8715-3f61475d9115.png"
+    },
+    {
+      "id": "raiseHouses",
+      "prompt": "Edit the supplied raiseHouses game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-965c121d-afc2-4d24-8b50-12be71685302.png"
+    },
+    {
+      "id": "administrate",
+      "prompt": "Edit the supplied administrate game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-89a8ee28-de59-4132-9cc8-067b59c1716b.png"
+    },
+    {
+      "id": "exchange",
+      "prompt": "Edit the supplied exchange game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-6490afb5-5d49-4ef4-b56d-4b610bb95831.png"
+    },
+    {
+      "id": "import",
+      "prompt": "Edit the supplied import game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-122e6f2c-d720-4834-ab89-bb5e442b5340.png"
+    },
+    {
+      "id": "mixedFarming",
+      "prompt": "Edit the supplied mixedFarming game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-2d21926a-b98d-49da-8a68-5f1d14d3ae9d.png"
+    },
+    {
+      "id": "homesteading",
+      "prompt": "Edit the supplied homesteading game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-0f0db951-d46d-43e6-b225-82594d385ca3.png"
+    },
+    {
+      "id": "lodgingHouses",
+      "prompt": "Edit the supplied lodgingHouses game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-32859627-121d-43ea-b8e3-441055f9a618.png"
+    },
+    {
+      "id": "study",
+      "prompt": "Edit the supplied study game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-8271f3d1-1745-463b-8776-ab36cf0abce5.png"
+    },
+    {
+      "id": "mill",
+      "prompt": "Edit the supplied mill game illustration. Preserve its existing recognizable subjects and detailed medieval painted pixel-art style, composition, palette and atmosphere. Replace ALL transparent or flat dark vignette areas with coherent fully illustrated surroundings appropriate to this scene: extend buildings/interior/landscape/sky/ground as appropriate to all four edges. Deliver a COMPLETE OPAQUE FULL-BLEED 5:7 portrait rectangular painting. Every pixel opaque; no cutout silhouette, floating island, vignette, feathering, border, UI, lettering or icons. Keep main subjects within middle 80 percent to allow frame overlap. Preserve original art as much as possible.",
+      "generatedSource": "exec-a624a846-e37a-433d-9ce0-7c079774c571.png"
+    },
+    {
+      "id": "granary",
+      "prompt": "Edit the supplied granary game illustration. Preserve the recognizable building, detailed medieval painted pixel-art style, materials, palette and atmosphere. Recompose into a COMPLETE OPAQUE full-bleed rectangular scene at EXACT 3:4 aspect ratio (upright portrait). Surround the building with a coherent medieval setting: sky, distant environment, neighbouring context, and ground extending to ALL FOUR EDGES. Keep the entire characteristic building readable in the central 80 percent of the canvas, enlarge surrounding scene as needed. Remove ALL transparent or flat dark vignette areas; every pixel opaque. No floating island, cutout silhouette, feathering, border, frame, UI, labels or letters. It is a full environmental painting, not an isolated building sprite. Preserve original building design as much as possible.",
+      "generatedSource": "exec-289a6b40-dcb1-400a-ad83-4b554dc3fdeb.png"
+    },
+    {
+      "id": "library",
+      "prompt": "Edit the supplied library game illustration. Preserve the recognizable building, detailed medieval painted pixel-art style, materials, palette and atmosphere. Recompose into a COMPLETE OPAQUE full-bleed rectangular scene at EXACT 3:4 aspect ratio (upright portrait). Surround the building with a coherent medieval setting: sky, distant environment, neighbouring context, and ground extending to ALL FOUR EDGES. Keep the entire characteristic building readable in the central 80 percent of the canvas, enlarge surrounding scene as needed. Remove ALL transparent or flat dark vignette areas; every pixel opaque. No floating island, cutout silhouette, feathering, border, frame, UI, labels or letters. It is a full environmental painting, not an isolated building sprite. Preserve original building design as much as possible.",
+      "generatedSource": "exec-fe2fd042-4c4f-4253-bb96-78c70f5f1815.png"
+    },
+    {
+      "id": "smokehouse",
+      "prompt": "Edit the supplied smokehouse game illustration. Preserve the recognizable building, detailed medieval painted pixel-art style, materials, palette and atmosphere. Recompose into a COMPLETE OPAQUE full-bleed rectangular scene at EXACT 3:4 aspect ratio (upright portrait). Surround the building with a coherent medieval setting: sky, distant environment, neighbouring context, and ground extending to ALL FOUR EDGES. Keep the entire characteristic building readable in the central 80 percent of the canvas, enlarge surrounding scene as needed. Remove ALL transparent or flat dark vignette areas; every pixel opaque. No floating island, cutout silhouette, feathering, border, frame, UI, labels or letters. It is a full environmental painting, not an isolated building sprite. Preserve original building design as much as possible.",
+      "generatedSource": "exec-b4ae1a35-5655-4828-9ac4-65dc172c2769.png"
+    },
+    {
+      "id": "efficientKitchens",
+      "prompt": "Edit this efficientKitchens game illustration preserving recognizable subjects, medieval painted pixel-art detail, palette and composition. Convert vignette to COMPLETE OPAQUE full-bleed 5:7 portrait painting. Extend coherent buildings/interior/landscape/sky/ground to ALL FOUR EDGES. Every pixel opaque, no flat dark background, cutout silhouette, floating island, feathering, frame, UI or text. Keep main subjects in middle 80 percent for frame overlap.",
+      "generatedSource": "exec-989b6464-cb5e-4e91-932c-c78d0d483899.png"
+    },
+    {
+      "id": "harvestFestival",
+      "prompt": "Edit this harvestFestival game illustration preserving recognizable subjects, medieval painted pixel-art detail, palette and composition. Convert vignette to COMPLETE OPAQUE full-bleed 5:7 portrait painting. Extend coherent buildings/interior/landscape/sky/ground to ALL FOUR EDGES. Every pixel opaque, no flat dark background, cutout silhouette, floating island, feathering, frame, UI or text. Keep main subjects in middle 80 percent for frame overlap.",
+      "generatedSource": "exec-315d8f5a-2b17-44f6-82ef-4d193c77227f.png"
+    },
+    {
+      "id": "countingHouse",
+      "prompt": "Edit supplied countingHouse illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:4 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-0f5c7c9f-902a-4a38-b9b9-9fe1340df9d1.png"
+    },
+    {
+      "id": "hostel",
+      "prompt": "Edit supplied hostel illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-920d5350-0642-463a-abfb-c895ddab63ff.png"
+    },
+    {
+      "id": "marketFeast",
+      "prompt": "Edit this marketFeast game illustration preserving recognizable subjects, medieval painted pixel-art detail, palette and composition. Convert vignette to COMPLETE OPAQUE full-bleed 5:7 portrait painting. Extend coherent buildings/interior/landscape/sky/ground to ALL FOUR EDGES. Every pixel opaque, no flat dark background, cutout silhouette, floating island, feathering, frame, UI or text. Keep main subjects in middle 80 percent for frame overlap.",
+      "generatedSource": "exec-57f9360f-1249-48f0-8736-4a67c4687ff6.png"
+    },
+    {
+      "id": "archive",
+      "prompt": "Edit supplied archive illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-92890974-86eb-4275-b1a7-69bbc36df7a7.png"
+    },
+    {
+      "id": "symposium",
+      "prompt": "Edit this symposium game illustration preserving recognizable subjects, medieval painted pixel-art detail, palette and composition. Convert vignette to COMPLETE OPAQUE full-bleed 5:7 portrait painting. Extend coherent buildings/interior/landscape/sky/ground to ALL FOUR EDGES. Every pixel opaque, no flat dark background, cutout silhouette, floating island, feathering, frame, UI or text. Keep main subjects in middle 80 percent for frame overlap.",
+      "generatedSource": "exec-98f05735-4bfb-4579-9a9f-3e05f3d3391c.png"
+    },
+    {
+      "id": "vigil",
+      "prompt": "Edit this vigil game illustration preserving recognizable subjects, medieval painted pixel-art detail, palette and composition. Convert vignette to COMPLETE OPAQUE full-bleed 5:7 portrait painting. Extend coherent buildings/interior/landscape/sky/ground to ALL FOUR EDGES. Every pixel opaque, no flat dark background, cutout silhouette, floating island, feathering, frame, UI or text. Keep main subjects in middle 80 percent for frame overlap.",
+      "generatedSource": "exec-bb0d9889-dae8-4e2e-bd60-f2077ef12a5c.png"
+    },
+    {
+      "id": "hallOfSages",
+      "prompt": "Edit supplied hallOfSages illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-7309c812-f8c7-4fe8-bf30-e7e8307770e0.png"
+    },
+    {
+      "id": "agrarianGuild",
+      "prompt": "Edit supplied agrarianGuild illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-6acaf7e2-08f0-498e-b6aa-700332a89e55.png"
+    },
+    {
+      "id": "forum",
+      "prompt": "Edit supplied forum illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-9baa70ed-6134-4f7e-80cb-dee6b8a7a353.png"
+    },
+    {
+      "id": "academy",
+      "prompt": "Edit supplied academy illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-0db5782b-5cee-4b3c-a535-55b763e32dce.png"
+    },
+    {
+      "id": "caravanserai",
+      "prompt": "Edit supplied caravanserai illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-059b2014-88dc-410b-ba80-e662f024dac2.png"
+    },
+    {
+      "id": "resettlementHall",
+      "prompt": "Edit supplied resettlementHall illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 3:2 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-db77b446-b623-4e93-807e-faa4a8f476ce.png"
+    },
+    {
+      "id": "university",
+      "prompt": "Edit supplied university illustration. Preserve distinctive building design and detailed medieval painted pixel-art style, palette and lighting. Recompose as COMPLETE OPAQUE full-bleed 9:4 rectangular environmental painting. Keep building readable within central 80 percent, surround with coherent medieval scene: sky, landscape or town surroundings, ground extending to ALL FOUR EDGES. Every pixel opaque. No cutout, floating island, dark flat background, vignette, border, UI or lettering. Preserve existing building design; extend surroundings to fill frame.",
+      "generatedSource": "exec-0d7f4098-8b7e-452d-a953-e25f7313e1bc.png"
+    }
+  ]
+}

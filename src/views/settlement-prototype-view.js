@@ -82,7 +82,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
     scaled?getPracticeResultLabel(entry.practiceId,scaled.effectiveValue):'',
     imported?'Import '+imported.importedFood+' food · shortfall '+imported.missingFood:'',
   ].filter(Boolean).join('\n');
-  addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:details.split('\n'),tooltipView});
+  addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:details.split('\n'),tooltipView,inspectionSide:'right'});
 }
 
 function faithRates(state, classState) {
@@ -146,7 +146,7 @@ export function createSettlementPrototypeView({
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
       const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
-      const structureRect = { x: 606, y: 534, width: 1770, height: 232 };
+      const structureRect = { x: 606, y: 534, width: 920, height: 260 };
       panel(root, foodRect, "Local food and population");
       panel(root, practiceRect, `${vm.practices.length} practice slots`);
       panel(root, orderRect, "Elder Order");
@@ -203,8 +203,8 @@ export function createSettlementPrototypeView({
       }
       root.addChild(createText(
         `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`,
-        TEXT_STYLES.header, structureRect.x + 18, structureRect.y + 60));
-      addConstructionStrip(root,{x:structureRect.x+18,y:structureRect.y+104,width:vm.structureCapacity*PIECE_SIZE.cellWidth,height:PIECE_SIZE.structureHeight},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,time:state.tSec});
+        { ...TEXT_STYLES.header, fontSize:22 }, structureRect.x + 18, structureRect.y + 54));
+      addConstructionStrip(root,{x:structureRect.x+18,y:structureRect.y+104,width:884,height:148},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,inspectionSide:'right',time:state.tSec});
     } else {
       const villager = vm.population.byClass.villager;
       const stranger = vm.population.byClass.stranger;

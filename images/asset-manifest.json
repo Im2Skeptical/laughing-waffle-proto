@@ -9,32 +9,88 @@
       ],
       "source": "resource-language-v1",
       "files": [
-        "birth.png", "cost-frame.png", "death.png", "faith.png", "food.png",
-        "housing.png", "lunar-bezel.png", "migration.png", "money.png",
-        "moon-wheel.png", "moon.png", "phase.png", "prestige.png",
-        "solar-wheel.png", "year.png"
+        "birth.png",
+        "cost-frame.png",
+        "death.png",
+        "faith.png",
+        "food.png",
+        "housing.png",
+        "lunar-bezel.png",
+        "migration.png",
+        "money.png",
+        "moon-wheel.png",
+        "moon.png",
+        "phase.png",
+        "prestige.png",
+        "solar-wheel.png",
+        "year.png"
       ]
     },
     "settlement-pieces": {
       "load": "on-demand",
-      "data": ["images/sprite-sheets/settlement-pieces.json"],
+      "data": [
+        "images/sprite-sheets/settlement-pieces.json"
+      ],
       "source": "settlement-pieces-v2",
       "files": [
-        "academy.webp", "administrate.webp", "agrarianGuild.webp", "archive.webp",
-        "caravanserai.webp", "countingHouse.webp", "cultivate.webp",
-        "efficientKitchens.webp", "exchange.webp", "forage.webp", "forum.webp",
-        "granary.webp", "hallOfSages.webp", "harvestFestival.webp",
-        "homesteading.webp", "hostel.webp", "import.webp", "library.webp",
-        "lodgingHouses.webp", "marketFeast.webp", "mill.webp", "mixedFarming.webp",
-        "mudHouses.webp", "raiseHouses.webp", "resettlementHall.webp",
-        "smokehouse.webp", "study.webp", "symposium.webp", "university.webp", "vigil.webp"
+        "academy.webp",
+        "administrate.webp",
+        "agrarianGuild.webp",
+        "archive.webp",
+        "caravanserai.webp",
+        "countingHouse.webp",
+        "cultivate.webp",
+        "efficientKitchens.webp",
+        "exchange.webp",
+        "forage.webp",
+        "forum.webp",
+        "granary.webp",
+        "hallOfSages.webp",
+        "harvestFestival.webp",
+        "homesteading.webp",
+        "hostel.webp",
+        "import.webp",
+        "library.webp",
+        "lodgingHouses.webp",
+        "marketFeast.webp",
+        "mill.webp",
+        "mixedFarming.webp",
+        "mudHouses.webp",
+        "raiseHouses.webp",
+        "resettlementHall.webp",
+        "smokehouse.webp",
+        "study.webp",
+        "symposium.webp",
+        "university.webp",
+        "vigil.webp"
+      ]
+    },
+    "piece-frames": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/piece-frames.json"
+      ],
+      "source": "piece-frames-v1",
+      "files": [
+        "practice-scheduled.png",
+        "practice-charge.png",
+        "structure-1.png",
+        "structure-2.png",
+        "structure-3.png",
+        "time-group.png"
       ]
     }
   },
   "standalone": [
-    "chronicle-cards.png", "chronicle-civic.png", "chronicle-gate.png",
-    "chronicle-practices.png", "realm-landmarks.png", "realm-terrain.png",
-    "timegraph-chronicle-assembly.png", "timegraph-scroll-side-rollers.png",
-    "timegraph-scroll.png", "vassal-portraits.png"
+    "chronicle-cards.png",
+    "chronicle-civic.png",
+    "chronicle-gate.png",
+    "chronicle-practices.png",
+    "realm-landmarks.png",
+    "realm-terrain.png",
+    "timegraph-chronicle-assembly.png",
+    "timegraph-scroll-side-rollers.png",
+    "timegraph-scroll.png",
+    "vassal-portraits.png"
   ]
 }

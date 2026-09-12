@@ -17,6 +17,28 @@ The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and let
 - Hold the small workshop seal in the upper-right corner for 850 ms to open development tools. Ctrl+Shift+D also toggles them; Escape closes them. A normal tap does not open the workshop.
 - The ♪ control enables or mutes timeline sound. Sound starts off.
 
+## Physical gamepieces (September 12 revision)
+
+`piece-geometry.js` owns the 5:7 practice and 3:4 construction-cell proportions.
+All surfaces uniformly fit the same illustrated assembly, including drag ghosts,
+empty slots and enlarged inspection. Multi-cell structures use contiguous cell
+widths. Regional summaries make room above the two rows; detailed settlements
+reserve the right side for inspection and enlarge the construction row.
+
+Frames in `piece-frames-v1/` distinguish scheduled and charge practices and give
+structures a shared brass/stone treatment. Thirty opaque full-bleed paintings
+replace the former cutouts. Outputs attach to the top edge, worker sockets to
+the left, and scheduled solar/lunar discs to the bottom. Disc rotation samples
+the existing readiness value from viewed simulation time. Reduced motion uses
+static readiness, while charge pieces retain a reservoir without numeric counts.
+Time costs sit together inside an illustrated hourglass inset.
+
+Gamepiece inspections share `chronicle-inspection.js`: shop offers open right,
+tableau previews open left, regional pieces open left, settlement pieces open
+right. The source stays exposed; dragging dismisses inspection. Pinned map and
+settlement details refresh without losing reading position. The dock remains
+responsible for navigation; the decision modal has no duplicate Map button.
+
 ## Time-first rendering contract
 
 `src/views/timeline-presentation.js` contains pure samplers for looping frames, finite events, dust positions, visual time, and audio phase. A renderer must be able to request a frame at any time without simulating all intervening visual frames.

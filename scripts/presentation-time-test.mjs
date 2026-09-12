@@ -1,4 +1,31 @@
 import assert from 'node:assert/strict';
+import { fitPiece, constructionGeometry } from '../src/views/piece-geometry.js';
+import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
+import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
+
+const faceClock={tSec:0,seasonDurationSec:8};
+for(const [id,period,offset] of [['cultivate',32,9],['exchange',8,1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
+  for(const second of [offset,offset+period/2,offset+period,offset+period/2,offset]){
+    const clock={...faceClock,tSec:second},before=JSON.stringify(clock);
+    const face=getGamepieceFace(clock,'practice',id);
+    assert.ok(Math.abs(face.fill-((second-offset)%period)/period)<1e-10,`${id}: disc samples its trigger interval at ${second}`);
+    assert.equal(JSON.stringify(clock),before,'Reading a face never advances time');
+  }
+}
+
+for(const bounds of [{x:0,y:0,width:90,height:99},{x:5,y:8,width:350,height:200},{x:0,y:0,width:234,height:340}]){
+  for(const footprint of [1,2,3]){
+    const fitted=fitPiece(bounds,'structure',footprint);
+    assert.equal(fitted.width/fitted.height,3*footprint/4);
+    assert.ok(fitted.width*fitted.scale<=bounds.width+.001&&fitted.height*fitted.scale<=bounds.height+.001);
+  }
+  const card=fitPiece(bounds,'practice');assert.equal(card.width/card.height,5/7);
+}
+for(const capacity of [5,6,7,8]){
+  const strip=constructionGeometry({x:0,y:0,width:582,height:108},capacity);
+  assert.ok(Math.abs(strip.cell/strip.height-3/4)<1e-10);
+  assert.ok(strip.width<=582&&strip.height<=108);
+}
 import { getNavigationVassalPortrait } from '../src/views/settlement-navigation-pixi.js';
 import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';

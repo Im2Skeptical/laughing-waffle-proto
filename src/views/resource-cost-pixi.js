@@ -1,4 +1,4 @@
-import { getResourceTexture } from './chronicle-art.js';
+import { getResourceTexture, getChronicleTexture } from './chronicle-art.js';
 import { getVassalPhaseDurationParts, formatVassalPhaseDuration } from '../model/vassal-life-map.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
@@ -92,9 +92,19 @@ export function addCostPanel(parent, rect, {
   const twoRows = prestigeCost > 0;
   const inset = Math.min(22, rect.width * .055);
   const rowHeight = Math.min(iconSize + 6, twoRows ? rect.height * .44 : rect.height - 16);
+  const timeY=twoRows?rect.height*.07:(rect.height-rowHeight)/2;
+  const timeWidth=rect.width-inset*2;
+  const hourglassWidth=Math.min(timeWidth*.28,rowHeight*1.2);
+  const timeFrame=getChronicleTexture('piece-frames-v1/time-group.png');
+  if(timeFrame?.baseTexture.valid){
+    const graphic=new PIXI.NineSlicePlane(timeFrame,timeFrame.width*.24,8,timeFrame.width*.04,8);
+    const frameScale=rowHeight/timeFrame.height;
+    graphic.width=timeWidth/frameScale;graphic.height=timeFrame.height;graphic.scale.set(frameScale);
+    graphic.position.set(inset,timeY);graphic.eventMode='none';root.addChild(graphic);
+  }
   addTimeCostTokens(root, phaseCost, state, {
-    x: inset, y: twoRows ? rect.height * .07 : (rect.height - rowHeight) / 2,
-    width: rect.width - inset * 2, height: rowHeight, fontSize, iconSize, fill: ink,
+    x: inset+hourglassWidth, y:timeY+4,
+    width: timeWidth-hourglassWidth-6, height: rowHeight-8, fontSize:fontSize*.84, iconSize:iconSize*.8, fill: ink,
   });
   if (twoRows) {
     const divider = new PIXI.Graphics();

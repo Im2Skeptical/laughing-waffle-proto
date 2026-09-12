@@ -70,7 +70,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const period = seasonal ? (state?.seasonDurationSec ?? 8) * (def.activation?.seasonKeys?.length ? 4 : 1) : getMoonCycleDurationSec(state);
   const offset = seasonal ? (['spring','summer','autumn','winter'].indexOf(def.activation.seasonKeys?.[0]) * (state?.seasonDurationSec ?? 8) + 1)
     : 1 + (MOON_PHASE_INDEX_BY_ID[def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
-  return { kind, definitionId: id, label: def.label, tier, rule: def.ui?.rule ?? '',
+  return { kind, definitionId: id, label: def.label, tier, tags: [...(def.tags ?? [])], qualityLabel: tier, rule: def.ui?.rule ?? '',
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
     workerCapacity: kind === 'practice' ? getDetailedPracticeWorkerCapacity(def, tier) : 0,
     workerBonus: def.workerBonus ?? .25, workers: workers?.tokens?.length ?? 0,
