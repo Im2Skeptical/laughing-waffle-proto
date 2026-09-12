@@ -5,8 +5,10 @@ Focused helpers used by the public metric-graph module
 exports `createMetricGraphView`, `createGoldGraphView`, and the existing helper
 re-exports from `src/views/timegraphs-helpers.js`.
 
-This split is mechanical. Timing, reveal cadence, scrub, playhead follow, and
-sampling stay in the orchestrator.
+This split is mechanical. PIXI construction, pointer handlers, snapshot
+sampling, and the frame loop stay in the orchestrator. Reveal cadence, playhead
+follow, and scrub session math live in the modules below as explicit state
+objects plus pure updates.
 
 ## Extracted modules
 
@@ -27,6 +29,14 @@ sampling stay in the orchestrator.
   - PIXI entry construction and tooltip wiring stay in the orchestrator because
     they close over hover/tooltip/scroll state. `scroll.layoutKey` is still
     called there so cabinet caption/page-button side effects stay intact.
+- `forecast-reveal-state.js`
+  - Mutable reveal coverage, velocity, start delay, pause, follow, preview
+    target, and restart. Functions take the state object plus explicit args.
+  - No PIXI. No DOM. Cadence numbers are unchanged.
+- `scrub-session.js`
+  - Scrubbing flag, pointer-local-x to seconds, latched forecast preview, and
+    clamp-to-reveal-cap. Functions take the session object plus explicit args.
+  - No PIXI. Commit / `getStateAt` / `drawScrub` stay in the orchestrator.
 
 ## Remaining inner-function map (`createMetricGraphView`)
 
@@ -45,19 +55,14 @@ Stateful orchestrator work that was not extracted:
   `getProjectionReplacementMaxFloorSec`,
   `buildProjectionReplacementRenderState`, `getProjectionReplacementRenderKey`,
   `stageProjectionReplacementTransition`
-- Forecast reveal / playhead / preview: `getDisplayHistoryEndSec`,
-  `getVisibleForecastCoverageEndSec`, `getForecastRevealFollowTargetEndSec`,
-  `getRenderedHistoryEndSec`, `syncForecastRevealPlayhead`,
-  `syncForecastRevealPreview`, `getVisibleForecastScrubCapSec`,
-  `getForecastRevealDesiredVelocitySecPerSec`,
-  `getForecastRevealEffectiveStartDelayMs`, `resetForecastReveal`,
-  `restartForecastRevealFrom`, `clearForecastRevealRestart`,
-  `getAnimatedForecastCoverageEndSec`, `syncForecastRevealTarget`,
-  `pauseForecastReveal`, `suspendForecastRevealPlayheadFollow`,
-  `setForecastRevealConfig`
-- Scrub / time bounds: `setTimeBounds`, `animateBoundToward`,
-  `resetAnimatedTimeBounds`, `updateScrubFromPointer`, `applyPreviewThrottled`,
-  `endScrub`, `clampScrubSecToRevealCap`, latched-preview helpers
+- Time-window animation: `setTimeBounds`, `animateBoundToward`,
+  `resetAnimatedTimeBounds`
+- Reveal/scrub I/O wrappers: `getVisibleForecastScrubCapSec`,
+  `clampScrubSecToRevealCap`, `syncForecastRevealPreview` (`getStateAt` /
+  `setPreviewState`), `tryRestoreLatchedForecastPreview`,
+  `updateScrubFromPointer` (PIXI `toLocal` + action snap),
+  `applyPreviewThrottled`, `endScrub` (commit / policy / draw),
+  `restartForecastRevealFrom` (projection-replacement activation)
 - Action-second caches: `getActionSecs`, `getMarkerActionSecs`
 - Window chrome / legend wiring: `drawLegend`, `setLegendPage`,
   `updateHeaderButtons`, `drawWindow`, tooltip/hover handlers
@@ -65,16 +70,20 @@ Stateful orchestrator work that was not extracted:
   debug/screen rect accessors
 
 Thin adapters in the orchestrator (`timeToX`, `applyActionSnap`,
-`getMarkerSeconds`, `refreshLegendStyles`, `drawSeriesLinesForRange`) only pass
+`getMarkerSeconds`, `refreshLegendStyles`, `drawSeriesLinesForRange`,
+`getDisplayHistoryEndSec`, `getVisibleForecastCoverageEndSec`,
+`getForecastRevealFollowTargetEndSec`, `getRenderedHistoryEndSec`,
+`getAnimatedForecastCoverageEndSec`, `syncForecastRevealTarget`,
+`resetForecastReveal`, `pauseForecastReveal`,
+`suspendForecastRevealPlayheadFollow`, `setForecastRevealConfig`) only pass
 explicit arguments through to the extracted helpers.
 
 ## Intentionally not extracted
 
-- Reveal cadence, throttle `Ms`, forecast follow, scrub, playhead, and sampling
-  logic: forbidden for this split; those functions close over mutable view
-  state and must not be rewritten.
 - `getPlotSnapshot` / forecast snapshot refresh: sampling and cache keys.
 - Projection-replacement and boot-fade ownership: they mutate transition
   objects in the view closure.
 - Full key-cabinet PIXI construction: pointer handlers close over tooltip and
   hover state; only paging/paint helpers were lifted.
+- `endScrub` / `applyPreviewThrottled`: they close over controller restore,
+  commit policy, and `drawScrub`.

@@ -1,4 +1,4 @@
-// src/views/gold-graph-pixi.js
+// src/views/timegraphs-pixi.js
 // Render-only view for metric graphs.
 // STAGE 3: tSec aware.
 
@@ -25,15 +25,12 @@ import {
   normalizeEventMarkers,
   normalizeHistoryZoneSegments,
   normalizeItemUnavailableZones,
-  reconcileLatchedForecastPreview,
   resolveDefaultGraphScrubSec,
-  resolveForecastRevealPlayheadSec,
 } from "./timegraphs-helpers.js";
 import {
   ACTION_SNAP_THRESHOLD_SEC,
   FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
   FORECAST_REVEAL_PLOT_THROTTLE_MS,
-  FORECAST_REVEAL_PREVIEW_REFRESH_MS,
   FORECAST_REVEAL_TARGET_DURATION_SEC,
   GRAPH_BOOT_FADE_FRAME_MS,
   MAX_ACTION_MARKERS_DENSITY,
@@ -83,6 +80,36 @@ import {
   computeSeriesScaleRangesForReveal as computeSeriesScaleRangesForRevealRange,
   computeVisibleSeriesMaxValues,
 } from "./timegraphs/scale.js";
+import {
+  clearForecastRevealStartOverride,
+  createForecastRevealState,
+  getAnimatedForecastCoverageEndSec as readAnimatedForecastCoverageEndSec,
+  getDisplayHistoryEndSec as readDisplayHistoryEndSec,
+  getForecastRevealFollowTargetEndSec as readForecastRevealFollowTargetEndSec,
+  getRenderedHistoryEndSec as readRenderedHistoryEndSec,
+  getVisibleForecastCoverageEndSec as readVisibleForecastCoverageEndSec,
+  isFollowingForecastReveal as readIsFollowingForecastReveal,
+  markForecastRevealPreview,
+  pauseForecastReveal as applyPauseForecastReveal,
+  resetForecastReveal as resetForecastRevealState,
+  resetForecastRevealDataContext,
+  resolveForecastRevealPlayheadFollowSec,
+  resolveForecastRevealPreviewTarget,
+  restartForecastRevealFrom as restartForecastRevealState,
+  setForecastRevealConfig as applyForecastRevealConfig,
+  suspendForecastRevealPlayheadFollow as applySuspendForecastRevealPlayheadFollow,
+  syncForecastRevealTarget as applySyncForecastRevealTarget,
+} from "./timegraphs/forecast-reveal-state.js";
+import {
+  beginScrubSession,
+  clearLatchedForecastScrub,
+  createScrubSession,
+  pointerLocalXToSec,
+  releaseScrubSession,
+  resetForecastPreviewState as resetScrubForecastPreviewState,
+  setLatchedForecastScrub,
+  syncLatchedForecastPreview,
+} from "./timegraphs/scrub-session.js";
 
 export {
   clampForecastScrubTargetSec,
@@ -146,16 +173,16 @@ export function createMetricGraphView({
   bootFadeColor = 0x000000,
   bootRevealDelayMs = 0,
 }) {
-  let forecastRevealTargetDurationSecCur = forecastRevealTargetDurationSec;
-  let forecastRevealMinRateSecPerSecCur = forecastRevealMinRateSecPerSec;
-  let forecastRevealMaxRateSecPerSecCur = forecastRevealMaxRateSecPerSec;
-  let forecastRevealStartDelayMsCur = forecastRevealStartDelayMs;
-  let forecastRevealFollowGapSecCur = forecastRevealFollowGapSec;
-  let forecastRevealFollowResponseSecCur = forecastRevealFollowResponseSec;
-  let forecastRevealAccelerationSecPerSec2Cur =
-    forecastRevealAccelerationSecPerSec2;
-  let forecastRevealDecelerationSecPerSec2Cur =
-    forecastRevealDecelerationSecPerSec2;
+  const reveal = createForecastRevealState({
+    targetDurationSec: forecastRevealTargetDurationSec,
+    minRateSecPerSec: forecastRevealMinRateSecPerSec,
+    maxRateSecPerSec: forecastRevealMaxRateSecPerSec,
+    startDelayMs: forecastRevealStartDelayMs,
+    followGapSec: forecastRevealFollowGapSec,
+    followResponseSec: forecastRevealFollowResponseSec,
+    accelerationSecPerSec2: forecastRevealAccelerationSecPerSec2,
+    decelerationSecPerSec2: forecastRevealDecelerationSecPerSec2,
+  });
   const plotSnapshotBoundsQuantumSecCur = Math.max(
     1,
     Math.floor(plotSnapshotBoundsQuantumSec ?? PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC)
@@ -417,8 +444,13 @@ export function createMetricGraphView({
   targetBtn.visible = hasTargetModeButton;
   root.addChild(targetBtn);
 
-  let isScrubbing = false;
-  let scrubSec = 0;
+  const forecastPreviewStatusNote = commitForecastOnScrubRelease
+    ? "Release to jump"
+    : typeof forecastPreviewStatusNoteOverride === "string" &&
+        forecastPreviewStatusNoteOverride.length > 0
+      ? forecastPreviewStatusNoteOverride
+      : "Preview only - click Commit to jump";
+  const scrub = createScrubSession({ forecastPreviewStatusNote });
   let minSec = 0;
   let maxSec = 0;
   let zoomed = false;
@@ -427,13 +459,6 @@ export function createMetricGraphView({
   let lastPlotBoundsKey = "";
 
   let lastRestoreMs = 0;
-  let statusNote = "";
-  const forecastPreviewStatusNote = commitForecastOnScrubRelease
-    ? "Release to jump"
-    : typeof forecastPreviewStatusNoteOverride === "string" &&
-        forecastPreviewStatusNoteOverride.length > 0
-      ? forecastPreviewStatusNoteOverride
-      : "Preview only - click Commit to jump";
   let lastScrubSignature = "";
   let cachedActionSecs = [];
   let lastActionSecondsVersion = null;
@@ -449,23 +474,9 @@ export function createMetricGraphView({
   let hoveredLegendSeriesId = null;
   const legendEntriesBySeriesId = new Map();
   const seriesScaleMaxFlashBySeriesId = new Map();
-  let forecastRevealAnimatedEndSec = 0;
-  let forecastRevealTargetEndSec = 0;
-  let forecastRevealLastTickMs = 0;
-  let forecastRevealHistoryEndSec = 0;
-  let forecastRevealCapEndSec = null;
-  let forecastRevealVisibleEndSec = 0;
-  let forecastRevealDelayUntilMs = 0;
-  let forecastRevealStartSecOverride = null;
-  let forecastRevealVelocitySecPerSec = 0;
-  let forecastRevealPaused = false;
   let presentationSuspended = false;
-  let forecastRevealPlayheadFollowEnabled = true;
-  let forecastRevealPreviewSec = null;
-  let forecastRevealPreviewLastRefreshMs = 0;
   let plotSnapshotKey = "";
   let plotSnapshot = null;
-  let latchedForecastScrubSec = null;
   let animatedMinSec = null;
   let animatedMaxSec = null;
   let animatedBoundsLastTickMs = 0;
@@ -499,11 +510,7 @@ export function createMetricGraphView({
   }
 
   function resetDataContext() {
-    forecastRevealPreviewSec = forecastRevealPlayheadFollowEnabled
-      ? getActiveForecastPreviewSec()
-      : null;
-    forecastRevealPreviewLastRefreshMs = 0;
-    forecastRevealCapEndSec = null;
+    resetForecastRevealDataContext(reveal, getActiveForecastPreviewSec());
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
@@ -745,40 +752,17 @@ export function createMetricGraphView({
   }
 
   function getDisplayHistoryEndSec(actualHistoryEndSec) {
-    const actual = Math.max(0, Math.floor(actualHistoryEndSec ?? 0));
-    if (!Number.isFinite(forecastRevealStartSecOverride)) {
-      return actual;
-    }
-    const override = Math.max(0, Math.floor(forecastRevealStartSecOverride));
-    if (override !== actual) {
-      forecastRevealStartSecOverride = null;
-      return actual;
-    }
-    return override;
+    return readDisplayHistoryEndSec(reveal, actualHistoryEndSec);
   }
 
   function getVisibleForecastCoverageEndSec(
     actualForecastCoverageEndSec,
     displayHistoryEndSec
   ) {
-    const displayHistoryEnd = Math.max(
-      0,
-      Math.floor(displayHistoryEndSec ?? 0)
-    );
-    const actualForecastEnd = Math.max(
-      displayHistoryEnd,
-      Math.floor(actualForecastCoverageEndSec ?? displayHistoryEnd)
-    );
-    const visibleForecastEnd =
-      forecastRevealHistoryEndSec === displayHistoryEnd
-        ? Math.max(
-            displayHistoryEnd,
-            Math.floor(forecastRevealVisibleEndSec ?? displayHistoryEnd)
-          )
-        : displayHistoryEnd;
-    return Math.max(
-      displayHistoryEnd,
-      Math.min(actualForecastEnd, visibleForecastEnd)
+    return readVisibleForecastCoverageEndSec(
+      reveal,
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
     );
   }
 
@@ -787,27 +771,12 @@ export function createMetricGraphView({
     historyEndSec,
     currentEndSec = historyEndSec
   ) {
-    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-    const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
-    const currentEnd = Math.max(
-      historyEnd,
-      Math.min(targetEnd, Number(currentEndSec ?? historyEnd))
+    return readForecastRevealFollowTargetEndSec(
+      reveal,
+      targetEndSec,
+      historyEndSec,
+      currentEndSec
     );
-    if (Number.isFinite(forecastRevealCapEndSec)) return targetEnd;
-    const configuredGapSec = Math.max(
-      0,
-      Number(forecastRevealFollowGapSecCur ?? 0)
-    );
-    if (configuredGapSec <= 0) return targetEnd;
-    const availableSpanSec = Math.max(0, targetEnd - historyEnd);
-    if (availableSpanSec <= 1) return historyEnd;
-    const remainingToTargetSec = Math.max(0, targetEnd - currentEnd);
-    const effectiveGapSec = Math.min(
-      configuredGapSec,
-      Math.max(0, remainingToTargetSec * 0.5),
-      Math.max(4, availableSpanSec * 0.4)
-    );
-    return Math.max(historyEnd, targetEnd - effectiveGapSec);
   }
 
   function getRenderedHistoryEndSec(
@@ -815,42 +784,16 @@ export function createMetricGraphView({
     actualForecastCoverageEndSec,
     extra = null
   ) {
-    const displayHistoryEnd = Math.max(
-      0,
-      Math.floor(displayHistoryEndSec ?? 0)
-    );
-    const actualForecastEnd = Math.max(
-      displayHistoryEnd,
-      Math.floor(actualForecastCoverageEndSec ?? displayHistoryEnd)
-    );
-    const visibleForecastEnd = getVisibleForecastCoverageEndSec(
-      actualForecastEnd,
-      displayHistoryEnd
-    );
-    if (typeof renderedHistoryEndResolver === "function") {
-      const resolved = renderedHistoryEndResolver({
-        displayHistoryEndSec: displayHistoryEnd,
-        actualForecastCoverageEndSec: actualForecastEnd,
-        visibleForecastCoverageEndSec: visibleForecastEnd,
-        ...extra,
-      });
-      if (Number.isFinite(resolved)) {
-        return Math.max(
-          displayHistoryEnd,
-          Math.min(actualForecastEnd, Math.floor(resolved))
-        );
+    return readRenderedHistoryEndSec(
+      reveal,
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      extra,
+      {
+        treatRevealedForecastAsHistory,
+        renderedHistoryEndResolver,
       }
-    }
-    if (treatRevealedForecastAsHistory !== true) {
-      return displayHistoryEnd;
-    }
-    return visibleForecastEnd;
-  }
-
-  function setLatchedForecastScrub(sec) {
-    latchedForecastScrubSec = Number.isFinite(sec)
-      ? Math.max(0, Math.floor(sec))
-      : null;
+    );
   }
 
   function resetAnimatedTimeBounds(nextMinSec, nextMaxSec, nowMs = performance.now()) {
@@ -898,7 +841,7 @@ export function createMetricGraphView({
     const shouldAnimate =
       forceImmediate !== true &&
       root.visible === true &&
-      isScrubbing !== true &&
+      scrub.isScrubbing !== true &&
       zoomed !== true;
     if (!shouldAnimate) {
       resetAnimatedTimeBounds(nextMin, nextMax, performance.now());
@@ -927,90 +870,42 @@ export function createMetricGraphView({
     maxSec = Math.max(minSec + 1, Math.floor(animatedMaxSec));
   }
 
-  function clearLatchedForecastScrub() {
-    latchedForecastScrubSec = null;
-  }
-
   function resetForecastPreviewState() {
-    isScrubbing = false;
-    forecastRevealPreviewSec = null;
-    forecastRevealPreviewLastRefreshMs = 0;
-    clearLatchedForecastScrub();
-    if (
-      statusNote === "Forecast loading" ||
-      statusNote === "Forecast revealing" ||
-      statusNote === forecastPreviewStatusNote ||
-      statusNote === "Preview only - click Commit to jump"
-    ) {
-      statusNote = "";
-    }
+    resetScrubForecastPreviewState(scrub, reveal);
   }
 
   function syncLatchedForecastPreviewStatus() {
     const previewStatus =
       typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
-    const isAutomaticRevealPreview =
-      forecastRevealPlayheadFollowEnabled === true &&
-      previewStatus?.active === true &&
-      previewStatus?.isForecastPreview === true &&
-      Number.isFinite(previewStatus?.previewSec) &&
-      Number.isFinite(forecastRevealPreviewSec) &&
-      Math.floor(previewStatus.previewSec) ===
-        Math.floor(forecastRevealPreviewSec);
-    if (isAutomaticRevealPreview) {
-      clearLatchedForecastScrub();
-      return;
-    }
-    const synced = reconcileLatchedForecastPreview({
+    syncLatchedForecastPreview(
+      scrub,
+      reveal,
       previewStatus,
-      statusNote,
-      latchedForecastScrubSec,
-    });
-    latchedForecastScrubSec = synced.latchedForecastScrubSec;
-    statusNote = synced.statusNote;
-    if (!isScrubbing && Number.isFinite(synced.forecastPreviewSec)) {
-      scrubSec = clampScrubSecToRevealCap(synced.forecastPreviewSec);
-    }
+      clampScrubSecToRevealCap
+    );
   }
 
   function suspendForecastRevealPlayheadFollow() {
-    forecastRevealPlayheadFollowEnabled = false;
-    forecastRevealPreviewSec = null;
-    forecastRevealPreviewLastRefreshMs = 0;
+    applySuspendForecastRevealPlayheadFollow(reveal);
   }
 
   function pauseForecastReveal() {
-    forecastRevealPaused = true;
-    forecastRevealVelocitySecPerSec = 0;
+    applyPauseForecastReveal(reveal);
   }
 
   function syncForecastRevealPlayhead(visibleForecastCoverageEndSec) {
     const preview =
       typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
-    const activeForecastPreviewSec =
-      preview?.isForecastPreview === true &&
-      Number.isFinite(preview?.previewSec)
-        ? preview.previewSec
-        : null;
-    const isAutomaticRevealPreview =
-      forecastRevealPlayheadFollowEnabled === true &&
-      Number.isFinite(activeForecastPreviewSec) &&
-      Number.isFinite(forecastRevealPreviewSec) &&
-      Math.floor(activeForecastPreviewSec) ===
-        Math.floor(forecastRevealPreviewSec);
-    const followSec = resolveForecastRevealPlayheadSec({
-      followEnabled: forecastRevealPlayheadFollowEnabled,
-      isScrubbing,
-      latchedForecastScrubSec,
-      forecastPreviewSec: isAutomaticRevealPreview
-        ? null
-        : activeForecastPreviewSec,
+    const followSec = resolveForecastRevealPlayheadFollowSec(reveal, {
+      isScrubbing: scrub.isScrubbing,
+      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+      previewStatus: preview,
       visibleForecastCoverageEndSec,
       minSec,
       maxSec,
     });
     if (Number.isFinite(followSec)) {
-      scrubSec = clampScrubSecToRevealCap(followSec);
+      scrub.scrubSec = clampScrubSecToRevealCap(followSec);
     }
   }
 
@@ -1018,36 +913,25 @@ export function createMetricGraphView({
     visibleForecastCoverageEndSec,
     nowMs
   ) {
-    if (
-      presentationSuspended || forecastRevealPlayheadFollowEnabled !== true ||
-      (typeof canAutoPreviewForecastReveal === "function" &&
-        canAutoPreviewForecastReveal() !== true) ||
-      isScrubbing ||
-      Number.isFinite(latchedForecastScrubSec) ||
-      !Number.isFinite(visibleForecastCoverageEndSec)
-    ) {
-      return;
-    }
-    const historyEndSec = Math.max(
-      0,
-      Math.floor(getTimeline?.()?.historyEndSec ?? 0)
+    const canAutoPreview =
+      typeof canAutoPreviewForecastReveal !== "function" ||
+      canAutoPreviewForecastReveal() === true;
+    const targetSec = resolveForecastRevealPreviewTarget(
+      reveal,
+      visibleForecastCoverageEndSec,
+      nowMs,
+      {
+        presentationSuspended,
+        canAutoPreview,
+        isScrubbing: scrub.isScrubbing,
+        latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+        historyEndSec: getTimeline?.()?.historyEndSec ?? 0,
+      }
     );
-    const targetSec = Math.max(
-      historyEndSec,
-      Math.floor(visibleForecastCoverageEndSec)
-    );
-    if (
-      targetSec <= historyEndSec ||
-      targetSec === forecastRevealPreviewSec ||
-      nowMs - forecastRevealPreviewLastRefreshMs <
-        FORECAST_REVEAL_PREVIEW_REFRESH_MS
-    ) {
-      return;
-    }
+    if (!Number.isFinite(targetSec)) return;
     const restored = controller.getStateAt?.(targetSec);
     if (!restored) return;
-    forecastRevealPreviewSec = targetSec;
-    forecastRevealPreviewLastRefreshMs = nowMs;
+    markForecastRevealPreview(reveal, targetSec, nowMs);
     setPreviewState?.(restored);
   }
 
@@ -1070,101 +954,6 @@ export function createMetricGraphView({
     );
   }
 
-  function getForecastRevealDesiredVelocitySecPerSec(
-    targetEndSec,
-    currentEndSec,
-    historyEndSec
-  ) {
-    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-    const currentEnd = Math.max(historyEnd, Number(currentEndSec ?? historyEnd));
-    const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
-    const minRevealRateSecPerSec = Math.max(
-      1,
-      Number(
-        forecastRevealMinRateSecPerSecCur ??
-          FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC
-      )
-    );
-    const maxRevealRateSecPerSec = Math.max(
-      minRevealRateSecPerSec,
-      Number(
-        forecastRevealMaxRateSecPerSecCur ?? Number.POSITIVE_INFINITY
-      )
-    );
-    const remainingForecastSpanSec = Math.max(1, targetEnd - historyEnd);
-    const targetRevealRateSecPerSec =
-      remainingForecastSpanSec /
-      Math.max(
-        0.05,
-        Number(
-          forecastRevealTargetDurationSecCur ??
-            FORECAST_REVEAL_TARGET_DURATION_SEC
-        )
-      );
-    const followTargetEndSec = getForecastRevealFollowTargetEndSec(
-      targetEnd,
-      historyEnd,
-      currentEnd
-    );
-    const followDistanceSec = Math.max(0, followTargetEndSec - currentEnd);
-    const followResponseSec = Math.max(
-      0.05,
-      Number(forecastRevealFollowResponseSecCur ?? 0.9)
-    );
-    const adaptiveRevealRateSecPerSec =
-      followDistanceSec / followResponseSec;
-    let desiredVelocitySecPerSec =
-      forecastRevealFollowGapSecCur > 0
-        ? adaptiveRevealRateSecPerSec
-        : Math.max(
-            minRevealRateSecPerSec,
-            Math.min(maxRevealRateSecPerSec, targetRevealRateSecPerSec)
-          );
-    if (forecastRevealFollowGapSecCur > 0) {
-      const farFromFollowTarget =
-        followDistanceSec >
-        Math.max(6, Number(forecastRevealFollowGapSecCur ?? 0) * 0.25);
-      if (farFromFollowTarget) {
-        desiredVelocitySecPerSec = Math.max(
-          minRevealRateSecPerSec,
-          desiredVelocitySecPerSec
-        );
-      }
-      desiredVelocitySecPerSec = Math.max(
-        0,
-        Math.min(maxRevealRateSecPerSec, desiredVelocitySecPerSec)
-      );
-    }
-    return {
-      desiredVelocitySecPerSec,
-      followTargetEndSec,
-      followDistanceSec,
-      minRevealRateSecPerSec,
-      maxRevealRateSecPerSec,
-    };
-  }
-
-  function getForecastRevealEffectiveStartDelayMs(
-    targetEndSec,
-    animatedEndSec,
-    historyEndSec
-  ) {
-    const configuredDelayMs = Math.max(
-      0,
-      Number(forecastRevealStartDelayMsCur ?? 0)
-    );
-    if (configuredDelayMs <= 0) return 0;
-    const { followDistanceSec } = getForecastRevealDesiredVelocitySecPerSec(
-      targetEndSec,
-      animatedEndSec,
-      historyEndSec
-    );
-    if (followDistanceSec >= Math.max(6, Number(forecastRevealFollowGapSecCur ?? 0) * 0.33)) {
-      return 0;
-    }
-    return configuredDelayMs;
-  }
-
   function clampScrubSecToRevealCap(targetSec) {
     const tl = getTimeline?.();
     const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
@@ -1177,90 +966,42 @@ export function createMetricGraphView({
   }
 
   function tryRestoreLatchedForecastPreview() {
-    if (isScrubbing || !Number.isFinite(latchedForecastScrubSec)) return;
+    if (scrub.isScrubbing || !Number.isFinite(scrub.latchedForecastScrubSec)) return;
     const tl = getTimeline?.();
     const historyEnd = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
-    if (latchedForecastScrubSec <= historyEnd) {
-      clearLatchedForecastScrub();
+    if (scrub.latchedForecastScrubSec <= historyEnd) {
+      clearLatchedForecastScrub(scrub);
       return;
     }
-    if (latchedForecastScrubSec > getVisibleForecastScrubCapSec()) {
+    if (scrub.latchedForecastScrubSec > getVisibleForecastScrubCapSec()) {
       return;
     }
-    const restored = controller.getStateAt?.(latchedForecastScrubSec);
+    const restored = controller.getStateAt?.(scrub.latchedForecastScrubSec);
     if (!restored) return;
     setPreviewState?.(restored);
-    scrubSec = clampScrubSecToRevealCap(latchedForecastScrubSec);
-    statusNote = forecastPreviewStatusNote;
+    scrub.scrubSec = clampScrubSecToRevealCap(scrub.latchedForecastScrubSec);
+    scrub.statusNote = scrub.forecastPreviewStatusNote;
   }
 
   function resetForecastReveal(animatedEndSec, targetEndSec, historyEndSec, nowMs) {
-    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-    const animatedEnd = Math.max(
-      historyEnd,
-      Math.floor(animatedEndSec ?? historyEnd)
+    resetForecastRevealState(
+      reveal,
+      animatedEndSec,
+      targetEndSec,
+      historyEndSec,
+      nowMs
     );
-    const targetEnd = Math.max(
-      animatedEnd,
-      Math.floor(targetEndSec ?? animatedEnd)
-    );
-    forecastRevealAnimatedEndSec = animatedEnd;
-    forecastRevealTargetEndSec = targetEnd;
-    forecastRevealLastTickMs = nowMs;
-    forecastRevealHistoryEndSec = historyEnd;
-    forecastRevealVisibleEndSec = animatedEnd;
-    const initialVelocity = getForecastRevealDesiredVelocitySecPerSec(
-      targetEnd,
-      animatedEnd,
-      historyEnd
-    ).desiredVelocitySecPerSec;
-    forecastRevealVelocitySecPerSec =
-      initialVelocity > 0
-        ? Math.max(0, Math.min(initialVelocity, Number(initialVelocity)))
-        : 0;
-    forecastRevealDelayUntilMs =
-      nowMs +
-      getForecastRevealEffectiveStartDelayMs(
-        targetEnd,
-        animatedEnd,
-        historyEnd
-      );
     invalidatePlotSnapshot();
   }
 
   function restartForecastRevealFrom(startSec, opts = {}) {
-    forecastRevealPaused = false;
-    forecastRevealPlayheadFollowEnabled = true;
-    forecastRevealPreviewSec = getActiveForecastPreviewSec();
-    forecastRevealPreviewLastRefreshMs = 0;
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const actualHistoryEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
-    const displayHistoryEndSec = getDisplayHistoryEndSec(actualHistoryEndSec);
     const actualForecastCoverageEndSec = Math.max(
       actualHistoryEndSec,
       Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
     );
-    const maxRestartSec =
-      opts?.allowForecastStart === true
-        ? Math.max(actualForecastCoverageEndSec, Math.floor(startSec ?? actualHistoryEndSec))
-        : actualHistoryEndSec;
-    const normalizedStartSec = Math.max(
-      0,
-      Math.min(Math.floor(startSec ?? actualHistoryEndSec), maxRestartSec)
-    );
-    const requestedRevealEndSec = Number.isFinite(opts?.revealTargetEndSec)
-      ? Math.max(normalizedStartSec, Math.floor(opts.revealTargetEndSec))
-      : actualForecastCoverageEndSec;
-    forecastRevealCapEndSec = Number.isFinite(opts?.revealTargetEndSec)
-      ? requestedRevealEndSec
-      : null;
-    const revealTargetEndSec = Math.max(
-      displayHistoryEndSec,
-      Math.min(actualForecastCoverageEndSec, requestedRevealEndSec)
-    );
-    forecastRevealStartSecOverride =
-      normalizedStartSec <= actualForecastCoverageEndSec ? normalizedStartSec : null;
     const nowMs = performance.now();
     if (opts?.activateProjectionReplacementTransition === true) {
       projectionReplacement = stagedProjectionReplacement
@@ -1276,22 +1017,12 @@ export function createMetricGraphView({
         projectionReplacement = null;
       }
     }
-    resetForecastReveal(
-      Math.max(displayHistoryEndSec, normalizedStartSec),
-      revealTargetEndSec,
-      displayHistoryEndSec,
-      nowMs
-    );
-    const extraStartDelayMs = Math.max(
-      0,
-      Number(opts?.extraStartDelayMs ?? 0)
-    );
-    if (extraStartDelayMs > 0) {
-      forecastRevealDelayUntilMs = Math.max(
-        forecastRevealDelayUntilMs,
-        nowMs + extraStartDelayMs
-      );
-    }
+    restartForecastRevealState(reveal, startSec, opts, {
+      actualHistoryEndSec,
+      actualForecastCoverageEndSec,
+      nowMs,
+      activeForecastPreviewSec: getActiveForecastPreviewSec(),
+    });
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
     invalidatePlotSnapshot();
@@ -1299,143 +1030,29 @@ export function createMetricGraphView({
 
   function clearForecastRevealRestart() {
     stagedProjectionReplacement = null;
-    if (!Number.isFinite(forecastRevealStartSecOverride)) return;
-    forecastRevealStartSecOverride = null;
+    if (!clearForecastRevealStartOverride(reveal)) return;
     invalidatePlotSnapshot();
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
   }
 
   function getAnimatedForecastCoverageEndSec(nowMs, historyEndSec) {
-    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-    forecastRevealHistoryEndSec = historyEnd;
-    const targetEnd = Math.max(
-      historyEnd,
-      Math.floor(forecastRevealTargetEndSec ?? historyEnd)
+    return readAnimatedForecastCoverageEndSec(
+      reveal,
+      nowMs,
+      historyEndSec,
+      presentationSuspended
     );
-    const currentEnd = Math.max(
-      historyEnd,
-      Number(forecastRevealAnimatedEndSec ?? historyEnd)
-    );
-    if (forecastRevealPaused || presentationSuspended) {
-      forecastRevealLastTickMs = nowMs;
-      forecastRevealVisibleEndSec = currentEnd;
-      return currentEnd;
-    }
-    if (targetEnd <= currentEnd) {
-      forecastRevealAnimatedEndSec = targetEnd;
-      forecastRevealLastTickMs = nowMs;
-      forecastRevealVisibleEndSec = targetEnd;
-      forecastRevealVelocitySecPerSec = 0;
-      if (nowMs >= forecastRevealDelayUntilMs) {
-        forecastRevealDelayUntilMs = 0;
-      }
-      return targetEnd;
-    }
-    const effectiveStartMs = Math.max(
-      forecastRevealLastTickMs,
-      forecastRevealDelayUntilMs
-    );
-    const elapsedMs = Math.max(0, nowMs - effectiveStartMs);
-    forecastRevealLastTickMs = nowMs;
-    if (elapsedMs <= 0) return currentEnd;
-    forecastRevealDelayUntilMs = 0;
-    const elapsedSec = elapsedMs / 1000;
-    const {
-      desiredVelocitySecPerSec: targetVelocitySecPerSec,
-      followTargetEndSec,
-      maxRevealRateSecPerSec,
-    } = getForecastRevealDesiredVelocitySecPerSec(
-      targetEnd,
-      currentEnd,
-      historyEnd
-    );
-    const accelLimitSecPerSec = Math.max(
-      1,
-      Number(forecastRevealAccelerationSecPerSec2Cur ?? 220)
-    );
-    const decelLimitSecPerSec = Math.max(
-      1,
-      Number(forecastRevealDecelerationSecPerSec2Cur ?? 320)
-    );
-    const velocityDeltaSecPerSec =
-      targetVelocitySecPerSec - forecastRevealVelocitySecPerSec;
-    const maxVelocityStepSecPerSec =
-      velocityDeltaSecPerSec >= 0
-        ? accelLimitSecPerSec * elapsedSec
-        : decelLimitSecPerSec * elapsedSec;
-    const clampedVelocityDeltaSecPerSec = Math.max(
-      -maxVelocityStepSecPerSec,
-      Math.min(maxVelocityStepSecPerSec, velocityDeltaSecPerSec)
-    );
-    forecastRevealVelocitySecPerSec = Math.max(
-      0,
-      Math.min(
-        maxRevealRateSecPerSec,
-        forecastRevealVelocitySecPerSec + clampedVelocityDeltaSecPerSec
-      )
-    );
-    const revealDeltaSec = elapsedSec * forecastRevealVelocitySecPerSec;
-    const maxVisibleEndSec =
-      forecastRevealFollowGapSecCur > 0 ? followTargetEndSec : targetEnd;
-    const animatedEnd = Math.min(maxVisibleEndSec, currentEnd + revealDeltaSec);
-    forecastRevealAnimatedEndSec = Math.max(historyEnd, animatedEnd);
-    forecastRevealVisibleEndSec = forecastRevealAnimatedEndSec;
-    return forecastRevealAnimatedEndSec;
   }
 
   function syncForecastRevealTarget(actualCoverageEndSec, historyEndSec, nowMs) {
-    const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-    const previousHistoryEnd = Math.max(
-      0,
-      Math.floor(forecastRevealHistoryEndSec ?? 0)
+    return applySyncForecastRevealTarget(
+      reveal,
+      actualCoverageEndSec,
+      historyEndSec,
+      nowMs,
+      invalidatePlotSnapshot
     );
-    const uncappedActualEnd = Math.max(
-      historyEnd,
-      Math.floor(actualCoverageEndSec ?? historyEnd)
-    );
-    const actualEnd = Number.isFinite(forecastRevealCapEndSec)
-      ? Math.max(
-          historyEnd,
-          Math.min(uncappedActualEnd, Math.floor(forecastRevealCapEndSec))
-        )
-      : uncappedActualEnd;
-    const targetEnd = Math.max(
-      historyEnd,
-      Math.floor(forecastRevealTargetEndSec ?? historyEnd)
-    );
-    const hasRevealState =
-      Number.isFinite(forecastRevealTargetEndSec) &&
-      Number.isFinite(forecastRevealAnimatedEndSec);
-
-    if (
-      !hasRevealState ||
-      historyEnd < previousHistoryEnd ||
-      actualEnd < targetEnd ||
-      actualEnd < forecastRevealAnimatedEndSec
-    ) {
-      resetForecastReveal(historyEnd, actualEnd, historyEnd, nowMs);
-      return forecastRevealAnimatedEndSec;
-    }
-
-    if (historyEnd !== previousHistoryEnd) {
-      const clampedAnimatedEnd = Math.max(
-        historyEnd,
-        Number(forecastRevealAnimatedEndSec ?? historyEnd)
-      );
-      forecastRevealAnimatedEndSec = clampedAnimatedEnd;
-      forecastRevealVisibleEndSec = clampedAnimatedEnd;
-      forecastRevealTargetEndSec = Math.max(actualEnd, clampedAnimatedEnd);
-      forecastRevealHistoryEndSec = historyEnd;
-    }
-
-    if (actualEnd > targetEnd) {
-      forecastRevealTargetEndSec = actualEnd;
-      forecastRevealHistoryEndSec = historyEnd;
-      return forecastRevealAnimatedEndSec;
-    }
-
-    return forecastRevealAnimatedEndSec;
   }
 
   function timeToX(t) {
@@ -1443,7 +1060,7 @@ export function createMetricGraphView({
   }
 
   function updateEventMarkerTooltip(globalPoint) {
-    if (!tooltipView || isScrubbing) return;
+    if (!tooltipView || scrub.isScrubbing) return;
     if (interaction && interaction?.canShowHoverUI?.() === false) return;
     const local = globalPoint && typeof root.toLocal === "function"
       ? root.toLocal(globalPoint)
@@ -1494,10 +1111,8 @@ export function createMetricGraphView({
       globalPoint && typeof root.toLocal === "function"
         ? root.toLocal(globalPoint)
         : { x: Number(globalPoint?.x ?? globalPoint) || 0, y: 0 };
-    const localX = Number(local?.x) || 0;
-    const ratio = (localX - plot.x) / Math.max(1, plot.w);
-    const t = minSec + ratio * (maxSec - minSec);
-    scrubSec = clampScrubSecToRevealCap(Math.round(applyActionSnap(t)));
+    const t = pointerLocalXToSec(Number(local?.x) || 0, plot, minSec, maxSec);
+    scrub.scrubSec = clampScrubSecToRevealCap(Math.round(applyActionSnap(t)));
   }
 
   function applyActionSnap(t) {
@@ -1819,12 +1434,12 @@ export function createMetricGraphView({
           : resolveDefaultGraphScrubSec({
               currentSec: currentT,
               forecastPreviewSec,
-              latchedForecastScrubSec,
+              latchedForecastScrubSec: scrub.latchedForecastScrubSec,
             });
-      if (!isScrubbing || customWindowSpec.forceScrubToCursor === true) {
-        scrubSec = clampScrubSecToRevealCap(preferredScrub);
+      if (!scrub.isScrubbing || customWindowSpec.forceScrubToCursor === true) {
+        scrub.scrubSec = clampScrubSecToRevealCap(preferredScrub);
       } else {
-        scrubSec = clampScrubSecToRevealCap(scrubSec);
+        scrub.scrubSec = clampScrubSecToRevealCap(scrub.scrubSec);
       }
       return;
     }
@@ -1850,13 +1465,13 @@ export function createMetricGraphView({
       );
     }
 
-    if (!isScrubbing) {
+    if (!scrub.isScrubbing) {
       const defaultScrubSec = resolveDefaultGraphScrubSec({
         currentSec: currentT,
         forecastPreviewSec,
-        latchedForecastScrubSec,
+        latchedForecastScrubSec: scrub.latchedForecastScrubSec,
       });
-      scrubSec = clampScrubSecToRevealCap(defaultScrubSec);
+      scrub.scrubSec = clampScrubSecToRevealCap(defaultScrubSec);
     }
   }
 
@@ -2363,8 +1978,8 @@ export function createMetricGraphView({
       displayHistoryEndSec,
       Math.min(
         actualForecastCoverageEndSec,
-        forecastRevealHistoryEndSec === displayHistoryEndSec
-          ? Number(forecastRevealVisibleEndSec ?? displayHistoryEndSec)
+        reveal.historyEndSec === displayHistoryEndSec
+          ? Number(reveal.visibleEndSec ?? displayHistoryEndSec)
           : displayHistoryEndSec
       )
     );
@@ -2504,16 +2119,16 @@ export function createMetricGraphView({
     const hasForecastPreview = Number.isFinite(forecastPreviewSec);
     const metricLabel = getMetricLabel();
     const signature =
-      `${isScrubbing ? 1 : 0}|${scrubSec}|${curT}|${historyEnd}|` +
-      `${minSec}:${maxSec}|${statusNote}|${metricLabel}|${hasForecastPreview ? forecastPreviewSec : -1}`;
+      `${scrub.isScrubbing ? 1 : 0}|${scrub.scrubSec}|${curT}|${historyEnd}|` +
+      `${minSec}:${maxSec}|${scrub.statusNote}|${metricLabel}|${hasForecastPreview ? forecastPreviewSec : -1}`;
     if (signature === lastScrubSignature) return;
     lastScrubSignature = signature;
 
     scrubG.clear();
     drawScrubMarkers(scrubG, {
-      scrubSec,
+      scrubSec: scrub.scrubSec,
       curT,
-      isScrubbing,
+      isScrubbing: scrub.isScrubbing,
       hasForecastPreview,
       minSec,
       maxSec,
@@ -2534,31 +2149,31 @@ export function createMetricGraphView({
     const historyEnd = Math.floor(tl?.historyEndSec ?? 0);
     const visibleForecastCapSec = getVisibleForecastScrubCapSec();
 
-    if (scrubSec > historyEnd && scrubSec > visibleForecastCapSec) {
-      statusNote = "Forecast revealing";
+    if (scrub.scrubSec > historyEnd && scrub.scrubSec > visibleForecastCapSec) {
+      scrub.statusNote = "Forecast revealing";
       clearPreviewState?.();
       drawScrub();
       return;
     }
 
-    const restored = controller.getStateAt(scrubSec);
+    const restored = controller.getStateAt(scrub.scrubSec);
     if (restored) {
       if (
-        statusNote === "Forecast loading" ||
-        statusNote === "Forecast revealing"
+        scrub.statusNote === "Forecast loading" ||
+        scrub.statusNote === "Forecast revealing"
       ) {
-        statusNote = "";
+        scrub.statusNote = "";
       }
-      if (scrubSec > historyEnd) {
-        setLatchedForecastScrub(scrubSec);
+      if (scrub.scrubSec > historyEnd) {
+        setLatchedForecastScrub(scrub, scrub.scrubSec);
       } else {
-        clearLatchedForecastScrub();
+        clearLatchedForecastScrub(scrub);
       }
       setPreviewState?.(restored);
     } else {
-      if (scrubSec > historyEnd) {
-        statusNote = "Forecast loading";
-        setLatchedForecastScrub(scrubSec);
+      if (scrub.scrubSec > historyEnd) {
+        scrub.statusNote = "Forecast loading";
+        setLatchedForecastScrub(scrub, scrub.scrubSec);
         clearPreviewState?.();
       }
     }
@@ -2566,18 +2181,17 @@ export function createMetricGraphView({
   }
 
   function endScrub(commit) {
-    if (!isScrubbing) return;
-    isScrubbing = false;
+    if (!releaseScrubSession(scrub)) return;
     const tl = getTimeline?.();
     const historyEnd = Math.floor(tl?.historyEndSec ?? 0);
     const visibleForecastCapSec = getVisibleForecastScrubCapSec();
-    const isForecast = scrubSec > historyEnd;
+    const isForecast = scrub.scrubSec > historyEnd;
 
     if (commit && !isForecast) {
-      clearLatchedForecastScrub();
+      clearLatchedForecastScrub(scrub);
       if (commitHistoryOnScrubRelease && typeof commitPolicyResolver === "function") {
         const decision = commitPolicyResolver({
-          scrubSec,
+          scrubSec: scrub.scrubSec,
           historyEndSec: historyEnd,
           editableBounds: getEditableHistoryBounds?.(),
         });
@@ -2585,7 +2199,7 @@ export function createMetricGraphView({
           decision === false ||
           (decision && typeof decision === "object" && decision.allow === false);
         if (blocked) {
-          statusNote =
+          scrub.statusNote =
             (decision && typeof decision === "object" && decision.reason) ||
             "Read-only";
           drawScrub();
@@ -2593,10 +2207,10 @@ export function createMetricGraphView({
         }
       }
       clearPreviewState?.();
-      const stateData = controller?.getStateDataAt?.(scrubSec);
-      const res = commitSecond?.(scrubSec, stateData);
+      const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
+      const res = commitSecond?.(scrub.scrubSec, stateData);
       if (res && res.ok === false) {
-        statusNote = `Jump failed: ${res.reason}`;
+        scrub.statusNote = `Jump failed: ${res.reason}`;
         drawScrub();
         return;
       }
@@ -2604,53 +2218,52 @@ export function createMetricGraphView({
     }
 
     if (isForecast) {
-      if (scrubSec > visibleForecastCapSec) {
-        statusNote = "Forecast revealing";
+      if (scrub.scrubSec > visibleForecastCapSec) {
+        scrub.statusNote = "Forecast revealing";
         clearPreviewState?.();
         drawScrub();
         return;
       }
-      setLatchedForecastScrub(scrubSec);
-      if (controller?.getStateDataAt?.(scrubSec) == null) {
-        statusNote = "Forecast loading";
+      setLatchedForecastScrub(scrub, scrub.scrubSec);
+      if (controller?.getStateDataAt?.(scrub.scrubSec) == null) {
+        scrub.statusNote = "Forecast loading";
         clearPreviewState?.();
         drawScrub();
         return;
       }
       if (commit && commitForecastOnScrubRelease) {
         clearPreviewState?.();
-        const stateData = controller?.getStateDataAt?.(scrubSec);
-        const res = commitSecond?.(scrubSec, stateData);
+        const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
+        const res = commitSecond?.(scrub.scrubSec, stateData);
         if (res && res.ok === false) {
-          statusNote = `Jump failed: ${res.reason}`;
+          scrub.statusNote = `Jump failed: ${res.reason}`;
           drawScrub();
           return;
         }
-        clearLatchedForecastScrub();
-        statusNote = "";
+        clearLatchedForecastScrub(scrub);
+        scrub.statusNote = "";
         drawScrub();
         return;
       }
-      statusNote = forecastPreviewStatusNote;
+      scrub.statusNote = scrub.forecastPreviewStatusNote;
       applyPreviewThrottled(true);
       return;
     }
 
-    clearLatchedForecastScrub();
+    clearLatchedForecastScrub(scrub);
     clearPreviewState?.();
     drawScrub();
   }
 
   plotHit.on("pointerdown", (e) => {
-    statusNote = "";
+    beginScrubSession(scrub);
     suspendForecastRevealPlayheadFollow();
-    isScrubbing = true;
     updateScrubFromPointer(e.global);
     applyPreviewThrottled(true);
   });
 
   plotHit.on("pointermove", (e) => {
-    if (!isScrubbing) {
+    if (!scrub.isScrubbing) {
       updateEventMarkerTooltip(e.global);
       return;
     }
@@ -2661,7 +2274,7 @@ export function createMetricGraphView({
   plotHit.on("pointerup", () => endScrub(true));
   plotHit.on("pointerupoutside", () => endScrub(true));
   plotHit.on("pointerleave", () => {
-    if (!isScrubbing && hoveredEventMarkerKey) {
+    if (!scrub.isScrubbing && hoveredEventMarkerKey) {
       hoveredEventMarkerKey = null;
       tooltipView?.hide?.();
     }
@@ -2674,7 +2287,7 @@ export function createMetricGraphView({
     e.stopPropagation();
     zoomed = !zoomed;
     invalidatePlotSnapshot();
-    statusNote = "";
+    scrub.statusNote = "";
     render();
   });
 
@@ -2685,7 +2298,7 @@ export function createMetricGraphView({
     e.stopPropagation();
     if (!hasTargetModeButton) return;
     onToggleSystemTargetMode?.();
-    statusNote = "";
+    scrub.statusNote = "";
     render();
   });
 
@@ -2697,19 +2310,19 @@ export function createMetricGraphView({
     root.x = openPosition?.x ?? defaultX;
     root.y = openPosition?.y ?? defaultY;
     const nowMs = performance.now();
-    forecastRevealPaused = false;
-    forecastRevealPlayheadFollowEnabled = true;
-    forecastRevealPreviewSec = null;
-    forecastRevealPreviewLastRefreshMs = 0;
-    forecastRevealCapEndSec = null;
+    reveal.paused = false;
+    reveal.playheadFollowEnabled = true;
+    reveal.previewSec = null;
+    reveal.previewLastRefreshMs = 0;
+    reveal.capEndSec = null;
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
     beginBootFadeTransition(nowMs);
     resetForecastReveal(0, 0, 0, nowMs);
     if (bootRevealDelayMsCur > 0) {
-      forecastRevealDelayUntilMs = Math.max(
-        forecastRevealDelayUntilMs,
+      reveal.delayUntilMs = Math.max(
+        reveal.delayUntilMs,
         nowMs + bootRevealDelayMsCur
       );
     }
@@ -2730,7 +2343,7 @@ export function createMetricGraphView({
     invalidatePlotSnapshot();
     seriesScaleMaxFlashBySeriesId.clear();
     clearProjectionReplacementTransition();
-    forecastRevealCapEndSec = null;
+    reveal.capEndSec = null;
     clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
     animatedMinSec = null;
@@ -2799,8 +2412,8 @@ export function createMetricGraphView({
       displayHistoryEndSec,
       Math.min(
         actualForecastCoverageEndSec,
-        forecastRevealHistoryEndSec === displayHistoryEndSec
-          ? Math.floor(forecastRevealVisibleEndSec ?? displayHistoryEndSec)
+        reveal.historyEndSec === displayHistoryEndSec
+          ? Math.floor(reveal.visibleEndSec ?? displayHistoryEndSec)
           : displayHistoryEndSec
       )
     );
@@ -2844,9 +2457,9 @@ export function createMetricGraphView({
       focusButton: zoomBtn.toGlobal(new PIXI.Point(focusRect.width / 2, focusRect.height / 2)),
       minSec,
       maxSec,
-      scrubSec,
-      statusNote,
-      isScrubbing,
+      scrubSec: scrub.scrubSec,
+      statusNote: scrub.statusNote,
+      isScrubbing: scrub.isScrubbing,
       zoomed,
       historyEndSec,
       displayHistoryEndSec,
@@ -2861,20 +2474,20 @@ export function createMetricGraphView({
       ),
       forecastRevealVelocitySecPerSec: Math.max(
         0,
-        Number(forecastRevealVelocitySecPerSec ?? 0)
+        Number(reveal.velocitySecPerSec ?? 0)
       ),
       forecastRevealHistoryEndSec: Math.max(
         0,
-        Math.floor(forecastRevealHistoryEndSec ?? 0)
+        Math.floor(reveal.historyEndSec ?? 0)
       ),
       forecastRevealTargetEndSec: Math.max(
         0,
-        Math.floor(forecastRevealTargetEndSec ?? 0)
+        Math.floor(reveal.targetEndSec ?? 0)
       ),
-      forecastRevealPlayheadFollowEnabled,
-      forecastRevealPaused,
-      forecastRevealPreviewSec: Number.isFinite(forecastRevealPreviewSec)
-        ? Math.max(0, Math.floor(forecastRevealPreviewSec))
+      forecastRevealPlayheadFollowEnabled: reveal.playheadFollowEnabled,
+      forecastRevealPaused: reveal.paused,
+      forecastRevealPreviewSec: Number.isFinite(reveal.previewSec)
+        ? Math.max(0, Math.floor(reveal.previewSec))
         : null,
       projectionReplacement: projectionReplacement
         ? {
@@ -2949,7 +2562,7 @@ export function createMetricGraphView({
       now,
       displayHistoryEndSec
     );
-    forecastRevealVisibleEndSec = visibleForecastCoverageEndSec;
+    reveal.visibleEndSec = visibleForecastCoverageEndSec;
     updateTimeBounds();
     syncLatchedForecastPreviewStatus();
     tryRestoreLatchedForecastPreview();
@@ -2971,7 +2584,7 @@ export function createMetricGraphView({
     const revealAnimating =
       Math.max(
         displayHistoryEndSec,
-        Math.floor(forecastRevealTargetEndSec ?? displayHistoryEndSec)
+        Math.floor(reveal.targetEndSec ?? displayHistoryEndSec)
       ) -
         visibleForecastCoverageEndSec >
       0.001 ||
@@ -2981,7 +2594,7 @@ export function createMetricGraphView({
     const shouldPlot =
       revealAnimating
         ? boundsChanged || now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
-        : isScrubbing || zoomed
+        : scrub.isScrubbing || zoomed
           ? now - lastPlotMs >= PLOT_THROTTLE_MS
           : versionChanged && now - lastPlotMs >= PLOT_THROTTLE_MS;
     if (shouldPlot) {
@@ -3000,27 +2613,27 @@ export function createMetricGraphView({
     windowSpecResolver =
       typeof nextResolver === "function" ? nextResolver : null;
     invalidatePlotSnapshot();
-    statusNote = "";
+    scrub.statusNote = "";
   }
 
   function setCommitPolicyResolver(nextResolver) {
     commitPolicyResolver =
       typeof nextResolver === "function" ? nextResolver : null;
-    statusNote = "";
+    scrub.statusNote = "";
   }
 
   function setSeriesValueOverrideResolver(nextResolver) {
     seriesValueOverrideResolver =
       typeof nextResolver === "function" ? nextResolver : null;
     invalidatePlotSnapshot();
-    statusNote = "";
+    scrub.statusNote = "";
   }
 
   function setHistoryZoneResolver(nextResolver) {
     historyZoneResolver =
       typeof nextResolver === "function" ? nextResolver : null;
     invalidatePlotSnapshot();
-    statusNote = "";
+    scrub.statusNote = "";
   }
 
   function setEventMarkerResolver(nextResolver) {
@@ -3029,50 +2642,11 @@ export function createMetricGraphView({
     invalidatePlotSnapshot();
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
-    statusNote = "";
+    scrub.statusNote = "";
   }
 
-  function setForecastRevealConfig({
-    targetDurationSec,
-    minRateSecPerSec,
-    maxRateSecPerSec,
-    startDelayMs,
-    followGapSec,
-    followResponseSec,
-    accelerationSecPerSec2,
-    decelerationSecPerSec2,
-  } = {}) {
-    forecastRevealTargetDurationSecCur = Number.isFinite(targetDurationSec)
-      ? Math.max(0.05, Number(targetDurationSec))
-      : forecastRevealTargetDurationSec;
-    forecastRevealMinRateSecPerSecCur = Number.isFinite(minRateSecPerSec)
-      ? Math.max(1, Number(minRateSecPerSec))
-      : forecastRevealMinRateSecPerSec;
-    forecastRevealMaxRateSecPerSecCur = Number.isFinite(maxRateSecPerSec)
-      ? Math.max(
-          forecastRevealMinRateSecPerSecCur,
-          Number(maxRateSecPerSec)
-        )
-      : forecastRevealMaxRateSecPerSec;
-    forecastRevealStartDelayMsCur = Number.isFinite(startDelayMs)
-      ? Math.max(0, Number(startDelayMs))
-      : forecastRevealStartDelayMs;
-    forecastRevealFollowGapSecCur = Number.isFinite(followGapSec)
-      ? Math.max(0, Number(followGapSec))
-      : forecastRevealFollowGapSec;
-    forecastRevealFollowResponseSecCur = Number.isFinite(followResponseSec)
-      ? Math.max(0.05, Number(followResponseSec))
-      : forecastRevealFollowResponseSec;
-    forecastRevealAccelerationSecPerSec2Cur = Number.isFinite(
-      accelerationSecPerSec2
-    )
-      ? Math.max(1, Number(accelerationSecPerSec2))
-      : forecastRevealAccelerationSecPerSec2;
-    forecastRevealDecelerationSecPerSec2Cur = Number.isFinite(
-      decelerationSecPerSec2
-    )
-      ? Math.max(1, Number(decelerationSecPerSec2))
-      : forecastRevealDecelerationSecPerSec2;
+  function setForecastRevealConfig(next = {}) {
+    applyForecastRevealConfig(reveal, next);
   }
 
   function destroy() {
@@ -3105,10 +2679,10 @@ export function createMetricGraphView({
     pauseForecastReveal,
     setPresentationSuspended: (suspended) => {
       presentationSuspended = suspended === true;
-      forecastRevealLastTickMs = performance.now();
+      reveal.lastTickMs = performance.now();
     },
-    isFollowingForecastReveal: () => forecastRevealPlayheadFollowEnabled &&
-      !forecastRevealPaused && !presentationSuspended && forecastRevealAnimatedEndSec < forecastRevealTargetEndSec,
+    isFollowingForecastReveal: () =>
+      readIsFollowingForecastReveal(reveal, presentationSuspended),
     suspendForecastRevealPlayheadFollow,
     resetForecastPreviewState,
     resetDataContext,
