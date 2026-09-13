@@ -36,9 +36,9 @@ export function addResourceAmount(parent, id, value, {
 } = {}) {
   const root = new PIXI.Container();
   root.position.set(x, y);
-  const text = createText(String(value), { ...TEXT_STYLES.body, fontSize, fill }, 0, iconSize / 2, 0, .5);
+  const text = createText(String(value), { ...TEXT_STYLES.body, fontSize, fill }, iconSize + 6, iconSize / 2, 0, .5);
   root.addChild(text);
-  addResourceIcon(root, id, text.width + 6 + iconSize / 2, iconSize / 2, iconSize);
+  addResourceIcon(root, id, iconSize / 2, iconSize / 2, iconSize);
   root.eventMode = 'none';
   parent.addChild(root);
   return root;
@@ -53,13 +53,19 @@ export function addTimeCostTokens(parent, phaseCost, state, {
   const row = new PIXI.Container();
   let cursor = 0;
   for (const [id, value] of units) {
-    const amount = addResourceAmount(row, id, value, { x: cursor, fontSize, iconSize, fill });
-    cursor += amount.width + 14;
+    const size=iconSize*1.25;
+    const coin=new PIXI.Container();coin.position.set(cursor,0);
+    coin.addChild(new PIXI.Graphics().beginFill(0x182622).lineStyle(2,0xb69c63).drawCircle(size/2,size/2,size/2-2).endFill());
+    addResourceIcon(coin,id,size/2,size*.32,size*.58);
+    const valueText=createText(String(value),{...TEXT_STYLES.chip,fontSize:fontSize*.85,fill,stroke:0x101916,strokeThickness:3},size/2,size*.64,.5,.5);
+    valueText.scale.set(Math.min(1,size*.77/Math.max(1,valueText.width)));
+    coin.addChild(valueText);row.addChild(coin);
+    cursor += size + 8;
   }
-  const rowWidth = Math.max(1, cursor - 14);
-  const scale = Math.min(1, width / rowWidth, height / iconSize);
+  const rowWidth = Math.max(1, cursor - 8), rowHeight=iconSize*1.25;
+  const scale = Math.min(1, width / rowWidth, height / rowHeight);
   row.scale.set(scale);
-  row.position.set(x + (width - rowWidth * scale) / 2, y + (height - iconSize * scale) / 2);
+  row.position.set(x + (width - rowWidth * scale) / 2, y + (height - rowHeight * scale) / 2);
   row.eventMode = 'none';
   parent.addChild(row);
   return row;
@@ -80,8 +86,9 @@ export function addCostPanel(parent, rect, {
   root.addChild(background);
   const texture = getResourceTexture('cost-frame');
   if (texture?.baseTexture.valid) {
-    const frame = new PIXI.NineSlicePlane(texture, 100, 100, 100, 100);
-    const scale = .16;
+    const corner=texture.height*.3;
+    const frame = new PIXI.NineSlicePlane(texture, corner, corner, corner, corner);
+    const scale = Math.min(.35,rect.width/(corner*2),rect.height/(corner*2));
     frame.width = rect.width / scale;
     frame.height = rect.height / scale;
     frame.scale.set(scale);
@@ -115,7 +122,7 @@ export function addCostPanel(parent, rect, {
     });
     const scale = Math.min(1, (rect.width - inset * 2) / amount.width, rect.height * .36 / amount.height);
     amount.scale.set(scale);
-    amount.position.set((rect.width - amount.width) / 2, rect.height * .72 - amount.height / 2);
+    amount.position.set((rect.width - amount.width) / 2, rect.height * .64 - amount.height / 2);
   }
   if (selected || staged || unaffordable) {
     const accent = unaffordable ? 0xdb967f : staged ? 0xa4c3c3 : 0xb6ce92;

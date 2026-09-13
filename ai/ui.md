@@ -1,5 +1,14 @@
 # Current UI
 
+Practice readiness uses a circular fill; charge Practices also carry a prominent
+teal reservoir. Output badges glow at the viewed activation boundary, including
+charge reactions recorded in the snapshot. Reduced motion suppresses the glow.
+Regional resource cells retain a separate Practices heading and highlight housing
+overflow, loose Food, shortages, and starvation with hover/tap warning glyphs.
+Time costs use numbered year/moon/phase medallions inside the hourglass inset;
+Prestige uses icon-then-number order. The outer cost frame preserves its corners
+with nine-slicing as the panel accommodates both time and Prestige rows.
+
 Authoritative UI behavior. Engine invariants and schema numbers:
 `ai/ai-context.md`. Art, asset inventory, and the time-first extension
 contract: `ai/visual-overhaul.md`.
