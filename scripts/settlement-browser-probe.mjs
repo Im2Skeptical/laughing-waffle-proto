@@ -365,7 +365,7 @@ try {
   assert.equal(deselected.controller.scope, "civilization",
     "clicking the selected region again restores the civilization timegraph");
 
-  await pressDesignPoint(page, { x: 2047, y: 320 }, 180);
+  await pressDesignPoint(page, { x: 1488, y: 796 }, 180);
   const localPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -401,11 +401,11 @@ try {
   );
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(page, { x: 2047, y: 762 });
+  await clickDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods",
-    "the selected settlement opens from its region card");
+    "the selected settlement opens from the navigation dock");
   assert.equal(overview.view.activeTab, "overview");
   assert.ok(
     overview.view.calendar.year >= selected.worldMap.survivalTracker.year,
@@ -829,7 +829,7 @@ try {
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
   );
-  await clickDesignPoint(widePage, { x: 2047, y: 762 });
+  await clickDesignPoint(widePage, await widePage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   await widePage.waitForFunction(
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===
@@ -972,7 +972,7 @@ try {
   await terminalPage.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(terminalPage, { x: 2047, y: 762 });
+  await clickDesignPoint(terminalPage, await terminalPage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   const manualSettlementView = await terminalPage.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );

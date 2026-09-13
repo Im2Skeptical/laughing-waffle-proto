@@ -53,14 +53,17 @@ export function addSettlementPiece(parent, rect, {
     const iconSize = 26;
     if (face.lane) {
       const charge = face.lane === 'charge', tint = charge ? 0x75b9bd : 0xd7aa5c;
-      const cx = w/2, cy = h*.856, radius = charge ? 25 : 22;
+      const cx = w/2, cy = h*.856, radius = 24;
       const disc = charge ? null : sprite(root,getResourceTexture(face.source?.icon === 'season' ? 'solar-wheel' : 'moon-wheel'),cx-radius,cy-radius,radius*2,radius*2);
       if (disc) { disc.anchor.set(.5); disc.position.set(cx,cy); if (!charge && !reducedMotion) disc.rotation=Math.PI*2*(face.fill??0); }
       const fill = Math.max(0,Math.min(1,face.fill??0));
-      const dial = new PIXI.Graphics().beginFill(0x081716,.8).lineStyle(2,tint,.9).drawCircle(cx,cy,radius).endFill();
-      if(fill>0) dial.lineStyle(0).beginFill(tint,.85).moveTo(cx,cy).arc(cx,cy,radius-3,-Math.PI/2,-Math.PI/2+Math.PI*2*fill).lineTo(cx,cy).endFill();
-      dial.beginFill(0x10201d,.92).drawCircle(cx,cy,11).endFill();
-      root.addChild(dial);
+      if(!charge) {
+        // Keep the rotating illustrated rim exposed around the readiness fill.
+        const dial = new PIXI.Graphics().beginFill(0x081716,.55).drawCircle(cx,cy,radius-6).endFill();
+        if(fill>0) dial.beginFill(tint,.75).moveTo(cx,cy).arc(cx,cy,radius-6,-Math.PI/2,-Math.PI/2+Math.PI*2*fill).lineTo(cx,cy).endFill();
+        dial.beginFill(0x10201d,.8).drawCircle(cx,cy,10).endFill();
+        root.addChild(dial);
+      }
       addResourceIcon(root,face.source?.icon === 'season' ? 'year' : face.source?.icon,cx,cy,20);
       if (face.source?.missing) root.addChild(new PIXI.Graphics().lineStyle(2,0xda8772).moveTo(cx-10,cy-10).lineTo(cx+10,cy+10));
       if (face.source?.spark) addResourceIcon(root,'activation',cx+15,cy+12,12);

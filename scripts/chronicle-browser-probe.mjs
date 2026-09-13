@@ -108,8 +108,8 @@ try {
     await delay(70);
   };
   const canvas=await page.locator('canvas').boundingBox();
-  const crop={x:canvas.x+58/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
-    width:1640/2424*canvas.width,height:720/1080*canvas.height};
+  const crop={x:canvas.x+16/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
+    width:1448/2424*canvas.width,height:720/1080*canvas.height};
   const wheels=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeWheelSnapshot());
   const diskLeft=wheels.season.x-wheels.season.radius-8;
   const diskTop=wheels.season.y-wheels.season.radius-20;
@@ -128,10 +128,10 @@ try {
   assert.deepEqual(await page.screenshot({clip:crop}),first,'Returning to the same time must restore identical world pixels after rewind');
   assert.deepEqual(await page.screenshot({clip:diskCrop}),firstDisks,'Rewinding restores the same astrolabe angle and phase');
   await page.screenshot({path:'artifacts/chronicle-world.png'});
-  await hoverCard({x:1800,y:550},'left');
-  await hoverCard({x:1800,y:665},'left');
+  await hoverCard({x:1585,y:500},'left');
+  await hoverCard({x:1740,y:725},'left');
   await hoverCard(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]));
-  await click({x:2047,y:762});
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await hoverCard({x:700,y:220},'right');
@@ -215,8 +215,8 @@ try {
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const mobileCanvas=await page.locator('canvas').boundingBox();
   const mobileClip={
-    x:mobileCanvas.x+58/2424*mobileCanvas.width,y:mobileCanvas.y+88/1080*mobileCanvas.height,
-    width:1640/2424*mobileCanvas.width,height:720/1080*mobileCanvas.height,
+    x:mobileCanvas.x+16/2424*mobileCanvas.width,y:mobileCanvas.y+88/1080*mobileCanvas.height,
+    width:1448/2424*mobileCanvas.width,height:720/1080*mobileCanvas.height,
   };
   const countPaintedColours=async()=>countImageColours(page,await page.screenshot({clip:mobileClip}));
   // Viewport changes replace the compositor surface asynchronously. Wait for
@@ -263,10 +263,10 @@ try {
     await page.touchscreen.tap(x,y);await delay(50);
     assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible),false,'Tapping the same card again dismisses details');
   };
-  await holdCard({x:1800,y:550});
-  await holdCard({x:1800,y:665});
+  await holdCard({x:1585,y:500});
+  await holdCard({x:1740,y:725});
   await holdCard(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]));
-  await click({x:2047,y:762});await delay(150);
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));await delay(150);
   await holdCard({x:700,y:220});
   await holdCard({x:675,y:680});
   await click(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));

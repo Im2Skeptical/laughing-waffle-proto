@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { fitPiece, constructionGeometry } from '../src/views/piece-geometry.js';
+import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
 
@@ -34,6 +34,10 @@ for(const bounds of [{x:0,y:0,width:90,height:99},{x:5,y:8,width:350,height:200}
   const card=fitPiece(bounds,'practice');assert.equal(card.width/card.height,5/7);
 }
 for(const capacity of [5,6,7,8]){
+  const area={x:1502,y:664,width:884,height:132};
+  const regional=regionalConstructionRect(area,capacity);
+  assert.equal(regional.width/capacity,99,'Regional structures keep a fixed pitch across capacities');
+  assert.equal(regional.x+regional.width/2,area.x+area.width/2,'Regional construction is centered');
   const strip=constructionGeometry({x:0,y:0,width:582,height:108},capacity);
   assert.ok(Math.abs(strip.cell/strip.height-3/4)<1e-10);
   assert.ok(strip.width<=582&&strip.height<=108);

@@ -47,14 +47,38 @@
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":480,"h":95},
 	"sourceSize": {"w":480,"h":95}
+},
+"time-moon.png":
+{
+	"frame": {"x":1055,"y":318,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
+},
+"time-phase.png":
+{
+	"frame": {"x":1251,"y":318,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
+},
+"time-year.png":
+{
+	"frame": {"x":1447,"y":318,"w":192,"h":192},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":192,"h":192},
+	"sourceSize": {"w":192,"h":192}
 }},
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "piece-frames.png",
 	"format": "RGBA8888",
-	"size": {"w":2021,"h":484},
+	"size": {"w":2021,"h":512},
 	"scale": "0.5",
-	"smartupdate": "$TexturePacker:SmartUpdate:ea36e02992bf5285fcb1234a34eaa040:4baf1d790b106ceece0f2cbc4af59332:a5bed1285a3ba9617f4a59b5bea61ab2$"
+	"smartupdate": "$TexturePacker:SmartUpdate:b875c63fb1d62c8d066db19eb6f12f69:b0599078916b88d23920136615f50e72:a5bed1285a3ba9617f4a59b5bea61ab2$"
 }
 }
