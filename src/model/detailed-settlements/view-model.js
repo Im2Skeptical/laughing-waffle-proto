@@ -176,7 +176,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
       ...slot,
       label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,
       tags: slot ? getPracticeTags(state, slot.practiceId) : [],
-      face: slot ? getGamepieceFace(state, "practice", slot.practiceId, slot.tier, { evaluation: buildDetailedPracticeEvaluation(state, site, workers[index]), workers: workers[index], slot }) : null,
+      face: slot ? getGamepieceFace(state, "practice", slot.practiceId, slot.tier, { evaluation: buildDetailedPracticeEvaluation(state, site, workers[index]), workers: workers[index], slot, activationTrace: settlement.practiceActivationTrace ?? [] }) : null,
       workers: workers[index],
       evaluation: slot ? buildDetailedPracticeEvaluation(state, site, workers[index]) : null,
     })),

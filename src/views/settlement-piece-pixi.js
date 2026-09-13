@@ -53,28 +53,41 @@ export function addSettlementPiece(parent, rect, {
     const iconSize = 26;
     if (face.lane) {
       const charge = face.lane === 'charge', tint = charge ? 0x75b9bd : 0xd7aa5c;
-      const cx = w/2, cy = h*(charge?.889:.856), radius = 20;
+      const cx = w/2, cy = h*.856, radius = charge ? 25 : 22;
       const disc = charge ? null : sprite(root,getResourceTexture(face.source?.icon === 'season' ? 'solar-wheel' : 'moon-wheel'),cx-radius,cy-radius,radius*2,radius*2);
       if (disc) { disc.anchor.set(.5); disc.position.set(cx,cy); if (!charge && !reducedMotion) disc.rotation=Math.PI*2*(face.fill??0); }
+      const fill = Math.max(0,Math.min(1,face.fill??0));
+      const dial = new PIXI.Graphics().beginFill(0x081716,.8).lineStyle(2,tint,.9).drawCircle(cx,cy,radius).endFill();
+      if(fill>0) dial.lineStyle(0).beginFill(tint,.85).moveTo(cx,cy).arc(cx,cy,radius-3,-Math.PI/2,-Math.PI/2+Math.PI*2*fill).lineTo(cx,cy).endFill();
+      dial.beginFill(0x10201d,.92).drawCircle(cx,cy,11).endFill();
+      root.addChild(dial);
       addResourceIcon(root,face.source?.icon === 'season' ? 'year' : face.source?.icon,cx,cy,20);
       if (face.source?.missing) root.addChild(new PIXI.Graphics().lineStyle(2,0xda8772).moveTo(cx-10,cy-10).lineTo(cx+10,cy+10));
       if (face.source?.spark) addResourceIcon(root,'activation',cx+15,cy+12,12);
-      const fill = Math.max(0,Math.min(1,face.fill??0));
       const material = new PIXI.Graphics();
       if(charge) {
-        material.beginFill(0x0a1718,.86).drawRoundedRect(28,h-13,w-56,6,3).endFill();
-        material.beginFill(tint,.75).drawRoundedRect(28,h-13,(w-56)*fill,6,3).endFill();
+        material.beginFill(0x0a1718,.96).lineStyle(1,tint).drawRoundedRect(24,h-16,w-48,11,4).endFill();
+        material.lineStyle(0).beginFill(tint,.95).drawRoundedRect(26,h-14,(w-52)*fill,7,3).endFill();
         // Viewed timeline time only: pausing and reduced motion hold a legible fill.
         if(!reducedMotion && fill>0) material.beginFill(0xd7ffff,.4).drawRect(28+((time*.25)%1)*Math.max(0,(w-56)*fill-4),h-13,Math.min(4,(w-56)*fill),6).endFill();
-      } else if(reducedMotion) material.lineStyle(2,tint,.8).arc(cx,cy,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.max(.02,fill));
+      }
       root.addChild(material);
     }
     const outputs = face.outputs ?? [];
+    // Sample the viewed snapshot, so glow also follows seeks and reverse playback.
+    const age = face.activationAge == null ? null : face.activationAge + Math.max(0,time-(face.viewedTime??time));
+    const pulse = !reducedMotion && age != null ? Math.max(0,1-age/1.25) : 0;
     const badges=new PIXI.Container(); let cursor=0;
     outputs.forEach(output=>{
       const value=createText(String(output.value),{...TEXT_STYLES.chip,fontSize:18,fill:0xf4e5c7},cursor+32,14,0,.5);
       const badgeW=Math.max(62,38+value.width);
       badges.addChild(new PIXI.Graphics().beginFill(0x101a17).lineStyle(2,0x9b8258).drawRoundedRect(cursor,0,badgeW,28,4).endFill());
+      if(pulse>0) {
+        const glow=new PIXI.Graphics();
+        for(let spread=9;spread>=3;spread-=3)glow.lineStyle(3,0xffe4a0,pulse*.12).drawRoundedRect(cursor-spread,-spread,badgeW+spread*2,28+spread*2,6);
+        glow.beginFill(0xffe4a0,pulse*.45).lineStyle(2,0xffefbc,pulse).drawRoundedRect(cursor,0,badgeW,28,4).endFill();
+        badges.addChild(glow);
+      }
       addResourceIcon(badges,output.icon,cursor+16,14,iconSize);badges.addChild(value);cursor+=badgeW+4;
     });
     if(outputs.length){const scale=Math.min(1,(w-18)/(cursor-4));badges.scale.set(scale);badges.position.set((w-(cursor-4)*scale)/2,-10*scale);root.addChild(badges);}

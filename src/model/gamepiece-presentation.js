@@ -52,7 +52,7 @@ function describeStructureValues(def, tier) {
     ...(def.id === 'university' ? ['Gold offer floor, subject to the civilization’s unlocked quality; complete at Bronze.'] : [])];
 }
 
-export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null } = {}) {
+export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
   const multiplier = getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0);
@@ -70,7 +70,14 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const period = seasonal ? (state?.seasonDurationSec ?? 8) * (def.activation?.seasonKeys?.length ? 4 : 1) : getMoonCycleDurationSec(state);
   const offset = seasonal ? (['spring','summer','autumn','winter'].indexOf(def.activation.seasonKeys?.[0]) * (state?.seasonDurationSec ?? 8) + 1)
     : 1 + (MOON_PHASE_INDEX_BY_ID[def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
+  const viewedTime = state?.tSec ?? 0;
+  const scheduledAge = ((viewedTime - offset) % period + period) % period;
+  const lastReaction = activationTrace.filter(entry => entry.kind === 'activated' && entry.targetPracticeId === id && entry.tSec <= viewedTime).at(-1);
+  const activationAge = !slot ? null : def.activation?.type === 'trigger'
+    ? lastReaction ? viewedTime - lastReaction.tSec : null
+    : viewedTime >= Math.max(1, offset) ? scheduledAge : null;
   return { kind, definitionId: id, label: def.label, tier, tags: [...(def.tags ?? [])], qualityLabel: tier, rule: def.ui?.rule ?? '',
+    viewedTime, activationAge,
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
     workerCapacity: kind === 'practice' ? getDetailedPracticeWorkerCapacity(def, tier) : 0,
     workerBonus: def.workerBonus ?? .25, workers: workers?.tokens?.length ?? 0,

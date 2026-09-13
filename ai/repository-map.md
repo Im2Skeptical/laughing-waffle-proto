@@ -183,6 +183,9 @@ in `ai/ai-context.md`.
   `npm run probe:settlement`
 - Map/settlement visual or interaction changes:
   `npm run verify`, then `npm run probe:settlement`
+- Practice feedback, cost tokens, and regional resource warnings:
+  `node scripts/piece-feedback-browser-probe.mjs` renders a focused visual review
+  and checks cost bounds, warning explanations, heading clearance, and icon order.
 - Shared screen navigation, portrait shortcuts, or Present/time-state feedback:
   `npm run probe:navigation`
 - Map Lab/debug form changes:

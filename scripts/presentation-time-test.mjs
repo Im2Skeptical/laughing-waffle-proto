@@ -4,6 +4,18 @@ import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
 
 const faceClock={tSec:0,seasonDurationSec:8};
+// Activation feedback follows the inspected snapshot, including reverse seeks;
+// merely charging or displaying an unowned offer must never flash an output.
+const reactionTrace=[{kind:'activated',targetPracticeId:'marketFeast',tSec:17},{kind:'charged',targetPracticeId:'marketFeast',tSec:18}];
+for(const [second,expected] of [[16,null],[17,0],[18,1],[17,0]]) {
+  const clock={...faceClock,tSec:second},slot={practiceId:'marketFeast',charge:1};
+  const before=JSON.stringify({clock,slot,reactionTrace});
+  assert.equal(getGamepieceFace(clock,'practice','marketFeast','silver',{slot,activationTrace:reactionTrace}).activationAge,expected);
+  assert.equal(getGamepieceFace(clock,'practice','marketFeast','silver').activationAge,null);
+  assert.equal(JSON.stringify({clock,slot,reactionTrace}),before);
+}
+assert.equal(getGamepieceFace({...faceClock,tSec:9},'practice','cultivate','bronze',{slot:{practiceId:'cultivate'}}).activationAge,0);
+assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','cultivate','bronze',{slot:{practiceId:'cultivate'}}).activationAge,null);
 for(const [id,period,offset] of [['cultivate',32,9],['exchange',8,1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
   for(const second of [offset,offset+period/2,offset+period,offset+period/2,offset]){
     const clock={...faceClock,tSec:second},before=JSON.stringify(clock);

@@ -20,15 +20,48 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY   /   ${region.controller==='player'?'YOUR REALM':'FRONTIER'}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+58));
   if(vm){
-    const stats=[['housingCapacity',`${vm.population.total} / ${vm.population.housingCapacity}`],['food',Math.round(vm.storedFood+vm.looseFood)],['money',vm.currency]];
-    stats.forEach(([icon,value],i)=>{addResourceIcon(root,icon,x+16+i*190,y+108,30);root.addChild(createText(String(value),{...TEXT_STYLES.body,fontSize:23},x+39+i*190,y+96));});
+    const food=vm.storedFood+vm.looseFood, shortfall=food<vm.population.mealDemand;
+    const housingFull=vm.population.total>0&&vm.population.total>=vm.population.housingCapacity;
+    const storageFull=food>0&&vm.storedFood>=vm.storedFoodCapacity;
+    const red=0xe7947e, amber=0xe2b365;
+    const stats=[
+      {icon:'housingCapacity',value:`${vm.population.total} / ${vm.population.housingCapacity}`,label:'POPULATION / HOUSING',warning:housingFull,
+        title:vm.pressure?.overcrowding?'Overcrowded':'Housing full',lines:[`${vm.pressure?.housingOverflow??0} people exceed current Housing capacity.`, 'Housing shortages affect Happiness at the Housing phase.']},
+      {icon:'food',value:`${Math.round(food)} / ${Math.round(vm.storedFoodCapacity)}`,label:'FOOD / STORAGE',warning:vm.pressure?.starvation||shortfall||vm.looseFood>0||storageFull,severe:vm.pressure?.starvation,
+        title:vm.pressure?.starvation?'Starving':shortfall?'Food supply warning':vm.looseFood>0?'Food overflow':'Food storage full',
+        lines:[`${Math.round(vm.storedFood)} stored; ${Math.round(vm.looseFood)} loose Food.`, `Current meal demand: ${Math.round(vm.population.mealDemand)} Food.`,
+          ...(vm.pressure?.starvation?[`Last meal left ${vm.pressure.unfedMealDemand} Food demand unfed; ${vm.pressure.starvationMigrants} starvation migrants.`]:[]),
+          ...(shortfall?['Available Food is below current meal demand. Production and imports may cover the gap before the Food phase.']:[]),
+          ...(vm.looseFood>0||storageFull?['Food beyond storage capacity remains loose and is exposed to loose-Food decay.']:[])]},
+      {icon:'money',value:vm.currency,label:'MONEY'},
+    ];
+    const cell=(rect.width-44)/3;
+    stats.forEach((stat,i)=>{
+      const group=new PIXI.Container();group.position.set(x+i*cell,y+88);
+      const colour=stat.warning?(stat.severe?red:amber):PALETTE.text;
+      group.addChild(new PIXI.Graphics().beginFill(stat.warning?0x392820:0x111d19,.8).lineStyle(1,stat.warning?colour:0x514d3a).drawRoundedRect(0,0,cell-7,48,4).endFill());
+      addResourceIcon(group,stat.icon,18,21,28);
+      const value=createText(String(stat.value),{...TEXT_STYLES.body,fontSize:22,fill:colour},36,7);
+      value.scale.set(Math.min(1,(cell-70)/Math.max(1,value.width)));group.addChild(value);
+      group.addChild(createText(stat.label,{...TEXT_STYLES.chip,fontSize:10,fill:PALETTE.textMuted},8,34));
+      if(stat.warning){
+        const glyph=new PIXI.Container();glyph.position.set(cell-24,19);
+        glyph.addChild(new PIXI.Graphics().beginFill(colour).drawPolygon([0,-11,11,9,-11,9]).endFill(),createText('!',{...TEXT_STYLES.chip,fontSize:17,fill:0x201813},0,0,.5,.5));
+        glyph.eventMode='static';glyph.hitArea=new PIXI.Rectangle(-16,-16,32,32);glyph.cursor='help';
+        const spec={title:stat.title,lines:stat.lines,accentColor:colour,maxWidth:290,scale:2};
+        glyph.on('pointerover',()=>tooltipView?.show(spec,glyph.getBounds(),{dismissOnExit:true}));
+        glyph.on('pointerout',()=>tooltipView?.hide());
+        glyph.on('pointerdown',event=>{event.stopPropagation();tooltipView?.pin(spec,glyph.getBounds(),`region-warning:${reference}:${stat.icon}`);});
+        group.addChild(glyph);
+      }
+      root.addChild(group);
+    });
   }
   if(!vm){
     root.addChild(createText('A wilderness waiting for a future.',{...TEXT_STYLES.body,fontSize:23,fill:PALETTE.textMuted,
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
-  const alert=vm.pressure?.starvation?'STARVATION':vm.pressure?.overcrowding?'OVERCROWDED':'PRACTICES';
-  root.addChild(createText(alert,{...TEXT_STYLES.chip,fontSize:18,fill:alert==='PRACTICES'?PALETTE.textMuted:PALETTE.red},x,y+142));
+  root.addChild(createText('PRACTICES',{...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+142));
   const gap=9, pw=(rect.width-44-gap*4)/5;
   vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+178,width:pw,height:pw*7/5},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
