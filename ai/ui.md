@@ -1,13 +1,19 @@
 # Current UI
 
-Practice readiness uses a circular fill; charge Practices also carry a prominent
-teal reservoir. Output badges glow at the viewed activation boundary, including
+Scheduled Practice readiness combines a visible spinning sun/moon rim with an
+inset circular fill. Charge Practices use only a source icon and teal reservoir.
+Output badges glow at the viewed activation boundary, including
 charge reactions recorded in the snapshot. Reduced motion suppresses the glow.
 Regional resource cells retain a separate Practices heading and highlight housing
 overflow, loose Food, shortages, and starvation with hover/tap warning glyphs.
-Time costs use numbered year/moon/phase medallions inside the hourglass inset;
+Regional panels sit at the right edge with 168×235 Practice cards. Resource
+subheadings and the Open settlement button are omitted; the dock owns entry.
+Structure rows are centered and use the same eight-cell pitch across regions.
+Time costs use purpose-drawn sun, crescent, and lunar-phase icons with numbers
+fully inside their blank centers, inside the hourglass inset;
 Prestige uses icon-then-number order. The outer cost frame preserves its corners
-with nine-slicing as the panel accommodates both time and Prestige rows.
+with 14-pixel display-space corners and a stretchable center as the panel
+accommodates both time and Prestige rows, independent of atlas resolution.
 
 Authoritative UI behavior. Engine invariants and schema numbers:
 `ai/ai-context.md`. Art, asset inventory, and the time-first extension

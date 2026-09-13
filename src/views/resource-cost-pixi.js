@@ -55,10 +55,10 @@ export function addTimeCostTokens(parent, phaseCost, state, {
   for (const [id, value] of units) {
     const size=iconSize*1.25;
     const coin=new PIXI.Container();coin.position.set(cursor,0);
-    coin.addChild(new PIXI.Graphics().beginFill(0x182622).lineStyle(2,0xb69c63).drawCircle(size/2,size/2,size/2-2).endFill());
-    addResourceIcon(coin,id,size/2,size*.32,size*.58);
-    const valueText=createText(String(value),{...TEXT_STYLES.chip,fontSize:fontSize*.85,fill,stroke:0x101916,strokeThickness:3},size/2,size*.64,.5,.5);
-    valueText.scale.set(Math.min(1,size*.77/Math.max(1,valueText.width)));
+    const texture=getChronicleTexture(`piece-frames-v1/time-${id}.png`);
+    const token=new PIXI.Sprite(texture??PIXI.Texture.EMPTY);token.width=token.height=size;token.eventMode='none';coin.addChild(token);
+    const valueText=createText(String(value),{...TEXT_STYLES.chip,fontSize:fontSize*.85,fill,stroke:0x101916,strokeThickness:3},size/2,size/2,.5,.5);
+    valueText.scale.set(Math.min(1,size*.48/Math.max(1,valueText.width)));
     coin.addChild(valueText);row.addChild(coin);
     cursor += size + 8;
   }
@@ -88,7 +88,9 @@ export function addCostPanel(parent, rect, {
   if (texture?.baseTexture.valid) {
     const corner=texture.height*.3;
     const frame = new PIXI.NineSlicePlane(texture, corner, corner, corner, corner);
-    const scale = Math.min(.35,rect.width/(corner*2),rect.height/(corner*2));
+    // Atlas resolution changes source-space dimensions. Specify the visible
+    // corner size, leaving a stretchable center even on single-row footers.
+    const scale = 14/corner;
     frame.width = rect.width / scale;
     frame.height = rect.height / scale;
     frame.scale.set(scale);
