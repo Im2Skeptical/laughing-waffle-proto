@@ -5,10 +5,17 @@ import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 
 // The approved PNGs remain original assets; Pixi only places/scales their sprites.
 export function addResourceIcon(parent, id, x, y, size) {
-  if (['trade','knowledge','research','housingCapacity','foodCapacity','activation'].includes(id)) {
+  if (['trade','knowledge','research','housingCapacity','foodCapacity','population','hourglass','activation'].includes(id)) {
     const symbol = new PIXI.Graphics(); symbol.position.set(x-size/2,y-size/2);
     symbol.scale.set(size/32);symbol.lineStyle(2,0xe7ca8c,1);
-    if(id==='trade') {
+    if(id==='population') {
+      symbol.beginFill(0xe7ca8c).drawCircle(16,7,4).drawCircle(5,11,3).drawCircle(27,11,3).endFill();
+      symbol.drawRoundedRect(10,14,12,15,4).drawRoundedRect(0,17,7,11,3).drawRoundedRect(25,17,7,11,3);
+    } else if(id==='hourglass') {
+      symbol.moveTo(7,3).lineTo(25,3).moveTo(7,29).lineTo(25,29);
+      symbol.moveTo(9,4).lineTo(9,10).lineTo(22,22).lineTo(22,28).moveTo(23,4).lineTo(23,10).lineTo(10,22).lineTo(10,28);
+      symbol.beginFill(0xe7ca8c,.7).drawPolygon([11,25,21,25,16,19]).endFill();
+    } else if(id==='trade') {
       symbol.moveTo(4,10).lineTo(27,10).lineTo(22,5).moveTo(27,10).lineTo(22,15);
       symbol.moveTo(28,23).lineTo(5,23).lineTo(10,18).moveTo(5,23).lineTo(10,28);
     } else if(id==='knowledge'||id==='research') {
@@ -58,11 +65,12 @@ export function addTimeCostTokens(parent, phaseCost, state, {
     const texture=getChronicleTexture(`piece-frames-v1/time-${id}.png`);
     const token=new PIXI.Sprite(texture??PIXI.Texture.EMPTY);token.width=token.height=size;token.eventMode='none';coin.addChild(token);
     const valueText=createText(String(value),{...TEXT_STYLES.chip,fontSize:fontSize*.85,fill,stroke:0x101916,strokeThickness:3},size/2,size/2,.5,.5);
-    valueText.scale.set(Math.min(1,size*.48/Math.max(1,valueText.width)));
+    valueText.scale.set(Math.min(1,size*.64/Math.max(1,valueText.width)));
     coin.addChild(valueText);row.addChild(coin);
-    cursor += size + 8;
+    if(cursor>0)row.addChild(new PIXI.Graphics().beginFill(0xb69c63,.8).drawCircle(cursor-8,size/2,2).endFill());
+    cursor += size + 16;
   }
-  const rowWidth = Math.max(1, cursor - 8), rowHeight=iconSize*1.25;
+  const rowWidth = Math.max(1, cursor - 16), rowHeight=iconSize*1.25;
   const scale = Math.min(1, width / rowWidth, height / rowHeight);
   row.scale.set(scale);
   row.position.set(x + (width - rowWidth * scale) / 2, y + (height - rowHeight * scale) / 2);
@@ -100,31 +108,25 @@ export function addCostPanel(parent, rect, {
   const ink = disabled && !staged && !selected && !unaffordable ? PALETTE.textMuted : PALETTE.text;
   const twoRows = prestigeCost > 0;
   const inset = Math.min(22, rect.width * .055);
-  const rowHeight = Math.min(iconSize + 6, twoRows ? rect.height * .44 : rect.height - 16);
-  const timeY=twoRows?rect.height*.07:(rect.height-rowHeight)/2;
-  const timeWidth=rect.width-inset*2;
-  const hourglassWidth=Math.min(timeWidth*.28,rowHeight*1.2);
-  const timeFrame=getChronicleTexture('piece-frames-v1/time-group.png');
-  if(timeFrame?.baseTexture.valid){
-    const graphic=new PIXI.NineSlicePlane(timeFrame,timeFrame.width*.24,8,timeFrame.width*.04,8);
-    const frameScale=rowHeight/timeFrame.height;
-    graphic.width=timeWidth/frameScale;graphic.height=timeFrame.height;graphic.scale.set(frameScale);
-    graphic.position.set(inset,timeY);graphic.eventMode='none';root.addChild(graphic);
-  }
+  const rowHeight=Math.min(iconSize*1.25,twoRows?(rect.height-32)*.58:rect.height-24);
+  const prestigeHeight=twoRows?Math.min(iconSize*.86,(rect.height-32)*.42):0;
+  const gap=twoRows?12:0;
+  const timeY=(rect.height-rowHeight-prestigeHeight-gap)/2;
+  const hourglass=addResourceIcon(root,'hourglass',13,timeY+rowHeight/2,Math.min(24,rowHeight*.42));hourglass.alpha=.65;
   addTimeCostTokens(root, phaseCost, state, {
-    x: inset+hourglassWidth, y:timeY+4,
-    width: timeWidth-hourglassWidth-6, height: rowHeight-8, fontSize:fontSize*.84, iconSize:iconSize*.8, fill: ink,
+    x: 30, y:timeY,
+    width: rect.width-60, height: rowHeight, fontSize, iconSize, fill: ink,
   });
   if (twoRows) {
     const divider = new PIXI.Graphics();
-    divider.lineStyle(1, 0x829078, .5).moveTo(inset, rect.height * .53).lineTo(rect.width - inset, rect.height * .53);
+    divider.lineStyle(1, 0x829078, .3).moveTo(inset, timeY+rowHeight+gap/2).lineTo(rect.width - inset, timeY+rowHeight+gap/2);
     root.addChild(divider);
     const amount = addResourceAmount(root, 'prestige', prestigeCost, {
       fontSize: fontSize * .92, iconSize: iconSize * .86, fill: unaffordable ? 0xf0ad97 : ink,
     });
-    const scale = Math.min(1, (rect.width - inset * 2) / amount.width, rect.height * .36 / amount.height);
+    const scale = Math.min(1, (rect.width - inset * 2) / amount.width, prestigeHeight / amount.height);
     amount.scale.set(scale);
-    amount.position.set((rect.width - amount.width) / 2, rect.height * .64 - amount.height / 2);
+    amount.position.set((rect.width - amount.width) / 2, timeY+rowHeight+gap+(prestigeHeight-amount.height)/2);
   }
   if (selected || staged || unaffordable) {
     const accent = unaffordable ? 0xdb967f : staged ? 0xa4c3c3 : 0xb6ce92;

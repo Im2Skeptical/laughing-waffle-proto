@@ -10,10 +10,18 @@ Regional panels sit at the right edge with 168×235 Practice cards. Resource
 subheadings and the Open settlement button are omitted; the dock owns entry.
 Structure rows are centered and use the same eight-cell pitch across regions.
 Time costs use purpose-drawn sun, crescent, and lunar-phase icons with numbers
-fully inside their blank centers, inside the hourglass inset;
+fully inside matched blank centers. Small pips separate the denominations;
+a smaller hourglass sits on the cost frame's left edge. Time and Prestige rows
+are vertically centered together rather than anchored to the top.
 Prestige uses icon-then-number order. The outer cost frame preserves its corners
 with 14-pixel display-space corners and a stretchable center as the panel
 accommodates both time and Prestige rows, independent of atlas resolution.
+Three-choice panels with a right-hand context use 338-pixel-wide framed columns,
+450-pixel height, and identical 326-pixel cost footers. Shop Practices/Structures
+fit uniformly inside those frames. Undo controls sit below the columns, above
+the mortality plate. Regional resource segments expose textual labels on hover
+or tap; warning glyphs retain their own explanations. Population reads as a
+people icon and count, followed by a house icon and Housing capacity.
 
 Authoritative UI behavior. Engine invariants and schema numbers:
 `ai/ai-context.md`. Art, asset inventory, and the time-first extension
