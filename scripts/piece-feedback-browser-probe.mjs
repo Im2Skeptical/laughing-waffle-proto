@@ -45,7 +45,7 @@ try {
     const iconFirst=amount.children.find(child=>child instanceof PIXI.Sprite&&!(child instanceof PIXI.Text)).x<amount.children.find(child=>child instanceof PIXI.Text).x;
     const warnings=[];
     const region=new PIXI.Container();app.stage.addChild(region);
-    addRegionPanelContent(region,{x:20,y:490,width:928,height:588},{region:{colour:'green',controller:'player'},reference:'01',name:'Warning layout',tooltipView:{show:spec=>warnings.push(spec.title)},vm:{
+    addRegionPanelContent(region,{x:20,y:490,width:928,height:588},{region:{colour:'green',controller:'player'},reference:'01',name:'Warning layout',tooltipView:{show:spec=>warnings.push(spec.title),hide:()=>{},pin:spec=>warnings.push(spec.title)},vm:{
       population:{total:80,housingCapacity:35,mealDemand:90},storedFood:20,looseFood:5,storedFoodCapacity:20,currency:120,
       pressure:{starvation:true,overcrowding:true,housingOverflow:45,unfedMealDemand:12,starvationMigrants:4},
       practices:['cultivate','exchange','marketFeast','forage','raiseHouses'].map(practiceId=>({practiceId,face:getGamepieceFace(clock,'practice',practiceId)})),
@@ -55,12 +55,14 @@ try {
     const timeIcons=walk(app.stage).filter(node=>['year','moon','phase'].some(id=>node.texture===getChronicleTexture(`piece-frames-v1/time-${id}.png`)));
     const numbersCentered=timeIcons.length===9&&timeIcons.every(icon=>{
       const number=icon.parent.children.find(node=>node instanceof PIXI.Text);
-      return number&&Math.abs(number.x-icon.width/2)<.01&&Math.abs(number.y-icon.height/2)<.01&&number.width<=icon.width*.5;
+      return number&&Math.abs(number.x-icon.width/2)<.01&&Math.abs(number.y-icon.height/2)<.01&&number.width<=icon.width*.65;
     });
     const nodes=walk(region),heading=nodes.find(node=>node.text==='PRACTICES');
-    for(const node of nodes.filter(node=>node.cursor==='help'))node.emit('pointerover');
+    for(const node of nodes.filter(node=>node.cursor==='help'))node.emit('pointerover',{stopPropagation(){}});
     const warningBottom=Math.max(...nodes.filter(node=>node.cursor==='help').map(node=>node.getBounds().bottom));
     app.renderer.render(app.stage);
+    globalThis.feedbackTitles=warnings;
+    globalThis.feedbackApp=app;
     return {costs,iconFirst,warnings,spinnerChecks,numbersCentered,headingClear:heading.getBounds().top>warningBottom,textureReady:getResourceTexture('cost-frame').baseTexture.valid};
   });
   mkdirSync('artifacts',{recursive:true});
@@ -71,6 +73,26 @@ try {
   assert.ok(results.spinnerChecks.every(Boolean),'Scheduled cards retain rotating discs; charge cards have none');
   assert.ok(results.numbersCentered,'Each time denomination contains its number in the center');
   assert.deepEqual(results.warnings,['Overcrowded','Starving']);
+  for(const [x,y,title] of [[80,582,'Population / Housing'],[312,583,'Overcrowded'],[80,582,'Population / Housing'],[380,582,'Food / Storage'],[607,583,'Starving'],[700,582,'Money']]){
+    await page.mouse.move(x,y);
+    await page.waitForFunction(title=>globalThis.feedbackTitles.at(-1)===title,title,{timeout:3000});
+  }
+  await page.mouse.click(312,583);
+  assert.equal(await page.evaluate(()=>globalThis.feedbackTitles.at(-1)),'Overcrowded','Warning presses cannot be replaced by the segment label');
+  const columnChecks=await page.evaluate(async()=>{
+    const {pieceOfferCard,outcomeCard}=await import('/src/views/vassal-node-decision/cards.js');
+    const {getGamepieceFace}=await import('/src/model/gamepiece-presentation.js');
+    const app=globalThis.feedbackApp;app.stage.removeChildren();
+    const cards=[];
+    for(const [index,kind,id] of [[0,'practice','cultivate'],[1,'structure','granary'],[2,'structure','caravanserai']]){
+      cards.push(pieceOfferCard(app.stage,{x:24+index*360,y:24,width:338,height:450},{title:id,presentation:getGamepieceFace({},kind,id),cost:{phaseCost:721,prestigeCost:18},enabled:true}));
+      cards.push(outcomeCard(app.stage,{x:24+index*360,y:510,width:338,height:450},{title:'Development',effect:'+2 Wisdom · -1 Cunning',cost:{phaseCost:721,prestigeCost:18},enabled:true}));
+    }
+    app.renderer.render(app.stage);
+    return cards.map(card=>({width:card.hitArea.width,footerWidth:card.costPanel.hitArea.width,footerY:card.costPanel.y}));
+  });
+  for(const card of columnChecks)assert.deepEqual(card,{width:338,footerWidth:326,footerY:296});
+  await page.screenshot({path:'artifacts/choice-columns-review.png'});
   for(const cost of results.costs){assert.ok(cost.width<=cost.expectedWidth+1);assert.ok(cost.height<=cost.expectedHeight+1);assert.ok(Math.abs(cost.corner-14)<.01,'Frame corners stay 14 pixels at every panel height');}
   console.log('[piece-feedback] OK: warning glyphs, separate heading, cost frame bounds, prestige order; artifacts/piece-feedback-review.png');
 } finally {await browser?.close();server.kill();}

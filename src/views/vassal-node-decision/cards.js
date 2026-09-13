@@ -1,6 +1,7 @@
 // Buttons, option/offer copy, and choice/shop cards.
 
 import { addIllustration } from "../chronicle-art.js";
+import { addSettlementPiece } from '../settlement-piece-pixi.js';
 import { addCostPanel } from "../resource-cost-pixi.js";
 import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
@@ -91,6 +92,27 @@ export function actionCard(parent, rect, spec) {
   });
   parent.addChild(root);
   return root;
+}
+
+// Shop gamepieces occupy the same framed columns and footer as other choices.
+// The physical piece scales uniformly inside its own illustration area.
+export function pieceOfferCard(parent, rect, spec) {
+  const root=new PIXI.Container();root.position.set(rect.x,rect.y);
+  root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
+  root.eventMode='static';root.cursor='pointer';
+  root.on('pointertap',event=>{event.stopPropagation();spec.onInspect?.();});
+  const frame=new PIXI.Graphics();
+  roundedRect(frame,0,0,rect.width,rect.height,8,PALETTE.card,QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,2);
+  root.addChild(frame,createText(spec.title,{...TEXT_STYLES.cardTitle,fontSize:26,lineHeight:28,wordWrap:true,wordWrapWidth:rect.width-36},18,14));
+  const costY=rect.height-COST_FOOTER_HEIGHT-6;
+  root.faceRoot=addSettlementPiece(root,{x:18,y:62,width:rect.width-36,height:costY-76},{
+    face:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
+  });
+  root.costPanel=addCostPanel(root,{x:6,y:costY,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
+    ...spec.cost,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
+    label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
+  });
+  parent.addChild(root);return root;
 }
 
 // Simple personal choices expose every tradeoff without an inspection overlay.

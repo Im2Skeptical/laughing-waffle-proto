@@ -26,15 +26,15 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     const storageFull=food>0&&vm.storedFood>=vm.storedFoodCapacity;
     const red=0xe7947e, amber=0xe2b365;
     const stats=[
-      {icon:'housingCapacity',value:`${vm.population.total} / ${vm.population.housingCapacity}`,warning:housingFull,
+      {icon:'population',value:vm.population.total,capIcon:'housingCapacity',capacity:vm.population.housingCapacity,label:'Population / Housing',warning:housingFull,
         title:vm.pressure?.overcrowding?'Overcrowded':'Housing full',lines:[`${vm.pressure?.housingOverflow??0} people exceed current Housing capacity.`, 'Housing shortages affect Happiness at the Housing phase.']},
-      {icon:'food',value:`${Math.round(food)} / ${Math.round(vm.storedFoodCapacity)}`,warning:vm.pressure?.starvation||shortfall||vm.looseFood>0||storageFull,severe:vm.pressure?.starvation,
+      {icon:'food',value:`${Math.round(food)} / ${Math.round(vm.storedFoodCapacity)}`,label:'Food / Storage',warning:vm.pressure?.starvation||shortfall||vm.looseFood>0||storageFull,severe:vm.pressure?.starvation,
         title:vm.pressure?.starvation?'Starving':shortfall?'Food supply warning':vm.looseFood>0?'Food overflow':'Food storage full',
         lines:[`${Math.round(vm.storedFood)} stored; ${Math.round(vm.looseFood)} loose Food.`, `Current meal demand: ${Math.round(vm.population.mealDemand)} Food.`,
           ...(vm.pressure?.starvation?[`Last meal left ${vm.pressure.unfedMealDemand} Food demand unfed; ${vm.pressure.starvationMigrants} starvation migrants.`]:[]),
           ...(shortfall?['Available Food is below current meal demand. Production and imports may cover the gap before the Food phase.']:[]),
           ...(vm.looseFood>0||storageFull?['Food beyond storage capacity remains loose and is exposed to loose-Food decay.']:[])]},
-      {icon:'money',value:vm.currency},
+      {icon:'money',value:vm.currency,label:'Money'},
     ];
     const cell=(rect.width-44)/3;
     stats.forEach((stat,i)=>{
@@ -42,15 +42,29 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
       const colour=stat.warning?(stat.severe?red:amber):PALETTE.text;
       group.addChild(new PIXI.Graphics().beginFill(stat.warning?0x392820:0x111d19,.8).lineStyle(1,stat.warning?colour:0x514d3a).drawRoundedRect(0,0,cell-7,34,4).endFill());
       addResourceIcon(group,stat.icon,18,17,28);
-      const value=createText(String(stat.value),{...TEXT_STYLES.body,fontSize:24,fill:colour},36,3);
-      value.scale.set(Math.min(1,(cell-70)/Math.max(1,value.width)));group.addChild(value);
+      const amount=new PIXI.Container();amount.position.set(36,3);
+      const value=createText(String(stat.value)+(stat.capIcon?' /':''),{...TEXT_STYLES.body,fontSize:24,fill:colour},0,0);
+      amount.addChild(value);
+      if(stat.capIcon){
+        addResourceIcon(amount,stat.capIcon,value.width+18,14,24);
+        amount.addChild(createText(String(stat.capacity),{...TEXT_STYLES.body,fontSize:24,fill:colour},value.width+36,0));
+      }
+      amount.scale.set(Math.min(1,(cell-70)/Math.max(1,amount.width)));group.addChild(amount);
+      group.eventMode='static';group.hitArea=new PIXI.Rectangle(0,0,cell-7,34);
+      const labelSpec={title:stat.label,lines:stat.icon==='population'
+        ? [`${vm.population.total} people / ${vm.population.housingCapacity} Housing capacity.`]
+        : stat.icon==='food'?[`${Math.round(food)} total Food / ${Math.round(vm.storedFoodCapacity)} stored-Food capacity.`,`${Math.round(vm.storedFood)} stored; ${Math.round(vm.looseFood)} loose.`]
+        : [`${vm.currency} Money available in this settlement.`],accentColor:colour,maxWidth:290,scale:2};
+      group.on('pointerover',event=>{if(event.pointerType!=='touch')tooltipView?.show(labelSpec,group.getBounds(),{dismissOnExit:true});});
+      group.on('pointerout',()=>tooltipView?.hide());
+      group.on('pointerdown',event=>{event.stopPropagation();tooltipView?.pin(labelSpec,group.getBounds(),`region-resource:${reference}:${stat.icon}`);});
       if(stat.warning){
         const glyph=new PIXI.Container();glyph.position.set(cell-24,17);
         glyph.addChild(new PIXI.Graphics().beginFill(colour).drawPolygon([0,-11,11,9,-11,9]).endFill(),createText('!',{...TEXT_STYLES.chip,fontSize:17,fill:0x201813},0,0,.5,.5));
         glyph.eventMode='static';glyph.hitArea=new PIXI.Rectangle(-16,-16,32,32);glyph.cursor='help';
         const spec={title:stat.title,lines:stat.lines,accentColor:colour,maxWidth:290,scale:2};
-        glyph.on('pointerover',()=>tooltipView?.show(spec,glyph.getBounds(),{dismissOnExit:true}));
-        glyph.on('pointerout',()=>tooltipView?.hide());
+        glyph.on('pointerover',event=>{event.stopPropagation();tooltipView?.show(spec,glyph.getBounds(),{dismissOnExit:true});});
+        glyph.on('pointerout',event=>{event.stopPropagation();tooltipView?.hide();});
         glyph.on('pointerdown',event=>{event.stopPropagation();tooltipView?.pin(spec,glyph.getBounds(),`region-warning:${reference}:${stat.icon}`);});
         group.addChild(glyph);
       }

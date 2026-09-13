@@ -2,7 +2,7 @@ import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SI
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
-import { addCostPanel, addResourceAmount } from './resource-cost-pixi.js';
+import { addResourceAmount } from './resource-cost-pixi.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
@@ -17,6 +17,7 @@ import {
 } from "./vassal-node-decision/constants.js";
 import {
   actionCard,
+  pieceOfferCard,
   button,
   offerEffect,
   optionEffect,
@@ -289,7 +290,6 @@ export function createVassalNodeDecisionModalView({
       }, PANEL.x + 54, PANEL.y + 170));
     } else {
       const isShop = nodeState.contentMode === "shop";
-      const cardWidth = hasContext ? 338 : 520;
       const cardGap = 22;
       const cardY = PANEL.y + 136;
       // Keep staged offers in their original places so their prices and full
@@ -300,48 +300,28 @@ export function createVassalNodeDecisionModalView({
           - (b.sourceInventoryIndex ?? b.inventoryIndex ?? 0));
       const itemCount = isShop ? shopCards.length : (nodeState.options ?? []).length;
       const actionWidth = hasContext ? 1060 : PANEL.width - 108;
+      const cardWidth = Math.min(hasContext ? 338 : 520,(actionWidth-cardGap*Math.max(0,itemCount-1))/Math.max(1,itemCount));
       const cardsWidth = Math.max(0, itemCount * cardWidth + Math.max(0, itemCount - 1) * cardGap);
       const cardStartX = PANEL.x + 54 + Math.max(0, (actionWidth - cardsWidth) / 2);
       if (isShop) {
         root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
         }, PANEL.x + 54, PANEL.y + 112));
-        let objectWidths=shopCards.map(offer=>offer.presentation?.kind==='structure'?PIECE_SIZE.cellWidth*1.5*(offer.presentation.footprint??1):offer.presentation?PIECE_SIZE.practiceWidth:cardWidth);
-        const naturalWidths=objectWidths.map(width=>Math.max(170,width));
-        const offerScale=Math.min(1,1060/(naturalWidths.reduce((sum,w)=>sum+w,0)+(naturalWidths.length-1)*22));
-        objectWidths=objectWidths.map(w=>w*offerScale);
-        const widths=naturalWidths.map(w=>w*offerScale);
-        let cursor=PANEL.x+54+Math.max(0,(1060-widths.reduce((sum,w)=>sum+w,0)-(widths.length-1)*22)/2);
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const inspect=()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);};
-          let card;
-          if(offer.presentation) {
-            card=new PIXI.Container();card.position.set(cursor,cardY);root.addChild(card);
-            card.hitArea=new PIXI.Rectangle(0,0,widths[index],PIECE_SIZE.practiceHeight+12+COST_FOOTER_HEIGHT);
-            const h=(offer.presentation.kind==='structure'?PIECE_SIZE.structureHeight*1.5:PIECE_SIZE.practiceHeight)*offerScale;
-            const face=addSettlementPiece(card,{x:(widths[index]-objectWidths[index])/2,y:PIECE_SIZE.practiceHeight-h,width:objectWidths[index],height:h},{
-              face:offer.presentation,state:offer.purchased?'withdrawn':'confirmed',onInspect:inspect,
-              onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
-              onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
-            });
-            face.on('pointerdown',event=>beginDrag(event,face,offer,true));
-            card.faceRoot=face;
-            card.costPanel=addCostPanel(card,{x:0,y:PIECE_SIZE.practiceHeight+12,width:widths[index],height:COST_FOOTER_HEIGHT},{
-              prestigeCost:offer.prestigeCost,phaseCost:offer.phaseCost,state,staged:offer.purchased,disabled:!enabled,
-              unaffordable:offer.prestigeCost>projected&&!offer.purchased,label:'Stage '+offer.label,
-              onActivate:()=>onPurchaseOffer?.(node.id,offer.offerId),onUnavailable:readOnly?onReadOnlyAction:null,fontSize:30,iconSize:38,
-            });
-          } else {
-            card=actionCard(root,{x:cursor,y:cardY,width:widths[index],height:398},{
-              title:offer.label,artId:node.family,presentation:offer.presentation,
-              actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
-              cost:{prestigeCost:offer.prestigeCost,phaseCost:offer.phaseCost,state},enabled,
-              onClick:()=>onPurchaseOffer?.(node.id,offer.offerId),onUnavailable:readOnly?onReadOnlyAction:null,
-            });
-          }
-          if(offer.purchased)undoRoots.push(button(root,{x:cursor,y:cardY+414,width:widths[index],height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
-          cursor+=widths[index]+22;
+          const x=cardStartX+index*(cardWidth+cardGap);
+          const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:450},{
+            title:offer.label,artId:node.family,presentation:offer.presentation,
+            actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
+            cost:{prestigeCost:offer.prestigeCost,phaseCost:offer.phaseCost,state},enabled,
+            costUnmet:offer.prestigeCost>projected&&!offer.purchased,
+            onClick:()=>onPurchaseOffer?.(node.id,offer.offerId),onUnavailable:readOnly?onReadOnlyAction:null,
+            onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
+            onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
+          });
+          card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,offer,true));
+          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+460,width:cardWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
           return card;
         });
         offerRoots=shopCardRoots.filter((_,index)=>!shopCards[index].purchased);
@@ -356,7 +336,7 @@ export function createVassalNodeDecisionModalView({
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return (simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: simpleOutcomes ? 450 : 380,
+            width: cardWidth, height: 450,
           }, {
             artId:node.family,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
@@ -444,7 +424,7 @@ export function createVassalNodeDecisionModalView({
     }
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
-        x: PANEL.x + 380, y: PANEL.y + PANEL.height - 178, width: 640, height: 102,
+        x: PANEL.x + 380, y: PANEL.y + PANEL.height - 130, width: 640, height: 102,
       }, canConfirm);
     }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
