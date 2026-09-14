@@ -32,7 +32,7 @@ function addButton(parent, rect, label, enabled, onPress) {
   return root;
 }
 
-function addChoiceCard(parent, vassal, choice, statId, rect, onChoose) {
+function addChoiceCard(parent, vassal, choice, statId, rect, selected, onSelect) {
   const before = getVassalStatPresentation(vassal, statId);
   const after = getVassalStatPresentation(vassal, statId, before.value + 1);
   const root = new PIXI.Container();
@@ -42,11 +42,11 @@ function addChoiceCard(parent, vassal, choice, statId, rect, onChoose) {
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
   root.on("pointertap", (event) => {
     event?.stopPropagation?.();
-    onChoose?.(choice.choiceId, statId);
+    onSelect?.(statId);
   });
   const color = STAT_COLORS[statId] ?? PALETTE.accent;
   const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 14, 0x303733, color, 3);
+  roundedRect(gfx, 0, 0, rect.width, rect.height, 14, 0x303733, selected ? color : PALETTE.stroke, selected ? 4 : 2);
   root.addChild(gfx);
   addIllustration(root,{cunning:'patronage',wisdom:'legacy',effectiveness:'crisis',intelligence:'study'}[statId],
     {x:rect.width-160,y:8,width:150,height:100},{alpha:.85});
@@ -69,8 +69,8 @@ function addChoiceCard(parent, vassal, choice, statId, rect, onChoose) {
       ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
       wordWrap: true, wordWrapWidth: rect.width - 44,
     }, 22, 226),
-    createText("CHOOSE THIS STAT", {
-      ...TEXT_STYLES.header, fontSize: 17, fill: PALETTE.accent,
+    createText(selected ? "SELECTED" : "SELECT THIS STAT", {
+      ...TEXT_STYLES.header, fontSize: 17, fill: selected ? PALETTE.green : PALETTE.accent,
     }, rect.width / 2, rect.height - 36, 0.5, 0.5));
   parent.addChild(root);
   return root;
@@ -86,6 +86,10 @@ export function createVassalLevelUpModalView({
   layer?.addChild(root);
   let signature = "";
   let choiceRoots = [];
+  let selectedStatId = null;
+  let openedAtMs = 0;
+  let confirmRoot = null;
+  const INPUT_LOCK_MS = 300;
 
   function render(force = false) {
     const presentation = getPresentation?.() ?? {};
@@ -93,18 +97,25 @@ export function createVassalLevelUpModalView({
     const queue = vassal?.developmentChoiceQueue ?? [];
     const visible = isLifegraphVisible?.() === true
       && presentation.readOnly !== true && queue.length > 0;
+    const wasVisible = root.visible;
     root.visible = visible;
     if (!visible) {
       signature = "";
+      selectedStatId = null;
+      openedAtMs = 0;
+      confirmRoot = null;
       clearChildren(root);
       choiceRoots = [];
       return;
     }
+    if (!wasVisible) openedAtMs = performance.now();
     const choice = queue[0];
+    if (selectedStatId && !choice.offeredStatIds.includes(selectedStatId)) selectedStatId = null;
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal.vassalId,
       stats: vassal.stats,
       queue,
+      selectedStatId,
     });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
@@ -147,8 +158,20 @@ export function createVassalLevelUpModalView({
     choiceRoots = choice.offeredStatIds.map((statId, index) => addChoiceCard(
       root, vassal, choice, statId,
       { x: startX + index * (cardWidth + gap), y: PANEL.y + 164, width: cardWidth, height: 342 },
-      onChoose
+      selectedStatId === statId,
+      (nextStatId) => {
+        if (performance.now() - openedAtMs < INPUT_LOCK_MS) return;
+        selectedStatId = nextStatId;
+        render(true);
+      }
     ));
+    confirmRoot = addButton(root, {
+      x: PANEL.x + PANEL.width - 600, y: PANEL.y + PANEL.height - 72,
+      width: 266, height: 48,
+    }, "CONFIRM", !!selectedStatId, () => {
+      if (!selectedStatId || performance.now() - openedAtMs < INPUT_LOCK_MS) return;
+      onChoose?.(choice.choiceId, selectedStatId);
+    });
     addButton(root, {
       x: PANEL.x + PANEL.width - 310, y: PANEL.y + PANEL.height - 72,
       width: 266, height: 48,
@@ -166,9 +189,14 @@ export function createVassalLevelUpModalView({
       ));
       return point ? { x: point.x, y: point.y } : null;
     },
+    getConfirmClickPoint: () => root.visible && confirmRoot?.toGlobal
+      ? confirmRoot.toGlobal(new PIXI.Point(
+        confirmRoot.hitArea.width / 2, confirmRoot.hitArea.height / 2
+      )) : null,
     getSemanticSnapshot: () => ({
       open: root.visible,
       queue: getPresentation?.()?.vassal?.developmentChoiceQueue ?? [],
+      selectedStatId,
     }),
   };
 }

@@ -3,7 +3,12 @@ import {
   SETTLEMENT_VISIBLE_WINDOW_YEARS,
 } from "../../defs/gamesettings/gamerules-defs.js";
 import { GRAPH_METRICS } from "../../model/graph-metrics.js";
-import { getVassalPendingResolution } from "../../model/vassal-life-map.js";
+import {
+  getCurrentLifeMapVassal,
+  getVassalDevelopmentIncome,
+  getVassalPendingResolution,
+  getVassalPrestigeIncome,
+} from "../../model/vassal-life-map.js";
 
 export const SETTLEMENT_GRAPH_WINDOW_SEC =
   Math.max(1, Math.floor(SEASON_DURATION_SEC)) *
@@ -67,6 +72,7 @@ export function createSettlementGraphSession({
   getFrontierState,
   getFrontierSec,
   setWorldViewMode,
+  onPendingResolutionSettled,
 } = {}) {
   let settlementGraphScope = "civilization";
   let settlementGraphHorizonOverrideSec = null;
@@ -159,10 +165,8 @@ export function createSettlementGraphSession({
       state?.civilization?.vassalLineage?.currentVassalId != null ||
       !["died", "retired"].includes(endedVassal?.endedReason)
     ) return false;
-    // Changing screen pauses a reveal. Navigate first, then explicitly restart
-    // the civilization reveal so a completed Vassal immediately exposes the
-    // next forecast span rather than leaving it frozen at the boundary.
-    setWorldViewMode?.("map");
+    // Stay on the Lifegraph until the recap/death window is dismissed. Forecast
+    // unveil of the next civilization span still starts in the background.
     syncSettlementGraphHorizon();
     getGraphView?.()?.restartForecastRevealFrom?.(getFrontierSec?.(), {
       allowForecastStart: true,
@@ -175,6 +179,11 @@ export function createSettlementGraphSession({
     const beforeVassalId =
       beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
     const beforePendingResolution = getVassalPendingResolution(beforeState);
+    const beforeVassal = getCurrentLifeMapVassal(beforeState);
+    const recapIncome = beforeVassal && beforePendingResolution ? {
+      prestigeIncome: getVassalPrestigeIncome(beforeVassal),
+      developmentIncome: getVassalDevelopmentIncome(beforeVassal),
+    } : null;
     getForecastController?.()?.processPendingCommit?.({
       clearForecastRevealRestart: () =>
         getGraphView?.()?.clearForecastRevealRestart?.(),
@@ -187,6 +196,13 @@ export function createSettlementGraphSession({
         beforePendingResolution.startSec
       );
       getGraphView?.()?.render?.();
+      onPendingResolutionSettled?.({
+        beforeState,
+        afterState,
+        beforeVassalId,
+        pending: beforePendingResolution,
+        ...recapIncome,
+      });
     }
     revealCivilizationAfterVassalEnd(beforeVassalId, afterState);
   }

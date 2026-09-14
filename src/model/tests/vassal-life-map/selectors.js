@@ -19,6 +19,9 @@ import {
   getVassalCandidatePool,
   getVassalDevelopmentIncome,
   getVassalLifeMapNodes,
+  getVassalLifeMapReachableNodeIds,
+  getVassalLifeMapPlannedRoute,
+  nextVassalLifeMapPins,
   getVassalPrestigeIncome,
 } from "../../vassal-life-map.js";
 import {
@@ -156,3 +159,42 @@ for (const variantId of ["settlement", "monsterHunt", "removePractice", "foodSho
 const ordinaryFamilyState = selectedState(2203);
 assert.ok(getVassalLifeMapNodes(getCurrentLifeMapVassal(ordinaryFamilyState))
   .every((node) => node.family !== "settlement"), "Settlement is absent from ordinary family rolls");
+
+const branchVassal = {
+  lifeMap: {
+    currentNodeId: "a",
+    availableNodeIds: [],
+    graph: {
+      nodes: [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }, { id: "e" }],
+      edges: [
+        { fromNodeId: "a", toNodeId: "b" },
+        { fromNodeId: "a", toNodeId: "c" },
+        { fromNodeId: "b", toNodeId: "d" },
+        { fromNodeId: "c", toNodeId: "e" },
+      ],
+    },
+  },
+};
+assert.deepEqual(
+  [...getVassalLifeMapReachableNodeIds(branchVassal)].sort(),
+  ["a", "b", "c", "d", "e"],
+);
+branchVassal.lifeMap.currentNodeId = "b";
+assert.deepEqual([...getVassalLifeMapReachableNodeIds(branchVassal)].sort(), ["b", "d"]);
+branchVassal.lifeMap.currentNodeId = null;
+branchVassal.lifeMap.availableNodeIds = ["b", "c"];
+assert.deepEqual(
+  [...getVassalLifeMapReachableNodeIds(branchVassal)].sort(),
+  ["b", "c", "d", "e"],
+);
+branchVassal.lifeMap.currentNodeId = "a";
+branchVassal.lifeMap.availableNodeIds = [];
+assert.deepEqual(getVassalLifeMapPlannedRoute(branchVassal, ["b", "d"])?.edgeKeys, [
+  "a:b", "b:d",
+]);
+assert.equal(getVassalLifeMapPlannedRoute(branchVassal, ["d", "e"]), null,
+  "pins on incomparable branches cannot share a route");
+assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["d"], "e"), ["e"],
+  "an incompatible pin replaces the previous set");
+assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["b"], "d"), ["b", "d"]);
+assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["b", "d"], "b"), ["d"]);

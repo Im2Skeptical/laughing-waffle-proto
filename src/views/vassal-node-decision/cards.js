@@ -66,13 +66,14 @@ export function actionCard(parent, rect, spec) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
   root.eventMode = 'static'; root.cursor = 'pointer';
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  const totalHeight = rect.height + COST_FOOTER_HEIGHT + 8;
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, totalHeight);
   root.on('pointertap', event => { event.stopPropagation(); spec.onInspect?.(); });
   // A touch press must keep its target until release; hover previews can redraw
   // the cards, so they belong only to a mouse/pen with hover.
   root.on('pointerover', event => { if (event.pointerType !== 'touch') spec.onHover?.(); });
   root.on('pointerout', event => { if (event.pointerType !== 'touch') spec.onOut?.(); });
-  const artHeight = rect.height - COST_FOOTER_HEIGHT - 12;
+  const artHeight = rect.height - 12;
   const g = new PIXI.Graphics();
   roundedRect(g, 0, 0, rect.width, rect.height, 8, PALETTE.card,
     spec.selected ? PALETTE.green : QUALITY_COLORS[spec.presentation?.tier] ?? PALETTE.stroke, 2);
@@ -85,7 +86,7 @@ export function actionCard(parent, rect, spec) {
     ...TEXT_STYLES.body, fontSize: 24, fill: PALETTE.text, stroke: 0x111714, strokeThickness: 4,
   }, 18, artHeight - 33));
   root.costPanel = addCostPanel(root, {
-    x: 6, y: rect.height - COST_FOOTER_HEIGHT - 6, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+    x: 6, y: rect.height + 8, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
   }, {
     ...spec.cost, selected: spec.selected, staged: spec.staged, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: spec.actionLabel + ' ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
@@ -98,17 +99,16 @@ export function actionCard(parent, rect, spec) {
 // The physical piece scales uniformly inside its own illustration area.
 export function pieceOfferCard(parent, rect, spec) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
-  root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
+  root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height+COST_FOOTER_HEIGHT+8);
   root.eventMode='static';root.cursor='pointer';
   root.on('pointertap',event=>{event.stopPropagation();spec.onInspect?.();});
   const frame=new PIXI.Graphics();
   roundedRect(frame,0,0,rect.width,rect.height,8,PALETTE.card,QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,2);
   root.addChild(frame,createText(spec.title,{...TEXT_STYLES.cardTitle,fontSize:26,lineHeight:28,wordWrap:true,wordWrapWidth:rect.width-36},18,14));
-  const costY=rect.height-COST_FOOTER_HEIGHT-6;
-  root.faceRoot=addSettlementPiece(root,{x:18,y:62,width:rect.width-36,height:costY-76},{
+  root.faceRoot=addSettlementPiece(root,{x:18,y:62,width:rect.width-36,height:rect.height-76},{
     face:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
   });
-  root.costPanel=addCostPanel(root,{x:6,y:costY,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
+  root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
     ...spec.cost,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
   });
@@ -121,7 +121,7 @@ export function outcomeCard(parent, rect, spec) {
   root.position.set(rect.x, rect.y);
   root.eventMode = spec.enabled || spec.onUnavailable ? 'static' : 'none';
   root.cursor = spec.enabled ? 'pointer' : 'default';
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height + COST_FOOTER_HEIGHT + 8);
   root.on('pointertap', event => {
     event?.stopPropagation?.();
     if (spec.enabled) spec.onClick?.();
@@ -149,7 +149,7 @@ export function outcomeCard(parent, rect, spec) {
     y += text.height + 18;
   }
   root.costPanel = addCostPanel(root, {
-    x: 6, y: rect.height - COST_FOOTER_HEIGHT - 6, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+    x: 6, y: rect.height + 8, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
   }, {
     ...spec.cost, selected: spec.selected, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: 'Choose ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,

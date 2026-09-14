@@ -13,6 +13,7 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import {
   COST_FOOTER_HEIGHT,
+  OPTION_COLUMN,
   PANEL,
 } from "./vassal-node-decision/constants.js";
 import {
@@ -236,7 +237,6 @@ export function createVassalNodeDecisionModalView({
       root.addChild(createText("No Lifegraph decision is available.", {
         ...TEXT_STYLES.header, fontSize: 28,
       }, PANEL.x + 50, PANEL.y + 70));
-      button(root, { x: PANEL.x + PANEL.width - 140, y: PANEL.y + 24, width: 100, height: 44 }, "CLOSE", true, close);
       return;
     }
 
@@ -249,14 +249,7 @@ export function createVassalNodeDecisionModalView({
         ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 780,
       }, PANEL.x + 44, PANEL.y + 66),
-      createText(`VASSAL · ${decision?.previewRegionLabel ?? vassal.locationRegionId}`, {
-        ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-      }, PANEL.x + 1130, PANEL.y + 28),
     );
-    addResourceAmount(root, 'prestige', projected === vassal.prestige ? vassal.prestige : vassal.prestige + ' → ' + projected, {
-      x: PANEL.x + 1130, y: PANEL.y + 47, fontSize: 32, iconSize: 42, fill: PALETTE.accent,
-    });
-    button(root, { x: PANEL.x + PANEL.width - 146, y: PANEL.y + 24, width: 106, height: 44 }, "CLOSE", true, close);
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
     const simpleOutcomes = node.family === 'patronage' || node.family === 'development';
@@ -290,19 +283,17 @@ export function createVassalNodeDecisionModalView({
       }, PANEL.x + 54, PANEL.y + 170));
     } else {
       const isShop = nodeState.contentMode === "shop";
-      const cardGap = 22;
+      const cardGap = OPTION_COLUMN.gap;
       const cardY = PANEL.y + 136;
+      const cardWidth = OPTION_COLUMN.width;
+      const cardHeight = OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
       // inspections remain available throughout the draft. The model still
       // removes purchases from the available inventory until they are undone.
       const shopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? [])]
         .sort((a, b) => (a.sourceInventoryIndex ?? a.inventoryIndex ?? 0)
           - (b.sourceInventoryIndex ?? b.inventoryIndex ?? 0));
-      const itemCount = isShop ? shopCards.length : (nodeState.options ?? []).length;
-      const actionWidth = hasContext ? 1060 : PANEL.width - 108;
-      const cardWidth = Math.min(hasContext ? 338 : 520,(actionWidth-cardGap*Math.max(0,itemCount-1))/Math.max(1,itemCount));
-      const cardsWidth = Math.max(0, itemCount * cardWidth + Math.max(0, itemCount - 1) * cardGap);
-      const cardStartX = PANEL.x + 54 + Math.max(0, (actionWidth - cardsWidth) / 2);
+      const cardStartX = PANEL.x + 54;
       if (isShop) {
         root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
@@ -311,7 +302,7 @@ export function createVassalNodeDecisionModalView({
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const inspect=()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);};
           const x=cardStartX+index*(cardWidth+cardGap);
-          const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:450},{
+          const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:cardHeight},{
             title:offer.label,artId:node.family,presentation:offer.presentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
             cost:{prestigeCost:offer.prestigeCost,phaseCost:offer.phaseCost,state},enabled,
@@ -321,7 +312,7 @@ export function createVassalNodeDecisionModalView({
             onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
           });
           card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,offer,true));
-          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+460,width:cardWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
+          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+8,width:cardWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
           return card;
         });
         offerRoots=shopCardRoots.filter((_,index)=>!shopCards[index].purchased);
@@ -336,7 +327,7 @@ export function createVassalNodeDecisionModalView({
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return (simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
-            width: cardWidth, height: 450,
+            width: cardWidth, height: cardHeight,
           }, {
             artId:node.family,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
@@ -399,11 +390,11 @@ export function createVassalNodeDecisionModalView({
       });
     } else if (decision?.contextKind === "regionalMap") {
       renderRegionalMap(root, decision.regionalMap, {
-        x: sx, y: PANEL.y + 116, width: 830, height: 560,
+        x: sx, y: PANEL.y + 116, width: 830, height: 468,
       });
     } else if (decision?.contextKind === "vassal") {
       renderVassalProjection(root, decision.vassalProjection, {
-        x: sx, y: PANEL.y + 116, width: 830, height: 560,
+        x: sx, y: PANEL.y + 116, width: 830, height: 468,
       });
     }
 
@@ -424,7 +415,7 @@ export function createVassalNodeDecisionModalView({
     }
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
-        x: PANEL.x + 380, y: PANEL.y + PANEL.height - 130, width: 640, height: 102,
+        x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 168, width: 340, height: 88,
       }, canConfirm);
     }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
@@ -520,6 +511,28 @@ export function createVassalNodeDecisionModalView({
         regionalMap: decision?.regionalMap ?? null,
         vassalProjection: decision?.vassalProjection ?? null,
       };
+    },
+    getHudDeltas() {
+      if (!root.visible) return null;
+      const decision = getDecisionPresentation?.(openNodeId, {
+        previewOptionId, previewOfferId,
+      });
+      if (!decision) return null;
+      const projection = decision.vassalProjection;
+      const stats = {};
+      if (projection?.baseline?.stats && projection?.immediate?.stats) {
+        projection.baseline.stats.forEach((before, index) => {
+          const after = projection.immediate.stats[index];
+          const delta = (after?.value ?? 0) - (before?.value ?? 0);
+          if (delta) stats[before.statId] = delta;
+        });
+      }
+      const prestige = Number.isFinite(decision.projectedPrestige)
+        && Number.isFinite(decision.currentPrestige)
+        ? decision.projectedPrestige - decision.currentPrestige
+        : 0;
+      if (!prestige && !Object.keys(stats).length) return null;
+      return { prestige, stats };
     },
   };
 }

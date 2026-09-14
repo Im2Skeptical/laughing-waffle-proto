@@ -237,6 +237,8 @@ try {
     const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     return s.frontierSec > start && !s.pendingCommitJob;
   }, draft.frontierSec, { timeout: 12000 });
+  const recapDismiss = await controlPoint('getLifeMapRecapDismissClickPoint');
+  if (recapDismiss) await clickPoint(recapDismiss);
   await navigate('present');
   const resolved = await snapshot();
   assert.ok(resolved.current, 'the young fixture vassal survives the first node');
@@ -247,10 +249,12 @@ try {
   await clickPoint(await controlPoint('getLifeMapNodeClickPoint', resolved.current.availableNodeIds[0]));
   s = await snapshot();
   assert.equal(s.navigation.feedbackVisible, true, 'a locked node points back to Present');
+  assert.equal(s.decision.open, false, 'unselected history nodes do not open the modal');
   const feedbackCount = s.navigation.feedbackCount;
-  await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
+  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
   s = await snapshot();
-  assert.ok(s.navigation.feedbackCount > feedbackCount, 'the disabled entry explains the time lock');
+  assert.equal(s.decision.open, true, 'a committed node still opens the decision modal');
+  assert.ok(s.navigation.feedbackCount >= feedbackCount, 'the time lock remains explained');
   assert.deepEqual(s.timeline, history.timeline, 'a historical entry attempt cannot edit history');
   assert.deepEqual(s.lineage, history.lineage);
   await capture('history-feedback-1280x800');

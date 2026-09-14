@@ -58,6 +58,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   let pinRevision = 0;
   let dismissOnPointerExit = false;
   let pieceInspection = null;
+  let activePinHandler = null;
   // Cards may be replaced during a redraw, so their old Pixi pointerout
   // handler cannot reliably dismiss a hover. Track its retained screen bounds.
   document.addEventListener('pointermove', (event) => {
@@ -444,6 +445,24 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       titleNode.x = padding;
       titleNode.y = cursorY;
       container.addChild(titleNode);
+      if (spec.pin === true) {
+        const pin = new PIXI.Container();
+        pin.position.set(contentWidth + padding - 28, cursorY - 2);
+        pin.eventMode = "static";
+        pin.cursor = "pointer";
+        pin.hitArea = new PIXI.Rectangle(0, 0, 28, 28);
+        pin.on("pointertap", (event) => {
+          event?.stopPropagation?.();
+          activePinHandler?.();
+        });
+        const glyph = new PIXI.Graphics();
+        const fill = spec.pinned === true ? (spec.accentColor ?? BG_STROKE) : MUTED_TEXT;
+        glyph.beginFill(fill, spec.pinned === true ? 1 : 0.85)
+          .drawPolygon([14, 2, 22, 12, 17, 12, 17, 22, 11, 22, 11, 12, 6, 12])
+          .endFill();
+        pin.addChild(glyph);
+        container.addChild(pin);
+      }
       cursorY += titleNode.height + 2;
     }
     if (spec.subtitle) {
@@ -540,10 +559,11 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       container.interactiveChildren=!dismissOnExit;
       container.visible=true;return;
     }
-    container.eventMode='none';
-    container.interactiveChildren=true;
+    container.eventMode = spec?.pin === true ? "static" : "none";
+    container.interactiveChildren = true;
 
     const normalizedSpec = normalizeTooltipSpec(spec);
+    activePinHandler = typeof spec?.onPin === "function" ? spec.onPin : null;
     const scale =
       normalizedSpec.scale ??
       resolvedAnchor.scale ??
@@ -571,6 +591,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   function hide({force=false}={}) {
     if(pinnedKey!==null&&!force)return;
     if(force)pinnedKey=null;
+    activePinHandler = null;
     if (hideTimeoutId !== null) clearTimeout(hideTimeoutId);
     hideTimeoutId = setTimeout(() => {
       activeAnchor = null;

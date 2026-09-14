@@ -5,3 +5,6 @@ export const QUALITY_COLORS = Object.freeze({
   bronze: 0xb07a4b, silver: 0xbfc7d5, gold: 0xe2bd55, diamond: 0x83dbea,
 });
 export const COST_FOOTER_HEIGHT = 148;
+export const OPTION_COLUMN = Object.freeze({
+  width: 338, height: 280, gap: 22, costGap: 8,
+});

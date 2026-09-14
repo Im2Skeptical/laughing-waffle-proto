@@ -207,6 +207,8 @@ export function normalizeTooltipSpec(spec) {
     sourceId: input.sourceId ?? null,
     maxWidth: Number.isFinite(input.maxWidth) ? Math.max(120, Math.floor(input.maxWidth)) : 280,
     scale: Number.isFinite(input.scale) ? input.scale : 1,
+    pin: input.pin === true,
+    pinned: input.pinned === true,
     legacyLines: asArray(input.lines).map((line) => String(line ?? "")),
   };
 }
