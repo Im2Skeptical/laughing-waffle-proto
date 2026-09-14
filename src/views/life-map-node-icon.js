@@ -23,14 +23,16 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline }) {
       polygon([-19,-29,7,-29,7,0,23,9,29,13,29,26,-26,26,-26,12,-19,3]);
       line([-24,18,27,18],4,accent); line([-14,-18,3,-18]); line([-14,-8,3,-8]);
       break;
-    case 'practiceReform': // Diagonal workshop hammer.
+    case 'practiceReform': // Open hand with a cuff — a governor's hand.
+      polygon([-8,10,-16,-2,-12,-22,-6,-30,0,-18,4,-32,12,-24,16,-6,10,12,4,20,-4,20]);
+      polygon([-8,10,-22,4,-24,-8,-14,-4,-8,2]);
+      polygon([-14,18,14,18,16,28,-16,28]);
+      line([-14,18,14,18],4,accent);
+      break;
+    case 'publicWorks': // Diagonal workshop hammer.
       polygon([-24,24,-17,30,14,-8,7,-15]);
       polygon([-9,-25,1,-32,28,-11,18,1,7,-10,2,-6,-9,-16]);
       line([-20,22,-14,27],4,accent);
-      break;
-    case 'publicWorks': // Crenellated tower.
-      polygon([-25,29,-25,20,-19,20,-19,-8,-26,-8,-26,-29,-14,-29,-14,-20,-6,-20,-6,-29,6,-29,6,-20,14,-20,14,-29,26,-29,26,-8,19,-8,19,20,25,20,25,29]);
-      line([-6,27,-6,10,6,10,6,27],6); line([-10,-4,10,-4],4,accent);
       break;
     case 'routes': // Bridge with a visible arch and piers.
       polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);

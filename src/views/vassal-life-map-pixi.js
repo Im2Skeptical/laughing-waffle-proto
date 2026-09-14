@@ -1,19 +1,17 @@
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
-  getVassalAge,
   getVassalLifeMapNode,
   getVassalLifeMapNodes,
-  getVassalStatsPresentation,
+  getVassalLifeMapPlannedRoute,
+  getVassalLifeMapReachableNodeIds,
+  nextVassalLifeMapPins,
 } from "../model/vassal-life-map.js";
-import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
-import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip } from './civilization-survival-hud.js';
-import { addResourceAmount } from './resource-cost-pixi.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -37,6 +35,12 @@ function getDisplay(vassal, nodeId, committed, readOnly) {
   };
 }
 
+function drawPinMarker(graphics, filled) {
+  graphics.lineStyle(2, 0x111714, 1).beginFill(filled ? PALETTE.accent : 0xf4e7bd)
+    .drawPolygon([0, -52, 8, -40, 3, -40, 3, -28, -3, -28, -3, -40, -8, -40])
+    .endFill();
+}
+
 export function createVassalLifeMapView({
   layer, getPresentation, getCivilizationLossInfo, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
 } = {}) {
@@ -52,11 +56,11 @@ export function createVassalLifeMapView({
   let displayedVassalId = null;
   let lastClick = { nodeId: null, atMs: 0 };
   let openRoot = null;
-  let pinnedStatId = null;
   let layoutPoints = new Map();
+  let pinnedNodeIds = [];
   const nodePoint=node=>layoutPoints.get(node.id)??fallbackNodePoint(node);
 
-  function showNodeTooltip(node, target) {
+  function showNodeTooltip(node, target, vassal) {
     const family = node?.signatureNode?.variantId
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : VASSAL_NODE_FAMILIES[node?.family] ?? null;
@@ -67,27 +71,9 @@ export function createVassalLifeMapView({
       accentColor: family.color,
       maxWidth: 310,
       scale: 2,
-    }, target.getBounds());
-  }
-
-  function hideStatTooltip() {
-    pinnedStatId = null;
-    tooltipView?.hide?.();
-  }
-
-  function showStatTooltip(stat, target) {
-    tooltipView?.show?.({
-      title: `${stat.label} ${stat.value}`,
-      scale: 2,
-      lines: [
-        stat.powerLabel,
-        stat.formula,
-        Number.isFinite(stat.pointsToCap)
-          ? stat.pointsToCap > 0
-            ? `${stat.pointsToCap} ${stat.pointsToCap === 1 ? "point" : "points"} to the discount cap.`
-            : "Discount cap reached."
-          : "This income has no cap.",
-      ],
+      pin: true,
+      pinned: pinnedNodeIds.includes(node.id),
+      onPin: () => togglePin(vassal, node.id),
     }, target.getBounds());
   }
 
@@ -101,8 +87,21 @@ export function createVassalLifeMapView({
   function clearNodeHover() {
     if (hoveredNodeId == null) return;
     hoveredNodeId = null;
-    tooltipView?.hide?.();
+    if (inspectedNodeId == null) tooltipView?.hide?.();
     render(true);
+  }
+
+  function togglePin(vassal, nodeId) {
+    pinnedNodeIds = nextVassalLifeMapPins(vassal, pinnedNodeIds, nodeId);
+    inspectedNodeId = nodeId;
+    render(true);
+    const target = nodeRoots.get(nodeId);
+    const node = getVassalLifeMapNode(vassal, nodeId);
+    if (node && target) showNodeTooltip(node, target, vassal);
+  }
+
+  function canOpenModal(display, unveiling) {
+    return !unveiling && (display.available || display.current || display.completed);
   }
 
   root.on("pointerdown", (event) => {
@@ -110,7 +109,8 @@ export function createVassalLifeMapView({
     const presentation = getPresentation?.() ?? {};
     const node = getNodeAtPoint(local, presentation);
     if (!node) {
-      hideStatTooltip();
+      inspectedNodeId = null;
+      tooltipView?.hide?.();
       return;
     }
     inspect(node, getDisplay(
@@ -131,7 +131,7 @@ export function createVassalLifeMapView({
     }
     hoveredNodeId = node.id;
     render(true);
-    showNodeTooltip(node, nodeRoots.get(node.id));
+    showNodeTooltip(node, nodeRoots.get(node.id), presentation.vassal);
   });
   // `pointerout` bubbles from every child. Nodes are redrawn as their hover
   // state changes, so use the non-bubbling leave event from the stable map
@@ -140,17 +140,27 @@ export function createVassalLifeMapView({
 
   function inspect(node, display) {
     const presentation = getPresentation?.() ?? {};
+    const vassal = presentation.vassal;
+    const unveiling = !presentation.readOnly && !!vassal?.lifeMap?.pendingResolution;
     if (presentation.readOnly && !display.completed) onReadOnlyAction?.();
     const now = performance.now();
-    const doubleClick = display.available && lastClick.nodeId === node.id
+    const sameNode = lastClick.nodeId === node.id
       && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
     lastClick = { nodeId: node.id, atMs: now };
     inspectedNodeId = node.id;
     hoveredNodeId = null;
-    tooltipView?.hide?.();
-    if (doubleClick) onEnterNode?.(node.id);
-    onOpenDecision?.(node.id);
-    render(true);
+    if (canOpenModal(display, unveiling)) {
+      tooltipView?.hide?.();
+      if (sameNode && display.available) onEnterNode?.(node.id);
+      onOpenDecision?.(node.id);
+      render(true);
+      return;
+    }
+    if (sameNode) togglePin(vassal, node.id);
+    else {
+      render(true);
+      showNodeTooltip(node, nodeRoots.get(node.id), vassal);
+    }
   }
 
   function render(force = false) {
@@ -161,7 +171,7 @@ export function createVassalLifeMapView({
       // rather than hiding their hover details on every hidden Life Map frame.
       if (root.children.length > 0) {
         clearChildren(root);
-        hideStatTooltip();
+        tooltipView?.hide?.();
       }
       hoveredNodeId = null;
       signature = "";
@@ -170,7 +180,6 @@ export function createVassalLifeMapView({
     const presentation = getPresentation?.() ?? {};
     const state = presentation.state;
     const vassal = presentation.vassal;
-    const profile = presentation.profileVassal ?? vassal;
     const readOnly = presentation.readOnly === true;
     const committed = new Set(presentation.committedNodeIds ?? []);
     const nodes = getVassalLifeMapNodes(vassal);
@@ -179,10 +188,18 @@ export function createVassalLifeMapView({
     if ((vassal?.vassalId ?? null) !== displayedVassalId) {
       displayedVassalId = vassal?.vassalId ?? null;
       inspectedNodeId = presentation.playheadNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
+      pinnedNodeIds = [];
     }
+    const unveiling = !readOnly && !!vassal?.lifeMap?.pendingResolution;
+    root.cursor = unveiling ? "wait" : "default";
+    const reachable = new Set(getVassalLifeMapReachableNodeIds(vassal));
+    const planned = getVassalLifeMapPlannedRoute(vassal, pinnedNodeIds);
+    const plannedEdges = new Set(planned?.edgeKeys ?? []);
     const effectiveNodeId = hoveredNodeId ?? inspectedNodeId ?? vassal?.lifeMap?.currentNodeId
       ?? presentation.playheadNodeId ?? null;
-    const nextSignature = getArtRevision() + JSON.stringify({ presentation, effectiveNodeId, hoveredNodeId });
+    const nextSignature = getArtRevision() + JSON.stringify({
+      presentation, effectiveNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
+    });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -210,7 +227,9 @@ export function createVassalLifeMapView({
       ? presentation.viewedSec > presentation.frontierSec
         ? "PROJECTED FUTURE · RETURN TO PRESENT TO MAKE DECISIONS"
         : "FIXED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
-      : "Choose a turning point. Rewrite what follows.", {
+      : unveiling
+        ? "TIME IS UNVEILING THIS TURNING POINT"
+        : "Choose a turning point. Rewrite what follows.", {
       ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
     }, MAP_RECT.x + 22, MAP_RECT.y + 68));
     const committedPath = presentation.committedNodeIds ?? [];
@@ -226,11 +245,17 @@ export function createVassalLifeMapView({
         if (!next) continue;
         const to = nodePoint(next);
         const complete = completedEdges.has(`${node.id}:${nextId}`);
+        const plannedEdge = plannedEdges.has(`${node.id}:${nextId}`);
         const mid=(from.x+to.x)/2;
-        edges.lineStyle(complete ? 9 : 6, 0x090e0d, .9)
+        edges.lineStyle(complete || plannedEdge ? 9 : 6, 0x090e0d, .9)
           .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
-        edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, complete ? 1 : .48)
-          .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
+        if (plannedEdge && !complete) {
+          edges.lineStyle(4, PALETTE.accent, 0.85)
+            .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
+        } else {
+          edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, complete ? 1 : .48)
+            .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
+        }
       }
     }
     root.addChild(edges);
@@ -244,20 +269,22 @@ export function createVassalLifeMapView({
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
       nodeRoot.eventMode = "static";
-      nodeRoot.cursor = "pointer";
+      const reachableNode = reachable.has(node.id);
+      const inactive = !display.completed && !display.current && !display.available && !reachableNode;
+      nodeRoot.cursor = unveiling ? "wait" : canOpenModal(display, unveiling) ? "pointer" : "help";
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
       nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
       const selected = effectiveNodeId === node.id;
       const icon = new PIXI.Graphics();
       const active = display.current || display.available;
       drawLifeMapNodeIcon(icon, node, {
-        fill: selected || active ? 0xf4e7bd : display.completed ? 0xb6baa0 : 0x929a89,
-        accent: family.color ?? PALETTE.accent,
+        fill: selected || active ? 0xf4e7bd : display.completed ? 0xb6baa0 : inactive ? 0x3d423c : 0x929a89,
+        accent: inactive ? 0x6a7368 : family.color ?? PALETTE.accent,
         outline: 0x111714,
       });
-      // Brackets and a check distinguish route state without enclosing every icon.
+      if (inactive) icon.alpha = 0.42;
       const marker = new PIXI.Graphics();
-      if (selected || active || presentation.playheadNodeId === node.id) {
+      if (!inactive && (selected || active || presentation.playheadNodeId === node.id)) {
         marker.lineStyle(3, selected ? PALETTE.text : PALETTE.accent, 1);
         for (const side of [-1, 1]) marker.moveTo(side*29,-39)
           .lineTo(side*39,-39).lineTo(side*39,-24)
@@ -266,59 +293,14 @@ export function createVassalLifeMapView({
       if (display.completed) marker.lineStyle(4, 0xb5cd93, 1)
         .moveTo(-9,37).lineTo(-2,44).lineTo(12,32);
       nodeRoot.addChild(icon, marker);
+      if (pinnedNodeIds.includes(node.id)) {
+        const pin = new PIXI.Graphics();
+        drawPinMarker(pin, true);
+        nodeRoot.addChild(pin);
+      }
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
-
-    const location = getRegionReference(state, profile.locationRegionId) ?? profile.locationRegionId;
-    const hudWidth = 1040;
-    const hudX = MAP_RECT.x + MAP_RECT.width - hudWidth - 28;
-    const hud = new PIXI.Graphics();
-    roundedRect(hud, hudX, MAP_RECT.y + 18, hudWidth, 78, 10, 0x303833, PALETTE.accent, 1);
-    const portrait = createVassalPortraitView(profile.portrait, { size: 84, borderColor: PALETTE.accent });
-    portrait.position.set(hudX - 98, MAP_RECT.y + 15);
-    root.addChild(portrait, hud,
-      createText(`VASSAL · AGE ${getVassalAge(state, profile, presentation.profileSec)} · ${location}`, {
-        ...TEXT_STYLES.chip, fontSize: 18, fill: PALETTE.textMuted,
-        wordWrap: true, wordWrapWidth: 235,
-      }, hudX + 16, MAP_RECT.y + 31));
-    addResourceAmount(root, 'prestige', profile.prestige, {
-      x: hudX + 16, y: MAP_RECT.y + 56, fontSize: 26, iconSize: 32, fill: PALETTE.accent,
-    });
-    getVassalStatsPresentation(profile).forEach((stat, index) => {
-      const chip = new PIXI.Container();
-      chip.position.set(hudX + 258 + index * 180, MAP_RECT.y + 31);
-      chip.eventMode = "static";
-      chip.cursor = "help";
-      chip.hitArea = new PIXI.Rectangle(0, 0, 164, 50);
-      chip.on("pointerdown", (event) => event?.stopPropagation?.());
-      chip.on("pointerover", () => {
-        if (!pinnedStatId) showStatTooltip(stat, chip);
-      });
-      chip.on("pointerout", () => {
-        if (!pinnedStatId) tooltipView?.hide?.();
-      });
-      chip.on("pointertap", (event) => {
-        event?.stopPropagation?.();
-        if (pinnedStatId === stat.statId) hideStatTooltip();
-        else {
-          pinnedStatId = stat.statId;
-          showStatTooltip(stat, chip);
-        }
-      });
-      const chipBg = new PIXI.Graphics();
-      roundedRect(chipBg, 0, 0, 164, 50, 7, 0x39413b,
-        pinnedStatId === stat.statId ? PALETTE.accent : PALETTE.stroke,
-        pinnedStatId === stat.statId ? 2 : 1);
-      chip.addChild(chipBg,
-        createText(stat.label.toUpperCase(), {
-          ...TEXT_STYLES.chip, fontSize: 16, fill: PALETTE.textMuted,
-        }, 9, 7),
-        createText(String(stat.value), {
-          ...TEXT_STYLES.header, fontSize: 24, fill: PALETTE.text,
-        }, 9, 24));
-      root.addChild(chip);
-    });
   }
 
   return {
@@ -330,5 +312,6 @@ export function createVassalLifeMapView({
     },
     getOpenDecisionClickPoint: () => openRoot?.toGlobal
       ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
+    getPinnedNodeIds: () => [...pinnedNodeIds],
   };
 }

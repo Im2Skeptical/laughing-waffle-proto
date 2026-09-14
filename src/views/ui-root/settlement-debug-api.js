@@ -114,6 +114,8 @@ export function publishSettlementDebugApi({
   getLifeMapPresentation,
   getLifeMapDecisionSnapshot,
   getLifeMapLevelUpSnapshot,
+  getLifeMapHudSnapshot,
+  getLifeMapRecapSnapshot,
   browseSecond,
   getNavigationSnapshot,
   getNavigationClickPoint,
@@ -128,6 +130,8 @@ export function publishSettlementDebugApi({
   getLifeMapUndoClickPoint, getLifeMapInspectionClosePoint, getLifeMapInspectionCostPoint,
   getLifeMapConfirmClickPoint,
   getLifeMapLevelUpChoiceClickPoint,
+  getLifeMapLevelUpConfirmClickPoint,
+  getLifeMapRecapDismissClickPoint,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   enterBootTestRun,
@@ -181,6 +185,8 @@ export function publishSettlementDebugApi({
         lifeMap: getLifeMapPresentation?.() ?? null,
         lifeMapDecision: getLifeMapDecisionSnapshot?.() ?? null,
         lifeMapLevelUp: getLifeMapLevelUpSnapshot?.() ?? null,
+        lifeMapHud: getLifeMapHudSnapshot?.() ?? null,
+        lifeMapRecap: getLifeMapRecapSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
@@ -237,6 +243,10 @@ export function publishSettlementDebugApi({
     getLifeMapConfirmClickPoint: () => getLifeMapConfirmClickPoint?.() ?? null,
     getLifeMapLevelUpChoiceClickPoint: (index = 0) =>
       getLifeMapLevelUpChoiceClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
+    getLifeMapLevelUpConfirmClickPoint: () =>
+      getLifeMapLevelUpConfirmClickPoint?.() ?? null,
+    getLifeMapRecapDismissClickPoint: () =>
+      getLifeMapRecapDismissClickPoint?.() ?? null,
     selectWorldRegion: (regionId) => selectWorldRegion?.(regionId) ?? false,
     enterBootTestRun: () => enterBootTestRun?.(),
     getWorldPracticeClickPoint: (practiceId) =>

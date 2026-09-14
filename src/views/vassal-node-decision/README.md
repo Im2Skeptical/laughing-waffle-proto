@@ -9,7 +9,8 @@ closures stay in the orchestrator.
 
 ## Extracted modules
 
-- `constants.js` — `PANEL`, `QUALITY_COLORS`, `COST_FOOTER_HEIGHT`
+- `constants.js` — `PANEL`, `QUALITY_COLORS`, `COST_FOOTER_HEIGHT`,
+  `OPTION_COLUMN`
 - `cards.js` — `button`, `optionEffect`, `offerEffect`, `actionCard`,
   `outcomeCard`
 - `mortality.js` — `renderMortalityEstimate`

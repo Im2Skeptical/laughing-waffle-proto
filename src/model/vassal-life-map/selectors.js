@@ -85,6 +85,120 @@ export function getVassalLifeMapOutgoingNodeIds(vassal, nodeId) {
     .map((edge) => edge.toNodeId);
 }
 
+function getOutgoingMap(vassal) {
+  const outgoing = new Map();
+  for (const edge of getVassalLifeMapGraph(vassal)?.edges ?? []) {
+    if (!edge?.fromNodeId || !edge?.toNodeId) continue;
+    const list = outgoing.get(edge.fromNodeId) ?? [];
+    list.push(edge.toNodeId);
+    outgoing.set(edge.fromNodeId, list);
+  }
+  for (const list of outgoing.values()) list.sort();
+  return outgoing;
+}
+
+function collectReachable(outgoing, startIds) {
+  const seen = new Set();
+  const queue = [];
+  for (const id of startIds) {
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    queue.push(id);
+  }
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of outgoing.get(current) ?? []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+  return seen;
+}
+
+function shortestDirectedPath(outgoing, fromId, toId) {
+  if (fromId === toId) return [fromId];
+  const previous = new Map([[fromId, null]]);
+  const queue = [fromId];
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of outgoing.get(current) ?? []) {
+      if (previous.has(next)) continue;
+      previous.set(next, current);
+      if (next === toId) {
+        const path = [toId];
+        let cursor = current;
+        while (cursor != null) {
+          path.unshift(cursor);
+          cursor = previous.get(cursor);
+        }
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
+function getRouteStartIds(vassal) {
+  const currentId = vassal?.lifeMap?.currentNodeId ?? null;
+  return currentId ? [currentId] : [...(vassal?.lifeMap?.availableNodeIds ?? [])];
+}
+
+export function getVassalLifeMapReachableNodeIds(vassal) {
+  return [...collectReachable(getOutgoingMap(vassal), getRouteStartIds(vassal))];
+}
+
+export function getVassalLifeMapPlannedRoute(vassal, pinnedNodeIds = []) {
+  const pins = [...new Set((pinnedNodeIds ?? []).filter(Boolean))];
+  if (!pins.length) return null;
+  const outgoing = getOutgoingMap(vassal);
+  const starts = getRouteStartIds(vassal);
+  const reachFromPin = new Map(
+    pins.map((id) => [id, collectReachable(outgoing, [id])])
+  );
+  const ordered = [...pins].sort((left, right) => {
+    if (left === right) return 0;
+    if (reachFromPin.get(left)?.has(right)) return -1;
+    if (reachFromPin.get(right)?.has(left)) return 1;
+    return left.localeCompare(right);
+  });
+  for (let index = 0; index < ordered.length; index += 1) {
+    for (let later = index + 1; later < ordered.length; later += 1) {
+      if (!reachFromPin.get(ordered[index])?.has(ordered[later])) return null;
+    }
+  }
+  const firstPin = ordered[0];
+  const origin = starts.find((id) => id === firstPin)
+    ?? starts.filter((id) => collectReachable(outgoing, [id]).has(firstPin)).sort()[0]
+    ?? firstPin;
+  const nodeIds = [];
+  const edgeKeys = [];
+  const appendPath = (fromId, toId) => {
+    const path = shortestDirectedPath(outgoing, fromId, toId);
+    if (!path) return false;
+    for (let index = 0; index < path.length; index += 1) {
+      if (nodeIds[nodeIds.length - 1] !== path[index]) nodeIds.push(path[index]);
+      if (index > 0) edgeKeys.push(`${path[index - 1]}:${path[index]}`);
+    }
+    return true;
+  };
+  if (origin === firstPin) nodeIds.push(origin);
+  else if (!appendPath(origin, firstPin)) return null;
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (!appendPath(ordered[index - 1], ordered[index])) return null;
+  }
+  return { nodeIds, edgeKeys, pinIds: ordered };
+}
+
+export function nextVassalLifeMapPins(vassal, pinnedNodeIds, nodeId) {
+  const current = [...new Set((pinnedNodeIds ?? []).filter(Boolean))];
+  if (!nodeId) return current;
+  if (current.includes(nodeId)) return current.filter((id) => id !== nodeId);
+  const candidate = [...current, nodeId];
+  return getVassalLifeMapPlannedRoute(vassal, candidate) ? candidate : [nodeId];
+}
+
 export function getSelectedLifeMapVassals(state) {
   const lineage = getVassalLineage(state);
   return (lineage?.selectedVassalIds ?? [])

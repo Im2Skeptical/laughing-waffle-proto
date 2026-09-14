@@ -85,7 +85,9 @@ import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
 import { createWorldMapView } from "./world-map-pixi.js";
 import { createWorldMapVassalDrawerView } from "./world-map-vassal-drawer-pixi.js";
 import { createVassalLifeMapView } from "./vassal-life-map-pixi.js";
+import { createVassalLifeHudView } from "./vassal-life-hud-pixi.js";
 import { createVassalLevelUpModalView } from "./vassal-level-up-modal-pixi.js";
+import { createVassalResolutionRecapView } from "./vassal-resolution-recap-pixi.js";
 import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
@@ -198,8 +200,10 @@ let settlementGraphView = null;
 let settlementVassalChooserView = null;
 let settlementNavigationView = null;
 let vassalLifeMapView = null;
+let vassalLifeHudView = null;
 let vassalNodeDecisionModalView = null;
 let vassalLevelUpModalView = null;
+let vassalResolutionRecapView = null;
 let runCompleteView = null;
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
@@ -223,6 +227,8 @@ const settlementGraphSession = createSettlementGraphSession({
   getFrontierState: () => getSettlementFrontierState(),
   getFrontierSec: () => getSettlementFrontierSec(),
   setWorldViewMode: (mode) => setWorldViewMode(mode),
+  onPendingResolutionSettled: (payload) =>
+    settlementVassalFlow?.noteResolutionSettled?.(payload),
 });
 const {
   getSettlementGraphScope,
@@ -423,6 +429,7 @@ const settlementVassalFlow = createSettlementVassalFlow({
   getLifeMapView: () => vassalLifeMapView,
   getNodeDecisionView: () => vassalNodeDecisionModalView,
   getLevelUpView: () => vassalLevelUpModalView,
+  getRecapView: () => vassalResolutionRecapView,
   getPrototypeView: () => prototypeView,
   getNavigationView: () => settlementNavigationView,
   requestPause: () => requestPauseBeforeDrag(),
@@ -445,6 +452,8 @@ const {
   previewLifeMapCandidate,
   rerollLifeMapCandidates,
   replaceSettlementVassalCandidate,
+  getResolutionRecap,
+  dismissResolutionRecap,
 } = settlementVassalFlow;
 
 function applySettlementDebugOverrides(overrides) {
@@ -1053,6 +1062,14 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   },
 });
 
+vassalLifeHudView = createVassalLifeHudView({
+  layer: modalLayer,
+  tooltipView,
+  getPresentation: () => getSettlementLifeMapPresentation(),
+  isVisible: () => worldViewMode === "vassalLife",
+  getDeltas: () => vassalNodeDecisionModalView?.getHudDeltas?.() ?? null,
+});
+
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
@@ -1066,6 +1083,14 @@ vassalLevelUpModalView = createVassalLevelUpModalView({
     setWorldViewMode("map");
     worldMapView?.refresh?.();
   },
+});
+
+vassalResolutionRecapView = createVassalResolutionRecapView({
+  app,
+  layer: modalLayer,
+  getRecap: () => getResolutionRecap?.() ?? null,
+  isLifegraphVisible: () => worldViewMode === "vassalLife",
+  onDismiss: () => dismissResolutionRecap?.(),
 });
 
 function getSettlementVassalInterventionMarkers(state) {
@@ -1290,6 +1315,8 @@ function resizeCanvas() {
   runCompleteView?.resize?.();
   vassalNodeDecisionModalView?.resize?.();
   vassalLevelUpModalView?.resize?.();
+  vassalResolutionRecapView?.resize?.();
+  vassalLifeHudView?.refresh?.();
 }
 
 function publishSettlementDebugApi() {
@@ -1335,6 +1362,8 @@ function publishSettlementDebugApi() {
     },
     getLifeMapDecisionSnapshot: () => vassalNodeDecisionModalView?.getSemanticSnapshot?.() ?? null,
     getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
+    getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
+    getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
@@ -1404,6 +1433,10 @@ function publishSettlementDebugApi() {
     getLifeMapConfirmClickPoint: () => vassalNodeDecisionModalView?.getConfirmClickPoint?.() ?? null,
     getLifeMapLevelUpChoiceClickPoint: (index) =>
       vassalLevelUpModalView?.getChoiceClickPoint?.(index) ?? null,
+    getLifeMapLevelUpConfirmClickPoint: () =>
+      vassalLevelUpModalView?.getConfirmClickPoint?.() ?? null,
+    getLifeMapRecapDismissClickPoint: () =>
+      vassalResolutionRecapView?.getDismissClickPoint?.() ?? null,
   });
 }
 
@@ -1419,8 +1452,10 @@ syncSettlementVassalSelectionPauseState();
 prototypeView.init();
 worldMapView.init();
 vassalLifeMapView.init();
+vassalLifeHudView.init();
 vassalNodeDecisionModalView.init();
 vassalLevelUpModalView.init();
+vassalResolutionRecapView.init();
 setWorldViewMode("map");
 settlementGraphView.open();
 settlementGraphSeriesMenu?.render?.();
@@ -1481,8 +1516,10 @@ app.ticker.add((delta) => {
   prototypeView.update(frameDt);
   worldMapView.update(frameDt);
   vassalLifeMapView.update(frameDt);
+  vassalLifeHudView.update(frameDt);
   vassalNodeDecisionModalView.update(frameDt);
   vassalLevelUpModalView.update(frameDt);
+  vassalResolutionRecapView.update(frameDt);
   settlementGraphView.render();
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);

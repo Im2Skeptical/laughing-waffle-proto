@@ -649,6 +649,10 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId
   );
   assert.equal(inspectedOnly, null, "a single click inspects a node without entering it");
+  const hudWhileOpen = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapHud
+  );
+  assert.equal(hudWhileOpen?.visible, true, "the Vassal HUD stays visible over the decision modal");
   const enterNodePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()
   );
@@ -702,6 +706,11 @@ try {
   assert.equal(committedVassalHistory.lineage.currentVassal.currentNodeId, null);
   assert.ok(committedVassalHistory.lineage.currentVassal.availableNodeIds.length >= 1,
     "outgoing nodes become available only after survival");
+  const recapDismiss = await page.evaluate(
+    () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapRecapDismissClickPoint()
+  );
+  assert.ok(recapDismiss, "resolved nodes show a recap window");
+  await clickDesignPoint(page, recapDismiss);
   assert.ok(
     committedVassalHistory.graph.historyZones.some(
       (zone) => zone.kind === "fixedHistory" && zone.endSec > zone.startSec

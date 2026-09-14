@@ -7,6 +7,7 @@ re-exports the previous public API; internals live here.
 
 - `selectors.js`
   - Lineage/current/graph/node getters, committed and playhead node ids,
+    reachable-from-current ids, planned pin routes,
     age, prestige/development income, stat presentation, cost helpers,
     and candidate-pool reads. Also holds shared clone/shuffle/site
     helpers so shop, lifecycle, and presentation stay acyclic.

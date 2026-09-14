@@ -15,15 +15,15 @@ export function renderMortalityEstimate(parent, estimate, rect, enabled) {
     enabled ? 0x353a35 : 0x30332f, riskColor, 2);
   parent.addChild(gfx,
     createText("MORTALITY ESTIMATE", {
-      ...TEXT_STYLES.chip, fontSize: 12, fill: riskColor,
-    }, rect.x + 14, rect.y + 10),
+      ...TEXT_STYLES.chip, fontSize: 11, fill: riskColor,
+    }, rect.x + 12, rect.y + 6),
     createText(`${totalPercent}% chance of death`, {
-      ...TEXT_STYLES.header, fontSize: 19, fill: enabled ? riskColor : PALETTE.textMuted,
-    }, rect.x + 14, rect.y + 29),
+      ...TEXT_STYLES.header, fontSize: 17, fill: enabled ? riskColor : PALETTE.textMuted,
+    }, rect.x + 12, rect.y + 22),
     createText(`Time ${estimate.timeLabel}  ·  Age ${estimate.currentAge} → ${estimate.projectedAge}`, {
-      ...TEXT_STYLES.body, fontSize: 13, fill: PALETTE.textMuted,
-      wordWrap: true, wordWrapWidth: rect.width - 28,
-    }, rect.x + 14, rect.y + 54)
+      ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.textMuted,
+      wordWrap: true, wordWrapWidth: rect.width - 24,
+    }, rect.x + 12, rect.y + 44)
   );
   const factors = [];
   if (immediatePercent) factors.push(`Selection ${immediatePercent}% now`);
@@ -31,7 +31,7 @@ export function renderMortalityEstimate(parent, estimate, rect, enabled) {
   parent.addChild(createText(factors.length
     ? factors.join("  ·  ")
     : "No immediate or age-based risk at this resolution.", {
-    ...TEXT_STYLES.body, fontSize: 12, fill: PALETTE.textMuted,
-    wordWrap: true, wordWrapWidth: rect.width - 28,
-  }, rect.x + 14, rect.y + 74));
+    ...TEXT_STYLES.body, fontSize: 11, fill: PALETTE.textMuted,
+    wordWrap: true, wordWrapWidth: rect.width - 24,
+  }, rect.x + 12, rect.y + 64));
 }
