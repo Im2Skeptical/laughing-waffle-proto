@@ -45,7 +45,7 @@ export function createVassalNodeDecisionModalView({
   let tableauRoots = [];
   let inspectionRoot = null;
   let lastDecision = null;
-  const tableau = { x: PANEL.x+1200, practiceY: PANEL.y+210, structureY: PANEL.y+474, width: 928 };
+  const tableau = { x: PANEL.x+1200, practiceY: PANEL.y+168, structureY: PANEL.y+418, width: 928 };
   let dragTargetIndex = null;
   let enterRoot = null;
   let optionRoots = [];
@@ -236,26 +236,26 @@ export function createVassalNodeDecisionModalView({
     if (!vassal || !node || !family) {
       root.addChild(createText("No Lifegraph decision is available.", {
         ...TEXT_STYLES.header, fontSize: 28,
-      }, PANEL.x + 50, PANEL.y + 70));
+      }, PANEL.x + 50, PANEL.y + 88));
       return;
     }
 
     const projected = decision?.projectedPrestige ?? vassal.prestige;
     root.addChild(
       createText(`${family.glyph}  ${family.label}`, {
-        ...TEXT_STYLES.header, fontSize: 30, fill: family.color,
-      }, PANEL.x + 44, PANEL.y + 26),
+        ...TEXT_STYLES.header, fontSize: 28, fill: family.color,
+      }, PANEL.x + 44, PANEL.y + 48),
       createText(family.description, {
-        ...TEXT_STYLES.body, fontSize: 17, fill: PALETTE.textMuted,
+        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 780,
-      }, PANEL.x + 44, PANEL.y + 66),
+      }, PANEL.x + 44, PANEL.y + 84),
     );
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
     const simpleOutcomes = node.family === 'patronage' || node.family === 'development';
     if (hasContext) {
       const divider = new PIXI.Graphics();
-      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + 112)
+      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + 118)
         .lineTo(PANEL.x + 1160, PANEL.y + PANEL.height - 92);
       root.addChild(divider);
     }
@@ -280,11 +280,11 @@ export function createVassalNodeDecisionModalView({
     } else if (nodeState.resolving) {
       root.addChild(createText("DECISION COMMITTED · RESOLUTION IN PROGRESS", {
         ...TEXT_STYLES.header, fontSize: 25, fill: PALETTE.accent,
-      }, PANEL.x + 54, PANEL.y + 170));
+      }, PANEL.x + 54, PANEL.y + 168));
     } else {
       const isShop = nodeState.contentMode === "shop";
       const cardGap = OPTION_COLUMN.gap;
-      const cardY = PANEL.y + 136;
+      const cardY = PANEL.y + 128;
       const cardWidth = OPTION_COLUMN.width;
       const cardHeight = OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
@@ -297,7 +297,7 @@ export function createVassalNodeDecisionModalView({
       if (isShop) {
         root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 112));
+        }, PANEL.x + 54, PANEL.y + 114));
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const inspect=()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);};
@@ -320,7 +320,7 @@ export function createVassalNodeDecisionModalView({
       } else {
         root.addChild(createText("CHOOSE ONE", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 112));
+        }, PANEL.x + 54, PANEL.y + 114));
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getAdjustedVassalPhaseCost(vassal, option.phaseCost ?? 0);
@@ -362,11 +362,11 @@ export function createVassalNodeDecisionModalView({
     if (decision?.contextKind === "settlement" && settlement) {
       root.addChild(createText(`SETTLEMENT · ${decision?.previewRegionLabel ?? vassal.locationRegionId}`, {
         ...TEXT_STYLES.header, fontSize: 22,
-      }, sx, PANEL.y + 116));
+      }, sx, PANEL.y + 114));
       root.addChild(createText(
         `Food ${Math.round(settlement.looseFood ?? 0)} loose / ${Math.round(settlement.storedFood ?? 0)} stored    Currency ${Math.round(settlement.currency ?? 0)}`,
-        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + 150));
-      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+170));
+        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + 148));
+      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+168));
       (settlement.practices??[]).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
@@ -382,7 +382,7 @@ export function createVassalNodeDecisionModalView({
         const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:()=>{pinnedInspectionId='displaced:'+face.definitionId;render(true);}});
         card.rotation=.12;
       });
-      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+438));
+      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+396));
       addConstructionStrip(root,{x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},{
         slots:settlement.structures,capacity:settlement.structureCapacity,demolished:settlement.demolishedStructures,time:state?.tSec??0,
         onInspect:piece=>{pinnedInspectionId='structure:'+piece.placementId;render(true);},
@@ -390,11 +390,11 @@ export function createVassalNodeDecisionModalView({
       });
     } else if (decision?.contextKind === "regionalMap") {
       renderRegionalMap(root, decision.regionalMap, {
-        x: sx, y: PANEL.y + 116, width: 830, height: 468,
+        x: sx, y: PANEL.y + 114, width: 830, height: 468,
       });
     } else if (decision?.contextKind === "vassal") {
       renderVassalProjection(root, decision.vassalProjection, {
-        x: sx, y: PANEL.y + 116, width: 830, height: 468,
+        x: sx, y: PANEL.y + 114, width: 830, height: 468,
       });
     }
 
@@ -415,7 +415,7 @@ export function createVassalNodeDecisionModalView({
     }
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
-        x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 168, width: 340, height: 88,
+        x: PANEL.x + PANEL.width - 740, y: PANEL.y + PANEL.height - 88, width: 340, height: 80,
       }, canConfirm);
     }
     confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },

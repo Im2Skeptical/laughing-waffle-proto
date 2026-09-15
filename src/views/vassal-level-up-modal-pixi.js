@@ -1,9 +1,9 @@
-import { getVassalStatPresentation, getVassalStatsPresentation } from "../model/vassal-life-map.js";
+import { getVassalStatPresentation } from "../model/vassal-life-map.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { addIllustration, getArtRevision } from './chronicle-art.js';
 
-const PANEL = Object.freeze({ x: 330, y: 150, width: 1764, height: 620 });
+const PANEL = Object.freeze({ x: 330, y: 176, width: 1764, height: 594 });
 const STAT_COLORS = Object.freeze({
   cunning: 0xc58b5b,
   wisdom: 0x6ca6d7,
@@ -77,7 +77,7 @@ function addChoiceCard(parent, vassal, choice, statId, rect, selected, onSelect)
 }
 
 export function createVassalLevelUpModalView({
-  app, layer, getPresentation, isLifegraphVisible, onChoose, onWorldMap,
+  app, layer, getPresentation, isLifegraphVisible, isRecapOpen, onChoose,
 } = {}) {
   const root = new PIXI.Container();
   root.visible = false;
@@ -96,7 +96,8 @@ export function createVassalLevelUpModalView({
     const vassal = presentation.vassal;
     const queue = vassal?.developmentChoiceQueue ?? [];
     const visible = isLifegraphVisible?.() === true
-      && presentation.readOnly !== true && queue.length > 0;
+      && presentation.readOnly !== true && queue.length > 0
+      && isRecapOpen?.() !== true;
     const wasVisible = root.visible;
     root.visible = visible;
     if (!visible) {
@@ -141,23 +142,13 @@ export function createVassalLevelUpModalView({
         ...TEXT_STYLES.chip, fontSize: 15, fill: PALETTE.accent,
       }, PANEL.x + PANEL.width - 270, PANEL.y + 34));
 
-    const stats = getVassalStatsPresentation(vassal);
-    stats.forEach((stat, index) => {
-      const x = PANEL.x + 42 + index * 410;
-      root.addChild(createText(`${stat.label} ${stat.value} · ${stat.powerLabel}`, {
-        ...TEXT_STYLES.body, fontSize: 14,
-        fill: STAT_COLORS[stat.statId] ?? PALETTE.textMuted,
-        wordWrap: true, wordWrapWidth: 388,
-      }, x, PANEL.y + 112));
-    });
-
     const cardWidth = 520;
     const gap = 26;
     const totalWidth = cardWidth * 3 + gap * 2;
     const startX = PANEL.x + (PANEL.width - totalWidth) / 2;
     choiceRoots = choice.offeredStatIds.map((statId, index) => addChoiceCard(
       root, vassal, choice, statId,
-      { x: startX + index * (cardWidth + gap), y: PANEL.y + 164, width: cardWidth, height: 342 },
+      { x: startX + index * (cardWidth + gap), y: PANEL.y + 124, width: cardWidth, height: 360 },
       selectedStatId === statId,
       (nextStatId) => {
         if (performance.now() - openedAtMs < INPUT_LOCK_MS) return;
@@ -166,16 +157,12 @@ export function createVassalLevelUpModalView({
       }
     ));
     confirmRoot = addButton(root, {
-      x: PANEL.x + PANEL.width - 600, y: PANEL.y + PANEL.height - 72,
+      x: PANEL.x + PANEL.width - 310, y: PANEL.y + PANEL.height - 72,
       width: 266, height: 48,
     }, "CONFIRM", !!selectedStatId, () => {
       if (!selectedStatId || performance.now() - openedAtMs < INPUT_LOCK_MS) return;
       onChoose?.(choice.choiceId, selectedStatId);
     });
-    addButton(root, {
-      x: PANEL.x + PANEL.width - 310, y: PANEL.y + PANEL.height - 72,
-      width: 266, height: 48,
-    }, "VIEW WORLD MAP", true, () => onWorldMap?.(vassal.locationRegionId));
   }
 
   return {
@@ -198,5 +185,9 @@ export function createVassalLevelUpModalView({
       queue: getPresentation?.()?.vassal?.developmentChoiceQueue ?? [],
       selectedStatId,
     }),
+    getHudDeltas() {
+      if (!root.visible || !selectedStatId) return null;
+      return { prestige: 0, stats: { [selectedStatId]: 1 } };
+    },
   };
 }

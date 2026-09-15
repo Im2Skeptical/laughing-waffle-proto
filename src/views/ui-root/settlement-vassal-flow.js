@@ -3,9 +3,11 @@ import {
   buildDetailedVassalSelectionPool,
   replaceDetailedVassalSelectionCandidate,
 } from "../../model/detailed-settlements.js";
+import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import {
   formatVassalPhaseDuration,
   getCurrentLifeMapVassal,
+  getVassalAge,
   getVassalDevelopmentIncome,
   getVassalPendingResolution,
   getVassalPrestigeIncome,
@@ -113,17 +115,34 @@ export function createSettlementVassalFlow({
 
   function captureResolutionRecap({
     vassalId, beforeState, prestigeIncome, developmentIncome, phaseCost,
+    prestigeBefore, expBefore, ageBefore,
   } = {}) {
     const afterState = playback.getSettlementFrontierState();
     const afterVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
+    const threshold = VASSAL_LIFE_TUNING.developmentThreshold;
+    const startPrestige = Number.isFinite(prestigeBefore) ? prestigeBefore : 0;
+    const startExp = Number.isFinite(expBefore) ? expBefore : 0;
+    const earnedLevelCount = afterVassal?.developmentChoiceQueue?.length
+      ?? Math.floor((startExp + (developmentIncome ?? 0)) / threshold);
     resolutionRecap = {
       vassalId,
       timeLabel: formatVassalPhaseDuration(phaseCost ?? 0, beforeState),
       prestigeIncome: prestigeIncome ?? 0,
       developmentIncome: developmentIncome ?? 0,
+      ageBefore: Number.isFinite(ageBefore) ? ageBefore : 0,
+      ageAfter: getVassalAge(afterState, afterVassal) || ageBefore || 0,
+      prestigeBefore: startPrestige,
+      prestigeAfter: Number.isFinite(afterVassal?.prestige)
+        ? afterVassal.prestige : startPrestige + (prestigeIncome ?? 0),
+      expBefore: startExp,
+      expAfter: Number.isFinite(afterVassal?.developmentProgress)
+        ? afterVassal.developmentProgress
+        : (startExp + (developmentIncome ?? 0)) % threshold,
+      expThreshold: threshold,
+      earnedLevelCount,
       endedReason: afterVassal?.endedReason ?? null,
       deathCause: afterVassal?.deathCause ?? null,
-      queuedLevelUp: (afterVassal?.developmentChoiceQueue ?? []).length > 0,
+      queuedLevelUp: earnedLevelCount > 0,
     };
     getRecapView?.()?.refresh?.();
     getLevelUpView?.()?.refresh?.();
@@ -131,6 +150,7 @@ export function createSettlementVassalFlow({
 
   function noteResolutionSettled({
     beforeState, beforeVassalId, pending, prestigeIncome, developmentIncome,
+    prestigeBefore, expBefore, ageBefore,
   } = {}) {
     if (!beforeVassalId) return;
     captureResolutionRecap({
@@ -138,6 +158,9 @@ export function createSettlementVassalFlow({
       beforeState,
       prestigeIncome,
       developmentIncome,
+      prestigeBefore,
+      expBefore,
+      ageBefore,
       phaseCost: pending?.phaseCost ?? 0,
     });
   }
@@ -146,6 +169,7 @@ export function createSettlementVassalFlow({
     const recap = resolutionRecap;
     resolutionRecap = null;
     getRecapView?.()?.refresh?.();
+    getLevelUpView?.()?.refresh?.();
     if (recap?.endedReason === "died" || recap?.endedReason === "retired") {
       setWorldViewMode?.("map");
       getWorldMapView?.()?.refresh?.();
@@ -166,6 +190,9 @@ export function createSettlementVassalFlow({
     const recapIncome = beforeVassal ? {
       prestigeIncome: getVassalPrestigeIncome(beforeVassal),
       developmentIncome: getVassalDevelopmentIncome(beforeVassal),
+      prestigeBefore: beforeVassal.prestige ?? 0,
+      expBefore: beforeVassal.developmentProgress ?? 0,
+      ageBefore: getVassalAge(beforeState, beforeVassal),
     } : null;
     const result = runner.dispatchActionAtCurrentSecond?.(kind, payload, {
       reason: `vassalLife:${kind}`,
