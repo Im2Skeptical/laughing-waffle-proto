@@ -13,7 +13,7 @@ import { getArtRevision } from "./chronicle-art.js";
 const YEAR_STRIP = Object.freeze({ x: 590, y: 16, width: 1108, height: 54 });
 export const LIFE_HUD = Object.freeze({
   x: YEAR_STRIP.x - 8,
-  y: YEAR_STRIP.y + 32,
+  y: YEAR_STRIP.y + YEAR_STRIP.height - 6,
   barHeight: 58,
   portraitSize: 84,
   width: 952,
