@@ -5,6 +5,7 @@ import {
 import { GRAPH_METRICS } from "../../model/graph-metrics.js";
 import {
   getCurrentLifeMapVassal,
+  getVassalAge,
   getVassalDevelopmentIncome,
   getVassalPendingResolution,
   getVassalPrestigeIncome,
@@ -183,6 +184,9 @@ export function createSettlementGraphSession({
     const recapIncome = beforeVassal && beforePendingResolution ? {
       prestigeIncome: getVassalPrestigeIncome(beforeVassal),
       developmentIncome: getVassalDevelopmentIncome(beforeVassal),
+      prestigeBefore: beforeVassal.prestige ?? 0,
+      expBefore: beforeVassal.developmentProgress ?? 0,
+      ageBefore: getVassalAge(beforeState, beforeVassal),
     } : null;
     getForecastController?.()?.processPendingCommit?.({
       clearForecastRevealRestart: () =>

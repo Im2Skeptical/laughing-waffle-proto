@@ -113,14 +113,16 @@ contract: `ai/visual-overhaul.md`.
   control or a double-tap on the selected candidate confirms it. Clicking
   outside dismisses the chooser without changing
   its authoritative pool. Selection opens a dedicated full-topology Life Map
-  screen. The Lifegraph uses the full playfield plus the same portrait and a
-  compact Vassal HUD containing Prestige and all four stats. The HUD stays
-  visible above the decision modal and shows signed Prestige and stat deltas
-  for the hovered or selected choice. Stat hover/tap
+  screen. The Lifegraph keeps a Vassal Chronicle label and a centered circular
+  portrait HUD fused into Prestige, EXP `n/10`, and the four stats. The HUD stays
+  fully lit above recap and decision modals and shows signed Prestige and stat deltas
+  for the hovered or selected choice; recap counts those values up from before to after. Stat hover/tap
   details show the current
   calculated income or discount power. Clicking an available, current, or
   already-committed node opens a large shared decision modal; other nodes show
-  a tooltip with a pin instead. Pinning highlights one forward route through
+  a tooltip with a non-interactive pin mark. Pinning is a second click on the
+  node. Hover tooltips dismiss when the pointer leaves; touch keeps the selected
+  node's tooltip until another tap. Pinning highlights one forward route through
   every pinned node and survives screen changes until the Vassal changes. An
   incompatible pin replaces the previous set. Nodes unreachable from the
   current position are greyed. While a node is unveiling, the Lifegraph uses
@@ -128,8 +130,9 @@ contract: `ai/visual-overhaul.md`.
   reveals its persisted options or inventory. Card art opens a readable,
   scrollable inspection of complete effects and quality/tags; option rectangles
   keep a consistent three-column size, titles stay inside the rectangle, and
-  cost footers sit below it. Confirmation remains separate, with the mortality
-  estimate stacked above Confirm on the right. The modal has no Close button;
+  cost footers sit below it. The modal leaves a top bay for the centered HUD so
+  the divider does not run through the portrait. Confirmation remains separate, with the mortality
+  estimate to the left of Confirm. The modal has no Close button;
   the dimmer still dismisses it. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
   illustrated inset, followed by
@@ -172,12 +175,13 @@ contract: `ai/visual-overhaul.md`.
   Hover/tap details identify each node type. Public Works uses a hammer
   silhouette; Practice Reform uses an open-hand governor mark.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
-  visible; a card tap selects a stat and Confirm applies it, with a short input
-  lock after the popup appears. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
+  visible, after the recap is dismissed if a level was earned; a card tap selects a stat
+  and Confirm applies it, with a short input lock after the popup appears. The
+  HUD previews the selected stat. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
   restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary. When that boundary settles, a recap window
-  reports time passed, Prestige income, and EXP. Death or retirement replaces
+  reports time passed and from→to Age, Prestige, and EXP. Death or retirement replaces
   that recap; dismissing it is what returns to the Regional Map.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;

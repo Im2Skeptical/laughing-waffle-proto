@@ -1062,27 +1062,15 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   },
 });
 
-vassalLifeHudView = createVassalLifeHudView({
-  layer: modalLayer,
-  tooltipView,
-  getPresentation: () => getSettlementLifeMapPresentation(),
-  isVisible: () => worldViewMode === "vassalLife",
-  getDeltas: () => vassalNodeDecisionModalView?.getHudDeltas?.() ?? null,
-});
-
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
   getPresentation: () => getSettlementLifeMapPresentation(),
   isLifegraphVisible: () => worldViewMode === "vassalLife",
+  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
   onChoose: (choiceId, statId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, { choiceId, statId }
   ),
-  onWorldMap: (regionId) => {
-    if (regionId) selectedWorldRegionId = regionId;
-    setWorldViewMode("map");
-    worldMapView?.refresh?.();
-  },
 });
 
 vassalResolutionRecapView = createVassalResolutionRecapView({
@@ -1091,6 +1079,20 @@ vassalResolutionRecapView = createVassalResolutionRecapView({
   getRecap: () => getResolutionRecap?.() ?? null,
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   onDismiss: () => dismissResolutionRecap?.(),
+});
+
+vassalLifeHudView = createVassalLifeHudView({
+  layer: modalLayer,
+  tooltipView,
+  getPresentation: () => getSettlementLifeMapPresentation(),
+  isVisible: () => worldViewMode === "vassalLife",
+  getDeltas: () => {
+    if (vassalResolutionRecapView?.isOpen?.()) return null;
+    return vassalLevelUpModalView?.getHudDeltas?.()
+      ?? vassalNodeDecisionModalView?.getHudDeltas?.()
+      ?? null;
+  },
+  getCountUp: () => getResolutionRecap?.() ?? null,
 });
 
 function getSettlementVassalInterventionMarkers(state) {

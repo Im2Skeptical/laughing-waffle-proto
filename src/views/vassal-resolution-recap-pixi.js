@@ -1,8 +1,8 @@
+import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const COMPACT = Object.freeze({ x: 70, y: 16, width: 500, height: 118 });
-const BLOCKING = Object.freeze({ x: 620, y: 220, width: 1200, height: 420 });
+const PANEL = Object.freeze({ x: 612, y: 210, width: 1200, height: 460 });
 
 function addButton(parent, rect, label, onPress) {
   const root = new PIXI.Container();
@@ -31,6 +31,19 @@ function deathCopy(cause) {
     return "They died of age after the time spent on this turning point.";
   }
   return "They died during this turning point.";
+}
+
+function changeLine(parent, x, y, label, before, after, unit = "") {
+  const changed = before !== after;
+  parent.addChild(
+    createText(label, {
+      ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
+    }, x, y),
+    createText(`${before}${unit}  →  ${after}${unit}`, {
+      ...TEXT_STYLES.title, fontSize: 24,
+      fill: changed ? PALETTE.accent : PALETTE.text,
+    }, x, y + 22)
+  );
 }
 
 export function createVassalResolutionRecapView({
@@ -62,17 +75,13 @@ export function createVassalResolutionRecapView({
     clearChildren(root);
     dismissRoot = null;
 
-    const compact = recap.queuedLevelUp === true && !ended;
-    const panel = compact ? COMPACT : BLOCKING;
-    if (!compact) {
-      const blocker = new PIXI.Graphics();
-      blocker.beginFill(0x171713, 0.72).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
-      blocker.eventMode = "static";
-      blocker.on("pointerdown", (event) => event?.stopPropagation?.());
-      root.addChild(blocker);
-    }
+    const blocker = new PIXI.Graphics();
+    blocker.beginFill(0x171713, 0.62).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+    blocker.eventMode = "static";
+    blocker.on("pointerdown", (event) => event?.stopPropagation?.());
+    root.addChild(blocker);
     const bg = new PIXI.Graphics();
-    roundedRect(bg, panel.x, panel.y, panel.width, panel.height, 16,
+    roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 16,
       0x292f2b, recap.endedReason === "died" ? PALETTE.red : PALETTE.accent, 3);
     bg.eventMode = "static";
     bg.on("pointertap", (event) => event?.stopPropagation?.());
@@ -82,36 +91,42 @@ export function createVassalResolutionRecapView({
       : recap.endedReason === "retired" ? "A LIFE COMPLETED"
         : "TURNING POINT RESOLVED";
     root.addChild(createText(title, {
-      ...TEXT_STYLES.header, fontSize: compact ? 24 : 32,
+      ...TEXT_STYLES.header, fontSize: 32,
       fill: recap.endedReason === "died" ? PALETTE.red : PALETTE.accent,
-    }, panel.x + 36, panel.y + 22));
+    }, PANEL.x + 44, PANEL.y + 28));
 
     if (recap.endedReason === "died") {
       root.addChild(createText(deathCopy(recap.deathCause), {
         ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.text,
-        wordWrap: true, wordWrapWidth: panel.width - 72,
-      }, panel.x + 36, panel.y + 78));
+        wordWrap: true, wordWrapWidth: PANEL.width - 88,
+      }, PANEL.x + 44, PANEL.y + 88));
     } else if (recap.endedReason === "retired") {
       root.addChild(createText("This vassal finished their chronicle and retired.", {
         ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.text,
-        wordWrap: true, wordWrapWidth: panel.width - 72,
-      }, panel.x + 36, panel.y + 78));
+        wordWrap: true, wordWrapWidth: PANEL.width - 88,
+      }, PANEL.x + 44, PANEL.y + 88));
     } else {
-      const summary = [
-        recap.timeLabel ? `Time passed  ${recap.timeLabel}` : null,
-        `+${recap.prestigeIncome ?? 0} Prestige`,
-        `+${recap.developmentIncome ?? 0} EXP`,
-      ].filter(Boolean).join("    ·    ");
-      root.addChild(createText(summary, {
-        ...TEXT_STYLES.title, fontSize: compact ? 20 : 24, fill: PALETTE.text,
-        wordWrap: true, wordWrapWidth: panel.width - 280,
-      }, panel.x + 36, panel.y + (compact ? 62 : 90)));
+      root.addChild(createText(recap.timeLabel ? `Time passed  ${recap.timeLabel}` : "Time passed", {
+        ...TEXT_STYLES.title, fontSize: 22, fill: PALETTE.text,
+      }, PANEL.x + 44, PANEL.y + 90));
+      const threshold = recap.expThreshold ?? VASSAL_LIFE_TUNING.developmentThreshold;
+      changeLine(root, PANEL.x + 44, PANEL.y + 150, "AGE", recap.ageBefore ?? 0, recap.ageAfter ?? 0);
+      changeLine(root, PANEL.x + 360, PANEL.y + 150, "PRESTIGE", recap.prestigeBefore ?? 0, recap.prestigeAfter ?? 0);
+      changeLine(root, PANEL.x + 700, PANEL.y + 150, "EXP",
+        `${recap.expBefore ?? 0}/${threshold}`, `${recap.expAfter ?? 0}/${threshold}`);
+      if (recap.queuedLevelUp) {
+        const count = recap.earnedLevelCount || 1;
+        root.addChild(createText(count === 1 ? "Level up earned" : `${count} level ups earned`, {
+          ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.green,
+        }, PANEL.x + 44, PANEL.y + 250));
+      }
     }
 
-    const buttonLabel = ended ? "RETURN TO MAP" : "CONTINUE";
+    const buttonLabel = ended ? "RETURN TO MAP"
+      : recap.queuedLevelUp ? "CONTINUE TO LEVEL UP" : "CONTINUE";
     dismissRoot = addButton(root, {
-      x: panel.x + panel.width - 280, y: panel.y + panel.height - 64,
-      width: 244, height: 44,
+      x: PANEL.x + PANEL.width - 320, y: PANEL.y + PANEL.height - 72,
+      width: 276, height: 48,
     }, buttonLabel, () => onDismiss?.(recap));
   }
 

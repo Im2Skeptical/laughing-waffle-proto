@@ -446,22 +446,14 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       titleNode.y = cursorY;
       container.addChild(titleNode);
       if (spec.pin === true) {
-        const pin = new PIXI.Container();
-        pin.position.set(contentWidth + padding - 28, cursorY - 2);
-        pin.eventMode = "static";
-        pin.cursor = "pointer";
-        pin.hitArea = new PIXI.Rectangle(0, 0, 28, 28);
-        pin.on("pointertap", (event) => {
-          event?.stopPropagation?.();
-          activePinHandler?.();
-        });
         const glyph = new PIXI.Graphics();
+        glyph.position.set(contentWidth + padding - 28, cursorY - 2);
+        glyph.eventMode = "none";
         const fill = spec.pinned === true ? (spec.accentColor ?? BG_STROKE) : MUTED_TEXT;
         glyph.beginFill(fill, spec.pinned === true ? 1 : 0.85)
           .drawPolygon([14, 2, 22, 12, 17, 12, 17, 22, 11, 22, 11, 12, 6, 12])
           .endFill();
-        pin.addChild(glyph);
-        container.addChild(pin);
+        container.addChild(glyph);
       }
       cursorY += titleNode.height + 2;
     }
@@ -559,8 +551,8 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       container.interactiveChildren=!dismissOnExit;
       container.visible=true;return;
     }
-    container.eventMode = spec?.pin === true ? "static" : "none";
-    container.interactiveChildren = true;
+    container.eventMode = "none";
+    container.interactiveChildren = false;
 
     const normalizedSpec = normalizeTooltipSpec(spec);
     activePinHandler = typeof spec?.onPin === "function" ? spec.onPin : null;

@@ -58,6 +58,7 @@ export function createVassalLifeMapView({
   let openRoot = null;
   let layoutPoints = new Map();
   let pinnedNodeIds = [];
+  let lastPointerType = "mouse";
   const nodePoint=node=>layoutPoints.get(node.id)??fallbackNodePoint(node);
 
   function showNodeTooltip(node, target, vassal) {
@@ -73,7 +74,6 @@ export function createVassalLifeMapView({
       scale: 2,
       pin: true,
       pinned: pinnedNodeIds.includes(node.id),
-      onPin: () => togglePin(vassal, node.id),
     }, target.getBounds());
   }
 
@@ -87,7 +87,8 @@ export function createVassalLifeMapView({
   function clearNodeHover() {
     if (hoveredNodeId == null) return;
     hoveredNodeId = null;
-    if (inspectedNodeId == null) tooltipView?.hide?.();
+    if (lastPointerType !== "touch") tooltipView?.hide?.();
+    else if (inspectedNodeId == null) tooltipView?.hide?.();
     render(true);
   }
 
@@ -105,6 +106,7 @@ export function createVassalLifeMapView({
   }
 
   root.on("pointerdown", (event) => {
+    lastPointerType = event?.pointerType === "touch" ? "touch" : "mouse";
     const local = root.toLocal(event.global);
     const presentation = getPresentation?.() ?? {};
     const node = getNodeAtPoint(local, presentation);
@@ -122,6 +124,8 @@ export function createVassalLifeMapView({
   });
 
   root.on("pointermove", (event) => {
+    if (event?.pointerType === "touch") return;
+    lastPointerType = "mouse";
     const presentation = getPresentation?.() ?? {};
     const node = getNodeAtPoint(root.toLocal(event.global), presentation);
     if (node?.id === hoveredNodeId) return;
@@ -147,20 +151,22 @@ export function createVassalLifeMapView({
     const sameNode = lastClick.nodeId === node.id
       && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
     lastClick = { nodeId: node.id, atMs: now };
-    inspectedNodeId = node.id;
     hoveredNodeId = null;
     if (canOpenModal(display, unveiling)) {
+      inspectedNodeId = node.id;
       tooltipView?.hide?.();
       if (sameNode && display.available) onEnterNode?.(node.id);
       onOpenDecision?.(node.id);
       render(true);
       return;
     }
-    if (sameNode) togglePin(vassal, node.id);
-    else {
-      render(true);
-      showNodeTooltip(node, nodeRoots.get(node.id), vassal);
+    if (sameNode) {
+      togglePin(vassal, node.id);
+      return;
     }
+    inspectedNodeId = lastPointerType === "touch" ? node.id : null;
+    render(true);
+    showNodeTooltip(node, nodeRoots.get(node.id), vassal);
   }
 
   function render(force = false) {
@@ -213,9 +219,6 @@ export function createVassalLifeMapView({
       PALETTE.panel, PALETTE.stroke, 2);
     root.addChild(bg);
     addGateBackdrop(root,MAP_RECT,.15);
-    root.addChild(createText("THE THREAD OF A LIFE", {
-      ...TEXT_STYLES.header, fontSize: 30, fill: PALETTE.accent,
-    }, MAP_RECT.x + 22, MAP_RECT.y + 22));
     if (!vassal) {
       root.addChild(createText("No Vassal had been appointed at this point in the timeline.", {
         ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
@@ -223,15 +226,15 @@ export function createVassalLifeMapView({
       return;
     }
 
-    root.addChild(createText(readOnly
-      ? presentation.viewedSec > presentation.frontierSec
-        ? "PROJECTED FUTURE · RETURN TO PRESENT TO MAKE DECISIONS"
-        : "FIXED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
-      : unveiling
-        ? "TIME IS UNVEILING THIS TURNING POINT"
-        : "Choose a turning point. Rewrite what follows.", {
-      ...TEXT_STYLES.body, fontSize: 21, fill: PALETTE.textMuted,
-    }, MAP_RECT.x + 22, MAP_RECT.y + 68));
+    if (readOnly || unveiling) {
+      root.addChild(createText(readOnly
+        ? presentation.viewedSec > presentation.frontierSec
+          ? "PROJECTED FUTURE · RETURN TO PRESENT TO MAKE DECISIONS"
+          : "FIXED HISTORY · CLICK A COMMITTED NODE FOR DETAILS"
+        : "TIME IS UNVEILING THIS TURNING POINT", {
+        ...TEXT_STYLES.body, fontSize: 18, fill: PALETTE.textMuted,
+      }, MAP_RECT.x + 22, MAP_RECT.y + MAP_RECT.height - 36));
+    }
     const committedPath = presentation.committedNodeIds ?? [];
     const completedEdges = new Set(committedPath.slice(1).map((id, index) => `${committedPath[index]}:${id}`));
     const edges = new PIXI.Graphics();
