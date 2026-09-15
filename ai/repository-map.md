@@ -61,8 +61,9 @@ not use the root file as the default location for new rendering or model rules.
   `src/views/settlement-navigation-pixi.js`
 - Vassal node-decision modal (`createVassalNodeDecisionModalView`):
   `src/views/vassal-node-decision-modal-pixi.js`. Cards, mortality plate,
-  regional preview, and vassal-impact helpers live in
-  `src/views/vassal-node-decision/`. Drag/confirm stay in the orchestrator.
+  overlapping title plaque, dock Confirm, regional preview, and vassal-impact
+  helpers live in `src/views/vassal-node-decision/`. Drag/confirm stay in the
+  orchestrator.
 - Shared survival strip: `src/views/civilization-survival-hud.js`
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
 - Six-phase reference and viewed moon totals: `src/views/moon-phase-reference-pixi.js`

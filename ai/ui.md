@@ -131,9 +131,12 @@ contract: `ai/visual-overhaul.md`.
   reveals its persisted options or inventory. Card art opens a readable,
   scrollable inspection of complete effects and quality/tags; option rectangles
   keep a consistent three-column size, titles stay inside the rectangle, and
-  cost footers sit below it. The modal leaves a top bay for the centered HUD so
-  the divider does not run through the portrait. Confirmation remains separate, with the mortality
-  estimate to the left of Confirm. The modal has no Close button;
+  cost footers sit below it. The family title and description sit in their own
+  plaque overlapping the modal's top-left, left of the HUD, so shop titles no
+  longer collide with that chrome. The modal still leaves a bay for the
+  centered HUD so the divider does not run through the portrait. Confirm is a
+  large green dock pill at the bottom-right, matching the lower-left
+  Settlement/Map controls; the mortality estimate sits to its left. The modal has no Close button;
   the dimmer still dismisses it. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
   illustrated inset, followed by
