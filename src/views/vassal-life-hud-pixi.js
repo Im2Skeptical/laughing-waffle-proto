@@ -12,12 +12,12 @@ import { getArtRevision } from "./chronicle-art.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 export const LIFE_HUD = Object.freeze({
-  y: 78,
-  barHeight: 70,
-  portraitSize: 88,
-  width: 1288,
-  chipWidth: 148,
-  chipHeight: 50,
+  y: 72,
+  barHeight: 58,
+  portraitSize: 84,
+  width: 952,
+  chipWidth: 126,
+  chipHeight: 42,
 });
 
 const TWEEN_MS = 700;
@@ -125,11 +125,11 @@ export function createVassalLifeHudView({
     const hudWidth = LIFE_HUD.width;
     const hudX = Math.round(MAP_RECT.x + (MAP_RECT.width - hudWidth) / 2);
     const hudY = LIFE_HUD.y;
-    const barX = hudX + 46;
+    const barX = hudX + 38;
     const barY = hudY + (LIFE_HUD.portraitSize - LIFE_HUD.barHeight) / 2;
-    const barWidth = hudWidth - 46;
+    const barWidth = hudWidth - 38;
     const hud = new PIXI.Graphics();
-    roundedRect(hud, barX, barY, barWidth, LIFE_HUD.barHeight, 12, 0x2b332e, PALETTE.accent, 1.5);
+    roundedRect(hud, barX, barY, barWidth, LIFE_HUD.barHeight, 10, 0x2b332e, PALETTE.accent, 1.5);
     const portrait = createVassalPortraitView(vassal.portrait, {
       size: LIFE_HUD.portraitSize, borderColor: PALETTE.accent, shape: "circle",
     });
@@ -137,43 +137,44 @@ export function createVassalLifeHudView({
     const location = String(
       getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId ?? ""
     );
-    const identity = createText(`AGE ${shown.age}  ·  ${location}`, {
-      ...TEXT_STYLES.chip, fontSize: 16, fill: PALETTE.textMuted,
-    }, barX + 58, barY + 10);
-    root.addChild(hud, portrait, identity);
-
+    const contentX = barX + 56;
+    root.addChild(hud, portrait,
+      createText(`AGE ${shown.age}`, {
+        ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
+      }, contentX, barY + 6));
     addResourceAmount(root, "prestige", shown.prestige, {
-      x: barX + 58, y: barY + 34, fontSize: 24, iconSize: 28,
+      x: contentX, y: barY + 26, fontSize: 22, iconSize: 24,
       fill: shown.flashing ? PALETTE.green : PALETTE.accent,
     });
     const prestigeDelta = signedDelta(deltas?.prestige);
     if (prestigeDelta) {
       root.addChild(createText(prestigeDelta, {
-        ...TEXT_STYLES.chip, fontSize: 15,
+        ...TEXT_STYLES.chip, fontSize: 13,
         fill: deltas.prestige > 0 ? PALETTE.green : PALETTE.red,
-      }, barX + 168, barY + 40));
+      }, contentX + 92, barY + 30));
     }
 
-    const expX = barX + 232;
-    const expLabel = createText("EXP", {
-      ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
-    }, expX, barY + 10);
-    const expValue = createText(`${shown.exp} / ${VASSAL_LIFE_TUNING.developmentThreshold}`, {
-      ...TEXT_STYLES.header, fontSize: 22,
-      fill: shown.flashing ? PALETTE.green : PALETTE.text,
-    }, expX, barY + 30);
-    root.addChild(expLabel, expValue);
+    const expX = contentX + 118;
+    root.addChild(
+      createText("EXP", {
+        ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
+      }, expX, barY + 6),
+      createText(`${shown.exp} / ${VASSAL_LIFE_TUNING.developmentThreshold}`, {
+        ...TEXT_STYLES.header, fontSize: 20,
+        fill: shown.flashing ? PALETTE.green : PALETTE.text,
+      }, expX, barY + 26)
+    );
     const expDelta = signedDelta(deltas?.development);
     if (expDelta) {
       root.addChild(createText(expDelta, {
-        ...TEXT_STYLES.chip, fontSize: 15, fill: PALETTE.green,
-      }, expX + 108, barY + 34));
+        ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.green,
+      }, expX + 78, barY + 30));
     }
 
-    const chipStart = barX + 372;
+    const chipStart = contentX + 214;
     getVassalStatsPresentation(vassal).forEach((stat, index) => {
       const chip = new PIXI.Container();
-      chip.position.set(chipStart + index * (LIFE_HUD.chipWidth + 12), barY + 10);
+      chip.position.set(chipStart + index * (LIFE_HUD.chipWidth + 8), barY + 8);
       chip.eventMode = "static";
       chip.cursor = "help";
       chip.hitArea = new PIXI.Rectangle(0, 0, LIFE_HUD.chipWidth, LIFE_HUD.chipHeight);
@@ -193,25 +194,35 @@ export function createVassalLifeHudView({
         }
       });
       const chipBg = new PIXI.Graphics();
-      roundedRect(chipBg, 0, 0, LIFE_HUD.chipWidth, LIFE_HUD.chipHeight, 8, 0x39413b,
+      roundedRect(chipBg, 0, 0, LIFE_HUD.chipWidth, LIFE_HUD.chipHeight, 6, 0x39413b,
         pinnedStatId === stat.statId ? PALETTE.accent : PALETTE.stroke,
         pinnedStatId === stat.statId ? 2 : 1);
       const delta = signedDelta(deltas?.stats?.[stat.statId]);
       chip.addChild(chipBg,
         createText(stat.label.toUpperCase(), {
-          ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
-        }, 10, 6),
+          ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted,
+        }, 8, 4),
         createText(String(stat.value), {
-          ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.text,
-        }, 10, 24));
+          ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text,
+        }, 8, 20));
       if (delta) {
         chip.addChild(createText(delta, {
-          ...TEXT_STYLES.chip, fontSize: 15,
+          ...TEXT_STYLES.chip, fontSize: 13,
           fill: deltas.stats[stat.statId] > 0 ? PALETTE.green : PALETTE.red,
-        }, LIFE_HUD.chipWidth - 12, 26, 1, 0));
+        }, LIFE_HUD.chipWidth - 8, 22, 1, 0));
       }
       root.addChild(chip);
     });
+
+    const locationRight = barX + barWidth - 18;
+    root.addChild(
+      createText("LOCATION", {
+        ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
+      }, locationRight, barY + 8, 1, 0),
+      createText(location, {
+        ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text,
+      }, locationRight, barY + 26, 1, 0)
+    );
   }
 
   return {
