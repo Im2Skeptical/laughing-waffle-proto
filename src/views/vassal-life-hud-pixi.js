@@ -12,13 +12,13 @@ import { getArtRevision } from "./chronicle-art.js";
 
 const YEAR_STRIP = Object.freeze({ x: 590, y: 16, width: 1108, height: 54 });
 export const LIFE_HUD = Object.freeze({
-  x: YEAR_STRIP.x - 8,
+  x: YEAR_STRIP.x,
   y: YEAR_STRIP.y + YEAR_STRIP.height - 6,
-  barHeight: 58,
+  barHeight: 70,
   portraitSize: 84,
-  width: 952,
-  chipWidth: 126,
-  chipHeight: 42,
+  width: YEAR_STRIP.width,
+  chipWidth: 146,
+  chipHeight: 54,
 });
 
 const TWEEN_MS = 700;
@@ -172,7 +172,7 @@ export function createVassalLifeHudView({
       }, expX + 78, barY + 30));
     }
 
-    const chipStart = contentX + 214;
+    const chipStart = contentX + 250;
     getVassalStatsPresentation(vassal).forEach((stat, index) => {
       const chip = new PIXI.Container();
       chip.position.set(chipStart + index * (LIFE_HUD.chipWidth + 8), barY + 8);
@@ -201,11 +201,11 @@ export function createVassalLifeHudView({
       const delta = signedDelta(deltas?.stats?.[stat.statId]);
       chip.addChild(chipBg,
         createText(stat.label.toUpperCase(), {
-          ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted,
+          ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
         }, 8, 4),
         createText(String(stat.value), {
           ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text,
-        }, 8, 20));
+        }, 8, 28));
       if (delta) {
         chip.addChild(createText(delta, {
           ...TEXT_STYLES.chip, fontSize: 13,

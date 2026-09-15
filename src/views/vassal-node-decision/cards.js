@@ -104,8 +104,13 @@ export function pieceOfferCard(parent, rect, spec) {
   root.on('pointertap',event=>{event.stopPropagation();spec.onInspect?.();});
   const frame=new PIXI.Graphics();
   roundedRect(frame,0,0,rect.width,rect.height,8,PALETTE.card,QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,2);
-  root.addChild(frame,createText(spec.title,{...TEXT_STYLES.cardTitle,fontSize:26,lineHeight:28,wordWrap:true,wordWrapWidth:rect.width-36},18,14));
-  root.faceRoot=addSettlementPiece(root,{x:18,y:62,width:rect.width-36,height:rect.height-76},{
+  const title = createText(spec.title, {
+    ...TEXT_STYLES.cardTitle, fontSize: 26, lineHeight: 30,
+    wordWrap: true, wordWrapWidth: rect.width - 36,
+  }, 18, 14);
+  root.addChild(frame, title);
+  const faceY = Math.max(76, title.y + title.height + 24);
+  root.faceRoot=addSettlementPiece(root,{x:18,y:faceY,width:rect.width-36,height:Math.max(1,rect.height-faceY-14)},{
     face:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
   });
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{

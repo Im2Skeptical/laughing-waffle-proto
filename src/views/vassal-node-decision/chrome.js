@@ -51,9 +51,9 @@ export function confirmDockButton(parent, app, { enabled, label, onClick } = {})
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
   const radius = rect.height / 2;
   const bg = new PIXI.Graphics();
-  const fill = enabled ? 0x2fbf4a : 0x3a4a3c;
-  const hoverFill = 0x3ad45a;
-  const rim = enabled ? 0xb7f0c0 : PALETTE.stroke;
+  const fill = enabled ? 0x405a3c : 0x3a4a3c;
+  const hoverFill = 0x527249;
+  const rim = enabled ? PALETTE.accent : PALETTE.stroke;
   function paint(hovered = false, pressed = false) {
     bg.clear();
     const color = enabled ? (hovered ? hoverFill : fill) : fill;

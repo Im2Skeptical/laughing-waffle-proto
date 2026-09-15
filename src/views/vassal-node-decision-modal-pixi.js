@@ -363,8 +363,8 @@ export function createVassalNodeDecisionModalView({
       }, sx, PANEL.y + CONTENT.labelY));
       root.addChild(createText(
         `Food ${Math.round(settlement.looseFood ?? 0)} loose / ${Math.round(settlement.storedFood ?? 0)} stored    Currency ${Math.round(settlement.currency ?? 0)}`,
-        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
-      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceY));
+        { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
+      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceLabelY));
       (settlement.practices??[]).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
@@ -380,7 +380,7 @@ export function createVassalNodeDecisionModalView({
         const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:()=>{pinnedInspectionId='displaced:'+face.definitionId;render(true);}});
         card.rotation=.12;
       });
-      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.structureLabelY));
+      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.structureLabelY));
       addConstructionStrip(root,{x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},{
         slots:settlement.structures,capacity:settlement.structureCapacity,demolished:settlement.demolishedStructures,time:state?.tSec??0,
         onInspect:piece=>{pinnedInspectionId='structure:'+piece.placementId;render(true);},

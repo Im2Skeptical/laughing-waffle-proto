@@ -8,11 +8,11 @@ export const CONFIRM_DOCK = Object.freeze({
   width: 300, height: 156, right: 36, bottom: 22,
 });
 export const MORTALITY_PLATE = Object.freeze({
-  width: 360, height: 108, gap: 16,
+  width: 640, height: 140, gap: 20,
 });
 export const CONTENT = Object.freeze({
-  labelY: 50, cardY: 80, settlementMetaY: 148,
-  practiceY: 168, structureLabelY: 396, structureY: 418,
+  labelY: 54, cardY: 88, settlementMetaY: 102,
+  practiceLabelY: 142, practiceY: 182, structureLabelY: 444, structureY: 480,
 });
 export const QUALITY_COLORS = Object.freeze({
   bronze: 0xb07a4b, silver: 0xbfc7d5, gold: 0xe2bd55, diamond: 0x83dbea,

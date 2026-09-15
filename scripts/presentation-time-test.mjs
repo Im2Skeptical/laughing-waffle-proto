@@ -828,4 +828,37 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   assert.equal(ended, false);
 }
 
+// Returning from a death recap is navigation, which pauses the graph. The
+// gameplay reveal must restart after that navigation, without a node-end cap.
+{
+  const { createSettlementVassalFlow } = await import('../src/views/ui-root/settlement-vassal-flow.js');
+  for (const endedReason of ['died', 'retired']) {
+    const state = { tSec: 320, civilization: { vassalLineage: {
+      currentVassalId: null, vassalsById: { v1: { endedReason } },
+    } } };
+    let revealing = false;
+    const session = createSettlementGraphSession({
+      getFrontierState: () => state,
+      getFrontierSec: () => 320,
+      getGraphView: () => ({ restartForecastRevealFrom: (sec, options) => {
+        assert.equal(sec, 320);
+        assert.equal(options.revealTargetEndSec, undefined);
+        revealing = true;
+      } }),
+    });
+    const flow = createSettlementVassalFlow({
+      playback: { getSettlementFrontierState: () => state },
+      setWorldViewMode: () => { revealing = false; },
+      revealCivilizationAfterVassalEnd: session.revealCivilizationAfterVassalEnd,
+    });
+    flow.noteResolutionSettled({ beforeState: state, beforeVassalId: 'v1' });
+    session.revealCivilizationAfterVassalEnd('v1');
+    flow.dismissResolutionRecap();
+    assert.equal(revealing, true, `${endedReason} recap dismissal continues civilization unveil`);
+    flow.noteResolutionSettled({ beforeState: state, beforeVassalId: 'v1' });
+    flow.resetSelectionForFreshRun();
+    assert.equal(flow.getResolutionRecap(), null, 'a fresh run clears the prior recap');
+  }
+}
+
 console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, topology layout, and timegraph reveal/scrub state');
