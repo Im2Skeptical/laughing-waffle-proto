@@ -115,7 +115,7 @@ contract: `ai/visual-overhaul.md`.
   its authoritative pool. Selection opens a dedicated full-topology Life Map
   screen. The Lifegraph keeps a Vassal Chronicle label and a compact centered HUD:
   circular portrait, Age over Prestige, EXP `n/10`, four stat chips, and Location
-  on the right. The HUD stays
+  on the right, aligned under the year strip. The HUD stays
   fully lit above recap and decision modals and shows signed Prestige and stat deltas
   for the hovered or selected choice; recap counts those values up from before to after. Stat hover/tap
   details show the current

@@ -10,9 +10,10 @@ import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 import { addResourceAmount } from "./resource-cost-pixi.js";
 import { getArtRevision } from "./chronicle-art.js";
 
-const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
+const YEAR_STRIP = Object.freeze({ x: 590, y: 16, width: 1108, height: 54 });
 export const LIFE_HUD = Object.freeze({
-  y: 72,
+  x: YEAR_STRIP.x - 8,
+  y: YEAR_STRIP.y + 32,
   barHeight: 58,
   portraitSize: 84,
   width: 952,
@@ -123,7 +124,7 @@ export function createVassalLifeHudView({
     if (!vassal || !shown) return;
 
     const hudWidth = LIFE_HUD.width;
-    const hudX = Math.round(MAP_RECT.x + (MAP_RECT.width - hudWidth) / 2);
+    const hudX = LIFE_HUD.x;
     const hudY = LIFE_HUD.y;
     const barX = hudX + 38;
     const barY = hudY + (LIFE_HUD.portraitSize - LIFE_HUD.barHeight) / 2;
@@ -232,7 +233,6 @@ export function createVassalLifeHudView({
     getSemanticSnapshot: () => ({
       visible: root.visible === true,
       prestigeDelta: getDeltas?.()?.prestige ?? 0,
-      centered: true,
     }),
   };
 }
