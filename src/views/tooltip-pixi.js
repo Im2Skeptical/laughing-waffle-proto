@@ -585,6 +585,14 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     if(force)pinnedKey=null;
     activePinHandler = null;
     if (hideTimeoutId !== null) clearTimeout(hideTimeoutId);
+    hideTimeoutId = null;
+    if (force) {
+      activeAnchor = null;
+      activeSpec = null;
+      activeResolvedAnchor = null;
+      container.visible = false;
+      return;
+    }
     hideTimeoutId = setTimeout(() => {
       activeAnchor = null;
       activeSpec = null;

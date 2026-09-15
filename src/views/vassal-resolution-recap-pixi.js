@@ -47,7 +47,7 @@ function changeLine(parent, x, y, label, before, after, unit = "") {
 }
 
 export function createVassalResolutionRecapView({
-  app, layer, getRecap, isLifegraphVisible, onDismiss,
+  app, layer, getRecap, isLifegraphVisible, onDismiss, tooltipView,
 } = {}) {
   const root = new PIXI.Container();
   root.visible = false;
@@ -56,10 +56,13 @@ export function createVassalResolutionRecapView({
   layer?.addChild(root);
   let signature = "";
   let dismissRoot = null;
+  let wasVisible = false;
 
   function render(force = false) {
     const recap = getRecap?.() ?? null;
     const visible = isLifegraphVisible?.() === true && recap != null;
+    if (visible && !wasVisible) tooltipView?.hide?.({ force: true });
+    wasVisible = visible;
     root.visible = visible;
     root.eventMode = visible ? "static" : "none";
     if (!visible) {

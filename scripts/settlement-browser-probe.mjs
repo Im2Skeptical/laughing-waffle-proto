@@ -675,6 +675,18 @@ try {
   );
   assert.ok(confirmPoint, "the active node has explicit confirmation");
   await clickDesignPoint(page, confirmPoint);
+  const hoverDuringUnveil = await page.evaluate(
+    (nodeId) => globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(nodeId),
+    firstLifeMapNodeId
+  );
+  if (hoverDuringUnveil) {
+    const box = await page.locator("canvas").boundingBox();
+    await page.mouse.move(
+      box.x + hoverDuringUnveil.x / 2424 * box.width,
+      box.y + hoverDuringUnveil.y / 1080 * box.height
+    );
+    await delay(80);
+  }
   const resolvingVassal = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -710,6 +722,11 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapRecapDismissClickPoint()
   );
   assert.ok(recapDismiss, "resolved nodes show a recap window");
+  assert.equal(
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState()?.visible),
+    false,
+    "the recap dismisses any open node tooltip"
+  );
   await clickDesignPoint(page, recapDismiss);
   assert.ok(
     committedVassalHistory.graph.historyZones.some(

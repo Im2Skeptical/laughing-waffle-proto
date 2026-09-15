@@ -185,7 +185,8 @@ contract: `ai/visual-overhaul.md`.
   restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary. When that boundary settles, a recap window
-  reports time passed and from→to Age, Prestige, and EXP. Death or retirement replaces
+  reports time passed and from→to Age, Prestige, and EXP, and dismisses any
+  open node tooltip. Death or retirement replaces
   that recap; dismissing it is what returns to the Regional Map.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;
