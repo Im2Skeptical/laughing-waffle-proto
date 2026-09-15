@@ -43,6 +43,7 @@ function drawPinMarker(graphics, filled) {
 
 export function createVassalLifeMapView({
   layer, getPresentation, getCivilizationLossInfo, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
+  isRecapOpen,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
@@ -59,9 +60,26 @@ export function createVassalLifeMapView({
   let layoutPoints = new Map();
   let pinnedNodeIds = [];
   let lastPointerType = "mouse";
+  let recapSuppressedTooltip = false;
   const nodePoint=node=>layoutPoints.get(node.id)??fallbackNodePoint(node);
 
+  function dismissTooltipForRecap() {
+    const recapOpen = isRecapOpen?.() === true;
+    if (!recapOpen) {
+      recapSuppressedTooltip = false;
+      return false;
+    }
+    if (!recapSuppressedTooltip) {
+      recapSuppressedTooltip = true;
+      hoveredNodeId = null;
+      inspectedNodeId = null;
+      tooltipView?.hide?.({ force: true });
+    }
+    return true;
+  }
+
   function showNodeTooltip(node, target, vassal) {
+    if (dismissTooltipForRecap()) return;
     const family = node?.signatureNode?.variantId
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : VASSAL_NODE_FAMILIES[node?.family] ?? null;
@@ -124,6 +142,7 @@ export function createVassalLifeMapView({
   });
 
   root.on("pointermove", (event) => {
+    if (dismissTooltipForRecap()) return;
     if (event?.pointerType === "touch") return;
     lastPointerType = "mouse";
     const presentation = getPresentation?.() ?? {};
@@ -143,6 +162,7 @@ export function createVassalLifeMapView({
   root.on("pointerleave", clearNodeHover);
 
   function inspect(node, display) {
+    if (dismissTooltipForRecap()) return;
     const presentation = getPresentation?.() ?? {};
     const vassal = presentation.vassal;
     const unveiling = !presentation.readOnly && !!vassal?.lifeMap?.pendingResolution;
@@ -170,6 +190,7 @@ export function createVassalLifeMapView({
   }
 
   function render(force = false) {
+    dismissTooltipForRecap();
     const visible = isVisible?.() === true;
     root.visible = visible;
     if (!visible) {

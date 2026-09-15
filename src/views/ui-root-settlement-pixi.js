@@ -1017,6 +1017,7 @@ vassalLifeMapView = createVassalLifeMapView({
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   layer: playfieldLayer,
   tooltipView,
+  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
   getPresentation: () => getSettlementLifeMapPresentation(),
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
@@ -1076,6 +1077,7 @@ vassalLevelUpModalView = createVassalLevelUpModalView({
 vassalResolutionRecapView = createVassalResolutionRecapView({
   app,
   layer: modalLayer,
+  tooltipView,
   getRecap: () => getResolutionRecap?.() ?? null,
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   onDismiss: () => dismissResolutionRecap?.(),
