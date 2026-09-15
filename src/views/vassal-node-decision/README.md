@@ -9,8 +9,9 @@ closures stay in the orchestrator.
 
 ## Extracted modules
 
-- `constants.js` — `PANEL`, `QUALITY_COLORS`, `COST_FOOTER_HEIGHT`,
-  `OPTION_COLUMN`
+- `constants.js` — `PANEL`, `TITLE_PLAQUE`, `CONFIRM_DOCK`, `MORTALITY_PLATE`,
+  `CONTENT`, `QUALITY_COLORS`, `COST_FOOTER_HEIGHT`, `OPTION_COLUMN`
+- `chrome.js` — overlapping title plaque and dock-style Confirm
 - `cards.js` — `button`, `optionEffect`, `offerEffect`, `actionCard`,
   `outcomeCard`
 - `mortality.js` — `renderMortalityEstimate`

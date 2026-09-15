@@ -12,7 +12,9 @@ import {
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import {
+  CONTENT,
   COST_FOOTER_HEIGHT,
+  MORTALITY_PLATE,
   OPTION_COLUMN,
   PANEL,
 } from "./vassal-node-decision/constants.js";
@@ -24,6 +26,11 @@ import {
   optionEffect,
   outcomeCard,
 } from "./vassal-node-decision/cards.js";
+import {
+  confirmDockButton,
+  confirmDockRect,
+  renderTitlePlaque,
+} from "./vassal-node-decision/chrome.js";
 import { renderMortalityEstimate } from "./vassal-node-decision/mortality.js";
 import { renderRegionalMap } from "./vassal-node-decision/regional-map.js";
 import { renderVassalProjection } from "./vassal-node-decision/vassal-projection.js";
@@ -45,7 +52,7 @@ export function createVassalNodeDecisionModalView({
   let tableauRoots = [];
   let inspectionRoot = null;
   let lastDecision = null;
-  const tableau = { x: PANEL.x+1200, practiceY: PANEL.y+168, structureY: PANEL.y+418, width: 928 };
+  const tableau = { x: PANEL.x+1200, practiceY: PANEL.y+CONTENT.practiceY, structureY: PANEL.y+CONTENT.structureY, width: 928 };
   let dragTargetIndex = null;
   let enterRoot = null;
   let optionRoots = [];
@@ -241,22 +248,13 @@ export function createVassalNodeDecisionModalView({
     }
 
     const projected = decision?.projectedPrestige ?? vassal.prestige;
-    root.addChild(
-      createText(`${family.glyph}  ${family.label}`, {
-        ...TEXT_STYLES.header, fontSize: 28, fill: family.color,
-      }, PANEL.x + 44, PANEL.y + 48),
-      createText(family.description, {
-        ...TEXT_STYLES.body, fontSize: 16, fill: PALETTE.textMuted,
-        wordWrap: true, wordWrapWidth: 780,
-      }, PANEL.x + 44, PANEL.y + 84),
-    );
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
     const simpleOutcomes = node.family === 'patronage' || node.family === 'development';
     if (hasContext) {
       const divider = new PIXI.Graphics();
-      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + 118)
-        .lineTo(PANEL.x + 1160, PANEL.y + PANEL.height - 92);
+      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + CONTENT.labelY)
+        .lineTo(PANEL.x + 1160, PANEL.y + PANEL.height - 28);
       root.addChild(divider);
     }
 
@@ -267,10 +265,10 @@ export function createVassalNodeDecisionModalView({
         : "Enter this node to reveal its choices and begin the decision.", {
         ...TEXT_STYLES.header, fontSize: 23, fill: PALETTE.textMuted,
         wordWrap: true, wordWrapWidth: 900,
-      }, PANEL.x + 54, PANEL.y + 190));
+      }, PANEL.x + 54, PANEL.y + 96));
       const available = !readOnly && (vassal.lifeMap.availableNodeIds ?? []).includes(node.id)
         && (vassal.developmentChoiceQueue ?? []).length === 0;
-      enterRoot = button(root, { x: PANEL.x + 54, y: PANEL.y + 270, width: 430, height: 64 },
+      enterRoot = button(root, { x: PANEL.x + 54, y: PANEL.y + 176, width: 430, height: 64 },
         `ENTER ${family.label.toUpperCase()}`, available, () => {
           onEnterNode?.(node.id);
           openNodeId = node.id;
@@ -280,11 +278,11 @@ export function createVassalNodeDecisionModalView({
     } else if (nodeState.resolving) {
       root.addChild(createText("DECISION COMMITTED · RESOLUTION IN PROGRESS", {
         ...TEXT_STYLES.header, fontSize: 25, fill: PALETTE.accent,
-      }, PANEL.x + 54, PANEL.y + 168));
+      }, PANEL.x + 54, PANEL.y + CONTENT.cardY));
     } else {
       const isShop = nodeState.contentMode === "shop";
       const cardGap = OPTION_COLUMN.gap;
-      const cardY = PANEL.y + 128;
+      const cardY = PANEL.y + CONTENT.cardY;
       const cardWidth = OPTION_COLUMN.width;
       const cardHeight = OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
@@ -297,7 +295,7 @@ export function createVassalNodeDecisionModalView({
       if (isShop) {
         root.addChild(createText("SHOP OFFERS", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 114));
+        }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const inspect=()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);};
@@ -320,7 +318,7 @@ export function createVassalNodeDecisionModalView({
       } else {
         root.addChild(createText("CHOOSE ONE", {
           ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + 114));
+        }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getAdjustedVassalPhaseCost(vassal, option.phaseCost ?? 0);
@@ -362,11 +360,11 @@ export function createVassalNodeDecisionModalView({
     if (decision?.contextKind === "settlement" && settlement) {
       root.addChild(createText(`SETTLEMENT · ${decision?.previewRegionLabel ?? vassal.locationRegionId}`, {
         ...TEXT_STYLES.header, fontSize: 22,
-      }, sx, PANEL.y + 114));
+      }, sx, PANEL.y + CONTENT.labelY));
       root.addChild(createText(
         `Food ${Math.round(settlement.looseFood ?? 0)} loose / ${Math.round(settlement.storedFood ?? 0)} stored    Currency ${Math.round(settlement.currency ?? 0)}`,
-        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + 148));
-      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+168));
+        { ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
+      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceY));
       (settlement.practices??[]).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
@@ -382,7 +380,7 @@ export function createVassalNodeDecisionModalView({
         const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:()=>{pinnedInspectionId='displaced:'+face.definitionId;render(true);}});
         card.rotation=.12;
       });
-      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+396));
+      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:16,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.structureLabelY));
       addConstructionStrip(root,{x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},{
         slots:settlement.structures,capacity:settlement.structureCapacity,demolished:settlement.demolishedStructures,time:state?.tSec??0,
         onInspect:piece=>{pinnedInspectionId='structure:'+piece.placementId;render(true);},
@@ -413,16 +411,23 @@ export function createVassalNodeDecisionModalView({
       if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
+    renderTitlePlaque(root, family);
+    const confirmRect = confirmDockRect(app);
     if (nodeState) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
-        x: PANEL.x + PANEL.width - 740, y: PANEL.y + PANEL.height - 88, width: 340, height: 80,
+        x: confirmRect.x - MORTALITY_PLATE.gap - MORTALITY_PLATE.width,
+        y: confirmRect.y + (confirmRect.height - MORTALITY_PLATE.height) / 2,
+        width: MORTALITY_PLATE.width, height: MORTALITY_PLATE.height,
       }, canConfirm);
     }
-    confirmRoot = button(root, { x: PANEL.x + PANEL.width - 380, y: PANEL.y + PANEL.height - 72, width: 340, height: 50 },
-      readOnly ? projection ? "READ-ONLY PROJECTION" : "READ-ONLY HISTORY" : "CONFIRM & RESOLVE", canConfirm, () => {
+    confirmRoot = confirmDockButton(root, app, {
+      enabled: canConfirm,
+      label: readOnly ? "Read-only" : "Confirm",
+      onClick: () => {
         const result = onConfirmNode?.(node.id);
         if (result?.ok !== false) close();
-      });
+      },
+    });
     explainReadOnly(confirmRoot, readOnly);
     const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(pinnedInspectionId??previewOfferId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
