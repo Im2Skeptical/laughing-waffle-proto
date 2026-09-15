@@ -170,8 +170,8 @@ export function getVassalLifeMapPlannedRoute(vassal, pinnedNodeIds = []) {
   }
   const firstPin = ordered[0];
   const origin = starts.find((id) => id === firstPin)
-    ?? starts.filter((id) => collectReachable(outgoing, [id]).has(firstPin)).sort()[0]
-    ?? firstPin;
+    ?? starts.filter((id) => collectReachable(outgoing, [id]).has(firstPin)).sort()[0];
+  if (!origin) return null;
   const nodeIds = [];
   const edgeKeys = [];
   const appendPath = (fromId, toId) => {
@@ -195,6 +195,7 @@ export function nextVassalLifeMapPins(vassal, pinnedNodeIds, nodeId) {
   const current = [...new Set((pinnedNodeIds ?? []).filter(Boolean))];
   if (!nodeId) return current;
   if (current.includes(nodeId)) return current.filter((id) => id !== nodeId);
+  if (!getVassalLifeMapPlannedRoute(vassal, [nodeId])) return current;
   const candidate = [...current, nodeId];
   return getVassalLifeMapPlannedRoute(vassal, candidate) ? candidate : [nodeId];
 }

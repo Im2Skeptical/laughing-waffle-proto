@@ -198,3 +198,8 @@ assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["d"], "e"), ["e"],
   "an incompatible pin replaces the previous set");
 assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["b"], "d"), ["b", "d"]);
 assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["b", "d"], "b"), ["d"]);
+branchVassal.lifeMap.currentNodeId = "b";
+assert.equal(getVassalLifeMapPlannedRoute(branchVassal, ["c", "e"]), null,
+  "advancing onto another branch clears the abandoned planned route");
+assert.deepEqual(nextVassalLifeMapPins(branchVassal, ["d"], "e"), ["d"],
+  "an unreachable pin cannot replace a reachable plan");

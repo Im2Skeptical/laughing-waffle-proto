@@ -172,6 +172,9 @@ export function createSettlementVassalFlow({
     getLevelUpView?.()?.refresh?.();
     if (recap?.endedReason === "died" || recap?.endedReason === "retired") {
       setWorldViewMode?.("map");
+      // Screen navigation pauses reveal; resume the gameplay-triggered unveil
+      // after returning to the civilization map, without the old node cap.
+      revealCivilizationAfterVassalEnd?.(recap.vassalId, playback.getSettlementFrontierState());
       getWorldMapView?.()?.refresh?.();
     }
     return { ok: true };
@@ -341,6 +344,7 @@ export function createSettlementVassalFlow({
 
   function resetSelectionForFreshRun() {
     clearPendingSelection();
+    resolutionRecap = null;
     settlementLastVassalSelectionResult = null;
   }
 

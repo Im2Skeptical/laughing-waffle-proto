@@ -11,7 +11,7 @@ let browser;
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page=await browser.newPage({viewport:{width:1280,height:1120}});
+  const page=await browser.newPage({viewport:{width:1280,height:1120},hasTouch:true});
   await page.route(url+'/',route=>route.fulfill({contentType:'text/html',body:'<html><body style="margin:0"><script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script></body></html>'}));
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.PIXI);
@@ -84,15 +84,39 @@ try {
     const {getGamepieceFace}=await import('/src/model/gamepiece-presentation.js');
     const app=globalThis.feedbackApp;app.stage.removeChildren();
     const cards=[];
+    const titles=['Upgrade Cultivate Bronze → Silver','Upgrade Forage Bronze → Silver','Learn Bronze Caravanserai'];
     for(const [index,kind,id] of [[0,'practice','cultivate'],[1,'structure','granary'],[2,'structure','caravanserai']]){
-      cards.push(pieceOfferCard(app.stage,{x:24+index*360,y:24,width:338,height:450},{title:id,presentation:getGamepieceFace({},kind,id),cost:{phaseCost:721,prestigeCost:18},enabled:true}));
-      cards.push(outcomeCard(app.stage,{x:24+index*360,y:510,width:338,height:450},{title:'Development',effect:'+2 Wisdom · -1 Cunning',cost:{phaseCost:721,prestigeCost:18},enabled:true}));
+      cards.push(pieceOfferCard(app.stage,{x:24+index*360,y:24,width:338,height:280},{title:titles[index],presentation:getGamepieceFace({},kind,id),cost:{phaseCost:721,prestigeCost:18},enabled:true}));
+      cards.push(outcomeCard(app.stage,{x:24+index*360,y:510,width:338,height:280},{title:'Development',effect:'+2 Wisdom · -1 Cunning',cost:{phaseCost:721,prestigeCost:18},enabled:true}));
     }
     app.renderer.render(app.stage);
-    return cards.map(card=>({width:card.hitArea.width,footerWidth:card.costPanel.hitArea.width,footerY:card.costPanel.y}));
+    return cards.map(card=>({width:card.hitArea.width,footerWidth:card.costPanel.hitArea.width,footerY:card.costPanel.y,
+      titleClear: !card.faceRoot || card.children.find(child=>child instanceof PIXI.Text).getBounds().bottom < card.faceRoot.getBounds().top}));
   });
-  for(const card of columnChecks)assert.deepEqual(card,{width:338,footerWidth:326,footerY:296});
+  for(const card of columnChecks)assert.deepEqual(card,{width:338,footerWidth:326,footerY:288,titleClear:true});
   await page.screenshot({path:'artifacts/choice-columns-review.png'});
+  const futurePoint = await page.evaluate(async () => {
+    const {createVassalLifeMapView} = await import('/src/views/vassal-life-map-pixi.js');
+    const {createEmptyState} = await import('/src/model/state.js');
+    const state = createEmptyState();
+    const app = globalThis.feedbackApp;
+    app.stage.removeChildren();
+    const layer = new PIXI.Container();
+    layer.scale.set(.5);
+    app.stage.addChild(layer);
+    const vassal = {vassalId:'touch-check', lifeMap:{currentNodeId:'a', graph:{
+      nodes:[{id:'a',family:'travel',position:{x:0,y:.5}}, {id:'b',family:'travel',position:{x:1,y:.5}}],
+      edges:[{fromNodeId:'a',toNodeId:'b'}],
+    }}};
+    const view = createVassalLifeMapView({layer, getPresentation:()=>({vassal,state}), isVisible:()=>true});
+    view.init();
+    globalThis.touchLifeMap = view;
+    app.renderer.render(app.stage);
+    return view.getNodeClickPoint('b');
+  });
+  await page.touchscreen.tap(futurePoint.x, futurePoint.y);
+  assert.equal(await page.evaluate(()=>globalThis.touchLifeMap.getInspectedNodeId()), 'b',
+    'a first touch on a future node retains its inspection');
   for(const cost of results.costs){assert.ok(cost.width<=cost.expectedWidth+1);assert.ok(cost.height<=cost.expectedHeight+1);assert.ok(Math.abs(cost.corner-14)<.01,'Frame corners stay 14 pixels at every panel height');}
   console.log('[piece-feedback] OK: warning glyphs, separate heading, cost frame bounds, prestige order; artifacts/piece-feedback-review.png');
 } finally {await browser?.close();server.kill();}

@@ -220,6 +220,7 @@ export function createVassalLifeMapView({
     const unveiling = !readOnly && !!vassal?.lifeMap?.pendingResolution;
     root.cursor = unveiling ? "wait" : "default";
     const reachable = new Set(getVassalLifeMapReachableNodeIds(vassal));
+    pinnedNodeIds = pinnedNodeIds.filter((id) => reachable.has(id));
     const planned = getVassalLifeMapPlannedRoute(vassal, pinnedNodeIds);
     const plannedEdges = new Set(planned?.edgeKeys ?? []);
     const effectiveNodeId = hoveredNodeId ?? inspectedNodeId ?? vassal?.lifeMap?.currentNodeId
@@ -297,7 +298,11 @@ export function createVassalLifeMapView({
       const inactive = !display.completed && !display.current && !display.available && !reachableNode;
       nodeRoot.cursor = unveiling ? "wait" : canOpenModal(display, unveiling) ? "pointer" : "help";
       nodeRoot.hitArea = new PIXI.Circle(0, 0, NODE_RADIUS + 9);
-      nodeRoot.on("pointerdown", (event) => { event?.stopPropagation?.(); inspect(node, display); });
+      nodeRoot.on("pointerdown", (event) => {
+        event?.stopPropagation?.();
+        lastPointerType = event?.pointerType === "touch" ? "touch" : "mouse";
+        inspect(node, display);
+      });
       const selected = effectiveNodeId === node.id;
       const icon = new PIXI.Graphics();
       const active = display.current || display.available;
@@ -337,5 +342,6 @@ export function createVassalLifeMapView({
     getOpenDecisionClickPoint: () => openRoot?.toGlobal
       ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
     getPinnedNodeIds: () => [...pinnedNodeIds],
+    getInspectedNodeId: () => inspectedNodeId,
   };
 }

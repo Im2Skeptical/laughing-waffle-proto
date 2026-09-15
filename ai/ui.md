@@ -124,8 +124,9 @@ contract: `ai/visual-overhaul.md`.
   a tooltip with a non-interactive pin mark. Pinning is a second click on the
   node. Hover tooltips dismiss when the pointer leaves; touch keeps the selected
   node's tooltip until another tap. Pinning highlights one forward route through
-  every pinned node and survives screen changes until the Vassal changes. An
-  incompatible pin replaces the previous set. Nodes unreachable from the
+  every pinned node and survives screen changes until the Vassal changes.
+  Progression clears pins that are no longer reachable. An incompatible reachable
+  pin replaces the previous set; unreachable nodes cannot be pinned. Nodes unreachable from the
   current position are greyed. While a node is unveiling, the Lifegraph uses
   an hourglass cursor and does not open the modal. Only entering an available node
   reveals its persisted options or inventory. Card art opens a readable,
@@ -187,7 +188,8 @@ contract: `ai/visual-overhaul.md`.
   pending resolution boundary. When that boundary settles, a recap window
   reports time passed and from→to Age, Prestige, and EXP, and dismisses any
   open node tooltip. Death or retirement replaces
-  that recap; dismissing it is what returns to the Regional Map.
+  that recap; dismissing it returns to the Regional Map and resumes the
+  civilization unveil after the navigation pause. Fresh runs clear old recaps.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;
   the resolved span is then re-materialized from authoritative replay so the
