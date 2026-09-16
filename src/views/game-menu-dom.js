@@ -4,7 +4,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
-  panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/dark-fantasy/chronicle-gate.png',document.baseURI).href}")`);
+  panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
   panel.dataset.testid = "game-menu";
   const message = document.createElement("p");
   message.setAttribute("role", "status");

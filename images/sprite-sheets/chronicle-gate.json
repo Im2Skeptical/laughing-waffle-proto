@@ -1,0 +1,20 @@
+{"frames": {
+
+"chronicle-gate.png":
+{
+	"frame": {"x":0,"y":0,"w":1536,"h":1024},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1536,"h":1024},
+	"sourceSize": {"w":1536,"h":1024}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "chronicle-gate.png",
+	"format": "RGBA8888",
+	"size": {"w":1536,"h":1024},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:9c4bf93299ca368544b2c63f0c360baf:bd924055f9cca8fa4f18d64287b92187:8294e66f4abd2e091c7df2ad99c0da53$"
+}
+}

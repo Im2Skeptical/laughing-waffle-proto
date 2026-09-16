@@ -1,24 +1,17 @@
 # Runtime sprite sheets
 
-The JSON files in this directory are standard TexturePacker JSON atlases. They
-are generated from the active source files under `images/dark-fantasy/` and are
-loaded by `src/views/chronicle-art.js`.
+Every runtime image is a TexturePacker JSON atlas in this folder. The named
+source PNGs live beneath `images/dark-fantasy/*-v1/`; runtime code must load a
+frame from an atlas, never a source PNG directly.
 
-Open `resource-language.tps`, `settlement-pieces.tps` or `piece-frames.tps` in
-TexturePacker to inspect the three runtime groups. Keep the output names and JSON
-format unchanged unless the runtime loader is updated too.
+`npm run build:sprites` is the authoritative rebuild. It packs resource
+symbols, settlement pieces, frames, chronicle illustrations, legacy vassal
+portraits, the menu gate, and the timegraph assembly. The two one-frame sheets
+exist so the DOM menu backdrop and Pixi consume the same packed gate source.
 
-Use `npm run build:sprites` after a batch of resource-symbol or settlement-piece
-changes. The packer uses a 30% atlas for oversized resource symbols and
-80% scale for settlement art and 50% for physical frames. Resource and frame
-atlases load eagerly; the settlement atlas warms afterward. Each group uses one
-texture (2048 maximum for resources/frames, 4096 for paintings). The CLI build
-script is authoritative for these output scales; update runtime mappings before
-introducing multipack output.
-Run `npm run check:assets` afterward to catch
-missing or stale atlas entries.
+Run `npm run check:assets` after asset work. It verifies both source inventory
+and every packed frame recorded in `images/asset-manifest.json`.
 
-Do not add old source copies under `images/GameElements/`. The active inventory
-and loading groups are recorded in `images/asset-manifest.json`; large screen
-and animation atlases remain standalone because they are loaded by different
-screens or sampled with custom rectangles.
+Do not add combined hand-authored runtime sheets. Add a named source image to
+the relevant `*-v1` folder, register it in the manifest, and update the packer
+job and runtime mapping together.

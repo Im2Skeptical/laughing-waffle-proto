@@ -82,18 +82,37 @@
         "time-moon.png",
         "time-phase.png"
       ]
+    },
+    "chronicle-illustrations": {
+      "load": "eager",
+      "data": ["images/sprite-sheets/chronicle-illustrations.json"],
+      "source": "chronicle-illustrations-v1",
+      "files": [
+        "forage.png", "cultivate.png", "preserve.png", "administrate.png", "granary.png", "mudHouses.png", "travel.png", "patronage.png", "development.png", "crisis.png", "legacy.png", "settlement.png",
+        "raiseHouses.png", "exchange.png", "import.png", "caravanRoutes.png", "clearingHouse.png", "mixedFarming.png", "efficientKitchens.png", "homesteading.png", "lodgingHouses.png", "study.png", "mill.png", "harvestFestival.png",
+        "marketFeast.png", "symposium.png", "vigil.png", "exodus.png", "hostel.png", "library.png", "archive.png", "hallOfSages.png", "agrarianGuild.png", "forum.png", "academy.png", "university.png",
+        "terrain-green.png", "terrain-red.png", "terrain-blue.png", "terrain-black.png",
+        "hamlet-0.png", "hamlet-1.png", "hamlet-2.png", "hamlet-3.png", "fire-0.png", "fire-1.png", "fire-2.png", "fire-3.png"
+      ]
+    },
+    "vassal-portraits": {
+      "load": "eager",
+      "data": ["images/sprite-sheets/vassal-portraits.json"],
+      "source": "vassal-portraits-v1",
+      "files": ["legacy-01.png", "legacy-02.png", "legacy-03.png", "legacy-04.png", "legacy-05.png", "legacy-06.png", "legacy-07.png", "legacy-08.png"]
+    },
+    "chronicle-gate": {
+      "load": "eager",
+      "data": ["images/sprite-sheets/chronicle-gate.json"],
+      "source": "chronicle-gate-v1",
+      "files": ["chronicle-gate.png"]
+    },
+    "timegraph-chronicle": {
+      "load": "eager",
+      "data": ["images/sprite-sheets/timegraph-chronicle.json"],
+      "source": "timegraph-chronicle-v1",
+      "files": ["timegraph-chronicle-assembly.png"]
     }
   },
-  "standalone": [
-    "chronicle-cards.png",
-    "chronicle-civic.png",
-    "chronicle-gate.png",
-    "chronicle-practices.png",
-    "realm-landmarks.png",
-    "realm-terrain.png",
-    "timegraph-chronicle-assembly.png",
-    "timegraph-scroll-side-rollers.png",
-    "timegraph-scroll.png",
-    "vassal-portraits.png"
-  ]
+  "standalone": []
 }

@@ -5,6 +5,11 @@ const jobs = [
   ['resource-language', 'images/dark-fantasy/resource-language-v1', ['--scale', '0.3', '--max-size', '2048']],
   ['settlement-pieces', 'images/dark-fantasy/settlement-pieces-v2', ['--scale', '0.8', '--max-size', '4096']],
   ['piece-frames', 'images/dark-fantasy/piece-frames-v1', ['--scale', '0.5', '--max-size', '2048']],
+  ['chronicle-illustrations', 'images/dark-fantasy/chronicle-illustrations-v1', ['--scale', '1', '--max-size', '4096']],
+  ['vassal-portraits', 'images/dark-fantasy/vassal-portraits-v1', ['--scale', '1', '--max-size', '2048']],
+  // These single-frame sheets let the DOM and Pixi use the same packed source.
+  ['chronicle-gate', 'images/dark-fantasy/chronicle-gate-v1', ['--scale', '1', '--max-size', '2048', '--padding', '0', '--border-padding', '0', '--extrude', '0']],
+  ['timegraph-chronicle', 'images/dark-fantasy/timegraph-chronicle-v1', ['--scale', '1', '--max-size', '4096', '--padding', '0', '--border-padding', '0', '--extrude', '0']],
 ];
 
 for (const [name, source, sizing] of jobs) {
@@ -15,7 +20,7 @@ for (const [name, source, sizing] of jobs) {
     ...sizing,
     '--disable-rotation',
     '--trim-mode', 'None',
-    '--extrude', '2',
+    ...(sizing.includes('--extrude') ? [] : ['--extrude', '2']),
     source,
   ], { stdio: 'inherit', shell: process.platform === 'win32' });
   if (result.error) {

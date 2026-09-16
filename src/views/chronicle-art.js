@@ -1,11 +1,8 @@
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
-const ASSET_ROOT = 'images/dark-fantasy/';
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
-const atlases = new Map();
 const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
-const standaloneLoads = new Map();
 let revision = 0;
 export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
@@ -19,13 +16,6 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
   'harvestFestival', 'marketFeast', 'symposium', 'vigil',
   'mudHouses', 'granary', 'library', 'smokehouse', 'countingHouse', 'hostel', 'archive',
   'hallOfSages', 'agrarianGuild', 'forum', 'academy', 'caravanserai', 'resettlementHall', 'university',
-]);
-
-const STANDALONE_FILES = Object.freeze([
-  'chronicle-cards.png', 'chronicle-civic.png', 'chronicle-gate.png',
-  'chronicle-practices.png', 'realm-landmarks.png', 'realm-terrain.png',
-  'timegraph-chronicle-assembly.png', 'timegraph-scroll-side-rollers.png',
-  'timegraph-scroll.png', 'vassal-portraits.png',
 ]);
 
 const PACKED_GROUPS = Object.freeze({
@@ -42,6 +32,26 @@ const PACKED_GROUPS = Object.freeze({
   pieceFrames: Object.freeze({
     prefix: 'piece-frames-v1/',
     files: Object.freeze(['piece-frames.json']),
+    eager: true,
+  }),
+  chronicleIllustrations: Object.freeze({
+    prefix: 'chronicle-illustrations-v1/',
+    files: Object.freeze(['chronicle-illustrations.json']),
+    eager: true,
+  }),
+  vassalPortraits: Object.freeze({
+    prefix: 'vassal-portraits-v1/',
+    files: Object.freeze(['vassal-portraits.json']),
+    eager: true,
+  }),
+  chronicleGate: Object.freeze({
+    prefix: 'chronicle-gate-v1/',
+    files: Object.freeze(['chronicle-gate.json']),
+    eager: true,
+  }),
+  timegraphChronicle: Object.freeze({
+    prefix: 'timegraph-chronicle-v1/',
+    files: Object.freeze(['timegraph-chronicle.json']),
     eager: true,
   }),
 });
@@ -75,30 +85,12 @@ function loadTexture(file) {
     loadPackedGroup(group);
     return null;
   }
-  if (atlases.has(file)) return atlases.get(file);
-  loadStandalone(file);
+  console.error(`[art] unregistered asset requested: ${file}`);
   return null;
 }
 
 export function getChronicleTexture(file) {
   return loadTexture(file);
-}
-
-function loadStandalone(file) {
-  if (atlases.has(file)) return Promise.resolve(atlases.get(file));
-  if (standaloneLoads.has(file)) return standaloneLoads.get(file);
-  const load = PIXI.Assets.load(`${ASSET_ROOT}${file}`)
-    .then(texture => {
-      configureTexture(texture);
-      atlases.set(file, texture);
-      bumpRevision();
-      return texture;
-    })
-    .catch(error => {
-      console.error('[art] failed to load atlas', file, error);
-    });
-  standaloneLoads.set(file, load);
-  return load;
 }
 
 async function loadPackedGroup(group) {
@@ -121,11 +113,9 @@ async function loadPackedGroup(group) {
 
 export function preloadChronicleArt() {
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
-  const eager = [
-    loadPackedGroup(PACKED_GROUPS.resources),
-    loadPackedGroup(PACKED_GROUPS.pieceFrames),
-    ...STANDALONE_FILES.map(loadStandalone),
-  ];
+  const eager = Object.values(PACKED_GROUPS)
+    .filter(group => group.eager)
+    .map(loadPackedGroup);
   // Warm the on-demand settlement atlas after HUD/map art has claimed the
   // first connections, so opening a settlement does not wait on a 20MB hitch.
   Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
@@ -144,6 +134,16 @@ const ART = Object.freeze({
   practiceReform: 0, publicWorks: 4,
 });
 
+const ILLUSTRATION_IDS = Object.freeze([
+  'forage', 'cultivate', 'preserve', 'administrate', 'granary', 'mudHouses',
+  'travel', 'patronage', 'development', 'crisis', 'legacy', 'settlement',
+  'raiseHouses', 'exchange', 'import', 'caravanRoutes', 'clearingHouse',
+  'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study',
+  'mill', 'harvestFestival', 'marketFeast', 'symposium', 'vigil', 'exodus',
+  'hostel', 'library', 'archive', 'hallOfSages', 'agrarianGuild', 'forum',
+  'academy', 'university',
+]);
+
 export function resolveIllustrationId(piece = {}) {
   if (typeof piece === 'string') return piece;
   return piece.practiceId ?? piece.structureId ?? piece.defId ?? piece.id ?? 'legacy';
@@ -154,42 +154,15 @@ export function getIllustrationSpec(id) {
   if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v2/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
   if(index==null)return null;
-  return {file:['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png'][Math.floor(index/12)],index:index%12};
-}
-
-export function atlasCell(file, index, columns, rows) {
-  const source = atlases.get(file);
-  if (!source?.baseTexture.valid) return null;
-  const key = `${file}:${index}:${columns}:${rows}`;
-  if (!cells.has(key)) {
-    const width = Math.floor(source.width / columns);
-    const height = Math.floor(source.height / rows);
-    cells.set(key, new PIXI.Texture(source.baseTexture, new PIXI.Rectangle(
-      (index % columns) * width + 2, Math.floor(index / columns) * height + 2,
-      width - 4, height - 4,
-    )));
-  }
-  return cells.get(key);
+  return {file:`chronicle-illustrations-v1/${ILLUSTRATION_IDS[index]}.png`, whole:true};
 }
 
 export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
-  const {file,index,whole}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
-  if (whole) {
-    const texture = loadTexture(file);
-    if (!texture?.baseTexture.valid) return null;
-    const sprite = new PIXI.Sprite(texture);
-    const scale = Math.max(rect.width / texture.width, rect.height / texture.height);
-    sprite.scale.set(scale);
-    sprite.position.set(rect.x + (rect.width - sprite.width) / 2, rect.y + (rect.height - sprite.height) / 2);
-    sprite.alpha = alpha; sprite.eventMode = 'none'; parent.addChild(sprite);
-    const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(rect.x,rect.y,rect.width,rect.height).endFill();
-    mask.eventMode='none';parent.addChild(mask);sprite.mask=mask;
-    return sprite;
-  }
-  const source = atlasCell(file, index, 4, 3);
-  if (!source) return null;
+  const {file}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
+  const source = loadTexture(file);
+  if (!source?.baseTexture.valid) return null;
   // Crop to cover; paintings must never stretch when a compact slot becomes a tall card.
-  const ratio=rect.width/rect.height,key=`cover:${file}:${index}:${ratio.toFixed(4)}`;
+  const ratio=rect.width/rect.height,key=`cover:${file}:${ratio.toFixed(4)}`;
   if(!cells.has(key)){
     const width=Math.min(source.width,source.height*ratio),height=Math.min(source.height,source.width/ratio);
     cells.set(key,new PIXI.Texture(source.baseTexture,new PIXI.Rectangle(
@@ -207,20 +180,11 @@ export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
 }
 
 export function landmarkTexture(kind, frame) {
-  const source=atlases.get('realm-landmarks.png');if(!source?.baseTexture.valid)return null;
-  const key=`landmark:${kind}:${frame}`;
-  if(!cells.has(key)){
-    // The delivered transparent atlas has taller hamlet cells than fire cells.
-    const y=kind==='fire'?.59*source.height:0;
-    const height=kind==='fire'?.41*source.height:.565*source.height;
-    cells.set(key,new PIXI.Texture(source.baseTexture,new PIXI.Rectangle(
-      frame*source.width/4+2,y,source.width/4-4,Math.min(height,source.height-y))));
-  }
-  return cells.get(key);
+  return loadTexture(`chronicle-illustrations-v1/${kind}-${frame}.png`);
 }
 
 export function addGateBackdrop(parent, rect, alpha = 0.18) {
-  const texture = atlases.get('chronicle-gate.png');
+  const texture = loadTexture('chronicle-gate-v1/chronicle-gate.png');
   if (!texture?.baseTexture.valid) return;
   const sprite = new PIXI.Sprite(texture);
   sprite.position.set(rect.x, rect.y);
@@ -231,8 +195,8 @@ export function addGateBackdrop(parent, rect, alpha = 0.18) {
 
 // Polygon data owns the geography. This layer works with any generated topology.
 export function addRegionTerrain(parent, points, colour, alpha = 1) {
-  const index = {green:0, red:1, blue:2, black:3}[colour] ?? 0;
-  const texture = atlasCell('realm-terrain.png', index, 2, 2);
+  const terrain = {green:'green', red:'red', blue:'blue', black:'black'}[colour] ?? 'green';
+  const texture = loadTexture(`chronicle-illustrations-v1/terrain-${terrain}.png`);
   if (!texture) return;
   const xs = points.filter((_, i) => i % 2 === 0);
   const ys = points.filter((_, i) => i % 2 === 1);

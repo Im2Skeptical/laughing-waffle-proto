@@ -1,5 +1,5 @@
 import { drawDeterministicBust } from "./settlement-elder-bust-view.js";
-import { atlasCell } from './chronicle-art.js';
+import { getChronicleTexture } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 
 export function createVassalPortraitView(portrait, {
@@ -11,7 +11,7 @@ export function createVassalPortraitView(portrait, {
   // A stable art assignment from the already serialized portrait descriptor.
   const key=JSON.stringify(portrait??{});
   let index=0; for(let i=0;i<key.length;i++) index=(index*31+key.charCodeAt(i))>>>0;
-  const texture=atlasCell('vassal-portraits.png',index%8,4,2);
+  const texture=getChronicleTexture(`vassal-portraits-v1/legacy-0${index%8+1}.png`);
   const ink = borderColor ?? RELIC.brass;
   if (shape === "circle") {
     const radius = size / 2;
