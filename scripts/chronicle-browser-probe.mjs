@@ -37,14 +37,12 @@ try {
   // Worker image decoding does not report every request on the page timeline.
   // Assert the loaded textures instead of mistaking absent timing entries for a stall.
   await page.waitForFunction(names=>names.every(name=>{
-    const key=name.endsWith('.json')?`images/sprite-sheets/${name}`:`images/dark-fantasy/${name}`;
-    const asset=PIXI.Assets.get(key);
-    return name.endsWith('.json')?!!asset?.textures&&Object.keys(asset.textures).length>0:asset?.baseTexture?.valid;
+    const asset=PIXI.Assets.get(`images/sprite-sheets/${name}`);
+    return !!asset?.textures&&Object.keys(asset.textures).length>0;
   }),
-    ['chronicle-cards.png','chronicle-practices.png','chronicle-civic.png','realm-terrain.png','chronicle-gate.png','vassal-portraits.png','realm-landmarks.png','timegraph-chronicle-assembly.png',
-      'resource-language.json','piece-frames.json'], { timeout: 45000 });
+    ['resource-language.json','piece-frames.json','chronicle-illustrations.json','vassal-portraits.json','chronicle-gate.json','timegraph-chronicle.json'], { timeout: 45000 });
   const scrollAlpha=await page.evaluate(async()=>{
-    const art=new Image();art.src='images/dark-fantasy/timegraph-chronicle-assembly.png';await art.decode();
+    const art=new Image();art.src='images/sprite-sheets/timegraph-chronicle.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
     const context=canvas.getContext('2d');context.drawImage(art,0,0);
     return [[0,0],[1000,50],[1000,400]].map(([x,y])=>context.getImageData(x,y,1,1).data[3]);

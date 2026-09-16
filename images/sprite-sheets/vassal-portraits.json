@@ -1,0 +1,76 @@
+{"frames": {
+
+"legacy-01.png":
+{
+	"frame": {"x":2,"y":2,"w":443,"h":443},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":443,"h":443},
+	"sourceSize": {"w":443,"h":443}
+},
+"legacy-02.png":
+{
+	"frame": {"x":449,"y":2,"w":444,"h":443},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":444,"h":443},
+	"sourceSize": {"w":444,"h":443}
+},
+"legacy-03.png":
+{
+	"frame": {"x":897,"y":2,"w":443,"h":443},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":443,"h":443},
+	"sourceSize": {"w":443,"h":443}
+},
+"legacy-04.png":
+{
+	"frame": {"x":1344,"y":2,"w":444,"h":443},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":444,"h":443},
+	"sourceSize": {"w":444,"h":443}
+},
+"legacy-05.png":
+{
+	"frame": {"x":2,"y":449,"w":443,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":443,"h":444},
+	"sourceSize": {"w":443,"h":444}
+},
+"legacy-06.png":
+{
+	"frame": {"x":449,"y":449,"w":444,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":444,"h":444},
+	"sourceSize": {"w":444,"h":444}
+},
+"legacy-07.png":
+{
+	"frame": {"x":897,"y":449,"w":443,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":443,"h":444},
+	"sourceSize": {"w":443,"h":444}
+},
+"legacy-08.png":
+{
+	"frame": {"x":1344,"y":449,"w":444,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":444,"h":444},
+	"sourceSize": {"w":444,"h":444}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "vassal-portraits.png",
+	"format": "RGBA8888",
+	"size": {"w":1790,"h":895},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:adfa9cb5196b6a0412b1a322dfe59716:2f0414d3ea1f6ea34b6c04d7122fecfc:ee966d8b17f9ce1171bc8aeb255d3958$"
+}
+}

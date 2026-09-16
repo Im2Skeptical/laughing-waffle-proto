@@ -107,7 +107,7 @@ export function createTimegraphScroll({ root, width, height, onToggleGroup, getA
   let illustrationRevision = -1;
   const mountIllustration = () => {
     if (illustration.destroyed) return;
-    const atlas = getChronicleTexture("timegraph-chronicle-assembly.png");
+    const atlas = getChronicleTexture("timegraph-chronicle-v1/timegraph-chronicle-assembly.png");
     if (!atlas?.baseTexture.valid) return;
     illustrationRevision = getArtRevision();
     const { x, y, width: frameWidth, height: frameHeight } = ASSEMBLY_FRAME;
