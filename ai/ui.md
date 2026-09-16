@@ -48,8 +48,9 @@ contract: `ai/visual-overhaul.md`.
   change the outcome. Minimise / Browse history removes the backdrop and keeps
   a coloured details badge in the top bar. The observed end year stays in the
   survival strip while browsing earlier years. A new timeline revision clears
-  an obsolete forecast warning; a fresh run clears the prior loss. New game
-  opens the existing slot chooser and retains its overwrite confirmation.
+  an obsolete forecast warning; a fresh run clears the prior loss. Confirmed
+  losses offer New game, which opens the existing slot chooser and retains its
+  overwrite confirmation.
 - The menu is also the pause screen. On devices whose primary input has no hover
   and a coarse pointer, focus loss, page hiding, fullscreen exit, or rotating
   into portrait returns to it. Regaining focus does not resume automatically.
