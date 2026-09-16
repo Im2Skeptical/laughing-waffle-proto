@@ -2,16 +2,27 @@ import { drawDeterministicBust } from "./settlement-elder-bust-view.js";
 import { getChronicleTexture } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 
+export function getVassalPortraitStage(age) {
+  const years = Number.isFinite(age) ? Math.max(0, Math.floor(age)) : null;
+  if (years == null) return "middle";
+  if (years < 30) return "youth";
+  if (years >= 55) return "elder";
+  return "middle";
+}
+
 export function createVassalPortraitView(portrait, {
   size = 96,
   borderColor,
   shape = "square",
+  age = null,
 } = {}) {
   const root = new PIXI.Container();
   // A stable art assignment from the already serialized portrait descriptor.
   const key=JSON.stringify(portrait??{});
   let index=0; for(let i=0;i<key.length;i++) index=(index*31+key.charCodeAt(i))>>>0;
-  const texture=getChronicleTexture(`vassal-portraits-v1/legacy-0${index%8+1}.png`);
+  const portraitId=`legacy-0${index%8+1}`;
+  const stage=getVassalPortraitStage(age);
+  const texture=getChronicleTexture(`vassal-portraits-v1/${portraitId}${stage === "middle" ? "" : `-${stage}`}.png`);
   const ink = borderColor ?? RELIC.brass;
   if (shape === "circle") {
     const radius = size / 2;

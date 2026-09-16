@@ -97,7 +97,16 @@
       "load": "eager",
       "data": ["images/sprite-sheets/vassal-portraits.json"],
       "source": "vassal-portraits-v1",
-      "files": ["legacy-01.png", "legacy-02.png", "legacy-03.png", "legacy-04.png", "legacy-05.png", "legacy-06.png", "legacy-07.png", "legacy-08.png"]
+      "files": [
+        "legacy-01-youth.png", "legacy-01.png", "legacy-01-elder.png",
+        "legacy-02-youth.png", "legacy-02.png", "legacy-02-elder.png",
+        "legacy-03-youth.png", "legacy-03.png", "legacy-03-elder.png",
+        "legacy-04-youth.png", "legacy-04.png", "legacy-04-elder.png",
+        "legacy-05-youth.png", "legacy-05.png", "legacy-05-elder.png",
+        "legacy-06-youth.png", "legacy-06.png", "legacy-06-elder.png",
+        "legacy-07-youth.png", "legacy-07.png", "legacy-07-elder.png",
+        "legacy-08-youth.png", "legacy-08.png", "legacy-08-elder.png"
+      ]
     },
     "chronicle-gate": {
       "load": "eager",
