@@ -89,6 +89,8 @@ try {
     const loss = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete;
     return loss.open && loss.info.projected;
   },null,{timeout:15000});
+  assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('newGame')), null,
+    'a foreseen extinction offers no new-game action');
   await page.screenshot({path:`${output}/foreseen-extinction.png`});
   await click('browse');
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));

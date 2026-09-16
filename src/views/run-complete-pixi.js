@@ -88,10 +88,15 @@ export function createRunCompleteView({ app, layer, headerControls, onOpen, onNe
       }, 56, 380),
     );
     root.addChild(panel);
-    button(panel, "browse", { x: 56, y: 504, width: 576, height: 76 },
+    const browseRect = info.projected
+      ? { x: 56, y: 504, width: PANEL.width - 112, height: 76 }
+      : { x: 56, y: 504, width: 576, height: 76 };
+    button(panel, "browse", browseRect,
       "Minimise · Browse history", () => { presentation.minimize(); render(); });
-    button(panel, "newGame", { x: 660, y: 504, width: 604, height: 76 },
-      "New game", () => onNewGame?.(), {fill:0x405a3c});
+    if (!info.projected) {
+      button(panel, "newGame", { x: 660, y: 504, width: 604, height: 76 },
+        "New game", () => onNewGame?.(), {fill:0x405a3c});
+    }
   }
 
   return {
