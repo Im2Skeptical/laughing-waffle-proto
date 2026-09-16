@@ -78,7 +78,6 @@ import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-seri
 import { createSettlementPlayback } from "./ui-root/settlement-playback.js";
 import { createSettlementVassalFlow } from "./ui-root/settlement-vassal-flow.js";
 import {
-  getLatestRunCompleteEntry,
   getSettlementNavigationState as buildSettlementNavigationState,
 } from "./ui-root/settlement-navigation-state.js";
 import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
@@ -595,7 +594,7 @@ function navigateSettlementControl(id) {
 }
 
 function getSettlementLossInfoForDisplay() {
-  return settlementForecastController?.getLossInfoForDisplay?.() ?? {
+  const forecast = settlementForecastController?.getLossInfoForDisplay?.() ?? {
     lossSec: null,
     lossYear: null,
     resolved: false,
@@ -603,20 +602,25 @@ function getSettlementLossInfoForDisplay() {
     finalLossYear: null,
     maxLossYear: null,
   };
+  return { ...forecast, observedEnd: runCompleteView?.getSemanticSnapshot?.().info ?? null };
 }
 
 function openSettlementRunCompleteOverlay() {
-  const latestEntry = getLatestRunCompleteEntry(getSettlementFrontierState());
-  if (!latestEntry) return { ok: false, reason: "noRunCompleteEntry" };
-  return runCompleteView?.openForEntry?.(latestEntry, { source: "settlement" }) ?? {
+  syncSettlementRunCompletePresentation();
+  return runCompleteView?.reopen?.() ?? {
     ok: false,
     reason: "overlayUnavailable",
   };
 }
 
 function syncSettlementRunCompletePresentation() {
-  const viewedState = getSettlementViewedState();
-  runCompleteView?.setBackdropVisible?.(isSettlementStateRunComplete(viewedState));
+  const timeline = runner.getTimeline?.();
+  runCompleteView?.sync?.({
+    frontierState: getSettlementFrontierState(),
+    viewedState: getSettlementViewedState(),
+    timeline,
+    revision: timeline?.revision,
+  });
 }
 
 function invalidateSettlementEdgeTransferBatchCache() {
@@ -1207,13 +1211,20 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
 runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
+  headerControls: document.querySelector('[data-testid="utility-controls"]'),
+  onOpen: () => {
+    requestPauseBeforeDrag();
+    settlementGraphView?.pauseForecastReveal?.();
+    tooltipView?.hide?.({ force: true });
+  },
+  onNewGame: () => gameMenu?.openNewGame?.(),
 });
 function handleDebugFreshRunApplied(reason) {
   requestPauseBeforeDrag();
   settlementVassalFlow.resetSelectionForFreshRun();
   settlementPlayback.clearPendingPreviewRestore();
   settlementDebugMenu?.close?.();
-  runCompleteView?.close?.(reason);
+  runCompleteView?.reset?.();
   worldMapView?.resetEdgeTransferPackets?.();
   forecastWorkerService.handleTimelineInvalidation?.(`${reason}:freshRun`);
   settlementProjectionCache.clear?.();
@@ -1295,6 +1306,7 @@ function isTypingTarget(target) {
 
 function handleGlobalKeyDown(ev) {
   if (gameSession.isInMenu() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
+  if (runCompleteView?.isOpen?.()) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
     ev.preventDefault();
     vassalNodeDecisionModalView.close();
@@ -1368,6 +1380,8 @@ function publishSettlementDebugApi() {
     getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
     getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
+    getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
+    getRunCompleteClickPoint: (id) => runCompleteView?.getClickPoint?.(id) ?? null,
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,
@@ -1515,6 +1529,7 @@ app.ticker.add((delta) => {
   syncSettlementGraphHorizon();
   restoreSettlementPendingPreviewTarget();
   updateSettlementPreviewPlayback(frameDt);
+  syncSettlementRunCompletePresentation();
   syncSettlementVassalSelectionPauseState();
   settlementGraphSeriesMenu?.syncSelection?.();
   prototypeView.update(frameDt);

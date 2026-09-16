@@ -293,6 +293,13 @@ assert.equal(getVisibleForecastCoverageEndSec(reveal, 250, 100), 100,
 assert.equal(getForecastRevealFollowTargetEndSec(reveal, 700, 100, 100), 700,
   'zero follow gap keeps the follow target at the actual forecast end');
 const followReveal = createForecastRevealState({ followGapSec: 60, followResponseSec: 0.9 });
+for (const endSec of [1, 4, 100]) {
+  const terminalReveal = createForecastRevealState({ followGapSec: 36, followResponseSec: 1.1 });
+  resetForecastReveal(terminalReveal, 0, endSec, 0, 0);
+  for (let now = 16; now <= 30000; now += 16) getAnimatedForecastCoverageEndSec(terminalReveal, now, 0);
+  assert.equal(getVisibleForecastCoverageEndSec(terminalReveal, endSec, 0), endSec,
+    'a settled reveal must expose the exact terminal tick, including one-second forecasts');
+}
 assert.equal(getForecastRevealFollowTargetEndSec(followReveal, 700, 100, 100), 640);
 assert.equal(
   getForecastRevealDesiredVelocitySecPerSec(reveal, 700, 100, 100).desiredVelocitySecPerSec,
@@ -861,4 +868,45 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   }
 }
 
-console.log('[presentation-time] OK: unique gamepiece art, arbitrary seeks, reverse PCM, bounded score, topology layout, and timegraph reveal/scrub state');
+{
+  const { createRunCompletePresentation, getRunCompleteInfo } = await import('../src/views/run-complete-presentation.js');
+  const { getCivilizationSurvivalViewModel } = await import('../src/views/civilization-survival-hud.js');
+  const { createEmptyState } = await import('../src/model/state.js');
+  const alive = createEmptyState();
+  const lost = createEmptyState();
+  lost.runStatus = { complete: true, reason: 'redGodMonsterOverrun', year: 12, tSec: 352 };
+  lost.civilization.chaos.monsterLossThreshold = 100;
+  const before = JSON.stringify(lost);
+  const ui = createRunCompletePresentation();
+  const timeline = {};
+  const sync = (frontierState, viewedState, revision = 0) => ui.sync({frontierState, viewedState, timeline, revision});
+  assert.equal(sync(alive, alive).open, false, 'a living run has no loss popup');
+  assert.equal(sync(alive, lost).opened, true, 'reaching a forecasted loss opens its explanation');
+  assert.equal(ui.getSnapshot().info.projected, true);
+  assert.equal(getCivilizationSurvivalViewModel(lost, { observedEnd: ui.getSnapshot().info }).runComplete, false,
+    'a viewed terminal forecast is still labelled as foreseen survival');
+  ui.minimize();
+  assert.equal(sync(alive, alive).open, false, 'scrubbing back does not reopen a minimised popup');
+  assert.equal(ui.getSnapshot().indicatorVisible, true, 'the observed loss remains visible in history');
+  assert.equal(getCivilizationSurvivalViewModel(alive, { observedEnd: ui.getSnapshot().info }).projectedLossYear, 12);
+  assert.equal(sync(alive, alive, 1).info, null, 'an intervention clears the obsolete forecast');
+  assert.equal(sync(lost, alive, 2).opened, true, 'a confirmed loss opens even while browsing an earlier year');
+  const confirmed = ui.getSnapshot().info;
+  assert.equal(confirmed.title, 'GAME OVER');
+  assert.match(confirmed.explanation, /loss limit of 100/);
+  ui.minimize();
+  assert.equal(sync(lost, alive, 2).open, false);
+  const strip = getCivilizationSurvivalViewModel(alive, { observedEnd: confirmed });
+  assert.equal(strip.runComplete, true);
+  assert.equal(strip.actualLossYear, 12, 'history cannot replace the final loss year with Unfolding');
+  ui.reopen();
+  assert.equal(ui.getSnapshot().open, true);
+  assert.equal(ui.sync({frontierState:alive, viewedState:alive, timeline:{}, revision:0}).info, null,
+    'a new run clears the old banner');
+  lost.civilization.chaos.monsterLossThreshold = 250;
+  assert.match(getRunCompleteInfo(lost).explanation, /loss limit of 250/, 'copy uses configured tuning');
+  lost.civilization.chaos.monsterLossThreshold = 100;
+  assert.equal(JSON.stringify(lost), before, 'presentation does not mutate the loss state');
+  assert.equal(getRunCompleteInfo({...lost,runStatus:{...lost.runStatus,reason:'futureLoss'}}).cause, 'Civilization lost');
+}
+console.log('[presentation-time] OK: gamepiece art, reversible presentation, timegraph reveal/scrub, and persistent loss presentation');

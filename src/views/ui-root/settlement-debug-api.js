@@ -116,6 +116,8 @@ export function publishSettlementDebugApi({
   getLifeMapLevelUpSnapshot,
   getLifeMapHudSnapshot,
   getLifeMapRecapSnapshot,
+  getRunCompleteSnapshot,
+  getRunCompleteClickPoint,
   browseSecond,
   getNavigationSnapshot,
   getNavigationClickPoint,
@@ -187,6 +189,7 @@ export function publishSettlementDebugApi({
         lifeMapLevelUp: getLifeMapLevelUpSnapshot?.() ?? null,
         lifeMapHud: getLifeMapHudSnapshot?.() ?? null,
         lifeMapRecap: getLifeMapRecapSnapshot?.() ?? null,
+        runComplete: getRunCompleteSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {
@@ -267,6 +270,7 @@ export function publishSettlementDebugApi({
     hasStateDataAt: (tSec) => hasStateDataAt?.(Math.floor(tSec ?? 0)) === true,
     hasStateAt: (tSec) => hasStateAt?.(Math.floor(tSec ?? 0)) === true,
     applyOverrides: (overrides) => applyOverrides?.(overrides),
+    getRunCompleteClickPoint: (id) => getRunCompleteClickPoint?.(id) ?? null,
     openNextSelection: () => openNextSelection?.(),
     selectCandidate: (candidateIndex) =>
       selectCandidate?.(Math.max(0, Math.floor(candidateIndex ?? 0))),
