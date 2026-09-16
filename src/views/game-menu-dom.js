@@ -157,6 +157,14 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   return {
     show,
     hide,
+    openNewGame() {
+      if (!session.openMenu()) return false;
+      onPause?.();
+      show();
+      mode = "new";
+      render();
+      return true;
+    },
     requiresLandscape: () => portrait.matches,
     clearError() { message.textContent = ""; errorBanner.hidden = true; },
     showError(text) { message.textContent = text; errorBanner.textContent = text; errorBanner.hidden = false; },

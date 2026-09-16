@@ -13,12 +13,16 @@ export function getCivilizationSurvivalViewModel(
 ) {
   const seasonKey = getCurrentSeasonKey(state);
   const year = positiveYear(state?.year) ?? 1;
-  const runComplete = state?.runStatus?.complete === true;
+  const observedEnd = civilizationLossInfo?.observedEnd;
+  const runComplete = observedEnd
+    ? observedEnd.projected === false
+    : state?.runStatus?.complete === true;
   const actualLossYear = runComplete
-    ? positiveYear(state?.runStatus?.year) ?? year
+    ? positiveYear(observedEnd?.projected === false ? observedEnd.year : state?.runStatus?.year) ?? year
     : null;
   const projectedLossYear =
     actualLossYear ??
+    positiveYear(observedEnd?.year) ??
     positiveYear(civilizationLossInfo?.finalLossYear) ??
     (civilizationLossInfo?.resolved === true
       ? positiveYear(civilizationLossInfo?.lossYear)

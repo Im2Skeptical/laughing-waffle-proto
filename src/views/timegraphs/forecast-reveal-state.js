@@ -1,4 +1,5 @@
 import {
+  FORECAST_REVEAL_COMPLETION_EPSILON_SEC,
   FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
   FORECAST_REVEAL_PREVIEW_REFRESH_MS,
   FORECAST_REVEAL_TARGET_DURATION_SEC,
@@ -162,8 +163,8 @@ export function getForecastRevealFollowTargetEndSec(
   const configuredGapSec = Math.max(0, Number(state.followGapSec ?? 0));
   if (configuredGapSec <= 0) return targetEnd;
   const availableSpanSec = Math.max(0, targetEnd - historyEnd);
-  if (availableSpanSec <= 1) return historyEnd;
   const remainingToTargetSec = Math.max(0, targetEnd - currentEnd);
+  if (remainingToTargetSec <= 1) return targetEnd;
   const effectiveGapSec = Math.min(
     configuredGapSec,
     Math.max(0, remainingToTargetSec * 0.5),
@@ -430,7 +431,9 @@ export function getAnimatedForecastCoverageEndSec(
     state.visibleEndSec = currentEnd;
     return currentEnd;
   }
-  if (targetEnd <= currentEnd) {
+  // The eased follow gap approaches an integer endpoint asymptotically.
+  // Finish the last fraction so flooring coverage cannot hide the loss tick.
+  if (targetEnd - currentEnd <= FORECAST_REVEAL_COMPLETION_EPSILON_SEC) {
     state.animatedEndSec = targetEnd;
     state.lastTickMs = nowMs;
     state.visibleEndSec = targetEnd;

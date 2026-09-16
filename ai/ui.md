@@ -43,6 +43,13 @@ contract: `ai/visual-overhaul.md`.
   without opening the menu. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot
   continue. No save-schema migration is introduced.
+- Reaching a loss opens a cause-specific popup. Confirmed losses say Game over;
+  viewed forecast losses say Foreseen extinction and explain that choices can
+  change the outcome. Minimise / Browse history removes the backdrop and keeps
+  a coloured details badge in the top bar. The observed end year stays in the
+  survival strip while browsing earlier years. A new timeline revision clears
+  an obsolete forecast warning; a fresh run clears the prior loss. New game
+  opens the existing slot chooser and retains its overwrite confirmation.
 - The menu is also the pause screen. On devices whose primary input has no hover
   and a coarse pointer, focus loss, page hiding, fullscreen exit, or rotating
   into portrait returns to it. Regaining focus does not resume automatically.
