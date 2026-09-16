@@ -1,7 +1,7 @@
 import { getStoneTexture, paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createVassalPortraitView } from './vassal-portrait-pixi.js';
 import { getArtRevision } from './chronicle-art.js';
-import { getCurrentLifeMapVassal } from '../model/vassal-life-map.js';
+import { getCurrentLifeMapVassal, getVassalAge } from '../model/vassal-life-map.js';
 import { getRegionReference } from '../model/world-state.js';
 
 // Unlike the Life Map's retained historical profile, this shortcut describes
@@ -13,6 +13,7 @@ export function getNavigationVassalPortrait(viewedState) {
   return {
     vassalId: vassal.vassalId,
     traits: vassal.portrait,
+    age: getVassalAge(viewedState, vassal),
     regionId,
     locationLabel: getRegionReference(viewedState, regionId) ?? regionId,
     hasSettlement: !!viewedState?.world?.sites?.some(
@@ -324,7 +325,9 @@ export function createSettlementNavigationView({
       portraitKey = nextPortraitKey;
       for (const child of portrait.removeChildren()) child.destroy({ children: true });
       if (state.portrait) {
-        const art = createVassalPortraitView(state.portrait.traits, { size: layout.auxiliarySize });
+        const art = createVassalPortraitView(state.portrait.traits, {
+          size: layout.auxiliarySize, age: state.portrait.age,
+        });
         const mask = new PIXI.Graphics();
         mask.beginFill(0xffffff).drawCircle(auxiliaryRadius, auxiliaryRadius, auxiliaryRadius - 4).endFill();
         art.mask = mask;

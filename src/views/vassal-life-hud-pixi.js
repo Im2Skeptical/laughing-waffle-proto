@@ -132,7 +132,7 @@ export function createVassalLifeHudView({
     const hud = new PIXI.Graphics();
     roundedRect(hud, barX, barY, barWidth, LIFE_HUD.barHeight, 10, 0x2b332e, PALETTE.accent, 1.5);
     const portrait = createVassalPortraitView(vassal.portrait, {
-      size: LIFE_HUD.portraitSize, borderColor: PALETTE.accent, shape: "circle",
+      size: LIFE_HUD.portraitSize, borderColor: PALETTE.accent, shape: "circle", age: shown.age,
     });
     portrait.position.set(hudX, hudY);
     const location = String(

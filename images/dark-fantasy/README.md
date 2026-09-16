@@ -11,7 +11,7 @@ The currently packed groups are:
 - `settlement-pieces-v2` — settlement paintings.
 - `piece-frames-v1` — structure, practice, and time frames.
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.
-- `vassal-portraits-v1` — the legacy portrait sources, pending the approved procedural replacement.
+- `vassal-portraits-v1` — the established portrait set, with youth, middle-age, and elder frames for each identity.
 - `chronicle-gate-v1` — the shared menu and Life Map backdrop.
 - `timegraph-chronicle-v1` — the timegraph assembly.
 

@@ -25,7 +25,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
   root.addChild(gfx);
 
   const portrait = createVassalPortraitView(candidate.portrait, {
-    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent,
+    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent, age: candidate.age,
   });
   portrait.position.set(18, 15);
   root.addChild(portrait);
