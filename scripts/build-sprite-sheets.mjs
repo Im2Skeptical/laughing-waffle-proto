@@ -15,6 +15,8 @@ const jobs = [
 for (const [name, source, sizing] of jobs) {
   const result = spawnSync(texturePacker, [
     '--format', 'json',
+    '--texture-format', 'png8',
+    '--dither-type', 'PngQuantLow',
     '--sheet', `images/sprite-sheets/${name}.png`,
     '--data', `images/sprite-sheets/${name}.json`,
     ...sizing,
