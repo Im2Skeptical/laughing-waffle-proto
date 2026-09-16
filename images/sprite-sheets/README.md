@@ -8,6 +8,9 @@ frame from an atlas, never a source PNG directly.
 symbols, settlement pieces, frames, chronicle illustrations, legacy vassal
 portraits, the menu gate, and the timegraph assembly. The two one-frame sheets
 exist so the DOM menu backdrop and Pixi consume the same packed gate source.
+Every shipped atlas is indexed PNG-8 with low pngquant dithering; editable
+sources retain their native format so future art passes do not begin from a
+lossy palette reduction.
 
 Run `npm run check:assets` after asset work. It verifies both source inventory
 and every packed frame recorded in `images/asset-manifest.json`.
