@@ -41,6 +41,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     fields: Object.freeze([
       field("startingResearch", "Starting Research (debug)", 0, 0, 1000000, 1, true),
       field("researchSilverThreshold", "Silver unlock Research", 100, 0, 1000000, 1, true),
+      field("researchSilverFullThreshold", "Silver full-rate Research", 300, 0, 1000000, 1, true),
       field("researchGoldThreshold", "Gold unlock Research", 500, 0, 1000000, 1, true),
       field("researchDiamondThreshold", "Diamond unlock Research", 2000, 0, 1000000, 1, true),
       field("practiceReactionResolutionCap", "Practice reaction hard cap", 200, 20, 10000, 1, true),

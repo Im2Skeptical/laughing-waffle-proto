@@ -36,6 +36,13 @@ function getUnlockedQualityIndex(state) {
   if (research >= getGameSetting(state, "researchSilverThreshold")) return 1;
   return 0;
 }
+function getSilverOfferChance(state) {
+  const research = Math.max(0, Number(state?.civilization?.research?.total) || 0);
+  const unlock = getGameSetting(state, "researchSilverThreshold");
+  const fullRate = Math.max(unlock, getGameSetting(state, "researchSilverFullThreshold"));
+  const progress = Math.max(0, Math.min(1, (research - unlock) / Math.max(1, fullRate - unlock)));
+  return 0.1 + progress * 0.4;
+}
 function getUniversityFloor(state, regionId) {
   const tiers = (getDetailedSite(state, regionId)?.detailedState?.structureSlots ?? [])
     .filter((slot) => slot?.structureId === "university")
@@ -46,6 +53,9 @@ function getUniversityFloor(state, regionId) {
 function rollOfferQuality(state, regionId, floor = 0) {
   const max = getUnlockedQualityIndex(state);
   const min = Math.min(max, Math.max(0, floor, getUniversityFloor(state, regionId)));
+  if (min === 0 && max === 1) {
+    return state.rngNextVassalFloat() < getSilverOfferChance(state) ? QUALITY_IDS[1] : QUALITY_IDS[0];
+  }
   return QUALITY_IDS[state.rngNextVassalInt(min, max)];
 }
 function isDefinitionUnlocked(state, def) {
