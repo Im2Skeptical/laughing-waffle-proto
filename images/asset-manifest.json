@@ -88,9 +88,7 @@
       "data": ["images/sprite-sheets/chronicle-illustrations.json"],
       "source": "chronicle-illustrations-v1",
       "files": [
-        "forage.png", "cultivate.png", "preserve.png", "administrate.png", "granary.png", "mudHouses.png", "travel.png", "patronage.png", "development.png", "crisis.png", "legacy.png", "settlement.png",
-        "raiseHouses.png", "exchange.png", "import.png", "caravanRoutes.png", "clearingHouse.png", "mixedFarming.png", "efficientKitchens.png", "homesteading.png", "lodgingHouses.png", "study.png", "mill.png", "harvestFestival.png",
-        "marketFeast.png", "symposium.png", "vigil.png", "exodus.png", "hostel.png", "library.png", "archive.png", "hallOfSages.png", "agrarianGuild.png", "forum.png", "academy.png", "university.png",
+        "travel.png", "patronage.png", "development.png", "crisis.png", "legacy.png", "settlement.png",
         "terrain-green.png", "terrain-red.png", "terrain-blue.png", "terrain-black.png",
         "hamlet-0.png", "hamlet-1.png", "hamlet-2.png", "hamlet-3.png", "fire-0.png", "fire-1.png", "fire-2.png", "fire-3.png"
       ]
