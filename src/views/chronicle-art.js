@@ -16,6 +16,7 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
   'harvestFestival', 'marketFeast', 'symposium', 'vigil',
   'mudHouses', 'granary', 'library', 'smokehouse', 'countingHouse', 'hostel', 'archive',
   'hallOfSages', 'agrarianGuild', 'forum', 'academy', 'caravanserai', 'resettlementHall', 'university',
+  'longhouse', 'cottage', 'townhouse', 'silo',
 ]);
 
 const PACKED_GROUPS = Object.freeze({
@@ -143,7 +144,6 @@ const ILLUSTRATION_IDS = Object.freeze([
   'hostel', 'library', 'archive', 'hallOfSages', 'agrarianGuild', 'forum',
   'academy', 'university',
 ]);
-
 export function resolveIllustrationId(piece = {}) {
   if (typeof piece === 'string') return piece;
   return piece.practiceId ?? piece.structureId ?? piece.defId ?? piece.id ?? 'legacy';

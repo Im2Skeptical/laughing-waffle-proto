@@ -148,12 +148,12 @@ export function validateVassalLifeMapState(state) {
         continue;
       }
       const malformed = purchases.some(p => {
-        if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)) return true;
+        if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)
+            || !Number.isFinite(p.currencyCost)) return true;
         if (p.intervention.kind !== 'structure') return false;
         const placement = p.placement, def = getDetailedStructureDef(state, p.intervention.structureId);
         return !placement || !def || placement.structureId !== def.id || placement.width !== def.footprint
-          || (placement.mode === 'upgrade' ? typeof placement.targetPlacementId !== 'string'
-            : typeof placement.placementId !== 'string' || !Number.isInteger(placement.origin));
+          || typeof placement.placementId !== 'string' || !Number.isInteger(placement.origin);
       });
       if (malformed) errors.push(`${vassalId}.${nodeId}: invalid staged placement`);
       else if (lineage.currentVassalId === vassalId && vassal.lifeMap.currentNodeId === nodeId

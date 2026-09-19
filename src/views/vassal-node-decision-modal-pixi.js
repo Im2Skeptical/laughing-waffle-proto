@@ -303,8 +303,8 @@ export function createVassalNodeDecisionModalView({
           const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:cardHeight},{
             title:offer.label,artId:node.family,presentation:offer.presentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
-            cost:{prestigeCost:offer.prestigeCost,phaseCost:offer.phaseCost,state},enabled,
-            costUnmet:offer.prestigeCost>projected&&!offer.purchased,
+            cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,state},enabled,
+            costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
             onClick:()=>onPurchaseOffer?.(node.id,offer.offerId),onUnavailable:readOnly?onReadOnlyAction:null,
             onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
             onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
@@ -440,7 +440,7 @@ export function createVassalNodeDecisionModalView({
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
       inspectionRoot=addChronicleInspection(root,{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
-        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
+        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage

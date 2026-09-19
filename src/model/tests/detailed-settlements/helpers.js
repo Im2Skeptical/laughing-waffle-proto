@@ -3,9 +3,9 @@ import { settlementStructureDefs } from "../../../defs/gamepieces/detailed-settl
 import { createInitialState } from "../../init.js";
 import { DETAILED_PRACTICE_SLOT_COUNT } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 
-export function putStructure(settlement, structureId, origin = 2, tier = 'bronze') {
+export function putStructure(settlement, structureId, origin = 2) {
   const entries = [...settlement.structureSlots];
-  entries[origin] = { structureId, tier, origin, width: settlementStructureDefs[structureId].footprint, placementId: 'fixture:' + origin };
+  entries[origin] = { structureId, origin, width: settlementStructureDefs[structureId].footprint, placementId: 'fixture:' + origin };
   settlement.structureSlots = normalizeStructureLayout(entries, entries.length, id => settlementStructureDefs[id]);
 }
 

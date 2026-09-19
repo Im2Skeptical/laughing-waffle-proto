@@ -40,14 +40,15 @@ export function getVassalGamepiecePresentation(state, kind, definitionId, tier =
     ? getDetailedPracticeDef(state, definitionId)
     : getDetailedStructureDef(state, definitionId);
   if (!def) return null;
-  const face = getGamepieceFace(state, kind, definitionId, tier);
+  const resolvedTier = kind === "structure" ? def.minimumQuality ?? "bronze" : tier;
+  const face = getGamepieceFace(state, kind, definitionId, resolvedTier);
   return {
     ...face,
     kind,
     definitionId,
     label: def.label ?? definitionId,
-    tier,
-    qualityLabel: capitalize(tier),
+    tier: resolvedTier,
+    qualityLabel: capitalize(resolvedTier),
     tags: [...(def.tags ?? [])],
     rule: def.ui?.rule ?? "",
     details: face.detailLines,
@@ -244,6 +245,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   if (!vassal || !node) return null;
   const stagedPrestigeCost = (nodeState?.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  const stagedCurrencyCost = (nodeState?.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
   const selectedOption = nodeState?.options?.find(
     (option) => option.id === (preview.previewOptionId ?? nodeState.selectedOptionId)
   ) ?? null;
@@ -278,12 +281,14 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const idKey = kind === 'practice' ? 'practiceId' : 'structureId';
     const purchase = (nodeState?.purchasedOffers ?? []).find(p => p.intervention.kind === kind
       && (kind === 'practice' ? p.intervention.practiceId === slot.practiceId
-        : (p.placement?.targetPlacementId ?? p.placement?.placementId) === slot.placementId));
+        : p.placement?.placementId === slot.placementId));
+    const tier = kind === 'practice' ? slot.tier ?? 'bronze'
+      : getDetailedStructureDef(state, slot.structureId)?.minimumQuality ?? 'bronze';
     return { ...slot, staged: !!purchase, offerId: purchase?.offerId ?? null,
-      upgraded: purchase?.intervention?.mode === 'upgrade',
-      previousPresentation: purchase?.intervention?.mode === 'upgrade'
-        ? getVassalGamepiecePresentation(state, kind, slot[idKey], kind === 'practice' ? purchase.intervention.tier : purchase.intervention.previousTier) : null,
-      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], slot.tier ?? 'bronze'),
+      upgraded: kind === 'practice' && purchase?.intervention?.mode === 'upgrade',
+      previousPresentation: kind === 'practice' && purchase?.intervention?.mode === 'upgrade'
+        ? getVassalGamepiecePresentation(state, kind, slot[idKey], purchase.intervention.tier) : null,
+      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], tier),
     };
   });
   const decorateOffer = (offer, purchased = false) => {
@@ -292,6 +297,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const definitionId = kind === "practice" ? intervention.practiceId
       : kind === "structure" ? intervention.structureId : null;
     const prestigeCost = purchased ? offer.prestigeCost : getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost ?? 0);
+    const currencyCost = purchased ? offer.currencyCost : Math.max(0, Number(offer.baseCurrencyCost) || 0);
     const remaining = (nodeState?.purchasedOffers ?? []).filter(p => p.offerId !== offer.offerId);
     const checkPlacement = origin => {
       const prepared = kind === 'structure' ? prepareStructurePlacement(state, vassal, nodeState, offer, origin, remaining) : { ok: true };
@@ -299,17 +305,23 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       return validatePurchaseInterventions(state, vassal, [{ ...offer, ...(prepared.placement ? { placement: prepared.placement } : {}) }, ...remaining]);
     };
     const legality = checkPlacement(null);
-    const affordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
+    const prestigeAffordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
+    const currencyAffordable = purchased || currencyCost <= Math.max(0,
+      Number(previewSite?.detailedState?.currency) || 0) - stagedCurrencyCost;
+    const affordable = prestigeAffordable && currencyAffordable;
     return {
       ...clone(offer),
       purchased,
       canStage: affordable && legality.ok,
-      stageBlockedReason: !affordable ? 'Insufficient Prestige' : legality.ok ? null : 'No compatible space in the staged settlement',
+      stageBlockedReason: !prestigeAffordable ? 'Insufficient Prestige'
+        : !currencyAffordable ? 'Insufficient local Gold'
+          : legality.ok ? null : 'No compatible space in the staged settlement',
       validOrigins: kind === 'structure' ? Array.from({ length: beforeStructures.length }, (_, i) => i).filter(origin => checkPlacement(origin).ok) : [],
       presentation: definitionId
         ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze")
         : null,
       prestigeCost,
+      currencyCost,
       phaseCost: purchased ? offer.phaseCost
         : getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost ?? 0),
     };
@@ -323,6 +335,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     currentPrestige: vassal.prestige,
     projectedPrestige: Math.max(0, vassal.prestige - stagedPrestigeCost - optionPrestigeCost),
     stagedPrestigeCost,
+    stagedCurrencyCost,
     mortalityEstimate: {
       totalPhaseCost,
       timeLabel: formatVassalPhaseDuration(totalPhaseCost, state),
@@ -337,15 +350,17 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     settlement: previewSite ? {
       storedFood: previewSite.detailedState.storedFood,
       looseFood: previewSite.detailedState.looseFood,
-      currency: previewSite.detailedState.currency ?? 0,
+      currentCurrency: previewSite.detailedState.currency ?? 0,
+      currency: Math.max(0, (previewSite.detailedState.currency ?? 0)
+        - (previewRegionId === vassal.locationRegionId ? stagedCurrencyCost : 0)),
       practices: decorate("practice", afterPractices, beforePractices),
       displacedPractices: displacedPractices.map((slot) =>
         getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
       structures: decorate("structure", afterStructures, beforeStructures),
       structureCapacity: afterStructures.length,
       demolishedStructures: (projected?.structures?.demolished ?? []).map(slot => ({ ...slot,
-        presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId, slot.tier) })),
-      upgradedStructures: projected?.structures?.upgrades ?? [],
+        presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId,
+          getDetailedStructureDef(state, slot.structureId)?.minimumQuality) })),
     } : null,
     offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
     purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),

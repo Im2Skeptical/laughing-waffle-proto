@@ -124,6 +124,71 @@ for (const [family, seed] of [["publicWorks", 103], ["routes", 104]]) {
   }
 }
 
+let townhouseShop = null;
+for (let seed = 0; seed < 1000 && !townhouseShop; seed += 1) {
+  const state = selectedState(seed);
+  state.civilization.research.total = state.gameConfig.settings.values.researchSilverThreshold;
+  const vassal = getCurrentLifeMapVassal(state);
+  vassal.prestige = 500;
+  const settlement = state.world.sites.find(
+    (site) => site.regionId === vassal.locationRegionId
+  ).detailedState;
+  settlement.currency = 9;
+  const origin = settlement.structureSlots.findIndex((slot, index) =>
+    index >= 2 && slot == null);
+  if (origin < 0) continue;
+  settlement.structureSlots[origin] = {
+    structureId: "townhouse", width: 1, origin, placementId: `existing:${origin}`,
+  };
+  const node = forceEnter(state, nodeIdForFamily(state, "publicWorks"));
+  const offer = node.inventory.find((entry) => entry.intervention.structureId === "townhouse");
+  if (offer) townhouseShop = { state, vassal, settlement, node, offer };
+}
+assert.ok(townhouseShop, "a deterministic Public Works roll offers a Townhouse");
+assert.equal(townhouseShop.offer.intervention.mode, "add",
+  "an installed structure never turns a duplicate offer into an upgrade");
+assert.equal(townhouseShop.offer.intervention.tier, "silver",
+  "structure tier is the definition's research unlock tier");
+assert.equal(townhouseShop.offer.baseCurrencyCost, 10);
+assert.equal(applyAction(townhouseShop.state, {
+  kind: ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,
+  payload: { nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId },
+}, { isReplay: true }).reason, "insufficientCurrency");
+townhouseShop.settlement.currency = 10;
+dispatch(townhouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+});
+const townhousePreview = getVassalNodeDecisionPresentation(
+  townhouseShop.state, townhouseShop.node.nodeId
+);
+assert.equal(townhousePreview.stagedCurrencyCost, 10);
+assert.equal(townhousePreview.settlement.currentCurrency, 10);
+assert.equal(townhousePreview.settlement.currency, 0,
+  "staging reserves local Gold in the settlement projection");
+dispatch(townhouseShop.state, ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, {
+  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+});
+const undoneTownhousePreview = getVassalNodeDecisionPresentation(
+  townhouseShop.state, townhouseShop.node.nodeId
+);
+assert.equal(undoneTownhousePreview.stagedCurrencyCost, 0);
+assert.equal(undoneTownhousePreview.settlement.currency, 10,
+  "undo releases reserved local Gold without mutating the settlement");
+dispatch(townhouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+});
+dispatch(townhouseShop.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: townhouseShop.node.nodeId,
+});
+assert.equal(townhouseShop.settlement.currency, 0,
+  "confirmation deducts the reserved local Gold exactly once");
+assert.equal(townhouseShop.settlement.structureSlots.filter(
+  (slot) => slot?.structureId === "townhouse"
+).length, 2, "confirming a duplicate builds a second Townhouse");
+assert.ok(townhouseShop.settlement.structureSlots.filter(
+  (slot) => slot?.structureId === "townhouse"
+).every((slot) => slot.tier == null), "structure placements do not serialize quality tiers");
+
 const practiceTierState = selectedState(1602);
 const practiceTierVassal = getCurrentLifeMapVassal(practiceTierState);
 practiceTierVassal.prestige = 500;

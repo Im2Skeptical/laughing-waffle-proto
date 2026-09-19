@@ -40,7 +40,7 @@ try {
         {kind,mode:'add',structureId:'library',tier:'bronze'},
         {kind,mode:'add',structureId:'university',tier:'bronze'},
         {kind,mode:'add',structureId:'caravanserai',tier:'bronze'},
-        {kind,mode:'upgrade',structureId:'granary',tier:'silver',previousTier:'bronze',targetPlacementId:site.structureSlots[0].placementId},
+        {kind,mode:'add',structureId:'granary',tier:'bronze'},
       ];
       v.lifeMap.nodeStates[nodeId].inventory=actions.map((intervention,i)=>({offerId:'fixture:'+i,inventoryIndex:i,label:intervention.practiceId??intervention.structureId,basePrestigeCost:10,basePhaseCost:1,intervention:{...intervention,targetRegionId:v.locationRegionId}}));
       const line=timeline.createTimelineFromInitialState(state), results=[];

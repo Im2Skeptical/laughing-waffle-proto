@@ -39,6 +39,7 @@
         "archive.webp",
         "caravanserai.webp",
         "countingHouse.webp",
+        "cottage.webp",
         "cultivate.webp",
         "efficientKitchens.webp",
         "exchange.webp",
@@ -51,6 +52,7 @@
         "hostel.webp",
         "import.webp",
         "library.webp",
+        "longhouse.webp",
         "lodgingHouses.webp",
         "marketFeast.webp",
         "mill.webp",
@@ -59,8 +61,10 @@
         "raiseHouses.webp",
         "resettlementHall.webp",
         "smokehouse.webp",
+        "silo.webp",
         "study.webp",
         "symposium.webp",
+        "townhouse.webp",
         "university.webp",
         "vigil.webp"
       ]

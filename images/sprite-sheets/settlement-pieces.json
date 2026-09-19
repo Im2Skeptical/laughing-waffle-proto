@@ -2,7 +2,7 @@
 
 "academy.webp":
 {
-	"frame": {"x":2261,"y":2,"w":768,"h":512},
+	"frame": {"x":2,"y":1987,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -10,7 +10,7 @@
 },
 "administrate.webp":
 {
-	"frame": {"x":467,"y":620,"w":439,"h":614},
+	"frame": {"x":2783,"y":1896,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -18,7 +18,7 @@
 },
 "agrarianGuild.webp":
 {
-	"frame": {"x":3033,"y":2,"w":768,"h":512},
+	"frame": {"x":774,"y":1987,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -26,7 +26,7 @@
 },
 "archive.webp":
 {
-	"frame": {"x":2261,"y":518,"w":768,"h":512},
+	"frame": {"x":1546,"y":1987,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -34,15 +34,23 @@
 },
 "caravanserai.webp":
 {
-	"frame": {"x":3033,"y":518,"w":768,"h":512},
+	"frame": {"x":2108,"y":2,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
 	"sourceSize": {"w":768,"h":512}
 },
+"cottage.webp":
+{
+	"frame": {"x":2,"y":2,"w":869,"h":1158},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":869,"h":1158},
+	"sourceSize": {"w":869,"h":1158}
+},
 "countingHouse.webp":
 {
-	"frame": {"x":2,"y":2,"w":461,"h":614},
+	"frame": {"x":2318,"y":1896,"w":461,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":614},
@@ -50,7 +58,7 @@
 },
 "cultivate.webp":
 {
-	"frame": {"x":467,"y":1238,"w":439,"h":614},
+	"frame": {"x":2880,"y":2,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -58,7 +66,7 @@
 },
 "efficientKitchens.webp":
 {
-	"frame": {"x":467,"y":1856,"w":439,"h":614},
+	"frame": {"x":2880,"y":620,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -66,7 +74,7 @@
 },
 "exchange.webp":
 {
-	"frame": {"x":910,"y":620,"w":439,"h":614},
+	"frame": {"x":2880,"y":1238,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -74,7 +82,7 @@
 },
 "forage.webp":
 {
-	"frame": {"x":932,"y":2,"w":439,"h":614},
+	"frame": {"x":3226,"y":1856,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -82,7 +90,7 @@
 },
 "forum.webp":
 {
-	"frame": {"x":2239,"y":1034,"w":768,"h":512},
+	"frame": {"x":2108,"y":518,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -90,7 +98,7 @@
 },
 "granary.webp":
 {
-	"frame": {"x":2,"y":620,"w":461,"h":614},
+	"frame": {"x":1546,"y":2503,"w":461,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":614},
@@ -98,7 +106,7 @@
 },
 "hallOfSages.webp":
 {
-	"frame": {"x":3011,"y":1034,"w":768,"h":512},
+	"frame": {"x":2108,"y":1034,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -106,7 +114,7 @@
 },
 "harvestFestival.webp":
 {
-	"frame": {"x":910,"y":1238,"w":439,"h":614},
+	"frame": {"x":3226,"y":2474,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -114,7 +122,7 @@
 },
 "homesteading.webp":
 {
-	"frame": {"x":910,"y":1856,"w":439,"h":614},
+	"frame": {"x":2011,"y":2514,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -122,7 +130,7 @@
 },
 "hostel.webp":
 {
-	"frame": {"x":2682,"y":1550,"w":768,"h":512},
+	"frame": {"x":2,"y":2503,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
@@ -130,7 +138,7 @@
 },
 "import.webp":
 {
-	"frame": {"x":1353,"y":620,"w":439,"h":614},
+	"frame": {"x":1397,"y":3121,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -138,7 +146,7 @@
 },
 "library.webp":
 {
-	"frame": {"x":2,"y":1238,"w":461,"h":614},
+	"frame": {"x":2,"y":3019,"w":461,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":614},
@@ -146,15 +154,23 @@
 },
 "lodgingHouses.webp":
 {
-	"frame": {"x":1375,"y":2,"w":439,"h":614},
+	"frame": {"x":2454,"y":2514,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
 	"sourceSize": {"w":439,"h":614}
 },
+"longhouse.webp":
+{
+	"frame": {"x":2,"y":1164,"w":1229,"h":819},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1229,"h":819},
+	"sourceSize": {"w":1229,"h":819}
+},
 "marketFeast.webp":
 {
-	"frame": {"x":1353,"y":1238,"w":439,"h":614},
+	"frame": {"x":2897,"y":3092,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -162,7 +178,7 @@
 },
 "mill.webp":
 {
-	"frame": {"x":1353,"y":1856,"w":439,"h":614},
+	"frame": {"x":3340,"y":3092,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -170,7 +186,7 @@
 },
 "mixedFarming.webp":
 {
-	"frame": {"x":1796,"y":620,"w":439,"h":614},
+	"frame": {"x":1840,"y":3132,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -178,7 +194,7 @@
 },
 "mudHouses.webp":
 {
-	"frame": {"x":2,"y":1856,"w":461,"h":614},
+	"frame": {"x":467,"y":3019,"w":461,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":614},
@@ -186,7 +202,7 @@
 },
 "raiseHouses.webp":
 {
-	"frame": {"x":1818,"y":2,"w":439,"h":614},
+	"frame": {"x":2283,"y":3132,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -194,15 +210,23 @@
 },
 "resettlementHall.webp":
 {
-	"frame": {"x":3011,"y":2066,"w":768,"h":512},
+	"frame": {"x":774,"y":2503,"w":768,"h":512},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":512},
 	"sourceSize": {"w":768,"h":512}
 },
+"silo.webp":
+{
+	"frame": {"x":875,"y":2,"w":1229,"h":819},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1229,"h":819},
+	"sourceSize": {"w":1229,"h":819}
+},
 "smokehouse.webp":
 {
-	"frame": {"x":467,"y":2,"w":461,"h":614},
+	"frame": {"x":932,"y":3019,"w":461,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":614},
@@ -210,7 +234,7 @@
 },
 "study.webp":
 {
-	"frame": {"x":1796,"y":1238,"w":439,"h":614},
+	"frame": {"x":3323,"y":2,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -218,15 +242,23 @@
 },
 "symposium.webp":
 {
-	"frame": {"x":1796,"y":1856,"w":439,"h":614},
+	"frame": {"x":3323,"y":620,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
 	"sourceSize": {"w":439,"h":614}
 },
+"townhouse.webp":
+{
+	"frame": {"x":1235,"y":825,"w":869,"h":1158},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":869,"h":1158},
+	"sourceSize": {"w":869,"h":1158}
+},
 "university.webp":
 {
-	"frame": {"x":2239,"y":2168,"w":768,"h":342},
+	"frame": {"x":2108,"y":1550,"w":768,"h":342},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":768,"h":342},
@@ -234,7 +266,7 @@
 },
 "vigil.webp":
 {
-	"frame": {"x":2239,"y":1550,"w":439,"h":614},
+	"frame": {"x":3323,"y":1238,"w":439,"h":614},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":439,"h":614},
@@ -245,8 +277,8 @@
 	"version": "1.0",
 	"image": "settlement-pieces.png",
 	"format": "RGBA8888",
-	"size": {"w":3803,"h":2580},
+	"size": {"w":3781,"h":3748},
 	"scale": "0.8",
-	"smartupdate": "$TexturePacker:SmartUpdate:d0fe429ecfd8da10637d2f838a0fd069:5c0e491e0e982ae4fd55d8e7e887d408:950fc12091c06873185d4006671efd07$"
+	"smartupdate": "$TexturePacker:SmartUpdate:6dbe4ee53858950251989b3b9a0faf0a:8f09048e8f16b56a8a1ce6b47e8f399a:950fc12091c06873185d4006671efd07$"
 }
 }

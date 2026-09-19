@@ -38,10 +38,10 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v20; runner saves v12. Older saves are rejected.
-- Each run serializes schema-v13 Game Settings, Gamepieces, and Life Map
+- Game state v21; runner saves v13. Older saves are rejected.
+- Each run serializes schema-v14 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
-- Map Lab drafts v5; scenario libraries v4.
+- Map Lab drafts v6; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Life Map generator settings v3; serialized Life Map graph v2.

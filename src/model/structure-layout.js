@@ -39,7 +39,8 @@ export function normalizeStructureLayout(entries, capacity, definitionFor, ident
     if (!entry) continue;
     const origin = entry.origin ?? index;
     const width = entry.width ?? definitionFor(entry.structureId)?.footprint ?? 1;
-    const placement = { ...entry, tier: entry.tier ?? 'bronze', origin, width,
+    const { tier: _obsoleteTier, ...structureEntry } = entry;
+    const placement = { ...structureEntry, origin, width,
       placementId: entry.placementId ?? `${identityPrefix}:${index}` };
     const result = applyBuild(slots, placement);
     if (!result.ok) throw new Error(`Invalid authored construction at ${origin}: ${result.reason}`);
@@ -81,29 +82,18 @@ export function applyBuild(slots, placement, options = {}) {
   return { ok: true, slots: next, demolished: result.demolished };
 }
 
-export function applyStructureUpgrade(slots, targetId, replacement, stagedIds = []) {
-  const target = slots.find(p => p?.placementId === targetId);
-  if (!target || stagedIds.includes(targetId) || target.structureId !== replacement.structureId || target.width !== replacement.width || replacement.previousTier !== target.tier) return { ok: false, reason: 'incompatibleUpgrade' };
-  const next = slots.map(p => p ? { ...p } : null);
-  next[target.origin] = { ...target, tier: replacement.tier };
-  return { ok: true, slots: next, demolished: [], upgraded: target };
-}
-
 // Recompute from confirmed placements on every edit; undo therefore restores
 // all covered structures without compensating actions or destructive mutation.
 export function projectStructureDraft(confirmed, actions) {
   let slots = confirmed.map(p => p ? { ...p } : null);
-  const stagedIds = [], demolished = [], upgrades = [];
+  const stagedIds = [], demolished = [];
   for (const action of actions) {
     if (!action || typeof action !== 'object') return { ok: false, reason: 'invalidStructureAction' };
-    const result = action.mode === 'upgrade'
-      ? applyStructureUpgrade(slots, action.targetPlacementId, action, stagedIds)
-      : applyBuild(slots, action, { allowDemolition: true, stagedIds });
+    const result = applyBuild(slots, action, { allowDemolition: true, stagedIds });
     if (!result.ok) return result;
     slots = result.slots;
-    stagedIds.push(action.mode === 'upgrade' ? action.targetPlacementId : action.placementId);
+    stagedIds.push(action.placementId);
     demolished.push(...result.demolished);
-    if (result.upgraded) upgrades.push(result.upgraded);
   }
-  return { ok: true, slots, stagedIds, demolished, upgrades };
+  return { ok: true, slots, stagedIds, demolished };
 }

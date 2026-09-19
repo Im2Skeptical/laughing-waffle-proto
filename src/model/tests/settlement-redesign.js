@@ -66,8 +66,9 @@ assert.equal(settlementStructureDefs.university.footprint,3);
 assert.ok(settlementStructureDefs.hostel.nonfunctionalEffects.length);
 assert.ok(settlementStructureDefs.resettlementHall.nonfunctionalEffects.length);
 const silverGranary = getGamepieceFace(state,'structure','granary','silver');
-assert.equal(silverGranary.outputs[0].value,281.25,'Capacity badge agrees with the one-building quality-squared capacity');
-assert.ok(silverGranary.detailLines.some(line=>line.includes('combined quality units')));
+assert.equal(silverGranary.outputs[0].value,180,'Structure capacity is fixed by definition rather than offer quality');
+assert.equal(silverGranary.tier,'bronze','Structure presentation derives its tier from the research unlock');
+assert.ok(silverGranary.detailLines.some(line=>line.includes("structure's local count")));
 assert.ok(getGamepieceFace(state,'structure','hostel').detailLines.some(line=>line.includes('nonfunctional')));
 assert.ok(getGamepieceFace(state,'practice','harvestFestival','silver').detailLines.some(line=>line.includes('Activates at 2 charge')),'Inspection uses the same rounded threshold as simulation');
 

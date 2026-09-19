@@ -5,7 +5,6 @@ import {
   DETAILED_REGION_IDS,
   createInitialDetailedSettlementData,
 } from "../../defs/world/detailed-settlement-scenario.js";
-import { getQualityMultiplier } from "../detailed-practice-tiers.js";
 import {
   getBooleanGameSetting,
   getDetailedStructureDef,
@@ -44,21 +43,24 @@ export function getStructureCount(state, regionId, structureId) {
     .filter((slot) => slot?.structureId === structureId).length;
 }
 
-export function getStructureQualityUnits(state, regionId, structureId) {
-  const def = getDetailedStructureDef(state, structureId);
-  return (getDetailedSettlement(state, regionId)?.structureSlots ?? [])
-    .filter((slot) => slot?.structureId === structureId)
-    .reduce((sum, slot) => sum + getQualityMultiplier(slot.tier ?? "bronze", def?.qualityMultiplierPerLevel ?? 0), 0);
+export function getStructureCapacity(state, regionId, capacityKind) {
+  const counts = new Map();
+  for (const slot of getDetailedSettlement(state, regionId)?.structureSlots ?? []) {
+    if (!slot) continue;
+    const def = getDetailedStructureDef(state, slot.structureId);
+    if (def?.capacityKind !== capacityKind || !Number.isFinite(def.capacityPerCountSquared)) continue;
+    counts.set(slot.structureId, (counts.get(slot.structureId) ?? 0) + 1);
+  }
+  return [...counts.entries()].reduce((sum, [structureId, count]) =>
+    sum + getDetailedStructureDef(state, structureId).capacityPerCountSquared * count * count, 0);
 }
 
 export function getStoredFoodCapacity(state, regionId) {
-  const count = getStructureQualityUnits(state, regionId, "granary");
-  return getDetailedStructureDef(state, "granary").capacityPerCountSquared * count * count;
+  return getStructureCapacity(state, regionId, "storedFood");
 }
 
 export function getHousingCapacity(state, regionId) {
-  const count = getStructureQualityUnits(state, regionId, "mudHouses");
-  return getDetailedStructureDef(state, "mudHouses").capacityPerCountSquared * count * count;
+  return getStructureCapacity(state, regionId, "housing");
 }
 
 export function getPopulationSummary(state, regionId) {

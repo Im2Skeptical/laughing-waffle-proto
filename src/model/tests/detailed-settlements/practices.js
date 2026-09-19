@@ -117,7 +117,7 @@ assert.equal(decaySite.looseFood, 0, "Preservation does not change loose-food de
 
 const build = fresh();
 const buildSite = getDetailedSettlement(build, "river-crown");
-buildSite.structureSlots = buildSite.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
+buildSite.structureSlots = buildSite.structureSlots.map((_,origin) => ({ structureId: "granary", width: 1, origin, placementId: "fixture:"+origin }));
 buildSite.practiceSlots = [
   { practiceId: "raiseHouses", tier: "bronze", charge: 0, work: 0 }, null, null, null, null,
 ];

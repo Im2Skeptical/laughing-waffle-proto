@@ -183,7 +183,7 @@ for (const { state: sampledState, targetRegionId, entry } of sampledIntervention
 }
 const constrainedVassalState = fresh(780);
 for (const site of constrainedVassalState.world.sites) {
-  site.detailedState.structureSlots = site.detailedState.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
+  site.detailedState.structureSlots = site.detailedState.structureSlots.map((_,origin) => ({ structureId: "granary", width: 1, origin, placementId: "fixture:"+origin }));
 }
 constrainedVassalState.world.connections = getWorldConnectionCandidates(
   getWorldDefinition(constrainedVassalState)
@@ -354,7 +354,7 @@ const globalVassal = globalState.civilization.vassalLineage.currentVassal;
 globalVassal.initialAge = 50;
 globalVassal.deathAge = 99;
 const fullSite = getDetailedSettlement(globalState, "cedar-woods");
-fullSite.structureSlots = fullSite.structureSlots.map((_,origin) => ({ structureId: "granary", tier: "bronze", width: 1, origin, placementId: "fixture:"+origin }));
+fullSite.structureSlots = fullSite.structureSlots.map((_,origin) => ({ structureId: "granary", width: 1, origin, placementId: "fixture:"+origin }));
 globalVassal.interventions = [
   { kind: "globalStructure", structureId: "mudHouses", requiredPrestige: 0, status: "pending" },
 ];

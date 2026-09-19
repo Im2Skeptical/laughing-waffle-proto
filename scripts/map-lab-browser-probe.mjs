@@ -35,7 +35,7 @@ try {
   });
   await page.addInitScript(() => {
     if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v5");
+      localStorage.removeItem("civsurvivor.mapLabDraft.v6");
       localStorage.removeItem("civsurvivor.mapLabScenarios.v4");
       localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v7");
       localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v7");
@@ -427,7 +427,7 @@ try {
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
-      "Map Lab schema v5",
+      "Map Lab schema v6",
       "detailed-settlement toggle and cohorts",
       "elder ages and local food",
       "five practice slots",

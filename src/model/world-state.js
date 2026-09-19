@@ -180,9 +180,6 @@ function validateDetailedSettlement(site, region, errors) {
       if (slot && !settlementStructureDefs[slot.structureId]) {
         errors.push(`site ${site.id} has invalid structure ${slot.structureId}`);
       }
-      if (slot && !isDetailedPracticeTier(slot.tier ?? "bronze")) {
-        errors.push(`site ${site.id} has invalid structure tier ${slot.tier ?? "?"}`);
-      }
     }
   }
   if (!Number.isFinite(settlement.storedFood) || settlement.storedFood < 0
@@ -460,7 +457,7 @@ export function canonicalizeWorldState(state) {
         if (slot && slot.tier == null) slot.tier = "bronze";
       }
       for (const slot of site?.detailedState?.structureSlots ?? []) {
-        if (slot && slot.tier == null) slot.tier = "bronze";
+        if (slot) delete slot.tier;
       }
     }
   }

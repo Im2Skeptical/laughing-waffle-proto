@@ -413,8 +413,8 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       null, null, null, null,
     ];
     settlement.structureSlots = [
-      { structureId: "granary", tier: "bronze" },
-      { structureId: "mudHouses", tier: "bronze" },
+      { structureId: "granary" },
+      { structureId: "mudHouses" },
     ];
     const result = establishDetailedSettlement(state, targetRegionId, settlement);
     if (!result.ok) return result;
@@ -527,14 +527,20 @@ export function confirmVassalLifeNode(state, nodeId) {
   }
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  const stagedCurrencyCost = (nodeState.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
   if (stagedPrestigeCost > vassal.prestige) {
     return { ok: false, reason: "insufficientPrestige" };
+  }
+  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+  if (stagedCurrencyCost > Math.max(0, Number(settlement?.currency) || 0)) {
+    return { ok: false, reason: "insufficientCurrency" };
   }
   const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
   if (!validation.ok) return validation;
   vassal.prestige -= stagedPrestigeCost;
-  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
   if (settlement) {
+    settlement.currency = Math.max(0, settlement.currency - stagedCurrencyCost);
     settlement.practiceSlots = validation.reservation.practiceSlots;
     settlement.structureSlots = validation.reservation.structureSlots;
   }
