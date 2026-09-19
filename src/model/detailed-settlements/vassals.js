@@ -106,7 +106,7 @@ function reserveStructureBuild(state, slots, structureId, origin = null) {
   if (!width) return null;
   const location = origin == null ? findStructurePlacement(slots, width) : { ok: true, origin };
   if (!location.ok) return null;
-  const result = applyBuild(slots, { structureId, tier: "bronze", width, origin: location.origin,
+  const result = applyBuild(slots, { structureId, width, origin: location.origin,
     placementId: `reserved:${location.origin}` });
   if (!result.ok) return null;
   slots.splice(0, slots.length, ...result.slots);
@@ -643,7 +643,7 @@ function createExpansionDetailedState(structureCapacity) {
   ];
   state.structureSlots = Array.from(
     { length: Math.max(0, Math.floor(structureCapacity ?? 0)) },
-    (_, index) => index === 0 ? { structureId: "mudHouses", tier: "bronze", width: 1, origin: 0, placementId: "founding:0" } : null
+    (_, index) => index === 0 ? { structureId: "mudHouses", width: 1, origin: 0, placementId: "founding:0" } : null
   );
   state.lastMeal = null;
   state.lastMoonResult = null;
@@ -734,7 +734,7 @@ function applyIntervention(state, vassal, intervention) {
     const slotIndex = Math.floor(intervention.slotIndex);
     const def = getDetailedStructureDef(state, intervention.structureId);
     result = def ? applyBuild(settlement.structureSlots, {
-      structureId: intervention.structureId, tier: 'bronze', width: def.footprint ?? 1, origin: slotIndex,
+      structureId: intervention.structureId, width: def.footprint ?? 1, origin: slotIndex,
       placementId: localTargetRegionId + ':' + state.tSec + ':' + slotIndex,
     }) : { ok: false, reason: 'invalidStructure' };
     if (result.ok) settlement.structureSlots = result.slots;

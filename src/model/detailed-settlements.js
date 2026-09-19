@@ -14,8 +14,8 @@ export {
   getPopulationSummary,
   getSettlementPressureSummary,
   getStoredFoodCapacity,
+  getStructureCapacity,
   getStructureCount,
-  getStructureQualityUnits,
 } from "./detailed-settlements/queries.js";
 export {
   evaluateDetailedMapScore,

@@ -9,9 +9,6 @@ import {
 } from "../../../defs/gamepieces/vassal-life-map-defs.js";
 import { getDetailedStructureDef } from "../../game-config.js";
 import {
-  getDetailedPracticeTierIndex,
-} from "../../detailed-practice-tiers.js";
-import {
   generateVassalLifeMap,
 } from "../../vassal-life-map-generator.js";
 import {
@@ -84,7 +81,7 @@ export function generateCandidatePool(state) {
       const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
       const academyBonus = (getDetailedSite(state, locationRegionId)?.detailedState?.structureSlots ?? [])
         .filter((slot) => slot?.structureId === "academy")
-        .reduce((sum, slot) => sum + Math.max(0, getDetailedStructureDef(state, "academy")?.candidateIntelligenceBonus ?? 0) * (1 + getDetailedPracticeTierIndex(slot.tier ?? "bronze")), 0);
+        .reduce((sum) => sum + Math.max(0, getDetailedStructureDef(state, "academy")?.candidateIntelligenceBonus ?? 0), 0);
       return ({
       candidateId: `candidate-${Math.max(1, Math.floor(lineage.nextVassalId ?? 1))}-${index + 1}`,
       age: state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateAgeMin, VASSAL_LIFE_TUNING.candidateAgeMax),

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import { applyBuild, applyStructureUpgrade, findStructurePlacement, normalizeStructureLayout, occupiedCells, projectStructureDraft, validateStructureLayout } from '../structure-layout.js';
+import { applyBuild, findStructurePlacement, normalizeStructureLayout, occupiedCells, projectStructureDraft, validateStructureLayout } from '../structure-layout.js';
 import { projectPracticeDraft } from '../practice-draft.js';
 
 const strip = normalizeStructureLayout([{ structureId: 'house' }, null, { structureId: 'hall', width: 2 }], 8, () => ({ footprint: 1 }), 'test');
 assert.equal(validateStructureLayout(strip).ok, true);
 assert.deepEqual(occupiedCells(strip).map(p => p?.structureId ?? null), ['house', null, 'hall', 'hall', null, null, null, null]);
 assert.equal(findStructurePlacement(strip, 3, { allowDemolition: true }).origin, 4, 'free span wins over earlier demolition');
-const build = { placementId: 'incoming', origin: 1, width: 3, structureId: 'university', tier: 'gold' };
+const build = { placementId: 'incoming', origin: 1, width: 3, structureId: 'university' };
 assert.equal(applyBuild(strip, build).ok, false, 'ordinary simulation builds cannot demolish');
 const draft = projectStructureDraft(strip, [build]);
 assert.equal(draft.ok, true);
@@ -17,13 +17,10 @@ assert.equal(projectStructureDraft(strip, [build, { ...build, placementId: 'over
 assert.equal(projectStructureDraft(strip, [{ ...build, origin: 6 }]).reason, 'outsideConstructionStrip');
 const full = normalizeStructureLayout(Array.from({length:5},()=>({structureId:'house'})),5,()=>({footprint:1}));
 assert.equal(findStructurePlacement(full,2,{allowDemolition:true}).origin,0, 'full strip uses leftmost compatible demolition');
-const upgrade = { mode: 'upgrade', targetPlacementId: strip[2].placementId, structureId: 'hall', previousTier: 'bronze', tier: 'silver', width: 2 };
-const upgraded = projectStructureDraft(strip, [upgrade]);
-assert.equal(upgraded.slots[2].placementId, strip[2].placementId);
-assert.equal(upgraded.slots[2].width, 2);
-assert.equal(upgraded.slots[2].tier, 'silver');
-assert.equal(applyStructureUpgrade(strip, strip[2].placementId, {...upgrade,width:3}).ok,false);
-assert.equal(projectStructureDraft(strip, [upgrade,{...build,origin:2}]).ok,false);
+const duplicate = { placementId: 'duplicate-hall', origin: 4, structureId: 'hall', width: 2 };
+const duplicated = projectStructureDraft(strip, [duplicate]);
+assert.equal(duplicated.ok, true, 'matching structures are independent build placements');
+assert.equal(duplicated.slots.filter(slot => slot?.structureId === 'hall').length, 2);
 assert.deepEqual(projectStructureDraft(JSON.parse(JSON.stringify(strip)), JSON.parse(JSON.stringify([build]))), draft);
 const confirmed = ['a','b','c','d','e'].map(practiceId => ({practiceId,tier:'bronze',charge:0,work:0}));
 const purchases = [{intervention:{kind:'practice',mode:'learn',practiceId:'f',resultingTier:'bronze'}},{intervention:{kind:'practice',mode:'upgrade',practiceId:'e',tier:'bronze',resultingTier:'silver'}}];

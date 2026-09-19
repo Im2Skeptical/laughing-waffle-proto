@@ -10,7 +10,6 @@ import {
 import {
   getDetailedPracticeTierIndex,
   getDetailedPracticeWorkerCapacity,
-  getQualityMultiplier,
 } from "../detailed-practice-tiers.js";
 import {
   getDetailedPracticeDef,
@@ -31,7 +30,7 @@ import {
   getDetailedSettlementSites,
   getPopulationSummary,
   getStoredFoodCapacity,
-  getStructureQualityUnits,
+  getStructureCount,
   hasStructureCapability,
 } from "./queries.js";
 import {
@@ -321,7 +320,7 @@ export function tryCreateStructure(state, regionId, structureId) {
   const width = getDetailedStructureDef(state, structureId).footprint ?? 1;
   const location = findStructurePlacement(settlement.structureSlots, width);
   if (!location.ok) return false;
-  const result = applyBuild(settlement.structureSlots, { structureId, tier: 'bronze', width, origin: location.origin,
+  const result = applyBuild(settlement.structureSlots, { structureId, width, origin: location.origin,
     placementId: regionId + ':' + state.tSec + ':' + location.origin });
   if (!result.ok) return false;
   settlement.structureSlots = result.slots;
@@ -383,12 +382,12 @@ function addPracticeTrace(site, entry) {
 function getResearchStructureBonus(state, regionId, practiceId) {
   if (!getPracticeTags(state, practiceId).includes("Knowledge")) return 1;
   const library = getDetailedStructureDef(state, "library");
-  const units = getStructureQualityUnits(state, regionId, "library");
+  const units = getStructureCount(state, regionId, "library");
   const archive = getDetailedStructureDef(state, "archive");
   const retired = (state.civilization.retiredVassals ?? []).filter((entry) => entry.retirementRegionId === regionId)
     .reduce((sum, entry) => sum + Math.max(0, Number(entry.finalIntelligence) || 0), 0);
   return Math.max(0, 1 + units * (library?.knowledgeResearchMultiplierPerLevel ?? 0)
-    + retired * (archive?.researchPerRetiredIntelligence ?? 0) * getStructureQualityUnits(state, regionId, "archive"));
+    + retired * (archive?.researchPerRetiredIntelligence ?? 0) * getStructureCount(state, regionId, "archive"));
 }
 
 function executePracticeEffects(state, site, assignment, activationType, stage = null, { force = false } = {}) {
@@ -406,7 +405,7 @@ function executePracticeEffects(state, site, assignment, activationType, stage =
       const resolved = resolveScaledValue(state, site, assignment, effect.scaledValue);
       const otherFoodPieces = getLocalTaggedPieceCount(state, site.regionId, "Food", { excludeStructureId: "agrarianGuild" });
       const guild = getDetailedStructureDef(state, "agrarianGuild");
-      const guildUnits = getStructureQualityUnits(state, site.regionId, "agrarianGuild");
+      const guildUnits = getStructureCount(state, site.regionId, "agrarianGuild");
       addFoodToSettlement(
         state,
         site.regionId,
@@ -510,7 +509,7 @@ export function getPreserveReduction(state, site) {
   return site.detailedState.structureSlots.reduce((sum, slot) => {
     const def = slot && getDetailedStructureDef(state, slot.structureId);
     return sum + (def?.effects ?? []).reduce((total, effect) => total + (effect.op === 'reduceFoodDecay' && effect.foodKind === 'stored'
-      ? effect.amount * getQualityMultiplier(slot.tier, def.qualityMultiplierPerLevel) : 0), 0);
+      ? effect.amount : 0), 0);
   }, 0);
 }
 

@@ -180,7 +180,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
       workers: workers[index],
       evaluation: slot ? buildDetailedPracticeEvaluation(state, site, workers[index]) : null,
     })),
-    structures: settlement.structureSlots.map((slot) => slot ? ({ ...slot, face: getGamepieceFace(state, "structure", slot.structureId, slot.tier), label: getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId, tags: getDetailedStructureDef(state, slot.structureId)?.tags ?? [] }) : null),
+    structures: settlement.structureSlots.map((slot) => slot ? ({ ...slot, face: getGamepieceFace(state, "structure", slot.structureId, getDetailedStructureDef(state, slot.structureId)?.minimumQuality), label: getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId, tags: getDetailedStructureDef(state, slot.structureId)?.tags ?? [] }) : null),
     structureCapacity: region?.structureCapacity ?? 0,
     usedStructureCapacity: occupiedCells(settlement.structureSlots).filter(Boolean).length,
     elderOrder: getElderOrderSummary(state, regionId),

@@ -46,7 +46,7 @@ function getSilverOfferChance(state) {
 function getUniversityFloor(state, regionId) {
   const tiers = (getDetailedSite(state, regionId)?.detailedState?.structureSlots ?? [])
     .filter((slot) => slot?.structureId === "university")
-    .map((slot) => getDetailedPracticeTierIndex(slot.tier ?? "bronze"));
+    .map((slot) => getDetailedPracticeTierIndex(getDetailedStructureDef(state, slot.structureId)?.minimumQuality ?? "bronze"));
   const highest = tiers.length ? Math.max(...tiers) : -1;
   return highest >= 0 ? 2 : 0;
 }
@@ -87,14 +87,6 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
   const def = getDetailedStructureDef(state, offer.intervention.structureId);
   const width = def?.footprint ?? 1;
   const action = offer.intervention;
-  if (action.mode === 'upgrade') {
-    const target = getDetailedSite(state, vassal.locationRegionId)?.detailedState?.structureSlots.find(p => p?.placementId === action.targetPlacementId);
-    if (!target || (origin != null && origin !== target.origin)) return { ok: false, reason: 'incompatibleUpgrade' };
-    return { ok: true, placement: {
-    mode: 'upgrade', targetPlacementId: action.targetPlacementId, structureId: action.structureId,
-    previousTier: action.previousTier, tier: action.tier, width,
-    } };
-  }
   if (action.mode === 'remove') return { ok: false, reason: 'standaloneDemolitionUnavailable' };
   const validation = validatePurchaseInterventions(state, vassal, purchases);
   if (!validation.ok) return validation;
@@ -103,7 +95,7 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
   }) : { ok: true, origin };
   if (!location.ok) return location;
   return { ok: true, placement: { placementId: vassal.vassalId + ':' + offer.offerId,
-    origin: location.origin, width, structureId: action.structureId, tier: action.tier ?? 'bronze' } };
+    origin: location.origin, width, structureId: action.structureId } };
 }
 
 function buildPracticeOffers(state, vassal, nodeState, roll) {
@@ -138,19 +130,15 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
 
 function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, category = 'structure') {
   const def = getDetailedStructureDef(state, structureId);
-  const installed = getDetailedSite(state, vassal.locationRegionId)?.detailedState.structureSlots.find(p =>
-    p?.structureId === structureId && p.width === (def.footprint ?? 1) && p.tier !== 'diamond');
-  const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
-  const tier = installed ? getNextDetailedPracticeTier(installed.tier) : offeredTier;
+  const tier = def.minimumQuality ?? 'bronze';
   return {
     offerId: nodeState.nodeId + ':r' + roll + ':' + category + ':' + index,
-    label: (installed ? 'Upgrade ' : 'Build ') + qualityLabel(tier) + ' ' + def.label,
+    label: 'Build ' + qualityLabel(tier) + ' ' + def.label,
     basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
     basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-    intervention: { kind: 'structure', mode: installed ? 'upgrade' : 'add',
-      targetRegionId: vassal.locationRegionId, structureId, tier,
-      ...(installed ? { targetPlacementId: installed.placementId, previousTier: installed.tier } : {}),
-    },
+    baseCurrencyCost: Math.max(0, def.localCurrencyCost ?? 0),
+    intervention: { kind: 'structure', mode: 'add',
+      targetRegionId: vassal.locationRegionId, structureId, tier },
   };
 }
 
@@ -289,16 +277,24 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   const offer = nodeState.inventory[index];
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
   const phaseCost = getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost);
+  const currencyCost = Math.max(0, Number(offer.baseCurrencyCost) || 0);
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+  const stagedCurrencyCost = (nodeState.purchasedOffers ?? [])
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
   if (prestigeCost > vassal.prestige - stagedPrestigeCost) {
     return { ok: false, reason: "insufficientPrestige" };
+  }
+  const settlementCurrency = Math.max(0,
+    Number(getDetailedSite(state, vassal.locationRegionId)?.detailedState?.currency) || 0);
+  if (currencyCost > settlementCurrency - stagedCurrencyCost) {
+    return { ok: false, reason: "insufficientCurrency" };
   }
   const prepared = offer.intervention?.kind === 'structure'
     ? prepareStructurePlacement(state, vassal, nodeState, offer, origin) : { ok: true };
   if (!prepared.ok) return prepared;
   const purchase = {
-    ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, phaseCost, purchasedSec: state.tSec,
+    ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, phaseCost, currencyCost, purchasedSec: state.tSec,
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
   };
@@ -313,7 +309,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   nodeState.purchasedOffers = next;
   nodeState.purchasedOfferIds = next.map(p => p.offerId);
   nodeState.accumulatedPhaseCost += phaseCost;
-  return { ok: true, offerId, prestigeCost, phaseCost };
+  return { ok: true, offerId, prestigeCost, phaseCost, currencyCost };
 }
 
 export function undoVassalShopPurchase(state, nodeId, offerId) {
@@ -329,6 +325,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   delete restored.placement;
   delete restored.prestigeCost;
   delete restored.phaseCost;
+  delete restored.currencyCost;
   delete restored.purchasedSec;
   delete restored.sourceInventoryRoll;
   const originalIndex = Math.max(0, Math.floor(restored.sourceInventoryIndex ?? nodeState.inventory.length));
@@ -340,7 +337,8 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   nodeState.accumulatedPhaseCost = Math.max(
     0, nodeState.accumulatedPhaseCost - Math.max(0, purchase.phaseCost ?? 0)
   );
-  return { ok: true, offerId, prestigeCost: purchase.prestigeCost, phaseCost: purchase.phaseCost };
+  return { ok: true, offerId, prestigeCost: purchase.prestigeCost, phaseCost: purchase.phaseCost,
+    currencyCost: purchase.currencyCost };
 }
 
 export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
@@ -369,7 +367,7 @@ export function moveVassalShopStructure(state, nodeId, offerId, origin) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState) || nodeState.resolving) return { ok: false, reason: 'shopUnavailable' };
   const purchase = nodeState.purchasedOffers.find(p => p.offerId === offerId);
-  if (!purchase?.placement || purchase.placement.mode === 'upgrade') return { ok: false, reason: 'placementLocked' };
+  if (!purchase?.placement) return { ok: false, reason: 'placementLocked' };
   const next = nodeState.purchasedOffers.map(p => p === purchase ? { ...p, placement: { ...p.placement, origin } } : p);
   const validation = validatePurchaseInterventions(state, vassal, next);
   if (!validation.ok) return validation;

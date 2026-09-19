@@ -82,7 +82,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 // One footer for options, shop offers, inspections, and draft receipts. Prices
 // remain live text; the entire framed area owns the action, independently of art.
 export function addCostPanel(parent, rect, {
-  phaseCost = 0, prestigeCost = 0, state = null, selected = false, staged = false,
+  phaseCost = 0, prestigeCost = 0, currencyCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
   interactive = true, fontSize = 40, iconSize = 52,
 } = {}) {
@@ -106,27 +106,36 @@ export function addCostPanel(parent, rect, {
     root.addChild(frame);
   }
   const ink = disabled && !staged && !selected && !unaffordable ? PALETTE.textMuted : PALETTE.text;
-  const twoRows = prestigeCost > 0;
+  const resourceCosts = [
+    prestigeCost > 0 ? { id: 'prestige', value: prestigeCost } : null,
+    currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
+  ].filter(Boolean);
+  const hasResources = resourceCosts.length > 0;
   const inset = Math.min(22, rect.width * .055);
-  const rowHeight=Math.min(iconSize*1.25,twoRows?(rect.height-32)*.58:rect.height-24);
-  const prestigeHeight=twoRows?Math.min(iconSize*.86,(rect.height-32)*.42):0;
-  const gap=twoRows?12:0;
-  const timeY=(rect.height-rowHeight-prestigeHeight-gap)/2;
+  const gap=hasResources?8:0;
+  const resourceHeight=hasResources?Math.min(iconSize*.8,(rect.height-32)*.48/resourceCosts.length):0;
+  const resourcesTotal=resourceCosts.length*resourceHeight+Math.max(0,resourceCosts.length-1)*gap;
+  const rowHeight=Math.min(iconSize*1.25,hasResources?(rect.height-24-resourcesTotal-gap)*.9:rect.height-24);
+  const timeY=Math.max(8,(rect.height-rowHeight-resourcesTotal-gap)/2);
   const hourglass=addResourceIcon(root,'hourglass',13,timeY+rowHeight/2,Math.min(24,rowHeight*.42));hourglass.alpha=.65;
   addTimeCostTokens(root, phaseCost, state, {
     x: 30, y:timeY,
     width: rect.width-60, height: rowHeight, fontSize, iconSize, fill: ink,
   });
-  if (twoRows) {
-    const divider = new PIXI.Graphics();
-    divider.lineStyle(1, 0x829078, .3).moveTo(inset, timeY+rowHeight+gap/2).lineTo(rect.width - inset, timeY+rowHeight+gap/2);
-    root.addChild(divider);
-    const amount = addResourceAmount(root, 'prestige', prestigeCost, {
-      fontSize: fontSize * .92, iconSize: iconSize * .86, fill: unaffordable ? 0xf0ad97 : ink,
+  if (hasResources) {
+    resourceCosts.forEach((resource, index) => {
+      const y = timeY + rowHeight + gap + index * (resourceHeight + gap);
+      const divider = new PIXI.Graphics();
+      divider.lineStyle(1, 0x829078, .3).moveTo(inset, y-gap/2).lineTo(rect.width - inset, y-gap/2);
+      root.addChild(divider);
+      const amount = addResourceAmount(root, resource.id, resource.value, {
+        fontSize: fontSize * .82, iconSize: iconSize * .76, fill: unaffordable ? 0xf0ad97 : ink,
+      });
+      const scale = Math.min(1, (rect.width - inset * 2) / amount.width, resourceHeight / amount.height);
+      amount.scale.set(scale);
+      amount.position.set((rect.width - amount.width * scale) / 2,
+        y + (resourceHeight - amount.height * scale) / 2);
     });
-    const scale = Math.min(1, (rect.width - inset * 2) / amount.width, prestigeHeight / amount.height);
-    amount.scale.set(scale);
-    amount.position.set((rect.width - amount.width) / 2, timeY+rowHeight+gap+(prestigeHeight-amount.height)/2);
   }
   if (selected || staged || unaffordable) {
     const accent = unaffordable ? 0xdb967f : staged ? 0xa4c3c3 : 0xb6ce92;
@@ -136,11 +145,11 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
-  root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — not enough Prestige' : ''}`;
-  root.costSummary = { phaseCost, prestigeCost, description, selected, staged, disabled, unaffordable };
+  root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;
+  root.costSummary = { phaseCost, prestigeCost, currencyCost, description, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
   root.on('pointertap', event => {

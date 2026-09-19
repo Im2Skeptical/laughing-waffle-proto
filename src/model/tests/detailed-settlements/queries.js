@@ -11,6 +11,7 @@ import {
   validateDetailedPracticeDefinitions,
 } from "../../detailed-settlements.js";
 import { getRegionState } from "../../world-state.js";
+import { settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { fresh } from "./helpers.js";
 
 assert.equal(validateDetailedPracticeDefinitions().ok, true);
@@ -55,6 +56,28 @@ getDetailedSettlement(state, "upper-floodplain").structureSlots[3] = { structure
 getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structureId: "mudHouses" };
 assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 720);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 140);
+
+const varied = fresh(777);
+const variedSettlement = getDetailedSettlement(varied, "upper-floodplain");
+variedSettlement.structureSlots = [
+  { structureId: "mudHouses" }, { structureId: "mudHouses" },
+  { structureId: "longhouse" }, { structureId: "cottage" },
+  { structureId: "townhouse" }, { structureId: "granary" },
+  { structureId: "granary" }, { structureId: "silo" },
+];
+assert.equal(getHousingCapacity(varied, "upper-floodplain"), 355,
+  "housing capacity sums each definition's independently squared count");
+assert.equal(getStoredFoodCapacity(varied, "upper-floodplain"), 1170,
+  "food capacity combines Granary and Silo totals");
+assert.deepEqual([
+  [settlementStructureDefs.longhouse.footprint, settlementStructureDefs.longhouse.capacityPerCountSquared],
+  [settlementStructureDefs.cottage.footprint, settlementStructureDefs.cottage.capacityPerCountSquared],
+  [settlementStructureDefs.townhouse.footprint, settlementStructureDefs.townhouse.capacityPerCountSquared],
+  [settlementStructureDefs.silo.footprint, settlementStructureDefs.silo.capacityPerCountSquared],
+], [[2, 90], [1, 50], [1, 75], [2, 450]]);
+assert.equal(settlementStructureDefs.cottage.vassalPhaseCost, 480);
+assert.equal(settlementStructureDefs.townhouse.minimumQuality, "silver");
+assert.equal(settlementStructureDefs.townhouse.localCurrencyCost, 10);
 
 const vm = getDetailedSettlementViewModel(state, "river-crown");
 assert.equal(vm.elderOrder.resistance, 13);

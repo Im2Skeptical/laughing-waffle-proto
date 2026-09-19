@@ -14,10 +14,10 @@ import {
   getWorldConnectionKey,
   isWorldConnectionCandidate,
 } from "./world-state.js";
-import { isDetailedPracticeTier, getQualityMultiplier } from "./detailed-practice-tiers.js";
+import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
 
-export const MAP_LAB_DRAFT_SCHEMA_VERSION = 5;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v5";
+export const MAP_LAB_DRAFT_SCHEMA_VERSION = 6;
+export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v6";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
@@ -115,7 +115,15 @@ export function createMapLabDraftFromGameState(state) {
 function countStructures(detailedState, structureId) {
   return (detailedState?.structureSlots ?? []).filter(
     (slot) => slot?.structureId === structureId
-  ).reduce((sum, slot) => sum + getQualityMultiplier(slot.tier ?? 'bronze', settlementStructureDefs[structureId].qualityMultiplierPerLevel ?? 0), 0);
+  ).length;
+}
+
+function structureCapacity(detailedState, capacityKind) {
+  return Object.values(settlementStructureDefs).reduce((sum, def) => {
+    if (def.capacityKind !== capacityKind || !Number.isFinite(def.capacityPerCountSquared)) return sum;
+    const count = countStructures(detailedState, def.id);
+    return sum + def.capacityPerCountSquared * count * count;
+  }, 0);
 }
 
 function populationTotal(detailedState) {
@@ -165,8 +173,7 @@ function validateDetailedState(region, path, errors, warnings) {
       }
     });
   }
-  const granaries = countStructures(state, "granary");
-  const foodCapacity = settlementStructureDefs.granary.capacityPerCountSquared * granaries * granaries;
+  const foodCapacity = structureCapacity(state, "storedFood");
   if (!Number.isFinite(state.storedFood) || state.storedFood < 0
       || state.storedFood > foodCapacity) {
     errors.push(`${path}.detailedState.storedFood: expected 0..${foodCapacity}`);
@@ -189,8 +196,7 @@ function validateDetailedState(region, path, errors, warnings) {
       }
     }
   }
-  const houses = countStructures(state, "mudHouses");
-  const housing = settlementStructureDefs.mudHouses.capacityPerCountSquared * houses * houses;
+  const housing = structureCapacity(state, "housing");
   if (populationTotal(state) > housing) {
     warnings.push(`${path}: population ${populationTotal(state)} exceeds housing ${housing}`);
   }
@@ -336,7 +342,7 @@ export function setMapLabStructureSlot(draft, regionId, slotIndex, structureId) 
   if (occupant && occupant.origin !== slotIndex) return { ok: false, reason: "coveredConstructionCell" };
   const cleared = applyDemolish(slots, occupant ? [occupant.placementId] : []);
   const result = structureId == null ? { ok: true, slots: cleared } : applyBuild(cleared, {
-    structureId, tier: "bronze", origin: slotIndex, width: settlementStructureDefs[structureId].footprint,
+    structureId, origin: slotIndex, width: settlementStructureDefs[structureId].footprint,
     placementId: `${regionId}:authored:${slotIndex}`,
   });
   if (!result.ok) return result;

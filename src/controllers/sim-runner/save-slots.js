@@ -12,7 +12,7 @@ import {
 import { rebuildStateAtSecond } from "../../model/timeline/index.js";
 import { clonePersistentKnowledge } from "../../model/persistent-memory.js";
 
-export const SAVE_SCHEMA_VERSION = 12;
+export const SAVE_SCHEMA_VERSION = 13;
 export const SAVE_KEY_PREFIX = "civsurvivor.save";
 export const SAVE_SLOT_COUNT = 3;
 

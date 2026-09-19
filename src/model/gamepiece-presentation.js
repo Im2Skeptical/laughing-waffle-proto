@@ -26,18 +26,17 @@ export function describeGamepieceEffects(def) {
     if (effect.op === 'createLocalStructureAtWork') return `At ${effect.requiredWork} work, build a ${effect.structureDefId === 'mudHouses' ? 'Mud House' : effect.structureDefId} in free construction cells. Completed work waits if there is no free span.`;
     if (effect.op === 'extendHappinessFloor') return `Add ${effect.durationResolutions} future Faith resolution with a ${effect.status} Happiness floor; additive duration capped at ${effect.maximumResolutions}.`;
     if (effect.op === 'importMissingFood') return 'Spend available Money, one per missing Food, to cover the meal shortfall.';
-    if (effect.op === 'reduceFoodDecay') return `${effect.amount}% relative reduction to ${effect.foodKind} Food decay, scaled by quality; combined reduction capped at 100%.`;
+    if (effect.op === 'reduceFoodDecay') return `${effect.amount}% relative reduction to ${effect.foodKind} Food decay; combined reduction capped at 100%.`;
     if (effect.op === 'reduceExternalEmigrationPressure') return `${effect.amount} external-emigration pressure reduction (nonfunctional; no live executor).`;
     return effect.op;
   });
 }
 
-function describeStructureValues(def, tier) {
-  const multiplier = getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0);
-  const scaled = value => number(value * multiplier);
+function describeStructureValues(def) {
+  const scaled = value => number(value);
   if (Number.isFinite(def.capacityPerCountSquared)) return [
-    `${number(def.capacityPerCountSquared * multiplier * multiplier)} ${def.capacityKind === 'housing' ? 'Housing' : 'stored-Food capacity'} when alone.`,
-    `Together: ${def.capacityPerCountSquared} × the square of their combined quality units. This ${tier} structure contributes ${multiplier} units.`,
+    `${number(def.capacityPerCountSquared)} ${def.capacityKind === 'housing' ? 'Housing' : 'stored-Food capacity'} when alone.`,
+    `Duplicates: ${def.capacityPerCountSquared} × the square of this structure's local count.`,
   ];
   const descriptions = [
     ['migrantHousingReserve', value => `${value} reserved Housing (nonfunctional; no live executor).`],
@@ -49,13 +48,14 @@ function describeStructureValues(def, tier) {
     ['candidateIntelligenceBonus', value => `+${value} candidate Intelligence.`],
   ];
   return [...descriptions.flatMap(([key, describe]) => Number.isFinite(def[key]) ? [describe(scaled(def[key]))] : []),
-    ...(def.id === 'university' ? ['Gold offer floor, subject to the civilization’s unlocked quality; complete at Bronze.'] : [])];
+    ...(def.id === 'university' ? ['Gold offer floor, subject to the civilization’s unlocked quality.'] : [])];
 }
 
 export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
-  const multiplier = getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0);
+  if (kind === 'structure') tier = def.minimumQuality ?? 'bronze';
+  const multiplier = kind === 'practice' ? getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0) : 1;
   const outputs = (def.outputs ?? []).map(output => {
     const effect = def.effects?.[output.effectIndex];
     const evaluated = evaluation?.effects?.[output.effectIndex];
@@ -83,7 +83,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     workerBonus: def.workerBonus ?? .25, workers: workers?.tokens?.length ?? 0,
     fill: def.lane === 'charge' ? Math.min(1, requiredWork ? (slot?.work ?? 0) / requiredWork : (slot?.charge ?? 0) / threshold)
       : (state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period,
-    detailLines: [...(kind === 'structure' ? describeStructureValues(def, tier) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
+    detailLines: [...(kind === 'structure' ? describeStructureValues(def) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
       ...(kind === 'practice' ? [`Workers optional: ${getDetailedPracticeWorkerCapacity(def, tier)} sockets; +${number((def.workerBonus ?? .25) * 100)}% per effective worker.`,
         def.lane === 'charge' ? requiredWork ? `Birth adds construction work.` : `Activates at ${threshold} charge. Each matching activation contributes one charge.`
           : `Scheduled: ${def.source?.cadence ?? def.activation.type}.`] : [`Construction footprint: ${def.footprint ?? 1} horizontal cells.`])],
