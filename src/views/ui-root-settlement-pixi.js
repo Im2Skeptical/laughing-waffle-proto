@@ -1115,6 +1115,9 @@ function getSettlementVassalInterventionMarkers(state) {
     for (const [index, event] of (vassal?.lifeEvents ?? []).entries()) {
       const tSec = Number.isFinite(event?.tSec) ? Math.max(0, Math.floor(event.tSec)) : null;
       if (tSec == null || event.kind === "selected") continue;
+      // Mark each node at entry only: resolution and purchases would repeat its
+      // icon at the next node's start or stack multiple copies at this one.
+      if (event.nodeId && event.kind !== "nodeEntered") continue;
       const key = `${vassal.vassalId ?? "vassal"}:${index}:${tSec}`;
       markerByKey.set(key, {
         tSec,
