@@ -19,6 +19,7 @@ import { getCurrentLifeMapVassal } from "../model/vassal-life-map.js";
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
+  getSurvivalEndDetailsClickPoint,
 } from "./civilization-survival-hud.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -205,6 +206,7 @@ export function createWorldMapView({
   getGraphScope,
   setSelectedRegionId,
   getCivilizationLossInfo,
+  onOpenEndDetails,
   onShowCivilizationGraph,
   onShowSelectedRegionGraph,
   onOpenDetailedSite,
@@ -234,6 +236,7 @@ export function createWorldMapView({
   const visualTime=()=>getVisualTime?.()??getState?.()?.tSec??0;
   const effects=createChronicleEffects(edgeTransferLayer,visualTime);
   let landmarks=[];
+  let endDetailsTarget = null;
 
   function getEdgeTransferBatchKey(batch) {
     if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
@@ -400,6 +403,7 @@ export function createWorldMapView({
     lastSignature = nextSignature;
     clearChildren(root);
     landmarks=[];
+    endDetailsTarget = null;
 
     const bg = new PIXI.Graphics();
     bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
@@ -427,11 +431,12 @@ export function createWorldMapView({
         0.5
       )
     );
-    addCivilizationSurvivalStrip(root, {
+    endDetailsTarget = addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
       rect: { x: 590, y: 16, width: 1108, height: 54 },
-    });
+      onOpenEndDetails,
+    }).detailsTarget;
 
     const mapPanel = new PIXI.Graphics();
     roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
@@ -797,6 +802,7 @@ export function createWorldMapView({
         }),
       };
     },
+    getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
       return region ? screenPoint(region.display.labelPoint) : null;

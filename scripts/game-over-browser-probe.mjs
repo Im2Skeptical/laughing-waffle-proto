@@ -59,8 +59,13 @@ try {
   await page.waitForFunction(() => {
     const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     return s.runComplete.indicatorVisible && !s.runComplete.open && s.viewedSec === 0
-      && s.worldMap.survivalTracker.actualLossYear === 1;
+      && s.worldMap.survivalTracker.actualLossYear === 1
+      && s.worldMap.survivalTracker.endDetails?.title === 'GAME OVER';
   });
+  const detailsPoint = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('details'));
+  assert.ok(detailsPoint, 'minimised details chip is clickable in the survival strip');
+  assert.ok(detailsPoint.x > 800 && detailsPoint.x < 1400, `details chip should sit in the middle survival column, got x=${detailsPoint.x}`);
+  assert.ok(detailsPoint.y < 90, `details chip should sit in the top bar, got y=${detailsPoint.y}`);
   await page.screenshot({path:`${output}/history-1280x800.png`});
   await page.setViewportSize({width:844,height:390});
   await delay(250);

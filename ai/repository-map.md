@@ -65,8 +65,9 @@ not use the root file as the default location for new rendering or model rules.
   helpers live in `src/views/vassal-node-decision/`. Drag/confirm stay in the
   orchestrator.
 - Shared survival strip: `src/views/civilization-survival-hud.js`
-- Loss popup and persistent history badge: `src/views/run-complete-pixi.js`;
-  cause copy and observed-loss UI memory: `src/views/run-complete-presentation.js`.
+- Loss popup: `src/views/run-complete-pixi.js`. The minimised details chip
+  replaces the middle survival-strip column in `src/views/civilization-survival-hud.js`.
+  Cause copy and observed-loss UI memory: `src/views/run-complete-presentation.js`.
   Verify with `node scripts/game-over-browser-probe.mjs`.
 - Season/moon wheel: `src/views/sunandmoon-disks-pixi.js`
 - Six-phase reference and viewed moon totals: `src/views/moon-phase-reference-pixi.js`

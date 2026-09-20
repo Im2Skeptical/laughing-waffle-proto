@@ -12,6 +12,7 @@ import { getGameSetting } from "../model/game-config.js";
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
+  getSurvivalEndDetailsClickPoint,
 } from "./civilization-survival-hud.js";
 import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -100,6 +101,7 @@ export function createSettlementPrototypeView({
   getState,
   getSelectedRegionId,
   getCivilizationLossInfo,
+  onOpenEndDetails,
   tooltipView,
 }) {
   const root = new PIXI.Container();
@@ -107,6 +109,7 @@ export function createSettlementPrototypeView({
   let activeTab = "overview";
   let lastSignature = "";
   let semanticSnapshot = null;
+  let endDetailsTarget = null;
 
   function render(force = false) {
     if (!root.visible) return;
@@ -125,6 +128,7 @@ export function createSettlementPrototypeView({
     if (!force && signature === lastSignature) return;
     lastSignature = signature;
     clearChildren(root);
+    endDetailsTarget = null;
 
     const bg = new PIXI.Graphics();
     bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
@@ -132,11 +136,12 @@ export function createSettlementPrototypeView({
     const regionDef = getRegionDefinition(state, regionId);
     root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
       { ...TEXT_STYLES.header, fontSize: 28 }, 48, 35, 0, 0.5));
-    addCivilizationSurvivalStrip(root, {
+    endDetailsTarget = addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
       rect: SETTLEMENT_HEADER_LAYOUT.survival,
-    });
+      onOpenEndDetails,
+    }).detailsTarget;
     addButton(root, SETTLEMENT_HEADER_LAYOUT.overview, "Overview",
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
     addButton(root, SETTLEMENT_HEADER_LAYOUT.demographics, "Demographics",
@@ -306,6 +311,7 @@ export function createSettlementPrototypeView({
     update: () => render(),
     setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
     getScreenRect: () => root.visible ? root.getBounds?.() ?? null : null,
+    getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getSemanticSnapshot: () => semanticSnapshot,
     destroy: () => {
       clearChildren(root);

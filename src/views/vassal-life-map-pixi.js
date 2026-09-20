@@ -11,7 +11,7 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
-import { addCivilizationSurvivalStrip } from './civilization-survival-hud.js';
+import { addCivilizationSurvivalStrip, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -42,13 +42,13 @@ function drawPinMarker(graphics, filled) {
 }
 
 export function createVassalLifeMapView({
-  layer, getPresentation, getCivilizationLossInfo, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
+  layer, getPresentation, getCivilizationLossInfo, onOpenEndDetails, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
   isRecapOpen,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
   root.eventMode = "static";
-  root.hitArea = new PIXI.Rectangle(MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height);
+  root.hitArea = new PIXI.Rectangle(MAP_RECT.x, 16, MAP_RECT.width, MAP_RECT.y + MAP_RECT.height - 16);
   layer?.addChild(root);
   const nodeRoots = new Map();
   let signature = "";
@@ -61,6 +61,7 @@ export function createVassalLifeMapView({
   let pinnedNodeIds = [];
   let lastPointerType = "mouse";
   let recapSuppressedTooltip = false;
+  let endDetailsTarget = null;
   const nodePoint=node=>layoutPoints.get(node.id)??fallbackNodePoint(node);
 
   function dismissTooltipForRecap() {
@@ -198,6 +199,7 @@ export function createVassalLifeMapView({
       // rather than hiding their hover details on every hidden Life Map frame.
       if (root.children.length > 0) {
         clearChildren(root);
+        endDetailsTarget = null;
         tooltipView?.hide?.();
       }
       hoveredNodeId = null;
@@ -225,15 +227,24 @@ export function createVassalLifeMapView({
     const plannedEdges = new Set(planned?.edgeKeys ?? []);
     const effectiveNodeId = hoveredNodeId ?? inspectedNodeId ?? vassal?.lifeMap?.currentNodeId
       ?? presentation.playheadNodeId ?? null;
+    const civilizationLossInfo = getCivilizationLossInfo?.();
     const nextSignature = getArtRevision() + JSON.stringify({
       presentation, effectiveNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
+      observedEnd: civilizationLossInfo?.observedEnd ?? null,
+      finalLossYear: civilizationLossInfo?.finalLossYear ?? null,
+      maxLossYear: civilizationLossInfo?.maxLossYear ?? null,
     });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
     nodeRoots.clear();
     openRoot = null;
-    addCivilizationSurvivalStrip(root,{state,civilizationLossInfo:getCivilizationLossInfo?.(),rect:{x:590,y:16,width:1108,height:54}});
+    endDetailsTarget = addCivilizationSurvivalStrip(root, {
+      state,
+      civilizationLossInfo,
+      rect: { x: 590, y: 16, width: 1108, height: 54 },
+      onOpenEndDetails,
+    }).detailsTarget;
     root.addChild(createText('VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
 
     const bg = new PIXI.Graphics();
@@ -341,6 +352,7 @@ export function createVassalLifeMapView({
     },
     getOpenDecisionClickPoint: () => openRoot?.toGlobal
       ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
+    getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getPinnedNodeIds: () => [...pinnedNodeIds],
     getInspectedNodeId: () => inspectedNodeId,
   };

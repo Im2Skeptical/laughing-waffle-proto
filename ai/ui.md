@@ -45,9 +45,10 @@ contract: `ai/visual-overhaul.md`.
   continue. No save-schema migration is introduced.
 - Reaching a loss opens a cause-specific popup. Confirmed losses say Game over;
   viewed forecast losses say Foreseen extinction and explain that choices can
-  change the outcome. Minimise / Browse history removes the backdrop and keeps
-  a coloured details badge in the top bar. The observed end year stays in the
-  survival strip while browsing earlier years. A new timeline revision clears
+  change the outcome. Minimise / Browse history removes the backdrop. The
+  coloured details chip replaces the middle survival-strip column (Foreseen
+  survival / Civilization ended) so it can be reopened; Year and Best remembered
+  stay. The observed end year stays available while browsing earlier years. A new timeline revision clears
   an obsolete forecast warning; a fresh run clears the prior loss. Confirmed
   losses offer New game, which opens the existing slot chooser and retains its
   overwrite confirmation.

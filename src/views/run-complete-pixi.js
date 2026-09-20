@@ -4,7 +4,7 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const PANEL = { width: 1320, height: 620 };
 
-export function createRunCompleteView({ app, layer, headerControls, onOpen, onNewGame } = {}) {
+export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 190;
   layer.addChild(root);
@@ -38,30 +38,9 @@ export function createRunCompleteView({ app, layer, headerControls, onOpen, onNe
     clearChildren(root);
     targets.clear();
     const { info, open } = snapshot;
-    root.visible = !!info;
-    if (!info) return;
+    root.visible = !!(info && open);
+    if (!info || !open) return;
     const accent = info.projected ? PALETTE.accent : 0xe0a094;
-    if (!open) {
-      const canvas = app.view.getBoundingClientRect();
-      const controls = headerControls?.getBoundingClientRect();
-      const right = controls && canvas.width > 0
-        ? (controls.left - canvas.left) / canvas.width * app.screen.width : 2114;
-      const width = Math.min(376, Math.max(200, right - 1722 - 16));
-      const badge = button(root, "details", {
-        x: 1722, y: 12, width, height: 60,
-      }, "", () => { presentation.reopen(); onOpen?.(); render(); },
-      { fill: info.projected ? 0x493d26 : 0x512b2b });
-      const label = createText(info.title, {
-        ...TEXT_STYLES.title, fontSize: 24, fill: accent,
-      }, width / 2, 5, .5, 0);
-      if (label.width > width - 20) label.scale.set((width - 20) / label.width);
-      badge.addChild(label,
-        createText(`Year ${info.year}  ·  View details`, {
-          ...TEXT_STYLES.body, fontSize: 19, fill: PALETTE.text,
-        }, width / 2, 34, .5, 0),
-      );
-      return;
-    }
     const blocker = new PIXI.Graphics();
     blocker.beginFill(0x090d0d, .78).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
     blocker.eventMode = "static";
