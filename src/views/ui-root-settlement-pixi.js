@@ -31,6 +31,7 @@ import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
   getVassalNodeDecisionPresentation,
+  getVassalLifeMapNode,
 } from "../model/vassal-life-map.js";
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
@@ -1117,6 +1118,7 @@ function getSettlementVassalInterventionMarkers(state) {
       const key = `${vassal.vassalId ?? "vassal"}:${index}:${tSec}`;
       markerByKey.set(key, {
         tSec,
+        nodeIcon: event.nodeId ? getVassalLifeMapNode(vassal, event.nodeId) : null,
         severity: event.kind === "died" ? "critical" : "warning",
         color: 0xd48f3f,
         lineWidth: 2,

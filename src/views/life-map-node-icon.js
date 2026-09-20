@@ -1,13 +1,15 @@
 // Freestanding silhouettes: identity comes from the outline, not a badge or letter.
-export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline }) {
+export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x = 0, y = 0, scale = 1 }) {
   const variant = node.signatureNode?.variantId;
   const kind = ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
     removeStructure: 'publicWorks', removeRoute: 'routes', knowledgeShop: 'development',
     housingShop: 'settlement' })[variant] ?? variant ?? node.family;
-  const polygon = points => graphics.lineStyle(3, outline, 1).beginFill(fill).drawPolygon(points).endFill();
+  const transform = points => points.map((value, index) => value * scale + (index % 2 ? y : x));
+  const polygon = points => graphics.lineStyle(3 * scale, outline, 1).beginFill(fill).drawPolygon(transform(points)).endFill();
   const line = (points, width = 4, color = outline) => {
-    graphics.lineStyle(width, color, 1).moveTo(points[0], points[1]);
-    for (let i = 2; i < points.length; i += 2) graphics.lineTo(points[i], points[i + 1]);
+    const mapped = transform(points);
+    graphics.lineStyle(width * scale, color, 1).moveTo(mapped[0], mapped[1]);
+    for (let i = 2; i < mapped.length; i += 2) graphics.lineTo(mapped[i], mapped[i + 1]);
   };
   switch (kind) {
     case 'patronage': // A tied purse, broad base and narrow neck.
@@ -68,7 +70,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline }) {
     line([-26,29,27,-28],4,accent);
   }
   if (node.signatureNode) {
-    graphics.lineStyle(2,outline).beginFill(accent)
-      .drawPolygon([27,-39,31,-31,39,-27,31,-23,27,-15,23,-23,15,-27,23,-31]).endFill();
+    graphics.lineStyle(2 * scale,outline).beginFill(accent)
+      .drawPolygon(transform([27,-39,31,-31,39,-27,31,-23,27,-15,23,-23,15,-27,23,-31])).endFill();
   }
 }

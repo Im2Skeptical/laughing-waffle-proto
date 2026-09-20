@@ -368,10 +368,15 @@ export function normalizeEventMarkers(rawMarkers, { minSec, maxSec }) {
     const tooltipKey = tooltip
       ? `${tooltip.title}:${tooltip.lines.join("|")}`
       : "";
-    const dedupeKey = `${sec}:${severity}:${color ?? "default"}:${lineWidth ?? "default"}:${radius ?? "default"}:${alpha ?? "default"}:${tooltipKey}`;
+    const nodeIcon = marker?.nodeIcon?.family ? {
+      family: marker.nodeIcon.family,
+      signatureNode: marker.nodeIcon.signatureNode?.variantId
+        ? { variantId: marker.nodeIcon.signatureNode.variantId } : null,
+    } : null;
+    const dedupeKey = `${sec}:${severity}:${color ?? "default"}:${lineWidth ?? "default"}:${radius ?? "default"}:${alpha ?? "default"}:${tooltipKey}:${JSON.stringify(nodeIcon)}`;
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
-    out.push({ tSec: sec, severity, color, lineWidth, radius, alpha, tooltip });
+    out.push({ tSec: sec, severity, color, lineWidth, radius, alpha, tooltip, nodeIcon });
   }
 
   out.sort(

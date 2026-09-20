@@ -811,7 +811,7 @@ export function createMetricGraphView({
     for (const marker of markers) {
       if (!marker?.tooltip) continue;
       const distance = Math.abs(timeToX(marker.tSec) - Number(local.x ?? 0));
-      if (distance <= 9 && distance < nearestDistance) {
+      if (distance <= (marker.nodeIcon ? 16 : 9) && distance < nearestDistance) {
         nearest = marker;
         nearestDistance = distance;
       }
@@ -825,8 +825,8 @@ export function createMetricGraphView({
     if (key === hoveredEventMarkerKey) return;
     hoveredEventMarkerKey = key;
     const anchor = typeof root.toGlobal === "function"
-      ? root.toGlobal(new PIXI.Point(timeToX(nearest.tSec), plot.y + 7))
-      : { x: timeToX(nearest.tSec), y: plot.y + 7 };
+      ? root.toGlobal(new PIXI.Point(timeToX(nearest.tSec), plot.y + (nearest.nodeIcon ? 17 : 7)))
+      : { x: timeToX(nearest.tSec), y: plot.y + (nearest.nodeIcon ? 17 : 7) };
     tooltipView.show({
       ...nearest.tooltip,
       scale: Math.max(
