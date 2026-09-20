@@ -22,6 +22,8 @@ import {
   TIMEGRAPH_THEME,
 } from "./constants.js";
 import { getGridStep, timeToX, yForValue } from "./plot-math.js";
+import { drawLifeMapNodeIcon } from "../life-map-node-icon.js";
+import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../../defs/gamepieces/vassal-life-map-defs.js";
 
 export function getSeriesScaleMaxFlashStrength(
   flashBySeriesId,
@@ -417,6 +419,17 @@ export function drawEventMarkers(graphics, eventMarkers, minSec, maxSec, plot) {
   const markers = Array.isArray(eventMarkers) ? eventMarkers : [];
   for (const marker of markers) {
     const x = timeToX(marker.tSec, minSec, maxSec, plot);
+    if (marker.nodeIcon) {
+      const node = marker.nodeIcon;
+      const family = VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode?.variantId]
+        ?? VASSAL_NODE_FAMILIES[node.family];
+      drawLifeMapNodeIcon(graphics, node, {
+        x, y: plot.y + 17, scale: 0.4,
+        fill: 0xf4e7bd, accent: family?.color ?? 0xd48f3f, outline: 0x111714,
+      });
+      graphics.lineStyle(0);
+      continue;
+    }
     const color = Number.isFinite(marker?.color)
       ? marker.color
       : marker.severity === "critical"
