@@ -775,6 +775,7 @@ prototypeView = createSettlementPrototypeView({
   getState: () => runner.getState?.(),
   getSelectedRegionId: () => selectedWorldRegionId,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
   getSelectedPracticeClassId: () => selectedPracticeClassId,
   getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
   tooltipView,
@@ -812,6 +813,7 @@ worldMapView = createWorldMapView({
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
   getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
   getSelectedRegionId: () => selectedWorldRegionId,
   getRegionSelectionActive: () => worldMapRegionSelectionActive,
   getGraphScope: () => getSettlementGraphScope(),
@@ -1019,6 +1021,7 @@ settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
 
 vassalLifeMapView = createVassalLifeMapView({
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
   layer: playfieldLayer,
   tooltipView,
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
@@ -1211,7 +1214,6 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
 runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
-  headerControls: document.querySelector('[data-testid="utility-controls"]'),
   onOpen: () => {
     requestPauseBeforeDrag();
     settlementGraphView?.pauseForecastReveal?.();
@@ -1381,7 +1383,15 @@ function publishSettlementDebugApi() {
     getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
-    getRunCompleteClickPoint: (id) => runCompleteView?.getClickPoint?.(id) ?? null,
+    getRunCompleteClickPoint: (id) => {
+      if (id === "details") {
+        return worldMapView?.getEndDetailsClickPoint?.()
+          ?? prototypeView?.getEndDetailsClickPoint?.()
+          ?? vassalLifeMapView?.getEndDetailsClickPoint?.()
+          ?? null;
+      }
+      return runCompleteView?.getClickPoint?.(id) ?? null;
+    },
     getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
     getTimeLeverScreenRect: () =>
       timeControlsView?.getTimeLeverScreenRect?.() ?? null,

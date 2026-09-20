@@ -883,8 +883,11 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   assert.equal(sync(alive, alive).open, false, 'a living run has no loss popup');
   assert.equal(sync(alive, lost).opened, true, 'reaching a forecasted loss opens its explanation');
   assert.equal(ui.getSnapshot().info.projected, true);
-  assert.equal(getCivilizationSurvivalViewModel(lost, { observedEnd: ui.getSnapshot().info }).runComplete, false,
+  const forecastStrip = getCivilizationSurvivalViewModel(lost, { observedEnd: ui.getSnapshot().info });
+  assert.equal(forecastStrip.runComplete, false,
     'a viewed terminal forecast is still labelled as foreseen survival');
+  assert.equal(forecastStrip.endDetails.title, 'FORESEEN EXTINCTION');
+  assert.equal(forecastStrip.endDetails.projected, true);
   ui.minimize();
   assert.equal(sync(alive, alive).open, false, 'scrubbing back does not reopen a minimised popup');
   assert.equal(ui.getSnapshot().indicatorVisible, true, 'the observed loss remains visible in history');
@@ -899,6 +902,10 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   const strip = getCivilizationSurvivalViewModel(alive, { observedEnd: confirmed });
   assert.equal(strip.runComplete, true);
   assert.equal(strip.actualLossYear, 12, 'history cannot replace the final loss year with Unfolding');
+  assert.equal(strip.endDetails.title, 'GAME OVER');
+  assert.equal(strip.endDetails.year, 12);
+  assert.equal(strip.endDetails.projected, false);
+  assert.equal(getCivilizationSurvivalViewModel(alive).endDetails, null);
   ui.reopen();
   assert.equal(ui.getSnapshot().open, true);
   assert.equal(ui.sync({frontierState:alive, viewedState:alive, timeline:{}, revision:0}).info, null,
