@@ -1,11 +1,17 @@
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
+  getHeirloomInheritanceLabel,
+  getHeirloomQualityLabel,
+} from "../defs/gamepieces/vassal-heirloom-defs.js";
+import {
   getVassalAge,
+  getVassalHeirloomInventory,
   getVassalStatsPresentation,
+  presentHeirloom,
 } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
-import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { FAITH_TIER_COLORS, PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 import { addResourceAmount } from "./resource-cost-pixi.js";
 import { getArtRevision } from "./chronicle-art.js";
@@ -106,12 +112,14 @@ export function createVassalLifeHudView({
     }
     if (!countUp) tween = null;
     const shown = vassal ? displayedValues(vassal, presentation, countUp) : null;
+    const inventory = vassal ? getVassalHeirloomInventory(vassal) : { equipped: [], carry: [] };
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal?.vassalId ?? null,
       prestige: vassal?.prestige ?? null,
       stats: vassal?.stats ?? null,
       exp: vassal?.developmentProgress ?? null,
       location: vassal?.locationRegionId ?? null,
+      heirlooms: inventory,
       profileSec: presentation.profileSec ?? null,
       pinnedStatId,
       deltas,
@@ -224,6 +232,64 @@ export function createVassalLifeHudView({
         ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text,
       }, locationRight, barY + 26, 1, 0)
     );
+
+    function addSlot(slotX, slotY, size, item, emptyLabel, prominent) {
+      const presented = presentHeirloom(item);
+      const slot = new PIXI.Container();
+      slot.position.set(slotX, slotY);
+      slot.eventMode = "static";
+      slot.cursor = presented ? "help" : "default";
+      slot.hitArea = new PIXI.Rectangle(0, 0, size, size);
+      const gfx = new PIXI.Graphics();
+      const rim = presented
+        ? FAITH_TIER_COLORS[presented.quality] ?? PALETTE.accent
+        : PALETTE.stroke;
+      roundedRect(gfx, 0, 0, size, size, 6, prominent ? 0x39413b : 0x2b332e, rim, presented ? 2 : 1);
+      slot.addChild(gfx);
+      if (presented) {
+        slot.addChild(createText(presented.label, {
+          ...TEXT_STYLES.chip, fontSize: prominent ? 12 : 11, fill: PALETTE.text,
+          wordWrap: true, wordWrapWidth: size - 8,
+        }, 4, 4));
+        slot.addChild(createText(getHeirloomInheritanceLabel(presented.inheritanceState), {
+          ...TEXT_STYLES.chip, fontSize: 11,
+          fill: presented.inheritanceState === "fragile" ? PALETTE.red
+            : presented.inheritanceState === "sanctified" ? PALETTE.accent : PALETTE.textMuted,
+        }, 4, size - 16));
+        const show = (target) => tooltipView?.show?.({
+          title: presented.label,
+          scale: 2,
+          lines: [
+            `${getHeirloomQualityLabel(presented.quality)} · ${presented.inheritanceLabel}`,
+            presented.description,
+            presented.protectionSpent ? "Mandate protection spent this life." : null,
+          ].filter(Boolean),
+        }, target.getBounds());
+        slot.on("pointerover", () => show(slot));
+        slot.on("pointerout", () => tooltipView?.hide?.());
+        slot.on("pointertap", (event) => { event?.stopPropagation?.(); show(slot); });
+      } else {
+        slot.addChild(createText(emptyLabel, {
+          ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted,
+        }, size / 2, size / 2, 0.5, 0.5));
+      }
+      root.addChild(slot);
+    }
+
+    const stripY = hudY + LIFE_HUD.portraitSize + 8;
+    const stripX = hudX + 430;
+    root.addChild(createText("EQUIPPED", {
+      ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
+    }, stripX, stripY - 2));
+    inventory.equipped.forEach((item, index) => {
+      addSlot(stripX + 88 + index * 64, stripY, 56, item, "Empty", true);
+    });
+    root.addChild(createText("CARRY", {
+      ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
+    }, stripX + 300, stripY - 2));
+    inventory.carry.forEach((item, index) => {
+      addSlot(stripX + 352 + index * 52, stripY + 6, 44, item, "—", false);
+    });
   }
 
   return {

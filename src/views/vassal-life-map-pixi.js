@@ -26,10 +26,11 @@ function fallbackNodePoint(node) {
   };
 }
 
-function getDisplay(vassal, nodeId, committed, readOnly) {
+function getDisplay(vassal, nodeId, committed, readOnly, loadoutPending = false) {
   return {
     available: !readOnly && (vassal?.lifeMap?.availableNodeIds ?? []).includes(nodeId)
-      && (vassal?.developmentChoiceQueue ?? []).length === 0,
+      && (vassal?.developmentChoiceQueue ?? []).length === 0
+      && loadoutPending !== true,
     current: !readOnly && vassal?.lifeMap?.currentNodeId === nodeId,
     completed: committed.has(nodeId),
   };
@@ -138,7 +139,8 @@ export function createVassalLifeMapView({
       presentation.vassal,
       node.id,
       new Set(presentation.committedNodeIds ?? []),
-      presentation.readOnly === true
+      presentation.readOnly === true,
+      presentation.state?.civilization?.vassalLineage?.pendingHeirloomLoadout === true
     ));
   });
 
@@ -211,6 +213,7 @@ export function createVassalLifeMapView({
     const vassal = presentation.vassal;
     const readOnly = presentation.readOnly === true;
     const committed = new Set(presentation.committedNodeIds ?? []);
+    const loadoutPending = state?.civilization?.vassalLineage?.pendingHeirloomLoadout === true;
     const nodes = getVassalLifeMapNodes(vassal);
     layoutPoints=layoutChronicleNodes(nodes,{x:MAP_RECT.x+92,y:MAP_RECT.y+158,
       width:MAP_RECT.width-184,height:MAP_RECT.height-218});
@@ -297,7 +300,7 @@ export function createVassalLifeMapView({
     root.addChild(edges);
 
     for (const node of nodes) {
-      const display = getDisplay(vassal, node.id, committed, readOnly);
+      const display = getDisplay(vassal, node.id, committed, readOnly, loadoutPending);
       const point = nodePoint(node);
       const family = node.signatureNode?.variantId
         ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? {}

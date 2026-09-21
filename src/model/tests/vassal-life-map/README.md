@@ -16,3 +16,4 @@
   mortality, development choices, signatures, and validate. Mixed-area
   cases live here.
 - `presentation.js` — `getVassalNodeDecisionPresentation` projections.
+- `heirlooms.js` — inventory, unique copies, Relic offers, inheritance, loadout, and equipped effects.

@@ -23,6 +23,11 @@ import {
   getVassalLineage,
   shuffle,
 } from "../selectors.js";
+import {
+  createEmptyHeirloomInventory,
+  createEmptyHeirloomVault,
+  hasPendingHeirloomOverflow,
+} from "../heirlooms.js";
 
 const VASSAL_PORTRAIT_KEYS = Object.freeze([
   "skinTone", "hairStyle", "hairColor", "faceShape",
@@ -107,6 +112,7 @@ export function generateCandidatePool(state) {
 
 export function initializeVassalLifeMapCivilization(state) {
   state.civilization.vassalLegacy = { futureStartingPrestigeBonus: 0 };
+  state.civilization.heirloomVault = createEmptyHeirloomVault();
   state.civilization.vassalLineage = {
     nextVassalId: 1,
     currentVassalId: null,
@@ -114,6 +120,10 @@ export function initializeVassalLifeMapCivilization(state) {
     vassalsById: {},
     pendingCandidates: [],
     candidateRerollCount: 0,
+    nextHeirloomInstanceId: 1,
+    pendingHeirloomLoadout: false,
+    pendingVaultOverflow: null,
+    lastInheritanceReport: null,
   };
   generateCandidatePool(state);
 }
@@ -121,6 +131,7 @@ export function initializeVassalLifeMapCivilization(state) {
 export function rerollVassalCandidates(state) {
   const lineage = getVassalLineage(state);
   if (!lineage || lineage.currentVassalId) return { ok: false, reason: "currentVassalAlive" };
+  if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };
   lineage.candidateRerollCount = Math.max(0, Math.floor(lineage.candidateRerollCount ?? 0)) + 1;
   generateCandidatePool(state);
   return { ok: true, pool: getVassalCandidatePool(state) };
@@ -152,6 +163,7 @@ function createLifeMapState(state, vassalId, signatureNode = null) {
 export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = null, override = null) {
   const lineage = getVassalLineage(state);
   if (!lineage || lineage.currentVassalId) return { ok: false, reason: "currentVassalAlive" };
+  if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };
   const safeIndex = Number.isFinite(candidateIndex) ? Math.floor(candidateIndex) : -1;
   const candidates = (lineage.pendingCandidates ?? []).map((candidate, index) => {
     const source = index === safeIndex && override ? override : candidate;
@@ -185,6 +197,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     endedReason: null,
     deathCause: null,
     endSec: null,
+    heirlooms: createEmptyHeirloomInventory(),
   };
   delete record.age;
   lineage.nextVassalId = idNumber + 1;
@@ -193,5 +206,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   lineage.vassalsById[vassalId] = record;
   lineage.pendingCandidates = [];
   lineage.candidateRerollCount = 0;
-  return { ok: true, vassal: record };
+  const vaultOccupied = (state.civilization.heirloomVault ?? []).filter(Boolean).length;
+  lineage.pendingHeirloomLoadout = vaultOccupied > 0;
+  return { ok: true, vassal: record, pendingHeirloomLoadout: lineage.pendingHeirloomLoadout };
 }

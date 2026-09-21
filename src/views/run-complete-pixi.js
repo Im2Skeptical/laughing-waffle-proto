@@ -4,13 +4,22 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
 const PANEL = { width: 1320, height: 620 };
 
-export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
+export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotlightRects } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 190;
   layer.addChild(root);
   const presentation = createRunCompletePresentation();
   const targets = new Map();
   let signature = "";
+  let spotlightRects = [];
+  const contains = (rect, x, y) => x >= rect.x && x <= rect.x + rect.width &&
+    y >= rect.y && y <= rect.y + rect.height;
+  function minimize() { presentation.minimize(); render(); }
+  app.stage.on("pointerdowncapture", event => {
+    if (presentation.getSnapshot().open && spotlightRects.some(rect => contains(rect, event.global.x, event.global.y))) {
+      minimize();
+    }
+  });
 
   function button(parent, id, rect, label, action, { fill = PALETTE.panelSoft } = {}) {
     const container = new PIXI.Container();
@@ -32,7 +41,10 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
 
   function render(force = false) {
     const snapshot = presentation.getSnapshot();
-    const nextSignature = JSON.stringify([snapshot, app.screen.width, app.screen.height]);
+    spotlightRects = snapshot.open && snapshot.info?.projected
+      ? (getSpotlightRects?.() ?? []).map(rect => ({ x: rect.x - 6, y: rect.y - 6,
+        width: rect.width + 12, height: rect.height + 12 })) : [];
+    const nextSignature = JSON.stringify([snapshot, spotlightRects, app.screen.width, app.screen.height]);
     if (!force && signature === nextSignature) return;
     signature = nextSignature;
     clearChildren(root);
@@ -42,13 +54,30 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
     if (!info || !open) return;
     const accent = info.projected ? PALETTE.accent : 0xe0a094;
     const blocker = new PIXI.Graphics();
-    blocker.beginFill(0x090d0d, .78).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+    // Partition the backdrop so overlapping spotlights never double-fill or
+    // intercept the actual control's pointer gesture.
+    const xs = [...new Set([0, app.screen.width, ...spotlightRects.flatMap(r => [r.x, r.x + r.width])])]
+      .map(x => Math.max(0, Math.min(app.screen.width, x))).sort((a, b) => a - b);
+    const ys = [...new Set([0, app.screen.height, ...spotlightRects.flatMap(r => [r.y, r.y + r.height])])]
+      .map(y => Math.max(0, Math.min(app.screen.height, y))).sort((a, b) => a - b);
+    blocker.beginFill(0x090d0d, .78);
+    for (let i = 1; i < xs.length; i++) for (let j = 1; j < ys.length; j++) {
+      if (!spotlightRects.some(r => contains(r, (xs[i - 1] + xs[i]) / 2, (ys[j - 1] + ys[j]) / 2))) {
+        blocker.drawRect(xs[i - 1], ys[j - 1], xs[i] - xs[i - 1], ys[j] - ys[j - 1]);
+      }
+    }
+    blocker.endFill();
+    blocker.hitArea = { contains: (x, y) => !spotlightRects.some(r => contains(r, x, y)) };
     blocker.eventMode = "static";
     blocker.on("pointerdown", event => event.stopPropagation());
     blocker.on("pointertap", event => event.stopPropagation());
     root.addChild(blocker);
     const panel = new PIXI.Container();
-    panel.position.set((app.screen.width - PANEL.width) / 2, (app.screen.height - PANEL.height) / 2);
+    panel.position.set((app.screen.width - PANEL.width) / 2,
+      info.projected ? Math.max(20, (app.screen.height - PANEL.height) / 2 - 90)
+        : (app.screen.height - PANEL.height) / 2);
+    panel.eventMode = "static";
+    panel.hitArea = new PIXI.Rectangle(0, 0, PANEL.width, PANEL.height);
     const bg = new PIXI.Graphics();
     roundedRect(bg, 0, 0, PANEL.width, PANEL.height, 18, PALETTE.panel, accent, 3);
     panel.addChild(bg,
@@ -71,7 +100,7 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
       ? { x: 56, y: 504, width: PANEL.width - 112, height: 76 }
       : { x: 56, y: 504, width: 576, height: 76 };
     button(panel, "browse", browseRect,
-      "Minimise · Browse history", () => { presentation.minimize(); render(); });
+      "Minimise · Browse history", minimize);
     if (!info.projected) {
       button(panel, "newGame", { x: 660, y: 504, width: 604, height: 76 },
         "New game", () => onNewGame?.(), {fill:0x405a3c});
@@ -84,7 +113,7 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame } = {}) {
     reset() { presentation.reset(); render(); },
     reopen() { presentation.reopen(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
     isOpen: () => presentation.getSnapshot().open,
-    getSemanticSnapshot: () => presentation.getSnapshot(),
+    getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects }),
     getClickPoint(id) {
       const target = targets.get(id);
       return target?.toGlobal(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2)) ?? null;

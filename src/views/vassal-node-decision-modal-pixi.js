@@ -67,6 +67,7 @@ export function createVassalNodeDecisionModalView({
   let previewOptionId = null;
   let previewOfferId = null;
   let pinnedInspectionId = null;
+  let acquirePicker = null;
   const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},lastDecision?.settlement?.structureCapacity??8);
   let hoverRenderTimer = null;
 
@@ -108,6 +109,7 @@ export function createVassalNodeDecisionModalView({
     hoveredTableauId = null;previewTableauId = null;
     previewOptionId = null;
     previewOfferId = null;
+    acquirePicker = null;
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
     hoverRenderTimer = null;
   }
@@ -250,7 +252,8 @@ export function createVassalNodeDecisionModalView({
     const projected = decision?.projectedPrestige ?? vassal.prestige;
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
-    const simpleOutcomes = node.family === 'patronage' || node.family === 'development';
+    const simpleOutcomes = node.family === 'patronage' || node.family === 'development'
+      || node.family === 'relic';
     if (hasContext) {
       const divider = new PIXI.Graphics();
       divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + CONTENT.labelY)
@@ -283,7 +286,12 @@ export function createVassalNodeDecisionModalView({
       const isShop = nodeState.contentMode === "shop";
       const cardGap = OPTION_COLUMN.gap;
       const cardY = PANEL.y + CONTENT.cardY;
-      const cardWidth = OPTION_COLUMN.width;
+      const cardCount = isShop
+        ? [...(decision?.offers ?? []), ...(decision?.purchases ?? [])].length
+        : (nodeState.options ?? []).length;
+      const cardWidth = cardCount > 3
+        ? Math.min(OPTION_COLUMN.width, Math.floor((1080 - (cardCount - 1) * cardGap) / cardCount))
+        : OPTION_COLUMN.width;
       const cardHeight = OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
       // inspections remain available throughout the draft. The model still
@@ -327,7 +335,7 @@ export function createVassalNodeDecisionModalView({
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
           }, {
-            artId:node.family,
+            artId:node.family, quality: option.quality,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:()=>{pinnedInspectionId=pinnedInspectionId===option.id?null:option.id;render(true);},
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
@@ -394,6 +402,69 @@ export function createVassalNodeDecisionModalView({
       renderVassalProjection(root, decision.vassalProjection, {
         x: sx, y: PANEL.y + 114, width: 830, height: 468,
       });
+    } else if (decision?.contextKind === "heirloom") {
+      root.addChild(createText("CURRENT LOADOUT", {
+        ...TEXT_STYLES.header, fontSize: 22,
+      }, sx, PANEL.y + CONTENT.labelY));
+      const heirlooms = decision.heirlooms ?? { equipped: [null, null, null], carry: [null, null, null] };
+      const pickingEquip = acquirePicker?.destination === "equip" && acquirePicker.step !== "discard";
+      const pickingCarry = acquirePicker?.destination === "carry"
+        || acquirePicker?.step === "discard";
+      heirlooms.equipped.forEach((item, index) => {
+        const picking = pickingEquip;
+        const label = `EQ ${index + 1}  ${item ? `${item.label} · ${item.qualityLabel} · ${item.inheritanceLabel}` : "Empty"}`;
+        if (picking) {
+          button(root, { x: sx, y: PANEL.y + 114 + index * 56, width: 800, height: 48 },
+            label, true, () => {
+              const carryFull = (heirlooms.carry ?? []).every(Boolean);
+              if (carryFull) {
+                acquirePicker = { destination: "equip", replaceEquippedIndex: index, step: "discard" };
+                render(true);
+                return;
+              }
+              const result = onConfirmNode?.(node.id, {
+                destination: "equip", replaceEquippedIndex: index,
+              });
+              if (result?.ok !== false) close();
+            });
+        } else {
+          root.addChild(createText(label, {
+            ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
+          }, sx, PANEL.y + 120 + index * 36));
+        }
+      });
+      heirlooms.carry.forEach((item, index) => {
+        const picking = pickingCarry;
+        const label = `CARRY ${index + 1}  ${item ? `${item.label} · ${item.qualityLabel}` : "Empty"}`;
+        if (picking) {
+          button(root, { x: sx, y: PANEL.y + 300 + index * 56, width: 800, height: 48 },
+            label, true, () => {
+              const acquire = acquirePicker.destination === "carry"
+                ? { destination: "carry", replaceCarryIndex: index }
+                : {
+                  destination: "equip",
+                  replaceEquippedIndex: acquirePicker.replaceEquippedIndex,
+                  discard: { location: "carry", index },
+                };
+              const result = onConfirmNode?.(node.id, acquire);
+              if (result?.ok !== false) close();
+            });
+        } else {
+          root.addChild(createText(label, {
+            ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
+          }, sx, PANEL.y + 260 + index * 36));
+        }
+      });
+      if (acquirePicker) {
+        root.addChild(createText(acquirePicker.step === "discard"
+          ? "Carry is full. Choose a Carry relic to discard."
+          : acquirePicker.destination === "carry"
+            ? "Carry is full. Choose a Carry relic to replace."
+            : "Equipped is full. Choose which relic moves to Carry.", {
+          ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.accent,
+          wordWrap: true, wordWrapWidth: 800,
+        }, sx, PANEL.y + 480));
+      }
     }
 
     const isCurrent = currentNodeId === node.id;
@@ -420,14 +491,51 @@ export function createVassalNodeDecisionModalView({
         width: MORTALITY_PLATE.width, height: MORTALITY_PLATE.height,
       }, canConfirm);
     }
-    confirmRoot = confirmDockButton(root, app, {
-      enabled: canConfirm,
-      label: readOnly ? "Read-only" : "Confirm",
-      onClick: () => {
-        const result = onConfirmNode?.(node.id);
+    if (node.family === "relic" && nodeState && !nodeState.resolving) {
+      const selected = nodeState.options?.find((option) => option.id === nodeState.selectedOptionId);
+      const heirlooms = decision?.heirlooms ?? { equipped: [], carry: [] };
+      const canAcquire = canConfirm && !!selected && !selected.emptyRelic;
+      const confirmRelic = (acquire) => {
+        const result = onConfirmNode?.(node.id, acquire);
         if (result?.ok !== false) close();
-      },
-    });
+      };
+      button(root, {
+        x: confirmRect.x, y: confirmRect.y - 8, width: confirmRect.width, height: 48,
+      }, selected?.emptyRelic ? "CONTINUE" : "EQUIP", canAcquire || !!selected?.emptyRelic, () => {
+        if (selected?.emptyRelic) {
+          confirmRelic({ destination: "decline" });
+          return;
+        }
+        if ((heirlooms.equipped ?? []).some((item) => !item)) {
+          confirmRelic({ destination: "equip" });
+          return;
+        }
+        acquirePicker = { destination: "equip" };
+        render(true);
+      });
+      button(root, {
+        x: confirmRect.x, y: confirmRect.y + 48, width: confirmRect.width, height: 48,
+      }, "CARRY", canAcquire, () => {
+        if ((heirlooms.carry ?? []).some((item) => !item)) {
+          confirmRelic({ destination: "carry" });
+          return;
+        }
+        acquirePicker = { destination: "carry" };
+        render(true);
+      });
+      confirmRoot = button(root, {
+        x: confirmRect.x, y: confirmRect.y + 104, width: confirmRect.width, height: 48,
+      }, "DECLINE", canConfirm, () => confirmRelic({ destination: "decline" }));
+    } else {
+      confirmRoot = confirmDockButton(root, app, {
+        enabled: canConfirm,
+        label: readOnly ? "Read-only" : "Confirm",
+        onClick: () => {
+          const result = onConfirmNode?.(node.id);
+          if (result?.ok !== false) close();
+        },
+      });
+    }
     explainReadOnly(confirmRoot, readOnly);
     const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(pinnedInspectionId??previewOfferId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);

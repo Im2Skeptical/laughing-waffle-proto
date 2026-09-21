@@ -23,6 +23,7 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
   }
   return {
     year, tSec, reason, projected, cause, explanation,
+    monsterCount: state.civilization?.chaos?.monsterCount ?? null,
     title: projected ? "FORESEEN EXTINCTION" : "GAME OVER",
     guidance: projected
       ? "This is a possible future. Return to the present and choose a vassal or a different turning point to change it."

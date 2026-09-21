@@ -35,6 +35,10 @@ export function button(parent, rect, label, enabled, onClick, selected = false) 
 
 export function optionEffect(option) {
   const parts = [];
+  if (option?.description) parts.push(option.description);
+  if (option?.quality) parts.push(option.quality[0].toUpperCase() + option.quality.slice(1));
+  if (option?.inheritanceState === "sanctified") parts.push("Sanctified");
+  if (option?.inheritanceState === "fragile") parts.push("Fragile");
   if (Number.isFinite(option?.prestigeDelta)) parts.push(`${option.prestigeDelta >= 0 ? "+" : ""}${option.prestigeDelta} Prestige`);
   if (option?.statId && Number.isFinite(option?.statDelta)) parts.push(`${option.statDelta >= 0 ? "+" : ""}${option.statDelta} ${option.statId}`);
   if (option?.lossStatId && Number.isFinite(option?.lossStatDelta)) parts.push(`${option.lossStatDelta} ${option.lossStatId}`);
@@ -134,7 +138,8 @@ export function outcomeCard(parent, rect, spec) {
   });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8, PALETTE.card,
-    spec.selected ? PALETTE.green : PALETTE.stroke, spec.selected ? 3 : 1);
+    spec.selected ? PALETTE.green : QUALITY_COLORS[spec.quality] ?? PALETTE.stroke,
+    spec.selected ? 3 : 2);
   root.addChild(gfx);
   const title = createText(spec.title, {
     ...TEXT_STYLES.cardTitle, fontSize: 30, lineHeight: 34,

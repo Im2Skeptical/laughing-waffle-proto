@@ -47,6 +47,11 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
     case 'crisis': // Jagged lightning bolt.
       polygon([1,-33,-25,5,-6,5,-15,33,27,-12,6,-12,16,-33]);
       break;
+    case 'relic': // Faceted reliquary.
+      polygon([-18,-6,0,-32,18,-6,14,8,18,28,-18,28,-14,8]);
+      line([-12,-2,0,-18,12,-2],4,accent);
+      polygon([-6,10,0,2,6,10,0,18]);
+      break;
     case 'legacy':
       polygon([-30,-23,-14,-10,0,-31,14,-10,30,-23,23,25,-23,25]);
       line([-23,14,23,14],5,accent); polygon([-5,-2,0,-9,5,-2,0,5]);

@@ -18,6 +18,10 @@ export {
   getVassalAge,
   getVassalPrestigeIncome,
   getVassalDevelopmentIncome,
+  getVassalEffectiveStats,
+  getVassalNodeResolutionGains,
+  getVassalActionPrestigeCost,
+  getVassalActionPhaseCost,
   getVassalStatPresentation,
   getVassalStatsPresentation,
   getAdjustedVassalPrestigeCost,
@@ -39,6 +43,8 @@ export {
   initializeVassalLifeMapCivilization,
   rerollVassalCandidates,
   selectLifeMapVassal,
+  confirmHeirloomLoadout,
+  resolveVaultOverflow,
   enterVassalLifeNode,
   selectVassalNodeOption,
   confirmVassalLifeNode,
@@ -53,3 +59,14 @@ export {
   getVassalGamepiecePresentation,
   getVassalNodeDecisionPresentation,
 } from "./vassal-life-map/presentation.js";
+
+export {
+  acquireHeirloom,
+  getEquippedHeirloomModifiers,
+  getHeirloomVault,
+  getOwnedHeirloomDefinitionIds,
+  getVassalHeirloomInventory,
+  hasPendingHeirloomLoadout,
+  hasPendingHeirloomOverflow,
+  presentHeirloom,
+} from "./vassal-life-map/heirlooms.js";

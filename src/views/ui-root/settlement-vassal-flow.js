@@ -8,9 +8,9 @@ import {
   formatVassalPhaseDuration,
   getCurrentLifeMapVassal,
   getVassalAge,
-  getVassalDevelopmentIncome,
   getVassalPendingResolution,
-  getVassalPrestigeIncome,
+  getVassalNodeResolutionGains,
+  hasPendingHeirloomOverflow,
 } from "../../model/vassal-life-map.js";
 
 export const SETTLEMENT_VASSAL_GRAPH_REPLACE_TRANSITION_MS = 1500;
@@ -29,6 +29,7 @@ export function createSettlementVassalFlow({
   getNodeDecisionView,
   getLevelUpView,
   getRecapView,
+  getHeirloomFlowView,
   getPrototypeView,
   getNavigationView,
   requestPause,
@@ -38,6 +39,7 @@ export function createSettlementVassalFlow({
   revealCivilizationAfterVassalEnd,
   onInvalidateProjectedLoss,
   onSyncGraphHorizon,
+  isInputLocked = () => false,
   getLossInfoForDisplay,
 } = {}) {
   let settlementPendingVassalSelection = null;
@@ -94,10 +96,12 @@ export function createSettlementVassalFlow({
   }
 
   function openLifeMapVassalSelection() {
+    if (isInputLocked()) return { ok: false, reason: "openingReveal" };
     const runner = getRunner?.();
     settlementLastVassalSelectionResult = null;
     const state = playback.getSettlementFrontierState();
     if (isRunComplete?.(state)) return { ok: false, reason: "runComplete" };
+    if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };
     if (getCurrentLifeMapVassal(state)) return { ok: false, reason: "currentVassalAlive" };
     setWorldViewMode?.("map");
     requestPause?.();
@@ -181,6 +185,7 @@ export function createSettlementVassalFlow({
   }
 
   function dispatchLifeMapAction(kind, payload = {}) {
+    if (isInputLocked()) return { ok: false, reason: "openingReveal" };
     const runner = getRunner?.();
     if (playback.getSettlementViewedSec() !== playback.getSettlementFrontierSec()) {
       getNavigationView?.()?.showReadOnlyFeedback?.();
@@ -191,8 +196,12 @@ export function createSettlementVassalFlow({
     const beforeVassal = getCurrentLifeMapVassal(beforeState);
     const activeVassalId = beforeVassal?.vassalId ?? null;
     const recapIncome = beforeVassal ? {
-      prestigeIncome: getVassalPrestigeIncome(beforeVassal),
-      developmentIncome: getVassalDevelopmentIncome(beforeVassal),
+      prestigeIncome: getVassalNodeResolutionGains(
+        beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
+      ).prestige,
+      developmentIncome: getVassalNodeResolutionGains(
+        beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
+      ).development,
       prestigeBefore: beforeVassal.prestige ?? 0,
       expBefore: beforeVassal.developmentProgress ?? 0,
       ageBefore: getVassalAge(beforeState, beforeVassal),
@@ -230,12 +239,14 @@ export function createSettlementVassalFlow({
     getNodeDecisionView?.()?.refresh?.();
     getLevelUpView?.()?.refresh?.();
     getRecapView?.()?.refresh?.();
+    getHeirloomFlowView?.()?.refresh?.();
     getWorldMapView?.()?.refresh?.();
     getPrototypeView?.()?.refresh?.();
     return result;
   }
 
   function selectLifeMapCandidate(candidateIndex) {
+    if (isInputLocked()) return { ok: false, reason: "openingReveal" };
     const pool = settlementPendingVassalSelection;
     if (!pool) return { ok: false, reason: "missingSelectionPool" };
     const candidate = pool.candidates?.[candidateIndex] ?? null;
@@ -280,6 +291,7 @@ export function createSettlementVassalFlow({
   }
 
   function previewLifeMapCandidate(candidateIndex) {
+    if (isInputLocked()) return { ok: false, reason: "openingReveal" };
     const candidate = settlementPendingVassalSelection?.candidates?.[candidateIndex] ?? null;
     if (!candidate) return { ok: false, reason: "invalidCandidate" };
     settlementSelectedVassalCandidateIndex = candidateIndex;
@@ -290,6 +302,7 @@ export function createSettlementVassalFlow({
   }
 
   function rerollLifeMapCandidates() {
+    if (isInputLocked()) return { ok: false, reason: "openingReveal" };
     if (!settlementPendingVassalSelection) return { ok: false, reason: "missingSelectionPool" };
     const result = dispatchLifeMapAction(ActionKinds.SETTLEMENT_REROLL_VASSALS);
     if (result.ok) {

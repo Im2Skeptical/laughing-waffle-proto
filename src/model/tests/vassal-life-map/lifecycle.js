@@ -62,14 +62,20 @@ assert.deepEqual([
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
 ], [4, 4, 3]);
 assert.deepEqual(
-  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis"]
+  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 5, 1, 1, 1, 0]
+  [5, 5, 5, 1, 1, 1, 0, 2]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
 const generatedB = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
 assert.equal(generatedA.ok, true);
+assert.ok(
+  generatedA.graph.nodes.some((node) => node.family === "relic")
+    || generateVassalLifeMap(generatorConfig, createRng(1), { generationSeed: 1 }).graph.nodes
+      .some((node) => node.family === "relic"),
+  "reference Life Maps can roll Relic nodes"
+);
 assert.deepEqual(generatedA, generatedB, "Life Map generation is deterministic");
 assert.notDeepEqual(
   generatedA.graph,

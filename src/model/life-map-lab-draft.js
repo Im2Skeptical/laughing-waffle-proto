@@ -45,10 +45,9 @@ export function validateLifeMapLabDraft(value) {
 export function parseLifeMapLabDraftJson(text) {
   try {
     const value = JSON.parse(text);
-    const validation = validateLifeMapLabDraft(value);
-    return validation.ok
-      ? { ok: true, draft: canonicalizeLifeMapLabDraft(value), errors: [] }
-      : validation;
+    const draft = canonicalizeLifeMapLabDraft(value);
+    const validation = validateLifeMapLabDraft(draft);
+    return validation.ok ? { ok: true, draft, errors: [] } : validation;
   } catch (error) {
     return { ok: false, errors: [`json: ${error.message}`] };
   }

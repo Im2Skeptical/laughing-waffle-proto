@@ -80,11 +80,15 @@ function summarizeLineage(state) {
               availableNodeIds: current.lifeMap?.availableNodeIds ?? [],
               pendingResolution: current.lifeMap?.pendingResolution ?? null,
               debugInjected: current.debugInjected === true,
+              equippedHeirlooms: (current.heirlooms?.equipped ?? [])
+                .map((item) => item?.definitionId ?? null),
             }
           : null,
         selectedVassalIds: lineage.selectedVassalIds ?? [],
         vassalIds: Object.keys(lineage.vassalsById ?? {}),
         futureStartingPrestigeBonus: lineage.futureStartingPrestigeBonus ?? 0,
+        pendingHeirloomLoadout: lineage.pendingHeirloomLoadout === true,
+        pendingVaultOverflow: (lineage.pendingVaultOverflow ?? []).length,
       }
     : null;
 }
@@ -117,6 +121,7 @@ export function publishSettlementDebugApi({
   getLifeMapHudSnapshot,
   getLifeMapRecapSnapshot,
   getRunCompleteSnapshot,
+  getOpeningSnapshot,
   getRunCompleteClickPoint,
   browseSecond,
   getNavigationSnapshot,
@@ -190,6 +195,7 @@ export function publishSettlementDebugApi({
         lifeMapHud: getLifeMapHudSnapshot?.() ?? null,
         lifeMapRecap: getLifeMapRecapSnapshot?.() ?? null,
         runComplete: getRunCompleteSnapshot?.() ?? null,
+        opening: getOpeningSnapshot?.() ?? null,
         slots: getViewedSlotSummary?.() ?? null,
         pendingCommitJob: getPendingCommitJob?.() ?? null,
         runner: {

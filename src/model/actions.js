@@ -5,7 +5,9 @@
 
 import {
   cmdChooseVassalDevelopmentStat,
+  cmdConfirmHeirloomLoadout,
   cmdConfirmVassalLifeNode,
+  cmdResolveVaultOverflow,
   cmdEnterVassalLifeNode,
   cmdPurchaseVassalShopOffer,
   cmdMoveVassalShopStructure,
@@ -46,6 +48,8 @@ export const ActionKinds = {
   VASSAL_REROLL_SHOP: "vassalRerollShop",
   VASSAL_CONFIRM_LIFE_NODE: "vassalConfirmLifeNode",
   VASSAL_CHOOSE_DEVELOPMENT_STAT: "vassalChooseDevelopmentStat",
+  VASSAL_CONFIRM_HEIRLOOM_LOADOUT: "vassalConfirmHeirloomLoadout",
+  VASSAL_RESOLVE_VAULT_OVERFLOW: "vassalResolveVaultOverflow",
   DEBUG_SET_CAP: "debugSetCap",
   DEBUG_QUEUE_ENV_EVENT: "debugQueueEnvEvent",
   DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES: "debugSetSettlementSlotOverrides",
@@ -173,6 +177,12 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT:
       result = cmdChooseVassalDevelopmentStat(state, payload);
+      break;
+    case ActionKinds.VASSAL_CONFIRM_HEIRLOOM_LOADOUT:
+      result = cmdConfirmHeirloomLoadout(state, payload);
+      break;
+    case ActionKinds.VASSAL_RESOLVE_VAULT_OVERFLOW:
+      result = cmdResolveVaultOverflow(state, payload);
       break;
     case ActionKinds.DEBUG_SET_CAP:
       result = cmdDebugSetCap(state, payload);

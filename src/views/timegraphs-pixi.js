@@ -74,6 +74,7 @@ import {
   drawBootFadeOverlay,
   drawEventMarkers,
   drawForecastRevealMarker,
+  drawEmphasizedSeriesEndpoint,
   drawPlotGrid,
   drawScrubMarkers,
   drawSeriesLinesForRange as paintSeriesLinesForRange,
@@ -366,10 +367,16 @@ export function createMetricGraphView({
     : 38;
 
   const plotG = new PIXI.Graphics();
+  const monsterEndpointLabel = new PIXI.Text("", { fontFamily: "Georgia", fontSize: 24,
+    fontWeight: "bold", fill: 0x672b22, stroke: 0xf9e4a8, strokeThickness: 3 });
+  monsterEndpointLabel.eventMode = "none";
+  monsterEndpointLabel.anchor.set(1, 0);
+  monsterEndpointLabel.visible = false;
   const scrubG = new PIXI.Graphics();
   const legendContainer = new PIXI.Container();
 
   root.addChild(legendContainer, plotG, scrubG);
+  root.addChild(monsterEndpointLabel);
 
   const LEGEND_ICON_SIZE = TIMEGRAPH_CHROME.iconSize;
 
@@ -457,6 +464,10 @@ export function createMetricGraphView({
   const legendEntriesBySeriesId = new Map();
   const seriesScaleMaxFlash = createSeriesScaleMaxFlashState();
   let presentationSuspended = false;
+  let openingRevealSec = null;
+  let monsterEmphasis = false;
+  let monsterTerminal = null;
+  const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)");
   const plotSnapshotCache = createPlotSnapshotCache();
   const projectionReplacement = createProjectionReplacementState();
   let hoveredEventMarkerKey = null;
@@ -776,6 +787,7 @@ export function createMetricGraphView({
   }
 
   function getAnimatedForecastCoverageEndSec(nowMs, historyEndSec) {
+    if (openingRevealSec !== null) return openingRevealSec;
     return readAnimatedForecastCoverageEndSec(
       reveal,
       nowMs,
@@ -1648,6 +1660,7 @@ export function createMetricGraphView({
     const perfStart = perfEnabled() ? perfNowMs() : 0;
     const plotNowMs = performance.now();
     plotG.clear();
+    monsterEndpointLabel.visible = false;
     const snapshot = getPlotSnapshot();
     const data = snapshot?.data ?? {};
     const seriesList = Array.isArray(snapshot?.seriesList)
@@ -1724,7 +1737,9 @@ export function createMetricGraphView({
       seriesScaleRanges,
       hoveredLegendSeriesId,
       getFlashStrength: (seriesId) =>
-        getSeriesScaleMaxFlashStrength(seriesId, plotNowMs),
+        monsterEmphasis && seriesId === "monsterCount"
+          ? (reducedMotion?.matches ? 0.65 : 0.45 + 0.3 * Math.sin(plotNowMs * Math.PI / 1000))
+          : getSeriesScaleMaxFlashStrength(seriesId, plotNowMs),
     };
     function drawSeriesLinesForRange(opts) {
       paintSeriesLinesForRange(plotG, { ...seriesInkArgs, ...opts });
@@ -1785,6 +1800,15 @@ export function createMetricGraphView({
     });
 
     drawForecastRevealMarker(plotG, lineDrawEndSec, maxSec, minSec, plot);
+    if (monsterEmphasis && monsterTerminal && lineDrawEndSec >= monsterTerminal.tSec) {
+      const endpoint = drawEmphasizedSeriesEndpoint(plotG, { ...monsterTerminal, seriesId: "monsterCount",
+        minSec, maxSec, plot, seriesScaleRanges, strength: seriesInkArgs.getFlashStrength("monsterCount") });
+      if (endpoint) {
+        monsterEndpointLabel.text = String(Math.round(endpoint.value));
+        monsterEndpointLabel.position.set(endpoint.x - 10, Math.min(plot.y + plot.h - 30, endpoint.y + 8));
+        monsterEndpointLabel.visible = true;
+      }
+    }
 
     const markerSecs = Array.isArray(snapshot?.markerSecs)
       ? snapshot.markerSecs
@@ -2188,6 +2212,8 @@ export function createMetricGraphView({
       ),
       forecastRevealPlayheadFollowEnabled: reveal.playheadFollowEnabled,
       forecastRevealPaused: reveal.paused,
+      monsterEmphasis,
+      monsterEndpoint: monsterEndpointLabel.visible ? monsterEndpointLabel.text : null,
       forecastRevealPreviewSec: Number.isFinite(reveal.previewSec)
         ? Math.max(0, Math.floor(reveal.previewSec))
         : null,
@@ -2258,12 +2284,18 @@ export function createMetricGraphView({
     updateTimeBounds();
     syncLatchedForecastPreviewStatus();
     tryRestoreLatchedForecastPreview();
-    syncForecastRevealPlayhead(visibleForecastCoverageEndSec);
-    syncForecastRevealPreview(visibleForecastCoverageEndSec, now);
+    if (openingRevealSec === null) {
+      syncForecastRevealPlayhead(visibleForecastCoverageEndSec);
+      syncForecastRevealPreview(visibleForecastCoverageEndSec, now);
+    } else {
+      scrub.scrubSec = openingRevealSec;
+      reveal.animatedEndSec = openingRevealSec;
+    }
     updateHeaderButtons();
     drawLegend(getActiveSeries());
     const projectionReplacementKey = getProjectionReplacementRenderKey(now);
-    const seriesScaleMaxFlashKey = getSeriesScaleMaxFlashRenderKey(now);
+    const seriesScaleMaxFlashKey = getSeriesScaleMaxFlashRenderKey(now) +
+      (monsterEmphasis ? `:monster:${reducedMotion?.matches ? 0 : Math.floor(now / 50)}` : "");
     const bootFadeState = getBootFadeRenderState(now);
     const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(
       visibleForecastCoverageEndSec * 10
@@ -2362,6 +2394,12 @@ export function createMetricGraphView({
     getDebugState,
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
     render,
+    setOpeningRevealSecond: (second) => { openingRevealSec = second; },
+    setMonsterEmphasis: (active, terminal = null) => {
+      if (monsterEmphasis !== active) lastPlotVersion = -1;
+      monsterEmphasis = active;
+      monsterTerminal = terminal;
+    },
     setWindowSpecResolver,
     setCommitPolicyResolver,
     setSeriesValueOverrideResolver,
