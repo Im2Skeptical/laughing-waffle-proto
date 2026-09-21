@@ -23,8 +23,9 @@ root in `src/views/ui-root-settlement-pixi.js`.
 - `settlement-timegraph-window.js`
   - Owns timegraph horizon/window calculations and projection-cache creation.
 - `settlement-vassal-flow.js`
-  - Open/close candidate chooser, life-map action dispatch, and
-    select/preview/reroll/replace candidate helpers.
+  - Open/close candidate chooser, life-map action dispatch,
+    Heirloom loadout/overflow refresh, and select/preview/reroll/replace
+    candidate helpers.
 
 ## Conventions
 

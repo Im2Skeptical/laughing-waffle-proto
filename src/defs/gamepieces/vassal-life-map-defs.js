@@ -44,11 +44,15 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "signature", label: "Signature", glyph: "★", color: 0xe3c46c,
     description: "A defining opportunity unique to this Vassal.",
   }),
+  relic: Object.freeze({
+    id: "relic", label: "Relic", glyph: "H", color: 0xc9a35a,
+    description: "Discover a temporary Heirloom and choose to Equip or Carry it.",
+  }),
 });
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "crisis",
+  "publicWorks", "routes", "crisis", "relic",
 ]);
 
 export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([

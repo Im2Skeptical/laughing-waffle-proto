@@ -24,6 +24,7 @@ import {
   isValidSignatureDescriptor,
 } from "./candidates.js";
 import { completeNodeResolution } from "./node-confirm.js";
+import { hasPendingHeirloomLoadout, validateHeirloomState } from "../heirlooms.js";
 
 export function stepVassalLifeMapSecond(state, tSec) {
   const vassal = getCurrentLifeMapVassal(state);
@@ -50,7 +51,8 @@ export function getVassalNodeDisplayState(state, nodeId) {
     node,
     nodeState,
     available: !!vassal?.lifeMap?.availableNodeIds?.includes(nodeId)
-      && (vassal.developmentChoiceQueue ?? []).length === 0,
+      && (vassal.developmentChoiceQueue ?? []).length === 0
+      && !hasPendingHeirloomLoadout(state),
     current: vassal?.lifeMap?.currentNodeId === nodeId,
     completed: !!vassal?.lifeMap?.completedNodeIds?.includes(nodeId),
   };
@@ -168,5 +170,6 @@ export function validateVassalLifeMapState(state) {
       || legacy.futureStartingPrestigeBonus > VASSAL_LIFE_TUNING.legacyStartingPrestigeBonusCap) {
     errors.push("civilization.vassalLegacy.futureStartingPrestigeBonus: invalid value");
   }
+  errors.push(...validateHeirloomState(state).errors);
   return { ok: errors.length === 0, errors };
 }

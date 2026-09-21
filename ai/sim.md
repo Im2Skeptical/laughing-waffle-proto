@@ -93,6 +93,16 @@ registries here.
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
+  Equipped and Carried Heirlooms resolve inheritance at that moment: Sanctified
+  relics return to the Vault unchanged, Unmarked relics become Fragile, and
+  Fragile relics make a 50/50 survive-or-break roll. Overflow past six Vault
+  slots is a player choice. The next Vassal then equips 0–3 Vault relics;
+  selected Sanctified relics become Unmarked and Carry starts empty.
+- Relic nodes offer three eligible Heirlooms with no Prestige price. Newly found
+  relics are Sanctified and may be Equipped or Carried immediately. Only one
+  owned copy of each definition exists at a time. Equipped Heirlooms can grant
+  large temporary Vassal-life bonuses, including a once-per-life Mandate that
+  prevents a fatal natural-mortality or Crisis outcome.
 - Each EXP threshold earned by a surviving, non-terminal Vassal queues a
   serialized three-of-four stat choice rolled from all four Vassal stats. These
   choices resolve one at a time and block entry into another Lifegraph node.

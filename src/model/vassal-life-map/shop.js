@@ -22,8 +22,12 @@ import {
   getAdjustedVassalPrestigeCost,
   getCurrentLifeMapVassal,
   getDetailedSite,
+  getVassalActionPhaseCost,
+  getVassalActionPrestigeCost,
+  markHeirloomTimeAction,
   shuffle,
 } from "./selectors.js";
+import { getShopOfferCount } from "./heirlooms.js";
 
 export const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
@@ -102,7 +106,7 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
   const reservation = buildReservation(state, vassal, nodeState);
   const offers = [];
   for (const practiceId of shuffle(state, VASSAL_INTERVENTION_PRACTICE_IDS)) {
-    if (offers.length >= 3) break;
+    if (offers.length >= getShopOfferCount(vassal, nodeState.family)) break;
     const def = getDetailedPracticeDef(state, practiceId);
     if (!def || !isDefinitionUnlocked(state, def)) continue;
     const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
@@ -145,7 +149,8 @@ function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, 
 function buildStructureOffers(state, vassal, nodeState, roll) {
   return shuffle(state, Object.keys(settlementStructureDefs))
     .filter(id => isDefinitionUnlocked(state, getDetailedStructureDef(state, id)))
-    .slice(0, 3).map((id, index) => makeStructureOffer(state, vassal, nodeState, roll, id, index));
+    .slice(0, getShopOfferCount(vassal, nodeState.family))
+    .map((id, index) => makeStructureOffer(state, vassal, nodeState, roll, id, index));
 }
 
 function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
@@ -164,7 +169,7 @@ function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
   ];
   const offers = [];
   for (const candidate of shuffle(state, candidates)) {
-    if (offers.length >= 3) break;
+    if (offers.length >= getShopOfferCount(vassal, nodeState.family)) break;
     if (candidate.kind === "practice") {
       const practiceId = candidate.definitionId;
       const def = getDetailedPracticeDef(state, practiceId);
@@ -213,7 +218,7 @@ function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
       }];
     });
   }
-  return shuffle(state, targets).slice(0, 3).map((target, index) => ({
+  return shuffle(state, targets).slice(0, getShopOfferCount(vassal, nodeState.family)).map((target, index) => ({
     offerId: `${nodeState.nodeId}:r${roll}:remove:${index}`,
     ...target,
     basePrestigeCost: VASSAL_LIFE_TUNING.signatureRemovalPrestigeCost,
@@ -233,7 +238,7 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
     }
     return [];
   });
-  return shuffle(state, candidates).slice(0, 3).map((candidate, index) => {
+  return shuffle(state, candidates).slice(0, getShopOfferCount(vassal, nodeState.family)).map((candidate, index) => {
     const { edge, mode } = candidate;
     const left = getRegionReference(state, edge.regionAId) ?? edge.regionAId;
     const right = getRegionReference(state, edge.regionBId) ?? edge.regionBId;
@@ -275,8 +280,10 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   const index = nodeState.inventory.findIndex((offer) => offer.offerId === offerId);
   if (index < 0) return { ok: false, reason: "offerUnavailable" };
   const offer = nodeState.inventory[index];
-  const prestigeCost = getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost);
-  const phaseCost = getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost);
+  const prestigeCost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost, {
+    isFirstShopPurchase: (nodeState.purchasedOffers ?? []).length === 0,
+  });
+  const phaseCost = getVassalActionPhaseCost(vassal, offer.basePhaseCost, { nodeState });
   const currencyCost = Math.max(0, Number(offer.baseCurrencyCost) || 0);
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
@@ -309,6 +316,8 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   nodeState.purchasedOffers = next;
   nodeState.purchasedOfferIds = next.map(p => p.offerId);
   nodeState.accumulatedPhaseCost += phaseCost;
+  if (phaseCost > 0) purchase.hourglassApplied = nodeState.heirloomTimeActionUsed !== true;
+  markHeirloomTimeAction(nodeState, phaseCost);
   return { ok: true, offerId, prestigeCost, phaseCost, currencyCost };
 }
 
@@ -337,6 +346,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   nodeState.accumulatedPhaseCost = Math.max(
     0, nodeState.accumulatedPhaseCost - Math.max(0, purchase.phaseCost ?? 0)
   );
+  if (purchase.hourglassApplied === true) nodeState.heirloomTimeActionUsed = false;
   return { ok: true, offerId, prestigeCost: purchase.prestigeCost, phaseCost: purchase.phaseCost,
     currencyCost: purchase.currencyCost };
 }
@@ -387,10 +397,13 @@ export function rerollVassalShop(state, nodeId) {
   const prestigeCost = getAdjustedVassalPrestigeCost(
     vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost
   );
-  const phaseCost = getAdjustedVassalPhaseCost(vassal, VASSAL_LIFE_TUNING.shopRerollPhaseCost);
+  const phaseCost = getVassalActionPhaseCost(
+    vassal, VASSAL_LIFE_TUNING.shopRerollPhaseCost, { nodeState }
+  );
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
   nodeState.accumulatedPhaseCost += phaseCost;
+  markHeirloomTimeAction(nodeState, phaseCost);
   nodeState.rerollUsed = true;
   nodeState.inventoryRoll += 1;
   nodeState.inventory = generateShopInventory(state, vassal, nodeState);

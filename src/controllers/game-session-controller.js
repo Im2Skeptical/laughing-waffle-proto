@@ -1,6 +1,6 @@
 import { createNewGameState } from "../model/new-game.js";
 
-export function createGameSessionController({ runner, onEnter, onError, onSaved }) {
+export function createGameSessionController({ runner, opening, onEnter, onError, onSaved }) {
   let activeSlot = null;
   let inMenu = true;
   let hasLiveGame = false;
@@ -11,12 +11,12 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
     if (result.ok) onSaved?.();
     return result;
   }
-  function enter(slot) {
+  function enter(slot, prepared = null) {
     hasLiveGame = true;
     activeSlot = slot;
     inMenu = false;
     onSaved?.();
-    onEnter?.();
+    onEnter?.(prepared);
     return { ok: true };
   }
   return {
@@ -27,21 +27,31 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
       const result = runner.inspectSaveSlot(slot);
       return { slot, available: result.ok, empty: result.reason === "emptySlot", meta: result.meta };
     }),
-    newGame(slot) {
+    prepareNewGame: () => opening?.prepare(),
+    cancelPreparation: () => opening?.cancel(),
+    getPreparationStatus: () => opening?.getSnapshot(),
+    async newGame(slot, { isCurrent = () => true } = {}) {
+      const prepared = opening ? await opening.prepare() : null;
+      if (!isCurrent()) return { ok: false, reason: "cancelled" };
+      if (prepared && !prepared.ok) {
+        onError?.("Could not prepare your chronicle. Retry or return to the menu.");
+        return prepared;
+      }
       // Entropy only chooses the seed; every world roll uses serialized state.rng.
-      const seed = globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
+      const initialState = prepared?.state ?? createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]);
       activeSlot = null;
       hasLiveGame = false;
-      const result = runner.resetToState(createNewGameState(seed), "twoRegionStarter01");
+      const result = runner.resetToState(initialState, "twoRegionStarter01");
       if (!result.ok) return result;
       const saved = runner.saveToSlot(slot);
       if (!saved.ok) {
         onError?.("Could not create a save. Free some browser storage and try again.");
         return saved;
       }
-      return enter(slot);
+      return enter(slot, prepared);
     },
     continueGame(slot) {
+      opening?.reset();
       const result = runner.loadFromSlot(slot);
       if (!result.ok) { onError?.("This save could not be loaded."); return result; }
       return enter(slot);
@@ -53,7 +63,7 @@ export function createGameSessionController({ runner, onEnter, onError, onSaved 
       inMenu = true;
       return true;
     },
-    resume() { hasLiveGame = true; inMenu = false; return { ok: true }; },
+    resume() { opening?.cancel(); hasLiveGame = true; inMenu = false; return { ok: true }; },
     save,
   };
 }

@@ -50,6 +50,7 @@ export function getSettlementNavigationState({
   selectedVassalCandidateIndex,
   selectedWorldRegionId,
   worldMapRegionSelectionActive,
+  onboarding = false,
 } = {}) {
   const timeMode = viewedSec < frontierSec ? "history" : viewedSec > frontierSec ? "projection" : "present";
   const currentVassal = getCurrentLifeMapVassal(frontierState);
@@ -99,7 +100,7 @@ export function getSettlementNavigationState({
   return {
     mode: worldViewMode,
     time: { mode: timeMode, viewedSec, frontierSec },
-    destinations,
+    destinations: onboarding ? [] : destinations,
     location: viewedPortrait ?? location,
     portrait: worldViewMode !== "vassalLife" && !pendingVassalSelection
       ? viewedPortrait : null,

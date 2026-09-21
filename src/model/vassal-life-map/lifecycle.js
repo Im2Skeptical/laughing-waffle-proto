@@ -9,6 +9,11 @@ export {
 } from "./lifecycle/candidates.js";
 
 export {
+  confirmHeirloomLoadout,
+  resolveVaultOverflow,
+} from "./heirlooms.js";
+
+export {
   enterVassalLifeNode,
   selectVassalNodeOption,
   confirmVassalLifeNode,

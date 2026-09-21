@@ -64,6 +64,7 @@ try {
   await page.getByTestId('game-menu').waitFor({state:'hidden'});
   await waitForRide();
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.forecastRevealPlayheadFollowEnabled),true,'Continue preserves riding the unveil');
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().opening.phase === 'completed');
   const present=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTimeActionClickPoint());
   assert.ok(present);
   const canvas=await page.locator('canvas').boundingBox();
@@ -148,6 +149,8 @@ try {
   await phone.getByTestId('game-slot-1').click();
   await phone.getByTestId('game-menu').waitFor({state:'hidden'});
   await waitForRide(phone);
+  await phone.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().opening.phase === 'completed');
+  await phone.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
   await phone.evaluate(()=>document.activeElement.blur());
   await phone.keyboard.press('Space');
   const phoneHeld=await phone.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());

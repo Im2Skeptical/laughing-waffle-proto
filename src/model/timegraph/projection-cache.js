@@ -640,6 +640,12 @@ export function createProjectionCache({
     ensureStateAtSecond,
     ensureForecastWindow,
     mergeForecastChunk,
+    exportForecastChunk: (endSec = forecastAsyncEndSec) => ({
+      baseSec: forecastAsyncBaseSec, endSec, stepSec: forecastAsyncStepSec,
+      stateDataBySecond: [...stateDataBySecond].filter(([sec]) => sec <= endSec),
+      summaryBySecond: [...summaryBySecond].filter(([sec]) => sec <= endSec),
+      lastStateData: stateDataBySecond.get(endSec) ?? null,
+    }),
     getForecastMeta: () => ({
       forecastBaseSec,
       forecastEndSec,

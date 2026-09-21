@@ -377,6 +377,7 @@ export function createSettlementNavigationView({
 
   return {
     init: () => update(), update, getClickPoint,
+    getPresentScreenRect: () => time.container.visible ? time.container.getBounds() : null,
     showReadOnlyFeedback() {
       const mode = getState?.()?.time.mode;
       if (!mode || mode === 'present') return;

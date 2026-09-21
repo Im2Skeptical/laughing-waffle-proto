@@ -13,16 +13,21 @@ import {
 import {
   clone,
   formatVassalPhaseDuration,
-  getAdjustedVassalPhaseCost,
   getAdjustedVassalPrestigeCost,
   getCurrentLifeMapVassal,
   getDetailedSite,
+  getVassalActionPhaseCost,
+  getVassalActionPrestigeCost,
   getVassalAge,
-  getVassalDevelopmentIncome,
   getVassalLifeMapNode,
-  getVassalPrestigeIncome,
+  getVassalNodeResolutionGains,
   getVassalStatsPresentation,
 } from "./selectors.js";
+import {
+  getEquippedHeirloomModifiers,
+  getVassalHeirloomInventory,
+  presentHeirloom,
+} from "./heirlooms.js";
 import {
   isShopNodeState,
   prepareStructurePlacement,
@@ -200,7 +205,11 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
   const immediate = clone(vassal);
   if (option) {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
-    immediate.prestige = Math.max(0, immediate.prestige - cost + Math.floor(option.prestigeDelta ?? 0));
+    let delta = Math.floor(option.prestigeDelta ?? 0);
+    if (nodeState.family === "patronage" && delta > 0) {
+      delta = Math.floor(delta * getEquippedHeirloomModifiers(vassal).patronageOptionMultiplier);
+    }
+    immediate.prestige = Math.max(0, immediate.prestige - cost + delta);
     if (option.statId && Number.isFinite(option.statDelta)) {
       immediate.stats[option.statId] = Math.max(
         0, Math.floor(immediate.stats[option.statId] ?? 0) + Math.floor(option.statDelta)
@@ -212,8 +221,9 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
       0, Math.floor(immediate.stats[option.lossStatId] ?? 0) + Math.floor(option.lossStatDelta)
     );
   }
-  const completionPrestigeIncome = getVassalPrestigeIncome(immediate);
-  const completionExpIncome = getVassalDevelopmentIncome(immediate);
+  const completionGains = getVassalNodeResolutionGains(immediate, nodeState.family);
+  const completionPrestigeIncome = completionGains.prestige;
+  const completionExpIncome = completionGains.development;
   const completionExpTotal = Math.max(0, immediate.developmentProgress ?? 0) + completionExpIncome;
   return {
     optionId: option?.id ?? null,
@@ -253,11 +263,15 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const optionPrestigeCost = selectedOption
     ? getAdjustedVassalPrestigeCost(vassal, selectedOption.prestigeCost ?? 0) : 0;
   const selectedOptionPhaseCost = selectedOption
-    ? getAdjustedVassalPhaseCost(vassal, selectedOption.phaseCost ?? 0) : 0;
+    ? getVassalActionPhaseCost(vassal, selectedOption.phaseCost ?? 0, {
+      nodeState,
+      isTravel: nodeState?.family === "travel",
+    }) : 0;
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
   const emptyShopConfirmPhaseCost = isShopNodeState(nodeState)
     && (nodeState?.purchasedOffers ?? []).length === 0
-    ? VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost : 0;
+    ? getVassalActionPhaseCost(vassal, VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost, { nodeState })
+    : 0;
   const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (isShopNodeState(nodeState)
     ? 0 : selectedOptionPhaseCost);
   const currentAge = getVassalAge(state, vassal);
@@ -296,7 +310,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const kind = intervention?.kind;
     const definitionId = kind === "practice" ? intervention.practiceId
       : kind === "structure" ? intervention.structureId : null;
-    const prestigeCost = purchased ? offer.prestigeCost : getAdjustedVassalPrestigeCost(vassal, offer.basePrestigeCost ?? 0);
+    const prestigeCost = purchased ? offer.prestigeCost : getVassalActionPrestigeCost(
+      vassal, offer.basePrestigeCost ?? 0, {
+        isFirstShopPurchase: (nodeState?.purchasedOffers ?? []).length === 0,
+      }
+    );
     const currencyCost = purchased ? offer.currencyCost : Math.max(0, Number(offer.baseCurrencyCost) || 0);
     const remaining = (nodeState?.purchasedOffers ?? []).filter(p => p.offerId !== offer.offerId);
     const checkPlacement = origin => {
@@ -323,7 +341,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       prestigeCost,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost
-        : getAdjustedVassalPhaseCost(vassal, offer.basePhaseCost ?? 0),
+        : getVassalActionPhaseCost(vassal, offer.basePhaseCost ?? 0, { nodeState }),
     };
   };
   const displacedPractices = beforePractices.filter((slot) => slot
@@ -375,7 +393,12 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       : ["travel", "routes"].includes(nodeState?.family)
         ? "regionalMap"
         : ["patronage", "development"].includes(nodeState?.family)
-          ? "vassal" : "none",
+          ? "vassal"
+          : nodeState?.family === "relic" ? "heirloom" : "none",
+    heirlooms: {
+      equipped: getVassalHeirloomInventory(vassal).equipped.map(presentHeirloom),
+      carry: getVassalHeirloomInventory(vassal).carry.map(presentHeirloom),
+    },
     regionalMap: buildRegionalMapPresentation(state, vassal, nodeState, preview),
     vassalProjection: buildVassalOptionProjection(
       vassal, nodeState, preview.previewOptionId ?? null

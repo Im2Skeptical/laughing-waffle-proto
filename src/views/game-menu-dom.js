@@ -23,6 +23,8 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   let overwriteSlot = null;
   let entering = false;
   let entryVersion = 0;
+  let loadingSlot = null;
+  let loadingFailed = false;
   function button(label, action, testid) {
     const element = document.createElement("button");
     element.type = "button";
@@ -37,13 +39,14 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     mode = "home";
     overwriteSlot = null;
     render();
+    if (session.getPreparationStatus?.()?.phase !== "revealing") void session.prepareNewGame?.();
   }
   function hide() {
     onResume?.();
     panel.hidden = true;
     document.body.classList.remove("game-menu-open");
   }
-  async function enter(action) {
+  async function enter(action, slot = null) {
     if (entering) return;
     entering = true;
     const version = ++entryVersion;
@@ -59,11 +62,27 @@ export function createGameMenuDom({ session, onResume, onPause }) {
         return;
       }
       displayHint.hidden = true;
-      if (action().ok) hide();
-    } finally { entering = false; }
+      if (slot !== null) { loadingSlot = slot; loadingFailed = false; render(); }
+      const result = await action(() => version === entryVersion && !document.hidden && !portrait.matches);
+      if (version !== entryVersion) return;
+      if (result.ok) {
+        loadingSlot = null;
+        if (!document.hidden && !portrait.matches) hide();
+        else { session.openMenu({ force: true }); onPause?.(); show(); }
+      } else if (slot !== null) {
+        loadingFailed = true;
+        render();
+      }
+    } catch (_error) {
+      if (version === entryVersion) {
+        loadingFailed = true;
+        message.textContent = "Could not open your chronicle. Retry or return to the menu.";
+        render();
+      }
+    } finally { if (version === entryVersion) entering = false; }
   }
   function start(slot) {
-    void enter(() => session.newGame(slot));
+    void enter(isCurrent => session.newGame(slot, { isCurrent }), slot);
   }
   function render() {
     panel.replaceChildren();
@@ -78,7 +97,25 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     subtitle.textContent = "Guide a fragile realm. Turn back the years. Rewrite its fate.";
     content.append(eyebrow, title, subtitle, displayHint);
     const slots = session.slots();
-    if (overwriteSlot !== null) {
+    if (loadingSlot !== null) {
+      const heading = document.createElement("h2");
+      heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Foreseeing your civilization’s future…";
+      content.append(heading);
+      if (!loadingFailed) {
+        const progress = document.createElement("progress");
+        progress.setAttribute("aria-label", "Preparing the opening forecast");
+        progress.dataset.testid = "game-loading-progress";
+        content.append(progress);
+      } else {
+        content.append(button("Retry", () => {
+          session.cancelPreparation?.(); start(loadingSlot);
+        }, "game-loading-retry"));
+      }
+      content.append(button("Back", () => {
+        entryVersion++; entering = false; loadingSlot = null; loadingFailed = false;
+        session.cancelPreparation?.(); show();
+      }, "game-loading-back"));
+    } else if (overwriteSlot !== null) {
       const warning = document.createElement("p");
       warning.textContent = `Replace Slot ${overwriteSlot}? Its current game will be permanently lost.`;
       content.append(warning,

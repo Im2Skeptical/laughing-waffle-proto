@@ -37,14 +37,23 @@ import {
   getCurrentLifeMapVassal,
   getDetailedSite,
   getPlayerDetailedSites,
+  getVassalActionPhaseCost,
   getVassalAge,
-  getVassalDevelopmentIncome,
   getVassalLifeMapNode,
   getVassalLifeMapOutgoingNodeIds,
   getVassalLineage,
-  getVassalPrestigeIncome,
+  getVassalNodeResolutionGains,
+  markHeirloomTimeAction,
   shuffle,
 } from "../selectors.js";
+import {
+  acquireHeirloom,
+  generateRelicOffers,
+  getEquippedHeirloomModifiers,
+  hasPendingHeirloomLoadout,
+  resolveHeirloomInheritance,
+  spendMandateProtection,
+} from "../heirlooms.js";
 import {
   SHOP_FAMILIES,
   generateShopInventory,
@@ -257,6 +266,7 @@ function createNodeState(state, vassal, node) {
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
   else if (node.family === "crisis") nodeState.options = clone(VASSAL_CRISIS_OPTIONS);
   else if (node.family === "legacy") nodeState.options = clone(VASSAL_LEGACY_OPTIONS);
+  else if (node.family === "relic") nodeState.options = generateRelicOffers(state, vassal);
   else if (SHOP_FAMILIES.has(node.family)) {
     nodeState.contentMode = "shop";
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
@@ -267,6 +277,7 @@ function createNodeState(state, vassal, node) {
 export function enterVassalLifeNode(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
   if (!vassal) return { ok: false, reason: "noCurrentVassal" };
+  if (hasPendingHeirloomLoadout(state)) return { ok: false, reason: "heirloomLoadoutRequired" };
   if ((vassal.developmentChoiceQueue ?? []).length > 0) {
     return { ok: false, reason: "developmentChoiceRequired" };
   }
@@ -368,6 +379,7 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
   addLifeEvent(state, vassal, reason === "died" ? "died" : "retired", {
     causeOfDeath: cause, text: reason === "died" ? `Died: ${cause}` : "Retired after completing the life map",
   });
+  resolveHeirloomInheritance(state, vassal);
   generateCandidatePool(state);
 }
 
@@ -386,7 +398,11 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
   if (Number.isFinite(option?.prestigeDelta)) {
-    vassal.prestige = Math.max(0, vassal.prestige + Math.floor(option.prestigeDelta));
+    let delta = Math.floor(option.prestigeDelta);
+    if (nodeState.family === "patronage" && delta > 0) {
+      delta = Math.floor(delta * getEquippedHeirloomModifiers(vassal).patronageOptionMultiplier);
+    }
+    vassal.prestige = Math.max(0, vassal.prestige + delta);
   }
   if (option?.statId && Number.isFinite(option.statDelta)) {
     vassal.stats[option.statId] = Math.max(
@@ -448,11 +464,23 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   if (!effectsResult.ok) return effectsResult;
   if (Number.isFinite(option?.immediateDeathChance)
       && state.rngNextVassalFloat() < option.immediateDeathChance) {
-    nodeState.resolutionResult = "crisisDeath";
-    finishVassal(state, vassal, { reason: "died", cause: "crisis" });
-    return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
+    if (spendMandateProtection(vassal)) {
+      nodeState.mandatePreventedDeath = true;
+      addLifeEvent(state, vassal, "mandatePrevented", {
+        nodeId: nodeState.nodeId, cause: "crisis",
+        text: "Mandate of Heaven prevented a fatal Crisis.",
+      });
+    } else {
+      nodeState.resolutionResult = "crisisDeath";
+      finishVassal(state, vassal, { reason: "died", cause: "crisis" });
+      return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
+    }
   }
-  const phaseCost = getAdjustedVassalPhaseCost(vassal, option?.phaseCost ?? 0);
+  const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
+    nodeState,
+    isTravel: nodeState.family === "travel",
+  });
+  markHeirloomTimeAction(nodeState, phaseCost);
   return { ok: true, prestigeCost, phaseCost };
 }
 
@@ -477,8 +505,9 @@ function enqueueVassalDevelopmentChoices(state, vassal, count) {
 }
 
 export function completeNodeResolution(state, vassal, nodeState) {
-  vassal.prestige += getVassalPrestigeIncome(vassal);
-  vassal.developmentProgress += getVassalDevelopmentIncome(vassal);
+  const gains = getVassalNodeResolutionGains(vassal, nodeState.family);
+  vassal.prestige += gains.prestige;
+  vassal.developmentProgress += gains.development;
   let earnedDevelopmentChoices = 0;
   while (vassal.developmentProgress >= VASSAL_LIFE_TUNING.developmentThreshold) {
     vassal.developmentProgress -= VASSAL_LIFE_TUNING.developmentThreshold;
@@ -491,18 +520,32 @@ export function completeNodeResolution(state, vassal, nodeState) {
   nodeState.resolving = false;
   nodeState.resolved = true;
   nodeState.resolvedSec = Math.max(0, Math.floor(state.tSec ?? 0));
-  nodeState.resolutionResult = mortalityRoll < mortalityChance ? "naturalDeath" : "survived";
   vassal.lifeMap.pendingResolution = null;
   if (!vassal.lifeMap.completedNodeIds.includes(nodeState.nodeId)) {
     vassal.lifeMap.completedNodeIds.push(nodeState.nodeId);
   }
+  if (mortalityRoll < mortalityChance) {
+    if (spendMandateProtection(vassal)) {
+      nodeState.mandatePreventedDeath = true;
+      nodeState.resolutionResult = "mandatePrevented";
+      addLifeEvent(state, vassal, "mandatePrevented", {
+        nodeId: nodeState.nodeId, cause: "naturalMortality",
+        text: "Mandate of Heaven prevented natural mortality.",
+      });
+    } else {
+      nodeState.resolutionResult = "naturalDeath";
+      addLifeEvent(state, vassal, "nodeResolved", {
+        nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
+      });
+      finishVassal(state, vassal, { reason: "died", cause: "naturalMortality" });
+      return { ok: true, ended: true, died: true };
+    }
+  } else {
+    nodeState.resolutionResult = "survived";
+  }
   addLifeEvent(state, vassal, "nodeResolved", {
     nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
   });
-  if (mortalityRoll < mortalityChance) {
-    finishVassal(state, vassal, { reason: "died", cause: "naturalMortality" });
-    return { ok: true, ended: true, died: true };
-  }
   const node = getVassalLifeMapNode(vassal, nodeState.nodeId);
   vassal.lifeMap.currentNodeId = null;
   if (getVassalLifeMapOutgoingNodeIds(vassal, node?.id).length === 0) {
@@ -514,7 +557,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   return { ok: true, ended: false };
 }
 
-export function confirmVassalLifeNode(state, nodeId) {
+export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !nodeState || nodeState.resolving) {
@@ -524,6 +567,17 @@ export function confirmVassalLifeNode(state, nodeId) {
   if (!isShopNodeState(nodeState)) {
     option = nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
+  }
+  if (nodeState.family === "relic") {
+    if (option?.emptyRelic) {
+      acquire = { destination: "decline" };
+    } else if (!acquire?.destination) {
+      return { ok: false, reason: "acquireRequired" };
+    }
+    if (option?.definitionId && acquire.destination !== "decline") {
+      const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
+      if (!acquired.ok) return acquired;
+    }
   }
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
@@ -554,7 +608,11 @@ export function confirmVassalLifeNode(state, nodeId) {
     });
   }
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
-    nodeState.accumulatedPhaseCost += VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost;
+    const emptyCost = getVassalActionPhaseCost(
+      vassal, VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost, { nodeState }
+    );
+    nodeState.accumulatedPhaseCost += emptyCost;
+    markHeirloomTimeAction(nodeState, emptyCost);
   }
   let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);

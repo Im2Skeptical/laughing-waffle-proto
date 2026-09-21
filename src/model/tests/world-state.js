@@ -59,7 +59,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 21);
+assert.equal(state.gameStateSchemaVersion, 22);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -483,7 +483,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 12;
-assert.throws(() => deserializeGameState(old), /expected v21/);
+assert.throws(() => deserializeGameState(old), /expected v22/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -680,7 +680,7 @@ try {
   );
   const session = createGameSessionController({ runner });
   assert.equal(session.isInMenu(), true);
-  assert.equal(session.newGame(2).ok, true);
+  assert.equal((await session.newGame(2)).ok, true);
   assert.equal(session.getActiveSlot(), 2);
   const candidatePool = getVassalCandidatePool(runner.getState());
   assert.equal(runner.dispatchActionAtCurrentSecond(ActionKinds.SETTLEMENT_SELECT_VASSAL, {
@@ -691,7 +691,7 @@ try {
   assert.ok(runner.getState().tSec > 0, "save contains progressed simulation");
   assert.equal(session.openMenu(), true);
   const slot2 = storage.get("civsurvivor.save.slot2");
-  assert.equal(session.newGame(3).ok, true);
+  assert.equal((await session.newGame(3)).ok, true);
   assert.ok(storage.get("civsurvivor.save.slot2") === slot2, "starting slot 3 preserves slot 2");
   assert.equal(session.continueGame(2).ok, true);
   assert.equal(runner.getState().rng.baseSeed, JSON.parse(slot2).state.rng.baseSeed);

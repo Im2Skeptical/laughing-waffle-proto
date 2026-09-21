@@ -371,6 +371,15 @@ export function drawSeriesLinesForRange(
   }
 }
 
+export function drawEmphasizedSeriesEndpoint(graphics, { seriesId, tSec, value, minSec, maxSec, plot, seriesScaleRanges, strength }) {
+  if (!Number.isFinite(value) || tSec < minSec || tSec > maxSec || !seriesScaleRanges.has(seriesId)) return null;
+  const x = timeToX(tSec, minSec, maxSec, plot);
+  const y = yForValue(value, seriesId, seriesScaleRanges, plot);
+  graphics.lineStyle(2 + strength * 2, 0x672b22, 1)
+    .beginFill(0xffedb4, 0.4 + strength * 0.3).drawCircle(x, y, 5 + strength * 3).endFill();
+  return { x, y, value };
+}
+
 export function drawForecastRevealMarker(
   graphics,
   lineDrawEndSec,

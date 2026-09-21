@@ -6,6 +6,7 @@ import { MOON_PHASE_COUNT } from "../../defs/gamesettings/moon-phase-defs.js";
 import { getGameSetting } from "../game-config.js";
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import { getRegionState } from "../world-state.js";
+import { getEquippedHeirloomModifiers } from "./heirlooms.js";
 
 export const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -290,14 +291,36 @@ export function getVassalAge(state, vassal = null, tSec = null) {
     + Math.max(0, Math.floor((atSec - Math.floor(current.selectedSec ?? 0)) / getYearDurationSec(state)));
 }
 
+export function getVassalEffectiveStats(vassal) {
+  const bonus = getEquippedHeirloomModifiers(vassal);
+  return Object.fromEntries(VASSAL_STAT_IDS.map((statId) => [
+    statId,
+    Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0))
+      + (statId === "cunning" ? bonus.bonusCunning : 0)
+      + (statId === "intelligence" ? bonus.bonusIntelligence : 0),
+  ]));
+}
+
 export function getVassalPrestigeIncome(vassal) {
   return VASSAL_LIFE_TUNING.basePrestigeIncome
-    + Math.max(0, Math.floor(vassal?.stats?.cunning ?? 0));
+    + Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0));
 }
 
 export function getVassalDevelopmentIncome(vassal) {
-  return VASSAL_LIFE_TUNING.baseDevelopmentIncome
-    + Math.max(0, Math.floor(vassal?.stats?.wisdom ?? 0));
+  const wisdom = Math.max(0, Math.floor(getVassalEffectiveStats(vassal).wisdom ?? 0));
+  const multiplier = Math.max(1, getEquippedHeirloomModifiers(vassal).wisdomDevelopmentMultiplier ?? 1);
+  return VASSAL_LIFE_TUNING.baseDevelopmentIncome + Math.floor(wisdom * multiplier);
+}
+
+export function getVassalNodeResolutionGains(vassal, nodeFamily = null) {
+  const modifiers = getEquippedHeirloomModifiers(vassal);
+  return {
+    prestige: getVassalPrestigeIncome(vassal)
+      + (nodeFamily === "patronage" ? modifiers.patronageNodePrestige : 0),
+    development: getVassalDevelopmentIncome(vassal)
+      + modifiers.nodeDevelopment
+      + (nodeFamily === "travel" ? modifiers.travelNodeDevelopment : 0),
+  };
 }
 
 const VASSAL_STAT_LABELS = Object.freeze({
@@ -308,29 +331,36 @@ const VASSAL_STAT_LABELS = Object.freeze({
 });
 
 export function getVassalStatPresentation(vassal, statId, valueOverride = null) {
+  const effective = getVassalEffectiveStats(vassal);
   const value = Number.isFinite(valueOverride)
     ? Math.max(0, Math.floor(valueOverride))
-    : Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
+    : Math.max(0, Math.floor(effective[statId] ?? 0));
   const cap = VASSAL_LIFE_TUNING.maximumDiscount;
   const discount = Math.min(cap, value * VASSAL_LIFE_TUNING.discountPerStat);
   const pointsToCap = Math.max(0, Math.ceil(
     (cap - discount) / VASSAL_LIFE_TUNING.discountPerStat
   ));
+  const baseValue = Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
+  const heirloomBonus = value - (Number.isFinite(valueOverride) ? value : baseValue);
+  const bonusNote = heirloomBonus > 0 ? ` · Heirloom +${heirloomBonus}` : "";
   if (statId === "cunning") {
     const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
     return {
       statId, label: VASSAL_STAT_LABELS[statId], value,
       powerLabel: `+${power} Prestige per completed node`,
-      formula: `${VASSAL_LIFE_TUNING.basePrestigeIncome} base + ${value} Cunning`,
+      formula: `${VASSAL_LIFE_TUNING.basePrestigeIncome} base + ${value} Cunning${bonusNote}`,
       pointsToCap: null,
     };
   }
   if (statId === "wisdom") {
-    const power = VASSAL_LIFE_TUNING.baseDevelopmentIncome + value;
+    const modifiers = getEquippedHeirloomModifiers(vassal);
+    const power = getVassalDevelopmentIncome(vassal);
+    const codexNote = modifiers.wisdomDevelopmentMultiplier > 1
+      ? ` · Scholar's Codex ×${modifiers.wisdomDevelopmentMultiplier}` : "";
     return {
       statId, label: VASSAL_STAT_LABELS[statId], value,
       powerLabel: `+${power} EXP per completed node`,
-      formula: `${VASSAL_LIFE_TUNING.baseDevelopmentIncome} base + ${value} Wisdom`,
+      formula: `${VASSAL_LIFE_TUNING.baseDevelopmentIncome} base + Wisdom${codexNote}${bonusNote}`,
       pointsToCap: null,
     };
   }
@@ -361,11 +391,43 @@ function adjustedCost(base, stat, { allowZero = true } = {}) {
 }
 
 export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
-  return adjustedCost(baseCost, vassal?.stats?.intelligence, { allowZero: true });
+  return adjustedCost(baseCost, getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
 }
 
 export function getAdjustedVassalPhaseCost(vassal, baseCost) {
-  return adjustedCost(baseCost, vassal?.stats?.effectiveness, { allowZero: false });
+  return adjustedCost(baseCost, getVassalEffectiveStats(vassal).effectiveness, { allowZero: false });
+}
+
+export function getVassalActionPrestigeCost(vassal, baseCost, context = {}) {
+  let cost = getAdjustedVassalPrestigeCost(vassal, baseCost);
+  const discount = getEquippedHeirloomModifiers(vassal).firstInterventionDiscount ?? 0;
+  if (context.isFirstShopPurchase === true && discount > 0) {
+    cost = Math.max(0, Math.ceil(cost * (1 - discount)));
+  }
+  return cost;
+}
+
+export function getVassalActionPhaseCost(vassal, baseCost, context = {}) {
+  let cost = getAdjustedVassalPhaseCost(vassal, baseCost);
+  if (cost <= 0) return 0;
+  const modifiers = getEquippedHeirloomModifiers(vassal);
+  if (context.isTravel === true && modifiers.travelCostMultiplier < 1) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.travelCostMultiplier));
+  }
+  const hourglassAvailable = modifiers.hourglassFirstActionMultiplier < 1
+    && context.nodeState?.heirloomTimeActionUsed !== true;
+  if (hourglassAvailable) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.hourglassFirstActionMultiplier));
+  }
+  if (modifiers.allTimeCostMultiplier < 1) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.allTimeCostMultiplier));
+  }
+  return cost;
+}
+
+export function markHeirloomTimeAction(nodeState, phaseCost) {
+  if (!nodeState || !(Math.max(0, Math.floor(phaseCost ?? 0)) > 0)) return;
+  nodeState.heirloomTimeActionUsed = true;
 }
 
 // Display units follow the run's two independent clocks. This never changes

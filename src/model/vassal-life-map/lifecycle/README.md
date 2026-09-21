@@ -11,8 +11,9 @@ This split is mechanical. Mortality/confirm semantics were not rewritten.
 - `candidates.js` — portraits, signatures, pool generation, initialize,
   reroll, and `selectLifeMapVassal`
 - `node-confirm.js` — enter, option select, confirm, finish, development
-  choices, and `getSettlementRequirements`
+  choices, Relic acquisition, Heirloom inheritance, and `getSettlementRequirements`
 - `step.js` — `stepVassalLifeMapSecond`, pending/display reads, validate
+- `../heirlooms.js` — inventory helpers used by candidates, confirm, and validate
 
 Import graph is acyclic: candidates → node-confirm → step. step also
 imports candidate validators. shop.js is not touched.

@@ -1,4 +1,5 @@
 import { createGameSessionController } from "../controllers/game-session-controller.js";
+import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { preloadChronicleArt } from './chronicle-art.js';
 import { createChronicleFrame } from './chronicle-skin.js';
@@ -88,6 +89,7 @@ import { createVassalLifeMapView } from "./vassal-life-map-pixi.js";
 import { createVassalLifeHudView } from "./vassal-life-hud-pixi.js";
 import { createVassalLevelUpModalView } from "./vassal-level-up-modal-pixi.js";
 import { createVassalResolutionRecapView } from "./vassal-resolution-recap-pixi.js";
+import { createVassalHeirloomFlowView } from "./vassal-heirloom-flow-pixi.js";
 import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
@@ -204,7 +206,20 @@ let vassalLifeHudView = null;
 let vassalNodeDecisionModalView = null;
 let vassalLevelUpModalView = null;
 let vassalResolutionRecapView = null;
+let vassalHeirloomFlowView = null;
 let runCompleteView = null;
+const opening = createNewGameOpeningController({
+  createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
+  createWorkerService: () => createTimegraphForecastWorkerService(),
+  searchLimitSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
+});
+const openingBlocker = new PIXI.Graphics();
+openingBlocker.beginFill(0, 0.001).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+openingBlocker.eventMode = "static";
+openingBlocker.visible = false;
+app.stage.addChild(openingBlocker);
+openingBlocker.on("pointerdown", event => event.stopPropagation());
+openingBlocker.on("pointertap", event => event.stopPropagation());
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
@@ -419,6 +434,7 @@ function getSettlementViewedSlotSummary() {
 }
 
 const settlementVassalFlow = createSettlementVassalFlow({
+  isInputLocked: () => opening.isRevealing(),
   getRunner: () => runner,
   playback: settlementPlayback,
   getForecastController: () => settlementForecastController,
@@ -430,6 +446,7 @@ const settlementVassalFlow = createSettlementVassalFlow({
   getNodeDecisionView: () => vassalNodeDecisionModalView,
   getLevelUpView: () => vassalLevelUpModalView,
   getRecapView: () => vassalResolutionRecapView,
+  getHeirloomFlowView: () => vassalHeirloomFlowView,
   getPrototypeView: () => prototypeView,
   getNavigationView: () => settlementNavigationView,
   requestPause: () => requestPauseBeforeDrag(),
@@ -544,6 +561,7 @@ function applySettlementDebugOverrides(overrides) {
 
 function getSettlementNavigationState() {
   return buildSettlementNavigationState({
+    onboarding: opening.isRevealing(),
     frontierState: getSettlementFrontierState(),
     viewedState: getSettlementViewedState(),
     frontierSec: getSettlementFrontierSec(),
@@ -615,6 +633,7 @@ function openSettlementRunCompleteOverlay() {
 }
 
 function syncSettlementRunCompletePresentation() {
+  if (opening.isRevealing()) return;
   const timeline = runner.getTimeline?.();
   runCompleteView?.sync?.({
     frontierState: getSettlementFrontierState(),
@@ -924,6 +943,8 @@ settlementGraphView = createMetricGraphView({
   commitHistoryOnScrubRelease: false,
   forecastPreviewStatusNote: "Viewing forecast",
   getWindowSpec: ({ timeline, cursorState, zoomed }) => {
+    if (opening.isRevealing()) return { minSec: 0, maxSec: opening.getSnapshot().lossSec,
+      scrubSec: getSettlementViewedSec() };
     const preview = runner.getPreviewStatus?.();
     const frontierState = getSettlementFrontierState();
     const firstSelectedVassal = getSettlementFirstSelectedVassal(frontierState);
@@ -1063,7 +1084,9 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
     ActionKinds.VASSAL_REORDER_SHOP_PURCHASE, { nodeId, offerId, toIndex }
   ),
   onRerollShop: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_REROLL_SHOP, { nodeId }),
-  onConfirmNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId }),
+  onConfirmNode: (nodeId, acquire = null) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId, acquire }
+  ),
   onWorldMap: (regionId) => {
     if (regionId) selectedWorldRegionId = regionId;
     setWorldViewMode("map");
@@ -1089,6 +1112,20 @@ vassalResolutionRecapView = createVassalResolutionRecapView({
   getRecap: () => getResolutionRecap?.() ?? null,
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   onDismiss: () => dismissResolutionRecap?.(),
+});
+
+vassalHeirloomFlowView = createVassalHeirloomFlowView({
+  app,
+  layer: modalLayer,
+  getState: () => getSettlementFrontierState(),
+  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
+  onResolveOverflow: (keepInstanceIds) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_RESOLVE_VAULT_OVERFLOW, { keepInstanceIds }
+  ),
+  onConfirmLoadout: (equippedInstanceIds) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_CONFIRM_HEIRLOOM_LOADOUT, { equippedInstanceIds }
+  ),
+  onOpenChooser: () => openLifeMapVassalSelection(),
 });
 
 vassalLifeHudView = createVassalLifeHudView({
@@ -1219,6 +1256,10 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
 runCompleteView = createRunCompleteView({
   app,
   layer: modalLayer,
+  getSpotlightRects: () => [
+    settlementGraphView?.getScreenRect(), settlementNavigationView?.getPresentScreenRect(),
+    sunMoonDisksView?.getScreenRect(), timeControlsView?.getScreenRect(),
+  ].filter(Boolean),
   onOpen: () => {
     requestPauseBeforeDrag();
     settlementGraphView?.pauseForecastReveal?.();
@@ -1227,6 +1268,9 @@ runCompleteView = createRunCompleteView({
   onNewGame: () => gameMenu?.openNewGame?.(),
 });
 function handleDebugFreshRunApplied(reason) {
+  opening.reset();
+  openingBlocker.visible = false;
+  settlementGraphView?.setOpeningRevealSecond(null);
   requestPauseBeforeDrag();
   settlementVassalFlow.resetSelectionForFreshRun();
   settlementPlayback.clearPendingPreviewRestore();
@@ -1312,7 +1356,7 @@ function isTypingTarget(target) {
 }
 
 function handleGlobalKeyDown(ev) {
-  if (gameSession.isInMenu() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
+  if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
     ev.preventDefault();
@@ -1339,6 +1383,7 @@ function resizeCanvas() {
   vassalNodeDecisionModalView?.resize?.();
   vassalLevelUpModalView?.resize?.();
   vassalResolutionRecapView?.resize?.();
+  vassalHeirloomFlowView?.refresh?.();
   vassalLifeHudView?.refresh?.();
 }
 
@@ -1388,6 +1433,7 @@ function publishSettlementDebugApi() {
     getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
+    getOpeningSnapshot: () => opening.getSnapshot(),
     getRunCompleteClickPoint: (id) => {
       if (id === "details") {
         return worldMapView?.getEndDetailsClickPoint?.()
@@ -1489,6 +1535,7 @@ vassalLifeHudView.init();
 vassalNodeDecisionModalView.init();
 vassalLevelUpModalView.init();
 vassalResolutionRecapView.init();
+vassalHeirloomFlowView.init();
 setWorldViewMode("map");
 settlementGraphView.open();
 settlementGraphSeriesMenu?.render?.();
@@ -1504,8 +1551,23 @@ publishSettlementDebugApi();
 let gameMenu;
 const gameSession = createGameSessionController({
   runner,
-  onEnter: () => {
+  opening,
+  onEnter: (prepared) => {
     handleDebugFreshRunApplied("sessionEnter");
+    if (prepared) {
+      const timeline = runner.getTimeline();
+      const merged = settlementProjectionCache.mergeForecastChunk(timeline, {
+        ...prepared.forecast, historyEndSec: 0,
+        timelineToken: settlementProjectionCache.getTimelineToken(timeline),
+      });
+      if (!merged.ok) throw new Error(`Prepared forecast handoff failed: ${merged.reason}`);
+      settlementGraphController.handleInvalidate("init");
+      opening.begin(prepared.lossSec);
+      openingBlocker.visible = true;
+      settlementGraphView.setOpeningRevealSecond(0);
+      settlementGraphView.clearForecastRevealRestart();
+      settlementGraphView.render();
+    }
   },
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),
@@ -1531,19 +1593,27 @@ const timelineAudio = createTimelineAudio({
 });
 
 app.ticker.add((delta) => {
-  if (gameSession.isInMenu() || gameMenu.requiresLandscape()) {
+  if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden) {
     timelineAudio.update(0);
     return;
   }
   const frameDt = delta / 60;
-  runner.update(frameDt);
+  const openingFrame = opening.advance(frameDt);
+  if (!openingFrame) runner.update(frameDt);
   settlementGraphController.update?.();
+  if (openingFrame) {
+    settlementGraphView.setOpeningRevealSecond(openingFrame.second);
+    runner.setPreviewState(settlementGraphController.getStateAt(openingFrame.second));
+    if (openingFrame.complete) {
+      openingBlocker.visible = false;
+    }
+  }
   settlementForecastController?.syncObservedSurvivalYear?.();
   processSettlementPendingCommit();
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
   restoreSettlementPendingPreviewTarget();
-  updateSettlementPreviewPlayback(frameDt);
+  if (!openingFrame) updateSettlementPreviewPlayback(frameDt);
   syncSettlementRunCompletePresentation();
   syncSettlementVassalSelectionPauseState();
   settlementGraphSeriesMenu?.syncSelection?.();
@@ -1554,7 +1624,9 @@ app.ticker.add((delta) => {
   vassalNodeDecisionModalView.update(frameDt);
   vassalLevelUpModalView.update(frameDt);
   vassalResolutionRecapView.update(frameDt);
+  vassalHeirloomFlowView.update(frameDt);
   settlementGraphView.render();
+  if (openingFrame?.complete) settlementGraphView.setOpeningRevealSecond(null);
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);
   sunMoonDisksView.update(frameDt);
@@ -1563,5 +1635,10 @@ app.ticker.add((delta) => {
   settlementVassalChooserView.update(frameDt);
   syncSettlementRunCompletePresentation();
   runCompleteView.update(frameDt);
+  const lossPanel = runCompleteView.getSemanticSnapshot();
+  settlementGraphView.setMonsterEmphasis(lossPanel.open && lossPanel.info?.projected &&
+    lossPanel.info.reason === "redGodMonsterOverrun", lossPanel.info ? {
+      tSec: lossPanel.info.tSec, value: lossPanel.info.monsterCount,
+    } : null);
   settlementDebugMenu.update(frameDt);
 });

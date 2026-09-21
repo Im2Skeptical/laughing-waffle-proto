@@ -1,7 +1,9 @@
 import {
   chooseVassalDevelopmentStat,
+  confirmHeirloomLoadout,
   confirmVassalLifeNode,
   enterVassalLifeNode,
+  resolveVaultOverflow,
   purchaseVassalShopOffer,
   moveVassalShopStructure,
   reorderVassalShopPurchase,
@@ -38,7 +40,11 @@ export const cmdReorderVassalShopPurchase = (state, payload = {}) =>
 export const cmdRerollVassalShop = (state, payload = {}) =>
   rerollVassalShop(state, payload.nodeId);
 export const cmdConfirmVassalLifeNode = (state, payload = {}) =>
-  confirmVassalLifeNode(state, payload.nodeId);
+  confirmVassalLifeNode(state, payload.nodeId, payload.acquire ?? null);
+export const cmdConfirmHeirloomLoadout = (state, payload = {}) =>
+  confirmHeirloomLoadout(state, payload.equippedInstanceIds ?? []);
+export const cmdResolveVaultOverflow = (state, payload = {}) =>
+  resolveVaultOverflow(state, payload.keepInstanceIds ?? []);
 export const cmdChooseVassalDevelopmentStat = (state, payload = {}) =>
   chooseVassalDevelopmentStat(state, payload.choiceId, payload.statId);
 

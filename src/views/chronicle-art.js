@@ -126,7 +126,7 @@ export function preloadChronicleArt() {
 const ART = Object.freeze({
   forage: 0, cultivate: 1, preserve: 2, administrate: 3,
   granary: 4, mudHouses: 5, raiseHouses: 12, travel: 6, routes: 6,
-  patronage: 7, development: 8, crisis: 9, legacy: 10, settlement: 11,
+  patronage: 7, development: 8, crisis: 9, legacy: 10, relic: 10, settlement: 11,
   exchange: 13, import: 14, caravanRoutes: 15, clearingHouse: 16,
   mixedFarming: 17, efficientKitchens: 18, homesteading: 19, lodgingHouses: 20,
   study: 21, mill: 22, harvestFestival: 23, marketFeast: 24, symposium: 25,

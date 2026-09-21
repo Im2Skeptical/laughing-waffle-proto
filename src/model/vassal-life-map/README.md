@@ -25,6 +25,9 @@ re-exports the previous public API; internals live here.
   - Barrel. Initialize/reroll/select, enter/confirm/finish, and
     `stepVassalLifeMapSecond` live in `lifecycle/` (`candidates.js`,
     `node-confirm.js`, `step.js`). See `lifecycle/README.md`.
+- `heirlooms.js`
+  - Equipped/Carry/Vault inventory, unique copies, Relic offers, inheritance,
+    loadout, overflow, and equipped modifiers.
 - `presentation.js`
   - `getVassalNodeDecisionPresentation`, `getVassalGamepiecePresentation`,
     regional map presentation, and option projection.
