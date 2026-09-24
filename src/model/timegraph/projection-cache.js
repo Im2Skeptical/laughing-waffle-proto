@@ -662,6 +662,14 @@ export function createProjectionCache({
       forecastAsyncStepSec,
       forecastAsyncToken,
     }),
+    getNearestStateData: (targetSec, minSec = 0) => {
+      let nearest = null;
+      for (const [sec, stateData] of stateDataBySecond) {
+        if (sec < minSec || sec > targetSec) continue;
+        if (!nearest || sec > nearest.sec) nearest = { sec, stateData };
+      }
+      return nearest;
+    },
     getStateData: (sec) => touch(clampSec(sec)),
     getSummary: (sec) => summaryBySecond.get(clampSec(sec)) ?? null,
     setStateData: (sec, data) => {

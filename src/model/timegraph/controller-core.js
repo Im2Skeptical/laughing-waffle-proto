@@ -1,3 +1,4 @@
+import { createProjectionStateRestorer } from "./state-restorer.js";
 // src/model/timegraph/controller-core.js
 // Logic controller for time-series projections (e.g. gold graph).
 // Owns the cache, invalidation policies, and incremental updates.
@@ -85,6 +86,8 @@ export function createTimeGraphController({
 } = {}) {
   const ASYNC_FORECAST_STEP_SEC = 1;
   const ASYNC_FORECAST_REQUEST_POLL_MS = 50;
+  const stateRestorer = createProjectionStateRestorer();
+  let restoreTimelineToken = null;
   let graphCache = null;
   let metricDef = resolveMetricDef(metric);
   let activeSeries = resolveSeries(metricDef, null, null);
@@ -1141,6 +1144,13 @@ export function createTimeGraphController({
     }
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
     const safeTargetSec = Math.max(historyEndSec, clampSec(targetSec ?? historyEndSec));
+    // Worker coverage is already authoritative. Browsing it must not build a
+    // second synchronous forecast from the frontier on the UI thread.
+    projection.ensureSignature(tl);
+    const existingCoverage = getEffectiveForecastCoverageEndSec(tl);
+    if (safeTargetSec <= existingCoverage) {
+      return { ok: true, coverageEndSec: existingCoverage, targetSec: safeTargetSec };
+    }
     const res = ensureProjectionForecastWindow(
       tl,
       safeTargetSec,
@@ -1605,19 +1615,32 @@ export function createTimeGraphController({
   }
 
   function getStateAt(tSec) {
-    const stateData = getStateDataAt(tSec);
-    if (stateData == null) return null;
-    const deserializeStartMs = perfEnabled() ? perfNowMs() : 0;
-    const state = deserializeGameState(stateData);
-    if (perfEnabled()) {
-      recordProjectionDeserialize(perfNowMs() - deserializeStartMs);
+    const tl = getTimeline?.();
+    if (!tl) return null;
+    const sec = clampSec(tSec);
+    const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    const token = projection.getTimelineToken(tl);
+    if (token !== restoreTimelineToken) {
+      stateRestorer.clear();
+      restoreTimelineToken = token;
     }
-    const canonicalizeStartMs = perfEnabled() ? perfNowMs() : 0;
-    canonicalizeSnapshot(state);
-    if (perfEnabled()) {
-      recordProjectionCanonicalize(perfNowMs() - canonicalizeStartMs);
+    // Coverage stays independent of restore requests. No speculative simulation
+    // past the published future, and no dense intermediate snapshots on scrub.
+    if (sec > historyEndSec) {
+      const coverage = getEffectiveForecastCoverageEndSec(tl);
+      if (sec > coverage) return null;
+      const actionSecs = getActionSecondsInRange(tl, historyEndSec + 1, sec, { copy: false });
+      if (!actionSecs.length) {
+        let anchor = projection.getNearestStateData?.(sec, historyEndSec) ?? null;
+        if (!anchor) {
+          const base = getStateDataAtSecond(tl, historyEndSec);
+          if (base?.ok) anchor = { sec: historyEndSec, stateData: base.stateData };
+        }
+        if (anchor) return stateRestorer.restore(anchor.stateData, anchor.sec, sec);
+      }
     }
-    return state;
+    const stateData = getStateDataAt(sec);
+    return stateData == null ? null : stateRestorer.restore(stateData, sec);
   }
 
   function setMetric(nextMetric) {

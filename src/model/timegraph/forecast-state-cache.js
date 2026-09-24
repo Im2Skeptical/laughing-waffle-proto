@@ -4,7 +4,10 @@
 // coverage reads, and subject-value cache maintenance. Invalidation policy,
 // sampling signatures, throttle, and forecast follow stay in the controller.
 
-import { buildProjectionStateWindowFromStateData } from "../projection.js";
+import { serializeGameState } from "../state.js";
+import { createProjectionStateRestorer } from "./state-restorer.js";
+
+const retainedAnchorRestorer = createProjectionStateRestorer();
 import { getActionSecondsInRange } from "../timeline/index.js";
 import { clampSec } from "./utils.js";
 
@@ -131,29 +134,9 @@ export function tryBuildForecastStateDataFromRetainedAnchor(
     return anchorStateData;
   }
 
-  const win = buildProjectionStateWindowFromStateData(
-    anchorStateData,
-    anchorSec,
-    { horizonSec: deltaSec }
-  );
-  if (!win?.ok) return null;
-
-  let rebuiltStateData = null;
-  for (const [builtSec, builtStateData] of win.stateDataBySecond.entries()) {
-    if (builtSec <= anchorSec || builtSec > targetSec) continue;
-    cacheForecastStateData(
-      stateDataByBoundary,
-      builtSec,
-      frontierSec,
-      builtStateData
-    );
-    projection.setStateData?.(builtSec, builtStateData);
-    if (builtSec === targetSec) {
-      rebuiltStateData = builtStateData;
-    }
-  }
-
-  return rebuiltStateData;
+  const state = retainedAnchorRestorer.restore(anchorStateData, anchorSec, targetSec);
+  // Interactive reconstruction must not turn sparse anchors into a dense cache.
+  return state ? serializeGameState(state) : null;
 }
 
 export function buildScheduledActionsBySecond(tl, startSec, endSec) {
