@@ -1,3 +1,4 @@
+import { createGraphMetricReadContext } from "./graph-metrics/read-context.js";
 import { GRAPH_METRICS } from "./graph-metrics.js";
 import { getSettlementLatestSelectedVassalEndSec } from "./settlement-state.js";
 import { getSettlementCurrentVassal } from "./vassal-life-map.js";
@@ -12,10 +13,10 @@ function clampYear(value, fallback = 1) {
   return Math.max(1, Math.floor(value));
 }
 
-function buildGraphValues(metric, state, subject = null) {
+function buildGraphValues(metric, state, subject, context) {
   const series =
     typeof metric?.getSeries === "function"
-      ? metric.getSeries(subject, state)
+      ? metric.getSeries(subject, state, context)
       : Array.isArray(metric?.series)
         ? metric.series
         : [];
@@ -25,7 +26,7 @@ function buildGraphValues(metric, state, subject = null) {
     if (!seriesId || typeof seriesDef?.getValueFromSnapshot !== "function") {
       continue;
     }
-    const value = seriesDef.getValueFromSnapshot(state, subject);
+    const value = seriesDef.getValueFromSnapshot(state, subject, context);
     if (!Number.isFinite(value)) continue;
     out[seriesId] = Number(value);
   }
@@ -33,6 +34,7 @@ function buildGraphValues(metric, state, subject = null) {
 }
 
 export function buildProjectionSummaryFromState(state) {
+  const context = createGraphMetricReadContext(state);
   const currentVassal = getSettlementCurrentVassal(state);
   const latestSelectedVassalEndSec = getSettlementLatestSelectedVassalEndSec(state);
   const runComplete = state?.runStatus?.complete === true;
@@ -50,14 +52,15 @@ export function buildProjectionSummaryFromState(state) {
     runLossSec,
     runLossYear,
     graphValues: {
-      civilization: buildGraphValues(GRAPH_METRICS.civilization, state),
+      civilization: buildGraphValues(GRAPH_METRICS.civilization, state, null, context),
       settlementByRegion: Object.fromEntries(
         (state?.world?.sites ?? []).map((site) => [
           site.regionId,
           buildGraphValues(
             GRAPH_METRICS.settlement,
             state,
-            { regionId: site.regionId }
+            { regionId: site.regionId },
+            context
           ),
         ])
       ),
