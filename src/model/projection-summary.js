@@ -26,7 +26,7 @@ function buildGraphValues(metric, state, subject, context) {
     if (!seriesId || typeof seriesDef?.getValueFromSnapshot !== "function") {
       continue;
     }
-    const value = seriesDef.getValueFromSnapshot(state, subject, context);
+    const value = seriesDef.getValueFromSnapshot(state, subject, null, context);
     if (!Number.isFinite(value)) continue;
     out[seriesId] = Number(value);
   }

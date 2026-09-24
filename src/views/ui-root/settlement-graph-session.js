@@ -30,22 +30,22 @@ export const SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC = 256;
 export const SETTLEMENT_GRAPH_REVEAL_DEFAULT = Object.freeze({
   targetDurationSec: 14,
   minRateSecPerSec: 60,
-  maxRateSecPerSec: 112,
+  maxRateSecPerSec: 384,
   startDelayMs: 400,
   followGapSec: 36,
-  followResponseSec: 1.1,
-  accelerationSecPerSec2: 180,
-  decelerationSecPerSec2: 260,
+  followResponseSec: 0.45,
+  accelerationSecPerSec2: 720,
+  decelerationSecPerSec2: 1040,
 });
 export const SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT = Object.freeze({
   targetDurationSec: 13,
   minRateSecPerSec: 72,
-  maxRateSecPerSec: 132,
+  maxRateSecPerSec: 448,
   startDelayMs: 250,
   followGapSec: 48,
-  followResponseSec: 0.95,
-  accelerationSecPerSec2: 220,
-  decelerationSecPerSec2: 320,
+  followResponseSec: 0.4,
+  accelerationSecPerSec2: 880,
+  decelerationSecPerSec2: 1280,
 });
 
 export function getSettlementGraphMetric(scope) {
