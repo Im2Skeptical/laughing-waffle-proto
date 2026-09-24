@@ -332,6 +332,19 @@ export function createSettlementForecastController({
       searchLimitSec,
       exactLossSearchBucketSec
     )}`;
+    // A terminal slice can end inside the last already-searched bucket. Inspect
+    // its exact summary before reusing an unresolved result for that bucket.
+    const endSummary = searchLimitSec > historyEndSec
+      ? getControllerSummaryAt?.(searchLimitSec) ?? null
+      : null;
+    if (isRunComplete(endSummary)) {
+      const loss = getLossInfoFromProbe(endSummary, searchLimitSec,
+        getLossYearAtSecond(frontierState, searchLimitSec));
+      const resolved = { lossSec: loss.lossSec, lossYear: loss.lossYear, resolved: true };
+      projectedLossCacheKey = resolvedCacheKey;
+      projectedLossCacheValue = resolved;
+      return finalize(resolved);
+    }
     if (
       projectedLossCacheKey === unresolvedCacheKey &&
       projectedLossCacheValue
