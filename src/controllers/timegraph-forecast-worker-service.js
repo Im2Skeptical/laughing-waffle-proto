@@ -16,7 +16,7 @@ export const TIMEGRAPH_FORECAST_EARLY_REQUEST_CADENCE_MS = 20;
 
 const DEFAULT_FORECAST_WORKER_URL =
   typeof __TIMEGRAPH_FORECAST_WORKER_URL__ === "string"
-    ? __TIMEGRAPH_FORECAST_WORKER_URL__
+    ? new URL(__TIMEGRAPH_FORECAST_WORKER_URL__, import.meta.url)
     : new URL("./timegraph-forecast-worker.js", import.meta.url);
 
 function nowMs() {

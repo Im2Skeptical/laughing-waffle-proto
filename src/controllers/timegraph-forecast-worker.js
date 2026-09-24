@@ -1,4 +1,4 @@
-import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
+import { createProjectionChunkSession } from "../model/projection-chunk.js";
 
 function serializeChunkResult(result) {
   if (!result?.ok) return result;
@@ -71,25 +71,21 @@ function runBuildChunkJob(message) {
   const requestStepSec = Math.max(1, clampSec(message.stepSec, 1));
 
   let currentBaseSec = requestBaseSec;
-  let currentBoundaryStateData = message.boundaryStateData;
+  const session = createProjectionChunkSession(
+    message.boundaryStateData, requestBaseSec, targetEndSec,
+    { stepSec: requestStepSec, actionsBySecond: normalizeScheduledActionsForSlice(
+      message.scheduledActionsBySecond, requestBaseSec, targetEndSec
+    ) }
+  );
+  if (!session.ok) {
+    postChunkResult(message, session, { baseSec: requestBaseSec, endSec: requestBaseSec, done: true });
+    return;
+  }
 
   function stepSlice() {
     try {
       const sliceEndSec = Math.min(targetEndSec, currentBaseSec + sliceSpanSec);
-      const sliceActions = normalizeScheduledActionsForSlice(
-        message.scheduledActionsBySecond,
-        currentBaseSec,
-        sliceEndSec
-      );
-      const result = buildProjectionChunkFromStateData(
-        currentBoundaryStateData,
-        currentBaseSec,
-        sliceEndSec,
-        {
-          stepSec: requestStepSec,
-          actionsBySecond: sliceActions,
-        }
-      );
+      const result = session.next(sliceEndSec);
       if (result?.ok !== true) {
         postChunkResult(message, result, {
           baseSec: currentBaseSec,
@@ -110,7 +106,6 @@ function runBuildChunkJob(message) {
       if (done) return;
 
       currentBaseSec = resultEndSec;
-      currentBoundaryStateData = result.lastStateData;
       setTimeout(stepSlice, 0);
     } catch (error) {
       postChunkResult(
@@ -134,6 +129,11 @@ function runBuildChunkJob(message) {
 globalThis.onmessage = (event) => {
   const message = event?.data ?? null;
   if (!message || message.kind !== "buildChunk") return;
-  runBuildChunkJob(message);
+  try {
+    runBuildChunkJob(message);
+  } catch (error) {
+    postChunkResult(message, { ok: false, reason: error?.message ?? "workerChunkFailed" },
+      { baseSec: message.baseSec, endSec: message.baseSec, done: true });
+  }
 };
 

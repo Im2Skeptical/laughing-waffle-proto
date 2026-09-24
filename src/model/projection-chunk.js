@@ -191,7 +191,29 @@ export function buildProjectionChunkFromStateData(
   );
   if (!runtime?.ok) return runtime;
 
-  const { startSec, targetEndSec, stepSec, stateAnchorStrideSec } = runtime;
+  return buildProjectionRunnerSlice(runtime, runtime.targetEndSec);
+}
+
+// Runtime belongs to one forecast request. Yield between next() calls in the
+// worker; never publish its mutable state or reuse it after a timeline edit.
+export function createProjectionChunkSession(boundaryStateData, baseSec, endSec, opts = {}) {
+  const runtime = createProjectionChunkRunner(boundaryStateData, baseSec, endSec, opts);
+  if (!runtime.ok) return runtime;
+  return {
+    ok: true,
+    next(sliceEndSec) {
+      const end = Math.min(runtime.targetEndSec, clampSec(sliceEndSec));
+      if (end < runtime.startSec) return { ok: false, reason: "badEndSec" };
+      const result = buildProjectionRunnerSlice(runtime, end);
+      if (result.ok) runtime.startSec = result.endSec;
+      return result;
+    },
+  };
+}
+
+function buildProjectionRunnerSlice(runtime, targetEndSec) {
+  const { startSec, stepSec, stateAnchorStrideSec } = runtime;
+
 
   const stateDataBySecond = new Map();
   const summaryBySecond = new Map();

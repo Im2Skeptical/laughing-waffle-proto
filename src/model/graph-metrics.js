@@ -131,15 +131,15 @@ function getSettlementMetricRegionId(subject = null) {
   return null;
 }
 
-function getDetailedClassMetricValue(state, subject, classId, metricId) {
+function getDetailedClassMetricValue(state, subject, classId, metricId, context) {
   const regionId = getSettlementMetricRegionId(subject);
   if (!regionId) return 0;
-  const summary = getDetailedPopulationSummary(state, regionId);
+  const summary = context?.population(regionId) ?? getDetailedPopulationSummary(state, regionId);
   const classSummary = summary.byClass[classId] ?? { children: 0, adults: 0, elders: 0, total: 0 };
   const classState = getDetailedSettlement(state, regionId)?.populationByClass?.[classId];
   if (metricId === "population") return classSummary.total;
   if (metricId === "freePopulation") {
-    const assigned = assignDetailedSettlementWorkers(state, regionId).reduce(
+    const assigned = (context?.workers(regionId) ?? assignDetailedSettlementWorkers(state, regionId)).reduce(
       (sum, entry) => sum + entry.tokens.filter((token) => token.classId === classId).length, 0
     );
     return Math.max(0, classSummary.adults + classSummary.elders - assigned);
@@ -154,9 +154,9 @@ function getDetailedClassMetricValue(state, subject, classId, metricId) {
   return 0;
 }
 
-function getDetailedCivilizationClassMetricValue(state, classId, metricId) {
+function getDetailedCivilizationClassMetricValue(state, classId, metricId, context) {
   const classSummary =
-    getDetailedCivilizationSummary(state)?.population?.byClass?.[classId] ?? {};
+    (context?.civilization() ?? getDetailedCivilizationSummary(state))?.population?.byClass?.[classId] ?? {};
   if (metricId === "population") return classSummary.total ?? 0;
   if (metricId === "freePopulation") return classSummary.freePopulation ?? 0;
   return 0;
@@ -222,8 +222,8 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
     pickerMetricShortLabel: metricShortLabel,
     getValue: (state, subject) =>
       getDetailedClassMetricValue(state, subject, safeClassId, metricId),
-    getValueFromSnapshot: (snapshot, subject) =>
-      getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId),
+    getValueFromSnapshot: (snapshot, subject, context) =>
+      getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId, context),
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject),
     getLegendTooltipSpec: (state) =>
@@ -249,16 +249,16 @@ function createCivilizationClassMetricSeries(classId, classIndex, metricDef) {
     ...series,
     getValue: (state) =>
       getDetailedCivilizationClassMetricValue(state, classId, metricDef.id),
-    getValueFromSnapshot: (snapshot) =>
-      getDetailedCivilizationClassMetricValue(snapshot, classId, metricDef.id),
+    getValueFromSnapshot: (snapshot, _subject, context) =>
+      getDetailedCivilizationClassMetricValue(snapshot, classId, metricDef.id, context),
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, `${metricDef.id}:${classId}`),
   };
 }
 
-function getCivilizationClassMetricSeries(state) {
+function getCivilizationClassMetricSeries(state, context) {
   const classIds = Object.keys(
-    getDetailedCivilizationSummary(state)?.population?.byClass ?? {}
+    (context?.civilization() ?? getDetailedCivilizationSummary(state))?.population?.byClass ?? {}
   );
   const resolvedClassIds = classIds.length
     ? classIds
@@ -283,8 +283,8 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state, subject) =>
       getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject)).total,
-    getValueFromSnapshot: (snapshot, subject) =>
-      getDetailedPopulationSummary(snapshot, getSettlementMetricRegionId(subject)).total,
+    getValueFromSnapshot: (snapshot, subject, context) =>
+      (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(snapshot, getSettlementMetricRegionId(subject))).total,
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, "totalPopulation", subject),
     getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
@@ -325,8 +325,8 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMin: 0,
     pickerGroup: "global",
     getValue: (state) => getDetailedCivilizationSummary(state).population.total,
-    getValueFromSnapshot: (snapshot) =>
-      getDetailedCivilizationSummary(snapshot).population.total,
+    getValueFromSnapshot: (snapshot, _subject, context) =>
+      (context?.civilization() ?? getDetailedCivilizationSummary(snapshot)).population.total,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "totalPopulation"),
     formatValue: (value) =>
@@ -341,8 +341,8 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMin: 0,
     pickerGroup: "global",
     getValue: (state) => getDetailedCivilizationSummary(state).food.total,
-    getValueFromSnapshot: (snapshot) =>
-      getDetailedCivilizationSummary(snapshot).food.total,
+    getValueFromSnapshot: (snapshot, _subject, context) =>
+      (context?.civilization() ?? getDetailedCivilizationSummary(snapshot)).food.total,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "food"),
     formatValue: (value) =>
@@ -442,12 +442,12 @@ const LOCAL_GOLD_GRAPH_SERIES = createResourceGraphSeries({
 const CIVILIZATION_HOUSING_SERIES = createResourceGraphSeries({
   id: "civilizationHousingCapacity", label: "Civ Housing", color: 0x936445,
   scaleGroupId: "settlementPopulation",
-  read: (state) => getDetailedCivilizationSummary(state).population.housingCapacity,
+  read: (state, _subject, context) => (context?.civilization() ?? getDetailedCivilizationSummary(state)).population.housingCapacity,
 });
 const LOCAL_HOUSING_SERIES = createResourceGraphSeries({
   id: "housingCapacity", label: "Local Housing", color: 0x877650,
   scaleGroupId: "settlementPopulation", local: true,
-  read: (state, subject) => getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject)).housingCapacity,
+  read: (state, subject, context) => (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject))).housingCapacity,
 });
 
 function getLocalCivilizationSeries() {
@@ -467,7 +467,7 @@ export const GRAPH_METRICS = {
       ...getLocalCivilizationSeries(),
       ...getSettlementClassMetricSeries(null),
     ],
-    getSeries: (_subject, state) => [
+    getSeries: (_subject, state, context) => [
       ...LOCAL_SETTLEMENT_RESOURCE_SERIES,
       ...getLocalCivilizationSeries(),
       ...getSettlementClassMetricSeries(state),
@@ -489,10 +489,10 @@ export const GRAPH_METRICS = {
       GOLD_GRAPH_SERIES, CIVILIZATION_HOUSING_SERIES,
       ...getCivilizationClassMetricSeries(null),
     ],
-    getSeries: (_subject, state) => [
+    getSeries: (_subject, state, context) => [
       ...CIVILIZATION_RESOURCE_SERIES,
       GOLD_GRAPH_SERIES, CIVILIZATION_HOUSING_SERIES,
-      ...getCivilizationClassMetricSeries(state),
+      ...getCivilizationClassMetricSeries(state, context),
     ],
     getSubjectKey: () => "civilization",
   },

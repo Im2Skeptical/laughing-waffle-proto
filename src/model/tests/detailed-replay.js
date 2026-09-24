@@ -1,3 +1,4 @@
+import "./timegraph-performance.js";
 import assert from "node:assert/strict";
 import './settlement-redesign.js';
 import { ActionKinds } from "../actions.js";
@@ -137,3 +138,4 @@ assert.equal(terminalProjection.terminal, true);
 assert.ok(terminalProjection.endSec < 3000);
 
 console.log("[detailed-replay] OK");
+
