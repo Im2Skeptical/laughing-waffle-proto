@@ -9,12 +9,13 @@ import { buildProjectionChunkFromStateData, createProjectionChunkSession } from 
 import { createProjectionStateRestorer } from "../timegraph/state-restorer.js";
 import { createProjectionCache } from "../timegraph/projection-cache.js";
 import { createTimeGraphController } from "../timegraph/controller-core.js";
-import { createTimelineFromInitialState } from "../timeline/index.js";
+import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSecond } from "../timeline/index.js";
 import { createSettlementForecastController } from "../../controllers/settlement-forecast-controller.js";
+import { ActionKinds } from "../actions.js";
 
 function uncachedGraphValues(metric, state, subject) {
   return Object.fromEntries(metric.getSeries(subject, state).map(series =>
-    [series.id, series.getValueFromSnapshot(state, subject)]).filter(([, value]) => Number.isFinite(value)));
+    [series.id, series.getValueFromSnapshot(state, subject, { kind: "unused-resolver" })]).filter(([, value]) => Number.isFinite(value)));
 }
 const initial = createInitialState("devPlaytesting01", 99117);
 initial.paused = false;
@@ -48,6 +49,17 @@ while (sec < 2100) {
 }
 assert.equal(sec, 1828, "terminal second is emitted exactly, not rounded to slice end");
 assert.deepEqual(base, serializeGameState(initial), "projection does not mutate its input");
+const actionsBySecond = [20, 21, 40].map(tSec => ({ tSec,
+  actions: [{ kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {} }] }));
+const scheduledSession = createProjectionChunkSession(base, 0, 80, { actionsBySecond });
+let scheduledData = base;
+for (let start = 0; start < 80; start += 20) {
+  const expected = buildProjectionChunkFromStateData(scheduledData, start, start + 20, { actionsBySecond });
+  assert.equal(expected.ok, true, expected.reason);
+  const actual = scheduledSession.next(start + 20);
+  assert.deepEqual(actual, expected, "RNG-consuming actions at/beside slice boundaries apply exactly once");
+  scheduledData = expected.lastStateData;
+}
 const restorer = createProjectionStateRestorer({ maxEntries: 4 });
 const reference = deserializeGameState(base);
 canonicalizeSnapshot(reference);
@@ -90,6 +102,18 @@ assert.equal(controller.getStateAt(129), null, "restore cannot publish uncovered
 cache.invalidateFromSecond(timeline, 65);
 assert.equal(controller.getStateAt(80), null, "edited future cannot return a stale hot restore");
 assert.equal(cache.mergeForecastChunk(timeline, { ...forecast, timelineToken: token, historyEndSec: 0 }).ok, false, "late worker chunk is rejected");
+const editState = restorer.restore(base, 0, 17);
+const editAction = { kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {} };
+assert.equal(appendActionAtCursor(timeline, editAction, editState).ok, true);
+cache.invalidateFromSecond(timeline, 17);
+const edited = rebuildStateAtSecond(timeline, 17);
+assert.equal(edited.ok, true);
+const editedForecast = buildProjectionChunkFromStateData(serializeGameState(edited.state), 17, 80);
+const editedToken = cache.getTimelineToken(timeline);
+cache.mergeForecastChunk(timeline, { ...editedForecast, timelineToken: editedToken, historyEndSec: 0 });
+const editExpected = rebuildStateAtSecond(timeline, 63);
+const editActual = controller.getStateAt(63);
+assert.deepEqual(serializeGameState(editActual), serializeGameState(editExpected.state), "off-anchor edit future follows authoritative replay");
 let coverage = 1552;
 const lossController = createSettlementForecastController({
   getTimeline: () => timeline,

@@ -222,7 +222,7 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
     pickerMetricShortLabel: metricShortLabel,
     getValue: (state, subject) =>
       getDetailedClassMetricValue(state, subject, safeClassId, metricId),
-    getValueFromSnapshot: (snapshot, subject, context) =>
+    getValueFromSnapshot: (snapshot, subject, _resolver, context) =>
       getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId, context),
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject),
@@ -249,7 +249,7 @@ function createCivilizationClassMetricSeries(classId, classIndex, metricDef) {
     ...series,
     getValue: (state) =>
       getDetailedCivilizationClassMetricValue(state, classId, metricDef.id),
-    getValueFromSnapshot: (snapshot, _subject, context) =>
+    getValueFromSnapshot: (snapshot, _subject, _resolver, context) =>
       getDetailedCivilizationClassMetricValue(snapshot, classId, metricDef.id, context),
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, `${metricDef.id}:${classId}`),
@@ -283,7 +283,7 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state, subject) =>
       getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject)).total,
-    getValueFromSnapshot: (snapshot, subject, context) =>
+    getValueFromSnapshot: (snapshot, subject, _resolver, context) =>
       (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(snapshot, getSettlementMetricRegionId(subject))).total,
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, "totalPopulation", subject),
@@ -325,7 +325,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMin: 0,
     pickerGroup: "global",
     getValue: (state) => getDetailedCivilizationSummary(state).population.total,
-    getValueFromSnapshot: (snapshot, _subject, context) =>
+    getValueFromSnapshot: (snapshot, _subject, _resolver, context) =>
       (context?.civilization() ?? getDetailedCivilizationSummary(snapshot)).population.total,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "totalPopulation"),
@@ -341,7 +341,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMin: 0,
     pickerGroup: "global",
     getValue: (state) => getDetailedCivilizationSummary(state).food.total,
-    getValueFromSnapshot: (snapshot, _subject, context) =>
+    getValueFromSnapshot: (snapshot, _subject, _resolver, context) =>
       (context?.civilization() ?? getDetailedCivilizationSummary(snapshot)).food.total,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "food"),
@@ -442,12 +442,12 @@ const LOCAL_GOLD_GRAPH_SERIES = createResourceGraphSeries({
 const CIVILIZATION_HOUSING_SERIES = createResourceGraphSeries({
   id: "civilizationHousingCapacity", label: "Civ Housing", color: 0x936445,
   scaleGroupId: "settlementPopulation",
-  read: (state, _subject, context) => (context?.civilization() ?? getDetailedCivilizationSummary(state)).population.housingCapacity,
+  read: (state, _subject, _resolver, context) => (context?.civilization() ?? getDetailedCivilizationSummary(state)).population.housingCapacity,
 });
 const LOCAL_HOUSING_SERIES = createResourceGraphSeries({
   id: "housingCapacity", label: "Local Housing", color: 0x877650,
   scaleGroupId: "settlementPopulation", local: true,
-  read: (state, subject, context) => (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject))).housingCapacity,
+  read: (state, subject, _resolver, context) => (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(state, getSettlementMetricRegionId(subject))).housingCapacity,
 });
 
 function getLocalCivilizationSeries() {

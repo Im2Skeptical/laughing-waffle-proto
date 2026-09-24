@@ -4,7 +4,8 @@ import {
   recordSettlementForecastWorkerReject,
 } from "../model/perf.js";
 
-export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 120;
+// Seed the first restore anchor; larger initial windows belong in the worker.
+export const TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC = 16;
 export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
 export const TIMEGRAPH_FORECAST_STREAM_SLICE_SEC = 30;
 export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 50;

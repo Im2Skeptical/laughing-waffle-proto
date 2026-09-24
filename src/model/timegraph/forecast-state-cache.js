@@ -7,10 +7,10 @@
 import { serializeGameState } from "../state.js";
 import { createProjectionStateRestorer } from "./state-restorer.js";
 
-const retainedAnchorRestorer = createProjectionStateRestorer();
 import { getActionSecondsInRange } from "../timeline/index.js";
 import { clampSec } from "./utils.js";
 
+const retainedAnchorRestorer = createProjectionStateRestorer();
 const SUBJECT_VALUE_CACHE_MAX = 5000;
 const SUBJECT_VALUE_CACHE_COMPACT_THRESHOLD = 1024;
 

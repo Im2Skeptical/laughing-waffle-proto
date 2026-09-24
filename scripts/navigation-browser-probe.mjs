@@ -54,6 +54,9 @@ async function navigate(id, options) {
   const point = await handle.jsonValue();
   await handle.dispose();
   await clickPoint(point, options);
+  // Portrait navigation is scheduled on requestAnimationFrame. A fixed 180ms
+  // delay can assert before that frame on software-rendered probe browsers.
+  if (id === 'portrait') await waitMode(options?.double ? 'settlement' : 'map');
   if (id === 'present') await page.waitForFunction(() => {
     const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     return s.viewedSec === s.frontierSec && s.navigation.time.mode === 'present';
