@@ -554,9 +554,9 @@ export function createVassalNodeDecisionModalView({
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage
-          ? ()=>{onPurchaseOffer?.(node.id,piece.offerId);pinnedInspectionId=null;previewOfferId=null;render(true);}
+          ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=onPurchaseOffer?.(node.id,piece.offerId);if(result?.ok!==true)render(true);}
           : !readOnly && inspectedOption && requirements.every(entry=>entry.met)
-            ? ()=>{onSelectOption?.(node.id,piece.id);pinnedInspectionId=null;render(true);} : undefined,
+            ? ()=>{pinnedInspectionId=null;const result=onSelectOption?.(node.id,piece.id);if(result?.ok!==true)render(true);} : undefined,
         metadata:[face?.qualityLabel,...(face?.tags??[])].filter(Boolean).join(' · '),
         detail:[face?[face.rule,...(face.details??face.detailLines??[])].join('\n'):optionEffect(piece),
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,

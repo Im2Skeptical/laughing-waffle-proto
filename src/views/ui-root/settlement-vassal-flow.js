@@ -192,8 +192,15 @@ export function createSettlementVassalFlow({
       return { ok: false, reason: "readOnlyTimeline" };
     }
     requestPause?.();
-    const beforeState = playback.getSettlementFrontierState();
-    const beforeVassal = getCurrentLifeMapVassal(beforeState);
+    // These actions only edit the pending node decision. Civilization effects
+    // and elapsed time are applied when the node is confirmed.
+    const stagedDecision = kind === ActionKinds.VASSAL_SELECT_LIFE_OPTION
+      || kind === ActionKinds.VASSAL_PURCHASE_SHOP_OFFER
+      || kind === ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE
+      || kind === ActionKinds.VASSAL_UNDO_SHOP_PURCHASE
+      || kind === ActionKinds.VASSAL_REORDER_SHOP_PURCHASE;
+    const beforeState = stagedDecision ? null : playback.getSettlementFrontierState();
+    const beforeVassal = stagedDecision ? null : getCurrentLifeMapVassal(beforeState);
     const activeVassalId = beforeVassal?.vassalId ?? null;
     const recapIncome = beforeVassal ? {
       prestigeIncome: getVassalNodeResolutionGains(
@@ -208,8 +215,13 @@ export function createSettlementVassalFlow({
     } : null;
     const result = runner.dispatchActionAtCurrentSecond?.(kind, payload, {
       reason: `vassalLife:${kind}`,
+      viewInvalidationReason: stagedDecision ? "vassalDecisionStaged" : undefined,
     }) ?? { ok: false, reason: "dispatchFailed" };
     if (!result.ok) return result;
+    if (stagedDecision) {
+      getNodeDecisionView?.()?.refresh?.();
+      return result;
+    }
     onInvalidateProjectedLoss?.();
     const state = playback.getSettlementFrontierState();
     const vassalEndedImmediately = revealCivilizationAfterVassalEnd?.(activeVassalId, state);
