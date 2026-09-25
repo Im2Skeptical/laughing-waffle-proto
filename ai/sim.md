@@ -98,7 +98,10 @@ registries here.
   Fragile relics make a 50/50 survive-or-break roll. Overflow past six Vault
   slots is a player choice. The next Vassal then equips 0–3 Vault relics;
   selected Sanctified relics become Unmarked and Carry starts empty.
-- Relic nodes offer three eligible Heirlooms with no Prestige price. Newly found
+- Relic nodes offer three eligible Heirlooms with no Prestige price. Every
+  choice, including an empty site, costs five years on the default clock
+  (`VASSAL_LIFE_TUNING.relicChoicePhaseCost`), measured before the new Heirloom
+  is equipped. Newly found
   relics are Sanctified and may be Equipped or Carried immediately. Only one
   owned copy of each definition exists at a time. Equipped Heirlooms can grant
   large temporary Vassal-life bonuses, including a once-per-life Mandate that

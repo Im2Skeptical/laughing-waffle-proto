@@ -568,6 +568,11 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     option = nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
   }
+  // Charge the search before the new Heirloom is equipped, so a time-reducing
+  // find cannot discount the choice that discovered it.
+  const relicPhaseCost = nodeState.family === "relic"
+    ? getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, { nodeState, isTravel: false })
+    : null;
   if (nodeState.family === "relic") {
     if (option?.emptyRelic) {
       acquire = { destination: "decline" };
@@ -617,6 +622,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);
   if (!optionResult.ok || optionResult.immediateDeath) return optionResult;
+  if (relicPhaseCost != null) optionResult = { ...optionResult, phaseCost: relicPhaseCost };
   nodeState.accumulatedPhaseCost += optionResult.phaseCost;
   nodeState.resolving = true;
   nodeState.confirmedSec = Math.max(0, Math.floor(state.tSec ?? 0));
