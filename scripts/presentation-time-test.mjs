@@ -301,6 +301,22 @@ for (const endSec of [1, 4, 100]) {
   assert.equal(getVisibleForecastCoverageEndSec(terminalReveal, endSec, 0), endSec,
     'a settled reveal must expose the exact terminal tick, including one-second forecasts');
 }
+{
+  const cappedReveal = createForecastRevealState();
+  setForecastRevealConfig(cappedReveal, SETTLEMENT_GRAPH_REVEAL_PENDING_COMMIT);
+  cappedReveal.capEndSec = 101;
+  resetForecastReveal(cappedReveal, 0, 101, 0, 0);
+  let lastWholeSecondMs = null;
+  let completedMs = null;
+  for (let now = 16; now <= 10000; now += 16) {
+    const visible = getAnimatedForecastCoverageEndSec(cappedReveal, now, 0);
+    if (lastWholeSecondMs == null && visible >= 100) lastWholeSecondMs = now;
+    if (visible >= 101) { completedMs = now; break; }
+  }
+  assert.ok(completedMs != null && lastWholeSecondMs != null);
+  assert.ok(completedMs - lastWholeSecondMs <= 100,
+    'a capped node reveal reaches its exact resolution boundary without a long terminal pause');
+}
 assert.equal(getForecastRevealFollowTargetEndSec(followReveal, 700, 100, 100), 640);
 assert.equal(
   getForecastRevealDesiredVelocitySecPerSec(reveal, 700, 100, 100).desiredVelocitySecPerSec,
@@ -745,6 +761,40 @@ assert.equal(getSettlementGraphRevealConfig('pendingCommit'), SETTLEMENT_GRAPH_R
 assert.equal(getSettlementGraphRevealConfig('default'), SETTLEMENT_GRAPH_REVEAL_DEFAULT);
 assert.equal(resolveEffectiveSettlementGraphHorizonSec(null), SETTLEMENT_GRAPH_WINDOW_SEC);
 assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
+
+// The recap must be ready for the current paint before the graph replays its
+// newly authoritative samples, which can take a substantial browser frame.
+{
+  const calls = [];
+  let scheduledRefresh = null;
+  const vassal = { vassalId: 'v1', lifeMap: { pendingResolution: {
+    nodeId: 'n1', startSec: 0, resolveSec: 100, phaseCost: 100,
+  } } };
+  let state = { tSec: 0, civilization: { vassalLineage: {
+    currentVassalId: 'v1', vassalsById: { v1: vassal },
+  } } };
+  const session = createSettlementGraphSession({
+    getFrontierState: () => state,
+    getFrontierSec: () => 100,
+    getForecastController: () => ({ processPendingCommit: () => {
+      state = { ...state, tSec: 100, civilization: { vassalLineage: {
+        currentVassalId: 'v1', vassalsById: { v1: {
+          ...vassal, lifeMap: { pendingResolution: null },
+        } },
+      } } };
+    } }),
+    getGraphController: () => ({ refreshAuthoritativeRangeFrom: () => calls.push('refresh') }),
+    getGraphView: () => ({ render: () => calls.push('render') }),
+    onPendingResolutionSettled: () => calls.push('recap'),
+    scheduleAfterPaint: (callback) => { scheduledRefresh = callback; },
+  });
+  assert.equal(session.processSettlementPendingCommit(), true,
+    'the frame knows a resolution recap opened');
+  assert.deepEqual(calls, ['recap'], 'the recap is prepared before graph history refresh');
+  assert.equal(typeof scheduledRefresh, 'function');
+  scheduledRefresh();
+  assert.deepEqual(calls, ['recap', 'refresh'], 'graph history refresh follows the recap paint');
+}
 
 // The graph can reveal the last node second while an earlier commit chunk is
 // still inside its pacing interval. Resolution should then finish promptly.

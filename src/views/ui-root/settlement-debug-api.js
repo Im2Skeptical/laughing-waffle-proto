@@ -139,6 +139,8 @@ export function publishSettlementDebugApi({
   getLifeMapLevelUpChoiceClickPoint,
   getLifeMapLevelUpConfirmClickPoint,
   getLifeMapRecapDismissClickPoint,
+  getGraphRevealedSec,
+  getGraphRevealTargetSec,
   selectWorldRegion,
   getWorldPracticeClickPoint,
   enterBootTestRun,
@@ -167,6 +169,13 @@ export function publishSettlementDebugApi({
 } = {}) {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
+    getNodeResolutionTimingSnapshot: () => ({
+      frontierSec: nonNegativeFloor(getFrontierSec?.()),
+      resolutionSec: getPendingCommitJob?.()?.resolutionSec ?? null,
+      revealedSec: nonNegativeFloor(getGraphRevealedSec?.()),
+      revealTargetSec: nonNegativeFloor(getGraphRevealTargetSec?.()),
+      recapOpen: getLifeMapRecapSnapshot?.()?.open === true,
+    }),
     getSnapshot: () => {
       const forecastStatus = getForecastStatus?.() ?? null;
       const timeline = getTimeline?.() ?? null;

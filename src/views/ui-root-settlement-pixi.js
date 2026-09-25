@@ -1516,6 +1516,8 @@ function publishSettlementDebugApi() {
       vassalLevelUpModalView?.getConfirmClickPoint?.() ?? null,
     getLifeMapRecapDismissClickPoint: () =>
       vassalResolutionRecapView?.getDismissClickPoint?.() ?? null,
+    getGraphRevealedSec: () => settlementGraphView?.getForecastScrubCapSec?.(),
+    getGraphRevealTargetSec: () => settlementGraphView?.getForecastRevealTargetEndSec?.(),
   });
 }
 
@@ -1609,7 +1611,7 @@ app.ticker.add((delta) => {
     }
   }
   settlementForecastController?.syncObservedSurvivalYear?.();
-  processSettlementPendingCommit();
+  const resolutionOpened = processSettlementPendingCommit();
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
   restoreSettlementPendingPreviewTarget();
@@ -1625,7 +1627,7 @@ app.ticker.add((delta) => {
   vassalLevelUpModalView.update(frameDt);
   vassalResolutionRecapView.update(frameDt);
   vassalHeirloomFlowView.update(frameDt);
-  settlementGraphView.render();
+  if (!resolutionOpened) settlementGraphView.render();
   if (openingFrame?.complete) settlementGraphView.setOpeningRevealSecond(null);
   settlementGraphSeriesMenu?.render?.();
   timeControlsView.update(frameDt);
