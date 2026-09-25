@@ -23,6 +23,7 @@ mkdirSync('artifacts',{recursive:true});
 const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l','8083','--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
 let browser;
 const errors=[],failedAssets=[],graphicsWarnings=[],consoleTrail=[];
+const interactionTimings={};
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
@@ -31,7 +32,10 @@ try {
   page.on('console',message=>{if(consoleTrail.length<40)consoleTrail.push(message.text().slice(0,1600));});
   page.on('console',message=>{if(graphicsWarnings.length<20&&/INVALID_(OPERATION|VALUE|ENUM)|CONTEXT_LOST|GL_INVALID|framebuffer.*(invalid|incomplete)|Could not initialize shader/i.test(message.text()))graphicsWarnings.push(message.text());});
   page.on('response',r=>{if(r.url().includes('/images/')&&r.status()>=400)failedAssets.push(r.url());});
-  await page.addInitScript(()=>localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup'));
+  await page.addInitScript(()=>{
+    globalThis.__PERF_ENABLED__=true;
+    localStorage.setItem('civsurvivor.debugProfiles.boot.v2','probe-authored-setup');
+  });
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__);
   // Worker image decoding does not report every request on the page timeline.
@@ -299,12 +303,21 @@ try {
   assert.deepEqual(afterInspection.purchaseOrder,beforeInspection.purchaseOrder,'Inspection cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
   const inspectedCost=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionCostPoint());
+  const noopBox=await page.locator('canvas').boundingBox();
+  const noopStart=performance.now();
+  await page.touchscreen.tap(noopBox.x+20/2424*noopBox.width,noopBox.y+100/1080*noopBox.height);
+  interactionTimings.backdropTapMs=Math.round(performance.now()-noopStart);
   const costTouch=await page.context().newCDPSession(page);
+  const optionStartAt=performance.now();
   await costTouch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{
     x:candidateBox.x+inspectedCost.x/2424*candidateBox.width, y:candidateBox.y+inspectedCost.y/1080*candidateBox.height,
   }]});
+  interactionTimings.optionTouchStartMs=Math.round(performance.now()-optionStartAt);
   await delay(220);
+  const optionReleaseStart=performance.now();
   await costTouch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  interactionTimings.optionReleaseMs=Math.round(performance.now()-optionReleaseStart);
+  interactionTimings.optionDispatchMs=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPerfSnapshot().runtime.actionDispatchLastMs);
   await costTouch.detach();
   await page.waitForFunction(()=>{
     const decision=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision;
@@ -319,7 +332,7 @@ try {
   await page.keyboard.press('Escape');
   await page.getByTestId('debug-open').click({delay:950});
   await page.getByTestId('debug-life-map-lab-tab').click();
-  for (const family of ['patronage','development','travel','routes','crisis']) {
+  for (const family of ['patronage','development','travel','routes','crisis','relic']) {
     const weight=page.getByTestId('life-map-lab-weight-early-'+family);
     await weight.fill('0');await weight.press('Enter');
   }
@@ -343,16 +356,22 @@ try {
   const shopEnter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   if(shopEnter){await click(shopEnter);await delay(150);}
   const shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
-  assert.ok(['practiceReform','publicWorks'].includes(shopBefore.family),'The configured opening leads to a shop');
+  assert.ok(['practiceReform','publicWorks'].includes(shopBefore.family),`The configured opening leads to a shop (actual: ${shopBefore.family})`);
   assert.equal(shopBefore.costPanels.length,3,'All three shop offers show their prices');
   const affordableIndex=shopBefore.costPanels.findIndex(panel=>!panel.disabled&&panel.prestigeCost>0);
   assert.ok(affordableIndex>=0,'The fixture exposes a paid, affordable offer');
   const shopChoice=await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(index),affordableIndex);
+  const shopNoopStart=performance.now();
+  await page.touchscreen.tap(candidateBox.x+20/2424*candidateBox.width,candidateBox.y+100/1080*candidateBox.height);
+  interactionTimings.shopBackdropTapMs=Math.round(performance.now()-shopNoopStart);
   const tap=async point=>{
     const b=await page.locator('canvas').boundingBox();
     await page.touchscreen.tap(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
   };
+  const shopTapStart=performance.now();
   await tap(shopChoice);
+  interactionTimings.shopTapMs=Math.round(performance.now()-shopTapStart);
+  interactionTimings.shopDispatchMs=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPerfSnapshot().runtime.actionDispatchLastMs);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===1);
   const shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.equal(shopAfter.currentPrestige,shopBefore.currentPrestige,'Staging leaves actual Prestige unchanged');
@@ -394,9 +413,9 @@ try {
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['resource sprite assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','solar, moon and centre touch drags','six-phase reference without time changes','vertical lever direction locks','phone landscape','touch-sized cost footers','utility rail alignment','desktop hover survives redraw and dismisses on exit','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices','shop staging preserves positions and full inspections','projected Prestige and affordability'],graphicsWarnings},null,2));
-  console.log('[probe:chronicle] OK: seek-identical pixels, reversible sound, hidden workshop, phone landscape');
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:['resource sprite assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','solar, moon and centre touch drags','six-phase reference without time changes','vertical lever direction locks','phone landscape','touch-sized cost footers','utility rail alignment','desktop hover survives redraw and dismisses on exit','touch details survive redraw','Vassal double-tap confirmation','inspection preserves choices','shop staging preserves positions and full inspections','projected Prestige and affordability'],interactionTimings,graphicsWarnings},null,2));
+  console.log(`[probe:chronicle] OK: option dispatch ${Math.round(interactionTimings.optionDispatchMs)} ms, shop dispatch ${Math.round(interactionTimings.shopDispatchMs)} ms`);
 }catch(error){
-  writeFileSync(artifact,JSON.stringify({error:error.stack,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
+  writeFileSync(artifact,JSON.stringify({error:error.stack,interactionTimings,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
   console.error('[probe:chronicle] FAILED: '+error.message.split('\n')[0]+' · '+artifact);process.exitCode=1;
 }finally{await browser?.close();server.kill();}

@@ -1002,8 +1002,9 @@ export function createSimRunner({
       syncTimelineMaxReachedHistoryEndSec();
     }
 
-    onRebuildViews?.("actionDispatchedCurrentSec");
-    onInvalidate?.("actionDispatchedCurrentSec");
+    const viewReason = opts.viewInvalidationReason || "actionDispatchedCurrentSec";
+    onRebuildViews?.(viewReason);
+    onInvalidate?.(viewReason);
 
     return {
       ok: true,
@@ -1544,6 +1545,7 @@ export function createSimRunner({
       return finishDispatch(
         applyActionsAtCurrentSecondByResim(prepared.actions, {
           reason: opts.reason || "dispatchLiveCurrentSec",
+          viewInvalidationReason: opts.viewInvalidationReason,
           resetMaxReachedHistoryEndSec: opts.resetMaxReachedHistoryEndSec === true,
         })
       );

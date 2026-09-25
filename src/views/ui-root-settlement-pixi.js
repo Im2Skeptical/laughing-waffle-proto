@@ -682,6 +682,7 @@ function getSettlementViewedEdgeTransferBatch() {
 const runner = createSimRunner({
   setupId: BOOT_SETUP_ID,
   onInvalidate: (reason) => {
+    if (reason === "vassalDecisionStaged") return;
     if (shouldInvalidateSettlementTimelineForecast(reason)) {
       forecastWorkerService.handleTimelineInvalidation?.(reason);
       settlementGraphController?.handleInvalidate?.(reason);
@@ -692,7 +693,8 @@ const runner = createSimRunner({
     prototypeView?.refresh?.();
     settlementDebugMenu?.refresh?.();
   },
-  onRebuildViews: () => {
+  onRebuildViews: (reason) => {
+    if (reason === "vassalDecisionStaged") return;
     invalidateSettlementEdgeTransferBatchCache();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
