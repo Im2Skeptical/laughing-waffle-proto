@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { deserializeGameState, serializeGameState } from "../../state.js";
 import { VASSAL_HEIRLOOM_DEFS } from "../../../defs/gamepieces/vassal-heirloom-defs.js";
+import { VASSAL_LIFE_TUNING } from "../../../defs/gamepieces/vassal-life-map-defs.js";
 import {
   confirmHeirloomLoadout,
+  formatVassalPhaseDuration,
   getEquippedHeirloomModifiers,
   getOwnedHeirloomDefinitionIds,
   getVassalActionPhaseCost,
@@ -241,8 +243,12 @@ for (let seed = 1200; seed < 1400 && !relicFound; seed += 1) {
 assert.ok(relicFound, "a generated Life Map includes a Relic node");
 const relicNode = forceEnter(relicFound.state, relicFound.nodeId);
 assert.ok(relicNode.options.length >= 1);
-assert.ok(relicNode.options.every((option) => option.phaseCost === 0));
+assert.equal(formatVassalPhaseDuration(VASSAL_LIFE_TUNING.relicChoicePhaseCost), "5 years");
+assert.ok(relicNode.options.every((option) => option.phaseCost === VASSAL_LIFE_TUNING.relicChoicePhaseCost));
 const chosen = relicNode.options.find((option) => option.definitionId) ?? relicNode.options[0];
+const expectedRelicPhaseCost = getVassalActionPhaseCost(
+  getCurrentLifeMapVassal(relicFound.state), chosen.phaseCost, { nodeState: relicNode },
+);
 dispatch(relicFound.state, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: relicFound.nodeId, optionId: chosen.id,
 });
@@ -251,9 +257,44 @@ if (chosen.definitionId) {
     nodeId: relicFound.nodeId, acquire: { destination: "equip" },
   });
   const relicVassal = getCurrentLifeMapVassal(relicFound.state);
+  assert.equal(relicVassal.lifeMap.pendingResolution?.phaseCost, expectedRelicPhaseCost);
+  assert.ok(expectedRelicPhaseCost > 0, "confirming a Relic choice spends time");
   assert.equal(relicVassal.heirlooms.equipped.some((item) => item?.definitionId === chosen.definitionId), true);
   assert.equal(VASSAL_HEIRLOOM_DEFS[chosen.definitionId].quality, chosen.quality);
 }
+
+const emptyRelicState = selectedState(1114);
+emptyRelicState.civilization.vassalLineage.pendingVaultOverflow = Object.keys(VASSAL_HEIRLOOM_DEFS)
+  .map((definitionId, index) => ({
+    instanceId: `owned-${index}`,
+    definitionId,
+    inheritanceState: "sanctified",
+    protectionSpent: false,
+  }));
+const emptyOffers = generateRelicOffers(emptyRelicState, getCurrentLifeMapVassal(emptyRelicState));
+assert.equal(emptyOffers.length, 1);
+assert.equal(emptyOffers[0].emptyRelic, true);
+assert.equal(emptyOffers[0].phaseCost, VASSAL_LIFE_TUNING.relicChoicePhaseCost);
+
+const crownState = selectedState(1115);
+const crownNodeId = nodeIdForFamily(crownState, "relic");
+const crownNode = forceEnter(crownState, crownNodeId);
+const crownOption = crownNode.options[0];
+crownOption.definitionId = "crownOfAges";
+crownOption.label = "Crown of Ages";
+const crownExpected = getVassalActionPhaseCost(
+  getCurrentLifeMapVassal(crownState), crownOption.phaseCost, { nodeState: crownNode },
+);
+dispatch(crownState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: crownNodeId, optionId: crownOption.id,
+});
+dispatch(crownState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: crownNodeId, acquire: { destination: "equip" },
+});
+const crowned = getCurrentLifeMapVassal(crownState);
+assert.equal(crowned.heirlooms.equipped.some((item) => item?.definitionId === "crownOfAges"), true);
+assert.equal(crowned.lifeMap.pendingResolution?.phaseCost, crownExpected,
+  "the Heirloom found by a Relic choice does not discount that choice");
 
 const roundTripState = selectedState(1113);
 equip(roundTripState, "scholarsCodex", "fragile");

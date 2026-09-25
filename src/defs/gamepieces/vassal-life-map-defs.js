@@ -139,6 +139,8 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
+  // 32 phases is one year on the default clock, so every Relic choice takes five years.
+  relicChoicePhaseCost: 32 * 5,
 });
 
 export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([

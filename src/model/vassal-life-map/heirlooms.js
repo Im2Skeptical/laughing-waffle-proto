@@ -11,6 +11,7 @@ import {
   getHeirloomInheritanceLabel,
   getHeirloomQualityLabel,
 } from "../../defs/gamepieces/vassal-heirloom-defs.js";
+import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -212,6 +213,7 @@ function pickHeirloomDefinition(state, excludedIds) {
 
 export function generateRelicOffers(state, vassal) {
   const excluded = getOwnedHeirloomDefinitionIds(state, vassal);
+  const phaseCost = VASSAL_LIFE_TUNING.relicChoicePhaseCost;
   const offers = [];
   for (let index = 0; index < VASSAL_HEIRLOOM_TUNING.offerCount; index += 1) {
     const def = pickHeirloomDefinition(state, excluded);
@@ -225,7 +227,7 @@ export function generateRelicOffers(state, vassal) {
       description: def.description,
       inheritanceState: "sanctified",
       prestigeCost: 0,
-      phaseCost: 0,
+      phaseCost,
     });
   }
   if (!offers.length) {
@@ -235,7 +237,7 @@ export function generateRelicOffers(state, vassal) {
       label: "The site holds nothing",
       description: "No eligible Heirloom remains to be found.",
       prestigeCost: 0,
-      phaseCost: 0,
+      phaseCost,
     });
   }
   return offers;
