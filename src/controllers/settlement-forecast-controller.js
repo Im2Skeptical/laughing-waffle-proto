@@ -831,8 +831,11 @@ export function createSettlementForecastController({
       ? Number(job.lastCommitMs)
       : Number.NEGATIVE_INFINITY;
     const revealLagSec = Math.max(0, desiredCommitSec - historyEndSec);
+    // Once the node's final second is visible, finish remaining chunks on
+    // successive frames so the resolution window does not wait on pacing.
     if (
       shouldFallbackCommit !== true &&
+      browseCapSec < finalTargetSec &&
       nowMs - lastCommitMs < Math.max(0, Number(autoCommitMinIntervalMs ?? 0)) &&
       revealLagSec < clampSec(autoCommitForceLagSec, 0)
     ) {
