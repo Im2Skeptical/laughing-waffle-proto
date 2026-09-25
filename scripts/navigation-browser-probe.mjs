@@ -226,6 +226,20 @@ try {
   await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0));
   const draft = await snapshot();
   assert.ok(draft.decision.selectedOptionId, 'the fixture stages a node decision');
+  const confirmPoint = await controlPoint('getLifeMapConfirmClickPoint');
+  const lever = await controlPoint('getTimeLeverScreenRect');
+  const playbackBeforeMiss = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget);
+  await clickPoint({ x: confirmPoint.x - 188, y: confirmPoint.y });
+  assert.equal((await snapshot()).decision.open, true, 'a miss beside Confirm keeps the node decision open');
+  await clickPoint({ x: confirmPoint.x - 188, y: confirmPoint.y }, { touch: true });
+  assert.equal((await snapshot()).decision.open, true, 'a touch miss beside Confirm keeps the node decision open');
+  await clickPoint({ x: lever.x + lever.width / 2, y: lever.y + lever.height / 2 }, { touch: true });
+  s = await snapshot();
+  assert.equal(s.decision.open, true, 'touching dimmed time controls keeps the node decision open');
+  assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),
+    playbackBeforeMiss, 'dimmed time controls do not change playback');
+  assert.equal(s.decision.selectedOptionId, draft.decision.selectedOptionId,
+    'a missed confirmation preserves the staged choice');
   await navigate('settlement');
   s = await snapshot();
   assert.equal(s.mode, 'settlement', 'the dock is reachable through the decision backdrop');

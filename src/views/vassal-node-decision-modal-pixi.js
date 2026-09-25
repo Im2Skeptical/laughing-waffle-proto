@@ -233,8 +233,10 @@ export function createVassalNodeDecisionModalView({
     const blocker = new PIXI.Graphics();
     blocker.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
     blocker.eventMode = "static";
-    blocker.cursor = "pointer";
-    blocker.on("pointertap", (event) => { event?.stopPropagation?.(); close(); });
+    // Misses around the dock controls must leave the decision in place. The
+    // backdrop also absorbs presses on the dimmed time controls beneath it.
+    blocker.on("pointerdown", (event) => event?.stopPropagation?.());
+    blocker.on("pointertap", (event) => event?.stopPropagation?.());
     const bg = new PIXI.Graphics();
     roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 18,
       0x292f2b, family?.color ?? PALETTE.accent, 3);

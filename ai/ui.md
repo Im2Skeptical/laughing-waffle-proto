@@ -147,7 +147,8 @@ contract: `ai/visual-overhaul.md`.
   centered HUD so the divider does not run through the portrait. Confirm is a
   large green dock pill at the bottom-right, matching the lower-left
   Settlement/Map controls; the mortality estimate sits to its left. The modal has no Close button;
-  the dimmer still dismisses it. Time costs
+  taps on the dimmer leave the decision open and block the time controls beneath it.
+  The lower-left dock can still navigate away. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
   illustrated inset, followed by
   Prestige when needed. The displayed units follow the run's calendar: at the
