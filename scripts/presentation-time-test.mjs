@@ -45,6 +45,7 @@ for(const capacity of [5,6,7,8]){
 import { getNavigationVassalPortrait } from '../src/views/settlement-navigation-pixi.js';
 import { getIllustrationSpec } from '../src/views/chronicle-art.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
+import { createSettlementForecastController } from '../src/controllers/settlement-forecast-controller.js';
 import { getGraphGroupSeriesIds, getActiveGraphGroups, toggleGraphGroup } from '../src/views/ui-root/settlement-graph-groups.js';
 import {
   createSettlementGraphSession,
@@ -744,6 +745,49 @@ assert.equal(getSettlementGraphRevealConfig('pendingCommit'), SETTLEMENT_GRAPH_R
 assert.equal(getSettlementGraphRevealConfig('default'), SETTLEMENT_GRAPH_REVEAL_DEFAULT);
 assert.equal(resolveEffectiveSettlementGraphHorizonSec(null), SETTLEMENT_GRAPH_WINDOW_SEC);
 assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
+
+// The graph can reveal the last node second while an earlier commit chunk is
+// still inside its pacing interval. Resolution should then finish promptly.
+{
+  let frontierSec = 0;
+  let revealedSec = 144;
+  const vassal = { vassalId: 'v1', lifeMap: { pendingResolution: {
+    nodeId: 'n1', startSec: 0, resolveSec: 160,
+  } } };
+  const state = { civilization: { vassalLineage: {
+    currentVassalId: 'v1', vassalsById: { v1: vassal },
+  } } };
+  const controller = createSettlementForecastController({
+    getFrontierSec: () => frontierSec,
+    getFrontierState: () => state,
+    getViewedSec: () => 0,
+    getRevealedCoverageEndSec: () => revealedSec,
+    getControllerSummaryAt: () => ({ runComplete: false }),
+    getControllerStateDataAt: () => null,
+    commitCursorSecond: (sec) => {
+      frontierSec = sec;
+      if (sec >= 160) vassal.lifeMap.pendingResolution = null;
+      return { ok: true };
+    },
+    browseCursorSecond: () => ({ ok: true }),
+    clearPreviewState: () => {},
+    setPlaybackViewSec: () => {},
+    autoCommitBufferSec: 16,
+    autoCommitChunkSec: 128,
+    autoCommitMinIntervalMs: 900,
+    autoCommitForceLagSec: 448,
+    autoCommitFallbackMs: 1800,
+  });
+  controller.schedulePendingCommit(0, vassal);
+  controller.processPendingCommit();
+  assert.equal(frontierSec, 128, 'the first chunk follows the visible reveal');
+  controller.processPendingCommit();
+  assert.equal(frontierSec, 128, 'commit pacing still applies before the final second is visible');
+  revealedSec = 160;
+  controller.processPendingCommit();
+  assert.equal(frontierSec, 160,
+    'the final visible second resolves without waiting for the commit interval');
+}
 
 {
   const calls = [];
