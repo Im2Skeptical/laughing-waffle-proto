@@ -2393,6 +2393,7 @@ export function createMetricGraphView({
     getPlotScreenRect,
     getDebugState,
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
+    getForecastRevealTargetEndSec: () => Math.max(0, Math.floor(reveal.targetEndSec ?? 0)),
     render,
     setOpeningRevealSecond: (second) => { openingRevealSec = second; },
     setMonsterEmphasis: (active, terminal = null) => {

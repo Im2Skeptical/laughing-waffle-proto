@@ -64,6 +64,12 @@ export function resolveEffectiveSettlementGraphHorizonSec(overrideSec) {
   return overrideSec ?? SETTLEMENT_GRAPH_WINDOW_SEC;
 }
 
+function scheduleGraphRefreshAfterPaint(callback) {
+  const defer = () => setTimeout(callback, 0);
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(defer);
+  else defer();
+}
+
 export function createSettlementGraphSession({
   getGraphController,
   getGraphView,
@@ -74,6 +80,7 @@ export function createSettlementGraphSession({
   getFrontierSec,
   setWorldViewMode,
   onPendingResolutionSettled,
+  scheduleAfterPaint = scheduleGraphRefreshAfterPaint,
 } = {}) {
   let settlementGraphScope = "civilization";
   let settlementGraphHorizonOverrideSec = null;
@@ -192,14 +199,11 @@ export function createSettlementGraphSession({
       clearForecastRevealRestart: () =>
         getGraphView?.()?.clearForecastRevealRestart?.(),
     });
-    if (!beforeVassalId) return;
+    if (!beforeVassalId) return false;
     const afterState = getFrontierState?.();
     const afterPendingResolution = getVassalPendingResolution(afterState);
-    if (beforePendingResolution && !afterPendingResolution) {
-      getGraphController?.()?.refreshAuthoritativeRangeFrom?.(
-        beforePendingResolution.startSec
-      );
-      getGraphView?.()?.render?.();
+    const recapOpened = !!beforePendingResolution && !afterPendingResolution;
+    if (recapOpened) {
       onPendingResolutionSettled?.({
         beforeState,
         afterState,
@@ -207,8 +211,16 @@ export function createSettlementGraphSession({
         pending: beforePendingResolution,
         ...recapIncome,
       });
+      // Re-reading the committed span can take a long frame. Let the recap
+      // paint first, then replace the forecast samples with fixed history.
+      scheduleAfterPaint?.(() => {
+        getGraphController?.()?.refreshAuthoritativeRangeFrom?.(
+          beforePendingResolution.startSec
+        );
+      });
     }
     revealCivilizationAfterVassalEnd(beforeVassalId, afterState);
+    return recapOpened;
   }
 
   return {

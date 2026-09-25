@@ -674,6 +674,29 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapConfirmClickPoint()
   );
   assert.ok(confirmPoint, "the active node has explicit confirmation");
+  await page.evaluate(() => {
+    const timing = { startedMs: performance.now(), resolutionSec: null };
+    globalThis.__NODE_RESOLUTION_TIMING__ = timing;
+    const sample = () => {
+      const snapshot = globalThis.__SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot();
+      const now = performance.now();
+      timing.resolutionSec ??= snapshot.resolutionSec;
+      if (Number.isFinite(timing.resolutionSec)) {
+        if (timing.oneShortMs == null && snapshot.revealedSec >= timing.resolutionSec - 1) {
+          timing.oneShortMs = now;
+        }
+        if (timing.revealEndMs == null && snapshot.revealedSec >= timing.resolutionSec) {
+          timing.revealEndMs = now;
+        }
+        if (timing.frontierEndMs == null && snapshot.frontierSec >= timing.resolutionSec) {
+          timing.frontierEndMs = now;
+        }
+      }
+      if (snapshot.recapOpen === true) timing.recapOpenMs = now;
+      if (timing.recapOpenMs == null && now - timing.startedMs < 10000) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
   await clickDesignPoint(page, confirmPoint);
   const hoverDuringUnveil = await page.evaluate(
     (nodeId) => globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(nodeId),
@@ -688,17 +711,15 @@ try {
     await delay(80);
   }
   const resolvingVassal = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    () => globalThis.__SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot()
   );
-  const resolutionSec = resolvingVassal.forecastStatus.currentVassalResolutionSec;
+  const resolutionSec = resolvingVassal.resolutionSec;
   let committedVassalHistory;
   if (Number.isFinite(resolutionSec) && resolutionSec > resolvingVassal.frontierSec) {
-    assert.equal(resolvingVassal.pendingCommitJob.resolutionSec, resolutionSec,
-      "forecast commitment targets the node resolution");
-    assert.equal(resolvingVassal.graph.forecastRevealTargetEndSec, resolutionSec,
+    assert.equal(resolvingVassal.revealTargetSec, resolutionSec,
       "node confirmation unveils only through that node's resolution boundary");
     await page.waitForFunction(
-      (targetSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().frontierSec >= targetSec,
+      (targetSec) => globalThis.__SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot().frontierSec >= targetSec,
       resolutionSec,
       { timeout: 6000 }
     );
@@ -709,7 +730,9 @@ try {
   } else {
     assert.ok(resolvingVassal.frontierSec > afterVassal.frontierSec,
       "short generated nodes may finish before the first post-confirmation probe sample");
-    committedVassalHistory = resolvingVassal;
+    committedVassalHistory = await page.evaluate(
+      () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    );
   }
   assert.ok(
     committedVassalHistory.frontierSec > afterVassal.frontierSec,
@@ -722,6 +745,11 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapRecapDismissClickPoint()
   );
   assert.ok(recapDismiss, "resolved nodes show a recap window");
+  const nodeTiming = await page.evaluate(() => globalThis.__NODE_RESOLUTION_TIMING__);
+  assert.ok(Number.isFinite(nodeTiming.oneShortMs) && Number.isFinite(nodeTiming.recapOpenMs),
+    "the browser observes the final unveil second and recap window");
+  assert.ok(nodeTiming.recapOpenMs - nodeTiming.oneShortMs <= 300,
+    `the recap follows the last unveiled second promptly (last-to-reveal ${Math.round(nodeTiming.revealEndMs - nodeTiming.oneShortMs)} ms, reveal-to-frontier ${Math.round(nodeTiming.frontierEndMs - nodeTiming.revealEndMs)} ms, frontier-to-recap ${Math.round(nodeTiming.recapOpenMs - nodeTiming.frontierEndMs)} ms)`);
   assert.equal(
     await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState()?.visible),
     false,
@@ -1141,6 +1169,10 @@ try {
       graph: returnedToMap.graph,
     },
     timelineRepair: {
+      nodeResolutionTiming: {
+        lastSecondToRecapMs: Math.round(nodeTiming.recapOpenMs - nodeTiming.oneShortMs),
+        revealEndToRecapMs: Math.round(nodeTiming.recapOpenMs - nodeTiming.revealEndMs),
+      },
       forecastStatus: afterVassal.forecastStatus,
       pendingCommitJob: afterVassal.pendingCommitJob,
       projectionReplacement: afterVassal.graph.projectionReplacement,

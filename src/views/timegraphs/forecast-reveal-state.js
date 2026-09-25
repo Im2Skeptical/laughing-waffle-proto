@@ -252,14 +252,16 @@ export function getForecastRevealDesiredVelocitySecPerSec(
     Number(state.followResponseSec ?? 0.9)
   );
   const adaptiveRevealRateSecPerSec = followDistanceSec / followResponseSec;
+  const followingUncappedForecast =
+    state.followGapSec > 0 && !Number.isFinite(state.capEndSec);
   let desiredVelocitySecPerSec =
-    state.followGapSec > 0
+    followingUncappedForecast
       ? adaptiveRevealRateSecPerSec
       : Math.max(
           minRevealRateSecPerSec,
           Math.min(maxRevealRateSecPerSec, targetRevealRateSecPerSec)
         );
-  if (state.followGapSec > 0) {
+  if (followingUncappedForecast) {
     const farFromFollowTarget =
       followDistanceSec >
       Math.max(6, Number(state.followGapSec ?? 0) * 0.25);
