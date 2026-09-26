@@ -105,8 +105,8 @@ contract: `ai/visual-overhaul.md`.
   scrub through the existing viewed-time controller. The compact wheel sits low
   in the bottom-right corner, with its outer right/bottom rim slightly offscreen
   and a compact vertical lever to its left. The lower-left navigation dock always
-  carries a small circular clock: gold hands at Present, a warm backward arrow
-  for History, and a cool forward arrow for a projected future. Hover explains
+  carries a small circular clock: gold hands at Present, a warm forward arrow
+  for History, and a cool backward arrow for a projected future. Hover explains
   the viewed time state; one click returns to Present from either direction.
   Returning holds the playhead and preserves the current screen. Attempts to
   enter or change a read-only Life Map decision briefly highlight this control
