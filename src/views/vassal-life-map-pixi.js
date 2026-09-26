@@ -176,10 +176,11 @@ export function createVassalLifeMapView({
     lastClick = { nodeId: node.id, atMs: now };
     hoveredNodeId = null;
     if (canOpenModal(display, unveiling)) {
+      const nodePoint = nodeRoots.get(node.id)?.toGlobal?.(new PIXI.Point(0, 0));
       inspectedNodeId = node.id;
       tooltipView?.hide?.();
       if (sameNode && display.available) onEnterNode?.(node.id);
-      onOpenDecision?.(node.id);
+      onOpenDecision?.(node.id, nodePoint ? { x: nodePoint.x, y: nodePoint.y } : null);
       render(true);
       return;
     }

@@ -26,7 +26,7 @@ async function snapshot() {
       settlementRegionId: s.view?.regionId, headerControls: s.view?.headerControls,
       life: s.lifeMap, decision: {
         open: s.lifeMapDecision.open, selectedOptionId: s.lifeMapDecision.selectedOptionId,
-        nodeId: s.lifeMapDecision.nodeId,
+        nodeId: s.lifeMapDecision.nodeId, animation: s.lifeMapDecision.animation,
       },
       current: s.lineage?.currentVassal, lineage: s.lineage,
       timeline: s.runner.timeline, frontierSec: s.frontierSec, viewedSec: s.viewedSec,
@@ -69,6 +69,13 @@ async function controlPoint(method, arg) {
 
 async function waitMode(mode) {
   await page.waitForFunction((mode) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation?.mode === mode, mode);
+}
+
+async function waitDecisionReady() {
+  await page.waitForFunction(() => {
+    const decision = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision;
+    return decision?.open && decision.animation?.phase === 'open';
+  });
 }
 
 function destinations(s) { return s.navigation.destinations.map((entry) => entry.id); }
@@ -221,7 +228,9 @@ try {
 
   await navigate('life');
   const nodeId = (await snapshot()).current.availableNodeIds[0];
-  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
+  const nodePoint = await controlPoint('getLifeMapNodeClickPoint', nodeId);
+  await clickPoint(nodePoint);
+  await waitDecisionReady();
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
   await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0));
   const draft = await snapshot();
@@ -252,24 +261,55 @@ try {
     playbackBeforeMiss, 'dimmed time controls do not change playback');
   assert.equal(s.decision.selectedOptionId, draft.decision.selectedOptionId,
     'a missed confirmation preserves the staged choice');
-  await clickPoint({ x: 1000, y: 960 });
+  await page.mouse.click(canvas.x + 1000 / 2424 * canvas.width,
+    canvas.y + 960 / 1080 * canvas.height);
+  const closing = (await snapshot()).decision.animation;
+  assert.equal(closing.phase, 'closing', 'backdrop dismissal starts a closing transition');
+  assert.ok(Math.abs(closing.origin.x - nodePoint.x) < 1
+    && Math.abs(closing.origin.y - nodePoint.y) < 1,
+  'the closing transition returns toward the selected node');
+  await page.screenshot({ path: `${OUTPUT}/decision-closing-1280x800.png` });
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    .lifeMapDecision.animation?.phase === 'closed');
   assert.equal((await snapshot()).decision.open, false, 'the open backdrop dismisses the node decision');
-  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
+  await page.mouse.move(canvas.x + nodePoint.x / 2424 * canvas.width,
+    canvas.y + nodePoint.y / 1080 * canvas.height);
+  await page.mouse.down();
+  const opening = (await snapshot()).decision.animation;
+  assert.equal(opening.phase, 'opening', 'the node decision starts an opening transition');
+  assert.ok(opening.rect.width < 2180, 'the opening panel grows into place');
+  assert.ok(Math.abs(opening.origin.x - nodePoint.x) < 1
+    && Math.abs(opening.origin.y - nodePoint.y) < 1,
+  'the opening transition starts at the selected node');
+  await page.screenshot({ path: `${OUTPUT}/decision-opening-1280x800.png` });
+  await page.mouse.up();
+  await waitDecisionReady();
   assert.equal((await snapshot()).decision.selectedOptionId, draft.decision.selectedOptionId,
     'dismissing through the backdrop preserves the staged choice');
   await clickPoint({ x: 1000, y: 960 }, { touch: true });
   assert.equal((await snapshot()).decision.open, false, 'a backdrop touch dismisses the node decision');
-  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await clickPoint(nodePoint);
+  assert.equal((await snapshot()).decision.animation.phase, 'open',
+    'reduced motion opens the decision immediately');
+  await clickPoint({ x: 1000, y: 960 });
+  assert.equal((await snapshot()).decision.animation.phase, 'closed',
+    'reduced motion dismisses the decision immediately');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await clickPoint(nodePoint);
+  await waitDecisionReady();
   await navigate('settlement');
   s = await snapshot();
   assert.equal(s.mode, 'settlement', 'the dock is reachable through the decision backdrop');
   assert.equal(s.decision.open, false);
   await navigate('life');
-  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
+  await clickPoint(nodePoint);
+  await waitDecisionReady();
   s = await snapshot();
   assert.equal(s.decision.selectedOptionId, draft.decision.selectedOptionId, 'navigation preserves the staged decision');
   assert.deepEqual(s.timeline, draft.timeline);
   await clickPoint(await controlPoint('getLifeMapConfirmClickPoint'));
+  assert.equal((await snapshot()).decision.open, false, 'Confirm commits and closes the decision');
   await page.waitForFunction((start) => {
     const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
     return s.frontierSec > start && !s.pendingCommitJob;

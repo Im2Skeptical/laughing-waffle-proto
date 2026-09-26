@@ -284,9 +284,12 @@ try {
   await delay(250);
   const node=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
   await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),node));
-  await delay(150);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    .lifeMapDecision.animation?.phase==='open');
   const enter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
-  if(enter){await click(enter);await delay(150);}
+  if(enter)await click(enter);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
+    ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   const choice=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
     ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   assert.ok(choice,'The first life node exposes an illustrated choice');
@@ -305,7 +308,7 @@ try {
   const inspectedCost=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionCostPoint());
   const noopBox=await page.locator('canvas').boundingBox();
   const noopStart=performance.now();
-  await page.touchscreen.tap(noopBox.x+20/2424*noopBox.width,noopBox.y+100/1080*noopBox.height);
+  await page.touchscreen.tap(noopBox.x+350/2424*noopBox.width,noopBox.y+960/1080*noopBox.height);
   interactionTimings.backdropTapMs=Math.round(performance.now()-noopStart);
   const costTouch=await page.context().newCDPSession(page);
   const optionStartAt=performance.now();
@@ -352,9 +355,12 @@ try {
   await delay(250);
   const shopNode=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
   await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),shopNode));
-  await delay(150);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    .lifeMapDecision.animation?.phase==='open');
   const shopEnter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
-  if(shopEnter){await click(shopEnter);await delay(150);}
+  if(shopEnter)await click(shopEnter);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
+    .lifeMapDecision.costPanels.length===3);
   const shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.ok(['practiceReform','publicWorks'].includes(shopBefore.family),`The configured opening leads to a shop (actual: ${shopBefore.family})`);
   assert.equal(shopBefore.costPanels.length,3,'All three shop offers show their prices');
@@ -362,7 +368,7 @@ try {
   assert.ok(affordableIndex>=0,'The fixture exposes a paid, affordable offer');
   const shopChoice=await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(index),affordableIndex);
   const shopNoopStart=performance.now();
-  await page.touchscreen.tap(candidateBox.x+20/2424*candidateBox.width,candidateBox.y+100/1080*candidateBox.height);
+  await page.touchscreen.tap(candidateBox.x+350/2424*candidateBox.width,candidateBox.y+960/1080*candidateBox.height);
   interactionTimings.shopBackdropTapMs=Math.round(performance.now()-shopNoopStart);
   const tap=async point=>{
     const b=await page.locator('canvas').boundingBox();
