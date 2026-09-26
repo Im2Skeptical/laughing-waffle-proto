@@ -5,7 +5,7 @@ import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 export function getVassalPortraitStage(age) {
   const years = Number.isFinite(age) ? Math.max(0, Math.floor(age)) : null;
   if (years == null) return "middle";
-  if (years < 30) return "youth";
+  if (years <= 35) return "youth";
   if (years >= 55) return "elder";
   return "middle";
 }

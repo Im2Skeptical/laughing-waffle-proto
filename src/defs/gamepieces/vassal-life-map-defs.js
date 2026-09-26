@@ -112,8 +112,8 @@ export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
 
 export const VASSAL_LIFE_TUNING = Object.freeze({
   candidateCount: 3,
-  candidateAgeMin: 18,
-  candidateAgeMax: 26,
+  candidateAgeMin: 12,
+  candidateAgeMax: 22,
   candidatePrestigeMin: 18,
   candidatePrestigeMax: 24,
   candidateStatMin: 0,
