@@ -1063,6 +1063,11 @@ vassalLifeMapView.setVisible(false);
 vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   app,
   layer: modalLayer,
+  getProtectedBackdropRects: () => [
+    settlementNavigationView?.getSemanticSnapshot?.()?.rect,
+    timeControlsView?.getScreenRect?.(),
+    sunMoonDisksView?.getScreenRect?.(),
+  ].filter(Boolean),
   getState: () => getSettlementViewedState(),
   getPresentation: () => getSettlementLifeMapPresentation(),
   onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),

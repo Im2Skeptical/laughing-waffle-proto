@@ -243,6 +243,8 @@ try {
   assert.equal((await snapshot()).decision.open, true, 'a miss beside Confirm keeps the node decision open');
   await clickPoint({ x: confirmPoint.x - 188, y: confirmPoint.y }, { touch: true });
   assert.equal((await snapshot()).decision.open, true, 'a touch miss beside Confirm keeps the node decision open');
+  await clickPoint({ x: 350, y: 960 }, { touch: true });
+  assert.equal((await snapshot()).decision.open, true, 'a miss beside the lower-left dock keeps the node decision open');
   await clickPoint({ x: lever.x + lever.width / 2, y: lever.y + lever.height / 2 }, { touch: true });
   s = await snapshot();
   assert.equal(s.decision.open, true, 'touching dimmed time controls keeps the node decision open');
@@ -250,6 +252,14 @@ try {
     playbackBeforeMiss, 'dimmed time controls do not change playback');
   assert.equal(s.decision.selectedOptionId, draft.decision.selectedOptionId,
     'a missed confirmation preserves the staged choice');
+  await clickPoint({ x: 1000, y: 960 });
+  assert.equal((await snapshot()).decision.open, false, 'the open backdrop dismisses the node decision');
+  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
+  assert.equal((await snapshot()).decision.selectedOptionId, draft.decision.selectedOptionId,
+    'dismissing through the backdrop preserves the staged choice');
+  await clickPoint({ x: 1000, y: 960 }, { touch: true });
+  assert.equal((await snapshot()).decision.open, false, 'a backdrop touch dismisses the node decision');
+  await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
   await navigate('settlement');
   s = await snapshot();
   assert.equal(s.mode, 'settlement', 'the dock is reachable through the decision backdrop');

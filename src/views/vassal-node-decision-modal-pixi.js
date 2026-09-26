@@ -38,7 +38,7 @@ import { renderVassalProjection } from "./vassal-node-decision/vassal-projection
 export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onMoveStructure, onRerollShop, onConfirmNode,
-  onWorldMap, onReadOnlyAction,
+  onWorldMap, onReadOnlyAction, getProtectedBackdropRects,
 } = {}) {
   const root = new PIXI.Container();
   root.visible = false;
@@ -112,6 +112,13 @@ export function createVassalNodeDecisionModalView({
     acquirePicker = null;
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
     hoverRenderTimer = null;
+  }
+
+  function isProtectedBackdropPoint(point) {
+    const rects = [confirmDockRect(app), ...(getProtectedBackdropRects?.() ?? [])];
+    return rects.some((rect) => rect && point.x >= rect.x - 40
+      && point.x <= rect.x + rect.width + 40
+      && point.y >= rect.y - 40 && point.y <= rect.y + rect.height + 40);
   }
 
   function open(nodeId = null) {
@@ -233,10 +240,14 @@ export function createVassalNodeDecisionModalView({
     const blocker = new PIXI.Graphics();
     blocker.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
     blocker.eventMode = "static";
-    // Misses around the dock controls must leave the decision in place. The
-    // backdrop also absorbs presses on the dimmed time controls beneath it.
+    blocker.on("pointermove", (event) => {
+      blocker.cursor = isProtectedBackdropPoint(event.global) ? "default" : "pointer";
+    });
     blocker.on("pointerdown", (event) => event?.stopPropagation?.());
-    blocker.on("pointertap", (event) => event?.stopPropagation?.());
+    blocker.on("pointertap", (event) => {
+      event?.stopPropagation?.();
+      if (!isProtectedBackdropPoint(event.global)) close();
+    });
     const bg = new PIXI.Graphics();
     roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 18,
       0x292f2b, family?.color ?? PALETTE.accent, 3);

@@ -148,7 +148,8 @@ contract: `ai/visual-overhaul.md`.
   carved-stone green dock pill at the bottom-right, with a checkmark above its
   label and the same hover/press feedback as the lower-left Settlement/Map controls;
   the mortality estimate sits to its left. The modal has no Close button;
-  taps on the dimmer leave the decision open and block the time controls beneath it.
+  taps on the open dimmer dismiss the decision, while misses near the dock controls
+  leave it open and the dimmed time controls cannot be used.
   The lower-left dock can still navigate away. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
   illustrated inset, followed by
