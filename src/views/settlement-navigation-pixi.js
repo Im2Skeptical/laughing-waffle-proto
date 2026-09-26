@@ -3,6 +3,7 @@ import { createVassalPortraitView } from './vassal-portrait-pixi.js';
 import { getArtRevision } from './chronicle-art.js';
 import { getCurrentLifeMapVassal, getVassalAge } from '../model/vassal-life-map.js';
 import { getRegionReference } from '../model/world-state.js';
+import { dockPadContour, drawDockCheckIcon, paintDockPadFace } from './settlement-dock-style.js';
 
 // Unlike the Life Map's retained historical profile, this shortcut describes
 // the active Vassal in the snapshot under the playhead, including drag previews.
@@ -39,38 +40,6 @@ function label(size, fill = RELIC.bone) {
   return new PIXI.Text('', { fontFamily: 'Georgia', fontSize: size, fontWeight: 'bold', fill });
 }
 
-function addArc(points, x, y, radius, from, to, steps = 24) {
-  for (let step = 0; step <= steps; step++) {
-    const angle = from + (to - from) * step / steps;
-    points.push(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius);
-  }
-}
-
-// Paint and hit-test the same contour, keeping curved corners and the seam inert.
-function padContour(width, height, shape) {
-  const points = [];
-  const radius = height / 2;
-  if (shape === 'whole') {
-    addArc(points, width - radius, radius, radius, -Math.PI / 2, Math.PI / 2);
-    addArc(points, radius, radius, radius, Math.PI / 2, Math.PI * 1.5);
-  } else {
-    const seamRadius = 10;
-    addArc(points, width - seamRadius, seamRadius, seamRadius, -Math.PI / 2, 0, 6);
-    addArc(points, width - seamRadius, height - seamRadius, seamRadius, 0, Math.PI / 2, 6);
-    addArc(points, radius, radius, radius, Math.PI / 2, Math.PI * 1.5);
-    if (shape === 'right') {
-      for (let i = 0; i < points.length; i += 2) points[i] = width - points[i];
-    }
-  }
-  return points;
-}
-
-function insetContour(points, width, height, inset, offsetY = 0) {
-  return points.map((value, index) => index % 2
-    ? inset + value * (height - inset * 2) / height + offsetY
-    : inset + value * (width - inset * 2) / width);
-}
-
 function drawNavigationIcon(g, id, color) {
   g.lineStyle(2.4, color, 1);
   if (id === 'map') {
@@ -86,7 +55,7 @@ function drawNavigationIcon(g, id, color) {
       g.beginFill(BUTTON_COLORS.life.fill).drawCircle(x,y,4).endFill();
     }
   } else if (id === 'confirm') {
-    g.moveTo(-15,0).lineTo(-4,11).lineTo(16,-12);
+    drawDockCheckIcon(g, color);
   } else if (id === 'chronicle') {
     g.drawRoundedRect(-13,-16,26,32,3)
       .moveTo(-7,-16).lineTo(-7,16).moveTo(-2,-6).lineTo(7,-6)
@@ -261,12 +230,10 @@ export function createSettlementNavigationView({
         .drawCircle(width/2, height/2, width/2 - 1).endFill();
       bg.lineStyle(1, colors.ink, 0.28).drawCircle(width/2, height/2, width/2 - 6);
     } else {
-      bg.beginFill(RELIC.shadow, 0.85).drawPolygon(insetContour(spec.contour, width, height, 0, 5)).endFill();
-      bg.lineStyle(3, active ? colors.ink : colors.rim, 1)
-        .beginTextureFill({ texture: getStoneTexture(), color: button.pressed ? RELIC.stone : colors.fill })
-        .drawPolygon(spec.contour).endFill();
-      bg.lineStyle(2, colors.ink, active ? 0.55 : 0.25)
-        .drawPolygon(insetContour(spec.contour, width, height, 5));
+      paintDockPadFace(bg, {
+        width, height, contour: spec.contour, colors,
+        hovered: active, pressed: button.pressed,
+      });
     }
     icon.clear();
     if (isTime) drawTimeIcon(icon, spec.mode, colors.ink);
@@ -294,7 +261,7 @@ export function createSettlementNavigationView({
     button.container.visible = true;
     button.container.position.set(rect.x, rect.y);
     if (button.spec?.width !== rect.width || button.spec?.height !== rect.height || button.spec?.shape !== shape) {
-      button.contour = shape === 'circle' ? null : padContour(rect.width, rect.height, shape);
+      button.contour = shape === 'circle' ? null : dockPadContour(rect.width, rect.height, shape);
       button.container.hitArea = shape === 'circle'
         ? new PIXI.Circle(rect.width/2, rect.height/2, rect.width/2)
         : new PIXI.Polygon(button.contour);

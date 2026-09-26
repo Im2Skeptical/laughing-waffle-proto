@@ -5,7 +5,7 @@ export const TITLE_PLAQUE = Object.freeze({
   x: PANEL.x + 4, overlapY: 48, width: 360, height: 86,
 });
 export const CONFIRM_DOCK = Object.freeze({
-  width: 300, height: 156, right: 36, bottom: 22,
+  width: 308, height: 170, right: 28, bottom: 20,
 });
 export const MORTALITY_PLATE = Object.freeze({
   width: 640, height: 140, gap: 20,

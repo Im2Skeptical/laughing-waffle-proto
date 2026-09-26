@@ -145,8 +145,9 @@ contract: `ai/visual-overhaul.md`.
   plaque overlapping the modal's top-left, left of the HUD, so shop titles no
   longer collide with that chrome. The modal still leaves a bay for the
   centered HUD so the divider does not run through the portrait. Confirm is a
-  large green dock pill at the bottom-right, matching the lower-left
-  Settlement/Map controls; the mortality estimate sits to its left. The modal has no Close button;
+  carved-stone green dock pill at the bottom-right, with a checkmark above its
+  label and the same hover/press feedback as the lower-left Settlement/Map controls;
+  the mortality estimate sits to its left. The modal has no Close button;
   taps on the dimmer leave the decision open and block the time controls beneath it.
   The lower-left dock can still navigate away. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced

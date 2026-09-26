@@ -532,6 +532,7 @@ export function createVassalNodeDecisionModalView({
       confirmRoot = confirmDockButton(root, app, {
         enabled: canConfirm,
         label: readOnly ? "Read-only" : "Confirm",
+        showCheck: !readOnly,
         onClick: () => {
           const result = onConfirmNode?.(node.id);
           if (result?.ok !== false) close();
@@ -586,8 +587,11 @@ export function createVassalNodeDecisionModalView({
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
     },
-    getConfirmClickPoint: () => root.visible && confirmRoot?.toGlobal
-      ? confirmRoot.toGlobal(new PIXI.Point(confirmRoot.hitArea.width / 2, confirmRoot.hitArea.height / 2)) : null,
+    getConfirmClickPoint: () => {
+      if (!root.visible || !confirmRoot) return null;
+      const rect = confirmRoot.getBounds();
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    },
     getUndoClickPoint(index = 0) {
       if (!root.visible) return null;
       const target = undoRoots[index];
