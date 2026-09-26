@@ -150,6 +150,9 @@ contract: `ai/visual-overhaul.md`.
   the mortality estimate sits to its left. The modal has no Close button;
   taps on the open dimmer dismiss the decision, while misses near the dock controls
   leave it open and the dimmed time controls cannot be used.
+  Opening a node expands a brief panel outline from that node before its contents
+  appear; dismissing it retracts the outline to the same node. Reduced-motion
+  settings skip the transition, and navigation to another screen closes it at once.
   The lower-left dock can still navigate away. Time costs
   group Sun/year, Moon, and Phase sprites with live amounts into an hourglass-prefaced
   illustrated inset, followed by

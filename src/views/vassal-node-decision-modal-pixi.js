@@ -40,11 +40,29 @@ export function createVassalNodeDecisionModalView({
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onMoveStructure, onRerollShop, onConfirmNode,
   onWorldMap, onReadOnlyAction, getProtectedBackdropRects,
 } = {}) {
+  const backdrop = new PIXI.Graphics();
+  backdrop.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+  backdrop.eventMode = "static";
+  backdrop.visible = false;
+  const transitionGraphic = new PIXI.Graphics();
+  transitionGraphic.eventMode = "none";
+  transitionGraphic.visible = false;
   const root = new PIXI.Container();
   root.visible = false;
   root.zIndex = 170;
-  root.eventMode = "static";
-  layer?.addChild(root);
+  root.eventMode = "none";
+  layer?.addChild(backdrop, transitionGraphic, root);
+  const panelCenter = { x: PANEL.x + PANEL.width / 2, y: PANEL.y + PANEL.height / 2 };
+  const MOTION_MS = 130;
+  const START_SIZE = 72;
+  const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)");
+  let logicalOpen = false;
+  let visibility = 0;
+  let motion = null;
+  let motionOrigin = { ...panelCenter };
+  let motionColor = PALETTE.accent;
+  let motionRect = null;
+  let backdropPressedPointerId = null;
   let openNodeId = null;
   let signature = "";
   let dragged = null;
@@ -98,9 +116,60 @@ export function createVassalNodeDecisionModalView({
     root.on(type, () => { pointerHeld = false; });
   }
 
-  function close() {
+  function applyMotionPose() {
+    const centerX = motionOrigin.x + (panelCenter.x - motionOrigin.x) * visibility;
+    const centerY = motionOrigin.y + (panelCenter.y - motionOrigin.y) * visibility;
+    const width = START_SIZE + (PANEL.width - START_SIZE) * visibility;
+    const height = START_SIZE + (PANEL.height - START_SIZE) * visibility;
+    motionRect = { x: centerX - width / 2, y: centerY - height / 2, width, height };
+    root.alpha = Math.max(0, Math.min(1, (visibility - 0.72) / 0.28));
+    backdrop.alpha = visibility;
+    transitionGraphic.clear();
+    transitionGraphic.lineStyle(3, motionColor, 0.85)
+      .beginFill(0x292f2b, 0.9)
+      .drawRoundedRect(motionRect.x, motionRect.y, width, height, 18)
+      .endFill();
+    transitionGraphic.alpha = 1 - root.alpha * 0.7;
+  }
+
+  function finishMotion() {
+    motion = null;
+    transitionGraphic.visible = false;
+    root.eventMode = logicalOpen ? "static" : "none";
+    if (!logicalOpen) {
+      root.visible = false;
+      backdrop.visible = false;
+    }
+  }
+
+  function advanceMotion(now = performance.now()) {
+    if (!motion) return;
+    const t = Math.min(1, (now - motion.startedAtMs) / MOTION_MS);
+    const eased = 1 - (1 - t) ** 3;
+    visibility = motion.from + (motion.to - motion.from) * eased;
+    applyMotionPose();
+    if (t >= 1) finishMotion();
+  }
+
+  function moveToVisibility(target, immediate = false) {
+    advanceMotion();
+    if (immediate || reducedMotion?.matches || Math.abs(visibility - target) < 0.001) {
+      visibility = target;
+      applyMotionPose();
+      finishMotion();
+      return;
+    }
+    motion = { from: visibility, to: target, startedAtMs: performance.now() };
+    root.eventMode = "none";
+    transitionGraphic.visible = true;
+    applyMotionPose();
+  }
+
+  function close({ immediate = false } = {}) {
+    if (!logicalOpen && !immediate) return;
+    logicalOpen = false;
+    backdropPressedPointerId = null;
     pointerHeld = false;
-    root.visible = false;
     signature = "";
     dragged = null;
     dragTargetIndex = null;
@@ -112,6 +181,7 @@ export function createVassalNodeDecisionModalView({
     acquirePicker = null;
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
     hoverRenderTimer = null;
+    moveToVisibility(0, immediate);
   }
 
   function isProtectedBackdropPoint(point) {
@@ -121,16 +191,40 @@ export function createVassalNodeDecisionModalView({
       && point.y >= rect.y - 40 && point.y <= rect.y + rect.height + 40);
   }
 
-  function open(nodeId = null) {
+  backdrop.on("pointermove", (event) => {
+    backdrop.cursor = isProtectedBackdropPoint(event.global) ? "default" : "pointer";
+  });
+  backdrop.on("pointerdown", (event) => {
+    event?.stopPropagation?.();
+    backdropPressedPointerId = motion ? null : event.pointerId ?? "pointer";
+  });
+  for (const type of ["pointerupoutside", "pointercancel"]) {
+    backdrop.on(type, () => { backdropPressedPointerId = null; });
+  }
+  backdrop.on("pointertap", (event) => {
+    event?.stopPropagation?.();
+    if (backdropPressedPointerId !== (event.pointerId ?? "pointer")) return;
+    backdropPressedPointerId = null;
+    if (logicalOpen && !isProtectedBackdropPoint(event.global)) close();
+  });
+
+  function open(nodeId = null, nodePoint = null) {
+    advanceMotion();
+    backdropPressedPointerId = null;
+    motionOrigin = nodePoint && Number.isFinite(nodePoint.x) && Number.isFinite(nodePoint.y)
+      ? { x: nodePoint.x, y: nodePoint.y } : { ...panelCenter };
+    logicalOpen = true;
     pinnedInspectionId = null;
     openNodeId = nodeId ?? getPresentation?.()?.vassal?.lifeMap?.currentNodeId ?? null;
     root.visible = true;
+    backdrop.visible = true;
     hoveredOptionId = null;
     hoveredOfferId = null;
     hoveredTableauId = null;previewTableauId = null;
     previewOptionId = null;
     previewOfferId = null;
     render(true);
+    moveToVisibility(1);
   }
 
   const animatedUpgrades = new Set();
@@ -205,7 +299,7 @@ export function createVassalNodeDecisionModalView({
   root.on('pointercancel',()=>{dragged=null;dragGhost?.destroy({children:true});dragGhost=null;placementGuide?.destroy();placementGuide=null;render(true);});
 
   function render(force = false) {
-    if (!root.visible || dragged || pointerHeld) return;
+    if (!logicalOpen || dragged || pointerHeld) return;
     const presentation = getPresentation?.() ?? {};
     const state = getState?.() ?? null;
     const vassal = presentation.vassal;
@@ -223,6 +317,7 @@ export function createVassalNodeDecisionModalView({
     const family = node?.signatureNode?.variantId
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : node ? VASSAL_NODE_FAMILIES[node.family] : null;
+    motionColor = family?.color ?? PALETTE.accent;
     const nextSignature = getArtRevision() + JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
       previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId });
     if (!force && nextSignature === signature) return;
@@ -237,23 +332,12 @@ export function createVassalNodeDecisionModalView({
     tableauRoots = [];
     inspectionRoot = null;
 
-    const blocker = new PIXI.Graphics();
-    blocker.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
-    blocker.eventMode = "static";
-    blocker.on("pointermove", (event) => {
-      blocker.cursor = isProtectedBackdropPoint(event.global) ? "default" : "pointer";
-    });
-    blocker.on("pointerdown", (event) => event?.stopPropagation?.());
-    blocker.on("pointertap", (event) => {
-      event?.stopPropagation?.();
-      if (!isProtectedBackdropPoint(event.global)) close();
-    });
     const bg = new PIXI.Graphics();
     roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 18,
       0x292f2b, family?.color ?? PALETTE.accent, 3);
     bg.eventMode = "static";
     bg.on("pointertap", (event) => event?.stopPropagation?.());
-    root.addChild(blocker, bg);
+    root.addChild(bg);
 
     if (!vassal || !node || !family) {
       root.addChild(createText("No Lifegraph decision is available.", {
@@ -582,29 +666,30 @@ export function createVassalNodeDecisionModalView({
   }
 
   return {
-    init: () => {}, update: () => render(), refresh: () => render(true), resize: () => render(true),
-    open, close, isOpen: () => root.visible, getOpenNodeId: () => openNodeId,
-    getEnterNodeClickPoint: () => root.visible && enterRoot?.toGlobal
+    init: () => {}, update: () => { advanceMotion(); render(); },
+    refresh: () => render(true), resize: () => render(true),
+    open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
+    getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal
       ? enterRoot.toGlobal(new PIXI.Point(enterRoot.hitArea.width / 2, enterRoot.hitArea.height / 2)) : null,
     getOptionClickPoint(index = 0) {
-      if (!root.visible) return null;
+      if (!logicalOpen) return null;
       const target = optionRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
     },
     getOfferClickPoint(index = 0) {
-      if (!root.visible) return null;
+      if (!logicalOpen) return null;
       const target = offerRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
     },
     getConfirmClickPoint: () => {
-      if (!root.visible || !confirmRoot) return null;
+      if (!logicalOpen || !confirmRoot) return null;
       const rect = confirmRoot.getBounds();
       return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     },
     getUndoClickPoint(index = 0) {
-      if (!root.visible) return null;
+      if (!logicalOpen) return null;
       const target = undoRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - 24));
       return point ? { x: point.x, y: point.y } : null;
@@ -619,7 +704,12 @@ export function createVassalNodeDecisionModalView({
         previewOptionId, previewOfferId,
       });
       return {
-        open: root.visible, nodeId: openNodeId,
+        open: logicalOpen, nodeId: openNodeId,
+        animation: {
+          phase: motion ? logicalOpen ? "opening" : "closing" : logicalOpen ? "open" : "closed",
+          origin: motionOrigin,
+          rect: motionRect,
+        },
         inspectedCardId: pinnedInspectionId,
         inspectionRect: inspectionRoot?.getBounds?.()??null,
         tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+construction().height-tableau.practiceY},
@@ -643,7 +733,7 @@ export function createVassalNodeDecisionModalView({
       };
     },
     getHudDeltas() {
-      if (!root.visible) return null;
+      if (!logicalOpen) return null;
       const decision = getDecisionPresentation?.(openNodeId, {
         previewOptionId, previewOfferId,
       });

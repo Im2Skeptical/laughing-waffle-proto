@@ -271,7 +271,7 @@ function setWorldViewMode(mode) {
   prototypeView?.setVisible?.(settlementVisible);
   worldMapView?.setVisible?.(!settlementVisible && !lifeMapVisible);
   vassalLifeMapView?.setVisible?.(lifeMapVisible);
-  if (!lifeMapVisible) vassalNodeDecisionModalView?.close?.();
+  if (!lifeMapVisible) vassalNodeDecisionModalView?.close?.({ immediate: true });
   setSettlementGraphContext(
     settlementVisible ? "settlement" : "civilization",
     selectedWorldRegionId
@@ -1053,9 +1053,9 @@ vassalLifeMapView = createVassalLifeMapView({
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
   onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
-  onOpenDecision: (nodeId) => {
+  onOpenDecision: (nodeId, nodePoint) => {
     tooltipView?.hide?.();
-    vassalNodeDecisionModalView?.open?.(nodeId);
+    vassalNodeDecisionModalView?.open?.(nodeId, nodePoint);
   },
 });
 vassalLifeMapView.setVisible(false);
