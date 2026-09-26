@@ -76,7 +76,7 @@ function drawTimeIcon(g, mode, color) {
     g.moveTo(0,-10).lineTo(0,0).lineTo(8,5);
     g.beginFill(color).drawCircle(0,0,2.5).endFill();
   } else {
-    const direction = mode === 'history' ? -1 : 1;
+    const direction = mode === 'history' ? 1 : -1;
     g.moveTo(-9*direction,0).lineTo(9*direction,0)
       .moveTo(2*direction,-7).lineTo(9*direction,0).lineTo(2*direction,7);
   }

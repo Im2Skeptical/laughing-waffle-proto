@@ -232,7 +232,7 @@ try {
   await clickPoint(nodePoint);
   await waitDecisionReady();
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
-  await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0));
+  await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0), { touch: true });
   const draft = await snapshot();
   assert.ok(draft.decision.selectedOptionId, 'the fixture stages a node decision');
   const confirmPoint = await controlPoint('getLifeMapConfirmClickPoint');
