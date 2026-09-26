@@ -228,6 +228,16 @@ try {
   assert.ok(draft.decision.selectedOptionId, 'the fixture stages a node decision');
   const confirmPoint = await controlPoint('getLifeMapConfirmClickPoint');
   const lever = await controlPoint('getTimeLeverScreenRect');
+  const canvas = await page.locator('canvas').boundingBox();
+  const confirmX = canvas.x + confirmPoint.x / 2424 * canvas.width;
+  const confirmY = canvas.y + confirmPoint.y / 1080 * canvas.height;
+  await page.mouse.move(confirmX, confirmY);
+  await page.screenshot({ path: `${OUTPUT}/confirm-hover-1280x800.png` });
+  await page.mouse.down();
+  await page.screenshot({ path: `${OUTPUT}/confirm-pressed-1280x800.png` });
+  await page.mouse.move(canvas.x + (confirmPoint.x - 188) / 2424 * canvas.width, confirmY);
+  await page.mouse.up();
+  assert.equal((await snapshot()).decision.open, true, 'sliding off Confirm cancels the press');
   const playbackBeforeMiss = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget);
   await clickPoint({ x: confirmPoint.x - 188, y: confirmPoint.y });
   assert.equal((await snapshot()).decision.open, true, 'a miss beside Confirm keeps the node decision open');

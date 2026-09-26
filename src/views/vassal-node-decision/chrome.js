@@ -2,6 +2,7 @@
 
 import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
+import { dockPadContour, drawDockCheckIcon, paintDockPadFace } from "../settlement-dock-style.js";
 import { CONFIRM_DOCK, PANEL, TITLE_PLAQUE } from "./constants.js";
 
 export function titlePlaqueRect() {
@@ -42,47 +43,55 @@ export function confirmDockRect(app) {
   };
 }
 
-export function confirmDockButton(parent, app, { enabled, label, onClick } = {}) {
+export function confirmDockButton(parent, app, { enabled, label, onClick, showCheck = true } = {}) {
   const rect = confirmDockRect(app);
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
   root.eventMode = "static";
   root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  const radius = rect.height / 2;
+  const contour = dockPadContour(rect.width, rect.height, "whole");
+  root.hitArea = new PIXI.Polygon(contour);
   const bg = new PIXI.Graphics();
-  const fill = enabled ? 0x405a3c : 0x3a4a3c;
-  const hoverFill = 0x527249;
-  const rim = enabled ? PALETTE.accent : PALETTE.stroke;
-  function paint(hovered = false, pressed = false) {
-    bg.clear();
-    const color = enabled ? (hovered ? hoverFill : fill) : fill;
-    bg.beginFill(0x090c0d, 0.72)
-      .drawRoundedRect(5, 7, rect.width - 4, rect.height - 4, radius)
-      .endFill();
-    bg.lineStyle(4, rim, enabled ? 1 : 0.4)
-      .beginFill(color, enabled ? 1 : 0.55)
-      .drawRoundedRect(0, pressed ? 4 : 0, rect.width, rect.height, radius)
-      .endFill();
+  const icon = new PIXI.Graphics();
+  const title = new PIXI.Text(label ?? "Confirm", {
+    fontFamily: "Georgia", fontSize: 32, fontWeight: "bold", fill: 0xdce8c5,
+  });
+  title.anchor.set(0.5);
+  const colors = {
+    fill: 0x405a3c, hoverFill: 0x527249, ink: 0xdce8c5, rim: 0x9ab681,
+  };
+  let hovered = false;
+  let pressed = false;
+  function paint() {
+    paintDockPadFace(bg, {
+      width: rect.width, height: rect.height, contour, colors,
+      hovered: hovered && enabled, pressed: pressed && enabled,
+    });
+    root.alpha = enabled ? 1 : 0.55;
+    const offset = pressed ? 3 : 0;
+    icon.position.set(rect.width / 2, rect.height * 0.38 + offset);
+    title.position.set(rect.width / 2, rect.height * (showCheck ? 0.72 : 0.5) + offset);
   }
+  drawDockCheckIcon(icon, colors.ink);
+  icon.scale.set(1.75);
+  icon.visible = showCheck;
+  root.addChild(bg, icon, title);
   paint();
-  root.addChild(bg, createText(label ?? "Confirm", {
-    ...TEXT_STYLES.title, fontSize: 42,
-    fill: enabled ? 0xf6fff6 : PALETTE.textMuted,
-  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   root.on("pointertap", (event) => {
     event?.stopPropagation?.();
     if (enabled) onClick?.();
   });
-  root.on("pointerover", () => { if (enabled) paint(true); });
-  root.on("pointerout", () => paint(false));
+  root.on("pointerover", () => { hovered = true; paint(); });
+  root.on("pointerout", () => { hovered = false; pressed = false; paint(); });
   root.on("pointerdown", (event) => {
     event?.stopPropagation?.();
-    if (enabled) paint(true, true);
+    pressed = enabled;
+    paint();
   });
-  root.on("pointerup", () => { if (enabled) paint(true); });
-  root.on("pointerupoutside", () => paint(false));
-  root.on("pointercancel", () => paint(false));
+  const release = () => { pressed = false; paint(); };
+  root.on("pointerup", release);
+  root.on("pointerupoutside", release);
+  root.on("pointercancel", release);
   parent.addChild(root);
   return root;
 }
