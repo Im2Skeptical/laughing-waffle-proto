@@ -588,7 +588,7 @@ export function createVassalNodeDecisionModalView({
         width: MORTALITY_PLATE.width, height: MORTALITY_PLATE.height,
       }, canConfirm);
     }
-    if (node.family === "relic" && nodeState && !nodeState.resolving) {
+    if (!readOnly && node.family === "relic" && nodeState && !nodeState.resolving) {
       const selected = nodeState.options?.find((option) => option.id === nodeState.selectedOptionId);
       const heirlooms = decision?.heirlooms ?? { equipped: [], carry: [] };
       const canAcquire = canConfirm && !!selected && !selected.emptyRelic;
@@ -623,18 +623,17 @@ export function createVassalNodeDecisionModalView({
       confirmRoot = button(root, {
         x: confirmRect.x, y: confirmRect.y + 104, width: confirmRect.width, height: 48,
       }, "DECLINE", canConfirm, () => confirmRelic({ destination: "decline" }));
-    } else {
+    } else if (!readOnly) {
       confirmRoot = confirmDockButton(root, app, {
         enabled: canConfirm,
-        label: readOnly ? "Read-only" : "Confirm",
-        showCheck: !readOnly,
+        label: "Confirm",
+        showCheck: true,
         onClick: () => {
           const result = onConfirmNode?.(node.id);
           if (result?.ok !== false) close();
         },
       });
     }
-    explainReadOnly(confirmRoot, readOnly);
     const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(pinnedInspectionId??previewOfferId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(

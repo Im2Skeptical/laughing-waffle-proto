@@ -331,6 +331,8 @@ try {
   await clickPoint(await controlPoint('getLifeMapNodeClickPoint', nodeId));
   s = await snapshot();
   assert.equal(s.decision.open, true, 'a committed node still opens the decision modal');
+  assert.equal(await controlPoint('getLifeMapConfirmClickPoint'), null,
+    'historical decisions show no bottom-right confirmation control');
   assert.ok(s.navigation.feedbackCount >= feedbackCount, 'the time lock remains explained');
   assert.deepEqual(s.timeline, history.timeline, 'a historical entry attempt cannot edit history');
   assert.deepEqual(s.lineage, history.lineage);
