@@ -347,7 +347,6 @@ export function createMetricGraphView({
   }
 
   const root = new PIXI.Container();
-  root.scale.set(displayScale);
   root.visible = false;
   layer.addChild(root);
   const solidHitArea = installSolidUiHitArea(root, () => {
@@ -362,6 +361,12 @@ export function createMetricGraphView({
 
   const WIN_W = Number.isFinite(windowWidth) ? Math.max(320, Math.floor(windowWidth)) : 1200;
   const WIN_H = Number.isFinite(windowHeight) ? Math.max(120, Math.floor(windowHeight)) : 176;
+  // Artwork, ink, labels and hit targets share the atlas's design coordinates.
+  // Resize the complete assembly; resizing only its illustration separates them.
+  root.scale.set(
+    displayScale * WIN_W / TIMEGRAPH_CHROME.width,
+    displayScale * WIN_H / TIMEGRAPH_CHROME.height
+  );
   const HEADER_H = Number.isFinite(headerHeight)
     ? Math.max(24, Math.min(WIN_H - 24, Math.floor(headerHeight)))
     : 38;
@@ -396,7 +401,7 @@ export function createMetricGraphView({
   const headerUi = createWindowHeader({
     stage: app?.stage,
     parent: root,
-    width: WIN_W,
+    width: TIMEGRAPH_CHROME.width,
     height: HEADER_H,
     radius: 14,
     background: TIMEGRAPH_THEME.panelHeaderBg,
@@ -408,7 +413,7 @@ export function createMetricGraphView({
   });
 
   headerUi.bg.visible = false;
-  const scroll = createTimegraphScroll({ root, width: WIN_W, height: WIN_H, headerHeight: HEADER_H,
+  const scroll = createTimegraphScroll({ root,
     getActiveGroups: getActiveSeriesGroups, onToggleGroup: onToggleSeriesGroup, onKeyPage: setLegendPage });
 
   const focusRect = graphLayout.controls.focus;
@@ -1096,7 +1101,7 @@ export function createMetricGraphView({
   }
 
   function drawWindow() {
-    headerUi.setWidth(WIN_W);
+    headerUi.setWidth(TIMEGRAPH_CHROME.width);
 
     plotHit.clear();
     plotHit.beginFill(0xffffff);

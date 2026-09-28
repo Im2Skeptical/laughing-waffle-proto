@@ -4,6 +4,7 @@ import { getArtRevision, getChronicleTexture } from "./chronicle-art.js";
 
 // Fixed design-space measurements follow the painted recesses in the atlas.
 export const TIMEGRAPH_CHROME = Object.freeze({
+  width: 1700, height: 258,
   headerHeight: 42, iconSize: 28, keyRows: 4, keyCapacity: 8,
 });
 const ASSEMBLY_FRAME = Object.freeze({ x: 0, y: 108, width: 2172, height: 504 });
@@ -97,7 +98,7 @@ export function drawTimegraphGlyph(g, seriesId, color) {
   }
 }
 
-export function createTimegraphScroll({ root, width, height, onToggleGroup, getActiveGroups, onKeyPage }) {
+export function createTimegraphScroll({ root, onToggleGroup, getActiveGroups, onKeyPage }) {
   const backing = new PIXI.Container();
   backing.eventMode = "none";
   root.addChildAt(backing, 0);
@@ -112,8 +113,8 @@ export function createTimegraphScroll({ root, width, height, onToggleGroup, getA
     illustrationRevision = getArtRevision();
     const { x, y, width: frameWidth, height: frameHeight } = ASSEMBLY_FRAME;
     illustration.texture = new PIXI.Texture(atlas.baseTexture, new PIXI.Rectangle(x, y, frameWidth, frameHeight));
-    illustration.width = width;
-    illustration.height = height;
+    illustration.width = TIMEGRAPH_CHROME.width;
+    illustration.height = TIMEGRAPH_CHROME.height;
   };
   mountIllustration();
 
