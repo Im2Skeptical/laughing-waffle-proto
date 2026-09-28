@@ -17,9 +17,28 @@ import { canonicalizeSnapshot } from '../canonicalize.js';
 import { stockTraits, specialistCount } from '../detailed-settlements/stock.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
 import { projectPracticeDraft } from '../practice-draft.js';
-import { createLabFixture, practiceSlot } from '../dev-lab/fixtures.js';
+import { createLabFixture, practiceSlot, setFixturePopulation } from '../dev-lab/fixtures.js';
 
 const slot=practiceSlot;
+// The badge's x1 / x2 / x4 progression is real production, before storage caps.
+const staffedState=createNewGameState(73),staffedSite=getDetailedSettlementSites(staffedState,{playerOnly:true})[0];
+const staffedSettlement=staffedSite.detailedState;
+staffedSettlement.practiceSlots=[slot('forage'),...Array(4).fill(null)];
+staffedSettlement.structureSlots=staffedSettlement.structureSlots.map(()=>null);
+const staffedDef=getDetailedPracticeDef(staffedState,'forage');
+assert.equal(staffedDef.workerBonus,1);
+staffedDef.workerCapacity=3;staffedDef.stockCapacity=20;
+for(const [population,expected] of [[0,1],[10,2],[30,4]]) {
+  setFixturePopulation(staffedSettlement,population);
+  staffedSettlement.practiceSlots[0].stock=0;
+  const assignment=assignDetailedSettlementWorkers(staffedState,staffedSite.regionId)[0];
+  assert.equal(buildDetailedPracticeEvaluation(staffedState,staffedSite,assignment).effects[0].scaledValue.workerMultiplier,expected);
+  runPracticeActivation(staffedState,'food','preRouting');
+  assert.equal(staffedSettlement.practiceSlots[0].stock,expected,`${population/10} full workers produce base x${expected}`);
+}
+staffedDef.stockCapacity=2;staffedSettlement.practiceSlots[0].stock=0;
+runPracticeActivation(staffedState,'food','preRouting');
+assert.equal(staffedSettlement.practiceSlots[0].stock,2,'Worker yield still obeys hosted Stock capacity');
 const state=createNewGameState(42), site=getDetailedSettlementSites(state,{playerOnly:true})[0], settlement=site.detailedState;
 assert.equal(state.world.sites.filter(s=>s.neutral).length,4);
 for (const site of state.world.sites) {

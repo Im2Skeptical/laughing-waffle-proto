@@ -11,6 +11,7 @@ The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and let
 - Region polygons and roads still come from the world definition. Terrain is clipped to those polygons; no authored map image determines geography.
 - Hamlet smoke, braziers, dust, and transfer packets follow the viewed timeline.
 - Gamepieces use illustrated cards. Small slots use thumbnails; tap or hover reveals their information. Choice-card art opens an inspection, while its footer stages or chooses. The separate confirmation step remains authoritative.
+- Piece faces use a narrow nine-sliced brass rim. Stock traits and current/capacity share a top-right tray; base yields, trigger medallion, input sockets and worker multiplier occupy only the bottom area they need. Seasonal yields and worker sockets grow upward, stock trays grow leftward and wrap, and input groups wrap independently. Consume sockets use a minus; non-consuming requirements use a diamond. Names and full rules remain in inspection. Worker multipliers use effective worker strength; base yields do not replace authoritative evaluated output.
 - Long descriptions can be dragged or scrolled inside the inspection panel. The mortality estimate and confirmation controls remain visible.
 - Lifegraph geometry is spaced for readability in the view without changing serialized nodes, edges, availability, or outcomes.
 - Portrait art is assigned deterministically from the existing serialized portrait traits. Eight portrait archetypes are reused; every individual trait is not separately painted.
@@ -74,6 +75,7 @@ The current library contains thirty-six paintings, including a distinct illustra
 - Solar/lunar discs and phase reference: `src/views/sunandmoon-disks-pixi.js`, `src/views/moon-phase-reference-pixi.js`
 - Asset loading, atlas regions, aspect-preserving crops: `src/views/chronicle-art.js`
 - Gamepiece cards and readable inspection: `src/views/settlement-piece-pixi.js`, `src/views/chronicle-inspection.js`
+- Card material, stock trays, input sockets, yield stacks and worker docks: `src/views/piece-face-chrome.js`; catalogue bounds and visual review: `node scripts/card-layout-browser-probe.mjs`.
 - Map information: `src/views/chronicle-world-panels.js`
 - Sprite and particle sampling: `src/views/chronicle-effects-pixi.js`, `src/views/timeline-presentation.js`
 - Audio transport: `src/views/timeline-audio.js`
