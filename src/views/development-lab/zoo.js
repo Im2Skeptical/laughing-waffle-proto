@@ -52,7 +52,7 @@ export function createZooView({controller,cards,run}) {
         panel.append(details('Complete runtime definition',e.def)); parent.append(panel);
       }
     }
-    const grid = el('div','','lab-card-grid');
+    const grid = el('div','','lab-card-grid lab-catalogue-grid');
     for (const e of matches.slice(page*pageSize,(page+1)*pageSize)) {
       const inspect = ()=>run(()=>{selected=`${e.category}:${e.id}`;});
       if (['practice','structure'].includes(e.category)) {
@@ -64,7 +64,7 @@ export function createZooView({controller,cards,run}) {
       else {
         const item = section(e.label,el('p',e.def.description ?? e.def.rule ?? e.pool ?? 'Runtime template'));
         if (e.category === 'neutral') item.append(el('p',`Installed (5 max): ${e.def.installedPractices.join(', ')}. Omitted by runtime: ${e.def.omittedPractices.join(', ') || 'none'}.`));
-        item.append(details('Runtime data',e.def)); grid.append(item);
+        item.classList.add('lab-specimen'); item.append(details('Runtime data',e.def)); grid.append(item);
       }
     }
     parent.append(grid);

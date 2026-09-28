@@ -15,6 +15,8 @@ type. Search covers IDs, names, rules, and definition data. Filters cover catego
 Common/Scholar/Warrior, minimum maturity, Card Tags, Stock Traits, and footprint.
 
 Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
+Catalogue specimens use equal-size frames, including wide Structures; card art
+keeps its original proportions within a fixed image area.
 Comparison shows four Practice qualities or four Structure quality uplifts,
 capacity, timing, DSL effects, Consume/Require, gates, modifiers, and stacking.
 Zoo samples have no workers or institutions; Museum/Gym faces use the complete
@@ -46,9 +48,35 @@ selection, not a visual mirror of every automated test.
 
 ## Sandbox
 
+Museum and Gym share the real game map, timegraph and sun/moon wheels. Click any
+region to inspect it; a settlement selection updates its tableau and local graph.
+Toggle terrain, scenery, connections, workers, Structures, actors and alerts
+independently. Switch graph scope to the whole civilization, use the graph's
+resource/population/Chaos groups, or choose individual series.
+
+Forecast span defaults to 60 seconds and accepts 1–3600 seconds from the current
+branch start. It never automatically runs to extinction. Drag the graph or either
+wheel, type an exact second, or use the phase/moon/year steps. Explicit step buttons
+extend the span when needed. Earlier-than-origin browsing clamps to the branch
+start. Edits start a new deterministic branch at the viewed second and regenerate
+only the chosen span. Reset still restores the loaded/saved fixture, including RNG.
+
+Practice and Structure selection uses searchable visual pickers with class, tag,
+trait and footprint filters. Practice handles support mouse/touch dragging and
+Alt+Left/Right keyboard ordering; moving a slot inserts it and shifts intervening
+slots, preserving exactly five. Population, specialists, Vassal stats, Chaos,
+quality and Stock apply on change/blur. Invalid edits report an error and preserve
+the previous state and timeline. Spawn/remove/resolve actions remain explicit.
+
+**Save to Museum** captures the currently viewed Gym state as a named exhibit.
+**Save and open in Museum** also switches to it immediately. Saved exhibits appear
+in the Museum's fixture selector and survive refresh. Saving an existing name
+replaces that exhibit. Storage is local to this browser; JSON export/import is
+available for sharing between devices.
+
 Gym supports settlement/fixture selection; explicit adult-cohort population,
 Scholar and Warrior setup; Prestige, Ingenuity, Prowess and Chaos; Practice
-install/remove/swap, quality and hosted Stock; Structure add/remove/quality;
+install/remove/reorder, quality and hosted Stock; Structure add/remove/quality;
 neutral-template spawning, road connection, Monster spawn/remove/age/defense,
 and ruins; candidate generation/selection; Crisis inspection and class-effect
 experiments; deterministic stepping/reset; named browser fixtures; JSON

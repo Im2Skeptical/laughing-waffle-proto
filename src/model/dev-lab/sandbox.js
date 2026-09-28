@@ -43,7 +43,8 @@ export function editLabState(source, regionId, edit) {
     }
     case 'move': {
       const from = integer(p.from,'From',4), to = integer(p.to,'To',4);
-      [local.practiceSlots[from],local.practiceSlots[to]] = [local.practiceSlots[to],local.practiceSlots[from]];
+      const [moved] = local.practiceSlots.splice(from,1);
+      local.practiceSlots.splice(to,0,moved);
       break;
     }
     case 'structure': {
