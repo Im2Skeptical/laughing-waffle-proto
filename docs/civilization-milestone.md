@@ -84,7 +84,9 @@ human playtest work.
   workbook retirement, Development or reactive clause is implemented.
 - Common and class purchases use a flat first-pass 10 Prestige / 12 phases. Existing
   Research thresholds gate maturity; Discovery grants the next shop one higher maturity.
-  Ordinary worker bonus is 25%, rounded down at the integer Stock output boundary.
+  Worker bonus is +100% per effective worker (base ?1, one full worker ?2,
+  three ?4), rounded down at the integer Stock output boundary. Worker effectiveness
+  and existing Stock capacity limits still apply. This supersedes the provisional 25% bonus.
 - Scholar founding trains two adult Scholars; Warrior founding trains ten adults, both
   costing six phases. Ingenuity uplift chance is 5% per point, capped at 75%, with no
   price increase. Commission rewards 20 Prestige for one new Practice/Structure.

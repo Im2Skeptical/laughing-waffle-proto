@@ -25,15 +25,16 @@ try {
     const app=new PIXI.Application({width:1280,height:1120,backgroundColor:0x0b1513});document.body.append(app.view);
     const clock={tSec:17,seasonDurationSec:8};
     // First render requests the lazy paintings; render again after their atlas loads.
-    addSettlementPiece(app.stage,{x:0,y:0,width:170,height:238},{face:getGamepieceFace(clock,'practice','cultivate')});
-    await PIXI.Assets.load('images/sprite-sheets/settlement-pieces.json');
+    addSettlementPiece(app.stage,{x:0,y:0,width:170,height:238},{face:getGamepieceFace(clock,'practice','dryFarming')});
+    await PIXI.Assets.load('images/sprite-sheets/settlement-pieces-0.json');
+    await PIXI.Assets.load('images/sprite-sheets/settlement-pieces-1.json');
     await new Promise(resolve=>setTimeout(resolve,100));app.stage.removeChildren();
     const spinnerChecks=[];
     for(const [index,fill] of [0,.25,.75,1].entries()) {
-      const face={...getGamepieceFace(clock,'practice',index>1?'marketFeast':'cultivate'),fill,activationAge:index===3?0:null};
+      const face={...getGamepieceFace(clock,'practice',index>1?'forage':'dryFarming'),fill,activationAge:index===3?0:null};
       const card=addSettlementPiece(app.stage,{x:20+index*180,y:24,width:170,height:238},{face});
-      const spinner=card.children.find(node=>node.texture===getResourceTexture('solar-wheel'));
-      spinnerChecks.push(index<2?!!spinner&&Math.abs(spinner.rotation-fill*Math.PI*2)<.001:!spinner);
+      const spinner=card.children.find(node=>node.texture===getResourceTexture(index<2?'solar-wheel':'moon-wheel'));
+      spinnerChecks.push(!!spinner&&Math.abs(spinner.rotation-fill*Math.PI*2)<.001);
     }
     const costs=[];
     for(const [i,width,height,prestigeCost] of [[0,220,80,0],[1,220,160,123],[2,340,160,12345]]) {
@@ -46,9 +47,9 @@ try {
     const warnings=[];
     const region=new PIXI.Container();app.stage.addChild(region);
     addRegionPanelContent(region,{x:20,y:490,width:928,height:588},{region:{colour:'green',controller:'player'},reference:'01',name:'Warning layout',tooltipView:{show:spec=>warnings.push(spec.title),hide:()=>{},pin:spec=>warnings.push(spec.title)},vm:{
-      population:{total:80,housingCapacity:35,mealDemand:90},storedFood:20,looseFood:5,storedFoodCapacity:20,currency:120,
+      population:{total:80,housingCapacity:35,mealDemand:90},specialists:{scholar:0,warrior:0},martialSupport:0,storedFood:20,looseFood:5,storedFoodCapacity:20,currency:120,
       pressure:{starvation:true,overcrowding:true,housingOverflow:45,unfedMealDemand:12,starvationMigrants:4},
-      practices:['cultivate','exchange','marketFeast','forage','raiseHouses'].map(practiceId=>({practiceId,face:getGamepieceFace(clock,'practice',practiceId)})),
+      practices:['dryFarming','barter','forage','forage','housebuilding'].map(practiceId=>({practiceId,face:getGamepieceFace(clock,'practice',practiceId)})),
       structures:[{origin:0,width:1,face:getGamepieceFace(clock,'structure','granary')}],usedStructureCapacity:1,structureCapacity:5,
     }});
     const walk=node=>[node,...(node.children??[]).flatMap(walk)];
@@ -57,7 +58,7 @@ try {
       const number=icon.parent.children.find(node=>node instanceof PIXI.Text);
       return number&&Math.abs(number.x-icon.width/2)<.01&&Math.abs(number.y-icon.height/2)<.01&&number.width<=icon.width*.65;
     });
-    const nodes=walk(region),heading=nodes.find(node=>node.text==='PRACTICES');
+    const nodes=walk(region),heading=nodes.find(node=>node.text?.startsWith('PRACTICES'));
     for(const node of nodes.filter(node=>node.cursor==='help'))node.emit('pointerover',{stopPropagation(){}});
     const warningBottom=Math.max(...nodes.filter(node=>node.cursor==='help').map(node=>node.getBounds().bottom));
     app.renderer.render(app.stage);
@@ -70,10 +71,10 @@ try {
   assert.ok(results.textureReady,'Cost-frame texture loaded');
   assert.ok(results.iconFirst,'Prestige icon precedes the number');
   assert.ok(results.headingClear,'Practices heading clears warning glyphs');
-  assert.ok(results.spinnerChecks.every(Boolean),'Scheduled cards retain rotating discs; charge cards have none');
+  assert.ok(results.spinnerChecks.every(Boolean),'Seasonal and lunar cards retain their rotating discs');
   assert.ok(results.numbersCentered,'Each time denomination contains its number in the center');
   assert.deepEqual(results.warnings,['Overcrowded','Starving']);
-  for(const [x,y,title] of [[80,582,'Population / Housing'],[312,583,'Overcrowded'],[80,582,'Population / Housing'],[380,582,'Food / Storage'],[607,583,'Starving'],[700,582,'Money']]){
+  for(const [x,y,title] of [[80,582,'Population / Housing'],[312,583,'Overcrowded'],[80,582,'Population / Housing'],[380,582,'Hosted Edible Stock'],[607,583,'Starving'],[700,582,'Hosted Currency Stock']]){
     await page.mouse.move(x,y);
     await page.waitForFunction(title=>globalThis.feedbackTitles.at(-1)===title,title,{timeout:3000});
   }
@@ -84,8 +85,8 @@ try {
     const {getGamepieceFace}=await import('/src/model/gamepiece-presentation.js');
     const app=globalThis.feedbackApp;app.stage.removeChildren();
     const cards=[];
-    const titles=['Upgrade Cultivate Bronze → Silver','Upgrade Forage Bronze → Silver','Learn Bronze Caravanserai'];
-    for(const [index,kind,id] of [[0,'practice','cultivate'],[1,'structure','granary'],[2,'structure','caravanserai']]){
+    const titles=['Upgrade Dry Farming Bronze → Silver','Upgrade Forage Bronze → Silver','Learn Silver Library'];
+    for(const [index,kind,id] of [[0,'practice','dryFarming'],[1,'structure','granary'],[2,'structure','library']]){
       cards.push(pieceOfferCard(app.stage,{x:24+index*360,y:24,width:338,height:280},{title:titles[index],presentation:getGamepieceFace({},kind,id),cost:{phaseCost:721,prestigeCost:18},enabled:true}));
       cards.push(outcomeCard(app.stage,{x:24+index*360,y:510,width:338,height:280},{title:'Development',effect:'+2 Wisdom · -1 Cunning',cost:{phaseCost:721,prestigeCost:18},enabled:true}));
     }
