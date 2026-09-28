@@ -1,13 +1,14 @@
 # Current UI
 
-Scheduled Practice readiness combines a visible spinning sun/moon rim with an
-inset circular fill. Charge Practices use only a source icon and teal reservoir.
-Output badges glow at the viewed activation boundary, including
-charge reactions recorded in the snapshot. Reduced motion suppresses the glow.
-Regional resource cells retain a separate Practices heading and highlight housing
-overflow, loose Food, shortages, and starvation with hover/tap warning glyphs.
-Regional panels sit at the right edge with 168×235 Practice cards. Resource
-subheadings and the Open settlement button are omitted; the dock owns entry.
+Practice faces show hosted Stock count/capacity and Trait glyphs; inspections
+list the live Consume/Require providers and unmet input. Food and Currency
+summaries are read-only Trait totals. The regional panel lays twelve Practices
+out in two rows; the purchase tableau pages five at a time. Population/Housing,
+specialist counts and the last defense outcome remain explicit.
+Scheduled readiness uses the existing time rim. Inspection supports hover and
+touch; generic art is reused for new content with distinct names and rules.
+Warrior status displays Retinue, cap and next Prestige threshold. Scholar status
+shows the active Commission. Class stat labels are Ingenuity and Prowess.
 Structure rows are centered and use the same eight-cell pitch across regions.
 Time costs use purpose-drawn sun, crescent, and lunar-phase icons with numbers
 fully inside matched blank centers. Small pips separate the denominations;
@@ -28,8 +29,7 @@ Authoritative UI behavior. Engine invariants and schema numbers:
 contract: `ai/visual-overhaul.md`.
 
 - Main screens share a fixed-landscape dark stone/brass frame, pixel-art terrain,
-  illustrated gamepiece cards with distinct art for all current Practices and
-  Structures, and an engraved astrolabe. New presentation
+  illustrated gamepiece cards with labeled art fallbacks for the expanded pool, and an engraved astrolabe. New presentation
   modules sample viewed timeline time for hamlet/fire sprites, dust, transfer
   packets, and optional reversible ambient audio. Fractional presentation time
   never substitutes for a missing authoritative snapshot.

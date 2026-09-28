@@ -342,7 +342,7 @@ export function createMapLabDom({ controller } = {}) {
       const warning = element(
         "p",
         "map-lab-controller-warning",
-        "This detailed settlement is not player controlled. Player practices such as Forage, Cultivate, and Administration will not produce or route resources until its Controller is set to player."
+        "This settlement is not player controlled. External settlements run hosted Stock production and meals; frontier settlements are inactive. Authored neutral templates keep fixed demographics."
       );
       warning.dataset.testid = "map-lab-nonplayer-detailed-warning";
       mechanics.append(warning);
@@ -384,16 +384,7 @@ export function createMapLabDom({ controller } = {}) {
     }
     const state = region.detailedState;
     detail.append(element("h3", "", "Detailed settlement"));
-    const foodFields = element("div", "map-lab-grid");
-    foodFields.append(
-      labelled("Stored food", numberField(state.storedFood, "map-lab-stored-food",
-        (storedFood) => controller.updateDetailedState(region.id, { storedFood }), { step: 0.0001 })),
-        labelled("Loose food", numberField(state.looseFood, "map-lab-loose-food",
-          (looseFood) => controller.updateDetailedState(region.id, { looseFood }), { step: 0.0001 })),
-        labelled("Currency", numberField(state.currency, "map-lab-currency",
-          (currency) => controller.updateDetailedState(region.id, { currency }), { step: 0.0001 }))
-    );
-    detail.append(foodFields);
+    detail.append(element("p", "", "Food and Currency are hosted Stock. Edit each Practice below."));
 
     for (const classId of ["villager", "stranger"]) {
       const cohort = state.populationByClass[classId];
@@ -439,6 +430,7 @@ export function createMapLabDom({ controller } = {}) {
       practices.append(selectField(practiceOptions, slot?.practiceId ?? "",
         `map-lab-practice-slot-${index}`, (practiceId) =>
           controller.setPracticeSlot(region.id, index, practiceId || null)));
+      if (slot) practices.append(numberField(slot.stock ?? 0, `map-lab-stock-${index}`, stock => controller.updateDetailedState(region.id, {practiceSlots: state.practiceSlots.map((p,i)=>i===index?{...p,stock}:p)}), { min:0, step:1 }));
     });
     detail.append(practices, element("h4", "", "Structures"));
     const structures = element("div", "map-lab-slots");

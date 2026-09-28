@@ -59,7 +59,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 22);
+assert.equal(state.gameStateSchemaVersion, 23);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -91,11 +91,11 @@ assert.deepEqual(
     structures: site.detailedState.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null),
   })),
   [
-    { regionId: "cedar-woods", adults: 20, practices: ["forage", null, null, null, null], structures: ["granary", "mudHouses"] },
+    { regionId: "cedar-woods", adults: 20, practices: ["forage", ...Array(11).fill(null)], structures: ["granary", "mudHouses"] },
     ...["west-levee", "upper-floodplain", "river-crown", "lake-country"].map((regionId) => ({
       regionId,
       adults: 20,
-      practices: ["cultivate", "administrate", null, null, null],
+      practices: ["forage", ...Array(11).fill(null)],
       structures: ["granary", "mudHouses"],
     })),
   ],
@@ -113,12 +113,8 @@ for (const site of getDetailedSettlementSites(state)) {
   const view = getDetailedSettlementViewModel(state, site.regionId);
   assert.equal(view.elderOrder.resistance, 13);
   assert.equal(view.usedStructureCapacity, 2);
-  assert.equal(view.storedFood, 60);
-  assert.deepEqual(view.workerPool, site.regionId === "cedar-woods" ? {
-    availableWorkerCount: 2,
-    activeWorkerCount: 1,
-    unusedWorkerCount: 1,
-  } : {
+  assert.equal(view.storedFood, 2);
+  assert.deepEqual(view.workerPool, {
     availableWorkerCount: 2,
     activeWorkerCount: 2,
     unusedWorkerCount: 0,
@@ -240,25 +236,25 @@ const transferTimeline = createTimelineFromInitialState(
 );
 const preTransferBoundary = rebuildStateAtSecond(transferTimeline, 13);
 assert.equal(preTransferBoundary.ok, true);
-getDetailedSettlement(preTransferBoundary.state, "cedar-woods").looseFood = 500;
+getDetailedSettlement(preTransferBoundary.state, "cedar-woods").practiceSlots[0].stock = 5;
 for (const regionId of ["west-levee", "upper-floodplain", "river-crown", "lake-country"]) {
   const settlement = getDetailedSettlement(preTransferBoundary.state, regionId);
-  settlement.storedFood = 0;
-  settlement.looseFood = 0;
+  settlement.practiceSlots[0].stock = 0;
+
 }
 const preTransferStateData = serializeGameState(preTransferBoundary.state);
 const transferBatch = buildEdgeTransferBatchAtBoundary(
   preTransferBoundary.state,
   14
 );
-assert.ok(transferBatch.transfers.length > 0);
+assert.equal(transferBatch.transfers.length, 0, "Stock is not routed by legacy Administration");
 assert.deepEqual(
   serializeGameState(preTransferBoundary.state),
   preTransferStateData,
   "edge-transfer selection is pure"
 );
 for (const transfer of transferBatch.transfers) {
-  assert.equal(transfer.systemId, "administrate");
+  assert.equal(transfer.systemId, "migration");
   assert.equal(transfer.resourceId, "food");
   assert.ok(transfer.amount > 0);
   assert.equal(getRegionState(preTransferBoundary.state, transfer.sourceRegionId)?.controller,
@@ -350,15 +346,15 @@ assert.deepEqual(
     adults: 100,
     elders: 15,
     total: 115,
-    mealDemand: 115,
-    housingCapacity: 175,
+    mealDemand: 5,
+    housingCapacity: 150,
   }
 );
 assert.deepEqual(civilizationSummary.food, {
-  stored: 300,
+  stored: 10,
   loose: 0,
-  total: 300,
-  storedCapacity: 900,
+  total: 10,
+  storedCapacity: 25,
 });
 assert.equal(civilizationSummary.population.byClass.villager.total, 115);
 assert.equal(civilizationSummary.population.byClass.stranger.total, 0);
@@ -371,12 +367,12 @@ assert.equal(getDetailedCivilizationSummary(filteredState).settlementCount, 4);
 assert.equal(getDetailedCivilizationSummary(filteredState).population.total, 92);
 
 const roundedFoodState = deserializeGameState(serializeGameState(state));
-getDetailedSettlement(roundedFoodState, "cedar-woods").storedFood = 0.33336;
-getDetailedSettlement(roundedFoodState, "west-levee").storedFood = 0.33336;
-getDetailedSettlement(roundedFoodState, "upper-floodplain").storedFood = 0.33336;
-getDetailedSettlement(roundedFoodState, "river-crown").storedFood = 0;
-getDetailedSettlement(roundedFoodState, "lake-country").storedFood = 0;
-assert.equal(getDetailedCivilizationSummary(roundedFoodState).food.stored, 1.0001);
+getDetailedSettlement(roundedFoodState, "cedar-woods").practiceSlots[0].stock = 1;
+getDetailedSettlement(roundedFoodState, "west-levee").practiceSlots[0].stock = 1;
+getDetailedSettlement(roundedFoodState, "upper-floodplain").practiceSlots[0].stock = 1;
+getDetailedSettlement(roundedFoodState, "river-crown").practiceSlots[0].stock = 0;
+getDetailedSettlement(roundedFoodState, "lake-country").practiceSlots[0].stock = 0;
+assert.equal(getDetailedCivilizationSummary(roundedFoodState).food.stored, 3);
 
 const civilizationSeries = GRAPH_METRICS.civilization.getSeries(null, state);
 state.civilization.chaos.lastMoonIncome = {
@@ -427,19 +423,19 @@ assert.equal(
 );
 assert.match(
   localFoodTooltip.lines[0],
-  /stored, \d+ loose\)/
+  /Hosted|Edible/i
 );
 assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMode, "fixed");
-assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMax, 100);
-assert.equal(civilizationSeries.find((series) => series.id === "civilizationHousingCapacity").getValue(state), 175);
-assert.equal(localSeries.find((series) => series.id === "housingCapacity").getValue(state, { regionId: "cedar-woods" }), 35);
+assert.equal(civilizationSeries.find((series) => series.id === "monsterCount").scaleMax, 15);
+assert.equal(civilizationSeries.find((series) => series.id === "civilizationHousingCapacity").getValue(state), 150);
+assert.equal(localSeries.find((series) => series.id === "housingCapacity").getValue(state, { regionId: "cedar-woods" }), 30);
 const fundedState = deserializeGameState(serializeGameState(state));
-getDetailedSettlement(fundedState, "cedar-woods").currency = 17;
-getDetailedSettlement(fundedState, "river-crown").currency = 29;
+getDetailedSettlement(fundedState, "cedar-woods").practiceSlots[1] = {practiceId:"barter",tier:"bronze",stock:3};
+getDetailedSettlement(fundedState, "river-crown").practiceSlots[1] = {practiceId:"barter",tier:"bronze",stock:4};
 const fundedSummary = buildProjectionSummaryFromState(fundedState);
-assert.equal(civilizationSeries.find((series) => series.id === "gold").getValue(fundedState), 46,
+assert.equal(civilizationSeries.find((series) => series.id === "gold").getValue(fundedState), 7,
   "Gold sums actual settlement currency, independently of the obsolete global gold resource");
-assert.equal(localSeries.find((series) => series.id === "gold").getValue(fundedState, { regionId: "cedar-woods" }), 17);
+assert.equal(localSeries.find((series) => series.id === "gold").getValue(fundedState, { regionId: "cedar-woods" }), 3);
 for (const [seriesList, subject] of [[civilizationSeries, null], [localSeries, { regionId: "cedar-woods" }]]) {
   for (const series of seriesList) {
     assert.equal(series.getValueFromSummary(fundedSummary, subject), series.getValueFromSnapshot(fundedState, subject),
@@ -483,7 +479,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 12;
-assert.throws(() => deserializeGameState(old), /expected v22/);
+assert.throws(() => deserializeGameState(old), /expected v23/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -573,6 +569,7 @@ assert.equal(
   75
 );
 
+state.gameConfig.settings.values.primordialBasePressure=0;
 const timeline = createTimelineFromInitialState(state);
 const first = rebuildStateAtSecond(timeline, 96);
 const second = rebuildStateAtSecond(timeline, 96);
@@ -585,9 +582,9 @@ assert.equal(
   "survival record is retained by authoritative rebuilds"
 );
 
-const graphRefreshTimeline = createTimelineFromInitialState(
-  createInitialState("devPlaytesting01", 24680)
-);
+const graphRefreshBase=createInitialState("devPlaytesting01",24680);
+graphRefreshBase.gameConfig.settings.values.primordialBasePressure=0;
+const graphRefreshTimeline=createTimelineFromInitialState(graphRefreshBase);
 let graphRefreshCursorState = rebuildStateAtSecond(
   graphRefreshTimeline,
   0
@@ -637,7 +634,7 @@ for (let seed = 1; seed <= 64; seed += 1) {
   const fresh = createNewGameState(seed * 7919);
   const players = fresh.world.regions.filter((region) => region.controller === "player");
   assert.equal(players.length, 2);
-  assert.equal(fresh.world.sites.length, 2);
+  assert.equal(fresh.world.sites.length, 6);
   const ids = players.map((region) => region.id).sort();
   startingPairs.add(ids.join("|"));
   assert.ok(fresh.world.connections.some((edge) =>

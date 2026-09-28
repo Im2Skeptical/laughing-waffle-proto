@@ -1,3 +1,4 @@
+import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js";
 // Birth moon phase: aging, births, and child/adult/elder transitions.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -16,18 +17,21 @@ export function runBirthPhase(state, phase) {
   ));
   const ageAdvance = Math.max(0, Math.floor(state.year ?? 1) - lastAgedYear);
   for (const site of getDetailedSettlementSites(state)) {
+    if (site.neutral) continue;
     const settlement = site.detailedState;
     const result = { tSec: state.tSec, year: state.year, byClass: {} };
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
-      const snapshot = clone(classState);
+      const parts = splitSpecialistCohorts(classState);
+      const totals = {births:0,matured:0,newElders:0,ageAdvance};
+      for(const snapshot of Object.values(parts)) {
       if (ageAdvance > 0) {
         snapshot.eldersByAge = snapshot.eldersByAge.map((cohort) => ({
           ...cohort,
           age: cohort.age + ageAdvance,
         }));
       }
-      const faithLabel = String(snapshot.faith.tier ?? "gold")
+      const faithLabel = String(classState.faith.tier ?? "gold")
         .replace(/^./, (letter) => letter.toUpperCase());
       const birthRate = resolveProbability(getGameSetting(state, `birthRate${faithLabel}`));
       const childToAdultRate = getGameSetting(state, "childToAdultRate");
@@ -42,9 +46,10 @@ export function runBirthPhase(state, phase) {
         if (existing) existing.count += newElders;
         else nextElders.push({ age: newElderAge, count: newElders });
       }
-      classState.children = snapshot.children - matured + births;
-      classState.adults = snapshot.adults + matured - newElders;
-      classState.eldersByAge = nextElders.sort((a, b) => a.age - b.age);
+      snapshot.children = snapshot.children - matured + births;
+      snapshot.adults = snapshot.adults + matured - newElders;
+      snapshot.eldersByAge = nextElders.sort((a, b) => a.age - b.age);
+      totals.births += births; totals.matured += matured; totals.newElders += newElders;
       result.byClass[classId] = {
         births,
         matured,
@@ -54,6 +59,9 @@ export function runBirthPhase(state, phase) {
         childToAdultRate,
         adultToElderRate,
       };
+      }
+      combineSpecialistCohorts(classState, parts);
+      Object.assign(result.byClass[classId], totals);
     }
     turn.regions[site.regionId].birth = result;
   }

@@ -274,11 +274,12 @@ assert.equal(wisdomWasOffered, true, "Wisdom participates in the three-of-four l
 const crisisState = selectedState(106);
 const crisisVassal = getCurrentLifeMapVassal(crisisState);
 crisisState.tSec = 5;
+crisisState.world.sites.forEach(s=>s.detailedState.practiceSlots.forEach(p=>{if(p)p.stock=0;}));
 const crisisNode = forceEnter(crisisState, nodeIdForFamily(crisisState, "crisis"));
 dispatch(crisisState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-  nodeId: crisisNode.nodeId, optionId: "rallyLoyalists",
+  nodeId: crisisNode.nodeId, optionId: crisisNode.options.find(o=>o.classAction?.kind==="relief").id,
 });
-crisisState.rng.vassalSeed = findSeed((roll) => roll < VASSAL_LIFE_TUNING.crisisImmediateDeathChance);
+crisisState.rng.vassalSeed = findSeed((roll) => roll < .15);
 dispatch(crisisState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: crisisNode.nodeId });
 assert.equal(getCurrentLifeMapVassal(crisisState), null);
 assert.equal(crisisVassal.deathCause, "crisis");
@@ -382,7 +383,7 @@ assert.equal(settlementVassal.locationRegionId, settledRegionId);
 assert.equal(settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
   .detailedState.populationByClass.villager.adults, sourceAdults - 10);
 assert.equal(settled.populationByClass.villager.adults, 10);
-assert.equal(settled.storedFood, 60);
+assert.equal(settled.practiceSlots[0].stock, 2);
 assert.deepEqual(settled.practiceSlots.slice(0, 2).map((slot) => slot?.practiceId ?? null), ["forage", null]);
 assert.deepEqual(settled.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null), ["granary", "mudHouses"]);
 assert.equal(validateVassalLifeMapState(serializeGameState(settlementState)).ok, true,
@@ -402,9 +403,9 @@ assert.equal(developmentNode.options.find((option) => option.id === "deepStudy")
 
 const pooledCrisisState = selectedState(1);
 const pooledCrisis = forceEnter(pooledCrisisState, nodeIdForFamily(pooledCrisisState, "crisis"));
-assert.equal(pooledCrisis.options.length, 3);
-assert.equal(new Set(pooledCrisis.options.map((option) => option.id)).size, 3,
-  "Crisis rolls a unique three-choice pool");
+assert.equal(pooledCrisis.options.length, 1);
+assert.equal(new Set(pooledCrisis.options.map((option) => option.id)).size, 1,
+  "Crisis without a live incident offers observation");
 
 const pooledLegacyState = selectedState(1);
 const pooledLegacy = forceEnter(pooledLegacyState, nodeIdForFamily(pooledLegacyState, "legacy"));
@@ -435,38 +436,9 @@ for (const option of plusNode.options) {
   assert.equal(option.legacyStartingPrestigeBonus, standard.legacyStartingPrestigeBonus * 2);
 }
 
-const monsterState = selectedStateForSignature("monsterHunt");
-const monsterVassal = getCurrentLifeMapVassal(monsterState);
-monsterVassal.prestige = 100;
-const redGod = monsterState.civilization.chaos;
-redGod.monsterCount = 7;
-const monsterNode = forceEnter(monsterState, nodeIdForSignature(monsterState, "monsterHunt"));
-assert.deepEqual(monsterNode.options.map((option) => option.immediateDeathChance ?? 0),
-  VASSAL_MONSTER_HUNT_OPTIONS.map((option) => option.immediateDeathChance ?? 0));
-dispatch(monsterState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-  nodeId: monsterNode.nodeId, optionId: "fundedHunt",
-});
-const fundedHuntCost = getAdjustedVassalPrestigeCost(monsterVassal, 10);
-dispatch(monsterState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: monsterNode.nodeId });
-assert.equal(redGod.monsterCount, 0, "monster removal clamps at zero");
-assert.equal(monsterVassal.prestige, 100 - fundedHuntCost + getVassalPrestigeIncome(monsterVassal),
-  "the safe hunt pays its full adjusted cost on a shortfall");
-
-for (const [optionId, expectedGain] of [["dangerousHunt", 0], ["recklessHunt", 30]]) {
-  const riskState = selectedStateForSignature("monsterHunt");
-  const riskVassal = getCurrentLifeMapVassal(riskState);
-  riskVassal.prestige = 100;
-  riskState.civilization.chaos.monsterCount = 3;
-  const riskNode = forceEnter(riskState, nodeIdForSignature(riskState, "monsterHunt"));
-  dispatch(riskState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-    nodeId: riskNode.nodeId, optionId,
-  });
-  dispatch(riskState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: riskNode.nodeId });
-  assert.equal(riskState.civilization.chaos.monsterCount, 0,
-    `${optionId} clamps monster shortfalls at zero`);
-  assert.ok(riskVassal.prestige >= 100 + expectedGain,
-    `${optionId} applies its full Prestige result even if immediate death is rolled`);
-}
+const monsterState=selectedStateForSignature('monsterHunt');
+const monsterNode=forceEnter(monsterState,nodeIdForSignature(monsterState,'monsterHunt'));
+assert.equal(monsterNode.options[0].classAction.kind,'prepare','no invented Monster targets');
 
 const removalFallbackState = selectedStateForSignature("removePractice");
 const removalFallbackVassal = getCurrentLifeMapVassal(removalFallbackState);

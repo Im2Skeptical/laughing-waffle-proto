@@ -26,8 +26,6 @@ export {
   evaluateDetailedPracticeSlot,
   getLocalDistinctPieceTags,
   getLocalTaggedPieceCount,
-  planDetailedAdministrationMoves,
-  planDetailedAdministrationMovesAtBoundary,
   validateDetailedPracticeDefinitions,
 } from "./detailed-settlements/practices.js";
 export {

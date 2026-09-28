@@ -1,3 +1,4 @@
+import { emptySpecialists } from "../cohorts.js";
 // Shared phase helpers used by more than one moon phase.
 
 import { getGameSetting } from "../../game-config.js";
@@ -8,6 +9,7 @@ export const HAPPINESS_ORDER = Object.freeze(["negative", "neutral", "positive"]
 export function resetEmptyStrangerCohort(settlement) {
   const stranger = settlement?.populationByClass?.stranger;
   if (!stranger || classPopulationTotal(stranger) > 0) return;
+  stranger.specialists = emptySpecialists();
   stranger.faith = { tier: "gold", trend: null, streak: 0 };
   stranger.happiness = {
     status: "neutral",

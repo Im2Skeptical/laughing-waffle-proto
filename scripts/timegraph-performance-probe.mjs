@@ -42,7 +42,7 @@ try {
       const marker = 'recomputeInitialActionPoints(state);\n  return state;';
       if (!source.includes(marker)) throw new Error('long-lived fixture injection point changed');
       let body = process.env.PROBE_LONG_LIVED === '1' ? source.replace(marker,
-        'recomputeInitialActionPoints(state);\n  state.gameConfig.settings.values.monsterLossThreshold = 10000000;\n  state.civilization.chaos.monsterLossThreshold = 10000000;\n  return state;') : source;
+        'recomputeInitialActionPoints(state);\n  state.gameConfig.settings.values.primordialBasePressure = 0;\n  return state;') : source;
       if (process.env.PROBE_LEGACY_REVEAL === '1') {
         for (const [a,b] of [["maxRateSecPerSec: 384","maxRateSecPerSec: 112"],["followResponseSec: 0.45","followResponseSec: 1.1"],["accelerationSecPerSec2: 720","accelerationSecPerSec2: 180"],["decelerationSecPerSec2: 1040","decelerationSecPerSec2: 260"]]) body=body.replace(a,b);
       }

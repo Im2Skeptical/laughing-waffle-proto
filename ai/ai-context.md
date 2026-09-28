@@ -38,10 +38,10 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v22; runner saves v13. Older saves are rejected.
-- Each run serializes schema-v14 Game Settings, Gamepieces, and Life Map
+- Game state v23; runner saves v14. Older saves are rejected.
+- Each run serializes schema-v15 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
-- Map Lab drafts v6; scenario libraries v4.
+- Map Lab drafts v7; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Life Map generator settings v3; serialized Life Map graph v2.
@@ -55,16 +55,15 @@ Authoritative numbers:
 Player New Game uses the Starter_02 map, nine fixed roads, and tuning. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the only player-controlled detailed settlements, with the first in
-authored region order serving as capital. All other regions are frontier. The
+authored region order serving as capital. Four authored neutral settlements are placed deterministically, including one adjacent to the capital. Other regions are frontier. The
 authored debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.
 Region state owns colour, controller, connections, `structureCapacity`, and
 the independent detailed-settlement toggle. New runs roll every region's
 structure capacity from 5–8 in authored order through `state.rng`; Map Lab
 regions can pin an explicit capacity. Each detailed site owns
-Villager/Stranger cohorts, anonymous elder ages, stored and loose food, five
-practice slots, a regional construction strip, aggregate Elder Order state,
-and local moon/meal summaries. Chaos, monsters, loss, persistent survival
+Villager/Stranger cohorts with orthogonal Scholar/Warrior subsets, anonymous elder ages, twelve hosted-Stock practice slots, a regional construction strip, aggregate Elder Order state,
+and local moon/meal summaries. Spatial Monsters, settlement loss history, Chaos, persistent survival
 knowledge, and the single vassal lineage are civilization-global.
 
 ## Pointers

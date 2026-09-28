@@ -12,29 +12,27 @@ export function addChaosPanelContent(root, rect, summary) {
   text('THE COMING DARK',0,26,PALETTE.accent);
   text(`${summary.green.label} · Chaos ${summary.chaos.chaosPower}`,28,22);
   text(`Pressure ${summary.chaos.lastReckoning?.incomingChaos??0}   ·   Resistance ${summary.chaos.lastReckoning?.resistance??0}`,55,20);
-  text(`Monsters  ${summary.chaos.monsterCount} / ${summary.chaos.monsterLossThreshold}`,82,20);
+  text(`Monsters  ${summary.chaos.monsterCount} occupied regions`,82,20);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, tooltipView}) {
   const x=rect.x+22,y=rect.y;
   root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
-  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY   /   ${region.controller==='player'?'YOUR REALM':'FRONTIER'}`,{
+  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?'NEUTRAL SETTLEMENT':region.lostAtSec != null?'RUINS':'FRONTIER'}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+50));
   if(vm){
     const food=vm.storedFood+vm.looseFood, shortfall=food<vm.population.mealDemand;
     const housingFull=vm.population.total>0&&vm.population.total>=vm.population.housingCapacity;
-    const storageFull=food>0&&vm.storedFood>=vm.storedFoodCapacity;
     const red=0xe7947e, amber=0xe2b365;
     const stats=[
       {icon:'population',value:vm.population.total,capIcon:'housingCapacity',capacity:vm.population.housingCapacity,label:'Population / Housing',warning:housingFull,
         title:vm.pressure?.overcrowding?'Overcrowded':'Housing full',lines:[`${vm.pressure?.housingOverflow??0} people exceed current Housing capacity.`, 'Housing shortages affect Happiness at the Housing phase.']},
-      {icon:'food',value:`${Math.round(food)} / ${Math.round(vm.storedFoodCapacity)}`,label:'Food / Storage',warning:vm.pressure?.starvation||shortfall||vm.looseFood>0||storageFull,severe:vm.pressure?.starvation,
-        title:vm.pressure?.starvation?'Starving':shortfall?'Food supply warning':vm.looseFood>0?'Food overflow':'Food storage full',
-        lines:[`${Math.round(vm.storedFood)} stored; ${Math.round(vm.looseFood)} loose Food.`, `Current meal demand: ${Math.round(vm.population.mealDemand)} Food.`,
-          ...(vm.pressure?.starvation?[`Last meal left ${vm.pressure.unfedMealDemand} Food demand unfed; ${vm.pressure.starvationMigrants} starvation migrants.`]:[]),
-          ...(shortfall?['Available Food is below current meal demand. Production and imports may cover the gap before the Food phase.']:[]),
-          ...(vm.looseFood>0||storageFull?['Food beyond storage capacity remains loose and is exposed to loose-Food decay.']:[])]},
-      {icon:'money',value:vm.currency,label:'Money'},
+      {icon:'food',value:`${Math.round(food)} / ${Math.round(vm.storedFoodCapacity)}`,label:'Hosted Edible Stock',warning:vm.pressure?.starvation||shortfall,severe:vm.pressure?.starvation,
+        title:vm.pressure?.starvation?'Starving':'Food supply warning',
+        lines:[`${Math.round(food)} hosted [Edible] Stock / ${Math.round(vm.storedFoodCapacity)} capacity.`,
+          `Next Food phase needs ${vm.population.mealDemand} Stock (one per 30 people).`,
+          'Practices activate before Food is consumed. Supplies are spent left to right.']},
+      {icon:'money',value:vm.currency,label:'Hosted Currency Stock'},
     ];
     const cell=(rect.width-44)/3;
     stats.forEach((stat,i)=>{
@@ -53,8 +51,8 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
       group.eventMode='static';group.hitArea=new PIXI.Rectangle(0,0,cell-7,34);
       const labelSpec={title:stat.label,lines:stat.icon==='population'
         ? [`${vm.population.total} people / ${vm.population.housingCapacity} Housing capacity.`]
-        : stat.icon==='food'?[`${Math.round(food)} total Food / ${Math.round(vm.storedFoodCapacity)} stored-Food capacity.`,`${Math.round(vm.storedFood)} stored; ${Math.round(vm.looseFood)} loose.`]
-        : [`${vm.currency} Money available in this settlement.`],accentColor:colour,maxWidth:290,scale:2};
+        : stat.icon==='food'?[`${Math.round(food)} hosted [Edible] Stock / ${Math.round(vm.storedFoodCapacity)} capacity.`, `Food demand: ${vm.population.mealDemand} Stock.`]
+        : [`${vm.currency} hosted [Currency] Stock available in this settlement.`],accentColor:colour,maxWidth:290,scale:2};
       group.on('pointerover',event=>{if(event.pointerType!=='touch')tooltipView?.show(labelSpec,group.getBounds(),{dismissOnExit:true});});
       group.on('pointerout',()=>tooltipView?.hide());
       group.on('pointerdown',event=>{event.stopPropagation();tooltipView?.pin(labelSpec,group.getBounds(),`region-resource:${reference}:${stat.icon}`);});
@@ -75,9 +73,9 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     root.addChild(createText('A wilderness waiting for a future.',{...TEXT_STYLES.body,fontSize:23,fill:PALETTE.textMuted,
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
-  root.addChild(createText('PRACTICES',{...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+118));
-  const gap=9, pw=(rect.width-44-gap*4)/5;
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+152,width:pw,height:pw*7/5},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
+  root.addChild(createText(`PRACTICES   Scholars ${vm.specialists.scholar} / Warriors ${vm.specialists.warrior} / Support ${vm.martialSupport}${vm.lastDefense ? ' / Last defense: '+vm.lastDefense.result : ''}`,{...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+118));
+  const pitch=(rect.width-44)/6, ph=118, pw=ph*5/7;
+  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+(i%6)*pitch+(pitch-pw)/2,y:y+152+Math.floor(i/6)*126,width:pw,height:ph},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
     ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+410));
   const constructionRect=regionalConstructionRect({x,y:y+444,width:rect.width-44,height:rect.height-456},vm.structureCapacity);

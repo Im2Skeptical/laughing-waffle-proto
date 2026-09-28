@@ -259,7 +259,7 @@ export function getSettlementChaosGodSummary(state, godId) {
       chaosPower: safeGodId === "redGod" ? chaos.chaosPower ?? 0 : 0,
       chaosIncome: safeGodId === "redGod" ? chaos.lastMoonIncome?.totalIncome ?? 0 : 0,
       monsterCount: safeGodId === "redGod" ? chaos.monsterCount ?? 0 : 0,
-      monsterWinCount: chaos.monsterLossThreshold ?? 1000,
+      monsterWinCount: null,
       nextSpawnSec: null,
       spawnCountdownSec: 0,
       nextSpawnCount: 0,

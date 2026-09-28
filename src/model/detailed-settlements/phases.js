@@ -1,3 +1,4 @@
+import { stepSpatialPressure } from "./external-world.js";
 // Moon-turn helpers, six-phase stepper, chaos, and civilization init.
 // Phase bodies live in ./phases/; this file remains the public stepper path.
 
@@ -24,7 +25,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 22;
+  state.gameStateSchemaVersion = 23;
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -40,7 +41,6 @@ export function initializeDetailedSettlementCivilization(state) {
   state.civilization.chaos = {
     chaosPower: 0,
     monsterCount: 0,
-    monsterLossThreshold: getGameSetting(state, "monsterLossThreshold"),
     lastMoonIncome: null,
     pendingLosses: {
       prematureDeaths: 0,
@@ -49,6 +49,7 @@ export function initializeDetailedSettlementCivilization(state) {
       internalMigrants: 0,
     },
   };
+  state.civilization.history = { lostSettlements: 0, victories: 0, raids: 0, conquests: 0 };
   state.civilization.research = { total: Math.max(0, getGameSetting(state, "startingResearch") || 0) };
   state.civilization.retiredVassals = [];
   state.civilization.phaseModifiers = { housingByRegion: {}, foodByRegion: {}, faithResistance: 0 };
@@ -73,7 +74,7 @@ export function stepDetailedSettlementsSecond(state, tSec) {
     else if (phase.id === "housing") runHousingPhase(state, phase);
     else if (phase.id === "faith") runFaithPhase(state, phase);
     else if (phase.id === "migration") runMigrationPhase(state, phase);
-    else if (phase.id === "death") runDeathPhase(state, phase);
+    else if (phase.id === "death") { runDeathPhase(state, phase); runPracticeActivation(state, "death"); stepSpatialPressure(state); }
   }
   if (state?.runStatus?.complete !== true) stepVassalLifeMapSecond(state, tSec);
 }

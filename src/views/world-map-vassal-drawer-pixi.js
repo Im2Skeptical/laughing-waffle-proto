@@ -37,10 +37,10 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
     createText(`VASSAL ${candidate.candidateIndex + 1}`, {
       ...TEXT_STYLES.title, fontSize: 25, fill: selected ? PALETTE.green : PALETTE.text,
     }, 168, 18),
-    createText(`${locationRef}  ·  Age ${candidate.age}  ·  Prestige ${candidate.prestige}`, {
+    createText(`${candidate.classId ?? "Vassal"} · ${locationRef}  ·  Age ${candidate.age}  ·  Prestige ${candidate.prestige}`, {
       ...TEXT_STYLES.body, fontSize: 19, fill: PALETTE.textMuted,
     }, 168, 59),
-    createText(`CUN ${stats.cunning ?? 0}   WIS ${stats.wisdom ?? 0}   EFF ${stats.effectiveness ?? 0}   INT ${stats.intelligence ?? 0}`, {
+    createText(`${candidate.classId === "scholar" ? "ING" : "CUN"} ${stats.cunning ?? 0}   WIS ${stats.wisdom ?? 0}   EFF ${stats.effectiveness ?? 0}   ${candidate.classId === "warrior" ? "PRO" : "INT"} ${stats.intelligence ?? 0}`, {
       ...TEXT_STYLES.chip, fontSize: 18, fill: PALETTE.text,
       wordWrap:true,wordWrapWidth:rect.width-188,
     }, 168, 96),

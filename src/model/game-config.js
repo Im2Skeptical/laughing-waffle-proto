@@ -8,7 +8,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 14;
+export const GAME_CONFIG_SCHEMA_VERSION = 15;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -64,11 +64,8 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
     id: "foodPhase",
     label: "2. Food phase",
-    description: "Runs Administration, feeds the population, records meal evidence, and marks the unfed share for migration when starvation triggers.",
+    description: "Consumes hosted Edible Stock after Practice activation, feeds the population, records meal evidence, and marks the unfed share for migration when starvation triggers.",
     fields: Object.freeze([
-      field("childMealConsumption", "Food per child", 0.5, 0, 100, 0.05),
-      field("adultMealConsumption", "Food per adult", 1, 0, 100, 0.05),
-      field("elderMealConsumption", "Food per elder", 1, 0, 100, 0.05),
       field("fullFeedStreakForIncrease", "Full meals for happiness increase", 12, 1, 100, 1, true),
       field("partialFeedMinimumRatio", "Immediate happiness-loss feed ratio", 0.5, 0, 1, 0.01),
       field("partialFeedMemoryLength", "Improving partial meals required", 12, 1, 100, 1, true),
@@ -102,7 +99,6 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 2, 1, 100000, 1, true),
       field("diamondChaosResistancePopulation", "Diamond people per Chaos resistance", 1, 1, 100000, 1, true),
       field("chaosPerMonster", "Chaos per monster", 10, 1, 1000000, 1, true),
-      field("monsterLossThreshold", "Monster loss threshold", 100, 1, 10000000, 1, true),
     ]),
   }),
   Object.freeze({
@@ -133,7 +129,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
     id: "deathPhase",
     label: "6. Death phase",
-    description: "Resolves arrival meals, hardship among unplaced migrants, elder mortality, and food rot.",
+    description: "Resolves arrival meals, hardship among unplaced migrants, elder mortality, and spatial pressure.",
     fields: Object.freeze([
       field("migrationHardshipDeathRate", "Unplaced migrant hardship mortality", 0.8, 0, 1, 0.01),
       field("elderMortalityThrough49", "Elder mortality through 49", 0.0025, 0, 1, 0.0025),
@@ -143,8 +139,6 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("elderMortality65To69", "Elder mortality 65-69", 0.08, 0, 1, 0.01),
       field("elderMortality70To74", "Elder mortality 70-74", 0.16, 0, 1, 0.01),
       field("elderMortality75Plus", "Elder mortality 75+", 0.3, 0, 1, 0.01),
-      field("storedFoodDecayRate", "Stored food decay", 0.1, 0, 1, 0.01),
-      field("looseFoodDecayRate", "Loose food decay", 0.75, 0, 1, 0.01),
     ]),
   }),
   Object.freeze({

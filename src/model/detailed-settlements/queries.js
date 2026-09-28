@@ -1,3 +1,5 @@
+import { structureQualityMultiplier } from './stock.js';
+import { stockCapacity, stockTraits, CIV_CONTENT_TUNING } from "./stock.js";
 // Site lookups, capacities, and population / pressure / elder / green summaries.
 
 import { POPULATION_CLASS_ORDER } from "../../defs/gamepieces/detailed-settlement-defs.js";
@@ -44,15 +46,9 @@ export function getStructureCount(state, regionId, structureId) {
 }
 
 export function getStructureCapacity(state, regionId, capacityKind) {
-  const counts = new Map();
-  for (const slot of getDetailedSettlement(state, regionId)?.structureSlots ?? []) {
-    if (!slot) continue;
-    const def = getDetailedStructureDef(state, slot.structureId);
-    if (def?.capacityKind !== capacityKind || !Number.isFinite(def.capacityPerCountSquared)) continue;
-    counts.set(slot.structureId, (counts.get(slot.structureId) ?? 0) + 1);
-  }
-  return [...counts.entries()].reduce((sum, [structureId, count]) =>
-    sum + getDetailedStructureDef(state, structureId).capacityPerCountSquared * count * count, 0);
+  const settlement = getDetailedSettlement(state, regionId);
+  if (capacityKind === "housing") return (settlement?.structureSlots ?? []).reduce((n,s) => n + Math.floor((getDetailedStructureDef(state,s?.structureId)?.housing ?? 0)*structureQualityMultiplier(s)),0);
+  return (settlement?.practiceSlots ?? []).reduce((n,s) => n + (stockTraits(state,s).includes("Edible") ? stockCapacity(state,settlement,s) : 0),0);
 }
 
 export function getStoredFoodCapacity(state, regionId) {
@@ -69,7 +65,6 @@ export function getPopulationSummary(state, regionId) {
   let children = 0;
   let adults = 0;
   let elders = 0;
-  let mealDemand = 0;
   for (const classId of POPULATION_CLASS_ORDER) {
     const cohort = settlement?.populationByClass?.[classId] ?? {};
     const entry = {
@@ -78,22 +73,18 @@ export function getPopulationSummary(state, regionId) {
       elders: eldersCount(cohort),
     };
     entry.total = entry.children + entry.adults + entry.elders;
-    entry.mealDemand =
-      Math.ceil(entry.children * getGameSetting(state, "childMealConsumption"))
-      + Math.ceil(entry.adults * getGameSetting(state, "adultMealConsumption"))
-      + Math.ceil(entry.elders * getGameSetting(state, "elderMealConsumption"));
+    entry.mealDemand = entry.total / CIV_CONTENT_TUNING.populationPerEdible;
     byClass[classId] = entry;
     children += entry.children;
     adults += entry.adults;
     elders += entry.elders;
-    mealDemand += entry.mealDemand;
   }
   return {
     children,
     adults,
     elders,
     total: children + adults + elders,
-    mealDemand,
+    mealDemand: Math.ceil((children + adults + elders) / CIV_CONTENT_TUNING.populationPerEdible),
     housingCapacity: getHousingCapacity(state, regionId),
     byClass,
   };

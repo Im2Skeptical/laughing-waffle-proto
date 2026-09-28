@@ -1,0 +1,97 @@
+// Hosted Stock is the only material inventory. Plans are pure, ordered and atomic.
+import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
+import { ageCohortTotal, emptySpecialists } from './cohorts.js';
+
+export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterExpansionMoons: 4, monsterDefense: 3 });
+export const stockTraits = (state, slot) => getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
+export const stockTotal = (state, settlement, trait) => (settlement?.practiceSlots ?? []).reduce((sum, slot) => sum + (stockTraits(state, slot).includes(trait) ? Math.max(0, slot.stock ?? 0) : 0), 0);
+export const specialistCount = (settlement, classId) => Object.values(settlement?.populationByClass ?? {}).reduce((sum, cohort) => sum + ageCohortTotal(cohort.specialists?.[classId]), 0);
+export const structureQualityMultiplier = slot => 1 + .25 * Math.max(0,slot?.qualityBonus??0);
+
+export function structureModifiers(state, settlement) {
+  return (settlement?.structureSlots ?? []).flatMap(slot => {
+    const def = getDetailedStructureDef(state, slot?.structureId);
+    if (def?.specialistGate && specialistCount(settlement, def.pool) < def.specialistGate) return [];
+    return (def?.modifiers ?? []).map(mod=>Number.isFinite(mod.amount)?{...mod,amount:mod.amount*structureQualityMultiplier(slot)}:mod);
+  });
+}
+
+export function matchesPractice(state, slot, query = {}, staffed = false) {
+  const def = getDetailedPracticeDef(state, slot?.practiceId);
+  const tags = [...(def?.tags ?? []), ...(staffed ? ['Knowledge'] : [])];
+  return !!def && (!query.traitsAny || query.traitsAny.some(t => stockTraits(state, slot).includes(t)))
+    && (!query.tagsAny || query.tagsAny.some(t => tags.includes(t)))
+    && (!query.consumesAny || query.consumesAny.some(t => (def.consume ?? []).some(c => c.traits.includes(t))))
+    && (!query.scholarStaffed || staffed);
+}
+
+export function stockCapacity(state, settlement, slot, staffed = false) {
+  const def = getDetailedPracticeDef(state, slot?.practiceId);
+  if (!(def?.stockCapacity > 0)) return 0;
+  const quality = Math.max(0, ['bronze', 'silver', 'gold', 'diamond'].indexOf(slot.tier));
+  return Math.floor(def.stockCapacity + quality + (staffed ? def.scholarCapacityBonus ?? 0 : 0)
+    + structureModifiers(state, settlement).reduce((sum, mod) => sum + (mod.kind === 'capacity' && matchesPractice(state, slot, mod.query, staffed) ? mod.amount : 0), 0));
+}
+
+export function generateStock(state, settlement, slot, amount, staffed = false) {
+  const before = Math.max(0, slot.stock ?? 0);
+  slot.stock = Math.min(stockCapacity(state, settlement, slot, staffed), before + Math.max(0, Math.floor(amount)));
+  return slot.stock - before;
+}
+
+// Require reads the activation-start stock. Consume reservations cannot double-spend.
+export function planStock(state, settlement, consumerIndex, consume = [], require = [], {scholarStaffed=false} = {}) {
+  const slots = settlement?.practiceSlots ?? [];
+  const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));
+  const providers = [];
+  const modifiers = structureModifiers(state, settlement);
+  const compatible = (slot, traits, requiring) => traits.some(trait => stockTraits(state, slot).includes(trait)
+    || (requiring && modifiers.some(m => m.kind === 'requireSubstitution' && m.to === trait && stockTraits(state, slot).includes(m.from))));
+  for (const [kind, costs] of [['require', require], ['consume', consume]]) {
+    for (const cost of costs) {
+      let needed = cost.amount ?? 1;
+      const anyPosition = kind === 'require' && cost.traits.includes('Record')
+        && matchesPractice(state,slots[consumerIndex],{tagsAny:['Knowledge']},scholarStaffed)
+        && modifiers.some(m => m.kind === 'recordAnywhere');
+      for (let i = 0; i < slots.length && needed > 0; i++) {
+        if (i === consumerIndex || (!anyPosition && i >= consumerIndex) || !compatible(slots[i], cost.traits, kind === 'require')) continue;
+        const amount = Math.min(needed, kind === 'require' ? slots[i]?.stock ?? 0 : remaining[i]);
+        if (amount <= 0) continue;
+        providers.push({ kind, slotIndex: i, practiceId: slots[i].practiceId, amount, traits: cost.traits });
+        if (kind === 'consume') remaining[i] -= amount;
+        needed -= amount;
+      }
+      if (needed > 0) return { ok: false, missing: { kind, traits: cost.traits, amount: needed }, providers: [] };
+    }
+  }
+  return { ok: true, providers };
+}
+
+export function applyStockPlan(settlement, plan) {
+  if (!plan.ok) return false;
+  for (const p of plan.providers) if (p.kind === 'consume') settlement.practiceSlots[p.slotIndex].stock -= p.amount;
+  return true;
+}
+
+export function consumeStock(state, settlement, trait, amount) {
+  let remaining = Math.max(0, amount);
+  for (const slot of settlement?.practiceSlots ?? []) {
+    if (!stockTraits(state, slot).includes(trait)) continue;
+    const taken = Math.min(remaining, Math.max(0, slot.stock ?? 0));
+    slot.stock = Math.max(0, (slot.stock ?? 0) - taken);
+    remaining -= taken;
+  }
+  return amount - remaining;
+}
+
+export function trainSpecialists(settlement, classId, amount) {
+  let remaining = Math.max(0, Math.floor(amount));
+  for (const cohort of Object.values(settlement.populationByClass)) {
+    cohort.specialists ??= emptySpecialists();
+    const free = Math.max(0, cohort.adults - cohort.specialists.scholar.adults - cohort.specialists.warrior.adults);
+    const added = Math.min(free, remaining);
+    cohort.specialists[classId].adults += added;
+    remaining -= added;
+  }
+  return amount - remaining;
+}

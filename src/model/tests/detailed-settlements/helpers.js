@@ -17,9 +17,9 @@ export function clearDetailedPopulationAndFood(state) {
   for (const site of state.world.sites) {
     const settlement = site.detailedState;
     settlement.practiceSlots = Array.from({ length: DETAILED_PRACTICE_SLOT_COUNT }, () => null);
-    settlement.storedFood = 0;
-    settlement.looseFood = 0;
+
     for (const classState of Object.values(settlement.populationByClass)) {
+      classState.specialists = {scholar:{children:0,adults:0,eldersByAge:[]},warrior:{children:0,adults:0,eldersByAge:[]}};
       classState.children = 0;
       classState.adults = 0;
       classState.eldersByAge = [];

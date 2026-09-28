@@ -18,6 +18,13 @@ export function canonicalizeSnapshot(state) {
 
   canonicalizeWorldState(state);
 
+  // Hosted-Stock settlements (including occupied ruins) have no legacy board.
+  // Creating one here made forecast snapshots depend on which capital survived.
+  if (state.gameStateSchemaVersion >= 23) {
+    syncPhaseToPaused(state);
+    return;
+  }
+
   rebuildBoardOccupancy(state);
   const pawns = getPawns(state);
   for (const pawn of pawns) {

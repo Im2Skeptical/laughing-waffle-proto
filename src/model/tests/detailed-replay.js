@@ -29,7 +29,7 @@ const previewSelection = selectLifeMapVassal(
 assert.equal(previewSelection.ok, true);
 const previewVassal = getCurrentLifeMapVassal(selectedPreview);
 const entryNodeId = previewVassal.lifeMap.availableNodeIds.find((id) =>
-  previewVassal.lifeMap.graph.nodes.find((node) => node.id === id)?.family === "patronage");
+  previewVassal.lifeMap.graph.nodes.find((node) => node.id === id)?.family === "training");
 
 for (const action of [
   {
@@ -42,7 +42,7 @@ for (const action of [
   },
   {
     kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
-    payload: { nodeId: entryNodeId, optionId: "cultivateConnections" },
+    payload: { nodeId: entryNodeId, optionId: "train-estate" },
   },
   {
     kind: ActionKinds.VASSAL_CONFIRM_LIFE_NODE,
@@ -56,9 +56,9 @@ const selected = rebuildStateAtSecond(timeline, 0);
 assert.equal(selected.ok, true);
 const selectedVassal = getCurrentLifeMapVassal(selected.state);
 assert.ok(selectedVassal);
-assert.equal(selectedVassal.lifeMap.pendingResolution.phaseCost, 324);
+assert.equal(selectedVassal.lifeMap.pendingResolution.phaseCost, 6);
 const resolutionSec = selectedVassal.lifeMap.pendingResolution.resolveSec;
-assert.equal(resolutionSec, 324);
+assert.equal(resolutionSec, 6);
 
 const beforeResolution = rebuildStateAtSecond(timeline, resolutionSec - 1);
 const atResolution = rebuildStateAtSecond(timeline, resolutionSec);
@@ -129,7 +129,6 @@ assert.equal(
 
 const terminalProjectionBase = createInitialState("devPlaytesting01");
 terminalProjectionBase.civilization.chaos.chaosPower = 100;
-terminalProjectionBase.civilization.chaos.monsterLossThreshold = 1;
 const terminalProjection = buildProjectionChunkFromStateData(
   serializeGameState(terminalProjectionBase), 0, 3000
 );

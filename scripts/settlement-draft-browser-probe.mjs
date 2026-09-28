@@ -25,21 +25,21 @@ try {
         import('/src/model/timeline/index.js'),import('/src/views/chronicle-art.js'),import('/src/views/vassal-node-decision-modal-pixi.js')]);
       const state=createInitialState('devPlaytesting01',422);state.paused=true;state.phase='planning';
       applyAction(state,{kind:K.SETTLEMENT_SELECT_VASSAL,payload:{candidateIndex:0,expectedPoolHash:life.getVassalCandidatePool(state).expectedPoolHash}},{isReplay:true});
-      const v=life.getCurrentLifeMapVassal(state);v.prestige=1000;
+      const v=life.getCurrentLifeMapVassal(state);v.prestige=1000;v.classId=null;
       const nodeId=v.lifeMap.graph.nodes.find(n=>n.family==='publicWorks').id;v.lifeMap.availableNodeIds=[nodeId];
       applyAction(state,{kind:K.VASSAL_ENTER_LIFE_NODE,payload:{nodeId}},{isReplay:true});
       const site=state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;
       state.world.regions.find(r=>r.id===v.locationRegionId).structureCapacity=8;
-      site.structureSlots=layout.normalizeStructureLayout([{structureId:'granary'},{structureId:'mudHouses'},null,null,{structureId:'hostel'}],8,id=>defs.settlementStructureDefs[id]);
-      site.practiceSlots=['forage','cultivate','raiseHouses','administrate','exchange'].map(practiceId=>({practiceId,tier:'bronze',charge:0,work:0}));
+      site.structureSlots=layout.normalizeStructureLayout([{structureId:'granary'},{structureId:'mudHouses'},null,null,{structureId:'timberHouse'}],8,id=>defs.settlementStructureDefs[id]);
+      site.practiceSlots=[...['forage','pastoralism','logging','surfaceMining','barter'].map(practiceId=>({practiceId,tier:'bronze',stock:2,charge:0,work:0})),...Array(7).fill(null)];
       const actions=kind==='practice'?[
-        {kind,mode:'learn',practiceId:'study',resultingTier:'bronze'},
-        {kind,mode:'learn',practiceId:'vigil',resultingTier:'bronze'},
+        {kind,mode:'learn',practiceId:'dryFarming',resultingTier:'bronze'},
+        {kind,mode:'learn',practiceId:'quarrying',resultingTier:'bronze'},
         {kind,mode:'upgrade',practiceId:'forage',tier:'bronze',resultingTier:'silver'},
       ]:[
-        {kind,mode:'add',structureId:'library',tier:'bronze'},
-        {kind,mode:'add',structureId:'university',tier:'bronze'},
-        {kind,mode:'add',structureId:'caravanserai',tier:'bronze'},
+        {kind,mode:'add',structureId:'workshop',tier:'bronze'},
+        {kind,mode:'add',structureId:'greatDwelling',tier:'bronze'},
+        {kind,mode:'add',structureId:'longhouse',tier:'bronze'},
         {kind,mode:'add',structureId:'granary',tier:'bronze'},
       ];
       v.lifeMap.nodeStates[nodeId].inventory=actions.map((intervention,i)=>({offerId:'fixture:'+i,inventoryIndex:i,label:intervention.practiceId??intervention.structureId,basePrestigeCost:10,basePhaseCost:1,intervention:{...intervention,targetRegionId:v.locationRegionId}}));
@@ -102,9 +102,9 @@ try {
     await tap(await point('getInspectionClosePoint'));
     if(kind==='practice') {
       await drag(await point('getOfferFacePoint',1),await point('getTableauClickPoint',0));
-      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['vigil','study']);
+      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['quarrying','dryFarming']);
       await drag(await point('getTableauClickPoint',0),await point('getTableauClickPoint',1));
-      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['study','vigil']);
+      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['dryFarming','quarrying']);
       await drag(await point('getTableauClickPoint',0),{x:600,y:380});
       assert.equal((await snapshot()).purchaseOrder.length,1,'Dragging to offers undoes a purchase');
       await tap(await point('getUndoClickPoint',0));assert.equal((await snapshot()).purchaseOrder.length,0);
@@ -112,17 +112,17 @@ try {
       s=await snapshot();assert.equal(s.practices[0].practiceId,'forage');assert.equal(s.practices[0].tier,'silver');
       await tap(await point('getOfferClickPoint',0));
       await drag(await point('getTableauClickPoint',1),await point('getTableauClickPoint',0));
-      s=await snapshot();assert.deepEqual(s.practices.slice(0,2).map(p=>p.practiceId),['forage','study'],'Upgrades can join and reorder the staged prefix');
+      s=await snapshot();assert.deepEqual(s.practices.slice(0,2).map(p=>p.practiceId),['forage','dryFarming'],'Upgrades can join and reorder the staged prefix');
     } else {
       assert.equal(s.structures.find(p=>p?.staged).origin,2,'Cost picks the first free span');
       await drag(await point('getOfferFacePoint',1),await point('getConstructionPoint',4));
-      s=await snapshot();assert.equal(s.demolishedStructures[0].structureId,'hostel');
+      s=await snapshot();assert.equal(s.demolishedStructures[0].structureId,'timberHouse');
       await drag(await point('getOfferFacePoint',2),await point('getConstructionPoint',5));
       assert.equal((await snapshot()).purchaseOrder.length,2,'Staged buildings cannot overlap');
-      s=await snapshot();let index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='library');
+      s=await snapshot();let index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='workshop');
       await drag(await point('getTableauClickPoint',5+index),await point('getConstructionPoint',3));
-      s=await snapshot();assert.equal(s.structures.find(p=>p?.structureId==='library').origin,3);
-      index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='university');
+      s=await snapshot();assert.equal(s.structures.find(p=>p?.structureId==='workshop').origin,3);
+      index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='greatDwelling');
       await drag(await point('getTableauClickPoint',5+index),{x:600,y:380});
       assert.equal((await snapshot()).demolishedStructures.length,0,'Undo restores the covered confirmed building');
       await drag(await point('getOfferFacePoint',1),await point('getConstructionPoint',0));
@@ -130,7 +130,7 @@ try {
       await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-demolition.png`});
       await tap(await point('getUndoClickPoint',1));
       await drag(await point('getOfferFacePoint',3),await point('getConstructionPoint',0));
-      s=await snapshot();assert.equal(s.structures[0].tier,'silver');assert.equal(s.structures[0].placementId,'initial:0');
+      s=await snapshot();assert.equal(s.structures[0].structureId,'granary');assert.equal(s.structures[0].staged,true);
     }
     await delay(700);await page.mouse.move(5,5);
     await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}.png`});

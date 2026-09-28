@@ -18,6 +18,8 @@ re-exports the previous public API; internals live here.
     `getSettlementSelectedVassals`, `getSettlementFirstSelectedVassal`)
     also accept a `currentVassal` object, a `selectedVassals` array, and
     selected-id fallbacks when `vassalsById` is absent.
+- `class-actions.js`
+  - Shared class founding, Commission/Discovery, Campaign/Challenge and live Crisis rules.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.

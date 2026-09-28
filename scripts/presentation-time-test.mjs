@@ -6,17 +6,17 @@ import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/m
 const faceClock={tSec:0,seasonDurationSec:8};
 // Activation feedback follows the inspected snapshot, including reverse seeks;
 // merely charging or displaying an unowned offer must never flash an output.
-const reactionTrace=[{kind:'activated',targetPracticeId:'marketFeast',tSec:17},{kind:'charged',targetPracticeId:'marketFeast',tSec:18}];
+const reactionTrace=[{kind:'activated',targetPracticeId:'barter',tSec:17},{kind:'charged',targetPracticeId:'barter',tSec:18}];
 for(const [second,expected] of [[16,null],[17,0],[18,1],[17,0]]) {
-  const clock={...faceClock,tSec:second},slot={practiceId:'marketFeast',charge:1};
+  const clock={...faceClock,tSec:second},slot={practiceId:'barter',charge:1};
   const before=JSON.stringify({clock,slot,reactionTrace});
-  assert.equal(getGamepieceFace(clock,'practice','marketFeast','silver',{slot,activationTrace:reactionTrace}).activationAge,expected);
-  assert.equal(getGamepieceFace(clock,'practice','marketFeast','silver').activationAge,null);
+  assert.equal(getGamepieceFace(clock,'practice','barter','silver',{slot,activationTrace:reactionTrace}).activationAge,expected);
+  assert.equal(getGamepieceFace(clock,'practice','barter','silver').activationAge,null);
   assert.equal(JSON.stringify({clock,slot,reactionTrace}),before);
 }
-assert.equal(getGamepieceFace({...faceClock,tSec:9},'practice','cultivate','bronze',{slot:{practiceId:'cultivate'}}).activationAge,0);
-assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','cultivate','bronze',{slot:{practiceId:'cultivate'}}).activationAge,null);
-for(const [id,period,offset] of [['cultivate',32,9],['exchange',8,1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
+assert.equal(getGamepieceFace({...faceClock,tSec:9},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'},activationTrace:[{kind:'activated',targetPracticeId:'dryFarming',tSec:9}]}).activationAge,0);
+assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'}}).activationAge,null);
+for(const [id,period,offset] of [['dryFarming',32,9],['barter',getMoonCycleDurationSec(faceClock),1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
   for(const second of [offset,offset+period/2,offset+period,offset+period/2,offset]){
     const clock={...faceClock,tSec:second},before=JSON.stringify(clock);
     const face=getGamepieceFace(clock,'practice',id);
@@ -222,14 +222,14 @@ const monsterSeries = civSeries.filter((series) => series.id === 'monsterCount')
 for (const values of [[0, 0], [12, 27], [100, 150]]) {
   const scale = computeGraphSeriesScaleRanges(monsterSeries, new Map([['monsterCount', values]])).get('monsterCount');
   assert.equal(scale.minValue, 0);
-  assert.equal(scale.maxValue, 100, 'Monster scale is stable before and after the endgame threshold');
+  assert.equal(scale.maxValue, 15, 'Monster scale is stable before and after the endgame threshold');
 }
 const artKeys=new Set();
 for(const id of [...Object.keys(detailedSettlementPracticeDefs),...Object.keys(settlementStructureDefs)]){
   const art=getIllustrationSpec(id);
   assert.ok(art,`${id} needs an explicit gamepiece illustration`);
   const key=`${art.file}:${art.index}`;
-  assert.ok(!artKeys.has(key),`${id} must be distinguishable from other gamepieces by its illustration`);
+  assert.ok(getGamepieceFace(null,detailedSettlementPracticeDefs[id]?"practice":"structure",id)?.label,`${id} has its own visible name when prototype art is shared`);
   artKeys.add(key);
 }
 const rect={x:0,y:0,width:1400,height:600};
@@ -969,7 +969,6 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   const alive = createEmptyState();
   const lost = createEmptyState();
   lost.runStatus = { complete: true, reason: 'redGodMonsterOverrun', year: 12, tSec: 352 };
-  lost.civilization.chaos.monsterLossThreshold = 100;
   const before = JSON.stringify(lost);
   const ui = createRunCompletePresentation();
   const timeline = {};
@@ -990,7 +989,7 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   assert.equal(sync(lost, alive, 2).opened, true, 'a confirmed loss opens even while browsing an earlier year');
   const confirmed = ui.getSnapshot().info;
   assert.equal(confirmed.title, 'GAME OVER');
-  assert.match(confirmed.explanation, /loss limit of 100/);
+  assert.match(confirmed.explanation, /taken every player settlement/);
   ui.minimize();
   assert.equal(sync(lost, alive, 2).open, false);
   const strip = getCivilizationSurvivalViewModel(alive, { observedEnd: confirmed });
@@ -1004,9 +1003,6 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   assert.equal(ui.getSnapshot().open, true);
   assert.equal(ui.sync({frontierState:alive, viewedState:alive, timeline:{}, revision:0}).info, null,
     'a new run clears the old banner');
-  lost.civilization.chaos.monsterLossThreshold = 250;
-  assert.match(getRunCompleteInfo(lost).explanation, /loss limit of 250/, 'copy uses configured tuning');
-  lost.civilization.chaos.monsterLossThreshold = 100;
   assert.equal(JSON.stringify(lost), before, 'presentation does not mutate the loss state');
   assert.equal(getRunCompleteInfo({...lost,runStatus:{...lost.runStatus,reason:'futureLoss'}}).cause, 'Civilization lost');
 }

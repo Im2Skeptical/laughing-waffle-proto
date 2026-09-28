@@ -1,6 +1,3 @@
-import {
-  planDetailedAdministrationMovesAtBoundary,
-} from "./detailed-settlements.js";
 import { MOON_PHASE_INDEX_BY_ID } from "../defs/gamesettings/moon-phase-defs.js";
 import {
   getMoonCycleDurationSec,
@@ -66,25 +63,6 @@ export function buildEdgeTransferBatchAtBoundary(
 ) {
   const sec = Math.max(0, Math.floor(boundarySec ?? 0));
   const phase = getMoonPhaseAtSecond(preBoundaryState, sec);
-  const administrationTransfers =
-    preBoundaryState?.runStatus?.complete !== true &&
-    sec > 0 &&
-    phase.boundary && phase.id === "food"
-      ? planDetailedAdministrationMovesAtBoundary(
-          preBoundaryState,
-          sec
-        ).map(
-          (move, index) => ({
-            transferId: `administrate:${sec}:${index}`,
-            boundarySec: sec,
-            systemId: "administrate",
-            resourceId: "food",
-            sourceRegionId: move.sourceId,
-            destinationRegionId: move.destinationId,
-            amount: move.amount,
-          })
-        )
-      : [];
   let migrationTransfers = [];
   if (preBoundaryState?.runStatus?.complete !== true && sec > 0) {
     const replayState = deserializeGameState(serializeGameState(preBoundaryState));
@@ -94,7 +72,7 @@ export function buildEdgeTransferBatchAtBoundary(
       migrationTransfers = collectMigrationTransfers(replayState, sec);
     }
   }
-  const transfers = [...administrationTransfers, ...migrationTransfers];
+  const transfers = migrationTransfers;
   return {
     batchId: `edge-transfers:${sec}`,
     boundarySec: sec,

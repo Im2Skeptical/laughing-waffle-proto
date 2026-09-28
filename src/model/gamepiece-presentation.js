@@ -12,49 +12,18 @@ export const GAMEPIECE_OUTPUTS = Object.freeze({
 
 const number = value => Math.round(value * 100) / 100;
 export function describeGamepieceEffects(def) {
-  const names = {
-    addLocalFood: 'Food', addLocalCurrency: 'Money', routeLocalFood: 'Food routing capacity',
-    addCivilizationResearch: 'Research', reduceLocalFoodRequirement: 'less Food required',
-    addHousingForPhase: 'temporary Housing', spendCurrencyForHousing: 'temporary Housing', advanceWork: 'construction work',
-    addFaithChaosResistance: 'Faith Chaos resistance',
-  };
-  return (def.effects ?? []).map(effect => {
-    if (effect.scaledValue) {
-      const value = effect.scaledValue;
-      return `${value.baseAmount} ${names[effect.op] ?? effect.op} × ${value.evaluator?.label ?? 'local scope'} × (1 + effective workers × ${def.workerBonus ?? .25}).${effect.currencyPerHousing ? ` Costs ${effect.currencyPerHousing} Money per Housing.` : ''}`;
-    }
-    if (effect.op === 'createLocalStructureAtWork') return `At ${effect.requiredWork} work, build a ${effect.structureDefId === 'mudHouses' ? 'Mud House' : effect.structureDefId} in free construction cells. Completed work waits if there is no free span.`;
-    if (effect.op === 'extendHappinessFloor') return `Add ${effect.durationResolutions} future Faith resolution with a ${effect.status} Happiness floor; additive duration capped at ${effect.maximumResolutions}.`;
-    if (effect.op === 'importMissingFood') return 'Spend available Money, one per missing Food, to cover the meal shortfall.';
-    if (effect.op === 'reduceFoodDecay') return `${effect.amount}% relative reduction to ${effect.foodKind} Food decay; combined reduction capped at 100%.`;
-    if (effect.op === 'reduceExternalEmigrationPressure') return `${effect.amount} external-emigration pressure reduction (nonfunctional; no live executor).`;
-    return effect.op;
-  });
+  const labels={generateStock:'Stock',research:'Research',train:'specialists trained',reduceLocalFoodRequirement:'Edible saved per meal',addHousingForPhase:'Housing this phase',addFaithChaosResistance:'Chaos resistance'};
+  return (def.effects??[]).map(effect=>`${effect.amount??0} ${labels[effect.op]??effect.op}${effect.classId?' ('+effect.classId+')':''}${effect.historyScale?' + accumulated '+effect.historyScale:''}.`);
 }
 
 function describeStructureValues(def) {
-  const scaled = value => number(value);
-  if (Number.isFinite(def.capacityPerCountSquared)) return [
-    `${number(def.capacityPerCountSquared)} ${def.capacityKind === 'housing' ? 'Housing' : 'stored-Food capacity'} when alone.`,
-    `Duplicates: ${def.capacityPerCountSquared} × the square of this structure's local count.`,
-  ];
-  const descriptions = [
-    ['migrantHousingReserve', value => `${value} reserved Housing (nonfunctional; no live executor).`],
-    ['knowledgeResearchMultiplierPerLevel', value => `+${number(value * 100)}% Knowledge Research.`],
-    ['researchPerRetiredIntelligence', value => `${value} Research per retired Intelligence.`],
-    ['faithResistancePerRetiredWisdom', value => `${value} resistance per retired Wisdom.`],
-    ['foodOutputBonusPerOtherFoodPiece', value => `+${number(value * 100)}% Food output per other Food piece.`],
-    ['faithResistancePerDistinctTag', value => `${value} resistance per distinct tag.`],
-    ['candidateIntelligenceBonus', value => `+${value} candidate Intelligence.`],
-  ];
-  return [...descriptions.flatMap(([key, describe]) => Number.isFinite(def[key]) ? [describe(scaled(def[key]))] : []),
-    ...(def.id === 'university' ? ['Gold offer floor, subject to the civilization’s unlocked quality.'] : [])];
+  return [...(def.housing?[`${def.housing} Housing. Numeric bonuses from duplicate structures add.`]:[]),...(def.candidateBonus?[`+${def.candidateBonus} to future ${def.pool} candidates from this settlement while active.`]:[])];
 }
 
 export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
-  if (kind === 'structure') tier = def.minimumQuality ?? 'bronze';
+  if (kind === 'structure') tier = ['bronze','silver','gold','diamond'][Math.min(3,['bronze','silver','gold','diamond'].indexOf(def.minimumQuality??'bronze')+(slot?.qualityBonus??0))];
   const multiplier = kind === 'practice' ? getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0) : 1;
   const outputs = (def.outputs ?? []).map(output => {
     const effect = def.effects?.[output.effectIndex];
@@ -73,17 +42,17 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const viewedTime = state?.tSec ?? 0;
   const scheduledAge = ((viewedTime - offset) % period + period) % period;
   const lastReaction = activationTrace.filter(entry => entry.kind === 'activated' && entry.targetPracticeId === id && entry.tSec <= viewedTime).at(-1);
-  const activationAge = !slot ? null : def.activation?.type === 'trigger'
-    ? lastReaction ? viewedTime - lastReaction.tSec : null
-    : viewedTime >= Math.max(1, offset) ? scheduledAge : null;
-  return { kind, definitionId: id, label: def.label, tier, tags: [...(def.tags ?? [])], qualityLabel: tier, rule: def.ui?.rule ?? '',
+  const activationAge = slot && lastReaction ? viewedTime - lastReaction.tSec : null;
+  return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
+    stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],
+    providers: evaluation?.providers ?? [],
     viewedTime, activationAge,
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
     workerCapacity: kind === 'practice' ? getDetailedPracticeWorkerCapacity(def, tier) : 0,
     workerBonus: def.workerBonus ?? .25, workers: workers?.tokens?.length ?? 0,
     fill: def.lane === 'charge' ? Math.min(1, requiredWork ? (slot?.work ?? 0) / requiredWork : (slot?.charge ?? 0) / threshold)
       : (state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period,
-    detailLines: [...(kind === 'structure' ? describeStructureValues(def) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
+    detailLines: [...(slot?.qualityBonus?[`Quality: +${slot.qualityBonus*25}% numeric Structure bonuses.`]:[]),...(evaluation?.missing ? [`Missing ${evaluation.missing.kind}: [${evaluation.missing.traits.join(" / ")}] to the left`] : []), ...(evaluation?.providers ?? []).map(p => `${p.kind === "consume" ? "Consume" : "Require"} ${p.amount} from slot ${p.slotIndex + 1}: ${p.practiceId}`),...(kind === 'structure' ? describeStructureValues(def) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
       ...(kind === 'practice' ? [`Workers optional: ${getDetailedPracticeWorkerCapacity(def, tier)} sockets; +${number((def.workerBonus ?? .25) * 100)}% per effective worker.`,
         def.lane === 'charge' ? requiredWork ? `Birth adds construction work.` : `Activates at ${threshold} charge. Each matching activation contributes one charge.`
           : `Scheduled: ${def.source?.cadence ?? def.activation.type}.`] : [`Construction footprint: ${def.footprint ?? 1} horizontal cells.`])],

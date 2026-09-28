@@ -4,6 +4,12 @@ const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
+  training: Object.freeze({ id: "training", label: "Training", glyph: "T", color: 0xa46fc4, description: "Establish or grow a specialist estate." }),
+  commission: Object.freeze({ id: "commission", label: "Commission", glyph: "C", color: 0xa46fc4, description: "Accept an objective for Prestige." }),
+  discovery: Object.freeze({ id: "discovery", label: "Discovery", glyph: "D", color: 0xa46fc4, description: "Develop technological access through Ingenuity." }),
+  campaign: Object.freeze({ id: "campaign", label: "Campaign", glyph: "C", color: 0xa46fc4, description: "Lead organized conflict." }),
+  challenge: Object.freeze({ id: "challenge", label: "Challenge", glyph: "C", color: 0xa46fc4, description: "Take a personal martial risk." }),
+
   patronage: Object.freeze({
     id: "patronage", label: "Patronage", glyph: "P", color: 0xb88449,
     description: "Opportunities to gain Prestige.",
@@ -52,7 +58,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "crisis", "relic",
+  "publicWorks", "routes", "crisis", "relic", "training", "commission", "discovery", "campaign", "challenge",
 ]);
 
 export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([

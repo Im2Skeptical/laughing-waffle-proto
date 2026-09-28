@@ -11,6 +11,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
+import { validSpecialistCohorts } from "./detailed-settlements/cohorts.js";
 
 export const REGION_COLOURS = Object.freeze(["red", "blue", "green", "black"]);
 export const REGION_CONTROLLERS = Object.freeze([
@@ -182,10 +183,9 @@ function validateDetailedSettlement(site, region, errors) {
       }
     }
   }
-  if (!Number.isFinite(settlement.storedFood) || settlement.storedFood < 0
-      || !Number.isFinite(settlement.looseFood) || settlement.looseFood < 0) {
-    errors.push(`site ${site.id} has invalid food`);
-  }
+  for (const slot of settlement.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.stock) || slot.stock < 0)) errors.push(`site ${site.id} has invalid Stock`);
+  if (["storedFood","looseFood","currency"].some(key=>Object.hasOwn(settlement,key))) errors.push(`site ${site.id} has an obsolete resource wallet`);
+  for (const cohort of Object.values(settlement.populationByClass ?? {})) if (!validSpecialistCohorts(cohort)) errors.push(`site ${site.id} has invalid specialist cohorts`);
 }
 
 export function validateWorldDefinition(definition, { requireConnected = false } = {}) {
@@ -432,6 +432,7 @@ export function validateWorldState(state) {
     definition.regions.map((entry) => [entry.id, entry])
   ), errors, "world-state connection", definition);
   for (const site of state?.world?.sites ?? []) {
+    if (site.simulationMode === "ruin") continue;
     const region = regions.find((entry) => entry.id === site?.regionId);
     if (!region || region.detailedSettlementEnabled !== true) {
       errors.push(`site ${site?.id ?? "?"} is not enabled by its region`);
