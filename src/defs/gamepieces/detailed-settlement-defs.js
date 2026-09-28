@@ -1,5 +1,6 @@
 // CivContent 2.5 first-pass shared grammar. Scoped decisions: docs/civilization-milestone.md.
-export const DETAILED_PRACTICE_SLOT_COUNT = 12;
+// Fixed design limit for readability and meaningful composition choices.
+export const DETAILED_PRACTICE_SLOT_COUNT = 5;
 export const POPULATION_CLASS_ORDER = Object.freeze(["villager", "stranger"]);
 export const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 export const settlementStructureDefs = Object.freeze({

@@ -2,8 +2,9 @@
 
 Practice faces show hosted Stock count/capacity and Trait glyphs; inspections
 list the live Consume/Require providers and unmet input. Food and Currency
-summaries are read-only Trait totals. The regional panel lays twelve Practices
-out in two rows; the purchase tableau pages five at a time. Population/Housing,
+summaries are read-only Trait totals. Regional, overview, and purchase boards show
+one row of five fixed Practice slots, with no Practice-board paging. Purchase
+inventory paging is separate. Population/Housing,
 specialist counts and the last defense outcome remain explicit.
 Scheduled readiness uses the existing time rim. Inspection supports hover and
 touch; generic art is reused for new content with distinct names and rules.

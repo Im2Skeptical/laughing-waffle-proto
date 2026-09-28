@@ -6,7 +6,7 @@ detailed gamepiece definitions in
 `src/defs/gamepieces/detailed-settlement-defs.js`; do not duplicate those
 registries here.
 
-- Food and Currency are hosted Stock, derived by Trait across twelve Practice slots.
+- Food and Currency are hosted Stock, derived by Trait across five fixed Practice slots.
   There are no authoritative stored/loose Food or Currency wallets and no automatic
   Administration food transport. Provider planning checks Require without spending,
   then reserves Consume atomically from leftmost eligible hosts to the left; self
@@ -72,7 +72,7 @@ registries here.
   frontier, and structure-capacity requirements.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
-  confirmation. Practice purchases can be placed throughout the twelve-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
+  confirmation. Practice purchases can be placed throughout the fixed five-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
   origins and footprints; automatic placement seeks a free span before staging
   demolition at the leftmost compatible origin. Builds may cover confirmed
   structures, never other staged structures. Undo reprojects from the confirmed settlement and restores

@@ -29,7 +29,7 @@ for(const [population,stock,expected] of [[1,1,1],[30,1,1],[31,1,.5],[60,1,.5],[
  assert.equal(stockTotal(state,settlement,'Edible'),0);
 }
 const rationed=fixture(),r=getDetailedSettlement(rationed,'cedar-woods');
-r.populationByClass.villager.adults=60;r.practiceSlots=[slot('forage',1),slot('rationing'),...Array(10).fill(null)];
+r.populationByClass.villager.adults=60;r.practiceSlots=[slot('forage',1),slot('rationing'),...Array(3).fill(null)];
 stepDetailedSettlementsSecond(rationed,1);stepDetailedSettlementsSecond(rationed,2);
 assert.equal(r.lastMeal.ratio,1,'one saved Stock band feeds 30 people');
 assert.equal(stockTotal(rationed,r,'Edible'),0);

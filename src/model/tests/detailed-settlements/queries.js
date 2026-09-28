@@ -36,7 +36,7 @@ primordial.year = 7;
 assert.equal(getPrimordialChaosPressure(primordial), 16,
   "Primordial base, factor, and cadence are configurable without a cap");
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
-  .map((entry) => entry.effectiveWorkers), [2, ...Array(11).fill(0)]);
+  .map((entry) => entry.effectiveWorkers), [2, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
 const strangerSite = getDetailedSettlement(strangerWorkers, "river-crown");
 strangerSite.populationByClass.villager.adults = 0;

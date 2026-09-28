@@ -1,12 +1,34 @@
 # Civilization System + Content milestone
 
-Playable first-pass implementation of the milestone brief and CivContent 2.5.
-The brief's hard invariants take precedence over the workbook's provisional tuning.
-This is an experiment, not a complete transcription or a balance endorsement.
+This project remains an in-progress, wide content and systems buildout. The
+milestone brief and CivContent 2.5 have a playable first-pass implementation;
+mechanical acceptance coverage does not mean the UX, tooling, content pool, or
+balance is finished. The brief's hard invariants take precedence over provisional
+workbook tuning, with subsequent explicit design decisions recorded below.
 
-## Systems delivered
+## Current iteration and handoff
 
-- Universal hosted Stock: twelve singleton Practice slots; count/capacity and Traits;
+- Practice capacity is fixed at **five** per detailed settlement, including
+  neutrals. This intentional readability and composition limit was reaffirmed
+  after the content pass; the temporary twelve-slot expansion was reverted.
+  Future UX and gamepiece design must work within five slots. The regional,
+  overview, and purchase boards show one row; shop inventory may still page.
+- Prioritize iterative UX and tooling work against the actual shared mechanics:
+  supply/provider legibility, purchase and displacement feedback, class/population
+  explanations, automated conflict visibility, and editable content workflows.
+  These are follow-up areas, not completed usability claims or a new scope commitment.
+- Use the coverage and deferred lists below when extending content. Provisional
+  coefficients and generic art remain first-pass choices. Human playtesting still
+  needs to establish coherent long-run class and hybrid strategies within five slots.
+- Current work deploys from this repository's `main` to laughing-waffle-proto.
+  laughing-pancake-proto preserves the pre-content-pass game with isolated storage.
+- Restoring five slots is a clean schema cut: start a new game. Twelve-slot saves
+  and old Map Lab drafts are unsupported; no installed content is silently truncated
+  during save loading. Current schema numbers live in `ai/ai-context.md`.
+
+## Systems implemented in the first pass
+
+- Universal hosted Stock: five fixed singleton Practice slots; count/capacity and Traits;
   deterministic left-to-right atomic Consume/Require; no self funding; derived Edible
   and Currency totals. Food runs after Practice production, one Stock per 30 people.
   Currency purchases and Crisis procurement debit hosts, including upgraded hosts.
@@ -145,4 +167,4 @@ upper bound (the expanded snapshot measured 375 ms against the old 300 ms bound)
 Further snapshot/render optimization is a follow-up, not a balance dependency.
 
 Probe artifacts are generated under `artifacts/` and are not committed. State/save/
-config schemas are 23/14/15; Map Lab is 7. Existing saves are intentionally rejected.
+config schemas are 24/15/15; Map Lab is 8. Older saves are intentionally rejected.

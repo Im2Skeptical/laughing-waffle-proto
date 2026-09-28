@@ -66,7 +66,6 @@ export function createVassalNodeDecisionModalView({
   let backdropPressedPointerId = null;
   let openNodeId = null;
   let signature = "";
-  let practicePage = 0;
   let dragged = null;
   let dragGhost = null;
   let tableauRoots = [];
@@ -265,8 +264,7 @@ export function createVassalNodeDecisionModalView({
       if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,origin);
       else onMoveStructure?.(openNodeId,offerId,origin);
     } else if(kind==='practice' && local.y>=tableau.practiceY-25 && local.y<tableau.practiceY+PIECE_SIZE.practiceHeight+25) {
-      const count=(lastDecision?.settlement?.practices??[]).filter(p=>p?.staged).length;
-      const toIndex=Math.max(0,Math.min((lastDecision?.settlement?.practices?.length??12)-1,practicePage*5+Math.floor((local.x-tableau.x)/(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap))));
+      const toIndex=Math.max(0,Math.min((lastDecision?.settlement?.practices?.length??5)-1,Math.floor((local.x-tableau.x)/(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap))));
       if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,null,toIndex);
       else onReorderPurchase?.(openNodeId,offerId,toIndex);
     }
@@ -472,11 +470,7 @@ export function createVassalNodeDecisionModalView({
         `Hosted Edible ${Math.round(settlement.storedFood ?? 0)}    Hosted Currency ${Math.round(settlement.currency ?? 0)}`,
         { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
       root.addChild(createText('PRACTICES   Stock / Supply',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceLabelY));
-      const pages = Math.max(1,Math.ceil((settlement.practices?.length??0)/5));
-      practicePage = Math.min(practicePage,pages-1);
-      button(root,{x:sx+530,y:PANEL.y+CONTENT.practiceLabelY-7,width:175,height:32},'Previous',practicePage>0,()=>{practicePage--;render(true);});
-      button(root,{x:sx+720,y:PANEL.y+CONTENT.practiceLabelY-7,width:175,height:32},`Next ${practicePage+1}/${pages}`,practicePage<pages-1,()=>{practicePage++;render(true);});
-      (settlement.practices??[]).slice(practicePage*5,practicePage*5+5).forEach((piece,index)=>{
+      (settlement.practices??[]).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
           onHover:piece?()=>{hoveredTableauId='practice:'+piece.practiceId;scheduleHoverRender();}:undefined,
@@ -661,7 +655,7 @@ export function createVassalNodeDecisionModalView({
         metadata:[face?.qualityLabel,...(face?.tags??[])].filter(Boolean).join(' · '),
         detail:[face?[face.rule,...(face.details??face.detailLines??[])].join('\n'):optionEffect(piece),
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,
-          displaced?'This practice leaves because the incoming prefix fills all twelve slots.':null,
+          displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
         onClose:()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);},
       });

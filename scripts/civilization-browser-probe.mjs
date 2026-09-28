@@ -32,7 +32,7 @@ try {
   const neutral=markers.find(r=>r.controller==='external-a');
   await click('getWorldMapClickPoint',neutral.regionId);
   const selected=await snapshot();
-  assert.equal(selected.worldMap.selectedRegion.detailedSettlement.practices.length,12);
+  assert.equal(selected.worldMap.selectedRegion.detailedSettlement.practices.length,5);
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-neutral.png`});
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.openNextSelection())).ok,true);
   const candidates=(await snapshot()).vassalSelectionPool.candidates;
@@ -54,7 +54,7 @@ try {
   assert.ok(resolved.frontierSec>=1,'founding resolves through authoritative time');
   assert.ok(resolved.worldMap.selectedRegion.detailedSettlement.specialists[candidateIndex?'warrior':'scholar']>= (candidateIndex?10:2));
   if(candidateIndex) assert.ok(resolved.lifeMapHud.retinue.cap>=1,'Warrior population supports a Retinue cap');
-  checks.push(`${candidateIndex?'Warrior':'Scholar'}: real New Game, four neutrals, twelve-slot panel, candidate, founding confirmation and time resolution`);
+  checks.push(`${candidateIndex?'Warrior':'Scholar'}: real New Game, four neutrals, five-slot panel, candidate, founding confirmation and time resolution`);
   await page.close();page=null;
  }
  assert.deepEqual(errors,[]);writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));

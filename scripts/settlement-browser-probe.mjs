@@ -441,7 +441,7 @@ try {
   await clickDesignPoint(page, overview.graph.focusButton);
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph.zoomed), true);
   await clickDesignPoint(page, overview.graph.focusButton);
-  assert.equal(overview.view.overview.practices.length, 12);
+  assert.equal(overview.view.overview.practices.length, 5);
   assert.deepEqual(
     overview.view.overview.practices.slice(0, 3).map((practice) => practice.label),
     ["Foraging", null, null]

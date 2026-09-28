@@ -7,10 +7,13 @@ and `ai/ui.md` on every task. Exact tunables live in
 `src/defs/gamepieces/detailed-settlement-defs.js`; do not copy those
 registries here.
 
-The map-driven settlement redesign and data-driven debug-tool expansion are
-implemented. Their plan documents live in `ai/history/` as historical
-decision records, not pending task lists. Do not read `ai/history/` unless
-the task is explicitly about a past design decision.
+The project is an in-progress, wide Civilization content and systems buildout.
+A playable first pass of hosted Stock, specialist classes, neutral settlements,
+and spatial conflict is implemented. UX, tooling, wider content coverage, and
+balance are being developed iteratively. For coverage, provisional choices,
+deferred mechanics, and playtest questions, see `docs/civilization-milestone.md`.
+Earlier redesign plans in `ai/history/` are historical decisions, not pending
+work; read them only when investigating a past design decision.
 
 Routing skills live in `.grok/skills/`.
 
@@ -29,6 +32,9 @@ Routing skills live in `.grok/skills/`.
 - `tSec` is authoritative time and advances only through simulation ticks.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
+- Every detailed settlement has exactly five Practice slots. This fixed design
+  limit preserves readability and composition choices; UX and gamepieces must
+  work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
   bespoke content logic.
 
@@ -38,10 +44,10 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v23; runner saves v14. Older saves are rejected.
+- Game state v24; runner saves v15. Older saves are rejected.
 - Each run serializes schema-v15 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
-- Map Lab drafts v7; scenario libraries v4.
+- Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Life Map generator settings v3; serialized Life Map graph v2.
@@ -62,7 +68,7 @@ Region state owns colour, controller, connections, `structureCapacity`, and
 the independent detailed-settlement toggle. New runs roll every region's
 structure capacity from 5–8 in authored order through `state.rng`; Map Lab
 regions can pin an explicit capacity. Each detailed site owns
-Villager/Stranger cohorts with orthogonal Scholar/Warrior subsets, anonymous elder ages, twelve hosted-Stock practice slots, a regional construction strip, aggregate Elder Order state,
+Villager/Stranger cohorts with orthogonal Scholar/Warrior subsets, anonymous elder ages, five hosted-Stock practice slots, a regional construction strip, aggregate Elder Order state,
 and local moon/meal summaries. Spatial Monsters, settlement loss history, Chaos, persistent survival
 knowledge, and the single vassal lineage are civilization-global.
 

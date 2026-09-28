@@ -14,8 +14,8 @@ import { createInitialState } from "../init.js";
 import { setupDefs } from "../../defs/gamesettings/scenarios-defs.js";
 
 const authored = createAuthoredMapLabDraft();
-assert.equal(MAP_LAB_DRAFT_SCHEMA_VERSION, 7);
-assert.match(MAP_LAB_STORAGE_KEY, /\.v7$/);
+assert.equal(MAP_LAB_DRAFT_SCHEMA_VERSION, 8);
+assert.match(MAP_LAB_STORAGE_KEY, /\.v8$/);
 assert.equal(validateMapLabDraft(authored).ok, true);
 assert.deepEqual(parseMapLabDraftJson(serializeMapLabDraft(authored)).draft, authored);
 assert.deepEqual(authored.regions.map((region) => region.structureCapacity),
@@ -56,7 +56,7 @@ const v1 = JSON.stringify({
   connections: [],
 });
 assert.equal(parseMapLabDraftJson(v1).ok, false);
-assert.ok(parseMapLabDraftJson(v1).errors.some((error) => error.includes("expected 7")));
+assert.ok(parseMapLabDraftJson(v1).errors.some((error) => error.includes("expected 8")));
 
 const applied = createInitialState({
   ...setupDefs.devPlaytesting01,
