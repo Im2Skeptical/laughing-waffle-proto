@@ -19,6 +19,8 @@ export const RESOURCE_ART_IDS = Object.freeze([
 export const getResourceTexture = id => loadTexture(`resource-language-v1/${id}.png`);
 export const getStockTraitTexture = trait => getResourceTexture(`stock-${trait.toLowerCase()}`);
 export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
+  ...Object.keys(detailedSettlementPracticeDefs),
+  ...Object.keys(settlementStructureDefs),
   'forage', 'cultivate', 'raiseHouses', 'administrate', 'exchange', 'import',
   'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study', 'mill',
   'harvestFestival', 'marketFeast', 'symposium', 'vigil',
@@ -34,8 +36,8 @@ const PACKED_GROUPS = Object.freeze({
     eager: true,
   }),
   settlementPieces: Object.freeze({
-    prefix: 'settlement-pieces-v2/',
-    files: Object.freeze(['settlement-pieces.json']),
+    prefix: 'settlement-pieces-v3/',
+    files: Object.freeze(['settlement-pieces-0.json', 'settlement-pieces-1.json']),
     eager: false,
   }),
   pieceFrames: Object.freeze({
@@ -104,18 +106,21 @@ export function getChronicleTexture(file) {
 
 async function loadPackedGroup(group) {
   if (packedLoads.has(group)) return packedLoads.get(group);
-  const load = Promise.all(group.files.map(file => PIXI.Assets.load(`${SPRITE_SHEET_ROOT}${file}`)))
-    .then(sheets => {
-      sheets.forEach(sheet => Object.entries(sheet.textures).forEach(([name, texture]) => {
+  // Multipack sheets link to each other. Loading them concurrently can leave
+  // Pixi's asset promises waiting on the same linked sheet indefinitely.
+  const load = (async () => {
+    for (const name of group.files) {
+      const sheet = await PIXI.Assets.load(`${SPRITE_SHEET_ROOT}${name}`);
+      Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
         configureTexture(texture);
         packedTextures.set(file, texture);
-      }));
-      bumpRevision();
-    })
-    .catch(error => {
-      console.error('[art] failed to load packed sprite sheet', error);
-    });
+      });
+    }
+    bumpRevision();
+  })().catch(error => {
+    console.error('[art] failed to load packed sprite sheet', error);
+  });
   packedLoads.set(group, load);
   return load;
 }
@@ -125,8 +130,8 @@ export function preloadChronicleArt() {
   const eager = Object.values(PACKED_GROUPS)
     .filter(group => group.eager)
     .map(loadPackedGroup);
-  // Warm the on-demand settlement atlas after HUD/map art has claimed the
-  // first connections, so opening a settlement does not wait on a 20MB hitch.
+  // Warm the settlement atlases after HUD/map art has claimed the first
+  // connections, so opening a settlement does not wait on their decode.
   Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
   return Promise.all(eager);
 }
@@ -159,13 +164,13 @@ export function resolveIllustrationId(piece = {}) {
 
 export function getIllustrationSpec(id) {
   const pieceId = resolveIllustrationId(id);
-  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v2/${pieceId}.webp`, index: 0, whole: true };
+  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v3/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
   if(index==null) {
     const def=detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId];
     if(!def)return null;
     const illustration=def.housing?'mudHouses':def.pool==='warrior'?'vigil':def.pool==='scholar'?'study':def.stockTraits?.includes('Edible')?'forage':def.stockTraits?.includes('Currency')?'exchange':'raiseHouses';
-    return {file:`settlement-pieces-v2/${illustration}.webp`,index:0,whole:true};
+    return {file:`settlement-pieces-v3/${illustration}.webp`,index:0,whole:true};
   }
   return {file:`chronicle-illustrations-v1/${ILLUSTRATION_IDS[index]}.png`, whole:true};
 }
