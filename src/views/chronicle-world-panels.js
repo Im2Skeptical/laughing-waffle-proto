@@ -74,8 +74,8 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
   root.addChild(createText(`PRACTICES   Scholars ${vm.specialists.scholar} / Warriors ${vm.specialists.warrior} / Support ${vm.martialSupport}${vm.lastDefense ? ' / Last defense: '+vm.lastDefense.result : ''}`,{...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+118));
-  const pitch=(rect.width-44)/6, ph=118, pw=ph*5/7;
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+(i%6)*pitch+(pitch-pw)/2,y:y+152+Math.floor(i/6)*126,width:pw,height:ph},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
+  const gap=9, pw=(rect.width-44-gap*4)/5;
+  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+152,width:pw,height:pw*7/5},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   root.addChild(createText(`STRUCTURES   ${vm.usedStructureCapacity} / ${vm.structureCapacity}`,{
     ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,y+410));
   const constructionRect=regionalConstructionRect({x,y:y+444,width:rect.width-44,height:rect.height-456},vm.structureCapacity);

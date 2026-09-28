@@ -171,12 +171,12 @@ export function createSettlementPrototypeView({
       addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 106, 32);
       addResourceIcon(root, 'money', foodRect.x + 31, foodRect.y + 138, 32);
       const practiceGap = PIECE_SIZE.gap;
-      const practiceCardWidth = 130;
+      const practiceCardWidth = PIECE_SIZE.practiceWidth;
       vm.practices.forEach((entry, index) => drawPracticeSlotCard(root, {
-        x: practiceRect.x + 18 + (index % 6) * (practiceCardWidth + practiceGap),
-        y: practiceRect.y + 50 + Math.floor(index / 6) * 185,
+        x: practiceRect.x + 18 + index * (practiceCardWidth + practiceGap),
+        y: practiceRect.y + 56,
         width: practiceCardWidth,
-        height: 172,
+        height: PIECE_SIZE.practiceHeight,
       }, entry, index, tooltipView));
       addIllustration(root,"settlement",{x:48,y:356,width:540,height:410},{alpha:.7});
       const order = vm.elderOrder;

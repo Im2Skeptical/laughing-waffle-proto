@@ -212,7 +212,7 @@ practiceTierSettlement.practiceSlots = [
   { practiceId: "pastoralism", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "logging", tier: "bronze", charge: 0, work: 0 },
   { practiceId: "quarrying", tier: "bronze", charge: 0, work: 0 },
-  ...["surfaceMining","clayGathering","dryFarming","brickmaking","charcoalBurning","smelting","toolmaking","barter"].map(practiceId=>({practiceId,tier:"bronze",stock:0,charge:0,work:0})),
+  { practiceId: "barter", tier: "bronze", stock: 0, charge: 0, work: 0 },
 ];
 const practiceTierNode = forceEnter(practiceTierState,
   nodeIdForFamily(practiceTierState, "practiceReform"));
@@ -231,7 +231,7 @@ resolvePending(practiceTierState);
 assert.equal(practiceTierSettlement.practiceSlots[0].practiceId, learnOffer.intervention.practiceId,
   "learning inserts the practice into the leftmost slot");
 assert.equal(practiceTierSettlement.practiceSlots[0].tier, "bronze");
-assert.equal(practiceTierSettlement.practiceSlots.length, 12);
+assert.equal(practiceTierSettlement.practiceSlots.length, 5);
 assert.equal(practiceTierSettlement.practiceSlots.some((slot) => slot?.practiceId === "barter"), false,
   "a full board discards its rightmost practice when learning");
 

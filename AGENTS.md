@@ -19,8 +19,11 @@ Local instructions for agents working in this repo.
   design decision.
 
 ## Current goal context
-- The map-driven detailed-settlement redesign and data-driven debug tools are
-  implemented. Current work is iterative gameplay and UI development.
+- The project is an in-progress, wide Civilization content and systems buildout.
+  The playable first pass is implemented; current work iterates on UX, tooling,
+  content coverage, and balance. Implemented mechanics are not final designs.
+- For milestone coverage, provisional choices, deferred mechanics, and playtest
+  questions, read `docs/civilization-milestone.md` before extending that work.
 - `ai/ai-context.md` is the invariants sheet. Simulation and UI behavior live
   in `ai/sim.md` and `ai/ui.md`. Historical decision records live in
   `ai/history/` and are not descriptions of unfinished work.

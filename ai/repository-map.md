@@ -205,6 +205,8 @@ in `ai/ai-context.md`.
 
 Browser probes write details under `artifacts/` and print concise failures.
 Do not paste their full artifact JSON into chat.
+Run browser probes sequentially: software rendering under concurrent load can
+let forecast unveiling outlive a settlement used as an interaction target.
 
 ## Maintenance guards
 
@@ -219,6 +221,9 @@ Do not paste their full artifact JSON into chat.
   targets.
 
 ## Documentation status
+
+- Current buildout coverage, provisional choices, and iteration handoff:
+  `docs/civilization-milestone.md`
 
 - Invariants and schema numbers: `ai/ai-context.md`
 - Simulation behavior: `ai/sim.md`

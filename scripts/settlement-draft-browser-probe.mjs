@@ -31,7 +31,7 @@ try {
       const site=state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;
       state.world.regions.find(r=>r.id===v.locationRegionId).structureCapacity=8;
       site.structureSlots=layout.normalizeStructureLayout([{structureId:'granary'},{structureId:'mudHouses'},null,null,{structureId:'timberHouse'}],8,id=>defs.settlementStructureDefs[id]);
-      site.practiceSlots=[...['forage','pastoralism','logging','surfaceMining','barter'].map(practiceId=>({practiceId,tier:'bronze',stock:2,charge:0,work:0})),...Array(7).fill(null)];
+      site.practiceSlots=[...['forage','pastoralism','logging','surfaceMining','barter'].map(practiceId=>({practiceId,tier:'bronze',stock:2,charge:0,work:0}))];
       const actions=kind==='practice'?[
         {kind,mode:'learn',practiceId:'dryFarming',resultingTier:'bronze'},
         {kind,mode:'learn',practiceId:'quarrying',resultingTier:'bronze'},

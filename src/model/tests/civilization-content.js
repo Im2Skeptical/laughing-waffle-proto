@@ -21,6 +21,9 @@ import { projectPracticeDraft } from '../practice-draft.js';
 const slot=(practiceId,stock=0)=>({practiceId,stock,tier:'bronze',charge:0,work:0});
 const state=createNewGameState(42), site=getDetailedSettlementSites(state,{playerOnly:true})[0], settlement=site.detailedState;
 assert.equal(state.world.sites.filter(s=>s.neutral).length,4);
+for (const site of state.world.sites) {
+  assert.equal(site.detailedState.practiceSlots.length, 5, 'player and neutral settlements have exactly five Practice slots');
+}
 assert.ok(state.world.sites.some(s=>s.neutral&&adjacentRegionIds(state,state.civilization.capitalRegionId).includes(s.regionId)));
 assert.deepEqual(serializeGameState(state),serializeGameState(createNewGameState(42)));
 assert.ok(!Object.hasOwn(settlement,'currency')&&!Object.hasOwn(settlement,'storedFood')&&!Object.hasOwn(settlement,'looseFood'));
@@ -51,12 +54,12 @@ const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validati
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning')];
 const shared=planStock(state,settlement,1,[{traits:['Timber'],amount:1}],[{traits:['Fuel'],amount:1}]);
 assert.equal(shared.ok,true);applyStockPlan(settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
-const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(10).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
+const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
 assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},2,getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can follow existing suppliers');
 
 // A: Common content grows capacity and sustains hosted Food without a specialist.
 const common=createNewGameState(21),commonSite=getDetailedSettlementSites(common,{playerOnly:true})[0];
-commonSite.detailedState.practiceSlots=[slot('forage',2),slot('pastoralism',2),slot('logging',2),slot('barter'),...Array(8).fill(null)];
+commonSite.detailedState.practiceSlots=[slot('forage',2),slot('pastoralism',2),slot('logging',2),slot('barter'),...Array(1).fill(null)];
 const housing=getHousingCapacity(common,commonSite.regionId);
 assert.equal(tryCreateStructure(common,commonSite.regionId,'timberHouse'),true);
 assert.equal(getHousingCapacity(common,commonSite.regionId),housing+60);
@@ -76,7 +79,7 @@ act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:training.id,optionId:'train-es
 act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:training.id});
 assert.equal(specialistCount(scholarSite.detailedState,'scholar'),2);
 assert.ok(scholarSite.detailedState.structureSlots.some(s=>s?.structureId==='lyceum'));
-scholarSite.detailedState.practiceSlots=[slot('logging',3),slot('bowmaking',2),slot('garrisonDuty'),...Array(9).fill(null)];
+scholarSite.detailedState.practiceSlots=[slot('logging',3),slot('bowmaking',2),slot('garrisonDuty'),...Array(2).fill(null)];
 const staffing=assignDetailedSettlementWorkers(scholarState,scholar.locationRegionId);
 assert.ok(getPracticeTags(scholarState,'logging',staffing[0]).includes('Knowledge'));
 assert.equal(stockTraits(scholarState,scholarSite.detailedState.practiceSlots[0]).includes('Knowledge'),false);
@@ -104,7 +107,7 @@ generateCandidatePool(baseCandidates);generateCandidatePool(educated);
 assert.equal(getVassalCandidatePool(educated).candidates[0].stats.cunning,getVassalCandidatePool(baseCandidates).candidates[0].stats.cunning+4);
 // F: a Scholar-staffed Common smelter benefits from a Knowledge/Ore query, no pairwise class rule.
 const hybrid=createNewGameState(32),hybridSite=getDetailedSettlementSites(hybrid,{playerOnly:true})[0];
-hybridSite.detailedState.practiceSlots=[slot('logging',2),slot('surfaceMining',2),slot('smelting'),slot('weaponsmithing'),slot('garrisonDuty'),...Array(7).fill(null)];
+hybridSite.detailedState.practiceSlots=[slot('logging',2),slot('surfaceMining',2),slot('smelting'),slot('weaponsmithing'),slot('garrisonDuty')];
 trainSpecialists(hybridSite.detailedState,'scholar',3);
 trainSpecialists(hybridSite.detailedState,'warrior',10);
 assert.equal(tryCreateStructure(hybrid,hybridSite.regionId,'foundry'),true);
@@ -129,7 +132,7 @@ assert.equal(addWorldConnection(relations,capital,neighbor.regionId).ok,true);
 const neutralPopulation=getPopulationSummary(relations,neighbor.regionId).total;
 advanceReplayStateToSecond(relations,18);
 assert.equal(getPopulationSummary(relations,neighbor.regionId).total,neutralPopulation);
-home.detailedState.practiceSlots=[slot('forage',3),slot('bowmaking',3),slot('raidingParties'),...Array(9).fill(null)];
+home.detailedState.practiceSlots=[slot('forage',3),slot('bowmaking',3),slot('raidingParties'),...Array(2).fill(null)];
 home.detailedState.populationByClass.villager.adults=30;
 trainSpecialists(home.detailedState,'warrior',30);
 const raidTargetStock=neighbor.detailedState.practiceSlots.filter(Boolean).reduce((n,p)=>n+p.stock,0);
@@ -168,7 +171,7 @@ const displacedVassal=getCurrentLifeMapVassal(defense);displacedVassal.locationR
 const frontier=adjacentRegionIds(defense,defended.regionId)[0];
 for(const id of adjacentRegionIds(defense,frontier)) if(id!==defended.regionId)getRegionState(defense,id).monster={defense:1,ageMoons:0};
 getRegionState(defense,frontier).monster={defense:2,ageMoons:3};
-defended.detailedState.practiceSlots=[slot('forage',1),slot('bowmaking',1),slot('garrisonDuty'),...Array(9).fill(null)];
+defended.detailedState.practiceSlots=[slot('forage',1),slot('bowmaking',1),slot('garrisonDuty'),...Array(2).fill(null)];
 trainSpecialists(defended.detailedState,'warrior',15);
 const shortPatrol=deserializeGameState(serializeGameState(defense));
 const patrolSite=shortPatrol.world.sites.find(s=>s.regionId===defended.regionId);
@@ -187,7 +190,7 @@ const surviving=getDetailedSettlementSites(defense,{playerOnly:true})[0];
 if(surviving) {
  assert.equal(displacedVassal.locationRegionId,surviving.regionId);
  assert.equal(displacedVassal.lifeEvents.at(-1).kind,'evacuation');
- surviving.detailedState.practiceSlots=[slot('papermaking',3),slot('doomsdayChronicle'),...Array(10).fill(null)];
+ surviving.detailedState.practiceSlots=[slot('papermaking',3),slot('doomsdayChronicle'),...Array(3).fill(null)];
  runPracticeActivation(defense,'birth');
  assert.ok(surviving.detailedState.practiceSlots[1].stock>=2,'loss history changes later content');
 }

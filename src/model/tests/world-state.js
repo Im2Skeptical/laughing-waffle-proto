@@ -59,7 +59,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 23);
+assert.equal(state.gameStateSchemaVersion, 24);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -91,11 +91,11 @@ assert.deepEqual(
     structures: site.detailedState.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null),
   })),
   [
-    { regionId: "cedar-woods", adults: 20, practices: ["forage", ...Array(11).fill(null)], structures: ["granary", "mudHouses"] },
+    { regionId: "cedar-woods", adults: 20, practices: ["forage", ...Array(4).fill(null)], structures: ["granary", "mudHouses"] },
     ...["west-levee", "upper-floodplain", "river-crown", "lake-country"].map((regionId) => ({
       regionId,
       adults: 20,
-      practices: ["forage", ...Array(11).fill(null)],
+      practices: ["forage", ...Array(4).fill(null)],
       structures: ["granary", "mudHouses"],
     })),
   ],
@@ -471,6 +471,10 @@ assert.equal(
   23
 );
 
+const oversizedBoard = serializeGameState(state);
+oversizedBoard.world.sites[0].detailedState.practiceSlots.push(null);
+assert.throws(() => deserializeGameState(oversizedBoard), /must have 5 practice slots/,
+  "serialized boards cannot exceed the fixed five-slot limit");
 const roundTrip = deserializeGameState(serializeGameState(state));
 assert.deepEqual(serializeGameState(roundTrip), serializeGameState(state));
 const serializedText = JSON.stringify(serializeGameState(state));
@@ -478,8 +482,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 12;
-assert.throws(() => deserializeGameState(old), /expected v23/);
+old.gameStateSchemaVersion = 23;
+assert.throws(() => deserializeGameState(old), /expected v24/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
