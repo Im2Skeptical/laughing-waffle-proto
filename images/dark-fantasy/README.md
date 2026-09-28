@@ -1,6 +1,6 @@
 # Dark-fantasy source art
 
-Runtime art is maintained as named source PNGs and packed by TexturePacker.
+Runtime art is maintained as named source images and packed by TexturePacker.
 Versioned source folders are the editable inventory; their generated
 atlases live in `../sprite-sheets/` and are registered in
 `../asset-manifest.json`.
@@ -8,7 +8,7 @@ atlases live in `../sprite-sheets/` and are registered in
 The currently packed groups are:
 
 - `resource-language-v1` — resource and calendar symbols.
-- `settlement-pieces-v3` — settlement paintings for every current Practice and Structure, plus earlier cards.
+- `settlement-pieces-v4` — limited-palette settlement paintings for every current Practice and Structure, plus earlier cards.
 - `piece-frames-v1` — structure, practice, and time frames.
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.
 - `vassal-portraits-v1` — the established portrait set, with youth, middle-age, and elder frames for each identity.
@@ -16,7 +16,7 @@ The currently packed groups are:
 - `timegraph-chronicle-v1` — the timegraph assembly.
 
 The old combined art sheets were split into these named sources and removed.
-For any new art, add an individual source PNG, register it in the manifest,
+For any new art, add an individual named source image, register it in the manifest,
 then run `npm run build:sprites` and `npm run check:assets`. The renderer loads
 only TexturePacker frames through `src/views/chronicle-art.js`.
 
