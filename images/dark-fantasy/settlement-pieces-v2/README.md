@@ -1,5 +1,7 @@
 # Settlement illustrations
 
+Archived second pass. Runtime cards use `../settlement-pieces-v3/`.
+
 Thirty original illustrations, revised with the built-in ImageGen tool on
 2026-09-12 to fill complete opaque scenes. Existing subjects, buildings, palette
 and medieval painted style were preserved while extending surroundings.

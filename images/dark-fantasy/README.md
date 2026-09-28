@@ -1,14 +1,14 @@
 # Dark-fantasy source art
 
 Runtime art is maintained as named source PNGs and packed by TexturePacker.
-Source folders ending in `-v1` are the editable inventory; their generated
+Versioned source folders are the editable inventory; their generated
 atlases live in `../sprite-sheets/` and are registered in
 `../asset-manifest.json`.
 
 The currently packed groups are:
 
 - `resource-language-v1` — resource and calendar symbols.
-- `settlement-pieces-v2` — settlement paintings.
+- `settlement-pieces-v3` — settlement paintings for every current Practice and Structure, plus earlier cards.
 - `piece-frames-v1` — structure, practice, and time frames.
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.
 - `vassal-portraits-v1` — the established portrait set, with youth, middle-age, and elder frames for each identity.

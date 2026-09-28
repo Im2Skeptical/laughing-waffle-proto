@@ -88,6 +88,10 @@ try {
   await waitForHttp();
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  page.on('pageerror', error => console.log('[probe:settlement] page error=' + error.message));
+  page.on('console', message => {
+    if (message.type() === 'error') console.log('[probe:settlement] console=' + message.text());
+  });
   await page.addInitScript(profile => {
     localStorage.setItem('civsurvivor.debugProfiles.v2',JSON.stringify({schemaVersion:2,nextId:2,profiles:[{id:'profile-1',name:'UI probe',profile}]}));
     localStorage.setItem('civsurvivor.debugProfiles.boot.v2','profile-1');
@@ -96,6 +100,12 @@ try {
   page.on("worker", (worker) => workerUrls.push(worker.url()));
   await page.goto(URL);
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
+  // Begin the interaction probe after the linked settlement atlases finish
+  // decoding, so GPU upload cannot delay its timed pointer gestures.
+  await page.waitForFunction(() =>
+    globalThis.PIXI?.Assets.get('images/sprite-sheets/settlement-pieces-1.json')
+      ?.textures?.['forage.webp']?.baseTexture?.valid === true,
+    null, { timeout: 30000 });
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
   assert.equal(
@@ -289,6 +299,12 @@ try {
   ), "projected Chaos reckoning exposes Primordial pressure");
   assert.ok(revealPreview.worldMap.activeEdgeTransferPackets.every(p=>p.resourceId==='population'),
     'Hosted Food has no legacy Administration transfer packets');
+  // Passive navigation pauses the visual forecast edge. Use it before the
+  // slower pointer checks so the site cannot fall while the probe is clicking.
+  await clickDesignPoint(page, await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
+  await clickDesignPoint(page, await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   const cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);
@@ -322,6 +338,8 @@ try {
     "clicking the selected region again restores the civilization timegraph");
 
   await pressDesignPoint(page, { x: 1488, y: 796 }, 180);
+  await page.waitForFunction(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionSelectionActive === true);
   const localPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -358,6 +376,12 @@ try {
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
   await clickDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
+  await page.waitForFunction(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getSnapshot().view?.regionId === 'cedar-woods',
+    null, { timeout: 5000 }).catch(async () => {
+    const snapshot = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+    throw new Error(`settlement navigation stayed on ${snapshot.worldMap.mode}; cedar controller=${snapshot.worldMap.selectedRegion?.controller}, year=${snapshot.worldMap.survivalTracker.year}`);
+  });
   const overview = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
   assert.equal(overview.worldMap.mode, "settlement");
   assert.equal(overview.view.regionId, "cedar-woods",

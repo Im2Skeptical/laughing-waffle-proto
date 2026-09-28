@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settlement painting review</title>
+  <style>
+    :root { color-scheme: dark; font-family: Georgia, serif; }
+    body { margin: 0; background: #111a18; color: #e9dcc0; }
+    header { position: sticky; top: 0; z-index: 2; background: #18221f; border-bottom: 1px solid #866c42; padding: 12px 20px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    .controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    select, label { font: 15px Georgia, serif; color: inherit; }
+    select { background: #27332e; border: 1px solid #8b744c; padding: 5px; }
+    main { display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 22px 10px; padding: 20px; }
+    figure { margin: 0; min-width: 0; text-align: center; }
+    .image { position: relative; margin: auto; width: 100px; height: 140px; overflow: hidden; border: 2px solid #a98b54; background: #08110e; cursor: zoom-in; }
+    .image.structure { height: 100px; }
+    .image.structure.size-2 { width: 150px; }
+    .image.structure.size-3 { width: 210px; }
+    .image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .stock { position: absolute; inset: 46% 3% 20%; background: #09130fea; border-radius: 3px; }
+    .dial { position: absolute; bottom: 2px; left: calc(50% - 12px); width: 20px; height: 20px; border: 3px solid #a98b54; border-radius: 50%; background: #17211e; }
+    body:not(.show-ui) .stock, body:not(.show-ui) .dial { display: none; }
+    figcaption { padding: 6px 2px 0; font-size: 13px; line-height: 1.2; }
+    figcaption small { display: block; color: #a6a99b; }
+  </style>
+</head>
+<body class="show-ui">
+  <header>
+    <h1>Settlement painting review</h1>
+    <div class="controls">
+      <label>Set <select id="set">
+        <option value="all">All 155</option>
+        <option value="common">Common</option>
+        <option value="scholar">Scholar</option>
+        <option value="warrior">Warrior</option>
+        <option value="legacy">Earlier cards</option>
+      </select></label>
+      <label><input id="ui" type="checkbox" checked> Show card overlay</label>
+      <span id="count"></span>
+    </div>
+  </header>
+  <main id="gallery"></main>
+  <script src="catalogue.js"></script>
+  <script>
+    const set = document.querySelector('#set');
+    const ui = document.querySelector('#ui');
+    const gallery = document.querySelector('#gallery');
+    set.value = new URLSearchParams(location.search).get('set') ?? 'all';
+    function render() {
+      const rows = ART_CATALOGUE.filter(row => set.value === 'all' || row.pool === set.value);
+      document.body.classList.toggle('show-ui', ui.checked);
+      document.querySelector('#count').textContent = `${rows.length} paintings · click one to inspect full size`;
+      gallery.replaceChildren(...rows.map(row => {
+        const figure = document.createElement('figure');
+        const image = document.createElement('div');
+        image.className = `image ${row.kind === 'structure' ? `structure size-${row.footprint}` : ''}`;
+        const img = document.createElement('img');
+        img.src = `${row.id}.webp`; img.alt = row.label;
+        image.append(img);
+        if (row.kind === 'practice') {
+          const stock = document.createElement('div'); stock.className = 'stock';
+          const dial = document.createElement('div'); dial.className = 'dial';
+          image.append(stock, dial);
+        }
+        image.onclick = () => window.open(img.src, '_blank');
+        const caption = document.createElement('figcaption');
+        caption.textContent = row.label;
+        const detail = document.createElement('small');
+        detail.textContent = `${row.kind} · ${row.pool}`;
+        caption.append(detail); figure.append(image, caption);
+        return figure;
+      }));
+    }
+    set.addEventListener('change', render);
+    ui.addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>
