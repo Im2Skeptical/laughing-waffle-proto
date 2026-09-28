@@ -27,6 +27,9 @@ The full board displays the screen examples at their actual 844×390 or
 
 ## What is implemented
 
+- A generic Stock crate and one icon for each of the 36 authored Stock Traits.
+  Practice faces show the crate beside the hosted amount and each trait icon
+  beside its name. The source PNGs are packed into the resource atlas.
 - Six resource/time symbols and six gameplay-phase identities. Food uses the
   same grain sprite in both roles, with a lunar bezel identifying its phase role.
 - An independently rotating solar ring and moon face. The six phase emblems are
@@ -47,7 +50,8 @@ The full board displays the screen examples at their actual 844×390 or
 All PNGs in this directory are original images generated with the built-in
 `image_gen` tool. Native PNGs and their transparency are preserved. No external
 game assets, API/CLI fallback, vector replacements, or programmatic image edits
-were used. Exact prompts are recorded in [prompts.json](prompts.json).
+were used. Exact prompts are recorded in [prompts.json](prompts.json) and
+[stock-prompts.json](stock-prompts.json).
 
 The board reuses the project's existing original Chronicle card, civic, gate,
 and timegraph artwork for context. Sprite placement, rotation, typed amounts,

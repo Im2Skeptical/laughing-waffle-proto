@@ -9,8 +9,15 @@ export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
   'year', 'moon', 'phase', 'prestige', 'money', 'food', 'birth', 'housing',
   'faith', 'migration', 'death', 'solar-wheel', 'moon-wheel', 'lunar-bezel', 'cost-frame',
+  'stock',
+  ...['animal', 'arms', 'bone', 'civic', 'cloth', 'construction', 'currency',
+    'edible', 'fuel', 'glass', 'grain', 'instrument', 'knowledge', 'loot',
+    'medicine', 'metal', 'mineral', 'mobility', 'ore', 'paper', 'plant', 'power',
+    'preserved', 'protection', 'record', 'roadwork', 'salt', 'stone', 'storage',
+    'timber', 'tool', 'trade', 'vessel', 'water', 'wild', 'work'].map(id => `stock-${id}`),
 ]);
 export const getResourceTexture = id => loadTexture(`resource-language-v1/${id}.png`);
+export const getStockTraitTexture = trait => getResourceTexture(`stock-${trait.toLowerCase()}`);
 export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
   'forage', 'cultivate', 'raiseHouses', 'administrate', 'exchange', 'import',
   'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study', 'mill',
