@@ -69,7 +69,7 @@
         "images/sprite-sheets/settlement-pieces-0.json",
         "images/sprite-sheets/settlement-pieces-1.json"
       ],
-      "source": "settlement-pieces-v3",
+      "source": "settlement-pieces-v4",
       "files": [
         "academy.webp",
         "administrate.webp",

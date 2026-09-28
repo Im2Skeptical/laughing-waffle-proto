@@ -1,0 +1,17 @@
+{
+  "mode": "built-in ImageGen image editing, one edit per painting",
+  "inputImage1": "the matching settlement-pieces-v3 image, used as the composition target",
+  "styleReferences": [
+    "ai/References/Card Art Style/l5.png",
+    "ai/References/Card Art Style/l6.png"
+  ],
+  "sharedBrief": "Preserve the source scene's camera, action or building, figure poses, silhouettes, depth, focal placement and quiet areas. Faces remain indiscernible; small grouped figures establish scale. Use handcrafted late-1980s and early-1990s VGA adventure-game pixel art with carefully shaped clusters, crisp stepped edges, selective ordered dithering, planar shading and roughly 24 to 36 purposeful colors. Avoid photographic texture, oil brush texture, smooth gradients, noisy filters, glossy 3D, frames, interface, text and imported subjects from style references. Maintain legibility at 100 pixels wide and preserve the source aspect ratio.",
+  "palettes": {
+    "common": "Warm stone, charcoal, umber, wheat ochre, muted olive and restrained subject accents. Keep natural materials neutral.",
+    "scholar": "Cobalt and lapis blue, deep navy, warm parchment and honey gold, occasional pale coral; gold at the focal light.",
+    "warrior": "Vermilion, brick red and red ochre with oxidized teal and dark iron plum; red in plausible material accents, teal in shadow masses.",
+    "legacy": "Neutral Common palette."
+  },
+  "practiceRule": "The decisive human action reads in the upper half; multiple faceless figures and a quiet lower area remain.",
+  "structureRule": "The building silhouette and entrance read immediately; two or more tiny anonymous figures establish scale."
+}

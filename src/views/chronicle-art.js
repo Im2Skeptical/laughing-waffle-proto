@@ -36,7 +36,7 @@ const PACKED_GROUPS = Object.freeze({
     eager: true,
   }),
   settlementPieces: Object.freeze({
-    prefix: 'settlement-pieces-v3/',
+    prefix: 'settlement-pieces-v4/',
     files: Object.freeze(['settlement-pieces-0.json', 'settlement-pieces-1.json']),
     eager: false,
   }),
@@ -164,13 +164,13 @@ export function resolveIllustrationId(piece = {}) {
 
 export function getIllustrationSpec(id) {
   const pieceId = resolveIllustrationId(id);
-  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v3/${pieceId}.webp`, index: 0, whole: true };
+  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v4/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
   if(index==null) {
     const def=detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId];
     if(!def)return null;
     const illustration=def.housing?'mudHouses':def.pool==='warrior'?'vigil':def.pool==='scholar'?'study':def.stockTraits?.includes('Edible')?'forage':def.stockTraits?.includes('Currency')?'exchange':'raiseHouses';
-    return {file:`settlement-pieces-v3/${illustration}.webp`,index:0,whole:true};
+    return {file:`settlement-pieces-v4/${illustration}.webp`,index:0,whole:true};
   }
   return {file:`chronicle-illustrations-v1/${ILLUSTRATION_IDS[index]}.png`, whole:true};
 }

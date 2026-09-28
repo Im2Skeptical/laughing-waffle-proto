@@ -102,10 +102,12 @@ try {
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   // Begin the interaction probe after the linked settlement atlases finish
   // decoding, so GPU upload cannot delay its timed pointer gestures.
-  await page.waitForFunction(() =>
-    globalThis.PIXI?.Assets.get('images/sprite-sheets/settlement-pieces-1.json')
-      ?.textures?.['forage.webp']?.baseTexture?.valid === true,
-    null, { timeout: 30000 });
+  await page.waitForFunction(() => {
+    const sheets = ['settlement-pieces-0.json', 'settlement-pieces-1.json']
+      .map(file => globalThis.PIXI?.Assets.get(`images/sprite-sheets/${file}`));
+    return sheets.every(sheet => !!sheet?.textures)
+      && sheets.some(sheet => sheet.textures['forage.webp']?.baseTexture?.valid === true);
+  }, null, { timeout: 30000 });
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot);
   assert.equal(
