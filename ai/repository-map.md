@@ -107,6 +107,12 @@ not use the root file as the default location for new rendering or model rules.
 
 ### Debug tools
 
+- Development Lab (Zoo / Museum / Gym): `src/views/development-lab-dom.js`,
+  `src/views/development-lab/`, `src/controllers/development-lab-controller.js`,
+  `src/controllers/development-lab-bridge.js`, and `src/model/dev-lab/`.
+  See folder READMEs and `docs/development-lab.md`. Hash entry: `#/dev`.
+  Probe: `npm run probe:development-lab`.
+
 - Shared debug shell: `src/views/settlement-debug-menu-dom.js`
 - Map Lab view/controller/model:
   `src/views/map-lab-dom.js`, `src/controllers/map-lab-controller.js`,

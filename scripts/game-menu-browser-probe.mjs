@@ -76,7 +76,8 @@ try {
   await delay(250);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),initialSecond,'Present remains detached while the reveal continues');
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('civsurvivor.save.slot1')));
-  assert.equal(saved.state.world.sites.length, 2);
+  assert.equal(saved.state.world.sites.filter(site => saved.state.world.regions.find(region => region.id === site.regionId)?.controller === 'player').length, 2);
+  assert.equal(saved.state.world.sites.filter(site => site.neutral).length, 4);
   await page.getByTestId('game-menu-open').click();
   await page.getByTestId('game-new').click();
   await page.getByTestId('game-slot-1').click();

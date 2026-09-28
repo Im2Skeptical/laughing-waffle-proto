@@ -30,6 +30,12 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     prepareNewGame: () => opening?.prepare(),
     cancelPreparation: () => opening?.cancel(),
     getPreparationStatus: () => opening?.getSnapshot(),
+    enterDisposableState(state) {
+      opening?.reset();
+      const result = runner.resetToState(state, 'developmentLab');
+      if (!result.ok) return result;
+      return enter(null);
+    },
     async newGame(slot, { isCurrent = () => true } = {}) {
       const prepared = opening ? await opening.prepare() : null;
       if (!isCurrent()) return { ok: false, reason: "cancelled" };

@@ -15,6 +15,8 @@ export function createSettlementDebugMenuDom({
   vassalDebugPresetController,
   getState,
   replaceVassalCandidate,
+  openDevelopmentLab,
+  openCurrentStateInGym,
 } = {}) {
   const utilityControls = document.createElement("div");
   utilityControls.dataset.testid = "utility-controls";
@@ -93,6 +95,18 @@ export function createSettlementDebugMenuDom({
   lifeMapLabTab.dataset.testid = "debug-life-map-lab-tab";
   header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, lifeMapLabTab, vassalTab);
   panel.append(header);
+  const labLinks = document.createElement('div');
+  labLinks.style.cssText = 'display:flex;gap:8px;margin:10px 112px';
+  for (const [label, action, testid] of [
+    ['Development Lab', openDevelopmentLab, 'development-lab-open'],
+    ['Open current state in Gym', openCurrentStateInGym, 'development-lab-clone'],
+  ]) {
+    const button = document.createElement('button');
+    button.textContent = label; button.dataset.testid = testid;
+    button.addEventListener('click', () => { try { action?.(); } catch (error) { alert(error.message); } });
+    labLinks.append(button);
+  }
+  panel.append(labLinks);
 
   const profileToolbar = document.createElement("div");
   profileToolbar.dataset.testid = "debug-profile-toolbar";

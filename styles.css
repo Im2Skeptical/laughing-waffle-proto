@@ -90,3 +90,46 @@ canvas { image-rendering: auto; }
   #game-menu {background-position:65% center;}
   #game-menu h1 {font-size:40px;}
 }
+/* Development Lab is an independent, scrollable developer surface. */
+body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-height:100vh; background:#111c21; color:#e1ebe9; font:15px/1.45 system-ui,sans-serif; }
+.development-lab #app { display:block; width:auto; height:auto; min-height:100vh; padding:20px; max-width:1600px; margin:auto; overflow:visible; }
+.development-lab * { box-sizing:border-box; }
+.development-lab h1 { margin:0; font-size:28px; }
+.development-lab h2 { margin:0 0 10px; font-size:20px; }
+.development-lab p { margin:8px 0; }
+.development-lab small { color:#80b8aa; letter-spacing:2px; }
+.lab-header { display:flex; gap:24px; justify-content:space-between; align-items:center; flex-wrap:wrap; border-bottom:1px solid #365058; padding-bottom:16px; }
+.lab-header nav { display:flex; flex-wrap:wrap; gap:10px; }
+.development-lab a { color:#b0dfcd; padding:10px; text-decoration:none; }
+.development-lab a[aria-current=page] { background:#2b5049; border-radius:6px; color:white; }
+.development-lab button,.development-lab input,.development-lab select { font:inherit; color:inherit; background:#22343d; border:1px solid #587079; border-radius:5px; padding:7px 9px; min-height:38px; max-width:100%; }
+.development-lab button { cursor:pointer; }
+.development-lab button:hover { background:#35594f; }
+.development-lab button:disabled { opacity:.4; cursor:default; }
+.development-lab :focus-visible { outline:2px solid #b6edbc; outline-offset:2px; }
+.development-lab label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:#bdd1d0; min-width:0; }
+.development-lab input[type=number] { width:110px; }
+.development-lab select { max-width:440px; }
+.lab-controls { display:flex; flex-wrap:wrap; align-items:end; gap:9px; margin:12px 0; }
+.lab-controls>span,.lab-controls>strong { padding:8px; }
+.lab-transport { position:sticky; top:0; z-index:5; background:#17282ef5; padding:8px; border:1px solid #4d706b; }
+.lab-status { color:#a0d8bb; min-height:24px; }
+.lab-warning { color:#ffbb9e !important; }
+.lab-panel { border:1px solid #38545b; border-radius:8px; padding:16px; margin:16px 0; min-width:0; background:#19282e; }
+.lab-card-grid { display:flex; flex-wrap:wrap; gap:14px; align-items:start; }
+.lab-card { padding:12px; background:#203138; border:1px solid #48615e; border-radius:7px; width:240px; min-width:0; overflow-wrap:anywhere; }
+.lab-card img { display:block; max-width:100%; height:auto; margin:auto; }
+.lab-card p { font-size:13px; color:#c9d8d5; }
+.lab-card button { margin:4px 0; }
+.lab-tableau { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+.lab-tableau .lab-card { width:auto; }
+.lab-provider { color:#a8e7c6 !important; border-left:3px solid #81c1a3; padding-left:7px; }
+.lab-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(125px,1fr)); gap:8px; margin:16px 0; }
+.lab-metrics>div { white-space:pre-line; padding:10px; background:#213a3d; border-radius:6px; font-size:14px; }
+.development-lab table { border-collapse:collapse; width:100%; font-size:13px; }
+.development-lab th,.development-lab td { text-align:left; vertical-align:top; padding:8px; border-bottom:1px solid #385057; }
+.lab-table { max-width:100%; overflow:auto; }
+.development-lab details { margin:9px 0; }
+.development-lab summary { cursor:pointer; color:#a7d7cc; }
+.development-lab pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:420px; overflow:auto; font-size:12px; padding:10px; background:#102126; }
+@media(max-width:850px) { .development-lab #app { padding:10px; } .lab-tableau { display:flex; overflow-x:auto; padding-bottom:8px; } .lab-tableau .lab-card { flex:0 0 195px; } .lab-transport { position:static; } .lab-card-grid>.lab-card { width:calc(50% - 7px); } }
