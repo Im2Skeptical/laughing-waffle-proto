@@ -1,5 +1,12 @@
 # Timegraph view extract
 
+The illustrated scroll and every overlay use the same 1700 × 258 design space
+(`TIMEGRAPH_CHROME`). `createMetricGraphView` scales the complete root to the
+requested window size, including plot ink, legend glyphs, labels and hit targets.
+Do not resize the backing illustration independently. The normal game retains
+its existing scale; the Development Lab uses a larger assembly.
+`npm run probe:timegraph-alignment` checks desktop/mobile alignment and scrubbing.
+
 Focused helpers used by the public metric-graph module
 `src/views/timegraphs-pixi.js`. That file remains the orchestrator and still
 exports `createMetricGraphView`, `createGoldGraphView`, and the existing helper
