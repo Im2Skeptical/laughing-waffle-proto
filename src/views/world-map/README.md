@@ -18,3 +18,7 @@ stay in `createWorldMapView`.
 - Packet spawn/draw/reset (closes over batch and playback state)
 - `buildRegionMapIndicators` and worker-count adapters (state aggregation)
 - Hit-testing, double-tap, tooltips, buttons, and chronicle panel wiring
+
+`createWorldMapView` accepts optional `getDisplayOptions` for the Development Lab's
+terrain/scenery/connections/workers/structures/actors/alerts toggles. Omitted flags
+retain normal game rendering. These flags affect presentation only.

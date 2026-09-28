@@ -6,16 +6,20 @@ import { NEUTRAL_TEMPLATES } from '../../model/detailed-settlements/external-wor
 import { planStock, stockTraits } from '../../model/detailed-settlements/stock.js';
 import { el, input, select, field, button, section, details, table } from './elements.js';
 
+import { openLabPicker } from './picker.js';
+import { enablePracticeOrdering } from './ordering.js';
+
 const qualities = ['bronze','silver','gold','diamond'];
 export function renderWorkbench(parent,{controller,cards,run,gym}) {
   const {state,regionId,previous,detail} = controller.getSnapshot();
   const vm = getDetailedSettlementViewModel(state,regionId), local = state.world.sites.find(s=>s.regionId===regionId)?.detailedState;
   const observation = getLabObservation(state,regionId), vassal = getCurrentLifeMapVassal(state);
   const edit = (kind,payload) => run(()=>controller.edit(kind,payload));
+  const auto = (controls, action) => controls.forEach(control=>control.addEventListener('change',action));
   const location = select('Settlement',state.world.sites.map(s=>[s.regionId,`${s.regionId} · ${s.name} · ${s.simulationMode}${s.neutral?' · neutral':''}`]),regionId);
   location.addEventListener('change',()=>run(()=>controller.selectRegion(location.value)));
   parent.append(field('Inspect settlement',location));
-  if (!vm) parent.append(el('p',`This settlement is now a ruin. Dormant population and Stock remain in the world table; last defense: ${local?.lastDefense?.result ?? 'developer-authored ruin'}.`,'lab-warning'));
+  if (!vm) parent.append(el('p',`This region has no active tableau. Last defense: ${observation.lastDefense?.result ?? 'none'}. Select a settlement to edit its pieces.`));
   const metrics = el('div','','lab-metrics');
   for (const [key,label] of Object.entries({population:'Population',housing:'Housing',edible:'Edible Stock',demand:'Meal demand',currency:'Currency Stock',scholars:'Scholars',warriors:'Warriors',support:'Martial Support',prestige:'Prestige',prowess:'Prowess',ingenuity:'Ingenuity',chaos:'Chaos',monsters:'Monsters'})) {
     const value = observation[key];
@@ -38,27 +42,30 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
       if (previous?.stocks?.[index]?.stock !== undefined) card.append(el('p',`Stock ${previous.stocks[index].stock} → ${p.stock}`));
     }
     if (gym) {
-      const options=[['','Empty'],...Object.values(state.gameConfig.gamepieces.practices).map(d=>[d.id,d.label])];
-      const definition=select(`Practice slot ${index+1}`,options,p.practiceId??''), quality=select(`Quality slot ${index+1}`,qualities,p.tier??'bronze'), stock=input(`Stock slot ${index+1}`,p.stock??0);
-      card.append(field('Practice',definition),field('Quality',quality),field('Stock',stock),button('Apply slot',()=>edit('practice',{index,id:definition.value,tier:quality.value,stock:stock.value})));
-      const move=el('div','','lab-controls');
-      if(index>0)move.append(button('←',()=>edit('move',{from:index,to:index-1})));
-      if(index<4)move.append(button('→',()=>edit('move',{from:index,to:index+1})));
-      card.append(move);
+      card.dataset.slotIndex=index;
+      const handle=button(`Drag slot ${index+1}`,()=>{});handle.dataset.dragSlot=index;handle.className='lab-drag-handle';
+      handle.setAttribute('aria-label',`Reorder slot ${index+1}; drag or Alt plus left/right`);
+      card.prepend(handle);
+      const quality=select(`Quality slot ${index+1}`,qualities,p.tier??'bronze'), stock=input(`Stock slot ${index+1}`,p.stock??0);
+      const apply=()=>edit('practice',{index,id:p.practiceId??'',tier:quality.value,stock:stock.value});
+      auto([quality,stock],apply);
+      card.append(button(p.face?'Replace Practice':'Choose Practice',()=>openLabPicker({state,category:'practice',cards,
+        installed:local.practiceSlots.filter((_,i)=>i!==index).filter(Boolean).map(s=>s.practiceId),
+        onChoose:id=>edit('practice',{index,id,tier:quality.value,stock:0})})),field('Quality',quality),field('Stock',stock));
     }
     tableau.append(card);
   });
-  parent.append(section('Practice tableau · exactly five slots',tableau));
+  if(gym) enablePracticeOrdering(tableau,(from,to)=>edit('move',{from,to}));
+  parent.append(section('Practice tableau · exactly five slots',...(gym?[el('p','Drag a slot handle to reorder. Keyboard: focus a handle and press Alt + Left / Right. Fields apply automatically.')]:[]),tableau));
   const buildings=el('div','','lab-card-grid');
   vm?.structures.filter(Boolean).forEach(s=>{
     const card=cards.card(s.face,`${s.label} · cells ${s.origin+1}–${s.origin+s.width}`);
     if(gym)card.append(button('Remove Structure',()=>edit('removeStructure',{id:s.placementId})));buildings.append(card);
   });
   const structurePanel=section(`Structures · ${vm?.usedStructureCapacity} / ${vm?.structureCapacity} cells`,buildings);
-  if(gym) {
-    const definition=select('Add Structure',Object.values(state.gameConfig.gamepieces.structures).map(d=>[d.id,`${d.label} (${d.footprint} cells)`]),'mudHouses');
+  if(gym && vm) {
     const quality=select('Structure quality bonus',[[0,'Base'],[1,'+25%'],[2,'+50%'],[3,'+75%']],0);
-    const controls=el('div','','lab-controls');controls.append(field('Structure',definition),field('Quality',quality),button('Add Structure',()=>edit('structure',{id:definition.value,quality:quality.value})));
+    const controls=el('div','','lab-controls');controls.append(field('Quality for new Structure',quality),button('Browse Structures',()=>openLabPicker({state,category:'structure',cards,onChoose:id=>edit('structure',{id,quality:quality.value})})));
     structurePanel.append(controls);
   }
   parent.append(structurePanel);
@@ -67,18 +74,20 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
     const house=select('Housing rung',housing.map(d=>[d.id,`${d.label} · ${d.housing}`]),'mudHouses');
     parent.append(section('Housing ladder',table(['Structure','Base capacity'],housing.map(d=>[d.label,d.housing])),house,button('Replace house',()=>edit('house',{id:house.value}))));
   }
-  if(gym || ['scholar','five'].includes(controller.getSnapshot().exhibitId)) {
+  if(vm && (gym || ['scholar','five'].includes(controller.getSnapshot().exhibitId))) {
     const pop=input('Adult population',vm?.population.total??0), scholars=input('Scholar adults',vm?.specialists.scholar??0), warriors=input('Warrior adults',vm?.specialists.warrior??0);
-    const controls=el('div','','lab-controls');controls.append(field('Population',pop),field('Scholars',scholars),field('Warriors',warriors),button('Set adult cohort',()=>edit('population',{population:pop.value,scholars:scholars.value,warriors:warriors.value})));
-    parent.insertBefore(section('Population and staffing',el('p','This explicit fixture edit replaces the selected settlement’s age/status cohorts with adult Villagers. Scholars and Warriors are subsets, not extra people.'),controls),tableau.parentElement);
+    const controls=el('div','','lab-controls');controls.append(field('Population',pop),field('Scholars',scholars),field('Warriors',warriors));
+    auto([pop,scholars,warriors],()=>edit('population',{population:pop.value,scholars:scholars.value,warriors:warriors.value}));
+    parent.append(section('Population and staffing',el('p','This explicit fixture edit replaces the selected settlement’s age/status cohorts with adult Villagers. Scholars and Warriors are subsets, not extra people.'),controls));
   }
   if(vassal) {
     const panel=section(`${vassal.classId} Vassal`,el('p',`Location ${vassal.locationRegionId} · Commission: ${vassal.commission?.objective ?? 'none'} · Discovery access: ${vassal.discoveryAccess ? 'next shop' : 'none'}`));
     const controls=el('div','','lab-controls');
     const prestige=input('Prestige',vassal.prestige), ingenuity=input('Ingenuity',vassal.stats.cunning), prowess=input('Prowess',vassal.stats.intelligence);
     if(gym) {
-      const stats=el('div','','lab-controls');stats.append(field('Prestige',prestige),field('Ingenuity',ingenuity),field('Prowess',prowess),button('Apply Vassal stats',()=>edit('vassal',{prestige:prestige.value,ingenuity:ingenuity.value,prowess:prowess.value})));
-      parent.insertBefore(section('Vassal setup',stats),tableau.parentElement);
+      const stats=el('div','','lab-controls');stats.append(field('Prestige',prestige),field('Ingenuity',ingenuity),field('Prowess',prowess));
+      auto([prestige,ingenuity,prowess],()=>edit('vassal',{prestige:prestige.value,ingenuity:ingenuity.value,prowess:prowess.value}));
+      parent.append(section('Vassal setup',stats));
     }
     controls.append(button('Spend 5 Prestige',()=>edit('spendPrestige',{})),button('Preview seeded shop',()=>run(()=>controller.shop())),button('Check Commission',()=>edit('commissionCheck',{})));
     if (!gym && vassal.classId === 'scholar') controls.append(button('Commission target: replace slot 5 with Foraging',()=>edit('practice',{index:4,id:'forage',stock:0,tier:'bronze'})));
@@ -103,7 +112,8 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
     const target=select('Target region',regions,regions.find(([id])=>id!==regionId)?.[0]), defense=input('Monster defense',3), age=input('Monster age in moons',3), chaos=input('Chaos power',observation.chaos);
     const row=el('div','','lab-controls');row.append(field('Region',target),field('Defense',defense),field('Age (moons)',age),button('Spawn / set Monster',()=>edit('monster',{regionId:target.value,defense:defense.value,age:age.value})),button('Remove Monster',()=>edit('monster',{regionId:target.value,remove:true})));
     const templates=select('Neutral template',NEUTRAL_TEMPLATES.map((t,i)=>[i,t.name]),0);
-    const second=el('div','','lab-controls');second.append(field('Neutral template',templates),button('Spawn neutral in target',()=>edit('neutral',{regionId:target.value,template:templates.value})),button('Connect target to settlement',()=>edit('connection',{regionId:target.value})),button('Ruin selected settlement',()=>edit('ruin',{})),field('Chaos',chaos),button('Set Chaos',()=>edit('chaos',{value:chaos.value})));
+    const second=el('div','','lab-controls');second.append(field('Neutral template',templates),button('Spawn neutral in target',()=>edit('neutral',{regionId:target.value,template:templates.value})),button('Connect target to settlement',()=>edit('connection',{regionId:target.value})),button('Ruin selected settlement',()=>edit('ruin',{})),field('Chaos',chaos));
+    auto([chaos],()=>edit('chaos',{value:chaos.value}));
     panel.append(row,second);parent.append(panel);
   }
   parent.append(section('World and recent outcomes',table(['Region','Owner / mode','Population','Hosted Stock','Monster'],state.world.regions.map(r=>{

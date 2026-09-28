@@ -213,6 +213,7 @@ export function createWorldMapView({
   onShowSelectedRegionGraph,
   onOpenDetailedSite,
   getVassalHighlight,
+  getDisplayOptions,
   tooltipView = null,
 }) {
   const root = new PIXI.Container();
@@ -390,8 +391,9 @@ export function createWorldMapView({
       civilizationLossInfo
     );
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
+    const display = getDisplayOptions?.() ?? {};
     const vassalHighlight = getVassalHighlight?.() ?? null;
-    const nextSignature = getArtRevision() + signature(
+    const nextSignature = JSON.stringify(display) + getArtRevision() + signature(
       state,
       selectedRegionId,
       regionSelectionActive,
@@ -472,13 +474,14 @@ export function createWorldMapView({
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
       hit.cursor = "pointer";
-      addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
+      if (display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
       hit.on("pointerdown", (event) => {
         const tappedAtMs = viewNowMs();
         const flagPoint = screenPoint(regionDef.display.labelPoint);
-        const pointerX = Number(event?.global?.x);
-        const pointerY = Number(event?.global?.y);
+        const localPoint = root.toLocal(event.global);
+        const pointerX = Number(localPoint.x);
+        const pointerY = Number(localPoint.y);
         const nearFlag =
           Number.isFinite(pointerX) &&
           Number.isFinite(pointerY) &&
@@ -544,6 +547,7 @@ export function createWorldMapView({
       edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
     }
     edges.eventMode = "none";
+    edges.visible = display.connections !== false;
     root.addChild(edges);
 
     for (const indicator of regionMapIndicators) {
@@ -552,22 +556,24 @@ export function createWorldMapView({
       );
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
-      if (indicator.monster || indicator.neutral) root.addChild(createText(
+      if (display.actors !== false && (indicator.monster || indicator.neutral)) root.addChild(createText(
         indicator.monster ? `MONSTER · Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-66,.5));
       if (indicator.hasDetailedSettlement) {
-        landmarks.push(addTimelineLandmark(root,{x:point.x-100,y:point.y-102,width:104,height:118},
-          {startSec:definition.regions.indexOf(regionDef)*.37}));
-        landmarks.push(addTimelineLandmark(root,{x:point.x+58,y:point.y-21,width:42,height:35},
-          {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
-        addWorkerIndicator(
+        if (display.scenery !== false) {
+          landmarks.push(addTimelineLandmark(root,{x:point.x-100,y:point.y-102,width:104,height:118},
+            {startSec:definition.regions.indexOf(regionDef)*.37}));
+          landmarks.push(addTimelineLandmark(root,{x:point.x+58,y:point.y-21,width:42,height:35},
+            {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
+        }
+        if (display.workers !== false) addWorkerIndicator(
           root,
           point,
           indicator.activeWorkerCount,
           indicator.unusedWorkerCount
         );
       }
-      addStructureIndicator(root, point, indicator.structureSlots, {
+      if (display.structures !== false) addStructureIndicator(root, point, indicator.structureSlots, {
         centered: !indicator.hasDetailedSettlement,
       });
       if (indicator.showsPlayerMarker) {
@@ -577,8 +583,10 @@ export function createWorldMapView({
             indicator.regionId === selectedRegionId,
         });
       }
-      addSettlementPressureIndicator(root, point, indicator.pressure);
-      addSettlementCurrencyIndicator(root, point, indicator);
+      if (display.alerts !== false) {
+        addSettlementPressureIndicator(root, point, indicator.pressure);
+        addSettlementCurrencyIndicator(root, point, indicator);
+      }
     }
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef)
@@ -591,7 +599,7 @@ export function createWorldMapView({
     }
 
     const activeVassal = getCurrentLifeMapVassal(state);
-    if (activeVassal?.locationRegionId) {
+    if (display.actors !== false && activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
       if (regionDef) addActiveVassalMarker(root, screenPoint(regionDef.display.labelPoint), activeVassal, state);
     }
