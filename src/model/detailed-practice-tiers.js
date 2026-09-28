@@ -37,5 +37,5 @@ export function getDetailedPracticeWorkerCapacity(definition, tier) {
 }
 
 export function createDetailedPracticeSlot(practiceId, tier = "bronze") {
-  return { practiceId, tier, charge: 0, work: 0 };
+  return { practiceId, tier, stock: 0, charge: 0, work: 0 };
 }

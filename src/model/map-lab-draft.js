@@ -15,9 +15,11 @@ import {
   isWorldConnectionCandidate,
 } from "./world-state.js";
 import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
+import { stockCapacity } from "./detailed-settlements/stock.js";
+import { validSpecialistCohorts } from "./detailed-settlements/cohorts.js";
 
-export const MAP_LAB_DRAFT_SCHEMA_VERSION = 6;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v6";
+export const MAP_LAB_DRAFT_SCHEMA_VERSION = 7;
+export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v7";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = (id) => worldMapDefs[id] ?? null;
@@ -26,9 +28,6 @@ function normalizeDetailedState(raw, capacity, regionId = null) {
   const fallback = createInitialDetailedSettlementData(regionId);
   const state = raw && typeof raw === "object" ? clone(raw) : fallback;
   state.populationByClass = state.populationByClass ?? fallback.populationByClass;
-  state.storedFood = Number.isFinite(state.storedFood) ? state.storedFood : 0;
-  state.looseFood = Number.isFinite(state.looseFood) ? state.looseFood : 0;
-  state.currency = Number.isFinite(state.currency) ? Math.max(0, state.currency) : 0;
   state.practiceSlots = Array.isArray(state.practiceSlots)
     ? state.practiceSlots.slice(0, DETAILED_PRACTICE_SLOT_COUNT)
     : [];
@@ -120,9 +119,9 @@ function countStructures(detailedState, structureId) {
 
 function structureCapacity(detailedState, capacityKind) {
   return Object.values(settlementStructureDefs).reduce((sum, def) => {
-    if (def.capacityKind !== capacityKind || !Number.isFinite(def.capacityPerCountSquared)) return sum;
+    if (capacityKind !== "housing" || !Number.isFinite(def.housing)) return sum;
     const count = countStructures(detailedState, def.id);
-    return sum + def.capacityPerCountSquared * count * count;
+    return sum + def.housing * count;
   }, 0);
 }
 
@@ -173,18 +172,10 @@ function validateDetailedState(region, path, errors, warnings) {
       }
     });
   }
-  const foodCapacity = structureCapacity(state, "storedFood");
-  if (!Number.isFinite(state.storedFood) || state.storedFood < 0
-      || state.storedFood > foodCapacity) {
-    errors.push(`${path}.detailedState.storedFood: expected 0..${foodCapacity}`);
-  }
-  if (!Number.isFinite(state.looseFood) || state.looseFood < 0) {
-    errors.push(`${path}.detailedState.looseFood: expected non-negative number`);
-  }
-  if (!Number.isFinite(state.currency) || state.currency < 0) {
-    errors.push(`${path}.detailedState.currency: expected non-negative number`);
-  }
+  if (["storedFood", "looseFood", "currency"].some(key => Object.hasOwn(state, key))) errors.push(`${path}: obsolete resource wallet`);
+  for (const slot of state.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.stock) || slot.stock < 0 || slot.stock > stockCapacity(null, state, slot, true))) errors.push(`${path}: invalid Stock`);
   for (const [classId, classState] of Object.entries(state.populationByClass ?? {})) {
+    if (!validSpecialistCohorts(classState)) errors.push(`${path}: invalid specialist cohorts`);
     if (!Number.isInteger(classState?.children) || classState.children < 0
         || !Number.isInteger(classState?.adults) || classState.adults < 0) {
       errors.push(`${path}.detailedState.populationByClass.${classId}: invalid cohorts`);
@@ -324,7 +315,7 @@ export function setMapLabPracticeSlot(draft, regionId, slotIndex, practiceId) {
     practiceSlots: draft.regions.find((entry) => entry.id === regionId)
       ?.detailedState?.practiceSlots.map((slot, index) =>
         index === slotIndex
-          ? practiceId == null ? null : { practiceId, tier: "bronze", charge: 0, work: 0 }
+          ? practiceId == null ? null : { practiceId, tier: "bronze", stock: 0, charge: 0, work: 0 }
           : slot),
   });
 }

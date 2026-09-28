@@ -31,7 +31,6 @@ import { fresh } from "./helpers.js";
 const lifeMapState = fresh(777);
 lifeMapState.paused = true;
 lifeMapState.gameConfig.settings.values.primordialBasePressure = 0;
-lifeMapState.civilization.chaos.monsterLossThreshold = 1000000;
 const lifePool = getVassalCandidatePool(lifeMapState);
 assert.equal(lifePool.candidates.length, 3);
 assert.ok(lifePool.candidates.every((candidate) =>
@@ -79,8 +78,8 @@ for (let sec = 1; sec <= resolveSec; sec += 1) {
 }
 lifeVassal = getCurrentLifeMapVassal(lifeMapState);
 assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].resolved, true);
-assert.equal(lifeVassal.prestige, prestigeBefore + 5 + incomeBefore + 1,
-  "Cultivate Cunning affects the one recurring Prestige grant");
+assert.equal(lifeVassal.prestige, prestigeBefore + 5 + incomeBefore,
+  "Scholar Ingenuity does not add recurring Prestige");
 assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].mortality.roll >= 0, true);
 assert.ok(lifeVassal.lifeMap.availableNodeIds.length >= 1);
 

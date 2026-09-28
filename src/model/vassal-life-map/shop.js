@@ -1,3 +1,4 @@
+import { stockTotal } from "../detailed-settlements/stock.js";
 import { findStructurePlacement, projectStructureDraft } from "../structure-layout.js";
 import { projectPracticeDraft } from "../practice-draft.js";
 import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
@@ -18,6 +19,7 @@ import {
 } from "../world-state.js";
 import {
   clone,
+  getVassalEffectiveStats,
   getAdjustedVassalPhaseCost,
   getAdjustedVassalPrestigeCost,
   getCurrentLifeMapVassal,
@@ -47,23 +49,16 @@ function getSilverOfferChance(state) {
   const progress = Math.max(0, Math.min(1, (research - unlock) / Math.max(1, fullRate - unlock)));
   return 0.1 + progress * 0.4;
 }
-function getUniversityFloor(state, regionId) {
-  const tiers = (getDetailedSite(state, regionId)?.detailedState?.structureSlots ?? [])
-    .filter((slot) => slot?.structureId === "university")
-    .map((slot) => getDetailedPracticeTierIndex(getDetailedStructureDef(state, slot.structureId)?.minimumQuality ?? "bronze"));
-  const highest = tiers.length ? Math.max(...tiers) : -1;
-  return highest >= 0 ? 2 : 0;
-}
 function rollOfferQuality(state, regionId, floor = 0) {
   const max = getUnlockedQualityIndex(state);
-  const min = Math.min(max, Math.max(0, floor, getUniversityFloor(state, regionId)));
+  const min = Math.min(max, Math.max(0, floor));
   if (min === 0 && max === 1) {
     return state.rngNextVassalFloat() < getSilverOfferChance(state) ? QUALITY_IDS[1] : QUALITY_IDS[0];
   }
   return QUALITY_IDS[state.rngNextVassalInt(min, max)];
 }
-function isDefinitionUnlocked(state, def) {
-  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= getUnlockedQualityIndex(state);
+function isDefinitionUnlocked(state, def, nodeState = null) {
+  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getUnlockedQualityIndex(state)+(nodeState?.discoveryAccess?1:0));
 }
 
 export function validatePurchaseInterventions(state, vassal, purchases = []) {
@@ -99,7 +94,8 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
   }) : { ok: true, origin };
   if (!location.ok) return location;
   return { ok: true, placement: { placementId: vassal.vassalId + ':' + offer.offerId,
-    origin: location.origin, width, structureId: action.structureId } };
+    origin: location.origin, width, structureId: action.structureId,
+    ...(action.qualityBonus ? {qualityBonus:action.qualityBonus} : {}) } };
 }
 
 function buildPracticeOffers(state, vassal, nodeState, roll) {
@@ -108,11 +104,12 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
   for (const practiceId of shuffle(state, VASSAL_INTERVENTION_PRACTICE_IDS)) {
     if (offers.length >= getShopOfferCount(vassal, nodeState.family)) break;
     const def = getDetailedPracticeDef(state, practiceId);
-    if (!def || !isDefinitionUnlocked(state, def)) continue;
+    if (!def || !isDefinitionUnlocked(state, def, nodeState) || !["common", vassal.classId].includes(def.pool)) continue;
     const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
     if (installed?.tier === "diamond") continue;
     const tier = installed?.tier ?? "bronze";
-    const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
+    const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
+    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat() < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05) ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
     const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
     if (!resultingTier) continue;
     const intervention = {
@@ -135,20 +132,21 @@ function buildPracticeOffers(state, vassal, nodeState, roll) {
 function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, category = 'structure') {
   const def = getDetailedStructureDef(state, structureId);
   const tier = def.minimumQuality ?? 'bronze';
+  const qualityBonus = vassal.classId==='scholar' && tier!=='diamond' && state.rngNextVassalFloat()<Math.min(.75,(getVassalEffectiveStats(vassal).cunning??0)*.05) ? 1 : 0;
   return {
     offerId: nodeState.nodeId + ':r' + roll + ':' + category + ':' + index,
-    label: 'Build ' + qualityLabel(tier) + ' ' + def.label,
+    label: 'Build ' + qualityLabel(qualityBonus ? getNextDetailedPracticeTier(tier) : tier) + ' ' + def.label,
     basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
     basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
     baseCurrencyCost: Math.max(0, def.localCurrencyCost ?? 0),
     intervention: { kind: 'structure', mode: 'add',
-      targetRegionId: vassal.locationRegionId, structureId, tier },
+      targetRegionId: vassal.locationRegionId, structureId, tier, ...(qualityBonus ? {qualityBonus} : {}) },
   };
 }
 
 function buildStructureOffers(state, vassal, nodeState, roll) {
   return shuffle(state, Object.keys(settlementStructureDefs))
-    .filter(id => isDefinitionUnlocked(state, getDetailedStructureDef(state, id)))
+    .filter(id => isDefinitionUnlocked(state, getDetailedStructureDef(state, id), nodeState) && ["common", vassal.classId].includes(getDetailedStructureDef(state,id).pool))
     .slice(0, getShopOfferCount(vassal, nodeState.family))
     .map((id, index) => makeStructureOffer(state, vassal, nodeState, roll, id, index));
 }
@@ -158,12 +156,12 @@ function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
   const candidates = [
     ...VASSAL_INTERVENTION_PRACTICE_IDS.flatMap((practiceId) => {
       const def = getDetailedPracticeDef(state, practiceId);
-      return def && isDefinitionUnlocked(state, def) && (def.tags ?? []).includes(requiredTag)
+      return def && ["common",vassal.classId].includes(def.pool) && isDefinitionUnlocked(state, def, nodeState) && (def.tags ?? []).includes(requiredTag)
         ? [{ kind: "practice", definitionId: practiceId }] : [];
     }),
     ...Object.keys(settlementStructureDefs).flatMap((structureId) => {
       const def = settlementStructureDefs[structureId];
-      return isDefinitionUnlocked(state, def) && (def.tags ?? []).includes(requiredTag)
+      return ["common",vassal.classId].includes(def.pool) && isDefinitionUnlocked(state, def, nodeState) && (def.tags ?? []).includes(requiredTag)
         ? [{ kind: "structure", definitionId: structureId }] : [];
     }),
   ];
@@ -176,7 +174,8 @@ function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
       const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
       if (installed?.tier === "diamond") continue;
       const tier = installed?.tier ?? "bronze";
-      const offeredTier = rollOfferQuality(state, vassal.locationRegionId);
+      const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
+    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat() < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05) ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
       const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
       if (!resultingTier) continue;
       const intervention = {
@@ -255,6 +254,10 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
 }
 
 export function generateShopInventory(state, vassal, nodeState) {
+  if (vassal.discoveryAccess && (nodeState.family==='practiceReform'||nodeState.family==='publicWorks'||nodeState.signatureNode?.groupId==='tagShop')) {
+    nodeState.discoveryAccess=true;
+    delete vassal.discoveryAccess;
+  }
   const roll = Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0));
   const offers = nodeState.signatureNode?.groupId === "tagShop"
     ? buildTaggedOffers(state, vassal, nodeState, roll, nodeState.signatureNode.tag)
@@ -293,7 +296,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
     return { ok: false, reason: "insufficientPrestige" };
   }
   const settlementCurrency = Math.max(0,
-    Number(getDetailedSite(state, vassal.locationRegionId)?.detailedState?.currency) || 0);
+    stockTotal(state, getDetailedSite(state, vassal.locationRegionId)?.detailedState, "Currency"));
   if (currencyCost > settlementCurrency - stagedCurrencyCost) {
     return { ok: false, reason: "insufficientCurrency" };
   }
@@ -305,6 +308,12 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
   };
+  if (offer.intervention?.kind==='practice' && offer.intervention.mode!=='remove') {
+    const def=getDetailedPracticeDef(state,offer.intervention.practiceId);
+    const existing=buildReservation(state,vassal,nodeState)?.practiceSlots??[];
+    if (Number.isInteger(toIndex)) purchase.tableauIndex=toIndex;
+    else if (offer.intervention.mode==='learn' && (def.consume.length||def.require.length)) purchase.tableauIndex=Math.min(existing.length-1,existing.filter(Boolean).length);
+  }
   const next = [...nodeState.purchasedOffers];
   const practicePositions = next.flatMap((p, i) => p.intervention.kind === 'practice' ? [i] : []);
   const insertionIndex = purchase.intervention.kind === 'practice' && Number.isInteger(toIndex)
@@ -332,6 +341,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
   delete restored.placement;
+  delete restored.tableauIndex;
   delete restored.prestigeCost;
   delete restored.phaseCost;
   delete restored.currencyCost;
@@ -359,10 +369,12 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
   const ordered = nodeState.purchasedOffers.filter(p => p.intervention.kind === 'practice');
   const fromIndex = ordered.findIndex((purchase) => purchase.offerId === offerId);
   const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
-  if (fromIndex < 0 || targetIndex < 0 || targetIndex >= ordered.length) {
+  const capacity=getDetailedSite(state,vassal.locationRegionId)?.detailedState?.practiceSlots.length??0;
+  if (fromIndex < 0 || targetIndex < 0 || targetIndex >= capacity) {
     return { ok: false, reason: "invalidPurchaseOrder" };
   }
-  if (fromIndex !== targetIndex) {
+  ordered[fromIndex].tableauIndex=targetIndex;
+  if (fromIndex !== targetIndex && targetIndex < ordered.length) {
     const [purchase] = ordered.splice(fromIndex, 1);
     ordered.splice(targetIndex, 0, purchase);
     let cursor = 0;
@@ -394,9 +406,7 @@ export function rerollVassalShop(state, nodeId) {
   if ((nodeState.purchasedOffers ?? []).length > 0) {
     return { ok: false, reason: "stagedPurchases" };
   }
-  const prestigeCost = getAdjustedVassalPrestigeCost(
-    vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost
-  );
+  const prestigeCost = getVassalShopRerollCost(vassal);
   const phaseCost = getVassalActionPhaseCost(
     vassal, VASSAL_LIFE_TUNING.shopRerollPhaseCost, { nodeState }
   );
@@ -408,4 +418,9 @@ export function rerollVassalShop(state, nodeId) {
   nodeState.inventoryRoll += 1;
   nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   return { ok: true, prestigeCost, phaseCost, inventory: clone(nodeState.inventory) };
+}
+
+export function getVassalShopRerollCost(vassal) {
+  return vassal?.classId === 'scholar' ? 0
+    : getAdjustedVassalPrestigeCost(vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost);
 }

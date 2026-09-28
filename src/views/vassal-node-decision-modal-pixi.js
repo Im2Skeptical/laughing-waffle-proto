@@ -1,3 +1,4 @@
+import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
 import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
@@ -65,6 +66,7 @@ export function createVassalNodeDecisionModalView({
   let backdropPressedPointerId = null;
   let openNodeId = null;
   let signature = "";
+  let practicePage = 0;
   let dragged = null;
   let dragGhost = null;
   let tableauRoots = [];
@@ -264,7 +266,7 @@ export function createVassalNodeDecisionModalView({
       else onMoveStructure?.(openNodeId,offerId,origin);
     } else if(kind==='practice' && local.y>=tableau.practiceY-25 && local.y<tableau.practiceY+PIECE_SIZE.practiceHeight+25) {
       const count=(lastDecision?.settlement?.practices??[]).filter(p=>p?.staged).length;
-      const toIndex=Math.max(0,Math.min(drag.fromOffer?count:count-1,Math.floor((local.x-tableau.x)/(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap))));
+      const toIndex=Math.max(0,Math.min((lastDecision?.settlement?.practices?.length??12)-1,practicePage*5+Math.floor((local.x-tableau.x)/(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap))));
       if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,null,toIndex);
       else onReorderPurchase?.(openNodeId,offerId,toIndex);
     }
@@ -467,10 +469,14 @@ export function createVassalNodeDecisionModalView({
         ...TEXT_STYLES.header, fontSize: 22,
       }, sx, PANEL.y + CONTENT.labelY));
       root.addChild(createText(
-        `Food ${Math.round(settlement.looseFood ?? 0)} loose / ${Math.round(settlement.storedFood ?? 0)} stored    Currency ${Math.round(settlement.currency ?? 0)}`,
+        `Hosted Edible ${Math.round(settlement.storedFood ?? 0)}    Hosted Currency ${Math.round(settlement.currency ?? 0)}`,
         { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
-      root.addChild(createText('PRACTICES   ◷ Scheduled trigger     ✦ Charge',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceLabelY));
-      (settlement.practices??[]).forEach((piece,index)=>{
+      root.addChild(createText('PRACTICES   Stock / Supply',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceLabelY));
+      const pages = Math.max(1,Math.ceil((settlement.practices?.length??0)/5));
+      practicePage = Math.min(practicePage,pages-1);
+      button(root,{x:sx+530,y:PANEL.y+CONTENT.practiceLabelY-7,width:175,height:32},'Previous',practicePage>0,()=>{practicePage--;render(true);});
+      button(root,{x:sx+720,y:PANEL.y+CONTENT.practiceLabelY-7,width:175,height:32},`Next ${practicePage+1}/${pages}`,practicePage<pages-1,()=>{practicePage++;render(true);});
+      (settlement.practices??[]).slice(practicePage*5,practicePage*5+5).forEach((piece,index)=>{
         const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
           onHover:piece?()=>{hoveredTableauId='practice:'+piece.practiceId;scheduleHoverRender();}:undefined,
@@ -571,10 +577,10 @@ export function createVassalNodeDecisionModalView({
     if (isShop && nodeState && !nodeState.resolving) {
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
         && (nodeState.purchasedOffers ?? []).length === 0
-        && getAdjustedVassalPrestigeCost(vassal, 6) <= vassal.prestige;
-      const rerollCost = getAdjustedVassalPrestigeCost(vassal, 6);
+        && getVassalShopRerollCost(vassal) <= vassal.prestige;
+      const rerollCost = getVassalShopRerollCost(vassal);
       const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
-        nodeState.rerollUsed ? "REROLL USED" : "REROLL", rerollEnabled,
+        nodeState.rerollUsed ? "REROLL USED" : vassal.classId === "scholar" ? "RECONSIDER" : "REROLL", rerollEnabled,
         () => onRerollShop?.(node.id));
       if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
@@ -655,7 +661,7 @@ export function createVassalNodeDecisionModalView({
         metadata:[face?.qualityLabel,...(face?.tags??[])].filter(Boolean).join(' · '),
         detail:[face?[face.rule,...(face.details??face.detailLines??[])].join('\n'):optionEffect(piece),
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,
-          displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
+          displaced?'This practice leaves because the incoming prefix fills all twelve slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
         onClose:()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);},
       });

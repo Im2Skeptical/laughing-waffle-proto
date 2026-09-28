@@ -1,3 +1,4 @@
+import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const cells = new Map();
@@ -153,7 +154,12 @@ export function getIllustrationSpec(id) {
   const pieceId = resolveIllustrationId(id);
   if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v2/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
-  if(index==null)return null;
+  if(index==null) {
+    const def=detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId];
+    if(!def)return null;
+    const illustration=def.housing?'mudHouses':def.pool==='warrior'?'vigil':def.pool==='scholar'?'study':def.stockTraits?.includes('Edible')?'forage':def.stockTraits?.includes('Currency')?'exchange':'raiseHouses';
+    return {file:`settlement-pieces-v2/${illustration}.webp`,index:0,whole:true};
+  }
   return {file:`chronicle-illustrations-v1/${ILLUSTRATION_IDS[index]}.png`, whole:true};
 }
 

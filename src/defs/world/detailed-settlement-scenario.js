@@ -1,3 +1,4 @@
+import { DETAILED_PRACTICE_SLOT_COUNT } from "../gamepieces/detailed-settlement-defs.js";
 export const DETAILED_REGION_IDS = Object.freeze([
   "cedar-woods",
   "west-levee",
@@ -20,6 +21,7 @@ export const DETAILED_REGION_COLOURS = Object.freeze({
 export const createInitialDetailedSettlementData = (regionId = null) => ({
   populationByClass: {
     villager: {
+      specialists: { scholar: {children:0,adults:0,eldersByAge:[]}, warrior: {children:0,adults:0,eldersByAge:[]} },
       children: 0,
       adults: 20,
       eldersByAge: [
@@ -36,6 +38,7 @@ export const createInitialDetailedSettlementData = (regionId = null) => ({
       },
     },
     stranger: {
+      specialists: { scholar: {children:0,adults:0,eldersByAge:[]}, warrior: {children:0,adults:0,eldersByAge:[]} },
       children: 0,
       adults: 0,
       eldersByAge: [],
@@ -48,16 +51,7 @@ export const createInitialDetailedSettlementData = (regionId = null) => ({
       },
     },
   },
-  storedFood: 60,
-  looseFood: 0,
-  currency: 0,
-  practiceSlots: [
-    { practiceId: regionId === "cedar-woods" ? "forage" : "cultivate", tier: "bronze", charge: 0, work: 0 },
-    regionId === "cedar-woods" ? null : { practiceId: "administrate", tier: "bronze", charge: 0, work: 0 },
-    null,
-    null,
-    null,
-  ],
+  practiceSlots: Array.from({ length: DETAILED_PRACTICE_SLOT_COUNT }, (_, i) => i === 0 ? { practiceId: "forage", tier: "bronze", stock: 2, charge: 0, work: 0 } : null),
   structureSlots: [
     { structureId: "granary" },
     { structureId: "mudHouses" },

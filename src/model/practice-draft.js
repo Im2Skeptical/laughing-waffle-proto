@@ -12,7 +12,7 @@ export function projectPracticeDraft(confirmed, purchases) {
     if (action.mode === 'learn' ? !!existing : !existing || existing.tier !== action.tier) return { ok: false, reason: 'practiceUnavailable' };
     consumed.add(action.practiceId);
     if (action.mode === 'remove') removed.add(action.practiceId);
-    if (action.mode !== 'remove') incoming.push(createDetailedPracticeSlot(action.practiceId, action.resultingTier));
+    if (action.mode !== 'remove') incoming.push({...createDetailedPracticeSlot(action.practiceId, action.resultingTier), stock: existing?.stock ?? 0});
   }
   if (incoming.length > confirmed.length) return { ok: false, reason: 'practicePrefixFull' };
   // Preserve authored empty slots and the existing unshift mechanics. An
@@ -21,5 +21,13 @@ export function projectPracticeDraft(confirmed, purchases) {
     ? removed.has(p.practiceId) ? [null] : [] : [p]);
   const slots = [...incoming, ...survivors].slice(0, confirmed.length);
   while (slots.length < confirmed.length) slots.push(null);
+  for (const purchase of purchases) {
+    if (purchase.intervention?.kind !== 'practice' || !Number.isInteger(purchase.tableauIndex)) continue;
+    if (purchase.tableauIndex < 0 || purchase.tableauIndex >= slots.length) return {ok:false,reason:'invalidPurchaseOrder'};
+    const from = slots.findIndex(slot=>slot?.practiceId===purchase.intervention.practiceId);
+    if (from < 0) continue;
+    const [slot]=slots.splice(from,1);
+    slots.splice(purchase.tableauIndex,0,slot);
+  }
   return { ok: true, slots, displaced: survivors.slice(confirmed.length - incoming.length).filter(Boolean) };
 }

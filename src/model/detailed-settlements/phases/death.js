@@ -1,15 +1,18 @@
-// Death moon phase: arrival meals, hardship, old-age mortality, food rot.
+import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js";
+import { specialistCount } from "../stock.js";
+// Death moon phase: arrival meals, hardship, old-age mortality and population history.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { getGameSetting } from "../../game-config.js";
 import {
   clone,
   compositionTotal,
+  compositionBins,
+  compositionFromBins,
   emptyPopulationComposition,
   ensureMoonRegionResult,
   roundFood,
 } from "../helpers.js";
-import { getPreserveReduction } from "../practices.js";
 import {
   getDetailedSettlement,
   getDetailedSettlementSites,
@@ -30,19 +33,7 @@ import {
 } from "./shared.js";
 
 function rollCompositionDeaths(state, composition, probability) {
-  const deaths = emptyPopulationComposition();
-  for (const classId of POPULATION_CLASS_ORDER) {
-    const source = composition?.[classId];
-    const target = deaths[classId];
-    if (!source) continue;
-    target.children = rollCount(state, source.children, probability);
-    target.adults = rollCount(state, source.adults, probability);
-    target.eldersByAge = (source.eldersByAge ?? []).map((cohort) => ({
-      age: cohort.age,
-      count: rollCount(state, cohort.count, probability),
-    })).filter((cohort) => cohort.count > 0);
-  }
-  return deaths;
+  return compositionFromBins(compositionBins(composition).map(bin=>({...bin,count:rollCount(state,bin.count,probability)})));
 }
 
 export function runDeathPhase(state, phase) {
@@ -74,13 +65,15 @@ export function runDeathPhase(state, phase) {
     prematureDeaths += compositionTotal(deaths);
   }
   for (const site of getDetailedSettlementSites(state)) {
+    if (site.neutral) continue;
     const settlement = site.detailedState;
     const regionResult = ensureMoonRegionResult(turn, site.regionId);
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       let naturalDeaths = 0;
-      classState.eldersByAge = (classState.eldersByAge ?? []).map((cohort) => {
+      const parts = splitSpecialistCohorts(classState);
+      for(const part of Object.values(parts)) part.eldersByAge = (part.eldersByAge ?? []).map((cohort) => {
         const green = getGreenAscendancySummary(state);
         const mortality = getElderMortalityRate(cohort.age, state)
           * (1 - Math.min(1, green.elderMortalityReduction / 100));
@@ -88,22 +81,12 @@ export function runDeathPhase(state, phase) {
         naturalDeaths += deaths;
         return { ...cohort, count: cohort.count - deaths };
       }).filter((cohort) => cohort.count > 0);
+      combineSpecialistCohorts(classState, parts);
       byClass[classId] = { naturalDeaths };
+      settlement.history ??= { deaths: 0 };
+      settlement.history.deaths += naturalDeaths;
       oldAgeDeaths += naturalDeaths;
     }
-    const storedBefore = settlement.storedFood;
-    const looseBefore = settlement.looseFood;
-    const green = getGreenAscendancySummary(state);
-    const preservationRatio = Math.min(1, (
-      getPreserveReduction(state, site) + green.storedFoodDecayReduction
-    ) / 100);
-    settlement.storedFood = roundFood(settlement.storedFood * (1 - Math.max(
-      0,
-      getGameSetting(state, "storedFoodDecayRate") * (1 - preservationRatio)
-    )));
-    settlement.looseFood = roundFood(
-      settlement.looseFood * (1 - getGameSetting(state, "looseFoodDecayRate"))
-    );
     const migration = {
       ...(regionResult.migration ?? {
         intents: [], outbound: [], inbound: [], sourceLosses: [],
@@ -121,8 +104,8 @@ export function runDeathPhase(state, phase) {
       byClass,
       hardshipDeaths: hardshipDeathsByRegion[site.regionId],
       arrivalDeaths: migration.inbound.reduce((sum, move) => sum + move.arrivalDeaths, 0),
-      storedFoodRot: roundFood(storedBefore - settlement.storedFood),
-      looseFoodRot: roundFood(looseBefore - settlement.looseFood),
+      storedFoodRot: 0,
+      looseFoodRot: 0,
     };
     if (settlement.lastMeal) settlement.lastMeal.migration = clone(migration);
     resetEmptyStrangerCohort(settlement);

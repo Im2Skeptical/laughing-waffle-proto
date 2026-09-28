@@ -8,11 +8,8 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
   let cause = "Civilization lost";
   let explanation = "Your civilization reached a loss condition.";
   if (reason === "redGodMonsterOverrun") {
-    const threshold = state.civilization?.chaos?.monsterLossThreshold;
     cause = "Overrun by monsters";
-    explanation = Number.isFinite(threshold)
-      ? `The monster count reached the loss limit of ${Math.floor(threshold)}. The monsters overwhelmed your civilization.`
-      : "The monster count reached the loss limit and overwhelmed your civilization.";
+    explanation = "Spatial Monster expansion has taken every player settlement. Supplied defenses can repel expansion while their Stock lasts.";
     explanation += " Chaos creates monsters over time; reducing its pressure can delay this outcome.";
   } else if (reason === "faithCollapsedAtBronze") {
     cause = "Faith collapsed";

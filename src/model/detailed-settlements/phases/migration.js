@@ -1,3 +1,5 @@
+import { emptySpecialists, addAgeCohort } from "../cohorts.js";
+import { stockTotal, consumeStock, CIV_CONTENT_TUNING } from "../stock.js";
 // Migration intent, housing/meal allocation, and the migration moon phase.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -15,7 +17,6 @@ import {
   roundFood,
   selectPopulationComposition,
 } from "../helpers.js";
-import { consumeFood } from "../practices.js";
 import {
   getDetailedSettlement,
   getDetailedSettlementSites,
@@ -35,6 +36,8 @@ export function getReservedSourceComposition(turn, sourceRegionId) {
       const target = result[classId];
       const source = intent.composition?.[classId];
       if (!source) continue;
+      target.specialists ??= emptySpecialists();
+      for (const id of ["scholar","warrior"]) addAgeCohort(target.specialists[id],source.specialists?.[id]);
       target.children += source.children;
       target.adults += source.adults;
       const byAge = new Map(target.eldersByAge.map((cohort) => [cohort.age, cohort.count]));
@@ -75,6 +78,8 @@ export function removePopulationComposition(settlement, composition) {
     const classState = settlement?.populationByClass?.[classId];
     const removal = composition?.[classId];
     if (!classState || !removal) continue;
+    classState.specialists ??= emptySpecialists();
+    for(const id of ["scholar","warrior"]) addAgeCohort(classState.specialists[id],removal.specialists?.[id],-1);
     classState.children = Math.max(0, classState.children - removal.children);
     classState.adults = Math.max(0, classState.adults - removal.adults);
     const removalsByAge = new Map(
@@ -105,6 +110,8 @@ export function addCompositionToStrangers(settlement, composition) {
   for (const classId of POPULATION_CLASS_ORDER) {
     const incoming = composition?.[classId];
     if (!incoming) continue;
+    stranger.specialists ??= emptySpecialists();
+    for(const id of ["scholar","warrior"]) addAgeCohort(stranger.specialists[id],incoming.specialists?.[id]);
     stranger.children += incoming.children;
     stranger.adults += incoming.adults;
     const merged = new Map((stranger.eldersByAge ?? []).map(
@@ -123,8 +130,8 @@ function getMigrationHousingTarget(state, regionId) {
   return Math.floor(getHousingCapacity(state, regionId));
 }
 
-function getSettlementFoodTotal(settlement) {
-  return roundFood((settlement?.storedFood ?? 0) + (settlement?.looseFood ?? 0));
+function getSettlementFoodTotal(state, settlement) {
+  return stockTotal(state, settlement, "Edible");
 }
 
 function compareAuthoredRegionIds(state, regionAId, regionBId) {
@@ -141,7 +148,7 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
     ? sourceSummary.total / sourceSummary.housingCapacity
     : Number.POSITIVE_INFINITY;
   const candidates = getConnectedRegionIds(state, intent.sourceId)
-    .filter((regionId) => getDetailedSettlement(state, regionId))
+    .filter((regionId) => getRegionState(state, regionId)?.controller === "player" && getDetailedSettlement(state, regionId))
     .filter((regionId) => !emitterIds.has(regionId))
     .map((regionId) => {
       const settlement = getDetailedSettlement(state, regionId);
@@ -153,7 +160,7 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
       const occupancyRatio = summary.housingCapacity > 0
         ? projected / summary.housingCapacity
         : Number.POSITIVE_INFINITY;
-      const food = getSettlementFoodTotal(settlement);
+      const food = getSettlementFoodTotal(state, settlement);
       return { regionId, headroom, occupancyRatio, food };
     })
     .filter((candidate) => candidate.headroom > 0)
@@ -244,11 +251,7 @@ function allocateMigrationHousing(state, intents, emitterIds) {
   return { allocations, unresolved: work.map((intent) => intent.remaining) };
 }
 
-function getBinMealCost(state, kind) {
-  if (kind === "children") return getGameSetting(state, "childMealConsumption");
-  if (kind === "adults") return getGameSetting(state, "adultMealConsumption");
-  return getGameSetting(state, "elderMealConsumption");
-}
+function getBinMealCost(state, kind) { return 1 / CIV_CONTENT_TUNING.populationPerEdible; }
 
 export function allocateArrivalMeals(state, movements) {
   const byDestination = new Map();
@@ -274,7 +277,7 @@ export function allocateArrivalMeals(state, movements) {
         });
       }
     }
-    const availableFood = getSettlementFoodTotal(destination);
+    const availableFood = getSettlementFoodTotal(state, destination);
     const paidDemand = bins.reduce(
       (sum, bin) => sum + bin.count * Math.max(0, bin.mealCost),
       0
@@ -309,7 +312,7 @@ export function allocateArrivalMeals(state, movements) {
         progressed = true;
       }
     }
-    consumeFood(destination, roundFood(usedFood));
+    consumeStock(state, destination, "Edible", Math.ceil(usedFood - 1e-9));
     for (const [movementIndex, movement] of destinationMovements.entries()) {
       const survivorBins = bins
         .filter((bin) => bin.movementIndex === movementIndex)

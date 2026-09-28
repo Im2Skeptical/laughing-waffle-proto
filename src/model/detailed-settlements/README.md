@@ -12,8 +12,11 @@ file is the legacy tick substrate.
   population / pressure / elder / green summaries.
 - `scopes.js` — `resolveDetailedRegionScope`, `evaluateDetailedMapScore`, and
   the region-order / filter helpers they share.
-- `practices.js` — worker assignment, slot evaluation, practice activation and
-  effects, administration routing (`planDetailedAdministrationMoves*`).
+- `practices.js` — slot evaluation and authoritative declarative activation.
+- `stock.js` - Trait queries, atomic provider plans, capacities and specialist training.
+- `workers.js` - Scholar sockets and ordinary population worker assignment.
+- `cohorts.js` - orthogonal specialist age subsets and composition helpers.
+- `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.
 - `phases.js` — **the stepper**. `initializeDetailedSettlementCivilization`
   and `stepDetailedSettlementsSecond`. Phase bodies live in `phases/`
   (`birth.js`, `food.js`, `housing.js`, `faith.js`, `migration.js`,
@@ -24,6 +27,5 @@ file is the legacy tick substrate.
 - `view-model.js` — `getDetailedSettlementViewModel` plus
   `getDetailedCivilizationSummary` (both need queries + workers).
 
-Import graph is acyclic: helpers → queries → scopes → practices →
-{phases, vassals, view-model}. New detailed behavior belongs in the matching
-file above, then re-export from the barrel if callers need it.
+New detailed behavior belongs in the matching file above. Projection runs the
+same stepper; never add a separate forecast implementation of Stock or conflict.

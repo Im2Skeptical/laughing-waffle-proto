@@ -303,7 +303,7 @@ export function getVassalEffectiveStats(vassal) {
 
 export function getVassalPrestigeIncome(vassal) {
   return VASSAL_LIFE_TUNING.basePrestigeIncome
-    + Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0));
+    + (vassal?.classId === "scholar" ? 0 : Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0)));
 }
 
 export function getVassalDevelopmentIncome(vassal) {
@@ -343,6 +343,8 @@ export function getVassalStatPresentation(vassal, statId, valueOverride = null) 
   const baseValue = Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
   const heirloomBonus = value - (Number.isFinite(valueOverride) ? value : baseValue);
   const bonusNote = heirloomBonus > 0 ? ` · Heirloom +${heirloomBonus}` : "";
+  if (statId === "cunning" && vassal?.classId === "scholar") return { statId, label: "Ingenuity", value, powerLabel: `${Math.round(Math.min(.75, value * .05) * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
+  if (statId === "intelligence" && vassal?.classId === "warrior") return { statId, label: "Prowess", value, powerLabel: `+${value} personal Martial Force`, formula: "Campaign / Challenge only; no automatic defense bonus", pointsToCap: null };
   if (statId === "cunning") {
     const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
     return {
@@ -391,7 +393,7 @@ function adjustedCost(base, stat, { allowZero = true } = {}) {
 }
 
 export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
-  return adjustedCost(baseCost, getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
+  return adjustedCost(baseCost, vassal?.classId === "warrior" ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
 }
 
 export function getAdjustedVassalPhaseCost(vassal, baseCost) {

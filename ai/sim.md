@@ -6,34 +6,27 @@ detailed gamepiece definitions in
 `src/defs/gamepieces/detailed-settlement-defs.js`; do not duplicate those
 registries here.
 
-- Forage produces food at the start of each Food phase, before Administration
-  routes food, with a baseline output that scales through its one worker slot.
-- Cultivate produces food each Summer from a player same-colour connected-region
-  evaluator and a baseline-preserving effective-worker multiplier.
-- Administration is the only food transport. Each card has one evaluated shared
-  cap, moves meal-safe surplus toward shortages from one activation-start
-  snapshot, and cannot relay received food within a moon. Smokehouse's
-  `connectedAdministrationReach` flag can expand its endpoints across fully
-  player-controlled paths.
-- Every practice belongs to a scheduled or charge lane and works without workers.
-  Worker capacity and effective-worker bonus are tuned per definition; undeclared
-  defaults are two sockets and +25% per effective worker. Raise Houses accumulates
-  work at Birth. Build practices wait when no free contiguous footprint exists.
-- Smokehouse reduces stored-food decay; Caravanserai allows commercial relay;
-  Counting House permits remote Import funding. These replace the former passive
-  practices. Resettlement Hall retains external-emigration pressure reduction as
-  explicitly nonfunctional data; Hostel's migrant housing reserve is also
-  nonfunctional. Binary capabilities are complete at Bronze, while numeric
-  passive values scale with quality.
-- Harvest Festival adds a positive-Happiness floor for future Faith resolutions,
-  stacking duration to three. Each Faith consumes one unit; Birth does not reset it.
-- Construction capacity is 5–8 horizontal cells. Each structure has a stable
-  placement ID, origin, width (1–3), definition and quality. `structureSlots` stores
-  placements at their origins; covered cells remain null. Occupancy is derived
-  through the pure `structure-layout.js` operations shared by gameplay, shop
-  projection, Map Lab and debug authoring.
-- Granary and Mud House capacities scale with local count squared.
-- Food fills stored capacity first, then loose food; meals consume loose first.
+- Food and Currency are hosted Stock, derived by Trait across twelve Practice slots.
+  There are no authoritative stored/loose Food or Currency wallets and no automatic
+  Administration food transport. Provider planning checks Require without spending,
+  then reserves Consume atomically from leftmost eligible hosts to the left; self
+  and right providers are excluded except explicitly granted Record access.
+- Practices are unique installed engines. Workers are optional; ordinary tokens
+  represent population bands, while each Scholar claims one specialist socket.
+  Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.
+- Structures use 1-3 contiguous cells, stable placement IDs and duplicate instances.
+  Numeric capacities are additive. The Common Housing ladder is 30/60/90/150/240/360.
+  Gated query modifiers supply capacity, output, defense and Retinue cap bonuses.
+- Scholars and Warriors are mutually exclusive specialties inside Villager/Stranger
+  age cohorts. Aging, migration and mortality preserve those identities.
+- Four deterministic neutral templates are fixed-demography external actors.
+  Their hosted Stock changes through normal production/meals. Connected Trade and
+  Raids use their live state. Conquest converts survivors to Strangers and enables
+  the full player simulation.
+- Chaos creates spatial Monsters at Death. Deterministic expansion tests supplied
+  defense, consumes supply, and can turn a site into ruins. Loss history influences
+  later content; losing all player settlements ends the run. Forecast uses these
+  same rules, including changing capital/primary-site normalization.
 - The moon uses six fixed phases with configurable `phaseDurationSec`: Birth,
   Food, Housing, Faith, Migration, and Death. At the default one second per
   phase, a moon remains six seconds and stays independent of the 32-second year.
@@ -42,9 +35,9 @@ registries here.
   `stepDetailedSettlementsSecond`. Do not treat `newMoon` / `fullMoon` /
   `MOON_CYCLE_SEC` as the current detailed-settlement clock; those are the
   legacy settlement-exec path.
-- Birth resolves building practices, births, child maturation, and adult-to-elder
+- Birth resolves scheduled practices, births, child maturation, and adult-to-elder
   transitions. Elder ages advance annually at the first following Birth phase.
-- Food runs Administration and feeds Villagers before Strangers. Cohorts fed
+- Food runs Practice activations, then spends ceil(total population / 30) Edible Stock, feeding Villagers before Strangers. Cohorts fed
   below the configured partial-feed minimum (50% by default) immediately lose
   one happiness step while still advancing their missed-meal starvation streak;
   the unfed share enters the current moon's migrant bucket only when that streak
@@ -60,7 +53,7 @@ registries here.
   incoming Chaos.
 - Migration resolves all food, housing, and faith causes identically using
   snapshot-based, globally reserved housing. Death then resolves arrival meals,
-  unplaced-migrant hardship, monthly elder mortality, and stored/loose food rot.
+  unplaced-migrant hardship, monthly elder mortality, and spatial Monster pressure. Hosted Stock does not rot.
   Surviving migrants join the destination Stranger cohort.
 - Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
   prices, inventories, or resolutions. Each selected Vassal owns a deterministic,
@@ -79,12 +72,10 @@ registries here.
   frontier, and structure-capacity requirements.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
-  confirmation. Practice purchases form a reorderable prefix ahead of locked
-  confirmed survivors, including upgrades. Structure purchases retain explicit
+  confirmation. Practice purchases can be placed throughout the twelve-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
   origins and footprints; automatic placement seeks a free span before staging
   demolition at the leftmost compatible origin. Builds may cover confirmed
-  structures, never other staged structures; upgrades replace compatible confirmed
-  structures in place. Undo reprojects from the confirmed settlement and restores
+  structures, never other staged structures. Undo reprojects from the confirmed settlement and restores
   covered buildings. There is no standalone demolition, refund or salvage.
   Confirmation applies the projected final order and layout atomically;
   rerolling is available only while the draft is empty.
@@ -109,12 +100,18 @@ registries here.
 - Each EXP threshold earned by a surviving, non-terminal Vassal queues a
   serialized three-of-four stat choice rolled from all four Vassal stats. These
   choices resolve one at a time and block entry into another Lifegraph node.
-- Cunning and Wisdom drive recurring Prestige and EXP income; Effectiveness and Intelligence
-  discount Phase and Prestige costs. Practice/Structure prices live beside their
-  gamepiece definitions, while route prices and all other Life Map tuning are in
-  `vassal-life-map-defs.js`.
+- Scholar Ingenuity replaces Cunning income with price-neutral quality uplift,
+  Discovery access and Research, one free shop reconsideration, and Commissions.
+  Local institutions and retired class stats improve later candidates.
+- Warrior Prowess replaces the Intelligence price discount. Campaign combines
+  Prowess, derived Retinue and local Martial Support; Challenge is personal.
+  Prowess never reduces general Crisis danger. Retinue is computed from unspent
+  Prestige, Warrior population and institutional caps; it is not inventory.
+- Crisis options inspect live Food shortages and adjacent Monsters. Mortality
+  remains on the existing Vassal RNG substream. See
+  `docs/civilization-milestone.md` for the implemented pool and tuning decisions.
 
-Boundary order is seasonal Cultivate followed by whichever lunar phase is due.
+Boundary order is seasonal Practice activation followed by whichever lunar phase is due.
 Faith resolves chaos after faith changes. Vassal node time uses the same
 authoritative one-second stepping path but resolves independently of lunar phases.
 Current and previous moon reports are

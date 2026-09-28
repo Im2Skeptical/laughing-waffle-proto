@@ -44,9 +44,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 14);
-assert.equal(authoredConfig.settings.schemaVersion, 14);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 14);
+assert.equal(authoredConfig.schemaVersion, 15);
+assert.equal(authoredConfig.settings.schemaVersion, 15);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 15);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -58,18 +58,8 @@ assert.equal(
   ).ok,
   true
 );
-assert.equal(
-  authoredConfig.gamepieces.structures.smokehouse.connectedAdministrationReach,
-  false,
-  "Preservation leaves Administration adjacent-only by default"
-);
-assert.equal(authoredConfig.gamepieces.practices.forage.workerCapacity, 1);
-assert.ok(authoredConfig.gamepieces.practices.exchange.tags.includes("Currency"),
-  "Currency-facing practices declare the Currency tag");
-assert.equal(
-  authoredConfig.gamepieces.practices.forage.effects[0].scaledValue.baseAmount,
-  5
-);
+assert.equal(authoredConfig.gamepieces.practices.forage.stockCapacity,2);
+assert.ok(authoredConfig.gamepieces.practices.barter.stockTraits.includes('Currency'));
 assert.equal(authoredConfig.settings.values.primordialBasePressure, 100);
 assert.equal(authoredConfig.settings.values.primordialGrowthFactor, 1.03);
 assert.equal(authoredConfig.settings.values.primordialGrowthCadenceYears, 12);
@@ -80,7 +70,7 @@ assert.deepEqual(
     "prematureDeathChaosWeight", "externalEmigrationChaosWeight",
     "bronzeChaosResistancePopulation", "silverChaosResistancePopulation",
     "goldChaosResistancePopulation", "diamondChaosResistancePopulation",
-    "chaosPerMonster", "monsterLossThreshold", "migrationHardshipDeathRate",
+    "chaosPerMonster", "migrationHardshipDeathRate",
     "resistancePerAdditionalElder",
   ].map((id) => [id, authoredConfig.settings.values[id]])),
   {
@@ -97,56 +87,23 @@ assert.deepEqual(
     goldChaosResistancePopulation: 2,
     diamondChaosResistancePopulation: 1,
     chaosPerMonster: 10,
-    monsterLossThreshold: 100,
     migrationHardshipDeathRate: 0.8,
     resistancePerAdditionalElder: 2,
   },
   "Cultivate_01 game-setting values are the authored baseline"
 );
-assert.equal(authoredConfig.gamepieces.structures.granary.capacityPerCountSquared, 180);
-assert.equal(authoredConfig.gamepieces.structures.mudHouses.capacityPerCountSquared, 35);
-assert.equal(authoredConfig.gamepieces.practices.cultivate.effects[0].scaledValue.baseAmount, 120);
-assert.deepEqual(
-  getGamepieceEditorGroups(authoredConfig.gamepieces)
-    .flatMap((group) => group.fields)
-    .filter((field) => field.type === "boolean")
-    .map((field) => field.path.join(".")),
-  ["structures.smokehouse.connectedAdministrationReach"],
-  "only explicitly declared boolean gamepiece fields appear in the editor"
-);
-const enabledReachGamepieces = setAtPath(
-  authoredConfig.gamepieces,
-  ["structures", "smokehouse", "connectedAdministrationReach"],
-  true
-);
-assert.equal(validateGamepiecesDraft(enabledReachGamepieces).ok, true);
 const retaggedGamepieces = setAtPath(
   authoredConfig.gamepieces,
-  ["practices", "exchange", "tags"],
+  ["practices", "barter", "tags"],
   ["Commerce"]
 );
 assert.equal(validateGamepiecesDraft(retaggedGamepieces).ok, true);
-assert.deepEqual(canonicalizeGamepiecesDraft(retaggedGamepieces).practices.exchange.tags, ["Commerce"],
+assert.deepEqual(canonicalizeGamepiecesDraft(retaggedGamepieces).practices.barter.tags, ["Commerce"],
   "editable gamepiece tags survive canonicalization");
 assert.ok(getGamepieceEditorGroups(authoredConfig.gamepieces)
   .flatMap((group) => group.fields)
-  .some((field) => field.path.join(".") === "practices.exchange.tags"),
+  .some((field) => field.path.join(".") === "practices.barter.tags"),
 "Gamepieces exposes tags to the debug editor");
-assert.equal(
-  canonicalizeGameConfig({
-    settings: authoredConfig.settings,
-    gamepieces: enabledReachGamepieces,
-  }).gamepieces.structures.smokehouse.connectedAdministrationReach,
-  true,
-  "boolean gamepiece controls survive canonicalization"
-);
-const invalidBooleanGamepieces = clone(enabledReachGamepieces);
-invalidBooleanGamepieces.structures.smokehouse.connectedAdministrationReach = 0;
-assert.equal(
-  validateGamepiecesDraft(invalidBooleanGamepieces).ok,
-  false,
-  "boolean gamepiece controls reject numeric substitutes"
-);
 assert.equal(validateGamepiecesDraft({
   ...createAuthoredGamepiecesDraft(),
   schemaVersion: 1,
@@ -168,57 +125,14 @@ let settings = setAtPath(
   ["values", "populationPerToken"],
   20
 );
-settings = setAtPath(settings, ["values", "childMealConsumption"], 1);
-settings = setAtPath(settings, ["values", "adultMealConsumption"], 2);
-settings = setAtPath(settings, ["values", "elderMealConsumption"], 0);
-let gamepieces = setAtPath(
-  authoredConfig.gamepieces,
-  ["structures", "granary", "capacityPerCountSquared"],
-  125
-);
-gamepieces = setAtPath(
-  gamepieces,
-  ["practices", "cultivate", "effects", 0, "scaledValue", "baseAmount"],
-  15
-);
+const gamepieces = setAtPath(authoredConfig.gamepieces,['practices','forage','stockCapacity'],9);
 const setup = clone(setupDefs.devPlaytesting01);
-setup.gameConfig = canonicalizeGameConfig({ settings, gamepieces });
-const configured = createInitialState(setup, 901);
-assert.equal(getStoredFoodCapacity(configured, "cedar-woods"), 125);
-assert.deepEqual(
-  assignDetailedSettlementWorkers(configured, "river-crown")
-    .map((entry) => entry.effectiveWorkers),
-  [1, 0, 0, 0, 0]
-);
-assert.equal(
-  getPopulationSummary(configured, "cedar-woods").mealDemand,
-  40,
-  "meal demand uses the state-scoped class consumption rates"
-);
-
-const cultivateSetup = clone(setupDefs.devPlaytesting01);
-cultivateSetup.gameConfig = canonicalizeGameConfig({
-  settings: authoredConfig.settings,
-  gamepieces,
-});
-const cultivate = createInitialState(cultivateSetup, 902);
-cultivate.world.sites.find((site) => site.regionId === "cedar-woods").detailedState.practiceSlots[0] = {
-  practiceId: "cultivate", charge: 0, work: 0,
-};
-cultivate.currentSeasonIndex = 1;
-cultivate._seasonChanged = true;
-stepDetailedSettlementsSecond(cultivate, 8);
-assert.equal(
-  getDetailedSettlement(cultivate, "cedar-woods").storedFood,
-  59.5,
-  "Cultivate uses the state-scoped effect before the same Food phase meal"
-);
-assert.equal(getDetailedSettlement(cultivate, "cedar-woods").looseFood, 0);
-assert.equal(
-  serializeGameState(configured).gameConfig.gamepieces.structures.granary
-    .capacityPerCountSquared,
-  125
-);
+setup.gameConfig=canonicalizeGameConfig({settings,gamepieces});
+const configured=createInitialState(setup,901);
+assert.equal(getStoredFoodCapacity(configured,'cedar-woods'),12);
+assert.deepEqual(assignDetailedSettlementWorkers(configured,'river-crown').map(a=>a.effectiveWorkers),[1,...Array(11).fill(0)]);
+assert.equal(getPopulationSummary(configured,'cedar-woods').mealDemand,1,'Food is one hosted unit per thirty people');
+assert.equal(serializeGameState(configured).gameConfig.gamepieces.practices.forage.stockCapacity,9);
 
 const cheatState = createInitialState("devPlaytesting01", 903);
 const seedBefore = structuredClone(cheatState.rng);
@@ -248,6 +162,7 @@ assert.deepEqual(replacementResult.pool.candidates[0].stats, {
 });
 
 const replayBase = createInitialState("devPlaytesting01", 903);
+replayBase.gameConfig.settings.values.primordialBasePressure=0;
 const timeline = createTimelineFromInitialState(replayBase);
 appendActionAtCursor(timeline, {
   kind: "settlementSelectVassal",
@@ -482,8 +397,8 @@ try {
   );
   assert.equal(
     configController.getSnapshot(GAMEPIECES_DRAFT_KIND).draft.practices.forage.effects[0]
-      .scaledValue.baseAmount,
-    8
+      .amount,
+    1
   );
 } finally {
   if (previousStorage === undefined) delete globalThis.localStorage;

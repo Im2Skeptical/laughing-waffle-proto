@@ -19,6 +19,8 @@ function uncachedGraphValues(metric, state, subject) {
 }
 const initial = createInitialState("devPlaytesting01", 99117);
 initial.paused = false;
+initial.gameConfig.settings.values.primordialBasePressure = 100;
+initial.gameConfig.settings.values.chaosPerMonster = 1000;
 const state = deserializeGameState(serializeGameState(initial));
 for (let sec = 0; sec <= 192; sec++) {
   if (sec) { advanceReplayStateOneSecond(state); canonicalizeSnapshot(state); }
@@ -47,7 +49,8 @@ while (sec < 2100) {
   data = actual.lastStateData;
   if (actual.terminal) break;
 }
-assert.equal(sec, 1828, "terminal second is emitted exactly, not rounded to slice end");
+assert.equal(sec, data.runStatus.tSec, "terminal second is emitted exactly, not rounded to slice end");
+assert.ok(sec < 2100);
 assert.deepEqual(base, serializeGameState(initial), "projection does not mutate its input");
 const actionsBySecond = [20, 21, 40].map(tSec => ({ tSec,
   actions: [{ kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {} }] }));
@@ -73,14 +76,14 @@ for (let t = 0; t <= 128; t++) {
   assert.deepEqual(serializeGameState(restored), serializeGameState(reference), `off-anchor restore at ${t}`);
   assert.ok(Object.isFrozen(restored.gameConfig.settings.values));
   restored.rng.seed = 1;
-  restored.world.sites[0].detailedState.storedFood = -100;
+  restored.world.sites[0].detailedState.practiceSlots[0].stock = -100;
   restored.civilization.currentMoonTurn = null;
   assert.deepEqual(serializeGameState(restorer.restore(snapshot, anchorSec, t)), serializeGameState(reference), "returned states do not alias anchors");
   assert.ok(restorer.getSize() <= 4);
 }
 assert.throws(() => restorer.restore({ ...base, gameStateSchemaVersion: -1 }, 0), /schema/);
 assert.throws(() => restorer.restore({ ...base, rng: {} }, 0), /RNG/);
-assert.equal(restorer.restore(data, 1828, 1829), null, "never advances beyond run completion");
+assert.equal(restorer.restore(data, sec, sec+1), null, "never advances beyond run completion");
 
 const timeline = createTimelineFromInitialState(initial);
 const cache = createProjectionCache();

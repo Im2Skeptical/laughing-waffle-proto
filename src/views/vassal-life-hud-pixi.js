@@ -1,3 +1,4 @@
+import { getRetinue } from "../model/detailed-settlements/external-world.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getHeirloomInheritanceLabel,
@@ -115,6 +116,7 @@ export function createVassalLifeHudView({
     const inventory = vassal ? getVassalHeirloomInventory(vassal) : { equipped: [], carry: [] };
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal?.vassalId ?? null,
+      retinue: getRetinue(presentation.state, vassal),
       prestige: vassal?.prestige ?? null,
       stats: vassal?.stats ?? null,
       exp: vassal?.developmentProgress ?? null,
@@ -163,6 +165,10 @@ export function createVassalLifeHudView({
       }, contentX + 92, barY + 30));
     }
 
+    if (vassal.classId === 'warrior') {
+      const retinue = getRetinue(presentation.state,vassal);
+      root.addChild(createText(`Retinue ${retinue.value}/${retinue.cap} · ${retinue.nextPrestige == null ? 'at cap' : 'next '+retinue.nextPrestige+' Prestige'}`, {...TEXT_STYLES.chip,fontSize:13,fill:PALETTE.accent},contentX,barY+61));
+    } else if (vassal.commission) root.addChild(createText(`Commission: new ${vassal.commission.objective} (+20 Prestige)`, {...TEXT_STYLES.chip,fontSize:13,fill:PALETTE.accent},contentX,barY+61));
     const expX = contentX + 118;
     root.addChild(
       createText("EXP", {
@@ -296,9 +302,10 @@ export function createVassalLifeHudView({
     init: () => render(true),
     update: () => render(),
     refresh: () => render(true),
-    getSemanticSnapshot: () => ({
-      visible: root.visible === true,
-      prestigeDelta: getDeltas?.()?.prestige ?? 0,
-    }),
+    getSemanticSnapshot: () => {
+      const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
+      return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,
+        retinue:getRetinue(p.state,v)};
+    },
   };
 }

@@ -1,3 +1,7 @@
+import { classActionOptions, validateClassAction, applyClassAction, completeCommission } from "../class-actions.js";
+import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
+import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
+import { removePopulationComposition } from "../../detailed-settlements/phases/migration.js";
 // Enter, option select, confirm, finish, and development-choice apply.
 
 import {
@@ -39,6 +43,7 @@ import {
   getPlayerDetailedSites,
   getVassalActionPhaseCost,
   getVassalAge,
+  getVassalStatPresentation,
   getVassalLifeMapNode,
   getVassalLifeMapOutgoingNodeIds,
   getVassalLineage,
@@ -208,14 +213,16 @@ function buildSettlementOptions(state, vassal) {
   return options;
 }
 
-function buildDevelopmentOptions(state) {
+function buildDevelopmentOptions(state, vassal) {
   const statIds = shuffle(state, VASSAL_STAT_IDS).slice(0, 3);
   return VASSAL_DEVELOPMENT_OPTIONS.map((template, index) => {
     const statId = statIds[index];
-    const option = { ...clone(template), statId, label: `${template.label}: ${statId}` };
+    const statLabel=getVassalStatPresentation(vassal,statId).label;
+    const option = { ...clone(template), statId, statLabel, label: `${template.label}: ${statLabel}` };
     if (template.lossStatDelta) {
       const losses = VASSAL_STAT_IDS.filter((id) => id !== statId);
       option.lossStatId = losses[state.rngNextVassalInt(0, losses.length - 1)];
+      option.lossStatLabel=getVassalStatPresentation(vassal,option.lossStatId).label;
     }
     return option;
   });
@@ -249,7 +256,7 @@ function createNodeState(state, vassal, node) {
       legacyStartingPrestigeBonus: Math.max(0, option.legacyStartingPrestigeBonus ?? 0) * 2,
     }));
   } else if (node.signatureNode?.variantId === "monsterHunt") {
-    nodeState.options = clone(VASSAL_MONSTER_HUNT_OPTIONS);
+    nodeState.options = classActionOptions(state,vassal,"campaign");
   } else if (["removal", "tagShop"].includes(node.signatureNode?.groupId)) {
     nodeState.contentMode = "shop";
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
@@ -261,10 +268,10 @@ function createNodeState(state, vassal, node) {
       }];
     }
   } else if (node.family === "patronage") nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS);
-  else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state);
+  else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
   else if (node.family === "travel") nodeState.options = buildTravelOptions(state, vassal);
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
-  else if (node.family === "crisis") nodeState.options = clone(VASSAL_CRISIS_OPTIONS);
+  else if (classActionOptions(state, vassal, node.family)) nodeState.options = classActionOptions(state, vassal, node.family);
   else if (node.family === "legacy") nodeState.options = clone(VASSAL_LEGACY_OPTIONS);
   else if (node.family === "relic") nodeState.options = generateRelicOffers(state, vassal);
   else if (SHOP_FAMILIES.has(node.family)) {
@@ -370,6 +377,7 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
     state.civilization.retiredVassals = state.civilization.retiredVassals ?? [];
     state.civilization.retiredVassals.push({
       vassalId: vassal.vassalId, retirementRegionId: vassal.locationRegionId,
+      classId: vassal.classId, completedCommissions: vassal.completedCommissions ?? 0,
       finalCunning: Math.max(0, Math.floor(vassal.stats?.cunning ?? 0)),
       finalWisdom: Math.max(0, Math.floor(vassal.stats?.wisdom ?? 0)),
       finalEffectiveness: Math.max(0, Math.floor(vassal.stats?.effectiveness ?? 0)),
@@ -394,10 +402,12 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       return { ok: false, reason: "settlementUnavailable" };
     }
   }
+  const classValidation = validateClassAction(state, vassal, option?.classAction);
+  if (!classValidation.ok) return classValidation;
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option?.prestigeCost ?? 0);
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
-  if (Number.isFinite(option?.prestigeDelta)) {
+  if (!option?.classAction && Number.isFinite(option?.prestigeDelta)) {
     let delta = Math.floor(option.prestigeDelta);
     if (nodeState.family === "patronage" && delta > 0) {
       delta = Math.floor(delta * getEquippedHeirloomModifiers(vassal).patronageOptionMultiplier);
@@ -418,23 +428,27 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
     const targetRegionId = option.settlementRegionId;
     const settlement = createInitialDetailedSettlementData(targetRegionId);
+    const adultSource = structuredClone(source);
+    for (const cohort of Object.values(adultSource.populationByClass)) {
+      cohort.children=0;cohort.eldersByAge=[];
+      for (const specialist of Object.values(cohort.specialists)) {specialist.children=0;specialist.eldersByAge=[];}
+    }
+    const settlers=selectPopulationComposition(adultSource,['villager'],10);
     settlement.populationByClass.villager.children = 0;
     settlement.populationByClass.villager.adults = 10;
     settlement.populationByClass.villager.eldersByAge = [];
+    settlement.populationByClass.villager.specialists=settlers.villager.specialists;
     settlement.populationByClass.stranger.children = 0;
     settlement.populationByClass.stranger.adults = 0;
     settlement.populationByClass.stranger.eldersByAge = [];
-    settlement.practiceSlots = [
-      { practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
-      null, null, null, null,
-    ];
+    settlement.practiceSlots = Array.from({length: DETAILED_PRACTICE_SLOT_COUNT}, (_,i) => i === 0 ? {practiceId:"forage",tier:"bronze",stock:2,charge:0,work:0} : null);
     settlement.structureSlots = [
       { structureId: "granary" },
       { structureId: "mudHouses" },
     ];
     const result = establishDetailedSettlement(state, targetRegionId, settlement);
     if (!result.ok) return result;
-    source.populationByClass.villager.adults -= 10;
+    removePopulationComposition(source,settlers);
     vassal.locationRegionId = targetRegionId;
   }
   if (option?.intervention) {
@@ -476,6 +490,9 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
     }
   }
+  applyClassAction(state, vassal, option?.classAction);
+  if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;
+  if (vassal.classId === "warrior" && (option?.baseDanger??option?.immediateDeathChance) > 0) vassal.prestige += Math.ceil((option.baseDanger??option.immediateDeathChance) * 50);
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
     nodeState,
     isTravel: nodeState.family === "travel",
@@ -505,6 +522,7 @@ function enqueueVassalDevelopmentChoices(state, vassal, count) {
 }
 
 export function completeNodeResolution(state, vassal, nodeState) {
+  completeCommission(state, vassal);
   const gains = getVassalNodeResolutionGains(vassal, nodeState.family);
   vassal.prestige += gains.prestige;
   vassal.developmentProgress += gains.development;
@@ -592,14 +610,18 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     return { ok: false, reason: "insufficientPrestige" };
   }
   const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-  if (stagedCurrencyCost > Math.max(0, Number(settlement?.currency) || 0)) {
+  if (stagedCurrencyCost > stockTotal(state, settlement, "Currency")) {
     return { ok: false, reason: "insufficientCurrency" };
   }
   const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
   if (!validation.ok) return validation;
   vassal.prestige -= stagedPrestigeCost;
   if (settlement) {
-    settlement.currency = Math.max(0, settlement.currency - stagedCurrencyCost);
+    consumeStock(state, settlement, "Currency", stagedCurrencyCost);
+    // Upgrades create a new slot object; carry the post-payment Stock into it.
+    for (const slot of validation.reservation.practiceSlots) {
+      if (slot) slot.stock = settlement.practiceSlots.find(old => old?.practiceId === slot.practiceId)?.stock ?? 0;
+    }
     settlement.practiceSlots = validation.reservation.practiceSlots;
     settlement.structureSlots = validation.reservation.structureSlots;
   }

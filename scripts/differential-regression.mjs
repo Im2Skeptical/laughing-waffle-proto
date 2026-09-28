@@ -48,8 +48,6 @@ function bootState(api, seed, fixtures, extra = {}) {
   fixtures.push("paused planning at tSec=0");
   if (extra.quietChaos !== false) {
     state.gameConfig.settings.values.primordialBasePressure = 0;
-    state.civilization.chaos.monsterLossThreshold = 1_000_000;
-    fixtures.push("primordialBasePressure=0, monsterLossThreshold=1e6");
   }
   return state;
 }

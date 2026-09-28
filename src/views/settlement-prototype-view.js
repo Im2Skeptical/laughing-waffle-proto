@@ -83,7 +83,7 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
     scaled?getPracticeResultLabel(entry.practiceId,scaled.effectiveValue):'',
     imported?'Import '+imported.importedFood+' food · shortfall '+imported.missingFood:'',
   ].filter(Boolean).join('\n');
-  addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:details.split('\n'),tooltipView,inspectionSide:'right'});
+  addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:[...details.split('\n'), ...(entry?.face?.detailLines ?? [])],tooltipView,inspectionSide:'right'});
 }
 
 function faithRates(state, classState) {
@@ -152,15 +152,15 @@ export function createSettlementPrototypeView({
       const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };
       const structureRect = { x: 606, y: 534, width: 920, height: 260 };
-      panel(root, foodRect, "Local food and population");
+      panel(root, foodRect, "Hosted Stock and population");
       panel(root, practiceRect, `${vm.practices.length} practice slots`);
       panel(root, orderRect, "Elder Order");
       panel(root, structureRect, "Regional structure space");
       root.addChild(
-        createText(`Stored food  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
+        createText(`Edible Stock  ${vm.storedFood} / ${vm.storedFoodCapacity}`, TEXT_STYLES.body,
           foodRect.x + 54, foodRect.y + 64),
-        createText(`Loose food  ${vm.looseFood}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 96),
-        createText(`Money  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 128),
+        createText(`Scholars ${vm.specialists.scholar} · Warriors ${vm.specialists.warrior}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 96),
+        createText(`Currency Stock  ${vm.currency}`, TEXT_STYLES.body, foodRect.x + 54, foodRect.y + 128),
         createText(`Meal demand  ${vm.population.mealDemand}`, TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 154),
         createText(`Population  ${vm.population.total} / ${vm.population.housingCapacity} housing`,
           TEXT_STYLES.body, foodRect.x + 18, foodRect.y + 190),
@@ -171,12 +171,12 @@ export function createSettlementPrototypeView({
       addResourceIcon(root, 'food', foodRect.x + 31, foodRect.y + 106, 32);
       addResourceIcon(root, 'money', foodRect.x + 31, foodRect.y + 138, 32);
       const practiceGap = PIECE_SIZE.gap;
-      const practiceCardWidth = PIECE_SIZE.practiceWidth;
+      const practiceCardWidth = 130;
       vm.practices.forEach((entry, index) => drawPracticeSlotCard(root, {
-        x: practiceRect.x + 18 + index * (practiceCardWidth + practiceGap),
-        y: practiceRect.y + 56,
+        x: practiceRect.x + 18 + (index % 6) * (practiceCardWidth + practiceGap),
+        y: practiceRect.y + 50 + Math.floor(index / 6) * 185,
         width: practiceCardWidth,
-        height: PIECE_SIZE.practiceHeight,
+        height: 172,
       }, entry, index, tooltipView));
       addIllustration(root,"settlement",{x:48,y:356,width:540,height:410},{alpha:.7});
       const order = vm.elderOrder;
@@ -224,7 +224,7 @@ export function createSettlementPrototypeView({
         `Strangers: ${stranger.children} children · ${stranger.adults} adults · ${stranger.elders} elders`,
         `Housing: ${vm.population.total} / ${vm.population.housingCapacity}${vm.population.total > vm.population.housingCapacity ? " · OVER-HOUSED" : ""}`,
         `Meal: ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand} (${Math.round(vm.lastMeal.ratio * 100)}%)` : "not yet resolved"}`,
-        `Loose food is eaten first; remote food requires Administration.`,
+        `Food spends hosted Edible left to right, one Stock per 30 people.`,
       ];
       lines.forEach((line, index) => root.addChild(createText(line, TEXT_STYLES.body,
         left.x + 18, left.y + 64 + index * 44)));
@@ -275,10 +275,9 @@ export function createSettlementPrototypeView({
       const lastMoon=site.lastMoonResult;
       const births=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.births??0),0);
       const matured=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.matured??0),0);
-      const spoiled=(lastMoon?.death?.storedFoodRot??0)+(lastMoon?.death?.looseFoodRot??0);
       root.addChild(createWrappedText(
         lastMoon
-          ? `THE LAST MOON\n${births} births · ${matured} came of age\n${formatPracticeNumber(spoiled)} food spoiled · ${lastMoon.currencySpent??0} currency spent`
+          ? `THE LAST MOON\n${births} births · ${matured} came of age\n${vm.lastMeal?.consumed??0} Edible Stock consumed · ${lastMoon.currencySpent??0} currency spent`
           : "The first moon has yet to pass.",
         { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, right.x + 18, y, right.width - 36));
     }

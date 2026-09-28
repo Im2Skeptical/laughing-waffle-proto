@@ -124,8 +124,8 @@ for (const [family, seed] of [["publicWorks", 103], ["routes", 104]]) {
   }
 }
 
-let townhouseShop = null;
-for (let seed = 0; seed < 1000 && !townhouseShop; seed += 1) {
+let stoneHouseShop = null;
+for (let seed = 0; seed < 1000 && !stoneHouseShop; seed += 1) {
   const state = selectedState(seed);
   state.civilization.research.total = state.gameConfig.settings.values.researchSilverThreshold;
   const vassal = getCurrentLifeMapVassal(state);
@@ -133,61 +133,73 @@ for (let seed = 0; seed < 1000 && !townhouseShop; seed += 1) {
   const settlement = state.world.sites.find(
     (site) => site.regionId === vassal.locationRegionId
   ).detailedState;
-  settlement.currency = 9;
+  state.gameConfig.gamepieces.structures.stoneHouse.localCurrencyCost=3;
+  settlement.practiceSlots[1]={practiceId:"barter",tier:"bronze",stock:2};
   const origin = settlement.structureSlots.findIndex((slot, index) =>
     index >= 2 && slot == null);
   if (origin < 0) continue;
   settlement.structureSlots[origin] = {
-    structureId: "townhouse", width: 1, origin, placementId: `existing:${origin}`,
+    structureId: "stoneHouse", width: 1, origin, placementId: `existing:${origin}`,
   };
   const node = forceEnter(state, nodeIdForFamily(state, "publicWorks"));
-  const offer = node.inventory.find((entry) => entry.intervention.structureId === "townhouse");
-  if (offer) townhouseShop = { state, vassal, settlement, node, offer };
+  const offer = node.inventory.find((entry) => entry.intervention.structureId === "stoneHouse");
+  if (offer) stoneHouseShop = { state, vassal, settlement, node, offer };
 }
-assert.ok(townhouseShop, "a deterministic Public Works roll offers a Townhouse");
-assert.equal(townhouseShop.offer.intervention.mode, "add",
+assert.ok(stoneHouseShop, "a deterministic Public Works roll offers a Stone House");
+assert.equal(stoneHouseShop.offer.intervention.mode, "add",
   "an installed structure never turns a duplicate offer into an upgrade");
-assert.equal(townhouseShop.offer.intervention.tier, "silver",
+assert.equal(stoneHouseShop.offer.intervention.tier, "silver",
   "structure tier is the definition's research unlock tier");
-assert.equal(townhouseShop.offer.baseCurrencyCost, 10);
-assert.equal(applyAction(townhouseShop.state, {
+assert.equal(stoneHouseShop.offer.baseCurrencyCost, 3);
+assert.equal(applyAction(stoneHouseShop.state, {
   kind: ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,
-  payload: { nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId },
+  payload: { nodeId: stoneHouseShop.node.nodeId, offerId: stoneHouseShop.offer.offerId },
 }, { isReplay: true }).reason, "insufficientCurrency");
-townhouseShop.settlement.currency = 10;
-dispatch(townhouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+stoneHouseShop.settlement.practiceSlots[1].stock = 3;
+dispatch(stoneHouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: stoneHouseShop.node.nodeId, offerId: stoneHouseShop.offer.offerId,
 });
-const townhousePreview = getVassalNodeDecisionPresentation(
-  townhouseShop.state, townhouseShop.node.nodeId
+const stoneHousePreview = getVassalNodeDecisionPresentation(
+  stoneHouseShop.state, stoneHouseShop.node.nodeId
 );
-assert.equal(townhousePreview.stagedCurrencyCost, 10);
-assert.equal(townhousePreview.settlement.currentCurrency, 10);
-assert.equal(townhousePreview.settlement.currency, 0,
+assert.equal(stoneHousePreview.stagedCurrencyCost, 3);
+assert.equal(stoneHousePreview.settlement.currentCurrency, 3);
+assert.equal(stoneHousePreview.settlement.currency, 0,
   "staging reserves local Gold in the settlement projection");
-dispatch(townhouseShop.state, ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, {
-  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+dispatch(stoneHouseShop.state, ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, {
+  nodeId: stoneHouseShop.node.nodeId, offerId: stoneHouseShop.offer.offerId,
 });
-const undoneTownhousePreview = getVassalNodeDecisionPresentation(
-  townhouseShop.state, townhouseShop.node.nodeId
+const undoneStoneHousePreview = getVassalNodeDecisionPresentation(
+  stoneHouseShop.state, stoneHouseShop.node.nodeId
 );
-assert.equal(undoneTownhousePreview.stagedCurrencyCost, 0);
-assert.equal(undoneTownhousePreview.settlement.currency, 10,
+assert.equal(undoneStoneHousePreview.stagedCurrencyCost, 0);
+assert.equal(undoneStoneHousePreview.settlement.currency, 3,
   "undo releases reserved local Gold without mutating the settlement");
-dispatch(townhouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: townhouseShop.node.nodeId, offerId: townhouseShop.offer.offerId,
+dispatch(stoneHouseShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
+  nodeId: stoneHouseShop.node.nodeId, offerId: stoneHouseShop.offer.offerId,
 });
-dispatch(townhouseShop.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
-  nodeId: townhouseShop.node.nodeId,
+dispatch(stoneHouseShop.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
+  nodeId: stoneHouseShop.node.nodeId,
 });
-assert.equal(townhouseShop.settlement.currency, 0,
+assert.equal(stoneHouseShop.settlement.practiceSlots[1].stock, 0,
   "confirmation deducts the reserved local Gold exactly once");
-assert.equal(townhouseShop.settlement.structureSlots.filter(
-  (slot) => slot?.structureId === "townhouse"
-).length, 2, "confirming a duplicate builds a second Townhouse");
-assert.ok(townhouseShop.settlement.structureSlots.filter(
-  (slot) => slot?.structureId === "townhouse"
+assert.equal(stoneHouseShop.settlement.structureSlots.filter(
+  (slot) => slot?.structureId === "stoneHouse"
+).length, 2, "confirming a duplicate builds a second Stone House");
+assert.ok(stoneHouseShop.settlement.structureSlots.filter(
+  (slot) => slot?.structureId === "stoneHouse"
 ).every((slot) => slot.tier == null), "structure placements do not serialize quality tiers");
+
+// Upgrading the paying host creates a new slot but must not restore spent Currency.
+const payingUpgrade=selectedState(808),payingVassal=getCurrentLifeMapVassal(payingUpgrade);
+payingVassal.prestige=100;
+const payingSite=payingUpgrade.world.sites.find(s=>s.regionId===payingVassal.locationRegionId).detailedState;
+payingSite.practiceSlots[0]={practiceId:'barter',tier:'bronze',stock:3};
+const payingNode=forceEnter(payingUpgrade,nodeIdForFamily(payingUpgrade,'practiceReform'));
+payingNode.inventory=[{offerId:'paid-upgrade',basePrestigeCost:1,baseCurrencyCost:3,basePhaseCost:1,intervention:{kind:'practice',mode:'upgrade',practiceId:'barter',tier:'bronze',resultingTier:'silver',targetRegionId:payingVassal.locationRegionId}}];
+dispatch(payingUpgrade,ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:payingNode.nodeId,offerId:'paid-upgrade'});
+dispatch(payingUpgrade,ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:payingNode.nodeId});
+assert.equal(payingSite.practiceSlots.find(p=>p?.practiceId==='barter').stock,0);
 
 const practiceTierState = selectedState(1602);
 const practiceTierVassal = getCurrentLifeMapVassal(practiceTierState);
@@ -197,10 +209,10 @@ const practiceTierSettlement = practiceTierState.world.sites.find(
 ).detailedState;
 practiceTierSettlement.practiceSlots = [
   { practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
-  { practiceId: "cultivate", tier: "bronze", charge: 0, work: 0 },
-  { practiceId: "administrate", tier: "bronze", charge: 0, work: 0 },
-  { practiceId: "vigil", tier: "bronze", charge: 0, work: 0 },
-  { practiceId: "exchange", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "pastoralism", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "logging", tier: "bronze", charge: 0, work: 0 },
+  { practiceId: "quarrying", tier: "bronze", charge: 0, work: 0 },
+  ...["surfaceMining","clayGathering","dryFarming","brickmaking","charcoalBurning","smelting","toolmaking","barter"].map(practiceId=>({practiceId,tier:"bronze",stock:0,charge:0,work:0})),
 ];
 const practiceTierNode = forceEnter(practiceTierState,
   nodeIdForFamily(practiceTierState, "practiceReform"));
@@ -212,15 +224,15 @@ assert.ok(practiceTierNode.inventory.every((offer) =>
 const learnOffer = practiceTierNode.inventory.find((offer) => offer.intervention.mode === "learn");
 assert.ok(learnOffer, "a shop with uninstalled practices offers a Learn purchase");
 dispatch(practiceTierState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: practiceTierNode.nodeId, offerId: learnOffer.offerId,
+  nodeId: practiceTierNode.nodeId, offerId: learnOffer.offerId, toIndex: 0,
 });
 dispatch(practiceTierState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: practiceTierNode.nodeId });
 resolvePending(practiceTierState);
 assert.equal(practiceTierSettlement.practiceSlots[0].practiceId, learnOffer.intervention.practiceId,
   "learning inserts the practice into the leftmost slot");
 assert.equal(practiceTierSettlement.practiceSlots[0].tier, "bronze");
-assert.equal(practiceTierSettlement.practiceSlots.length, 5);
-assert.equal(practiceTierSettlement.practiceSlots.some((slot) => slot?.practiceId === "exchange"), false,
+assert.equal(practiceTierSettlement.practiceSlots.length, 12);
+assert.equal(practiceTierSettlement.practiceSlots.some((slot) => slot?.practiceId === "barter"), false,
   "a full board discards its rightmost practice when learning");
 
 let upgradeShop = null;
@@ -243,7 +255,7 @@ dispatch(upgradeShop.state, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
 dispatch(upgradeShop.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: upgradeShop.node.nodeId });
 resolvePending(upgradeShop.state);
 assert.deepEqual(upgradeShop.settlement.practiceSlots[0],
-  { practiceId: "forage", tier: "diamond", charge: 0, work: 0 },
+  { practiceId: "forage", tier: "diamond", stock: 0, charge: 0, work: 0 },
   "matching-tier purchases upgrade and move the practice leftmost");
 
 const diamondShopState = selectedState(1701);

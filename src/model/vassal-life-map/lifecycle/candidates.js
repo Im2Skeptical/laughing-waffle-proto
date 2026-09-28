@@ -1,3 +1,4 @@
+import { specialistCount } from "../../detailed-settlements/stock.js";
 // Vassal candidate portraits, signatures, pool generation, and selection.
 
 import {
@@ -84,10 +85,14 @@ export function generateCandidatePool(state) {
     { length: VASSAL_LIFE_TUNING.candidateCount },
     (_, index) => {
       const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
-      const academyBonus = (getDetailedSite(state, locationRegionId)?.detailedState?.structureSlots ?? [])
-        .filter((slot) => slot?.structureId === "academy")
-        .reduce((sum) => sum + Math.max(0, getDetailedStructureDef(state, "academy")?.candidateIntelligenceBonus ?? 0), 0);
+      const local = getDetailedSite(state, locationRegionId)?.detailedState;
+      const classId = index === 0 ? 'scholar' : index === 1 ? 'warrior' : (specialistCount(local,'warrior') > specialistCount(local,'scholar') ? 'warrior' : 'scholar');
+      const institutions = (local?.structureSlots ?? []).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0));
+      const retired = (state.civilization.retiredVassals ?? []).filter(v=>v.classId===classId && v.retirementRegionId===locationRegionId);
+      const academyBonus = Math.min(5, institutions.reduce((n,def)=>n+(def.candidateBonus??0),0) + (institutions.length ? Math.floor(retired.reduce((n,v)=>n+(classId==='scholar'?v.finalCunning:v.finalIntelligence),0)/5) : 0));
       return ({
+      classId,
+      archetype: specialistCount(local,classId) ? (classId==='scholar'?'Scholar':'Warrior') : (classId==='scholar'?'Philosopher':'Warlord'),
       candidateId: `candidate-${Math.max(1, Math.floor(lineage.nextVassalId ?? 1))}-${index + 1}`,
       age: state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateAgeMin, VASSAL_LIFE_TUNING.candidateAgeMax),
       locationRegionId, originRegionId: locationRegionId,
@@ -97,7 +102,7 @@ export function generateCandidatePool(state) {
       ) + legacyBonus,
       stats: Object.fromEntries(VASSAL_STAT_IDS.map((statId) => [
         statId,
-        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === "intelligence" ? academyBonus : 0),
+        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === (classId==='scholar'?'cunning':'intelligence') ? academyBonus : 0),
       ])),
       portrait: generateVassalPortrait(state),
     }); }
@@ -177,6 +182,9 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   }
   const source = candidates[safeIndex];
   if (!source) return { ok: false, reason: "invalidCandidate" };
+  const survivingSites=getPlayerDetailedSites(state);
+  if(!survivingSites.length) return {ok:false,reason:'noPlayerSettlement'};
+  if(!survivingSites.some(site=>site.regionId===source.locationRegionId)) source.locationRegionId=survivingSites[0].regionId;
   const idNumber = Math.max(1, Math.floor(lineage.nextVassalId ?? 1));
   const vassalId = `vassal-${idNumber}`;
   const record = {
@@ -199,6 +207,12 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     endSec: null,
     heirlooms: createEmptyHeirloomInventory(),
   };
+  const ordinary = record.lifeMap.graph.nodes.filter(n => !n.signatureNode && !["legacy", "signature"].includes(n.family));
+  if (record.classId && ordinary[0]) ordinary[0].family = "training";
+  let classIndex = 0;
+  for (const node of ordinary.slice(1)) if (record.classId && classIndex < 2 && ["patronage", "development"].includes(node.family)) {
+    node.family = record.classId === "scholar" ? ["commission", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
+  }
   delete record.age;
   lineage.nextVassalId = idNumber + 1;
   lineage.currentVassalId = vassalId;

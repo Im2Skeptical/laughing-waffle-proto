@@ -41,13 +41,7 @@ function createStarterDetailedState(template) {
   const state = clone(template);
   state.populationByClass.villager.children = 5;
   state.populationByClass.villager.adults = 15;
-  state.practiceSlots = [
-    { practiceId: "forage", tier: "bronze", charge: 0, work: 0 },
-    null,
-    null,
-    null,
-    null,
-  ];
+
   return state;
 }
 
@@ -81,7 +75,7 @@ export function createStarterBootProfile() {
   });
 
   const gamepieces = createAuthoredGamepiecesDraft();
-  gamepieces.practices.forage.effects[0].scaledValue.baseAmount = 8;
+
 
   const lifeMapLab = createAuthoredLifeMapLabDraft();
   lifeMapLab.generatorConfig.weights.early.practiceReform = 3;

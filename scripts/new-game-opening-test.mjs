@@ -8,7 +8,7 @@ import { createEmptyTimelineFromBase, rebuildStateAtSecond } from '../src/model/
 import { serializeGameState } from '../src/model/state.js';
 
 const state = createNewGameState(123);
-state.civilization.chaos.monsterCount = 100;
+for(const region of state.world.regions) if(region.controller!=="player") region.monster={defense:100,ageMoons:3};
 const before = JSON.stringify(serializeGameState(state));
 let constructions = 0;
 const opening = createNewGameOpeningController({

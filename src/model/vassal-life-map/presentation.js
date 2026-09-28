@@ -1,3 +1,5 @@
+import { stockTotal } from "../detailed-settlements/stock.js";
+import { evaluateDetailedPracticeSlot, assignDetailedSettlementWorkers } from "../detailed-settlements/practices.js";
 import { getGamepieceFace } from "../gamepiece-presentation.js";
 import { VASSAL_LIFE_TUNING, getVassalMortalityChance } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import { getDetailedPracticeDef, getDetailedStructureDef } from "../game-config.js";
@@ -40,20 +42,20 @@ function capitalize(value) {
   return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
 }
 
-export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze") {
+export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze", slot = null) {
   const def = kind === "practice"
     ? getDetailedPracticeDef(state, definitionId)
     : getDetailedStructureDef(state, definitionId);
   if (!def) return null;
   const resolvedTier = kind === "structure" ? def.minimumQuality ?? "bronze" : tier;
-  const face = getGamepieceFace(state, kind, definitionId, resolvedTier);
+  const face = getGamepieceFace(state, kind, definitionId, resolvedTier,{slot});
   return {
     ...face,
     kind,
     definitionId,
     label: def.label ?? definitionId,
-    tier: resolvedTier,
-    qualityLabel: capitalize(resolvedTier),
+    tier: face.tier,
+    qualityLabel: capitalize(face.tier),
     tags: [...(def.tags ?? [])],
     rule: def.ui?.rule ?? "",
     details: face.detailLines,
@@ -290,7 +292,9 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ? validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []) : null;
   const afterPractices = projected?.reservation?.practiceSlots ?? beforePractices;
   const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
-  const decorate = (kind, slots) => slots.map(slot => {
+  const tableauState = previewSite ? {...state,world:{...state.world,sites:state.world.sites.map(site=>site===previewSite?{...site,detailedState:{...site.detailedState,practiceSlots:afterPractices,structureSlots:afterStructures}}:site)}} : state;
+  const assignments = assignDetailedSettlementWorkers(tableauState, previewRegionId);
+  const decorate = (kind, slots) => slots.map((slot, slotIndex) => {
     if (!slot) return null;
     const idKey = kind === 'practice' ? 'practiceId' : 'structureId';
     const purchase = (nodeState?.purchasedOffers ?? []).find(p => p.intervention.kind === kind
@@ -302,7 +306,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       upgraded: kind === 'practice' && purchase?.intervention?.mode === 'upgrade',
       previousPresentation: kind === 'practice' && purchase?.intervention?.mode === 'upgrade'
         ? getVassalGamepiecePresentation(state, kind, slot[idKey], purchase.intervention.tier) : null,
-      presentation: getVassalGamepiecePresentation(state, kind, slot[idKey], tier),
+      presentation: kind === 'practice' ? getGamepieceFace(tableauState,kind,slot[idKey],tier,{slot,evaluation:evaluateDetailedPracticeSlot(tableauState,previewRegionId,slotIndex),workers:assignments[slotIndex],activationTrace:previewSite?.detailedState?.practiceActivationTrace??[]}) : getVassalGamepiecePresentation(state, kind, slot[idKey], tier, slot),
     };
   });
   const decorateOffer = (offer, purchased = false) => {
@@ -325,18 +329,18 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const legality = checkPlacement(null);
     const prestigeAffordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
     const currencyAffordable = purchased || currencyCost <= Math.max(0,
-      Number(previewSite?.detailedState?.currency) || 0) - stagedCurrencyCost;
+      stockTotal(state, previewSite?.detailedState, "Currency")) - stagedCurrencyCost;
     const affordable = prestigeAffordable && currencyAffordable;
     return {
       ...clone(offer),
       purchased,
       canStage: affordable && legality.ok,
       stageBlockedReason: !prestigeAffordable ? 'Insufficient Prestige'
-        : !currencyAffordable ? 'Insufficient local Gold'
+        : !currencyAffordable ? 'Insufficient hosted Currency'
           : legality.ok ? null : 'No compatible space in the staged settlement',
       validOrigins: kind === 'structure' ? Array.from({ length: beforeStructures.length }, (_, i) => i).filter(origin => checkPlacement(origin).ok) : [],
       presentation: definitionId
-        ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze")
+        ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze", intervention)
         : null,
       prestigeCost,
       currencyCost,
@@ -366,10 +370,10 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     previewRegionId,
     previewRegionLabel: getRegionReference(state, previewRegionId) ?? previewSite?.name ?? previewRegionId,
     settlement: previewSite ? {
-      storedFood: previewSite.detailedState.storedFood,
-      looseFood: previewSite.detailedState.looseFood,
-      currentCurrency: previewSite.detailedState.currency ?? 0,
-      currency: Math.max(0, (previewSite.detailedState.currency ?? 0)
+      storedFood: stockTotal(state, previewSite.detailedState, "Edible"),
+      looseFood: 0,
+      currentCurrency: stockTotal(state, previewSite.detailedState, "Currency"),
+      currency: Math.max(0, (stockTotal(state, previewSite.detailedState, "Currency"))
         - (previewRegionId === vassal.locationRegionId ? stagedCurrencyCost : 0)),
       practices: decorate("practice", afterPractices, beforePractices),
       displacedPractices: displacedPractices.map((slot) =>

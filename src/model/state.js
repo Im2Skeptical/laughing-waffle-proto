@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 22,
+    gameStateSchemaVersion: 23,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -179,7 +179,6 @@ export function createEmptyState(
       chaos: {
         chaosPower: 0,
         monsterCount: 0,
-        monsterLossThreshold: 1000,
         lastMoonIncome: null,
         pendingLosses: {
           prematureDeaths: 0,
@@ -446,8 +445,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 22) {
-    throw new Error("Unsupported game-state schema: expected v22");
+  if (state?.gameStateSchemaVersion !== 23) {
+    throw new Error("Unsupported game-state schema: expected v23");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

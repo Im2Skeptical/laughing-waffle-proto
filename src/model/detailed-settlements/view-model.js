@@ -1,3 +1,5 @@
+import { getMartialSupport } from './external-world.js';
+import { stockTotal, specialistCount } from "./stock.js";
 // Read models that combine queries with worker assignment.
 
 import { POPULATION_CLASS_ORDER } from "../../defs/gamepieces/detailed-settlement-defs.js";
@@ -97,8 +99,8 @@ export function getDetailedCivilizationSummary(state) {
       );
     }
 
-    storedFood += site.detailedState.storedFood ?? 0;
-    looseFood += site.detailedState.looseFood ?? 0;
+    storedFood += stockTotal(state, site.detailedState, "Edible");
+    looseFood += 0;
     storedFoodCapacity += getStoredFoodCapacity(state, regionId);
   }
 
@@ -109,6 +111,7 @@ export function getDetailedCivilizationSummary(state) {
   return {
     settlementCount: sites.length,
     regionIds: sites.map((site) => site.regionId),
+    specialists: Object.fromEntries(['scholar','warrior'].map(c => [c, sites.reduce((n,s)=>n+specialistCount(s.detailedState,c),0)])),
     population,
     food: {
       stored: storedFood,
@@ -121,10 +124,6 @@ export function getDetailedCivilizationSummary(state) {
     chaos: {
       chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
       monsterCount: Math.max(0, Math.floor(state?.civilization?.chaos?.monsterCount ?? 0)),
-      monsterLossThreshold: Math.max(
-        1,
-        Math.floor(state?.civilization?.chaos?.monsterLossThreshold ?? 1000)
-      ),
       lastReckoning: clone(state?.civilization?.chaos?.lastMoonIncome ?? null),
     },
     green: getGreenAscendancySummary(state),
@@ -156,12 +155,16 @@ export function getDetailedSettlementViewModel(state, regionId) {
     regionId,
     siteId: site.id,
     name: site.name,
-    storedFood: settlement.storedFood,
-    looseFood: settlement.looseFood,
-    currency: roundFood(Math.max(0, settlement.currency ?? 0)),
+    lastDefense: clone(settlement.lastDefense ?? null),
+    martialSupport: getMartialSupport(state,regionId),
+    defensiveSupport: getMartialSupport(state,regionId,true),
+    storedFood: stockTotal(state, settlement, "Edible"),
+    looseFood: 0,
+    currency: stockTotal(state, settlement, "Currency"),
     currencySpentThisMoon: roundFood(state.civilization.currentMoonTurn?.regions?.[regionId]?.currencySpent ?? 0),
     currencySpentLastMoon: roundFood(settlement.lastMoonResult?.currencySpent ?? 0),
     storedFoodCapacity: getStoredFoodCapacity(state, regionId),
+    specialists: { scholar: specialistCount(settlement, "scholar"), warrior: specialistCount(settlement, "warrior") },
     population,
     pressure: getSettlementPressureSummary(state, regionId),
     workerPool: {
@@ -175,12 +178,12 @@ export function getDetailedSettlementViewModel(state, regionId) {
     practices: settlement.practiceSlots.map((slot, index) => ({
       ...slot,
       label: slot ? getDetailedPracticeDef(state, slot.practiceId)?.label ?? slot.practiceId : null,
-      tags: slot ? getPracticeTags(state, slot.practiceId) : [],
+      tags: slot ? getPracticeTags(state, slot.practiceId, workers[index]) : [],
       face: slot ? getGamepieceFace(state, "practice", slot.practiceId, slot.tier, { evaluation: buildDetailedPracticeEvaluation(state, site, workers[index]), workers: workers[index], slot, activationTrace: settlement.practiceActivationTrace ?? [] }) : null,
       workers: workers[index],
       evaluation: slot ? buildDetailedPracticeEvaluation(state, site, workers[index]) : null,
     })),
-    structures: settlement.structureSlots.map((slot) => slot ? ({ ...slot, face: getGamepieceFace(state, "structure", slot.structureId, getDetailedStructureDef(state, slot.structureId)?.minimumQuality), label: getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId, tags: getDetailedStructureDef(state, slot.structureId)?.tags ?? [] }) : null),
+    structures: settlement.structureSlots.map((slot) => slot ? ({ ...slot, face: getGamepieceFace(state, "structure", slot.structureId, getDetailedStructureDef(state, slot.structureId)?.minimumQuality, {slot}), label: getDetailedStructureDef(state, slot.structureId)?.label ?? slot.structureId, tags: getDetailedStructureDef(state, slot.structureId)?.tags ?? [] }) : null),
     structureCapacity: region?.structureCapacity ?? 0,
     usedStructureCapacity: occupiedCells(settlement.structureSlots).filter(Boolean).length,
     elderOrder: getElderOrderSummary(state, regionId),

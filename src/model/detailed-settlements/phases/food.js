@@ -1,3 +1,4 @@
+import { consumeStock, CIV_CONTENT_TUNING } from "../stock.js";
 // Food moon phase: meals, happiness, and starvation migration intents.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -8,10 +9,7 @@ import {
   roundFood,
 } from "../helpers.js";
 import {
-  applyAdministrationMoves,
-  consumeFood,
   getPhaseModifiers,
-  planDetailedAdministrationMoves,
   runPracticeActivation,
 } from "../practices.js";
 import {
@@ -90,28 +88,29 @@ export function runFoodPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   getPhaseModifiers(state).foodByRegion = {};
   runPracticeActivation(state, "food", "preRouting");
-  applyAdministrationMoves(state, planDetailedAdministrationMoves(state));
   runPracticeActivation(state, "food", "postRouting");
   for (const site of getDetailedSettlementSites(state)) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
-    let consumed = 0;
+    const savedStock = Math.min(population.mealDemand, Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0));
+    const demandStock = population.mealDemand - savedStock;
+    const consumed = consumeStock(state, settlement, "Edible", demandStock);
+    let fedPeople = (consumed + savedStock) * CIV_CONTENT_TUNING.populationPerEdible;
     const byClass = {};
-    let foodReduction = Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0);
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       const classTotal = classPopulationTotal(classState);
-      const baseDemand = population.byClass[classId]?.mealDemand ?? 0;
-      const demand = Math.max(0, baseDemand - Math.min(baseDemand, foodReduction));
-      foodReduction = Math.max(0, foodReduction - baseDemand);
-      const classConsumed = consumeFood(settlement, demand);
+      const demand = classTotal;
+      const classConsumed = Math.min(demand, fedPeople);
+      fedPeople -= classConsumed;
       const ratio = demand > 0 ? classConsumed / demand : 1;
-      consumed = roundFood(consumed + classConsumed);
+
       if (classId === "stranger" && classTotal <= 0) {
         resetEmptyStrangerCohort(settlement);
         byClass[classId] = { demand, consumed: classConsumed, ratio: 1, migrants: 0 };
         continue;
       }
+      if (site.neutral) { byClass[classId] = { demand, consumed: classConsumed, ratio, migrants: 0 }; continue; }
       const happiness = evaluateFoodHappiness(state, classState, ratio);
       const requested = happiness.starvationTriggered
         ? Math.ceil(classTotal * (1 - ratio) - 0.00001)
@@ -140,9 +139,10 @@ export function runFoodPhase(state, phase) {
     }
     const result = {
       tSec: state.tSec,
-      demand: population.mealDemand,
+      demand: demandStock,
+      savedStock,
       consumed,
-      ratio: roundFood(population.mealDemand > 0 ? consumed / population.mealDemand : 1),
+      ratio: roundFood(demandStock > 0 ? consumed / demandStock : 1),
       byClass,
       migration: { intents: [], outbound: [], inbound: [], sourceLosses: [] },
     };

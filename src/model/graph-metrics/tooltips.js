@@ -1,3 +1,4 @@
+import { stockTotal } from '../detailed-settlements/stock.js';
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import {
   getDetailedSettlement,
@@ -30,8 +31,8 @@ function getPrimaryDetailedRegionId(state) {
 export function getSettlementFoodTooltipSpec(state) {
   const regionId = getPrimaryDetailedRegionId(state);
   const local = getDetailedSettlement(state, regionId);
-  const storedFood = Number(local?.storedFood ?? 0);
-  const looseFood = Number(local?.looseFood ?? 0);
+  const storedFood = stockTotal(state, local, 'Edible');
+  const looseFood = 0;
   const food = storedFood + looseFood;
   const foodCapacity = Math.max(0, Number(getStoredFoodCapacity(state, regionId) ?? 0));
   const population = getDetailedPopulationSummary(state, regionId);
@@ -40,10 +41,10 @@ export function getSettlementFoodTooltipSpec(state) {
   return {
     title: "Food",
     lines: [
-      `Current food: ${Math.floor(food)} (${Math.floor(storedFood)}/${Math.floor(foodCapacity)} stored, ${Math.floor(looseFood)} loose).`,
+      `Hosted Edible: ${Math.floor(food)}/${Math.floor(foodCapacity)} Stock.`,
       `Each Food phase consumes up to ${mealDemand} food (${population.adults} adults + ${population.children} children + ${population.elders} elders).`,
-      `Food phase cadence: every ${phaseDurationSec}s in the six-phase moon.`,
-      "Food fills stored capacity first, then loose food; meals consume loose first.",
+      `Food phase cadence: every ${phaseDurationSec * 6}s in the six-phase moon.`,
+      "Food is hosted [Edible] Stock, consumed from leftmost Practices after their Food activation.",
       "Villagers feed before Strangers.",
     ],
   };

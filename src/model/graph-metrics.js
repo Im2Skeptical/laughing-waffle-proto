@@ -1,3 +1,4 @@
+import { stockTotal } from "./detailed-settlements/stock.js";
 // src/model/graph-metrics.js
 // Metric definitions for time graphs.
 
@@ -105,7 +106,7 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementFaith",
     scaleMode: "fixed",
     scaleMin: 0,
-    scaleMax: 100,
+    scaleMax: 15,
     getLegendTooltipSpec: (state, classId) =>
       getSettlementFaithTooltipSpec(state, classId),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
@@ -117,7 +118,7 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementHappiness",
     scaleMode: "fixed",
     scaleMin: 0,
-    scaleMax: 100,
+    scaleMax: 15,
     getLegendTooltipSpec: (state, classId) =>
       getSettlementHappinessTooltipSpec(state, classId),
     formatValue: (value) =>
@@ -301,11 +302,11 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
     pickerGroup: "global",
     getValue: (state, subject) => {
       const local = getDetailedSettlement(state, getSettlementMetricRegionId(subject));
-      return (local?.storedFood ?? 0) + (local?.looseFood ?? 0);
+      return stockTotal(state, local, "Edible");
     },
     getValueFromSnapshot: (snapshot, subject) => {
       const local = getDetailedSettlement(snapshot, getSettlementMetricRegionId(subject));
-      return (local?.storedFood ?? 0) + (local?.looseFood ?? 0);
+      return stockTotal(snapshot, local, "Edible");
     },
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, "food", subject),
@@ -404,7 +405,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleGroupId: "settlementMonsterCount",
     scaleMode: "fixed",
     scaleMin: 0,
-    scaleMax: 100,
+    scaleMax: 15,
     pickerGroup: "global",
     getValue: (state) => getSettlementChaosGodSummary(state, "redGod").monsterCount,
     getValueFromSnapshot: (snapshot) =>
@@ -431,13 +432,13 @@ function createResourceGraphSeries({ id, label, color, scaleGroupId, read, local
 }
 
 const GOLD_GRAPH_SERIES = createResourceGraphSeries({
-  id: "gold", label: "Gold", color: 0xc99d35, scaleGroupId: "gold",
+  id: "gold", label: "Currency Stock", color: 0xc99d35, scaleGroupId: "gold",
   read: (state) => getDetailedSettlementSites(state, { playerOnly: true })
-    .reduce((total, site) => total + Math.max(0, site.detailedState?.currency ?? 0), 0),
+    .reduce((total, site) => total + stockTotal(state, site.detailedState, "Currency"), 0),
 });
 const LOCAL_GOLD_GRAPH_SERIES = createResourceGraphSeries({
-  id: "gold", label: "Gold", color: 0xc99d35, scaleGroupId: "gold", local: true,
-  read: (state, subject) => Math.max(0, getDetailedSettlement(state, getSettlementMetricRegionId(subject))?.currency ?? 0),
+  id: "gold", label: "Currency Stock", color: 0xc99d35, scaleGroupId: "gold", local: true,
+  read: (state, subject) => stockTotal(state, getDetailedSettlement(state, getSettlementMetricRegionId(subject)), "Currency"),
 });
 const CIVILIZATION_HOUSING_SERIES = createResourceGraphSeries({
   id: "civilizationHousingCapacity", label: "Civ Housing", color: 0x936445,

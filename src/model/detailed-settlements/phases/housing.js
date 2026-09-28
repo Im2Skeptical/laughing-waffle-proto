@@ -18,7 +18,7 @@ export function runHousingPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   getPhaseModifiers(state).housingByRegion = {};
   runPracticeActivation(state, "housing");
-  for (const site of getDetailedSettlementSites(state)) {
+  for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
     const alreadyMigrating = compositionTotal(

@@ -1,3 +1,4 @@
+import { emptySpecialists, splitSpecialistCohorts, addAgeCohort } from "./cohorts.js";
 // Shared primitives: clone, food rounding, composition bins, moon-result shells.
 
 import { POPULATION_CLASS_ORDER } from "../../defs/gamepieces/detailed-settlement-defs.js";
@@ -48,6 +49,7 @@ export function emptyPopulationComposition() {
     children: 0,
     adults: 0,
     eldersByAge: [],
+    specialists: emptySpecialists(),
   }]));
 }
 
@@ -56,6 +58,7 @@ export function clonePopulationComposition(composition) {
   for (const classId of POPULATION_CLASS_ORDER) {
     const source = composition?.[classId] ?? {};
     result[classId] = {
+      specialists: clone(source.specialists ?? emptySpecialists()),
       children: Math.max(0, Math.floor(source.children ?? 0)),
       adults: Math.max(0, Math.floor(source.adults ?? 0)),
       eldersByAge: (source.eldersByAge ?? []).map((cohort) => ({
@@ -70,7 +73,9 @@ export function clonePopulationComposition(composition) {
 export function compositionBins(composition) {
   const bins = [];
   for (const [classIndex, classId] of POPULATION_CLASS_ORDER.entries()) {
-    const cohort = composition?.[classId] ?? {};
+    const parts = splitSpecialistCohorts(composition?.[classId]);
+    for (const [specialty, cohort] of Object.entries(parts)) {
+    const startIndex = bins.length;
     bins.push({ classId, kind: "children", age: null, count: cohort.children ?? 0, order: classIndex * 1000 });
     bins.push({ classId, kind: "adults", age: null, count: cohort.adults ?? 0, order: classIndex * 1000 + 1 });
     for (const [ageIndex, elder] of [...(cohort.eldersByAge ?? [])]
@@ -83,6 +88,8 @@ export function compositionBins(composition) {
         order: classIndex * 1000 + 2 + ageIndex,
       });
     }
+    for (let i=startIndex;i<bins.length;i++) { bins[i].specialty = specialty; bins[i].order = bins[i].order * 3 + Object.keys(parts).indexOf(specialty); }
+    }
   }
   return bins.filter((bin) => bin.count > 0);
 }
@@ -91,6 +98,12 @@ export function compositionFromBins(bins) {
   const result = emptyPopulationComposition();
   for (const bin of bins) {
     if (!result[bin.classId] || bin.count <= 0) continue;
+    if (bin.specialty && bin.specialty !== "ordinary") {
+      const target = result[bin.classId].specialists[bin.specialty];
+      if (bin.kind === "children") target.children += bin.count;
+      else if (bin.kind === "adults") target.adults += bin.count;
+      else target.eldersByAge.push({age:bin.age,count:bin.count});
+    }
     if (bin.kind === "children") result[bin.classId].children += bin.count;
     else if (bin.kind === "adults") result[bin.classId].adults += bin.count;
     else result[bin.classId].eldersByAge.push({ age: bin.age, count: bin.count });
@@ -117,6 +130,7 @@ export function selectPopulationComposition(settlement, classIds, requestedCount
     const classState = settlement?.populationByClass?.[classId];
     if (!classState) continue;
     source[classId] = {
+      specialists: clone(classState.specialists ?? emptySpecialists()),
       children: Math.max(0, Math.floor(classState.children ?? 0)),
       adults: Math.max(0, Math.floor(classState.adults ?? 0)),
       eldersByAge: (classState.eldersByAge ?? []).map((cohort) => ({

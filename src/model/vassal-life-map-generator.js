@@ -37,7 +37,7 @@ export function createAuthoredVassalLifeMapGeneratorConfig() {
     weights: Object.fromEntries(BANDS.map((band) => [
       band,
       Object.fromEntries(VASSAL_NORMAL_NODE_FAMILY_IDS.map((familyId, index) => [
-        familyId, DEFAULT_WEIGHTS[band][index],
+        familyId, DEFAULT_WEIGHTS[band][index] ?? 0,
       ])),
     ])),
   };

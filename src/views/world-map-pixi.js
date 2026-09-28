@@ -147,10 +147,12 @@ function buildRegionMapIndicators(state, definition) {
       ? (viewModel.structures ?? []).map((slot) => slot ? { structureId: slot.structureId, origin: slot.origin, width: slot.width, placementId: slot.placementId } : null)
       : Array.from({ length: structureCapacity }, () => null);
     const hasCurrencyPractice = (viewModel?.practices ?? []).some((practice) =>
-      practice?.tags?.includes("Currency"));
+      practice?.face?.stockTraits?.includes("Currency"));
     return {
       regionId: regionDef.id,
       controller: region?.controller ?? null,
+      monster: region?.monster ?? null,
+      neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
       showsPlayerMarker: region?.controller === "player",
       hasDetailedSettlement: viewModel != null,
       ...workerPresentation,
@@ -522,7 +524,7 @@ export function createWorldMapView({
           lines.push(`Overcrowding: ${pressure.housingOverflow} people over housing capacity`);
         }
         if (spending) lines.push(`Gold spent this or last moon: ${mapIndicator.currencySpent}`);
-        if (emptyCurrency) lines.push("Gold reserve is empty");
+        if (emptyCurrency) lines.push("Hosted Currency Stock is empty");
         tooltipView?.show?.({
           title: `${getRegionReference(state, region.id) ?? region.id} alerts`,
           lines,
@@ -550,6 +552,9 @@ export function createWorldMapView({
       );
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
+      if (indicator.monster || indicator.neutral) root.addChild(createText(
+        indicator.monster ? `MONSTER · Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
+        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-66,.5));
       if (indicator.hasDetailedSettlement) {
         landmarks.push(addTimelineLandmark(root,{x:point.x-100,y:point.y-102,width:104,height:118},
           {startSec:definition.regions.indexOf(regionDef)*.37}));
@@ -635,7 +640,7 @@ export function createWorldMapView({
           `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
           `Raw pressure: ${reckoning?.rawPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
           `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
-          `Monsters: ${civilizationSummary.chaos.monsterCount}/${civilizationSummary.chaos.monsterLossThreshold}`,
+          `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
         ],
       }, civilizationPanel.getBounds(), { dismissOnExit: true });
     });
