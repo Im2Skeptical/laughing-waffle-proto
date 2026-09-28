@@ -17,8 +17,9 @@ import { canonicalizeSnapshot } from '../canonicalize.js';
 import { stockTraits, specialistCount } from '../detailed-settlements/stock.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
 import { projectPracticeDraft } from '../practice-draft.js';
+import { createLabFixture, practiceSlot } from '../dev-lab/fixtures.js';
 
-const slot=(practiceId,stock=0)=>({practiceId,stock,tier:'bronze',charge:0,work:0});
+const slot=practiceSlot;
 const state=createNewGameState(42), site=getDetailedSettlementSites(state,{playerOnly:true})[0], settlement=site.detailedState;
 assert.equal(state.world.sites.filter(s=>s.neutral).length,4);
 for (const site of state.world.sites) {
@@ -106,11 +107,7 @@ for(const local of getDetailedSettlementSites(educated,{playerOnly:true})) {
 generateCandidatePool(baseCandidates);generateCandidatePool(educated);
 assert.equal(getVassalCandidatePool(educated).candidates[0].stats.cunning,getVassalCandidatePool(baseCandidates).candidates[0].stats.cunning+4);
 // F: a Scholar-staffed Common smelter benefits from a Knowledge/Ore query, no pairwise class rule.
-const hybrid=createNewGameState(32),hybridSite=getDetailedSettlementSites(hybrid,{playerOnly:true})[0];
-hybridSite.detailedState.practiceSlots=[slot('logging',2),slot('surfaceMining',2),slot('smelting'),slot('weaponsmithing'),slot('garrisonDuty')];
-trainSpecialists(hybridSite.detailedState,'scholar',3);
-trainSpecialists(hybridSite.detailedState,'warrior',10);
-assert.equal(tryCreateStructure(hybrid,hybridSite.regionId,'foundry'),true);
+const hybrid=createLabFixture('five',32),hybridSite=getDetailedSettlementSites(hybrid,{playerOnly:true})[0];
 const hybridWorkers=assignDetailedSettlementWorkers(hybrid,hybridSite.regionId);
 const withFoundry=hybridSite.detailedState.structureSlots;
 const beforeFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]).effects[0].scaledValue.effectiveValue;

@@ -1,0 +1,131 @@
+# Development Lab
+
+Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/museum`, or `#/dev/gym`
+on the normal app URL. These hash routes survive direct loading and refresh on
+GitHub Pages, including the repository path. The live workshop (hold its seal or
+Ctrl+Shift+D) also has **Development Lab** and **Open current state in Gym**.
+The existing debugger remains available.
+
+## Catalogue
+
+Zoo reads the fixture's serialized runtime Gamepieces registry. It includes every
+implemented Practice and Structure, generated candidate specimens, Life Map
+families/signatures, the four neutral templates, and the single spatial Monster
+type. Search covers IDs, names, rules, and definition data. Filters cover category,
+Common/Scholar/Warrior, minimum maturity, Card Tags, Stock Traits, and footprint.
+
+Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
+Comparison shows four Practice qualities or four Structure quality uplifts,
+capacity, timing, DSL effects, Consume/Require, gates, modifiers, and stacking.
+Zoo samples have no workers or institutions; Museum/Gym faces use the complete
+`getDetailedSettlementViewModel`, including live evaluation, Stock and providers.
+Stock links name source and destination slot numbers. The Lab deliberately uses
+a focused DOM workbench around the real Pixi faces rather than the debugger layout.
+
+## Exhibits
+
+- Stock generation and ordered provider consumption.
+- Require, missing inputs, and a non-mutating self-funding planner probe.
+- Food at 29, 30, and 31 people; separate shortage fixture.
+- Currency procurement that spends the Barter host's actual Stock.
+- Common Housing ladder, with replacement and live capacity comparison.
+- Scholar staffing, Knowledge tags, Foundry feedback, Commission, Discovery,
+  seeded shop/quality preview, and identical-RNG candidate institution comparison.
+- Warrior population, Support, Prestige, Retinue thresholds/cap and Prowess.
+- Connected automatic Raid, legal Campaign/conquest effect, autonomous defense,
+  and territorial loss/ruins.
+- Full serialized authoritative-tick / forecast-chunk comparison, including RNG.
+- Five-slot hybrid production: its missing Edible host is intentional evidence of
+  the composition constraint, not a reason to silently expand the tableau.
+
+All settlement fixtures contain exactly five Practice slots. Each loads from an
+explicit seed, steps seconds/named phases/moons/years through the real tick path,
+and resets from a serialized baseline. The hybrid fixture and slot constructor
+are also used by the civilization acceptance tests. This is a representative
+selection, not a visual mirror of every automated test.
+
+## Sandbox
+
+Gym supports settlement/fixture selection; explicit adult-cohort population,
+Scholar and Warrior setup; Prestige, Ingenuity, Prowess and Chaos; Practice
+install/remove/swap, quality and hosted Stock; Structure add/remove/quality;
+neutral-template spawning, road connection, Monster spawn/remove/age/defense,
+and ruins; candidate generation/selection; Crisis inspection and class-effect
+experiments; deterministic stepping/reset; named browser fixtures; JSON
+import/export/copy; and launch into normal play. Edits clone first and commit
+only after the normal state deserializer accepts them. Explicit Stock edits also
+check live host capacity, and specialist edits cannot exceed population.
+
+Population setup intentionally replaces age/status cohorts with adult Villagers.
+Removing a Structure can leave previously produced Stock above its new capacity,
+as can normal gameplay; subsequent production uses the normal capacity rules.
+Gym does not silently discard that Stock. A terminal run must be reset to advance.
+Candidate selection needs no currently active Vassal; use a fresh fixture to
+construct a different lineage. Named fixtures use a separate browser-storage key.
+
+Class-effect buttons invoke `classActionOptions`, `validateClassAction`, and
+`applyClassAction`; Commission checks call `completeCommission`. They explicitly
+resolve only the effect: they do not simulate the Life Map's journey, Prestige
+reward, or danger roll. **Play from here** uses normal gameplay for that complete
+flow. Shop and institutional previews operate on clones and do not consume the
+fixture's RNG. Neutral spawning shares `createNeutralSettlement` with New Game.
+No debugger mutation helpers or debugger layout are reused: the authoritative
+model APIs and normal serialization are the useful lower-level boundary here.
+
+## Live / Gym / play
+
+**Open current state in Gym** clones the runner's authoritative cursor state,
+including all RNG streams, into a separate tab. It does not copy a speculative
+graph preview, write a player save slot, or change the source run. The source run
+may continue according to its existing playback controls.
+
+**Play from here** validates and opens the Gym snapshot through the normal game
+session and renderer in a separate, **unsaved** session (`activeSlot = null`).
+No existing save slot is overwritten. The original timestamp is preserved; the
+timeline begins at the snapshot's `tSec`. `rebuildStateAtSecond` rejects earlier
+times instead of pretending the snapshot was a time-zero world. Existing
+time-zero runs retain their behavior. Snapshot-origin timelines use existing
+state/save fields; schema versions and validation rules are unchanged.
+
+Handoffs use isolated UUID-keyed browser storage and survive refresh. Reopening
+the handoff URL starts from its original snapshot, not subsequent unsaved play.
+Save the Gym fixture or export its JSON for a durable reproduction; handoffs and
+named fixtures remain subject to browser storage availability and clearing.
+The ordinary graph can display empty pre-snapshot space; it cannot reconstruct
+the source run's prior history because the bridge transfers a state, not a run.
+
+## Observations and limits
+
+- Two neutral templates still author six/seven Practices, but normal runtime
+  construction installs only the first five. Zoo shows both installed and omitted
+  entries, without changing those gameplay definitions.
+- New content often uses shared fallback illustrations. Real faces expose that
+  fact rather than implying dedicated art exists.
+- Structures, candidates, node families and Monster tuning are runtime data;
+  there is no fabricated workbook-only content or alternate simulation.
+- Monster/class/world outcomes use compact tables and real model summaries where
+  the complete map/Life Map UI would obscure the experiment.
+- The defense fixture needs enough Edible to survive Food before Death. The loss
+  fixture lacks a response Practice. The distinction is exercised through ticks.
+- The existing workshop browser probe still referenced the removed Food wallet,
+  Administration fields, and older schemas. Its checks now exercise hosted Stock,
+  Granary capacity modifiers, Foraging output/capacity and current schema constants.
+  The menu probe now distinguishes the two player settlements from four neutrals.
+
+## Verification
+
+- `node src/model/tests/development-lab.js`: deterministic fixtures and stepping,
+  Food/Stock breakpoints, Currency debit, Retinue threshold, defense/loss,
+  atomic invalid-edit rejection, clone isolation, registry coverage, forecast
+  equality, snapshot-origin replay/runner sessions, saved-fixture reset/import.
+  Included in `npm run test:detailed-replay` and `npm run verify`.
+- `node src/model/tests/civilization-content.js`: shared hybrid content scenario.
+- `npm run probe:development-lab`: deployed bundle, filters/quality comparison,
+  exhibits, edits, reset/storage, forecast, desktop/mobile, both bridges, refresh,
+  original save protection. Details/screenshots: `artifacts/development-lab-*`.
+- Existing settlement, workshop, and game-menu probes cover integration surfaces.
+
+Model adapters: `src/model/dev-lab/`. Orchestration:
+`src/controllers/development-lab-controller.js` and `development-lab-bridge.js`.
+DOM entry: `src/views/development-lab-dom.js`; focused views:
+`src/views/development-lab/`. CSS is scoped to `.development-lab`.

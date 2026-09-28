@@ -75,10 +75,10 @@ export function createEmptyTimelineFromBase(baseState) {
     persistentKnowledge: clonePersistentKnowledge(baseState),
     actions: [],
     // Integer Second Cursor
-    cursorSec: 0,
+    cursorSec: Math.floor(baseState.tSec ?? 0),
     // End of realized history for the current branch.
     // Projection/forecasting starts from this second.
-    historyEndSec: 0,
+    historyEndSec: Math.floor(baseState.tSec ?? 0),
     checkpoints: [],
     // Stage 3 perf: revision invalidates memo caches.
     // NOTE: revision bumps for *any* timeline mutation (including checkpoint
@@ -643,6 +643,10 @@ export function rebuildStateAtSecond(tl, targetSec) {
   if (!Number.isFinite(targetSec) || targetSec < 0) {
     return { ok: false, reason: "badTargetSec" };
   }
+  // A timeline may begin at an imported authoritative snapshot. Earlier history
+  // does not exist; never replay its later state as if it began at zero.
+  const initialSec = Math.max(0, Math.floor(tl.baseStateData.tSec ?? 0));
+  if (targetSec < initialSec) return { ok: false, reason: 'beforeInitialState', initialSec };
 
   const perfStart = perfEnabled() ? perfNowMs() : 0;
 
@@ -678,7 +682,7 @@ export function rebuildStateAtSecond(tl, targetSec) {
       ? memoCp
       : checkpointCp;
 
-  const startSec = bestCp ? bestCp.checkpointSec ?? 0 : 0;
+  const startSec = bestCp ? bestCp.checkpointSec ?? initialSec : initialSec;
   const startStateData = bestCp ? bestCp.stateData : tl.baseStateData;
   const skipActionsAtStartSec =
     bestCp &&

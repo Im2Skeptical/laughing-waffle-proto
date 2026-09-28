@@ -1,4 +1,5 @@
 import { createGameSessionController } from "../controllers/game-session-controller.js";
+import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { preloadChronicleArt } from './chronicle-art.js';
@@ -1322,6 +1323,8 @@ debugProfileController = createDebugProfileController({
   vassalDebugPresetController,
 });
 settlementDebugMenu = createSettlementDebugMenuDom({
+  openDevelopmentLab: () => window.open(new URL('#/dev/zoo',location.href).href,'_blank','noopener'),
+  openCurrentStateInGym: () => openLabHandoff(runner.getCursorState()),
   getState: () => getSettlementViewedState(),
   getFrontierSec: () => getSettlementFrontierSec(),
   getViewedSec: () => getSettlementViewedSec(),
@@ -1600,6 +1603,21 @@ const timelineAudio = createTimelineAudio({
   isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape(),
   parent:document.querySelector('[data-testid="utility-controls"]'),
 });
+
+if (location.hash.startsWith('#/dev/play')) {
+  try {
+    const state = readLabHandoff();
+    if (!state) throw new Error('No Gym state was supplied.');
+    const result = gameSession.enterDisposableState(state);
+    if (!result.ok) throw new Error(result.reason);
+    gameMenu.hide();
+    const badge = document.createElement('div');
+    badge.dataset.testid = 'lab-play-badge';
+    badge.style.cssText = 'position:fixed;left:12px;top:8px;z-index:1001;background:#152725;color:#eff7ed;padding:6px;font:12px sans-serif;max-width:45vw;pointer-events:none';
+    badge.textContent = `Gym play · unsaved · history begins at ${state.tSec}s`;
+    document.body.append(badge);
+  } catch (error) { gameMenu.showError(`Lab launch failed: ${error.message}`); }
+}
 
 app.ticker.add((delta) => {
   if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden) {

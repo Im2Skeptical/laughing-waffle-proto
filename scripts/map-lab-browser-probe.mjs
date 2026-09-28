@@ -3,6 +3,8 @@ import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import { MAP_LAB_DRAFT_SCHEMA_VERSION } from '../src/model/map-lab-draft.js';
+import { GAME_CONFIG_SCHEMA_VERSION } from '../src/model/game-config.js';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const PORT = 8081;
@@ -24,11 +26,11 @@ mkdirSync("artifacts", { recursive: true });
 const server = spawn(process.execPath,
   ["./node_modules/serve/bin/serve.js", "-l", String(PORT), "--no-clipboard", "dist"],
   { stdio: "ignore", windowsHide: true });
-let browser;
+let browser, page;
 try {
   await waitForHttp();
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.route("**/timegraph-forecast-worker-*.js", async (route) => {
     await delay(750);
     await route.continue();
@@ -92,7 +94,7 @@ try {
   assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
   assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "20");
   assert.equal(await page.getByTestId("map-lab-villager-elder-ages").inputValue(), "50, 53, 56");
-  assert.equal(await page.getByTestId("map-lab-stored-food").inputValue(), "60");
+  assert.equal(await page.getByTestId("map-lab-stock-0").inputValue(), "2");
   assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "forage");
   assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
   assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
@@ -175,7 +177,7 @@ try {
 
   await page.getByTestId("map-lab-json-toggle").click();
   const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
-  assert.equal(json.schemaVersion, 5);
+  assert.equal(json.schemaVersion, MAP_LAB_DRAFT_SCHEMA_VERSION);
   assert.equal(json.regions[0].structureCapacity, 8);
   assert.equal(json.regions[0].randomizeStructureCapacity, false);
   assert.equal("capacity" in json.regions[0], false);
@@ -231,27 +233,28 @@ try {
   const settingsJson = JSON.parse(
     await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
   );
-  assert.equal(settingsJson.schemaVersion, 13);
+  assert.equal(settingsJson.schemaVersion, GAME_CONFIG_SCHEMA_VERSION);
   assert.equal(settingsJson.values.birthRateGold, 0.35);
   await page.getByTestId("gameSettings-close-json").click();
 
   await page.getByTestId("debug-gamepieces-tab").click();
   await page.getByTestId("debug-gamepieces").waitFor({ state: "visible" });
-  const granaryCapacity = page.getByTestId(
-    "gamepiece-structures-granary-capacityPerCountSquared"
+  const granaryBonus = page.getByTestId(
+    "gamepiece-structures-granary-modifiers.0.amount"
   );
-  assert.equal(await granaryCapacity.inputValue(), "180");
-  await granaryCapacity.fill("150");
-  const administrationBase = page.getByTestId(
-    "gamepiece-practices-administrate-effects.0.scaledValue.baseAmount"
+  assert.equal(await granaryBonus.inputValue(), "3");
+  await granaryBonus.fill("5");
+  const forageOutput = page.getByTestId(
+    "gamepiece-practices-forage-effects.0.amount"
   );
-  assert.equal(await administrationBase.inputValue(), "50");
-  await administrationBase.fill("75");
-  const connectedAdministrationReach = page.getByTestId(
-    "gamepiece-structures-smokehouse-connectedAdministrationReach"
+  assert.equal(await forageOutput.inputValue(), "1");
+  await forageOutput.fill("2");
+  const forageCapacity = page.getByTestId(
+    "gamepiece-practices-forage-stockCapacity"
   );
-  assert.equal(await connectedAdministrationReach.isChecked(), false);
-  await page.getByTestId("gamepieces-preset-name").fill("Large logistics");
+  assert.equal(await forageCapacity.inputValue(), "2");
+  await forageCapacity.fill("4");
+  await page.getByTestId("gamepieces-preset-name").fill("Hosted Stock tuning");
   await page.getByTestId("gamepieces-save-preset").click();
   await page.getByTestId("debug-life-map-lab-tab").click();
   await page.getByTestId("life-map-lab").waitFor({ state: "visible" });
@@ -283,18 +286,18 @@ try {
   );
   assert.equal(
     configuredSnapshot.gameConfig.gamepieces.structures.granary
-      .capacityPerCountSquared,
-    150
+      .modifiers[0].amount,
+    5
   );
   assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.practices.administrate.effects[0]
-      .scaledValue.baseAmount,
-    75
+    configuredSnapshot.gameConfig.gamepieces.practices.forage.effects[0]
+      .amount,
+    2
   );
   assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.structures.smokehouse
-      .connectedAdministrationReach,
-    false
+    configuredSnapshot.gameConfig.gamepieces.practices.forage
+      .stockCapacity,
+    4
   );
   assert.equal(configuredSnapshot.gameConfig.lifeMapGenerator.laneCount, 5);
   assert.equal(
@@ -310,16 +313,21 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
   assert.equal(
-    followedConfiguredSnapshot.gameConfig.gamepieces.practices.administrate
-      .effects[0].scaledValue.baseAmount,
-    75,
+    followedConfiguredSnapshot.gameConfig.gamepieces.practices.forage
+      .effects[0].amount,
+    2,
     "forecast auto-follow keeps the freshly configured gamepiece definitions"
   );
 
   await page.getByTestId("debug-open").click({ delay: 950 });
+  // Candidate injection is a present-state experiment; do not inspect a future
+  // settlement that may already have been lost during automatic forecast reveal.
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
   await page.getByTestId("debug-vassal-tab").click();
   await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
-  await page.getByTestId("vassal-debug-location").selectOption("river-crown");
+  const injectionRegion = await page.getByTestId('vassal-debug-location').locator('option').last().getAttribute('value');
+  assert.ok(injectionRegion, 'an eligible settlement is available for explicit candidate injection');
+  await page.getByTestId("vassal-debug-location").selectOption(injectionRegion);
   await page.getByTestId("vassal-debug-age").fill("20");
   await page.getByTestId("vassal-debug-age").press("Enter");
   await page.getByTestId("vassal-debug-prestige").fill("42");
@@ -339,7 +347,7 @@ try {
   const injected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal
   );
-  assert.equal(injected.locationRegionId, "river-crown");
+  assert.equal(injected.locationRegionId, injectionRegion);
   assert.equal(injected.initialAge, 20);
   assert.equal(injected.prestige, 42);
   assert.equal(injected.stats.cunning, 3);
@@ -379,9 +387,9 @@ try {
   await page.getByTestId("gamepieces-load-preset").click();
   assert.equal(
     await page.getByTestId(
-      "gamepiece-structures-granary-capacityPerCountSquared"
+      "gamepiece-structures-granary-modifiers.0.amount"
     ).inputValue(),
-    "150"
+    "5"
   );
 
   await page.getByTestId("debug-vassal-tab").click();
@@ -427,9 +435,9 @@ try {
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
   writeFileSync(DETAIL_PATH, JSON.stringify({
     checks: [
-      "Map Lab schema v6",
+      `Map Lab schema v${MAP_LAB_DRAFT_SCHEMA_VERSION}`,
       "detailed-settlement toggle and cohorts",
-      "elder ages and local food",
+      "elder ages and hosted Stock",
       "five practice slots",
       "regional structure capacity and slots",
       "shared-edge connection editing",
@@ -444,7 +452,13 @@ try {
   }, null, 2));
   process.stdout.write(`[probe:map-lab] OK\n[probe:map-lab] details=${DETAIL_PATH}\n`);
 } catch (error) {
-  writeFileSync(DETAIL_PATH, JSON.stringify({ error: error.stack ?? error.message }, null, 2));
+  const context = await page?.evaluate(() => {
+    const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot();
+    return { viewedSec:snapshot?.viewedSec, frontierSec:snapshot?.frontierSec,
+      eligibleRegions:[...document.querySelectorAll('[data-testid="vassal-debug-location"] option')].map(o=>o.value),
+      status:document.querySelector('[data-testid="vassal-debug-status"]')?.textContent };
+  }).catch(()=>null);
+  writeFileSync(DETAIL_PATH, JSON.stringify({ error: error.stack ?? error.message, context }, null, 2));
   process.stdout.write(`[probe:map-lab] FAILED\n[probe:map-lab] error=${error.message}\n`);
   process.exitCode = 1;
 } finally {

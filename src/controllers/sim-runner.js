@@ -179,9 +179,10 @@ export function createSimRunner({
   function getEditableHistoryBounds() {
     const windowSec = getEditableHistoryWindowSec();
     const maxReachedSec = syncTimelineMaxReachedHistoryEndSec();
-    const minEditableSec = fullHistoryEditOverrideEnabled
+    const requestedMinSec = fullHistoryEditOverrideEnabled
       ? 0
       : Math.max(0, maxReachedSec - windowSec);
+    const minEditableSec = Math.max(requestedMinSec, Math.floor(timeline?.baseStateData?.tSec ?? 0));
     return {
       windowSec,
       maxReachedSec,
@@ -402,9 +403,10 @@ export function createSimRunner({
     timeline = createTimelineFromInitialState(cursorState);
     clearPlannerBoundaryCache();
 
-    timeline.cursorSec = 0;
-    timeline.historyEndSec = 0;
-    timeline.maxReachedHistoryEndSec = 0;
+    const initialSec = Math.floor(cursorState.tSec ?? 0);
+    timeline.cursorSec = initialSec;
+    timeline.historyEndSec = initialSec;
+    timeline.maxReachedHistoryEndSec = initialSec;
 
     pauseRequested = false;
     playbackActive = false;
@@ -418,8 +420,8 @@ export function createSimRunner({
 
     timeline.checkpoints = [
       {
-        checkpointSec: 0,
-        appliedThroughSec: 0,
+        checkpointSec: initialSec,
+        appliedThroughSec: initialSec,
         stateData: serializeGameState(cursorState),
       },
     ];
@@ -624,6 +626,10 @@ export function createSimRunner({
   function seekCursorSecond(tSec, stateData, opts = {}) {
     if (!timeline) return { ok: false, reason: "noTimeline" };
     const t = Math.max(0, Math.floor(tSec));
+
+    if (t < Math.floor(timeline.baseStateData?.tSec ?? 0)) {
+      return { ok: false, reason: 'beforeInitialState' };
+    }
 
     pauseRequested = false;
     dragPreviewState = null;

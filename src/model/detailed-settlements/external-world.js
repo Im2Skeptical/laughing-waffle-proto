@@ -57,10 +57,27 @@ function distance(state, start, end) {
   }
   return Infinity;
 }
+// Shared construction for seeded worlds and explicit developer fixtures.
+export function createNeutralSettlement(state, id, index) {
+  const template = NEUTRAL_TEMPLATES[index];
+  if (!template || getRegionState(state,id)?.controller !== 'frontier' || siteAt(state,id) || getRegionState(state,id)?.monster) return {ok:false,reason:'neutralSiteUnavailable'};
+  const region = getRegionState(state,id), settlement = createInitialDetailedSettlementData();
+  settlement.populationByClass.villager = { ...settlement.populationByClass.villager, children:0, adults:template.population, eldersByAge:[] };
+  settlement.practiceSlots = Array.from({length:DETAILED_PRACTICE_SLOT_COUNT},(_,i) => template.practices[i] ? {practiceId:template.practices[i], tier:'bronze', stock:0, charge:0, work:0} : null);
+  region.structureCapacity = Math.max(region.structureCapacity, template.structures.reduce((n,id) => n+getDetailedStructureDef(state,id).footprint,0));
+  const placements = [];
+  for (const structureId of template.structures) { placements.push({structureId}); for(let i=1;i<getDetailedStructureDef(state,structureId).footprint;i++) placements.push(null); }
+  settlement.structureSlots = normalizeStructureLayout(placements,region.structureCapacity,id => getDetailedStructureDef(state,id),id);
+  for (const slot of settlement.practiceSlots.filter(Boolean)) { const cap=stockCapacity(state,settlement,slot); slot.stock=cap>0 ? Math.max(1,Math.floor(cap*(index===3?.75:.5))) : 0; }
+  region.controller='external-a'; region.detailedSettlementEnabled=true;
+  state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:template.name,neutral:{template:template.name,defense:template.defense},detailedState:settlement});
+  return {ok:true,site:siteAt(state,id)};
+}
+
 export function seedNeutralSettlements(state) {
   const players = playerSites(state).map(s => s.regionId), placed = [];
   const capital = state.civilization.capitalRegionId;
-  for (const [index, template] of NEUTRAL_TEMPLATES.entries()) {
+  for (const [index] of NEUTRAL_TEMPLATES.entries()) {
     let eligible = getWorldDefinition(state).regions.map(r => r.id).filter(id => getRegionState(state,id)?.controller === 'frontier' && !siteAt(state,id));
     if (index === 0) eligible = eligible.filter(id => adjacentRegionIds(state,capital).includes(id));
     eligible.sort((a,b) => {
@@ -69,16 +86,8 @@ export function seedNeutralSettlements(state) {
     });
     const id = eligible[0];
     if (!id) throw new Error('Starter_02 has insufficient neutral sites');
-    const region = getRegionState(state,id), settlement = createInitialDetailedSettlementData();
-    settlement.populationByClass.villager = { ...settlement.populationByClass.villager, children:0, adults:template.population, eldersByAge:[] };
-    settlement.practiceSlots = Array.from({length:DETAILED_PRACTICE_SLOT_COUNT},(_,i) => template.practices[i] ? {practiceId:template.practices[i], tier:'bronze', stock:0, charge:0, work:0} : null);
-    region.structureCapacity = Math.max(region.structureCapacity, template.structures.reduce((n,id) => n+getDetailedStructureDef(state,id).footprint,0));
-    const placements = [];
-    for (const structureId of template.structures) { placements.push({structureId}); for(let i=1;i<getDetailedStructureDef(state,structureId).footprint;i++) placements.push(null); }
-    settlement.structureSlots = normalizeStructureLayout(placements,region.structureCapacity,id => getDetailedStructureDef(state,id),id);
-    for (const slot of settlement.practiceSlots.filter(Boolean)) { const cap=stockCapacity(state,settlement,slot); slot.stock=cap>0 ? Math.max(1,Math.floor(cap*(index===3?.75:.5))) : 0; }
-    region.controller='external-a'; region.detailedSettlementEnabled=true;
-    state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:template.name,neutral:{template:template.name,defense:template.defense},detailedState:settlement});
+    const result = createNeutralSettlement(state, id, index);
+    if (!result.ok) throw new Error(result.reason);
     placed.push(id);
   }
   canonicalizeWorldState(state);
