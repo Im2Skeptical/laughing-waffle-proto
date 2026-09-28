@@ -1,4 +1,4 @@
-import { addIllustration, getChronicleTexture, getResourceTexture, getArtRevision } from './chronicle-art.js';
+import { addIllustration, getChronicleTexture, getResourceTexture, getStockTraitTexture, getArtRevision } from './chronicle-art.js';
 import { PIECE_SIZE, fitPiece, constructionGeometry } from './piece-geometry.js';
 export { PIECE_SIZE } from './piece-geometry.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
@@ -51,16 +51,26 @@ export function addSettlementPiece(parent, rect, {
       root.addChild(blueprint);
     }
     if (face.stockCapacity > 0) {
-      root.addChild(new PIXI.Graphics().beginFill(0x09130f,.92).drawRoundedRect(8, h*.48, w-16, h*.24, 4).endFill());
-      root.addChild(createText(`${face.stock} / ${face.stockCapacity} Stock`, {...TEXT_STYLES.chip,fontSize:16,fill:0xffe6a0},w/2,h*.5,.5,0));
-      const traits=createText(face.stockTraits.map(t=>`${({Edible:"\u2668",Currency:"\u00a4",Arms:"\u2694",Protection:"\u26e8",Fuel:"\u2668",Timber:"\u2667",Record:"\u25a4",Ore:"\u25c6",Metal:"\u2b1f",Construction:"\u25a6",Loot:"\u2726"})[t]??"\u25c7"} [${t}]`).join(' '), {...TEXT_STYLES.chip,fontSize:12,fill:0xdde8ce,wordWrap:true,wordWrapWidth:w-24},w/2,h*.59,.5,0);
-      root.addChild(traits);
+      root.addChild(new PIXI.Graphics().beginFill(0x09130f,.92).drawRoundedRect(8, h*.46, w-16, h*.34, 4).endFill());
+      addResourceIcon(root, 'stock', 23, h*.515, 22);
+      root.addChild(createText(`${face.stock} / ${face.stockCapacity} Stock`, {...TEXT_STYLES.chip,fontSize:15,fill:0xffe6a0},w/2+9,h*.485,.5,0));
+      let x=13, y=h*.585;
+      for (const trait of face.stockTraits) {
+        const label=createText(trait,{...TEXT_STYLES.chip,fontSize:11,fill:0xdde8ce},0,0);
+        const width=20+label.width;
+        if (x+width>w-12) { x=13; y+=16; }
+        const icon=sprite(root,getStockTraitTexture(trait),x,y,16,16);
+        if (!icon) addResourceIcon(root,'stock',x+8,y+8,16);
+        label.position.set(x+19,y+2);
+        root.addChild(label);
+        x+=width+5;
+      }
     }
     root.addChild(createText(face.label, {...TEXT_STYLES.chip,fontSize:12,fill:0xf5e6c7,wordWrap:true,wordWrapWidth:w-18},w/2,12,.5,0));
     const iconSize = 26;
     if (face.lane) {
       const charge = face.lane === 'charge', tint = charge ? 0x75b9bd : 0xd7aa5c;
-      const cx = w/2, cy = h*.856, radius = 24;
+      const cx = w/2, cy = h*.903, radius = 22;
       const disc = charge ? null : sprite(root,getResourceTexture(face.source?.icon === 'season' ? 'solar-wheel' : 'moon-wheel'),cx-radius,cy-radius,radius*2,radius*2);
       if (disc) { disc.anchor.set(.5); disc.position.set(cx,cy); if (!charge && !reducedMotion) disc.rotation=Math.PI*2*(face.fill??0); }
       const fill = Math.max(0,Math.min(1,face.fill??0));
