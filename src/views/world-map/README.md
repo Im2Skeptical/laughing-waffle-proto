@@ -22,3 +22,18 @@ stay in `createWorldMapView`.
 `createWorldMapView` accepts optional `getDisplayOptions` for the Development Lab's
 terrain/scenery/connections/workers/structures/actors/alerts toggles. Omitted flags
 retain normal game rendering. These flags affect presentation only.
+
+## Map disclosure and camera
+
+The map fills the playfield beneath fixed chrome. Selection opens a right-hand
+region panel; dismissal restores the overview camera. Chaos is a floating,
+collapsible drawer. The camera in `camera.js` owns view-local pan, wheel/pinch
+zoom, bounds, and drag/tap discrimination. Terrain, markers and transfer effects
+share its transform and clipping; simulation state and replay are unchanged.
+
+Regional tableaus show five larger Practices and an eight-cell construction
+rail, with cells beyond regional capacity hatched and locked. Card inspection
+continues to use the shared piece view.
+
+Run `npm run probe:region-map` for disclosure, mouse/touch gestures, inspection,
+and desktop/mobile screenshots, alongside the settlement/navigation probes.

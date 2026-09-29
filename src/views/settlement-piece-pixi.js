@@ -69,14 +69,39 @@ export function animatePieceUpgrade(card, previousFace) {
 }
 
 export function addConstructionStrip(parent, rect, {
-  slots = [], capacity = slots.length, demolished = [], onPiece, onInspect, tooltipView, inspectionSide = 'left', time = 0, compact = false,
+  slots = [], capacity = slots.length, displayCapacity = capacity, demolished = [], onPiece, onInspect, tooltipView, inspectionSide = 'left', time = 0, compact = false,
 } = {}) {
-  const geometry=constructionGeometry(rect,capacity);
+  const geometry=constructionGeometry(rect,Math.max(capacity, displayCapacity));
   rect={...rect,width:geometry.width,height:geometry.height};
   const cell = geometry.cell, roots = [];
   const rail = new PIXI.Graphics().beginFill(0x111815,.8).lineStyle(1,0x60573f).drawRoundedRect(rect.x-4,rect.y-5,rect.width+8,rect.height+10,5).endFill();
-  for(let i=0;i<capacity;i++)rail.lineStyle(1,0x60573f,.7).drawRect(rect.x+i*cell,rect.y,cell,rect.height);
+  for(let i=0;i<Math.max(capacity, displayCapacity);i++) {
+    const x=rect.x+i*cell;
+    rail.lineStyle(1,0x60573f,.7).drawRect(x,rect.y,cell,rect.height);
+    if(i>=capacity) {
+      rail.beginFill(0x090d0c,.9).drawRect(x+2,rect.y+2,cell-4,rect.height-4).endFill();
+      rail.lineStyle(2,0x60573f,.45);
+      for(let offset=12;offset<rect.height+cell;offset+=22) {
+        const startX=Math.max(6,offset-rect.height+6), endX=Math.min(cell-6,offset-6);
+        if(endX>startX) rail.moveTo(x+startX,rect.y+offset-startX).lineTo(x+endX,rect.y+offset-endX);
+      }
+      // A barred cell is unavailable land, not an empty placement target.
+      const lock=new PIXI.Graphics().lineStyle(3,0x8c8060,.8);
+      lock.drawRoundedRect(x+cell/2-9,rect.y+rect.height/2-18,18,22,8)
+        .beginFill(0x514b3b).drawRoundedRect(x+cell/2-14,rect.y+rect.height/2-4,28,22,3).endFill();
+      lock.eventMode='static';
+      lock.hitArea=new PIXI.Rectangle(x,rect.y,cell,rect.height);
+      const spec={title:'Unavailable construction space',lines:[`This region supports ${capacity} of ${displayCapacity} possible construction cells.`]};
+      lock.on('pointerover',()=>tooltipView?.show?.(spec,lock.getBounds(),{dismissOnExit:true}));
+      lock.on('pointerout',()=>tooltipView?.hide?.());
+      lock.on('pointerdown',event=>{event.stopPropagation();tooltipView?.pin?.(spec,lock.getBounds(),`blocked-cell:${i}`);});
+      roots.push(lock);
+    }
+  }
   parent.addChild(rail);
+  // Keep blocked-cell affordances above the rail, but outside piece callbacks.
+  for(const lock of roots) parent.addChild(lock);
+  roots.length=0;
   const add = (piece,state) => {
     const face = piece.face ?? piece.presentation;
     const card=addSettlementPiece(parent,{x:rect.x+piece.origin*cell,y:rect.y,width:piece.width*cell,height:rect.height},{face,state,tooltipView,inspectionSide,time,compact,onInspect:onInspect?()=>onInspect(piece):undefined});

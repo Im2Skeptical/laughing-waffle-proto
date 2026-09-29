@@ -846,12 +846,6 @@ worldMapView = createWorldMapView({
     setSettlementGraphContext("civilization");
     worldMapView?.refresh?.();
   },
-  onShowSelectedRegionGraph: (regionId) => {
-    selectedWorldRegionId = regionId;
-    worldMapRegionSelectionActive = true;
-    setSettlementGraphContext("settlement", regionId);
-    worldMapView?.refresh?.();
-  },
   getVassalHighlight: () => {
     const candidate = settlementVassalFlow.getHoveredCandidate();
     if (!candidate) return null;

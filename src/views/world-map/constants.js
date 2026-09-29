@@ -1,6 +1,7 @@
 import { SETTLEMENT_RESOURCE_COLOURS } from "../../model/graph-metrics.js";
 
-export const MAP_RECT = Object.freeze({ x: 16, y: 88, width: 1448, height: 720 });
+export const MAP_RECT = Object.freeze({ x: 488, y: 104, width: 1448, height: 688 });
+export const MAP_VIEWPORT_RECT = Object.freeze({ x: 16, y: 78, width: 2392, height: 748 });
 export const CIVILIZATION_HEADER_RECT = Object.freeze({
   x: 58,
   y: 16,
@@ -8,16 +9,16 @@ export const CIVILIZATION_HEADER_RECT = Object.freeze({
   height: 54,
 });
 export const CIVILIZATION_RECT = Object.freeze({
-  x: 1480,
-  y: 88,
-  width: 928,
-  height: 120,
+  x: 16,
+  y: 92,
+  width: 520,
+  height: 132,
 });
 export const DETAIL_RECT = Object.freeze({
-  x: 1480,
-  y: 220,
-  width: 928,
-  height: 588,
+  x: 960,
+  y: 78,
+  width: 1448,
+  height: 748,
 });
 export const REGION_COLOURS = Object.freeze({
   red: 0xb9574d, blue: 0x527da3, green: 0x638c62, black: 0x4d4d52,
