@@ -47,7 +47,8 @@ try {
       const parent=new PIXI.Container(),face=getGamepieceFace({},kind,id);
       const card=addSettlementPiece(parent,{x:0,y:0,width:kind==='practice'?170:120*face.footprint,height:kind==='practice'?238:160},{face});
       const b=card.getLocalBounds(),w=card.pieceGeometry.width,h=card.pieceGeometry.height;
-      if(b.x < -1 || b.y < -1 || b.right > w+1 || b.bottom > h+1) failures.push({id,bounds:{x:b.x,y:b.y,right:b.right,bottom:b.bottom},expected:{w,h}});
+      const top=card.faceSections.stock?.y??0;
+      if(b.x < -1 || b.y < top-1 || b.right > w+1 || b.bottom > h+1 || !card.hitArea.contains(w-2,top+2)) failures.push({id,bounds:{x:b.x,y:b.y,right:b.right,bottom:b.bottom},expected:{w,h,top}});
       parent.destroy({children:true});
     }
     let inspections=0;
@@ -63,12 +64,39 @@ try {
   await page.setViewportSize({width:844,height:390});
   await page.evaluate(()=>{const app=globalThis.cardReviewApp;app.renderer.resize(844,390);app.stage.scale.set(844/1280);});
   await page.screenshot({path:'artifacts/card-layout-mobile.png'});
+  await page.setViewportSize({width:1280,height:440});
+  const symbols=await page.evaluate(async()=>{
+    const {addSettlementPiece}=await import('/src/views/settlement-piece-pixi.js');
+    const {getGamepieceFace}=await import('/src/model/gamepiece-presentation.js');
+    const app=globalThis.cardReviewApp;
+    for(const child of app.stage.removeChildren())child.destroy({children:true});
+    app.stage.scale.set(1);app.renderer.resize(1280,440);
+    const centres=[];
+    for(const [index,tSec] of [0,9,17,25,33].entries()) {
+      const face=getGamepieceFace({tSec,seasonDurationSec:8},'practice','logging');
+      const title=new PIXI.Text(`t=${tSec}  →  ${face.nextTrigger.season}`,{fontFamily:'Georgia',fontSize:20,fill:0xcabc9c});
+      title.position.set(28+index*250,25);app.stage.addChild(title);
+      const card=addSettlementPiece(app.stage,{x:28+index*250,y:95,width:220,height:308},{face});
+      centres.push({x:Math.round(card.x+(card.faceSections.yields.x-18)*card.scale.x),y:Math.round(card.y+219*card.scale.y)});
+    }
+    app.renderer.render(app.stage);
+    const context=app.renderer.extract.canvas(app.stage).getContext('2d');
+    // Extracted stage bounds begin at its title, rather than at canvas (0,0).
+    const bounds=app.stage.getBounds();
+    const pixels=centres.map(p=>Array.from(context.getImageData(Math.round(p.x-bounds.x)-8,Math.round(p.y-bounds.y)-8,16,16).data).join(','));
+    return {changes:pixels[0]!==pixels[1]&&pixels[1]!==pixels[2],skips:pixels[2]===pixels[3],wraps:pixels[0]===pixels[4]};
+  });
+  await page.screenshot({path:'artifacts/card-upcoming-triggers.png'});
+  assert.ok(symbols.changes&&symbols.skips&&symbols.wraps,'Rendered spinner centres follow upcoming symbols, skip winter and wrap');
   assert.deepEqual(errors,[]);
   assert.equal(result.failures.length,0,`${result.failures[0]?.id}: face exceeds card hit area; see artifacts/card-layout-review.json`);
   assert.equal(result.inspections,1,'Tap inspects; dragging does not');
   assert.equal(result.sections[0].inputs,null,'No empty cost section');
   assert.ok(result.sections[3].yields.height>result.sections[0].yields.height,'Multiple triggers grow upward');
   assert.ok(result.sections[4].stock.width>result.sections[0].stock.width,'Stock tray grows for traits and digits');
+  assert.equal(result.sections[4].stock.width,170,'Three stock tags and their count fill the card edge');
+  assert.ok(result.sections[0].stock.y<0,'Larger stock tray rises above the card');
+  assert.ok(result.sections[0].stock.y+result.sections[0].stock.height<=30,'Larger icons do not cover more illustration');
   assert.ok(result.sections[4].workers.height>result.sections[0].workers.height,'Sockets grow upward');
   console.log(`[card-layout] OK: ${result.count} faces fit; expanding sections, inspection and drag; artifacts/card-layout-review.png`);
 } finally {await browser?.close();server.kill();}

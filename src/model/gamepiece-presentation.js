@@ -20,6 +20,36 @@ function describeStructureValues(def) {
   return [...(def.housing?[`${def.housing} Housing. Numeric bonuses from duplicate structures add.`]:[]),...(def.candidateBonus?[`+${def.candidateBonus} to future ${def.pool} candidates from this settlement while active.`]:[])];
 }
 
+const seasonBoundaryOffsets = new Map();
+function seasonBoundaryOffset(duration) {
+  if (!seasonBoundaryOffsets.has(duration)) {
+    // Match the calendar's 60 additions per second. Depending on the configured
+    // duration, floating-point accumulation crosses on the boundary second or
+    // one second later. Measure once per duration without advancing game state.
+    let clock = 0, ticks = 0;
+    while (clock < duration) { clock += 1 / 60; ticks++; }
+    seasonBoundaryOffsets.set(duration, Math.ceil(ticks / 60) - duration);
+  }
+  return seasonBoundaryOffsets.get(duration);
+}
+
+function seasonalReadiness(state, activation) {
+  const seasons = ['spring', 'summer', 'autumn', 'winter'];
+  const duration = Number.isFinite(state?.seasonDurationSec) && state.seasonDurationSec > 0 ? state.seasonDurationSec : 8;
+  const time = Math.max(0, state?.tSec ?? 0);
+  const authoredSeasons = activation.seasonKeys?.filter(season => seasons.includes(season));
+  const relevant = authoredSeasons?.length ? authoredSeasons : seasons;
+  const offset = seasonBoundaryOffset(duration);
+  // Seasonal activation is consumed at the next whole-second simulation tick.
+  // The opening spring has no season-change event; its first repeat is year 2.
+  const boundary = Math.max(1, Math.floor((time - offset) / duration) + 1);
+  let next = boundary, previous = boundary - 1;
+  while (!relevant.includes(seasons[next % 4])) next++;
+  while (previous > 0 && !relevant.includes(seasons[previous % 4])) previous--;
+  const nextSec = next * duration + offset, previousSec = previous > 0 ? previous * duration + offset : 0;
+  return { nextTrigger: { season: seasons[next % 4], tSec: nextSec }, fill: (time - previousSec) / (nextSec - previousSec) };
+}
+
 export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
@@ -36,11 +66,10 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const threshold = evaluation?.activation?.chargeThreshold ?? Math.max(1, Math.floor((def.activation?.chargeThreshold ?? 1) - Math.max(0, ['bronze','silver','gold','diamond'].indexOf(tier)) * (def.activation?.chargeThresholdReductionPerQuality ?? .5)));
   const requiredWork = def.effects?.find(e => e.op === 'createLocalStructureAtWork')?.requiredWork;
   const seasonal = def.activation?.type === 'season';
-  const period = seasonal ? (state?.seasonDurationSec ?? 8) * (def.activation?.seasonKeys?.length ? 4 : 1) : getMoonCycleDurationSec(state);
-  const offset = seasonal ? (['spring','summer','autumn','winter'].indexOf(def.activation.seasonKeys?.[0]) * (state?.seasonDurationSec ?? 8) + 1)
-    : 1 + (MOON_PHASE_INDEX_BY_ID[def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
+  const seasonReadiness = seasonal ? seasonalReadiness(state, def.activation) : null;
+  const period = getMoonCycleDurationSec(state);
+  const offset = 1 + (MOON_PHASE_INDEX_BY_ID[def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
   const viewedTime = state?.tSec ?? 0;
-  const scheduledAge = ((viewedTime - offset) % period + period) % period;
   const lastReaction = activationTrace.filter(entry => entry.kind === 'activated' && entry.targetPracticeId === id && entry.tSec <= viewedTime).at(-1);
   const activationAge = slot && lastReaction ? viewedTime - lastReaction.tSec : null;
   // Face-only recipe data. These are authored base yields; evaluation remains
@@ -61,12 +90,12 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     inputs, production, workerMultiplier,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],
-    viewedTime, activationAge,
+    viewedTime, activationAge, nextTrigger: seasonReadiness?.nextTrigger ?? null,
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
     workerCapacity: kind === 'practice' ? getDetailedPracticeWorkerCapacity(def, tier) : 0,
     workerBonus: def.workerBonus ?? 1, workers: workers?.tokens?.length ?? 0,
     fill: def.lane === 'charge' ? Math.min(1, requiredWork ? (slot?.work ?? 0) / requiredWork : (slot?.charge ?? 0) / threshold)
-      : (state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period,
+      : seasonReadiness?.fill ?? ((state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period),
     detailLines: [...inputs.map(input => `${input.kind === 'consume' ? 'Consume' : 'Require (not consumed)'} ${input.amount} [${input.traits.join(' / ')}].`), ...production.filter(row => row.season).map(row => row.label), ...(production.length ? ['Face yields are base amounts; worker bonuses and local modifiers apply at activation.'] : []), ...(slot?.qualityBonus?[`Quality: +${slot.qualityBonus*25}% numeric Structure bonuses.`]:[]),...(evaluation?.missing ? [`Missing ${evaluation.missing.kind}: [${evaluation.missing.traits.join(" / ")}] to the left`] : []), ...(evaluation?.providers ?? []).map(p => `${p.kind === "consume" ? "Consume" : "Require"} ${p.amount} from slot ${p.slotIndex + 1}: ${p.practiceId}`),...(kind === 'structure' ? describeStructureValues(def) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
       ...(kind === 'practice' ? [`Workers: ${getDetailedPracticeWorkerCapacity(def, tier)} sockets${producesStock ? `; +${number((def.workerBonus ?? 1) * 100)}% Stock per effective worker.` : '; staffing may satisfy specialist requirements.'}`,
         def.lane === 'charge' ? requiredWork ? `Birth adds construction work.` : `Activates at ${threshold} charge. Each matching activation contributes one charge.`
