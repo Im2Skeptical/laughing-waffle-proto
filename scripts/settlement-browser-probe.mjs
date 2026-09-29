@@ -153,7 +153,7 @@ try {
           indicator.structureSlots.length === indicator.structureCapacity &&
           indicator.structureSlots.every((slot) => slot == null)
       ),
-    "non-detailed regions render their capacity as open building slots"
+    "non-detailed regions retain their open construction capacity for inspection"
   );
   assert.equal(
     initial.worldMap.regionMapIndicators.filter(
@@ -192,7 +192,7 @@ try {
       { regionId: "river-crown", used: 2 },
       { regionId: "lake-country", used: 2 },
     ],
-    "filled and open building glyphs follow local structure slots"
+    "map inspection data retains local structure occupancy"
   );
   assert.ok(detailedMapIndicators.every((indicator) =>
     indicator.structureCapacity >= 5 && indicator.structureCapacity <= 8));

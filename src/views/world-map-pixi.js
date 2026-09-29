@@ -1,3 +1,4 @@
+import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
@@ -29,7 +30,6 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import {
   CIVILIZATION_HEADER_RECT,
   CIVILIZATION_RECT,
-  CONTROLLER_COLOURS,
   DETAIL_RECT,
   EDGE_TRANSFER_PACKET_MAX_ACTIVE,
   MAP_RECT,
@@ -50,7 +50,6 @@ import {
   addPlayerOwnershipMarker,
   addSettlementCurrencyIndicator,
   addSettlementPressureIndicator,
-  addStructureIndicator,
   addWorkerIndicator,
   getWorkerIndicatorPresentation,
 } from "./world-map/glyphs.js";
@@ -157,7 +156,7 @@ function buildRegionMapIndicators(state, definition) {
       controller: region?.controller ?? null,
       monster: region?.monster ?? null,
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
-      showsPlayerMarker: region?.controller === "player",
+      showsPlayerMarker: region?.controller === "player" && !region?.monster,
       hasDetailedSettlement: viewModel != null,
       ...workerPresentation,
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
@@ -533,6 +532,7 @@ export function createWorldMapView({
       onOpenEndDetails,
     }).detailsTarget;
 
+    const territoryBorders = [];
     const highlightedRegionIds = new Set([
       vassalHighlight?.targetRegionId,
       vassalHighlight?.intervention?.regionAId,
@@ -551,17 +551,17 @@ export function createWorldMapView({
       );
       const highlighted = highlightedRegionIds.has(region.id);
       const shape = new PIXI.Graphics();
-      shape.lineStyle(selected || highlighted ? 5 : 2,
-        highlighted ? 0xf0d269 : selected ? PALETTE.accent : CONTROLLER_COLOURS[region.controller] ?? 0x777777, 1);
-      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, selected || highlighted ? 0.2 : 0.04);
-      shape.drawPolygon(points);
-      shape.endFill();
+      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, .04).drawPolygon(points).endFill();
+      shape.eventMode = 'none';
+      territoryBorders.push({points, player:region.controller==='player' && !region.monster,
+        monster:!!region.monster, selected, highlighted, controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
       hit.cursor = "pointer";
       if (display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
+      if (region.monster && display.actors !== false) addMonsterGround(hit, points);
       hit.mapRegionId = region.id;
       hit.on("pointerover", () => {
         const pressure = mapIndicator?.pressure;
@@ -601,6 +601,11 @@ export function createWorldMapView({
     edges.eventMode = "none";
     edges.visible = display.connections !== false;
     mapContent.addChild(edges);
+    // Draw borders after every terrain polygon and road, with selection last.
+    // Neighboring terrain must not erase the important side of a shared edge.
+    for (const territory of territoryBorders.sort((a,b)=>Number(a.selected)-Number(b.selected))) {
+      addTerritoryBorder(mapContent, territory.points, territory);
+    }
 
     for (const indicator of regionMapIndicators) {
       const regionDef = definition.regions.find(
@@ -609,35 +614,38 @@ export function createWorldMapView({
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
-        indicator.monster ? `MONSTER · Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
-        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-66,.5));
-      if (indicator.hasDetailedSettlement) {
+        indicator.monster ? `Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
+        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-(indicator.monster?72:88),.5));
+      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point);
+      const adornments = new PIXI.Container();
+      adornments.position.set(point.x,point.y);
+      adornments.scale.set(.75);
+      adornments.eventMode = 'none';
+      mapContent.addChild(adornments);
+      if (indicator.hasDetailedSettlement && !indicator.monster) {
         if (display.scenery !== false) {
-          landmarks.push(addTimelineLandmark(mapContent,{x:point.x-100,y:point.y-102,width:104,height:118},
+          landmarks.push(addTimelineLandmark(mapContent,{x:point.x-29,y:point.y-76,width:58,height:66},
             {startSec:definition.regions.indexOf(regionDef)*.37}));
-          landmarks.push(addTimelineLandmark(mapContent,{x:point.x+58,y:point.y-21,width:42,height:35},
+          landmarks.push(addTimelineLandmark(mapContent,{x:point.x+29,y:point.y-17,width:20,height:17},
             {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
         }
         if (display.workers !== false) addWorkerIndicator(
-          mapContent,
-          point,
+          adornments,
+          {x:0,y:65},
           indicator.activeWorkerCount,
           indicator.unusedWorkerCount
         );
       }
-      if (display.structures !== false) addStructureIndicator(mapContent, point, indicator.structureSlots, {
-        centered: !indicator.hasDetailedSettlement,
-      });
       if (indicator.showsPlayerMarker) {
-        addPlayerOwnershipMarker(mapContent, point, {
+        addPlayerOwnershipMarker(adornments, {x:0,y:0}, {
           selected:
             regionSelectionActive &&
             indicator.regionId === selectedRegionId,
         });
       }
       if (display.alerts !== false) {
-        addSettlementPressureIndicator(mapContent, point, indicator.pressure);
-        addSettlementCurrencyIndicator(mapContent, point, indicator);
+        addSettlementPressureIndicator(adornments, {x:65,y:40}, indicator.pressure);
+        addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
       }
     }
     for (const regionDef of definition.regions) {
@@ -653,7 +661,7 @@ export function createWorldMapView({
     const activeVassal = getCurrentLifeMapVassal(state);
     if (display.actors !== false && activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
-      if (regionDef) addActiveVassalMarker(mapContent, screenPoint(regionDef.display.labelPoint), activeVassal, state);
+      if (regionDef) addActiveVassalMarker(mapContent, {x:screenPoint(regionDef.display.labelPoint).x-55,y:screenPoint(regionDef.display.labelPoint).y+12}, activeVassal, state);
     }
 
     if (chaosExpanded) {

@@ -10,7 +10,7 @@ stay in `createWorldMapView`.
 
 - `constants.js` — `MAP_RECT`, panel rects, colours, packet caps, tap windows
 - `packets.js` — glyph spec, playback direction, pose, facing, rewind visual spec
-- `glyphs.js` — worker/structure/ownership/vassal/pressure/currency builders
+- `glyphs.js` — worker/ownership/vassal/pressure/currency builders
   that take explicit parent/point arguments and do not close over the view
 
 ## Intentionally not extracted
@@ -45,3 +45,14 @@ continues to use the shared piece view.
 Run `npm run test:region-map-camera` for deterministic focus/animation checks
 and `npm run probe:region-map` for disclosure, mouse/touch gestures, inspection,
 and desktop/mobile screenshots, alongside the settlement/navigation probes.
+
+## Territory presentation
+
+Settlement paintings are 58 x 66 map units; zoom supplies the close view.
+Structure-slot pictograms are omitted from the map and remain in settlement
+panels. Player land has a dark-backed gold boundary; the selected polygon uses
+an ice-blue/white outline drawn above neighboring terrain and roads.
+`territory-art.js` draws polygon-clipped scorched ground and fissures plus a
+horned skull marker for monster regions, without consuming simulation RNG.
+Run `node scripts/map-territory-browser-probe.mjs` for occupied-region visual
+checks, including selection and mobile zoom, and serialized-state preservation.
