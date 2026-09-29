@@ -7,7 +7,7 @@ import { TEXT_STYLES } from './settlement-theme.js';
 const INK = 0xf5e2ad;
 
 function numeral(parent, value, x, y, size = 22, maxWidth = Infinity) {
-  const text = createText(String(value), { ...TEXT_STYLES.chip, fontSize:size, fill:INK, stroke:0x221b14, strokeThickness:3 }, x, y, .5, .5);
+  const text = createText(String(value), { ...TEXT_STYLES.chip, fontSize:size, fill:INK, stroke:0x221b14, strokeThickness:3, trim:true }, x, y, .5, .5);
   text.scale.set(Math.min(1, maxWidth / Math.max(1, text.width)));
   text.eventMode = 'none'; parent.addChild(text); return text;
 }
@@ -75,27 +75,29 @@ function seasonIcon(parent, season, x, y, size) {
 
 function stockTray(parent, face, w) {
   if (!(face.stockCapacity > 0)) return null;
-  const traits=face.stockTraits ?? [], size=25, counterWidth=Math.max(39,String(face.stock).length*13+String(face.stockCapacity).length*8+10);
-  const columns=Math.max(1,Math.floor((w-counterWidth-8)/size));
+  // Three tags plus the counter exactly span a practice card. Raise the extra
+  // height above the rim instead of taking more room from the illustration.
+  const traits=face.stockTraits ?? [], counterWidth=60, size=(Math.min(w,170)-counterWidth-8)/3;
+  const columns=3, y=-12;
   const rows=Math.max(1,Math.ceil(traits.length/columns));
   const width=Math.min(w,Math.min(columns,traits.length)*size+counterWidth+8), height=rows*size+5;
   const x=w-width;
-  plate(parent,x,0,width,height);
+  plate(parent,x,y,width,height);
   traits.forEach((trait,i)=>{
-    const tx=x+4+(i%columns)*size, ty=3+Math.floor(i/columns)*size;
+    const tx=x+4+(i%columns)*size, ty=y+3+Math.floor(i/columns)*size;
     recess(parent,tx,ty,size-2);traitIcon(parent,trait,tx+1,ty+1,size-4);
   });
-  const cx=w-counterWidth/2-2, cy=height/2;
-  fittedSprite(parent,getResourceTexture('stock'),cx-counterWidth/2,0,counterWidth,height);
+  const cx=w-counterWidth/2-2, cy=y+height/2;
+  fittedSprite(parent,getResourceTexture('stock'),cx-counterWidth/2,y,counterWidth,height);
   // Different sizes preserve the current / capacity hierarchy of the mockup.
   const count=new PIXI.Container();
-  const current=numeral(count,face.stock,0,0,25);
-  const capacity=numeral(count,`/${face.stockCapacity}`,current.width/2+2,4,15);
+  const current=numeral(count,face.stock,0,0,36);
+  const capacity=numeral(count,`/${face.stockCapacity}`,current.width/2+2,6,20);
   capacity.anchor.x=0;
   const bounds=count.getLocalBounds(), scale=Math.min(1,(counterWidth-3)/bounds.width);
   count.scale.set(scale);count.position.set(cx-(bounds.x+bounds.width/2)*scale,cy);
   parent.addChild(count);
-  return {x,y:0,width,height};
+  return {x,y,width,height};
 }
 
 function workerDock(parent, face, w, h) {
@@ -180,7 +182,8 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     if(fill>0)dial.lineStyle(2,charge?0x84d6d0:0xe9cc83).arc(sourceX,cy,radius-4,-Math.PI/2,-Math.PI/2+Math.PI*2*fill);
     dial.eventMode='none';parent.addChild(dial);
     const icon=face.source?.icon==='season'?'year':face.source?.icon==='passive'?'activation':face.source?.icon;
-    addResourceIcon(parent,icon,sourceX,cy,23);
+    if(face.nextTrigger?.season)seasonIcon(parent,face.nextTrigger.season,sourceX,cy,23);
+    else addResourceIcon(parent,icon,sourceX,cy,23);
     if(face.source?.spark)addResourceIcon(parent,'activation',sourceX+10,cy+9,10);
     if(face.source?.missing)parent.addChild(new PIXI.Graphics().lineStyle(2,0xda8772).moveTo(sourceX-9,cy-9).lineTo(sourceX+9,cy+9));
     if(charge) {

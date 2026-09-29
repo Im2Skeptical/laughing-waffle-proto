@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
+import { createNewGameState } from '../src/model/new-game.js';
+import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
+import { getDetailedSettlementSites } from '../src/model/detailed-settlements.js';
 
 const faceClock={tSec:0,seasonDurationSec:8};
 const workerFace=getGamepieceFace(faceClock,'practice','forage','bronze',{workers:{tokens:[{effectiveness:.5}],effectiveWorkers:.5}});
@@ -23,7 +26,29 @@ for(const [second,expected] of [[16,null],[17,0],[18,1],[17,0]]) {
 }
 assert.equal(getGamepieceFace({...faceClock,tSec:9},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'},activationTrace:[{kind:'activated',targetPracticeId:'dryFarming',tSec:9}]}).activationAge,0);
 assert.equal(getGamepieceFace({...faceClock,tSec:8},'practice','dryFarming','bronze',{slot:{practiceId:'dryFarming'}}).activationAge,null);
-for(const [id,period,offset] of [['dryFarming',32,9],['barter',getMoonCycleDurationSec(faceClock),1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
+for(const [second,season,nextSec,fill] of [[0,'summer',9,0],[8,'summer',9,8/9],[9,'autumn',17,0],[16,'autumn',17,7/8],[17,'spring',33,0],[25,'spring',33,.5],[32,'spring',33,15/16],[33,'summer',41,0],[65,'summer',73,0],[25,'spring',33,.5],[9,'autumn',17,0],[0,'summer',9,0]]) {
+  const clock={...faceClock,tSec:second},before=JSON.stringify(clock);
+  const face=getGamepieceFace(clock,'practice','logging');
+  assert.deepEqual(face.nextTrigger,{season,tSec:nextSec},`Logging points at its next relevant trigger at ${second}`);
+  assert.ok(Math.abs(face.fill-fill)<1e-10,'Readiness resets per trigger and spans skipped seasons');
+  assert.equal(JSON.stringify(clock),before,'Upcoming symbols never advance the simulation');
+}
+assert.deepEqual(getGamepieceFace({...faceClock,tSec:17},'practice','dryFarming').nextTrigger,{season:'summer',tSec:41},'Skip both winter and spring when neither triggers');
+assert.deepEqual(getGamepieceFace({...faceClock,tSec:9},'practice','saltGathering').nextTrigger,{season:'summer',tSec:41},'Single-season triggers wrap to next year');
+assert.deepEqual(getGamepieceFace({seasonDurationSec:10,tSec:21},'practice','logging').nextTrigger,{season:'spring',tSec:40},'Respect configured season duration');
+for(const duration of [1,8,10]) {
+  const state=createNewGameState(42);state.paused=false;state.seasonDurationSec=duration;
+  const site=getDetailedSettlementSites(state,{playerOnly:true})[0];
+  site.detailedState.practiceSlots=[{practiceId:'logging',tier:'bronze',stock:0,charge:0,work:0},null,null,null,null];
+  for(let i=0;i<duration*5+2;i++) {
+    const next=getGamepieceFace(state,'practice','logging').nextTrigger;
+    advanceReplayStateOneSecond(state);
+    const fired=(site.detailedState.practiceActivationTrace??[]).some(e=>e.targetPracticeId==='logging'&&e.tSec===state.tSec);
+    assert.equal(fired,next.tSec===state.tSec,`Displayed trigger matches actual activation at ${state.tSec}, duration ${duration}`);
+    if(fired)assert.equal(next.season,state.seasons[state.currentSeasonIndex]);
+  }
+}
+for(const [id,period,offset] of [['barter',getMoonCycleDurationSec(faceClock),1],['forage',getMoonCycleDurationSec(faceClock),1+getMoonPhaseDurationSec(faceClock)]]){
   for(const second of [offset,offset+period/2,offset+period,offset+period/2,offset]){
     const clock={...faceClock,tSec:second},before=JSON.stringify(clock);
     const face=getGamepieceFace(clock,'practice',id);

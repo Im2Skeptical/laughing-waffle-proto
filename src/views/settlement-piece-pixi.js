@@ -23,7 +23,8 @@ export function addSettlementPiece(parent, rect, {
     addPieceRim(root, w, h);
     root.faceSections = addPieceFaceChrome(root, face, w, h, {time, reducedMotion});
     // A small inset jewel identifies quality without widening the picture rim.
-    root.addChild(new PIXI.Graphics().beginFill(border).lineStyle(.7,0xf0dbae).drawPolygon([8,7,11,10,8,13,5,10]).endFill());
+    const jewelY = root.faceSections.stock?.x < 12 ? root.faceSections.stock.y + root.faceSections.stock.height + 6 : 10;
+    root.addChild(new PIXI.Graphics().beginFill(border).lineStyle(.7,0xf0dbae).drawPolygon([8,jewelY-3,11,jewelY,8,jewelY+3,5,jewelY]).endFill());
     if (state === 'demolished' || state === 'displaced' || state === 'withdrawn') {
       root.alpha = state === 'withdrawn' ? .3 : .42;
       const scar = new PIXI.Graphics().lineStyle(3,0x1b1713,.9);
@@ -41,7 +42,8 @@ export function addSettlementPiece(parent, rect, {
     }
   }
   root.eventMode = 'static';root.cursor = onInspect ? 'pointer' : 'default';
-  root.hitArea = new PIXI.Rectangle(0,0,w,h);
+  const top = Math.min(0, root.faceSections?.stock?.y ?? 0);
+  root.hitArea = new PIXI.Rectangle(0,top,w,h-top);
   root.accessibleTitle = face?.label ?? 'Available space';
   const key=inspectionKey??`piece:${rect.x}:${rect.y}:${face?.definitionId}`;
   const spec={face,inspectionSide,inspectionKey:key,artRevision:getArtRevision(),title:face?.label??'Available space',lines:detail??[face?.rule,...(face?.detailLines??[])].filter(Boolean),accentColor:border,maxWidth:330,scale:3};
@@ -56,7 +58,7 @@ export function addSettlementPiece(parent, rect, {
 // time and never runs when browsing a recorded/future settlement.
 export function animatePieceUpgrade(card, previousFace) {
   if (!previousFace || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-  const previous = addSettlementPiece(card, { x: 0, y: 0, width: card.hitArea.width, height: card.hitArea.height }, { face: previousFace });
+  const previous = addSettlementPiece(card, { x: 0, y: 0, width: card.pieceGeometry.width, height: card.pieceGeometry.height }, { face: previousFace });
   previous.eventMode = 'none';
   let elapsed = 0;
   const tick = () => {
