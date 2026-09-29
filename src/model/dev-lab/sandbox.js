@@ -2,7 +2,6 @@ import { serializeGameState, deserializeGameState } from '../state.js';
 import { canonicalizeSnapshot } from '../canonicalize.js';
 import { getDetailedSettlementViewModel } from '../detailed-settlements.js';
 import { getDetailedPracticeDef } from '../game-config.js';
-import { planStock } from '../detailed-settlements/stock.js';
 import { tryCreateStructure } from '../detailed-settlements/practices.js';
 import { getRetinue, NEUTRAL_TEMPLATES, createNeutralSettlement } from '../detailed-settlements/external-world.js';
 import { getRegionState, canonicalizeWorldState, addWorldConnection } from '../world-state.js';
@@ -160,7 +159,6 @@ export function getLabObservation(state, regionId) {
     chaos:state.civilization.chaos.chaosPower,monsters:state.civilization.chaos.monsterCount,history:state.civilization.history,
     stocks:local?.practiceSlots.map(p=>p ? {id:p.practiceId,stock:p.stock}:null),meal:vm?.lastMeal ?? local?.lastMeal, lastDefense:vm?.lastDefense ?? local?.lastDefense,
     commission:vassal?.commission ?? null, discoveryAccess:vassal?.discoveryAccess ?? false,
-    selfFunding:local?.practiceSlots.flatMap((slot,index)=>slot ? [{slot:index+1,...planStock(state,local,index,[{traits:getDetailedPracticeDef(state,slot.practiceId).stockTraits,amount:1}])}] : []).filter(p=>!p.ok),
   };
 }
 

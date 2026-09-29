@@ -9,8 +9,8 @@ registries here.
 - Food and Currency are hosted Stock, derived by Trait across five fixed Practice slots.
   There are no authoritative stored/loose Food or Currency wallets and no automatic
   Administration food transport. Provider planning checks Require without spending,
-  then reserves Consume atomically from leftmost eligible hosts to the left; self
-  and right providers are excluded except explicitly granted Record access.
+  then reserves Consume atomically from eligible hosts across the board in
+  left-to-right order, including the consumer's existing Stock.
 - Practices are unique installed engines. Workers are optional; ordinary tokens
   represent population bands, while each Scholar claims one specialist socket.
   Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.

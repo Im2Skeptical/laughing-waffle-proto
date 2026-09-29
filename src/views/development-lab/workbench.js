@@ -29,8 +29,8 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   parent.append(metrics);
   if (['stock','require'].includes(controller.getSnapshot().exhibitId) && local?.practiceSlots[0]) {
     const slot=local.practiceSlots[0],traits=stockTraits(state,slot);
-    const probe=planStock(state,local,0,[{traits,amount:1}]);
-    parent.append(section('No self-funding: real provider-planner probe',el('p',`Slot 1 (${slot.practiceId}) holds ${slot.stock} Stock. Ask it to Consume 1 [${traits.join(' / ')}]: ${probe.ok?'funded':'unavailable'}. The consumer’s own Stock cannot pay; no hosts exist to its left. This query does not spend Stock.`)));
+    const probe=planStock(state,local,[{traits,amount:1}]);
+    parent.append(section('Whole-board Stock probe',el('p',`Slot 1 (${slot.practiceId}) holds ${slot.stock} Stock. Ask it to Consume 1 [${traits.join(' / ')}]: ${probe.ok?`funded from slot ${probe.providers[0].slotIndex+1}`:'unavailable'}. Matching Stock is checked from left to right, including the consumer’s own Stock. This query does not spend Stock.`)));
   }
   const tableau = el('div','','lab-tableau'); tableau.dataset.testid='lab-tableau';
   vm?.practices.forEach((p,index)=>{
@@ -38,7 +38,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
     if (p.face) {
       card.append(el('p',`Card Tags: ${p.tags.join(', ')} · Workers: ${(p.workers?.tokens??[]).map(t=>t.specialist??'ordinary').join(', ') || 'none'}`));
       if (p.evaluation?.providers?.length) for (const provider of p.evaluation.providers) card.append(el('p',`${provider.kind === 'consume'?'Consume':'Require'} ${provider.amount}: [${provider.slotIndex+1} ${provider.practiceId}] → [${index+1} ${p.label}]`,'lab-provider'));
-      if (p.evaluation?.missing) card.append(el('p',`Blocked: ${p.evaluation.missing.kind} [${p.evaluation.missing.traits.join(' / ')}] to the left`,'lab-warning'));
+      if (p.evaluation?.missing) card.append(el('p',`Blocked: ${p.evaluation.missing.kind} [${p.evaluation.missing.traits.join(' / ')}] on the board`,'lab-warning'));
       if (previous?.stocks?.[index]?.stock !== undefined) card.append(el('p',`Stock ${previous.stocks[index].stock} → ${p.stock}`));
     }
     if (gym) {

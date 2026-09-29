@@ -48,14 +48,25 @@ assert.ok(state.world.sites.some(s=>s.neutral&&adjacentRegionIds(state,state.civ
 assert.deepEqual(serializeGameState(state),serializeGameState(createNewGameState(42)));
 assert.ok(!Object.hasOwn(settlement,'currency')&&!Object.hasOwn(settlement,'storedFood')&&!Object.hasOwn(settlement,'looseFood'));
 settlement.practiceSlots=[slot('logging',2),slot('surfaceMining',1),slot('smelting'),slot('logging',5)];
-const plan=planStock(state,settlement,2,[{traits:['Ore'],amount:1},{traits:['Fuel'],amount:1}]);
+const plan=planStock(state,settlement,[{traits:['Ore'],amount:1},{traits:['Fuel'],amount:1}]);
 assert.equal(plan.ok,true);assert.deepEqual(plan.providers.map(p=>p.slotIndex),[1,0]);
 applyStockPlan(settlement,plan);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[1,0,0,5]);
-assert.equal(planStock(state,settlement,2,[{traits:['Fuel'],amount:2}]).ok,false,'right provider cannot pay');
-assert.equal(planStock(state,settlement,0,[{traits:['Timber'],amount:1}]).ok,false,'consumer cannot pay itself');
+assert.deepEqual(planStock(state,settlement,[{traits:['Fuel'],amount:2}]).providers.map(p=>p.slotIndex),[0,3],'providers on both sides pay in left-to-right order');
 const before=JSON.stringify(settlement.practiceSlots);
-assert.equal(planStock(state,settlement,2,[{traits:['Fuel'],amount:1},{traits:['Ore'],amount:1}]).ok,false);
+assert.equal(planStock(state,settlement,[{traits:['Fuel'],amount:1},{traits:['Ore'],amount:1}]).ok,false);
 assert.equal(JSON.stringify(settlement.practiceSlots),before,'failed transaction cannot partially consume');
+settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning',1),slot('logging',1)];
+const wholeBoard=planStock(state,settlement,[{traits:['Fuel'],amount:3}]);
+assert.equal(wholeBoard.ok,true);assert.deepEqual(wholeBoard.providers.map(p=>p.slotIndex),[0,1,2],'Consume includes own Stock and scans the whole board left to right');
+applyStockPlan(settlement,wholeBoard);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[0,0,0]);
+settlement.practiceSlots=[slot('garrisonDuty'),slot('bowmaking',1)];
+const rightRequirement=planStock(state,settlement,[],[{traits:['Arms'],amount:1}]);
+assert.equal(rightRequirement.ok,true);assert.deepEqual(rightRequirement.providers.map(p=>p.slotIndex),[1],'Require accepts right-side Stock');
+settlement.practiceSlots=[slot('bowmaking',1)];
+assert.deepEqual(planStock(state,settlement,[],[{traits:['Arms'],amount:1}]).providers.map(p=>p.slotIndex),[0],'Require accepts own Stock');
+settlement.practiceSlots=[slot('charcoalBurning'),slot('logging',1)];
+runPracticeActivation(state,'birth');
+assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[6,0],'Practice activation consumes a right-side provider');
 settlement.practiceSlots=[slot('forage'),slot('pastoralism'),slot('logging',2),slot('barter')];
 runPracticeActivation(state,'food','preRouting');runPracticeActivation(state,'birth');
 assert.ok(stockTotal(state,settlement,'Edible')>=2);assert.ok(stockTotal(state,settlement,'Currency')>=1);
@@ -72,10 +83,10 @@ assert.equal(JSON.stringify(serializeGameState(a)) === JSON.stringify(serializeG
 const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validation.errors,[]);
 // Require is non-consuming and may share an activation-start unit with Consume.
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning')];
-const shared=planStock(state,settlement,1,[{traits:['Timber'],amount:1}],[{traits:['Fuel'],amount:1}]);
+const shared=planStock(state,settlement,[{traits:['Timber'],amount:1}],[{traits:['Fuel'],amount:1}]);
 assert.equal(shared.ok,true);applyStockPlan(settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
 const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
-assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},2,getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can follow existing suppliers');
+assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can use existing suppliers');
 
 // A: Common content grows capacity and sustains hosted Food without a specialist.
 const common=createNewGameState(21),commonSite=getDetailedSettlementSites(common,{playerOnly:true})[0];

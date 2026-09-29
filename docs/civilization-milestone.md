@@ -29,7 +29,7 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 ## Systems implemented in the first pass
 
 - Universal hosted Stock: five fixed singleton Practice slots; count/capacity and Traits;
-  deterministic left-to-right atomic Consume/Require; no self funding; derived Edible
+  deterministic board-wide, left-to-right atomic Consume/Require; derived Edible
   and Currency totals. Food runs after Practice production, one Stock per 30 people.
   Currency purchases and Crisis procurement debit hosts, including upgraded hosts.
 - Declarative production, conditions, specialist training, phase Housing/Food bonuses,

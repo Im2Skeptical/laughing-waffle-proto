@@ -67,7 +67,7 @@ export function buildDetailedPracticeEvaluation(state, site, assignment) {
   const slot = site?.detailedState?.practiceSlots?.[assignment.slotIndex];
   const def = getDetailedPracticeDef(state, slot?.practiceId);
   if (!def) return null;
-  const plan = planStock(state, site.detailedState, assignment.slotIndex, def.consume, def.require, {scholarStaffed:isScholarStaffed(assignment)});
+  const plan = planStock(state, site.detailedState, def.consume, def.require);
   return { practiceId: def.id, label: def.label, workerCapacity: def.workerCapacity, activation: def.activation, rule: def.ui.rule,
     stock: slot.stock ?? 0, stockCapacity: stockCapacity(state, site.detailedState, slot, isScholarStaffed(assignment)), stockTraits: def.stockTraits,
     providers: plan.providers, missing: plan.missing ?? null, supplied: plan.ok && conditionsMet(state, site, def, assignment),
@@ -89,7 +89,7 @@ export function runPracticeActivation(state, activationType, stage = null) {
       if (def.activation.seasonKeys && !def.activation.seasonKeys.includes(getCurrentSeasonKey(state))) continue;
       if (def.cadenceMoons && Math.floor(state.tSec / (getGameSetting(state, 'phaseDurationSec') * 6)) % def.cadenceMoons) continue;
       if (!conditionsMet(state, site, def, assignment)) continue;
-      const plan = planStock(state, settlement, assignment.slotIndex, def.consume, def.require, {scholarStaffed:isScholarStaffed(assignment)});
+      const plan = planStock(state, settlement, def.consume, def.require);
       if (!plan.ok) continue;
       const external = def.externalAction ? resolveExternalPractice(state, site, def, false) : { ok: true, bonus: 0 };
       if (!external.ok) continue;
