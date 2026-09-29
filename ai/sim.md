@@ -11,6 +11,10 @@ registries here.
   Administration food transport. Provider planning checks Require without spending,
   then reserves Consume atomically from eligible hosts across the board in
   left-to-right order, including the consumer's existing Stock.
+- Faith-phase Chaos income is unchanged. At a Death phase with at least 1000
+  accumulated Chaos and an empty frontier region, one spatial Monster spawns in
+  authored region order and accumulated Chaos resets to 0. Monster Defense still
+  grows with the lifetime number spawned.
 - Practices are unique installed engines. Workers are optional; ordinary tokens
   represent population bands, while each Scholar claims one specialist socket.
   Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.

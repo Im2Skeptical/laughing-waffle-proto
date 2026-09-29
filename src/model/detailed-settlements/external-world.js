@@ -1,7 +1,7 @@
 import { emptySpecialists } from "./cohorts.js";
 import { createInitialDetailedSettlementData } from '../../defs/world/detailed-settlement-scenario.js';
 import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-settlement-defs.js';
-import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from '../game-config.js';
+import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
 import { normalizeStructureLayout } from '../structure-layout.js';
 import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING } from './stock.js';
@@ -129,11 +129,15 @@ export function conquerSettlement(state, targetId, edge = 0) {
 
 export function stepSpatialPressure(state) {
   const chaos=state.civilization.chaos;
-  const desired=Math.floor(chaos.chaosPower / getGameSetting(state, "chaosPerMonster"));
   const regions=getWorldDefinition(state).regions.map(r=>getRegionState(state,r.id));
-  if(desired>(chaos.spatialSpawns??0)) {
+  if(chaos.chaosPower>=CIV_CONTENT_TUNING.monsterSpawnChaos) {
     const target=regions.find(r=>r.controller==='frontier'&&!r.monster);
-    if(target) { target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(desired/3),ageMoons:0};chaos.spatialSpawns=(chaos.spatialSpawns??0)+1; }
+    if(target) {
+      const spawnNumber=(chaos.spatialSpawns??0)+1;
+      target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3),ageMoons:0};
+      chaos.spatialSpawns=spawnNumber;
+      chaos.chaosPower=0;
+    }
   }
   for(const region of regions.filter(r=>r.monster)) {
     region.monster.ageMoons++;

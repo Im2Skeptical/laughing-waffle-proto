@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import './settlement-redesign.js';
 import { ActionKinds } from "../actions.js";
 import { createInitialState } from "../init.js";
+import { createNewGameState } from "../new-game.js";
 import { buildProjectionChunkFromStateData } from "../projection-chunk.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { serializeGameState } from "../state.js";
@@ -128,8 +129,10 @@ assert.equal(
   atResolution.state.civilization.chaos.chaosPower
 );
 
-const terminalProjectionBase = createInitialState("devPlaytesting01");
-terminalProjectionBase.civilization.chaos.chaosPower = 100;
+const terminalProjectionBase = createNewGameState(123);
+for (const region of terminalProjectionBase.world.regions) {
+  if (region.controller !== "player") region.monster = { defense: 100, ageMoons: 99 };
+}
 const terminalProjection = buildProjectionChunkFromStateData(
   serializeGameState(terminalProjectionBase), 0, 3000
 );

@@ -20,7 +20,6 @@ function uncachedGraphValues(metric, state, subject) {
 const initial = createInitialState("devPlaytesting01", 99117);
 initial.paused = false;
 initial.gameConfig.settings.values.primordialBasePressure = 100;
-initial.gameConfig.settings.values.chaosPerMonster = 1000;
 // Pin this terminal-boundary scenario's production tuning. Higher authored
 // worker yields can keep it alive past the 2100-second projection horizon.
 for (const practice of Object.values(initial.gameConfig.gamepieces.practices)) practice.workerBonus = .25;

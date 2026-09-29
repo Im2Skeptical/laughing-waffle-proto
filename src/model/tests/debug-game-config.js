@@ -70,7 +70,7 @@ assert.deepEqual(
     "prematureDeathChaosWeight", "externalEmigrationChaosWeight",
     "bronzeChaosResistancePopulation", "silverChaosResistancePopulation",
     "goldChaosResistancePopulation", "diamondChaosResistancePopulation",
-    "chaosPerMonster", "migrationHardshipDeathRate",
+    "migrationHardshipDeathRate",
     "resistancePerAdditionalElder",
   ].map((id) => [id, authoredConfig.settings.values[id]])),
   {
@@ -86,7 +86,6 @@ assert.deepEqual(
     silverChaosResistancePopulation: 5,
     goldChaosResistancePopulation: 2,
     diamondChaosResistancePopulation: 1,
-    chaosPerMonster: 10,
     migrationHardshipDeathRate: 0.8,
     resistancePerAdditionalElder: 2,
   },

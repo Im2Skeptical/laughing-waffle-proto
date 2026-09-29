@@ -190,6 +190,33 @@ assert.equal(getRegionState(relations,neighbor.regionId).controller,'player');
 assert.equal(neighbor.detailedState.populationByClass.villager.adults,0);
 assert.ok(neighbor.detailedState.populationByClass.stranger.adults>0);
 
+// Spatial spawning spends 1000 Chaos once, including when income overshoots the threshold.
+const spawn=createNewGameState(420);
+const spawnFrontiers=spawn.world.regions.filter(r=>r.controller==='frontier');
+spawn.civilization.chaos.chaosPower=999;
+stepSpatialPressure(spawn);
+assert.equal(spawn.world.regions.filter(r=>r.monster).length,0);
+assert.equal(spawn.civilization.chaos.chaosPower,999);
+spawn.civilization.chaos.chaosPower=1000;
+stepSpatialPressure(spawn);
+assert.equal(spawnFrontiers[0].monster.defense,3);
+assert.equal(spawn.civilization.chaos.chaosPower,0);
+assert.equal(spawn.civilization.chaos.spatialSpawns,1);
+stepSpatialPressure(spawn);
+assert.equal(spawn.world.regions.filter(r=>r.monster).length,1,'spent Chaos cannot spawn again');
+spawn.civilization.chaos.chaosPower=1250;
+stepSpatialPressure(spawn);
+assert.equal(spawnFrontiers[1].monster.defense,3);
+assert.equal(spawn.civilization.chaos.chaosPower,0,'spawn resets overshoot to zero');
+spawn.civilization.chaos.chaosPower=1000;
+stepSpatialPressure(spawn);
+assert.equal(spawnFrontiers[2].monster.defense,4,'Defense still scales with lifetime spawn count');
+const noFrontier=createNewGameState(421);
+for(const region of noFrontier.world.regions) if(region.controller==='frontier') region.monster={defense:1,ageMoons:0};
+noFrontier.civilization.chaos.chaosPower=1000;
+stepSpatialPressure(noFrontier);
+assert.equal(noFrontier.civilization.chaos.chaosPower,1000,'Chaos is spent only when a Monster can spawn');
+
 // E: supplied interception spends Stock; exhausted capability records territorial loss.
 const defense=createNewGameState(61),defended=defense.world.sites.find(s=>s.regionId===defense.civilization.capitalRegionId);
 const defendingPool=getVassalCandidatePool(defense);

@@ -149,8 +149,8 @@ combat and equipment crafting remain outside scope.
   enough Support without making recruitment trivial?
 - Do Commissions provide sufficient purchasing income alongside the cost of holding
   Prestige for Retinue? Does the free reconsideration make early supply chains reliable?
-- Is automatic defense's Edible consumption legible before collapse, and is every-four-
-  moon expansion the right response window? Should players explicitly prioritize threats?
+- Is automatic defense's Edible consumption legible before collapse, and is the
+  100-moon expansion interval the right response window? Should players explicitly prioritize threats?
 - Does adjacent conquest need a stronger supply or travel constraint? Should reconquest
   preserve the age and specialist identities of survivors rather than resetting them?
 - Which deferred institutions and terminal engines improve decisions enough to justify
