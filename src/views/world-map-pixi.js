@@ -616,7 +616,7 @@ export function createWorldMapView({
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-(indicator.monster?72:88),.5));
-      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point);
+      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, indicator.monster);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
