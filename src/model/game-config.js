@@ -98,7 +98,6 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("silverChaosResistancePopulation", "Silver people per Chaos resistance", 5, 1, 100000, 1, true),
       field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 2, 1, 100000, 1, true),
       field("diamondChaosResistancePopulation", "Diamond people per Chaos resistance", 1, 1, 100000, 1, true),
-      field("chaosPerMonster", "Chaos per monster", 10, 1, 1000000, 1, true),
     ]),
   }),
   Object.freeze({
