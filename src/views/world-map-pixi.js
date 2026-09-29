@@ -1,3 +1,5 @@
+import { createMapCamera } from './world-map/camera.js';
+import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
@@ -30,6 +32,7 @@ import {
   DETAIL_RECT,
   EDGE_TRANSFER_PACKET_MAX_ACTIVE,
   MAP_RECT,
+  MAP_VIEWPORT_RECT,
   REGION_COLOURS,
   REGION_DOUBLE_TAP_WINDOW_MS,
   REGION_FLAG_DOUBLE_TAP_RADIUS,
@@ -83,10 +86,10 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 7,
-    disabled ? PALETTE.panelSoft : PALETTE.accent, PALETTE.stroke, 2);
+    PALETTE.panelSoft, PALETTE.stroke, 2);
   root.addChild(gfx, createText(label, {
     ...TEXT_STYLES.title,
-    fill: disabled ? PALETTE.textMuted : 0x292622,
+    fill: disabled ? PALETTE.textMuted : PALETTE.accent,
   }, rect.x + rect.width / 2, rect.y + rect.height / 2, 0.5, 0.5));
   root.eventMode = "static";
   // Map redraws can replace this button between input and the next paint.
@@ -210,7 +213,6 @@ export function createWorldMapView({
   getCivilizationLossInfo,
   onOpenEndDetails,
   onShowCivilizationGraph,
-  onShowSelectedRegionGraph,
   onOpenDetailedSite,
   getVassalHighlight,
   getDisplayOptions,
@@ -222,7 +224,25 @@ export function createWorldMapView({
   edgeTransferLayer.eventMode = "none";
   edgeTransferGraphics.eventMode = "none";
   edgeTransferLayer.addChild(edgeTransferGraphics);
-  layer.addChild(root, edgeTransferLayer);
+  const viewport = new PIXI.Container();
+  const world = new PIXI.Container();
+  const mapContent = new PIXI.Container();
+  const clip = new PIXI.Graphics().beginFill(0xffffff)
+    .drawRect(MAP_VIEWPORT_RECT.x, MAP_VIEWPORT_RECT.y, MAP_VIEWPORT_RECT.width, MAP_VIEWPORT_RECT.height).endFill();
+  viewport.addChild(world);
+  world.addChild(mapContent, edgeTransferLayer);
+  viewport.mask = clip;
+  layer.addChild(viewport, clip, root);
+  const camera = createMapCamera(viewport, world, MAP_VIEWPORT_RECT, {
+    onTap: handleMapTap,
+    onGesture: () => {
+      tooltipView?.hide?.();
+      lastRegionTap = { regionId: null, atMs: -Infinity, nearFlag: false };
+    },
+  });
+  let chaosExpanded = true;
+  let lastRevealedRegionId = null;
+  let overviewCamera = camera.snapshot();
   let lastSignature = "";
   let lastPointerRegionId = null;
   let lastRegionTap = {
@@ -240,6 +260,49 @@ export function createWorldMapView({
   const effects=createChronicleEffects(edgeTransferLayer,visualTime);
   let landmarks=[];
   let endDetailsTarget = null;
+
+  function isRecentFlagTap(point) {
+    return lastRegionTap.nearFlag && lastRegionTap.point
+      && viewNowMs() - lastRegionTap.atMs <= REGION_DOUBLE_TAP_WINDOW_MS
+      && Math.hypot(point.x - lastRegionTap.point.x, point.y - lastRegionTap.point.y) <= REGION_FLAG_DOUBLE_TAP_RADIUS;
+  }
+
+  function handleMapTap(event) {
+    const tappedAtMs = viewNowMs();
+    const point = viewport.toLocal(event.global);
+    // Framing a newly disclosed region can move the terrain between taps.
+    // A flag double-tap is anchored to the original screen position.
+    const isDoubleTap = isRecentFlagTap(point);
+    let target = event.target;
+    while (target && !target.mapRegionId && target !== viewport) target = target.parent;
+    const regionId = isDoubleTap ? lastRegionTap.regionId : target?.mapRegionId;
+    const state = getState?.();
+    const regionDef = getRegionDefinition(state, regionId);
+    if (!regionDef) {
+      lastRegionTap = { regionId: null, atMs: -Infinity, nearFlag: false };
+      onShowCivilizationGraph?.();
+      return;
+    }
+    const flagPoint = camera.project(screenPoint(regionDef.display.labelPoint));
+    const nearFlag = Math.hypot(point.x - flagPoint.x, point.y - flagPoint.y) <= REGION_FLAG_DOUBLE_TAP_RADIUS;
+    lastPointerRegionId = regionId;
+    const vm = getDetailedSettlementViewModel(state, regionId);
+    if (isDoubleTap && vm) {
+      lastRegionTap = { regionId: null, atMs: -Infinity, nearFlag: false };
+      onOpenDetailedSite?.(vm.siteId, regionId);
+    } else {
+      lastRegionTap = { regionId, atMs: tappedAtMs, nearFlag, point: { x: point.x, y: point.y } };
+      setSelectedRegionId?.(regionId);
+    }
+    lastSignature = '';
+  }
+
+  // A second flag tap may land on the newly opened detail overlay.
+  root.on('pointerdowncapture', event => {
+    if (!isRecentFlagTap(viewport.toLocal(event.global))) return;
+    event.stopPropagation();
+    handleMapTap(event);
+  });
 
   function getEdgeTransferBatchKey(batch) {
     if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
@@ -376,7 +439,7 @@ export function createWorldMapView({
   }
 
   function render(force = false) {
-    if (!root.visible) return;
+    if (!root.visible || camera.isActive()) return;
     const state = getState?.();
     const definition = getWorldDefinition(state);
     if (!definition) return;
@@ -406,11 +469,21 @@ export function createWorldMapView({
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
     clearChildren(root);
+    clearChildren(mapContent);
+    if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
+      if (!lastRevealedRegionId) overviewCamera = camera.snapshot();
+      const selected = getRegionDefinition(state, selectedRegionId);
+      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x, MAP_RECT.x);
+    }
+    if (!regionSelectionActive && lastRevealedRegionId) camera.restore(overviewCamera);
+    lastRevealedRegionId = regionSelectionActive ? selectedRegionId : null;
     landmarks=[];
     endDetailsTarget = null;
 
     const bg = new PIXI.Graphics();
-    bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
+    bg.beginFill(0x152426).drawRect(-3000, -2000, 8500, 5000).endFill();
+    bg.eventMode = "none";
+    mapContent.addChild(bg);
     const civilizationHeader = new PIXI.Graphics();
     roundedRect(
       civilizationHeader,
@@ -424,7 +497,6 @@ export function createWorldMapView({
       2
     );
     root.addChild(
-      bg,
       civilizationHeader,
       createText(
         `${civilizationSummary.settlementCount} SETTLEMENTS  ·  ${civilizationSummary.population.total} SOULS\nFood ${Math.round(civilizationSummary.food.total)}   /   Research ${civilizationSummary.research ?? 0}`,
@@ -441,11 +513,6 @@ export function createWorldMapView({
       rect: { x: 590, y: 16, width: 1108, height: 54 },
       onOpenEndDetails,
     }).detailsTarget;
-
-    const mapPanel = new PIXI.Graphics();
-    roundedRect(mapPanel, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 7,
-      0x152426, PALETTE.stroke, 3);
-    root.addChild(mapPanel);
 
     const highlightedRegionIds = new Set([
       vassalHighlight?.targetRegionId,
@@ -476,41 +543,7 @@ export function createWorldMapView({
       hit.cursor = "pointer";
       if (display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
-      hit.on("pointerdown", (event) => {
-        const tappedAtMs = viewNowMs();
-        const flagPoint = screenPoint(regionDef.display.labelPoint);
-        const localPoint = root.toLocal(event.global);
-        const pointerX = Number(localPoint.x);
-        const pointerY = Number(localPoint.y);
-        const nearFlag =
-          Number.isFinite(pointerX) &&
-          Number.isFinite(pointerY) &&
-          Math.hypot(pointerX - flagPoint.x, pointerY - flagPoint.y) <=
-            REGION_FLAG_DOUBLE_TAP_RADIUS;
-        const isDoubleTap =
-          lastRegionTap.regionId === region.id &&
-          lastRegionTap.nearFlag &&
-          nearFlag &&
-          tappedAtMs - lastRegionTap.atMs <= REGION_DOUBLE_TAP_WINDOW_MS;
-        lastPointerRegionId = region.id;
-        const viewModel = getDetailedSettlementViewModel(state, region.id);
-        if (isDoubleTap && viewModel) {
-          lastRegionTap = {
-            regionId: null,
-            atMs: -Infinity,
-            nearFlag: false,
-          };
-          onOpenDetailedSite?.(viewModel.siteId, region.id);
-        } else {
-          lastRegionTap = {
-            regionId: region.id,
-            atMs: tappedAtMs,
-            nearFlag,
-          };
-          setSelectedRegionId?.(region.id);
-        }
-        lastSignature = "";
-      });
+      hit.mapRegionId = region.id;
       hit.on("pointerover", () => {
         const pressure = mapIndicator?.pressure;
         const spending = Number(mapIndicator?.currencySpent ?? 0) > 0;
@@ -534,7 +567,7 @@ export function createWorldMapView({
         }, hit.getBounds(), { dismissOnExit: true });
       });
       hit.on("pointerout", () => tooltipView?.hide?.());
-      root.addChild(hit);
+      mapContent.addChild(hit);
     }
 
     const edges = new PIXI.Graphics();
@@ -548,7 +581,7 @@ export function createWorldMapView({
     }
     edges.eventMode = "none";
     edges.visible = display.connections !== false;
-    root.addChild(edges);
+    mapContent.addChild(edges);
 
     for (const indicator of regionMapIndicators) {
       const regionDef = definition.regions.find(
@@ -556,42 +589,42 @@ export function createWorldMapView({
       );
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
-      if (display.actors !== false && (indicator.monster || indicator.neutral)) root.addChild(createText(
+      if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
         indicator.monster ? `MONSTER · Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-66,.5));
       if (indicator.hasDetailedSettlement) {
         if (display.scenery !== false) {
-          landmarks.push(addTimelineLandmark(root,{x:point.x-100,y:point.y-102,width:104,height:118},
+          landmarks.push(addTimelineLandmark(mapContent,{x:point.x-100,y:point.y-102,width:104,height:118},
             {startSec:definition.regions.indexOf(regionDef)*.37}));
-          landmarks.push(addTimelineLandmark(root,{x:point.x+58,y:point.y-21,width:42,height:35},
+          landmarks.push(addTimelineLandmark(mapContent,{x:point.x+58,y:point.y-21,width:42,height:35},
             {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
         }
         if (display.workers !== false) addWorkerIndicator(
-          root,
+          mapContent,
           point,
           indicator.activeWorkerCount,
           indicator.unusedWorkerCount
         );
       }
-      if (display.structures !== false) addStructureIndicator(root, point, indicator.structureSlots, {
+      if (display.structures !== false) addStructureIndicator(mapContent, point, indicator.structureSlots, {
         centered: !indicator.hasDetailedSettlement,
       });
       if (indicator.showsPlayerMarker) {
-        addPlayerOwnershipMarker(root, point, {
+        addPlayerOwnershipMarker(mapContent, point, {
           selected:
             regionSelectionActive &&
             indicator.regionId === selectedRegionId,
         });
       }
       if (display.alerts !== false) {
-        addSettlementPressureIndicator(root, point, indicator.pressure);
-        addSettlementCurrencyIndicator(root, point, indicator);
+        addSettlementPressureIndicator(mapContent, point, indicator.pressure);
+        addSettlementCurrencyIndicator(mapContent, point, indicator);
       }
     }
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef)
         ?? screenPoint(regionDef.display.labelPoint);
-      root.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
+      mapContent.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
         fontSize: 21,
         fill: PALETTE.text, stroke: 0x111713, strokeThickness: 4,
@@ -601,64 +634,83 @@ export function createWorldMapView({
     const activeVassal = getCurrentLifeMapVassal(state);
     if (display.actors !== false && activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
-      if (regionDef) addActiveVassalMarker(root, screenPoint(regionDef.display.labelPoint), activeVassal, state);
+      if (regionDef) addActiveVassalMarker(mapContent, screenPoint(regionDef.display.labelPoint), activeVassal, state);
     }
 
-    const civilizationPanel = new PIXI.Graphics();
-    roundedRect(
-      civilizationPanel,
-      CIVILIZATION_RECT.x,
-      CIVILIZATION_RECT.y,
-      CIVILIZATION_RECT.width,
-      CIVILIZATION_RECT.height,
-      7,
-      PALETTE.panel,
-      graphScope === "civilization" ? PALETTE.accent : PALETTE.stroke,
-      graphScope === "civilization" ? 5 : 3
-    );
-    civilizationPanel.eventMode = "static";
-    civilizationPanel.cursor = "pointer";
-    civilizationPanel.hitArea = new PIXI.Rectangle(
-      CIVILIZATION_RECT.x,
-      CIVILIZATION_RECT.y,
-      CIVILIZATION_RECT.width,
-      CIVILIZATION_RECT.height
-    );
-    civilizationPanel.on("pointerdown", () => {
-      lastRegionTap = {
-        regionId: null,
-        atMs: -Infinity,
-        nearFlag: false,
-      };
-      onShowCivilizationGraph?.();
-      lastSignature = "";
+    if (chaosExpanded) {
+      const civilizationPanel = new PIXI.Graphics();
+      roundedRect(
+        civilizationPanel,
+        CIVILIZATION_RECT.x,
+        CIVILIZATION_RECT.y,
+        CIVILIZATION_RECT.width,
+        CIVILIZATION_RECT.height,
+        7,
+        PALETTE.panel,
+        graphScope === "civilization" ? PALETTE.accent : PALETTE.stroke,
+        graphScope === "civilization" ? 5 : 3
+      );
+      civilizationPanel.eventMode = "static";
+      civilizationPanel.cursor = "pointer";
+      civilizationPanel.hitArea = new PIXI.Rectangle(
+        CIVILIZATION_RECT.x,
+        CIVILIZATION_RECT.y,
+        CIVILIZATION_RECT.width,
+        CIVILIZATION_RECT.height
+      );
+      civilizationPanel.on("pointerdown", () => {
+        lastRegionTap = {
+          regionId: null,
+          atMs: -Infinity,
+          nearFlag: false,
+        };
+        onShowCivilizationGraph?.();
+        lastSignature = "";
+      });
+      civilizationPanel.on("pointerover", () => {
+        const reckoning = civilizationSummary.chaos.lastReckoning;
+        const green = civilizationSummary.green;
+        tooltipView?.show?.({
+          title: `${green.label} · Chaos reckoning`,
+          lines: [
+            `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
+            `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
+            `Migration success: ${green.migrationSuccess}%`,
+            `Primordial pressure: ${reckoning?.primordialPressure ?? 0}`,
+            `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
+            `Premature pressure: ${reckoning?.prematureDeathPressure ?? 0} · Emigration pressure: ${reckoning?.externalEmigrationPressure ?? 0}`,
+            `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
+            `Raw pressure: ${reckoning?.rawPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
+            `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
+            `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
+          ],
+        }, civilizationPanel.getBounds(), { dismissOnExit: true });
+      });
+      civilizationPanel.on("pointerout", () => tooltipView?.hide?.());
+      root.addChild(civilizationPanel);
+      addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
+    }
+    addButton(root, { x: chaosExpanded ? CIVILIZATION_RECT.x + CIVILIZATION_RECT.width : 16, y: 92, width: chaosExpanded ? 44 : 180, height: 52 },
+      chaosExpanded ? '<' : `Chaos ${civilizationSummary.chaos.chaosPower} >`, () => {
+        chaosExpanded = !chaosExpanded;
+        tooltipView?.hide?.();
+        lastSignature = '';
+      });
+    const controlsX = regionSelectionActive ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
+    const cameraRight = regionSelectionActive ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
+    addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
+    addButton(root, {x: controlsX + 58, y: 756, width: 52, height: 52}, '+', () => camera.zoomBy(1.2, cameraRight));
+    addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
+      camera.reset();
+      const selected = regionSelectionActive && getRegionDefinition(state, selectedRegionId);
+      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x, MAP_RECT.x);
     });
-    civilizationPanel.on("pointerover", () => {
-      const reckoning = civilizationSummary.chaos.lastReckoning;
-      const green = civilizationSummary.green;
-      tooltipView?.show?.({
-        title: `${green.label} · Chaos reckoning`,
-        lines: [
-          `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
-          `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
-          `Migration success: ${green.migrationSuccess}%`,
-          `Primordial pressure: ${reckoning?.primordialPressure ?? 0}`,
-          `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
-          `Premature pressure: ${reckoning?.prematureDeathPressure ?? 0} · Emigration pressure: ${reckoning?.externalEmigrationPressure ?? 0}`,
-          `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
-          `Raw pressure: ${reckoning?.rawPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
-          `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
-          `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
-        ],
-      }, civilizationPanel.getBounds(), { dismissOnExit: true });
-    });
-    civilizationPanel.on("pointerout", () => tooltipView?.hide?.());
-    root.addChild(civilizationPanel);
-    addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
+    if (!regionSelectionActive) return;
 
     const selectedDef = getRegionDefinition(state, selectedRegionId);
     const region = getRegionState(state, selectedRegionId);
     const viewModel = getDetailedSettlementViewModel(state, selectedRegionId);
+    if (!region) return;
     const detailPanel = new PIXI.Graphics();
     roundedRect(
       detailPanel,
@@ -679,21 +731,15 @@ export function createWorldMapView({
       DETAIL_RECT.width,
       DETAIL_RECT.height
     );
-    detailPanel.on("pointerdown", () => {
-      if (!viewModel) return;
-      lastRegionTap = {
-        regionId: null,
-        atMs: -Infinity,
-        nearFlag: false,
-      };
-      onShowSelectedRegionGraph?.(selectedRegionId);
-      lastSignature = "";
-    });
     root.addChild(detailPanel);
     const regionRef = getRegionReference(state, selectedRegionId) ?? selectedRegionId;
     addRegionPanelContent(root, DETAIL_RECT, {
       region, reference: regionRef, name: viewModel?.name ?? selectedDef?.name ?? selectedRegionId,
-      vm: viewModel, tooltipView,
+      vm: viewModel, tooltipView, defense: region.monster?.defense ?? regionMapIndicators.find(entry => entry.regionId === selectedRegionId)?.neutral?.defense,
+    });
+    addButton(root, {x: DETAIL_RECT.x + DETAIL_RECT.width - 62, y: DETAIL_RECT.y + 14, width: 48, height: 48}, 'X', () => {
+      tooltipView?.hide?.();
+      onShowCivilizationGraph?.();
     });
   }
 
@@ -709,7 +755,10 @@ export function createWorldMapView({
     refresh: () => { lastSignature = ""; render(true); },
     resetEdgeTransferPackets,
     setVisible: (visible) => {
+      camera.cancel();
       root.visible = visible === true;
+      viewport.visible = root.visible;
+      clip.visible = root.visible;
       edgeTransferLayer.visible = root.visible;
       if (root.visible) {
         lastEdgeTransferBatchKey = null;
@@ -740,6 +789,11 @@ export function createWorldMapView({
         visible: root.visible === true,
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
+        detailPanelVisible: getRegionSelectionActive?.() === true,
+        chaosExpanded,
+        camera: camera.snapshot(),
+        layout: { viewport: MAP_VIEWPORT_RECT, detail: DETAIL_RECT, chaos: CIVILIZATION_RECT },
+        structureSlots: viewModel ? { visible: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX, available: viewModel.structureCapacity, blocked: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX - viewModel.structureCapacity } : null,
         graphScope:
           getGraphScope?.() === "settlement"
             ? "settlement"
@@ -818,7 +872,7 @@ export function createWorldMapView({
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
-      return region ? screenPoint(region.display.labelPoint) : null;
+      return region ? camera.project(screenPoint(region.display.labelPoint)) : null;
     },
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
@@ -826,8 +880,10 @@ export function createWorldMapView({
       clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
-      edgeTransferLayer.removeFromParent();
-      edgeTransferLayer.destroy({ children: true });
+      viewport.removeFromParent();
+      viewport.destroy({ children: true });
+      clip.removeFromParent();
+      clip.destroy();
     },
   };
 }

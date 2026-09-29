@@ -307,7 +307,7 @@ try {
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   await clickDesignPoint(page, await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
-  const cedarPoint = await page.evaluate(() =>
+  let cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);
   const selected = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
@@ -331,7 +331,7 @@ try {
   }
 
   await delay(400);
-  await clickDesignPoint(page, cedarPoint);
+  await clickDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods")));
   const deselected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
@@ -339,7 +339,7 @@ try {
   assert.equal(deselected.controller.scope, "civilization",
     "clicking the selected region again restores the civilization timegraph");
 
-  await pressDesignPoint(page, { x: 1488, y: 796 }, 180);
+  await pressDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods")), 180);
   await page.waitForFunction(() =>
     globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionSelectionActive === true);
   const localPanelSelected = await page.evaluate(
@@ -347,18 +347,19 @@ try {
   );
   assert.equal(localPanelSelected.worldMap.regionSelectionActive, true);
   assert.equal(localPanelSelected.controller.subjectKey, "cedar-woods",
-    "the selected-region panel switches back to the local timegraph");
+    "reselecting the region opens its details and local timegraph");
 
-  await pressDesignPoint(page, { x: 2047, y: 160 }, 180);
+  await pressDesignPoint(page, { x: 2370, y: 116 }, 180);
   const civilizationPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
   assert.equal(civilizationPanelSelected.worldMap.regionSelectionActive, false);
   assert.equal(civilizationPanelSelected.controller.scope, "civilization",
-    "the civilization panel switches to the global timegraph");
+    "closing settlement details switches to the global timegraph");
 
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
+  cedarPoint = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await doubleClickDesignPoint(page, {
     x: cedarPoint.x + 100,
     y: cedarPoint.y,

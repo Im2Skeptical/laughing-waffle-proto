@@ -11,7 +11,7 @@ let browser;
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page=await browser.newPage({viewport:{width:1280,height:1120},hasTouch:true});
+  const page=await browser.newPage({viewport:{width:1500,height:1280},hasTouch:true});
   await page.route(url+'/',route=>route.fulfill({contentType:'text/html',body:'<html><body style="margin:0"><script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script></body></html>'}));
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.PIXI);
@@ -22,7 +22,7 @@ try {
     const {addCostPanel,addResourceAmount}=await import('/src/views/resource-cost-pixi.js');
     const {addRegionPanelContent}=await import('/src/views/chronicle-world-panels.js');
     await preloadChronicleArt();
-    const app=new PIXI.Application({width:1280,height:1120,backgroundColor:0x0b1513});document.body.append(app.view);
+    const app=new PIXI.Application({width:1500,height:1280,backgroundColor:0x0b1513});document.body.append(app.view);
     const clock={tSec:17,seasonDurationSec:8};
     // First render requests the lazy paintings; render again after their atlas loads.
     addSettlementPiece(app.stage,{x:0,y:0,width:170,height:238},{face:getGamepieceFace(clock,'practice','dryFarming')});
@@ -46,8 +46,8 @@ try {
     const iconFirst=amount.children.find(child=>child instanceof PIXI.Sprite&&!(child instanceof PIXI.Text)).x<amount.children.find(child=>child instanceof PIXI.Text).x;
     const warnings=[];
     const region=new PIXI.Container();app.stage.addChild(region);
-    addRegionPanelContent(region,{x:20,y:490,width:928,height:588},{region:{colour:'green',controller:'player'},reference:'01',name:'Warning layout',tooltipView:{show:spec=>warnings.push(spec.title),hide:()=>{},pin:spec=>warnings.push(spec.title)},vm:{
-      population:{total:80,housingCapacity:35,mealDemand:90},specialists:{scholar:0,warrior:0},martialSupport:0,storedFood:20,looseFood:5,storedFoodCapacity:20,currency:120,
+    addRegionPanelContent(region,{x:20,y:490,width:1448,height:748},{region:{colour:'green',controller:'player'},reference:'01',name:'Warning layout',tooltipView:{show:spec=>warnings.push(spec.title),hide:()=>{},pin:spec=>warnings.push(spec.title)},vm:{
+      population:{total:80,housingCapacity:35,mealDemand:90},specialists:{scholar:0,warrior:0},martialSupport:0,defensiveSupport:0,storedFood:20,looseFood:5,storedFoodCapacity:20,currency:120,
       pressure:{starvation:true,overcrowding:true,housingOverflow:45,unfedMealDemand:12,starvationMigrants:4},
       practices:['dryFarming','barter','forage','forage','housebuilding'].map(practiceId=>({practiceId,face:getGamepieceFace(clock,'practice',practiceId)})),
       structures:[{origin:0,width:1,face:getGamepieceFace(clock,'structure','granary')}],usedStructureCapacity:1,structureCapacity:5,
@@ -58,27 +58,27 @@ try {
       const number=icon.parent.children.find(node=>node instanceof PIXI.Text);
       return number&&Math.abs(number.x-icon.width/2)<.01&&Math.abs(number.y-icon.height/2)<.01&&number.width<=icon.width*.65;
     });
-    const nodes=walk(region),heading=nodes.find(node=>node.text?.startsWith('PRACTICES'));
+    const nodes=walk(region),cards=nodes.filter(node=>node.pieceGeometry?.kind==='practice');
     for(const node of nodes.filter(node=>node.cursor==='help'))node.emit('pointerover',{stopPropagation(){}});
     const warningBottom=Math.max(...nodes.filter(node=>node.cursor==='help').map(node=>node.getBounds().bottom));
     app.renderer.render(app.stage);
     globalThis.feedbackTitles=warnings;
     globalThis.feedbackApp=app;
-    return {costs,iconFirst,warnings,spinnerChecks,numbersCentered,headingClear:heading.getBounds().top>warningBottom,textureReady:getResourceTexture('cost-frame').baseTexture.valid};
+    return {costs,iconFirst,warnings,spinnerChecks,numbersCentered,cardsClear:cards.every(card=>card.getBounds().top>warningBottom),textureReady:getResourceTexture('cost-frame').baseTexture.valid};
   });
   mkdirSync('artifacts',{recursive:true});
   await page.screenshot({path:'artifacts/piece-feedback-review.png'});
   assert.ok(results.textureReady,'Cost-frame texture loaded');
   assert.ok(results.iconFirst,'Prestige icon precedes the number');
-  assert.ok(results.headingClear,'Practices heading clears warning glyphs');
+  assert.ok(results.cardsClear,'Practice cards clear header warnings');
   assert.ok(results.spinnerChecks.every(Boolean),'Seasonal and lunar cards retain their rotating discs');
   assert.ok(results.numbersCentered,'Each time denomination contains its number in the center');
   assert.deepEqual(results.warnings,['Overcrowded','Starving']);
-  for(const [x,y,title] of [[80,582,'Population / Housing'],[312,583,'Overcrowded'],[80,582,'Population / Housing'],[380,582,'Hosted Edible Stock'],[607,583,'Starving'],[700,582,'Hosted Currency Stock']]){
+  for(const [x,y,title] of [[440,529,'Population / Housing'],[688,529,'Overcrowded'],[440,529,'Population / Housing'],[440,569,'Hosted Edible Stock'],[688,569,'Starving']]){
     await page.mouse.move(x,y);
     await page.waitForFunction(title=>globalThis.feedbackTitles.at(-1)===title,title,{timeout:3000});
   }
-  await page.mouse.click(312,583);
+  await page.mouse.click(688,529);
   assert.equal(await page.evaluate(()=>globalThis.feedbackTitles.at(-1)),'Overcrowded','Warning presses cannot be replaced by the segment label');
   const columnChecks=await page.evaluate(async()=>{
     const {pieceOfferCard,outcomeCard}=await import('/src/views/vassal-node-decision/cards.js');
@@ -119,5 +119,5 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.touchLifeMap.getInspectedNodeId()), 'b',
     'a first touch on a future node retains its inspection');
   for(const cost of results.costs){assert.ok(cost.width<=cost.expectedWidth+1);assert.ok(cost.height<=cost.expectedHeight+1);assert.ok(Math.abs(cost.corner-14)<.01,'Frame corners stay 14 pixels at every panel height');}
-  console.log('[piece-feedback] OK: warning glyphs, separate heading, cost frame bounds, prestige order; artifacts/piece-feedback-review.png');
+  console.log('[piece-feedback] OK: warning glyphs, header clearance, cost frame bounds, prestige order; artifacts/piece-feedback-review.png');
 } finally {await browser?.close();server.kill();}
