@@ -186,9 +186,13 @@ assert.equal(selectLifeMapVassal(defense,0,defendingPool.expectedPoolHash).ok,tr
 const displacedVassal=getCurrentLifeMapVassal(defense);displacedVassal.locationRegionId=defended.regionId;
 const frontier=adjacentRegionIds(defense,defended.regionId)[0];
 for(const id of adjacentRegionIds(defense,frontier)) if(id!==defended.regionId)getRegionState(defense,id).monster={defense:1,ageMoons:0};
-getRegionState(defense,frontier).monster={defense:2,ageMoons:3};
+getRegionState(defense,frontier).monster={defense:2,ageMoons:99};
 defended.detailedState.practiceSlots=[slot('forage',1),slot('bowmaking',1),slot('garrisonDuty'),...Array(2).fill(null)];
 trainSpecialists(defended.detailedState,'warrior',15);
+const earlyExpansion=deserializeGameState(serializeGameState(defense));
+getRegionState(earlyExpansion,frontier).monster.ageMoons=98;
+stepSpatialPressure(earlyExpansion);
+assert.equal(earlyExpansion.world.sites.find(s=>s.regionId===defended.regionId).detailedState.lastDefense,undefined,'Monster does not expand at age 99');
 const shortPatrol=deserializeGameState(serializeGameState(defense));
 const patrolSite=shortPatrol.world.sites.find(s=>s.regionId===defended.regionId);
 patrolSite.detailedState.practiceSlots[2]=slot('patrolling');
@@ -198,7 +202,7 @@ assert.equal(patrolSite.detailedState.practiceSlots[0].stock,1,'failed defense d
 stepSpatialPressure(defense);
 assert.equal(defended.detailedState.lastDefense.result,'held');
 assert.equal(stockTotal(defense,defended.detailedState,'Edible'),0);
-getRegionState(defense,frontier).monster.ageMoons=3;
+getRegionState(defense,frontier).monster.ageMoons=99;
 stepSpatialPressure(defense);
 assert.equal(defended.simulationMode,'ruin');assert.ok(defense.civilization.history.lostSettlements>=1);
 assert.equal(getRegionState(defense,defended.regionId).lostAtSec,defense.tSec);
