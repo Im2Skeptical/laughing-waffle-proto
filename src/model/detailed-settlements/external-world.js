@@ -20,9 +20,9 @@ export function getMartialSupport(state, regionId, defense = false) {
     if (defense && mod.kind === 'defense') flat += mod.amount;
     if (defense && mod.kind === 'lossDefense') flat += mod.amount * Math.min(3, state.civilization.history?.lostSettlements ?? 0);
   }
-  for (const [i, slot] of (settlement?.practiceSlots ?? []).entries()) {
+  for (const slot of settlement?.practiceSlots ?? []) {
     const def = getDetailedPracticeDef(state, slot?.practiceId);
-    if (def && planStock(state, settlement, i, def.consume, def.require).ok) multiplier += (def.supportMultiplier ?? 0) + (defense ? def.defenseMultiplier ?? 0 : 0);
+    if (def && planStock(state, settlement, def.consume, def.require).ok) multiplier += (def.supportMultiplier ?? 0) + (defense ? def.defenseMultiplier ?? 0 : 0);
   }
   return Math.floor(warriors / CIV_CONTENT_TUNING.warriorsPerSupport * multiplier + flat);
 }
@@ -32,9 +32,9 @@ export function getRetinue(state, vassal) {
   let cap = Math.ceil(population / CIV_CONTENT_TUNING.warriorsPerRetinue);
   for (const site of sites) {
     cap += structureModifiers(state, site.detailedState).reduce((n, m) => n + (m.kind === 'retinueCap' ? m.amount : 0), 0);
-    site.detailedState.practiceSlots.forEach((slot, i) => {
+    site.detailedState.practiceSlots.forEach(slot => {
       const def = getDetailedPracticeDef(state, slot?.practiceId);
-      if (def?.retinueCap && planStock(state, site.detailedState, i, def.consume, def.require).ok) cap += def.retinueCap;
+      if (def?.retinueCap && planStock(state, site.detailedState, def.consume, def.require).ok) cap += def.retinueCap;
     });
   }
   if (!population || vassal?.classId !== 'warrior') cap = 0;
@@ -143,10 +143,10 @@ export function stepSpatialPressure(state) {
     const target=getRegionState(state,targetId),site=siteAt(state,targetId);
     if(target.controller==='player'&&site) {
       const settlement=site.detailedState;
-      const response=settlement.practiceSlots.flatMap((p,i)=>{
+      const response=settlement.practiceSlots.flatMap(p=>{
         const def=getDetailedPracticeDef(state,p?.practiceId);
         if(!def?.defenseMultiplier) return [];
-        const plan=planStock(state,settlement,i,def.consume,def.require);
+        const plan=planStock(state,settlement,def.consume,def.require);
         const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&stockTraits(state,settlement.practiceSlots[p.slotIndex]).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
         return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
       })[0];

@@ -36,8 +36,8 @@ export function selectFixtureVassal(state, classId) {
 }
 
 export const LAB_EXHIBITS = Object.freeze([
-  { id: 'stock', title: 'Stock: sources before consumers', description: 'Logging and Ore supply Smelting. Birth activates real production. The rightmost consumer cannot fund itself. Follow the numbered provider links.' },
-  { id: 'require', title: 'Require, missing inputs, no self-funding', description: 'Garrison requires Arms without consuming them. Patrolling also consumes Edible. Move Bowmaking after Garrison in the Gym to break the requirement. Self-funding is checked with the real Stock planner.' },
+  { id: 'stock', title: 'Stock: board-wide providers', description: 'Logging and Ore supply Smelting. Birth activates real production. Matching Stock is chosen from left to right across the board, including a consumer’s own existing Stock. Follow the numbered provider links.' },
+  { id: 'require', title: 'Require and missing inputs', description: 'Garrison requires Arms without consuming them. Patrolling also consumes Edible. Move Bowmaking after Garrison in the Gym; its Stock can still satisfy a requirement. Remove Arms Stock to see the missing input.' },
   ...[29,30,31].map(n => ({ id: `food-${n}`, title: `Food: ${n} people`, description: 'Start just before Food. Unstaffed Foraging generates one Stock before feeding; demand rounds up per 30 people. Watch the leftmost Edible provider and last meal.' })),
   { id: 'shortage', title: 'Food: shortage', description: '61 adults and one unstaffed Foraging host cannot feed everyone. Advance to Food repeatedly to inspect happiness and migration evidence.' },
   { id: 'currency', title: 'Currency: spend hosted Stock', description: 'Procure shortage relief for one Currency through the real Crisis effect. Barter pays from its Stock; there is no wallet. Effect controls resolve immediately without Life Map journey or danger.' },

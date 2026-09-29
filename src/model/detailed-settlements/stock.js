@@ -40,7 +40,7 @@ export function generateStock(state, settlement, slot, amount, staffed = false) 
 }
 
 // Require reads the activation-start stock. Consume reservations cannot double-spend.
-export function planStock(state, settlement, consumerIndex, consume = [], require = [], {scholarStaffed=false} = {}) {
+export function planStock(state, settlement, consume = [], require = []) {
   const slots = settlement?.practiceSlots ?? [];
   const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));
   const providers = [];
@@ -50,11 +50,8 @@ export function planStock(state, settlement, consumerIndex, consume = [], requir
   for (const [kind, costs] of [['require', require], ['consume', consume]]) {
     for (const cost of costs) {
       let needed = cost.amount ?? 1;
-      const anyPosition = kind === 'require' && cost.traits.includes('Record')
-        && matchesPractice(state,slots[consumerIndex],{tagsAny:['Knowledge']},scholarStaffed)
-        && modifiers.some(m => m.kind === 'recordAnywhere');
       for (let i = 0; i < slots.length && needed > 0; i++) {
-        if (i === consumerIndex || (!anyPosition && i >= consumerIndex) || !compatible(slots[i], cost.traits, kind === 'require')) continue;
+        if (!compatible(slots[i], cost.traits, kind === 'require')) continue;
         const amount = Math.min(needed, kind === 'require' ? slots[i]?.stock ?? 0 : remaining[i]);
         if (amount <= 0) continue;
         providers.push({ kind, slotIndex: i, practiceId: slots[i].practiceId, amount, traits: cost.traits });
