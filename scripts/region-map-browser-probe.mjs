@@ -23,7 +23,7 @@ const errors=[];
 const snapshots=[];
 async function snap() { return page.evaluate(()=>{
   const s=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
-  return {mode:s.mode,selected:s.selectedRegionId,active:s.regionSelectionActive,detail:s.detailPanelVisible,chaos:s.chaosExpanded,camera:s.camera,slots:s.structureSlots,layout:s.layout};
+  return {mode:s.mode,selected:s.selectedRegionId,active:s.regionSelectionActive,detail:s.detailPanelVisible,chaos:s.chaosExpanded,camera:s.camera,focusAnimating:s.focusAnimating,panelReveal:s.panelReveal,slots:s.structureSlots,layout:s.layout};
 }); }
 async function point(p) {
   const b=await page.locator('canvas').boundingBox();
@@ -34,7 +34,14 @@ async function click(p,touch=false) {
   if(touch)await page.touchscreen.tap(q.x,q.y);else await page.mouse.click(q.x,q.y);
   await delay(250);
 }
-async function regionPoint() {return page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint('cedar-woods'));}
+async function regionPoint(id='cedar-woods') {return page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint(id),id);}
+async function waitFocus() {await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.focusAnimating);}
+async function assertCentered(id) {
+  await waitFocus();
+  const p=await regionPoint(id);
+  assert.ok(Math.abs(p.x-488)<1 && Math.abs(p.y-452)<1,`${id} centers in left map area`);
+  assert.ok((await snap()).camera.zoom>=1.65,'selected settlement is magnified');
+}
 async function capture(name) {await page.mouse.move(0,0);await delay(150);await page.screenshot({path:`${output}/${name}.png`});snapshots.push({name,...await snap()});}
 try {
   for(let i=0;i<100;i++){try{if((await fetch(`http://127.0.0.1:${port}`)).ok)break;}catch{}await delay(100);}
@@ -63,7 +70,19 @@ try {
   assert.equal((await snap()).active,false,'drag does not select a settlement');
   assert.notEqual((await snap()).camera.x,before.camera.x,'drag pans terrain');
   await click({x:2340,y:780});
-  await click(await regionPoint());
+  // The actual selection callback must start at the existing camera and panel origin.
+  const opening=await page.evaluate(()=>{
+    const d=globalThis.__SETTLEMENT_DEBUG__,before=d.getSnapshot().worldMap.camera;
+    const origin=d.getWorldMapClickPoint('cedar-woods');
+    d.selectWorldRegion('cedar-woods');
+    const after=d.getSnapshot().worldMap;
+    return {before,origin,camera:after.camera,panel:after.panelReveal};
+  });
+  assert.deepEqual(opening.camera,opening.before,'selection starts without an immediate jump');
+  assert.equal(opening.panel.animating,true);
+  assert.equal(opening.panel.scale,.06);
+  assert.deepEqual(opening.panel.origin,opening.origin,'panel grows out of the selected settlement');
+  await assertCentered('cedar-woods');
   let selected=await snap();
   assert.equal(selected.detail,true,'settlement details disclose on selection');
   assert.equal(selected.slots.visible,8);
@@ -77,11 +96,26 @@ try {
   await click({x:1880,y:700});
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title),'Unavailable construction space');
   await click({x:1880,y:700});
+  // Select another visible settlement with a real pointer, not only the debug callback.
+  await click(await regionPoint('west-levee'));
+  assert.equal((await snap()).selected,'west-levee','clicking another settlement changes the panel subject');
+  await assertCentered('west-levee');
+  assert.equal((await snap()).panelReveal.scale,1,'switching keeps the open panel in place');
+  const settled=await snap();
+  const pan=await point({x:700,y:650});
+  await page.mouse.move(pan.x,pan.y);await page.mouse.down();
+  await page.mouse.move(pan.x+30,pan.y-20,{steps:5});await page.mouse.up();
+  const manual=(await snap()).camera;
+  assert.notDeepEqual(manual,settled.camera,'user can pan after focus');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(400);
+  assert.deepEqual((await snap()).camera,manual,'redraw does not refocus a manually panned selection');
   await click({x:2370,y:116});
   assert.equal((await snap()).detail,false,'close returns to the full map');
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'closing restores the overview framing');
   const wheel=await point({x:1200,y:450});
-  await page.mouse.move(wheel.x,wheel.y);await page.mouse.wheel(0,-300);await delay(150);
+  await page.mouse.move(wheel.x,wheel.y);await page.mouse.wheel(0,-300);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.camera.zoom>1);
   assert.ok((await snap()).camera.zoom>1,'wheel zooms');
   await click({x:2340,y:780});
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'reset restores fit');
@@ -89,6 +123,7 @@ try {
   await capture('mobile-map');
   await click(await regionPoint(),true);
   assert.equal((await snap()).detail,true,'touch selects');
+  await assertCentered('cedar-woods');
   await capture('mobile-selected');
   await click({x:2370,y:116},true);
   const cdp=await page.context().newCDPSession(page);

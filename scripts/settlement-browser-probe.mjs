@@ -349,6 +349,8 @@ try {
   assert.equal(localPanelSelected.controller.subjectKey, "cedar-woods",
     "reselecting the region opens its details and local timegraph");
 
+  await page.waitForFunction(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.panelReveal?.animating === false);
   await pressDesignPoint(page, { x: 2370, y: 116 }, 180);
   const civilizationPanelSelected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
