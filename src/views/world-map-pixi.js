@@ -474,11 +474,11 @@ export function createWorldMapView({
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
     clearChildren(root);
-    clearChildren(detailRoot);
+    // Retain the last settlement's content until its dismissal completes.
+    if (regionSelectionActive) clearChildren(detailRoot);
     clearChildren(mapContent);
-    detailRoot.visible = regionSelectionActive;
     if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
-      if (!lastRevealedRegionId) overviewCamera = camera.snapshot();
+      if (!lastRevealedRegionId && !panelReveal.isClosing()) overviewCamera = camera.snapshot();
       const selected = getRegionDefinition(state, selectedRegionId);
       if (selected) {
         const point = screenPoint(selected.display.labelPoint);
@@ -488,8 +488,12 @@ export function createWorldMapView({
       }
     }
     if (!regionSelectionActive && lastRevealedRegionId) {
-      panelReveal.finish();
+      const dismissed = getRegionDefinition(state, lastRevealedRegionId);
+      const point = dismissed ? screenPoint(dismissed.display.labelPoint) : { x: MAP_RECT.x, y: MAP_RECT.y };
+      panelReveal.close({ x: point.x * overviewCamera.zoom + overviewCamera.x,
+        y: point.y * overviewCamera.zoom + overviewCamera.y });
       camera.restore(overviewCamera);
+      tooltipView?.hide?.();
     }
     lastRevealedRegionId = regionSelectionActive ? selectedRegionId : null;
     landmarks=[];
@@ -764,6 +768,7 @@ export function createWorldMapView({
       updateEdgeTransferPackets();
     },
     update: () => {
+      if (!root.visible) return;
       camera.update();
       panelReveal.update();
       render();
@@ -772,6 +777,7 @@ export function createWorldMapView({
     refresh: () => { lastSignature = ""; render(true); },
     resetEdgeTransferPackets,
     setVisible: (visible) => {
+      if (panelReveal.isClosing()) camera.finish();
       camera.cancel();
       panelReveal.finish();
       root.visible = visible === true;
@@ -808,7 +814,7 @@ export function createWorldMapView({
         visible: root.visible === true,
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
-        detailPanelVisible: getRegionSelectionActive?.() === true,
+        detailPanelVisible: root.visible && detailRoot.visible,
         chaosExpanded,
         camera: camera.snapshot(),
         focusAnimating: camera.isAnimating(),
