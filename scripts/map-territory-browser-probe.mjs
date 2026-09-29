@@ -20,6 +20,7 @@ try {
     const {createLabFixture}=await import('/src/model/dev-lab/fixtures.js');
     const {serializeGameState}=await import('/src/model/state.js');
     const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
+    const {addMonsterMarker}=await import('/src/views/world-map/territory-art.js');
     await preloadChronicleArt();
     const state=createLabFixture('defense',42);
     const before=JSON.stringify(serializeGameState(state));
@@ -30,11 +31,20 @@ try {
       setSelectedRegionId:id=>{selected=id;active=true;view.refresh();},onShowCivilizationGraph:()=>{active=false;view.refresh();}});
     view.init();app.ticker.add(()=>view.update());
     const walk=node=>[node,...(node.children??[]).flatMap(walk)];
+    const countdownCases=[0,1,99,100,199].map(ageMoons=>{
+      const container=new PIXI.Container();
+      addMonsterMarker(container,{x:0,y:0},{ageMoons});
+      const text=walk(container).find(n=>n.label==='monster-spread-moons').text;
+      container.destroy({children:true});
+      return text;
+    });
     globalThis.territoryProbe={app,state,view,select(id){selected=id;active=true;view.refresh();},
       check(){const nodes=walk(app.stage);return {
         monsterRegions:state.world.regions.filter(r=>r.monster).length,
         ground:nodes.filter(n=>n.label==='monster-ground').length,
         markers:nodes.filter(n=>n.label==='monster-marker').length,
+        countdowns:nodes.filter(n=>n.label==='monster-spread-countdown').length,
+        countdownCases,
         playerBorders:nodes.filter(n=>n.label==='player-region-border').length,
         selectedBorders:nodes.filter(n=>n.label==='selected-region-border').length,
         selectedInk:nodes.filter(n=>n.label==='selected-region-border').flatMap(n=>n.geometry.graphicsData.map(d=>({width:d.lineStyle.width,color:d.lineStyle.color}))),
@@ -46,6 +56,8 @@ try {
   assert.ok(overview.monsterRegions>0);
   assert.equal(overview.ground,overview.monsterRegions,'every occupied region has clipped corruption graphics');
   assert.equal(overview.markers,overview.monsterRegions,'every occupied region has a monster emblem');
+  assert.equal(overview.countdowns,overview.monsterRegions,'every occupied region shows its spread countdown');
+  assert.deepEqual(overview.countdownCases,['100 / 100 moons','99 / 100 moons','1 / 100 moons','100 / 100 moons','1 / 100 moons']);
   assert.ok(overview.playerBorders>0,'player territory remains distinct');
   assert.ok(overview.unchanged,'drawing leaves serialized state and RNG unchanged');
   await page.screenshot({path:`${output}/overview.png`});

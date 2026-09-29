@@ -54,5 +54,7 @@ panels. Player land has a dark-backed gold boundary; the selected polygon uses
 an ice-blue/white outline drawn above neighboring terrain and roads.
 `territory-art.js` draws polygon-clipped scorched ground and fissures plus a
 horned skull marker for monster regions, without consuming simulation RNG.
+Each monster marker shows moons remaining until its next spread attempt, out of
+the simulation's 100-moon interval. The countdown restarts after each attempt.
 Run `node scripts/map-territory-browser-probe.mjs` for occupied-region visual
 checks, including selection and mobile zoom, and serialized-state preservation.

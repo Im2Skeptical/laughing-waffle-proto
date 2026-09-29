@@ -2,6 +2,7 @@
 // Import from this path; do not add new detailed behavior to settlement-exec.js.
 
 export { roundFood } from "./detailed-settlements/helpers.js";
+export { CIV_CONTENT_TUNING } from "./detailed-settlements/stock.js";
 export {
   DETAILED_REGION_IDS,
   createDetailedSettlementState,

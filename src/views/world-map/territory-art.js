@@ -1,4 +1,7 @@
 import { CONTROLLER_COLOURS } from './constants.js';
+import { CIV_CONTENT_TUNING } from '../../model/detailed-settlements.js';
+import { createText } from '../settlement-view-primitives.js';
+import { TEXT_STYLES } from '../settlement-theme.js';
 
 // Fixed map-space decoration. No simulation RNG or time-dependent geometry.
 export function addMonsterGround(parent, points) {
@@ -54,7 +57,7 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
   return border;
 }
 
-export function addMonsterMarker(parent, point) {
+export function addMonsterMarker(parent, point, monster) {
   const marker = new PIXI.Graphics();
   marker.label = 'monster-marker';
   marker.eventMode = 'none';
@@ -72,5 +75,18 @@ export function addMonsterMarker(parent, point) {
   marker.beginFill(0xff735a).drawCircle(-8,2,2).drawCircle(8,2,2).endFill();
   marker.lineStyle(2,0x542538).moveTo(-6,16).lineTo(-6,22).moveTo(0,16).lineTo(0,22).moveTo(6,16).lineTo(6,22);
   parent.addChild(marker);
+  const interval = CIV_CONTENT_TUNING.monsterExpansionMoons;
+  const remaining = interval - (monster.ageMoons % interval);
+  const countdown = new PIXI.Container();
+  countdown.label = 'monster-spread-countdown';
+  countdown.eventMode = 'none';
+  countdown.position.set(point.x, point.y + 18);
+  countdown.addChild(new PIXI.Graphics().lineStyle(1,0x99515d,.9)
+    .beginFill(0x130f18,.94).drawRoundedRect(-91,0,182,45,5).endFill());
+  countdown.addChild(createText('SPREAD IN', {...TEXT_STYLES.chip,fontSize:12,fill:0xcda49d}, 0,3,.5));
+  const label = createText(`${remaining} / ${interval} moons`, {...TEXT_STYLES.chip,fontSize:19,fill:remaining<=10?0xff886e:0xffddbc}, 0,19,.5);
+  label.label = 'monster-spread-moons';
+  countdown.addChild(label);
+  parent.addChild(countdown);
   return marker;
 }
