@@ -36,6 +36,12 @@ async function click(p,touch=false) {
 }
 async function regionPoint(id='cedar-woods') {return page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint(id),id);}
 async function waitFocus() {await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.focusAnimating);}
+async function waitDismissed() {
+  await page.waitForFunction(()=>{
+    const map=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+    return !map.focusAnimating && map.panelReveal.phase==='closed' && !map.detailPanelVisible;
+  });
+}
 async function assertCentered(id) {
   await waitFocus();
   const p=await regionPoint(id);
@@ -110,7 +116,17 @@ try {
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(400);
   assert.deepEqual((await snap()).camera,manual,'redraw does not refocus a manually panned selection');
-  await click({x:2370,y:116});
+  const dismissal=await page.evaluate(()=>{
+    const d=globalThis.__SETTLEMENT_DEBUG__,before=d.getSnapshot().worldMap;
+    d.selectWorldRegion(before.selectedRegionId);
+    d.forceRender();
+    const after=d.getSnapshot().worldMap;
+    return {before:before.camera,camera:after.camera,visible:after.detailPanelVisible,panel:after.panelReveal};
+  });
+  assert.deepEqual(dismissal.camera,dismissal.before,'close does not jump the camera');
+  assert.equal(dismissal.visible,true,'panel remains drawn during close, including forced redraw');
+  assert.equal(dismissal.panel.phase,'closing');
+  await waitDismissed();
   assert.equal((await snap()).detail,false,'close returns to the full map');
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'closing restores the overview framing');
   const wheel=await point({x:1200,y:450});
@@ -126,6 +142,7 @@ try {
   await assertCentered('cedar-woods');
   await capture('mobile-selected');
   await click({x:2370,y:116},true);
+  await waitDismissed();
   const cdp=await page.context().newCDPSession(page);
   const a=await point({x:1000,y:420}), b=await point({x:1400,y:420});
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...a,id:1},{...b,id:2}]});

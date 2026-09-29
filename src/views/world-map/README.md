@@ -26,7 +26,9 @@ retain normal game rendering. These flags affect presentation only.
 ## Map disclosure and camera
 
 The map fills the playfield beneath fixed chrome. Selection opens a right-hand
-region panel; dismissal restores the overview camera. Opening or switching a
+region panel; dismissal eases back to the saved overview camera while the panel
+shrinks toward the settlement over 320 ms. Its content stays visible until the
+transition ends; reopening reverses the shrink from its current pose. Opening or switching a
 region eases its map marker into the left-side center at a minimum 1.65x zoom.
 Manual camera input cancels that focus transition immediately. Chaos is a floating,
 collapsible drawer. `transitions.js` provides view-local easing and the 240 ms

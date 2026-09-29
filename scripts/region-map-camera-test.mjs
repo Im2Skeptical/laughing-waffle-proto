@@ -59,3 +59,36 @@ assert.equal(reveal.snapshot().animating,false);
 const quiet = createMapPanelReveal(panel,panelRect,{reducedMotion:()=>true});
 quiet.open(origin); assert.equal(quiet.snapshot().scale,1,'reduced motion opens directly');
 console.log('[region-map-panel] OK: settlement origin, scale animation, final placement, reduced motion');
+
+// Closing restores a saved overview smoothly and remains interruptible.
+const zoomed = camera.snapshot();
+camera.restore(initial);
+assert.deepEqual(camera.snapshot(),zoomed,'dismissal starts without a camera jump');
+time += 100; camera.update();
+assert.ok(camera.snapshot().zoom<zoomed.zoom && camera.snapshot().zoom>initial.zoom,'dismissal zooms out gradually');
+time += 400; camera.update(); assert.deepEqual(camera.snapshot(),initial,'dismissal reaches saved overview');
+reveal.open(origin); time += 400; reveal.update();
+const full = {x:panel.position.x,y:panel.position.y,scale:panel.scale.x};
+const destination = {x:900,y:450};
+reveal.close(destination);
+assert.deepEqual({x:panel.position.x,y:panel.position.y,scale:panel.scale.x},full,'closing begins from current panel pose');
+assert.equal(panel.visible,true,'closing keeps the panel visible');
+assert.equal(panel.eventMode,'none','shrinking panel cannot consume map input');
+time += 100; reveal.update();
+assert.ok(panel.scale.x<1 && panel.scale.x>.06,'panel shrinks during dismissal');
+const partial = {x:panel.position.x,y:panel.position.y,scale:panel.scale.x};
+reveal.open(origin);
+assert.deepEqual({x:panel.position.x,y:panel.position.y,scale:panel.scale.x},partial,'reopening reverses dismissal without jumping');
+time += 400; reveal.update();
+reveal.close(destination); time += 400; reveal.update();
+assert.equal(panel.visible,false,'panel hides only once shrinking finishes');
+assert.ok(Math.abs(panel.position.x+panelRect.width*panel.scale.x/2-destination.x)<.001);
+assert.ok(Math.abs(panel.position.y+panelRect.height*panel.scale.x/2-destination.y)<.001);
+// Dismiss before the opening transition finishes.
+reveal.open(origin); time += 60; reveal.update();
+const openingScale=panel.scale.x;
+reveal.close(destination); assert.equal(panel.scale.x,openingScale);
+time += 400; reveal.update(); assert.equal(panel.visible,false);
+quiet.open(origin); quiet.close(destination);
+assert.equal(panel.visible,false,'reduced motion dismisses immediately');
+console.log('[region-map-dismissal] OK: animated overview return, shrink, interrupted opening, reopen, reduced motion');

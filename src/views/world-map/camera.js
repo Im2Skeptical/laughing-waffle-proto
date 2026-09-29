@@ -81,7 +81,7 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
     project: point => ({ x: point.x * zoom + x, y: point.y * zoom + y }),
     zoomBy: (factor, right = rect.x + rect.width) => zoomAt(factor, { x: (rect.x + right) / 2, y: rect.y + rect.height / 2 }),
     reset: () => { focus.cancel(); zoom = 1; x = 0; y = 0; apply(); },
-    restore: pose => { focus.cancel(); zoom = pose.zoom; x = pose.x; y = pose.y; apply(); },
+    restore: pose => { focus.cancel(); focus.start({ x, y, zoom }, pose); },
     cancel: () => { focus.cancel(); pointers.clear(); pinch = null; moved = false; viewport.cursor = 'grab'; },
     reveal: (point, right) => {
       focus.cancel();
@@ -93,6 +93,7 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
       });
     },
     update: focus.update,
+    finish: focus.finish,
     isAnimating: focus.isActive,
     snapshot: () => ({ zoom, x, y }),
   };
