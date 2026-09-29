@@ -1,6 +1,6 @@
 // Local presentation state only. Map art, markers and timeline effects share
 // this transform; fixed chrome and inspection panels stay outside it.
-export function createMapCamera(viewport, world, rect, { onTap, onGesture } = {}) {
+export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, reducedMotion } = {}) {
   let zoom = 1, x = 0, y = 0;
   const pointers = new Map();
   let moved = false, pinch = null;
@@ -11,7 +11,12 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture } = {}
     world.position.set(x, y);
     world.scale.set(zoom);
   };
+  const focus = createMapTransition({ now, reducedMotion, apply: pose => {
+    ({ x, y, zoom } = pose);
+    apply();
+  } });
   const zoomAt = (factor, point) => {
+    focus.cancel();
     const next = Math.max(1, Math.min(2.5, zoom * factor));
     x = point.x - (point.x - x) * next / zoom;
     y = point.y - (point.y - y) * next / zoom;
@@ -28,6 +33,7 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture } = {}
   viewport.cursor = 'grab';
   viewport.on('pointerdown', event => {
     if (event.button != null && event.button !== 0) return;
+    focus.cancel();
     const point = local(event);
     if (!pointers.size) moved = false;
     pointers.set(event.pointerId, { point, start: point });
@@ -74,17 +80,21 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture } = {}
     isActive: () => pointers.size > 0,
     project: point => ({ x: point.x * zoom + x, y: point.y * zoom + y }),
     zoomBy: (factor, right = rect.x + rect.width) => zoomAt(factor, { x: (rect.x + right) / 2, y: rect.y + rect.height / 2 }),
-    reset: () => { zoom = 1; x = 0; y = 0; apply(); },
-    restore: pose => { zoom = pose.zoom; x = pose.x; y = pose.y; apply(); },
-    cancel: () => { pointers.clear(); pinch = null; moved = false; viewport.cursor = 'grab'; },
-    reveal: (point, right, mapLeft) => {
-      x = Math.min(x, rect.x - mapLeft * zoom);
-      const px = point.x * zoom + x;
-      const py = point.y * zoom + y;
-      x += Math.max(rect.x + 120, Math.min(right - 120, px)) - px;
-      y += Math.max(rect.y + 170, Math.min(rect.y + rect.height - 100, py)) - py;
-      apply();
+    reset: () => { focus.cancel(); zoom = 1; x = 0; y = 0; apply(); },
+    restore: pose => { focus.cancel(); zoom = pose.zoom; x = pose.x; y = pose.y; apply(); },
+    cancel: () => { focus.cancel(); pointers.clear(); pinch = null; moved = false; viewport.cursor = 'grab'; },
+    reveal: (point, right) => {
+      focus.cancel();
+      const targetZoom = Math.max(1.65, zoom);
+      focus.start({ x, y, zoom }, {
+        x: (rect.x + right) / 2 - point.x * targetZoom,
+        y: rect.y + rect.height / 2 - point.y * targetZoom,
+        zoom: targetZoom,
+      });
     },
+    update: focus.update,
+    isAnimating: focus.isActive,
     snapshot: () => ({ zoom, x, y }),
   };
 }
+import { createMapTransition } from './transitions.js';

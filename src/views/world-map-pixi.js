@@ -1,4 +1,5 @@
 import { createMapCamera } from './world-map/camera.js';
+import { createMapPanelReveal } from './world-map/transitions.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
@@ -219,6 +220,8 @@ export function createWorldMapView({
   tooltipView = null,
 }) {
   const root = new PIXI.Container();
+  const detailRoot = new PIXI.Container();
+  const panelReveal = createMapPanelReveal(detailRoot, DETAIL_RECT);
   const edgeTransferLayer = new PIXI.Container();
   const edgeTransferGraphics = new PIXI.Graphics();
   edgeTransferLayer.eventMode = "none";
@@ -232,7 +235,7 @@ export function createWorldMapView({
   viewport.addChild(world);
   world.addChild(mapContent, edgeTransferLayer);
   viewport.mask = clip;
-  layer.addChild(viewport, clip, root);
+  layer.addChild(viewport, clip, root, detailRoot);
   const camera = createMapCamera(viewport, world, MAP_VIEWPORT_RECT, {
     onTap: handleMapTap,
     onGesture: () => {
@@ -298,11 +301,13 @@ export function createWorldMapView({
   }
 
   // A second flag tap may land on the newly opened detail overlay.
-  root.on('pointerdowncapture', event => {
+  const captureFlagDoubleTap = event => {
     if (!isRecentFlagTap(viewport.toLocal(event.global))) return;
     event.stopPropagation();
     handleMapTap(event);
-  });
+  };
+  root.on('pointerdowncapture', captureFlagDoubleTap);
+  detailRoot.on('pointerdowncapture', captureFlagDoubleTap);
 
   function getEdgeTransferBatchKey(batch) {
     if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
@@ -469,13 +474,23 @@ export function createWorldMapView({
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
     clearChildren(root);
+    clearChildren(detailRoot);
     clearChildren(mapContent);
+    detailRoot.visible = regionSelectionActive;
     if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
       if (!lastRevealedRegionId) overviewCamera = camera.snapshot();
       const selected = getRegionDefinition(state, selectedRegionId);
-      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x, MAP_RECT.x);
+      if (selected) {
+        const point = screenPoint(selected.display.labelPoint);
+        if (!lastRevealedRegionId) panelReveal.open(camera.project(point));
+        camera.reveal(point, DETAIL_RECT.x);
+        tooltipView?.hide?.();
+      }
     }
-    if (!regionSelectionActive && lastRevealedRegionId) camera.restore(overviewCamera);
+    if (!regionSelectionActive && lastRevealedRegionId) {
+      panelReveal.finish();
+      camera.restore(overviewCamera);
+    }
     lastRevealedRegionId = regionSelectionActive ? selectedRegionId : null;
     landmarks=[];
     endDetailsTarget = null;
@@ -701,9 +716,9 @@ export function createWorldMapView({
     addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
     addButton(root, {x: controlsX + 58, y: 756, width: 52, height: 52}, '+', () => camera.zoomBy(1.2, cameraRight));
     addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
-      camera.reset();
       const selected = regionSelectionActive && getRegionDefinition(state, selectedRegionId);
-      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x, MAP_RECT.x);
+      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x);
+      else camera.reset();
     });
     if (!regionSelectionActive) return;
 
@@ -731,13 +746,13 @@ export function createWorldMapView({
       DETAIL_RECT.width,
       DETAIL_RECT.height
     );
-    root.addChild(detailPanel);
+    detailRoot.addChild(detailPanel);
     const regionRef = getRegionReference(state, selectedRegionId) ?? selectedRegionId;
-    addRegionPanelContent(root, DETAIL_RECT, {
+    addRegionPanelContent(detailRoot, DETAIL_RECT, {
       region, reference: regionRef, name: viewModel?.name ?? selectedDef?.name ?? selectedRegionId,
       vm: viewModel, tooltipView, defense: region.monster?.defense ?? regionMapIndicators.find(entry => entry.regionId === selectedRegionId)?.neutral?.defense,
     });
-    addButton(root, {x: DETAIL_RECT.x + DETAIL_RECT.width - 62, y: DETAIL_RECT.y + 14, width: 48, height: 48}, 'X', () => {
+    addButton(detailRoot, {x: DETAIL_RECT.x + DETAIL_RECT.width - 62, y: DETAIL_RECT.y + 14, width: 48, height: 48}, 'X', () => {
       tooltipView?.hide?.();
       onShowCivilizationGraph?.();
     });
@@ -749,6 +764,8 @@ export function createWorldMapView({
       updateEdgeTransferPackets();
     },
     update: () => {
+      camera.update();
+      panelReveal.update();
       render();
       updateEdgeTransferPackets();
     },
@@ -756,7 +773,9 @@ export function createWorldMapView({
     resetEdgeTransferPackets,
     setVisible: (visible) => {
       camera.cancel();
+      panelReveal.finish();
       root.visible = visible === true;
+      detailRoot.visible = root.visible && getRegionSelectionActive?.() === true;
       viewport.visible = root.visible;
       clip.visible = root.visible;
       edgeTransferLayer.visible = root.visible;
@@ -792,6 +811,8 @@ export function createWorldMapView({
         detailPanelVisible: getRegionSelectionActive?.() === true,
         chaosExpanded,
         camera: camera.snapshot(),
+        focusAnimating: camera.isAnimating(),
+        panelReveal: panelReveal.snapshot(),
         layout: { viewport: MAP_VIEWPORT_RECT, detail: DETAIL_RECT, chaos: CIVILIZATION_RECT },
         structureSlots: viewModel ? { visible: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX, available: viewModel.structureCapacity, blocked: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX - viewModel.structureCapacity } : null,
         graphScope:
@@ -880,6 +901,8 @@ export function createWorldMapView({
       clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
+      detailRoot.removeFromParent();
+      detailRoot.destroy({ children: true });
       viewport.removeFromParent();
       viewport.destroy({ children: true });
       clip.removeFromParent();
