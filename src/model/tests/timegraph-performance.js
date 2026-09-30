@@ -94,6 +94,11 @@ const forecast = buildProjectionChunkFromStateData(timeline.baseStateData, 0, 12
 assert.equal(cache.mergeForecastChunk(timeline, { ...forecast, timelineToken: token, historyEndSec: 0 }).ok, true);
 const controller = createTimeGraphController({ getTimeline: () => timeline, getCursorState: () => initial, projectionCache: cache });
 const size = cache.getSize();
+const readSummary = cache.getSummary;
+cache.getSummary = () => null;
+assert.equal(controller.getSummaryAt(77, { cachedOnly: true }), null,
+  "display reads wait for worker summaries instead of replaying a missing second");
+cache.getSummary = readSummary;
 for (let t = 1; t <= 128; t++) {
   const expected = restorer.restore(anchors.get(t - t % 16), t - t % 16, t);
   assert.deepEqual(serializeGameState(controller.getStateAt(t)), serializeGameState(expected));
@@ -120,6 +125,7 @@ const editExpected = rebuildStateAtSecond(timeline, 63);
 const editActual = controller.getStateAt(63);
 assert.deepEqual(serializeGameState(editActual), serializeGameState(editExpected.state), "off-anchor edit future follows authoritative replay");
 let coverage = 1552;
+let summariesReady = true;
 const lossController = createSettlementForecastController({
   getTimeline: () => timeline,
   getFrontierSec: () => 0,
@@ -127,13 +133,21 @@ const lossController = createSettlementForecastController({
   getControllerData: () => ({ forecastCoverageEndSec: coverage }),
   getRevealedCoverageEndSec: () => 1500,
   getEffectiveGraphHorizonSec: () => 2000,
-  getControllerSummaryAt: sec => sec === 1558 && coverage >= 1558
-    ? { runComplete: true, runLossSec: 1558, runLossYear: 49 }
-    : { runComplete: false },
+  getControllerSummaryAt: (sec, options) => {
+    assert.equal(options.cachedOnly, true, "survival display only reads published summaries");
+    if (!summariesReady) return null;
+    return sec === 1558 && coverage >= 1558
+      ? { runComplete: true, runLossSec: 1558, runLossYear: 49 }
+      : { runComplete: false };
+  },
+  getControllerStateAt: () => { throw new Error("display must not fall back to synchronous replay"); },
   exactLossSearchBucketSec: 16,
 });
 assert.equal(lossController.getProjectedLossInfo().resolved, false);
 coverage = 1558;
+summariesReady = false;
+assert.equal(lossController.getProjectedLossInfo().resolved, false, "missing summary stays pending");
+summariesReady = true;
 assert.deepEqual(lossController.getProjectedLossInfo(), { resolved: true, lossSec: 1558, lossYear: 49 }, "terminal slice inside a cached unresolved bucket resolves");
 assert.equal(lossController.getForecastStatus().browseCapSec, 1500, "worker completion never advances browse permission");
 console.log("[timegraph-performance] exact summaries, isolated/live chunks and terminal boundary OK");

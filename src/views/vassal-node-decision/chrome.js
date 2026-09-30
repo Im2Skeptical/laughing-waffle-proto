@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from '../interaction-feedback.js';
 // Overlapping title plaque and dock-style Confirm for the node-decision modal.
 
 import { createText, roundedRect } from "../settlement-view-primitives.js";
@@ -77,14 +78,10 @@ export function confirmDockButton(parent, app, { enabled, label, onClick, showCh
   icon.visible = showCheck;
   root.addChild(bg, icon, title);
   paint();
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onClick?.();
-  });
+  addInteractionFeedback(root, { x: 24, y: 24, width: rect.width - 48, height: rect.height - 48 }, { enabled, onActivate: onClick });
   root.on("pointerover", () => { hovered = true; paint(); });
   root.on("pointerout", () => { hovered = false; pressed = false; paint(); });
-  root.on("pointerdown", (event) => {
-    event?.stopPropagation?.();
+  root.on("pointerdown", () => {
     pressed = enabled;
     paint();
   });

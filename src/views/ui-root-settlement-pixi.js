@@ -727,7 +727,7 @@ settlementForecastController = createSettlementForecastController({
   getControllerStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec),
   getControllerStateDataAt: (tSec) =>
     settlementGraphController?.getStateDataAt?.(tSec),
-  getControllerSummaryAt: (tSec) => settlementGraphController?.getSummaryAt?.(tSec),
+  getControllerSummaryAt: (tSec, options) => settlementGraphController?.getSummaryAt?.(tSec, options),
   getFrontierSec: () => getSettlementFrontierSec(),
   getFrontierState: () => getSettlementFrontierState(),
   getViewedState: () => getSettlementViewedState(),

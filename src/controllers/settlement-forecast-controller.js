@@ -186,10 +186,11 @@ export function createSettlementForecastController({
     return getPendingCommitJob();
   }
 
-  function probeSummaryAt(tSec, counters) {
+  function probeSummaryAt(tSec, counters, cachedOnly = false) {
     if (counters) counters.probes += 1;
-    const summary = getControllerSummaryAt?.(tSec) ?? null;
+    const summary = getControllerSummaryAt?.(tSec, { cachedOnly }) ?? null;
     if (summary != null) return summary;
+    if (cachedOnly) return null;
     return getControllerStateAt?.(tSec) ?? null;
   }
 
@@ -335,8 +336,12 @@ export function createSettlementForecastController({
     // A terminal slice can end inside the last already-searched bucket. Inspect
     // its exact summary before reusing an unresolved result for that bucket.
     const endSummary = searchLimitSec > historyEndSec
-      ? getControllerSummaryAt?.(searchLimitSec) ?? null
+      ? getControllerSummaryAt?.(searchLimitSec, { cachedOnly: true }) ?? null
       : null;
+    // A cache miss is pending worker output, not evidence of survival. Do not
+    // cache it: the same coverage bucket may receive the summary next frame.
+    const awaitingSummary = () => finalize({ lossSec: null, lossYear: null, resolved: false });
+    if (searchLimitSec > historyEndSec && endSummary == null) return awaitingSummary();
     if (isRunComplete(endSummary)) {
       const loss = getLossInfoFromProbe(endSummary, searchLimitSec,
         getLossYearAtSecond(frontierState, searchLimitSec));
@@ -368,7 +373,8 @@ export function createSettlementForecastController({
     ) {
       const boundarySec = Math.min(searchLimitSec, Math.max(0, (year - 1) * yearDurationSec));
       if (boundarySec <= lowSec) continue;
-      const stateAtBoundary = probeSummaryAt(boundarySec, counters);
+      const stateAtBoundary = probeSummaryAt(boundarySec, counters, true);
+      if (stateAtBoundary == null) return awaitingSummary();
       if (isRunComplete(stateAtBoundary)) {
         highSec = boundarySec;
         break;
@@ -376,7 +382,8 @@ export function createSettlementForecastController({
       if (boundarySec >= searchLimitSec) break;
     }
     if (highSec == null) {
-      const stateAtLimit = probeSummaryAt(searchLimitSec, counters);
+      const stateAtLimit = probeSummaryAt(searchLimitSec, counters, true);
+      if (stateAtLimit == null) return awaitingSummary();
       if (isRunComplete(stateAtLimit)) {
         highSec = searchLimitSec;
       }
@@ -391,7 +398,8 @@ export function createSettlementForecastController({
 
     while (lowSec + 1 < highSec) {
       const midSec = lowSec + Math.floor((highSec - lowSec) * 0.5);
-      const stateAtMid = probeSummaryAt(midSec, counters);
+      const stateAtMid = probeSummaryAt(midSec, counters, true);
+      if (stateAtMid == null) return awaitingSummary();
       if (isRunComplete(stateAtMid)) {
         highSec = midSec;
       } else {
@@ -399,7 +407,8 @@ export function createSettlementForecastController({
       }
     }
 
-    const lossState = probeSummaryAt(highSec, counters);
+    const lossState = probeSummaryAt(highSec, counters, true);
+    if (lossState == null) return awaitingSummary();
     const lossInfo = getLossInfoFromProbe(
       lossState,
       highSec,

@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from './interaction-feedback.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getVassalLifeMapNode,
@@ -193,7 +194,9 @@ export function createVassalLifeMapView({
     showNodeTooltip(node, nodeRoots.get(node.id), vassal);
   }
 
+  let nodePointerHeld = false;
   function render(force = false) {
+    if (nodePointerHeld || root.pendingInteractionCount > 0) return;
     dismissTooltipForRecap();
     const visible = isVisible?.() === true;
     root.visible = visible;
@@ -202,6 +205,8 @@ export function createVassalLifeMapView({
       // rather than hiding their hover details on every hidden Life Map frame.
       if (root.children.length > 0) {
         clearChildren(root);
+        nodeRoots.clear();
+        openRoot = null;
         endDetailsTarget = null;
         tooltipView?.hide?.();
       }
@@ -316,8 +321,11 @@ export function createVassalLifeMapView({
       nodeRoot.on("pointerdown", (event) => {
         event?.stopPropagation?.();
         lastPointerType = event?.pointerType === "touch" ? "touch" : "mouse";
-        inspect(node, display);
+        nodePointerHeld = true;
       });
+      for (const type of ["pointerup", "pointerupoutside", "pointercancel"]) {
+        nodeRoot.on(type, () => { nodePointerHeld = false; });
+      }
       const selected = effectiveNodeId === node.id;
       const icon = new PIXI.Graphics();
       const active = display.current || display.available;
@@ -342,6 +350,9 @@ export function createVassalLifeMapView({
         drawPinMarker(pin, true);
         nodeRoot.addChild(pin);
       }
+      addInteractionFeedback(nodeRoot, { x: -40, y: -40, width: 80, height: 80 }, {
+        enabled: !unveiling, onActivate: () => inspect(node, display), pendingLabel: "...",
+      });
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
@@ -351,7 +362,9 @@ export function createVassalLifeMapView({
     init: () => render(true), update: () => render(), refresh: () => render(true),
     setVisible: (visible) => { root.visible = visible === true; },
     getNodeClickPoint(nodeId) {
-      const point = nodeRoots.get(nodeId)?.toGlobal?.(new PIXI.Point(0, 0));
+      const target = nodeRoots.get(nodeId);
+      const point = root.visible && target && !target.destroyed
+        ? target.toGlobal(new PIXI.Point(0, 0)) : null;
       return point ? { x: point.x, y: point.y } : null;
     },
     getOpenDecisionClickPoint: () => openRoot?.toGlobal

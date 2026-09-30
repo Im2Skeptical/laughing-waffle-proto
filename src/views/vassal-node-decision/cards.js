@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from '../interaction-feedback.js';
 // Buttons, option/offer copy, and choice/shop cards.
 
 import { addIllustration } from "../chronicle-art.js";
@@ -16,10 +17,6 @@ export function button(parent, rect, label, enabled, onClick, selected = false) 
   root.eventMode = enabled ? "static" : "none";
   root.cursor = enabled ? "pointer" : "default";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onClick?.();
-  });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
     enabled ? (selected ? 0x536d48 : 0x3d4c3a) : 0x464743,
@@ -29,6 +26,7 @@ export function button(parent, rect, label, enabled, onClick, selected = false) 
     ...TEXT_STYLES.title, fontSize: 22, fill: enabled ? PALETTE.text : PALETTE.textMuted,
     wordWrap: true, wordWrapWidth: rect.width - 18, align: "center",
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, { enabled, onActivate: onClick });
   parent.addChild(root);
   return root;
 }

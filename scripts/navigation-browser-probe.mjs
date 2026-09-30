@@ -25,7 +25,7 @@ async function snapshot() {
       regionSelectionActive: s.worldMap.regionSelectionActive,
       settlementRegionId: s.view?.regionId, headerControls: s.view?.headerControls,
       life: s.lifeMap, decision: {
-        open: s.lifeMapDecision.open, selectedOptionId: s.lifeMapDecision.selectedOptionId,
+        open: s.lifeMapDecision.open, interactionPending: s.lifeMapDecision.interactionPending, selectedOptionId: s.lifeMapDecision.selectedOptionId,
         nodeId: s.lifeMapDecision.nodeId, animation: s.lifeMapDecision.animation,
       },
       current: s.lineage?.currentVassal, lineage: s.lineage,
@@ -45,6 +45,7 @@ async function clickPoint(point, { touch = false, double = false } = {}) {
   } else if (double) await page.mouse.dblclick(x, y, { delay: 80 });
   else await page.mouse.click(x, y);
   await delay(180);
+  await page.waitForFunction(() => !globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.interactionPending, null, { polling: 100 });
 }
 
 async function navigate(id, options) {
@@ -64,6 +65,9 @@ async function navigate(id, options) {
 }
 
 async function controlPoint(method, arg) {
+  if (method === 'getLifeMapNodeClickPoint') {
+    await page.waitForFunction(arg => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(arg), arg);
+  }
   return page.evaluate(({ method, arg }) => globalThis.__SETTLEMENT_DEBUG__[method](arg), { method, arg });
 }
 
@@ -232,6 +236,7 @@ try {
   await clickPoint(nodePoint);
   await waitDecisionReady();
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0), { touch: true });
   const draft = await snapshot();
   assert.ok(draft.decision.selectedOptionId, 'the fixture stages a node decision');
@@ -275,14 +280,20 @@ try {
   await page.mouse.move(canvas.x + nodePoint.x / 2424 * canvas.width,
     canvas.y + nodePoint.y / 1080 * canvas.height);
   await page.mouse.down();
-  const opening = (await snapshot()).decision.animation;
+  assert.equal((await snapshot()).decision.open, false, 'holding a node waits for release');
+  await page.mouse.up();
+  const openingHandle = await page.waitForFunction(() => {
+    const animation = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation;
+    return animation.phase === 'opening' ? animation : null;
+  });
+  const opening = await openingHandle.jsonValue();
+  await openingHandle.dispose();
   assert.equal(opening.phase, 'opening', 'the node decision starts an opening transition');
   assert.ok(opening.rect.width < 2180, 'the opening panel grows into place');
   assert.ok(Math.abs(opening.origin.x - nodePoint.x) < 1
     && Math.abs(opening.origin.y - nodePoint.y) < 1,
   'the opening transition starts at the selected node');
   await page.screenshot({ path: `${OUTPUT}/decision-opening-1280x800.png` });
-  await page.mouse.up();
   await waitDecisionReady();
   assert.equal((await snapshot()).decision.selectedOptionId, draft.decision.selectedOptionId,
     'dismissing through the backdrop preserves the staged choice');

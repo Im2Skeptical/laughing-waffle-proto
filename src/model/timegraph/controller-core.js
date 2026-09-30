@@ -1583,7 +1583,7 @@ export function createTimeGraphController({
     return res.stateData ?? null;
   }
 
-  function getSummaryAt(tSec) {
+  function getSummaryAt(tSec, { cachedOnly = false } = {}) {
     const tl = getTimeline?.();
     if (!tl) return null;
     const sec = clampSec(tSec);
@@ -1594,6 +1594,10 @@ export function createTimeGraphController({
         return cachedSummary;
       }
     }
+
+    // Status displays must not replay the simulation on the input/render path
+    // while the forecast worker is still publishing its exact summaries.
+    if (cachedOnly) return null;
 
     const stateData = getStateDataAt(sec);
     if (stateData == null) return null;

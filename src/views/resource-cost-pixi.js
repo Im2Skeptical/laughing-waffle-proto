@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from './interaction-feedback.js';
 import { getResourceTexture, getChronicleTexture } from './chronicle-art.js';
 import { getVassalPhaseDurationParts, formatVassalPhaseDuration } from '../model/vassal-life-map.js';
 import { createText } from './settlement-view-primitives.js';
@@ -152,10 +153,9 @@ export function addCostPanel(parent, rect, {
   root.costSummary = { phaseCost, prestigeCost, currencyCost, description, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
-  root.on('pointertap', event => {
-    event.stopPropagation();
-    if (disabled) onUnavailable?.();
-    else onActivate?.();
+  addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {
+    enabled: interactive && (!disabled || !!onUnavailable),
+    onActivate: disabled ? onUnavailable : onActivate,
   });
   parent.addChild(root);
   return root;

@@ -194,7 +194,8 @@ export function createSettlementVassalFlow({
     requestPause?.();
     // These actions only edit the pending node decision. Civilization effects
     // and elapsed time are applied when the node is confirmed.
-    const stagedDecision = kind === ActionKinds.VASSAL_SELECT_LIFE_OPTION
+    const stagedDecision = kind === ActionKinds.VASSAL_ENTER_LIFE_NODE
+      || kind === ActionKinds.VASSAL_SELECT_LIFE_OPTION
       || kind === ActionKinds.VASSAL_PURCHASE_SHOP_OFFER
       || kind === ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE
       || kind === ActionKinds.VASSAL_UNDO_SHOP_PURCHASE

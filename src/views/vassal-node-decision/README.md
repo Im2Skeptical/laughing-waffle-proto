@@ -22,3 +22,9 @@ closures stay in the orchestrator.
 
 - `createVassalNodeDecisionModalView` drag/confirm/hover/inspection closures
 - Shop staging, tableau pointerdown, and pinned-inspection wiring
+
+Decision buttons and cost footers use `../interaction-feedback.js` for hover,
+press, cancellation, and a painted pending state before synchronous dispatch.
+The modal preserves its controls while a pointer is held or an activation is
+pending. Browser probes wait for `interactionPending` to clear rather than
+assuming dispatch has finished after a fixed frame delay.
