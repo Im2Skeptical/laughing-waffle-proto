@@ -46,6 +46,7 @@ async function clickDesignPoint(page, point) {
     box.y + point.y / 1080 * box.height
   );
   await delay(150);
+  await page.waitForFunction(() => !globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.interactionPending, null, { polling: 100 });
 }
 
 async function getNavigationPoint(page, id) {
@@ -339,6 +340,12 @@ try {
   assert.equal(deselected.controller.scope, "civilization",
     "clicking the selected region again restores the civilization timegraph");
 
+  // Read the next hit target after the camera has returned to the overview.
+  // A coordinate captured during that transition can land in another region.
+  await page.waitForFunction(() => {
+    const map = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+    return !map.focusAnimating && !map.panelReveal?.animating;
+  });
   await pressDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods")), 180);
   await page.waitForFunction(() =>
     globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionSelectionActive === true);
@@ -644,6 +651,7 @@ try {
   );
   assert.ok(enterNodePoint, "the inspected available node has an explicit entry button");
   await clickDesignPoint(page, enterNodePoint);
+  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   const optionPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)
   );

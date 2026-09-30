@@ -299,7 +299,7 @@ export function createVassalNodeDecisionModalView({
   root.on('pointercancel',()=>{dragged=null;dragGhost?.destroy({children:true});dragGhost=null;placementGuide?.destroy();placementGuide=null;render(true);});
 
   function render(force = false) {
-    if (!logicalOpen || dragged || pointerHeld) return;
+    if (!logicalOpen || dragged || pointerHeld || root.pendingInteractionCount > 0) return;
     const presentation = getPresentation?.() ?? {};
     const state = getState?.() ?? null;
     const vassal = presentation.vassal;
@@ -704,6 +704,7 @@ export function createVassalNodeDecisionModalView({
       });
       return {
         open: logicalOpen, nodeId: openNodeId,
+        interactionPending: root.pendingInteractionCount > 0,
         animation: {
           phase: motion ? logicalOpen ? "opening" : "closing" : logicalOpen ? "open" : "closed",
           origin: motionOrigin,
@@ -720,7 +721,7 @@ export function createVassalNodeDecisionModalView({
         mortalityEstimate: decision?.mortalityEstimate ?? null,
         offers: (decision?.offers ?? []).map((offer) => ({ offerId: offer.offerId, label: offer.label, kind: offer.intervention?.kind, mode: offer.intervention?.mode, footprint: offer.presentation?.footprint, validOrigins: offer.validOrigins, canStage: offer.canStage, rule: offer.presentation?.rule ?? offerEffect(offer) })),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),
-        costPanels: [...shopCardRoots, ...optionRoots].map(card => ({ ...card.costPanel.costSummary,
+        costPanels: [...shopCardRoots, ...optionRoots].map(card => ({ ...card.costPanel.costSummary, interactionState: card.costPanel.interactionState,
           rect: card.costPanel.getBounds(),
         })),
         practices: decision?.settlement?.practices ?? [],
