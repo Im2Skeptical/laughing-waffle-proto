@@ -16,6 +16,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       polygon([-12,-29, 12,-29, 7,-16, 22,0, 26,20, 15,29, -15,29, -26,20, -22,0, -7,-16]);
       line([-12,-14,12,-14],5,accent); line([0,-3,0,17],5,accent);
       break;
+    case 'philosopherFounding':
     case 'development': // Open book.
       polygon([-29,-23,-10,-25,0,-18,10,-25,29,-23,29,22,10,20,0,27,-10,20,-29,22]);
       line([0,-17,0,24]); line([-22,-12,-9,-11]); line([9,-11,22,-12]);
@@ -52,6 +53,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       line([-12,-2,0,-18,12,-2],4,accent);
       polygon([-6,10,0,2,6,10,0,18]);
       break;
+    case 'warlordFounding':
     case 'legacy':
       polygon([-30,-23,-14,-10,0,-31,14,-10,30,-23,23,25,-23,25]);
       line([-23,14,23,14],5,accent); polygon([-5,-2,0,-9,5,-2,0,5]);

@@ -36,7 +36,9 @@ try {
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-neutral.png`});
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.openNextSelection())).ok,true);
   const candidates=(await snapshot()).vassalSelectionPool.candidates;
-  assert.equal(candidates[candidateIndex].classId,candidateIndex?'warrior':'scholar');
+  assert.equal(candidates[candidateIndex].classId,null);
+  assert.equal(candidates[candidateIndex].founderClassId,candidateIndex?'warrior':'scholar');
+  assert.equal(candidates[candidateIndex].archetype,candidateIndex?'Warlord':'Philosopher');
   await click('getVassalCandidateClickPoint',candidateIndex);
   await click('getNavigationClickPoint','vassal');
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getLastVassalSelectionResult())).ok,true);

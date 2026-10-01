@@ -30,8 +30,7 @@ const previewSelection = selectLifeMapVassal(
 );
 assert.equal(previewSelection.ok, true);
 const previewVassal = getCurrentLifeMapVassal(selectedPreview);
-const entryNodeId = previewVassal.lifeMap.availableNodeIds.find((id) =>
-  previewVassal.lifeMap.graph.nodes.find((node) => node.id === id)?.family === "training");
+const entryNodeId = previewVassal.lifeMap.graph.foundingNodeId;
 
 for (const action of [
   {

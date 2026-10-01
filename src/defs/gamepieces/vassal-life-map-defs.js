@@ -1,10 +1,12 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 2;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 3;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
 
 export const VASSAL_NODE_FAMILIES = Object.freeze({
-  training: Object.freeze({ id: "training", label: "Training", glyph: "T", color: 0xa46fc4, description: "Establish or grow a specialist estate." }),
+  philosopherFounding: Object.freeze({ id: "philosopherFounding", label: "Philosopher Founding", glyph: "P", color: 0xa46fc4, description: "A Philosopher establishes the Scholars." }),
+  warlordFounding: Object.freeze({ id: "warlordFounding", label: "Warlord Founding", glyph: "W", color: 0xca5b5b, description: "A Warlord establishes the Warriors through training." }),
+  training: Object.freeze({ id: "training", label: "Training", glyph: "T", color: 0xa46fc4, description: "Grow an established specialist class." }),
   commission: Object.freeze({ id: "commission", label: "Commission", glyph: "C", color: 0xa46fc4, description: "Accept an objective for Prestige." }),
   discovery: Object.freeze({ id: "discovery", label: "Discovery", glyph: "D", color: 0xa46fc4, description: "Develop technological access through Ingenuity." }),
   campaign: Object.freeze({ id: "campaign", label: "Campaign", glyph: "C", color: 0xa46fc4, description: "Lead organized conflict." }),
@@ -53,6 +55,21 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   relic: Object.freeze({
     id: "relic", label: "Relic", glyph: "H", color: 0xc9a35a,
     description: "Discover a temporary Heirloom and choose to Equip or Carry it.",
+  }),
+});
+
+export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
+  philosopherFounding: Object.freeze({
+    id: "train-estate", label: "Philosopher: establish Scholars",
+    description: "Train up to two existing adults as Scholars and found a Lyceum if two construction cells are free.",
+    phaseCost: 6, prestigeCost: 0,
+    classAction: Object.freeze({ kind: "train", classId: "scholar", count: 2, structureId: "lyceum", establishClass: true, onCompletion: true }),
+  }),
+  warlordFounding: Object.freeze({
+    id: "train-estate", label: "Warlord: establish Warriors",
+    description: "Train up to ten existing adults as Warriors.",
+    phaseCost: 6, prestigeCost: 0,
+    classAction: Object.freeze({ kind: "train", classId: "warrior", count: 10, establishClass: true, onCompletion: true }),
   }),
 });
 

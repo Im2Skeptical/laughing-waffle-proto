@@ -81,18 +81,22 @@ export function generateCandidatePool(state) {
   const legacyBonus = Math.max(0, Math.floor(
     state?.civilization?.vassalLegacy?.futureStartingPrestigeBonus ?? 0
   ));
+  const isFounderPool = lineage.selectedVassalIds.length === 0;
   const candidates = locations.length === 0 ? [] : Array.from(
     { length: VASSAL_LIFE_TUNING.candidateCount },
     (_, index) => {
       const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
       const local = getDetailedSite(state, locationRegionId)?.detailedState;
-      const classId = index === 0 ? 'scholar' : index === 1 ? 'warrior' : (specialistCount(local,'warrior') > specialistCount(local,'scholar') ? 'warrior' : 'scholar');
-      const institutions = (local?.structureSlots ?? []).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0));
+      const founderClassId = isFounderPool ? (index === 1 ? 'warrior' : 'scholar') : null;
+      const classId = isFounderPool || index === 1 ? null : lineage.establishedClassId;
+      const institutions = classId ? (local?.structureSlots ?? []).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0)) : [];
       const retired = (state.civilization.retiredVassals ?? []).filter(v=>v.classId===classId && v.retirementRegionId===locationRegionId);
       const academyBonus = Math.min(5, institutions.reduce((n,def)=>n+(def.candidateBonus??0),0) + (institutions.length ? Math.floor(retired.reduce((n,v)=>n+(classId==='scholar'?v.finalCunning:v.finalIntelligence),0)/5) : 0));
       return ({
       classId,
-      archetype: specialistCount(local,classId) ? (classId==='scholar'?'Scholar':'Warrior') : (classId==='scholar'?'Philosopher':'Warlord'),
+      founderClassId,
+      archetype: founderClassId ? (founderClassId === 'scholar' ? 'Philosopher' : 'Warlord')
+        : classId ? (classId === 'scholar' ? 'Scholar' : 'Warrior') : 'Unclassed',
       candidateId: `candidate-${Math.max(1, Math.floor(lineage.nextVassalId ?? 1))}-${index + 1}`,
       age: state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateAgeMin, VASSAL_LIFE_TUNING.candidateAgeMax),
       locationRegionId, originRegionId: locationRegionId,
@@ -120,6 +124,8 @@ export function initializeVassalLifeMapCivilization(state) {
   state.civilization.heirloomVault = createEmptyHeirloomVault();
   state.civilization.vassalLineage = {
     nextVassalId: 1,
+    founderClassId: null,
+    establishedClassId: null,
     currentVassalId: null,
     selectedVassalIds: [],
     vassalsById: {},
@@ -208,10 +214,36 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     heirlooms: createEmptyHeirloomInventory(),
   };
   const ordinary = record.lifeMap.graph.nodes.filter(n => !n.signatureNode && !["legacy", "signature"].includes(n.family));
+  const lifeClassId = record.founderClassId ?? record.classId;
+  // Custom generator weights must not grant another class's actions.
+  const classFamilies = { training: null, commission: 'scholar', discovery: 'scholar', campaign: 'warrior', challenge: 'warrior' };
+  for (const node of ordinary) {
+    if (Object.hasOwn(classFamilies, node.family)
+        && (!lifeClassId || (classFamilies[node.family] && classFamilies[node.family] !== lifeClassId))) {
+      node.family = 'development';
+    }
+  }
   if (record.classId && ordinary[0]) ordinary[0].family = "training";
   let classIndex = 0;
-  for (const node of ordinary.slice(1)) if (record.classId && classIndex < 2 && ["patronage", "development"].includes(node.family)) {
-    node.family = record.classId === "scholar" ? ["commission", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
+  for (const node of ordinary.slice(1)) if (lifeClassId && classIndex < 2 && ["patronage", "development"].includes(node.family)) {
+    node.family = lifeClassId === "scholar" ? ["commission", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
+  }
+  if (record.founderClassId) {
+    const graph = record.lifeMap.graph;
+    const entryNodeIds = [...graph.entryNodeIds];
+    const foundingNodeId = `${vassalId}-founding`;
+    const normalDepthCount = graph.generatorConfig.normalDepthCount;
+    for (const node of graph.nodes) node.position.x = (node.position.x * normalDepthCount + 1) / (normalDepthCount + 1);
+    graph.nodes.unshift({
+      id: foundingNodeId, depth: -1, lane: Math.floor(graph.generatorConfig.laneCount / 2), band: "founding",
+      family: record.founderClassId === "scholar" ? "philosopherFounding" : "warlordFounding",
+      position: { x: 0, y: 0.5 },
+    });
+    graph.edges.unshift(...entryNodeIds.map(toNodeId => ({ fromNodeId: foundingNodeId, toNodeId })));
+    graph.foundingNodeId = foundingNodeId;
+    graph.entryNodeIds = [foundingNodeId];
+    record.lifeMap.availableNodeIds = [foundingNodeId];
+    lineage.founderClassId = record.founderClassId;
   }
   delete record.age;
   lineage.nextVassalId = idNumber + 1;

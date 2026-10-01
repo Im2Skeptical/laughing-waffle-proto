@@ -46,7 +46,8 @@ assert.equal(applyAction(lifeMapState, {
 let lifeVassal = getCurrentLifeMapVassal(lifeMapState);
 const lifeNodes = getVassalLifeMapNodes(lifeVassal);
 assert.equal(lifeNodes.filter((node) => node.family === "legacy").length, 1);
-assert.ok(lifeVassal.lifeMap.availableNodeIds.length >= 2, "generated map has an opening choice");
+assert.deepEqual(lifeVassal.lifeMap.availableNodeIds, [lifeVassal.lifeMap.graph.foundingNodeId],
+  "the founder has one compulsory opening node");
 for (const node of lifeNodes) {
   assert.ok(getVassalLifeMapOutgoingNodeIds(lifeVassal, node.id).every((id) =>
     lifeNodes.find((entry) => entry.id === id)?.depth === node.depth + 1
@@ -60,7 +61,6 @@ assert.equal(applyAction(lifeMapState, {
 const patronageNode = lifeVassal.lifeMap.nodeStates[patronageNodeId];
 assert.equal(patronageNode.entered, true);
 const prestigeBefore = lifeVassal.prestige;
-const incomeBefore = getVassalPrestigeIncome(lifeVassal);
 assert.equal(applyAction(lifeMapState, {
   kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
   payload: { nodeId: patronageNodeId, optionId: "cultivateConnections" },
@@ -78,8 +78,8 @@ for (let sec = 1; sec <= resolveSec; sec += 1) {
 }
 lifeVassal = getCurrentLifeMapVassal(lifeMapState);
 assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].resolved, true);
-assert.equal(lifeVassal.prestige, prestigeBefore + 5 + incomeBefore,
-  "Scholar Ingenuity does not add recurring Prestige");
+assert.equal(lifeVassal.prestige, prestigeBefore + 5 + getVassalPrestigeIncome(lifeVassal),
+  "the unclassed founder receives their current recurring Prestige income");
 assert.equal(lifeVassal.lifeMap.nodeStates[patronageNodeId].mortality.roll >= 0, true);
 assert.ok(lifeVassal.lifeMap.availableNodeIds.length >= 1);
 

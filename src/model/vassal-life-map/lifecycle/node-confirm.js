@@ -490,7 +490,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
     }
   }
-  applyClassAction(state, vassal, option?.classAction);
+  if (!option?.classAction?.onCompletion) applyClassAction(state, vassal, option?.classAction);
   if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;
   if (vassal.classId === "warrior" && (option?.baseDanger??option?.immediateDeathChance) > 0) vassal.prestige += Math.ceil((option.baseDanger??option.immediateDeathChance) * 50);
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
@@ -522,6 +522,8 @@ function enqueueVassalDevelopmentChoices(state, vassal, count) {
 }
 
 export function completeNodeResolution(state, vassal, nodeState) {
+  const option = nodeState.options.find(entry => entry.id === nodeState.selectedOptionId);
+  if (option?.classAction?.onCompletion) applyClassAction(state, vassal, option.classAction);
   completeCommission(state, vassal);
   const gains = getVassalNodeResolutionGains(vassal, nodeState.family);
   vassal.prestige += gains.prestige;

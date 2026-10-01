@@ -123,7 +123,11 @@ contract: `ai/visual-overhaul.md`.
   control or a double-tap on the selected candidate confirms it. Clicking
   outside dismisses the chooser without changing
   its authoritative pool. Selection opens a dedicated full-topology Life Map
-  screen. The Lifegraph keeps a Vassal Chronicle label and a compact centered HUD:
+  screen with a Philosopher or Warlord Chronicle for the first Vassal. The compulsory
+  opening node and its sole choice name that founder; completing it establishes
+  the chosen class. Later candidate cards show Unclassed or the established class,
+  with no recurring founder identities. Later Lifegraphs use a Vassal Chronicle
+  label. The compact centered HUD shows:
   circular portrait, Age over Prestige, EXP `n/10`, four stat chips, and Location
   on the right, aligned under the year strip. The HUD stays
   fully lit above recap and decision modals and shows signed Prestige and stat deltas

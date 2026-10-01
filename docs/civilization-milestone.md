@@ -25,6 +25,13 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 - Restoring five slots is a clean schema cut: start a new game. Twelve-slot saves
   and old Map Lab drafts are unsupported; no installed content is silently truncated
   during save loading. Current schema numbers live in `ai/ai-context.md`.
+- The first selected Vassal is a Philosopher or Warlord, initially unclassed.
+  A compulsory single-choice founding node precedes their generated Life Map.
+  Completing its six phases establishes Scholars or Warriors through adult
+  training (and a Lyceum for Scholars where space permits); Warlord founding
+  requires no conquest. That life retains its founder identity. Successors are
+  unclassed or of the established class, and founders never recur. Introducing
+  other classes through another mechanic remains deferred.
 
 ## Systems implemented in the first pass
 
@@ -169,4 +176,4 @@ upper bound (the expanded snapshot measured 375 ms against the old 300 ms bound)
 Further snapshot/render optimization is a follow-up, not a balance dependency.
 
 Probe artifacts are generated under `artifacts/` and are not committed. State/save/
-config schemas are 24/15/15; Map Lab is 8. Older saves are intentionally rejected.
+config schemas are 25/16/15; Map Lab is 8. Older saves are intentionally rejected.

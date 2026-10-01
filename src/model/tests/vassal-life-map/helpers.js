@@ -20,7 +20,9 @@ export function selectedState(seed = 1, candidateIndex = 0) {
   state.paused = true;
   state.phase = "planning";
   state.gameConfig.settings.values.primordialBasePressure = 0;
-  state.civilization.vassalLineage.pendingCandidates.forEach(candidate=>candidate.classId=null);
+  state.civilization.vassalLineage.pendingCandidates.forEach(candidate=>{
+    candidate.classId=null; candidate.founderClassId=null; candidate.archetype='Unclassed';
+  });
   const pool = getVassalCandidatePool(state);
   dispatch(state, ActionKinds.SETTLEMENT_SELECT_VASSAL, {
     candidateIndex, expectedPoolHash: pool.expectedPoolHash,
@@ -31,7 +33,9 @@ export function selectedState(seed = 1, candidateIndex = 0) {
 export function selectedStateForSignature(variantId) {
   for (let seed = 0; seed < 1000; seed += 1) {
     const state = createInitialState("devPlaytesting01", seed);
-    state.civilization.vassalLineage.pendingCandidates.forEach(candidate=>candidate.classId=null);
+    state.civilization.vassalLineage.pendingCandidates.forEach(candidate=>{
+      candidate.classId=null; candidate.founderClassId=null; candidate.archetype='Unclassed';
+    });
   const pool = getVassalCandidatePool(state);
     const candidateIndex = pool.candidates.findIndex((candidate) =>
       candidate.signatureNode?.variantId === variantId);

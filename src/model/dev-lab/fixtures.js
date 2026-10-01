@@ -26,6 +26,15 @@ export function setFixturePopulation(settlement, population, scholars = 0, warri
   trainSpecialists(settlement, 'warrior', warriors);
 }
 export function selectFixtureVassal(state, classId) {
+  // Museum/Gym specimens start with an authored, already-established class.
+  const lineage = state.civilization.vassalLineage;
+  lineage.founderClassId = classId;
+  lineage.establishedClassId = classId;
+  for (const candidate of lineage.pendingCandidates) {
+    candidate.classId = classId;
+    candidate.founderClassId = null;
+    candidate.archetype = classId === 'scholar' ? 'Scholar' : 'Warrior';
+  }
   const pool = getVassalCandidatePool(state);
   const index = pool.candidates.findIndex(c => c.classId === classId);
   state.paused = true;
