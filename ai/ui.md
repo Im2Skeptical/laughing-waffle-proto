@@ -99,6 +99,8 @@ contract: `ai/visual-overhaul.md`.
   graph scrub, or time discs detaches that follow until the next unveil.
 - Long forecasts retain lightweight graph summaries after heavy state snapshots
   are evicted, while active forecast tails remain pinned for worker continuation.
+- Timegraph intent and optimisation guardrails: `docs/timegraph-ux-and-capacity-brief.md` (draft, stated
+  intent) and `docs/timegraph-optimisation-guardrails.md`.
 - The season/moon wheel uses the shared Sun and Moon sprite family. Six phase
   emblems rotate with the moon face, while an upright centre shows the active
   phase. Its phone-sized target opens a six-phase reference containing the rules

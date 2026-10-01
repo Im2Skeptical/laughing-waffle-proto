@@ -17,6 +17,8 @@ Local instructions for agents working in this repo.
   orchestrator file.
 - Do not read `ai/history/` unless the task is explicitly about a past
   design decision.
+- Before optimising or reviewing the timegraph (forecast, restore, worker, reveal, scrub, preview), read
+  `docs/timegraph-optimisation-guardrails.md` first.
 
 ## Current goal context
 - The project is an in-progress, wide Civilization content and systems buildout.
