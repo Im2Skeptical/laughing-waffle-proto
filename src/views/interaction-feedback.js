@@ -3,29 +3,27 @@ const activePresses = new Set();
 const tapFeedback = new Set();
 const TAP_FEEDBACK_MS = 180;
 
-// The acknowledgement belongs to the stage so an immediate redraw/modal close
-// cannot erase a quick tap before the renderer has shown it. Actions never wait.
+// A release acknowledgement belongs to its control. Screen changes and redraws
+// must remove it with that control instead of leaving a shape over the next UI.
 function acknowledgeTap(root, drawFeedback) {
   if (!root.parent) return;
-  let stage = root.parent;
-  while (stage.parent) stage = stage.parent;
-  root.getBounds(); // Update the control's transform before copying its position.
   const flash = new PIXI.Graphics();
   flash.eventMode = 'none';
-  flash.zIndex = Number.MAX_SAFE_INTEGER;
   drawFeedback(flash, {pressed:true, hovered:false});
-  flash.transform.setFromMatrix(stage.worldTransform.clone().invert().append(root.worldTransform));
-  stage.addChild(flash);
+  root.addChild(flash);
   const startedAt = performance.now();
-  const item = {flash, startedAt};
+  const item = {flash, root, startedAt};
   tapFeedback.add(item);
+  const forget = () => tapFeedback.delete(item);
+  root.once('destroyed', forget);
   let firstFrameAt = null;
   function fade(now) {
-    if (flash.destroyed || stage.destroyed) { tapFeedback.delete(item); return; }
+    if (flash.destroyed || root.destroyed) { forget(); return; }
     firstFrameAt ??= now;
     const age = now - firstFrameAt;
     if (age >= TAP_FEEDBACK_MS) {
       tapFeedback.delete(item);
+      root.off('destroyed', forget);
       flash.destroy();
       return;
     }
@@ -36,7 +34,9 @@ function acknowledgeTap(root, drawFeedback) {
 }
 
 export function getTapFeedbackSnapshot() {
-  return Array.from(tapFeedback, ({flash,startedAt}) => ({
+  return Array.from(tapFeedback).filter(({flash,root}) => !flash.destroyed && !root.destroyed && root.worldVisible)
+    .map(({flash,root,startedAt}) => ({
+    controlBound: flash.parent === root,
     ageMs: performance.now() - startedAt, alpha: flash.alpha,
     shape: flash.geometry.graphicsData[0]?.shape.type === PIXI.SHAPES.POLY ? 'polygon' : 'rectangle',
     rect: flash.getBounds(),
