@@ -1,6 +1,7 @@
 import {
   VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION,
   VASSAL_NORMAL_NODE_FAMILY_IDS,
+  VASSAL_FOUNDING_OPTIONS,
   VASSAL_SIGNATURE_NODE_VARIANTS,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 
@@ -454,7 +455,7 @@ export function validateVassalLifeMapGraph(graph) {
     ids.add(node?.id);
     nodeById.set(node?.id, node);
     if (!Number.isInteger(node?.depth) || !Number.isInteger(node?.lane)) errors.push(`nodes[${index}]: invalid grid position`);
-    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, "legacy", "signature"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
     if (node?.family === "signature") {
       if (!isCanonicalSignatureDescriptor(node?.signatureNode)
           || node.signatureNode.variantId === "legacyPlus") {
@@ -481,7 +482,18 @@ export function validateVassalLifeMapGraph(graph) {
     const to = nodeById.get(edge?.toNodeId);
     if (from && to && to.depth !== from.depth + 1) errors.push(`edges[${index}]: expected next-depth edge`);
   }
-  if (graph.entryNodeIds.length < 2 || graph.entryNodeIds.some((id) => !ids.has(id))) {
+  const foundingNode = nodeById.get(graph.foundingNodeId);
+  const foundingNodes = graph.nodes.filter(node => VASSAL_FOUNDING_OPTIONS[node.family]);
+  if (graph.foundingNodeId != null || foundingNodes.length) {
+    if (!foundingNode || !VASSAL_FOUNDING_OPTIONS[foundingNode.family]
+        || foundingNodes.length !== 1 || foundingNode.depth !== -1
+        || graph.entryNodeIds.length !== 1 || graph.entryNodeIds[0] !== foundingNode.id
+        || graph.edges.some(edge => edge.toNodeId === foundingNode.id)
+        || graph.nodes.filter(node => node.depth === 0).some(node =>
+          !edgeKeys.has(`${foundingNode.id}>${node.id}`))) {
+      errors.push("foundingNodeId: expected a single founding entry preceding all normal entries");
+    }
+  } else if (graph.entryNodeIds.length < 2 || graph.entryNodeIds.some((id) => !ids.has(id))) {
     errors.push("entryNodeIds: expected at least two known nodes");
   }
   if (!ids.has(graph.bossNodeId)
@@ -500,13 +512,13 @@ export function validateVassalLifeMapGraph(graph) {
     errors.push("nodes: expected at most one inserted signature node");
   }
   for (const entryId of graph.entryNodeIds) {
-    if (nodeById.get(entryId)?.depth !== 0) errors.push("entryNodeIds: entries must be at depth zero");
+    if (nodeById.get(entryId)?.depth !== (foundingNode ? -1 : 0)) errors.push("entryNodeIds: invalid entry depth");
   }
   for (const [index, edge] of graph.edges.entries()) {
     const from = nodeById.get(edge.fromNodeId);
     const to = nodeById.get(edge.toNodeId);
     if (!from || !to) continue;
-    if (to.id !== graph.bossNodeId && Math.abs(to.lane - from.lane) > 1) {
+    if (from.id !== graph.foundingNodeId && to.id !== graph.bossNodeId && Math.abs(to.lane - from.lane) > 1) {
       errors.push(`edges[${index}]: normal edges must use shared or adjacent lanes`);
     }
     if (config?.nonRepeatFamilyIds?.includes(from.family) && from.family === to.family) {

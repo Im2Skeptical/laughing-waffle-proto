@@ -1,14 +1,15 @@
 import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
-import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, specialistCount } from '../detailed-settlements/stock.js';
+import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists } from '../detailed-settlements/stock.js';
 import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement } from '../detailed-settlements/external-world.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
 import { tryCreateStructure } from '../detailed-settlements/practices.js';
+import { VASSAL_FOUNDING_OPTIONS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 
-const classPopulation = (state, classId) => getDetailedSettlementSites(state,{playerOnly:true}).reduce((n,s)=>n+specialistCount(s.detailedState,classId),0);
 export function classActionOptions(state, vassal, family) {
   const settlement=getDetailedSettlement(state,vassal.locationRegionId);
-  if(family==='training') return [{id:'train-estate',label:`${classPopulation(state,vassal.classId)?'Train':'Establish'} ${vassal.classId==='scholar'?'Scholars':'Warriors'}`,description:`Convert up to ${vassal.classId==='scholar'?2:10} existing adults into ${vassal.classId==='scholar'?'Scholars':'Warriors'}.`+(vassal.classId==='scholar'&&!classPopulation(state,'scholar')?' Found a Lyceum if two construction cells are free.':''),phaseCost:6,prestigeCost:0,classAction:{kind:'train'}}];
+  if (VASSAL_FOUNDING_OPTIONS[family]) return [structuredClone(VASSAL_FOUNDING_OPTIONS[family])];
+  if(family==='training') return [{id:'train-estate',label:`Train ${vassal.classId==='scholar'?'Scholars':'Warriors'}`,description:`Convert up to ${vassal.classId==='scholar'?2:10} existing adults into ${vassal.classId==='scholar'?'Scholars':'Warriors'}.`,phaseCost:6,prestigeCost:0,classAction:{kind:'train'}}];
   if(family==='commission') return [
     {id:'commission-practice',label:'Commission: install a new Practice for 20 Prestige',phaseCost:0,classAction:{kind:'commission',objective:'practice'}},
     {id:'commission-structure',label:'Commission: build a Structure for 20 Prestige',phaseCost:0,classAction:{kind:'commission',objective:'structure'}},
@@ -51,6 +52,8 @@ export function classActionOptions(state, vassal, family) {
 export function validateClassAction(state,vassal,action) {
   if(!action) return {ok:true};
   if(['train','commission','campaign'].includes(action.kind) && !getDetailedSettlement(state,vassal.locationRegionId)) return {ok:false,reason:'settlementLost'};
+  if (action.establishClass && (action.classId !== vassal.founderClassId
+      || state.civilization.vassalLineage.establishedClassId)) return {ok:false,reason:'foundingUnavailable'};
   if(action.kind==='campaign') {
     const legal=classActionOptions(state,vassal,'campaign').some(o=>o.classAction.targetId===action.targetId && o.classAction.difficulty===action.difficulty);
     if(!legal) return {ok:false,reason:'campaignConditionsChanged'};
@@ -67,9 +70,17 @@ export function applyClassAction(state,vassal,action) {
   if(!action) return;
   const settlement=getDetailedSettlement(state,vassal.locationRegionId);
   if(action.kind==='train') {
-    const founding=classPopulation(state,vassal.classId)===0;
-    trainSpecialists(settlement,vassal.classId,vassal.classId==='scholar'?2:10);
-    if(founding&&vassal.classId==='scholar') tryCreateStructure(state,vassal.locationRegionId,'lyceum');
+    const classId = action.classId ?? vassal.classId;
+    trainSpecialists(settlement, classId, action.count ?? (classId === 'scholar' ? 2 : 10));
+    if (action.structureId) tryCreateStructure(state, vassal.locationRegionId, action.structureId);
+    if (action.establishClass) {
+      state.civilization.vassalLineage.establishedClassId = classId;
+      vassal.classId = classId;
+      vassal.lifeEvents.push({
+        eventId: `${vassal.vassalId}:founded`, kind: 'classFounded', tSec: state.tSec,
+        text: `${vassal.archetype} established ${classId === 'scholar' ? 'Scholars' : 'Warriors'}`,
+      });
+    }
   }
   if(action.kind==='commission') vassal.commission={objective:action.objective,initialIds:(action.objective==='practice'?settlement.practiceSlots:settlement.structureSlots).filter(Boolean).map(p=>p.practiceId??p.placementId),regionId:vassal.locationRegionId};
   if(action.kind==='discovery') {

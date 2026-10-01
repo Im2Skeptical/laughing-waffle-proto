@@ -3,5 +3,6 @@ import "./vassal-life-map/shop.js";
 import "./vassal-life-map/lifecycle.js";
 import "./vassal-life-map/presentation.js";
 import "./vassal-life-map/heirlooms.js";
+import "./vassal-life-map/founders.js";
 
 console.log("[vassal-life-map] OK");

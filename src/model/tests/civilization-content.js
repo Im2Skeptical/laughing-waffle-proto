@@ -103,11 +103,13 @@ const scholarState=createNewGameState(47);scholarState.paused=true;
 let pool=getVassalCandidatePool(scholarState);
 assert.equal(selectLifeMapVassal(scholarState,0,pool.expectedPoolHash).ok,true);
 const scholar=getCurrentLifeMapVassal(scholarState),scholarSite=scholarState.world.sites.find(s=>s.regionId===scholar.locationRegionId);
-const training=scholar.lifeMap.graph.nodes.find(n=>n.family==='training');
+const training=scholar.lifeMap.graph.nodes.find(n=>n.family==='philosopherFounding');
 const act=(kind,payload)=>assert.equal(applyAction(scholarState,{kind,payload},{isReplay:true}).ok,true,kind);
 act(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId:training.id});
 act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:training.id,optionId:'train-estate'});
 act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:training.id});
+scholarState.paused=false;
+assert.equal(advanceReplayStateToSecond(scholarState,scholar.lifeMap.pendingResolution.resolveSec).ok,true);
 assert.equal(specialistCount(scholarSite.detailedState,'scholar'),2);
 assert.ok(scholarSite.detailedState.structureSlots.some(s=>s?.structureId==='lyceum'));
 scholarSite.detailedState.practiceSlots=[slot('logging',3),slot('bowmaking',2),slot('garrisonDuty'),...Array(2).fill(null)];
@@ -129,6 +131,14 @@ assert.equal(getVassalShopRerollCost(scholar),0,'Scholar has one price-neutral r
 
 // Institutions and retirement strengthen later local candidates, from identical RNG.
 const baseCandidates=createNewGameState(91),educated=deserializeGameState(serializeGameState(baseCandidates));
+for (const candidateState of [baseCandidates, educated]) {
+ candidateState.civilization.vassalLineage.founderClassId='scholar';
+ candidateState.civilization.vassalLineage.establishedClassId='scholar';
+ const candidatePool=getVassalCandidatePool(candidateState);
+ const source=candidatePool.candidates[0];
+ source.classId='scholar';source.founderClassId=null;source.archetype='Scholar';
+ assert.equal(selectLifeMapVassal(candidateState,0,null,source).ok,true);
+}
 for(const local of getDetailedSettlementSites(educated,{playerOnly:true})) {
  trainSpecialists(local.detailedState,'scholar',2);
  local.detailedState.structureSlots[0]={structureId:'lyceum',origin:0,width:2,placementId:'academy'};
@@ -173,10 +183,12 @@ const warriorStart=createNewGameState(48);warriorStart.paused=true;
 const warriorPool=getVassalCandidatePool(warriorStart);
 assert.equal(selectLifeMapVassal(warriorStart,1,warriorPool.expectedPoolHash).ok,true);
 const founder=getCurrentLifeMapVassal(warriorStart);
-const foundingNode=founder.lifeMap.graph.nodes.find(n=>n.family==='training');
+const foundingNode=founder.lifeMap.graph.nodes.find(n=>n.family==='warlordFounding');
 for(const [kind,payload] of [[ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId:foundingNode.id}],
  [ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:foundingNode.id,optionId:'train-estate'}],
  [ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:foundingNode.id}]]) assert.equal(applyAction(warriorStart,{kind,payload},{isReplay:true}).ok,true);
+warriorStart.paused=false;
+assert.equal(advanceReplayStateToSecond(warriorStart,founder.lifeMap.pendingResolution.resolveSec).ok,true);
 assert.equal(specialistCount(warriorStart.world.sites.find(s=>s.regionId===founder.locationRegionId).detailedState,'warrior'),10);
 
 // C/D: personal force + Retinue + Support permits conquest; spending reduces Retinue.

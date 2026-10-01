@@ -254,7 +254,7 @@ export function createVassalLifeMapView({
       rect: { x: 590, y: 16, width: 1108, height: 54 },
       onOpenEndDetails,
     }).detailsTarget;
-    root.addChild(createText('VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
+    root.addChild(createText(vassal?.founderClassId ? `${vassal.archetype.toUpperCase()} CHRONICLE` : 'VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
 
     const bg = new PIXI.Graphics();
     roundedRect(bg, MAP_RECT.x, MAP_RECT.y, MAP_RECT.width, MAP_RECT.height, 10,

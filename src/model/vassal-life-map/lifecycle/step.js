@@ -68,6 +68,12 @@ export function validateVassalLifeMapState(state) {
   if (!Number.isInteger(lineage.nextVassalId) || lineage.nextVassalId < 1) {
     errors.push("vassalLineage.nextVassalId: expected a positive integer");
   }
+  for (const key of ['founderClassId', 'establishedClassId']) {
+    if (![null, 'scholar', 'warrior'].includes(lineage[key])) errors.push(`vassalLineage.${key}: invalid class`);
+  }
+  if (lineage.establishedClassId && lineage.establishedClassId !== lineage.founderClassId) {
+    errors.push('vassalLineage.establishedClassId: must match the founder');
+  }
   if (!Array.isArray(lineage.selectedVassalIds)) {
     errors.push("vassalLineage.selectedVassalIds: expected an array");
   }
@@ -88,6 +94,12 @@ export function validateVassalLifeMapState(state) {
       } else groups.add(variant.groupId);
       if (!isValidPortraitDescriptor(candidate?.portrait)) {
         errors.push(`vassalLineage.pendingCandidates[${index}].portrait: invalid`);
+      }
+      if (![null, 'scholar', 'warrior'].includes(candidate?.classId)
+          || ![null, 'scholar', 'warrior'].includes(candidate?.founderClassId)
+          || (candidate.classId && candidate.classId !== lineage.establishedClassId)
+          || (candidate.founderClassId && (lineage.selectedVassalIds?.length || candidate.classId))) {
+        errors.push(`vassalLineage.pendingCandidates[${index}]: invalid class or founder`);
       }
     }
   }

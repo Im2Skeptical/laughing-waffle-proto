@@ -104,6 +104,14 @@ registries here.
 - Each EXP threshold earned by a surviving, non-terminal Vassal queues a
   serialized three-of-four stat choice rolled from all four Vassal stats. These
   choices resolve one at a time and block entry into another Lifegraph node.
+- The first candidate pool contains only Philosophers and Warlords, initially
+  unclassed. The selected founder's sole Life Map entry is a single-choice
+  founding node before the generated routes. Its six-phase completion establishes
+  Scholars (two adults plus a Lyceum where space permits) or Warriors (ten adults
+  through training, without conquest). The founder keeps their Philosopher/Warlord
+  identity throughout the life. Later pools contain unclassed Vassals and the
+  established class only, independent of surviving local specialist populations.
+  Founders never recur; an unfinished founding leaves later pools unclassed.
 - Scholar Ingenuity replaces Cunning income with price-neutral quality uplift,
   Discovery access and Research, one free shop reconsideration, and Commissions.
   Local institutions and retired class stats improve later candidates.
