@@ -300,16 +300,20 @@ export function createVassalLifeMapView({
         const to = nodePoint(next);
         const complete = completedEdges.has(`${node.id}:${nextId}`);
         const plannedEdge = plannedEdges.has(`${node.id}:${nextId}`);
-        // Only the incoming pathway signals that pinning this node replaces the plan.
-        const pathAlpha = pinResetNodeIds.has(nextId) ? 0.7 : 1;
         const mid=(from.x+to.x)/2;
-        edges.lineStyle(complete || plannedEdge ? 9 : 6, 0x090e0d, .9 * pathAlpha)
+        // Only the incoming pathway signals that pinning this node replaces the plan.
+        if (pinResetNodeIds.has(nextId)) {
+          edges.lineStyle(6, 0x000000, 1)
+            .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
+          continue;
+        }
+        edges.lineStyle(complete || plannedEdge ? 9 : 6, 0x090e0d, .9)
           .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         if (plannedEdge && !complete) {
-          edges.lineStyle(4, PALETTE.accent, 0.85 * pathAlpha)
+          edges.lineStyle(4, PALETTE.accent, 0.85)
             .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         } else {
-          edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, (complete ? 1 : .48) * pathAlpha)
+          edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, complete ? 1 : .48)
             .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         }
       }
