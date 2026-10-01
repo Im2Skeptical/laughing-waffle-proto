@@ -9,6 +9,9 @@ Start in `ai/repository-map.md` **Timegraph**. Search the named symbol or
 visible label, then read only that file and its direct imports. Prefer this
 skill over `change-view` for series, plot ink, reveal, scrub, or playhead.
 
+For forecast, restore, worker, reveal or performance work, first read
+`docs/timegraph-optimisation-guardrails.md` (intent: `docs/timegraph-ux-and-capacity-brief.md`).
+
 ## Where drawing and labels go
 
 | Concern | File |

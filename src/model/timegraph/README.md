@@ -9,6 +9,8 @@ Do not rewrite this folder together with the forecast worker, `state.js`, or
 `createMetricGraphView` follow/scrub/playhead. See
 `codex/abandoned-timegraph-refactor-do-not-merge`.
 
+Before optimising: `docs/timegraph-optimisation-guardrails.md`.
+
 ## Files
 
 - `controller-core.js` — `createTimeGraphController` orchestrator
