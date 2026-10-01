@@ -279,6 +279,15 @@ export function createVassalLifeMapView({
     }
     const committedPath = presentation.committedNodeIds ?? [];
     const completedEdges = new Set(committedPath.slice(1).map((id, index) => `${committedPath[index]}:${id}`));
+    const pinResetNodeIds = new Set();
+    if (pinnedNodeIds.length > 0) {
+      for (const node of nodes) {
+        const display = getDisplay(vassal, node.id, committed, readOnly, loadoutPending);
+        if (pinnedNodeIds.includes(node.id) || canOpenModal(display, unveiling)) continue;
+        const nextPins = nextVassalLifeMapPins(vassal, pinnedNodeIds, node.id);
+        if (nextPins.length === 1 && nextPins[0] === node.id) pinResetNodeIds.add(node.id);
+      }
+    }
     const edges = new PIXI.Graphics();
     for (const node of nodes) {
       const from = nodePoint(node);
@@ -291,14 +300,16 @@ export function createVassalLifeMapView({
         const to = nodePoint(next);
         const complete = completedEdges.has(`${node.id}:${nextId}`);
         const plannedEdge = plannedEdges.has(`${node.id}:${nextId}`);
+        // Only the incoming pathway signals that pinning this node replaces the plan.
+        const pathAlpha = pinResetNodeIds.has(nextId) ? 0.7 : 1;
         const mid=(from.x+to.x)/2;
-        edges.lineStyle(complete || plannedEdge ? 9 : 6, 0x090e0d, .9)
+        edges.lineStyle(complete || plannedEdge ? 9 : 6, 0x090e0d, .9 * pathAlpha)
           .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         if (plannedEdge && !complete) {
-          edges.lineStyle(4, PALETTE.accent, 0.85)
+          edges.lineStyle(4, PALETTE.accent, 0.85 * pathAlpha)
             .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         } else {
-          edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, complete ? 1 : .48)
+          edges.lineStyle(complete ? 4 : 2, complete ? PALETTE.accent : 0x7f8b79, (complete ? 1 : .48) * pathAlpha)
             .moveTo(from.x,from.y).bezierCurveTo(mid,from.y,mid,to.y,to.x,to.y);
         }
       }
