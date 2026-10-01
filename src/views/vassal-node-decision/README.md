@@ -29,3 +29,6 @@ control highlights it; activation requires a press that began on that control.
 The modal preserves its controls while a pointer is held. Draft selections are
 local; transaction progress belongs to the screen-level processing indicator.
 The Life Map browser probe checks both card faces and footers with held touches.
+Quick taps leave a short stage-level fade that survives immediate control
+rebuilds and modal closing without delaying activation. Confirm draws this
+feedback using its pill contour; it has no rectangular feedback overlay.

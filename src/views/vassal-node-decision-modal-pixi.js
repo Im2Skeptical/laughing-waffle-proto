@@ -1,4 +1,5 @@
 import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
+import { getTapFeedbackSnapshot } from './interaction-feedback.js';
 import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
@@ -707,6 +708,7 @@ export function createVassalNodeDecisionModalView({
       });
       return {
         open: logicalOpen, nodeId: openNodeId,
+        tapFeedback: getTapFeedbackSnapshot(),
         interactionPending: root.pendingInteractionCount > 0,
         animation: {
           phase: motion ? logicalOpen ? "opening" : "closing" : logicalOpen ? "open" : "closed",

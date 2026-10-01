@@ -63,6 +63,7 @@ try {
   assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline), timelineBefore, 'sliding off cancels activation');
   await page.setViewportSize({width:844,height:390});
   await delay(200);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   // Use actual touch input: mouse holds and completed taps cannot prove that a
   // phone paints the held state, especially on the card face above its footer.
   const mobileBox = await page.locator('canvas').boundingBox();
@@ -103,18 +104,37 @@ try {
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].interactionState),'pressed',
     'the cost footer also acknowledges a held touch');
   await touch('touchCancel');
+  await page.evaluate(() => window.addEventListener('touchend', () => requestAnimationFrame(() => {
+    globalThis.__QUICK_TAP_FEEDBACK__ = __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.tapFeedback;
+  }), {once:true}));
   await page.touchscreen.tap(box.x+touchPoint.x*box.width/2424,box.y+touchPoint.y*box.height/1080);
+  await page.waitForFunction(() => globalThis.__QUICK_TAP_FEEDBACK__?.some(f=>f.alpha>0));
   await delay(200);
   await page.screenshot({path:`${output}/mobile.png`});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.interactionPending);
   assert.ok(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.selectedOptionId));
   // Reach an earned level through ordinary node confirmations. This also exercises
   // worker-prepared entries across several resolution boundaries.
-  await page.setViewportSize({width:1280,height:800});
-  await delay(250);
   let earnedLevel = false;
   for (let turn=0; turn<8 && !earnedLevel; turn++) {
-    await click('getLifeMapConfirmClickPoint');
+    if (turn===0) {
+      const confirm = await point('getLifeMapConfirmClickPoint');
+      const confirmTouch = {x:box.x+confirm.x*box.width/2424,y:box.y+confirm.y*box.height/1080};
+      await touch('touchStart',confirmTouch);
+      await page.screenshot({path:`${output}/mobile-confirm-held.png`});
+      await touch('touchCancel');
+      await page.evaluate(() => window.addEventListener('touchend', () => requestAnimationFrame(() => {
+        const s=__SETTLEMENT_DEBUG__.getSnapshot();
+        globalThis.__CONFIRM_TAP_FEEDBACK__ = {feedback:s.lifeMapDecision.tapFeedback,processing:s.worldMap.lifeDecisionProcessing};
+      }), {once:true}));
+      await touch('touchStart',confirmTouch);
+      await touch('touchEnd');
+      await page.waitForFunction(() => globalThis.__CONFIRM_TAP_FEEDBACK__?.feedback.some(f=>f.shape==='polygon'&&f.alpha>0));
+      assert.ok(await page.evaluate(() => globalThis.__CONFIRM_TAP_FEEDBACK__.processing),
+        'confirmation processing starts while the tap acknowledgement is still visible');
+      await page.setViewportSize({width:1280,height:800});
+      await delay(250);
+    } else await click('getLifeMapConfirmClickPoint');
     await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapRecap.open, null, {timeout:15000});
     const completed = await page.evaluate(() => {
       const s=__SETTLEMENT_DEBUG__.getSnapshot();
