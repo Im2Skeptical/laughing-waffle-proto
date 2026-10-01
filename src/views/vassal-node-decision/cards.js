@@ -70,7 +70,6 @@ export function actionCard(parent, rect, spec) {
   root.eventMode = 'static'; root.cursor = 'pointer';
   const totalHeight = rect.height + COST_FOOTER_HEIGHT + 8;
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, totalHeight);
-  root.on('pointertap', event => { event.stopPropagation(); spec.onInspect?.(); });
   // A touch press must keep its target until release; hover previews can redraw
   // the cards, so they belong only to a mouse/pen with hover.
   root.on('pointerover', event => { if (event.pointerType !== 'touch') spec.onHover?.(); });
@@ -93,6 +92,7 @@ export function actionCard(parent, rect, spec) {
     ...spec.cost, selected: spec.selected, staged: spec.staged, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: spec.actionLabel + ' ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
   });
+  addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {onActivate:spec.onInspect});
   parent.addChild(root);
   return root;
 }
@@ -103,7 +103,6 @@ export function pieceOfferCard(parent, rect, spec) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height+COST_FOOTER_HEIGHT+8);
   root.eventMode='static';root.cursor='pointer';
-  root.on('pointertap',event=>{event.stopPropagation();spec.onInspect?.();});
   const frame=new PIXI.Graphics();
   roundedRect(frame,0,0,rect.width,rect.height,8,PALETTE.card,QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,2);
   const title = createText(spec.title, {
@@ -119,6 +118,7 @@ export function pieceOfferCard(parent, rect, spec) {
     ...spec.cost,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
   });
+  addInteractionFeedback(root,{x:0,y:0,width:rect.width,height:rect.height},{onActivate:spec.onInspect});
   parent.addChild(root);return root;
 }
 
@@ -129,11 +129,6 @@ export function outcomeCard(parent, rect, spec) {
   root.eventMode = spec.enabled || spec.onUnavailable ? 'static' : 'none';
   root.cursor = spec.enabled ? 'pointer' : 'default';
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height + COST_FOOTER_HEIGHT + 8);
-  root.on('pointertap', event => {
-    event?.stopPropagation?.();
-    if (spec.enabled) spec.onClick?.();
-    else spec.onUnavailable?.();
-  });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8, PALETTE.card,
     spec.selected ? PALETTE.green : QUALITY_COLORS[spec.quality] ?? PALETTE.stroke,
@@ -161,6 +156,10 @@ export function outcomeCard(parent, rect, spec) {
   }, {
     ...spec.cost, selected: spec.selected, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: 'Choose ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
+  });
+  addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {
+    enabled: !!(spec.enabled || spec.onUnavailable),
+    onActivate: spec.enabled ? spec.onClick : spec.onUnavailable,
   });
   parent.addChild(root);
   return root;

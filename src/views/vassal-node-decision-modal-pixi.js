@@ -725,6 +725,7 @@ export function createVassalNodeDecisionModalView({
         offers: (decision?.offers ?? []).map((offer) => ({ offerId: offer.offerId, label: offer.label, kind: offer.intervention?.kind, mode: offer.intervention?.mode, footprint: offer.presentation?.footprint, validOrigins: offer.validOrigins, canStage: offer.canStage, rule: offer.presentation?.rule ?? offerEffect(offer) })),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),
         costPanels: [...shopCardRoots, ...optionRoots].map(card => ({ ...card.costPanel.costSummary, interactionState: card.costPanel.interactionState,
+          cardInteractionState: card.interactionState, cardRect: card.getBounds(),
           rect: card.costPanel.getBounds(),
         })),
         practices: decision?.settlement?.practices ?? [],
