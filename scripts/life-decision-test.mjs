@@ -179,6 +179,29 @@ assert.equal(shopController.getStatus(),null);
 assert.deepEqual(shopController.getPresentation(shopNode.nodeId).nodeState,
  getCurrentLifeMapVassal(realRunner.getState()).lifeMap.nodeStates[shopNode.nodeId]);
 console.log('[life-decision] UI readiness and prepared next-node adoption OK');
+// Development entry and its pre-entry panel must both be prepared from the
+// unchanged frontier, with graphics readiness included in the commit gate.
+const development=selectedState(1);
+const developmentId=nodeIdForFamily(development,'development');
+getCurrentLifeMapVassal(development).lifeMap.availableNodeIds=[developmentId];
+const developmentBase=serializeGameState(development);
+const developmentChoices=await prepareLifeChoices(developmentBase);
+assert.equal(developmentChoices[developmentId].entryPresentation.nodeState,null);
+assert.equal(developmentChoices[developmentId].presentation.nodeState.family,'development');
+assert.deepEqual(serializeGameState(development),developmentBase);
+realRunner.resetToState(deserializeGameState(accepted.stateData));
+let finishChoices, choicesWorker;
+const choicesReady=new Promise(resolve=>{finishChoices=resolve;});
+const choicesController=createLifeDecisionController({getRunner:()=>realRunner,getState:()=>realRunner.getState(),
+  onPrepareChoices:nodes=>{assert.ok(Object.keys(nodes).length);return choicesReady;},
+  createWorker:()=>choicesWorker={terminate(){},postMessage(message){this.message=message;}}});
+choicesController.resumePendingResolution();
+await runLifeDecisionJob(choicesWorker.message,m=>choicesWorker.onmessage({data:{...m,requestId:choicesWorker.message.requestId}}));
+await new Promise(resolve=>setTimeout(resolve,0));
+assert.notEqual(choicesController.getResolution().ready,true,'next-node graphics must finish before reveal completion');
+finishChoices(); await new Promise(resolve=>setTimeout(resolve,0));
+assert.equal(choicesController.getResolution().ready,true);
+console.log('[life-decision] Development entry and next-node graphics readiness OK');
 import { createTimeGraphController } from '../src/model/timegraph/controller-core.js';
 import { createProjectionCache } from '../src/model/timegraph/projection-cache.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';

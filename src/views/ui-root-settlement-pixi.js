@@ -104,6 +104,9 @@ export const app = new PIXI.Application({
   backgroundColor: 0x121819,
   antialias: false,
 });
+// Large decision panels contain many small text/graphics uploads. Budget their
+// preparation by frame time instead of Pixi's default four items per frame.
+app.renderer.prepare.limiter = new PIXI.TimeLimiter(4);
 
 installGlobalTextStylePolicy(PIXI, {
   fontFamily: "Georgia",
@@ -726,6 +729,7 @@ lifeDecisionController = createLifeDecisionController({
       vassal:state.civilization?.vassalLineage?.vassalsById?.[state.civilization?.vassalLineage?.currentVassalId],
       readOnly:false}),
   ]),
+  onPrepareChoices: (nodes, state) => vassalNodeDecisionModalView?.prepareChoices?.(nodes, state),
 });
 lifeProcessingView = createLifeProcessingView({ app, layer: modalLayer,
   getStatus: () => lifeDecisionController.getStatus(),

@@ -33,6 +33,7 @@ try {
   await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase==='open');
   await click('getLifeMapEnterNodeClickPoint');
   await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0), null, {timeout:5000});
+  await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
   await delay(500);
   const {profile} = await session.send('Profiler.stop');
   writeFileSync(`${output}/click-profile.json`,JSON.stringify(profile));
@@ -147,10 +148,15 @@ try {
     earnedLevel = completed.level;
     if (earnedLevel) break;
     const next = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
+    const beforeEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
     await click('getLifeMapNodeClickPoint',next);
     await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase==='open');
     await click('getLifeMapEnterNodeClickPoint');
     await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+    const afterEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+    assert.equal(afterEntry.layoutBuilds,beforeEntry.layoutBuilds,'prepared node entry must not rebuild its graphics');
+    assert.ok(afterEntry.preparedLayoutHits>=beforeEntry.preparedLayoutHits+2,
+      'entry panel and entered choices both reuse prepared screens');
     const available = await page.evaluate(() => {
       const d=__SETTLEMENT_DEBUG__,s=d.getSnapshot().lifeMapDecision;
       return s.costPanels.findIndex((panel,index)=>panel.interactionState!=='disabled' && d.getLifeMapOptionClickPoint(index));
