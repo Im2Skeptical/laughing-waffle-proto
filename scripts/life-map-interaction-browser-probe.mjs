@@ -63,8 +63,46 @@ try {
   assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline), timelineBefore, 'sliding off cancels activation');
   await page.setViewportSize({width:844,height:390});
   await delay(200);
+  // Use actual touch input: mouse holds and completed taps cannot prove that a
+  // phone paints the held state, especially on the card face above its footer.
+  const mobileBox = await page.locator('canvas').boundingBox();
+  const mobileCard = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].cardRect);
+  const facePoint = {x:mobileBox.x+(mobileCard.x+mobileCard.width/2)*mobileBox.width/2424,
+    y:mobileBox.y+(mobileCard.y+60)*mobileBox.height/1080};
+  const outsidePoint = {x:facePoint.x, y:mobileBox.y+(mobileCard.y-20)*mobileBox.height/1080};
+  const touch = (type, p) => session.send('Input.dispatchTouchEvent', {
+    type, touchPoints:p ? [{...p,id:1,radiusX:6,radiusY:6,force:1}] : [],
+  });
+  await touch('touchStart',facePoint);
+  await delay(180);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].cardInteractionState),
+    'pressed','holding the card face on a phone must paint pressed feedback');
+  await page.screenshot({path:`${output}/mobile-held.png`});
+  await touch('touchCancel');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].cardInteractionState),'idle');
+  await touch('touchStart',facePoint);
+  await touch('touchMove',outsidePoint);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].cardInteractionState),'idle',
+    'dragging a held touch off the card clears its pressed state');
+  await touch('touchEnd');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),null,
+    'dragging off cancels inspection');
+  await touch('touchStart',outsidePoint);
+  await touch('touchMove',facePoint);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].cardInteractionState),
+    'pressed','dragging a held touch onto the card gives visual feedback');
+  await touch('touchEnd');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),null,
+    'dragging in does not activate inspection');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.selectedOptionId),selected.selectedOptionId,
+    'dragging in does not select a different option');
   const touchPoint = await point('getLifeMapOptionClickPoint',0);
   const box = await page.locator('canvas').boundingBox();
+  await touch('touchStart',{x:box.x+touchPoint.x*box.width/2424,y:box.y+touchPoint.y*box.height/1080});
+  await delay(100);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels[0].interactionState),'pressed',
+    'the cost footer also acknowledges a held touch');
+  await touch('touchCancel');
   await page.touchscreen.tap(box.x+touchPoint.x*box.width/2424,box.y+touchPoint.y*box.height/1080);
   await delay(200);
   await page.screenshot({path:`${output}/mobile.png`});

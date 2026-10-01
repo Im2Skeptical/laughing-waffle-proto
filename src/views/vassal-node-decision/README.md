@@ -23,8 +23,9 @@ closures stay in the orchestrator.
 - `createVassalNodeDecisionModalView` drag/confirm/hover/inspection closures
 - Shop staging, tableau pointerdown, and pinned-inspection wiring
 
-Decision buttons and cost footers use `../interaction-feedback.js` for hover,
-press, cancellation, and a painted pending state before synchronous dispatch.
-The modal preserves its controls while a pointer is held or an activation is
-pending. Browser probes wait for `interactionPending` to clear rather than
-assuming dispatch has finished after a fixed frame delay.
+Decision card faces, buttons, and cost footers use `../interaction-feedback.js`
+for hover, visible touch presses, and cancellation. Sliding a held touch onto a
+control highlights it; activation requires a press that began on that control.
+The modal preserves its controls while a pointer is held. Draft selections are
+local; transaction progress belongs to the screen-level processing indicator.
+The Life Map browser probe checks both card faces and footers with held touches.
