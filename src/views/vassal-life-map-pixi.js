@@ -351,7 +351,7 @@ export function createVassalLifeMapView({
         nodeRoot.addChild(pin);
       }
       addInteractionFeedback(nodeRoot, { x: -40, y: -40, width: 80, height: 80 }, {
-        enabled: !unveiling, onActivate: () => inspect(node, display), pendingLabel: "...",
+        enabled: !unveiling, onActivate: () => inspect(node, display),
       });
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);

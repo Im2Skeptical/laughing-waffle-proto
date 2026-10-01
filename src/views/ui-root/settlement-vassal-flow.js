@@ -19,6 +19,7 @@ export const SETTLEMENT_VASSAL_GRAPH_REPLACE_FADE_STRENGTH = 0.5;
 
 export function createSettlementVassalFlow({
   getRunner,
+  getDecisionController,
   playback,
   getForecastController,
   getGraphController,
@@ -97,6 +98,7 @@ export function createSettlementVassalFlow({
 
   function openLifeMapVassalSelection() {
     if (isInputLocked()) return { ok: false, reason: "openingReveal" };
+    if (getDecisionController?.()?.getStatus()) return { ok: false, reason: "decisionProcessing" };
     const runner = getRunner?.();
     settlementLastVassalSelectionResult = null;
     const state = playback.getSettlementFrontierState();
@@ -119,16 +121,15 @@ export function createSettlementVassalFlow({
 
   function captureResolutionRecap({
     vassalId, beforeState, prestigeIncome, developmentIncome, phaseCost,
-    prestigeBefore, expBefore, ageBefore,
+    prestigeBefore, expBefore, ageBefore, afterState = playback.getSettlementFrontierState(), prepareOnly = false,
   } = {}) {
-    const afterState = playback.getSettlementFrontierState();
     const afterVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
     const threshold = VASSAL_LIFE_TUNING.developmentThreshold;
     const startPrestige = Number.isFinite(prestigeBefore) ? prestigeBefore : 0;
     const startExp = Number.isFinite(expBefore) ? expBefore : 0;
     const earnedLevelCount = afterVassal?.developmentChoiceQueue?.length
       ?? Math.floor((startExp + (developmentIncome ?? 0)) / threshold);
-    resolutionRecap = {
+    const recap = {
       vassalId,
       timeLabel: formatVassalPhaseDuration(phaseCost ?? 0, beforeState),
       prestigeIncome: prestigeIncome ?? 0,
@@ -148,8 +149,23 @@ export function createSettlementVassalFlow({
       deathCause: afterVassal?.deathCause ?? null,
       queuedLevelUp: earnedLevelCount > 0,
     };
+    if (prepareOnly) return getRecapView?.()?.prepare?.(recap);
+    resolutionRecap = recap;
     getRecapView?.()?.refresh?.();
     getLevelUpView?.()?.refresh?.();
+  }
+
+  function prepareResolution(afterState) {
+    const beforeState = playback.getSettlementFrontierState();
+    const vassal = getCurrentLifeMapVassal(beforeState);
+    const pending = getVassalPendingResolution(beforeState);
+    if (!vassal || !pending) return;
+    const gains = getVassalNodeResolutionGains(vassal,
+      vassal.lifeMap?.nodeStates?.[vassal.lifeMap?.currentNodeId]?.family);
+    return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true,
+      prestigeIncome:gains.prestige, developmentIncome:gains.development,
+      prestigeBefore:vassal.prestige, expBefore:vassal.developmentProgress,
+      ageBefore:getVassalAge(beforeState,vassal), phaseCost:pending.phaseCost});
   }
 
   function noteResolutionSettled({
@@ -214,48 +230,54 @@ export function createSettlementVassalFlow({
       expBefore: beforeVassal.developmentProgress ?? 0,
       ageBefore: getVassalAge(beforeState, beforeVassal),
     } : null;
-    const result = runner.dispatchActionAtCurrentSecond?.(kind, payload, {
+    const opts = {
       reason: `vassalLife:${kind}`,
       viewInvalidationReason: stagedDecision ? "vassalDecisionStaged" : undefined,
-    }) ?? { ok: false, reason: "dispatchFailed" };
-    if (!result.ok) return result;
-    if (stagedDecision) {
+    };
+    const finish = (result) => {
+      if (!result.ok) return result;
+      if (stagedDecision) {
+        getNodeDecisionView?.()?.refresh?.();
+        return result;
+      }
+      onInvalidateProjectedLoss?.();
+      const state = playback.getSettlementFrontierState();
+      const vassalEndedImmediately = revealCivilizationAfterVassalEnd?.(activeVassalId, state);
+      const pending = getVassalPendingResolution(state);
+      if (kind === ActionKinds.VASSAL_CONFIRM_LIFE_NODE && !pending && recapIncome) {
+        const afterNode = state?.civilization?.vassalLineage?.vassalsById?.[activeVassalId]
+          ?.lifeMap?.nodeStates?.[payload.nodeId];
+        captureResolutionRecap({
+          vassalId: activeVassalId,
+          beforeState,
+          ...recapIncome,
+          phaseCost: afterNode?.accumulatedPhaseCost ?? 0,
+        });
+      }
+      if (!vassalEndedImmediately && pending?.resolveSec > playback.getSettlementFrontierSec()) {
+        getForecastController?.()?.schedulePendingCommit?.(
+          playback.getSettlementFrontierSec(),
+          getCurrentLifeMapVassal(state)
+        );
+        onSyncGraphHorizon?.();
+        getGraphView?.()?.restartForecastRevealFrom?.(playback.getSettlementFrontierSec(), {
+          allowForecastStart: true,
+          revealTargetEndSec: pending.resolveSec,
+        });
+      }
+      getLifeMapView?.()?.refresh?.();
       getNodeDecisionView?.()?.refresh?.();
+      getLevelUpView?.()?.refresh?.();
+      getRecapView?.()?.refresh?.();
+      getHeirloomFlowView?.()?.refresh?.();
+      getWorldMapView?.()?.refresh?.();
+      getPrototypeView?.()?.refresh?.();
       return result;
-    }
-    onInvalidateProjectedLoss?.();
-    const state = playback.getSettlementFrontierState();
-    const vassalEndedImmediately = revealCivilizationAfterVassalEnd?.(activeVassalId, state);
-    const pending = getVassalPendingResolution(state);
-    if (kind === ActionKinds.VASSAL_CONFIRM_LIFE_NODE && !pending && recapIncome) {
-      const afterNode = state?.civilization?.vassalLineage?.vassalsById?.[activeVassalId]
-        ?.lifeMap?.nodeStates?.[payload.nodeId];
-      captureResolutionRecap({
-        vassalId: activeVassalId,
-        beforeState,
-        ...recapIncome,
-        phaseCost: afterNode?.accumulatedPhaseCost ?? 0,
-      });
-    }
-    if (!vassalEndedImmediately && pending?.resolveSec > playback.getSettlementFrontierSec()) {
-      getForecastController?.()?.schedulePendingCommit?.(
-        playback.getSettlementFrontierSec(),
-        getCurrentLifeMapVassal(state)
-      );
-      onSyncGraphHorizon?.();
-      getGraphView?.()?.restartForecastRevealFrom?.(playback.getSettlementFrontierSec(), {
-        allowForecastStart: true,
-        revealTargetEndSec: pending.resolveSec,
-      });
-    }
-    getLifeMapView?.()?.refresh?.();
-    getNodeDecisionView?.()?.refresh?.();
-    getLevelUpView?.()?.refresh?.();
-    getRecapView?.()?.refresh?.();
-    getHeirloomFlowView?.()?.refresh?.();
-    getWorldMapView?.()?.refresh?.();
-    getPrototypeView?.()?.refresh?.();
-    return result;
+    };
+    const decisions = getDecisionController?.();
+    if (decisions?.handles(kind)) return decisions.dispatch(kind, payload, opts, finish);
+    return finish(runner.dispatchActionAtCurrentSecond?.(kind, payload, opts)
+      ?? { ok: false, reason: "dispatchFailed" });
   }
 
   function selectLifeMapCandidate(candidateIndex) {
@@ -393,6 +415,7 @@ export function createSettlementVassalFlow({
     getSelectedCandidateIndex: () => settlementSelectedVassalCandidateIndex,
     getLastSelectionResult: () => settlementLastVassalSelectionResult,
     getResolutionRecap: () => resolutionRecap,
+    prepareResolution,
     noteResolutionSettled,
     dismissResolutionRecap,
   };

@@ -207,6 +207,11 @@ try {
 
   await navigate('map');
   await waitMode('map');
+  // Region hit targets move while the map returns from the settlement view.
+  await page.waitForFunction(() => {
+    const map = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+    return !map.focusAnimating && !map.panelReveal?.animating;
+  });
   const otherRegion = regionId === 'river-crown' ? 'lake-country' : 'river-crown';
   await clickPoint(await controlPoint('getWorldMapClickPoint', otherRegion));
   s = await snapshot();

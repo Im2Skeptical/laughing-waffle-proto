@@ -318,7 +318,10 @@ export function createVassalNodeDecisionModalView({
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : node ? VASSAL_NODE_FAMILIES[node.family] : null;
     motionColor = family?.color ?? PALETTE.accent;
-    const nextSignature = getArtRevision() + JSON.stringify({ presentation, decision, openNodeId, dragTargetIndex,
+    const nextSignature = getArtRevision() + JSON.stringify({ presentation: {
+      vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
+      frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
+    }, decision, openNodeId, dragTargetIndex,
       previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;

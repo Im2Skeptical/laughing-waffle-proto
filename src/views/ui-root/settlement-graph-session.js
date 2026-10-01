@@ -6,9 +6,8 @@ import { GRAPH_METRICS } from "../../model/graph-metrics.js";
 import {
   getCurrentLifeMapVassal,
   getVassalAge,
-  getVassalDevelopmentIncome,
+  getVassalNodeResolutionGains,
   getVassalPendingResolution,
-  getVassalPrestigeIncome,
 } from "../../model/vassal-life-map.js";
 
 export const SETTLEMENT_GRAPH_WINDOW_SEC =
@@ -74,6 +73,8 @@ export function createSettlementGraphSession({
   getGraphController,
   getGraphView,
   getForecastController,
+  getPreparedResolution,
+  getTimeline,
   getSeriesMenu,
   getSelectedWorldRegionId,
   getFrontierState,
@@ -183,14 +184,17 @@ export function createSettlementGraphSession({
   }
 
   function processSettlementPendingCommit() {
+    const preparedResolution = getPreparedResolution?.();
     const beforeState = getFrontierState?.();
     const beforeVassalId =
       beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
     const beforePendingResolution = getVassalPendingResolution(beforeState);
     const beforeVassal = getCurrentLifeMapVassal(beforeState);
+    const gains = beforeVassal ? getVassalNodeResolutionGains(beforeVassal,
+      beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family) : null;
     const recapIncome = beforeVassal && beforePendingResolution ? {
-      prestigeIncome: getVassalPrestigeIncome(beforeVassal),
-      developmentIncome: getVassalDevelopmentIncome(beforeVassal),
+      prestigeIncome: gains.prestige,
+      developmentIncome: gains.development,
       prestigeBefore: beforeVassal.prestige ?? 0,
       expBefore: beforeVassal.developmentProgress ?? 0,
       ageBefore: getVassalAge(beforeState, beforeVassal),
@@ -211,11 +215,16 @@ export function createSettlementGraphSession({
         pending: beforePendingResolution,
         ...recapIncome,
       });
-      // Re-reading the committed span can take a long frame. Let the recap
-      // paint first, then replace the forecast samples with fixed history.
+      // Reuse the worker's authoritative tick summaries when promoting graph
+      // samples to history. Let the recap paint before updating graph geometry.
+      const committedTimeline = getTimeline?.();
+      const committedRevision = committedTimeline?.revision;
       scheduleAfterPaint?.(() => {
+        if (getTimeline && (getTimeline() !== committedTimeline
+          || committedTimeline?.revision !== committedRevision)) return;
         getGraphController?.()?.refreshAuthoritativeRangeFrom?.(
-          beforePendingResolution.startSec
+          beforePendingResolution.startSec,
+          { summaries: preparedResolution?.summaries }
         );
       });
     }

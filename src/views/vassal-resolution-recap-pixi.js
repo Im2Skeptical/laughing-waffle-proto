@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from "./interaction-feedback.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -10,15 +11,14 @@ function addButton(parent, rect, label, onPress) {
   root.eventMode = "static";
   root.cursor = "pointer";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    onPress?.();
-  });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8, 0x40533b, PALETTE.accent, 2);
   root.addChild(gfx, createText(label, {
     ...TEXT_STYLES.title, fontSize: 18, fill: PALETTE.text,
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {
+    onActivate:onPress,
+  });
   parent.addChild(root);
   return root;
 }
@@ -58,19 +58,14 @@ export function createVassalResolutionRecapView({
   let dismissRoot = null;
   let wasVisible = false;
 
-  function render(force = false) {
-    const recap = getRecap?.() ?? null;
-    const visible = isLifegraphVisible?.() === true && recap != null;
+  function render(force = false, prepared = null) {
+    const recap = prepared ?? getRecap?.() ?? null;
+    const visible = !prepared && isLifegraphVisible?.() === true && recap != null;
     if (visible && !wasVisible) tooltipView?.hide?.({ force: true });
     wasVisible = visible;
     root.visible = visible;
     root.eventMode = visible ? "static" : "none";
-    if (!visible) {
-      signature = "";
-      clearChildren(root);
-      dismissRoot = null;
-      return;
-    }
+    if (!recap) return;
     const ended = recap.endedReason === "died" || recap.endedReason === "retired";
     const nextSignature = JSON.stringify(recap);
     if (!force && nextSignature === signature) return;
@@ -134,9 +129,13 @@ export function createVassalResolutionRecapView({
   }
 
   return {
+    prepare(recap) {
+      render(false, recap);
+      return app.renderer?.prepare?.upload(root);
+    },
     init: () => render(true),
     update: () => render(),
-    refresh: () => render(true),
+    refresh: () => render(),
     resize: () => render(true),
     isOpen: () => root.visible,
     getDismissClickPoint: () => root.visible && dismissRoot?.toGlobal

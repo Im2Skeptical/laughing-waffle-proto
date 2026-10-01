@@ -28,7 +28,7 @@ async function buildPagesArtifact() {
   await mkdir(assetsDir, { recursive: true });
 
   const workerResult = await build({
-    entryPoints: { "timegraph-forecast-worker": workerEntryPoint },
+    entryPoints: { "timegraph-forecast-worker": workerEntryPoint, "life-decision-worker": "src/controllers/life-decision-worker.js" },
     bundle: true,
     outdir: assetsDir,
     entryNames: "[name]-[hash]",
@@ -45,6 +45,10 @@ async function buildPagesArtifact() {
   if (!workerOutput) {
     throw new Error(`esbuild did not report an output for ${workerEntryPoint}`);
   }
+  const decisionOutput = Object.entries(workerResult.metafile.outputs).find(
+    ([, metadata]) => metadata.entryPoint === "src/controllers/life-decision-worker.js"
+  )?.[0];
+  if (!decisionOutput) throw new Error("Missing life decision worker output");
   const workerModuleUrl = `./${path.basename(workerOutput)}`;
 
   const result = await build({
@@ -56,6 +60,7 @@ async function buildPagesArtifact() {
     format: "esm",
     target: ["es2020"],
     define: {
+      __LIFE_DECISION_WORKER_URL__: JSON.stringify(`./${path.basename(decisionOutput)}`),
       __TIMEGRAPH_FORECAST_WORKER_URL__: JSON.stringify(workerModuleUrl),
     },
     legalComments: "none",

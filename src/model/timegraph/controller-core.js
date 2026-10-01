@@ -507,7 +507,7 @@ export function createTimeGraphController({
     graphCache.version = ++cacheVersion;
   }
 
-  function patchHistoryFromSecond(tl, startSec, endSec) {
+  function patchHistoryFromSecond(tl, startSec, endSec, summaries = null) {
     if (!graphCache || !tl) return false;
 
     const start = clampSec(startSec);
@@ -533,20 +533,24 @@ export function createTimeGraphController({
 
     let inserted = false;
     for (const sec of sampleSecs) {
-      const res = ensureProjectionStateAtSecond(tl, sec, undefined, forecastStepSecCur);
-      if (!res.ok) return false;
-      cacheForecastStateData(
-        stateDataByBoundary,
-        sec,
-        historyEndSec,
-        res.stateData
-      );
-      const values = computeValuesFromStateData(
-        res.stateData,
-        activeSeries,
-        subject,
-        resolverFactory
-      );
+      const summaryValues = computeValuesFromSummary(summaries?.get(sec), activeSeries, subject);
+      let values = summaryValues.values;
+      if (!summaryValues.ok) {
+        const res = ensureProjectionStateAtSecond(tl, sec, undefined, forecastStepSecCur);
+        if (!res.ok) return false;
+        cacheForecastStateData(
+          stateDataByBoundary,
+          sec,
+          historyEndSec,
+          res.stateData
+        );
+        values = computeValuesFromStateData(
+          res.stateData,
+          activeSeries,
+          subject,
+          resolverFactory
+        );
+      }
       const idx = existingIndex.get(sec);
       if (idx != null) {
         history[idx].values = values;
@@ -1033,7 +1037,7 @@ export function createTimeGraphController({
     requestAsyncForecastCoverage(tl);
   }
 
-  function refreshAuthoritativeRangeFrom(startSec) {
+  function refreshAuthoritativeRangeFrom(startSec, { summaries = null } = {}) {
     const tl = getTimeline?.();
     const cs = getCursorState?.();
     if (!tl || !cs) return { ok: false, reason: "no state" };
@@ -1047,8 +1051,8 @@ export function createTimeGraphController({
     const refreshStartSec = Math.min(historyEndSec, clampSec(startSec));
 
     // A committed forecast span is now authoritative history. Re-read that
-    // span from timeline replay instead of retaining values sampled while it
-    // was still a forecast, then branch a fresh forecast from the new frontier.
+    // span from worker-produced authoritative ticks, or timeline replay when
+    // unavailable, then branch a fresh forecast from the new frontier.
     // This deliberately leaves view-owned comparison snapshots untouched.
     forecastWorkerService?.handleTimelineInvalidation?.(
       "authoritativeRangeCommitted"
@@ -1058,7 +1062,8 @@ export function createTimeGraphController({
     const patched = patchHistoryFromSecond(
       tl,
       refreshStartSec,
-      historyEndSec
+      historyEndSec,
+      summaries
     );
     if (!patched) {
       stateDirty = true;

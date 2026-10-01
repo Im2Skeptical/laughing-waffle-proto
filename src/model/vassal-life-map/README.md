@@ -30,6 +30,9 @@ re-exports the previous public API; internals live here.
 - `heirlooms.js`
   - Equipped/Carry/Vault inventory, unique copies, Relic offers, inheritance,
     loadout, overflow, and equipped modifiers.
+- `decision-preparation.js`
+  - Isolated worker transaction validation, tick resolution, and speculative
+    reachable-node/reroll preparation. No authoritative state is mutated here.
 - `presentation.js`
   - `getVassalNodeDecisionPresentation`, `getVassalGamepiecePresentation`,
     regional map presentation, and option projection.

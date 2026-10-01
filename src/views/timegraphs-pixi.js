@@ -2424,6 +2424,7 @@ export function createMetricGraphView({
     resetDataContext,
     stageProjectionReplacementTransition,
     clearProjectionReplacementTransition,
+    setInteractionReadinessCap(sec) { reveal.readinessCapSec = sec; },
     restartForecastRevealFrom,
     clearForecastRevealRestart,
   };

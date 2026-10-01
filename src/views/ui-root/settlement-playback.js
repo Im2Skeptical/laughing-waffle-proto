@@ -24,6 +24,7 @@ export function createSettlementPlayback({
   let settlementPlaybackViewSecFloat = null;
   let settlementPendingPreviewRestoreSec = null;
   let settlementFrontierStateCache = {
+    timeline: null,
     historyEndSec: -1,
     revision: -1,
     state: null,
@@ -132,6 +133,7 @@ export function createSettlementPlayback({
     if (cursorSec === frontierSec) {
       const authoritativeState = getSettlementAuthoritativeState();
       settlementFrontierStateCache = {
+        timeline,
         historyEndSec: frontierSec,
         revision,
         state: authoritativeState,
@@ -140,6 +142,10 @@ export function createSettlementPlayback({
     }
     if (
       settlementFrontierStateCache.state &&
+      settlementFrontierStateCache.timeline === timeline &&
+      // The runner reuses its state object when browsing. A reference cached at
+      // the frontier may now contain a historical, still-pending resolution.
+      settlementFrontierStateCache.state.tSec === frontierSec &&
       settlementFrontierStateCache.historyEndSec === frontierSec &&
       settlementFrontierStateCache.revision === revision
     ) {
@@ -149,6 +155,7 @@ export function createSettlementPlayback({
       getGraphController?.()?.getStateAt?.(frontierSec) ??
       getSettlementAuthoritativeState();
     settlementFrontierStateCache = {
+      timeline,
       historyEndSec: frontierSec,
       revision,
       state: frontierState,

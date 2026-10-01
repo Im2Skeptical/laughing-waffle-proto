@@ -1,3 +1,5 @@
+import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
+import { createLifeProcessingView } from "./life-processing-pixi.js";
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
@@ -32,7 +34,6 @@ import {
 import {
   getSettlementCurrentVassal,
   getSettlementFirstSelectedVassal,
-  getVassalNodeDecisionPresentation,
   getVassalLifeMapNode,
 } from "../model/vassal-life-map.js";
 import { getPrimaryDetailedSiteState } from "../model/world-state.js";
@@ -235,6 +236,8 @@ let settlementEdgeTransferBatchCache = {
 };
 
 const settlementGraphSession = createSettlementGraphSession({
+  getTimeline: () => runner.getTimeline(),
+  getPreparedResolution: () => lifeDecisionController?.getResolution(),
   getGraphController: () => settlementGraphController,
   getGraphView: () => settlementGraphView,
   getForecastController: () => settlementForecastController,
@@ -434,7 +437,10 @@ function getSettlementViewedSlotSummary() {
   return { practices, structures };
 }
 
+let lifeDecisionController = null;
+let lifeProcessingView = null;
 const settlementVassalFlow = createSettlementVassalFlow({
+  getDecisionController: () => lifeDecisionController,
   isInputLocked: () => opening.isRevealing(),
   getRunner: () => runner,
   playback: settlementPlayback,
@@ -704,6 +710,32 @@ const runner = createSimRunner({
   },
 });
 
+lifeDecisionController = createLifeDecisionController({
+  getRunner: () => runner,
+  getState: () => getSettlementFrontierState(),
+  onChange: () => vassalNodeDecisionModalView?.update?.(),
+  onChunk: chunk => {
+    const timeline = runner.getTimeline();
+    settlementProjectionCache.mergeForecastChunk(timeline, {...chunk,
+      timelineToken:settlementProjectionCache.getTimelineToken(timeline),
+      historyEndSec:timeline.historyEndSec});
+  },
+  onPrepare: state => Promise.all([
+    settlementVassalFlow.prepareResolution(state),
+    vassalLevelUpModalView?.prepare?.({state,
+      vassal:state.civilization?.vassalLineage?.vassalsById?.[state.civilization?.vassalLineage?.currentVassalId],
+      readOnly:false}),
+  ]),
+});
+lifeProcessingView = createLifeProcessingView({ app, layer: modalLayer,
+  getStatus: () => lifeDecisionController.getStatus(),
+  onRetry: () => lifeDecisionController.retry(),
+  onReturn: () => {
+    const result = lifeDecisionController.cancelFailure();
+    if (result.nodeId) vassalNodeDecisionModalView?.open?.(result.nodeId);
+  },
+});
+
 settlementGraphController = createTimeGraphController({
   getTimeline: () => runner.getTimeline?.(),
   getCursorState: () => runner.getCursorState?.(),
@@ -721,6 +753,8 @@ settlementGraphController.setSubject?.(
   "civilization"
 );
 settlementForecastController = createSettlementForecastController({
+  getPreparedResolution: () => lifeDecisionController.getResolution(),
+  commitPreparedResolution: () => lifeDecisionController.commitResolution(),
   getTimeline: () => runner.getTimeline?.(),
   ensureControllerCache: () => settlementGraphController?.ensureCache?.(),
   getControllerData: () => settlementGraphController?.getData?.(),
@@ -890,6 +924,7 @@ const timeControlsView = createTimeControlsView({
   }),
   getTimeScale: () => getSettlementPlaybackState(),
   setTimeScaleTarget: (speed, opts) => {
+    if (lifeDecisionController.getStatus()) return {ok:false,reason:"decisionProcessing"};
     settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
     return setSettlementPlaybackTarget(speed, opts);
   },
@@ -1044,7 +1079,7 @@ vassalLifeMapView = createVassalLifeMapView({
   layer: playfieldLayer,
   tooltipView,
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
-  getPresentation: () => getSettlementLifeMapPresentation(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   isVisible: () => worldViewMode === "vassalLife",
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
   onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
@@ -1064,11 +1099,9 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
     sunMoonDisksView?.getScreenRect?.(),
   ].filter(Boolean),
   getState: () => getSettlementViewedState(),
-  getPresentation: () => getSettlementLifeMapPresentation(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
-  getDecisionPresentation: (nodeId, preview) => getVassalNodeDecisionPresentation(
-    getSettlementFrontierState(), nodeId, preview
-  ),
+  getDecisionPresentation: (nodeId, preview) => lifeDecisionController.getPresentation(nodeId, preview),
   onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
   onSelectOption: (nodeId, optionId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId }
@@ -1099,7 +1132,7 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
-  getPresentation: () => getSettlementLifeMapPresentation(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
   onChoose: (choiceId, statId) => dispatchLifeMapAction(
@@ -1133,7 +1166,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
 vassalLifeHudView = createVassalLifeHudView({
   layer: modalLayer,
   tooltipView,
-  getPresentation: () => getSettlementLifeMapPresentation(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   isVisible: () => worldViewMode === "vassalLife",
   getDeltas: () => {
     if (vassalResolutionRecapView?.isOpen?.()) return null;
@@ -1414,6 +1447,7 @@ function publishSettlementDebugApi() {
       mode: worldViewMode,
       presentationTimeSec: getSettlementVisualTime(),
       audio: timelineAudio.getSnapshot(),
+      lifeDecisionProcessing: lifeDecisionController.getStatus(),
     }),
     getLifeMapPresentation: () => {
       const presentation = getSettlementLifeMapPresentation();
@@ -1630,6 +1664,14 @@ app.ticker.add((delta) => {
     }
   }
   settlementForecastController?.syncObservedSurvivalYear?.();
+  if (lifeDecisionController.resumePendingResolution()) {
+    const pending = lifeDecisionController.getResolution();
+    settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
+      allowForecastStart:true, revealTargetEndSec:pending?.revealSec,
+    });
+  }
+  settlementGraphView?.setInteractionReadinessCap?.(lifeDecisionController.getReadinessCap());
+  lifeProcessingView?.update?.();
   const resolutionOpened = processSettlementPendingCommit();
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
