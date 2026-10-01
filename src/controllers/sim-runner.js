@@ -1529,6 +1529,45 @@ export function createSimRunner({
       return finishDispatch(exec && typeof exec === "object" ? exec : { ok: true });
     },
 
+    // Only accepts results of the local decision worker for an unchanged frontier.
+    dispatchPreparedActionsAtCurrentSecond(actions, stateData, expected, opts = {}) {
+      const sec = Math.floor(timeline?.historyEndSec ?? -1);
+      if (timeline !== expected?.timeline || timeline?.revision !== expected?.revision
+        || sec !== expected?.sec || stateData?.tSec !== sec) {
+        return { ok: false, reason: "staleDecision" };
+      }
+      const stamped = normalizeBatchActions(actions, sec);
+      if (!stamped.length) return { ok: false, reason: "noActions" };
+      const preparedState = deserializeGameState(stateData);
+      applyTimelinePersistentKnowledgeToState(preparedState);
+      truncateFutureHistoryAtSecond(sec);
+      const result = replaceActionsAtSecond(timeline, sec,
+        getActionsAtSecond(timeline, sec).concat(stamped), { truncateFuture: false });
+      if (!result.ok) return result;
+      dragPreviewState = null;
+      simAccumulator = 0;
+      pauseRequested = false;
+      timeScaleCurrent = 0;
+      timeScaleTarget = 0;
+      timeScaleWantsUnpause = false;
+      loadStateObjectIntoGameState(preparedState);
+      cursorState = gameState;
+      setPaused(cursorState, false);
+      syncPhaseToPaused(cursorState);
+      clearPlannerBoundaryCache();
+      timeline.cursorSec = sec;
+      seekPlaybackIndex(sec);
+      playbackActive = false;
+      const committedStateData = serializeGameState(cursorState);
+      seedMemoStateDataAtSecond(timeline, sec, committedStateData);
+      seedCheckpointStateDataAtSecond(timeline, sec, committedStateData);
+      syncTimelineMaxReachedHistoryEndSec();
+      const reason = opts.viewInvalidationReason || "actionDispatchedCurrentSec";
+      onRebuildViews?.(reason);
+      onInvalidate?.(reason);
+      return { ok: true, applied: true, tSec: sec, count: stamped.length };
+    },
+
     dispatchActionAtCurrentSecond(kind, payload, opts = {}) {
       const perfStart = perfEnabled() ? perfNowMs() : 0;
       const finishDispatch = (res) => {

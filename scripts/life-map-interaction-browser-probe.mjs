@@ -39,6 +39,7 @@ try {
   const counts = new Map(); for (const id of profile.samples??[]) counts.set(id,(counts.get(id)??0)+1);
   const hotspots=profile.nodes.map(n=>({name:n.callFrame.functionName,samples:counts.get(n.id)??0})).sort((a,b)=>b.samples-a.samples).slice(0,12);
   writeFileSync(`${output}/hotspots.json`,JSON.stringify(hotspots,null,2));
+  const beforeSelection = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline);
   await move(await point('getLifeMapOptionClickPoint',0));
   await page.mouse.down(); await delay(180);
   const held=await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
@@ -49,9 +50,11 @@ try {
   }), {once:true}));
   await page.mouse.up();
   await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.selectedOptionId);
-  assert.equal(await page.evaluate(() => globalThis.__HELD_OPTION_RELEASE_STATE__), 'pending', 'release paints pending feedback before dispatch');
+  assert.notEqual(await page.evaluate(() => globalThis.__HELD_OPTION_RELEASE_STATE__), 'pending', 'draft selection needs no loading label');
   const selected=await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.ok(selected.selectedOptionId,'release stages the option');
+  assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline),beforeSelection,
+    'draft selection neither appends actions nor rebuilds the timeline');
   const timelineBefore = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline);
   await move(await point('getLifeMapOptionClickPoint',0));
   await page.mouse.down();
@@ -67,7 +70,58 @@ try {
   await page.screenshot({path:`${output}/mobile.png`});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.interactionPending);
   assert.ok(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.selectedOptionId));
+  // Reach an earned level through ordinary node confirmations. This also exercises
+  // worker-prepared entries across several resolution boundaries.
+  await page.setViewportSize({width:1280,height:800});
+  await delay(250);
+  let earnedLevel = false;
+  for (let turn=0; turn<8 && !earnedLevel; turn++) {
+    await click('getLifeMapConfirmClickPoint');
+    await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapRecap.open, null, {timeout:15000});
+    const completed = await page.evaluate(() => {
+      const s=__SETTLEMENT_DEBUG__.getSnapshot();
+      return {processing:s.worldMap.lifeDecisionProcessing,level:s.lifeMapRecap.recap.queuedLevelUp,
+        ended:s.lifeMapRecap.recap.endedReason};
+    });
+    assert.equal(completed.processing,null,'recap opens with all required preparation complete');
+    assert.equal(completed.ended,null,'young fixture survives its early choices');
+    await click('getLifeMapRecapDismissClickPoint');
+    earnedLevel = completed.level;
+    if (earnedLevel) break;
+    const next = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
+    await click('getLifeMapNodeClickPoint',next);
+    await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase==='open');
+    await click('getLifeMapEnterNodeClickPoint');
+    await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+    const available = await page.evaluate(() => {
+      const d=__SETTLEMENT_DEBUG__,s=d.getSnapshot().lifeMapDecision;
+      return s.costPanels.findIndex((panel,index)=>panel.interactionState!=='disabled' && d.getLifeMapOptionClickPoint(index));
+    });
+    if (available>=0) await click('getLifeMapOptionClickPoint',available);
+  }
+  assert.equal(earnedLevel,true,'fixture earns a level');
+  await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapLevelUp.open);
+  const levelBefore=await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline);
+  await move(await point('getLifeMapLevelUpChoiceClickPoint',0));
+  await page.mouse.down(); await delay(100);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapLevelUp.choiceStates[0]),'pressed');
+  await page.mouse.up();
+  await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getSnapshot().lifeMapLevelUp.selectedStatId);
+  assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline),levelBefore,
+    'level-up selection is local until Confirm');
+  await page.screenshot({path:`${output}/level-up.png`});
+  await click('getLifeMapLevelUpConfirmClickPoint');
+  await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline.actionCount),levelBefore.actionCount+1,
+    'level-up commits exactly once');
   assert.deepEqual(errors, [], 'no browser errors during Life Map interactions');
-  console.log('PASS Life Map held feedback and option selection; profile: '+output);
-} catch(error) { writeFileSync(`${output}/failure.txt`,error.stack); await page?.screenshot({path:`${output}/failure.png`}); console.error(error.message); process.exitCode=1; }
+  console.log('PASS Life Map drafts, held feedback, prepared resolution/entries and level-up; profile: '+output);
+ } catch(error) {
+  const failureState = await page?.evaluate(() => {
+    const s=globalThis.__SETTLEMENT_DEBUG__?.getSnapshot();
+    return s && {frontier:s.frontierSec,viewed:s.viewedSec,processing:s.worldMap.lifeDecisionProcessing,
+      decision:s.lifeMapDecision,recap:s.lifeMapRecap,level:s.lifeMapLevelUp};
+  }).catch(()=>null);
+  writeFileSync(`${output}/failure-state.json`,JSON.stringify({errors,failureState},null,2));
+  writeFileSync(`${output}/failure.txt`,error.stack); await page?.screenshot({path:`${output}/failure.png`}); console.error(error.message); process.exitCode=1; }
 finally { await browser?.close(); server.kill(); }

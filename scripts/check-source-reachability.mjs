@@ -3,6 +3,7 @@ import path from "node:path";
 import { build } from "esbuild";
 
 const SUPPORTED_ENTRY_POINTS = Object.freeze([
+  { path: "src/controllers/life-decision-worker.js", platform: "browser" },
   { path: "src/views/ui-root-pixi.js", platform: "browser" },
   { path: "src/controllers/timegraph-forecast-worker.js", platform: "browser" },
   { path: "src/model/tests/world-state.js", platform: "node" },

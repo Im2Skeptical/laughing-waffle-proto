@@ -1,3 +1,4 @@
+import { addInteractionFeedback } from "./interaction-feedback.js";
 import { getVassalStatPresentation } from "../model/vassal-life-map.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -17,10 +18,6 @@ function addButton(parent, rect, label, enabled, onPress) {
   root.eventMode = enabled ? "static" : "none";
   root.cursor = enabled ? "pointer" : "default";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onPress?.();
-  });
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
     enabled ? 0x40533b : 0x464743, enabled ? PALETTE.accent : PALETTE.stroke, 2);
@@ -28,6 +25,17 @@ function addButton(parent, rect, label, enabled, onPress) {
     ...TEXT_STYLES.title, fontSize: 16,
     fill: enabled ? PALETTE.text : PALETTE.textMuted,
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
+  addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {
+    enabled, onActivate:onPress,
+  });
+  root.setEnabled = value => {
+    root.eventMode = value ? "static" : "none";
+    gfx.clear();
+    roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
+      value ? 0x40533b : 0x464743, value ? PALETTE.accent : PALETTE.stroke, 2);
+    root.children[1].style.fill = value ? PALETTE.text : PALETTE.textMuted;
+    root.setInteractionEnabled(value);
+  };
   parent.addChild(root);
   return root;
 }
@@ -40,10 +48,6 @@ function addChoiceCard(parent, vassal, choice, statId, rect, selected, onSelect)
   root.eventMode = "static";
   root.cursor = "pointer";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    onSelect?.(statId);
-  });
   const color = STAT_COLORS[statId] ?? PALETTE.accent;
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 14, 0x303733, selected ? color : PALETTE.stroke, selected ? 4 : 2);
@@ -72,6 +76,15 @@ function addChoiceCard(parent, vassal, choice, statId, rect, selected, onSelect)
     createText(selected ? "SELECTED" : "SELECT THIS STAT", {
       ...TEXT_STYLES.header, fontSize: 17, fill: selected ? PALETTE.green : PALETTE.accent,
     }, rect.width / 2, rect.height - 36, 0.5, 0.5));
+  const selectionLabel = root.children.at(-1);
+  root.setSelected = value => {
+    gfx.clear();
+    roundedRect(gfx, 0, 0, rect.width, rect.height, 14, 0x303733,
+      value ? color : PALETTE.stroke, value ? 4 : 2);
+    selectionLabel.text = value ? "SELECTED" : "SELECT THIS STAT";
+    selectionLabel.style.fill = value ? PALETTE.green : PALETTE.accent;
+  };
+  addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {onActivate:()=>onSelect?.(statId)});
   parent.addChild(root);
   return root;
 }
@@ -87,36 +100,31 @@ export function createVassalLevelUpModalView({
   let signature = "";
   let choiceRoots = [];
   let selectedStatId = null;
-  let openedAtMs = 0;
+  let choiceKey = null;
   let confirmRoot = null;
-  const INPUT_LOCK_MS = 300;
+  let pointerHeld = false;
+  root.on("pointerdown", () => { pointerHeld = true; });
+  for (const type of ["pointerup", "pointerupoutside", "pointercancel"]) root.on(type, () => { pointerHeld = false; });
 
-  function render(force = false) {
-    const presentation = getPresentation?.() ?? {};
+  function render(force = false, prepared = null) {
+    if (pointerHeld) return;
+    const presentation = prepared ?? getPresentation?.() ?? {};
     const vassal = presentation.vassal;
     const queue = vassal?.developmentChoiceQueue ?? [];
-    const visible = isLifegraphVisible?.() === true
+    const visible = !prepared && isLifegraphVisible?.() === true
       && presentation.readOnly !== true && queue.length > 0
       && isRecapOpen?.() !== true;
-    const wasVisible = root.visible;
     root.visible = visible;
-    if (!visible) {
-      signature = "";
-      selectedStatId = null;
-      openedAtMs = 0;
-      confirmRoot = null;
-      clearChildren(root);
-      choiceRoots = [];
-      return;
-    }
-    if (!wasVisible) openedAtMs = performance.now();
+    root.eventMode = visible ? "static" : "none";
+    if (!queue.length) return;
     const choice = queue[0];
+    const nextChoiceKey = `${vassal.vassalId}:${choice.choiceId}`;
+    if (choiceKey !== nextChoiceKey) { selectedStatId = null; choiceKey = nextChoiceKey; }
     if (selectedStatId && !choice.offeredStatIds.includes(selectedStatId)) selectedStatId = null;
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal.vassalId,
       stats: vassal.stats,
       queue,
-      selectedStatId,
     });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
@@ -151,22 +159,26 @@ export function createVassalLevelUpModalView({
       { x: startX + index * (cardWidth + gap), y: PANEL.y + 124, width: cardWidth, height: 360 },
       selectedStatId === statId,
       (nextStatId) => {
-        if (performance.now() - openedAtMs < INPUT_LOCK_MS) return;
         selectedStatId = nextStatId;
-        render(true);
+        choiceRoots.forEach((card, index) => card.setSelected(choice.offeredStatIds[index] === selectedStatId));
+        confirmRoot.setEnabled(true);
       }
     ));
     confirmRoot = addButton(root, {
       x: PANEL.x + PANEL.width - 310, y: PANEL.y + PANEL.height - 72,
       width: 266, height: 48,
     }, "CONFIRM", !!selectedStatId, () => {
-      if (!selectedStatId || performance.now() - openedAtMs < INPUT_LOCK_MS) return;
+      if (!selectedStatId) return;
       onChoose?.(choice.choiceId, selectedStatId);
     });
   }
 
   return {
-    init: () => render(true), update: () => render(), refresh: () => render(true),
+    prepare(presentation) {
+      render(false, presentation);
+      return app.renderer?.prepare?.upload(root);
+    },
+    init: () => render(true), update: () => render(), refresh: () => render(),
     resize: () => render(true), isOpen: () => root.visible,
     getChoiceClickPoint(index = 0) {
       if (!root.visible) return null;
@@ -184,6 +196,8 @@ export function createVassalLevelUpModalView({
       open: root.visible,
       queue: getPresentation?.()?.vassal?.developmentChoiceQueue ?? [],
       selectedStatId,
+      choiceStates: choiceRoots.map(card => card.interactionState),
+      confirmState: confirmRoot?.interactionState ?? null,
     }),
     getHudDeltas() {
       if (!root.visible || !selectedStatId) return null;

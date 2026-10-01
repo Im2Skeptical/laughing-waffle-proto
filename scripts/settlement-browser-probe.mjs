@@ -742,8 +742,11 @@ try {
   const nodeTiming = await page.evaluate(() => globalThis.__NODE_RESOLUTION_TIMING__);
   assert.ok(Number.isFinite(nodeTiming.oneShortMs) && Number.isFinite(nodeTiming.recapOpenMs),
     "the browser observes the final unveil second and recap window");
-  // Software GL plus the larger content snapshot needs a sub-second commit budget.
-  assert.ok(nodeTiming.recapOpenMs - nodeTiming.oneShortMs <= 750,
+  // The last second now waits for next-choice/UI preparation. Measure latency
+  // from the actual reveal completion, rather than counting that intentional wait.
+  // Software GL still gets a sub-second budget to present the prepared recap.
+  assert.ok(Number.isFinite(nodeTiming.revealEndMs), "the reveal reaches its final boundary");
+  assert.ok(nodeTiming.recapOpenMs - nodeTiming.revealEndMs <= 750,
     `the recap follows the last unveiled second promptly (last-to-reveal ${Math.round(nodeTiming.revealEndMs - nodeTiming.oneShortMs)} ms, reveal-to-frontier ${Math.round(nodeTiming.frontierEndMs - nodeTiming.revealEndMs)} ms, frontier-to-recap ${Math.round(nodeTiming.recapOpenMs - nodeTiming.frontierEndMs)} ms)`);
   assert.equal(
     await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState()?.visible),

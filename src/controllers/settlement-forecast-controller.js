@@ -83,6 +83,8 @@ export function createSettlementForecastController({
   getControllerStateAt,
   getControllerStateDataAt,
   getControllerSummaryAt,
+  getPreparedResolution,
+  commitPreparedResolution,
   getFrontierSec,
   getFrontierState,
   getViewedState,
@@ -780,6 +782,18 @@ export function createSettlementForecastController({
 
   function processPendingCommit({ clearForecastRevealRestart } = {}) {
     const job = pendingCommitJob;
+    const prepared = getPreparedResolution?.();
+    if (prepared) {
+      if (!prepared.ready || getBrowseCapSec() < (prepared.revealSec ?? prepared.targetSec)) return;
+      const result = commitPreparedResolution?.(prepared)
+        ?? commitCursorSecond?.(prepared.targetSec, prepared.stateData);
+      if (!result?.ok) return;
+      setPlaybackViewSec?.(prepared.targetSec);
+      clearPreviewState?.();
+      clearPendingCommitJob();
+      invalidateLossCache();
+      return;
+    }
     if (!job) return;
 
     const historyEndSec = clampSec(getFrontierSec?.(), 0);

@@ -154,7 +154,9 @@ export function getForecastRevealFollowTargetEndSec(
   currentEndSec = historyEndSec
 ) {
   const historyEnd = Math.max(0, Math.floor(historyEndSec ?? 0));
-  const targetEnd = Math.max(historyEnd, Math.floor(targetEndSec ?? historyEnd));
+  const targetEnd = Math.max(historyEnd, Math.min(
+    Math.floor(targetEndSec ?? historyEnd),
+    Number.isFinite(state.readinessCapSec) ? state.readinessCapSec : Infinity));
   const currentEnd = Math.max(
     historyEnd,
     Math.min(targetEnd, Number(currentEndSec ?? historyEnd))

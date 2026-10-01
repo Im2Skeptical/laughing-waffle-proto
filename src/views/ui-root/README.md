@@ -25,7 +25,10 @@ root in `src/views/ui-root-settlement-pixi.js`.
 - `settlement-vassal-flow.js`
   - Open/close candidate chooser, life-map action dispatch,
     Heirloom loadout/overflow refresh, and select/preview/reroll/replace
-    candidate helpers.
+    candidate helpers. Draft/worker transactions are owned by
+    `src/controllers/life-decision-controller.js`; the dedicated worker runs
+    `src/model/vassal-life-map/decision-preparation.js`. Forecast commits wait
+    for both preparation readiness and the graph reveal boundary.
 
 ## Conventions
 

@@ -195,9 +195,22 @@ contract: `ai/visual-overhaul.md`.
   button; the lower-left dock owns navigation. Double-click still enters an available node.
   Hover/tap details identify each node type. Public Works uses a hammer
   silhouette; Practice Reform uses an open-hand governor mark.
+  Node option selection and shop staging use a controller-owned draft. They do
+  not mutate the timeline or rebuild forecasts. Drafts survive closing a modal,
+  screen navigation, and read-only browsing; a changed authoritative frontier
+  invalidates them. Confirm validates the batch in the Life decision worker and
+  appends it once. Entering a node and paid rerolls remain real transactions.
+  Reachable node content and legal rerolls are prepared from isolated snapshots;
+  preparation never spends Prestige or advances authoritative RNG.
+  A screen-level animated processing indicator covers commit, resolution, and
+  preparation. Navigation/inspection remains available; conflicting decisions
+  and time edits are locked. Recap and level-up layouts are prepared before the
+  final graph reveal is released. Failed preparation can retry without charging
+  an accepted transaction twice. Option, recap, and level-up buttons use immediate
+  hover/pressed/selected feedback instead of per-selection loading labels.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
   visible, after the recap is dismissed if a level was earned; a card tap selects a stat
-  and Confirm applies it, with a short input lock after the popup appears. The
+  and Confirm applies it. Press feedback guards against click-through. The
   HUD previews the selected stat. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
   restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the
@@ -208,7 +221,7 @@ contract: `ai/visual-overhaul.md`.
   civilization unveil after the navigation pause. Fresh runs clear old recaps.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
   confirmed node unveils only through that node's pending resolution boundary;
-  the resolved span is then re-materialized from authoritative replay so the
+  the resolved span uses the worker's authoritative tick summaries so the
   committed graph lines include that node's interventions immediately;
   after a Vassal dies or retires, the new timeline can continue unveiling to
   civilization extinction. The candidate drawer remains closed until the player
