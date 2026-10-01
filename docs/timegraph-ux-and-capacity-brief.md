@@ -32,8 +32,9 @@ The timegraph is the main feedback and gameplay loop. The player sees when their
 ## 5. Unveil and capacity
 - Ideal: the simulation is instant, and as soon as a vassal dies the player can travel as far into the future as they want.
 - An aesthetic unveil animation stays. The target is about 1000 years unveiled in a second or less. It must not lock out interaction (see section 4).
+- The unveil animation has no skip control (decided by Cam).
 - The horizon should be as long as possible. The year counts in the code (40-year graph window, 200-year forecast cache, 600-year loss search) are tuning values, not fixed requirements. Gameplay will be tuned to whatever speed and performance tradeoff is achievable.
-- Device floor: a Pixel 3 phone.
+- Device floor: a Pixel 3 phone (public specs: 4 GB RAM, Snapdragon 845). The usable memory budget for the page is not published and is to be measured on a real device: play first and note any stutter, then use Chrome DevTools over USB via `chrome://inspect` if needed. The target is no tab crashes and smooth scrubbing.
 - Priority if goals conflict: smooth scrubbing and examination while the unveil runs comes before unveil speed or horizon length.
 
 ## 6. Where the current build differs
@@ -52,8 +53,5 @@ Commits `6e60b57` (24 Sep: worker keeps a projection session, scoped summary agg
 - Full detail and test gates are in the research docs listed at the top.
 
 ## 8. Open questions
-- Can the player skip the unveil animation? (Cam said interaction continues during it, so this is only about skipping.)
 - How should the "will be overwritten" FX look, and for how long is the old projection kept?
-- What is the memory budget on a Pixel 3, and how is it measured?
 - Is "whole-run" browsing beyond the unveiled area ever allowed, or always limited to what has been revealed?
-- What time units do action costs use in the player's view (the code uses 8-second seasons, 32-second years, 1-second moon phases)?
