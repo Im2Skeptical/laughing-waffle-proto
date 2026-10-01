@@ -109,7 +109,9 @@ try {
     globalThis.__QUICK_TAP_FEEDBACK__ = __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.tapFeedback;
   }), {once:true}));
   await page.touchscreen.tap(box.x+touchPoint.x*box.width/2424,box.y+touchPoint.y*box.height/1080);
-  await page.waitForFunction(() => globalThis.__QUICK_TAP_FEEDBACK__?.some(f=>f.alpha>0));
+  await page.waitForFunction(() => globalThis.__QUICK_TAP_FEEDBACK__ !== undefined);
+  assert.ok(await page.evaluate(() => __QUICK_TAP_FEEDBACK__.every(f=>f.controlBound)),
+    'a quick choice tap must not leave a detached rectangle above the screen');
   await delay(200);
   await page.screenshot({path:`${output}/mobile.png`});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.interactionPending);
@@ -130,9 +132,11 @@ try {
       }), {once:true}));
       await touch('touchStart',confirmTouch);
       await touch('touchEnd');
-      await page.waitForFunction(() => globalThis.__CONFIRM_TAP_FEEDBACK__?.feedback.some(f=>f.shape==='polygon'&&f.alpha>0));
+      await page.waitForFunction(() => !!globalThis.__CONFIRM_TAP_FEEDBACK__);
+      assert.ok(await page.evaluate(() => __CONFIRM_TAP_FEEDBACK__.feedback.every(f=>f.controlBound)),
+        'Confirm feedback must remain attached to the closing button');
       assert.ok(await page.evaluate(() => globalThis.__CONFIRM_TAP_FEEDBACK__.processing),
-        'confirmation processing starts while the tap acknowledgement is still visible');
+        'confirmation immediately shows screen-level processing feedback');
       await page.setViewportSize({width:1280,height:800});
       await delay(250);
     } else await click('getLifeMapConfirmClickPoint');
