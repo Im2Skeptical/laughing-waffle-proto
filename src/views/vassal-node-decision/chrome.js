@@ -61,9 +61,9 @@ export function confirmDockButton(parent, app, { enabled, label, onClick, showCh
   const colors = {
     fill: 0x405a3c, hoverFill: 0x527249, ink: 0xdce8c5, rim: 0x9ab681,
   };
-  let hovered = false;
-  let pressed = false;
-  function paint() {
+  function paint(state = 'idle') {
+    const hovered = state === 'hover';
+    const pressed = state === 'pressed';
     paintDockPadFace(bg, {
       width: rect.width, height: rect.height, contour, colors,
       hovered: hovered && enabled, pressed: pressed && enabled,
@@ -78,17 +78,14 @@ export function confirmDockButton(parent, app, { enabled, label, onClick, showCh
   icon.visible = showCheck;
   root.addChild(bg, icon, title);
   paint();
-  addInteractionFeedback(root, { x: 24, y: 24, width: rect.width - 48, height: rect.height - 48 }, { enabled, onActivate: onClick });
-  root.on("pointerover", () => { hovered = true; paint(); });
-  root.on("pointerout", () => { hovered = false; pressed = false; paint(); });
-  root.on("pointerdown", () => {
-    pressed = enabled;
-    paint();
+  addInteractionFeedback(root, rect, {
+    enabled, onActivate: onClick, onStateChange: paint,
+    drawFeedback: (graphics, {pressed}) => {
+      if (!pressed) return;
+      graphics.lineStyle(3, colors.ink, .8).beginFill(colors.ink, .18)
+        .drawPolygon(contour).endFill();
+    },
   });
-  const release = () => { pressed = false; paint(); };
-  root.on("pointerup", release);
-  root.on("pointerupoutside", release);
-  root.on("pointercancel", release);
   parent.addChild(root);
   return root;
 }
