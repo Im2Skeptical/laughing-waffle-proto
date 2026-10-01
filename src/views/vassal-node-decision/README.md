@@ -32,3 +32,11 @@ The Life Map browser probe checks both card faces and footers with held touches.
 Quick taps leave a short stage-level fade that survives immediate control
 rebuilds and modal closing without delaying activation. Confirm draws this
 feedback using its pill contour; it has no rectangular feedback overlay.
+
+The modal prepares entry, choice, and legal reroll layouts for all legal next
+nodes while the Life decision controller is processing. Preparation yields
+between nodes and queues GPU uploads before the graph reveal is released.
+Layouts match the full presentation, preview state, art revision, and viewport;
+entry consumes the matching layout instead of building new text and graphics.
+Unchanged refreshes reuse the current layout. The Life Map browser probe checks
+that prepared entry causes no additional layout builds.

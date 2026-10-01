@@ -15,7 +15,7 @@ const workerUrl = typeof __LIFE_DECISION_WORKER_URL__ !== 'undefined'
 // Drafts are controller-owned and never enter the timeline until a transaction
 // succeeds. Every worker result is tied to the frontier it was prepared from.
 export function createLifeDecisionController({
-  getRunner, getState, onChange = () => {}, onPrepare = () => {}, onChunk = () => {},
+  getRunner, getState, onChange = () => {}, onPrepare = () => {}, onPrepareChoices = () => {}, onChunk = () => {},
   createWorker = () => new Worker(new URL(workerUrl, import.meta.url), { type: 'module' }),
 }) {
   let adopting = false;
@@ -102,6 +102,9 @@ export function createLifeDecisionController({
       const preparedJob = job;
       await preparedJob.uiPreparation;
       if (job !== preparedJob || job.error || !matches(base)) return;
+      const choicesReady = onPrepareChoices(data.nodes, deserializeGameState(data.stateData));
+      if (choicesReady) await choicesReady;
+      if (job !== preparedJob || job.error || !matches(base)) return;
       nodes = data.nodes;
       job.stateData = data.stateData;
       job.targetSec = data.stateData.tSec;
@@ -187,7 +190,9 @@ export function createLifeDecisionController({
       const key = JSON.stringify([revision, nodeId, preview]);
       if (!presentations.has(key)) {
         const cached = actions.length === 0 && !preview?.previewOptionId && !preview?.previewOfferId
-          && getCurrentLifeMapVassal(state)?.lifeMap.currentNodeId === nodeId ? nodes[nodeId]?.presentation : null;
+          ? getCurrentLifeMapVassal(state)?.lifeMap.currentNodeId === nodeId
+            ? nodes[nodeId]?.presentation : nodes[nodeId]?.entryPresentation
+          : null;
         presentations.set(key, cached ?? getVassalNodeDecisionPresentation(state, nodeId, preview));
       }
       return presentations.get(key);

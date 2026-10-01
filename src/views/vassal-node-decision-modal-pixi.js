@@ -1,5 +1,6 @@
 import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
 import { getTapFeedbackSnapshot } from './interaction-feedback.js';
+import { deserializeGameState } from '../model/state.js';
 import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
@@ -67,6 +68,26 @@ export function createVassalNodeDecisionModalView({
   let backdropPressedPointerId = null;
   let openNodeId = null;
   let signature = "";
+  const preparedLayouts = new Map();
+  let layoutBuilds = 0, preparedLayoutHits = 0;
+
+  function takeLayout() {
+    const content = new PIXI.Container();
+    for (const child of root.removeChildren()) content.addChild(child);
+    return {content, signature, enterRoot, optionRoots, offerRoots, shopCardRoots,
+      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauWidth:tableau.width};
+  }
+  function restoreLayout(layout) {
+    for (const child of layout.content.removeChildren()) root.addChild(child);
+    layout.content.destroy();
+    ({signature, enterRoot, optionRoots, offerRoots, shopCardRoots, confirmRoot,
+      undoRoots, tableauRoots, inspectionRoot, lastDecision} = layout);
+    tableau.width = layout.tableauWidth;
+  }
+  function clearPreparedLayouts() {
+    for (const layout of preparedLayouts.values()) layout.content.destroy({children:true});
+    preparedLayouts.clear();
+  }
   let dragged = null;
   let dragGhost = null;
   let tableauRoots = [];
@@ -172,7 +193,6 @@ export function createVassalNodeDecisionModalView({
     logicalOpen = false;
     backdropPressedPointerId = null;
     pointerHeld = false;
-    signature = "";
     dragged = null;
     dragTargetIndex = null;
     hoveredOptionId = null;
@@ -299,15 +319,15 @@ export function createVassalNodeDecisionModalView({
   root.on('pointerupoutside',finishDrag);
   root.on('pointercancel',()=>{dragged=null;dragGhost?.destroy({children:true});dragGhost=null;placementGuide?.destroy();placementGuide=null;render(true);});
 
-  function render(force = false) {
-    if (!logicalOpen || dragged || pointerHeld || root.pendingInteractionCount > 0) return;
-    const presentation = getPresentation?.() ?? {};
-    const state = getState?.() ?? null;
+  function render(force = false, prepared = null) {
+    if ((!logicalOpen && !prepared) || dragged || pointerHeld || root.pendingInteractionCount > 0) return;
+    const presentation = prepared ?? getPresentation?.() ?? {};
+    const state = prepared?.state ?? getState?.() ?? null;
     const vassal = presentation.vassal;
     const readOnly = presentation.readOnly === true;
     const projection = presentation.viewedSec > presentation.frontierSec;
     const currentNodeId = vassal?.lifeMap?.currentNodeId ?? null;
-    const decision = getDecisionPresentation?.(openNodeId, {
+    const decision = prepared?.decision ?? getDecisionPresentation?.(openNodeId, {
       previewOptionId,
       previewOfferId,
     }) ?? null;
@@ -322,10 +342,21 @@ export function createVassalNodeDecisionModalView({
     const nextSignature = getArtRevision() + JSON.stringify({ presentation: {
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
-    }, decision, openNodeId, dragTargetIndex,
+    }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
       previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId });
-    if (!force && nextSignature === signature) return;
+    // Refresh callbacks can run several times for one entry. A matching layout
+    // is already authoritative, including its selected/disabled controls.
+    if (!prepared && nextSignature === signature) return;
+    const cached = !prepared && preparedLayouts.get(nextSignature);
+    if (cached) {
+      clearChildren(root);
+      preparedLayouts.delete(nextSignature);
+      restoreLayout(cached);
+      preparedLayoutHits++;
+      return;
+    }
     signature = nextSignature;
+    layoutBuilds++;
     clearChildren(root);
     enterRoot = null;
     optionRoots = [];
@@ -669,6 +700,42 @@ export function createVassalNodeDecisionModalView({
   }
 
   return {
+    async prepareChoices(nodes, baseState) {
+      clearPreparedLayouts();
+      for (const [nodeId, item] of Object.entries(nodes ?? {})) {
+        // Yield between nodes; text/graphics and GPU upload happen while the
+        // processing state is visible, rather than on the next player's tap.
+        await new Promise(resolve => setTimeout(resolve, 0));
+        while (pointerHeld || dragged) await new Promise(resolve => setTimeout(resolve, 16));
+        const savedNodeId = openNodeId;
+        const savedPreview = {previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, dragTargetIndex, acquirePicker};
+        const activeLayout = takeLayout();
+        openNodeId = nodeId;
+        previewOptionId = previewOfferId = previewTableauId = pinnedInspectionId = dragTargetIndex = acquirePicker = null;
+        const states = item.entryPresentation ? [
+          {state:baseState, decision:item.entryPresentation},
+          {state:deserializeGameState(item.stateData), decision:item.presentation},
+        ] : [{state:deserializeGameState(item.stateData), decision:item.presentation}];
+        if (item.reroll) states.push({state:deserializeGameState(item.reroll.stateData),decision:item.reroll.presentation});
+        const created = [];
+        try {
+          for (const {state,decision} of states) {
+            const vassal = state.civilization?.vassalLineage?.vassalsById?.[state.civilization?.vassalLineage?.currentVassalId];
+            render(true, {state,decision,vassal,readOnly:false,viewedSec:state.tSec,frontierSec:state.tSec,profileSec:state.tSec});
+            const layout = takeLayout();
+            preparedLayouts.set(layout.signature, layout);
+            created.push(layout.content);
+          }
+        } finally {
+          clearChildren(root);
+          openNodeId = savedNodeId;
+          ({previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, dragTargetIndex, acquirePicker} = savedPreview);
+          restoreLayout(activeLayout);
+        }
+        for (const content of created) app.renderer?.prepare?.add(content);
+      }
+      await app.renderer?.prepare?.upload();
+    },
     init: () => {}, update: () => { advanceMotion(); render(); },
     refresh: () => render(true), resize: () => render(true),
     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
@@ -708,6 +775,7 @@ export function createVassalNodeDecisionModalView({
       });
       return {
         open: logicalOpen, nodeId: openNodeId,
+        layoutBuilds, preparedLayoutHits, preparedLayoutCount:preparedLayouts.size,
         tapFeedback: getTapFeedbackSnapshot(),
         interactionPending: root.pendingInteractionCount > 0,
         animation: {

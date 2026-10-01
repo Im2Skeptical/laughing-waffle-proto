@@ -210,8 +210,11 @@ contract: `ai/visual-overhaul.md`.
   preparation never spends Prestige or advances authoritative RNG.
   A screen-level animated processing indicator covers commit, resolution, and
   preparation. Navigation/inspection remains available; conflicting decisions
-  and time edits are locked. Recap and level-up layouts are prepared before the
-  final graph reveal is released. Failed preparation can retry without charging
+  and time edits are locked. Recap, level-up, and every legal next node's entry,
+  choice, and legal reroll layouts are prepared before the final graph reveal
+  is released. Matching node layouts are reused on entry, and repeated refresh
+  callbacks do not rebuild unchanged controls. GPU preparation uses a small
+  time budget per frame. Failed preparation can retry without charging
   an accepted transaction twice. Option, recap, and level-up buttons use immediate
   hover/pressed/selected feedback instead of per-selection loading labels.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
