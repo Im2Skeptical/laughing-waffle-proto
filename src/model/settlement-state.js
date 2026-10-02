@@ -8,6 +8,7 @@
 // ./settlement-state/hub-legacy.js
 
 import {
+  SEASON_DURATION_SEC,
   SETTLEMENT_HAPPINESS_FULL_FEED_STREAK_FOR_INCREASE,
   SETTLEMENT_HAPPINESS_MISSED_FEED_STREAK_FOR_STARVATION,
   SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
@@ -96,7 +97,7 @@ export function getSettlementYearDurationSec(state) {
   const seasons = Array.isArray(state?.seasons) && state.seasons.length > 0 ? state.seasons : [0, 1, 2, 3];
   const seasonDurationSec = Number.isFinite(state?.seasonDurationSec)
     ? Math.max(1, Math.floor(state.seasonDurationSec))
-    : 32;
+    : SEASON_DURATION_SEC;
   return seasonDurationSec * seasons.length;
 }
 
