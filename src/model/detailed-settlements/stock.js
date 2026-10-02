@@ -105,9 +105,15 @@ function recordStockTransfers(state, settlement, providers, reason) {
   if (journal.stockTransfers?.tSec !== state.tSec) journal.stockTransfers = { tSec: state.tSec, transfers: [] };
   for (const provider of remote) {
     const transfers = journal.stockTransfers.transfers;
-    const traits = stockTraits(state, stockProviderSlot(state, settlement, provider));
+    const sourceTraits = stockTraits(state, stockProviderSlot(state, settlement, provider));
+    const requestedTraits = provider.substitution ?? provider.traits ?? [];
+    // Report what this input satisfies, not every other Trait on the donor.
+    // Alternatives name the directly matched Trait; substitutions name the
+    // requested requirement. This metadata never changes allocation or events.
+    const trait = requestedTraits.find(trait => sourceTraits.includes(trait)) ?? requestedTraits[0];
+    const traits = trait ? [trait] : [];
     transfers.push({ transferId: `stock:${state.tSec}:${transfers.length}`, boundarySec: state.tSec,
-      systemId: 'stock', resourceId: traits.includes('Edible') ? 'food' : 'stock',
+      systemId: 'stock', resourceId: trait === 'Edible' ? 'food' : 'stock',
       reason, kind: provider.kind, sourceRegionId: provider.regionId, destinationRegionId,
       slotIndex: provider.slotIndex, practiceId: provider.practiceId, traits, amount: provider.amount });
   }

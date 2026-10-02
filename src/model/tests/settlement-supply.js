@@ -5,7 +5,7 @@ import { getDetailedSettlementSites } from '../detailed-settlements/queries.js';
 import { getRegionState, getWorldDefinition, getWorldConnectionCandidates, addWorldConnection } from '../world-state.js';
 import { practiceSlot, fiveSlots, setFixturePopulation } from '../dev-lab/fixtures.js';
 import { planStock, applyStockPlan, consumeAvailableStock } from '../detailed-settlements/stock.js';
-import { evaluateDetailedPracticeSlot, runPracticeActivation, flushPracticeEvents } from '../detailed-settlements/practices.js';
+import { evaluateDetailedPracticeSlot, runPracticeActivation, flushPracticeEvents, tryCreateStructure } from '../detailed-settlements/practices.js';
 import { emitPracticeEvent } from '../detailed-settlements/practice-events.js';
 import { getDetailedPracticeDef } from '../game-config.js';
 import { getGamepieceFace } from '../gamepiece-presentation.js';
@@ -41,6 +41,8 @@ assert.deepEqual(serializeGameState(state), stockBefore, 'provider planning is p
 assert.equal(applyStockPlan(state, local.detailedState, plan), true);
 assert.equal(local.detailedState.practiceSlots[0].stock, 0);
 assert.equal(remote.detailedState.practiceSlots[0].stock, 0, 'the remote host pays its own debit');
+assert.deepEqual(state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Fuel'],
+  'Fuel drawn from Logging reports Fuel, not its other Timber / Construction Traits');
 const required = planStock(state, local.detailedState, [], [{ traits: ['Ore'], amount: 1 }]);
 assert.equal(required.ok, true);
 applyStockPlan(state, local.detailedState, required);
@@ -116,8 +118,34 @@ runPracticeActivation(scheduled.state, 'birth');
 assert.ok(scheduled.local.detailedState.practiceSlots[0].stock > 0);
 assert.deepEqual(scheduled.remote.detailedState.practiceSlots.slice(0, 2).map(slot => slot.stock), [0, 1]);
 assert.deepEqual(scheduled.state.civilization.practiceEvents.stockTransfers.transfers.map(t => t.kind), ['require', 'consume']);
+assert.deepEqual(scheduled.state.civilization.practiceEvents.stockTransfers.transfers.map(t => t.traits), [['Tool'], ['Timber']]);
 const consumedEvent = scheduled.state.civilization.practiceEvents.trace.find(event => event.kind === 'stockConsumed');
 assert.ok(consumedEvent.traits.includes('Timber'), 'consumption events read traits from the real remote host');
+assert.ok(consumedEvent.traits.includes('Fuel'), 'reaction events retain the actual Stock Traits, independently of transfer icons');
+
+const alternatives = fixture();
+alternatives.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 1));
+const alternativePlan = planStock(alternatives.state, alternatives.local.detailedState, [{ traits: ['Stone', 'Fuel'], amount: 1 }]);
+assert.equal(alternativePlan.ok, true);
+applyStockPlan(alternatives.state, alternatives.local.detailedState, alternativePlan);
+assert.deepEqual(alternatives.state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Fuel'],
+  'alternative recipes identify the actual matched request');
+
+const grainInput = fixture();
+grainInput.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('dryFarming', 1));
+applyStockPlan(grainInput.state, grainInput.local.detailedState, planStock(grainInput.state, grainInput.local.detailedState, [{ traits: ['Grain'], amount: 1 }]));
+assert.equal(grainInput.state.civilization.practiceEvents.stockTransfers.transfers[0].resourceId, 'stock', 'a Grain input is not relabelled as an Edible meal');
+assert.deepEqual(grainInput.state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Grain']);
+
+const substituted = fixture();
+setFixturePopulation(substituted.local.detailedState, 10, 10);
+assert.equal(tryCreateStructure(substituted.state, substituted.local.regionId, 'bureauOfStandards'), true);
+substituted.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('toolmaking', 1));
+const substitutePlan = planStock(substituted.state, substituted.local.detailedState, [], [{ traits: ['Work'], amount: 1 }]);
+assert.equal(substitutePlan.ok, true);
+applyStockPlan(substituted.state, substituted.local.detailedState, substitutePlan);
+assert.deepEqual(substituted.state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Work'], 'a substitution identifies the requirement it satisfies');
+assert.equal(substituted.remote.detailedState.practiceSlots[0].stock, 1, 'substituted Require keeps the donor Stock');
 
 // Full Charge output blocks until local capacity opens, independently of remote Stock.
 const charged = fixture();
@@ -224,7 +252,9 @@ assert.deepEqual(serializeGameState(reload), serializeGameState(meals.state));
 const projection = buildProjectionChunkFromStateData(preMeal, 1, 2);
 assert.equal(projection.ok, true);
 assert.deepEqual(canonicalizeSnapshot(projection.lastStateData), canonicalizeSnapshot(serializeGameState(meals.state)));
-assert.deepEqual(getEdgeTransferPacketGlyphSpec('stock', ['Timber', 'Construction', 'Fuel']).icons, ['Timber', 'Construction', 'Fuel']);
+assert.deepEqual(batch.transfers.find(t => t.reason === 'food').traits, ['Edible'], 'meals report only their Edible input');
+assert.deepEqual(getEdgeTransferPacketGlyphSpec('stock', ['Fuel']).icons, ['Fuel']);
+assert.deepEqual(getEdgeTransferPacketGlyphSpec('food', ['Edible', 'Grain', 'Plant']).icons, ['Edible']);
 assert.notEqual(getEdgeTransferPacketGlyphSpec('stock').color, getEdgeTransferPacketGlyphSpec('food').color);
 
 // A following Food boundary must not erase a still-travelling Practice packet.

@@ -15,10 +15,8 @@ export function getEdgeTransferPacketGlyphSpec(resourceId, traits = []) {
   return {
     color: resourceId === 'stock' ? EDGE_TRANSFER_RESOURCE_COLOURS.stock : EDGE_TRANSFER_RESOURCE_COLOURS.food,
     circles: [],
-    // A Stock unit carries all of its provider's Traits, just as on its card.
-    // Older Food packets still have a meaningful Edible icon; unknown Stock
-    // uses the existing generic Stock asset rather than an invented glyph.
-    icons: traits.length ? [...new Set(traits)] : [resourceId === 'food' ? 'Edible' : null],
+    // One icon names the requested resource, rather than the donor's tableau.
+    icons: [resourceId === 'food' ? 'Edible' : traits[0] ?? null],
   };
 }
 
