@@ -18,6 +18,7 @@ export function validateDetailedPracticeDefinitions() {
     if (def.id !== id || !Number.isInteger(def.workerCapacity)) errors.push(`${id}: invalid identity/workers`);
     if (!['scheduled','charge'].includes(def.mode) || def.lane !== def.mode || (def.mode === 'charge') !== (def.activation.type === 'charge')) errors.push(`${id}: invalid mode`);
     if (def.mode === 'charge' && (!def.charge?.trigger?.any?.length || !Number.isInteger(def.charge.gain) || def.charge.gain < 1 || !Number.isInteger(def.charge.threshold) || def.charge.threshold < 1)) errors.push(`${id}: invalid Charge grammar`);
+    if (def.mode === 'charge' && (def.consume.length || def.require.length)) errors.push(`${id}: Charge cannot consume or require Stock`);
     for (const effect of def.effects) if (!detailedSettlementEffectOps.includes(effect.op)) errors.push(`${id}: unknown ${effect.op}`);
     for (const cost of [...def.consume, ...def.require]) {
       if (!cost.traits.some(trait => Object.values(detailedSettlementPracticeDefs).some(provider => ['common', def.pool].includes(provider.pool) && provider.stockTraits.includes(trait)))) errors.push(`${id}: missing provider ${cost.traits}`);
@@ -56,7 +57,6 @@ function conditionsMet(state, site, def, assignment) {
   if (def.positiveSupportRequired && !(getMartialSupportForCondition(state,site.regionId) > 0)) return false;
   if (def.minimumWarriors && specialistCount(settlement,'warrior') < def.minimumWarriors) return false;
   if (def.connectedSupportRequired && !getConnectedRegionIds(state,site.regionId).some(id => getRegionState(state,id)?.controller === 'player' && specialistCount(getDetailedSettlement(state,id),'warrior') > 0)) return false;
-  if (def.minimumStockedMilitary && stockProviderSlots(state,settlement).filter(s => s.slot?.stock > 0 && stockTraits(state,s.slot).some(t => ['Arms','Protection','Mobility','Power'].includes(t))).length < def.minimumStockedMilitary) return false;
   return true;
 }
 
@@ -80,7 +80,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
     const seasonal=settlement.seasonalFoodBoost;
     if (def.activation.type==='season' && def.tags.includes('Food') && def.stockTraits.includes('Edible') && seasonal?.year===state.year
       && seasonal.practiceId===def.id && !seasonal.seasons.includes(getCurrentSeasonKey(state))) amount+=seasonal.amount;
-    amount=Math.floor(amount*(1+assignment.effectiveWorkers*def.workerBonus));
+    amount=Math.floor(amount*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
   }
   amount+=modifiers.reduce((n,m)=>n+(m.kind==='effectBonus'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
   return amount;
@@ -92,17 +92,19 @@ export function getChargeThreshold(state,settlement,slot,staffed=false) {
   return Math.max(1,Math.floor(def.charge.threshold-structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='chargeThresholdReduction'&&matchesPractice(state,slot,m.query,staffed)?m.amount:0),0)));
 }
 
+function chargeGain(state,settlement,slot,assignment) {
+  const def=getDetailedPracticeDef(state,slot.practiceId);
+  const base=def.charge.gain+structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='chargeGain'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
+  // Charge is an integer meter, just like Stock. Workers accelerate the meter,
+  // never the effects released by it; passive gains are multiplied with base gain.
+  return Math.max(0,Math.floor(base*(1+assignment.effectiveWorkers*def.workerBonus)));
+}
+
 function recipePlan(state,site,assignment) {
   const settlement=site.detailedState, slot=settlement.practiceSlots[assignment.slotIndex],def=getDetailedPracticeDef(state,slot?.practiceId);
   if (!conditionsMet(state,site,def,assignment)) return {ok:false,reason:def.scholarRequired&&!isScholarStaffed(assignment)?'Requires a Scholar worker':'State / population requirements not satisfied',providers:[]};
   const plan=planStock(state,settlement,def.consume,def.require,slot,isScholarStaffed(assignment));
   if (!plan.ok) return {...plan,reason:`Missing ${plan.missing.kind}: ${plan.missing.amount} [${plan.missing.traits.join(' / ')}]`};
-  if (def.distinctTechnicalProviders) {
-    const technical=stockProviderSlots(state,settlement).filter(s=>s.slot?.stock>0 && getDetailedPracticeDef(state,s.slot.practiceId)?.tags.includes('Knowledge') && !plan.providers.some(p=>p.kind==='consume'&&p.regionId===s.regionId&&p.slotIndex===s.slotIndex)).map(s=>({...s,tags:getDetailedPracticeDef(state,s.slot.practiceId).tags.slice().sort().join('|')}));
-    const selected=technical.filter((s,i)=>technical.findIndex(t=>t.tags===s.tags)===i).slice(0,def.distinctTechnicalProviders);
-    if (selected.length<def.distinctTechnicalProviders) return {ok:false,providers:[],reason:'Requires two differently-tagged technical providers'};
-    plan.providers.push(...selected.map(p=>({kind:'consume',regionId:p.regionId,slotIndex:p.slotIndex,practiceId:p.slot.practiceId,amount:1,traits:stockTraits(state,p.slot)})));
-  }
   if (def.mode==='charge' && def.effects.some(e=>e.op==='generateStock')) {
     const spent=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===site.regionId&&p.slotIndex===assignment.slotIndex).reduce((n,p)=>n+p.amount,0);
     if ((slot.stock??0)-spent>=stockCapacity(state,settlement,slot,isScholarStaffed(assignment))) return {ok:false,providers:[],reason:'Stock capacity is full'};
@@ -120,11 +122,11 @@ export function buildDetailedPracticeEvaluation(state, site, assignment) {
   const threshold=getChargeThreshold(state,site.detailedState,slot,isScholarStaffed(assignment));
   const charge=threshold==null?null:Math.min(threshold,slot.charge??0);
   return { practiceId: def.id, label: def.label, workerCapacity: def.workerCapacity, activation: def.activation, rule: def.ui.rule,
-    mode:def.mode,charge,chargeThreshold:threshold,chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
+    mode:def.mode,charge,chargeThreshold:threshold,chargeGain:def.mode==='charge'?chargeGain(state,site.detailedState,slot,assignment):null,chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
     ready:threshold!=null&&charge>=threshold,blocked:threshold!=null&&charge>=threshold&&!plan.ok,blockedReason:threshold!=null&&charge>=threshold&&!plan.ok?plan.reason:null,
     stock: slot.stock ?? 0, stockCapacity: stockCapacity(state, site.detailedState, slot, isScholarStaffed(assignment)), stockTraits: def.stockTraits,
     providers: plan.providers, missing: plan.missing ?? null, supplied: plan.ok,
-    effects: def.effects.map(e => ({ op: e.op, scaledValue: { effectiveValue: practiceEffectAmount(state,site,assignment,e), baseValue: e.amount ?? 0, workerMultiplier: 1 + assignment.effectiveWorkers * def.workerBonus } })) };
+    effects: def.effects.map(e => ({ op: e.op, scaledValue: { effectiveValue: practiceEffectAmount(state,site,assignment,e), baseValue: e.amount ?? 0, workerMultiplier: def.mode==='charge'?1:1 + assignment.effectiveWorkers * def.workerBonus } })) };
 }
 export function evaluateDetailedPracticeSlot(state, regionId, slotIndex) {
   const site = getDetailedSettlementSites(state).find(s => s.regionId === regionId);
@@ -238,7 +240,7 @@ export function flushPracticeEvents(state) {
             const threshold=getChargeThreshold(state,settlement,slot,isScholarStaffed(assignment));
             slot.charge=Math.min(threshold,slot.charge??0);
             if (matchesEvent(state,site,assignment,event,def.charge.trigger)) {
-              const gain=Math.floor(def.charge.gain+structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='chargeGain'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0));
+              const gain=chargeGain(state,settlement,slot,assignment);
               const before=slot.charge;slot.charge=Math.min(threshold,slot.charge+gain);
               if (slot.charge>before) tracePracticeEvent(state,{kind:'chargeGained',rootId,parentId:event.id,regionId:site.regionId,targetPracticeId:def.id,slotIndex:assignment.slotIndex,amount:slot.charge-before,charge:slot.charge,threshold});
             }

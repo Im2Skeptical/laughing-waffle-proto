@@ -366,6 +366,7 @@ export function validateGamepiecesDraft(value) {
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);
       if (def.mode==='charge' && (!Number.isInteger(def.charge?.threshold) || def.charge.threshold<1 || !Number.isInteger(def.charge?.gain) || def.charge.gain<1 || !def.charge.trigger?.any?.length)) errors.push(`practices.${id}: invalid Charge grammar`);
+      if (def.mode==='charge' && ((def.consume??[]).length || (def.require??[]).length)) errors.push(`practices.${id}: Charge cannot consume or require Stock`);
       for (const cost of [...(def.consume??[]),...(def.require??[])]) if (!Number.isInteger(cost.amount)||cost.amount<0||!cost.traits?.length||cost.traits.includes('Charge')) errors.push(`practices.${id}: invalid Stock input`);
     }
   }

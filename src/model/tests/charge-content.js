@@ -41,7 +41,9 @@ for (const row of source.entries) {
     if (def.mode==='charge') {
       assert.equal(def.activation.type,'charge');assert.equal(def.charge.gain,row.fields['Charge Gain']);
       assert.equal(def.charge.threshold,row.fields['Charge Threshold']);assert.equal(def.charge.triggerText,row.fields['Charge Trigger']);
-      assert.equal(def.charge.dischargeText,row.fields['Discharge Effect']);
+      assert.deepEqual(def.consume,[]);assert.deepEqual(def.require,[]);
+      assert.equal(def.distinctTechnicalProviders,undefined);assert.equal(def.minimumStockedMilitary,undefined);
+      assert.doesNotMatch(def.charge.dischargeText,/Consume |stocked /);
     } else assert.notEqual(def.activation.type,'charge');
   } else {assert.equal(def.charge,undefined,'Structures never own Charge');assert.equal(def.footprint,row.fields.Slots);}
 }
@@ -53,6 +55,38 @@ function fixture(...slots) {
   return {state,site,local,region:site.regionId};
 }
 const event=(f,e)=>{emitPracticeEvent(f.state,{regionId:f.region,...e});flushPracticeEvents(f.state);};
+
+for(const [workers,effectiveness] of [[0,1],[1,1],[3,1],[1,.5]]) {
+  const f=fixture(practiceSlot('smelting'));
+  const def=f.state.gameConfig.gamepieces.practices.smelting;
+  def.workerCapacity=3;def.stockCapacity=20;def.charge.threshold=10;
+  f.state.gameConfig.settings.values.villagerEffectiveness=effectiveness;
+  setFixturePopulation(f.local,workers*f.state.gameConfig.settings.values.populationPerToken);
+  event(f,{kind:'stockGenerated',practiceId:'surfaceMining',traits:['Ore']});
+  const expected=Math.floor(1+workers*effectiveness);
+  assert.equal(f.local.practiceSlots[0].charge,expected,'effective workers multiply integer Charge gain');
+  const evaluated=evaluateDetailedPracticeSlot(f.state,f.region,0);
+  assert.equal(evaluated.chargeGain,expected);assert.equal(evaluated.effects[0].scaledValue.effectiveValue,2);
+  assert.equal(evaluated.effects[0].scaledValue.workerMultiplier,1,'Charge output is not worker-scaled');
+  f.local.practiceSlots[0].charge=9;
+  event(f,{kind:'stockGenerated',practiceId:'surfaceMining',traits:['Ore']});
+  assert.equal(f.local.practiceSlots[0].charge,0,'gain caps at threshold and Discharge resets');
+  assert.equal(f.local.practiceSlots[0].stock,2,'Discharge needs no Stock provider and preserves base output');
+  assert.equal(f.state.civilization.practiceEvents.trace.some(e=>e.kind==='stockConsumed'),false);
+}
+const independent=fixture(practiceSlot('warCouncil'),practiceSlot('experimentation'));
+setFixturePopulation(independent.local,1,1);
+independent.local.practiceSlots[0].charge=3;independent.local.practiceSlots[1].charge=3;
+event(independent,{kind:'phaseResolved'});
+assert.equal(independent.local.supportBank.coordination,1,'War Council needs no stocked military cards');
+assert.equal(independent.local.shopQualityBonus,1,'Experimentation needs no technical Stock providers');
+
+const triggerFace=getGamepieceFace({},'practice','alchemy','bronze',{slot:{charge:2},workers:{effectiveWorkers:3,tokens:[{},{},{}]}});
+assert.deepEqual(triggerFace.chargeTriggers.map(s=>[s.trait,s.event]),[['Medicine','stockConsumed'],['Metal','stockConsumed'],['Glass','stockConsumed']]);
+assert.equal(triggerFace.workerMultiplier,4);assert.equal(triggerFace.chargeGain,4);
+assert.deepEqual(triggerFace.inputs,[]);assert.equal(triggerFace.production[0].value,2);
+assert.equal(triggerFace.fill,2/3);assert.match(triggerFace.detailLines.join(' '),/Charge gained \(not output\)/);
+assert.deepEqual(getGamepieceFace({},'practice','anatomicalStudy').chargeTriggers.map(s=>s.icon??s.trait),['death','Bone']);
 const engine=createLabFixture('charge'),timeline=createTimelineFromInitialState(engine);
 advanceReplayStateToSecond(engine,24);
 const trace=engine.world.sites.find(s=>s.regionId===engine.civilization.capitalRegionId).detailedState.practiceActivationTrace;
@@ -74,16 +108,16 @@ assert.equal(or.local.practiceSlots[0].charge,1,'OR matches once');assert.equal(
 runPracticeActivation(or.state,'birth');assert.equal(or.local.practiceSlots[0].charge,1,'Charge never scheduled');
 assert.equal(planStock(or.state,or.local,[],[{traits:['Charge'],amount:1}]).ok,false);assert.equal(stockTotal(or.state,or.local,'Charge'),0);
 event(or,{kind:'stockGenerated',practiceId:'surfaceMining',traits:['Ore']});
-assert.deepEqual(or.local.practiceSlots.slice(0,3).map(s=>[s.charge,s.stock]),[[0,2],[0,0],[0,0]]);
+assert.deepEqual(or.local.practiceSlots.slice(0,3).map(s=>[s.charge,s.stock]),[[0,2],[0,1],[0,1]]);
 
-const blocked=fixture(practiceSlot('smelting'),practiceSlot('surfaceMining',1),practiceSlot('logging'));
+const blocked=fixture(practiceSlot('smelting',5),practiceSlot('surfaceMining',1),practiceSlot('logging'));
 for(let i=0;i<3;i++) event(blocked,{kind:'stockGenerated',practiceId:'surfaceMining',traits:['Ore']});
 const evaluation=evaluateDetailedPracticeSlot(blocked.state,blocked.region,0);
-assert.equal(evaluation.blocked,true);assert.match(evaluation.blockedReason,/Fuel/);
+assert.equal(evaluation.blocked,true);assert.match(evaluation.blockedReason,/capacity/);
 assert.equal(blocked.local.practiceSlots[0].charge,2);assert.equal(blocked.local.practiceSlots[1].stock,1,'blocked recipe never partially pays');
 assert.equal(evaluateDetailedPracticeSlot(deserializeGameState(serializeGameState(blocked.state)),blocked.region,0).blocked,true);
-generateStock(blocked.state,blocked.local,blocked.local.practiceSlots[2],1);flushPracticeEvents(blocked.state);
-assert.equal(blocked.local.practiceSlots[0].charge,0);assert.equal(blocked.local.practiceSlots[0].stock,2,'real Stock change retries blocked recipe');
+blocked.local.practiceSlots[0].stock=4;event(blocked,{kind:'phaseResolved'});
+assert.equal(blocked.local.practiceSlots[0].charge,0);assert.equal(blocked.local.practiceSlots[0].stock,5,'next local event retries a full meter after output room opens');
 const capacity=fixture(practiceSlot('toolmaking',4),practiceSlot('smelting',2),practiceSlot('logging',1));
 event(capacity,{kind:'stockGenerated',practiceId:'smelting',traits:['Metal']});
 assert.equal(capacity.local.practiceSlots[0].charge,2);assert.equal(capacity.local.practiceSlots[1].stock,2);
@@ -117,6 +151,7 @@ flushPracticeEvents(safety.state);assert.ok(safety.state.civilization.practiceEv
 assert.equal(safety.state.civilization.practiceEvents.pending.length,0);assert.equal(safety.state.civilization.practiceEvents.activeRoot,undefined);
 
 const institution=fixture(practiceSlot('formationTraining'),practiceSlot('weaponsmithing',1),practiceSlot('recordKeeping',2));
+institution.state.gameConfig.gamepieces.practices.formationTraining.workerBonus=0;
 setFixturePopulation(institution.local,15,0,15);tryCreateStructure(institution.state,institution.region,'warCollege');
 event(institution,{kind:'supportContributed',actionKind:'defense'});assert.equal(institution.local.practiceSlots[0].charge,2);
 event(institution,{kind:'supportContributed',actionKind:'defense'});assert.equal(institution.local.practiceSlots[0].charge,0);assert.equal(institution.local.supportBank.formation,2);
@@ -124,8 +159,13 @@ const beforeSupport=getMartialSupport(institution.state,institution.region);
 recordSupportUsage(institution.state,institution.region,'defense',true);flushPracticeEvents(institution.state);
 assert.ok(getMartialSupport(institution.state,institution.region)<beforeSupport);
 assert.ok(institution.local.structureSlots.filter(Boolean).every(s=>!Object.hasOwn(s,'charge')));
-const lab=fixture(practiceSlot('alchemy'));setFixturePopulation(lab.local,5,2);tryCreateStructure(lab.state,lab.region,'laboratory');
-event(lab,{kind:'stockConsumed',practiceId:'glassmaking',traits:['Medicine','Glass'],tags:['Knowledge']});assert.equal(lab.local.practiceSlots[0].charge,2);
+institution.state.gameConfig.gamepieces.practices.formationTraining.workerBonus=1;
+institution.state.gameConfig.gamepieces.practices.formationTraining.charge.threshold=10;
+institution.local.practiceSlots[0].charge=0;
+event(institution,{kind:'supportContributed',actionKind:'defense'});
+assert.equal(institution.local.practiceSlots[0].charge,4,'Workers also scale eligible passive Charge gains');
+const lab=fixture(practiceSlot('alchemy'));lab.state.gameConfig.gamepieces.practices.alchemy.workerBonus=0;setFixturePopulation(lab.local,5,2);tryCreateStructure(lab.state,lab.region,'laboratory');
+event(lab,{kind:'stockConsumed',practiceId:'glassmaking',traits:['Medicine','Glass'],tags:['Knowledge']});assert.equal(lab.local.practiceSlots[0].charge,1,'A bonus gated on Stock requirements no longer matches cost-free Charge cards');
 const development=fixture(practiceSlot('examinationCoaching'),practiceSlot('recordKeeping',3));setFixturePopulation(development.local,5,1);
 for(let i=0;i<3;i++) event(development,{kind:'stockGenerated',practiceId:'recordKeeping',scholarStaffed:true});
 assert.equal(development.state.civilization.candidateDevelopment.scholar,1);
@@ -137,6 +177,8 @@ assert.throws(()=>deserializeGameState(bad),/5 practice slots/);assert.throws(()
 const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites[0].detailedState.practiceSlots[0].charge=-1;
 assert.throws(()=>deserializeGameState(malformed),/invalid Charge/);
 const config=structuredClone(engine.gameConfig);config.gamepieces.practices.smelting.charge.threshold=0;assert.equal(validateGameConfig(config).ok,false);
+const stockCost=structuredClone(engine.gameConfig);stockCost.gamepieces.practices.smelting.consume=[{traits:['Ore'],amount:1}];
+assert.equal(validateGameConfig(stockCost).ok,false,'Charge definitions cannot reintroduce Stock recipes');
 const upgraded=practiceSlot('smelting',2);upgraded.charge=1;
 const upgrade=projectPracticeDraft(fiveSlots(upgraded),[{intervention:{kind:'practice',mode:'upgrade',practiceId:'smelting',tier:'bronze',resultingTier:'silver'},tableauIndex:4}]);
 assert.equal(upgrade.slots[4].charge,1);assert.equal(upgrade.slots[4].stock,2,'quality/reorder keeps the same Practice inventory and meter');
@@ -156,13 +198,14 @@ assert.equal(planStock(procure.state,procure.local,[{traits:['Ore'],amount:1},{t
 assert.equal(planStock(procure.state,procure.local,[],[{traits:['Ore'],amount:1}]).providers[0].kind,'consume','Procurement pays Currency even for Require');
 const flexible=fixture(practiceSlot('alchemy'),practiceSlot('logging',2));setFixturePopulation(flexible.local,2,2);tryCreateStructure(flexible.state,flexible.region,'laboratory');
 const flexPlan=planStock(flexible.state,flexible.local,[],[{traits:['Glass'],amount:1}],flexible.local.practiceSlots[0]);
-assert.equal(flexPlan.ok,true);assert.equal(flexPlan.providers[0].kind,'require','Laboratory trait-broadening keeps Require non-consuming');
+assert.equal(flexPlan.ok,false,'Laboratory recipe broadening no longer applies to a Charge card without Stock requirements');
 const experiment=fixture(practiceSlot('experimentation'),practiceSlot('logging',2),practiceSlot('recordKeeping',2));setFixturePopulation(experiment.local,5,1);
 // Scholar staffing makes the common supplier technical; Record Keeping has a different tag signature.
 experiment.state.gameConfig.gamepieces.practices.logging.tags.push('Knowledge');
 for(let i=0;i<3;i++) event(experiment,{kind:'stockConsumed',practiceId:'recordKeeping',tags:['Knowledge']});
 assert.equal(experiment.local.shopQualityBonus,1);assert.ok(experiment.state.civilization.research.total>=3);
-assert.equal(experiment.local.practiceSlots[0].charge,1,'Experimentation may observe its own consumption and retain Charge after Discharge');
+assert.equal(experiment.local.practiceSlots[0].charge,2,'Workers multiply incoming Charge; Discharge emits no Stock consumption');
+assert.equal(experiment.local.practiceSlots[1].stock,2);assert.equal(experiment.local.practiceSlots[2].stock,2);
 const shopState=createLabFixture('scholar'),shopVassal=getCurrentLifeMapVassal(shopState),shopLocal=shopState.world.sites.find(s=>s.regionId===shopVassal.locationRegionId).detailedState;
 shopLocal.shopQualityBonus=1;const inventory=generateShopInventory(shopState,shopVassal,{nodeId:'charge-quality',family:'practiceReform',purchasedOffers:[]});
 assert.ok(inventory.length>0);assert.equal(shopLocal.shopQualityBonus,0,'quality bank is consumed by the real Scholar shop');
@@ -180,4 +223,4 @@ const rescueOption=classActionOptions(rescue,rescuer,'crisis').find(o=>o.classAc
 const adultsBefore=rescueSite.detailedState.populationByClass.villager.adults;
 applyClassAction(rescue,rescuer,rescueOption.classAction);assert.equal(rescueSite.detailedState.populationByClass.villager.adults,adultsBefore-5);
 assert.equal(rescueSite.detailedState.practiceSlots[0].stock,0,'rescue pays its real supply recipe');
-console.log('[charge-content] 187 workbook rows, 24 Charge modes, real five-slot cascade, blocked atomic recipes, safeguards, passive modifiers, replay/save/projection parity OK');
+console.log('[charge-content] 187 workbook rows, 24 Charge modes, real five-slot cascade, cost-free Discharges, worker Charge scaling, safeguards, passive modifiers, replay/save/projection parity OK');

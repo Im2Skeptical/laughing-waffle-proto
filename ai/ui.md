@@ -1,6 +1,11 @@
 # Current UI
 
-CivContent 2.6 Charge faces use their meter instead of the scheduled wheel.
+Charge faces use a segmented teal reservoir along the bottom, workers and their
+Charge multiplier on the left, and Discharge yields on the right. The icons
+directly above the reservoir identify Charge triggers, not Stock costs. Small
+arrows distinguish Stock-generation triggers (up) from consumption triggers
+(down); event symbols cover death, threat, trade and Martial triggers. Sections
+expand upward only as needed. The Stock tray is raised above the top rim.
 Faces/evaluations expose mode, current Charge, threshold, trigger, Discharge,
 full blocked state and reason. Development Lab Zoo filters mode and reports
 complete pool counts; the Charge Museum exhibit uses five real Practices and
@@ -187,10 +192,11 @@ contract: `ai/visual-overhaul.md`.
   Shared physical faces use 5:7 practices and 3:4 single-cell structures, with
   wider structures spanning contiguous cells. Pieces and slots scale uniformly.
   Illustrated frames distinguish scheduled and charge practices; structures share
-  brass/stone framing. Outputs attach centred along the top, workers along the left.
+  brass/stone framing. Stock and Traits sit above the top edge. Outputs sit at the
+  bottom, with workers on the right for Scheduled cards and the left for Charge cards.
   Solar/lunar discs rotate at the bottom in time with scheduled triggers; charge
-  practices retain an inset source and fill. Charge fill has
-  no numeric counter. The 30 individual illustrations load on demand from
+  practices show a segmented reservoir and trigger tray. Normal thresholds use one
+  chamber per point; large custom thresholds group points and show a numeric count. The 30 individual illustrations load on demand from
   `images/dark-fantasy/settlement-pieces-v2/`; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Routes/Travel show a cropped polygon regional preview;

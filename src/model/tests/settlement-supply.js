@@ -119,7 +119,7 @@ assert.deepEqual(scheduled.state.civilization.practiceEvents.stockTransfers.tran
 const consumedEvent = scheduled.state.civilization.practiceEvents.trace.find(event => event.kind === 'stockConsumed');
 assert.ok(consumedEvent.traits.includes('Timber'), 'consumption events read traits from the real remote host');
 
-// Full local Charge output cannot use a remote input's matching slot index as free capacity.
+// Full Charge output blocks until local capacity opens, independently of remote Stock.
 const charged = fixture();
 charged.local.detailedState.practiceSlots = fiveSlots(practiceSlot('smelting', getDetailedPracticeDef(charged.state, 'smelting').stockCapacity));
 charged.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('surfaceMining', 1), practiceSlot('logging', 1));
@@ -128,19 +128,19 @@ charged.local.detailedState.practiceSlots[0].stock = 0;
 charged.local.detailedState.practiceSlots[0].charge = 2;
 emitPracticeEvent(charged.state, { kind: 'phaseResolved', regionId: charged.local.regionId, phase: 'birth' });
 flushPracticeEvents(charged.state);
-assert.ok(charged.local.detailedState.practiceSlots[0].stock > 0, 'automatic Discharge uses remote materials');
-assert.deepEqual(charged.remote.detailedState.practiceSlots.slice(0, 2).map(slot => slot.stock), [0, 0]);
+assert.ok(charged.local.detailedState.practiceSlots[0].stock > 0, 'automatic Discharge needs no remote materials');
+assert.deepEqual(charged.remote.detailedState.practiceSlots.slice(0, 2).map(slot => slot.stock), [1, 1]);
 
-// Special technical requirements use the same multi-board provider scope.
+// Charge cards have no special technical Stock requirements or provider listings.
 const technical = fixture();
 setFixturePopulation(technical.local.detailedState, 1, 1);
 technical.local.detailedState.practiceSlots = fiveSlots(practiceSlot('experimentation'));
 technical.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('smelting', 1), practiceSlot('toolmaking', 1));
 const evaluation = evaluateDetailedPracticeSlot(technical.state, technical.local.regionId, 0);
 assert.equal(evaluation.supplied, true);
-assert.deepEqual(evaluation.providers.map(p => p.regionId), [technical.remote.regionId, technical.remote.regionId]);
+assert.deepEqual(evaluation.providers, []);
 const face = getGamepieceFace(technical.state, 'practice', 'experimentation', 'bronze', { evaluation });
-assert.ok(face.detailLines.some(line => line.includes('from R') && line.includes('slot 1')), 'inspection names the provider settlement');
+assert.equal(face.detailLines.some(line => line.includes('Consume') && line.includes('from R')), false, 'Charge inspection lists no Stock payment');
 
 // Every owner eats locally before any neighbour can draw from its board.
 function mealPriorityFixture({ donorFirst = false, stock = 1, donorPeople = 30, connected = true } = {}) {

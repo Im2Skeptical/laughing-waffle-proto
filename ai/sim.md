@@ -4,7 +4,9 @@ CivContent 2.6 adds 24 declarative Charge Practices to the full 109-Practice /
 78-Structure registry. Charge is Practice-local integer state, separate from
 Stock. The authoritative Practice event queue grants Charge and automatically
 resolves legal full recipes in deterministic tableau order; blocked meters retain
-Charge and inputs. A Practice Discharges at most once per root chain, retaining
+Charge. Charge Practices neither consume nor require Stock; worker multipliers
+apply to incoming Charge (rounded down), never Discharge output. Non-Stock
+staffing/population conditions and output capacity still apply. A Practice Discharges at most once per root chain, retaining
 any refill for later roots. Scheduled Practices remain on the existing triggers.
 The same ticks, event queue and JSON state serve replay and forecast. Exact
 content and remaining provisional clauses: `docs/civcontent-2.6-implementation.md`.

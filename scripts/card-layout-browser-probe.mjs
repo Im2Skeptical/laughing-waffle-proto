@@ -49,6 +49,11 @@ try {
       const b=card.getLocalBounds(),w=card.pieceGeometry.width,h=card.pieceGeometry.height;
       const top=card.faceSections.stock?.y??0;
       if(b.x < -1 || b.y < top-1 || b.right > w+1 || b.bottom > h+1 || !card.hitArea.contains(w-2,top+2)) failures.push({id,bounds:{x:b.x,y:b.y,right:b.right,bottom:b.bottom},expected:{w,h,top}});
+      if(face.mode==='charge') {
+        const {workers,charge,triggers,yields,inputs}=card.faceSections;
+        if(inputs || workers.x!==0 || charge.x<workers.x+workers.width || charge.x+charge.width>yields.x+.01 || triggers.y+triggers.height>charge.y || triggers.x+triggers.width>yields.x+.01) failures.push({id,reason:'Charge sections overlap or use Stock costs'});
+        if(charge.segments!==face.chargeThreshold || !face.chargeTriggers.length) failures.push({id,reason:'Charge threshold or trigger symbols missing'});
+      }
       parent.destroy({children:true});
     }
     let inspections=0;
