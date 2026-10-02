@@ -7,13 +7,25 @@ const paintings = {};
 export const CARD_SIZE = { width: 300, height: 420, overhang: 24 };
 
 export async function loadCardAssets(ids) {
-  const response = await fetch(`${ROOT}components.json`);
-  if (!response.ok) throw new Error(`Component manifest: ${response.status}`);
-  const manifest = await response.json();
-  const atlas = await PIXI.Assets.load(`${ROOT}${manifest.image}`);
-  for (const [id, r] of Object.entries(manifest.frames)) {
-    textures[id] = new PIXI.Texture(atlas.baseTexture, new PIXI.Rectangle(r.x, r.y, r.w, r.h));
+  const manifests = [];
+  for (const file of ['components.json', 'components-v2.json']) {
+    const response = await fetch(`${ROOT}${file}`);
+    if (!response.ok) throw new Error(`Component manifest: ${response.status}`);
+    const manifest = await response.json();
+    manifests.push(manifest);
+    const atlas = await PIXI.Assets.load(`${ROOT}${manifest.image}`);
+    for (const [id, r] of Object.entries(manifest.frames)) {
+      textures[id] = new PIXI.Texture(atlas.baseTexture, new PIXI.Rectangle(r.x, r.y, r.w, r.h));
+    }
   }
+  const revisedBase = textures.workerHousing.baseTexture;
+  textures.triggerWell = new PIXI.Texture(revisedBase, new PIXI.Rectangle(40, 625, 167, 167));
+  // The bare base is the same carved object, for a card with no worker sockets.
+  textures.workerBase = new PIXI.Texture(revisedBase, new PIXI.Rectangle(49, 420, 376, 138));
+  // Use only the illuminated enamel inside a cell; the fused housing owns the rim.
+  const full = textures.chargeFull.frame;
+  textures.chargeEnamel = new PIXI.Texture(textures.chargeFull.baseTexture,
+    new PIXI.Rectangle(full.x + 24, full.y + 26, full.width - 48, full.height - 52));
   const sheet = await PIXI.Assets.load('images/sprite-sheets/resource-language.json');
   for (const [name, texture] of Object.entries(sheet.textures)) {
     resources[name.split('/').at(-1).replace(/\.png$/, '')] = texture;
@@ -21,7 +33,7 @@ export async function loadCardAssets(ids) {
   await Promise.all(ids.map(async id => {
     paintings[id] = await PIXI.Assets.load(`${ART}settlement-pieces-v4/${id}.webp`);
   }));
-  return manifest;
+  return manifests;
 }
 
 function sprite(parent, texture, x, y, w, h, contain = false) {
@@ -46,8 +58,8 @@ function panel(parent, id, x, y, w, h, cornerScale = 0.2, inset = 36) {
 function number(parent, value, x, y, size = 30, maxWidth = Infinity, color = '#ffe6ab') {
   const t = new PIXI.Text(String(value), {
     fontFamily: 'Georgia, serif', fontWeight: 'bold', fontSize: size,
-    fill: color, stroke: '#261b10', strokeThickness: 3,
-    dropShadow: true, dropShadowDistance: 1, dropShadowBlur: 2,
+    fill: color, stroke: '#171511', strokeThickness: 2,
+    dropShadow: true, dropShadowDistance: 1, dropShadowBlur: 0,
   });
   t.anchor.set(0.5); t.position.set(x, y);
   if (t.width > maxWidth) t.scale.set(maxWidth / t.width);
@@ -55,22 +67,38 @@ function number(parent, value, x, y, size = 30, maxWidth = Infinity, color = '#f
 }
 
 function icon(parent, id, x, y, size) {
-  const aliases = { spring: 'stock-plant', autumn: 'stock-wild', research: 'stock-knowledge', support: 'stock-arms', knowledge: 'stock-knowledge', housingCapacity: 'housing', population: 'birth' };
-  const tex = id === 'summer' ? textures.sun : id === 'winter' ? textures.winter
+  const aliases = { research: 'stock-knowledge', support: 'stock-arms', knowledge: 'stock-knowledge', housingCapacity: 'housing', population: 'birth' };
+  const tex = id === 'spring' ? textures.springLeaf : id === 'autumn' ? textures.autumnLeaf
+    : id === 'summer' ? textures.sun : id === 'winter' ? textures.winter
     : resources[aliases[id] ?? id] ?? resources[`stock-${String(id).toLowerCase()}`] ?? resources.stock;
   const s = sprite(parent, tex, x, y, size, size, true);
-  if (id === 'autumn') s.tint = 0xe9a654;
   return s;
+}
+
+function triggerWell(parent, id, x, y, size) {
+  const well = sprite(parent, textures.triggerWell, x, y, size, size);
+  const mask = new PIXI.Graphics().beginFill(0xffffff).drawCircle(x + size / 2, y + size / 2, size / 2).endFill();
+  parent.addChild(mask); well.mask = mask;
+  icon(parent, id, x + size * 0.15, y + size * 0.15, size * 0.7);
 }
 
 function workerDock(parent, face, x) {
   const capacity = Math.max(0, Math.min(4, face.workerCapacity));
-  for (let i = capacity - 1; i >= 0; i--) {
-    const id = i < face.workers ? ['workerFarmer', 'workerScholar', 'workerArtisan'][i % 3] : 'workerEmpty';
-    sprite(parent, textures[id], x + 9, 397 - (i + 1) * 40, 37, 56);
+  const bottom = 444, baseHeight = 43, pitch = 33;
+  if (capacity) {
+    const height = baseHeight + capacity * pitch + 19;
+    // Only the blank shaft stretches. The arch and flared base remain one artwork.
+    const housing = new PIXI.NineSlicePlane(textures.workerHousing, 0, 95, 0, 205);
+    housing.width = 376; housing.height = height / 0.22;
+    housing.scale.set(60 / 376, 0.22); housing.position.set(x, bottom - height);
+    parent.addChild(housing);
+    for (let i = 0; i < capacity; i++) {
+      sprite(parent, textures[i < face.workers ? 'pawnFull' : 'pawnEmpty'], x + 20, 403 - (i + 1) * pitch, 21, 31, true);
+    }
+  } else {
+    sprite(parent, textures.workerBase, x, bottom - baseHeight, 60, baseHeight);
   }
-  panel(parent, 'socket', x, 396, 58, 47, 0.24);
-  number(parent, `×${face.workerMultiplier}`, x + 29, 419, 30, 48, '#e7e3d7');
+  number(parent, `×${face.workerMultiplier}`, x + 30, 424, 30, 48, '#eee9da');
 }
 
 function stockTray(parent, face) {
@@ -98,14 +126,16 @@ function stockTray(parent, face) {
 function scheduled(parent, face) {
   const rows = face.production.slice(0, 3);
   const multi = rows.length > 1;
-  const rowHeight = 36;
-  const rowWidth = multi ? 72 : 54;
+  const rowHeight = 43;
+  const rowWidth = multi ? 91 : 60;
   const rowX = 250 - rowWidth;
   const rowY = 396 - (rows.length - 1) * rowHeight;
-  panel(parent, 'panel', rowX, rowY, rowWidth + 10, rows.length * rowHeight + 11, 0.22);
+  panel(parent, 'stockOutput', rowX, rowY, rowWidth + 10, rows.length * rowHeight + 5, 0.16, 80);
   rows.forEach((row, i) => {
-    if (multi) icon(parent, row.season ?? row.icon, rowX + 4, rowY + 4 + i * rowHeight, 29);
-    number(parent, row.value, multi ? rowX + 53 : rowX + 28, rowY + 23 + i * rowHeight, 31, multi ? 36 : 44);
+    const y = rowY + 3 + i * rowHeight;
+    if (i) parent.addChild(new PIXI.Graphics().lineStyle(1, 0xb29862, 0.5).moveTo(rowX + 10, y).lineTo(rowX + rowWidth, y));
+    if (multi) triggerWell(parent, row.season ?? row.icon, rowX + 7, y + 3, 36);
+    number(parent, row.value, multi ? rowX + 69 : rowX + 34, y + 22, 34, multi ? 39 : 48);
   });
   const medX = rowX - 62;
   if (face.inputs.length) {
@@ -117,9 +147,12 @@ function scheduled(parent, face) {
       number(parent, input.amount, x + 32, 432, 17, 22);
     });
   }
-  sprite(parent, textures.medallion, medX, 387, 69, 69);
+  // Preserve the calendar's existing solar / lunar material and phase divisions.
+  const wheel = face.source?.icon === 'season' ? 'solar-wheel' : 'moon-wheel';
+  parent.addChild(new PIXI.Graphics().beginFill(0x101c1b).drawCircle(medX + 34.5, 421.5, 25).endFill());
+  sprite(parent, resources[wheel], medX, 387, 69, 69, true);
   const next = face.nextTrigger?.season ?? face.source?.icon ?? rows[0]?.season ?? 'spring';
-  icon(parent, next, medX + 17, 403, 36);
+  icon(parent, next, medX + 20, 407, 29);
   workerDock(parent, face, 250);
 }
 
@@ -127,23 +160,32 @@ function charged(parent, face) {
   const rows = face.production.slice(0, 3);
   const multi = rows.length > 1;
   const outputX = multi ? 228 : 244;
-  const barX = 40, barY = 397, barWidth = outputX - barX + 8;
+  const barX = 40, barWidth = outputX - barX + 8;
   const count = Math.max(1, Math.min(12, face.chargeThreshold));
   const triggers = face.chargeTriggers.slice(0, 3);
-  if (triggers.length) {
-    const width = triggers.length * 43 + 14;
-    panel(parent, 'panel', 43, 350, width, 45, 0.22);
-    triggers.forEach((trigger, i) => icon(parent, trigger.trait ?? trigger.icon, 49 + i * 43, 352, 39));
-  }
-  const cellWidth = barWidth / count;
+  // These are illustrated as one forged mechanism: circular wells flow into
+  // the reservoir. Live symbols and lit segments occupy its existing recesses.
+  const layout = [null,
+    { centers: [110], cy: 81, diameter: 130, meter: { x: 29, y: 179, w: 334, h: 62 } },
+    { centers: [101, 252], cy: 79, diameter: 128, meter: { x: 28, y: 178, w: 328, h: 62 } },
+    { centers: [78, 211, 341], cy: 77, diameter: 113, meter: { x: 29, y: 177, w: 366, h: 62 } },
+  ][Math.max(1, triggers.length)];
+  const texture = textures[`chargeHousing${Math.max(1, triggers.length)}`];
+  const scale = barWidth / texture.width;
+  const housingY = 443 - texture.height * scale;
+  sprite(parent, texture, barX, housingY, barWidth, texture.height * scale);
+  triggers.forEach((trigger, i) => {
+    const size = layout.diameter * scale * 0.81;
+    icon(parent, trigger.trait ?? trigger.icon, barX + layout.centers[i] * scale - size / 2, housingY + layout.cy * scale - size / 2, size);
+  });
+  const meter = { x: barX + layout.meter.x * scale, y: housingY + layout.meter.y * scale, width: layout.meter.w * scale, height: layout.meter.h * scale };
+  const cellWidth = meter.width / count;
   for (let i = 0; i < count; i++) {
-    const id = i < face.charge ? 'chargeFull' : 'chargeEmpty';
-    panel(parent, id, barX + i * cellWidth, barY, cellWidth + 1, 43, 0.14, 30);
+    if (i < face.charge) sprite(parent, textures.chargeEnamel, meter.x + i * cellWidth + 1, meter.y, cellWidth - 2, meter.height);
+    if (i) sprite(parent, textures.divider, meter.x + i * cellWidth - 2, meter.y - 4, 4, meter.height + 8);
   }
-  sprite(parent, textures.rail, barX - 5, barY - 4, barWidth + 10, 9);
-  sprite(parent, textures.rail, barX - 5, barY + 39, barWidth + 10, 9);
   const rowY = 396 - (rows.length - 1) * 36;
-  panel(parent, 'number', outputX, rowY, 307 - outputX, rows.length * 36 + 11, 0.23);
+  panel(parent, 'stockOutput', outputX, rowY, 307 - outputX, rows.length * 36 + 11, 0.12, 80);
   rows.forEach((row, i) => {
     if (multi) icon(parent, row.icon, outputX + 4, rowY + 6 + i * 36, 27);
     number(parent, row.value, multi ? outputX + 54 : outputX + 31, rowY + 23 + i * 36, 31, 38);
