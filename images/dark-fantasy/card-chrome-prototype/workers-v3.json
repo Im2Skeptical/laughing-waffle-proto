@@ -1,0 +1,27 @@
+{
+  "image": "workers-v3.png",
+  "size": [
+    1919,
+    820
+  ],
+  "frames": {
+    "workerBustFull": {
+      "x": 75,
+      "y": 106,
+      "w": 427,
+      "h": 584
+    },
+    "workerBustEmpty": {
+      "x": 562,
+      "y": 106,
+      "w": 428,
+      "h": 584
+    },
+    "workerMultiplier": {
+      "x": 1065,
+      "y": 190,
+      "w": 787,
+      "h": 508
+    }
+  }
+}

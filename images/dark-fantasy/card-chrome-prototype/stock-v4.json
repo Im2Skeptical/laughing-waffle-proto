@@ -1,0 +1,21 @@
+{
+  "image": "stock-v4.png",
+  "size": [
+    1774,
+    887
+  ],
+  "frames": {
+    "stockCrateSquare": {
+      "x": 118,
+      "y": 93,
+      "w": 757,
+      "h": 695
+    },
+    "stockOutputSquare": {
+      "x": 986,
+      "y": 176,
+      "w": 674,
+      "h": 611
+    }
+  }
+}
