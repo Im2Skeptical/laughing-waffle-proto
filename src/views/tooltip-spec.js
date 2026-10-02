@@ -209,6 +209,7 @@ export function normalizeTooltipSpec(spec) {
     scale: Number.isFinite(input.scale) ? input.scale : 1,
     pin: input.pin === true,
     pinned: input.pinned === true,
+    activeChoice: input.activeChoice === true,
     legacyLines: asArray(input.lines).map((line) => String(line ?? "")),
   };
 }

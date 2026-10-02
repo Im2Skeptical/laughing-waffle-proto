@@ -567,6 +567,10 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     bg.lineStyle(2, normalizedSpec.accentColor ?? BG_STROKE, 0.9);
     bg.drawRoundedRect(0, 0, contentSize.width, contentSize.height, 10);
     bg.endFill();
+    if (normalizedSpec.activeChoice) {
+      bg.lineStyle(1.5, BODY_TEXT, 0.9)
+        .drawRoundedRect(4, 4, contentSize.width - 8, contentSize.height - 8, 6);
+    }
 
     activeAnchor = anchor;
     dismissOnPointerExit = dismissOnExit && resolvedAnchor.coordinateSpace === 'screen';
@@ -638,6 +642,8 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     getDebugState: () => ({
       visible: container.visible === true,
       pinned: pinnedKey !== null,
+      pinVisible: activeSpec?.pin === true,
+      activeChoice: activeSpec?.activeChoice === true,
       x: Number(container.x) || 0,
       y: Number(container.y) || 0,
       scale: Number.isFinite(activeScale) ? activeScale : 1,

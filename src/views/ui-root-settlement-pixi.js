@@ -1078,6 +1078,8 @@ settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
 });
 
 vassalLifeMapView = createVassalLifeMapView({
+  app,
+  confirmLayer: modalLayer,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
   layer: playfieldLayer,
