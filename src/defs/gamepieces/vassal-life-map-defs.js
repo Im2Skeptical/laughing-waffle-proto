@@ -162,7 +162,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
-  // 160 phases before the 3.6 multiplier, not one year via VASSAL_PHASES_PER_YEAR.
+  // Final phase price: five 32-phase years. Applied raw, not through increasedPhaseCost.
   relicChoicePhaseCost: 32 * 5,
 });
 

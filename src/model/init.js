@@ -92,7 +92,7 @@ export function createInitialState(scenario = "devPlaytesting01", seed = null) {
   return state;
 }
 
-// Replace an existing state object in place from a named setup.
+// Delete every own key first so fields from the previous setup cannot survive assign.
 export function initGameState(state, setupId = "devPlaytesting01") {
   const fresh = createInitialState(setupId, null);
   Object.keys(state).forEach((k) => delete state[k]);
