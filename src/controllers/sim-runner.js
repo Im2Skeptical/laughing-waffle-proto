@@ -114,7 +114,7 @@ export function createSimRunner({
   onInvalidate,
   onRebuildViews,
   onPlannerApReject,
-  setupId = "testing",
+  setupId = "devPlaytesting01",
 }) {
   // State
   let timeline = null;
@@ -384,7 +384,7 @@ export function createSimRunner({
   let timeScaleWantsUnpause = false;
   let rewindAccumulatorSec = 0;
   let activeSetupId =
-    typeof setupId === "string" && setupId.length > 0 ? setupId : "devGym01";
+    typeof setupId === "string" && setupId.length > 0 ? setupId : "devPlaytesting01";
 
   function initializeFromState(nextState, nextSetupId, reason = "init") {
     let fresh;
