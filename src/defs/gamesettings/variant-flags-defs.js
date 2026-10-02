@@ -13,12 +13,12 @@ export const DEFAULT_VARIANT_FLAGS = Object.freeze({
 export function normalizeVariantFlags(value) {
   const raw = value && typeof value === "object" ? value : {};
   return {
-    actionPointCostsEnabled: raw.actionPointCostsEnabled !== false,
-    actionLogEnabled: raw.actionLogEnabled !== false,
-    inventoryTransferPlannerEnabled: raw.inventoryTransferPlannerEnabled !== false,
+    actionPointCostsEnabled: raw.actionPointCostsEnabled === true,
+    actionLogEnabled: raw.actionLogEnabled === true,
+    inventoryTransferPlannerEnabled: raw.inventoryTransferPlannerEnabled === true,
     inventoryTransferGhostPreviewEnabled:
-      raw.inventoryTransferGhostPreviewEnabled !== false,
-    showApHud: raw.showApHud !== false,
+      raw.inventoryTransferGhostPreviewEnabled === true,
+    showApHud: raw.showApHud === true,
     settlementPrototypeEnabled: raw.settlementPrototypeEnabled === true,
   };
 }
