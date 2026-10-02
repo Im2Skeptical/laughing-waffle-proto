@@ -216,9 +216,14 @@ let forecast unveiling outlive a settlement used as an interaction target.
 
 ## Maintenance guards
 
-- `npm run check:architecture` rejects `Math.random()`, model imports from
-  view/controller layers, and new `src/model/` imports of leftover
-  settlement exec/defs (tests excluded; current importers allowlisted).
+- `npm run check:architecture` rejects `Math.random()`, `crypto` entropy,
+  browser UI globals, model imports from view/controller/Pixi layers, and
+  new `src/model/` imports of leftover settlement exec/defs (tests excluded;
+  current importers allowlisted).
+- `npm run test:invariants` checks properties that stay true while rules
+  change: replay matches the live run, JSON saves round-trip and resume,
+  randomness and UI globals stay out of the model, and a run either
+  advances a second or completes.
 - `npm run check:source` rejects JavaScript under `src/` that is unreachable
   from the app, forecast worker, or supported tests.
 - `npm run build` emits hashed app and forecast-worker bundles plus the
