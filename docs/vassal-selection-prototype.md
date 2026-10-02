@@ -1,5 +1,23 @@
 # Vassal selection design study
 
+## Static in-game revision (October 2)
+
+The earlier free-layout DOM studies below were rejected: they did not respect the
+game's fixed screen or its art direction. Start with the static screenshot-based
+revision instead: [A: founder ceremony](mockups/vassal-selection-v2/A-founder-ceremony.png),
+[B: founder council beside the map](mockups/vassal-selection-v2/B-founder-map-council.png),
+and [C: successor drawer](mockups/vassal-selection-v2/C-successor-drawer.png).
+These use the supplied game screen, painted portraits, aged brass, dark stone,
+class-specific frame motifs and the existing HUD/navigation/time-control layout.
+B assumes a map-camera pan left to make space for the council; A and C stay closer
+to the original map composition. These generated studies are visual concepts, not
+pixel-exact runtime screenshots. A side-panel implementation must reserve the
+actual lever bounds. The proposed later-run Scholar gate remains undecided.
+No new interactive prototype or runtime changes accompany this revision.
+Exact built-in ImageGen prompts are preserved in [prompts.json](mockups/vassal-selection-v2/prompts.json).
+
+## Earlier prototype (superseded)
+
 Question: how much of the screen should the first founder own, and how can later
 vassal selection remain grounded in civilization state?
 
