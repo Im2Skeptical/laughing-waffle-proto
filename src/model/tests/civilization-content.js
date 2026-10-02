@@ -70,7 +70,7 @@ settlement.practiceSlots=[slot('charcoalBurning'),slot('logging',1)];
 emitPracticeEvent(state,{kind:'stockGenerated',regionId:site.regionId,practiceId:'logging',traits:['Timber']});
 emitPracticeEvent(state,{kind:'stockGenerated',regionId:site.regionId,practiceId:'logging',traits:['Timber']});
 flushPracticeEvents(state);
-assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[6,0],'Discharge consumes a right-side provider');
+assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[6,1],'Discharge preserves trigger providers Stock');
 settlement.practiceSlots=[slot('forage'),slot('pastoralism'),slot('logging',2),slot('barter')];
 runPracticeActivation(state,'food','preRouting');runPracticeActivation(state,'birth');
 assert.ok(stockTotal(state,settlement,'Edible')>=2);assert.ok(stockTotal(state,settlement,'Currency')>=1);
@@ -150,13 +150,15 @@ for(const local of getDetailedSettlementSites(educated,{playerOnly:true})) {
 }
 generateCandidatePool(baseCandidates);generateCandidatePool(educated);
 assert.equal(getVassalCandidatePool(educated).candidates[0].stats.cunning,getVassalCandidatePool(baseCandidates).candidates[0].stats.cunning+4);
-// F: a Scholar-staffed Common smelter benefits from a Knowledge/Ore query, no pairwise class rule.
+// F: Common Charge production feeds Warrior Arms; recipe-gated output bonuses no longer match it.
 const hybrid=createLabFixture('five',32),hybridSite=getDetailedSettlementSites(hybrid,{playerOnly:true})[0];
 const hybridWorkers=assignDetailedSettlementWorkers(hybrid,hybridSite.regionId);
 const withFoundry=hybridSite.detailedState.structureSlots;
-const beforeFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]).effects[0].scaledValue.effectiveValue;
+const beforeFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]);
 hybridSite.detailedState.structureSlots=hybridSite.detailedState.structureSlots.map(p=>p?.structureId==='foundry'?null:p);
-assert.ok(beforeFoundry>buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]).effects[0].scaledValue.effectiveValue);
+const withoutFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]);
+assert.equal(beforeFoundry.effects[0].scaledValue.effectiveValue,withoutFoundry.effects[0].scaledValue.effectiveValue);
+assert.ok(beforeFoundry.stockCapacity>withoutFoundry.stockCapacity,'Foundry still increases Metal storage');
 hybridSite.detailedState.structureSlots=withFoundry;
 emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'surfaceMining',traits:['Ore']});
 emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'logging',traits:['Fuel']});

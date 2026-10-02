@@ -46,7 +46,7 @@ export function matchesPractice(state, slot, query = {}, staffed = false) {
     && (!query.scholarStaffed || staffed)
     && (!query.requiresAny || query.requiresAny.some(t => def.require.some(c => c.traits.includes(t))))
     && (!query.requiresOrConsumesAny || query.requiresOrConsumesAny.some(t => [...def.require,...def.consume].some(c => c.traits.includes(t))))
-    && (!query.minimumRequirements || Math.max([...def.require,...def.consume].length,def.distinctTechnicalProviders??0) >= query.minimumRequirements)
+    && (!query.minimumRequirements || [...def.require,...def.consume].length >= query.minimumRequirements)
     && (!query.effectOpsAny || def.effects.some(e => query.effectOpsAny.includes(e.op) && (!query.classId || e.classId === query.classId)))
     && (!query.triggerKindsAny || def.charge?.trigger.any.some(c => query.triggerKindsAny.includes(c.kind) && (!query.triggerTraitsAny || c.kind !== 'stockGenerated' || c.traitsAny?.some(t => query.triggerTraitsAny.includes(t)))));
 }
