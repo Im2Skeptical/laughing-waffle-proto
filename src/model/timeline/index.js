@@ -363,14 +363,32 @@ function applyTimelinePersistentKnowledgeToState(tl, state) {
   return mergePersistentKnowledge(state, tl);
 }
 
+// One validated wire snapshot per timeline, outside save data. Repeated forecast
+// polls must not deserialize the same frontier/config just to overlay knowledge.
+// Anchors are read-only serialized data; replay still deserializes its own state.
+const persistentKnowledgeBoundaryCache = new WeakMap();
+
 function enrichStateDataWithTimelinePersistentKnowledge(tl, stateData) {
   if (stateData == null) return stateData;
   if (!tl || typeof tl !== "object") return stateData;
   ensurePersistentKnowledgeState(tl);
-  const state = deserializeGameState(stateData);
-  const changed = applyTimelinePersistentKnowledgeToState(tl, state);
-  if (!changed) return stateData;
-  return serializeGameState(state);
+  const sourceKnowledgeKey = JSON.stringify(clonePersistentKnowledge(stateData));
+  let entry = persistentKnowledgeBoundaryCache.get(tl);
+  if (entry?.source !== stateData || entry.revision !== tl.revision
+      || entry.sourceKnowledgeKey !== sourceKnowledgeKey) {
+    // External/new anchors retain the full validation and serializer path.
+    entry = { source: stateData, revision: tl.revision, sourceKnowledgeKey,
+      canonical: serializeGameState(deserializeGameState(stateData)), knowledgeKey: null, result: null };
+    persistentKnowledgeBoundaryCache.set(tl, entry);
+  }
+  const knowledgeKey = JSON.stringify(tl.persistentKnowledge);
+  if (entry.knowledgeKey !== knowledgeKey) {
+    const overlay = { persistentKnowledge: clonePersistentKnowledge(entry.canonical) };
+    const changed = mergePersistentKnowledge(overlay, tl);
+    entry.result = changed ? { ...entry.canonical, persistentKnowledge: overlay.persistentKnowledge } : stateData;
+    entry.knowledgeKey = knowledgeKey;
+  }
+  return entry.result;
 }
 
 // -----------------------------------------------------------------------------

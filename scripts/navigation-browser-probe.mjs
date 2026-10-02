@@ -242,7 +242,12 @@ try {
   assert.equal((await snapshot()).decision.open, false, 'candidate selection keeps the map visible');
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
   await waitDecisionReady();
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
+  // A card can be drawn before its asynchronous eligibility check completes.
+  await page.waitForFunction(() => {
+    const debug = globalThis.__SETTLEMENT_DEBUG__;
+    return !!debug.getLifeMapOptionClickPoint(0)
+      && debug.getSnapshot().lifeMapDecision?.costPanels?.[0]?.disabled === false;
+  });
   await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0), { touch: true });
   const draft = await snapshot();
   assert.ok(draft.decision.selectedOptionId, 'the fixture stages a node decision');

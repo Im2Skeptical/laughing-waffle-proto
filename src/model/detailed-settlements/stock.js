@@ -2,7 +2,7 @@
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { ageCohortTotal, emptySpecialists } from './cohorts.js';
 import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
-import { getConnectedRegionIds, getRegionState, getWorldConnectionCandidates, getWorldDefinition } from '../world-state.js';
+import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterSpawnChaos: 1000, monsterExpansionMoons: 100, monsterDefense: 3 });
 export const stockTraits = (state, slot) => getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
@@ -27,7 +27,7 @@ function modifierCondition(state, settlement, query = {}) {
   if (query.stockedTraitsAny && !settlement.practiceSlots.some(s => s?.stock > 0 && query.stockedTraitsAny.some(t => stockTraits(state,s).includes(t)))) return false;
   if (query.threatened) {
     const regionId = state.world.sites.find(s => s.detailedState === settlement)?.regionId;
-    const adjacent = getWorldConnectionCandidates(getWorldDefinition(state)).flatMap(e => e.regionAId === regionId ? [e.regionBId] : e.regionBId === regionId ? [e.regionAId] : []);
+    const adjacent = getAdjacentRegionIds(state, regionId);
     if (!(state.civilization.chaos.lastMoonIncome?.totalIncome > 0) && !adjacent.some(id => getRegionState(state,id)?.monster)) return false;
   }
   if (query.historicalBurdens) {
@@ -79,14 +79,10 @@ export function stockProviderSlots(state, settlement) {
   const sources = [{ regionId: host?.regionId ?? null, settlement }];
   if (host && getRegionState(state, host.regionId)?.controller === 'player') {
     const connected = getConnectedRegionIds(state, host.regionId);
-    const adjacent = getWorldConnectionCandidates(getWorldDefinition(state)).flatMap(edge =>
-      edge.regionAId === host.regionId ? [edge.regionBId]
-        : edge.regionBId === host.regionId ? [edge.regionAId] : []);
-    for (const region of getWorldDefinition(state).regions) {
-      if (!connected.includes(region.id) || !adjacent.includes(region.id)
-          || getRegionState(state, region.id)?.controller !== 'player') continue;
-      const site = state.world.sites.find(site => site.regionId === region.id && site.simulationMode === 'detailed');
-      if (site?.detailedState) sources.push({ regionId: region.id, settlement: site.detailedState });
+    for (const regionId of getAdjacentRegionIds(state, host.regionId)) {
+      if (!connected.includes(regionId) || getRegionState(state, regionId)?.controller !== 'player') continue;
+      const site = state.world.sites.find(site => site.regionId === regionId && site.simulationMode === 'detailed');
+      if (site?.detailedState) sources.push({ regionId, settlement: site.detailedState });
     }
   }
   return sources.flatMap(source => (source.settlement?.practiceSlots ?? []).map((slot, slotIndex) =>
@@ -119,6 +115,7 @@ function recordStockTransfers(state, settlement, providers, reason) {
 
 // Require reads the activation-start stock. Consume reservations cannot double-spend.
 export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false) {
+  if (!consume.length && !require.length) return { ok: true, providers: [] };
   const sources = stockProviderSlots(state, settlement);
   const slots = sources.map(source => source.slot);
   const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));

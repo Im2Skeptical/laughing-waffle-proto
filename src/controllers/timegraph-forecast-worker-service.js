@@ -10,6 +10,7 @@ export const TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC = 480;
 export const TIMEGRAPH_FORECAST_STREAM_SLICE_SEC = 30;
 export const TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS = 50;
 export const TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS = 750;
+export const TIMEGRAPH_FORECAST_WORKER_STARTUP_TIMEOUT_MS = 5000;
 export const TIMEGRAPH_FORECAST_EARLY_CHUNK_WINDOW_SEC = 1440;
 export const TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC = 180;
 export const TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC = 20;
@@ -89,6 +90,7 @@ export function createTimegraphForecastWorkerService({
   streamSliceSec = TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
   requestCadenceMs = TIMEGRAPH_FORECAST_REQUEST_CADENCE_MS,
   workerStallTimeoutMs = TIMEGRAPH_FORECAST_WORKER_STALL_TIMEOUT_MS,
+  workerStartupTimeoutMs = TIMEGRAPH_FORECAST_WORKER_STARTUP_TIMEOUT_MS,
   earlyChunkWindowSec = TIMEGRAPH_FORECAST_EARLY_CHUNK_WINDOW_SEC,
   earlyChunkSizeSec = TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC,
   earlyStreamSliceSec = TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC,
@@ -215,6 +217,7 @@ export function createTimegraphForecastWorkerService({
 
     if (!entry) return;
     if (merged?.ok === true && message.result?.ok === true) {
+      if (entry.inFlight?.requestId === message.requestId) entry.inFlight.progressReceived = true;
       recordSettlementForecastBuild({
         workerSec: Math.max(0, clampSec(message.endSec) - clampSec(message.baseSec)),
         workerMessages: 1,
@@ -506,7 +509,10 @@ export function createTimegraphForecastWorkerService({
         Number.isFinite(entry.lastProgressMs) ? entry.lastProgressMs : -Infinity,
         Number.isFinite(entry.inFlight?.startedMs) ? entry.inFlight.startedMs : -Infinity
       ) >
-        Math.max(1, Math.floor(workerStallTimeoutMs))
+        // Module loading and each chunk's state validation need time on phones.
+        // Keep the normal stall deadline once this request starts streaming.
+        Math.max(1, Math.floor(entry.inFlight.progressReceived ? workerStallTimeoutMs
+          : Math.max(workerStallTimeoutMs, workerStartupTimeoutMs)))
     ) {
       teardownWorker({ disable: true });
     }
@@ -573,6 +579,7 @@ export function createTimegraphForecastWorkerService({
       baseSec: chunkBaseSec,
       endSec: chunkEndSec,
       startedMs: currentMs,
+      progressReceived: false,
     };
 
     const request = {
