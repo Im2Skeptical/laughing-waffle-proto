@@ -13,9 +13,13 @@ stay in `createWorldMapView`.
 - `glyphs.js` — worker/ownership/vassal/pressure/currency builders
   that take explicit parent/point arguments and do not close over the view
 
-Supply packets use green Food markers and gold Stock crates between the actual
-provider and consumer settlements. Require markers are hollow because their
-Stock is retained. Packets use authoritative transfer records and the viewed
+Supply packets use the same Stock Trait icons as Practice cards between the
+actual provider and consumer settlements. Every Trait of the source Stock unit
+is shown; Food falls back to Edible and unknown Stock to the generic Stock icon.
+Require markers have an outlined translucent plate because their Stock is
+retained. `stock-transfer-icons.js` reuses atlas sprites across frames and
+reconciles them when the transfer batch changes. Packets use authoritative
+transfer records and the viewed
 simulation second, including during rewind; they do not move Stock themselves.
 
 ## Intentionally not extracted

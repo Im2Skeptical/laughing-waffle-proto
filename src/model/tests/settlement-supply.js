@@ -224,7 +224,7 @@ assert.deepEqual(serializeGameState(reload), serializeGameState(meals.state));
 const projection = buildProjectionChunkFromStateData(preMeal, 1, 2);
 assert.equal(projection.ok, true);
 assert.deepEqual(canonicalizeSnapshot(projection.lastStateData), canonicalizeSnapshot(serializeGameState(meals.state)));
-assert.equal(getEdgeTransferPacketGlyphSpec('stock').crates.length, 1);
+assert.deepEqual(getEdgeTransferPacketGlyphSpec('stock', ['Timber', 'Construction', 'Fuel']).icons, ['Timber', 'Construction', 'Fuel']);
 assert.notEqual(getEdgeTransferPacketGlyphSpec('stock').color, getEdgeTransferPacketGlyphSpec('food').color);
 
 // A following Food boundary must not erase a still-travelling Practice packet.

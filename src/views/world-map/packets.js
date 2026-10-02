@@ -1,10 +1,6 @@
 import { EDGE_TRANSFER_RESOURCE_COLOURS } from "./constants.js";
 
-export function getEdgeTransferPacketGlyphSpec(resourceId) {
-  if (resourceId === "stock") {
-    return { color: EDGE_TRANSFER_RESOURCE_COLOURS.stock, circles: [],
-      crates: [{ forward: -0.3, side: 0, size: 0.75 }], triangleScale: 0.44 };
-  }
+export function getEdgeTransferPacketGlyphSpec(resourceId, traits = []) {
   if (resourceId === "population") {
     return {
       color: EDGE_TRANSFER_RESOURCE_COLOURS.population,
@@ -17,13 +13,12 @@ export function getEdgeTransferPacketGlyphSpec(resourceId) {
     };
   }
   return {
-    color: EDGE_TRANSFER_RESOURCE_COLOURS.food,
-    circles: [
-      { forward: -0.08, side: 0, radius: 0.32 },
-      { forward: -0.48, side: -0.3, radius: 0.28 },
-      { forward: -0.48, side: 0.3, radius: 0.28 },
-    ],
-    triangleScale: 0.44,
+    color: resourceId === 'stock' ? EDGE_TRANSFER_RESOURCE_COLOURS.stock : EDGE_TRANSFER_RESOURCE_COLOURS.food,
+    circles: [],
+    // A Stock unit carries all of its provider's Traits, just as on its card.
+    // Older Food packets still have a meaningful Edible icon; unknown Stock
+    // uses the existing generic Stock asset rather than an invented glyph.
+    icons: traits.length ? [...new Set(traits)] : [resourceId === 'food' ? 'Edible' : null],
   };
 }
 

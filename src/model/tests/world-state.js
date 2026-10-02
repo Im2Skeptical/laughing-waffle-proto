@@ -305,7 +305,7 @@ const rewindVisualSpec = getEdgeTransferPacketVisualSpec({
 });
 assert.equal(getEdgeTransferPacketGlyphSpec("food").color, 0x66cc77);
 assert.equal(getEdgeTransferPacketGlyphSpec("population").color, 0xd6c1ff);
-assert.equal(getEdgeTransferPacketGlyphSpec("food").circles.length, 3);
+assert.deepEqual(getEdgeTransferPacketGlyphSpec("food").icons, ['Edible']);
 assert.equal(rewindPacketPose.directionX, -1);
 assert.ok(Math.abs(rewindPacketPose.x - matchingForwardPose.x) < 0.0001);
 assert.ok(Math.abs(rewindPacketPose.y - matchingForwardPose.y) < 0.0001);
