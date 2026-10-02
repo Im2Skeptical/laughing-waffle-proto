@@ -94,6 +94,15 @@ async function buildPagesArtifact() {
   });
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
+  // Isolated art workbench: bundle its read-only definition imports for Pages.
+  // It is never imported by the game entry point.
+  await build({
+    entryPoints: ["images/dark-fantasy/card-chrome-prototype/study.js"],
+    outfile: path.join(outDir, "images/dark-fantasy/card-chrome-prototype/study.js"),
+    bundle: true, platform: "browser", format: "esm", target: ["es2020"],
+    legalComments: "none", logLevel: "silent",
+  });
+
   const sourceHtml = await readFile("index.html", "utf8");
   const bundleUrl = relativeUrl(bundleOutput);
   const stylesheetUrl = relativeUrl(stylesheetOutput);

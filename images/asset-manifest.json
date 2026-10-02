@@ -387,5 +387,5 @@
       ]
     }
   },
-  "standalone": []
+  "standalone": ["card-chrome-prototype/components.png"]
 }
