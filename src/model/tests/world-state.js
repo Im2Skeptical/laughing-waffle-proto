@@ -13,7 +13,13 @@ import {
   getDetailedSettlementViewModel,
   getSettlementPressureSummary,
 } from "../detailed-settlements.js";
-import { GRAPH_METRICS } from "../graph-metrics.js";
+import { GRAPH_METRICS, getGraphMetric } from "../graph-metrics.js";
+import {
+  getSettlementFaithTooltipSpec,
+  getSettlementFreePopulationTooltipSpec,
+  getSettlementMonstersTooltipSpec,
+  getSettlementPopulationTooltipSpec,
+} from "../graph-metrics/tooltips.js";
 import {
   buildEdgeTransferBatchAtBoundary,
   getLatestEdgeTransferBoundarySec,
@@ -406,6 +412,29 @@ assert.equal(
     .getValue(state, { regionId: "cedar-woods" }),
   23
 );
+const legendState = deserializeGameState(serializeGameState(state));
+getDetailedSettlement(legendState, "cedar-woods").populationByClass.villager.adults = 41;
+const legendSeries = GRAPH_METRICS.settlement.getSeries({ regionId: "cedar-woods" }, legendState);
+function legendAdults(spec) {
+  const line = spec.lines.find((entry) => entry.startsWith("Adults: "));
+  return Number(line.slice("Adults: ".length));
+}
+const legendTotal = legendSeries.find((series) => series.id === "totalPopulation");
+const cedarAdults = legendAdults(legendTotal.getLegendTooltipSpec(legendState, "cedar-woods"));
+const capitalAdults = legendAdults(legendTotal.getLegendTooltipSpec(legendState, { regionId: "river-crown" }));
+assert.equal(cedarAdults, capitalAdults + 21);
+assert.equal(legendAdults(legendTotal.getLegendTooltipSpec(legendState)), capitalAdults);
+const legendVillager = legendSeries.find((series) => series.id === "population:villager");
+assert.equal(legendAdults(legendVillager.getLegendTooltipSpec(legendState, { regionId: "cedar-woods" })), 41);
+assert.equal(legendAdults(legendVillager.getLegendTooltipSpec(legendState)), 20);
+const legendFree = legendSeries.find((series) => series.id === "freePopulation:villager");
+assert.notEqual(
+  legendFree.getLegendTooltipSpec(legendState, "cedar-woods").lines[0],
+  legendFree.getLegendTooltipSpec(legendState, "river-crown").lines[0]
+);
+const legendCivilization = GRAPH_METRICS.civilization.getSeries(null, legendState)
+  .find((series) => series.id === "population:villager");
+assert.ok(legendAdults(legendCivilization.getLegendTooltipSpec(legendState, "cedar-woods")) > 41);
 assert.equal(
   localSeries.some((series) => series.id === "chaosPower"),
   true,
@@ -723,5 +752,23 @@ try {
     globalThis.localStorage = priorLocalStorage;
   }
 }
+
+assert.equal(getGraphMetric("not-a-metric"), null);
+assert.equal(getGraphMetric("gold"), GRAPH_METRICS.gold);
+assert.ok(GRAPH_METRICS.gold);
+const populationTooltip = getSettlementPopulationTooltipSpec(state);
+assert.ok(populationTooltip.lines.some((line) => line.startsWith("Children:")));
+assert.ok(!populationTooltip.lines.some((line) => line.includes("Youth")));
+const villagerPopulation = getSettlementPopulationTooltipSpec(state, "villager", "civilization");
+assert.ok(villagerPopulation.title.startsWith("Villager"));
+assert.ok(villagerPopulation.lines.some((line) => line.startsWith("Children:")));
+const freeTooltip = getSettlementFreePopulationTooltipSpec(state, "villager", "civilization");
+assert.deepEqual(freeTooltip.lines.map((line) => line.split(":")[0]), ["Free population", "Assigned workers"]);
+const monsterTooltip = getSettlementMonstersTooltipSpec(state);
+assert.ok(monsterTooltip.lines.some((line) => line.startsWith("Current monsters:")));
+assert.ok(!monsterTooltip.lines.some((line) => line.includes("every 0s") || line.includes("/100")));
+const faithTooltip = getSettlementFaithTooltipSpec(state);
+assert.ok(faithTooltip.lines.some((line) => line.includes("Faith moon")));
+assert.ok(!faithTooltip.lines.some((line) => line.toLowerCase().includes("spring")));
 
 console.log("[world-state-v19] OK");

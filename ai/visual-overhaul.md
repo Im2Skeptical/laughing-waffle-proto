@@ -64,7 +64,7 @@ This is an implemented reversible ambient layer, not a complete authored soundtr
 
 ## Asset library
 
-All seven atlases live in `images/dark-fantasy/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
+All seven atlases live in `images/sprite-sheets/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
 
 See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md), including the approved [resource and timepiece family](../images/dark-fantasy/resource-language-v1/README.md).
 

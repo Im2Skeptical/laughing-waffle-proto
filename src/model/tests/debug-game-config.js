@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { setupDefs } from "../../defs/gamesettings/scenarios-defs.js";
-import { createInitialState } from "../init.js";
+import { createSimRunner } from "../../controllers/sim-runner.js";
+import { createInitialState, initGameState } from "../init.js";
 import {
   GAMEPIECES_DRAFT_KIND,
   GAME_SETTINGS_DRAFT_KIND,
@@ -132,6 +134,26 @@ assert.equal(getStoredFoodCapacity(configured,'cedar-woods'),12);
 assert.deepEqual(assignDetailedSettlementWorkers(configured,'river-crown').map(a=>a.effectiveWorkers),[1,...Array(4).fill(0)]);
 assert.equal(getPopulationSummary(configured,'cedar-woods').mealDemand,1,'Food is one hosted unit per thirty people');
 assert.equal(serializeGameState(configured).gameConfig.gamepieces.practices.forage.stockCapacity,9);
+const playtestingCapital = setupDefs.devPlaytesting01.civilization.capitalRegionId;
+const defaultSetupState = createInitialState(undefined, 904);
+assert.equal(defaultSetupState.civilization.capitalRegionId, playtestingCapital,
+  "createInitialState defaults to devPlaytesting01");
+const replaced = { marker: true };
+initGameState(replaced);
+assert.equal(replaced.marker, undefined);
+assert.equal(replaced.civilization.capitalRegionId, playtestingCapital,
+  "initGameState defaults to devPlaytesting01");
+const defaultRunner = createSimRunner({});
+assert.equal(defaultRunner.init().ok, true);
+assert.equal(defaultRunner.getState().civilization.capitalRegionId, playtestingCapital,
+  "createSimRunner defaults to devPlaytesting01");
+const fallbackRunner = createSimRunner({ setupId: "" });
+assert.equal(fallbackRunner.init().ok, true);
+assert.equal(fallbackRunner.getState().civilization.capitalRegionId, playtestingCapital,
+  "an empty setup id falls back to devPlaytesting01");
+const settlementRoot = readFileSync(new URL("../../views/ui-root-settlement-pixi.js", import.meta.url), "utf8");
+assert.match(settlementRoot, /let selectedWorldRegionId = null;/);
+assert.match(settlementRoot, /selectedWorldRegionId = typeof capitalRegionId === "string" && capitalRegionId\.length > 0/);
 
 const cheatState = createInitialState("devPlaytesting01", 903);
 const seedBefore = structuredClone(cheatState.rng);

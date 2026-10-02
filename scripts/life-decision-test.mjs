@@ -86,6 +86,10 @@ const historicalRecovery=createLifeDecisionController({getRunner:()=>realRunner,
   createWorker:()=>{throw new Error('history must not restart a resolved transaction');}});
 assert.equal(historicalRecovery.resumePendingResolution(),false);
 console.log('[life-decision] historical browsing preserves the resolved frontier OK');
+import { readFileSync } from 'node:fs';
+const settlementRoot = readFileSync(new URL('../src/views/ui-root-settlement-pixi.js', import.meta.url), 'utf8');
+assert.match(settlementRoot, /commitCursorSecond: \(tSec, stateData\) => runner\.commitCursorSecond\?\.\(tSec, stateData\)/);
+assert.match(settlementRoot, /browseCursorSecond: \(tSec\) => runner\.browseCursorSecond\?\.\(tSec\)/);
 import { forceEnter, nodeIdForFamily } from '../src/model/tests/vassal-life-map/helpers.js';
 const shop=selectedState(102);
 const patron=getCurrentLifeMapVassal(shop); patron.prestige=500;

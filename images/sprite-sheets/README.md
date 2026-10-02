@@ -1,8 +1,9 @@
 # Runtime sprite sheets
 
-Every runtime image is a TexturePacker JSON atlas in this folder. The named
-source PNGs live beneath `images/dark-fantasy/*-v1/`; runtime code must load a
-frame from an atlas, never a source PNG directly.
+Every runtime image is a TexturePacker JSON atlas in this folder. Settlement
+source art is `images/dark-fantasy/settlement-pieces-v4` WebP, and the other
+named sources are `*-v1` PNGs; runtime code must load a frame from an atlas,
+never a source PNG directly.
 
 `npm run build:sprites` is the authoritative rebuild. It packs resource
 symbols, settlement pieces, frames, chronicle illustrations, legacy vassal

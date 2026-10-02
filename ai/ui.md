@@ -196,8 +196,7 @@ contract: `ai/visual-overhaul.md`.
   bottom, with workers on the right for Scheduled cards and the left for Charge cards.
   Solar/lunar discs rotate at the bottom in time with scheduled triggers; charge
   practices show a segmented reservoir and trigger tray. Normal thresholds use one
-  chamber per point; large custom thresholds group points and show a numeric count. The 30 individual illustrations load on demand from
-  `images/dark-fantasy/settlement-pieces-v2/`; opaque full-bleed paintings replace the former vignettes. Illustrated frames
+  chamber per point; large custom thresholds group points and show a numeric count. The 30 individual illustrations load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on

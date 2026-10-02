@@ -199,7 +199,7 @@ app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltip
 let prototypeView = null;
 let worldMapView = null;
 let worldViewMode = "map";
-let selectedWorldRegionId = "river-crown";
+let selectedWorldRegionId = null;
 let worldMapRegionSelectionActive = false;
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
@@ -774,7 +774,7 @@ settlementForecastController = createSettlementForecastController({
     Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? getSettlementFrontierSec()),
   getEffectiveGraphHorizonSec: () => getEffectiveSettlementGraphHorizonSec(),
   setHorizonSecOverride: (nextHorizonSec) => setSettlementGraphHorizonOverride(nextHorizonSec),
-  commitCursorSecond: (tSec) => runner.commitCursorSecond?.(tSec),
+  commitCursorSecond: (tSec, stateData) => runner.commitCursorSecond?.(tSec, stateData),
   browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
   clearPreviewState: () => runner.clearPreviewState?.(),
   setPlaybackViewSec: () => {},
@@ -1308,8 +1308,33 @@ runCompleteView = createRunCompleteView({
   },
   onNewGame: () => gameMenu?.openNewGame?.(),
 });
+let openingPreviewSecond = null;
+let openingPreviewState = null;
+
+function clearOpeningPreviewCache() {
+  openingPreviewSecond = null;
+  openingPreviewState = null;
+}
+
+function openingPreviewStateAt(second) {
+  const openingSecond = Math.floor(second);
+  if (openingPreviewSecond === openingSecond && openingPreviewState != null) {
+    return openingPreviewState;
+  }
+  const nextState = settlementGraphController.getStateAt(openingSecond);
+  if (nextState == null) return null;
+  openingPreviewSecond = openingSecond;
+  openingPreviewState = nextState;
+  return openingPreviewState;
+}
+
 function handleDebugFreshRunApplied(reason) {
+  const capitalRegionId = runner.getCursorState?.()?.civilization?.capitalRegionId;
+  selectedWorldRegionId = typeof capitalRegionId === "string" && capitalRegionId.length > 0
+    ? capitalRegionId
+    : null;
   opening.reset();
+  clearOpeningPreviewCache();
   openingBlocker.visible = false;
   settlementGraphView?.setOpeningRevealSecond(null);
   requestPauseBeforeDrag();
@@ -1665,11 +1690,14 @@ app.ticker.add((delta) => {
   }
   const frameDt = delta / 60;
   const openingFrame = opening.advance(frameDt);
-  if (!openingFrame) runner.update(frameDt);
+  if (!openingFrame) {
+    clearOpeningPreviewCache();
+    runner.update(frameDt);
+  }
   settlementGraphController.update?.();
   if (openingFrame) {
     settlementGraphView.setOpeningRevealSecond(openingFrame.second);
-    runner.setPreviewState(settlementGraphController.getStateAt(openingFrame.second));
+    runner.setPreviewState(openingPreviewStateAt(openingFrame.second));
     if (openingFrame.complete) {
       openingBlocker.visible = false;
     }

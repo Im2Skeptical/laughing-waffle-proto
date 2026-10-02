@@ -46,7 +46,7 @@ function recomputeInitialActionPoints(state) {
 
 // Create a fully-initialized GameState snapshot
 // - scenario can be a setupId string OR a raw setup object (from scenarios-defs style)
-export function createInitialState(scenario = "devGym01", seed = null) {
+export function createInitialState(scenario = "devPlaytesting01", seed = null) {
   const setup = typeof scenario === "string" ? setupDefs[scenario] : scenario;
 
   if (!setup) {
@@ -92,8 +92,8 @@ export function createInitialState(scenario = "devGym01", seed = null) {
   return state;
 }
 
-// Mutate an existing state object in-place (views call initGameState(gameState, "testing")).
-export function initGameState(state, setupId = "devGym01") {
+// Delete every own key first so fields from the previous setup cannot survive assign.
+export function initGameState(state, setupId = "devPlaytesting01") {
   const fresh = createInitialState(setupId, null);
   Object.keys(state).forEach((k) => delete state[k]);
   Object.assign(state, fresh);

@@ -84,8 +84,8 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementPopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
-    getLegendTooltipSpec: (state, classId) =>
-      getSettlementPopulationTooltipSpec(state, classId),
+    getLegendTooltipSpec: (state, classId, subject) =>
+      getSettlementPopulationTooltipSpec(state, classId, subject),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
   },
   {
@@ -95,8 +95,8 @@ const SETTLEMENT_CLASS_METRIC_DEFS = Object.freeze([
     scaleGroupId: "settlementFreePopulation",
     scaleMode: "dynamic",
     scaleMin: 0,
-    getLegendTooltipSpec: (state, classId) =>
-      getSettlementFreePopulationTooltipSpec(state, classId),
+    getLegendTooltipSpec: (state, classId, subject) =>
+      getSettlementFreePopulationTooltipSpec(state, classId, subject),
     formatValue: (value) => (Number.isFinite(value) ? `${Math.floor(value)}` : "0"),
   },
   {
@@ -227,8 +227,8 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
       getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId, context),
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject),
-    getLegendTooltipSpec: (state) =>
-      safeMetricDef.getLegendTooltipSpec(state, safeClassId),
+    getLegendTooltipSpec: (state, subject) =>
+      safeMetricDef.getLegendTooltipSpec(state, safeClassId, subject),
     formatValue: safeMetricDef.formatValue,
   };
 }
@@ -254,6 +254,11 @@ function createCivilizationClassMetricSeries(classId, classIndex, metricDef) {
       getDetailedCivilizationClassMetricValue(snapshot, classId, metricDef.id, context),
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, `${metricDef.id}:${classId}`),
+    getLegendTooltipSpec: metricDef.id === "population"
+      ? (state) => getSettlementPopulationTooltipSpec(state, classId, "civilization")
+      : metricDef.id === "freePopulation"
+        ? (state) => getSettlementFreePopulationTooltipSpec(state, classId, "civilization")
+        : series.getLegendTooltipSpec,
   };
 }
 
@@ -288,7 +293,8 @@ const LOCAL_SETTLEMENT_RESOURCE_SERIES = Object.freeze([
       (context?.population(getSettlementMetricRegionId(subject)) ?? getDetailedPopulationSummary(snapshot, getSettlementMetricRegionId(subject))).total,
     getValueFromSummary: (summary, subject) =>
       getSettlementGraphValueFromSummary(summary, "totalPopulation", subject),
-    getLegendTooltipSpec: (state) => getSettlementPopulationTooltipSpec(state),
+    getLegendTooltipSpec: (state, subject) =>
+      getSettlementPopulationTooltipSpec(state, null, subject),
     formatValue: (value) =>
       Number.isFinite(value) ? `${Math.floor(value)}` : "0",
   },
@@ -527,6 +533,8 @@ GRAPH_METRICS.all = {
   ]),
 };
 
+// Unknown ids must not silently become leftover resource gold. No caller needs an object.
 export function getGraphMetric(metricId) {
-  return GRAPH_METRICS[metricId] || GRAPH_METRICS.gold;
+  if (typeof metricId !== "string" || !Object.hasOwn(GRAPH_METRICS, metricId)) return null;
+  return GRAPH_METRICS[metricId];
 }

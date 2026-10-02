@@ -68,7 +68,7 @@ function getActionApCost(action) {
 }
 
 function isActionPointCostEnabled(state) {
-  return state?.variantFlags?.actionPointCostsEnabled !== false;
+  return state?.variantFlags?.actionPointCostsEnabled === true;
 }
 
 function cmdDebugSetCap(state, { cap, points, enabled } = {}) {
