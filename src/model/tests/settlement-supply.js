@@ -94,6 +94,20 @@ const orderedPlan = planStock(ordered.state, ordered.local.detailedState, [{ tra
 assert.deepEqual(orderedPlan.providers.map(p => p.regionId), getWorldDefinition(ordered.state).regions
   .filter(region => [otherId, ordered.remote.regionId].includes(region.id)).map(region => region.id));
 
+// Warm geometry caches must not retain a mutable board or stock from another state.
+const live = fixture();
+live.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 2));
+assert.equal(planStock(live.state, live.local.detailedState, [{ traits: ['Timber'], amount: 2 }]).ok, true);
+const isolated = deserializeGameState(serializeGameState(live.state));
+const isolatedLocal = isolated.world.sites.find(site => site.regionId === live.local.regionId);
+for (const site of isolated.world.sites) if (site.detailedState) site.detailedState.practiceSlots = fiveSlots();
+assert.equal(planStock(isolated, isolatedLocal.detailedState, [{ traits: ['Timber'], amount: 2 }]).ok, false);
+assert.equal(planStock(live.state, live.local.detailedState, [{ traits: ['Timber'], amount: 2 }]).ok, true,
+  'restored state boards cannot contaminate the live state');
+isolated.world.sites.find(site => site.regionId === live.remote.regionId).detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 2));
+assert.equal(planStock(isolated, isolatedLocal.detailedState, [{ traits: ['Timber'], amount: 2 }]).ok, true,
+  'provider queries see board replacements immediately');
+
 // Scheduled Practice consumes a remote input and preserves its remote requirement.
 const scheduled = fixture();
 scheduled.local.detailedState.practiceSlots = fiveSlots(practiceSlot('bowmaking'));

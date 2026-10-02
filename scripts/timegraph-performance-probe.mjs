@@ -15,6 +15,7 @@ try {
   browser=await chromium.launch({headless:process.env.PROBE_HEADLESS==='1'});
   const mobile=process.env.PROBE_MOBILE==='1';
   const page=await browser.newPage({viewport:mobile?{width:844,height:390}:{width:1280,height:800},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+  let profiler;
   if (Number(process.env.PROBE_CPU_RATE)>1) {
     const session=await page.context().newCDPSession(page);
     await session.send('Emulation.setCPUThrottlingRate',{rate:Number(process.env.PROBE_CPU_RATE)});
@@ -52,6 +53,11 @@ try {
   await page.goto(url);
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
+  if (process.env.PROBE_PROFILE === '1') {
+    profiler = await page.context().newCDPSession(page);
+    await profiler.send('Profiler.enable');
+    await profiler.send('Profiler.start');
+  }
   await page.evaluate(()=>{
     globalThis.__frames=[]; globalThis.__steadyFrames=[]; const start=performance.now(); let last=start;
     function frame(t){globalThis.__frames.push(t-last);if(t-start>2000)globalThis.__steadyFrames.push(t-last);last=t;if(globalThis.__frames.length<20000)requestAnimationFrame(frame);}
@@ -67,6 +73,10 @@ try {
   }
   const frames=await page.evaluate(()=>globalThis.__frames);
   const steadyFrames=await page.evaluate(()=>globalThis.__steadyFrames);
+  if (profiler) {
+    const { profile } = await profiler.send('Profiler.stop');
+    writeFileSync(`artifacts/timegraph-profile-${label}.json`, JSON.stringify(profile));
+  }
   const restore=await page.evaluate(()=>{
     const d=globalThis.__SETTLEMENT_DEBUG__;const s=d.getSnapshot();const cap=Math.min(s.browseCapSec,s.graph.revealedCoverageEndSec);
     const times=[];

@@ -9,7 +9,8 @@ import { buildProjectionChunkFromStateData, createProjectionChunkSession } from 
 import { createProjectionStateRestorer } from "../timegraph/state-restorer.js";
 import { createProjectionCache } from "../timegraph/projection-cache.js";
 import { createTimeGraphController } from "../timegraph/controller-core.js";
-import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSecond } from "../timeline/index.js";
+import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSecond, getStateDataAtSecond } from "../timeline/index.js";
+import { rememberMaxObservedCivilizationSurvivalYear, rememberDroppedItemKind } from "../persistent-memory.js";
 import { createSettlementForecastController } from "../../controllers/settlement-forecast-controller.js";
 import { ActionKinds } from "../actions.js";
 
@@ -18,6 +19,32 @@ function uncachedGraphValues(metric, state, subject) {
     [series.id, series.getValueFromSnapshot(state, subject, { kind: "unused-resolver" })]).filter(([, value]) => Number.isFinite(value)));
 }
 const initial = createInitialState("devPlaytesting01", 99117);
+const knowledgeTimeline = createTimelineFromInitialState(initial);
+const originalAnchor = serializeGameState(initial);
+knowledgeTimeline.checkpoints.push({ checkpointSec: 0, stateData: originalAnchor });
+const readBoundary = () => getStateDataAtSecond(knowledgeTimeline, 0).stateData;
+assert.deepEqual(readBoundary(), originalAnchor);
+rememberMaxObservedCivilizationSurvivalYear(knowledgeTimeline, 75);
+rememberDroppedItemKind(knowledgeTimeline, { tableKey: 'probe', tileDefId: 'frontier', itemKind: 'ore' });
+const expectedKnowledgeBoundary = deserializeGameState(originalAnchor);
+rememberMaxObservedCivilizationSurvivalYear(expectedKnowledgeBoundary, 75);
+rememberDroppedItemKind(expectedKnowledgeBoundary, { tableKey: 'probe', tileDefId: 'frontier', itemKind: 'ore' });
+assert.deepEqual(readBoundary(), serializeGameState(expectedKnowledgeBoundary), 'knowledge overlays preserve the complete canonical snapshot');
+const independentBoundary = deserializeGameState(readBoundary());
+independentBoundary.world.sites[0].detailedState.practiceSlots.fill(null);
+independentBoundary.persistentKnowledge.maxObservedCivilizationSurvivalYear = 999;
+assert.deepEqual(readBoundary(), serializeGameState(expectedKnowledgeBoundary), 'mutable replay states cannot contaminate the cached wire boundary');
+rememberMaxObservedCivilizationSurvivalYear(knowledgeTimeline, 90);
+assert.equal(readBoundary().persistentKnowledge.maxObservedCivilizationSurvivalYear, 90, 'fresh knowledge is visible immediately');
+assert.deepEqual(knowledgeTimeline.checkpoints[0].stateData, originalAnchor, 'overlays never rewrite the original checkpoint');
+knowledgeTimeline.persistentKnowledge = structuredClone(originalAnchor.persistentKnowledge);
+assert.deepEqual(readBoundary(), originalAnchor, 'a replacement knowledge set cannot inherit a cached observation');
+const replacementAnchor = serializeGameState(initial);
+replacementAnchor.world.sites[0].detailedState.practiceSlots.fill(null);
+knowledgeTimeline.checkpoints[0].stateData = replacementAnchor;
+assert.deepEqual(readBoundary().world, replacementAnchor.world, 'replacing an anchor invalidates its validation cache');
+knowledgeTimeline.checkpoints[0].stateData = { ...originalAnchor, gameStateSchemaVersion: -1 };
+assert.throws(readBoundary, 'new malformed anchors still pass through full deserialization');
 initial.paused = false;
 initial.gameConfig.settings.values.primordialBasePressure = 100;
 // Pin this terminal-boundary scenario's production tuning. Higher authored

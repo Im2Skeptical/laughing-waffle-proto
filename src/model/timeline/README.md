@@ -6,6 +6,10 @@ Timeline internals were split so `index.js` stays focused on orchestration.
 
 - `index.js`
   - Public timeline API and rebuild/projection/checkpoint orchestration.
+  - A private single-boundary cache validates serialized anchors once per
+    timeline revision/source and overlays current persistent knowledge without
+    repeatedly loading the whole game config. Anchors stay read-only; replay
+    deserializes independent mutable states.
 - `action-index.js`
   - Action-second indexing, sorted second caches, and index invalidation helpers.
 - `memo-cache.js`

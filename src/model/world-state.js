@@ -78,6 +78,27 @@ export function getWorldConnectionCandidates(definition) {
   return candidates;
 }
 
+// Only authored map geometry is cached. Connections, controllers and settlement
+// boards are mutable simulation data and must be resolved from each live state.
+const adjacencyByDefinition = new WeakMap();
+
+export function getAdjacentRegionIds(state, regionId) {
+  const definition = getWorldDefinition(state);
+  if (!definition) return [];
+  let adjacency = adjacencyByDefinition.get(definition);
+  if (!adjacency) {
+    adjacency = new Map(definition.regions.map(region => [region.id, []]));
+    // Candidate pairs follow authored region order, so each neighbour list does too.
+    for (const edge of getWorldConnectionCandidates(definition)) {
+      adjacency.get(edge.regionAId).push(edge.regionBId);
+      adjacency.get(edge.regionBId).push(edge.regionAId);
+    }
+    for (const neighbours of adjacency.values()) Object.freeze(neighbours);
+    adjacencyByDefinition.set(definition, adjacency);
+  }
+  return adjacency.get(regionId) ?? [];
+}
+
 export function isWorldConnectionCandidate(definition, regionAId, regionBId) {
   if (regionAId === regionBId) return false;
   const key = getWorldConnectionKey(regionAId, regionBId);

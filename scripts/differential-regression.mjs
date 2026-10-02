@@ -613,17 +613,21 @@ function runVassalCrisisDeath(api, options) {
   });
   const vassal = currentVassal(api, state);
   expect(intended, "crisis-vassal", !!vassal);
+  // Current Crisis options depend on live incidents. Empty Edible providers make
+  // a real relief expedition available instead of confirming a safe fallback.
+  for (const site of state.world.sites) {
+    for (const slot of site.detailedState?.practiceSlots ?? []) if (slot) slot.stock = 0;
+  }
+  fixtures.push('clear hosted Stock to expose a dangerous Crisis relief option');
   const crisisNode = nodeByFamily(api, state, "crisis");
   expect(intended, "crisis-node", !!crisisNode, crisisNode?.id ?? null);
   unlockNode(api, state, crisisNode.id, fixtures);
   dispatch(api, state, actions, null, enterKind, { nodeId: crisisNode.id });
   const nodeState = vassal.lifeMap.nodeStates[crisisNode.id];
-  const option = nodeState.options?.find((entry) => entry.id === "rallyLoyalists")
-    ?? nodeState.options?.[0]
-    ?? null;
+  const option = nodeState.options?.find((entry) => entry.immediateDeathChance > 0) ?? null;
   expect(intended, "crisis-option", !!option, nodeState.options?.map((entry) => entry.id) ?? []);
   dispatch(api, state, actions, null, optionKind, { nodeId: crisisNode.id, optionId: option.id });
-  const chance = api.VASSAL_LIFE_TUNING.crisisImmediateDeathChance;
+  const chance = option.immediateDeathChance;
   const deathSeed = findRngSeed(api, (roll) => roll < chance);
   state.rng.vassalSeed = deathSeed;
   fixtures.push(`rng.vassalSeed=${deathSeed} for crisisImmediateDeathChance=${chance}`);
