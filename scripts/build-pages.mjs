@@ -87,8 +87,14 @@ async function buildPagesArtifact() {
     filter(source) {
       const parts = source.split(/[/\\]/);
       const filename = parts.at(-1) ?? "";
+      const darkFantasyIndex = parts.indexOf("dark-fantasy");
       // Source masters stay in the repo. The loader fetches packed atlases only.
-      return !parts.includes("dark-fantasy")
+      // fs.cp does not visit children of a rejected directory, so dark-fantasy
+      // itself is entered and only the card-chrome workbench is copied.
+      const keepDarkFantasy = darkFantasyIndex === -1
+        || parts.length === darkFantasyIndex + 1
+        || parts.includes("card-chrome-prototype");
+      return keepDarkFantasy
         && !parts.includes("GameElements")
         && !/^resource-language-[01]\.(json|png)$/.test(filename)
         && !/^test-(data|sheet)-/.test(filename);
