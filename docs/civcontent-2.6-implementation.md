@@ -229,7 +229,7 @@ Numeric modifiers use the existing +25% per quality-uplift step. Scholar/Warrior
 
 ## Remaining deviations and reasons
 
-No rows or Charge assignments are omitted. The following behavior remains provisional; the card-by-card tables below record the actual executable replacement and all affected secondary hooks.
+No rows or Charge assignments are omitted. The following behavior remains provisional; the card-by-card tables above record the actual executable replacement and all affected secondary hooks.
 
 1. **Provider position:** the workbook sometimes says “to the left.” This pass preserves the user's explicitly required existing board-wide Consume/Require semantics, choosing providers in left-to-right order, including the consumer and providers to its right. Source prose remains intact in the source record; runtime card rules say “on the board.” Library's position bypass is consequently already inherent in the shared provider rule.
 2. **Development, candidate weighting and Legacy hooks:** banked Development becomes capped starting Ingenuity/Prowess on the next eligible generated candidate. Institutional hooks use existing gated starting-stat bonuses and capped history bonuses. Choice conversion, special Development biases, class sampling weights, Chairs, Tomes/Chronicles, additional retirement choices, special Legacy outcomes and special opening Life Map node mixes are deferred because they require expanding the existing choice/Legacy/content-generation interfaces. This is a shared numerical implementation, not bespoke behavior for each card.
