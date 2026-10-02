@@ -27,6 +27,8 @@ first-pass system notes below retain their original tuning context.
 - Food and all Practice Stock inputs now use local hosts first, then
   player-controlled settlements that are both polygon-adjacent and directly
   connected. Require retains provider Stock; Consume debits the source host.
+  Every settlement consumes its local Food meal before neighbour meal sourcing
+  begins; neighbouring settlements can draw only the remaining Stock.
   The map shows Food and Stock supply packets, including hollow Require markers.
   State/save schemas make a clean cut so old local-only timelines are rejected.
 - Use the coverage and deferred lists below when extending content. Provisional

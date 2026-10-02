@@ -142,6 +142,63 @@ assert.deepEqual(evaluation.providers.map(p => p.regionId), [technical.remote.re
 const face = getGamepieceFace(technical.state, 'practice', 'experimentation', 'bronze', { evaluation });
 assert.ok(face.detailLines.some(line => line.includes('from R') && line.includes('slot 1')), 'inspection names the provider settlement');
 
+// Every owner eats locally before any neighbour can draw from its board.
+function mealPriorityFixture({ donorFirst = false, stock = 1, donorPeople = 30, connected = true } = {}) {
+  const meal = fixture();
+  advanceReplayStateToSecond(meal.state, 1);
+  const donor = donorFirst ? meal.local : meal.remote;
+  const recipient = donorFirst ? meal.remote : meal.local;
+  setFixturePopulation(donor.detailedState, donorPeople);
+  setFixturePopulation(recipient.detailedState, 30);
+  donor.detailedState.practiceSlots = fiveSlots(practiceSlot('dryFarming', stock));
+  if (!connected) meal.state.world.connections = [];
+  return { ...meal, donor, recipient };
+}
+
+for (const donorFirst of [false, true]) {
+  const protectedMeal = mealPriorityFixture({ donorFirst });
+  advanceReplayStateToSecond(protectedMeal.state, 2);
+  assert.equal(protectedMeal.donor.detailedState.lastMeal.consumed, 1, 'the owner keeps its meal regardless of settlement order');
+  assert.equal(protectedMeal.recipient.detailedState.lastMeal.consumed, 0, 'a hungry neighbour cannot take the owner\'s meal');
+  assert.equal(protectedMeal.state.civilization.practiceEvents.stockTransfers?.transfers?.length ?? 0, 0,
+    'local meals produce no remote transfer packet');
+
+  const surplusMeal = mealPriorityFixture({ donorFirst, stock: 2 });
+  advanceReplayStateToSecond(surplusMeal.state, 2);
+  assert.equal(surplusMeal.donor.detailedState.lastMeal.consumed, 1);
+  assert.equal(surplusMeal.recipient.detailedState.lastMeal.consumed, 1, 'only surplus stock feeds a neighbour');
+  assert.equal(surplusMeal.donor.detailedState.practiceSlots[0].stock, 0);
+  const transfers = surplusMeal.state.civilization.practiceEvents.stockTransfers.transfers;
+  assert.deepEqual(transfers.map(t => [t.sourceRegionId, t.destinationRegionId, t.amount]),
+    [[surplusMeal.donor.regionId, surplusMeal.recipient.regionId, 1]], 'packets show the actual surplus shared');
+
+  const partialMeal = mealPriorityFixture({ donorFirst, donorPeople: 31 });
+  advanceReplayStateToSecond(partialMeal.state, 2);
+  assert.equal(partialMeal.donor.detailedState.lastMeal.byClass.villager.consumed, 30, 'a partially fed owner retains its available local meal');
+  assert.equal(partialMeal.recipient.detailedState.lastMeal.consumed, 0);
+}
+const isolatedMeal = mealPriorityFixture({ stock: 2, connected: false });
+advanceReplayStateToSecond(isolatedMeal.state, 2);
+assert.equal(isolatedMeal.donor.detailedState.lastMeal.consumed, 1);
+assert.equal(isolatedMeal.recipient.detailedState.lastMeal.consumed, 0);
+assert.equal(isolatedMeal.donor.detailedState.practiceSlots[0].stock, 1, 'disconnected surplus stays with its host');
+
+const priorityReplay = mealPriorityFixture({ stock: 2 });
+const priorityBefore = serializeGameState(priorityReplay.state);
+const priorityPackets = buildEdgeTransferBatchAtBoundary(priorityReplay.state, 2);
+assert.deepEqual(serializeGameState(priorityReplay.state), priorityBefore, 'packet reconstruction cannot consume either meal');
+assert.equal(priorityPackets.transfers.filter(t => t.reason === 'food').reduce((n, t) => n + t.amount, 0), 1);
+advanceReplayStateToSecond(priorityReplay.state, 2);
+const priorityExpected = canonicalizeSnapshot(serializeGameState(priorityReplay.state));
+const priorityTimeline = createTimelineFromInitialState(deserializeGameState(priorityBefore));
+assert.deepEqual(canonicalizeSnapshot(serializeGameState(rebuildStateAtSecond(priorityTimeline, 2).state)), priorityExpected);
+const priorityReload = deserializeGameState(priorityBefore);
+advanceReplayStateToSecond(priorityReload, 2);
+assert.deepEqual(canonicalizeSnapshot(serializeGameState(priorityReload)), priorityExpected);
+const priorityProjection = buildProjectionChunkFromStateData(priorityBefore, 1, 2);
+assert.equal(priorityProjection.ok, true);
+assert.deepEqual(canonicalizeSnapshot(priorityProjection.lastStateData), priorityExpected);
+
 // Actual Food boundary, partial feeding, pure map reconstruction, and authoritative replay.
 const meals = fixture();
 advanceReplayStateToSecond(meals.state, 1);
@@ -178,4 +235,4 @@ advanceReplayStateToSecond(consecutive.state, 1);
 assert.equal(getLatestEdgeTransferBoundarySec(1, consecutive.state), 1, 'Practice transfers appear outside Food / Migration');
 const consecutiveBatch = buildEdgeTransferBatchAtBoundary(consecutive.state, 2);
 assert.deepEqual(consecutiveBatch.transfers.map(t => t.boundarySec), [1, 1], 'previous-second Practice packets retain their true start time');
-console.log('[settlement-supply] adjacency + connection, allied providers, atomic inputs, Charge, meals and replay/map parity OK');
+console.log('[settlement-supply] adjacency + connection, allied providers, atomic inputs, Charge, local meal priority and replay/map parity OK');

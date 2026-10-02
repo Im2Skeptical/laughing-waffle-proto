@@ -1,4 +1,4 @@
-import { consumeAvailableStock, CIV_CONTENT_TUNING } from "../stock.js";
+import { consumeStock, consumeAvailableStock, CIV_CONTENT_TUNING } from "../stock.js";
 // Food moon phase: meals, happiness, and starvation migration intents.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -89,12 +89,21 @@ export function runFoodPhase(state, phase) {
   getPhaseModifiers(state).foodByRegion = {};
   runPracticeActivation(state, "food", "preRouting");
   runPracticeActivation(state, "food", "postRouting");
-  for (const site of getDetailedSettlementSites(state)) {
+  // All owners get first use of their own Edible Stock. Only after this pass
+  // may unmet demand draw on the stock left in adjacent connected settlements.
+  const meals = getDetailedSettlementSites(state).map(site => {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
     const savedStock = Math.min(population.mealDemand, Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0));
     const demandStock = population.mealDemand - savedStock;
-    const consumed = consumeAvailableStock(state, settlement, "Edible", demandStock);
+    const localConsumed = consumeStock(state, settlement, "Edible", demandStock);
+    return { site, savedStock, demandStock, localConsumed };
+  });
+  for (const { site, savedStock, demandStock, localConsumed } of meals) {
+    const settlement = site.detailedState;
+    const shortage = demandStock - localConsumed;
+    const consumed = localConsumed + (shortage > 0
+      ? consumeAvailableStock(state, settlement, "Edible", shortage) : 0);
     let fedPeople = (consumed + savedStock) * CIV_CONTENT_TUNING.populationPerEdible;
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {

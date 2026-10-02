@@ -17,7 +17,8 @@ the original `phases.js` path.
 - `chaos.js` — `getPrimordialChaosPressure`, `runGlobalChaos`,
   `recordChaosLosses`
 - `migration.js` — intent/housing/meal helpers and `runMigrationPhase`
-- `food.js` — happiness update and `runFoodPhase`
+- `food.js` — all local meals first, neighbour supply from leftovers, then
+  happiness/starvation evaluation in `runFoodPhase`
 - `housing.js` — `runHousingPhase`
 - `faith.js` — faith streak/collapse and `runFaithPhase`
 - `birth.js` — `runBirthPhase`
