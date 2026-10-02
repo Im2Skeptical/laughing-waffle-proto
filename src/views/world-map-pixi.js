@@ -1,6 +1,7 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
+import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
@@ -226,6 +227,7 @@ export function createWorldMapView({
   edgeTransferLayer.eventMode = "none";
   edgeTransferGraphics.eventMode = "none";
   edgeTransferLayer.addChild(edgeTransferGraphics);
+  const stockTransferIcons = createStockTransferIcons(edgeTransferLayer);
   const viewport = new PIXI.Container();
   const world = new PIXI.Container();
   const mapContent = new PIXI.Container();
@@ -319,6 +321,7 @@ export function createWorldMapView({
           transfer?.systemId ?? null,
           transfer?.resourceId ?? null,
           transfer?.kind ?? null,
+          transfer?.traits ?? [],
           transfer?.sourceRegionId ?? null,
           transfer?.destinationRegionId ?? null,
           Number(transfer?.amount ?? 0),
@@ -346,16 +349,29 @@ export function createWorldMapView({
       const destination=definition.regions.find(r=>r.id===transfer.destinationRegionId);
       if(!source||!destination)continue;
       const route=transfer.sourceRegionId+'>'+transfer.destinationRegionId;
-      const index=routes.get(route)??0;routes.set(route,index+1);
+      const routeInfo=routes.get(route)??{count:0,spacing:9};
+      const index=routeInfo.count++;
       const from=screenPoint(source.display.labelPoint),to=screenPoint(destination.display.labelPoint);
-      edgeTransferPacketDescriptors.push({...transfer,from,to,facingFrom:from,facingTo:to,
-        laneOffset:[0,-9,9][index%3],startedSec:(transfer.boundarySec??batch.boundarySec)+index*.06,durationSec:1.8});
+      const packet={...transfer,from,to,facingFrom:from,facingTo:to,route,lane:[0,-1,1][index%3],
+        glyph:getEdgeTransferPacketGlyphSpec(transfer.resourceId,transfer.traits),
+        laneOffset:[0,-9,9][index%3],startedSec:(transfer.boundarySec??batch.boundarySec)+index*.06,durationSec:1.8};
+      if(packet.glyph.icons){
+        const facing=getEdgeTransferPacketFacing(from,to),layout=getStockTransferIconLayout(packet);
+        // Upright icon rows need more room across vertical routes than horizontal
+        // ones. Use the widest projected row on the route for every Stock lane.
+        routeInfo.spacing=Math.max(routeInfo.spacing,Math.abs(facing.directionY)*layout.width+Math.abs(facing.directionX)*layout.height+8);
+      }
+      routes.set(route,routeInfo);
+      edgeTransferPacketDescriptors.push(packet);
     }
     edgeTransferPacketDescriptors=edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE);
+    for(const packet of edgeTransferPacketDescriptors)if(packet.glyph.icons)packet.laneOffset=packet.lane*routes.get(packet.route).spacing;
+    stockTransferIcons.sync(edgeTransferPacketDescriptors);
   }
 
   function drawEdgeTransferPackets(timeSec) {
     edgeTransferGraphics.clear();
+    stockTransferIcons.beginFrame();
     const surviving = [];
     for (const packet of edgeTransferPacketDescriptors) {
       const rawProgress=sampleEventProgress(timeSec,packet.startedSec,packet.durationSec);
@@ -374,7 +390,11 @@ export function createWorldMapView({
       const fadeIn = Math.min(1, rawProgress / 0.12);
       const fadeOut = Math.min(1, (1 - rawProgress) / 0.2);
       const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
-      const glyph = getEdgeTransferPacketGlyphSpec(packet.resourceId);
+      const glyph = packet.glyph;
+      if (glyph.icons) {
+        stockTransferIcons.draw(packet, pose, alpha);
+        continue;
+      }
       const color = glyph.color ?? PALETTE.text;
       const size =
         16 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
@@ -419,21 +439,6 @@ export function createWorldMapView({
         );
         edgeTransferGraphics.endFill();
       }
-      for (const crate of glyph.crates ?? []) {
-        const cx = pose.x + facing.directionX * size * crate.forward + perpendicularX * size * crate.side;
-        const cy = pose.y + facing.directionY * size * crate.forward + perpendicularY * size * crate.side;
-        const radius = size * crate.size / 2;
-        edgeTransferGraphics.lineStyle(2, color, alpha);
-        edgeTransferGraphics.beginFill(0x302d2a, alpha * 0.9);
-        edgeTransferGraphics.drawRect(cx - radius, cy - radius, radius * 2, radius * 2);
-        edgeTransferGraphics.endFill();
-        if (packet.kind !== 'require') {
-          edgeTransferGraphics.moveTo(cx - radius, cy - radius);
-          edgeTransferGraphics.lineTo(cx + radius, cy + radius);
-          edgeTransferGraphics.moveTo(cx - radius, cy + radius);
-          edgeTransferGraphics.lineTo(cx + radius, cy - radius);
-        }
-      }
     }
     activeEdgeTransferPackets = surviving;
   }
@@ -446,6 +451,7 @@ export function createWorldMapView({
     activeEdgeTransferPackets = [];
     edgeTransferPacketDescriptors = [];
     edgeTransferGraphics.clear();
+    stockTransferIcons.clear();
   }
 
   function updateEdgeTransferPackets() {
@@ -818,6 +824,7 @@ export function createWorldMapView({
       } else {
         activeEdgeTransferPackets = [];
         edgeTransferGraphics.clear();
+        stockTransferIcons.beginFrame();
       }
     },
     getSemanticSnapshot: () => {
@@ -902,6 +909,7 @@ export function createWorldMapView({
           return {
             transferId: packet.transferId,
             resourceId: packet.resourceId,
+            ...stockTransferIcons.snapshot(packet.transferId),
             kind: packet.kind ?? null,
             sourceRegionId: packet.sourceRegionId,
             destinationRegionId: packet.destinationRegionId,
@@ -929,6 +937,7 @@ export function createWorldMapView({
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
+      stockTransferIcons.clear();
       clearChildren(root);
       root.removeFromParent();
       root.destroy({ children: true });
