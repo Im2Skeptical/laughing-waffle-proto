@@ -13,7 +13,7 @@ import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
-import { button } from './vassal-node-decision/cards.js';
+import { confirmDockButton } from './vassal-node-decision/chrome.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -45,7 +45,7 @@ function drawPinMarker(graphics, filled) {
 }
 
 export function createVassalLifeMapView({
-  layer, getPresentation, getCivilizationLossInfo, onOpenEndDetails, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
+  app, layer, confirmLayer, getPresentation, getCivilizationLossInfo, onOpenEndDetails, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
   isRecapOpen,
 } = {}) {
   const root = new PIXI.Container();
@@ -53,6 +53,15 @@ export function createVassalLifeMapView({
   root.eventMode = "static";
   root.hitArea = new PIXI.Rectangle(MAP_RECT.x, 16, MAP_RECT.width, MAP_RECT.y + MAP_RECT.height - 16);
   layer?.addChild(root);
+  const confirmSurface = new PIXI.Container();
+  confirmSurface.zIndex = 168;
+  confirmSurface.visible = false;
+  confirmLayer?.addChild(confirmSurface);
+  let confirmPointerHeld = false;
+  confirmSurface.on("pointerdown", () => { confirmPointerHeld = true; });
+  for (const type of ["pointerup", "pointerupoutside", "pointercancel"]) {
+    confirmSurface.on(type, () => { confirmPointerHeld = false; });
+  }
   const nodeRoots = new Map();
   let signature = "";
   let inspectedNodeId = null;
@@ -90,14 +99,21 @@ export function createVassalLifeMapView({
       ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
       : VASSAL_NODE_FAMILIES[node?.family] ?? null;
     if (!family || !target) return;
+    const presentation = getPresentation?.() ?? {};
+    const available = getDisplay(vassal, node.id, new Set(presentation.committedNodeIds ?? []),
+      presentation.readOnly === true,
+      presentation.state?.civilization?.vassalLineage?.pendingHeirloomLoadout === true).available;
     tooltipView?.show?.({
       title: `${family.glyph}  ${family.label}`,
       lines: [family.description],
       accentColor: family.color,
       maxWidth: 310,
       scale: 2,
-      pin: true,
+      pin: !available,
       pinned: pinnedNodeIds.includes(node.id),
+      activeChoice: getCandidate(presentation)?.id === node.id,
+      sourceKind: "lifeMapNode",
+      sourceId: node.id,
     }, target.getBounds());
   }
 
@@ -111,8 +127,7 @@ export function createVassalLifeMapView({
   function clearNodeHover() {
     if (hoveredNodeId == null) return;
     hoveredNodeId = null;
-    if (lastPointerType !== "touch") tooltipView?.hide?.();
-    else if (inspectedNodeId == null) tooltipView?.hide?.();
+    if (!getCandidate() && (lastPointerType !== "touch" || inspectedNodeId == null)) tooltipView?.hide?.();
     render(true);
   }
 
@@ -256,7 +271,8 @@ export function createVassalLifeMapView({
 
   let nodePointerHeld = false;
   function render(force = false) {
-    if (nodePointerHeld || root.pendingInteractionCount > 0) return;
+    if (nodePointerHeld || confirmPointerHeld || root.pendingInteractionCount > 0
+      || confirmSurface.pendingInteractionCount > 0) return;
     dismissTooltipForRecap();
     const visible = isVisible?.() === true;
     root.visible = visible;
@@ -275,6 +291,8 @@ export function createVassalLifeMapView({
       inspectedNodeId = null;
       lastClick = { nodeId: null, atMs: 0 };
       signature = "";
+      confirmSurface.visible = false;
+      clearChildren(confirmSurface);
       return;
     }
     const presentation = getPresentation?.() ?? {};
@@ -311,6 +329,8 @@ export function createVassalLifeMapView({
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
+    clearChildren(confirmSurface);
+    confirmSurface.visible = false;
     nodeRoots.clear();
     openRoot = null;
     endDetailsTarget = addCivilizationSurvivalStrip(root, {
@@ -439,36 +459,22 @@ export function createVassalLifeMapView({
 
     const candidate = getCandidate(presentation);
     if (candidate) {
-      const family = candidate.signatureNode?.variantId
-        ? VASSAL_SIGNATURE_NODE_VARIANTS[candidate.signatureNode.variantId]
-        : VASSAL_NODE_FAMILIES[candidate.family];
-      const preview = new PIXI.Container();
-      preview.eventMode = "static";
-      preview.hitArea = new PIXI.Rectangle(MAP_RECT.x + 18, MAP_RECT.y + 16, MAP_RECT.width - 36, 132);
-      preview.on("pointerdown", event => event.stopPropagation());
-      const plate = new PIXI.Graphics();
-      // Keep the reminder left of the Vassal HUD and its Heirloom slots.
-      roundedRect(plate, MAP_RECT.x + 18, MAP_RECT.y + 16, 500, 132, 8,
-        0x242a27, family?.color ?? PALETTE.accent, 2);
-      preview.addChild(plate,
-        createText(`${family?.glyph ?? ""}  ${family?.label ?? ""}`, {
-          ...TEXT_STYLES.header, fontSize: 26, fill: family?.color ?? PALETTE.accent,
-        }, MAP_RECT.x + 38, MAP_RECT.y + 28),
-        createText(family?.description ?? "", {
-          ...TEXT_STYLES.body, fontSize: 24, wordWrap: true, wordWrapWidth: 460,
-        }, MAP_RECT.x + 38, MAP_RECT.y + 64));
-      openRoot = button(preview, { x: MAP_RECT.x + MAP_RECT.width - 468, y: MAP_RECT.y + 28, width: 430, height: 64 },
-        "ENTER NODE  [Enter]", true, enterCandidate);
-      preview.addChild(createText("Double-click a node to enter", {
-        ...TEXT_STYLES.body, fontSize: 18, fill: PALETTE.textMuted,
-      }, MAP_RECT.x + MAP_RECT.width - 468, MAP_RECT.y + 102));
-      root.addChild(preview);
+      confirmSurface.visible = true;
+      openRoot = confirmDockButton(confirmSurface, app, {
+        enabled: true, label: "Enter", onClick: enterCandidate,
+      });
+      if (hoveredNodeId == null || hoveredNodeId === candidate.id) {
+        showNodeTooltip(candidate, nodeRoots.get(candidate.id), vassal);
+      }
     }
   }
 
   return {
     init: () => render(true), update: () => render(), refresh: () => render(true),
-    setVisible: (visible) => { root.visible = visible === true; },
+    setVisible: (visible) => {
+      root.visible = visible === true;
+      if (!root.visible) confirmSurface.visible = false;
+    },
     handleKeyDown,
     getCandidateNodeId: () => getCandidate()?.id ?? null,
     getNodeClickPoint(nodeId) {
@@ -477,8 +483,11 @@ export function createVassalLifeMapView({
         ? target.toGlobal(new PIXI.Point(0, 0)) : null;
       return point ? { x: point.x, y: point.y } : null;
     },
-    getEnterNodeClickPoint: () => getCandidate() && openRoot?.toGlobal
-      ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
+    getEnterNodeClickPoint: () => {
+      if (!getCandidate() || !openRoot || !confirmSurface.visible) return null;
+      const rect = openRoot.getBounds();
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    },
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getPinnedNodeIds: () => [...pinnedNodeIds],
     getInspectedNodeId: () => inspectedNodeId,

@@ -33,6 +33,17 @@ try {
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open), false,
     'selecting a candidate leaves the graph unobstructed');
   assert.equal(await point('getLifeMapOptionClickPoint',0), null, 'candidate contents stay hidden');
+  const candidateTooltip = await page.evaluate(() => __SETTLEMENT_DEBUG__.getTooltipDebugState());
+  assert.equal(candidateTooltip.visible,true,'candidate uses the shared tooltip');
+  assert.equal(candidateTooltip.activeChoice,true,'candidate tooltip shows its active-choice border');
+  assert.equal(candidateTooltip.pinVisible,false,'candidate tooltip hides the pin glyph');
+  assert.equal(candidateTooltip.sourceId,node);
+  const enter = await point('getLifeMapEnterNodeClickPoint');
+  assert.ok(enter.x > 2000 && enter.y > 900,'entry uses the bottom-right confirm dock');
+  await move(enter);
+  await delay(80);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getTooltipDebugState().activeChoice),true,
+    'the candidate tooltip persists while moving to Enter');
   await page.keyboard.press('Escape');
   assert.equal(await point('getLifeMapEnterNodeClickPoint'), null, 'Escape clears the candidate');
   await page.keyboard.press('Enter');
