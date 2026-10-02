@@ -20,6 +20,8 @@ file is the legacy tick substrate.
   Food and Practice inputs use local Stock first, then player-controlled detailed
   settlements sharing both a polygon edge and a live connection, in authored
   region order. Require preserves the provider's Stock; Consume debits its host.
+  Food resolves local meals for every settlement before unmet demand draws from
+  neighbours, so only the Stock remaining after the owner's meal can be shared.
   The current transfer second is recorded in the JSON Practice event journal for
   deterministic map packet reconstruction.
   Authored polygon adjacency is cached in `world-state.js`; live connections,
