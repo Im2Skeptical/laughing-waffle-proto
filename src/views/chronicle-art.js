@@ -37,7 +37,7 @@ const PACKED_GROUPS = Object.freeze({
   }),
   settlementPieces: Object.freeze({
     prefix: 'settlement-pieces-v4/',
-    files: Object.freeze(['settlement-pieces-0.json', 'settlement-pieces-1.json']),
+    files: Object.freeze(['settlement-pieces-0.json', 'settlement-pieces-1.json', 'settlement-pieces-2.json']),
     eager: false,
   }),
   pieceFrames: Object.freeze({

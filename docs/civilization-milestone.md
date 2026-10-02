@@ -25,7 +25,7 @@ first-pass system notes below retain their original tuning context.
   explanations, automated conflict visibility, and editable content workflows.
   These are follow-up areas, not completed usability claims or a new scope commitment.
 - Use the coverage and deferred lists below when extending content. Provisional
-  coefficients and generic art remain first-pass choices. Human playtesting still
+  coefficients remain first-pass choices. Human playtesting still
   needs to establish coherent long-run class and hybrid strategies within five slots.
 - Current work deploys from this repository's `main` to laughing-waffle-proto.
   laughing-pancake-proto preserves the pre-content-pass game with isolated storage.
@@ -133,9 +133,9 @@ human playtest work.
 - Scholar Brickmaking's apparent Record-trait typo is treated as Construction.
   The old internal stat keys `cunning` and `intelligence` remain serialization keys;
   class meanings and visible labels are Ingenuity/Prowess. Equipped stat bonuses apply.
-- Existing art is reused through labeled fallbacks. Stock glyphs and provider text
-  are present; provider-to-card animated highlighting and dedicated new illustrations
-  are not included.
+- Each runtime Practice and Structure has a dedicated illustration; the expanded
+  pool adds 59 paintings while preserving existing card art. Stock glyphs and
+  provider text are present; provider-to-card animated highlighting is deferred.
 
 ## Content coverage and remaining clauses
 

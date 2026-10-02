@@ -261,9 +261,11 @@ for(const id of [...Object.keys(detailedSettlementPracticeDefs),...Object.keys(s
   const art=getIllustrationSpec(id);
   assert.ok(art,`${id} needs an explicit gamepiece illustration`);
   const key=`${art.file}:${art.index}`;
-  assert.ok(getGamepieceFace(null,detailedSettlementPracticeDefs[id]?"practice":"structure",id)?.label,`${id} has its own visible name when prototype art is shared`);
+  assert.ok(getGamepieceFace(null,detailedSettlementPracticeDefs[id]?"practice":"structure",id)?.label,`${id} has its own visible name`);
   artKeys.add(key);
 }
+assert.equal(artKeys.size, Object.keys(detailedSettlementPracticeDefs).length + Object.keys(settlementStructureDefs).length,
+  'Every runtime Practice and Structure has a distinct painting');
 const rect={x:0,y:0,width:1400,height:600};
 const times=[0,.01,3,3.125,8.25,100.75,1e6+.5];
 const frames=times.map(t=>({frame:sampleSpriteFrame(t,clip),motes:Array.from({length:16},(_,i)=>sampleMote(t,i,rect)),sound:sampleChronicleScore(t)}));

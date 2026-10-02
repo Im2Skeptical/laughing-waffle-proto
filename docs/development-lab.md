@@ -134,8 +134,8 @@ the source run's prior history because the bridge transfers a state, not a run.
 - Two neutral templates still author six/seven Practices, but normal runtime
   construction installs only the first five. Zoo shows both installed and omitted
   entries, without changing those gameplay definitions.
-- New content often uses shared fallback illustrations. Real faces expose that
-  fact rather than implying dedicated art exists.
+- All 187 runtime Practices and Structures have dedicated packed illustrations.
+  The CivContent 2.6 art additions preserve the paintings of existing cards.
 - Structures, candidates, node families and Monster tuning are runtime data;
   there is no fabricated workbook-only content or alternate simulation.
 - Monster/class/world outcomes use compact tables and real model summaries where

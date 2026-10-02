@@ -1,0 +1,717 @@
+{
+  "mode": "built-in ImageGen, one new image per missing card; existing paintings preserved",
+  "brief": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials.",
+  "palettes": {
+    "scholar": "Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity.",
+    "warrior": "Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity."
+  },
+  "entries": [
+    {
+      "id": "examinationCoaching",
+      "pool": "scholar",
+      "cells": 0,
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: Examination Coaching. In a quiet vaulted study room, an anonymous blue-robed tutor coaches a small group of pupils over blank examination parchments, counting tokens and a chalk slate, one pupil leaning forward to solve a problem; shelves and a cool window behind. Focus on the coaching gesture and pupils, no legible writing. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 5:7, full bleed.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/study.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "calendarKeeping",
+      "pool": "scholar",
+      "cells": 0,
+      "scene": "Blue-robed calendar keepers compare a brass lunar dial and a wooden seasonal wheel while placing counting stones beside stacked blank parchment calendars; cool vaulted observatory, gold lamplight, no letters or numerals.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: calendarKeeping. Blue-robed calendar keepers compare a brass lunar dial and a wooden seasonal wheel while placing counting stones beside stacked blank parchment calendars; cool vaulted observatory, gold lamplight, no letters or numerals. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/study.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "experimentation",
+      "pool": "scholar",
+      "cells": 0,
+      "scene": "Two blue-robed experimenters at a stone bench combine mineral fragments and herbs in glass vessels; a small glowing amber flask between a balance, bellows and measuring tools, controlled scientific curiosity, no explosions.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: experimentation. Two blue-robed experimenters at a stone bench combine mineral fragments and herbs in glass vessels; a small glowing amber flask between a balance, bellows and measuring tools, controlled scientific curiosity, no explosions. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/study.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "doomsaying",
+      "pool": "scholar",
+      "cells": 0,
+      "scene": "A hooded blue-cloaked seer studies a dark scrying bowl and a fractured hourglass while pointing toward ominous storm clouds above a distant settlement; blank omen scrolls, cool twilight and a single honey-gold candle.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: doomsaying. A hooded blue-cloaked seer studies a dark scrying bowl and a fractured hourglass while pointing toward ominous storm clouds above a distant settlement; blank omen scrolls, cool twilight and a single honey-gold candle. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/study.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "formationTraining",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "An anonymous red-cloaked instructor directs two compact ranks of spearmen and shield bearers aligning their shields on a dusty training ground; elevated oblique view, coordinated geometric ranks clearly visible.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: formationTraining. An anonymous red-cloaked instructor directs two compact ranks of spearmen and shield bearers aligning their shields on a dusty training ground; elevated oblique view, coordinated geometric ranks clearly visible. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "veteranInstruction",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "A grey-cloaked seasoned veteran with a red sash demonstrates a sword-and-shield stance to three younger red-cloaked warriors in a courtyard, scarred wooden training shields and a weapon rack; anonymous faces.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: veteranInstruction. A grey-cloaked seasoned veteran with a red sash demonstrates a sword-and-shield stance to three younger red-cloaked warriors in a courtyard, scarred wooden training shields and a weapon rack; anonymous faces. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "siegeTraining",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Red-cloaked engineers train together around a compact wooden torsion catapult aimed at a straw practice wall; one turns a winch, another indicates the trajectory with an unmarked stave, a stone keep distant.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: siegeTraining. Red-cloaked engineers train together around a compact wooden torsion catapult aimed at a straw practice wall; one turns a winch, another indicates the trajectory with an unmarked stave, a stone keep distant. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "caravanGuarding",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Two red-cloaked armed escorts guard a covered merchant wagon and pack mule on a rocky road beside a ravine; protective silhouettes flank the wagon, no combat, warm lantern and teal dusk.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: caravanGuarding. Two red-cloaked armed escorts guard a covered merchant wagon and pack mule on a rocky road beside a ravine; protective silhouettes flank the wagon, no combat, warm lantern and teal dusk. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "rescueParties",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Red-cloaked rescuers escort small grouped villagers across a narrow wooden bridge away from a flood-struck burning village, one steadies a child and another carries a supply bundle; hopeful urgency, no gore.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: rescueParties. Red-cloaked rescuers escort small grouped villagers across a narrow wooden bridge away from a flood-struck burning village, one steadies a child and another carries a supply bundle; hopeful urgency, no gore. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "forcedMarches",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "A compact red-cloaked troop marches uphill through driving rain under a teal night sky, laden soldiers leaning forward in determined synchronized steps, muddy road and one sheltered amber lantern.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: forcedMarches. A compact red-cloaked troop marches uphill through driving rain under a teal night sky, laden soldiers leaning forward in determined synchronized steps, muddy road and one sheltered amber lantern. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warbandMarching",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Two small red-bannered warbands converge from separate roads at a stone waymarker and march together toward a distant fortress; elevated landscape depth inside a portrait frame, clear joining columns.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warbandMarching. Two small red-bannered warbands converge from separate roads at a stone waymarker and march together toward a distant fortress; elevated landscape depth inside a portrait frame, clear joining columns. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "feastingTheHost",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Red-cloaked warriors share bread, roasted food and mugs at a long rough timber table beneath a red banner, a quartermaster lays out provisions, convivial firelight, anonymous grouped figures, no drunken caricature.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: feastingTheHost. Red-cloaked warriors share bread, roasted food and mugs at a long rough timber table beneath a red banner, a quartermaster lays out provisions, convivial firelight, anonymous grouped figures, no drunken caricature. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "tournaments",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Two armored red-sashed contestants spar with blunted swords in a roped tournament ring while a small crowd and red pennants frame the action, tilted shields and crossed blades provide the focal silhouette.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: tournaments. Two armored red-sashed contestants spar with blunted swords in a roped tournament ring while a small crowd and red pennants frame the action, tilted shields and crossed blades provide the focal silhouette. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warCouncil",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Red-cloaked commanders gathered around a low circular campaign map table move carved tokens and compare unmarked parchments by brazier light, several hands point toward one central route, no readable writing.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warCouncil. Red-cloaked commanders gathered around a low circular campaign map table move carved tokens and compare unmarked parchments by brazier light, several hands point toward one central route, no readable writing. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "greatHost",
+      "pool": "warrior",
+      "cells": 0,
+      "scene": "Several distinct red-bannered columns of soldiers converge in a broad valley beneath one grand standard, tiny anonymous ranks and wagons show the civilization's coordinated army, teal hills and warm horizon.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: greatHost. Several distinct red-bannered columns of soldiers converge in a broad valley beneath one grand standard, tiny anonymous ranks and wagons show the civilization's coordinated army, teal hills and warm horizon. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 5:7, full bleed. Practice action is the main subject.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/scouting.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "studbookStable",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A carefully ordered timber-and-stone stable with blue pennants, paired horses in fenced paddocks and a small blue-robed keeper consulting an unmarked pedigree ledger; horses and institutional stable dominate.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: studbookStable. A carefully ordered timber-and-stone stable with blue pennants, paired horses in fenced paddocks and a small blue-robed keeper consulting an unmarked pedigree ledger; horses and institutional stable dominate. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "weighHouse",
+      "pool": "scholar",
+      "cells": 1,
+      "scene": "A compact stone customs building whose open arch reveals a large brass balance weighing sacks against iron weights; cobalt awning and tiny blue-cloaked merchants establish scale, balance unmistakable.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: weighHouse. A compact stone customs building whose open arch reveals a large brass balance weighing sacks against iron weights; cobalt awning and tiny blue-cloaked merchants establish scale, balance unmistakable. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "ledgerOffice",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A two-wing civic ledger office with cobalt tiled roof and tall orderly windows, open doorway showing shelves of folios and counters where tiny blue-robed clerks tally tokens, exterior architecture dominates.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: ledgerOffice. A two-wing civic ledger office with cobalt tiled roof and tall orderly windows, open doorway showing shelves of folios and counters where tiny blue-robed clerks tally tokens, exterior architecture dominates. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "mint",
+      "pool": "scholar",
+      "cells": 1,
+      "scene": "A small fortified stone mint, an open workshop arch showing a heavy coin-stamping press and a warm crucible; tiny blue-aproned workers and stacks of newly stamped plain gold discs, no text.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: mint. A small fortified stone mint, an open workshop arch showing a heavy coin-stamping press and a warm crucible; tiny blue-aproned workers and stacks of newly stamped plain gold discs, no text. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "procurementOffice",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A cobalt-roofed civic procurement depot with a central counting porch, organized crates of timber, metal and paper arriving on carts; tiny blue-cloaked officials exchange tokens at a counter.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: procurementOffice. A cobalt-roofed civic procurement depot with a central counting porch, organized crates of timber, metal and paper arriving on carts; tiny blue-cloaked officials exchange tokens at a counter. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "schoolhouse",
+      "pool": "scholar",
+      "cells": 1,
+      "scene": "A modest gabled stone schoolhouse with a blue door and brass bell, warm open windows revealing wooden pupil benches and a blank teaching slate; tiny children enter together, welcoming scholarly focus.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: schoolhouse. A modest gabled stone schoolhouse with a blue door and brass bell, warm open windows revealing wooden pupil benches and a blank teaching slate; tiny children enter together, welcoming scholarly focus. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "engineeringCollege",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "An imposing but practical blue-roofed engineering college with a crane, waterwheel model and bridge construction yard beside its arched hall; tiny blue-robed engineers compare measuring rods.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: engineeringCollege. An imposing but practical blue-roofed engineering college with a crane, waterwheel model and bridge construction yard beside its arched hall; tiny blue-robed engineers compare measuring rods. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "laboratory",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A stone laboratory with cobalt tiled roof, copper vent stacks and tall amber-lit windows; through a central open arch see glass vessels, distillation apparatus and a broad workbench, tiny blue-robed researchers.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: laboratory. A stone laboratory with cobalt tiled roof, copper vent stacks and tall amber-lit windows; through a central open arch see glass vessels, distillation apparatus and a broad workbench, tiny blue-robed researchers. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "censusHall",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A formal blue-roofed census hall with a broad central doorway, orderly small groups of citizens at registration desks and bundled blank census scrolls; civic stone symmetry, no readable inscriptions.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: censusHall. A formal blue-roofed census hall with a broad central doorway, orderly small groups of citizens at registration desks and bundled blank census scrolls; civic stone symmetry, no readable inscriptions. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "surveyOffice",
+      "pool": "scholar",
+      "cells": 1,
+      "scene": "A compact surveyor's office on a hill, blue gable and an open porch holding tripods, plumb lines and rolled blank maps; tiny blue-cloaked surveyors aim a brass sighting instrument at a boundary stone.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: surveyOffice. A compact surveyor's office on a hill, blue gable and an open porch holding tripods, plumb lines and rolled blank maps; tiny blue-cloaked surveyors aim a brass sighting instrument at a boundary stone. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "mapRoom",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A dedicated domed map hall with cobalt roof and an open central bay revealing a monumental circular map table, brass compasses and wall maps without writing; small blue-cloaked cartographers for scale.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: mapRoom. A dedicated domed map hall with cobalt roof and an open central bay revealing a monumental circular map table, brass compasses and wall maps without writing; small blue-cloaked cartographers for scale. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "printingHouse",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A long stone-and-timber printing house with cobalt shutters, its wide open workshop showing a wooden screw printing press, drying parchment sheets and tiny blue-aproned workers; press central, sheets unlettered.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: printingHouse. A long stone-and-timber printing house with cobalt shutters, its wide open workshop showing a wooden screw printing press, drying parchment sheets and tiny blue-aproned workers; press central, sheets unlettered. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "bureauOfStandards",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A precise symmetrical cobalt-roofed civic building with brass measuring rods, reference weights and standardized stone blocks displayed in its open colonnade; tiny blue-robed inspectors compare identical components.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: bureauOfStandards. A precise symmetrical cobalt-roofed civic building with brass measuring rods, reference weights and standardized stone blocks displayed in its open colonnade; tiny blue-robed inspectors compare identical components. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "publicWorksMinistry",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "A monumental sprawling cobalt-roofed public works ministry overlooks a stone aqueduct, arched bridge and organized construction yard; tiny engineers and cranes, grand central entrance and coordinated civic infrastructure.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: publicWorksMinistry. A monumental sprawling cobalt-roofed public works ministry overlooks a stone aqueduct, arched bridge and organized construction yard; tiny engineers and cranes, grand central entrance and coordinated civic infrastructure. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "imperialArchive",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "A vast fortified archive complex with deep blue roofs and three tall manuscript towers, honey-gold entrance, carts carrying bound folios and tiny blue-cloaked archivists; monumental repository silhouette, no inscriptions.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: imperialArchive. A vast fortified archive complex with deep blue roofs and three tall manuscript towers, honey-gold entrance, carts carrying bound folios and tiny blue-cloaked archivists; monumental repository silhouette, no inscriptions. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "arcaneCollege",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "A broad arcane college of lapis-roofed towers and stone arcades encircles a restrained golden armillary sphere, tiny blue-robed scholars in its courtyard, mysterious scholarly light without modern magical neon.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: arcaneCollege. A broad arcane college of lapis-roofed towers and stone arcades encircles a restrained golden armillary sphere, tiny blue-robed scholars in its courtyard, mysterious scholarly light without modern magical neon. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "greatLibrary",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "A monumental terraced great library with broad cobalt roof wings, immense arched reading windows and a honey-gold central stair, tiny scholars bearing books; dignified vast repository above a river valley.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: greatLibrary. A monumental terraced great library with broad cobalt roof wings, immense arched reading windows and a honey-gold central stair, tiny scholars bearing books; dignified vast repository above a river valley. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "plagueHouse",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "An isolated blue-shuttered quarantine hospice with herb garden and covered treatment porch, tiny hooded attendants carry covered baskets and tend resting patients under clean linen; somber, humane, no gore.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: plagueHouse. An isolated blue-shuttered quarantine hospice with herb garden and covered treatment porch, tiny hooded attendants carry covered baskets and tend resting patients under clean linen; somber, humane, no gore. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "charnelLibrary",
+      "pool": "scholar",
+      "cells": 2,
+      "scene": "A secluded stone library beside an old ossuary courtyard, cobalt roof and ribbed arches, orderly sealed bone reliquaries beside shelves of blank record folios; tiny blue-cloaked archivists, solemn amber lanterns, no gore.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: charnelLibrary. A secluded stone library beside an old ossuary courtyard, cobalt roof and ribbed arches, orderly sealed bone reliquaries beside shelves of blank record folios; tiny blue-cloaked archivists, solemn amber lanterns, no gore. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "forbiddenObservatory",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "An enormous secluded observatory with cracked cobalt dome, tall shuttered telescope tower and brass astronomical rings above a misty chasm; tiny blue-cloaked scholars approach the honey-lit gate, forbidding scale.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: forbiddenObservatory. An enormous secluded observatory with cracked cobalt dome, tall shuttered telescope tower and brass astronomical rings above a misty chasm; tiny blue-cloaked scholars approach the honey-lit gate, forbidding scale. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "theLastAcademy",
+      "pool": "scholar",
+      "cells": 3,
+      "scene": "A surviving monumental blue-roofed academy glows with honey-gold windows amid a ruined storm-dark city, scholars carry saved books through the central arch; wide architectural refuge silhouette and resilient scholarly light.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: theLastAcademy. A surviving monumental blue-roofed academy glows with honey-gold windows amid a ruined storm-dark city, scholars carry saved books through the central arch; wide architectural refuge silhouette and resilient scholarly light. Palette: cobalt/lapis blue, deep navy shadows, parchment and honey gold focal light, restrained pale coral. Blue robes, banners or architectural masses anchor the Scholar identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "watchtower",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A single rough stone watchtower with red pennant, timber viewing platform and a small guard silhouette holding a torch above a winding frontier road; strong vertical silhouette, teal mountain dusk.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: watchtower. A single rough stone watchtower with red pennant, timber viewing platform and a small guard silhouette holding a torch above a winding frontier road; strong vertical silhouette, teal mountain dusk. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "trainingYard",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A compact walled training yard with red banners, wooden targets, weapon racks and a small roofed instructor stand; tiny red-cloaked warriors practice together, elevated view emphasizes the yard enclosure.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: trainingYard. A compact walled training yard with red banners, wooden targets, weapon racks and a small roofed instructor stand; tiny red-cloaked warriors practice together, elevated view emphasizes the yard enclosure. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "guardhouse",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A sturdy compact stone guardhouse beside a gate, vermilion shutters and a red pennant, shields and spear racks under an open porch with two tiny sentries; fortified domestic scale.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: guardhouse. A sturdy compact stone guardhouse beside a gate, vermilion shutters and a red pennant, shields and spear racks under an open porch with two tiny sentries; fortified domestic scale. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "roadStation",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A fortified roadside station with red tiled gable, shelter for a relay horse and a lantern-lit arch over the road; small red-cloaked courier and guard, distant teal hills.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: roadStation. A fortified roadside station with red tiled gable, shelter for a relay horse and a lantern-lit arch over the road; small red-cloaked courier and guard, distant teal hills. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "hallOfTheFallen",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A solemn small stone memorial hall with dark red roof, shield-shaped memorial stones and extinguished helmets arranged beside a single warm brazier, two tiny red-cloaked mourners at its steps, no text.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: hallOfTheFallen. A solemn small stone memorial hall with dark red roof, shield-shaped memorial stones and extinguished helmets arranged beside a single warm brazier, two tiny red-cloaked mourners at its steps, no text. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "arsenal",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A broad fortified arsenal with vermilion roofs, open arched storerooms displaying orderly racks of shields, spears and armor; tiny quartermasters wheel a weapon cart through the central doorway, iron-plum masonry.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: arsenal. A broad fortified arsenal with vermilion roofs, open arched storerooms displaying orderly racks of shields, spears and armor; tiny quartermasters wheel a weapon cart through the central doorway, iron-plum masonry. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "frontierKeep",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A rugged frontier keep with two squat towers, red banners and a timber palisade overlooking a wilderness pass; tiny sentries and a supply wagon, strong defensible stepped silhouette.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: frontierKeep. A rugged frontier keep with two squat towers, red banners and a timber palisade overlooking a wilderness pass; tiny sentries and a supply wagon, strong defensible stepped silhouette. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "cavalryGrounds",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A broad cavalry training compound with red-roofed stable wings and an oval riding yard where small red-cloaked riders circle wooden targets; horses and open training ground dominate, teal hill shadows.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: cavalryGrounds. A broad cavalry training compound with red-roofed stable wings and an oval riding yard where small red-cloaked riders circle wooden targets; horses and open training ground dominate, teal hill shadows. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "siegeYard",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A fortified siege engineering yard with red-roofed workshops, a tall wooden trebuchet, wheeled mantlets and stacked stones; tiny engineers assemble the machine around its central counterweight, architectural compound focus.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: siegeYard. A fortified siege engineering yard with red-roofed workshops, a tall wooden trebuchet, wheeled mantlets and stacked stones; tiny engineers assemble the machine around its central counterweight, architectural compound focus. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warCollege",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A commanding red-roofed martial college with two square towers flanking a honey-lit doorway, open strategy courtyard with a campaign table and small red-cloaked cadets; disciplined stone architecture.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warCollege. A commanding red-roofed martial college with two square towers flanking a honey-lit doorway, open strategy courtyard with a campaign table and small red-cloaked cadets; disciplined stone architecture. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "musterGround",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "An enclosed military muster square with a tall red rally standard, small orderly groups of red-cloaked recruits and supply carts around a modest tally pavilion; elevated view, gathering troops central.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: musterGround. An enclosed military muster square with a tall red rally standard, small orderly groups of red-cloaked recruits and supply carts around a modest tally pavilion; elevated view, gathering troops central. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "beaconChain",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A near stone beacon tower with a burning brazier and red pennant overlooks a succession of smaller lit towers along teal ridgelines; tiny watchmen, clear repeating points of flame link the settlements.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: beaconChain. A near stone beacon tower with a burning brazier and red pennant overlooks a succession of smaller lit towers along teal ridgelines; tiny watchmen, clear repeating points of flame link the settlements. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "quartermasterHall",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A broad red-roofed quartermaster hall with two open loading arches, orderly food sacks, armor racks and wagons being supplied by tiny red-cloaked attendants; logistics compound rather than a battle scene.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: quartermasterHall. A broad red-roofed quartermaster hall with two open loading arches, orderly food sacks, armor racks and wagons being supplied by tiny red-cloaked attendants; logistics compound rather than a battle scene. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warMarket",
+      "pool": "warrior",
+      "cells": 1,
+      "scene": "A fortified compact market square with vermilion awnings, weapon and shield stalls and tiny red-cloaked merchants exchanging plain coins beside a pack mule; supply trading rather than fighting.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warMarket. A fortified compact market square with vermilion awnings, weapon and shield stalls and tiny red-cloaked merchants exchanging plain coins beside a pack mule; supply trading rather than fighting. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: vertical portrait 3:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/granary.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "wallsOfTheLastRefuge",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "Massive weathered refuge walls with red banners enclose a warm-lit gate while small groups of displaced villagers enter safely, defenders stand above; teal storm and ruined wilderness outside, hopeful protective scale.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: wallsOfTheLastRefuge. Massive weathered refuge walls with red banners enclose a warm-lit gate while small groups of displaced villagers enter safely, defenders stand above; teal storm and ruined wilderness outside, hopeful protective scale. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "hallOfChampions",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A proud stone champions' hall with red roof and a wide stair flanked by trophy shields, a pair of armored guardian statues and tiny red-cloaked visitors; warm doorway, trophies without writing.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: hallOfChampions. A proud stone champions' hall with red roof and a wide stair flanked by trophy shields, a pair of armored guardian statues and tiny red-cloaked visitors; warm doorway, trophies without writing. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "bannerHall",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A monumental timber-and-stone banner hall, red roof and open great doorway revealing many distinct hanging vermilion standards and a central ceremonial spear; tiny heralds establish scale.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: bannerHall. A monumental timber-and-stone banner hall, red roof and open great doorway revealing many distinct hanging vermilion standards and a central ceremonial spear; tiny heralds establish scale. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "ashenMarchFortress",
+      "pool": "warrior",
+      "cells": 3,
+      "scene": "A vast battered fortress with red bannered towers stretches across an ash-grey volcanic frontier pass, teal smoke and embers beyond its walls, organized supply wagons approach the glowing central gate; no gore.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: ashenMarchFortress. A vast battered fortress with red bannered towers stretches across an ash-grey volcanic frontier pass, teal smoke and embers beyond its walls, organized supply wagons approach the glowing central gate; no gore. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warMinistry",
+      "pool": "warrior",
+      "cells": 3,
+      "scene": "A sprawling red-roofed military ministry with disciplined symmetrical wings, fortified central tower and courtyards of supply carts and small officers; civic strategic headquarters, no battlefield.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warMinistry. A sprawling red-roofed military ministry with disciplined symmetrical wings, fortified central tower and courtyards of supply carts and small officers; civic strategic headquarters, no battlefield. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "ashenHostCamp",
+      "pool": "warrior",
+      "cells": 3,
+      "scene": "An enormous organized military camp across an ash-grey plateau, red tents, mobile timber palisades, horse lines and wagon lanes surround a grand red command pavilion; tiny anonymous hosts, teal smoke horizon.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: ashenHostCamp. An enormous organized military camp across an ash-grey plateau, red tents, mobile timber palisades, horse lines and wagon lanes surround a grand red command pavilion; tiny anonymous hosts, teal smoke horizon. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "hallOfFallenKings",
+      "pool": "warrior",
+      "cells": 3,
+      "scene": "A monumental weathered royal memorial hall with dark red roofs, tall stone effigies of fallen armored rulers and stacked ancestral shields, tiny red-cloaked visitors climb the warm-lit central stair, no inscriptions.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: hallOfFallenKings. A monumental weathered royal memorial hall with dark red roofs, tall stone effigies of fallen armored rulers and stacked ancestral shields, tiny red-cloaked visitors climb the warm-lit central stair, no inscriptions. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "monsterWard",
+      "pool": "warrior",
+      "cells": 2,
+      "scene": "A fortified red-roofed monster ward with heavy timber gates, hooked iron palisades, oversized protective shields and braziers; small red-cloaked defenders watch an indistinct beast silhouette beyond distant teal fog.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: monsterWard. A fortified red-roofed monster ward with heavy timber gates, hooked iron palisades, oversized protective shields and braziers; small red-cloaked defenders watch an indistinct beast silhouette beyond distant teal fog. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: horizontal landscape 3:2, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/warlordsHall.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    },
+    {
+      "id": "warlordCourt",
+      "pool": "warrior",
+      "cells": 3,
+      "scene": "A sprawling red-bannered warlord court with a grand fortified audience hall, broad raised stone dais and open assembly courtyard where tiny officers and emissaries gather; iron-plum walls, commanding red-roof silhouette.",
+      "prompt": "Use case: stylized-concept. Asset type: one opaque full-bleed game card painting, without a card frame. Generate ONE new original scene, matching the handcrafted VGA pixel-art style of the reference images. Reference 1 is the existing game's painting: match its art direction only, do not duplicate its subject or composition. References 2 and 3 are pixel-cluster style references only: exclude their eye, architecture and UI arrow subjects. Carefully shaped hard-edged pixel clusters, crisp stepped silhouettes, selective ordered dithering, planar shading, roughly 24-36 purposeful colors; no photographic or oil texture, no smooth gradients, glossy 3D, noisy filter, typography, icons, borders or watermarks. Human faces indiscernible; anonymous small grouped figures. Strong unmistakable central focal object/action, distinct silhouette, legible at 100px wide, broad quiet corners for game overlays. Medieval dark-fantasy civilization, believable wood/stone/parchment/iron materials. Subject: warlordCourt. A sprawling red-bannered warlord court with a grand fortified audience hall, broad raised stone dais and open assembly courtyard where tiny officers and emissaries gather; iron-plum walls, commanding red-roof silhouette. Palette: vermilion/brick-red accents, oxidized teal shadow masses, dark iron plum, warm ivory highlights. Red banners, roofs or cloaks anchor the Warrior identity. Composition: very wide horizontal landscape 9:4, full bleed. Building or compound dominates the image; humans are very small scale figures, not foreground portraits.",
+      "references": [
+        "images/dark-fantasy/settlement-pieces-v4/academy.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ]
+    }
+  ]
+}
