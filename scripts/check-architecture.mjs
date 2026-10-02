@@ -112,6 +112,9 @@ function collectModelImportFailures(normalizedPath, source) {
         `${normalizedPath} imports UI/controller layer ${specifier}`,
       );
     }
+    if (specifier === "pixi.js" || specifier.startsWith("pixi") || specifier.includes("/pixi")) {
+      failures.push(`${normalizedPath} imports UI renderer ${specifier}`);
+    }
     for (const rule of LEFTOVER_MODULE_IMPORT_RULES) {
       if (rule.pattern.test(specifier) && !rule.allowlist.has(normalizedPath)) {
         failures.push(`${normalizedPath} ${rule.message}`);
@@ -159,6 +162,17 @@ async function checkSourceTree() {
     const normalizedPath = displayPath(filePath);
     if (/\bMath\.random\s*\(/u.test(source)) {
       failures.push(`${normalizedPath} uses Math.random()`);
+    }
+    if (
+      normalizedPath.startsWith("src/model/")
+      && !normalizedPath.startsWith("src/model/tests/")
+    ) {
+      if (/\bcrypto\.(?:getRandomValues|randomUUID)\s*\(/u.test(source)) {
+        failures.push(`${normalizedPath} draws entropy outside state.rng`);
+      }
+      if (/\b(?:document|localStorage|sessionStorage|PIXI|HTMLElement|querySelector(?:All)?)\b/u.test(source)) {
+        failures.push(`${normalizedPath} depends on a browser UI global`);
+      }
     }
     failures.push(...collectModelImportFailures(normalizedPath, source));
   }
