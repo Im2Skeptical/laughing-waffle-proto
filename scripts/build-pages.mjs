@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+  access,
   copyFile,
   cp,
   mkdir,
@@ -21,6 +22,16 @@ function relativeUrl(filePath) {
 
 function shortContentHash(contents) {
   return createHash("sha256").update(contents).digest("hex").slice(0, 12);
+}
+
+async function assertUnpublished(filePath) {
+  try {
+    await access(filePath);
+  } catch (error) {
+    if (error?.code === "ENOENT") return;
+    throw error;
+  }
+  throw new Error(`Pages published ${filePath}`);
 }
 
 async function buildPagesArtifact() {
@@ -85,13 +96,26 @@ async function buildPagesArtifact() {
   await cp("images", path.join(outDir, "images"), {
     recursive: true,
     filter(source) {
-      const parts = source.split(path.sep);
+      const parts = source.split(/[/\\]/);
       const filename = parts.at(-1) ?? "";
-      return !parts.includes("GameElements")
+      const darkFantasyIndex = parts.indexOf("dark-fantasy");
+      // fs.cp does not visit children of a rejected directory, so dark-fantasy
+      // itself is entered. The workbench loads v4 paintings by path; the other
+      // source masters stay out of the published site.
+      const keepDarkFantasy = darkFantasyIndex === -1
+        || parts.length === darkFantasyIndex + 1
+        || parts.includes("card-chrome-prototype")
+        || parts.includes("settlement-pieces-v4");
+      return keepDarkFantasy
+        && !parts.includes("GameElements")
         && !/^resource-language-[01]\.(json|png)$/.test(filename)
         && !/^test-(data|sheet)-/.test(filename);
     },
   });
+  await access(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/renderer.js"));
+  await access(path.join(outDir, "images/dark-fantasy/settlement-pieces-v4/forage.webp"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v2"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v3"));
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
   // Isolated art workbench: bundle its read-only definition imports for Pages.

@@ -12,11 +12,8 @@ import {
   getSettlementPracticeSlotsByClass,
 } from "./settlement-state.js";
 import {
-  buildGeneratedElderAgendaByClass,
   cloneSerializable,
-  getMortalityChance,
   normalizeAgendaByClass,
-  pickWeightedClassId,
   uniquePracticeIds,
 } from "./settlement-leadership.js";
 
@@ -266,137 +263,6 @@ function normalizeDebugPracticeBoardByClass(rawDebugPracticeBoardByClass, state)
     }
   }
   return next;
-}
-
-function getSuppressedPracticeIdsForClass(councilState, state, classId) {
-  const currentYear = getCurrentSettlementYear(state);
-  const byClass =
-    councilState?.suppressedPracticeYearsByClass &&
-    typeof councilState.suppressedPracticeYearsByClass === "object" &&
-    !Array.isArray(councilState.suppressedPracticeYearsByClass)
-      ? councilState.suppressedPracticeYearsByClass[classId]
-      : null;
-  const blocked = new Set();
-  if (!byClass || typeof byClass !== "object" || Array.isArray(byClass)) return blocked;
-  for (const [defId, year] of Object.entries(byClass)) {
-    if (!settlementPracticeDefs[defId]) continue;
-    if (Math.floor(year) !== currentYear) continue;
-    blocked.add(defId);
-  }
-  return blocked;
-}
-
-function createRecruitMember(card, state, orderDef) {
-  const councilState = card?.systemState?.elderCouncil;
-  if (!councilState) return null;
-  const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
-  const populationSummary = getSettlementPopulationSummary(state);
-  const byClass = populationSummary?.byClass ?? {};
-  const classIds = getSettlementClassIds(state);
-  const sourceClassId = pickWeightedClassId(state, classIds, byClass);
-  const modifierIds = Object.keys(orderDef?.prestigeModifiers ?? {}).sort((a, b) => a.localeCompare(b));
-  const modifierId =
-    modifierIds.length > 0 && typeof state?.rngNextInt === "function"
-      ? modifierIds[state.rngNextInt(0, modifierIds.length - 1)] ?? modifierIds[0]
-      : modifierIds[0] ?? null;
-  const nextMemberId = Number.isFinite(councilState.nextMemberId)
-    ? Math.max(1, Math.floor(councilState.nextMemberId))
-    : 1;
-  councilState.nextMemberId = nextMemberId + 1;
-  const ageYears =
-    typeof state?.rngNextInt === "function" ? state.rngNextInt(45, 64) : 55;
-  const agendaByClass = buildGeneratedElderAgendaByClass(state, classIds, () => {
-    if (typeof state?.rngNextInt === "function") {
-      return state.rngNextInt(1, 3);
-    }
-    return 1;
-  }, {
-    blockedPracticeIdsByClass: Object.fromEntries(
-      classIds.map((classId) => [classId, getSuppressedPracticeIdsForClass(councilState, state, classId)])
-    ),
-  });
-  return {
-    memberId: `elder-${nextMemberId}`,
-    sourceClassId,
-    joinedYear: currentYear,
-    ageYears,
-    modifierId,
-    sourceVassalId: null,
-    agendaByClass,
-  };
-}
-
-function maybeRecruitElders(card, state, orderDef) {
-  const recruitmentCadenceYears = Number.isFinite(orderDef?.recruitmentCadenceYears)
-    ? Math.max(1, Math.floor(orderDef.recruitmentCadenceYears))
-    : 5;
-  const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
-  if (currentYear % recruitmentCadenceYears !== 0) return false;
-  const adultsPerElder = Number.isFinite(orderDef?.recruitmentAdultsPerElder)
-    ? Math.max(1, Math.floor(orderDef.recruitmentAdultsPerElder))
-    : 100;
-  const populationSummary = getSettlementPopulationSummary(state);
-  const totalAdults = Math.max(0, Math.floor(populationSummary?.adults ?? 0));
-  let recruitCount = Math.floor(totalAdults / adultsPerElder);
-  const remainder = totalAdults % adultsPerElder;
-  if (
-    remainder > 0 &&
-    typeof state?.rngNextFloat === "function" &&
-    state.rngNextFloat() < remainder / adultsPerElder
-  ) {
-    recruitCount += 1;
-  }
-  if (recruitCount <= 0) return false;
-
-  const councilState = card?.systemState?.elderCouncil;
-  if (!councilState) return false;
-  for (let index = 0; index < recruitCount; index += 1) {
-    const member = createRecruitMember(card, state, orderDef);
-    if (member) {
-      councilState.members.push(member);
-    }
-  }
-  return recruitCount > 0;
-}
-
-function processAnnualCouncilUpdate(card, state, orderDef) {
-  const councilState = ensureElderCouncilState(card, state);
-  if (!councilState) return false;
-  const currentYear = Number.isFinite(state?.year) ? Math.max(1, Math.floor(state.year)) : 1;
-  if (councilState.lastProcessedYear >= currentYear) return false;
-
-  const priorMemberCount = Array.isArray(councilState.members) ? councilState.members.length : 0;
-  const survivors = [];
-  for (const member of councilState.members) {
-    if (typeof member?.sourceVassalId === "string" && member.sourceVassalId.length > 0) {
-      survivors.push({
-        ...member,
-        agendaByClass: cloneSerializable(member?.agendaByClass ?? {}),
-      });
-      continue;
-    }
-    const nextMember = {
-      ...member,
-      ageYears: Math.max(0, Math.floor(member?.ageYears ?? 0)) + 1,
-      agendaByClass: cloneSerializable(member?.agendaByClass ?? {}),
-    };
-    const mortalityChance = getMortalityChance(orderDef, nextMember.ageYears);
-    if (
-      mortalityChance > 0 &&
-      typeof state?.rngNextFloat === "function" &&
-      state.rngNextFloat() < mortalityChance
-    ) {
-      continue;
-    }
-    survivors.push(nextMember);
-  }
-  councilState.members = survivors;
-  const recruited = maybeRecruitElders(card, state, orderDef);
-  councilState.lastProcessedYear = currentYear;
-  return (
-    recruited ||
-    (Array.isArray(councilState.members) ? councilState.members.length : 0) !== priorMemberCount
-  );
 }
 
 function buildPracticePrestigeTotalsForClass(orderDef, councilState, classId) {
@@ -825,43 +691,6 @@ export function setDebugPracticeBoardSlot(state, classId, slotIndex, practiceDef
     practicePrestigeTotalsByClass
   );
   return true;
-}
-
-export function stepSettlementOrders(state, tSec) {
-  const card = getFirstOrderCard(state, "elderCouncil");
-  if (!card) return false;
-  const orderDef = getOrderDef(card);
-  if (!orderDef) return false;
-
-  const councilState = ensureElderCouncilState(card, state);
-  if (!councilState) return false;
-  const needsRuntimeSync =
-    councilState.runtimeSyncDirty === true || !hasOrderRuntime(card);
-  if (state?._seasonChanged !== true && !needsRuntimeSync) {
-    return false;
-  }
-
-  let changed = false;
-  if (state?._seasonChanged === true) {
-    changed = processAnnualCouncilUpdate(card, state, orderDef) || changed;
-  }
-
-  const { resolvedBoardsByClass, practicePrestigeTotalsByClass } = resolveBoardsByClass(
-    state,
-    card,
-    orderDef
-  );
-  for (const classId of getSettlementClassIds(state)) {
-    changed = reconcilePracticeBoard(state, classId, resolvedBoardsByClass[classId] ?? []) || changed;
-  }
-  syncOrderRuntime(
-    card,
-    state,
-    orderDef,
-    resolvedBoardsByClass,
-    practicePrestigeTotalsByClass
-  );
-  return changed;
 }
 
 function areAgendaByClassEqual(left, right, classIds) {

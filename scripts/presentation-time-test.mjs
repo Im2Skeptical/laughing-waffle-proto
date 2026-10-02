@@ -5,6 +5,13 @@ import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/m
 import { createNewGameState } from '../src/model/new-game.js';
 import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements.js';
+import { SEASON_DURATION_SEC } from '../src/defs/gamesettings/gamerules-defs.js';
+import { VASSAL_LIFE_TUNING } from '../src/defs/gamepieces/vassal-life-map-defs.js';
+import { getSettlementYearDurationSec } from '../src/model/settlement-state.js';
+import {
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
+} from '../src/views/ui-root/settlement-graph-session.js';
 
 const faceClock={tSec:0,seasonDurationSec:8};
 const workerFace=getGamepieceFace(faceClock,'practice','forage','bronze',{workers:{tokens:[{effectiveness:.5}],effectiveWorkers:.5}});
@@ -37,6 +44,11 @@ for(const [second,season,nextSec,fill] of [[0,'summer',9,0],[8,'summer',9,8/9],[
 assert.deepEqual(getGamepieceFace({...faceClock,tSec:17},'practice','dryFarming').nextTrigger,{season:'summer',tSec:41},'Skip both winter and spring when neither triggers');
 assert.deepEqual(getGamepieceFace({...faceClock,tSec:9},'practice','saltGathering').nextTrigger,{season:'summer',tSec:41},'Single-season triggers wrap to next year');
 assert.deepEqual(getGamepieceFace({seasonDurationSec:10,tSec:21},'practice','logging').nextTrigger,{season:'spring',tSec:40},'Respect configured season duration');
+assert.equal(getSettlementYearDurationSec({}), SEASON_DURATION_SEC * 4, 'a missing season length is one 8-second season, four times');
+assert.equal(getSettlementYearDurationSec({ seasonDurationSec: 10, seasons: [0, 1] }), 20);
+assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, SEASON_DURATION_SEC * 4 * SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS);
+assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, 3200);
+assert.equal(VASSAL_LIFE_TUNING.relicChoicePhaseCost, 32 * 5);
 for(const duration of [1,8,10]) {
   const state=createNewGameState(42);state.paused=false;state.seasonDurationSec=duration;
   const site=getDetailedSettlementSites(state,{playerOnly:true})[0];
