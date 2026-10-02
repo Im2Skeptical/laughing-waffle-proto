@@ -733,21 +733,50 @@ export function createMetricGraphView({
     );
   }
 
+  // Key only. The restored state stays with the caller so a later mutate cannot be replayed from here.
+  let latchedForecastRestoreMemo = null;
+
   function tryRestoreLatchedForecastPreview() {
-    if (scrub.isScrubbing || !Number.isFinite(scrub.latchedForecastScrubSec)) return;
+    if (!Number.isFinite(scrub.latchedForecastScrubSec)) {
+      latchedForecastRestoreMemo = null;
+      return;
+    }
+    if (scrub.isScrubbing) {
+      latchedForecastRestoreMemo = null;
+      return;
+    }
     const tl = getTimeline?.();
     const historyEnd = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
-    if (scrub.latchedForecastScrubSec <= historyEnd) {
+    const revision = Number.isFinite(tl?.revision) ? Math.floor(tl.revision) : 0;
+    const latchedSecond = scrub.latchedForecastScrubSec;
+    if (latchedSecond <= historyEnd) {
       clearLatchedForecastScrub(scrub);
+      latchedForecastRestoreMemo = null;
       return;
     }
-    if (scrub.latchedForecastScrubSec > getVisibleForecastScrubCapSec()) {
+    const memo = latchedForecastRestoreMemo;
+    const sameLatch =
+      memo != null &&
+      memo.latchedSecond === latchedSecond &&
+      memo.revision === revision &&
+      memo.historyEndSec === historyEnd;
+    if (!sameLatch) latchedForecastRestoreMemo = null;
+    if (latchedSecond > getVisibleForecastScrubCapSec()) return;
+    // Loading/revealing means the preview was discarded; do not skip the restorer.
+    if (sameLatch && scrub.statusNote === scrub.forecastPreviewStatusNote) {
+      scrub.scrubSec = clampScrubSecToRevealCap(latchedSecond);
+      scrub.statusNote = scrub.forecastPreviewStatusNote;
       return;
     }
-    const restored = controller.getStateAt?.(scrub.latchedForecastScrubSec);
+    const restored = controller.getStateAt?.(latchedSecond);
     if (!restored) return;
     setPreviewState?.(restored);
-    scrub.scrubSec = clampScrubSecToRevealCap(scrub.latchedForecastScrubSec);
+    latchedForecastRestoreMemo = {
+      latchedSecond,
+      revision,
+      historyEndSec: historyEnd,
+    };
+    scrub.scrubSec = clampScrubSecToRevealCap(latchedSecond);
     scrub.statusNote = scrub.forecastPreviewStatusNote;
   }
 
