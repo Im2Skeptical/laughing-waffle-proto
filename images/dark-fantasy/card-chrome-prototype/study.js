@@ -1,5 +1,5 @@
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
-import { assembleCard, loadCardAssets } from './renderer.js';
+import { assembleCard, inspectNumberBounds, loadCardAssets } from './renderer.js';
 
 const ids = ['forage', 'logging', 'smelting', 'alchemy', 'anatomicalStudy', 'warCouncil'];
 const presets = [
@@ -60,9 +60,9 @@ function makeApp(host, width, height) {
 function draw(app, face, width) {
   for (const child of app.stage.removeChildren()) child.destroy({ children: true });
   const scale = width / 300;
-  app.renderer.resize(Math.ceil(width + 34 * scale), Math.ceil(502 * scale));
+  app.renderer.resize(Math.ceil(width + 40 * scale), Math.ceil(578 * scale));
   const card = assembleCard(face);
-  card.scale.set(scale); card.position.set(15 * scale, 43 * scale);
+  card.scale.set(scale); card.position.set(15 * scale, 112 * scale);
   app.stage.addChild(card); app.render();
 }
 
@@ -78,7 +78,7 @@ function update(message = '') {
   if (!assetsReady) return;
   const face = faceFor(state);
   const requestedWidth = Number($('size').value);
-  const width = Math.min(requestedWidth, ($('hero').clientWidth - 4) * 300 / 334);
+  const width = Math.min(requestedWidth, ($('hero').clientWidth - 4) * 300 / 340);
   draw(hero, face, width);
   $('size-label').textContent = `${Math.round(width)} px`;
   $('card-title').textContent = face.label;
@@ -121,7 +121,7 @@ function readControls() {
 async function main() {
   ids.forEach(id => { const option = document.createElement('option'); option.value = id; option.textContent = `${definitions[id].label} · ${definitions[id].mode}`; $('card').appendChild(option); });
   await loadCardAssets(ids);
-  hero = makeApp($('hero'), 334, 502); assetsReady = true;
+  hero = makeApp($('hero'), 340, 578); assetsReady = true;
   for (const preset of presets) {
     const button = document.createElement('button'); button.type = 'button'; button.className = 'sample'; button.dataset.variant = preset.id;
     button.setAttribute('aria-label', `Inspect ${preset.title}`);
@@ -155,7 +155,7 @@ async function main() {
     link.href = hero.view.toDataURL('image/png'); link.click();
   });
   new ResizeObserver(() => update()).observe($('hero'));
-  window.cardWorkbench = { get face() { return faceFor(state); }, get state() { return { ...state }; }, selectPreset: id => selectPreset(presets.find(p => p.id === id) ?? presets[0]), get canvasCount() { return apps.length; } };
+  window.cardWorkbench = { get face() { return faceFor(state); }, get state() { return { ...state }; }, selectPreset: id => selectPreset(presets.find(p => p.id === id) ?? presets[0]), get canvasCount() { return apps.length; }, get numberBounds() { return inspectNumberBounds(hero.stage.children[0]); } };
   document.body.dataset.ready = 'true';
 }
 

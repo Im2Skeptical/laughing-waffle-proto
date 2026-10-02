@@ -9,10 +9,12 @@ from the game. The live card renderer does not import this prototype.
 **Approval boundary:** keep this treatment inside the prototype until the user
 explicitly confirms production integration.
 
-Revision 2 restores the existing solar/lunar wheels, adds clearer separated
-seasonal rows, replaces worker portraits with identical anonymous pawns in a
-continuous multiplier housing, forges the circular Charge wells into the
-reservoir, and gives Stock output plaques the crate's wood-and-brass treatment.
+Revision 4 adds square Stock count/output faces for larger numbers. The count
+and capacity use separate lines on the crate. Numeric text fits both the width
+and height of its dark recess, including stroke/shadow bounds. The multiplier
+recess expands with fixed frame corners so its large text stays contained.
+Compact left-offset Charge circles, segmented anonymous worker arches, plain
+yield-row icons, and the original solar/lunar wheels are retained.
 
 ## What to try
 
@@ -34,10 +36,13 @@ reservoir, and gives Stock output plaques the crate's wood-and-brass treatment.
 
 ## Asset contract
 
-`components.png` and `components-v2.png` are original 1254×1254 RGBA ImageGen
-outputs, copied without raster modification. Their matching JSON manifests
-supply named pixel rectangles for 16 original and nine revised components.
-`prompts.json` and `prompts-v2.json` record the built-in ImageGen prompts.
+`components.png`, `components-v2.png`, `workers-v3.png`, and `stock-v4.png` are original RGBA
+ImageGen outputs, copied without raster modification. Their matching JSON
+manifests supply named pixel rectangles and sheet dimensions. The third sheet
+contains occupied/empty anonymous bust arches and a broad multiplier housing.
+The fourth contains a square-front crate and matching square output plaque.
+`prompts.json`, `prompts-v2.json`, `prompts-v3.json`, and `prompts-v4.json` record the built-in
+ImageGen prompts.
 Alpha channels, including the frame's transparent aperture, are preserved.
 The revised sheet is loaded only by this prototype; no production asset
 registry or game renderer was changed for this revision.
@@ -45,15 +50,25 @@ registry or game renderer was changed for this revision.
 `renderer.js` exports `loadCardAssets(ids)` and `assembleCard(face)`. Load first,
 then pass the presentation face returned by `getGamepieceFace` or a preview
 copy. `assembleCard` returns a Pixi 7 container in 300×420 logical coordinates.
-Allow 32px above, 36px below, and 15px on each side for floating ornaments.
+Allow 104px above, 36px below, and 24px on each side for floating ornaments.
 Scale the container to the desired card width. Destroy it with
 `{ children: true }`; shared atlas and painting textures belong to the loader.
 
 The frame and plates use nine-slice resizing with separately scaled corners.
-The worker housing stretches only along its empty shaft, retaining the arch
-and sculpted junction into the multiplier base. Identical pawns repeat inside.
-Charge housings are single illustrated objects with one, two, or three circular
-wells. Live trigger icons and segmented enamel fill occupy their recesses.
+Separate worker arches repeat at a 48px pitch, retaining their individual rim
+and sill. The lowest arch joins the flared neck of a 78×88px multiplier housing.
+Its number recess expands through nine-slice resizing, preserving the corner
+art. All numeric recesses fit text in two dimensions with a rounding margin.
+The Charge artwork is split into an upper circle group
+and its matching rail/reservoir using texture regions. The illustrated necks
+remain attached to the small, left-offset circles; the reservoir extends right
+without enlarging the circles. Live icons and segmented enamel fill occupy
+their recesses. Yield-row icons share one aligned column without icon sockets.
+The 148×156px crate has a square front; count and capacity stack inside it.
+Single Charge output plaques are 78×78px, with larger live numerals. Scheduled
+and multiple-output panels expand by row count and retain separate numeric
+recesses. `inspectNumberBounds(card)` reports actual bounds for preview checks;
+the workbench exposes these as `window.cardWorkbench.numberBounds`.
 Numbers are live Pixi text; no values are baked into the art. The unchanged
 solar-wheel and moon-wheel textures and resource symbols use the existing
 TexturePacker resource atlas. Card paintings reuse the named WebP sources.
@@ -67,7 +82,7 @@ The prototype is intentionally not a second production renderer.
 
 The demonstrated layout supports up to three Stock traits, three trigger/output
 rows, four worker sockets, and twelve Charge segments. Extreme values are for
-readability checks. Identical light/dark pawns indicate occupied/empty sockets;
+readability checks. Identical light/dark busts indicate occupied/empty sockets;
 they do not encode identity or specialist class. Detailed trigger event kinds
 remain in the adjacent explanation; the
 current illustrated symbols alone do not distinguish generation from use.

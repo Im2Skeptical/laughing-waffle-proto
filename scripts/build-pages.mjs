@@ -105,6 +105,7 @@ async function buildPagesArtifact() {
       const keepDarkFantasy = darkFantasyIndex === -1
         || parts.length === darkFantasyIndex + 1
         || parts.includes("card-chrome-prototype")
+        || parts.includes("tooltip-prototype")
         || parts.includes("settlement-pieces-v4");
       return keepDarkFantasy
         && !parts.includes("GameElements")
@@ -123,6 +124,14 @@ async function buildPagesArtifact() {
   await build({
     entryPoints: ["images/dark-fantasy/card-chrome-prototype/study.js"],
     outfile: path.join(outDir, "images/dark-fantasy/card-chrome-prototype/study.js"),
+    bundle: true, platform: "browser", format: "esm", target: ["es2020"],
+    legalComments: "none", logLevel: "silent",
+  });
+
+  // Tooltip workshop consumes the same read-only card presentation and artwork.
+  await build({
+    entryPoints: ["images/dark-fantasy/tooltip-prototype/study.js"],
+    outfile: path.join(outDir, "images/dark-fantasy/tooltip-prototype/study.js"),
     bundle: true, platform: "browser", format: "esm", target: ["es2020"],
     legalComments: "none", logLevel: "silent",
   });
