@@ -6,6 +6,7 @@
   "main": "index.html",
   "scripts": {
     "start": "serve",
+    "prototype:vassal": "serve . --listen 4173",
     "build": "node scripts/build-pages.mjs",
     "build:sprites": "node scripts/build-sprite-sheets.mjs",
     "check:assets": "node scripts/check-asset-manifest.mjs",
