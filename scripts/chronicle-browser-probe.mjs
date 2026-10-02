@@ -284,8 +284,7 @@ try {
   await delay(250);
   const node=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
   await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),node));
-  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
-    .lifeMapDecision.animation?.phase==='open');
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   const enter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   if(enter)await click(enter);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
@@ -355,8 +354,7 @@ try {
   await delay(250);
   const shopNode=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
   await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),shopNode));
-  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
-    .lifeMapDecision.animation?.phase==='open');
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   const shopEnter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   if(shopEnter)await click(shopEnter);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()

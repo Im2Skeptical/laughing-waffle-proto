@@ -1404,6 +1404,9 @@ function handleGlobalKeyDown(ev) {
     vassalNodeDecisionModalView.close();
     return;
   }
+  if (!vassalNodeDecisionModalView?.isOpen?.() && !vassalLevelUpModalView?.isOpen?.()
+    && !vassalHeirloomFlowView?.isOpen?.()
+    && vassalLifeMapView?.handleKeyDown?.(ev)) return;
   if (ev.code === "Space" || ev.key === " ") {
     ev.preventDefault();
     togglePause();
@@ -1463,6 +1466,7 @@ function publishSettlementDebugApi() {
         frontierSec: presentation.frontierSec,
         committedNodeIds: presentation.committedNodeIds ?? [],
         playheadNodeId: presentation.playheadNodeId ?? null,
+        candidateNodeId: vassalLifeMapView?.getCandidateNodeId?.() ?? null,
         profile: presentation.profileVassal ? {
           prestige: presentation.profileVassal.prestige,
           stats: presentation.profileVassal.stats,
@@ -1542,7 +1546,8 @@ function publishSettlementDebugApi() {
     getVassalSelectionPool: () => settlementVassalFlow.getPendingSelection(),
     isVassalSelectionOpen: () => !!settlementVassalFlow.getPendingSelection(),
     getLifeMapNodeClickPoint: (nodeId) => vassalLifeMapView?.getNodeClickPoint?.(nodeId) ?? null,
-    getLifeMapEnterNodeClickPoint: () => vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
+    getLifeMapEnterNodeClickPoint: () => vassalLifeMapView?.getEnterNodeClickPoint?.()
+      ?? vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
     getLifeMapOptionClickPoint: (index) => vassalNodeDecisionModalView?.getOptionClickPoint?.(index) ?? null,
     getLifeMapOfferFacePoint: index => vassalNodeDecisionModalView?.getOfferFacePoint?.(index) ?? null,
     getLifeMapInspectionClosePoint: () => vassalNodeDecisionModalView?.getInspectionClosePoint?.() ?? null,

@@ -239,8 +239,9 @@ try {
   const nodeId = (await snapshot()).current.availableNodeIds[0];
   const nodePoint = await controlPoint('getLifeMapNodeClickPoint', nodeId);
   await clickPoint(nodePoint);
-  await waitDecisionReady();
+  assert.equal((await snapshot()).decision.open, false, 'candidate selection keeps the map visible');
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
+  await waitDecisionReady();
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   await clickPoint(await controlPoint('getLifeMapOptionClickPoint', 0), { touch: true });
   const draft = await snapshot();

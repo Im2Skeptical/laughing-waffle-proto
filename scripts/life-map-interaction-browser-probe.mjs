@@ -30,8 +30,16 @@ try {
   const session = await page.context().newCDPSession(page);
   await session.send('Profiler.enable'); await session.send('Profiler.start');
   await click('getLifeMapNodeClickPoint',node);
-  await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase==='open');
-  await click('getLifeMapEnterNodeClickPoint');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open), false,
+    'selecting a candidate leaves the graph unobstructed');
+  assert.equal(await point('getLifeMapOptionClickPoint',0), null, 'candidate contents stay hidden');
+  await page.keyboard.press('Escape');
+  assert.equal(await point('getLifeMapEnterNodeClickPoint'), null, 'Escape clears the candidate');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId), null,
+    'Enter without a selected candidate does not commit');
+  await click('getLifeMapNodeClickPoint',node);
+  await page.keyboard.press('Enter');
   await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0), null, {timeout:5000});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
   await delay(500);
@@ -153,14 +161,35 @@ try {
     if (earnedLevel) break;
     const next = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
     const beforeEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+    const beforeComparison = await page.evaluate(() => {
+      const s=__SETTLEMENT_DEBUG__.getSnapshot();
+      return {lineage:s.lineage,timeline:s.runner.timeline,second:s.frontierSec};
+    });
+    const other = await page.evaluate(next => __SETTLEMENT_DEBUG__.getSnapshot()
+      .lineage.currentVassal.availableNodeIds.find(id => id !== next),next);
+    if (other) {
+      await click('getLifeMapNodeClickPoint',other);
+      assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.candidateNodeId),other);
+    }
     await click('getLifeMapNodeClickPoint',next);
-    await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase==='open');
-    await click('getLifeMapEnterNodeClickPoint');
+    assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.candidateNodeId),next);
+    assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open), false);
+    assert.equal(await point('getLifeMapOptionClickPoint',0),null,'comparison exposes no options');
+    assert.equal(await point('getLifeMapOfferClickPoint',0),null,'comparison exposes no offers');
+    assert.deepEqual(await page.evaluate(() => {
+      const s=__SETTLEMENT_DEBUG__.getSnapshot();
+      return {lineage:s.lineage,timeline:s.runner.timeline,second:s.frontierSec};
+    }),beforeComparison,'comparing candidates changes no simulation state or history');
+    const nextPoint = await point('getLifeMapNodeClickPoint',next);
+    const canvas = await page.locator('canvas').boundingBox();
+    await page.mouse.dblclick(canvas.x + nextPoint.x * canvas.width / 2424,
+      canvas.y + nextPoint.y * canvas.height / 1080, {delay:80});
+    await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open);
     await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
     const afterEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
     assert.equal(afterEntry.layoutBuilds,beforeEntry.layoutBuilds,'prepared node entry must not rebuild its graphics');
-    assert.ok(afterEntry.preparedLayoutHits>=beforeEntry.preparedLayoutHits+2,
-      'entry panel and entered choices both reuse prepared screens');
+    assert.ok(afterEntry.preparedLayoutHits>=beforeEntry.preparedLayoutHits+1,
+      'entered choices reuse the prepared screen');
     const available = await page.evaluate(() => {
       const d=__SETTLEMENT_DEBUG__,s=d.getSnapshot().lifeMapDecision;
       return s.costPanels.findIndex((panel,index)=>panel.interactionState!=='disabled' && d.getLifeMapOptionClickPoint(index));
