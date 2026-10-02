@@ -1,10 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 
 const root = process.cwd();
 const manifestPath = path.join(root, 'images', 'asset-manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 const failures = [];
+
+const settlementArt = manifest.spriteSheets['settlement-pieces'];
+const registeredPieces = new Set(settlementArt.files);
+for (const id of [...Object.keys(detailedSettlementPracticeDefs), ...Object.keys(settlementStructureDefs)]) {
+  if (!registeredPieces.has(`${id}.webp`)) failures.push(`runtime gamepiece has no dedicated registered painting: ${id}`);
+}
 
 async function requireFile(relativePath) {
   try {

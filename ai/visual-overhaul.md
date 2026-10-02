@@ -32,7 +32,8 @@ structures a shared brass/stone treatment. Thirty opaque full-bleed paintings
 replace the former cutouts. Outputs attach to the top edge, worker sockets to
 the left, and scheduled solar/lunar discs to the bottom. Disc rotation samples
 the existing readiness value from viewed simulation time. Reduced motion uses
-static readiness, while charge pieces retain a reservoir without numeric counts.
+static readiness, while Charge pieces show their reservoir, current/threshold
+counts and blocked state.
 Time costs sit together inside an illustrated hourglass inset.
 
 Gamepiece inspections share `chronicle-inspection.js`: shop offers open right,
@@ -67,7 +68,13 @@ All seven atlases live in `images/dark-fantasy/` and are loaded as nearest-neigh
 
 See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md), including the approved [resource and timepiece family](../images/dark-fantasy/resource-language-v1/README.md).
 
-The current library contains thirty-six paintings, including a distinct illustration for each of the thirty current Practices and Structures, eight portraits, four terrain types, one menu panorama, and four-frame hamlet/fire loops. The presentation test guards unique gamepiece illustration coverage. Additional terrain variants, portrait archetypes, and combat/weather animation sets would expand its production depth; those extra sets are not represented as completed assets.
+The settlement library includes a distinct painting for each of the 187 current
+Practices and Structures, plus retained earlier-card paintings. The CivContent
+2.6 art pass adds 59 paintings and preserves the other 128 runtime paintings.
+The existing portrait, terrain, panorama and hamlet/fire assets remain available.
+Asset checks require every runtime card's named source and packed texture;
+presentation tests require distinct illustration references. Additional terrain
+variants, portrait archetypes and combat/weather animation sets remain future work.
 
 ## Implementation routes
 

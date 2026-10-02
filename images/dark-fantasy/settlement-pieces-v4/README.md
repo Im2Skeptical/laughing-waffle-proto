@@ -20,3 +20,18 @@ Palette families:
 The palette is part of the illustration and should still read at the size of
 the actual card. Broad quiet areas remain available for stock and timing
 overlays. See `prompts.json` for the shared edit brief and palette rules.
+
+## CivContent 2.6 additions
+
+The expanded runtime pool adds 59 original paintings: 15 Practices and 44
+Structures. The other 128 runtime paintings and the earlier-card inventory
+are preserved byte for byte. Each addition was generated separately with the
+built-in ImageGen tool, using the existing paintings and the same two pixel-art
+style references. `civcontent-2.6-prompts.json` records every scene, palette,
+composition and reference. Source images are opaque lossless WebP; the runtime
+uses the existing TexturePacker scale and nearest-neighbor texture treatment.
+
+Practice compositions use 5:7 portraits. One-cell Structures use 3:4 portraits,
+two-cell Structures 3:2 landscapes, and three-cell Structures 9:4 landscapes.
+The asset check requires a dedicated registered and packed painting for every
+runtime Practice and Structure.
