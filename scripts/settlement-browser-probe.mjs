@@ -645,7 +645,8 @@ try {
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapHud
   );
   assert.equal(hudWhileOpen?.visible, true, "the Vassal HUD stays visible over the decision modal");
-  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.animation?.phase==='open');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open),
+    false, "candidate inspection does not open the decision modal");
   const enterNodePoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()
   );

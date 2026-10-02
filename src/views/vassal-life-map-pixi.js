@@ -13,6 +13,7 @@ import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
+import { button } from './vassal-node-decision/cards.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -55,6 +56,7 @@ export function createVassalLifeMapView({
   const nodeRoots = new Map();
   let signature = "";
   let inspectedNodeId = null;
+  let candidateNodeId = null;
   let hoveredNodeId = null;
   let displayedVassalId = null;
   let lastClick = { nodeId: null, atMs: 0 };
@@ -76,6 +78,7 @@ export function createVassalLifeMapView({
       recapSuppressedTooltip = true;
       hoveredNodeId = null;
       inspectedNodeId = null;
+      candidateNodeId = null;
       tooltipView?.hide?.({ force: true });
     }
     return true;
@@ -133,7 +136,10 @@ export function createVassalLifeMapView({
     const node = getNodeAtPoint(local, presentation);
     if (!node) {
       inspectedNodeId = null;
+      candidateNodeId = null;
+      lastClick = { nodeId: null, atMs: 0 };
       tooltipView?.hide?.();
+      render(true);
       return;
     }
     inspect(node, getDisplay(
@@ -176,11 +182,19 @@ export function createVassalLifeMapView({
       && now - lastClick.atMs <= DOUBLE_CLICK_WINDOW_MS;
     lastClick = { nodeId: node.id, atMs: now };
     hoveredNodeId = null;
+    if (display.available && !unveiling) {
+      inspectedNodeId = node.id;
+      candidateNodeId = node.id;
+      tooltipView?.hide?.({ force: true });
+      if (sameNode) enterCandidate();
+      render(true);
+      return;
+    }
     if (canOpenModal(display, unveiling)) {
       const nodePoint = nodeRoots.get(node.id)?.toGlobal?.(new PIXI.Point(0, 0));
       inspectedNodeId = node.id;
+      candidateNodeId = null;
       tooltipView?.hide?.();
-      if (sameNode && display.available) onEnterNode?.(node.id);
       onOpenDecision?.(node.id, nodePoint ? { x: nodePoint.x, y: nodePoint.y } : null);
       render(true);
       return;
@@ -190,8 +204,54 @@ export function createVassalLifeMapView({
       return;
     }
     inspectedNodeId = lastPointerType === "touch" ? node.id : null;
+    candidateNodeId = null;
     render(true);
     showNodeTooltip(node, nodeRoots.get(node.id), vassal);
+  }
+
+  function getCandidate(presentation = getPresentation?.() ?? {}) {
+    if (!root.visible || isRecapOpen?.() || presentation.vassal?.lifeMap?.pendingResolution) return null;
+    const display = getDisplay(presentation.vassal, candidateNodeId,
+      new Set(presentation.committedNodeIds ?? []), presentation.readOnly === true,
+      presentation.state?.civilization?.vassalLineage?.pendingHeirloomLoadout === true);
+    return display.available ? getVassalLifeMapNode(presentation.vassal, candidateNodeId) : null;
+  }
+
+  function enterCandidate() {
+    const node = getCandidate();
+    if (!node) return false;
+    const point = nodeRoots.get(node.id)?.toGlobal(new PIXI.Point(0, 0));
+    candidateNodeId = null;
+    lastClick = { nodeId: null, atMs: 0 };
+    tooltipView?.hide?.({ force: true });
+    const result = onEnterNode?.(node.id);
+    if (result?.ok === false) {
+      candidateNodeId = node.id;
+      render(true);
+      return false;
+    }
+    onOpenDecision?.(node.id, point ? { x: point.x, y: point.y } : null);
+    render(true);
+    return true;
+  }
+
+  function handleKeyDown(event) {
+    if (event?.repeat || event?.altKey || event?.ctrlKey || event?.metaKey || event?.shiftKey || !getCandidate()) return false;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      enterCandidate();
+      return true;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      candidateNodeId = null;
+      inspectedNodeId = null;
+      lastClick = { nodeId: null, atMs: 0 };
+      tooltipView?.hide?.({ force: true });
+      render(true);
+      return true;
+    }
+    return false;
   }
 
   let nodePointerHeld = false;
@@ -211,6 +271,9 @@ export function createVassalLifeMapView({
         tooltipView?.hide?.();
       }
       hoveredNodeId = null;
+      candidateNodeId = null;
+      inspectedNodeId = null;
+      lastClick = { nodeId: null, atMs: 0 };
       signature = "";
       return;
     }
@@ -225,7 +288,9 @@ export function createVassalLifeMapView({
       width:MAP_RECT.width-184,height:MAP_RECT.height-218});
     if ((vassal?.vassalId ?? null) !== displayedVassalId) {
       displayedVassalId = vassal?.vassalId ?? null;
-      inspectedNodeId = presentation.playheadNodeId ?? vassal?.lifeMap?.availableNodeIds?.[0] ?? null;
+      inspectedNodeId = presentation.playheadNodeId ?? null;
+      candidateNodeId = null;
+      lastClick = { nodeId: null, atMs: 0 };
       pinnedNodeIds = [];
     }
     const unveiling = !readOnly && !!vassal?.lifeMap?.pendingResolution;
@@ -238,7 +303,7 @@ export function createVassalLifeMapView({
       ?? presentation.playheadNodeId ?? null;
     const civilizationLossInfo = getCivilizationLossInfo?.();
     const nextSignature = getArtRevision() + JSON.stringify({
-      presentation, effectiveNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
+      presentation, effectiveNodeId, candidateNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
       observedEnd: civilizationLossInfo?.observedEnd ?? null,
       finalLossYear: civilizationLossInfo?.finalLossYear ?? null,
       maxLossYear: civilizationLossInfo?.maxLossYear ?? null,
@@ -371,18 +436,48 @@ export function createVassalLifeMapView({
       root.addChild(nodeRoot);
       nodeRoots.set(node.id, nodeRoot);
     }
+
+    const candidate = getCandidate(presentation);
+    if (candidate) {
+      const family = candidate.signatureNode?.variantId
+        ? VASSAL_SIGNATURE_NODE_VARIANTS[candidate.signatureNode.variantId]
+        : VASSAL_NODE_FAMILIES[candidate.family];
+      const preview = new PIXI.Container();
+      preview.eventMode = "static";
+      preview.hitArea = new PIXI.Rectangle(MAP_RECT.x + 18, MAP_RECT.y + 16, MAP_RECT.width - 36, 132);
+      preview.on("pointerdown", event => event.stopPropagation());
+      const plate = new PIXI.Graphics();
+      // Keep the reminder left of the Vassal HUD and its Heirloom slots.
+      roundedRect(plate, MAP_RECT.x + 18, MAP_RECT.y + 16, 500, 132, 8,
+        0x242a27, family?.color ?? PALETTE.accent, 2);
+      preview.addChild(plate,
+        createText(`${family?.glyph ?? ""}  ${family?.label ?? ""}`, {
+          ...TEXT_STYLES.header, fontSize: 26, fill: family?.color ?? PALETTE.accent,
+        }, MAP_RECT.x + 38, MAP_RECT.y + 28),
+        createText(family?.description ?? "", {
+          ...TEXT_STYLES.body, fontSize: 24, wordWrap: true, wordWrapWidth: 460,
+        }, MAP_RECT.x + 38, MAP_RECT.y + 64));
+      openRoot = button(preview, { x: MAP_RECT.x + MAP_RECT.width - 468, y: MAP_RECT.y + 28, width: 430, height: 64 },
+        "ENTER NODE  [Enter]", true, enterCandidate);
+      preview.addChild(createText("Double-click a node to enter", {
+        ...TEXT_STYLES.body, fontSize: 18, fill: PALETTE.textMuted,
+      }, MAP_RECT.x + MAP_RECT.width - 468, MAP_RECT.y + 102));
+      root.addChild(preview);
+    }
   }
 
   return {
     init: () => render(true), update: () => render(), refresh: () => render(true),
     setVisible: (visible) => { root.visible = visible === true; },
+    handleKeyDown,
+    getCandidateNodeId: () => getCandidate()?.id ?? null,
     getNodeClickPoint(nodeId) {
       const target = nodeRoots.get(nodeId);
       const point = root.visible && target && !target.destroyed
         ? target.toGlobal(new PIXI.Point(0, 0)) : null;
       return point ? { x: point.x, y: point.y } : null;
     },
-    getOpenDecisionClickPoint: () => openRoot?.toGlobal
+    getEnterNodeClickPoint: () => getCandidate() && openRoot?.toGlobal
       ? openRoot.toGlobal(new PIXI.Point(openRoot.hitArea.width / 2, openRoot.hitArea.height / 2)) : null,
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getPinnedNodeIds: () => [...pinnedNodeIds],
