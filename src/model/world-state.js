@@ -148,7 +148,7 @@ function validateRegionMechanics(region, errors, label = "region") {
   }
 }
 
-function validateDetailedSettlement(site, region, errors) {
+function validateDetailedSettlement(site, region, errors, gamepieces) {
   const settlement = site?.detailedState;
   if (!settlement || typeof settlement !== "object") {
     errors.push(`site ${site?.id ?? "?"} has no detailed state`);
@@ -184,6 +184,12 @@ function validateDetailedSettlement(site, region, errors) {
     }
   }
   for (const slot of settlement.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.stock) || slot.stock < 0)) errors.push(`site ${site.id} has invalid Stock`);
+  for (const slot of settlement.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.charge) || slot.charge < 0)) errors.push(`site ${site.id} has invalid Charge`);
+  for (const slot of settlement.practiceSlots ?? []) if (slot) {
+    const def=gamepieces?.practices?.[slot.practiceId]??detailedSettlementPracticeDefs[slot.practiceId];
+    if (def?.mode==='scheduled' && slot.charge!==0 || def?.mode==='charge' && slot.charge>def.charge.threshold) errors.push(`site ${site.id} has invalid Charge for Practice mode/threshold`);
+  }
+  if (settlement.structureSlots?.some(s=>s&&Object.hasOwn(s,'charge'))) errors.push(`site ${site.id} Structures cannot store Charge`);
   if (["storedFood","looseFood","currency"].some(key=>Object.hasOwn(settlement,key))) errors.push(`site ${site.id} has an obsolete resource wallet`);
   for (const cohort of Object.values(settlement.populationByClass ?? {})) if (!validSpecialistCohorts(cohort)) errors.push(`site ${site.id} has invalid specialist cohorts`);
 }
@@ -438,7 +444,7 @@ export function validateWorldState(state) {
       errors.push(`site ${site?.id ?? "?"} is not enabled by its region`);
       continue;
     }
-    validateDetailedSettlement(site, region, errors);
+    validateDetailedSettlement(site, region, errors, state.gameConfig?.gamepieces);
   }
   return { ok: errors.length === 0, errors };
 }

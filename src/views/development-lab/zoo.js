@@ -14,9 +14,10 @@ export function createZooView({controller,cards,run}) {
     const options = {
       category:[['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map nodes'],['neutral','Neutral templates'],['monster','Monsters']],
       pool:['common','scholar','warrior'], maturity:['bronze','silver','gold','diamond'],
+      mode:['scheduled','charge'],
       tag:choices('tag','tags'), trait:choices('trait','traits'), size:['1','2','3'],
     };
-    const labels = {category:'Category',pool:'Class',maturity:'Maturity',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
+    const labels = {category:'Category',pool:'Class',maturity:'Maturity',mode:'Practice mode',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
     for (const [key,values] of Object.entries(options)) {
       const control = select(labels[key],[['','All'],...values],filters[key] ?? '');
       control.addEventListener('change',()=>{filters[key]=control.value;page=0;selected=null;run(()=>{});}); controls.append(field(labels[key],control));
@@ -26,6 +27,11 @@ export function createZooView({controller,cards,run}) {
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;page=0;selected=null;run(()=>{});},250);});
     controls.append(field('Search',search)); parent.append(controls);
     const matches = filterLabCatalogue(catalogue,filters);
+    for (const [pool,expectedPractices,expectedStructures] of [['common',13,14],['scholar',48,32],['warrior',48,32]]) {
+      const practices=catalogue.filter(e=>e.category==='practice'&&e.pool===pool),structures=catalogue.filter(e=>e.category==='structure'&&e.pool===pool);
+      const charge=practices.filter(e=>e.def.mode==='charge').length;
+      parent.append(el('p',`${pool}: ${practices.length}/${expectedPractices} Practices (${charge} Charge), ${structures.length}/${expectedStructures} Structures${practices.length!==expectedPractices||structures.length!==expectedStructures?' — MISSING RUNTIME CONTENT':''}.`));
+    }
     page = Math.min(page,Math.max(0,Math.ceil(matches.length/pageSize)-1));
     parent.append(el('p',`${matches.length} matching runtime entries · ${Object.keys(state.gameConfig.gamepieces.practices).length} Practices · ${Object.keys(state.gameConfig.gamepieces.structures).length} Structures. Definitions come from this fixture’s serialized game config.`));
     if (selected) {
@@ -44,6 +50,8 @@ export function createZooView({controller,cards,run}) {
           panel.append(variants,table(['Property','Runtime value'],[
             ['Maturity',e.maturity],['Card Tags',e.tags.join(', ')],['Stock Traits',e.traits.join(', ')],
             ['Timing',JSON.stringify(e.def.activation ?? 'passive')],['Generate / effects',JSON.stringify(e.def.effects)],
+            ['Mode',e.def.mode??'Passive Structure'],['Charge trigger / gain / threshold',e.def.charge?`${e.def.charge.triggerText} +${e.def.charge.gain}; threshold ${e.def.charge.threshold}`:'—'],
+            ['Discharge',e.def.charge?.dischargeText??'—'],['Provisional deviations',(e.def.provisionalNotes??[]).join(' ')||'None'],
             ['Consume',JSON.stringify(e.def.consume ?? [])],['Require',JSON.stringify(e.def.require ?? [])],
             ['Capacity / cells',e.def.stockCapacity ?? e.def.footprint],['Gates',`Specialists: ${e.def.specialistGate ?? 0}; ${e.def.condition ?? 'none'}`],
             ['Passive modifiers',JSON.stringify(e.def.modifiers ?? [])],['Stacking',e.category === 'structure' ? 'Duplicate placements; numeric bonuses add through runtime queries' : 'One instance per Practice'],

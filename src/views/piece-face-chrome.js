@@ -176,19 +176,20 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
   if(face.lane) {
     const cy=h-19, radius=sourceSize/2, charge=face.lane==='charge';
     const fill=Math.max(0,Math.min(1,face.fill??0));
-    const rim=fittedSprite(parent,getResourceTexture(face.source?.icon==='season'?'solar-wheel':'moon-wheel'),sourceX-radius,cy-radius,sourceSize,sourceSize);
+    const rim=charge?null:fittedSprite(parent,getResourceTexture(face.source?.icon==='season'?'solar-wheel':'moon-wheel'),sourceX-radius,cy-radius,sourceSize,sourceSize);
     if(rim){rim.anchor.set(.5);rim.position.set(sourceX,cy);if(!charge&&!reducedMotion)rim.rotation=Math.PI*2*fill;}
     const dial=new PIXI.Graphics().lineStyle(1,0xa18950).beginFill(0x101c1b,.96).drawCircle(sourceX,cy,radius-5).endFill();
     if(fill>0)dial.lineStyle(2,charge?0x84d6d0:0xe9cc83).arc(sourceX,cy,radius-4,-Math.PI/2,-Math.PI/2+Math.PI*2*fill);
     dial.eventMode='none';parent.addChild(dial);
     const icon=face.source?.icon==='season'?'year':face.source?.icon==='passive'?'activation':face.source?.icon;
     if(face.nextTrigger?.season)seasonIcon(parent,face.nextTrigger.season,sourceX,cy,23);
+    else if(charge) numeral(parent,`${face.charge??0}/${face.chargeThreshold}`,sourceX,cy,16,sourceSize-8);
     else addResourceIcon(parent,icon,sourceX,cy,23);
     if(face.source?.spark)addResourceIcon(parent,'activation',sourceX+10,cy+9,10);
     if(face.source?.missing)parent.addChild(new PIXI.Graphics().lineStyle(2,0xda8772).moveTo(sourceX-9,cy-9).lineTo(sourceX+9,cy+9));
     if(charge) {
       const chargeBar=new PIXI.Graphics().beginFill(0x101e20).drawRect(sourceX-11,h-5,22,3).endFill();
-      chargeBar.beginFill(0x84d6d0).drawRect(sourceX-11,h-5,22*fill,3).endFill();parent.addChild(chargeBar);
+      chargeBar.beginFill(face.blocked?0xda8772:0x84d6d0).drawRect(sourceX-11,h-5,22*fill,3).endFill();parent.addChild(chargeBar);
     }
   }
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));

@@ -45,6 +45,7 @@ export function selectFixtureVassal(state, classId) {
 }
 
 export const LAB_EXHIBITS = Object.freeze([
+  { id:'charge',title:'Charge: five-slot metallurgy cascade',description:'Logging / Surface Mining / Charcoal Burning / Smelting / Toolmaking. Advance seasons: Timber winds Charcoal, Ore and Fuel wind Smelting, and Metal immediately wakes Toolmaking. Inspect Charge, blocked recipes and root/parent event IDs. No custom exhibit resolver.' },
   { id: 'stock', title: 'Stock: board-wide providers', description: 'Logging and Ore supply Smelting. Birth activates real production. Matching Stock is chosen from left to right across the board, including a consumer’s own existing Stock. Follow the numbered provider links.' },
   { id: 'require', title: 'Require and missing inputs', description: 'Garrison requires Arms without consuming them. Patrolling also consumes Edible. Move Bowmaking after Garrison in the Gym; its Stock can still satisfy a requirement. Remove Arms Stock to see the missing input.' },
   ...[29,30,31].map(n => ({ id: `food-${n}`, title: `Food: ${n} people`, description: 'Start just before Food. Unstaffed Foraging generates one Stock before feeding; demand rounds up per 30 people. Watch the leftmost Edible provider and last meal.' })),
@@ -86,6 +87,12 @@ export function createLabFixture(id = 'stock', seed = 42) {
     local.practiceSlots = fiveSlots(practiceSlot('forage', 2), practiceSlot('pastoralism', 3));
     local.structureSlots.fill(null);
     tryCreateStructure(state, site.regionId, 'mudHouses');
+  }
+  if (id==='charge') {
+    local.practiceSlots=fiveSlots(practiceSlot('logging'),practiceSlot('surfaceMining'),practiceSlot('charcoalBurning'),practiceSlot('smelting'),practiceSlot('toolmaking'));
+    setFixturePopulation(local,5);
+    local.structureSlots.fill(null);
+    tryCreateStructure(state,site.regionId,'mudHouses');
   }
   if (['scholar', 'five'].includes(id)) {
     local.practiceSlots = fiveSlots(practiceSlot('logging', 2), practiceSlot('surfaceMining', 2), practiceSlot('smelting'), practiceSlot('weaponsmithing'), practiceSlot('garrisonDuty'));

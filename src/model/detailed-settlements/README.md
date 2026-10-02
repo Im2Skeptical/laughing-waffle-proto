@@ -13,6 +13,9 @@ file is the legacy tick substrate.
 - `scopes.js` — `resolveDetailedRegionScope`, `evaluateDetailedMapScore`, and
   the region-order / filter helpers they share.
 - `practices.js` — slot evaluation and authoritative declarative activation.
+- `practice-events.js` — bounded JSON event journal, root/parent IDs and emission
+  context. `practices.js` drains it through the real recipe resolver, including
+  automatic Charge Discharges, full blocked retries and root-chain safeguards.
 - `stock.js` - Trait queries, atomic provider plans, capacities and specialist training.
 - `workers.js` - Scholar sockets and ordinary population worker assignment.
 - `cohorts.js` - orthogonal specialist age subsets and composition helpers.

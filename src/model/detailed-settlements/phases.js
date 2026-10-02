@@ -3,12 +3,14 @@ import { stepSpatialPressure } from "./external-world.js";
 // Phase bodies live in ./phases/; this file remains the public stepper path.
 
 import { getGameSetting } from "../game-config.js";
+import { getCurrentSeasonKey } from '../state.js';
 import { getMoonPhaseAtSecond } from "../moon-phases.js";
 import {
   initializeVassalLifeMapCivilization,
   stepVassalLifeMapSecond,
 } from "../vassal-life-map.js";
-import { runPracticeActivation } from "./practices.js";
+import { runPracticeActivation, flushPracticeEvents } from "./practices.js";
+import { emitPracticeEvent } from './practice-events.js';
 import {
   getDetailedSettlementSites,
   refreshGreenAscendancy,
@@ -25,7 +27,9 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 25;
+  state.gameStateSchemaVersion = 26;
+  state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
+  state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
     "nextHubStructureInstanceId",
     "nextEnvStructureInstanceId",
@@ -66,15 +70,25 @@ export function stepDetailedSettlementsSecond(state, tSec) {
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);
   }
-  if (state._seasonChanged === true) runPracticeActivation(state, "season");
+  if (state._seasonChanged === true) {
+    runPracticeActivation(state, "season");
+    if (getCurrentSeasonKey(state)==='spring') for (const site of getDetailedSettlementSites(state)) {
+      site.detailedState.history??={deaths:0};site.detailedState.history.springDeaths=site.detailedState.history.deaths;
+    }
+  }
   const phase = getMoonPhaseAtSecond(state, tSec);
   if (phase.boundary) {
+    const chaosBefore=state.civilization.chaos.chaosPower;
     if (phase.id === "birth") runBirthPhase(state, phase);
     else if (phase.id === "food") runFoodPhase(state, phase);
     else if (phase.id === "housing") runHousingPhase(state, phase);
     else if (phase.id === "faith") runFaithPhase(state, phase);
     else if (phase.id === "migration") runMigrationPhase(state, phase);
     else if (phase.id === "death") { runDeathPhase(state, phase); runPracticeActivation(state, "death"); stepSpatialPressure(state); }
+    if (state.civilization.chaos.chaosPower>chaosBefore) emitPracticeEvent(state,{kind:'chaosIncreased',amount:state.civilization.chaos.chaosPower-chaosBefore});
+    for (const site of getDetailedSettlementSites(state)) emitPracticeEvent(state,{kind:'phaseResolved',regionId:site.regionId,phase:phase.id});
+    flushPracticeEvents(state);
   }
   if (state?.runStatus?.complete !== true) stepVassalLifeMapSecond(state, tSec);
+  flushPracticeEvents(state);
 }

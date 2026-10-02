@@ -5,13 +5,17 @@ import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.
 import { canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
 import { normalizeStructureLayout } from '../structure-layout.js';
 import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING } from './stock.js';
+import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
+import { selectPopulationComposition, compositionTotal } from './helpers.js';
+import { removePopulationComposition, addCompositionToStrangers } from './phases/migration.js';
+import { getPopulationSummary } from './queries.js';
 
 export function adjacentRegionIds(state, regionId) {
   return getWorldConnectionCandidates(getWorldDefinition(state)).flatMap(e => e.regionAId === regionId ? [e.regionBId] : e.regionBId === regionId ? [e.regionAId] : []);
 }
 const siteAt = (state, id) => state.world.sites.find(s => s.regionId === id);
 const playerSites = state => (state?.world?.sites ?? []).filter(s => getRegionState(state, s.regionId)?.controller === 'player' && s.simulationMode === 'detailed' && s.detailedState);
-export function getMartialSupport(state, regionId, defense = false) {
+function localMartialSupport(state, regionId, defense = false) {
   const settlement = siteAt(state, regionId)?.detailedState;
   const warriors = specialistCount(settlement, 'warrior');
   let multiplier = 1, flat = 0;
@@ -19,12 +23,50 @@ export function getMartialSupport(state, regionId, defense = false) {
     if (mod.kind === 'support' || defense && mod.kind === 'defenseMultiplier') multiplier += mod.amount;
     if (defense && mod.kind === 'defense') flat += mod.amount;
     if (defense && mod.kind === 'lossDefense') flat += mod.amount * Math.min(3, state.civilization.history?.lostSettlements ?? 0);
+    const stocked=settlement?.practiceSlots.filter(s=>s?.stock>0&&(!mod.query?.traitsAny||mod.query.traitsAny.some(t=>stockTraits(state,s).includes(t)))).length??0;
+    if (mod.kind==='stockSupport') multiplier+=Math.min(3,stocked)*mod.amount;
+    if (defense&&mod.kind==='stockDefense') flat+=Math.min(3,stocked)*mod.amount;
   }
   for (const slot of settlement?.practiceSlots ?? []) {
     const def = getDetailedPracticeDef(state, slot?.practiceId);
-    if (def && planStock(state, settlement, def.consume, def.require).ok) multiplier += (def.supportMultiplier ?? 0) + (defense ? def.defenseMultiplier ?? 0 : 0);
+    if (def?.mode==='scheduled' && planStock(state, settlement, def.consume, def.require).ok) multiplier += (def.supportMultiplier ?? 0) + (defense ? def.defenseMultiplier ?? 0 : 0);
   }
-  return Math.floor(warriors / CIV_CONTENT_TUNING.warriorsPerSupport * multiplier + flat);
+  return Math.floor(warriors / CIV_CONTENT_TUNING.warriorsPerSupport * multiplier + flat + (settlement?.supportBank?.formation??0) + (settlement?.supportBank?.siege??0) + (settlement?.supportBank?.mobility??0));
+}
+
+export function getSupportSources(state,regionId,defense=false) {
+  const local=siteAt(state,regionId)?.detailedState;
+  const modifiers=structureModifiers(state,local);
+  const share=Math.min(.5,modifiers.reduce((n,m)=>n+(m.kind==='networkSupport'?m.amount:0),0)+(local?.supportBank?.coordination? .25:0)+(local?.supportBank?.greatHost? .5:0));
+  const sources=[{regionId,amount:localMartialSupport(state,regionId,defense)}];
+  if (share>0) for (const id of getConnectedRegionIds(state,regionId)) {
+    if (getRegionState(state,id)?.controller!=='player') continue;
+    const amount=Math.min(10,Math.floor(localMartialSupport(state,id,defense)*share));
+    if (amount>0) sources.push({regionId:id,amount});
+    if (local?.supportBank?.coordination && !local?.supportBank?.greatHost) break;
+  }
+  return sources;
+}
+export const getMartialSupport = (state,regionId,defense=false) => getSupportSources(state,regionId,defense).reduce((n,s)=>n+s.amount,0);
+export function recordSupportUsage(state,regionId,kind,defense=false,classId=null) {
+  const sources=getSupportSources(state,regionId,defense).filter(s=>s.amount>0);
+  for (const source of sources) {
+    emitPracticeEvent(state,{kind:'supportContributed',regionId:source.regionId,actionKind:kind,amount:source.amount,classId});
+    const local=siteAt(state,source.regionId)?.detailedState;
+    if (local?.supportBank) local.supportBank={};
+  }
+  emitPracticeEvent(state,{kind:'martialActionResolved',regionId,actionKind:kind,sourceRegionIds:sources.map(s=>s.regionId),classId});
+}
+export function evacuatePopulation(state,sourceId,destinationId,maximum) {
+  const source=siteAt(state,sourceId)?.detailedState,destination=siteAt(state,destinationId)?.detailedState;
+  if (!source||!destination||sourceId===destinationId||getRegionState(state,destinationId)?.controller!=='player') return 0;
+  const population=getPopulationSummary(state,destinationId);
+  const amount=Math.min(maximum,Math.max(0,population.housingCapacity-population.total));
+  const composition=selectPopulationComposition(source,['stranger','villager'],amount);
+  removePopulationComposition(source,composition);addCompositionToStrangers(destination,composition);
+  const moved=compositionTotal(composition);
+  if (moved) emitPracticeEvent(state,{kind:'populationRescued',regionId:sourceId,destinationId,amount:moved});
+  return moved;
 }
 export function getRetinue(state, vassal) {
   const sites = playerSites(state);
@@ -93,26 +135,31 @@ export function seedNeutralSettlements(state) {
   canonicalizeWorldState(state);
 }
 
-export function resolveExternalPractice(state, site, def, apply) {
+export function resolveExternalPractice(state, site, def, apply, prepared = null) {
   if (site.neutral) return {ok: def.externalAction === 'trade', bonus:0};
   const targets = getConnectedRegionIds(state,site.regionId).map(id=>siteAt(state,id)).filter(s=>s?.neutral);
   if (def.externalAction === 'trade') {
     const stockedTarget=targets.find(s=>s.detailedState.practiceSlots.some(p=>p?.stock>0));
-    if(apply&&stockedTarget) state.civilization.history.trades=(state.civilization.history.trades??0)+1;
+    if(apply&&stockedTarget) {
+      state.civilization.history.trades=(state.civilization.history.trades??0)+1;
+      emitPracticeEvent(state,{kind:'externalTrade',regionId:site.regionId,practiceId:def.id});
+    }
     return {ok:true,bonus:stockedTarget?1:0};
   }
   if (def.externalAction === 'hunt') {
-    const id=adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=getMartialSupport(state,site.regionId));
+    const id=prepared?.targetId??adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=getMartialSupport(state,site.regionId));
     if (!id) return {ok:false};
-    if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length; state.civilization.history.victories++; }
-    return {ok:true,bonus:0};
+    if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length; state.civilization.history.victories++;
+      recordSupportUsage(state,site.regionId,'hunt');emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:site.regionId,practiceId:def.id}); }
+    return {ok:true,bonus:0,targetId:id};
   }
-  const target=targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.detailedState.practiceSlots.some(p=>p?.stock>0));
+  const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.detailedState.practiceSlots.some(p=>p?.stock>0));
   if(!target) return {ok:false};
   const provider=target.detailedState.practiceSlots.find(p=>p?.stock>0);
   const yieldCount=Math.min(2,provider.stock);
-  if(apply) { provider.stock-=yieldCount; state.civilization.history.raids++; }
-  return {ok:true,bonus:yieldCount-1};
+  if(apply) { provider.stock-=yieldCount; state.civilization.history.raids++;
+    emitPracticeEvent(state,{kind:'raidResolved',regionId:site.regionId,practiceId:def.id}); }
+  return {ok:true,bonus:yieldCount-1,targetId:target.regionId};
 }
 
 export function conquerSettlement(state, targetId, edge = 0) {
@@ -137,10 +184,12 @@ export function stepSpatialPressure(state) {
       target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3),ageMoons:0};
       chaos.spatialSpawns=spawnNumber;
       chaos.chaosPower=0;
+      emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
     }
   }
   for(const region of regions.filter(r=>r.monster)) {
     region.monster.ageMoons++;
+    emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'advance'});
     if(region.monster.ageMoons%CIV_CONTENT_TUNING.monsterExpansionMoons) continue;
     const targetId=adjacentRegionIds(state,region.id).find(id=>!getRegionState(state,id)?.monster);
     if(!targetId) continue;
@@ -155,16 +204,27 @@ export function stepSpatialPressure(state) {
         return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
       })[0];
       if(response && getMartialSupport(state,targetId,true)>=region.monster.defense) {
-        applyStockPlan(settlement,response.plan);
-        consumeStock(state,settlement,'Edible',1);
+        withPracticeRoot(state,{kind:'defense',regionId:targetId},()=>{
+          recordSupportUsage(state,targetId,'defense',true);
+          applyStockPlan(settlement,response.plan);
+          consumeStock(state,settlement,'Edible',1);
+          emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId});
+        });
         settlement.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};continue;
       }
       state.civilization.history.lostSettlements++;
+      const share=Math.min(.75,structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='evacuationShare'?m.amount:0),0));
+      if (share>0) for (const id of getConnectedRegionIds(state,targetId)) {
+        const moved=evacuatePopulation(state,targetId,id,Math.ceil(getPopulationSummary(state,targetId).total*share));
+        if (moved) break;
+      }
       target.lostAtSec=state.tSec;
+      emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId});
       settlement.lastDefense={tSec:state.tSec,result:'lost',sourceRegionId:region.id};
     }
     if(site) { delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
     target.controller='frontier';target.monster={defense:region.monster.defense,ageMoons:0};
+    emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
   }
   const survivors=playerSites(state);
   const lineage=state.civilization.vassalLineage;

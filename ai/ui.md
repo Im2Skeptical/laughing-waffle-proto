@@ -1,5 +1,12 @@
 # Current UI
 
+CivContent 2.6 Charge faces use their meter instead of the scheduled wheel.
+Faces/evaluations expose mode, current Charge, threshold, trigger, Discharge,
+full blocked state and reason. Development Lab Zoo filters mode and reports
+complete pool counts; the Charge Museum exhibit uses five real Practices and
+normal authoritative stepping. Its causal sequence exposes root/parent event IDs,
+gains, blocked retries and Discharges. See `docs/civcontent-2.6-implementation.md`.
+
 Practice faces show hosted Stock count/capacity and Trait glyphs; inspections
 list the live Consume/Require providers and unmet input. Food and Currency
 summaries are read-only Trait totals. Regional, overview, and purchase boards show

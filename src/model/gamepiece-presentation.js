@@ -63,7 +63,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     if (effect?.op === 'createLocalStructureAtWork') value = getDetailedStructureDef(state, effect.structureDefId)?.capacityPerCountSquared ?? 0;
     return { ...GAMEPIECE_OUTPUTS[output.resource], resource: output.resource, value: number(value) };
   });
-  const threshold = evaluation?.activation?.chargeThreshold ?? Math.max(1, Math.floor((def.activation?.chargeThreshold ?? 1) - Math.max(0, ['bronze','silver','gold','diamond'].indexOf(tier)) * (def.activation?.chargeThresholdReductionPerQuality ?? .5)));
+  const threshold = evaluation?.chargeThreshold ?? def.charge?.threshold ?? 1;
   const requiredWork = def.effects?.find(e => e.op === 'createLocalStructureAtWork')?.requiredWork;
   const seasonal = def.activation?.type === 'season';
   const seasonReadiness = seasonal ? seasonalReadiness(state, def.activation) : null;
@@ -90,6 +90,9 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     inputs, production, workerMultiplier,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],
+    mode:def.mode??null,charge:evaluation?.charge??slot?.charge??0,chargeThreshold:def.mode==='charge'?threshold:null,
+    chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
+    blocked:evaluation?.blocked??false,blockedReason:evaluation?.blockedReason??null,
     viewedTime, activationAge, nextTrigger: seasonReadiness?.nextTrigger ?? null,
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
     workerCapacity: kind === 'practice' ? getDetailedPracticeWorkerCapacity(def, tier) : 0,
@@ -98,7 +101,9 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
       : seasonReadiness?.fill ?? ((state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period),
     detailLines: [...inputs.map(input => `${input.kind === 'consume' ? 'Consume' : 'Require (not consumed)'} ${input.amount} [${input.traits.join(' / ')}].`), ...production.filter(row => row.season).map(row => row.label), ...(production.length ? ['Face yields are base amounts; worker bonuses and local modifiers apply at activation.'] : []), ...(slot?.qualityBonus?[`Quality: +${slot.qualityBonus*25}% numeric Structure bonuses.`]:[]),...(evaluation?.missing ? [`Missing ${evaluation.missing.kind}: [${evaluation.missing.traits.join(" / ")}] on the board`] : []), ...(evaluation?.providers ?? []).map(p => `${p.kind === "consume" ? "Consume" : "Require"} ${p.amount} from slot ${p.slotIndex + 1}: ${p.practiceId}`),...(kind === 'structure' ? describeStructureValues(def) : []), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
       ...(kind === 'practice' ? [`Workers: ${getDetailedPracticeWorkerCapacity(def, tier)} sockets${producesStock ? `; +${number((def.workerBonus ?? 1) * 100)}% Stock per effective worker.` : '; staffing may satisfy specialist requirements.'}`,
-        def.lane === 'charge' ? requiredWork ? `Birth adds construction work.` : `Activates at ${threshold} charge. Each matching activation contributes one charge.`
-          : `Scheduled: ${def.source?.cadence ?? def.activation.type}.`] : [`Construction footprint: ${def.footprint ?? 1} horizontal cells.`])],
+        def.lane === 'charge' ? `When its authored event occurs, gain ${def.charge.gain} Charge; automatically Discharge at ${threshold}.`
+          : `Scheduled: ${def.source?.cadence ?? def.activation.type}.`] : [`Construction footprint: ${def.footprint ?? 1} horizontal cells.`]),
+      ...(def.mode==='charge'?[`Charge: ${evaluation?.charge??slot?.charge??0} / ${threshold}.`,def.charge.triggerText,`Discharge: ${def.charge.dischargeText.replaceAll('to the left','on the board')}`,...(evaluation?.blocked?[`Blocked: ${evaluation.blockedReason}`]:[])]:[]),
+      ...(def.provisionalNotes??[])],
   };
 }

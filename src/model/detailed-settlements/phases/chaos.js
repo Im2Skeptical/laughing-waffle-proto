@@ -45,8 +45,8 @@ export function runGlobalChaos(state) {
   }, 0);
   const resistance = roundFood(populationResistance + (getPhaseModifiers(state).faithResistance ?? 0));
   const primordialPressure = getPrimordialChaosPressure(state);
-  const prematureDeathPressure = pending.prematureDeaths
-    * getGameSetting(state, "prematureDeathChaosWeight");
+  const prematureDeathPressure = Math.max(0,pending.prematureDeaths
+    * getGameSetting(state, "prematureDeathChaosWeight")-(pending.prematureDeathMitigation??0));
   const externalEmigrationPressure = pending.externalEmigrants
     * getGameSetting(state, "externalEmigrationChaosWeight");
   const oldAgeDeathPressure = pending.oldAgeDeaths
@@ -69,6 +69,7 @@ export function runGlobalChaos(state) {
     externalEmigrants: pending.externalEmigrants,
     primordialPressure,
     prematureDeathPressure: roundFood(prematureDeathPressure),
+    prematureDeathMitigation: roundFood(pending.prematureDeathMitigation??0),
     externalEmigrationPressure: roundFood(externalEmigrationPressure),
     oldAgeDeathPressure: roundFood(oldAgeDeathPressure),
     internalMigrationPressure: roundFood(internalMigrationPressure),
@@ -91,8 +92,9 @@ export function recordChaosLosses(state, losses) {
   const pending = chaos.pendingLosses ?? {
     prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
   };
-  for (const key of Object.keys(pending)) {
+  for (const key of ['prematureDeaths','oldAgeDeaths','externalEmigrants','internalMigrants']) {
     pending[key] += Math.max(0, Math.floor(losses?.[key] ?? 0));
   }
+  pending.prematureDeathMitigation=(pending.prematureDeathMitigation??0)+Math.max(0,losses?.prematureDeathMitigation??0);
   chaos.pendingLosses = pending;
 }

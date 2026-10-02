@@ -1,10 +1,15 @@
 import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
-import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists } from '../detailed-settlements/stock.js';
-import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement } from '../detailed-settlements/external-world.js';
+import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, structureModifiers } from '../detailed-settlements/stock.js';
+import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement, recordSupportUsage, evacuatePopulation } from '../detailed-settlements/external-world.js';
+import { getDetailedPracticeDef } from '../game-config.js';
+import { planStock, applyStockPlan } from '../detailed-settlements/stock.js';
+import { getConnectedRegionIds } from '../world-state.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
 import { tryCreateStructure } from '../detailed-settlements/practices.js';
 import { VASSAL_FOUNDING_OPTIONS } from '../../defs/gamepieces/vassal-life-map-defs.js';
+import { emitPracticeEvent, withPracticeRoot } from '../detailed-settlements/practice-events.js';
+import { flushPracticeEvents } from '../detailed-settlements/practices.js';
 
 export function classActionOptions(state, vassal, family) {
   const settlement=getDetailedSettlement(state,vassal.locationRegionId);
@@ -43,8 +48,23 @@ export function classActionOptions(state, vassal, family) {
       }
       const threat=adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster);
       if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: divert expansion (20% Danger)`,phaseCost:1,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
+      if (threat||stockTotal(state,target,'Edible')<pop.mealDemand) {
+        const response=target.practiceSlots.find(p=>getDetailedPracticeDef(state,p?.practiceId)?.responseAction==='rescue');
+        const def=getDetailedPracticeDef(state,response?.practiceId);
+        const destination=getConnectedRegionIds(state,site.regionId).find(id=>{
+          if (getRegionState(state,id)?.controller!=='player'||!getDetailedSettlement(state,id)) return false;
+          const population=getPopulationSummary(state,id);return population.housingCapacity>population.total;
+        });
+        if (response&&destination&&planStock(state,target,def.consume,def.require,response).ok) incidents.push({id:`rescue-${site.regionId}`,label:`Rescue endangered population from ${label} to ${getRegionReference(state,destination)} (1 Edible)`,phaseCost:1,classAction:{kind:'evacuate',targetId:site.regionId,destinationId:destination,maximum:5}});
+      }
     }
-    return [...incidents.slice(0,3),{id:'observe-crisis',label:incidents.length?'Leave the response to the civilization':'No current incident: inspect the frontier',phaseCost:1,classAction:{kind:'observe'}}];
+    const previewBonus=Math.min(3,(settlement?.previewBonus??0)+structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='preview'?m.amount:0),0));
+    if (previewBonus) for (const incident of incidents) {
+      const target=getDetailedSettlement(state,incident.classAction.targetId);
+      if (target) incident.label+=` · demand ${getPopulationSummary(state,incident.classAction.targetId).mealDemand}, Edible ${stockTotal(state,target,'Edible')}`;
+      else if (getRegionState(state,incident.classAction.targetId)?.monster) incident.label+=` · Monster Defense ${getRegionState(state,incident.classAction.targetId).monster.defense}`;
+    }
+    return [...incidents.slice(0,3+previewBonus),{id:'observe-crisis',label:incidents.length?'Leave the response to the civilization':'No current incident: inspect the frontier',phaseCost:1,classAction:{kind:'observe'}}];
   }
   return null;
 }
@@ -64,10 +84,18 @@ export function validateClassAction(state,vassal,action) {
     if(action.currency&&stockTotal(state,target,'Currency')<action.currency) return {ok:false,reason:'insufficientCurrencyStock'};
   }
   if(action.kind==='delay'&&!getRegionState(state,action.targetId)?.monster) return {ok:false,reason:'threatEnded'};
+  if(action.kind==='evacuate') {
+    const legal=classActionOptions(state,vassal,'crisis').some(o=>o.classAction.kind==='evacuate'&&o.classAction.targetId===action.targetId&&o.classAction.destinationId===action.destinationId);
+    if (!legal) return {ok:false,reason:'rescueUnavailable'};
+  }
   return {ok:true};
 }
 export function applyClassAction(state,vassal,action) {
   if(!action) return;
+  withPracticeRoot(state,{kind:'vassalAction',regionId:vassal.locationRegionId,classId:vassal.classId,actionKind:action.kind},()=>applyClassActionRecipe(state,vassal,action));
+  flushPracticeEvents(state);
+}
+function applyClassActionRecipe(state,vassal,action) {
   const settlement=getDetailedSettlement(state,vassal.locationRegionId);
   if(action.kind==='train') {
     const classId = action.classId ?? vassal.classId;
@@ -88,7 +116,9 @@ export function applyClassAction(state,vassal,action) {
     if(action.frontier) vassal.discoveryAccess=true;
   }
   if(action.kind==='campaign') {
+    const origin=vassal.locationRegionId;
     const force=(getVassalEffectiveStats(vassal).intelligence??0)+getRetinue(state,vassal).value+getMartialSupport(state,vassal.locationRegionId);
+    recordSupportUsage(state,origin,'campaign',false,vassal.classId);
     consumeStock(state,settlement,'Edible',1);
     const target=state.world.sites.find(s=>s.regionId===action.targetId);
     if(target?.neutral) { conquerSettlement(state,action.targetId,force-action.difficulty);vassal.locationRegionId=action.targetId; }
@@ -96,8 +126,11 @@ export function applyClassAction(state,vassal,action) {
       delete getRegionState(state,action.targetId).monster;
       if(target?.simulationMode==='ruin') {conquerSettlement(state,action.targetId,force-action.difficulty);vassal.locationRegionId=action.targetId;}
       state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length;state.civilization.history.victories++;
+      emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:origin,classId:vassal.classId});
     }
+    emitPracticeEvent(state,{kind:'campaignWon',regionId:origin,classId:vassal.classId});
   }
+  if(action.kind==='challenge') emitPracticeEvent(state,{kind:'challengeCompleted',regionId:vassal.locationRegionId,classId:vassal.classId});
   if(action.kind==='relief') {
     const target=getDetailedSettlement(state,action.targetId);
     if(action.currency) consumeStock(state,target,'Currency',action.currency);
@@ -105,6 +138,15 @@ export function applyClassAction(state,vassal,action) {
     if(host) generateStock(state,target,host,3);
   }
   if(action.kind==='delay') getRegionState(state,action.targetId).monster.ageMoons=0;
+  if(action.kind==='evacuate') {
+    const source=getDetailedSettlement(state,action.targetId);
+    const response=source.practiceSlots.find(p=>getDetailedPracticeDef(state,p?.practiceId)?.responseAction==='rescue');
+    const def=getDetailedPracticeDef(state,response?.practiceId);
+    if (def) {
+      const plan=planStock(state,source,def.consume,def.require,response);
+      if (plan.ok) {applyStockPlan(source,plan);evacuatePopulation(state,action.targetId,action.destinationId,action.maximum);}
+    }
+  }
 }
 export function completeCommission(state,vassal) {
   const c=vassal.commission;

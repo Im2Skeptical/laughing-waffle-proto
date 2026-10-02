@@ -13,6 +13,9 @@ implemented Practice and Structure, generated candidate specimens, Life Map
 families/signatures, the four neutral templates, and the single spatial Monster
 type. Search covers IDs, names, rules, and definition data. Filters cover category,
 Common/Scholar/Warrior, minimum maturity, Card Tags, Stock Traits, and footprint.
+It also filters Scheduled/Charge mode and reports the required CivContent 2.6
+pool counts (109 Practices / 78 Structures). Compare exposes Charge grammar,
+executable effects and provisional deviations.
 
 Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
 Catalogue specimens use equal-size frames, including wide Structures; card art
@@ -26,6 +29,10 @@ a focused DOM workbench around the real Pixi faces rather than the debugger layo
 
 ## Exhibits
 
+- Charge: Logging / Mining / Charcoal / Smelting / Toolmaking fits five slots.
+  Step or scrub to t=9s or t=17s to inspect real Metal → Tool cascades. Charge
+  meters and full blocked reasons accompany the faces; expand Causal cascade
+  sequence for root/parent IDs and Discharge payment/gain records.
 - Stock generation and ordered provider consumption.
 - Require, missing inputs, and a non-mutating self-funding planner probe.
 - Food at 29, 30, and 31 people; separate shortage fixture.

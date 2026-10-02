@@ -12,7 +12,7 @@ export function projectPracticeDraft(confirmed, purchases) {
     if (action.mode === 'learn' ? !!existing : !existing || existing.tier !== action.tier) return { ok: false, reason: 'practiceUnavailable' };
     consumed.add(action.practiceId);
     if (action.mode === 'remove') removed.add(action.practiceId);
-    if (action.mode !== 'remove') incoming.push({...createDetailedPracticeSlot(action.practiceId, action.resultingTier), stock: existing?.stock ?? 0});
+    if (action.mode !== 'remove') incoming.push({...createDetailedPracticeSlot(action.practiceId, action.resultingTier), stock: existing?.stock ?? 0, charge: existing?.charge ?? 0, work: existing?.work ?? 0});
   }
   if (incoming.length > confirmed.length) return { ok: false, reason: 'practicePrefixFull' };
   // Preserve authored empty slots and the existing unshift mechanics. An

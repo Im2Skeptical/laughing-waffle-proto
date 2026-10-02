@@ -37,6 +37,10 @@ Routing skills live in `.grok/skills/`.
   work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
   bespoke content logic.
+- Practices explicitly use Scheduled or Charge mode. Private Charge is not Stock;
+  full legal recipes Discharge automatically through the authoritative event queue.
+  Each Practice can Discharge once per root chain; refilled Charge is retained.
+  CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
 `npm run check:architecture` guards the first and layering rules.
 
@@ -44,8 +48,8 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v25; runner saves v16. Older saves are rejected.
-- Each run serializes schema-v15 Game Settings, Gamepieces, and Life Map
+- Game state v26; runner saves v17. Older saves are rejected.
+- Each run serializes schema-v16 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
