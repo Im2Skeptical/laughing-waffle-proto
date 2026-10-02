@@ -14,8 +14,10 @@ stay in `createWorldMapView`.
   that take explicit parent/point arguments and do not close over the view
 
 Supply packets use the same Stock Trait icons as Practice cards between the
-actual provider and consumer settlements. Every Trait of the source Stock unit
-is shown; Food falls back to Edible and unknown Stock to the generic Stock icon.
+actual provider and consumer settlements. Each marker shows only the Trait
+requested or consumed: meals show Edible, and recipes accepting alternatives
+show the matching Trait. Substitutions name the requirement they satisfy.
+Unknown Stock falls back to the generic Stock icon.
 Require markers have an outlined translucent plate because their Stock is
 retained. `stock-transfer-icons.js` reuses atlas sprites across frames and
 reconciles them when the transfer batch changes. Packets use authoritative

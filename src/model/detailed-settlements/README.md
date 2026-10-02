@@ -29,7 +29,9 @@ file is the legacy tick substrate.
   Food resolves local meals for every settlement before unmet demand draws from
   neighbours, so only the Stock remaining after the owner's meal can be shared.
   The current transfer second is recorded in the JSON Practice event journal for
-  deterministic map packet reconstruction.
+  deterministic map packet reconstruction. Transfer Traits name the requested
+  input only (the matching alternative, or substituted requirement); game events
+  still carry the actual source Stock's full Traits for reaction matching.
   Authored polygon adjacency is cached in `world-state.js`; live connections,
   ownership and provider boards are resolved afresh. Empty recipes skip provider
   discovery entirely.
