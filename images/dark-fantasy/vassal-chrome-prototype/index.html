@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <base href="../../../">
+  <title>Vassal &amp; founder workbench</title>
+  <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/study.css">
+  <link rel="stylesheet" href="images/dark-fantasy/vassal-chrome-prototype/study.css">
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
+</head>
+<body>
+  <header><div><p class="eyebrow">CIVILIZATION SURVIVOR · ART STUDY · REVISION 1</p><h1>Vassal &amp; founder workbench</h1><p>A centred founder carousel, illustrated class frames and editable candidate text. Review the assembly before bringing it into the game.</p></div><div class="header-links"><a href="images/dark-fantasy/card-chrome-prototype/">Card workbench ↗</a><a href="index.html">Back to game ↗</a></div></header>
+  <main>
+    <nav class="study-tabs" aria-label="Workbench studies"><button data-study="founder" type="button">Founder menu</button><button data-study="regular" type="button">Regular vassal</button><button data-study="frame" type="button">Class frames</button></nav>
+    <section class="workspace">
+      <div class="stage-area">
+        <div class="stage-heading"><div><span id="mode" class="eyebrow"></span><h2 id="preview-title">Loading artwork…</h2></div><label class="toggle"><input id="checker" type="checkbox"> Transparency</label></div>
+        <div id="hero" class="canvas-slot" role="img" aria-label="Vassal art preview"></div>
+        <div class="actions"><button id="previous" type="button" aria-label="Previous founder">← Previous</button><button id="next" type="button" aria-label="Next founder">Next →</button><button id="reset" type="button" class="quiet">Reset study</button><button id="export" type="button" class="quiet">Save PNG</button></div>
+        <p id="event-status" role="status" aria-live="polite"></p>
+        <p id="bounds-status" class="bounds-status" role="status"></p>
+      </div>
+      <form id="controls" aria-label="Vassal preview properties">
+        <p class="eyebrow">PREVIEW PROPERTIES</p>
+        <label>Preview surface<select id="surface"><option value="game">Fixed game screen</option><option value="assembly">Enlarged assembly</option></select></label>
+        <div data-for="founder"><label>Founder slots<select id="slots"><option value="4">4 founders</option><option value="6">6 founders</option><option value="8">8 founders</option></select></label><label class="toggle"><input id="guided" type="checkbox"> First-run Scholar lock</label></div>
+        <label data-for="founder">Focused founder<select id="founder"></select></label>
+        <label data-for="regular frame">Class<select id="classId"><option value="warrior">Warrior</option><option value="scholar">Scholar</option></select></label>
+        <label>Portrait identity<select id="identity"><option value="0">Woman</option><option value="1">Man</option></select></label>
+        <div data-for="frame"><label class="toggle"><input id="crest" type="checkbox"> Founder crest</label><label class="toggle"><input id="frameOnly" type="checkbox"> Empty frame only</label></div>
+        <label data-for="regular">Text layout<select id="layout"><option value="identity">Identity &amp; signature</option><option value="signature">Signature first</option><option value="stats">Full stat comparison</option></select></label>
+        <label data-for="regular">Name<input id="name" type="text" maxlength="80"></label>
+        <div class="pair" data-for="regular"><label>Starting region<input id="region" type="text" maxlength="40"></label><label>Age<input id="age" type="number" min="12" max="99"></label></div>
+        <div class="pair" data-for="regular"><label>Prestige<input id="prestige" type="number" min="0" max="999"></label><label id="key-stat-label">Prowess<input id="keyStat" type="number" min="0" max="99"></label></div>
+        <div class="pair" data-for="regular"><label id="other-stat-label">Cunning<input id="otherStat" type="number" min="0" max="99"></label><label>Wisdom<input id="wisdom" type="number" min="0" max="99"></label></div>
+        <label data-for="regular">Effectiveness<input id="effectiveness" type="number" min="0" max="99"></label>
+        <label data-for="regular">Signature example<select id="signature"></select></label>
+        <label data-for="regular">Signature title<input id="signatureTitle" type="text" maxlength="100"></label>
+        <label data-for="regular">Signature explanation<textarea id="description" rows="3" maxlength="400"></textarea></label>
+        <label data-for="regular">Body text <span id="font-label"></span><input id="font" type="range" min="18" max="28" value="22"></label>
+        <label data-for="regular frame">Assembly width <span id="size-label"></span><input id="size" type="range" min="220" max="600" value="440"></label>
+        <p id="rules" class="note"></p><p class="note muted">Edits affect this workbench only. Mystery founders have no authored class or unlock rule.</p>
+      </form>
+    </section>
+    <section class="comparison"><div class="section-heading"><div><p class="eyebrow">READABILITY AT GAME SIZE</p><h2 id="comparison-title">Regular class frames &amp; text</h2></div><p>264 px candidate width · compare at 1280 px game width</p></div><div id="gallery"></div></section>
+    <details><summary>Layered artwork &amp; current preview state</summary><p>Portrait paintings, hollow frames and the founder crest are separate layers. Text is live. Warrior and Scholar clothing use the same two identities.</p><div class="asset-links"><a href="images/dark-fantasy/vassal-chrome-prototype/components.png">Transparent frame sheet</a><a href="images/dark-fantasy/vassal-chrome-prototype/portraits.png">Portrait paintings</a><a href="images/dark-fantasy/vassal-chrome-prototype/prompts.json">Generation prompts</a></div><pre id="preview-state"></pre></details>
+  </main><div id="error" role="alert" hidden></div>
+  <script type="module" src="images/dark-fantasy/vassal-chrome-prototype/study.js"></script>
+</body></html>

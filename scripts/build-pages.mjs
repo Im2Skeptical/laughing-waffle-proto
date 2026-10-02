@@ -105,6 +105,7 @@ async function buildPagesArtifact() {
       const keepDarkFantasy = darkFantasyIndex === -1
         || parts.length === darkFantasyIndex + 1
         || parts.includes("card-chrome-prototype")
+        || parts.includes("vassal-chrome-prototype")
         || parts.includes("settlement-pieces-v4");
       return keepDarkFantasy
         && !parts.includes("GameElements")
@@ -113,6 +114,7 @@ async function buildPagesArtifact() {
     },
   });
   await access(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/renderer.js"));
+  await access(path.join(outDir, "images/dark-fantasy/vassal-chrome-prototype/components.png"));
   await access(path.join(outDir, "images/dark-fantasy/settlement-pieces-v4/forage.webp"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v2"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v3"));
@@ -123,6 +125,13 @@ async function buildPagesArtifact() {
   await build({
     entryPoints: ["images/dark-fantasy/card-chrome-prototype/study.js"],
     outfile: path.join(outDir, "images/dark-fantasy/card-chrome-prototype/study.js"),
+    bundle: true, platform: "browser", format: "esm", target: ["es2020"],
+    legalComments: "none", logLevel: "silent",
+  });
+
+  await build({
+    entryPoints: ["images/dark-fantasy/vassal-chrome-prototype/study.js"],
+    outfile: path.join(outDir, "images/dark-fantasy/vassal-chrome-prototype/study.js"),
     bundle: true, platform: "browser", format: "esm", target: ["es2020"],
     legalComments: "none", logLevel: "silent",
   });
