@@ -85,9 +85,11 @@ async function buildPagesArtifact() {
   await cp("images", path.join(outDir, "images"), {
     recursive: true,
     filter(source) {
-      const parts = source.split(path.sep);
+      const parts = source.split(/[/\\]/);
       const filename = parts.at(-1) ?? "";
-      return !parts.includes("GameElements")
+      // Source masters stay in the repo. The loader fetches packed atlases only.
+      return !parts.includes("dark-fantasy")
+        && !parts.includes("GameElements")
         && !/^resource-language-[01]\.(json|png)$/.test(filename)
         && !/^test-(data|sheet)-/.test(filename);
     },
