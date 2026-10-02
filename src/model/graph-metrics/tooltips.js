@@ -29,6 +29,19 @@ function getPrimaryDetailedRegionId(state) {
   return typeof site?.regionId === "string" ? site.regionId : null;
 }
 
+function resolveLegendRegionId(state, scopeOrSubject) {
+  if (scopeOrSubject == null || scopeOrSubject === "region") {
+    return getPrimaryDetailedRegionId(state);
+  }
+  if (typeof scopeOrSubject === "string" && scopeOrSubject.length > 0) {
+    return scopeOrSubject;
+  }
+  if (typeof scopeOrSubject?.regionId === "string" && scopeOrSubject.regionId.length > 0) {
+    return scopeOrSubject.regionId;
+  }
+  return getPrimaryDetailedRegionId(state);
+}
+
 export function getSettlementFoodTooltipSpec(state) {
   const regionId = getPrimaryDetailedRegionId(state);
   const local = getDetailedSettlement(state, regionId);
@@ -133,8 +146,7 @@ export function getSettlementPopulationTooltipSpec(state, classId = null, scope 
       : classes.reduce((sum, entry) => sum + (entry?.freePopulation ?? 0), 0);
     return formatPopulationTooltip(classId, cohort, assigned, free);
   }
-  // Legend hover has no graph subject, so the local breakdown uses the primary settlement.
-  const regionId = getPrimaryDetailedRegionId(state);
+  const regionId = resolveLegendRegionId(state, scope);
   const summary = getDetailedPopulationSummary(state, regionId);
   const cohort = classId ? summary.byClass?.[classId] : summary;
   const assigned = countAssignedWorkers(state, regionId, classId);
@@ -161,7 +173,7 @@ export function getSettlementFreePopulationTooltipSpec(state, classId = null, sc
     const assigned = entries.reduce((sum, entry) => sum + finiteFloor(entry?.assignedWorkers, 0), 0);
     return freePopulationLines(classId, free, assigned);
   }
-  const regionId = getPrimaryDetailedRegionId(state);
+  const regionId = resolveLegendRegionId(state, scope);
   const summary = getDetailedPopulationSummary(state, regionId);
   const cohort = classId ? summary.byClass?.[classId] : summary;
   const assigned = countAssignedWorkers(state, regionId, classId);

@@ -930,11 +930,18 @@ export function createMetricGraphView({
     );
   }
 
+  function legendTooltipSubject() {
+    const subjectKey = controller?.getData?.()?.subjectKey ?? null;
+    return typeof subjectKey === "string" && subjectKey.length > 0 && subjectKey !== "civilization"
+      ? subjectKey
+      : null;
+  }
+
   function buildLegendTooltipSpec(seriesDef) {
     const cursorState = getCursorState?.() ?? null;
     const baseTitle = getSeriesLegendTitle(seriesDef);
     if (typeof seriesDef?.getLegendTooltipSpec === "function") {
-      const spec = seriesDef.getLegendTooltipSpec(cursorState);
+      const spec = seriesDef.getLegendTooltipSpec(cursorState, legendTooltipSubject());
       if (spec && typeof spec === "object") {
         return {
           title:
