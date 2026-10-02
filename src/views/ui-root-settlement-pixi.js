@@ -199,7 +199,7 @@ app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltip
 let prototypeView = null;
 let worldMapView = null;
 let worldViewMode = "map";
-let selectedWorldRegionId = "river-crown";
+let selectedWorldRegionId = null;
 let worldMapRegionSelectionActive = false;
 let settlementGraphController = null;
 let selectedPracticeClassId = "villager";
@@ -1309,6 +1309,10 @@ runCompleteView = createRunCompleteView({
   onNewGame: () => gameMenu?.openNewGame?.(),
 });
 function handleDebugFreshRunApplied(reason) {
+  const capitalRegionId = runner.getCursorState?.()?.civilization?.capitalRegionId;
+  selectedWorldRegionId = typeof capitalRegionId === "string" && capitalRegionId.length > 0
+    ? capitalRegionId
+    : null;
   opening.reset();
   openingBlocker.visible = false;
   settlementGraphView?.setOpeningRevealSecond(null);
