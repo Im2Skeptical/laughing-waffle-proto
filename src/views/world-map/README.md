@@ -13,6 +13,11 @@ stay in `createWorldMapView`.
 - `glyphs.js` — worker/ownership/vassal/pressure/currency builders
   that take explicit parent/point arguments and do not close over the view
 
+Supply packets use green Food markers and gold Stock crates between the actual
+provider and consumer settlements. Require markers are hollow because their
+Stock is retained. Packets use authoritative transfer records and the viewed
+simulation second, including during rewind; they do not move Stock themselves.
+
 ## Intentionally not extracted
 
 - Packet spawn/draw/reset (closes over batch and playback state)

@@ -1,4 +1,4 @@
-import { consumeStock, CIV_CONTENT_TUNING } from "../stock.js";
+import { consumeAvailableStock, CIV_CONTENT_TUNING } from "../stock.js";
 // Food moon phase: meals, happiness, and starvation migration intents.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -94,7 +94,7 @@ export function runFoodPhase(state, phase) {
     const population = getPopulationSummary(state, site.regionId);
     const savedStock = Math.min(population.mealDemand, Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0));
     const demandStock = population.mealDemand - savedStock;
-    const consumed = consumeStock(state, settlement, "Edible", demandStock);
+    const consumed = consumeAvailableStock(state, settlement, "Edible", demandStock);
     let fedPeople = (consumed + savedStock) * CIV_CONTENT_TUNING.populationPerEdible;
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {

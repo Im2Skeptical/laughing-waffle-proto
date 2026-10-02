@@ -24,6 +24,11 @@ first-pass system notes below retain their original tuning context.
   supply/provider legibility, purchase and displacement feedback, class/population
   explanations, automated conflict visibility, and editable content workflows.
   These are follow-up areas, not completed usability claims or a new scope commitment.
+- Food and all Practice Stock inputs now use local hosts first, then
+  player-controlled settlements that are both polygon-adjacent and directly
+  connected. Require retains provider Stock; Consume debits the source host.
+  The map shows Food and Stock supply packets, including hollow Require markers.
+  State/save schemas make a clean cut so old local-only timelines are rejected.
 - Use the coverage and deferred lists below when extending content. Provisional
   coefficients remain first-pass choices. Human playtesting still
   needs to establish coherent long-run class and hybrid strategies within five slots.
@@ -172,4 +177,4 @@ upper bound (the expanded snapshot measured 375 ms against the old 300 ms bound)
 Further snapshot/render optimization is a follow-up, not a balance dependency.
 
 Probe artifacts are generated under `artifacts/` and are not committed. State/save/
-config schemas are 26/17/16; Map Lab is 8. Older saves are intentionally rejected.
+config schemas are 27/18/16; Map Lab is 8. Older saves are intentionally rejected.

@@ -32,6 +32,7 @@ export const REGION_DOUBLE_TAP_WINDOW_MS = 350;
 export const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;
 export const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
   food: SETTLEMENT_RESOURCE_COLOURS.food,
+  stock: 0xe8c96c,
   population: SETTLEMENT_RESOURCE_COLOURS.totalPopulation,
 });
 export const PRESSURE_COLOURS = Object.freeze({

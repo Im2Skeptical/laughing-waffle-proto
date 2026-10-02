@@ -9,7 +9,7 @@ import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCoun
 import { resolveExternalPractice, adjacentRegionIds } from './external-world.js';
 import { applyBuild, findStructurePlacement } from '../structure-layout.js';
 import { emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
-import { stockTraits } from './stock.js';
+import { stockTraits, stockProviderSlots, stockProviderSlot } from './stock.js';
 import { getConnectedRegionIds } from '../world-state.js';
 
 export function validateDetailedPracticeDefinitions() {
@@ -45,7 +45,7 @@ function conditionsMet(state, site, def, assignment) {
   if (def.scholarRequired && !isScholarStaffed(assignment)) return false;
   if (def.specialistRequired && !specialistCount(settlement, def.specialistRequired)) return false;
   if (def.condition === 'diverseStock') {
-    const signatures = new Set(settlement.practiceSlots.filter(s => (s?.stock ?? 0) > 0).map(s => getDetailedPracticeDef(state, s.practiceId)?.stockTraits.slice().sort().join('|')));
+    const signatures = new Set(stockProviderSlots(state, settlement).filter(s => (s.slot?.stock ?? 0) > 0).map(s => stockTraits(state, s.slot).slice().sort().join('|')));
     if (signatures.size < 2) return false;
   }
   if (def.condition === 'ruins' && !adjacentRegionIds(state, site.regionId).some(id => getRegionState(state, id)?.lostAtSec != null || getRegionState(state, id)?.monster)) return false;
@@ -56,7 +56,7 @@ function conditionsMet(state, site, def, assignment) {
   if (def.positiveSupportRequired && !(getMartialSupportForCondition(state,site.regionId) > 0)) return false;
   if (def.minimumWarriors && specialistCount(settlement,'warrior') < def.minimumWarriors) return false;
   if (def.connectedSupportRequired && !getConnectedRegionIds(state,site.regionId).some(id => getRegionState(state,id)?.controller === 'player' && specialistCount(getDetailedSettlement(state,id),'warrior') > 0)) return false;
-  if (def.minimumStockedMilitary && settlement.practiceSlots.filter(s => s?.stock > 0 && stockTraits(state,s).some(t => ['Arms','Protection','Mobility','Power'].includes(t))).length < def.minimumStockedMilitary) return false;
+  if (def.minimumStockedMilitary && stockProviderSlots(state,settlement).filter(s => s.slot?.stock > 0 && stockTraits(state,s.slot).some(t => ['Arms','Protection','Mobility','Power'].includes(t))).length < def.minimumStockedMilitary) return false;
   return true;
 }
 
@@ -98,13 +98,13 @@ function recipePlan(state,site,assignment) {
   const plan=planStock(state,settlement,def.consume,def.require,slot,isScholarStaffed(assignment));
   if (!plan.ok) return {...plan,reason:`Missing ${plan.missing.kind}: ${plan.missing.amount} [${plan.missing.traits.join(' / ')}]`};
   if (def.distinctTechnicalProviders) {
-    const technical=settlement.practiceSlots.flatMap((s,i)=>s?.stock>0 && getDetailedPracticeDef(state,s.practiceId)?.tags.includes('Knowledge') && !plan.providers.some(p=>p.kind==='consume'&&p.slotIndex===i)?[{slot:s,index:i,tags:getDetailedPracticeDef(state,s.practiceId).tags.slice().sort().join('|')}]:[]);
+    const technical=stockProviderSlots(state,settlement).filter(s=>s.slot?.stock>0 && getDetailedPracticeDef(state,s.slot.practiceId)?.tags.includes('Knowledge') && !plan.providers.some(p=>p.kind==='consume'&&p.regionId===s.regionId&&p.slotIndex===s.slotIndex)).map(s=>({...s,tags:getDetailedPracticeDef(state,s.slot.practiceId).tags.slice().sort().join('|')}));
     const selected=technical.filter((s,i)=>technical.findIndex(t=>t.tags===s.tags)===i).slice(0,def.distinctTechnicalProviders);
     if (selected.length<def.distinctTechnicalProviders) return {ok:false,providers:[],reason:'Requires two differently-tagged technical providers'};
-    plan.providers.push(...selected.map(p=>({kind:'consume',slotIndex:p.index,practiceId:p.slot.practiceId,amount:1,traits:stockTraits(state,p.slot)})));
+    plan.providers.push(...selected.map(p=>({kind:'consume',regionId:p.regionId,slotIndex:p.slotIndex,practiceId:p.slot.practiceId,amount:1,traits:stockTraits(state,p.slot)})));
   }
   if (def.mode==='charge' && def.effects.some(e=>e.op==='generateStock')) {
-    const spent=plan.providers.filter(p=>p.kind==='consume'&&p.slotIndex===assignment.slotIndex).reduce((n,p)=>n+p.amount,0);
+    const spent=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===site.regionId&&p.slotIndex===assignment.slotIndex).reduce((n,p)=>n+p.amount,0);
     if ((slot.stock??0)-spent>=stockCapacity(state,settlement,slot,isScholarStaffed(assignment))) return {ok:false,providers:[],reason:'Stock capacity is full'};
   }
   if (def.mode==='charge' && def.effects.every(e=>e.op==='train') && Object.values(settlement.populationByClass).every(c=>c.adults<=c.specialists.scholar.adults+c.specialists.warrior.adults)) return {ok:false,providers:[],reason:'No unclassed adults available for training'};
@@ -155,10 +155,10 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
   const staffed=isScholarStaffed(assignment);
   // Evaluate at activation start, before any input or output changes query results.
   const amounts=def.effects.map(e=>practiceEffectAmount(state,site,assignment,e,activationType));
-  applyStockPlan(settlement,plan);
+  applyStockPlan(state,settlement,plan);
   const consumed=plan.providers.filter(p=>p.kind==='consume');
   if (consumed.length) emitPracticeEvent(state,{kind:'stockConsumed',regionId:site.regionId,practiceId:def.id,slotIndex:assignment.slotIndex,
-    traits:[...new Set(consumed.flatMap(p=>stockTraits(state,settlement.practiceSlots[p.slotIndex])))],tags:getPracticeTags(state,def.id,assignment),pool:def.pool,providers:consumed});
+    traits:[...new Set(consumed.flatMap(p=>stockTraits(state,stockProviderSlot(state,settlement,p))))],tags:getPracticeTags(state,def.id,assignment),pool:def.pool,providers:consumed});
   if (def.externalAction) resolveExternalPractice(state,site,def,true,plan.external);
   // Reset before emitting reactions; newly earned Charge survives this root chain.
   if (discharge) slot.charge=0;

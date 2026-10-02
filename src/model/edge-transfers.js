@@ -1,7 +1,6 @@
 import { MOON_PHASE_INDEX_BY_ID } from "../defs/gamesettings/moon-phase-defs.js";
 import {
   getMoonCycleDurationSec,
-  getMoonPhaseAtSecond,
   getMoonPhaseDurationSec,
 } from "./moon-phases.js";
 import { advanceReplayStateOneSecond } from "./replay-second-runner.js";
@@ -17,6 +16,7 @@ export function getLatestEdgeTransferBoundarySec(tSec, state = null) {
     return first + Math.floor((sec - first) / cycleSec) * cycleSec;
   };
   return Math.max(
+    Math.min(sec, Math.max(0, Math.floor(state?.civilization?.practiceEvents?.stockTransfers?.tSec ?? 0))),
     latestFor(MOON_PHASE_INDEX_BY_ID.food),
     latestFor(MOON_PHASE_INDEX_BY_ID.migration)
   );
@@ -62,17 +62,21 @@ export function buildEdgeTransferBatchAtBoundary(
   boundarySec
 ) {
   const sec = Math.max(0, Math.floor(boundarySec ?? 0));
-  const phase = getMoonPhaseAtSecond(preBoundaryState, sec);
-  let migrationTransfers = [];
+  let transfers = [];
   if (preBoundaryState?.runStatus?.complete !== true && sec > 0) {
     const replayState = deserializeGameState(serializeGameState(preBoundaryState));
     replayState.paused = false;
     const advanceResult = advanceReplayStateOneSecond(replayState);
     if (advanceResult?.ok && Math.floor(replayState.tSec ?? 0) === sec) {
-      migrationTransfers = collectMigrationTransfers(replayState, sec);
+      // Practice transfers can precede Food by one second. Keep that still-visible
+      // packet when the next boundary replaces the batch, using its own timestamp.
+      const previousStockBatch = preBoundaryState.civilization.practiceEvents?.stockTransfers;
+      const stockBatch = replayState.civilization.practiceEvents?.stockTransfers;
+      transfers = [...(previousStockBatch?.tSec > sec - 2 && previousStockBatch.tSec < sec ? previousStockBatch.transfers : []),
+        ...(stockBatch?.tSec === sec ? stockBatch.transfers : []),
+        ...collectMigrationTransfers(replayState, sec)];
     }
   }
-  const transfers = migrationTransfers;
   return {
     batchId: `edge-transfers:${sec}`,
     boundarySec: sec,

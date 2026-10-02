@@ -48,8 +48,8 @@ export const LAB_EXHIBITS = Object.freeze([
   { id:'charge',title:'Charge: five-slot metallurgy cascade',description:'Logging / Surface Mining / Charcoal Burning / Smelting / Toolmaking. Advance seasons: Timber winds Charcoal, Ore and Fuel wind Smelting, and Metal immediately wakes Toolmaking. Inspect Charge, blocked recipes and root/parent event IDs. No custom exhibit resolver.' },
   { id: 'stock', title: 'Stock: board-wide providers', description: 'Logging and Ore supply Smelting. Birth activates real production. Matching Stock is chosen from left to right across the board, including a consumer’s own existing Stock. Follow the numbered provider links.' },
   { id: 'require', title: 'Require and missing inputs', description: 'Garrison requires Arms without consuming them. Patrolling also consumes Edible. Move Bowmaking after Garrison in the Gym; its Stock can still satisfy a requirement. Remove Arms Stock to see the missing input.' },
-  ...[29,30,31].map(n => ({ id: `food-${n}`, title: `Food: ${n} people`, description: 'Start just before Food. Unstaffed Foraging generates one Stock before feeding; demand rounds up per 30 people. Watch the leftmost Edible provider and last meal.' })),
-  { id: 'shortage', title: 'Food: shortage', description: '61 adults and one unstaffed Foraging host cannot feed everyone. Advance to Food repeatedly to inspect happiness and migration evidence.' },
+  ...[29,30,31].map(n => ({ id: `food-${n}`, title: `Food: ${n} people`, description: 'Start just before Food in a disconnected settlement. Unstaffed Foraging generates one Stock before feeding; demand rounds up per 30 people. Watch the leftmost Edible provider and last meal.' })),
+  { id: 'shortage', title: 'Food: shortage', description: '61 adults and one unstaffed Foraging host in a disconnected settlement cannot feed everyone. Advance to Food repeatedly to inspect happiness and migration evidence.' },
   { id: 'currency', title: 'Currency: spend hosted Stock', description: 'Procure shortage relief for one Currency through the real Crisis effect. Barter pays from its Stock; there is no wallet. Effect controls resolve immediately without Life Map journey or danger.' },
   { id: 'housing', title: 'Common Housing ladder', description: 'Compare population with the real additive Housing capacities. Replace the house with any implemented rung, then advance to Housing.' },
   { id: 'scholar', title: 'Scholar: staffing and institutions', description: 'Three Scholars staff the first three Practices. Foundry boosts Knowledge production. Compare ordinary staffing, Commission, Discovery, seeded shop quality, and next-generation candidate bonuses. Effect controls omit Life Map journey and danger.' },
@@ -73,6 +73,9 @@ export function createLabFixture(id = 'stock', seed = 42) {
   if (id.startsWith('food-') || id === 'shortage') {
     // Reach the pre-Food boundary through ticks, then author the controlled cohort.
     advanceReplayStateToSecond(state, 1);
+    // These specimens demonstrate one local Edible without neighbouring supply.
+    state.world.connections = state.world.connections.filter(edge =>
+      edge.regionAId !== site.regionId && edge.regionBId !== site.regionId);
     setFixturePopulation(local, id === 'shortage' ? 61 : Number(id.slice(5)));
     local.practiceSlots = fiveSlots(practiceSlot('forage'));
     // This exhibit isolates the one-Stock Food boundary from worker tuning.

@@ -17,6 +17,11 @@ file is the legacy tick substrate.
   context. `practices.js` drains it through the real recipe resolver, including
   automatic Charge Discharges, full blocked retries and root-chain safeguards.
 - `stock.js` - Trait queries, atomic provider plans, capacities and specialist training.
+  Food and Practice inputs use local Stock first, then player-controlled detailed
+  settlements sharing both a polygon edge and a live connection, in authored
+  region order. Require preserves the provider's Stock; Consume debits its host.
+  The current transfer second is recorded in the JSON Practice event journal for
+  deterministic map packet reconstruction.
 - `workers.js` - Scholar sockets and ordinary population worker assignment.
 - `cohorts.js` - orthogonal specialist age subsets and composition helpers.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.

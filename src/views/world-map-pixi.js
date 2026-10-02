@@ -318,6 +318,7 @@ export function createWorldMapView({
           transfer?.transferId ?? null,
           transfer?.systemId ?? null,
           transfer?.resourceId ?? null,
+          transfer?.kind ?? null,
           transfer?.sourceRegionId ?? null,
           transfer?.destinationRegionId ?? null,
           Number(transfer?.amount ?? 0),
@@ -348,7 +349,7 @@ export function createWorldMapView({
       const index=routes.get(route)??0;routes.set(route,index+1);
       const from=screenPoint(source.display.labelPoint),to=screenPoint(destination.display.labelPoint);
       edgeTransferPacketDescriptors.push({...transfer,from,to,facingFrom:from,facingTo:to,
-        laneOffset:[0,-9,9][index%3],startedSec:batch.boundarySec+index*.06,durationSec:1.8});
+        laneOffset:[0,-9,9][index%3],startedSec:(transfer.boundarySec??batch.boundarySec)+index*.06,durationSec:1.8});
     }
     edgeTransferPacketDescriptors=edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE);
   }
@@ -376,7 +377,7 @@ export function createWorldMapView({
       const glyph = getEdgeTransferPacketGlyphSpec(packet.resourceId);
       const color = glyph.color ?? PALETTE.text;
       const size =
-        9 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
+        16 + Math.min(5, Math.max(0, Number(packet.amount ?? 0)) / 5);
       const tailX = pose.x - facing.directionX * (size + 9);
       const tailY = pose.y - facing.directionY * (size + 9);
       const perpendicularX = -facing.directionY;
@@ -406,7 +407,7 @@ export function createWorldMapView({
       edgeTransferGraphics.endFill();
       for (const circle of glyph.circles) {
         edgeTransferGraphics.lineStyle(1.5, 0x302d2a, alpha);
-        edgeTransferGraphics.beginFill(color, alpha);
+        edgeTransferGraphics.beginFill(color, packet.kind === 'require' ? alpha * 0.25 : alpha);
         edgeTransferGraphics.drawCircle(
           pose.x
             + facing.directionX * size * circle.forward
@@ -417,6 +418,21 @@ export function createWorldMapView({
           Math.max(2, size * circle.radius)
         );
         edgeTransferGraphics.endFill();
+      }
+      for (const crate of glyph.crates ?? []) {
+        const cx = pose.x + facing.directionX * size * crate.forward + perpendicularX * size * crate.side;
+        const cy = pose.y + facing.directionY * size * crate.forward + perpendicularY * size * crate.side;
+        const radius = size * crate.size / 2;
+        edgeTransferGraphics.lineStyle(2, color, alpha);
+        edgeTransferGraphics.beginFill(0x302d2a, alpha * 0.9);
+        edgeTransferGraphics.drawRect(cx - radius, cy - radius, radius * 2, radius * 2);
+        edgeTransferGraphics.endFill();
+        if (packet.kind !== 'require') {
+          edgeTransferGraphics.moveTo(cx - radius, cy - radius);
+          edgeTransferGraphics.lineTo(cx + radius, cy + radius);
+          edgeTransferGraphics.moveTo(cx - radius, cy + radius);
+          edgeTransferGraphics.lineTo(cx + radius, cy - radius);
+        }
       }
     }
     activeEdgeTransferPackets = surviving;
@@ -886,6 +902,7 @@ export function createWorldMapView({
           return {
             transferId: packet.transferId,
             resourceId: packet.resourceId,
+            kind: packet.kind ?? null,
             sourceRegionId: packet.sourceRegionId,
             destinationRegionId: packet.destinationRegionId,
             amount: packet.amount,

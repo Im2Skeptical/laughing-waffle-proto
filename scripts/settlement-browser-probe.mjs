@@ -652,7 +652,12 @@ try {
   );
   assert.ok(enterNodePoint, "the inspected available node has an explicit entry button");
   await clickDesignPoint(page, enterNodePoint);
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
+  await page.waitForFunction(() => {
+    const debug = globalThis.__SETTLEMENT_DEBUG__;
+    // The card is drawn before its asynchronous requirements finish loading.
+    return !!debug.getLifeMapOptionClickPoint(0)
+      && debug.getSnapshot().lifeMapDecision?.costPanels?.[0]?.disabled === false;
+  });
   const optionPoint = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)
   );

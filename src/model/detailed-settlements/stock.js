@@ -1,8 +1,8 @@
 // Hosted Stock is the only material inventory. Plans are pure, ordered and atomic.
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { ageCohortTotal, emptySpecialists } from './cohorts.js';
-import { emitPracticeEvent } from './practice-events.js';
-import { getRegionState, getWorldConnectionCandidates, getWorldDefinition } from '../world-state.js';
+import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
+import { getConnectedRegionIds, getRegionState, getWorldConnectionCandidates, getWorldDefinition } from '../world-state.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterSpawnChaos: 1000, monsterExpansionMoons: 100, monsterDefense: 3 });
 export const stockTraits = (state, slot) => getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
@@ -72,9 +72,55 @@ export function generateStock(state, settlement, slot, amount, staffed = false) 
   return generated;
 }
 
+// Local board first, then allied shared-edge neighbours in authored region order.
+// Physical adjacency and a live connection are independently required.
+export function stockProviderSlots(state, settlement) {
+  const host = state.world.sites.find(site => site.detailedState === settlement);
+  const sources = [{ regionId: host?.regionId ?? null, settlement }];
+  if (host && getRegionState(state, host.regionId)?.controller === 'player') {
+    const connected = getConnectedRegionIds(state, host.regionId);
+    const adjacent = getWorldConnectionCandidates(getWorldDefinition(state)).flatMap(edge =>
+      edge.regionAId === host.regionId ? [edge.regionBId]
+        : edge.regionBId === host.regionId ? [edge.regionAId] : []);
+    for (const region of getWorldDefinition(state).regions) {
+      if (!connected.includes(region.id) || !adjacent.includes(region.id)
+          || getRegionState(state, region.id)?.controller !== 'player') continue;
+      const site = state.world.sites.find(site => site.regionId === region.id && site.simulationMode === 'detailed');
+      if (site?.detailedState) sources.push({ regionId: region.id, settlement: site.detailedState });
+    }
+  }
+  return sources.flatMap(source => (source.settlement?.practiceSlots ?? []).map((slot, slotIndex) =>
+    ({ regionId: source.regionId, slotIndex, slot })));
+}
+
+export function stockProviderSlot(state, settlement, provider) {
+  const hostId = state.world.sites.find(site => site.detailedState === settlement)?.regionId;
+  const source = provider.regionId == null || provider.regionId === hostId ? settlement
+    : state.world.sites.find(site => site.regionId === provider.regionId)?.detailedState;
+  return source?.practiceSlots[provider.slotIndex];
+}
+
+function recordStockTransfers(state, settlement, providers, reason) {
+  const destinationRegionId = state.world.sites.find(site => site.detailedState === settlement)?.regionId;
+  if (!destinationRegionId) return;
+  const remote = providers.filter(provider => provider.regionId && provider.regionId !== destinationRegionId);
+  if (!remote.length) return;
+  const journal = practiceEventJournal(state);
+  if (journal.stockTransfers?.tSec !== state.tSec) journal.stockTransfers = { tSec: state.tSec, transfers: [] };
+  for (const provider of remote) {
+    const transfers = journal.stockTransfers.transfers;
+    const traits = stockTraits(state, stockProviderSlot(state, settlement, provider));
+    transfers.push({ transferId: `stock:${state.tSec}:${transfers.length}`, boundarySec: state.tSec,
+      systemId: 'stock', resourceId: traits.includes('Edible') ? 'food' : 'stock',
+      reason, kind: provider.kind, sourceRegionId: provider.regionId, destinationRegionId,
+      slotIndex: provider.slotIndex, practiceId: provider.practiceId, traits, amount: provider.amount });
+  }
+}
+
 // Require reads the activation-start stock. Consume reservations cannot double-spend.
 export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false) {
-  const slots = settlement?.practiceSlots ?? [];
+  const sources = stockProviderSlots(state, settlement);
+  const slots = sources.map(source => source.slot);
   const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));
   const providers = [];
   const modifiers = structureModifiers(state, settlement);
@@ -92,7 +138,7 @@ export function planStock(state, settlement, consume = [], require = [], consume
         if (!compatible(slots[i], cost.traits, kind === 'require')) continue;
         const amount = Math.min(needed, kind === 'require' ? slots[i]?.stock ?? 0 : remaining[i]);
         if (amount <= 0) continue;
-        providers.push({ kind, slotIndex: i, practiceId: slots[i].practiceId, amount, traits: cost.traits });
+        providers.push({ kind, regionId: sources[i].regionId, slotIndex: sources[i].slotIndex, practiceId: slots[i].practiceId, amount, traits: cost.traits });
         if (kind === 'consume') remaining[i] -= amount;
         needed -= amount;
       }
@@ -101,7 +147,7 @@ export function planStock(state, settlement, consume = [], require = [], consume
         if (index >= 0) {
           const useCurrency=wildcard&&!wildcardUsed&&stockTraits(state,slots[index]).includes('Currency');
           const providerKind=useCurrency?'consume':kind;
-          providers.push({kind:providerKind,slotIndex:index,practiceId:slots[index].practiceId,amount:1,traits:stockTraits(state,slots[index]),substitution:cost.traits});
+          providers.push({kind:providerKind,regionId:sources[index].regionId,slotIndex:sources[index].slotIndex,practiceId:slots[index].practiceId,amount:1,traits:stockTraits(state,slots[index]),substitution:cost.traits});
           if (providerKind==='consume') remaining[index]--;
           needed--;if (useCurrency) wildcardUsed=true;else flexibleUsed=true;
         }
@@ -112,10 +158,29 @@ export function planStock(state, settlement, consume = [], require = [], consume
   return { ok: true, providers };
 }
 
-export function applyStockPlan(settlement, plan) {
+export function applyStockPlan(state, settlement, plan) {
   if (!plan.ok) return false;
-  for (const p of plan.providers) if (p.kind === 'consume') settlement.practiceSlots[p.slotIndex].stock -= p.amount;
+  for (const p of plan.providers) if (p.kind === 'consume') stockProviderSlot(state, settlement, p).stock -= p.amount;
+  recordStockTransfers(state, settlement, plan.providers, 'practice');
   return true;
+}
+
+// Meals can be partially supplied; recipes above remain all-or-nothing.
+export function consumeAvailableStock(state, settlement, trait, amount) {
+  let remaining = Math.max(0, amount);
+  const providers = [];
+  for (const source of stockProviderSlots(state, settlement)) {
+    if (remaining <= 0) break;
+    if (!stockTraits(state, source.slot).includes(trait)) continue;
+    const taken = Math.min(remaining, Math.max(0, source.slot?.stock ?? 0));
+    if (taken <= 0) continue;
+    source.slot.stock -= taken;
+    remaining -= taken;
+    providers.push({ kind: 'consume', regionId: source.regionId, slotIndex: source.slotIndex,
+      practiceId: source.slot.practiceId, amount: taken, traits: [trait] });
+  }
+  recordStockTransfers(state, settlement, providers, 'food');
+  return amount - remaining;
 }
 
 export function consumeStock(state, settlement, trait, amount) {
