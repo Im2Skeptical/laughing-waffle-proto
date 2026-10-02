@@ -1,6 +1,8 @@
 import { stockTotal } from '../detailed-settlements/stock.js';
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import {
+  assignDetailedSettlementWorkers,
+  getDetailedCivilizationSummary,
   getDetailedSettlement,
   getPopulationSummary as getDetailedPopulationSummary,
   getStoredFoodCapacity,
@@ -9,7 +11,6 @@ import { getSettlementChaosGodSummary } from "../settlement-chaos.js";
 import {
   getSettlementFaithSummary,
   getSettlementHappinessSummary,
-  getSettlementPopulationSummary,
 } from "../settlement-state.js";
 import { getPrimaryDetailedSiteId, getSiteById } from "../world-state.js";
 
@@ -62,42 +63,110 @@ export function getSettlementChaosPowerTooltipSpec(state) {
   };
 }
 
-export function getSettlementMonstersTooltipSpec(state) {
-  const redGod = getSettlementChaosGodSummary(state, "redGod");
-  return {
-    title: "Monsters",
-    lines: [
-      `Current monsters: ${Math.floor(redGod?.monsterCount ?? 0)}/${Math.floor(redGod?.monsterWinCount ?? 100)}`,
-      `Spawn cadence: every ${Math.floor(redGod?.cadenceSec ?? 0)}s`,
-      "If monsters reach the win threshold, the run ends.",
-    ],
-  };
+function finiteFloor(value, fallback = 0) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(0, Math.floor(number));
 }
 
-export function getSettlementPopulationTooltipSpec(state, classId = null) {
-  const population = getSettlementPopulationSummary(state, classId);
+export function getSettlementMonstersTooltipSpec(state) {
+  const redGod = getSettlementChaosGodSummary(state, "redGod");
+  const count = finiteFloor(redGod?.monsterCount, 0);
+  // Schema >= 9 leaves monsterWinCount null and cadenceSec at 0. Those are not a cap.
+  if (!Number.isFinite(redGod?.monsterWinCount)) {
+    return {
+      title: "Monsters",
+      lines: [
+        `Current monsters: ${count}`,
+        "The run ends when spatial monster expansion takes every player settlement.",
+      ],
+    };
+  }
+  const lines = [`Current monsters: ${count}/${finiteFloor(redGod.monsterWinCount, 0)}`];
+  if (Number.isFinite(redGod?.cadenceSec) && redGod.cadenceSec > 0) {
+    lines.push(`Spawn cadence: every ${finiteFloor(redGod.cadenceSec, 0)}s`);
+  }
+  lines.push("If monsters reach the win threshold, the run ends.");
+  return { title: "Monsters", lines };
+}
+
+function formatPopulationTooltip(classId, cohort, assigned, free) {
+  const children = finiteFloor(cohort?.children, 0);
+  const adults = finiteFloor(cohort?.adults, 0);
+  const elders = finiteFloor(cohort?.elders, 0);
+  const total = Number.isFinite(cohort?.total)
+    ? finiteFloor(cohort.total, 0)
+    : children + adults + elders;
   return {
     title: `${classId ? `${formatClassLabel(classId)} ` : ""}Population`,
     lines: [
-      `Total population: ${population.total}`,
-      `Adults: ${population.adults}`,
-      `Youth: ${population.youth}`,
-      `Reserved by structures/practices: ${population.reserved}`,
-      `Free population: ${population.free}`,
+      `Total population: ${total}`,
+      `Children: ${children}`,
+      `Adults: ${adults}`,
+      `Elders: ${elders}`,
+      `Assigned: ${finiteFloor(assigned, 0)}`,
+      `Free population: ${finiteFloor(free, Math.max(0, adults + elders - finiteFloor(assigned, 0)))}`,
     ],
   };
 }
 
-export function getSettlementFreePopulationTooltipSpec(state, classId = null) {
-  const population = getSettlementPopulationSummary(state, classId);
+function countAssignedWorkers(state, regionId, classId) {
+  let assigned = 0;
+  for (const assignment of assignDetailedSettlementWorkers(state, regionId)) {
+    for (const token of assignment?.tokens ?? []) {
+      if (!classId || token?.classId === classId) assigned += 1;
+    }
+  }
+  return assigned;
+}
+
+export function getSettlementPopulationTooltipSpec(state, classId = null, scope = "region") {
+  if (scope === "civilization") {
+    const population = getDetailedCivilizationSummary(state).population;
+    const cohort = classId ? population?.byClass?.[classId] : population;
+    const classes = Object.values(population?.byClass ?? {});
+    const assigned = classId
+      ? cohort?.assignedWorkers ?? 0
+      : classes.reduce((sum, entry) => sum + (entry?.assignedWorkers ?? 0), 0);
+    const free = classId
+      ? cohort?.freePopulation ?? 0
+      : classes.reduce((sum, entry) => sum + (entry?.freePopulation ?? 0), 0);
+    return formatPopulationTooltip(classId, cohort, assigned, free);
+  }
+  // Legend hover has no graph subject, so the local breakdown uses the primary settlement.
+  const regionId = getPrimaryDetailedRegionId(state);
+  const summary = getDetailedPopulationSummary(state, regionId);
+  const cohort = classId ? summary.byClass?.[classId] : summary;
+  const assigned = countAssignedWorkers(state, regionId, classId);
+  const free = Math.max(0, finiteFloor(cohort?.adults, 0) + finiteFloor(cohort?.elders, 0) - assigned);
+  return formatPopulationTooltip(classId, cohort, assigned, free);
+}
+
+function freePopulationLines(classId, free, assigned) {
   return {
     title: `${classId ? `${formatClassLabel(classId)} ` : ""}Free Population`,
     lines: [
-      `Free population: ${population.free}`,
-      `Structure staffing: ${population.staffed}`,
-      `Practice commitments: ${population.committed}`,
+      `Free population: ${finiteFloor(free, 0)}`,
+      `Assigned workers: ${finiteFloor(assigned, 0)}`,
     ],
   };
+}
+
+export function getSettlementFreePopulationTooltipSpec(state, classId = null, scope = "region") {
+  if (scope === "civilization") {
+    const population = getDetailedCivilizationSummary(state).population;
+    const cohort = classId ? population?.byClass?.[classId] : null;
+    const entries = classId ? [cohort] : Object.values(population?.byClass ?? {});
+    const free = entries.reduce((sum, entry) => sum + finiteFloor(entry?.freePopulation, 0), 0);
+    const assigned = entries.reduce((sum, entry) => sum + finiteFloor(entry?.assignedWorkers, 0), 0);
+    return freePopulationLines(classId, free, assigned);
+  }
+  const regionId = getPrimaryDetailedRegionId(state);
+  const summary = getDetailedPopulationSummary(state, regionId);
+  const cohort = classId ? summary.byClass?.[classId] : summary;
+  const assigned = countAssignedWorkers(state, regionId, classId);
+  const free = Math.max(0, finiteFloor(cohort?.adults, 0) + finiteFloor(cohort?.elders, 0) - assigned);
+  return freePopulationLines(classId, free, assigned);
 }
 
 export function getSettlementFaithTooltipSpec(state, classId = null) {
@@ -108,7 +177,7 @@ export function getSettlementFaithTooltipSpec(state, classId = null) {
     lines: [
       `Current tier: ${capitalizeLabel(faith.tier)}`,
       `Current happiness: ${capitalizeLabel(happiness.status)}`,
-      "At each spring rollover, positive happiness raises faith and negative happiness lowers it.",
+      "At each Faith moon, positive happiness raises faith and negative happiness lowers it.",
     ],
   };
 }
