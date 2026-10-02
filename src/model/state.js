@@ -437,6 +437,10 @@ export function serializeGameState(state) {
   if (clean.envSlots) delete clean.envSlots;
   if (clean.envSlotsEnabled != null) delete clean.envSlotsEnabled;
 
+  // Phase is derived from pause. A save must already contain that derived
+  // value so loading it does not change the snapshot.
+  syncPhaseToPaused(clean);
+
   return clean;
 }
 
