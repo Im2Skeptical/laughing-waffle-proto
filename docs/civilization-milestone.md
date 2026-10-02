@@ -29,6 +29,12 @@ first-pass system notes below retain their original tuning context.
   connected. Require retains provider Stock; Consume debits the source host.
   Every settlement consumes its local Food meal before neighbour meal sourcing
   begins; neighbouring settlements can draw only the remaining Stock.
+  Scheduled Practices now get an all-settlement local-only pass per trigger/stage,
+  followed by local reaction chains, before neighbour sourcing. Pending events
+  run FIFO across roots; newly emitted children get local priority before the
+  next shared attempt. Incomplete recipes reserve nothing, shared retries use
+  fresh inputs/conditions/staffing, and once-per-root Charge limits span both
+  passes. Distinct triggers/stages remain separate batches, even in one second.
   The map shows Food and Stock supply packets, including hollow Require markers.
   State/save schemas make a clean cut so old local-only timelines are rejected.
 - Use the coverage and deferred lists below when extending content. Provisional

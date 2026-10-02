@@ -74,10 +74,10 @@ export function generateStock(state, settlement, slot, amount, staffed = false) 
 
 // Local board first, then allied shared-edge neighbours in authored region order.
 // Physical adjacency and a live connection are independently required.
-export function stockProviderSlots(state, settlement) {
+export function stockProviderSlots(state, settlement, localOnly = false) {
   const host = state.world.sites.find(site => site.detailedState === settlement);
   const sources = [{ regionId: host?.regionId ?? null, settlement }];
-  if (host && getRegionState(state, host.regionId)?.controller === 'player') {
+  if (!localOnly && host && getRegionState(state, host.regionId)?.controller === 'player') {
     const connected = getConnectedRegionIds(state, host.regionId);
     for (const regionId of getAdjacentRegionIds(state, host.regionId)) {
       if (!connected.includes(regionId) || getRegionState(state, regionId)?.controller !== 'player') continue;
@@ -114,9 +114,9 @@ function recordStockTransfers(state, settlement, providers, reason) {
 }
 
 // Require reads the activation-start stock. Consume reservations cannot double-spend.
-export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false) {
+export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false, localOnly = false) {
   if (!consume.length && !require.length) return { ok: true, providers: [] };
-  const sources = stockProviderSlots(state, settlement);
+  const sources = stockProviderSlots(state, settlement, localOnly);
   const slots = sources.map(source => source.slot);
   const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));
   const providers = [];

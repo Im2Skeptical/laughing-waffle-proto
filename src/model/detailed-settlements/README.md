@@ -13,6 +13,12 @@ file is the legacy tick substrate.
 - `scopes.js` — `resolveDetailedRegionScope`, `evaluateDetailedMapScore`, and
   the region-order / filter helpers they share.
 - `practices.js` — slot evaluation and authoritative declarative activation.
+  Each scheduled trigger/stage runs every eligible local-only recipe before
+  sharing. Queued reactions and their local children drain FIFO across roots
+  before shared retries; children of a shared recipe get local priority before
+  the next shared recipe. Successful recipes never repeat in the sharing pass.
+  Retries re-evaluate Stock, requirements and staffing, without reserving partial
+  inputs or repeating Charge gains. Authored site/slot order breaks ties.
 - `practice-events.js` — bounded JSON event journal, root/parent IDs and emission
   context. `practices.js` drains it through the real recipe resolver, including
   automatic Charge Discharges, full blocked retries and root-chain safeguards.

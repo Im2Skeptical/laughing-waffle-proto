@@ -6,5 +6,6 @@ import "./detailed-settlements/phases.js";
 import "./detailed-settlements/vassals.js";
 import './charge-content.js';
 import './settlement-supply.js';
+import './practice-supply-priority.js';
 
 console.log("[detailed-settlements] OK");
