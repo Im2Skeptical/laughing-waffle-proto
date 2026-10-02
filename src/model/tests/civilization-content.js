@@ -52,7 +52,7 @@ assert.ok(!Object.hasOwn(settlement,'currency')&&!Object.hasOwn(settlement,'stor
 settlement.practiceSlots=[slot('logging',2),slot('surfaceMining',1),slot('smelting'),slot('logging',5)];
 const plan=planStock(state,settlement,[{traits:['Ore'],amount:1},{traits:['Fuel'],amount:1}]);
 assert.equal(plan.ok,true);assert.deepEqual(plan.providers.map(p=>p.slotIndex),[1,0]);
-applyStockPlan(settlement,plan);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[1,0,0,5]);
+applyStockPlan(state,settlement,plan);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[1,0,0,5]);
 assert.deepEqual(planStock(state,settlement,[{traits:['Fuel'],amount:2}]).providers.map(p=>p.slotIndex),[0,3],'providers on both sides pay in left-to-right order');
 const before=JSON.stringify(settlement.practiceSlots);
 assert.equal(planStock(state,settlement,[{traits:['Fuel'],amount:1},{traits:['Ore'],amount:1}]).ok,false);
@@ -60,7 +60,7 @@ assert.equal(JSON.stringify(settlement.practiceSlots),before,'failed transaction
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning',1),slot('logging',1)];
 const wholeBoard=planStock(state,settlement,[{traits:['Fuel'],amount:3}]);
 assert.equal(wholeBoard.ok,true);assert.deepEqual(wholeBoard.providers.map(p=>p.slotIndex),[0,1,2],'Consume includes own Stock and scans the whole board left to right');
-applyStockPlan(settlement,wholeBoard);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[0,0,0]);
+applyStockPlan(state,settlement,wholeBoard);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[0,0,0]);
 settlement.practiceSlots=[slot('garrisonDuty'),slot('bowmaking',1)];
 const rightRequirement=planStock(state,settlement,[],[{traits:['Arms'],amount:1}]);
 assert.equal(rightRequirement.ok,true);assert.deepEqual(rightRequirement.providers.map(p=>p.slotIndex),[1],'Require accepts right-side Stock');
@@ -88,7 +88,7 @@ const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validati
 // Require is non-consuming and may share an activation-start unit with Consume.
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning')];
 const shared=planStock(state,settlement,[{traits:['Timber'],amount:1}],[{traits:['Fuel'],amount:1}]);
-assert.equal(shared.ok,true);applyStockPlan(settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
+assert.equal(shared.ok,true);applyStockPlan(state,settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
 const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
 assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can use existing suppliers');
 

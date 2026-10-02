@@ -1,6 +1,10 @@
 import { EDGE_TRANSFER_RESOURCE_COLOURS } from "./constants.js";
 
 export function getEdgeTransferPacketGlyphSpec(resourceId) {
+  if (resourceId === "stock") {
+    return { color: EDGE_TRANSFER_RESOURCE_COLOURS.stock, circles: [],
+      crates: [{ forward: -0.3, side: 0, size: 0.75 }], triangleScale: 0.44 };
+  }
   if (resourceId === "population") {
     return {
       color: EDGE_TRANSFER_RESOURCE_COLOURS.population,

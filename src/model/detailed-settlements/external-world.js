@@ -4,7 +4,7 @@ import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-set
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
 import { normalizeStructureLayout } from '../structure-layout.js';
-import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING } from './stock.js';
+import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
 import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
 import { selectPopulationComposition, compositionTotal } from './helpers.js';
 import { removePopulationComposition, addCompositionToStrangers } from './phases/migration.js';
@@ -200,13 +200,13 @@ export function stepSpatialPressure(state) {
         const def=getDetailedPracticeDef(state,p?.practiceId);
         if(!def?.defenseMultiplier) return [];
         const plan=planStock(state,settlement,def.consume,def.require);
-        const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&stockTraits(state,settlement.practiceSlots[p.slotIndex]).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
+        const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===targetId&&stockTraits(state,stockProviderSlot(state,settlement,p)).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
         return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
       })[0];
       if(response && getMartialSupport(state,targetId,true)>=region.monster.defense) {
         withPracticeRoot(state,{kind:'defense',regionId:targetId},()=>{
           recordSupportUsage(state,targetId,'defense',true);
-          applyStockPlan(settlement,response.plan);
+          applyStockPlan(state,settlement,response.plan);
           consumeStock(state,settlement,'Edible',1);
           emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId});
         });

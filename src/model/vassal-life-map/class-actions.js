@@ -144,7 +144,7 @@ function applyClassActionRecipe(state,vassal,action) {
     const def=getDetailedPracticeDef(state,response?.practiceId);
     if (def) {
       const plan=planStock(state,source,def.consume,def.require,response);
-      if (plan.ok) {applyStockPlan(source,plan);evacuatePopulation(state,action.targetId,action.destinationId,action.maximum);}
+      if (plan.ok) {applyStockPlan(state,source,plan);evacuatePopulation(state,action.targetId,action.destinationId,action.maximum);}
     }
   }
 }
