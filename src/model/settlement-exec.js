@@ -1,7 +1,4 @@
-// syncSettlementDerivedState is the debug-derived sync. The per-second hub tick is gone.
-// Do not add gameplay here.
-// New site simulation belongs in src/model/detailed-settlements.js (barrel) / its folder.
-// New Vassal Life Map rules belong in src/model/vassal-life-map.js.
+// Do not add gameplay here. Site simulation belongs in detailed-settlements.js.
 
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
