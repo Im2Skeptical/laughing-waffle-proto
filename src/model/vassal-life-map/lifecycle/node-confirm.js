@@ -2,6 +2,8 @@ import { classActionOptions, validateClassAction, applyClassAction, completeComm
 import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
 import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
 import { removePopulationComposition } from "../../detailed-settlements/phases/migration.js";
+import { emitPracticeEvent, withPracticeRoot } from '../../detailed-settlements/practice-events.js';
+import { flushPracticeEvents } from '../../detailed-settlements/practices.js';
 // Enter, option select, confirm, finish, and development-choice apply.
 
 import {
@@ -121,7 +123,7 @@ function applyPracticeIntervention(practiceSlots, intervention) {
     const existing = practiceSlots[existingIndex];
     if (!existing || existing.tier !== intervention.tier
         || existing.tier === "diamond") return false;
-    nextSlot = createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier);
+    nextSlot = {...createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier),stock:existing.stock,charge:existing.charge,work:existing.work};
     practiceSlots.splice(existingIndex, 1);
   } else {
     if (existingIndex >= 0 || intervention.mode !== "learn") return false;
@@ -490,7 +492,12 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
     }
   }
-  if (!option?.classAction?.onCompletion) applyClassAction(state, vassal, option?.classAction);
+  withPracticeRoot(state,{kind:'vassalAction',regionId:vassal.locationRegionId,classId:vassal.classId},()=>{
+    if ((option?.immediateDeathChance??0)>0) emitPracticeEvent(state,{kind:'dangerSurvived',regionId:vassal.locationRegionId,classId:vassal.classId,
+      martial:['campaign','challenge'].includes(option?.classAction?.kind)});
+    if (!option?.classAction?.onCompletion) applyClassAction(state, vassal, option?.classAction);
+  });
+  flushPracticeEvents(state);
   if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;
   if (vassal.classId === "warrior" && (option?.baseDanger??option?.immediateDeathChance) > 0) vassal.prestige += Math.ceil((option.baseDanger??option.immediateDeathChance) * 50);
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
@@ -622,7 +629,10 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     consumeStock(state, settlement, "Currency", stagedCurrencyCost);
     // Upgrades create a new slot object; carry the post-payment Stock into it.
     for (const slot of validation.reservation.practiceSlots) {
-      if (slot) slot.stock = settlement.practiceSlots.find(old => old?.practiceId === slot.practiceId)?.stock ?? 0;
+      if (slot) {
+        const existing=settlement.practiceSlots.find(old=>old?.practiceId===slot.practiceId);
+        slot.stock=existing?.stock??0;slot.charge=existing?.charge??0;
+      }
     }
     settlement.practiceSlots = validation.reservation.practiceSlots;
     settlement.structureSlots = validation.reservation.structureSlots;
@@ -635,6 +645,10 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     addLifeEvent(state, vassal, "interventionApplied", {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
+  }
+  if (nodeState.purchasedOffers.length>0) {
+    emitPracticeEvent(state,{kind:'settlementChanged',regionId:vassal.locationRegionId,reason:'shopConfirmed'});
+    flushPracticeEvents(state);
   }
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
     const emptyCost = getVassalActionPhaseCost(

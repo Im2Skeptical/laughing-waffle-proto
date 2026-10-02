@@ -18,6 +18,8 @@ import { stockTraits, specialistCount } from '../detailed-settlements/stock.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
 import { projectPracticeDraft } from '../practice-draft.js';
 import { createLabFixture, practiceSlot, setFixturePopulation } from '../dev-lab/fixtures.js';
+import { emitPracticeEvent } from '../detailed-settlements/practice-events.js';
+import { flushPracticeEvents } from '../detailed-settlements/practices.js';
 
 const slot=practiceSlot;
 // The badge's x1 / x2 / x4 progression is real production, before storage caps.
@@ -65,8 +67,10 @@ assert.equal(rightRequirement.ok,true);assert.deepEqual(rightRequirement.provide
 settlement.practiceSlots=[slot('bowmaking',1)];
 assert.deepEqual(planStock(state,settlement,[],[{traits:['Arms'],amount:1}]).providers.map(p=>p.slotIndex),[0],'Require accepts own Stock');
 settlement.practiceSlots=[slot('charcoalBurning'),slot('logging',1)];
-runPracticeActivation(state,'birth');
-assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[6,0],'Practice activation consumes a right-side provider');
+emitPracticeEvent(state,{kind:'stockGenerated',regionId:site.regionId,practiceId:'logging',traits:['Timber']});
+emitPracticeEvent(state,{kind:'stockGenerated',regionId:site.regionId,practiceId:'logging',traits:['Timber']});
+flushPracticeEvents(state);
+assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[6,0],'Discharge consumes a right-side provider');
 settlement.practiceSlots=[slot('forage'),slot('pastoralism'),slot('logging',2),slot('barter')];
 runPracticeActivation(state,'food','preRouting');runPracticeActivation(state,'birth');
 assert.ok(stockTotal(state,settlement,'Edible')>=2);assert.ok(stockTotal(state,settlement,'Currency')>=1);
@@ -154,6 +158,9 @@ const beforeFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWork
 hybridSite.detailedState.structureSlots=hybridSite.detailedState.structureSlots.map(p=>p?.structureId==='foundry'?null:p);
 assert.ok(beforeFoundry>buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWorkers[2]).effects[0].scaledValue.effectiveValue);
 hybridSite.detailedState.structureSlots=withFoundry;
+emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'surfaceMining',traits:['Ore']});
+emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'logging',traits:['Fuel']});
+flushPracticeEvents(hybrid);
 runPracticeActivation(hybrid,'birth');
 assert.ok(stockTotal(hybrid,hybridSite.detailedState,'Arms')>0,'Scholar-assisted Metal production supplies Warrior Arms through ordinary Stock');
 assert.ok(getMartialSupport(hybrid,hybridSite.regionId,true)>=3,'new Arms enables Garrison Support');

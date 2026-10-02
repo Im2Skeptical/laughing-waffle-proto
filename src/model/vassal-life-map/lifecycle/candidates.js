@@ -1,4 +1,5 @@
-import { specialistCount } from "../../detailed-settlements/stock.js";
+import { specialistCount, structureModifiers } from "../../detailed-settlements/stock.js";
+import { emitPracticeEvent } from '../../detailed-settlements/practice-events.js';
 // Vassal candidate portraits, signatures, pool generation, and selection.
 
 import {
@@ -8,7 +9,7 @@ import {
   VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP,
   VASSAL_STAT_IDS,
 } from "../../../defs/gamepieces/vassal-life-map-defs.js";
-import { getDetailedStructureDef } from "../../game-config.js";
+import { getDetailedStructureDef, getDetailedPracticeDef } from "../../game-config.js";
 import {
   generateVassalLifeMap,
 } from "../../vassal-life-map-generator.js";
@@ -91,7 +92,23 @@ export function generateCandidatePool(state) {
       const classId = isFounderPool || index === 1 ? null : lineage.establishedClassId;
       const institutions = classId ? (local?.structureSlots ?? []).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0)) : [];
       const retired = (state.civilization.retiredVassals ?? []).filter(v=>v.classId===classId && v.retirementRegionId===locationRegionId);
-      const academyBonus = Math.min(5, institutions.reduce((n,def)=>n+(def.candidateBonus??0),0) + (institutions.length ? Math.floor(retired.reduce((n,v)=>n+(classId==='scholar'?v.finalCunning:v.finalIntelligence),0)/5) : 0));
+      const classHistory=(state.civilization.retiredVassals??[]).filter(v=>v.classId===classId);
+      const historyValues={
+        retired:classHistory.length,commissions:classHistory.reduce((n,v)=>n+(v.completedCommissions??0),0),
+        age:Math.floor(Math.max(0,(state.year??1)-1)/10),chaos:Math.floor((state.civilization.chaos.chaosPower??0)/1000),
+        losses:state.civilization.history?.lostSettlements??0,conquests:state.civilization.history?.conquests??0,victories:state.civilization.history?.victories??0,
+        records:local?.practiceSlots.filter(s=>s?.stock>0&&getDetailedPracticeDef(state,s.practiceId)?.stockTraits.includes('Record')).length??0,
+        knowledgeStructures:new Set((local?.structureSlots??[]).filter(s=>getDetailedStructureDef(state,s?.structureId)?.tags.includes('Knowledge')).map(s=>s.structureId)).size,
+      };
+      const historyBonus=structureModifiers(state,local).filter(m=>m.kind==='historyCandidate').reduce((best,m)=>Math.max(best,Math.min(m.cap??3,
+        (m.sources??['retired','conquests','losses']).reduce((n,key)=>n+(historyValues[key]??0),0)*m.amount)),0);
+      const bank=state.civilization.candidateDevelopment;
+      const development=classId&&bank?Math.min(3,bank[classId]??0):0;
+      if (development) {
+        bank[classId]-=development;
+        emitPracticeEvent(state,{kind:'candidateDevelopment',regionId:locationRegionId,classId,amount:development});
+      }
+      const academyBonus = Math.min(5, institutions.reduce((n,def)=>n+(def.candidateBonus??0),0) + historyBonus + (institutions.length ? Math.floor(retired.reduce((n,v)=>n+(classId==='scholar'?v.finalCunning:v.finalIntelligence),0)/5) : 0))+development;
       return ({
       classId,
       founderClassId,

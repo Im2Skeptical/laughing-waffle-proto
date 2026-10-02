@@ -1,5 +1,14 @@
 # Current simulation
 
+CivContent 2.6 adds 24 declarative Charge Practices to the full 109-Practice /
+78-Structure registry. Charge is Practice-local integer state, separate from
+Stock. The authoritative Practice event queue grants Charge and automatically
+resolves legal full recipes in deterministic tableau order; blocked meters retain
+Charge and inputs. A Practice Discharges at most once per root chain, retaining
+any refill for later roots. Scheduled Practices remain on the existing triggers.
+The same ticks, event queue and JSON state serve replay and forecast. Exact
+content and remaining provisional clauses: `docs/civcontent-2.6-implementation.md`.
+
 Authoritative simulation behavior. Engine invariants and schema numbers:
 `ai/ai-context.md`. Tunable defaults live in `src/model/game-config.js` and
 detailed gamepiece definitions in

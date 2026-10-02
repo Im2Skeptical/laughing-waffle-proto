@@ -157,7 +157,9 @@ export function getLabObservation(state, regionId) {
     edible:vm?.storedFood,currency:vm?.currency,scholars:vm?.specialists.scholar,warriors:vm?.specialists.warrior,support:vm?.martialSupport,defense:vm?.defensiveSupport,
     prestige:vassal?.prestige ?? 0,retinue:getRetinue(state,vassal),ingenuity:vassal?.stats.cunning,prowess:vassal?.stats.intelligence,research:state.civilization.research.total,
     chaos:state.civilization.chaos.chaosPower,monsters:state.civilization.chaos.monsterCount,history:state.civilization.history,
-    stocks:local?.practiceSlots.map(p=>p ? {id:p.practiceId,stock:p.stock}:null),meal:vm?.lastMeal ?? local?.lastMeal, lastDefense:vm?.lastDefense ?? local?.lastDefense,
+    stocks:local?.practiceSlots.map((p,index)=>p ? {id:p.practiceId,stock:p.stock,mode:vm?.practices[index]?.evaluation?.mode,charge:p.charge,
+      threshold:vm?.practices[index]?.evaluation?.chargeThreshold,blockedReason:vm?.practices[index]?.evaluation?.blockedReason}:null),
+    cascadeTrace:local?.practiceActivationTrace??[],meal:vm?.lastMeal ?? local?.lastMeal, lastDefense:vm?.lastDefense ?? local?.lastDefense,
     commission:vassal?.commission ?? null, discoveryAccess:vassal?.discoveryAccess ?? false,
   };
 }

@@ -1,4 +1,5 @@
 import { stockTotal } from "../detailed-settlements/stock.js";
+import { getDetailedSettlement } from '../detailed-settlements/queries.js';
 import { findStructurePlacement, projectStructureDraft } from "../structure-layout.js";
 import { projectPracticeDraft } from "../practice-draft.js";
 import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
@@ -268,6 +269,19 @@ export function generateShopInventory(state, vassal, nodeState) {
     : nodeState.family === "publicWorks"
       ? buildStructureOffers(state, vassal, nodeState, roll)
       : buildRouteOffers(state, vassal, nodeState, roll);
+  const local=getDetailedSettlement(state,vassal.locationRegionId);
+  const bonus=vassal.classId==='scholar' && offers.some(o=>['practice','structure'].includes(o.intervention?.kind)) ? local?.shopQualityBonus??0 : 0;
+  if (bonus) {
+    for (const offer of offers) {
+      const change=offer.intervention;
+      if (change?.kind==='practice' && change.mode==='learn') {
+        for (let i=0;i<bonus;i++) change.resultingTier=getNextDetailedPracticeTier(change.resultingTier)??change.resultingTier;
+        offer.label=`Learn ${qualityLabel(change.resultingTier)} ${getDetailedPracticeDef(state,change.practiceId).label}`;
+      }
+      if (change?.kind==='structure') change.qualityBonus=Math.min(3,(change.qualityBonus??0)+bonus);
+    }
+    local.shopQualityBonus=0;
+  }
   return offers.map((offer, inventoryIndex) => ({ ...offer, inventoryIndex }));
 }
 

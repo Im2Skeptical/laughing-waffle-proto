@@ -6,6 +6,13 @@ mechanical acceptance coverage does not mean the UX, tooling, content pool, or
 balance is finished. The brief's hard invariants take precedence over provisional
 workbook tuning, with subsequent explicit design decisions recorded below.
 
+## CivContent 2.6 update
+
+The full 109-Practice / 78-Structure pool and 24 Charge engines now supersede
+the representative subset. See [the implementation report](civcontent-2.6-implementation.md)
+for exact runtime coverage, tests and remaining provisional clauses. The
+first-pass system notes below retain their original tuning context.
+
 ## Current iteration and handoff
 
 - Practice capacity is fixed at **five** per detailed settlement, including
@@ -85,10 +92,9 @@ human playtest work.
 
 ## Provisional choices and deviations
 
-- Representative shared grammar first: 94 Practices and 34 Structures are available:
-  Common 13/14, Scholar 44/11, Warrior 37/9 (Practice/Structure counts). Lyceum is an
-  additional founding institution. Implemented names do not imply every secondary
-  workbook retirement, Development or reactive clause is implemented.
+- CivContent 2.6 now offers Common 13/14, Scholar 48/32 and Warrior 48/32
+  (Practice/Structure). Every Practice is Scheduled or Charge; full pool and
+  per-card deviations are in `docs/civcontent-2.6-implementation.md`.
 - Common and class purchases use a flat first-pass 10 Prestige / 12 phases. Existing
   Research thresholds gate maturity; Discovery grants the next shop one higher maturity.
   Worker bonus is +100% per effective worker (base ?1, one full worker ?2,
@@ -131,24 +137,14 @@ human playtest work.
   are present; provider-to-card animated highlighting and dedicated new illustrations
   are not included.
 
-## Content outside the implemented grammar
+## Content coverage and remaining clauses
 
-The following workbook rows are not offered. They primarily need generalized
-Development/Legacy rewards, action modifiers, targeted responses, movement/supply
-reach, or per-institution study hooks. They were not replaced with bespoke card code.
-
-**Scholar Practices:** Examination Coaching, Calendar Keeping, Experimentation, Doomsaying.
-
-**Warrior Practices:** Formation Training, Veteran Instruction, Siege Training, Caravan Guarding, Rescue Parties, Forced Marches, Warband Marching, Feasting the Host, Tournaments, War Council, Great Host.
-
-**Scholar Structures:** Studbook Stable, Weigh House, Ledger Office, Mint, Procurement Office, Schoolhouse, Engineering College, Laboratory, Census Hall, Survey Office, Map Room, Printing House, Bureau of Standards, Public Works Ministry, Imperial Archive, Arcane College, Great Library, Anatomists' College, Plague House, Charnel Library, Forbidden Observatory, The Last Academy.
-
-**Warrior Structures:** Watchtower, Training Yard, Guardhouse, Road Station, Hall of the Fallen, Arsenal, Frontier Keep, Cavalry Grounds, Siege Yard, War College, Muster Ground, Beacon Chain, Quartermaster Hall, War Market, Walls of the Last Refuge, Hall of Champions, Banner Hall, Ashen March-Fortress, War Ministry, Ashen Host-Camp, Hall of Fallen Kings, Monster Ward, Warlord Court.
-
-Additional deferred behavior: bespoke terminal class artifacts; targeted Class
-Development conversion; arbitrary chosen-Trait storage; elaborate per-card reactive
-chains and unique retirement effects. Priest, Merchant, Orders, rival AI, tactical
-combat and equipment crafting remain outside scope.
+All Common/Scholar/Warrior rows are now offered. Secondary institutional,
+Development, Legacy and action-range clauses use provisional generalized
+implementations where their full interfaces do not exist. The complete
+card-by-card accounting is in [the CivContent 2.6 report](civcontent-2.6-implementation.md).
+Priest, Merchant, Orders, rival AI, tactical combat and equipment crafting remain
+outside this pass.
 
 ## Questions for play
 
@@ -176,4 +172,4 @@ upper bound (the expanded snapshot measured 375 ms against the old 300 ms bound)
 Further snapshot/render optimization is a follow-up, not a balance dependency.
 
 Probe artifacts are generated under `artifacts/` and are not committed. State/save/
-config schemas are 25/16/15; Map Lab is 8. Older saves are intentionally rejected.
+config schemas are 26/17/16; Map Lab is 8. Older saves are intentionally rejected.

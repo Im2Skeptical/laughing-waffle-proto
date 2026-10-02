@@ -14,6 +14,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   const {state,regionId,previous,detail} = controller.getSnapshot();
   const vm = getDetailedSettlementViewModel(state,regionId), local = state.world.sites.find(s=>s.regionId===regionId)?.detailedState;
   const observation = getLabObservation(state,regionId), vassal = getCurrentLifeMapVassal(state);
+  parent.append(details('Causal cascade sequence (root / parent event IDs)',observation.cascadeTrace));
   const edit = (kind,payload) => run(()=>controller.edit(kind,payload));
   const auto = (controls, action) => controls.forEach(control=>control.addEventListener('change',action));
   const location = select('Settlement',state.world.sites.map(s=>[s.regionId,`${s.regionId} · ${s.name} · ${s.simulationMode}${s.neutral?' · neutral':''}`]),regionId);
@@ -38,7 +39,9 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
     if (p.face) {
       card.append(el('p',`Card Tags: ${p.tags.join(', ')} · Workers: ${(p.workers?.tokens??[]).map(t=>t.specialist??'ordinary').join(', ') || 'none'}`));
       if (p.evaluation?.providers?.length) for (const provider of p.evaluation.providers) card.append(el('p',`${provider.kind === 'consume'?'Consume':'Require'} ${provider.amount}: [${provider.slotIndex+1} ${provider.practiceId}] → [${index+1} ${p.label}]`,'lab-provider'));
-      if (p.evaluation?.missing) card.append(el('p',`Blocked: ${p.evaluation.missing.kind} [${p.evaluation.missing.traits.join(' / ')}] on the board`,'lab-warning'));
+      if (p.evaluation?.mode==='charge') card.append(el('p',`Charge ${p.evaluation.charge} / ${p.evaluation.chargeThreshold}${p.evaluation.blocked?' — blocked':''}`));
+      if (p.evaluation?.blocked) card.append(el('p',`Blocked: ${p.evaluation.blockedReason}`,'lab-warning'));
+      else if (p.evaluation?.missing) card.append(el('p',`Recipe needs: ${p.evaluation.missing.kind} [${p.evaluation.missing.traits.join(' / ')}] on the board`));
       if (previous?.stocks?.[index]?.stock !== undefined) card.append(el('p',`Stock ${previous.stocks[index].stock} → ${p.stock}`));
     }
     if (gym) {

@@ -1,5 +1,7 @@
 import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js";
-import { specialistCount } from "../stock.js";
+import { specialistCount, structureModifiers } from "../stock.js";
+import { emitPracticeEvent } from '../practice-events.js';
+import { flushPracticeEvents } from '../practices.js';
 // Death moon phase: arrival meals, hardship, old-age mortality and population history.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -51,6 +53,7 @@ export function runDeathPhase(state, phase) {
   );
   let prematureDeaths = 0;
   let oldAgeDeaths = 0;
+  let prematureDeathMitigation=0;
   for (const unresolved of turn.unresolved) {
     const deaths = rollCompositionDeaths(
       state,
@@ -107,9 +110,20 @@ export function runDeathPhase(state, phase) {
       storedFoodRot: 0,
       looseFoodRot: 0,
     };
+    const premature=regionResult.death.hardshipDeaths+regionResult.death.arrivalDeaths;
+    const natural=Object.values(byClass).reduce((n,c)=>n+c.naturalDeaths,0);
+    const mitigation=Math.min(.75,structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='lossResistance'?m.amount:0),0));
+    prematureDeathMitigation+=premature*mitigation*getGameSetting(state,'prematureDeathChaosWeight');
+    if (premature+natural>0) {
+      settlement.history.lastDeathSec=state.tSec;
+      settlement.history.lastDeathCount=premature+natural;
+      settlement.history.deaths+=premature;
+      emitPracticeEvent(state,{kind:'populationDied',regionId:site.regionId,amount:premature+natural,premature:premature>0});
+    }
     if (settlement.lastMeal) settlement.lastMeal.migration = clone(migration);
     resetEmptyStrangerCohort(settlement);
   }
   prematureDeaths += internalMovements.reduce((sum, movement) => sum + movement.arrivalDeaths, 0);
-  recordChaosLosses(state, { prematureDeaths, oldAgeDeaths });
+  recordChaosLosses(state, { prematureDeaths, oldAgeDeaths, prematureDeathMitigation });
+  flushPracticeEvents(state);
 }

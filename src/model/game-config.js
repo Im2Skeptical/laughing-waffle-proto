@@ -8,7 +8,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 15;
+export const GAME_CONFIG_SCHEMA_VERSION = 16;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -362,6 +362,11 @@ export function validateGamepiecesDraft(value) {
     }
     for (const id of Object.keys(authored[kind])) {
       if (!value[kind][id]) errors.push(`${kind}.${id}: required`);
+    }
+    if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
+      if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);
+      if (def.mode==='charge' && (!Number.isInteger(def.charge?.threshold) || def.charge.threshold<1 || !Number.isInteger(def.charge?.gain) || def.charge.gain<1 || !def.charge.trigger?.any?.length)) errors.push(`practices.${id}: invalid Charge grammar`);
+      for (const cost of [...(def.consume??[]),...(def.require??[])]) if (!Number.isInteger(cost.amount)||cost.amount<0||!cost.traits?.length||cost.traits.includes('Charge')) errors.push(`practices.${id}: invalid Stock input`);
     }
   }
   for (const group of getGamepieceEditorGroups(value)) {
