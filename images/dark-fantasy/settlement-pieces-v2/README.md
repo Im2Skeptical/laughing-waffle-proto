@@ -1,6 +1,6 @@
 # Settlement illustrations
 
-Archived second pass. Runtime cards use `../settlement-pieces-v3/`.
+Archived second pass. Runtime uses the v4 atlas. v2 stays archived source.
 
 Thirty original illustrations, revised with the built-in ImageGen tool on
 2026-09-12 to fill complete opaque scenes. Existing subjects, buildings, palette
