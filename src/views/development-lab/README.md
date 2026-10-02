@@ -6,6 +6,10 @@ actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
+`prototypes.js` renders the design-workbench directory at `#/dev/prototypes`.
+Its Cards, Tooltips and Vassals links open the separately bundled pages under
+`images/dark-fantasy/`; no prototype renderer is imported into the game shell.
+
 `scene.js` retains a single Pixi stage around the existing world map, metric graph,
 and sun/moon wheel views. It owns only display preferences and sends selection/time
 commands to the Lab controller. `picker.js` uses the same catalogue and card faces;

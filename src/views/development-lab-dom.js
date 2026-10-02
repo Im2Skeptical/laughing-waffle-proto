@@ -5,6 +5,7 @@ import { createLabScene } from './development-lab/scene.js';
 import { createLabCards } from './development-lab/cards.js';
 import { createZooView } from './development-lab/zoo.js';
 import { renderWorkbench } from './development-lab/workbench.js';
+import { renderPrototypes } from './development-lab/prototypes.js';
 import { el, button, select, input, field, section } from './development-lab/elements.js';
 
 export function mountDevelopmentLab() {
@@ -17,7 +18,8 @@ export function mountDevelopmentLab() {
   const header = el('header','','lab-header'), title = el('div');
   title.append(el('small','DEVELOPER WORKBENCH'),el('h1','Development Lab'));
   const nav = el('nav');
-  for(const [id,label] of [['zoo','Zoo · content'],['museum','Museum · systems'],['gym','Gym · sandbox']]) {
+  nav.setAttribute('aria-label','Development Lab sections');
+  for(const [id,label] of [['zoo','Zoo · content'],['museum','Museum · systems'],['gym','Gym · sandbox'],['prototypes','Prototypes · design']]) {
     const link=el('a',label);link.href=`#/dev/${id}`;link.dataset.mode=id;nav.append(link);
   }
   const gameLink=el('a','Open game');gameLink.href=new URL('.',location.href).href;gameLink.target='_blank';gameLink.rel='noopener';nav.append(gameLink);
@@ -40,8 +42,9 @@ export function mountDevelopmentLab() {
     const scroll=window.scrollY;
     content.replaceChildren();
     for(const link of nav.querySelectorAll('[data-mode]')) link.setAttribute('aria-current',link.dataset.mode===mode?'page':'false');
-    status.textContent=error || controller().getSnapshot().message || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
+    status.textContent=error || (mode==='prototypes'?'Isolated design studies · edits are temporary':controller().getSnapshot().message) || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
     if(mode==='zoo') zoo.render(content);
+    else if(mode==='prototypes') renderPrototypes(content);
     else {
       const ctl=controller(), snapshot=ctl.getSnapshot();
       const fixtures=select('Fixture',[...(snapshot.exhibitId==='custom'?[['custom','Current imported setup']]:[]),...LAB_EXHIBITS.map(e=>[e.id,e.title]),...ctl.names().map(name=>[`saved:${name}`,`Saved · ${name}`])],snapshot.exhibitId);
@@ -100,7 +103,7 @@ export function mountDevelopmentLab() {
   }
   function route() {
     cancelAnimationFrame(renderFrame);
-    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','museum','gym'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
+    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','museum','gym','prototypes'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
   window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();},{once:true});
