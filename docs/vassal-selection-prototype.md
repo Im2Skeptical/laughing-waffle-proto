@@ -1,5 +1,21 @@
 # Vassal selection design study
 
+## Current workbench revision (October 3)
+
+Use the [vassal & founder workbench](../images/dark-fantasy/vassal-chrome-prototype/README.md)
+for the current direction. Run `npm run preview:vassals` and open
+<http://localhost:5182/images/dark-fantasy/vassal-chrome-prototype/>.
+It follows the card workbench with a fixed game-screen preview, live editable
+text, layered painted assets, comparison gallery and full-resolution PNG export.
+
+A's founder ceremony is now a single centred carousel with 4, 6 or 8 slots.
+Warrior and Scholar can be inspected; extra slots are black question-mark
+silhouettes. The Scholar first-run gate is optional and remains a design proposal.
+C's regular drawer now has three text hierarchies to compare, plus both custom
+class frames. Portrait identity, class clothing and founder crest are independent
+presentation choices. No production menu, simulation, save or replay changes
+accompany this workbench.
+
 ## Static in-game revision (October 2)
 
 The earlier free-layout DOM studies below were rejected: they did not respect the
