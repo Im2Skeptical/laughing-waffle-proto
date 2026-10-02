@@ -1,10 +1,19 @@
 # Development Lab
 
-Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/museum`, or `#/dev/gym`
+Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
 on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **Development Lab** and **Open current state in Gym**.
 The existing debugger remains available.
+
+## Prototypes
+
+**Prototypes · design** sits beside Zoo, Museum and Gym. Its three workbenches
+cover illustrated Cards, Gamepiece Tooltips, and Vassals & Founders. Each opens
+an isolated page with a return link to this section. Direct workbench URLs and
+the Prototypes hash route support refresh and GitHub Pages repository paths.
+The Pages build bundles all three separately. Edits are temporary presentation
+examples; these studies do not change the live renderer, simulation or saves.
 
 ## Catalogue
 
@@ -158,6 +167,10 @@ the source run's prior history because the bridge transfers a state, not a run.
 - `npm run probe:development-lab`: deployed bundle, filters/quality comparison,
   exhibits, edits, reset/storage, forecast, desktop/mobile, both bridges, refresh,
   original save protection. Details/screenshots: `artifacts/development-lab-*`.
+- `npm run probe:prototypes`: all three standalone workbenches through the
+  Prototypes directory, Pages subpath and refresh, desktop/mobile layouts,
+  contained card numbers, nested tooltip/focus behavior, founder browsing,
+  long-name warnings and full-size/transparent exports.
 - Existing settlement, workshop, and game-menu probes cover integration surfaces.
 
 Model adapters: `src/model/dev-lab/`. Orchestration:

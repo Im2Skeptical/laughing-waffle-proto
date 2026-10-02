@@ -47,6 +47,18 @@ try {
   const canvas=page.getByTestId('lab-scene');
   const mapPoint=async id=>{
     await canvas.scrollIntoViewIfNeeded();
+    await page.waitForFunction(()=>!__LAB_DEBUG__.getScene().map.focusAnimating);
+    // Selection now focuses the camera. Pan the target into the exposed map
+    // before clicking; the right-hand settlement panel covers other markers.
+    for(let attempt=0;attempt<8;attempt++) {
+      const point=await page.evaluate(id=>__LAB_DEBUG__.getRegionClickPoint(id),id);
+      if(point.x>100&&point.x<900&&point.y>270&&point.y<740)break;
+      const rect=await canvas.boundingBox(),sx=rect.width/2424,sy=rect.height/1200;
+      const start={x:rect.x+700*sx,y:rect.y+470*sy};
+      await page.mouse.move(start.x,start.y);await page.mouse.down();
+      await page.mouse.move(start.x+Math.max(-600,Math.min(600,700-point.x))*sx,start.y+Math.max(-300,Math.min(300,470-point.y))*sy,{steps:10});
+      await page.mouse.up();
+    }
     return page.evaluate(id=>{const p=__LAB_DEBUG__.getRegionClickPoint(id),r=document.querySelector('[data-testid="lab-scene"]').getBoundingClientRect();return {x:r.x+p.x*r.width/2424,y:r.y+p.y*r.height/1200};},id);
   };
   const capital=await page.evaluate(()=>__LAB_DEBUG__.getSnapshot().regionId);

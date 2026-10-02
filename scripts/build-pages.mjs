@@ -106,6 +106,7 @@ async function buildPagesArtifact() {
         || parts.length === darkFantasyIndex + 1
         || parts.includes("card-chrome-prototype")
         || parts.includes("tooltip-prototype")
+        || parts.includes("vassal-chrome-prototype")
         || parts.includes("settlement-pieces-v4");
       return keepDarkFantasy
         && !parts.includes("GameElements")
@@ -114,27 +115,22 @@ async function buildPagesArtifact() {
     },
   });
   await access(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/renderer.js"));
+  await access(path.join(outDir, "images/dark-fantasy/vassal-chrome-prototype/components.png"));
   await access(path.join(outDir, "images/dark-fantasy/settlement-pieces-v4/forage.webp"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v2"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v3"));
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
-  // Isolated art workbench: bundle its read-only definition imports for Pages.
-  // It is never imported by the game entry point.
-  await build({
-    entryPoints: ["images/dark-fantasy/card-chrome-prototype/study.js"],
-    outfile: path.join(outDir, "images/dark-fantasy/card-chrome-prototype/study.js"),
-    bundle: true, platform: "browser", format: "esm", target: ["es2020"],
-    legalComments: "none", logLevel: "silent",
-  });
-
-  // Tooltip workshop consumes the same read-only card presentation and artwork.
-  await build({
-    entryPoints: ["images/dark-fantasy/tooltip-prototype/study.js"],
-    outfile: path.join(outDir, "images/dark-fantasy/tooltip-prototype/study.js"),
-    bundle: true, platform: "browser", format: "esm", target: ["es2020"],
-    legalComments: "none", logLevel: "silent",
-  });
+  // Isolated workbenches bundle their read-only imports separately from the game.
+  for (const folder of ["card-chrome-prototype", "tooltip-prototype", "vassal-chrome-prototype"]) {
+    const studyPath = `images/dark-fantasy/${folder}/study.js`;
+    await build({
+      entryPoints: [studyPath], outfile: path.join(outDir, studyPath),
+      bundle: true, platform: "browser", format: "esm", target: ["es2020"],
+      legalComments: "none", logLevel: "silent",
+    });
+    await access(path.join(outDir, `images/dark-fantasy/${folder}/index.html`));
+  }
 
   const sourceHtml = await readFile("index.html", "utf8");
   const bundleUrl = relativeUrl(bundleOutput);

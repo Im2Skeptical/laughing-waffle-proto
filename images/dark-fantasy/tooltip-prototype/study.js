@@ -43,7 +43,7 @@ let state = { card: ids.includes(url.searchParams.get('card')) ? url.searchParam
   position: Math.max(0,Math.min(4,Number(url.searchParams.get('position'))||0)),meter: 'Progress', workers: 0, fill: 0, body: 21, cardSize: 240, tooltipWidth: 380, dim: 55, fullscreen: false, name: '', tags: '', primary: '', extra: '' };
 let ready = false, queued = false, sourceApp, zoomApp, inspectionApp, resourceSheet;
 const symbolFrames = {}, keywordHistory = [];
-let keyword = null, pinned = false, previousFocus = null;
+let keyword = null, pinned = false, previousFocus = null, keywordReturnTerm = null;
 
 function faceFor(tier = state.tier, edited = true) {
   const face = getGamepieceFace({ tSec: 0 }, 'practice', state.card, tier);
@@ -144,6 +144,7 @@ function renderReminders(face) {
 
 function makeApp(host) {
   const app = new PIXI.Application({width:CARD_CANVAS.width,height:CARD_CANVAS.height,backgroundAlpha:0,antialias:true,autoStart:false,resolution:Math.min(devicePixelRatio||1,2),autoDensity:true,preserveDrawingBuffer:true});
+  app.renderer.plugins.accessibility.div.classList.add('prototype-accessibility');
   host.appendChild(app.view); return app;
 }
 function draw(app, face, width) {
@@ -176,6 +177,12 @@ function syncPositions() {
 }
 
 function render() {
+  const active=document.activeElement;
+  const focusSelector=active?.closest('#inspection')
+    ? active.id ? `#${CSS.escape(active.id)}`
+      : active.dataset.keywordAction ? `[data-keyword-action="${CSS.escape(active.dataset.keywordAction)}"]`
+        : active.dataset.term ? `[data-term="${CSS.escape(active.dataset.term)}"]` : null
+    : null;
   const stage=$('stage'); stage.dataset.variant=state.variant; stage.dataset.context=state.context; stage.dataset.viewport=state.viewport;
   stage.dataset.keywordOpen=String(!!keyword); stage.style.setProperty('--body-size',`${state.body}px`); stage.style.setProperty('--dim',state.dim/100);
   $('inspection').hidden=state.variant!=='inspection'; $('tier').value=state.tier;
@@ -214,6 +221,7 @@ function render() {
   $('preview-status').textContent=`${state.variant==='local'?'Local preview':'Full inspection'} · ${state.name} · ${state.body}px rules`;
   document.querySelectorAll('[data-mode]').forEach(button=>{const selected=button.dataset.mode===state.variant;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   renderKeyword();
+  if(focusSelector) $('inspection').querySelector(focusSelector)?.focus({preventScroll:true});
   $('state-summary').textContent=JSON.stringify({mode:state.variant,card:state.card,context:state.context,position:state.position+1,viewport:{width:W,height:H},ownedTier:state.ownedTier,previewTier:state.tier,meterWording:state.meter,bodyPx:state.body,cardZoomPx:Math.round(zoomW),tooltipWidthPx:Math.round(tooltipW),previewValues:{stock:face.stock,capacity:face.stockCapacity,workers:face.workers,multiplier:face.workerMultiplier,meter:face.charge,threshold:face.chargeThreshold,gain:face.chargeGain},openKeyword:keyword,pinned},null,2);
 }
 
@@ -221,20 +229,25 @@ function setMode(mode) {
   if (mode==='inspection'&&state.variant!=='inspection') previousFocus=document.activeElement;
   state.variant=mode; keyword=null; pinned=false; keywordHistory.length=0; saveUrl(); queueRender();
   if (mode==='inspection') requestAnimationFrame(()=>$('tier').focus({preventScroll:true}));
-  else previousFocus?.focus({preventScroll:true});
+  else requestAnimationFrame(()=>(previousFocus?.isConnected?previousFocus:$('source-card')).focus({preventScroll:true}));
 }
 
 function openKeyword(term) {
+  if(!keyword) keywordReturnTerm=term;
   if (keyword&&keyword!==term) keywordHistory.push(keyword);
   keyword=term; queueRender(); requestAnimationFrame(()=>$('keyword-panel').querySelector('button')?.focus({preventScroll:true}));
 }
-function closeKeyword() { keyword=null; pinned=false; keywordHistory.length=0; queueRender(); }
+function closeKeyword() {
+  keyword=null; pinned=false; keywordHistory.length=0; queueRender();
+  requestAnimationFrame(()=>($('inspection').querySelector(`[data-term="${CSS.escape(keywordReturnTerm??'')}"]`)??$('tier')).focus({preventScroll:true}));
+}
 function renderKeyword() {
   const host=$('keyword-panel'); host.hidden=!keyword; if (!keyword) return; host.replaceChildren();
   const toolbar=document.createElement('div'); toolbar.className='keyword-toolbar';
   const back=document.createElement('button'); back.type='button'; back.textContent=keywordHistory.length?'‹ Back':'‹ Rules'; back.addEventListener('click',()=>{if(keywordHistory.length){keyword=keywordHistory.pop();queueRender();}else closeKeyword();});
   const pin=document.createElement('button'); pin.type='button'; pin.className='pin'; pin.textContent=pinned?'Pinned':'Pin'; pin.setAttribute('aria-pressed',String(pinned)); pin.addEventListener('click',()=>{pinned=!pinned;queueRender();});
   const close=document.createElement('button'); close.type='button'; close.textContent='×'; close.setAttribute('aria-label','Close keyword explanation'); close.addEventListener('click',closeKeyword); toolbar.append(back,pin,close); host.appendChild(toolbar);
+  back.dataset.keywordAction='back';pin.dataset.keywordAction='pin';close.dataset.keywordAction='close';
   if(keywordHistory.length){const trail=document.createElement('span');trail.className='breadcrumb';trail.textContent=keywordHistory.map(t=>t==='Progress'?state.meter:t).join(' › ');host.appendChild(trail);}
   const title=document.createElement('h3'); title.textContent=keyword==='Progress'?state.meter:keyword; host.appendChild(title);
   const p=document.createElement('p');
@@ -255,8 +268,7 @@ async function main() {
   // TexturePacker dimensions for the original atlas are separate from the frame manifests.
   resourceSheet=await (await fetch('images/sprite-sheets/resource-language.json')).json();
   for (const [name,value] of Object.entries(resourceSheet.frames)) symbolFrames[name.replace(/\.png$/,'')]={frame:value.frame,image:`images/sprite-sheets/${resourceSheet.meta.image}`,sheet:resourceSheet.meta.size};
-  const chargeSheet=manifests.find(m=>m.frames.chargeHousing3);
-  symbolFrames['progress-meter']={frame:{x:823,y:778,w:422,h:108},image:`images/dark-fantasy/card-chrome-prototype/${chargeSheet.image}`,sheet:{w:chargeSheet.size[0],h:chargeSheet.size[1]}};
+  symbolFrames['progress-meter']=symbolFrames.chargeReservoir;
   symbolAliases.Death='death';termDefinitions.Death='A local population death can trigger this Practice’s [Progress] gain.';
   for (const id of ids) {const option=document.createElement('option');option.value=id;option.textContent=getGamepieceFace({tSec:0},'practice',id).label;$('card').appendChild(option);}
   sourceApp=makeApp($('source-card'));zoomApp=makeApp($('zoom-card'));inspectionApp=makeApp($('inspection-card'));
@@ -287,7 +299,7 @@ async function main() {
     if(['ArrowLeft','ArrowRight'].includes(event.key)&&!event.target.closest('input,textarea,select,[contenteditable],#inspection')){setMode(state.variant==='local'?'inspection':'local');event.preventDefault();}
     if(event.key==='Tab'&&state.variant==='inspection'){
       const root=keyword?$('keyword-panel'):$('inspection');const focusable=[...root.querySelectorAll('button,select,[tabindex="0"]')].filter(el=>!el.closest('[hidden]')&&!el.disabled);
-      const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&document.activeElement===first){last?.focus();event.preventDefault();}else if(!event.shiftKey&&document.activeElement===last){first?.focus();event.preventDefault();}
+      const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!root.contains(document.activeElement))){last?.focus();event.preventDefault();}else if(!event.shiftKey&&(document.activeElement===last||!root.contains(document.activeElement))){first?.focus();event.preventDefault();}
     }
   });
   new ResizeObserver(queueRender).observe($('stage'));

@@ -24,10 +24,8 @@ export async function loadCardAssets(ids) {
     const source = textures[`chargeHousing${count}`];
     const r = source.frame;
     textures[`chargeCrown${count}`] = new PIXI.Texture(source.baseTexture,
-      new PIXI.Rectangle(r.x, r.y, r.width, 778 - r.y));
+      new PIXI.Rectangle(r.x, r.y, r.width, textures.chargeReservoir.frame.y - r.y));
   }
-  textures.chargeReservoir = new PIXI.Texture(textures.chargeHousing3.baseTexture,
-    new PIXI.Rectangle(823, 778, 422, 108));
   // Use only the illuminated enamel inside a cell; the fused housing owns the rim.
   const full = textures.chargeFull.frame;
   textures.chargeEnamel = new PIXI.Texture(textures.chargeFull.baseTexture,

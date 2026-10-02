@@ -54,6 +54,8 @@ function faceFor(s) {
 
 function makeApp(host, width, height) {
   const app = new PIXI.Application({ width, height, backgroundAlpha: 0, antialias: true, autoStart: false, resolution: Math.min(devicePixelRatio || 1, 2), autoDensity: true, preserveDrawingBuffer: true });
+  // Empty Pixi keyboard overlays must not cover the workbench's DOM controls.
+  app.renderer.plugins.accessibility.div.classList.add('prototype-accessibility');
   host.appendChild(app.view); apps.push(app); return app;
 }
 

@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
 </head>
 <body>
-  <header class="workbench-heading"><div><p class="eyebrow">CIVILIZATION SURVIVOR · TOOLTIP PROTOTYPE</p><h1>Gamepiece tooltip workbench</h1><p>Tag pills, a name plaque and class emblem. Read locally, inspect in full.</p></div><a href="images/dark-fantasy/card-chrome-prototype/">Card-frame workbench ↗</a></header>
+  <header class="workbench-heading"><div><p class="eyebrow">CIVILIZATION SURVIVOR · TOOLTIP PROTOTYPE</p><h1>Gamepiece tooltip workbench</h1><p>Tag pills, a name plaque and class emblem. Read locally, inspect in full.</p></div><div class="workbench-links"><a href="index.html#/dev/prototypes">Development Lab prototypes</a><a href="images/dark-fantasy/card-chrome-prototype/">Card-frame workbench ↗</a></div></header>
   <main>
     <div class="workspace">
       <section class="preview-area" aria-label="Tooltip preview">
@@ -22,7 +22,7 @@
           <div id="veil" class="veil" aria-hidden="true"></div>
           <section id="inspection" class="inspection" role="dialog" aria-label="Gamepiece inspection" hidden>
             <div class="inspection-toolbar"><label>Tier<select id="tier"><option value="bronze">Bronze</option><option value="silver">Silver</option><option value="gold">Gold</option><option value="diamond">Diamond</option></select></label><span id="tier-note"></span><button id="close-inspection" type="button" aria-label="Close inspection">×</button></div>
-            <div class="inspection-layout"><div id="inspection-card" class="inspection-card" role="img" aria-label="Tier preview card"></div><div class="inspection-copy"><section id="inspection-rules" class="piece-tooltip"></section><section id="reminders" class="reminders" aria-label="Card icon reminders"></section></div></div>
+            <div class="inspection-layout"><div id="inspection-card" class="inspection-card" role="img" aria-label="Tier preview card"></div><div id="inspection-copy" class="inspection-copy"><section id="inspection-rules" class="piece-tooltip"></section><section id="reminders" class="reminders" aria-label="Card icon reminders"></section></div></div>
             <aside id="keyword-panel" class="keyword-panel" aria-label="Keyword explanation" hidden></aside>
           </section>
           <button id="exit-fullscreen" class="exit-fullscreen" type="button" hidden>Exit preview</button>

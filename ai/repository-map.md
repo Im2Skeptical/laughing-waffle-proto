@@ -107,7 +107,7 @@ not use the root file as the default location for new rendering or model rules.
 
 ### Debug tools
 
-- Development Lab (Zoo / Museum / Gym): `src/views/development-lab-dom.js`,
+- Development Lab (Zoo / Museum / Gym / Prototypes): `src/views/development-lab-dom.js`,
   `src/views/development-lab/`, `src/controllers/development-lab-controller.js`,
   `src/controllers/development-lab-bridge.js`, and `src/model/dev-lab/`.
   See folder READMEs and `docs/development-lab.md`. Hash entry: `#/dev`.
@@ -283,7 +283,6 @@ should not be loaded for routine work.
 - Leftover hub/practice defs and settlement exec helpers
   (`src/defs/gamepieces/hub-structure-defs.js`,
   `src/defs/gamepieces/settlement-practice-defs.js`,
-  `src/model/settlement-vassal-exec.js`,
   `src/model/settlement-order-exec.js`,
   `src/model/settlement-leadership.js`,
   `src/model/settlement-upgrades.js`, and
@@ -293,6 +292,10 @@ should not be loaded for routine work.
   importers allowlisted). Live site rules belong in
   `detailed-settlements`; live pieces in `detailed-settlement-defs.js`;
   Life Map rules in `vassal-life-map.js`.
+- The unused legacy effects dispatcher, vassal executor/definitions, passive
+  timing and declarative assignment modules were removed after reachability
+  confirmed they had no app, worker or supported-test callers. Their removal
+  restores the source guard without changing runtime rules.
 - `src/model/graph-metrics.js` owns live civilization/settlement series.
   Leftover Gold/Grain/AP and hub-vs-prototype food/population metrics live
   in `src/model/graph-metrics/legacy-metrics.js`. Gold remains the unscoped

@@ -387,5 +387,5 @@
       ]
     }
   },
-  "standalone": ["card-chrome-prototype/components.png"]
+  "standalone": ["card-chrome-prototype/components.png", "vassal-chrome-prototype/components.png", "vassal-chrome-prototype/portraits.png", "vassal-chrome-prototype/game-screen.png"]
 }

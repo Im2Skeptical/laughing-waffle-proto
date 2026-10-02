@@ -100,6 +100,14 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .development-lab small { color:#80b8aa; letter-spacing:2px; }
 .lab-header { display:flex; gap:24px; justify-content:space-between; align-items:center; flex-wrap:wrap; border-bottom:1px solid #365058; padding-bottom:16px; }
 .lab-header nav { display:flex; flex-wrap:wrap; gap:10px; }
+.lab-prototype-intro { max-width:760px; margin:28px 0 20px; }
+.lab-prototype-intro h2 { margin-top:8px; }
+.lab-prototype-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:20px; }
+.lab-prototype-card { display:flex; flex-direction:column; gap:8px; margin:0; padding:24px; }
+.lab-prototype-card h3 { font-size:23px; margin:8px 0 0; }
+.lab-prototype-card .lab-prototype-details { color:#9bb8b3; font-size:13px; margin-bottom:24px; }
+.development-lab .lab-prototype-open { display:block; margin-top:auto; background:#2b5049; border:1px solid #527c70; border-radius:6px; }
+.development-lab .lab-prototype-open:hover { background:#355f55; }
 .development-lab a { color:#b0dfcd; padding:10px; text-decoration:none; }
 .development-lab a[aria-current=page] { background:#2b5049; border-radius:6px; color:white; }
 .development-lab button,.development-lab input,.development-lab select { font:inherit; color:inherit; background:#22343d; border:1px solid #587079; border-radius:5px; padding:7px 9px; min-height:38px; max-width:100%; }
