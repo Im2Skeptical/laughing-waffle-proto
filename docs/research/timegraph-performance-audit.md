@@ -1,6 +1,6 @@
 # Timegraph performance audit
 
-> **Historical note.** Written 2026-09-24 against baseline `e30ce3e` / target `6556f38`. Its recommendations were largely implemented in commits `6e60b57`, `979e46e` and `f12196c` (state is now v24 / config v15), so treat the measurements, schema numbers and sequencing below as historical. Current intent: `docs/timegraph-ux-and-capacity-brief.md`; guardrails: `docs/timegraph-optimisation-guardrails.md`. Body below is unedited.
+> **Historical note.** Written 2026-09-24 against baseline `e30ce3e` / target `6556f38`. Its recommendations were largely implemented in commits `6e60b57`, `979e46e` and `f12196c` (current schema numbers are in `ai/ai-context.md`), so treat the measurements, schema numbers and sequencing below as historical. Current intent: `docs/timegraph-ux-and-capacity-brief.md`; guardrails: `docs/timegraph-optimisation-guardrails.md`. The body retains its dated findings; evidence locations below explain the archived worktrees.
 
 
 Audited 2026-09-24. Baseline: `e30ce3e`, using the supplied investigation worktree and harness as read-only evidence. Current target: `6556f38`, isolated branch `codex/timegraph-performance-audit`. No production changes; unrelated work in the original checkout was left untouched. Do not apply the abandoned branch.
@@ -31,7 +31,7 @@ node experiments/timegraph-audit/audit.mjs C:/Users/User/.t3/worktrees/laughing-
 node experiments/timegraph-audit/restore.mjs
 ```
 
-Results: [current](../../experiments/timegraph-audit/results-current.json), [baseline](../../experiments/timegraph-audit/results-baseline.json), [restore/sampling](../../experiments/timegraph-audit/restore-results.json). The audit harness creates modified modules only in memory; it does not edit source files. Its memo table is reset for every summary call. This is a bounded experiment, not a suggested global cache implementation.
+The original untracked results were `experiments/timegraph-audit/results-current.json`, `results-baseline.json`, and `restore-results.json` in the investigation checkout. They are retained in the local repository-maintenance recovery archive, not this source tree. Recover that checkout before running the historical commands above. Current supported checks are in [the repository map](../../ai/repository-map.md). The audit harness creates modified modules only in memory; it does not edit source files. Its memo table is reset for every summary call. This is a bounded experiment, not a suggested global cache implementation.
 
 | Measurement | Baseline e30ce3e | Current 6556f38 |
 |---|---:|---:|

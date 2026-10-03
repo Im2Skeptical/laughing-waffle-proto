@@ -14,19 +14,21 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **RNG stream** | `state.rng` plus named substreams (`vassalSeed`, `vassalDevelopmentSeed`, `vassalLifeMapSeed`, `vassalPortraitSeed`). | `Math.random()`, one shared seed for all rolls |
 | **detailed settlement** | A region that simulates local cohorts, food, five practice slots, and a construction strip. | hub, generic settlement, village-as-token |
 | **region** | Map polygon with colour, controller, connections, `structureCapacity`, and a detailed-settlement toggle. | tile, hex, zone |
-| **New Game** | Player start: Starter_02, one rolled road, two adjacent detailed settlements, first in authored order as capital. | five-site debug fixture as the player start |
+| **New Game** | Player start: Starter_02, one rolled road, two adjacent player settlements plus four authored neutrals, first player region in authored order as capital. | five-site debug fixture as the player start |
 | **debug fixture** | Authored five-site test setup in Regions01, 03, 06, 07, and 11. | New Game, default campaign map |
-| **frontier** | A region that is not player-controlled. | wilderness, fog of war, unexplored |
+| **frontier** | A region with frontier control; authored neutral settlements have a separate external controller. | any non-player region, fog of war, unexplored |
 | **structure capacity** | Horizontal construction cells (rolled 5–8, or Map Lab pinned). | building slots, five practice slots |
 | **practice slot** | One of five local tableau slots holding a Practice. | structure slot, worker slot |
-| **Practice** | Scheduled or charge-lane gamepiece that occupies a practice slot. | building, upgrade, order |
+| **Practice** | Scheduled or Charge gamepiece that occupies a practice slot. | building, upgrade, order |
 | **Structure** | Placed construction with origin, width, definition, and quality. | practice, tile improvement |
-| **Administration** | The only food-transport Practice; snapshot-based, no same-moon relay. | trade route, caravan (as food mover), Preservation routing |
-| **Smokehouse** | Structure that reduces stored-food decay and can expand Administration reach. | Preservation, Preserve, passive food practice |
+| **Stock** | Integer material hosted by an installed Practice, with capacity and Stock Traits. | settlement wallet, loose food, private Charge |
+| **Stock Trait** | Material property used to match providers; Edible and Currency derive Food and purchasing totals. | Card Tag, class, worker specialty |
+| **Card Tag** | Piece classification used by definition queries; Scholar staffing can add Knowledge. | Stock Trait, resource type |
+| **Charge / Discharge** | Private Practice meter and its automatic cost-free effect at a legal full threshold, once per root chain. | Stock, Currency, worker-multiplied Discharge output |
+| **provider** | Practice Stock host supplying a complete recipe: local first, then adjacent-and-connected player settlements. | Administration transport, global wallet |
 | **Villager / Stranger** | Local cohorts. Villagers feed and assign before Strangers. | citizen, peasant, population (when a cohort is meant) |
-| **stored food / loose food** | Capacity-limited stores, then overflow; meals consume loose first. | granary food as the only food, inventory |
 | **moon phase** | One of six named phases: Birth, Food, Housing, Faith, Migration, Death. | newMoon, fullMoon, moon-cycle midpoint, `MOON_CYCLE_SEC` clock |
-| **year / season** | Independent 32-second solar year; Cultivate is seasonal (Summer). | moon as year, season as moon phase |
+| **year / season** | Solar calendar independent of the moon, 32 seconds per year by default; seasonal Practices follow authored season filters. | moon as year, season as moon phase |
 | **Happiness** | Cohort mood from food and housing, consumed as Faith evidence. | morale, loyalty, approval |
 | **Faith** | Moon phase that applies happiness evidence, faith streak, social displacement, and Primordial pressure. | religion meter, piety resource |
 | **Chaos** | Civilization-global Primordial pressure, monsters, and loss. | local unrest, site-only threat |

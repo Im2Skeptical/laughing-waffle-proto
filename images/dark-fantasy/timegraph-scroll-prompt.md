@@ -1,7 +1,9 @@
 # Timegraph scroll
 
 Generated on 2026-09-08 using the built-in image generation tool. The original
-PNG, including its alpha channel, is saved as `images/dark-fantasy/timegraph-scroll.png`.
+PNG, including its alpha channel, was saved as `timegraph-scroll.png`. That earlier
+source was removed when the complete assembly superseded it; the current source
+is the [timegraph assembly](timegraph-chronicle-v1/timegraph-chronicle-assembly.png).
 The frame and vellum are a single illustrated asset; Pixi renders the live controls,
 legend, axes, and timeline on top. No source game textures are shipped.
 

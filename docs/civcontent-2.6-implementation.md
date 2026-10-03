@@ -26,7 +26,7 @@ Automated validation:
 - `node src/model/tests/charge-content.js`: all 187 source rows and 24 mode assignments; real five-slot cascade; OR deduplication; private Charge; no reservation on gain; cost-free Discharges and unchanged providers; worker Charge scaling; capacity/staffing; deterministic order; root feedback safeguard and safety diagnostic; passive Charge modifiers; candidate banks; JSON roundtrip, authoritative replay and actual forecast chunk parity; five-slot rejection.
 - Browser inspection through the shared preview: complete Zoo counts, real Museum stepping to t=17s, visible Charge meters and causal Discharge records.
 
-Schemas are **GameState 26 / runner save 17 / GameConfig (settings and gamepieces) 16**. Older saves/configs are rejected, with no migration shim. Founder, Philosopher and Warlord progression designs are retained.
+Current schema numbers live in [the invariants sheet](../ai/ai-context.md). Older saves/configs are rejected, with no migration shim. Founder, Philosopher and Warlord progression designs are retained.
 
 ## Practice implementation and secondary deviations
 

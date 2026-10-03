@@ -1,96 +1,72 @@
 # Trigger Dictionary
 
-> **Current model:** detailed-settlement activations are the six named moon
-> phases in `src/defs/gamesettings/moon-phase-defs.js` (Birth, Food, Housing,
-> Faith, Migration, Death), resolved by `stepDetailedSettlementsSecond`.
-> Do not implement `newMoon` / `fullMoon` / `MOON_CYCLE_SEC` as the current
-> detailed-settlement clock. Those belong to the legacy settlement-exec path
-> in the section below. Behavior: `ai/sim.md`.
+Current detailed-settlement stepping is defined by
+`src/model/detailed-settlements/phases.js` and
+`src/defs/gamesettings/moon-phase-defs.js`. Practices are explicitly Scheduled
+or Charge. Definitions live in `src/defs/gamepieces/detailed-settlement-defs.js`;
+the resolver is `src/model/detailed-settlements/practices.js`.
 
-## Current detailed-settlement stepping
+## Authoritative boundary order
 
-When `cmdTickSimulation` advances an integer second, the
-`detailedSettlements` stage calls `stepDetailedSettlementsSecond(state, tSec)`.
-`state._seasonChanged` is set by the time authority and cleared after all live
-second stages.
+Every official second still advances through normal simulation ticks:
 
-Within the detailed-settlement stage, boundaries resolve in this order:
+1. A changed solar season runs matching Scheduled Practices, respecting
+   `activation.seasonKeys`.
+2. A lunar boundary resolves Birth, Food, Housing, Faith, Migration or Death,
+   each lasting the run's configured `phaseDurationSec`.
+3. The Vassal Life Map steps if the run has not completed. Events flush through
+   the same authoritative queue.
 
-1. `season`: matching practices whose activation either has no season filter or
-   includes the entered season in `activation.seasonKeys`
-2. Named moon-phase boundary from `getMoonPhaseAtSecond`: Birth, Food, Housing,
-   Faith, Migration, then Death, each lasting configurable `phaseDurationSec`
-3. Vassal Life Map then steps on the same one-second path, independently of
-   lunar phases
+The default solar year is independent of the six-phase moon. Legacy
+`newMoon`, `fullMoon` and `MOON_CYCLE_SEC` are not this clock.
 
-## Practice activation values
+## Scheduled activation
 
-### `season`
+`activation.type`, optional `activation.also`, stage, seasonal filters and
+conditions determine when a recipe is eligible. Birth/Food/Housing/Death
+handlers and explicit Crisis resolution invoke their respective activation
+types. `passive` definitions are consulted by the consuming rule; they do not
+advance time or automatically fire every second.
 
-Currently used by Cultivate, which activates only when entering Summer. Only
-player-controlled detailed settlements activate map production.
+For each trigger/stage batch, all eligible local recipes run before neighbour
+sourcing. Pending root events and their local reaction children drain before
+shared retries. Each retry re-evaluates inputs, staffing and conditions;
+successes never repeat and incomplete plans reserve nothing. Neutral sites
+participate in their normal production/meals with their existing restrictions.
 
-Phase-scheduled practices (Forage, Administration, Raise Houses, and other
-named-phase work) fire from those moon-phase handlers, not from `newMoon` or
-`fullMoon` triggers.
+## Charge events and Discharge
 
-### `passive`
+Emitters record JSON events with event/root/parent IDs, region, source and the
+actual outcome. `charge.trigger.any` OR clauses match one event once. Current
+content listens to Stock generation/consumption, candidate Development, Chaos,
+population deaths, Trade, Monster pressure/destruction, Support, Campaign,
+Challenge, successful defense, martial actions and survived Danger.
 
-Passive effects are queried by the boundary that consumes them; they do not
-create their own time advance. Smokehouse, Caravanserai, and Counting House
-replaced the former Preservation passives.
+All matching gains for an event occur before ready cards resolve in authored
+region/tableau order. Positive actual Stock yields emit events; clipped zero
+yields do not. Full Charge caps further gain. A legal Discharge resets Charge,
+applies its cost-free effects and can emit children. Blocked cards retain their
+meter and can retry when a later event changes their conditions.
 
-## Worker assignment trigger
+Each Practice may Discharge once per root chain across local/shared passes;
+refills remain banked. A bounded global safety cap records a diagnostic instead
+of allowing an infinite cascade. Root IDs, trace records and Charge are shared
+by ticks, replay, saves and forecasts. See
+[the Charge implementation](../docs/civcontent-2.6-implementation.md).
 
-Assignments are recalculated from current site cohorts for every activation or
-passive query. Each class creates
-`floor((adults + elders) / 10)` tokens. Villager tokens assign before Stranger
-tokens, practices left-to-right.
+## Worker and transaction boundaries
 
-Scaled-value practices use `1 + effective workers` and therefore retain their
-base effect with no assigned token. Build practices keep their worker-required,
-effective-worker-only behavior.
+Worker assignments derive from current cohorts. Scholars claim specialist
+sockets before ordinary population-band tokens; ordinary workers fill slots
+left-to-right, with cohort effectiveness from Game Settings. Scheduled workers
+multiply Stock output; Charge workers multiply incoming Charge. Both retain a
+base effect without ordinary workers unless explicit staffing gates block it.
 
-## Vassal selection
+Vassal selection, node entry, paid rerolls and confirmation are real timeline
+transactions. Hover, drafts and speculative preparation use isolated snapshots
+and never spend authoritative RNG or Prestige. Confirmation adopts the
+validated transaction once; its time cost resolves through normal ticks.
 
-`settlementSelectVassal` is a timeline action. Candidate preview uses a cloned
-serialized state; committing selection regenerates through authoritative
-`state.rng` and validates the pool hash.
-
-## Legacy settlement-exec triggers
-
-The following `newMoon` / `fullMoon` / `MOON_CYCLE_SEC` schedule is the
-legacy `settlement-exec` path. It is not current detailed-settlement six-phase
-stepping. Do not mix these triggers with Birth/Food/Housing/Faith/Migration/Death.
-
-### Second-stage order (legacy)
-
-When `cmdTickSimulation` advances an integer second, the legacy settlement-exec
-path used this moon-cycle schedule:
-
-1. `season`: matching practices whose activation either has no season filter or
-   includes the entered season in `activation.seasonKeys`
-2. `newMoon`: when `tSec > 0 && tSec % MOON_CYCLE_SEC === 0`
-3. `fullMoon`: at the midpoint of the moon cycle
-4. annual: when a season change enters season index zero
-
-The annual sub-order is demographics/social changes, global chaos, newly passed
-vassal interventions, then same-boundary vassal death.
-
-### `newMoon` (legacy)
-
-Used by Administration and build practices on the settlement-exec path.
-Administration plans from one activation-start snapshot before moves are
-applied. Build work uses assigned worker effectiveness.
-
-After new-moon practices, stored-food decay and loose-food halving resolve.
-
-### `fullMoon` (legacy)
-
-Midpoint of `MOON_CYCLE_SEC`. Not a named detailed-settlement phase.
-
-### `passive` (legacy)
-
-Used by Preservation and inert vassal placeholders on the settlement-exec path.
-Passive effects are queried by the boundary that consumes them; they do not
-create their own time advance.
+Run `npm run test:detailed-settlements`, `npm run test:vassal-life-map`, and
+`npm run test:detailed-replay`; `npm run verify` includes the content and Charge
+suites.

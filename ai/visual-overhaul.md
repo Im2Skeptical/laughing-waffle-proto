@@ -11,7 +11,7 @@ The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and let
 - Region polygons and roads still come from the world definition. Terrain is clipped to those polygons; no authored map image determines geography.
 - Hamlet smoke, braziers, dust, and transfer packets follow the viewed timeline.
 - Gamepieces use illustrated cards. Small slots use thumbnails; tap or hover reveals their information. Choice-card art opens an inspection, while its footer stages or chooses. The separate confirmation step remains authoritative.
-- Piece faces use a narrow nine-sliced brass rim. Stock traits and current/capacity share a top-right tray; base yields, trigger medallion, input sockets and worker multiplier occupy only the bottom area they need. Seasonal yields and worker sockets grow upward, stock trays grow leftward and wrap, and input groups wrap independently. Consume sockets use a minus; non-consuming requirements use a diamond. Names and full rules remain in inspection. Worker multipliers use effective worker strength; base yields do not replace authoritative evaluated output.
+- Piece faces use illustrated frames. Stock traits and current/capacity share a top tray; yields, trigger medallions, input sockets and worker multipliers occupy only the area they need. Consume sockets use a minus; non-consuming requirements use a diamond. Names and full rules remain in inspection. Scheduled workers multiply output; Charge workers multiply incoming Charge. Faces do not replace authoritative evaluated output.
 - Three stock tags and the enlarged count fill the card's top edge. The tray rises 12 design pixels above the rim, with its overhang included in the inspection hit area. Seasonal medallions show the next relevant season and fill between actual scheduled triggers, skipping inactive seasons; the symbol and fill follow the viewed `tSec` through pause, rewind, and year wraparound.
 - Long descriptions can be dragged or scrolled inside the inspection panel. The mortality estimate and confirmation controls remain visible.
 - Lifegraph geometry is spaced for readability in the view without changing serialized nodes, edges, availability, or outcomes.
@@ -28,9 +28,9 @@ widths. Regional summaries make room above the two rows; detailed settlements
 reserve the right side for inspection and enlarge the construction row.
 
 Frames in `piece-frames-v1/` distinguish scheduled and charge practices and give
-structures a shared brass/stone treatment. Thirty opaque full-bleed paintings
-replace the former cutouts. Outputs attach to the top edge, worker sockets to
-the left, and scheduled solar/lunar discs to the bottom. Disc rotation samples
+structures a shared brass/stone treatment. Dedicated opaque paintings cover all
+187 runtime pieces. Outputs sit at the bottom; Scheduled workers sit on the
+right, Charge workers on the left, and scheduled solar/lunar discs at the bottom. Disc rotation samples
 the existing readiness value from viewed simulation time. Reduced motion uses
 static readiness, while Charge pieces show their reservoir, current/threshold
 counts and blocked state.
@@ -49,7 +49,7 @@ responsible for navigation; the decision modal has no duplicate Map button.
 1. Model snapshots and `tSec` remain authoritative. A fractional view time is used only when it belongs to the displayed integer snapshot.
 2. World animation samples viewed time directly. Do not accumulate emitter state, use wall-clock particle lifetimes, or use a mutable random source for world visuals.
 3. A sprite sequence is sampled with `sampleSpriteFrame(time, clip)`; it is not independently advanced by an AnimatedSprite ticker.
-4. Finite effects have a deterministic simulation start second and duration. Administration and migration packets are reconstructed from the existing replay batch. Scrubbing backward visits the same positions and orientations in reverse order.
+4. Finite effects have a deterministic simulation start second and duration. Stock supply and migration packets are reconstructed from the existing replay batch. Scrubbing backward visits the same positions and orientations in reverse order.
 5. Pausing retains the fractional picture. Returning to a previously viewed time restores the same world pixels after assets have loaded, on the same renderer.
 6. Hover, long-press, drag, and audio de-click envelopes are interface behavior and may use wall time. Forecast calculation/reveal remains the existing interface behavior; it cannot advance the authoritative simulation.
 7. All textures, audio nodes, lookup Maps, and UI scroll state stay outside GameState. No simulation RNG, schema, definitions, controllers, or replay rules were changed.

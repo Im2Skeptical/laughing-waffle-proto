@@ -2,7 +2,7 @@
 
 Archived composition pass. Runtime cards use `../settlement-pieces-v4/`.
 
-This set covers all 94 current Practices, all 34 current Structures, and 27
+At the time of this archived pass, this set covered 94 Practices, 34 Structures, and 27
 earlier card subjects: 155 named paintings in total. `index.html` is a local
 card-size review gallery; its `catalogue.js` mirrors the content inventory.
 

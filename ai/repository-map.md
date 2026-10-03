@@ -183,7 +183,7 @@ in `ai/ai-context.md`.
 ## Proportional verification
 
 - Documentation only:
-  `npm run check:architecture` and `npm run check:source`
+  `npm run check:docs`, `npm run check:architecture`, and `npm run check:source`
 - Pure map selectors or map glyph helpers:
   `npm run test:world`, then `npm run build`
 - Settlement simulation/game settings/gamepieces:
@@ -216,6 +216,10 @@ let forecast unveiling outlive a settlement used as an interaction target.
 
 ## Maintenance guards
 
+- `npm run check:docs` checks current Markdown links, source routes, npm commands,
+  schema numbers, and the effect-operation dictionary against the repository.
+  Historical records under `ai/history/` are excluded; dated research and
+  deletion reports retain their historical source references.
 - `npm run check:architecture` rejects `Math.random()`, `crypto` entropy,
   browser UI globals, model imports from view/controller/Pixi layers, and
   new `src/model/` imports of leftover settlement exec/defs (tests excluded;
@@ -260,7 +264,8 @@ should not be loaded for routine work.
   scrub session math, snapshot-cache keys, run-scoped scale high-water,
   boot-fade, projection-replacement, and time-window animation state live in
   `src/views/timegraphs/`. Do not rewrite those with the forecast worker or
-  `src/model/state.js` (see `codex/abandoned-timegraph-refactor-do-not-merge`).
+  `src/model/state.js`. The isolation rationale and constraints are recorded in
+  `docs/timegraph-optimisation-guardrails.md`.
 - `src/views/ui-root-settlement-pixi.js` still wires graph composition,
   preview, and screen mode. Playback, vassal-flow, navigation-state, and
   graph-session helpers live in `src/views/ui-root/`. New drawing belongs

@@ -13,6 +13,7 @@ import {
   gitRevParse,
   loadRevision,
   parseArgs,
+  prepareRevisionRoots,
   previewValue,
   reproductionCommand,
   statesEqual,
@@ -1193,13 +1194,13 @@ function buildLimitations(kinds) {
 }
 
 async function main() {
-  const args = parseArgs(process.argv, SCRIPT_DIR);
+  const args = parseArgs(process.argv);
   if (args.help) {
     process.stdout.write(
       [
         "Usage: node scripts/differential-regression.mjs [options]",
-        "  --baseline <dir>   Baseline worktree (default sibling nav-bench-baseline)",
-        "  --refactor <dir>   Refactor worktree (default sibling nav-bench-refactor)",
+        "  --baseline <dir>   Baseline checkout (default temporary pinned revision)",
+        "  --refactor <dir>   Refactor checkout (default temporary pinned revision)",
         "  --scenario <id>    Run one scenario (repeatable)",
         "  --seed <n>         Override the primary seed",
         "  --horizon <n>      Forecast/idle horizon seconds (default 24)",
@@ -1211,13 +1212,23 @@ async function main() {
     return 0;
   }
 
+  const suppliedRoots = { baseline: args.baseline, refactor: args.refactor };
+  const cleanup = prepareRevisionRoots(args, SCRIPT_DIR);
+  try {
+    return await compareRevisions(args, suppliedRoots);
+  } finally {
+    cleanup();
+  }
+}
+
+async function compareRevisions(args, suppliedRoots) {
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
   const command = [
     "node",
     SCRIPT_REL,
-    "--baseline", args.baseline,
-    "--refactor", args.refactor,
+    ...(suppliedRoots.baseline ? ["--baseline", suppliedRoots.baseline] : []),
+    ...(suppliedRoots.refactor ? ["--refactor", suppliedRoots.refactor] : []),
     ...args.scenarios.flatMap((id) => ["--scenario", id]),
     ...(Number.isFinite(args.seed) ? ["--seed", String(args.seed)] : []),
     "--horizon", String(args.horizonSec),
@@ -1317,7 +1328,7 @@ async function main() {
       `Pinned SHA mismatch: baseline ${pinned.baseline.resolved} (want ${PINNED.baseline}), refactor ${pinned.refactor.resolved} (want ${PINNED.refactor})\n`
     );
   }
-  return summary.failed > 0 ? 1 : 0;
+  return summary.failed > 0 || !pinned.baseline.ok || !pinned.refactor.ok ? 1 : 0;
 }
 
 main().then((code) => {

@@ -2,17 +2,17 @@
 
 How agents consume this repo's domain documentation.
 
-## Always read first
+## Route from the task
 
-- **`CONTEXT.md`** at the repo root: ubiquitous language glossary.
 - **`ai/ai-context.md`**: engine invariants and schema numbers.
+- The matching routing skill under `.grok/skills/`, when one applies.
 
-Then read the matching behavior doc (`ai/sim.md` and/or `ai/ui.md`) **and**
-the matching section of **`ai/repository-map.md`**. After the map lands in a
-split folder, read that folder README before the orchestrator file.
+Use the matching section of **`ai/repository-map.md`**. Read `ai/sim.md` or
+`ai/ui.md` only when the routing skill is insufficient; read both for a task
+crossing model and UI/replay. Read root **`CONTEXT.md`** when domain vocabulary
+is unclear. Read a split folder's README before its orchestrator.
 
-Routing skills live in `.grok/skills/`. Prefer those over loading a whole
-subsystem.
+Root **`AGENTS.md`** owns the context-loading rules.
 
 ## Off-limits unless asked
 
@@ -22,7 +22,7 @@ subsystem.
   past design decision.
 
 This is a single-context repository. Root `CONTEXT.md` is the glossary.
-`docs/adr/` does not exist; do not assume ADRs are present.
+There is no ADR directory; do not assume ADRs are present.
 
 ## Use the glossary's vocabulary
 

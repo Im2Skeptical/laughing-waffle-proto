@@ -1,6 +1,7 @@
 // Isolated two-revision loader + deterministic state comparison helpers.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -25,14 +26,33 @@ const API_MODULES = Object.freeze({
   defs: "src/defs/gamepieces/vassal-life-map-defs.js",
 });
 
-export function resolveDefaultRoots(scriptDir) {
-  const worktrees = path.resolve(scriptDir, "..", "..");
+export function resolveDefaultRoots() {
   return {
-    baseline: process.env.NAV_BENCH_BASELINE
-      || path.join(worktrees, "nav-bench-baseline"),
-    refactor: process.env.NAV_BENCH_REFACTOR
-      || path.join(worktrees, "nav-bench-refactor"),
+    baseline: process.env.NAV_BENCH_BASELINE || null,
+    refactor: process.env.NAV_BENCH_REFACTOR || null,
   };
+}
+
+// Standalone temporary clones keep pinned comparisons independent of registered
+// worktrees. Caller-owned --baseline/--refactor paths are never removed.
+export function prepareRevisionRoots(args, scriptDir) {
+  if (args.baseline && args.refactor) return () => {};
+  const repository = path.resolve(scriptDir, "..");
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "waffle-differential-"));
+  const cleanup = () => fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  try {
+    for (const role of ["baseline", "refactor"]) {
+      if (args[role]) continue;
+      const destination = path.join(temporaryRoot, role);
+      execFileSync("git", ["clone", "--quiet", "--shared", "--no-checkout", "--", repository, destination], { stdio: "pipe" });
+      execFileSync("git", ["-C", destination, "checkout", "--quiet", "--detach", PINNED[role]], { stdio: "pipe" });
+      args[role] = destination;
+    }
+    return cleanup;
+  } catch (error) {
+    cleanup();
+    throw error;
+  }
 }
 
 export function gitRevParse(root) {
@@ -218,8 +238,8 @@ export function findRngSeed(api, predicate, limit = 10000) {
   throw new Error("No deterministic RNG seed matched the predicate");
 }
 
-export function parseArgs(argv, scriptDir) {
-  const defaults = resolveDefaultRoots(scriptDir);
+export function parseArgs(argv) {
+  const defaults = resolveDefaultRoots();
   const args = {
     baseline: defaults.baseline,
     refactor: defaults.refactor,

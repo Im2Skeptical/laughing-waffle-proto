@@ -26,7 +26,7 @@ npm start
 npm run verify
 ```
 
-`npm run verify` checks architectural constraints, confirms every source module
+`npm run verify` checks current documentation and architectural constraints, confirms every source module
 is routed from the app/worker/tests, builds the Pages artifact, and runs the
 model suite.
 
@@ -43,6 +43,9 @@ npm run probe:game-menu
 ```
 
 `npm run build` writes generated output to `dist/`.
+
+Documentation ownership, Git cleanup and recovery conventions are in
+[repository maintenance](docs/repository-maintenance.md).
 
 ## Deployment
 

@@ -20,8 +20,13 @@ registries here.
 - Food and Currency are hosted Stock, derived by Trait across five fixed Practice slots.
   There are no authoritative stored/loose Food or Currency wallets and no automatic
   Administration food transport. Provider planning checks Require without spending,
-  then reserves Consume atomically from eligible hosts across the board in
-  left-to-right order, including the consumer's existing Stock.
+  then plans Consume atomically, including the consumer's existing Stock.
+  Local hosts are visited left-to-right before eligible player settlements
+  sharing both a polygon edge and a direct connection, in authored region order.
+  All local Scheduled recipes and their reaction chains run before shared
+  retries for that trigger/stage. Each retry rechecks inputs, staffing and
+  conditions; incomplete plans reserve nothing. Food resolves all local meals
+  before unmet demand draws from neighbour leftovers.
 - Faith-phase Chaos income is unchanged. At a Death phase with at least 1000
   accumulated Chaos and an empty frontier region, one spatial Monster spawns in
   authored region order and accumulated Chaos resets to 0. Monster Defense still

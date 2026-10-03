@@ -1,8 +1,8 @@
 # Timegraph scroll: side rollers
 
-Generated on 2026-09-08 using the built-in image generation tool, editing this project's original [scroll](timegraph-scroll.png). No external game textures were copied.
+Generated on 2026-09-08 using the built-in image generation tool, editing this project's original scroll (`timegraph-scroll.png`, superseded source, removed). No external game textures were copied.
 
-Current runtime asset: [timegraph-scroll-side-rollers.png](timegraph-scroll-side-rollers.png).
+Historical asset: `timegraph-scroll-side-rollers.png` (superseded source, removed; current [timegraph assembly](timegraph-chronicle-v1/timegraph-chronicle-assembly.png)).
 
 The second edit replaces the generated checkerboard with the interface's charcoal background. It is an opaque asset; the app positions the chart and controls separately.
 
