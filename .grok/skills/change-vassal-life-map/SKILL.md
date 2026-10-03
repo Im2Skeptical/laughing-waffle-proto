@@ -1,6 +1,6 @@
 ---
 name: change-vassal-life-map
-description: Change Vassal Life Map rules, nodes, shops, lifecycle, generator, or presentation. Use when editing patronage, development, travel, crisis, legacy, prestige, phases, or Life Map topology. Do not extend settlement-vassal-exec.js.
+description: Change Vassal Life Map rules, nodes, shops, lifecycle, generator, or presentation. Use when editing patronage, development, travel, crisis, legacy, prestige, phases, or Life Map topology. Route rules through the vassal-life-map modules.
 ---
 
 # Change Vassal Life Map
@@ -28,8 +28,7 @@ orchestrator file. See `src/model/vassal-life-map/README.md` and
 
 ## Do not
 
-- Extend `src/model/settlement-vassal-exec.js` or
-  `src/model/settlement-state.js` for new Life Map rules.
+- Extend `src/model/settlement-state.js` for new Life Map rules.
 - Put Life Map gameplay in `src/model/detailed-settlements.js`.
 - Load `ai/history/` unless the task is explicitly about a past design
   decision.

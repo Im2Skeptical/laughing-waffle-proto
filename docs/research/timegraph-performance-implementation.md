@@ -33,8 +33,8 @@ hitch-free play on physical phones or large worlds.
   installation can mutate persistent knowledge.
 - Preserve moon-turn and meal data. Moon-turn fields are continuation inputs
   for later simulation phases as well as preview data.
-- Preserve the save serializer and today's schemas (state v22/config v14,
-  advanced since the brief). Cloning an already stripped private restore body
+- Preserve the save serializer and the schemas at measurement time (state
+  v22/config v14, advanced since the brief). Cloning an already stripped private restore body
   does not replace JSON serialization on the save path.
 - Retain worker yields. The supplied 750ms stall hypothesis was not proven;
   browser testing found a different concrete worker failure.
@@ -42,9 +42,10 @@ hitch-free play on physical phones or large worlds.
   thousand-year guarantee. A packed/WASM rewrite is not justified without
   profiling the remaining costs first.
 
-The detailed independent audit and experimental results are in the sibling
-`laughing-waffle-timegraph-audit` worktree under `docs/research/` and
-`experiments/timegraph-audit/`.
+The independent [performance audit](timegraph-performance-audit.md) and
+[ownership audit](timegraph-codec-audit.md) are checked in here. Untracked
+experimental results from the old investigation checkout are preserved in the
+local repository-maintenance recovery archive; the sibling worktree was removed.
 
 ## Changes
 
@@ -111,10 +112,13 @@ state cache; summaries and full wire anchors still consume memory.
   no intermediate cache densification, stale worker rejection, real edits at
   an off-anchor second, covered-range reuse and revealed loss gates.
 
-From this worktree:
+The browser performance probe runs from the current repository. For the
+production differential, supply an unchanged checkout of the **same gameplay
+and save-schema revision**; an old September checkout cannot deserialize today's
+saves. Historical measurements above belong to their recorded revision.
 
 ```powershell
-node scripts/timegraph-differential-probe.mjs ../laughing-waffle-timegraph-audit
+node scripts/timegraph-differential-probe.mjs <same-revision-baseline-checkout>
 $env:PROBE_LONG_LIVED='1'
 $env:PROBE_ASSERT_SMOOTH='1'
 node scripts/timegraph-performance-probe.mjs long-lived

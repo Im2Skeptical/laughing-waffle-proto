@@ -18,7 +18,6 @@ These files stay on the serialization/replay path and retain pre-redesign
 substrate. Reachability is not an invitation to add gameplay:
 
 - `src/model/settlement-exec.js`
-- `src/model/settlement-vassal-exec.js`
 - `src/model/settlement-order-exec.js`
 - `src/model/settlement-leadership.js`
 - `src/model/settlement-upgrades.js`

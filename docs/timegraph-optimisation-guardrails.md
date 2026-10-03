@@ -5,7 +5,8 @@
 ## Read first
 1. `docs/timegraph-ux-and-capacity-brief.md` (Cam's stated intent; status: Draft).
 2. `docs/research/timegraph-performance-implementation.md` (what was built and measured).
-3. Historical context only: `docs/research/timegraph-performance-audit.md`, `docs/research/timegraph-codec-audit.md`.
+3. Later supply/cache measurements: `docs/research/settlement-supply-performance.md`.
+4. Historical context only: `docs/research/timegraph-performance-audit.md`, `docs/research/timegraph-codec-audit.md`.
 
 ## Already implemented (do not re-propose)
 - Scoped summary aggregates computed once per summary (`6e60b57`).
@@ -26,11 +27,13 @@
 - Smooth scrubbing outranks unveil speed and horizon length.
 
 ## Intent (stated by Cam; Draft, see the brief)
-Ideally the simulation is effectively instant, with ~1000 years unveiled in about a second or less, without locking out interaction. Today: ~200 years in ~18.4 s on a desktop fixture.
+Ideally the simulation is effectively instant, with ~1000 years unveiled in about a second or less, without locking out interaction. The September 25 fixture measured ~200 years in ~18.4 s; that is a dated measurement, not a current performance guarantee. October 2 supply/cache measurements are in `docs/research/settlement-supply-performance.md`.
 
 ## Mistakes to avoid
 - Recommending "return only summaries/deltas from the worker" or "copy-on-write forks" without checking the existing design and the rules above.
-- Taking schema versions from docs; read `src/model/state.js` (currently state v24; config v15 in `src/model/game-config.js`).
+- Copying schema versions from historical reports. Current numbers are checked in
+  `ai/ai-context.md` against `src/model/state.js`,
+  `src/controllers/sim-runner/save-slots.js`, and `src/model/game-config.js`.
 - Treating the 40/200/600-year constants or the old 112 sim-s/s reveal ceiling as requirements; they are tuning values (live limits are in `settlement-graph-session.js`).
 - Measuring only on desktop or only in Node; phone-class CPU and frame times matter (the 4x CPU mobile case currently fails the smooth gate).
 
@@ -39,5 +42,9 @@ Ideally the simulation is effectively instant, with ~1000 years unveiled in abou
 - `node scripts/timegraph-differential-probe.mjs` and `npm run test:differential`.
 - `npm run verify`, `npm run probe:settlement`, `npm run probe:navigation`, `npm run probe:timegraph-alignment`.
 
-## Stale references
-`ai/repository-map.md` (Timegraph notes), `src/model/timegraph/README.md` and `ai/history/refactor-token-navigation-plan.md` refer to `codex/abandoned-timegraph-refactor-do-not-merge`. That branch is not on the remote (`Im2Skeptical/laughing-waffle-proto`), so its contents cannot be checked; the instruction "do not rewrite these together" stands.
+## Keep refactors bounded
+
+Change the view, forecast worker, state restorer, and serialization envelope as
+separate units. Each owns different mutable state and cache invalidation rules.
+The abandoned combined rewrite was archived during repository maintenance;
+current instructions do not depend on retaining its branch or worktree.

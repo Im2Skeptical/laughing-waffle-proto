@@ -4,7 +4,7 @@ Generated with the built-in image generation tool on 2026-09-07; native PNGs wer
 
 ## chronicle-practices.png
 
-Saved path: `images/dark-fantasy/chronicle-practices.png`.
+Original combined sheet: `chronicle-practices.png` (removed after splitting into named sources under `images/dark-fantasy/chronicle-illustrations-v1/`).
 
 Row-major: Raise Houses, Exchange, Import, Caravan Routes; Clearing House, Mixed Farming, Efficient Kitchens, Homesteading; Lodging Houses, Study, Mill, Harvest Festival.
 
@@ -14,7 +14,7 @@ Exact final prompt:
 
 ## chronicle-civic.png
 
-Saved path: `images/dark-fantasy/chronicle-civic.png`.
+Original combined sheet: `chronicle-civic.png` (removed after splitting into named sources under `images/dark-fantasy/chronicle-illustrations-v1/`).
 
 Row-major: Market Feast, Symposium, Vigil, Exodus; Hostel, Library, Archive, Hall of Sages; Agrarian Guild, Forum, Academy, University.
 

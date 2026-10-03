@@ -1,84 +1,58 @@
 # Effect Operation Dictionary
 
-Declarative detailed-settlement effects are defined in
-`src/defs/gamepieces/detailed-settlement-defs.js` and interpreted by the
-`src/model/detailed-settlements.js` barrel and
-`src/model/detailed-settlements/practices.js`.
+Current Practice effects are JSON data in
+`src/defs/gamepieces/detailed-settlement-defs.js`. The operation whitelist is
+`detailedSettlementEffectOps`; `src/model/detailed-settlements/practices.js`
+evaluates and resolves those effects through the authoritative recipe path.
+Stock planning and Structure modifiers live in
+`src/model/detailed-settlements/stock.js`. Callers use the
+`src/model/detailed-settlements.js` barrel.
 
-Scaled effects use a shared `scaledValue` descriptor:
+## Operations
 
-- `baseAmount`
-- an evaluator that returns a score, breakdown, and diagnostics
-- `workerMultiplier: { base, perEffectiveWorker }`
+| Operation | Result |
+| --- | --- |
+| `generateStock` | Adds integer Stock to the source Practice, clipped to its current capacity; positive actual yields emit Stock-generation events. |
+| `research` | Adds civilization Research. |
+| `train` | Trains available unclassed adults into the specified Scholar or Warrior specialty. |
+| `addHousingForPhase` | Adds a temporary regional Housing bonus to the current phase modifiers. |
+| `reduceLocalFoodRequirement` | Reduces the regional Food requirement through the current phase modifiers. |
+| `addFaithChaosResistance` | Adds current-phase Faith resistance. |
+| `bankCandidateDevelopment` | Banks class-specific Development for later candidate generation. |
+| `bankShopQuality` | Banks a capped bonus for the next eligible Scholar shop. |
+| `bankSupport` | Banks a capped amount in the named settlement Support channel. |
+| `bankPreview` | Banks capped Crisis preview detail. |
+| `boostSeasonalFood` | Records a same-year bonus for the first eligible local seasonal Edible producer. |
 
-The result is `baseAmount × evaluator score × (base + effective workers ×
-perEffectiveWorker)`. Cultivate, Administration, and Smokehouse use a
-workerMultiplier base of 1, so they remain active without workers. Villagers
-contribute 1 effective worker and Strangers contribute 0.5.
+Non-Stock effects are suppressed for neutral sites. Exact amounts, caps, gates,
+seasonal overrides, population/history scaling and remaining content deviations
+belong to the runtime definitions and
+[CivContent report](../docs/civcontent-2.6-implementation.md).
 
-Region-count evaluators use JSON-only scopes for adjacent regions, filtered
-connected components, practice presence, and a host-structure conditional. The
-same scopes can select routing endpoints, keeping displayed diagnostics and
-simulation behavior aligned.
+## Recipes and workers
 
-## `addLocalFood`
+Scheduled Practices plan their complete Consume/Require recipe before applying
+any payment or effect. Require checks provider Stock; Consume debits its host.
+Incomplete recipes reserve nothing. Provider scope and ordering are described
+in [Targeting](Targeting-Dictionary.md).
 
-Fields:
+Workers multiply Scheduled Stock output by
+`1 + effectiveWorkers * workerBonus`, rounded down. For Charge Practices, that
+multiplier applies to incoming Charge, including eligible passive gain bonuses;
+Discharge output is not worker-multiplied. Charge meters are private integers,
+and Discharges never Consume or Require Stock. Non-Stock gates and output
+capacity can retain a full blocked meter.
 
-- `scaledValue`
-
-Adds the resolved amount to the host. Stored capacity fills first; overflow is
-loose. Food is rounded to four decimal places.
-
-## `routeLocalFood`
-
-Fields:
-
-- `scaledValue`
-- `targetScope`
-
-The resolved value is one shared movement cap for the card. Planning moves only
-meal-safe surplus toward current shortages, may split the cap across endpoints,
-and is snapshot-based and applied together.
-
-## `reduceFoodDecay`
-
-Fields:
-
-- `foodKind`: `stored` or `loose`
-- `scaledValue`
-
-Relatively reduces the selected food-decay loss by the resolved percentage.
-Combined reduction is capped at 100%. `reduceFoodDecay` is Smokehouse targeting
-stored food.
-
-## `advanceWork`
-
-Fields:
-
-- `amountPerEffectiveWorker`
-
-Adds work to the host practice slot at its activation. Work is retained while a
-completed build waits for physical structure space.
-
-## `createLocalStructureAtWork`
-
-Fields:
-
-- `structureDefId`
-- `requiredWork`
-
-When work meets the requirement, creates the structure in the first free
-regional slot. On success the practice removes itself and the five-slot tableau
-compacts. When capacity is full, no work is lost and the practice stays.
-
-## Current structure definitions
-
-- Granary: stored capacity `100 × local count²`
-- Mud Houses: housing capacity `20 × local count²`
+Structure effects are passive definition fields and query modifiers, not
+Practice activations. Housing is additive; Granary modifies the capacity of
+Edible Stock hosts. Construction uses contiguous regional cells and confirmed
+Life Map shop transactions, rather than worker progress on a build Practice.
 
 ## Validation
 
-`validateDetailedPracticeDefinitions()` rejects unknown activation types,
-unknown operations, malformed scaled values/scopes, invalid worker capacities,
-and unknown structure IDs.
+`validateDetailedPracticeDefinitions()` checks five-slot capacity, mode/lane
+consistency, worker capacity, Charge grammar and known effect operations.
+Run `npm run check:docs` for dictionary coverage,
+`npm run test:detailed-settlements` for recipes and `npm run verify` for replay,
+serialization and content coverage. The removed wallet operations and
+`scaledValue` recipes are historical design, not supported runtime operations.

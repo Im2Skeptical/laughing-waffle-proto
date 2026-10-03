@@ -1,6 +1,6 @@
 # Projection codec and state ownership audit
 
-> **Historical note.** Written 2026-09-24 against baseline `e30ce3e` / target `6556f38`. Its recommendations were largely implemented in commits `6e60b57`, `979e46e` and `f12196c` (state is now v24 / config v15), so treat the measurements, schema numbers and sequencing below as historical. Current intent: `docs/timegraph-ux-and-capacity-brief.md`; guardrails: `docs/timegraph-optimisation-guardrails.md`. Body below is unedited.
+> **Historical note.** Written 2026-09-24 against baseline `e30ce3e` / target `6556f38`. Its recommendations were largely implemented in commits `6e60b57`, `979e46e` and `f12196c` (current schema numbers are in `ai/ai-context.md`), so treat the measurements, schema numbers and sequencing below as historical. Current intent: `docs/timegraph-ux-and-capacity-brief.md`; guardrails: `docs/timegraph-optimisation-guardrails.md`. Body below is unedited.
 
 
 Audit target: current main `6556f38`, 2026-09-24. Investigation only; no production changes. The brief's schema-v20 premise is stale: `ai/ai-context.md:30` and `src/model/state.js:449` specify game-state v22. Preserve the current save contract, not the old number. All proposed work must preserve every official replay tick, RNG streams, serialization, and edit-second branching; the codec belongs behind model APIs without view imports.

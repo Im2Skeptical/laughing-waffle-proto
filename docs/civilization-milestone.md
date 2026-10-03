@@ -110,8 +110,8 @@ human playtest work.
   per-card deviations are in `docs/civcontent-2.6-implementation.md`.
 - Common and class purchases use a flat first-pass 10 Prestige / 12 phases. Existing
   Research thresholds gate maturity; Discovery grants the next shop one higher maturity.
-  Worker bonus is +100% per effective worker (base ?1, one full worker ?2,
-  three ?4), rounded down at the integer Stock output boundary. Worker effectiveness
+  Worker bonus is +100% per effective worker (base ×1, one full worker ×2,
+  three ×4), rounded down at the integer Stock output boundary. Worker effectiveness
   and existing Stock capacity limits still apply. This supersedes the provisional 25% bonus.
 - Scholar founding trains two adult Scholars; Warrior founding trains ten adults, both
   costing six phases. Ingenuity uplift chance is 5% per point, capped at 75%, with no
@@ -127,8 +127,9 @@ human playtest work.
   survives; below that, 80% population and Stock survive. Survivors become adult
   Strangers. Ruins retain dormant population/Stock for reconquest; no siege attrition
   or specialty-preserving ruin recovery has been added.
-- One spatial spawn per Death is permitted by accumulated Chaos quota. Expansion is
-  every four Death phases, in authored adjacency order. Defense is 3 + floor(quota/3).
+- At Death, accumulated Chaos of at least 1000 can spawn one spatial Monster in
+  an empty frontier region, then resets to zero. Expansion is every 100 moons,
+  in authored adjacency order. Defense is 3 + floor(lifetime spatial spawns / 3).
   Interception needs a supplied response Practice, enough local Support, and one Edible.
   Losing all player settlements ends the run, replacing the old Monster-count loss track.
   Starter pressure begins at one; the authored stress fixture still starts at 100.
@@ -156,8 +157,9 @@ All Common/Scholar/Warrior rows are now offered. Secondary institutional,
 Development, Legacy and action-range clauses use provisional generalized
 implementations where their full interfaces do not exist. The complete
 card-by-card accounting is in [the CivContent 2.6 report](civcontent-2.6-implementation.md).
-Priest, Merchant, Orders, rival AI, tactical combat and equipment crafting remain
-outside this pass.
+Priest, Merchant, expanded Elder Order mechanics, rival AI, tactical combat and
+equipment crafting remain outside this pass. Aggregate Elder Order state already
+exists; it does not govern Vassal candidates or purchases.
 
 ## Questions for play
 
@@ -184,5 +186,6 @@ The software-GL browser recap check retains timing samples and uses a 750 ms
 upper bound (the expanded snapshot measured 375 ms against the old 300 ms bound).
 Further snapshot/render optimization is a follow-up, not a balance dependency.
 
-Probe artifacts are generated under `artifacts/` and are not committed. State/save/
-config schemas are 27/18/16; Map Lab is 8. Older saves are intentionally rejected.
+Probe artifacts are generated under `artifacts/` and are not committed. Current
+schemas live in [the invariants sheet](../ai/ai-context.md). Older saves are
+intentionally rejected.

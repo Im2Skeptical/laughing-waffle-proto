@@ -6,8 +6,8 @@ Controller, cache, and sampling for metric graphs. Views import through
 `src/model/graph-metrics/`).
 
 Do not rewrite this folder together with the forecast worker, `state.js`, or
-`createMetricGraphView` follow/scrub/playhead. See
-`codex/abandoned-timegraph-refactor-do-not-merge`.
+`createMetricGraphView` follow/scrub/playhead. These have separate state ownership
+and replay boundaries; see `docs/timegraph-optimisation-guardrails.md`.
 
 Before optimising: `docs/timegraph-optimisation-guardrails.md`.
 
@@ -15,6 +15,7 @@ Before optimising: `docs/timegraph-optimisation-guardrails.md`.
 
 - `controller-core.js` — `createTimeGraphController` orchestrator
 - `forecast-state-cache.js` — retained-anchor / cache helpers
+- `state-restorer.js` — validated immutable anchors and isolated mutable restores
 - `projection-cache.js` — projection window cache
 - `sampling.js` — sample-second builders (do not rewrite the body for routing)
 - `metric-helpers.js` — series/label/value resolvers used by the controller

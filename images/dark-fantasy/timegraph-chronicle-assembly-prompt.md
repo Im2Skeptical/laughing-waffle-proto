@@ -2,7 +2,7 @@
 
 Created on 2026-09-08 with the built-in image generation tool. Original artwork informed by the supplied Age of Empires II, Baldur's Gate II and Diablo II reference UI; no reference textures are copied into the asset.
 
-Saved asset: [timegraph-chronicle-assembly.png](timegraph-chronicle-assembly.png), 2172 × 724 RGBA. Its exterior has genuine alpha transparency. The runtime samples the horizontal sprite at x=0, y=108, width=2172, height=504 and places it into the fixed 1700 × 258 timegraph area. Labels, highlights, glyphs and graph lines are separate interactive layers aligned to the painted recesses. The entire assembly stays fixed for every key page and series selection.
+Saved asset: [timegraph-chronicle-assembly.png](timegraph-chronicle-v1/timegraph-chronicle-assembly.png), 2172 × 724 RGBA. Its exterior has genuine alpha transparency. The runtime samples the horizontal sprite at x=0, y=108, width=2172, height=504 and places it into the fixed 1700 × 258 timegraph area. Labels, highlights, glyphs and graph lines are separate interactive layers aligned to the painted recesses. The entire assembly stays fixed for every key page and series selection.
 
 The eight glyph sockets fill down the first column, then down the second. Overflow uses the illustrated previous/next buttons or the mouse wheel; empty sockets stay in place.
 

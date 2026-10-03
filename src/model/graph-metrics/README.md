@@ -9,5 +9,5 @@ chaos series values stay in that file.
 - `legacy-metrics.js` — leftover Gold/Grain/AP plus hub-vs-prototype
   food/population metrics. Grain/AP are unused by Chaos/Resources/Population
   UI groups; Gold remains the unscoped controller fallback.
-- `tooltips.js` — legend tooltip copy. Detailed food uses stored/loose
-  language, not hub floodplain stockpiles.
+- `tooltips.js` — legend tooltip copy. Detailed Food describes
+  hosted Edible Stock and its actual meal demand, shortage and providers.
