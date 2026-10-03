@@ -15,6 +15,18 @@ the Prototypes hash route support refresh and GitHub Pages repository paths.
 The Pages build bundles all three separately. Edits are temporary presentation
 examples; these studies do not change the live renderer, simulation or saves.
 
+Cards includes a matched comparison with the current game renderer and five-card
+regional settlement / three-offer Practice shop screen references. Its Graphics
+control switches the hero, preset cards and contextual previews. Tooltips defaults
+to source graphics and can switch its source, zoom and tier inspection cards to
+the prototype treatment. Graphics choices survive workbench URL refresh.
+
+The card hero, screen references, tooltip stage, vassal hero and Museum/Gym Pixi
+scene have a top-right Fullscreen button. The same button exits. Touch devices
+request the main game's landscape display mode; browsers that reject orientation
+locking get a landscape preview fallback. Escape and native fullscreen exit also
+restore the normal page. Museum/Gym keep their existing map, graph and wheel input.
+
 ## Catalogue
 
 Zoo reads the fixture's serialized runtime Gamepieces registry. It includes every

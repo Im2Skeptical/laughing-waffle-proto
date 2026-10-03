@@ -5,6 +5,7 @@
   <base href="../../../">
   <title>Gamepiece tooltip workbench</title>
   <link rel="stylesheet" href="images/dark-fantasy/tooltip-prototype/study.css">
+  <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css">
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
 </head>
 <body>
@@ -12,7 +13,7 @@
   <main>
     <div class="workspace">
       <section class="preview-area" aria-label="Tooltip preview">
-        <div class="preview-toolbar"><div><span id="viewport-label">Desktop · fit</span><span id="preview-status" role="status" aria-live="polite"></span></div><button id="fullscreen" type="button">Preview fullscreen</button></div>
+        <div class="preview-toolbar"><div><span id="viewport-label">Desktop · fit</span><span id="preview-status" role="status" aria-live="polite"></span></div></div>
         <div class="stage-scroll"><div id="stage" class="stage" data-variant="local" data-context="shop">
           <div class="board" aria-hidden="true"></div><div class="old-tooltip-cover" aria-hidden="true"></div>
           <div id="board-slots" class="board-slots" aria-hidden="true"></div>
@@ -25,7 +26,6 @@
             <div class="inspection-layout"><div id="inspection-card" class="inspection-card" role="img" aria-label="Tier preview card"></div><div id="inspection-copy" class="inspection-copy"><section id="inspection-rules" class="piece-tooltip"></section><section id="reminders" class="reminders" aria-label="Card icon reminders"></section></div></div>
             <aside id="keyword-panel" class="keyword-panel" aria-label="Keyword explanation" hidden></aside>
           </section>
-          <button id="exit-fullscreen" class="exit-fullscreen" type="button" hidden>Exit preview</button>
         </div></div>
         <p class="preview-hint">Click the enlarged card to inspect. In inspection, click a word or icon reminder to explore it.</p>
         <details><summary>Preview state</summary><pre id="state-summary"></pre></details>
@@ -33,6 +33,7 @@
       <form id="controls" class="controls" aria-label="Workshop controls">
         <p class="eyebrow">WORKSHOP CONTROLS</p>
         <label>Card<select id="card"></select></label>
+        <label>Graphics<select id="graphics"><option value="source">Source graphics · current game</option><option value="prototype">Prototype graphics</option></select></label>
         <div class="pair"><label>Context<select id="context"><option value="shop">Shop offers</option><option value="settlement">Settlement</option></select></label><label>Viewport<select id="viewport"><option value="fit">Desktop · fit</option><option value="phone">Phone · 844 × 390</option><option value="small-phone">Phone · 667 × 375</option><option value="portrait">Portrait · 390 × 844</option></select></label></div>
         <label>Source card position<select id="position"></select></label>
         <label>Meter wording<select id="wording"><option value="Progress">Progress</option><option value="Work">Work</option><option value="Momentum">Momentum</option><option value="custom">Custom…</option></select></label>

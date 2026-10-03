@@ -5,6 +5,7 @@ import { createTooltipView } from '../tooltip-pixi.js';
 import { GRAPH_METRICS } from '../../model/graph-metrics.js';
 import { getActiveGraphGroups, toggleGraphGroup } from '../ui-root/settlement-graph-groups.js';
 import { el, field, select, input } from './elements.js';
+import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 
 // One persistent stage: DOM edits never interrupt a map/wheel/graph gesture.
 export function createLabScene({getController,run}) {
@@ -46,6 +47,7 @@ export function createLabScene({getController,run}) {
   groupPanel.append(el('summary','Choose graph series'),seriesPanel);
   node.append(controls,groupPanel);
   const viewport=el('div','','lab-scene-viewport');node.append(viewport);
+  const displayMode=attachDevPreviewDisplay(viewport);
   const app=new PIXI.Application({width:2424,height:1200,backgroundColor:0x111c21,antialias:true,resolution:1});
   app.stage.eventMode='static';app.stage.hitArea=app.screen;
   // Pixi enables its DOM accessibility overlay after Tab. Its full-size parent
@@ -106,5 +108,5 @@ export function createLabScene({getController,run}) {
   return {node,refresh,clearPreview:()=>graph.resetForecastPreviewState(),
     getSnapshot:()=>({map:map.getSemanticSnapshot(),graph:graph.getDebugState(),plot:graph.getPlotScreenRect(),wheel:{...wheel.getSemanticSnapshot(),dragging:wheel.isDragging()}}),
     getRegionClickPoint:id=>map.getRegionClickPoint(id),
-    destroy(){map.destroy();graph.destroy();wheel.destroy();tooltip.destroy?.();app.destroy(true,{children:true});}};
+    destroy(){displayMode.destroy();map.destroy();graph.destroy();wheel.destroy();tooltip.destroy?.();app.destroy(true,{children:true});}};
 }

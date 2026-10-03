@@ -10,6 +10,10 @@ The global stylesheet uses `.development-lab` selectors only.
 Its Cards, Tooltips and Vassals links open the separately bundled pages under
 `images/dark-fantasy/`; no prototype renderer is imported into the game shell.
 
+`dev-preview-display.js` provides the shared enter/exit control for the persistent
+scene and the isolated workbenches, using `game-display-mode.js` for fullscreen
+and mobile landscape. Its stylesheet is `card-chrome-prototype/display.css`.
+
 `scene.js` retains a single Pixi stage around the existing world map, metric graph,
 and sun/moon wheel views. It owns only display preferences and sends selection/time
 commands to the Lab controller. `picker.js` uses the same catalogue and card faces;

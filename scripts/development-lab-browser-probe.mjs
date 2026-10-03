@@ -45,6 +45,17 @@ try {
   // The shared map changes both the graph subject and editable tableau.
   await page.waitForFunction(()=>__LAB_DEBUG__.getScene()?.graph.computedCoverageEndSec===61);
   const canvas=page.getByTestId('lab-scene');
+  const fullscreenButton=page.locator('.lab-scene-viewport .dev-preview-fullscreen');
+  const beforeFullscreen=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
+  await fullscreenButton.click();
+  await page.waitForFunction(()=>document.querySelector('.lab-scene-viewport').classList.contains('dev-preview-expanded'));
+  assert.equal(await fullscreenButton.getAttribute('aria-label'),'Exit preview fullscreen');
+  const fullscreenCanvas=await canvas.boundingBox();
+  assert.ok(fullscreenCanvas.width<=1281&&fullscreenCanvas.height<=801,'scene fits fullscreen');
+  await fullscreenButton.click();
+  await page.waitForFunction(()=>!document.fullscreenElement&&!document.querySelector('.lab-scene-viewport').classList.contains('dev-preview-expanded'));
+  assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),beforeFullscreen,'fullscreen preserves the isolated simulation');
+  checks.push('Gym scene fullscreen enters/exits without changing simulation state');
   const mapPoint=async id=>{
     await canvas.scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>!__LAB_DEBUG__.getScene().map.focusAnimating);
