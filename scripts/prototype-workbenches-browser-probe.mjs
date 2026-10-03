@@ -32,6 +32,21 @@ async function noOverflow(label) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${label}: horizontal overflow ${JSON.stringify(overflow)}`);
 }
 async function check(label, action) { await action(); checks.push(label); }
+async function fullscreenRoundTrip(selector) {
+  const button = page.locator(`${selector} .dev-preview-fullscreen`);
+  await button.click();
+  await page.waitForFunction(selector => document.querySelector(selector).classList.contains('dev-preview-expanded'), selector);
+  assert.equal(await button.getAttribute('aria-label'), 'Exit preview fullscreen');
+  const rect = await page.locator(selector).boundingBox();
+  const viewport = page.viewportSize();
+  assert.ok(Math.abs(rect.width - viewport.width) < 2 && Math.abs(rect.height - viewport.height) < 2, 'preview fills the viewport');
+  await button.click();
+  await page.waitForFunction(selector => !document.querySelector(selector).classList.contains('dev-preview-expanded'), selector);
+  await page.waitForFunction(() => !document.fullscreenElement);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await button.getAttribute('aria-label'), 'Enter preview fullscreen');
+  assert.equal(await page.evaluate(() => document.body.style.overflow), '');
+}
 async function exportedSize() {
   return page.evaluate(async () => {
     const image = new Image(); image.src = vassalWorkbench.exportPng(); await image.decode();
@@ -58,6 +73,36 @@ try {
     await page.setViewportSize({width:1280,height:800});
     await page.getByRole('link',{name:'Open Cards workbench →'}).click(); await ready();
   });
+  await check('Matched live renderer, graphics toggle, regional/shop contexts and fullscreen', async () => {
+    await page.locator('#card').selectOption('forage');
+    const before = await page.evaluate(() => ({ face: JSON.stringify(cardWorkbench.face), image: document.querySelector('#hero canvas').toDataURL() }));
+    assert.equal(await page.locator('#source-comparison canvas').count(), 1);
+    assert.equal(await page.locator('#prototype-comparison canvas').count(), 1);
+    await page.locator('#graphics').selectOption('source');
+    await page.waitForFunction(() => cardWorkbench.state.graphics === 'source');
+    assert.equal(await page.evaluate(() => JSON.stringify(cardWorkbench.face)), before.face, 'graphics preserves all face data');
+    assert.notEqual(await page.evaluate(() => document.querySelector('#hero canvas').toDataURL()), before.image, 'rendered graphics change');
+    assert.equal(await page.locator('#screen-preview').getAttribute('data-card-count'), '5');
+    assert.equal(await page.locator('#screen-preview').getAttribute('data-graphics'), 'source');
+    await page.screenshot({path:'artifacts/prototype-cards-source-desktop.png'});
+    await page.locator('#graphics').selectOption('prototype');
+    await page.locator('#screen-context').selectOption('shop');
+    assert.equal(await page.locator('#screen-preview').getAttribute('data-card-count'), '3');
+    await fullscreenRoundTrip('#hero');
+    await fullscreenRoundTrip('#screen-preview');
+    await page.locator('#screen-preview .dev-preview-fullscreen').click();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('#screen-preview').classList.contains('dev-preview-expanded'));
+    await page.waitForFunction(() => !document.fullscreenElement);
+    for (const context of ['settlement','shop']) {
+      await page.locator('#screen-context').selectOption(context);
+      await page.locator('#screen-preview').scrollIntoViewIfNeeded();
+      await page.screenshot({path:`artifacts/prototype-cards-${context}-desktop.png`});
+    }
+    await page.setViewportSize({width:844,height:390});
+    await fullscreenRoundTrip('#screen-preview');
+    await page.setViewportSize({width:1280,height:800});
+  });
   await check('Card presets, extremes, contained numeric bounds and phone widths', async () => {
     for (const preset of ['scheduled-simple','scheduled-complex','charge-simple','charge-complex']) {
       await page.evaluate(preset => cardWorkbench.selectPreset(preset), preset);
@@ -74,6 +119,18 @@ try {
     await page.getByRole('link',{name:'Open Tooltips workbench →'}).click(); await ready();
   });
   await page.setViewportSize({width:1280,height:800});
+  await check('Tooltip source/prototype graphics, URL refresh and fullscreen', async () => {
+    assert.equal(await page.locator('#graphics').inputValue(), 'source');
+    await page.locator('#graphics').selectOption('prototype');
+    await page.waitForFunction(() => [...document.querySelectorAll('#stage canvas')].every(canvas => canvas.dataset.graphics === 'prototype'));
+    await page.reload(); await ready();
+    assert.equal(await page.locator('#graphics').inputValue(), 'prototype');
+    await page.locator('#graphics').selectOption('source');
+    await fullscreenRoundTrip('#stage');
+    await page.setViewportSize({width:844,height:390});
+    await fullscreenRoundTrip('#stage');
+    await page.setViewportSize({width:1280,height:800});
+  });
   await check('Tooltip keywords, nested Back, Pin, Escape and keyboard focus', async () => {
     await page.locator('#local-tooltip .inspect-action').click();
     await page.locator('#inspection:not([hidden])').waitFor();
@@ -116,6 +173,12 @@ try {
     await page.getByRole('link',{name:'Open Vassals workbench →'}).click(); await ready();
   });
   await page.setViewportSize({width:1280,height:800});
+  await check('Vassal fullscreen uses the same control on desktop and phone landscape', async () => {
+    await fullscreenRoundTrip('#hero');
+    await page.setViewportSize({width:844,height:390});
+    await fullscreenRoundTrip('#hero');
+    await page.setViewportSize({width:1280,height:800});
+  });
   await check('Founder slot wrapping, keyboard, locked and open Scholar, silhouettes', async () => {
     for (const slots of [4,6,8]) {
       await page.locator('#slots').selectOption(String(slots));
@@ -148,6 +211,38 @@ try {
     for (const viewport of [{width:844,height:390},{width:390,height:844}]) { await page.setViewportSize(viewport); await noOverflow('vassals phone'); }
     await page.getByRole('link',{name:/Development Lab prototypes/}).click();
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
+  });
+  await check('Touch portrait requests landscape and survives denied browser fullscreen', async () => {
+    const desktopPage = page;
+    const mobile = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+    await mobile.addInitScript(() => {
+      window.displayRequests = [];
+      Element.prototype.requestFullscreen = () => { displayRequests.push('fullscreen'); return Promise.reject(new Error('Unsupported preview fullscreen')); };
+      Object.defineProperty(screen.orientation, 'lock', {value:orientation => { displayRequests.push(orientation); return Promise.reject(new Error('Unsupported orientation lock')); }});
+    });
+    page = await mobile.newPage();
+    page.on('pageerror', error => errors.push(error.message));
+    try {
+      await page.goto(`${url}images/dark-fantasy/card-chrome-prototype/`); await ready();
+      await fullscreenRoundTrip('#screen-preview');
+      assert.deepEqual(await page.evaluate(() => displayRequests), ['fullscreen','landscape']);
+      await page.locator('#screen-preview .dev-preview-fullscreen').click();
+      await page.waitForFunction(() => !document.querySelector('#screen-preview .dev-preview-fullscreen').disabled);
+      assert.equal(await page.evaluate(() => {
+        const preview = document.querySelector('#screen-preview'); return preview.clientWidth > preview.clientHeight;
+      }), true, 'portrait fallback uses landscape logical coordinates');
+      await page.screenshot({path:'artifacts/prototype-cards-touch-landscape-fallback.png'});
+      await page.locator('#screen-preview .dev-preview-fullscreen').click();
+      await page.goto(`${url}images/dark-fantasy/tooltip-prototype/`); await ready();
+      await page.locator('#stage .dev-preview-fullscreen').click();
+      await page.waitForFunction(() => !document.querySelector('#stage .dev-preview-fullscreen').disabled);
+      await page.evaluate(() => { tooltipWorkbench.setMode('inspection'); tooltipWorkbench.openKeyword('Workers'); });
+      await page.locator('#keyword-panel:not([hidden])').waitFor();
+      const panel=await page.locator('#keyword-panel').boundingBox();
+      await page.screenshot({path:'artifacts/prototype-tooltip-touch-landscape-fallback.png'});
+      assert.ok(panel.x>=-1&&panel.y>=-1&&panel.x+panel.width<=391&&panel.y+panel.height<=845,`rotated landscape keyword stays in the device viewport: ${JSON.stringify(panel)}`);
+      await page.locator('#stage .dev-preview-fullscreen').click();
+    } finally { await mobile.close(); page = desktopPage; }
   });
   assert.deepEqual(errors,[],'workbench page/network errors');
 } catch (error) {

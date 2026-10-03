@@ -1,7 +1,9 @@
 // Workshop only: Bazaar header, local zoom, and focused inspection. No game mutations.
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
 import { getDetailedPracticeDef } from '../../../src/model/game-config.js';
-import { assembleCard, CARD_SIZE, loadCardAssets } from '../card-chrome-prototype/renderer.js';
+import { CARD_SIZE, loadCardAssets } from '../card-chrome-prototype/renderer.js';
+import { addPreviewCard, loadSourceCardAssets } from '../card-chrome-prototype/preview-renderer.js';
+import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 
 const CARD_CANVAS = { width: CARD_SIZE.width + 40, height: CARD_SIZE.height + CARD_SIZE.overhang.top + CARD_SIZE.overhang.bottom + 18,
   x: 15, y: CARD_SIZE.overhang.top + 8 };
@@ -41,7 +43,8 @@ const url = new URL(location.href);
 let state = { card: ids.includes(url.searchParams.get('card')) ? url.searchParams.get('card') : ids[0], variant: url.searchParams.get('variant') === 'inspection' ? 'inspection' : 'local',
   tier: 'bronze', ownedTier: 'bronze', context: url.searchParams.get('context') === 'settlement' ? 'settlement' : 'shop', viewport: ['phone','small-phone','portrait'].includes(url.searchParams.get('viewport')) ? url.searchParams.get('viewport') : 'fit',
   position: Math.max(0,Math.min(4,Number(url.searchParams.get('position'))||0)),meter: 'Progress', workers: 0, fill: 0, body: 21, cardSize: 240, tooltipWidth: 380, dim: 55, fullscreen: false, name: '', tags: '', primary: '', extra: '' };
-let ready = false, queued = false, sourceApp, zoomApp, inspectionApp, resourceSheet;
+state.graphics = url.searchParams.get('graphics') === 'prototype' ? 'prototype' : 'source';
+let ready = false, queued = false, sourceApp, zoomApp, inspectionApp, resourceSheet, displayMode;
 const symbolFrames = {}, keywordHistory = [];
 let keyword = null, pinned = false, previousFocus = null, keywordReturnTerm = null;
 
@@ -151,12 +154,13 @@ function draw(app, face, width) {
   for (const child of app.stage.removeChildren()) child.destroy({children:true});
   const scale = width/CARD_CANVAS.width;
   app.renderer.resize(Math.ceil(width),Math.ceil(width*CARD_CANVAS.height/CARD_CANVAS.width));
-  const card=assembleCard(face); card.scale.set(scale); card.position.set(CARD_CANVAS.x*scale,CARD_CANVAS.y*scale); app.stage.addChild(card); app.render();
+  addPreviewCard(app.stage, face, {x:CARD_CANVAS.x*scale,y:CARD_CANVAS.y*scale,width:300*scale,height:420*scale},state.graphics);
+  app.view.dataset.graphics = state.graphics; app.render();
 }
 
 function saveUrl() {
   const next = new URL(location.href);
-  for (const key of ['card','variant','viewport','context','position']) next.searchParams.set(key,state[key]);
+  for (const key of ['card','variant','viewport','context','position','graphics']) next.searchParams.set(key,state[key]);
   history.replaceState(null,'',next);
 }
 
@@ -255,15 +259,18 @@ function renderKeyword() {
   if(keyword==='Timber'&&state.card!=='charcoalBurning') description='A trait of [Stock], used by timber recipes and events.';
   if(keyword==='Workers') description=faceFor().mode==='charge'?'Each occupied socket is one assigned worker. The displayed multiplier boosts incoming [Progress]. The completion output stays at its base amount.':'Each occupied socket is one assigned worker. The displayed multiplier boosts [Stock] output when this Practice acts.';
   p.appendChild(richText(description,faceFor(),true));host.appendChild(p);
-  const stage=$('stage').getBoundingClientRect(), column=$('inspection-copy').getBoundingClientRect();
-  if(stage.width>520)Object.assign(host.style,{left:`${column.left-stage.left}px`,right:'auto',top:`${column.top-stage.top}px`,width:`${column.width}px`,maxHeight:`${stage.bottom-column.top-15}px`});
-  else{const top=Math.max(280,stage.height*.44);Object.assign(host.style,{left:'12px',right:'auto',top:`${top}px`,width:`${stage.width-24}px`,maxHeight:`${stage.height-top-18}px`,bottom:'auto'});}
+  const stage=$('stage'), column=$('inspection-copy');
+  // Layout coordinates remain landscape even when the device fallback rotates
+  // the stage. Screen-space rectangles would swap axes and misplace this panel.
+  let x=0,y=0;
+  for(let node=column;node&&node!==stage;node=node.offsetParent){x+=node.offsetLeft;y+=node.offsetTop;}
+  if(stage.clientWidth>520)Object.assign(host.style,{left:`${x}px`,right:'auto',top:`${y}px`,width:`${column.clientWidth}px`,maxHeight:`${stage.clientHeight-y-15}px`,bottom:'auto'});
+  else{const top=Math.max(280,stage.clientHeight*.44);Object.assign(host.style,{left:'12px',right:'auto',top:`${top}px`,width:`${stage.clientWidth-24}px`,maxHeight:`${stage.clientHeight-top-18}px`,bottom:'auto'});}
 }
-
-function fullscreen(on) { state.fullscreen=on;document.body.classList.toggle('fullscreen-preview',on);$('exit-fullscreen').hidden=!on;queueRender(); }
 
 async function main() {
   const manifests=await loadCardAssets(ids);
+  await loadSourceCardAssets();
   for (const manifest of manifests) for (const [id,frame] of Object.entries(manifest.frames)) symbolFrames[id]={frame,image:`images/dark-fantasy/card-chrome-prototype/${manifest.image}`,sheet:{w:manifest.size[0],h:manifest.size[1]}};
   // TexturePacker dimensions for the original atlas are separate from the frame manifests.
   resourceSheet=await (await fetch('images/sprite-sheets/resource-language.json')).json();
@@ -292,16 +299,18 @@ async function main() {
   document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>setMode(button.dataset.mode)));
   ['previous-mode','next-mode'].forEach(id=>$(id).addEventListener('click',()=>setMode(state.variant==='local'?'inspection':'local')));
   $('close-inspection').addEventListener('click',()=>setMode('local'));
-  $('fullscreen').addEventListener('click',()=>fullscreen(true));$('exit-fullscreen').addEventListener('click',()=>fullscreen(false));
+  $('graphics').value=state.graphics;
+  $('graphics').addEventListener('change',()=>{state.graphics=$('graphics').value;saveUrl();queueRender();});
   $('stage').addEventListener('click',event=>{const target=event.target.closest('[data-term]');if(target)openKeyword(target.dataset.term);else if(keyword&&!pinned&&!event.target.closest('.keyword-panel'))closeKeyword();});
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'){if(keyword){if(keywordHistory.length){keyword=keywordHistory.pop();queueRender();}else closeKeyword();}else if(state.variant==='inspection')setMode('local');else if(state.fullscreen)fullscreen(false);event.preventDefault();}
+    if(event.key==='Escape'){if(keyword){if(keywordHistory.length){keyword=keywordHistory.pop();queueRender();}else closeKeyword();event.preventDefault();}else if(state.variant==='inspection'){setMode('local');event.preventDefault();}}
     if(['ArrowLeft','ArrowRight'].includes(event.key)&&!event.target.closest('input,textarea,select,[contenteditable],#inspection')){setMode(state.variant==='local'?'inspection':'local');event.preventDefault();}
     if(event.key==='Tab'&&state.variant==='inspection'){
       const root=keyword?$('keyword-panel'):$('inspection');const focusable=[...root.querySelectorAll('button,select,[tabindex="0"]')].filter(el=>!el.closest('[hidden]')&&!el.disabled);
       const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!root.contains(document.activeElement))){last?.focus();event.preventDefault();}else if(!event.shiftKey&&(document.activeElement===last||!root.contains(document.activeElement))){first?.focus();event.preventDefault();}
     }
   });
+  displayMode=attachDevPreviewDisplay($('stage'),{onChange:on=>{state.fullscreen=on;document.body.classList.toggle('fullscreen-preview',on);queueRender();}});
   new ResizeObserver(queueRender).observe($('stage'));
   window.tooltipWorkbench={get state(){return structuredClone({...state,keyword,pinned});},get previewFace(){return faceFor();},get ownedFace(){return faceFor('bronze',false);},setMode,setCard(id){if(ids.includes(id)){state.card=id;resetCopy();saveUrl();queueRender();}},openKeyword};
   render();document.body.dataset.ready='true';

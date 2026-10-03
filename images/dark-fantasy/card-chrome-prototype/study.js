@@ -1,5 +1,8 @@
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
-import { assembleCard, inspectNumberBounds, loadCardAssets } from './renderer.js';
+import { inspectNumberBounds, loadCardAssets } from './renderer.js';
+import { addPreviewCard, loadSourceCardAssets } from './preview-renderer.js';
+import { createScreenPreview } from './screen-preview.js';
+import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 
 const ids = ['forage', 'logging', 'smelting', 'alchemy', 'anatomicalStudy', 'warCouncil'];
 const presets = [
@@ -12,7 +15,10 @@ const $ = id => document.getElementById(id);
 const fields = ['capacity', 'workers', 'tags', 'stock', 'stockCapacity', 'triggers', 'threshold', 'charge', 'costs', 'output'];
 const numberFields = new Set(['capacity', 'workers', 'stock', 'stockCapacity', 'threshold', 'charge', 'output']);
 const apps = [];
-let state, hero, activeVariant, assetsReady = false;
+const galleryCards = [];
+let state, hero, source, screenPreview, activeVariant, assetsReady = false;
+let heroDisplay = { active: false }, prototypeComparison, galleryGraphics = null, screenKey = '';
+let graphics = new URL(location.href).searchParams.get('graphics') === 'source' ? 'source' : 'prototype';
 const definitions = Object.fromEntries(ids.map(id => [id, getGamepieceFace({ tSec: 0 }, 'practice', id)]));
 
 function defaults(id) {
@@ -59,13 +65,12 @@ function makeApp(host, width, height) {
   host.appendChild(app.view); apps.push(app); return app;
 }
 
-function draw(app, face, width) {
+function draw(app, face, width, treatment = 'prototype') {
   for (const child of app.stage.removeChildren()) child.destroy({ children: true });
   const scale = width / 300;
   app.renderer.resize(Math.ceil(width + 40 * scale), Math.ceil(578 * scale));
-  const card = assembleCard(face);
-  card.scale.set(scale); card.position.set(15 * scale, 112 * scale);
-  app.stage.addChild(card); app.render();
+  addPreviewCard(app.stage, face, { x: 15 * scale, y: 112 * scale, width, height: 420 * scale }, treatment);
+  app.render();
 }
 
 function syncControls() {
@@ -77,11 +82,24 @@ function syncControls() {
 }
 
 function update(message = '') {
-  if (!assetsReady) return;
+  if (!assetsReady || !state) return;
   const face = faceFor(state);
   const requestedWidth = Number($('size').value);
-  const width = Math.min(requestedWidth, ($('hero').clientWidth - 4) * 300 / 340);
-  draw(hero, face, width);
+  const availableHeight = heroDisplay.active ? $('hero').clientHeight * 300 / 578 : Infinity;
+  const width = Math.min(requestedWidth, ($('hero').clientWidth - 4) * 300 / 340, availableHeight);
+  draw(hero, face, width, graphics);
+  const comparisonWidth = Math.min(170, ($('source-comparison').clientWidth - 4) * 300 / 340);
+  draw(source, face, comparisonWidth, 'source');
+  draw(prototypeComparison, face, comparisonWidth);
+  const nextScreenKey = JSON.stringify([face, $('screen-context').value, graphics]);
+  if (screenKey !== nextScreenKey) {
+    screenKey = nextScreenKey; screenPreview.render(face, $('screen-context').value, graphics);
+  }
+  if (galleryGraphics !== graphics) {
+    galleryGraphics = graphics;
+    for (const { app, preset } of galleryCards) draw(app, faceFor({ ...defaults(preset.card), ...preset, next: 0 }), 170, graphics);
+  }
+  $('hero').dataset.graphics = graphics;
   $('size-label').textContent = `${Math.round(width)} px`;
   $('card-title').textContent = face.label;
   $('mode').textContent = `${face.mode} · ${activeVariant ? 'layout preset' : 'real card + preview edits'}`;
@@ -123,12 +141,25 @@ function readControls() {
 async function main() {
   ids.forEach(id => { const option = document.createElement('option'); option.value = id; option.textContent = `${definitions[id].label} · ${definitions[id].mode}`; $('card').appendChild(option); });
   await loadCardAssets(ids);
+  await loadSourceCardAssets();
+  screenPreview = await createScreenPreview($('screen-preview'));
+  source = makeApp($('source-comparison'), 190, 328);
+  prototypeComparison = makeApp($('prototype-comparison'), 190, 328);
   hero = makeApp($('hero'), 340, 578); assetsReady = true;
+  heroDisplay = attachDevPreviewDisplay($('hero'), { onChange: () => update() });
+  $('graphics').value = graphics;
+  $('graphics').addEventListener('change', () => {
+    graphics = $('graphics').value;
+    const url = new URL(location.href); url.searchParams.set('graphics', graphics); history.replaceState(null, '', url);
+    update();
+  });
+  $('screen-context').addEventListener('change', () => update());
   for (const preset of presets) {
     const button = document.createElement('button'); button.type = 'button'; button.className = 'sample'; button.dataset.variant = preset.id;
     button.setAttribute('aria-label', `Inspect ${preset.title}`);
     $('gallery').appendChild(button);
-    draw(makeApp(button, 190, 285), faceFor({ ...defaults(preset.card), ...preset, next: 0 }), 170);
+    const app = makeApp(button, 190, 285); galleryCards.push({ app, preset });
+    draw(app, faceFor({ ...defaults(preset.card), ...preset, next: 0 }), 170, graphics);
     const title = document.createElement('strong'); title.textContent = preset.title; button.appendChild(title);
     const desc = document.createElement('span'); desc.textContent = `${preset.triggers} trigger${preset.triggers === '1' ? '' : 's'} · ${preset.workers}/${preset.capacity} workers · ×${1 + preset.workers}`; button.appendChild(desc);
     const note = document.createElement('small'); note.textContent = preset.threshold ? `${preset.charge}/${preset.threshold} Charge · output ${preset.output}` : `${preset.tags} Stock tags · ${preset.costs ? 'with costs' : 'no costs'}`; button.appendChild(note);
@@ -156,8 +187,13 @@ async function main() {
     const link = document.createElement('a'); link.download = `${state.card}-${faceFor(state).mode}-card.png`;
     link.href = hero.view.toDataURL('image/png'); link.click();
   });
-  new ResizeObserver(() => update()).observe($('hero'));
-  window.cardWorkbench = { get face() { return faceFor(state); }, get state() { return { ...state }; }, selectPreset: id => selectPreset(presets.find(p => p.id === id) ?? presets[0]), get canvasCount() { return apps.length; }, get numberBounds() { return inspectNumberBounds(hero.stage.children[0]); } };
+  let renderQueued = false;
+  const observer = new ResizeObserver(() => {
+    if (renderQueued) return;
+    renderQueued = true; requestAnimationFrame(() => { renderQueued = false; update(); });
+  });
+  observer.observe($('hero')); observer.observe($('source-comparison'));
+  window.cardWorkbench = { get face() { return faceFor(state); }, get state() { return { ...state, graphics }; }, selectPreset: id => selectPreset(presets.find(p => p.id === id) ?? presets[0]), get canvasCount() { return apps.length; }, get numberBounds() { return inspectNumberBounds(prototypeComparison.stage.children[0]); } };
   document.body.dataset.ready = 'true';
 }
 

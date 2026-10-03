@@ -33,8 +33,8 @@ async function waitForLandscape(ms) {
 }
 
 // Call directly from the entry button's gesture, before doing any game work.
-export async function requestGameDisplayMode() {
-  if (!usesTouchGameDisplay()) return;
+export async function requestGameDisplayMode({ forceFullscreen = false } = {}) {
+  if (!forceFullscreen && !usesTouchGameDisplay()) return;
   const target = document.documentElement;
   try {
     if (!getGameFullscreenElement()) {

@@ -1,6 +1,7 @@
 // Throwaway workbench: all edits are local presentation fixtures.
 import { VASSAL_FOUNDING_OPTIONS, VASSAL_SIGNATURE_NODE_VARIANTS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { loadVassalAssets, assemblePortrait, assembleRegular, assembleFounder, assembleGame, GAME_SIZE, CARD_SIZE, FOUNDER_SIZE } from './renderer.js';
+import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 
 const $=id=>document.getElementById(id);
 const studies=['founder','regular','frame'];
@@ -8,6 +9,7 @@ const layouts=['identity','signature','stats'];
 const layoutNames={identity:'Identity & signature',signature:'Signature first',stats:'Full stat comparison'};
 const apps=[];
 let state,hero,ready=false,galleryKey='',galleryApps=[];
+let displayMode={active:false};
 
 function defaults(study='founder') {
   const signature=VASSAL_SIGNATURE_NODE_VARIANTS.legacyPlus;
@@ -127,7 +129,8 @@ function render(message='') {
   if (!ready) return;
   const width=Math.max(180,$('hero').clientWidth-2);
   const {object,logical,x,y}=previewScene();
-  const requested=state.surface==='assembly' && state.study!=='founder' ? Math.min(width,state.size) : width;
+  const requested=Math.min(state.surface==='assembly' && state.study!=='founder' ? Math.min(width,state.size) : width,
+    displayMode.active ? $('hero').clientHeight*logical.width/logical.height : Infinity);
   const warnings=draw(hero,object,requested,logical,x,y);
   window.vassalWorkbench.warnings=warnings;
   $('bounds-status').classList.toggle('warning',warnings.length>0);
@@ -159,6 +162,7 @@ async function main() {
   state.index=Math.max(0,Math.min(state.slots-1,Number(params.get('founder'))||0));state.guided=params.get('guided')!=='false';
   for (const [id,s] of Object.entries(VASSAL_SIGNATURE_NODE_VARIANTS)) {const option=document.createElement('option');option.value=id;option.textContent=s.label;$('signature').appendChild(option);}
   await loadVassalAssets();hero=makeApp($('hero'));ready=true;
+  displayMode=attachDevPreviewDisplay($('hero'),{onChange:()=>{if(window.vassalWorkbench)render();}});
   window.vassalWorkbench={get state(){return {...state};},get face(){return face();},get founders(){return founders();},warnings:[],selectStudy,navigate,selectFounder:choose,exportPng,get canvasCount(){return apps.length;}};
   sync();render('Ready to review. Changes affect this workbench only.');
   document.querySelectorAll('[data-study]').forEach(button=>button.addEventListener('click',()=>selectStudy(button.dataset.study)));

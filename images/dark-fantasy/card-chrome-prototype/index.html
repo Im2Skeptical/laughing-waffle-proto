@@ -5,6 +5,7 @@
   <base href="../../../">
   <title>Illustrated card workbench</title>
   <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/study.css">
+  <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css">
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
 </head>
 <body>
@@ -20,6 +21,7 @@
       <form id="controls" aria-label="Card properties">
         <p class="eyebrow">PREVIEW PROPERTIES</p>
         <label>Card<select id="card"></select></label>
+        <label>Graphics<select id="graphics"><option value="prototype">Prototype graphics</option><option value="source">Source graphics · current game</option></select></label>
         <div class="pair"><label>Worker capacity<input id="capacity" type="number" min="0" max="4"></label><label>Occupied<input id="workers" type="number" min="0" max="4"></label></div>
         <label>Stock tags<select id="tags"><option value="authored">As authored</option><option value="0">No Stock</option><option value="1">1 trait</option><option value="2">2 traits</option><option value="3">3 traits</option></select></label>
         <div class="pair"><label>Stock<input id="stock" type="number" min="0" max="999"></label><label>Stock capacity<input id="stockCapacity" type="number" min="0" max="999"></label></div>
@@ -31,6 +33,8 @@
         <p id="rules" class="note"></p><p class="note muted">Edits affect this preview only. Reset restores the real card definition.</p>
       </form>
     </section>
+    <section class="comparison"><div class="section-heading"><div><p class="eyebrow">MATCHED PRESENTATION DATA</p><h2>Current game &amp; prototype</h2></div><p>Same card, edits and 170 px picture width</p></div><div class="matched-cards"><article><h3>Source · current game</h3><div id="source-comparison"></div></article><article><h3>Prototype</h3><div id="prototype-comparison"></div></article></div></section>
+    <section class="comparison"><div class="section-heading"><div><p class="eyebrow">CARDS IN CONTEXT</p><h2>Game screen previews</h2></div><label>Screen<select id="screen-context"><option value="settlement">Regional settlement</option><option value="shop">Practice shop</option></select></label></div><p class="note">Game screen references with five settlement cards or three shop offers. The first card follows your edits; Graphics switches every preview card. Fullscreen uses the device viewport in landscape.</p><div id="screen-preview" class="screen-preview"></div></section>
     <section class="comparison"><div class="section-heading"><div><p class="eyebrow">READABILITY AT GAME SIZE</p><h2>Scheduled &amp; Charge</h2></div><p>170 px card width · select a preset to inspect</p></div><div id="gallery"></div></section>
     <details><summary>Revised artwork · square Stock faces &amp; contained numbers</summary><p>The square crate and output plaque share the same wood and brass. Count and capacity stack on the crate's front, and large output numbers fill the matching plaque. The multiplier housing expands around its number recess. Worker arches and compact Charge circles retain their established treatment.</p><a href="images/dark-fantasy/card-chrome-prototype/stock-v4.png" target="_blank" rel="noopener"><img class="atlas" src="images/dark-fantasy/card-chrome-prototype/stock-v4.png" alt="Square-front Stock crate and matching square wood-and-brass output plaque, with blank dark number recesses"></a><p><a href="images/dark-fantasy/card-chrome-prototype/stock-v4.json">Stock atlas coordinates</a> · <a href="images/dark-fantasy/card-chrome-prototype/prompts-v4.json">Generation prompt</a> · <a href="images/dark-fantasy/card-chrome-prototype/workers-v3.png">Worker source sheet</a> · <a href="images/dark-fantasy/card-chrome-prototype/components-v2.png">Charge source sheet</a></p></details>
   </main><div id="error" role="alert" hidden></div>

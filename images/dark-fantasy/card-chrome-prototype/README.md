@@ -18,6 +18,16 @@ yield-row icons, and the original solar/lunar wheels are retained.
 
 ## What to try
 
+- Compare **Current game & prototype**: both render the same edited face at
+  the same picture width; the source uses the live `addSettlementPiece` renderer.
+- Switch **Graphics** to choose the current game or prototype treatment for
+  the hero, presets and screen previews. The matched comparison stays side by side.
+- Preview five cards on the regional settlement screen and three Practice shop
+  offers. These are existing screen references with rendered preview cards,
+  not running game sessions; the first card follows the properties above.
+- The top-right **Fullscreen** button on the hero and screen preview also exits.
+  It requests the game's landscape display mode on touch devices, with a rotated
+  landscape fallback when browser orientation locking is unavailable.
 - Select the four comparison cards: Scheduled simple/complex and Charge
   simple/complex. These are deliberate layout fixtures, not balance changes.
 - Select Foraging, Logging, Smelting, Alchemy, Anatomical Study or War Council

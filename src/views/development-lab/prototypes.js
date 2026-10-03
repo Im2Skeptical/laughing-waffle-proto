@@ -3,8 +3,8 @@ import { el } from './elements.js';
 const WORKBENCHES = [
   {
     title: 'Illustrated cards', folder: 'card-chrome-prototype', label: 'Cards',
-    description: 'Compare Scheduled and Charge cards, worker sockets, Stock counters and output layouts.',
-    details: 'Editable values · size comparisons · transparent PNG export',
+    description: 'Compare proposed cards with the current game and preview them in the regional settlement and Practice shop.',
+    details: 'Source / prototype graphics · landscape fullscreen · PNG export',
   },
   {
     title: 'Gamepiece tooltips', folder: 'tooltip-prototype', label: 'Tooltips',

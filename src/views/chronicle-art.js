@@ -125,15 +125,15 @@ async function loadPackedGroup(group) {
   return load;
 }
 
-export function preloadChronicleArt() {
+export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = Object.values(PACKED_GROUPS)
     .filter(group => group.eager)
     .map(loadPackedGroup);
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
-  Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
-  return Promise.all(eager);
+  const warm = Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
+  return includeSettlementPieces ? warm : Promise.all(eager);
 }
 
 const ART = Object.freeze({

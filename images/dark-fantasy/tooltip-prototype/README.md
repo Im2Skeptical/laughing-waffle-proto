@@ -41,7 +41,12 @@ phone mode reflows the inspector without scaling down its rules text. Portrait i
 an exploratory adaptation; the game itself currently uses landscape on phones.
 
 Card paintings and chrome reuse the adjacent card-chrome-prototype renderer and
-resource atlas. No new generated raster art. The game does not import this page.
+resource atlas when **Prototype graphics** is selected. **Source graphics** is
+the default and uses the current game's `addSettlementPiece` renderer for the
+source, zoom and every inspection tier. The selection survives URL refresh.
+The same top-right Fullscreen button enters and exits a device-sized landscape
+preview, using the game display request and a landscape fallback if needed.
+No new generated raster art. The game does not import this page.
 Pages bundles it separately, like the card workbench. Do not modify or revert
 concurrent card-frame work while iterating this page.
 
