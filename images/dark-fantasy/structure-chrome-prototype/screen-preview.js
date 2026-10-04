@@ -2,7 +2,7 @@ import { settlementStructureDefs } from '../../../src/defs/gamepieces/detailed-s
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
 import { addSettlementPiece } from '../../../src/views/settlement-piece-pixi.js';
 import { preloadChronicleArt } from '../../../src/views/chronicle-art.js';
-import { paintRelicPanel, RELIC } from '../../../src/views/chronicle-skin.js';
+import { getStoneTexture, paintRelicPanel, RELIC } from '../../../src/views/chronicle-skin.js';
 import { createText } from '../../../src/views/settlement-view-primitives.js';
 import { TEXT_STYLES } from '../../../src/views/settlement-theme.js';
 import { addResourceIcon, addCostPanel } from '../../../src/views/resource-cost-pixi.js';
@@ -11,7 +11,7 @@ import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.
 const ROOT = 'images/dark-fantasy/structure-chrome-prototype/';
 const W = 2048, H = 903;
 export const STRUCTURE_IDS = ['mudHouses', 'timberHouse', 'longhouse', 'granary', 'storehouse', 'archive', 'barracks'];
-export const VARIANTS = { A: 'Capacity footplate', B: 'Hanging medallion', C: 'Corner badge' };
+export const VARIANTS = { A: 'Capacity tray', B: 'Hanging medallion', C: 'Corner tray' };
 const FLAVOUR = {
   mudHouses: 'A little earth between the hearth and the storm.', timberHouse: 'The forest becomes a roof; the roof becomes a home.',
   longhouse: 'Many fires, one roof. No neighbour winters alone.', granary: 'What summer leaves behind, winter will ask for.',
@@ -55,16 +55,32 @@ export function describeStructure(id, state) {
   const face = getGamepieceFace({ tSec: 0 }, 'structure', id, 'bronze', { slot: { qualityBonus: state.quality } });
   return { def, face, effects, tier: face.tier, active: !def.specialistGate || state.requirements === 'met' };
 }
-// Symbols and numerals use the live resource language, drawn directly into Pixi.
-function amount(root, effect, rect) {
-  const group = new PIXI.Container(), size = Math.min(34, rect.height * .78);
-  addResourceIcon(group, effect.kind, size / 2, rect.height / 2, size);
-  const value = text(group, `+${fmt(effect.amount)}${effect.unit ?? ''}`, size + 3, 0, 180, rect.height * .7,
-    { ...TEXT_STYLES.header, fontSize: rect.height * .7, fill: RELIC.bone, wordWrap: false });
-  value.anchor.y = .5; value.y = rect.height / 2;
-  const scale = Math.min(1, (rect.width - 6) / group.width); group.scale.set(scale);
-  group.position.set(rect.x + (rect.width - group.width) / 2, rect.y + (rect.height - group.height) / 2);
-  group.eventMode = 'none'; root.addChild(group);
+// Like the Practice Stock tray, the rim fits its contents instead of the art.
+// Keep this proposed Structure treatment local to the workbench.
+function capacityTray(root, effects, w, h, corner = false) {
+  const tray = new PIXI.Container(), contents = new PIXI.Container(), height = 34, inset = 4, iconSize = 26;
+  let width = inset;
+  for (const effect of effects) {
+    const value = text(contents, `+${fmt(effect.amount)}${effect.unit ?? ''}`, width + iconSize + 5, height / 2, 180, 23,
+      { ...TEXT_STYLES.header, fontSize: 23, fill: RELIC.bone, wordWrap: false, trim: true });
+    value.anchor.y = .5;
+    const cellWidth = iconSize + 9 + Math.ceil(value.width);
+    const recess = new PIXI.Graphics().lineStyle(.7, 0x686457).beginFill(0x111614, .95);
+    recess.drawRoundedRect(width, inset, cellWidth, height - inset * 2, 3).endFill();
+    contents.addChildAt(recess, 0);
+    addResourceIcon(contents, effect.kind, width + iconSize / 2 + 1, height / 2, iconSize - 3);
+    width += cellWidth + inset;
+  }
+  const rim = new PIXI.Graphics();
+  rim.beginFill(0x090b0c, .8).drawRoundedRect(0, 1, width, height, 5).endFill();
+  rim.lineStyle(1, 0x8f7447).beginTextureFill({ texture: getStoneTexture(), color: 0x292c29 });
+  rim.drawRoundedRect(.5, .5, width - 1, height - 1, 4).endFill();
+  rim.lineStyle(1, 0xc2a774, .65).moveTo(5, 2).lineTo(width - 5, 2);
+  rim.lineStyle(1, 0x080b0a, .9).moveTo(2, height - 3).lineTo(width - 3, height - 3).lineTo(width - 3, 5);
+  tray.addChild(rim, contents);
+  const scale = Math.min(1, (w - 8) / width); tray.scale.set(scale);
+  tray.position.set(w - width * scale - 3, corner ? 4 : h - height * scale + 2);
+  tray.eventMode = 'none'; root.addChild(tray);
 }
 function structureFace(root, id, rect, state, callbacks, interactive = true) {
   const data = describeStructure(id, state);
@@ -81,15 +97,14 @@ function structureFace(root, id, rect, state, callbacks, interactive = true) {
   }
   const effect = data.effects[0];
   if (state.variant === 'A') {
-    panel(card, 4, h - 40, w - 8, 35, 0x1c2823); amount(card, effect, { x: 5, y: h - 38, width: w - 10, height: 31 });
+    capacityTray(card, data.effects, w, h);
   } else if (state.variant === 'B') {
     const circle = new PIXI.Graphics().lineStyle(2, RELIC.gold).beginFill(0x1c2823).drawCircle(36, h - 38, 34).endFill(); card.addChild(circle);
     addResourceIcon(card, effect.kind, 36, h - 49, 27);
     const value = text(card, `+${fmt(effect.amount)}${effect.unit ?? ''}`, 8, h - 33, 65, 22, { ...TEXT_STYLES.header, fontSize: 22, wordWrap: false });
     value.anchor.x = .5; value.x = 36; if (value.width > 60) value.scale.set(60 / value.width);
   } else {
-    const bw = Math.min(w - 12, 105);
-    panel(card, w - bw - 5, 6, bw, 37, 0x1c2823); amount(card, effect, { x: w - bw - 3, y: 8, width: bw - 4, height: 31 });
+    capacityTray(card, data.effects, w, h, true);
   }
   return card;
 }

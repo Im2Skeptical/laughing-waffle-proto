@@ -16,9 +16,14 @@ specimens and counter, the build offers, quick reads, inspection and controls.
 The screenshot's other statistics remain reference pixels, not recalculated
 game values. No whole-game renderer or simulation session is needed.
 
-- `?variant=A`: capacity footplate across the lower edge of the painting.
+- `?variant=A`: content-sized capacity tray tucked against the lower right rim.
 - `?variant=B`: hanging capacity medallion.
-- `?variant=C`: compact upper corner badge.
+- `?variant=C`: the same content-sized tray in the upper right corner.
+
+The tray measures its icon and numeral before drawing the outer box, following
+the Practice Stock tray's inset stone/brass treatment. Longer values and extra
+effects expand the box only as needed; wide Structure art keeps its open lower
+edge. This applies in the construction strip, offers and enlarged inspection.
 
 Cards use the real `addSettlementPiece` painting/frame and the shared resource
 symbols: roof for Housing capacity and crate for Stock capacity. Values are live
