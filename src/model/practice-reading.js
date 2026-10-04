@@ -57,6 +57,6 @@ export function getPracticeReading(def) {
     ruins:'Requires an adjacent ruined or Monster-occupied region.',deaths:'Only Activates when someone dies in this settlement.',
     chaos:'Requires Chaos to have increased this moon.',externalConnection:'Requires a connection to a frontier or external settlement.'};
   if(conditions[def.condition])requirements.push(conditions[def.condition]);
-  return { type: charge ? 'Charge' : 'Cycle', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
+  return { type: charge ? 'Charge' : 'Cycle', passive: activation.type === 'passive', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
     effects, requirements, trigger: charge ? readableTrigger(def.charge?.triggerText ?? '') : null };
 }

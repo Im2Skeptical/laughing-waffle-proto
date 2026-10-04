@@ -42,13 +42,14 @@ function capitalize(value) {
   return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
 }
 
-export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze", slot = null) {
+export function getVassalGamepiecePresentation(state, kind, definitionId, tier = "bronze", slot = null, settlement = null) {
   const def = kind === "practice"
     ? getDetailedPracticeDef(state, definitionId)
     : getDetailedStructureDef(state, definitionId);
   if (!def) return null;
   const resolvedTier = kind === "structure" ? def.minimumQuality ?? "bronze" : tier;
-  const face = getGamepieceFace(state, kind, definitionId, resolvedTier,{slot});
+  const local = settlement ?? getDetailedSite(state, slot?.targetRegionId ?? getCurrentLifeMapVassal(state)?.locationRegionId)?.detailedState;
+  const face = getGamepieceFace(state, kind, definitionId, resolvedTier,{slot, settlement:local});
   return {
     ...face,
     kind,
@@ -306,7 +307,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       upgraded: kind === 'practice' && purchase?.intervention?.mode === 'upgrade',
       previousPresentation: kind === 'practice' && purchase?.intervention?.mode === 'upgrade'
         ? getVassalGamepiecePresentation(state, kind, slot[idKey], purchase.intervention.tier) : null,
-      presentation: kind === 'practice' ? getGamepieceFace(tableauState,kind,slot[idKey],tier,{slot,evaluation:evaluateDetailedPracticeSlot(tableauState,previewRegionId,slotIndex),workers:assignments[slotIndex],activationTrace:previewSite?.detailedState?.practiceActivationTrace??[]}) : getVassalGamepiecePresentation(state, kind, slot[idKey], tier, slot),
+      presentation: kind === 'practice' ? getGamepieceFace(tableauState,kind,slot[idKey],tier,{slot,evaluation:evaluateDetailedPracticeSlot(tableauState,previewRegionId,slotIndex),workers:assignments[slotIndex],activationTrace:previewSite?.detailedState?.practiceActivationTrace??[]}) : getVassalGamepiecePresentation(tableauState, kind, slot[idKey], tier, slot, getDetailedSite(tableauState,previewRegionId)?.detailedState),
     };
   });
   const decorateOffer = (offer, purchased = false) => {
@@ -382,7 +383,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       structureCapacity: afterStructures.length,
       demolishedStructures: (projected?.structures?.demolished ?? []).map(slot => ({ ...slot,
         presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId,
-          getDetailedStructureDef(state, slot.structureId)?.minimumQuality) })),
+          getDetailedStructureDef(state, slot.structureId)?.minimumQuality, slot, previewSite?.detailedState) })),
     } : null,
     offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
     purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),

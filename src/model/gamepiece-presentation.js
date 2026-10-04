@@ -4,6 +4,7 @@ import { getMoonPhaseDurationSec, getMoonCycleDurationSec } from './moon-phases.
 import { MOON_PHASE_INDEX_BY_ID } from '../defs/gamesettings/moon-phase-defs.js';
 import { getRegionReference } from './world-state.js';
 import { getPracticeReading } from './practice-reading.js';
+import { getStructureReading } from './structure-reading.js';
 
 export const GAMEPIECE_OUTPUTS = Object.freeze({
   food: { label: 'Food', icon: 'food' }, money: { label: 'Money', icon: 'money' },
@@ -63,7 +64,7 @@ function seasonalReadiness(state, activation) {
   return { nextTrigger: { season: seasons[next % 4], tSec: nextSec }, fill: (time - previousSec) / (nextSec - previousSec) };
 }
 
-export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, activationTrace = [] } = {}) {
+export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, settlement = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
   if (kind === 'structure') tier = ['bronze','silver','gold','diamond'][Math.min(3,['bronze','silver','gold','diamond'].indexOf(def.minimumQuality??'bronze')+(slot?.qualityBonus??0))];
@@ -99,9 +100,10 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const inputs = ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input => ({ kind, amount: input.amount, traits: [...input.traits] })));
   const producesStock = (def.effects ?? []).some(effect => effect.op === 'generateStock');
   const workerMultiplier = producesStock || def.mode==='charge' ? number(1 + (workers?.effectiveWorkers ?? 0) * (def.workerBonus ?? 1)) : 1;
+  const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def, {slot, settlement});
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
     inputs, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def),
-    reading: kind === 'practice' ? getPracticeReading(def) : null,
+    reading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],
