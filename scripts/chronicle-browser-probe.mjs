@@ -496,7 +496,17 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId),quickShop.quickCardId,'A held title survives shop redraws');
   await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),'practice:'+shopAfter.practices[practiceIndex].practiceId,'The shop Practice title opens inspect');
-  await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
+  assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionAboveChrome),'Full Practice inspect rises above the vassal HUD and navigation');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionAboveChrome),'Full inspect retains its foreground layer after redraw');
+  await page.screenshot({path:'artifacts/chronicle-mobile-practice-foreground.png'});
+  const inspectNavigation=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation);
+  await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
+  const dismissedInspect=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());
+  assert.equal(dismissedInspect.lifeMapDecision.inspectedCardId,null,'The inspect backdrop catches taps over the bottom-left controls');
+  assert.ok(dismissedInspect.lifeMapDecision.open,'Tapping behind inspect cannot navigate away from the node');
+  assert.equal(dismissedInspect.lifeMapDecision.inspectionAboveChrome,false,'Closing inspect restores the regular modal layer');
+  assert.deepEqual(dismissedInspect.navigation,inspectNavigation,'The underlying navigation control does not activate');
   const inspectOffer=async()=>{
     await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
     const quick=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId);

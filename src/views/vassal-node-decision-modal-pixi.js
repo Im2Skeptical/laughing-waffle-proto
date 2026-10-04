@@ -71,12 +71,28 @@ export function createVassalNodeDecisionModalView({
   let signature = "";
   const preparedLayouts = new Map();
   let layoutBuilds = 0, preparedLayoutHits = 0;
+  let inspectionLayerIndex = null;
+
+  // The HUD and shared navigation are later siblings in this unsorted layer.
+  // Full inspect owns the foreground until it closes, including its backdrop.
+  function setInspectionAboveChrome(expanded) {
+    const parent=root.parent;
+    if(!parent)return;
+    if(expanded) {
+      inspectionLayerIndex??=parent.getChildIndex(root);
+      parent.setChildIndex(root,parent.children.length-1);
+    } else if(inspectionLayerIndex!==null) {
+      parent.setChildIndex(root,Math.min(inspectionLayerIndex,parent.children.length-1));
+      inspectionLayerIndex=null;
+    }
+  }
 
   function takeLayout() {
     const content = new PIXI.Container();
     for (const child of root.removeChildren()) content.addChild(child);
     return {content, signature, enterRoot, optionRoots, offerRoots, shopCardRoots,
-      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauWidth:tableau.width};
+      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauWidth:tableau.width,
+      inspectionAboveChrome:inspectionLayerIndex!==null};
   }
   function restoreLayout(layout) {
     for (const child of layout.content.removeChildren()) root.addChild(child);
@@ -84,6 +100,7 @@ export function createVassalNodeDecisionModalView({
     ({signature, enterRoot, optionRoots, offerRoots, shopCardRoots, confirmRoot,
       undoRoots, tableauRoots, inspectionRoot, lastDecision} = layout);
     tableau.width = layout.tableauWidth;
+    setInspectionAboveChrome(layout.inspectionAboveChrome);
   }
   function clearPreparedLayouts() {
     for (const layout of preparedLayouts.values()) layout.content.destroy({children:true});
@@ -210,6 +227,7 @@ export function createVassalNodeDecisionModalView({
   function close({ immediate = false } = {}) {
     if (!logicalOpen && !immediate) return;
     logicalOpen = false;
+    setInspectionAboveChrome(false);
     quickInspectionId=null;
     backdropPressedPointerId = null;
     pointerHeld = false;
@@ -378,6 +396,7 @@ export function createVassalNodeDecisionModalView({
     }
     signature = nextSignature;
     layoutBuilds++;
+    setInspectionAboveChrome(false);
     clearChildren(root);
     enterRoot = null;
     optionRoots = [];
@@ -722,6 +741,7 @@ export function createVassalNodeDecisionModalView({
       } else {
         const practiceInspect=!!face?.reading;
         if(practiceInspect) {
+          setInspectionAboveChrome(true);
           const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(0,0,2424,1080).endFill();
           dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();closeInspection();});root.addChild(dim);
         }
@@ -832,6 +852,7 @@ export function createVassalNodeDecisionModalView({
           rect: motionRect,
         },
         inspectedCardId: pinnedInspectionId,
+        inspectionAboveChrome: inspectionLayerIndex!==null,
         quickCardId: quickInspectionId,
         inspectionTitlePoint: inspectionRoot?.titleControl?.toGlobal?.(new PIXI.Point(450,inspectionRoot.titleControl.hitArea.height/2))??null,
         inspectionRect: inspectionRoot?.getBounds?.()??null,
