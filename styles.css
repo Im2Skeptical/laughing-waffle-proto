@@ -36,6 +36,16 @@ body.game-menu-open .codex-debug-panel { display: none !important; }
 .game-display-hint { padding:12px 16px; border-left:3px solid #b89b5c;
   background:#1b2524; color:#e4d5ac; font:15px/1.5 Georgia,serif; }
 .game-save-error { position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 4000; padding: 14px; background: #6b3028; color: white; }
+.game-save-error[hidden], .game-save-recovery[hidden] { display:none; }
+.game-save-error { max-height:40vh; overflow:auto; font:14px/1.4 sans-serif; }
+.game-save-error p { margin:0 0 8px; }
+.game-save-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.game-save-actions button { min-height:44px; padding:8px 12px; cursor:pointer; }
+#game-menu .game-save-actions button { width:auto; flex:1 1 130px; font-size:13px; letter-spacing:0; margin:4px 0; }
+.game-save-recovery { border-top:1px solid #736447; margin-top:16px; padding-top:8px; }
+.save-diagnostics textarea { width:100%; min-height:260px; box-sizing:border-box; font:12px/1.4 monospace; background:#121c1e; color:#e1ebe9; }
+.save-diagnostics { max-width:760px; }
+[data-testid="game-save-status"][data-phase="failed"] { color:#ffb6a1!important; border-color:#ba6550!important; }
 
 /* The chronicle occupies one fixed landscape stage. Browser chrome follows its
    outer edge; the playfield never rearranges itself at different breakpoints. */

@@ -6,6 +6,7 @@ import {
 } from "./debug-configuration-dom.js";
 import { createVassalDebugDom } from "./vassal-debug-dom.js";
 import { createLifeMapLabDom } from "./life-map-lab-dom.js";
+import { createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
 
 export function createSettlementDebugMenuDom({
   mapLabController,
@@ -17,6 +18,7 @@ export function createSettlementDebugMenuDom({
   replaceVassalCandidate,
   openDevelopmentLab,
   openCurrentStateInGym,
+  getSaveDiagnosticReport,
 } = {}) {
   const utilityControls = document.createElement("div");
   utilityControls.dataset.testid = "utility-controls";
@@ -93,7 +95,11 @@ export function createSettlementDebugMenuDom({
   lifeMapLabTab.type = "button";
   lifeMapLabTab.textContent = "Life Map Lab";
   lifeMapLabTab.dataset.testid = "debug-life-map-lab-tab";
-  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, lifeMapLabTab, vassalTab);
+  const saveDiagnosticsTab = document.createElement('button');
+  saveDiagnosticsTab.type = 'button'; saveDiagnosticsTab.textContent = 'Save diagnostics';
+  saveDiagnosticsTab.dataset.testid = 'debug-save-diagnostics-tab';
+  header.style.flexWrap = 'wrap';
+  header.append(title, mapLabTab, gameSettingsTab, gamepiecesTab, lifeMapLabTab, vassalTab, saveDiagnosticsTab);
   panel.append(header);
   const labLinks = document.createElement('div');
   labLinks.style.cssText = 'display:flex;gap:8px;margin:10px 112px';
@@ -200,6 +206,7 @@ export function createSettlementDebugMenuDom({
     gamepieces,
     lifeMapLab,
     vassalLab,
+    saveDiagnostics: createSaveDiagnosticsDom({ getReport: () => getSaveDiagnosticReport?.() ?? {} }),
   };
   const pageContainer = document.createElement("div");
   pageContainer.append(
@@ -207,7 +214,8 @@ export function createSettlementDebugMenuDom({
     gameSettings.element,
     gamepieces.element,
     lifeMapLab.element,
-    vassalLab.element
+    vassalLab.element,
+    pages.saveDiagnostics.element
   );
   panel.append(pageContainer);
   let activePage = debugProfileController?.getSnapshot?.().activePage ?? "mapLab";
@@ -330,6 +338,7 @@ export function createSettlementDebugMenuDom({
   gamepiecesTab.addEventListener("click", () => setActivePage("gamepieces"));
   lifeMapLabTab.addEventListener("click", () => setActivePage("lifeMapLab"));
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
+  saveDiagnosticsTab.addEventListener('click', () => setActivePage('saveDiagnostics'));
   closeButton.addEventListener("click", close);
   profileSelect.addEventListener("change", () => {
     debugProfileController?.selectProfile?.(profileSelect.value || null);

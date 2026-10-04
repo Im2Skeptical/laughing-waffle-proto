@@ -14,6 +14,9 @@ and its direct dependencies.
   `sim-runner.js`. See that folder's README.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
+- Save recovery/status/export: `src/views/save-recovery-dom.js`.
+  Technical report: `src/views/save-diagnostics-dom.js`, reused by the menu's
+  Developer tools and the workshop's Save diagnostics tab.
 - Fullscreen/landscape entry: `src/views/game-display-mode.js`
 - Player fresh-run setup: `src/model/new-game.js` and `src/model/starter-boot-profile.js`
 - Forecast orchestration: `src/controllers/settlement-forecast-controller.js`
@@ -202,7 +205,7 @@ in `ai/ai-context.md`.
 - Map Lab/debug form changes:
   `npm run verify`, then `npm run probe:map-lab`
 - Landing menu, save slots, or new-run setup:
-  `npm run verify` and `npm run probe:game-menu`
+  `npm run test:save-recovery`, `npm run verify` and `npm run probe:game-menu`
 - Shared mobile layout or input changes:
   all three browser probes and a 1280x800 visual check
 - Timeline-driven art, sound, or card inspection:
