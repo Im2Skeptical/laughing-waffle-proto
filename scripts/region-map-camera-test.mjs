@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
-import { getMapRelationships, getMapRelationship } from '../src/views/world-map/relationships.js';
+import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from '../src/views/world-map/relationships.js';
 import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
 import { getAdjacentRegionIds } from '../src/model/world-state.js';
 
@@ -129,3 +129,25 @@ const isolated = getMapRelationships(state, 'copper-basin', true);
 assert.deepEqual(isolated.highlightedRegionIds, [], 'road removal immediately removes the highlight');
 assert.deepEqual(isolated.groupRegionIds, ['copper-basin'], 'isolated selections frame their own territory');
 console.log('[region-map-relationships] OK: adjacency AND direct connection, indirect exclusion, dismissal, live roads, unchanged state');
+
+const allied = getRelationshipStyle({controller:'player',hasDetailedSettlement:true});
+const neutral = getRelationshipStyle({controller:'external-a',neutral:{defense:1},hasDetailedSettlement:true});
+const empty = getRelationshipStyle({controller:'frontier',hasDetailedSettlement:false});
+const hostile = getRelationshipStyle({controller:'player',hasDetailedSettlement:true,monster:{defense:3}});
+assert.equal(allied.kind, 'allied');
+assert.equal(neutral.kind, 'neutral');
+assert.equal(empty.kind, 'empty');
+assert.equal(hostile.kind, 'hostile', 'Monster occupation overrides former ownership');
+assert.equal(getRelationshipStyle({controller:'player',hasDetailedSettlement:false}).kind, 'empty', 'owned empty land is not an allied settlement');
+assert.ok(allied.width > neutral.width && neutral.width > empty.width, 'settlement hierarchy is reflected in stroke weight');
+assert.ok(hostile.colour !== allied.colour, 'hostile regions remain visually distinct');
+const inkCoverage = style => {
+  let x = 0, y = 0, coverage = 0;
+  const graphics = {lineStyle(){return this;}, moveTo(px,py){x=px;y=py;return this;},
+    lineTo(px,py){coverage+=Math.hypot(px-x,py-y);x=px;y=py;return this;}};
+  drawRelationshipLine(graphics, {x:0,y:0}, {x:120,y:0}, style);
+  return coverage;
+};
+assert.equal(inkCoverage(allied), 120, 'allied roads and borders are continuous');
+assert.ok(inkCoverage(allied) > inkCoverage(neutral) && inkCoverage(neutral) > inkCoverage(empty), 'neutral dashes have more visual presence than empty-region dots');
+console.log('[region-map-hierarchy] OK: allied/neutral/empty hierarchy, owned empty land, Monster precedence, actual stroke coverage');

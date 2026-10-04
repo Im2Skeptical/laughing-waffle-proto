@@ -1,5 +1,5 @@
 import { CONTROLLER_COLOURS } from './constants.js';
-import { RELATION_COLOUR, drawRelationshipLine } from './relationships.js';
+import { RELATION_STYLES, drawRelationshipLine } from './relationships.js';
 import { CIV_CONTENT_TUNING } from '../../model/detailed-settlements.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
@@ -34,7 +34,7 @@ export function addMonsterGround(parent, points) {
   return ground;
 }
 
-export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, relationship, controller }) {
+export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, relationship, relationshipStyle = RELATION_STYLES.empty, controller }) {
   const border = new PIXI.Graphics();
   border.label = selected ? 'selected-region-border' : player ? 'player-region-border' : 'region-border';
   border.eventMode = 'none';
@@ -48,13 +48,14 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
   } else trace(1.5,colour,.65);
   if (relationship === 'connected') {
     border.label = `${relationship}-region-border`;
-    const accent = RELATION_COLOUR;
-    trace(11, 0x0c171b, .95);
+    border.relationshipKind = relationshipStyle.kind;
+    trace(relationshipStyle.width + 6, 0x0c171b, .95);
     for (let i = 0; i < points.length; i += 2) {
       const next = (i + 2) % points.length;
-      drawRelationshipLine(border, {x:points[i],y:points[i+1]}, {x:points[next],y:points[next+1]}, 5);
+      drawRelationshipLine(border, {x:points[i],y:points[i+1]}, {x:points[next],y:points[next+1]}, relationshipStyle);
     }
-    border.lineStyle(0).beginFill(accent, .12).drawPolygon(points).endFill();
+    if (relationshipStyle.innerColour) trace(1.5, relationshipStyle.innerColour);
+    border.lineStyle(0).beginFill(relationshipStyle.colour, relationshipStyle.fillAlpha).drawPolygon(points).endFill();
   }
   if (highlighted || selected) {
     const accent = selected ? 0x98e8f2 : 0xf5d077;

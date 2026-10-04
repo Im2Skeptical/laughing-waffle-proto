@@ -71,9 +71,51 @@ try {
   await page.setViewportSize({width:844,height:390});
   await page.evaluate(()=>{territoryProbe.app.renderer.resize(844,390);territoryProbe.app.stage.scale.set(844/2424);});
   await page.screenshot({path:`${output}/mobile-monster.png`});
+  await page.setViewportSize({width:1280,height:570});
+  await page.evaluate(async()=>{
+    const {createLabFixture}=await import('/src/model/dev-lab/fixtures.js');
+    const {getAdjacentRegionIds}=await import('/src/model/world-state.js');
+    const {serializeGameState}=await import('/src/model/state.js');
+    const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
+    const state=createLabFixture('defense',42), regionId='river-crown';
+    const neighbours=getAdjacentRegionIds(state,regionId).slice(0,4);
+    const player=structuredClone(state.world.sites.find(site=>site.detailedState && state.world.regions.find(r=>r.id===site.regionId)?.controller==='player'));
+    const neutral=structuredClone(state.world.sites.find(site=>site.neutral));
+    const monster=structuredClone(state.world.regions.find(r=>r.monster).monster);
+    const entries=[{id:regionId,kind:'allied'},...neighbours.map((id,i)=>({id,kind:['allied','neutral','empty','hostile'][i]}))];
+    state.world.sites=state.world.sites.filter(site=>!entries.some(entry=>entry.id===site.regionId));
+    for(const {id,kind} of entries){
+      const region=state.world.regions.find(r=>r.id===id);
+      region.controller=kind==='allied'?'player':kind==='neutral'?'external-a':'frontier';
+      region.monster=kind==='hostile'?structuredClone(monster):null;
+      if(kind==='allied'||kind==='neutral'){
+        const site=structuredClone(kind==='allied'?player:neutral);
+        site.regionId=id;site.id=`hierarchy-${id}`;state.world.sites.push(site);
+      }
+    }
+    state.world.connections=neighbours.map(id=>({regionAId:regionId,regionBId:id}));
+    const before=JSON.stringify(serializeGameState(state));
+    const {app}=territoryProbe;territoryProbe.view.setVisible(false);
+    app.renderer.resize(1280,570);app.stage.scale.set(1280/2424);
+    const view=createWorldMapView({layer:app.stage,getState:()=>state,getSelectedRegionId:()=>regionId,getRegionSelectionActive:()=>true});
+    view.init();app.ticker.add(()=>view.update());
+    const walk=node=>[node,...(node.children??[]).flatMap(walk)];
+    globalThis.hierarchyProbe={view,check:()=>({
+      kinds:walk(app.stage).filter(node=>node.worldVisible && node.label==='connected-region-border' && node.relationshipKind).map(node=>node.relationshipKind).sort(),
+      unchanged:JSON.stringify(serializeGameState(state))===before,
+    })};
+  });
+  await page.waitForFunction(()=>!hierarchyProbe.view.getSemanticSnapshot().focusAnimating);
+  const hierarchy=await page.evaluate(()=>hierarchyProbe.check());
+  assert.deepEqual(hierarchy.kinds,['allied','empty','hostile','neutral'],'all four neighbour styles reach the real map renderer');
+  assert.ok(hierarchy.unchanged,'hierarchy drawing leaves serialized state and RNG unchanged');
+  await page.screenshot({path:`${output}/desktop-hierarchy.png`});
+  await page.setViewportSize({width:844,height:390});
+  await page.evaluate(()=>{territoryProbe.app.renderer.resize(844,390);territoryProbe.app.stage.scale.set(844/2424);});
+  await page.screenshot({path:`${output}/mobile-hierarchy.png`});
   assert.deepEqual(errors,[]);
-  writeFileSync(`${output}/result.json`,JSON.stringify({overview,selected,errors},null,2));
-  console.log(`[probe:map-territory] OK: monster graphics, player/selected outlines, unchanged state; screenshots=${output}`);
+  writeFileSync(`${output}/result.json`,JSON.stringify({overview,selected,hierarchy,errors},null,2));
+  console.log(`[probe:map-territory] OK: monster graphics, allied/neutral/empty/hostile hierarchy, player/selected outlines, unchanged state; screenshots=${output}`);
 } catch(error){
   writeFileSync(`${output}/result.json`,JSON.stringify({error:error.stack,errors},null,2));
   await page?.screenshot({path:`${output}/failure.png`}).catch(()=>{});
