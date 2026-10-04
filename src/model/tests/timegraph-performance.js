@@ -67,6 +67,56 @@ for (let sec = 0; sec <= 192; sec++) {
 }
 
 const base = serializeGameState(initial);
+// A later-founded settlement is absent from earlier summaries. Switching to
+// it must read those known-empty local metrics, rather than replaying history
+// again on every switch. Compare every series with the actual snapshot reader.
+{
+  const absentRegionId = initial.world.sites.at(-1).regionId;
+  const existingRegionId = initial.world.sites[0].regionId;
+  const beforeFoundation = deserializeGameState(base);
+  beforeFoundation.world.sites = beforeFoundation.world.sites.filter(site =>
+    site.regionId !== absentRegionId);
+  const historicalData = serializeGameState(beforeFoundation);
+  const tl = createTimelineFromInitialState(beforeFoundation);
+  const projection = createProjectionCache();
+  const graph = createTimeGraphController({ getTimeline: () => tl,
+    getCursorState: () => initial, projectionCache: projection,
+    metric: GRAPH_METRICS.settlement, horizonSec: 1 });
+  graph.ensureCache();
+  graph.retainAuthoritativeSummariesFrom(0,
+    new Map([[0, buildProjectionSummaryFromState(beforeFoundation)]]));
+  projection.ensureStateAtSecond = () => {
+    assert.fail('a retained pre-founding summary must not trigger historical replay');
+  };
+  for (const regionId of [existingRegionId, absentRegionId, existingRegionId, absentRegionId]) {
+    const subject = { regionId };
+    graph.setSubject(subject, regionId);
+    graph.ensureCache();
+    assert.deepEqual(graph.getSeriesValuesForSeconds([0]).get(0),
+      uncachedGraphValues(GRAPH_METRICS.settlement, beforeFoundation, subject),
+      'pre-founding summaries preserve exact local defaults and global metrics');
+  }
+  // Absence of the summary itself, or of a series on an existing settlement,
+  // is different: it must still use authoritative state, not invent zeroes.
+  let fallbackReads = 0;
+  projection.ensureStateAtSecond = () => {
+    fallbackReads++;
+    return { ok: true, stateData: historicalData };
+  };
+  const subject = { regionId: existingRegionId };
+  graph.setSubject(subject, existingRegionId);
+  graph.ensureCache();
+  graph.retainAuthoritativeSummariesFrom(0, null);
+  assert.deepEqual(graph.getSeriesValuesForSeconds([0]).get(0),
+    uncachedGraphValues(GRAPH_METRICS.settlement, beforeFoundation, subject));
+  assert.equal(fallbackReads, 1, 'a missing summary still reads authoritative state');
+  const incomplete = buildProjectionSummaryFromState(beforeFoundation);
+  delete incomplete.graphValues.settlementByRegion[existingRegionId].food;
+  graph.retainAuthoritativeSummariesFrom(0, new Map([[0, incomplete]]));
+  assert.deepEqual(graph.getSeriesValuesForSeconds([0]).get(0),
+    uncachedGraphValues(GRAPH_METRICS.settlement, beforeFoundation, subject));
+  assert.equal(fallbackReads, 2, 'an incomplete existing-settlement series still reads authoritative state');
+}
 const session = createProjectionChunkSession(base, 0, 2100);
 assert.equal(session.ok, true);
 let data = base;
