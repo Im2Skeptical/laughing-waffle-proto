@@ -5,8 +5,11 @@ import {
   getCurrentLifeMapVassal,
   getVassalNodeDecisionPresentation,
 } from "../../vassal-life-map.js";
-import { stepDetailedSettlementsSecond } from "../../detailed-settlements.js";
+import { getHousingCapacity, stepDetailedSettlementsSecond } from "../../detailed-settlements.js";
 import { getDetailedPracticeDef, getDetailedStructureDef } from "../../game-config.js";
+import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
+import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../../defs/gamepieces/vassal-life-map-defs.js";
+import { appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond } from "../../timeline/index.js";
 import {
   dispatch,
   forceEnter,
@@ -16,6 +19,61 @@ import {
   selectedState,
   selectedStateForSignature,
 } from "./helpers.js";
+
+function addsHousing(def) {
+  return def.housing > 0 || (def.effects ?? []).some(effect =>
+    effect.op === "addHousingForPhase" && effect.amount > 0);
+}
+
+for (const def of [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]) {
+  assert.equal(def.tags.includes("Housing"), addsHousing(def),
+    `${def.label}: Housing identifies cards that directly increase housing capacity`);
+}
+
+for (const classId of [null, "scholar", "warrior"]) {
+  for (const research of [0, 100000]) {
+    const state = selectedState(102);
+    const vassal = getCurrentLifeMapVassal(state);
+    vassal.classId = classId;
+    vassal.prestige = 500;
+    vassal.initialAge = 20;
+    state.civilization.research.total = research;
+    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === "signature");
+    const nodeId = node.id;
+    node.signatureNode = { ...VASSAL_SIGNATURE_NODE_VARIANTS.housingShop, variantId: "housingShop" };
+    vassal.lifeMap.availableNodeIds = [nodeId];
+    const timeline = createTimelineFromInitialState(state);
+    const act = (kind, payload) => {
+      const result = appendActionAtCursor(timeline, { kind, payload, tSec: state.tSec }, state);
+      assert.equal(result.ok, true, result.reason);
+      dispatch(state, kind, payload);
+    };
+    act(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId });
+    const shop = vassal.lifeMap.nodeStates[nodeId];
+    assert.ok(shop.inventory.length > 0, "Housing Shop has eligible offers at every maturity");
+    for (const offer of shop.inventory) {
+      const action = offer.intervention;
+      const def = action.kind === "practice"
+        ? getDetailedPracticeDef(state, action.practiceId)
+        : getDetailedStructureDef(state, action.structureId);
+      assert.ok(addsHousing(def), `${offer.label} must increase housing capacity`);
+      assert.ok(["common", classId].includes(def.pool), "shop respects class access");
+    }
+    const offer = shop.inventory.find(entry => entry.intervention.kind === "structure");
+    assert.ok(offer, "Housing Shop offers a dwelling");
+    const capacityBefore = getHousingCapacity(state, vassal.locationRegionId);
+    act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId: offer.offerId });
+    act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId });
+    resolvePending(state);
+    assert.ok(getHousingCapacity(state, vassal.locationRegionId) > capacityBefore,
+      "a confirmed dwelling purchase raises settlement housing capacity");
+    const replay = rebuildStateAtSecond(timeline, state.tSec);
+    assert.equal(replay.ok, true);
+    assert.deepEqual(serializeGameState(replay.state).civilization, serializeGameState(state).civilization,
+      "Housing Shop purchase matches authoritative replay");
+    assert.deepEqual(replay.state.rng, state.rng);
+  }
+}
 
 const shopState = selectedState(102);
 const shopVassal = getCurrentLifeMapVassal(shopState);

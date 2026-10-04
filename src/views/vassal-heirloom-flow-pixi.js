@@ -73,7 +73,7 @@ function drawItemCard(parent, rect, item, {
 
 export function createVassalHeirloomFlowView({
   app, layer, getState, isRecapOpen, onResolveOverflow, onConfirmLoadout,
-  onDismissSummary, onOpenChooser,
+  onDismissSummary,
 } = {}) {
   const root = new PIXI.Container();
   root.visible = false;
@@ -210,7 +210,6 @@ export function createVassalHeirloomFlowView({
         }, "CONTINUE", true, () => {
           dismissedReportId = snap.report?.vassalId ?? null;
           onDismissSummary?.();
-          onOpenChooser?.();
           render(true);
         });
       }

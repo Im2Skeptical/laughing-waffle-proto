@@ -1,5 +1,7 @@
 # CivContent 2.6 implementation
 
+The later Housing-tag pass restricts Housing to cards that directly add housing capacity: Mud House, Timber House, Stone House, Longhouse, Tenement, Great Dwelling, Housebuilding, and Civil Engineering. This supersedes the workbook's Housing tags on material producers, workshops, and defensive cards so the Housing Shop offers capacity improvements.
+
 The runtime and Zoo contain all 187 workbook rows: Common **13 Practices / 14 Structures**, Scholar **48 / 32**, Warrior **48 / 32**. Lyceum is included in the 32 Scholar Structures. All Practices have an explicit mode: **85 Scheduled / 24 Charge** (Common 9/4, Scholar 38/10, Warrior 38/10). The fixed settlement limit remains **five**.
 
 The workbook's extracted row definitions are checked in as [civcontent-2.6-source.json](civcontent-2.6-source.json). They retain exact labels, mode assignments, Charge trigger/gain/threshold/Discharge text and secondary clauses. Tests compare every runtime row to this independent source record. Runtime definitions retain workbook sheet/row references, original effect/hook prose, executable recipes and provisional notes. The later Charge-card pass supersedes workbook Stock costs: all 24 Charge Practices have empty Consume/Require lists and no special Stock gates; the workbook source remains the historical import record.

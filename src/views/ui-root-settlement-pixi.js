@@ -1167,7 +1167,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
   onConfirmLoadout: (equippedInstanceIds) => dispatchLifeMapAction(
     ActionKinds.VASSAL_CONFIRM_HEIRLOOM_LOADOUT, { equippedInstanceIds }
   ),
-  onOpenChooser: () => openLifeMapVassalSelection(),
+  onDismissSummary: () => setWorldViewMode("map"),
 });
 
 vassalLifeHudView = createVassalLifeHudView({

@@ -269,8 +269,17 @@ function createNodeState(state, vassal, node) {
         prestigeDelta: 10, phaseCost: 0,
       }];
     }
-  } else if (node.family === "patronage") nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS);
-  else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
+  } else if (node.family === "patronage") {
+    nodeState.options = clone(VASSAL_PATRONAGE_OPTIONS).map(option => {
+      if (!option.statId) return option;
+      return {
+        ...option,
+        statLabel: getVassalStatPresentation(vassal, option.statId).label,
+        ...(vassal.classId === "scholar" && option.statId === "cunning"
+          ? { label: "Cultivate Ingenuity" } : {}),
+      };
+    });
+  } else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
   else if (node.family === "travel") nodeState.options = buildTravelOptions(state, vassal);
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
   else if (classActionOptions(state, vassal, node.family)) nodeState.options = classActionOptions(state, vassal, node.family);

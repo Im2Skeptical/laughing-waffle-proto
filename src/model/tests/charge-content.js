@@ -29,11 +29,17 @@ for (const [pool,p,s,c] of [['common',13,14,4],['scholar',48,32,10],['warrior',4
   assert.equal(Object.values(practices).filter(d=>d.pool===pool&&d.mode==='charge').length,c);
 }
 assert.equal(source.entries.length,187);
+// The housing-capacity pass supersedes the workbook's broader construction/defense tag.
+const housingCardIds = new Set([
+  'mudHouses', 'timberHouse', 'stoneHouse', 'longhouse', 'tenement', 'greatDwelling',
+  'housebuilding', 'civilEngineering',
+]);
 for (const row of source.entries) {
   const def=(row.kind==='practices'?practices:structures)[row.id];
   assert.ok(def,`${row.pool}/${row.id}: missing runtime row`);
   assert.equal(def.label,row.fields.Practice??row.fields.Structure);assert.equal(def.pool,row.pool);assert.equal(def.workbook.row,row.row);
-  assert.deepEqual(def.tags,(row.fields['Card Tags']??'').split(',').map(t=>t.trim()).filter(Boolean));
+  const authoredTags=(row.fields['Card Tags']??'').split(',').map(t=>t.trim()).filter(Boolean);
+  assert.deepEqual(def.tags,authoredTags.filter(tag=>tag!=='Housing'||housingCardIds.has(row.id)));
   if (row.kind==='practices') {
     assert.deepEqual(def.stockTraits,(row.fields['Stock Traits']??'').split(',').map(t=>t.trim()).filter(Boolean));
     assert.equal(def.stockCapacity,row.fields.Capacity??0);

@@ -4,8 +4,72 @@ import {
   getVassalDevelopmentIncome,
   getVassalNodeDecisionPresentation,
   getVassalPrestigeIncome,
+  getVassalStatPresentation,
 } from "../../vassal-life-map.js";
-import { forceEnter, nodeIdForFamily, selectedState } from "./helpers.js";
+import { dispatch, forceEnter, nodeIdForFamily, selectedState } from "./helpers.js";
+import { ActionKinds } from "../../actions.js";
+
+// Class stats replace their base stat's meaning throughout node choices.
+for (const [classId, statId, label, omittedLabel] of [
+  ["scholar", "cunning", "Ingenuity", "Cunning"],
+  ["warrior", "intelligence", "Prowess", "Intelligence"],
+  [null, "cunning", "Cunning", null],
+]) {
+  const state = selectedState(1041);
+  const vassal = getCurrentLifeMapVassal(state);
+  vassal.classId = classId;
+  const patronage = forceEnter(state, nodeIdForFamily(state, "patronage"));
+  const option = patronage.options.find(entry => entry.statId === "cunning");
+  assert.equal(option.statLabel, classId === "scholar" ? "Ingenuity" : "Cunning",
+    "patronage must name the stat this class actually develops");
+  if (classId === "scholar") {
+    assert.match(option.label, /Ingenuity/);
+    const before = vassal.stats.cunning;
+    const incomeBefore = getVassalPrestigeIncome(vassal);
+    option.phaseCost = 0;
+    dispatch(state, ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId: patronage.nodeId, optionId: option.id });
+    dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: patronage.nodeId });
+    assert.equal(vassal.stats.cunning, before + 1);
+    assert.equal(getVassalPrestigeIncome(vassal), incomeBefore,
+      "Scholar Ingenuity does not acquire ordinary Cunning income");
+  }
+  const developmentState = selectedState(1041);
+  const developmentVassal = getCurrentLifeMapVassal(developmentState);
+  developmentVassal.classId = classId;
+  const development = forceEnter(developmentState, nodeIdForFamily(developmentState, "development"));
+  for (const entry of development.options) {
+    assert.equal(entry.statLabel, getVassalStatPresentation(developmentVassal, entry.statId).label);
+    if (entry.lossStatId) {
+      assert.equal(entry.lossStatLabel, getVassalStatPresentation(developmentVassal, entry.lossStatId).label);
+    }
+    if (omittedLabel) {
+      assert.notEqual(entry.statLabel, omittedLabel);
+      assert.notEqual(entry.lossStatLabel, omittedLabel);
+    }
+  }
+  assert.equal(getVassalStatPresentation(vassal, statId).label, label);
+
+  // Earn real level-up choices and confirm the class stat through the action API.
+  developmentVassal.initialAge = 20;
+  developmentVassal.stats.wisdom = 40;
+  const steady = development.options.find(entry => entry.id === "steadyPractice");
+  steady.phaseCost = 0;
+  dispatch(developmentState, ActionKinds.VASSAL_SELECT_LIFE_OPTION,
+    { nodeId: development.nodeId, optionId: steady.id });
+  dispatch(developmentState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: development.nodeId });
+  assert.ok(developmentVassal.developmentChoiceQueue.some(choice => choice.offeredStatIds.includes(statId)),
+    "class stat remains available for earned levels");
+  while (developmentVassal.developmentChoiceQueue.length) {
+    const choice = developmentVassal.developmentChoiceQueue[0];
+    const offeredLabels = choice.offeredStatIds.map(id => getVassalStatPresentation(developmentVassal, id).label);
+    if (omittedLabel) assert.ok(!offeredLabels.includes(omittedLabel), "level-up omits the replaced base stat");
+    const chosen = choice.offeredStatIds.includes(statId) ? statId : choice.offeredStatIds[0];
+    const before = developmentVassal.stats[chosen];
+    dispatch(developmentState, ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT,
+      { choiceId: choice.choiceId, statId: chosen });
+    assert.equal(developmentVassal.stats[chosen], before + 1);
+  }
+}
 
 const patronagePresentationState = selectedState(1041);
 const patronagePresentationVassal = getCurrentLifeMapVassal(patronagePresentationState);
