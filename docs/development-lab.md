@@ -22,11 +22,15 @@ control switches the hero, preset cards and contextual previews. Graphics choice
 survive workbench URL refresh. The in-game Practice quick read and expanded
 inspect view are the current tooltip reference; the old standalone Practice tooltip workbench is retired.
 
-Structures explores three card treatments with simple Housing and Stock capacity
-symbols, in an example construction strip and Structure offers. Hover/focus or tap
-for the quick read; select its title for inspection with the same rules and a
-separate symbol glossary. Quality uplift, Scholar requirements and build staging
-are temporary preview controls. Its URL preserves treatment, card and context.
+Structures renders three card treatments, quick reads and inspection entirely
+inside a Pixi canvas over a static game screenshot. It preserves the map,
+settlement, five Practice slots, construction strip, graph and navigation at
+game proportions. Hover or tap a Structure for its quick read; select the title
+for the Practice-style card/rules/glossary inspection. The same Fullscreen
+control as Cards/Vassals provides mobile landscape preview, with in-canvas
+variant and reading controls. Save screen PNG exports the current canvas,
+including any tooltip or inspection. Quality, Scholar requirements and staging
+are temporary preview controls. The URL preserves treatment, card and context.
 Run `npm run preview:structures` or open it from Prototypes. No live cards change.
 
 Keywords is a focused new study of clickable terms in full inspection. It uses

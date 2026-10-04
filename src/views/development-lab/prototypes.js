@@ -13,8 +13,8 @@ const WORKBENCHES = [
   },
   {
     title: 'Structures & tooltips', folder: 'structure-chrome-prototype', label: 'Structures',
-    description: 'Explore Housing and Stock capacity faces in the construction strip and Structure offers, with Practice-style quick reads and inspection.',
-    details: '3 card treatments · passive rules · symbol glossary',
+    description: 'Try Structure cards and Practice-style tooltips on a Pixi game-screen reference, including the construction strip and build offers.',
+    details: '3 Pixi treatments · mobile landscape fullscreen · screen PNG export',
   },
   {
     title: 'Practice keyword inspection', folder: 'keyword-inspection-prototype', label: 'Keywords',
