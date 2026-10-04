@@ -11,6 +11,7 @@ import {
 } from "../../model/state.js";
 import { rebuildStateAtSecond } from "../../model/timeline/index.js";
 import { clonePersistentKnowledge } from "../../model/persistent-memory.js";
+import { accessSaveStorage, describeSaveError, saveFailureCategory } from './save-diagnostics.js';
 
 export const SAVE_SCHEMA_VERSION = 18;
 export const SAVE_KEY_PREFIX = "civsurvivor.save";
@@ -23,11 +24,7 @@ export function getSaveSlotKey(slot) {
 }
 
 export function getLocalStorageSafe() {
-  try {
-    return globalThis?.localStorage ?? null;
-  } catch (_) {
-    return null;
-  }
+  return accessSaveStorage().storage;
 }
 
 export function buildSaveMeta(state, setupId) {
@@ -112,35 +109,75 @@ export function getSaveSlotMeta(slot) {
   return res.data?.meta ?? null;
 }
 
-export function writeSaveToSlot(slot, { state, timeline, setupId } = {}) {
-  if (!state) return { ok: false, reason: "noState" };
-  const store = getLocalStorageSafe();
-  if (!store) return { ok: false, reason: "noStorage" };
-  const key = getSaveSlotKey(slot);
-
-  const meta = buildSaveMeta(state, setupId);
-  const timelineData = serializeTimelineForSave(timeline);
-  const payload = {
-    meta,
-    state: serializeGameState(state),
-    timeline: timelineData,
-  };
-
+export function exportSave({ state, timeline, setupId } = {}) {
   try {
-    store.setItem(key, JSON.stringify(payload));
-    return { ok: true, meta };
-  } catch (error) {
-    return { ok: false, reason: "storageFailed", error };
-  }
+    if (!state) return { ok: false, reason: 'noState' };
+    const meta = buildSaveMeta(state, setupId);
+    const text = JSON.stringify({ meta, state: serializeGameState(state), timeline: serializeTimelineForSave(timeline) });
+    return { ok: true, meta, text };
+  } catch (error) { return { ok: false, reason: 'serializationFailed', error }; }
+}
+
+function persistSave(slot, prepare, context = {}) {
+  const start = performance.now();
+  const diagnostics = { attemptedAt: new Date().toISOString(), slot, operation: context.operation ?? 'save',
+    stateSec: context.state?.tSec ?? null, checkpointCount: context.timeline?.checkpoints?.length ?? null,
+    stage: 'access', category: null, payloadCharacters: null, estimatedUtf16Bytes: null,
+    payloadUtf8Bytes: null, durationMs: null, error: null };
+  const finish = (result, error = null, text = null) => {
+    diagnostics.durationMs = Math.round((performance.now() - start) * 100) / 100;
+    diagnostics.error = describeSaveError(error);
+    if (!result.ok) {
+      diagnostics.category = saveFailureCategory(diagnostics.stage, error);
+      // Extra byte encoding is only needed on failure; successful autosaves
+      // reuse the existing JSON string and record its cheap character count.
+      if (text !== null) diagnostics.payloadUtf8Bytes = new Blob([text]).size;
+    }
+    return { ...result, diagnostics };
+  };
+  const { storage, error } = accessSaveStorage();
+  if (!storage) return finish({ ok: false, reason: 'noStorage', error }, error);
+  diagnostics.stage = 'serialize';
+  const prepared = prepare();
+  if (!prepared.ok) return finish(prepared, prepared.error);
+  diagnostics.payloadCharacters = prepared.text.length;
+  diagnostics.estimatedUtf16Bytes = prepared.text.length * 2;
+  diagnostics.stage = 'write';
+  try {
+    storage.setItem(getSaveSlotKey(slot), prepared.text);
+    diagnostics.stage = 'complete';
+    return finish({ ok: true, meta: prepared.meta });
+  } catch (failure) { return finish({ ok: false, reason: 'storageFailed', error: failure }, failure, prepared.text); }
+}
+
+export function writeSaveToSlot(slot, context = {}) {
+  return persistSave(slot, () => exportSave(context), context);
+}
+
+export function inspectSaveText(text) {
+  try { return inspectSaveData(JSON.parse(text)); }
+  catch (error) { return { ok: false, reason: 'badSaveData', error }; }
+}
+
+export function importSaveToSlot(slot, text) {
+  const inspected = inspectSaveText(text);
+  if (!inspected.ok) return inspected;
+  return persistSave(slot, () => ({ ok: true, text, meta: inspected.meta }),
+    { operation: 'import', state: inspected.state, timeline: inspected.nextTimeline });
 }
 
 export function inspectSaveSlot(slot) {
   const res = readSaveSlot(slot);
   if (!res.ok) return res;
-  const data = res.data;
+  return inspectSaveData(res.data);
+}
+
+function inspectSaveData(data) {
   const meta = data?.meta ?? null;
   if (meta?.schemaVersion !== SAVE_SCHEMA_VERSION) return { ok: false, reason: "versionMismatch", meta };
   try {
+    if (!Number.isFinite(data?.timeline?.cursorSec) || data.timeline.cursorSec < 0
+      || data.timeline.cursorSec > data.timeline.historyEndSec) return { ok: false, reason: 'badSaveData' };
     deserializeGameState(data.state);
     const nextTimeline = normalizeSavedTimeline(data.timeline, data.state);
     if (!nextTimeline) return { ok: false, reason: "missingTimeline" };

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
@@ -12,6 +12,8 @@ mkdirSync('artifacts', { recursive: true });
 const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js', '-l', String(PORT), '--no-clipboard', 'dist'],
   { stdio: 'ignore', windowsHide: true });
 let browser;
+let page;
+const errors = [];
 try {
   for (let i = 0; i < 100; i++) {
     try { if ((await fetch(url)).ok) break; } catch {}
@@ -19,8 +21,9 @@ try {
     await delay(100);
   }
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  const errors = [];
+  page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  // Match the existing opening-forecast probe's allowance on software GL.
+  page.setDefaultTimeout(120000);
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(url);
   await page.getByTestId('game-new').waitFor();
@@ -118,12 +121,61 @@ try {
   await page.getByTestId('game-menu').waitFor({state:'hidden'});
   const replacementSeed = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed);
   assert.notEqual(replacementSeed, saved.state.rng.baseSeed);
-  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+  const previousSave = await page.evaluate(() => localStorage.getItem('civsurvivor.save.slot1'));
+  await page.evaluate(() => {
+    globalThis.__originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new DOMException('Probe quota rejection', 'QuotaExceededError'); };
+  });
   await page.getByTestId('game-menu-open').click();
-  assert.equal(await page.getByTestId('game-menu').isVisible(), false);
-  assert.equal(await page.locator('.game-save-error').isVisible(), true);
+  assert.equal(await page.getByTestId('game-menu').isVisible(), true);
+  assert.equal(await page.getByTestId('game-save-summary').isVisible(), true);
+  assert.equal(await page.getByTestId('game-save-export').isVisible(), true);
+  assert.equal(await page.getByTestId('game-new').isDisabled(), true);
+  assert.equal(await page.evaluate(() => localStorage.getItem('civsurvivor.save.slot1')), previousSave);
+  const liveExportDownload = page.waitForEvent('download');
+  await page.getByTestId('game-save-export').click();
+  const liveExport = await liveExportDownload;
+  await liveExport.saveAs('artifacts/save-recovery-export.json');
+  const exportText = readFileSync('artifacts/save-recovery-export.json', 'utf8');
+  const exportData = JSON.parse(exportText);
+  assert.equal(exportData.state.rng.baseSeed, replacementSeed);
+  assert.equal(exportData.timeline.checkpoints.length, JSON.parse(previousSave).timeline.checkpoints.length);
+  assert.equal(await page.getByTestId('game-save-summary').textContent().then(text=>text.startsWith('Save failed')), true);
+  await page.locator('#game-menu details summary').click();
+  await page.getByTestId('game-save-diagnostics').click();
+  const reportLocator = page.locator('#game-menu').getByTestId('save-diagnostic-report');
+  const diagnostic = JSON.parse(await reportLocator.inputValue());
+  assert.equal(diagnostic.lastFailure.category, 'quota');
+  assert.equal(diagnostic.lastFailure.error.name, 'QuotaExceededError');
+  assert.ok(diagnostic.lastFailure.payloadUtf8Bytes > 0);
+  assert.equal(diagnostic.status.lastSuccessfulSave.slot, 1);
+  assert.ok(!('state' in diagnostic));
+  const reportDownload = page.waitForEvent('download');
+  await page.locator('#game-menu').getByTestId('save-diagnostic-download').click();
+  await (await reportDownload).saveAs('artifacts/save-recovery-diagnostics.json');
+  await page.screenshot({ path: 'artifacts/save-recovery-diagnostics.png' });
+  await page.getByTestId('save-diagnostic-back').click();
+  await page.evaluate(() => { Storage.prototype.setItem = globalThis.__originalSetItem; });
+  await page.getByTestId('game-save-retry').click();
+  assert.equal(await page.getByTestId('game-new').isEnabled(), true);
+  await page.getByTestId('game-load').click();
+  const seedBeforeImport = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed);
+  await page.getByTestId('game-save-import-file').setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{broken') });
+  await page.waitForFunction(() => document.querySelector('#game-menu').textContent.includes('invalid or damaged'));
+  assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), seedBeforeImport);
+  await page.getByTestId('game-save-import-file').setInputFiles({ name: 'export.json', mimeType: 'application/json', buffer: Buffer.from(exportText) });
+  await page.getByRole('heading', { name: /Import Year/ }).waitFor();
+  const previousSlot3 = await page.evaluate(() => localStorage.getItem('civsurvivor.save.slot3'));
+  await page.getByTestId('game-slot-3').click();
+  await page.getByTestId('game-replace-confirm').waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('civsurvivor.save.slot3')), previousSlot3, 'slot is unchanged until replacement is confirmed');
+  await page.getByTestId('game-replace-confirm').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});
+  assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), replacementSeed);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('civsurvivor.save.slot3')).state.rng.baseSeed), replacementSeed);
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  phone.setDefaultTimeout(120000);
   phone.on('pageerror',error=>errors.push(error.message));
   // Exercise the unsupported-phone path as well as native desktop fullscreen.
   await phone.addInitScript(()=>{
@@ -159,6 +211,8 @@ try {
   // Headless contexts do not model OS window focus; deliver its native event.
   await phone.evaluate(()=>window.dispatchEvent(new Event('blur')));
   await phone.getByTestId('game-menu').waitFor({state:'visible'});
+  assert.equal(await phone.getByTestId('game-save-export').isVisible(),true);
+  await phone.screenshot({path:'artifacts/save-recovery-phone.png'});
   await delay(350);
   assert.equal(await phone.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),phoneHeld.viewedSec,'Focus loss pauses even when saving fails');
   await phone.evaluate(()=>window.dispatchEvent(new Event('focus')));
@@ -176,6 +230,7 @@ try {
 
   const hostileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const hostile = await hostileContext.newPage();
+  hostile.setDefaultTimeout(120000);
   hostile.on('pageerror', error => errors.push(error.message));
   await hostile.addInitScript(() => {
     globalThis.__displayRequests = [];
@@ -209,10 +264,16 @@ try {
   await waitForRide(hostile);
 
   assert.deepEqual(errors, []);
-  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png'] }));
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'storage failure', 'live export during quota failure', 'diagnostic download', 'invalid import preservation', 'validated import and replacement confirmation', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png','save-recovery-diagnostics.png','save-recovery-phone.png'] }));
   console.log('[probe:game-menu] OK');
 } catch (error) {
-  writeFileSync(artifact, JSON.stringify({ error: error.stack }));
+  const menuStatus = page ? await page.evaluate(() => ({
+    menuVisible: !document.querySelector('#game-menu')?.hidden,
+    messages: Array.from(document.querySelectorAll('#game-menu [role="status"], #game-menu [role="alert"]')).map(node=>node.textContent),
+    loading: document.querySelector('#game-menu h2')?.textContent,
+    opening: globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.opening,
+  })).catch(()=>null) : null;
+  writeFileSync(artifact, JSON.stringify({ error: error.stack, pageErrors: errors, menuStatus }));
   console.error(`[probe:game-menu] FAILED: ${error.message}\nDetails: ${artifact}`);
   process.exitCode = 1;
 } finally {

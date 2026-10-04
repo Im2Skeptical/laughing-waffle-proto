@@ -4,6 +4,7 @@ import { createGameSessionController } from "../controllers/game-session-control
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
+import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
 import { preloadChronicleArt } from './chronicle-art.js';
 import { createChronicleFrame } from './chronicle-skin.js';
 import { createTimelineAudio } from './timeline-audio.js';
@@ -1381,6 +1382,7 @@ debugProfileController = createDebugProfileController({
   vassalDebugPresetController,
 });
 settlementDebugMenu = createSettlementDebugMenuDom({
+  getSaveDiagnosticReport: () => buildSaveDiagnosticReport(gameSession),
   openDevelopmentLab: () => window.open(new URL('#/dev/zoo',location.href).href,'_blank','noopener'),
   openCurrentStateInGym: () => openLabHandoff(runner.getCursorState()),
   getState: () => getSettlementViewedState(),
@@ -1647,6 +1649,7 @@ const gameSession = createGameSessionController({
   },
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),
+  onSaveStatusChange: () => gameMenu?.syncSaveStatus(),
 });
 gameMenu = createGameMenuDom({
   session: gameSession,

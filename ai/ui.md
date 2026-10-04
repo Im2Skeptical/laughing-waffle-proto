@@ -50,8 +50,14 @@ contract: `ai/visual-overhaul.md`.
   valid save, and Load game for selecting among three browser-local slots.
   New game asks for a slot and confirms replacement of occupied/unavailable
   saves. The active slot saves every ten seconds during play, on focus loss,
-  and through Save & menu. Storage failures remain visible and prevent leaving
-  an unsaved game through that control; touch-device focus loss still pauses and
+  and through Save & menu. Storage failures remain visible; Save & menu opens
+  recovery controls and keeps the live game in memory. Retry and current-game
+  JSON export remain available, while replacing the live game is blocked until
+  saving succeeds. Load game validates imported files before destination-slot
+  selection and confirms replacement of occupied slots. Save status shows the
+  last successful save; Developer tools / Save diagnostics provides a report
+  of exception, save size, storage estimates, timestamps and browser details
+  without game state or stored values. Touch-device focus loss still pauses and
   preserves the live game in memory if saving fails. Desktop focus loss saves
   without opening the menu. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot

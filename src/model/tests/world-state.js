@@ -738,7 +738,7 @@ try {
   const originalSetItem = globalThis.localStorage.setItem;
   globalThis.localStorage.setItem = () => { throw new Error("quota"); };
   assert.equal(session.save().reason, "storageFailed");
-  assert.equal(session.openMenu(), false);
+  assert.equal(session.openMenu(), true, 'recovery controls remain reachable when saving fails');
   globalThis.localStorage.setItem = originalSetItem;
   const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
   const oldSave = JSON.parse(storage.get(saveKey));

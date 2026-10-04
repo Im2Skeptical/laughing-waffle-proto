@@ -56,6 +56,7 @@ import {
   getSaveSlotMeta,
   inspectSaveSlot,
   writeSaveToSlot,
+  exportSave,
 } from "./sim-runner/save-slots.js";
 
 export {
@@ -1788,6 +1789,7 @@ export function createSimRunner({
     scheduleActionsAtNextSecond,
     clearPlannerActionsAtCursor,
     saveToSlot,
+    exportCurrentSave: () => exportSave({ state: cursorState, timeline, setupId: activeSetupId }),
     loadFromSlot,
     resetToSetup: (nextSetupId) => initializeFromSetup(nextSetupId, "init"),
     resetToState: (nextState, nextSetupId = "mapLabDraft") =>
