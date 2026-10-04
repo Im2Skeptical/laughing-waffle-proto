@@ -2,7 +2,7 @@ import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { addPreviewCard } from './preview-renderer.js';
 
-const ROOT = 'images/dark-fantasy/tooltip-prototype/';
+const ROOT = 'images/dark-fantasy/card-chrome-prototype/';
 export async function createScreenPreview(host) {
   const textures = {};
   for (const context of ['settlement', 'shop']) textures[context] = await PIXI.Assets.load(`${ROOT}${context}-reference.png`);

@@ -60,10 +60,12 @@ try {
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.url().startsWith(url) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
-  await check('Pages subpath, Prototypes route, three links and refresh', async () => {
+  await check('Pages subpath, Prototypes route, two links and refresh', async () => {
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
-    assert.equal(await page.locator('.lab-prototype-open').count(),3);
+    assert.equal(await page.locator('.lab-prototype-open').count(),2);
+    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →']);
+    assert.equal((await fetch(`${url}images/dark-fantasy/tooltip-prototype/`)).status,404,'The retired tooltip page is absent from deployment');
     assert.equal(await page.locator('nav [data-mode="prototypes"]').getAttribute('aria-current'),'page');
     await noOverflow('directory desktop');
     await page.screenshot({path:'artifacts/prototype-directory-desktop.png'});
@@ -116,60 +118,6 @@ try {
     assert.deepEqual(await page.evaluate(() => cardWorkbench.numberBounds.filter(b => !b.fits).map(b => b.label)),[]);
     for (const viewport of [{width:844,height:390},{width:390,height:844}]) { await page.setViewportSize(viewport); await noOverflow('cards phone'); }
     await page.getByRole('link',{name:/Development Lab prototypes/}).click();
-    await page.getByRole('link',{name:'Open Tooltips workbench →'}).click(); await ready();
-  });
-  await page.setViewportSize({width:1280,height:800});
-  await check('Tooltip source/prototype graphics, URL refresh and fullscreen', async () => {
-    assert.equal(await page.locator('#graphics').inputValue(), 'source');
-    await page.locator('#graphics').selectOption('prototype');
-    await page.waitForFunction(() => [...document.querySelectorAll('#stage canvas')].every(canvas => canvas.dataset.graphics === 'prototype'));
-    await page.reload(); await ready();
-    assert.equal(await page.locator('#graphics').inputValue(), 'prototype');
-    await page.locator('#graphics').selectOption('source');
-    await fullscreenRoundTrip('#stage');
-    await page.setViewportSize({width:844,height:390});
-    await fullscreenRoundTrip('#stage');
-    await page.setViewportSize({width:1280,height:800});
-  });
-  await check('Tooltip keywords, nested Back, Pin, Escape and keyboard focus', async () => {
-    await page.locator('#local-tooltip .inspect-action').click();
-    await page.locator('#inspection:not([hidden])').waitFor();
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => tooltipWorkbench.state.variant==='local' && document.activeElement.id==='source-card');
-    await page.getByRole('button',{name:'Full inspection',exact:true}).click();
-    await page.locator('#inspection:not([hidden])').waitFor();
-    await page.locator('#inspection-rules [data-term="Timber"]').click();
-    await page.locator('#keyword-panel h3').filter({hasText:'Timber'}).waitFor();
-    await page.locator('#keyword-panel [data-term="Stock"]').click();
-    await page.locator('#keyword-panel h3').filter({hasText:'Stock'}).waitFor();
-    await page.getByRole('button',{name:'Pin',exact:true}).click();
-    await page.waitForFunction(() => tooltipWorkbench.state.pinned && document.activeElement.dataset.keywordAction === 'pin');
-    await page.getByRole('button',{name:'‹ Back',exact:true}).click();
-    await page.waitForFunction(() => tooltipWorkbench.state.keyword === 'Timber' && document.activeElement.dataset.keywordAction === 'back');
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !tooltipWorkbench.state.keyword && document.activeElement.dataset.term === 'Timber');
-    await page.keyboard.press('Tab');
-    assert.equal(await page.evaluate(() => !!document.activeElement.closest('#inspection')),true);
-    await page.locator('#tier').selectOption('diamond');
-    await page.waitForFunction(() => tooltipWorkbench.previewFace.tier === 'diamond');
-    assert.equal(await page.evaluate(() => tooltipWorkbench.ownedFace.tier),'bronze');
-    await page.keyboard.press('Escape'); await page.locator('#inspection').waitFor({state:'hidden'});
-  });
-  await check('Tooltip desktop and phone layouts, nested explanation and reset', async () => {
-    for (const [width,height,preset] of [[1440,900,'fit'],[844,390,'phone'],[667,375,'small-phone'],[390,844,'portrait']]) {
-      await page.setViewportSize({width,height}); await page.locator('#viewport').selectOption(preset);
-      await page.getByRole('button',{name:'Full inspection',exact:true}).click();
-      await page.locator('#inspection:not([hidden])').waitFor();
-      await page.evaluate(() => tooltipWorkbench.openKeyword('Workers'));
-      await page.locator('#keyword-panel:not([hidden])').waitFor();
-      assert.ok(await page.locator('#keyword-panel').evaluate(n => n.clientHeight > 0 && n.clientWidth > 0),'visible keyword explanation');
-      await noOverflow(`tooltips ${width}`);
-      await page.screenshot({path:`artifacts/prototype-tooltips-${width}.png`});
-      await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
-    }
-    await page.locator('#piece-name').fill('Temporary rules'); await page.locator('#reset').click();
-    await page.waitForFunction(() => tooltipWorkbench.state.name !== 'Temporary rules');
-    await page.getByRole('link',{name:'Development Lab prototypes',exact:true}).click();
     await page.getByRole('link',{name:'Open Vassals workbench →'}).click(); await ready();
   });
   await page.setViewportSize({width:1280,height:800});
@@ -233,15 +181,6 @@ try {
       }), true, 'portrait fallback uses landscape logical coordinates');
       await page.screenshot({path:'artifacts/prototype-cards-touch-landscape-fallback.png'});
       await page.locator('#screen-preview .dev-preview-fullscreen').click();
-      await page.goto(`${url}images/dark-fantasy/tooltip-prototype/`); await ready();
-      await page.locator('#stage .dev-preview-fullscreen').click();
-      await page.waitForFunction(() => !document.querySelector('#stage .dev-preview-fullscreen').disabled);
-      await page.evaluate(() => { tooltipWorkbench.setMode('inspection'); tooltipWorkbench.openKeyword('Workers'); });
-      await page.locator('#keyword-panel:not([hidden])').waitFor();
-      const panel=await page.locator('#keyword-panel').boundingBox();
-      await page.screenshot({path:'artifacts/prototype-tooltip-touch-landscape-fallback.png'});
-      assert.ok(panel.x>=-1&&panel.y>=-1&&panel.x+panel.width<=391&&panel.y+panel.height<=845,`rotated landscape keyword stays in the device viewport: ${JSON.stringify(panel)}`);
-      await page.locator('#stage .dev-preview-fullscreen').click();
     } finally { await mobile.close(); page = desktopPage; }
   });
   assert.deepEqual(errors,[],'workbench page/network errors');
@@ -259,4 +198,4 @@ try {
   await browser?.close(); await new Promise(resolve => server.close(resolve));
 }
 if (failures.length) { console.error(`[prototype-workbenches] Failed: ${failures[0].split('\n')[0]}\nReproduce: npm run probe:prototypes\nDetails: ${artifact}`); process.exitCode=1; }
-else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, keywords, exports. Details: ${artifact}`);
+else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, Cards/Vassals, exports. Details: ${artifact}`);
