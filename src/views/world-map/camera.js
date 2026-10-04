@@ -17,7 +17,7 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
   } });
   const zoomAt = (factor, point) => {
     focus.cancel();
-    const next = Math.max(1, Math.min(2.5, zoom * factor));
+    const next = Math.max(.35, Math.min(2.5, zoom * factor));
     x = point.x - (point.x - x) * next / zoom;
     y = point.y - (point.y - y) * next / zoom;
     zoom = next;
@@ -89,6 +89,19 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
       focus.start({ x, y, zoom }, {
         x: (rect.x + right) / 2 - point.x * targetZoom,
         y: rect.y + rect.height / 2 - point.y * targetZoom,
+        zoom: targetZoom,
+      });
+    },
+    frame: (points, bounds) => {
+      if (!points.length) return;
+      focus.cancel();
+      const xs = points.map(point => point.x), ys = points.map(point => point.y);
+      const left = Math.min(...xs), right = Math.max(...xs);
+      const top = Math.min(...ys), bottom = Math.max(...ys);
+      const targetZoom = Math.max(.35, Math.min(2.5, bounds.width / Math.max(1, right - left), bounds.height / Math.max(1, bottom - top)));
+      focus.start({x,y,zoom}, {
+        x: bounds.x + bounds.width / 2 - (left + right) / 2 * targetZoom,
+        y: bounds.y + bounds.height / 2 - (top + bottom) / 2 * targetZoom,
         zoom: targetZoom,
       });
     },

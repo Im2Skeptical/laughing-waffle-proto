@@ -1,4 +1,5 @@
 import { CONTROLLER_COLOURS } from './constants.js';
+import { RELATION_COLOURS, drawRelationshipLine } from './relationships.js';
 import { CIV_CONTENT_TUNING } from '../../model/detailed-settlements.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
@@ -33,7 +34,7 @@ export function addMonsterGround(parent, points) {
   return ground;
 }
 
-export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, controller }) {
+export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, relationship, controller }) {
   const border = new PIXI.Graphics();
   border.label = selected ? 'selected-region-border' : player ? 'player-region-border' : 'region-border';
   border.eventMode = 'none';
@@ -45,6 +46,21 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
     trace(1.5,monster ? 0xffa080 : 0xffe6a2);
     if (player) border.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
   } else trace(1.5,colour,.65);
+  if (RELATION_COLOURS[relationship]) {
+    border.label = `${relationship}-region-border`;
+    const accent = RELATION_COLOURS[relationship];
+    trace(11, 0x0c171b, .95);
+    if (relationship === 'adjacent') {
+      trace(7, accent);
+      trace(2, 0x0c171b);
+    } else {
+      for (let i = 0; i < points.length; i += 2) {
+        const next = (i + 2) % points.length;
+        drawRelationshipLine(border, {x:points[i],y:points[i+1]}, {x:points[next],y:points[next+1]}, relationship, 5);
+      }
+    }
+    border.lineStyle(0).beginFill(accent, .12).drawPolygon(points).endFill();
+  }
   if (highlighted || selected) {
     const accent = selected ? 0x98e8f2 : 0xf5d077;
     trace(17,accent,.12);
