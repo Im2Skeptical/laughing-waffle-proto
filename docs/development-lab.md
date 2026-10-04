@@ -36,9 +36,10 @@ Run `npm run preview:structures` or open it from Prototypes. No live cards chang
 Inspector studies the actual Pixi full inspection renderer, current card faces
 and a simple right-hand symbol key. Each row is a symbol and its readable name;
 definitions are behind clickable names rather than paragraphs in the key.
-Definitions contain further clickable terms; Back, reading history and Pin
-recover the useful navigation from the retired prototype. Compare a nearby
-reference (`?variant=A`), fixed rail (`B`) or visible panel trail (`C`) with the
+Definitions contain further clickable terms; Back retraces the private reading
+stack and Close dismisses it. Each layout displays one definition, without Pin
+or a visible history list. Compare a nearby
+reference (`?variant=A`), fixed rail (`B`) or centered reference (`C`) with the
 bottom Pixi switcher. Its Fullscreen button uses the same mobile landscape
 flow and rotated fallback as the other workbenches; card, quality and layout
 controls remain inside the fullscreen canvas. Run locally with

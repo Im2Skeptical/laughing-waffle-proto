@@ -199,7 +199,7 @@ try {
     await page.getByRole('link',{name:/Development Lab prototypes/}).click();
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
   });
-  await check('Real Pixi inspection, recursive word hit areas, history and three layouts', async () => {
+  await check('Real Pixi inspection, recursive word hit areas, Back and Close across three layouts', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
@@ -229,13 +229,18 @@ try {
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(()=>keywordWorkbench.state.path.at(-1)),'Charge');
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-      assert.equal(await page.evaluate(()=>keywordWorkbench.state.referencePanels),variant==='C'?2:1);
-      if(variant==='C') {
-        await keywordTap('earlier');await keywordTap('earlier');await keywordTap('return:0','history');
-      } else await keywordTap('return:0');
+      assert.equal(await page.evaluate(()=>keywordWorkbench.state.referencePanels),1);
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.targets.filter(target=>target.group==='reference'&&!target.action.startsWith('term:')).map(target=>target.action)),['back','close'],'definition panel exposes only Back and Close');
+      await page.screenshot({path:`artifacts/prototype-inspector-simple-${variant}-desktop.png`});
+      for(const term of ['Bone','Stock traits','Stock']) {
+        await keywordTap('back');assert.equal(await page.evaluate(()=>keywordWorkbench.state.path.at(-1)),term);
+      }
       assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock']);
+      await keywordTap('back');
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[],'Back from the first definition closes it');
+      await keywordTap('term:Stock','rules');await keywordTap('term:Stock traits');
       await keywordTap('close');
-      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[]);
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[],'Close clears the entire nested reading stack');
       await keywordTap('nextVariant','chrome');
     }
     assert.equal(new URL(page.url()).searchParams.get('variant'),'A');
@@ -261,7 +266,7 @@ try {
     await page.waitForFunction(()=>keywordWorkbench.state.path.length===0&&document.activeElement?.title==='Explain Stock');
     await noOverflow('Pixi accessibility layer');
   });
-  await check('Touch Pixi word chains, Pin, card controls, glossary drag and fullscreen on phones', async () => {
+  await check('Touch Pixi word chains, Back and Close, card controls, glossary drag and fullscreen on phones', async () => {
     // The atlas-heavy workbenches create several software GL contexts. Use
     // a fresh browser for phone cases so old renderer caches do not turn an
     // unrelated workbench's boot into a timeout late in the suite.
@@ -281,16 +286,15 @@ try {
         await keywordTap('term:Stock traits','reference',true);
         await keywordTap('term:Bone','reference',true);
         assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock','Stock traits','Bone']);
-        await keywordTap('pin','reference',true);
-        await page.touchscreen.tap(4,4);
-        assert.equal(await page.evaluate(()=>keywordWorkbench.state.pinned),true);
-        await keywordTap('nextCard','chrome',true);
-        assert.equal(await page.evaluate(()=>keywordWorkbench.state.card),'logging','card selector remains inside fullscreen');
-        assert.equal(await page.evaluate(()=>keywordWorkbench.state.pinned),true);
         await page.screenshot({path:`artifacts/prototype-keywords-pixi-${variant}-touch.png`});
-        await keywordTap('pin','reference',true);
+        await keywordTap('back','reference',true);
+        assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock','Stock traits']);
         await page.touchscreen.tap(4,4);
         await page.waitForFunction(()=>keywordWorkbench.state.path.length===0);
+        await keywordTap('term:Stock','rules',true);
+        await keywordTap('nextCard','chrome',true);
+        assert.equal(await page.evaluate(()=>keywordWorkbench.state.card),'logging','card selector remains inside fullscreen');
+        assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[],'changing cards dismisses the reference');
         await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         const positions=await page.evaluate(()=>keywordWorkbench.viewports.filter(viewport=>['rules','glossary'].includes(viewport.group)));
         assert.ok(positions[1].x>=positions[0].x+positions[0].width,'glossary stays right of rules');

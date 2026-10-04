@@ -19,7 +19,7 @@ const WORKBENCHES = [
   {
     title: 'Practice inspector', folder: 'keyword-inspection-prototype', label: 'Inspector',
     description: 'Study an enlarged Practice with readable rules, a simple right-hand symbol key and clickable definitions.',
-    details: 'Full Pixi inspector · symbol / name rows · recursive links / Back / Pin',
+    details: 'Full Pixi inspector · symbol / name rows · recursive links / Back / Close',
   },
 ];
 
