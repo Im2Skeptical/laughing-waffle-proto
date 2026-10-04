@@ -19,21 +19,22 @@ Card, quality and variant controls remain inside the canvas in fullscreen.
 Switch with the bottom Pixi arrows or `?variant=A`, `B`, `C`:
 
 - A — a reference beside the initial word; deeper links replace its contents.
-- B — a fixed reference rail, with the same linked history.
-- C — a panel trail showing two definitions at a time; Earlier/Later browse
-  the complete history without shrinking the copy.
+- B — a fixed reference rail.
+- C — a centered reference panel.
 
 Click/tap underlined terms in rules, tags or the right symbol key. Terms inside
-definitions open further definitions. Back and Escape retrace one step;
-breadcrumbs or Return here jump back. Close restores focus to the starting term.
-Pin retains the reference on outside taps and Practice/quality changes. Outside
-taps dismiss unpinned references. Pixi accessibility exposes links to keyboard
+definitions replace the current definition. Back and Escape retrace one step;
+Back from the first definition dismisses it. Close dismisses the whole reading
+stack and restores focus to the starting term. Each layout shows one definition
+with only Back and Close controls: no Pin, breadcrumbs, history list or panel
+trail. Outside taps and Practice/quality changes dismiss the reference.
+Pixi accessibility exposes links to keyboard
 users. Drag or wheel scroll the rules, right glossary or reference copy.
 Dragging across a keyword scrolls rather than opening it. The rotated fallback
 maps pointer positions back to the unrotated canvas before hit testing.
 
-Recovered from the retired tooltip workbench: recursive links, reading history,
-Back, Pin and focus return. Old Progress/Discharge copy and the outdated general
+Recovered from the retired tooltip workbench: recursive links, Back and focus
+return. Old Progress/Discharge copy and the outdated general
 tooltip layout were not restored. Reference copy is exploratory and is not an
 authoritative rules registry. No winner has been chosen for the future pass.
 

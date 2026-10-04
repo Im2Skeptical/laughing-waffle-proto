@@ -11,11 +11,11 @@ import { addSymbolKey } from './symbol-key-pixi.js';
 import { terms } from './terms.js';
 
 const $=id=>document.getElementById(id),host=$('inspection');
-const variants={A:'Beside the word',B:'Reference rail',C:'Reading trail'},tiers=['bronze','silver','gold','diamond'];
+const variants={A:'Beside the word',B:'Reference rail',C:'Centered reference'},tiers=['bronze','silver','gold','diamond'];
 const ids=[...$('card').options].map(option=>option.value),W=2000;
 let variant=new URL(location.href).searchParams.get('variant')??'A';if(!variants[variant])variant='A';
-let app,display,face,inspector,referenceLayer,targets=[],viewports=[],H=940,anchor=null,path=[],pinned=false,originAction=null;
-let pending=false,focusAction=null,originGroup='rules',referenceScroll=0,trailStart=0,backdrop;
+let app,display,face,inspector,referenceLayer,targets=[],viewports=[],H=940,anchor=null,path=[],originAction=null;
+let pending=false,focusAction=null,originGroup='rules',referenceScroll=0,backdrop;
 for(const id of ids)for(const trait of getGamepieceFace({tSec:0},'practice',id).stockTraits??[])terms[trait]??=`A Stock trait. Stock with ${trait} can satisfy matching inputs or Charge triggers. One unit can carry several Stock traits.`;
 
 const register=(node,info)=>targets.push({node,...info});
@@ -24,34 +24,33 @@ function text(parent,value,x,y,size=36,width,header=false) {
   const node=new PIXI.Text(value,{...(header?TEXT_STYLES.header:TEXT_STYLES.body),fontSize:size,lineHeight:size*1.35,fill:RELIC.bone,wordWrap:!!width,wordWrapWidth:width});
   node.position.set(x,y);parent.addChild(node);return node;
 }
-function control(parent,label,x,y,width,action,run,{group='chrome',viewport,panelIndex}={}) {
+function control(parent,label,x,y,width,action,run,{group='chrome',viewport}={}) {
   const node=new PIXI.Container();node.position.set(x,y);
   const bg=new PIXI.Graphics();paintRelicPanel(bg,0,0,width,88,RELIC.stone,RELIC.brass,2);node.addChild(bg);
   const copy=text(node,label,width/2,44,32);copy.anchor.set(.5);copy.eventMode='none';
   node.eventMode='static';node.cursor='pointer';node.hitArea=new PIXI.Rectangle(0,0,width,88);node.prototypeControl=true;
   node.accessible=true;node.accessibleType='button';node.accessibleTitle=label;
   node.on('pointertap',event=>{event.stopPropagation();run();});
-  parent.addChild(node);register(node,{group,action,viewport,panelIndex});return node;
+  parent.addChild(node);register(node,{group,action,viewport});return node;
 }
 function queueDraw(focus) {focusAction=focus??focusAction;if(pending||!app)return;pending=true;requestAnimationFrame(()=>{pending=false;draw();});}
 function updateState() {
-  $('state').textContent=`${variant} · ${variants[variant]} · ${path.length?path.join(' › '):'No reference open'}${pinned?' · Pinned':''}`;
+  $('state').textContent=`${variant} · ${variants[variant]} · ${path.at(-1)??'No reference open'}`;
   $('spoken-reference').textContent=path.length?`${path.at(-1)}. ${terms[path.at(-1)]}`:'';
 }
-function openTerm(term,node,panelIndex) {
+function openTerm(term,node) {
   if(!path.length) {anchor=node.getBounds().clone();originAction=`term:${term}`;originGroup=node.keywordGroup;}
-  if(variant==='C'&&panelIndex!=null)path=path.slice(0,panelIndex+1);
   if(path.at(-1)!==term)path.push(term);
-  referenceScroll=0;trailStart=Math.max(0,path.length-2);queueDraw('back');
+  referenceScroll=0;queueDraw('back');
 }
-function closeReference() {path=[];pinned=false;referenceScroll=0;anchor=null;queueDraw(originAction);originAction=null;}
-function back() {path.pop();referenceScroll=0;trailStart=Math.max(0,path.length-2);if(path.length)queueDraw('back');else closeReference();}
+function closeReference() {path=[];referenceScroll=0;anchor=null;queueDraw(originAction);originAction=null;}
+function back() {path.pop();referenceScroll=0;if(path.length)queueDraw('back');else closeReference();}
 function changeCard(direction) {
   $('card').value=ids[(ids.indexOf($('card').value)+direction+ids.length)%ids.length];
-  if(!pinned)path=[];inspector=null;queueDraw();
+  path=[];inspector=null;queueDraw();
 }
 function selectVariant(next,updateUrl=true) {
-  variant=next;referenceScroll=0;trailStart=Math.max(0,path.length-2);
+  variant=next;referenceScroll=0;
   if(updateUrl) {const url=new URL(location.href);url.searchParams.set('variant',variant);history.replaceState(null,'',url);}
   queueDraw();
 }
@@ -81,37 +80,23 @@ function simplifySymbols() {
   inspector.getGlossaryScroll=viewport.getScroll;inspector.setGlossaryScroll=viewport.setScroll;
   if(content.readingHeight>rect.height)text(inspector,'Drag or scroll to read',rect.x,rect.y+rect.height+8,22);
 }
-function panel(term,index,x,y,width,height) {
-  const current=index===path.length-1,panel=new PIXI.Container();panel.position.set(x,y);referenceLayer.addChild(panel);
+function panel(term,x,y,width,height) {
+  const panel=new PIXI.Container();panel.position.set(x,y);referenceLayer.addChild(panel);
   panel.keywordPanel=true;
   const bg=new PIXI.Graphics();paintRelicPanel(bg,0,0,width,height,0x1b211d,RELIC.gold,3);panel.addChild(bg);
   panel.eventMode='static';panel.hitArea=new PIXI.Rectangle(0,0,width,height);panel.on('pointertap',event=>event.stopPropagation());
-  const group=current?'reference':'history';
-  if(current) {
-    control(panel,'‹ Back',22,18,152,'back',back,{group});
-    control(panel,pinned?'Pinned':'Pin',186,18,140,'pin',()=>{pinned=!pinned;queueDraw('pin');},{group});
-    control(panel,'×',width-106,18,84,'close',closeReference,{group});
-  } else control(panel,'Return here',22,18,220,`return:${index}`,()=>{path=path.slice(0,index+1);referenceScroll=0;queueDraw('back');},{group});
+  const group='reference';
+  control(panel,'‹ Back',22,18,152,'back',back,{group});
+  control(panel,'×',width-106,18,84,'close',closeReference,{group});
   const content=new PIXI.Container();let cy=0;
-  if(variant!=='C'&&path.length>1) {
-    let cx=0;
-    for(let i=0;i<path.length-1;i++) {
-      const itemWidth=Math.min(widthFor(path[i]),width-48);
-      if(cx+itemWidth>width-48) {cx=0;cy+=96;}
-      control(content,path[i],cx,cy,itemWidth,`return:${i}`,()=>{path=path.slice(0,i+1);referenceScroll=0;queueDraw('back');},{group,panelIndex:index});cx+=itemWidth+8;
-    }
-    cy+=104;
-  }
   const heading=text(content,term,0,cy,48,width-48,true);cy+=heading.height+20;
   const body=text(content,terms[term],0,cy,38,width-48);cy+=body.height+24;
   content.readingHeight=cy;
-  const viewport=scrollViewport(panel,content,{x:24,y:126,width:width-48,height:height-160},group,{initial:current?referenceScroll:0,onScroll:value=>{if(current)referenceScroll=value;}});
-  for(const target of targets)if(target.panelIndex===index&&!target.viewport)target.viewport=viewport;
-  linkCopy(content,group,viewport,term,index);
+  const viewport=scrollViewport(panel,content,{x:24,y:126,width:width-48,height:height-160},group,{initial:referenceScroll,onScroll:value=>{referenceScroll=value;}});
+  linkCopy(content,group,viewport,term);
   if(cy>height-160)text(panel,'Drag or scroll to read',24,height-32,22);
   return panel;
 }
-function widthFor(label) {return Math.max(150,Math.ceil(PIXI.TextMetrics.measureText(label,new PIXI.TextStyle({...TEXT_STYLES.body,fontSize:30})).width)+36);}
 function drawReferences() {
   referenceLayer=new PIXI.Container();app.stage.addChild(referenceLayer);
   if(!path.length)return;
@@ -119,14 +104,11 @@ function drawReferences() {
     const width=850,height=Math.min(700,H-220),box=anchor??{x:W/2,y:H/2,height:0};
     const x=Math.max(24,Math.min(box.x,W-width-24)),below=box.y+box.height+20;
     const y=Math.max(114,Math.min(below+height<=H-110?below:box.y-height-20,H-height-110));
-    panel(path.at(-1),path.length-1,x,y,width,height);
-  } else if(variant==='B')panel(path.at(-1),path.length-1,W-874,114,850,H-226);
+    panel(path.at(-1),x,y,width,height);
+  } else if(variant==='B')panel(path.at(-1),W-874,114,850,H-226);
   else {
-    const height=Math.min(610,H-250),width=900,gap=22;
-    trailStart=Math.min(trailStart,Math.max(0,path.length-2));
-    for(let i=trailStart;i<Math.min(path.length,trailStart+2);i++)panel(path[i],i,80+(i-trailStart)*(width+gap),H-height-112,width,height);
-    if(trailStart)control(referenceLayer,'‹ Earlier',20,118,190,'earlier',()=>{trailStart=Math.max(0,trailStart-1);queueDraw();},{group:'reference'});
-    if(trailStart+2<path.length)control(referenceLayer,'Later ›',W-218,118,190,'later',()=>{trailStart++;queueDraw();},{group:'reference'});
+    const height=Math.min(610,H-250),width=900;
+    panel(path.at(-1),(W-width)/2,(H-height)/2,width,height);
   }
 }
 function draw() {
@@ -143,7 +125,7 @@ function draw() {
   face=getGamepieceFace({tSec:0},'practice',$('card').value,$('tier').value);
   control(app.stage,'‹',20,14,100,'previousCard',()=>changeCard(-1));text(app.stage,face.label,140,28,36,620,true);
   control(app.stage,'›',784,14,100,'nextCard',()=>changeCard(1));
-  control(app.stage,`${$('tier').value[0].toUpperCase()+$('tier').value.slice(1)} quality`,910,14,290,'quality',()=>{$('tier').value=tiers[(tiers.indexOf($('tier').value)+1)%tiers.length];if(!pinned)path=[];inspector=null;queueDraw();});
+  control(app.stage,`${$('tier').value[0].toUpperCase()+$('tier').value.slice(1)} quality`,910,14,290,'quality',()=>{$('tier').value=tiers[(tiers.indexOf($('tier').value)+1)%tiers.length];path=[];inspector=null;queueDraw();});
   text(app.stage,'INSPECTOR STUDY',1230,40,26,420);
   inspector=addChronicleInspection(app.stage,{x:16,y:118,width:W-32,height:H-226},{face});
   simplifySymbols();
@@ -157,7 +139,7 @@ function draw() {
   const footer=new PIXI.Container();footer.position.set(0,H-100);app.stage.addChild(footer);
   control(footer,'←',520,0,110,'previousVariant',()=>cycleVariant(-1));text(footer,`${variant} · ${variants[variant]}`,665,24,34,670);
   control(footer,'→',1370,0,110,'nextVariant',()=>cycleVariant(1));
-  text(footer,path.length?`${path.length} references${pinned?' · Pinned':''}`:'Tap an underlined word',24,28,26,465);
+  text(footer,path.length?'Back retraces your reading':'Tap an underlined word',24,28,26,465);
   updateState();app.render();
   if(focusAction) {
     const label=targets.find(target=>target.action===focusAction&&target.group===(path.length?'reference':originGroup))?.node.accessibleTitle;
@@ -194,17 +176,17 @@ async function boot() {
     if(Math.abs(matrix.b)>.5) {const rect=app.view.getBoundingClientRect();point.x=(y-rect.top)/rect.height*W;point.y=(rect.right-x)/rect.width*H;}
     else mapPosition(point,x,y);
   };
-  app.stage.on('pointertapcapture',event=>{if(path.length&&!pinned&&!within(event.target,referenceLayer)&&!event.target.keywordTerm&&!event.target.prototypeControl)closeReference();});
+  app.stage.on('pointertapcapture',event=>{if(path.length&&!within(event.target,referenceLayer)&&!event.target.keywordTerm&&!event.target.prototypeControl)closeReference();});
   display=attachDevPreviewDisplay(host,{onChange:()=>queueDraw()});new ResizeObserver(()=>queueDraw()).observe(host);
-  app.ticker.add(()=>{for(const target of targets)target.node.accessible=!!clipped(target)&&(!path.length||['reference','history','chrome'].includes(target.group));});
+  app.ticker.add(()=>{for(const target of targets)target.node.accessible=!!clipped(target)&&(!path.length||['reference','chrome'].includes(target.group));});
   draw();$('card').disabled=false;$('tier').disabled=false;
-  window.keywordWorkbench={get state(){return {variant,card:face.definitionId,tier:face.tier,path:[...path],pinned,fullscreen:display.active,renderer:'pixi',referencePanels:referenceLayer.children.filter(node=>node.keywordPanel).length};},
-    get targets(){return targets.flatMap(target=>{const rect=clipped(target);return rect?[{group:target.group,action:target.action,panelIndex:target.panelIndex,...pageBounds(rect)}]:[];});},
+  window.keywordWorkbench={get state(){return {variant,card:face.definitionId,tier:face.tier,path:[...path],fullscreen:display.active,renderer:'pixi',referencePanels:referenceLayer.children.filter(node=>node.keywordPanel).length};},
+    get targets(){return targets.flatMap(target=>{const rect=clipped(target);return rect?[{group:target.group,action:target.action,...pageBounds(rect)}]:[];});},
     get viewports(){return viewports.map(viewport=>({group:viewport.group,scroll:viewport.getScroll(),max:viewport.max,...pageBounds(logicalBounds(viewport.node))}));},
     get reading(){return face.reading;},get symbols(){return inspector.glossary.entries.map(({name,trait,icon,glyph,drawing,season,wheel})=>({name,trait,icon,glyph,drawing,season,wheel}));}};
   document.body.dataset.ready='true';
 }
-for(const id of ['card','tier'])$(id).addEventListener('change',()=>{if(!pinned)path=[];inspector=null;queueDraw();});
+for(const id of ['card','tier'])$(id).addEventListener('change',()=>{path=[];inspector=null;queueDraw();});
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&path.length) {event.preventDefault();back();}
   if(['ArrowLeft','ArrowRight'].includes(event.key)&&!event.target.closest('input,textarea,select,[contenteditable]')) {event.preventDefault();cycleVariant(event.key==='ArrowRight'?1:-1);}

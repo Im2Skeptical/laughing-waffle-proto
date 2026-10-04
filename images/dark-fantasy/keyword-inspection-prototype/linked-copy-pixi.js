@@ -8,7 +8,7 @@ export function keywordCopy({register,open}) {
   const names=[...Object.keys(terms),...Object.keys(aliases)].sort((a,b)=>b.length-a.length);
   const canonical=Object.fromEntries(names.map(name=>[name.toLowerCase(),aliases[name]??name]));
   const matcher=new RegExp(`\\b(${names.map(name=>name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})\\b`,'gi');
-  function decorate(text,group,viewport,exclude,panelIndex) {
+  function decorate(text,group,viewport,exclude) {
     const ranges=[...text.text.matchAll(matcher)].map(match=>({start:match.index,end:match.index+match[0].length,term:canonical[match[0].toLowerCase()]})).filter(match=>match.term!==exclude);
     if(!ranges.length)return;
     const metrics=PIXI.TextMetrics.measureText(text.text,text.style),style=text.style.clone();style.wordWrap=false;
@@ -33,9 +33,9 @@ export function keywordCopy({register,open}) {
         let press=null,moved=false;
         control.on('pointerdown',event=>{press=event.global?.clone();moved=false;});
         control.on('globalpointermove',event=>{if(press&&event.global&&Math.hypot(event.global.x-press.x,event.global.y-press.y)>18)moved=true;});
-        control.on('pointertap',event=>{event.stopPropagation();if(!moved)open(term,control,panelIndex);press=null;});
+        control.on('pointertap',event=>{event.stopPropagation();if(!moved)open(term,control);press=null;});
         for(const type of ['pointerupoutside','pointercancel'])control.on(type,()=>{press=null;moved=false;});
-        root.addChild(control);register(control,{group,action:`term:${term}`,viewport,panelIndex});
+        root.addChild(control);register(control,{group,action:`term:${term}`,viewport});
       }
       for(const span of spans) {
         const from=Math.max(0,span.start-start),to=Math.min(line.length,span.end-start);
@@ -45,11 +45,11 @@ export function keywordCopy({register,open}) {
     });
     const parent=text.parent,index=parent.getChildIndex(text);parent.removeChild(text);parent.addChildAt(root,index);text.destroy();
   }
-  function decorateTree(parent,group,viewport,exclude,panelIndex) {
+  function decorateTree(parent,group,viewport,exclude) {
     for(const child of [...parent.children]) {
       if(child.prototypeControl)continue;
-      if(child instanceof PIXI.Text)decorate(child,group,viewport,exclude,panelIndex);
-      else if(child.children?.length)decorateTree(child,group,viewport,exclude,panelIndex);
+      if(child instanceof PIXI.Text)decorate(child,group,viewport,exclude);
+      else if(child.children?.length)decorateTree(child,group,viewport,exclude);
     }
   }
   return decorateTree;
