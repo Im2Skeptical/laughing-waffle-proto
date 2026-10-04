@@ -62,6 +62,15 @@ try {
   assert.equal(await page.locator('.game-save-slot').count(), 3);
   await page.getByTestId('game-slot-1').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  const openingAssets = await page.evaluate(() => {
+    const view = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().view;
+    const sheets = [0, 1, 2].map(index => PIXI.Assets.cache.get(`images/sprite-sheets/settlement-pieces-${index}.json`));
+    return { sceneBuilt: !!view, sceneVisible: view?.visible,
+      sheetsUploaded: sheets.every(sheet => sheet && Object.values(sheet.textures)
+        .every(texture => Object.keys(texture.baseTexture._glTextures).length > 0)) };
+  });
+  assert.deepEqual(openingAssets, { sceneBuilt: true, sceneVisible: false, sheetsUploaded: true },
+    'first settlement scene and all piece atlases are ready before gameplay opens');
   const waitForRide=async(target=page)=>{
     await target.waitForFunction(()=>{
       const snapshot=globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
@@ -126,6 +135,9 @@ try {
     && !document.querySelector('[data-testid=game-new]').disabled);
   await page.reload();
   await page.getByTestId('game-continue').click();
+  await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(() => !!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().view), true,
+    'Continue from storage prepares its settlement scene too');
   await waitForRide();
   await page.evaluate(()=>document.activeElement.blur());
   await page.keyboard.press('Space');
@@ -326,6 +338,29 @@ try {
   await phone.getByTestId('game-menu').waitFor({state:'visible'});
   await phone.setViewportSize({width:844,height:390});
   assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Rotation alone does not resume a paused game');
+  await phone.reload();
+  await phone.getByTestId('game-continue').tap();
+  await phone.getByTestId('game-menu').waitFor({state:'hidden'});
+  assert.deepEqual(await phone.evaluate(() => globalThis.__displayRequests), ['fullscreen', 'landscape'],
+    'Continue after reload requests the same phone display mode as New game');
+  assert.equal(await phone.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed), phoneHeld.runner.baseSeed);
+  await phone.getByTestId('game-menu-open').click();
+  await phone.waitForFunction(() => !document.querySelector('[data-testid=game-load]').disabled);
+  await phone.getByTestId('game-load').click();
+  // A touch gesture also works when a connected mouse is the primary pointer.
+  await phone.evaluate(() => {
+    globalThis.__displayRequests.length = 0;
+    const matchMedia = window.matchMedia.bind(window);
+    window.matchMedia = query => {
+      const result = matchMedia(query);
+      if (query.includes('pointer: coarse')) Object.defineProperty(result, 'matches', { value: false });
+      return result;
+    };
+  });
+  await phone.getByTestId('game-slot-1').tap();
+  await phone.getByTestId('game-menu').waitFor({state:'hidden'});
+  assert.deepEqual(await phone.evaluate(() => globalThis.__displayRequests), ['fullscreen'],
+    'saved-slot Continue requests fullscreen from the touch gesture even with a fine primary pointer');
 
   const hostileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const hostile = await hostileContext.newPage();
@@ -345,6 +380,10 @@ try {
       document.dispatchEvent(new Event('fullscreenchange'));
       window.dispatchEvent(new Event('blur'));
     };
+    document.exitFullscreen = async () => {
+      fullscreenEl = null;
+      document.dispatchEvent(new Event('fullscreenchange'));
+    };
     screen.orientation.lock = (value) => {
       globalThis.__displayRequests.push(value);
       return new Promise(() => {});
@@ -362,9 +401,18 @@ try {
   assert.deepEqual(await hostile.evaluate(() => globalThis.__displayRequests), ['fullscreen', 'landscape']);
   assert.equal(await hostile.evaluate(() => document.hasFocus()), false);
   await waitForRide(hostile);
+  await hostile.evaluate(() => document.exitFullscreen());
+  await hostile.getByTestId('game-menu').waitFor({ state: 'visible' });
+  await hostile.waitForFunction(() => document.querySelector('[data-testid=game-save-status]').dataset.phase === 'saved');
+  await hostile.reload();
+  await hostile.getByTestId('game-continue').tap();
+  await hostile.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  assert.equal(await hostile.evaluate(() => document.fullscreenElement === document.documentElement), true,
+    'Continue from a saved game enters native fullscreen');
+  assert.deepEqual(await hostile.evaluate(() => globalThis.__displayRequests), ['fullscreen', 'landscape']);
 
   assert.deepEqual(errors, []);
-  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three IndexedDB slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'transaction failure', 'live export during quota failure', 'diagnostic download', 'invalid import preservation', 'validated import and replacement confirmation', 'save with full localStorage', 'save beyond localStorage quota', 'three-slot transfer with unrelated data preserved', 'blocked storage startup and retry', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png','save-recovery-diagnostics.png','save-recovery-phone.png'] }));
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three IndexedDB slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'transaction failure', 'live export during quota failure', 'diagnostic download', 'invalid import preservation', 'validated import and replacement confirmation', 'save with full localStorage', 'save beyond localStorage quota', 'three-slot transfer with unrelated data preserved', 'blocked storage startup and retry', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus', 'prepared settlement scene and uploaded piece atlases', 'saved phone Continue fullscreen after reload and with a mouse accessory'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png','save-recovery-diagnostics.png','save-recovery-phone.png'] }));
   console.log('[probe:game-menu] OK');
 } catch (error) {
   const menuStatus = page ? await page.evaluate(() => ({

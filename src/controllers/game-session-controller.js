@@ -2,7 +2,7 @@ import { createNewGameState } from "../model/new-game.js";
 import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
-export function createGameSessionController({ runner, opening, onEnter, onError, onSaved, onSaveStatusChange,
+export function createGameSessionController({ runner, opening, onEnter, prepareEntry, onError, onSaved, onSaveStatusChange,
   getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null }) {
   let activeSlot = null;
   let inMenu = true;
@@ -73,13 +73,24 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     })().finally(() => { pendingSave = null; notify(); });
     return pendingSave;
   }
-  function enter(slot, prepared = null) {
+  function enter(slot, prepared = null, { deferResume = false } = {}) {
     runVersion++;
     hasLiveGame = true;
     activeSlot = slot;
-    inMenu = false;
+    inMenu = deferResume;
     notify();
     onEnter?.(prepared);
+    return { ok: true };
+  }
+  async function prepareAndEnter(slot, prepared, isCurrent) {
+    // Initialise this run behind the menu; its ticker remains suspended until
+    // presentation assets and the retained settlement scene are ready.
+    enter(slot, prepared, { deferResume: true });
+    const version = runVersion;
+    await prepareEntry?.();
+    if (!isCurrent() || version !== runVersion) return { ok: false, reason: 'cancelled' };
+    inMenu = false;
+    notify();
     return { ok: true };
   }
   async function continueGame(slot, { isCurrent = () => true } = {}) {
@@ -94,7 +105,7 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     phase = 'saved'; lastAttempt = null;
     lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? null, tSec: result.meta?.tSec ?? null };
     onSaved?.();
-    return enter(slot);
+    return prepareEntry ? prepareAndEnter(slot, null, isCurrent) : enter(slot);
   }
   return {
     isInMenu: () => inMenu,
@@ -169,7 +180,8 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
       const result = runner.resetToState(initialState, "twoRegionStarter01");
       if (!result.ok) return result;
       phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
-      enter(slot, prepared);
+      const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent) : enter(slot, prepared);
+      if (!entry.ok) return entry;
       const saved = await save();
       if (!isCurrent()) {
         inMenu = true; notify();

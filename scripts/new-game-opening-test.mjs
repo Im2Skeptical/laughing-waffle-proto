@@ -66,4 +66,44 @@ resolve(prepared);
 assert.equal((await entry).reason, 'cancelled');
 assert.equal(writes, 0, 'abandoned entry does not reset a live run or overwrite storage');
 assert.equal(session.isInMenu(), true);
+
+// Keep the landing menu up until the real first settlement scene is uploaded.
+for (const entryKind of ['newGame', 'continueGame']) {
+  let releasePresentation;
+  let preparationStarted = false;
+  let saves = 0;
+  const events = [];
+  const readySession = createGameSessionController({
+    runner: {
+      resetToState: () => ({ ok: true }),
+      saveToSlot: async () => { saves++; return { ok: true }; },
+      loadFromSlot: async () => ({ ok: true }),
+    },
+    opening: { prepare: async () => prepared, reset() {} },
+    onEnter: () => events.push('setup'),
+    prepareEntry: () => {
+      preparationStarted = true;
+      events.push('upload');
+      return new Promise(resolve => { releasePresentation = resolve; });
+    },
+  });
+  const pendingEntry = readySession[entryKind](1);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(preparationStarted, true, `${entryKind} prepares its settlement before entry`);
+  assert.deepEqual(events, ['setup', 'upload'], 'prepare the actual run after presentation setup');
+  assert.equal(readySession.isInMenu(), true, `${entryKind} keeps gameplay suspended during uploads`);
+  assert.equal(saves, 0, 'preparing presentation does not write a save');
+  releasePresentation();
+  assert.equal((await pendingEntry).ok, true);
+  assert.equal(readySession.isInMenu(), false);
+  const completedSaves = saves;
+  let current = true;
+  const cancelledEntry = readySession[entryKind](2, { isCurrent: () => current });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  current = false;
+  releasePresentation();
+  assert.equal((await cancelledEntry).reason, 'cancelled');
+  assert.equal(readySession.isInMenu(), true, 'leaving during uploads cannot reopen gameplay');
+  assert.equal(saves, completedSaves, 'cancelled presentation preparation does not overwrite a save');
+}
 console.log('[new-game-opening] OK');

@@ -6,7 +6,7 @@ import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-b
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
-import { preloadChronicleArt } from './chronicle-art.js';
+import { prepareChronicleArt } from './chronicle-art.js';
 import { createChronicleFrame } from './chronicle-skin.js';
 import { createTimelineAudio } from './timeline-audio.js';
 const BOOT_SETUP_ID = "devPlaytesting01";
@@ -116,7 +116,7 @@ installGlobalTextStylePolicy(PIXI, {
   titleMinSize: 32,
   titleWeightMinSize: 26,
 });
-preloadChronicleArt();
+const chronicleArtReady = prepareChronicleArt(app.renderer);
 
 document.body.appendChild(app.view);
 app.view.style.touchAction = "none";
@@ -620,7 +620,6 @@ function navigateSettlementControl(id) {
   if (settlementVassalFlow.getPendingSelection()) closeSettlementVassalSelection();
   if (id === "settlement") selectedWorldRegionId = destination.regionId;
   setWorldViewMode(id === "life" ? "vassalLife" : id === "settlement" ? "settlement" : "map");
-  prototypeView?.refresh?.();
   worldMapView?.refresh?.();
 }
 
@@ -1635,6 +1634,10 @@ const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
 const gameSession = createGameSessionController({
   runner,
   opening,
+  prepareEntry: async () => {
+    await chronicleArtReady;
+    await prototypeView.prepare(app.renderer);
+  },
   onEnter: (prepared) => {
     handleDebugFreshRunApplied("sessionEnter");
     if (prepared) {

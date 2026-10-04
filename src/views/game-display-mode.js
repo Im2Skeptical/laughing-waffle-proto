@@ -1,8 +1,8 @@
-export const PHONE_PORTRAIT_QUERY = '(hover: none) and (pointer: coarse) and (orientation: portrait)';
+export const PHONE_PORTRAIT_QUERY = '(pointer: coarse) and (orientation: portrait)';
 const DISPLAY_MODE_WAIT_MS = 1000;
 
 export function usesTouchGameDisplay() {
-  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  return window.matchMedia('(pointer: coarse)').matches;
 }
 
 export function getGameFullscreenElement() {

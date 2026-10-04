@@ -4,6 +4,7 @@ const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
+const rendererPreparations = new WeakMap();
 let revision = 0;
 export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
@@ -134,6 +135,19 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
   // connections, so opening a settlement does not wait on their decode.
   const warm = Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
   return includeSettlementPieces ? warm : Promise.all(eager);
+}
+
+// Decode and upload shared atlases while the opening forecast runs behind the
+// menu. Loading alone leaves their first GPU upload on the first visible frame.
+export function prepareChronicleArt(renderer) {
+  if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
+  const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
+    const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
+    for (const texture of textures.values()) renderer.prepare.add(texture);
+    await renderer.prepare.upload();
+  });
+  rendererPreparations.set(renderer, preparation);
+  return preparation;
 }
 
 const ART = Object.freeze({

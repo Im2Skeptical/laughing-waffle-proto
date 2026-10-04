@@ -52,6 +52,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   let entering = false;
   let entryVersion = 0;
   let loadingSlot = null;
+  let loadingAction = null;
   let loadingFailed = false;
   let renderedSlotPhase = null;
   let renderedCanReplace = null;
@@ -81,12 +82,12 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     document.body.classList.remove("game-menu-open");
     recovery.sync();
   }
-  async function enter(action, slot = null) {
+  async function enter(action, slot = null, event = null) {
     if (entering) return;
     entering = true;
     const version = ++entryVersion;
     try {
-      await requestGameDisplayMode();
+      await requestGameDisplayMode({ forceFullscreen: event?.pointerType === 'touch' });
       // Fullscreen/orientation steal window focus on phones; visibility is the
       // signal that the player actually left during the request.
       if (version !== entryVersion || document.hidden) return;
@@ -97,7 +98,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
         return;
       }
       displayHint.hidden = true;
-      if (slot !== null) { loadingSlot = slot; loadingFailed = false; render(); }
+      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; render(); }
       const result = await action(() => version === entryVersion && !document.hidden && !portrait.matches);
       if (version !== entryVersion) return;
       if (result.ok) {
@@ -116,8 +117,8 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       }
     } finally { if (version === entryVersion) entering = false; }
   }
-  function start(slot) {
-    void enter(isCurrent => session.newGame(slot, { isCurrent }), slot);
+  function start(slot, event) {
+    void enter(isCurrent => session.newGame(slot, { isCurrent }), slot, event);
   }
   function render() {
     panel.replaceChildren();
@@ -140,18 +141,18 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     if (saveFailed && mode !== 'diagnostics') { recovery.sync(); content.append(recovery.element); }
     if (loadingSlot !== null) {
       const heading = document.createElement("h2");
-      heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Foreseeing your civilization’s future…";
+      heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Preparing your chronicle…";
       content.append(heading);
       if (!loadingFailed) {
         const progress = document.createElement("progress");
-        progress.setAttribute("aria-label", "Preparing the opening forecast");
+        progress.setAttribute("aria-label", "Preparing your chronicle");
         progress.dataset.testid = "game-loading-progress";
         content.append(progress);
       } else {
-        content.append(button("Retry", () => {
+        content.append(button("Retry", event => {
           if (session.canResume() && session.getActiveSlot() === loadingSlot && session.getSaveStatus().phase === 'failed') {
-            void enter(async () => { const result = await session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; });
-          } else { session.cancelPreparation?.(); start(loadingSlot); }
+            void enter(async () => { const result = await session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; }, null, event);
+          } else { session.cancelPreparation?.(); void enter(loadingAction, loadingSlot, event); }
         }, "game-loading-retry"));
       }
       content.append(button("Back", () => {
@@ -166,15 +167,15 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       warning.textContent = `Replace Slot ${overwriteSlot}? Its current game will be permanently lost.`;
       content.append(warning,
         button(mode === 'import' ? 'Replace and import game' : 'Replace and start new game',
-          () => { if (mode === 'import') void enter(isCurrent => session.importGame(overwriteSlot, { isCurrent })); else start(overwriteSlot); }, "game-replace-confirm"),
+          event => { if (mode === 'import') void enter(isCurrent => session.importGame(overwriteSlot, { isCurrent }), overwriteSlot, event); else start(overwriteSlot, event); }, "game-replace-confirm"),
         button("Cancel", () => { entryVersion++; entering = false; overwriteSlot = null; render(); }));
     } else if (mode === "home") {
       const latest = slots.filter((slot) => slot.available)
         .sort((a, b) => String(b.meta?.savedAt).localeCompare(String(a.meta?.savedAt)))[0];
       if (session.canResume()) {
-        content.append(button('Continue', () => enter(() => session.resume()), 'game-continue'));
-      } else if (latest) content.append(button(`Continue · Slot ${latest.slot}`, () => {
-        void enter(isCurrent => session.continueGame(latest.slot, { isCurrent }));
+        content.append(button('Continue', event => enter(() => session.resume(), null, event), 'game-continue'));
+      } else if (latest) content.append(button(`Continue · Slot ${latest.slot}`, event => {
+        void enter(isCurrent => session.continueGame(latest.slot, { isCurrent }), latest.slot, event);
       }, "game-continue"));
       const newButton = button("New game", () => { mode = "new"; render(); }, "game-new");
       newButton.disabled = !canReplace; content.append(newButton);
@@ -206,13 +207,13 @@ export function createGameMenuDom({ session, onResume, onPause }) {
         details.textContent = slot.empty ? "Empty slot" : slot.available
           ? `Year ${slot.meta.year} · ${slot.meta.seasonKey} · ${new Date(slot.meta.savedAt).toLocaleString()}`
           : "Unavailable save · incompatible or damaged";
-        const action = button(mode === 'import' ? (slot.empty ? 'Import here' : 'Replace game') : mode === "new" ? (slot.empty ? "Start here" : "Replace game") : "Continue", () => {
+        const action = button(mode === 'import' ? (slot.empty ? 'Import here' : 'Replace game') : mode === "new" ? (slot.empty ? "Start here" : "Replace game") : "Continue", event => {
           if (mode === 'import') {
-            if (slot.empty) void enter(isCurrent => session.importGame(slot.slot, { isCurrent }));
+            if (slot.empty) void enter(isCurrent => session.importGame(slot.slot, { isCurrent }), slot.slot, event);
             else { overwriteSlot = slot.slot; render(); }
           }
-          else if (mode === "load") { void enter(isCurrent => session.continueGame(slot.slot, { isCurrent })); }
-          else if (slot.empty) start(slot.slot);
+          else if (mode === "load") { void enter(isCurrent => session.continueGame(slot.slot, { isCurrent }), slot.slot, event); }
+          else if (slot.empty) start(slot.slot, event);
           else { overwriteSlot = slot.slot; render(); }
         }, `game-slot-${slot.slot}`);
         action.disabled = !canReplace || (mode === "load" && !slot.available);

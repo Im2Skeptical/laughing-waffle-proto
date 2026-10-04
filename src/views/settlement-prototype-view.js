@@ -111,8 +111,8 @@ export function createSettlementPrototypeView({
   let semanticSnapshot = null;
   let endDetailsTarget = null;
 
-  function render(force = false) {
-    if (!root.visible) return;
+  function render(force = false, preparing = false) {
+    if (!root.visible && !preparing) return;
     const state = getState?.();
     const regionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId;
     const vm = getDetailedSettlementViewModel(state, regionId);
@@ -308,10 +308,15 @@ export function createSettlementPrototypeView({
     init: () => render(true),
     refresh: () => { lastSignature = ""; render(true); },
     update: () => render(),
-    setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(true); },
+    // Build the retained scene without displaying it or changing navigation.
+    async prepare(renderer) {
+      render(false, true);
+      await renderer.prepare.upload(root);
+    },
+    setVisible: (visible) => { root.visible = visible === true; if (root.visible) render(); },
     getScreenRect: () => root.visible ? root.getBounds?.() ?? null : null,
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
-    getSemanticSnapshot: () => semanticSnapshot,
+    getSemanticSnapshot: () => semanticSnapshot && { ...semanticSnapshot, visible: root.visible === true },
     destroy: () => {
       clearChildren(root);
       root.removeFromParent();
