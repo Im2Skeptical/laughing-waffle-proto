@@ -8,20 +8,20 @@ The existing debugger remains available.
 
 ## Prototypes
 
-**Prototypes · design** sits beside Zoo, Museum and Gym. Its three workbenches
-cover illustrated Cards, Gamepiece Tooltips, and Vassals & Founders. Each opens
+**Prototypes · design** sits beside Zoo, Museum and Gym. Its two workbenches
+cover illustrated Cards and Vassals & Founders. Each opens
 an isolated page with a return link to this section. Direct workbench URLs and
 the Prototypes hash route support refresh and GitHub Pages repository paths.
-The Pages build bundles all three separately. Edits are temporary presentation
+The Pages build bundles both separately. Edits are temporary presentation
 examples; these studies do not change the live renderer, simulation or saves.
 
 Cards includes a matched comparison with the current game renderer and five-card
 regional settlement / three-offer Practice shop screen references. Its Graphics
-control switches the hero, preset cards and contextual previews. Tooltips defaults
-to source graphics and can switch its source, zoom and tier inspection cards to
-the prototype treatment. Graphics choices survive workbench URL refresh.
+control switches the hero, preset cards and contextual previews. Graphics choices
+survive workbench URL refresh. The in-game Practice quick read and expanded
+inspect view are the current tooltip reference; the tooltip workbench is retired.
 
-The card hero, screen references, tooltip stage, vassal hero and Museum/Gym Pixi
+The card hero, screen references, vassal hero and Museum/Gym Pixi
 scene have a top-right Fullscreen button. The same button exits. Touch devices
 request the main game's landscape display mode; browsers that reject orientation
 locking get a landscape preview fallback. Escape and native fullscreen exit also
@@ -179,9 +179,9 @@ the source run's prior history because the bridge transfers a state, not a run.
 - `npm run probe:development-lab`: deployed bundle, filters/quality comparison,
   exhibits, edits, reset/storage, forecast, desktop/mobile, both bridges, refresh,
   original save protection. Details/screenshots: `artifacts/development-lab-*`.
-- `npm run probe:prototypes`: all three standalone workbenches through the
+- `npm run probe:prototypes`: both standalone workbenches through the
   Prototypes directory, Pages subpath and refresh, desktop/mobile layouts,
-  contained card numbers, nested tooltip/focus behavior, founder browsing,
+  contained card numbers, founder browsing,
   long-name warnings and full-size/transparent exports.
 - Existing settlement, workshop, and game-menu probes cover integration surfaces.
 

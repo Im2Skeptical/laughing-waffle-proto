@@ -7,11 +7,6 @@ const WORKBENCHES = [
     details: 'Source / prototype graphics · landscape fullscreen · PNG export',
   },
   {
-    title: 'Gamepiece tooltips', folder: 'tooltip-prototype', label: 'Tooltips',
-    description: 'Try local card zoom and full inspection, with rules, icon reminders and nested keyword explanations.',
-    details: 'Shop and settlement · tier previews · phone layouts',
-  },
-  {
     title: 'Vassals & founders', folder: 'vassal-chrome-prototype', label: 'Vassals',
     description: 'Browse the founder carousel, compare candidate text and assemble Warrior and Scholar portrait frames.',
     details: '4 / 6 / 8 founders · class frames · PNG export',
