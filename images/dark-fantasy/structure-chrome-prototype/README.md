@@ -26,7 +26,9 @@ effects expand the box only as needed; wide Structure art keeps its open lower
 edge. This applies in the construction strip, offers and enlarged inspection.
 
 Cards use the real `addSettlementPiece` painting/frame and the shared resource
-symbols: roof for Housing capacity and crate for Stock capacity. Values are live
+symbols: roof for Housing capacity; the matching Stock tag beside a capacity
+numeral backed by the Stock crate. Granary shows Edible, Storehouse Construction,
+and Archive Record, directly from their read-only modifier scopes. Values are live
 Pixi text. Rules and glossary panels use the game's `paintRelicPanel`, text
 styles and resource icons; none of these surfaces are HTML mockup graphics.
 The HTML outside the canvas is only workbench controls and documentation.
