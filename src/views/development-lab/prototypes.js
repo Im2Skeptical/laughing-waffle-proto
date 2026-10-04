@@ -11,6 +11,11 @@ const WORKBENCHES = [
     description: 'Browse the founder carousel, compare candidate text and assemble Warrior and Scholar portrait frames.',
     details: '4 / 6 / 8 founders · class frames · PNG export',
   },
+  {
+    title: 'Structures & tooltips', folder: 'structure-chrome-prototype', label: 'Structures',
+    description: 'Explore Housing and Stock capacity faces in the construction strip and Structure offers, with Practice-style quick reads and inspection.',
+    details: '3 card treatments · passive rules · symbol glossary',
+  },
 ];
 
 export function renderPrototypes(host) {
