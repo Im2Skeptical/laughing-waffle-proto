@@ -46,7 +46,9 @@ not use the root file as the default location for new rendering or model rules.
   `src/views/chronicle-inspection.js`
 - Practice and Structure reading copy: `src/model/practice-reading.js`,
   `src/model/structure-reading.js`; shared hover/inspect
-  rules and selected-card symbol glossary: `src/views/practice-reading-pixi.js`
+  rules: `src/views/practice-reading-pixi.js`; concise selected-card symbol key:
+  `src/views/inspection-symbols-pixi.js`; recursive inspect-only keyword references:
+  `src/views/inspection-keywords-pixi.js` and `src/views/inspection-terms.js`
 - Shared resource symbols and cost footers: `src/views/resource-cost-pixi.js`
   and `images/dark-fantasy/resource-language-v1/`
 - Pure time samplers and scene effects: `src/views/timeline-presentation.js`
@@ -221,6 +223,8 @@ in `ai/ai-context.md`.
 - Timeline-driven art, sound, or card inspection:
   `npm run test:presentation`, `npm run probe:chronicle`, and the relevant
   existing interaction probe; inspect 844x390 screenshots as well
+- Shared Practice/Structure inspection, recursive keywords, and shop input:
+  `npm run probe:chronicle -- --shop-only` runs the focused shop scenario.
 
 Browser probes write details under `artifacts/` and print concise failures.
 Do not paste their full artifact JSON into chat.

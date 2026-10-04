@@ -127,7 +127,7 @@ function draw() {
   control(app.stage,'›',784,14,100,'nextCard',()=>changeCard(1));
   control(app.stage,`${$('tier').value[0].toUpperCase()+$('tier').value.slice(1)} quality`,910,14,290,'quality',()=>{$('tier').value=tiers[(tiers.indexOf($('tier').value)+1)%tiers.length];path=[];inspector=null;queueDraw();});
   text(app.stage,'INSPECTOR STUDY',1230,40,26,420);
-  inspector=addChronicleInspection(app.stage,{x:16,y:118,width:W-32,height:H-226},{face});
+  inspector=addChronicleInspection(app.stage,{x:16,y:118,width:W-32,height:H-226},{face,keywordReferences:false});
   simplifySymbols();
   inspector.closeControl.visible=false; // shared Fullscreen/Exit owns this persistent preview
   inspector.setScroll(scroll.rules);inspector.setGlossaryScroll(scroll.glossary);

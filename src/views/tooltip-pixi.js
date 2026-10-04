@@ -89,7 +89,11 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   container.on('pointerdown',()=>{pinRevision++;});
   // The reading viewport stops bubbling so scrolling cannot act on the scene.
   container.on('pointerdowncapture',()=>{pinRevision++;});
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&pinnedKey!==null){event.stopPropagation();hide({force:true});}});
+  document.addEventListener('keydown',event=>{
+    if(!container.visible)return;
+    if(pieceInspection?.handleReferenceKey?.(event))return;
+    if(event.key==='Escape'&&pinnedKey!==null){event.stopPropagation();hide({force:true});}
+  });
 
   function getScreenSize() {
     return {
@@ -537,6 +541,8 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     }
     const retainedScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getScroll?.()??0:0;
     const retainedGlossaryScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getGlossaryScroll?.()??0:0;
+    const retainedReference=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getReferenceState?.():null;
+    pieceInspection?.releaseKeywordFocus?.();
     clearChildren();
     container.hitArea=null;
     pieceInspection=null;
@@ -569,11 +575,11 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       container.position.set(spec.face.reading?112:spec.inspectionSide==='right'?1538:70,spec.face.reading?90:100);
       if(spec.face.reading) {
         const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(-112,-90,2424,1080).endFill();
-        dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();hide({force:true});});container.addChild(dim);
+        dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();if(!pieceInspection?.dismissReference?.())hide({force:true});});container.addChild(dim);
       }
       pieceInspection=addChronicleInspection(container,{x:0,y:0,width:activeWidth,height:activeHeight},{
         face:spec.face,title:spec.title,metadata:[spec.face.tier,...(spec.face.tags??[])].join(' · '),
-        detail:(spec.lines??[]).join('\n'),onClose:()=>hide({force:true}),
+        detail:(spec.lines??[]).join('\n'),onClose:()=>hide({force:true}),referenceState:retainedReference,
       });
       pieceInspection.setScroll(retainedScroll);
       pieceInspection.setGlossaryScroll?.(retainedGlossaryScroll);
@@ -689,6 +695,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       glossary: pieceInspection?.glossary?.entries?.map(entry=>entry.name) ?? [],
       glossaryRect: pieceInspection?.glossaryViewport?.getBounds?.() ?? null,
       rulesRect: pieceInspection?.rules?.getBounds?.() ?? null,
+      keywords: pieceInspection?.getKeywordDebugState?.() ?? null,
       closePoint: pieceInspection?.closeControl?.toGlobal?.(new PIXI.Point(27,27)) ?? null,
       anchor: activeResolvedAnchor,
     }),

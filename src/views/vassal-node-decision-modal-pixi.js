@@ -388,6 +388,7 @@ export function createVassalNodeDecisionModalView({
     if (!prepared && nextSignature === signature) return;
     const cached = !prepared && preparedLayouts.get(nextSignature);
     if (cached) {
+      inspectionRoot?.releaseKeywordFocus?.();
       clearChildren(root);
       preparedLayouts.delete(nextSignature);
       restoreLayout(cached);
@@ -396,6 +397,9 @@ export function createVassalNodeDecisionModalView({
     }
     signature = nextSignature;
     layoutBuilds++;
+    const retainedReference=inspectionRoot?.getReferenceState?.();
+    const retainedReferenceId=inspectionRoot?.inspectedPieceId;
+    inspectionRoot?.releaseKeywordFocus?.();
     setInspectionAboveChrome(false);
     clearChildren(root);
     enterRoot = null;
@@ -743,7 +747,7 @@ export function createVassalNodeDecisionModalView({
         if(practiceInspect) {
           setInspectionAboveChrome(true);
           const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(0,0,2424,1080).endFill();
-          dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();closeInspection();});root.addChild(dim);
+          dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();if(!inspectionRoot?.dismissReference?.())closeInspection();});root.addChild(dim);
         }
       inspectionRoot=addChronicleInspection(root,practiceInspect?{x:112,y:90,width:2200,height:880}:{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
@@ -760,7 +764,9 @@ export function createVassalNodeDecisionModalView({
           displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
         onClose:closeInspection,
+        referenceState:retainedReferenceId===retainedInspectionId?retainedReference:null,
       });
+      inspectionRoot.inspectedPieceId=retainedInspectionId;
       if(!pinnedInspectionId){inspectionRoot.eventMode="none";inspectionRoot.interactiveChildren=false;}
       }
     }
@@ -834,6 +840,7 @@ export function createVassalNodeDecisionModalView({
     },
     getTableauClickPoint(index=0) { const card=tableauRoots[index]?.card; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.hitArea.height/2)):null; },
     getOfferFacePoint(index=0) { const card=shopCardRoots[index]?.faceRoot; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.hitArea.height/2)):null; },
+    handleInspectionKey(event) { return inspectionRoot?.handleReferenceKey?.(event)??false; },
     getInspectionClosePoint() { const c=inspectionRoot?.closeControl;return c?c.toGlobal(new PIXI.Point(25,25)):null; },
     getInspectionCostPoint() { const c=inspectionRoot?.costPanel;return c?c.toGlobal(new PIXI.Point(c.hitArea.width/2,c.hitArea.height/2)):null; },
     getConstructionPoint(origin=0) { return {x:tableau.x+(origin+.5)*construction().cell,y:tableau.structureY+64}; },
@@ -852,6 +859,7 @@ export function createVassalNodeDecisionModalView({
           rect: motionRect,
         },
         inspectedCardId: pinnedInspectionId,
+        inspectionKeywords: inspectionRoot?.getKeywordDebugState?.()??null,
         inspectionAboveChrome: inspectionLayerIndex!==null,
         quickCardId: quickInspectionId,
         inspectionTitlePoint: inspectionRoot?.titleControl?.toGlobal?.(new PIXI.Point(450,inspectionRoot.titleControl.hitArea.height/2))??null,

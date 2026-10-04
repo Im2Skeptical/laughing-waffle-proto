@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
+import { getInspectionTerms } from '../src/views/inspection-terms.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
@@ -27,10 +28,11 @@ const anatomicalReading=getGamepieceFace(faceClock,'practice','anatomicalStudy')
 assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Produce 2 Stock'},{timing:'',text:'Gain 2 Research'}]);
 assert.equal(anatomicalReading.reading.trigger,'Charge when someone in this settlement dies, or another local Practice produces Bone Stock.');
 assert.ok(anatomicalReading.reading.requirements.includes('Requires a Scholar worker.'),'The hard staffing gate remains readable');
-assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge meter'));
-assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge meter'),'Glossary includes only symbols on the selected face');
+assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge'));
+assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge'),'Glossary includes only symbols on the selected face');
 assert.ok(!getPracticeSymbols(anatomicalReading).some(entry=>/Cycle/.test(entry.name)));
-assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Bone Stock'),'Trigger traits are included, even when not hosted here');
+assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Bone'),'Trigger traits are included, even when not hosted here');
+assert.deepEqual(getPracticeSymbols(anatomicalReading).slice(0,3).map(entry=>entry.name),['Medicine','Record','Bone'],'Stock tags lead the symbol key');
 const recipeReading=getGamepieceFace(faceClock,'practice','cropRotation').reading;
 assert.ok(recipeReading.requirements.includes('Require 1 Record Stock (kept).'),'Requires is distinct from Consume');
 const mixedReading=getGamepieceFace(faceClock,'practice','selectiveBreeding').reading;
@@ -49,11 +51,14 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.equal(face.reading.passive,true);
   assert.ok(face.reading.effects.length,`${definition.id} must explain its ongoing effects`);
   assert.ok(face.reading.effects.every(effect=>effect.text&&!/undefined|NaN/.test(effect.text)),`${definition.id} needs readable effects`);
-  assert.ok(!getPracticeSymbols(face).some(entry=>/Cycle wheel|Charge meter|Worker sockets/.test(entry.name)),'Structures explain their own symbols');
+  assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
 assert.equal(granaryFace.reading.effects[0].text,'+3.75 to Edible Stock Capacity');
 assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
+assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Stock capacity bonus','Construction footprint','Quality']);
+const kilnTerms=getInspectionTerms(getGamepieceFace(faceClock,'structure','kiln')).terms;
+assert.ok(kilnTerms.Construction&&kilnTerms.Vessel&&kilnTerms.Glass,'References cover Stock traits in Structure rules, including traits absent from its face');
 assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
 const archiveFace=getGamepieceFace(faceClock,'structure','archive','bronze',{slot:{qualityBonus:3},settlement:{populationByClass:{villager:{specialists:{scholar:{adults:0}}}}}});
 assert.equal(archiveFace.reading.active,false,'Live specialist gate is distinct from the offered capacity');
