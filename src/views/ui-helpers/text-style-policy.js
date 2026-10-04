@@ -109,14 +109,18 @@ export function installGlobalTextStylePolicy(PIXI, options = {}) {
   };
 
   const OriginalText = PIXI.Text;
+  // TextStyle instances already contain resolved typography. Reapplying the
+  // policy loses their opt-out flags and changes fonts after layout measurement.
+  const resolveStyle = (style, text) => style instanceof PIXI.TextStyle
+    ? style : normalizeStyle(style, text, config);
   class PatchedText extends OriginalText {
     constructor(textOrOptions, style, canvas) {
       if (isTextOptionsObject(textOrOptions) && style === undefined && canvas === undefined) {
-        const normalizedStyle = normalizeStyle(textOrOptions.style, textOrOptions.text, config);
+        const normalizedStyle = resolveStyle(textOrOptions.style, textOrOptions.text);
         super({ ...textOrOptions, style: normalizedStyle });
         return;
       }
-      const normalizedStyle = normalizeStyle(style, textOrOptions, config);
+      const normalizedStyle = resolveStyle(style, textOrOptions);
       super(textOrOptions, normalizedStyle, canvas);
     }
   }

@@ -49,6 +49,30 @@ try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   await openProbePage({width:1280,height:800});
+  // Keyword inspection measures prefixes with a cloned, resolved TextStyle.
+  // Rendering those fragments must retain the measured font and whitespace.
+  const fragmentTypography=await page.evaluate(()=>{
+    const cases=[
+      ['Produce 1 Stock','Produce',false],
+      ['Produce 1 Stock',' 1 ',false],
+      ['A named moon phase. A Cycle Practice with this timing','Cycle Practice',false],
+      ['Qualifying events advance a Practice’s private meter.','Practice',false],
+      ['Food phase','Food phase',true],
+    ];
+    return cases.flatMap(([text,fragment,bold])=>{
+      const source=new PIXI.Text(text,{fontFamily:'Arial',fontSize:38,lineHeight:51,
+        fontWeight:bold?'bold':'normal',wordWrap:true,wordWrapWidth:802,
+        __preserveFontFamily:true,__disableTitleSmallCaps:true});
+      const style=source.style.clone();style.wordWrap=false;
+      const expectedFont=style.toFontString(),expectedWidth=PIXI.TextMetrics.measureText(fragment,style).width;
+      const copy=new PIXI.Text(fragment,style.clone());
+      const actualFont=copy.style.toFontString(),actualWidth=PIXI.TextMetrics.measureText(copy.text,copy.style).width;
+      source.destroy();copy.destroy();
+      return expectedFont===actualFont&&Math.abs(expectedWidth-actualWidth)<.01?[]:
+        [{fragment,expectedFont,actualFont,expectedWidth,actualWidth}];
+    });
+  });
+  assert.deepEqual(fragmentTypography,[],'Keyword fragments keep the font and spacing used for layout');
   const scrollAlpha=await page.evaluate(async()=>{
     const art=new Image();art.src='images/sprite-sheets/timegraph-chronicle.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
@@ -393,20 +417,29 @@ try {
     ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   const choice=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
     ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
-  assert.ok(choice,'The first life node exposes an illustrated choice');
+  assert.ok(choice,'The first life node exposes a choice');
   const beforeInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   for (const panel of beforeInspection.costPanels) {
     assert.ok(panel.rect.height / 1080 * candidateBox.height >= 44, 'Cost footers stay touch-sized on a phone');
     assert.ok(panel.description.includes('phase') || panel.description.includes('moon') || panel.description.includes('year'),
       'Icon amounts retain a readable duration description');
   }
-  await click({x:choice.x,y:choice.y-100});await delay(200);
+  const firstCard=beforeInspection.costPanels[0];
+  await click({x:firstCard.cardRect.x+firstCard.cardRect.width/2,y:(firstCard.cardRect.y+firstCard.rect.y)/2});await delay(200);
   const afterInspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
-  assert.ok(afterInspection.inspectedCardId,'Tapping card art opens its full inspection');
-  assert.equal(afterInspection.selectedOptionId,beforeInspection.selectedOptionId,'Inspection cannot select a choice');
+  if(beforeInspection.offers.length || !['patronage','development','relic'].includes(beforeInspection.family)) {
+    assert.ok(afterInspection.inspectedCardId,'Tapping gamepiece art opens its full inspection');
+    assert.equal(afterInspection.selectedOptionId,beforeInspection.selectedOptionId,'Inspection cannot select a choice');
+  } else {
+    // Personal outcomes show all tradeoffs on the card and select on a tap.
+    // Full gamepiece inspection is covered by the shop scenario below.
+    assert.equal(afterInspection.inspectedCardId,null,'Personal outcomes need no inspection overlay');
+    assert.ok(afterInspection.selectedOptionId,'Tapping a personal outcome selects it');
+  }
   assert.deepEqual(afterInspection.purchaseOrder,beforeInspection.purchaseOrder,'Inspection cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-inspection.png'});
-  const inspectedCost=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionCostPoint());
+  const inspectedCost=afterInspection.inspectedCardId
+    ? await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionCostPoint()) : choice;
   const noopBox=await page.locator('canvas').boundingBox();
   const noopStart=performance.now();
   await page.touchscreen.tap(noopBox.x+350/2424*noopBox.width,noopBox.y+960/1080*noopBox.height);
