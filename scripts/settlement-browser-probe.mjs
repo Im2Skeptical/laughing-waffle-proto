@@ -388,7 +388,7 @@ try {
   );
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
-  await clickDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
+  await clickDesignPoint(page, await getNavigationPoint(page, 'settlement'));
   await page.waitForFunction(() =>
     globalThis.__SETTLEMENT_DEBUG__.getSnapshot().view?.regionId === 'cedar-woods',
     null, { timeout: 5000 }).catch(async () => {
