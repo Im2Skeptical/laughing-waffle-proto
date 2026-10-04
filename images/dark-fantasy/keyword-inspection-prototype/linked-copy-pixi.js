@@ -28,7 +28,7 @@ export function keywordCopy({register,open}) {
         const width=PIXI.TextMetrics.measureText(line.slice(0,to),style).width-x;
         control.addChild(new PIXI.Graphics().lineStyle(2,RELIC.gold,.9).moveTo(0,copy.height-1).lineTo(width,copy.height-1));
         control.hitArea=new PIXI.Rectangle(-3,-3,width+6,Math.min(metrics.lineHeight,copy.height+6));
-        control.eventMode='static';control.cursor='pointer';control.keywordTerm=term;
+        control.eventMode='static';control.cursor='pointer';control.keywordTerm=term;control.keywordGroup=group;
         control.accessible=true;control.accessibleType='button';control.accessibleTitle=`Explain ${term}`;
         let press=null,moved=false;
         control.on('pointerdown',event=>{press=event.global?.clone();moved=false;});

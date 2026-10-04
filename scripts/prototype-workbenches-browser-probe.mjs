@@ -84,7 +84,7 @@ try {
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
     assert.equal(await page.locator('.lab-prototype-open').count(),4);
-    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →', 'Open Structures workbench →', 'Open Keywords workbench →']);
+    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →', 'Open Structures workbench →', 'Open Inspector workbench →']);
     assert.equal((await fetch(`${url}images/dark-fantasy/tooltip-prototype/`)).status,404,'The retired tooltip page is absent from deployment');
     assert.equal(await page.locator('nav [data-mode="prototypes"]').getAttribute('aria-current'),'page');
     await noOverflow('directory desktop');
@@ -203,10 +203,22 @@ try {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
-    await page.getByRole('link',{name:'Open Keywords workbench \u2192'}).click(); await ready();
+    await page.getByRole('link',{name:'Open Inspector workbench \u2192'}).click(); await ready();
     assert.equal(await page.locator('#inspection canvas').count(),1);
     assert.equal(await page.evaluate(()=>keywordWorkbench.state.renderer),'pixi');
     assert.equal(await page.locator('#rules,#glossary,#references').count(),0,'all visible inspection text is Pixi');
+    const chargeNames=await page.evaluate(()=>keywordWorkbench.symbols.map(symbol=>symbol.name));
+    assert.ok(chargeNames.includes('Stock')&&chargeNames.includes('Record')&&chargeNames.includes('Charge')&&chargeNames.includes('Death'),'symbol key covers the selected Charge card');
+    assert.equal(chargeNames.includes('Spring'),false,'unrepresented season symbols are omitted');
+    await keywordTap('term:Record','glossary');await keywordTap('term:Stock');
+    assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Record','Stock'],'short symbol names retain recursive reference links');
+    await keywordTap('close');
+    await page.screenshot({path:'artifacts/prototype-inspector-symbol-key-desktop.png'});
+    await page.locator('#inspection canvas').focus();await page.keyboard.press('Tab');
+    await page.getByRole('button',{name:'Explain Record',exact:true}).focus();await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>keywordWorkbench.state.path[0]==='Record');
+    await page.getByRole('button',{name:'×',exact:true}).focus();await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>keywordWorkbench.state.path.length===0&&document.activeElement?.title==='Explain Record');
     for(const variant of ['A','B','C']) {
       assert.equal(await page.evaluate(()=>keywordWorkbench.state.variant),variant);
       await keywordTap('term:Stock','rules');
@@ -234,6 +246,9 @@ try {
     await page.waitForFunction(()=>keywordWorkbench.state.card==='logging');
     assert.equal(await page.evaluate(()=>keywordWorkbench.reading.effects.length),3);
     assert.deepEqual(await page.evaluate(()=>keywordWorkbench.reading.effects[0]),{timing:'Spring',text:'Produce 2 Stock'});
+    const cycleNames=await page.evaluate(()=>keywordWorkbench.symbols.map(symbol=>symbol.name));
+    assert.ok(cycleNames.includes('Cycle')&&cycleNames.includes('Spring')&&cycleNames.includes('Autumn'));
+    assert.equal(cycleNames.includes('Charge')||cycleNames.includes('Record'),false,'changing cards replaces the symbol key');
     await keywordTap('quality','chrome');
     assert.equal(await page.evaluate(()=>keywordWorkbench.state.tier),'silver');
     await fullscreenRoundTrip('#inspection');
@@ -258,6 +273,10 @@ try {
         await page.goto(`${url}images/dark-fantasy/keyword-inspection-prototype/?variant=${variant}`);await ready();
         await page.locator('#inspection .dev-preview-fullscreen').tap();
         await page.waitForFunction(()=>keywordWorkbench.state.fullscreen&&!document.querySelector('.dev-preview-fullscreen').disabled);
+        await keywordTap('term:Record','glossary',true);await keywordTap('term:Stock','reference',true);
+        assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Record','Stock']);
+        await keywordTap('close','reference',true);
+        if(variant==='A')await page.screenshot({path:'artifacts/prototype-inspector-symbol-key-touch.png'});
         await keywordTap('term:Stock','rules',true);
         await keywordTap('term:Stock traits','reference',true);
         await keywordTap('term:Bone','reference',true);
@@ -342,4 +361,4 @@ try {
   await browser?.close(); await new Promise(resolve => server.close(resolve));
 }
 if (failures.length) { console.error(`[prototype-workbenches] Failed: ${failures[0].split('\n')[0]}\nReproduce: npm run probe:prototypes\nDetails: ${artifact}`); process.exitCode=1; }
-else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, Cards/Vassals/Structures/Keywords, exports. Details: ${artifact}`);
+else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, Cards/Vassals/Structures/Inspector, exports. Details: ${artifact}`);

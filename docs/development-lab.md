@@ -9,8 +9,8 @@ The existing debugger remains available.
 ## Prototypes
 
 **Prototypes · design** sits beside Zoo, Museum and Gym. Its four workbenches
-cover illustrated Cards, Vassals & Founders, Structures & tooltips, and Practice
-keyword inspection. Each opens
+cover illustrated Cards, Vassals & Founders, Structures & tooltips, and the Practice
+inspector. Each opens
 an isolated page with a return link to this section. Direct workbench URLs and
 the Prototypes hash route support refresh and GitHub Pages repository paths.
 The Pages build bundles each separately. Edits are temporary presentation
@@ -33,8 +33,9 @@ including any tooltip or inspection. Quality, Scholar requirements and staging
 are temporary preview controls. The URL preserves treatment, card and context.
 Run `npm run preview:structures` or open it from Prototypes. No live cards change.
 
-Keywords is a focused study of clickable terms using the actual Pixi full
-inspection renderer, current card faces and right-hand symbol glossary.
+Inspector studies the actual Pixi full inspection renderer, current card faces
+and a simple right-hand symbol key. Each row is a symbol and its readable name;
+definitions are behind clickable names rather than paragraphs in the key.
 Definitions contain further clickable terms; Back, reading history and Pin
 recover the useful navigation from the retired prototype. Compare a nearby
 reference (`?variant=A`), fixed rail (`B`) or visible panel trail (`C`) with the

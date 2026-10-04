@@ -7,6 +7,7 @@ import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.
 import { paintRelicPanel, RELIC } from '../../../src/views/chronicle-skin.js';
 import { TEXT_STYLES } from '../../../src/views/settlement-theme.js';
 import { keywordCopy } from './linked-copy-pixi.js';
+import { addSymbolKey } from './symbol-key-pixi.js';
 import { terms } from './terms.js';
 
 const $=id=>document.getElementById(id),host=$('inspection');
@@ -14,7 +15,7 @@ const variants={A:'Beside the word',B:'Reference rail',C:'Reading trail'},tiers=
 const ids=[...$('card').options].map(option=>option.value),W=2000;
 let variant=new URL(location.href).searchParams.get('variant')??'A';if(!variants[variant])variant='A';
 let app,display,face,inspector,referenceLayer,targets=[],viewports=[],H=940,anchor=null,path=[],pinned=false,originAction=null;
-let pending=false,focusAction=null,referenceScroll=0,trailStart=0,backdrop;
+let pending=false,focusAction=null,originGroup='rules',referenceScroll=0,trailStart=0,backdrop;
 for(const id of ids)for(const trait of getGamepieceFace({tSec:0},'practice',id).stockTraits??[])terms[trait]??=`A Stock trait. Stock with ${trait} can satisfy matching inputs or Charge triggers. One unit can carry several Stock traits.`;
 
 const register=(node,info)=>targets.push({node,...info});
@@ -38,7 +39,7 @@ function updateState() {
   $('spoken-reference').textContent=path.length?`${path.at(-1)}. ${terms[path.at(-1)]}`:'';
 }
 function openTerm(term,node,panelIndex) {
-  if(!path.length) {anchor=node.getBounds().clone();originAction=`term:${term}`;}
+  if(!path.length) {anchor=node.getBounds().clone();originAction=`term:${term}`;originGroup=node.keywordGroup;}
   if(variant==='C'&&panelIndex!=null)path=path.slice(0,panelIndex+1);
   if(path.at(-1)!==term)path.push(term);
   referenceScroll=0;trailStart=Math.max(0,path.length-2);queueDraw('back');
@@ -56,7 +57,7 @@ function selectVariant(next,updateUrl=true) {
 }
 function cycleVariant(direction) {const keys=Object.keys(variants);selectVariant(keys[(keys.indexOf(variant)+direction+keys.length)%keys.length]);}
 
-function scrollViewport(parent,content,rect,group,{initial=0,onScroll=()=>{}}={}) {
+function scrollViewport(parent,content,rect,group,{initial=0,onScroll=()=>{},registerViewport=true}={}) {
   const viewport=new PIXI.Container();viewport.position.set(rect.x,rect.y);parent.addChild(viewport);viewport.addChild(content);
   const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(0,0,rect.width,rect.height).endFill();viewport.addChild(mask);content.mask=mask;
   let scroll=0,drag=null;const max=Math.max(0,content.readingHeight-rect.height);
@@ -66,7 +67,19 @@ function scrollViewport(parent,content,rect,group,{initial=0,onScroll=()=>{}}={}
   viewport.on('pointerdown',event=>{event.stopPropagation();drag={y:viewport.toLocal(event.global).y,scroll};});
   viewport.on('pointermove',event=>{if(drag)move(drag.scroll+drag.y-viewport.toLocal(event.global).y);});
   for(const type of ['pointerup','pointerupoutside','pointercancel'])viewport.on(type,()=>{drag=null;});
-  move(initial);viewports.push({node:viewport,group,getScroll:()=>scroll,max});return viewport;
+  viewport.getScroll=()=>scroll;viewport.setScroll=move;
+  move(initial);if(registerViewport)viewports.push({node:viewport,group,getScroll:()=>scroll,max});return viewport;
+}
+function simplifySymbols() {
+  const old=inspector.glossaryViewport,rect={x:old.x,y:old.y,width:old.hitArea.width,height:old.hitArea.height};
+  // Replace only this workbench's glossary, retaining the game's inspector.
+  for(const node of [...inspector.children])if(node instanceof PIXI.Text&&node.text==='Drag or scroll to read'&&node.x===rect.x){inspector.removeChild(node);node.destroy();}
+  inspector.removeChild(old);old.destroy({children:true});
+  const content=addSymbolKey(face,rect.width);
+  const viewport=scrollViewport(inspector,content,rect,'glossary',{registerViewport:false});
+  inspector.glossary=content;inspector.glossaryViewport=viewport;
+  inspector.getGlossaryScroll=viewport.getScroll;inspector.setGlossaryScroll=viewport.setScroll;
+  if(content.readingHeight>rect.height)text(inspector,'Drag or scroll to read',rect.x,rect.y+rect.height+8,22);
 }
 function panel(term,index,x,y,width,height) {
   const current=index===path.length-1,panel=new PIXI.Container();panel.position.set(x,y);referenceLayer.addChild(panel);
@@ -131,8 +144,9 @@ function draw() {
   control(app.stage,'‹',20,14,100,'previousCard',()=>changeCard(-1));text(app.stage,face.label,140,28,36,620,true);
   control(app.stage,'›',784,14,100,'nextCard',()=>changeCard(1));
   control(app.stage,`${$('tier').value[0].toUpperCase()+$('tier').value.slice(1)} quality`,910,14,290,'quality',()=>{$('tier').value=tiers[(tiers.indexOf($('tier').value)+1)%tiers.length];if(!pinned)path=[];inspector=null;queueDraw();});
-  text(app.stage,'KEYWORD STUDY',1230,40,26,420);
+  text(app.stage,'INSPECTOR STUDY',1230,40,26,420);
   inspector=addChronicleInspection(app.stage,{x:16,y:118,width:W-32,height:H-226},{face});
+  simplifySymbols();
   inspector.closeControl.visible=false; // shared Fullscreen/Exit owns this persistent preview
   inspector.setScroll(scroll.rules);inspector.setGlossaryScroll(scroll.glossary);
   for(const [group,content,getScroll] of [['rules',inspector.rules,inspector.getScroll],['glossary',inspector.glossary,inspector.getGlossaryScroll]]) {
@@ -146,7 +160,7 @@ function draw() {
   text(footer,path.length?`${path.length} references${pinned?' · Pinned':''}`:'Tap an underlined word',24,28,26,465);
   updateState();app.render();
   if(focusAction) {
-    const label=targets.find(target=>target.action===focusAction&&target.group===(path.length?'reference':'rules'))?.node.accessibleTitle;
+    const label=targets.find(target=>target.action===focusAction&&target.group===(path.length?'reference':originGroup))?.node.accessibleTitle;
     if(hadKeyboardFocus)requestAnimationFrame(()=>{const button=[...host.querySelectorAll('.pixi-accessibility button')].find(node=>node.title===label);(button??app.view).focus({preventScroll:true});});
     focusAction=null;
   }
@@ -170,7 +184,7 @@ async function boot() {
   await preloadChronicleArt({includeSettlementPieces:true});
   backdrop=await PIXI.Assets.load('images/dark-fantasy/card-chrome-prototype/settlement-reference.png');
   app=new PIXI.Application({width:W,height:H,backgroundColor:RELIC.night,antialias:true,resolution:Math.min(devicePixelRatio||1,2),autoDensity:true});
-  app.view.tabIndex=0;app.view.setAttribute('aria-label','Practice keyword inspector. Tap or Tab to an underlined term to explore its meaning.');host.append(app.view);
+  app.view.tabIndex=0;app.view.setAttribute('aria-label','Practice inspector study. Tap or Tab to an underlined term to explore its meaning.');host.append(app.view);
   app.renderer.plugins.accessibility.div.classList.add('pixi-accessibility');app.stage.eventMode='static';
   // The shared portrait fallback rotates the canvas in CSS. Pixi's default
   // bounds-only mapping needs the inverse rotation for actual word taps.
@@ -187,7 +201,7 @@ async function boot() {
   window.keywordWorkbench={get state(){return {variant,card:face.definitionId,tier:face.tier,path:[...path],pinned,fullscreen:display.active,renderer:'pixi',referencePanels:referenceLayer.children.filter(node=>node.keywordPanel).length};},
     get targets(){return targets.flatMap(target=>{const rect=clipped(target);return rect?[{group:target.group,action:target.action,panelIndex:target.panelIndex,...pageBounds(rect)}]:[];});},
     get viewports(){return viewports.map(viewport=>({group:viewport.group,scroll:viewport.getScroll(),max:viewport.max,...pageBounds(logicalBounds(viewport.node))}));},
-    get reading(){return face.reading;}};
+    get reading(){return face.reading;},get symbols(){return inspector.glossary.entries.map(({name,trait,icon,glyph,drawing,season,wheel})=>({name,trait,icon,glyph,drawing,season,wheel}));}};
   document.body.dataset.ready='true';
 }
 for(const id of ['card','tier'])$(id).addEventListener('change',()=>{if(!pinned)path=[];inspector=null;queueDraw();});
@@ -196,4 +210,4 @@ document.addEventListener('keydown',event=>{
   if(['ArrowLeft','ArrowRight'].includes(event.key)&&!event.target.closest('input,textarea,select,[contenteditable]')) {event.preventDefault();cycleVariant(event.key==='ArrowRight'?1:-1);}
 });
 window.addEventListener('popstate',()=>selectVariant(variants[new URL(location.href).searchParams.get('variant')]?new URL(location.href).searchParams.get('variant'):'A',false));
-boot().catch(error=>{$('state').textContent=`Unable to load the keyword study: ${error.message}`;});
+boot().catch(error=>{$('state').textContent=`Unable to load the inspector study: ${error.message}`;});
