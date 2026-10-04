@@ -10,6 +10,7 @@
     "preview:cards": "node scripts/preview-cards.mjs",
     "preview:vassals": "node scripts/preview-vassals.mjs",
     "preview:structures": "node scripts/preview-structures.mjs",
+    "preview:keywords": "node scripts/preview-keywords.mjs",
     "build": "node scripts/build-pages.mjs",
     "build:sprites": "node scripts/build-sprite-sheets.mjs",
     "check:assets": "node scripts/check-asset-manifest.mjs",

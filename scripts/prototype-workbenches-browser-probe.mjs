@@ -60,11 +60,11 @@ try {
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.url().startsWith(url) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
-  await check('Pages subpath, Prototypes route, three links and refresh', async () => {
+  await check('Pages subpath, Prototypes route, four links and refresh', async () => {
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
-    assert.equal(await page.locator('.lab-prototype-open').count(),3);
-    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →', 'Open Structures workbench →']);
+    assert.equal(await page.locator('.lab-prototype-open').count(),4);
+    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →', 'Open Structures workbench →', 'Open Keywords workbench →']);
     assert.equal((await fetch(`${url}images/dark-fantasy/tooltip-prototype/`)).status,404,'The retired tooltip page is absent from deployment');
     assert.equal(await page.locator('nav [data-mode="prototypes"]').getAttribute('aria-current'),'page');
     await noOverflow('directory desktop');
@@ -173,6 +173,69 @@ try {
     await page.getByRole('link',{name:/Development Lab prototypes/}).click();
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
   });
+  await check('Current Practice inspection with recursive keywords, Back, focus return and three layouts', async () => {
+    await page.setViewportSize({width:1280,height:800});
+    await page.getByRole('link',{name:'Open Keywords workbench →'}).click(); await ready();
+    for (const variant of ['A','B','C']) {
+      assert.equal(await page.evaluate(() => keywordWorkbench.state.variant),variant);
+      const root=page.locator('#rules [data-term="Stock"]').first();
+      await root.click();
+      for (const term of ['Stock traits','Bone','Charge','Activation','Stock']) {
+        await page.locator(`#references .active [data-term="${term}"]`).first().click();
+      }
+      assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock','Stock traits','Bone','Charge','Activation','Stock']);
+      await page.getByRole('button',{name:'Back through keywords'}).click();
+      assert.equal(await page.evaluate(() => keywordWorkbench.state.path.at(-1)),'Activation');
+      await page.keyboard.press('Escape');
+      assert.equal(await page.evaluate(() => keywordWorkbench.state.path.at(-1)),'Charge');
+      assert.equal(await page.locator('#references .reference').count(),variant==='C'?4:1);
+      if(variant==='C')await page.locator('#references .history').first().getByRole('button',{name:'Return here'}).click();
+      else await page.getByRole('navigation',{name:'Reading history'}).getByRole('button',{name:'Stock',exact:true}).click();
+      assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock'],'history jumps back without losing the initial source');
+      await page.getByRole('button',{name:'Close keyword reference'}).click();
+      assert.equal(await root.evaluate(node=>node===document.activeElement),true,'close restores initial keyword focus');
+      await page.locator('#next').click();
+    }
+    assert.equal(new URL(page.url()).searchParams.get('variant'),'A');
+    await page.locator('#next').click();await page.reload();await ready();
+    assert.equal(await page.evaluate(() => keywordWorkbench.state.variant),'B','variant survives URL refresh');
+    assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),[],'reading history remains memory-only');
+    await page.locator('#card').selectOption('logging');
+    assert.equal(await page.locator('#rules .effect').count(),3);
+    assert.match(await page.locator('#rules .effect').first().textContent(),/Spring.*Produce 2 Stock/);
+    await page.locator('#tier').selectOption('gold');
+    assert.equal(await page.evaluate(() => keywordWorkbench.state.tier),'gold');
+    await page.screenshot({path:'artifacts/prototype-keywords-cycle-desktop.png'});
+  });
+  await check('Touch keyword chains, Pin, dismissal and right-hand glossary at phone sizes', async () => {
+    const desktopPage=page;
+    const mobile=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
+    page=await mobile.newPage();page.on('pageerror',error=>errors.push(error.message));
+    try {
+      for(const variant of ['A','B','C']) {
+        await page.goto(`${url}images/dark-fantasy/keyword-inspection-prototype/?variant=${variant}`);await ready();
+        await page.locator('#rules [data-term="Stock"]').first().tap();
+        await page.locator('#references .active [data-term="Stock traits"]').first().tap();
+        await page.locator('#references .active [data-term="Bone"]').first().tap();
+        assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock','Stock traits','Bone']);
+        await page.getByRole('button',{name:'Pin keyword reference'}).tap();
+        await page.touchscreen.tap(4,4); // exposed page margin, outside every reference layout
+        assert.equal(await page.evaluate(() => keywordWorkbench.state.pinned),true);
+        await page.screenshot({path:`artifacts/prototype-keywords-${variant}-touch.png`});
+        await page.getByRole('button',{name:'Pin keyword reference'}).tap();
+        await page.touchscreen.tap(4,4);
+        assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),[]);
+        await noOverflow(`keywords ${variant} landscape`);
+      }
+      for(const viewport of [{width:844,height:390},{width:390,height:844}]) {
+        await page.setViewportSize(viewport);
+        const positions=await page.evaluate(()=>({rules:document.querySelector('#rules').getBoundingClientRect().right,glossary:document.querySelector('#glossary').getBoundingClientRect().left}));
+        assert.ok(positions.glossary>=positions.rules,'symbol glossary remains on the right');
+        await noOverflow('keyword inspection phone');
+      }
+      await page.screenshot({path:'artifacts/prototype-keywords-portrait.png'});
+    } finally {await mobile.close();page=desktopPage;}
+  });
   await check('Touch portrait requests landscape and survives denied browser fullscreen', async () => {
     const desktopPage = page;
     const mobile = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
@@ -211,4 +274,4 @@ try {
   await browser?.close(); await new Promise(resolve => server.close(resolve));
 }
 if (failures.length) { console.error(`[prototype-workbenches] Failed: ${failures[0].split('\n')[0]}\nReproduce: npm run probe:prototypes\nDetails: ${artifact}`); process.exitCode=1; }
-else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, Cards/Vassals, exports. Details: ${artifact}`);
+else console.log(`[prototype-workbenches] OK: ${checks.length} checks; Pages subpath, desktop/mobile, Cards/Vassals/Structures/Keywords, exports. Details: ${artifact}`);

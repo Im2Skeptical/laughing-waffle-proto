@@ -8,11 +8,12 @@ The existing debugger remains available.
 
 ## Prototypes
 
-**Prototypes · design** sits beside Zoo, Museum and Gym. Its three workbenches
-cover illustrated Cards, Vassals & Founders, and Structures & tooltips. Each opens
+**Prototypes · design** sits beside Zoo, Museum and Gym. Its four workbenches
+cover illustrated Cards, Vassals & Founders, Structures & tooltips, and Practice
+keyword inspection. Each opens
 an isolated page with a return link to this section. Direct workbench URLs and
 the Prototypes hash route support refresh and GitHub Pages repository paths.
-The Pages build bundles all three separately. Edits are temporary presentation
+The Pages build bundles each separately. Edits are temporary presentation
 examples; these studies do not change the live renderer, simulation or saves.
 
 Cards includes a matched comparison with the current game renderer and five-card
@@ -27,6 +28,14 @@ for the quick read; select its title for inspection with the same rules and a
 separate symbol glossary. Quality uplift, Scholar requirements and build staging
 are temporary preview controls. Its URL preserves treatment, card and context.
 Run `npm run preview:structures` or open it from Prototypes. No live cards change.
+
+Keywords is a focused new study of clickable terms in full inspection. It uses
+current game card faces, readable rule data and a right-hand symbol glossary.
+Definitions contain further clickable terms; Back, reading history and Pin
+recover the useful navigation from the retired prototype. Compare a nearby
+reference (`?variant=A`), fixed rail (`B`) or visible panel trail (`C`) with the
+bottom switcher. Run locally with `npm run preview:keywords`. These interactions
+are exploratory and do not change the in-game tooltip.
 
 The card hero, screen references, vassal hero and Museum/Gym Pixi
 scene have a top-right Fullscreen button. The same button exits. Touch devices

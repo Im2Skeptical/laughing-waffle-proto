@@ -16,6 +16,11 @@ const WORKBENCHES = [
     description: 'Explore Housing and Stock capacity faces in the construction strip and Structure offers, with Practice-style quick reads and inspection.',
     details: '3 card treatments · passive rules · symbol glossary',
   },
+  {
+    title: 'Practice keyword inspection', folder: 'keyword-inspection-prototype', label: 'Keywords',
+    description: 'Follow clickable keywords into further explanations using the current enlarged Practice and right-hand symbol glossary.',
+    details: 'Recursive links · Back / Pin · three reference layouts',
+  },
 ];
 
 export function renderPrototypes(host) {

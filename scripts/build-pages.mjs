@@ -107,6 +107,7 @@ async function buildPagesArtifact() {
         || parts.includes("card-chrome-prototype")
         || parts.includes("vassal-chrome-prototype")
         || parts.includes("structure-chrome-prototype")
+        || parts.includes("keyword-inspection-prototype")
         || parts.includes("settlement-pieces-v4");
       return keepDarkFantasy
         && !parts.includes("GameElements")
@@ -122,7 +123,7 @@ async function buildPagesArtifact() {
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
   // Isolated workbenches bundle their read-only imports separately from the game.
-  for (const folder of ["card-chrome-prototype", "vassal-chrome-prototype", "structure-chrome-prototype"]) {
+  for (const folder of ["card-chrome-prototype", "vassal-chrome-prototype", "structure-chrome-prototype", "keyword-inspection-prototype"]) {
     const studyPath = `images/dark-fantasy/${folder}/study.js`;
     await build({
       entryPoints: [studyPath], outfile: path.join(outDir, studyPath),
