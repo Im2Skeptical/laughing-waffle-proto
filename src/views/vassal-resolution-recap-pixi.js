@@ -144,6 +144,7 @@ export function createVassalResolutionRecapView({
       )) : null,
     getSemanticSnapshot: () => ({
       open: root.visible,
+      continueState: dismissRoot?.interactionState ?? null,
       recap: getRecap?.() ?? null,
     }),
   };

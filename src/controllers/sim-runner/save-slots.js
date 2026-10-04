@@ -124,6 +124,7 @@ export function exportSave({ state, timeline, setupId } = {}) {
 async function persistSave(slot, prepare, context = {}) {
   const start = performance.now();
   const diagnostics = { backend: 'indexedDB', attemptedAt: new Date().toISOString(), slot, operation: context.operation ?? 'save',
+    startedAtMs: start, serializationMs: null, storageAccessMs: null, storageEnqueueMs: null, storageWriteMs: null,
     stateSec: context.state?.tSec ?? null, checkpointCount: context.timeline?.checkpoints?.length ?? null,
     stage: 'serialize', category: null, payloadCharacters: null, estimatedUtf16Bytes: null,
     payloadUtf8Bytes: null, durationMs: null, error: null };
@@ -140,19 +141,30 @@ async function persistSave(slot, prepare, context = {}) {
   };
   // Capture the JSON snapshot before yielding; the live run can keep advancing.
   const prepared = prepare();
+  diagnostics.serializationMs = Math.round((performance.now() - start) * 100) / 100;
   if (!prepared.ok) return finish(prepared, prepared.error);
   diagnostics.payloadCharacters = prepared.text.length;
   diagnostics.estimatedUtf16Bytes = prepared.text.length * 2;
   diagnostics.stage = 'access';
+  let stageStart = performance.now();
   try {
     const db = await initializeSaveStorage(inspectSaveText);
+    diagnostics.storageAccessMs = Math.round((performance.now() - stageStart) * 100) / 100;
     diagnostics.stage = 'write';
+    stageStart = performance.now();
     await runSaveTransaction(db, [SAVE_PAYLOAD_STORE, SAVE_META_STORE], 'readwrite', tx => {
-      putSaveRecord(tx, normalizeSaveSlot(slot), prepared.text, prepared.meta);
+      const enqueueStart = performance.now();
+      try { putSaveRecord(tx, normalizeSaveSlot(slot), prepared.text, prepared.meta); }
+      finally { diagnostics.storageEnqueueMs = Math.round((performance.now() - enqueueStart) * 100) / 100; }
     });
+    diagnostics.storageWriteMs = Math.round((performance.now() - stageStart) * 100) / 100;
     diagnostics.stage = 'complete';
     return finish({ ok: true, meta: prepared.meta });
-  } catch (failure) { return finish({ ok: false, reason: 'storageFailed', error: failure }, failure, prepared.text); }
+  } catch (failure) {
+    const field = diagnostics.stage === 'write' ? 'storageWriteMs' : 'storageAccessMs';
+    diagnostics[field] = Math.round((performance.now() - stageStart) * 100) / 100;
+    return finish({ ok: false, reason: 'storageFailed', error: failure }, failure, prepared.text);
+  }
 }
 
 export function writeSaveToSlot(slot, context = {}) {

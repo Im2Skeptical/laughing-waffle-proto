@@ -45,6 +45,7 @@ assert.equal(saved.diagnostics.payloadCharacters, original.length);
 assert.equal(saved.diagnostics.estimatedUtf16Bytes, original.length * 2);
 assert.equal(saved.diagnostics.payloadUtf8Bytes, null, 'successful autosaves avoid additional byte encoding');
 assert.ok(saved.diagnostics.durationMs >= 0);
+for (const field of ['serializationMs', 'storageAccessMs', 'storageEnqueueMs', 'storageWriteMs']) assert.ok(saved.diagnostics[field] >= 0);
 
 for (const [name, category] of [['QuotaExceededError', 'quota'], ['SecurityError', 'blocked'], ['Error', 'unknown']]) {
   failure = new DOMException('Write refused', name); database.fail(failure);
@@ -92,7 +93,9 @@ assert.equal(await database.get(2), original, 'import preserves complete save co
 const messages = [];
 const runner = createSimRunner({});
 const opening = { prepare: async () => ({ ok: true, state: createNewGameState(735) }), cancel() {}, reset() {} };
-const session = createGameSessionController({ runner, opening, onError: message => messages.push(message) });
+const session = createGameSessionController({ runner, opening, onError: message => messages.push(message),
+  getPresentationDiagnostics: () => [{ resolutionSec: 12, maxFrameGapMs: 3000 }],
+  getForecastDiagnostics: () => ({ activeWorker: false, disabled: true, lastFailure: { reason: 'workerError' } }) });
 assert.equal((await session.newGame(1)).ok, true);
 const pool = getVassalCandidatePool(runner.getState());
 assert.equal(runner.dispatchActionAtCurrentSecond(ActionKinds.SETTLEMENT_SELECT_VASSAL,
@@ -127,6 +130,9 @@ const report = await session.getSaveDiagnostics();
 assert.equal(report.lastFailure.error.name, 'QuotaExceededError');
 assert.equal(report.lastFailure.category, 'quota');
 assert.equal(report.lastFailure.storage.saveSlots.length, 2);
+assert.deepEqual(report.nodeResolutions, [{ resolutionSec: 12, maxFrameGapMs: 3000 }]);
+assert.equal(report.forecastWorker.lastFailure.reason, 'workerError');
+assert.equal(report.recentSaveAttempts.at(-1).error.name, 'QuotaExceededError');
 assert.ok(!JSON.stringify(report).includes('PRIVATE-VALUE-SENTINEL'));
 assert.ok(messages.some(message => message.includes('storage limit')));
 assert.equal(session.resume().ok, true);
@@ -135,6 +141,9 @@ failure = null; database?.fail(null);
 assert.equal((await session.save()).ok, true);
 assert.equal(session.getSaveStatus().canReplaceLiveGame, true);
 assert.equal((await session.getSaveDiagnostics()).lastFailure.error.name, 'QuotaExceededError', 'successful retry retains the previous failure for diagnosis');
+for (let i = 0; i < 6; i++) await session.save();
+assert.equal((await session.getSaveDiagnostics()).recentSaveAttempts.length, 5,
+  'opening the menu preserves recent timing evidence within a bounded history');
 assert.equal(session.prepareImport('{broken').ok, false);
 assert.equal((await session.importGame(3)).reason, 'noImport');
 assert.equal(session.prepareImport(exported.text).ok, true);

@@ -2,7 +2,8 @@ import { createNewGameState } from "../model/new-game.js";
 import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
-export function createGameSessionController({ runner, opening, onEnter, onError, onSaved, onSaveStatusChange }) {
+export function createGameSessionController({ runner, opening, onEnter, onError, onSaved, onSaveStatusChange,
+  getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null }) {
   let activeSlot = null;
   let inMenu = true;
   let hasLiveGame = false;
@@ -10,6 +11,7 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
   let lastSuccessfulSave = null;
   let lastAttempt = null;
   let lastFailure = null;
+  const recentSaveAttempts = [];
   let preparedImport = null;
   let pendingSave = null;
   let replacing = false;
@@ -38,6 +40,8 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
       category: 'unknown', error: result.error ? { name: result.error.name, message: result.error.message } : null };
     if (operation === 'save') {
       lastAttempt = { ...diagnostics, ok: result.ok, reason: result.reason ?? null };
+      recentSaveAttempts.push(lastAttempt);
+      if (recentSaveAttempts.length > 5) recentSaveAttempts.shift();
       phase = result.ok ? 'saved' : 'failed';
       if (result.ok) lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? diagnostics.attemptedAt,
         tSec: result.meta?.tSec ?? runner.getState?.()?.tSec ?? null };
@@ -99,6 +103,9 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     getSaveStatus: () => ({ phase, activeSlot, lastSuccessfulSave, lastAttempt, canReplaceLiveGame: canReplaceLiveGame() }),
     getSaveDiagnostics: async () => ({ reportVersion: 2, generatedAt: new Date().toISOString(),
       status: { phase, activeSlot, lastSuccessfulSave }, lastAttempt, lastFailure, slots: slotStatus,
+      recentSaveAttempts: recentSaveAttempts.map(attempt => ({ ...attempt })),
+      nodeResolutions: getPresentationDiagnostics(),
+      forecastWorker: getForecastDiagnostics(),
       storage: await inspectSaveStorageUsage() }),
     refreshSlots,
     getSlotStatus: () => slotStatus,

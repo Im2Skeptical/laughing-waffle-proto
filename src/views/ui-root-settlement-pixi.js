@@ -1,4 +1,5 @@
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
+import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
 import { createLifeProcessingView } from "./life-processing-pixi.js";
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
@@ -1507,6 +1508,8 @@ function publishSettlementDebugApi() {
     getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
     getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
+    getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
+    getForecastWorkerDiagnostics: () => forecastWorkerService.getDiagnostics(),
     getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
     getOpeningSnapshot: () => opening.getSnapshot(),
     getRunCompleteClickPoint: (id) => {
@@ -1627,6 +1630,7 @@ syncSettlementRunCompletePresentation();
 publishSettlementDebugApi();
 
 let gameMenu;
+const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
 const gameSession = createGameSessionController({
   runner,
   opening,
@@ -1650,16 +1654,22 @@ const gameSession = createGameSessionController({
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),
   onSaveStatusChange: () => gameMenu?.syncSaveStatus(),
+  getPresentationDiagnostics: () => nodeResolutionDiagnostics.snapshot(),
+  getForecastDiagnostics: () => forecastWorkerService.getDiagnostics(),
 });
 gameMenu = createGameMenuDom({
   session: gameSession,
   onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
   onPause: () => {
+    nodeResolutionDiagnostics.suspend();
     settlementGraphView?.setPresentationSuspended?.(true);
     timelineAudio?.update(0);
   },
 });
 setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) nodeResolutionDiagnostics.suspend();
+});
 
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", handleGlobalKeyDown);
@@ -1688,6 +1698,7 @@ if (location.hash.startsWith('#/dev/play')) {
 
 app.ticker.add((delta) => {
   if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden) {
+    nodeResolutionDiagnostics.suspend();
     timelineAudio.update(0);
     return;
   }
@@ -1729,6 +1740,9 @@ app.ticker.add((delta) => {
   vassalNodeDecisionModalView.update(frameDt);
   vassalLevelUpModalView.update(frameDt);
   vassalResolutionRecapView.update(frameDt);
+  nodeResolutionDiagnostics.sample({
+    recapOpen: vassalResolutionRecapView.isOpen(), resolutionSec: getSettlementFrontierSec(),
+  });
   vassalHeirloomFlowView.update(frameDt);
   if (!resolutionOpened) settlementGraphView.render();
   if (openingFrame?.complete) settlementGraphView.setOpeningRevealSecond(null);
