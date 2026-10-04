@@ -42,6 +42,41 @@ for(const definition of Object.values(detailedSettlementPracticeDefs)) {
   if(reading.type==='Charge')assert.ok(!/Gain \d+ (?:base )?Charge|At \d+ Charge|Discharge/.test(reading.trigger),'Charge copy explains events, not the standard meter rule');
 }
 const workerFace=getGamepieceFace(faceClock,'practice','forage','bronze',{workers:{tokens:[{effectiveness:.5}],effectiveWorkers:.5}});
+const structureFaceState=JSON.stringify(faceClock);
+for(const definition of Object.values(settlementStructureDefs)) {
+  const face=getGamepieceFace(faceClock,'structure',definition.id);
+  assert.equal(face.reading.type,'Structure');
+  assert.equal(face.reading.passive,true);
+  assert.ok(face.reading.effects.length,`${definition.id} must explain its ongoing effects`);
+  assert.ok(face.reading.effects.every(effect=>effect.text&&!/undefined|NaN/.test(effect.text)),`${definition.id} needs readable effects`);
+  assert.ok(!getPracticeSymbols(face).some(entry=>/Cycle wheel|Charge meter|Worker sockets/.test(entry.name)),'Structures explain their own symbols');
+}
+const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
+assert.equal(granaryFace.reading.effects[0].text,'+3.75 to Edible Stock Capacity');
+assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
+assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
+const archiveFace=getGamepieceFace(faceClock,'structure','archive','bronze',{slot:{qualityBonus:3},settlement:{populationByClass:{villager:{specialists:{scholar:{adults:0}}}}}});
+assert.equal(archiveFace.reading.active,false,'Live specialist gate is distinct from the offered capacity');
+assert.ok(archiveFace.reading.effects.some(effect=>/capped at \+3$/.test(effect.text)),'History caps do not scale with quality');
+assert.ok(archiveFace.reading.effects.some(effect=>/^\+1 to future Scholar/.test(effect.text)),'Candidate base bonus does not scale with quality');
+assert.ok(archiveFace.reading.effects.some(effect=>/combined institutional bonus capped at \+5/.test(effect.text)),'Candidate copy gives the implemented shared cap');
+for(const id of ['hallOfTheFallen','hallOfChampions','hallOfFallenKings']) {
+  const history=getGamepieceFace(faceClock,'structure',id).reading.effects.find(effect=>effect.text.startsWith('Additional candidate bonus'));
+  assert.ok(history,`${id} describes its candidate history modifier`);
+  assert.ok(history.text.includes('retired Vassals of the candidate class'),'History follows the candidate class');
+  assert.ok(!history.text.includes('Scholar'),'Warrior history does not claim a Scholar-only bonus');
+}
+assert.ok(getGamepieceFace(faceClock,'structure','procurementOffice').reading.effects.some(effect=>/^Consume one hosted Currency Stock.*required or consumed Stock/.test(effect.text)),'Currency substitutes Require and Consume inputs and is always spent');
+for(const id of ['laboratory','arcaneCollege']) {
+  assert.ok(getGamepieceFace(faceClock,'structure',id).reading.effects.some(effect=>/required or consumed Stock.*including Currency \(required Stock is kept; consumed Stock is spent\)/.test(effect.text)),`${id} explains flexible providers without excluding Currency`);
+}
+assert.equal(getGamepieceFace(faceClock,'structure','archive','bronze',{settlement:{populationByClass:{villager:{specialists:{scholar:{adults:100}}}}}}).reading.active,true);
+assert.equal(getGamepieceFace(faceClock,'structure','archive').reading.active,null,'Catalogue faces do not invent local staffing');
+const configuredStructureState={...faceClock,gameConfig:{gamepieces:{structures:{granary:{...settlementStructureDefs.granary,modifiers:[{kind:'capacity',amount:7,query:{traitsAny:['Water']}}]}}}}};
+const configuredStructureBefore=JSON.stringify(configuredStructureState);
+assert.equal(getGamepieceFace(configuredStructureState,'structure','granary').reading.effects[0].text,'+7 to Water Stock Capacity','Reading uses configured runtime definitions');
+assert.equal(JSON.stringify(configuredStructureState),configuredStructureBefore);
+assert.equal(JSON.stringify(faceClock),structureFaceState,'Structure presentation never mutates state');
 assert.equal(workerFace.workerMultiplier,1.5,'Worker multiplier uses effective workers, not occupied socket count');
 assert.equal(getGamepieceFace(faceClock,'practice','scholarship','bronze',{workers:{tokens:[{}],effectiveWorkers:1}}).workerMultiplier,1,'Non-Stock effects do not advertise a worker yield bonus that the simulation does not apply');
 assert.deepEqual(getGamepieceFace(faceClock,'practice','smelting').inputs,[],'Charge cards display no Stock costs');

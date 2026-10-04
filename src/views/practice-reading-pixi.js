@@ -12,7 +12,7 @@ const FLAVOUR = {
   scholarship: 'Ink outlives the hand that spills it.',
 };
 function flavour(face) {
-  return FLAVOUR[face.definitionId] ?? (face.tags?.includes('Ancestral') ? 'What we inherit, we must learn to carry.'
+  return face.reading.flavour ?? FLAVOUR[face.definitionId] ?? (face.tags?.includes('Ancestral') ? 'What we inherit, we must learn to carry.'
     : face.tags?.includes('Knowledge') ? 'A candle spent in study may spare a city from the dark.'
       : face.reading.classLabel === 'Warrior' ? 'Peace is kept by hands that remember war.'
         : face.tags?.includes('Food') ? 'Even beneath a darkened sky, the table must be laid.'
@@ -47,23 +47,25 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   y+=22;
   const activation=new PIXI.Graphics();root.addChildAt(activation,1);
   for (const effect of reading.effects) {
-    const timing=effect.timing ? copy(root,effect.timing,pad,y,width-pad*2,fontSize,{fill:RELIC.gold,fontWeight:'bold'}) : null;
+    const timing=effect.timing && !reading.passive ? copy(root,effect.timing,pad,y,width-pad*2,fontSize,{fill:RELIC.gold,fontWeight:'bold'}) : null;
     const offset=timing ? timing.width+14 : 0;
     // Long phase names get their own line; seasons remain inline with yields.
     const inline=offset<width*.4;
     if(timing&&!inline)y+=timing.height+3;
     const arrowX=pad+(inline?offset:0);
-    copy(root,'›',arrowX,y,20,fontSize,{fill:RELIC.gold,fontWeight:'bold'});
-    const line=copy(root,effect.text,arrowX+28,y,width-pad-arrowX-28,fontSize);
+    if(!reading.passive)copy(root,'›',arrowX,y,20,fontSize,{fill:RELIC.gold,fontWeight:'bold'});
+    const textX=arrowX+(reading.passive?0:28);
+    const line=copy(root,effect.text,textX,y,width-pad-textX,fontSize);
     y+=Math.max(line.height,inline?(timing?.height??0):0)+10;
   }
-  if (!reading.effects.length) y+=copy(root,'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
+  if (!reading.effects.length) y+=copy(root,reading.passive?'No ongoing effect.':'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
   y+=8;
   paintRelicPanel(activation,0,blockY,width,y-blockY,reading.type==='Charge'?0x152321:0x1b2017,RELIC.brass,1);
   if (reading.trigger || reading.requirements.length || face.blocked) {
     y+=18;
     if(reading.trigger)y+=copy(root,reading.trigger,pad,y,width-pad*2,fontSize).height+16;
     if(reading.requirements.length)y+=copy(root,reading.requirements.join(' '),pad,y,width-pad*2,fontSize*.82,{fill:RELIC.gold}).height+12;
+    if(face.kind==='structure' && reading.requirements.length && reading.active!==null)y+=copy(root,reading.active?'Requirement met. Bonuses active.':'Inactive: requirements not met. Bonuses do not apply.',pad,y,width-pad*2,fontSize*.82,{fill:reading.active?RELIC.bone:0xe2ad8c}).height+12;
     if(face.blocked)y+=copy(root,`Cannot Activate: ${face.blockedReason}`,pad,y,width-pad*2,fontSize*.82,{fill:0xe2ad8c}).height+12;
   }
   const flavourY=y+8;
@@ -89,6 +91,7 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
 }
 
 export function getPracticeSymbols(face) {
+  if(face.kind==='structure')return getStructureSymbols(face);
   const entries=[];
   if(face.stockCapacity>0) entries.push({name:'Stock / capacity',icon:'stock',description:`The upper tray holds this Practice's Stock: ${face.stock} stored, up to ${face.stockCapacity}. Production stops at capacity.`});
   if(face.workerCapacity>0)entries.push({name:'Worker sockets / multiplier',icon:'population',description:`${face.workers} of ${face.workerCapacity} sockets are occupied. The ×${face.workerMultiplier} plate shows effective staffing. ${face.reading.type==='Charge'?'Workers increase incoming Charge, while Activation output stays separate.':'Workers increase Stock production; specialist workers can meet staffing requirements.'}`});
@@ -112,6 +115,23 @@ export function getPracticeSymbols(face) {
   entries.push({name:`${face.tier[0].toUpperCase()+face.tier.slice(1)} quality`,description:'The small jewel and frame colour show quality. Higher quality can improve capacity and worker sockets.'});
   // Lead with the progression mechanic, then the counters and supporting glyphs.
   return entries.sort((a,b)=>Number(/^(Charge meter|Cycle wheel|Ongoing Activation)/.test(b.name))-Number(/^(Charge meter|Cycle wheel|Ongoing Activation)/.test(a.name)));
+}
+
+function getStructureSymbols(face) {
+  const entries=[];
+  for(const bonus of face.structureBonuses??[]) {
+    if(bonus.kind==='stock') {
+      for(const trait of bonus.traits)if(!entries.some(entry=>entry.trait===trait))entries.push({name:`${trait} Stock`,trait,
+        description:`This tag identifies the Stock whose capacity increases. The outlined Stock box behind the plus and numeral marks added capacity on each matching Practice. This Structure does not hold or produce Stock.`});
+      entries.push({name:'Stock capacity bonus',icon:'stock',description:`+${bonus.amount} capacity on ${bonus.scope}. Contributions add before each Practice's final capacity rounds down.`});
+    } else entries.push({name:bonus.label,icon:bonus.kind,description:bonus.kind==='housingCapacity'
+      ? 'The roof and plus numeral mark added room for population, not people arriving.'
+      : 'The population symbol and percentage mark an ongoing increase to local Martial Support.'});
+  }
+  entries.push({name:'Construction footprint',description:`${face.footprint} horizontal cell${face.footprint===1?'':'s'} in the regional construction strip, separate from the five Practice slots.`},
+    {name:`${face.tier[0].toUpperCase()+face.tier.slice(1)} quality`,description:`The jewel and frame colour show quality.${face.structureQualityBonus?` This Structure has +${face.structureQualityBonus*25}% numeric bonuses.`:''} Housing rounds down per Structure; Stock capacity rounds down after summing host bonuses. Candidate base bonuses and history caps are unchanged.`},
+    {name:'Ongoing bonuses',description:'Bonuses apply while specialist and modifier requirements are met. Capacity bonuses add; other bonuses follow their stated caps and non-stacking scopes. Structures have no Cycle wheel or Charge meter.'});
+  return entries;
 }
 
 export function addPracticeGlossary(parent, width, face, fontSize = 25) {

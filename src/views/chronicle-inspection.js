@@ -33,7 +33,7 @@ function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detai
   const pad=28,gap=30,cardWidth=rect.width*.21;
   const glossaryWidth=rect.width*.29,rulesX=pad+cardWidth+gap;
   const glossaryX=rect.width-pad-glossaryWidth,rulesWidth=glossaryX-gap-rulesX;
-  root.addChild(createText(`${face.tier.toUpperCase()} · PRACTICE`,{...TEXT_STYLES.chip,fontSize:26,fill:RELIC.gold},pad,24));
+  root.addChild(createText(`${face.tier.toUpperCase()} · ${face.kind.toUpperCase()}`,{...TEXT_STYLES.chip,fontSize:26,fill:RELIC.gold},pad,24));
   const close=new PIXI.Container();close.position.set(rect.width-72,14);
   const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,54,54,RELIC.stone,RELIC.brass,1);
   close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:40},27,27,.5,.5));

@@ -248,7 +248,41 @@ function inputTray(parent, inputs, right, h) {
   return {x,y,width,height};
 }
 
+function structureCapacityTray(parent, face, w, h) {
+  if(!face.structureBonuses?.length)return null;
+  const tray=new PIXI.Container(), contents=new PIXI.Container(), height=34, inset=4, iconSize=26;
+  let width=inset;
+  for(const bonus of face.structureBonuses) {
+    const symbols=bonus.kind==='stock'&&bonus.traits.length?bonus.traits.map(trait=>({trait})):[{icon:bonus.kind}];
+    const symbolsWidth=symbols.length*iconSize;
+    const value=createText(`+${Math.round(bonus.amount*100)/100}${bonus.unit??''}`,{...TEXT_STYLES.header,fontSize:23,fill:INK,stroke:0x221b14,strokeThickness:3,trim:true},width+symbolsWidth+5,height/2,0,.5);
+    const cellWidth=symbolsWidth+9+Math.ceil(value.width);
+    recess(contents,width,inset,cellWidth,height-inset*2);
+    if(bonus.kind==='stock') {
+      const crate=new PIXI.Graphics().lineStyle(1.25,0xffffff,.95).beginFill(0x0b100d);
+      crate.drawPolygon([2,7,19,2,30,8,30,27,13,32,2,25]).endFill();
+      const scale=Math.min((value.width+4)/32,(height-4)/32);
+      crate.scale.set(scale);crate.position.set(value.x+(value.width-32*scale)/2,(height-32*scale)/2);
+      crate.eventMode='none';contents.addChild(crate);
+    }
+    contents.addChild(value);
+    symbols.forEach((symbol,i)=>{
+      const x=width+i*iconSize+2;
+      if(symbol.trait)traitIcon(contents,symbol.trait,x,(height-iconSize+3)/2,iconSize-3);
+      else addResourceIcon(contents,symbol.icon,x+(iconSize-3)/2,height/2,iconSize-3);
+    });
+    width+=cellWidth+inset;
+  }
+  plate(tray,0,0,width,height);tray.addChild(contents);
+  const scale=Math.min(1,(w-8)/width);
+  tray.scale.set(scale);tray.position.set(w-width*scale-3,h-height*scale-2);
+  if(face.reading?.active===false)tray.alpha=.55;
+  tray.eventMode='none';parent.addChild(tray);
+  return {x:tray.x,y:tray.y,width:width*scale,height:height*scale};
+}
+
 export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=false}={}) {
+  if(face.kind==='structure')return {capacity:structureCapacityTray(parent,face,w,h)};
   const stock=stockTray(parent,face,w);
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));
   const pulse=!reducedMotion&&age!=null?Math.max(0,1-age/1.25):0;
