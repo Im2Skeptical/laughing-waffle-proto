@@ -48,7 +48,8 @@ export function describeStructure(id, state) {
   for (const mod of (def.modifiers ?? []).filter(m => m.kind === 'capacity')) {
     const traits = mod.query?.traitsAny ?? [], tags = mod.query?.tagsAny ?? [];
     effects.push({ kind: 'stock', stockTraits: traits, amount: mod.amount * factor, label: 'Stock capacity', scope: traits.join(' / ') || tags.join(' / ') || 'all local Practices',
-      text: `Each local Practice ${traits.length ? `whose Stock has ${traits.join(' or ')}` : tags.length ? `tagged ${tags.join(' or ')}` : ''} gains +${fmt(mod.amount * factor)} Stock capacity.` });
+      text: traits.length ? `+${fmt(mod.amount * factor)} to ${traits.join(' / ')} Stock Capacity`
+        : `+${fmt(mod.amount * factor)} to Stock Capacity on ${tags.length ? `${tags.join(' / ')} Practices` : 'all local Practices'}` });
   }
   for (const mod of (def.modifiers ?? []).filter(m => m.kind === 'support')) effects.push({ kind: 'population', amount: mod.amount * factor * 100,
     unit: '%', label: 'Martial Support', text: `Adds ${fmt(mod.amount * factor * 100)}% to the local Martial Support multiplier.` });
@@ -154,8 +155,7 @@ function reading(id, width, state, onInspect) {
   if (def.pool !== 'common' && def.candidateBonus) lines.push(`+${def.candidateBonus} to future ${def.pool} candidates from this settlement, within the institutional bonus cap.`);
   for (const m of (def.modifiers ?? []).filter(m => m.kind === 'historyCandidate')) lines.push(`Additional candidate bonus from civilization age and stocked Record Practices, capped at +${m.cap}.`);
   for (const line of lines) {
-    text(root, '›', pad, y, 25, size, { fill: RELIC.gold });
-    y += text(root, line, pad + 28, y, width - pad * 2 - 28, size).height + 16;
+    y += text(root, line, pad, y, width - pad * 2, size).height + 16;
   }
   y += 4;
   const rulesBg = new PIXI.Graphics(); paintRelicPanel(rulesBg, 0, rulesY, width, y - rulesY, 0x1b2017, RELIC.brass, 1); root.addChildAt(rulesBg, 0);
