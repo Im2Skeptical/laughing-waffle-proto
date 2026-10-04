@@ -39,7 +39,7 @@ function conditions(query = {}) {
 
 function modifierText(mod, amount) {
   const n = fmt(amount), percent = fmt(amount * 100), scope = practiceScope(mod.query);
-  const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Scholars', commissions:'completed Commissions' };
+  const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Vassals of the candidate class', commissions:'completed Commissions by retired Vassals of the candidate class', chaos:'Chaos Power', conquests:'completed conquests', victories:'martial victories', knowledgeStructures:'distinct local Knowledge Structures' };
   const lines = {
     capacity: mod.query?.traitsAny?.length && !mod.query.tagsAny?.length
       ? `+${n} to ${mod.query.traitsAny.join(' / ')} Stock Capacity`
@@ -53,9 +53,9 @@ function modifierText(mod, amount) {
     defenseMultiplier: `+${percent}% to local defensive Martial Support`,
     retinueCap: `+${n} Warrior Retinue capacity`,
     lossDefense: `+${n} Defense per lost settlement, up to 3 losses`,
-    currencyWildcard: 'One hosted Currency Stock can replace one missing consumed Stock in a recipe',
+    currencyWildcard: 'Consume one hosted Currency Stock to replace one missing required or consumed Stock in a recipe',
     consumeReduction: `${scope} consume ${n} less Record Stock (at least 1 remains required)`,
-    flexibleProvider: `One missing required Stock for ${scope} can use any non-Currency Stock`,
+    flexibleProvider: `One missing required or consumed Stock for ${scope} can use any stocked provider, including Currency (required Stock is kept; consumed Stock is spent)`,
     scalingCap: `+${n} to the population-scaling cap of ${scope}`,
     preview: `+${n} local preview bonus`,
     lossResistance: `Reduce population losses by ${percent}% (combined mitigation capped at 75%)`,
@@ -63,7 +63,7 @@ function modifierText(mod, amount) {
     networkSupport: `Add ${percent}% of connected player settlements' Martial Support (combined share capped at 50%)`,
     stockSupport: `+${percent}% Martial Support per stocked local Practice${mod.query?.traitsAny?.length ? ` with ${mod.query.traitsAny.join(' or ')} Stock` : ''}, up to 3 Practices`,
     evacuationShare: `Evacuate ${percent}% of population when this settlement is lost (combined share capped at 75%)`,
-    historyCandidate: `Additional Scholar candidate bonus from ${(mod.sources ?? []).map(source => history[source] ?? source).join(' and ')}, capped at +${mod.cap ?? 3}`,
+    historyCandidate: `Additional candidate bonus from ${(mod.sources ?? ['retired','conquests','losses']).map(source => history[source] ?? source).join(' and ')}, capped at +${mod.cap ?? 3}`,
   };
   return (lines[mod.kind] ?? `+${n} ${mod.kind} for ${scope}`) + conditions(mod.query);
 }
@@ -83,7 +83,7 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
     if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Stock capacity', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
-  if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement, within the institutional bonus cap` });
+  if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement (combined institutional bonus capped at +5)` });
   if (!effects.length && def.ui?.rule) effects.push({ timing:'', text:def.ui.rule });
   const requirements = def.specialistGate ? [`Requires ${def.specialistGate} local ${title(def.pool)}${def.specialistGate === 1 ? '' : 's'}.`] : [];
   const active = !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
