@@ -208,6 +208,11 @@ export function createSettlementGraphSession({
     const afterPendingResolution = getVassalPendingResolution(afterState);
     const recapOpened = !!beforePendingResolution && !afterPendingResolution;
     if (recapOpened) {
+      // Publish exact history before the recap's first render. Geometry can
+      // wait for paint; its sampling path must already avoid synchronous replay.
+      getGraphController?.()?.retainAuthoritativeSummariesFrom?.(
+        beforePendingResolution.startSec, preparedResolution?.summaries
+      );
       onPendingResolutionSettled?.({
         beforeState,
         afterState,

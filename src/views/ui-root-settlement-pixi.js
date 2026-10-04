@@ -1726,6 +1726,15 @@ app.ticker.add((delta) => {
   settlementGraphView?.setInteractionReadinessCap?.(lifeDecisionController.getReadinessCap());
   lifeProcessingView?.update?.();
   const resolutionOpened = processSettlementPendingCommit();
+  if (vassalResolutionRecapView.isOpen()) {
+    // The prepared recap owns this frame. Simulation/worker commits above keep
+    // their normal cadence; covered views need no replay, geometry or preview
+    // work until dismissal. Pixi still renders immediate control feedback.
+    vassalResolutionRecapView.update(frameDt);
+    nodeResolutionDiagnostics.sample({recapOpen:true,resolutionSec:getSettlementFrontierSec()});
+    timelineAudio.update(frameDt);
+    return;
+  }
   syncSettlementGraphRevealConfig();
   syncSettlementGraphHorizon();
   restoreSettlementPendingPreviewTarget();

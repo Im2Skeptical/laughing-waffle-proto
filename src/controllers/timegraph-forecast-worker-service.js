@@ -1,4 +1,5 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
+import { freezeForecastChunkConfigs } from "../model/timegraph/forecast-wire.js";
 import {
   perfEnabled,
   recordSettlementForecastBuild,
@@ -215,6 +216,7 @@ export function createTimegraphForecastWorkerService({
     const projectionCache = request.projectionCache;
     const timeline = request.timeline;
     if (!projectionCache || !timeline) return;
+    freezeForecastChunkConfigs(message.result);
 
     const merged = projectionCache.mergeForecastChunk?.(timeline, {
       timelineToken: message.timelineToken,

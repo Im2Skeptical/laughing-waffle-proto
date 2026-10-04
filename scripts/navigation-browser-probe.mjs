@@ -165,6 +165,9 @@ try {
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation?.time.mode === 'projection');
+  // The default overview has no explicitly selected region. Choose the
+  // authored fixture's settlement before testing its contextual destination.
+  await clickPoint(await controlPoint('getWorldMapClickPoint', 'river-crown'));
   const projected = await snapshot();
   assert.equal(projected.navigation.portrait, null, 'there is no invented vassal before selection');
   assert.deepEqual(destinations(projected), ['vassal', 'settlement']);

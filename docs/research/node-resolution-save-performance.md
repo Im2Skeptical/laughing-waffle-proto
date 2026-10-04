@@ -1,5 +1,104 @@
 ﻿# Node-resolution / IndexedDB investigation — 2026-10-04
 
+## Follow-up: first-vassal death and actual history plotting
+
+The physical Pixel 6 retest disproved the seven-node result as a complete fix.
+Its diagnostics recorded 6.1/7.1/9.2-second recap frame gaps at official seconds
+1261/1560/1708 while the forecast worker remained enabled. All five recent saves
+succeeded with seven checkpoints and about 3.16 million characters; synchronous
+serialization took 32–45 ms and enqueue took 19–25 ms. Those stages do not explain
+the multi-second stalls. Elapsed transaction duration is not pure storage time.
+
+The extended seed-735 reproduction now plays through the first vassal's death
+(ten nodes, official second 1093) and measures the following twelve seconds of
+unveil. Before this change it caught a 20.53-second frame gap. Its main-thread
+profile traced the large stall through `drawPlot → getSamplesForWindow →
+getSeriesValuesForSeconds → ensureStateAtSecond → rebuildStateAtSecond`.
+The history-promotion code used worker summaries, but actual plotting used a
+separate sample grid and replayed historical states after derived caches cleared.
+
+The controller now retains every supplied authoritative tick summary separately
+from forecast eviction and plot/series/window caches. It publishes them before
+the recap's first paint. Actual plotting and historical status reads reuse those
+summaries; unsupported series and unavailable summaries keep authoritative replay
+as the fallback. Timeline replacement, rewind, and the earliest changed action
+invalidate affected summaries. Multiple edits between draws cannot hide an
+earlier mutation behind the last mutation's timestamp.
+Loaded saves initially lack runtime summaries for their older history. A cold
+historical plot sample is reconstructed authoritatively once and its exact
+summary is retained for subsequent node commits and metric/scope changes.
+
+Covered views stay still while the recap owns interaction. Simulation/worker
+commit orchestration keeps its ordinary cadence above that presentation gate,
+and Pixi still draws control feedback. No future-preview restoration or covered
+view geometry rebuild competes with Continue. Dismissal resumes presentation.
+
+The remaining profile showed each new preview anchor cloning and validating the
+same large config again. The existing 64-anchor restore codec now uses a private
+reader: a new config takes the ordinary full deserialization path; identical
+JSON config content reuses its validated, frozen canonical config. Every new
+anchor body is independently cloned and still validates schema, world, Life Map,
+and RNG. Ordinary save/replay deserialization retains mutable independent configs.
+There is no serializer, schema, tick, loss-detection, checkpoint, or storage change.
+
+Forecast delivery also cloned the same config independently for each anchor in
+one message. Wire encoding now interns configs by exact JSON content within that
+message. Structured clone preserves that identity; the receiving handler freezes
+the config tree again because frozen descriptors do not survive transport. Only
+the frozen config is shared, and no snapshots or every-second summaries are
+removed. Wire JSON remains identical. Tests compare complete payloads, verify
+independent mutable preview bodies, keep different configs distinct, and require
+at least a 50% reduction in the real fixture's V8 structured-serialization size.
+The browser probe confirms actual worker replies share the config identity.
+
+The death-to-map transition also forced a redundant second geometry rebuild
+after making the map visible. That extra forced rebuild is removed.
+
+The actual plotting regression first failed with synchronous replay despite
+prepared summaries. It now covers first paint, dense/focus sampling, metric/scope
+and horizon changes, multiple timeline edits, rewind, replacement, and the
+unsupported-series replay fallback. Restore tests compare complete state/RNG at
+every off-anchor second, mutate returned states, and reject malformed config,
+world, Life Map, schema and RNG after the reader is warm.
+
+For the extended browser run:
+
+```powershell
+$env:PROBE_NODES='25'
+$env:PROBE_UNVEIL='1'
+$env:PROBE_LABEL='first-vassal'
+npm run probe:recap-input
+```
+
+The fixture bypasses the ordinary new-game opening, so the harness waits for
+initial loading coverage before playing. It never delays a tap after a recap.
+Continue retains its 250 ms feedback / 750 ms dismissal budgets. Return to map
+includes the first map draw and has a separate 1500 ms transition budget. The additional
+unveil regression catches frame stalls of one second or more; optional
+`PROBE_ASSERT_SMOOTH=1` applies the separate 100 ms p95 / 250 ms maximum smoothness
+experiment. Software GL under 4× CPU slowdown does not establish physical-phone
+frame rates. Do not overlap browser timing runs with other CPU-heavy checks or
+rebuild `dist` while a probe is running. Detailed output stays in `artifacts/`.
+
+The first complete passing 4× CPU/software-GL run through death recorded feedback
+91/54/46/48/37/116/145/34/48/42 ms, ordinary dismissal at most 525 ms, and return
+to map at 1000 ms. The following unveil's largest frame gap was 548 ms rather
+than 20.53 seconds; the worker remained enabled with no failure/retry recorded.
+This passes the multi-second-stall gate, not the optional strict smoothness
+experiment. Physical Pixel 6 confirmation is still needed; these numbers are
+not a claim of frame-perfect unveiling on the phone.
+
+The final combined latest-main build, including cold loaded-history reuse,
+passed the same ten-node run with ordinary autosaving enabled: feedback
+155/53/204/45/41/52/58/42/58/49 ms, ordinary dismissal at most 749 ms, and return
+to map at 953 ms. The following twelve seconds had 32 frames, p95 456 ms and
+maximum 467 ms; revealed coverage reached second 4155 against target 4213.
+The worker stayed enabled with no recorded failure. `npm run verify` and the
+settlement, navigation and timegraph-alignment browser probes passed. The
+software-rendered frame-smoothness limitation above still applies.
+
+## Earlier seven-node investigation (limited scope)
+
 Pixel 6 report, clarified by the player: Continue on **Turning point resolved**
 loses its immediate response after roughly five successive nodes in a short
 session, with about a one–two second delay. The original single-node frame probe

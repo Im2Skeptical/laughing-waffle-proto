@@ -444,19 +444,10 @@ export function serializeGameState(state) {
   return clean;
 }
 
-export function deserializeGameState(data) {
-  const raw = typeof data === "string" ? JSON.parse(data) : data;
-
-  // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
-  const state = deepCloneSerializable(raw);
+function validateDeserializedStateBody(state) {
   if (state?.gameStateSchemaVersion !== 27) {
     throw new Error("Unsupported game-state schema: expected v27");
   }
-  const gameConfigValidation = validateGameConfig(state.gameConfig);
-  if (!gameConfigValidation.ok) {
-    throw new Error(`Invalid serialized game config: ${gameConfigValidation.errors.join("; ")}`);
-  }
-  state.gameConfig = canonicalizeGameConfig(state.gameConfig);
   canonicalizeWorldState(state);
   const worldValidation = validateWorldState(state);
   if (!worldValidation.ok) {
@@ -478,6 +469,51 @@ export function deserializeGameState(data) {
   state._seasonChanged = false;
   syncPhaseToPaused(state);
   return state;
+}
+
+// A private reader per preview-restorer. New configurations use the ordinary
+// full deserializer. Exact JSON equality allows only its validated, frozen
+// config to be reused; every new mutable body still passes all body validation.
+export function createProjectionAnchorReader() {
+  let configKey = null;
+  let config = null;
+  function freeze(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    for (const child of Object.values(value)) freeze(child);
+    return Object.freeze(value);
+  }
+  return {
+    read(data) {
+      const raw = typeof data === "string" ? JSON.parse(data) : data;
+      const key = JSON.stringify(raw?.gameConfig);
+      if (!config || key !== configKey) {
+        const state = deserializeGameState(raw);
+        config = freeze(state.gameConfig);
+        configKey = key;
+        return state;
+      }
+      const state = deepCloneSerializable({ ...raw, gameConfig: undefined });
+      state.gameConfig = config;
+      return validateDeserializedStateBody(state);
+    },
+    clear() { configKey = null; config = null; },
+  };
+}
+
+export function deserializeGameState(data) {
+  const raw = typeof data === "string" ? JSON.parse(data) : data;
+
+  // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
+  const state = deepCloneSerializable(raw);
+  if (state?.gameStateSchemaVersion !== 27) {
+    throw new Error("Unsupported game-state schema: expected v27");
+  }
+  const gameConfigValidation = validateGameConfig(state.gameConfig);
+  if (!gameConfigValidation.ok) {
+    throw new Error(`Invalid serialized game config: ${gameConfigValidation.errors.join("; ")}`);
+  }
+  state.gameConfig = canonicalizeGameConfig(state.gameConfig);
+  return validateDeserializedStateBody(state);
 
   const local = getLocalState(state);
 

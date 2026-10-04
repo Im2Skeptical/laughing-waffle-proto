@@ -1,13 +1,5 @@
 import { createProjectionChunkSession } from "../model/projection-chunk.js";
-
-function serializeChunkResult(result) {
-  if (!result?.ok) return result;
-  return {
-    ...result,
-    stateDataBySecond: Array.from(result.stateDataBySecond.entries()),
-    summaryBySecond: Array.from(result.summaryBySecond.entries()),
-  };
-}
+import { encodeForecastChunk } from "../model/timegraph/forecast-wire.js";
 
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));
@@ -60,7 +52,7 @@ function postChunkResult(message, result, { baseSec, endSec, done }) {
     endSec,
     stepSec: message.stepSec,
     done,
-    result: serializeChunkResult(result),
+    result: encodeForecastChunk(result),
   });
 }
 
