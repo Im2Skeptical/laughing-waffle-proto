@@ -5,9 +5,63 @@ import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
 import { addCostPanel } from './resource-cost-pixi.js';
+import { addPracticeReading, addPracticeGlossary } from './practice-reading-pixi.js';
+
+function readingViewport(parent, content, rect) {
+  const viewport=new PIXI.Container();viewport.position.set(rect.x,rect.y);parent.addChild(viewport);
+  // Reparent the content so the mask and input remain in the same coordinates.
+  viewport.addChild(content);
+  const mask=new PIXI.Graphics().beginFill(0xffffff).drawRect(0,0,rect.width,rect.height).endFill();
+  viewport.addChild(mask);content.mask=mask;
+  const maxScroll=Math.max(0,content.readingHeight-rect.height);
+  let scroll=0,drag=null;
+  const move=value=>{scroll=Math.max(0,Math.min(maxScroll,value));content.y=-scroll;};
+  viewport.getScroll=()=>scroll;viewport.setScroll=move;
+  viewport.eventMode='static';viewport.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
+  viewport.on('wheel',event=>{event.stopPropagation();move(scroll+(event.deltaY??event.nativeEvent?.deltaY??0));});
+  viewport.on('pointerdown',event=>{event.stopPropagation();drag={y:viewport.toLocal(event.global).y,scroll};});
+  viewport.on('pointermove',event=>{if(drag)move(drag.scroll+drag.y-viewport.toLocal(event.global).y);});
+  for(const type of ['pointerup','pointerupoutside','pointercancel'])viewport.on(type,()=>{drag=null;});
+  if(maxScroll)parent.addChild(createText('Drag or scroll to read',{...TEXT_STYLES.body,fontSize:22,fill:RELIC.ash},rect.x,rect.y+rect.height+8));
+  return viewport;
+}
+
+function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detail}) {
+  const root=new PIXI.Container();root.position.set(rect.x,rect.y);
+  root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
+  const frame=new PIXI.Graphics();paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,2);root.addChild(frame);
+  const pad=28,gap=30,cardWidth=rect.width*.21;
+  const glossaryWidth=rect.width*.29,rulesX=pad+cardWidth+gap;
+  const glossaryX=rect.width-pad-glossaryWidth,rulesWidth=glossaryX-gap-rulesX;
+  root.addChild(createText(`${face.tier.toUpperCase()} · PRACTICE`,{...TEXT_STYLES.chip,fontSize:26,fill:RELIC.gold},pad,24));
+  const close=new PIXI.Container();close.position.set(rect.width-72,14);
+  const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,54,54,RELIC.stone,RELIC.brass,1);
+  close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:40},27,27,.5,.5));
+  close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(-39,-39,132,132);
+  close.on('pointertap',event=>{event.stopPropagation();onClose?.();});root.addChild(close);root.closeControl=close;
+  const top=88,bottom=rect.height-56;
+  const fitted=fitPiece({x:pad,y:top+20,width:cardWidth,height:bottom-top-(cost?160:10)},face.kind,face.footprint);
+  addSettlementPiece(root,{x:fitted.x,y:fitted.y,width:fitted.width*fitted.scale,height:fitted.height*fitted.scale},{face});
+  if(cost)root.costPanel=addCostPanel(root,{x:pad,y:bottom-146,width:cardWidth,height:140},{...cost,interactive:!!onActivate,onActivate,fontSize:30,iconSize:38});
+  const size=Math.max(26,Math.min(40,rulesWidth/20));
+  const rules=addPracticeReading(root,rulesWidth,face,{fontSize:size});
+  // Transaction-specific blockers remain inspect-only, outside the shared rules.
+  if(cost?.disabled && detail) {
+    const note=createText(cost.staged?'Already staged.':detail.split('\n').filter(line=>/Insufficient|Cannot|Requires|Blocked/i.test(line)).join('\n'),{...TEXT_STYLES.body,fontSize:26,fill:RELIC.gold,wordWrap:true,wordWrapWidth:rulesWidth-48},24,rules.readingHeight+18);
+    rules.addChild(note);rules.readingHeight+=note.height+36;
+  }
+  const rulesViewport=readingViewport(root,rules,{x:rulesX,y:top,width:rulesWidth,height:bottom-top});
+  const glossary=addPracticeGlossary(root,glossaryWidth,face,size);
+  const glossaryViewport=readingViewport(root,glossary,{x:glossaryX,y:top,width:glossaryWidth,height:bottom-top});
+  root.getScroll=()=>rulesViewport.getScroll();root.setScroll=value=>rulesViewport.setScroll(value);
+  root.getGlossaryScroll=()=>glossaryViewport.getScroll();root.setGlossaryScroll=value=>glossaryViewport.setScroll(value);
+  root.glossary=glossary;root.rules=rules;root.glossaryViewport=glossaryViewport;
+  parent.addChild(root);return root;
+}
 
 // A view-local reading surface; scrolling never changes a card or its draft.
 export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate}) {
+  if(face?.reading)return addPracticeInspection(parent,rect,{face,cost,onActivate,onClose,detail});
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   const frame=new PIXI.Graphics();
   paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,3);

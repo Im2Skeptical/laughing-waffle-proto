@@ -8,6 +8,7 @@ import { MUCHA_UI_COLORS } from "./ui-helpers/mucha-ui-palette.js";
 import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
 import { normalizeTooltipSpec } from "./tooltip-spec.js";
 import { addChronicleInspection } from './chronicle-inspection.js';
+import { addPracticeReading } from './practice-reading-pixi.js';
 
 const BG_FILL = MUCHA_UI_COLORS?.surfaces?.panelDeep ?? 0x2a241d;
 const BG_STROKE = MUCHA_UI_COLORS?.surfaces?.border ?? 0x8f7c60;
@@ -86,6 +87,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   container.on('pointerdown',()=>{pinRevision++;});
   // The reading viewport stops bubbling so scrolling cannot act on the scene.
   container.on('pointerdowncapture',()=>{pinRevision++;});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&pinnedKey!==null){event.stopPropagation();hide({force:true});}});
 
   function getScreenSize() {
     return {
@@ -532,22 +534,41 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       hideTimeoutId = null;
     }
     const retainedScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getScroll?.()??0:0;
+    const retainedGlossaryScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getGlossaryScroll?.()??0:0;
     clearChildren();
     pieceInspection=null;
     bg.clear();
 
     if(spec.face){
+      if(spec.face.reading && dismissOnExit) {
+        container.eventMode='none';container.interactiveChildren=false;
+        activeAnchor=anchor;activeSpec=spec;activeScale=1;
+        const reading=addPracticeReading(container,720,spec.face,{fontSize:32});
+        activeWidth=720;activeHeight=reading.readingHeight;
+        activeResolvedAnchor=summarizeAnchor(resolvedAnchor);dismissOnPointerExit=true;
+        const screen=getScreenSize();
+        const layerScale=getTooltipLayerWorldScale();
+        activeScale=Math.min(1,(screen.height-clampMargin*2)/(activeHeight*layerScale));
+        container.scale.set(activeScale);
+        positionTooltip({...resolvedAnchor,side:spec.inspectionSide==='right'?'right':'left'},activeScale*layerScale,activeWidth,activeHeight);
+        container.visible=true;return;
+      }
       container.eventMode=dismissOnExit?'none':'static';
-      activeAnchor=anchor;activeSpec=spec;activeScale=1;activeWidth=840;activeHeight=650;
+      activeAnchor=anchor;activeSpec=spec;activeScale=1;activeWidth=spec.face.reading?2200:840;activeHeight=spec.face.reading?880:650;
       activeResolvedAnchor=summarizeAnchor(resolvedAnchor);
       dismissOnPointerExit=dismissOnExit;
       container.scale.set(1);
-      container.position.set(spec.inspectionSide==='right'?1538:70,100);
+      container.position.set(spec.face.reading?112:spec.inspectionSide==='right'?1538:70,spec.face.reading?90:100);
+      if(spec.face.reading) {
+        const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(-112,-90,2424,1080).endFill();
+        dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();hide({force:true});});container.addChild(dim);
+      }
       pieceInspection=addChronicleInspection(container,{x:0,y:0,width:activeWidth,height:activeHeight},{
         face:spec.face,title:spec.title,metadata:[spec.face.tier,...(spec.face.tags??[])].join(' · '),
         detail:(spec.lines??[]).join('\n'),onClose:()=>hide({force:true}),
       });
       pieceInspection.setScroll(retainedScroll);
+      pieceInspection.setGlossaryScroll?.(retainedGlossaryScroll);
       container.interactiveChildren=!dismissOnExit;
       container.visible=true;return;
     }
@@ -653,6 +674,12 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       sourceKind: activeSpec?.sourceKind ?? null,
       sourceId: activeSpec?.sourceId ?? null,
       title: activeSpec?.title ?? "",
+      reading: activeSpec?.face?.reading ?? null,
+      expanded: !!pieceInspection && !!activeSpec?.face?.reading,
+      glossary: pieceInspection?.glossary?.entries?.map(entry=>entry.name) ?? [],
+      glossaryRect: pieceInspection?.glossaryViewport?.getBounds?.() ?? null,
+      rulesRect: pieceInspection?.rules?.getBounds?.() ?? null,
+      closePoint: pieceInspection?.closeControl?.toGlobal?.(new PIXI.Point(27,27)) ?? null,
       anchor: activeResolvedAnchor,
     }),
     update,

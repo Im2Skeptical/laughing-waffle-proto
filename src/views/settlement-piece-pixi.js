@@ -41,7 +41,7 @@ export function addSettlementPiece(parent, rect, {
       root.addChild(blueprint);
     }
   }
-  root.eventMode = 'static';root.cursor = onInspect ? 'pointer' : 'default';
+  root.eventMode = 'static';root.cursor = onInspect || tooltipView ? 'pointer' : 'default';
   const top = Math.min(0, root.faceSections?.stock?.y ?? 0);
   root.hitArea = new PIXI.Rectangle(0,top,w,h-top);
   root.accessibleTitle = face?.label ?? 'Available space';
