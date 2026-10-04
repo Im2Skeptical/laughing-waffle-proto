@@ -43,13 +43,21 @@ async function waitDismissed() {
     return !map.focusAnimating && map.panelReveal.phase==='closed' && !map.detailPanelVisible;
   });
 }
-async function assertCentered(id) {
+async function assertGroupFramed(id) {
   await waitFocus();
-  const p=await regionPoint(id);
-  assert.ok(Math.abs(p.x-488)<1 && Math.abs(p.y-452)<1,`${id} centers in left map area`);
-  assert.ok((await snap()).camera.zoom>=1.65,'selected settlement is magnified');
+  const map=await snap(), bounds=map.layout.groupFrame;
+  assert.equal(map.selected,id);
+  for(const regionId of map.relationships.groupRegionIds) {
+    const p=await regionPoint(regionId);
+    assert.ok(p.x>=bounds.x && p.x<=bounds.x+bounds.width && p.y>=bounds.y && p.y<=bounds.y+bounds.height,`${regionId} is visible in the default group framing`);
+  }
 }
 async function capture(name) {await page.mouse.move(0,0);await delay(150);await page.screenshot({path:`${output}/${name}.png`});snapshots.push({name,...await snap()});}
+async function doubleTapFlag() {
+  const flag=await point(await regionPoint());
+  await page.mouse.dblclick(flag.x,flag.y,{delay:20});
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement',null,{timeout:5000});
+}
 try {
   for(let i=0;i<100;i++){try{if((await fetch(`http://127.0.0.1:${port}`)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
@@ -64,6 +72,9 @@ try {
   await page.waitForFunction(()=>globalThis.PIXI?.Assets.get('images/sprite-sheets/settlement-pieces-0.json')?.textures);
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await delay(600);
+  if(process.argv.includes('--double-tap-only')) {
+    await doubleTapFlag();
+  } else {
   assert.equal((await snap()).detail,false);
   await capture('desktop-map');
   await click({x:558,y:116});
@@ -89,22 +100,19 @@ try {
   assert.equal(opening.panel.animating,true);
   assert.equal(opening.panel.scale,.06);
   assert.deepEqual(opening.panel.origin,opening.origin,'panel grows out of the selected settlement');
-  await assertCentered('cedar-woods');
+  await assertGroupFramed('cedar-woods');
   let selected=await snap();
   assert.equal(selected.detail,true,'settlement details disclose on selection');
   assert.equal(selected.slots.visible,8);
   assert.equal(selected.slots.blocked,8-selected.slots.available);
   await capture('desktop-selected');
-  assert.deepEqual(selected.relationships.adjacentRegionIds,['west-levee']);
-  assert.ok(selected.relationships.connectedRegionIds.includes('river-crown'),'indirect settlements are highlighted separately');
-  assert.deepEqual(selected.relationships.stockProviderRegionIds,['west-levee']);
-  await click({x:127,y:782});
-  await waitFocus();
-  assert.ok((await snap()).camera.zoom<1,'Show group zooms out to fit the connected territory');
-  assert.equal((await snap()).active,true,'group overview retains selection and details');
-  await capture('desktop-connected-group');
+  assert.deepEqual(selected.relationships.highlightedRegionIds,['west-levee'],'only adjacent regions with a direct road are highlighted');
+  const groupCamera=selected.camera;
+  await click({x:818,y:782});
   await click({x:899,y:782});
-  await assertCentered('cedar-woods');
+  await waitFocus();
+  assert.deepEqual((await snap()).camera,groupCamera,'Reset restores the default group framing');
+  await assertGroupFramed('cedar-woods');
   assert.equal(selected.slots.blocked,3,'five-cell region blocks three cells');
   await click({x:1110,y:400});
   const inspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
@@ -116,7 +124,7 @@ try {
   // Select another visible settlement with a real pointer, not only the debug callback.
   await click(await regionPoint('west-levee'));
   assert.equal((await snap()).selected,'west-levee','clicking another settlement changes the panel subject');
-  await assertCentered('west-levee');
+  await assertGroupFramed('west-levee');
   assert.equal((await snap()).panelReveal.scale,1,'switching keeps the open panel in place');
   const settled=await snap();
   const pan=await point({x:700,y:650});
@@ -151,12 +159,8 @@ try {
   await capture('mobile-map');
   await click(await regionPoint(),true);
   assert.equal((await snap()).detail,true,'touch selects');
-  await assertCentered('cedar-woods');
+  await assertGroupFramed('cedar-woods');
   await capture('mobile-selected');
-  await click({x:127,y:782},true);
-  await waitFocus();
-  assert.ok((await snap()).camera.zoom<1,'touch opens the whole connected group');
-  await capture('mobile-connected-group');
   await click({x:2370,y:116},true);
   await waitDismissed();
   const cdp=await page.context().newCDPSession(page);
@@ -176,12 +180,11 @@ try {
   assert.ok((await snap()).camera.x>0,'touch drag pans');
   await click({x:2340,y:780},true);
   // Double tapping a flag still opens its settlement after the first tap reframes the map.
-  const flag=await point(await regionPoint());
-  await page.mouse.dblclick(flag.x,flag.y,{delay:80});
-  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode==='settlement');
+  await doubleTapFlag();
+  }
   assert.deepEqual(errors,[]);
   writeFileSync(`${output}/result.json`,JSON.stringify({snapshots,errors},null,2));
-  console.log(`[probe:region-map] OK: disclosure, drawer, mouse/touch pan, wheel/pinch zoom, reset, eight-cell rail; screenshots=${output}`);
+  console.log(`[probe:region-map] OK: ${process.argv.includes('--double-tap-only') ? 'flag double-tap after automatic group framing' : 'disclosure, automatic group framing, mouse/touch pan, wheel/pinch zoom, reset, inspection, eight-cell rail'}; screenshots=${output}`);
 } catch(error) {
   await page?.screenshot({path:`${output}/failure.png`}).catch(()=>{});
   writeFileSync(`${output}/result.json`,JSON.stringify({error:error.stack,snapshot:await snap().catch(()=>null),errors},null,2));

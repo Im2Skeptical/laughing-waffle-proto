@@ -3,6 +3,7 @@ import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
 import { getMapRelationships, getMapRelationship } from '../src/views/world-map/relationships.js';
 import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
+import { getAdjacentRegionIds } from '../src/model/world-state.js';
 
 // Exercise the real camera with a deterministic UI clock and input surface.
 // No renderer or simulation is needed to verify framing and gesture ownership.
@@ -110,18 +111,21 @@ console.log('[region-map-group-frame] OK: the whole group fits inside its unobst
 const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
 const reach = getMapRelationships(state, 'copper-basin', true);
-assert.deepEqual(reach.adjacentRegionIds, ['high-pass', 'east-steppe']);
-assert.deepEqual(reach.connectedRegionIds, ['iron-hills', 'obsidian-ridge']);
-assert.deepEqual(reach.stockProviderRegionIds, ['east-steppe'], 'neutral or indirect neighbours cannot supply Stock');
+assert.deepEqual(reach.highlightedRegionIds, ['high-pass', 'east-steppe']);
+assert.ok(reach.groupRegionIds.includes('obsidian-ridge'), 'indirect members remain in the default camera group');
 assert.equal(getMapRelationship(reach, 'copper-basin'), 'selected');
-assert.equal(getMapRelationship(reach, 'east-steppe'), 'adjacent');
-assert.equal(getMapRelationship(reach, 'obsidian-ridge'), 'connected');
+assert.equal(getMapRelationship(reach, 'east-steppe'), 'connected');
+assert.equal(getMapRelationship(reach, 'obsidian-ridge'), null, 'indirect connectivity alone does not qualify');
 assert.equal(getMapRelationship(reach, 'cedar-woods'), null, 'unrelated regions stay outside the highlighted group');
 assert.equal(getMapRelationships(state, 'copper-basin', false), null, 'dismissal clears every relationship cue');
 assert.equal(JSON.stringify(state), beforeRelationships, 'reach queries leave simulation state and RNG untouched');
+const unconnectedNeighbour = getAdjacentRegionIds(state, 'copper-basin').find(id => !reach.highlightedRegionIds.includes(id));
+assert.ok(unconnectedNeighbour, 'fixture includes a physical neighbour without a road');
+assert.equal(getMapRelationship(reach, unconnectedNeighbour), null, 'physical adjacency alone does not qualify');
+state.world.connections.push({regionAId:'copper-basin',regionBId:'cedar-woods'});
+assert.equal(getMapRelationship(getMapRelationships(state, 'copper-basin', true), 'cedar-woods'), null, 'a road alone cannot bypass physical adjacency');
 state.world.connections = state.world.connections.filter(edge => edge.regionAId !== 'copper-basin' && edge.regionBId !== 'copper-basin');
 const isolated = getMapRelationships(state, 'copper-basin', true);
-assert.deepEqual(isolated.adjacentRegionIds, []);
-assert.deepEqual(isolated.connectedRegionIds, []);
-assert.deepEqual(isolated.stockProviderRegionIds, [], 'road removal immediately removes supply eligibility');
-console.log('[region-map-relationships] OK: direct versus indirect reach, Stock eligibility, dismissal, live roads, unchanged state');
+assert.deepEqual(isolated.highlightedRegionIds, [], 'road removal immediately removes the highlight');
+assert.deepEqual(isolated.groupRegionIds, ['copper-basin'], 'isolated selections frame their own territory');
+console.log('[region-map-relationships] OK: adjacency AND direct connection, indirect exclusion, dismissal, live roads, unchanged state');

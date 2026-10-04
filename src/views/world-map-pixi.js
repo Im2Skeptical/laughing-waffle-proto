@@ -1,5 +1,5 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
-import { getMapRelationships, getMapRelationship, drawRelationshipLine, addRelationshipBadge, addRelationshipLegend } from './world-map/relationships.js';
+import { getMapRelationships, getMapRelationship, drawRelationshipLine } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
@@ -34,6 +34,7 @@ import {
   DETAIL_RECT,
   EDGE_TRANSFER_PACKET_MAX_ACTIVE,
   MAP_RECT,
+  GROUP_FRAME_RECT,
   MAP_VIEWPORT_RECT,
   REGION_COLOURS,
   REGION_DOUBLE_TAP_WINDOW_MS,
@@ -302,7 +303,9 @@ export function createWorldMapView({
     lastSignature = '';
   }
 
-  // A second flag tap may land on the newly opened detail overlay.
+  // Group framing can move the flag away from the original tap into empty map
+  // space or beneath chrome. Recognize the second press before another gesture
+  // starts or its release dismisses the selection.
   const captureFlagDoubleTap = event => {
     if (!isRecentFlagTap(viewport.toLocal(event.global))) return;
     event.stopPropagation();
@@ -310,6 +313,7 @@ export function createWorldMapView({
   };
   root.on('pointerdowncapture', captureFlagDoubleTap);
   detailRoot.on('pointerdowncapture', captureFlagDoubleTap);
+  viewport.on('pointerdowncapture', captureFlagDoubleTap);
 
   function getEdgeTransferBatchKey(batch) {
     if (!batch || !Number.isFinite(batch?.boundarySec)) return null;
@@ -473,6 +477,9 @@ export function createWorldMapView({
     const selectedRegionId = getSelectedRegionId?.() ?? state.civilization.capitalRegionId;
     const regionSelectionActive = getRegionSelectionActive?.() === true;
     const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
+    const frameGroup = () => camera.frame(definition.regions
+      .filter(entry => relationships?.groupRegionIds.includes(entry.id))
+      .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint)), GROUP_FRAME_RECT);
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
     const civilizationSummary = getDetailedCivilizationSummary(state);
@@ -506,7 +513,7 @@ export function createWorldMapView({
       if (selected) {
         const point = screenPoint(selected.display.labelPoint);
         if (!lastRevealedRegionId) panelReveal.open(camera.project(point));
-        camera.reveal(point, DETAIL_RECT.x);
+        frameGroup();
         tooltipView?.hide?.();
       }
     }
@@ -629,7 +636,7 @@ export function createWorldMapView({
         const aKind = getMapRelationship(relationships, a.id);
         const bKind = getMapRelationship(relationships, b.id);
         if (aKind && bKind) {
-          drawRelationshipLine(edges, from, to, aKind === 'selected' || bKind === 'selected' ? 'adjacent' : 'connected', 6);
+          drawRelationshipLine(edges, from, to, 6);
         }
       }
     }
@@ -638,7 +645,7 @@ export function createWorldMapView({
     mapContent.addChild(edges);
     // Draw borders after every terrain polygon and road, with selection last.
     // Neighboring terrain must not erase the important side of a shared edge.
-    const borderPriority = territory => territory.selected ? 3 : territory.relationship === 'adjacent' ? 2 : territory.relationship === 'connected' ? 1 : 0;
+    const borderPriority = territory => territory.selected ? 2 : territory.relationship === 'connected' ? 1 : 0;
     for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
       addTerritoryBorder(mapContent, territory.points, territory);
     }
@@ -683,8 +690,6 @@ export function createWorldMapView({
         addSettlementPressureIndicator(adornments, {x:65,y:40}, indicator.pressure);
         addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
       }
-      addRelationshipBadge(mapContent, point, getMapRelationship(relationships, indicator.regionId),
-        relationships?.stockProviderRegionIds.includes(indicator.regionId));
     }
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef)
@@ -766,18 +771,9 @@ export function createWorldMapView({
     addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
     addButton(root, {x: controlsX + 58, y: 756, width: 52, height: 52}, '+', () => camera.zoomBy(1.2, cameraRight));
     addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
-      const selected = regionSelectionActive && getRegionDefinition(state, selectedRegionId);
-      if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x);
+      if (relationships) frameGroup();
       else camera.reset();
     });
-    if (relationships) {
-      const legend = addRelationshipLegend(root, state, relationships);
-      addButton(root, {x:32,y:756,width:190,height:52}, 'Show group', () => {
-        const points = definition.regions.filter(entry => getMapRelationship(relationships, entry.id))
-          .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint));
-        camera.frame(points, {x:48,y:236,width:DETAIL_RECT.x-96,height:Math.max(160,legend.y-252)});
-      });
-    }
     if (!regionSelectionActive) return;
 
     const selectedDef = getRegionDefinition(state, selectedRegionId);
@@ -875,7 +871,7 @@ export function createWorldMapView({
         camera: camera.snapshot(),
         focusAnimating: camera.isAnimating(),
         panelReveal: panelReveal.snapshot(),
-        layout: { viewport: MAP_VIEWPORT_RECT, detail: DETAIL_RECT, chaos: CIVILIZATION_RECT },
+        layout: { viewport: MAP_VIEWPORT_RECT, detail: DETAIL_RECT, chaos: CIVILIZATION_RECT, groupFrame: GROUP_FRAME_RECT },
         structureSlots: viewModel ? { visible: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX, available: viewModel.structureCapacity, blocked: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX - viewModel.structureCapacity } : null,
         graphScope:
           getGraphScope?.() === "settlement"

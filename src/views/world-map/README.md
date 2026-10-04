@@ -40,7 +40,10 @@ The map fills the playfield beneath fixed chrome. Selection opens a right-hand
 region panel; dismissal eases back to the saved overview camera while the panel
 shrinks toward the settlement over 320 ms. Its content stays visible until the
 transition ends; reopening reverses the shrink from its current pose. Opening or switching a
-region eases its map marker into the left-side center at a minimum 1.65x zoom.
+region automatically fits its full road-connected group into the left map area.
+Reset returns to this group framing.
+Flag double-taps remain anchored to the first screen position for 500 ms, including
+when group framing moves the flag into empty map space or beneath fixed chrome.
 Manual camera input cancels that focus transition immediately. Chaos is a floating,
 collapsible drawer. `transitions.js` provides view-local easing and the 240 ms
 panel reveal from the selected marker; reduced-motion preferences skip easing.
@@ -59,18 +62,16 @@ and desktop/mobile screenshots, alongside the settlement/navigation probes.
 
 ## Territory presentation
 
-Selecting a region highlights its direct road neighbours in mint with a double
-outline and the remaining road-connected group in violet with a dashed outline.
-Matching road ink and settlement badges distinguish one-road adjacency from
-multi-road reach; unrelated terrain is dimmed. The fixed reach legend lists both
-sets by region reference, including members outside the current camera framing.
-Show group fits the whole highlighted group's territory above the legend while
-keeping the details open. Reset restores the selected settlement's close view.
-`relationships.js` reads the viewed state's existing region-scope and Stock
-provider selectors. Only eligible adjacent player settlements receive a Stock
-badge and appear in the legend's Stock provider list; indirect reach does not
-imply Stock sharing. The render signature includes live connections so adding or
-removing a road refreshes the highlighting without changing simulation state.
+Selecting a region highlights only neighbours that share a polygon edge AND
+have a live direct road connection to it. These neighbours and their roads use
+violet dotted outlines; the selected region keeps its cyan outline. Physical
+adjacency alone and indirect road connectivity do not qualify. Unrelated terrain
+is dimmed. The selected territory and its full road-connected group are shown together
+by default, without a reach key, relationship badges, or Show group button.
+`relationships.js` intersects the viewed state's existing physical-adjacency and
+live-connection selectors. The render signature includes live connections so
+adding or removing a road refreshes highlighting without changing simulation
+state. Ownership and actual available Stock still govern resource sharing.
 
 Settlement paintings are 58 x 66 map units; zoom supplies the close view.
 Structure-slot pictograms are omitted from the map and remain in settlement

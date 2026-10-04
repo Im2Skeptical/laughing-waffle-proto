@@ -2,6 +2,7 @@ import { SETTLEMENT_RESOURCE_COLOURS } from "../../model/graph-metrics.js";
 
 export const MAP_RECT = Object.freeze({ x: 488, y: 104, width: 1448, height: 688 });
 export const MAP_VIEWPORT_RECT = Object.freeze({ x: 16, y: 78, width: 2392, height: 748 });
+export const GROUP_FRAME_RECT = Object.freeze({ x: 48, y: 236, width: 864, height: 504 });
 export const CIVILIZATION_HEADER_RECT = Object.freeze({
   x: 58,
   y: 16,
@@ -28,7 +29,7 @@ export const CONTROLLER_COLOURS = Object.freeze({
 });
 export const MAX_RENDERED_WORKER_PAWNS = 5;
 export const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
-export const REGION_DOUBLE_TAP_WINDOW_MS = 350;
+export const REGION_DOUBLE_TAP_WINDOW_MS = 500;
 export const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;
 export const EDGE_TRANSFER_RESOURCE_COLOURS = Object.freeze({
   food: SETTLEMENT_RESOURCE_COLOURS.food,
