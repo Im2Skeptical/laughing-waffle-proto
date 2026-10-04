@@ -1,7 +1,7 @@
 import { settlementStructureDefs } from '../../../src/defs/gamepieces/detailed-settlement-defs.js';
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
 import { addSettlementPiece } from '../../../src/views/settlement-piece-pixi.js';
-import { preloadChronicleArt } from '../../../src/views/chronicle-art.js';
+import { getResourceTexture, preloadChronicleArt } from '../../../src/views/chronicle-art.js';
 import { getStoneTexture, paintRelicPanel, RELIC } from '../../../src/views/chronicle-skin.js';
 import { createText } from '../../../src/views/settlement-view-primitives.js';
 import { TEXT_STYLES } from '../../../src/views/settlement-theme.js';
@@ -47,7 +47,7 @@ export function describeStructure(id, state) {
     text: `Adds ${Math.floor(def.housing * factor)} Housing capacity to this settlement.` });
   for (const mod of (def.modifiers ?? []).filter(m => m.kind === 'capacity')) {
     const traits = mod.query?.traitsAny ?? [], tags = mod.query?.tagsAny ?? [];
-    effects.push({ kind: 'stock', amount: mod.amount * factor, label: 'Stock capacity', scope: traits.join(' / ') || tags.join(' / ') || 'all local Practices',
+    effects.push({ kind: 'stock', stockTraits: traits, amount: mod.amount * factor, label: 'Stock capacity', scope: traits.join(' / ') || tags.join(' / ') || 'all local Practices',
       text: `Each local Practice ${traits.length ? `whose Stock has ${traits.join(' or ')}` : tags.length ? `tagged ${tags.join(' or ')}` : ''} gains +${fmt(mod.amount * factor)} Stock capacity.` });
   }
   for (const mod of (def.modifiers ?? []).filter(m => m.kind === 'support')) effects.push({ kind: 'population', amount: mod.amount * factor * 100,
@@ -57,18 +57,35 @@ export function describeStructure(id, state) {
 }
 // Like the Practice Stock tray, the rim fits its contents instead of the art.
 // Keep this proposed Structure treatment local to the workbench.
+function effectSymbols(effect) {
+  return effect.kind === 'stock' && effect.stockTraits.length
+    ? effect.stockTraits.map(trait => `stock-${trait.toLowerCase()}`) : [effect.kind];
+}
+function stockBacking(parent, x, y, width, height) {
+  const texture = getResourceTexture('stock');
+  const crate = new PIXI.Sprite(texture);
+  crate.scale.set(Math.min(width / texture.width, height / texture.height));
+  crate.anchor.set(.5); crate.position.set(x + width / 2, y + height / 2);
+  crate.eventMode = 'none'; parent.addChild(crate);
+}
 function capacityTray(root, effects, w, h, corner = false) {
   const tray = new PIXI.Container(), contents = new PIXI.Container(), height = 34, inset = 4, iconSize = 26;
   let width = inset;
   for (const effect of effects) {
-    const value = text(contents, `+${fmt(effect.amount)}${effect.unit ?? ''}`, width + iconSize + 5, height / 2, 180, 23,
-      { ...TEXT_STYLES.header, fontSize: 23, fill: RELIC.bone, wordWrap: false, trim: true });
+    const symbols = effectSymbols(effect), symbolsWidth = symbols.length * iconSize;
+    const value = text(contents, `+${fmt(effect.amount)}${effect.unit ?? ''}`, width + symbolsWidth + 5, height / 2, 180, 23,
+      { ...TEXT_STYLES.header, fontSize: 23, fill: RELIC.bone, stroke: 0x221b14, strokeThickness: 3, wordWrap: false, trim: true });
     value.anchor.y = .5;
-    const cellWidth = iconSize + 9 + Math.ceil(value.width);
+    const cellWidth = symbolsWidth + 9 + Math.ceil(value.width);
     const recess = new PIXI.Graphics().lineStyle(.7, 0x686457).beginFill(0x111614, .95);
     recess.drawRoundedRect(width, inset, cellWidth, height - inset * 2, 3).endFill();
     contents.addChildAt(recess, 0);
-    addResourceIcon(contents, effect.kind, width + iconSize / 2 + 1, height / 2, iconSize - 3);
+    if (effect.kind === 'stock') {
+      stockBacking(contents, value.x - 3, 1, value.width + 6, height - 2);
+      // The capacity numeral reads over the crate, like a Practice Stock counter.
+      contents.setChildIndex(value, contents.children.length - 1);
+    }
+    symbols.forEach((symbol, i) => addResourceIcon(contents, symbol, width + (i + .5) * iconSize + 1, height / 2, iconSize - 3));
     width += cellWidth + inset;
   }
   const rim = new PIXI.Graphics();
@@ -100,8 +117,10 @@ function structureFace(root, id, rect, state, callbacks, interactive = true) {
     capacityTray(card, data.effects, w, h);
   } else if (state.variant === 'B') {
     const circle = new PIXI.Graphics().lineStyle(2, RELIC.gold).beginFill(0x1c2823).drawCircle(36, h - 38, 34).endFill(); card.addChild(circle);
-    addResourceIcon(card, effect.kind, 36, h - 49, 27);
-    const value = text(card, `+${fmt(effect.amount)}${effect.unit ?? ''}`, 8, h - 33, 65, 22, { ...TEXT_STYLES.header, fontSize: 22, wordWrap: false });
+    const symbols = effectSymbols(effect), symbolSize = Math.min(27, 52 / symbols.length);
+    symbols.forEach((symbol, i) => addResourceIcon(card, symbol, 36 + (i - (symbols.length - 1) / 2) * symbolSize, h - 49, symbolSize));
+    if (effect.kind === 'stock') stockBacking(card, 6, h - 36, 60, 27);
+    const value = text(card, `+${fmt(effect.amount)}${effect.unit ?? ''}`, 8, h - 33, 65, 22, { ...TEXT_STYLES.header, fontSize: 22, stroke: 0x221b14, strokeThickness: 3, wordWrap: false });
     value.anchor.x = .5; value.x = 36; if (value.width > 60) value.scale.set(60 / value.width);
   } else {
     capacityTray(card, data.effects, w, h, true);
@@ -153,9 +172,9 @@ function reading(id, width, state, onInspect) {
 function glossary(id, width, state) {
   const { def, effects, tier } = describeStructure(id, state), root = new PIXI.Container(); let y = 24;
   y += text(root, 'THE SYMBOLS ON THIS CARD', 22, y, width - 44, 25, { fill: RELIC.gold, fontWeight: 'bold' }).height + 28;
-  const entries = effects.map(e => ({ name: e.label, icon: e.kind, text: e.kind === 'housingCapacity'
+  const entries = effects.map(e => ({ name: e.kind === 'stock' ? `${e.scope} Stock capacity` : e.label, icon: effectSymbols(e)[0], text: e.kind === 'housingCapacity'
     ? 'The roof marks room for population. The plus and numeral show added Housing capacity, not people arriving.'
-    : e.kind === 'stock' ? `The crate marks capacity on each matching Practice. This Structure does not hold or produce Stock. Matching scope: ${e.scope}.`
+    : e.kind === 'stock' ? `The tag identifies the Stock whose capacity increases: ${e.scope}. The crate behind the plus and numeral marks added capacity on each matching Practice. This Structure does not hold or produce Stock.`
       : 'The population symbol identifies an ongoing increase to the local Martial Support multiplier.' }));
   entries.push({ name: 'Construction footprint', text: `${def.footprint} horizontal cell${def.footprint > 1 ? 's' : ''}. Structures use the regional strip, separate from the five Practice slots.` },
     { name: `${caps(tier)} quality`, text: state.quality ? `The jewel marks quality. This example has ${state.quality * 25}% uplift to numeric Housing, Stock capacity and Support bonuses. Housing rounds down per Structure; Stock capacity rounds down after summing host bonuses. Candidate base bonuses and history caps are unchanged.` : 'The jewel marks quality. These are the authored base bonuses.' },
