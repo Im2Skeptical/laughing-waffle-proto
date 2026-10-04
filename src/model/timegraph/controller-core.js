@@ -9,6 +9,7 @@ import { buildProjectionStateStepWindowFromStateData } from "../projection.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { deserializeGameState } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
+import { createAuthoritativeHistorySummaries } from "./authoritative-history-summaries.js";
 import {
   getActionSecondsInRange,
   getStateDataAtSecond,
@@ -105,6 +106,7 @@ export function createTimeGraphController({
   let valuesRevision = 0;
 
   const subjectValueCache = new Map();
+  const authoritativeHistory = createAuthoritativeHistorySummaries();
 
   // Config (mutable locals; never assign to function parameters)
   let historyStrideSecCur = historyStrideSec;
@@ -349,6 +351,10 @@ export function createTimeGraphController({
 
   function invalidateSubjectValuesFromSec(startSec) {
     invalidateCachedSubjectValuesFromSec(subjectValueCache, startSec);
+  }
+
+  function syncAuthoritativeHistory(tl) {
+    if (authoritativeHistory.sync(tl)) invalidateSubjectValues();
   }
 
   function clampStride(v, fallback) {
@@ -1049,6 +1055,7 @@ export function createTimeGraphController({
 
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
     const refreshStartSec = Math.min(historyEndSec, clampSec(startSec));
+    retainAuthoritativeSummariesFrom(refreshStartSec, summaries);
 
     // A committed forecast span is now authoritative history. Re-read that
     // span from worker-produced authoritative ticks, or timeline replay when
@@ -1426,6 +1433,7 @@ export function createTimeGraphController({
     const tl = getTimeline?.();
     if (!tl || !graphCache) return null;
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    syncAuthoritativeHistory(tl);
 
     const seriesSig = getSeriesSignature(activeSeries);
     const cacheKey = subjectKey ?? "__global__";
@@ -1455,9 +1463,20 @@ export function createTimeGraphController({
     const projectionSigRes = projection.ensureSignature?.(tl);
     const canReadProjectionCache = projectionSigRes?.changed !== true;
     const resolverFactory = getResolverFactory();
+    const canSummarizeHistory = activeSeries.length > 0 &&
+      activeSeries.every(series => typeof series.getValueFromSummary === "function");
     for (const secRaw of seconds || []) {
       const sec = clampSec(secRaw);
       if (valuesBySec.has(sec)) continue;
+
+      if (sec <= historyEndSec) {
+        const summarized = computeValuesFromSummary(authoritativeHistory.get(sec), activeSeries, subject);
+        if (summarized.ok) {
+          valuesBySec.set(sec, summarized.values);
+          pushSubjectValueSec(entry, sec, valuesBySec);
+          continue;
+        }
+      }
 
       if (
         sec > historyEndSec &&
@@ -1502,7 +1521,18 @@ export function createTimeGraphController({
         syncForecastRuntimeCoverageToSec(sec, historyEndSec);
       }
 
-      const values = computeValuesFromStateData(
+      // A loaded save has no runtime worker summaries for its older history.
+      // Replay a cold sample once, then retain its exact summary across later
+      // node commits and metric/window changes, instead of repeating that load.
+      let values = null;
+      if (sec <= historyEndSec && stateData != null && canSummarizeHistory) {
+        const state = stateRestorer.restore(stateData, sec);
+        const summary = buildProjectionSummaryFromState(state);
+        authoritativeHistory.remember(sec, summary);
+        const summarized = computeValuesFromSummary(summary, activeSeries, subject);
+        if (summarized.ok) values = summarized.values;
+      }
+      values ??= computeValuesFromStateData(
         stateData,
         activeSeries,
         subject,
@@ -1593,6 +1623,11 @@ export function createTimeGraphController({
     if (!tl) return null;
     const sec = clampSec(tSec);
     const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    syncAuthoritativeHistory(tl);
+    if (sec <= historyEndSec) {
+      const retained = authoritativeHistory.get(sec);
+      if (retained) return retained;
+    }
     if (sec > historyEndSec) {
       const cachedSummary = projection.getSummary?.(sec) ?? null;
       if (cachedSummary != null) {
@@ -1713,7 +1748,17 @@ export function createTimeGraphController({
     }
   }
 
+  function retainAuthoritativeSummariesFrom(startSec, summaries) {
+    const tl = getTimeline?.();
+    if (!tl) return;
+    syncAuthoritativeHistory(tl);
+    const start = clampSec(startSec);
+    authoritativeHistory.retain(tl, start, summaries);
+    invalidateSubjectValuesFromSec(start);
+  }
+
   return {
+    retainAuthoritativeSummariesFrom,
     ensureCache,
     handleInvalidate,
     update,

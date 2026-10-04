@@ -16,6 +16,7 @@ const port = 18187;
 const url = `http://127.0.0.1:${port}`;
 const label = process.env.PROBE_LABEL ?? 'consecutive';
 const profileEnabled = process.env.PROBE_PROFILE === '1';
+const throughEnd = process.env.PROBE_UNVEIL === '1';
 const artifact = `artifacts/node-recap-input-${label}.json`;
 mkdirSync('artifacts', { recursive: true });
 const state = createNewGameState(Number(process.env.PROBE_SEED ?? 735));
@@ -28,6 +29,8 @@ const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js', '-l',
   { stdio: 'ignore', windowsHide: true });
 let browser, page, stage = 'boot';
 const turns = [], errors = [];
+let unveil = null;
+let profileClock = null;
 try {
   for (let i = 0; i < 100; i++) {
     try { if ((await fetch(url)).ok) break; } catch {}
@@ -46,7 +49,10 @@ try {
         this.probe = { createdMs: performance.now(), events: [] };
         globalThis.__probeWorkers.push(this.probe);
         this.addEventListener('message', ({ data }) => {
-          this.probe.events.push({ atMs: performance.now(), kind: data.kind, endSec: data.endSec, done: data.done });
+          const entries=data.result?.stateDataBySecond;
+          this.probe.events.push({ atMs: performance.now(), kind: data.kind, endSec: data.endSec, done: data.done,
+            sharedConfig:Array.isArray(entries)&&entries.length>1
+              ? entries[0][1]?.gameConfig!=null && entries[0][1].gameConfig===entries[1][1]?.gameConfig : null });
           if (this.probe.events.length > 8) this.probe.events.shift();
         });
         this.addEventListener('error', event => { this.probe.error = event.message; });
@@ -79,6 +85,11 @@ try {
   await page.goto(url);
   await page.getByTestId('game-continue').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  // This imported fixture bypasses the normal new-game opening. Finish its
+  // initial coverage/loading before playing; never delay a tap after a recap.
+  await page.waitForFunction(() => globalThis.__probeWorkers.some(worker =>
+    worker.request?.kind === 'buildChunk' && worker.events.some(event => event.done === true)),
+    null, { timeout: 120000 });
   const cdp = await page.context().newCDPSession(page);
   const point = (method, arg) => page.evaluate(({ method, arg }) => __SETTLEMENT_DEBUG__[method](arg), { method, arg });
   async function click(method, arg) {
@@ -93,7 +104,7 @@ try {
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.PROBE_CPU_RATE ?? 4) });
   await cdp.send('Performance.enable');
   if (profileEnabled) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.start'); }
-  const profileClock = (await cdp.send('Performance.getMetrics')).metrics
+  profileClock = (await cdp.send('Performance.getMetrics')).metrics
     .filter(metric => ['Timestamp', 'NavigationStart'].includes(metric.name));
   await page.evaluate(() => {
     const canvas = document.querySelector('canvas');
@@ -162,6 +173,28 @@ try {
       closeMs: Math.round(input.closedAtMs + input.timeOrigin - requestedDownEpochMs),
       heapBytes: metrics.find(m => m.name === 'JSHeapUsedSize')?.value, workers });
     writeFileSync(artifact, JSON.stringify({ turns, errors, profileClock }, null, 2));
+    if (meta.ended && throughEnd) {
+      stage = 'post-vassal future unveil';
+      await page.evaluate(() => {
+        globalThis.__unveilFrames = []; const start = performance.now(); let previous = start;
+        function sample() {
+          const time = performance.now();
+          __unveilFrames.push(time - previous); previous = time;
+          if (time - start < 12000) requestAnimationFrame(sample);
+          else globalThis.__unveilComplete = true;
+        }
+        requestAnimationFrame(sample);
+      });
+      await page.waitForFunction(() => globalThis.__unveilComplete, null, { timeout: 90000 });
+      unveil = await page.evaluate(() => {
+        const frames = __unveilFrames.sort((a,b) => a-b);
+        return { frames: frames.length, p95Ms: frames[Math.floor(frames.length*.95)],
+          maxMs: Math.max(...frames), ...__SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot(),
+          worker: __SETTLEMENT_DEBUG__.getLifeDecisionTimingSnapshot().forecastWorker };
+      });
+      writeFileSync(artifact, JSON.stringify({ turns, errors, profileClock, unveil }, null, 2));
+      break;
+    }
     assert.equal(meta.ended, null, 'the deterministic early fixture should survive');
     if (meta.level) {
       await click('getLifeMapLevelUpChoiceClickPoint', 0);
@@ -174,13 +207,28 @@ try {
     writeFileSync(`artifacts/node-recap-input-${label}.cpuprofile`, JSON.stringify(profile));
   }
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ responseMs: turns.map(t => t.responseMs), closeMs: turns.map(t => t.closeMs), artifact }));
+  assert.ok(turns.some(turn=>turn.workers.some(worker=>worker.events.some(event=>event.sharedConfig===true))),
+    'real browser worker replies must clone identical configs once per message');
+  console.log(JSON.stringify({ responseMs: turns.map(t => t.responseMs), closeMs: turns.map(t => t.closeMs), unveil, artifact }));
+  if (throughEnd) {
+    assert.ok(unveil, 'the fixture must reach its first vassal end');
+    // Catch the reported multi-second freeze separately from the stricter
+    // frame-smoothness experiment (software GL at 4x CPU has its own floor).
+    const smooth = process.env.PROBE_ASSERT_SMOOTH === '1';
+    assert.ok(unveil.p95Ms < (smooth ? 100 : 1000) && unveil.maxMs < (smooth ? 250 : 1000),
+      `future unveil stutters: p95=${Math.round(unveil.p95Ms)}ms max=${Math.round(unveil.maxMs)}ms (${artifact})`);
+  }
   if (process.env.PROBE_ASSERT_INPUT !== '0') {
     assert.ok(turns.every(t => t.responseMs <= 250), `Continue feedback exceeds 250ms: ${turns.map(t => t.responseMs).join(', ')} (${artifact})`);
-    assert.ok(turns.every(t => t.closeMs <= 750), `Continue dismissal exceeds 750ms: ${turns.map(t => t.closeMs).join(', ')} (${artifact})`);
+    assert.ok(turns.filter(t => !t.ended).every(t => t.closeMs <= 750),
+      `Continue dismissal exceeds 750ms: ${turns.map(t => t.closeMs).join(', ')} (${artifact})`);
+    // Return to map includes the first map draw, unlike an ordinary Continue.
+    // Keep reporting it and catch multi-second navigation separately.
+    assert.ok(turns.filter(t => t.ended).every(t => t.closeMs <= 1500),
+      `Return to map exceeds 1500ms (${artifact})`);
     assert.ok(turns.every(t => !t.forecastWorker?.disabled), `Forecast worker disabled during a healthy consecutive run (${artifact})`);
   }
 } catch (error) {
-  writeFileSync(artifact, JSON.stringify({ stage, error: error.message, turns, errors }, null, 2));
+  writeFileSync(artifact, JSON.stringify({ stage, error: error.message, turns, errors, profileClock, unveil }, null, 2));
   throw error;
 } finally { await browser?.close(); server.kill(); }

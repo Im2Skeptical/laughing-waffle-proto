@@ -13,6 +13,8 @@ Before optimising: `docs/timegraph-optimisation-guardrails.md`.
 
 ## Files
 
+- `forecast-wire.js` — shares only frozen identical configs within forecast messages; keeps full snapshots and every-second summaries
+- `authoritative-history-summaries.js` — committed tick summaries for plotting; survives metric/window changes and invalidates with timeline edits
 - `controller-core.js` — `createTimeGraphController` orchestrator
 - `forecast-state-cache.js` — retained-anchor / cache helpers
 - `state-restorer.js` — validated immutable anchors and isolated mutable restores

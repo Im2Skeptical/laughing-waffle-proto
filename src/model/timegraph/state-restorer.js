@@ -1,35 +1,23 @@
-import { deserializeGameState, serializeGameState, syncPhaseToPaused } from "../state.js";
+import { createProjectionAnchorReader, serializeGameState, syncPhaseToPaused } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
 import { attachRngHelpers } from "../rng.js";
 import { advanceReplayStateOneSecond, initializeReplayClock } from "../replay-second-runner.js";
 
-function freezeTree(value) {
-  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-  for (const child of Object.values(value)) freezeTree(child);
-  return Object.freeze(value);
-}
-
-// Private, bounded restore codec. Worker/save/timeline inputs pass through the
-// full deserializer once before becoming trusted. Stored bodies never escape;
-// callers own a fresh mutable body and share only a frozen canonical config.
+// Private, bounded restore codec. Every new anchor validates its mutable body;
+// identical configs share one fully validated, frozen canonical value. Stored
+// bodies never escape; every caller owns a fresh mutable body.
 export function createProjectionStateRestorer({ maxEntries = 64 } = {}) {
   const anchors = new Map();
-  let configKey = null;
-  let config = null;
+  const reader = createProjectionAnchorReader();
   function restore(stateData, baseSec, targetSec = baseSec) {
     if (targetSec < baseSec) return null;
     let entry = anchors.get(stateData);
     if (!entry) {
-      const validated = deserializeGameState(stateData);
+      const validated = reader.read(stateData);
       canonicalizeSnapshot(validated);
-      const key = JSON.stringify(validated.gameConfig);
-      if (key !== configKey) {
-        configKey = key;
-        config = freezeTree(validated.gameConfig);
-      }
       // Keep the save serializer's stripping rules, without cloning the config.
       const body = serializeGameState({ ...validated, gameConfig: undefined });
-      entry = { body, config };
+      entry = { body, config: validated.gameConfig };
     }
     anchors.delete(stateData);
     anchors.set(stateData, entry);
@@ -54,7 +42,7 @@ export function createProjectionStateRestorer({ maxEntries = 64 } = {}) {
   }
   return {
     restore,
-    clear() { anchors.clear(); configKey = null; config = null; },
+    clear() { anchors.clear(); reader.clear(); },
     getSize: () => anchors.size,
   };
 }

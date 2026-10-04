@@ -5,7 +5,7 @@ import { serializeGameState, deserializeGameState } from '../src/model/state.js'
 import { getCurrentLifeMapVassal, getVassalNodeDecisionPresentation } from '../src/model/vassal-life-map.js';
 import { prepareLifeChoices, runLifeDecisionJob } from '../src/model/vassal-life-map/decision-preparation.js';
 import { createLifeDecisionController } from '../src/controllers/life-decision-controller.js';
-import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSecond } from '../src/model/timeline/index.js';
+import { createTimelineFromInitialState, appendActionAtCursor, replaceActionsAtSecond, rebuildStateAtSecond } from '../src/model/timeline/index.js';
 import { getForecastRevealFollowTargetEndSec } from '../src/views/timegraphs/forecast-reveal-state.js';
 const initial=selectedState(1);
 const snapshot=serializeGameState(initial);
@@ -209,9 +209,10 @@ console.log('[life-decision] Development entry and next-node graphics readiness 
 import { createTimeGraphController } from '../src/model/timegraph/controller-core.js';
 import { createProjectionCache } from '../src/model/timegraph/projection-cache.js';
 import { GRAPH_METRICS } from '../src/model/graph-metrics.js';
-const graphTimeline=createTimelineFromInitialState(deserializeGameState(accepted.stateData));
+let graphTimeline=createTimelineFromInitialState(deserializeGameState(accepted.stateData));
 let graphState=deserializeGameState(accepted.stateData);
 const graphProjection=createProjectionCache();
+const replayHistoricalState=graphProjection.ensureStateAtSecond;
 const graphController=createTimeGraphController({getTimeline:()=>graphTimeline,getCursorState:()=>graphState,
  metric:GRAPH_METRICS.civilization,projectionCache:graphProjection,horizonSec:8,
  forecastWorkerService:{requestCoverage:()=>({ok:true}),handleTimelineInvalidation(){}}});
@@ -220,6 +221,9 @@ const summaries=new Map(messages.filter(m=>m.kind==='chunk').flatMap(m=>m.chunk.
 graphTimeline.historyEndSec=ready.stateData.tSec;
 graphState=deserializeGameState(ready.stateData);
 graphProjection.ensureStateAtSecond=()=>{throw new Error('prepared graph history must not run synchronous replay');};
+graphController.retainAuthoritativeSummariesFrom(0,summaries);
+const firstPaint=graphController.getSamplesForWindow({startSec:0,endSec:graphTimeline.historyEndSec});
+assert.ok(firstPaint.points.length,'the recap first paint must use summaries before deferred geometry refresh');
 assert.equal(graphController.refreshAuthoritativeRangeFrom(0,{summaries}).ok,true);
 const history=graphController.getData().cache.history;
 for(const sample of history) {
@@ -227,6 +231,76 @@ for(const sample of history) {
  if(expected) for(const [key,value] of Object.entries(sample.values)) assert.equal(value,expected[key]);
 }
 console.log('[life-decision] prepared tick summaries promote graph history without replay OK');
+// Plotting uses a different sample grid from cache.history, including dense
+// edges, and invalidates derived values when the series/window changes.
+const plotted=graphController.getSamplesForWindow({startSec:0,endSec:graphTimeline.historyEndSec});
+assert.ok(plotted.points.length > 0);
+graphController.invalidateSeries();
+graphController.setHorizonSecOverride(16);
+const replotted=graphController.getSamplesForWindow({startSec:1,endSec:graphTimeline.historyEndSec,focus:true});
+assert.ok(replotted.points.length > 0);
+for(const sample of [...firstPaint.points,...plotted.points,...replotted.points]) {
+ const expected=summaries.get(sample.tSec)?.graphValues.civilization;
+ assert.ok(expected,`authoritative summary exists at ${sample.tSec}`);
+ for(const [key,value] of Object.entries(sample.values)) assert.equal(value,expected[key]);
+}
+const scopedSubject={regionId:Object.keys(summaries.get(1).graphValues.settlementByRegion)[0]};
+graphController.setMetric(GRAPH_METRICS.settlement);
+graphController.setSubject(scopedSubject,'first-settlement');
+const scoped=graphController.getSamplesForWindow({startSec:1,endSec:graphTimeline.historyEndSec});
+assert.ok(scoped.points.length);
+for(const sample of scoped.points) for(const series of graphController.getData().series) {
+ assert.equal(sample.values[series.id],series.getValueFromSummary(summaries.get(sample.tSec),scopedSubject));
+}
+console.log('[life-decision] actual history plotting reuses prepared summaries across sample/series/window changes OK');
+const coldProjection=createProjectionCache();
+const coldReplay=coldProjection.ensureStateAtSecond;
+let coldReads=0;
+coldProjection.ensureStateAtSecond=(...args)=>{coldReads++;return coldReplay(...args);};
+const loadedGraph=createTimeGraphController({getTimeline:()=>graphTimeline,getCursorState:()=>graphState,
+ metric:GRAPH_METRICS.civilization,projectionCache:coldProjection,horizonSec:8,
+ forecastWorkerService:{requestCoverage:()=>({ok:true}),handleTimelineInvalidation(){}}});
+loadedGraph.ensureCache();
+const coldPoints=loadedGraph.getSamplesForWindow({startSec:0,endSec:3}).points;
+assert.ok(coldReads>0,'a loaded timeline initially needs authoritative historical samples');
+for(const point of coldPoints) for(const [key,value] of Object.entries(point.values)) {
+ assert.equal(value,summaries.get(point.tSec).graphValues.civilization[key]);
+}
+const readsAfterLoad=coldReads;
+loadedGraph.invalidateSeries();
+loadedGraph.getSamplesForWindow({startSec:0,endSec:3});
+loadedGraph.setMetric(GRAPH_METRICS.settlement);
+loadedGraph.setSubject(scopedSubject,'loaded-first-settlement');
+const loadedScope=loadedGraph.getSamplesForWindow({startSec:0,endSec:3}).points;
+assert.equal(coldReads,readsAfterLoad,'older loaded history must not replay again for another series/scope');
+for(const point of loadedScope) for(const series of loadedGraph.getData().series) {
+ assert.equal(point.values[series.id],series.getValueFromSummary(summaries.get(point.tSec),scopedSubject));
+}
+assert.equal(coldPoints.length,loadedScope.length);
+console.log('[life-decision] loaded-save history is sampled once and reused across series/scope changes OK');
+let historicalReplays=0;
+graphProjection.ensureStateAtSecond=(...args)=>{historicalReplays++;return replayHistoricalState(...args);};
+graphController.setMetric({id:'state-only-test',series:[{id:'clock',getValue:state=>state.tSec}]});
+const stateOnly=graphController.getSamplesForWindow({startSec:1,endSec:3,focus:true});
+assert.ok(historicalReplays>0,'unsupported summary series retain authoritative replay fallback');
+for(const point of stateOnly.points) assert.equal(point.values.clock,point.tSec);
+// Multiple edits before the next draw invalidate from the earliest changed
+// action, while checkpoint churn alone leaves exact summaries intact.
+graphTimeline.revision++;
+assert.equal(graphController.getSummaryAt(1,{cachedOnly:true}),summaries.get(1));
+replaceActionsAtSecond(graphTimeline,2,[],{truncateFuture:false});
+appendActionAtCursor(graphTimeline,{kind:'test-noop'},{tSec:2});
+appendActionAtCursor(graphTimeline,{kind:'test-noop'},{tSec:4});
+assert.equal(graphController.getSummaryAt(1,{cachedOnly:true}),summaries.get(1));
+assert.equal(graphController.getSummaryAt(2,{cachedOnly:true}),null);
+assert.equal(graphController.getSummaryAt(4,{cachedOnly:true}),null);
+graphController.retainAuthoritativeSummariesFrom(0,summaries);
+graphTimeline.historyEndSec=2;
+assert.equal(graphController.getSummaryAt(1,{cachedOnly:true}),summaries.get(1));
+assert.equal(graphController.getSummaryAt(3,{cachedOnly:true}),null,'rewinding drops the old future');
+graphTimeline=createTimelineFromInitialState(graphState);
+assert.equal(graphController.getSummaryAt(1,{cachedOnly:true}),null,'a replacement run cannot reuse previous history');
+console.log('[life-decision] historical summaries invalidate on action edits and timeline replacement, not checkpoints OK');
 const completePending=deserializeGameState(accepted.stateData);
 completePending.runStatus={complete:true,tSec:completePending.tSec};
 realRunner.resetToState(completePending);

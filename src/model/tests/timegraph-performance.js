@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { serialize as serializeWire } from "node:v8";
+import { encodeForecastChunk, freezeForecastChunkConfigs } from "../timegraph/forecast-wire.js";
 import { createInitialState } from "../init.js";
 import { serializeGameState, deserializeGameState } from "../state.js";
 import { canonicalizeSnapshot } from "../canonicalize.js";
@@ -112,12 +114,58 @@ for (let t = 0; t <= 128; t++) {
 }
 assert.throws(() => restorer.restore({ ...base, gameStateSchemaVersion: -1 }, 0), /schema/);
 assert.throws(() => restorer.restore({ ...base, rng: {} }, 0), /RNG/);
+const invalidWorld=structuredClone(base);
+invalidWorld.world.regions[0].controller='invalid';
+assert.throws(()=>restorer.restore(invalidWorld,0),/world/i,'cached configs never bypass world validation');
+const invalidLife=structuredClone(base);
+invalidLife.civilization.vassalLineage.currentVassalId='missing-vassal';
+assert.throws(()=>restorer.restore(invalidLife,0),/Life Map/i,'cached configs never bypass Life Map validation');
+const changedConfig=structuredClone(base);
+changedConfig.gameConfig.settings.values.primordialBasePressure=7;
+const changedExpected=deserializeGameState(changedConfig);
+canonicalizeSnapshot(changedExpected);
+assert.deepEqual(serializeGameState(restorer.restore(changedConfig,0)),serializeGameState(changedExpected),
+  'new config values are fully validated and canonicalized, not inherited from another anchor');
+const invalidConfig=structuredClone(changedConfig);
+invalidConfig.gameConfig.schemaVersion=-1;
+assert.throws(()=>restorer.restore(invalidConfig,0),/config/i);
+const ordinary=deserializeGameState(changedConfig);
+ordinary.gameConfig.settings.values.primordialBasePressure=9;
+assert.equal(changedConfig.gameConfig.settings.values.primordialBasePressure,7,
+  'ordinary save/replay deserialization still returns an independent mutable config');
+restorer.clear();
+assert.deepEqual(serializeGameState(restorer.restore(base,0)),serializeGameState(deserializeGameState(base)),
+  'clearing the reader releases its previous configuration');
 assert.equal(restorer.restore(data, sec, sec+1), null, "never advances beyond run completion");
 
 const timeline = createTimelineFromInitialState(initial);
 const cache = createProjectionCache();
 const token = cache.getTimelineToken(timeline);
 const forecast = buildProjectionChunkFromStateData(timeline.baseStateData, 0, 128);
+const ordinaryWire={...forecast,stateDataBySecond:Array.from(forecast.stateDataBySecond),
+  summaryBySecond:Array.from(forecast.summaryBySecond)};
+const encodedWire=encodeForecastChunk(forecast);
+assert.equal(JSON.stringify(encodedWire),JSON.stringify(ordinaryWire),'wire JSON/state/RNG/summaries are unchanged');
+assert.ok(serializeWire(encodedWire).byteLength < serializeWire(ordinaryWire).byteLength*.5,
+  'real forecast messages must clone each identical config once, not once per anchor');
+const receivedWire=freezeForecastChunkConfigs(structuredClone(encodedWire));
+const [firstAnchor,secondAnchor]=receivedWire.stateDataBySecond.map(([,data])=>data);
+assert.equal(firstAnchor.gameConfig,secondAnchor.gameConfig);
+assert.ok(Object.isFrozen(firstAnchor.gameConfig.settings.values));
+assert.notEqual(firstAnchor.world,secondAnchor.world,'only frozen config may share pointers');
+const independentFirst=restorer.restore(firstAnchor,firstAnchor.tSec);
+const independentSecond=restorer.restore(secondAnchor,secondAnchor.tSec);
+independentFirst.rng.seed=1;
+assert.equal(independentSecond.rng.seed,secondAnchor.rng.seed);
+assert.deepEqual(receivedWire.summaryBySecond,ordinaryWire.summaryBySecond);
+const alternateConfig=structuredClone(firstAnchor);
+alternateConfig.gameConfig.settings.values.primordialBasePressure=7;
+const mixedWire=freezeForecastChunkConfigs(structuredClone(encodeForecastChunk({ok:true,
+  stateDataBySecond:new Map([[firstAnchor.tSec,firstAnchor],[secondAnchor.tSec,alternateConfig]]),
+  summaryBySecond:new Map(),lastStateData:alternateConfig})));
+assert.notEqual(mixedWire.stateDataBySecond[0][1].gameConfig,mixedWire.lastStateData.gameConfig,
+  'different configs within a message must never be interned together');
+assert.equal(encodeForecastChunk({ok:false,reason:'test'}).reason,'test');
 assert.equal(cache.mergeForecastChunk(timeline, { ...forecast, timelineToken: token, historyEndSec: 0 }).ok, true);
 const controller = createTimeGraphController({ getTimeline: () => timeline, getCursorState: () => initial, projectionCache: cache });
 const size = cache.getSize();

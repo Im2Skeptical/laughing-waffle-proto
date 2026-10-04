@@ -6,6 +6,7 @@ import { createNewGameState } from '../src/model/new-game.js';
 import { createEmptyTimelineFromBase } from '../src/model/timeline/index.js';
 import { serializeGameState } from '../src/model/state.js';
 import { buildProjectionChunkFromStateData } from '../src/model/projection-chunk.js';
+import { encodeForecastChunk } from '../src/model/timegraph/forecast-wire.js';
 
 function fixture() {
   const state = createNewGameState(99117);
@@ -75,7 +76,9 @@ continued.request();
 const fullChunk = buildProjectionChunkFromStateData(continued.cache.getStateData(1), 1, 20);
 continued.at(1000);
 continued.listeners.get('message')({ data: { ...continued.messages[0], kind: 'chunkResult',
-  baseSec: 1, endSec: 20, done: true, result: fullChunk } });
+  baseSec: 1, endSec: 20, done: true, result: structuredClone(encodeForecastChunk(fullChunk)) } });
+assert.ok(Object.isFrozen(continued.cache.getStateData(20).gameConfig.settings.values),
+  'the real handler restores frozen config ownership after structured clone');
 continued.request(40);
 continued.at(1900);
 assert.equal(continued.request(40).coverageEndSec, 20,

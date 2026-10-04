@@ -195,7 +195,8 @@ export function createSettlementVassalFlow({
       // Screen navigation pauses reveal; resume the gameplay-triggered unveil
       // after returning to the civilization map, without the old node cap.
       revealCivilizationAfterVassalEnd?.(recap.vassalId, playback.getSettlementFrontierState());
-      getWorldMapView?.()?.refresh?.();
+      // setWorldViewMode already made the map visible and rendered its current
+      // state. Forcing the same geometry to rebuild again delays dismissal.
     }
     return { ok: true };
   }
