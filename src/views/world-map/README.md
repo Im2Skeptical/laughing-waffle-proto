@@ -63,8 +63,12 @@ and desktop/mobile screenshots, alongside the settlement/navigation probes.
 ## Territory presentation
 
 Selecting a region highlights only neighbours that share a polygon edge AND
-have a live direct road connection to it. These neighbours and their roads use
-violet dotted outlines; the selected region keeps its cyan outline. Physical
+have a live direct road connection to it. Allied settlements use bright solid
+violet outlines with a pale inner stroke; neutral settlements use medium violet
+dashes; empty regions use faint violet dots. Road ink follows the destination's
+style, or the weaker style when linking two highlighted neighbours. Monster
+regions retain strong red outlines and skull markers. The selected region keeps
+its cyan outline, and stronger outlines are drawn above weaker shared borders. Physical
 adjacency alone and indirect road connectivity do not qualify. Unrelated terrain
 is dimmed. The selected territory and its full road-connected group are shown together
 by default, without a reach key, relationship badges, or Show group button.

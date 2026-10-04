@@ -1,5 +1,5 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
-import { getMapRelationships, getMapRelationship, drawRelationshipLine } from './world-map/relationships.js';
+import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
@@ -589,7 +589,7 @@ export function createWorldMapView({
       }
       shape.eventMode = 'none';
       territoryBorders.push({points, player:region.controller==='player' && !region.monster,
-        monster:!!region.monster, selected, highlighted, relationship, controller:region.controller});
+        monster:!!region.monster, selected, highlighted, relationship, relationshipStyle:getRelationshipStyle(mapIndicator), controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
@@ -636,7 +636,11 @@ export function createWorldMapView({
         const aKind = getMapRelationship(relationships, a.id);
         const bKind = getMapRelationship(relationships, b.id);
         if (aKind && bKind) {
-          drawRelationshipLine(edges, from, to, 6);
+          const aStyle = getRelationshipStyle(regionMapIndicators.find(entry => entry.regionId === a.id));
+          const bStyle = getRelationshipStyle(regionMapIndicators.find(entry => entry.regionId === b.id));
+          const style = aKind === 'selected' ? bStyle : bKind === 'selected' ? aStyle
+            : aStyle.priority < bStyle.priority ? aStyle : bStyle;
+          drawRelationshipLine(edges, from, to, style);
         }
       }
     }
@@ -645,7 +649,7 @@ export function createWorldMapView({
     mapContent.addChild(edges);
     // Draw borders after every terrain polygon and road, with selection last.
     // Neighboring terrain must not erase the important side of a shared edge.
-    const borderPriority = territory => territory.selected ? 2 : territory.relationship === 'connected' ? 1 : 0;
+    const borderPriority = territory => territory.selected ? 5 : territory.relationship === 'connected' ? territory.relationshipStyle.priority : 0;
     for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
       addTerritoryBorder(mapContent, territory.points, territory);
     }
