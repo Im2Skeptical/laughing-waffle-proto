@@ -56,9 +56,11 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
   let activeResolvedAnchor = null;
   let hideTimeoutId = null;
   let pinnedKey = null;
+  let quickPinned = false;
   let pinRevision = 0;
   let dismissOnPointerExit = false;
   let pieceInspection = null;
+  let quickReading = null;
   let activePinHandler = null;
   // Cards may be replaced during a redraw, so their old Pixi pointerout
   // handler cannot reliably dismiss a hover. Track its retained screen bounds.
@@ -525,7 +527,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     };
   }
 
-  function show(spec, anchor, {force=false, dismissOnExit=false}={}) {
+  function show(spec, anchor, {force=false, dismissOnExit=false, quick=false}={}) {
     if(pinnedKey!==null&&!force)return;
     const resolvedAnchor = resolveAnchor(anchor);
     if (!resolvedAnchor) return;
@@ -536,16 +538,22 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     const retainedScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getScroll?.()??0:0;
     const retainedGlossaryScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getGlossaryScroll?.()??0:0;
     clearChildren();
+    container.hitArea=null;
     pieceInspection=null;
+    quickReading=null;
     bg.clear();
 
     if(spec.face){
-      if(spec.face.reading && dismissOnExit) {
-        container.eventMode='none';container.interactiveChildren=false;
+      if(spec.face.reading && (dismissOnExit || quick)) {
+        container.eventMode=quick?'static':'none';container.interactiveChildren=quick;
         activeAnchor=anchor;activeSpec=spec;activeScale=1;
-        const reading=addPracticeReading(container,720,spec.face,{fontSize:32});
-        activeWidth=720;activeHeight=reading.readingHeight;
-        activeResolvedAnchor=summarizeAnchor(resolvedAnchor);dismissOnPointerExit=true;
+        activeWidth=quick?900:720;
+        const reading=addPracticeReading(container,activeWidth,spec.face,{fontSize:quick?44:32,
+          onInspect:quick?()=>{pinRevision++;quickPinned=false;show(spec,activeAnchor,{force:true});}:undefined});
+        quickReading=reading;
+        activeHeight=reading.readingHeight;
+        if(quick)container.hitArea=new PIXI.Rectangle(0,0,activeWidth,activeHeight);
+        activeResolvedAnchor=summarizeAnchor(resolvedAnchor);dismissOnPointerExit=dismissOnExit;
         const screen=getScreenSize();
         const layerScale=getTooltipLayerWorldScale();
         activeScale=Math.min(1,(screen.height-clampMargin*2)/(activeHeight*layerScale));
@@ -607,7 +615,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
 
   function hide({force=false}={}) {
     if(pinnedKey!==null&&!force)return;
-    if(force)pinnedKey=null;
+    if(force){pinnedKey=null;quickPinned=false;}
     activePinHandler = null;
     if (hideTimeoutId !== null) clearTimeout(hideTimeoutId);
     hideTimeoutId = null;
@@ -638,11 +646,12 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
 
   function init() {}
 
-  function pin(spec, anchor, key) {
+  function pin(spec, anchor, key, {quick=false}={}) {
     pinRevision++;
     if(pinnedKey===key){hide({force:true});return;}
     pinnedKey=key;
-    show(spec,anchor,{force:true});
+    quickPinned=quick&&!!spec.face?.reading;
+    show(spec,anchor,{force:true,quick:quickPinned});
   }
 
   return {
@@ -652,7 +661,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
     refreshPiece(spec,anchor) {
       if(!container.visible||!spec.face||activeSpec?.inspectionKey!==spec.inspectionKey)return;
       activeAnchor=anchor;
-      if(JSON.stringify(spec)!==JSON.stringify(activeSpec))show(spec,anchor,{force:true,dismissOnExit:pinnedKey===null});
+      if(JSON.stringify(spec)!==JSON.stringify(activeSpec))show(spec,anchor,{force:true,dismissOnExit:pinnedKey===null,quick:quickPinned});
     },
     hide,
     isVisible: () => container.visible,
@@ -676,6 +685,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       title: activeSpec?.title ?? "",
       reading: activeSpec?.face?.reading ?? null,
       expanded: !!pieceInspection && !!activeSpec?.face?.reading,
+      titlePoint: quickReading?.titleControl?.toGlobal?.(new PIXI.Point(activeWidth/2,quickReading.titleControl.hitArea.height/2)) ?? null,
       glossary: pieceInspection?.glossary?.entries?.map(entry=>entry.name) ?? [],
       glossaryRect: pieceInspection?.glossaryViewport?.getBounds?.() ?? null,
       rulesRect: pieceInspection?.rules?.getBounds?.() ?? null,

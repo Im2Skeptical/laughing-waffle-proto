@@ -26,7 +26,7 @@ function copy(parent, text, x, y, width, size, style = {}) {
 
 // One rules surface for hover and deliberate inspection, with no card-face
 // dictionary mixed into the quick read.
-export function addPracticeReading(parent, width, face, {fontSize = 28} = {}) {
+export function addPracticeReading(parent, width, face, {fontSize = 28, onInspect} = {}) {
   const root = new PIXI.Container(), reading = face.reading, pad = 24;
   const frame = new PIXI.Graphics(); root.addChild(frame);
   let y = 0, x = pad, rowHeight = 0;
@@ -39,9 +39,10 @@ export function addPracticeReading(parent, width, face, {fontSize = 28} = {}) {
   }
   y+=rowHeight;
   const titleY=y;
-  const title=copy(root,face.label,pad,y+18,width-pad*2,fontSize*1.42,{...TEXT_STYLES.header,fontSize:fontSize*1.42});
-  y+=title.height+36;
+  const title=copy(root,face.label,pad,y+18,width-pad*2-(onInspect?44:0),fontSize*1.42,{...TEXT_STYLES.header,fontSize:fontSize*1.42});
+  y+=Math.max(onInspect?132:0,title.height+36);
   paintRelicPanel(frame,0,titleY,width,y-titleY,0x302414,RELIC.brass,2);
+  const titleHeight=y-titleY;
   const blockY=y;
   y+=22;
   const activation=new PIXI.Graphics();root.addChildAt(activation,1);
@@ -73,6 +74,16 @@ export function addPracticeReading(parent, width, face, {fontSize = 28} = {}) {
   const background=new PIXI.Graphics();
   paintRelicPanel(background,0,titleY,width,y-titleY,RELIC.night,RELIC.brass,1);
   root.addChildAt(background,0);
+  if(onInspect) {
+    const control=new PIXI.Container();control.position.set(0,titleY);
+    control.eventMode='static';control.cursor='pointer';
+    control.hitArea=new PIXI.Rectangle(0,0,width,titleHeight);
+    control.accessibleTitle=`Inspect ${face.label}`;
+    copy(control,'›',width-pad-20,(titleHeight-fontSize*1.35)/2,24,fontSize,{fill:RELIC.gold});
+    control.on('pointerdown',event=>event.stopPropagation());
+    control.on('pointertap',event=>{event.stopPropagation();onInspect();});
+    root.addChild(control);root.titleControl=control;
+  }
   root.readingHeight=y;root.reading=reading;
   parent.addChild(root);return root;
 }

@@ -16,8 +16,10 @@ Practice faces show hosted Stock count/capacity and Trait glyphs. Hover translat
 the recipe into plain English: class/type/tags, separate Activation effects,
 Charge triggers or inline Cycle timings, necessary requirements, and short
 flavour text. Hover never includes the symbol dictionary or private Charge
-threshold instructions. Clicking/tapping a Practice opens an enlarged card and
+threshold instructions. Desktop clicking a Practice opens an enlarged card and
 the same rules over a dimmed scene, with a scrollable glossary on the right.
+On touch, tapping a Practice first retains the quick read; tapping its title
+opens the enlarged inspect view, and tapping elsewhere dismisses the quick read.
 The glossary covers only symbols on that face, including hosted/trigger/input
 Traits, Stock capacity, staffing, Charge or Cycle, and base output numerals.
 Food and Currency
@@ -104,8 +106,9 @@ contract: `ai/visual-overhaul.md`.
   show red starvation and amber overcrowding glyphs from the currently viewed
   state; hover and the selected-region card expose the underlying counts.
 - Settlement Overview and Demographics are local to the opened detailed site.
-  Tapping or holding a Practice/Structure pins its details across visual redraws;
-  tapping it again or elsewhere dismisses those details.
+  Tapping a Practice pins its quick read across visual redraws; its title opens
+  inspect. Structures retain their existing pinned details. Tapping the source
+  again or elsewhere dismisses compact details.
 - The shared survival strip reports viewed year/season, projected or actual
   civilization loss, and the monotonic best survival year observed.
 - The timegraph is one illustrated walnut/brass assembly containing a parchment
@@ -203,7 +206,9 @@ contract: `ai/visual-overhaul.md`.
   Money use the same resource symbols in their existing HUDs. The modal shows
   current-to-projected Prestige. Practice/Public Works show
   the final settlement preview on the right. Offers, detached cost tags and source undo occupy the left. Offer inspection
-  uses a quick hover panel opposite its source. Clicking a Practice opens the
+  uses a quick hover panel opposite its source. Touch first retains that quick
+  read, whose title opens inspect; an outside tap dismisses it without activating
+  underlying shop controls. Desktop clicking a Practice opens the
   enlarged, dimmed inspection with its glossary on the right; Structure inspection
   retains its opposite-side panel. Inspection dismisses during dragging. Faces inspect; costs stage; an
   offer-to-tableau drag also stages. Staged practices drag within their prefix;

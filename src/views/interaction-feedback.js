@@ -111,7 +111,7 @@ export function addInteractionFeedback(root, rect, {
     if (!enabled || !armed) return;
     armed = false;
     acknowledgeTap(root, drawFeedback);
-    onActivate?.();
+    onActivate?.(event);
     if (!root.destroyed) paint();
   });
   root.setInteractionEnabled = value => {

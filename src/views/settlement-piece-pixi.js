@@ -49,8 +49,15 @@ export function addSettlementPiece(parent, rect, {
   const spec={face,inspectionSide,inspectionKey:key,artRevision:getArtRevision(),title:face?.label??'Available space',lines:detail??[face?.rule,...(face?.detailLines??[])].filter(Boolean),accentColor:border,maxWidth:330,scale:3};
   root.on('pointerover',event=>{if(event.pointerType!=='touch'){onHover?.();if(tooltipView)tooltipView.show(spec,root.getBounds(),{dismissOnExit:true});}});
   root.on('pointerout',event=>{if(event.pointerType!=='touch')onOut?.();tooltipView?.hide?.();});
-  root.on('pointerdown',event=>{if(!onInspect&&tooltipView){event.stopPropagation();tooltipView.pin(spec,root.getBounds(),inspectionKey??`piece:${rect.x}:${rect.y}:${face?.definitionId}`);}});
-  root.on('pointertap',event=>{event.stopPropagation();if(!root.dragConsumed)onInspect?.();root.dragConsumed=false;});
+  root.on('pointerdown',event=>{if(!onInspect&&tooltipView&&(event.pointerType!=='touch'||!face?.reading)){event.stopPropagation();tooltipView.pin(spec,root.getBounds(),key);}});
+  root.on('pointertap',event=>{
+    event.stopPropagation();
+    if(!root.dragConsumed) {
+      if(onInspect)onInspect(event);
+      else if(tooltipView&&face?.reading&&event.pointerType==='touch')tooltipView.pin(spec,root.getBounds(),key,{quick:true});
+    }
+    root.dragConsumed=false;
+  });
   parent.addChild(root);tooltipView?.refreshPiece?.(spec,root.getBounds());return root;
 }
 
