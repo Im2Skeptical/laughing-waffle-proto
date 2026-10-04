@@ -271,19 +271,20 @@ try {
     const box=await page.locator('canvas').boundingBox();
     const x=box.x+point.x/2424*box.width,y=box.y+point.y/1080*box.height;
     await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+    await delay(150);
+    await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().pinned);
     const title=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title);
     await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
     await delay(600);
-    await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-    await delay(150);
     const tooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
     assert.ok(tooltip.visible&&tooltip.pinned,'Touch details survive redraw and release');
     assert.equal(tooltip.title,title);
     if(tooltip.reading) {
-      assert.ok(tooltip.expanded,'A touch opens deliberate inspection');
-      assert.ok(tooltip.glossary.length,'Inspect includes the selected card symbols');
-      assert.ok(tooltip.glossaryRect.x>=tooltip.rulesRect.x+tooltip.rulesRect.width,'Glossary occupies the right-hand column');
+      assert.equal(tooltip.expanded,false,'A touch first opens the quick Practice translation');
+      assert.deepEqual(tooltip.glossary,[],'The phone quick read excludes the glossary');
+      assert.ok(tooltip.titlePoint,'The quick read title opens inspect');
+      await page.screenshot({path:'artifacts/chronicle-mobile-practice-quick.png'});
     }
     await page.touchscreen.tap(box.x+20/2424*box.width,box.y+1070/1080*box.height);
     await page.waitForFunction(()=>!globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
@@ -294,8 +295,15 @@ try {
     const shortTap=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
     if(!shortTap.pinned)writeFileSync('artifacts/chronicle-touch-failure.json',JSON.stringify({title,point,shortTap,map:await page.evaluate(()=>{const m=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;return {selected:m.selectedRegionId,open:m.detailPanelVisible};})},null,2));
     assert.equal(shortTap.pinned,true,`Short tap pins ${title} details across redraw`);
+    if(shortTap.reading) {
+      const p=shortTap.titlePoint;
+      await page.touchscreen.tap(box.x+p.x/2424*box.width,box.y+p.y/1080*box.height);
+      await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().expanded);
+    }
     const currentTooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
     if(currentTooltip.expanded) {
+      assert.ok(currentTooltip.glossary.length,'The title opens the full symbol explanations');
+      assert.ok(currentTooltip.glossaryRect.x>=currentTooltip.rulesRect.x+currentTooltip.rulesRect.width,'Glossary occupies the right-hand column');
       const p=currentTooltip.closePoint;
       await page.touchscreen.tap(box.x+p.x/2424*box.width,box.y+p.y/1080*box.height);
     } else await page.touchscreen.tap(x,y);
@@ -458,7 +466,43 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),1,
     'A staged footer cannot buy the same offer twice');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
-  await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
+  const practiceIndex=shopAfter.practices.findIndex(piece=>piece?.presentation?.reading);
+  assert.ok(practiceIndex>=0,'The shop tableau includes a Practice for the phone quick-read flow');
+  const practicePoint=await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapTableauClickPoint(index),practiceIndex);
+  await tap(practicePoint);
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId);
+  const quickShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  assert.equal(quickShop.inspectedCardId,null,'A phone shop Practice tap opens the quick read first');
+  assert.deepEqual(quickShop.purchaseOrder,shopAfter.purchaseOrder,'Reading a staged offer does not stage another purchase');
+  await tap(shopChoice);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId),quickShop.quickCardId,'Tapping the quick read body leaves it open');
+  const outsideCostIndex=quickShop.costPanels.findIndex(panel=>{
+    const x=panel.rect.x+panel.rect.width/2,y=panel.rect.y+panel.rect.height/2,r=quickShop.inspectionRect;
+    return !panel.disabled&&(x<r.x||x>r.x+r.width||y<r.y||y>r.y+r.height);
+  });
+  assert.ok(outsideCostIndex>=0,'An affordable shop footer lies outside the quick read');
+  const outsideCost=quickShop.costPanels[outsideCostIndex].rect;
+  await tap({x:outsideCost.x+outsideCost.width/2,y:outsideCost.y+outsideCost.height/2});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId),null,'Tapping outside dismisses the shop quick read');
+  assert.deepEqual(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder),shopAfter.purchaseOrder,'Dismissal cannot activate an underlying cost footer');
+  await tap(practicePoint);
+  const titlePoint=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionTitlePoint);
+  const titleBox=await page.locator('canvas').boundingBox();
+  await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{
+    x:titleBox.x+titlePoint.x/2424*titleBox.width,y:titleBox.y+titlePoint.y/1080*titleBox.height,
+  }]});
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(200);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId),quickShop.quickCardId,'A held title survives shop redraws');
+  await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),'practice:'+shopAfter.practices[practiceIndex].practiceId,'The shop Practice title opens inspect');
+  await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
+  const inspectOffer=async()=>{
+    await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
+    const quick=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId);
+    if(quick)await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionTitlePoint));
+  };
+  await inspectOffer();
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),shopAfter.purchaseOrder[0],
     'Staged offers retain their full inspection');
@@ -466,7 +510,7 @@ try {
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()),null,
     'Closing the enlarged inspection returns to the staged shop');
-  await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferFacePoint(index),affordableIndex));
+  await inspectOffer();
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   const secondOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
   await tap(secondOffer);

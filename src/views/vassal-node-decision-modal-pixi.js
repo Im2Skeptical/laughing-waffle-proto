@@ -109,9 +109,27 @@ export function createVassalNodeDecisionModalView({
   let previewOptionId = null;
   let previewOfferId = null;
   let pinnedInspectionId = null;
+  let quickInspectionId = null;
   let acquirePicker = null;
   const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},lastDecision?.settlement?.structureCapacity??8);
   let hoverRenderTimer = null;
+
+  function inspectPiece(id, face, event) {
+    if(event?.pointerType==='touch'&&face?.reading) {
+      quickInspectionId=quickInspectionId===id?null:id;
+      pinnedInspectionId=null;
+    } else {
+      pinnedInspectionId=pinnedInspectionId===id?null:id;
+      quickInspectionId=null;
+    }
+    render(true);
+  }
+
+  function closeInspection() {
+    quickInspectionId=pinnedInspectionId=null;
+    previewOfferId=hoveredOfferId=previewTableauId=hoveredTableauId=null;
+    render(true);
+  }
 
   function explainReadOnly(control, readOnly) {
     if (readOnly) {
@@ -192,6 +210,7 @@ export function createVassalNodeDecisionModalView({
   function close({ immediate = false } = {}) {
     if (!logicalOpen && !immediate) return;
     logicalOpen = false;
+    quickInspectionId=null;
     backdropPressedPointerId = null;
     pointerHeld = false;
     dragged = null;
@@ -238,6 +257,7 @@ export function createVassalNodeDecisionModalView({
       ? { x: nodePoint.x, y: nodePoint.y } : { ...panelCenter };
     logicalOpen = true;
     pinnedInspectionId = null;
+    quickInspectionId = null;
     openNodeId = nodeId ?? getPresentation?.()?.vassal?.lifeMap?.currentNodeId ?? null;
     root.visible = true;
     backdrop.visible = true;
@@ -297,7 +317,7 @@ export function createVassalNodeDecisionModalView({
     const local=root.toLocal(event.global);dragged.point=local;
     if(!dragged.active&&Math.hypot(local.x-dragged.start.x,local.y-dragged.start.y)>10) {
       dragged.active=true;dragged.card.dragConsumed=true;
-      pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;
+      pinnedInspectionId=null;quickInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;
       inspectionRoot?.destroy({children:true});inspectionRoot=null;
       const face=dragged.piece.presentation;
       dragGhost=addSettlementPiece(root,{x:local.x-48,y:local.y-64,width:face?.kind==='structure'?PIECE_SIZE.cellWidth*(face.footprint??1):PIECE_SIZE.practiceWidth,height:face?.kind==='structure'?PIECE_SIZE.structureHeight:PIECE_SIZE.practiceHeight},{face,state:'staged'});
@@ -344,7 +364,7 @@ export function createVassalNodeDecisionModalView({
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
     }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
-      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId });
+      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId });
     // Refresh callbacks can run several times for one entry. A matching layout
     // is already authoritative, including its selected/disabled controls.
     if (!prepared && nextSignature === signature) return;
@@ -439,7 +459,7 @@ export function createVassalNodeDecisionModalView({
         }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
-          const inspect=()=>{pinnedInspectionId=pinnedInspectionId===offer.offerId?null:offer.offerId;render(true);};
+          const inspect=event=>inspectPiece(offer.offerId,offer.presentation,event);
           const x=cardStartX+index*(cardWidth+cardGap);
           const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:cardHeight},{
             title:offer.label,artId:node.family,presentation:offer.presentation,
@@ -470,7 +490,7 @@ export function createVassalNodeDecisionModalView({
           }, {
             artId:node.family, quality: option.quality,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
-            onInspect:()=>{pinnedInspectionId=pinnedInspectionId===option.id?null:option.id;render(true);},
+            onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
             cost: { prestigeCost, phaseCost, state },
             costUnmet: prestigeCost > vassal.prestige,
@@ -511,14 +531,14 @@ export function createVassalNodeDecisionModalView({
           face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
           onHover:piece?()=>{hoveredTableauId='practice:'+piece.practiceId;scheduleHoverRender();}:undefined,
           onOut:()=>{hoveredTableauId=null;scheduleHoverRender();},
-          onInspect:piece?()=>{pinnedInspectionId='practice:'+piece.practiceId;render(true);}:undefined,
+          onInspect:piece?event=>inspectPiece('practice:'+piece.practiceId,piece.presentation,event):undefined,
         });
         if(piece?.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));
         animateUpgrade(card, piece, readOnly);
         tableauRoots.push({card,piece});
       });
       (settlement.displacedPractices??[]).forEach((face,index)=>{
-        const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:()=>{pinnedInspectionId='displaced:'+face.definitionId;render(true);}});
+        const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:event=>inspectPiece('displaced:'+face.definitionId,face,event)});
         card.rotation=.12;
       });
       root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.structureLabelY));
@@ -670,23 +690,37 @@ export function createVassalNodeDecisionModalView({
         },
       });
     }
-    const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(pinnedInspectionId??previewOfferId));
-    const inspectedOption=(nodeState?.options??[]).find(option=>option.id===pinnedInspectionId);
+    const retainedInspectionId=pinnedInspectionId??quickInspectionId;
+    const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(retainedInspectionId??previewOfferId));
+    const inspectedOption=(nodeState?.options??[]).find(option=>option.id===retainedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(
-      'practice:'+piece.practiceId===(pinnedInspectionId??previewTableauId)||'structure:'+piece.placementId===(pinnedInspectionId??previewTableauId)));
-    const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===pinnedInspectionId);
+      'practice:'+piece.practiceId===(retainedInspectionId??previewTableauId)||'structure:'+piece.placementId===(retainedInspectionId??previewTableauId)));
+    const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===retainedInspectionId);
     if(inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
       const piece=inspectedOffer??inspectedOption??inspectedTableau;
       const face=piece?.presentation??displaced;
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
       if(face?.reading&&!pinnedInspectionId) {
-        inspectionRoot=addPracticeReading(root,850,face,{fontSize:34});
+        if(quickInspectionId) {
+          const outside=new PIXI.Graphics().beginFill(0x000000,0).drawRect(0,0,2424,1080).endFill();
+          // A fully transparent Graphics fill is excluded from Pixi hit testing.
+          outside.hitArea=new PIXI.Rectangle(0,0,2424,1080);
+          outside.eventMode='static';outside.on('pointerdown',event=>{pointerHeld=true;event.stopPropagation();});
+          outside.on('pointertap',event=>{event.stopPropagation();closeInspection();});root.addChild(outside);
+        }
+        inspectionRoot=addPracticeReading(root,quickInspectionId?900:850,face,{fontSize:quickInspectionId?44:34,
+          onInspect:quickInspectionId?()=>{pinnedInspectionId=quickInspectionId;quickInspectionId=null;render(true);}:undefined});
         inspectionRoot.position.set(inspectedTableau?PANEL.x+36:PANEL.x+1170,
           Math.max(40,Math.min(PANEL.y+108,1040-inspectionRoot.readingHeight)));
-        inspectionRoot.eventMode='none';inspectionRoot.interactiveChildren=false;
+        inspectionRoot.eventMode=quickInspectionId?'static':'none';inspectionRoot.interactiveChildren=!!quickInspectionId;
+        if(quickInspectionId) {
+          inspectionRoot.hitArea=new PIXI.Rectangle(0,0,900,inspectionRoot.readingHeight);
+          inspectionRoot.on('pointerdowncapture',()=>{pointerHeld=true;});
+          inspectionRoot.on('pointerdown',event=>event.stopPropagation());
+          inspectionRoot.on('pointertap',event=>event.stopPropagation());
+        }
       } else {
         const practiceInspect=!!face?.reading;
-        const closeInspection=()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);};
         if(practiceInspect) {
           const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(0,0,2424,1080).endFill();
           dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();closeInspection();});root.addChild(dim);
@@ -722,10 +756,10 @@ export function createVassalNodeDecisionModalView({
         await new Promise(resolve => setTimeout(resolve, 0));
         while (pointerHeld || dragged) await new Promise(resolve => setTimeout(resolve, 16));
         const savedNodeId = openNodeId;
-        const savedPreview = {previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, dragTargetIndex, acquirePicker};
+        const savedPreview = {previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker};
         const activeLayout = takeLayout();
         openNodeId = nodeId;
-        previewOptionId = previewOfferId = previewTableauId = pinnedInspectionId = dragTargetIndex = acquirePicker = null;
+        previewOptionId = previewOfferId = previewTableauId = pinnedInspectionId = quickInspectionId = dragTargetIndex = acquirePicker = null;
         const states = item.entryPresentation ? [
           {state:baseState, decision:item.entryPresentation},
           {state:deserializeGameState(item.stateData), decision:item.presentation},
@@ -743,7 +777,7 @@ export function createVassalNodeDecisionModalView({
         } finally {
           clearChildren(root);
           openNodeId = savedNodeId;
-          ({previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, dragTargetIndex, acquirePicker} = savedPreview);
+          ({previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker} = savedPreview);
           restoreLayout(activeLayout);
         }
         for (const content of created) app.renderer?.prepare?.add(content);
@@ -798,6 +832,8 @@ export function createVassalNodeDecisionModalView({
           rect: motionRect,
         },
         inspectedCardId: pinnedInspectionId,
+        quickCardId: quickInspectionId,
+        inspectionTitlePoint: inspectionRoot?.titleControl?.toGlobal?.(new PIXI.Point(450,inspectionRoot.titleControl.hitArea.height/2))??null,
         inspectionRect: inspectionRoot?.getBounds?.()??null,
         tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+construction().height-tableau.practiceY},
         family: decision?.node?.family ?? null,
