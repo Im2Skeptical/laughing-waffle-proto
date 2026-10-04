@@ -55,7 +55,14 @@ contract: `ai/visual-overhaul.md`.
   packets, and optional reversible ambient audio. Fractional presentation time
   never substitutes for a missing authoritative snapshot.
 - Boot opens a responsive landing menu with New game, Continue for the latest
-  valid save, and Load game for selecting among three browser-local slots.
+  valid save, and Load game for selecting among three browser-local IndexedDB slots.
+  Boot transfers compatible current-schema localStorage saves once, without
+  changing their envelopes or replacing existing IndexedDB saves. Source keys
+  are removed only after commit; unrelated and obsolete stored data is untouched.
+  Slot listings read small metadata records, with a loading/retry state for storage
+  access. Saving is asynchronous and shows Saved only after the payload and slot
+  metadata transaction commits. Concurrent autosaves coalesce; Save & menu pauses
+  immediately and captures a fresh save after any earlier write finishes.
   New game asks for a slot and confirms replacement of occupied/unavailable
   saves. The active slot saves every ten seconds during play, on focus loss,
   and through Save & menu. Storage failures remain visible; Save & menu opens

@@ -1,5 +1,5 @@
 import { createNewGameState } from "../model/new-game.js";
-import { importSaveToSlot, inspectSaveText } from './sim-runner/save-slots.js';
+import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
 export function createGameSessionController({ runner, opening, onEnter, onError, onSaved, onSaveStatusChange }) {
@@ -11,8 +11,29 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
   let lastAttempt = null;
   let lastFailure = null;
   let preparedImport = null;
+  let pendingSave = null;
+  let replacing = false;
+  let runVersion = 0;
+  let slotStatus = { phase: 'loading', error: null };
+  let slotSummaries = [1, 2, 3].map(slot => ({ slot, available: false, empty: false, meta: null }));
   const notify = () => onSaveStatusChange?.();
-  function record(result, slot, operation = 'save') {
+  async function refreshSlots() {
+    slotStatus = { phase: 'loading', error: null }; notify();
+    try {
+      const entries = await listSaveSlotSummaries();
+      slotSummaries = [1, 2, 3].map(slot => {
+        const entry = entries.find(candidate => candidate.slot === slot);
+        return { slot, available: entry?.meta?.schemaVersion === SAVE_SCHEMA_VERSION,
+          empty: !entry, meta: entry?.meta ?? null };
+      });
+      slotStatus = { phase: 'ready', error: null };
+      return { ok: true };
+    } catch (error) {
+      slotStatus = { phase: 'failed', error: { name: error.name, message: String(error.message).slice(0, 500) } };
+      return { ok: false, reason: 'storageFailed', error };
+    } finally { notify(); }
+  }
+  async function record(result, slot, operation = 'save') {
     const diagnostics = result.diagnostics ?? { slot, operation, attemptedAt: new Date().toISOString(),
       category: 'unknown', error: result.error ? { name: result.error.name, message: result.error.message } : null };
     if (operation === 'save') {
@@ -22,24 +43,34 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
         tSec: result.meta?.tSec ?? runner.getState?.()?.tSec ?? null };
     }
     if (!result.ok) lastFailure = { ...diagnostics, ok: false, reason: result.reason,
-      storage: inspectSaveStorageUsage() };
+      storage: await inspectSaveStorageUsage() };
+    else await refreshSlots();
     notify();
     if (result.ok && operation === 'save') onSaved?.();
     return result;
   }
-  function canReplaceLiveGame() { return !hasLiveGame || phase !== 'failed'; }
+  function canReplaceLiveGame() { return !replacing && !pendingSave && (!hasLiveGame || !['failed', 'saving'].includes(phase)); }
   function rejectUnsavedReplacement() {
     onError?.('Your current game has unsaved progress. Retry saving before replacing it, or export it and keep this page open.');
     return { ok: false, reason: 'unsavedLiveGame' };
   }
   function save() {
-    if (activeSlot === null) return { ok: true };
+    if (activeSlot === null) return Promise.resolve({ ok: true });
+    if (pendingSave) return pendingSave;
     phase = 'saving'; notify();
-    const result = record(runner.saveToSlot(activeSlot), activeSlot);
-    if (!result.ok) onError?.(saveFailureMessage(lastAttempt.category));
-    return result;
+    const slot = activeSlot;
+    const version = runVersion;
+    pendingSave = (async () => {
+      const stored = await runner.saveToSlot(slot);
+      if (version !== runVersion) return stored;
+      const result = await record(stored, slot);
+      if (!result.ok) onError?.(saveFailureMessage(lastAttempt.category));
+      return result;
+    })().finally(() => { pendingSave = null; notify(); });
+    return pendingSave;
   }
   function enter(slot, prepared = null) {
+    runVersion++;
     hasLiveGame = true;
     activeSlot = slot;
     inMenu = false;
@@ -47,11 +78,15 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     onEnter?.(prepared);
     return { ok: true };
   }
-  function continueGame(slot) {
+  async function continueGame(slot, { isCurrent = () => true } = {}) {
     if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
+    replacing = true; notify();
+    const version = runVersion;
+    let result;
+    try { result = await runner.loadFromSlot(slot, { isCurrent: () => isCurrent() && version === runVersion }); }
+    finally { replacing = false; notify(); }
+    if (!result.ok) { if (result.reason !== 'cancelled') onError?.('This save could not be loaded.'); return result; }
     opening?.reset();
-    const result = runner.loadFromSlot(slot);
-    if (!result.ok) { onError?.('This save could not be loaded.'); return result; }
     phase = 'saved'; lastAttempt = null;
     lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? null, tSec: result.meta?.tSec ?? null };
     onSaved?.();
@@ -62,8 +97,11 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     canResume: () => hasLiveGame,
     getActiveSlot: () => activeSlot,
     getSaveStatus: () => ({ phase, activeSlot, lastSuccessfulSave, lastAttempt, canReplaceLiveGame: canReplaceLiveGame() }),
-    getSaveDiagnostics: () => ({ reportVersion: 1, generatedAt: new Date().toISOString(),
-      status: { phase, activeSlot, lastSuccessfulSave }, lastAttempt, lastFailure, storage: inspectSaveStorageUsage() }),
+    getSaveDiagnostics: async () => ({ reportVersion: 2, generatedAt: new Date().toISOString(),
+      status: { phase, activeSlot, lastSuccessfulSave }, lastAttempt, lastFailure, slots: slotStatus,
+      storage: await inspectSaveStorageUsage() }),
+    refreshSlots,
+    getSlotStatus: () => slotStatus,
     exportCurrentGame() {
       if (!hasLiveGame) return { ok: false, reason: 'noLiveGame' };
       const result = runner.exportCurrentSave();
@@ -81,21 +119,22 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
       return { ok: true, meta: result.meta };
     },
     cancelImport() { preparedImport = null; },
-    importGame(slot) {
+    async importGame(slot, { isCurrent = () => true } = {}) {
       if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
       if (preparedImport === null) return { ok: false, reason: 'noImport' };
-      const result = record(importSaveToSlot(slot, preparedImport), slot, 'import');
+      replacing = true; notify();
+      let result;
+      try { result = await record(await importSaveToSlot(slot, preparedImport), slot, 'import'); }
+      finally { replacing = false; notify(); }
       if (!result.ok) {
         onError?.(`Import failed. ${saveFailureExplanation(result.diagnostics?.category)} Your file and existing saves are unchanged. Choose the slot again to retry.`);
         return result;
       }
       preparedImport = null;
-      return continueGame(slot);
+      if (!isCurrent()) return { ok: false, reason: 'cancelled' };
+      return continueGame(slot, { isCurrent });
     },
-    slots: () => [1, 2, 3].map((slot) => {
-      const result = runner.inspectSaveSlot(slot);
-      return { slot, available: result.ok, empty: result.reason === "emptySlot", meta: result.meta };
-    }),
+    slots: () => slotSummaries,
     prepareNewGame: () => opening?.prepare(),
     cancelPreparation: () => opening?.cancel(),
     getPreparationStatus: () => opening?.getSnapshot(),
@@ -124,7 +163,11 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
       if (!result.ok) return result;
       phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
       enter(slot, prepared);
-      const saved = save();
+      const saved = await save();
+      if (!isCurrent()) {
+        inMenu = true; notify();
+        return { ok: false, reason: 'cancelled' };
+      }
       if (!saved.ok) {
         inMenu = true; notify();
         return saved;
@@ -135,8 +178,12 @@ export function createGameSessionController({ runner, opening, onEnter, onError,
     openMenu() {
       // Recovery must remain reachable after a failed save. Continue resumes
       // the live run; replacement controls stay blocked until a save succeeds.
-      save();
       inMenu = true;
+      const previous = pendingSave;
+      // Freeze presentation immediately; after an in-flight autosave, capture
+      // the now-paused run again so Save & menu includes the latest progress.
+      if (previous) void previous.then(() => save());
+      else void save();
       return true;
     },
     resume() { opening?.cancel(); hasLiveGame = true; inMenu = false; return { ok: true }; },

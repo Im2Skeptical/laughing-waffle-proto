@@ -1,3 +1,4 @@
+import { createSaveTestStorage } from '../../../scripts/save-test-storage.mjs';
 import { ActionKinds } from "../actions.js";
 import { getVassalCandidatePool } from "../vassal-life-map.js";
 import { createNewGameState } from "../new-game.js";
@@ -684,25 +685,19 @@ const freshTimeline = createTimelineFromInitialState(freshRun);
 assert.deepEqual(serializeGameState(rebuildStateAtSecond(freshTimeline, 12).state),
   serializeGameState(rebuildStateAtSecond(createTimelineFromInitialState(createNewGameState(735)), 12).state));
 
-const storage = new Map();
-const priorLocalStorage = globalThis.localStorage;
-globalThis.localStorage = {
-  getItem: (key) => storage.get(key) ?? null,
-  setItem: (key, value) => storage.set(key, value),
-  removeItem: (key) => storage.delete(key),
-};
+const storage = createSaveTestStorage();
 try {
   const runner = createSimRunner({ setupId: "devPlaytesting01" });
   assert.equal(runner.init().ok, true);
   runner.rememberCivilizationSurvivalYear(91);
-  assert.equal(runner.saveToSlot(1).ok, true);
+  assert.equal((await runner.saveToSlot(1)).ok, true);
   assert.equal(runner.resetToSetup("devPlaytesting01").ok, true);
   assert.equal(
     runner.getState().persistentKnowledge.maxObservedCivilizationSurvivalYear,
     null,
     "a new run resets the record"
   );
-  assert.equal(runner.loadFromSlot(1).ok, true);
+  assert.equal((await runner.loadFromSlot(1)).ok, true);
   assert.equal(
     runner.getState().persistentKnowledge.maxObservedCivilizationSurvivalYear,
     91,
@@ -720,10 +715,11 @@ try {
   for (let second = 0; second < 12; second += 1) runner.update(1);
   assert.ok(runner.getState().tSec > 0, "save contains progressed simulation");
   assert.equal(session.openMenu(), true);
-  const slot2 = storage.get("civsurvivor.save.slot2");
+  await session.save();
+  const slot2 = await storage.get(2);
   assert.equal((await session.newGame(3)).ok, true);
-  assert.ok(storage.get("civsurvivor.save.slot2") === slot2, "starting slot 3 preserves slot 2");
-  assert.equal(session.continueGame(2).ok, true);
+  assert.ok(await storage.get(2) === slot2, "starting slot 3 preserves slot 2");
+  assert.equal((await session.continueGame(2)).ok, true);
   assert.equal(runner.getState().rng.baseSeed, JSON.parse(slot2).state.rng.baseSeed);
   const savedSlot2 = JSON.parse(slot2);
   assert.equal(runner.getState().tSec, savedSlot2.state.tSec);
@@ -732,25 +728,20 @@ try {
   assert.ok(JSON.stringify(serializeGameState(runner.getState()).civilization) === JSON.stringify(savedSlot2.state.civilization),
     "load restores the selected Vassal and civilization");
   const beforeBadLoad = serializeGameState(runner.getState());
-  storage.set("civsurvivor.save.slot3", "{broken");
-  assert.equal(runner.loadFromSlot(3).ok, false);
+  await storage.set(3, "{broken");
+  assert.equal((await runner.loadFromSlot(3)).ok, false);
   assert.deepEqual(serializeGameState(runner.getState()), beforeBadLoad);
-  const originalSetItem = globalThis.localStorage.setItem;
-  globalThis.localStorage.setItem = () => { throw new Error("quota"); };
-  assert.equal(session.save().reason, "storageFailed");
+  storage.fail(new DOMException("quota", "QuotaExceededError"));
+  assert.equal((await session.save()).reason, "storageFailed");
   assert.equal(session.openMenu(), true, 'recovery controls remain reachable when saving fails');
-  globalThis.localStorage.setItem = originalSetItem;
-  const saveKey = Array.from(storage.keys()).find((key) => key.endsWith(".slot1"));
-  const oldSave = JSON.parse(storage.get(saveKey));
+  await session.save();
+  storage.fail(null);
+  const oldSave = JSON.parse(await storage.get(1));
   oldSave.meta.schemaVersion = 6;
-  storage.set(saveKey, JSON.stringify(oldSave));
-  assert.equal(runner.loadFromSlot(1).reason, "versionMismatch");
+  await storage.set(1, JSON.stringify(oldSave));
+  assert.equal((await runner.loadFromSlot(1)).reason, "versionMismatch");
 } finally {
-  if (priorLocalStorage === undefined) {
-    delete globalThis.localStorage;
-  } else {
-    globalThis.localStorage = priorLocalStorage;
-  }
+  storage.restore();
 }
 
 assert.equal(getGraphMetric("not-a-metric"), null);

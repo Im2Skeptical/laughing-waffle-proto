@@ -11,20 +11,16 @@ import {
 } from "../../model/state.js";
 import { rebuildStateAtSecond } from "../../model/timeline/index.js";
 import { clonePersistentKnowledge } from "../../model/persistent-memory.js";
-import { accessSaveStorage, describeSaveError, saveFailureCategory } from './save-diagnostics.js';
+import { describeSaveError, saveFailureCategory } from './save-diagnostics.js';
+import { initializeSaveStorage, runSaveTransaction, putSaveRecord, SAVE_PAYLOAD_STORE, SAVE_META_STORE } from './save-storage.js';
 
 export const SAVE_SCHEMA_VERSION = 18;
-export const SAVE_KEY_PREFIX = "civsurvivor.save";
 export const SAVE_SLOT_COUNT = 3;
 
-export function getSaveSlotKey(slot) {
+function normalizeSaveSlot(slot) {
   const idx = Number.isFinite(slot) ? Math.floor(slot) : 1;
   const clamped = Math.max(1, Math.min(SAVE_SLOT_COUNT, idx));
-  return `${SAVE_KEY_PREFIX}.slot${clamped}`;
-}
-
-export function getLocalStorageSafe() {
-  return accessSaveStorage().storage;
+  return clamped;
 }
 
 export function buildSaveMeta(state, setupId) {
@@ -89,24 +85,31 @@ export function normalizeSavedTimeline(rawTimeline, fallbackStateData) {
   };
 }
 
-export function readSaveSlot(slot) {
-  const store = getLocalStorageSafe();
-  if (!store) return { ok: false, reason: "noStorage" };
-  const key = getSaveSlotKey(slot);
+export async function readSaveSlot(slot) {
+  let raw;
   try {
-    const raw = store.getItem(key);
-    if (!raw) return { ok: false, reason: "emptySlot" };
-    const parsed = JSON.parse(raw);
-    return { ok: true, data: parsed };
-  } catch (err) {
-    return { ok: false, reason: "badSaveData", error: err };
-  }
+    const db = await initializeSaveStorage(inspectSaveText);
+    raw = await runSaveTransaction(db, [SAVE_PAYLOAD_STORE], 'readonly', (tx, setResult) => {
+      const request = tx.objectStore(SAVE_PAYLOAD_STORE).get(normalizeSaveSlot(slot));
+      request.onsuccess = () => setResult(request.result?.text ?? null);
+    });
+  } catch (error) { return { ok: false, reason: 'storageFailed', error }; }
+  if (raw === null) return { ok: false, reason: 'emptySlot' };
+  try { return { ok: true, data: JSON.parse(raw) }; }
+  catch (error) { return { ok: false, reason: 'badSaveData', error }; }
 }
 
-export function getSaveSlotMeta(slot) {
-  const res = readSaveSlot(slot);
-  if (!res.ok) return null;
-  return res.data?.meta ?? null;
+export async function listSaveSlotSummaries() {
+  const db = await initializeSaveStorage(inspectSaveText);
+  return runSaveTransaction(db, [SAVE_META_STORE], 'readonly', (tx, setResult) => {
+    const request = tx.objectStore(SAVE_META_STORE).getAll();
+    request.onsuccess = () => setResult(request.result);
+  });
+}
+
+export async function getSaveSlotMeta(slot) {
+  try { return (await listSaveSlotSummaries()).find(entry => entry.slot === normalizeSaveSlot(slot))?.meta ?? null; }
+  catch { return null; }
 }
 
 export function exportSave({ state, timeline, setupId } = {}) {
@@ -118,11 +121,11 @@ export function exportSave({ state, timeline, setupId } = {}) {
   } catch (error) { return { ok: false, reason: 'serializationFailed', error }; }
 }
 
-function persistSave(slot, prepare, context = {}) {
+async function persistSave(slot, prepare, context = {}) {
   const start = performance.now();
-  const diagnostics = { attemptedAt: new Date().toISOString(), slot, operation: context.operation ?? 'save',
+  const diagnostics = { backend: 'indexedDB', attemptedAt: new Date().toISOString(), slot, operation: context.operation ?? 'save',
     stateSec: context.state?.tSec ?? null, checkpointCount: context.timeline?.checkpoints?.length ?? null,
-    stage: 'access', category: null, payloadCharacters: null, estimatedUtf16Bytes: null,
+    stage: 'serialize', category: null, payloadCharacters: null, estimatedUtf16Bytes: null,
     payloadUtf8Bytes: null, durationMs: null, error: null };
   const finish = (result, error = null, text = null) => {
     diagnostics.durationMs = Math.round((performance.now() - start) * 100) / 100;
@@ -135,16 +138,18 @@ function persistSave(slot, prepare, context = {}) {
     }
     return { ...result, diagnostics };
   };
-  const { storage, error } = accessSaveStorage();
-  if (!storage) return finish({ ok: false, reason: 'noStorage', error }, error);
-  diagnostics.stage = 'serialize';
+  // Capture the JSON snapshot before yielding; the live run can keep advancing.
   const prepared = prepare();
   if (!prepared.ok) return finish(prepared, prepared.error);
   diagnostics.payloadCharacters = prepared.text.length;
   diagnostics.estimatedUtf16Bytes = prepared.text.length * 2;
-  diagnostics.stage = 'write';
+  diagnostics.stage = 'access';
   try {
-    storage.setItem(getSaveSlotKey(slot), prepared.text);
+    const db = await initializeSaveStorage(inspectSaveText);
+    diagnostics.stage = 'write';
+    await runSaveTransaction(db, [SAVE_PAYLOAD_STORE, SAVE_META_STORE], 'readwrite', tx => {
+      putSaveRecord(tx, normalizeSaveSlot(slot), prepared.text, prepared.meta);
+    });
     diagnostics.stage = 'complete';
     return finish({ ok: true, meta: prepared.meta });
   } catch (failure) { return finish({ ok: false, reason: 'storageFailed', error: failure }, failure, prepared.text); }
@@ -166,8 +171,8 @@ export function importSaveToSlot(slot, text) {
     { operation: 'import', state: inspected.state, timeline: inspected.nextTimeline });
 }
 
-export function inspectSaveSlot(slot) {
-  const res = readSaveSlot(slot);
+export async function inspectSaveSlot(slot) {
+  const res = await readSaveSlot(slot);
   if (!res.ok) return res;
   return inspectSaveData(res.data);
 }

@@ -300,8 +300,9 @@ try {
   assert.ok(Number.isFinite(
     revealPreview.worldMap.civilizationSummary.chaos.lastReckoning?.primordialPressure
   ), "projected Chaos reckoning exposes Primordial pressure");
-  assert.ok(revealPreview.worldMap.activeEdgeTransferPackets.every(p=>p.resourceId==='population'),
-    'Hosted Food has no legacy Administration transfer packets');
+  assert.ok(revealPreview.worldMap.activeEdgeTransferPackets.every(packet => packet.resourceId === 'population'
+    || (packet.transferId.startsWith('stock:') && ['food', 'stock'].includes(packet.resourceId))),
+    'Hosted Food uses authoritative Stock supply packets rather than legacy Administration transfers');
   // Passive navigation pauses the visual forecast edge. Use it before the
   // slower pointer checks so the site cannot fall while the probe is clicking.
   await clickDesignPoint(page, await page.evaluate(() =>

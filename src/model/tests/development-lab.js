@@ -87,7 +87,7 @@ assert.deepEqual(data(rebuildStateAtSecond(timeline,expected.tSec).state),data(e
 const runner=createSimRunner({setupId:'devPlaytesting01'});
 const session=createGameSessionController({runner});
 assert.equal(session.enterDisposableState(later).ok,true);assert.equal(session.getActiveSlot(),null);
-assert.equal(runner.getTimeline().cursorSec,later.tSec);assert.equal(session.save().ok,true);
+assert.equal(runner.getTimeline().cursorSec,later.tSec);assert.equal((await session.save()).ok,true);
 assert.deepEqual(data(rebuildStateAtSecond(runner.getTimeline(),expected.tSec).state),data(expected));
 const store=new Map(),storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)};
 const ctl=createDevelopmentLabController({initialState:later,storage});
