@@ -11,8 +11,9 @@ import { createAuthoredLifeMapLabDraft } from '../src/model/life-map-lab-draft.j
 const output='artifacts/region-map', port=18096;
 mkdirSync(output,{recursive:true});
 const profile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthoredGameSettingsDraft(),gamepieces:createAuthoredGamepiecesDraft(),lifeMapLab:createAuthoredLifeMapLabDraft(),vassalLab:null,activePage:'mapLab'};
-profile.gameSettings.values.primordialBasePressure=1;
-profile.gameSettings.values.primordialGrowthFactor=1.2;
+// Camera/inspection checks need their settlement target to survive the reveal.
+profile.gameSettings.values.primordialBasePressure=0;
+profile.gameSettings.values.primordialGrowthFactor=1;
 const cedar=profile.mapLab.regions.find(region=>region.id==='cedar-woods');
 cedar.structureCapacity=5;
 cedar.randomizeStructureCapacity=false;
@@ -23,7 +24,7 @@ const errors=[];
 const snapshots=[];
 async function snap() { return page.evaluate(()=>{
   const s=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
-  return {mode:s.mode,selected:s.selectedRegionId,active:s.regionSelectionActive,detail:s.detailPanelVisible,chaos:s.chaosExpanded,camera:s.camera,focusAnimating:s.focusAnimating,panelReveal:s.panelReveal,slots:s.structureSlots,layout:s.layout};
+  return {mode:s.mode,selected:s.selectedRegionId,active:s.regionSelectionActive,detail:s.detailPanelVisible,chaos:s.chaosExpanded,camera:s.camera,focusAnimating:s.focusAnimating,panelReveal:s.panelReveal,slots:s.structureSlots,layout:s.layout,relationships:s.relationships};
 }); }
 async function point(p) {
   const b=await page.locator('canvas').boundingBox();
@@ -94,11 +95,21 @@ try {
   assert.equal(selected.slots.visible,8);
   assert.equal(selected.slots.blocked,8-selected.slots.available);
   await capture('desktop-selected');
+  assert.deepEqual(selected.relationships.adjacentRegionIds,['west-levee']);
+  assert.ok(selected.relationships.connectedRegionIds.includes('river-crown'),'indirect settlements are highlighted separately');
+  assert.deepEqual(selected.relationships.stockProviderRegionIds,['west-levee']);
+  await click({x:127,y:782});
+  await waitFocus();
+  assert.ok((await snap()).camera.zoom<1,'Show group zooms out to fit the connected territory');
+  assert.equal((await snap()).active,true,'group overview retains selection and details');
+  await capture('desktop-connected-group');
+  await click({x:899,y:782});
+  await assertCentered('cedar-woods');
   assert.equal(selected.slots.blocked,3,'five-cell region blocks three cells');
   await click({x:1110,y:400});
   const inspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
   assert.equal(inspection.pinned,true,'enlarged card opens inspection');
-  await click({x:1110,y:400});
+  await click(inspection.closePoint);
   await click({x:1880,y:700});
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title),'Unavailable construction space');
   await click({x:1880,y:700});
@@ -128,6 +139,7 @@ try {
   assert.equal(dismissal.panel.phase,'closing');
   await waitDismissed();
   assert.equal((await snap()).detail,false,'close returns to the full map');
+  assert.equal((await snap()).relationships,null,'dismissal clears the group highlights');
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'closing restores the overview framing');
   const wheel=await point({x:1200,y:450});
   await page.mouse.move(wheel.x,wheel.y);await page.mouse.wheel(0,-300);
@@ -141,6 +153,10 @@ try {
   assert.equal((await snap()).detail,true,'touch selects');
   await assertCentered('cedar-woods');
   await capture('mobile-selected');
+  await click({x:127,y:782},true);
+  await waitFocus();
+  assert.ok((await snap()).camera.zoom<1,'touch opens the whole connected group');
+  await capture('mobile-connected-group');
   await click({x:2370,y:116},true);
   await waitDismissed();
   const cdp=await page.context().newCDPSession(page);

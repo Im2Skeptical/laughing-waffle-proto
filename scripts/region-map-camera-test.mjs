@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
+import { getMapRelationships, getMapRelationship } from '../src/views/world-map/relationships.js';
+import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
 
 // Exercise the real camera with a deterministic UI clock and input surface.
 // No renderer or simulation is needed to verify framing and gesture ownership.
@@ -92,3 +94,34 @@ time += 400; reveal.update(); assert.equal(panel.visible,false);
 quiet.open(origin); quiet.close(destination);
 assert.equal(panel.visible,false,'reduced motion dismisses immediately');
 console.log('[region-map-dismissal] OK: animated overview return, shrink, interrupted opening, reopen, reduced motion');
+
+const groupPoints = [{x:488,y:104},{x:1936,y:792}];
+const groupBounds = {x:48,y:236,width:864,height:280};
+camera.frame(groupPoints, groupBounds);
+time += 400; camera.update();
+for (const point of groupPoints) {
+  const projected = camera.project(point);
+  assert.ok(projected.x >= groupBounds.x - .001 && projected.x <= groupBounds.x + groupBounds.width + .001);
+  assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
+}
+assert.ok(camera.snapshot().zoom < 1, 'large groups can fit beside the detail panel');
+console.log('[region-map-group-frame] OK: the whole group fits inside its unobstructed map area');
+
+const state = createLabFixture('defense', 42);
+const beforeRelationships = JSON.stringify(state);
+const reach = getMapRelationships(state, 'copper-basin', true);
+assert.deepEqual(reach.adjacentRegionIds, ['high-pass', 'east-steppe']);
+assert.deepEqual(reach.connectedRegionIds, ['iron-hills', 'obsidian-ridge']);
+assert.deepEqual(reach.stockProviderRegionIds, ['east-steppe'], 'neutral or indirect neighbours cannot supply Stock');
+assert.equal(getMapRelationship(reach, 'copper-basin'), 'selected');
+assert.equal(getMapRelationship(reach, 'east-steppe'), 'adjacent');
+assert.equal(getMapRelationship(reach, 'obsidian-ridge'), 'connected');
+assert.equal(getMapRelationship(reach, 'cedar-woods'), null, 'unrelated regions stay outside the highlighted group');
+assert.equal(getMapRelationships(state, 'copper-basin', false), null, 'dismissal clears every relationship cue');
+assert.equal(JSON.stringify(state), beforeRelationships, 'reach queries leave simulation state and RNG untouched');
+state.world.connections = state.world.connections.filter(edge => edge.regionAId !== 'copper-basin' && edge.regionBId !== 'copper-basin');
+const isolated = getMapRelationships(state, 'copper-basin', true);
+assert.deepEqual(isolated.adjacentRegionIds, []);
+assert.deepEqual(isolated.connectedRegionIds, []);
+assert.deepEqual(isolated.stockProviderRegionIds, [], 'road removal immediately removes supply eligibility');
+console.log('[region-map-relationships] OK: direct versus indirect reach, Stock eligibility, dismissal, live roads, unchanged state');

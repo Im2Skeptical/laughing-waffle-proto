@@ -1,4 +1,5 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
+import { getMapRelationships, getMapRelationship, drawRelationshipLine, addRelationshipBadge, addRelationshipLegend } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
@@ -8,7 +9,6 @@ import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
 import { addChaosPanelContent, addRegionPanelContent } from './chronicle-world-panels.js';
 import {
-  getConnectedRegionIds,
   getRegionDefinition,
   getRegionReference,
   getRegionPolygon,
@@ -189,6 +189,7 @@ function signature(
     regionSelectionActive,
     graphScope,
     regions: state?.world?.regions,
+    connections: state?.world?.connections,
     civilizationSummary,
     survivalTracker,
     regionMapIndicators,
@@ -471,6 +472,7 @@ export function createWorldMapView({
     if (!definition) return;
     const selectedRegionId = getSelectedRegionId?.() ?? state.civilization.capitalRegionId;
     const regionSelectionActive = getRegionSelectionActive?.() === true;
+    const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
     const civilizationSummary = getDetailedCivilizationSummary(state);
@@ -572,11 +574,15 @@ export function createWorldMapView({
         (indicator) => indicator.regionId === region.id
       );
       const highlighted = highlightedRegionIds.has(region.id);
+      const relationship = getMapRelationship(relationships, region.id);
       const shape = new PIXI.Graphics();
       shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, .04).drawPolygon(points).endFill();
+      if (relationships && !relationship && !highlighted) {
+        shape.beginFill(0x071216, .36).drawPolygon(points).endFill();
+      }
       shape.eventMode = 'none';
       territoryBorders.push({points, player:region.controller==='player' && !region.monster,
-        monster:!!region.monster, selected, highlighted, controller:region.controller});
+        monster:!!region.monster, selected, highlighted, relationship, controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
@@ -619,13 +625,21 @@ export function createWorldMapView({
       const to = screenPoint(b.display.labelPoint);
       edges.lineStyle(9, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
       edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+      if (relationships) {
+        const aKind = getMapRelationship(relationships, a.id);
+        const bKind = getMapRelationship(relationships, b.id);
+        if (aKind && bKind) {
+          drawRelationshipLine(edges, from, to, aKind === 'selected' || bKind === 'selected' ? 'adjacent' : 'connected', 6);
+        }
+      }
     }
     edges.eventMode = "none";
     edges.visible = display.connections !== false;
     mapContent.addChild(edges);
     // Draw borders after every terrain polygon and road, with selection last.
     // Neighboring terrain must not erase the important side of a shared edge.
-    for (const territory of territoryBorders.sort((a,b)=>Number(a.selected)-Number(b.selected))) {
+    const borderPriority = territory => territory.selected ? 3 : territory.relationship === 'adjacent' ? 2 : territory.relationship === 'connected' ? 1 : 0;
+    for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
       addTerritoryBorder(mapContent, territory.points, territory);
     }
 
@@ -669,6 +683,8 @@ export function createWorldMapView({
         addSettlementPressureIndicator(adornments, {x:65,y:40}, indicator.pressure);
         addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
       }
+      addRelationshipBadge(mapContent, point, getMapRelationship(relationships, indicator.regionId),
+        relationships?.stockProviderRegionIds.includes(indicator.regionId));
     }
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef)
@@ -754,6 +770,14 @@ export function createWorldMapView({
       if (selected) camera.reveal(screenPoint(selected.display.labelPoint), DETAIL_RECT.x);
       else camera.reset();
     });
+    if (relationships) {
+      const legend = addRelationshipLegend(root, state, relationships);
+      addButton(root, {x:32,y:756,width:190,height:52}, 'Show group', () => {
+        const points = definition.regions.filter(entry => getMapRelationship(relationships, entry.id))
+          .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint));
+        camera.frame(points, {x:48,y:236,width:DETAIL_RECT.x-96,height:Math.max(160,legend.y-252)});
+      });
+    }
     if (!regionSelectionActive) return;
 
     const selectedDef = getRegionDefinition(state, selectedRegionId);
@@ -845,6 +869,7 @@ export function createWorldMapView({
         visible: root.visible === true,
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
+        relationships: getMapRelationships(state, regionId, root.visible && getRegionSelectionActive?.() === true),
         detailPanelVisible: root.visible && detailRoot.visible,
         chaosExpanded,
         camera: camera.snapshot(),

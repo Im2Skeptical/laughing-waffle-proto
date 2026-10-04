@@ -59,6 +59,19 @@ and desktop/mobile screenshots, alongside the settlement/navigation probes.
 
 ## Territory presentation
 
+Selecting a region highlights its direct road neighbours in mint with a double
+outline and the remaining road-connected group in violet with a dashed outline.
+Matching road ink and settlement badges distinguish one-road adjacency from
+multi-road reach; unrelated terrain is dimmed. The fixed reach legend lists both
+sets by region reference, including members outside the current camera framing.
+Show group fits the whole highlighted group's territory above the legend while
+keeping the details open. Reset restores the selected settlement's close view.
+`relationships.js` reads the viewed state's existing region-scope and Stock
+provider selectors. Only eligible adjacent player settlements receive a Stock
+badge and appear in the legend's Stock provider list; indirect reach does not
+imply Stock sharing. The render signature includes live connections so adding or
+removing a road refreshes the highlighting without changing simulation state.
+
 Settlement paintings are 58 x 66 map units; zoom supplies the close view.
 Structure-slot pictograms are omitted from the map and remain in settlement
 panels. Player land has a dark-backed gold boundary; the selected polygon uses
