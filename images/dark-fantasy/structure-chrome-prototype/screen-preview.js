@@ -1,7 +1,7 @@
 import { settlementStructureDefs } from '../../../src/defs/gamepieces/detailed-settlement-defs.js';
 import { getGamepieceFace } from '../../../src/model/gamepiece-presentation.js';
 import { addSettlementPiece } from '../../../src/views/settlement-piece-pixi.js';
-import { getResourceTexture, preloadChronicleArt } from '../../../src/views/chronicle-art.js';
+import { preloadChronicleArt } from '../../../src/views/chronicle-art.js';
 import { getStoneTexture, paintRelicPanel, RELIC } from '../../../src/views/chronicle-skin.js';
 import { createText } from '../../../src/views/settlement-view-primitives.js';
 import { TEXT_STYLES } from '../../../src/views/settlement-theme.js';
@@ -62,10 +62,12 @@ function effectSymbols(effect) {
     ? effect.stockTraits.map(trait => `stock-${trait.toLowerCase()}`) : [effect.kind];
 }
 function stockBacking(parent, x, y, width, height) {
-  const texture = getResourceTexture('stock');
-  const crate = new PIXI.Sprite(texture);
-  crate.scale.set(Math.min(width / texture.width, height / texture.height));
-  crate.anchor.set(.5); crate.position.set(x + width / 2, y + height / 2);
+  // Only the crate's outer silhouette remains behind the capacity numeral.
+  const crate = new PIXI.Graphics().lineStyle(1.25, 0xffffff, .95).beginFill(0x0b100d);
+  crate.drawPolygon([2, 7, 19, 2, 30, 8, 30, 27, 13, 32, 2, 25]).endFill();
+  const scale = Math.min((width - 2) / 32, (height - 2) / 32);
+  crate.scale.set(scale);
+  crate.position.set(x + (width - 32 * scale) / 2, y + (height - 32 * scale) / 2);
   crate.eventMode = 'none'; parent.addChild(crate);
 }
 function capacityTray(root, effects, w, h, corner = false) {
@@ -82,7 +84,7 @@ function capacityTray(root, effects, w, h, corner = false) {
     contents.addChildAt(recess, 0);
     if (effect.kind === 'stock') {
       stockBacking(contents, value.x - 3, 1, value.width + 6, height - 2);
-      // The capacity numeral reads over the crate, like a Practice Stock counter.
+      // Keep the outlined Stock silhouette beneath the live capacity numeral.
       contents.setChildIndex(value, contents.children.length - 1);
     }
     symbols.forEach((symbol, i) => addResourceIcon(contents, symbol, width + (i + .5) * iconSize + 1, height / 2, iconSize - 3));
@@ -148,7 +150,6 @@ function reading(id, width, state, onInspect) {
     text(hit, '↗', width - 46, titleY + 21, 40, size); root.addChild(hit);
   }
   y += titleHeight; const rulesY = y; y += 20;
-  y += text(root, def.specialistGate ? 'WHILE ACTIVE' : 'WHILE BUILT', pad, y, width - pad * 2, size * .62, { fill: RELIC.gold, fontWeight: 'bold' }).height + 16;
   const lines = effects.map(e => e.text);
   if (def.pool !== 'common' && def.candidateBonus) lines.push(`+${def.candidateBonus} to future ${def.pool} candidates from this settlement, within the institutional bonus cap.`);
   for (const m of (def.modifiers ?? []).filter(m => m.kind === 'historyCandidate')) lines.push(`Additional candidate bonus from civilization age and stocked Record Practices, capped at +${m.cap}.`);
@@ -174,7 +175,7 @@ function glossary(id, width, state) {
   y += text(root, 'THE SYMBOLS ON THIS CARD', 22, y, width - 44, 25, { fill: RELIC.gold, fontWeight: 'bold' }).height + 28;
   const entries = effects.map(e => ({ name: e.kind === 'stock' ? `${e.scope} Stock capacity` : e.label, icon: effectSymbols(e)[0], text: e.kind === 'housingCapacity'
     ? 'The roof marks room for population. The plus and numeral show added Housing capacity, not people arriving.'
-    : e.kind === 'stock' ? `The tag identifies the Stock whose capacity increases: ${e.scope}. The crate behind the plus and numeral marks added capacity on each matching Practice. This Structure does not hold or produce Stock.`
+    : e.kind === 'stock' ? `The tag identifies the Stock whose capacity increases: ${e.scope}. The outlined Stock box behind the plus and numeral marks added capacity on each matching Practice. This Structure does not hold or produce Stock.`
       : 'The population symbol identifies an ongoing increase to the local Martial Support multiplier.' }));
   entries.push({ name: 'Construction footprint', text: `${def.footprint} horizontal cell${def.footprint > 1 ? 's' : ''}. Structures use the regional strip, separate from the five Practice slots.` },
     { name: `${caps(tier)} quality`, text: state.quality ? `The jewel marks quality. This example has ${state.quality * 25}% uplift to numeric Housing, Stock capacity and Support bonuses. Housing rounds down per Structure; Stock capacity rounds down after summing host bonuses. Candidate base bonuses and history caps are unchanged.` : 'The jewel marks quality. These are the authored base bonuses.' },
