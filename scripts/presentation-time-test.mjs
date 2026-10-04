@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
+import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
@@ -14,6 +15,32 @@ import {
 } from '../src/views/ui-root/settlement-graph-session.js';
 
 const faceClock={tSec:0,seasonDurationSec:8};
+const loggingReading=getGamepieceFace(faceClock,'practice','logging');
+assert.deepEqual(loggingReading.reading.effects,[
+  {timing:'Spring',text:'Produce 2 Stock'},
+  {timing:'Summer',text:'Produce 2 Stock'},
+  {timing:'Autumn',text:'Produce 3 Stock'},
+]);
+assert.equal(loggingReading.reading.type,'Cycle');
+assert.equal(loggingReading.reading.trigger,null,'Season timing belongs in the Activation block');
+const anatomicalReading=getGamepieceFace(faceClock,'practice','anatomicalStudy');
+assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Produce 2 Stock'},{timing:'',text:'Gain 2 Research'}]);
+assert.equal(anatomicalReading.reading.trigger,'Charge when someone in this settlement dies, or another local Practice produces Bone Stock.');
+assert.ok(anatomicalReading.reading.requirements.includes('Requires a Scholar worker.'),'The hard staffing gate remains readable');
+assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge meter'));
+assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge meter'),'Glossary includes only symbols on the selected face');
+assert.ok(!getPracticeSymbols(anatomicalReading).some(entry=>/Cycle/.test(entry.name)));
+assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Bone Stock'),'Trigger traits are included, even when not hosted here');
+const recipeReading=getGamepieceFace(faceClock,'practice','cropRotation').reading;
+assert.ok(recipeReading.requirements.includes('Require 1 Record Stock (kept).'),'Requires is distinct from Consume');
+const mixedReading=getGamepieceFace(faceClock,'practice','selectiveBreeding').reading;
+assert.deepEqual(mixedReading.effects.map(effect=>effect.timing),['Birth phase','Autumn'],'Additional seasonal triggers are not lost');
+for(const definition of Object.values(detailedSettlementPracticeDefs)) {
+  const reading=getGamepieceFace(faceClock,'practice',definition.id).reading;
+  assert.ok(reading.effects.length,`${definition.id} must explain its Activation or supplied contribution`);
+  assert.ok(reading.effects.every(effect=>effect.text&&!/undefined/.test(effect.text)),`${definition.id} needs readable effects`);
+  if(reading.type==='Charge')assert.ok(!/Gain \d+ (?:base )?Charge|At \d+ Charge|Discharge/.test(reading.trigger),'Charge copy explains events, not the standard meter rule');
+}
 const workerFace=getGamepieceFace(faceClock,'practice','forage','bronze',{workers:{tokens:[{effectiveness:.5}],effectiveWorkers:.5}});
 assert.equal(workerFace.workerMultiplier,1.5,'Worker multiplier uses effective workers, not occupied socket count');
 assert.equal(getGamepieceFace(faceClock,'practice','scholarship','bronze',{workers:{tokens:[{}],effectiveWorkers:1}}).workerMultiplier,1,'Non-Stock effects do not advertise a worker yield bonus that the simulation does not apply');

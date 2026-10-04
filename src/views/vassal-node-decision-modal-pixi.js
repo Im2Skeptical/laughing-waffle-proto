@@ -5,6 +5,7 @@ import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SI
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
+import { addPracticeReading } from './practice-reading-pixi.js';
 import { addResourceAmount } from './resource-cost-pixi.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
@@ -678,7 +679,19 @@ export function createVassalNodeDecisionModalView({
       const piece=inspectedOffer??inspectedOption??inspectedTableau;
       const face=piece?.presentation??displaced;
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
-      inspectionRoot=addChronicleInspection(root,{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
+      if(face?.reading&&!pinnedInspectionId) {
+        inspectionRoot=addPracticeReading(root,850,face,{fontSize:34});
+        inspectionRoot.position.set(inspectedTableau?PANEL.x+36:PANEL.x+1170,
+          Math.max(40,Math.min(PANEL.y+108,1040-inspectionRoot.readingHeight)));
+        inspectionRoot.eventMode='none';inspectionRoot.interactiveChildren=false;
+      } else {
+        const practiceInspect=!!face?.reading;
+        const closeInspection=()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);};
+        if(practiceInspect) {
+          const dim=new PIXI.Graphics().beginFill(0x050908,.82).drawRect(0,0,2424,1080).endFill();
+          dim.eventMode='static';dim.on('pointertap',event=>{event.stopPropagation();closeInspection();});root.addChild(dim);
+        }
+      inspectionRoot=addChronicleInspection(root,practiceInspect?{x:112,y:90,width:2200,height:880}:{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
@@ -692,9 +705,10 @@ export function createVassalNodeDecisionModalView({
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,
           displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
-        onClose:()=>{pinnedInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;render(true);},
+        onClose:closeInspection,
       });
       if(!pinnedInspectionId){inspectionRoot.eventMode="none";inspectionRoot.interactiveChildren=false;}
+      }
     }
 
   }

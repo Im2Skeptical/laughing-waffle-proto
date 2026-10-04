@@ -37,6 +37,8 @@ not use the root file as the default location for new rendering or model rules.
   `images/dark-fantasy/README.md`
 - Illustrated pieces and inspection: `src/views/settlement-piece-pixi.js` and
   `src/views/chronicle-inspection.js`
+- Practice Activation copy: `src/model/practice-reading.js`; shared hover/inspect
+  rules and selected-card symbol glossary: `src/views/practice-reading-pixi.js`
 - Shared resource symbols and cost footers: `src/views/resource-cost-pixi.js`
   and `images/dark-fantasy/resource-language-v1/`
 - Pure time samplers and scene effects: `src/views/timeline-presentation.js`

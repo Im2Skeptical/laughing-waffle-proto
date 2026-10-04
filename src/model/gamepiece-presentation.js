@@ -3,6 +3,7 @@ import { getDetailedPracticeWorkerCapacity, getQualityMultiplier } from './detai
 import { getMoonPhaseDurationSec, getMoonCycleDurationSec } from './moon-phases.js';
 import { MOON_PHASE_INDEX_BY_ID } from '../defs/gamesettings/moon-phase-defs.js';
 import { getRegionReference } from './world-state.js';
+import { getPracticeReading } from './practice-reading.js';
 
 export const GAMEPIECE_OUTPUTS = Object.freeze({
   food: { label: 'Food', icon: 'food' }, money: { label: 'Money', icon: 'money' },
@@ -100,6 +101,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const workerMultiplier = producesStock || def.mode==='charge' ? number(1 + (workers?.effectiveWorkers ?? 0) * (def.workerBonus ?? 1)) : 1;
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
     inputs, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def),
+    reading: kind === 'practice' ? getPracticeReading(def) : null,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],

@@ -1,7 +1,7 @@
 # Current UI
 
 Charge faces use a segmented teal reservoir along the bottom, workers and their
-Charge multiplier on the left, and Discharge yields on the right. The icons
+Charge multiplier on the left, and Activation yields on the right. The icons
 directly above the reservoir identify Charge triggers, not Stock costs. Small
 arrows distinguish Stock-generation triggers (up) from consumption triggers
 (down); event symbols cover death, threat, trade and Martial triggers. Sections
@@ -12,14 +12,22 @@ complete pool counts; the Charge Museum exhibit uses five real Practices and
 normal authoritative stepping. Its causal sequence exposes root/parent event IDs,
 gains, blocked retries and Discharges. See `docs/civcontent-2.6-implementation.md`.
 
-Practice faces show hosted Stock count/capacity and Trait glyphs; inspections
-list the live Consume/Require providers and unmet input. Food and Currency
+Practice faces show hosted Stock count/capacity and Trait glyphs. Hover translates
+the recipe into plain English: class/type/tags, separate Activation effects,
+Charge triggers or inline Cycle timings, necessary requirements, and short
+flavour text. Hover never includes the symbol dictionary or private Charge
+threshold instructions. Clicking/tapping a Practice opens an enlarged card and
+the same rules over a dimmed scene, with a scrollable glossary on the right.
+The glossary covers only symbols on that face, including hosted/trigger/input
+Traits, Stock capacity, staffing, Charge or Cycle, and base output numerals.
+Food and Currency
 summaries are read-only Trait totals. Regional, overview, and purchase boards show
 one row of five fixed Practice slots, with no Practice-board paging. Purchase
 inventory paging is separate. Population/Housing,
 specialist counts and the last defense outcome remain explicit.
-Scheduled readiness uses the existing time rim. Inspection supports hover and
-touch; generic art is reused for new content with distinct names and rules.
+Cycle readiness uses the existing time rim. Generic art is reused for new
+content with distinct names and rules. Structure inspection retains its existing
+hover/touch reading panel.
 Warrior status displays Retinue, cap and next Prestige threshold. Scholar status
 shows the active Commission. Class stat labels are Ingenuity and Prowess.
 Structure rows are centered and use the same eight-cell pitch across regions.
@@ -188,13 +196,15 @@ contract: `ai/visual-overhaul.md`.
   Money use the same resource symbols in their existing HUDs. The modal shows
   current-to-projected Prestige. Practice/Public Works show
   the final settlement preview on the right. Offers, detached cost tags and source undo occupy the left. Offer inspection
-  overlays the right; tableau inspection overlays the left. The source stays exposed
-  and inspection dismisses during dragging. Faces inspect; costs stage; an
+  uses a quick hover panel opposite its source. Clicking a Practice opens the
+  enlarged, dimmed inspection with its glossary on the right; Structure inspection
+  retains its opposite-side panel. Inspection dismisses during dragging. Faces inspect; costs stage; an
   offer-to-tableau drag also stages. Staged practices drag within their prefix;
   staged builds drag to valid origins; dragging back left undoes either. Incoming
   blueprints reveal cracked/faded buildings beneath them, and upgrades crossfade
-  from the previous quality. Inspection uses the same reading panel on every gamepiece surface: left on
-  the Regional Map, right in detailed settlements, and opposite the source in shops.
+  from the previous quality. Practice hover and expanded inspect share the same
+  Activation renderer on every gamepiece surface. Structure reading panels stay
+  left on the Regional Map, right in detailed settlements, and opposite the source in shops.
   Shared physical faces use 5:7 practices and 3:4 single-cell structures, with
   wider structures spanning contiguous cells. Pieces and slots scale uniformly.
   Illustrated frames distinguish scheduled and charge practices; structures share
