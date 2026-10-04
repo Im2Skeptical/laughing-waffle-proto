@@ -5,7 +5,8 @@ keywords while studying a Practice? This isolated Dev Lab workbench keeps the
 current enlarged symbolic card and readable Activation rules. The right-hand panel uses only symbol — name
 rows (for example, box — Stock and book — Record), with full explanations behind
 clickable names instead of paragraphs in the key. It shows only symbols on the
-selected card. Real faces and rules use the actual `addChronicleInspection`
+selected card. Stock tag symbols come first, in card order, followed by the
+other symbols. Real faces and rules use the actual `addChronicleInspection`
 Pixi renderer. Prototype-only
 keyword decoration retains its original measured text wrapping. The card,
 rules, flavour, right-hand symbol glossary and reference panels all render
