@@ -18,6 +18,7 @@ export const terms = {
   Consume: 'Spend matching Stock to resolve a recipe. Requirements use local hosts first, then adjacent connected player settlements. Require checks Stock without spending it.',
   Require: 'A condition that must be satisfied for Activation. Required Stock is checked and kept; Consume spends it instead. A full Charge meter can wait until requirements become legal.',
   Bone: 'A Stock trait associated with remains. Anatomical Study can Charge when another local Practice produces Bone Stock. The same Stock may carry other Stock traits too.',
+  Death: 'A death in this settlement can Charge a Practice that watches for it. Read the Practice’s trigger for the events it responds to; filling its Charge meter leads to Activation.',
   Timber: 'A Stock trait associated with wood. Timber Stock can satisfy matching Consume or Require inputs and can cause a matching Charge trigger to advance.',
   Fuel: 'A Stock trait used by recipes that need fuel. One unit can have Fuel and other Stock traits, such as Timber. A recipe determines which Stock it needs.',
   Edible: 'A Stock trait that can supply food. The Food phase checks available Edible Stock. Some Cycle Practices Produce it at that timing.',

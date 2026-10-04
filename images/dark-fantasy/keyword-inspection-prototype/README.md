@@ -1,14 +1,18 @@
-# Keyword inspection prototype
+# Practice inspector prototype
 
-Question: how should a player follow keywords within keywords while studying a
-Practice? This isolated Dev Lab workbench keeps the current enlarged symbolic
-card, readable Activation rules and right-hand symbol glossary. Real faces and
-rules use the actual `addChronicleInspection` Pixi renderer. Prototype-only
+Question: how should a player read a simple symbol key and follow keywords within
+keywords while studying a Practice? This isolated Dev Lab workbench keeps the
+current enlarged symbolic card and readable Activation rules. The right-hand panel uses only symbol — name
+rows (for example, box — Stock and book — Record), with full explanations behind
+clickable names instead of paragraphs in the key. It shows only symbols on the
+selected card. Real faces and rules use the actual `addChronicleInspection`
+Pixi renderer. Prototype-only
 keyword decoration retains its original measured text wrapping. The card,
 rules, flavour, right-hand symbol glossary and reference panels all render
 inside one Pixi canvas; there is no DOM imitation of the inspector.
 
-Run `npm run preview:keywords`, or open it through Dev Lab → Prototypes → Keywords.
+Run `npm run preview:keywords`, or open it through Dev Lab → Prototypes → Inspector.
+The existing `keyword-inspection-prototype/` URL stays the same for shared links.
 Enter **Fullscreen** for the same mobile landscape flow as the other
 workbenches, including the rotated fallback when browser requests are denied.
 Card, quality and variant controls remain inside the canvas in fullscreen.
@@ -19,7 +23,7 @@ Switch with the bottom Pixi arrows or `?variant=A`, `B`, `C`:
 - C — a panel trail showing two definitions at a time; Earlier/Later browse
   the complete history without shrinking the copy.
 
-Click/tap underlined terms in rules, tags or the right glossary. Terms inside
+Click/tap underlined terms in rules, tags or the right symbol key. Terms inside
 definitions open further definitions. Back and Escape retrace one step;
 breadcrumbs or Return here jump back. Close restores focus to the starting term.
 Pin retains the reference on outside taps and Practice/quality changes. Outside

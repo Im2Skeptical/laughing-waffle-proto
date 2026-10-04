@@ -17,9 +17,9 @@ const WORKBENCHES = [
     details: '3 Pixi treatments · mobile landscape fullscreen · screen PNG export',
   },
   {
-    title: 'Practice keyword inspection', folder: 'keyword-inspection-prototype', label: 'Keywords',
-    description: 'Follow clickable keywords into further explanations using the current enlarged Practice and right-hand symbol glossary.',
-    details: 'Full Pixi inspector · mobile fullscreen · recursive links / Back / Pin',
+    title: 'Practice inspector', folder: 'keyword-inspection-prototype', label: 'Inspector',
+    description: 'Study an enlarged Practice with readable rules, a simple right-hand symbol key and clickable definitions.',
+    details: 'Full Pixi inspector · symbol / name rows · recursive links / Back / Pin',
   },
 ];
 
