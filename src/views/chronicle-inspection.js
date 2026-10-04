@@ -6,6 +6,7 @@ import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
 import { addCostPanel } from './resource-cost-pixi.js';
 import { addPracticeReading, addPracticeGlossary } from './practice-reading-pixi.js';
+import { attachInspectionKeywords } from './inspection-keywords-pixi.js';
 
 function readingViewport(parent, content, rect) {
   const viewport=new PIXI.Container();viewport.position.set(rect.x,rect.y);parent.addChild(viewport);
@@ -15,7 +16,7 @@ function readingViewport(parent, content, rect) {
   viewport.addChild(mask);content.mask=mask;
   const maxScroll=Math.max(0,content.readingHeight-rect.height);
   let scroll=0,drag=null;
-  const move=value=>{scroll=Math.max(0,Math.min(maxScroll,value));content.y=-scroll;};
+  const move=value=>{scroll=Math.max(0,Math.min(maxScroll,value));content.y=-scroll;viewport.emit('readingScroll');};
   viewport.getScroll=()=>scroll;viewport.setScroll=move;
   viewport.eventMode='static';viewport.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height);
   viewport.on('wheel',event=>{event.stopPropagation();move(scroll+(event.deltaY??event.nativeEvent?.deltaY??0));});
@@ -26,7 +27,7 @@ function readingViewport(parent, content, rect) {
   return viewport;
 }
 
-function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detail}) {
+function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detail,referenceState,keywordReferences}) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
   const frame=new PIXI.Graphics();paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,2);root.addChild(frame);
@@ -56,12 +57,14 @@ function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detai
   root.getScroll=()=>rulesViewport.getScroll();root.setScroll=value=>rulesViewport.setScroll(value);
   root.getGlossaryScroll=()=>glossaryViewport.getScroll();root.setGlossaryScroll=value=>glossaryViewport.setScroll(value);
   root.glossary=glossary;root.rules=rules;root.glossaryViewport=glossaryViewport;
-  parent.addChild(root);return root;
+  parent.addChild(root);
+  if(keywordReferences)attachInspectionKeywords(root,{face,rect,rules,glossary,rulesViewport,glossaryViewport,readingViewport,initialState:referenceState});
+  return root;
 }
 
 // A view-local reading surface; scrolling never changes a card or its draft.
-export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate}) {
-  if(face?.reading)return addPracticeInspection(parent,rect,{face,cost,onActivate,onClose,detail});
+export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate, referenceState, keywordReferences=true}) {
+  if(face?.reading)return addPracticeInspection(parent,rect,{face,cost,onActivate,onClose,detail,referenceState,keywordReferences});
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   const frame=new PIXI.Graphics();
   paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,3);
