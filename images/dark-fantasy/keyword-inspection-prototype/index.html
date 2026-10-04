@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <base href="../../../">
+  <title>Practice keywords · prototype</title>
+  <link rel="stylesheet" href="images/dark-fantasy/keyword-inspection-prototype/study.css">
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
+</head>
+<body>
+  <header class="study-heading">
+    <div><p class="eyebrow">DEV LAB · KEYWORD STUDY</p><h1>Follow the meaning</h1>
+      <p>Click or tap an underlined keyword, then follow the keywords inside its explanation. Explore how the reference should unfold.</p></div>
+    <a href="index.html#/dev/prototypes">Development Lab prototypes ↗</a>
+  </header>
+  <main>
+    <div class="controls">
+      <label>Practice <select id="card" disabled><option value="anatomicalStudy">Anatomical Study</option><option value="logging">Logging</option><option value="smelting">Smelting</option><option value="forage">Foraging</option></select></label>
+      <label>Quality <select id="tier" disabled><option value="bronze">Bronze</option><option value="silver">Silver</option><option value="gold">Gold</option><option value="diamond">Diamond</option></select></label>
+      <p id="state" role="status" aria-live="polite"></p>
+    </div>
+    <section id="inspection" aria-label="Full Practice inspection">
+      <figure><div id="card-picture" role="img"></div><figcaption id="card-caption"></figcaption></figure>
+      <section id="rules" aria-label="Practice rules"></section>
+      <aside id="glossary" aria-label="Symbols on this card"></aside>
+    </section>
+    <p class="study-note">Prototype only. Current game card artwork and rule data; linked definitions explore a future inspect feature. Back retraces your reading. Pin keeps the reference open when you tap elsewhere.</p>
+  </main>
+  <div id="references" hidden></div>
+  <nav class="variant-switcher" aria-label="Keyword prototype variants">
+    <button id="previous" type="button" aria-label="Previous variant">←</button>
+    <span id="variant-label"></span>
+    <button id="next" type="button" aria-label="Next variant">→</button>
+  </nav>
+  <script type="module" src="images/dark-fantasy/keyword-inspection-prototype/study.js"></script>
+</body>
+</html>

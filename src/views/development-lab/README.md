@@ -7,7 +7,7 @@ one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
 `prototypes.js` renders the design-workbench directory at `#/dev/prototypes`.
-Its Cards, Vassals and Structures links open the separately bundled pages under
+Its Cards, Vassals, Structures and Keywords links open the separately bundled pages under
 `images/dark-fantasy/`; no prototype renderer is imported into the game shell.
 
 `dev-preview-display.js` provides the shared enter/exit control for the persistent
