@@ -36,6 +36,8 @@ export function addSymbolKey(face,width) {
     else add(({stock:'Stock',research:'Research',population:'Specialist training',prestige:'Prestige',activation:'Quality',support:'Support',hourglass:'Preview',housingCapacity:'Housing',faith:'Chaos resistance',food:'Meal saving'})[effect.icon]??effect.icon,{icon:effect.icon});
   }
   add('Quality',{drawing:'jewel'});
+  // Lead with Stock tags, preserving their order within the selected card.
+  rows.sort((a,b)=>Number(!!b.trait)-Number(!!a.trait));
   const copy=(value,x,y,size=36)=>{
     const node=new PIXI.Text(value,{...TEXT_STYLES.body,fontSize:size,lineHeight:size*1.25,fill:RELIC.bone});node.position.set(x,y);root.addChild(node);return node;
   };
