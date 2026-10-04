@@ -22,6 +22,7 @@ Switch with the bottom Pixi arrows or `?variant=A`, `B`, `C`:
 - B — a fixed reference rail.
 - C — a centered reference panel.
 
+Flavour text stays plain italic prose, without keyword styling or links.
 Click/tap underlined terms in rules, tags or the right symbol key. Terms inside
 definitions replace the current definition. Back and Escape retrace one step;
 Back from the first definition dismisses it. Close dismisses the whole reading

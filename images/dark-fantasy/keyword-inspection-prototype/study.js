@@ -183,7 +183,7 @@ async function boot() {
   window.keywordWorkbench={get state(){return {variant,card:face.definitionId,tier:face.tier,path:[...path],fullscreen:display.active,renderer:'pixi',referencePanels:referenceLayer.children.filter(node=>node.keywordPanel).length};},
     get targets(){return targets.flatMap(target=>{const rect=clipped(target);return rect?[{group:target.group,action:target.action,...pageBounds(rect)}]:[];});},
     get viewports(){return viewports.map(viewport=>({group:viewport.group,scroll:viewport.getScroll(),max:viewport.max,...pageBounds(logicalBounds(viewport.node))}));},
-    get reading(){return face.reading;},get symbols(){return inspector.glossary.entries.map(({name,trait,icon,glyph,drawing,season,wheel})=>({name,trait,icon,glyph,drawing,season,wheel}));}};
+    get reading(){return face.reading;},get flavour(){return inspector.rules.children.find(node=>node instanceof PIXI.Text&&node.style.fontStyle==='italic')?.text;},get symbols(){return inspector.glossary.entries.map(({name,trait,icon,glyph,drawing,season,wheel})=>({name,trait,icon,glyph,drawing,season,wheel}));}};
   document.body.dataset.ready='true';
 }
 for(const id of ['card','tier'])$(id).addEventListener('change',()=>{path=[];inspector=null;queueDraw();});

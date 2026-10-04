@@ -207,6 +207,7 @@ try {
     assert.equal(await page.locator('#inspection canvas').count(),1);
     assert.equal(await page.evaluate(()=>keywordWorkbench.state.renderer),'pixi');
     assert.equal(await page.locator('#rules,#glossary,#references').count(),0,'all visible inspection text is Pixi');
+    assert.equal(await page.evaluate(()=>keywordWorkbench.flavour),'The dead keep no secrets from a patient scholar.','flavour remains plain italic text even when it contains a keyword');
     const chargeNames=await page.evaluate(()=>keywordWorkbench.symbols.map(symbol=>symbol.name));
     assert.ok(chargeNames.includes('Stock')&&chargeNames.includes('Record')&&chargeNames.includes('Charge')&&chargeNames.includes('Death'),'symbol key covers the selected Charge card');
     assert.equal(chargeNames.includes('Spring'),false,'unrepresented season symbols are omitted');
