@@ -75,8 +75,12 @@ contract: `ai/visual-overhaul.md`.
   saving succeeds. Load game validates imported files before destination-slot
   selection and confirms replacement of occupied slots. Save status shows the
   last successful save; Developer tools / Save diagnostics provides a report
-  of exception, save size, storage estimates, timestamps and browser details
-  without game state or stored values. Touch-device focus loss still pauses and
+  of exceptions, save size, storage estimates, timestamps and browser details,
+  with the last five save attempts (serialization, enqueue and elapsed storage
+  timings) and the first three seconds of frame gaps for the last three
+  resolution popups, plus the background forecast worker's status and last
+  failure/retry. Pauses/background time are excluded. These are bounded
+  runtime diagnostics without game state or stored values. Touch-device focus loss still pauses and
   preserves the live game in memory if saving fails. Desktop focus loss saves
   without opening the menu. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot

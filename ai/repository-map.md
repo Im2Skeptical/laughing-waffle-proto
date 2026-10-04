@@ -19,10 +19,15 @@ and its direct dependencies.
 - Save recovery/status/export: `src/views/save-recovery-dom.js`.
   Technical report: `src/views/save-diagnostics-dom.js`, reused by the menu's
   Developer tools and the workshop's Save diagnostics tab.
+  Recent popup frame gaps: `src/controllers/node-resolution-diagnostics.js`;
+  bounded runtime timings are sampled by the main view and included in that report.
 - Fullscreen/landscape entry: `src/views/game-display-mode.js`
 - Player fresh-run setup: `src/model/new-game.js` and `src/model/starter-boot-profile.js`
 - Forecast orchestration: `src/controllers/settlement-forecast-controller.js`
 - Forecast worker service: `src/controllers/timegraph-forecast-worker-service.js`
+  Deferred watchdog and one bounded background retry precede timeout fallback.
+  Consecutive phone-layout Continue latency: `npm run probe:recap-input`.
+  Investigation: `docs/research/node-resolution-save-performance.md`.
 - Forecast worker entry: `src/controllers/timegraph-forecast-worker.js`
 
 `ui-root-settlement-pixi.js` is a high-coupling orchestration file. Search for

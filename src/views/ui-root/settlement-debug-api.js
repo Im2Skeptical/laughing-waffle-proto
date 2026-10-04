@@ -120,6 +120,8 @@ export function publishSettlementDebugApi({
   getLifeMapLevelUpSnapshot,
   getLifeMapHudSnapshot,
   getLifeMapRecapSnapshot,
+  getLifeDecisionStatus,
+  getForecastWorkerDiagnostics,
   getRunCompleteSnapshot,
   getOpeningSnapshot,
   getRunCompleteClickPoint,
@@ -169,12 +171,28 @@ export function publishSettlementDebugApi({
 } = {}) {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
+    getLifeDecisionTimingSnapshot: () => {
+      const lineage = summarizeLineage(getFrontierState?.());
+      const recap = getLifeMapRecapSnapshot?.()?.recap;
+      return {
+        nextNodeId: lineage?.currentVassal?.availableNodeIds?.[0] ?? null,
+        currentNodeId: lineage?.currentVassal?.currentNodeId ?? null,
+        processing: getLifeDecisionStatus?.() != null,
+        family: getLifeMapDecisionSnapshot?.()?.family ?? null,
+        endedReason: recap?.endedReason ?? null,
+        queuedLevelUp: recap?.queuedLevelUp === true,
+        frontierSec: nonNegativeFloor(getFrontierSec?.()),
+        checkpointCount: getTimeline?.()?.checkpoints?.length ?? 0,
+        forecastWorker: getForecastWorkerDiagnostics?.() ?? null,
+      };
+    },
     getNodeResolutionTimingSnapshot: () => ({
       frontierSec: nonNegativeFloor(getFrontierSec?.()),
       resolutionSec: getPendingCommitJob?.()?.resolutionSec ?? null,
       revealedSec: nonNegativeFloor(getGraphRevealedSec?.()),
       revealTargetSec: nonNegativeFloor(getGraphRevealTargetSec?.()),
       recapOpen: getLifeMapRecapSnapshot?.()?.open === true,
+      recapContinueState: getLifeMapRecapSnapshot?.()?.continueState ?? null,
     }),
     getSnapshot: () => {
       const forecastStatus = getForecastStatus?.() ?? null;

@@ -1,5 +1,6 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
 import {
+  perfEnabled,
   recordSettlementForecastBuild,
   recordSettlementForecastWorkerReject,
 } from "../model/perf.js";
@@ -74,6 +75,9 @@ function normalizeChunkEntries(entries) {
 }
 
 function estimateMessageBytes(payload) {
+  // Arguments are evaluated before recordSettlementForecastBuild can reject
+  // disabled counters. Avoid walking full snapshot chunks during normal play.
+  if (!perfEnabled()) return 0;
   try {
     return Math.max(0, JSON.stringify(payload).length);
   } catch (_error) {
@@ -85,6 +89,8 @@ export function createTimegraphForecastWorkerService({
   createWorker = null,
   workerUrl = DEFAULT_FORECAST_WORKER_URL,
   timeNowMs = nowMs,
+  scheduleTask = callback => setTimeout(callback, 0),
+  cancelTask = handle => clearTimeout(handle),
   primeChunkSizeSec = TIMEGRAPH_FORECAST_PRIME_CHUNK_SIZE_SEC,
   chunkSizeSec = TIMEGRAPH_FORECAST_CHUNK_SIZE_SEC,
   streamSliceSec = TIMEGRAPH_FORECAST_STREAM_SLICE_SEC,
@@ -98,6 +104,8 @@ export function createTimegraphForecastWorkerService({
 } = {}) {
   let worker = null;
   let workerDisabled = false;
+  let lastFailure = null;
+  let watchdogTask = null;
   let nextRequestId = 1;
   const requestsById = new Map();
   const requestsByKey = new Map();
@@ -130,10 +138,13 @@ export function createTimegraphForecastWorkerService({
     }
   }
 
-  function teardownWorker({ disable = false } = {}) {
+  function teardownWorker({ disable = false, failure = null } = {}) {
+    if (watchdogTask) cancelTask(watchdogTask.handle);
+    watchdogTask = null;
     if (disable === true) {
       workerDisabled = true;
     }
+    if (failure) lastFailure = { atMs: timeNowMs(), ...failure };
     const currentWorker = worker;
     worker = null;
     clearInFlightRequests();
@@ -147,11 +158,11 @@ export function createTimegraphForecastWorkerService({
   }
 
   function handleWorkerError() {
-    teardownWorker({ disable: true });
+    teardownWorker({ disable: true, failure: { reason: 'workerError' } });
   }
 
   function handleWorkerMessageError() {
-    teardownWorker({ disable: true });
+    teardownWorker({ disable: true, failure: { reason: 'messageError' } });
   }
 
   function ensureWorker() {
@@ -168,6 +179,7 @@ export function createTimegraphForecastWorkerService({
     } catch (_error) {
       worker = null;
       workerDisabled = true;
+      lastFailure = { atMs: timeNowMs(), reason: 'creationError' };
       return null;
     }
     if (worker && typeof worker.addEventListener === "function") {
@@ -217,6 +229,10 @@ export function createTimegraphForecastWorkerService({
 
     if (!entry) return;
     if (merged?.ok === true && message.result?.ok === true) {
+      if (watchdogTask?.entry === entry) {
+        cancelTask(watchdogTask.handle);
+        watchdogTask = null;
+      }
       if (entry.inFlight?.requestId === message.requestId) entry.inFlight.progressReceived = true;
       recordSettlementForecastBuild({
         workerSec: Math.max(0, clampSec(message.endSec) - clampSec(message.baseSec)),
@@ -231,6 +247,7 @@ export function createTimegraphForecastWorkerService({
         entry.terminalEndSec = clampSec(message.endSec);
       }
       entry.lastProgressMs = timeNowMs();
+      entry.workerTimeoutRetries = 0;
     } else if (message.result?.ok === true) {
       recordSettlementForecastWorkerReject(merged?.reason ?? "mergeFailed");
     }
@@ -412,6 +429,7 @@ export function createTimegraphForecastWorkerService({
         inFlight: null,
         primedInitialChunk: false,
         terminalEndSec: null,
+        workerTimeoutRetries: 0,
       };
       requestsByKey.set(requestKey, entry);
     } else {
@@ -503,18 +521,38 @@ export function createTimegraphForecastWorkerService({
 
     const currentMs = timeNowMs();
     const chunkStrategy = getChunkStrategy(baseSec, entry.coverageEndSec);
+    const deadlineMs = Math.max(1, Math.floor(entry.inFlight?.progressReceived ? workerStallTimeoutMs
+      : Math.max(workerStallTimeoutMs, workerStartupTimeoutMs) * (1 + entry.workerTimeoutRetries)));
     if (
       entry.inFlight &&
       currentMs - Math.max(
         Number.isFinite(entry.lastProgressMs) ? entry.lastProgressMs : -Infinity,
         Number.isFinite(entry.inFlight?.startedMs) ? entry.inFlight.startedMs : -Infinity
       ) >
-        // Module loading and each chunk's state validation need time on phones.
-        // Keep the normal stall deadline once this request starts streaming.
-        Math.max(1, Math.floor(entry.inFlight.progressReceived ? workerStallTimeoutMs
-          : Math.max(workerStallTimeoutMs, workerStartupTimeoutMs)))
+        deadlineMs && !watchdogTask
     ) {
-      teardownWorker({ disable: true });
+      // A long render/preparation task also delays delivery of worker messages.
+      // Yield before treating elapsed wall time as a dead worker. Queued progress
+      // can then cancel this check instead of enabling synchronous forecasting.
+      const watchedWorker = worker;
+      const watchedRequest = entry.inFlight;
+      const check = { entry, handle: null };
+      watchdogTask = check;
+      check.handle = scheduleTask(() => {
+        if (watchdogTask !== check) return;
+        watchdogTask = null;
+        if (worker !== watchedWorker || entry.inFlight !== watchedRequest) return;
+        const noProgressMs = timeNowMs() - Math.max(entry.lastProgressMs, watchedRequest.startedMs);
+        if (noProgressMs <= deadlineMs) return;
+        // One timeout is evidence of slow work, not proof that workers cannot
+        // run here. Retry from accepted coverage, with doubled startup grace,
+        // before falling back to the input thread. Silence remains bounded.
+        const retrying = entry.workerTimeoutRetries < 1;
+        if (retrying) entry.workerTimeoutRetries++;
+        teardownWorker({ disable: !retrying, failure: {
+          reason: 'progressTimeout', progressReceived: watchedRequest.progressReceived, noProgressMs, retrying,
+        } });
+      });
     }
 
     const workerInstance = ensureWorker();
@@ -639,6 +677,8 @@ export function createTimegraphForecastWorkerService({
   }
 
   return {
+    getDiagnostics: () => ({ activeWorker: worker != null, disabled: workerDisabled,
+      lastFailure: lastFailure ? { ...lastFailure } : null }),
     requestCoverage,
     handleTimelineInvalidation,
     dispose,
