@@ -18,6 +18,8 @@ Charge triggers or inline Cycle timings, necessary requirements, and short
 flavour text. Hover never includes the symbol dictionary or private Charge
 threshold instructions. Desktop clicking a Practice opens an enlarged card and
 the same rules over a dimmed scene, with a scrollable glossary on the right.
+Full inspect and its backdrop cover the vassal HUD and bottom-left navigation;
+closing it restores the normal scene order.
 On touch, tapping a Practice first retains the quick read; tapping its title
 opens the enlarged inspect view, and tapping elsewhere dismisses the quick read.
 The glossary covers only symbols on that face, including hosted/trigger/input
