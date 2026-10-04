@@ -3,34 +3,27 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <base href="../../../">
-  <title>Structures · design workbench</title>
+  <title>Structures · Pixi workbench</title>
   <link rel="stylesheet" href="images/dark-fantasy/structure-chrome-prototype/study.css">
+  <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css">
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
 </head>
 <body>
-  <header class="workbench-header"><div><p class="eyebrow">CIVILIZATION SURVIVOR · DESIGN STUDY</p><h1>Structures</h1><p>Small faces. Clear capacity. The same reading flow as Practices.</p></div><a href="index.html#/dev/prototypes">← Development Lab prototypes</a></header>
+  <header><h1>Structures · Pixi workbench</h1><a href="index.html#/dev/prototypes">← Development Lab prototypes</a></header>
   <main>
-    <section class="controls" aria-label="Preview controls">
+    <div id="screen-preview" aria-label="Game-layout Structure prototype"></div>
+    <form id="controls" aria-label="Preview controls">
       <label>Structure<select id="structure"></select></label>
       <label>Quality uplift<select id="quality"><option value="0">As authored</option><option value="1">+1 · 25%</option><option value="2">+2 · 50%</option><option value="3">+3 · 75%</option></select></label>
       <label>Screen<select id="context"><option value="settlement">Regional settlement</option><option value="shop">Structure offers</option></select></label>
       <label id="gate-control">Scholar requirement<select id="requirements"><option value="met">Met</option><option value="unmet">Unmet</option></select></label>
-      <button id="reset" type="button">Reset example</button>
-    </section>
-    <section class="scene" aria-label="Structure screen mockup">
-      <div class="scene-top"><div><span class="eyebrow">REGION 01 · CAPITAL</span><h2 id="scene-title">A place to endure</h2></div><span class="scene-season">Autumn · Housing phase</span></div>
-      <div id="scene-content"></div>
-      <p class="scene-note">Hover or focus a Structure for its quick read. Tap to keep it open; select the tooltip title to inspect.</p>
-    </section>
-    <section class="reading-study" aria-label="Selected structure quick read">
-      <div class="study-caption"><p class="eyebrow">THE QUICK READ</p><h2>Rules first. Symbols one step deeper.</h2><p>The title opens the full inspection, just like a Practice. Capacity is ongoing; it has no Charge meter or cycle wheel.</p><div id="selected-face"></div></div>
-      <div id="reading"></div>
-    </section>
-    <section class="symbol-study"><div><p class="eyebrow">THE FACE LANGUAGE</p><h2>Room for people. Room for Stock.</h2><p>Two simple silhouettes with a capacity marker. The numeral is the bonus; the tooltip names its scope.</p></div><div id="symbol-samples"></div></section>
-    <details class="prototype-state"><summary>Prototype state &amp; assumptions</summary><pre id="state"></pre><p>Read-only runtime definitions with example settlement data. No game session is attached. Graphic variants and the selected card are URL-addressable; other edits are temporary. These symbols are drawn as vectors for this first pass.</p></details>
+      <div class="actions"><button id="previous" type="button" aria-label="Previous treatment">←</button><span id="variant-label"></span><button id="next" type="button" aria-label="Next treatment">→</button></div>
+      <button id="quick-read" type="button">Quick read</button><button id="inspect" type="button">Inspect</button><button id="reset" type="button">Reset</button><button id="export" type="button">Save screen PNG</button>
+    </form>
+    <p id="status" role="status">Loading Pixi artwork…</p>
+    <p class="note">Hover a Structure for the quick read; tap to pin it, then tap its title to inspect. Fullscreen uses the same landscape preview as the other workbenches. The screen is a static reference with interactive Pixi cards and panels.</p>
+    <details><summary>Prototype state &amp; assumptions</summary><pre id="state"></pre><p>Read-only runtime definitions and an example tableau. No simulation or player save is attached. All artwork and rules inside the preview render on the Pixi canvas.</p></details>
   </main>
-  <nav class="variant-switcher" aria-label="Prototype variant switcher"><button id="previous" type="button" aria-label="Previous treatment">←</button><span><small>CARD TREATMENT</small><b id="variant-label"></b></span><button id="next" type="button" aria-label="Next treatment">→</button></nav>
-  <div id="hover-reading" hidden></div>
-  <dialog id="inspection" aria-label="Structure inspection"><div class="inspection-header"><span class="eyebrow">STRUCTURE · INSPECTION</span><button id="close-inspection" type="button" aria-label="Close inspection">Close ×</button></div><div id="inspection-content"></div></dialog>
   <script type="module" src="images/dark-fantasy/structure-chrome-prototype/study.js"></script>
 </body>
 </html>

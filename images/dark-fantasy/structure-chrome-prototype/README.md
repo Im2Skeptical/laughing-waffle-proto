@@ -1,50 +1,61 @@
-# Structure card and tooltip workbench (prototype)
+# Structure Pixi screen workbench (prototype)
 
 Run `npm run preview:structures`, then open
 <http://localhost:5183/images/dark-fantasy/structure-chrome-prototype/>.
 Also linked from **Development Lab → Prototypes → Structures & tooltips**.
-The Pages build bundles this isolated entry separately; the live game never
-imports its renderer. Keep the treatment here until production integration
-is explicitly requested.
+Pages bundles this isolated entry separately; the live game never imports it.
+Keep this treatment here until production integration is explicitly requested.
 
-Question: which face communicates ongoing capacity best at construction-strip
-size, and does the Practice reading flow work for Structures?
+Question: which face communicates capacity at actual construction-strip size,
+and does the Practice quick-read/inspection flow work for Structures?
 
-- `?variant=A`: illustrated plaque, closest to the Practice visual language.
-- `?variant=B`: capacity ledger, with large values and the matching Stock scope.
-- `?variant=C`: inset seal, preserving more uninterrupted painting.
+All proposed graphics render in one **2048 × 903 Pixi canvas**. The user's
+unaltered `settlement-reference.png` supplies the static map, settlement,
+Practice tableau, graph, wheels and navigation. Pixi draws the new construction
+specimens and counter, the build offers, quick reads, inspection and controls.
+The screenshot's other statistics remain reference pixels, not recalculated
+game values. No whole-game renderer or simulation session is needed.
 
-The bottom switcher and Left/Right keys cycle treatments. Selects keep their
-native keyboard input. `card` and `context` URL parameters preserve the selected
-definition and settlement/offer screen on refresh, including a Pages subpath.
+- `?variant=A`: capacity footplate across the lower edge of the painting.
+- `?variant=B`: hanging capacity medallion.
+- `?variant=C`: compact upper corner badge.
 
-Hover or focus a construction card for the quick read. Tap to pin it, then select
-its title to open inspection: card, shared rules, and a separate symbol glossary.
-Escape closes the tooltip or inspection. The persistent quick-read study beneath
-the mockup also opens inspection. Mobile wraps the strip into three/four-cell rows and
-stacks inspection; these are design mockups, not a proposed live responsive layout.
+Cards use the real `addSettlementPiece` painting/frame and the shared resource
+symbols: roof for Housing capacity and crate for Stock capacity. Values are live
+Pixi text. Rules and glossary panels use the game's `paintRelicPanel`, text
+styles and resource icons; none of these surfaces are HTML mockup graphics.
+The HTML outside the canvas is only workbench controls and documentation.
 
-Try Mud House and Longhouse for Housing, Granary and Storehouse for Stock scope,
-Archive for two-cell footprint and Scholar requirements, and Barracks for a
-non-capacity effect. Quality uplift previews 25% increments; Reset clears uplift,
-requirements and staged offers. Stage build is an in-memory example decision.
+Hover for the quick read, tap to pin it, then select its title for full inspection.
+Inspection preserves the game's three columns: card, shared rules, separate
+symbol glossary. Rules/glossary support wheel and pointer/touch dragging.
+Escape closes a reading panel first; another Escape exits fullscreen. Pixi
+accessibility labels describe the interactive pieces. External Quick read /
+Inspect controls also open the same canvas surfaces for keyboard users.
 
-Paintings reuse the original v4 assets. The Housing roof/person and Stock crate
-symbols are code-drawn SVGs with a small plus marker; values stay live text.
-No new raster assets are required. Tooltip hierarchy follows Practices: class /
-type / tags, inspectable title, ongoing rules, requirements, flavour. Capacity
-glossary explanations stay out of the quick read.
+**Fullscreen** uses `attachDevPreviewDisplay`, exactly as the other workbenches.
+It requests mobile landscape and uses the shared rotated landscape fallback
+when locking is unavailable. The entire game reference keeps its aspect ratio;
+the layout never wraps into website cards or stacked tooltip columns. The
+in-canvas variant arrows, Quick read and Inspect controls remain available in
+fullscreen. The same Fullscreen button exits and restores normal page scrolling.
 
-Values read the runtime definitions. Housing rounds down per Structure; Stock
-modifiers show their contributions (the runtime rounds the final host capacity
-down after summing bonuses). Candidate base bonuses and history caps do not gain
-quality uplift. Storehouse uses the current runtime Construction scope; its
-authored trait-choice hook is deferred. Secondary gameplay hooks are not invented.
-All scene populations, arrangements and shop offers are example data.
+Try Mud House/Longhouse for Housing, Granary/Storehouse for Stock scope, Archive
+for Scholar requirements and a two-cell footprint, and Barracks for Support.
+Quality, requirements and staged offers are temporary in-memory examples.
+`variant`, `card` and `context` survive URL refresh, including Pages subpaths.
+**Save screen PNG** exports the complete canvas, including the current tooltip
+or inspection, for mockup review.
 
-Simulation state, RNG, schemas, replay and live Views are untouched. Controls
-and staging have no persistence or model mutations. `window.structureWorkbench`
-exposes the small presentation state for probes. Check mobile/desktop overflow,
-all three treatments, refresh, quick read / inspection / Escape, Scholar gating,
-quality/reset and offer staging. `npm run verify` checks packaging and invariants;
-`npm run probe:prototypes` covers the deployed workbench directory and entry.
+Definitions are read-only. Housing rounds down per Structure. Stock contributions
+are shown before the runtime's final rounding of each host's summed capacity.
+Candidate base bonuses and history caps do not gain quality uplift. Storehouse
+uses the runtime Construction scope; its authored trait-choice hook is deferred.
+Simulation state, RNG, schemas, replay, live renderers and saves are untouched.
+
+`window.structureWorkbench` exposes presentation state, scene geometry, reading
+scroll positions and PNG export for probes. Verify real canvas card/title input,
+quick/inspection/Escape, glossary wheel/drag, gating, reset, offer staging,
+all treatments, URL refresh, PNG dimensions, desktop/mobile overflow and
+fullscreen entry/exit. `npm run verify` checks packaging/invariants;
+`npm run probe:prototypes` covers the separately bundled workbench and fullscreen.
