@@ -60,11 +60,11 @@ try {
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.url().startsWith(url) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
-  await check('Pages subpath, Prototypes route, two links and refresh', async () => {
+  await check('Pages subpath, Prototypes route, three links and refresh', async () => {
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
-    assert.equal(await page.locator('.lab-prototype-open').count(),2);
-    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →']);
+    assert.equal(await page.locator('.lab-prototype-open').count(),3);
+    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Cards workbench →', 'Open Vassals workbench →', 'Open Structures workbench →']);
     assert.equal((await fetch(`${url}images/dark-fantasy/tooltip-prototype/`)).status,404,'The retired tooltip page is absent from deployment');
     assert.equal(await page.locator('nav [data-mode="prototypes"]').getAttribute('aria-current'),'page');
     await noOverflow('directory desktop');
@@ -72,6 +72,19 @@ try {
     await page.reload(); await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
     await page.setViewportSize({width:390,height:844}); await noOverflow('directory portrait');
     await page.screenshot({path:'artifacts/prototype-directory-mobile.png'});
+    await page.setViewportSize({width:1280,height:800});
+    await page.getByRole('link',{name:'Open Structures workbench →'}).click(); await ready();
+    assert.equal(await page.locator('.practice-reference').count(),5);
+    await page.getByRole('button',{name:'Inspect Granary',exact:true}).click();
+    assert.equal(await page.locator('#inspection').evaluate(node=>node.open),true);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button',{name:'Next treatment'}).click();
+    assert.equal(new URL(page.url()).searchParams.get('variant'),'B');
+    await page.reload(); await ready();
+    assert.equal(await page.evaluate(()=>structureWorkbench.state.variant),'B');
+    await noOverflow('structures desktop');
+    await page.setViewportSize({width:390,height:844}); await noOverflow('structures portrait');
+    await page.goto(`${url}#/dev/prototypes`);
     await page.setViewportSize({width:1280,height:800});
     await page.getByRole('link',{name:'Open Cards workbench →'}).click(); await ready();
   });
