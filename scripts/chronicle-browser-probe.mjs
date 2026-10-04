@@ -17,17 +17,16 @@ async function countImageColours(page,png) {
   },png.toString('base64'));
 }
 
+const shopOnly=process.argv.includes('--shop-only');
 const url='http://127.0.0.1:8083';
 const artifact='artifacts/chronicle-browser-probe.json';
 mkdirSync('artifacts',{recursive:true});
 const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l','8083','--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
-let browser;
+let browser,page;
 const errors=[],failedAssets=[],graphicsWarnings=[],consoleTrail=[];
 const interactionTimings={};
-try {
-  for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
-  browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page=await browser.newPage({viewport:{width:1280,height:800},hasTouch:true});
+async function openProbePage(viewport) {
+  page=await browser.newPage({viewport,hasTouch:true});
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',message=>{if(consoleTrail.length<40)consoleTrail.push(message.text().slice(0,1600));});
   page.on('console',message=>{if(graphicsWarnings.length<20&&/INVALID_(OPERATION|VALUE|ENUM)|CONTEXT_LOST|GL_INVALID|framebuffer.*(invalid|incomplete)|Could not initialize shader/i.test(message.text()))graphicsWarnings.push(message.text());});
@@ -45,6 +44,11 @@ try {
     return !!asset?.textures&&Object.keys(asset.textures).length>0;
   }),
     ['resource-language.json','piece-frames.json','chronicle-illustrations.json','vassal-portraits.json','chronicle-gate.json','timegraph-chronicle.json'], { timeout: 45000 });
+}
+try {
+  for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
+  browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
+  await openProbePage({width:1280,height:800});
   const scrollAlpha=await page.evaluate(async()=>{
     const art=new Image();art.src='images/sprite-sheets/timegraph-chronicle.png';await art.decode();
     const canvas=document.createElement('canvas');canvas.width=art.width;canvas.height=art.height;
@@ -77,6 +81,15 @@ try {
     const b=await page.locator('canvas').boundingBox();
     await page.mouse.click(b.x+point.x/2424*b.width,b.y+point.y/1080*b.height);
   };
+  const seek=async t=>{
+    const result=await page.evaluate(t=>globalThis.__SETTLEMENT_DEBUG__.browseSecond(t),t);
+    assert.equal(result.ok,true,'The authoritative preview must be available for a visual seek');
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+    await delay(70);
+  };
+  let candidateBox;
+  let touch=await page.context().newCDPSession(page);
+  if(!shopOnly) {
   const hoverCard=async (point,inspectionSide=null)=>{
     // Screen transitions replace Pixi nodes; let their world transforms paint
     // before sending a mouse event against the new screen coordinates.
@@ -126,12 +139,6 @@ try {
   await click({x:lever.x+lever.width/2,y:lever.y+lever.height/2});
   await delay(100);
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget),0);
-  const seek=async t=>{
-    const result=await page.evaluate(t=>globalThis.__SETTLEMENT_DEBUG__.browseSecond(t),t);
-    assert.equal(result.ok,true,'The authoritative preview must be available for a visual seek');
-    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
-    await delay(70);
-  };
   const canvas=await page.locator('canvas').boundingBox();
   const crop={x:canvas.x+16/2424*canvas.width,y:canvas.y+88/1080*canvas.height,
     width:1448/2424*canvas.width,height:720/1080*canvas.height};
@@ -266,7 +273,6 @@ try {
   }
   assert.ok(worldColours>64,'Phone resize must retain painted terrain, not a blank canvas');
   await checkUtility();
-  const touch=await page.context().newCDPSession(page);
   const holdCard=async point=>{
     const box=await page.locator('canvas').boundingBox();
     const x=box.x+point.x/2424*box.width,y=box.y+point.y/1080*box.height;
@@ -304,6 +310,51 @@ try {
     if(currentTooltip.expanded) {
       assert.ok(currentTooltip.glossary.length,'The title opens the full symbol explanations');
       assert.ok(currentTooltip.glossaryRect.x>=currentTooltip.rulesRect.x+currentTooltip.rulesRect.width,'Glossary occupies the right-hand column');
+      const keywordState=()=>page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().keywords);
+      const keywordTap=async action=>{
+        const state=await keywordState(),target=state.targets.find(target=>target.action===action);
+        assert.ok(target,`Visible inspector keyword control: ${action}`);
+        await page.touchscreen.tap(box.x+(target.x+target.width/2)/2424*box.width,box.y+(target.y+target.height/2)/1080*box.height);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      };
+      const initialKeywords=await keywordState();
+      assert.equal(initialKeywords.flavourLinked,false,'Flavour remains plain italic text');
+      const dragTarget=initialKeywords.targets.find(target=>target.group==='symbols'&&target.action.startsWith('term:'));
+      const dragX=box.x+(dragTarget.x+dragTarget.width/2)/2424*box.width;
+      const dragY=box.y+(dragTarget.y+dragTarget.height/2)/1080*box.height;
+      await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:dragX,y:dragY}]});
+      for(const dy of [10,20,30])await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:dragX,y:dragY+dy}]});
+      await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      await delay(100);
+      assert.equal((await keywordState()).depth,0,'Dragging a linked symbol does not open its definition');
+      // Both Practices and Structures expose the same recursive references.
+      const first=currentTooltip.reading.type==='Structure'?'term:Stock capacity bonus':'term:Stock';
+      await keywordTap(first);
+      if(currentTooltip.reading.type==='Structure')await keywordTap('term:Stock');
+      await keywordTap('term:Stock traits');
+      await keywordTap('term:Bone');
+      await keywordTap('term:Charge');
+      const expectedDepth=currentTooltip.reading.type==='Structure'?5:4;
+      assert.equal((await keywordState()).term,'Charge');
+      assert.equal((await keywordState()).depth,expectedDepth);
+      assert.equal((await keywordState()).panels,1,'Recursive reading uses one panel');
+      await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+      await delay(100);
+      assert.equal((await keywordState()).term,'Charge','References survive settlement redraw');
+      await page.screenshot({path:`artifacts/chronicle-mobile-${currentTooltip.reading.type.toLowerCase()}-keywords.png`});
+      await keywordTap('‹ Back');
+      assert.equal((await keywordState()).term,'Bone');
+      await page.keyboard.press('Escape');
+      await delay(100);
+      assert.equal((await keywordState()).term,'Stock traits','Escape retraces one keyword');
+      assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().expanded),'Escape keeps the full inspector open');
+      await keywordTap('×');
+      assert.equal((await keywordState()).depth,0,'Close dismisses the entire reference stack');
+      await keywordTap(first);
+      await page.touchscreen.tap(box.x+140/2424*box.width,box.y+124/1080*box.height);
+      await delay(100);
+      assert.equal((await keywordState()).depth,0,'Outside tap dismisses the reference');
+      assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().expanded),'Outside reference tap keeps inspection open');
       const p=currentTooltip.closePoint;
       await page.touchscreen.tap(box.x+p.x/2424*box.width,box.y+p.y/1080*box.height);
     } else await page.touchscreen.tap(x,y);
@@ -323,7 +374,7 @@ try {
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.openNextSelection());
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
   const candidate=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getVassalCandidateClickPoint(0));
-  const candidateBox=await page.locator('canvas').boundingBox();
+  candidateBox=await page.locator('canvas').boundingBox();
   const candidateX=candidateBox.x+candidate.x/2424*candidateBox.width;
   const candidateY=candidateBox.y+candidate.y/1080*candidateBox.height;
   await page.touchscreen.tap(candidateX,candidateY);
@@ -378,6 +429,18 @@ try {
   },null,{timeout:5000});
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.resolving),false,
     'A held cost press stages or selects; confirmation stays separate');
+
+  }
+  if(!shopOnly) {
+    // Separate authored runs own separate UI and forecast sessions.
+    await touch.detach();await browser.close();
+    browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
+    await openProbePage({width:844,height:390});
+    await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().browseCapSec>60);
+    touch=await page.context().newCDPSession(page);
+  } else await page.setViewportSize({width:844,height:390});
+  await checkUtility();candidateBox=await page.locator('canvas').boundingBox();
 
   // Use the supported authoring controls to reach a real shop on a fresh run.
   // This exercises Prestige, affordability and staged cards in the same modal
@@ -499,6 +562,18 @@ try {
   assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionAboveChrome),'Full Practice inspect rises above the vassal HUD and navigation');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
   assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionAboveChrome),'Full inspect retains its foreground layer after redraw');
+  const shopKeyword=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.targets.find(target=>target.action.startsWith('term:')));
+  assert.ok(shopKeyword,'Shop inspectors expose shared keyword links');
+  await tap({x:shopKeyword.x+shopKeyword.width/2,y:shopKeyword.y+shopKeyword.height/2});
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.depth===1);
+  const shopReference=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.term);
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.forceRender());
+  await delay(100);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.term),shopReference,'Shop references survive redraw');
+  await page.keyboard.press('Escape');
+  await delay(100);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.depth),0,'Root Back dismisses shop reference');
+  assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),'Keyword navigation keeps the shop inspector open');
   await page.screenshot({path:'artifacts/chronicle-mobile-practice-foreground.png'});
   const inspectNavigation=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation);
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
@@ -533,10 +608,26 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),2,
     'Tapping an unaffordable footer cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
+  // Exercise keyboard navigation last: Pixi's accessibility mode traverses
+  // the whole scene, so it should not carry into the timing-sensitive recap.
+  await inspectOffer();
+  await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId);
+  const keyboardTarget=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.targets.find(target=>target.action.startsWith('term:')));
+  const keyboardTerm=keyboardTarget.action.slice(5);
+  await page.keyboard.press('Tab');
+  await page.getByTitle(`Explain ${keyboardTerm}`,{exact:true}).first().focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(term=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.term===term,keyboardTerm);
+  await page.waitForFunction(()=>document.activeElement?.title==='‹ Back');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(term=>document.activeElement?.title===`Explain ${term}`,keyboardTerm);
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.depth),0,'Back returns to the originating keyword');
+  await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),null,'Canvas taps work after keyboard reading');
   assert.deepEqual(errors,[]);assert.deepEqual(failedAssets,[]);
   assert.deepEqual(graphicsWarnings,[],'The renderer must not emit WebGL failures');
-  writeFileSync(artifact,JSON.stringify({ok:true,checks:['resource sprite assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','solar, moon and centre touch drags','six-phase reference without time changes','vertical lever direction locks','phone landscape','touch-sized cost footers','utility rail alignment','desktop hover survives redraw and dismisses on exit','Practice hover/inspect separation and right-hand glossary','touch details survive redraw','Vassal preview and confirmation','inspection preserves choices','shop staging preserves positions and full inspections','projected Prestige and affordability'],interactionTimings,graphicsWarnings},null,2));
-  console.log(`[probe:chronicle] OK: option dispatch ${Math.round(interactionTimings.optionDispatchMs)} ms, shop dispatch ${Math.round(interactionTimings.shopDispatchMs)} ms`);
+  writeFileSync(artifact,JSON.stringify({ok:true,checks:shopOnly?['shop staging and affordability','shared inspector keyword references','right-hand symbol key','Back and Close','keyboard focus and touch handoff']:['resource sprite assets','hidden workshop','pixel-identical pause','pixel-identical rewind seek','forward and reverse audio','solar, moon and centre touch drags','six-phase reference without time changes','vertical lever direction locks','phone landscape','touch-sized cost footers','utility rail alignment','desktop hover survives redraw and dismisses on exit','Practice hover/inspect separation and right-hand glossary','touch details survive redraw','Vassal preview and confirmation','inspection preserves choices','shop staging preserves positions and full inspections','projected Prestige and affordability','recursive keyword references and Back/Close','keyboard focus and touch handoff'],interactionTimings,graphicsWarnings},null,2));
+  console.log(`[probe:chronicle] OK: ${shopOnly?'shop checks':'option dispatch '+Math.round(interactionTimings.optionDispatchMs)+' ms'}, shop dispatch ${Math.round(interactionTimings.shopDispatchMs)} ms`);
 }catch(error){
   writeFileSync(artifact,JSON.stringify({error:error.stack,interactionTimings,errors,failedAssets,graphicsWarnings,consoleTrail},null,2));
   console.error('[probe:chronicle] FAILED: '+error.message.split('\n')[0]+' · '+artifact);process.exitCode=1;

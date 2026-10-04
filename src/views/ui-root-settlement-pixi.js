@@ -1430,6 +1430,7 @@ function handleGlobalKeyDown(ev) {
   if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
+    if(vassalNodeDecisionModalView.handleInspectionKey(ev))return;
     ev.preventDefault();
     vassalNodeDecisionModalView.close();
     return;

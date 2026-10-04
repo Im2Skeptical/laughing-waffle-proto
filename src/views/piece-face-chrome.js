@@ -56,7 +56,7 @@ function traitIcon(parent, trait, x, y, size) {
   return fittedSprite(parent,getStockTraitTexture(trait),x,y,size,size) ?? addResourceIcon(parent,'stock',x+size/2,y+size/2,size);
 }
 
-function seasonIcon(parent, season, x, y, size) {
+export function seasonIcon(parent, season, x, y, size) {
   if (season === 'summer') return addResourceIcon(parent,'year',x,y,size);
   if (season === 'winter') {
     const snow = new PIXI.Graphics().lineStyle(1.5,0xc2d9da);
@@ -120,7 +120,7 @@ function workerDock(parent, face, w, h, left = false) {
   return {x,y:y-height+3,width,height:height+28};
 }
 
-function eventIcon(parent, icon, x, y, size) {
+export function eventIcon(parent, icon, x, y, size) {
   if(!['chaos','monster','defense','support','danger','campaign','challenge','development'].includes(icon))return addResourceIcon(parent,icon,x,y,size);
   const g=new PIXI.Graphics();g.position.set(x-size/2,y-size/2);g.scale.set(size/32);
   g.lineStyle(1.5,0xe3cc94).beginFill(0x293b39);

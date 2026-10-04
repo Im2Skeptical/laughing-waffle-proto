@@ -1,8 +1,7 @@
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
-import { addResourceIcon } from './resource-cost-pixi.js';
-import { getStockTraitTexture } from './chronicle-art.js';
+export { getPracticeSymbols, addPracticeGlossary } from './inspection-symbols-pixi.js';
 
 const FLAVOUR = {
   anatomicalStudy: 'The dead keep no secrets from a patient scholar.',
@@ -21,6 +20,7 @@ function flavour(face) {
 function copy(parent, text, x, y, width, size, style = {}) {
   const node = createText(text, {...TEXT_STYLES.body, fontSize:size, lineHeight:size*1.35,
     fill:RELIC.bone, wordWrap:true, wordWrapWidth:width, ...style}, x, y);
+  node.inspectionLinkable = true;
   parent.addChild(node); return node;
 }
 
@@ -40,6 +40,7 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   y+=rowHeight;
   const titleY=y;
   const title=copy(root,face.label,pad,y+18,width-pad*2-(onInspect?44:0),fontSize*1.42,{...TEXT_STYLES.header,fontSize:fontSize*1.42});
+  title.inspectionLinkable=false;
   y+=Math.max(onInspect?132:0,title.height+36);
   paintRelicPanel(frame,0,titleY,width,y-titleY,0x302414,RELIC.brass,2);
   const titleHeight=y-titleY;
@@ -88,66 +89,4 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   }
   root.readingHeight=y;root.reading=reading;
   parent.addChild(root);return root;
-}
-
-export function getPracticeSymbols(face) {
-  if(face.kind==='structure')return getStructureSymbols(face);
-  const entries=[];
-  if(face.stockCapacity>0) entries.push({name:'Stock / capacity',icon:'stock',description:`The upper tray holds this Practice's Stock: ${face.stock} stored, up to ${face.stockCapacity}. Production stops at capacity.`});
-  if(face.workerCapacity>0)entries.push({name:'Worker sockets / multiplier',icon:'population',description:`${face.workers} of ${face.workerCapacity} sockets are occupied. The ×${face.workerMultiplier} plate shows effective staffing. ${face.reading.type==='Charge'?'Workers increase incoming Charge, while Activation output stays separate.':'Workers increase Stock production; specialist workers can meet staffing requirements.'}`});
-  if(face.reading.type==='Charge') {
-    entries.push({name:'Charge meter',description:`${face.charge} of ${face.chargeThreshold} Charge. Qualifying events advance the meter; it Activates automatically when filled and legal. Worker and local bonuses can add steps.`});
-    if(face.chargeTriggers?.length) {
-      const names={death:'Skull = a death',chaos:'Burst = increasing Chaos',monster:'Monster = a Monster event',
-        defense:'Shield = successful defense',support:'Crossed shield = contributed Support',danger:'Warning triangle = survived Danger',
-        campaign:'Crossed swords = a Campaign',trade:'Trade = external Trade',challenge:'Crossed shield = a Challenge',
-        development:'Star = candidate Development',knowledge:'Book = a Knowledge or Scholar-staffed Practice',stock:'Stock = a Stock event'};
-      const icons=[...new Set(face.chargeTriggers.map(symbol=>names[symbol.icon]).filter(Boolean))].join('. ');
-      entries.push({name:'Charge trigger symbols',description:`${icons?icons+'. ':''}${face.reading.trigger}${face.chargeTriggers.some(s=>s.event==='stockGenerated')?' An upward arrow means Stock produced.':''}${face.chargeTriggers.some(s=>s.event==='stockConsumed')?' A downward arrow means Stock consumed.':''}`});
-    }
-  } else if(face.source?.icon==='passive') entries.push({name:'Ongoing Activation mark',icon:'activation',description:'The central Activation mark identifies an ongoing contribution. Its supply requirements and staffing keep it active.'});
-  else entries.push({name:face.source?.icon==='season'?'Cycle wheel / seasons':'Cycle wheel / moon phase',icon:face.source?.icon==='season'?'year':face.source?.icon,description:face.source?.icon==='season'?'The sun wheel tracks the next season. Green leaf = Spring, sun = Summer, amber leaf = Autumn, snowflake = Winter. The seasonal numerals show base Activation output.':`The wheel identifies its Cycle. Activation timing: ${[...new Set(face.reading.effects.map(effect=>effect.timing))].join(', ')}. Requirements must be met each time.`});
-  for(const trait of [...new Set([...(face.stockCapacity>0?face.stockTraits:[]),...(face.inputs??[]).flatMap(i=>i.traits),...(face.chargeTriggers??[]).map(s=>s.trait).filter(Boolean)])]) {
-    entries.push({name:`${trait} Stock`,trait,description:`Stock with this trait can satisfy ${trait} inputs or triggers. ${face.stockTraits?.includes(trait)?'Every Stock held here has this trait.':'This symbol asks for matching Stock on another Practice.'}`});
-  }
-  if(face.inputs?.length)entries.push({name:'Stock inputs',description:'A minus sign marks Stock consumed on Activation. A hollow diamond marks Stock required and kept. Alternatives share a socket. Supply comes from local hosts first, then adjacent connected player settlements.'});
-  for(const icon of [...new Set((face.production??[]).filter(r=>!r.season).map(r=>r.icon))])entries.push({name:({stock:'Stock output',research:'Research',population:'Specialist training',prestige:'Candidate Development',activation:'Shop quality',support:'Martial Support',hourglass:'Preview',housingCapacity:'Housing',faith:'Chaos resistance',food:'Meal saving'})[icon]??icon,icon,description:'The symbol beside its numeral identifies one Activation effect. Numerals are base amounts; applicable local bonuses are resolved when the Practice Activates.'});
-  entries.push({name:`${face.tier[0].toUpperCase()+face.tier.slice(1)} quality`,description:'The small jewel and frame colour show quality. Higher quality can improve capacity and worker sockets.'});
-  // Lead with the progression mechanic, then the counters and supporting glyphs.
-  return entries.sort((a,b)=>Number(/^(Charge meter|Cycle wheel|Ongoing Activation)/.test(b.name))-Number(/^(Charge meter|Cycle wheel|Ongoing Activation)/.test(a.name)));
-}
-
-function getStructureSymbols(face) {
-  const entries=[];
-  for(const bonus of face.structureBonuses??[]) {
-    if(bonus.kind==='stock') {
-      for(const trait of bonus.traits)if(!entries.some(entry=>entry.trait===trait))entries.push({name:`${trait} Stock`,trait,
-        description:`This tag identifies the Stock whose capacity increases. The outlined Stock box behind the plus and numeral marks added capacity on each matching Practice. This Structure does not hold or produce Stock.`});
-      entries.push({name:'Stock capacity bonus',icon:'stock',description:`+${bonus.amount} capacity on ${bonus.scope}. Contributions add before each Practice's final capacity rounds down.`});
-    } else entries.push({name:bonus.label,icon:bonus.kind,description:bonus.kind==='housingCapacity'
-      ? 'The roof and plus numeral mark added room for population, not people arriving.'
-      : 'The population symbol and percentage mark an ongoing increase to local Martial Support.'});
-  }
-  entries.push({name:'Construction footprint',description:`${face.footprint} horizontal cell${face.footprint===1?'':'s'} in the regional construction strip, separate from the five Practice slots.`},
-    {name:`${face.tier[0].toUpperCase()+face.tier.slice(1)} quality`,description:`The jewel and frame colour show quality.${face.structureQualityBonus?` This Structure has +${face.structureQualityBonus*25}% numeric bonuses.`:''} Housing rounds down per Structure; Stock capacity rounds down after summing host bonuses. Candidate base bonuses and history caps are unchanged.`},
-    {name:'Ongoing bonuses',description:'Bonuses apply while specialist and modifier requirements are met. Capacity bonuses add; other bonuses follow their stated caps and non-stacking scopes. Structures have no Cycle wheel or Charge meter.'});
-  return entries;
-}
-
-export function addPracticeGlossary(parent, width, face, fontSize = 25) {
-  const root=new PIXI.Container(), frame=new PIXI.Graphics();root.addChild(frame);
-  let y=24;
-  y+=copy(root,'THE SYMBOLS ON THIS CARD',22,y,width-44,fontSize*.72,{fill:RELIC.gold,fontWeight:'bold'}).height+24;
-  root.entries=getPracticeSymbols(face);
-  for(const entry of root.entries) {
-    const hasIcon=entry.icon||entry.trait, x=hasIcon?76:22;
-    if(entry.trait) {
-      const sprite=new PIXI.Sprite(getStockTraitTexture(entry.trait));sprite.width=40;sprite.height=40;sprite.position.set(22,y);root.addChild(sprite);
-    } else if(entry.icon)addResourceIcon(root,entry.icon,42,y+20,40);
-    const name=copy(root,entry.name,x,y,width-x-22,fontSize,{fill:RELIC.gold,fontWeight:'bold'});
-    y+=name.height+8;
-    y+=copy(root,entry.description,22,y,width-44,fontSize*.9).height+24;
-  }
-  paintRelicPanel(frame,0,0,width,y,0x1e211c,RELIC.brass,1);
-  root.readingHeight=y;parent.addChild(root);return root;
 }
