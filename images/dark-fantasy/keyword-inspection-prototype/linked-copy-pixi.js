@@ -9,6 +9,8 @@ export function keywordCopy({register,open}) {
   const canonical=Object.fromEntries(names.map(name=>[name.toLowerCase(),aliases[name]??name]));
   const matcher=new RegExp(`\\b(${names.map(name=>name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})\\b`,'gi');
   function decorate(text,group,viewport,exclude) {
+    // The inspector renders flavour in italic; keep that prose unlinked.
+    if(group==='rules'&&text.style.fontStyle==='italic')return;
     const ranges=[...text.text.matchAll(matcher)].map(match=>({start:match.index,end:match.index+match[0].length,term:canonical[match[0].toLowerCase()]})).filter(match=>match.term!==exclude);
     if(!ranges.length)return;
     const metrics=PIXI.TextMetrics.measureText(text.text,text.style),style=text.style.clone();style.wordWrap=false;
