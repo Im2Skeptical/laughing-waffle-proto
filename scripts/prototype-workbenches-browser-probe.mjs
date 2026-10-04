@@ -23,7 +23,10 @@ await mkdir('artifacts', { recursive:true });
 await new Promise(resolve => server.listen(port, '127.0.0.1', resolve));
 const checks = [], errors = [], failures = [];
 let browser, page;
-async function ready() { await page.locator('body[data-ready="true"]').waitFor(); }
+async function ready() {
+  try {await page.locator('body[data-ready="true"]').waitFor();}
+  catch {throw new Error(`Workbench not ready: ${page.url()}; ${await page.locator('#error,#state').allTextContents().catch(()=>[])}`);}
+}
 async function noOverflow(label) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const overflow = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(n => {
@@ -31,7 +34,24 @@ async function noOverflow(label) {
   }).slice(0,8).map(n => ({tag:n.tagName,id:n.id,class:n.className,right:Math.round(n.getBoundingClientRect().right)})));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${label}: horizontal overflow ${JSON.stringify(overflow)}`);
 }
-async function check(label, action) { await action(); checks.push(label); }
+const selectedCheck=process.argv.find(arg=>arg.startsWith('--check='))?.slice(8).toLowerCase();
+async function check(label, action) {if(selectedCheck&&!label.toLowerCase().includes(selectedCheck))return;await action(); checks.push(label);}
+async function keywordTap(action,group='reference',touch=false) {
+  await page.locator('#inspection').scrollIntoViewIfNeeded();
+  let target;
+  for(let attempt=0;attempt<8;attempt++) {
+    target=await page.evaluate(({action,group})=>keywordWorkbench.targets.find(target=>target.action===action&&target.group===group&&target.height>10),{action,group});
+    if(target)break;
+    const viewport=await page.evaluate(group=>keywordWorkbench.viewports.find(viewport=>viewport.group===group),group);
+    assert.ok(viewport,`Missing Pixi target ${group}/${action}`);
+    await page.mouse.move(viewport.x+viewport.width/2,viewport.y+viewport.height/2);await page.mouse.wheel(0,240);
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  }
+  assert.ok(target,`No visible Pixi target ${group}/${action}`);
+  if(touch)await page.touchscreen.tap(target.x+target.width/2,target.y+target.height/2);
+  else await page.mouse.click(target.x+target.width/2,target.y+target.height/2);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
 async function fullscreenRoundTrip(selector) {
   const button = page.locator(`${selector} .dev-preview-fullscreen`);
   await button.click();
@@ -179,71 +199,100 @@ try {
     await page.getByRole('link',{name:/Development Lab prototypes/}).click();
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
   });
-  await check('Current Practice inspection with recursive keywords, Back, focus return and three layouts', async () => {
+  await check('Real Pixi inspection, recursive word hit areas, history and three layouts', async () => {
     await page.setViewportSize({width:1280,height:800});
-    await page.getByRole('link',{name:'Open Keywords workbench →'}).click(); await ready();
-    for (const variant of ['A','B','C']) {
-      assert.equal(await page.evaluate(() => keywordWorkbench.state.variant),variant);
-      const root=page.locator('#rules [data-term="Stock"]').first();
-      await root.click();
-      for (const term of ['Stock traits','Bone','Charge','Activation','Stock']) {
-        await page.locator(`#references .active [data-term="${term}"]`).first().click();
-      }
-      assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock','Stock traits','Bone','Charge','Activation','Stock']);
-      await page.getByRole('button',{name:'Back through keywords'}).click();
-      assert.equal(await page.evaluate(() => keywordWorkbench.state.path.at(-1)),'Activation');
+    await page.goto(`${url}#/dev/prototypes`);
+    await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
+    await page.getByRole('link',{name:'Open Keywords workbench \u2192'}).click(); await ready();
+    assert.equal(await page.locator('#inspection canvas').count(),1);
+    assert.equal(await page.evaluate(()=>keywordWorkbench.state.renderer),'pixi');
+    assert.equal(await page.locator('#rules,#glossary,#references').count(),0,'all visible inspection text is Pixi');
+    for(const variant of ['A','B','C']) {
+      assert.equal(await page.evaluate(()=>keywordWorkbench.state.variant),variant);
+      await keywordTap('term:Stock','rules');
+      for(const term of ['Stock traits','Bone','Charge','Activation','Stock'])await keywordTap('term:'+term);
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock','Stock traits','Bone','Charge','Activation','Stock']);
+      await keywordTap('back');
+      assert.equal(await page.evaluate(()=>keywordWorkbench.state.path.at(-1)),'Activation');
       await page.keyboard.press('Escape');
-      assert.equal(await page.evaluate(() => keywordWorkbench.state.path.at(-1)),'Charge');
-      assert.equal(await page.locator('#references .reference').count(),variant==='C'?4:1);
-      if(variant==='C')await page.locator('#references .history').first().getByRole('button',{name:'Return here'}).click();
-      else await page.getByRole('navigation',{name:'Reading history'}).getByRole('button',{name:'Stock',exact:true}).click();
-      assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock'],'history jumps back without losing the initial source');
-      await page.getByRole('button',{name:'Close keyword reference'}).click();
-      assert.equal(await root.evaluate(node=>node===document.activeElement),true,'close restores initial keyword focus');
-      await page.locator('#next').click();
+      assert.equal(await page.evaluate(()=>keywordWorkbench.state.path.at(-1)),'Charge');
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      assert.equal(await page.evaluate(()=>keywordWorkbench.state.referencePanels),variant==='C'?2:1);
+      if(variant==='C') {
+        await keywordTap('earlier');await keywordTap('earlier');await keywordTap('return:0','history');
+      } else await keywordTap('return:0');
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock']);
+      await keywordTap('close');
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[]);
+      await keywordTap('nextVariant','chrome');
     }
     assert.equal(new URL(page.url()).searchParams.get('variant'),'A');
-    await page.locator('#next').click();await page.reload();await ready();
-    assert.equal(await page.evaluate(() => keywordWorkbench.state.variant),'B','variant survives URL refresh');
-    assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),[],'reading history remains memory-only');
+    await keywordTap('nextVariant','chrome');await page.reload();await ready();
+    assert.equal(await page.evaluate(()=>keywordWorkbench.state.variant),'B');
+    assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[]);
     await page.locator('#card').selectOption('logging');
-    assert.equal(await page.locator('#rules .effect').count(),3);
-    assert.match(await page.locator('#rules .effect').first().textContent(),/Spring.*Produce 2 Stock/);
-    await page.locator('#tier').selectOption('gold');
-    assert.equal(await page.evaluate(() => keywordWorkbench.state.tier),'gold');
-    await page.screenshot({path:'artifacts/prototype-keywords-cycle-desktop.png'});
+    await page.waitForFunction(()=>keywordWorkbench.state.card==='logging');
+    assert.equal(await page.evaluate(()=>keywordWorkbench.reading.effects.length),3);
+    assert.deepEqual(await page.evaluate(()=>keywordWorkbench.reading.effects[0]),{timing:'Spring',text:'Produce 2 Stock'});
+    await keywordTap('quality','chrome');
+    assert.equal(await page.evaluate(()=>keywordWorkbench.state.tier),'silver');
+    await fullscreenRoundTrip('#inspection');
+    await page.screenshot({path:'artifacts/prototype-keywords-pixi-cycle-desktop.png'});
+    await page.locator('#inspection canvas').focus();await page.keyboard.press('Tab');
+    const accessibleStock=page.getByRole('button',{name:'Explain Stock',exact:true}).first();
+    await accessibleStock.focus();await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>keywordWorkbench.state.path[0]==='Stock');
+    await page.getByRole('button',{name:'×',exact:true}).focus();await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>keywordWorkbench.state.path.length===0&&document.activeElement?.title==='Explain Stock');
+    await noOverflow('Pixi accessibility layer');
   });
-  await check('Touch keyword chains, Pin, dismissal and right-hand glossary at phone sizes', async () => {
-    const desktopPage=page;
+  await check('Touch Pixi word chains, Pin, card controls, glossary drag and fullscreen on phones', async () => {
+    // The atlas-heavy workbenches create several software GL contexts. Use
+    // a fresh browser for phone cases so old renderer caches do not turn an
+    // unrelated workbench's boot into a timeout late in the suite.
+    await browser.close();browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
     const mobile=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true});
     page=await mobile.newPage();page.on('pageerror',error=>errors.push(error.message));
     try {
       for(const variant of ['A','B','C']) {
         await page.goto(`${url}images/dark-fantasy/keyword-inspection-prototype/?variant=${variant}`);await ready();
-        await page.locator('#rules [data-term="Stock"]').first().tap();
-        await page.locator('#references .active [data-term="Stock traits"]').first().tap();
-        await page.locator('#references .active [data-term="Bone"]').first().tap();
-        assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),['Stock','Stock traits','Bone']);
-        await page.getByRole('button',{name:'Pin keyword reference'}).tap();
-        await page.touchscreen.tap(4,4); // exposed page margin, outside every reference layout
-        assert.equal(await page.evaluate(() => keywordWorkbench.state.pinned),true);
-        await page.screenshot({path:`artifacts/prototype-keywords-${variant}-touch.png`});
-        await page.getByRole('button',{name:'Pin keyword reference'}).tap();
+        await page.locator('#inspection .dev-preview-fullscreen').tap();
+        await page.waitForFunction(()=>keywordWorkbench.state.fullscreen&&!document.querySelector('.dev-preview-fullscreen').disabled);
+        await keywordTap('term:Stock','rules',true);
+        await keywordTap('term:Stock traits','reference',true);
+        await keywordTap('term:Bone','reference',true);
+        assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock','Stock traits','Bone']);
+        await keywordTap('pin','reference',true);
         await page.touchscreen.tap(4,4);
-        assert.deepEqual(await page.evaluate(() => keywordWorkbench.state.path),[]);
-        await noOverflow(`keywords ${variant} landscape`);
+        assert.equal(await page.evaluate(()=>keywordWorkbench.state.pinned),true);
+        await keywordTap('nextCard','chrome',true);
+        assert.equal(await page.evaluate(()=>keywordWorkbench.state.card),'logging','card selector remains inside fullscreen');
+        assert.equal(await page.evaluate(()=>keywordWorkbench.state.pinned),true);
+        await page.screenshot({path:`artifacts/prototype-keywords-pixi-${variant}-touch.png`});
+        await keywordTap('pin','reference',true);
+        await page.touchscreen.tap(4,4);
+        await page.waitForFunction(()=>keywordWorkbench.state.path.length===0);
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const positions=await page.evaluate(()=>keywordWorkbench.viewports.filter(viewport=>['rules','glossary'].includes(viewport.group)));
+        assert.ok(positions[1].x>=positions[0].x+positions[0].width,'glossary stays right of rules');
+        const glossary=positions.find(viewport=>viewport.group==='glossary');
+        assert.ok(glossary.max>0,'right glossary has scrollable content');
+        const start={x:glossary.x+glossary.width/2,y:glossary.y+glossary.height*.75};
+        const touch=await page.context().newCDPSession(page);
+        await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
+        for(let step=1;step<=6;step++)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:start.x,y:start.y-step*16}]});
+        await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();
+        assert.ok(await page.evaluate(()=>keywordWorkbench.viewports.find(viewport=>viewport.group==='glossary').scroll)>0,'drag scrolls actual Pixi glossary');
+        assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),[],'dragging over linked text does not navigate');
+        await page.locator('#inspection .dev-preview-fullscreen').tap();
+        await page.waitForFunction(()=>!keywordWorkbench.state.fullscreen);
+        await noOverflow('Pixi keyword landscape');
       }
-      for(const viewport of [{width:844,height:390},{width:390,height:844}]) {
-        await page.setViewportSize(viewport);
-        const positions=await page.evaluate(()=>({rules:document.querySelector('#rules').getBoundingClientRect().right,glossary:document.querySelector('#glossary').getBoundingClientRect().left}));
-        assert.ok(positions.glossary>=positions.rules,'symbol glossary remains on the right');
-        await noOverflow('keyword inspection phone');
-      }
-      await page.screenshot({path:'artifacts/prototype-keywords-portrait.png'});
-    } finally {await mobile.close();page=desktopPage;}
+      await page.setViewportSize({width:390,height:844});await noOverflow('Pixi keyword portrait page');
+    } finally {await mobile.close();}
   });
   await check('Touch portrait requests landscape and survives denied browser fullscreen', async () => {
-    const desktopPage = page;
+    await browser.close();browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
     const mobile = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     await mobile.addInitScript(() => {
       window.displayRequests = [];
@@ -263,7 +312,20 @@ try {
       }), true, 'portrait fallback uses landscape logical coordinates');
       await page.screenshot({path:'artifacts/prototype-cards-touch-landscape-fallback.png'});
       await page.locator('#screen-preview .dev-preview-fullscreen').click();
-    } finally { await mobile.close(); page = desktopPage; }
+      await page.goto(`${url}images/dark-fantasy/keyword-inspection-prototype/`);await ready();
+      await page.evaluate(()=>{displayRequests.length=0;});
+      await page.locator('#inspection .dev-preview-fullscreen').tap();
+      await page.waitForFunction(()=>keywordWorkbench.state.fullscreen&&!document.querySelector('#inspection .dev-preview-fullscreen').disabled);
+      assert.deepEqual(await page.evaluate(()=>displayRequests),['fullscreen','landscape']);
+      assert.equal(await page.locator('#inspection').evaluate(node=>node.clientWidth>node.clientHeight),true,'keyword inspector uses the shared rotated landscape fallback');
+      await keywordTap('term:Stock','rules',true);await keywordTap('term:Stock traits','reference',true);
+      assert.deepEqual(await page.evaluate(()=>keywordWorkbench.state.path),['Stock','Stock traits'],'inverse CSS rotation maps real word taps correctly');
+      await page.screenshot({path:'artifacts/prototype-keywords-pixi-rotated-fallback.png'});
+      await keywordTap('close','reference',true);
+      await page.locator('#inspection .dev-preview-fullscreen').tap();
+      await page.waitForFunction(()=>!keywordWorkbench.state.fullscreen);
+      assert.equal(await page.evaluate(()=>document.body.style.overflow),'');
+    } finally { await mobile.close(); }
   });
   assert.deepEqual(errors,[],'workbench page/network errors');
 } catch (error) {

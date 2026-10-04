@@ -33,12 +33,15 @@ including any tooltip or inspection. Quality, Scholar requirements and staging
 are temporary preview controls. The URL preserves treatment, card and context.
 Run `npm run preview:structures` or open it from Prototypes. No live cards change.
 
-Keywords is a focused new study of clickable terms in full inspection. It uses
-current game card faces, readable rule data and a right-hand symbol glossary.
+Keywords is a focused study of clickable terms using the actual Pixi full
+inspection renderer, current card faces and right-hand symbol glossary.
 Definitions contain further clickable terms; Back, reading history and Pin
 recover the useful navigation from the retired prototype. Compare a nearby
 reference (`?variant=A`), fixed rail (`B`) or visible panel trail (`C`) with the
-bottom switcher. Run locally with `npm run preview:keywords`. These interactions
+bottom Pixi switcher. Its Fullscreen button uses the same mobile landscape
+flow and rotated fallback as the other workbenches; card, quality and layout
+controls remain inside the fullscreen canvas. Run locally with
+`npm run preview:keywords`. These interactions
 are exploratory and do not change the in-game tooltip.
 
 The card hero, screen references, vassal hero and Museum/Gym Pixi
