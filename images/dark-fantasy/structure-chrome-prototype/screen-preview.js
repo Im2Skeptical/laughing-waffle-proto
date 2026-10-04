@@ -104,7 +104,8 @@ function capacityTray(root, effects, w, h, corner = false) {
 }
 function structureFace(root, id, rect, state, callbacks, interactive = true) {
   const data = describeStructure(id, state);
-  const card = addSettlementPiece(root, rect, { face: data.face, reducedMotion: true,
+  // The workbench paints its own A/B/C chrome over the shared live card art.
+  const card = addSettlementPiece(root, rect, { face: { ...data.face, structureBonuses: [] }, reducedMotion: true,
     onHover: interactive ? () => callbacks.quick(id) : undefined,
     onOut: interactive ? callbacks.out : undefined,
     onInspect: interactive ? () => callbacks.quick(id, true) : undefined });
