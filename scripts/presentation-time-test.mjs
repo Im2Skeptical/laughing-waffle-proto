@@ -59,6 +59,17 @@ const archiveFace=getGamepieceFace(faceClock,'structure','archive','bronze',{slo
 assert.equal(archiveFace.reading.active,false,'Live specialist gate is distinct from the offered capacity');
 assert.ok(archiveFace.reading.effects.some(effect=>/capped at \+3$/.test(effect.text)),'History caps do not scale with quality');
 assert.ok(archiveFace.reading.effects.some(effect=>/^\+1 to future Scholar/.test(effect.text)),'Candidate base bonus does not scale with quality');
+assert.ok(archiveFace.reading.effects.some(effect=>/combined institutional bonus capped at \+5/.test(effect.text)),'Candidate copy gives the implemented shared cap');
+for(const id of ['hallOfTheFallen','hallOfChampions','hallOfFallenKings']) {
+  const history=getGamepieceFace(faceClock,'structure',id).reading.effects.find(effect=>effect.text.startsWith('Additional candidate bonus'));
+  assert.ok(history,`${id} describes its candidate history modifier`);
+  assert.ok(history.text.includes('retired Vassals of the candidate class'),'History follows the candidate class');
+  assert.ok(!history.text.includes('Scholar'),'Warrior history does not claim a Scholar-only bonus');
+}
+assert.ok(getGamepieceFace(faceClock,'structure','procurementOffice').reading.effects.some(effect=>/^Consume one hosted Currency Stock.*required or consumed Stock/.test(effect.text)),'Currency substitutes Require and Consume inputs and is always spent');
+for(const id of ['laboratory','arcaneCollege']) {
+  assert.ok(getGamepieceFace(faceClock,'structure',id).reading.effects.some(effect=>/required or consumed Stock.*including Currency \(required Stock is kept; consumed Stock is spent\)/.test(effect.text)),`${id} explains flexible providers without excluding Currency`);
+}
 assert.equal(getGamepieceFace(faceClock,'structure','archive','bronze',{settlement:{populationByClass:{villager:{specialists:{scholar:{adults:100}}}}}}).reading.active,true);
 assert.equal(getGamepieceFace(faceClock,'structure','archive').reading.active,null,'Catalogue faces do not invent local staffing');
 const configuredStructureState={...faceClock,gameConfig:{gamepieces:{structures:{granary:{...settlementStructureDefs.granary,modifiers:[{kind:'capacity',amount:7,query:{traitsAny:['Water']}}]}}}}};
