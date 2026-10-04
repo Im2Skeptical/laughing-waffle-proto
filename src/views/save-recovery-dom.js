@@ -45,6 +45,8 @@ export function createSaveRecoveryDom({ session, onRetry, onExport, onOpenMenu }
     status.textContent = `${snapshot.activeSlot === null ? 'This run has no browser save slot.' : `${label}. ${saved}`} ${snapshot.phase === 'failed' ? 'Your current game is still in this page’s memory.' : ''}`;
     section.hidden = !session.canResume();
     retry.hidden = snapshot.activeSlot === null;
+    retry.disabled = snapshot.phase === 'saving';
+    for (const button of bannerActions.querySelectorAll('[data-testid="game-save-banner-retry"]')) button.disabled = snapshot.phase === 'saving';
     warning.hidden = snapshot.phase !== 'failed';
     bannerActions.hidden = snapshot.phase !== 'failed';
     banner.hidden = error.textContent === '' || session.isInMenu();

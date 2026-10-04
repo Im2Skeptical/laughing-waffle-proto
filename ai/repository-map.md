@@ -12,6 +12,8 @@ and its direct dependencies.
   Slot key/meta, timeline payload, and inspect/read/write helpers live in
   `src/controllers/sim-runner/save-slots.js`. Public factory stays on
   `sim-runner.js`. See that folder's README.
+  Native IndexedDB transactions and current-save transfer: `save-storage.js` in
+  that folder. Slot read/write/load methods are asynchronous; listings use small metadata records.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
 - Save recovery/status/export: `src/views/save-recovery-dom.js`.

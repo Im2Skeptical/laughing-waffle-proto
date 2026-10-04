@@ -1,4 +1,5 @@
 // Persistence diagnostics are runtime controller data, never part of GameState.
+import { openSaveDatabase, runSaveTransaction, SAVE_META_STORE, getSaveStorageTransferStatus } from './save-storage.js';
 export function accessSaveStorage() {
   try { return { storage: globalThis.localStorage ?? null, error: null }; }
   catch (error) { return { storage: null, error }; }
@@ -13,13 +14,15 @@ export function describeSaveError(error) {
 export function saveFailureCategory(stage, error) {
   if (stage === 'serialize') return 'serialization';
   if (error?.name === 'SecurityError') return 'blocked';
+  if (error?.name === 'StorageBlockedError') return 'blocked';
+  if (error?.name === 'StorageUnavailableError') return 'unavailable';
   if (['QuotaExceededError', 'NS_ERROR_DOM_QUOTA_REACHED'].includes(error?.name)
     || error?.code === 22 || error?.code === 1014) return 'quota';
   if (stage === 'access' && !error) return 'unavailable';
   return 'unknown';
 }
 
-export function inspectSaveStorageUsage() {
+function inspectLocalStorageUsage() {
   const { storage, error } = accessSaveStorage();
   const summary = { measuredAt: new Date().toISOString(), available: !!storage, characters: null,
     estimatedUtf16Bytes: null, entryCount: null, saveSlots: [], error: describeSaveError(error) };
@@ -39,6 +42,29 @@ export function inspectSaveStorageUsage() {
     summary.characters = characters;
     summary.estimatedUtf16Bytes = characters * 2;
   } catch (failure) { summary.error = describeSaveError(failure); }
+  return summary;
+}
+
+export async function inspectSaveStorageUsage() {
+  const summary = { measuredAt: new Date().toISOString(), backend: 'indexedDB', available: false,
+    characters: null, estimatedUtf16Bytes: null, entryCount: null, saveSlots: [], error: null,
+    browserEstimate: null, localStorage: inspectLocalStorageUsage(), transfer: getSaveStorageTransferStatus() };
+  try {
+    const db = await openSaveDatabase();
+    const slots = await runSaveTransaction(db, [SAVE_META_STORE], 'readonly', (tx, setResult) => {
+      const request = tx.objectStore(SAVE_META_STORE).getAll();
+      request.onsuccess = () => setResult(request.result);
+    });
+    summary.available = true;
+    summary.saveSlots = slots.map(({ slot, characters }) => ({ slot, characters, estimatedUtf16Bytes: characters * 2 }));
+    summary.entryCount = slots.length;
+    summary.characters = slots.reduce((total, slot) => total + slot.characters, 0);
+    summary.estimatedUtf16Bytes = summary.characters * 2;
+  } catch (error) { summary.error = describeSaveError(error); }
+  try {
+    const estimate = await globalThis.navigator?.storage?.estimate?.();
+    if (estimate) summary.browserEstimate = { usageBytes: estimate.usage ?? null, quotaBytes: estimate.quota ?? null };
+  } catch (error) { summary.estimateError = describeSaveError(error); }
   return summary;
 }
 

@@ -19,7 +19,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   menuButton.dataset.testid = "game-menu-open";
   const recovery = createSaveRecoveryDom({ session,
     onOpenMenu: () => returnToMenu(),
-    onRetry: () => { session.save(); if (!panel.hidden) render(); },
+    onRetry: async () => { await session.save(); if (!panel.hidden) render(); },
     onExport: () => {
       const result = session.exportCurrentGame();
       if (!result.ok) return;
@@ -53,6 +53,9 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   let entryVersion = 0;
   let loadingSlot = null;
   let loadingFailed = false;
+  let renderedSlotPhase = null;
+  let renderedCanReplace = null;
+  let renderedSavePhase = null;
   function button(label, action, testid) {
     const element = document.createElement("button");
     element.type = "button";
@@ -129,8 +132,11 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     subtitle.textContent = "Guide a fragile realm. Turn back the years. Rewrite its fate.";
     content.append(eyebrow, title, subtitle, displayHint);
     const slots = session.slots();
-    const canReplace = session.getSaveStatus().canReplaceLiveGame;
+    const slotStatus = session.getSlotStatus();
+    const canReplace = session.getSaveStatus().canReplaceLiveGame && slotStatus.phase === 'ready';
+    renderedSlotPhase = slotStatus.phase; renderedCanReplace = canReplace;
     const saveFailed = session.getSaveStatus().phase === 'failed';
+    renderedSavePhase = session.getSaveStatus().phase;
     if (saveFailed && mode !== 'diagnostics') { recovery.sync(); content.append(recovery.element); }
     if (loadingSlot !== null) {
       const heading = document.createElement("h2");
@@ -144,7 +150,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       } else {
         content.append(button("Retry", () => {
           if (session.canResume() && session.getActiveSlot() === loadingSlot && session.getSaveStatus().phase === 'failed') {
-            void enter(() => { const result = session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; });
+            void enter(async () => { const result = await session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; });
           } else { session.cancelPreparation?.(); start(loadingSlot); }
         }, "game-loading-retry"));
       }
@@ -160,20 +166,28 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       warning.textContent = `Replace Slot ${overwriteSlot}? Its current game will be permanently lost.`;
       content.append(warning,
         button(mode === 'import' ? 'Replace and import game' : 'Replace and start new game',
-          () => { if (mode === 'import') void enter(() => session.importGame(overwriteSlot)); else start(overwriteSlot); }, "game-replace-confirm"),
-        button("Cancel", () => { overwriteSlot = null; render(); }));
+          () => { if (mode === 'import') void enter(isCurrent => session.importGame(overwriteSlot, { isCurrent })); else start(overwriteSlot); }, "game-replace-confirm"),
+        button("Cancel", () => { entryVersion++; entering = false; overwriteSlot = null; render(); }));
     } else if (mode === "home") {
       const latest = slots.filter((slot) => slot.available)
         .sort((a, b) => String(b.meta?.savedAt).localeCompare(String(a.meta?.savedAt)))[0];
       if (session.canResume()) {
         content.append(button('Continue', () => enter(() => session.resume()), 'game-continue'));
       } else if (latest) content.append(button(`Continue · Slot ${latest.slot}`, () => {
-        void enter(() => session.continueGame(latest.slot));
+        void enter(isCurrent => session.continueGame(latest.slot, { isCurrent }));
       }, "game-continue"));
       const newButton = button("New game", () => { mode = "new"; render(); }, "game-new");
       newButton.disabled = !canReplace; content.append(newButton);
       const loadButton = button("Load game", () => { mode = "load"; render(); }, "game-load");
       loadButton.disabled = !canReplace; content.append(loadButton);
+      if (slotStatus.phase !== 'ready') {
+        const storageStatus = document.createElement('p'); storageStatus.setAttribute('role', 'status');
+        storageStatus.dataset.testid = 'game-storage-status';
+        storageStatus.textContent = slotStatus.phase === 'loading' ? 'Opening your browser saves…'
+          : 'Could not open your browser saves. Keep any open game on this page and retry.';
+        content.append(storageStatus);
+        if (slotStatus.phase === 'failed') content.append(button('Retry opening saves', () => { void session.refreshSlots(); }, 'game-storage-retry'));
+      }
     } else {
       const heading = document.createElement("h2");
       heading.textContent = mode === 'import' ? `Import Year ${importMeta.year} · choose a destination slot`
@@ -194,10 +208,10 @@ export function createGameMenuDom({ session, onResume, onPause }) {
           : "Unavailable save · incompatible or damaged";
         const action = button(mode === 'import' ? (slot.empty ? 'Import here' : 'Replace game') : mode === "new" ? (slot.empty ? "Start here" : "Replace game") : "Continue", () => {
           if (mode === 'import') {
-            if (slot.empty) void enter(() => session.importGame(slot.slot));
+            if (slot.empty) void enter(isCurrent => session.importGame(slot.slot, { isCurrent }));
             else { overwriteSlot = slot.slot; render(); }
           }
-          else if (mode === "load") { void enter(() => session.continueGame(slot.slot)); }
+          else if (mode === "load") { void enter(isCurrent => session.continueGame(slot.slot, { isCurrent })); }
           else if (slot.empty) start(slot.slot);
           else { overwriteSlot = slot.slot; render(); }
         }, `game-slot-${slot.slot}`);
@@ -209,7 +223,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     }
     if (mode !== 'diagnostics') {
       if (!saveFailed) { recovery.sync(); content.append(recovery.element); }
-      if (!canReplace) {
+      if (saveFailed) {
         const warning = document.createElement('p');
         warning.textContent = 'Retry saving before starting or loading another game. Export your current game as a backup.';
         content.append(warning);
@@ -255,6 +269,7 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   document.querySelector('[data-testid="utility-controls"]').prepend(menuButton, recovery.statusButton);
   document.body.append(panel, recovery.banner, importInput);
   show();
+  void session.refreshSlots();
   return {
     show,
     hide,
@@ -269,7 +284,9 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     requiresLandscape: () => portrait.matches,
     syncSaveStatus() {
       recovery.sync();
-      const canReplace = session.getSaveStatus().canReplaceLiveGame;
+      const canReplace = session.getSaveStatus().canReplaceLiveGame && session.getSlotStatus().phase === 'ready';
+      if (!panel.hidden && (renderedSlotPhase !== session.getSlotStatus().phase || renderedCanReplace !== canReplace
+        || renderedSavePhase !== session.getSaveStatus().phase)) render();
       for (const target of panel.querySelectorAll('[data-testid="game-new"], [data-testid="game-load"], [data-testid="game-save-import"]')) target.disabled = !canReplace;
     },
     clearError() { message.textContent = ""; recovery.clearError(); },

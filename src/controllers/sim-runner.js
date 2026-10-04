@@ -61,10 +61,7 @@ import {
 
 export {
   SAVE_SCHEMA_VERSION,
-  SAVE_KEY_PREFIX,
   SAVE_SLOT_COUNT,
-  getSaveSlotKey,
-  getLocalStorageSafe,
   buildSaveMeta,
   serializeTimelineForSave,
   normalizeSavedTimeline,
@@ -484,8 +481,9 @@ export function createSimRunner({
     });
   }
 
-  function loadFromSlot(slot) {
-    const res = inspectSaveSlot(slot);
+  async function loadFromSlot(slot, { isCurrent = () => true } = {}) {
+    const res = await inspectSaveSlot(slot);
+    if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     if (!res.ok) return res;
     const { meta, nextTimeline } = res;
     activeSetupId = meta.setupId;

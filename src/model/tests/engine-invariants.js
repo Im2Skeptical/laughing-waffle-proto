@@ -1,3 +1,4 @@
+import { createSaveTestStorage } from '../../../scripts/save-test-storage.mjs';
 // Rule-independent engine properties. Outcomes, costs, and content may change.
 // These checks only require replay equality, JSON saves, seeded randomness,
 // model isolation from UI, and that time keeps moving until a run completes.
@@ -36,7 +37,7 @@ const RUNTIME_METHODS = new Set([
   "rngNextVassalPortraitFloat",
   "rngNextVassalPortraitInt",
 ]);
-const UI_GLOBALS = ["document", "localStorage", "sessionStorage", "PIXI", "window"];
+const UI_GLOBALS = ["document", "localStorage", "sessionStorage", "indexedDB", "PIXI", "window"];
 
 function calendarHorizonSec(state) {
   const seasonCount = Array.isArray(state?.seasons) && state.seasons.length > 0
@@ -333,13 +334,7 @@ try {
   guards.restore();
 }
 
-const storage = new Map();
-const previousStorage = globalThis.localStorage;
-globalThis.localStorage = {
-  getItem: (key) => storage.get(key) ?? null,
-  setItem: (key, value) => storage.set(key, value),
-  removeItem: (key) => storage.delete(key),
-};
+const storage = createSaveTestStorage();
 try {
   const seed = SEEDS[0];
   const horizonSec = calendarHorizonSec(createNewGameState(seed));
@@ -348,18 +343,17 @@ try {
   timeline.cursorSec = played.sec;
   timeline.historyEndSec = played.sec;
   timeline.maxReachedHistoryEndSec = played.sec;
-  const written = writeSaveToSlot(1, { state: played.state, timeline, setupId: "invariant" });
+  const written = await writeSaveToSlot(1, { state: played.state, timeline, setupId: "invariant" });
   assert.equal(written.ok, true, written.reason ?? "save failed");
-  const loaded = inspectSaveSlot(1);
+  const loaded = await inspectSaveSlot(1);
   assert.equal(loaded.ok, true, loaded.reason ?? "load failed");
   assertSnapshotEqual(snapshot(loaded.state), snapshot(played.state), "save slot reload");
-  const wire = JSON.parse(storage.get("civsurvivor.save.slot1"));
+  const wire = JSON.parse(await storage.get(1));
   assert.equal(wire.meta.schemaVersion, SAVE_SCHEMA_VERSION);
   assert.equal(wire.meta.tSec, played.sec);
   assertSnapshotEqual(wire.state, snapshot(played.state), "save slot state blob");
 } finally {
-  if (previousStorage === undefined) delete globalThis.localStorage;
-  else globalThis.localStorage = previousStorage;
+  storage.restore();
 }
 
 console.log("[engine-invariants] OK");
