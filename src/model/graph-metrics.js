@@ -163,11 +163,15 @@ function getDetailedCivilizationClassMetricValue(state, classId, metricId, conte
   return 0;
 }
 
-function getSettlementGraphValueFromSummary(summary, seriesId, subject = null) {
+function getSettlementGraphValueFromSummary(summary, seriesId, subject = null, absentValue = 0) {
   const regionId = getSettlementMetricRegionId(subject);
-  const graphValues = regionId
-    ? summary?.graphValues?.settlementByRegion?.[regionId]
-    : null;
+  const settlements = summary?.graphValues?.settlementByRegion;
+  if (!regionId || !settlements || typeof settlements !== "object") return null;
+  // This complete map contains every settlement at this second. An absent
+  // region is known to have no settlement yet (or anymore), not missing data.
+  // Keep genuinely unavailable summaries/series on the replay fallback path.
+  if (!Object.hasOwn(settlements, regionId)) return absentValue;
+  const graphValues = settlements[regionId];
   if (!graphValues || typeof graphValues !== "object") return null;
   const value = graphValues[seriesId];
   return Number.isFinite(value) ? Number(value) : null;
@@ -226,7 +230,8 @@ function createSettlementClassMetricSeries(classId, classIndex, metricDef) {
     getValueFromSnapshot: (snapshot, subject, _resolver, context) =>
       getDetailedClassMetricValue(snapshot, subject, safeClassId, metricId, context),
     getValueFromSummary: (summary, subject) =>
-      getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject),
+      getSettlementGraphValueFromSummary(summary, `${metricId}:${safeClassId}`, subject,
+        metricId === "happiness" ? 50 : 0),
     getLegendTooltipSpec: (state, subject) =>
       safeMetricDef.getLegendTooltipSpec(state, safeClassId, subject),
     formatValue: safeMetricDef.formatValue,
