@@ -139,6 +139,13 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .lab-card img { display:block; width:100%; height:235px; object-fit:contain; margin:auto; }
 .lab-card p { font-size:13px; color:#c9d8d5; }
 .lab-card button { margin:4px 0; }
+.development-lab .lab-card-preview { display:block; width:100%; padding:0; margin:0 0 8px; border:0; background:transparent; }
+.development-lab .lab-card-quick-read { position:fixed; z-index:30; max-height:calc(100dvh - 24px); overflow:auto; background:#131b1a; box-shadow:0 8px 32px #0009; }
+.lab-card-quick-read[hidden] { display:none; }
+.lab-card-quick-read canvas,.lab-card-inspection canvas { display:block; width:100%; height:auto; touch-action:none; }
+.lab-card-inspection { width:min(1400px,calc(100vw - 24px)); max-width:none; max-height:calc(100dvh - 24px); padding:12px; color:#e1ebe9; background:#111c21; border:1px solid #83ae9c; border-radius:8px; overflow:auto; }
+.lab-card-inspection::backdrop { background:#050b10cc; }
+.lab-card-inspection>.lab-controls { justify-content:space-between; margin:0 0 8px; }
 .lab-tableau { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
 .lab-tableau .lab-card { width:auto; }
 .lab-provider { color:#a8e7c6 !important; border-left:3px solid #81c1a3; padding-left:7px; }

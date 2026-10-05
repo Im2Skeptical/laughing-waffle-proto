@@ -27,6 +27,7 @@ export function createZooView({controller,cards,run}) {
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;page=0;selected=null;run(()=>{});},250);});
     controls.append(field('Search',search)); parent.append(controls);
     const matches = filterLabCatalogue(catalogue,filters);
+    parent.append(el('p','Hover or tap a card for its quick read. Select the tooltip title or Inspect tooltip for the full rules, symbol key and linked definitions. Inspect / compare shows all four qualities.'));
     for (const [pool,expectedPractices,expectedStructures] of [['common',13,14],['scholar',48,32],['warrior',48,32]]) {
       const practices=catalogue.filter(e=>e.category==='practice'&&e.pool===pool),structures=catalogue.filter(e=>e.category==='structure'&&e.pool===pool);
       const charge=practices.filter(e=>e.def.mode==='charge').length;
@@ -45,7 +46,7 @@ export function createZooView({controller,cards,run}) {
             const slot = e.category === 'practice' ? practiceSlot(e.id,0,tier) : {qualityBonus:quality};
             const face = getGamepieceFace(state,e.category,e.id,tier,{slot});
             if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
-            variants.append(cards.card(face,e.category === 'practice' ? tier : `Quality uplift +${quality * 25}%`));
+            variants.append(cards.card(face,e.category === 'practice' ? tier : `Quality uplift +${quality * 25}%`,null,{readable:true}));
           }
           panel.append(variants,table(['Property','Runtime value'],[
             ['Maturity',e.maturity],['Card Tags',e.tags.join(', ')],['Stock Traits',e.traits.join(', ')],
@@ -67,7 +68,7 @@ export function createZooView({controller,cards,run}) {
         const slot = e.category === 'practice' ? practiceSlot(e.id,0,e.maturity) : {};
         const face = getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
         if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
-        grid.append(cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}`,inspect));
+        grid.append(cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}`,inspect,{readable:true}));
       }
       else {
         const item = section(e.label,el('p',e.def.description ?? e.def.rule ?? e.pool ?? 'Runtime template'));

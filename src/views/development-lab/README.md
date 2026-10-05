@@ -6,6 +6,12 @@ actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
+`card-reading.js` supplies one lazy interactive Pixi canvas for Zoo quick reads
+and full inspection. It uses the game's `addPracticeReading` and
+`addChronicleInspection`, including the symbol key and recursive keyword links.
+Both catalogue and quality-comparison cards opt in; Museum/Gym and pickers keep
+their existing input. Closing or re-rendering dismisses the reading surface.
+
 `prototypes.js` renders the design-workbench directory at `#/dev/prototypes`.
 Its Cards, Vassals, Structures and Inspector links open the separately bundled pages under
 `images/dark-fantasy/`; no prototype renderer is imported into the game shell.

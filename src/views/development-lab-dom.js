@@ -40,6 +40,7 @@ export function mountDevelopmentLab() {
   function render() {
     const active=document.activeElement, key=active?.getAttribute('aria-label'), start=active?.selectionStart;
     const scroll=window.scrollY;
+    cards.dismissReading();
     content.replaceChildren();
     for(const link of nav.querySelectorAll('[data-mode]')) link.setAttribute('aria-current',link.dataset.mode===mode?'page':'false');
     status.textContent=error || (mode==='prototypes'?'Isolated design studies · edits are temporary':controller().getSnapshot().message) || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
@@ -107,6 +108,6 @@ export function mountDevelopmentLab() {
   }
   window.addEventListener('hashchange',route);
   window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();},{once:true});
-  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id)};
+  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id)};
   route();
 }

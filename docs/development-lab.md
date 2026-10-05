@@ -64,6 +64,12 @@ pool counts (109 Practices / 78 Structures). Compare exposes Charge grammar,
 executable effects and provisional deviations.
 
 Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
+Hover, focus or tap any Zoo Practice or Structure for its current in-game quick
+read. Select the tooltip title or **Inspect tooltip** for the full rules, symbol
+key and recursive keyword definitions. Escape retraces a definition or closes
+inspection. All four quality-comparison cards support the same reading surfaces.
+Quick reads stay inside the viewport and scroll when needed; full inspection
+uses a modal canvas with independent rules and symbol-key scrolling.
 Catalogue specimens use equal-size frames, including wide Structures; card art
 keeps its original proportions within a fixed image area.
 Comparison shows four Practice qualities or four Structure quality uplifts,
@@ -204,6 +210,9 @@ the source run's prior history because the bridge transfers a state, not a run.
 - `npm run probe:development-lab`: deployed bundle, filters/quality comparison,
   exhibits, edits, reset/storage, forecast, desktop/mobile, both bridges, refresh,
   original save protection. Details/screenshots: `artifacts/development-lab-*`.
+- `npm run probe:development-lab -- --zoo-only`: quick reads and full inspection
+  for all 187 runtime Practices/Structures, quality comparison, linked definitions,
+  desktop/mobile bounds, and unchanged fixture state/RNG.
 - `npm run probe:prototypes`: standalone workbenches through the
   Prototypes directory, Pages subpath and refresh, desktop/mobile layouts,
   contained card numbers, founder browsing,
