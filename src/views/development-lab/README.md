@@ -22,6 +22,9 @@ scrolls; background page scrolling is locked while it is open.
 Persistence/export live in
 `src/controllers/card-review-controller.js`; JSON draft/path operations live in
 `src/model/dev-lab/card-review.js`. Reviews never enter the Lab timeline.
+`zoo.js` can project edited definitions into its display snapshot, including
+filters, shared readings and quality comparisons. Live/edited/edited-only modes
+leave the controller fixture unchanged; notes-only reviews remain live cards.
 
 `card-reading.js` supplies one lazy interactive Pixi canvas for Zoo quick reads
 and full inspection. It uses the game's `addPracticeReading` and

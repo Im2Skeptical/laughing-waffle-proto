@@ -54,8 +54,24 @@ the same site, browser and device. Clearing browser site data removes them.
 New builds supply unedited values; edited values retain their proposals. Changed
 field shapes and removed cards remain in storage/export with a visible warning.
 **Reset edits** keeps the flag and notes; **Delete review** requires a second tap
-and removes the entire review. Drafts never apply to the running game.
+and removes the entire review. Drafts never change an existing run.
+
+In Zoo, **Card versions** selects **Live cards**, **Show edited cards** (drafts
+where available, live values elsewhere), or **Edited cards only**. Draft faces,
+filters and reading panels use the modified definition without changing the
+Lab fixture. Cards with edits are marked **edited**; notes-only reviews are not.
+
+The main menu's **Developer tools** includes **Use edited cards in new games**.
+Enable it, then start **New game** to play with this device's reviewed definitions;
+no rebuild is needed for subsequent card edits. Each new run captures a validated
+definition snapshot before initialization. That snapshot travels with its save,
+replay and forecasts. **Continue** and **Load game** keep the recorded values,
+even after changing the toggle or reviews. The toggle persists separately from
+player saves. Conflicting or invalid drafts must be fixed before an edited game
+can start; they are not silently skipped.
 Verify persistence, export, build drift and failed writes with `npm run test:card-review`.
+Verify Zoo/mobile controls with `npm run probe:development-lab -- --reviewer-only`
+and new-game/Continue behavior with `npm run probe:game-menu`.
 
 ## Prototypes
 

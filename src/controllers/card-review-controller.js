@@ -1,9 +1,21 @@
-import { parseReviewDocument, projectReview, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument } from '../model/dev-lab/card-review.js';
+import { parseReviewDocument, projectReview, applyCardReviews, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument } from '../model/dev-lab/card-review.js';
+import { createAuthoredGamepiecesDraft, validateGamepiecesDraft } from '../model/game-config.js';
+import { createNewGameState } from '../model/new-game.js';
 
 // Stable across builds; never attach this key to player save reset/cleanup.
 export const CARD_REVIEW_STORAGE_KEY = 'civsurvivor.card-review.v1';
-export function createCardReviewController({storage = globalThis.localStorage, resolveLive} = {}) {
+export const CARD_REVIEW_GAME_MODE_KEY = 'civsurvivor.card-review.use-in-new-games';
+function browserStorage() {
+  try{return globalThis.localStorage;}catch{return {getItem:()=>null,setItem:()=>{throw new Error('Browser storage is unavailable.');}};}
+}
+export function createCardReviewController({storage = browserStorage(), resolveLive} = {}) {
   const read = () => parseReviewDocument(storage.getItem(CARD_REVIEW_STORAGE_KEY));
+  const enabled = () => {try{return storage.getItem(CARD_REVIEW_GAME_MODE_KEY)==='true';}catch{return false;}};
+  const launch = () => {
+    const result=applyCardReviews(createAuthoredGamepiecesDraft(),Object.values(read().cards));
+    result.issues.push(...validateGamepiecesDraft(result.gamepieces).errors);
+    return result;
+  };
   const write = action => {
     const doc = read(); action(doc); storage.setItem(CARD_REVIEW_STORAGE_KEY, JSON.stringify(doc)); return doc;
   };
@@ -35,6 +47,17 @@ export function createCardReviewController({storage = globalThis.localStorage, r
     }
   });
   return {
+    useInNewGames:enabled,
+    setUseInNewGames:value=>storage.setItem(CARD_REVIEW_GAME_MODE_KEY,String(Boolean(value))),
+    getLaunchKey:()=>enabled()?`edited:${storage.getItem(CARD_REVIEW_STORAGE_KEY)}`:'live',
+    getLaunchStatus:()=>{const result=launch();return {enabled:enabled(),count:result.applied.length,issues:result.issues};},
+    createNewGame(seed = globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) {
+      if(!enabled())return createNewGameState(seed);
+      const result=launch();
+      if(result.issues.length)throw new Error(`Edited cards need attention: ${result.issues.slice(0,3).join('; ')}`);
+      return createNewGameState(seed,{gamepieces:result.gamepieces});
+    },
+    applyTo:gamepieces=>applyCardReviews(gamepieces,Object.values(read().cards)),
     list:() => Object.values(read().cards),
     get:(kind, id) => read().cards[reviewKey(kind, id)] ?? null,
     flag(kind, id, definition, tier = 'bronze') {

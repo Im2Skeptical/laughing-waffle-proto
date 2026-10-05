@@ -3,7 +3,7 @@ import { createInitialState } from "./init.js";
 import { createStarterBootProfile } from "./starter-boot-profile.js";
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
 
-export function createNewGameState(seed) {
+export function createNewGameState(seed, {gamepieces} = {}) {
   const profile = createStarterBootProfile();
   const state = createInitialState({
     ...setupDefs.devPlaytesting01,
@@ -14,7 +14,7 @@ export function createNewGameState(seed) {
     },
     gameConfig: {
       settings: profile.gameSettings,
-      gamepieces: profile.gamepieces,
+      gamepieces: gamepieces ?? profile.gamepieces,
       lifeMapGenerator: profile.lifeMapLab.generatorConfig,
     },
   }, seed);

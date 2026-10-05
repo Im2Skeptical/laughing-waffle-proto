@@ -48,7 +48,7 @@ export function mountDevelopmentLab() {
     review.flag(face.kind,face.definitionId,definition,face.tier);
     location.hash=`/dev/reviewer?card=${encodeURIComponent(`${face.kind}:${face.definitionId}`)}`;
   });
-  const cards=createLabCards({onReview}), zoo=createZooView({controller:gym,cards,run,onReview});
+  const cards=createLabCards({onReview}), zoo=createZooView({controller:gym,cards,run,onReview,review});
   const reviewer=createCardReviewerView({review,cards,getState:()=>reviewState,run});
   function render() {
     document.body.classList.toggle('reviewer-active',mode==='reviewer');

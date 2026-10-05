@@ -3,7 +3,8 @@ import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_V
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
 export function createGameSessionController({ runner, opening, onEnter, prepareEntry, onError, onSaved, onSaveStatusChange,
-  getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null }) {
+  getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null,
+  createState = () => createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) }) {
   let activeSlot = null;
   let inMenu = true;
   let hasLiveGame = false;
@@ -174,7 +175,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       }
       if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
       // Entropy only chooses the seed; every world roll uses serialized state.rng.
-      const initialState = prepared?.state ?? createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]);
+      const initialState = prepared?.state ?? createState();
       activeSlot = null;
       hasLiveGame = false;
       const result = runner.resetToState(initialState, "twoRegionStarter01");

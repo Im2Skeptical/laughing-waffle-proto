@@ -121,6 +121,19 @@ export function projectReview(entry, live) {
   return {definition, conflicts};
 }
 
+// Snapshot proposals into a separate registry; browser storage never enters replay.
+export function applyCardReviews(gamepieces, entries) {
+  const result=clone(gamepieces), applied=[], issues=[];
+  for(const entry of entries.filter(entry=>entry.edits.length)) {
+    const registry=entry.kind==='practice'?'practices':'structures',live=gamepieces[registry]?.[entry.id];
+    if(!live){issues.push(`${entry.id}: absent from this build`);continue;}
+    const projected=projectReview(entry,live);
+    if(projected.conflicts.length){issues.push(`${live.label}: ${projected.conflicts.join(', ')}`);continue;}
+    result[registry][entry.id]=projected.definition;applied.push(reviewKey(entry.kind,entry.id));
+  }
+  return {gamepieces:result,applied,issues};
+}
+
 export function parseReviewDocument(raw) {
   if (!raw) return {schemaVersion:CARD_REVIEW_SCHEMA, cards:{}};
   const doc = JSON.parse(raw);

@@ -22,6 +22,8 @@ body.game-menu-open .codex-debug-panel { display: none !important; }
 .game-menu-content { max-width: 620px; margin: 5vh auto; }
 #game-menu h1 { font-size: clamp(32px, 7vw, 54px); text-decoration: none; margin: 18px 0; line-height: 1.05; }
 .game-menu-eyebrow { color: #d7b450; text-transform: uppercase; letter-spacing: .13em; font: 12px/1.6 sans-serif; }
+.game-edited-cards-toggle { display:flex; align-items:center; gap:12px; min-height:48px; margin-top:16px; font:16px/1.4 system-ui,sans-serif; }
+.game-edited-cards-toggle input { width:24px; height:24px; flex-shrink:0; accent-color:#93c6ad; }
 #game-menu p { line-height: 1.5; }
 #game-menu button, [data-testid="game-menu-open"] { min-height: 44px; padding: 10px 18px;
   border: 1px solid #b89b5c; border-radius: 7px; background: #394a43; color: #f6efe3; font: 15px sans-serif; cursor: pointer; }
@@ -79,6 +81,7 @@ canvas { image-rendering: auto; }
 #game-menu button:focus-visible { outline:2px solid #c6a166; outline-offset:4px; }
 .game-save-slot {border-radius:0;border:1px solid #736447;background:#141d1bdc;}
 .game-menu-note {font-size:11px!important;color:#7f887d!important;}
+.game-edited-cards-status {font-size:13px!important;color:#b1bfb4!important;max-width:none!important;margin:8px 0!important;}
 .game-menu-footer > [role="status"]:empty {display:none;}
 .game-loading-progress {height:10px; width:100%; overflow:hidden; border:1px solid #967d4f;
   background:#101917; margin:18px 0; border-radius:5px;}

@@ -2,7 +2,7 @@ import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode,
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
 
-export function createGameMenuDom({ session, onResume, onPause }) {
+export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
@@ -256,6 +256,21 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       const dev = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary, button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
+      if(cardReviews) {
+        const label=document.createElement('label');label.className='game-edited-cards-toggle';
+        const toggle=document.createElement('input');toggle.type='checkbox';toggle.dataset.testid='game-use-edited-cards';toggle.checked=cardReviews.useInNewGames();
+        label.append(toggle,document.createTextNode('Use edited cards in new games'));
+        const info=document.createElement('p');info.className='game-menu-note game-edited-cards-status';info.dataset.testid='game-edited-cards-status';info.setAttribute('role','status');
+        const update=()=>{
+          try{const status=cardReviews.getLaunchStatus();info.textContent=`${status.count} edited ${status.count===1?'card':'cards'} saved on this device. ${status.issues.length?`Fix these before starting: ${status.issues.slice(0,3).join('; ')}.`:'Start a new game to use them. Continue keeps that game’s saved card values.'}`;}
+          catch(error){info.textContent=`Card edits unavailable: ${error.message}`;}
+        };
+        toggle.addEventListener('change',()=>{
+          try{cardReviews.setUseInNewGames(toggle.checked);session.cancelPreparation?.();void session.prepareNewGame?.();update();}
+          catch(error){toggle.checked=cardReviews.useInNewGames();info.textContent=error.message;}
+        });
+        update();dev.append(label,info);
+      }
       footer.append(dev);
     }
     const note = document.createElement("p");

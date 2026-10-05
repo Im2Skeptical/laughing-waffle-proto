@@ -4,6 +4,7 @@ import { createEmptyTimelineFromBase } from "../model/timeline/index.js";
 // Runtime-only preparation. Never touches the live runner, storage, or its RNG.
 export function createNewGameOpeningController({ createCache, createWorkerService, searchLimitSec,
   createState = () => createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]),
+  getPreparationKey = () => null,
 }) {
   let job = null;
   let phase = "idle";
@@ -23,8 +24,10 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
   }
 
   function prepare() {
-    if (job) return job.promise;
-    const current = { timer: null, worker: null };
+    const key=getPreparationKey();
+    if (job && job.key===key) return job.promise;
+    if (job) cancel();
+    const current = { timer: null, worker: null, key };
     current.promise = new Promise(resolve => { current.resolve = resolve; });
     job = current;
     preparation = "preparing";

@@ -85,6 +85,10 @@ contract: `ai/visual-overhaul.md`.
   without opening the menu. Loading validates and rebuilds the
   saved timeline before replacing the active state; incompatible saves cannot
   continue. No save-schema migration is introduced.
+  Developer tools also offers Use edited cards in new games, persisted on this
+  device. New games capture validated reviewer definitions before initialization;
+  Continue/Load retain their saved definition snapshot. Zoo's Card versions
+  selector displays live cards, drafts where available, or edited cards only.
 - Reaching a loss opens a cause-specific popup. Confirmed losses say Game over;
   viewed forecast losses say Foreseen extinction and explain that choices can
   change the outcome. Minimise / Browse history removes the backdrop. The

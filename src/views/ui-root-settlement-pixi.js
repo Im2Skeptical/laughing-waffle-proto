@@ -3,7 +3,7 @@ import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-
 import { createLifeProcessingView } from "./life-processing-pixi.js";
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
-import { openCardReviewer } from '../controllers/card-review-controller.js';
+import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { createResearchLibraryView } from './research-library-pixi.js';
@@ -217,7 +217,10 @@ let vassalLevelUpModalView = null;
 let vassalResolutionRecapView = null;
 let vassalHeirloomFlowView = null;
 let runCompleteView = null;
+const cardReviews=createCardReviewController();
 const opening = createNewGameOpeningController({
+  createState:()=>cardReviews.createNewGame(),
+  getPreparationKey:()=>cardReviews.getLaunchKey(),
   createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
   createWorkerService: () => createTimegraphForecastWorkerService(),
   searchLimitSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
@@ -1654,6 +1657,7 @@ publishSettlementDebugApi();
 let gameMenu;
 const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
 const gameSession = createGameSessionController({
+  createState:()=>cardReviews.createNewGame(),
   runner,
   opening,
   prepareEntry: async () => {
@@ -1684,6 +1688,7 @@ const gameSession = createGameSessionController({
   getForecastDiagnostics: () => forecastWorkerService.getDiagnostics(),
 });
 gameMenu = createGameMenuDom({
+  cardReviews,
   session: gameSession,
   onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
   onPause: () => {

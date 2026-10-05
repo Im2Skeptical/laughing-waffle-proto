@@ -2,6 +2,7 @@ import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { MOON_PHASE_DEFS } from '../defs/gamesettings/moon-phase-defs.js';
 import {
   canonicalizeVassalLifeMapGeneratorConfig,
   createAuthoredVassalLifeMapGeneratorConfig,
@@ -13,6 +14,8 @@ export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const scheduleTypes=[...MOON_PHASE_DEFS.map(phase=>phase.id),'season','passive','crisis'];
+const seasonKeys=['spring','summer','autumn','winter'];
 
 export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
@@ -235,7 +238,17 @@ function normalizeTags(value, fallback) {
 }
 
 function copyEditableLeaves(template, source, path = []) {
-  if (path.at(-1) === "tags") return normalizeTags(source, template);
+  if (['tags','stockTraits','traits','traitsAny','tagsAny'].includes(path.at(-1))) return normalizeTags(source, template);
+  if(path.at(-1)==='activation'&&template.type!=='charge'&&source&&scheduleTypes.includes(source.type)) {
+    const activation={...clone(template),type:source.type};
+    delete activation.also;delete activation.seasonKeys;delete activation.stage;
+    if(source.also?.length)activation.also=[...new Set(source.also.filter(type=>scheduleTypes.includes(type)&&type!==source.type))];
+    if(source.seasonKeys?.length)activation.seasonKeys=[...new Set(source.seasonKeys.filter(key=>seasonKeys.includes(key)))];
+    if(['preRouting','postRouting'].includes(source.stage))activation.stage=source.stage;
+    return activation;
+  }
+  if(path.at(-1)==='source'&&source)return {...copyEditableLeaves(template,source,path.slice(0,-1)),
+    icon:scheduleTypes.includes(source.icon)?source.icon:template.icon,cadence:typeof source.cadence==='string'?source.cadence:template.cadence};
   if (Array.isArray(template)) {
     return template.map((entry, index) => copyEditableLeaves(entry, source?.[index], [...path, index]));
   }
@@ -253,15 +266,27 @@ function copyEditableLeaves(template, source, path = []) {
   if (typeof template === "boolean") {
     return typeof source === "boolean" ? source : template;
   }
+  if(typeof template==='string'&&typeof source==='string'&&path.some(key=>['label','ui','minimumQuality','triggerText','dischargeText','authoredEffect','authoredHook'].includes(key)))return source;
   return template;
 }
 
 export function canonicalizeGamepiecesDraft(value) {
   const authored = createAuthoredGamepiecesDraft();
+  const practices=copyEditableLeaves(authored.practices,value?.practices);
+  for(const [id,def] of Object.entries(practices)) {
+    const source=value?.practices?.[id];
+    if(!source)continue;
+    const seasonal=[def.activation.type,...(def.activation.also??[])].includes('season');
+    def.effects.forEach((effect,index)=>{
+      const amounts=source.effects?.[index]?.seasonAmounts;
+      if(!seasonal)delete effect.seasonAmounts;
+      else if(amounts&&typeof effect.amount==='number')effect.seasonAmounts=Object.fromEntries(Object.entries(amounts).filter(([key,amount])=>seasonKeys.includes(key)&&Number.isFinite(amount)));
+    });
+  }
   return {
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
     structures: copyEditableLeaves(authored.structures, value?.structures),
-    practices: copyEditableLeaves(authored.practices, value?.practices),
+    practices,
   };
 }
 
@@ -367,6 +392,10 @@ export function validateGamepiecesDraft(value) {
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);
       if (def.mode==='charge' && (!Number.isInteger(def.charge?.threshold) || def.charge.threshold<1 || !Number.isInteger(def.charge?.gain) || def.charge.gain<1 || !def.charge.trigger?.any?.length)) errors.push(`practices.${id}: invalid Charge grammar`);
       if (def.mode==='charge' && ((def.consume??[]).length || (def.require??[]).length)) errors.push(`practices.${id}: Charge cannot consume or require Stock`);
+      if(def.mode==='scheduled'&&(!scheduleTypes.includes(def.activation?.type)
+        ||(def.activation.also!==undefined&&(!Array.isArray(def.activation.also)||def.activation.also.some(type=>!scheduleTypes.includes(type))))
+        ||(def.activation.seasonKeys!==undefined&&(!Array.isArray(def.activation.seasonKeys)||!def.activation.seasonKeys.length||def.activation.seasonKeys.some(key=>!seasonKeys.includes(key))))))errors.push(`practices.${id}: invalid schedule`);
+      for(const effect of def.effects??[])if(effect.seasonAmounts&&Object.entries(effect.seasonAmounts).some(([key,amount])=>!seasonKeys.includes(key)||!Number.isFinite(amount)||amount<0))errors.push(`practices.${id}: invalid seasonal amounts`);
       for (const cost of [...(def.consume??[]),...(def.require??[])]) if (!Number.isInteger(cost.amount)||cost.amount<0||!cost.traits?.length||cost.traits.includes('Charge')) errors.push(`practices.${id}: invalid Stock input`);
     }
   }

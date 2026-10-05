@@ -23,6 +23,17 @@ assert.equal(opening.prepare(), first, 'concurrent requests share one prepared w
 const prepared = await first;
 assert.equal(prepared.ok, true, 'local worker fallback prepares a terminal forecast');
 assert.equal(constructions, 1);
+let preparationKey='live',keyedConstructions=0;
+const keyed=createNewGameOpeningController({
+  getPreparationKey:()=>preparationKey,createState:()=>{keyedConstructions++;return state;},
+  createCache:()=>createProjectionCache(),searchLimitSec:20,
+  createWorkerService:()=>createTimegraphForecastWorkerService({createWorker:()=>{throw new Error('workers unavailable');},primeChunkSizeSec:0}),
+});
+const cached=keyed.prepare();assert.equal((await cached).ok,true);
+assert.equal(keyed.prepare(),cached,'unchanged definitions reuse the prepared opening');
+preparationKey='edited';const changed=keyed.prepare();assert.notEqual(changed,cached);
+assert.equal((await changed).ok,true);assert.equal(keyedConstructions,2,'changed definitions prepare a new initial world and forecast');
+keyed.cancel();
 assert.equal(JSON.stringify(serializeGameState(state)), before, 'preloading does not mutate initial state or RNG');
 const timeline = createEmptyTimelineFromBase(state);
 const target = createProjectionCache();

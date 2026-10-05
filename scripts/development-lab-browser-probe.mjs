@@ -208,6 +208,22 @@ try {
   checks.push('reviewer Dev/Zoo entry, icon trays and variable Stock tags, multiple schedule triggers/season yields, viewport-height modal with fixed Done footer and side/Escape dismissal, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
   await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('');
+  await page.getByText('109 matching runtime entries',{exact:false}).waitFor();
+  await page.getByLabel('Card versions',{exact:true}).selectOption('edited-only');
+  await page.getByText('3 matching runtime entries',{exact:false}).waitFor();
+  assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-edited=true]').count(),3,'Zoo can show only edited Practice drafts');
+  await page.getByLabel('Search runtime content').fill('dryFarming');
+  await page.getByRole('button',{name:'Read Dry Farming, bronze',exact:true}).waitFor();
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  assert.ok(await page.getByText('"spring":4',{exact:false}).count(),'edited Zoo definition uses the proposed seasonal amounts');
+  await page.getByLabel('Card versions',{exact:true}).selectOption('live');
+  await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  await page.getByText('"summer":2',{exact:false}).waitFor();
+  assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-edited=true]').count(),0,'live Zoo values remain available');
+  assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'Zoo draft browsing preserves fixture state/RNG');
+  checks.push('Zoo edited-only catalogue and live/draft seasonal definitions without mutating fixture state');
+  await page.getByLabel('Search runtime content').fill('');
   await page.setViewportSize({width:1280,height:800});
   if(process.argv.includes('--reviewer-only')) {
     assert.deepEqual(errors,[]);

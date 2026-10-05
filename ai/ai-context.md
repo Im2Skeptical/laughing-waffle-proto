@@ -60,6 +60,9 @@ Authoritative numbers:
 - Debug profile library/export v2.
 - Named debug draft libraries v1.
 - Debug drafts in browser storage are inert until a fresh test run is started.
+  Card-review proposals require the menu's Use edited cards in new games toggle;
+  new runs capture them in gameConfig. Existing runs and deterministic replay
+  use their own serialized definitions, never browser review storage.
 - Fresh runs do not migrate obsolete saves or presets.
 
 ## Current prototype setup
