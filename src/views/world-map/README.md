@@ -47,7 +47,8 @@ region panel; dismissal eases back to the saved overview camera while the panel
 shrinks toward the settlement over 320 ms. Its content stays visible until the
 transition ends; reopening reverses the shrink from its current pose. Opening or switching a
 region centers the selected settlement in the left map area and adjusts zoom to
-fit its full road-connected group around it. Reset returns to this group framing.
+fit its own territory and only neighbours that are both adjacent and directly
+road-connected. Reset returns to this framing.
 Flag double-taps remain anchored to the first screen position for 500 ms, including
 when group framing moves the flag into empty map space or beneath fixed chrome.
 Manual camera input cancels that focus transition immediately. Chaos is a floating,
@@ -76,7 +77,7 @@ style, or the weaker style when linking two highlighted neighbours. Monster
 regions retain strong red outlines and skull markers. The selected region keeps
 its cyan outline, and stronger outlines are drawn above weaker shared borders. Physical
 adjacency alone and indirect road connectivity do not qualify. Unrelated terrain
-is dimmed. The selected territory and its full road-connected group are shown together
+is dimmed. The selected territory and its adjacent, directly road-connected neighbours are framed together
 by default, without a reach key, relationship badges, or Show group button.
 `relationships.js` intersects the viewed state's existing physical-adjacency and
 live-connection selectors. The render signature includes live connections so

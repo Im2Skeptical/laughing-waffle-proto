@@ -1,5 +1,4 @@
 import { getAdjacentRegionIds, getConnectedRegionIds } from '../../model/world-state.js';
-import { resolveDetailedRegionScope } from '../../model/detailed-settlements.js';
 
 export const RELATION_COLOUR = 0xc8adff;
 export const RELATION_STYLES = Object.freeze({
@@ -17,14 +16,15 @@ export function getRelationshipStyle(indicator = {}) {
 }
 
 // Physical adjacency and a live direct road are independently required.
-// Reaching a region through other roads does not qualify it for highlighting.
+// Reaching a region through other roads does not qualify it for highlighting or framing.
 export function getMapRelationships(state, regionId, active) {
   if (!active) return null;
   const connected = getConnectedRegionIds(state, regionId);
+  const highlightedRegionIds = getAdjacentRegionIds(state, regionId).filter(id => connected.includes(id));
   return {
     selectedRegionId: regionId,
-    highlightedRegionIds: getAdjacentRegionIds(state, regionId).filter(id => connected.includes(id)),
-    groupRegionIds: resolveDetailedRegionScope(state, regionId, {kind:'connectedComponent',includeHost:true}),
+    highlightedRegionIds,
+    groupRegionIds: [regionId, ...highlightedRegionIds],
   };
 }
 

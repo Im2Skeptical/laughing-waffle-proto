@@ -126,6 +126,8 @@ try {
   assert.equal(selected.slots.blocked,8-selected.slots.available);
   await capture('desktop-selected');
   assert.deepEqual(selected.relationships.highlightedRegionIds,['west-levee'],'only adjacent regions with a direct road are highlighted');
+  assert.deepEqual(selected.relationships.groupRegionIds,['cedar-woods','west-levee'],
+    'camera framing excludes the wider connected group');
   const groupCamera=selected.camera;
   await click({x:818,y:782});
   await click({x:899,y:782});

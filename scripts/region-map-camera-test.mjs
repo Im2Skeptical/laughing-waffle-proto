@@ -163,7 +163,9 @@ const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
 const reach = getMapRelationships(state, 'copper-basin', true);
 assert.deepEqual(reach.highlightedRegionIds, ['high-pass', 'east-steppe']);
-assert.ok(reach.groupRegionIds.includes('obsidian-ridge'), 'indirect members remain in the default camera group');
+assert.deepEqual(reach.groupRegionIds, ['copper-basin', 'high-pass', 'east-steppe'],
+  'camera frames only the selection and adjacent regions with a direct road');
+assert.ok(!reach.groupRegionIds.includes('obsidian-ridge'), 'indirect connections do not widen the camera frame');
 assert.equal(getMapRelationship(reach, 'copper-basin'), 'selected');
 assert.equal(getMapRelationship(reach, 'east-steppe'), 'connected');
 assert.equal(getMapRelationship(reach, 'obsidian-ridge'), null, 'indirect connectivity alone does not qualify');
@@ -173,8 +175,11 @@ assert.equal(JSON.stringify(state), beforeRelationships, 'reach queries leave si
 const unconnectedNeighbour = getAdjacentRegionIds(state, 'copper-basin').find(id => !reach.highlightedRegionIds.includes(id));
 assert.ok(unconnectedNeighbour, 'fixture includes a physical neighbour without a road');
 assert.equal(getMapRelationship(reach, unconnectedNeighbour), null, 'physical adjacency alone does not qualify');
+assert.ok(!reach.groupRegionIds.includes(unconnectedNeighbour), 'adjacency without a road does not widen the camera frame');
 state.world.connections.push({regionAId:'copper-basin',regionBId:'cedar-woods'});
-assert.equal(getMapRelationship(getMapRelationships(state, 'copper-basin', true), 'cedar-woods'), null, 'a road alone cannot bypass physical adjacency');
+const roadOnly = getMapRelationships(state, 'copper-basin', true);
+assert.equal(getMapRelationship(roadOnly, 'cedar-woods'), null, 'a road alone cannot bypass physical adjacency');
+assert.ok(!roadOnly.groupRegionIds.includes('cedar-woods'), 'a road without adjacency does not widen the camera frame');
 state.world.connections = state.world.connections.filter(edge => edge.regionAId !== 'copper-basin' && edge.regionBId !== 'copper-basin');
 const isolated = getMapRelationships(state, 'copper-basin', true);
 assert.deepEqual(isolated.highlightedRegionIds, [], 'road removal immediately removes the highlight');
