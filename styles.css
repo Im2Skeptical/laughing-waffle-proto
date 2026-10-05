@@ -79,6 +79,15 @@ canvas { image-rendering: auto; }
 #game-menu button:focus-visible { outline:2px solid #c6a166; outline-offset:4px; }
 .game-save-slot {border-radius:0;border:1px solid #736447;background:#141d1bdc;}
 .game-menu-note {font-size:11px!important;color:#7f887d!important;}
+.game-menu-footer > [role="status"]:empty {display:none;}
+.game-loading-progress {height:10px; width:100%; overflow:hidden; border:1px solid #967d4f;
+  background:#101917; margin:18px 0; border-radius:5px;}
+.game-loading-pulse {display:block; height:100%; width:35%; background:linear-gradient(90deg,#78633b,#e2c789,#78633b);
+  animation:game-loading-sweep 1.4s ease-in-out infinite alternate; will-change:transform;}
+@keyframes game-loading-sweep {from {transform:translateX(0);} to {transform:translateX(186%);}}
+@media (prefers-reduced-motion:reduce) {
+  .game-loading-pulse {animation:none; transform:translateX(93%);}
+}
 [data-testid="utility-controls"] {gap:5px!important;}
 [data-testid="utility-controls"].workshop-open [data-testid="research-open"] {display:none;}
 [data-testid="utility-controls"] button {
@@ -91,10 +100,34 @@ canvas { image-rendering: auto; }
 .chronicle-audio {width:28px;opacity:.6;}
 .chronicle-audio[aria-pressed="true"] {opacity:1;border-color:#c2a05d!important;}
 @media (max-height:550px) and (orientation:landscape) {
-  .game-menu-content {margin:1vh 0 0;width:330px;}
-  #game-menu h1 {font-size:35px;margin:12px 0;padding:10px 0;}
-  #game-menu button {padding:9px;margin:9px 0;min-height:40px;font-size:15px;}
-  .game-menu-note {margin-top:12px;}
+  #game-menu {border-width:4px; padding:max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background-image:linear-gradient(90deg,#070c0eee,#070c0eb8),var(--chronicle-backdrop);}
+  .game-menu-content {margin:0; width:100%; max-width:100%; display:grid;
+    grid-template-columns:minmax(170px, .8fr) minmax(0, 1.5fr); gap:10px 24px; align-items:center;}
+  #game-menu h1 {font-size:clamp(26px, 4vw, 38px); margin:10px 0; padding:10px 0;}
+  #game-menu p {font-size:13px; line-height:1.4;}
+  #game-menu .game-menu-eyebrow {font-size:10px; line-height:1.4;}
+  #game-menu h2 {font-size:20px; line-height:1.2; margin:0;}
+  #game-menu button {box-sizing:border-box; padding:8px; margin:0; min-height:44px; font-size:14px;}
+  .game-menu-actions {display:grid; gap:8px; min-width:0;}
+  .game-menu-section-heading {display:flex; align-items:center; gap:12px; justify-content:space-between;}
+  #game-menu .game-menu-section-heading button {width:auto; flex-shrink:0; font-size:12px; letter-spacing:0;}
+  .game-save-slots {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
+  .game-save-slot {min-width:0; margin:0; padding:8px; display:flex; flex-direction:column;}
+  .game-save-slot h3 {font-size:15px; margin:0 0 4px;}
+  #game-menu .game-save-slot p {font:11px/1.35 sans-serif; margin:0 0 8px; overflow-wrap:anywhere; flex:1;}
+  #game-menu .game-save-slot button {font-size:12px; letter-spacing:0;}
+  .game-menu-footer {grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:6px 16px;
+    align-items:center; justify-content:space-between;}
+  .game-menu-footer details {font-size:12px;}
+  .game-menu-footer .game-menu-note {margin:0; flex:1; max-width:65%; font-size:10px!important;}
+  .game-menu-footer > [role="status"] {flex-basis:100%; margin:0;}
+  .game-save-recovery {margin-top:0; padding-top:4px;}
+  #game-menu .game-save-recovery p {font:11px/1.35 sans-serif; margin:0 0 4px;}
+  #game-menu .game-save-actions button {margin:0; font-size:12px;}
+  .game-loading-progress {margin:8px 0;}
+  .game-display-hint {margin:0; padding:8px;}
   [data-testid="utility-controls"] button {min-height:22px!important;padding:3px 5px!important;font-size:10px!important;}
 }
 @media (orientation:portrait) {

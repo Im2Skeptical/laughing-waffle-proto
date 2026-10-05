@@ -39,7 +39,8 @@ async function buildPagesArtifact() {
   await mkdir(assetsDir, { recursive: true });
 
   const workerResult = await build({
-    entryPoints: { "timegraph-forecast-worker": workerEntryPoint, "life-decision-worker": "src/controllers/life-decision-worker.js" },
+    entryPoints: { "timegraph-forecast-worker": workerEntryPoint, "life-decision-worker": "src/controllers/life-decision-worker.js",
+      "save-load-worker": "src/controllers/save-load-worker.js" },
     bundle: true,
     outdir: assetsDir,
     entryNames: "[name]-[hash]",
@@ -60,6 +61,10 @@ async function buildPagesArtifact() {
     ([, metadata]) => metadata.entryPoint === "src/controllers/life-decision-worker.js"
   )?.[0];
   if (!decisionOutput) throw new Error("Missing life decision worker output");
+  const saveLoadOutput = Object.entries(workerResult.metafile.outputs).find(
+    ([, metadata]) => metadata.entryPoint === "src/controllers/save-load-worker.js"
+  )?.[0];
+  if (!saveLoadOutput) throw new Error("Missing save load worker output");
   const workerModuleUrl = `./${path.basename(workerOutput)}`;
 
   const result = await build({
@@ -71,6 +76,7 @@ async function buildPagesArtifact() {
     format: "esm",
     target: ["es2020"],
     define: {
+      __SAVE_LOAD_WORKER_URL__: JSON.stringify(`./${path.basename(saveLoadOutput)}`),
       __LIFE_DECISION_WORKER_URL__: JSON.stringify(`./${path.basename(decisionOutput)}`),
       __TIMEGRAPH_FORECAST_WORKER_URL__: JSON.stringify(workerModuleUrl),
     },
@@ -154,6 +160,7 @@ async function buildPagesArtifact() {
     entryPoint,
     bundle: bundleUrl,
     worker: relativeUrl(workerOutput),
+    saveLoadWorker: relativeUrl(saveLoadOutput),
     stylesheet: stylesheetUrl,
   };
   await Promise.all([

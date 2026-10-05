@@ -87,18 +87,24 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     entering = true;
     const version = ++entryVersion;
     try {
+      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; render(); }
       await requestGameDisplayMode({ forceFullscreen: event?.pointerType === 'touch' });
       // Fullscreen/orientation steal window focus on phones; visibility is the
       // signal that the player actually left during the request.
       if (version !== entryVersion || document.hidden) return;
       if (portrait.matches) {
+        loadingSlot = null;
+        render();
         displayHint.textContent = 'Turn your device sideways, then continue your chronicle.';
         displayHint.hidden = false;
         displayHint.scrollIntoView({ block: 'nearest' });
         return;
       }
       displayHint.hidden = true;
-      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; render(); }
+      // Commit the loading screen after rotation and before any synchronous
+      // entry work. A task after the frame gives the browser a paint opportunity.
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+      if (version !== entryVersion || document.hidden) return;
       const result = await action(() => version === entryVersion && !document.hidden && !portrait.matches);
       if (version !== entryVersion) return;
       if (result.ok) {
@@ -122,8 +128,12 @@ export function createGameMenuDom({ session, onResume, onPause }) {
   }
   function render() {
     panel.replaceChildren();
+    const layout = document.createElement("div");
+    layout.className = "game-menu-content";
+    const intro = document.createElement("header");
+    intro.className = "game-menu-intro";
     const content = document.createElement("div");
-    content.className = "game-menu-content";
+    content.className = "game-menu-actions";
     const eyebrow = document.createElement("p");
     eyebrow.className = "game-menu-eyebrow";
     eyebrow.textContent = "A chronicle of lives & lost futures";
@@ -131,7 +141,8 @@ export function createGameMenuDom({ session, onResume, onPause }) {
     title.textContent = "Civilization Survivor";
     const subtitle = document.createElement("p");
     subtitle.textContent = "Guide a fragile realm. Turn back the years. Rewrite its fate.";
-    content.append(eyebrow, title, subtitle, displayHint);
+    intro.append(eyebrow, title, subtitle);
+    content.append(displayHint);
     const slots = session.slots();
     const slotStatus = session.getSlotStatus();
     const canReplace = session.getSaveStatus().canReplaceLiveGame && slotStatus.phase === 'ready';
@@ -144,9 +155,14 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Preparing your chronicle…";
       content.append(heading);
       if (!loadingFailed) {
-        const progress = document.createElement("progress");
+        const progress = document.createElement("div");
+        progress.className = "game-loading-progress";
+        progress.setAttribute("role", "progressbar");
         progress.setAttribute("aria-label", "Preparing your chronicle");
         progress.dataset.testid = "game-loading-progress";
+        const pulse = document.createElement("span");
+        pulse.className = "game-loading-pulse";
+        progress.append(pulse);
         content.append(progress);
       } else {
         content.append(button("Retry", event => {
@@ -193,11 +209,16 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       const heading = document.createElement("h2");
       heading.textContent = mode === 'import' ? `Import Year ${importMeta.year} · choose a destination slot`
         : mode === "new" ? "Choose a slot for your new game" : "Choose a game to continue";
-      content.append(heading);
+      const sectionHeading = document.createElement("div");
+      sectionHeading.className = "game-menu-section-heading";
+      sectionHeading.append(heading);
+      content.append(sectionHeading);
       if (mode === 'load') {
         const importButton = button('Import save file', () => importInput.click(), 'game-save-import');
-        importButton.disabled = !canReplace; content.append(importButton);
+        importButton.disabled = !canReplace; sectionHeading.append(importButton);
       }
+      const slotList = document.createElement("div");
+      slotList.className = "game-save-slots";
       for (const slot of slots) {
         const card = document.createElement("section");
         card.className = "game-save-slot";
@@ -218,10 +239,13 @@ export function createGameMenuDom({ session, onResume, onPause }) {
         }, `game-slot-${slot.slot}`);
         action.disabled = !canReplace || (mode === "load" && !slot.available);
         card.append(label, details, action);
-        content.append(card);
+        slotList.append(card);
       }
+      content.append(slotList);
       content.append(button("Back", () => { importVersion++; session.cancelImport(); importMeta = null; mode = "home"; render(); }));
     }
+    const footer = document.createElement("footer");
+    footer.className = "game-menu-footer";
     if (mode !== 'diagnostics') {
       if (!saveFailed) { recovery.sync(); content.append(recovery.element); }
       if (saveFailed) {
@@ -232,14 +256,15 @@ export function createGameMenuDom({ session, onResume, onPause }) {
       const dev = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary, button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
-      content.append(dev);
+      footer.append(dev);
     }
     const note = document.createElement("p");
     note.className = "game-menu-note";
     note.textContent = "Three saves on this browser. Progress saves automatically during play. Gameplay uses landscape on phones.";
-    content.append(message, note);
-    panel.append(content);
-    panel.querySelector("button")?.focus();
+    footer.append(message, note);
+    layout.append(intro, content, footer);
+    panel.append(layout);
+    panel.querySelector("button")?.focus({ preventScroll: true });
   }
   function returnToMenu({ force = false } = {}) {
     if (session.openMenu({ force })) { onPause?.(); show(); }

@@ -16,6 +16,9 @@ and its direct dependencies.
   that folder. Slot read/write/load methods are asynchronous; listings use small metadata records.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
+- Continue save parsing/validation/replay worker: `src/controllers/save-load-worker.js`
+  and `src/controllers/save-load-worker-service.js`. Uses the authoritative save
+  inspector; cancelled entry terminates worker replay before runner installation.
 - Save recovery/status/export: `src/views/save-recovery-dom.js`.
   Technical report: `src/views/save-diagnostics-dom.js`, reused by the menu's
   Developer tools and the workshop's Save diagnostics tab.
@@ -255,8 +258,8 @@ let forecast unveiling outlive a settlement used as an interaction target.
   advances a second or completes.
 - `npm run check:source` rejects JavaScript under `src/` that is unreachable
   from the app, forecast worker, or supported tests.
-- `npm run build` emits hashed app and forecast-worker bundles plus the
-  stylesheet and records all three in `dist/build-manifest.json`.
+- `npm run build` emits hashed app and worker bundles plus the stylesheet.
+  App, forecast/save-load worker and stylesheet URLs live in `dist/build-manifest.json`.
 - Generated output and `.codex-remote-attachments/` are not source cleanup
   targets.
 

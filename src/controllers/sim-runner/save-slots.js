@@ -13,6 +13,7 @@ import { rebuildStateAtSecond } from "../../model/timeline/index.js";
 import { clonePersistentKnowledge } from "../../model/persistent-memory.js";
 import { describeSaveError, saveFailureCategory } from './save-diagnostics.js';
 import { initializeSaveStorage, runSaveTransaction, putSaveRecord, SAVE_PAYLOAD_STORE, SAVE_META_STORE } from './save-storage.js';
+import { inspectSaveInWorker } from '../save-load-worker-service.js';
 
 export const SAVE_SCHEMA_VERSION = 18;
 export const SAVE_SLOT_COUNT = 3;
@@ -85,7 +86,7 @@ export function normalizeSavedTimeline(rawTimeline, fallbackStateData) {
   };
 }
 
-export async function readSaveSlot(slot) {
+async function readSaveSlotText(slot) {
   let raw;
   try {
     const db = await initializeSaveStorage(inspectSaveText);
@@ -95,7 +96,13 @@ export async function readSaveSlot(slot) {
     });
   } catch (error) { return { ok: false, reason: 'storageFailed', error }; }
   if (raw === null) return { ok: false, reason: 'emptySlot' };
-  try { return { ok: true, data: JSON.parse(raw) }; }
+  return { ok: true, text: raw };
+}
+
+export async function readSaveSlot(slot) {
+  const res = await readSaveSlotText(slot);
+  if (!res.ok) return res;
+  try { return { ok: true, data: JSON.parse(res.text) }; }
   catch (error) { return { ok: false, reason: 'badSaveData', error }; }
 }
 
@@ -183,10 +190,20 @@ export function importSaveToSlot(slot, text) {
     { operation: 'import', state: inspected.state, timeline: inspected.nextTimeline });
 }
 
-export async function inspectSaveSlot(slot) {
-  const res = await readSaveSlot(slot);
+export async function inspectSaveSlot(slot, { background = false, isCurrent = () => true } = {}) {
+  const res = await readSaveSlotText(slot);
+  if (!isCurrent()) return { ok: false, reason: 'cancelled' };
   if (!res.ok) return res;
-  return inspectSaveData(res.data);
+  if (background) {
+    const inspected = await inspectSaveInWorker(res.text, { isCurrent });
+    if (!isCurrent()) return { ok: false, reason: 'cancelled' };
+    if (inspected) {
+      if (!inspected.ok) return inspected;
+      // Reattach runtime helpers and validate the transferred mutable body.
+      return { ...inspected, state: deserializeGameState(inspected.state) };
+    }
+  }
+  return inspectSaveText(res.text);
 }
 
 function inspectSaveData(data) {

@@ -19,6 +19,12 @@ detailed-settlement gameplay here.
   Save attempts separate synchronous serialization/enqueue time from elapsed
   IndexedDB access/transaction time; the latter includes event-loop delays.
 
+Continue reads the saved text on the main thread, then parses, validates and
+replays it in `../save-load-worker.js` through `../save-load-worker-service.js`.
+The worker uses the same authoritative inspector. The runner installs the full
+result only while entry remains current. Unsupported workers use the ordinary
+inspector; cancellation terminates pending worker replay.
+
 `createSimRunner`, tick, `rebuildStateAtSecond` wiring, playback, and
 `loadFromSlot` apply-to-runner stay on the orchestrator. Callers import
 `createSimRunner` from `src/controllers/sim-runner.js`.

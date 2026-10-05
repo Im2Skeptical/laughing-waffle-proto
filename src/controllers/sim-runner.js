@@ -482,7 +482,7 @@ export function createSimRunner({
   }
 
   async function loadFromSlot(slot, { isCurrent = () => true } = {}) {
-    const res = await inspectSaveSlot(slot);
+    const res = await inspectSaveSlot(slot, { background: true, isCurrent });
     if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     if (!res.ok) return res;
     const { meta, nextTimeline } = res;

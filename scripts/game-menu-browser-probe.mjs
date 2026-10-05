@@ -16,6 +16,17 @@ let page;
 const errors = [];
 async function installSaveProbe(target) {
   await target.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        super(url, options);
+        if (!String(url).includes('save-load-worker')) return;
+        const probe = globalThis.__saveLoadFrames = { frames: 0, completed: false };
+        const frame = () => { if (!probe.completed) { probe.frames++; requestAnimationFrame(frame); } };
+        requestAnimationFrame(frame);
+        this.addEventListener('message', () => { probe.completed = true; });
+      }
+    };
     globalThis.__originalSavePut = IDBObjectStore.prototype.put;
     globalThis.__readSaveSlot = async slot => {
       const db = await new Promise((resolve, reject) => {
@@ -136,6 +147,10 @@ try {
   await page.reload();
   await page.getByTestId('game-continue').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(() => globalThis.__saveLoadFrames?.completed), true,
+    'built Continue uses the save-load worker');
+  assert.ok(await page.evaluate(() => globalThis.__saveLoadFrames.frames > 0),
+    'loading animation receives frames while the save is parsed and replayed');
   assert.equal(await page.evaluate(() => !!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().view), true,
     'Continue from storage prepares its settlement scene too');
   await waitForRide();
@@ -338,7 +353,33 @@ try {
   await phone.getByTestId('game-menu').waitFor({state:'visible'});
   await phone.setViewportSize({width:844,height:390});
   assert.equal(await phone.getByTestId('game-menu').isVisible(),true,'Rotation alone does not resume a paused game');
+  await phone.setViewportSize({ width: 568, height: 320 });
+  assert.deepEqual(await phone.evaluate(() => [...document.querySelectorAll('#game-menu button')]
+    .filter(node => node.checkVisibility())
+    .filter(node => { const box = node.getBoundingClientRect(); return box.bottom > innerHeight || box.right > innerWidth; })
+    .map(node => node.textContent)), [], 'live resume and save controls fit the smallest landscape phone');
+  await phone.setViewportSize({ width: 844, height: 390 });
   await phone.reload();
+  await phone.getByTestId('game-continue').waitFor();
+  const assertMenuFits = async target => {
+    const clipped = await target.evaluate(() => [...document.querySelectorAll('#game-menu button, #game-menu h1, #game-menu h2, #game-menu summary, .game-menu-note')]
+      .filter(node => node.checkVisibility())
+      .filter(node => { const box = node.getBoundingClientRect(); return box.top < 0 || box.left < 0 || box.bottom > innerHeight || box.right > innerWidth; })
+      .map(node => node.textContent));
+    assert.deepEqual(clipped, [], 'landscape menu controls and copy fit without scrolling');
+  };
+  for (const size of [{ width: 844, height: 390 }, { width: 667, height: 375 }, { width: 568, height: 320 }]) {
+    await phone.setViewportSize(size);
+    await assertMenuFits(phone);
+    await phone.getByTestId('game-new').click();
+    await assertMenuFits(phone);
+    await phone.getByRole('button', { name: 'Back', exact: true }).click();
+    await phone.getByTestId('game-load').click();
+    await assertMenuFits(phone);
+    if (size.width === 844) await phone.screenshot({ path: 'artifacts/game-menu-landscape-slots.png' });
+    await phone.getByRole('button', { name: 'Back', exact: true }).click();
+  }
+  await phone.setViewportSize({ width: 844, height: 390 });
   await phone.getByTestId('game-continue').tap();
   await phone.getByTestId('game-menu').waitFor({state:'hidden'});
   assert.deepEqual(await phone.evaluate(() => globalThis.__displayRequests), ['fullscreen', 'landscape'],
