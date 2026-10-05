@@ -3,7 +3,8 @@ import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from '../src/views/world-map/relationships.js';
 import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
-import { getAdjacentRegionIds } from '../src/model/world-state.js';
+import { getAdjacentRegionIds, getWorldDefinition, getRegionPolygon } from '../src/model/world-state.js';
+import { MAP_RECT, GROUP_FRAME_RECT } from '../src/views/world-map/constants.js';
 import { getSettlementStockTags, getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
 
 const stockView = {
@@ -136,28 +137,48 @@ for (const point of groupPoints) {
 }
 assert.ok(camera.snapshot().zoom < 1, 'large groups can fit beside the detail panel');
 const groupCenter = {x:groupBounds.x+groupBounds.width/2,y:groupBounds.y+groupBounds.height/2};
-const assertGroupCentered = (point, message) => {
+const assertGroupFocused = (point, message) => {
   const projected = camera.project(point);
-  assert.ok(Math.abs(projected.x-groupCenter.x)<.001 && Math.abs(projected.y-groupCenter.y)<.001, message);
+  assert.ok(Math.abs(projected.x-groupCenter.x)<.001
+    && projected.y>=groupBounds.y-.001 && projected.y<=groupBounds.y+groupBounds.height+.001, message);
 };
-assertGroupCentered(groupFocus, 'selection stays centered instead of the group bounding box');
+assertGroupFocused(groupFocus, 'selection stays horizontally centered instead of the group bounding box');
 camera.frame(groupPoints, groupBounds, groupPoints[1]);
 time += 400; camera.update();
-assertGroupCentered(groupPoints[1], 'switching centers a settlement at the group edge');
+assertGroupFocused(groupPoints[1], 'switching keeps a settlement at the group edge in focus');
 for (const point of groupPoints) {
   const projected = camera.project(point);
   assert.ok(projected.x >= groupBounds.x - .001 && projected.x <= groupBounds.x + groupBounds.width + .001);
   assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
 }
-assert.ok(camera.snapshot().zoom < .35, 'automatic framing can zoom out enough for an off-center group');
+assert.ok(camera.snapshot().zoom < .35, 'automatic framing can zoom out enough for a horizontally off-center group');
 const fittedZoom = camera.snapshot().zoom;
 camera.zoomBy(1.2);
 assert.ok(Math.abs(camera.snapshot().zoom - fittedZoom * 1.2) < .001, 'manual zoom remains gradual after a wide group fit');
 camera.frame([groupFocus], groupBounds, groupFocus);
 time += 400; camera.update();
-assertGroupCentered(groupFocus, 'isolated settlements remain centered');
+assertGroupFocused(groupFocus, 'isolated settlements remain centered');
+assert.ok(Math.abs(camera.project(groupFocus).y-groupCenter.y)<.001, 'isolated framing keeps vertical center');
 assert.equal(camera.snapshot().zoom, 2.5, 'isolated framing respects the maximum zoom');
-console.log('[region-map-group-frame] OK: selected settlement stays centered, whole group fits, edge/isolated selections, gradual manual zoom');
+console.log('[region-map-group-frame] OK: selected settlement stays in focus, whole group fits, edge/isolated selections, gradual manual zoom');
+
+// R10 with only R14 connected: the southern neighbour must not force a
+// matching empty margin above the selected settlement.
+const screenshotDefinition = getWorldDefinition(createLabFixture('defense', 42));
+const mapPoint = point => ({x:MAP_RECT.x+point.x*MAP_RECT.width,y:MAP_RECT.y+point.y*MAP_RECT.height});
+const screenshotRegions = screenshotDefinition.regions.filter(region => ['east-steppe','obsidian-ridge'].includes(region.id));
+const screenshotPoints = screenshotRegions.flatMap(region => getRegionPolygon(screenshotDefinition, region).map(mapPoint));
+const screenshotFocus = mapPoint(screenshotRegions.find(region => region.id==='east-steppe').display.labelPoint);
+camera.frame(screenshotPoints, GROUP_FRAME_RECT, screenshotFocus);
+time += 400; camera.update();
+assert.ok(camera.snapshot().zoom > .98, `R10/R14 should fill the usable map height; actual zoom=${camera.snapshot().zoom}`);
+for (const point of screenshotPoints) {
+  const projected = camera.project(point);
+  assert.ok(projected.x >= GROUP_FRAME_RECT.x-.001 && projected.x <= GROUP_FRAME_RECT.x+GROUP_FRAME_RECT.width+.001);
+  assert.ok(projected.y >= GROUP_FRAME_RECT.y-.001 && projected.y <= GROUP_FRAME_RECT.y+GROUP_FRAME_RECT.height+.001);
+}
+assert.ok(Math.abs(camera.project(screenshotFocus).x-(GROUP_FRAME_RECT.x+GROUP_FRAME_RECT.width/2))<.001,
+  'R10 remains horizontally centered while its neighbour fills the frame');
 
 const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);

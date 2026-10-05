@@ -98,14 +98,18 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
       const xs = points.map(point => point.x), ys = points.map(point => point.y);
       const left = Math.min(...xs), right = Math.max(...xs);
       const top = Math.min(...ys), bottom = Math.max(...ys);
-      // Fit both sides of the group around the selected settlement, even when
-      // it sits near an edge. Large groups may need less than manual minimum zoom.
+      // Keep the settlement horizontally centered. Fit the actual vertical span
+      // rather than reserving an equally large empty margin above and below it.
       const width = 2 * Math.max(Math.abs(left - point.x), Math.abs(right - point.x));
-      const height = 2 * Math.max(Math.abs(top - point.y), Math.abs(bottom - point.y));
+      const height = bottom - top;
       const targetZoom = Math.min(2.5, bounds.width / Math.max(1, width), bounds.height / Math.max(1, height));
+      const centeredY = bounds.y + bounds.height / 2 - point.y * targetZoom;
+      // Stay as close to vertical center as possible while keeping every edge visible.
+      const targetY = Math.max(bounds.y - top * targetZoom,
+        Math.min(bounds.y + bounds.height - bottom * targetZoom, centeredY));
       focus.start({x,y,zoom}, {
         x: bounds.x + bounds.width / 2 - point.x * targetZoom,
-        y: bounds.y + bounds.height / 2 - point.y * targetZoom,
+        y: targetY,
         zoom: targetZoom,
       });
     },

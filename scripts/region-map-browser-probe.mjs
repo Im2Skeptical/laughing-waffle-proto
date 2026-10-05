@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
-import { createAuthoredMapLabDraft } from '../src/model/map-lab-draft.js';
+import { createAuthoredMapLabDraft, updateMapLabRegion } from '../src/model/map-lab-draft.js';
 import { createAuthoredGameSettingsDraft, createAuthoredGamepiecesDraft } from '../src/model/game-config.js';
 import { createAuthoredLifeMapLabDraft } from '../src/model/life-map-lab-draft.js';
 import { getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
@@ -15,6 +15,16 @@ const profile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthoredGam
 // Camera/inspection checks need their settlement target to survive the reveal.
 profile.gameSettings.values.primordialBasePressure=0;
 profile.gameSettings.values.primordialGrowthFactor=1;
+// Reproduce R10 with only the tall R14 neighbour influencing camera framing.
+profile.mapLab.connections=profile.mapLab.connections.filter(edge =>
+  ![edge.regionAId,edge.regionBId].includes('east-steppe')
+  || [edge.regionAId,edge.regionBId].includes('obsidian-ridge'));
+const eastDraft=updateMapLabRegion(profile.mapLab,'east-steppe',{detailedSettlementEnabled:true,controller:'player'});
+assert.equal(eastDraft.ok,true,'R10 camera fixture is a valid detailed settlement');
+profile.mapLab=eastDraft.draft;
+const ridgeDraft=updateMapLabRegion(profile.mapLab,'obsidian-ridge',{detailedSettlementEnabled:true,controller:'player'});
+assert.equal(ridgeDraft.ok,true,'R14 camera fixture is a valid allied settlement');
+profile.mapLab=ridgeDraft.draft;
 const cedar=profile.mapLab.regions.find(region=>region.id==='cedar-woods');
 cedar.structureCapacity=5;
 cedar.randomizeStructureCapacity=false;
@@ -52,8 +62,9 @@ async function assertGroupFramed(id) {
   const map=await snap(), bounds=map.layout.groupFrame;
   assert.equal(map.selected,id);
   const selected=await regionPoint(id);
-  assert.ok(Math.abs(selected.x-(bounds.x+bounds.width/2))<.01 && Math.abs(selected.y-(bounds.y+bounds.height/2))<.01,
-    'selected settlement stays centered while zoom frames its group');
+  assert.ok(Math.abs(selected.x-(bounds.x+bounds.width/2))<.01
+    && selected.y>=bounds.y && selected.y<=bounds.y+bounds.height,
+    'selected settlement stays horizontally centered and visible while zoom frames its group');
   for(const regionId of map.relationships.groupRegionIds) {
     const p=await regionPoint(regionId);
     assert.ok(p.x>=bounds.x && p.x<=bounds.x+bounds.width && p.y>=bounds.y && p.y<=bounds.y+bounds.height,`${regionId} is visible in the default group framing`);
@@ -172,6 +183,13 @@ try {
   assert.equal((await snap()).detail,false,'close returns to the full map');
   assert.equal((await snap()).relationships,null,'dismissal clears the group highlights');
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'closing restores the overview framing');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
+  await assertGroupFramed('east-steppe');
+  assert.deepEqual((await snap()).relationships.groupRegionIds,['east-steppe','obsidian-ridge']);
+  assert.ok((await snap()).camera.zoom>.98,'R10/R14 use the available height instead of a symmetric empty margin');
+  await capture('desktop-r10-r14');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
+  await waitDismissed();
   const wheel=await point({x:1200,y:450});
   await page.mouse.move(wheel.x,wheel.y);await page.mouse.wheel(0,-300);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.camera.zoom>1);
@@ -184,6 +202,10 @@ try {
   assert.equal((await snap()).detail,true,'touch selects');
   await assertGroupFramed('cedar-woods');
   await capture('mobile-selected');
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
+  await assertGroupFramed('east-steppe');
+  assert.ok((await snap()).camera.zoom>.98,'phone framing also fills the available height for R10/R14');
+  await capture('mobile-r10-r14');
   await click({x:2370,y:116},true);
   await waitDismissed();
   const cdp=await page.context().newCDPSession(page);
