@@ -23,21 +23,29 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
     preparation = "idle";
   }
 
-  function prepare() {
+  function prepare({ onProgress } = {}) {
     const key=getPreparationKey();
-    if (job && job.key===key) return job.promise;
+    if (job && job.key===key) {
+      if (onProgress) { job.onProgress = onProgress; onProgress(job.progress); }
+      return job.promise;
+    }
     if (job) cancel();
-    const current = { timer: null, worker: null, key };
+    const current = { timer: null, worker: null, key, onProgress,
+      progress: { stage: 'world', label: 'Creating your realm' } };
+    function report(progress) { current.progress = progress; current.onProgress?.(progress); }
     current.promise = new Promise(resolve => { current.resolve = resolve; });
     job = current;
     preparation = "preparing";
     coverageSec = 0;
+    report(current.progress);
     // Let the menu paint before constructing the world and priming the worker.
     current.timer = setTimeout(() => {
       try {
         const state = createState();
         const timeline = createEmptyTimelineFromBase(state);
         const cache = createCache();
+        report({ stage: 'forecast', label: 'Simulating your opening future',
+          detail: 'Starting the forecast worker…', completed: 0 });
         const worker = createWorkerService();
         current.worker = worker;
         let lastCoverage = 0;
@@ -53,6 +61,9 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
             if (!result.ok) throw new Error(result.reason);
             const coverage = result.coverageEndSec;
             coverageSec = coverage;
+            report({ stage: 'forecast', label: 'Simulating your opening future',
+              detail: `Forecast reached game second ${coverage}${result.reason?.startsWith('localFallback') ? ' · running on this device' : ''}`,
+              completed: coverage });
             if (coverage > lastCoverage) { lastCoverage = coverage; lastProgress = performance.now(); }
             const summary = cache.getSummary(coverage);
             if (summary?.runComplete) {
@@ -61,6 +72,8 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
               if (!terminal?.runStatus?.complete) throw new Error("missingTerminalPreview");
               worker.dispose();
               preparation = "ready";
+              report({ stage: 'forecast', label: 'Opening future ready',
+                detail: `Prepared through game second ${end}`, completed: end, total: end });
               current.resolve({ ok: true, state, lossSec: end,
                 forecast: cache.exportForecastChunk(end) });
               return;
@@ -71,7 +84,7 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
             current.timer = setTimeout(step, 32);
           } catch (error) { fail(error); }
         }
-        step();
+        current.timer = setTimeout(step, 0);
       } catch (error) { fail(error); }
       function fail(error) {
         if (job !== current) return;

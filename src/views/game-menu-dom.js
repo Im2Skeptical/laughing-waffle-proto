@@ -1,6 +1,7 @@
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
+import { createGameLoadingDom } from './game-loading-dom.js';
 
 export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
@@ -54,6 +55,8 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
   let loadingSlot = null;
   let loadingAction = null;
   let loadingFailed = false;
+  let loadingStarted = false;
+  const loading = createGameLoadingDom();
   let renderedSlotPhase = null;
   let renderedCanReplace = null;
   let renderedSavePhase = null;
@@ -87,7 +90,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
     entering = true;
     const version = ++entryVersion;
     try {
-      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; render(); }
+      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; loadingStarted = false; loading.reset(); render(); }
       await requestGameDisplayMode({ forceFullscreen: event?.pointerType === 'touch' });
       // Fullscreen/orientation steal window focus on phones; visibility is the
       // signal that the player actually left during the request.
@@ -105,6 +108,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
       // entry work. A task after the frame gives the browser a paint opportunity.
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
       if (version !== entryVersion || document.hidden) return;
+      loadingStarted = true;
       const result = await action(() => version === entryVersion && !document.hidden && !portrait.matches);
       if (version !== entryVersion) return;
       if (result.ok) {
@@ -154,17 +158,9 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
       const heading = document.createElement("h2");
       heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Preparing your chronicle…";
       content.append(heading);
-      if (!loadingFailed) {
-        const progress = document.createElement("div");
-        progress.className = "game-loading-progress";
-        progress.setAttribute("role", "progressbar");
-        progress.setAttribute("aria-label", "Preparing your chronicle");
-        progress.dataset.testid = "game-loading-progress";
-        const pulse = document.createElement("span");
-        pulse.className = "game-loading-pulse";
-        progress.append(pulse);
-        content.append(progress);
-      } else {
+      loading.update(loadingStarted ? session.getLoadingStatus?.() : null, loadingFailed);
+      content.append(loading.element);
+      if (loadingFailed) {
         content.append(button("Retry", event => {
           if (session.canResume() && session.getActiveSlot() === loadingSlot && session.getSaveStatus().phase === 'failed') {
             void enter(async () => { const result = await session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; }, null, event);
@@ -309,6 +305,9 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
   menuButton.addEventListener("click", returnToMenu);
   document.querySelector('[data-testid="utility-controls"]').prepend(menuButton, recovery.statusButton);
   document.body.append(panel, recovery.banner, importInput);
+  setInterval(() => {
+    if (!panel.hidden && loadingSlot !== null) loading.update(loadingStarted ? session.getLoadingStatus?.() : null, loadingFailed);
+  }, 250);
   show();
   void session.refreshSlots();
   return {

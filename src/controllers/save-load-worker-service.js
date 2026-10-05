@@ -5,6 +5,7 @@ const WORKER_URL = typeof __SAVE_LOAD_WORKER_URL__ === 'string'
 // A single entry owns this worker. Back/visibility cancellation terminates
 // replay without installing a partial state in the live runner.
 export function inspectSaveInWorker(text, { isCurrent = () => true,
+  onProgress = () => {},
   createWorker = () => typeof Worker === 'function' ? new Worker(WORKER_URL, { type: 'module' }) : null,
 } = {}) {
   if (!isCurrent()) return Promise.resolve({ ok: false, reason: 'cancelled' });
@@ -28,7 +29,15 @@ export function inspectSaveInWorker(text, { isCurrent = () => true,
       timeout = setTimeout(() => finish({ ok: false, reason: 'loadTimeout' }), 30000);
     };
     worker.onmessage = ({ data }) => {
-      if (data?.kind === 'historyProgress') { resetTimeout(); return; }
+      if (settled) return;
+      if (data?.kind === 'historyProgress' || data?.kind === 'loadProgress') {
+        if (isCurrent()) onProgress(data.kind === 'historyProgress'
+          ? { stage: 'history', label: 'Preparing historical graphs',
+            detail: `Game second ${data.coverageSec} of ${data.endSec}`,
+            completed: data.coverageSec, total: data.endSec }
+          : data.progress);
+        resetTimeout(); return;
+      }
       finish(data);
     };
     // Unsupported module workers retain the ordinary save inspector.

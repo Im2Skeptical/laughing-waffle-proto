@@ -481,10 +481,13 @@ export function createSimRunner({
     });
   }
 
-  async function loadFromSlot(slot, { isCurrent = () => true } = {}) {
-    const res = await inspectSaveSlot(slot, { background: true, isCurrent });
+  async function loadFromSlot(slot, { isCurrent = () => true, onProgress } = {}) {
+    const res = await inspectSaveSlot(slot, { background: true, isCurrent, onProgress });
     if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     if (!res.ok) return res;
+    onProgress?.({ stage: 'install', label: 'Restoring your saved chronicle' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     const { meta, nextTimeline } = res;
     activeSetupId = meta.setupId;
     dragPreviewState = null;

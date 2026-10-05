@@ -15,8 +15,11 @@ const whole = createProjectionCache(), sliced = createProjectionCache();
 assert.equal(whole.mergeForecastChunk(timeline, { ...forecast, historyEndSec: 0,
   timelineToken: whole.getTimelineToken(timeline) }).ok, true);
 let yields = 0;
+const progress = [];
 assert.equal((await mergePreparedForecast({ cache: sliced, timeline, forecast, sliceSec: 7,
-  yieldTask: async () => { yields++; } })).ok, true);
+  onProgress: entry => progress.push(entry), yieldTask: async () => { yields++; } })).ok, true);
+assert.equal(progress.at(-1).completed, forecast.endSec);
+assert.equal(progress.at(-1).total, forecast.endSec);
 assert.ok(yields > 1, 'the actual forecast handoff yields between bounded slices');
 assert.deepEqual(sliced.exportForecastChunk(), whole.exportForecastChunk(),
   'all seconds, terminal state, anchors and RNG match the synchronous handoff');

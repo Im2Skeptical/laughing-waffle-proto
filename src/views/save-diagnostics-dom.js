@@ -13,7 +13,7 @@ export function createSaveDiagnosticsDom({ getReport }) {
   element.className = 'save-diagnostics';
   const heading = document.createElement('h2'); heading.textContent = 'Save diagnostics';
   const note = document.createElement('p');
-  note.textContent = 'This report contains save errors, sizes, recent save and resolution timings, background forecast status, and browser details. It contains no game state or stored values. Save string sizes are estimates. Browser usage and quota estimates cover the whole origin, not just game saves.';
+  note.textContent = 'This report contains save errors, sizes, loading stages and timings, recent save and resolution timings, background forecast status, and browser details. It contains no game state or stored values. Save string sizes are estimates. Browser usage and quota estimates cover the whole origin, not just game saves.';
   const output = document.createElement('textarea'); output.readOnly = true;
   output.setAttribute('aria-label', 'Save diagnostic report'); output.dataset.testid = 'save-diagnostic-report';
   const actions = document.createElement('div'); actions.className = 'game-save-actions';

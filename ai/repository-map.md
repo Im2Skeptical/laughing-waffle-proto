@@ -16,6 +16,9 @@ and its direct dependencies.
   that folder. Slot read/write/load methods are asynchronous; listings use small metadata records.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
   `src/controllers/game-session-controller.js`
+- Loading status/timing view: `src/views/game-loading-dom.js`; runtime-only
+  stage timings and failure reasons: `src/controllers/loading-diagnostics.js`.
+  The latest entry is also included in the save diagnostic report.
 - Continue save parsing/validation/replay worker: `src/controllers/save-load-worker.js`
   and `src/controllers/save-load-worker-service.js`. Uses the authoritative save
   inspector; cancelled entry terminates worker replay before runner installation.

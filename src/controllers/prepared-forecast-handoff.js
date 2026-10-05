@@ -2,6 +2,7 @@
 // All summaries and independent state anchors retain their existing format.
 export async function mergePreparedForecast({ cache, timeline, forecast,
   isCurrent = () => true, sliceSec = 64,
+  onProgress = () => {},
   yieldTask = () => new Promise(resolve => setTimeout(resolve, 0)),
 }) {
   const states = [...forecast.stateDataBySecond].sort((a, b) => a[0] - b[0]);
@@ -25,6 +26,9 @@ export async function mergePreparedForecast({ cache, timeline, forecast,
       lastStateData: endSec === forecast.endSec ? forecast.lastStateData : null,
     });
     if (!result.ok) return result;
+    onProgress({ stage: 'handoff', label: 'Preparing forecast graphs',
+      detail: `Game second ${endSec} of ${forecast.endSec}`,
+      completed: endSec, total: forecast.endSec });
     baseSec = endSec;
     if (baseSec < forecast.endSec) await yieldTask();
   } while (baseSec < forecast.endSec);

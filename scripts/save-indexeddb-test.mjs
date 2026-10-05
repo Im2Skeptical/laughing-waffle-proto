@@ -88,7 +88,9 @@ try {
     assert.equal((await runner.loadFromSlot(1, { isCurrent: () => false })).reason, 'cancelled');
     assert.equal(JSON.stringify(runner.getState().rng), beforeLoad, 'cancelled load cannot replace the live run');
 
+    let announceSave;
     const session = createGameSessionController({ runner,
+      onSaveStatusChange: () => { if (session.getSaveStatus().phase === 'saving') announceSave?.(); },
       opening: { prepare: async () => ({ ok: true, state: createNewGameState(735) }), reset() {} } });
     assert.equal((await session.newGame(3)).ok, true);
     const pending = session.save();
@@ -113,8 +115,9 @@ try {
     assert.equal(session.getSaveStatus().phase, 'idle', 'completion from an old run cannot mark a disposable run Saved');
     assert.equal(session.getActiveSlot(), null);
     let entryCurrent = true;
+    const saveStarted = new Promise(resolve => { announceSave = resolve; });
     const cancelledCreation = session.newGame(2, { isCurrent: () => entryCurrent });
-    await Promise.resolve();
+    await saveStarted;
     assert.equal(session.getSaveStatus().phase, 'saving');
     entryCurrent = false;
     assert.equal((await cancelledCreation).reason, 'cancelled');

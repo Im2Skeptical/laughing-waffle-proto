@@ -26,7 +26,14 @@ async function installSaveProbe(target) {
         const probe = globalThis.__saveLoadFrames = { frames: 0, completed: false };
         const frame = () => { if (!probe.completed) { probe.frames++; requestAnimationFrame(frame); } };
         requestAnimationFrame(frame);
-        this.addEventListener('message', () => { probe.completed = true; });
+        this.addEventListener('message', ({ data }) => {
+          if (!['loadProgress', 'historyProgress'].includes(data?.kind)) probe.completed = true;
+        });
+        this.addEventListener('message', event => {
+          if (!globalThis.__holdSaveLoadMessages) return;
+          event.stopImmediatePropagation();
+          (globalThis.__heldSaveLoadMessages ??= []).push({ worker: this, data: event.data });
+        });
       }
     };
     globalThis.__originalSavePut = IDBObjectStore.prototype.put;
@@ -49,6 +56,43 @@ async function installSaveProbe(target) {
     };
   });
 }
+async function checkLoadingDetails(page) {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.evaluate(() => { globalThis.__holdSaveLoadMessages = true; });
+  await page.getByTestId('game-continue').click();
+  await page.waitForFunction(() => globalThis.__heldSaveLoadMessages?.some(({ data }) => data?.ok === true));
+  const loadingDetails = page.getByTestId('game-loading-details');
+  await page.waitForFunction(() => document.querySelector('.game-loading-stage')?.textContent.includes('replaying history'));
+  await page.getByTestId('game-loading-back').focus();
+  const beforeTiming = await loadingDetails.textContent();
+  await delay(500);
+  assert.notEqual(await loadingDetails.textContent(), beforeTiming, 'loading timers keep updating while the worker is pending');
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.testid), 'game-loading-back',
+    'loading updates preserve button focus');
+  await loadingDetails.locator('summary').click();
+  await delay(300);
+  assert.equal(await loadingDetails.locator('details').getAttribute('open'), '', 'timing updates preserve expanded details');
+  const mobileBounds = await loadingDetails.boundingBox();
+  assert.ok(mobileBounds.x >= 0 && mobileBounds.x + mobileBounds.width <= 844, 'loading details fit phone landscape');
+  await page.screenshot({ path: 'artifacts/game-loading-phone.png' });
+  await page.evaluate(() => {
+    const messages = globalThis.__heldSaveLoadMessages.splice(0);
+    for (const { worker, data } of messages) {
+      worker.onmessage({ data: data?.ok === true ? { ok: false, reason: 'fixtureLoadFailure' } : data });
+    }
+    globalThis.__holdSaveLoadMessages = false;
+  });
+  await page.getByTestId('game-loading-retry').waitFor();
+  assert.match(await loadingDetails.textContent(), /Stopped during: Preparing historical graphs.*fixtureLoadFailure/);
+  const failedTiming = await loadingDetails.textContent();
+  await delay(350);
+  assert.equal(await loadingDetails.textContent(), failedTiming, 'failed loading timings remain frozen');
+  await page.screenshot({ path: 'artifacts/game-loading-failure-phone.png' });
+  await page.getByTestId('game-loading-retry').click();
+  await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 try {
   for (let i = 0; i < 100; i++) {
     try { if ((await fetch(url)).ok) break; } catch {}
@@ -61,6 +105,22 @@ try {
   page.setDefaultTimeout(120000);
   page.on('pageerror', (error) => errors.push(error.message));
   await installSaveProbe(page);
+  if (process.argv.includes('--loading-only')) {
+    const { createNewGameState } = await import('../src/model/new-game.js');
+    const { createTimelineFromInitialState } = await import('../src/model/timeline/index.js');
+    const { exportSave } = await import('../src/controllers/sim-runner/save-slots.js');
+    const state = createNewGameState(735), timeline = createTimelineFromInitialState(state);
+    timeline.cursorSec = 20; timeline.historyEndSec = 20;
+    const fixture = exportSave({ state, timeline, setupId: 'loading-probe' }).text;
+    await page.addInitScript(text => localStorage.setItem('civsurvivor.save.slot1', text), fixture);
+    await page.goto(url);
+    await page.getByTestId('game-continue').waitFor();
+    await checkLoadingDetails(page);
+    assert.deepEqual(errors, []);
+    writeFileSync('artifacts/game-loading-browser-probe.json', JSON.stringify({ ok: true,
+      checks: ['live timing', 'button focus', 'expanded timing persistence', 'phone bounds', 'history failure details', 'frozen failure timings', 'retry'] }));
+    console.log('PASS phone loading details, timings, failure and retry');
+  } else {
   await page.goto(url);
   await page.getByTestId('game-new').waitFor();
   await page.waitForFunction(() => !document.querySelector('[data-testid=game-new]').disabled);
@@ -166,8 +226,7 @@ try {
   await page.waitForFunction(() => document.querySelector('[data-testid=game-save-status]').dataset.phase === 'saved'
     && !document.querySelector('[data-testid=game-new]').disabled);
   await page.reload();
-  await page.getByTestId('game-continue').click();
-  await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+  await checkLoadingDetails(page);
   assert.equal(await page.evaluate(() => globalThis.__saveLoadFrames?.completed), true,
     'built Continue uses the save-load worker');
   assert.ok(await page.evaluate(() => globalThis.__saveLoadFrames.frames > 0),
@@ -230,6 +289,8 @@ try {
   const reportLocator = page.locator('#game-menu').getByTestId('save-diagnostic-report');
   await page.waitForFunction(() => document.querySelector('#game-menu [data-testid=save-diagnostic-report]').value.startsWith('{'));
   const diagnostic = JSON.parse(await reportLocator.inputValue());
+  assert.equal(diagnostic.loading.phase, 'ready');
+  assert.ok(diagnostic.loading.stages.some(stage => stage.stage === 'scene'));
   assert.equal(diagnostic.lastFailure.category, 'quota');
   assert.equal(diagnostic.lastFailure.error.name, 'QuotaExceededError');
   assert.ok(diagnostic.lastFailure.payloadUtf8Bytes > 0);
@@ -483,6 +544,7 @@ try {
   assert.deepEqual(errors, []);
   writeFileSync(artifact, JSON.stringify({ ok: true, checks: ['three IndexedDB slots', 'seed preservation', 'reload continue', 'overwrite/cancel', 'transaction failure', 'live export during quota failure', 'diagnostic download', 'invalid import preservation', 'validated import and replacement confirmation', 'save with full localStorage', 'save beyond localStorage quota', 'three-slot transfer with unrelated data preserved', 'blocked storage startup and retry', 'unveil following', 'desktop windowed entry and focus continuity','touch fullscreen entry', 'portrait menu fallback', 'focus pause and memory resume', 'touch entry despite hung lock and lost focus', 'prepared settlement scene and uploaded piece atlases', 'saved phone Continue fullscreen after reload and with a mouse accessory'], screenshots: ['game-menu-desktop.png', 'game-menu-slots.png', 'game-menu-portrait.png','save-recovery-diagnostics.png','save-recovery-phone.png'] }));
   console.log('[probe:game-menu] OK');
+  }
 } catch (error) {
   const menuStatus = page ? await page.evaluate(() => ({
     menuVisible: !document.querySelector('#game-menu')?.hidden,

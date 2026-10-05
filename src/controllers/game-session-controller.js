@@ -1,4 +1,5 @@
 import { createNewGameState } from "../model/new-game.js";
+import { createLoadingDiagnostics } from './loading-diagnostics.js';
 import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
@@ -17,6 +18,19 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
   let pendingSave = null;
   let replacing = false;
   let runVersion = 0;
+  const loadingDiagnostics = createLoadingDiagnostics();
+  async function trackEntry(operation, isCurrent, action) {
+    const loading = loadingDiagnostics.begin(operation);
+    const onProgress = progress => { if (isCurrent()) loading.report(progress); };
+    try {
+      const result = await action(onProgress);
+      loading.finish(isCurrent() ? result : { ok: false, reason: 'cancelled' });
+      return result;
+    } catch (error) {
+      loading.finish({ ok: false, reason: String(error.message ?? error).slice(0, 500) });
+      throw error;
+    }
+  }
   let slotStatus = { phase: 'loading', error: null };
   let slotSummaries = [1, 2, 3].map(slot => ({ slot, available: false, empty: false, meta: null }));
   const notify = () => onSaveStatusChange?.();
@@ -83,23 +97,26 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     onEnter?.(prepared);
     return { ok: true };
   }
-  async function prepareAndEnter(slot, prepared, isCurrent) {
+  async function prepareAndEnter(slot, prepared, isCurrent, onProgress) {
     // Initialise this run behind the menu; its ticker remains suspended until
     // presentation assets and the retained settlement scene are ready.
+    onProgress?.({ stage: 'scene', label: 'Building your game scene' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     enter(slot, prepared, { deferResume: true });
     const version = runVersion;
-    await prepareEntry?.(prepared, { isCurrent: () => isCurrent() && version === runVersion });
+    await prepareEntry?.(prepared, { isCurrent: () => isCurrent() && version === runVersion, onProgress });
     if (!isCurrent() || version !== runVersion) return { ok: false, reason: 'cancelled' };
     inMenu = false;
     notify();
     return { ok: true };
   }
-  async function continueGame(slot, { isCurrent = () => true } = {}) {
+  async function loadGame(slot, { isCurrent = () => true } = {}, onProgress) {
     if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
     replacing = true; notify();
     const version = runVersion;
     let result;
-    try { result = await runner.loadFromSlot(slot, { isCurrent: () => isCurrent() && version === runVersion }); }
+    try { result = await runner.loadFromSlot(slot, { isCurrent: () => isCurrent() && version === runVersion, onProgress }); }
     finally { replacing = false; notify(); }
     if (!result.ok) { if (result.reason !== 'cancelled') onError?.('This save could not be loaded.'); return result; }
     opening?.reset();
@@ -108,7 +125,10 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     onSaved?.();
     const prepared = result.historySummaryBySecond
       ? { historySummaryBySecond: result.historySummaryBySecond } : null;
-    return prepareEntry ? prepareAndEnter(slot, prepared, isCurrent) : enter(slot, prepared);
+    return prepareEntry ? prepareAndEnter(slot, prepared, isCurrent, onProgress) : enter(slot, prepared);
+  }
+  function continueGame(slot, { isCurrent = () => true } = {}) {
+    return trackEntry('continue', isCurrent, onProgress => loadGame(slot, { isCurrent }, onProgress));
   }
   return {
     isInMenu: () => inMenu,
@@ -120,6 +140,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       recentSaveAttempts: recentSaveAttempts.map(attempt => ({ ...attempt })),
       nodeResolutions: getPresentationDiagnostics(),
       forecastWorker: getForecastDiagnostics(),
+      loading: loadingDiagnostics.snapshot(),
       storage: await inspectSaveStorageUsage() }),
     refreshSlots,
     getSlotStatus: () => slotStatus,
@@ -140,25 +161,31 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       return { ok: true, meta: result.meta };
     },
     cancelImport() { preparedImport = null; },
-    async importGame(slot, { isCurrent = () => true } = {}) {
-      if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
-      if (preparedImport === null) return { ok: false, reason: 'noImport' };
-      replacing = true; notify();
-      let result;
-      try { result = await record(await importSaveToSlot(slot, preparedImport), slot, 'import'); }
-      finally { replacing = false; notify(); }
-      if (!result.ok) {
-        onError?.(`Import failed. ${saveFailureExplanation(result.diagnostics?.category)} Your file and existing saves are unchanged. Choose the slot again to retry.`);
-        return result;
-      }
-      preparedImport = null;
-      if (!isCurrent()) return { ok: false, reason: 'cancelled' };
-      return continueGame(slot, { isCurrent });
+    importGame(slot, { isCurrent = () => true } = {}) {
+      return trackEntry('import', isCurrent, async onProgress => {
+        if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
+        if (preparedImport === null) return { ok: false, reason: 'noImport' };
+        onProgress({ stage: 'import', label: 'Checking and storing your imported save', detail: `Browser save slot ${slot}` });
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (!isCurrent()) return { ok: false, reason: 'cancelled' };
+        replacing = true; notify();
+        let result;
+        try { result = await record(await importSaveToSlot(slot, preparedImport), slot, 'import'); }
+        finally { replacing = false; notify(); }
+        if (!result.ok) {
+          onError?.(`Import failed. ${saveFailureExplanation(result.diagnostics?.category)} Your file and existing saves are unchanged. Choose the slot again to retry.`);
+          return result;
+        }
+        preparedImport = null;
+        if (!isCurrent()) return { ok: false, reason: 'cancelled' };
+        return loadGame(slot, { isCurrent }, onProgress);
+      });
     },
     slots: () => slotSummaries,
     prepareNewGame: () => opening?.prepare(),
     cancelPreparation: () => opening?.cancel(),
     getPreparationStatus: () => opening?.getSnapshot(),
+    getLoadingStatus: () => loadingDiagnostics.snapshot(),
     enterDisposableState(state) {
       opening?.reset();
       const result = runner.resetToState(state, 'developmentLab');
@@ -167,34 +194,40 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       onSaved?.();
       return enter(null);
     },
-    async newGame(slot, { isCurrent = () => true } = {}) {
-      if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
-      const prepared = opening ? await opening.prepare() : null;
-      if (!isCurrent()) return { ok: false, reason: "cancelled" };
-      if (prepared && !prepared.ok) {
-        onError?.("Could not prepare your chronicle. Retry or return to the menu.");
-        return prepared;
-      }
-      if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
-      // Entropy only chooses the seed; every world roll uses serialized state.rng.
-      const initialState = prepared?.state ?? createState();
-      activeSlot = null;
-      hasLiveGame = false;
-      const result = runner.resetToState(initialState, "twoRegionStarter01");
-      if (!result.ok) return result;
-      phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
-      const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent) : enter(slot, prepared);
-      if (!entry.ok) return entry;
-      const saved = await save();
-      if (!isCurrent()) {
-        inMenu = true; notify();
-        return { ok: false, reason: 'cancelled' };
-      }
-      if (!saved.ok) {
-        inMenu = true; notify();
-        return saved;
-      }
-      return { ok: true };
+    newGame(slot, { isCurrent = () => true } = {}) {
+      return trackEntry('newGame', isCurrent, async onProgress => {
+        if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
+        const prepared = opening ? await opening.prepare({ onProgress }) : null;
+        if (!isCurrent()) return { ok: false, reason: "cancelled" };
+        if (prepared && !prepared.ok) {
+          onError?.("Could not prepare your chronicle. Retry or return to the menu.");
+          return prepared;
+        }
+        if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
+        // Entropy only chooses the seed; every world roll uses serialized state.rng.
+        const initialState = prepared?.state ?? createState();
+        onProgress({ stage: 'install', label: 'Starting your new chronicle' });
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (!isCurrent()) return { ok: false, reason: 'cancelled' };
+        activeSlot = null;
+        hasLiveGame = false;
+        const result = runner.resetToState(initialState, "twoRegionStarter01");
+        if (!result.ok) return result;
+        phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
+        const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent, onProgress) : enter(slot, prepared);
+        if (!entry.ok) return entry;
+        onProgress({ stage: 'save', label: 'Saving your new chronicle', detail: `Browser save slot ${slot}` });
+        const saved = await save();
+        if (!isCurrent()) {
+          inMenu = true; notify();
+          return { ok: false, reason: 'cancelled' };
+        }
+        if (!saved.ok) {
+          inMenu = true; notify();
+          return saved;
+        }
+        return { ok: true };
+      });
     },
     continueGame,
     openMenu() {

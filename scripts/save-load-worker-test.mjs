@@ -48,13 +48,17 @@ timeline.historyEndSec = 260;
 const text = exportSave({ state, timeline, setupId: 'twoRegionStarter01' }).text;
 const expected = inspectSaveText(text);
 assert.equal(expected.ok, true);
-const actual = await inspectSaveInWorker(text, { createWorker });
+const loadingProgress = [];
+const actual = await inspectSaveInWorker(text, { createWorker, onProgress: progress => loadingProgress.push(progress) });
 assert.equal(actual.ok, true);
 assert.deepEqual(actual.meta, expected.meta);
 assert.ok(isDeepStrictEqual(actual.nextTimeline, expected.nextTimeline),
   'history preparation must not mutate the authoritative loaded timeline');
 assert.equal(actual.historySummaryBySecond.length, 261, 'prepare every historical second before drawing');
 assert.deepEqual(progressEvents, [128, 256, 260], 'history progress spans multiple yielding slices');
+assert.deepEqual([...new Set(loadingProgress.map(progress => progress.stage))], ['replay', 'history']);
+assert.equal(loadingProgress.at(-1).completed, 260);
+assert.equal(loadingProgress.at(-1).total, 260, 'loading UI gets the real historical target');
 for (const [sec, summary] of actual.historySummaryBySecond) {
   const replay = rebuildStateAtSecond(expected.nextTimeline, sec);
   assert.ok(isDeepStrictEqual(summary, buildProjectionSummaryFromState(replay.state)),

@@ -6,6 +6,29 @@ import { createProjectionCache } from '../src/model/timegraph/projection-cache.j
 import { createNewGameState } from '../src/model/new-game.js';
 import { createEmptyTimelineFromBase, rebuildStateAtSecond } from '../src/model/timeline/index.js';
 import { serializeGameState } from '../src/model/state.js';
+import { createLoadingDiagnostics } from '../src/controllers/loading-diagnostics.js';
+
+let clock = 0;
+const loading = createLoadingDiagnostics({ now: () => clock });
+const loadingJob = loading.begin('continue');
+loadingJob.report({ stage: 'read', label: 'Read save' });
+clock = 100;
+loadingJob.report({ stage: 'history', label: 'History', completed: 0, total: 260 });
+clock = 300;
+loadingJob.report({ stage: 'history', label: 'History', completed: 128, total: 260 });
+clock = 400;
+assert.deepEqual(loading.snapshot().stages.map(stage => stage.elapsedMs), [100, 300]);
+assert.equal(loading.snapshot().stages[1].sinceProgressMs, 100);
+loadingJob.finish({ ok: false, reason: 'loadTimeout' });
+clock = 900;
+assert.equal(loading.snapshot().elapsedMs, 400, 'failed timings freeze at failure');
+assert.equal(loading.snapshot().reason, 'loadTimeout');
+const retryJob = loading.begin('newGame');
+loadingJob.report({ stage: 'stale', label: 'Abandoned job' });
+loadingJob.finish({ ok: true });
+assert.equal(loading.snapshot().stages.length, 0, 'stale progress cannot overwrite a retry');
+retryJob.finish({ ok: false, reason: 'cancelled' });
+assert.equal(loading.snapshot().phase, 'cancelled');
 
 const state = createNewGameState(123);
 for(const region of state.world.regions) if(region.controller!=="player") region.monster={defense:100,ageMoons:99};
@@ -19,10 +42,15 @@ const opening = createNewGameOpeningController({
   }),
 });
 const first = opening.prepare();
+const openingProgress = [];
+opening.prepare({ onProgress: progress => openingProgress.push(progress) });
 assert.equal(opening.prepare(), first, 'concurrent requests share one prepared world');
 const prepared = await first;
 assert.equal(prepared.ok, true, 'local worker fallback prepares a terminal forecast');
 assert.equal(constructions, 1);
+assert.ok(openingProgress.some(progress => progress.stage === 'world'));
+assert.equal(openingProgress.at(-1).completed, prepared.lossSec);
+assert.equal(openingProgress.at(-1).total, prepared.lossSec);
 let preparationKey='live',keyedConstructions=0;
 const keyed=createNewGameOpeningController({
   getPreparationKey:()=>preparationKey,createState:()=>{keyedConstructions++;return state;},
@@ -84,6 +112,8 @@ for (const entryKind of ['newGame', 'continueGame']) {
   let preparationStarted = false;
   let saves = 0;
   const events = [];
+  let announcePresentation;
+  let presentationStarted = new Promise(resolve => { announcePresentation = resolve; });
   const readySession = createGameSessionController({
     runner: {
       resetToState: () => ({ ok: true }),
@@ -97,27 +127,34 @@ for (const entryKind of ['newGame', 'continueGame']) {
         'presentation receives this entry’s prepared forecast');
       assert.equal(isCurrent(), true, 'presentation can guard asynchronous handoff against cancellation');
       preparationStarted = true;
+      announcePresentation();
       events.push('upload');
       return new Promise(resolve => { releasePresentation = resolve; });
     },
   });
   const pendingEntry = readySession[entryKind](1);
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await presentationStarted;
   assert.equal(preparationStarted, true, `${entryKind} prepares its settlement before entry`);
   assert.deepEqual(events, ['setup', 'upload'], 'prepare the actual run after presentation setup');
   assert.equal(readySession.isInMenu(), true, `${entryKind} keeps gameplay suspended during uploads`);
   assert.equal(saves, 0, 'preparing presentation does not write a save');
+  assert.equal(readySession.getLoadingStatus().stages.at(-1).stage, 'scene');
   releasePresentation();
   assert.equal((await pendingEntry).ok, true);
   assert.equal(readySession.isInMenu(), false);
+  assert.equal(readySession.getLoadingStatus().phase, 'ready');
+  assert.deepEqual((await readySession.getSaveDiagnostics()).loading, readySession.getLoadingStatus(),
+    'diagnostic exports retain the completed loading stages and timings');
   const completedSaves = saves;
   let current = true;
+  presentationStarted = new Promise(resolve => { announcePresentation = resolve; });
   const cancelledEntry = readySession[entryKind](2, { isCurrent: () => current });
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await presentationStarted;
   current = false;
   releasePresentation();
   assert.equal((await cancelledEntry).reason, 'cancelled');
   assert.equal(readySession.isInMenu(), true, 'leaving during uploads cannot reopen gameplay');
   assert.equal(saves, completedSaves, 'cancelled presentation preparation does not overwrite a save');
+  assert.equal(readySession.getLoadingStatus().phase, 'cancelled');
 }
 console.log('[new-game-opening] OK');

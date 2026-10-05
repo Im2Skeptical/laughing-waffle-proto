@@ -190,12 +190,14 @@ export function importSaveToSlot(slot, text) {
     { operation: 'import', state: inspected.state, timeline: inspected.nextTimeline });
 }
 
-export async function inspectSaveSlot(slot, { background = false, isCurrent = () => true } = {}) {
+export async function inspectSaveSlot(slot, { background = false, isCurrent = () => true, onProgress } = {}) {
+  onProgress?.({ stage: 'read', label: 'Reading your browser save', detail: `Browser save slot ${slot}` });
   const res = await readSaveSlotText(slot);
   if (!isCurrent()) return { ok: false, reason: 'cancelled' };
   if (!res.ok) return res;
   if (background) {
-    const inspected = await inspectSaveInWorker(res.text, { isCurrent });
+    onProgress?.({ stage: 'replay', label: 'Checking your save and replaying history', detail: 'Starting the save worker…' });
+    const inspected = await inspectSaveInWorker(res.text, { isCurrent, onProgress });
     if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     if (inspected) {
       if (!inspected.ok) return inspected;
@@ -203,6 +205,9 @@ export async function inspectSaveSlot(slot, { background = false, isCurrent = ()
       return { ...inspected, state: deserializeGameState(inspected.state) };
     }
   }
+  onProgress?.({ stage: 'replay', label: 'Checking your save and replaying history', detail: 'Running on this device' });
+  if (onProgress) await new Promise(resolve => setTimeout(resolve, 0));
+  if (!isCurrent()) return { ok: false, reason: 'cancelled' };
   return inspectSaveText(res.text);
 }
 

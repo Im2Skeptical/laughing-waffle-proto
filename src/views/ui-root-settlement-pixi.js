@@ -1661,20 +1661,31 @@ const gameSession = createGameSessionController({
   createState:()=>cardReviews.createNewGame(),
   runner,
   opening,
-  prepareEntry: async (prepared, { isCurrent }) => {
+  prepareEntry: async (prepared, { isCurrent, onProgress }) => {
+    const stage = async (id, label) => {
+      if (!isCurrent()) return false;
+      onProgress?.({ stage: id, label });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      return isCurrent();
+    };
+    if (!await stage('artwork', 'Loading chronicle artwork')) return;
     await chronicleArtReady;
-    if (!isCurrent()) return;
+    if (!await stage('map', 'Uploading map artwork')) return;
     await worldMapView.prepare(app.renderer);
+    if (!await stage('settlement', 'Preparing settlement panels and artwork')) return;
     await prototypeView.prepare(app.renderer);
     if (!isCurrent()) return;
     if (prepared?.forecast) {
+      if (!await stage('handoff', 'Preparing forecast graphs')) return;
       const timeline = runner.getTimeline();
       const merged = await mergePreparedForecast({
         cache: settlementProjectionCache, timeline, forecast: prepared.forecast,
         isCurrent: () => isCurrent() && runner.getTimeline() === timeline,
+        onProgress,
       });
       if (merged.reason === 'cancelled') return;
       if (!merged.ok) throw new Error(`Prepared forecast handoff failed: ${merged.reason}`);
+      if (!await stage('graph', 'Drawing your opening chronicle')) return;
       settlementGraphController.handleInvalidate("init");
       opening.begin(prepared.lossSec);
       openingBlocker.visible = true;

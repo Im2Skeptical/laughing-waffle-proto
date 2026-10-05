@@ -87,6 +87,16 @@ canvas { image-rendering: auto; }
   background:#101917; margin:18px 0; border-radius:5px;}
 .game-loading-pulse {display:block; height:100%; width:35%; background:linear-gradient(90deg,#78633b,#e2c789,#78633b);
   animation:game-loading-sweep 1.4s ease-in-out infinite alternate; will-change:transform;}
+.game-loading-fill {display:block; height:100%; background:linear-gradient(90deg,#78633b,#e2c789);}
+.game-loading-details {min-width:0; padding:10px 12px; border:1px solid #736447; background:#101917e8;}
+#game-menu .game-loading-details p {font:13px/1.4 sans-serif; margin:4px 0; overflow-wrap:anywhere;}
+#game-menu .game-loading-details .game-loading-stage {color:#e2d0a4; font-weight:bold;}
+#game-menu .game-loading-details .game-loading-failure {color:#ffb6a1;}
+.game-loading-details details {font:12px/1.4 sans-serif; color:#b1b5a7;}
+.game-loading-details summary {cursor:pointer; padding:4px 0;}
+.game-loading-details ol {padding-left:18px; margin:4px 0;}
+.game-loading-details li {padding:2px 0; overflow-wrap:anywhere;}
+.game-loading-details .game-loading-progress {margin:8px 0; box-sizing:border-box;}
 @keyframes game-loading-sweep {from {transform:translateX(0);} to {transform:translateX(186%);}}
 @media (prefers-reduced-motion:reduce) {
   .game-loading-pulse {animation:none; transform:translateX(93%);}
