@@ -25,6 +25,10 @@ profile.mapLab=eastDraft.draft;
 const ridgeDraft=updateMapLabRegion(profile.mapLab,'obsidian-ridge',{detailedSettlementEnabled:true,controller:'player'});
 assert.equal(ridgeDraft.ok,true,'R14 camera fixture is a valid allied settlement');
 profile.mapLab=ridgeDraft.draft;
+const neutralDraft=updateMapLabRegion(profile.mapLab,'iron-hills',{detailedSettlementEnabled:true,controller:'external-a'});
+assert.equal(neutralDraft.ok,true,'neutral camera fixture is a valid settlement');
+profile.mapLab=neutralDraft.draft;
+profile.mapLab.connections.push({regionAId:'cedar-woods',regionBId:'iron-hills'});
 const cedar=profile.mapLab.regions.find(region=>region.id==='cedar-woods');
 cedar.structureCapacity=5;
 cedar.randomizeStructureCapacity=false;
@@ -136,9 +140,9 @@ try {
   assert.equal(selected.slots.visible,8);
   assert.equal(selected.slots.blocked,8-selected.slots.available);
   await capture('desktop-selected');
-  assert.deepEqual(selected.relationships.highlightedRegionIds,['west-levee'],'only adjacent regions with a direct road are highlighted');
+  assert.deepEqual(selected.relationships.highlightedRegionIds,['iron-hills','west-levee'],'adjacent regions with a direct road are highlighted');
   assert.deepEqual(selected.relationships.groupRegionIds,['cedar-woods','west-levee'],
-    'camera framing excludes the wider connected group');
+    'camera framing excludes the adjacent connected neutral and wider connected group');
   const groupCamera=selected.camera;
   await click({x:818,y:782});
   await click({x:899,y:782});

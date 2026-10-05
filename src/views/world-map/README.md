@@ -47,8 +47,9 @@ region panel; dismissal eases back to the saved overview camera while the panel
 shrinks toward the settlement over 320 ms. Its content stays visible until the
 transition ends; reopening reverses the shrink from its current pose. Opening or switching a
 region horizontally centers the selected settlement in the left map area and adjusts zoom to
-fit its own territory and only neighbours that are both adjacent and directly
-road-connected. Vertical framing stays as close to the selected settlement's
+fit its own territory and only active player settlements that are both adjacent
+and directly road-connected. Neutral settlements, empty land, and monster-occupied
+regions do not widen the frame. Vertical framing stays as close to the selected settlement's
 center as possible, shifting only enough to fit the actual territory span rather
 than reserving matching empty margins above and below. Reset returns to this framing.
 Flag double-taps remain anchored to the first screen position for 500 ms, including
@@ -79,7 +80,7 @@ style, or the weaker style when linking two highlighted neighbours. Monster
 regions retain strong red outlines and skull markers. The selected region keeps
 its cyan outline, and stronger outlines are drawn above weaker shared borders. Physical
 adjacency alone and indirect road connectivity do not qualify. Unrelated terrain
-is dimmed. The selected territory and its adjacent, directly road-connected neighbours are framed together
+is dimmed. The selected territory and its adjacent, directly road-connected player settlements are framed together
 by default, without a reach key, relationship badges, or Show group button.
 `relationships.js` intersects the viewed state's existing physical-adjacency and
 live-connection selectors. The render signature includes live connections so

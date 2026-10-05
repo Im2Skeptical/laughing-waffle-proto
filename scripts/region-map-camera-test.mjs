@@ -3,7 +3,7 @@ import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from '../src/views/world-map/relationships.js';
 import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
-import { getAdjacentRegionIds, getWorldDefinition, getRegionPolygon } from '../src/model/world-state.js';
+import { getAdjacentRegionIds, getWorldDefinition, getRegionPolygon, getRegionState } from '../src/model/world-state.js';
 import { MAP_RECT, GROUP_FRAME_RECT } from '../src/views/world-map/constants.js';
 import { getSettlementStockTags, getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
 
@@ -184,8 +184,19 @@ const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
 const reach = getMapRelationships(state, 'copper-basin', true);
 assert.deepEqual(reach.highlightedRegionIds, ['high-pass', 'east-steppe']);
-assert.deepEqual(reach.groupRegionIds, ['copper-basin', 'high-pass', 'east-steppe'],
-  'camera frames only the selection and adjacent regions with a direct road');
+assert.deepEqual(reach.groupRegionIds, ['copper-basin'],
+  'neutral and monster-occupied neighbours do not widen the camera frame');
+const ownershipState = JSON.parse(JSON.stringify(state));
+getRegionState(ownershipState, 'high-pass').controller = 'player';
+assert.deepEqual(getMapRelationships(ownershipState, 'copper-basin', true).groupRegionIds,
+  ['copper-basin', 'high-pass'], 'adjacent road-connected player settlements are framed');
+delete getRegionState(ownershipState, 'east-steppe').monster;
+assert.deepEqual(getMapRelationships(ownershipState, 'copper-basin', true).groupRegionIds,
+  ['copper-basin', 'high-pass', 'east-steppe'], 'live ownership and occupation determine framing');
+getRegionState(ownershipState, 'high-pass').detailedSettlementEnabled = false;
+ownershipState.world.sites = ownershipState.world.sites.filter(site => site.regionId !== 'high-pass');
+assert.deepEqual(getMapRelationships(ownershipState, 'copper-basin', true).groupRegionIds,
+  ['copper-basin', 'east-steppe'], 'player-owned empty land does not widen the camera frame');
 assert.ok(!reach.groupRegionIds.includes('obsidian-ridge'), 'indirect connections do not widen the camera frame');
 assert.equal(getMapRelationship(reach, 'copper-basin'), 'selected');
 assert.equal(getMapRelationship(reach, 'east-steppe'), 'connected');

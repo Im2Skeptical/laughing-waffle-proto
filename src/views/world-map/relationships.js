@@ -1,4 +1,5 @@
-import { getAdjacentRegionIds, getConnectedRegionIds } from '../../model/world-state.js';
+import { getAdjacentRegionIds, getConnectedRegionIds, getRegionState } from '../../model/world-state.js';
+import { getDetailedSettlement } from '../../model/detailed-settlements.js';
 
 export const RELATION_COLOUR = 0xc8adff;
 export const RELATION_STYLES = Object.freeze({
@@ -21,10 +22,15 @@ export function getMapRelationships(state, regionId, active) {
   if (!active) return null;
   const connected = getConnectedRegionIds(state, regionId);
   const highlightedRegionIds = getAdjacentRegionIds(state, regionId).filter(id => connected.includes(id));
+  const framedRegionIds = highlightedRegionIds.filter(id => {
+    const region = getRegionState(state, id);
+    return region?.controller === 'player' && region.detailedSettlementEnabled === true
+      && !region.monster && getDetailedSettlement(state, id) != null;
+  });
   return {
     selectedRegionId: regionId,
     highlightedRegionIds,
-    groupRegionIds: [regionId, ...highlightedRegionIds],
+    groupRegionIds: [regionId, ...framedRegionIds],
   };
 }
 
