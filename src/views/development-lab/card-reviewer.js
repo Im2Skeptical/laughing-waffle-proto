@@ -1,10 +1,11 @@
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
-import { reviewFields, reviewKey, readReviewValue } from '../../model/dev-lab/card-review.js';
+import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers } from '../../model/dev-lab/card-review.js';
 import { el, button, field, input, select, section } from './elements.js';
 
 const groups = {
   stock:{label:'Stock capacity & traits', match:path => ['stockCapacity','stockTraits'].includes(path[0])},
+  schedule:{label:'Schedule triggers', match:path=>path[0]==='activation'},
   workers:{label:'Workers', match:path => String(path[0]).startsWith('worker')},
   yields:{label:'Production', match:path => path[0]==='effects' || path[0]==='outputs'},
   inputs:{label:'Consume & require', match:path => ['consume','require'].includes(path[0])},
@@ -14,9 +15,10 @@ const groups = {
 const labelFor = (def, path) => {
   const names={stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
   const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
-  if(path[0]==='effects')return `${effects[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':` · ${path.slice(2).join(' · ')}`}`;
+  if(path[0]==='effects')return `${effects[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':path[2]==='seasonAmounts'?` · ${path[3]?path[3][0].toUpperCase()+path[3].slice(1):'seasonal amounts'}`:` · ${path.slice(2).join(' · ')}`}`;
   if(path[0]==='tags')return `Card tag ${Number(path[1])+1}`;
-  if(path[0]==='stockTraits')return `Stock trait ${Number(path[1])+1}`;
+  if(path[0]==='stockTraits')return path.length===1?'Stock tags':`Stock trait ${Number(path[1])+1}`;
+  if(path[0]==='activation')return 'Schedule triggers';
   if(['consume','require'].includes(path[0]))return `${path[0]} ${(def[path[0]]?.[path[1]]?.traits??[]).join(' / ')} · ${path.slice(2).join(' · ')}`;
   return names[path.at(-1)]??path.join(' · ');
 };
@@ -69,7 +71,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     draftColumn.append(draftTitle);preview.append(draftColumn);panel.append(preview);
     const surface=el('div','','review-face'), targets=el('div','','review-targets');
     const editor=el('div','','review-inline-editor');editor.hidden=true;
-    const editorTitle=el('strong'),editorFields=el('div','','review-fields');editor.append(editorTitle,editorFields,button('Done',()=>{editor.hidden=true;surface.querySelector(`[data-section="${activeGroup}"]`)?.focus();}));
+    const editorTitle=el('strong'),editorFields=el('div','','review-editor-body');editor.append(editorTitle,editorFields,button('Done',()=>{editor.hidden=true;surface.querySelector(`[data-section="${activeGroup}"]`)?.focus();}));
     let activeGroup=null, tier=quality.value, draftImage, liveImage;
     const makeFace=def=>{
       const registry=entry.kind==='practice'?'practices':'structures';
@@ -82,6 +84,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       const qualityBonus=entry.kind==='structure'?Math.max(0,tiers.indexOf(tier)-tiers.indexOf(def.minimumQuality??'bronze')):0;
       const slot={practiceId:entry.id,tier,qualityBonus,stock:0,charge:0,work:0};
       const face=getGamepieceFace(previewState,entry.kind,entry.id,tier,{slot});
+      if(def.mode==='scheduled')face.reviewSchedule=reviewScheduleTriggers(def);
       if(entry.kind==='practice')face.stockCapacity=stockCapacity(previewState,{structureSlots:[]},slot);
       return face;
     };
@@ -108,7 +111,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       destination.replaceChildren();
       for(const item of fields) {
         const label=labelFor(definition,item.path), value=readReviewValue(definition,item.path);
-        const choices=item.path[0]==='minimumQuality'?['bronze','silver','gold','diamond']:item.path.includes('seasonKeys')?['spring','summer','autumn','winter']:null;
+        const choices=item.path[0]==='minimumQuality'?['bronze','silver','gold','diamond']:item.path.some(part=>['stockTraits','traits','traitsAny'].includes(part))?REVIEW_STOCK_TRAITS:item.path.includes('seasonKeys')?REVIEW_SEASONS:null;
         const control=typeof value==='boolean'?select(label,[['true','Yes'],['false','No']],String(value)):choices?select(label,choices,value):input(label,value,typeof value==='number'?'number':'text');
         if(typeof value==='number'){control.removeAttribute('min');control.step='any';control.inputMode='decimal';}
         control.dataset.reviewPath=JSON.stringify(item.path);
@@ -123,17 +126,54 @@ export function createCardReviewerView({review, cards, getState, run}) {
         });destination.append(wrapper);
       }
     }
+    const title=value=>value[0].toUpperCase()+value.slice(1);
+    function iconTray(id,destination) {
+      const current=id==='stock'?definition.stockTraits:reviewScheduleTriggers(definition);
+      const wrap=el('div','','review-picker');
+      wrap.append(el('p',id==='stock'?`${current.length} Stock tags · tap to add or remove`:'Tap to add or remove triggers. Keep at least one.','review-picker-summary'));
+      const sets=id==='stock'?[['All Stock tags',REVIEW_STOCK_TRAITS]]:[['Moon phases',REVIEW_PHASES],['Seasons',REVIEW_SEASONS],['Other triggers',['passive','crisis']]];
+      const feedback=el('p','','review-field-error');feedback.setAttribute('role','status');
+      for(const [heading,choices] of sets) {
+        wrap.append(el('strong',heading));const tray=el('div','','review-icon-tray');
+        for(const choice of choices) {
+          const label=id==='stock'?choice:REVIEW_PHASES.includes(choice)?`${title(choice)} phase`:choice==='passive'?'While active':choice==='crisis'?'During a Crisis':title(choice);
+          const pick=button('',()=>{
+            try {
+              const values=id==='stock'?definition.stockTraits:reviewScheduleTriggers(definition);
+              const next=values.includes(choice)?values.filter(value=>value!==choice):[...values,choice];
+              if(id==='stock')review.edit(entry.kind,entry.id,['stockTraits'],next);else review.schedule(entry.kind,entry.id,next);
+              refresh();saveStatus.textContent='Saved on this device';renderValues();
+              const scroll=editorFields.scrollTop;fillEditor(id==='stock'?'stock':'schedule');editorFields.scrollTop=scroll;
+              editorFields.querySelector(`[data-pick="${choice}"]`)?.focus({preventScroll:true});
+            }catch(error){feedback.textContent=error.message;}
+          });
+          pick.dataset.pick=choice;pick.setAttribute('aria-label',`${id==='stock'?'Stock tag':'Schedule'}: ${label}`);pick.setAttribute('aria-pressed',String(current.includes(choice)));
+          pick.append(cards.icon(id==='stock'?{trait:choice}:REVIEW_SEASONS.includes(choice)?{season:choice}:{event:choice==='passive'?'activation':choice==='crisis'?'danger':choice}),el('span',label));tray.append(pick);
+        }
+        wrap.append(tray);
+      }
+      wrap.append(feedback);destination.append(wrap);
+    }
+    function fillEditor(id) {
+      editorFields.replaceChildren();
+      const values=el('div','','review-fields');
+      controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)&&!['stockTraits','activation'].includes(item.path[0])),values);
+      if(values.children.length)editorFields.append(values);
+      if(id==='stock')iconTray('stock',editorFields);
+      if(id==='schedule')iconTray('schedule',editorFields);
+      if(id==='yields'&&definition.mode==='scheduled')editorFields.append(button('Choose schedule triggers',()=>editGroup('schedule')));
+    }
     function editGroup(id) {
-      activeGroup=id;controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)),editorFields);
+      activeGroup=id;fillEditor(id);
       editorTitle.textContent=groups[id].label;
       editor.hidden=false;editor.setAttribute('aria-label',`Edit ${groups[id].label}`);
-      editor.querySelector('input,select')?.focus({preventScroll:true});
+      editor.querySelector('input,select,[data-pick]')?.focus({preventScroll:true});
       editor.scrollIntoView({block:'nearest',behavior:'smooth'});
     }
     function sections(regions) {
       targets.replaceChildren();
       for(const [id,rect] of Object.entries(regions)) {
-        if(!groups[id]||!reviewFields(definition).some(item=>groups[id].match(item.path)))continue;
+        if(!groups[id]||(id!=='schedule'&&!reviewFields(definition).some(item=>groups[id].match(item.path))))continue;
         const tap=button('',()=>editGroup(id));tap.dataset.section=id;tap.setAttribute('aria-label',`Edit ${groups[id].label}`);tap.title=groups[id].label;
         Object.assign(tap.style,{left:`${rect.x}%`,top:`${rect.y}%`,width:`${rect.width}%`,height:`${rect.height}%`});targets.append(tap);
       }
@@ -144,10 +184,16 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const notes=el('textarea');notes.value=entry.notes;notes.rows=3;notes.placeholder='What should change, and why?';notes.setAttribute('aria-label','Review notes');
     notes.addEventListener('input',()=>{try{review.notes(entry.kind,entry.id,notes.value);saveStatus.textContent='Saved on this device';changedRows();}catch(error){saveStatus.textContent=`Notes not saved: ${error.message}`;}});
     panel.append(saveStatus,el('h3','Notes'),notes);
-    const fields=reviewFields(definition), primary=fields.filter(item=>typeof item.value==='number'||['label','tags','stockTraits','ui','minimumQuality'].includes(item.path[0])||['triggerText','dischargeText'].includes(item.path.at(-1)));
-    const form=el('div','','review-fields');controlsFor(primary,form);panel.append(el('h3','Card values'),form);
-    const extra=fields.filter(item=>!primary.includes(item));
-    if(extra.length){const more=el('details'), moreFields=el('div','','review-fields');more.append(el('summary','More definition values'),moreFields);controlsFor(extra,moreFields);panel.append(more);}
+    const shortcuts=el('div','','lab-controls');
+    if(Array.isArray(definition.stockTraits))shortcuts.append(button('Choose Stock tags',()=>editGroup('stock')));
+    if(definition.mode==='scheduled')shortcuts.append(button('Choose schedule triggers',()=>editGroup('schedule')));
+    const form=el('div','','review-fields'),more=el('details'),moreFields=el('div','','review-fields');more.append(el('summary','More definition values'),moreFields);
+    function renderValues() {
+      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation'].includes(item.path[0]));
+      const primary=fields.filter(item=>typeof item.value==='number'||['label','tags','ui','minimumQuality'].includes(item.path[0])||['triggerText','dischargeText'].includes(item.path.at(-1)));
+      controlsFor(primary,form);const extra=fields.filter(item=>!primary.includes(item));controlsFor(extra,moreFields);more.hidden=!extra.length;
+    }
+    renderValues();panel.append(el('h3','Card values'),shortcuts,form,more);
     panel.append(el('h3','Changes against live'),changes);changedRows();parent.append(panel);
   }
   return {render};

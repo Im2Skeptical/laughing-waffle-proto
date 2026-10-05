@@ -77,9 +77,9 @@ function stockTray(parent, face, w) {
   if (!(face.stockCapacity > 0)) return null;
   // Three tags plus the counter exactly span a practice card. Raise the extra
   // height above the rim instead of taking more room from the illustration.
-  const traits=face.stockTraits ?? [], counterWidth=60, size=(Math.min(w,170)-counterWidth-8)/3;
-  const columns=3, y=-12;
+  const traits=face.stockTraits ?? [], counterWidth=60, columns=3, y=-12;
   const rows=Math.max(1,Math.ceil(traits.length/columns));
+  const size=Math.min((Math.min(w,170)-counterWidth-8)/columns,180/rows);
   const width=Math.min(w,Math.min(columns,traits.length)*size+counterWidth+8), height=rows*size+5;
   const x=w-width;
   plate(parent,x,y,width,height);
@@ -309,6 +309,7 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     });
   }
   const inputs=inputTray(parent,face.inputs??[],Math.max(30,sourceX-sourceSize/2+3),h);
+  let schedule=null;
   if(face.lane) {
     const cy=h-19, radius=sourceSize/2;
     const fill=Math.max(0,Math.min(1,face.fill??0));
@@ -317,13 +318,22 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     const dial=new PIXI.Graphics().lineStyle(1,0xa18950).beginFill(0x101c1b,.96).drawCircle(sourceX,cy,radius-5).endFill();
     if(fill>0)dial.lineStyle(2,0xe9cc83).arc(sourceX,cy,radius-4,-Math.PI/2,-Math.PI/2+Math.PI*2*fill);
     dial.eventMode='none';parent.addChild(dial);
-    const icon=face.source?.icon==='season'?'year':face.source?.icon==='passive'?'activation':face.source?.icon;
+    const icon=face.source?.icon==='season'?'year':face.source?.icon==='passive'?'activation':face.source?.icon==='crisis'?'danger':face.source?.icon;
     if(face.nextTrigger?.season)seasonIcon(parent,face.nextTrigger.season,sourceX,cy,23);
-    else addResourceIcon(parent,icon,sourceX,cy,23);
+    else eventIcon(parent,icon,sourceX,cy,23);
     if(face.source?.spark)addResourceIcon(parent,'activation',sourceX+10,cy+9,10);
     if(face.source?.missing)parent.addChild(new PIXI.Graphics().lineStyle(2,0xda8772).moveTo(sourceX-9,cy-9).lineTo(sourceX+9,cy+9));
-
+    schedule={x:sourceX-radius,y:cy-radius,width:sourceSize,height:sourceSize};
+    const additional=face.reviewSchedule?.filter(trigger=>!['spring','summer','autumn','winter',face.source?.icon].includes(trigger))??[];
+    if(additional.length) {
+      const cell=25,columns=Math.max(1,Math.floor(Math.max(sourceSize,sourceX+radius)/cell));
+      const height=Math.ceil(additional.length/columns)*cell, width=Math.min(columns,additional.length)*cell;
+      const x=sourceX+radius-width,y=cy-radius-height-2;
+      plate(parent,x,y,width,height);
+      additional.forEach((trigger,i)=>eventIcon(parent,trigger==='passive'?'activation':trigger==='crisis'?'danger':trigger,x+cell*(i%columns+.5),y+cell*(Math.floor(i/columns)+.5),21));
+      schedule={x:Math.min(x,schedule.x),y,width:Math.max(width,sourceSize),height:height+sourceSize+2};
+    }
   }
   if(pulse && yields)parent.addChild(new PIXI.Graphics().lineStyle(2,0xffe4a0,pulse).drawRoundedRect(yields.x+1,yields.y+1,yields.width-2,yields.height-2,3));
-  return {stock,workers,inputs,yields};
+  return {stock,workers,inputs,yields,schedule};
 }

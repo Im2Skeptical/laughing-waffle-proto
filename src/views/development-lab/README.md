@@ -14,7 +14,10 @@ shared game view and model APIs.
 
 `card-reviewer.js` renders the persistent review queue, face value targets,
 inline fields, live comparison and notes. `cards.js` exposes the shared rendered
-image and its face-section bounds. Persistence/export live in
+image, picker icons and face-section bounds. Stock trays toggle a variable number
+of traits; schedule trays toggle phases and seasons, keeping seasonal yields in
+step in one storage transaction. The editor body scrolls with a fixed Done footer.
+Persistence/export live in
 `src/controllers/card-review-controller.js`; JSON draft/path operations live in
 `src/model/dev-lab/card-review.js`. Reviews never enter the Lab timeline.
 

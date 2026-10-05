@@ -1,4 +1,4 @@
-import { parseReviewDocument, projectReview, reviewKey, readReviewValue, validateReviewValue, validateReviewTarget, exportReviewDocument } from '../model/dev-lab/card-review.js';
+import { parseReviewDocument, projectReview, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument } from '../model/dev-lab/card-review.js';
 
 // Stable across builds; never attach this key to player save reset/cleanup.
 export const CARD_REVIEW_STORAGE_KEY = 'civsurvivor.card-review.v1';
@@ -7,6 +7,33 @@ export function createCardReviewController({storage = globalThis.localStorage, r
   const write = action => {
     const doc = read(); action(doc); storage.setItem(CARD_REVIEW_STORAGE_KEY, JSON.stringify(doc)); return doc;
   };
+  const prefix = (a,b) => a.length<=b.length&&a.every((part,index)=>part===b[index]);
+  const editValues = (kind,id,proposals) => write(doc=>{
+    const entry=doc.cards[reviewKey(kind,id)];
+    if(!entry)throw new Error('Flag this card before editing.');
+    const live=resolveLive?.(kind,id)??entry.baseline;
+    const draft=projectReview(entry,live).definition;
+    const edits=typeof proposals==='function'?proposals(draft):proposals;
+    for(const {path,value} of edits) {
+      validateReviewValue(draft,path,value);validateReviewTarget(entry.baseline,live,path);
+      // Newly introduced fields establish their original value on first edit.
+      let baseline=entry.baseline;
+      for(let depth=0;depth<path.length;depth++) {
+        const part=path[depth],original=readReviewValue(live,path.slice(0,depth+1));
+        if(baseline[part]===undefined&&original!==undefined)baseline[part]=JSON.parse(JSON.stringify(original));
+        if(baseline[part]===undefined)break;
+        baseline=baseline[part];
+      }
+      validateReviewValue(entry.baseline,path,value);
+      writeReviewValue(draft,path,value);
+      // Editing a leaf inside a selected collection updates that collection;
+      // selecting a collection supersedes old per-index edits without losing them.
+      const parent=entry.edits.find(edit=>prefix(edit.path,path));
+      const storedPath=parent?.path??path,storedValue=readReviewValue(draft,storedPath)??null;
+      entry.edits=entry.edits.filter(edit=>!prefix(storedPath,edit.path)&&!prefix(edit.path,storedPath));
+      if(JSON.stringify(readReviewValue(live,storedPath)??null)!==JSON.stringify(storedValue))entry.edits.push({path:storedPath,value:storedValue});
+    }
+  });
   return {
     list:() => Object.values(read().cards),
     get:(kind, id) => read().cards[reviewKey(kind, id)] ?? null,
@@ -18,25 +45,9 @@ export function createCardReviewController({storage = globalThis.localStorage, r
       });
     },
     edit(kind, id, path, value) {
-      write(doc => {
-        const entry = doc.cards[reviewKey(kind, id)];
-        if (!entry) throw new Error('Flag this card before editing.');
-        const live = resolveLive?.(kind, id) ?? entry.baseline;
-        validateReviewValue(live, path, value);
-        validateReviewTarget(entry.baseline,live,path);
-        // Newly introduced fields establish their original value on first edit.
-        let baseline=entry.baseline;
-        for(let depth=0;depth<path.length;depth++) {
-          const part=path[depth];
-          if(baseline[part]===undefined)baseline[part]=JSON.parse(JSON.stringify(readReviewValue(live,path.slice(0,depth+1))));
-          baseline=baseline[part];
-        }
-        // The original field type must still be compatible after a new build.
-        validateReviewValue(entry.baseline, path, value);
-        entry.edits = entry.edits.filter(edit => JSON.stringify(edit.path) !== JSON.stringify(path));
-        if (JSON.stringify(readReviewValue(live, path)) !== JSON.stringify(value)) entry.edits.push({path, value});
-      });
+      editValues(kind,id,[{path,value}]);
     },
+    schedule:(kind,id,triggers)=>editValues(kind,id,draft=>reviewScheduleEdits(draft,triggers)),
     notes:(kind, id, notes) => write(doc => {doc.cards[reviewKey(kind, id)].notes = notes;}),
     reset:(kind, id) => write(doc => {
       const entry=doc.cards[reviewKey(kind,id)];entry.edits=[];

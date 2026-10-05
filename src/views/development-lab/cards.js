@@ -1,5 +1,6 @@
 import { addSettlementPiece } from '../settlement-piece-pixi.js';
-import { preloadChronicleArt, getArtRevision } from '../chronicle-art.js';
+import { preloadChronicleArt, getArtRevision, getStockTraitTexture } from '../chronicle-art.js';
+import { eventIcon, seasonIcon } from '../piece-face-chrome.js';
 import { el, button, details } from './elements.js';
 import { createLabCardReading } from './card-reading.js';
 
@@ -15,7 +16,7 @@ export function createLabCards({onReview} = {}) {
     if (next !== revision) {
       revision = next;
       // Late textures refresh only images, preserving unfinished form edits/focus.
-      for (const item of images) paint(item);
+      for (const item of images) item.paint?item.paint():paint(item);
       reading.refresh();
     }
   },500);
@@ -30,6 +31,24 @@ export function createLabCards({onReview} = {}) {
       width:section.width*piece.scale.x/width*100,height:section.height*piece.scale.y/250*100,
     }])));
     root.destroy({children:true});
+  }
+  const icons=new Map();
+  function icon({trait,season,event}) {
+    const key=JSON.stringify({trait,season,event});
+    const img=el('img');img.alt='';img.width=40;img.height=40;
+    const draw=()=>{
+      renderer.resize(48,48);const root=new PIXI.Container();
+      if(trait){const sprite=new PIXI.Sprite(getStockTraitTexture(trait));sprite.anchor.set(.5);sprite.position.set(24,24);sprite.width=sprite.height=40;root.addChild(sprite);}
+      else if(season)seasonIcon(root,season,24,24,40);
+      else eventIcon(root,event,24,24,40);
+      renderer.render(root);const url=renderer.view.toDataURL();root.destroy({children:true});return url;
+    };
+    let cached=icons.get(key);
+    if(!cached||cached.revision!==getArtRevision()){cached={revision:getArtRevision(),url:draw()};icons.set(key,cached);}
+    img.src=cached.url;
+    // Reuse the card renderer and refresh late atlas loads with the card faces.
+    images.push({img,paint:()=>{img.src=draw();}});
+    return img;
   }
   function image(face, onSections) {
     const description=face=>`${face.label} · ${face.tier}${face.kind==='practice'?` · Stock ${face.stock}/${face.stockCapacity}`:''}`;
@@ -55,5 +74,5 @@ export function createLabCards({onReview} = {}) {
     else wrapper.append(details('Rules and providers',face.detailLines.join('\n')));
     return wrapper;
   }
-  return {card,image,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
+  return {card,image,icon,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
 }

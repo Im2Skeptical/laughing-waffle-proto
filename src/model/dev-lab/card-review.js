@@ -1,9 +1,47 @@
+import { detailedSettlementPracticeDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
+import { MOON_PHASE_DEFS } from '../../defs/gamesettings/moon-phase-defs.js';
+
 // Review documents are independent of GameState and of runner/save schemas.
 export const CARD_REVIEW_SCHEMA = 1;
 const clone = value => JSON.parse(JSON.stringify(value));
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const reviewKey = (kind, id) => `${kind}:${id}`;
 export const readReviewValue = (def, path) => path.reduce((value, part) => value?.[part], def);
+export const REVIEW_STOCK_TRAITS = Object.freeze([...new Set(Object.values(detailedSettlementPracticeDefs).flatMap(def=>def.stockTraits))].sort());
+export const REVIEW_SEASONS = Object.freeze(['spring','summer','autumn','winter']);
+export const REVIEW_PHASES = Object.freeze(MOON_PHASE_DEFS.map(phase=>phase.id));
+export const REVIEW_SCHEDULE_TYPES = Object.freeze([...REVIEW_PHASES,'season','passive','crisis']);
+const validSelection = (values, choices) => Array.isArray(values) && values.every(value=>choices.includes(value)) && new Set(values).size===values.length;
+
+export function reviewScheduleTriggers(def) {
+  return [def.activation?.type,...(def.activation?.also??[])].flatMap(type=>type==='season'?(def.activation.seasonKeys?.length?def.activation.seasonKeys:REVIEW_SEASONS):[type]);
+}
+
+// One transaction keeps trigger selection and seasonal yields in agreement.
+export function reviewScheduleEdits(def, triggers) {
+  if(def.mode!=='scheduled'||!validSelection(triggers,[...REVIEW_PHASES,...REVIEW_SEASONS,'passive','crisis'])||!triggers.length)throw new Error('Choose at least one schedule trigger.');
+  const seasons=REVIEW_SEASONS.filter(season=>triggers.includes(season));
+  const types=[...new Set(triggers.map(trigger=>REVIEW_SEASONS.includes(trigger)?'season':trigger))];
+  const primary=types.includes(def.activation.type)?def.activation.type:types[0];
+  const activation={...clone(def.activation),type:primary};
+  delete activation.also;delete activation.seasonKeys;delete activation.stage;
+  if(types.length>1)activation.also=types.filter(type=>type!==primary);
+  if(seasons.length)activation.seasonKeys=seasons;
+  if(types.includes('food'))activation.stage='preRouting';
+  const edits=[{path:['activation'],value:activation}];
+  (def.effects??[]).forEach((effect,index)=>{
+    if(seasons.length&&typeof effect.amount==='number')edits.push({path:['effects',index,'seasonAmounts'],value:Object.fromEntries(seasons.map(season=>[season,effect.seasonAmounts?.[season]??effect.amount]))});
+    else if(effect.seasonAmounts)edits.push({path:['effects',index,'seasonAmounts'],value:null});
+  });
+  return edits;
+}
+
+export function writeReviewValue(def, path, value) {
+  let target=def;
+  for(const part of path.slice(0,-1))target=target[part]??= {};
+  if(value===null)delete target[path.at(-1)];
+  else target[path.at(-1)]=clone(value);
+}
 
 export function reviewFields(def) {
   const fields = [];
@@ -24,6 +62,24 @@ export function reviewFields(def) {
 }
 
 export function validateReviewValue(def, path, value) {
+  if(!Array.isArray(path)||!path.length||path.some(part=>['__proto__','prototype','constructor'].includes(part)))throw new Error('This field is not editable.');
+  if(equal(path,['stockTraits'])&&Array.isArray(def.stockTraits)) {
+    if(!validSelection(value,REVIEW_STOCK_TRAITS))throw new Error('Choose Stock traits from the icon tray.');
+    return;
+  }
+  if(equal(path,['activation'])&&def.mode==='scheduled') {
+    if(!value||typeof value!=='object'||Array.isArray(value)||!REVIEW_SCHEDULE_TYPES.includes(value.type)
+      ||(value.also!==undefined&&(!validSelection(value.also,REVIEW_SCHEDULE_TYPES)||value.also.includes(value.type)))
+      ||(value.seasonKeys!==undefined&&(!validSelection(value.seasonKeys,REVIEW_SEASONS)||!value.seasonKeys.length))
+      ||(value.stage!==undefined&&!['preRouting','postRouting'].includes(value.stage))
+      ||Object.keys(value).some(key=>!['type','also','seasonKeys','stage'].includes(key)&&!equal(value[key],def.activation[key])))throw new Error('Choose valid schedule triggers from the icon tray.');
+    return;
+  }
+  if(path[0]==='effects'&&Number.isInteger(path[1])&&path[2]==='seasonAmounts'&&typeof def.effects?.[path[1]]?.amount==='number') {
+    if(path.length===3&&(value===null||(value&&typeof value==='object'&&!Array.isArray(value)&&Object.entries(value).every(([key,amount])=>REVIEW_SEASONS.includes(key)&&Number.isFinite(amount)))))return;
+    if(path.length===4&&REVIEW_SEASONS.includes(path[3])&&Number.isFinite(value))return;
+    throw new Error('Use valid seasons and finite amounts.');
+  }
   const field = reviewFields(def).find(field => equal(field.path, path));
   if (!field || typeof field.value !== typeof value) throw new Error('This field is no longer available in this build.');
   if(path[0]==='minimumQuality'&&!['bronze','silver','gold','diamond'].includes(value))throw new Error('Choose bronze, silver, gold or diamond.');
@@ -56,10 +112,11 @@ export function projectReview(entry, live) {
     try {
       validateReviewTarget(entry.baseline, live ?? entry.baseline, edit.path);
       validateReviewValue(definition, edit.path, edit.value);
-      let target = definition;
-      for (const part of edit.path.slice(0, -1)) target = target[part];
-      target[edit.path.at(-1)] = clone(edit.value);
+      writeReviewValue(definition,edit.path,edit.value);
     } catch { conflicts.push(edit.path.join(' · ')); }
+  }
+  if(entry.edits.some(edit=>edit.path[0]==='activation')&&!conflicts.some(path=>path.startsWith('activation'))) {
+    definition.source={...definition.source,icon:definition.activation.type,cadence:reviewScheduleTriggers(definition).join(' / ')};
   }
   return {definition, conflicts};
 }

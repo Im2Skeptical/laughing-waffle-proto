@@ -206,8 +206,15 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .review-targets { position:absolute; inset:0; pointer-events:none; }
 .development-lab .review-targets button { position:absolute; pointer-events:auto; padding:0; margin:0; min-height:44px; min-width:44px; border:2px solid #b6edbc; border-radius:3px; background:#9cecb518; box-shadow:0 0 0 2px #071a15aa; }
 .development-lab .review-targets button:hover,.development-lab .review-targets button:focus { background:#9cecb544; }
-.review-inline-editor { position:absolute; top:20%; left:3%; width:94%; max-height:65%; overflow:auto; z-index:1; padding:12px; background:#162e2bf5; border:1px solid #b6edbc; border-radius:7px; box-shadow:0 6px 20px #0008; }
+.review-inline-editor { position:absolute; top:20%; left:3%; width:94%; max-height:min(65%,70dvh); display:flex; flex-direction:column; gap:8px; z-index:1; padding:12px; background:#162e2bf5; border:1px solid #b6edbc; border-radius:7px; box-shadow:0 6px 20px #0008; }
 .review-inline-editor[hidden] { display:none; }
+.review-inline-editor>strong,.review-inline-editor>button { flex-shrink:0; }
+.review-editor-body { overflow:auto; min-height:0; overscroll-behavior:contain; }
+.review-picker-summary { margin:4px 0 12px; }
+.review-icon-tray { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:8px 0 14px; }
+.development-lab .review-icon-tray button { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; min-height:66px; padding:5px 2px; gap:3px; font-size:11px; line-height:1.2; overflow-wrap:anywhere; }
+.review-icon-tray img { width:36px; height:36px; }
+.development-lab .review-icon-tray button[aria-pressed=true] { background:#386451; border:2px solid #b6edbc; box-shadow:inset 0 0 0 1px #162e2b; }
 .review-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; margin:12px 0; }
 .development-lab .review-fields input,.development-lab .review-fields select { width:100%; min-height:44px; font-size:16px; }
 .review-field-error { color:#f3b39e; }

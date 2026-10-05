@@ -15,3 +15,7 @@ Life Map rules; the independent controller validates cloned transactions.
 values, non-mutating draft projection and export data. Storage belongs to the
 controller. Its schema is deliberately independent of GameState so reviews
 survive app builds, including changes to game-save schemas.
+Stock trait collections and schedule/seasonal-yield edits use the same v1 review
+document as primitive edits. Collection edits replace overlapping leaf edits;
+subsequent leaf edits update their saved collection. Schedule source icons derive
+from the edited activation without replacing unrelated definition fields.
