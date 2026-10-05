@@ -119,6 +119,7 @@ try {
   await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
   await page.getByLabel('Category',{exact:true}).selectOption('structure');
   await page.getByLabel('Search runtime content').fill('longhouse');
+  await page.getByRole('button',{name:'Read Longhouse, silver',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Review card',exact:true}).click();
   await page.getByRole('button',{name:'Edit Structure bonuses',exact:true}).click();
@@ -141,13 +142,23 @@ try {
   assert.equal(exported.cards.find(card=>card.id==='longhouse').modified.footprint,3);
   await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
   await page.getByLabel('Category',{exact:true}).selectOption('practice');
+  await page.getByText('0 matching runtime entries',{exact:false}).waitFor();
   await page.getByLabel('Search runtime content').fill('forage');
+  await page.getByRole('button',{name:'Read Foraging, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Review card',exact:true}).click();
   await page.getByRole('button',{name:'Edit Stock capacity & traits',exact:true}).click();
   const editor=page.locator('.review-inline-editor');
   assert.equal(await editor.locator('[data-pick]').count(),36,'all Stock icons are available');
   assert.ok(await editor.locator('[data-pick]:focus').count(),'opening an icon tray focuses a choice without bringing up the phone keyboard');
+  for(const size of [{width:390,height:844},{width:320,height:740},{width:844,height:390},{width:1280,height:800}]) {
+    await page.setViewportSize(size);
+    const bounds=await editor.boundingBox();
+    assert.ok(bounds.y>=0&&bounds.y+bounds.height<=size.height&&bounds.height>=size.height-24,`editor uses the viewport height at ${size.width}px`);
+    assert.ok(bounds.x>=8&&bounds.x+bounds.width<=size.width-8,'side margins remain available for dismissal');
+    assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflow),'hidden','background scrolling is locked');
+  }
+  await page.setViewportSize({width:390,height:844});
   const imageBefore=await page.locator('.review-face>img').first().getAttribute('src');
   for(const tag of ['Plant','Water','Grain','Wild'])await editor.getByRole('button',{name:`Stock tag: ${tag}`,exact:true}).click();
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Wild',exact:true}).getAttribute('aria-pressed'),'false');
@@ -156,17 +167,21 @@ try {
   const doneBounds=await editor.getByRole('button',{name:'Done',exact:true}).boundingBox(),editorBounds=await editor.boundingBox();
   assert.ok(doneBounds.y+doneBounds.height<=editorBounds.y+editorBounds.height&&doneBounds.y+doneBounds.height<=844,'Done stays visible while the Stock tray scrolls');
   await page.screenshot({path:'artifacts/card-review-mobile-stock-tray.png'});
-  await editor.getByRole('button',{name:'Done',exact:true}).click();
+  await page.mouse.click(3,422);
+  await editor.waitFor({state:'hidden'});
+  assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflow==='hidden'),false,'side dismissal restores page scrolling');
   await page.getByRole('button',{name:'Edit Schedule triggers',exact:true}).click();
   for(const trigger of ['Housing phase','Food phase','Summer','Autumn'])await editor.getByRole('button',{name:`Schedule: ${trigger}`,exact:true}).click();
   await page.screenshot({path:'artifacts/card-review-mobile-schedule-tray.png'});
-  await editor.getByRole('button',{name:'Done',exact:true}).click();
+  await page.keyboard.press('Escape');
+  await editor.waitFor({state:'hidden'});
   await page.reload();
   await page.getByRole('button',{name:'Edit Stock capacity & traits',exact:true}).click();
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Water',exact:true}).getAttribute('aria-pressed'),'true','added tag persists across reload');
   await editor.getByRole('button',{name:'Done',exact:true}).click();
   await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('dryFarming');
+  await page.getByRole('button',{name:'Read Dry Farming, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Review card',exact:true}).click();
   await page.getByRole('button',{name:'Edit Production',exact:true}).click();
@@ -190,7 +205,7 @@ try {
   assert.deepEqual(trayExport.cards.find(card=>card.id==='dryFarming').live.effects[0].seasonAmounts,{summer:2,autumn:6});
   assert.equal(trayExport.cards.find(card=>card.id==='smelting').notes,'Check the Metal chain on mobile.');
   assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'review edits preserve fixture state and RNG');
-  checks.push('reviewer Dev/Zoo entry, icon trays and variable Stock tags, multiple schedule triggers/season yields, fixed Done footer, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
+  checks.push('reviewer Dev/Zoo entry, icon trays and variable Stock tags, multiple schedule triggers/season yields, viewport-height modal with fixed Done footer and side/Escape dismissal, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
   await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('');
   await page.setViewportSize({width:1280,height:800});

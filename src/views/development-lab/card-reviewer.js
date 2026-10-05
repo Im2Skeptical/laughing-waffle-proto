@@ -70,9 +70,17 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const draftTitle=el('h3',`Your draft · ${definition.label}`),draftReading=el('div','','review-reading'),liveReading=el('div','','review-reading');
     draftColumn.append(draftTitle);preview.append(draftColumn);panel.append(preview);
     const surface=el('div','','review-face'), targets=el('div','','review-targets');
-    const editor=el('div','','review-inline-editor');editor.hidden=true;
-    const editorTitle=el('strong'),editorFields=el('div','','review-editor-body');editor.append(editorTitle,editorFields,button('Done',()=>{editor.hidden=true;surface.querySelector(`[data-section="${activeGroup}"]`)?.focus();}));
-    let activeGroup=null, tier=quality.value, draftImage, liveImage;
+    const editor=el('dialog','','review-inline-editor');editor.hidden=true;
+    const editorTitle=el('strong'),editorFields=el('div','','review-editor-body');editor.append(editorTitle,editorFields,button('Done',()=>editor.close()));
+    let activeGroup=null, editorOpener=null, tier=quality.value, draftImage, liveImage;
+    editor.addEventListener('close',()=>{
+      editor.hidden=true;
+      (editorOpener?.isConnected?editorOpener:surface.querySelector(`[data-section="${activeGroup}"]`))?.focus({preventScroll:true});
+    });
+    editor.addEventListener('click',event=>{
+      const bounds=editor.getBoundingClientRect();
+      if(event.target===editor&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom))editor.close();
+    });
     const makeFace=def=>{
       const registry=entry.kind==='practice'?'practices':'structures';
       const previewState={...state,gameConfig:{...state.gameConfig,gamepieces:{...state.gameConfig.gamepieces,[registry]:{...state.gameConfig.gamepieces[registry],[entry.id]:def}}}};
@@ -164,12 +172,14 @@ export function createCardReviewerView({review, cards, getState, run}) {
       if(id==='yields'&&definition.mode==='scheduled')editorFields.append(button('Choose schedule triggers',()=>editGroup('schedule')));
     }
     function editGroup(id) {
+      if(!editor.open)editorOpener=document.activeElement;
       activeGroup=id;fillEditor(id);
       editorTitle.textContent=groups[id].label;
       editor.hidden=false;editor.setAttribute('aria-label',`Edit ${groups[id].label}`);
+      editorFields.scrollTop=0;
       const focus=id==='stock'||id==='schedule'?(editor.querySelector('[data-pick][aria-pressed=true]')??editor.querySelector('[data-pick]')):editor.querySelector('input,select');
+      if(!editor.open){focus?.setAttribute('autofocus','');editor.showModal();}
       focus?.focus({preventScroll:true});
-      editor.scrollIntoView({block:'nearest',behavior:'smooth'});
     }
     function sections(regions) {
       targets.replaceChildren();

@@ -16,7 +16,9 @@ shared game view and model APIs.
 inline fields, live comparison and notes. `cards.js` exposes the shared rendered
 image, picker icons and face-section bounds. Stock trays toggle a variable number
 of traits; schedule trays toggle phases and seasons, keeping seasonal yields in
-step in one storage transaction. The editor body scrolls with a fixed Done footer.
+step in one storage transaction. The editor is a viewport-height modal with narrow
+tap-to-close side margins, Escape dismissal and a fixed Done footer. Only its body
+scrolls; background page scrolling is locked while it is open.
 Persistence/export live in
 `src/controllers/card-review-controller.js`; JSON draft/path operations live in
 `src/model/dev-lab/card-review.js`. Reviews never enter the Lab timeline.
