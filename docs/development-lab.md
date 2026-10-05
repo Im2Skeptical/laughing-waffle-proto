@@ -10,7 +10,10 @@ The existing debugger remains available.
 
 In **Gym · sandbox**, select **Node sandbox** to open a mock node/shop with a
 dummy Vassal and settlement. Choose a node family or signature, dummy class,
-Prestige, age and stats, then **Refresh contents**. The real game modal supports
+Research, Prestige, age and stats, then **Refresh contents**. Research uses the
+normal civilization unlocks and base quality rolls when generating shop contents;
+the setup shows the current quality chances and next milestone. Dummy class
+bonuses and installed-card upgrades still apply. The real game modal supports
 card quick reads/full inspection, staging, drag placement, undo, shop reroll and
 Confirm. **Open node** reopens it after closing or confirming. **Resolve outcome**
 advances the dummy through real simulation ticks, including costs and danger.

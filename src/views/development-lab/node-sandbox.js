@@ -1,5 +1,6 @@
 import { createNodeSandboxController } from '../../controllers/node-sandbox-controller.js';
 import { LAB_NODE_TYPES } from '../../model/dev-lab/node-sandbox.js';
+import { getResearchProgression } from '../../model/research-progression.js';
 import { createVassalNodeDecisionModalView } from '../vassal-node-decision-modal-pixi.js';
 import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 import { el, button, field, input, select, section } from './elements.js';
@@ -12,13 +13,14 @@ export function createLabNodeSandboxView() {
   fields.type = select('Sandbox node type',LAB_NODE_TYPES,settings.type);
   fields.classId = select('Dummy class',[['scholar','Scholar'],['warrior','Warrior'],['unclassed','Unclassed']],settings.classId);
   controls.append(field('Node / shop',fields.type),field('Dummy class',fields.classId));
-  for (const [key,label] of [['seed','Refresh seed'],['prestige','Dummy Prestige'],['age','Dummy age'],['cunning','Dummy Cunning / Ingenuity'],['wisdom','Dummy Wisdom'],['effectiveness','Dummy Effectiveness'],['intelligence','Dummy Intelligence / Prowess']]) {
+  for (const [key,label] of [['seed','Refresh seed'],['research','Research'],['prestige','Dummy Prestige'],['age','Dummy age'],['cunning','Dummy Cunning / Ingenuity'],['wisdom','Dummy Wisdom'],['effectiveness','Dummy Effectiveness'],['intelligence','Dummy Intelligence / Prowess']]) {
     fields[key] = input(label,settings[key]);
-    fields[key].max = String(key === 'seed' ? 4294967295 : key === 'prestige' ? 10000 : 100);
+    fields[key].max = String(key === 'seed' ? 4294967295 : key === 'research' ? Number.MAX_SAFE_INTEGER : key === 'prestige' ? 10000 : 100);
     controls.append(field(label,fields[key]));
   }
   const status = el('p','','lab-status');status.setAttribute('role','status');
   const summary = el('p');
+  const researchSummary = el('p');
   const viewport = el('div','','lab-node-viewport');
   const app = new PIXI.Application({width:2424,height:1080,backgroundColor:0x111c21,antialias:true,resolution:1});
   app.stage.eventMode='static';app.stage.hitArea=app.screen;
@@ -36,6 +38,9 @@ export function createLabNodeSandboxView() {
   let error = '';
   function updateStatus() {
     const snapshot = controller.getSnapshot();
+    const research = getResearchProgression(snapshot.state);
+    const odds = research.tiers.filter(tier=>tier.unlocked).map(tier=>`${tier.id} ${(tier.chance*100).toFixed(1).replace(/\.0$/, '')}%`).join(', ');
+    researchSummary.textContent = `Research ${research.research} · Base quality rolls: ${odds}. ${research.nextMilestone ? `Next: ${research.nextMilestone.label} at ${research.nextMilestone.research} Research. ` : ''}Research also unlocks eligible shop cards; class bonuses and upgrades still apply.`;
     status.textContent = error || snapshot.message;status.classList.toggle('lab-warning',!!error);
     const phase=!snapshot.vassal?'dummy ended':snapshot.vassal.lifeMap.pendingResolution?'outcome pending':snapshot.vassal.lifeMap.nodeStates[snapshot.nodeId]?.resolved?'resolved':'ready';
     summary.textContent = `Gym Dummy · ${snapshot.settings.classId} · seed ${snapshot.settings.seed} · t=${snapshot.state.tSec}s · Prestige ${snapshot.vassal?.prestige ?? 'ended'} · ${phase}`;
@@ -71,7 +76,7 @@ export function createLabNodeSandboxView() {
   const actions = el('div','','lab-controls');
   const resolve = button('Resolve outcome',()=>run(()=>controller.resolve()),'lab-node-resolve');
   actions.append(button('Open node',()=>modal.open(controller.getSnapshot().nodeId),'lab-node-open'),button('Close node',()=>modal.close()),resolve);
-  node.append(controls,status,summary,actions,viewport,el('p','Use the card costs to stage, drag cards onto the settlement, and inspect their faces. The in-game reroll uses its normal cost and limit. Resolve outcome advances only this dummy simulation through the decision’s duration. Fullscreen gives the game screen more room on phones.'));
+  node.append(controls,status,summary,researchSummary,actions,viewport,el('p','Use the card costs to stage, drag cards onto the settlement, and inspect their faces. The in-game reroll uses its normal cost and limit. Resolve outcome advances only this dummy simulation through the decision’s duration. Fullscreen gives the game screen more room on phones.'));
   app.view.addEventListener('keydown',event=>{if(modal.handleInspectionKey(event)){event.preventDefault();return;}if(event.key==='Escape')modal.close();});
   app.ticker.add(()=>{if(node.isConnected)modal.update();});
   updateStatus();modal.open(controller.getSnapshot().nodeId);

@@ -7,7 +7,7 @@ export const LAB_NODE_TYPES = Object.freeze([
   ...Object.values(VASSAL_NODE_FAMILIES).filter(node => !['signature', 'settlement', 'philosopherFounding', 'warlordFounding'].includes(node.id)).map(node => [node.id, node.label]),
   ...Object.values(VASSAL_SIGNATURE_NODE_VARIANTS).map(node => [`signature:${node.id}`, node.label]),
 ]);
-export const LAB_NODE_DEFAULTS = Object.freeze({ type:'practiceReform', classId:'scholar', seed:42, prestige:100, age:18,
+export const LAB_NODE_DEFAULTS = Object.freeze({ type:'practiceReform', classId:'scholar', seed:42, research:0, prestige:100, age:18,
   effectiveness:4, intelligence:4, cunning:4, wisdom:4 });
 
 // An authored, disposable fixture. Only the content RNG is reseeded: changing
@@ -16,11 +16,12 @@ export function createLabNodeSandbox(options = {}) {
   const settings = { ...LAB_NODE_DEFAULTS, ...options };
   if (!LAB_NODE_TYPES.some(([id]) => id === settings.type)) throw new Error('Choose a node type');
   if (!['scholar','warrior','unclassed'].includes(settings.classId)) throw new Error('Choose a dummy class');
-  for (const key of ['seed','prestige','age','effectiveness','intelligence','cunning','wisdom']) {
-    const max = key === 'seed' ? 4294967295 : key === 'prestige' ? 10000 : 100;
+  for (const key of ['seed','research','prestige','age','effectiveness','intelligence','cunning','wisdom']) {
+    const max = key === 'seed' ? 4294967295 : key === 'research' ? Number.MAX_SAFE_INTEGER : key === 'prestige' ? 10000 : 100;
     if (!Number.isInteger(settings[key]) || settings[key] < 0 || settings[key] > max) throw new Error(`${key} must be an integer from 0 to ${max}`);
   }
   const state = createLabFixture(settings.classId === 'warrior' ? 'warrior' : 'scholar', 42);
+  state.civilization.research.total = settings.research;
   const vassal = getCurrentLifeMapVassal(state);
   const settlement = state.world.sites.find(site => site.regionId === vassal.locationRegionId).detailedState;
   settlement.practiceSlots = fiveSlots(practiceSlot('forage',2),practiceSlot('barter',4),practiceSlot('logging',2),practiceSlot('surfaceMining',2),practiceSlot('bowmaking',2));

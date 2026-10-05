@@ -5,7 +5,7 @@ export async function checkNodeSandbox(page, context) {
   const before = await page.evaluate(()=>({state:JSON.stringify(__LAB_DEBUG__.getSnapshot().state),storage:JSON.stringify({...localStorage})}));
   await page.getByTestId('lab-workspace-node').click();
   const canvas=page.getByTestId('lab-node-sandbox');
-  const snapshot=()=>page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {seed:s.settings.seed,type:s.settings.type,tSec:s.state.tSec,modal:s.modal.open,staged:s.modal.purchaseOrder.length,prestige:s.modal.currentPrestige,projected:s.modal.projectedPrestige,inspected:s.modal.inspectedCardId,offers:s.modal.offers.map(o=>({label:o.label,kind:o.kind,canStage:o.canStage})),selected:s.modal.selectedOptionId,pending:!!s.vassal?.lifeMap.pendingResolution};});
+  const snapshot=()=>page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {seed:s.settings.seed,research:s.settings.research,actualResearch:s.state.civilization.research.total,type:s.settings.type,tSec:s.state.tSec,modal:s.modal.open,staged:s.modal.purchaseOrder.length,prestige:s.modal.currentPrestige,projected:s.modal.projectedPrestige,inspected:s.modal.inspectedCardId,offers:s.modal.offers.map(o=>({label:o.label,kind:o.kind,canStage:o.canStage})),selected:s.modal.selectedOptionId,pending:!!s.vassal?.lifeMap.pendingResolution};});
   async function point(kind,index=0) {
     await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.animation.phase==='open');
     await canvas.scrollIntoViewIfNeeded();
@@ -46,6 +46,20 @@ export async function checkNodeSandbox(page, context) {
   await page.getByLabel('Refresh seed',{exact:true}).fill('-1');await page.getByTestId('lab-node-refresh').click();
   assert.equal((await snapshot()).seed,42,'invalid refresh preserves the fixture');
   await page.getByLabel('Refresh seed',{exact:true}).fill('42');
+  await page.getByLabel('Dummy class',{exact:true}).selectOption('unclassed');
+  await page.getByLabel('Research',{exact:true}).fill('100');await page.getByTestId('lab-node-refresh').click();
+  const silverUnlock=await snapshot();assert.equal(silverUnlock.actualResearch,100);
+  await page.getByLabel('Research',{exact:true}).fill('300');await page.getByTestId('lab-node-refresh').click();
+  const researchSetup=await snapshot();assert.equal(researchSetup.research,300);assert.equal(researchSetup.actualResearch,300);
+  assert.notDeepEqual(researchSetup.offers,silverUnlock.offers,'Research changes the real quality rolls');
+  assert.ok(researchSetup.offers.some(o=>o.label.startsWith('Learn Silver')));
+  await page.getByTestId('lab-node-refresh').click();assert.deepEqual((await snapshot()).offers,researchSetup.offers,'same seed and Research reproduce offers');
+  await page.getByTestId('lab-node-next-seed').click();assert.equal((await snapshot()).research,300);
+  await page.getByLabel('Refresh seed',{exact:true}).fill('42');await page.getByTestId('lab-node-refresh').click();
+  assert.deepEqual((await snapshot()).offers,researchSetup.offers);
+  await page.getByLabel('Research',{exact:true}).fill('-1');await page.getByTestId('lab-node-refresh').click();
+  assert.equal((await snapshot()).actualResearch,300,'invalid Research preserves the fixture');
+  await page.getByLabel('Research',{exact:true}).fill('0');await page.getByLabel('Dummy class',{exact:true}).selectOption('scholar');
   await page.getByLabel('Sandbox node type').selectOption('publicWorks');await page.getByTestId('lab-node-refresh').click();
   assert.ok((await snapshot()).offers.every(o=>o.kind==='structure'));
   await click('offer');await staged();

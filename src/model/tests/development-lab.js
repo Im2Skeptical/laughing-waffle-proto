@@ -158,6 +158,35 @@ assert.equal(nodes.getSnapshot().state.rng.vassalLifeMapSeed,nodeInitial.rng.vas
 assert.equal(nodes.getSnapshot().state.rng.vassalPortraitSeed,nodeInitial.rng.vassalPortraitSeed);
 const beforeRejected=data(nodes.getSnapshot().state);
 assert.throws(()=>nodes.refresh({seed:-1}));assert.ok(JSON.stringify(data(nodes.getSnapshot().state))===JSON.stringify(beforeRejected));
+// Research is authored before real node entry, affecting definition eligibility
+// and quality rolls without changing the fixed dummy world or topology.
+const qualityIds=['bronze','silver','gold','diamond'];
+for (const [research,unlock] of [[0,0],[99,0],[100,1],[499,1],[500,2],[1999,2],[2000,3]]) {
+  const seen=new Set();
+  for (let seed=0;seed<8;seed++) {
+    const mock=createLabNodeSandbox({type:'publicWorks',classId:'scholar',cunning:0,research,seed});
+    assert.equal(mock.state.civilization.research.total,research);
+    for (const offer of getCurrentLifeMapVassal(mock.state).lifeMap.nodeStates[mock.nodeId].inventory) {
+      const tier=qualityIds.indexOf(offer.intervention.tier);
+      assert.ok(tier>=0 && tier<=unlock,`Research ${research} excludes locked structure content`);
+      seen.add(tier);
+    }
+  }
+  assert.ok(seen.has(unlock),`Research ${research} makes its unlocked tier available in real shops`);
+}
+nodes.refresh({classId:'unclassed',research:100});
+const silverUnlockOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
+nodes.refresh({classId:'unclassed',research:300});
+const researchOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
+assert.notDeepEqual(researchOffers.map(o=>o.intervention),silverUnlockOffers.map(o=>o.intervention),'Research within the Silver band affects real quality rolls');
+assert.ok(researchOffers.some(o=>o.intervention.mode==='learn' && o.intervention.resultingTier==='silver'));
+const researchState=JSON.stringify(data(nodes.getSnapshot().state));
+nodes.refresh({classId:'unclassed',research:300});
+assert.equal(JSON.stringify(data(nodes.getSnapshot().state)),researchState,'seed and Research reproduce the complete fixture');
+for (const research of [-1,0.5,Infinity,NaN,Number.MAX_SAFE_INTEGER+1]) {
+  assert.throws(()=>nodes.refresh({research}));
+  assert.equal(JSON.stringify(data(nodes.getSnapshot().state)),researchState,'invalid Research leaves contents and RNG intact');
+}
 nodes.refresh({type:'patronage'});
 nodes.select(nodes.getSnapshot().nodeId,nodes.getDecision(nodes.getSnapshot().nodeId).nodeState.options[0].id);
 nodes.confirm(nodes.getSnapshot().nodeId);nodes.resolve();
