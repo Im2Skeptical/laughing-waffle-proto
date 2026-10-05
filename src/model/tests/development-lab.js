@@ -10,6 +10,8 @@ import { createGameSessionController } from '../../controllers/game-session-cont
 import { createDevelopmentLabController } from '../../controllers/development-lab-controller.js';
 import { classActionOptions } from '../vassal-life-map/class-actions.js';
 import { getCurrentLifeMapVassal } from '../vassal-life-map.js';
+import { LAB_NODE_TYPES, createLabNodeSandbox } from '../dev-lab/node-sandbox.js';
+import { createNodeSandboxController } from '../../controllers/node-sandbox-controller.js';
 
 const data = serializeGameState;
 for(const exhibit of LAB_EXHIBITS) {
@@ -124,4 +126,42 @@ assert.deepEqual(data(museum.getSnapshot().state),branchData,'another controller
 assert.equal(museum.getSnapshot().exhibitId,'saved:Gym into Museum');
 museum.advance('second');museum.reset();assert.deepEqual(data(museum.getSnapshot().state),branchData);
 assert.throws(()=>ctl.setHorizon(3601));
-console.log('[development-lab] OK: fixtures, Stock, Food, conflict, validation, reset, projection and snapshot-origin replay');
+for (const classId of ['scholar','warrior','unclassed']) {
+  for (const [type] of LAB_NODE_TYPES) {
+    const mock = createLabNodeSandbox({type,classId,seed:0});
+    assert.equal(getCurrentLifeMapVassal(mock.state).lifeMap.currentNodeId,mock.nodeId,`${classId} ${type} enters a validated real node`);
+  }
+}
+const nodes=createNodeSandboxController(), nodeInitial=data(nodes.getSnapshot().state);
+const nodeId=nodes.getSnapshot().nodeId;
+const offer=nodes.getDecision(nodeId).offers.find(offer=>offer.canStage);
+assert.ok(offer,'dummy can afford a real shop offer');
+assert.throws(()=>nodes.purchase(nodeId,'missing-offer'));
+assert.ok(JSON.stringify(data(nodes.getSnapshot().state))===JSON.stringify(nodeInitial),'failed node transactions preserve all state and RNG');
+nodes.purchase(nodeId,offer.offerId);
+assert.equal(nodes.getDecision(nodeId).purchases.length,1);
+nodes.undo(nodeId,offer.offerId);
+assert.equal(nodes.getDecision(nodeId).purchases.length,0,'undo removes staged purchase');
+assert.equal(nodes.getDecision(nodeId).projectedPrestige,100,'undo restores projected Prestige');
+assert.deepEqual(nodes.getSnapshot().state.rng,nodeInitial.rng,'undo preserves RNG');
+assert.deepEqual(nodes.getSnapshot().state.world.sites[0].detailedState.practiceSlots,nodeInitial.world.sites[0].detailedState.practiceSlots,'staging and undo do not alter the real settlement');
+nodes.purchase(nodeId,offer.offerId);
+nodes.confirm(nodeId);
+assert.equal(nodes.getSnapshot().vassal.prestige,nodeInitial.civilization.vassalLineage.vassalsById[nodeInitial.civilization.vassalLineage.currentVassalId].prestige-offer.prestigeCost);
+assert.ok(nodes.getSnapshot().vassal.lifeMap.pendingResolution,'Confirm starts the real timed outcome');
+nodes.refresh();assert.ok(JSON.stringify(data(nodes.getSnapshot().state))===JSON.stringify(nodeInitial),'refresh restores identical content, state and RNG');
+nodes.reroll(nodeId);assert.throws(()=>nodes.reroll(nodeId),'real reroll limit applies');
+nodes.refresh({seed:43});
+assert.notDeepEqual(nodes.getDecision(nodeId).offers.map(offer=>offer.intervention),createNodeSandboxController().getDecision(nodeId).offers.map(offer=>offer.intervention),'another content seed changes offers');
+assert.deepEqual(nodes.getSnapshot().vassal.lifeMap.graph,nodeInitial.civilization.vassalLineage.vassalsById[nodeInitial.civilization.vassalLineage.currentVassalId].lifeMap.graph,'content refresh seed does not change topology');
+assert.equal(nodes.getSnapshot().state.rng.vassalLifeMapSeed,nodeInitial.rng.vassalLifeMapSeed);
+assert.equal(nodes.getSnapshot().state.rng.vassalPortraitSeed,nodeInitial.rng.vassalPortraitSeed);
+const beforeRejected=data(nodes.getSnapshot().state);
+assert.throws(()=>nodes.refresh({seed:-1}));assert.ok(JSON.stringify(data(nodes.getSnapshot().state))===JSON.stringify(beforeRejected));
+nodes.refresh({type:'patronage'});
+nodes.select(nodes.getSnapshot().nodeId,nodes.getDecision(nodes.getSnapshot().nodeId).nodeState.options[0].id);
+nodes.confirm(nodes.getSnapshot().nodeId);nodes.resolve();
+assert.ok(nodes.getSnapshot().state.tSec>0,'outcome time advances through ticks');
+assert.equal(nodes.getSnapshot().vassal.lifeMap.pendingResolution,null);
+assert.deepEqual(data(original),originalData,'dummy never mutates another Lab fixture');
+console.log('[development-lab] OK: fixtures, Stock, Food, conflict, validation, reset, projection, replay and seeded node sandbox');

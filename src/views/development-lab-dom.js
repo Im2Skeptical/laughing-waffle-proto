@@ -6,6 +6,7 @@ import { createLabCards } from './development-lab/cards.js';
 import { createZooView } from './development-lab/zoo.js';
 import { renderWorkbench } from './development-lab/workbench.js';
 import { renderPrototypes } from './development-lab/prototypes.js';
+import { createLabNodeSandboxView } from './development-lab/node-sandbox.js';
 import { createCardReviewController } from '../controllers/card-review-controller.js';
 import { createCardReviewerView } from './development-lab/card-reviewer.js';
 import { el, button, select, input, field, section } from './development-lab/elements.js';
@@ -17,6 +18,7 @@ export function mountDevelopmentLab() {
   try { initialState = readLabHandoff(); } catch(e) { error = e.message; }
   const gym = createDevelopmentLabController({initialState}), museum = createDevelopmentLabController();
   let mode = 'zoo', seedValue = 42, storageOpen = false, scene = null, renderFrame = 0;
+  let gymWorkspace = 'settlement', nodeSandbox = null;
   const header = el('header','','lab-header'), title = el('div');
   title.append(el('small','DEVELOPER WORKBENCH'),el('h1','Development Lab'));
   const nav = el('nav');
@@ -54,11 +56,23 @@ export function mountDevelopmentLab() {
     const scroll=window.scrollY;
     cards.dismissReading();
     content.replaceChildren();
+    if(mode==='gym') {
+      const workspaces=el('div','','lab-controls');
+      for(const [id,label] of [['settlement','Settlement sandbox'],['node','Node sandbox']]) {
+        const control=button(label,()=>{gymWorkspace=id;render();},`lab-workspace-${id}`);
+        control.setAttribute('aria-pressed',String(gymWorkspace===id));workspaces.append(control);
+      }
+      content.append(workspaces);
+    }
     for(const link of nav.querySelectorAll('[data-mode]')) link.setAttribute('aria-current',link.dataset.mode===mode?'page':'false');
     status.textContent=error || (mode==='reviewer'?'Card review drafts · saved on this device':mode==='prototypes'?'Isolated design studies · edits are temporary':controller().getSnapshot().message) || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
     if(mode==='zoo') zoo.render(content);
     else if(mode==='reviewer') {try{reviewer.render(content);}catch(e){status.textContent=`Card reviews unavailable: ${e.message}`;status.classList.add('lab-warning');}}
     else if(mode==='prototypes') renderPrototypes(content);
+    else if(mode==='gym' && gymWorkspace==='node') {
+      nodeSandbox??=createLabNodeSandboxView();nodeSandbox.render(content);
+      status.textContent='Node sandbox · disposable dummy state · no player saves or Gym timeline edits';
+    }
     else {
       const ctl=controller(), snapshot=ctl.getSnapshot();
       const fixtures=select('Fixture',[...(snapshot.exhibitId==='custom'?[['custom','Current imported setup']]:[]),...LAB_EXHIBITS.map(e=>[e.id,e.title]),...ctl.names().map(name=>[`saved:${name}`,`Saved · ${name}`])],snapshot.exhibitId);
@@ -120,7 +134,7 @@ export function mountDevelopmentLab() {
     const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
-  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();},{once:true});
-  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id)};
+  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();nodeSandbox?.destroy();},{once:true});
+  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getNodeSandbox:()=>nodeSandbox?.getSnapshot(),getNodeSandboxPoint:(kind,index)=>nodeSandbox?.getPoint(kind,index)};
   route();
 }

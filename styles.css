@@ -232,6 +232,9 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .lab-catalogue-grid>.lab-card,.lab-catalogue-grid>.lab-specimen { width:100%; height:480px; overflow:auto; margin:0; }
 .lab-scene { border:1px solid #48615e; border-radius:8px; padding:10px; background:#101a1e; margin:12px 0; }
 .lab-scene-viewport { width:100%; overflow:auto; }
+.development-lab .lab-node-viewport { width:100%; overflow:auto; background:#111c21; border:1px solid #48615e; }
+.development-lab .lab-node-viewport canvas { display:block; width:100%; min-width:800px; height:auto; touch-action:none; }
+.development-lab button[aria-pressed=true] { background:#355f55; border-color:#b0dfcd; }
 .lab-scene canvas { display:block; width:100%; min-width:800px; height:auto; }
 .lab-scene input[type=checkbox] { min-height:22px; width:22px; }
 .lab-scene .lab-controls label:has(input[type=checkbox]) { flex-direction:row; align-items:center; gap:6px; }

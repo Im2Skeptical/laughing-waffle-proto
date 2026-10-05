@@ -6,6 +6,12 @@ actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
+`node-sandbox.js` is a Gym-only workspace with one persistent Pixi stage using
+the game's node-decision modal. Its dummy controller is independent of the
+settlement Gym timeline, Museum, Zoo and player saves. Refresh settings and
+status stay in DOM; staging, inspection, drag/undo/reroll and Confirm use the
+shared game view and model APIs.
+
 `card-reviewer.js` renders the persistent review queue, face value targets,
 inline fields, live comparison and notes. `cards.js` exposes the shared rendered
 image and its face-section bounds. Persistence/export live in

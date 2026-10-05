@@ -6,6 +6,23 @@ GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **Development Lab** and **Open current state in Gym**.
 The existing debugger remains available.
 
+## Gym node sandbox
+
+In **Gym · sandbox**, select **Node sandbox** to open a mock node/shop with a
+dummy Vassal and settlement. Choose a node family or signature, dummy class,
+Prestige, age and stats, then **Refresh contents**. The real game modal supports
+card quick reads/full inspection, staging, drag placement, undo, shop reroll and
+Confirm. **Open node** reopens it after closing or confirming. **Resolve outcome**
+advances the dummy through real simulation ticks, including costs and danger.
+
+Refresh resets the complete mock setup and staged changes. Identical settings
+and **Refresh seed** reproduce identical contents; **Next seed** increments the
+seed and refreshes. The in-game reroll retains its own costs and limits. The
+Fullscreen control supports mobile landscape. This workspace exists only in
+Gym and does not alter its settlement timeline, Zoo, Museum or player saves.
+Verify with `npm run verify` and `npm run probe:development-lab -- --nodes-only`;
+the full Development Lab probe includes the same node checks.
+
 ## Card reviewer
 
 **Card reviewer** sits alongside Zoo. **Review card** flags any Zoo Practice or

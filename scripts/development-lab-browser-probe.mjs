@@ -4,6 +4,7 @@ import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
+import {checkNodeSandbox} from './node-sandbox-browser-checks.mjs';
 const port=18889,url=`http://127.0.0.1:${port}`,artifact='artifacts/development-lab-browser-probe.json';
 mkdirSync('artifacts',{recursive:true});
 const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
@@ -14,6 +15,16 @@ try {
   const context=await browser.newContext({viewport:{width:1280,height:800}});
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   page=await context.newPage();
+  if(process.argv.includes('--nodes-only')) {
+    await page.goto(`${url}/#/dev/gym`);
+    await page.getByTestId('lab-workspace-node').waitFor();
+    await checkNodeSandbox(page,context);
+    assert.deepEqual(errors,[]);
+    checks.push('Gym-only nodes, seeded refresh, inspection, staging/drag/undo, Confirm/outcomes and mobile touch/fullscreen');
+    writeFileSync(artifact,JSON.stringify({ok:true,checks,errors},null,2));
+    console.log('[probe:development-lab] OK: node sandbox desktop/mobile');
+    process.exitCode=0;
+  } else {
   await page.goto(`${url}/#/dev/zoo`);
   await page.getByRole('heading',{name:'Development Lab',exact:true}).waitFor();
   await page.getByLabel('Search runtime content').fill('smelting');
@@ -310,6 +321,8 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'no page-level horizontal overflow');
   await page.setViewportSize({width:1280,height:800});
   await page.evaluate(()=>localStorage.setItem('civsurvivor.save.slot1','sentinel-original-save'));
+  await checkNodeSandbox(page,context);
+  checks.push('Gym-only node sandbox, real inspection/stage/drag/undo/Confirm, seeded refresh, structure shop, outcome ticks and mobile touch/fullscreen');
   const playPromise=context.waitForEvent('page');
   await page.getByTestId('lab-play').click();
   const play=await playPromise;
@@ -338,6 +351,7 @@ try {
   assert.deepEqual(errors,[]);
   writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
   console.log('[probe:development-lab] OK: catalogue, exhibits, sandbox, desktop/mobile and both bridges');
+  }
   }
 } catch(e) {
   await page?.screenshot({path:'artifacts/development-lab-failure.png'}).catch(()=>{});
