@@ -17,12 +17,12 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
 const DEFAULT_WEIGHTS = Object.freeze({
-  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 2]),
-  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 4]),
-  late: Object.freeze([1, 2, 2, 4, 4, 4, 5, 3]),
+  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0, 0.25, 0.25]),
+  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 4, 0, 0, 0, 0, 0, 0.5, 0.5]),
+  late: Object.freeze([1, 2, 2, 4, 4, 4, 5, 3, 0, 0, 0, 0, 0, 1, 1]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 3;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 4;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {

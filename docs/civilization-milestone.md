@@ -52,6 +52,13 @@ first-pass system notes below retain their original tuning context.
   requires no conquest. That life retains its founder identity. Successors are
   unclassed or of the established class, and founders never recur. Introducing
   other classes through another mechanic remains deferred.
+- Practice Reform, Public Works, and tagged card shops offer two cards from the
+  Vassal's class and one Common (neutral) card when eligible pools permit. Thin
+  pools fill remaining slots with eligible cards; unclassed Vassals see Common
+  cards. Merchant's Lens adds a class offer where available. Less frequent
+  Neutral Market and Class Market nodes mix Practices and Structures exclusively
+  from their advertised pool; unclassed Life Maps replace Class Markets with
+  Neutral Markets. Rerolls preserve these rules.
 
 ## Systems implemented in the first pass
 

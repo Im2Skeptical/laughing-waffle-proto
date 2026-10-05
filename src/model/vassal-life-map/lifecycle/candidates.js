@@ -235,6 +235,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   // Custom generator weights must not grant another class's actions.
   const classFamilies = { training: null, commission: 'scholar', discovery: 'scholar', campaign: 'warrior', challenge: 'warrior' };
   for (const node of ordinary) {
+    if (node.family === "classMarket" && !lifeClassId) node.family = "neutralMarket";
     if (Object.hasOwn(classFamilies, node.family)
         && (!lifeClassId || (classFamilies[node.family] && classFamilies[node.family] !== lifeClassId))) {
       node.family = 'development';

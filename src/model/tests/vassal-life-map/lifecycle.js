@@ -67,6 +67,18 @@ assert.deepEqual(
   [5, 5, 5, 1, 1, 1, 0, 2]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
+for (const band of ["early", "mid", "late"]) {
+  for (const family of ["neutralMarket", "classMarket"]) {
+    assert.ok(generatorConfig.weights[band][family] > 0,
+      `${family} occurs in authored ${band} Life Maps`);
+    assert.ok(generatorConfig.weights[band][family] < generatorConfig.weights[band].practiceReform,
+      "dedicated markets are less frequent than standard card shops");
+  }
+}
+const oldGeneratorSave = serializeGameState(isolatedMapState);
+oldGeneratorSave.gameConfig.lifeMapGenerator.schemaVersion = 3;
+assert.throws(() => deserializeGameState(oldGeneratorSave), /lifeMapGenerator.schemaVersion/,
+  "obsolete generator settings are rejected at the save boundary");
 const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
 const generatedB = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
 assert.equal(generatedA.ok, true);

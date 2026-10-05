@@ -158,6 +158,8 @@ for (const variantId of ["settlement", "monsterHunt", "removePractice", "foodSho
 }
 const ordinaryFamilyState = selectedState(2203);
 assert.ok(getVassalLifeMapNodes(getCurrentLifeMapVassal(ordinaryFamilyState))
+  .every((node) => node.family !== "classMarket"), "unclassed Life Maps do not offer Class Markets");
+assert.ok(getVassalLifeMapNodes(getCurrentLifeMapVassal(ordinaryFamilyState))
   .every((node) => node.family !== "settlement"), "Settlement is absent from ordinary family rolls");
 
 const branchVassal = {

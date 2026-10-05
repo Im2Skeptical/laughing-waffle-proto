@@ -37,6 +37,14 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       polygon([-9,-25,1,-32,28,-11,18,1,7,-10,2,-6,-9,-16]);
       line([-20,22,-14,27],4,accent);
       break;
+    case 'neutralMarket': // Market stall with an open counter.
+    case 'classMarket':
+      polygon([-30,-10,-23,-29,23,-29,30,-10,24,-3,-24,-3]);
+      line([-23,-3,-23,27,23,27,23,-3]);
+      line([-23,12,23,12],4,accent);
+      if (kind === 'classMarket') polygon([-8,4,0,-6,8,4,0,14]);
+      else line([-8,3,8,3],4,accent);
+      break;
     case 'routes': // Bridge with a visible arch and piers.
       polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);
       line([-29,-3,29,-3],4,accent);

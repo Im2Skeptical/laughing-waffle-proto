@@ -33,7 +33,8 @@ import {
 } from "./selectors.js";
 import { getShopOfferCount } from "./heirlooms.js";
 
-export const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]);
+export const CARD_SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "neutralMarket", "classMarket"]);
+export const SHOP_FAMILIES = new Set([...CARD_SHOP_FAMILIES, "routes"]);
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 
 function qualityLabel(tier) { return `${tier[0].toUpperCase()}${tier.slice(1)}`; }
@@ -86,37 +87,6 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
     ...(action.qualityBonus ? {qualityBonus:action.qualityBonus} : {}) } };
 }
 
-function buildPracticeOffers(state, vassal, nodeState, roll) {
-  const reservation = buildReservation(state, vassal, nodeState);
-  const offers = [];
-  for (const practiceId of shuffle(state, VASSAL_INTERVENTION_PRACTICE_IDS)) {
-    if (offers.length >= getShopOfferCount(vassal, nodeState.family)) break;
-    const def = getDetailedPracticeDef(state, practiceId);
-    if (!def || !isDefinitionUnlocked(state, def, nodeState) || !["common", vassal.classId].includes(def.pool)) continue;
-    const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
-    if (installed?.tier === "diamond") continue;
-    const tier = installed?.tier ?? "bronze";
-    const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
-    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat() < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05) ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
-    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
-    if (!resultingTier) continue;
-    const intervention = {
-      kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
-      mode: installed ? "upgrade" : "learn", tier, resultingTier,
-    };
-    offers.push({
-      offerId: `${nodeState.nodeId}:r${roll}:practice:${offers.length}`,
-      label: installed
-        ? `Upgrade ${def.label} ${tier[0].toUpperCase()}${tier.slice(1)} → ${resultingTier[0].toUpperCase()}${resultingTier.slice(1)}`
-        : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
-      basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-      basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-      intervention,
-    });
-  }
-  return offers;
-}
-
 function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, category = 'structure') {
   const def = getDetailedStructureDef(state, structureId);
   const tier = def.minimumQuality ?? 'bronze';
@@ -132,57 +102,70 @@ function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, 
   };
 }
 
-function buildStructureOffers(state, vassal, nodeState, roll) {
-  return shuffle(state, Object.keys(settlementStructureDefs))
-    .filter(id => isDefinitionUnlocked(state, getDetailedStructureDef(state, id), nodeState) && ["common", vassal.classId].includes(getDetailedStructureDef(state,id).pool))
-    .slice(0, getShopOfferCount(vassal, nodeState.family))
-    .map((id, index) => makeStructureOffer(state, vassal, nodeState, roll, id, index));
+// Partition eligible cards before quality rolls so every inventory and reroll
+// keeps its advertised pool mix without consuming randomness for rejected cards.
+function selectShopCandidates(state, vassal, nodeState, candidates) {
+  const count = getShopOfferCount(vassal, nodeState.family);
+  const shuffled = shuffle(state, candidates);
+  const common = shuffled.filter(candidate => candidate.pool === "common");
+  const specific = vassal.classId
+    ? shuffled.filter(candidate => candidate.pool === vassal.classId) : [];
+  if (nodeState.family === "neutralMarket") return common.slice(0, count);
+  if (nodeState.family === "classMarket") return specific.slice(0, count);
+  if (!vassal.classId) return common.slice(0, count);
+  const selected = [...specific.slice(0, count - 1), ...common.slice(0, 1)];
+  // Thin tagged/unlocked pools can fall back to the other eligible pool.
+  const remaining = shuffled.filter(candidate => !selected.includes(candidate));
+  return [...selected, ...remaining.slice(0, count - selected.length)];
 }
 
-function buildTaggedOffers(state, vassal, nodeState, roll, requiredTag) {
+function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null } = {}) {
   const reservation = buildReservation(state, vassal, nodeState);
-  const candidates = [
-    ...VASSAL_INTERVENTION_PRACTICE_IDS.flatMap((practiceId) => {
-      const def = getDetailedPracticeDef(state, practiceId);
-      return def && ["common",vassal.classId].includes(def.pool) && isDefinitionUnlocked(state, def, nodeState) && (def.tags ?? []).includes(requiredTag)
-        ? [{ kind: "practice", definitionId: practiceId }] : [];
-    }),
-    ...Object.keys(settlementStructureDefs).flatMap((structureId) => {
-      const def = settlementStructureDefs[structureId];
-      return ["common",vassal.classId].includes(def.pool) && isDefinitionUnlocked(state, def, nodeState) && (def.tags ?? []).includes(requiredTag)
-        ? [{ kind: "structure", definitionId: structureId }] : [];
-    }),
-  ];
-  const offers = [];
-  for (const candidate of shuffle(state, candidates)) {
-    if (offers.length >= getShopOfferCount(vassal, nodeState.family)) break;
-    if (candidate.kind === "practice") {
-      const practiceId = candidate.definitionId;
-      const def = getDetailedPracticeDef(state, practiceId);
-      const installed = reservation.practiceSlots.find((slot) => slot?.practiceId === practiceId);
-      if (installed?.tier === "diamond") continue;
-      const tier = installed?.tier ?? "bronze";
-      const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
-    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat() < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05) ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
-      const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
-      if (!resultingTier) continue;
-      const intervention = {
-        kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
-        mode: installed ? "upgrade" : "learn", tier, resultingTier,
-      };
-        offers.push({
-        offerId: `${nodeState.nodeId}:r${roll}:tag:${offers.length}`,
-        label: installed ? `Upgrade ${def.label} ${qualityLabel(tier)} → ${qualityLabel(resultingTier)}`
-          : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
-        basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
-        basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
-        intervention,
-      });
-    } else {
-      offers.push(makeStructureOffer(state, vassal, nodeState, roll, candidate.definitionId, offers.length, 'tag'));
+  const candidates = [];
+  const addCandidate = (cardKind, definitionId, def) => {
+    if (!def || !["common", vassal.classId].includes(def.pool)
+        || !isDefinitionUnlocked(state, def, nodeState)
+        || (requiredTag && !(def.tags ?? []).includes(requiredTag))) return;
+    if (cardKind === "practice" && reservation.practiceSlots.some(slot =>
+      slot?.practiceId === definitionId && slot.tier === "diamond")) return;
+    candidates.push({ kind: cardKind, definitionId, pool: def.pool });
+  };
+  if (kind !== "structure") {
+    for (const id of VASSAL_INTERVENTION_PRACTICE_IDS) {
+      addCandidate("practice", id, getDetailedPracticeDef(state, id));
     }
   }
-  return offers;
+  if (kind !== "practice") {
+    for (const id of Object.keys(settlementStructureDefs)) {
+      addCandidate("structure", id, getDetailedStructureDef(state, id));
+    }
+  }
+  return selectShopCandidates(state, vassal, nodeState, candidates).map((candidate, index) => {
+    const category = requiredTag ? "tag" : candidate.kind;
+    if (candidate.kind === "structure") {
+      return makeStructureOffer(state, vassal, nodeState, roll, candidate.definitionId, index, category);
+    }
+    const practiceId = candidate.definitionId;
+    const def = getDetailedPracticeDef(state, practiceId);
+    const installed = reservation.practiceSlots.find(slot => slot?.practiceId === practiceId);
+    const tier = installed?.tier ?? "bronze";
+    const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
+    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat()
+      < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05)
+      ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
+    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
+    return {
+      offerId: `${nodeState.nodeId}:r${roll}:${category}:${index}`,
+      label: installed ? `Upgrade ${def.label} ${qualityLabel(tier)} → ${qualityLabel(resultingTier)}`
+        : `Learn ${qualityLabel(resultingTier)} ${def.label}`,
+      basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
+      basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
+      intervention: {
+        kind: "practice", targetRegionId: vassal.locationRegionId, practiceId,
+        mode: installed ? "upgrade" : "learn", tier, resultingTier,
+      },
+    };
+  });
 }
 
 function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
@@ -242,20 +225,23 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
 }
 
 export function generateShopInventory(state, vassal, nodeState) {
-  if (vassal.discoveryAccess && (nodeState.family==='practiceReform'||nodeState.family==='publicWorks'||nodeState.signatureNode?.groupId==='tagShop')) {
+  if (vassal.discoveryAccess && (CARD_SHOP_FAMILIES.has(nodeState.family)
+      || nodeState.signatureNode?.groupId === "tagShop")) {
     nodeState.discoveryAccess=true;
     delete vassal.discoveryAccess;
   }
   const roll = Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0));
   const offers = nodeState.signatureNode?.groupId === "tagShop"
-    ? buildTaggedOffers(state, vassal, nodeState, roll, nodeState.signatureNode.tag)
+    ? buildCardOffers(state, vassal, nodeState, roll, { requiredTag: nodeState.signatureNode.tag })
     : nodeState.signatureNode?.groupId === "removal"
       ? buildRemovalOffers(state, vassal, nodeState, roll, nodeState.signatureNode.removalKind)
       : nodeState.family === "practiceReform"
-    ? buildPracticeOffers(state, vassal, nodeState, roll)
+    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice" })
     : nodeState.family === "publicWorks"
-      ? buildStructureOffers(state, vassal, nodeState, roll)
-      : buildRouteOffers(state, vassal, nodeState, roll);
+      ? buildCardOffers(state, vassal, nodeState, roll, { kind: "structure" })
+      : ["neutralMarket", "classMarket"].includes(nodeState.family)
+        ? buildCardOffers(state, vassal, nodeState, roll)
+        : buildRouteOffers(state, vassal, nodeState, roll);
   const local=getDetailedSettlement(state,vassal.locationRegionId);
   const bonus=vassal.classId==='scholar' && offers.some(o=>['practice','structure'].includes(o.intervention?.kind)) ? local?.shopQualityBonus??0 : 0;
   if (bonus) {

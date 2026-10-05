@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
-import { serializeGameState } from "../../state.js";
+import { deserializeGameState, serializeGameState } from "../../state.js";
 import { getResearchProgression } from '../../research-progression.js';
 import {
   getCurrentLifeMapVassal,
@@ -11,6 +11,7 @@ import { getDetailedPracticeDef, getDetailedStructureDef } from "../../game-conf
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../../defs/gamepieces/vassal-life-map-defs.js";
 import { appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond } from "../../timeline/index.js";
+import { advanceReplayStateToSecond, initializeReplayClock } from "../../replay-second-runner.js";
 import {
   dispatch,
   forceEnter,
@@ -20,6 +21,122 @@ import {
   selectedState,
   selectedStateForSignature,
 } from "./helpers.js";
+
+function offerDefinition(state, offer) {
+  const action = offer.intervention;
+  return action.kind === "practice"
+    ? getDetailedPracticeDef(state, action.practiceId)
+    : getDetailedStructureDef(state, action.structureId);
+}
+
+for (const classId of [null, "scholar", "warrior"]) {
+  for (const research of [0, 100000]) {
+    for (const family of ["practiceReform", "publicWorks", "neutralMarket", "classMarket"]) {
+      if (!classId && family === "classMarket") continue;
+      for (const seed of [102, 409, 1602]) {
+        const state = selectedState(seed);
+        const vassal = getCurrentLifeMapVassal(state);
+        vassal.classId = classId;
+        vassal.prestige = 500;
+        state.civilization.research.total = research;
+        const nodeId = nodeIdForFamily(state, family);
+        vassal.lifeMap.availableNodeIds = [nodeId];
+        const timeline = createTimelineFromInitialState(state);
+        const act = (kind, payload) => {
+          assert.equal(appendActionAtCursor(timeline, { kind, payload, tSec: state.tSec }, state).ok, true);
+          dispatch(state, kind, payload);
+        };
+        act(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId });
+        const shop = vassal.lifeMap.nodeStates[nodeId];
+        const checkInventory = () => {
+          const pools = shop.inventory.map(offer => offerDefinition(state, offer).pool);
+          const commonCount = !classId || family === "neutralMarket" ? 3 : family === "classMarket" ? 0 : 1;
+          assert.equal(pools.length, 3, `${classId}/${family}: three offers`);
+          assert.equal(pools.filter(pool => pool === "common").length, commonCount,
+            `${classId}/${family}: advertised neutral count`);
+          assert.ok(pools.every(pool => pool === "common" || pool === classId));
+          if (["practiceReform", "publicWorks"].includes(family)) {
+            assert.ok(shop.inventory.every(offer => offer.intervention.kind ===
+              (family === "practiceReform" ? "practice" : "structure")));
+          }
+          const identities = shop.inventory.map(offer => `${offer.intervention.kind}:${offerDefinition(state, offer).id}`);
+          assert.equal(new Set(identities).size, 3, "no duplicate cards in an inventory");
+          assert.equal(getVassalNodeDecisionPresentation(state, nodeId).contextKind, "settlement");
+        };
+        checkInventory();
+        const restored = deserializeGameState(serializeGameState(state));
+        act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+        dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+        checkInventory();
+        assert.deepEqual(serializeGameState(restored), serializeGameState(state),
+          "saved shops reroll identically after reload");
+        const replay = rebuildStateAtSecond(timeline, state.tSec);
+        assert.equal(replay.ok, true);
+        assert.deepEqual(serializeGameState(replay.state).civilization, serializeGameState(state).civilization,
+          "entry and reroll match authoritative replay");
+        assert.deepEqual(replay.state.rng, state.rng);
+        if (seed === 102 && research === 0 && ["neutralMarket", "classMarket"].includes(family)) {
+          // Both card kinds use the usual draft, checkout, and replay paths.
+          for (const kind of ["practice", "structure"]) {
+            const def = shop.inventory.find(offer => offer.intervention.kind === kind);
+            if (!def) continue;
+            act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId: def.offerId });
+          }
+          act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId });
+          const resolveSec = vassal.lifeMap.pendingResolution.resolveSec;
+          initializeReplayClock(state, state.tSec);
+          assert.equal(advanceReplayStateToSecond(state, resolveSec).ok, true);
+          const purchasedReplay = rebuildStateAtSecond(timeline, state.tSec);
+          assert.equal(purchasedReplay.ok, true);
+          assert.deepEqual(serializeGameState(purchasedReplay.state).civilization, serializeGameState(state).civilization);
+          assert.deepEqual(purchasedReplay.state.rng, state.rng);
+        }
+      }
+    }
+  }
+}
+
+for (const classId of ["scholar", "warrior"]) {
+  for (const variantId of ["foodShop", "knowledgeShop", "housingShop"]) {
+    const state = selectedState(102);
+    const vassal = getCurrentLifeMapVassal(state);
+    vassal.classId = classId;
+    state.civilization.research.total = 100000;
+    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === "signature");
+    node.signatureNode = { ...VASSAL_SIGNATURE_NODE_VARIANTS[variantId], variantId };
+    const shop = forceEnter(state, node.id);
+    assert.equal(shop.inventory.length, 3);
+    const eligibleClassCount = [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]
+      .filter(def => def.pool === classId && def.tags.includes(node.signatureNode.tag)).length;
+    const classCount = Math.min(2, eligibleClassCount);
+    assert.equal(shop.inventory.filter(offer => offerDefinition(state, offer).pool === classId).length, classCount,
+      `${classId}/${variantId}: class quota uses the available tagged pool`);
+    assert.equal(shop.inventory.filter(offer => offerDefinition(state, offer).pool === "common").length, 3 - classCount);
+    assert.ok(shop.inventory.every(offer => offerDefinition(state, offer).tags.includes(node.signatureNode.tag)));
+  }
+}
+
+const extraState = selectedState(102);
+const extraVassal = getCurrentLifeMapVassal(extraState);
+extraVassal.classId = "scholar";
+extraVassal.heirlooms.equipped[0] = {
+  instanceId: "extra-offer", definitionId: "merchantsLens", inheritanceState: "unmarked", protectionSpent: false,
+};
+const extraShop = forceEnter(extraState, nodeIdForFamily(extraState, "practiceReform"));
+assert.equal(extraShop.inventory.length, 4, "Merchant's Lens keeps its additional offer");
+assert.equal(extraShop.inventory.filter(offer => offerDefinition(extraState, offer).pool === "common").length, 1);
+
+// Exhausted eligible class pools use legal neutral cards without duplicating or
+// offering another class, and fully upgraded Practices remain excluded.
+const thinState = selectedState(102);
+const thinVassal = getCurrentLifeMapVassal(thinState);
+thinVassal.classId = "scholar";
+for (const def of Object.values(thinState.gameConfig.gamepieces.practices)) {
+  if (def.pool === "scholar") def.minimumQuality = "diamond";
+}
+const thinShop = forceEnter(thinState, nodeIdForFamily(thinState, "practiceReform"));
+assert.equal(thinShop.inventory.length, 3);
+assert.ok(thinShop.inventory.every(offer => offerDefinition(thinState, offer).pool === "common"));
 
 function addsHousing(def) {
   return def.housing > 0 || (def.effects ?? []).some(effect =>

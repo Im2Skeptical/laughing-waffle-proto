@@ -26,11 +26,19 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   }),
   practiceReform: Object.freeze({
     id: "practiceReform", label: "Practice Reform", glyph: "PR", color: 0xa46fc4,
-    description: "Add or replace a Practice at this Vassal's current settlement.",
+    description: "Offer two class Practices and one neutral Practice at this Vassal's current settlement.",
   }),
   publicWorks: Object.freeze({
     id: "publicWorks", label: "Public Works", glyph: "PW", color: 0xd17e68,
-    description: "Build a Structure at this Vassal's current settlement.",
+    description: "Offer two class Structures and one neutral Structure at this Vassal's current settlement.",
+  }),
+  neutralMarket: Object.freeze({
+    id: "neutralMarket", label: "Neutral Market", glyph: "NM", color: 0xc7974e,
+    description: "Offer only neutral Practices and Structures.",
+  }),
+  classMarket: Object.freeze({
+    id: "classMarket", label: "Class Market", glyph: "CM", color: 0x5e9bcf,
+    description: "Offer only Practices and Structures from this Vassal's class.",
   }),
   routes: Object.freeze({
     id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
@@ -76,6 +84,7 @@ export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
   "publicWorks", "routes", "crisis", "relic", "training", "commission", "discovery", "campaign", "challenge",
+  "neutralMarket", "classMarket",
 ]);
 
 export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([

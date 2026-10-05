@@ -31,6 +31,7 @@ import {
   presentHeirloom,
 } from "./heirlooms.js";
 import {
+  CARD_SHOP_FAMILIES,
   isShopNodeState,
   prepareStructurePlacement,
   validatePurchaseInterventions,
@@ -393,7 +394,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       : nodeState?.signatureNode?.removalKind === "connection"
         || nodeState?.signatureNode?.variantId === "settlement"
         ? "regionalMap"
-        : ["practiceReform", "publicWorks"].includes(nodeState?.family)
+        : CARD_SHOP_FAMILIES.has(nodeState?.family)
       ? "settlement"
       : ["travel", "routes"].includes(nodeState?.family)
         ? "regionalMap"
