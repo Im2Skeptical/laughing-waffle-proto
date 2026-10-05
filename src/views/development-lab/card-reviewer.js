@@ -167,7 +167,8 @@ export function createCardReviewerView({review, cards, getState, run}) {
       activeGroup=id;fillEditor(id);
       editorTitle.textContent=groups[id].label;
       editor.hidden=false;editor.setAttribute('aria-label',`Edit ${groups[id].label}`);
-      editor.querySelector('input,select,[data-pick]')?.focus({preventScroll:true});
+      const focus=id==='stock'||id==='schedule'?(editor.querySelector('[data-pick][aria-pressed=true]')??editor.querySelector('[data-pick]')):editor.querySelector('input,select');
+      focus?.focus({preventScroll:true});
       editor.scrollIntoView({block:'nearest',behavior:'smooth'});
     }
     function sections(regions) {

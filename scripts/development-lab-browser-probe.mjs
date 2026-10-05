@@ -147,6 +147,7 @@ try {
   await page.getByRole('button',{name:'Edit Stock capacity & traits',exact:true}).click();
   const editor=page.locator('.review-inline-editor');
   assert.equal(await editor.locator('[data-pick]').count(),36,'all Stock icons are available');
+  assert.ok(await editor.locator('[data-pick]:focus').count(),'opening an icon tray focuses a choice without bringing up the phone keyboard');
   const imageBefore=await page.locator('.review-face>img').first().getAttribute('src');
   for(const tag of ['Plant','Water','Grain','Wild'])await editor.getByRole('button',{name:`Stock tag: ${tag}`,exact:true}).click();
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Wild',exact:true}).getAttribute('aria-pressed'),'false');
