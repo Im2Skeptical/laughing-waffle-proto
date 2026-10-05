@@ -280,6 +280,7 @@ export function createSettlementDebugMenuDom({
 
   function open() {
     panel.style.display = "block";
+    utilityControls.classList.add('workshop-open');
     openButton.style.display = "none";
     startNewRunButton.style.display = "";
     closeButton.style.display = "";
@@ -288,6 +289,7 @@ export function createSettlementDebugMenuDom({
 
   function close() {
     panel.style.display = "none";
+    utilityControls.classList.remove('workshop-open');
     openButton.style.display = "";
     startNewRunButton.style.display = "none";
     closeButton.style.display = "none";

@@ -5,7 +5,7 @@ import { createGameSessionController } from "../controllers/game-session-control
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
-import { createResearchLibraryDom } from './research-library-dom.js';
+import { createResearchLibraryView } from './research-library-pixi.js';
 import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
 import { prepareChronicleArt } from './chronicle-art.js';
 import { createChronicleFrame } from './chronicle-skin.js';
@@ -870,7 +870,12 @@ function selectWorldMapRegion(regionId) {
   return true;
 }
 
-const researchLibrary = createResearchLibraryDom({
+const researchLayer = new PIXI.Container();
+app.stage.addChild(researchLayer);
+app.stage.setChildIndex(tooltipLayer, app.stage.children.length - 1);
+const researchLibrary = createResearchLibraryView({
+  layer: researchLayer,
+  tooltipView,
   getState: () => getSettlementViewedState(),
   onOpen: () => {
     tooltipView?.hide?.();
@@ -1438,7 +1443,7 @@ function isTypingTarget(target) {
 }
 
 function handleGlobalKeyDown(ev) {
-  if (researchLibrary.isOpen()) return;
+  if (researchLibrary.isOpen()) { researchLibrary.handleKeyDown(ev); return; }
   if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
@@ -1498,6 +1503,7 @@ function publishSettlementDebugApi() {
       presentationTimeSec: getSettlementVisualTime(),
       audio: timelineAudio.getSnapshot(),
       lifeDecisionProcessing: lifeDecisionController.getStatus(),
+      researchLibrary: researchLibrary.getSemanticSnapshot(),
     }),
     getLifeMapPresentation: () => {
       const presentation = getSettlementLifeMapPresentation();
@@ -1722,6 +1728,7 @@ if (location.hash.startsWith('#/dev/play')) {
 }
 
 app.ticker.add((delta) => {
+  if (researchLibrary.isOpen()) { researchLibrary.update(); tooltipView.update(); }
   if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden || researchLibrary.isOpen()) {
     nodeResolutionDiagnostics.suspend();
     timelineAudio.update(0);

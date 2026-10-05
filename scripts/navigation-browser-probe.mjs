@@ -145,9 +145,6 @@ async function checkCancelledPress() {
 
 async function capture(name) {
   await page.mouse.move(1200, 100);
-  if (name.startsWith('research-')) await page.waitForFunction(() => [...document.querySelectorAll('.research-card-art')]
-    .filter(image => { const rect = image.getBoundingClientRect(); return rect.width && rect.top < innerHeight && rect.bottom > 0; })
-    .every(image => image.complete && image.naturalWidth > 0));
   await page.screenshot({ path: `${OUTPUT}/${name}.png` });
   const s = await snapshot();
   assertThumbLayout(s);
@@ -158,48 +155,118 @@ async function checkResearchLibrary(touch = false) {
   const before = await snapshot();
   const open = page.getByTestId('research-open');
   if (touch) await open.tap(); else await open.click();
-  const library = page.getByTestId('research-library');
-  await library.waitFor({ state: 'visible' });
-  assert.equal(await library.locator('.research-card').count(), 187, 'the full Practice/Structure pool is browsable');
-  assert.equal(await library.locator('.research-tier-section').count(), 4, 'tiers are the primary grouping');
-  assert.equal(await library.locator('.research-tier-stat[data-tier="bronze"] .research-odds').innerText(), '100%');
-  assert.equal(await library.locator('.research-tier-stat[data-tier="diamond"] .research-odds').innerText(), '0%');
+  const library = () => page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary);
+  const tooltip = () => page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
+  const press = async id => {
+    const point = (await library()).controls.find(control => control.id === id);
+    assert.ok(point, `Research control ${id} is available`);
+    await clickPoint(point, { touch });
+  };
+  const choose = async (id, value) => {
+    await press(`filter:${id}`);
+    for (let pageIndex = 0; pageIndex < 8; pageIndex++) {
+      if ((await library()).menu.options.some(option => option.value === value)) { await press(`option:${value}`); return; }
+      await press('menu:next');
+    }
+    throw new Error(`Research option ${value} was not found`);
+  };
+  const search = async value => {
+    await press('search');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(value);
+  };
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary.open);
+  let research = await library();
+  assert.equal(research.renderer, 'pixi');
+  assert.equal(await page.locator('.research-library').count(), 0, 'the library is rendered on the game canvas');
+  assert.equal(research.totalCards, 187, 'the full Practice/Structure pool is browsable');
+  assert.equal(research.filteredCount, 187);
+  assert.equal(research.tiers.length, 4, 'tiers are the primary grouping');
+  assert.equal(research.tiers[0].chance, 1);
+  assert.equal(research.tiers[3].chance, 0);
+  assert.ok(research.visibleCards.length < 20, 'the full library renders only visible rows');
+  for (const card of research.visibleCards.filter(card => card.kind === 'practice')) {
+    assert.ok(Math.abs(card.faceSize.width - 271.2) < .01, 'Practice width matches the regional map');
+    assert.ok(Math.abs(card.faceSize.height - 379.68) < .01, 'Practice height matches the regional map');
+  }
   const suffix = touch ? '844x390' : '1280x800';
   await capture(`research-library-${suffix}`);
-  await library.evaluate(node => { node.scrollTop = node.querySelector('.research-tier-heading').offsetTop - 100; });
-  await capture(`research-cards-${suffix}`);
-  assert.equal(await library.evaluate(node => node.scrollWidth > node.clientWidth), false, 'the library has no horizontal overflow');
-  await page.getByTestId('research-filter-pool').selectOption('scholar');
-  await page.getByTestId('research-filter-kind').selectOption('charge');
-  await page.getByTestId('research-filter-availability').selectOption('locked');
-  assert.ok(await library.locator('.research-card').count() > 0, 'combined filters retain matching cards');
-  assert.equal(await library.locator('.research-card[data-kind="structure"]').count(), 0);
-  assert.ok((await library.locator('.research-card-pool').allTextContents()).every(label => label === 'Scholar'));
-  await library.getByRole('button', { name: 'Clear filters' }).click();
-  await page.getByTestId('research-filter-trait').selectOption('Housing');
-  assert.ok(await library.locator('.research-card').count() > 0, 'trait filtering exposes housing content');
-  await library.getByRole('button', { name: 'Clear filters' }).click();
-  await page.getByTestId('research-search').fill('timber house');
-  assert.equal(await library.locator('.research-card').count(), 1, 'multiword search locates a card');
-  await library.locator('.research-card').click();
-  await library.locator('.research-detail').waitFor({ state: 'visible' });
-  assert.equal(await library.locator('.research-detail h2').innerText(), 'Timber House');
-  assert.match(await library.locator('.research-detail-copy').innerText(), /60 Housing Capacity/);
+  if (!touch) {
+    const card = research.visibleCards[0], box = await page.locator('canvas').boundingBox();
+    await page.mouse.move(box.x + card.point.x / 2424 * box.width, box.y + card.point.y / 1080 * box.height);
+    await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().visible);
+    const hover = await tooltip();
+    assert.equal(hover.title, card.label);
+    assert.equal(hover.expanded, false, 'hover uses the standard quick rules tooltip');
+    assert.ok(hover.reading.effects.length > 0);
+    await page.screenshot({ path: `${OUTPUT}/research-hover-${suffix}.png` });
+  }
+  await choose('pool', 'scholar');
+  await choose('kind', 'charge');
+  await choose('availability', 'locked');
+  research = await library();
+  assert.ok(research.filteredCount > 0, 'combined filters retain matching cards');
+  assert.ok(research.visibleCards.every(card => card.kind === 'practice' && card.pool === 'scholar'));
+  await press('clear');
+  await choose('trait', 'Housing');
+  assert.ok((await library()).filteredCount > 0, 'trait filtering exposes housing content');
+  await press('clear');
+  await search('timber house');
+  assert.equal((await library()).filteredCount, 1, 'multiword search locates a card');
+  const timber = (await library()).visibleCards[0];
+  assert.ok(Math.abs(timber.faceSize.width - 136.5) < .01, 'Structure cell width matches the regional map');
+  assert.ok(Math.abs(timber.faceSize.height - 182) < .01, 'Structure height matches the regional map');
+  await clickPoint(timber.point, { touch });
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().pinned);
+  if (touch) {
+    assert.equal((await tooltip()).expanded, false, 'touch first pins the standard quick read');
+    await clickPoint((await tooltip()).titlePoint, { touch: true });
+  }
+  const inspection = await tooltip();
+  assert.equal(inspection.expanded, true, 'selection opens the shared larger inspection');
+  assert.equal(inspection.title, 'Timber House');
+  assert.ok(inspection.reading.effects.some(effect => /60 Housing Capacity/.test(effect.text)));
+  assert.ok(inspection.glossary.length > 0, 'the shared symbol glossary remains available');
   await capture(`research-inspection-${suffix}`);
   await page.keyboard.press('Escape');
-  assert.equal(await library.locator('.research-detail').isVisible(), false, 'Escape returns from card details to the filtered library');
-  assert.equal(await library.locator('.research-card').count(), 1, 'inspection preserves the filters');
-  await page.getByTestId('research-search').fill('no-matching-card-xyz');
-  assert.equal(await library.locator('.research-card').count(), 0, 'an empty search does not show unrelated cards');
-  await library.getByRole('button', { name: 'Clear filters' }).click();
-  assert.equal(await library.locator('.research-card').count(), 187);
+  assert.equal((await tooltip()).pinned, false);
+  assert.equal((await library()).open, true, 'Escape closes inspection while keeping the library open');
+  assert.equal((await library()).filteredCount, 1, 'inspection preserves the filters');
+  await search('no-matching-card-xyz');
+  assert.equal((await library()).filteredCount, 0, 'an empty search does not show unrelated cards');
+  await press('clear');
+  assert.equal((await library()).filteredCount, 187);
+  if (touch) {
+    const cdp = await page.context().newCDPSession(page), box = await page.locator('canvas').boundingBox();
+    const toCss = (x,y) => ({x:box.x+x/2424*box.width,y:box.y+y/1080*box.height,id:1});
+    const a=toCss(190,930), b=toCss(190,650);
+    await cdp.send('Input.dispatchTouchEvent', {type:'touchStart',touchPoints:[a]});
+    await cdp.send('Input.dispatchTouchEvent', {type:'touchMove',touchPoints:[b]});
+    await cdp.send('Input.dispatchTouchEvent', {type:'touchEnd',touchPoints:[]});
+    await cdp.detach();
+    assert.ok((await library()).scroll > 0, 'touch drag scrolls the card pool');
+    assert.equal((await tooltip()).pinned, false, 'scrolling a card does not inspect it');
+    await delay(350);
+    await clickPoint((await library()).visibleCards[0].point, {touch:true});
+    assert.equal((await tooltip()).pinned, true, 'a card can be selected with one tap after scrolling');
+    await page.keyboard.press('Escape');
+  } else {
+    const box = await page.locator('canvas').boundingBox();
+    await page.mouse.move(box.x+200/2424*box.width,box.y+750/1080*box.height);
+    await page.mouse.wheel(0,300);
+    await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary.scroll > 0);
+  }
+  await press('tier:gold');
+  assert.ok((await library()).visibleCards.every(card => card.tier === 'gold'), 'tier rail jumps to its card group');
+  await capture(`research-gold-${suffix}`);
   const held = await snapshot();
   assert.deepEqual(held.timeline, before.timeline, 'library browsing preserves the timeline');
   assert.equal(held.frontierSec, before.frontierSec, 'library browsing holds simulation time');
   assert.equal(held.viewedSec, before.viewedSec, 'library browsing holds the viewed second');
   assert.deepEqual(held.lineage, before.lineage, 'library browsing preserves the lineage');
-  if (touch) await page.getByTestId('research-close').tap(); else await page.keyboard.press('Escape');
-  assert.equal(await library.isVisible(), false);
+  if (touch) await press('close'); else await page.keyboard.press('Escape');
+  assert.equal((await library()).open, false);
   assert.equal(await open.evaluate(node => node === document.activeElement), true, 'closing restores keyboard focus');
 }
 

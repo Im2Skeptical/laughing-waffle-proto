@@ -1,6 +1,11 @@
 // Physical dimensions are shared by faces, slots, inspection and drag targets.
 export const PIECE_SIZE = Object.freeze({ practiceWidth: 170, practiceHeight: 238, cellWidth: 120, structureHeight: 160, gap: 12 });
 
+export function regionalPracticeSize(panelWidth) {
+  const width = (panelWidth - 44 - PIECE_SIZE.gap * 4) / 5;
+  return { width, height: width * PIECE_SIZE.practiceHeight / PIECE_SIZE.practiceWidth };
+}
+
 export function pieceDimensions(kind = 'practice', footprint = 1) {
   return kind === 'structure'
     ? { width: PIECE_SIZE.cellWidth * footprint, height: PIECE_SIZE.structureHeight }

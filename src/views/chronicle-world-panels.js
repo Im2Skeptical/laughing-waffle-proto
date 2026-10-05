@@ -3,7 +3,7 @@ import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pix
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
-import { regionalConstructionRect } from './piece-geometry.js';
+import { regionalConstructionRect, regionalPracticeSize, PIECE_SIZE } from './piece-geometry.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 
 export function addChaosPanelContent(root, rect, summary) {
@@ -80,8 +80,8 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     vm.lastDefense ? `Last defense: ${vm.lastDefense.result}` : '',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`].filter(Boolean);
   root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:28,fill:PALETTE.textMuted},x+1000,y+20));
-  const gap=12, pw=(rect.width-44-gap*4)/5;
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(pw+gap),y:y+140,width:pw,height:pw*7/5},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
+  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width);
+  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(practiceSize.width+gap),y:y+140,...practiceSize},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
   const constructionRect=regionalConstructionRect({x,y:y+548,width:rect.width-44,height:rect.height-566},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});
 }
