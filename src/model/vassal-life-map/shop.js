@@ -7,7 +7,8 @@ import {
   VASSAL_INTERVENTION_PRACTICE_IDS,
   settlementStructureDefs,
 } from "../../defs/gamepieces/detailed-settlement-defs.js";
-import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from "../game-config.js";
+import { getDetailedPracticeDef, getDetailedStructureDef } from "../game-config.js";
+import { getResearchUnlockIndex, getResearchSilverChance } from '../research-progression.js';
 import {
   getDetailedPracticeTierIndex,
   getNextDetailedPracticeTier,
@@ -36,30 +37,16 @@ export const SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "routes"]
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 
 function qualityLabel(tier) { return `${tier[0].toUpperCase()}${tier.slice(1)}`; }
-function getUnlockedQualityIndex(state) {
-  const research = Math.max(0, Number(state?.civilization?.research?.total) || 0);
-  if (research >= getGameSetting(state, "researchDiamondThreshold")) return 3;
-  if (research >= getGameSetting(state, "researchGoldThreshold")) return 2;
-  if (research >= getGameSetting(state, "researchSilverThreshold")) return 1;
-  return 0;
-}
-function getSilverOfferChance(state) {
-  const research = Math.max(0, Number(state?.civilization?.research?.total) || 0);
-  const unlock = getGameSetting(state, "researchSilverThreshold");
-  const fullRate = Math.max(unlock, getGameSetting(state, "researchSilverFullThreshold"));
-  const progress = Math.max(0, Math.min(1, (research - unlock) / Math.max(1, fullRate - unlock)));
-  return 0.1 + progress * 0.4;
-}
 function rollOfferQuality(state, regionId, floor = 0) {
-  const max = getUnlockedQualityIndex(state);
+  const max = getResearchUnlockIndex(state);
   const min = Math.min(max, Math.max(0, floor));
   if (min === 0 && max === 1) {
-    return state.rngNextVassalFloat() < getSilverOfferChance(state) ? QUALITY_IDS[1] : QUALITY_IDS[0];
+    return state.rngNextVassalFloat() < getResearchSilverChance(state) ? QUALITY_IDS[1] : QUALITY_IDS[0];
   }
   return QUALITY_IDS[state.rngNextVassalInt(min, max)];
 }
 function isDefinitionUnlocked(state, def, nodeState = null) {
-  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getUnlockedQualityIndex(state)+(nodeState?.discoveryAccess?1:0));
+  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
 }
 
 export function validatePurchaseInterventions(state, vassal, purchases = []) {

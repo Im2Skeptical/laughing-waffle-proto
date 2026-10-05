@@ -51,6 +51,12 @@ not use the root file as the default location for new rendering or model rules.
   `src/views/inspection-keywords-pixi.js` and `src/views/inspection-terms.js`
 - Shared resource symbols and cost footers: `src/views/resource-cost-pixi.js`
   and `images/dark-fantasy/resource-language-v1/`
+- Research card library: `src/views/research-library-dom.js`; shared research
+  unlocks and quality probabilities: `src/model/research-progression.js`.
+  The library groups the full pool by minimum unlock tier, shows new-Practice
+  quality odds, and supports search/class/type/access/trait filters. Browsing
+  suspends presentation and ticks without changing simulation state.
+  `npm run probe:navigation` covers desktop/touch browsing and inspection.
 - Pure time samplers and scene effects: `src/views/timeline-presentation.js`
   and `src/views/chronicle-effects-pixi.js`
 - Reversible sound: `src/views/timeline-audio.js`

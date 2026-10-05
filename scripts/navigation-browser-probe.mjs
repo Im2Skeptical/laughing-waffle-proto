@@ -145,10 +145,62 @@ async function checkCancelledPress() {
 
 async function capture(name) {
   await page.mouse.move(1200, 100);
+  if (name.startsWith('research-')) await page.waitForFunction(() => [...document.querySelectorAll('.research-card-art')]
+    .filter(image => { const rect = image.getBoundingClientRect(); return rect.width && rect.top < innerHeight && rect.bottom > 0; })
+    .every(image => image.complete && image.naturalWidth > 0));
   await page.screenshot({ path: `${OUTPUT}/${name}.png` });
   const s = await snapshot();
   assertThumbLayout(s);
   checkpoints.push({ name, navigation: s.navigation });
+}
+
+async function checkResearchLibrary(touch = false) {
+  const before = await snapshot();
+  const open = page.getByTestId('research-open');
+  if (touch) await open.tap(); else await open.click();
+  const library = page.getByTestId('research-library');
+  await library.waitFor({ state: 'visible' });
+  assert.equal(await library.locator('.research-card').count(), 187, 'the full Practice/Structure pool is browsable');
+  assert.equal(await library.locator('.research-tier-section').count(), 4, 'tiers are the primary grouping');
+  assert.equal(await library.locator('.research-tier-stat[data-tier="bronze"] .research-odds').innerText(), '100%');
+  assert.equal(await library.locator('.research-tier-stat[data-tier="diamond"] .research-odds').innerText(), '0%');
+  const suffix = touch ? '844x390' : '1280x800';
+  await capture(`research-library-${suffix}`);
+  await library.evaluate(node => { node.scrollTop = node.querySelector('.research-tier-heading').offsetTop - 100; });
+  await capture(`research-cards-${suffix}`);
+  assert.equal(await library.evaluate(node => node.scrollWidth > node.clientWidth), false, 'the library has no horizontal overflow');
+  await page.getByTestId('research-filter-pool').selectOption('scholar');
+  await page.getByTestId('research-filter-kind').selectOption('charge');
+  await page.getByTestId('research-filter-availability').selectOption('locked');
+  assert.ok(await library.locator('.research-card').count() > 0, 'combined filters retain matching cards');
+  assert.equal(await library.locator('.research-card[data-kind="structure"]').count(), 0);
+  assert.ok((await library.locator('.research-card-pool').allTextContents()).every(label => label === 'Scholar'));
+  await library.getByRole('button', { name: 'Clear filters' }).click();
+  await page.getByTestId('research-filter-trait').selectOption('Housing');
+  assert.ok(await library.locator('.research-card').count() > 0, 'trait filtering exposes housing content');
+  await library.getByRole('button', { name: 'Clear filters' }).click();
+  await page.getByTestId('research-search').fill('timber house');
+  assert.equal(await library.locator('.research-card').count(), 1, 'multiword search locates a card');
+  await library.locator('.research-card').click();
+  await library.locator('.research-detail').waitFor({ state: 'visible' });
+  assert.equal(await library.locator('.research-detail h2').innerText(), 'Timber House');
+  assert.match(await library.locator('.research-detail-copy').innerText(), /60 Housing Capacity/);
+  await capture(`research-inspection-${suffix}`);
+  await page.keyboard.press('Escape');
+  assert.equal(await library.locator('.research-detail').isVisible(), false, 'Escape returns from card details to the filtered library');
+  assert.equal(await library.locator('.research-card').count(), 1, 'inspection preserves the filters');
+  await page.getByTestId('research-search').fill('no-matching-card-xyz');
+  assert.equal(await library.locator('.research-card').count(), 0, 'an empty search does not show unrelated cards');
+  await library.getByRole('button', { name: 'Clear filters' }).click();
+  assert.equal(await library.locator('.research-card').count(), 187);
+  const held = await snapshot();
+  assert.deepEqual(held.timeline, before.timeline, 'library browsing preserves the timeline');
+  assert.equal(held.frontierSec, before.frontierSec, 'library browsing holds simulation time');
+  assert.equal(held.viewedSec, before.viewedSec, 'library browsing holds the viewed second');
+  assert.deepEqual(held.lineage, before.lineage, 'library browsing preserves the lineage');
+  if (touch) await page.getByTestId('research-close').tap(); else await page.keyboard.press('Escape');
+  assert.equal(await library.isVisible(), false);
+  assert.equal(await open.evaluate(node => node === document.activeElement), true, 'closing restores keyboard focus');
 }
 
 try {
@@ -178,6 +230,7 @@ try {
   assert.equal(s.viewedSec, s.frontierSec);
   assert.ok(await controlPoint('getNavigationClickPoint', 'present'), 'Present remains on screen at the frontier');
   assert.deepEqual(s.timeline, projected.timeline, 'returning from a projection does not commit it');
+  await checkResearchLibrary();
 
   await navigate('vassal');
   s = await snapshot();
@@ -419,9 +472,10 @@ try {
   s = await snapshot();
   assert.equal(s.navigation.time.mode, 'present', 'touch can return to Present through a modal');
   assert.equal(s.mode, 'vassalLife');
+  await checkResearchLibrary(true);
   assert.deepEqual(errors, [], 'no browser runtime errors');
   writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ ok: true, checkpoints }, null, 2));
-  console.log(`[probe:navigation] OK: direct routes, portrait mouse/touch, drafts, time locks, mobile layout\n[probe:navigation] details=${OUTPUT}/probe.json`);
+  console.log(`[probe:navigation] OK: direct routes, portrait mouse/touch, drafts, time locks, mobile layout, Research library and filters\n[probe:navigation] details=${OUTPUT}/probe.json`);
 } catch (error) {
   let last = null;
   try { last = await snapshot(); await page.screenshot({ path: `${OUTPUT}/failure.png` }); } catch {}

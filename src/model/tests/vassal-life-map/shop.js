@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { serializeGameState } from "../../state.js";
+import { getResearchProgression } from '../../research-progression.js';
 import {
   getCurrentLifeMapVassal,
   getVassalNodeDecisionPresentation,
@@ -23,6 +24,41 @@ import {
 function addsHousing(def) {
   return def.housing > 0 || (def.effects ?? []).some(effect =>
     effect.op === "addHousingForPhase" && effect.amount > 0);
+}
+
+// The library reads exactly the quality probabilities consumed by the shop,
+// without advancing a random stream or modifying a save.
+for (const [research, expected] of [
+  [0, [1, 0, 0, 0]], [99, [1, 0, 0, 0]], [100, [.9, .1, 0, 0]],
+  [200, [.7, .3, 0, 0]], [300, [.5, .5, 0, 0]], [499, [.5, .5, 0, 0]],
+  [500, [1 / 3, 1 / 3, 1 / 3, 0]], [1999, [1 / 3, 1 / 3, 1 / 3, 0]],
+  [2000, [.25, .25, .25, .25]],
+]) {
+  const state = { civilization: { research: { total: research } } };
+  const before = JSON.stringify(state);
+  const progression = getResearchProgression(state);
+  progression.tiers.forEach((tier, index) => assert.ok(Math.abs(tier.chance - expected[index]) < 1e-10,
+    `${research} Research: ${tier.id} matches the shop quality distribution`));
+  assert.equal(JSON.stringify(state), before, 'reading research probabilities leaves state untouched');
+}
+{
+  const state = { civilization: { research: { total: 30 } }, gameConfig: { settings: { values: {
+    researchSilverThreshold: 20, researchSilverFullThreshold: 40,
+    researchGoldThreshold: 60, researchDiamondThreshold: 80,
+  } } } };
+  const progression = getResearchProgression(state);
+  assert.ok(Math.abs(progression.tiers[1].chance - .3) < 1e-10, 'custom run settings control odds');
+  assert.equal(progression.nextMilestone.research, 40, 'Silver full rate is the next progression milestone');
+  assert.deepEqual(progression.tiers.map(tier => tier.threshold), [0, 20, 60, 80]);
+  state.gameConfig.settings.values.researchGoldThreshold = 35;
+  state.civilization.research.total = 36;
+  assert.equal(getResearchProgression(state).nextMilestone.research, 80,
+    'a Gold unlock supersedes the Silver-only rate milestone');
+  state.gameConfig.settings.values.researchGoldThreshold = 60;
+  state.gameConfig.settings.values.researchSilverFullThreshold = 20;
+  state.civilization.research.total = 20;
+  assert.equal(getResearchProgression(state).nextMilestone.research, 21,
+    'coincident Silver settings preserve the shop interpolation boundary');
 }
 
 for (const def of [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]) {

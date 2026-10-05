@@ -215,6 +215,7 @@ export function createWorldMapView({
   setSelectedRegionId,
   getCivilizationLossInfo,
   onOpenEndDetails,
+  onOpenResearch,
   onShowCivilizationGraph,
   onOpenDetailedSite,
   getVassalHighlight,
@@ -548,7 +549,7 @@ export function createWorldMapView({
     root.addChild(
       civilizationHeader,
       createText(
-        `${civilizationSummary.settlementCount} SETTLEMENTS  ·  ${civilizationSummary.population.total} SOULS\nFood ${Math.round(civilizationSummary.food.total)}   /   Research ${civilizationSummary.research ?? 0}`,
+        `${civilizationSummary.settlementCount} SETTLEMENTS  ·  ${civilizationSummary.population.total} SOULS\nFood ${Math.round(civilizationSummary.food.total)}`,
         { ...TEXT_STYLES.title, fontSize: 20, lineHeight: 23 },
         CIVILIZATION_HEADER_RECT.x + 20,
         CIVILIZATION_HEADER_RECT.y + 27,
@@ -556,6 +557,8 @@ export function createWorldMapView({
         0.5
       )
     );
+    addButton(root, { x: CIVILIZATION_HEADER_RECT.x + 270, y: CIVILIZATION_HEADER_RECT.y + 24, width: 244, height: 28 },
+      `Research ${civilizationSummary.research ?? 0} ↗`, onOpenResearch);
     endDetailsTarget = addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,

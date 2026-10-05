@@ -5,6 +5,7 @@ import { createGameSessionController } from "../controllers/game-session-control
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
+import { createResearchLibraryDom } from './research-library-dom.js';
 import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
 import { prepareChronicleArt } from './chronicle-art.js';
 import { createChronicleFrame } from './chronicle-skin.js';
@@ -869,6 +870,16 @@ function selectWorldMapRegion(regionId) {
   return true;
 }
 
+const researchLibrary = createResearchLibraryDom({
+  getState: () => getSettlementViewedState(),
+  onOpen: () => {
+    tooltipView?.hide?.();
+    settlementGraphView?.setPresentationSuspended?.(true);
+    timelineAudio?.update(0);
+  },
+  onClose: () => settlementGraphView?.setPresentationSuspended?.(false),
+});
+
 worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
@@ -876,6 +887,7 @@ worldMapView = createWorldMapView({
   getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
+  onOpenResearch: () => researchLibrary.open(),
   getSelectedRegionId: () => selectedWorldRegionId,
   getRegionSelectionActive: () => worldMapRegionSelectionActive,
   getGraphScope: () => getSettlementGraphScope(),
@@ -1426,6 +1438,7 @@ function isTypingTarget(target) {
 }
 
 function handleGlobalKeyDown(ev) {
+  if (researchLibrary.isOpen()) return;
   if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
@@ -1665,11 +1678,19 @@ gameMenu = createGameMenuDom({
   session: gameSession,
   onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
   onPause: () => {
+    researchLibrary.close();
     nodeResolutionDiagnostics.suspend();
     settlementGraphView?.setPresentationSuspended?.(true);
     timelineAudio?.update(0);
   },
 });
+const researchButton = document.createElement('button');
+researchButton.type = 'button';
+researchButton.textContent = 'Research';
+researchButton.dataset.testid = 'research-open';
+researchButton.title = 'Browse the card library and Research progression';
+researchButton.addEventListener('click', () => researchLibrary.open());
+document.querySelector('[data-testid="utility-controls"]').prepend(researchButton);
 setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) nodeResolutionDiagnostics.suspend();
@@ -1681,7 +1702,7 @@ window.addEventListener("keydown", handleGlobalKeyDown);
 const timelineAudio = createTimelineAudio({
   getTime:getSettlementVisualTime,
   getRate:getSettlementPlaybackTarget,
-  isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape(),
+  isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape()||researchLibrary.isOpen(),
   parent:document.querySelector('[data-testid="utility-controls"]'),
 });
 
@@ -1701,7 +1722,7 @@ if (location.hash.startsWith('#/dev/play')) {
 }
 
 app.ticker.add((delta) => {
-  if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden) {
+  if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden || researchLibrary.isOpen()) {
     nodeResolutionDiagnostics.suspend();
     timelineAudio.update(0);
     return;
