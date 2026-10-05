@@ -88,7 +88,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     // presentation assets and the retained settlement scene are ready.
     enter(slot, prepared, { deferResume: true });
     const version = runVersion;
-    await prepareEntry?.();
+    await prepareEntry?.(prepared, { isCurrent: () => isCurrent() && version === runVersion });
     if (!isCurrent() || version !== runVersion) return { ok: false, reason: 'cancelled' };
     inMenu = false;
     notify();
@@ -106,7 +106,9 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     phase = 'saved'; lastAttempt = null;
     lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? null, tSec: result.meta?.tSec ?? null };
     onSaved?.();
-    return prepareEntry ? prepareAndEnter(slot, null, isCurrent) : enter(slot);
+    const prepared = result.historySummaryBySecond
+      ? { historySummaryBySecond: result.historySummaryBySecond } : null;
+    return prepareEntry ? prepareAndEnter(slot, prepared, isCurrent) : enter(slot, prepared);
   }
   return {
     isInMenu: () => inMenu,

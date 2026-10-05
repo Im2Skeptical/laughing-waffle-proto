@@ -92,7 +92,10 @@ for (const entryKind of ['newGame', 'continueGame']) {
     },
     opening: { prepare: async () => prepared, reset() {} },
     onEnter: () => events.push('setup'),
-    prepareEntry: () => {
+    prepareEntry: (openingResult, { isCurrent }) => {
+      assert.equal(openingResult, entryKind === 'newGame' ? prepared : null,
+        'presentation receives this entry’s prepared forecast');
+      assert.equal(isCurrent(), true, 'presentation can guard asynchronous handoff against cancellation');
       preparationStarted = true;
       events.push('upload');
       return new Promise(resolve => { releasePresentation = resolve; });

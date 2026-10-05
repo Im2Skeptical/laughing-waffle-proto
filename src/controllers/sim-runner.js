@@ -519,7 +519,7 @@ export function createSimRunner({
 
     onRebuildViews?.("saveLoad");
     onInvalidate?.("saveLoad");
-    return { ok: true, meta };
+    return { ok: true, meta, historySummaryBySecond: res.historySummaryBySecond };
   }
 
   function getLastTimelineActionSec() {

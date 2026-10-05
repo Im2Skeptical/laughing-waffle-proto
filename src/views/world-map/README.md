@@ -12,6 +12,9 @@ stay in `createWorldMapView`.
 - `packets.js` — glyph spec, playback direction, pose, facing, rewind visual spec
 - `glyphs.js` — worker/ownership/vassal/pressure/currency builders
   that take explicit parent/point arguments and do not close over the view
+- `region-panel-cache.js` — retained regional panels, keyed by exact rendered
+  inputs and art revision. Game entry prepares the entry settlement panel
+  behind the menu; changing time/content replaces stale panels.
 - `stock-tags.js` — deduplicated recipe supply/demand icons above every settlement.
   Red outlines mean demand without a local producer, green means production
   without a local consumer, and local production plus demand has no outline.

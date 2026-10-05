@@ -236,6 +236,10 @@ in `ai/ai-context.md`.
   `npm run verify`, then `npm run probe:map-lab`
 - Landing menu, save slots, or new-run setup:
   `npm run test:save-recovery`, `npm run verify` and `npm run probe:game-menu`
+- Loading or first-settlement latency:
+  `PROBE_ASSERT_PREPARED=1 npm run probe:settlement-entry`; set
+  `PROBE_CPU_RATE=4` for the throttled CPU case and `PROBE_SAVE` to a save
+  file for cold historical plotting. Details and optional profiles go to `artifacts/`.
 - Shared mobile layout or input changes:
   all three browser probes and a 1280x800 visual check
 - Timeline-driven art, sound, or card inspection:

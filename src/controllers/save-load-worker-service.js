@@ -23,12 +23,19 @@ export function inspectSaveInWorker(text, { isCurrent = () => true,
       worker.terminate();
       resolve(isCurrent() ? result : { ok: false, reason: 'cancelled' });
     };
-    worker.onmessage = ({ data }) => finish(data);
+    const resetTimeout = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => finish({ ok: false, reason: 'loadTimeout' }), 30000);
+    };
+    worker.onmessage = ({ data }) => {
+      if (data?.kind === 'historyProgress') { resetTimeout(); return; }
+      finish(data);
+    };
     // Unsupported module workers retain the ordinary save inspector.
     worker.onerror = event => { event.preventDefault?.(); finish(null); };
     worker.onmessageerror = () => finish(null);
     cancellation = setInterval(() => { if (!isCurrent()) finish({ ok: false, reason: 'cancelled' }); }, 50);
-    timeout = setTimeout(() => finish({ ok: false, reason: 'loadTimeout' }), 30000);
+    resetTimeout();
     try { worker.postMessage(text); } catch { finish(null); }
   });
 }

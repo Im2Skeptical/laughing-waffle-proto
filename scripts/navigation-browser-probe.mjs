@@ -561,6 +561,13 @@ async function runProbe() {
   assert.deepEqual(s.lineage, history.lineage);
   await capture('history-feedback-1280x800');
   await navigate('settlement');
+  // Closing the historical modal restores the dock portrait on its next
+  // scheduled update; a fixed click delay can precede that software-GL frame.
+  await page.waitForFunction(() => {
+    const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+    return s.worldMap.mode === 'settlement' && s.navigation.portrait?.regionId
+      && s.navigation.portrait.regionId === s.lifeMap.profile?.locationRegionId;
+  });
   s = await snapshot();
   assert.equal(s.viewedSec, history.viewedSec, 'navigation preserves historical viewing time');
   assert.equal(s.navigation.portrait.regionId, s.life.profile.locationRegionId,

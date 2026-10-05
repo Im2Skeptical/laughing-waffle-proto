@@ -8,7 +8,8 @@ import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-se
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
-import { addChaosPanelContent, addRegionPanelContent } from './chronicle-world-panels.js';
+import { addChaosPanelContent } from './chronicle-world-panels.js';
+import { createRegionPanelCache } from './world-map/region-panel-cache.js';
 import {
   getRegionDefinition,
   getRegionReference,
@@ -272,6 +273,22 @@ export function createWorldMapView({
   let landmarks=[];
   let endDetailsTarget = null;
   let researchTarget = null;
+  const regionPanels = createRegionPanelCache({
+    rect: DETAIL_RECT, addCloseButton: addButton,
+    onClose: () => { tooltipView?.hide?.(); onShowCivilizationGraph?.(); },
+  });
+
+  function getRegionPanel(state, regionId, settlementScope, indicators = []) {
+    const region = getRegionState(state, regionId);
+    if (!region) return null;
+    const vm = getDetailedSettlementViewModel(state, regionId);
+    return regionPanels.get(regionId, {
+      region, reference: getRegionReference(state, regionId) ?? regionId,
+      name: vm?.name ?? getRegionDefinition(state, regionId)?.name ?? regionId,
+      vm, tooltipView,
+      defense: region.monster?.defense ?? indicators.find(entry => entry.regionId === regionId)?.neutral?.defense,
+    }, { settlementScope, artRevision: getArtRevision() });
+  }
 
   function isRecentFlagTap(point) {
     return lastRegionTap.nearFlag && lastRegionTap.point
@@ -512,7 +529,7 @@ export function createWorldMapView({
     lastSignature = nextSignature;
     clearChildren(root);
     // Retain the last settlement's content until its dismissal completes.
-    if (regionSelectionActive) clearChildren(detailRoot);
+    if (regionSelectionActive) detailRoot.removeChildren();
     clearChildren(mapContent);
     if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
       if (!lastRevealedRegionId && !panelReveal.isClosing()) overviewCamera = camera.snapshot();
@@ -796,40 +813,8 @@ export function createWorldMapView({
     });
     if (!regionSelectionActive) return;
 
-    const selectedDef = getRegionDefinition(state, selectedRegionId);
-    const region = getRegionState(state, selectedRegionId);
-    const viewModel = getDetailedSettlementViewModel(state, selectedRegionId);
-    if (!region) return;
-    const detailPanel = new PIXI.Graphics();
-    roundedRect(
-      detailPanel,
-      DETAIL_RECT.x,
-      DETAIL_RECT.y,
-      DETAIL_RECT.width,
-      DETAIL_RECT.height,
-      7,
-      PALETTE.panelSoft,
-      graphScope === "settlement" ? PALETTE.accent : PALETTE.stroke,
-      graphScope === "settlement" ? 5 : 3
-    );
-    detailPanel.eventMode = "static";
-    detailPanel.cursor = viewModel ? "pointer" : "default";
-    detailPanel.hitArea = new PIXI.Rectangle(
-      DETAIL_RECT.x,
-      DETAIL_RECT.y,
-      DETAIL_RECT.width,
-      DETAIL_RECT.height
-    );
-    detailRoot.addChild(detailPanel);
-    const regionRef = getRegionReference(state, selectedRegionId) ?? selectedRegionId;
-    addRegionPanelContent(detailRoot, DETAIL_RECT, {
-      region, reference: regionRef, name: viewModel?.name ?? selectedDef?.name ?? selectedRegionId,
-      vm: viewModel, tooltipView, defense: region.monster?.defense ?? regionMapIndicators.find(entry => entry.regionId === selectedRegionId)?.neutral?.defense,
-    });
-    addButton(detailRoot, {x: DETAIL_RECT.x + DETAIL_RECT.width - 62, y: DETAIL_RECT.y + 14, width: 48, height: 48}, 'X', () => {
-      tooltipView?.hide?.();
-      onShowCivilizationGraph?.();
-    });
+    const panel = getRegionPanel(state, selectedRegionId, graphScope === 'settlement', regionMapIndicators);
+    if (panel) detailRoot.addChild(panel);
   }
 
   return {
@@ -845,6 +830,22 @@ export function createWorldMapView({
       updateEdgeTransferPackets();
     },
     refresh: () => { lastSignature = ""; render(true); },
+    async prepare(renderer) {
+      // Prepare the panels opened by map flags, without selecting a region or
+      // altering camera, graph scope, or the live settlement state.
+      regionPanels.clear();
+      const state = getState?.();
+      const definition = getWorldDefinition(state);
+      const indicators = definition ? buildRegionMapIndicators(state, definition) : [];
+      // Warm the entry settlement first. Preparing every settlement before
+      // resuming adds several seconds on slow CPUs for panels never opened.
+      const regionId = getSelectedRegionId?.() ?? state?.civilization?.capitalRegionId;
+      const panel = getRegionPanel(state, regionId, true, indicators);
+      if (panel) renderer.prepare.add(panel);
+      renderer.prepare.add(root);
+      renderer.prepare.add(mapContent);
+      await renderer.prepare.upload();
+    },
     resetEdgeTransferPackets,
     setVisible: (visible) => {
       if (panelReveal.isClosing()) camera.finish();
@@ -887,6 +888,7 @@ export function createWorldMapView({
         regionSelectionActive: getRegionSelectionActive?.() === true,
         relationships: getMapRelationships(state, regionId, root.visible && getRegionSelectionActive?.() === true),
         detailPanelVisible: root.visible && detailRoot.visible,
+        regionPanelCache: regionPanels.snapshot(),
         chaosExpanded,
         camera: camera.snapshot(),
         focusAnimating: camera.isAnimating(),
@@ -986,6 +988,7 @@ export function createWorldMapView({
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
+      regionPanels.clear();
       stockTransferIcons.clear();
       clearChildren(root);
       root.removeFromParent();

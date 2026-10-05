@@ -17,6 +17,12 @@ try {
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`${url}/#/dev/gym`);
   await page.waitForFunction(()=>globalThis.__LAB_DEBUG__?.getScene()?.graph.computedCoverageEndSec===60);
+  // Forecast completion can precede atlas loading. Without the illustration,
+  // Pixi's bounds enclose only the smaller ink layer, not the painted scroll.
+  await page.waitForFunction(()=>{
+    const frame=globalThis.__LAB_DEBUG__?.getScene()?.graph.windowScreenRect;
+    return Math.abs(frame?.width-1980)<1 && Math.abs(frame?.height-332)<1;
+  });
   for(const viewport of [{width:1280,height:900},{width:844,height:390}]) {
     await page.setViewportSize(viewport);
     await page.getByTestId('lab-scene').evaluate(canvas=>canvas.scrollIntoView({block:'end'}));

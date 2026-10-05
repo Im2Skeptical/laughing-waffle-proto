@@ -5,6 +5,7 @@ import { createGameSessionController } from "../controllers/game-session-control
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
+import { mergePreparedForecast } from '../controllers/prepared-forecast-handoff.js';
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { createResearchLibraryView } from './research-library-pixi.js';
 import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
@@ -1660,18 +1661,19 @@ const gameSession = createGameSessionController({
   createState:()=>cardReviews.createNewGame(),
   runner,
   opening,
-  prepareEntry: async () => {
+  prepareEntry: async (prepared, { isCurrent }) => {
     await chronicleArtReady;
+    if (!isCurrent()) return;
+    await worldMapView.prepare(app.renderer);
     await prototypeView.prepare(app.renderer);
-  },
-  onEnter: (prepared) => {
-    handleDebugFreshRunApplied("sessionEnter");
-    if (prepared) {
+    if (!isCurrent()) return;
+    if (prepared?.forecast) {
       const timeline = runner.getTimeline();
-      const merged = settlementProjectionCache.mergeForecastChunk(timeline, {
-        ...prepared.forecast, historyEndSec: 0,
-        timelineToken: settlementProjectionCache.getTimelineToken(timeline),
+      const merged = await mergePreparedForecast({
+        cache: settlementProjectionCache, timeline, forecast: prepared.forecast,
+        isCurrent: () => isCurrent() && runner.getTimeline() === timeline,
       });
+      if (merged.reason === 'cancelled') return;
       if (!merged.ok) throw new Error(`Prepared forecast handoff failed: ${merged.reason}`);
       settlementGraphController.handleInvalidate("init");
       opening.begin(prepared.lossSec);
@@ -1680,6 +1682,12 @@ const gameSession = createGameSessionController({
       settlementGraphView.clearForecastRevealRestart();
       settlementGraphView.render();
     }
+  },
+  onEnter: prepared => {
+    if (prepared?.historySummaryBySecond) {
+      settlementGraphController.retainAuthoritativeSummariesFrom(0, prepared.historySummaryBySecond);
+    }
+    handleDebugFreshRunApplied("sessionEnter");
   },
   onError: (message) => gameMenu?.showError(message),
   onSaved: () => gameMenu?.clearError(),

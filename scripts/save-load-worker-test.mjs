@@ -5,10 +5,16 @@ import { serializeGameState, deserializeGameState } from '../src/model/state.js'
 import { createTimelineFromInitialState } from '../src/model/timeline/index.js';
 import { exportSave, inspectSaveText } from '../src/controllers/sim-runner/save-slots.js';
 import { inspectSaveInWorker } from '../src/controllers/save-load-worker-service.js';
+import { rebuildStateAtSecond } from '../src/model/timeline/index.js';
+import { buildProjectionSummaryFromState } from '../src/model/projection-summary.js';
+import { isDeepStrictEqual } from 'node:util';
+import { ActionKinds } from '../src/model/actions.js';
+import { prepareSaveHistorySummaries } from '../src/controllers/save-history-preparation.js';
 
 // Execute the real module worker with only its browser message transport adapted.
 const workerUrl = new URL('../src/controllers/save-load-worker.js', import.meta.url).href;
-function createWorker() {
+const progressEvents = [];
+function createWorker({ onProgress = () => {} } = {}) {
   const thread = new Worker(`
     const { parentPort } = require('node:worker_threads');
     globalThis.postMessage = data => parentPort.postMessage(data);
@@ -21,31 +27,56 @@ function createWorker() {
     terminate: () => thread.terminate() };
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
-  thread.on('message', data => data === 'ready' ? resolveReady() : adapter.onmessage?.({ data }));
+  thread.on('message', data => {
+    if (data === 'ready') { resolveReady(); return; }
+    if (data?.kind === 'historyProgress') { progressEvents.push(data.coverageSec); onProgress(data.coverageSec); }
+    adapter.onmessage?.({ data });
+  });
   thread.on('error', error => adapter.onerror?.(error));
   return adapter;
 }
 
 const state = createNewGameState(735);
 const timeline = createTimelineFromInitialState(state);
+timeline.actions = [0, 2].map(tSec => ({ tSec,
+  kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {} }));
+timeline.actions.push({ tSec: 3, kind: ActionKinds.SETTLEMENT_SELECT_VASSAL,
+  payload: { candidateIndex: 1 } });
 // Force the authoritative replay path rather than just deserializing second zero.
-timeline.cursorSec = 8;
-timeline.historyEndSec = 8;
+timeline.cursorSec = 260;
+timeline.historyEndSec = 260;
 const text = exportSave({ state, timeline, setupId: 'twoRegionStarter01' }).text;
 const expected = inspectSaveText(text);
 assert.equal(expected.ok, true);
 const actual = await inspectSaveInWorker(text, { createWorker });
 assert.equal(actual.ok, true);
 assert.deepEqual(actual.meta, expected.meta);
-assert.deepEqual(actual.nextTimeline, expected.nextTimeline);
-assert.deepEqual(serializeGameState(deserializeGameState(actual.state)), serializeGameState(expected.state),
+assert.ok(isDeepStrictEqual(actual.nextTimeline, expected.nextTimeline),
+  'history preparation must not mutate the authoritative loaded timeline');
+assert.equal(actual.historySummaryBySecond.length, 261, 'prepare every historical second before drawing');
+assert.deepEqual(progressEvents, [128, 256, 260], 'history progress spans multiple yielding slices');
+for (const [sec, summary] of actual.historySummaryBySecond) {
+  const replay = rebuildStateAtSecond(expected.nextTimeline, sec);
+  assert.ok(isDeepStrictEqual(summary, buildProjectionSummaryFromState(replay.state)),
+    `loaded history summary ${sec} must match authoritative replay`);
+}
+assert.ok(!isDeepStrictEqual(actual.historySummaryBySecond,
+  await prepareSaveHistorySummaries({ ...timeline, actions: timeline.actions.filter(action => action.tSec === 0) })),
+  'the regression fixture must expose omitted historical actions');
+assert.ok(isDeepStrictEqual(serializeGameState(deserializeGameState(actual.state)), serializeGameState(expected.state)),
   'worker load must preserve the entire replayed state and every RNG stream');
 for (const invalid of ['{broken', JSON.stringify({ meta: { schemaVersion: 0 } }),
-  JSON.stringify({ ...JSON.parse(text), timeline: { ...timeline, cursorSec: 99 } })]) {
+  JSON.stringify({ ...JSON.parse(text), timeline: { ...timeline, cursorSec: timeline.historyEndSec + 99 } })]) {
   assert.equal((await inspectSaveInWorker(invalid, { createWorker })).reason, inspectSaveText(invalid).reason);
 }
 assert.equal(await inspectSaveInWorker(text, { createWorker: () => null }), null, 'unsupported workers use the ordinary inspector');
 assert.equal(await inspectSaveInWorker(text, { createWorker: () => { throw new Error('blocked'); } }), null);
+let historyCurrent = true;
+const cancelledHistory = await inspectSaveInWorker(text, {
+  isCurrent: () => historyCurrent,
+  createWorker: () => createWorker({ onProgress: () => { historyCurrent = false; } }),
+});
+assert.equal(cancelledHistory.reason, 'cancelled', 'cancelling a real history slice cannot publish a loaded game');
 let current = true;
 let terminated = false;
 const pending = inspectSaveInWorker(text, { isCurrent: () => current,
