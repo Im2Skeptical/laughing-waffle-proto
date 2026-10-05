@@ -4,6 +4,34 @@ import { createMapCamera } from '../src/views/world-map/camera.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from '../src/views/world-map/relationships.js';
 import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
 import { getAdjacentRegionIds } from '../src/model/world-state.js';
+import { getSettlementStockTags, getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
+
+const stockView = {
+  population: { mealDemand: 2 },
+  practices: [
+    { face: { stockTraits: ['Edible', 'Plant'], production: [{ icon: 'stock', value: 1 }] } },
+    { face: { stockTraits: ['Metal', 'Metal'], production: [{ icon: 'stock', value: 1 }],
+      inputs: [{ kind: 'consume', amount: 1, traits: ['Ore', 'Mineral'] }] } },
+    { face: { inputs: [{ kind: 'require', amount: 1, traits: ['Plant', 'Animal'] }],
+      chargeTriggers: [{ trait: 'Bone' }] } },
+    { face: { stockTraits: ['Record'], production: [{ icon: 'research', value: 2 }] } },
+  ],
+  structures: [{ face: { inputs: [{ kind: 'consume', amount: 1, traits: ['Unknown'] }] } }],
+};
+const stockBefore = JSON.stringify(stockView);
+const stockTags = getSettlementStockTags(stockView);
+assert.deepEqual(stockTags.map(({ trait, outline }) => [trait, outline]), [
+  ['Edible', null], ['Metal', 'green'], ['Mineral', 'red'], ['Ore', 'red'], ['Plant', null], ['Unknown', 'red'],
+], 'deduplicated recipe roles include meals/Require, resolve alternatives, and exclude Charge triggers/non-Stock outputs');
+assert.equal(stockTags.at(-1).iconId, 'stock', 'custom tags use the generic Stock icon');
+assert.equal(JSON.stringify(stockView), stockBefore, 'map roles leave their source untouched');
+assert.deepEqual(getSettlementStockTags(null), [], 'empty regions have no Stock icons');
+const tagLayout = getSettlementStockTagLayout([...stockTags, stockTags[0]], { x: 800, y: 300 });
+assert.equal(tagLayout[6].x, 800, 'wrapped rows are centered independently');
+assert.equal(tagLayout[6].y - tagLayout[0].y, 36, 'wrapped icons have separate rows above the settlement');
+const northernTags = getSettlementStockTagLayout([...stockTags, stockTags[0]], { x: 662, y: 214 });
+assert.ok(northernTags.every(tag => tag.y - 18 >= 78), 'northern icons widen their row to stay clear of the header');
+assert.ok(northernTags.every(tag => tag.x - 18 >= 580), 'northern icons stay clear of the Chaos drawer');
 
 // Exercise the real camera with a deterministic UI clock and input surface.
 // No renderer or simulation is needed to verify framing and gesture ownership.

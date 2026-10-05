@@ -7,6 +7,7 @@ import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 import { createAuthoredMapLabDraft } from '../src/model/map-lab-draft.js';
 import { createAuthoredGameSettingsDraft, createAuthoredGamepiecesDraft } from '../src/model/game-config.js';
 import { createAuthoredLifeMapLabDraft } from '../src/model/life-map-lab-draft.js';
+import { getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
 
 const output='artifacts/region-map', port=18096;
 mkdirSync(output,{recursive:true});
@@ -18,6 +19,9 @@ const cedar=profile.mapLab.regions.find(region=>region.id==='cedar-woods');
 cedar.structureCapacity=5;
 cedar.randomizeStructureCapacity=false;
 cedar.detailedState.structureSlots=cedar.detailedState.structureSlots.slice(0,5);
+// Show all three Stock roles in the real map renderer.
+cedar.detailedState.practiceSlots=['forage','logging','smelting','housebuilding','barter']
+  .map(practiceId=>({practiceId,tier:'bronze',stock:0,charge:0,work:0}));
 const server=spawn(process.execPath,['./node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
 let browser,page;
 const errors=[];
@@ -76,7 +80,19 @@ try {
     await doubleTapFlag();
   } else {
   assert.equal((await snap()).detail,false);
+  const stockRoles=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionMapIndicators
+    .find(region=>region.regionId==='cedar-woods').stockTags.map(({trait,outline})=>[trait,outline]));
+  assert.deepEqual(stockRoles,[['Construction',null],['Currency','green'],['Edible',null],['Fuel','green'],
+    ['Metal','green'],['Timber','green'],['Tool','red'],['Wild','green']], 'real installed recipes show local use, nonlocal production, and unsourced demand');
   await capture('desktop-map');
+  const stockAnchor=await regionPoint();
+  const stockPoint=getSettlementStockTagLayout(stockRoles.map(([trait])=>({trait})),stockAnchor).find(tag=>tag.trait==='Tool');
+  await click(stockPoint);
+  const stockTooltip=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
+  assert.equal(stockTooltip.pinned,true,'Stock tag explanations can be pinned by touch/click');
+  assert.ok(stockTooltip.title.includes('Tool Stock'));
+  assert.equal((await snap()).active,false,'Stock tag input does not select the underlying settlement');
+  await click(stockPoint);
   await click({x:558,y:116});
   assert.equal((await snap()).chaos,false,'chaos drawer collapses');
   await click({x:90,y:116});

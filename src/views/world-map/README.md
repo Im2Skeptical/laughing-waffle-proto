@@ -12,6 +12,12 @@ stay in `createWorldMapView`.
 - `packets.js` — glyph spec, playback direction, pose, facing, rewind visual spec
 - `glyphs.js` — worker/ownership/vassal/pressure/currency builders
   that take explicit parent/point arguments and do not close over the view
+- `stock-tags.js` — deduplicated recipe supply/demand icons above every settlement.
+  Red outlines mean demand without a local producer, green means production
+  without a local consumer, and local production plus demand has no outline.
+  Meal demand adds Edible; Consume and Require inputs add demand, but Charge
+  triggers do not. Recipes accepting alternatives use matching local tags when
+  present. Roles describe installed recipes, independent of current inventory.
 
 Supply packets use the same Stock Trait icons as Practice cards between the
 actual provider and consumer settlements. Each marker shows only the Trait

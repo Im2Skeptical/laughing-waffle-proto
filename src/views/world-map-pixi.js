@@ -3,6 +3,7 @@ import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRela
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
+import { getSettlementStockTags, getSettlementStockTagLayout, addSettlementStockTags } from './world-map/stock-tags.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
@@ -160,6 +161,7 @@ function buildRegionMapIndicators(state, definition) {
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
       showsPlayerMarker: region?.controller === "player" && !region?.monster,
       hasDetailedSettlement: viewModel != null,
+      stockTags: getSettlementStockTags(viewModel),
       ...workerPresentation,
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
       structureCapacity,
@@ -663,9 +665,10 @@ export function createWorldMapView({
       );
       if (!regionDef) continue;
       const point = screenPoint(regionDef.display.labelPoint);
+      const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
-        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,point.y-(indicator.monster?72:88),.5));
+        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-72:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
       if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, indicator.monster);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
@@ -673,6 +676,9 @@ export function createWorldMapView({
       adornments.eventMode = 'none';
       mapContent.addChild(adornments);
       if (indicator.hasDetailedSettlement && !indicator.monster) {
+        addSettlementStockTags(mapContent, point, indicator.stockTags, {
+          tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
+        });
         if (display.scenery !== false) {
           landmarks.push(addTimelineLandmark(mapContent,{x:point.x-29,y:point.y-76,width:58,height:66},
             {startSec:definition.regions.indexOf(regionDef)*.37}));
