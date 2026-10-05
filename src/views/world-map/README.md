@@ -46,8 +46,8 @@ The map fills the playfield beneath fixed chrome. Selection opens a right-hand
 region panel; dismissal eases back to the saved overview camera while the panel
 shrinks toward the settlement over 320 ms. Its content stays visible until the
 transition ends; reopening reverses the shrink from its current pose. Opening or switching a
-region automatically fits its full road-connected group into the left map area.
-Reset returns to this group framing.
+region centers the selected settlement in the left map area and adjusts zoom to
+fit its full road-connected group around it. Reset returns to this group framing.
 Flag double-taps remain anchored to the first screen position for 500 ms, including
 when group framing moves the flag into empty map space or beneath fixed chrome.
 Manual camera input cancels that focus transition immediately. Chaos is a floating,

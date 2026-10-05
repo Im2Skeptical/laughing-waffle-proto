@@ -51,6 +51,9 @@ async function assertGroupFramed(id) {
   await waitFocus();
   const map=await snap(), bounds=map.layout.groupFrame;
   assert.equal(map.selected,id);
+  const selected=await regionPoint(id);
+  assert.ok(Math.abs(selected.x-(bounds.x+bounds.width/2))<.01 && Math.abs(selected.y-(bounds.y+bounds.height/2))<.01,
+    'selected settlement stays centered while zoom frames its group');
   for(const regionId of map.relationships.groupRegionIds) {
     const p=await regionPoint(regionId);
     assert.ok(p.x>=bounds.x && p.x<=bounds.x+bounds.width && p.y>=bounds.y && p.y<=bounds.y+bounds.height,`${regionId} is visible in the default group framing`);
@@ -127,7 +130,9 @@ try {
   await click({x:818,y:782});
   await click({x:899,y:782});
   await waitFocus();
-  assert.deepEqual((await snap()).camera,groupCamera,'Reset restores the default group framing');
+  const resetCamera=(await snap()).camera;
+  assert.ok(['x','y','zoom'].every(key=>Math.abs(resetCamera[key]-groupCamera[key])<.001),
+    'Reset restores the default group framing');
   await assertGroupFramed('cedar-woods');
   assert.equal(selected.slots.blocked,3,'five-cell region blocks three cells');
   await click({x:1110,y:400});

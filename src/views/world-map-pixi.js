@@ -485,7 +485,8 @@ export function createWorldMapView({
     const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
     const frameGroup = () => camera.frame(definition.regions
       .filter(entry => relationships?.groupRegionIds.includes(entry.id))
-      .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint)), GROUP_FRAME_RECT);
+      .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint)), GROUP_FRAME_RECT,
+      screenPoint(getRegionDefinition(state, selectedRegionId).display.labelPoint));
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
     const civilizationSummary = getDetailedCivilizationSummary(state);

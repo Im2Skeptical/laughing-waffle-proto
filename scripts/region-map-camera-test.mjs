@@ -126,7 +126,8 @@ console.log('[region-map-dismissal] OK: animated overview return, shrink, interr
 
 const groupPoints = [{x:488,y:104},{x:1936,y:792}];
 const groupBounds = {x:48,y:236,width:864,height:280};
-camera.frame(groupPoints, groupBounds);
+const groupFocus = {x:650,y:260};
+camera.frame(groupPoints, groupBounds, groupFocus);
 time += 400; camera.update();
 for (const point of groupPoints) {
   const projected = camera.project(point);
@@ -134,7 +135,29 @@ for (const point of groupPoints) {
   assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
 }
 assert.ok(camera.snapshot().zoom < 1, 'large groups can fit beside the detail panel');
-console.log('[region-map-group-frame] OK: the whole group fits inside its unobstructed map area');
+const groupCenter = {x:groupBounds.x+groupBounds.width/2,y:groupBounds.y+groupBounds.height/2};
+const assertGroupCentered = (point, message) => {
+  const projected = camera.project(point);
+  assert.ok(Math.abs(projected.x-groupCenter.x)<.001 && Math.abs(projected.y-groupCenter.y)<.001, message);
+};
+assertGroupCentered(groupFocus, 'selection stays centered instead of the group bounding box');
+camera.frame(groupPoints, groupBounds, groupPoints[1]);
+time += 400; camera.update();
+assertGroupCentered(groupPoints[1], 'switching centers a settlement at the group edge');
+for (const point of groupPoints) {
+  const projected = camera.project(point);
+  assert.ok(projected.x >= groupBounds.x - .001 && projected.x <= groupBounds.x + groupBounds.width + .001);
+  assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
+}
+assert.ok(camera.snapshot().zoom < .35, 'automatic framing can zoom out enough for an off-center group');
+const fittedZoom = camera.snapshot().zoom;
+camera.zoomBy(1.2);
+assert.ok(Math.abs(camera.snapshot().zoom - fittedZoom * 1.2) < .001, 'manual zoom remains gradual after a wide group fit');
+camera.frame([groupFocus], groupBounds, groupFocus);
+time += 400; camera.update();
+assertGroupCentered(groupFocus, 'isolated settlements remain centered');
+assert.equal(camera.snapshot().zoom, 2.5, 'isolated framing respects the maximum zoom');
+console.log('[region-map-group-frame] OK: selected settlement stays centered, whole group fits, edge/isolated selections, gradual manual zoom');
 
 const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
