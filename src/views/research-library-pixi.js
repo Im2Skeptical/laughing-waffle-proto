@@ -1,6 +1,6 @@
 import { getResearchProgression } from '../model/research-progression.js';
 import { getGamepieceFace } from '../model/gamepiece-presentation.js';
-import { getResearchLibraryCards, filterResearchLibraryCards, layoutResearchLibraryCards, RESEARCH_PRACTICE_SIZE } from './research-library-data.js';
+import { getResearchLibraryCards, getResearchLibraryDefaultFilters, filterResearchLibraryCards, layoutResearchLibraryCards, RESEARCH_PRACTICE_SIZE } from './research-library-data.js';
 import { addSettlementPiece } from './settlement-piece-pixi.js';
 import { getArtRevision } from './chronicle-art.js';
 import { createText, clearChildren } from './settlement-view-primitives.js';
@@ -13,7 +13,6 @@ const VIEW={x:52,y:470,width:2296,height:536};
 const title = value => value[0].toUpperCase()+value.slice(1);
 const percent = value => `${Number((value*100).toFixed(1))}%`;
 const number = value => Number(value.toFixed(1)).toLocaleString();
-const emptyFilters = () => ({search:'',pool:'',kind:'',availability:'',trait:''});
 
 export function createResearchLibraryView({ layer, getState, tooltipView, onOpen, onClose }) {
   const root=new PIXI.Container();root.visible=false;root.eventMode='static';
@@ -34,7 +33,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
   input.autocomplete='off';input.setAttribute('aria-label','Search the Research card library');
   input.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;font-size:16px;opacity:0;pointer-events:none';
   input.disabled=true;document.body.append(input);
-  let state,progression,cards=[],filtered=[],layout={entries:[],groups:[],height:0},filters=emptyFilters();
+  let state,progression,cards=[],filtered=[],layout={entries:[],groups:[],height:0},filters=getResearchLibraryDefaultFilters();
   let scroll=0,visibleKey='',pieces=[],activeMenu=null,menuPage=0,drag=null,suppressTapUntil=0,barDrag=false;
   let focusBefore=null,artRevision=-1,summaryLabel=null,controls=new Map();
   let loading=false,prepareFrame=null,loadingMessage=null,loadingDetail=null,loadingProgress=null;
@@ -54,7 +53,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
     parent.addChild(node);controls.set(id,node);return node;
   }
   function fieldOptions(id) {
-    return ({pool:[['','All classes'],['common','Common'],['scholar','Scholar'],['warrior','Warrior']],
+    return ({pool:[['','All classes'],['scholar+common','Scholar + Generic'],['warrior+common','Warrior + Generic'],['common','Generic only'],['scholar','Scholar only'],['warrior','Warrior only']],
       kind:[['','All cards'],['practice','Practices'],['structure','Structures'],['cycle','Cycle Practices'],['charge','Charge Practices']],
       availability:[['','All tiers'],['unlocked','Unlocked'],['locked','Locked']],
       trait:[['','All traits'],...[...new Set(cards.flatMap(card=>card.traits))].sort().map(trait=>[trait,trait])],
@@ -96,7 +95,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
       },{accent:document.activeElement===input&&id==='search'?RELIC.gold:RELIC.brass,size:28});
       x+=width+16;
     }
-    control(fields,'clear',{x,y:390,width:218,height:68},'Clear',()=>{filters=emptyFilters();input.value='';input.blur();hideMenu();refreshResults();});
+    control(fields,'clear',{x,y:390,width:218,height:68},'Clear',()=>{filters=getResearchLibraryDefaultFilters(state);input.value='';input.blur();hideMenu();refreshResults();});
   }
   function drawChrome() {
     const loadingReturn=controls.get('loading:return');
@@ -162,7 +161,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
         pieces.push({card,piece});
         text(ink,card.def.label,entry.x+entry.width/2,rect.y+rect.height+8,23,RELIC.bone,entry.width-8,.5);
         const unlocked=progression.tiers.find(tier=>tier.id===card.tier).unlocked;
-        text(ink,`${title(card.def.pool)} · ${title(card.kind)}${unlocked?'':' · Locked'}`,entry.x+entry.width/2,rect.y+rect.height+38,18,unlocked?RELIC.ash:COLOURS[card.tier],null,.5);
+        text(ink,`${card.def.pool==='common'?'Generic':title(card.def.pool)} · ${title(card.kind)}${unlocked?'':' · Locked'}`,entry.x+entry.width/2,rect.y+rect.height+38,18,unlocked?RELIC.ash:COLOURS[card.tier],null,.5);
       }
     }
     drawScrollbar();
@@ -173,7 +172,8 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
   }
   function refreshResults() {
     filtered=filterResearchLibraryCards(cards,filters,progression.tiers);
-    layout=layoutResearchLibraryCards(filtered,progression.tiers,VIEW.width-24);
+    const preferredPool=(filters.pool || getResearchLibraryDefaultFilters(state).pool).split('+')[0];
+    layout=layoutResearchLibraryCards(filtered,progression.tiers,VIEW.width-24,preferredPool);
     scroll=0;tooltipView.hide({force:true});drawFields();renderVisible(true);
   }
   input.addEventListener('input',()=>{filters.search=input.value;refreshResults();});
@@ -209,7 +209,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
   }
   function open() {
     if(root.visible)return;
-    focusBefore=document.activeElement;filters=emptyFilters();input.value='';
+    focusBefore=document.activeElement;input.value='';
     cards=[];filtered=[];layout={entries:[],groups:[],height:0};pieces=[];progression=null;scroll=0;
     controls.clear();faces.clear();
     for(const container of [chrome,fields,ink,menus,loadingScreen])clearChildren(container);
@@ -224,6 +224,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
     afterPaint(()=>{
       try {
         state=getState();if(!state){close();return;}
+        filters=getResearchLibraryDefaultFilters(state);
         progression=getResearchProgression(state);cards=getResearchLibraryCards(state);
         drawChrome();refreshResults();artRevision=getArtRevision();
         afterPaint(()=>{

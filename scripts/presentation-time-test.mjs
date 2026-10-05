@@ -5,6 +5,9 @@ import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
 import { getInspectionTerms } from '../src/views/inspection-terms.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
 import { createNewGameState } from '../src/model/new-game.js';
+import { selectLifeMapVassal } from '../src/model/vassal-life-map.js';
+import { getResearchProgression } from '../src/model/research-progression.js';
+import { getResearchLibraryCards, getResearchLibraryDefaultFilters, filterResearchLibraryCards, layoutResearchLibraryCards } from '../src/views/research-library-data.js';
 import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements.js';
 import { SEASON_DURATION_SEC } from '../src/defs/gamesettings/gamerules-defs.js';
@@ -16,6 +19,35 @@ import {
 } from '../src/views/ui-root/settlement-graph-session.js';
 
 const faceClock={tSec:0,seasonDurationSec:8};
+for (const [candidateIndex, classId] of [[null, null], [0, 'scholar'], [1, 'warrior']]) {
+  const state = createNewGameState(123);
+  if (candidateIndex !== null) assert.equal(selectLifeMapVassal(state, candidateIndex).ok, true);
+  const before = JSON.stringify(state);
+  const cards = getResearchLibraryCards(state), tiers = getResearchProgression(state).tiers;
+  const filters = getResearchLibraryDefaultFilters(state);
+  assert.equal(filters.pool, classId ? `${classId}+common` : 'common', 'founder selection immediately sets the library default');
+  const filtered = filterResearchLibraryCards(cards, filters, tiers);
+  assert.deepEqual(filtered, cards.filter(card => card.def.pool === 'common' || card.def.pool === classId), 'defaults expose exactly the chosen class and generic cards');
+  const layout = layoutResearchLibraryCards(filtered, tiers, 2296, classId ?? 'common');
+  for (const tier of tiers) {
+    const entries = layout.entries.filter(entry => entry.kind === 'card' && entry.card.tier === tier.id);
+    const pools = entries.map(entry => entry.card.def.pool);
+    const firstGeneric = pools.indexOf('common');
+    if (classId && firstGeneric >= 0) assert.ok(pools.slice(firstGeneric).every(pool => pool === 'common'), 'all chosen-class cards precede generic cards, including Structures');
+    for (const pool of [classId, 'common'].filter(Boolean)) for (const kind of ['practice', 'structure']) {
+      const labels = entries.filter(entry => entry.card.def.pool === pool && entry.card.kind === kind).map(entry => entry.card.def.label);
+      assert.deepEqual(labels, [...labels].sort((a,b) => a.localeCompare(b)), 'cards remain alphabetical within each class and type');
+    }
+  }
+  assert.deepEqual(layout.groups.map(group => group.id), tiers.map(tier => tier.id), 'unlock tiers remain the primary sections');
+  assert.equal(filterResearchLibraryCards(cards, {...filters, pool:''}, tiers).length, cards.length, 'All classes exposes the full catalog');
+  for (const pool of ['scholar', 'warrior']) assert.deepEqual(filterResearchLibraryCards(cards, {...filters, pool}, tiers), cards.filter(card => card.def.pool === pool), 'manual class filters expose hidden cards');
+  assert.equal(JSON.stringify(state), before, 'library queries do not change state or RNG');
+  if (classId) {
+    state.civilization.vassalLineage.currentVassalId = null;
+    assert.equal(getResearchLibraryDefaultFilters(state).pool, filters.pool, 'the chosen lineage class remains the default between vassals');
+  }
+}
 const loggingReading=getGamepieceFace(faceClock,'practice','logging');
 assert.deepEqual(loggingReading.reading.effects,[
   {timing:'Spring',text:'Produce 2 Stock'},

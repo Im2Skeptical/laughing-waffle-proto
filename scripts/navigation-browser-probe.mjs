@@ -151,7 +151,7 @@ async function capture(name) {
   checkpoints.push({ name, navigation: s.navigation });
 }
 
-async function checkResearchLibrary(touch = false) {
+async function checkResearchLibrary(touch = false, expectedPool = 'common') {
   const before = await snapshot();
   assert.equal(await page.getByTestId('research-open').count(), 0, 'Research has no duplicate top-right button');
   const header = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.civilizationHeader);
@@ -209,7 +209,11 @@ async function checkResearchLibrary(touch = false) {
   assert.equal(research.renderer, 'pixi');
   assert.equal(await page.locator('.research-library').count(), 0, 'the library is rendered on the game canvas');
   assert.equal(research.totalCards, 187, 'the full Practice/Structure pool is browsable');
-  assert.equal(research.filteredCount, 187);
+  assert.equal(research.filters.pool, expectedPool, 'class defaults follow the selected protovassal');
+  const defaultCount = research.filteredCount;
+  assert.ok(defaultCount > 0 && defaultCount < research.totalCards, 'other classes are hidden by default');
+  assert.ok(research.visibleCards.every(card => card.pool === expectedPool.split('+')[0]),
+    'each tier starts with the chosen class, or generic before selection');
   assert.equal(research.tiers.length, 4, 'tiers are the primary grouping');
   assert.equal(research.tiers[0].chance, 1);
   assert.equal(research.tiers[3].chance, 0);
@@ -264,7 +268,14 @@ async function checkResearchLibrary(touch = false) {
   await search('no-matching-card-xyz');
   assert.equal((await library()).filteredCount, 0, 'an empty search does not show unrelated cards');
   await press('clear');
-  assert.equal((await library()).filteredCount, 187);
+  assert.equal((await library()).filteredCount, defaultCount, 'Clear restores class defaults');
+  assert.equal((await library()).filters.pool, expectedPool);
+  await choose('pool', '');
+  assert.equal((await library()).filteredCount, 187, 'All classes exposes the entire library');
+  await choose('pool', 'warrior');
+  assert.ok((await library()).filteredCount > 0, 'hidden Warrior cards remain accessible');
+  assert.ok((await library()).visibleCards.every(card => card.pool === 'warrior'));
+  await press('clear');
   if (touch) {
     const cdp = await page.context().newCDPSession(page), box = await page.locator('canvas').boundingBox();
     const toCss = (x,y) => ({x:box.x+x/2424*box.width,y:box.y+y/1080*box.height,id:1});
@@ -315,6 +326,7 @@ async function checkResearchLibrary(touch = false) {
     return research.open && !research.loading;
   });
   assert.equal((await library()).totalCards, 187, 'research opens normally after cancelling preparation');
+  assert.equal((await library()).filters.pool, expectedPool, 'reopening restores class defaults');
   await press('close');
 }
 
@@ -335,9 +347,15 @@ async function runProbe() {
   if (process.argv.includes('--research-only')) {
     await navigate('present');
     await checkResearchLibrary();
+    await navigate('vassal');
+    await clickPoint(await controlPoint('getVassalCandidateClickPoint', 0));
+    await navigate('vassal');
+    await waitMode('vassalLife');
+    await navigate('map');
+    await checkResearchLibrary(false, 'scholar+common');
     await page.setViewportSize({ width: 844, height: 390 });
     await delay(250);
-    await checkResearchLibrary(true);
+    await checkResearchLibrary(true, 'scholar+common');
     assert.deepEqual(errors, [], 'no browser runtime errors');
     writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ ok: true, checkpoints }, null, 2));
     console.log(`[probe:navigation] OK: Research header, loading paints, cancellation, desktop/touch browsing and filters\n[probe:navigation] details=${OUTPUT}/probe.json`);
@@ -600,7 +618,7 @@ async function runProbe() {
   assert.equal(s.navigation.time.mode, 'present', 'touch can return to Present through a modal');
   assert.equal(s.mode, 'vassalLife');
   await navigate('map', { touch: true });
-  await checkResearchLibrary(true);
+  await checkResearchLibrary(true, 'scholar+common');
   assert.deepEqual(errors, [], 'no browser runtime errors');
   writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ ok: true, checkpoints }, null, 2));
   console.log(`[probe:navigation] OK: direct routes, portrait mouse/touch, drafts, time locks, mobile layout, Research library and filters\n[probe:navigation] details=${OUTPUT}/probe.json`);

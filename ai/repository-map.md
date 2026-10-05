@@ -58,7 +58,10 @@ not use the root file as the default location for new rendering or model rules.
   helpers: `src/views/research-library-data.js`; shared research
   unlocks and quality probabilities: `src/model/research-progression.js`.
   The Pixi library groups the full pool by minimum unlock tier, shows new-Practice
-  quality odds, and supports search/class/type/access/trait filters. Faces use
+  quality odds, and supports search/class/type/access/trait filters. It shows
+  generic cards by default before founder selection, then the chosen class followed
+  by generic cards within each tier. Class filters expose other classes; Clear
+  restores these defaults. Faces use
   regional-map dimensions, the shared hover tooltip and larger inspection. Browsing
   suspends presentation and ticks without changing simulation state.
   `npm run probe:navigation` covers desktop/touch browsing and inspection.
