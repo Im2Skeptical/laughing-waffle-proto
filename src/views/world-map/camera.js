@@ -102,10 +102,12 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
       // rather than reserving an equally large empty margin above and below it.
       const width = 2 * Math.max(Math.abs(left - point.x), Math.abs(right - point.x));
       const height = bottom - top;
-      const targetZoom = Math.min(2.5, bounds.width / Math.max(1, width), bounds.height / Math.max(1, height));
+      const fitZoom = Math.min(2.5, bounds.width / Math.max(1, width), bounds.height / Math.max(1, height));
+      const targetZoom = Math.max(zoom, fitZoom);
       const centeredY = bounds.y + bounds.height / 2 - point.y * targetZoom;
-      // Stay as close to vertical center as possible while keeping every edge visible.
-      const targetY = Math.max(bounds.y - top * targetZoom,
+      // Selection never zooms out. When the group cannot fit at the current zoom,
+      // prioritize the selected settlement instead of trying to keep every edge visible.
+      const targetY = targetZoom > fitZoom ? centeredY : Math.max(bounds.y - top * targetZoom,
         Math.min(bounds.y + bounds.height - bottom * targetZoom, centeredY));
       focus.start({x,y,zoom}, {
         x: bounds.x + bounds.width / 2 - point.x * targetZoom,

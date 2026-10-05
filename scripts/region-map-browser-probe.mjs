@@ -61,18 +61,15 @@ async function waitDismissed() {
     return !map.focusAnimating && map.panelReveal.phase==='closed' && !map.detailPanelVisible;
   });
 }
-async function assertGroupFramed(id) {
+async function assertSelectionFocused(id, minimumZoom=1) {
   await waitFocus();
   const map=await snap(), bounds=map.layout.groupFrame;
   assert.equal(map.selected,id);
+  assert.ok(map.camera.zoom>=minimumZoom-.001,'automatic framing never zooms out from the prior camera zoom');
   const selected=await regionPoint(id);
   assert.ok(Math.abs(selected.x-(bounds.x+bounds.width/2))<.01
     && selected.y>=bounds.y && selected.y<=bounds.y+bounds.height,
     'selected settlement stays horizontally centered and visible while zoom frames its group');
-  for(const regionId of map.relationships.groupRegionIds) {
-    const p=await regionPoint(regionId);
-    assert.ok(p.x>=bounds.x && p.x<=bounds.x+bounds.width && p.y>=bounds.y && p.y<=bounds.y+bounds.height,`${regionId} is visible in the default group framing`);
-  }
 }
 async function capture(name) {await page.mouse.move(0,0);await delay(150);await page.screenshot({path:`${output}/${name}.png`});snapshots.push({name,...await snap()});}
 async function doubleTapFlag() {
@@ -134,7 +131,7 @@ try {
   assert.equal(opening.panel.animating,true);
   assert.equal(opening.panel.scale,.06);
   assert.deepEqual(opening.panel.origin,opening.origin,'panel grows out of the selected settlement');
-  await assertGroupFramed('cedar-woods');
+  await assertSelectionFocused('cedar-woods',opening.before.zoom);
   let selected=await snap();
   assert.equal(selected.detail,true,'settlement details disclose on selection');
   assert.equal(selected.slots.visible,8);
@@ -143,14 +140,14 @@ try {
   assert.deepEqual(selected.relationships.highlightedRegionIds,['iron-hills','west-levee'],'adjacent regions with a direct road are highlighted');
   assert.deepEqual(selected.relationships.groupRegionIds,['cedar-woods','west-levee'],
     'camera framing excludes the adjacent connected neutral and wider connected group');
-  const groupCamera=selected.camera;
   await click({x:818,y:782});
+  const zoomedCamera=(await snap()).camera;
   await click({x:899,y:782});
   await waitFocus();
   const resetCamera=(await snap()).camera;
-  assert.ok(['x','y','zoom'].every(key=>Math.abs(resetCamera[key]-groupCamera[key])<.001),
-    'Reset restores the default group framing');
-  await assertGroupFramed('cedar-woods');
+  assert.ok(Math.abs(resetCamera.zoom-zoomedCamera.zoom)<.001,
+    'Reset reapplies focus without automatically zooming out');
+  await assertSelectionFocused('cedar-woods',zoomedCamera.zoom);
   assert.equal(selected.slots.blocked,3,'five-cell region blocks three cells');
   await click({x:1110,y:400});
   const inspection=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
@@ -160,9 +157,10 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState().title),'Unavailable construction space');
   await click({x:1880,y:700});
   // Select another visible settlement with a real pointer, not only the debug callback.
+  const beforeSwitchZoom=(await snap()).camera.zoom;
   await click(await regionPoint('west-levee'));
   assert.equal((await snap()).selected,'west-levee','clicking another settlement changes the panel subject');
-  await assertGroupFramed('west-levee');
+  await assertSelectionFocused('west-levee',beforeSwitchZoom);
   assert.equal((await snap()).panelReveal.scale,1,'switching keeps the open panel in place');
   const settled=await snap();
   const pan=await point({x:700,y:650});
@@ -187,13 +185,18 @@ try {
   assert.equal((await snap()).detail,false,'close returns to the full map');
   assert.equal((await snap()).relationships,null,'dismissal clears the group highlights');
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'closing restores the overview framing');
+  const zoomBeforeFocus=await point({x:1200,y:450});
+  await page.mouse.move(zoomBeforeFocus.x,zoomBeforeFocus.y);await page.mouse.wheel(0,-300);
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.camera.zoom>1);
+  const beforeR10Zoom=(await snap()).camera.zoom;
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
-  await assertGroupFramed('east-steppe');
+  await assertSelectionFocused('east-steppe',beforeR10Zoom);
   assert.deepEqual((await snap()).relationships.groupRegionIds,['east-steppe','obsidian-ridge']);
-  assert.ok((await snap()).camera.zoom>.98,'R10/R14 use the available height instead of a symmetric empty margin');
+  assert.ok(Math.abs((await snap()).camera.zoom-beforeR10Zoom)<.001,'R10/R14 preserve manual zoom when fitting would require zooming out');
   await capture('desktop-r10-r14');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
   await waitDismissed();
+  await click({x:2340,y:780});
   const wheel=await point({x:1200,y:450});
   await page.mouse.move(wheel.x,wheel.y);await page.mouse.wheel(0,-300);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.camera.zoom>1);
@@ -204,11 +207,11 @@ try {
   await capture('mobile-map');
   await click(await regionPoint(),true);
   assert.equal((await snap()).detail,true,'touch selects');
-  await assertGroupFramed('cedar-woods');
+  await assertSelectionFocused('cedar-woods');
   await capture('mobile-selected');
+  const beforeMobileSwitchZoom=(await snap()).camera.zoom;
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectWorldRegion('east-steppe'));
-  await assertGroupFramed('east-steppe');
-  assert.ok((await snap()).camera.zoom>.98,'phone framing also fills the available height for R10/R14');
+  await assertSelectionFocused('east-steppe',beforeMobileSwitchZoom);
   await capture('mobile-r10-r14');
   await click({x:2370,y:116},true);
   await waitDismissed();

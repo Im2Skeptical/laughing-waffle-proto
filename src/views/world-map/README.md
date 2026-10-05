@@ -52,7 +52,10 @@ transition ends; reopening reverses the shrink from its current pose. Opening or
 region horizontally centers the selected settlement in the left map area and adjusts zoom to
 fit its own territory and only active player settlements that are both adjacent
 and directly road-connected. Neutral settlements, empty land, and monster-occupied
-regions do not widen the frame. Vertical framing stays as close to the selected settlement's
+regions do not widen the frame. Automatic framing can zoom in up to 2.5x but
+never below the current zoom. When fitting the group would require zooming out,
+the selected settlement is centered at the current zoom and neighbours may extend
+outside the frame. Vertical framing otherwise stays as close to the selected settlement's
 center as possible, shifting only enough to fit the actual territory span rather
 than reserving matching empty margins above and below. Reset returns to this framing.
 Flag double-taps remain anchored to the first screen position for 500 ms, including

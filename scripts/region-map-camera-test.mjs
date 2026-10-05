@@ -130,12 +130,7 @@ const groupBounds = {x:48,y:236,width:864,height:280};
 const groupFocus = {x:650,y:260};
 camera.frame(groupPoints, groupBounds, groupFocus);
 time += 400; camera.update();
-for (const point of groupPoints) {
-  const projected = camera.project(point);
-  assert.ok(projected.x >= groupBounds.x - .001 && projected.x <= groupBounds.x + groupBounds.width + .001);
-  assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
-}
-assert.ok(camera.snapshot().zoom < 1, 'large groups can fit beside the detail panel');
+assert.equal(camera.snapshot().zoom, 1, 'large groups cannot automatically zoom out from the overview');
 const groupCenter = {x:groupBounds.x+groupBounds.width/2,y:groupBounds.y+groupBounds.height/2};
 const assertGroupFocused = (point, message) => {
   const projected = camera.project(point);
@@ -143,24 +138,32 @@ const assertGroupFocused = (point, message) => {
     && projected.y>=groupBounds.y-.001 && projected.y<=groupBounds.y+groupBounds.height+.001, message);
 };
 assertGroupFocused(groupFocus, 'selection stays horizontally centered instead of the group bounding box');
+assert.ok(Math.abs(camera.project(groupFocus).y-groupCenter.y)<.001, 'selection is vertically centered when the group cannot fit');
+camera.zoomBy(1.4);
+const manuallyZoomed = camera.snapshot().zoom;
 camera.frame(groupPoints, groupBounds, groupPoints[1]);
+time += 160; camera.update();
+assert.ok(camera.snapshot().zoom >= manuallyZoomed, 'selection never zooms out during the focus transition');
 time += 400; camera.update();
 assertGroupFocused(groupPoints[1], 'switching keeps a settlement at the group edge in focus');
-for (const point of groupPoints) {
+assert.equal(camera.snapshot().zoom, manuallyZoomed, 'switching preserves manual zoom even when the group would need a smaller zoom');
+camera.zoomBy(1 / 2);
+assert.ok(camera.snapshot().zoom < manuallyZoomed, 'manual input can still zoom out');
+const smallGroup = [{x:550,y:260},{x:750,y:360}];
+camera.frame(smallGroup, groupBounds, groupFocus);
+time += 400; camera.update();
+assert.ok(camera.snapshot().zoom > manuallyZoomed, 'selection can zoom in when its group fits');
+for (const point of smallGroup) {
   const projected = camera.project(point);
-  assert.ok(projected.x >= groupBounds.x - .001 && projected.x <= groupBounds.x + groupBounds.width + .001);
-  assert.ok(projected.y >= groupBounds.y - .001 && projected.y <= groupBounds.y + groupBounds.height + .001);
+  assert.ok(projected.x >= groupBounds.x-.001 && projected.x <= groupBounds.x+groupBounds.width+.001);
+  assert.ok(projected.y >= groupBounds.y-.001 && projected.y <= groupBounds.y+groupBounds.height+.001);
 }
-assert.ok(camera.snapshot().zoom < .35, 'automatic framing can zoom out enough for a horizontally off-center group');
-const fittedZoom = camera.snapshot().zoom;
-camera.zoomBy(1.2);
-assert.ok(Math.abs(camera.snapshot().zoom - fittedZoom * 1.2) < .001, 'manual zoom remains gradual after a wide group fit');
 camera.frame([groupFocus], groupBounds, groupFocus);
 time += 400; camera.update();
 assertGroupFocused(groupFocus, 'isolated settlements remain centered');
 assert.ok(Math.abs(camera.project(groupFocus).y-groupCenter.y)<.001, 'isolated framing keeps vertical center');
 assert.equal(camera.snapshot().zoom, 2.5, 'isolated framing respects the maximum zoom');
-console.log('[region-map-group-frame] OK: selected settlement stays in focus, whole group fits, edge/isolated selections, gradual manual zoom');
+console.log('[region-map-group-frame] OK: no automatic zoom-out, manual zoom preserved, selected focus, zoom-in and maximum zoom');
 
 // R10 with only R14 connected: the southern neighbour must not force a
 // matching empty margin above the selected settlement.
@@ -169,6 +172,8 @@ const mapPoint = point => ({x:MAP_RECT.x+point.x*MAP_RECT.width,y:MAP_RECT.y+poi
 const screenshotRegions = screenshotDefinition.regions.filter(region => ['east-steppe','obsidian-ridge'].includes(region.id));
 const screenshotPoints = screenshotRegions.flatMap(region => getRegionPolygon(screenshotDefinition, region).map(mapPoint));
 const screenshotFocus = mapPoint(screenshotRegions.find(region => region.id==='east-steppe').display.labelPoint);
+camera.restore({zoom:.5,x:0,y:0});
+time += 400; camera.update();
 camera.frame(screenshotPoints, GROUP_FRAME_RECT, screenshotFocus);
 time += 400; camera.update();
 assert.ok(camera.snapshot().zoom > .98, `R10/R14 should fill the usable map height; actual zoom=${camera.snapshot().zoom}`);
@@ -179,6 +184,12 @@ for (const point of screenshotPoints) {
 }
 assert.ok(Math.abs(camera.project(screenshotFocus).x-(GROUP_FRAME_RECT.x+GROUP_FRAME_RECT.width/2))<.001,
   'R10 remains horizontally centered while its neighbour fills the frame');
+camera.reset();
+camera.frame(screenshotPoints, GROUP_FRAME_RECT, screenshotFocus);
+time += 400; camera.update();
+assert.equal(camera.snapshot().zoom, 1, 'R10/R14 preserve the overview zoom when fitting would require zooming out');
+assert.ok(Math.abs(camera.project(screenshotFocus).y-(GROUP_FRAME_RECT.y+GROUP_FRAME_RECT.height/2))<.001,
+  'R10 takes vertical focus when the full group cannot fit without zooming out');
 
 const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
