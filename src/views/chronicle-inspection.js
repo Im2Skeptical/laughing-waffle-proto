@@ -27,7 +27,7 @@ function readingViewport(parent, content, rect) {
   return viewport;
 }
 
-function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detail,referenceState,keywordReferences}) {
+function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,onReview,detail,referenceState,keywordReferences}) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   root.eventMode='static';root.on('pointertap',event=>event.stopPropagation());
   const frame=new PIXI.Graphics();paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,2);root.addChild(frame);
@@ -40,6 +40,14 @@ function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detai
   close.addChild(closeFrame,createText('×',{...TEXT_STYLES.header,fontSize:40},27,27,.5,.5));
   close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(-39,-39,132,132);
   close.on('pointertap',event=>{event.stopPropagation();onClose?.();});root.addChild(close);root.closeControl=close;
+  if(onReview) {
+    const dev=new PIXI.Container();dev.position.set(rect.width-216,14);
+    const frame=new PIXI.Graphics();paintRelicPanel(frame,0,0,120,54,RELIC.stone,RELIC.brass,1);
+    dev.addChild(frame,createText('Dev',{...TEXT_STYLES.header,fontSize:30},60,27,.5,.5));
+    dev.eventMode='static';dev.cursor='pointer';dev.hitArea=new PIXI.Rectangle(-6,-39,132,132);
+    dev.accessible=true;dev.accessibleTitle=`Review ${face.label}`;
+    dev.on('pointertap',event=>{event.stopPropagation();onReview(face);});root.addChild(dev);root.devControl=dev;
+  }
   const top=88,bottom=rect.height-56;
   const fitted=fitPiece({x:pad,y:top+20,width:cardWidth,height:bottom-top-(cost?160:10)},face.kind,face.footprint);
   addSettlementPiece(root,{x:fitted.x,y:fitted.y,width:fitted.width*fitted.scale,height:fitted.height*fitted.scale},{face});
@@ -63,8 +71,8 @@ function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,detai
 }
 
 // A view-local reading surface; scrolling never changes a card or its draft.
-export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate, referenceState, keywordReferences=true}) {
-  if(face?.reading)return addPracticeInspection(parent,rect,{face,cost,onActivate,onClose,detail,referenceState,keywordReferences});
+export function addChronicleInspection(parent, rect, {title, artId, face, cost, metadata, detail, onClose, onActivate, onReview, referenceState, keywordReferences=true}) {
+  if(face?.reading)return addPracticeInspection(parent,rect,{face,cost,onActivate,onClose,onReview,detail,referenceState,keywordReferences});
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   const frame=new PIXI.Graphics();
   paintRelicPanel(frame,0,0,rect.width,rect.height,RELIC.night,RELIC.brass,3);

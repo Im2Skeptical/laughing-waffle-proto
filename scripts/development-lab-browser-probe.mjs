@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
@@ -76,7 +76,68 @@ try {
   assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'all reading interactions preserve fixture state and RNG');
   await page.screenshot({path:'artifacts/development-lab-zoo.png'});
   checks.push('runtime search, class/footprint filters, quality comparison, Charge and Structure quick reads, shared inspector, keywords, mobile bounds, state/RNG preservation');
-  if(process.argv.includes('--zoo-only')) {
+  await page.getByLabel('Category',{exact:true}).selectOption('practice');
+  await page.getByLabel('Slot size',{exact:true}).selectOption('');
+  await page.getByLabel('Search runtime content').fill('smelting');
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
+  await page.getByRole('button',{name:'Dev',exact:true}).click();
+  await page.getByRole('heading',{name:'Card reviewer',exact:true}).waitFor();
+  await page.setViewportSize({width:390,height:844});
+  await page.getByRole('button',{name:'Edit Production',exact:true}).click();
+  const output=page.locator('.review-inline-editor').getByLabel('Stock produced',{exact:true});
+  await output.fill('4');
+  await page.getByText('Produce 4 Stock',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await page.getByLabel('Review notes',{exact:true}).fill('Check the Metal chain on mobile.');
+  await page.getByLabel('Preview quality',{exact:true}).selectOption('gold');
+  await page.getByRole('button',{name:'Compare with live',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.review-column').length===2);
+  assert.equal(await page.getByLabel('Preview quality',{exact:true}).inputValue(),'gold','comparison retains the selected preview quality');
+  assert.equal(await page.locator('.review-column').count(),2);
+  assert.deepEqual(await page.locator('.review-face img').evaluateAll(images=>images.map(img=>img.alt)),['Smelting · gold · Stock 0/7','Smelting · gold · Stock 0/7'],'reviewer uses runtime quality-adjusted Stock capacity');
+  assert.ok(await page.getByText('Produce 2 Stock',{exact:true}).isVisible(),'live card retains its original production');
+  for(const size of [{width:320,height:740},{width:844,height:390},{width:1280,height:800}]) {
+    await page.setViewportSize(size);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`review fits ${size.width}px`);
+  }
+  await page.reload();
+  await page.getByLabel('Review notes',{exact:true}).waitFor();
+  assert.equal(await page.getByLabel('Stock produced',{exact:true}).inputValue(),'4');
+  assert.equal(await page.getByLabel('Review notes',{exact:true}).inputValue(),'Check the Metal chain on mobile.');
+  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByLabel('Category',{exact:true}).selectOption('structure');
+  await page.getByLabel('Search runtime content').fill('longhouse');
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await page.getByRole('button',{name:'Edit Structure bonuses',exact:true}).click();
+  await page.locator('.review-inline-editor').getByLabel('Housing',{exact:true}).fill('175');
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await page.getByLabel('Footprint',{exact:true}).fill('3');
+  await page.getByLabel('Minimum quality',{exact:true}).selectOption('gold');
+  await page.getByRole('button',{name:'Compare with live',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.review-column').length===2);
+  assert.deepEqual(await page.locator('.review-face img').evaluateAll(images=>images.map(img=>img.alt)),['Longhouse · gold','Longhouse · gold'],'Structure comparison uses matching quality after minimum-quality edits');
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'wide Structure draft fits phone');
+  await page.screenshot({path:'artifacts/card-review-mobile-structure.png'});
+  const download=page.waitForEvent('download');
+  await page.getByTestId('review-export').click();
+  const exported=JSON.parse(readFileSync(await (await download).path(),'utf8'));
+  assert.equal(exported.cards.length,2);
+  assert.equal(exported.cards.find(card=>card.id==='smelting').notes,'Check the Metal chain on mobile.');
+  assert.equal(exported.cards.find(card=>card.id==='smelting').modified.effects[0].amount,4);
+  assert.equal(exported.cards.find(card=>card.id==='longhouse').modified.footprint,3);
+  assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'review edits preserve fixture state and RNG');
+  checks.push('reviewer Dev/Zoo entry, face editing, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
+  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByLabel('Search runtime content').fill('');
+  await page.setViewportSize({width:1280,height:800});
+  if(process.argv.includes('--reviewer-only')) {
+    assert.deepEqual(errors,[]);
+    writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
+    console.log('[probe:development-lab] OK: reviewer face editing, persistence/export, desktop/mobile and inspector entry');
+  } else if(process.argv.includes('--zoo-only')) {
     // Walk the real paged catalogue: every runtime card must open both shared
     // reading surfaces, including unusual DSL effects and gated Structures.
     await page.getByLabel('Slot size',{exact:true}).selectOption('');

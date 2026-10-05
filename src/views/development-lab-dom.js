@@ -6,6 +6,8 @@ import { createLabCards } from './development-lab/cards.js';
 import { createZooView } from './development-lab/zoo.js';
 import { renderWorkbench } from './development-lab/workbench.js';
 import { renderPrototypes } from './development-lab/prototypes.js';
+import { createCardReviewController } from '../controllers/card-review-controller.js';
+import { createCardReviewerView } from './development-lab/card-reviewer.js';
 import { el, button, select, input, field, section } from './development-lab/elements.js';
 
 export function mountDevelopmentLab() {
@@ -19,7 +21,7 @@ export function mountDevelopmentLab() {
   title.append(el('small','DEVELOPER WORKBENCH'),el('h1','Development Lab'));
   const nav = el('nav');
   nav.setAttribute('aria-label','Development Lab sections');
-  for(const [id,label] of [['zoo','Zoo · content'],['museum','Museum · systems'],['gym','Gym · sandbox'],['prototypes','Prototypes · design']]) {
+  for(const [id,label] of [['zoo','Zoo · content'],['reviewer','Card reviewer'],['museum','Museum · systems'],['gym','Gym · sandbox'],['prototypes','Prototypes · design']]) {
     const link=el('a',label);link.href=`#/dev/${id}`;link.dataset.mode=id;nav.append(link);
   }
   const gameLink=el('a','Open game');gameLink.href=new URL('.',location.href).href;gameLink.target='_blank';gameLink.rel='noopener';nav.append(gameLink);
@@ -36,15 +38,26 @@ export function mountDevelopmentLab() {
     else if(controller().getSnapshot().detail && controller().getSnapshot().detail!==previousDetail)requestAnimationFrame(()=>content.querySelector('[data-lab-result]')?.scrollIntoView({block:'start'}));
     return !error;
   };
-  const cards=createLabCards(), zoo=createZooView({controller:gym,cards,run});
+  // Always compare with this build's live registries, independent of Gym drafts.
+  const reviewState=museum.getSnapshot().state;
+  const review=createCardReviewController({resolveLive:(kind,id)=>reviewState.gameConfig.gamepieces[kind==='practice'?'practices':'structures'][id]});
+  const onReview=face=>run(()=>{
+    const definition=controller().getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
+    review.flag(face.kind,face.definitionId,definition,face.tier);
+    location.hash=`/dev/reviewer?card=${encodeURIComponent(`${face.kind}:${face.definitionId}`)}`;
+  });
+  const cards=createLabCards({onReview}), zoo=createZooView({controller:gym,cards,run,onReview});
+  const reviewer=createCardReviewerView({review,cards,getState:()=>reviewState,run});
   function render() {
+    document.body.classList.toggle('reviewer-active',mode==='reviewer');
     const active=document.activeElement, key=active?.getAttribute('aria-label'), start=active?.selectionStart;
     const scroll=window.scrollY;
     cards.dismissReading();
     content.replaceChildren();
     for(const link of nav.querySelectorAll('[data-mode]')) link.setAttribute('aria-current',link.dataset.mode===mode?'page':'false');
-    status.textContent=error || (mode==='prototypes'?'Isolated design studies · edits are temporary':controller().getSnapshot().message) || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
+    status.textContent=error || (mode==='reviewer'?'Card review drafts · saved on this device':mode==='prototypes'?'Isolated design studies · edits are temporary':controller().getSnapshot().message) || 'Disposable state · no player save slots are written';status.classList.toggle('lab-warning',!!error);
     if(mode==='zoo') zoo.render(content);
+    else if(mode==='reviewer') {try{reviewer.render(content);}catch(e){status.textContent=`Card reviews unavailable: ${e.message}`;status.classList.add('lab-warning');}}
     else if(mode==='prototypes') renderPrototypes(content);
     else {
       const ctl=controller(), snapshot=ctl.getSnapshot();
@@ -73,7 +86,7 @@ export function mountDevelopmentLab() {
         button('Branch start',()=>run(()=>ctl.seek(snapshot.branchSec))),button('Forecast end',()=>run(()=>ctl.seek(snapshot.endSec))),
         el('span',`Branch ${snapshot.branchSec}s → ${snapshot.endSec}s · drag the graph or either wheel. Step buttons extend the span if needed.`));
       content.append(timelineControls);
-      if(!scene)scene=createLabScene({getController:controller,run});
+      if(!scene)scene=createLabScene({getController:controller,run,onReview});
       content.insertBefore(scene.node,transport);scene.refresh();
       if(mode==='gym') {
         const storage=el('div','','lab-controls'), name=input('Fixture name','','text');name.placeholder='Name this reproduction';
@@ -104,7 +117,7 @@ export function mountDevelopmentLab() {
   }
   function route() {
     cancelAnimationFrame(renderFrame);
-    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','museum','gym','prototypes'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
+    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
   window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();},{once:true});

@@ -4,7 +4,7 @@ import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { practiceSlot } from '../../model/dev-lab/fixtures.js';
 import { el, select, field, input, section, details, button, table } from './elements.js';
 
-export function createZooView({controller,cards,run}) {
+export function createZooView({controller,cards,run,onReview}) {
   const filters = {category:'practice'}, pageSize = 12;
   let page = 0, selected = null;
   function render(parent) {
@@ -68,7 +68,9 @@ export function createZooView({controller,cards,run}) {
         const slot = e.category === 'practice' ? practiceSlot(e.id,0,e.maturity) : {};
         const face = getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
         if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
-        grid.append(cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}`,inspect,{readable:true}));
+        const card=cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}`,inspect,{readable:true});
+        if(onReview)card.append(button('Review card',()=>onReview(face)));
+        grid.append(card);
       }
       else {
         const item = section(e.label,el('p',e.def.description ?? e.def.rule ?? e.pool ?? 'Runtime template'));

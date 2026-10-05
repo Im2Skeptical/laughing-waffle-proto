@@ -179,6 +179,7 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .lab-card-inspection { width:min(1400px,calc(100vw - 24px)); max-width:none; max-height:calc(100dvh - 24px); padding:12px; color:#e1ebe9; background:#111c21; border:1px solid #83ae9c; border-radius:8px; overflow:auto; }
 .lab-card-inspection::backdrop { background:#050b10cc; }
 .lab-card-inspection>.lab-controls { justify-content:space-between; margin:0 0 8px; }
+.development-lab .lab-card-inspection>.lab-controls button { min-height:44px; }
 .lab-tableau { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
 .lab-tableau .lab-card { width:auto; }
 .lab-provider { color:#a8e7c6 !important; border-left:3px solid #81c1a3; padding-left:7px; }
@@ -192,6 +193,41 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .development-lab pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:420px; overflow:auto; font-size:12px; padding:10px; background:#102126; }
 @media(max-width:850px) { .development-lab #app { padding:10px; } .lab-tableau { display:flex; overflow-x:auto; padding-bottom:8px; } .lab-tableau .lab-card { flex:0 0 195px; } .lab-transport { position:static; } .lab-card-grid>.lab-card { width:calc(50% - 7px); } }
 .development-lab h1 { text-decoration:none; }
+
+/* Card review drafts use the live renderer with accessible DOM editing. */
+.development-lab .review-queue { display:flex; gap:8px; overflow-x:auto; padding:12px 0 4px; }
+.review-queue button { flex:0 0 auto; }
+.development-lab .review-queue button[aria-pressed=true] { background:#386451; border-color:#b3e0bd; }
+.review-preview { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:20px; align-items:start; }
+.review-column { min-width:0; }
+.review-column h3 { margin:8px 0; }
+.review-face { position:relative; width:min(100%,360px); margin:0 auto; }
+.review-face img { display:block; width:100%; height:auto; }
+.review-targets { position:absolute; inset:0; pointer-events:none; }
+.development-lab .review-targets button { position:absolute; pointer-events:auto; padding:0; margin:0; min-height:44px; min-width:44px; border:2px solid #b6edbc; border-radius:3px; background:#9cecb518; box-shadow:0 0 0 2px #071a15aa; }
+.development-lab .review-targets button:hover,.development-lab .review-targets button:focus { background:#9cecb544; }
+.review-inline-editor { position:absolute; top:20%; left:3%; width:94%; max-height:65%; overflow:auto; z-index:1; padding:12px; background:#162e2bf5; border:1px solid #b6edbc; border-radius:7px; box-shadow:0 6px 20px #0008; }
+.review-inline-editor[hidden] { display:none; }
+.review-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; margin:12px 0; }
+.development-lab .review-fields input,.development-lab .review-fields select { width:100%; min-height:44px; font-size:16px; }
+.review-field-error { color:#f3b39e; }
+.review-fields [aria-invalid=true] { border-color:#f3b39e; }
+.development-lab .review-workspace textarea { display:block; width:100%; resize:vertical; padding:12px; font:16px/1.5 system-ui,sans-serif; color:#e1ebe9; background:#16262e; border:1px solid #587079; border-radius:5px; }
+.review-save-status { color:#b6edbc; }
+.review-changes { overflow-wrap:anywhere; }
+.review-workspace .lab-controls button,.review-queue button { min-height:44px; }
+@media(max-width:550px) {
+  .reviewer-active .lab-header { gap:8px; padding-bottom:8px; }
+  .reviewer-active .lab-header small { display:none; }
+  .reviewer-active .lab-header h1 { font-size:22px; }
+  .reviewer-active .lab-header nav { flex-wrap:nowrap; width:100%; overflow-x:auto; gap:4px; }
+  .reviewer-active .lab-header nav a { flex:0 0 auto; }
+  .review-preview { grid-template-columns:1fr; }
+  .review-face { width:min(100%,300px); }
+  .review-workspace { padding:12px; }
+  .review-workspace .lab-controls { gap:8px; }
+  .review-workspace .lab-controls button { flex:1 1 135px; }
+}
 .lab-catalogue-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); align-items:stretch; }
 .lab-catalogue-grid>.lab-card,.lab-catalogue-grid>.lab-specimen { width:100%; height:480px; overflow:auto; margin:0; }
 .lab-scene { border:1px solid #48615e; border-radius:8px; padding:10px; background:#101a1e; margin:12px 0; }

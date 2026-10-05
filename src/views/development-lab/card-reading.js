@@ -4,7 +4,7 @@ import { el, button } from './elements.js';
 
 // One interactive canvas serves every Zoo specimen, alongside the shared
 // image renderer. Rules, symbols and recursive references come from the game.
-export function createLabCardReading() {
+export function createLabCardReading({onReview} = {}) {
   const quick = el('div', '', 'lab-card-quick-read');
   quick.hidden = true;
   quick.setAttribute('role', 'dialog');
@@ -12,6 +12,7 @@ export function createLabCardReading() {
   const toolbar = el('div', '', 'lab-controls');
   const heading = el('strong');
   toolbar.append(heading, button('Close inspection', close));
+  if(onReview)toolbar.insertBefore(button('Dev',()=>{const selected=face;close();onReview(selected);}),toolbar.lastChild);
   dialog.append(toolbar);
   let app = null, face = null, anchor = null, mode = null, surface = null, timer = null, pinned = false;
   let closing = false;
@@ -56,7 +57,7 @@ export function createLabCardReading() {
       position();
     } else {
       app.renderer.resize(2200, 880);
-      surface = addChronicleInspection(app.stage, {x:0, y:0, width:2200, height:880}, {face, onClose:close, referenceState});
+      surface = addChronicleInspection(app.stage, {x:0, y:0, width:2200, height:880}, {face, onClose:close, referenceState, onReview:onReview?()=>{const selected=face;close();onReview(selected);}:null});
       surface.setScroll(rulesScroll); surface.setGlossaryScroll(glossaryScroll);
       dialog.append(app.view);
       heading.textContent = `${face.label} · ${face.tier}`;
@@ -128,6 +129,7 @@ export function createLabCardReading() {
       mode, title:face.label, kind:face.kind, tier:face.tier, reading:face.reading,
       width:app.screen.width, height:app.screen.height,
       titlePoint:surface.titleControl?.toGlobal(new PIXI.Point(280, surface.titleControl.hitArea.height / 2)),
+      devPoint:surface.devControl?.toGlobal(new PIXI.Point(60,27)),
       glossary:surface.glossary?.entries?.map(entry => entry.name) ?? [],
       keywords:surface.getKeywordDebugState?.() ?? null,
     } : null,

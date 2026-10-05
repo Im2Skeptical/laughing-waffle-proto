@@ -608,6 +608,16 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionKeywords.depth),0,'Root Back dismisses shop reference');
   assert.ok(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),'Keyword navigation keeps the shop inspector open');
   await page.screenshot({path:'artifacts/chronicle-mobile-practice-foreground.png'});
+  const reviewPoint=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectionDevPoint);
+  assert.ok(reviewPoint,'shop inspector exposes the Dev review control');
+  const reviewPopup=page.waitForEvent('popup');
+  await tap(reviewPoint);
+  const reviewerPage=await reviewPopup;
+  await reviewerPage.getByRole('heading',{name:'Card reviewer',exact:true}).waitFor();
+  assert.ok(reviewerPage.url().includes('/dev/reviewer?card='),'Dev opens the flagged card in the reviewer');
+  assert.equal(await reviewerPage.locator('.review-queue button').count(),1);
+  await reviewerPage.close();
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),quickShop.quickCardId,'review handoff preserves the current shop inspection');
   const inspectNavigation=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation);
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
   const dismissedInspect=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot());

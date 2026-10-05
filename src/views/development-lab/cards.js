@@ -3,9 +3,9 @@ import { preloadChronicleArt, getArtRevision } from '../chronicle-art.js';
 import { el, button, details } from './elements.js';
 import { createLabCardReading } from './card-reading.js';
 
-export function createLabCards() {
-  const reading = createLabCardReading();
-  const renderer = new PIXI.Renderer({width:440,height:250,backgroundAlpha:0,antialias:true,preserveDrawingBuffer:true});
+export function createLabCards({onReview} = {}) {
+  const reading = createLabCardReading({onReview});
+  const renderer = new PIXI.Renderer({width:440,height:250,resolution:2,backgroundAlpha:0,antialias:true,preserveDrawingBuffer:true});
   let revision = -1;
   let images = [];
   preloadChronicleArt();
@@ -19,13 +19,24 @@ export function createLabCards() {
       reading.refresh();
     }
   },500);
-  function paint({img,face,width}) {
+  function paint({img,face,width,onSections}) {
     renderer.resize(width,250);
     const root = new PIXI.Container();
-    addSettlementPiece(root,{x:8,y:14,width:width-16,height:226},{face,time:face.viewedTime,reducedMotion:true});
+    const piece=addSettlementPiece(root,{x:8,y:14,width:width-16,height:226},{face,time:face.viewedTime,reducedMotion:true});
     renderer.render(root);
     img.src = renderer.view.toDataURL();
+    onSections?.(Object.fromEntries(Object.entries(piece.faceSections??{}).filter(([,section])=>section?.width).map(([key,section])=>[key,{
+      x:(piece.x+section.x*piece.scale.x)/width*100,y:(piece.y+section.y*piece.scale.y)/250*100,
+      width:section.width*piece.scale.x/width*100,height:section.height*piece.scale.y/250*100,
+    }])));
     root.destroy({children:true});
+  }
+  function image(face, onSections) {
+    const description=face=>`${face.label} · ${face.tier}${face.kind==='practice'?` · Stock ${face.stock}/${face.stockCapacity}`:''}`;
+    const img=el('img');img.alt=description(face);
+    const item={img,face,width:face.kind==='structure'?Math.max(180,face.footprint*145):180,onSections};
+    images.push(item);paint(item);
+    return {node:img,update(next){item.face=next;img.alt=description(next);item.width=next.kind==='structure'?Math.max(180,next.footprint*145):180;paint(item);}};
   }
   function card(face, label = '', onClick = null, {readable = false} = {}) {
     const wrapper = el('article','','lab-card');
@@ -44,5 +55,5 @@ export function createLabCards() {
     else wrapper.append(details('Rules and providers',face.detailLines.join('\n')));
     return wrapper;
   }
-  return {card,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
+  return {card,image,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
 }

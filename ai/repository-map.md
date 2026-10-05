@@ -138,6 +138,10 @@ not use the root file as the default location for new rendering or model rules.
   `src/controllers/development-lab-bridge.js`, and `src/model/dev-lab/`.
   See folder READMEs and `docs/development-lab.md`. Hash entry: `#/dev`.
   Probe: `npm run probe:development-lab`.
+  Card reviewer: `src/views/development-lab/card-reviewer.js`,
+  `src/controllers/card-review-controller.js`, `src/model/dev-lab/card-review.js`.
+  Persistence/export checks: `npm run test:card-review`; mobile interaction:
+  `npm run probe:development-lab -- --reviewer-only`.
 
 - Shared debug shell: `src/views/settlement-debug-menu-dom.js`
 - Map Lab view/controller/model:

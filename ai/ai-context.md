@@ -55,6 +55,7 @@ Authoritative numbers:
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
+- Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
 - Life Map generator settings v4; serialized Life Map graph v3.
 - Debug profile library/export v2.
 - Named debug draft libraries v1.

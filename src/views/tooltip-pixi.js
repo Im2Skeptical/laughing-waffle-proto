@@ -34,7 +34,7 @@ function createTextNode(text, style, scale) {
   return node;
 }
 
-export function createTooltipView({ layer, interaction, app, layout = null }) {
+export function createTooltipView({ layer, interaction, app, layout = null, onReview = null }) {
   const container = new PIXI.Container();
   container.visible = false;
   container.eventMode = "none";
@@ -580,6 +580,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       pieceInspection=addChronicleInspection(container,{x:0,y:0,width:activeWidth,height:activeHeight},{
         face:spec.face,title:spec.title,metadata:[spec.face.tier,...(spec.face.tags??[])].join(' · '),
         detail:(spec.lines??[]).join('\n'),onClose:()=>hide({force:true}),referenceState:retainedReference,
+        onReview,
       });
       pieceInspection.setScroll(retainedScroll);
       pieceInspection.setGlossaryScroll?.(retainedGlossaryScroll);
@@ -697,6 +698,7 @@ export function createTooltipView({ layer, interaction, app, layout = null }) {
       rulesRect: pieceInspection?.rules?.getBounds?.() ?? null,
       keywords: pieceInspection?.getKeywordDebugState?.() ?? null,
       closePoint: pieceInspection?.closeControl?.toGlobal?.(new PIXI.Point(27,27)) ?? null,
+      devPoint: pieceInspection?.devControl?.toGlobal?.(new PIXI.Point(60,27)) ?? null,
       anchor: activeResolvedAnchor,
     }),
     update,

@@ -42,7 +42,7 @@ import { renderVassalProjection } from "./vassal-node-decision/vassal-projection
 export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onMoveStructure, onRerollShop, onConfirmNode,
-  onWorldMap, onReadOnlyAction, getProtectedBackdropRects,
+  onWorldMap, onReadOnlyAction, getProtectedBackdropRects, onReview,
 } = {}) {
   const backdrop = new PIXI.Graphics();
   backdrop.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
@@ -751,6 +751,7 @@ export function createVassalNodeDecisionModalView({
         }
       inspectionRoot=addChronicleInspection(root,practiceInspect?{x:112,y:90,width:2200,height:880}:{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
+        onReview,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
         }:null,
@@ -860,6 +861,7 @@ export function createVassalNodeDecisionModalView({
         },
         inspectedCardId: pinnedInspectionId,
         inspectionKeywords: inspectionRoot?.getKeywordDebugState?.()??null,
+        inspectionDevPoint: inspectionRoot?.devControl?.toGlobal?.(new PIXI.Point(60,27))??null,
         inspectionAboveChrome: inspectionLayerIndex!==null,
         quickCardId: quickInspectionId,
         inspectionTitlePoint: inspectionRoot?.titleControl?.toGlobal?.(new PIXI.Point(450,inspectionRoot.titleControl.hitArea.height/2))??null,

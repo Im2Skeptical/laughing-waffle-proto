@@ -1,10 +1,41 @@
 # Development Lab
 
-Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
+Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
 on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **Development Lab** and **Open current state in Gym**.
 The existing debugger remains available.
+
+## Card reviewer
+
+**Card reviewer** sits alongside Zoo. **Review card** flags any Zoo Practice or
+Structure and opens its review. The top-right **Dev** control in the shared card
+inspection does the same from the live game, including shop inspections, and
+opens a separate reviewer tab. Re-flagging preserves existing edits and notes.
+
+Tap an outlined value area on the actual card face to open simple fields over
+its illustration. Valid edits save immediately and redraw the shared live
+renderer. The fields below the card also expose costs, worker values, seasonal
+production, inputs, bonuses, tags, traits and copy without a JSON editor.
+Structural DSL identities and operation names remain fixed. Invalid inputs
+report inline errors and leave the last saved value intact.
+
+**Compare with live** uses the current build's definitions at the same preview
+quality. Cards appear alongside each other on desktop and stack on phones;
+readable rules and a value-change list accompany the faces. Preview quality is
+a display control, rather than a definition change. Notes save as you type.
+**Export all reviews** downloads one JSON file containing every flagged card,
+notes, its original definition, current live definition, modified definition,
+and explicit original/live/proposed values at each edited path.
+
+Reviews use the stable `civsurvivor.card-review.v1` browser-storage key, independent
+of simulation/save schemas and game resets. They survive sessions and builds on
+the same site, browser and device. Clearing browser site data removes them.
+New builds supply unedited values; edited values retain their proposals. Changed
+field shapes and removed cards remain in storage/export with a visible warning.
+**Reset edits** keeps the flag and notes; **Delete review** requires a second tap
+and removes the entire review. Drafts never apply to the running game.
+Verify persistence, export, build drift and failed writes with `npm run test:card-review`.
 
 ## Prototypes
 

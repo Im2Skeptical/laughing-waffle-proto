@@ -6,6 +6,12 @@ actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
+`card-reviewer.js` renders the persistent review queue, face value targets,
+inline fields, live comparison and notes. `cards.js` exposes the shared rendered
+image and its face-section bounds. Persistence/export live in
+`src/controllers/card-review-controller.js`; JSON draft/path operations live in
+`src/model/dev-lab/card-review.js`. Reviews never enter the Lab timeline.
+
 `card-reading.js` supplies one lazy interactive Pixi canvas for Zoo quick reads
 and full inspection. It uses the game's `addPracticeReading` and
 `addChronicleInspection`, including the symbol key and recursive keyword links.

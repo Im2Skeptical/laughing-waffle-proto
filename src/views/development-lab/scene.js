@@ -8,7 +8,7 @@ import { el, field, select, input } from './elements.js';
 import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 
 // One persistent stage: DOM edits never interrupt a map/wheel/graph gesture.
-export function createLabScene({getController,run}) {
+export function createLabScene({getController,run,onReview}) {
   const node=el('section','','lab-scene'), controls=el('div','','lab-controls');
   const display={}, groupPanel=el('details'), seriesPanel=el('div','','lab-controls');
   let scope='settlement', visibleIds=['food','gold','totalPopulation','housingCapacity'];
@@ -58,7 +58,7 @@ export function createLabScene({getController,run}) {
   app.view.dataset.testid='lab-scene';viewport.append(app.view);
   const mapLayer=new PIXI.Container(), graphLayer=new PIXI.Container(), wheelLayer=new PIXI.Container(), overlay=new PIXI.Container();
   app.stage.addChild(mapLayer,graphLayer,wheelLayer,overlay);
-  const tooltip=createTooltipView({layer:overlay,app});
+  const tooltip=createTooltipView({layer:overlay,app,onReview});
   const chooseRegion=id=>{setScope('settlement');run(()=>getController().selectRegion(id));};
   const map=createWorldMapView({layer:mapLayer,getState:state,getSelectedRegionId:()=>snapshot().regionId,
     getRegionSelectionActive:()=>true,getGraphScope:()=>scope,setSelectedRegionId:chooseRegion,

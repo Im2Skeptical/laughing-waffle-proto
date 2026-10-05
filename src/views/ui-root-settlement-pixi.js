@@ -3,6 +3,7 @@ import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-
 import { createLifeProcessingView } from "./life-processing-pixi.js";
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
+import { openCardReviewer } from '../controllers/card-review-controller.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { createResearchLibraryView } from './research-library-pixi.js';
@@ -303,6 +304,7 @@ const settlementProjectionCache = createSettlementProjectionCache({
 const tooltipView = createTooltipView({
   layer: tooltipLayer,
   app,
+  onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
 });
 
 function shouldInvalidateSettlementTimelineForecast(reason) {
@@ -1115,6 +1117,7 @@ vassalLifeMapView = createVassalLifeMapView({
 vassalLifeMapView.setVisible(false);
 
 vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
+  onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
   app,
   layer: modalLayer,
   getProtectedBackdropRects: () => [
