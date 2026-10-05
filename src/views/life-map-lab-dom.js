@@ -1,5 +1,6 @@
 import {
   VASSAL_NODE_FAMILIES,
+  getVassalLifeMapNodeFamily,
   VASSAL_NORMAL_NODE_FAMILY_IDS,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 
@@ -221,7 +222,7 @@ export function createLifeMapLabDom({ controller } = {}) {
     renderPreview(previewCard, snapshot.preview);
     const selected = snapshot.preview?.nodes.find((node) => node.id === selectedNodeId);
     const summary = selected
-      ? `${selected.id} · depth ${selected.depth + 1} · lane ${selected.lane + 1} · ${VASSAL_NODE_FAMILIES[selected.family]?.label}`
+      ? `${selected.id} · depth ${selected.depth + 1} · lane ${selected.lane + 1} · ${getVassalLifeMapNodeFamily(selected)?.label}`
       : snapshot.preview
         ? `${snapshot.preview.nodes.length} nodes · ${snapshot.preview.edges.length} edges · ${snapshot.routeTraces.length} route traces`
         : "Preview unavailable";

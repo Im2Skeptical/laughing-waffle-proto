@@ -161,6 +161,7 @@ const ART = Object.freeze({
   agrarianGuild: 32, forum: 33, academy: 34, university: 35,
   practiceReform: 0, publicWorks: 4, neutralMarket: 24, classMarket: 25,
   foodShop: 0, housingShop: 5,
+  stockShop: 0,
 });
 
 const ILLUSTRATION_IDS = Object.freeze([

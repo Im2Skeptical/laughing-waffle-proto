@@ -234,6 +234,7 @@ function createNodeState(state, vassal, node) {
   const nodeState = {
     nodeId: node.id,
     family: node.family,
+    ...(node.stockOutput ? { stockOutput: node.stockOutput } : {}),
     signatureNode: node.signatureNode ? clone(node.signatureNode) : null,
     contentMode: "choice",
     entered: true,

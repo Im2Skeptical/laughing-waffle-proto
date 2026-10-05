@@ -7,7 +7,7 @@ import { getArtRevision } from './chronicle-art.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
 import { addPracticeReading } from './practice-reading-pixi.js';
 import { addResourceAmount } from './resource-cost-pixi.js';
-import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { getVassalLifeMapNodeFamily } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
   getAdjustedVassalPhaseCost,
@@ -374,9 +374,7 @@ export function createVassalNodeDecisionModalView({
     tableau.width = Math.min(928,(decision?.settlement?.structureCapacity ?? 8)*PIECE_SIZE.cellWidth);
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
-    const family = node?.signatureNode?.variantId
-      ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
-      : node ? VASSAL_NODE_FAMILIES[node.family] : null;
+    const family = getVassalLifeMapNodeFamily(node);
     motionColor = family?.color ?? PALETTE.accent;
     const nextSignature = getArtRevision() + JSON.stringify({ presentation: {
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,

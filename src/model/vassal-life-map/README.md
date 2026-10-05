@@ -23,6 +23,9 @@ re-exports the previous public API; internals live here.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.
+- `stock-shops.js`
+  - Pure generation context: class-compatible Stock outputs and unmet recipe
+    inputs across all surviving player settlements.
 - `lifecycle.js`
   - Barrel. Initialize/reroll/select, enter/confirm/finish, and
     `stepVassalLifeMapSecond` live in `lifecycle/` (`candidates.js`,

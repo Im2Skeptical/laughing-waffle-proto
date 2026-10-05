@@ -3,7 +3,10 @@ import {
   VASSAL_NORMAL_NODE_FAMILY_IDS,
   VASSAL_FOUNDING_OPTIONS,
   VASSAL_SIGNATURE_NODE_VARIANTS,
+  VASSAL_LIFE_TUNING,
+  getVassalStockOutputIds,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
@@ -331,6 +334,8 @@ function applyLayout(config, nodes, edges) {
 
 export function generateVassalLifeMap(rawConfig, rng, {
   graphId = "generated-life-map", generationSeed = null, signatureNode = null,
+  stockOutputs = getVassalStockOutputIds(Object.values(detailedSettlementPracticeDefs).filter(def => def.pool === "common")),
+  unmetStockOutputs = [],
 } = {}) {
   const config = canonicalizeVassalLifeMapGeneratorConfig(rawConfig);
   const validation = validateVassalLifeMapGeneratorConfig(config);
@@ -415,6 +420,31 @@ export function generateVassalLifeMap(rawConfig, rng, {
       target.signatureNode = clone(signatureNode);
     }
   }
+  // Insert after deduplication/signatures so the promised supply choices cannot
+  // disappear or overwrite the defining node. Distinct outputs stay distinct.
+  const outputPool = [...new Set(stockOutputs)].sort();
+  const chosenOutputs = [];
+  for (let index = 0; index < VASSAL_LIFE_TUNING.randomStockShopCount && outputPool.length; index += 1) {
+    chosenOutputs.push(outputPool.splice(rng.nextInt(0, outputPool.length - 1), 1)[0]);
+  }
+  const unmet = [...new Set(unmetStockOutputs)].sort();
+  if (unmet.length && !chosenOutputs.some(output => unmet.includes(output))) {
+    chosenOutputs.unshift(unmet[rng.nextInt(0, unmet.length - 1)]);
+  }
+  const supplyTargets = nodes.filter(node => node.depth > 0 && !node.signatureNode
+    && !["legacy", "signature", "foodShop", "housingShop"].includes(node.family));
+  // Small/custom maps may consist entirely of tagged shops. They still need room
+  // for the supply guarantee, while ordinary authored maps keep Food/Housing.
+  if (supplyTargets.length < chosenOutputs.length) {
+    supplyTargets.push(...nodes.filter(node => node.depth > 0 && !node.signatureNode
+      && ["foodShop", "housingShop"].includes(node.family)));
+  }
+  for (const stockOutput of chosenOutputs) {
+    if (!supplyTargets.length) break;
+    const target = supplyTargets.splice(rng.nextInt(0, supplyTargets.length - 1), 1)[0];
+    target.family = "stockShop";
+    target.stockOutput = stockOutput;
+  }
   nodes = applyLayout(config, nodes, deduped.edges);
   edges = deduped.edges.sort((a, b) =>
     a.fromNodeId.localeCompare(b.fromNodeId) || a.toNodeId.localeCompare(b.toNodeId));
@@ -456,7 +486,11 @@ export function validateVassalLifeMapGraph(graph) {
     ids.add(node?.id);
     nodeById.set(node?.id, node);
     if (!Number.isInteger(node?.depth) || !Number.isInteger(node?.lane)) errors.push(`nodes[${index}]: invalid grid position`);
-    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature", "stockShop"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (node?.family === "stockShop" && (typeof node.stockOutput !== "string" || !node.stockOutput.trim())) {
+      errors.push(`nodes[${index}].stockOutput: expected a Stock output`);
+    }
+    if (node?.family !== "stockShop" && node?.stockOutput != null) errors.push(`nodes[${index}].stockOutput: only Stock Supply nodes may carry an output`);
     if (node?.family === "signature") {
       if (!isCanonicalSignatureDescriptor(node?.signatureNode)
           || node.signatureNode.variantId === "legacyPlus") {

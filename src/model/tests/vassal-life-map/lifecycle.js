@@ -155,7 +155,7 @@ for (let depth = 11; depth >= 0; depth -= 1) {
       .map((edge) => branchSignatures.get(edge.toNodeId)).sort();
     assert.equal(new Set(childSignatures).size, childSignatures.length,
       "a node does not offer recursively equivalent choices");
-    branchSignatures.set(node.id, `${node.family}[${childSignatures.join("|")}]`);
+    branchSignatures.set(node.id, `${node.family}:${node.stockOutput ?? ""}[${childSignatures.join("|")}]`);
   }
 }
 const entrySignatures = generatedGraph.entryNodeIds.map((id) => branchSignatures.get(id));

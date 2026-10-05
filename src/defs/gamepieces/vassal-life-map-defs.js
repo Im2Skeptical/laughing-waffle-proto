@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 3;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 4;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
@@ -49,6 +49,10 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "housingShop", tag: "Housing", label: "Housing Shop",
     glyph: "HO", color: 0x62ad82,
     description: "A mixed shop containing only Housing-tagged gamepieces.",
+  }),
+  stockShop: Object.freeze({
+    id: "stockShop", label: "Stock Supply", glyph: "ST", color: 0xb88449,
+    description: "Choose Practices that produce one specific Stock output.",
   }),
   routes: Object.freeze({
     id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
@@ -150,6 +154,7 @@ export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
 });
 
 export const VASSAL_LIFE_TUNING = Object.freeze({
+  randomStockShopCount: 2,
   candidateCount: 3,
   candidateAgeMin: 12,
   candidateAgeMax: 22,
@@ -181,6 +186,26 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   // Final phase price: five 32-phase years. Applied raw, not through increasedPhaseCost.
   relicChoicePhaseCost: 32 * 5,
 });
+
+export function isVassalStockOutputPractice(def, output) {
+  return (def?.stockCapacity ?? 0) > 0 && (def.stockTraits ?? []).includes(output)
+    && (def.effects ?? []).some(effect => effect.op === "generateStock"
+      && (effect.amount > 0 || Object.values(effect.seasonAmounts ?? {}).some(amount => amount > 0)));
+}
+
+export function getVassalStockOutputIds(practiceDefs) {
+  return [...new Set(Object.values(practiceDefs).flatMap(def =>
+    (def.stockTraits ?? []).filter(output => isVassalStockOutputPractice(def, output))))].sort();
+}
+
+export function getVassalLifeMapNodeFamily(node) {
+  if (node?.signatureNode?.variantId) return VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? null;
+  const family = VASSAL_NODE_FAMILIES[node?.family];
+  return node?.family === "stockShop" ? {
+    ...family, label: `${node.stockOutput} Stock Supply`,
+    description: `Choose Practices that produce ${node.stockOutput} Stock.`,
+  } : family ?? null;
+}
 
 export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([
   Object.freeze({

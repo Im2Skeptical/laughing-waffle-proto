@@ -63,6 +63,15 @@ first-pass system notes below retain their original tuning context.
   weights across early, middle, and late life. Authored graphs average roughly
   three of these nodes combined; each offers only cards with its advertised tag
   using the existing class/Common mix. Tagged signature shops remain available.
+- Stock Supply nodes focus on one named Stock output. Every offer is a Practice
+  producing that output, with normal class and Research eligibility; thin pools
+  show fewer cards rather than unrelated filler. Each Life Map randomly inserts
+  two distinct outputs and guarantees an unmet output when available (adding a
+  third node if the random pair misses all unmet needs). Unmet needs are installed
+  Practice Consume/Require inputs with no producing Practice in any surviving
+  player settlement, plus Edible for populated settlements with no food producer.
+  Input trait alternatives count as one requirement. Neutral settlements do not
+  satisfy this generation check. The output is fixed for that graph and rerolls.
 
 ## Systems implemented in the first pass
 

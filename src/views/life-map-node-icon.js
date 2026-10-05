@@ -45,6 +45,11 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       if (kind === 'classMarket') polygon([-8,4,0,-6,8,4,0,14]);
       else line([-8,3,8,3],4,accent);
       break;
+    case 'stockShop': // A Stock crate with crossed boards.
+      polygon([-26,-25,26,-25,26,25,-26,25]);
+      line([-19,-18,19,18],5,accent);
+      line([19,-18,-19,18],5,accent);
+      break;
     case 'routes': // Bridge with a visible arch and piers.
       polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);
       line([-29,-3,29,-3],4,accent);

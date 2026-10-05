@@ -1,5 +1,5 @@
 import { addInteractionFeedback } from './interaction-feedback.js';
-import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
+import { getVassalLifeMapNodeFamily } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getVassalLifeMapNode,
   getVassalLifeMapNodes,
@@ -95,9 +95,7 @@ export function createVassalLifeMapView({
 
   function showNodeTooltip(node, target, vassal) {
     if (dismissTooltipForRecap()) return;
-    const family = node?.signatureNode?.variantId
-      ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId]
-      : VASSAL_NODE_FAMILIES[node?.family] ?? null;
+    const family = getVassalLifeMapNodeFamily(node);
     if (!family || !target) return;
     const presentation = getPresentation?.() ?? {};
     const available = getDisplay(vassal, node.id, new Set(presentation.committedNodeIds ?? []),
@@ -408,9 +406,7 @@ export function createVassalLifeMapView({
     for (const node of nodes) {
       const display = getDisplay(vassal, node.id, committed, readOnly, loadoutPending);
       const point = nodePoint(node);
-      const family = node.signatureNode?.variantId
-        ? VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? {}
-        : VASSAL_NODE_FAMILIES[node.family] ?? {};
+      const family = getVassalLifeMapNodeFamily(node) ?? {};
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
       nodeRoot.eventMode = "static";

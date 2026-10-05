@@ -30,6 +30,7 @@ import {
   createEmptyHeirloomVault,
   hasPendingHeirloomOverflow,
 } from "../heirlooms.js";
+import { getStockShopGenerationContext } from "../stock-shops.js";
 
 const VASSAL_PORTRAIT_KEYS = Object.freeze([
   "skinTone", "hairStyle", "hairColor", "faceShape",
@@ -165,7 +166,7 @@ export function rerollVassalCandidates(state) {
   return { ok: true, pool: getVassalCandidatePool(state) };
 }
 
-function createLifeMapState(state, vassalId, signatureNode = null) {
+function createLifeMapState(state, vassalId, candidate) {
   const generationSeed = Math.floor(state?.rng?.vassalLifeMapSeed ?? 0);
   const generated = generateVassalLifeMap(state?.gameConfig?.lifeMapGenerator, {
     nextFloat: () => state.rngNextVassalLifeMapFloat(),
@@ -173,7 +174,8 @@ function createLifeMapState(state, vassalId, signatureNode = null) {
   }, {
     graphId: `${vassalId}-life-map`,
     generationSeed,
-    signatureNode,
+    signatureNode: candidate.signatureNode,
+    ...getStockShopGenerationContext(state, candidate),
   });
   if (!generated.ok) {
     throw new Error(`Could not generate Vassal Life Map: ${generated.errors?.join("; ") ?? generated.reason}`);
@@ -219,7 +221,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     developmentProgress: 0,
     developmentChoiceQueue: [],
     nextDevelopmentChoiceId: 1,
-    lifeMap: createLifeMapState(state, vassalId, source.signatureNode),
+    lifeMap: createLifeMapState(state, vassalId, source),
     lifeEvents: [{
       eventId: `${vassalId}:selected`, kind: "selected", tSec: state.tSec,
       text: `Selected at ${getRegionReference(state, source.locationRegionId) ?? source.locationRegionId}`,

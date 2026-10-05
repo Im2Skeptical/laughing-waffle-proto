@@ -1,5 +1,6 @@
 import "./vassal-life-map/selectors.js";
 import "./vassal-life-map/shop.js";
+import "./vassal-life-map/stock-shops.js";
 import "./vassal-life-map/lifecycle.js";
 import "./vassal-life-map/presentation.js";
 import "./vassal-life-map/heirlooms.js";

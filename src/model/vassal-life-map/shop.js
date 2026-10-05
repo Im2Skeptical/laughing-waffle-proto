@@ -2,7 +2,7 @@ import { stockTotal } from "../detailed-settlements/stock.js";
 import { getDetailedSettlement } from '../detailed-settlements/queries.js';
 import { findStructurePlacement, projectStructureDraft } from "../structure-layout.js";
 import { projectPracticeDraft } from "../practice-draft.js";
-import { VASSAL_LIFE_TUNING, VASSAL_NODE_FAMILIES } from "../../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_LIFE_TUNING, VASSAL_NODE_FAMILIES, isVassalStockOutputPractice } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import {
   VASSAL_INTERVENTION_PRACTICE_IDS,
   settlementStructureDefs,
@@ -33,7 +33,7 @@ import {
 } from "./selectors.js";
 import { getShopOfferCount } from "./heirlooms.js";
 
-export const CARD_SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "neutralMarket", "classMarket", "foodShop", "housingShop"]);
+export const CARD_SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "neutralMarket", "classMarket", "foodShop", "housingShop", "stockShop"]);
 export const SHOP_FAMILIES = new Set([...CARD_SHOP_FAMILIES, "routes"]);
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 
@@ -119,13 +119,14 @@ function selectShopCandidates(state, vassal, nodeState, candidates) {
   return [...selected, ...remaining.slice(0, count - selected.length)];
 }
 
-function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null } = {}) {
+function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null, stockOutput = null } = {}) {
   const reservation = buildReservation(state, vassal, nodeState);
   const candidates = [];
   const addCandidate = (cardKind, definitionId, def) => {
     if (!def || !["common", vassal.classId].includes(def.pool)
         || !isDefinitionUnlocked(state, def, nodeState)
-        || (requiredTag && !(def.tags ?? []).includes(requiredTag))) return;
+        || (requiredTag && !(def.tags ?? []).includes(requiredTag))
+        || (stockOutput && !isVassalStockOutputPractice(def, stockOutput))) return;
     if (cardKind === "practice" && reservation.practiceSlots.some(slot =>
       slot?.practiceId === definitionId && slot.tier === "diamond")) return;
     candidates.push({ kind: cardKind, definitionId, pool: def.pool });
@@ -233,7 +234,9 @@ export function generateShopInventory(state, vassal, nodeState) {
   const roll = Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0));
   const requiredTag = nodeState.signatureNode?.groupId === "tagShop"
     ? nodeState.signatureNode.tag : VASSAL_NODE_FAMILIES[nodeState.family]?.tag;
-  const offers = requiredTag
+  const offers = nodeState.family === "stockShop"
+    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice", stockOutput: nodeState.stockOutput })
+    : requiredTag
     ? buildCardOffers(state, vassal, nodeState, roll, { requiredTag })
     : nodeState.signatureNode?.groupId === "removal"
       ? buildRemovalOffers(state, vassal, nodeState, roll, nodeState.signatureNode.removalKind)
