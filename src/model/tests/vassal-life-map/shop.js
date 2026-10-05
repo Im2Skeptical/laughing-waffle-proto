@@ -31,6 +31,69 @@ function offerDefinition(state, offer) {
 
 for (const classId of [null, "scholar", "warrior"]) {
   for (const research of [0, 100000]) {
+    for (const [family, tag] of [["foodShop", "Food"], ["housingShop", "Housing"]]) {
+      const state = selectedState(102);
+      const vassal = getCurrentLifeMapVassal(state);
+      vassal.classId = classId;
+      vassal.prestige = 500;
+      state.civilization.research.total = research;
+      const nodeId = nodeIdForFamily(state, family);
+      vassal.lifeMap.availableNodeIds = [nodeId];
+      const timeline = createTimelineFromInitialState(state);
+      const act = (kind, payload) => {
+        assert.equal(appendActionAtCursor(timeline, { kind, payload, tSec: state.tSec }, state).ok, true);
+        dispatch(state, kind, payload);
+      };
+      act(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId });
+      const shop = vassal.lifeMap.nodeStates[nodeId];
+      const checkInventory = () => {
+        assert.equal(shop.contentMode, "shop");
+        assert.equal(shop.signatureNode, null, "ordinary supply shops do not require signatures");
+        assert.equal(shop.inventory.length, 3, `${classId}/${family}: three tagged offers`);
+        assert.ok(shop.inventory.every(offer => {
+          const def = offerDefinition(state, offer);
+          return def.tags.includes(tag) && ["common", classId].includes(def.pool);
+        }), `${classId}/${family}: only eligible cards with the advertised tag`);
+        assert.equal(new Set(shop.inventory.map(offer =>
+          `${offer.intervention.kind}:${offerDefinition(state, offer).id}`)).size, 3);
+        assert.equal(getVassalNodeDecisionPresentation(state, nodeId).contextKind, "settlement");
+        if (research === 100000 && classId) {
+          const eligibleClassCount = [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]
+            .filter(def => def.pool === classId && def.tags.includes(tag)).length;
+          assert.equal(shop.inventory.filter(offer => offerDefinition(state, offer).pool === classId).length,
+            Math.min(2, eligibleClassCount), "tagged shops retain the available class/Common mix");
+        }
+      };
+      checkInventory();
+      const restored = deserializeGameState(serializeGameState(state));
+      act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+      dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+      checkInventory();
+      assert.deepEqual(serializeGameState(restored), serializeGameState(state),
+        "ordinary tagged shops reroll identically after reload");
+      // Both node types use the ordinary draft/checkout and authoritative replay.
+      const offer = shop.inventory[0];
+      act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId: offer.offerId });
+      act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId });
+      const resolveSec = vassal.lifeMap.pendingResolution.resolveSec;
+      initializeReplayClock(state, state.tSec);
+      assert.equal(advanceReplayStateToSecond(state, resolveSec).ok, true);
+      const replay = rebuildStateAtSecond(timeline, state.tSec);
+      assert.equal(replay.ok, true);
+      assert.deepEqual(serializeGameState(replay.state).civilization, serializeGameState(state).civilization);
+      assert.deepEqual(replay.state.rng, state.rng);
+      const local = state.world.sites.find(site => site.regionId === vassal.locationRegionId).detailedState;
+      const action = offer.intervention;
+      assert.ok(action.kind === "practice"
+        ? local.practiceSlots.some(slot => slot?.practiceId === action.practiceId)
+        : local.structureSlots.some(slot => slot?.structureId === action.structureId),
+      "confirmed supply purchases are installed at the Vassal's settlement");
+    }
+  }
+}
+
+for (const classId of [null, "scholar", "warrior"]) {
+  for (const research of [0, 100000]) {
     for (const family of ["practiceReform", "publicWorks", "neutralMarket", "classMarket"]) {
       if (!classId && family === "classMarket") continue;
       for (const seed of [102, 409, 1602]) {

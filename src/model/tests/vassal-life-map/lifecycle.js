@@ -76,7 +76,7 @@ for (const band of ["early", "mid", "late"]) {
   }
 }
 const oldGeneratorSave = serializeGameState(isolatedMapState);
-oldGeneratorSave.gameConfig.lifeMapGenerator.schemaVersion = 3;
+oldGeneratorSave.gameConfig.lifeMapGenerator.schemaVersion = 4;
 assert.throws(() => deserializeGameState(oldGeneratorSave), /lifeMapGenerator.schemaVersion/,
   "obsolete generator settings are rejected at the save boundary");
 const generatedA = generateVassalLifeMap(generatorConfig, createRng(123), { generationSeed: 123 });
@@ -89,6 +89,30 @@ assert.ok(
   "reference Life Maps can roll Relic nodes"
 );
 assert.deepEqual(generatedA, generatedB, "Life Map generation is deterministic");
+// Check the visible graph after equivalent-choice deduplication. Supply shops
+// are ordinary nodes and occur about three times combined across most lives.
+const supplyCounts = { foodShop: 0, housingShop: 0 };
+let mapsWithSupply = 0;
+for (let seed = 0; seed < 1000; seed += 1) {
+  const generated = generateVassalLifeMap(generatorConfig, createRng(seed));
+  assert.equal(generated.ok, true);
+  const supplies = generated.graph.nodes.filter(node => Object.hasOwn(supplyCounts, node.family));
+  if (supplies.length) mapsWithSupply += 1;
+  for (const node of supplies) {
+    supplyCounts[node.family] += 1;
+    assert.equal(node.signatureNode, undefined, "basic supply shops need no signature descriptor");
+  }
+}
+const averageSupplyCount = (supplyCounts.foodShop + supplyCounts.housingShop) / 1000;
+assert.ok(averageSupplyCount >= 2.7 && averageSupplyCount <= 3.5,
+  `expected roughly three Food/Housing nodes combined, got ${averageSupplyCount}`);
+assert.ok(mapsWithSupply >= 900, "at least 90% of Life Maps contain basic supply shops");
+assert.ok(Math.abs(supplyCounts.foodShop - supplyCounts.housingShop) < 200,
+  "Food and Housing shops occur with similar frequency");
+for (const band of ["early", "mid", "late"]) {
+  assert.ok(generatorConfig.weights[band].foodShop > 0);
+  assert.equal(generatorConfig.weights[band].foodShop, generatorConfig.weights[band].housingShop);
+}
 assert.notDeepEqual(
   generatedA.graph,
   generateVassalLifeMap(generatorConfig, createRng(124), { generationSeed: 124 }).graph,

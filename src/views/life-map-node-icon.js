@@ -49,6 +49,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);
       line([-29,-3,29,-3],4,accent);
       break;
+    case 'housingShop':
     case 'settlement':
       polygon([-31,-3,0,-30,31,-3,23,2,23,27,7,27,7,9,-7,9,-7,27,-23,27,-23,2]);
       line([-23,-3,0,-23,23,-3],4,accent);

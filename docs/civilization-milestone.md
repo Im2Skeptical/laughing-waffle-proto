@@ -59,6 +59,10 @@ first-pass system notes below retain their original tuning context.
   Neutral Market and Class Market nodes mix Practices and Structures exclusively
   from their advertised pool; unclassed Life Maps replace Class Markets with
   Neutral Markets. Rerolls preserve these rules.
+- Food Shop and Housing Shop are also ordinary Life Map nodes, with equal
+  weights across early, middle, and late life. Authored graphs average roughly
+  three of these nodes combined; each offers only cards with its advertised tag
+  using the existing class/Common mix. Tagged signature shops remain available.
 
 ## Systems implemented in the first pass
 

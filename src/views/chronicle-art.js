@@ -160,6 +160,7 @@ const ART = Object.freeze({
   vigil: 26, exodus: 27, hostel: 28, library: 29, archive: 30, hallOfSages: 31,
   agrarianGuild: 32, forum: 33, academy: 34, university: 35,
   practiceReform: 0, publicWorks: 4, neutralMarket: 24, classMarket: 25,
+  foodShop: 0, housingShop: 5,
 });
 
 const ILLUSTRATION_IDS = Object.freeze([

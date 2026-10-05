@@ -40,6 +40,16 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "classMarket", label: "Class Market", glyph: "CM", color: 0x5e9bcf,
     description: "Offer only Practices and Structures from this Vassal's class.",
   }),
+  foodShop: Object.freeze({
+    id: "foodShop", tag: "Food", label: "Food Shop",
+    glyph: "FO", color: 0xc7974e,
+    description: "A mixed shop containing only Food-tagged gamepieces.",
+  }),
+  housingShop: Object.freeze({
+    id: "housingShop", tag: "Housing", label: "Housing Shop",
+    glyph: "HO", color: 0x62ad82,
+    description: "A mixed shop containing only Housing-tagged gamepieces.",
+  }),
   routes: Object.freeze({
     id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
     description: "Add a world connection at this Vassal's current settlement.",
@@ -85,6 +95,7 @@ export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
   "publicWorks", "routes", "crisis", "relic", "training", "commission", "discovery", "campaign", "challenge",
   "neutralMarket", "classMarket",
+  "foodShop", "housingShop",
 ]);
 
 export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([
@@ -118,9 +129,7 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
     description: "Pay to remove routes incident to the Vassal's current settlement.",
   }),
   foodShop: Object.freeze({
-    id: "foodShop", groupId: "tagShop", tag: "Food", label: "Food Shop",
-    glyph: "FO", color: 0xc7974e,
-    description: "A mixed shop containing only Food-tagged gamepieces.",
+    ...VASSAL_NODE_FAMILIES.foodShop, groupId: "tagShop",
   }),
   knowledgeShop: Object.freeze({
     id: "knowledgeShop", groupId: "tagShop", tag: "Knowledge", label: "Knowledge Shop",
@@ -128,9 +137,7 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
     description: "A mixed shop containing only Knowledge-tagged gamepieces.",
   }),
   housingShop: Object.freeze({
-    id: "housingShop", groupId: "tagShop", tag: "Housing", label: "Housing Shop",
-    glyph: "HO", color: 0x62ad82,
-    description: "A mixed shop containing only Housing-tagged gamepieces.",
+    ...VASSAL_NODE_FAMILIES.housingShop, groupId: "tagShop",
   }),
 });
 
