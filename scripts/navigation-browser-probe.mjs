@@ -153,8 +153,24 @@ async function capture(name) {
 
 async function checkResearchLibrary(touch = false) {
   const before = await snapshot();
-  const open = page.getByTestId('research-open');
-  if (touch) await open.tap(); else await open.click();
+  assert.equal(await page.getByTestId('research-open').count(), 0, 'Research has no duplicate top-right button');
+  const header = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.civilizationHeader);
+  assert.deepEqual(header.labels, ['SETTLEMENTS', 'SOULS', 'RESEARCH']);
+  await page.evaluate(() => {
+    globalThis.__researchLoadingFrames = [];
+    globalThis.__researchFocusBefore = document.activeElement;
+    document.addEventListener('pointerdown', () => {
+      const sample = () => {
+        const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+        const research = s.worldMap.researchLibrary;
+        globalThis.__researchLoadingFrames.push({ open: research.open, loading: research.loading,
+          renderedCards: research.visibleCards.length, frontierSec: s.frontierSec, viewedSec: s.viewedSec });
+        if (research.loading) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    }, { once: true, capture: true });
+  });
+  await clickPoint(header.researchPoint, { touch });
   const library = () => page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary);
   const tooltip = () => page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getTooltipDebugState());
   const press = async id => {
@@ -176,7 +192,19 @@ async function checkResearchLibrary(touch = false) {
     await page.keyboard.press('Backspace');
     await page.keyboard.type(value);
   };
-  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary.open);
+  await page.waitForFunction(() => {
+    const research = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary;
+    return research.open && !research.loading;
+  });
+  const loadingFrames = await page.evaluate(() => globalThis.__researchLoadingFrames);
+  assert.ok(loadingFrames.some(frame => frame.open && frame.loading && frame.renderedCards === 0),
+    'a loading frame paints before constructing the library');
+  assert.ok(loadingFrames.some(frame => frame.loading && frame.renderedCards > 0),
+    'loading covers the first card render and texture upload');
+  for (const frame of loadingFrames) {
+    assert.equal(frame.frontierSec, before.frontierSec, 'loading holds simulation time');
+    assert.equal(frame.viewedSec, before.viewedSec, 'loading holds the viewed second');
+  }
   let research = await library();
   assert.equal(research.renderer, 'pixi');
   assert.equal(await page.locator('.research-library').count(), 0, 'the library is rendered on the game canvas');
@@ -267,10 +295,30 @@ async function checkResearchLibrary(touch = false) {
   assert.deepEqual(held.lineage, before.lineage, 'library browsing preserves the lineage');
   if (touch) await press('close'); else await page.keyboard.press('Escape');
   assert.equal((await library()).open, false);
-  assert.equal(await open.evaluate(node => node === document.activeElement), true, 'closing restores keyboard focus');
+  assert.equal(await page.evaluate(() => globalThis.__researchFocusBefore === document.activeElement), true,
+    'closing restores keyboard focus');
+  await page.evaluate(() => {
+    globalThis.__researchCancelledWhileLoading = false;
+    document.addEventListener('pointerdown', () => requestAnimationFrame(() => {
+      globalThis.__researchCancelledWhileLoading = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary.loading;
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    }), { once: true, capture: true });
+  });
+  await clickPoint(header.researchPoint, { touch });
+  await delay(250);
+  assert.equal(await page.evaluate(() => globalThis.__researchCancelledWhileLoading), true,
+    'Escape can cancel research during its loading frame');
+  assert.equal((await library()).open, false, 'cancelled preparation cannot reopen the library');
+  await clickPoint(header.researchPoint, { touch });
+  await page.waitForFunction(() => {
+    const research = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.researchLibrary;
+    return research.open && !research.loading;
+  });
+  assert.equal((await library()).totalCards, 187, 'research opens normally after cancelling preparation');
+  await press('close');
 }
 
-try {
+async function runProbe() {
   for (let attempt = 0; attempt < 100; attempt++) {
     try { if ((await fetch(URL)).ok) break; } catch {}
     if (attempt === 99) throw new Error(`Server unavailable at ${URL}`);
@@ -284,6 +332,17 @@ try {
   await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
   await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().navigation?.time.mode === 'projection');
+  if (process.argv.includes('--research-only')) {
+    await navigate('present');
+    await checkResearchLibrary();
+    await page.setViewportSize({ width: 844, height: 390 });
+    await delay(250);
+    await checkResearchLibrary(true);
+    assert.deepEqual(errors, [], 'no browser runtime errors');
+    writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ ok: true, checkpoints }, null, 2));
+    console.log(`[probe:navigation] OK: Research header, loading paints, cancellation, desktop/touch browsing and filters\n[probe:navigation] details=${OUTPUT}/probe.json`);
+    return;
+  }
   // The default overview has no explicitly selected region. Choose the
   // authored fixture's settlement before testing its contextual destination.
   await clickPoint(await controlPoint('getWorldMapClickPoint', 'river-crown'));
@@ -433,6 +492,7 @@ try {
     'dismissing through the backdrop preserves the staged choice');
   await clickPoint({ x: 1000, y: 960 }, { touch: true });
   assert.equal((await snapshot()).decision.open, false, 'a backdrop touch dismisses the node decision');
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.animation.phase === 'closed');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await clickPoint(nodePoint);
   assert.equal((await snapshot()).decision.animation.phase, 'open',
@@ -539,15 +599,19 @@ try {
   s = await snapshot();
   assert.equal(s.navigation.time.mode, 'present', 'touch can return to Present through a modal');
   assert.equal(s.mode, 'vassalLife');
+  await navigate('map', { touch: true });
   await checkResearchLibrary(true);
   assert.deepEqual(errors, [], 'no browser runtime errors');
   writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ ok: true, checkpoints }, null, 2));
   console.log(`[probe:navigation] OK: direct routes, portrait mouse/touch, drafts, time locks, mobile layout, Research library and filters\n[probe:navigation] details=${OUTPUT}/probe.json`);
+}
+try {
+  await runProbe();
 } catch (error) {
   let last = null;
   try { last = await snapshot(); await page.screenshot({ path: `${OUTPUT}/failure.png` }); } catch {}
   writeFileSync(`${OUTPUT}/probe.json`, JSON.stringify({ error: error.stack, last, errors, checkpoints }, null, 2));
-  console.error(`[probe:navigation] FAILED: ${error.message}\n[probe:navigation] reproduce=npm run probe:navigation\n[probe:navigation] details=${OUTPUT}/probe.json`);
+  console.error(`[probe:navigation] FAILED: ${error.message}\n[probe:navigation] reproduce=npm run probe:navigation${process.argv.includes('--research-only') ? ' -- --research-only' : ''}\n[probe:navigation] details=${OUTPUT}/probe.json`);
   process.exitCode = 1;
 } finally {
   await browser?.close();

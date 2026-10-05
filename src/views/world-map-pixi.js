@@ -85,7 +85,7 @@ function viewNowMs() {
     : Date.now();
 }
 
-function addButton(parent, rect, label, onPress, disabled = false) {
+function addButton(parent, rect, label, onPress, disabled = false, textStyle = {}) {
   const root = new PIXI.Container();
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 7,
@@ -93,6 +93,7 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   root.addChild(gfx, createText(label, {
     ...TEXT_STYLES.title,
     fill: disabled ? PALETTE.textMuted : PALETTE.accent,
+    ...textStyle,
   }, rect.x + rect.width / 2, rect.y + rect.height / 2, 0.5, 0.5));
   root.eventMode = "static";
   // Map redraws can replace this button between input and the next paint.
@@ -101,6 +102,7 @@ function addButton(parent, rect, label, onPress, disabled = false) {
   root.cursor = disabled ? "default" : "pointer";
   root.on("pointerdown", () => { if (!disabled) onPress?.(); });
   parent.addChild(root);
+  return root;
 }
 
 function getRegionReferenceCorner(definition, regionDef) {
@@ -269,6 +271,7 @@ export function createWorldMapView({
   const effects=createChronicleEffects(edgeTransferLayer,visualTime);
   let landmarks=[];
   let endDetailsTarget = null;
+  let researchTarget = null;
 
   function isRecentFlagTap(point) {
     return lastRegionTap.nearFlag && lastRegionTap.point
@@ -548,19 +551,22 @@ export function createWorldMapView({
       PALETTE.stroke,
       2
     );
-    root.addChild(
-      civilizationHeader,
-      createText(
-        `${civilizationSummary.settlementCount} SETTLEMENTS  ·  ${civilizationSummary.population.total} SOULS\nFood ${Math.round(civilizationSummary.food.total)}`,
-        { ...TEXT_STYLES.title, fontSize: 20, lineHeight: 23 },
-        CIVILIZATION_HEADER_RECT.x + 20,
-        CIVILIZATION_HEADER_RECT.y + 27,
-        0,
-        0.5
-      )
-    );
-    addButton(root, { x: CIVILIZATION_HEADER_RECT.x + 270, y: CIVILIZATION_HEADER_RECT.y + 24, width: 244, height: 28 },
-      `Research ${civilizationSummary.research ?? 0} ↗`, onOpenResearch);
+    root.addChild(civilizationHeader);
+    for (const [value, label, offset] of [
+      [civilizationSummary.settlementCount, 'SETTLEMENTS', 94],
+      [civilizationSummary.population.total, 'SOULS', 258],
+    ]) {
+      root.addChild(
+        createText(String(value), { ...TEXT_STYLES.title, fontSize: 22 },
+          CIVILIZATION_HEADER_RECT.x + offset, CIVILIZATION_HEADER_RECT.y + 5, 0.5),
+        createText(label, { ...TEXT_STYLES.title, fontSize: 16 },
+          CIVILIZATION_HEADER_RECT.x + offset, CIVILIZATION_HEADER_RECT.y + 32, 0.5)
+      );
+    }
+    researchTarget = addButton(root,
+      { x: CIVILIZATION_HEADER_RECT.x + 336, y: CIVILIZATION_HEADER_RECT.y + 4, width: 176, height: 46 },
+      `${civilizationSummary.research ?? 0}\nRESEARCH ↗`, onOpenResearch, false,
+      { fontSize: 20, lineHeight: 22, align: 'center' });
     endDetailsTarget = addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
@@ -893,6 +899,14 @@ export function createWorldMapView({
         lastPointerRegionId,
         regionCount: getWorldDefinition(state)?.regions.length ?? 0,
         civilizationSummary,
+        civilizationHeader: {
+          labels: ['SETTLEMENTS', 'SOULS', 'RESEARCH'],
+          researchPoint: root.visible && researchTarget && !researchTarget.destroyed
+            ? researchTarget.toGlobal(new PIXI.Point(
+                researchTarget.hitArea.x + researchTarget.hitArea.width / 2,
+                researchTarget.hitArea.y + researchTarget.hitArea.height / 2))
+            : null,
+        },
         survivalTracker,
         selectedRegion: region ? {
           ...region,

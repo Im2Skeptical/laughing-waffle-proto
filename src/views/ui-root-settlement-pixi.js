@@ -1690,13 +1690,6 @@ gameMenu = createGameMenuDom({
     timelineAudio?.update(0);
   },
 });
-const researchButton = document.createElement('button');
-researchButton.type = 'button';
-researchButton.textContent = 'Research';
-researchButton.dataset.testid = 'research-open';
-researchButton.title = 'Browse the card library and Research progression';
-researchButton.addEventListener('click', () => researchLibrary.open());
-document.querySelector('[data-testid="utility-controls"]').prepend(researchButton);
 setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) nodeResolutionDiagnostics.suspend();

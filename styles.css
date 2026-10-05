@@ -89,7 +89,6 @@ canvas { image-rendering: auto; }
   .game-loading-pulse {animation:none; transform:translateX(93%);}
 }
 [data-testid="utility-controls"] {gap:5px!important;}
-[data-testid="utility-controls"].workshop-open [data-testid="research-open"] {display:none;}
 [data-testid="utility-controls"] button {
   border-radius:1px!important; background:#222b26!important; color:#c9b58b!important;
   border:1px solid #776541!important; font:12px Georgia,serif!important;
