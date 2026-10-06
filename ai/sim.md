@@ -112,7 +112,7 @@ registries here.
 - Relic nodes roll three eligible Heirlooms with no Prestige price. Each offer
   persists a random phase cost from the shared `VASSAL_TIME_COST_RANGES`:
   Common (bronze) uses low, Silver medium, and Gold/Diamond high. The default
-  ranges span 1-3, 4-6, and 7-10 years before existing time discounts. Gold and
+  ranges span 4-6, 7-9, and 7-10 years before existing time discounts. Gold and
   Diamond also roll 35% immediate death risk before awarding the find; a newly
   found Mandate cannot protect its own acquisition. All surviving choices still
   face post-time natural mortality. An empty site uses the low range without

@@ -5,8 +5,8 @@ const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_
 
 // Inclusive phase ranges; 32 phases make one year on the default clock.
 export const VASSAL_TIME_COST_RANGES = Object.freeze({
-  low: Object.freeze({ min: 32, max: 96 }),
-  medium: Object.freeze({ min: 128, max: 192 }),
+  low: Object.freeze({ min: 128, max: 192 }),
+  medium: Object.freeze({ min: 224, max: 288 }),
   high: Object.freeze({ min: 224, max: 320 }),
 });
 

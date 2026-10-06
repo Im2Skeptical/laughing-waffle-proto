@@ -162,7 +162,7 @@ assert.equal(getSettlementYearDurationSec({ seasonDurationSec: 10, seasons: [0, 
 assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, SEASON_DURATION_SEC * 4 * SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS);
 assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, 3200);
 assert.deepEqual(VASSAL_TIME_COST_RANGES, {
-  low: { min: 32, max: 96 }, medium: { min: 128, max: 192 }, high: { min: 224, max: 320 },
+  low: { min: 128, max: 192 }, medium: { min: 224, max: 288 }, high: { min: 224, max: 320 },
 });
 for(const duration of [1,8,10]) {
   const state=createNewGameState(42);state.paused=false;state.seasonDurationSec=duration;
