@@ -7,7 +7,7 @@ const SHOP_SPECIALTIES = Object.freeze({
   stockShop: 'stockShop',
 });
 
-// Shops share a stall silhouette; the inset badge identifies their specialty.
+// Shops share a three-card fan; the inset badge identifies their specialty.
 export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x = 0, y = 0, scale = 1 }) {
   const variant = node.signatureNode?.variantId;
   const family = variant ?? node.family;
@@ -85,12 +85,21 @@ function drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale }) 
       polygon([-9,-25,1,-32,28,-11,18,1,7,-10,2,-6,-9,-16]);
       line([-20,22,-14,27],4,accent);
       break;
-    case 'shop': // Shared market stall with an open counter and striped awning.
-      polygon([-30,-10,-23,-29,23,-29,30,-10,24,-3,-24,-3]);
-      line([-23,-3,-23,27,23,27,23,-3]);
-      line([-23,12,23,12],4,accent);
-      line([-10,-25,-13,-8],4,accent); line([10,-25,13,-8],4,accent);
+    case 'shop': { // Three overlapping cards, with the outer pair fanned out.
+      const card = [-14,-28,14,-28,17,-25,17,25,14,28,-14,28,-17,25,-17,-25];
+      for (const [offsetX, offsetY, angle] of [[-13,-2,-0.26],[13,-2,0.26],[0,4,0]]) {
+        const points = [];
+        for (let i = 0; i < card.length; i += 2) {
+          points.push(card[i] * Math.cos(angle) - card[i + 1] * Math.sin(angle) + offsetX,
+            card[i] * Math.sin(angle) + card[i + 1] * Math.cos(angle) + offsetY);
+        }
+        polygon(points);
+      }
+      line([-9,-15,9,-15],3,accent);
+      graphics.lineStyle(0).beginFill(accent)
+        .drawPolygon(transform([0,-7,7,2,0,11,-7,2])).endFill();
       break;
+    }
     case 'neutralMarket': // Exchange arrows.
       line([-25,-12,25,-12,13,-24],6,fill);
       line([25,12,-25,12,-13,24],6,fill);
