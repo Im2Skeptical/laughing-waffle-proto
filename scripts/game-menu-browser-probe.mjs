@@ -112,7 +112,96 @@ try {
   page.setDefaultTimeout(120000);
   page.on('pageerror', (error) => errors.push(error.message));
   await installSaveProbe(page);
-  if (process.argv.includes('--loading-only')) {
+  if (process.argv.includes('--artwork-only')) {
+    const { createNewGameState } = await import('../src/model/new-game.js');
+    const { createTimelineFromInitialState } = await import('../src/model/timeline/index.js');
+    const { exportSave } = await import('../src/controllers/sim-runner/save-slots.js');
+    const state = createNewGameState(735);
+    const fixture = exportSave({ state, timeline: createTimelineFromInitialState(state), setupId: 'artwork-probe' }).text;
+    await page.addInitScript(text => {
+      if (sessionStorage.getItem('artworkFixtureInstalled')) return;
+      localStorage.setItem('civsurvivor.save.slot1', text);
+      sessionStorage.setItem('artworkFixtureInstalled', '1');
+    }, fixture);
+    let blocked = true;
+    let failedRequests = 0;
+    await page.route('**/sprite-sheets/resource-language.png', route => {
+      if (blocked) { failedRequests++; return route.abort('failed'); }
+      return route.continue();
+    });
+    await page.goto(url);
+    await page.getByTestId('game-continue').click();
+    await page.getByTestId('game-loading-retry').waitFor();
+    assert.match(await page.locator('#game-menu h2').textContent(), /Artwork couldn’t be loaded/);
+    assert.ok(failedRequests >= 3 && failedRequests <= 7, 'failed downloads receive bounded automatic retries');
+    assert.match(await page.getByTestId('game-loading-details').textContent(), /resource-language.json/);
+    assert.equal(await page.getByTestId('game-menu').isVisible(), true);
+    await page.screenshot({ path: 'artifacts/game-artwork-failure.png' });
+    blocked = false;
+    await page.getByTestId('game-loading-retry').click();
+    await page.waitForFunction(() => document.querySelector('#game-menu').hidden
+      || document.querySelector('[data-testid="game-loading-retry"]'));
+    assert.equal(await page.getByTestId('game-menu').isVisible(), false,
+      `artwork retry must recover: ${await page.getByTestId('game-loading-details').textContent().catch(() => '')}`);
+    const uploaded = await page.evaluate(() => ['resource-language', 'piece-frames', 'chronicle-illustrations',
+      'vassal-portraits', 'chronicle-gate', 'timegraph-chronicle', ...[0, 1, 2].map(i => `settlement-pieces-${i}`)]
+      .every(name => Object.values(PIXI.Assets.cache.get(`images/sprite-sheets/${name}.json`)?.textures ?? {})
+        .some(texture => texture.baseTexture.valid && Object.keys(texture.baseTexture._glTextures).length > 0)));
+    assert.equal(uploaded, true, 'manual retry uploads every required atlas');
+    await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
+    const firstOpen = await page.evaluate(() => {
+      const d = globalThis.__SETTLEMENT_DEBUG__;
+      const before = d.getSnapshot().worldMap.vassalPreparation.chooser;
+      const wasOpen = d.isVassalSelectionOpen();
+      const start = performance.now();
+      const result = d.openNextSelection();
+      const handlerMs = performance.now() - start;
+      const after = d.getSnapshot().worldMap.vassalPreparation.chooser;
+      return { before, after, wasOpen, ok: result.ok, handlerMs };
+    });
+    assert.equal(firstOpen.wasOpen, false, 'preparation does not open the chooser');
+    assert.equal(firstOpen.before.candidateCount, 3, 'three candidate panels are built behind loading');
+    assert.equal(firstOpen.ok, true);
+    assert.equal(firstOpen.after.buildCount, firstOpen.before.buildCount, 'first opening reuses the prepared candidate panels');
+    assert.equal((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0))).ok, true);
+    await page.getByTestId('game-menu-open').click();
+    await page.waitForFunction(() => document.querySelector('[data-testid="game-save-status"]')?.textContent === 'Saved');
+    // The fixture initializes only the first page; subsequent Continue must
+    // load the Vassal selection actually saved through the game menu.
+    await page.evaluate(() => localStorage.removeItem('civsurvivor.save.slot1'));
+    await page.reload();
+    await page.getByTestId('game-continue').click();
+    await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+    // Freeze forecast-following through the real Present control so the first
+    // opening compares the same presentation that was prepared during loading.
+    await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('present'));
+    const canvas = await page.locator('canvas').boundingBox();
+    const present = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('present'));
+    await page.mouse.click(canvas.x + present.x * canvas.width / 2424, canvas.y + present.y * canvas.height / 1080);
+    await page.waitForFunction(() => {
+      const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot();
+      return s.viewedSec === s.frontierSec && s.navigation.time.mode === 'present';
+    });
+    await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('life'));
+    await delay(150); // Exercise hidden updates between preparation and first opening.
+    const continued = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.vassalPreparation);
+    assert.ok(continued.lifeMap.nodeCount > 0, 'Continue prepares the active Vassal Life Map');
+    assert.ok(continued.hud.childCount > 0, 'Continue prepares the active Vassal HUD');
+    assert.equal(continued.lifeMap.visible, false);
+    const point = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('life'));
+    assert.ok(point);
+    await page.mouse.click(canvas.x + point.x * canvas.width / 2424, canvas.y + point.y * canvas.height / 1080);
+    await page.waitForFunction(() => {
+      const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+      return s.mode === 'vassalLife' && s.vassalPreparation.hud.visible;
+    });
+    const opened = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.vassalPreparation);
+    assert.equal(opened.lifeMap.buildCount, continued.lifeMap.buildCount, 'first Life Map opening reuses its prepared scene');
+    assert.equal(opened.hud.buildCount, continued.hud.buildCount, 'first HUD opening reuses its prepared scene');
+    assert.deepEqual(errors, []);
+    writeFileSync('artifacts/game-artwork-browser-probe.json', JSON.stringify({ ok: true, failedRequests, firstOpen, continued, opened }, null, 2));
+    console.log(`[probe:game-menu] PASS: sprite failure, retries, recovery, prepared Vassal drawer and Continue Life Map (${firstOpen.handlerMs.toFixed(1)}ms drawer handler)`);
+  } else if (process.argv.includes('--loading-only')) {
     const { createNewGameState } = await import('../src/model/new-game.js');
     const { createTimelineFromInitialState } = await import('../src/model/timeline/index.js');
     const { exportSave } = await import('../src/controllers/sim-runner/save-slots.js');
@@ -466,7 +555,7 @@ try {
   await phone.getByTestId('game-menu').locator('summary').tap();
   await phone.getByTestId('game-use-edited-cards').tap();
   assert.equal(await phone.getByTestId('game-use-edited-cards').isChecked(),true,'portrait phone can enable edited-card mode with a tap');
-  const toggleBounds=await phone.locator('.game-edited-cards-toggle').boundingBox();
+  const toggleBounds=await phone.locator('.game-edited-cards-toggle').filter({has:phone.getByTestId('game-use-edited-cards')}).boundingBox();
   assert.ok(toggleBounds.height>=44&&toggleBounds.x>=0&&toggleBounds.x+toggleBounds.width<=390,'edited-card toggle has a full-width phone touch target');
   await phone.screenshot({ path: 'artifacts/game-menu-portrait.png' });
   await phone.getByTestId('game-menu').locator('summary').tap();
@@ -614,6 +703,8 @@ try {
     menuVisible: !document.querySelector('#game-menu')?.hidden,
     messages: Array.from(document.querySelectorAll('#game-menu [role="status"], #game-menu [role="alert"]')).map(node=>node.textContent),
     loading: document.querySelector('#game-menu h2')?.textContent,
+    loadingDetails: document.querySelector('[data-testid="game-loading-details"]')?.textContent,
+    vassalPreparation: globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.worldMap?.vassalPreparation,
     opening: globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.opening,
   })).catch(()=>null) : null;
   writeFileSync(artifact, JSON.stringify({ error: error.stack, pageErrors: errors, menuStatus }));

@@ -116,7 +116,9 @@ installGlobalTextStylePolicy(PIXI, {
   titleMinSize: 32,
   titleWeightMinSize: 26,
 });
-const chronicleArtReady = prepareChronicleArt(app.renderer);
+// Start behind the menu; entry awaits a fresh call so failed preparation can
+// be retried without reloading the page. The loading screen owns errors.
+void prepareChronicleArt(app.renderer).catch(() => {});
 
 document.body.appendChild(app.view);
 app.view.style.touchAction = "none";
@@ -1481,6 +1483,11 @@ function publishSettlementDebugApi() {
       audio: timelineAudio.getSnapshot(),
       lifeDecisionProcessing: lifeDecisionController.getStatus(),
       researchLibrary: researchLibrary.getSemanticSnapshot(),
+      vassalPreparation: {
+        chooser: settlementVassalChooserView?.getPreparationSnapshot(),
+        lifeMap: vassalLifeMapView?.getPreparationSnapshot(),
+        hud: vassalLifeHudView?.getPreparationSnapshot(),
+      },
     }),
     getLifeMapPresentation: () => {
       const presentation = getSettlementLifeMapPresentation();
@@ -1546,7 +1553,12 @@ function publishSettlementDebugApi() {
       }
       return selectWorldMapRegion(regionId);
     },
-    enterBootTestRun: () => { gameSession.resume(); gameMenu.hide(); },
+    enterBootTestRun: () => {
+      // The probe bypasses session entry, so initialize its default map focus.
+      selectedWorldRegionId ??= runner.getCursorState?.()?.civilization?.capitalRegionId ?? null;
+      worldMapView.refresh();
+      gameSession.resume(); gameMenu.hide();
+    },
     getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
     getWorldInstalledPracticeClickPoint: (installedIndex) =>
       worldMapView?.getInstalledPracticeClickPoint?.(installedIndex) ?? null,
@@ -1635,11 +1647,17 @@ const gameSession = createGameSessionController({
       return isCurrent();
     };
     if (!await stage('artwork', 'Loading chronicle artwork')) return;
-    await chronicleArtReady;
+    await prepareChronicleArt(app.renderer);
     if (!await stage('map', 'Uploading map artwork')) return;
     await worldMapView.prepare(app.renderer);
     if (!await stage('settlement', 'Preparing settlement panels and artwork')) return;
     await prototypeView.prepare(app.renderer);
+    if (!await stage('vassal', 'Preparing Vassal panels and artwork')) return;
+    await settlementVassalChooserView.prepare(app.renderer);
+    if (!isCurrent()) return;
+    await vassalLifeMapView.prepare(app.renderer);
+    if (!isCurrent()) return;
+    await vassalLifeHudView.prepare(app.renderer);
     if (!isCurrent()) return;
     if (prepared?.forecast) {
       if (!await stage('handoff', 'Preparing forecast graphs')) return;

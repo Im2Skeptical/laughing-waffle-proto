@@ -12,7 +12,7 @@ import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { addGateBackdrop, getArtRevision } from './chronicle-art.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
-import { addCivilizationSurvivalStrip, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
+import { addCivilizationSurvivalStrip, getCivilizationSurvivalViewModel, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
 import { confirmDockButton } from './vassal-node-decision/chrome.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
@@ -64,6 +64,9 @@ export function createVassalLifeMapView({
   }
   const nodeRoots = new Map();
   let signature = "";
+  let buildCount = 0;
+  let wasVisible = false;
+  let confirmVisibleWhenShown = false;
   let inspectedNodeId = null;
   let candidateNodeId = null;
   let hoveredNodeId = null;
@@ -75,7 +78,26 @@ export function createVassalLifeMapView({
   let lastPointerType = "mouse";
   let recapSuppressedTooltip = false;
   let endDetailsTarget = null;
+  let survivalRoot = null;
+  let survivalSignature = '';
   const nodePoint=node=>layoutPoints.get(node.id)??fallbackNodePoint(node);
+
+  function updateSurvivalChrome(state, civilizationLossInfo) {
+    if (!survivalRoot || survivalRoot.destroyed) {
+      survivalRoot = new PIXI.Container();
+      root.addChild(survivalRoot);
+      survivalSignature = '';
+    }
+    const next = JSON.stringify(getCivilizationSurvivalViewModel(state, civilizationLossInfo));
+    if (next === survivalSignature) return;
+    survivalSignature = next;
+    clearChildren(survivalRoot);
+    endDetailsTarget = addCivilizationSurvivalStrip(survivalRoot, {
+      state, civilizationLossInfo,
+      rect: { x: 590, y: 16, width: 1108, height: 54 },
+      onOpenEndDetails,
+    }).detailsTarget;
+  }
 
   function dismissTooltipForRecap() {
     const recapOpen = isRecapOpen?.() === true;
@@ -268,31 +290,30 @@ export function createVassalLifeMapView({
   }
 
   let nodePointerHeld = false;
-  function render(force = false) {
+  function clearInteractionSelection() {
+    if (hoveredNodeId || candidateNodeId || inspectedNodeId) tooltipView?.hide?.();
+    hoveredNodeId = null;
+    candidateNodeId = null;
+    inspectedNodeId = null;
+    lastClick = { nodeId: null, atMs: 0 };
+  }
+  function render(force = false, preparing = false) {
     if (nodePointerHeld || confirmPointerHeld || root.pendingInteractionCount > 0
       || confirmSurface.pendingInteractionCount > 0) return;
     dismissTooltipForRecap();
     const visible = isVisible?.() === true;
     root.visible = visible;
-    if (!visible) {
+    if (!visible && !preparing) {
       // The tooltip is shared with the other screens. Clean up once on exit,
       // rather than hiding their hover details on every hidden Life Map frame.
-      if (root.children.length > 0) {
-        clearChildren(root);
-        nodeRoots.clear();
-        openRoot = null;
-        endDetailsTarget = null;
-        tooltipView?.hide?.();
-      }
-      hoveredNodeId = null;
-      candidateNodeId = null;
-      inspectedNodeId = null;
-      lastClick = { nodeId: null, atMs: 0 };
-      signature = "";
+      // A prepared scene has not been opened yet. Only clean up a screen the
+      // player actually left, preserving its initial prepared selection.
+      if (wasVisible) clearInteractionSelection();
+      wasVisible = false;
       confirmSurface.visible = false;
-      clearChildren(confirmSurface);
       return;
     }
+    wasVisible = visible;
     const presentation = getPresentation?.() ?? {};
     const state = presentation.state;
     const vassal = presentation.vassal;
@@ -318,25 +339,26 @@ export function createVassalLifeMapView({
     const effectiveNodeId = hoveredNodeId ?? inspectedNodeId ?? vassal?.lifeMap?.currentNodeId
       ?? presentation.playheadNodeId ?? null;
     const civilizationLossInfo = getCivilizationLossInfo?.();
+    // Cache what this screen draws. Unrelated settlement state and a moving
+    // forecast second must not discard an already prepared Life Map.
     const nextSignature = getArtRevision() + JSON.stringify({
-      presentation, effectiveNodeId, candidateNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
-      observedEnd: civilizationLossInfo?.observedEnd ?? null,
-      finalLossYear: civilizationLossInfo?.finalLossYear ?? null,
-      maxLossYear: civilizationLossInfo?.maxLossYear ?? null,
+      vassal, committedNodeIds: presentation.committedNodeIds, playheadNodeId: presentation.playheadNodeId,
+      readOnly, projected: presentation.viewedSec > presentation.frontierSec, loadoutPending,
+      effectiveNodeId, candidateNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
     });
-    if (!force && nextSignature === signature) return;
+    if (!force && nextSignature === signature) {
+      updateSurvivalChrome(state, civilizationLossInfo);
+      confirmSurface.visible = visible && confirmVisibleWhenShown;
+      return;
+    }
     signature = nextSignature;
+    buildCount++;
     clearChildren(root);
     clearChildren(confirmSurface);
     confirmSurface.visible = false;
     nodeRoots.clear();
     openRoot = null;
-    endDetailsTarget = addCivilizationSurvivalStrip(root, {
-      state,
-      civilizationLossInfo,
-      rect: { x: 590, y: 16, width: 1108, height: 54 },
-      onOpenEndDetails,
-    }).detailsTarget;
+    updateSurvivalChrome(state, civilizationLossInfo);
     root.addChild(createText(vassal?.founderClassId ? `${vassal.archetype.toUpperCase()} CHRONICLE` : 'VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
 
     const bg = new PIXI.Graphics();
@@ -459,10 +481,12 @@ export function createVassalLifeMapView({
       openRoot = confirmDockButton(confirmSurface, app, {
         enabled: true, label: "Enter", onClick: enterCandidate,
       });
-      if (hoveredNodeId == null || hoveredNodeId === candidate.id) {
+      if (visible && (hoveredNodeId == null || hoveredNodeId === candidate.id)) {
         showNodeTooltip(candidate, nodeRoots.get(candidate.id), vassal);
       }
     }
+    confirmVisibleWhenShown = confirmSurface.visible;
+    confirmSurface.visible = visible && confirmVisibleWhenShown;
   }
 
   return {
@@ -485,6 +509,16 @@ export function createVassalLifeMapView({
       return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     },
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
+    async prepare(renderer) {
+      if (!getPresentation?.()?.vassal) return;
+      if (wasVisible && isVisible?.() !== true) clearInteractionSelection();
+      render(false, true);
+      confirmSurface.visible = false;
+      renderer.prepare.add(root);
+      renderer.prepare.add(confirmSurface);
+      await renderer.prepare.upload();
+    },
+    getPreparationSnapshot: () => ({ visible: root.visible, nodeCount: nodeRoots.size, buildCount }),
     getPinnedNodeIds: () => [...pinnedNodeIds],
     getInspectedNodeId: () => inspectedNodeId,
   };

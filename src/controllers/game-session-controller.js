@@ -90,7 +90,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
   }
   function enter(slot, prepared = null, { deferResume = false } = {}) {
     runVersion++;
-    hasLiveGame = true;
+    hasLiveGame = !deferResume;
     activeSlot = slot;
     inMenu = deferResume;
     notify();
@@ -107,6 +107,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     const version = runVersion;
     await prepareEntry?.(prepared, { isCurrent: () => isCurrent() && version === runVersion, onProgress });
     if (!isCurrent() || version !== runVersion) return { ok: false, reason: 'cancelled' };
+    hasLiveGame = true;
     inMenu = false;
     notify();
     return { ok: true };

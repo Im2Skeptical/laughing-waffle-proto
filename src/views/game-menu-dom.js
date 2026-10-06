@@ -93,7 +93,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     entering = true;
     const version = ++entryVersion;
     try {
-      if (slot !== null) { loadingSlot = slot; loadingAction = action; loadingFailed = false; loadingStarted = false; loading.reset(); render(); }
+      if (slot !== null) { message.textContent = ''; loadingSlot = slot; loadingAction = action; loadingFailed = false; loadingStarted = false; loading.reset(); render(); }
       await requestGameDisplayMode({ forceFullscreen: event?.pointerType === 'touch' });
       // Fullscreen/orientation steal window focus on phones; visibility is the
       // signal that the player actually left during the request.
@@ -122,10 +122,12 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
         loadingFailed = true;
         render();
       }
-    } catch (_error) {
+    } catch (error) {
       if (version === entryVersion) {
         loadingFailed = true;
-        message.textContent = "Could not open your chronicle. Retry or return to the menu.";
+        message.textContent = error.code === 'artworkLoadFailed'
+          ? "Artwork couldn’t be loaded. Retry or return to the menu."
+          : "Could not open your chronicle. Retry or return to the menu.";
         render();
       }
     } finally { if (version === entryVersion) entering = false; }
@@ -160,7 +162,10 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     if (saveFailed && mode !== 'diagnostics') { recovery.sync(); content.append(recovery.element); }
     if (loadingSlot !== null) {
       const heading = document.createElement("h2");
-      heading.textContent = loadingFailed ? "Your chronicle could not be prepared" : "Preparing your chronicle…";
+      heading.textContent = loadingFailed
+        ? session.getLoadingStatus?.()?.stages.at(-1)?.stage === 'artwork'
+          ? "Artwork couldn’t be loaded" : "Your chronicle could not be prepared"
+        : "Preparing your chronicle…";
       content.append(heading);
       loading.update(loadingStarted ? session.getLoadingStatus?.() : null, loadingFailed);
       content.append(loading.element);

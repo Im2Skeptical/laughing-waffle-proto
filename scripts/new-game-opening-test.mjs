@@ -137,11 +137,13 @@ for (const entryKind of ['newGame', 'continueGame']) {
   assert.equal(preparationStarted, true, `${entryKind} prepares its settlement before entry`);
   assert.deepEqual(events, ['setup', 'upload'], 'prepare the actual run after presentation setup');
   assert.equal(readySession.isInMenu(), true, `${entryKind} keeps gameplay suspended during uploads`);
+  assert.equal(readySession.canResume(), false, 'an unprepared scene cannot bypass loading through menu Resume');
   assert.equal(saves, 0, 'preparing presentation does not write a save');
   assert.equal(readySession.getLoadingStatus().stages.at(-1).stage, 'scene');
   releasePresentation();
   assert.equal((await pendingEntry).ok, true);
   assert.equal(readySession.isInMenu(), false);
+  assert.equal(readySession.canResume(), true);
   assert.equal(readySession.getLoadingStatus().phase, 'ready');
   assert.deepEqual((await readySession.getSaveDiagnostics()).loading, readySession.getLoadingStatus(),
     'diagnostic exports retain the completed loading stages and timings');
@@ -156,5 +158,23 @@ for (const entryKind of ['newGame', 'continueGame']) {
   assert.equal(readySession.isInMenu(), true, 'leaving during uploads cannot reopen gameplay');
   assert.equal(saves, completedSaves, 'cancelled presentation preparation does not overwrite a save');
   assert.equal(readySession.getLoadingStatus().phase, 'cancelled');
+}
+for (const entryKind of ['newGame', 'continueGame']) {
+  let artworkFails = true;
+  const failedSession = createGameSessionController({
+    runner: { resetToState: () => ({ ok: true }), loadFromSlot: async () => ({ ok: true }),
+      saveToSlot: async () => ({ ok: true }) },
+    opening: { prepare: async () => prepared, reset() {} },
+    prepareEntry: async (_, { onProgress }) => {
+      onProgress({ stage: 'artwork', label: 'Loading chronicle artwork' });
+      if (artworkFails) throw new Error('Artwork could not be loaded: resource-language.json');
+    },
+  });
+  await assert.rejects(failedSession[entryKind](1), /Artwork could not be loaded/);
+  assert.equal(failedSession.canResume(), false, 'failed artwork cannot be resumed behind the loading screen');
+  assert.equal(failedSession.isInMenu(), true);
+  assert.equal(failedSession.getLoadingStatus().phase, 'failed');
+  artworkFails = false;
+  assert.equal((await failedSession[entryKind](1)).ok, true, 'entry can recover on manual retry');
 }
 console.log('[new-game-opening] OK');

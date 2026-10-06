@@ -4,6 +4,7 @@ const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
+const failedGroups = new Set();
 const rendererPreparations = new WeakMap();
 let revision = 0;
 export const getArtRevision = () => revision;
@@ -94,7 +95,9 @@ function loadTexture(file) {
     if (packedTextures.has(key)) return packedTextures.get(key);
     // Packed sources are 4× larger than the runtime atlas. Never fetch them
     // while the sheet is in flight — that queue is what stalls desktop GPUs.
-    loadPackedGroup(group);
+    // A draw cannot retry an exhausted download on every frame. Entry/retry
+    // explicitly starts another bounded attempt through preloadChronicleArt.
+    void loadPackedGroup(group).catch(() => {});
     return null;
   }
   console.error(`[art] unregistered asset requested: ${file}`);
@@ -105,13 +108,38 @@ export function getChronicleTexture(file) {
   return loadTexture(file);
 }
 
-async function loadPackedGroup(group) {
+function artworkError(message, cause) {
+  const error = new Error(message, { cause });
+  error.code = 'artworkLoadFailed';
+  return error;
+}
+
+async function loadPackedSheet(name) {
+  const url = `${SPRITE_SHEET_ROOT}${name}`;
+  let sheet;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { sheet = await PIXI.Assets.load(url); break; }
+    catch (error) {
+      if (attempt === 2) throw artworkError(`Artwork could not be loaded: ${name}`, error);
+      await new Promise(resolve => setTimeout(resolve, [500, 1500][attempt]));
+    }
+  }
+  const textures = Object.values(sheet?.textures ?? {});
+  if (!textures.length || textures.some(texture => !texture?.baseTexture?.valid || texture.valid === false)
+    || Object.keys(sheet.data?.frames ?? {}).some(frame => !sheet.textures[frame])) {
+    throw artworkError(`Artwork has invalid or undecoded textures: ${name}`);
+  }
+  return sheet;
+}
+
+async function loadPackedGroup(group, retryFailed = false) {
+  if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
   if (packedLoads.has(group)) return packedLoads.get(group);
   // Multipack sheets link to each other. Loading them concurrently can leave
   // Pixi's asset promises waiting on the same linked sheet indefinitely.
   const load = (async () => {
     for (const name of group.files) {
-      const sheet = await PIXI.Assets.load(`${SPRITE_SHEET_ROOT}${name}`);
+      const sheet = await loadPackedSheet(name);
       Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
         configureTexture(texture);
@@ -120,7 +148,8 @@ async function loadPackedGroup(group) {
     }
     bumpRevision();
   })().catch(error => {
-    console.error('[art] failed to load packed sprite sheet', error);
+    failedGroups.add(group);
+    throw error;
   });
   packedLoads.set(group, load);
   return load;
@@ -130,11 +159,14 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = Object.values(PACKED_GROUPS)
     .filter(group => group.eager)
-    .map(loadPackedGroup);
+    .map(group => loadPackedGroup(group, true));
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
-  const warm = Promise.all(eager).then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces));
-  return includeSettlementPieces ? warm : Promise.all(eager);
+  const ready = Promise.all(eager);
+  const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
+  if (includeSettlementPieces) return warm;
+  void warm.catch(error => console.error('[art] background artwork preparation failed', error));
+  return ready;
 }
 
 // Decode and upload shared atlases while the opening forecast runs behind the
@@ -143,8 +175,19 @@ export function prepareChronicleArt(renderer) {
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
     const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
+    const gl = renderer.gl;
+    const maxSize = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
+    if ([...textures.keys()].some(base => !base.valid || (maxSize && (base.realWidth > maxSize || base.realHeight > maxSize)))) {
+      throw artworkError('Artwork textures are invalid or exceed this device\'s texture size limit');
+    }
     for (const texture of textures.values()) renderer.prepare.add(texture);
     await renderer.prepare.upload();
+    if (gl && (gl.isContextLost() || [...textures.keys()].some(base => !base._glTextures?.[renderer.CONTEXT_UID]))) {
+      throw artworkError('Artwork could not be uploaded to this device');
+    }
+  }).catch(error => {
+    rendererPreparations.delete(renderer);
+    throw error.code === 'artworkLoadFailed' ? error : artworkError('Artwork upload failed', error);
   });
   rendererPreparations.set(renderer, preparation);
   return preparation;

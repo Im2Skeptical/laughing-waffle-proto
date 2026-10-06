@@ -889,7 +889,7 @@ try {
   await widePage.waitForFunction(
     () => !!globalThis.__SETTLEMENT_DEBUG__?.getSnapshot
   );
-  await clickDesignPoint(widePage, await widePage.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
+  await clickDesignPoint(widePage, await getNavigationPoint(widePage, 'settlement'));
   await widePage.waitForFunction(
     () =>
       globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.mode ===

@@ -4,6 +4,7 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 import { getArtRevision } from './chronicle-art.js';
+import { buildDetailedVassalSelectionPool } from '../model/detailed-settlements.js';
 
 const VIEWPORT = Object.freeze({ width: 2424, height: 1080 });
 const DRAWER_RECT = Object.freeze({ x: 432, y: 636, width: 1560, height: 438 });
@@ -67,6 +68,7 @@ export function createWorldMapVassalDrawerView({
   root.zIndex = 12;
   layer?.addChild(root);
   let signature = "";
+  let buildCount = 0;
   let candidateRoots = [];
   let rerollRoot = null;
   let lastTapIndex=null,lastTapTime=0;
@@ -78,19 +80,20 @@ export function createWorldMapVassalDrawerView({
     else onPreviewCandidate?.(index);
   }
 
-  function render(force = false) {
+  function render(force = false, preparing = false) {
     const open = isOpen?.() === true;
     root.visible = open;
-    if (!open) {
+    if (!open && !preparing) {
       lastTapIndex=null;
-      signature = ""; candidateRoots = []; rerollRoot = null; clearChildren(root); return;
+      return;
     }
     const state = getState?.();
-    const pool = getSelectionPool?.();
+    const pool = getSelectionPool?.() ?? (preparing ? buildDetailedVassalSelectionPool(state) : null);
     const selectedIndex = getSelectedCandidateIndex?.() ?? null;
     const next = getArtRevision() + JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
     if (!force && next === signature) return;
     signature = next;
+    buildCount++;
     clearChildren(root);
 
     const blocker = new PIXI.Graphics();
@@ -135,16 +138,21 @@ export function createWorldMapVassalDrawerView({
   }
 
   return {
-    init: () => render(true), update: () => render(), refresh: () => render(true),
+    init: () => render(true), update: () => render(), refresh: () => render(),
+    async prepare(renderer) {
+      render(false, true);
+      await renderer.prepare.upload(root);
+    },
+    getPreparationSnapshot: () => ({ visible: root.visible, candidateCount: candidateRoots.length, buildCount }),
     setVisible: (visible) => { root.visible = visible === true; },
     getCandidateClickPoint: (candidateIndex = 0) => {
       const card = candidateRoots[Math.max(0, Math.floor(candidateIndex))];
-      if (!card?.visible || typeof card.toGlobal !== "function") return null;
+      if (!root.visible || !card?.visible || typeof card.toGlobal !== "function") return null;
       const point = card.toGlobal(new PIXI.Point(card.hitArea.width / 2, card.hitArea.height / 2 - 28));
       return { x: Number(point?.x ?? 0), y: Number(point?.y ?? 0) };
     },
     getRerollClickPoint: () => {
-      if (!rerollRoot?.visible || typeof rerollRoot.toGlobal !== "function") return null;
+      if (!root.visible || !rerollRoot?.visible || typeof rerollRoot.toGlobal !== "function") return null;
       const point = rerollRoot.toGlobal(new PIXI.Point(REROLL_RECT.width / 2, REROLL_RECT.height / 2));
       return { x: Number(point?.x ?? 0), y: Number(point?.y ?? 0) };
     },

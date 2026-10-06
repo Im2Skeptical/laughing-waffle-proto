@@ -9,7 +9,7 @@ export function createLabCards({onReview} = {}) {
   const renderer = new PIXI.Renderer({width:440,height:250,resolution:2,backgroundAlpha:0,antialias:true,preserveDrawingBuffer:true});
   let revision = -1;
   let images = [];
-  preloadChronicleArt();
+  void preloadChronicleArt().catch(error => console.error('[art] card artwork preparation failed', error));
   const timer = setInterval(() => {
     images = images.filter(({img}) => img.isConnected);
     const next = getArtRevision();

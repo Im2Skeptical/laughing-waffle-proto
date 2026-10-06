@@ -51,6 +51,8 @@ export function createVassalLifeHudView({
   root.eventMode = "static";
   layer?.addChild(root);
   let signature = "";
+  let buildCount = 0;
+  let wasVisible = false;
   let pinnedStatId = null;
   let tween = null;
 
@@ -91,19 +93,17 @@ export function createVassalLifeHudView({
     };
   }
 
-  function render(force = false) {
+  function render(force = false, preparing = false) {
     const visible = isVisible?.() === true;
     root.visible = visible;
     root.eventMode = visible ? "static" : "none";
-    if (!visible) {
-      if (root.children.length > 0) {
-        clearChildren(root);
-        hideStatTooltip();
-      }
-      signature = "";
+    if (!visible && !preparing) {
+      if (wasVisible) hideStatTooltip();
+      wasVisible = false;
       tween = null;
       return;
     }
+    wasVisible = visible;
     const presentation = getPresentation?.() ?? {};
     const vassal = presentation.profileVassal ?? presentation.vassal;
     const deltas = getDeltas?.() ?? null;
@@ -130,6 +130,7 @@ export function createVassalLifeHudView({
     });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
+    buildCount++;
     clearChildren(root);
     if (!vassal || !shown) return;
 
@@ -302,6 +303,11 @@ export function createVassalLifeHudView({
     init: () => render(true),
     update: () => render(),
     refresh: () => render(true),
+    async prepare(renderer) {
+      render(false, true);
+      await renderer.prepare.upload(root);
+    },
+    getPreparationSnapshot: () => ({ visible: root.visible, childCount: root.children.length, buildCount }),
     getSemanticSnapshot: () => {
       const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
       return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,

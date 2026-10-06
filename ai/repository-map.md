@@ -246,6 +246,10 @@ in `ai/ai-context.md`.
   `PROBE_ASSERT_PREPARED=1 npm run probe:settlement-entry`; set
   `PROBE_CPU_RATE=4` for the throttled CPU case and `PROBE_SAVE` to a save
   file for cold historical plotting. Details and optional profiles go to `artifacts/`.
+  `npm run probe:game-menu -- --artwork-only` checks required-atlas failure,
+  automatic/manual retries, and prepared first-open Vassal panels. The loader
+  retries downloads twice, validates textures and GPU upload, and keeps the
+  loading screen up on failure; successful atlases survive manual retry.
 - Shared mobile layout or input changes:
   all three browser probes and a 1280x800 visual check
 - Timeline-driven art, sound, or card inspection:
