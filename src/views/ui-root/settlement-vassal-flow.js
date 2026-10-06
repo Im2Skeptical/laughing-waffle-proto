@@ -89,7 +89,6 @@ export function createSettlementVassalFlow({
     settlementHoveredVassalCandidate = null;
     settlementSelectedVassalCandidateIndex = null;
     settlementVassalSelectionResumeSpeed = 0;
-    getGraphView?.()?.clearProjectionReplacementTransition?.();
     getWorldMapView?.()?.refresh?.();
     getChooserView?.()?.refresh?.();
     syncSettlementVassalSelectionPauseState();

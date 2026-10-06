@@ -284,6 +284,7 @@ import {
   getProjectionReplacementRenderKey,
   getProjectionReplacementScaleRanges,
   stageProjectionReplacementTransition,
+  syncProjectionReplacementContext,
 } from '../src/views/timegraphs/projection-replacement-state.js';
 import {
   GRAPH_BOOT_FADE_FRAME_MS,
@@ -1069,8 +1070,7 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   session.setSettlementGraphContext('settlement', 'river-crown');
   assert.equal(session.getSettlementGraphScope(), 'settlement');
   assert.equal(session.getSettlementGraphMetric(), GRAPH_METRICS.settlement);
-  assert.deepEqual(calls.slice(0, 7), [
-    ['clearTransition'],
+  assert.deepEqual(calls.slice(0, 6), [
     ['setMetric', GRAPH_METRICS.settlement],
     ['setSubject', { regionId: 'river-crown' }, 'river-crown'],
     ['setContext', 'settlement'],
@@ -1167,5 +1167,57 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
     'a new run clears the old banner');
   assert.equal(JSON.stringify(lost), before, 'presentation does not mutate the loss state');
   assert.equal(getRunCompleteInfo({...lost,runStatus:{...lost.runStatus,reason:'futureLoss'}}).cause, 'Civilization lost');
+}
+// Leaving the Lifegraph for a settlement and returning must retain its old
+// civilization projection. Exercise the real context-switch call site.
+{
+  const replacement = createProjectionReplacementState();
+  const snapshot = { pointsForDraw: [{ tSec: 0 }, { tSec: 100 }] };
+  const timeline = {};
+  syncProjectionReplacementContext(replacement, timeline, 'civilization');
+  stageProjectionReplacementTransition(replacement, {
+    snapshot, truncationStartSec: 0, maxSecFloor: 100,
+  });
+  activateProjectionReplacementTransition(replacement, 0, {
+    activateProjectionReplacementTransition: true,
+  });
+  let subjectKey = 'civilization';
+  const session = createSettlementGraphSession({
+    getGraphController: () => ({
+      getData: () => ({ subjectKey }),
+      setSubject: (_, key) => { subjectKey = key; },
+    }),
+    getGraphView: () => ({
+      clearProjectionReplacementTransition: () => clearProjectionReplacementTransition(replacement),
+      resetDataContext: () => syncProjectionReplacementContext(replacement, timeline, subjectKey),
+    }),
+  });
+  session.setSettlementGraphContext('settlement', 'river-crown');
+  assert.equal(buildProjectionReplacementRenderState(replacement, 200, 200), null,
+    'settlement coverage neither renders nor consumes the civilization overlay');
+  assert.equal(getProjectionReplacementMaxFloorSec(replacement), null);
+  assert.equal(getProjectionReplacementScaleRanges(replacement), null);
+  assert.equal(getProjectionReplacementDebugState(replacement), null);
+  session.setSettlementGraphContext('civilization');
+  assert.equal(replacement.active?.snapshot, snapshot,
+    'returning to the Lifegraph retains the faded civilization projection');
+  assert.equal(buildProjectionReplacementRenderState(replacement, 200, 10)?.snapshot, snapshot);
+  stageProjectionReplacementTransition(replacement, { snapshot: { pointsForDraw: [] } });
+  activateProjectionReplacementTransition(replacement, 200, {
+    activateProjectionReplacementTransition: true,
+  });
+  assert.equal(replacement.active?.snapshot, snapshot,
+    'an unsuccessful replacement keeps the last faded projection');
+  const nextSnapshot = { pointsForDraw: [{ tSec: 10 }, { tSec: 120 }] };
+  stageProjectionReplacementTransition(replacement, {
+    snapshot: nextSnapshot, truncationStartSec: 10, maxSecFloor: 120,
+  });
+  activateProjectionReplacementTransition(replacement, 300, {
+    activateProjectionReplacementTransition: true,
+  });
+  assert.equal(replacement.active?.snapshot, nextSnapshot,
+    'a new projection replaces the previous one');
+  syncProjectionReplacementContext(replacement, {}, 'civilization');
+  assert.equal(replacement.active, null, 'a new run clears the old projection');
 }
 console.log('[presentation-time] OK: gamepiece art, reversible presentation, timegraph reveal/scrub, and persistent loss presentation');

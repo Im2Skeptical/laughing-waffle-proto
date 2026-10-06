@@ -30,6 +30,7 @@ async function snapshot() {
       },
       current: s.lineage?.currentVassal, lineage: s.lineage,
       timeline: s.runner.timeline, frontierSec: s.frontierSec, viewedSec: s.viewedSec,
+      fadedProjection: s.graph?.projectionReplacement ?? null,
     };
   });
 }
@@ -395,11 +396,14 @@ async function runProbe() {
   assert.equal(s.navigation.destinations[1].regionId, regionId);
   await capture('lifemap-1280x800');
   const beforeNavigation = await snapshot();
+  assert.ok(beforeNavigation.fadedProjection?.hasSnapshot,
+    'selecting a vassal retains the previous civilization projection');
 
   await navigate('settlement');
   await waitMode('settlement');
   s = await snapshot();
   assert.equal(s.settlementRegionId, regionId, 'Life Map opens the vassal settlement in one click');
+  assert.equal(s.fadedProjection, null, 'settlement graphs hide the civilization overlay');
   assert.deepEqual(destinations(s), ['map', 'life']);
   assert.equal(s.headerControls.map, undefined, 'settlement no longer has the old header Map button');
   assert.equal(s.navigation.portrait.vassalId, vassalId);
@@ -436,6 +440,8 @@ async function runProbe() {
   assert.deepEqual(s.lineage, beforeNavigation.lineage, 'screen navigation never changes vassal state');
 
   await navigate('life');
+  assert.deepEqual((await snapshot()).fadedProjection, beforeNavigation.fadedProjection,
+    'leaving and returning to Lifegraph preserves the faded projection');
   const nodeId = (await snapshot()).current.availableNodeIds[0];
   const nodePoint = await controlPoint('getLifeMapNodeClickPoint', nodeId);
   await clickPoint(nodePoint);

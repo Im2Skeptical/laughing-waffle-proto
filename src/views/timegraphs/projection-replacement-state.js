@@ -12,7 +12,23 @@ export function createProjectionReplacementState() {
   return {
     staged: null,
     active: null,
+    timeline: null,
+    subjectKey: null,
   };
+}
+
+// This is runtime view state. Scope changes hide the retained projection;
+// replacing the run discards it, even while the graph is closed.
+export function syncProjectionReplacementContext(state, timeline, subjectKey) {
+  if (state.timeline !== timeline) {
+    clearProjectionReplacementTransition(state);
+    state.timeline = timeline;
+  }
+  state.subjectKey = subjectKey;
+}
+
+function getActiveProjection(state) {
+  return state.active?.subjectKey === state.subjectKey ? state.active : null;
 }
 
 export function clearProjectionReplacementTransition(state) {
@@ -25,28 +41,30 @@ export function clearStagedProjectionReplacement(state) {
 }
 
 export function getProjectionReplacementScaleRanges(state) {
-  const ranges = state.active?.snapshot?.seriesScaleRanges;
+  const ranges = getActiveProjection(state)?.snapshot?.seriesScaleRanges;
   return ranges instanceof Map ? ranges : null;
 }
 
 export function getProjectionReplacementMaxFloorSec(state) {
-  return Number.isFinite(state.active?.maxSecFloor)
-    ? Math.max(0, Math.floor(state.active.maxSecFloor))
+  const overlay = getActiveProjection(state);
+  return Number.isFinite(overlay?.maxSecFloor)
+    ? Math.max(0, Math.floor(overlay.maxSecFloor))
     : null;
 }
 
 export function getProjectionReplacementDebugState(state) {
-  return state.active
+  const overlay = getActiveProjection(state);
+  return overlay
     ? {
         active: true,
         truncationStartSec: Math.max(
           0,
-          Math.floor(state.active.truncationStartSec ?? 0)
+          Math.floor(overlay.truncationStartSec ?? 0)
         ),
-        maxSecFloor: Number.isFinite(state.active.maxSecFloor)
-          ? Math.max(0, Math.floor(state.active.maxSecFloor))
+        maxSecFloor: Number.isFinite(overlay.maxSecFloor)
+          ? Math.max(0, Math.floor(overlay.maxSecFloor))
           : null,
-        hasSnapshot: !!state.active.snapshot,
+        hasSnapshot: !!overlay.snapshot,
       }
     : null;
 }
@@ -85,6 +103,7 @@ export function stageProjectionReplacementTransition(
   );
   state.staged = {
     snapshot,
+    subjectKey: state.subjectKey,
     truncationStartSec: normalizedTruncationStartSec,
     maxSecFloor: normalizedMaxSecFloor,
     transitionDurationMs: Math.max(0, Number(transitionDurationMs ?? 0)),
@@ -100,12 +119,9 @@ export function activateProjectionReplacementTransition(
   opts = {}
 ) {
   if (opts?.activateProjectionReplacementTransition === true) {
-    state.active = state.staged
-      ? {
-          ...state.staged,
-          startedMs: nowMs,
-        }
-      : null;
+    if (state.staged) {
+      state.active = { ...state.staged, startedMs: nowMs };
+    }
     state.staged = null;
     return;
   }
@@ -120,7 +136,7 @@ export function buildProjectionReplacementRenderState(
   nowMs,
   lineDrawEndSec
 ) {
-  const overlay = state.active;
+  const overlay = getActiveProjection(state);
   if (!overlay) return null;
   const fadeStrength = clamp01(overlay.fadeStrength ?? 1);
   const truncationStartSec = Math.max(
@@ -226,7 +242,7 @@ export function buildProjectionReplacementRenderState(
 }
 
 export function getProjectionReplacementRenderKey(state, nowMs) {
-  const overlay = state.active;
+  const overlay = getActiveProjection(state);
   if (!overlay) return "";
   const transitionDurationMs = Math.max(
     0,

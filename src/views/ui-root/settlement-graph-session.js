@@ -110,10 +110,6 @@ export function createSettlementGraphSession({
     const contextChanged =
       previousScope !== nextScope || previousSubjectKey !== nextSubjectKey;
 
-    if (contextChanged && previousSubjectKey != null) {
-      getGraphView?.()?.clearProjectionReplacementTransition?.();
-    }
-
     settlementGraphScope = nextScope;
     const metric = getCurrentSettlementGraphMetric();
     const graphController = getGraphController?.();

@@ -57,6 +57,7 @@ import {
   getProjectionReplacementRenderKey as readProjectionReplacementRenderKey,
   getProjectionReplacementScaleRanges as readProjectionReplacementScaleRanges,
   stageProjectionReplacementTransition as applyStageProjectionReplacement,
+  syncProjectionReplacementContext,
 } from "./timegraphs/projection-replacement-state.js";
 import {
   getSeriesLegendTitle,
@@ -305,6 +306,7 @@ export function createMetricGraphView({
   }
 
   function getProjectionReplacementScaleRanges() {
+    syncProjectionReplacementDataContext();
     return readProjectionReplacementScaleRanges(projectionReplacement);
   }
 
@@ -478,6 +480,14 @@ export function createMetricGraphView({
   const projectionReplacement = createProjectionReplacementState();
   let hoveredEventMarkerKey = null;
 
+  function syncProjectionReplacementDataContext() {
+    syncProjectionReplacementContext(
+      projectionReplacement,
+      getTimeline?.() ?? null,
+      controller?.getData?.()?.subjectKey ?? null
+    );
+  }
+
   function invalidatePlotSnapshot() {
     clearPlotSnapshotCache(plotSnapshotCache);
   }
@@ -502,7 +512,6 @@ export function createMetricGraphView({
     resetForecastRevealDataContext(reveal, getActiveForecastPreviewSec());
     invalidatePlotSnapshot();
     clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
-    clearProjectionReplacementTransition();
     hoveredLegendSeriesId = null;
     lastPlotVersion = -1;
     lastPlotBoundsKey = "";
@@ -523,10 +532,12 @@ export function createMetricGraphView({
   }
 
   function getProjectionReplacementMaxFloorSec() {
+    syncProjectionReplacementDataContext();
     return readProjectionReplacementMaxFloorSec(projectionReplacement);
   }
 
   function buildProjectionReplacementRenderState(nowMs, lineDrawEndSec) {
+    syncProjectionReplacementDataContext();
     return readProjectionReplacementRenderState(
       projectionReplacement,
       nowMs,
@@ -535,6 +546,7 @@ export function createMetricGraphView({
   }
 
   function getProjectionReplacementRenderKey(nowMs) {
+    syncProjectionReplacementDataContext();
     return readProjectionReplacementRenderKey(projectionReplacement, nowMs);
   }
 
@@ -545,6 +557,7 @@ export function createMetricGraphView({
     flashDurationMs = 0,
     fadeStrength = 1,
   } = {}) {
+    syncProjectionReplacementDataContext();
     const snapshot = plotSnapshotCache.snapshot ?? getPlotSnapshot();
     return applyStageProjectionReplacement(projectionReplacement, {
       snapshot,
@@ -801,6 +814,7 @@ export function createMetricGraphView({
       Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
     );
     const nowMs = performance.now();
+    syncProjectionReplacementDataContext();
     applyActivateProjectionReplacement(projectionReplacement, nowMs, opts);
     restartForecastRevealState(reveal, startSec, opts, {
       actualHistoryEndSec,
@@ -2089,7 +2103,6 @@ export function createMetricGraphView({
     reveal.capEndSec = null;
     invalidatePlotSnapshot();
     clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
-    clearProjectionReplacementTransition();
     beginBootFadeTransition(nowMs);
     resetForecastReveal(0, 0, 0, nowMs);
     if (bootRevealDelayMsCur > 0) {
@@ -2112,7 +2125,6 @@ export function createMetricGraphView({
     resetForecastPreviewState();
     invalidatePlotSnapshot();
     clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
-    clearProjectionReplacementTransition();
     reveal.capEndSec = null;
     clearBootFadeTransition();
     resetForecastReveal(0, 0, 0, performance.now());
@@ -2160,6 +2172,7 @@ export function createMetricGraphView({
   }
 
   function getDebugState() {
+    syncProjectionReplacementDataContext();
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const snapshot = getPlotSnapshot();
@@ -2417,6 +2430,7 @@ export function createMetricGraphView({
 
   function destroy() {
     close();
+    clearProjectionReplacementTransition();
     eventMarkerResolver = null;
     plotHit.removeAllListeners?.();
     zoomBtn.removeAllListeners?.();

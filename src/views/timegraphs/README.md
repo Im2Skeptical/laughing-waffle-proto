@@ -77,6 +77,9 @@ below as explicit state objects plus pure updates.
 - `projection-replacement-state.js`
   - Staged/active overlay, truncation floor, flash/fade numbers, render key,
     and debug snapshot. Functions take the state object plus explicit args.
+  - Retains one previous projection for its original subject and timeline.
+    Context switches and close/open hide or preserve it; a new projection,
+    fully overwritten coverage, explicit override, or a new run clears it.
   - No PIXI. Snapshot sampling for `stageProjectionReplacementTransition`
     stays in the orchestrator because it closes over the plot cache. Overlay
     ink stays in `drawPlot`.
