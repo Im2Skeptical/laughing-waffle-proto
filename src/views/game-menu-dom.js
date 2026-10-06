@@ -251,7 +251,9 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
       }
       const dev = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
-      dev.append(summary, button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
+      dev.append(summary,
+        button('New run setup in Gym', () => window.open(new URL('#/dev/gym?workspace=setup', location.href).href, '_blank', 'noopener'), 'game-new-run-setup'),
+        button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
       if(cardReviews) {
         const label=document.createElement('label');label.className='game-edited-cards-toggle';
         const toggle=document.createElement('input');toggle.type='checkbox';toggle.dataset.testid='game-use-edited-cards';toggle.checked=cardReviews.useInNewGames();

@@ -1,3 +1,4 @@
+import { lockDebugEditor } from "./debug-editor-readonly.js";
 import {
   VASSAL_NODE_FAMILIES,
   getVassalLifeMapNodeFamily,
@@ -50,7 +51,7 @@ function colorHex(value) {
   return `#${Math.max(0, Number(value) || 0).toString(16).padStart(6, "0")}`;
 }
 
-export function createLifeMapLabDom({ controller } = {}) {
+export function createLifeMapLabDom({ controller, readOnly = () => false } = {}) {
   const root = element("div", "life-map-lab-root");
   root.dataset.testid = "life-map-lab";
   const style = document.createElement("style");
@@ -115,12 +116,17 @@ export function createLifeMapLabDom({ controller } = {}) {
   }
 
   function render() {
+    renderContents();
+    lockDebugEditor(root, readOnly(), ['life-map-lab-json-toggle']);
+  }
+
+  function renderContents() {
     const snapshot = controller.getSnapshot();
     const draft = snapshot.draft;
     const config = draft.generatorConfig;
     root.replaceChildren(style);
     root.append(element("h3", "", "Life Map Lab"));
-    root.append(element("p", "", "Tune deterministic Vassal map generation. Changes are inert until Start new run."));
+    root.append(element("p", "", "Tune deterministic Vassal map generation. Changes apply only to the next launch from New run setup."));
 
     const toolbar = element("div", "life-map-lab-toolbar");
     const preset = element("select", "life-map-lab-input");

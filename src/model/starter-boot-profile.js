@@ -86,7 +86,7 @@ export function createStarterBootProfile() {
     gameSettings,
     gamepieces,
     lifeMapLab,
-    vassalLab: null,
+    launch: { startMode: "randomRoad", neutralSettlements: true },
     activePage: "mapLab",
   };
 }

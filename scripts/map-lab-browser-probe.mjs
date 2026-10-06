@@ -1,467 +1,122 @@
-import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { setTimeout as delay } from "node:timers/promises";
-import { chromium } from "playwright";
-import { MAP_LAB_DRAFT_SCHEMA_VERSION } from '../src/model/map-lab-draft.js';
-import { GAME_CONFIG_SCHEMA_VERSION } from '../src/model/game-config.js';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { setTimeout as delay } from 'node:timers/promises';
+import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
-const PORT = 8081;
-const URL = `http://127.0.0.1:${PORT}`;
-const DETAIL_PATH = "artifacts/map-lab-browser-probe.json";
-const SCREENSHOT_PATH = "artifacts/map-lab-browser-probe-latest.png";
-
-async function waitForHttp() {
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    try {
-      if ((await fetch(URL)).ok) return;
-    } catch {}
+const url = 'http://127.0.0.1:8081', artifact = 'artifacts/map-lab-browser-probe.json';
+mkdirSync('artifacts', { recursive: true });
+const server = spawn(process.execPath, ['./node_modules/serve/bin/serve.js', '-l', '8081', '--no-clipboard', 'dist'], { stdio: 'ignore', windowsHide: true });
+let browser;
+const checks = [], errors = [];
+try {
+  for (let attempt = 0; attempt < 150; attempt++) {
+    try { if ((await fetch(url)).ok) break; } catch (_) {}
     await delay(100);
   }
-  throw new Error(`Timed out waiting for ${URL}`);
-}
-
-mkdirSync("artifacts", { recursive: true });
-const server = spawn(process.execPath,
-  ["./node_modules/serve/bin/serve.js", "-l", String(PORT), "--no-clipboard", "dist"],
-  { stdio: "ignore", windowsHide: true });
-let browser, page;
-try {
-  await waitForHttp();
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.route("**/timegraph-forecast-worker-*.js", async (route) => {
-    await delay(750);
-    await route.continue();
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
+  const page = await context.newPage();
+  await page.goto(`${url}/#/dev/gym`);
+  await page.getByTestId('lab-run-setup').waitFor();
+  assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'regular-game');
+  assert.equal(await page.getByTestId('debug-profile-save').isDisabled(), true);
+  assert.equal(await page.getByTestId('map-lab-controller').isDisabled(), true);
+  // Read-only protects values, while inspection of other regions stays available.
+  await page.getByTestId('map-lab-world-map-region-lake-country').click();
+  assert.equal(await page.getByTestId('map-lab-controller').inputValue(), 'player');
+  await page.getByTestId('lab-setup-to-gym').click();
+  await page.getByTestId('lab-play').waitFor();
+  const world = () => page.evaluate(() => {
+    const state = __LAB_DEBUG__.getSnapshot().state;
+    return { second: state.tSec, players: state.world.regions.filter(region => region.controller === 'player').length,
+      neutrals: state.world.sites.filter(site => site.neutral).length, lanes: state.gameConfig.lifeMapGenerator.laneCount,
+      populationPerToken: state.gameConfig.settings.values.populationPerToken,
+      stockCapacity: state.gameConfig.gamepieces.practices.forage.stockCapacity };
   });
-  await page.addInitScript(() => {
-    if (!sessionStorage.getItem("mapLabProbeInitialized")) {
-      localStorage.removeItem("civsurvivor.mapLabDraft.v6");
-      localStorage.removeItem("civsurvivor.mapLabScenarios.v4");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v7");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v7");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v7");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v7");
-      localStorage.removeItem("civsurvivor.debugGameSettingsDraft.v6");
-      localStorage.removeItem("civsurvivor.debugGameSettingsPresets.v6");
-      localStorage.removeItem("civsurvivor.debugGamepiecesDraft.v6");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v6");
-      localStorage.removeItem("civsurvivor.debugGamepiecePresets.v1");
-      localStorage.removeItem("civsurvivor.debugVassalDraft.v2");
-      localStorage.removeItem("civsurvivor.debugVassalPresets.v2");
-      localStorage.removeItem("civsurvivor.debugVassalDraft.v3");
-      localStorage.removeItem("civsurvivor.debugVassalPresets.v3");
-      localStorage.removeItem("civsurvivor.debugProfiles.v1");
-      localStorage.removeItem("civsurvivor.debugProfiles.boot.v1");
-      localStorage.setItem("civsurvivor.debugProfiles.boot.v2", "probe-authored-setup");
-      sessionStorage.setItem("mapLabProbeInitialized", "1");
-    }
-  });
-  await page.goto(URL);
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByTestId('debug-open').click({delay:950});
-  const startNewRun = page.getByTestId("debug-start-new-run");
-  const closeDebug = page.getByTestId("debug-close");
-  await startNewRun.waitFor({ state: "visible" });
-  await closeDebug.waitFor({ state: "visible" });
-  assert.equal(await page.getByTestId("fullscreen-toggle").count(), 0);
-  assert.equal(await page.getByTestId("map-lab-apply").count(), 0);
-  assert.equal(await page.getByTestId("gameSettings-apply").count(), 0);
-  assert.equal(await page.getByTestId("gamepieces-apply").count(), 0);
-  const floatingDebugControls = await page.evaluate(() => {
-    const toRect = (testId) => {
-      const rect = document.querySelector(`[data-testid="${testId}"]`).getBoundingClientRect();
-      return { left: rect.left, right: rect.right, top: rect.top };
-    };
-    return { close: toRect("debug-close"), start: toRect("debug-start-new-run") };
-  });
-  assert.ok(floatingDebugControls.close.left < 100, "close control floats at the left");
-  assert.ok(floatingDebugControls.start.right > 1100, "new-run control floats at the right");
-  await closeDebug.click();
-  await page.getByTestId("debug-open").waitFor({ state: "visible" });
-  await page.getByTestId("debug-open").click({ delay: 950 });
-  await page.getByTestId("debug-map-lab-tab").click();
-  await page.getByTestId("map-lab").waitFor({ state: "visible" });
-
-  assert.equal(await page.getByTestId("map-lab-world-map").count(), 1);
-  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
-  assert.equal(await page.getByTestId("map-lab-world-map-region-cedar-woods")
-    .getAttribute("data-testid"), "map-lab-world-map-region-cedar-woods");
-  assert.equal(await page.getByTestId("map-lab-structure-capacity").inputValue(), "5");
-  assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), true);
-  assert.equal(await page.getByTestId("map-lab-detailed-toggle").isChecked(), true);
-  assert.equal(await page.getByTestId("map-lab-villager-adults").inputValue(), "20");
-  assert.equal(await page.getByTestId("map-lab-villager-elder-ages").inputValue(), "50, 53, 56");
-  assert.equal(await page.getByTestId("map-lab-stock-0").inputValue(), "2");
-  assert.equal(await page.getByTestId("map-lab-practice-slot-0").inputValue(), "forage");
-  assert.equal(await page.getByTestId("map-lab-structure-slot-0").inputValue(), "granary");
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
-  const mapLabDesktopLayout = await page.getByTestId("map-lab-workspace").evaluate((workspace) => {
-    const map = workspace.querySelector('[data-testid="map-lab-world-map"]');
-    const editor = document.querySelector('[data-testid="map-lab-controller"]');
-    return {
-      mapRight: map?.getBoundingClientRect().right ?? 0,
-      editorLeft: editor?.closest(".map-lab-card")?.getBoundingClientRect().left ?? 0,
-    };
-  });
-  assert.ok(
-    mapLabDesktopLayout.editorLeft >= mapLabDesktopLayout.mapRight,
-    "at 1280px, the selected-region editor uses the space to the right of the map"
-  );
-  await page.getByTestId("map-lab-controller").selectOption("frontier");
-  assert.match(
-    await page.getByTestId("map-lab-nonplayer-detailed-warning").innerText(),
-    /not player controlled/i
-  );
-  await page.getByTestId("map-lab-controller").selectOption("player");
-  assert.equal(await page.getByTestId("map-lab-nonplayer-detailed-warning").count(), 0);
-
-  const adultsField = page.getByTestId("map-lab-villager-adults");
-  await adultsField.fill("31");
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
-  assert.equal(
-    await page.evaluate(
-      () => document.activeElement?.dataset?.testid ?? null
-    ),
-    "map-lab-villager-adults",
-    "game refreshes preserve the focused Map Lab field"
-  );
-  assert.equal(
-    await adultsField.inputValue(),
-    "31",
-    "an in-progress mobile field edit survives a game refresh"
-  );
-  await adultsField.press("Enter");
-  assert.equal(
-    await page.getByTestId("map-lab-villager-adults").inputValue(),
-    "31"
-  );
-  await page.getByTestId("map-lab-connection-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Add: R03$/);
-  await page.getByTestId("map-lab-connection-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
-  await page.getByTestId("map-lab-connection-mode").click();
-  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
-  await page.getByTestId("map-lab-world-map-region-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Add: R03$/);
-  await page.getByTestId("map-lab-connection-mode").click();
-  await page.getByTestId("map-lab-world-map-region-cedar-woods").click();
-  await page.getByTestId("map-lab-world-map-region-west-levee").click();
-  assert.match(await page.getByTestId("map-lab-connection-west-levee").textContent(), /^Connected: R03$/);
-
-  await page.getByTestId("map-lab-structure-capacity").fill("8");
-  await page.getByTestId("map-lab-structure-capacity").press("Enter");
-  assert.equal(await page.getByTestId("map-lab-structure-capacity-random").isChecked(), false);
-  await page.getByTestId("map-lab-structure-slot-3").selectOption("granary");
-  assert.equal(await page.getByTestId("map-lab-structure-slot-3").inputValue(), "granary");
-
-  await page.getByTestId("map-lab-colour").selectOption("blue");
-  await page.getByTestId("map-lab-scenario-name").fill("Mobile browser test");
-  await page.getByTestId("map-lab-save-scenario").click();
-  assert.match(
-    await page.getByTestId("map-lab-status").innerText(),
-    /Saved browser scenario/
-  );
-  assert.equal(
-    await page.getByTestId("map-lab-preset").inputValue(),
-    "local:local-1"
-  );
-  await page.getByTestId("map-lab-colour").selectOption("black");
-  await page.getByTestId("map-lab-save-scenario").click();
-  assert.doesNotMatch(
-    await page.getByTestId("map-lab-preset").locator("option:checked").innerText(),
-    /\*$/
-  );
-
-  await page.getByTestId("map-lab-json-toggle").click();
-  const json = JSON.parse(await page.getByTestId("map-lab-json").inputValue());
-  assert.equal(json.schemaVersion, MAP_LAB_DRAFT_SCHEMA_VERSION);
-  assert.equal(json.regions[0].structureCapacity, 8);
-  assert.equal(json.regions[0].randomizeStructureCapacity, false);
-  assert.equal("capacity" in json.regions[0], false);
-  assert.equal("installedPracticeIds" in json.regions[0], false);
-
+  const baseline = await world();
+  assert.equal(baseline.second, 0); assert.equal(baseline.players, 2); assert.equal(baseline.neutrals, 4);
   await page.reload();
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByTestId('debug-open').click({delay:950});
-  await page.getByTestId("debug-map-lab-tab").click();
-  await page.getByTestId("map-lab").waitFor({ state: "visible" });
-  assert.equal(
-    await page.getByTestId("map-lab-preset")
-      .locator('option[value="local:local-1"]').count(),
-    1,
-    "saved scenarios survive reload"
-  );
-  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByTestId("map-lab-load-preset").click();
-  assert.equal(await page.getByTestId("map-lab-colour").inputValue(), "black");
-  await page.getByTestId("map-lab-preset").selectOption("local:local-1");
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByTestId("map-lab-delete-scenario").click();
-  assert.equal(
-    await page.getByTestId("map-lab-preset")
-      .locator('option[value="local:local-1"]').count(),
-    0,
-    "saved scenarios can be deleted"
-  );
-
-  await page.getByTestId("debug-game-settings-tab").click();
-  await page.getByTestId("debug-gameSettings").waitFor({ state: "visible" });
-  const birthRate = page.getByTestId("setting-birthRateGold");
-  assert.equal(await birthRate.inputValue(), "0.02");
-  assert.equal(await page.getByTestId("setting-primordialBasePressure").inputValue(), "100");
-  assert.equal(await page.getByTestId("setting-primordialGrowthFactor").inputValue(), "1.03");
-  assert.equal(await page.getByTestId("setting-primordialGrowthCadenceYears").inputValue(), "12");
-  await birthRate.fill("0.35");
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
-  assert.equal(
-    await page.evaluate(() => document.activeElement?.dataset?.testid ?? null),
-    "setting-birthRateGold",
-    "game setting inputs preserve mobile focus"
-  );
-  await page.getByTestId("gameSettings-preset-name").fill("Fast growth");
-  await page.getByTestId("gameSettings-save-preset").click();
-  assert.equal(
-    await page.getByTestId("gameSettings-preset").inputValue(),
-    "local-1"
-  );
-  await page.getByTestId("gameSettings-import-export").click();
-  const settingsJson = JSON.parse(
-    await page.getByRole("textbox", { name: "Game Settings JSON" }).inputValue()
-  );
-  assert.equal(settingsJson.schemaVersion, GAME_CONFIG_SCHEMA_VERSION);
-  assert.equal(settingsJson.values.birthRateGold, 0.35);
-  await page.getByTestId("gameSettings-close-json").click();
-
-  await page.getByTestId("debug-gamepieces-tab").click();
-  await page.getByTestId("debug-gamepieces").waitFor({ state: "visible" });
-  const granaryBonus = page.getByTestId(
-    "gamepiece-structures-granary-modifiers.0.amount"
-  );
-  assert.equal(await granaryBonus.inputValue(), "3");
-  await granaryBonus.fill("5");
-  const forageOutput = page.getByTestId(
-    "gamepiece-practices-forage-effects.0.amount"
-  );
-  assert.equal(await forageOutput.inputValue(), "1");
-  await forageOutput.fill("2");
-  const forageCapacity = page.getByTestId(
-    "gamepiece-practices-forage-stockCapacity"
-  );
-  assert.equal(await forageCapacity.inputValue(), "2");
-  await forageCapacity.fill("4");
-  await page.getByTestId("gamepieces-preset-name").fill("Hosted Stock tuning");
-  await page.getByTestId("gamepieces-save-preset").click();
-  await page.getByTestId("debug-life-map-lab-tab").click();
-  await page.getByTestId("life-map-lab").waitFor({ state: "visible" });
-  assert.equal(await page.getByTestId("life-map-lab-preview").count(), 1);
-  assert.ok(await page.getByTestId("life-map-lab-preview").locator("g").count() > 2);
-  await page.getByTestId("life-map-lab-laneCount").fill("5");
-  await page.getByTestId("life-map-lab-laneCount").press("Enter");
-  assert.equal(await page.getByTestId("life-map-lab-laneCount").inputValue(), "5");
-  const lifeMapPreviewSeed = Number(await page.getByTestId("life-map-lab-preview-seed").inputValue());
-  await page.getByTestId("life-map-lab-next-seed").click();
-  assert.equal(
-    Number(await page.getByTestId("life-map-lab-preview-seed").inputValue()),
-    lifeMapPreviewSeed + 1
-  );
-  await page.getByTestId("life-map-lab-preset-name").fill("Five-lane routes");
-  await page.getByTestId("life-map-lab-save-preset").click();
-  assert.match(await page.getByTestId("life-map-lab-status").innerText(), /Saved/);
-  await page.getByTestId("life-map-lab-json-toggle").click();
-  const lifeMapJson = JSON.parse(await page.getByTestId("life-map-lab-json").inputValue());
-  assert.equal(lifeMapJson.generatorConfig.laneCount, 5);
-  await page.getByTestId("debug-start-new-run").click();
-  await page.getByTestId("debug-open").waitFor({ state: "visible" });
-  const configuredSnapshot = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
-  );
-  assert.equal(
-    configuredSnapshot.gameConfig.settings.values.birthRateGold,
-    0.35
-  );
-  assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.structures.granary
-      .modifiers[0].amount,
-    5
-  );
-  assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.practices.forage.effects[0]
-      .amount,
-    2
-  );
-  assert.equal(
-    configuredSnapshot.gameConfig.gamepieces.practices.forage
-      .stockCapacity,
-    4
-  );
-  assert.equal(configuredSnapshot.gameConfig.lifeMapGenerator.laneCount, 5);
-  assert.equal(
-    configuredSnapshot.graph.forecastRevealPlayheadFollowEnabled,
-    true,
-    "fresh configured runs resume boot-style forecast following"
-  );
-  await page.waitForFunction(
-    (viewedSec) => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec > viewedSec,
-    configuredSnapshot.viewedSec
-  );
-  const followedConfiguredSnapshot = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
-  );
-  assert.equal(
-    followedConfiguredSnapshot.gameConfig.gamepieces.practices.forage
-      .effects[0].amount,
-    2,
-    "forecast auto-follow keeps the freshly configured gamepiece definitions"
-  );
-
-  await page.getByTestId("debug-open").click({ delay: 950 });
-  // Candidate injection is a present-state experiment; do not inspect a future
-  // settlement that may already have been lost during automatic forecast reveal.
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
-  await page.getByTestId("debug-vassal-tab").click();
-  await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
-  const injectionRegion = await page.getByTestId('vassal-debug-location').locator('option').last().getAttribute('value');
-  assert.ok(injectionRegion, 'an eligible settlement is available for explicit candidate injection');
-  await page.getByTestId("vassal-debug-location").selectOption(injectionRegion);
-  await page.getByTestId("vassal-debug-age").fill("20");
-  await page.getByTestId("vassal-debug-age").press("Enter");
-  await page.getByTestId("vassal-debug-prestige").fill("42");
-  await page.getByTestId("vassal-debug-prestige").press("Enter");
-  await page.getByTestId("vassal-debug-cunning").fill("3");
-  await page.getByTestId("vassal-debug-cunning").press("Enter");
-  await page.getByTestId("vassal-debug-apply").click();
-  await page.waitForTimeout(100);
-  assert.match(await page.getByTestId("vassal-debug-status").innerText(), /Candidate replaced/);
-  await page.waitForFunction(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().vassalSelectionPool?.candidates?.[0]?.debugInjected
-  );
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));
-  await page.waitForFunction(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage?.currentVassal?.debugInjected
-  );
-  const injected = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal
-  );
-  assert.equal(injected.locationRegionId, injectionRegion);
-  assert.equal(injected.initialAge, 20);
-  assert.equal(injected.prestige, 42);
-  assert.equal(injected.stats.cunning, 3);
-
+  await page.getByTestId('lab-play').waitFor();
+  assert.deepEqual(await world(), baseline, 'a profile-derived sandbox survives refresh');
+  checks.push('Regular game is read-only, inspectable and creates two player settlements plus four neutrals');
+  await page.getByTestId('lab-workspace-setup').click();
+  await page.getByTestId('debug-profile-copy').click();
+  await page.getByTestId('debug-gameSettings-tab').click();
+  await page.getByTestId('setting-populationPerToken').fill('12');
+  await page.getByTestId('setting-populationPerToken').press('Tab');
+  await page.getByTestId('debug-gamepieces-tab').click();
+  await page.getByTestId('gamepiece-practices-forage-stockCapacity').fill('6');
+  await page.getByTestId('gamepiece-practices-forage-stockCapacity').press('Tab');
+  await page.getByTestId('debug-lifeMapLab-tab').click();
+  await page.getByTestId('life-map-lab-laneCount').fill('5');
+  await page.getByTestId('life-map-lab-laneCount').press('Tab');
   await page.reload();
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByTestId('debug-open').click({delay:950});
-  await page.getByTestId("debug-game-settings-tab").click();
-  assert.equal(
-    await page.getByTestId("gameSettings-preset")
-      .locator('option[value="local-1"]').count(),
-    1,
-    "game settings presets survive reload"
-  );
-  await page.getByTestId("setting-birthRateGold").fill("0.1");
-  await page.getByTestId("gameSettings-preset").selectOption("local-1");
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByTestId("gameSettings-load-preset").click();
-  assert.equal(await page.getByTestId("setting-birthRateGold").inputValue(), "0.35");
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByTestId("gameSettings-delete-preset").click();
-  assert.equal(
-    await page.getByTestId("gameSettings-preset")
-      .locator('option[value="local-1"]').count(),
-    0,
-    "game settings presets can be loaded and deleted"
-  );
-  await page.getByTestId("debug-gamepieces-tab").click();
-  assert.equal(
-    await page.getByTestId("gamepieces-preset")
-      .locator('option[value="local-1"]').count(),
-    1,
-    "gamepiece presets survive reload"
-  );
-  await page.getByTestId("gamepieces-preset").selectOption("local-1");
-  await page.getByTestId("gamepieces-load-preset").click();
-  assert.equal(
-    await page.getByTestId(
-      "gamepiece-structures-granary-modifiers.0.amount"
-    ).inputValue(),
-    "5"
-  );
-
-  await page.getByTestId("debug-vassal-tab").click();
-  await page.getByTestId("debug-profile-name").fill("Boot expansion profile");
-  await page.getByTestId("debug-profile-save").click();
-  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-1");
-  await page.getByTestId("debug-profile-json-toggle").click();
-  const exportedProfile = JSON.parse(
-    await page.getByRole("textbox", { name: "Combined debug profile JSON" }).inputValue()
-  );
-  assert.equal(exportedProfile.kind, "civsurvivor.debugProfile");
-  assert.equal(exportedProfile.name, "Boot expansion profile");
-  await page.getByTestId("debug-profile-json-import").click();
-  assert.match(await page.getByTestId("debug-profile-status").innerText(), /Imported/);
-  await page.getByTestId("debug-profile-new").click();
-  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "");
-  await page.getByTestId("debug-profile-name").fill("Second combined profile");
-  await page.getByTestId("debug-profile-save").click();
-  assert.equal(await page.getByTestId("debug-profile-select").inputValue(), "profile-2");
-  assert.equal(await page.getByTestId("debug-profile-select").locator("option").count(), 3,
-    "New creates a second combined profile without overwriting the first");
-  await page.getByTestId("debug-profile-select").selectOption("profile-1");
-  await page.getByTestId("debug-profile-boot").click();
-  assert.match(await page.getByTestId("debug-profile-status").innerText(), /boot profile/i);
-  await page.getByTestId("debug-game-settings-tab").click();
-  await page.getByTestId("setting-birthRateGold").fill("0.1");
+  await page.getByTestId('life-map-lab-laneCount').waitFor();
+  assert.equal(await page.getByTestId('life-map-lab-laneCount').inputValue(), '5');
+  await page.getByTestId('debug-profile-name').fill('Five lanes');
+  await page.getByTestId('debug-profile-save').click();
+  assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'profile-1');
+  await page.getByTestId('debug-profile-default').click();
   await page.reload();
-  await page.waitForFunction(() => !!globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
-  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
-  await page.getByTestId('debug-open').click({delay:950});
-  await page.getByTestId("debug-vassal-lab").waitFor({ state: "visible" });
-  const bootSnapshot = await page.evaluate(
-    () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
-  );
-  assert.equal(bootSnapshot.gameConfig.settings.values.birthRateGold, 0.35);
-  assert.equal(
-    bootSnapshot.worldMap.regionMapIndicators
-      .find((region) => region.regionId === "cedar-woods").structureCapacity,
-    8,
-    "the selected combined profile starts a fresh run automatically"
-  );
-
-  await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
-  writeFileSync(DETAIL_PATH, JSON.stringify({
-    checks: [
-      `Map Lab schema v${MAP_LAB_DRAFT_SCHEMA_VERSION}`,
-      "detailed-settlement toggle and cohorts",
-      "elder ages and hosted Stock",
-      "five practice slots",
-      "regional structure capacity and slots",
-      "shared-edge connection editing",
-      "mobile keyboard focus survives game refreshes",
-      "named scenario save, overwrite, reload, load, and delete",
-      "generated game-settings editor, JSON, apply, and saved presets",
-      "dynamic gamepiece editor, apply, and saved presets",
-      "deterministic custom vassal injection",
-      "combined profile boot run and active-panel restoration",
-    ],
-    editedRegion: json.regions[0],
-  }, null, 2));
-  process.stdout.write(`[probe:map-lab] OK\n[probe:map-lab] details=${DETAIL_PATH}\n`);
+  await page.getByTestId('life-map-lab-laneCount').waitFor();
+  assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'profile-1');
+  await page.getByTestId('debug-profile-json-toggle').click();
+  const exported = JSON.parse(await page.getByLabel('New run profile JSON').inputValue());
+  assert.equal(exported.profile.gameSettings.values.populationPerToken, 12);
+  assert.equal(exported.profile.gamepieces.practices.forage.stockCapacity, 6);
+  assert.equal(exported.profile.lifeMapLab.generatorConfig.laneCount, 5);
+  assert.equal(exported.profile.launch.neutralSettlements, true);
+  await page.getByLabel('Imported profile name').fill('Imported copy');
+  await page.getByTestId('debug-profile-json-import').click();
+  assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'profile-2');
+  await page.getByTestId('lab-setup-to-gym').click();
+  await page.getByTestId('lab-play').waitFor();
+  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5 });
+  await page.getByTestId('lab-workspace-setup').click();
+  await page.getByTestId('lab-workspace-settlement').click();
+  await page.reload();
+  await page.getByTestId('lab-play').waitFor();
+  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5 }, 'workspace navigation preserves the imported state link');
+  checks.push('All editor parts launch together; unsaved refresh, named profiles/default and JSON round trip preserve edits');
+  await page.getByTestId('lab-workspace-setup').click();
+  await page.getByTestId('debug-mapLab-tab').click();
+  await page.getByTestId('map-lab-connection-mode').click();
+  await page.getByLabel('New run profile', { exact: true }).selectOption('regular-game');
+  assert.equal(await page.getByTestId('map-lab-connection-mode').isDisabled(), true);
+  assert.equal(await page.getByTestId('map-lab-connection-mode').innerText(), 'Edit shared-edge connections');
+  await page.getByTestId('lab-setup-to-gym').click();
+  await page.getByTestId('lab-play').waitFor();
+  assert.deepEqual(await world(), baseline, 'editing copies leaves the baseline pristine');
+  await page.getByTestId('lab-workspace-setup').click();
+  await page.getByLabel('New run profile', { exact: true }).selectOption('profile-2');
+  await page.getByTestId('debug-mapLab-tab').click();
+  await page.setViewportSize({ width: 844, height: 390 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  await page.getByTestId('debug-lifeMapLab-tab').click();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  await page.screenshot({ path: 'artifacts/map-lab-browser-probe-latest.png' });
+  await page.getByTestId('debug-start-new-run').click();
+  await page.getByTestId('lab-play-badge').waitFor({ timeout: 60000 });
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().gameConfig.lifeMapGenerator.laneCount), 5);
+  await page.keyboard.press('Control+Shift+D');
+  await page.getByTestId('debug-vassal-tab').waitFor();
+  assert.equal(await page.getByTestId('debug-profile-toolbar').count(), 0);
+  assert.equal(await page.getByTestId('map-lab').count(), 0);
+  assert.equal(await page.getByTestId('life-map-lab').count(), 0);
+  await page.getByTestId('debug-save-diagnostics-tab').click();
+  await page.goBack();
+  await page.getByTestId('life-map-lab-laneCount').waitFor();
+  assert.equal(await page.getByTestId('life-map-lab-laneCount').inputValue(), '5');
+  checks.push('Mobile controls fit; Start new run enters unsaved normal play; live tools are focused; Back restores the draft');
+  assert.deepEqual(errors, []);
+  writeFileSync(artifact, JSON.stringify({ ok: true, checks }, null, 2));
+  console.log('[probe:map-lab] OK: Gym profiles/editors, regular-game parity, persistence, launch/Back and mobile');
 } catch (error) {
-  const context = await page?.evaluate(() => {
-    const snapshot = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot();
-    return { viewedSec:snapshot?.viewedSec, frontierSec:snapshot?.frontierSec,
-      eligibleRegions:[...document.querySelectorAll('[data-testid="vassal-debug-location"] option')].map(o=>o.value),
-      status:document.querySelector('[data-testid="vassal-debug-status"]')?.textContent };
-  }).catch(()=>null);
-  writeFileSync(DETAIL_PATH, JSON.stringify({ error: error.stack ?? error.message, context }, null, 2));
-  process.stdout.write(`[probe:map-lab] FAILED\n[probe:map-lab] error=${error.message}\n`);
+  writeFileSync(artifact, JSON.stringify({ ok: false, checks, errors, failure: error.message, stack: error.stack }, null, 2));
+  console.error(`[probe:map-lab] FAIL: ${error.message}. Reproduce: npm run probe:map-lab. Details: ${artifact}`);
   process.exitCode = 1;
-} finally {
-  await browser?.close();
-  server.kill();
-}
+} finally { await browser?.close(); server.kill(); }

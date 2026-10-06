@@ -1,7 +1,7 @@
 import { serializeGameState, deserializeGameState } from '../model/state.js';
 
 const PREFIX = 'civsurvivor.development-lab.handoff.';
-export function openLabHandoff(state, destination = 'gym') {
+export function openLabHandoff(state, destination = 'gym', { sameTab = false } = {}) {
   // Validation and serialization happen before opening a tab. Tokens are UI identities,
   // never simulation entropy. The originating runner and save slots remain untouched.
   const data = serializeGameState(deserializeGameState(serializeGameState(state)));
@@ -10,6 +10,12 @@ export function openLabHandoff(state, destination = 'gym') {
   localStorage.setItem(key,JSON.stringify(data));
   const url = new URL(location.href);
   url.hash = destination === 'play' ? `/dev/play?state=${token}` : `/dev/gym?state=${token}`;
+  if (sameTab) {
+    // The shared entry reloads when crossing Lab/game routes. Keep the handoff
+    // for refresh and Back; the workshop persists its separate editable recipe.
+    location.assign(url.href);
+    return;
+  }
   const opened = window.open(url.href,'_blank');
   if (!opened) { localStorage.removeItem(key); throw new Error('Allow this site to open a tab, then try again.'); }
   opened.opener = null;

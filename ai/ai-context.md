@@ -57,9 +57,9 @@ Authoritative numbers:
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
 - Life Map generator settings v5; serialized Life Map graph v4.
-- Debug profile library/export v2.
+- Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
-- Debug drafts in browser storage are inert until a fresh test run is started.
+- Debug drafts in browser storage are inert until launched from Gym ? New run setup.
   Card-review proposals require the menu's Use edited cards in new games toggle;
   new runs capture them in gameConfig. Existing runs and deterministic replay
   use their own serialized definitions, never browser review storage.
@@ -92,6 +92,9 @@ knowledge, and the single vassal lineage are civilization-global.
 - Art/presentation contract: [`ai/visual-overhaul.md`](visual-overhaul.md)
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
-Map Lab, Game Settings, Gamepieces, Vassal Lab, and Life Map Lab start a
-fresh deterministic run on apply. Verification commands live in
+Gym ? New run setup owns Map Lab, Game Settings, Gamepieces, Life Map Lab,
+and named launch profiles. Regular game is a read-only current-build baseline;
+copies launch through the same initializer as player New Game, including road
+randomization and neutral seeding. Museum owns saved states at specific seconds.
+The live hold-button workshop keeps Vassal candidate replacement and save diagnostics. Verification commands live in
 `ai/repository-map.md`.

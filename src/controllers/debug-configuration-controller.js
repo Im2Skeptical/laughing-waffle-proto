@@ -1,5 +1,3 @@
-import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
-import { createInitialState } from "../model/init.js";
 import {
   GAMEPIECES_DRAFT_KIND,
   GAME_SETTINGS_DRAFT_KIND,
@@ -23,9 +21,6 @@ import {
   saveDebugDraftPreset,
   serializeDebugDraftLibrary,
 } from "../model/debug-draft-library.js";
-import { canonicalizeMapLabDraft } from "../model/map-lab-draft.js";
-
-const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const CONFIG_BY_KIND = Object.freeze({
   [GAME_SETTINGS_DRAFT_KIND]: Object.freeze({
@@ -55,13 +50,8 @@ function safeStorage() {
 }
 
 export function createDebugConfigurationController({
-  runner,
-  mapLabController,
   lifeMapLabController,
-  setupId = "devPlaytesting01",
-  onApplied,
 } = {}) {
-  const authoredSetup = setupDefs[setupId];
   const listeners = new Set();
   const states = Object.fromEntries(
     Object.entries(CONFIG_BY_KIND).map(([kind, config]) => [
@@ -272,27 +262,6 @@ export function createDebugConfigurationController({
         return parsed;
       }
       return replaceDraft(kind, parsed.draft, "Imported JSON.");
-    },
-    applyToFreshRun() {
-      try {
-        const scenario = clone(authoredSetup);
-        const mapDraft = mapLabController?.getSnapshot?.()?.draft;
-        if (mapDraft) scenario.worldDraft = canonicalizeMapLabDraft(mapDraft);
-        scenario.gameConfig = this.getGameConfig();
-        const freshState = createInitialState(scenario, scenario.rngSeed);
-        const result = runner?.resetToState?.(freshState, "debugConfiguration")
-          ?? { ok: false, reason: "runnerUnavailable" };
-        if (result.ok) {
-          for (const kind of Object.keys(CONFIG_BY_KIND)) {
-            setStatus(kind, "Fresh configured test run started at t=0.", "ok");
-            notify(kind);
-          }
-          onApplied?.(freshState);
-        }
-        return result;
-      } catch (error) {
-        return { ok: false, reason: "invalidConfiguration", error };
-      }
     },
   };
 }

@@ -6,6 +6,13 @@ actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
 The global stylesheet uses `.development-lab` selectors only.
 
+`new-run-setup.js` mounts Map Lab, Game Settings, Gamepieces and Life Map Lab
+under Gym. `debug-profile-controller.js` owns read-only Regular game, editable
+recipe copies, local drafts/profiles and launch options. Both its launches and
+player New Game use `model/new-game.js`. Profiles describe initialization;
+Museum fixtures describe a captured state. The hold-button workshop retains
+live Vassal tools and save diagnostics only.
+
 `node-sandbox.js` is a Gym-only workspace with one persistent Pixi stage using
 the game's node-decision modal. Its dummy controller is independent of the
 settlement Gym timeline, Museum, Zoo and player saves. Refresh settings and

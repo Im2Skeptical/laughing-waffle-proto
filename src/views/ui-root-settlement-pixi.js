@@ -15,11 +15,7 @@ import { createTimelineAudio } from './timeline-audio.js';
 const BOOT_SETUP_ID = "devPlaytesting01";
 
 import { createSimRunner } from "../controllers/sim-runner.js";
-import { createMapLabController } from "../controllers/map-lab-controller.js";
-import { createDebugConfigurationController } from "../controllers/debug-configuration-controller.js";
-import { createLifeMapLabController } from "../controllers/life-map-lab-controller.js";
 import { createVassalDebugPresetController } from "../controllers/vassal-debug-preset-controller.js";
-import { createDebugProfileController } from "../controllers/debug-profile-controller.js";
 import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
 import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
 import { ActionKinds } from "../model/actions.js";
@@ -236,11 +232,7 @@ openingBlocker.on("pointertap", event => event.stopPropagation());
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
-let mapLabController = null;
-let debugConfigurationController = null;
-let lifeMapLabController = null;
 let vassalDebugPresetController = null;
-let debugProfileController = null;
 let settlementEdgeTransferBatchCache = {
   key: null,
   batch: null,
@@ -1384,30 +1376,10 @@ function handleDebugFreshRunApplied(reason) {
   worldMapView?.refresh?.();
   settlementGraphView?.render?.();
 }
-mapLabController = createMapLabController({
-  runner,
-  setupId: BOOT_SETUP_ID,
-  getGameConfig: () => debugConfigurationController?.getGameConfig?.() ?? null,
-  onApplied: () => handleDebugFreshRunApplied("mapLabApply"),
-});
-lifeMapLabController = createLifeMapLabController();
-debugConfigurationController = createDebugConfigurationController({
-  runner,
-  mapLabController,
-  lifeMapLabController,
-  setupId: BOOT_SETUP_ID,
-  onApplied: () => handleDebugFreshRunApplied("debugConfigurationApply"),
-});
 vassalDebugPresetController = createVassalDebugPresetController();
-debugProfileController = createDebugProfileController({
-  mapLabController,
-  lifeMapLabController,
-  debugConfigurationController,
-  vassalDebugPresetController,
-});
 settlementDebugMenu = createSettlementDebugMenuDom({
   getSaveDiagnosticReport: () => buildSaveDiagnosticReport(gameSession),
-  openDevelopmentLab: () => window.open(new URL('#/dev/zoo',location.href).href,'_blank','noopener'),
+  openDevelopmentLab: () => window.open(new URL('#/dev/gym?workspace=setup',location.href).href,'_blank','noopener'),
   openCurrentStateInGym: () => openLabHandoff(runner.getCursorState()),
   getState: () => getSettlementViewedState(),
   getFrontierSec: () => getSettlementFrontierSec(),
@@ -1420,10 +1392,6 @@ settlementDebugMenu = createSettlementDebugMenuDom({
     replaceSettlementVassalCandidate(candidateIndex, spec),
   getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
   isInteractionBlocked: () => !!settlementVassalFlow.getPendingSelection(),
-  mapLabController,
-  lifeMapLabController,
-  debugConfigurationController,
-  debugProfileController,
   vassalDebugPresetController,
 });
 
@@ -1627,10 +1595,6 @@ function publishSettlementDebugApi() {
 }
 
 runner.init();
-const bootDebugProfile = debugProfileController.loadBootProfile();
-if (bootDebugProfile.applied === true) {
-  debugConfigurationController.applyToFreshRun();
-}
 requestPauseBeforeDrag();
 syncSettlementGraphHorizon();
 syncSettlementGraphRevealConfig();

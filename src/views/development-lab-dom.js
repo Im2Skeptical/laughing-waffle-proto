@@ -9,6 +9,7 @@ import { renderPrototypes } from './development-lab/prototypes.js';
 import { createLabNodeSandboxView } from './development-lab/node-sandbox.js';
 import { createCardReviewController } from '../controllers/card-review-controller.js';
 import { createCardReviewerView } from './development-lab/card-reviewer.js';
+import { createNewRunSetupView } from './development-lab/new-run-setup.js';
 import { el, button, select, input, field, section } from './development-lab/elements.js';
 
 export function mountDevelopmentLab() {
@@ -18,7 +19,7 @@ export function mountDevelopmentLab() {
   try { initialState = readLabHandoff(); } catch(e) { error = e.message; }
   const gym = createDevelopmentLabController({initialState}), museum = createDevelopmentLabController();
   let mode = 'zoo', seedValue = 42, storageOpen = false, scene = null, renderFrame = 0;
-  let gymWorkspace = 'settlement', nodeSandbox = null;
+  let gymWorkspace = 'settlement', nodeSandbox = null, newRunSetup = null;
   const header = el('header','','lab-header'), title = el('div');
   title.append(el('small','DEVELOPER WORKBENCH'),el('h1','Development Lab'));
   const nav = el('nav');
@@ -58,8 +59,11 @@ export function mountDevelopmentLab() {
     content.replaceChildren();
     if(mode==='gym') {
       const workspaces=el('div','','lab-controls');
-      for(const [id,label] of [['settlement','Settlement sandbox'],['node','Node sandbox']]) {
-        const control=button(label,()=>{gymWorkspace=id;render();},`lab-workspace-${id}`);
+      for(const [id,label] of [['setup','New run setup'],['settlement','Settlement sandbox'],['node','Node sandbox']]) {
+        const control=button(label,()=>{
+          const params=new URLSearchParams(location.hash.split('?')[1]??'');
+          params.set('workspace',id);location.hash=`/dev/gym?${params}`;
+        },`lab-workspace-${id}`);
         control.setAttribute('aria-pressed',String(gymWorkspace===id));workspaces.append(control);
       }
       content.append(workspaces);
@@ -69,6 +73,12 @@ export function mountDevelopmentLab() {
     if(mode==='zoo') zoo.render(content);
     else if(mode==='reviewer') {try{reviewer.render(content);}catch(e){status.textContent=`Card reviews unavailable: ${e.message}`;status.classList.add('lab-warning');}}
     else if(mode==='prototypes') renderPrototypes(content);
+    else if(mode==='gym' && gymWorkspace==='setup') {
+      newRunSetup??=createNewRunSetupView({getGymState:()=>gym.getSnapshot().state, review,
+        openInGym:state=>{gym.importState(JSON.stringify(state));openLabHandoff(state,'gym',{sameTab:true});}});
+      newRunSetup.render(content);
+      status.textContent='New run profiles · launch recipes · player save slots are unchanged';
+    }
     else if(mode==='gym' && gymWorkspace==='node') {
       nodeSandbox??=createLabNodeSandboxView();nodeSandbox.render(content);
       status.textContent='Node sandbox · disposable dummy state · no player saves or Gym timeline edits';
@@ -87,7 +97,7 @@ export function mountDevelopmentLab() {
       const phase=select('Advance to phase',[['0','Birth'],['1','Food'],['2','Housing'],['3','Faith'],['4','Migration'],['5','Death']],'1');
       transport.append(el('strong',`t=${snapshot.state.tSec}s`),button('+1 second',()=>run(()=>ctl.advance('second'))),button('Next phase',()=>run(()=>ctl.advance('phase')),'lab-step'),phase,button('Advance to phase',()=>run(()=>ctl.advance('selected',Number(phase.value)))));
       transport.append(button('+1 moon',()=>run(()=>ctl.advance('moon'))),button('+1 year',()=>run(()=>ctl.advance('year'))),button('Reset fixture',()=>run(()=>ctl.reset()),'lab-reset'),button('Compare forecast +60s',()=>run(()=>ctl.compare(60)),'lab-compare'));
-      if(mode==='museum')transport.append(button('Experiment in Gym',()=>run(()=>{gym.importState(ctl.exportState());location.hash='/dev/gym';}),'lab-to-gym'));
+      if(mode==='museum')transport.append(button('Experiment in Gym',()=>run(()=>{gym.importState(ctl.exportState());openLabHandoff(ctl.getSnapshot().state,'gym',{sameTab:true});}),'lab-to-gym'));
       else transport.append(button('Play from here',()=>run(()=>openLabHandoff(snapshot.state,'play')),'lab-play'));
       content.append(transport);
       const horizon=input('Forecast span in seconds',snapshot.horizonSec);horizon.max='3600';
@@ -131,10 +141,16 @@ export function mountDevelopmentLab() {
   }
   function route() {
     cancelAnimationFrame(renderFrame);
-    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes'].includes(next)?next:'zoo';render();window.scrollTo(0,0);
+    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes'].includes(next)?next:'zoo';
+    if(mode==='gym') {
+      const params=new URLSearchParams(location.hash.split('?')[1]??'');
+      const workspace=params.get('workspace');
+      gymWorkspace=['setup','settlement','node'].includes(workspace)?workspace:params.has('state')?'settlement':'setup';
+    }
+    render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
-  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();nodeSandbox?.destroy();},{once:true});
+  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();nodeSandbox?.destroy();newRunSetup?.destroy();},{once:true});
   globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getNodeSandbox:()=>nodeSandbox?.getSnapshot(),getNodeSandboxPoint:(kind,index)=>nodeSandbox?.getPoint(kind,index)};
   route();
 }

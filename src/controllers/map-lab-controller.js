@@ -1,5 +1,4 @@
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
-import { createInitialState } from "../model/init.js";
 import {
   MAP_LAB_STORAGE_KEY,
   canonicalizeMapLabDraft,
@@ -42,8 +41,6 @@ function safeStorage() {
 export function createMapLabController({
   runner,
   setupId = "devPlaytesting01",
-  onApplied,
-  getGameConfig,
 } = {}) {
   const authoredSetup = setupDefs[setupId];
   const definitionId = authoredSetup?.worldDefinitionId ?? "riverBasin01";
@@ -401,32 +398,6 @@ export function createMapLabController({
         presetId: null,
         localScenarioId: null,
       });
-    },
-    applyToFreshRun() {
-      const validation = validateMapLabDraft(draft);
-      if (!validation.ok) return { ok: false, reason: "invalidDraft", errors: validation.errors };
-      try {
-        const scenario = clone(authoredSetup);
-        scenario.worldDraft = canonicalizeMapLabDraft(draft);
-        const gameConfig = getGameConfig?.();
-        if (gameConfig) scenario.gameConfig = clone(gameConfig);
-        const freshState = createInitialState(scenario, scenario.rngSeed);
-        const result = runner?.resetToState?.(freshState, "mapLabDraft")
-          ?? { ok: false, reason: "runnerUnavailable" };
-        if (result.ok) {
-          setStatus("Fresh test run started at t=0.", "ok");
-          onApplied?.(freshState);
-        } else {
-          setStatus(`Could not start test run: ${result.reason}`, "error");
-        }
-        notify();
-        return result;
-      } catch (error) {
-        const result = { ok: false, reason: "invalidDraft", error };
-        setStatus(`Could not start test run: ${error.message}`, "error");
-        notify();
-        return result;
-      }
     },
   };
 }

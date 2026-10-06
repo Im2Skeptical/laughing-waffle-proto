@@ -1,3 +1,4 @@
+import { lockDebugEditor } from "./debug-editor-readonly.js";
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
@@ -81,7 +82,7 @@ function elderTextToCohorts(text) {
     .map(([age, count]) => ({ age, count }));
 }
 
-export function createMapLabDom({ controller } = {}) {
+export function createMapLabDom({ controller, readOnly = () => false } = {}) {
   const root = element("div", "map-lab-root");
   root.dataset.testid = "map-lab";
   const style = document.createElement("style");
@@ -110,6 +111,12 @@ export function createMapLabDom({ controller } = {}) {
   let mapMode = "inspect";
 
   function render() {
+    renderContents();
+    lockDebugEditor(root, readOnly(), ['map-lab-region-', 'map-lab-json-toggle']);
+  }
+
+  function renderContents() {
+    if (readOnly()) mapMode = "inspect";
     const snapshot = controller.getSnapshot();
     const definition = worldMapDefs[snapshot.draft.worldDefinitionId];
     const region = snapshot.draft.regions.find((entry) => entry.id === snapshot.selectedRegionId);
@@ -225,7 +232,7 @@ export function createMapLabDom({ controller } = {}) {
       saveScenarioButton,
       deleteScenarioButton,
       button("Authored default", "map-lab-reset", () => controller.reset()),
-      button("Copy current game", "map-lab-load-current-game", () => controller.loadCurrentGame()),
+      button("Copy settlement sandbox", "map-lab-load-current-game", () => controller.loadCurrentGame()),
       button(showJson ? "Hide JSON" : "Import / Export", "map-lab-json-toggle", () => {
         showJson = !showJson;
         jsonText = controller.exportJson();

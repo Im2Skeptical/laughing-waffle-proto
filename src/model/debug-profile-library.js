@@ -3,20 +3,20 @@ import {
   validateGameSettingsDraft,
 } from "./game-config.js";
 import { validateMapLabDraft } from "./map-lab-draft.js";
-import { validateVassalDebugDraft } from "./vassal-debug-draft.js";
 import { validateLifeMapLabDraft } from "./life-map-lab-draft.js";
 
-export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 2;
-export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v2";
-export const DEBUG_PROFILE_BOOT_STORAGE_KEY = "civsurvivor.debugProfiles.boot.v2";
+export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 3;
+export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v3";
+export const DEBUG_PROFILE_DEFAULT_STORAGE_KEY = "civsurvivor.debugProfiles.default.v3";
+export const REGULAR_GAME_PROFILE_ID = "regular-game";
+export const REGULAR_GAME_PROFILE_NAME = "Regular game";
 export const DEBUG_PROFILE_EXPORT_KIND = "civsurvivor.debugProfile";
-export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 2;
+export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 3;
 export const DEBUG_PROFILE_PAGE_IDS = Object.freeze([
   "mapLab",
   "gameSettings",
   "gamepieces",
   "lifeMapLab",
-  "vassalLab",
 ]);
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -43,13 +43,11 @@ export function validateDebugProfile(profile) {
   for (const error of validateLifeMapLabDraft(profile.lifeMapLab).errors ?? []) {
     errors.push(`lifeMapLab.${error}`);
   }
-  // Vassal Lab is intentionally lazy: before the player opens that panel there
-  // is no candidate override to capture. Null records that explicit no-override
-  // state without forcing unrelated panels to manufacture a Vassal draft.
-  if (profile.vassalLab !== null) {
-    for (const error of validateVassalDebugDraft(profile.vassalLab).errors ?? []) {
-      errors.push(`vassalLab.${error}`);
-    }
+  if (!["randomRoad", "authoredMap"].includes(profile.launch?.startMode)) {
+    errors.push("launch.startMode: invalid starting layout");
+  }
+  if (typeof profile.launch?.neutralSettlements !== "boolean") {
+    errors.push("launch.neutralSettlements: expected a boolean");
   }
   return { ok: errors.length === 0, errors };
 }
@@ -131,7 +129,7 @@ export function validateDebugProfileLibrary(library) {
     }
     ids.add(entry?.id);
     const name = normalizedName(entry?.name);
-    if (!name || name.length > 80 || names.has(nameKey(name))) {
+    if (!name || name.length > 80 || names.has(nameKey(name)) || nameKey(name) === nameKey(REGULAR_GAME_PROFILE_NAME)) {
       errors.push(`${path}.name: invalid or duplicate`);
     }
     names.add(nameKey(name));
@@ -166,6 +164,7 @@ export function saveDebugProfile(library, name, profile, overwriteId = null) {
   const normalized = normalizedName(name);
   if (!normalized) return { ok: false, reason: "emptyName" };
   if (normalized.length > 80) return { ok: false, reason: "nameTooLong" };
+  if (nameKey(normalized) === nameKey(REGULAR_GAME_PROFILE_NAME)) return { ok: false, reason: "readOnlyProfile" };
   const validation = validateDebugProfile(profile);
   if (!validation.ok) return { ok: false, reason: "invalidProfile", errors: validation.errors };
   const duplicate = library.profiles.find((entry) => nameKey(entry.name) === nameKey(normalized));

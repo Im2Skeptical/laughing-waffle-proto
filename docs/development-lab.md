@@ -3,8 +3,44 @@
 Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
 on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
-Ctrl+Shift+D) also has **Development Lab** and **Open current state in Gym**.
-The existing debugger remains available.
+Ctrl+Shift+D) also has **New run setup in Gym** and **Open current state in Gym**.
+Only live Vassal candidate replacement and save diagnostics remain in that workshop.
+Fresh-run editing lives in **Gym ? New run setup**.
+
+## New run setup
+
+Gym opens **New run setup** by default (`#/dev/gym?workspace=setup`). Its
+**Regular game** profile is read-only and comes from the same current-build
+setup and initialization path as player New Game. It includes two player
+settlements on a seeded random road, rolled Structure capacities and four
+neutral settlements. **Copy to edit** creates an editable draft of that recipe.
+Map Lab, Game Settings, Gamepieces and Life Map Lab are its four editor tabs.
+Individual editor presets replace only one part; **Save profile** captures all
+four parts plus launch options. Profiles save locally and support JSON export,
+copy and import. The built-in profile cannot be renamed, saved over or deleted.
+Drafts survive refresh. **Default in workshop** chooses the recipe for the next
+workshop opening and clears the remembered draft; it never changes player New
+Game or a live game.
+
+**Regular game ? random connected pair** uses roads from Map Lab and its first
+detailed settlement as the shared starting tableau; per-region placement is
+rolled. Choose **Exact Map Lab placement** to use each region's assignment and
+tableau. Neutral seeding can be disabled for focused authored scenarios. The
+explicit seed makes launches reproducible. A launch fails visibly if the edited
+map has no eligible road or insufficient frontier space for four neutrals.
+Life Map's preview seed only changes its preview; the launch seed drives the run.
+**Apply reviewed cards to draft** captures reviewer proposals in this recipe.
+Player New Game retains its separate reviewed-card toggle.
+
+**Start new run** opens normal gameplay in this tab as an unsaved test run.
+Use browser Back to return to the remembered workshop draft.
+**Open in settlement sandbox** creates a t=0 state in Gym for inspection or
+further edits; the imported baseline survives refresh and workspace changes.
+From there, **Save to Museum** captures a named state at the
+viewed second. Profiles are launch recipes; Museum exhibits are saved states,
+including RNG, and use the existing fixture library. These workflows share
+normal state validation and handoff; they do not write player save slots.
+The profile/export schema is v3; obsolete profiles are unsupported.
 
 ## Gym node sandbox
 
@@ -200,7 +236,7 @@ in the Museum's fixture selector and survive refresh. Saving an existing name
 replaces that exhibit. Storage is local to this browser; JSON export/import is
 available for sharing between devices.
 
-Gym supports settlement/fixture selection; explicit adult-cohort population,
+Gym?s **Settlement sandbox** (`#/dev/gym?workspace=settlement`) supports settlement/fixture selection; explicit adult-cohort population,
 Scholar and Warrior setup; Prestige, Ingenuity, Prowess and Chaos; Practice
 install/remove/reorder, quality and hosted Stock; Structure add/remove/quality;
 neutral-template spawning, road connection, Monster spawn/remove/age/defense,
@@ -268,6 +304,9 @@ the source run's prior history because the bridge transfers a state, not a run.
 
 ## Verification
 
+- `npm run probe:map-lab`: Regular game baseline, read-only inspection, editable
+  copies, all four editor tabs, draft/profile persistence, JSON sharing, mobile
+  layout, normal-play launch, focused live tools and browser Back.
 - `node src/model/tests/development-lab.js`: deterministic fixtures and stepping,
   Food/Stock breakpoints, Currency debit, Retinue threshold, defense/loss,
   atomic invalid-edit rejection, clone isolation, registry coverage, forecast

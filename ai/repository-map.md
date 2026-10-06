@@ -149,7 +149,9 @@ not use the root file as the default location for new rendering or model rules.
   Persistence/export checks: `npm run test:card-review`; mobile interaction:
   `npm run probe:development-lab -- --reviewer-only`.
 
-- Shared debug shell: `src/views/settlement-debug-menu-dom.js`
+- Live workshop (Vassal replacement / save diagnostics): `src/views/settlement-debug-menu-dom.js`
+- Gym fresh-run workshop: `src/views/development-lab/new-run-setup.js`
+  uses the editor views below and `src/controllers/debug-profile-controller.js`.
 - Map Lab view/controller/model:
   `src/views/map-lab-dom.js`, `src/controllers/map-lab-controller.js`,
   `src/model/map-lab-draft.js`

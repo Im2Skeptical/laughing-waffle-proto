@@ -216,6 +216,8 @@ try {
   await page.getByRole('button',{name:'Read Dry Farming, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  // The controller schedules comparison rendering on the next animation frame.
+  await page.getByText('"spring":4',{exact:false}).first().waitFor();
   assert.ok(await page.getByText('"spring":4',{exact:false}).count(),'edited Zoo definition uses the proposed seasonal amounts');
   await page.getByLabel('Card versions',{exact:true}).selectOption('live');
   await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();

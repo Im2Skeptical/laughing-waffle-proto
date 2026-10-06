@@ -28,7 +28,8 @@ import {
   replaceDetailedVassalSelectionCandidate,
   stepDetailedSettlementsSecond,
 } from "../detailed-settlements.js";
-import { serializeGameState } from "../state.js";
+import { serializeGameState, deserializeGameState } from "../state.js";
+import { createNewGameState } from "../new-game.js";
 import {
   appendActionAtCursor,
   createTimelineFromInitialState,
@@ -40,7 +41,7 @@ import { createDebugConfigurationController } from "../../controllers/debug-conf
 import { createDebugProfileController } from "../../controllers/debug-profile-controller.js";
 import { createLifeMapLabController } from "../../controllers/life-map-lab-controller.js";
 import {
-  parseDebugProfileExportJson,
+  parseDebugProfileExportJson, REGULAR_GAME_PROFILE_ID, DEBUG_PROFILE_DEFAULT_STORAGE_KEY,
 } from "../debug-profile-library.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -277,150 +278,84 @@ try {
   assert.notEqual(secondMapScenario.scenario.id, mapScenario.scenario.id,
     "a unique Map Lab scenario name creates a new slot despite the active selection");
   assert.equal(mapController.saveLocalScenario("TEST MAP").scenario.id, mapScenario.scenario.id);
-  const profileVassalController = createVassalDebugPresetController();
-  profileVassalController.clearCurrentDraft();
-  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
-  assert.equal(lifeMapController.updateValue(["generatorConfig", "laneCount"], 5).ok, true);
-  const lifeMapSeedBefore = lifeMapController.getSnapshot().draft.previewSeed;
-  lifeMapController.nextPreviewSeed();
-  assert.equal(lifeMapController.getSnapshot().draft.previewSeed, lifeMapSeedBefore + 1);
-  assert.equal(lifeMapController.savePreset("Five lanes").ok, true);
-  mapController.updateRegion("cedar-woods", { structureCapacity: 7 });
-  const profileController = createDebugProfileController({
-    mapLabController: mapController,
-    debugConfigurationController: configController,
-    lifeMapLabController: lifeMapController,
-    vassalDebugPresetController: profileVassalController,
-  });
-  const noVassalProfile = profileController.saveProfile("No Vassal override");
-  assert.equal(noVassalProfile.ok, true,
-    "combined profiles save before Vassal Lab has created a candidate override");
-  assert.equal(noVassalProfile.entry.profile.vassalLab, null);
-  profileVassalController.setCurrentDraft({
-    ...cheatSpec,
-    candidateSlot: 1,
-  });
-  assert.equal(profileController.loadProfile(noVassalProfile.entry.id).ok, true);
-  assert.equal(profileVassalController.getSnapshot().currentDraft, null,
-    "loading a profile without a Vassal override clears an existing override");
-  profileVassalController.setCurrentDraft({
-    ...cheatSpec,
-    candidateSlot: 1,
-  });
-  assert.equal(profileController.deleteProfile(noVassalProfile.entry.id).ok, true);
-  profileController.setActivePage("vassalLab");
+  const options = { mapLabController: mapController, debugConfigurationController: configController, lifeMapLabController: lifeMapController };
+  const profileController = createDebugProfileController(options);
+  assert.equal(profileController.loadDefaultProfile().ok, true);
+  assert.equal(profileController.getSnapshot().readOnly, true);
+  assert.equal(profileController.getSnapshot().profileOptions[0].id, REGULAR_GAME_PROFILE_ID);
+  assert.equal(profileController.saveProfile("Regular game").reason, "readOnlyProfile");
+  assert.equal(profileController.deleteProfile(REGULAR_GAME_PROFILE_ID).reason, "readOnlyProfile");
+  assert.equal(profileController.setLaunch({ startMode: "authoredMap", neutralSettlements: false }).reason, "readOnlyProfile");
+  for (const seed of [0, 42, 903, -99]) {
+    const baseline = serializeGameState(profileController.createRun(seed));
+    assert.deepEqual(baseline, serializeGameState(createNewGameState(seed)), "Regular game uses exactly the player New Game factory");
+    assert.equal(baseline.world.regions.filter(region => region.controller === 'player').length, 2);
+    assert.equal(baseline.world.sites.filter(site => site.neutral).length, 4);
+  }
+  const baselineRecipe = profileController.getCurrentProfile();
+  assert.equal(profileController.copyProfile().ok, true);
+  assert.equal(profileController.getSnapshot().readOnly, false);
+  assert.deepEqual(serializeGameState(profileController.createRun(42)), serializeGameState(createNewGameState(42)), "an unedited copy is exactly the live recipe");
+  assert.equal(profileController.saveProfile("Regular game").reason, "readOnlyProfile", "the built-in name cannot be overwritten by a copy");
   assert.equal(profileController.saveProfile("").reason, "emptyName");
-  assert.match(profileController.getSnapshot().status.message, /name before saving/i,
-    "a rejected blank combined-profile save reports why it failed");
-  const profileSaved = profileController.saveProfile("Full boot profile");
+  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 12);
+  lifeMapController.updateValue(["generatorConfig", "laneCount"], 5);
+  profileController.setActivePage("lifeMapLab");
+  assert.equal(profileController.getSnapshot().dirty, true);
+  const profileSaved = profileController.saveProfile("Five lanes");
   assert.equal(profileSaved.ok, true);
-  assert.equal(profileController.setBootProfile(profileSaved.entry.id).ok, true);
+  assert.equal(profileController.getSnapshot().dirty, false);
+  assert.equal(profileController.setDefaultProfile(profileSaved.entry.id).ok, true);
+  assert.equal(profileController.setDefaultProfile("missing").reason, "invalidProfileId");
+  const editedState = profileController.createRun(42);
+  assert.equal(editedState.gameConfig.settings.values.populationPerToken, 12);
+  assert.equal(editedState.gameConfig.lifeMapGenerator.laneCount, 5);
+  assert.equal(editedState.world.sites.filter(site => site.neutral).length, 4);
+  assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(editedState))), serializeGameState(editedState));
+  const timeline = createTimelineFromInitialState(editedState);
+  const rebuilt = rebuildStateAtSecond(timeline, 64);
+  assert.equal(rebuilt.ok, true);
+  assert.deepEqual(serializeGameState(rebuilt.state), serializeGameState(rebuildStateAtSecond(timeline, 64).state));
+  const captured = serializeGameState(editedState);
   configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 99);
-  lifeMapController.updateValue(["generatorConfig", "laneCount"], 6);
-  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
-
-  const restoredProfileController = createDebugProfileController({
-    mapLabController: mapController,
-    debugConfigurationController: configController,
-    lifeMapLabController: lifeMapController,
-    vassalDebugPresetController: profileVassalController,
-  });
-  const bootLoaded = restoredProfileController.loadBootProfile();
-  assert.equal(bootLoaded.applied, true);
-  assert.equal(restoredProfileController.getSnapshot().activePage, "vassalLab");
-  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7);
-  assert.equal(
-    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken,
-    12,
-    "boot profile replaces the independently persisted panel draft"
-  );
-  assert.equal(profileVassalController.getSnapshot().currentDraft.prestige, 42);
+  assert.deepEqual(serializeGameState(editedState), captured, "subsequent draft edits leave launched runs intact");
+  const reopenedMap = createMapLabController(), reopenedLifeMap = createLifeMapLabController();
+  const reopenedConfig = createDebugConfigurationController({ lifeMapLabController: reopenedLifeMap });
+  const reopenedWorkspace = createDebugProfileController({ mapLabController: reopenedMap, lifeMapLabController: reopenedLifeMap, debugConfigurationController: reopenedConfig });
+  assert.equal(reopenedWorkspace.openWorkspace().ok, true);
+  assert.equal(reopenedWorkspace.getSnapshot().readOnly, false);
+  assert.equal(reopenedConfig.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken, 99, "unsaved edits survive a workshop reload");
+  reopenedWorkspace.destroy();
+  const restoredProfile = createDebugProfileController(options);
+  assert.equal(restoredProfile.loadDefaultProfile().ok, true);
+  assert.equal(restoredProfile.getSnapshot().activePage, "lifeMapLab");
+  assert.equal(configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken, 12);
+  const second = restoredProfile.saveProfile("Separate profile");
+  assert.notEqual(second.entry.id, profileSaved.entry.id);
+  assert.equal(restoredProfile.saveProfile("FIVE LANES").entry.id, profileSaved.entry.id, "profile names define overwrite identity");
+  const exported = restoredProfile.exportProfile("Portable baseline");
+  assert.equal(parseDebugProfileExportJson(exported.text).ok, true);
+  assert.equal(restoredProfile.loadProfile(REGULAR_GAME_PROFILE_ID).ok, true);
+  assert.deepEqual(restoredProfile.getCurrentProfile(), baselineRecipe, "the live baseline remains pristine after editing and saving copies");
+  assert.equal(restoredProfile.importProfile(exported.text).ok, true);
+  assert.equal(restoredProfile.getSnapshot().readOnly, false);
   assert.equal(lifeMapController.getSnapshot().draft.generatorConfig.laneCount, 5);
-  assert.equal(configController.applyToFreshRun().ok, true);
-  assert.equal(resetState.gameConfig.settings.values.populationPerToken, 12);
-  assert.equal(resetState.gameConfig.lifeMapGenerator.laneCount, 5);
-  assert.equal(resetState.world.regions[0].structureCapacity, 7);
-  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
-  assert.equal(restoredProfileController.loadProfile(profileSaved.entry.id).ok, true);
-  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7,
-    "loading a combined profile restores every stored panel draft together");
-  assert.equal(restoredProfileController.selectProfile(null).ok, true);
-  assert.equal(restoredProfileController.getSnapshot().selectedProfileId, null,
-    "clearing the profile selection enters new-profile mode");
-  const secondProfile = restoredProfileController.saveProfile("Separate profile");
-  assert.equal(secondProfile.ok, true);
-  assert.notEqual(secondProfile.entry.id, profileSaved.entry.id,
-    "a cleared selection creates a distinct combined profile instead of overwriting");
-  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 2);
-  assert.equal(restoredProfileController.selectProfile(profileSaved.entry.id).ok, true);
-  const overwritten = restoredProfileController.saveProfile("FULL BOOT PROFILE");
-  assert.equal(overwritten.ok, true);
-  assert.equal(overwritten.entry.id, profileSaved.entry.id);
-  const thirdProfile = restoredProfileController.saveProfile("Third profile");
-  assert.notEqual(thirdProfile.entry.id, profileSaved.entry.id,
-    "a unique combined profile name creates a new slot despite the active selection");
-  assert.equal(restoredProfileController.deleteProfile(profileSaved.entry.id).ok, true);
-  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 2);
-  assert.equal(restoredProfileController.deleteProfile(secondProfile.entry.id).ok, true);
-  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 1);
-  assert.equal(restoredProfileController.deleteProfile(thirdProfile.entry.id).ok, true);
-  assert.equal(restoredProfileController.getSnapshot().profileOptions.length, 0);
-
-  const exportedProfile = restoredProfileController.exportProfile("Portable baseline");
-  assert.equal(exportedProfile.ok, true);
-  const parsedExport = parseDebugProfileExportJson(exportedProfile.text);
-  assert.equal(parsedExport.ok, true);
-  assert.equal(parsedExport.value.name, "Portable baseline");
-  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
-  configController.updateValue(GAME_SETTINGS_DRAFT_KIND, ["values", "populationPerToken"], 99);
-  const importedProfile = restoredProfileController.importProfile(exportedProfile.text);
-  assert.equal(importedProfile.ok, true);
-  assert.equal(importedProfile.entry.name, "Portable baseline");
-  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 7);
-  assert.equal(
-    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.populationPerToken,
-    12,
-    "combined profile imports atomically restore every debug draft"
-  );
-  const beforeInvalidImport = mapController.getSnapshot().draft.regions[0].structureCapacity;
-  assert.equal(restoredProfileController.importProfile("{}").ok, false);
-  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, beforeInvalidImport,
-    "invalid combined profile exports do not partially replace current drafts");
-
-  storage.set("civsurvivor.debugProfiles.boot.v2", "profile-999");
-  mapController.updateRegion("cedar-woods", { structureCapacity: 8 });
-  const invalidBootController = createDebugProfileController({
-    mapLabController: mapController,
-    debugConfigurationController: configController,
-    lifeMapLabController: lifeMapController,
-    vassalDebugPresetController: profileVassalController,
-  });
-  assert.equal(invalidBootController.loadBootProfile().reason, "missingBootProfile");
-  assert.equal(mapController.getSnapshot().draft.regions[0].structureCapacity, 8,
-    "an invalid boot profile does not partially replace current drafts");
-  assert.equal(invalidBootController.getSnapshot().status.tone, "warning");
-
-  storage.delete("civsurvivor.debugProfiles.boot.v2");
-  const builtInBootController = createDebugProfileController({
-    mapLabController: mapController,
-    debugConfigurationController: configController,
-    lifeMapLabController: lifeMapController,
-    vassalDebugPresetController: profileVassalController,
-  });
-  const builtInBoot = builtInBootController.loadBootProfile();
-  assert.equal(builtInBoot.applied, true);
-  assert.equal(builtInBoot.builtIn, true);
-  assert.equal(mapController.getSnapshot().draft.regions[10].id, "lake-country");
-  assert.equal(mapController.getSnapshot().draft.regions[10].detailedState.populationByClass.villager.children, 5);
-  assert.equal(
-    configController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft.values.primordialBasePressure,
-    1
-  );
-  assert.equal(
-    configController.getSnapshot(GAMEPIECES_DRAFT_KIND).draft.practices.forage.effects[0]
-      .amount,
-    1
-  );
+  const beforeInvalid = restoredProfile.getCurrentProfile();
+  assert.equal(restoredProfile.importProfile("{}").ok, false);
+  assert.deepEqual(restoredProfile.getCurrentProfile(), beforeInvalid, "invalid imports do not replace drafts");
+  const bad = JSON.parse(exported.text); bad.profile.launch.startMode = "unknown";
+  assert.equal(restoredProfile.importProfile(JSON.stringify(bad)).ok, false);
+  restoredProfile.setLaunch({ startMode: "authoredMap", neutralSettlements: false });
+  mapController.updateRegion("cedar-woods", { structureCapacity: 7, randomizeStructureCapacity: false });
+  const exact = restoredProfile.createRun(42);
+  assert.equal(exact.world.regions[0].structureCapacity, 7);
+  assert.equal(exact.world.sites.filter(site => site.neutral).length, 0);
+  assert.deepEqual(exact.world.regions.filter(region => region.controller === 'player').map(region => region.id), ['lake-country', 'black-marsh']);
+  assert.equal(restoredProfile.deleteProfile(profileSaved.entry.id).ok, true);
+  assert.equal(restoredProfile.getSnapshot().defaultProfileId, REGULAR_GAME_PROFILE_ID);
+  storage.set(DEBUG_PROFILE_DEFAULT_STORAGE_KEY, 'missing');
+  assert.equal(createDebugProfileController(options).loadDefaultProfile().entry.id, REGULAR_GAME_PROFILE_ID);
+  assert.throws(() => restoredProfile.createRun(NaN), /Seed/);
 } finally {
   if (previousStorage === undefined) delete globalThis.localStorage;
   else globalThis.localStorage = previousStorage;

@@ -170,6 +170,12 @@ body.development-lab { display:block; margin:0; overflow:auto; height:auto; min-
 .development-lab button { cursor:pointer; }
 .development-lab button:hover { background:#35594f; }
 .development-lab button:disabled { opacity:.4; cursor:default; }
+.development-lab .lab-run-editor { border:1px solid #587079; border-radius:8px; margin:12px 0; padding:12px; min-width:0; }
+.development-lab .lab-run-setup textarea { width:100%; background:#16252c; color:#e1ebe9; padding:10px; }
+.development-lab .lab-run-editor.is-readonly { border-style:dashed; }
+.development-lab .lab-run-editor .map-lab-workspace { grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr); }
+.development-lab .lab-run-editor .map-lab-layout { grid-template-columns:1fr; }
+@media(max-width:1100px) { .development-lab .lab-run-editor .map-lab-workspace { grid-template-columns:1fr; } }
 .development-lab :focus-visible { outline:2px solid #b6edbc; outline-offset:2px; }
 .development-lab label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:#bdd1d0; min-width:0; }
 .development-lab input[type=number] { width:110px; }

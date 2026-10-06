@@ -4,6 +4,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
+import {VASSAL_NORMAL_NODE_FAMILY_IDS} from '../src/defs/gamepieces/vassal-life-map-defs.js';
 
 
 async function countImageColours(page,png) {
@@ -478,22 +479,21 @@ try {
   // Use the supported authoring controls to reach a real shop on a fresh run.
   // This exercises Prestige, affordability and staged cards in the same modal
   // as the zero-Prestige travel choices above, without editing simulation state.
-  await page.keyboard.press('Escape');
-  await page.getByTestId('debug-open').click({delay:950});
-  await page.getByTestId('debug-life-map-lab-tab').click();
-  for (const family of ['patronage','development','travel','routes','crisis','relic']) {
+  await page.goto(url+'/#/dev/gym?workspace=setup');
+  await page.getByTestId('debug-profile-copy').click();
+  await page.getByTestId('debug-lifeMapLab-tab').click();
+  for (const family of VASSAL_NORMAL_NODE_FAMILY_IDS.filter(id=>!['practiceReform','publicWorks'].includes(id))) {
     const weight=page.getByTestId('life-map-lab-weight-early-'+family);
     await weight.fill('0');await weight.press('Enter');
   }
+  await page.getByTestId('debug-start-new-run').click();
+  await page.getByTestId('lab-play-badge').waitFor({timeout:60000});
+  await page.getByTestId('debug-open').click({delay:950});
   await page.getByTestId('debug-vassal-tab').click();
   for (const [field,value] of [['prestige',20],['age',20],['cunning',0],['wisdom',0],['effectiveness',0],['intelligence',0]]) {
     const input=page.getByTestId('vassal-debug-'+field);
     await input.fill(String(value));await input.press('Enter');
   }
-  await page.getByTestId('debug-start-new-run').click();
-  await page.getByTestId('debug-open').waitFor({state:'visible'});
-  await page.getByTestId('debug-open').click({delay:950});
-  await page.getByTestId('debug-vassal-tab').click();
   await page.getByTestId('vassal-debug-apply').click();
   await page.keyboard.press('Escape');
   await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.selectCandidate(0));

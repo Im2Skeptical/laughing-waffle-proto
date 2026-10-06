@@ -1,3 +1,4 @@
+import { lockDebugEditor } from "./debug-editor-readonly.js";
 import {
   GAMEPIECES_DRAFT_KIND,
   GAME_SETTINGS_DRAFT_KIND,
@@ -78,13 +79,18 @@ function fieldRow(labelText, input) {
   return label;
 }
 
-export function createDebugConfigurationDom({ controller, kind, title } = {}) {
+export function createDebugConfigurationDom({ controller, kind, title, readOnly = () => false } = {}) {
   const root = document.createElement("section");
   root.dataset.testid = `debug-${kind}`;
   let scenarioName = "";
   let unsubscribe = null;
 
   function render() {
+    renderContents();
+    lockDebugEditor(root, readOnly(), [`${kind}-json-toggle`, `${kind}-refresh-export`, `${kind}-close-json`]);
+  }
+
+  function renderContents() {
     const snapshot = controller.getSnapshot(kind);
     root.replaceChildren();
 
@@ -288,6 +294,7 @@ export function createDebugConfigurationDom({ controller, kind, title } = {}) {
     row.append(importButton, refreshExport, close);
     box.append(textarea, row);
     parent.appendChild(box);
+    lockDebugEditor(root, readOnly(), [`${kind}-json-toggle`, `${kind}-refresh-export`, `${kind}-close-json`]);
     textarea.focus();
     textarea.select();
   }
