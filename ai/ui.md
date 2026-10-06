@@ -194,7 +194,10 @@ contract: `ai/visual-overhaul.md`.
   reveals its persisted options or inventory. Card art opens a readable,
   scrollable inspection of complete effects and quality/tags; option rectangles
   keep a consistent three-column size, titles stay inside the rectangle, and
-  cost footers sit below it. The family title and description sit in their own
+  cost footers sit below it. Relic columns use taller text cards to keep their
+  full effects readable; each cost box names immediate death risk and the
+  age-based roll after spending time. Their displayed prices include equipped
+  Heirloom discounts and match confirmation. The family title and description sit in their own
   plaque overlapping the modal's top-left, left of the HUD, so shop titles no
   longer collide with that chrome. The modal still leaves a bay for the
   centered HUD so the divider does not run through the portrait. Confirm is a

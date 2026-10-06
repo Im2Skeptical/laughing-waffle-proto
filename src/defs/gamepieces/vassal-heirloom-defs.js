@@ -19,6 +19,12 @@ export const VASSAL_HEIRLOOM_TUNING = Object.freeze({
     diamond: 4,
   }),
   fragileBreakChance: 0.5,
+  relicCostsByQuality: Object.freeze({
+    bronze: Object.freeze({ timeCostTier: "low", immediateDeathChance: 0 }),
+    silver: Object.freeze({ timeCostTier: "medium", immediateDeathChance: 0 }),
+    gold: Object.freeze({ timeCostTier: "high", immediateDeathChance: 0.35 }),
+    diamond: Object.freeze({ timeCostTier: "high", immediateDeathChance: 0.35 }),
+  }),
   signetRingPatronagePrestige: 8,
   travellersBootsTravelCostMultiplier: 0.7,
   tutorsNotebookDevelopment: 3,
@@ -109,7 +115,7 @@ export const VASSAL_HEIRLOOM_DEFS = Object.freeze({
   ),
   mandateOfHeaven: heirloom(
     "mandateOfHeaven", "Mandate of Heaven", "diamond",
-    "Once per Vassal life, an otherwise fatal natural-mortality or Crisis outcome is prevented.",
+    "Once per Vassal life, an otherwise fatal natural-mortality or immediate-danger outcome is prevented.",
     { mandateOfHeaven: true },
   ),
 });

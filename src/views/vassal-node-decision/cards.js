@@ -45,13 +45,19 @@ export function optionEffect(option) {
   if (option?.locationRegionId) parts.push("Move to this settlement");
   if (option?.forcedRelocation) parts.push("Relocate to a safe settlement");
   if (Number.isFinite(option?.legacyStartingPrestigeBonus)) parts.push(`Future Vassals +${option.legacyStartingPrestigeBonus} starting Prestige`);
-  if (Number.isFinite(option?.immediateDeathChance)) parts.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
+  if (Number.isFinite(option?.immediateDeathChance) && !option.timeCostTier) parts.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
   for (const effect of option?.effects ?? []) {
     if (effect.op === "AdjustSettlementChaosGodState" && effect.key === "monsterCount") {
       parts.push(`Kill up to ${Math.abs(Math.floor(effect.amount ?? 0))} monsters`);
     }
   }
   return parts.join(" · ") || "Apply this choice when the node is confirmed.";
+}
+
+export function relicRiskLabel(option) {
+  return `${option.immediateDeathChance > 0
+    ? `${Math.round(option.immediateDeathChance * 100)}% immediate death risk`
+    : 'No immediate death risk'}\nAge-based death roll after time`;
 }
 
 export function offerEffect(offer) {
@@ -140,6 +146,10 @@ export function outcomeCard(parent, rect, spec) {
   }, 20, 20);
   root.addChild(title);
   let y = Math.max(110, title.y + title.height + 24);
+  const effects = new PIXI.Container();
+  effects.position.set(20, y);
+  const effectsHeight = rect.height - y - 14;
+  y = 0;
   for (const effect of spec.effect.split(' · ')) {
     const label = effect.replace(/\b(cunning|wisdom|effectiveness|intelligence)\b/g,
       stat => stat[0].toUpperCase() + stat.slice(1));
@@ -147,10 +157,12 @@ export function outcomeCard(parent, rect, spec) {
       ...TEXT_STYLES.title, fontSize: 28, lineHeight: 32,
       fill: effect.startsWith('-') ? PALETTE.red : PALETTE.green,
       wordWrap: true, wordWrapWidth: rect.width - 40,
-    }, 20, y);
-    root.addChild(text);
+    }, 0, y);
+    effects.addChild(text);
     y += text.height + 18;
   }
+  if (spec.fitEffects) effects.scale.set(Math.min(1, effectsHeight / Math.max(1, effects.height)));
+  root.addChild(effects);
   root.costPanel = addCostPanel(root, {
     x: 6, y: rect.height + 8, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
   }, {

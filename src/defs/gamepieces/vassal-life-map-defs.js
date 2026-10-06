@@ -3,6 +3,13 @@ export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
 
+// Inclusive phase ranges; 32 phases make one year on the default clock.
+export const VASSAL_TIME_COST_RANGES = Object.freeze({
+  low: Object.freeze({ min: 32, max: 96 }),
+  medium: Object.freeze({ min: 128, max: 192 }),
+  high: Object.freeze({ min: 224, max: 320 }),
+});
+
 export const VASSAL_NODE_FAMILIES = Object.freeze({
   philosopherFounding: Object.freeze({ id: "philosopherFounding", label: "Philosopher Founding", glyph: "P", color: 0xa46fc4, description: "A Philosopher establishes the Scholars." }),
   warlordFounding: Object.freeze({ id: "warlordFounding", label: "Warlord Founding", glyph: "W", color: 0xca5b5b, description: "A Warlord establishes the Warriors through training." }),
@@ -183,8 +190,6 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
-  // Final phase price: five 32-phase years. Applied raw, not through increasedPhaseCost.
-  relicChoicePhaseCost: 32 * 5,
 });
 
 export function isVassalStockOutputPractice(def, output) {

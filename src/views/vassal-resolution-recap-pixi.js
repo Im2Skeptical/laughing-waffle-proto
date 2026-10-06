@@ -24,6 +24,7 @@ function addButton(parent, rect, label, onPress) {
 }
 
 function deathCopy(cause) {
+  if (cause === "relic") return "They died searching for a Relic.";
   if (cause === "crisis") {
     return "They died taking a lethal risk on this turning point.";
   }

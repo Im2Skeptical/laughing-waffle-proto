@@ -11,7 +11,7 @@ import {
   getHeirloomInheritanceLabel,
   getHeirloomQualityLabel,
 } from "../../defs/gamepieces/vassal-heirloom-defs.js";
-import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_TIME_COST_RANGES } from "../../defs/gamepieces/vassal-life-map-defs.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -213,12 +213,13 @@ function pickHeirloomDefinition(state, excludedIds) {
 
 export function generateRelicOffers(state, vassal) {
   const excluded = getOwnedHeirloomDefinitionIds(state, vassal);
-  const phaseCost = VASSAL_LIFE_TUNING.relicChoicePhaseCost;
   const offers = [];
   for (let index = 0; index < VASSAL_HEIRLOOM_TUNING.offerCount; index += 1) {
     const def = pickHeirloomDefinition(state, excluded);
     if (!def) break;
     excluded.add(def.id);
+    const cost = VASSAL_HEIRLOOM_TUNING.relicCostsByQuality[def.quality];
+    const range = VASSAL_TIME_COST_RANGES[cost.timeCostTier];
     offers.push({
       id: `relic:${def.id}`,
       definitionId: def.id,
@@ -227,7 +228,8 @@ export function generateRelicOffers(state, vassal) {
       description: def.description,
       inheritanceState: "sanctified",
       prestigeCost: 0,
-      phaseCost,
+      ...cost,
+      phaseCost: state.rngNextVassalInt(range.min, range.max),
     });
   }
   if (!offers.length) {
@@ -237,7 +239,9 @@ export function generateRelicOffers(state, vassal) {
       label: "The site holds nothing",
       description: "No eligible Heirloom remains to be found.",
       prestigeCost: 0,
-      phaseCost,
+      timeCostTier: "low",
+      immediateDeathChance: 0,
+      phaseCost: state.rngNextVassalInt(VASSAL_TIME_COST_RANGES.low.min, VASSAL_TIME_COST_RANGES.low.max),
     });
   }
   return offers;
@@ -252,6 +256,15 @@ export function getShopOfferCount(vassal, family) {
 
 function validSlotIndex(index, count) {
   return Number.isInteger(index) && index >= 0 && index < count;
+}
+
+export function validateHeirloomAcquisition(state, vassal, definitionId, acquire) {
+  // Run the inventory transaction on isolated copies before spending time or
+  // rolling danger. An invalid destination must not mutate inventory or RNG.
+  return acquireHeirloom({
+    ...state,
+    civilization: { ...state.civilization, vassalLineage: { ...lineageOf(state) } },
+  }, clone(vassal), definitionId, acquire);
 }
 
 export function acquireHeirloom(state, vassal, definitionId, acquire = {}) {

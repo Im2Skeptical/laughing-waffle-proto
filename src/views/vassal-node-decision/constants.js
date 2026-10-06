@@ -19,5 +19,5 @@ export const QUALITY_COLORS = Object.freeze({
 });
 export const COST_FOOTER_HEIGHT = 148;
 export const OPTION_COLUMN = Object.freeze({
-  width: 338, height: 280, gap: 22, costGap: 8,
+  width: 338, height: 280, relicHeight: 450, gap: 22, costGap: 8,
 });

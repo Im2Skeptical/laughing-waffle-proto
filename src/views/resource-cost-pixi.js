@@ -85,7 +85,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 export function addCostPanel(parent, rect, {
   phaseCost = 0, prestigeCost = 0, currencyCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
-  interactive = true, fontSize = 40, iconSize = 52,
+  interactive = true, fontSize = 40, iconSize = 52, riskLabel = null,
 } = {}) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
@@ -112,12 +112,14 @@ export function addCostPanel(parent, rect, {
     currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
   ].filter(Boolean);
   const hasResources = resourceCosts.length > 0;
+  const riskHeight = riskLabel ? 50 : 0;
+  const contentHeight = rect.height - riskHeight;
   const inset = Math.min(22, rect.width * .055);
   const gap=hasResources?8:0;
-  const resourceHeight=hasResources?Math.min(iconSize*.8,(rect.height-32)*.48/resourceCosts.length):0;
+  const resourceHeight=hasResources?Math.min(iconSize*.8,(contentHeight-32)*.48/resourceCosts.length):0;
   const resourcesTotal=resourceCosts.length*resourceHeight+Math.max(0,resourceCosts.length-1)*gap;
-  const rowHeight=Math.min(iconSize*1.25,hasResources?(rect.height-24-resourcesTotal-gap)*.9:rect.height-24);
-  const timeY=Math.max(8,(rect.height-rowHeight-resourcesTotal-gap)/2);
+  const rowHeight=Math.min(iconSize*1.25,hasResources?(contentHeight-24-resourcesTotal-gap)*.9:contentHeight-24);
+  const timeY=Math.max(8,(contentHeight-rowHeight-resourcesTotal-gap)/2);
   const hourglass=addResourceIcon(root,'hourglass',13,timeY+rowHeight/2,Math.min(24,rowHeight*.42));hourglass.alpha=.65;
   addTimeCostTokens(root, phaseCost, state, {
     x: 30, y:timeY,
@@ -138,6 +140,12 @@ export function addCostPanel(parent, rect, {
         y + (resourceHeight - amount.height * scale) / 2);
     });
   }
+  if (riskLabel) {
+    root.addChild(createText(riskLabel, {
+      ...TEXT_STYLES.body, fontSize: 18, lineHeight: 21,
+      fill: ink, align: 'center', wordWrap: true, wordWrapWidth: rect.width - 32,
+    }, rect.width / 2, contentHeight, .5, 0));
+  }
   if (selected || staged || unaffordable) {
     const accent = unaffordable ? 0xdb967f : staged ? 0xa4c3c3 : 0xb6ce92;
     const outline = new PIXI.Graphics();
@@ -146,11 +154,11 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;
-  root.costSummary = { phaseCost, prestigeCost, currencyCost, description, selected, staged, disabled, unaffordable };
+  root.costSummary = { phaseCost, prestigeCost, currencyCost, description, riskLabel, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {

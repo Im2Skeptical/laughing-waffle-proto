@@ -55,6 +55,7 @@ import {
 } from "../selectors.js";
 import {
   acquireHeirloom,
+  validateHeirloomAcquisition,
   generateRelicOffers,
   getEquippedHeirloomModifiers,
   hasPendingHeirloomLoadout,
@@ -488,17 +489,19 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   }
   const effectsResult = applyVassalNodeEffects(state, option?.effects);
   if (!effectsResult.ok) return effectsResult;
-  if (Number.isFinite(option?.immediateDeathChance)
+  if (Number.isFinite(option?.immediateDeathChance) && option.immediateDeathChance > 0
       && state.rngNextVassalFloat() < option.immediateDeathChance) {
+    const cause = nodeState.family === "relic" ? "relic" : "crisis";
     if (spendMandateProtection(vassal)) {
       nodeState.mandatePreventedDeath = true;
       addLifeEvent(state, vassal, "mandatePrevented", {
-        nodeId: nodeState.nodeId, cause: "crisis",
-        text: "Mandate of Heaven prevented a fatal Crisis.",
+        nodeId: nodeState.nodeId, cause,
+        text: cause === "relic" ? "Mandate of Heaven prevented a fatal Relic search."
+          : "Mandate of Heaven prevented a fatal Crisis.",
       });
     } else {
-      nodeState.resolutionResult = "crisisDeath";
-      finishVassal(state, vassal, { reason: "died", cause: "crisis" });
+      nodeState.resolutionResult = `${cause}Death`;
+      finishVassal(state, vassal, { reason: "died", cause });
       return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
     }
   }
@@ -617,7 +620,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
       return { ok: false, reason: "acquireRequired" };
     }
     if (option?.definitionId && acquire.destination !== "decline") {
-      const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
+      const acquired = validateHeirloomAcquisition(state, vassal, option.definitionId, acquire);
       if (!acquired.ok) return acquired;
     }
   }
@@ -670,6 +673,10 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);
   if (!optionResult.ok || optionResult.immediateDeath) return optionResult;
+  if (nodeState.family === "relic" && option?.definitionId && acquire.destination !== "decline") {
+    const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
+    if (!acquired.ok) return acquired;
+  }
   if (relicPhaseCost != null) optionResult = { ...optionResult, phaseCost: relicPhaseCost };
   nodeState.accumulatedPhaseCost += optionResult.phaseCost;
   nodeState.resolving = true;

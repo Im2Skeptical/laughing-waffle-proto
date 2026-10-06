@@ -10,7 +10,7 @@ import { addResourceAmount } from './resource-cost-pixi.js';
 import { getVassalLifeMapNodeFamily } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
-  getAdjustedVassalPhaseCost,
+  getVassalActionPhaseCost,
   getAdjustedVassalPrestigeCost,
 } from "../model/vassal-life-map.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
@@ -28,6 +28,7 @@ import {
   button,
   offerEffect,
   optionEffect,
+  relicRiskLabel,
   outcomeCard,
 } from "./vassal-node-decision/cards.js";
 import {
@@ -466,7 +467,7 @@ export function createVassalNodeDecisionModalView({
       const cardWidth = cardCount > 3
         ? Math.min(OPTION_COLUMN.width, Math.floor((1080 - (cardCount - 1) * cardGap) / cardCount))
         : OPTION_COLUMN.width;
-      const cardHeight = OPTION_COLUMN.height;
+      const cardHeight = node.family === 'relic' ? OPTION_COLUMN.relicHeight : OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
       // inspections remain available throughout the draft. The model still
       // removes purchases from the available inventory until they are undone.
@@ -503,17 +504,20 @@ export function createVassalNodeDecisionModalView({
         }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
-          const phaseCost = getAdjustedVassalPhaseCost(vassal, option.phaseCost ?? 0);
+          const phaseCost = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, {
+            nodeState, isTravel: nodeState.family === 'travel',
+          });
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           return (simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
           }, {
-            artId:node.family, quality: option.quality,
+            artId:node.family, quality: option.quality, fitEffects: nodeState.family === 'relic',
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
-            cost: { prestigeCost, phaseCost, state },
+            cost: { prestigeCost, phaseCost, state,
+              riskLabel: nodeState.family === 'relic' ? relicRiskLabel(option) : null },
             costUnmet: prestigeCost > vassal.prestige,
             effect: requirements.length
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
@@ -751,7 +755,9 @@ export function createVassalNodeDecisionModalView({
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         onReview,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
-          prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),phaseCost:getAdjustedVassalPhaseCost(vassal,piece.phaseCost??0),state,
+          prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),
+          phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='travel'}),state,
+          riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage
           ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=onPurchaseOffer?.(node.id,piece.offerId);if(result?.ok!==true)render(true);}

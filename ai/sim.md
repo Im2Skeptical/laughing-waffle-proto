@@ -109,14 +109,18 @@ registries here.
   Fragile relics make a 50/50 survive-or-break roll. Overflow past six Vault
   slots is a player choice. The next Vassal then equips 0–3 Vault relics;
   selected Sanctified relics become Unmarked and Carry starts empty.
-- Relic nodes offer three eligible Heirlooms with no Prestige price. Every
-  choice, including an empty site, costs five years on the default clock
-  (`VASSAL_LIFE_TUNING.relicChoicePhaseCost`), measured before the new Heirloom
-  is equipped. Newly found
-  relics are Sanctified and may be Equipped or Carried immediately. Only one
+- Relic nodes roll three eligible Heirlooms with no Prestige price. Each offer
+  persists a random phase cost from the shared `VASSAL_TIME_COST_RANGES`:
+  Common (bronze) uses low, Silver medium, and Gold/Diamond high. The default
+  ranges span 1-3, 4-6, and 7-10 years before existing time discounts. Gold and
+  Diamond also roll 35% immediate death risk before awarding the find; a newly
+  found Mandate cannot protect its own acquisition. All surviving choices still
+  face post-time natural mortality. An empty site uses the low range without
+  immediate danger. Costs are measured before equipping the new Heirloom.
+  Newly found relics are Sanctified and may be Equipped or Carried. Only one
   owned copy of each definition exists at a time. Equipped Heirlooms can grant
   large temporary Vassal-life bonuses, including a once-per-life Mandate that
-  prevents a fatal natural-mortality or Crisis outcome.
+  prevents a fatal natural-mortality or immediate-danger outcome.
 - Each EXP threshold earned by a surviving, non-terminal Vassal queues a
   serialized three-of-four stat choice rolled from all four Vassal stats. These
   choices resolve one at a time and block entry into another Lifegraph node.

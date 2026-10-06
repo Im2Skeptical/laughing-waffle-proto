@@ -12,7 +12,7 @@ import { getResearchLibraryCards, getResearchLibraryDefaultFilters, filterResear
 import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements.js';
 import { SEASON_DURATION_SEC } from '../src/defs/gamesettings/gamerules-defs.js';
-import { VASSAL_LIFE_TUNING } from '../src/defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_TIME_COST_RANGES } from '../src/defs/gamepieces/vassal-life-map-defs.js';
 import { getSettlementYearDurationSec } from '../src/model/settlement-state.js';
 import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
@@ -161,7 +161,9 @@ assert.equal(getSettlementYearDurationSec({}), SEASON_DURATION_SEC * 4, 'a missi
 assert.equal(getSettlementYearDurationSec({ seasonDurationSec: 10, seasons: [0, 1] }), 20);
 assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, SEASON_DURATION_SEC * 4 * SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS);
 assert.equal(SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC, 3200);
-assert.equal(VASSAL_LIFE_TUNING.relicChoicePhaseCost, 32 * 5);
+assert.deepEqual(VASSAL_TIME_COST_RANGES, {
+  low: { min: 32, max: 96 }, medium: { min: 128, max: 192 }, high: { min: 224, max: 320 },
+});
 for(const duration of [1,8,10]) {
   const state=createNewGameState(42);state.paused=false;state.seasonDurationSec=duration;
   const site=getDetailedSettlementSites(state,{playerOnly:true})[0];

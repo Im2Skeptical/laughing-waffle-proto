@@ -1,17 +1,19 @@
 import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { deserializeGameState, serializeGameState } from "../../state.js";
-import { VASSAL_HEIRLOOM_DEFS } from "../../../defs/gamepieces/vassal-heirloom-defs.js";
-import { VASSAL_LIFE_TUNING } from "../../../defs/gamepieces/vassal-life-map-defs.js";
+import { VASSAL_HEIRLOOM_DEFS, VASSAL_HEIRLOOM_TUNING } from "../../../defs/gamepieces/vassal-heirloom-defs.js";
+import { VASSAL_TIME_COST_RANGES } from "../../../defs/gamepieces/vassal-life-map-defs.js";
+import { relicRiskLabel } from "../../../views/vassal-node-decision/cards.js";
+import { appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond } from "../../timeline/index.js";
 import {
   confirmHeirloomLoadout,
-  formatVassalPhaseDuration,
   getEquippedHeirloomModifiers,
   getOwnedHeirloomDefinitionIds,
   getVassalActionPhaseCost,
   getVassalDevelopmentIncome,
   getVassalHeirloomInventory,
   getVassalNodeResolutionGains,
+  getVassalNodeDecisionPresentation,
   getVassalPrestigeIncome,
   getCurrentLifeMapVassal,
   getVassalLifeMapNodes,
@@ -243,8 +245,7 @@ for (let seed = 1200; seed < 1400 && !relicFound; seed += 1) {
 assert.ok(relicFound, "a generated Life Map includes a Relic node");
 const relicNode = forceEnter(relicFound.state, relicFound.nodeId);
 assert.ok(relicNode.options.length >= 1);
-assert.equal(formatVassalPhaseDuration(VASSAL_LIFE_TUNING.relicChoicePhaseCost), "5 years");
-assert.ok(relicNode.options.every((option) => option.phaseCost === VASSAL_LIFE_TUNING.relicChoicePhaseCost));
+assert.equal(relicNode.options.length, 3);
 const chosen = relicNode.options.find((option) => option.definitionId) ?? relicNode.options[0];
 const expectedRelicPhaseCost = getVassalActionPhaseCost(
   getCurrentLifeMapVassal(relicFound.state), chosen.phaseCost, { nodeState: relicNode },
@@ -253,6 +254,7 @@ dispatch(relicFound.state, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: relicFound.nodeId, optionId: chosen.id,
 });
 if (chosen.definitionId) {
+  relicFound.state.rngNextVassalFloat = () => .99;
   dispatch(relicFound.state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
     nodeId: relicFound.nodeId, acquire: { destination: "equip" },
   });
@@ -274,12 +276,15 @@ emptyRelicState.civilization.vassalLineage.pendingVaultOverflow = Object.keys(VA
 const emptyOffers = generateRelicOffers(emptyRelicState, getCurrentLifeMapVassal(emptyRelicState));
 assert.equal(emptyOffers.length, 1);
 assert.equal(emptyOffers[0].emptyRelic, true);
-assert.equal(emptyOffers[0].phaseCost, VASSAL_LIFE_TUNING.relicChoicePhaseCost);
+assert.ok(emptyOffers[0].phaseCost >= VASSAL_TIME_COST_RANGES.low.min
+  && emptyOffers[0].phaseCost <= VASSAL_TIME_COST_RANGES.low.max);
+assert.equal(emptyOffers[0].immediateDeathChance, 0);
 
 const crownState = selectedState(1115);
 const crownNodeId = nodeIdForFamily(crownState, "relic");
 const crownNode = forceEnter(crownState, crownNodeId);
 const crownOption = crownNode.options[0];
+crownState.rngNextVassalFloat = () => .99;
 crownOption.definitionId = "crownOfAges";
 crownOption.label = "Crown of Ages";
 const crownExpected = getVassalActionPhaseCost(
@@ -295,6 +300,107 @@ const crowned = getCurrentLifeMapVassal(crownState);
 assert.equal(crowned.heirlooms.equipped.some((item) => item?.definitionId === "crownOfAges"), true);
 assert.equal(crowned.lifeMap.pendingResolution?.phaseCost, crownExpected,
   "the Heirloom found by a Relic choice does not discount that choice");
+
+const qualityCosts = new Map();
+for (let seed = 0; seed < 30; seed += 1) {
+  const state = selectedState(seed);
+  const restored = deserializeGameState(serializeGameState(state));
+  const beforeRng = { ...state.rng };
+  const generated = generateRelicOffers(state, getCurrentLifeMapVassal(state));
+  assert.deepEqual(generateRelicOffers(restored, getCurrentLifeMapVassal(restored)), generated,
+    "offer identities, prices and danger are deterministic after save/load");
+  assert.equal(generated.length, 3);
+  assert.equal(new Set(generated.map(offer => offer.definitionId)).size, 3);
+  for (const offer of generated) {
+    const cost = VASSAL_HEIRLOOM_TUNING.relicCostsByQuality[offer.quality];
+    const range = VASSAL_TIME_COST_RANGES[cost.timeCostTier];
+    assert.equal(offer.timeCostTier, cost.timeCostTier);
+    assert.equal(offer.immediateDeathChance, cost.immediateDeathChance);
+    assert.ok(offer.phaseCost >= range.min && offer.phaseCost <= range.max);
+    if (!qualityCosts.has(offer.quality)) qualityCosts.set(offer.quality, new Set());
+    qualityCosts.get(offer.quality).add(offer.phaseCost);
+    assert.match(relicRiskLabel(offer), /Age-based death roll after time/);
+    assert.match(relicRiskLabel(offer), offer.immediateDeathChance ? /35% immediate death risk/ : /No immediate death risk/);
+  }
+  for (const key of Object.keys(beforeRng).filter(key => key !== 'vassalSeed')) {
+    assert.equal(state.rng[key], beforeRng[key], `relic rolls preserve ${key}`);
+  }
+}
+assert.deepEqual([...qualityCosts.keys()].sort(), ['bronze', 'diamond', 'gold', 'silver']);
+assert.ok([...qualityCosts.values()].every(costs => costs.size > 1), "each quality rolls variable costs");
+
+for (const [definitionId, deathRoll, protectedByMandate, destination] of [
+  ['royalWarrant', 0, false, 'equip'], ['mandateOfHeaven', 0, false, 'equip'],
+  ['crownOfAges', .99, false, 'carry'], ['scholarsCodex', 0, true, 'equip'],
+]) {
+  const state = selectedState(1116);
+  const vassal = getCurrentLifeMapVassal(state);
+  const nodeId = nodeIdForFamily(state, 'relic');
+  const nodeState = forceEnter(state, nodeId);
+  const def = VASSAL_HEIRLOOM_DEFS[definitionId];
+  const cost = VASSAL_HEIRLOOM_TUNING.relicCostsByQuality[def.quality];
+  const option = { id: `relic:${definitionId}`, definitionId, quality: def.quality,
+    ...cost, phaseCost: VASSAL_TIME_COST_RANGES[cost.timeCostTier].min };
+  nodeState.options = [option];
+  if (protectedByMandate) equip(state, 'mandateOfHeaven');
+  dispatch(state, ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId: option.id });
+  const before = JSON.stringify(serializeGameState(state));
+  assert.equal(applyAction(state, { kind: ActionKinds.VASSAL_CONFIRM_LIFE_NODE,
+    payload: { nodeId, acquire: { destination: 'invalid' } } }, { isReplay: true }).ok, false);
+  assert.ok(JSON.stringify(serializeGameState(state)) === before, "invalid acquisition spends no inventory, time or RNG");
+  assert.equal(getVassalNodeDecisionPresentation(state, nodeId).mortalityEstimate.immediateDeathChance, .35);
+  state.rngNextVassalFloat = () => deathRoll;
+  const result = dispatch(state, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId, acquire: { destination } });
+  const fatal = deathRoll === 0 && !protectedByMandate;
+  assert.equal(result.immediateDeath === true, fatal);
+  if (fatal) {
+    assert.equal(vassal.deathCause, 'relic');
+    assert.equal(getOwnedHeirloomDefinitionIds(state, vassal).has(definitionId), false,
+      "a fatal search does not award the relic, including a new Mandate");
+  } else {
+    assert.ok(vassal.heirlooms[destination === 'carry' ? 'carry' : 'equipped']
+      .some(item => item?.definitionId === definitionId));
+    assert.ok(vassal.lifeMap.pendingResolution.phaseCost > 0);
+    if (protectedByMandate) assert.equal(vassal.heirlooms.equipped[0].protectionSpent, true);
+  }
+}
+
+// Authoritative replay must reproduce both entry rolls and confirmation risk.
+let replayRelicState;
+for (let seed = 1117; seed < 1140; seed += 1) {
+  const trial = selectedState(seed);
+  const trialNode = forceEnter(trial, nodeIdForFamily(trial, 'relic'));
+  if (trialNode.options.some(option => option.immediateDeathChance > 0)) {
+    replayRelicState = selectedState(seed);
+    break;
+  }
+}
+assert.ok(replayRelicState, "replay fixture offers a dangerous relic");
+const replayRelicVassal = getCurrentLifeMapVassal(replayRelicState);
+const replayRelicId = nodeIdForFamily(replayRelicState, 'relic');
+replayRelicVassal.lifeMap.availableNodeIds = [replayRelicId];
+const relicTimeline = createTimelineFromInitialState(replayRelicState);
+const appendRelicAction = (kind, payload) => appendActionAtCursor(relicTimeline, {
+  kind, payload, tSec: 0,
+}, replayRelicState);
+appendRelicAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId: replayRelicId });
+const replayEntry = rebuildStateAtSecond(relicTimeline, 0);
+assert.equal(replayEntry.ok, true);
+const replayOptions = getCurrentLifeMapVassal(replayEntry.state).lifeMap.nodeStates[replayRelicId].options;
+assert.deepEqual(getCurrentLifeMapVassal(rebuildStateAtSecond(relicTimeline, 0).state)
+  .lifeMap.nodeStates[replayRelicId].options, replayOptions);
+const replayChoice = replayOptions.find(option => option.immediateDeathChance > 0);
+assert.ok(replayChoice);
+appendRelicAction(ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId: replayRelicId, optionId: replayChoice.id });
+appendRelicAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: replayRelicId, acquire: { destination: 'carry' } });
+const replayConfirmed = rebuildStateAtSecond(relicTimeline, 0);
+assert.equal(replayConfirmed.ok, true);
+const pending = getCurrentLifeMapVassal(replayConfirmed.state)?.lifeMap.pendingResolution;
+const endSec = pending?.resolveSec ?? 0;
+const replayEnd = rebuildStateAtSecond(relicTimeline, endSec);
+assert.equal(replayEnd.ok, true);
+assert.ok(JSON.stringify(serializeGameState(rebuildStateAtSecond(relicTimeline, endSec).state))
+  === JSON.stringify(serializeGameState(replayEnd.state)), "relic confirmation and post-time mortality replay identically");
 
 const roundTripState = selectedState(1113);
 equip(roundTripState, "scholarsCodex", "fragile");
