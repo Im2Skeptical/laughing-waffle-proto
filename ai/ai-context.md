@@ -92,8 +92,9 @@ knowledge, and the single vassal lineage are civilization-global.
 - Art/presentation contract: [`ai/visual-overhaul.md`](visual-overhaul.md)
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
-Gym ? New run setup owns Map Lab, Game Settings, Gamepieces, Life Map Lab,
-and named launch profiles. Regular game is a read-only current-build baseline;
+Gym ? New run setup owns Map Lab, Game Settings and Life Map Lab under one
+combined launch profile. Gamepiece editing belongs to the card reviewer; reviewed
+cards can be captured in the launch profile. Regular game is a read-only current-build baseline;
 copies launch through the same initializer as player New Game, including road
 randomization and neutral seeding. Museum owns saved states at specific seconds.
 The live hold-button workshop keeps Vassal candidate replacement and save diagnostics. Verification commands live in

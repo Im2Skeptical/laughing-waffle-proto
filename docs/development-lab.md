@@ -14,10 +14,11 @@ Gym opens **New run setup** by default (`#/dev/gym?workspace=setup`). Its
 setup and initialization path as player New Game. It includes two player
 settlements on a seeded random road, rolled Structure capacities and four
 neutral settlements. **Copy to edit** creates an editable draft of that recipe.
-Map Lab, Game Settings, Gamepieces and Life Map Lab are its four editor tabs.
-Individual editor presets replace only one part; **Save profile** captures all
-four parts plus launch options. Profiles save locally and support JSON export,
-copy and import. The built-in profile cannot be renamed, saved over or deleted.
+Map Lab, Game Settings and Life Map Lab are its three editor tabs. The single
+**Combined profile** toolbar saves and loads every section together, including
+launch options and any applied reviewed cards. There are no separate section
+profile or preset toolbars. Edit gamepieces in the card reviewer. Profiles save
+locally and support JSON export, copy and import. The built-in profile cannot be renamed, saved over or deleted.
 Drafts survive refresh. **Default in workshop** chooses the recipe for the next
 workshop opening and clears the remembered draft; it never changes player New
 Game or a live game.
@@ -305,7 +306,7 @@ the source run's prior history because the bridge transfers a state, not a run.
 ## Verification
 
 - `npm run probe:map-lab`: Regular game baseline, read-only inspection, editable
-  copies, all four editor tabs, draft/profile persistence, JSON sharing, mobile
+  copies, all three editor tabs, reviewed cards, combined-profile persistence, JSON sharing, mobile
   layout, normal-play launch, focused live tools and browser Back.
 - `node src/model/tests/development-lab.js`: deterministic fixtures and stepping,
   Food/Stock breakpoints, Currency debit, Retinue threshold, defense/loss,

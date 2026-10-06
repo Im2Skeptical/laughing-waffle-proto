@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { createAuthoredGameConfig } from '../src/model/game-config.js';
+import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const url = 'http://127.0.0.1:8081', artifact = 'artifacts/map-lab-browser-probe.json';
@@ -23,6 +25,8 @@ try {
   await page.getByTestId('lab-run-setup').waitFor();
   assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'regular-game');
   assert.equal(await page.getByTestId('debug-profile-save').isDisabled(), true);
+  assert.equal(await page.getByTestId('debug-gamepieces-tab').count(), 0);
+  assert.equal(await page.getByTestId('map-lab-preset').count(), 0);
   assert.equal(await page.getByTestId('map-lab-controller').isDisabled(), true);
   // Read-only protects values, while inspection of other regions stays available.
   await page.getByTestId('map-lab-world-map-region-lake-country').click();
@@ -34,7 +38,8 @@ try {
     return { second: state.tSec, players: state.world.regions.filter(region => region.controller === 'player').length,
       neutrals: state.world.sites.filter(site => site.neutral).length, lanes: state.gameConfig.lifeMapGenerator.laneCount,
       populationPerToken: state.gameConfig.settings.values.populationPerToken,
-      stockCapacity: state.gameConfig.gamepieces.practices.forage.stockCapacity };
+      stockCapacity: state.gameConfig.gamepieces.practices.forage.stockCapacity,
+      lakeColour: state.world.regions.find(region => region.id === 'lake-country').colour };
   });
   const baseline = await world();
   assert.equal(baseline.second, 0); assert.equal(baseline.players, 2); assert.equal(baseline.neutrals, 4);
@@ -44,13 +49,21 @@ try {
   checks.push('Regular game is read-only, inspectable and creates two player settlements plus four neutrals');
   await page.getByTestId('lab-workspace-setup').click();
   await page.getByTestId('debug-profile-copy').click();
+  await page.getByTestId('map-lab-world-map-region-lake-country').click();
+  await page.getByTestId('map-lab-colour').selectOption('green');
+  const storedReviews = new Map();
+  const reviewStorage = { getItem: key => storedReviews.get(key) ?? null, setItem: (key, value) => storedReviews.set(key, value) };
+  const review = createCardReviewController({ storage: reviewStorage });
+  review.flag('practice', 'forage', createAuthoredGameConfig().gamepieces.practices.forage);
+  review.edit('practice', 'forage', ['stockCapacity'], 6);
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: CARD_REVIEW_STORAGE_KEY, value: storedReviews.get(CARD_REVIEW_STORAGE_KEY) });
+  await page.getByTestId('lab-setup-reviewed-cards').click();
   await page.getByTestId('debug-gameSettings-tab').click();
   await page.getByTestId('setting-populationPerToken').fill('12');
   await page.getByTestId('setting-populationPerToken').press('Tab');
-  await page.getByTestId('debug-gamepieces-tab').click();
-  await page.getByTestId('gamepiece-practices-forage-stockCapacity').fill('6');
-  await page.getByTestId('gamepiece-practices-forage-stockCapacity').press('Tab');
+  assert.equal(await page.getByTestId('gameSettings-preset').count(), 0);
   await page.getByTestId('debug-lifeMapLab-tab').click();
+  assert.equal(await page.getByTestId('life-map-lab-preset').count(), 0);
   await page.getByTestId('life-map-lab-laneCount').fill('5');
   await page.getByTestId('life-map-lab-laneCount').press('Tab');
   await page.reload();
@@ -65,22 +78,27 @@ try {
   assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'profile-1');
   await page.getByTestId('debug-profile-json-toggle').click();
   const exported = JSON.parse(await page.getByLabel('New run profile JSON').inputValue());
+  assert.equal(exported.profile.mapLab.regions.find(region => region.id === 'lake-country').colour, 'green');
   assert.equal(exported.profile.gameSettings.values.populationPerToken, 12);
   assert.equal(exported.profile.gamepieces.practices.forage.stockCapacity, 6);
   assert.equal(exported.profile.lifeMapLab.generatorConfig.laneCount, 5);
   assert.equal(exported.profile.launch.neutralSettlements, true);
+  // Stored recipes may remember an editor tab that no longer exists.
+  exported.profile.activePage = 'gamepieces';
+  await page.getByLabel('New run profile JSON').fill(JSON.stringify(exported));
   await page.getByLabel('Imported profile name').fill('Imported copy');
   await page.getByTestId('debug-profile-json-import').click();
   assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'profile-2');
+  assert.equal(await page.getByTestId('debug-mapLab-tab').getAttribute('aria-pressed'), 'true');
   await page.getByTestId('lab-setup-to-gym').click();
   await page.getByTestId('lab-play').waitFor();
-  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5 });
+  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5, lakeColour: 'green' });
   await page.getByTestId('lab-workspace-setup').click();
   await page.getByTestId('lab-workspace-settlement').click();
   await page.reload();
   await page.getByTestId('lab-play').waitFor();
-  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5 }, 'workspace navigation preserves the imported state link');
-  checks.push('All editor parts launch together; unsaved refresh, named profiles/default and JSON round trip preserve edits');
+  assert.deepEqual(await world(), { ...baseline, populationPerToken: 12, stockCapacity: 6, lanes: 5, lakeColour: 'green' }, 'workspace navigation preserves the imported state link');
+  checks.push('Three tabs and reviewed cards share one combined profile; unsaved refresh, named profiles/default and JSON round trip preserve edits');
   await page.getByTestId('lab-workspace-setup').click();
   await page.getByTestId('debug-mapLab-tab').click();
   await page.getByTestId('map-lab-connection-mode').click();

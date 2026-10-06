@@ -50,15 +50,6 @@ function numberField(value, testId, handler, { min = 0, step = 1 } = {}) {
   return node;
 }
 
-function textField(value, testId, handler) {
-  const node = element("input", "map-lab-input");
-  node.type = "text";
-  node.value = String(value ?? "");
-  node.dataset.testid = testId;
-  node.addEventListener("input", () => handler(node.value));
-  return node;
-}
-
 function labelled(label, control) {
   const node = element("label", "map-lab-field");
   node.append(element("span", "", label), control);
@@ -89,7 +80,7 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
   style.textContent = `
     .codex-debug-panel.map-lab-active{inset:8px;width:auto;max-width:none;max-height:none}
     .map-lab-root{display:grid;gap:10px;color:#f6efe3}
-    .map-lab-toolbar,.map-lab-regions,.map-lab-slots{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+    .map-lab-toolbar,.map-lab-slots{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
     .map-lab-workspace{display:grid;grid-template-columns:minmax(360px,.62fr) minmax(620px,1.38fr);gap:10px;align-items:start}
     .map-lab-layout{display:grid;grid-template-columns:minmax(250px,.7fr) minmax(420px,1.3fr);gap:10px;min-width:0}
     .map-lab-workspace>.map-lab-card{min-width:0}
@@ -100,19 +91,14 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
     .map-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .map-lab-warning{color:#ffd18d;font-size:12px}.map-lab-error{color:#ffb4a8;font-size:12px}
     .map-lab-controller-warning{margin:10px 0 0;padding:8px 10px;border:1px solid rgba(255,180,110,.75);border-radius:5px;background:rgba(117,66,36,.28);color:#ffd18d;font-size:13px;line-height:1.35}
-    .map-lab-json{width:100%;min-height:220px;font-family:monospace}
     @media(max-width:1100px){.map-lab-workspace,.map-lab-layout{grid-template-columns:1fr}}
   `;
   let unsubscribe = null;
-  let showJson = false;
-  let jsonText = "";
-  let scenarioNameText = "";
-  let scenarioNameSelectionId = null;
   let mapMode = "inspect";
 
   function render() {
     renderContents();
-    lockDebugEditor(root, readOnly(), ['map-lab-region-', 'map-lab-json-toggle']);
+    lockDebugEditor(root, readOnly());
   }
 
   function renderContents() {
@@ -123,136 +109,9 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
     root.replaceChildren();
 
     const toolbar = element("div", "map-lab-toolbar");
-    const selectedScenarioValue = snapshot.selectedLocalScenarioId
-      ? `local:${snapshot.selectedLocalScenarioId}`
-      : snapshot.selectedPresetId
-        ? `authored:${snapshot.selectedPresetId}`
-        : "";
-    const selectedScenarioSuffix = snapshot.selectedScenarioDirty ? " *" : "";
-    const scenarioSelect = selectField(
-      [
-        { value: "", label: "Custom / unsaved draft" },
-        ...snapshot.presetOptions.map((entry) => ({
-          value: `authored:${entry.id}`,
-          label:
-            `Authored - ${entry.name}` +
-            (selectedScenarioValue === `authored:${entry.id}`
-              ? selectedScenarioSuffix
-              : ""),
-        })),
-        ...snapshot.localScenarioOptions.map((entry) => ({
-          value: `local:${entry.id}`,
-          label:
-            `Saved - ${entry.name}` +
-            (selectedScenarioValue === `local:${entry.id}`
-              ? selectedScenarioSuffix
-              : ""),
-        })),
-      ],
-      selectedScenarioValue,
-      "map-lab-preset",
-      () => {}
-    );
-    scenarioSelect.setAttribute("aria-label", "Map Lab scenario");
-    const selectedLocal = snapshot.localScenarioOptions.find(
-      (entry) => entry.id === snapshot.selectedLocalScenarioId
-    );
-    if (scenarioNameSelectionId !== snapshot.selectedLocalScenarioId) {
-      scenarioNameSelectionId = snapshot.selectedLocalScenarioId;
-      scenarioNameText = selectedLocal?.name ?? "";
-    }
-    const scenarioNameInput = textField(
-      scenarioNameText,
-      "map-lab-scenario-name",
-      (value) => {
-        scenarioNameText = value;
-      }
-    );
-    scenarioNameInput.placeholder = "Scenario name";
-    scenarioNameInput.maxLength = 80;
-    scenarioNameInput.setAttribute("aria-label", "Scenario name");
-    scenarioNameInput.style.minWidth = "170px";
-    const loadScenarioButton = button(
-      "Load scenario",
-      "map-lab-load-preset",
-      () => {
-        if (!scenarioSelect.value) return;
-        if (
-          snapshot.selectedScenarioDirty &&
-          !globalThis.confirm(
-            "Replace the current Map Lab draft with the selected scenario?"
-          )
-        ) {
-          return;
-        }
-        const [kind, id] = scenarioSelect.value.split(":");
-        if (kind === "authored") controller.loadPreset(id);
-        else if (kind === "local") controller.loadLocalScenario(id);
-      }
-    );
-    loadScenarioButton.disabled = !scenarioSelect.value;
-    const saveScenarioButton = button(
-      "Save scenario",
-      "map-lab-save-scenario",
-      () => {
-        controller.saveLocalScenario(scenarioNameInput.value);
-      }
-    );
-    const deleteScenarioButton = button(
-      "Delete saved",
-      "map-lab-delete-scenario",
-      () => {
-        const [kind, id] = scenarioSelect.value.split(":");
-        if (kind !== "local") return;
-        const scenario = snapshot.localScenarioOptions.find(
-          (entry) => entry.id === id
-        );
-        if (
-          globalThis.confirm(
-            `Delete the saved browser scenario "${
-              scenario?.name ?? id
-            }"? The current draft will remain open.`
-          )
-        ) {
-          controller.deleteLocalScenario(id);
-        }
-      }
-    );
-    deleteScenarioButton.disabled =
-      !scenarioSelect.value.startsWith("local:");
-    scenarioSelect.addEventListener("change", () => {
-      loadScenarioButton.disabled = !scenarioSelect.value;
-      deleteScenarioButton.disabled =
-        !scenarioSelect.value.startsWith("local:");
-    });
-    toolbar.append(
-      scenarioSelect,
-      loadScenarioButton,
-      scenarioNameInput,
-      saveScenarioButton,
-      deleteScenarioButton,
-      button("Authored default", "map-lab-reset", () => controller.reset()),
-      button("Copy settlement sandbox", "map-lab-load-current-game", () => controller.loadCurrentGame()),
-      button(showJson ? "Hide JSON" : "Import / Export", "map-lab-json-toggle", () => {
-        showJson = !showJson;
-        jsonText = controller.exportJson();
-        render();
-      })
-    );
+    toolbar.append(button("Copy settlement sandbox", "map-lab-load-current-game", () => controller.loadCurrentGame()));
     root.append(toolbar);
 
-    const regions = element("div", "map-lab-regions");
-    snapshot.draft.regions.forEach((entry, index) => {
-      const name = definition.regions[index]?.name ?? entry.id;
-      const node = button(
-        `${name}${entry.detailedSettlementEnabled ? " •" : ""}`,
-        `map-lab-region-${entry.id}`,
-        () => controller.selectRegion(entry.id)
-      );
-      node.setAttribute("aria-label", `${name} region`);
-      node.classList.toggle("active", entry.id === snapshot.selectedRegionId);
-      regions.append(node);
-    });
     const mapCard = element("section", "map-lab-card");
     const mapActions = element("div", "map-lab-toolbar");
     const connectionModeButton = button(
@@ -297,15 +156,6 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
       snapshot.status.message);
     status.dataset.testid = "map-lab-status";
 
-    if (showJson) {
-      const area = element("textarea", "map-lab-input map-lab-json");
-      area.dataset.testid = "map-lab-json";
-      area.value = jsonText;
-      area.addEventListener("input", () => { jsonText = area.value; });
-      root.append(mapCard, status, area,
-        button("Import JSON", "map-lab-import", () => controller.importJson(jsonText)));
-      return;
-    }
     if (!region) {
       root.append(mapCard, status);
       return;

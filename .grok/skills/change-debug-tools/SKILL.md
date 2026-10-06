@@ -1,6 +1,6 @@
 ---
 name: change-debug-tools
-description: Change Gym new-run setup, profiles, Map Lab, Game Settings, Gamepieces, Life Map Lab, live Vassal tools, or save diagnostics.
+description: Change Gym new-run setup, profiles, Map Lab, Game Settings, Life Map Lab, live Vassal tools, or save diagnostics.
 ---
 
 # Change debug tools
@@ -16,7 +16,7 @@ visible label, then read only that file and its direct imports.
 | Gym fresh-run workshop | `src/views/development-lab/new-run-setup.js` |
 | Map Lab | `src/views/map-lab-dom.js`, `src/controllers/map-lab-controller.js`, `src/model/map-lab-draft.js` |
 | Debug world-map widget | `src/views/debug-world-map-dom.js` |
-| Game Settings / Gamepieces | `src/views/debug-configuration-dom.js`, `src/controllers/debug-configuration-controller.js`, `src/model/game-config.js` |
+| Game Settings | `src/views/debug-configuration-dom.js`, `src/controllers/debug-configuration-controller.js`, `src/model/game-config.js` |
 | Vassal Lab | `src/views/vassal-debug-dom.js` |
 | Vassal Lab presets | `src/controllers/vassal-debug-preset-controller.js` |
 | Life Map Lab | `src/views/life-map-lab-dom.js`, `src/controllers/life-map-lab-controller.js`, `src/model/life-map-lab-draft.js` |
@@ -27,14 +27,15 @@ Gym → **New run setup** owns fresh-run editors and launch profiles. The read-o
 Regular game baseline and its editable copies use `src/model/new-game.js`, the
 same initializer as player New Game (including neutral seeding). **Start new run**
 opens a disposable game; **Open in settlement sandbox** initializes Gym.
+Use one combined launch profile for all fresh-run sections. Card editing lives
+in the card reviewer; New run setup captures applied reviews in that profile.
 Museum stores states at a specific second, rather than launch recipes.
 The live hold-button workshop owns Vassal replacement and save diagnostics.
 
 ## Do not
 
 - Change a running simulation from an unsaved debug draft.
-- Add view-side or one-off simulation behavior in Gamepieces; tune
-  existing generalized DSL ops.
+- Add view-side or one-off simulation behavior; tune existing generalized DSL ops.
 - Load `ai/history/` unless the task is explicitly about a past design
   decision.
 

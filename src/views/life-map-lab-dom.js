@@ -57,23 +57,18 @@ export function createLifeMapLabDom({ controller, readOnly = () => false } = {})
   const style = document.createElement("style");
   style.textContent = `
     .life-map-lab-root{display:grid;gap:10px;color:#f6efe3}
-    .life-map-lab-toolbar,.life-map-lab-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:end}
+    .life-map-lab-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:end}
     .life-map-lab-workspace{display:grid;grid-template-columns:minmax(420px,.85fr) minmax(600px,1.15fr);gap:10px;align-items:start}
     .life-map-lab-card{background:rgba(14,18,23,.38);border:1px solid rgba(248,234,208,.22);border-radius:7px;padding:10px;min-width:0}
     .life-map-lab-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
     .life-map-lab-weight-grid{display:grid;grid-template-columns:minmax(130px,1.5fr) repeat(3,minmax(70px,1fr));gap:5px;align-items:center}
     .life-map-lab-button,.life-map-lab-input{min-height:30px;border:1px solid rgba(224,199,137,.65);border-radius:5px;padding:4px 8px;box-sizing:border-box}
     .life-map-lab-button{background:#455463;color:#f8ead0;cursor:pointer}.life-map-lab-input{background:#f8f0df;color:#1d2430;width:100%}
-    .life-map-lab-toolbar>.life-map-lab-input{width:auto;min-width:170px}
     .life-map-lab-preview{display:block;width:100%;height:auto;min-height:410px;background:#1c242b;border:1px solid #586876;border-radius:6px}
-    .life-map-lab-json{width:100%;min-height:220px;font-family:monospace;box-sizing:border-box}
     .life-map-lab-status{font-size:12px;color:#b9f5c7}.life-map-lab-error{font-size:12px;color:#ffb4a8}
     @media(max-width:1100px){.life-map-lab-workspace{grid-template-columns:1fr}.life-map-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   `;
   let unsubscribe = null;
-  let presetName = "";
-  let jsonVisible = false;
-  let jsonText = "";
   let selectedNodeId = null;
 
   function renderPreview(parent, graph) {
@@ -117,7 +112,7 @@ export function createLifeMapLabDom({ controller, readOnly = () => false } = {})
 
   function render() {
     renderContents();
-    lockDebugEditor(root, readOnly(), ['life-map-lab-json-toggle']);
+    lockDebugEditor(root, readOnly());
   }
 
   function renderContents() {
@@ -127,49 +122,6 @@ export function createLifeMapLabDom({ controller, readOnly = () => false } = {})
     root.replaceChildren(style);
     root.append(element("h3", "", "Life Map Lab"));
     root.append(element("p", "", "Tune deterministic Vassal map generation. Changes apply only to the next launch from New run setup."));
-
-    const toolbar = element("div", "life-map-lab-toolbar");
-    const preset = element("select", "life-map-lab-input");
-    preset.dataset.testid = "life-map-lab-preset";
-    const options = [{ id: "authored", name: "Authored default" }, ...snapshot.presetOptions];
-    for (const entry of options) {
-      const option = document.createElement("option");
-      option.value = entry.id;
-      option.textContent = `${entry.name}${entry.id === snapshot.selectedPresetId && snapshot.selectedPresetDirty ? " *" : ""}`;
-      preset.append(option);
-    }
-    preset.value = options.some((entry) => entry.id === snapshot.selectedPresetId)
-      ? snapshot.selectedPresetId : "";
-    const nameInput = element("input", "life-map-lab-input");
-    nameInput.placeholder = "Preset name";
-    nameInput.value = presetName;
-    nameInput.dataset.testid = "life-map-lab-preset-name";
-    nameInput.addEventListener("input", () => { presetName = nameInput.value; });
-    toolbar.append(
-      preset,
-      button("Load", "life-map-lab-load-preset", () => controller.loadPreset(preset.value)),
-      nameInput,
-      button("Save", "life-map-lab-save-preset", () => controller.savePreset(nameInput.value)),
-      button("Delete", "life-map-lab-delete-preset", () => {
-        if (preset.value !== "authored") controller.deletePreset(preset.value);
-      }),
-      button("Reset authored", "life-map-lab-reset", () => controller.reset()),
-      button("Import / Export", "life-map-lab-json-toggle", () => {
-        jsonVisible = !jsonVisible;
-        if (jsonVisible) jsonText = controller.exportJson();
-        render();
-      })
-    );
-    root.append(toolbar);
-    if (jsonVisible) {
-      const card = element("div", "life-map-lab-card");
-      const area = element("textarea", "life-map-lab-json");
-      area.dataset.testid = "life-map-lab-json";
-      area.value = jsonText;
-      area.addEventListener("input", () => { jsonText = area.value; });
-      card.append(area, button("Import JSON", "life-map-lab-json-import", () => controller.importJson(area.value)));
-      root.append(card);
-    }
 
     const workspace = element("div", "life-map-lab-workspace");
     workspace.dataset.testid = "life-map-lab-workspace";
