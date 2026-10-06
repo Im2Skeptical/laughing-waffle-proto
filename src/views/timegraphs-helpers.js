@@ -370,6 +370,8 @@ export function normalizeEventMarkers(rawMarkers, { minSec, maxSec }) {
       : "";
     const nodeIcon = marker?.nodeIcon?.family ? {
       family: marker.nodeIcon.family,
+      stockOutput: typeof marker.nodeIcon.stockOutput === "string"
+        ? marker.nodeIcon.stockOutput : null,
       signatureNode: marker.nodeIcon.signatureNode?.variantId
         ? { variantId: marker.nodeIcon.signatureNode.variantId } : null,
     } : null;

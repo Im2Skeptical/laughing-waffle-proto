@@ -1,9 +1,57 @@
-// Freestanding silhouettes: identity comes from the outline, not a badge or letter.
+import { getResourceTexture, RESOURCE_ART_IDS } from './chronicle-art.js';
+
+const SHOP_SPECIALTIES = Object.freeze({
+  practiceReform: 'practiceReform', publicWorks: 'publicWorks',
+  neutralMarket: 'neutralMarket', classMarket: 'classMarket',
+  foodShop: 'foodShop', housingShop: 'settlement', knowledgeShop: 'development',
+  stockShop: 'stockShop',
+});
+
+// Shops share a stall silhouette; the inset badge identifies their specialty.
 export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x = 0, y = 0, scale = 1 }) {
   const variant = node.signatureNode?.variantId;
-  const kind = ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
-    removeStructure: 'publicWorks', removeRoute: 'routes', knowledgeShop: 'development',
-    housingShop: 'settlement' })[variant] ?? variant ?? node.family;
+  const family = variant ?? node.family;
+  const specialty = SHOP_SPECIALTIES[family];
+  const kind = specialty ? 'shop' : ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
+    removeStructure: 'publicWorks', removeRoute: 'routes' })[variant] ?? family;
+  drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale });
+  if (specialty) {
+    const badgeX = x + 20 * scale, badgeY = y + 16 * scale;
+    graphics.lineStyle(3 * scale, outline, 1).beginFill(outline)
+      .drawCircle(badgeX, badgeY, 18 * scale).endFill();
+    graphics.lineStyle(2 * scale, accent, 1)
+      .drawCircle(badgeX, badgeY, 16 * scale);
+    const resourceId = typeof node.stockOutput === 'string'
+      ? `stock-${node.stockOutput.toLowerCase()}` : 'stock';
+    const texture = specialty === 'stockShop'
+      ? getResourceTexture(RESOURCE_ART_IDS.includes(resourceId) ? resourceId : 'stock') : null;
+    if (texture?.baseTexture.valid) {
+      const size = 27 * scale;
+      const matrix = new PIXI.Matrix().scale(size / texture.width, size / texture.height)
+        .translate(badgeX - size / 2, badgeY - size / 2);
+      graphics.lineStyle(0).beginTextureFill({ texture, matrix })
+        .drawRect(badgeX - size / 2, badgeY - size / 2, size, size).endFill();
+    } else {
+      drawSilhouette(graphics, specialty, {
+        fill, accent, outline, x: badgeX, y: badgeY, scale: scale * 0.4,
+      });
+    }
+  }
+  const transform = points => points.map((value, index) => value * scale + (index % 2 ? y : x));
+  if (variant?.startsWith('remove')) {
+    const points = transform([-26,29,27,-28]);
+    for (const [width, color] of [[9, outline], [4, accent]]) {
+      graphics.lineStyle(width * scale, color, 1)
+        .moveTo(points[0], points[1]).lineTo(points[2], points[3]);
+    }
+  }
+  if (node.signatureNode) {
+    graphics.lineStyle(2 * scale,outline).beginFill(accent)
+      .drawPolygon(transform([27,-39,31,-31,39,-27,31,-23,27,-15,23,-23,15,-27,23,-31])).endFill();
+  }
+}
+
+function drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale }) {
   const transform = points => points.map((value, index) => value * scale + (index % 2 ? y : x));
   const polygon = points => graphics.lineStyle(3 * scale, outline, 1).beginFill(fill).drawPolygon(transform(points)).endFill();
   const line = (points, width = 4, color = outline) => {
@@ -37,13 +85,19 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       polygon([-9,-25,1,-32,28,-11,18,1,7,-10,2,-6,-9,-16]);
       line([-20,22,-14,27],4,accent);
       break;
-    case 'neutralMarket': // Market stall with an open counter.
-    case 'classMarket':
+    case 'shop': // Shared market stall with an open counter and striped awning.
       polygon([-30,-10,-23,-29,23,-29,30,-10,24,-3,-24,-3]);
       line([-23,-3,-23,27,23,27,23,-3]);
       line([-23,12,23,12],4,accent);
-      if (kind === 'classMarket') polygon([-8,4,0,-6,8,4,0,14]);
-      else line([-8,3,8,3],4,accent);
+      line([-10,-25,-13,-8],4,accent); line([10,-25,13,-8],4,accent);
+      break;
+    case 'neutralMarket': // Exchange arrows.
+      line([-25,-12,25,-12,13,-24],6,fill);
+      line([25,12,-25,12,-13,24],6,fill);
+      break;
+    case 'classMarket': // Class diamond.
+      polygon([0,-28,25,0,0,28,-25,0]);
+      line([0,-15,0,15],5,accent);
       break;
     case 'stockShop': // A Stock crate with crossed boards.
       polygon([-26,-25,26,-25,26,25,-26,25]);
@@ -54,7 +108,6 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);
       line([-29,-3,29,-3],4,accent);
       break;
-    case 'housingShop':
     case 'settlement':
       polygon([-31,-3,0,-30,31,-3,23,2,23,27,7,27,7,9,-7,9,-7,27,-23,27,-23,2]);
       line([-23,-3,0,-23,23,-3],4,accent);
@@ -85,13 +138,5 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
       break;
     default:
       polygon([0,-32,9,-10,31,-10,14,5,21,29,0,15,-21,29,-14,5,-31,-10,-9,-10]);
-  }
-  if (variant?.startsWith('remove')) {
-    line([-26,29,27,-28],9,outline);
-    line([-26,29,27,-28],4,accent);
-  }
-  if (node.signatureNode) {
-    graphics.lineStyle(2 * scale,outline).beginFill(accent)
-      .drawPolygon(transform([27,-39,31,-31,39,-27,31,-23,27,-15,23,-23,15,-27,23,-31])).endFill();
   }
 }

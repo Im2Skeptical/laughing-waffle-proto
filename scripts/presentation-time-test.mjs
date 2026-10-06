@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { normalizeEventMarkers } from '../src/views/timegraphs-helpers.js';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
@@ -17,6 +18,19 @@ import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
 } from '../src/views/ui-root/settlement-graph-session.js';
+
+// Stock Supply markers keep the output needed by their specialty badge, even
+// when two outputs occur at the same second. Exact duplicate events collapse.
+const shopMarkers = ['Timber', 'Edible', 'Timber'].map(stockOutput => ({
+  tSec: 12, nodeIcon: { family: 'stockShop', stockOutput },
+}));
+const normalizedShops = normalizeEventMarkers(shopMarkers, { minSec: 0, maxSec: 20 });
+assert.deepEqual(normalizedShops.map(marker => marker.nodeIcon.stockOutput), ['Timber', 'Edible']);
+const signatureShop = normalizeEventMarkers([{
+  tSec: 14, nodeIcon: { family: 'signature', signatureNode: { variantId: 'knowledgeShop' } },
+}], { minSec: 0, maxSec: 20 });
+assert.equal(signatureShop[0].nodeIcon.signatureNode.variantId, 'knowledgeShop');
+assert.equal(shopMarkers[0].nodeIcon.stockOutput, 'Timber', 'normalization leaves source nodes untouched');
 
 const faceClock={tSec:0,seasonDurationSec:8};
 for (const [candidateIndex, classId] of [[null, null], [0, 'scholar'], [1, 'warrior']]) {

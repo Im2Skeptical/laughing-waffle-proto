@@ -15,7 +15,7 @@ try {
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   page=await browser.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`${url}/#/dev/gym`);
+  await page.goto(`${url}/#/dev/gym?workspace=settlement`);
   await page.waitForFunction(()=>globalThis.__LAB_DEBUG__?.getScene()?.graph.computedCoverageEndSec===60);
   // Forecast completion can precede atlas loading. Without the illustration,
   // Pixi's bounds enclose only the smaller ink layer, not the painted scroll.

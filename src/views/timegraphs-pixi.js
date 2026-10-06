@@ -3,6 +3,7 @@
 // STAGE 3: tSec aware.
 
 import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import { getArtRevision } from "./chronicle-art.js";
 import { createTimegraphScroll, getTimegraphInk, getTimegraphLayout, TIMEGRAPH_CHROME } from './timegraph-scroll-pixi.js';
 import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
 import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
@@ -2340,7 +2341,7 @@ export function createMetricGraphView({
     const bootFadeState = getBootFadeRenderState(now);
     const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(
       visibleForecastCoverageEndSec * 10
-    )}:${projectionReplacementKey}:${seriesScaleMaxFlashKey}:${bootFadeState?.key ?? ""}`;
+    )}:${projectionReplacementKey}:${seriesScaleMaxFlashKey}:${bootFadeState?.key ?? ""}:${getArtRevision()}`;
     const cacheVersion =
       Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
     const versionChanged =
