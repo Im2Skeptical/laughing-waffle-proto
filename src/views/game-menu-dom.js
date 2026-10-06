@@ -2,8 +2,11 @@ import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode,
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
 import { createGameLoadingDom } from './game-loading-dom.js';
+import { NEW_GAME_DEV_SETTINGS_KEY } from '../controllers/new-game-settings-controller.js';
+import { DEBUG_PROFILE_LIBRARY_STORAGE_KEY } from '../model/debug-profile-library.js';
+import { CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY } from '../controllers/card-review-controller.js';
 
-export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
+export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
@@ -131,6 +134,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
     void enter(isCurrent => session.newGame(slot, { isCurrent }), slot, event);
   }
   function render() {
+    const devExpanded = panel.querySelector('[data-testid="game-developer-tools"]')?.open ?? false;
     panel.replaceChildren();
     const layout = document.createElement("div");
     layout.className = "game-menu-content";
@@ -250,17 +254,50 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
         content.append(warning);
       }
       const dev = document.createElement('details');
+      dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
-      dev.append(summary,
-        button('New run setup in Gym', () => window.open(new URL('#/dev/gym?workspace=setup', location.href).href, '_blank', 'noopener'), 'game-new-run-setup'),
-        button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
+      dev.append(summary);
+      if (newGameSettings) {
+        const settings = document.createElement('div'); settings.className = 'game-dev-settings';
+        const label = document.createElement('label'); label.className = 'game-edited-cards-toggle';
+        const toggle = document.createElement('input'); toggle.type = 'checkbox'; toggle.dataset.testid = 'game-use-dev-settings';
+        label.append(toggle, document.createTextNode('Use dev settings'));
+        const profileLabel = document.createElement('label'); profileLabel.className = 'game-dev-profile-label';
+        profileLabel.append(document.createTextNode('Dev profile'));
+        const picker = document.createElement('select'); picker.dataset.testid = 'game-dev-profile'; picker.setAttribute('aria-label', 'Dev profile');
+        profileLabel.append(picker);
+        const edit = document.createElement('a'); edit.textContent = 'Edit profiles in Gym'; edit.href = new URL('#/dev/gym?workspace=setup', location.href).href;
+        edit.target = '_blank'; edit.rel = 'noopener'; edit.dataset.testid = 'game-edit-dev-profiles';
+        const info = document.createElement('p'); info.className = 'game-menu-note game-dev-settings-status'; info.dataset.testid = 'game-dev-settings-status'; info.setAttribute('role', 'status');
+        const update = () => {
+          const snapshot = newGameSettings.getSnapshot();
+          toggle.checked = snapshot.enabled; picker.disabled = !snapshot.enabled;
+          picker.replaceChildren();
+          for (const entry of snapshot.profileOptions) {
+            const option = document.createElement('option'); option.value = entry.id; option.textContent = entry.name; picker.append(option);
+          }
+          if (!snapshot.selectedName) { const missing = document.createElement('option'); missing.value = snapshot.profileId; missing.textContent = 'Unavailable profile'; picker.append(missing); }
+          picker.value = snapshot.profileId;
+          info.textContent = snapshot.enabled
+            ? snapshot.error || `New Game will use ${snapshot.selectedName}. Choose a save slot to start. Continue and Load Game keep their saved settings.`
+            : 'New Game uses Regular game. To use a custom setup, save a combined profile in Gym, tick Use dev settings and choose it here.';
+        };
+        const changed = action => {
+          try { action(); update(); session.cancelPreparation?.(); void session.prepareNewGame?.(); }
+          catch (error) { update(); info.textContent = error.message; }
+        };
+        toggle.addEventListener('change', () => changed(() => newGameSettings.setEnabled(toggle.checked)));
+        picker.addEventListener('change', () => changed(() => newGameSettings.selectProfile(picker.value)));
+        update(); settings.append(label, profileLabel, edit, info); dev.append(settings);
+      }
+      dev.append(button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
       if(cardReviews) {
         const label=document.createElement('label');label.className='game-edited-cards-toggle';
         const toggle=document.createElement('input');toggle.type='checkbox';toggle.dataset.testid='game-use-edited-cards';toggle.checked=cardReviews.useInNewGames();
         label.append(toggle,document.createTextNode('Use edited cards in new games'));
         const info=document.createElement('p');info.className='game-menu-note game-edited-cards-status';info.dataset.testid='game-edited-cards-status';info.setAttribute('role','status');
         const update=()=>{
-          try{const status=cardReviews.getLaunchStatus();info.textContent=`${status.count} edited ${status.count===1?'card':'cards'} saved on this device. ${status.issues.length?`Fix these before starting: ${status.issues.slice(0,3).join('; ')}.`:'Start a new game to use them. Continue keeps that game’s saved card values.'}`;}
+          try{const status=cardReviews.getLaunchStatus();info.textContent=`${status.count} edited ${status.count===1?'card':'cards'} saved on this device. ${status.issues.length?`Fix these before starting: ${status.issues.slice(0,3).join('; ')}.`:'When ticked, these edits apply on top of the selected new-game setup. Continue keeps that game’s saved card values.'}`;}
           catch(error){info.textContent=`Card edits unavailable: ${error.message}`;}
         };
         toggle.addEventListener('change',()=>{
@@ -282,6 +319,10 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews }) {
   function returnToMenu({ force = false } = {}) {
     if (session.openMenu({ force })) { onPause?.(); show(); }
   }
+  window.addEventListener('storage', event => {
+    if (panel.hidden || ![null, NEW_GAME_DEV_SETTINGS_KEY, DEBUG_PROFILE_LIBRARY_STORAGE_KEY, CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY].includes(event.key)) return;
+    render(); session.cancelPreparation?.(); void session.prepareNewGame?.();
+  });
   function pauseForFocusLoss() {
     if (!usesTouchGameDisplay()) {
       if (!session.isInMenu()) session.save();

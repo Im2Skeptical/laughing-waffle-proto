@@ -15,7 +15,8 @@ and its direct dependencies.
   Native IndexedDB transactions and current-save transfer: `save-storage.js` in
   that folder. Slot read/write/load methods are asynchronous; listings use small metadata records.
 - Landing menu and active save slot: `src/views/game-menu-dom.js` and
-  `src/controllers/game-session-controller.js`
+  `src/controllers/game-session-controller.js`; menu dev-profile selection and
+  creation use `src/controllers/new-game-settings-controller.js`.
 - Loading status/timing view: `src/views/game-loading-dom.js`; runtime-only
   stage timings and failure reasons: `src/controllers/loading-diagnostics.js`.
   The latest entry is also included in the save diagnostic report.

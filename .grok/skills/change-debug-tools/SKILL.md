@@ -21,13 +21,15 @@ visible label, then read only that file and its direct imports.
 | Vassal Lab presets | `src/controllers/vassal-debug-preset-controller.js` |
 | Life Map Lab | `src/views/life-map-lab-dom.js`, `src/controllers/life-map-lab-controller.js`, `src/model/life-map-lab-draft.js` |
 | Named draft libraries | `src/model/debug-draft-library.js` |
+| Menu dev-profile selection | `src/controllers/new-game-settings-controller.js`, `src/views/game-menu-dom.js` |
 | Debug profiles | `src/controllers/debug-profile-controller.js`, `src/model/debug-profile-library.js` |
 
 Gym → **New run setup** owns fresh-run editors and launch profiles. The read-only
 Regular game baseline and its editable copies use `src/model/new-game.js`, the
 same initializer as player New Game (including neutral seeding). **Start new run**
 opens a disposable game; **Open in settlement sandbox** initializes Gym.
-Use one combined launch profile for all fresh-run sections. Card editing lives
+Use one combined launch profile for all fresh-run sections. The main menu's
+Use dev settings toggle selects a saved profile for normal New Game and save slots. Card editing lives
 in the card reviewer; New run setup captures applied reviews in that profile.
 Museum stores states at a specific second, rather than launch recipes.
 The live hold-button workshop owns Vassal replacement and save diagnostics.

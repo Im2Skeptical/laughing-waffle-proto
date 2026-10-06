@@ -24,6 +24,11 @@ body.game-menu-open .codex-debug-panel { display: none !important; }
 .game-menu-eyebrow { color: #d7b450; text-transform: uppercase; letter-spacing: .13em; font: 12px/1.6 sans-serif; }
 .game-edited-cards-toggle { display:flex; align-items:center; gap:12px; min-height:48px; margin-top:16px; font:16px/1.4 system-ui,sans-serif; }
 .game-edited-cards-toggle input { width:24px; height:24px; flex-shrink:0; accent-color:#93c6ad; }
+.game-dev-settings { margin:12px 0; }
+.game-dev-profile-label { display:grid; gap:6px; margin:12px 0; font:16px/1.4 system-ui,sans-serif; }
+.game-dev-profile-label select { width:100%; min-width:0; min-height:44px; padding:8px; border:1px solid #9a9467; border-radius:4px; background:#22332c; color:#eee6cd; font:inherit; }
+.game-dev-settings a { display:inline-block; padding:6px 0; color:#afddc8; font:15px/1.4 system-ui,sans-serif; }
+.game-dev-settings-status { font-size:13px!important; color:#b1bfb4!important; max-width:none!important; margin:8px 0!important; }
 #game-menu p { line-height: 1.5; }
 #game-menu button, [data-testid="game-menu-open"] { min-height: 44px; padding: 10px 18px;
   border: 1px solid #b89b5c; border-radius: 7px; background: #394a43; color: #f6efe3; font: 15px sans-serif; cursor: pointer; }

@@ -146,7 +146,7 @@ export function createDebugProfileController({ mapLabController, debugConfigurat
       try {
         storage?.setItem(DEBUG_PROFILE_DEFAULT_STORAGE_KEY, id); defaultProfileId = id;
         storage?.removeItem(WORKSPACE_STORAGE_KEY);
-        status = { message: 'Default workshop profile updated. Player New Game still uses Regular game.', tone: 'ok' };
+        status = { message: 'Default workshop profile updated. Main-menu new-game settings are selected separately.', tone: 'ok' };
         return { ok: true };
       } catch (_) { return { ok: false, reason: 'storageUnavailable' }; }
     },

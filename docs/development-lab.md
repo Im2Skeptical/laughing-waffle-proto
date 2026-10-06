@@ -20,8 +20,8 @@ launch options and any applied reviewed cards. There are no separate section
 profile or preset toolbars. Edit gamepieces in the card reviewer. Profiles save
 locally and support JSON export, copy and import. The built-in profile cannot be renamed, saved over or deleted.
 Drafts survive refresh. **Default in workshop** chooses the recipe for the next
-workshop opening and clears the remembered draft; it never changes player New
-Game or a live game.
+workshop opening and clears the remembered draft. The main menu has its own
+profile selection; a workshop default does not change it or a live game.
 
 **Regular game ? random connected pair** uses roads from Map Lab and its first
 detailed settlement as the shared starting tableau; per-region placement is
@@ -31,7 +31,17 @@ explicit seed makes launches reproducible. A launch fails visibly if the edited
 map has no eligible road or insufficient frontier space for four neutrals.
 Life Map's preview seed only changes its preview; the launch seed drives the run.
 **Apply reviewed cards to draft** captures reviewer proposals in this recipe.
-Player New Game retains its separate reviewed-card toggle.
+**Main menu ? Developer tools ? Use dev settings** makes the normal **New Game**
+button use the chosen saved combined profile, with the usual save-slot selection.
+Unticking it uses Regular game. The preference and profile selection survive
+refresh. **Edit profiles in Gym** opens the editor; save the profile there before
+selecting it on the menu. Saved-profile edits refresh the prepared opening. A
+missing or invalid selected profile fails visibly instead of silently launching
+Regular game. Continue and Load Game retain their saved settings.
+
+The separate **Use edited cards in new games** toggle applies current reviewer
+proposals over the chosen new-game setup. Cards already captured in a combined
+profile remain part of that profile when this toggle is off.
 
 **Start new run** opens normal gameplay in this tab as an unsaved test run.
 Use browser Back to return to the remembered workshop draft.
@@ -304,6 +314,9 @@ the source run's prior history because the bridge transfers a state, not a run.
   The menu probe now distinguishes the two player settlements from four neutrals.
 
 ## Verification
+
+- `npm run probe:game-menu -- --dev-settings-only`: menu profile selection,
+  persisted preferences, phone layout, custom New Game saves and Continue isolation.
 
 - `npm run probe:map-lab`: Regular game baseline, read-only inspection, editable
   copies, all three editor tabs, reviewed cards, combined-profile persistence, JSON sharing, mobile

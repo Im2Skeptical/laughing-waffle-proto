@@ -6,6 +6,8 @@ import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 import { createAuthoredGameConfig } from '../src/model/game-config.js';
 import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
+import { createStarterBootProfile } from '../src/model/starter-boot-profile.js';
+import { DEBUG_PROFILE_LIBRARY_STORAGE_KEY, createEmptyDebugProfileLibrary, saveDebugProfile, serializeDebugProfileLibrary } from '../src/model/debug-profile-library.js';
 
 const PORT = 18182;
 const url = `http://127.0.0.1:${PORT}`;
@@ -56,6 +58,10 @@ async function installSaveProbe(target) {
     };
   });
 }
+async function openDeveloperTools(page) {
+  const tools = page.getByTestId('game-developer-tools');
+  if (await tools.getAttribute('open') === null) await tools.locator('summary').click();
+}
 async function checkLoadingDetails(page) {
   await page.setViewportSize({ width: 844, height: 390 });
   await page.evaluate(() => { globalThis.__holdSaveLoadMessages = true; });
@@ -100,7 +106,8 @@ try {
     await delay(100);
   }
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const menuContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  page = await menuContext.newPage();
   // Match the existing opening-forecast probe's allowance on software GL.
   page.setDefaultTimeout(120000);
   page.on('pageerror', (error) => errors.push(error.message));
@@ -120,6 +127,63 @@ try {
     writeFileSync('artifacts/game-loading-browser-probe.json', JSON.stringify({ ok: true,
       checks: ['live timing', 'button focus', 'expanded timing persistence', 'phone bounds', 'history failure details', 'frozen failure timings', 'retry'] }));
     console.log('PASS phone loading details, timings, failure and retry');
+  } else if (process.argv.includes('--dev-settings-only')) {
+    const profile = createStarterBootProfile();
+    profile.gameSettings.values.populationPerToken = 12;
+    profile.gameSettings.values.primordialBasePressure = 400;
+    profile.lifeMapLab.generatorConfig.laneCount = 5;
+    profile.launch.neutralSettlements = false;
+    profile.gamepieces.practices.forage.stockCapacity = 6;
+    const library = saveDebugProfile(createEmptyDebugProfileLibrary(), 'Five lanes test', profile).library;
+    await page.addInitScript(({ key, text }) => localStorage.setItem(key, text),
+      { key: DEBUG_PROFILE_LIBRARY_STORAGE_KEY, text: serializeDebugProfileLibrary(library) });
+    await page.goto(url);
+    await page.getByTestId('game-new').waitFor();
+    await openDeveloperTools(page);
+    assert.equal(await page.getByTestId('game-use-dev-settings').isChecked(), false);
+    assert.equal(await page.getByTestId('game-dev-profile').isDisabled(), true);
+    assert.equal(await page.getByTestId('game-new-run-setup').count(), 0);
+    await page.getByTestId('game-use-dev-settings').check();
+    await page.getByTestId('game-dev-profile').selectOption('profile-1');
+    assert.match(await page.getByTestId('game-dev-settings-status').textContent(), /New Game will use Five lanes test/);
+    await page.reload();
+    await page.getByTestId('game-new').waitFor();
+    await openDeveloperTools(page);
+    assert.equal(await page.getByTestId('game-use-dev-settings').isChecked(), true);
+    assert.equal(await page.getByTestId('game-dev-profile').inputValue(), 'profile-1');
+    // A profile saved in the Gym tab refreshes the menu and its prepared opening.
+    const gym = await page.context().newPage();
+    await gym.goto(`${url}/#/dev/gym?workspace=setup`);
+    library.profiles[0].name = 'Updated five lanes';
+    library.profiles[0].profile.gameSettings.values.populationPerToken = 14;
+    await gym.evaluate(({ key, text }) => localStorage.setItem(key, text),
+      { key: DEBUG_PROFILE_LIBRARY_STORAGE_KEY, text: serializeDebugProfileLibrary(library) });
+    await page.waitForFunction(() => document.querySelector('[data-testid="game-dev-settings-status"]').textContent.includes('Updated five lanes'));
+    await gym.close();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('game-dev-profile').scrollIntoViewIfNeeded();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+    await page.screenshot({ path: 'artifacts/game-menu-dev-settings-phone.png' });
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.getByTestId('game-new').click();
+    assert.equal(await page.getByTestId('game-developer-tools').getAttribute('open'), '', 'slot selection preserves expanded developer tools');
+    await page.getByTestId('game-slot-1').click();
+    await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+    const saved = await page.evaluate(async () => JSON.parse(await globalThis.__readSaveSlot(1)));
+    assert.equal(saved.state.gameConfig.settings.values.populationPerToken, 14);
+    assert.equal(saved.state.gameConfig.lifeMapGenerator.laneCount, 5);
+    assert.equal(saved.state.gameConfig.gamepieces.practices.forage.stockCapacity, 6);
+    assert.equal(saved.state.world.sites.filter(site => site.neutral).length, 0);
+    await page.getByTestId('game-menu-open').click();
+    await openDeveloperTools(page);
+    await page.getByTestId('game-use-dev-settings').uncheck();
+    await page.getByTestId('game-continue').click();
+    await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().gameConfig.lifeMapGenerator.laneCount), 5, 'Continue retains saved custom settings after the toggle is disabled');
+    assert.deepEqual(errors, []);
+    writeFileSync('artifacts/game-menu-dev-settings-probe.json', JSON.stringify({ ok: true,
+      checks: ['saved profile picker', 'preference refresh', 'Gym profile updates invalidate preparation', 'phone layout', 'New Game custom initialization and save', 'Continue isolation'] }));
+    console.log('PASS menu dev profile picker, persistence, mobile, New Game and Continue isolation');
   } else {
   await page.goto(url);
   await page.getByTestId('game-new').waitFor();
@@ -130,13 +194,13 @@ try {
   review.edit('practice','forage',['stockCapacity'],7);
   review.edit('practice','forage',['stockTraits'],['Edible','Plant','Water']);
   await page.evaluate(({key,value})=>localStorage.setItem(key,value),{key:CARD_REVIEW_STORAGE_KEY,value:draftStorage.get(CARD_REVIEW_STORAGE_KEY)});
-  await page.getByTestId('game-menu').locator('summary').click();
+  await openDeveloperTools(page);
   await page.getByTestId('game-use-edited-cards').check();
   assert.match(await page.getByTestId('game-edited-cards-status').textContent(),/1 edited card saved on this device/);
   await page.reload();
   await page.getByTestId('game-new').waitFor();
   await page.waitForFunction(() => !document.querySelector('[data-testid=game-new]').disabled);
-  await page.getByTestId('game-menu').locator('summary').click();
+  await openDeveloperTools(page);
   assert.equal(await page.getByTestId('game-use-edited-cards').isChecked(),true,'edited-card preference persists across reloads');
   await page.screenshot({ path: 'artifacts/game-menu-desktop.png' });
   const initialSecond = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.cursorStateSec);
@@ -203,7 +267,7 @@ try {
   assert.equal(saved.state.world.sites.filter(site => saved.state.world.regions.find(region => region.id === site.regionId)?.controller === 'player').length, 2);
   assert.equal(saved.state.world.sites.filter(site => site.neutral).length, 4);
   await page.getByTestId('game-menu-open').click();
-  await page.getByTestId('game-menu').locator('summary').click();
+  await openDeveloperTools(page);
   await page.getByTestId('game-use-edited-cards').uncheck();
   await page.getByTestId('game-new').click();
   await page.getByTestId('game-slot-1').click();

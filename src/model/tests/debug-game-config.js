@@ -40,8 +40,12 @@ import { createMapLabController } from "../../controllers/map-lab-controller.js"
 import { createDebugConfigurationController } from "../../controllers/debug-configuration-controller.js";
 import { createDebugProfileController } from "../../controllers/debug-profile-controller.js";
 import { createLifeMapLabController } from "../../controllers/life-map-lab-controller.js";
+import { createNewGameSettingsController } from "../../controllers/new-game-settings-controller.js";
+import { createCardReviewController } from "../../controllers/card-review-controller.js";
+import { createStarterBootProfile } from "../starter-boot-profile.js";
 import {
   parseDebugProfileExportJson, REGULAR_GAME_PROFILE_ID, DEBUG_PROFILE_DEFAULT_STORAGE_KEY,
+  DEBUG_PROFILE_LIBRARY_STORAGE_KEY, createEmptyDebugProfileLibrary, saveDebugProfile, serializeDebugProfileLibrary,
 } from "../debug-profile-library.js";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -359,6 +363,59 @@ try {
 } finally {
   if (previousStorage === undefined) delete globalThis.localStorage;
   else globalThis.localStorage = previousStorage;
+}
+
+{
+  const saved = new Map();
+  const storage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) };
+  const reviews = createCardReviewController({ storage });
+  const settings = createNewGameSettingsController({ storage, cardReviews: reviews });
+  const baseline = serializeGameState(createNewGameState(42));
+  assert.deepEqual(serializeGameState(settings.createNewGame(42)), baseline);
+  const profile = createStarterBootProfile();
+  profile.gameSettings.values.populationPerToken = 12;
+  profile.lifeMapLab.generatorConfig.laneCount = 5;
+  profile.launch.neutralSettlements = false;
+  profile.mapLab.regions[0].colour = 'black';
+  profile.gamepieces.practices.forage.stockCapacity = 6;
+  const entry = saveDebugProfile(createEmptyDebugProfileLibrary(), 'Custom game', profile);
+  storage.setItem(DEBUG_PROFILE_LIBRARY_STORAGE_KEY, serializeDebugProfileLibrary(entry.library));
+  settings.selectProfile(entry.entry.id);
+  const normalKey = settings.getLaunchKey();
+  settings.setEnabled(true);
+  assert.notEqual(settings.getLaunchKey(), normalKey, 'enabling dev settings invalidates the prepared opening');
+  const custom = settings.createNewGame(42), captured = serializeGameState(custom);
+  assert.equal(custom.gameConfig.settings.values.populationPerToken, 12);
+  assert.equal(custom.gameConfig.lifeMapGenerator.laneCount, 5);
+  assert.equal(custom.gameConfig.gamepieces.practices.forage.stockCapacity, 6);
+  assert.equal(custom.world.regions[0].colour, 'black');
+  assert.equal(custom.world.sites.filter(site => site.neutral).length, 0);
+  const initialKey = settings.getLaunchKey();
+  entry.library.profiles[0].profile.gameSettings.values.populationPerToken = 14;
+  storage.setItem(DEBUG_PROFILE_LIBRARY_STORAGE_KEY, serializeDebugProfileLibrary(entry.library));
+  assert.notEqual(settings.getLaunchKey(), initialKey, 'saved profile edits invalidate the prepared opening');
+  assert.equal(settings.createNewGame(42).gameConfig.settings.values.populationPerToken, 14);
+  assert.deepEqual(serializeGameState(custom), captured, 'profile edits leave existing games unchanged');
+  const reopened = createNewGameSettingsController({ storage, cardReviews: reviews });
+  assert.equal(reopened.getSnapshot().enabled, true);
+  assert.equal(reopened.getSnapshot().profileId, entry.entry.id);
+  reviews.flag('practice', 'forage', profile.gamepieces.practices.forage);
+  reviews.edit('practice', 'forage', ['stockCapacity'], 9);
+  reviews.setUseInNewGames(true);
+  assert.equal(reopened.createNewGame(42).gameConfig.gamepieces.practices.forage.stockCapacity, 9, 'enabled reviews apply over the selected profile');
+  reviews.setUseInNewGames(false);
+  assert.equal(reopened.createNewGame(42).gameConfig.gamepieces.practices.forage.stockCapacity, 6, 'unchecked reviews preserve cards already saved in the profile');
+  const timeline = createTimelineFromInitialState(custom);
+  const replayed = rebuildStateAtSecond(timeline, 1);
+  assert.equal(replayed.ok, true);
+  assert.equal(replayed.state.gameConfig.settings.values.populationPerToken, 12, 'replay uses the captured recipe after its saved profile changes');
+  assert.equal(replayed.state.gameConfig.gamepieces.practices.forage.stockCapacity, 6, 'replay ignores later card reviews');
+  storage.setItem(DEBUG_PROFILE_LIBRARY_STORAGE_KEY, serializeDebugProfileLibrary(createEmptyDebugProfileLibrary()));
+  assert.match(reopened.getSnapshot().error, /unavailable/);
+  assert.doesNotThrow(() => reopened.getLaunchKey(), 'a missing selection must not crash the menu prewarm');
+  assert.throws(() => reopened.createNewGame(42), /unavailable/, 'missing profiles must never silently start a regular game');
+  reopened.setEnabled(false);
+  assert.deepEqual(serializeGameState(reopened.createNewGame(42)), baseline);
 }
 
 console.log("[debug-game-config-v12] OK");

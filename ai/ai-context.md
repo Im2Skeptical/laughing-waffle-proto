@@ -59,7 +59,8 @@ Authoritative numbers:
 - Life Map generator settings v5; serialized Life Map graph v4.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
-- Debug drafts in browser storage are inert until launched from Gym ? New run setup.
+- Debug drafts are inert until launched from Gym ? New run setup; saved combined
+  profiles can also initialize New Game through the menu's Use dev settings toggle.
   Card-review proposals require the menu's Use edited cards in new games toggle;
   new runs capture them in gameConfig. Existing runs and deterministic replay
   use their own serialized definitions, never browser review storage.
@@ -67,7 +68,8 @@ Authoritative numbers:
 
 ## Current prototype setup
 
-Player New Game uses the Starter_02 map, nine fixed roads, and tuning. Each
+Regular player New Game uses the Starter_02 map, nine fixed roads, and tuning.
+The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the only player-controlled detailed settlements, with the first in
 authored region order serving as capital. Four authored neutral settlements are placed deterministically, including one adjacent to the capital. Other regions are frontier. The
