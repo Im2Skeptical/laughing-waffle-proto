@@ -64,7 +64,14 @@ This is an implemented reversible ambient layer, not a complete authored soundtr
 
 ## Asset library
 
-All seven atlases live in `images/sprite-sheets/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
+All eight atlas groups live in `images/sprite-sheets/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
+
+Heirlooms have a distinct square object painting each. The compact Vassal bar
+places three active icons and the bag beside smaller stat chips. Opening the
+bag pauses presentation and shows Active, Bag and Lineage vault tabs. Carried
+items are inactive; stored items remain available for a future Vassal’s loadout.
+Relic choices, loadouts, inheritance and paged vault overflow use the same art
+and numeric effect copy. Inventory browsing does not change equipment rules.
 
 See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md), including the approved [resource and timepiece family](../images/dark-fantasy/resource-language-v1/README.md).
 

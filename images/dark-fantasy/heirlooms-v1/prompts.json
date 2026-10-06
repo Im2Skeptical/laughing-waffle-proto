@@ -1,0 +1,81 @@
+{
+  "tool": "built-in image_gen",
+  "artDirection": "Original square object paintings; earthy pixel clusters to match the practice, structure and resource families. Reused at small size for relic icons; no external game art.",
+  "prompts": [
+  {
+    "id": "signetRing",
+    "file": "signetRing.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a thick aged bronze signet ring with an engraved sun crest. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "travellersBoots",
+    "file": "travellersBoots.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a pair of weathered brown leather travelling boots, worn cuffs and sturdy soles. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "tutorsNotebook",
+    "file": "tutorsNotebook.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a small battered ochre leather notebook with a quill tucked into its cord. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "minorSeal",
+    "file": "minorSeal.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a short carved bronze seal stamp, dark wooden handle and small red wax impression. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "foxMask",
+    "file": "foxMask.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: an ochre and russet carved fox mask, pointed ears and dark eyeholes. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "abacus",
+    "file": "abacus.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a small wooden abacus with rows of ivory and bronze counting beads. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "courtiersBrooch",
+    "file": "courtiersBrooch.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: an ornate silver courtier's brooch shaped like interwoven leaves, amber centre. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "pilgrimsStaff",
+    "file": "pilgrimsStaff.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a crooked pilgrim's wooden staff with a bound bronze bell and cloth wrap. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "merchantsLens",
+    "file": "merchantsLens.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a round magnifying lens in a weathered silver rim with a short dark wooden handle. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "hourglass",
+    "file": "hourglass.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a small silver and dark wood hourglass filled with pale golden sand. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "royalWarrant",
+    "file": "royalWarrant.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a rolled royal parchment warrant tied with ochre ribbon and a heavy golden wax seal, no legible writing. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "scholarsCodex",
+    "file": "scholarsCodex.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: an ancient blue leather codex with golden clasps and worn ivory page edges. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "crownOfAges",
+    "file": "crownOfAges.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: an ancient golden crown with weathered high points and small pale blue stones. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "mandateOfHeaven",
+    "file": "mandateOfHeaven.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a ceremonial carved ivory and pale jade tablet, golden binding and a subtle warm sacred glow. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  },
+  {
+    "id": "bag",
+    "file": "bag.png",
+    "prompt": "Use case: stylized-concept. Asset type: original square heirloom item artwork for a dark medieval civilization game, also readable as a tiny relic icon. Primary request: a closed worn brown leather satchel with a chunky brass clasp and short curved strap. Style/medium: richly hand-placed low-resolution pixel clusters, crisp stepped contours, selective dithering, restricted 24-color palette like the supplied game's practice and structure art: charcoal, umber, warm stone, wheat, muted olive, restrained metallic accents. Composition: one large centred unmistakable object, fully visible, occupying 75% of a square canvas, three-quarter view, strong readable silhouette, minimal dark charcoal olive background and faint contact shadow. Light: warm directional amber light, deep earthy shadows. No people, no scenery, no text, no letters, no card frame, no border, no watermark. Avoid smooth gradients, photographic realism, plastic 3D rendering, cartoon outlines. Render square 1024 by 1024."
+  }
+]
+}

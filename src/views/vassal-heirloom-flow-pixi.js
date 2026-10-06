@@ -1,266 +1,121 @@
-import { FAITH_TIER_COLORS, PALETTE, TEXT_STYLES } from "./settlement-theme.js";
-import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
-import {
-  getHeirloomInheritanceLabel,
-  getHeirloomQualityLabel,
-} from "../defs/gamepieces/vassal-heirloom-defs.js";
-import { presentHeirloom } from "../model/vassal-life-map.js";
+import { clearChildren, createText } from './settlement-view-primitives.js';
+import { TEXT_STYLES } from './settlement-theme.js';
+import { getArtRevision } from './chronicle-art.js';
+import { paintRelicPanel, RELIC } from './chronicle-skin.js';
+import { addHeirloomCard, heirloomInheritanceText } from './vassal-heirloom-pixi.js';
+import { button } from './vassal-node-decision/cards.js';
+import { getHeirloomDefinition } from '../defs/gamepieces/vassal-heirloom-defs.js';
 
-const PANEL = Object.freeze({ x: 512, y: 150, width: 1400, height: 760 });
-
-function addButton(parent, rect, label, enabled, onPress, selected = false) {
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
-  root.cursor = enabled ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  root.on("pointertap", (event) => {
-    event?.stopPropagation?.();
-    if (enabled) onPress?.();
-  });
-  const gfx = new PIXI.Graphics();
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 8,
-    enabled ? (selected ? 0x536d48 : 0x40533b) : 0x464743,
-    enabled ? (selected ? PALETTE.green : PALETTE.accent) : PALETTE.stroke,
-    selected ? 3 : 1);
-  root.addChild(gfx, createText(label, {
-    ...TEXT_STYLES.title, fontSize: 18, fill: enabled ? PALETTE.text : PALETTE.textMuted,
-  }, rect.width / 2, rect.height / 2, 0.5, 0.5));
-  parent.addChild(root);
-  return root;
-}
-
-function drawItemCard(parent, rect, item, {
-  selected = false, outcome = null, onToggle = null,
-} = {}) {
-  const presented = presentHeirloom(item) ?? item;
-  const root = new PIXI.Container();
-  root.position.set(rect.x, rect.y);
-  root.eventMode = onToggle ? "static" : "none";
-  root.cursor = onToggle ? "pointer" : "default";
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
-  if (onToggle) root.on("pointertap", (event) => { event.stopPropagation(); onToggle(); });
-  const gfx = new PIXI.Graphics();
-  const rim = selected
-    ? PALETTE.green
-    : FAITH_TIER_COLORS[presented.quality] ?? PALETTE.stroke;
-  roundedRect(gfx, 0, 0, rect.width, rect.height, 8, 0x2b332e, rim, selected ? 3 : 2);
-  root.addChild(gfx,
-    createText(String(presented.label ?? "").toUpperCase(), {
-      ...TEXT_STYLES.header, fontSize: 18, fill: PALETTE.text,
-      wordWrap: true, wordWrapWidth: rect.width - 20,
-    }, 10, 8),
-    createText(`${getHeirloomQualityLabel(presented.quality)} · ${
-      getHeirloomInheritanceLabel(presented.inheritanceState ?? presented.fromState)
-    }`, {
-      ...TEXT_STYLES.chip, fontSize: 13, fill: rim,
-    }, 10, 48),
-    createText(presented.description ?? "", {
-      ...TEXT_STYLES.body, fontSize: 14, fill: PALETTE.textMuted,
-      wordWrap: true, wordWrapWidth: rect.width - 20,
-    }, 10, 70));
-  if (outcome) {
-    const broke = outcome === "broke";
-    root.addChild(createText(broke ? "BROKE" : outcome === "survived" && presented.toState === "fragile"
-      ? "FRAGILE" : "SURVIVED", {
-      ...TEXT_STYLES.title, fontSize: 16,
-      fill: broke ? PALETTE.red : PALETTE.green,
-    }, 10, rect.height - 28));
-  }
-  parent.addChild(root);
-  return root;
-}
+const PANEL={x:150,y:158,width:2124,height:672};
+const TABS={equipped:'Active',carry:'Bag',vault:'Lineage vault'};
 
 export function createVassalHeirloomFlowView({
-  app, layer, getState, isRecapOpen, onResolveOverflow, onConfirmLoadout,
-  onDismissSummary,
-} = {}) {
-  const root = new PIXI.Container();
-  root.visible = false;
-  root.zIndex = 186;
-  root.eventMode = "static";
-  layer?.addChild(root);
-  let signature = "";
-  let dismissedReportId = null;
-  let selectedIds = [];
-  let lastMode = null;
+  app, layer, getState, getPresentation, isRecapOpen, onResolveOverflow, onConfirmLoadout,
+  onDismissSummary, onOpenInventory, onCloseInventory, tooltipView,
+}={}) {
+  const root=new PIXI.Container();root.visible=false;root.eventMode='none';layer?.addChild(root);
+  let signature='',dismissedReportId=null,selectedIds=[],lastMode=null;
+  let browsing=false,tab='carry',page=0,controls=new Map(),cardRoots=[];
+  let held=false;
+  root.on('pointerdown',()=>{held=true;});
+  for(const type of ['pointerup','pointerupoutside','pointercancel'])root.on(type,()=>{held=false;});
 
   function snapshot() {
-    const state = getState?.() ?? null;
-    const lineage = state?.civilization?.vassalLineage ?? null;
-    const report = lineage?.lastInheritanceReport ?? null;
-    const overflow = lineage?.pendingVaultOverflow ?? [];
-    const loadoutPending = lineage?.pendingHeirloomLoadout === true;
-    const recapOpen = isRecapOpen?.() === true;
-    const reportOpen = !!report && report.vassalId !== dismissedReportId
-      && ((report.entries ?? []).length > 0 || overflow.length > 0);
-    return {
-      state, lineage, report, overflow, loadoutPending, recapOpen,
-      visible: !recapOpen && (overflow.length > 0 || reportOpen || loadoutPending),
-      mode: overflow.length > 0 ? "overflow"
-        : reportOpen ? "summary"
-          : loadoutPending ? "loadout" : null,
+    const presentation=getPresentation?.()??{},state=browsing?(presentation.state??getState?.()):getState?.();
+    const lineage=state?.civilization?.vassalLineage,report=lineage?.lastInheritanceReport;
+    const overflow=lineage?.pendingVaultOverflow??[],loadoutPending=lineage?.pendingHeirloomLoadout===true;
+    const vassal=presentation.profileVassal??presentation.vassal??lineage?.vassalsById?.[lineage?.currentVassalId];
+    const reportOpen=!!report&&report.vassalId!==dismissedReportId&&(report.entries??[]).length>0;
+    const mode=overflow.length?'overflow':reportOpen?'summary':loadoutPending?'loadout':browsing?'inventory':null;
+    return {state,lineage,report,overflow,vassal,mode,visible:!!mode&&isRecapOpen?.()!==true};
+  }
+  function closeInventory() {
+    if(!browsing)return false;
+    browsing=false;tooltipView?.hide?.({force:true});onCloseInventory?.();render(true);return true;
+  }
+  function control(id,rect,label,enabled,onPress,selected=false) {
+    const node=button(root,rect,label,enabled,onPress,selected);controls.set(id,node);return node;
+  }
+  function text(label,x,y,size=24,fill=RELIC.bone,width) {
+    const node=createText(label,{...TEXT_STYLES.body,fontSize:size,fill,...(width?{wordWrap:true,wordWrapWidth:width}:{})},x,y);
+    root.addChild(node);return node;
+  }
+  function render(force=false) {
+    if(held)return;
+    const snap=snapshot();root.visible=snap.visible;root.eventMode=snap.visible?'static':'none';
+    if(!snap.visible){if(root.children.length)clearChildren(root);signature='';controls=new Map();cardRoots=[];return;}
+    // Cover the later HUD and navigation siblings while browsing.
+    if(root.parent.getChildIndex(root)!==root.parent.children.length-1)root.parent.setChildIndex(root,root.parent.children.length-1);
+    if(snap.mode!==lastMode){selectedIds=snap.mode==='overflow'?snap.overflow.slice(0,6).map(item=>item.instanceId):[];page=0;lastMode=snap.mode;}
+    const vault=(snap.state?.civilization?.heirloomVault??[]).filter(Boolean);
+    const inventory=snap.vassal?.heirlooms??{equipped:[],carry:[]};
+    const nextSignature=getArtRevision()+JSON.stringify({mode:snap.mode,report:snap.report,overflow:snap.overflow,vault,inventory,selectedIds,tab,page});
+    if(!force&&signature===nextSignature)return;
+    signature=nextSignature;clearChildren(root);controls=new Map();cardRoots=[];
+    const blocker=new PIXI.Graphics().beginFill(RELIC.night,.88).drawRect(0,0,app?.screen?.width??2424,app?.screen?.height??1080).endFill();
+    blocker.eventMode='static';blocker.on('pointertap',event=>{event.stopPropagation();if(snap.mode==='inventory')closeInventory();});
+    const g=new PIXI.Graphics();paintRelicPanel(g,PANEL.x,PANEL.y,PANEL.width,PANEL.height,RELIC.stone,RELIC.gold,3);
+    g.eventMode='static';g.on('pointertap',event=>event.stopPropagation());root.addChild(blocker,g);
+    const x=PANEL.x+30;
+    text(({inventory:'HEIRLOOMS',loadout:'CHOOSE THIS VASSAL’S HEIRLOOMS',overflow:'CHOOSE SIX HEIRLOOMS TO KEEP',summary:'HEIRLOOM INHERITANCE'})[snap.mode],x,PANEL.y+20,32,RELIC.gold);
+    let items=[],status='',helper='',limit=0;
+    if(snap.mode==='inventory') {
+      for(const [index,key]of Object.keys(TABS).entries()) {
+        const slots=key==='vault'?vault:inventory[key]??[],count=slots.filter(Boolean).length,capacity=key==='vault'?6:3;
+        control(`tab:${key}`,{x:x+index*346,y:PANEL.y+72,width:330,height:48},`${TABS[key]}  ${count}/${capacity}`,true,()=>{tab=key;page=0;render(true);},tab===key);
+      }
+      control('close',{x:PANEL.x+PANEL.width-210,y:PANEL.y+20,width:180,height:48},'CLOSE',true,closeInventory);
+      items=tab==='vault'?vault:(inventory[tab]??[]).filter(Boolean);
+      status=tab==='equipped'?'Active this life':tab==='carry'?'Carried · inactive':'Stored for a future Vassal';
+      helper=tab==='equipped'?'Only active heirlooms grant effects. Tap an icon in the Vassal bar to inspect this loadout.'
+        :tab==='carry'?'Carried heirlooms grant no effects. They pass through inheritance when this life ends; choose a new loadout for the next Vassal.'
+          :'These heirlooms stayed behind. Choose up to three from the vault when the next Vassal begins.';
+    } else if(snap.mode==='loadout') {
+      items=vault;status='Equip for this life';limit=3;
+      helper='Choose up to three. Sanctified items become Unmarked when taken; the rest stay in the vault. Your bag starts empty.';
+      text(`${selectedIds.length}/3 active slots selected`,x,PANEL.y+76,24,RELIC.gold);
+    } else if(snap.mode==='overflow') {
+      items=snap.overflow;status='Keep in the vault';limit=6;
+      helper='The vault holds six. Select the six to keep; all unselected heirlooms will be discarded.';
+      text(`${selectedIds.length}/6 selected · ${items.length} surviving heirlooms`,x,PANEL.y+76,24,RELIC.gold);
+    } else {
+      items=snap.report?.entries??[];
+      helper='Sanctified survives intact; taking it from the vault makes it Unmarked. Unmarked becomes Fragile after a life; Fragile may break.';
+    }
+    const pages=Math.max(1,Math.ceil(items.length/3));page=Math.min(page,pages-1);
+    const visible=items.slice(page*3,page*3+3),cardWidth=650,gap=24;
+    const cardStart=PANEL.x+(PANEL.width-visible.length*cardWidth-Math.max(0,visible.length-1)*gap)/2;
+    if(!items.length)text(tab==='carry'?'Your bag is empty. Choose “Stow in bag” when you find an heirloom.':tab==='equipped'?'No active heirlooms.':'The lineage vault is empty.',x,PANEL.y+250,30,RELIC.ash,1900);
+    visible.forEach((item,index)=>{
+      const selected=selectedIds.includes(item.instanceId);
+      const outcome=item.outcome==='broke'?'BROKE':item.outcome==='survived'?`Survived · ${item.toState??'unmarked'}`:null;
+      const node=addHeirloomCard(root,{x:cardStart+index*(cardWidth+gap),y:PANEL.y+136,width:cardWidth,height:448},item,{
+        selected,landscape:true,status:outcome??(selected?(snap.mode==='loadout'?'Will equip':'Will keep'):status),
+        onActivate:limit?()=>{if(selected)selectedIds=selectedIds.filter(id=>id!==item.instanceId);else if(selectedIds.length<limit)selectedIds.push(item.instanceId);render(true);}:()=>tooltipView?.show?.({title:item.label??getHeirloomDefinition(item.definitionId)?.label??'Heirloom',scale:2,lines:[item.outcome==='broke'?'Broke at the end of this life.':heirloomInheritanceText(item.toState??item.inheritanceState??item.fromState)]},node.getBounds()),
+        enabled:!limit||selected||selectedIds.length<limit,
+      });cardRoots.push(node);
+    });
+    text(helper,x,PANEL.y+600,22,RELIC.ash,PANEL.width-520);
+    if(pages>1){
+      control('previous',{x:PANEL.x+PANEL.width-490,y:PANEL.y+72,width:110,height:48},'←',page>0,()=>{page--;render(true);});
+      text(`${page+1}/${pages}`,PANEL.x+PANEL.width-350,PANEL.y+85,22);
+      control('next',{x:PANEL.x+PANEL.width-260,y:PANEL.y+72,width:110,height:48},'→',page+1<pages,()=>{page++;render(true);});
+    }
+    if(snap.mode==='inventory')return;
+    const confirm=()=>{
+      if(snap.mode==='summary'){dismissedReportId=snap.report?.vassalId;onDismissSummary?.();}
+      else {const result=(snap.mode==='loadout'?onConfirmLoadout:onResolveOverflow)?.([...selectedIds]);if(result?.ok===false)return;selectedIds=[];}
+      render(true);
     };
+    control('confirm',{x:PANEL.x+PANEL.width-460,y:PANEL.y+604,width:430,height:48},snap.mode==='loadout'?selectedIds.length?`EQUIP ${selectedIds.length} & BEGIN`:'BEGIN WITHOUT HEIRLOOMS':snap.mode==='overflow'?'KEEP THESE SIX':'CONTINUE',snap.mode!=='overflow'||selectedIds.length===6,confirm);
   }
-
-  function render(force = false) {
-    const snap = snapshot();
-    root.visible = snap.visible;
-    root.eventMode = snap.visible ? "static" : "none";
-    if (!snap.visible) {
-      if (root.children.length) clearChildren(root);
-      signature = "";
-      return;
-    }
-    if (snap.mode !== lastMode) {
-      selectedIds = snap.mode === "overflow"
-        ? (snap.overflow ?? []).slice(0, 6).map((item) => item.instanceId)
-        : [];
-      lastMode = snap.mode;
-    }
-    const nextSignature = JSON.stringify({
-      mode: snap.mode,
-      report: snap.report,
-      overflow: (snap.overflow ?? []).map((item) => item.instanceId),
-      vault: (snap.state?.civilization?.heirloomVault ?? []).map((item) => item?.instanceId ?? null),
-      selectedIds,
-      loadout: snap.loadoutPending,
-    });
-    if (!force && nextSignature === signature) return;
-    signature = nextSignature;
-    clearChildren(root);
-
-    const blocker = new PIXI.Graphics();
-    blocker.beginFill(0x171713, 0.72)
-      .drawRect(0, 0, app?.screen?.width ?? 2424, app?.screen?.height ?? 1080).endFill();
-    blocker.eventMode = "static";
-    blocker.on("pointertap", (event) => event.stopPropagation());
-    const bg = new PIXI.Graphics();
-    roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 16, 0x292f2b, PALETTE.accent, 3);
-    root.addChild(blocker, bg);
-
-    if (snap.mode === "summary" || snap.mode === "overflow") {
-      root.addChild(createText("HEIRLOOM INHERITANCE", {
-        ...TEXT_STYLES.title, fontSize: 28, fill: PALETTE.accent,
-      }, PANEL.x + 36, PANEL.y + 24));
-      const entries = snap.report?.entries ?? [];
-      if (!entries.length && snap.mode === "summary") {
-        root.addChild(createText("No Heirlooms were carried through this life.", {
-          ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted,
-        }, PANEL.x + 36, PANEL.y + 80));
-      }
-      if (snap.mode === "summary") {
-        entries.forEach((entry, index) => {
-          const col = index % 3;
-          const row = Math.floor(index / 3);
-          drawItemCard(root, {
-            x: PANEL.x + 36 + col * 440, y: PANEL.y + 80 + row * 210,
-            width: 420, height: 190,
-          }, { ...entry, inheritanceState: entry.toState ?? entry.fromState }, {
-            outcome: entry.outcome,
-          });
-        });
-      }
-      if (snap.mode === "overflow") {
-        entries.forEach((entry, index) => {
-          const broke = entry.outcome === "broke";
-          root.addChild(createText(
-            `${String(entry.label ?? "").toUpperCase()}  ${getHeirloomInheritanceLabel(entry.fromState)}  →  ${
-              broke ? "BROKE" : getHeirloomInheritanceLabel(entry.toState)
-            }`, {
-              ...TEXT_STYLES.body, fontSize: 16,
-              fill: broke ? PALETTE.red : PALETTE.text,
-            }, PANEL.x + 36, PANEL.y + 72 + index * 22
-          ));
-        });
-        root.addChild(createText("The Vault holds six relics. Choose which six to keep.", {
-          ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.accent,
-        }, PANEL.x + 36, PANEL.y + 220));
-        (snap.overflow ?? []).forEach((item, index) => {
-          const col = index % 3;
-          const row = Math.floor(index / 3);
-          const selected = selectedIds.includes(item.instanceId);
-          drawItemCard(root, {
-            x: PANEL.x + 36 + col * 440, y: PANEL.y + 260 + row * 150,
-            width: 420, height: 138,
-          }, item, {
-            selected,
-            onToggle: () => {
-              if (selected) selectedIds = selectedIds.filter((id) => id !== item.instanceId);
-              else if (selectedIds.length < 6) selectedIds = [...selectedIds, item.instanceId];
-              render(true);
-            },
-          });
-        });
-        addButton(root, {
-          x: PANEL.x + PANEL.width - 340, y: PANEL.y + PANEL.height - 72,
-          width: 300, height: 50,
-        }, selectedIds.length === 6 ? "KEEP THESE SIX" : `${selectedIds.length} / 6 SELECTED`,
-        selectedIds.length === 6, () => {
-          const result = onResolveOverflow?.(selectedIds);
-          if (result?.ok !== false) {
-            selectedIds = [];
-            render(true);
-          }
-        });
-      } else {
-        addButton(root, {
-          x: PANEL.x + PANEL.width - 340, y: PANEL.y + PANEL.height - 72,
-          width: 300, height: 50,
-        }, "CONTINUE", true, () => {
-          dismissedReportId = snap.report?.vassalId ?? null;
-          onDismissSummary?.();
-          render(true);
-        });
-      }
-      return;
-    }
-
-    root.addChild(createText("EQUIP HEIRLOOMS FOR THIS LIFE", {
-      ...TEXT_STYLES.title, fontSize: 28, fill: PALETTE.accent,
-    }, PANEL.x + 36, PANEL.y + 24));
-    root.addChild(createText("Choose 0–3 Vault relics to Equip. Carry begins empty. Sanctified relics become Unmarked.", {
-      ...TEXT_STYLES.body, fontSize: 18, fill: PALETTE.textMuted,
-      wordWrap: true, wordWrapWidth: 1200,
-    }, PANEL.x + 36, PANEL.y + 68));
-    const vault = (snap.state?.civilization?.heirloomVault ?? []).filter(Boolean);
-    if (!vault.length) {
-      root.addChild(createText("The Vault is empty.", {
-        ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
-      }, PANEL.x + 36, PANEL.y + 130));
-    }
-    vault.forEach((item, index) => {
-      const col = index % 3;
-      const row = Math.floor(index / 3);
-      const selected = selectedIds.includes(item.instanceId);
-      drawItemCard(root, {
-        x: PANEL.x + 36 + col * 440, y: PANEL.y + 120 + row * 210,
-        width: 420, height: 190,
-      }, item, {
-        selected,
-        onToggle: () => {
-          if (selected) selectedIds = selectedIds.filter((id) => id !== item.instanceId);
-          else if (selectedIds.length < 3) selectedIds = [...selectedIds, item.instanceId];
-          render(true);
-        },
-      });
-    });
-    addButton(root, {
-      x: PANEL.x + PANEL.width - 360, y: PANEL.y + PANEL.height - 72,
-      width: 320, height: 50,
-    }, selectedIds.length ? `EQUIP ${selectedIds.length}` : "BEGIN UNARMED", true, () => {
-      const result = onConfirmLoadout?.(selectedIds);
-      if (result?.ok !== false) {
-        selectedIds = [];
-        render(true);
-      }
-    });
+  function openInventory(nextTab='carry') {
+    if(snapshot().mode&&snapshot().mode!=='inventory')return false;
+    browsing=true;tab=TABS[nextTab]?nextTab:'carry';page=0;tooltipView?.hide?.({force:true});onOpenInventory?.();render(true);return true;
   }
-
-  return {
-    init: () => render(true),
-    update: () => render(),
-    refresh: () => render(true),
-    isOpen: () => root.visible === true,
+  const point=node=>{const b=node?.getBounds?.();return b?{x:b.x+b.width/2,y:b.y+b.height/2}:null;};
+  return {init:()=>render(true),update:()=>render(),refresh:()=>render(true),isOpen:()=>root.visible===true,
+    openInventory,closeInventory,
+    getSemanticSnapshot:()=>({open:root.visible,mode:snapshot().mode,tab,page,selectedIds:[...selectedIds],cards:cardRoots.map(node=>({rect:node.getBounds()})),controls:Object.fromEntries([...controls].map(([id,node])=>[id,point(node)]))}),
   };
 }

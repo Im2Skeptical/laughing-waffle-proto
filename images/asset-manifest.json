@@ -385,7 +385,36 @@
       "files": [
         "timegraph-chronicle-assembly.png"
       ]
+    },
+    "heirlooms": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/heirlooms.json"
+      ],
+      "source": "heirlooms-v1",
+      "files": [
+        "signetRing.png",
+        "travellersBoots.png",
+        "tutorsNotebook.png",
+        "minorSeal.png",
+        "foxMask.png",
+        "abacus.png",
+        "courtiersBrooch.png",
+        "pilgrimsStaff.png",
+        "merchantsLens.png",
+        "hourglass.png",
+        "royalWarrant.png",
+        "scholarsCodex.png",
+        "crownOfAges.png",
+        "mandateOfHeaven.png",
+        "bag.png"
+      ]
     }
   },
-  "standalone": ["card-chrome-prototype/components.png", "vassal-chrome-prototype/components.png", "vassal-chrome-prototype/portraits.png", "vassal-chrome-prototype/game-screen.png"]
+  "standalone": [
+    "card-chrome-prototype/components.png",
+    "vassal-chrome-prototype/components.png",
+    "vassal-chrome-prototype/portraits.png",
+    "vassal-chrome-prototype/game-screen.png"
+  ]
 }

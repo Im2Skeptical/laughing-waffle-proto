@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 
 const texturePacker = process.env.TEXTURE_PACKER ?? 'TexturePacker';
 const jobs = [
+  ['heirlooms', 'images/dark-fantasy/heirlooms-v1', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '2048']],
   ['resource-language', 'images/dark-fantasy/resource-language-v1', ['--scale', '0.3', '--max-size', '4096']],
   ['settlement-pieces', 'images/dark-fantasy/settlement-pieces-v4', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096', '--multipack']],
   ['piece-frames', 'images/dark-fantasy/piece-frames-v1', ['--scale', '0.5', '--max-size', '2048']],

@@ -1,11 +1,16 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../src/defs/gamepieces/detailed-settlement-defs.js';
+import { VASSAL_HEIRLOOM_DEFINITION_IDS } from '../src/defs/gamepieces/vassal-heirloom-defs.js';
 
 const root = process.cwd();
 const manifestPath = path.join(root, 'images', 'asset-manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 const failures = [];
+const registeredHeirlooms = new Set(manifest.spriteSheets.heirlooms?.files ?? []);
+for (const id of [...VASSAL_HEIRLOOM_DEFINITION_IDS, 'bag']) {
+  if (!registeredHeirlooms.has(`${id}.png`)) failures.push(`heirloom has no dedicated registered art: ${id}`);
+}
 
 const settlementArt = manifest.spriteSheets['settlement-pieces'];
 const registeredPieces = new Set(settlementArt.files);

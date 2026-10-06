@@ -4,6 +4,7 @@ import { addInteractionFeedback } from '../interaction-feedback.js';
 import { addIllustration } from "../chronicle-art.js";
 import { addSettlementPiece } from '../settlement-piece-pixi.js';
 import { addCostPanel } from "../resource-cost-pixi.js";
+import { addHeirloomCard } from '../vassal-heirloom-pixi.js';
 import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 import {
@@ -174,5 +175,17 @@ export function outcomeCard(parent, rect, spec) {
     onActivate: spec.enabled ? spec.onClick : spec.onUnavailable,
   });
   parent.addChild(root);
+  return root;
+}
+
+export function heirloomChoiceCard(parent, rect, spec) {
+  const root=addHeirloomCard(parent,rect,spec.item,{selected:spec.selected,
+    status:spec.selected?'Chosen · confirm to take':'Choose this heirloom',
+    enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:spec.onUnavailable});
+  root.hitArea.height=rect.height+COST_FOOTER_HEIGHT+8;
+  root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
+    ...spec.cost,selected:spec.selected,disabled:!spec.enabled,unaffordable:spec.costUnmet,
+    label:'Choose '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
+  });
   return root;
 }

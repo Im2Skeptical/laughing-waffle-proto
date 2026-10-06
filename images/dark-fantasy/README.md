@@ -8,6 +8,7 @@ atlases live in `../sprite-sheets/` and are registered in
 The currently packed groups are:
 
 - `resource-language-v1` — resource and calendar symbols.
+- `heirlooms-v1` — fourteen square item paintings and the Vassal bag; shared by active icons, Relic choices, inventory, loadout and inheritance.
 - `settlement-pieces-v4` — limited-palette settlement paintings for every current Practice and Structure, plus earlier cards.
 - `piece-frames-v1` — structure, practice, and time frames.
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.

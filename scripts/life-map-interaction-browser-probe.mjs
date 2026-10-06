@@ -195,6 +195,9 @@ try {
     const canvas = await page.locator('canvas').boundingBox();
     await page.mouse.dblclick(canvas.x + nextPoint.x * canvas.width / 2424,
       canvas.y + nextPoint.y * canvas.height / 1080, {delay:80});
+    // Measure entry reuse without also opening a mouse-hover choice preview.
+    // The node's position can fall under one of the newly displayed cards.
+    await page.mouse.move(5,5);
     await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.open);
     await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
     const afterEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);

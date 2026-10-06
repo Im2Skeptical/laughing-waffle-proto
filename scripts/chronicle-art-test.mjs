@@ -45,7 +45,7 @@ try {
   });
   await transient.art.prepareChronicleArt(transient.renderer);
   assert.equal(attempts, 3);
-  assert.equal(transient.uploaded.length, 9, 'every atlas reaches upload preparation');
+  assert.equal(transient.uploaded.length, 10, 'every atlas, including heirlooms, reaches upload preparation');
 
   const invalid = await fixture(() => ({ textures: { 'food.png': { baseTexture: { valid: false } } } }));
   await assert.rejects(invalid.art.prepareChronicleArt(invalid.renderer), /invalid|decoded/i, 'invalid textures cannot pass readiness');
@@ -56,7 +56,7 @@ try {
   await assert.rejects(gpu.art.prepareChronicleArt(gpu.renderer), /upload/i);
   uploadFails = false;
   await gpu.art.prepareChronicleArt(gpu.renderer);
-  assert.equal(gpu.calls.length, 9, 'upload retry keeps downloaded atlases');
+  assert.equal(gpu.calls.length, 10, 'upload retry keeps downloaded atlases');
 
   const scaled = await fixture(url => {
     const result = sheet(url);
@@ -70,7 +70,7 @@ try {
     for (const texture of scaled.uploaded) texture.baseTexture._glTextures = { 1: {} };
   };
   await scaled.art.prepareChronicleArt(scaled.renderer);
-  assert.equal(scaled.uploaded.length, 9, 'GPU limits use physical pixels, not scaled logical texture dimensions');
+  assert.equal(scaled.uploaded.length, 10, 'GPU limits use physical pixels, not scaled logical texture dimensions');
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer,
     gl: { ...scaled.renderer.gl, getParameter: () => 1000 } }), /texture size limit/);
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer, CONTEXT_UID: 2 }), /uploaded/,

@@ -1,21 +1,18 @@
 import { getRetinue } from "../model/detailed-settlements/external-world.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
-  getHeirloomInheritanceLabel,
-  getHeirloomQualityLabel,
-} from "../defs/gamepieces/vassal-heirloom-defs.js";
-import {
   getVassalAge,
   getVassalHeirloomInventory,
   getVassalStatsPresentation,
-  presentHeirloom,
 } from "../model/vassal-life-map.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
-import { FAITH_TIER_COLORS, PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
 import { addResourceAmount } from "./resource-cost-pixi.js";
 import { getArtRevision } from "./chronicle-art.js";
+import { addHeirloomSlot, addHeirloomArt } from './vassal-heirloom-pixi.js';
+import { addInteractionFeedback } from './interaction-feedback.js';
 
 const YEAR_STRIP = Object.freeze({ x: 590, y: 16, width: 1108, height: 54 });
 export const LIFE_HUD = Object.freeze({
@@ -24,7 +21,7 @@ export const LIFE_HUD = Object.freeze({
   barHeight: 70,
   portraitSize: 84,
   width: YEAR_STRIP.width,
-  chipWidth: 146,
+  chipWidth: 86,
   chipHeight: 54,
 });
 
@@ -44,7 +41,7 @@ function lerp(from, to, t) {
 }
 
 export function createVassalLifeHudView({
-  layer, getPresentation, getDeltas, getCountUp, isVisible, tooltipView,
+  layer, getPresentation, getDeltas, getCountUp, isVisible, tooltipView, onOpenHeirlooms,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 188;
@@ -55,6 +52,8 @@ export function createVassalLifeHudView({
   let wasVisible = false;
   let pinnedStatId = null;
   let tween = null;
+  let bagControl = null;
+  let activeSlots = [];
 
   function hideStatTooltip() {
     pinnedStatId = null;
@@ -131,6 +130,8 @@ export function createVassalLifeHudView({
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     buildCount++;
+    bagControl = null;
+    activeSlots = [];
     clearChildren(root);
     if (!vassal || !shown) return;
 
@@ -187,7 +188,7 @@ export function createVassalLifeHudView({
       }, expX + 78, barY + 30));
     }
 
-    const chipStart = contentX + 250;
+    const chipStart = contentX + 214;
     getVassalStatsPresentation(vassal).forEach((stat, index) => {
       const chip = new PIXI.Container();
       chip.position.set(chipStart + index * (LIFE_HUD.chipWidth + 8), barY + 8);
@@ -216,7 +217,7 @@ export function createVassalLifeHudView({
       const delta = signedDelta(deltas?.stats?.[stat.statId]);
       chip.addChild(chipBg,
         createText(stat.label.toUpperCase(), {
-          ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
+          ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
         }, 8, 4),
         createText(String(stat.value), {
           ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text,
@@ -227,6 +228,8 @@ export function createVassalLifeHudView({
           fill: deltas.stats[stat.statId] > 0 ? PALETTE.green : PALETTE.red,
         }, LIFE_HUD.chipWidth - 8, 22, 1, 0));
       }
+      const heading=chip.children[1];
+      if(heading.width>LIFE_HUD.chipWidth-12)heading.scale.x=(LIFE_HUD.chipWidth-12)/heading.width;
       root.addChild(chip);
     });
 
@@ -240,63 +243,22 @@ export function createVassalLifeHudView({
       }, locationRight, barY + 26, 1, 0)
     );
 
-    function addSlot(slotX, slotY, size, item, emptyLabel, prominent) {
-      const presented = presentHeirloom(item);
-      const slot = new PIXI.Container();
-      slot.position.set(slotX, slotY);
-      slot.eventMode = "static";
-      slot.cursor = presented ? "help" : "default";
-      slot.hitArea = new PIXI.Rectangle(0, 0, size, size);
-      const gfx = new PIXI.Graphics();
-      const rim = presented
-        ? FAITH_TIER_COLORS[presented.quality] ?? PALETTE.accent
-        : PALETTE.stroke;
-      roundedRect(gfx, 0, 0, size, size, 6, prominent ? 0x39413b : 0x2b332e, rim, presented ? 2 : 1);
-      slot.addChild(gfx);
-      if (presented) {
-        slot.addChild(createText(presented.label, {
-          ...TEXT_STYLES.chip, fontSize: prominent ? 12 : 11, fill: PALETTE.text,
-          wordWrap: true, wordWrapWidth: size - 8,
-        }, 4, 4));
-        slot.addChild(createText(getHeirloomInheritanceLabel(presented.inheritanceState), {
-          ...TEXT_STYLES.chip, fontSize: 11,
-          fill: presented.inheritanceState === "fragile" ? PALETTE.red
-            : presented.inheritanceState === "sanctified" ? PALETTE.accent : PALETTE.textMuted,
-        }, 4, size - 16));
-        const show = (target) => tooltipView?.show?.({
-          title: presented.label,
-          scale: 2,
-          lines: [
-            `${getHeirloomQualityLabel(presented.quality)} · ${presented.inheritanceLabel}`,
-            presented.description,
-            presented.protectionSpent ? "Mandate protection spent this life." : null,
-          ].filter(Boolean),
-        }, target.getBounds());
-        slot.on("pointerover", () => show(slot));
-        slot.on("pointerout", () => tooltipView?.hide?.());
-        slot.on("pointertap", (event) => { event?.stopPropagation?.(); show(slot); });
-      } else {
-        slot.addChild(createText(emptyLabel, {
-          ...TEXT_STYLES.chip, fontSize: 11, fill: PALETTE.textMuted,
-        }, size / 2, size / 2, 0.5, 0.5));
-      }
-      root.addChild(slot);
-    }
-
-    const stripY = hudY + LIFE_HUD.portraitSize + 8;
-    const stripX = hudX + 430;
-    root.addChild(createText("EQUIPPED", {
-      ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
-    }, stripX, stripY - 2));
-    inventory.equipped.forEach((item, index) => {
-      addSlot(stripX + 88 + index * 64, stripY, 56, item, "Empty", true);
-    });
-    root.addChild(createText("CARRY", {
-      ...TEXT_STYLES.chip, fontSize: 12, fill: PALETTE.textMuted,
-    }, stripX + 300, stripY - 2));
-    inventory.carry.forEach((item, index) => {
-      addSlot(stripX + 352 + index * 52, stripY + 6, 44, item, "—", false);
-    });
+    /* Active icons live beside the stats; carried items and the lineage vault
+       belong in the bag, rather than a second strip over the decision panel. */
+    const activeX=chipStart+4*(LIFE_HUD.chipWidth+8)+10;
+    activeSlots=Array.from({length:3},(_,index)=>addHeirloomSlot(root,{
+      x:activeX+index*64,y:barY+8,width:58,height:54,
+    },inventory.equipped[index],{tooltipView,onActivate:()=>{hideStatTooltip();onOpenHeirlooms?.('equipped');}}));
+    bagControl=new PIXI.Container();bagControl.position.set(activeX+202,barY+8);
+    bagControl.eventMode='static';bagControl.hitArea=new PIXI.Rectangle(0,0,64,54);
+    const bagFrame=new PIXI.Graphics();roundedRect(bagFrame,0,0,64,54,6,0x292f2b,PALETTE.accent,1.5);
+    bagControl.addChild(bagFrame);addHeirloomArt(bagControl,'bag',{x:7,y:2,width:50,height:50});
+    const carried=inventory.carry.filter(Boolean).length;
+    if(carried)bagControl.addChild(createText(String(carried),{...TEXT_STYLES.header,fontSize:18,fill:PALETTE.accent,stroke:0x101314,strokeThickness:3},59,34,1));
+    bagControl.on('pointerover',event=>{if(event.pointerType!=='touch')tooltipView?.show?.({title:'Heirloom bag',scale:2,lines:[`${carried}/3 carried · ${(presentation.state?.civilization?.heirloomVault??[]).filter(Boolean).length}/6 in the lineage vault`,'Open to inspect active, carried and stored heirlooms.']},bagControl.getBounds());});
+    bagControl.on('pointerout',()=>tooltipView?.hide?.());
+    addInteractionFeedback(bagControl,{x:0,y:0,width:64,height:54},{onActivate:()=>{hideStatTooltip();onOpenHeirlooms?.('carry');}});
+    root.addChild(bagControl);
   }
 
   return {
@@ -311,7 +273,9 @@ export function createVassalLifeHudView({
     getSemanticSnapshot: () => {
       const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
       return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,
-        retinue:getRetinue(p.state,v)};
+        retinue:getRetinue(p.state,v),bagRect:bagControl?.getBounds?.(),
+        activeSlotRects:activeSlots.map(slot=>slot.getBounds()),
+        equipped:(v?.heirlooms?.equipped??[]).map(item=>item?.definitionId??null)};
     },
   };
 }

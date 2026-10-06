@@ -1117,6 +1117,8 @@ vassalLifeMapView = createVassalLifeMapView({
 vassalLifeMapView.setVisible(false);
 
 vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
+  tooltipView,
+  onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
   onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
   app,
   layer: modalLayer,
@@ -1180,6 +1182,9 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
   app,
   layer: modalLayer,
   getState: () => getSettlementFrontierState(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  tooltipView,
+  onOpenInventory: () => requestPauseBeforeDrag(),
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
   onResolveOverflow: (keepInstanceIds) => dispatchLifeMapAction(
     ActionKinds.VASSAL_RESOLVE_VAULT_OVERFLOW, { keepInstanceIds }
@@ -1191,6 +1196,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
 });
 
 vassalLifeHudView = createVassalLifeHudView({
+  onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
   layer: modalLayer,
   tooltipView,
   getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
@@ -1425,6 +1431,10 @@ function handleGlobalKeyDown(ev) {
   if (researchLibrary.isOpen()) { researchLibrary.handleKeyDown(ev); return; }
   if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
+  if (vassalHeirloomFlowView?.isOpen?.()) {
+    if (ev.key === 'Escape') {ev.preventDefault();vassalHeirloomFlowView.closeInventory();}
+    return;
+  }
   if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
     if(vassalNodeDecisionModalView.handleInspectionKey(ev))return;
     ev.preventDefault();
@@ -1509,7 +1519,7 @@ function publishSettlementDebugApi() {
     },
     getLifeMapDecisionSnapshot: () => vassalNodeDecisionModalView?.getSemanticSnapshot?.() ?? null,
     getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
-    getLifeMapHudSnapshot: () => vassalLifeHudView?.getSemanticSnapshot?.() ?? null,
+    getLifeMapHudSnapshot: () => ({...vassalLifeHudView?.getSemanticSnapshot?.(),heirlooms:vassalHeirloomFlowView?.getSemanticSnapshot?.()}),
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
     getForecastWorkerDiagnostics: () => forecastWorkerService.getDiagnostics(),

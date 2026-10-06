@@ -32,6 +32,11 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
 ]);
 
 const PACKED_GROUPS = Object.freeze({
+  heirlooms: Object.freeze({
+    prefix: 'heirlooms-v1/',
+    files: Object.freeze(['heirlooms.json']),
+    eager: true,
+  }),
   resources: Object.freeze({
     prefix: 'resource-language-v1/',
     files: Object.freeze(['resource-language.json']),

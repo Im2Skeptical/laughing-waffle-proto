@@ -4,6 +4,7 @@ import { deserializeGameState } from '../model/state.js';
 import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
+import { addHeirloomSlot, heirloomEffectText } from './vassal-heirloom-pixi.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
 import { addPracticeReading } from './practice-reading-pixi.js';
 import { addResourceAmount } from './resource-cost-pixi.js';
@@ -30,6 +31,7 @@ import {
   optionEffect,
   relicRiskLabel,
   outcomeCard,
+  heirloomChoiceCard,
 } from "./vassal-node-decision/cards.js";
 import {
   confirmDockButton,
@@ -43,7 +45,7 @@ import { renderVassalProjection } from "./vassal-node-decision/vassal-projection
 export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onMoveStructure, onRerollShop, onConfirmNode,
-  onWorldMap, onReadOnlyAction, getProtectedBackdropRects, onReview,
+  onWorldMap, onReadOnlyAction, getProtectedBackdropRects, onReview, onOpenHeirlooms, tooltipView,
 } = {}) {
   const backdrop = new PIXI.Graphics();
   backdrop.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
@@ -381,7 +383,7 @@ export function createVassalNodeDecisionModalView({
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
     }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
-      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId });
+      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker });
     // Refresh callbacks can run several times for one entry. A matching layout
     // is already authoritative, including its selected/disabled controls.
     if (!prepared && nextSignature === signature) return;
@@ -508,11 +510,11 @@ export function createVassalNodeDecisionModalView({
             nodeState, isTravel: nodeState.family === 'travel',
           });
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
-          return (simpleOutcomes ? outcomeCard : actionCard)(root, {
+          return (node.family==='relic'&&!option.emptyRelic?heirloomChoiceCard:simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
           }, {
-            artId:node.family, quality: option.quality, fitEffects: nodeState.family === 'relic',
+            artId:node.family, quality: option.quality, item:option, fitEffects: nodeState.family === 'relic',
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
@@ -585,14 +587,16 @@ export function createVassalNodeDecisionModalView({
         ...TEXT_STYLES.header, fontSize: 22,
       }, sx, PANEL.y + CONTENT.labelY));
       const heirlooms = decision.heirlooms ?? { equipped: [null, null, null], carry: [null, null, null] };
+      button(root,{x:sx+600,y:PANEL.y+CONTENT.labelY,width:230,height:44},'OPEN BAG',true,()=>onOpenHeirlooms?.('carry'));
       const pickingEquip = acquirePicker?.destination === "equip" && acquirePicker.step !== "discard";
       const pickingCarry = acquirePicker?.destination === "carry"
         || acquirePicker?.step === "discard";
       heirlooms.equipped.forEach((item, index) => {
         const picking = pickingEquip;
-        const label = `EQ ${index + 1}  ${item ? `${item.label} · ${item.qualityLabel} · ${item.inheritanceLabel}` : "Empty"}`;
+        const label = `${picking?'Move to bag:':'Active '+(index+1)+':'} ${item ? `${item.label} · ${item.inheritanceLabel}` : "Empty"}`;
+        addHeirloomSlot(root,{x:sx,y:PANEL.y+114+index*56,width:48,height:48},item,{tooltipView});
         if (picking) {
-          button(root, { x: sx, y: PANEL.y + 114 + index * 56, width: 800, height: 48 },
+          button(root, { x: sx+60, y: PANEL.y + 114 + index * 56, width: 770, height: 48 },
             label, true, () => {
               const carryFull = (heirlooms.carry ?? []).every(Boolean);
               if (carryFull) {
@@ -608,14 +612,15 @@ export function createVassalNodeDecisionModalView({
         } else {
           root.addChild(createText(label, {
             ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
-          }, sx, PANEL.y + 120 + index * 36));
+          }, sx+60, PANEL.y + 120 + index * 56));
         }
       });
       heirlooms.carry.forEach((item, index) => {
         const picking = pickingCarry;
-        const label = `CARRY ${index + 1}  ${item ? `${item.label} · ${item.qualityLabel}` : "Empty"}`;
+        const label = `${picking?'Discard:':'Bag '+(index+1)+':'} ${item ? `${item.label} · ${item.inheritanceLabel}` : "Empty"}`;
+        addHeirloomSlot(root,{x:sx,y:PANEL.y+300+index*56,width:48,height:48},item,{tooltipView});
         if (picking) {
-          button(root, { x: sx, y: PANEL.y + 300 + index * 56, width: 800, height: 48 },
+          button(root, { x: sx+60, y: PANEL.y + 300 + index * 56, width: 770, height: 48 },
             label, true, () => {
               const acquire = acquirePicker.destination === "carry"
                 ? { destination: "carry", replaceCarryIndex: index }
@@ -630,18 +635,24 @@ export function createVassalNodeDecisionModalView({
         } else {
           root.addChild(createText(label, {
             ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
-          }, sx, PANEL.y + 260 + index * 36));
+          }, sx+60, PANEL.y + 306 + index * 56));
         }
       });
       if (acquirePicker) {
         root.addChild(createText(acquirePicker.step === "discard"
-          ? "Carry is full. Choose a Carry relic to discard."
+          ? "The bag is full. Choose a carried heirloom to discard; the active item moves into its place."
           : acquirePicker.destination === "carry"
-            ? "Carry is full. Choose a Carry relic to replace."
-            : "Equipped is full. Choose which relic moves to Carry.", {
+            ? "The bag is full. Choose a carried heirloom to discard and replace."
+            : "All active slots are full. Choose which heirloom moves to the bag.", {
           ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.accent,
           wordWrap: true, wordWrapWidth: 800,
         }, sx, PANEL.y + 480));
+        button(root,{x:sx,y:PANEL.y+560,width:260,height:48},'CANCEL',true,()=>{acquirePicker=null;render(true);});
+      } else {
+        const selected=nodeState?.options?.find(option=>option.id===nodeState.selectedOptionId);
+        root.addChild(createText(selected&&!selected.emptyRelic?`${selected.label}: ${heirloomEffectText(selected)}\nEquip to activate its effect, or stow it in the bag for inheritance.`:'Choose one heirloom, then Equip now or Stow in bag. Carried heirlooms grant no effects.',{
+          ...TEXT_STYLES.body,fontSize:24,fill:PALETTE.textMuted,wordWrap:true,wordWrapWidth:830,
+        },sx,PANEL.y+492));
       }
     }
 
@@ -679,7 +690,7 @@ export function createVassalNodeDecisionModalView({
       };
       button(root, {
         x: confirmRect.x, y: confirmRect.y - 8, width: confirmRect.width, height: 48,
-      }, selected?.emptyRelic ? "CONTINUE" : "EQUIP", canAcquire || !!selected?.emptyRelic, () => {
+      }, selected?.emptyRelic ? "CONTINUE" : "EQUIP NOW", canAcquire || (canConfirm && !!selected?.emptyRelic), () => {
         if (selected?.emptyRelic) {
           confirmRelic({ destination: "decline" });
           return;
@@ -693,7 +704,7 @@ export function createVassalNodeDecisionModalView({
       });
       button(root, {
         x: confirmRect.x, y: confirmRect.y + 48, width: confirmRect.width, height: 48,
-      }, "CARRY", canAcquire, () => {
+      }, "STOW IN BAG", canAcquire, () => {
         if ((heirlooms.carry ?? []).some((item) => !item)) {
           confirmRelic({ destination: "carry" });
           return;
@@ -703,7 +714,7 @@ export function createVassalNodeDecisionModalView({
       });
       confirmRoot = button(root, {
         x: confirmRect.x, y: confirmRect.y + 104, width: confirmRect.width, height: 48,
-      }, "DECLINE", canConfirm, () => confirmRelic({ destination: "decline" }));
+      }, "LEAVE BEHIND", canConfirm, () => confirmRelic({ destination: "decline" }));
     } else if (!readOnly) {
       confirmRoot = confirmDockButton(root, app, {
         enabled: canConfirm,
@@ -873,6 +884,7 @@ export function createVassalNodeDecisionModalView({
         tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+construction().height-tableau.practiceY},
         family: decision?.node?.family ?? null,
         selectedOptionId: decision?.nodeState?.selectedOptionId ?? null,
+        acquirePicker: acquirePicker ? {...acquirePicker} : null,
         resolving: decision?.nodeState?.resolving === true,
         currentPrestige: decision?.currentPrestige ?? null,
         projectedPrestige: decision?.projectedPrestige ?? null,
