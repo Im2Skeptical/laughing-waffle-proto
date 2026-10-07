@@ -1,7 +1,7 @@
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers } from '../../model/dev-lab/card-review.js';
-import { el, button, field, input, select, section } from './elements.js';
+import { el, button, confirmButton, field, input, select, section } from './elements.js';
 
 const groups = {
   stock:{label:'Stock capacity & traits', match:path => ['stockCapacity','stockTraits'].includes(path[0])},
@@ -12,6 +12,11 @@ const groups = {
   charge:{label:'Charge', match:path => path[0]==='charge' && typeof path.at(-1)==='string' && ['gain','threshold'].includes(path.at(-1))},
   capacity:{label:'Structure bonuses', match:path => ['housing','modifiers','candidateBonus','capacityPerCountSquared'].includes(path[0])},
 };
+const queueLabel = (label, entry, locked) => {
+  const edits = entry.edits.filter(edit => !(edit.path.length === 1 && edit.path[0] === 'locked')).length;
+  return `${label}${locked?' · locked':''}${edits?` · ${edits} edit${edits===1?'':'s'}`:''}${entry.notes?' · notes':''}`;
+};
+const showValue = value => value === undefined ? 'unavailable' : typeof value === 'string' ? value : JSON.stringify(value);
 const labelFor = (def, path) => {
   const names={locked:'Card locked',stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
   const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
@@ -33,7 +38,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     if(requested&&entries.some(entry=>reviewKey(entry.kind,entry.id)===requested))selected=requested;
     if(!entries.some(entry=>reviewKey(entry.kind,entry.id)===selected))selected=entries[0]?reviewKey(entries[0].kind,entries[0].id):null;
     const header=section('Card reviewer');
-    header.append(el('p','Tap a highlighted value area on your card to edit it. Changes, locks and notes save automatically on this device.'));
+    header.append(el('p','Tap a highlighted area on the card to edit it. Changes, locks and notes save on this device.','lab-hint'));
     const exportAll=button(`Export all reviews (${entries.length})`,()=>{
       try {
         const url=URL.createObjectURL(new Blob([review.export()],{type:'application/json'}));
@@ -46,7 +51,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     for(const entry of entries) {
       const key=reviewKey(entry.kind,entry.id), live=resolve(state,entry);
       const locked=review.preview(entry,live).definition.locked===true;
-      const pick=button(`${live?.label??entry.baseline.label}${locked?' · locked':''}${entry.edits.length?' · edited':''}${entry.notes?' · notes':''}`,()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
+      const pick=button(queueLabel(live?.label??entry.baseline.label,entry,locked),()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
       pick.dataset.reviewKey=key;
       pick.setAttribute('aria-pressed',String(selected===key));queue.append(pick);
     }
@@ -60,22 +65,32 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const valueFor=(def,path)=>readReviewValue(def,path)??(path.length===1&&path[0]==='locked'?false:undefined);
     const drift=entry.edits.filter(edit=>JSON.stringify(valueFor(entry.baseline,edit.path))!==JSON.stringify(valueFor(live,edit.path)));
     if(live&&drift.length)panel.append(el('p','The live build has changed some edited values since this card was flagged. Compare and check the changes below.','lab-warning'));
-    const controls=el('div','','lab-controls');
+    const controls=el('div','','lab-controls review-toolbar');
     const locked=definition.locked===true;
     const lock=button(locked?'Unlock card':'Lock card',()=>run(()=>review.setLocked(entry.kind,entry.id,!locked)),'review-lock');
     lock.setAttribute('aria-pressed',String(locked));lock.disabled=!live;
-    panel.append(el('p',locked?'Locked · excluded from shop offers when reviewed cards are applied to a new run.':'Unlocked · available for shop offers.'));
-    panel.append(el('p','Use edited cards in new games in the game menu, or Apply reviewed cards to draft in Gym, to test these locks. Existing runs keep their saved pool.'));
+    const lockHelp=el('details','','review-lock-help');
+    lockHelp.append(el('summary',locked?'Locked · excluded from shop offers when reviewed cards are applied to a new run.':'Unlocked · available for shop offers.'),
+      el('p','Use edited cards in new games in the game menu, or Apply reviewed cards to draft in Gym, to test these locks. Existing runs keep their saved pool.'));
     const compare=button(comparison?'Hide live comparison':'Compare with live',()=>{comparison=!comparison;run(()=>{});},'review-compare');compare.disabled=!live;
     const quality=select('Preview quality',['bronze','silver','gold','diamond'],previewTiers[selected]??entry.tier);
-    const remove=button('Delete review',()=>{
-      if(remove.dataset.confirm!=='yes'){remove.dataset.confirm='yes';remove.textContent='Delete review and notes?';return;}
+    const remove=confirmButton('Delete review','Delete review and notes?',()=>{
       review.remove(entry.kind,entry.id);selected=null;location.hash='/dev/reviewer';run(()=>{});
-    });
-    controls.append(lock,compare,field('Preview quality',quality),button('Reset edits',()=>{review.reset(entry.kind,entry.id);run(()=>{});}),remove);panel.append(controls);
+    },'review-delete');
+    // Reset discards every value edit, so it confirms like Delete does.
+    const reset=confirmButton('Reset edits','Reset all edits?',()=>{review.reset(entry.kind,entry.id);run(()=>{});},'review-reset');
+    reset.disabled=!entry.edits.length;
+    // Frequent actions stay in the (sticky on phones) toolbar; destructive ones
+    // sit with the change list they affect.
+    controls.append(lock,compare,field('Preview quality',quality));panel.append(controls,lockHelp);
+    const danger=el('div','','lab-controls review-danger');danger.append(reset,remove);
     const preview=el('div','','review-preview'), draftColumn=el('div','','review-column'), liveColumn=el('div','','review-column');
     const draftTitle=el('h3',`Your draft · ${definition.label}`),draftReading=el('div','','review-reading'),liveReading=el('div','','review-reading');
     draftColumn.append(draftTitle);preview.append(draftColumn);panel.append(preview);
+    // The diff sits directly under the card so phone reviewers see it without
+    // scrolling past every field.
+    const changesTitle=el('h3','Changes against live'),changes=el('div','','review-changes');
+    panel.append(changesTitle,changes,danger);
     const surface=el('div','','review-face'), targets=el('div','','review-targets');
     const editor=el('dialog','','review-inline-editor');editor.hidden=true;
     const editorTitle=el('strong'),editorFields=el('div','','review-editor-body');editor.append(editorTitle,editorFields,button('Done',()=>editor.close()));
@@ -103,13 +118,29 @@ export function createCardReviewerView({review, cards, getState, run}) {
       if(entry.kind==='practice')face.stockCapacity=stockCapacity(previewState,{structureSlots:[]},slot);
       return face;
     };
-    const changes=el('div','','review-changes'), saveStatus=el('p','Saved on this device','review-save-status');saveStatus.setAttribute('role','status');
+    const saveStatus=el('p','Saved on this device','review-save-status');saveStatus.setAttribute('role','status');
     function changedRows() {
       const current=review.get(entry.kind,entry.id);changes.replaceChildren();
       const pick=[...queue.children].find(node=>node.dataset.reviewKey===reviewKey(entry.kind,entry.id));
-      if(pick)pick.textContent=`${live?.label??entry.baseline.label}${definition.locked===true?' · locked':''}${current.edits.length?' · edited':''}${current.notes?' · notes':''}`;
-      for(const edit of current.edits)changes.append(el('p',`${labelFor(definition,edit.path)}: live ${JSON.stringify(valueFor(live,edit.path))??'unavailable'} → draft ${JSON.stringify(edit.value)}`));
-      if(!current.edits.length)changes.append(el('p','No value changes yet.'));
+      if(pick)pick.textContent=queueLabel(live?.label??entry.baseline.label,current,definition.locked===true);
+      const valueEdits=current.edits.filter(edit=>!(edit.path.length===1&&edit.path[0]==='locked'));
+      changesTitle.textContent=`Changes against live${valueEdits.length?` (${valueEdits.length})`:''}`;
+      reset.disabled=!current.edits.length;
+      for(const edit of valueEdits) {
+        const row=el('div','','review-change');
+        const text=el('p');text.append(el('strong',labelFor(definition,edit.path)),` ${showValue(valueFor(live,edit.path))} → ${showValue(edit.value)}`);
+        row.append(text);
+        if(live)row.append(button('Revert',()=>{
+          try{
+            if(edit.path[0]==='activation')review.schedule(entry.kind,entry.id,reviewScheduleTriggers(live));
+            else review.edit(entry.kind,entry.id,edit.path,valueFor(live,edit.path));
+            refresh();renderValues();saveStatus.textContent='Saved on this device';
+          }
+          catch(error){saveStatus.textContent=`Could not revert: ${error.message}`;}
+        }));
+        changes.append(row);
+      }
+      if(!valueEdits.length)changes.append(el('p','No value changes yet.'));
     }
     function refresh() {
       definition=review.preview(review.get(entry.kind,entry.id),live).definition;
@@ -131,14 +162,28 @@ export function createCardReviewerView({review, cards, getState, run}) {
         if(typeof value==='number'){control.removeAttribute('min');control.step='any';control.inputMode='decimal';}
         control.dataset.reviewPath=JSON.stringify(item.path);
         const feedback=el('span','','review-field-error'), wrapper=field(label,control);feedback.setAttribute('role','status');wrapper.append(feedback);
-        control.addEventListener(typeof value==='boolean'||choices?'change':'input',()=>{
+        let pending=null;
+        const commit=()=>{
+          clearTimeout(pending);pending=null;
           try {
-            if(typeof value==='number'&&!control.value.trim())throw new Error('Enter a number.');
+            if(typeof value==='number'&&(!control.value.trim()||!Number.isFinite(control.valueAsNumber)))throw new Error('Enter a number.');
             review.edit(entry.kind,entry.id,item.path,typeof value==='number'?control.valueAsNumber:typeof value==='boolean'?control.value==='true':control.value);
             refresh();feedback.textContent='';control.removeAttribute('aria-invalid');saveStatus.textContent='Saved on this device';
             for(const sibling of panel.querySelectorAll('[data-review-path]'))if(sibling!==control&&sibling.dataset.reviewPath===control.dataset.reviewPath)sibling.value=control.value;
           } catch(error){feedback.textContent=error.message;control.setAttribute('aria-invalid','true');saveStatus.textContent='This value has not been saved.';}
-        });destination.append(wrapper);
+        };
+        if(typeof value==='boolean'||choices)control.addEventListener('change',commit);
+        else {
+          // Typed values save after a short pause or when the field is left,
+          // so partial input ("1" on the way to "12", or "-") is not stored.
+          control.addEventListener('input',()=>{
+            clearTimeout(pending);saveStatus.textContent='Unsaved change…';
+            if(typeof value==='number'&&(!control.value.trim()||!Number.isFinite(control.valueAsNumber)))return;
+            pending=setTimeout(commit,450);
+          });
+          control.addEventListener('change',commit);
+        }
+        destination.append(wrapper);
       }
     }
     const title=value=>value[0].toUpperCase()+value.slice(1);
@@ -212,7 +257,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       controlsFor(primary,form);const extra=fields.filter(item=>!primary.includes(item));controlsFor(extra,moreFields);more.hidden=!extra.length;
     }
     renderValues();panel.append(el('h3','Card values'),shortcuts,form,more);
-    panel.append(el('h3','Changes against live'),changes);changedRows();parent.append(panel);
+    changedRows();parent.append(panel);
   }
   return {render};
 }

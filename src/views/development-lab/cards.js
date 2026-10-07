@@ -57,21 +57,27 @@ export function createLabCards({onReview} = {}) {
     images.push(item);paint(item);
     return {node:img,update(next){item.face=next;img.alt=description(next);item.width=next.kind==='structure'?Math.max(180,next.footprint*145):180;paint(item);}};
   }
-  function card(face, label = '', onClick = null, {readable = false} = {}) {
+  // Readable specimens: tapping/hovering the face gives the quick read; one
+  // compact row holds Rules (full inspection), Compare and any caller actions.
+  function card(face, label = '', onClick = null, {readable = false, actions = []} = {}) {
     const wrapper = el('article','','lab-card');
     if (!face) { wrapper.append(el('p',label || 'Empty Practice slot')); return wrapper; }
     const width = face.kind === 'structure' ? Math.max(180,face.footprint * 145) : 180;
     const img = el('img'); img.alt = `${face.label}, ${face.tier}, ${face.stock}/${face.stockCapacity} Stock`; img.width = width; img.height = 250;
     const item = {img,face,width}; images.push(item); paint(item);
+    const row = el('div','','lab-card-actions');
     if (readable && face.reading) {
       const preview = button('', () => {});
       preview.className = 'lab-card-preview';
       preview.setAttribute('aria-label', `Read ${face.label}, ${face.tier}`);
       preview.append(img); reading.attach(preview, face);
-      wrapper.append(preview, el('strong', label || `${face.label} · ${face.tier}`), button('Inspect tooltip', () => reading.inspect(face, preview)));
+      wrapper.append(preview, el('strong', label || `${face.label} · ${face.tier}`));
+      row.append(button('Rules', () => reading.inspect(face, preview)));
     } else wrapper.append(img,el('strong',label || `${face.label} · ${face.tier}`),el('p',face.rule));
-    if (onClick) wrapper.append(button('Inspect / compare',onClick));
-    else wrapper.append(details('Rules and providers',face.detailLines.join('\n')));
+    if (onClick) row.append(button('Compare',onClick));
+    row.append(...actions);
+    if (row.children.length) wrapper.append(row);
+    if (!onClick) wrapper.append(details('Rules and providers',face.detailLines.join('\n')));
     return wrapper;
   }
   return {card,image,icon,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};

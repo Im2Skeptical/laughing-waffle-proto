@@ -6,7 +6,7 @@ import { openLabHandoff } from '../../controllers/development-lab-bridge.js';
 import { createMapLabDom } from '../map-lab-dom.js';
 import { createLifeMapLabDom } from '../life-map-lab-dom.js';
 import { createDebugConfigurationDom } from '../debug-configuration-dom.js';
-import { el, button, select, input, field, section } from './elements.js';
+import { el, button, confirmButton, select, input, field, section } from './elements.js';
 
 export function createNewRunSetupView({ getGymState, openInGym, review }) {
   const map = createMapLabController({ runner: { getState: getGymState } });
@@ -56,7 +56,7 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
     const name = input('New run profile name', profileName, 'text'); name.placeholder = 'Name your edited profile'; name.dataset.testid = 'debug-profile-name';
     name.disabled = snapshot.readOnly; name.addEventListener('input', () => { profileName = name.value; });
     const save = button('Save profile', () => act(() => profiles.saveProfile(profileName)), 'debug-profile-save'); save.disabled = snapshot.readOnly;
-    const remove = button('Delete profile', () => act(() => profiles.deleteProfile(snapshot.selectedProfileId)), 'debug-profile-delete'); remove.disabled = snapshot.readOnly || !snapshot.selectedProfileId;
+    const remove = confirmButton('Delete profile', 'Delete this profile?', () => act(() => profiles.deleteProfile(snapshot.selectedProfileId)), 'debug-profile-delete'); remove.disabled = snapshot.readOnly || !snapshot.selectedProfileId;
     const defaultButton = button('Default in workshop', () => act(() => profiles.setDefaultProfile(snapshot.selectedProfileId)), 'debug-profile-default'); defaultButton.disabled = !snapshot.selectedProfileId;
     toolbar.append(field('Combined profile', chosen), button('Copy to edit', () => act(() => { profileName = ''; return profiles.copyProfile(); }), 'debug-profile-copy'), field('Save as', name), save, remove, defaultButton,
       button('Import / Export', () => act(() => { jsonOpen = !jsonOpen; const result = profiles.exportProfile(profileName); if (result.ok) jsonText = result.text; return result; }), 'debug-profile-json-toggle'));

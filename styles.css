@@ -281,3 +281,76 @@ html:has(.review-inline-editor[open]) { overflow:hidden; }
 .lab-save-bar { padding:8px 0; }
 .lab-save-bar small { letter-spacing:0; }
 @media(max-width:550px) { .lab-catalogue-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .lab-catalogue-grid>.lab-card { width:100%; padding:8px; } .lab-card img { height:205px; } .lab-picker { padding:12px; } }
+
+/* Development Lab phone workflow: compact sticky navigation, 44px targets, no hover-only actions. */
+.development-lab .lab-panel,.development-lab [data-lab-result],.development-lab .lab-tableau .lab-card { scroll-margin-top:calc(var(--lab-header-h,0px) + 8px); }
+.development-lab .lab-hint { color:#9bb8b3; font-size:13px; }
+.development-lab label.lab-check { flex-direction:row; align-items:center; gap:8px; min-height:44px; padding:0 4px; cursor:pointer; }
+.development-lab label.lab-check input { width:22px; height:22px; min-height:0; padding:0; margin:0; accent-color:#7fcfa8; }
+.development-lab .lab-confirming { background:#5b2f2a; border-color:#ffbb9e; color:#ffe2d6; }
+.lab-card-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.development-lab .lab-card-actions button { flex:1 1 auto; margin:0; }
+.development-lab .lab-card[data-flagged=true] { border-color:#b6edbc; }
+.development-lab .lab-quick-actions { position:sticky; top:0; z-index:1; display:flex; gap:6px; justify-content:flex-end; padding:6px; background:#131b1a; }
+.development-lab .lab-quick-actions button { min-height:44px; }
+.development-lab .lab-filter-more { flex:1 1 100%; margin:0; }
+.development-lab .lab-filter-more>summary,.development-lab .lab-coverage>summary,.development-lab details.lab-panel>summary,.development-lab .review-lock-help>summary { min-height:44px; display:flex; align-items:center; }
+.development-lab .lab-filter-more>.lab-controls { margin:4px 0 0; }
+.development-lab .lab-zoo-filters>label:has(input[type=search]) { flex:1 1 220px; }
+.development-lab .lab-zoo-filters input[type=search] { width:100%; }
+.development-lab a.lab-review-link { align-self:center; min-height:44px; display:inline-flex; align-items:center; border:1px solid #527c70; border-radius:6px; }
+.development-lab .lab-coverage { margin:4px 0; color:#c9d8d5; }
+.lab-group { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:4px 8px; border-left:2px solid #3f5f5f; }
+.development-lab .lab-group>small { letter-spacing:1px; text-transform:uppercase; font-size:11px; width:100%; }
+.development-lab button.lab-provider { display:block; width:100%; text-align:left; margin:4px 0; font-size:13px; background:#1d3a35; }
+.development-lab .lab-flash { outline:3px solid #f0d27a; outline-offset:2px; box-shadow:0 0 0 6px #f0d27a33; }
+.development-lab .lab-exhibit-intro { margin:8px 0; }
+.development-lab .lab-try-gym { margin:6px 0; }
+.development-lab .lab-try-gym>span { flex:1 1 260px; padding:0; color:#c9d8d5; }
+.review-change { display:flex; gap:8px; align-items:center; justify-content:space-between; border-bottom:1px solid #2c4248; padding:4px 0; }
+.review-change p { margin:4px 0; min-width:0; }
+.development-lab .review-change button { flex:0 0 auto; min-height:44px; }
+.development-lab .review-lock-help { margin:4px 0 8px; color:#c9d8d5; }
+@media (max-width:850px),(pointer:coarse) {
+  .development-lab button,.development-lab select,.development-lab input:not([type=checkbox]):not([type=radio]) { min-height:44px; }
+  .development-lab input,.development-lab select,.development-lab textarea { font-size:16px; }
+  .development-lab .lab-header nav a { min-height:44px; display:inline-flex; align-items:center; }
+}
+@media (max-width:850px) {
+  .development-lab #app { padding-top:0; }
+  .development-lab .lab-header { position:sticky; top:0; z-index:20; background:#111c21f2; gap:6px; padding:8px 0; margin:0 -10px; padding-left:10px; padding-right:10px; backdrop-filter:blur(4px); }
+  .development-lab .lab-header small { display:none; }
+  .development-lab .lab-header h1 { font-size:20px; }
+  .development-lab .lab-header nav { flex-wrap:nowrap; width:100%; overflow-x:auto; gap:4px; scrollbar-width:none; }
+  .development-lab .lab-header nav a { flex:0 0 auto; padding:8px 10px; }
+  .development-lab .lab-catalogue-grid>.lab-card,.development-lab .lab-catalogue-grid>.lab-specimen { height:auto; overflow:visible; }
+  .development-lab .lab-transport { gap:6px; }
+  .lab-group { padding:2px 0 2px 6px; }
+  .development-lab .review-toolbar { flex-wrap:nowrap; overflow-x:auto; align-items:end; padding-bottom:4px; }
+  .development-lab .review-toolbar>* { flex:0 0 auto; }
+  .development-lab .review-workspace .review-toolbar button { flex:0 0 auto; }
+}
+/* Portrait phones keep the reviewer's card actions in reach below the nav. */
+@media (max-width:850px) and (min-height:501px) {
+  .development-lab .review-toolbar { position:sticky; top:var(--lab-header-h,0px); z-index:10; background:#19282ef2; margin:0 -12px; padding:6px 12px; border-bottom:1px solid #38545b; }
+}
+/* Short landscape: the nav is the only sticky element. */
+@media (max-height:500px) and (orientation:landscape) {
+  .development-lab .lab-header { position:sticky; top:0; z-index:20; background:#111c21f2; flex-wrap:nowrap; padding:4px 0; }
+  .development-lab .lab-header>div { display:none; }
+  .development-lab .lab-header nav { flex-wrap:nowrap; overflow-x:auto; width:100%; }
+  .development-lab .lab-status { margin:4px 0; min-height:0; }
+}
+.development-lab .review-danger { margin:8px 0 16px; }
+.development-lab .lab-zoo-filters>label:has(input[type=search]) { flex-basis:150px; }
+/* Landscape phones and wide screens: the card stays beside its values. */
+@media (max-height:500px) and (orientation:landscape),(min-width:1100px) {
+  .development-lab .review-workspace { display:grid; grid-template-columns:minmax(200px,36%) minmax(0,1fr); column-gap:20px; align-items:start; }
+  .development-lab .review-workspace>* { grid-column:2; min-width:0; }
+  .development-lab .review-workspace>.review-preview { grid-column:1; grid-row:1 / span 40; position:sticky; top:calc(var(--lab-header-h,0px) + 8px); grid-template-columns:1fr; gap:8px; }
+}
+@media (max-height:500px) and (orientation:landscape) {
+  .development-lab .review-workspace .review-face { width:min(100%,210px); }
+  .development-lab .review-workspace>.review-preview { max-height:calc(100dvh - var(--lab-header-h,0px) - 16px); overflow:auto; }
+}
+.development-lab .lab-card-quick-read.lab-quick-sheet { max-height:60dvh; border:1px solid #83ae9c; border-radius:10px 10px 6px 6px; }

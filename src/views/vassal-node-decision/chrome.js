@@ -44,7 +44,7 @@ export function confirmDockRect(app) {
   };
 }
 
-export function confirmDockButton(parent, app, { enabled, label, onClick, showCheck = true } = {}) {
+export function confirmDockButton(parent, app, { enabled, label, onClick, onUnavailable = null, showCheck = true } = {}) {
   const rect = confirmDockRect(app);
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
@@ -78,8 +78,9 @@ export function confirmDockButton(parent, app, { enabled, label, onClick, showCh
   icon.visible = showCheck;
   root.addChild(bg, icon, title);
   paint();
+  // Disabled Confirm stays dimmed without hover glow, but a tap explains why.
   addInteractionFeedback(root, rect, {
-    enabled, onActivate: onClick, onStateChange: paint,
+    enabled: enabled || !!onUnavailable, onActivate: enabled ? onClick : onUnavailable, onStateChange: paint,
     drawFeedback: (graphics, {pressed}) => {
       if (!pressed) return;
       graphics.lineStyle(3, colors.ink, .8).beginFill(colors.ink, .18)

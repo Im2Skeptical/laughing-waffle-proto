@@ -141,6 +141,8 @@ export function createVassalNodeDecisionModalView({
   let pinnedInspectionId = null;
   let quickInspectionId = null;
   let acquirePicker = null;
+  // Tapping a dimmed control briefly names what blocks it.
+  let blockedNotice = null, blockedNoticeTimer = null;
   const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:178},lastDecision?.settlement?.structureCapacity??8);
   let hoverRenderTimer = null;
 
@@ -159,6 +161,34 @@ export function createVassalNodeDecisionModalView({
     quickInspectionId=pinnedInspectionId=null;
     previewOfferId=hoveredOfferId=previewTableauId=hoveredTableauId=null;
     render(true);
+  }
+
+  function explainBlocked(text) {
+    if (!text) return;
+    clearTimeout(blockedNoticeTimer);
+    blockedNotice = text;
+    render(true);
+    blockedNoticeTimer = setTimeout(() => { blockedNoticeTimer = null; blockedNotice = null; render(true); }, 3200);
+  }
+
+  function clearBlockedNotice() {
+    clearTimeout(blockedNoticeTimer);
+    blockedNoticeTimer = null;
+    blockedNotice = null;
+  }
+
+  function renderBlockedNotice(confirmRect) {
+    if (!blockedNotice) return;
+    // Beside the mortality plate on the dock row, clear of the panel content.
+    const width = 700, height = 76;
+    const x = confirmRect.x - MORTALITY_PLATE.gap * 2 - MORTALITY_PLATE.width - width;
+    const y = confirmRect.y + (confirmRect.height - height) / 2;
+    const plaque = new PIXI.Graphics();
+    roundedRect(plaque, x, y, width, height, 10, 0x2f2622, PALETTE.red, 2);
+    plaque.eventMode = 'none';
+    root.addChild(plaque, createText(blockedNotice, {
+      ...TEXT_STYLES.body, fontSize: 26, fill: PALETTE.text, wordWrap: true, wordWrapWidth: width - 36,
+    }, x + 18, y + height / 2, 0, 0.5));
   }
 
   function explainReadOnly(control, readOnly) {
@@ -257,6 +287,7 @@ export function createVassalNodeDecisionModalView({
     previewOptionId = null;
     previewOfferId = null;
     acquirePicker = null;
+    clearBlockedNotice();
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
     hoverRenderTimer = null;
     moveToVisibility(0, immediate);
@@ -293,6 +324,7 @@ export function createVassalNodeDecisionModalView({
       ? { x: nodePoint.x, y: nodePoint.y } : { ...panelCenter };
     replacementOfferId = null;
     offerPage = 0;
+    clearBlockedNotice();
     logicalOpen = true;
     pinnedInspectionId = null;
     quickInspectionId = null;
@@ -456,7 +488,7 @@ export function createVassalNodeDecisionModalView({
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
       decisionProcessing:presentation.decisionProcessing ?? null,
     }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
-      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker, replacementOfferId, offerPage });
+      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker, replacementOfferId, offerPage, blockedNotice });
     // Refresh callbacks can run several times for one entry. A matching layout
     // is already authoritative, including its selected/disabled controls.
     if (!prepared && nextSignature === signature) return;
@@ -564,6 +596,9 @@ export function createVassalNodeDecisionModalView({
       if (isShop) {
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
+          const blockedReason=offer.prestigeCost>projected
+            ? `Not enough Prestige: staging needs ${offer.prestigeCost}, ${Math.max(0,projected)} left after staged choices.`
+            : offer.stageBlockedReason ? `${offer.stageBlockedReason}.` : null;
           const inspect=event=>inspectPiece(offer.offerId,offer.constructionPresentation??offer.presentation,event);
           const x=cardStartX+visibleOffers[index].x;
           const offerWidth=visibleOffers[index].width;
@@ -573,7 +608,8 @@ export function createVassalNodeDecisionModalView({
             onCompletedInspect:event=>inspectPiece('completed:'+offer.offerId,offer.presentation,event),
             cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,state},enabled,
             costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
-            onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,onUnavailable:readOnly?onReadOnlyAction:null,
+            onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,
+            onUnavailable:readOnly?onReadOnlyAction:!enabled&&!offer.purchased&&blockedReason?()=>explainBlocked(blockedReason):null,
             onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
             onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
           });
@@ -595,6 +631,9 @@ export function createVassalNodeDecisionModalView({
             nodeState, isTravel: nodeState.family === 'travel',
           });
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
+          const unmet = requirements.filter((entry) => !entry.met);
+          const optionBlocked = unmet.length ? `Requires ${unmet.map((entry) => entry.label).join('; ')}.`
+            : prestigeCost > vassal.prestige ? `Not enough Prestige: needs ${prestigeCost}, you have ${vassal.prestige}.` : null;
           return (node.family==='relic'&&!option.emptyRelic?heirloomChoiceCard:simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
@@ -610,7 +649,7 @@ export function createVassalNodeDecisionModalView({
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
               : optionEffect(option),
             enabled: !readOnly && prestigeCost <= vassal.prestige && requirements.every((entry) => entry.met),
-            onUnavailable: readOnly ? onReadOnlyAction : null,
+            onUnavailable: readOnly ? onReadOnlyAction : optionBlocked ? () => explainBlocked(optionBlocked) : null,
             selected: nodeState.selectedOptionId === option.id,
             onClick: () => onSelectOption?.(node.id, option.id),
             onHover: () => {
@@ -736,14 +775,24 @@ export function createVassalNodeDecisionModalView({
     const isShop = nodeState?.contentMode === "shop";
     const canConfirm = !readOnly && !replacementOfferId && isCurrent && !nodeState?.resolving
       && (isShop || !!nodeState?.selectedOptionId);
+    const confirmBlocked = canConfirm || readOnly ? null
+      : nodeState?.resolving ? 'This decision is already resolving.'
+        : !isCurrent ? 'Only your Vassal’s current node can be confirmed.'
+          : replacementOfferId ? 'Choose a board Practice to replace, or tap the offer again to cancel.'
+            : node.family === 'relic' ? 'Choose an heirloom first.' : 'Choose an option first.';
+    const explainConfirm = confirmBlocked ? () => explainBlocked(confirmBlocked) : null;
     if (isShop && nodeState && !nodeState.resolving) {
+      const rerollCost = getVassalShopRerollCost(vassal);
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
         && (nodeState.purchasedOffers ?? []).length === 0
-        && getVassalShopRerollCost(vassal) <= vassal.prestige;
-      const rerollCost = getVassalShopRerollCost(vassal);
+        && rerollCost <= vassal.prestige;
+      const rerollBlocked = nodeState.rerollUsed ? 'This node’s reroll has already been used.'
+        : (nodeState.purchasedOffers ?? []).length ? 'Undo staged offers before rerolling.'
+          : rerollCost > vassal.prestige ? `Not enough Prestige: rerolling needs ${rerollCost}, you have ${vassal.prestige}.` : null;
       const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
         nodeState.rerollUsed ? "REROLL USED" : vassal.classId === "scholar" ? "RECONSIDER" : "REROLL", rerollEnabled,
-        () => {replacementOfferId=null; onRerollShop?.(node.id);});
+        () => {replacementOfferId=null; onRerollShop?.(node.id);}, false,
+        { onUnavailable: !readOnly && rerollBlocked ? () => explainBlocked(rerollBlocked) : null });
       reroll.children[1].x = 96; reroll.children[1].style.fontSize = 20;
       if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
@@ -778,7 +827,7 @@ export function createVassalNodeDecisionModalView({
         }
         acquirePicker = { destination: "equip" };
         render(true);
-      });
+      }, false, { onUnavailable: explainConfirm });
       button(root, {
         x: confirmRect.x, y: confirmRect.y + 48, width: confirmRect.width, height: 48,
       }, "STOW IN BAG", canAcquire, () => {
@@ -788,13 +837,14 @@ export function createVassalNodeDecisionModalView({
         }
         acquirePicker = { destination: "carry" };
         render(true);
-      });
+      }, false, { onUnavailable: explainConfirm ?? (selected?.emptyRelic ? () => explainBlocked('There is no heirloom to stow; choose Continue.') : null) });
       confirmRoot = button(root, {
         x: confirmRect.x, y: confirmRect.y + 104, width: confirmRect.width, height: 48,
-      }, "LEAVE BEHIND", canConfirm, () => confirmRelic({ destination: "decline" }));
+      }, "LEAVE BEHIND", canConfirm, () => confirmRelic({ destination: "decline" }), false, { onUnavailable: explainConfirm });
     } else if (!readOnly) {
       confirmRoot = confirmDockButton(root, app, {
         enabled: canConfirm,
+        onUnavailable: explainConfirm,
         label: "Confirm",
         showCheck: true,
         onClick: () => {
@@ -803,6 +853,7 @@ export function createVassalNodeDecisionModalView({
         },
       });
     }
+    renderBlockedNotice(confirmRect);
     const retainedInspectionId=pinnedInspectionId??quickInspectionId;
     const inspectionId=retainedInspectionId??previewOfferId;
     const completedInspection=inspectionId?.startsWith('completed:');
@@ -977,7 +1028,7 @@ export function createVassalNodeDecisionModalView({
           cardInteractionState: card.interactionState, cardRect: card.getBounds(),
           rect: card.costPanel.getBounds(),
         })),
-        replacementOfferId, offerPage, visibleOfferIds:shopCardRoots.map(card=>card.offerId),
+        replacementOfferId, offerPage, visibleOfferIds:shopCardRoots.map(card=>card.offerId), blockedNotice,
         dragPreview:dragPreview ? {ok:dragPreview.draftPreview?.ok,practices:dragPreview.settlement?.practices.map(piece=>piece?.practiceId ?? null),discard:dragPreview.settlement?.discardedPractices.map(piece=>piece.practiceId),structures:dragPreview.settlement?.structures.map(piece=>piece?{placementId:piece.placementId,structureId:piece.structureId,origin:piece.origin,width:piece.width}:null),demolished:dragPreview.settlement?.demolishedStructures.map(piece=>piece.placementId)} : null,
         discardRect:{x:TABLEAU.discardX,y:TABLEAU.discardY,width:TABLEAU.discardWidth,height:530},
         discardedPractices:decision?.settlement?.discardedPractices ?? [],

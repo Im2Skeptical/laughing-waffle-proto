@@ -66,6 +66,9 @@ export async function checkNodeSandbox(page, context) {
   await click('confirm');await page.waitForFunction(()=>!__LAB_DEBUG__.getNodeSandbox().modal.open);
   assert.ok((await snapshot()).pending,'Confirm starts real resolution');
   await page.getByLabel('Sandbox node type').selectOption('patronage');await page.getByTestId('lab-node-refresh').click();
+  await click('confirm');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.blockedNotice==='Choose an option first.');
+  assert.equal((await snapshot()).modal,true,'a blocked Confirm explains itself without closing the node');
   await click('option');assert.ok((await snapshot()).selected);
   await click('confirm');await page.getByTestId('lab-node-resolve').click();
   assert.ok((await snapshot()).tSec>0);assert.equal((await snapshot()).pending,false);

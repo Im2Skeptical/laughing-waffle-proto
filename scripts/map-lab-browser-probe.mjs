@@ -21,7 +21,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
   const page = await context.newPage();
-  await page.goto(`${url}/#/dev/gym`);
+  await page.goto(`${url}/#/dev/gym?workspace=setup`);
   await page.getByTestId('lab-run-setup').waitFor();
   assert.equal(await page.getByTestId('debug-profile-select').inputValue(), 'regular-game');
   assert.equal(await page.getByTestId('debug-profile-save').isDisabled(), true);

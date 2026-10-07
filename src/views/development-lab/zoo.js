@@ -6,7 +6,11 @@ import { el, select, field, input, section, details, button, table } from './ele
 
 export function createZooView({controller,cards,run,onReview,review}) {
   const filters = {category:'practice'}, pageSize = 12;
-  let page = 0, selected = null, versionsMode='live', hideLocked=false;
+  let page = 0, selected = null, versionsMode='live', hideLocked=false, moreOpen = null, scrollToSelected = false;
+  // Flag in place: the reviewer keeps the queue, so browsing continues here.
+  const liveDefinition = face => controller.getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
+  const flag = face => run(()=>review.flag(face.kind,face.definitionId,liveDefinition(face),face.tier));
+  const openReview = face => { location.hash = `/dev/reviewer?card=${encodeURIComponent(`${face.kind}:${face.definitionId}`)}`; };
   function render(parent) {
     let {state} = controller.getSnapshot();
     const locks=new Map((review?.list()??[]).map(entry=> {
@@ -20,40 +24,73 @@ export function createZooView({controller,cards,run,onReview,review}) {
     }
     // Lock visibility survives unrelated value conflicts and applies to live faces.
     const catalogue=getLabCatalogue(state).map(entry=>({...entry,locked:locks.get(`${entry.category}:${entry.id}`)??entry.locked}));
-    const controls = el('div','','lab-controls');
-    if(review) {
-      const versions=select('Card versions',[['live','Live cards'],['edited','Show edited cards'],['edited-only','Edited cards only']],versionsMode);
-      versions.addEventListener('change',()=>{versionsMode=versions.value;page=0;selected=null;run(()=>{});});controls.append(field('Card versions',versions));
-    }
-    const hide=input('Hide locked cards','','checkbox');hide.checked=hideLocked;
-    hide.addEventListener('change',()=>{hideLocked=hide.checked;page=0;selected=null;run(()=>{});});
-    controls.append(field('Hide locked cards',hide));
-    const choices = (key,property) => [...new Set(catalogue.flatMap(e => e[property] ?? []))].sort().map(s => [s,s]);
+    const controls = el('div','','lab-controls lab-zoo-filters');
+    // Only offer filters that can match something in the chosen category, and
+    // drop hidden ones so an invisible filter never empties the catalogue.
+    const inCategory = catalogue.filter(e => !filters.category || e.category === filters.category);
+    const values = property => [...new Set(inCategory.flatMap(e => e[property] ?? []))].filter(v => v !== '' && v != null).map(String).sort();
     const options = {
-      category:[['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map nodes'],['neutral','Neutral templates'],['monster','Monsters']],
-      pool:['common','scholar','warrior'], maturity:['bronze','silver','gold','diamond'],
-      mode:['scheduled','charge'],
-      tag:choices('tag','tags'), trait:choices('trait','traits'), size:['1','2','3'],
+      pool:values('pool'), maturity:['bronze','silver','gold','diamond'].filter(v=>values('maturity').includes(v)),
+      mode:values('mode'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
     };
     const labels = {category:'Category',pool:'Class',maturity:'Maturity',mode:'Practice mode',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
-    for (const [key,values] of Object.entries(options)) {
-      const control = select(labels[key],[['','All'],...values],filters[key] ?? '');
-      control.addEventListener('change',()=>{filters[key]=control.value;page=0;selected=null;run(()=>{});}); controls.append(field(labels[key],control));
-    }
-    const search = input('Search runtime content',filters.search ?? '','search'); search.placeholder = 'Name, rule, id…';
+    for (const key of Object.keys(options)) if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
+    const changed = () => { page=0; selected=null; run(()=>{}); };
+    const category = select(labels.category,[['','All'],['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map nodes'],['neutral','Neutral templates'],['monster','Monsters']],filters.category ?? '');
+    category.addEventListener('change',()=>{filters.category=category.value;changed();});
+    controls.append(field(labels.category,category));
+    const search = input('Search runtime content',filters.search ?? '','search'); search.placeholder = 'Name, rule, id…'; search.enterKeyHint = 'search';
     let searchTimer;
-    search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;page=0;selected=null;run(()=>{});},250);});
-    controls.append(field('Search',search)); parent.append(controls);
+    search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;changed();},250);});
+    controls.append(field('Search',search));
+    if(review) {
+      const versions=select('Card versions',[['live','Live cards'],['edited','Show edited cards'],['edited-only','Edited cards only']],versionsMode);
+      versions.addEventListener('change',()=>{versionsMode=versions.value;changed();});controls.append(field('Card versions',versions));
+    }
+    const hide=input('Hide locked cards','','checkbox');hide.checked=hideLocked;
+    hide.addEventListener('change',()=>{hideLocked=hide.checked;changed();});
+    controls.append(field('Hide locked cards',hide));
+    const secondary = Object.entries(options).filter(([,list]) => list.length);
+    const activeSecondary = secondary.filter(([key]) => filters[key]).length;
+    const more = el('details','','lab-filter-more');
+    more.open = moreOpen ?? (activeSecondary > 0 || !globalThis.matchMedia?.('(max-width:850px)').matches);
+    // Setting open fires toggle too; only a user's change is remembered.
+    const initialOpen = more.open;
+    more.addEventListener('toggle',()=>{if(more.open!==initialOpen)moreOpen=more.open;});
+    more.append(el('summary',`More filters${activeSecondary?` · ${activeSecondary} active`:''}`));
+    const moreControls = el('div','','lab-controls');
+    for (const [key,list] of secondary) {
+      const control = select(labels[key],[['','All'],...list],filters[key] ?? '');
+      control.addEventListener('change',()=>{filters[key]=control.value;changed();}); moreControls.append(field(labels[key],control));
+    }
+    if (secondary.length) { more.append(moreControls); controls.append(more); }
+    const anyFilter = hideLocked || versionsMode !== 'live' || !!filters.search || secondary.some(([key]) => filters[key]) || filters.category !== 'practice';
+    if (anyFilter) controls.append(button('Clear filters',()=>{for(const key of Object.keys(filters))delete filters[key];filters.category='practice';hideLocked=false;versionsMode='live';changed();},'zoo-clear-filters'));
+    const flagged = review?.list().length ?? 0;
+    if (review) { const link = el('a',`Review flagged (${flagged}) ›`,'lab-review-link'); link.href = '#/dev/reviewer'; controls.append(link); }
+    parent.append(controls);
     if(versionsMode!=='live')parent.append(el('p',`${edited.size} edited cards shown. Other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`));
     const matches = filterLabCatalogue(catalogue,{...filters,hideLocked}).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
-    parent.append(el('p','Hover or tap a card for its quick read. Select the tooltip title or Inspect tooltip for the full rules, symbol key and linked definitions. Inspect / compare shows all four qualities.'));
+    parent.append(el('p','Tap or hover a card for its quick read; Rules opens the full rules, symbol key and linked definitions. Compare shows all four qualities. Flag adds a card to the reviewer without leaving the Zoo.','lab-hint'));
+    const coverage = [], missing = [];
     for (const [pool,expectedPractices,expectedStructures] of [['common',13,14],['scholar',48,32],['warrior',48,32]]) {
       const practices=catalogue.filter(e=>e.category==='practice'&&e.pool===pool),structures=catalogue.filter(e=>e.category==='structure'&&e.pool===pool);
       const charge=practices.filter(e=>e.def.mode==='charge').length;
-      parent.append(el('p',`${pool}: ${practices.length}/${expectedPractices} Practices (${charge} Charge), ${structures.length}/${expectedStructures} Structures${practices.length!==expectedPractices||structures.length!==expectedStructures?' — MISSING RUNTIME CONTENT':''}.`));
+      const short=practices.length!==expectedPractices||structures.length!==expectedStructures;
+      if(short)missing.push(pool);
+      coverage.push(el('p',`${pool}: ${practices.length}/${expectedPractices} Practices (${charge} Charge), ${structures.length}/${expectedStructures} Structures${short?' — MISSING RUNTIME CONTENT':''}.`));
     }
+    const coveragePanel = el('details','','lab-coverage'); coveragePanel.open = missing.length > 0;
+    coveragePanel.append(el('summary',missing.length?`Content coverage — MISSING RUNTIME CONTENT (${missing.join(', ')})`:'Content coverage · complete'),...coverage);
+    parent.append(coveragePanel);
     page = Math.min(page,Math.max(0,Math.ceil(matches.length/pageSize)-1));
     parent.append(el('p',`${matches.length} matching runtime entries · ${Object.keys(state.gameConfig.gamepieces.practices).length} Practices · ${Object.keys(state.gameConfig.gamepieces.structures).length} Structures. Definitions come from this fixture’s serialized game config.`));
+    const pager = () => {
+      const node = el('div','','lab-controls lab-pager'), prev=button('Previous',()=>run(()=>page--)), next=button('Next',()=>run(()=>page++));
+      prev.disabled=page===0;next.disabled=(page+1)*pageSize>=matches.length;
+      node.append(prev,el('span',`Page ${page+1} / ${Math.max(1,Math.ceil(matches.length/pageSize))}`),next);return node;
+    };
+    if (matches.length > pageSize) parent.append(pager());
     if (selected) {
       const e = catalogue.find(e=>`${e.category}:${e.id}` === selected);
       if (e) {
@@ -79,20 +116,25 @@ export function createZooView({controller,cards,run,onReview,review}) {
           ]));
         }
         panel.append(details('Complete runtime definition',e.def)); parent.append(panel);
+        // The panel renders above the grid; bring it into view after the
+        // shell restores the previous scroll position.
+        if (scrollToSelected) { scrollToSelected = false; requestAnimationFrame(()=>panel.scrollIntoView({block:'start'})); }
       }
     }
     const grid = el('div','','lab-card-grid lab-catalogue-grid');
     for (const e of matches.slice(page*pageSize,(page+1)*pageSize)) {
-      const inspect = ()=>run(()=>{selected=`${e.category}:${e.id}`;});
+      const inspect = ()=>run(()=>{selected=`${e.category}:${e.id}`;scrollToSelected=true;});
       if (['practice','structure'].includes(e.category)) {
         const slot = e.category === 'practice' ? practiceSlot(e.id,0,e.maturity) : {};
         const face = getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
         if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
         const isEdited=edited.has(`${e.category}:${e.id}`);
-        const card=cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}${e.locked?' · locked':''}${isEdited?' · edited':''}`,inspect,{readable:true});
+        const isFlagged=!!review?.get(e.category,e.id);
+        const actions=review?[isFlagged?button('Open review',()=>openReview(face)):button('Flag for review',()=>flag(face))]:[];
+        const card=cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}${e.locked?' · locked':''}${isEdited?' · edited':''}${isFlagged?' · flagged':''}`,inspect,{readable:true,actions});
         if(e.locked)card.dataset.locked='true';
         if(isEdited)card.dataset.edited='true';
-        if(onReview)card.append(button('Review card',()=>onReview(face)));
+        if(isFlagged)card.dataset.flagged='true';
         grid.append(card);
       }
       else {
@@ -101,10 +143,7 @@ export function createZooView({controller,cards,run,onReview,review}) {
         item.classList.add('lab-specimen'); item.append(details('Runtime data',e.def)); grid.append(item);
       }
     }
-    parent.append(grid);
-    const pager = el('div','','lab-controls'), prev=button('Previous',()=>run(()=>page--)), next=button('Next',()=>run(()=>page++));
-    prev.disabled=page===0;next.disabled=(page+1)*pageSize>=matches.length;
-    pager.append(prev,el('span',`Page ${page+1} / ${Math.max(1,Math.ceil(matches.length/pageSize))}`),next);parent.append(pager);
+    parent.append(grid, pager());
   }
   return {render};
 }

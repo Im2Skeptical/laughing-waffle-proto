@@ -14,7 +14,6 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   const {state,regionId,previous,detail} = controller.getSnapshot();
   const vm = getDetailedSettlementViewModel(state,regionId), local = state.world.sites.find(s=>s.regionId===regionId)?.detailedState;
   const observation = getLabObservation(state,regionId), vassal = getCurrentLifeMapVassal(state);
-  parent.append(details('Causal cascade sequence (root / parent event IDs)',observation.cascadeTrace));
   const edit = (kind,payload) => run(()=>controller.edit(kind,payload));
   const auto = (controls, action) => controls.forEach(control=>control.addEventListener('change',action));
   const location = select('Settlement',state.world.sites.map(s=>[s.regionId,`${s.regionId} · ${s.name} · ${s.simulationMode}${s.neutral?' · neutral':''}`]),regionId);
@@ -36,16 +35,26 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   const tableau = el('div','','lab-tableau'); tableau.dataset.testid='lab-tableau';
   vm?.practices.forEach((p,index)=>{
     const card=cards.card(p.face,`${index+1}. ${p.label ?? 'Empty'}`);
+    card.dataset.slotIndex=index;
     if (p.face) {
       card.append(el('p',`Card Tags: ${p.tags.join(', ')} · Workers: ${(p.workers?.tokens??[]).map(t=>t.specialist??'ordinary').join(', ') || 'none'}`));
-      if (p.evaluation?.providers?.length) for (const provider of p.evaluation.providers) card.append(el('p',`${provider.kind === 'consume'?'Consume':'Require'} ${provider.amount}: [${provider.slotIndex+1} ${provider.practiceId}] → [${index+1} ${p.label}]`,'lab-provider'));
+      // Provider links jump to and highlight the slot that supplies the Stock.
+      if (p.evaluation?.providers?.length) for (const provider of p.evaluation.providers) {
+        const link=button(`${provider.kind === 'consume'?'Consume':'Require'} ${provider.amount}: [${provider.slotIndex+1} ${provider.practiceId}] → [${index+1} ${p.label}]`,()=>{
+          const source=tableau.querySelector(`[data-slot-index="${provider.slotIndex}"]`);
+          if(!source)return;
+          source.scrollIntoView({block:'nearest',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+          source.classList.remove('lab-flash');void source.offsetWidth;source.classList.add('lab-flash');
+          setTimeout(()=>source.classList.remove('lab-flash'),1600);
+        });
+        link.className='lab-provider';link.setAttribute('aria-label',`Show provider slot ${provider.slotIndex+1}, ${provider.practiceId}`);card.append(link);
+      }
       if (p.evaluation?.mode==='charge') card.append(el('p',`Charge ${p.evaluation.charge} / ${p.evaluation.chargeThreshold}${p.evaluation.blocked?' — blocked':''}`));
       if (p.evaluation?.blocked) card.append(el('p',`Blocked: ${p.evaluation.blockedReason}`,'lab-warning'));
       else if (p.evaluation?.missing) card.append(el('p',`Recipe needs: ${p.evaluation.missing.kind} [${p.evaluation.missing.traits.join(' / ')}] on the board`));
       if (previous?.stocks?.[index]?.stock !== undefined) card.append(el('p',`Stock ${previous.stocks[index].stock} → ${p.stock}`));
     }
     if (gym) {
-      card.dataset.slotIndex=index;
       const handle=button(`Drag slot ${index+1}`,()=>{});handle.dataset.dragSlot=index;handle.className='lab-drag-handle';
       handle.setAttribute('aria-label',`Reorder slot ${index+1}; drag or Alt plus left/right`);
       card.prepend(handle);
@@ -122,7 +131,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   parent.append(section('World and recent outcomes',table(['Region','Owner / mode','Population','Hosted Stock','Monster'],state.world.regions.map(r=>{
     const site=state.world.sites.find(s=>s.regionId===r.id);
     return [r.id,`${r.controller} / ${site?.simulationMode??'frontier'}`,site?.detailedState?Object.values(site.detailedState.populationByClass).reduce((n,c)=>n+c.children+c.adults+c.eldersByAge.reduce((sum,e)=>sum+e.count,0),0):'—',site?.detailedState?.practiceSlots.filter(Boolean).map(p=>`${p.practiceId}: ${p.stock}`).join(', '),r.monster?`Defense ${r.monster.defense}, age ${r.monster.ageMoons}`:'—'];
-  })),details('Last meal and defense',{meal:observation.meal,defense:observation.lastDefense}),details('History and current observations',observation),details('Recent activation trace',(vm?.activationTrace??[]).slice(-12))));
+  })),details('Last meal and defense',{meal:observation.meal,defense:observation.lastDefense}),details('History and current observations',observation),details('Recent activation trace',(vm?.activationTrace??[]).slice(-12)),details('Causal cascade sequence (root / parent event IDs)',observation.cascadeTrace)));
   if(detail?.kind==='projection') parent.append(section(detail.equal?'Exact projection match':'Projection mismatch',el('p',`Both paths ended at t=${detail.endSec}. All serialized fields compared, including RNG, cohorts and spatial outcomes.`),table(['Field','Authoritative','Projection'],detail.differences.map(d=>[d.path,d.authoritative,d.projection])),details('Compared summaries',{authoritative:{tSec:detail.authoritative.tSec,rng:detail.authoritative.rng,history:detail.authoritative.civilization.history},projection:{tSec:detail.projection.tSec,rng:detail.projection.rng,history:detail.projection.civilization.history}})));
   if(detail?.kind==='shop') parent.append(section('Seeded shop preview',el('p',`Discovery access: ${!!detail.node.discoveryAccess}`),table(['Offer','Quality','Prestige / phases'],detail.node.offers.map(o=>[o.label,o.intervention?.resultingTier??o.intervention?.tier,`${o.basePrestigeCost} / ${o.basePhaseCost}`])),details('Actual generated offers',detail.node.offers)));
   if(detail?.kind==='institutions') parent.append(section('Institutions: same RNG comparison',el('p','Only Structures differ between these two candidate-generation previews. Neither preview changes the fixture or its RNG.'),table(['Class','Settlement','Ingenuity without → with','Prowess without → with'],detail.rows.map(r=>[r.classId,r.regionId,`${r.baseIngenuity} → ${r.ingenuity}`,`${r.baseProwess} → ${r.prowess}`]))));

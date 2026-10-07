@@ -8,6 +8,10 @@ export function createLabCardReading({onReview} = {}) {
   const quick = el('div', '', 'lab-card-quick-read');
   quick.hidden = true;
   quick.setAttribute('role', 'dialog');
+  // Touch has no hover-out: the quick read carries its own explicit actions.
+  const quickBar = el('div', '', 'lab-quick-actions');
+  quickBar.append(button('Full rules', () => { if (face) inspect(face, anchor); }), button('Close quick read', () => close()));
+  quick.append(quickBar);
   const dialog = el('dialog', '', 'lab-card-inspection');
   const toolbar = el('div', '', 'lab-controls');
   const heading = el('strong');
@@ -35,6 +39,14 @@ export function createLabCardReading({onReview} = {}) {
     if (mode !== 'quick' || !anchor?.isConnected) return;
     const rect = anchor.getBoundingClientRect(), margin = 12;
     if (rect.bottom < 0 || rect.top > innerHeight) { close(); return; }
+    // Narrow portrait screens have no room beside the card: use a bottom sheet.
+    if (innerWidth < 600 && innerHeight > innerWidth) {
+      quick.style.width = `${innerWidth - margin * 2}px`; quick.style.left = `${margin}px`;
+      quick.style.top = `${Math.max(margin, innerHeight - Math.min(quick.scrollHeight, innerHeight * .6) - margin)}px`;
+      quick.classList.add('lab-quick-sheet');
+      return;
+    }
+    quick.classList.remove('lab-quick-sheet');
     const width = Math.min(420, innerWidth - margin * 2);
     quick.style.width = `${width}px`;
     const right = rect.right + margin;

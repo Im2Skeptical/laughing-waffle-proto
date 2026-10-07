@@ -9,7 +9,8 @@ Fresh-run editing lives in **Gym ? New run setup**.
 
 ## New run setup
 
-Gym opens **New run setup** by default (`#/dev/gym?workspace=setup`). Its
+Gym opens **Settlement sandbox** by default; open **New run setup** with
+`#/dev/gym?workspace=setup` or its workspace tab. Its
 **Regular game** profile is read-only and comes from the same current-build
 setup and initialization path as player New Game. It includes two player
 settlements on a seeded random road, rolled Structure capacities and four
@@ -75,13 +76,16 @@ the full Development Lab probe includes the same node checks.
 
 ## Card reviewer
 
-**Card reviewer** sits alongside Zoo. **Review card** flags any Zoo Practice or
-Structure and opens its review. The top-right **Dev** control in the shared card
+**Card reviewer** sits alongside Zoo. **Flag for review** flags any Zoo Practice
+or Structure without leaving the Zoo; flagged cards then offer **Open review**,
+and the Zoo header's **Review flagged (N)** link opens the reviewer queue. The
+queue labels each card with its edit count, lock and notes. The top-right **Dev** control in the shared card
 inspection does the same from the live game, including shop inspections, and
 opens a separate reviewer tab. Re-flagging preserves existing edits and notes.
 
 Tap an outlined value area on the actual card face to open simple fields over
-its illustration. Valid edits save immediately and redraw the shared live
+its illustration. Choices save immediately; typed fields save on change or after
+a short pause, and partial numbers wait until they are valid. Saved edits redraw the shared live
 renderer. The fields below the card also expose costs, worker values, seasonal
 production, inputs, bonuses, tags, traits and copy without a JSON editor.
 Structural DSL identities and operation names remain fixed. Invalid inputs
@@ -91,6 +95,8 @@ report inline errors and leave the last saved value intact.
 quality. Cards appear alongside each other on desktop and stack on phones;
 readable rules and a value-change list accompany the faces. Preview quality is
 a display control, rather than a definition change. Notes save as you type.
+**Changes against live (N)** sits directly under the preview: each row shows
+live → draft and a **Revert** button that restores that field's live value.
 **Export all reviews** downloads one JSON file containing every flagged card,
 notes, its original definition, current live definition, modified definition,
 and explicit original/live/proposed values at each edited path.
@@ -100,8 +106,9 @@ of simulation/save schemas and game resets. They survive sessions and builds on
 the same site, browser and device. Clearing browser site data removes them.
 New builds supply unedited values; edited values retain their proposals. Changed
 field shapes and removed cards remain in storage/export with a visible warning.
-**Reset edits** keeps the flag and notes; **Delete review** requires a second tap
-and removes the entire review. Drafts never change an existing run.
+**Reset edits** keeps the flag and notes; **Delete review** removes the entire
+review. Both require a second tap and sit below the change list, away from the
+Lock/Compare toolbar. Drafts never change an existing run.
 
 In Zoo, **Card versions** selects **Live cards**, **Show edited cards** (drafts
 where available, live values elsewhere), or **Edited cards only**. Draft faces,
@@ -134,6 +141,17 @@ can start; they are not silently skipped.
 Verify persistence, export, build drift and failed writes with `npm run test:card-review`.
 Verify Zoo/mobile controls with `npm run probe:development-lab -- --reviewer-only`
 and new-game/Continue behavior with `npm run probe:game-menu`.
+
+## Phone use
+
+Zoo, Card reviewer, Museum and Gym fit 390px portrait and 844×390 landscape
+without horizontal scrolling. The header and section nav stay compact and
+sticky; landscape-short screens keep only the nav. Controls are at least 44px
+on narrow or touch screens, number fields use the numeric keyboard, and Zoo
+quick reads have **Full rules** / **Close quick read** buttons (a bottom sheet in
+narrow portrait), so nothing depends on hover. The reviewer's Lock/Compare/quality
+toolbar stays reachable in portrait; landscape puts the card beside its fields.
+`npm run probe:development-lab` checks these phone layouts.
 
 ## Prototypes
 
@@ -194,13 +212,18 @@ executable effects and provisional deviations.
 
 Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
 Hover, focus or tap any Zoo Practice or Structure for its current in-game quick
-read. Select the tooltip title or **Inspect tooltip** for the full rules, symbol
-key and recursive keyword definitions. Escape retraces a definition or closes
+read. Select the tooltip title, **Rules** or the quick read's **Full rules** for
+the full rules, symbol key and recursive keyword definitions. **Compare** opens
+the quality comparison and scrolls it into view. Escape retraces a definition or closes
 inspection. All four quality-comparison cards support the same reading surfaces.
 Quick reads stay inside the viewport and scroll when needed; full inspection
 uses a modal canvas with independent rules and symbol-key scrolling.
 Catalogue specimens use equal-size frames, including wide Structures; card art
 keeps its original proportions within a fixed image area.
+Category, Search, Card versions and Hide locked stay visible; the remaining
+filters sit under **More filters** (collapsed on phones) and only appear when
+they apply to the current category. **Clear filters** restores the defaults.
+Content coverage is a collapsed summary unless runtime content is missing.
 Comparison shows four Practice qualities or four Structure quality uplifts,
 capacity, timing, DSL effects, Consume/Require, gates, modifiers, and stacking.
 Zoo samples have no workers or institutions; Museum/Gym faces use the complete
@@ -248,6 +271,11 @@ wheel, type an exact second, or use the phase/moon/year steps. Explicit step but
 extend the span when needed. Earlier-than-origin browsing clamps to the branch
 start. Edits start a new deterministic branch at the viewed second and regenerate
 only the chosen span. Reset still restores the loaded/saved fixture, including RNG.
+**Undo** reverses the last fixture load, edit, reset, imported state or reset
+point (up to 20 steps). Selecting a Museum exhibit loads it immediately;
+**Reload with seed** reloads it with an edited seed. Transport controls are
+grouped as Step, Jump, Check and Restore. **Use current as reset** asks for a
+second tap. Provider rows on a selected card scroll to and highlight their source slot.
 
 Practice and Structure selection uses searchable visual pickers with class, tag,
 trait and footprint filters. Practice handles support mouse/touch dragging and
@@ -259,7 +287,7 @@ the previous state and timeline. Spawn/remove/resolve actions remain explicit.
 **Save to Museum** captures the currently viewed Gym state as a named exhibit.
 **Save and open in Museum** also switches to it immediately. Saved exhibits appear
 in the Museum's fixture selector and survive refresh. Saving an existing name
-replaces that exhibit. Storage is local to this browser; JSON export/import is
+asks for confirmation before replacing that exhibit. Storage is local to this browser; JSON export/import is
 available for sharing between devices.
 
 Gym?s **Settlement sandbox** (`#/dev/gym?workspace=settlement`) supports settlement/fixture selection; explicit adult-cohort population,
