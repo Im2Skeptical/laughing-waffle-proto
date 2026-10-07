@@ -35,6 +35,9 @@ import {
   isShopNodeState,
   prepareStructurePlacement,
   validatePurchaseInterventions,
+  purchaseVassalShopOffer,
+  reorderVassalShopPurchase,
+  moveVassalShopStructure,
 } from "./shop.js";
 import { getSettlementRequirements } from "./lifecycle.js";
 
@@ -252,6 +255,15 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
 }
 
 export function getVassalNodeDecisionPresentation(state, nodeId = null, preview = {}) {
+  if (preview.draftMove) {
+    const isolated = clone(state), move = preview.draftMove;
+    const result = move.fromOffer
+      ? purchaseVassalShopOffer(isolated, nodeId, move.id, move.origin, move.toIndex, move.replacePracticeId)
+      : move.kind === 'structure'
+        ? moveVassalShopStructure(isolated, nodeId, move.id, move.origin)
+        : reorderVassalShopPurchase(isolated, nodeId, move.id, move.toIndex);
+    return {...getVassalNodeDecisionPresentation(result.ok ? isolated : state, nodeId), draftPreview: result};
+  }
   const vassal = getCurrentLifeMapVassal(state);
   const activeNodeId = nodeId ?? vassal?.lifeMap?.currentNodeId ?? null;
   const node = getVassalLifeMapNode(vassal, activeNodeId);
@@ -296,7 +308,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
   const tableauState = previewSite ? {...state,world:{...state.world,sites:state.world.sites.map(site=>site===previewSite?{...site,detailedState:{...site.detailedState,practiceSlots:afterPractices,structureSlots:afterStructures}}:site)}} : state;
   const assignments = assignDetailedSettlementWorkers(tableauState, previewRegionId);
-  const decorate = (kind, slots) => slots.map((slot, slotIndex) => {
+  const decorate = (kind, slots, active = true) => slots.map((slot, slotIndex) => {
     if (!slot) return null;
     const idKey = kind === 'practice' ? 'practiceId' : 'structureId';
     const purchase = (nodeState?.purchasedOffers ?? []).find(p => p.intervention.kind === kind
@@ -308,7 +320,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       upgraded: kind === 'practice' && purchase?.intervention?.mode === 'upgrade',
       previousPresentation: kind === 'practice' && purchase?.intervention?.mode === 'upgrade'
         ? getVassalGamepiecePresentation(state, kind, slot[idKey], purchase.intervention.tier) : null,
-      presentation: kind === 'practice' ? getGamepieceFace(tableauState,kind,slot[idKey],tier,{slot,evaluation:evaluateDetailedPracticeSlot(tableauState,previewRegionId,slotIndex),workers:assignments[slotIndex],activationTrace:previewSite?.detailedState?.practiceActivationTrace??[]}) : getVassalGamepiecePresentation(tableauState, kind, slot[idKey], tier, slot, getDetailedSite(tableauState,previewRegionId)?.detailedState),
+      presentation: kind === 'practice' && active ? getGamepieceFace(tableauState,kind,slot[idKey],tier,{slot,evaluation:evaluateDetailedPracticeSlot(tableauState,previewRegionId,slotIndex),workers:assignments[slotIndex],activationTrace:previewSite?.detailedState?.practiceActivationTrace??[]}) : getVassalGamepiecePresentation(tableauState, kind, slot[idKey], tier, slot, getDetailedSite(tableauState,previewRegionId)?.detailedState),
     };
   });
   const decorateOffer = (offer, purchased = false) => {
@@ -350,8 +362,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
         : getVassalActionPhaseCost(vassal, offer.basePhaseCost ?? 0, { nodeState }),
     };
   };
-  const displacedPractices = beforePractices.filter((slot) => slot
-    && !afterPractices.some((after) => after?.practiceId === slot.practiceId));
+  const displacedPractices = projected?.practices?.displaced ?? [];
   return {
     node, nodeState,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
@@ -377,10 +388,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       currentCurrency: stockTotal(state, previewSite.detailedState, "Currency"),
       currency: Math.max(0, (stockTotal(state, previewSite.detailedState, "Currency"))
         - (previewRegionId === vassal.locationRegionId ? stagedCurrencyCost : 0)),
-      practices: decorate("practice", afterPractices, beforePractices),
+      practices: decorate("practice", afterPractices),
       displacedPractices: displacedPractices.map((slot) =>
         getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
-      structures: decorate("structure", afterStructures, beforeStructures),
+      discardedPractices: decorate('practice', displacedPractices, false),
+      structures: decorate("structure", afterStructures),
       structureCapacity: afterStructures.length,
       demolishedStructures: (projected?.structures?.demolished ?? []).map(slot => ({ ...slot,
         presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId,

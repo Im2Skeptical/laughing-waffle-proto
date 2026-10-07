@@ -637,6 +637,9 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   }
   const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
   if (!validation.ok) return validation;
+  const layoutChanged = settlement && (
+    JSON.stringify(settlement.practiceSlots) !== JSON.stringify(validation.reservation.practiceSlots)
+    || JSON.stringify(settlement.structureSlots) !== JSON.stringify(validation.reservation.structureSlots));
   vassal.prestige -= stagedPrestigeCost;
   if (settlement) {
     consumeStock(state, settlement, "Currency", stagedCurrencyCost);
@@ -659,7 +662,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
       nodeId, offerId: purchase.offerId, intervention: clone(purchase.intervention),
     });
   }
-  if (nodeState.purchasedOffers.length>0) {
+  if (nodeState.purchasedOffers.length > 0 || layoutChanged) {
     emitPracticeEvent(state,{kind:'settlementChanged',regionId:vassal.locationRegionId,reason:'shopConfirmed'});
     flushPracticeEvents(state);
   }

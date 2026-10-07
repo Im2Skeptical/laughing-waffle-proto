@@ -248,7 +248,13 @@ contract: `ai/visual-overhaul.md`.
   signature nodes add a small four-point sparkle. Generated lane positions are
   preserved with collision spacing and a slight stable depth stagger, with no
   age-band headings or bottom legend. Shop
-  drafts support undo and pointer/touch drag ordering. Dismissing the modal or
+  drafts support multiple affordable purchases, undo and pointer/touch drag ordering.
+  Offers and board Practices share full-size faces; extra offers page without
+  shrinking. A full board asks for any replacement card when a cost is tapped.
+  Dragging previews the final shift/placement and discarded cards through the
+  model without mutating the draft. The in-frame discard pile supports inspection
+  and dragging Practices or Structures back onto the board. Empty slots have
+  visible frames, and the HUD emphasizes remaining Prestige in a brass plaque. Dismissing the modal or
   focusing the Vassal's settlement on the World Map preserves the draft, and
   the active node/HUD reopens it. The modal has no duplicate Regional Map
   button; the lower-left dock owns navigation. Double-click still enters an available node.

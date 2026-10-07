@@ -53,8 +53,8 @@ try {
       const app=new PIXI.Application({width:2424,height:1080,background:0x111817,antialias:true});document.body.append(app.view);art.preloadChronicleArt();
       const view=createVassalNodeDecisionModalView({app,layer:app.stage,getState:()=>state,
         getPresentation:()=>({vassal:v,readOnly:false,viewedSec:0,frontierSec:0}),
-        getDecisionPresentation:()=>life.getVassalNodeDecisionPresentation(state,nodeId),
-        onPurchaseOffer:(nodeId,offerId,origin,toIndex)=>dispatch(K.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId,origin,toIndex}),
+        getDecisionPresentation:(_id,preview)=>life.getVassalNodeDecisionPresentation(state,nodeId,preview),
+        onPurchaseOffer:(nodeId,offerId,origin,toIndex,replacePracticeId)=>dispatch(K.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId,origin,toIndex,replacePracticeId}),
         onUndoPurchase:(nodeId,offerId)=>dispatch(K.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId}),
         onReorderPurchase:(nodeId,offerId,toIndex)=>dispatch(K.VASSAL_REORDER_SHOP_PURCHASE,{nodeId,offerId,toIndex}),
         onMoveStructure:(nodeId,offerId,origin)=>dispatch(K.VASSAL_MOVE_SHOP_STRUCTURE,{nodeId,offerId,origin}),
@@ -64,7 +64,25 @@ try {
       globalThis.probe={view,results,snapshot:()=>view.getSemanticSnapshot(),confirmed:()=>({practices:site.practiceSlots,structures:site.structureSlots}),
         replay:()=>{const r=timeline.rebuildStateAtSecond(line,0);const s=r.state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;return {ok:r.ok,practices:s.practiceSlots,structures:s.structureSlots};}};
     },kind);
-    const point=async(method,index)=>page.evaluate(([m,i])=>globalThis.probe.view[m](i),[method,index]);
+    const point=async(method,index)=>{
+      if (['getOfferFacePoint','getOfferClickPoint','getUndoClickPoint'].includes(method)) {
+        const before=await page.evaluate(()=>probe.snapshot());
+        const id=method==='getOfferFacePoint' ? 'fixture:'+index
+          : method==='getUndoClickPoint' ? [...before.purchaseOrder].sort((a,b)=>Number(a.split(':')[1])-Number(b.split(':')[1]))[index] : before.offers[index]?.offerId;
+        for(let attempt=0;attempt<4;attempt++) {
+          const s=await page.evaluate(()=>probe.snapshot());
+          if(s.visibleOfferIds.includes(id)) {
+            const visible=method==='getOfferFacePoint' ? s.visibleOfferIds
+              : s.visibleOfferIds.filter(offerId=>method==='getUndoClickPoint' ? s.purchaseOrder.includes(offerId) : !s.purchaseOrder.includes(offerId));
+            return page.evaluate(([m,i])=>probe.view[m](i),[method,visible.indexOf(id)]);
+          }
+          const direction=Number(id.split(':')[1])<Number(s.visibleOfferIds[0].split(':')[1])?0:1;
+          const p=await page.evaluate(d=>probe.view.getOfferPageClickPoint(d),direction);
+          await tap(p);
+        }
+      }
+      return page.evaluate(([m,i])=>globalThis.probe.view[m](i),[method,index]);
+    };
     const screen=async p=>{assert.ok(p,'The control exists');const b=await page.locator('canvas').boundingBox();return {x:b.x+p.x/2424*b.width,y:b.y+p.y/1080*b.height};};
     const tap=async (p,hold=false)=>{
       const q=await screen(p);
@@ -79,38 +97,60 @@ try {
     };
     const snapshot=()=>page.evaluate(()=>probe.snapshot());
     const drag=async(from,to)=>{
+      const before=await snapshot(); let held;
       const a=await screen(from),b=await screen(to);
-      if(mobile){const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[a]});for(let i=1;i<=12;i++)await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a.x+(b.x-a.x)*i/12,y:a.y+(b.y-a.y)*i/12}]});await c.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await c.detach();}
-      else{await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:12});await page.mouse.up();}
+      if(mobile){const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[a]});for(let i=1;i<=12;i++)await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a.x+(b.x-a.x)*i/12,y:a.y+(b.y-a.y)*i/12}]});held=await snapshot();await c.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await c.detach();}
+      else{await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:12});held=await snapshot();await page.mouse.up();}
       await delay(250);
+      assert.deepEqual(held.purchaseOrder,before.purchaseOrder,'Dragging previews without committing the purchase');
+      if(held.dragPreview?.ok) {
+        const after=await snapshot();
+        assert.deepEqual(after.practices.map(p=>p?.practiceId??null),held.dragPreview.practices,'Practice commit matches the live preview');
+        assert.deepEqual(after.discardedPractices.map(p=>p.practiceId),held.dragPreview.discard,'Outgoing cards match the live discard preview');
+        assert.deepEqual(after.structures.map(p=>p?{placementId:p.placementId,structureId:p.structureId,origin:p.origin,width:p.width}:null),held.dragPreview.structures,'Structure commit matches the live preview');
+      }
     };
     await delay(900);
     await tap(await point('getOfferFacePoint',0));
-    let s=await snapshot();assert.equal(s.purchaseOrder.length,0);assert.ok(s.inspectedCardId);
-    assert.ok(s.inspectionRect.x>=s.tableauRect.x-40,'Offer inspection occupies the right side');
+    let s=await snapshot();assert.equal(s.purchaseOrder.length,0);assert.ok(s.inspectedCardId || s.quickCardId);
+    if(s.quickCardId) {await tap(s.inspectionTitlePoint); s=await snapshot();}
+    assert.ok(s.inspectionRect,'Offer inspection opens');
     const source=await point('getOfferFacePoint',0);
-    assert.ok(source.x<s.inspectionRect.x,'Offer inspection leaves its source exposed');
+    assert.ok(source,'The offer retains its inspection target');
     await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}-inspection.png`});
     await tap(await point('getInspectionClosePoint'));
     await tap(await point('getOfferClickPoint',0),true);
-    s=await snapshot();assert.equal(s.purchaseOrder.length,1,'Detached cost stages one purchase');
+    s=await snapshot();
+    if(s.replacementOfferId) await tap(await point('getTableauClickPoint',4));
+    s=await snapshot();assert.equal(s.purchaseOrder.length,1,'Cost plus chosen replacement stages one purchase');
     assert.equal(s.currentPrestige,1000);assert.equal(s.projectedPrestige,990);
     const stagedIndex=kind==='practice'?0:5+s.structures.filter(Boolean).findIndex(p=>p.staged);
     await tap(await point('getTableauClickPoint',stagedIndex));
     s=await snapshot();
-    assert.ok(s.inspectionRect.x+s.inspectionRect.width<s.tableauRect.x,'Tableau inspection occupies the left side');
+    if(s.quickCardId) {await tap(s.inspectionTitlePoint); s=await snapshot();}
+    assert.ok(s.inspectionRect,'The staged board card remains inspectable');
     await tap(await point('getInspectionClosePoint'));
     if(kind==='practice') {
       await drag(await point('getOfferFacePoint',1),await point('getTableauClickPoint',0));
       s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['quarrying','dryFarming']);
       await drag(await point('getTableauClickPoint',0),await point('getTableauClickPoint',1));
       s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['dryFarming','quarrying']);
+      assert.ok(s.discardedPractices.length,'Full board shows a recoverable discard');
+      await tap(await point('getDiscardClickPoint',0));
+      assert.ok((await snapshot()).inspectedCardId || (await snapshot()).quickCardId,'Discard is clickable');
+      if ((await snapshot()).inspectedCardId) await tap(await point('getInspectionClosePoint'));
+      else await tap({x:500,y:840});
+      const restored=s.discardedPractices[0].practiceId;
+      await drag(await point('getDiscardClickPoint',0),await point('getTableauClickPoint',4));
+      assert.equal((await snapshot()).practices[4].practiceId,restored,'Discard can be dragged back to the board');
+
       await drag(await point('getTableauClickPoint',0),{x:600,y:380});
       assert.equal((await snapshot()).purchaseOrder.length,1,'Dragging to offers undoes a purchase');
       await tap(await point('getUndoClickPoint',0));assert.equal((await snapshot()).purchaseOrder.length,0);
       await drag(await point('getOfferFacePoint',2),await point('getTableauClickPoint',0));
       s=await snapshot();assert.equal(s.practices[0].practiceId,'forage');assert.equal(s.practices[0].tier,'silver');
       await tap(await point('getOfferClickPoint',0));
+      if ((await snapshot()).replacementOfferId) await tap(await point('getTableauClickPoint',4));
       await drag(await point('getTableauClickPoint',1),await point('getTableauClickPoint',0));
       s=await snapshot();assert.deepEqual(s.practices.slice(0,2).map(p=>p.practiceId),['forage','dryFarming'],'Upgrades can join and reorder the staged prefix');
     } else {

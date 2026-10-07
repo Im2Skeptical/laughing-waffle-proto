@@ -2,7 +2,7 @@ import { addInteractionFeedback } from '../interaction-feedback.js';
 // Buttons, option/offer copy, and choice/shop cards.
 
 import { addIllustration } from "../chronicle-art.js";
-import { addSettlementPiece } from '../settlement-piece-pixi.js';
+import { addSettlementPiece, PIECE_SIZE } from '../settlement-piece-pixi.js';
 import { addCostPanel } from "../resource-cost-pixi.js";
 import { addHeirloomCard } from '../vassal-heirloom-pixi.js';
 import { createText, roundedRect } from "../settlement-view-primitives.js";
@@ -75,7 +75,8 @@ export function actionCard(parent, rect, spec) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
   root.eventMode = 'static'; root.cursor = 'pointer';
-  const totalHeight = rect.height + COST_FOOTER_HEIGHT + 8;
+  const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
+  const totalHeight = rect.height + footerHeight + 8;
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, totalHeight);
   // A touch press must keep its target until release; hover previews can redraw
   // the cards, so they belong only to a mouse/pen with hover.
@@ -94,7 +95,7 @@ export function actionCard(parent, rect, spec) {
     ...TEXT_STYLES.body, fontSize: 24, fill: PALETTE.text, stroke: 0x111714, strokeThickness: 4,
   }, 18, artHeight - 33));
   root.costPanel = addCostPanel(root, {
-    x: 6, y: rect.height + 8, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+    x: 6, y: rect.height + 8, width: rect.width - 12, height: footerHeight,
   }, {
     ...spec.cost, selected: spec.selected, staged: spec.staged, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: spec.actionLabel + ' ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
@@ -110,19 +111,22 @@ export function pieceOfferCard(parent, rect, spec) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height+COST_FOOTER_HEIGHT+8);
   root.eventMode='static';root.cursor='pointer';
-  const frame=new PIXI.Graphics();
-  roundedRect(frame,0,0,rect.width,rect.height,8,PALETTE.card,QUALITY_COLORS[spec.presentation?.tier]??PALETTE.stroke,2);
-  const title = createText(spec.title, {
+  const title = createText(spec.presentation?.label ?? spec.title, {
     ...TEXT_STYLES.cardTitle, fontSize: 26, lineHeight: 30,
     wordWrap: true, wordWrapWidth: rect.width - 36,
   }, 18, 14);
-  root.addChild(frame, title);
-  const faceY = Math.max(76, title.y + title.height + 24);
-  root.faceRoot=addSettlementPiece(root,{x:18,y:faceY,width:rect.width-36,height:Math.max(1,rect.height-faceY-14)},{
+  root.addChild(title);
+  title.scale.set(Math.min(1, 62 / Math.max(1, title.height)));
+  const isStructure = spec.presentation?.kind === 'structure';
+  const faceWidth = isStructure ? PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) * 178 / PIECE_SIZE.structureHeight : 220;
+  const faceHeight = isStructure ? 178 : 308;
+  const faceY = 84 + (308 - faceHeight) / 2;
+  root.faceRoot=addSettlementPiece(root,{x:(rect.width-faceWidth)/2,y:faceY,width:faceWidth,height:faceHeight},{
     face:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
   });
+  root.faceRoot.alpha = spec.staged ? .3 : spec.enabled ? 1 : .65;
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
-    ...spec.cost,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
+    ...spec.cost,selected:spec.selected,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
   });
   addInteractionFeedback(root,{x:0,y:0,width:rect.width,height:rect.height},{onActivate:spec.onInspect});
@@ -135,7 +139,8 @@ export function outcomeCard(parent, rect, spec) {
   root.position.set(rect.x, rect.y);
   root.eventMode = spec.enabled || spec.onUnavailable ? 'static' : 'none';
   root.cursor = spec.enabled ? 'pointer' : 'default';
-  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height + COST_FOOTER_HEIGHT + 8);
+  const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height + footerHeight + 8);
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, 0, 0, rect.width, rect.height, 8, PALETTE.card,
     spec.selected ? PALETTE.green : QUALITY_COLORS[spec.quality] ?? PALETTE.stroke,
@@ -165,7 +170,7 @@ export function outcomeCard(parent, rect, spec) {
   if (spec.fitEffects) effects.scale.set(Math.min(1, effectsHeight / Math.max(1, effects.height)));
   root.addChild(effects);
   root.costPanel = addCostPanel(root, {
-    x: 6, y: rect.height + 8, width: rect.width - 12, height: COST_FOOTER_HEIGHT,
+    x: 6, y: rect.height + 8, width: rect.width - 12, height: footerHeight,
   }, {
     ...spec.cost, selected: spec.selected, disabled: !spec.enabled, unaffordable: spec.costUnmet,
     label: 'Choose ' + spec.title, onActivate: spec.onClick, onUnavailable: spec.onUnavailable,
@@ -182,10 +187,27 @@ export function heirloomChoiceCard(parent, rect, spec) {
   const root=addHeirloomCard(parent,rect,spec.item,{selected:spec.selected,
     status:spec.selected?'Chosen · confirm to take':'Choose this heirloom',
     enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:spec.onUnavailable});
-  root.hitArea.height=rect.height+COST_FOOTER_HEIGHT+8;
-  root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
+  const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
+  root.hitArea.height=rect.height+footerHeight+8;
+  root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:footerHeight},{
     ...spec.cost,selected:spec.selected,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Choose '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
   });
   return root;
+}
+
+// Keep physical faces at board scale; wide Structures use fewer offer columns
+// per page rather than shrinking their glyphs to fit a portrait column.
+export function shopOfferPages(offers) {
+  const pages = [[]]; let used = 0;
+  for (const offer of offers) {
+    const width = offer.presentation?.kind === 'structure'
+      ? Math.max(282, offer.presentation.footprint * 120 * 178 / 160 + 32) : 282;
+    const page = pages.at(-1);
+    if (page.length && used + 16 + width > 886) {pages.push([]); used = 0;}
+    const next = pages.at(-1);
+    next.push({offer, width, x:used + (next.length ? 16 : 0)});
+    used += (next.length > 1 ? 16 : 0) + width;
+  }
+  return pages;
 }

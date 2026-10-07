@@ -136,6 +136,7 @@ export function publishSettlementDebugApi({
   getLifeMapOptionClickPoint,
   getLifeMapOfferClickPoint,
   getLifeMapOfferFacePoint, getLifeMapTableauClickPoint, getLifeMapConstructionPoint,
+  getLifeMapOfferPageClickPoint, getLifeMapDiscardClickPoint,
   getLifeMapUndoClickPoint, getLifeMapInspectionClosePoint, getLifeMapInspectionCostPoint,
   getLifeMapConfirmClickPoint,
   getLifeMapLevelUpChoiceClickPoint,
@@ -271,6 +272,8 @@ export function publishSettlementDebugApi({
     getLifeMapOfferClickPoint: (index = 0) =>
       getLifeMapOfferClickPoint?.(Math.max(0, Math.floor(index ?? 0))) ?? null,
     getLifeMapOfferFacePoint: index => getLifeMapOfferFacePoint?.(index) ?? null,
+    getLifeMapOfferPageClickPoint: direction => getLifeMapOfferPageClickPoint?.(direction) ?? null,
+    getLifeMapDiscardClickPoint: index => getLifeMapDiscardClickPoint?.(index) ?? null,
     getLifeMapTableauClickPoint: index => getLifeMapTableauClickPoint?.(index) ?? null,
     getLifeMapConstructionPoint: origin => getLifeMapConstructionPoint?.(origin) ?? null,
     getLifeMapUndoClickPoint: index => getLifeMapUndoClickPoint?.(index) ?? null,

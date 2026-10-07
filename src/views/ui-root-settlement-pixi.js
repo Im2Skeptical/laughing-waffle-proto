@@ -1135,8 +1135,8 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   onSelectOption: (nodeId, optionId) => dispatchLifeMapAction(
     ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId }
   ),
-  onPurchaseOffer: (nodeId, offerId, origin, toIndex) => dispatchLifeMapAction(
-    ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId, origin, toIndex }
+  onPurchaseOffer: (nodeId, offerId, origin, toIndex, replacePracticeId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId, origin, toIndex, replacePracticeId }
   ),
   onMoveStructure: (nodeId, offerId, origin) => dispatchLifeMapAction(
     ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE, { nodeId, offerId, origin }
@@ -1600,6 +1600,8 @@ function publishSettlementDebugApi() {
       ?? vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
     getLifeMapOptionClickPoint: (index) => vassalNodeDecisionModalView?.getOptionClickPoint?.(index) ?? null,
     getLifeMapOfferFacePoint: index => vassalNodeDecisionModalView?.getOfferFacePoint?.(index) ?? null,
+    getLifeMapOfferPageClickPoint: direction => vassalNodeDecisionModalView?.getOfferPageClickPoint?.(direction) ?? null,
+    getLifeMapDiscardClickPoint: index => vassalNodeDecisionModalView?.getDiscardClickPoint?.(index) ?? null,
     getLifeMapInspectionClosePoint: () => vassalNodeDecisionModalView?.getInspectionClosePoint?.() ?? null,
     getLifeMapInspectionCostPoint: () => vassalNodeDecisionModalView?.getInspectionCostPoint?.() ?? null,
     getLifeMapTableauClickPoint: index => vassalNodeDecisionModalView?.getTableauClickPoint?.(index) ?? null,

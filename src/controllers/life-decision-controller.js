@@ -189,10 +189,11 @@ export function createLifeDecisionController({
       const state = current();
       const key = JSON.stringify([revision, nodeId, preview]);
       if (!presentations.has(key)) {
-        const cached = actions.length === 0 && !preview?.previewOptionId && !preview?.previewOfferId
+        const cached = actions.length === 0 && !preview?.previewOptionId && !preview?.previewOfferId && !preview?.draftMove
           ? getCurrentLifeMapVassal(state)?.lifeMap.currentNodeId === nodeId
             ? nodes[nodeId]?.presentation : nodes[nodeId]?.entryPresentation
           : null;
+        if (preview?.draftMove) return getVassalNodeDecisionPresentation(state, nodeId, preview);
         presentations.set(key, cached ?? getVassalNodeDecisionPresentation(state, nodeId, preview));
       }
       return presentations.get(key);

@@ -1,7 +1,7 @@
 import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
 import { getTapFeedbackSnapshot } from './interaction-feedback.js';
 import { deserializeGameState } from '../model/state.js';
-import { addSettlementPiece, addConstructionStrip, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
+import { addSettlementPiece, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
 import { getArtRevision } from './chronicle-art.js';
 import { addHeirloomSlot, heirloomEffectText } from './vassal-heirloom-pixi.js';
@@ -18,6 +18,7 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import {
   CONTENT,
+  TABLEAU,
   COST_FOOTER_HEIGHT,
   MORTALITY_PLATE,
   OPTION_COLUMN,
@@ -26,6 +27,7 @@ import {
 import {
   actionCard,
   pieceOfferCard,
+  shopOfferPages,
   button,
   offerEffect,
   optionEffect,
@@ -41,6 +43,8 @@ import {
 import { renderMortalityEstimate } from "./vassal-node-decision/mortality.js";
 import { renderRegionalMap } from "./vassal-node-decision/regional-map.js";
 import { renderVassalProjection } from "./vassal-node-decision/vassal-projection.js";
+
+import { renderDecisionTableau } from './vassal-node-decision/tableau.js';
 
 export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
@@ -94,14 +98,14 @@ export function createVassalNodeDecisionModalView({
     const content = new PIXI.Container();
     for (const child of root.removeChildren()) content.addChild(child);
     return {content, signature, enterRoot, optionRoots, offerRoots, shopCardRoots,
-      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauWidth:tableau.width,
+      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauLayer, discardRoots, offerPageRoots, tableauWidth:tableau.width,
       inspectionAboveChrome:inspectionLayerIndex!==null};
   }
   function restoreLayout(layout) {
     for (const child of layout.content.removeChildren()) root.addChild(child);
     layout.content.destroy();
     ({signature, enterRoot, optionRoots, offerRoots, shopCardRoots, confirmRoot,
-      undoRoots, tableauRoots, inspectionRoot, lastDecision} = layout);
+      undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauLayer, discardRoots, offerPageRoots} = layout);
     tableau.width = layout.tableauWidth;
     setInspectionAboveChrome(layout.inspectionAboveChrome);
   }
@@ -114,7 +118,12 @@ export function createVassalNodeDecisionModalView({
   let tableauRoots = [];
   let inspectionRoot = null;
   let lastDecision = null;
-  const tableau = { x: PANEL.x+1200, practiceY: PANEL.y+CONTENT.practiceY, structureY: PANEL.y+CONTENT.structureY, width: 928 };
+  let tableauLayer = null, dragPreviewLayer = null, dragPreview = null;
+  let discardRoots = [];
+  let replacementOfferId = null;
+  let offerPage = 0;
+  let offerPageRoots = [];
+  const tableau = { x: TABLEAU.x, practiceY: TABLEAU.practiceY, structureY: TABLEAU.structureY, width: TABLEAU.width };
   let dragTargetIndex = null;
   let enterRoot = null;
   let optionRoots = [];
@@ -131,7 +140,7 @@ export function createVassalNodeDecisionModalView({
   let pinnedInspectionId = null;
   let quickInspectionId = null;
   let acquirePicker = null;
-  const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},lastDecision?.settlement?.structureCapacity??8);
+  const construction = () => constructionGeometry({x:tableau.x,y:tableau.structureY,width:tableau.width,height:178},lastDecision?.settlement?.structureCapacity??8);
   let hoverRenderTimer = null;
 
   function inspectPiece(id, face, event) {
@@ -160,6 +169,7 @@ export function createVassalNodeDecisionModalView({
   }
 
   function scheduleHoverRender() {
+    if (dragged || replacementOfferId) return;
     if (hoverRenderTimer != null) clearTimeout(hoverRenderTimer);
     hoverRenderTimer = setTimeout(() => {
       hoverRenderTimer = null;
@@ -234,7 +244,11 @@ export function createVassalNodeDecisionModalView({
     quickInspectionId=null;
     backdropPressedPointerId = null;
     pointerHeld = false;
+    clearDragPreview();
+    dragGhost?.destroy({children:true}); dragGhost = null;
+    placementGuide?.destroy(); placementGuide = null;
     dragged = null;
+    replacementOfferId = null;
     dragTargetIndex = null;
     hoveredOptionId = null;
     hoveredOfferId = null;
@@ -276,6 +290,8 @@ export function createVassalNodeDecisionModalView({
     backdropPressedPointerId = null;
     motionOrigin = nodePoint && Number.isFinite(nodePoint.x) && Number.isFinite(nodePoint.y)
       ? { x: nodePoint.x, y: nodePoint.y } : { ...panelCenter };
+    replacementOfferId = null;
+    offerPage = 0;
     logicalOpen = true;
     pinnedInspectionId = null;
     quickInspectionId = null;
@@ -304,62 +320,117 @@ export function createVassalNodeDecisionModalView({
     event.stopPropagation();
     const presentation = getPresentation?.();
     if(presentation?.readOnly) { onReadOnlyAction?.(); return; }
-    if(!fromOffer && !piece.staged) return;
+    if(!fromOffer && !piece.staged && !piece.practiceId && !piece.placementId) return;
+    if(fromOffer && piece.canStage === false) return;
     if(fromOffer && piece.purchased) return;
+    replacementOfferId = null;
+    dragTargetIndex = null;
     dragged = { card, piece, fromOffer, start: root.toLocal(event.global), active:false, point:root.toLocal(event.global) };
     if(hoverRenderTimer!=null)clearTimeout(hoverRenderTimer);
   }
 
+  function clearDragPreview() {
+    dragPreviewLayer?.destroy({children:true}); dragPreviewLayer = null;
+    dragPreview = null;
+    if (tableauLayer) tableauLayer.visible = true;
+  }
+
+  function dragMove(local, drag) {
+    const kind = drag.piece.intervention?.kind ?? drag.piece.presentation?.kind;
+    const id = !drag.fromOffer ? kind === 'practice' ? 'practice:' + drag.piece.practiceId : 'structure:' + drag.piece.placementId : drag.piece.offerId;
+    if (!drag.fromOffer && local.x >= TABLEAU.discardX - 8
+      && local.x <= PANEL.x + PANEL.width && local.y >= TABLEAU.discardY - 25 && local.y < PANEL.y + PANEL.height) {
+      return kind === 'practice' ? {kind, id, toIndex:5} : {kind, id, origin:null};
+    }
+    if (local.x < tableau.x - 8 || local.x > tableau.x + TABLEAU.width + 8) return null;
+    if (kind === 'practice' && local.y >= tableau.practiceY - 30 && local.y < tableau.practiceY + TABLEAU.cardHeight + 25) {
+      return {kind, id, fromOffer:drag.fromOffer,
+        toIndex:Math.max(0, Math.min(4, Math.floor((local.x - tableau.x) / (TABLEAU.cardWidth + TABLEAU.gap))))};
+    }
+    if (kind === 'structure' && local.y >= tableau.structureY - 30 && local.y < tableau.structureY + construction().height + 25) {
+      return {kind, id, fromOffer:drag.fromOffer, origin:Math.floor((local.x - tableau.x) / construction().cell)};
+    }
+    return null;
+  }
+
   function finishDrag(event) {
     if (!dragged) return;
-    const drag = dragged; dragged = null;
+    const drag = dragged;
+    const local = event?.global ? root.toLocal(event.global) : drag.point;
+    const move = dragMove(local, drag);
+    dragged = null;
+    clearDragPreview();
     placementGuide?.destroy(); placementGuide = null;
-    dragGhost?.destroy({children:true}); dragGhost=null;
-    if(!drag.active) return;
-    event?.stopPropagation?.(); drag.card.dragConsumed=true;
-    const local=event?.global?root.toLocal(event.global):drag.point;
-    const kind=drag.piece.intervention?.kind??drag.piece.presentation?.kind;
-    const offerId=drag.piece.offerId;
-    if(local.x<PANEL.x+1160) {
-      if(!drag.fromOffer)onUndoPurchase?.(openNodeId,offerId);
-    } else if(kind==='structure' && local.y>=tableau.structureY-35 && local.y<tableau.structureY+PIECE_SIZE.structureHeight+35) {
-      const origin=Math.floor((local.x-tableau.x)/(construction().cell));
-      if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,origin);
-      else onMoveStructure?.(openNodeId,offerId,origin);
-    } else if(kind==='practice' && local.y>=tableau.practiceY-25 && local.y<tableau.practiceY+PIECE_SIZE.practiceHeight+25) {
-      const toIndex=Math.max(0,Math.min((lastDecision?.settlement?.practices?.length??5)-1,Math.floor((local.x-tableau.x)/(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap))));
-      if(drag.fromOffer)onPurchaseOffer?.(openNodeId,offerId,null,toIndex);
-      else onReorderPurchase?.(openNodeId,offerId,toIndex);
+    dragGhost?.destroy({children:true}); dragGhost = null;
+    if (!drag.active) return;
+    event?.stopPropagation?.();
+    if (!drag.card.destroyed) {
+      drag.card.dragConsumed = true;
+      setTimeout(() => {if (!drag.card.destroyed) drag.card.dragConsumed = false;}, 0);
+    }
+    if (move) {
+      if (move.fromOffer) onPurchaseOffer?.(openNodeId, move.id, move.origin, move.toIndex);
+      else if (move.kind === 'structure') onMoveStructure?.(openNodeId, move.id, move.origin);
+      else onReorderPurchase?.(openNodeId, move.id, move.toIndex);
+    } else if (!drag.fromOffer && drag.piece.staged && local.x < tableau.x - 30) {
+      onUndoPurchase?.(openNodeId, drag.piece.offerId);
     }
     render(true);
   }
-  root.on('globalpointermove',event=>{
-    if(!dragged)return;
-    const local=root.toLocal(event.global);dragged.point=local;
-    if(!dragged.active&&Math.hypot(local.x-dragged.start.x,local.y-dragged.start.y)>10) {
-      dragged.active=true;dragged.card.dragConsumed=true;
-      pinnedInspectionId=null;quickInspectionId=null;previewOfferId=null;hoveredOfferId=null;previewTableauId=null;hoveredTableauId=null;
-      inspectionRoot?.destroy({children:true});inspectionRoot=null;
-      const face=dragged.piece.presentation;
-      dragGhost=addSettlementPiece(root,{x:local.x-48,y:local.y-64,width:face?.kind==='structure'?PIECE_SIZE.cellWidth*(face.footprint??1):PIECE_SIZE.practiceWidth,height:face?.kind==='structure'?PIECE_SIZE.structureHeight:PIECE_SIZE.practiceHeight},{face,state:'staged'});
-      dragGhost.eventMode='none';dragGhost.alpha=.65;
+  root.on('globalpointermove', event => {
+    if (!dragged) return;
+    const local = root.toLocal(event.global); dragged.point = local;
+    if (!dragged.active && Math.hypot(local.x - dragged.start.x, local.y - dragged.start.y) > 10) {
+      dragged.active = true; dragged.card.dragConsumed = true;
+      pinnedInspectionId = quickInspectionId = previewOfferId = hoveredOfferId = previewTableauId = hoveredTableauId = null;
+      inspectionRoot?.destroy({children:true}); inspectionRoot = null;
+      const face = dragged.piece.presentation;
+      dragGhost = addSettlementPiece(root, {x:local.x - 60, y:local.y - 80,
+        width:face?.kind === 'structure' ? PIECE_SIZE.cellWidth * (face.footprint ?? 1) : TABLEAU.cardWidth,
+        height:face?.kind === 'structure' ? 178 : TABLEAU.cardHeight}, {face, state:'staged'});
+      dragGhost.eventMode = 'none'; dragGhost.alpha = .55;
     }
-    if(dragGhost)dragGhost.position.set(local.x-48,local.y-64);
-    if (dragged.active && dragged.piece.presentation?.kind === 'structure') {
-      placementGuide?.destroy(); placementGuide = new PIXI.Graphics();
-      const offer = [...(lastDecision?.offers ?? []), ...(lastDecision?.purchases ?? [])].find(p => p.offerId === dragged.piece.offerId);
-      const origins = offer?.validOrigins ?? [], width = dragged.piece.presentation.footprint ?? 1;
-      const origin = Math.floor((local.x - tableau.x) / construction().cell);
-      for (const cell of origins) placementGuide.beginFill(0xaedbc9,.8).drawCircle(tableau.x + cell * construction().cell + 8, tableau.structureY - 9, 4).endFill();
-      if (local.x >= tableau.x && origin >= 0 && origin < (lastDecision?.settlement?.structureCapacity ?? 0)) {
-        placementGuide.lineStyle(4,origins.includes(origin)?0xaedbc9:0xd97d68).drawRect(tableau.x + origin * construction().cell,tableau.structureY,width * construction().cell,construction().height);
-      }
+    if (!dragged.active) return;
+    dragGhost.position.set(local.x - 60, local.y - 80);
+    const move = dragMove(local, dragged);
+    const key = JSON.stringify(move);
+    if (key === dragTargetIndex) return;
+    dragTargetIndex = key;
+    clearDragPreview();
+    placementGuide?.destroy(); placementGuide = null;
+    if (!move) return;
+    const decision = getDecisionPresentation?.(openNodeId, {draftMove:move});
+    dragPreview = decision;
+    if (decision?.draftPreview?.ok && decision.settlement) {
+      tableauLayer.visible = false;
+      dragPreviewLayer = renderDecisionTableau(root, decision.settlement, {
+        preview:true, time:getState?.()?.tSec ?? 0, targetIndex:move.toIndex,
+      }).layer;
+      root.setChildIndex(dragGhost, root.children.length - 1);
+    } else {
+      placementGuide = new PIXI.Graphics().lineStyle(4, 0xd97d68)
+        .drawRect(tableau.x, move.kind === 'structure' ? tableau.structureY : tableau.practiceY,
+          TABLEAU.width, move.kind === 'structure' ? construction().height : TABLEAU.cardHeight);
       placementGuide.eventMode = 'none'; root.addChild(placementGuide);
     }
   });
-  root.on('pointerup',finishDrag);
-  root.on('pointerupoutside',finishDrag);
-  root.on('pointercancel',()=>{dragged=null;dragGhost?.destroy({children:true});dragGhost=null;placementGuide?.destroy();placementGuide=null;render(true);});
+  root.on('pointerup', finishDrag);
+  root.on('pointerupoutside', finishDrag);
+  root.on('pointercancel', () => {
+    if (dragged?.card && !dragged.card.destroyed) dragged.card.dragConsumed = false;
+    dragged = null; dragTargetIndex = null; clearDragPreview();
+    dragGhost?.destroy({children:true}); dragGhost = null;
+    placementGuide?.destroy(); placementGuide = null; render(true);
+  });
+
+  function stageOffer(offer) {
+    if (offer.intervention?.kind === 'practice' && offer.intervention.mode === 'learn'
+      && lastDecision?.settlement?.practices?.every(Boolean)) {
+      replacementOfferId = replacementOfferId === offer.offerId ? null : offer.offerId;
+      pinnedInspectionId = quickInspectionId = previewOfferId = hoveredOfferId = previewTableauId = null;
+      render(true);
+    } else onPurchaseOffer?.(openNodeId, offer.offerId);
+  }
 
   function render(force = false, prepared = null) {
     if ((!logicalOpen && !prepared) || dragged || pointerHeld || root.pendingInteractionCount > 0) return;
@@ -374,7 +445,7 @@ export function createVassalNodeDecisionModalView({
       previewOfferId,
     }) ?? null;
     lastDecision = decision;
-    tableau.width = Math.min(928,(decision?.settlement?.structureCapacity ?? 8)*PIECE_SIZE.cellWidth);
+    tableau.width = TABLEAU.width;
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
     const family = getVassalLifeMapNodeFamily(node);
@@ -383,7 +454,7 @@ export function createVassalNodeDecisionModalView({
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
     }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
-      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker });
+      previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker, replacementOfferId, offerPage });
     // Refresh callbacks can run several times for one entry. A matching layout
     // is already authoritative, including its selected/disabled controls.
     if (!prepared && nextSignature === signature) return;
@@ -406,6 +477,7 @@ export function createVassalNodeDecisionModalView({
     enterRoot = null;
     optionRoots = [];
     offerRoots = [];
+    offerPageRoots = [];
     shopCardRoots = [];
     confirmRoot = null;
     undoRoots = [];
@@ -429,12 +501,14 @@ export function createVassalNodeDecisionModalView({
     const projected = decision?.projectedPrestige ?? vassal.prestige;
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
+    const hasSettlementContext = decision?.contextKind === "settlement";
     const simpleOutcomes = node.family === 'patronage' || node.family === 'development'
       || node.family === 'relic';
     if (hasContext) {
       const divider = new PIXI.Graphics();
-      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(PANEL.x + 1160, PANEL.y + CONTENT.labelY)
-        .lineTo(PANEL.x + 1160, PANEL.y + PANEL.height - 28);
+      const dividerX = hasSettlementContext ? TABLEAU.x - 28 : PANEL.x + 1160;
+      divider.lineStyle(2, PALETTE.stroke, 0.9).moveTo(dividerX, PANEL.y + CONTENT.labelY)
+        .lineTo(dividerX, PANEL.y + PANEL.height - 28);
       root.addChild(divider);
     }
 
@@ -466,44 +540,49 @@ export function createVassalNodeDecisionModalView({
       const cardCount = isShop
         ? [...(decision?.offers ?? []), ...(decision?.purchases ?? [])].length
         : (nodeState.options ?? []).length;
-      const cardWidth = cardCount > 3
-        ? Math.min(OPTION_COLUMN.width, Math.floor((1080 - (cardCount - 1) * cardGap) / cardCount))
-        : OPTION_COLUMN.width;
+      const choiceSpace = hasContext ? 1080 : PANEL.width - 80;
+      const cardWidth = isShop ? OPTION_COLUMN.width : Math.min(hasContext ? OPTION_COLUMN.choiceWidth : 400,
+        Math.floor((choiceSpace - (cardCount - 1) * cardGap) / Math.max(1, cardCount)));
       const cardHeight = node.family === 'relic' ? OPTION_COLUMN.relicHeight : OPTION_COLUMN.height;
       // Keep staged offers in their original places so their prices and full
       // inspections remain available throughout the draft. The model still
       // removes purchases from the available inventory until they are undone.
-      const shopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? [])]
+      const allShopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? [])]
         .sort((a, b) => (a.sourceInventoryIndex ?? a.inventoryIndex ?? 0)
           - (b.sourceInventoryIndex ?? b.inventoryIndex ?? 0));
-      const cardStartX = PANEL.x + 54;
+      const pages = shopOfferPages(allShopCards);
+      offerPage = Math.min(offerPage, pages.length - 1);
+      const visibleOffers = pages[offerPage];
+      const shopCards = visibleOffers.map(entry => entry.offer);
+      const cardStartX = !isShop && !hasContext
+        ? PANEL.x + (PANEL.width - cardCount * cardWidth - (cardCount - 1) * cardGap) / 2 : PANEL.x + 30;
       if (isShop) {
-        root.addChild(createText("SHOP OFFERS", {
-          ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const inspect=event=>inspectPiece(offer.offerId,offer.presentation,event);
-          const x=cardStartX+index*(cardWidth+cardGap);
-          const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:cardWidth,height:cardHeight},{
+          const x=cardStartX+visibleOffers[index].x;
+          const offerWidth=visibleOffers[index].width;
+          const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:offerWidth,height:cardHeight},{
             title:offer.label,artId:node.family,presentation:offer.presentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
             cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,state},enabled,
             costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
-            onClick:()=>onPurchaseOffer?.(node.id,offer.offerId),onUnavailable:readOnly?onReadOnlyAction:null,
+            onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,onUnavailable:readOnly?onReadOnlyAction:null,
             onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
             onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
           });
+          card.offerId = offer.offerId;
           card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,offer,true));
-          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+8,width:cardWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
+          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+8,width:offerWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
           return card;
         });
         offerRoots=shopCardRoots.filter((_,index)=>!shopCards[index].purchased);
+        if (pages.length > 1) {
+          offerPageRoots[0] = button(root, {x:818,y:790,width:54,height:44}, '\u2039', offerPage > 0, () => {replacementOfferId=null; offerPage--; render(true);});
+          offerPageRoots[1] = button(root, {x:882,y:790,width:54,height:44}, '\u203a', offerPage + 1 < pages.length, () => {replacementOfferId=null; offerPage++; render(true);});
+        }
 
       } else {
-        root.addChild(createText("CHOOSE ONE", {
-          ...TEXT_STYLES.chip, fontSize: 14, fill: PALETTE.textMuted,
-        }, PANEL.x + 54, PANEL.y + CONTENT.labelY));
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, {
@@ -543,37 +622,28 @@ export function createVassalNodeDecisionModalView({
       }
     }
 
-    const sx = PANEL.x + 1200;
+    const sx = hasSettlementContext ? TABLEAU.x : PANEL.x + 1200;
     const settlement = decision?.settlement;
     if (decision?.contextKind === "settlement" && settlement) {
-      root.addChild(createText(`SETTLEMENT · ${decision?.previewRegionLabel ?? vassal.locationRegionId}`, {
-        ...TEXT_STYLES.header, fontSize: 22,
-      }, sx, PANEL.y + CONTENT.labelY));
-      root.addChild(createText(
-        `Hosted Edible ${Math.round(settlement.storedFood ?? 0)}    Hosted Currency ${Math.round(settlement.currency ?? 0)}`,
-        { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted }, sx, PANEL.y + CONTENT.settlementMetaY));
-      root.addChild(createText('PRACTICES   Stock / Supply',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.practiceLabelY));
-      (settlement.practices??[]).forEach((piece,index)=>{
-        const card=addSettlementPiece(root,{x:tableau.x+index*(PIECE_SIZE.practiceWidth+PIECE_SIZE.gap),y:tableau.practiceY,width:PIECE_SIZE.practiceWidth,height:PIECE_SIZE.practiceHeight},{
-          face:piece?.presentation,empty:!piece,state:piece?.upgraded?'upgraded':piece?.staged?'staged':'confirmed',time:state?.tSec??0,
-          onHover:piece?()=>{hoveredTableauId='practice:'+piece.practiceId;scheduleHoverRender();}:undefined,
-          onOut:()=>{hoveredTableauId=null;scheduleHoverRender();},
-          onInspect:piece?event=>inspectPiece('practice:'+piece.practiceId,piece.presentation,event):undefined,
-        });
-        if(piece?.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));
-        animateUpgrade(card, piece, readOnly);
-        tableauRoots.push({card,piece});
+      const plaque = new PIXI.Graphics();
+      roundedRect(plaque, PANEL.x + PANEL.width - 438, PANEL.y - 68, 446, 100, 8,
+        0x242a27, family.color, 3);
+      root.addChild(plaque, createText(`SETTLEMENT \u00b7 ${decision.previewRegionLabel ?? vassal.locationRegionId}`, {
+        ...TEXT_STYLES.header, fontSize:28, wordWrap:true, wordWrapWidth:410,
+      }, PANEL.x + PANEL.width - 418, PANEL.y - 45));
+      const rendered = renderDecisionTableau(root, settlement, {
+        time:state?.tSec ?? 0, readOnly, choosing:!!replacementOfferId,
+        onChoose:(index, piece) => {
+          const id = replacementOfferId; replacementOfferId = null;
+          onPurchaseOffer?.(node.id, id, null, 0, piece?.practiceId ?? null);
+          render(true);
+        },
+        onInspect:inspectPiece,
+        onHover:id => {hoveredTableauId = id; scheduleHoverRender();},
+        onOut:() => {hoveredTableauId = null; scheduleHoverRender();},
+        onDrag:beginDrag, onUpgrade:(card, piece) => animateUpgrade(card, piece, readOnly),
       });
-      (settlement.displacedPractices??[]).forEach((face,index)=>{
-        const card=addSettlementPiece(root,{x:tableau.x+858+index*12,y:tableau.practiceY+116,width:60,height:96},{face,state:'displaced',onInspect:event=>inspectPiece('displaced:'+face.definitionId,face,event)});
-        card.rotation=.12;
-      });
-      root.addChild(createText('CONSTRUCTION',{...TEXT_STYLES.chip,fontSize:20,fill:PALETTE.textMuted},sx,PANEL.y+CONTENT.structureLabelY));
-      addConstructionStrip(root,{x:tableau.x,y:tableau.structureY,width:tableau.width,height:PIECE_SIZE.structureHeight},{
-        slots:settlement.structures,capacity:settlement.structureCapacity,demolished:settlement.demolishedStructures,time:state?.tSec??0,
-        onInspect:piece=>{pinnedInspectionId='structure:'+piece.placementId;render(true);},
-        onPiece:(card,piece)=>{card.on('pointerover',event=>{if(event.pointerType!=='touch'){hoveredTableauId='structure:'+piece.placementId;scheduleHoverRender();}});card.on('pointerout',()=>{hoveredTableauId=null;scheduleHoverRender();});tableauRoots.push({card,piece});animateUpgrade(card,piece,readOnly);if(piece.staged)card.on('pointerdown',event=>beginDrag(event,card,piece));},
-      });
+      tableauLayer = rendered.layer; tableauRoots = rendered.roots; discardRoots = rendered.discardRoots;
     } else if (decision?.contextKind === "regionalMap") {
       renderRegionalMap(root, decision.regionalMap, {
         x: sx, y: PANEL.y + 114, width: 830, height: 468,
@@ -658,7 +728,7 @@ export function createVassalNodeDecisionModalView({
 
     const isCurrent = currentNodeId === node.id;
     const isShop = nodeState?.contentMode === "shop";
-    const canConfirm = !readOnly && isCurrent && !nodeState?.resolving
+    const canConfirm = !readOnly && !replacementOfferId && isCurrent && !nodeState?.resolving
       && (isShop || !!nodeState?.selectedOptionId);
     if (isShop && nodeState && !nodeState.resolving) {
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
@@ -667,7 +737,8 @@ export function createVassalNodeDecisionModalView({
       const rerollCost = getVassalShopRerollCost(vassal);
       const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
         nodeState.rerollUsed ? "REROLL USED" : vassal.classId === "scholar" ? "RECONSIDER" : "REROLL", rerollEnabled,
-        () => onRerollShop?.(node.id));
+        () => {replacementOfferId=null; onRerollShop?.(node.id);});
+      reroll.children[1].x = 96; reroll.children[1].style.fontSize = 20;
       if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
@@ -731,7 +802,7 @@ export function createVassalNodeDecisionModalView({
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===retainedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(
       'practice:'+piece.practiceId===(retainedInspectionId??previewTableauId)||'structure:'+piece.placementId===(retainedInspectionId??previewTableauId)));
-    const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===retainedInspectionId);
+    const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===(retainedInspectionId??previewTableauId));
     if(inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
       const piece=inspectedOffer??inspectedOption??inspectedTableau;
       const face=piece?.presentation??displaced;
@@ -771,7 +842,7 @@ export function createVassalNodeDecisionModalView({
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage
-          ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=onPurchaseOffer?.(node.id,piece.offerId);if(result?.ok!==true)render(true);}
+          ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=stageOffer(piece);if(result?.ok!==true)render(true);}
           : !readOnly && inspectedOption && requirements.every(entry=>entry.met)
             ? ()=>{pinnedInspectionId=null;const result=onSelectOption?.(node.id,piece.id);if(result?.ok!==true)render(true);} : undefined,
         metadata:[face?.qualityLabel,...(face?.tags??[])].filter(Boolean).join(' · '),
@@ -798,9 +869,10 @@ export function createVassalNodeDecisionModalView({
         await new Promise(resolve => setTimeout(resolve, 0));
         while (pointerHeld || dragged) await new Promise(resolve => setTimeout(resolve, 16));
         const savedNodeId = openNodeId;
-        const savedPreview = {previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker};
+        const savedPreview = {previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker, replacementOfferId, offerPage};
         const activeLayout = takeLayout();
         openNodeId = nodeId;
+        replacementOfferId = null; offerPage = 0;
         previewOptionId = previewOfferId = previewTableauId = pinnedInspectionId = quickInspectionId = dragTargetIndex = acquirePicker = null;
         const states = item.entryPresentation ? [
           {state:baseState, decision:item.entryPresentation},
@@ -819,7 +891,7 @@ export function createVassalNodeDecisionModalView({
         } finally {
           clearChildren(root);
           openNodeId = savedNodeId;
-          ({previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker} = savedPreview);
+          ({previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, dragTargetIndex, acquirePicker, replacementOfferId, offerPage} = savedPreview);
           restoreLayout(activeLayout);
         }
         for (const content of created) app.renderer?.prepare?.add(content);
@@ -855,6 +927,8 @@ export function createVassalNodeDecisionModalView({
       return point ? { x: point.x, y: point.y } : null;
     },
     getTableauClickPoint(index=0) { const card=tableauRoots[index]?.card; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.hitArea.height/2)):null; },
+    getOfferPageClickPoint(direction=1) {const card=offerPageRoots[direction]; return card?card.toGlobal(new PIXI.Point(27,22)):null;},
+    getDiscardClickPoint(index=0) { const card=discardRoots[index]?.card; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.discardPeekY)):null; },
     getOfferFacePoint(index=0) { const card=shopCardRoots[index]?.faceRoot; return card?card.toGlobal(new PIXI.Point(card.hitArea.width/2,card.hitArea.height/2)):null; },
     handleInspectionKey(event) { return inspectionRoot?.handleReferenceKey?.(event)??false; },
     getInspectionClosePoint() { const c=inspectionRoot?.closeControl;return c?c.toGlobal(new PIXI.Point(25,25)):null; },
@@ -895,6 +969,10 @@ export function createVassalNodeDecisionModalView({
           cardInteractionState: card.interactionState, cardRect: card.getBounds(),
           rect: card.costPanel.getBounds(),
         })),
+        replacementOfferId, offerPage, visibleOfferIds:shopCardRoots.map(card=>card.offerId),
+        dragPreview:dragPreview ? {ok:dragPreview.draftPreview?.ok,practices:dragPreview.settlement?.practices.map(piece=>piece?.practiceId ?? null),discard:dragPreview.settlement?.discardedPractices.map(piece=>piece.practiceId),structures:dragPreview.settlement?.structures.map(piece=>piece?{placementId:piece.placementId,structureId:piece.structureId,origin:piece.origin,width:piece.width}:null),demolished:dragPreview.settlement?.demolishedStructures.map(piece=>piece.placementId)} : null,
+        discardRect:{x:TABLEAU.discardX,y:TABLEAU.discardY,width:TABLEAU.discardWidth,height:530},
+        discardedPractices:decision?.settlement?.discardedPractices ?? [],
         practices: decision?.settlement?.practices ?? [],
         structures: decision?.settlement?.structures ?? [],
         demolishedStructures: decision?.settlement?.demolishedStructures ?? [],

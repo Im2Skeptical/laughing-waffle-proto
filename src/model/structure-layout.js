@@ -84,16 +84,31 @@ export function applyBuild(slots, placement, options = {}) {
 
 // Recompute from confirmed placements on every edit; undo therefore restores
 // all covered structures without compensating actions or destructive mutation.
-export function projectStructureDraft(confirmed, actions) {
+export function projectStructureDraft(confirmed, actions, edits = []) {
   let slots = confirmed.map(p => p ? { ...p } : null);
   const stagedIds = [], demolished = [];
+  const latestEdits = new Map(edits.map(edit => [edit.placementId, edit.origin]));
   for (const action of actions) {
     if (!action || typeof action !== 'object') return { ok: false, reason: 'invalidStructureAction' };
-    const result = applyBuild(slots, action, { allowDemolition: true, stagedIds });
+    if (latestEdits.get(action.placementId) === null) {stagedIds.push(action.placementId); continue;}
+    const placement = latestEdits.has(action.placementId) ? {...action, origin:latestEdits.get(action.placementId)} : action;
+    const result = applyBuild(slots, placement, { allowDemolition: true, stagedIds });
     if (!result.ok) return result;
     slots = result.slots;
     stagedIds.push(action.placementId);
     demolished.push(...result.demolished);
   }
-  return { ok: true, slots, stagedIds, demolished };
+  const pool = [...confirmed.filter(Boolean), ...actions];
+  for (const edit of edits) {
+    if (stagedIds.includes(edit.placementId)) continue;
+    const piece = pool.find(p => p.placementId === edit.placementId);
+    if (!piece) continue;
+    slots = applyDemolish(slots, [piece.placementId]);
+    if (edit.origin === null) continue;
+    const result = applyBuild(slots, {...piece, origin:edit.origin}, {allowDemolition:true, stagedIds});
+    if (!result.ok) return result;
+    slots = result.slots;
+  }
+  return { ok: true, slots, stagedIds,
+    demolished:pool.filter(piece => !slots.some(slot => slot?.placementId === piece.placementId)) };
 }

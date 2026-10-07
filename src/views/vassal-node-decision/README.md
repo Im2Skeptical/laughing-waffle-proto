@@ -15,6 +15,7 @@ closures stay in the orchestrator.
 - `cards.js` — `button`, `optionEffect`, `offerEffect`, `actionCard`,
   `outcomeCard`
 - `mortality.js` — `renderMortalityEstimate`
+- `tableau.js` - full-size five-slot board, construction strip and recoverable discard pile
 - `regional-map.js` — dashed-line helper and `renderRegionalMap`
 - `vassal-projection.js` — `renderVassalProjection`
 

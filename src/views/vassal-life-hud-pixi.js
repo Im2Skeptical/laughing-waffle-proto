@@ -153,10 +153,13 @@ export function createVassalLifeHudView({
     const contentX = barX + 56;
     root.addChild(hud, portrait,
       createText(`AGE ${shown.age}`, {
-        ...TEXT_STYLES.chip, fontSize: 13, fill: PALETTE.textMuted,
+        ...TEXT_STYLES.chip, fontSize: 24, fill: PALETTE.text,
       }, contentX, barY + 6));
-    addResourceAmount(root, "prestige", shown.prestige, {
-      x: contentX, y: barY + 26, fontSize: 22, iconSize: 24,
+    const prestigePlate = new PIXI.Graphics();
+    roundedRect(prestigePlate, hudX - 8, barY + 52, 164, 52, 9, 0x423d2c, PALETTE.accent, 3);
+    root.addChild(prestigePlate);
+    addResourceAmount(root, "prestige", Math.max(0, shown.prestige + (deltas?.prestige ?? 0)), {
+      x: hudX + 4, y: barY + 57, fontSize: 36, iconSize: 40,
       fill: shown.flashing ? PALETTE.green : PALETTE.accent,
     });
     const prestigeDelta = signedDelta(deltas?.prestige);
@@ -164,13 +167,13 @@ export function createVassalLifeHudView({
       root.addChild(createText(prestigeDelta, {
         ...TEXT_STYLES.chip, fontSize: 13,
         fill: deltas.prestige > 0 ? PALETTE.green : PALETTE.red,
-      }, contentX + 92, barY + 30));
+      }, hudX + 146, barY + 67, 1));
     }
 
     if (vassal.classId === 'warrior') {
       const retinue = getRetinue(presentation.state,vassal);
-      root.addChild(createText(`Retinue ${retinue.value}/${retinue.cap} · ${retinue.nextPrestige == null ? 'at cap' : 'next '+retinue.nextPrestige+' Prestige'}`, {...TEXT_STYLES.chip,fontSize:13,fill:PALETTE.accent},contentX,barY+61));
-    } else if (vassal.commission) root.addChild(createText(`Commission: new ${vassal.commission.objective} (+20 Prestige)`, {...TEXT_STYLES.chip,fontSize:13,fill:PALETTE.accent},contentX,barY+61));
+      root.addChild(createText(`Retinue ${retinue.value}/${retinue.cap} · ${retinue.nextPrestige == null ? 'at cap' : 'next '+retinue.nextPrestige+' Prestige'}`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
+    } else if (vassal.commission) root.addChild(createText(`Commission: new ${vassal.commission.objective} (+20 Prestige)`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
     const expX = contentX + 118;
     root.addChild(
       createText("EXP", {

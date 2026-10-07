@@ -529,7 +529,8 @@ try {
     shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   }
   assert.ok(['practiceReform','publicWorks'].includes(shopBefore.family),`The configured opening leads to a shop (actual: ${shopBefore.family})`);
-  assert.equal(shopBefore.costPanels.length,3,'All three shop offers show their prices');
+  assert.equal(shopBefore.offers.length,3,'The visit retains all three shop offers');
+  assert.ok(shopBefore.costPanels.length>0&&shopBefore.costPanels.length<=3,'Full-size offers show prices on the current page');
   const affordableIndex=shopBefore.costPanels.findIndex(panel=>!panel.disabled&&panel.prestigeCost>0);
   assert.ok(affordableIndex>=0,'The fixture exposes a paid, affordable offer');
   const shopChoice=await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(index),affordableIndex);
@@ -542,20 +543,23 @@ try {
   };
   const shopTapStart=performance.now();
   await tap(shopChoice);
+  if (await page.evaluate(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.replacementOfferId)) {
+    await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapTableauClickPoint(4)));
+  }
   interactionTimings.shopTapMs=Math.round(performance.now()-shopTapStart);
   interactionTimings.shopDispatchMs=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPerfSnapshot().runtime.actionDispatchLastMs);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===1);
   const shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.equal(shopAfter.currentPrestige,shopBefore.currentPrestige,'Staging leaves actual Prestige unchanged');
   assert.equal(shopAfter.projectedPrestige,shopBefore.currentPrestige-shopBefore.costPanels[affordableIndex].prestigeCost);
-  assert.equal(shopAfter.costPanels.length,3,'Staging keeps full-size prices visible');
+  assert.equal(shopAfter.costPanels.length,shopBefore.costPanels.length,'Staging keeps full-size prices visible');
   assert.ok(shopAfter.costPanels[affordableIndex].staged,'The purchased offer is visibly staged in its original position');
   const panelCentres=decision=>decision.costPanels.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
   assert.deepEqual(panelCentres(shopAfter),panelCentres(shopBefore),
     'The remaining offer touch targets cannot shift after staging');
-  for (const panel of shopAfter.costPanels) {
+  for (const [index,panel] of shopAfter.costPanels.entries()) {
     assert.equal(panel.unaffordable,!panel.staged&&panel.prestigeCost>shopAfter.projectedPrestige);
-    assert.equal(panel.disabled,panel.staged||panel.unaffordable);
+    assert.equal(panel.disabled,panel.staged||panel.unaffordable||shopAfter.offers.find(offer=>offer.offerId===shopAfter.visibleOfferIds[index])?.canStage===false);
     assert.ok(panel.description.includes('Prestige'),'The accessible price includes its Prestige row');
   }
   await tap(shopChoice);await delay(200);
@@ -570,7 +574,8 @@ try {
   const quickShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   assert.equal(quickShop.inspectedCardId,null,'A phone shop Practice tap opens the quick read first');
   assert.deepEqual(quickShop.purchaseOrder,shopAfter.purchaseOrder,'Reading a staged offer does not stage another purchase');
-  await tap(shopChoice);
+  await tap({x:quickShop.inspectionRect.x+quickShop.inspectionRect.width/2,
+    y:quickShop.inspectionRect.y+quickShop.inspectionRect.height-30});
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.quickCardId),quickShop.quickCardId,'Tapping the quick read body leaves it open');
   const outsideCostIndex=quickShop.costPanels.findIndex(panel=>{
     const x=panel.rect.x+panel.rect.width/2,y=panel.rect.y+panel.rect.height/2,r=quickShop.inspectionRect;
@@ -642,8 +647,16 @@ try {
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   const secondOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
   await tap(secondOffer);
+  if (await page.evaluate(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.replacementOfferId)) {
+    await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapTableauClickPoint(4)));
+  }
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===2);
-  const limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  let limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  if(!limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled)) {
+    await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferPageClickPoint(1)));
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels.some(panel=>panel.unaffordable));
+    limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  }
   assert.ok(limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled),
     'Spending the projected balance visibly disables an unaffordable offer');
   const unavailableOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
@@ -651,6 +664,10 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),2,
     'Tapping an unaffordable footer cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
+  if(limitedShop.offerPage!==shopAfter.offerPage) {
+    await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferPageClickPoint(0)));
+    await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.offerPage===0);
+  }
   // Exercise keyboard navigation last: Pixi's accessibility mode traverses
   // the whole scene, so it should not carry into the timing-sensitive recap.
   await inspectOffer();

@@ -32,7 +32,7 @@ export const cmdEnterVassalLifeNode = (state, payload = {}) =>
 export const cmdSelectVassalLifeOption = (state, payload = {}) =>
   selectVassalNodeOption(state, payload.nodeId, payload.optionId);
 export const cmdPurchaseVassalShopOffer = (state, payload = {}) =>
-  purchaseVassalShopOffer(state, payload.nodeId, payload.offerId, payload.origin, payload.toIndex);
+  purchaseVassalShopOffer(state, payload.nodeId, payload.offerId, payload.origin, payload.toIndex, payload.replacePracticeId);
 export const cmdUndoVassalShopPurchase = (state, payload = {}) =>
   undoVassalShopPurchase(state, payload.nodeId, payload.offerId);
 export const cmdReorderVassalShopPurchase = (state, payload = {}) =>

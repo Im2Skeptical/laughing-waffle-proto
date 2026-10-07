@@ -82,7 +82,7 @@ export function createLabNodeSandboxView() {
   updateStatus();modal.open(controller.getSnapshot().nodeId);
   return {node,render(parent){parent.append(node);},
     getSnapshot:()=>({...controller.getSnapshot(),modal:modal.getSemanticSnapshot()}),
-    getPoint:(kind,index=0)=>({offer:()=>modal.getOfferClickPoint(index),face:()=>modal.getOfferFacePoint(index),undo:()=>modal.getUndoClickPoint(index),option:()=>modal.getOptionClickPoint(index),confirm:()=>modal.getConfirmClickPoint(),tableau:()=>modal.getTableauClickPoint(index),construction:()=>modal.getConstructionPoint(index),inspectClose:()=>modal.getInspectionClosePoint()})[kind]?.(),
+    getPoint:(kind,index=0)=>({offer:()=>modal.getOfferClickPoint(index),face:()=>modal.getOfferFacePoint(index),undo:()=>modal.getUndoClickPoint(index),option:()=>modal.getOptionClickPoint(index),confirm:()=>modal.getConfirmClickPoint(),tableau:()=>modal.getTableauClickPoint(index),discard:()=>modal.getDiscardClickPoint(index),construction:()=>modal.getConstructionPoint(index),inspectClose:()=>modal.getInspectionClosePoint()})[kind]?.(),
     destroy(){modal.close({immediate:true});display.destroy();app.destroy(true,{children:true});},
   };
 }

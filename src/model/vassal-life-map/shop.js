@@ -50,11 +50,12 @@ function isDefinitionUnlocked(state, def, nodeState = null) {
   return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
 }
 
-export function validatePurchaseInterventions(state, vassal, purchases = []) {
+export function validatePurchaseInterventions(state, vassal, purchases = [], order = vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.practiceDraftOrder) {
   const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-  const practices = projectPracticeDraft(settlement?.practiceSlots ?? [], purchases);
+  const practices = projectPracticeDraft(settlement?.practiceSlots ?? [], purchases, order);
   if (!practices.ok) return practices;
-  const structures = projectStructureDraft(settlement?.structureSlots ?? [], purchases.filter(p => p.intervention?.kind === 'structure').map(p => p.placement));
+  const structures = projectStructureDraft(settlement?.structureSlots ?? [], purchases.filter(p => p.intervention?.kind === 'structure').map(p => p.placement),
+    vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.structureDraftEdits);
   if (!structures.ok) return structures;
   const connectionKeys = new Set((state?.world?.connections ?? []).map(edge => getWorldConnectionKey(edge.regionAId, edge.regionBId)));
   for (const purchase of purchases) {
@@ -267,7 +268,7 @@ export function isShopNodeState(nodeState) {
   return nodeState?.contentMode === "shop" || SHOP_FAMILIES.has(nodeState?.family);
 }
 
-export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, toIndex = null) {
+export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, toIndex = null, replacePracticeId = null) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
@@ -275,6 +276,10 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   const index = nodeState.inventory.findIndex((offer) => offer.offerId === offerId);
   if (index < 0) return { ok: false, reason: "offerUnavailable" };
   const offer = nodeState.inventory[index];
+  if (offer.intervention?.kind === 'practice' && toIndex != null && (!Number.isInteger(toIndex)
+      || toIndex < 0 || toIndex >= (getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots.length ?? 0))) {
+    return {ok:false,reason:'invalidPurchaseOrder'};
+  }
   const prestigeCost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost, {
     isFirstShopPurchase: (nodeState.purchasedOffers ?? []).length === 0,
   });
@@ -311,10 +316,29 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   const insertionIndex = purchase.intervention.kind === 'practice' && Number.isInteger(toIndex)
     ? practicePositions[Math.max(0, toIndex)] ?? next.length : 0;
   next.splice(insertionIndex, 0, purchase);
-  const validation = validatePurchaseInterventions(state, vassal, next);
+  let order = nodeState.practiceDraftOrder;
+  if (purchase.intervention?.kind === 'practice' && purchase.intervention.mode !== 'remove') {
+    const current = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
+    const pool = current.practices.pool.map(slot => slot?.practiceId ?? null);
+    const id = purchase.intervention.practiceId;
+    const existing = pool.indexOf(id);
+    if (existing >= 0) pool.splice(existing, 1);
+    if (replacePracticeId && replacePracticeId !== id) {
+      const victim = pool.indexOf(replacePracticeId);
+      if (victim < 0 || victim >= current.practices.slots.length) return {ok:false,reason:'invalidReplacement'};
+      pool.push(...pool.splice(victim, 1));
+    } else if (existing < 0) {
+      const empty = pool.slice(0, current.practices.slots.length).indexOf(null);
+      if (empty >= 0) pool.splice(empty, 1);
+    }
+    pool.splice(Number.isInteger(purchase.tableauIndex) ? purchase.tableauIndex : 0, 0, id);
+    order = pool;
+  }
+  const validation = validatePurchaseInterventions(state, vassal, next, order);
   if (!validation.ok) return validation;
   nodeState.inventory.splice(index, 1);
   nodeState.purchasedOffers = next;
+  if (order) nodeState.practiceDraftOrder = order;
   nodeState.purchasedOfferIds = next.map(p => p.offerId);
   nodeState.accumulatedPhaseCost += phaseCost;
   if (phaseCost > 0) purchase.hourglassApplied = nodeState.heirloomTimeActionUsed !== true;
@@ -330,6 +354,9 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   const index = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
   if (index < 0) return { ok: false, reason: "purchaseUnavailable" };
   const [purchase] = nodeState.purchasedOffers.splice(index, 1);
+  if (purchase.placement && nodeState.structureDraftEdits) {
+    nodeState.structureDraftEdits = nodeState.structureDraftEdits.filter(edit => edit.placementId !== purchase.placement.placementId);
+  }
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
   delete restored.placement;
@@ -358,6 +385,24 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  if (String(offerId).startsWith('practice:')) {
+    const projection = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
+    const id = offerId.slice('practice:'.length), capacity = projection.practices.slots.length;
+    const pool = projection.practices.pool.map(slot => slot?.practiceId ?? null);
+    const fromIndex = pool.indexOf(id);
+    if (fromIndex < 0 || !Number.isInteger(toIndex) || toIndex < 0 || toIndex > capacity) return {ok:false,reason:'invalidPurchaseOrder'};
+    pool.splice(fromIndex, 1);
+    if (toIndex === capacity) {
+      if (fromIndex < capacity) pool.splice(capacity - 1, 0, null);
+      pool.splice(capacity, 0, id);
+    } else {
+      const empty = pool.slice(0, capacity).indexOf(null);
+      if (fromIndex >= capacity && empty >= 0) pool.splice(empty, 1);
+      pool.splice(toIndex, 0, id);
+    }
+    nodeState.practiceDraftOrder = pool;
+    return {ok:true,fromIndex,toIndex};
+  }
   const ordered = nodeState.purchasedOffers.filter(p => p.intervention.kind === 'practice');
   const fromIndex = ordered.findIndex((purchase) => purchase.offerId === offerId);
   const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
@@ -366,6 +411,11 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
     return { ok: false, reason: "invalidPurchaseOrder" };
   }
   ordered[fromIndex].tableauIndex=targetIndex;
+  const projection = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
+  const pool = projection.practices.pool.map(slot => slot?.practiceId ?? null);
+  const at = pool.indexOf(ordered[fromIndex].intervention.practiceId);
+  pool.splice(targetIndex, 0, ...pool.splice(at, 1));
+  nodeState.practiceDraftOrder = pool;
   if (fromIndex !== targetIndex && targetIndex < ordered.length) {
     const [purchase] = ordered.splice(fromIndex, 1);
     ordered.splice(targetIndex, 0, purchase);
@@ -380,6 +430,18 @@ export function moveVassalShopStructure(state, nodeId, offerId, origin) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState) || nodeState.resolving) return { ok: false, reason: 'shopUnavailable' };
+  if (String(offerId).startsWith('structure:')) {
+    const placementId = offerId.slice('structure:'.length);
+    const projection = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
+    if (!projection.ok || ![...projection.structures.slots, ...projection.structures.demolished].some(p => p?.placementId === placementId)) return {ok:false,reason:'placementUnavailable'};
+    const edits = [...(nodeState.structureDraftEdits ?? []), {placementId, origin}];
+    const local = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+    const check = projectStructureDraft(local.structureSlots,
+      nodeState.purchasedOffers.filter(p => p.intervention.kind === 'structure').map(p => p.placement), edits);
+    if (!check.ok) return check;
+    nodeState.structureDraftEdits = edits;
+    return {ok:true};
+  }
   const purchase = nodeState.purchasedOffers.find(p => p.offerId === offerId);
   if (!purchase?.placement) return { ok: false, reason: 'placementLocked' };
   const next = nodeState.purchasedOffers.map(p => p === purchase ? { ...p, placement: { ...p.placement, origin } } : p);
