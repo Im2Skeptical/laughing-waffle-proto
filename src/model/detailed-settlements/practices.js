@@ -34,10 +34,10 @@ export function getPracticeTags(state, practiceId, assignment = null) {
 export function getLocalTaggedPieceCount(state, regionId, tag, { excludeStructureId = null } = {}) {
   const settlement = getDetailedSettlement(state, regionId);
   return assignDetailedSettlementWorkers(state, regionId).filter(a => getPracticeTags(state, a.practiceId, a).includes(tag)).length
-    + (settlement?.structureSlots ?? []).filter(s => s && s.structureId !== excludeStructureId && getDetailedStructureDef(state, s.structureId)?.tags.includes(tag)).length;
+    + (settlement?.structureSlots ?? []).filter(s => s && !s.construction && s.structureId !== excludeStructureId && getDetailedStructureDef(state, s.structureId)?.tags.includes(tag)).length;
 }
 export function getLocalDistinctPieceTags(state, regionId) {
-  return [...new Set([...assignDetailedSettlementWorkers(state, regionId).flatMap(a => getPracticeTags(state, a.practiceId, a)), ...(getDetailedSettlement(state, regionId)?.structureSlots ?? []).flatMap(s => getDetailedStructureDef(state, s?.structureId)?.tags ?? [])])].sort();
+  return [...new Set([...assignDetailedSettlementWorkers(state, regionId).flatMap(a => getPracticeTags(state, a.practiceId, a)), ...(getDetailedSettlement(state, regionId)?.structureSlots ?? []).flatMap(s => s?.construction ? [] : getDetailedStructureDef(state, s?.structureId)?.tags ?? [])])].sort();
 }
 export function getPhaseModifiers(state) { return state.civilization.phaseModifiers; }
 

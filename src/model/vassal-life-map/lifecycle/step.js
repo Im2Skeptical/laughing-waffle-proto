@@ -155,6 +155,7 @@ export function validateVassalLifeMapState(state) {
     for (const [nodeId, nodeState] of Object.entries(vassal?.lifeMap?.nodeStates ?? {})) {
       if (!isShopNodeState(nodeState)) continue;
       const purchases = nodeState.purchasedOffers;
+      if(!Number.isInteger(nodeState.nextCommissionId)||nodeState.nextCommissionId<0) errors.push(`${vassalId}.${nodeId}: invalid commission counter`);
       if (!Array.isArray(purchases) || !Array.isArray(nodeState.purchasedOfferIds)
           || JSON.stringify(purchases.map(p => p?.offerId)) !== JSON.stringify(nodeState.purchasedOfferIds)
           || new Set(purchases.map(p => p?.offerId)).size !== purchases.length) {
@@ -167,7 +168,8 @@ export function validateVassalLifeMapState(state) {
         if (p.intervention.kind !== 'structure') return false;
         const placement = p.placement, def = getDetailedStructureDef(state, p.intervention.structureId);
         return !placement || !def || placement.structureId !== def.id || placement.width !== def.footprint
-          || typeof placement.placementId !== 'string' || !Number.isInteger(placement.origin);
+          || typeof placement.placementId !== 'string' || !Number.isInteger(placement.origin)
+          || !Number.isInteger(placement.construction?.completedCycles) || placement.construction.completedCycles!==0;
       });
       if (malformed) errors.push(`${vassalId}.${nodeId}: invalid staged placement`);
       else if (lineage.currentVassalId === vassalId && vassal.lifeMap.currentNodeId === nodeId

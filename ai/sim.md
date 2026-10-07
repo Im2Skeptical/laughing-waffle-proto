@@ -35,7 +35,12 @@ registries here.
   represent population bands, while each Scholar claims one specialist socket.
   Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.
 - Structures use 1-3 contiguous cells, stable placement IDs and duplicate instances.
-  Numeric capacities are additive. The Common Housing ladder is 30/60/90/150/240/360.
+  Shop offers are repeatable plans. Each commission reserves a construction site;
+  Housing-phase cycles atomically Consume the authored Stock Traits after Practice
+  production, using local hosts before adjacent connected neighbours. Only paid cycles
+  advance progress; completion activates the building. Unfinished sites supply no
+  Housing, modifiers, tags, institutional bonuses or capabilities.
+  Numeric capacities are additive. The Common Housing ladder is 30/60/90/210/360/630.
   Gated query modifiers supply capacity, output, defense and Retinue cap bonuses.
 - Scholars and Warriors are mutually exclusive specialties inside Villager/Stranger
   age cohorts. Aging, migration and mortality preserve those identities.

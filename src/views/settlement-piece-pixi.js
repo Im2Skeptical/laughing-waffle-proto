@@ -20,6 +20,20 @@ export function addSettlementPiece(parent, rect, {
   root.addChild(frame);
   if (!empty && face) {
     addIllustration(root, face.definitionId, {x:3,y:3,width:w-6,height:h-6});
+    if (face.construction) {
+      const scaffold = new PIXI.Graphics().beginFill(0x344239,.35).drawRect(3,3,w-6,h-6).endFill();
+      // Timber braces and lashings leave the eventual building visible behind it.
+      for (const x of [w*.18,w*.7]) {
+        scaffold.lineStyle(5,0x302519,.95).moveTo(x,18).lineTo(x,h-38);
+        scaffold.lineStyle(2,0xa08455,.85).moveTo(x-1,18).lineTo(x-1,h-38);
+        for (const y of [h*.35,h*.62]) {
+          scaffold.lineStyle(4,0x392b1a).moveTo(12,y).lineTo(w-12,y);
+          scaffold.lineStyle(1,0xc5a571).moveTo(x-5,y-3).lineTo(x+5,y+3).moveTo(x-5,y+2).lineTo(x+5,y+7);
+        }
+      }
+      scaffold.lineStyle(3,0x776044,.8).moveTo(w*.18,h*.62).lineTo(w*.7,20);
+      scaffold.eventMode='none';root.addChild(scaffold);
+    }
     addPieceRim(root, w, h);
     root.faceSections = addPieceFaceChrome(root, face, w, h, {time, reducedMotion});
     // A small inset jewel identifies quality without widening the picture rim.

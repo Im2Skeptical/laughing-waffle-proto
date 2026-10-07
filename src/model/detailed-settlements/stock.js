@@ -12,6 +12,7 @@ export const structureQualityMultiplier = slot => 1 + .25 * Math.max(0,slot?.qua
 
 export function structureModifiers(state, settlement) {
   return (settlement?.structureSlots ?? []).flatMap(slot => {
+    if (slot?.construction) return [];
     const def = getDetailedStructureDef(state, slot?.structureId);
     if (def?.specialistGate && specialistCount(settlement, def.pool) < def.specialistGate) return [];
     return (def?.modifiers ?? []).filter(mod => modifierCondition(state, settlement, mod.query)).map(mod => {

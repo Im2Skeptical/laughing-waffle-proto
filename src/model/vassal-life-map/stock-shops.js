@@ -1,6 +1,6 @@
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from "../../defs/gamepieces/detailed-settlement-defs.js";
 import { getVassalStockOutputIds, isVassalStockOutputPractice } from "../../defs/gamepieces/vassal-life-map-defs.js";
-import { getDetailedPracticeDef } from "../game-config.js";
+import { getDetailedPracticeDef, getDetailedStructureDef } from "../game-config.js";
 import { getDetailedPracticeTierIndex } from "../detailed-practice-tiers.js";
 import { getResearchUnlockIndex } from "../research-progression.js";
 import { ageCohortTotal } from "../detailed-settlements/cohorts.js";
@@ -20,7 +20,9 @@ export function getStockShopGenerationContext(state, candidate) {
     (site.detailedState.practiceSlots ?? []).map(slot => getDetailedPracticeDef(state, slot?.practiceId)).filter(Boolean));
   const supplied = new Set(getVassalStockOutputIds(installed));
   const missing = new Set();
-  for (const def of installed) {
+  const constructionRecipes=sites.flatMap(site=>site.detailedState.structureSlots.filter(slot=>slot?.construction)
+    .map(slot=>getDetailedStructureDef(state,slot.structureId).construction));
+  for (const def of [...installed,...constructionRecipes]) {
     for (const input of [...(def.consume ?? []), ...(def.require ?? [])]) {
       // A recipe's trait list contains alternatives, not multiple requirements.
       if ((input.amount ?? 1) <= 0 || input.traits.some(trait => supplied.has(trait))) continue;

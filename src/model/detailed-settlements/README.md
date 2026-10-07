@@ -35,6 +35,7 @@ file is the legacy tick substrate.
   Authored polygon adjacency is cached in `world-state.js`; live connections,
   ownership and provider boards are resolved afresh. Empty recipes skip provider
   discovery entirely.
+- `construction.js` ? declarative paid-cycle Structure sites, with local-first atomic Stock payments.
 - `workers.js` - Scholar sockets and ordinary population worker assignment.
 - `cohorts.js` - orthogonal specialist age subsets and composition helpers.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.

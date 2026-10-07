@@ -67,6 +67,11 @@ function seasonalReadiness(state, activation) {
 export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation = null, workers = null, slot = null, settlement = null, activationTrace = [] } = {}) {
   const def = kind === 'practice' ? getDetailedPracticeDef(state, id) : getDetailedStructureDef(state, id);
   if (!def) return null;
+  const construction = kind === 'structure' && slot?.construction ? {
+    completedCycles: slot.construction.completedCycles,
+    requiredCycles: def.construction.cycles,
+    activation: def.construction.activation,
+  } : null;
   if (kind === 'structure') tier = ['bronze','silver','gold','diamond'][Math.min(3,['bronze','silver','gold','diamond'].indexOf(def.minimumQuality??'bronze')+(slot?.qualityBonus??0))];
   const multiplier = kind === 'practice' ? getQualityMultiplier(tier, def.qualityMultiplierPerLevel ?? 0) : 1;
   const outputs = (def.outputs ?? []).map(output => {
@@ -82,7 +87,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const seasonal = def.activation?.type === 'season';
   const seasonReadiness = seasonal ? seasonalReadiness(state, def.activation) : null;
   const period = getMoonCycleDurationSec(state);
-  const offset = 1 + (MOON_PHASE_INDEX_BY_ID[def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
+  const offset = 1 + (MOON_PHASE_INDEX_BY_ID[construction?.activation.type ?? def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
   const viewedTime = state?.tSec ?? 0;
   const lastReaction = activationTrace.filter(entry => ['activated','discharged'].includes(entry.kind) && entry.targetPracticeId === id && entry.tSec <= viewedTime).at(-1);
   const activationAge = slot && lastReaction ? viewedTime - lastReaction.tSec : null;
@@ -97,12 +102,13 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     return seasons ? Object.entries(seasons).map(([season, value]) => ({ season, icon, value, label: `${season}: ${value} base ${icon}` }))
       : [{ icon, value: effect.amount ?? 0, label: `${effect.amount ?? 0} base ${icon}` }];
   });
-  const inputs = ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input => ({ kind, amount: input.amount, traits: [...input.traits] })));
+  const inputs = construction ? def.construction.consume.map(input => ({ kind:'consume', amount:input.amount, traits:[...input.traits] }))
+    : ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input => ({ kind, amount: input.amount, traits: [...input.traits] })));
   const producesStock = (def.effects ?? []).some(effect => effect.op === 'generateStock');
   const workerMultiplier = producesStock || def.mode==='charge' ? number(1 + (workers?.effectiveWorkers ?? 0) * (def.workerBonus ?? 1)) : 1;
   const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def, {slot, settlement});
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
-    inputs, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def),
+    inputs, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
     reading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? def.stockCapacity ?? 0, stockTraits: def.stockTraits ?? [],

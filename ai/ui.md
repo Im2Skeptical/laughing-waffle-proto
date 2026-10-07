@@ -29,7 +29,10 @@ summaries are read-only Trait totals. Regional, overview, and purchase boards sh
 one row of five fixed Practice slots, with no Practice-board paging. Purchase
 inventory paging is separate. Population/Housing,
 specialist counts and the last defense outcome remain explicit.
-Cycle readiness uses the existing time rim. Generic art is reused for new
+Construction sites reuse completed Structure art with timber scaffolding, a
+bottom-left recipe and cycle wheel, and a pegged wooden completed/required tally
+in the top right. Shops pair a fanned site plan with its completed Structure;
+repeat commissions keep the plan available. Cycle readiness uses the existing time rim. Generic art is reused for new
 content with distinct names and rules. Structure inspection retains its existing
 hover/touch reading panel.
 Warrior status displays Retinue, cap and next Prestige threshold. Scholar status

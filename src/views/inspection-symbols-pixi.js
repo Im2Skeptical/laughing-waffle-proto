@@ -9,12 +9,19 @@ export function getPracticeSymbols(face) {
   const rows=[],seen=new Set();
   const add=(name,symbol)=>{if(!seen.has(name)){seen.add(name);rows.push({name,...symbol});}};
   if(face.kind==='structure') {
-    for(const bonus of face.structureBonuses??[]) {
+    for(const bonus of face.construction ? [] : face.structureBonuses??[]) {
       for(const trait of bonus.traits??[])add(trait,{trait});
       add(bonus.kind==='stock'?'Stock capacity bonus':bonus.label,bonus.kind==='stock'?{drawing:'capacity'}:{icon:bonus.kind});
     }
     // Footprint is the width of the illustrated Structure itself.
     add('Construction footprint',{glyph:String(face.footprint)});
+    if(face.construction) {
+      add('Cycle',{wheel:'moon-wheel',icon:face.construction.activation.type});
+      for(const input of face.inputs??[]) {
+        for(const trait of input.traits)add(trait,{trait});
+        add('Consume',{glyph:'−'});
+      }
+    }
   } else {
     if(face.stockCapacity>0) {
       add('Stock',{icon:'stock'});add('Stock capacity',{glyph:`${face.stock}/${face.stockCapacity}`});

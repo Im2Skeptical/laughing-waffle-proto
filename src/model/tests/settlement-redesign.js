@@ -40,7 +40,7 @@ const beforeRejected=serializeGameState(state);
 assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,payload:{nodeId,offerId:'fixture:2',origin:5}},{isReplay:true}).reason,'stagedStructureOverlap');
 assert.deepEqual(serializeGameState(state),beforeRejected,'rejected overlap is atomic');
 record(ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE,{nodeId,offerId:'fixture:0',origin:3});
-record(ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId:'fixture:1'});
+record(ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId:node.purchasedOffers.find(p=>p.sourceOfferId==='fixture:1').offerId});
 assert.deepEqual(getVassalNodeDecisionPresentation(state,nodeId).settlement.demolishedStructures,[],'undo restores the confirmed Hostel');
 record(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId:'fixture:1',origin:0});
 const preview=getVassalNodeDecisionPresentation(state,nodeId).settlement.structures;

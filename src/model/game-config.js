@@ -9,13 +9,14 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 16;
+export const GAME_CONFIG_SCHEMA_VERSION = 17;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const scheduleTypes=[...MOON_PHASE_DEFS.map(phase=>phase.id),'season','passive','crisis'];
 const seasonKeys=['spring','summer','autumn','winter'];
+const STOCK_TRAITS=[...new Set(Object.values(detailedSettlementPracticeDefs).flatMap(def=>def.stockTraits))];
 
 export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
@@ -398,6 +399,13 @@ export function validateGamepiecesDraft(value) {
     }
     for(const [id,def] of Object.entries(value[kind])) {
       if(def?.locked!==undefined&&typeof def.locked!=='boolean')errors.push(`${kind}.${id}.locked: expected a boolean`);
+      if(kind==='structures') {
+        const recipe=def?.construction;
+        if(!Number.isInteger(recipe?.cycles)||recipe.cycles<1||recipe.activation?.type!=='housing'
+          ||!Array.isArray(recipe.consume)||!recipe.consume.length
+          ||recipe.consume.some(cost=>!Number.isInteger(cost?.amount)||cost.amount<1||!Array.isArray(cost.traits)||!cost.traits.length||cost.traits.some(trait=>!STOCK_TRAITS.includes(trait))))
+          errors.push(`structures.${id}: invalid construction recipe`);
+      }
     }
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);

@@ -121,8 +121,16 @@ export function pieceOfferCard(parent, rect, spec) {
   const faceWidth = isStructure ? PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) * 178 / PIECE_SIZE.structureHeight : 220;
   const faceHeight = isStructure ? 178 : 308;
   const faceY = 84 + (308 - faceHeight) / 2;
-  root.faceRoot=addSettlementPiece(root,{x:(rect.width-faceWidth)/2,y:faceY,width:faceWidth,height:faceHeight},{
-    face:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
+  const faceX=isStructure ? (rect.width-faceWidth*2-24)/2 : (rect.width-faceWidth)/2;
+  if(isStructure) {
+    for(const [dx,dy,angle] of [[-10,8,-.055],[8,4,.045]]) {
+      const back=addSettlementPiece(root,{x:faceX+dx,y:faceY+dy,width:faceWidth,height:faceHeight},{face:spec.constructionPresentation});
+      back.rotation=angle;back.eventMode='none';back.alpha=.7;
+    }
+    addSettlementPiece(root,{x:faceX+faceWidth+24,y:faceY,width:faceWidth,height:faceHeight},{face:spec.presentation,onInspect:spec.onCompletedInspect??spec.onInspect});
+  }
+  root.faceRoot=addSettlementPiece(root,{x:faceX,y:faceY,width:faceWidth,height:faceHeight},{
+    face:isStructure?spec.constructionPresentation:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
   });
   root.faceRoot.alpha = spec.staged ? .3 : spec.enabled ? 1 : .65;
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
@@ -202,7 +210,7 @@ export function shopOfferPages(offers) {
   const pages = [[]]; let used = 0;
   for (const offer of offers) {
     const width = offer.presentation?.kind === 'structure'
-      ? Math.max(282, offer.presentation.footprint * 120 * 178 / 160 + 32) : 282;
+      ? Math.max(322, offer.presentation.footprint * 120 * 178 / 160 * 2 + 64) : 282;
     const page = pages.at(-1);
     if (page.length && used + 16 + width > 886) {pages.push([]); used = 0;}
     const next = pages.at(-1);

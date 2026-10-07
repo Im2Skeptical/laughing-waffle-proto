@@ -13,11 +13,15 @@ import {
   selectUnreservedPopulation,
 } from "./migration.js";
 import { setMoonTurnPhase } from "./moon-turn.js";
+import { runConstructionCycles } from '../construction.js';
+import { flushPracticeEvents } from '../practices.js';
 
 export function runHousingPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   getPhaseModifiers(state).housingByRegion = {};
   runPracticeActivation(state, "housing");
+  runConstructionCycles(state, "housing");
+  flushPracticeEvents(state);
   for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);

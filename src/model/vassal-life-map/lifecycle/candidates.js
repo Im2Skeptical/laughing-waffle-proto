@@ -91,7 +91,7 @@ export function generateCandidatePool(state) {
       const local = getDetailedSite(state, locationRegionId)?.detailedState;
       const founderClassId = isFounderPool ? (index === 1 ? 'warrior' : 'scholar') : null;
       const classId = isFounderPool || index === 1 ? null : lineage.establishedClassId;
-      const institutions = classId ? (local?.structureSlots ?? []).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0)) : [];
+      const institutions = classId ? (local?.structureSlots ?? []).filter(slot => slot && !slot.construction).map(slot => getDetailedStructureDef(state,slot?.structureId)).filter(def => def?.pool === classId && specialistCount(local,classId) >= (def.specialistGate ?? 0)) : [];
       const retired = (state.civilization.retiredVassals ?? []).filter(v=>v.classId===classId && v.retirementRegionId===locationRegionId);
       const classHistory=(state.civilization.retiredVassals??[]).filter(v=>v.classId===classId);
       const historyValues={
@@ -99,7 +99,7 @@ export function generateCandidatePool(state) {
         age:Math.floor(Math.max(0,(state.year??1)-1)/10),chaos:Math.floor((state.civilization.chaos.chaosPower??0)/1000),
         losses:state.civilization.history?.lostSettlements??0,conquests:state.civilization.history?.conquests??0,victories:state.civilization.history?.victories??0,
         records:local?.practiceSlots.filter(s=>s?.stock>0&&getDetailedPracticeDef(state,s.practiceId)?.stockTraits.includes('Record')).length??0,
-        knowledgeStructures:new Set((local?.structureSlots??[]).filter(s=>getDetailedStructureDef(state,s?.structureId)?.tags.includes('Knowledge')).map(s=>s.structureId)).size,
+        knowledgeStructures:new Set((local?.structureSlots??[]).filter(s=>!s?.construction&&getDetailedStructureDef(state,s?.structureId)?.tags.includes('Knowledge')).map(s=>s.structureId)).size,
       };
       const historyBonus=structureModifiers(state,local).filter(m=>m.kind==='historyCandidate').reduce((best,m)=>Math.max(best,Math.min(m.cap??3,
         (m.sources??['retired','conquests','losses']).reduce((n,key)=>n+(historyValues[key]??0),0)*m.amount)),0);

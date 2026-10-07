@@ -335,7 +335,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       }
     );
     const currencyCost = purchased ? offer.currencyCost : Math.max(0, Number(offer.baseCurrencyCost) || 0);
-    const remaining = (nodeState?.purchasedOffers ?? []).filter(p => p.offerId !== offer.offerId);
+    const remaining = (nodeState?.purchasedOffers ?? []).filter(p => !purchased || p.offerId !== offer.offerId);
     const checkPlacement = origin => {
       const prepared = kind === 'structure' ? prepareStructurePlacement(state, vassal, nodeState, offer, origin, remaining) : { ok: true };
       if (!prepared.ok) return prepared;
@@ -357,6 +357,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       presentation: definitionId
         ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze", intervention)
         : null,
+      constructionPresentation: kind === 'structure' ? getVassalGamepiecePresentation(state, kind, definitionId,
+        intervention.tier, { ...intervention, construction: { completedCycles: 0 } }) : null,
       prestigeCost,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost

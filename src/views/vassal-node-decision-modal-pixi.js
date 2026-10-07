@@ -549,10 +549,9 @@ export function createVassalNodeDecisionModalView({
       const cardWidth = isShop ? OPTION_COLUMN.width : Math.min(hasContext ? OPTION_COLUMN.choiceWidth : 400,
         Math.floor((choiceSpace - (cardCount - 1) * cardGap) / Math.max(1, cardCount)));
       const cardHeight = node.family === 'relic' ? OPTION_COLUMN.relicHeight : OPTION_COLUMN.height;
-      // Keep staged offers in their original places so their prices and full
-      // inspections remain available throughout the draft. The model still
-      // removes purchases from the available inventory until they are undone.
-      const allShopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? [])]
+      // Practice purchases retain their shop faces; Structure commissions live
+      // on the strip while their repeatable plan remains in the same shop slot.
+      const allShopCards = [...(decision?.offers ?? []), ...(decision?.purchases ?? []).filter(p=>p.intervention.kind!=='structure')]
         .sort((a, b) => (a.sourceInventoryIndex ?? a.inventoryIndex ?? 0)
           - (b.sourceInventoryIndex ?? b.inventoryIndex ?? 0));
       const pages = shopOfferPages(allShopCards);
@@ -564,12 +563,13 @@ export function createVassalNodeDecisionModalView({
       if (isShop) {
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
-          const inspect=event=>inspectPiece(offer.offerId,offer.presentation,event);
+          const inspect=event=>inspectPiece(offer.offerId,offer.constructionPresentation??offer.presentation,event);
           const x=cardStartX+visibleOffers[index].x;
           const offerWidth=visibleOffers[index].width;
           const card=(offer.presentation?pieceOfferCard:actionCard)(root,{x,y:cardY,width:offerWidth,height:cardHeight},{
-            title:offer.label,artId:node.family,presentation:offer.presentation,
+            title:offer.label,artId:node.family,presentation:offer.presentation,constructionPresentation:offer.constructionPresentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
+            onCompletedInspect:event=>inspectPiece('completed:'+offer.offerId,offer.presentation,event),
             cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,state},enabled,
             costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
             onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,onUnavailable:readOnly?onReadOnlyAction:null,
@@ -577,7 +577,7 @@ export function createVassalNodeDecisionModalView({
             onOut:()=>{if(hoveredOfferId===offer.offerId){hoveredOfferId=null;scheduleHoverRender();}},
           });
           card.offerId = offer.offerId;
-          card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,offer,true));
+          card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,{...offer,presentation:offer.constructionPresentation??offer.presentation},true));
           if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+8,width:offerWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
           return card;
         });
@@ -803,14 +803,16 @@ export function createVassalNodeDecisionModalView({
       });
     }
     const retainedInspectionId=pinnedInspectionId??quickInspectionId;
-    const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(retainedInspectionId??previewOfferId));
+    const inspectionId=retainedInspectionId??previewOfferId;
+    const completedInspection=inspectionId?.startsWith('completed:');
+    const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(completedInspection?inspectionId.slice('completed:'.length):inspectionId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===retainedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(
       'practice:'+piece.practiceId===(retainedInspectionId??previewTableauId)||'structure:'+piece.placementId===(retainedInspectionId??previewTableauId)));
     const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===(retainedInspectionId??previewTableauId));
     if(inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
       const piece=inspectedOffer??inspectedOption??inspectedTableau;
-      const face=piece?.presentation??displaced;
+      const face=inspectedOffer&&!completedInspection ? piece.constructionPresentation??piece.presentation : piece?.presentation??displaced;
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
       if(face?.reading&&!pinnedInspectionId) {
         if(quickInspectionId) {

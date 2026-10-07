@@ -81,7 +81,7 @@ first-pass system notes below retain their original tuning context.
   Currency purchases and Crisis procurement debit hosts, including upgraded hosts.
 - Declarative production, conditions, specialist training, phase Housing/Food bonuses,
   resistance, and query-based Structure modifiers. Structures remain duplicate 1-3-cell
-  placements. Common Housing is 30/60/90/150/240/360. Scholar quality uplift adds 25%
+  placements. Common Housing is 30/60/90/210/360/630. Scholar quality uplift adds 25%
   to numeric Structure bonuses; Practice quality increases capacity.
 - Scholar/Warrior subsets inside status and age cohorts, preserved by migration,
   aging and mortality. Scholar sockets take priority over ordinary worker bands and
@@ -128,7 +128,11 @@ human playtest work.
 - CivContent 2.6 now offers Common 13/14, Scholar 48/32 and Warrior 48/32
   (Practice/Structure). Every Practice is Scheduled or Charge; full pool and
   per-card deviations are in `docs/civcontent-2.6-implementation.md`.
-- Common and class purchases use a flat first-pass 10 Prestige / 12 phases. Existing
+- Practice purchases use 10 Prestige / 12 phases. Structure plans remain available
+  for repeat commissions during the shop visit, cost 2?5 Prestige / 1?2 phases, and
+  need 3?7 paid Housing-phase construction cycles with broad Stock Trait recipes.
+  Common Housing scales from raw Construction through Tool and Metal chains; higher
+  homes give more Housing per footprint cell. Existing
   Research thresholds gate maturity; Discovery grants the next shop one higher maturity.
   Worker bonus is +100% per effective worker (base ×1, one full worker ×2,
   three ×4), rounded down at the integer Stock output boundary. Worker effectiveness

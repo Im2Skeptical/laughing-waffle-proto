@@ -19,6 +19,8 @@ export function validateStructureLayout(slots, capacity = slots?.length) {
     if (!placement) return;
     if (typeof placement.placementId !== 'string' || !placement.placementId || ids.has(placement.placementId)) errors.push('invalidPlacementIdentity');
     ids.add(placement.placementId);
+    if (placement.construction && (!Number.isInteger(placement.construction.completedCycles)
+      || placement.construction.completedCycles < 0)) errors.push('invalidConstructionProgress');
     if (placement.origin !== index || !Number.isInteger(placement.width) || placement.width < 1 || placement.width > 3 || index + placement.width > capacity) {
       errors.push('invalidFootprint');
       return;
@@ -78,7 +80,7 @@ export function applyBuild(slots, placement, options = {}) {
   if (!result.ok) return result;
   if (!placement.placementId || slots.some(p => p?.placementId === placement.placementId)) return { ok: false, reason: 'duplicatePlacementIdentity' };
   const next = applyDemolish(slots, result.demolished.map(p => p.placementId));
-  next[placement.origin] = { ...placement };
+  next[placement.origin] = { ...placement, ...(placement.construction ? {construction:{...placement.construction}} : {}) };
   return { ok: true, slots: next, demolished: result.demolished };
 }
 

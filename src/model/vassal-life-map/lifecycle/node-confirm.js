@@ -246,6 +246,7 @@ function createNodeState(state, vassal, node) {
     inventory: [],
     purchasedOffers: [],
     purchasedOfferIds: [],
+    nextCommissionId: 0,
     rerollUsed: false,
     inventoryRoll: 0,
     selectedOptionId: null,

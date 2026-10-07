@@ -42,12 +42,12 @@ export function createDetailedSettlementState() {
 
 export function getStructureCount(state, regionId, structureId) {
   return (getDetailedSettlement(state, regionId)?.structureSlots ?? [])
-    .filter((slot) => slot?.structureId === structureId).length;
+    .filter((slot) => slot?.structureId === structureId && !slot.construction).length;
 }
 
 export function getStructureCapacity(state, regionId, capacityKind) {
   const settlement = getDetailedSettlement(state, regionId);
-  if (capacityKind === "housing") return (settlement?.structureSlots ?? []).reduce((n,s) => n + Math.floor((getDetailedStructureDef(state,s?.structureId)?.housing ?? 0)*structureQualityMultiplier(s)),0);
+  if (capacityKind === "housing") return (settlement?.structureSlots ?? []).reduce((n,s) => n + Math.floor((s?.construction ? 0 : getDetailedStructureDef(state,s?.structureId)?.housing ?? 0)*structureQualityMultiplier(s)),0);
   return (settlement?.practiceSlots ?? []).reduce((n,s) => n + (stockTraits(state,s).includes("Edible") ? stockCapacity(state,settlement,s) : 0),0);
 }
 
@@ -195,5 +195,5 @@ export function getElderOrderSummary(state, regionId) {
 }
 
 export function hasStructureCapability(state, regionId, capability) {
-  return (getDetailedSettlement(state, regionId)?.structureSlots ?? []).some(slot => slot && getDetailedStructureDef(state, slot.structureId)?.[capability] === true);
+  return (getDetailedSettlement(state, regionId)?.structureSlots ?? []).some(slot => slot && !slot.construction && getDetailedStructureDef(state, slot.structureId)?.[capability] === true);
 }

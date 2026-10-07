@@ -552,11 +552,15 @@ try {
   interactionTimings.shopTapMs=Math.round(performance.now()-shopTapStart);
   interactionTimings.shopDispatchMs=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getPerfSnapshot().runtime.actionDispatchLastMs);
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===1);
-  const shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  let shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+  const repeatable=shopBefore.offers.find(offer=>offer.offerId===shopBefore.visibleOfferIds[affordableIndex])?.kind==='structure';
   assert.equal(shopAfter.currentPrestige,shopBefore.currentPrestige,'Staging leaves actual Prestige unchanged');
   assert.equal(shopAfter.projectedPrestige,shopBefore.currentPrestige-shopBefore.costPanels[affordableIndex].prestigeCost);
   assert.equal(shopAfter.costPanels.length,shopBefore.costPanels.length,'Staging keeps full-size prices visible');
-  assert.ok(shopAfter.costPanels[affordableIndex].staged,'The purchased offer is visibly staged in its original position');
+  if(repeatable) {
+    assert.equal(shopAfter.costPanels[affordableIndex].staged,false,'The plan remains available after commissioning');
+    assert.ok(shopAfter.structures.some(piece=>piece?.staged&&piece.construction),'A commission places a construction site');
+  } else assert.ok(shopAfter.costPanels[affordableIndex].staged,'The purchased offer is visibly staged in its original position');
   const panelCentres=decision=>decision.costPanels.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
   assert.deepEqual(panelCentres(shopAfter),panelCentres(shopBefore),
     'The remaining offer touch targets cannot shift after staging');
@@ -566,8 +570,9 @@ try {
     assert.ok(panel.description.includes('Prestige'),'The accessible price includes its Prestige row');
   }
   await tap(shopChoice);await delay(200);
-  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),1,
-    'A staged footer cannot buy the same offer twice');
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),repeatable?2:1,
+    repeatable?'A Structure plan commissions another site':'A staged Practice cannot be bought twice');
+  shopAfter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
   const practiceIndex=shopAfter.practices.findIndex(piece=>piece?.presentation?.reading);
   assert.ok(practiceIndex>=0,'The shop tableau includes a Practice for the phone quick-read flow');
@@ -640,8 +645,9 @@ try {
   };
   await inspectOffer();
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId);
-  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),shopAfter.purchaseOrder[0],
-    'Staged offers retain their full inspection');
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.inspectedCardId),
+    repeatable?shopBefore.visibleOfferIds[affordableIndex]:shopAfter.purchaseOrder[0],
+    'Available plans and staged Practices retain their full inspection');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop-inspection.png'});
   await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()));
   assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapInspectionClosePoint()),null,
@@ -653,19 +659,28 @@ try {
   if (await page.evaluate(()=>!!globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.replacementOfferId)) {
     await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapTableauClickPoint(4)));
   }
-  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===2);
+  await page.waitForFunction(expected=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length===expected,repeatable?3:2);
   let limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
-  if(!limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled)) {
+  if(repeatable) {
+    // Cheap plans can exhaust physical space before Prestige. Fill legal spans
+    // and check the same disabled-footer contract at either boundary.
+    for(let attempt=0;attempt<8;attempt++) {
+      const index=limitedShop.costPanels.findIndex(panel=>!panel.disabled);
+      if(index<0)break;
+      await tap(await page.evaluate(index=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(index),index));
+      limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
+    }
+  } else if(!limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled)) {
     await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferPageClickPoint(1)));
     await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels.some(panel=>panel.unaffordable));
     limitedShop=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
   }
-  assert.ok(limitedShop.costPanels.some(panel=>panel.unaffordable&&panel.disabled),
-    'Spending the projected balance visibly disables an unaffordable offer');
+  assert.ok(limitedShop.costPanels.some(panel=>panel.disabled&&(repeatable||panel.unaffordable)),
+    'Exhausting the projected balance or legal construction space disables an offer');
   const unavailableOffer=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0));
   await tap(unavailableOffer);await delay(150);
-  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),2,
-    'Tapping an unaffordable footer cannot stage a purchase');
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.purchaseOrder.length),limitedShop.purchaseOrder.length,
+    'Tapping an unavailable footer cannot stage a purchase');
   await page.screenshot({path:'artifacts/chronicle-mobile-shop.png'});
   if(limitedShop.offerPage!==shopAfter.offerPage) {
     await tap(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferPageClickPoint(0)));

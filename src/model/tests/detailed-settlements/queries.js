@@ -51,7 +51,7 @@ getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structure
 assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 8);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
 
-assert.deepEqual(['mudHouses','timberHouse','stoneHouse','longhouse','tenement','greatDwelling'].map(id=>settlementStructureDefs[id]?.housing),[30,60,90,150,240,360]);
+assert.deepEqual(['mudHouses','timberHouse','stoneHouse','longhouse','tenement','greatDwelling'].map(id=>settlementStructureDefs[id]?.housing),[30,60,90,210,360,630]);
 
 const vm = getDetailedSettlementViewModel(state, "river-crown");
 assert.equal(vm.elderOrder.resistance, 13);

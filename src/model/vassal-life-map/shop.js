@@ -83,8 +83,11 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
     allowDemolition: true, stagedIds: validation.structures.stagedIds,
   }) : { ok: true, origin };
   if (!location.ok) return location;
-  return { ok: true, placement: { placementId: vassal.vassalId + ':' + offer.offerId,
+  const commissionId = offer.sourceOfferId ? offer.offerId
+    : (nodeState.nextCommissionId ?? 0) === 0 ? offer.offerId : `${offer.offerId}:c${nodeState.nextCommissionId}`;
+  return { ok: true, placement: { placementId: vassal.vassalId + ':' + commissionId,
     origin: location.origin, width, structureId: action.structureId,
+    construction: { completedCycles: 0 },
     ...(action.qualityBonus ? {qualityBonus:action.qualityBonus} : {}) } };
 }
 
@@ -305,6 +308,11 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
   };
+  const repeatable = offer.intervention?.kind === 'structure';
+  if (repeatable) {
+    purchase.sourceOfferId = offer.offerId;
+    purchase.offerId = (nodeState.nextCommissionId ?? 0) === 0 ? offer.offerId : `${offer.offerId}:c${nodeState.nextCommissionId}`;
+  }
   if (offer.intervention?.kind==='practice' && offer.intervention.mode!=='remove') {
     const def=getDetailedPracticeDef(state,offer.intervention.practiceId);
     const existing=buildReservation(state,vassal,nodeState)?.practiceSlots??[];
@@ -336,14 +344,15 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   }
   const validation = validatePurchaseInterventions(state, vassal, next, order);
   if (!validation.ok) return validation;
-  nodeState.inventory.splice(index, 1);
+  if (repeatable) nodeState.nextCommissionId = (nodeState.nextCommissionId ?? 0) + 1;
+  else nodeState.inventory.splice(index, 1);
   nodeState.purchasedOffers = next;
   if (order) nodeState.practiceDraftOrder = order;
   nodeState.purchasedOfferIds = next.map(p => p.offerId);
   nodeState.accumulatedPhaseCost += phaseCost;
   if (phaseCost > 0) purchase.hourglassApplied = nodeState.heirloomTimeActionUsed !== true;
   markHeirloomTimeAction(nodeState, phaseCost);
-  return { ok: true, offerId, prestigeCost, phaseCost, currencyCost };
+  return { ok: true, offerId: purchase.offerId, prestigeCost, phaseCost, currencyCost };
 }
 
 export function undoVassalShopPurchase(state, nodeId, offerId) {
@@ -369,7 +378,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   const originalIndex = Math.max(0, Math.floor(restored.sourceInventoryIndex ?? nodeState.inventory.length));
   delete restored.sourceInventoryIndex;
   restored.inventoryIndex = originalIndex;
-  nodeState.inventory.push(restored);
+  if (!purchase.sourceOfferId) nodeState.inventory.push(restored);
   nodeState.inventory.sort((left, right) =>
     Math.floor(left.inventoryIndex ?? 0) - Math.floor(right.inventoryIndex ?? 0));
   nodeState.accumulatedPhaseCost = Math.max(

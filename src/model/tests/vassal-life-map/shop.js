@@ -281,8 +281,8 @@ for (const classId of [null, "scholar", "warrior"]) {
     act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId: offer.offerId });
     act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId });
     resolvePending(state);
-    assert.ok(getHousingCapacity(state, vassal.locationRegionId) > capacityBefore,
-      "a confirmed dwelling purchase raises settlement housing capacity");
+    assert.equal(getHousingCapacity(state, vassal.locationRegionId), capacityBefore,
+      "a commissioned dwelling adds Housing only after its paid construction cycles");
     const replay = rebuildStateAtSecond(timeline, state.tSec);
     assert.equal(replay.ok, true);
     assert.deepEqual(serializeGameState(replay.state).civilization, serializeGameState(state).civilization,

@@ -72,7 +72,7 @@ try {
         for(let attempt=0;attempt<4;attempt++) {
           const s=await page.evaluate(()=>probe.snapshot());
           if(s.visibleOfferIds.includes(id)) {
-            const visible=method==='getOfferFacePoint' ? s.visibleOfferIds
+            const visible=method==='getOfferFacePoint'||kind==='structure'&&method==='getOfferClickPoint' ? s.visibleOfferIds
               : s.visibleOfferIds.filter(offerId=>method==='getUndoClickPoint' ? s.purchaseOrder.includes(offerId) : !s.purchaseOrder.includes(offerId));
             return page.evaluate(([m,i])=>probe.view[m](i),[method,visible.indexOf(id)]);
           }
@@ -168,7 +168,8 @@ try {
       await drag(await point('getOfferFacePoint',1),await point('getConstructionPoint',0));
       s=await snapshot();assert.deepEqual(s.demolishedStructures.map(p=>p.structureId),['granary','mudHouses']);
       await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-demolition.png`});
-      await tap(await point('getUndoClickPoint',1));
+      index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='greatDwelling');
+      await drag(await point('getTableauClickPoint',5+index),{x:600,y:380});
       await drag(await point('getOfferFacePoint',3),await point('getConstructionPoint',0));
       s=await snapshot();assert.equal(s.structures[0].structureId,'granary');assert.equal(s.structures[0].staged,true);
     }

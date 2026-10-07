@@ -282,6 +282,21 @@ function structureCapacityTray(parent, face, w, h) {
 }
 
 export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=false}={}) {
+  if(face.construction) {
+    const width=Math.min(w,40+(face.inputs??[]).reduce((n,input)=>n+Math.max(25,input.traits.length*21+4),0));
+    const cycle=addPieceFaceChrome(parent,{...face,kind:'practice',construction:null,stockCapacity:0,workerCapacity:0,
+      production:[],outputs:[],lane:'scheduled',source:{icon:face.construction.activation.type}},width,h,{time,reducedMotion});
+    // A pegged timber tally with a mason's square, rather than a Stock crate.
+    const marker=new PIXI.Graphics().lineStyle(1,0xc5a571).beginFill(0x493625,.97);
+    const x=w-68,y=5;
+    marker.drawPolygon([x,y+3,x+64,y,x+65,y+29,x+1,y+32]).endFill();
+    marker.lineStyle(1,0x80603b).moveTo(x+4,y+9).lineTo(x+61,y+7).moveTo(x+4,y+25).lineTo(x+61,y+24);
+    marker.lineStyle(3,0xd2ba8b).moveTo(x+8,y+9).lineTo(x+8,y+23).lineTo(x+19,y+23);
+    marker.lineStyle(0).beginFill(0xc0ab79).drawCircle(x+3,y+5,1.5).drawCircle(x+60,y+27,1.5).endFill();
+    marker.eventMode='none';parent.addChild(marker);
+    numeral(parent,`${face.construction.completedCycles}/${face.construction.requiredCycles}`,x+43,y+16,22,40);
+    return {...cycle,construction:{x,y,width:65,height:32}};
+  }
   if(face.kind==='structure')return {capacity:structureCapacityTray(parent,face,w,h)};
   const stock=stockTray(parent,face,w);
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));

@@ -199,6 +199,8 @@ function validateDetailedSettlement(site, region, errors, gamepieces) {
   } else {
     errors.push(...validateStructureLayout(settlement.structureSlots, region.structureCapacity).errors.map(error => `site ${site.id}: ${error}`));
     for (const slot of settlement.structureSlots) {
+      const recipe=(gamepieces?.structures?.[slot?.structureId]??settlementStructureDefs[slot?.structureId])?.construction;
+      if(slot?.construction && (!recipe || slot.construction.completedCycles>=recipe.cycles)) errors.push(`site ${site.id} has invalid construction progress`);
       if (slot && !settlementStructureDefs[slot.structureId]) {
         errors.push(`site ${site.id} has invalid structure ${slot.structureId}`);
       }

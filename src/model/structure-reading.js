@@ -86,7 +86,7 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
   if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement (combined institutional bonus capped at +5)` });
   if (!effects.length && def.ui?.rule) effects.push({ timing:'', text:def.ui.rule });
   const requirements = def.specialistGate ? [`Requires ${def.specialistGate} local ${title(def.pool)}${def.specialistGate === 1 ? '' : 's'}.`] : [];
-  const active = !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
+  const active = slot?.construction ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
   return { type:'Structure', classLabel:def.pool === 'common' ? 'Neutral' : title(def.pool), passive:true,
     effects, bonuses, requirements, trigger:null, active,
     flavour:FLAVOUR[def.id] ?? 'Stone and timber hold what a settlement hopes to keep.' };
