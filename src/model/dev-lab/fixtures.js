@@ -131,7 +131,9 @@ export function createLabFixture(id = 'stock', seed = 42) {
       local.practiceSlots[0].stock = 3;
       const frontier = adjacentRegionIds(state, site.regionId).find(r => getRegionState(state,r).controller === 'frontier') ?? adjacentRegionIds(state, site.regionId)[0];
       for (const r of adjacentRegionIds(state, frontier)) if (r !== site.regionId) getRegionState(state,r).monster = { defense: 1, ageMoons: 0 };
-      getRegionState(state, frontier).monster = { defense: 2, ageMoons: 99 };
+      getRegionState(state, frontier).monster = { defense: 2, ageMoons: 2 };
+      state.civilization.chaos.monsterPressure=.999;
+      state.civilization.chaos.lastPressureRegionId=state.world.regions[state.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
       state.civilization.chaos.monsterCount = state.world.regions.filter(r => r.monster).length;
     }
   }

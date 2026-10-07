@@ -2,7 +2,7 @@ import { emptySpecialists } from "./cohorts.js";
 import { createInitialDetailedSettlementData } from '../../defs/world/detailed-settlement-scenario.js';
 import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
-import { canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
+import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
 import { normalizeStructureLayout } from '../structure-layout.js';
 import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
 import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
@@ -131,8 +131,23 @@ export function seedNeutralSettlements(state) {
     const result = createNeutralSettlement(state, id, index);
     if (!result.ok) throw new Error(result.reason);
     placed.push(id);
+    if (index === 0 && !getConnectedRegionIds(state,capital).includes(id)) addWorldConnection(state,capital,id);
   }
   canonicalizeWorldState(state);
+}
+
+export function seedOpeningMonster(state) {
+  if (state.world.regions.some(region => region.monster)) return;
+  const players = playerSites(state).map(site => site.regionId);
+  const eligible = getWorldDefinition(state).regions.map(region => getRegionState(state,region.id))
+    .filter(region => region.controller === 'frontier' && !siteAt(state,region.id));
+  // One frontier step between the opening threat and settlements where possible.
+  const target = eligible.find(region => Math.min(...players.map(id => distance(state,id,region.id))) === 2)
+    ?? eligible.find(region => players.some(id => adjacentRegionIds(state,id).includes(region.id))) ?? eligible[0];
+  if (!target) return; // Explicit all-settlement debug maps have no legal frontier.
+  target.monster = { defense: 2, ageMoons: 0 };
+  state.civilization.chaos.spatialSpawns = 1;
+  state.civilization.chaos.monsterCount = 1;
 }
 
 export function resolveExternalPractice(state, site, def, apply, prepared = null) {
@@ -151,7 +166,7 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
     if (!id) return {ok:false};
     if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length; state.civilization.history.victories++;
       recordSupportUsage(state,site.regionId,'hunt');emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:site.regionId,practiceId:def.id}); }
-    return {ok:true,bonus:0,targetId:id};
+    return {ok:true,bonus:getRegionState(state,id)?.monster?.defense??prepared?.bonus??0,targetId:id};
   }
   const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.detailedState.practiceSlots.some(p=>p?.stock>0));
   if(!target) return {ok:false};
@@ -174,58 +189,91 @@ export function conquerSettlement(state, targetId, edge = 0) {
   return {ok:true};
 }
 
-export function stepSpatialPressure(state) {
+export function getMonsterPressureRate(state) {
+  return (1 + Math.log1p(Math.max(0,state.civilization.chaos.chaosPower) / CIV_CONTENT_TUNING.monsterChaosScale)) / CIV_CONTENT_TUNING.monsterPulseMoons;
+}
+
+function monsterExpansionTarget(state, region) {
+  const targets = adjacentRegionIds(state,region.id).map(id => getRegionState(state,id)).filter(target => !target.monster);
+  return targets.find(target => target.controller==='frontier' && !siteAt(state,target.id)) ?? targets[0];
+}
+
+function pulseMonsterPressure(state, regions) {
   const chaos=state.civilization.chaos;
-  const regions=getWorldDefinition(state).regions.map(r=>getRegionState(state,r.id));
-  if(chaos.chaosPower>=CIV_CONTENT_TUNING.monsterSpawnChaos) {
-    const target=regions.find(r=>r.controller==='frontier'&&!r.monster);
-    if(target) {
-      const spawnNumber=(chaos.spatialSpawns??0)+1;
-      target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3),ageMoons:0};
-      chaos.spatialSpawns=spawnNumber;
-      chaos.chaosPower=0;
-      emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
-    }
-  }
-  for(const region of regions.filter(r=>r.monster)) {
+  const threats=regions.filter(region => region.monster && monsterExpansionTarget(state,region));
+  if (threats.length) {
+    // Rotate through existing fronts. Each pulse acts once, including new fronts.
+    const previous=regions.findIndex(region => region.id===chaos.lastPressureRegionId);
+    const region=threats.find(region => regions.indexOf(region)>previous) ?? threats[0];
+    chaos.lastPressureRegionId=region.id;
+    // This serialized counter advances only on pressure pulses, never by age.
     region.monster.ageMoons++;
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'advance'});
-    if(region.monster.ageMoons%CIV_CONTENT_TUNING.monsterExpansionMoons) continue;
-    const targetId=adjacentRegionIds(state,region.id).find(id=>!getRegionState(state,id)?.monster);
-    if(!targetId) continue;
-    const target=getRegionState(state,targetId),site=siteAt(state,targetId);
-    if(target.controller==='player'&&site) {
-      const settlement=site.detailedState;
-      const response=settlement.practiceSlots.flatMap(p=>{
-        const def=getDetailedPracticeDef(state,p?.practiceId);
-        if(!def?.defenseMultiplier) return [];
-        const plan=planStock(state,settlement,def.consume,def.require);
-        const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===targetId&&stockTraits(state,stockProviderSlot(state,settlement,p)).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
-        return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
-      })[0];
-      if(response && getMartialSupport(state,targetId,true)>=region.monster.defense) {
-        withPracticeRoot(state,{kind:'defense',regionId:targetId},()=>{
-          recordSupportUsage(state,targetId,'defense',true);
-          applyStockPlan(state,settlement,response.plan);
-          consumeStock(state,settlement,'Edible',1);
-          emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId});
-        });
-        settlement.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};continue;
-      }
-      state.civilization.history.lostSettlements++;
-      const share=Math.min(.75,structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='evacuationShare'?m.amount:0),0));
-      if (share>0) for (const id of getConnectedRegionIds(state,targetId)) {
-        const moved=evacuatePopulation(state,targetId,id,Math.ceil(getPopulationSummary(state,targetId).total*share));
-        if (moved) break;
-      }
-      target.lostAtSec=state.tSec;
-      emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId});
-      settlement.lastDefense={tSec:state.tSec,result:'lost',sourceRegionId:region.id};
-    }
-    if(site) { delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
-    target.controller='frontier';target.monster={defense:region.monster.defense,ageMoons:0};
-    emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
+    if (region.monster.ageMoons<CIV_CONTENT_TUNING.monsterExpansionPulses) return;
+    region.monster.ageMoons=0;
+    expandMonster(state,region,monsterExpansionTarget(state,region).id);
+    return;
   }
+  const target=regions.find(region => region.controller==='frontier' && !region.monster && !siteAt(state,region.id));
+  if (target) {
+    const spawnNumber=++chaos.spatialSpawns;
+    target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3),ageMoons:0};
+    emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
+  } else {
+    const region=regions.filter(region => region.monster).sort((a,b)=>a.monster.defense-b.monster.defense)[0];
+    if (region) {
+      region.monster.defense++;
+      emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'strengthen'});
+    }
+  }
+}
+
+function expandMonster(state, region, targetId) {
+  const target=getRegionState(state,targetId),site=siteAt(state,targetId);
+  if(target.controller==='player'&&site) {
+    const settlement=site.detailedState;
+    const response=settlement.practiceSlots.flatMap(p=>{
+      const def=getDetailedPracticeDef(state,p?.practiceId);
+      if(!def?.defenseMultiplier) return [];
+      const plan=planStock(state,settlement,def.consume,def.require);
+      const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===targetId&&stockTraits(state,stockProviderSlot(state,settlement,p)).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
+      return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
+    })[0];
+    if(response && getMartialSupport(state,targetId,true)>=region.monster.defense) {
+      withPracticeRoot(state,{kind:'defense',regionId:targetId},()=>{
+        recordSupportUsage(state,targetId,'defense',true);
+        applyStockPlan(state,settlement,response.plan);
+        consumeStock(state,settlement,'Edible',1);
+        state.civilization.research.total += region.monster.defense;
+        emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId});
+      });
+      settlement.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return;
+    }
+    state.civilization.history.lostSettlements++;
+    const share=Math.min(.75,structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='evacuationShare'?m.amount:0),0));
+    if (share>0) for (const id of getConnectedRegionIds(state,targetId)) {
+      const moved=evacuatePopulation(state,targetId,id,Math.ceil(getPopulationSummary(state,targetId).total*share));
+      if (moved) break;
+    }
+    target.lostAtSec=state.tSec;
+    emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId});
+    settlement.lastDefense={tSec:state.tSec,result:'lost',sourceRegionId:region.id};
+  }
+  if(site) { delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
+  target.controller='frontier';target.monster={defense:region.monster.defense,ageMoons:0};
+  emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
+}
+
+export function stepSpatialPressure(state) {
+  const chaos=state.civilization.chaos;
+  const regions=getWorldDefinition(state).regions.map(region=>getRegionState(state,region.id));
+  chaos.monsterPressure = Math.round((chaos.monsterPressure + getMonsterPressureRate(state)) * 1e9) / 1e9;
+  while (chaos.monsterPressure>=1 && playerSites(state).length) {
+    chaos.monsterPressure-=1;
+    chaos.pressurePulses++;
+    pulseMonsterPressure(state,regions);
+  }
+
   const survivors=playerSites(state);
   const lineage=state.civilization.vassalLineage;
   const active=lineage?.vassalsById?.[lineage.currentVassalId];

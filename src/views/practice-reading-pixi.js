@@ -1,6 +1,7 @@
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
+import { addResourceAmount } from './resource-cost-pixi.js';
 export { getPracticeSymbols, addPracticeGlossary } from './inspection-symbols-pixi.js';
 
 const FLAVOUR = {
@@ -62,8 +63,12 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   if (!reading.effects.length) y+=copy(root,reading.passive?'No ongoing effect.':'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
   y+=8;
   paintRelicPanel(activation,0,blockY,width,y-blockY,reading.type==='Charge'?0x152321:0x1b2017,RELIC.brass,1);
-  if (reading.trigger || reading.requirements.length || face.blocked) {
+  if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost) {
     y+=18;
+    if(face.chaosCost) {
+      addResourceAmount(root,'chaos',`+${face.chaosCost}`,{x:pad,y,fontSize,iconSize:fontSize*1.25});
+      y+=fontSize*1.25+12;
+    }
     if(reading.trigger)y+=copy(root,reading.trigger,pad,y,width-pad*2,fontSize).height+16;
     if(reading.requirements.length)y+=copy(root,reading.requirements.join(' '),pad,y,width-pad*2,fontSize*.82,{fill:RELIC.gold}).height+12;
     if(face.kind==='structure' && reading.requirements.length && reading.active!==null)y+=copy(root,reading.active?'Requirement met. Bonuses active.':'Inactive: requirements not met. Bonuses do not apply.',pad,y,width-pad*2,fontSize*.82,{fill:reading.active?RELIC.bone:0xe2ad8c}).height+12;

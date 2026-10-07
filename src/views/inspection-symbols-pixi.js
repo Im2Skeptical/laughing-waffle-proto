@@ -41,6 +41,7 @@ export function getPracticeSymbols(face) {
     } else if(face.source?.icon==='passive')add('Activation',{icon:'activation'});
     else add('Cycle',{wheel:face.source?.icon==='season'?'solar-wheel':'moon-wheel',icon:face.source?.icon==='season'?'year':face.source?.icon});
     for(const input of face.inputs??[]) {
+      if(input.kind==='chaos') {add('Chaos',{icon:'chaos'});continue;}
       for(const trait of input.traits)add(trait,{trait});
       add(input.kind==='consume'?'Consume':'Require',{glyph:input.kind==='consume'?'−':'◇'});
     }

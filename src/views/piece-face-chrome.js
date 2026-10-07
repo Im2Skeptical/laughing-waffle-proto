@@ -121,13 +121,10 @@ function workerDock(parent, face, w, h, left = false) {
 }
 
 export function eventIcon(parent, icon, x, y, size) {
-  if(!['chaos','monster','defense','support','danger','campaign','challenge','development'].includes(icon))return addResourceIcon(parent,icon,x,y,size);
+  if(!['monster','defense','support','danger','campaign','challenge','development'].includes(icon))return addResourceIcon(parent,icon,x,y,size);
   const g=new PIXI.Graphics();g.position.set(x-size/2,y-size/2);g.scale.set(size/32);
   g.lineStyle(1.5,0xe3cc94).beginFill(0x293b39);
-  if(icon==='chaos') {
-    g.drawPolygon([16,1,20,9,28,5,24,14,31,19,22,21,22,30,15,25,7,31,8,22,1,17,10,13,7,4]).endFill();
-    g.beginFill(0xad7759).drawCircle(16,17,5).endFill();
-  } else if(icon==='monster') {
+  if(icon==='monster') {
     g.drawPolygon([6,4,12,9,20,9,27,3,25,18,20,27,12,27,6,18]).endFill();
     g.lineStyle(2,0xdb9274).moveTo(10,15).lineTo(14,17).moveTo(22,15).lineTo(18,17);
     g.lineStyle(1,0xe3cc94).moveTo(12,23).lineTo(16,20).lineTo(20,23);
@@ -146,7 +143,10 @@ export function eventIcon(parent, icon, x, y, size) {
 }
 
 function chargeDock(parent, face, w, h, pulse) {
-  const workers=workerDock(parent,face,w,h,true), start=workers?.width??0;
+  const workers=workerDock(parent,face,w,h,true);
+  const costs=(face.inputs??[]).filter(input=>input.kind==='chaos');
+  const start=(workers?.width??0)+(costs.length?44:0);
+  const inputs=inputTray(parent,costs,start,h);
   const rows=face.production?.length?face.production:face.outputs??[];
   const showIcons=rows.length>1||rows.some(row=>row.icon!=='stock');
   const yieldWidth=rows.length?Math.max(showIcons?45:34,...rows.map(row=>String(row.value).length*12+(showIcons?23:10))):0;
@@ -215,13 +215,13 @@ function chargeDock(parent, face, w, h, pulse) {
       }
     });
   }
-  return {workers,yields,triggers,charge:{x,y,width,height,segments,threshold,fill},inputs:null};
+  return {workers,yields,triggers,charge:{x,y,width,height,segments,threshold,fill},inputs};
 }
 
 function inputTray(parent, inputs, right, h) {
   if(!inputs.length)return null;
   // Keep alternative traits in one socket: A / B is not two separate costs.
-  const groups=inputs.map(input=>({...input,width:Math.max(25,input.traits.length*21+4)}));
+  const groups=inputs.map(input=>({...input,width:Math.max(25,input.icon?Math.max(38,18+String(input.amount).length*8):input.traits.length*21+4)}));
   const maxWidth=Math.max(28,right-3), rows=[[]];let used=0;
   for(const group of groups) {
     if(used && used+group.width>maxWidth){rows.push([]);used=0;}
@@ -235,11 +235,12 @@ function inputTray(parent, inputs, right, h) {
     const groupRoot=new PIXI.Container();groupRoot.position.set(x+1,y+2+r*29);groupRoot.scale.set(scale);let cursor=0;
     row.forEach(input=>{
       recess(groupRoot,cursor+1,0,input.width-2,26);
+      if(input.icon) eventIcon(groupRoot,input.icon,cursor+13,12,22);
       input.traits.forEach((trait,i)=>{
         traitIcon(groupRoot,trait,cursor+3+i*21,1,22);
         if(i)numeral(groupRoot,'/',cursor+2+i*21,12,10);
       });
-      const marker=input.kind==='consume'?'−':'◇';
+      const marker=input.kind==='chaos'?'+':input.kind==='consume'?'−':'◇';
       numeral(groupRoot,`${marker}${input.amount}`,cursor+input.width-7,19,11,input.width-3);
       cursor+=input.width;
     });

@@ -227,6 +227,7 @@ export function generateRelicOffers(state, vassal) {
       quality: def.quality,
       description: def.description,
       inheritanceState: "sanctified",
+      effects: [{op:"addChaos",amount:({bronze:0,silver:10,gold:25,diamond:50})[def.quality]}],
       prestigeCost: 0,
       ...cost,
       phaseCost: state.rngNextVassalInt(range.min, range.max),

@@ -1,3 +1,4 @@
+import './monster-pressure.js';
 import assert from 'node:assert/strict';
 import { createNewGameState } from '../new-game.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
@@ -174,7 +175,7 @@ assert.equal(getHousingCapacity(hybrid,hybridSite.regionId),qualityHousing+7,'St
 const relations=createNewGameState(53),capital=relations.civilization.capitalRegionId;
 const home=relations.world.sites.find(s=>s.regionId===capital);
 const neighbor=relations.world.sites.find(s=>s.neutral&&adjacentRegionIds(relations,capital).includes(s.regionId));
-assert.equal(addWorldConnection(relations,capital,neighbor.regionId).ok,true);
+assert.equal(addWorldConnection(relations,capital,neighbor.regionId).reason,'connectionExists');
 const neutralPopulation=getPopulationSummary(relations,neighbor.regionId).total;
 advanceReplayStateToSecond(relations,18);
 assert.equal(getPopulationSummary(relations,neighbor.regionId).total,neutralPopulation);
@@ -211,33 +212,6 @@ assert.equal(getRegionState(relations,neighbor.regionId).controller,'player');
 assert.equal(neighbor.detailedState.populationByClass.villager.adults,0);
 assert.ok(neighbor.detailedState.populationByClass.stranger.adults>0);
 
-// Spatial spawning spends 1000 Chaos once, including when income overshoots the threshold.
-const spawn=createNewGameState(420);
-const spawnFrontiers=spawn.world.regions.filter(r=>r.controller==='frontier');
-spawn.civilization.chaos.chaosPower=999;
-stepSpatialPressure(spawn);
-assert.equal(spawn.world.regions.filter(r=>r.monster).length,0);
-assert.equal(spawn.civilization.chaos.chaosPower,999);
-spawn.civilization.chaos.chaosPower=1000;
-stepSpatialPressure(spawn);
-assert.equal(spawnFrontiers[0].monster.defense,3);
-assert.equal(spawn.civilization.chaos.chaosPower,0);
-assert.equal(spawn.civilization.chaos.spatialSpawns,1);
-stepSpatialPressure(spawn);
-assert.equal(spawn.world.regions.filter(r=>r.monster).length,1,'spent Chaos cannot spawn again');
-spawn.civilization.chaos.chaosPower=1250;
-stepSpatialPressure(spawn);
-assert.equal(spawnFrontiers[1].monster.defense,3);
-assert.equal(spawn.civilization.chaos.chaosPower,0,'spawn resets overshoot to zero');
-spawn.civilization.chaos.chaosPower=1000;
-stepSpatialPressure(spawn);
-assert.equal(spawnFrontiers[2].monster.defense,4,'Defense still scales with lifetime spawn count');
-const noFrontier=createNewGameState(421);
-for(const region of noFrontier.world.regions) if(region.controller==='frontier') region.monster={defense:1,ageMoons:0};
-noFrontier.civilization.chaos.chaosPower=1000;
-stepSpatialPressure(noFrontier);
-assert.equal(noFrontier.civilization.chaos.chaosPower,1000,'Chaos is spent only when a Monster can spawn');
-
 // E: supplied interception spends Stock; exhausted capability records territorial loss.
 const defense=createNewGameState(61),defended=defense.world.sites.find(s=>s.regionId===defense.civilization.capitalRegionId);
 const defendingPool=getVassalCandidatePool(defense);
@@ -245,13 +219,15 @@ assert.equal(selectLifeMapVassal(defense,0,defendingPool.expectedPoolHash).ok,tr
 const displacedVassal=getCurrentLifeMapVassal(defense);displacedVassal.locationRegionId=defended.regionId;
 const frontier=adjacentRegionIds(defense,defended.regionId)[0];
 for(const id of adjacentRegionIds(defense,frontier)) if(id!==defended.regionId)getRegionState(defense,id).monster={defense:1,ageMoons:0};
-getRegionState(defense,frontier).monster={defense:2,ageMoons:99};
+getRegionState(defense,frontier).monster={defense:2,ageMoons:2};
+defense.civilization.chaos.monsterPressure=.999;
+defense.civilization.chaos.lastPressureRegionId=defense.world.regions[defense.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
 defended.detailedState.practiceSlots=[slot('forage',1),slot('bowmaking',1),slot('garrisonDuty'),...Array(2).fill(null)];
 trainSpecialists(defended.detailedState,'warrior',15);
 const earlyExpansion=deserializeGameState(serializeGameState(defense));
-getRegionState(earlyExpansion,frontier).monster.ageMoons=98;
+getRegionState(earlyExpansion,frontier).monster.ageMoons=1;
 stepSpatialPressure(earlyExpansion);
-assert.equal(earlyExpansion.world.sites.find(s=>s.regionId===defended.regionId).detailedState.lastDefense,undefined,'Monster does not expand at age 99');
+assert.equal(earlyExpansion.world.sites.find(s=>s.regionId===defended.regionId).detailedState.lastDefense,undefined,'Monster does not expand before its third pressure advance');
 const shortPatrol=deserializeGameState(serializeGameState(defense));
 const patrolSite=shortPatrol.world.sites.find(s=>s.regionId===defended.regionId);
 patrolSite.detailedState.practiceSlots[2]=slot('patrolling');
@@ -261,7 +237,9 @@ assert.equal(patrolSite.detailedState.practiceSlots[0].stock,1,'failed defense d
 stepSpatialPressure(defense);
 assert.equal(defended.detailedState.lastDefense.result,'held');
 assert.equal(stockTotal(defense,defended.detailedState,'Edible'),0);
-getRegionState(defense,frontier).monster.ageMoons=99;
+getRegionState(defense,frontier).monster.ageMoons=2;
+defense.civilization.chaos.monsterPressure=.999;
+defense.civilization.chaos.lastPressureRegionId=defense.world.regions[defense.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
 stepSpatialPressure(defense);
 assert.equal(defended.simulationMode,'ruin');assert.ok(defense.civilization.history.lostSettlements>=1);
 assert.equal(getRegionState(defense,defended.regionId).lostAtSec,defense.tSec);

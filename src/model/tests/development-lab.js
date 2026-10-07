@@ -49,13 +49,13 @@ assert.equal(getLabObservation(valid,region).scholars,4);assert.deepEqual(data(o
 let authored=editLabState(valid,region,{kind:'practice',payload:{index:0,id:'forage',stock:2,tier:'silver'}});
 authored=editLabState(authored,region,{kind:'move',payload:{from:0,to:4}});
 assert.equal(authored.world.sites.find(s=>s.regionId===region).detailedState.practiceSlots[4].practiceId,'forage');
-const emptyRegion=authored.world.regions.find(r=>r.controller==='frontier'&&!authored.world.sites.some(s=>s.regionId===r.id)).id;
+const emptyRegion=authored.world.regions.find(r=>r.controller==='frontier'&&!r.monster&&!authored.world.sites.some(s=>s.regionId===r.id)).id;
 authored=editLabState(authored,region,{kind:'neutral',payload:{regionId:emptyRegion,template:3}});
 assert.equal(authored.world.sites.find(s=>s.regionId===emptyRegion).detailedState.practiceSlots.length,5);
 authored=editLabState(authored,region,{kind:'monster',payload:{regionId:emptyRegion,defense:4,age:3}});
-assert.equal(authored.civilization.chaos.monsterCount,1);
+assert.equal(authored.civilization.chaos.monsterCount,original.civilization.chaos.monsterCount+1);
 authored=editLabState(authored,region,{kind:'monster',payload:{regionId:emptyRegion,remove:true}});
-assert.equal(authored.civilization.chaos.monsterCount,0);
+assert.equal(authored.civilization.chaos.monsterCount,original.civilization.chaos.monsterCount);
 authored=editLabState(authored,region,{kind:'ruin'});
 assert.equal(authored.world.sites.find(s=>s.regionId===region).simulationMode,'ruin');
 const catalogue=getLabCatalogue(original);

@@ -151,12 +151,21 @@ human playtest work.
   survives; below that, 80% population and Stock survive. Survivors become adult
   Strangers. Ruins retain dormant population/Stock for reconquest; no siege attrition
   or specialty-preserving ruin recovery has been added.
-- At Death, accumulated Chaos of at least 1000 can spawn one spatial Monster in
-  an empty frontier region, then resets to zero. Expansion is every 100 moons,
-  in authored adjacency order. Defense is 3 + floor(lifetime spatial spawns / 3).
-  Interception needs a supplied response Practice, enough local Support, and one Edible.
-  Losing all player settlements ends the run, replacing the old Monster-count loss track.
-  Starter pressure begins at one; the authored stress fixture still starts at 100.
+- Each fresh launch seeds one Defense-2 frontier Monster, preferably one frontier
+  step away from player settlements, and connects the adjacent small neutral.
+  At Death, saved Monster Pressure gains `(1 + ln(1 + Chaos / 100)) / 24` pulses;
+  Chaos remains accumulated. A pulse rotates among expandable existing fronts,
+  advancing one toward expansion after three pulses. Empty frontier has priority.
+  Only blocked/absent fronts allow another spawn; a fully occupied map instead
+  strengthens a blocked Monster. Supplied interception retains Support and Edible
+  requirements; settlement loss remains the run-ending condition.
+- Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric
+  Practices, deep knowledge study and higher-quality Relic searches generate fixed
+  Chaos costs, shown with the Chaos symbol and amount before commitment.
+  Campaign Monster victories award 12 + 4×Defense Prestige and 3×Defense Research;
+  automatic hunts award stronger capacity-limited Loot/Record/Currency trophies and 6 Research.
+  Successful defense and diversion grant Defense Research, and diversion also
+  grants 6 Prestige. Monster-facing Research and candidate engines are strengthened.
 - Trade is a connected-stocked-neutral bonus to Barter, not a rival buying strategy.
   Raid transfers up to two target Stock units into authored Loot output. Target and
   provider ties use existing connection/tableau order. Neutrals never grow classes or

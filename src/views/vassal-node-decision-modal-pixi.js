@@ -1,3 +1,4 @@
+import { getActionChaosCost } from '../model/detailed-settlements/practice-events.js';
 import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
 import { getTapFeedbackSnapshot } from './interaction-feedback.js';
 import { deserializeGameState } from '../model/state.js';
@@ -602,7 +603,7 @@ export function createVassalNodeDecisionModalView({
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
-            cost: { prestigeCost, phaseCost, state,
+            cost: { prestigeCost, phaseCost, chaosCost:getActionChaosCost(option), state,
               riskLabel: nodeState.family === 'relic' ? relicRiskLabel(option) : null },
             costUnmet: prestigeCost > vassal.prestige,
             effect: requirements.length
@@ -844,7 +845,7 @@ export function createVassalNodeDecisionModalView({
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         onReview,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
-          prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),
+          prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),chaosCost:getActionChaosCost(piece),
           phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='travel'}),state,
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
         }:null,

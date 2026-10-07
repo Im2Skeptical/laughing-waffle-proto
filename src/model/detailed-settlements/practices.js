@@ -8,7 +8,7 @@ import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary
 import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCount, trainSpecialists, structureModifiers, matchesPractice } from './stock.js';
 import { resolveExternalPractice, adjacentRegionIds } from './external-world.js';
 import { applyBuild, findStructurePlacement } from '../structure-layout.js';
-import { emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
+import { addActionChaos, emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
 import { stockTraits, stockProviderSlots, stockProviderSlot } from './stock.js';
 import { getConnectedRegionIds } from '../world-state.js';
 
@@ -68,6 +68,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
   const def=getDetailedPracticeDef(state,slot.practiceId);
   activationType??=def.activation.type;
   let amount=effect.activationAmounts?.[activationType] ?? (activationType==='season'?effect.seasonAmounts?.[getCurrentSeasonKey(state)]:undefined) ?? effect.amount ?? 0;
+  if (effect.op==='addChaos') return Math.max(0, effect.amount ?? 0);
   const modifiers=structureModifiers(state,settlement);
   if (effect.populationBand) amount+=Math.min(3+modifiers.reduce((n,m)=>n+(m.kind==='scalingCap'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0),Math.floor(getPopulationSummary(state,site.regionId).total/effect.populationBand));
   if (effect.historyScale==='losses') amount+=Math.min(4,state.civilization.history?.lostSettlements??0);
@@ -177,6 +178,7 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
     const amount=amounts[index];
     if (effect.op==='generateStock') generateStock(state,settlement,slot,amount+plan.external.bonus,staffed);
     else if (!site.neutral) {
+      if (effect.op==='addChaos') addActionChaos(state,amount,{regionId:site.regionId,practiceId:def.id});
       if (effect.op==='research') state.civilization.research.total+=amount;
       if (effect.op==='train') trainSpecialists(settlement,effect.classId,amount*(staffed&&effect.classId==='scholar'?2:1));
       if (effect.op==='addHousingForPhase') getPhaseModifiers(state).housingByRegion[site.regionId]=(getPhaseModifiers(state).housingByRegion[site.regionId]??0)+amount;

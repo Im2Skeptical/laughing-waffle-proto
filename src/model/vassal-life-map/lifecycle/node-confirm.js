@@ -1,3 +1,4 @@
+import { addActionChaos } from '../../detailed-settlements/practice-events.js';
 import { classActionOptions, validateClassAction, applyClassAction, completeCommission } from "../class-actions.js";
 import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
 import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
@@ -227,6 +228,7 @@ function buildDevelopmentOptions(state, vassal) {
       option.lossStatId = losses[state.rngNextVassalInt(0, losses.length - 1)];
       option.lossStatLabel=getVassalStatPresentation(vassal,option.lossStatId).label;
     }
+    if (template.id==='deepStudy' && ['cunning','wisdom'].includes(statId)) option.effects=[{op:'addChaos',amount:20}];
     return option;
   });
 }
@@ -352,7 +354,9 @@ function applyIntervention(state, intervention) {
 
 function applyVassalNodeEffects(state, effects = []) {
   for (const effect of effects) {
-    if (effect?.op === "AdjustSettlementChaosGodState") {
+    if (effect?.op === "addChaos") {
+      addActionChaos(state,effect.amount);
+    } else if (effect?.op === "AdjustSettlementChaosGodState") {
       const god = getSettlementChaosGodState(state, effect.godId)
         ?? (effect.godId === "redGod" ? state?.civilization?.chaos : null);
       if (!god || typeof effect.key !== "string" || !Number.isFinite(god[effect.key])) {

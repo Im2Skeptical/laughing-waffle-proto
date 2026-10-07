@@ -27,10 +27,13 @@ registries here.
   retries for that trigger/stage. Each retry rechecks inputs, staffing and
   conditions; incomplete plans reserve nothing. Food resolves all local meals
   before unmet demand draws from neighbour leftovers.
-- Faith-phase Chaos income is unchanged. At a Death phase with at least 1000
-  accumulated Chaos and an empty frontier region, one spatial Monster spawns in
-  authored region order and accumulated Chaos resets to 0. Monster Defense still
-  grows with the lifetime number spawned.
+- Faith-phase Chaos income and authored ambitious action costs accumulate permanently.
+  At Death, Monster Pressure gains `(1 + ln(1 + Chaos / 100)) / 24` pulses.
+  Fractional pressure is saved. Each pulse advances one existing expandable front
+  in rotating authored order; three advances expand it and reset its progress.
+  Empty frontier is preferred, then other adjacent territory. A new Monster only
+  spawns when no existing front can expand. If no frontier remains, a blocked
+  Monster strengthens. Supplied defense still tests Support and spends Stock.
 - Practices are unique installed engines. Workers are optional; ordinary tokens
   represent population bands, while each Scholar claims one specialist socket.
   Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.
@@ -48,7 +51,7 @@ registries here.
   Their hosted Stock changes through normal production/meals. Connected Trade and
   Raids use their live state. Conquest converts survivors to Strangers and enables
   the full player simulation.
-- Chaos creates spatial Monsters at Death. Deterministic expansion tests supplied
+- Monster Pressure advances spatial threats at Death. Deterministic expansion tests supplied
   defense, consumes supply, and can turn a site into ruins. Loss history influences
   later content; losing all player settlements ends the run. Forecast uses these
   same rules, including changing capital/primary-site normalization.

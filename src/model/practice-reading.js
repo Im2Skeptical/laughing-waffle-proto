@@ -38,7 +38,7 @@ export function getPracticeReading(def) {
   const times = charge ? [''] : [activation.type, ...(activation.also ?? [])].flatMap(type =>
     type === 'season' ? (activation.seasonKeys?.length ? activation.seasonKeys : ['spring', 'summer', 'autumn', 'winter']).map(title)
       : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase`]);
-  const effects = times.flatMap(timing => (def.effects ?? []).map(effect => ({
+  const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>effect.op!=='addChaos').map(effect => ({
     timing, text: effectText(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
   })));
   // Some supplied martial Practices contribute continuously rather than via

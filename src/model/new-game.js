@@ -1,4 +1,4 @@
-import { seedNeutralSettlements } from "./detailed-settlements/external-world.js";
+import { seedNeutralSettlements, seedOpeningMonster } from "./detailed-settlements/external-world.js";
 import { createInitialState } from "./init.js";
 import { createStarterBootProfile } from "./starter-boot-profile.js";
 import { setupDefs } from "../defs/gamesettings/scenarios-defs.js";
@@ -27,5 +27,6 @@ export function createConfiguredNewGameState(seed, profile) {
     },
   }, seed);
   if (profile.launch.neutralSettlements) seedNeutralSettlements(state);
+  seedOpeningMonster(state);
   return state;
 }

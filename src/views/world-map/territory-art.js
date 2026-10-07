@@ -87,16 +87,18 @@ export function addMonsterMarker(parent, point, monster) {
   marker.beginFill(0xff735a).drawCircle(-8,2,2).drawCircle(8,2,2).endFill();
   marker.lineStyle(2,0x542538).moveTo(-6,16).lineTo(-6,22).moveTo(0,16).lineTo(0,22).moveTo(6,16).lineTo(6,22);
   parent.addChild(marker);
-  const interval = CIV_CONTENT_TUNING.monsterExpansionMoons;
-  const remaining = interval - (monster.ageMoons % interval);
+  const interval = CIV_CONTENT_TUNING.monsterExpansionPulses;
+  const remaining = Math.max(0,interval - monster.ageMoons);
   const countdown = new PIXI.Container();
   countdown.label = 'monster-spread-countdown';
   countdown.eventMode = 'none';
   countdown.position.set(point.x, point.y + 18);
   countdown.addChild(new PIXI.Graphics().lineStyle(1,0x99515d,.9)
-    .beginFill(0x130f18,.94).drawRoundedRect(-91,0,182,45,5).endFill());
-  countdown.addChild(createText('SPREAD IN', {...TEXT_STYLES.chip,fontSize:12,fill:0xcda49d}, 0,3,.5));
-  const label = createText(`${remaining} / ${interval} moons`, {...TEXT_STYLES.chip,fontSize:19,fill:remaining<=10?0xff886e:0xffddbc}, 0,19,.5);
+    .beginFill(0x130f18,.94).drawRoundedRect(-44,0,88,32,5).endFill());
+  const progress=new PIXI.Graphics();
+  for(let pulse=0;pulse<interval;pulse++) progress.lineStyle(1,0xcda49d).beginFill(pulse<monster.ageMoons?0xff886e:0x30202b).drawCircle(-12+pulse*12,7,3).endFill();
+  countdown.addChild(progress);
+  const label = createText(`${remaining} / ${interval}`, {...TEXT_STYLES.chip,fontSize:16,fill:remaining<=1?0xff886e:0xffddbc}, 0,13,.5);
   label.label = 'monster-spread-moons';
   countdown.addChild(label);
   parent.addChild(countdown);

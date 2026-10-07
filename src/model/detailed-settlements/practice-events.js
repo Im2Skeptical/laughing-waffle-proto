@@ -12,6 +12,19 @@ export function emitPracticeEvent(state, event) {
   return entry;
 }
 
+// Fixed action costs: workers and output modifiers never multiply Chaos.
+export function getActionChaosCost(action) {
+  return (action?.effects ?? []).reduce((sum, effect) =>
+    sum + (effect.op === 'addChaos' ? Math.max(0, effect.amount ?? 0) : 0), 0);
+}
+
+export function addActionChaos(state, amount, context = {}) {
+  const cost = Math.max(0, amount);
+  if (!cost) return;
+  state.civilization.chaos.chaosPower = Math.round((state.civilization.chaos.chaosPower + cost) * 100) / 100;
+  emitPracticeEvent(state, { ...context, kind: 'chaosIncreased', amount: cost });
+}
+
 export function tracePracticeEvent(state, entry) {
   const journal = practiceEventJournal(state);
   const record = { tSec: state.tSec, ...entry };

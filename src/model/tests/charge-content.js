@@ -41,8 +41,9 @@ for (const row of source.entries) {
   const authoredTags=(row.fields['Card Tags']??'').split(',').map(t=>t.trim()).filter(Boolean);
   assert.deepEqual(def.tags,authoredTags.filter(tag=>tag!=='Housing'||housingCardIds.has(row.id)));
   if (row.kind==='practices') {
-    assert.deepEqual(def.stockTraits,(row.fields['Stock Traits']??'').split(',').map(t=>t.trim()).filter(Boolean));
-    assert.equal(def.stockCapacity,row.fields.Capacity??0);
+    const traits=(row.fields['Stock Traits']??'').split(',').map(t=>t.trim()).filter(Boolean);
+    assert.deepEqual(def.stockTraits,row.id==='monsterHunting'?[...traits,'Currency']:traits);
+    assert.equal(def.stockCapacity,row.id==='monsterHunting'?7:row.fields.Capacity??0);
     assert.equal(def.mode,row.fields.Mode.toLowerCase());assert.equal(def.lane,def.mode);
     if (def.mode==='charge') {
       assert.equal(def.activation.type,'charge');assert.equal(def.charge.gain,row.fields['Charge Gain']);
@@ -90,7 +91,7 @@ assert.equal(independent.local.shopQualityBonus,1,'Experimentation needs no tech
 const triggerFace=getGamepieceFace({},'practice','alchemy','bronze',{slot:{charge:2},workers:{effectiveWorkers:3,tokens:[{},{},{}]}});
 assert.deepEqual(triggerFace.chargeTriggers.map(s=>[s.trait,s.event]),[['Medicine','stockConsumed'],['Metal','stockConsumed'],['Glass','stockConsumed']]);
 assert.equal(triggerFace.workerMultiplier,4);assert.equal(triggerFace.chargeGain,4);
-assert.deepEqual(triggerFace.inputs,[]);assert.equal(triggerFace.production[0].value,2);
+assert.deepEqual(triggerFace.inputs,[{kind:'chaos',amount:8,traits:[],icon:'chaos'}]);assert.equal(triggerFace.production[0].value,2);
 assert.equal(triggerFace.fill,2/3);assert.match(triggerFace.detailLines.join(' '),/Charge gained \(not output\)/);
 assert.deepEqual(getGamepieceFace({},'practice','anatomicalStudy').chargeTriggers.map(s=>s.icon??s.trait),['death','Bone']);
 const engine=createLabFixture('charge'),timeline=createTimelineFromInitialState(engine);

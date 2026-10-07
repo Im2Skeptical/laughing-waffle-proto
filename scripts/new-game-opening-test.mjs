@@ -31,7 +31,8 @@ retryJob.finish({ ok: false, reason: 'cancelled' });
 assert.equal(loading.snapshot().phase, 'cancelled');
 
 const state = createNewGameState(123);
-for(const region of state.world.regions) if(region.controller!=="player") region.monster={defense:100,ageMoons:99};
+for(const region of state.world.regions) if(region.controller!=="player") region.monster={defense:100,ageMoons:2};
+state.civilization.chaos.monsterPressure=10;
 const before = JSON.stringify(serializeGameState(state));
 let constructions = 0;
 const opening = createNewGameOpeningController({

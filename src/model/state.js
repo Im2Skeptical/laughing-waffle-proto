@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 29,
+    gameStateSchemaVersion: 30,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -178,6 +178,10 @@ export function createEmptyState(
       capitalSiteId: initialDetailedSite?.id ?? null,
       chaos: {
         chaosPower: 0,
+        spatialSpawns: 0,
+        monsterPressure: 0,
+        pressurePulses: 0,
+        lastPressureRegionId: null,
         monsterCount: 0,
         lastMoonIncome: null,
         pendingLosses: {
@@ -445,8 +449,15 @@ export function serializeGameState(state) {
 }
 
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 29) {
-    throw new Error("Unsupported game-state schema: expected v29");
+  if (state?.gameStateSchemaVersion !== 30) {
+    throw new Error("Unsupported game-state schema: expected v30");
+  }
+  const chaos=state?.civilization?.chaos;
+  if (!chaos || !Number.isFinite(chaos.monsterPressure) || chaos.monsterPressure<0
+      || !Number.isInteger(chaos.pressurePulses) || chaos.pressurePulses<0
+      || !Number.isInteger(chaos.spatialSpawns) || chaos.spatialSpawns<0
+      || !(chaos.lastPressureRegionId===null || state.world.regions.some(r=>r.id===chaos.lastPressureRegionId))) {
+    throw new Error("Invalid serialized Monster Pressure");
   }
   canonicalizeWorldState(state);
   const worldValidation = validateWorldState(state);
@@ -505,8 +516,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 29) {
-    throw new Error("Unsupported game-state schema: expected v29");
+  if (state?.gameStateSchemaVersion !== 30) {
+    throw new Error("Unsupported game-state schema: expected v30");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

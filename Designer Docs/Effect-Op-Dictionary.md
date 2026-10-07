@@ -13,6 +13,7 @@ Stock planning and Structure modifiers live in
 | Operation | Result |
 | --- | --- |
 | `generateStock` | Adds integer Stock to the source Practice, clipped to its current capacity; positive actual yields emit Stock-generation events. |
+| `addChaos` | Adds a fixed civilization Chaos cost on successful activation and emits chaosIncreased; workers and output bonuses do not scale it. |
 | `research` | Adds civilization Research. |
 | `train` | Trains available unclassed adults into the specified Scholar or Warrior specialty. |
 | `addHousingForPhase` | Adds a temporary regional Housing bonus to the current phase modifiers. |

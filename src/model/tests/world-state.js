@@ -66,7 +66,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 29);
+assert.equal(state.gameStateSchemaVersion, 30);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -513,7 +513,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 26;
-assert.throws(() => deserializeGameState(old), /expected v29/);
+assert.throws(() => deserializeGameState(old), /expected v30/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -673,7 +673,11 @@ for (let seed = 1; seed <= 64; seed += 1) {
   startingPairs.add(ids.join("|"));
   assert.ok(fresh.world.connections.some((edge) =>
     [edge.regionAId, edge.regionBId].sort().join("|") === ids.join("|")));
-  assert.deepEqual(fresh.world.connections, starterProfile.mapLab.connections);
+  const hamlet=fresh.world.sites.find(site=>site.neutral?.template==='Forager Hamlet');
+  assert.ok(getConnectedRegionIds(fresh,fresh.civilization.capitalRegionId).includes(hamlet.regionId));
+  for(const edge of starterProfile.mapLab.connections) assert.ok(fresh.world.connections.some(actual=>actual.regionAId===edge.regionAId&&actual.regionBId===edge.regionBId));
+  assert.equal(fresh.world.regions.filter(region=>region.monster).length,1);
+  assert.equal(fresh.world.regions.find(region=>region.monster).monster.defense,2);
   assert.ok(players.every((region) => region.detailedSettlementEnabled));
   assert.ok(ids.includes(fresh.civilization.capitalRegionId));
   assert.deepEqual(serializeGameState(fresh), serializeGameState(createNewGameState(seed * 7919)));

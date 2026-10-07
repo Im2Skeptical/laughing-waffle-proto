@@ -48,7 +48,7 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v29; runner saves v20. Older saves are rejected.
+- Game state v30; runner saves v21. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v17 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
@@ -75,7 +75,7 @@ Regular player New Game uses the Starter_02 map, nine fixed roads, and tuning.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the only player-controlled detailed settlements, with the first in
-authored region order serving as capital. Four authored neutral settlements are placed deterministically, including one adjacent to the capital. Other regions are frontier. The
+authored region order serving as capital. Four authored neutral settlements are placed deterministically, including one adjacent and connected to the capital. Each new game seeds one weak frontier Monster. Other regions are frontier. The
 authored debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.
 Region state owns colour, controller, connections, `structureCapacity`, and
