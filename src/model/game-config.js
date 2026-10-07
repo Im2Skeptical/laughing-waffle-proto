@@ -397,7 +397,7 @@ export function validateGamepiecesDraft(value) {
       if (!value[kind][id]) errors.push(`${kind}.${id}: required`);
     }
     for(const [id,def] of Object.entries(value[kind])) {
-      if(def.locked!==undefined&&typeof def.locked!=='boolean')errors.push(`${kind}.${id}.locked: expected a boolean`);
+      if(def?.locked!==undefined&&typeof def.locked!=='boolean')errors.push(`${kind}.${id}.locked: expected a boolean`);
     }
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);

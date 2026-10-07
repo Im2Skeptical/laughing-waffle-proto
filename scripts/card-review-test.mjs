@@ -177,6 +177,8 @@ assert.equal(canonicalizeGamepiecesDraft(allLocked).structures.mudHouses.locked,
 assert.equal(validateGamepiecesDraft(allLocked).ok,true);
 const damaged=structuredClone(allLocked);damaged.practices.forage.locked='true';
 assert.ok(validateGamepiecesDraft(damaged).errors.some(error=>error.includes('forage.locked')));
+const missingStructure=structuredClone(allLocked);missingStructure.structures.mudHouses=null;
+assert.equal(validateGamepiecesDraft(missingStructure).ok,false,'lock validation preserves error reporting for missing definitions');
 assert.equal(getResearchLibraryCards(lockedGame).length,0,'research browsing respects the run pool');
 const beforeCatalogue=JSON.stringify(serializeGameState(lockedGame)),lockedCatalogue=getLabCatalogue(lockedGame);
 assert.equal(filterLabCatalogue(lockedCatalogue,{category:'practice',hideLocked:true}).length,0,'Zoo can hide the complete locked Practice pool');
