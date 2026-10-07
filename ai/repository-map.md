@@ -92,6 +92,8 @@ not use the root file as the default location for new rendering or model rules.
   `src/views/world-map-vassal-drawer-pixi.js`,
   `src/views/vassal-life-map-pixi.js`, and
   `src/views/settlement-navigation-pixi.js`
+  `npm run probe:vassal-chooser` measures an immediate chooser tap after
+  scrubbing the opening forecast at phone layout and 4x CPU throttling.
 - Vassal node-decision modal (`createVassalNodeDecisionModalView`):
   `src/views/vassal-node-decision-modal-pixi.js`. Cards, mortality plate,
   overlapping title plaque, dock Confirm, regional preview, and vassal-impact

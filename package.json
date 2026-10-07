@@ -43,6 +43,7 @@
     "probe:region-map": "node scripts/region-map-browser-probe.mjs",
     "probe:life-map": "node scripts/life-map-interaction-browser-probe.mjs",
     "probe:recap-input": "node scripts/node-recap-input-performance-probe.mjs",
+    "probe:vassal-chooser": "node scripts/vassal-chooser-input-performance-probe.mjs",
     "probe:navigation": "node scripts/navigation-browser-probe.mjs",
     "probe:settlement:quiet": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement:verbose": "node scripts/settlement-browser-probe.mjs --verbose",

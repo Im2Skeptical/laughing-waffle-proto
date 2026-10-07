@@ -141,10 +141,25 @@ export function createProjectionCache({
   }
 
   function findEvictionCandidate(protectedSecs) {
-    for (const sec of stateDataBySecond.keys()) {
-      if (!protectedSecs.has(sec)) return sec;
+    // Keep browsing anchors spread across the whole forecast. FIFO/LRU leaves
+    // only its tail after a long opening, forcing early scrubs to replay from
+    // the frontier. Remove the most redundant interior anchor instead.
+    const secs = [...stateDataBySecond.keys()].sort((a, b) => a - b);
+    let candidate = null;
+    let smallestSpan = Infinity;
+    for (let index = 1; index < secs.length - 1; index++) {
+      const sec = secs[index];
+      if (protectedSecs.has(sec)) continue;
+      const span = secs[index + 1] - secs[index - 1];
+      if (span < smallestSpan) {
+        candidate = sec;
+        smallestSpan = span;
+      }
     }
-    return null;
+    if (candidate != null) return candidate;
+    // A very small budget may hold only endpoints and protected tails. Keep
+    // the existing tail guarantees without adding an unbounded endpoint.
+    return secs.find(sec => !protectedSecs.has(sec)) ?? null;
   }
 
   function setSummary(sec, summary) {

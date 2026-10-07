@@ -2011,15 +2011,15 @@ export function createMetricGraphView({
         return;
       }
       setLatchedForecastScrub(scrub, scrub.scrubSec);
-      if (controller?.getStateDataAt?.(scrub.scrubSec) == null) {
-        scrub.statusNote = "Forecast loading";
-        clearPreviewState?.();
-        drawScrub();
-        return;
-      }
       if (commit && commitForecastOnScrubRelease) {
-        clearPreviewState?.();
         const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
+        if (stateData == null) {
+          scrub.statusNote = "Forecast loading";
+          clearPreviewState?.();
+          drawScrub();
+          return;
+        }
+        clearPreviewState?.();
         const res = commitSecond?.(scrub.scrubSec, stateData);
         if (res && res.ok === false) {
           scrub.statusNote = `Jump failed: ${res.reason}`;
@@ -2032,6 +2032,15 @@ export function createMetricGraphView({
         return;
       }
       scrub.statusNote = scrub.forecastPreviewStatusNote;
+      // Dragging already installed an isolated read-only preview. Checking its
+      // serialized snapshot here can rebuild the entire forecast on cache miss,
+      // blocking the next input even though no commit was requested.
+      const preview = getPreviewStatus?.();
+      if (preview?.active && preview.isForecastPreview
+        && Math.floor(preview.previewSec ?? -1) === scrub.scrubSec) {
+        drawScrub();
+        return;
+      }
       applyPreviewThrottled(true);
       return;
     }

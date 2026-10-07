@@ -104,10 +104,12 @@ export function createSettlementVassalFlow({
     if (isRunComplete?.(state)) return { ok: false, reason: "runComplete" };
     if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };
     if (getCurrentLifeMapVassal(state)) return { ok: false, reason: "currentVassalAlive" };
-    setWorldViewMode?.("map");
     requestPause?.();
     runner.clearPreviewState?.();
     getGraphView?.()?.resetForecastPreviewState?.();
+    // Navigation renders immediately; leave the scrub preview first so it
+    // builds the present map once and cannot restore the old forecast target.
+    setWorldViewMode?.("map");
     settlementPendingVassalSelection = buildDetailedVassalSelectionPool(state);
     settlementHoveredVassalCandidate = null;
     settlementSelectedVassalCandidateIndex = null;

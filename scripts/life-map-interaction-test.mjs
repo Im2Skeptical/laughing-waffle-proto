@@ -1,6 +1,38 @@
 import assert from 'node:assert/strict';
 import { ActionKinds } from '../src/model/actions.js';
 import { createSettlementVassalFlow } from '../src/views/ui-root/settlement-vassal-flow.js';
+import { createNewGameState } from '../src/model/new-game.js';
+import { getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
+import { selectedState, forceEnter, nodeIdForFamily, dispatch, resolvePending }
+  from '../src/model/tests/vassal-life-map/helpers.js';
+
+// Opening the chooser after a scrub must clear the preview before navigation
+// renders. Otherwise it builds the future map, then rebuilds the present map.
+let chooserState = createNewGameState(123);
+let previewActive = true, scrubLatched = true;
+const chooser = createSettlementVassalFlow({
+  getRunner: () => ({ clearPreviewState: () => { previewActive = false; } }),
+  getGraphView: () => ({ resetForecastPreviewState: () => { scrubLatched = false; } }),
+  playback: { getSettlementFrontierState: () => chooserState,
+    getSettlementAuthoritativeState: () => chooserState,
+    getSettlementPlaybackTarget: () => 0 },
+  setWorldViewMode: () => {
+    assert.equal(previewActive, false, 'navigation renders the present, not the scrub preview');
+    assert.equal(scrubLatched, false, 'navigation must not restore the old scrub target');
+  },
+});
+assert.equal(chooser.openLifeMapVassalSelection().ok, true);
+chooser.closeSettlementVassalSelection();
+chooserState = selectedState(108);
+const legacy = forceEnter(chooserState, nodeIdForFamily(chooserState, 'legacy'));
+dispatch(chooserState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
+  nodeId: legacy.nodeId, optionId: 'humbleRemembrance',
+});
+dispatch(chooserState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: legacy.nodeId });
+if (getCurrentLifeMapVassal(chooserState)) resolvePending(chooserState);
+assert.equal(getCurrentLifeMapVassal(chooserState), null, 'successor fixture has an ended Vassal');
+previewActive = scrubLatched = true;
+assert.equal(chooser.openLifeMapVassalSelection().ok, true, 'Next Vassal clears previews before rendering too');
 
 // Entering and editing a pending decision must not synchronously rebuild the
 // civilization forecast. Confirmation still takes the full invalidation path.

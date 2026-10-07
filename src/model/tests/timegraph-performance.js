@@ -275,4 +275,29 @@ assert.equal(lossController.getProjectedLossInfo().resolved, false, "missing sum
 summariesReady = true;
 assert.deepEqual(lossController.getProjectedLossInfo(), { resolved: true, lossSec: 1558, lossYear: 49 }, "terminal slice inside a cached unresolved bucket resolves");
 assert.equal(lossController.getForecastStatus().browseCapSec, 1500, "worker completion never advances browse permission");
+// A complete opening forecast exceeds the snapshot budget. Keep anchors near
+// early scrub targets as well as the tail, rather than forcing replay from zero.
+const boundedAnchors = createProjectionCache({ maxEntries: 256 });
+for (let sec = 0; sec <= 2048; sec++) {
+  boundedAnchors.setStateData(sec, { tSec: sec });
+  boundedAnchors.setSummary(sec, { tSec: sec });
+}
+assert.ok(boundedAnchors.getSize() <= 256, 'distributed anchors respect the entry budget');
+for (const target of [100, 700, 1500, 2000]) {
+  const anchor = boundedAnchors.getNearestStateData(target);
+  assert.ok(anchor && target - anchor.sec <= 32,
+    `evicted opening anchors must still bound replay near ${target}`);
+}
+assert.ok(boundedAnchors.getStateData(2048), 'latest continuation anchor is retained');
+assert.ok(boundedAnchors.getStateData(0), 'earliest browsing anchor is retained');
+assert.equal(boundedAnchors.getSummary(700)?.tSec, 700, 'eviction keeps every-second summaries');
+const byteBoundAnchors = createProjectionCache({ maxBytes: 1024 * 1024 });
+for (let sec = 0; sec <= 2048; sec += 16) {
+  byteBoundAnchors.setStateData(sec, { tSec: sec, padding: 'x'.repeat(16 * 1024) });
+}
+assert.ok(byteBoundAnchors.getSize() <= 64, 'distributed anchors respect the byte budget too');
+for (const target of [100, 700, 1500, 2000]) {
+  const anchor = byteBoundAnchors.getNearestStateData(target);
+  assert.ok(anchor && target - anchor.sec <= 128, 'byte eviction keeps early and late scrub targets nearby');
+}
 console.log("[timegraph-performance] exact summaries, isolated/live chunks and terminal boundary OK");
