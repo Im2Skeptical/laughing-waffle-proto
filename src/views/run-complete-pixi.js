@@ -2,7 +2,7 @@ import { createRunCompletePresentation } from "./run-complete-presentation.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 
-const PANEL = { width: 1320, height: 620 };
+const PANEL = { width: 1320 };
 
 export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotlightRects } = {}) {
   const root = new PIXI.Container();
@@ -12,6 +12,8 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
   const targets = new Map();
   let signature = "";
   let spotlightRects = [];
+  let panelRect = null;
+  let copyNodes = [];
   const contains = (rect, x, y) => x >= rect.x && x <= rect.x + rect.width &&
     y >= rect.y && y <= rect.y + rect.height;
   function minimize() { presentation.minimize(); render(); }
@@ -48,6 +50,8 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     if (!force && signature === nextSignature) return;
     signature = nextSignature;
     clearChildren(root);
+    panelRect = null;
+    copyNodes = [];
     targets.clear();
     const { info, open } = snapshot;
     root.visible = !!(info && open);
@@ -73,36 +77,42 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     blocker.on("pointertap", event => event.stopPropagation());
     root.addChild(blocker);
     const panel = new PIXI.Container();
+    const textNodes = [];
+    let cursorY = 36;
+    const addCopy = (label, style, gap = 24) => {
+      const node = createText(label, {
+        ...style, wordWrap: true, wordWrapWidth: PANEL.width - 112,
+      }, 56, cursorY);
+      textNodes.push(node);
+      cursorY += node.height + gap;
+    };
+    addCopy(info.title, { ...TEXT_STYLES.header, fontSize: 48, fill: accent }, 12);
+    addCopy(`${info.projected ? '' : 'Civilization ended · '}Year ${info.year}`, {
+      ...TEXT_STYLES.title, fontSize: 29, fill: PALETTE.textMuted,
+    }, 32);
+    addCopy(info.cause, { ...TEXT_STYLES.header, fontSize: 36, fill: PALETTE.text }, 20);
+    addCopy(info.explanation, { ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42 }, 28);
+    addCopy(info.guidance, {
+      ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42, fill: PALETTE.text,
+    }, 36);
+    const panelHeight = cursorY + 76 + 36;
     panel.position.set((app.screen.width - PANEL.width) / 2,
-      info.projected ? Math.max(20, (app.screen.height - PANEL.height) / 2 - 90)
-        : (app.screen.height - PANEL.height) / 2);
+      Math.max(20, (app.screen.height - panelHeight) / 2 - (info.projected ? 50 : 0)));
+    panelRect = {x:panel.x, y:panel.y, width:PANEL.width, height:panelHeight};
+    copyNodes = textNodes;
     panel.eventMode = "static";
-    panel.hitArea = new PIXI.Rectangle(0, 0, PANEL.width, PANEL.height);
+    panel.hitArea = new PIXI.Rectangle(0, 0, PANEL.width, panelHeight);
     const bg = new PIXI.Graphics();
-    roundedRect(bg, 0, 0, PANEL.width, PANEL.height, 18, PALETTE.panel, accent, 3);
-    panel.addChild(bg,
-      createText(info.title, { ...TEXT_STYLES.header, fontSize: 48, fill: accent }, 56, 38),
-      createText(`${info.projected ? "Foreseen end" : "Civilization ended"} · Year ${info.year}`, {
-        ...TEXT_STYLES.title, fontSize: 29,
-      }, 56, 104),
-      createText(info.cause, { ...TEXT_STYLES.header, fontSize: 34, fill: accent }, 56, 172),
-      createText(info.explanation, {
-        ...TEXT_STYLES.body, fontSize: 29, lineHeight: 39,
-        wordWrap: true, wordWrapWidth: PANEL.width - 112,
-      }, 56, 224),
-      createText(info.guidance, {
-        ...TEXT_STYLES.body, fontSize: 27, lineHeight: 36, fill: PALETTE.textMuted,
-        wordWrap: true, wordWrapWidth: PANEL.width - 112,
-      }, 56, 380),
-    );
+    roundedRect(bg, 0, 0, PANEL.width, panelHeight, 18, PALETTE.panel, accent, 3);
+    panel.addChild(bg, ...textNodes);
     root.addChild(panel);
     const browseRect = info.projected
-      ? { x: 56, y: 504, width: PANEL.width - 112, height: 76 }
-      : { x: 56, y: 504, width: 576, height: 76 };
+      ? { x: 56, y: cursorY, width: PANEL.width - 112, height: 76 }
+      : { x: 56, y: cursorY, width: 576, height: 76 };
     button(panel, "browse", browseRect,
       "Minimise · Browse history", minimize);
     if (!info.projected) {
-      button(panel, "newGame", { x: 660, y: 504, width: 604, height: 76 },
+      button(panel, "newGame", { x: 660, y: cursorY, width: 604, height: 76 },
         "New game", () => onNewGame?.(), {fill:0x405a3c});
     }
   }
@@ -113,7 +123,8 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     reset() { presentation.reset(); render(); },
     reopen() { presentation.reopen(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
     isOpen: () => presentation.getSnapshot().open,
-    getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects }),
+    getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects, panelRect,
+      copyRects: copyNodes.map(node => node.getBounds()) }),
     getClickPoint(id) {
       const target = targets.get(id);
       return target?.toGlobal(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height / 2)) ?? null;

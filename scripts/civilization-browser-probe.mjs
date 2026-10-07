@@ -45,8 +45,9 @@ try {
   const selectedVassal=await snapshot();
   const first=selectedVassal.lineage.currentVassal.availableNodeIds[0];
   await click('getLifeMapNodeClickPoint',first);
-  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.animation?.phase==='open');
   await click('getLifeMapEnterNodeClickPoint');
+  await click('getLifeMapEnterNodeClickPoint');
+  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.animation?.phase==='open');
   await click('getLifeMapOptionClickPoint',0);
   assert.equal((await snapshot()).lifeMapDecision.selectedOptionId,'train-estate');
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-founding.png`});

@@ -4,6 +4,7 @@ import {
   replaceDetailedVassalSelectionCandidate,
 } from "../../model/detailed-settlements.js";
 import { VASSAL_LIFE_TUNING } from "../../defs/gamepieces/vassal-life-map-defs.js";
+import { getClockTimePassage } from '../sunandmoon-disks-pixi.js';
 import {
   formatVassalPhaseDuration,
   getCurrentLifeMapVassal,
@@ -133,6 +134,7 @@ export function createSettlementVassalFlow({
     const recap = {
       vassalId,
       timeLabel: formatVassalPhaseDuration(phaseCost ?? 0, beforeState),
+      clock: getClockTimePassage(beforeState, afterState),
       prestigeIncome: prestigeIncome ?? 0,
       developmentIncome: developmentIncome ?? 0,
       ageBefore: Number.isFinite(ageBefore) ? ageBefore : 0,

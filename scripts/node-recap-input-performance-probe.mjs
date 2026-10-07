@@ -136,6 +136,7 @@ try {
     assert.ok(node, 'the fixture must have another reachable node');
     await click('getLifeMapNodeClickPoint', node);
     await click('getLifeMapEnterNodeClickPoint');
+    await click('getLifeMapEnterNodeClickPoint');
     await page.waitForFunction(() => {
       const state = __SETTLEMENT_DEBUG__.getLifeDecisionTimingSnapshot();
       return !state.processing && state.currentNodeId !== null;

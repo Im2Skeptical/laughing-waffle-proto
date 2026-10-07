@@ -1032,7 +1032,11 @@ export function createMetricGraphView({
     }
     setLegendHoverSeries(seriesId);
     if (!tooltipView || (interaction && interaction?.canShowHoverUI?.() === false)) return;
-    tooltipView.show(getLegendDetailSpec(entry.seriesDef, entry.container), entry.container.getBounds());
+    tooltipView.show(getLegendDetailSpec(entry.seriesDef, entry.container), getLegendTooltipAnchor(entry.container));
+  }
+
+  function getLegendTooltipAnchor(container) {
+    return { ...container.getBounds(), aboveRect: root.getBounds() };
   }
 
   function clearLegendEntries() {
@@ -1084,7 +1088,7 @@ export function createMetricGraphView({
         entryContainer.on("pointerdown", (event) => {
           event?.stopPropagation?.();
           setLegendHoverSeries(seriesId);
-          tooltipView?.pin?.(getLegendDetailSpec(s, entryContainer), entryContainer.getBounds(), "timegraph-series:" + seriesId);
+          tooltipView?.pin?.(getLegendDetailSpec(s, entryContainer), getLegendTooltipAnchor(entryContainer), "timegraph-series:" + seriesId);
         });
         entryContainer.on("pointertap", (event) => {
           event?.stopPropagation?.();

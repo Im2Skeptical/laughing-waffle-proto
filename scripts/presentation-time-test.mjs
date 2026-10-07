@@ -13,11 +13,33 @@ import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.j
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements.js';
 import { SEASON_DURATION_SEC } from '../src/defs/gamesettings/gamerules-defs.js';
 import { VASSAL_TIME_COST_RANGES } from '../src/defs/gamepieces/vassal-life-map-defs.js';
+import { getClockTimePassage, sampleClockTimePassage } from '../src/views/sunandmoon-disks-pixi.js';
 import { getSettlementYearDurationSec } from '../src/model/settlement-state.js';
 import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
 } from '../src/views/ui-root/settlement-graph-session.js';
+
+{
+  const before = createNewGameState(123);
+  before.tSec = 7;
+  const after = {...before, tSec:127};
+  const saved = JSON.stringify(before);
+  const clock = getClockTimePassage(before, after);
+  const start = sampleClockTimePassage(clock, 0);
+  const end = sampleClockTimePassage(clock, 1);
+  assert.equal(end.second, after.tSec, 'recap settles at committed time');
+  assert.ok(Math.abs((end.moonRotation - start.moonRotation) / (Math.PI * 2)
+    - 120 / getMoonCycleDurationSec(before)) < 1e-10, 'moon keeps every elapsed revolution');
+  assert.ok(Math.abs((end.seasonRotation - start.seasonRotation) / (Math.PI * 2)
+    - 120 / (SEASON_DURATION_SEC * 4)) < 1e-10, 'season keeps every elapsed revolution');
+  assert.equal(sampleClockTimePassage(clock, .5).second, 67);
+  assert.equal(JSON.stringify(before), saved, 'clock animation leaves simulation state untouched');
+  const opening = {...before, tSec:0};
+  const openingClock = getClockTimePassage(opening, after);
+  assert.ok(Math.abs(sampleClockTimePassage(openingClock,1).moonRotation / (Math.PI * 2)
+    - 126 / getMoonCycleDurationSec(opening)) < 1e-10, 'opening moon phase matches the HUD at committed time');
+}
 
 // Stock Supply markers keep the output needed by their specialty badge, even
 // when two outputs occur at the same second. Exact duplicate events collapse.

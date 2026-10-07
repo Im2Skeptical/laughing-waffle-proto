@@ -26,7 +26,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
   root.addChild(gfx);
 
   const portrait = createVassalPortraitView(candidate.portrait, {
-    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent, age: candidate.age,
+    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent, stage: 'youth',
   });
   portrait.position.set(18, 15);
   root.addChild(portrait);
@@ -143,7 +143,8 @@ export function createWorldMapVassalDrawerView({
       render(false, true);
       await renderer.prepare.upload(root);
     },
-    getPreparationSnapshot: () => ({ visible: root.visible, candidateCount: candidateRoots.length, buildCount }),
+    getPreparationSnapshot: () => ({ visible: root.visible, candidateCount: candidateRoots.length, buildCount,
+      portraitStages: candidateRoots.map(card => card.children.find(child => child.portraitStage)?.portraitStage) }),
     setVisible: (visible) => { root.visible = visible === true; },
     getCandidateClickPoint: (candidateIndex = 0) => {
       const card = candidateRoots[Math.max(0, Math.floor(candidateIndex))];

@@ -103,6 +103,7 @@ try {
   }
   await clickPoint(node);
   await clickPoint(await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
+  await clickPoint(await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
   await delay(800);
   await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0),null,{timeout:8000});
   await clickPoint(await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)));

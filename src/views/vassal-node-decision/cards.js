@@ -12,7 +12,7 @@ import {
   QUALITY_COLORS,
 } from "./constants.js";
 
-export function button(parent, rect, label, enabled, onClick, selected = false) {
+export function button(parent, rect, label, enabled, onClick, selected = false, {fontSize = 22} = {}) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
   root.eventMode = enabled ? "static" : "none";
@@ -24,7 +24,7 @@ export function button(parent, rect, label, enabled, onClick, selected = false) 
     enabled ? (selected ? PALETTE.green : PALETTE.accent) : PALETTE.stroke,
     selected ? 3 : 1);
   root.addChild(gfx, createText(label, {
-    ...TEXT_STYLES.title, fontSize: 22, fill: enabled ? PALETTE.text : PALETTE.textMuted,
+    ...TEXT_STYLES.title, fontSize, fill: enabled ? PALETTE.text : PALETTE.textMuted,
     wordWrap: true, wordWrapWidth: rect.width - 18, align: "center",
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, { enabled, onActivate: onClick });

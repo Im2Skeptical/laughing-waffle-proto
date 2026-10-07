@@ -26,6 +26,73 @@ const DISK_ID_SEASON = "season";
 const ROTATION_CLOCKWISE = "clockwise";
 const ROTATION_ANTICLOCKWISE = "anticlockwise";
 
+// Recaps retain only clock presentation values, never a mutable simulation state.
+export function getClockTimePassage(beforeState, afterState) {
+  const fromSec = getTSecInt(beforeState);
+  return {
+    fromSec, toSec: Math.max(fromSec, getTSecInt(afterState)),
+    moonPhase: getMoonOrbitPhase01AtTime(beforeState, fromSec),
+    seasonPhase: getSeasonWheelPhase01(beforeState, fromSec, 4),
+    moonCycleSec: getMoonCycleDurationSec(beforeState),
+    seasonCycleSec: Math.max(1, getGameSetting(beforeState, 'seasonDurationSec')) * 4,
+  };
+}
+
+export function sampleClockTimePassage(clock, progress) {
+  const elapsed = Math.max(0, clock.toSec - clock.fromSec) * clamp01(progress);
+  const second = clock.fromSec + elapsed;
+  // Moon phase zero covers both the opening second and second one.
+  const moonElapsed = Math.max(0, second - 1) - Math.max(0, clock.fromSec - 1);
+  return {
+    second,
+    moonRotation: (clock.moonPhase + moonElapsed / clock.moonCycleSec) * TWO_PI,
+    seasonRotation: (clock.seasonPhase + elapsed / clock.seasonCycleSec) * TWO_PI,
+  };
+}
+
+export function createTimePassageDisksView(parent, clock, {x, y, radius = 155}) {
+  const root = new PIXI.Container();
+  root.eventMode = 'none';
+  root.position.set(x, y);
+  parent.addChild(root);
+  const season = new PIXI.Container();
+  const solarArt = addResourceIcon(season, 'solar-wheel', 0, 0, radius * 2);
+  solarArt.scale.x *= -1;
+  const moon = new PIXI.Container();
+  const moonRadius = radius * 2 / 3;
+  addResourceIcon(moon, 'moon-wheel', 0, 0, moonRadius * 2);
+  MOON_PHASE_DEFS.forEach((phase, index) => {
+    const angle = -Math.PI / 2 - index / MOON_PHASE_DEFS.length * TWO_PI;
+    const icon = addResourceIcon(moon, phase.id,
+      Math.cos(angle) * moonRadius * .705, Math.sin(angle) * moonRadius * .705, moonRadius * .355);
+    icon.rotation = -index / MOON_PHASE_DEFS.length * TWO_PI;
+  });
+  root.addChild(season, moon);
+  const bezel = new PIXI.Container();
+  bezel.addChild(new PIXI.Graphics().beginFill(0x16272a).drawCircle(0, 0, moonRadius * .214).endFill());
+  addResourceIcon(bezel, 'lunar-bezel', 0, 0, moonRadius * .455);
+  const centres = MOON_PHASE_DEFS.map(phase => addResourceIcon(bezel, phase.id, 0, 0, moonRadius * .264));
+  root.addChild(bezel);
+  const pointers = new PIXI.Graphics();
+  for (const diskRadius of [radius, moonRadius]) drawInwardPlayheadTriangle(pointers, 0, 0, -Math.PI / 2, {
+    tipRadius:diskRadius - 8, baseRadius:diskRadius + 5, halfWidth:7,
+    fillColor:0xe8cf94, strokeColor:0x151b1b, strokeWidth:1,
+  });
+  root.addChild(pointers);
+  let sample = null;
+  return {
+    update(progress) {
+      sample = sampleClockTimePassage(clock, progress);
+      moon.rotation = sample.moonRotation;
+      season.rotation = sample.seasonRotation;
+      const phaseIndex = Math.floor(Math.max(0, sample.second - 1)
+        / (clock.moonCycleSec / MOON_PHASE_DEFS.length)) % MOON_PHASE_DEFS.length;
+      centres.forEach((icon, index) => { icon.visible = index === phaseIndex; });
+    },
+    getSnapshot: () => sample,
+  };
+}
+
 
 function clamp01(v) {
   if (!Number.isFinite(v)) return 0;

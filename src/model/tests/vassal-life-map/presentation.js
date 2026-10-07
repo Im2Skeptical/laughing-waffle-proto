@@ -8,6 +8,23 @@ import {
 } from "../../vassal-life-map.js";
 import { dispatch, forceEnter, nodeIdForFamily, selectedState } from "./helpers.js";
 import { ActionKinds } from "../../actions.js";
+import { getWorldDefinition } from "../../world-state.js";
+
+// Routes retains world context even when every offer is local.
+{
+  const state = selectedState(1041);
+  const routes = forceEnter(state, nodeIdForFamily(state, 'routes'));
+  const map = getVassalNodeDecisionPresentation(state, routes.nodeId).regionalMap;
+  assert.deepEqual(map.regions.map(region => region.regionId),
+    getWorldDefinition(state).regions.map(region => region.id), 'Routes shows the whole world');
+  const edge = state.world.connections[0];
+  const offer = {offerId:'route-preview', intervention:{kind:'connection', mode:'remove',
+    regionAId:edge.regionAId, regionBId:edge.regionBId}};
+  routes.inventory.push(offer);
+  const preview = getVassalNodeDecisionPresentation(state, routes.nodeId, {previewOfferId:offer.offerId}).regionalMap;
+  assert.ok(preview.connections.some(edge => edge.status === `preview-${offer.intervention.mode}`),
+    'the full map preserves the highlighted offer');
+}
 
 // Class stats replace their base stat's meaning throughout node choices.
 for (const [classId, statId, label, omittedLabel] of [

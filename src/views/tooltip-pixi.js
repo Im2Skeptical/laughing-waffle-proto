@@ -127,6 +127,7 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
       alignY: source.alignY === "top" ? "top" : "center",
       offsetX: Number(source.offsetX) || 0,
       offsetY: Number(source.offsetY) || 0,
+      aboveRect: source.aboveRect ?? null,
       scale: Number.isFinite(source.scale) ? source.scale : null,
       coordinateSpace:
         source.coordinateSpace === "parent" ? "parent" : "screen",
@@ -149,6 +150,10 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
 
     posX += anchor.offsetX || 0;
     posY += anchor.offsetY || 0;
+    if (anchor.aboveRect) {
+      posX = anchor.x + anchor.width / 2 - scaledWidth / 2;
+      posY = anchor.aboveRect.y - margin - scaledHeight;
+    }
 
     if (anchor.side !== "right" && posX < clampMargin) {
       posX = anchor.x + anchor.width + margin;
@@ -613,6 +618,14 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     activeScale = Number.isFinite(scale) ? scale : 1;
     activeWidth = contentSize.width;
     activeHeight = contentSize.height;
+    if (resolvedAnchor.aboveRect) {
+      const screen = getScreenSize();
+      activeScale = Math.min(activeScale,
+        (screen.width - clampMargin * 2) / activeWidth,
+        Math.max(0, resolvedAnchor.aboveRect.y - 14 - clampMargin) / activeHeight);
+      // With no space above the graph, omit the popup instead of covering it.
+      if (activeScale <= 0) { hide({force:true}); return; }
+    }
     activeSpec = normalizedSpec;
     activeResolvedAnchor = summarizeAnchor(resolvedAnchor);
     positionTooltip(resolvedAnchor, activeScale, activeWidth, activeHeight);

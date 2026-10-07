@@ -414,6 +414,7 @@ try {
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   const enter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   if(enter)await click(enter);
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
     ??globalThis.__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0));
   const choice=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapOfferClickPoint(0)
@@ -505,6 +506,7 @@ try {
   await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   const shopEnter=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
   if(shopEnter)await click(shopEnter);
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
   await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
     .lifeMapDecision.costPanels.length>0);
   let shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);
@@ -524,6 +526,7 @@ try {
     const nextShopNode=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
     await click(await page.evaluate(id=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapNodeClickPoint(id),nextShopNode));
     await page.waitForFunction(()=>!!globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint());
+    await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
     await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
     await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision.costPanels.length>0);
     shopBefore=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);

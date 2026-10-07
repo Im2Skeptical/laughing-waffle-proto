@@ -3,6 +3,7 @@ import { ActionKinds } from '../src/model/actions.js';
 import { createSettlementVassalFlow } from '../src/views/ui-root/settlement-vassal-flow.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
+import { createVassalResolutionRecapView } from '../src/views/vassal-resolution-recap-pixi.js';
 import { selectedState, forceEnter, nodeIdForFamily, dispatch, resolvePending }
   from '../src/model/tests/vassal-life-map/helpers.js';
 
@@ -63,3 +64,29 @@ flow.dispatchLifeMapAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: 'test
 assert.equal(dispatched.at(-1).options.viewInvalidationReason, undefined);
 assert.equal(invalidated, 1);
 console.log('[life-map-interaction] entry and drafts avoid forecast rebuild; confirmation invalidates');
+
+// A Vassal may die while the player is viewing the civilization map.
+// Exercise the real recap view with a minimal display surface.
+class Display {
+  constructor() {
+    this.children = []; this.visible = true;
+    this.position = this.scale = this.anchor = {set() {}};
+  }
+  addChild(...nodes) { this.children.push(...nodes); for (const node of nodes) node.parent = this; }
+  removeChild(node) { this.children = this.children.filter(child => child !== node); }
+  on() {} once() {} off() {} destroy() {}
+}
+class Graphics extends Display {}
+for (const method of ['clear','beginFill','beginTextureFill','lineStyle','drawRect','drawPolygon','drawCircle','endFill','moveTo','lineTo']) {
+  Graphics.prototype[method] = function() { return this; };
+}
+globalThis.document = {createElement: () => ({getContext: () => ({fillRect() {}})})};
+globalThis.PIXI = {Container:Display, Graphics, Text:Display, Rectangle:class {},
+  Texture:{from:() => ({baseTexture:{}})}, SCALE_MODES:{NEAREST:0}};
+const deathRecap = createVassalResolutionRecapView({
+  app:{screen:{width:2424,height:1080}}, layer:new Display(),
+  isLifegraphVisible:() => false,
+  getRecap:() => ({endedReason:'died',deathCause:'naturalMortality'}),
+});
+deathRecap.init();
+assert.equal(deathRecap.isOpen(), true, 'death screen opens before inheritance even outside Lifegraph');

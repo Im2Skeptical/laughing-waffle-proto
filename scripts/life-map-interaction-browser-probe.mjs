@@ -24,6 +24,8 @@ try {
   await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().navigation?.time.mode==='projection');
   await click('getNavigationClickPoint','present');
   await click('getNavigationClickPoint','vassal');
+  assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().worldMap.vassalPreparation.chooser.portraitStages),
+    ['youth','youth','youth'], 'drawer uses the youngest portrait variants');
   await click('getVassalCandidateClickPoint',0);
   await click('getNavigationClickPoint','vassal');
   const node = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
@@ -51,6 +53,21 @@ try {
     'Enter without a selected candidate does not commit');
   await click('getLifeMapNodeClickPoint',node);
   await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),true);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId),null,
+    'Enter opens confirmation without entering the node');
+  await page.screenshot({path:`${output}/entry-confirmation.png`});
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);
+  await click('getLifeMapNodeClickPoint',node);
+  await page.keyboard.press('Enter');
+  const cancelPoint = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryCancelPoint);
+  await move(cancelPoint); await page.mouse.down(); await page.mouse.up(); await delay(180);
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId),null,
+    'Cancel leaves the candidate unentered');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);
+  await page.keyboard.press('Enter');
+  await click('getLifeMapEnterNodeClickPoint');
   await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0), null, {timeout:5000});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
   await delay(500);
@@ -167,6 +184,15 @@ try {
     });
     assert.equal(completed.processing,null,'recap opens with all required preparation complete');
     assert.equal(completed.ended,null,'young fixture survives its early choices');
+    if (turn === 0) {
+      await delay(1550);
+      const clock = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapRecap);
+      assert.equal(clock.clock.second,clock.recap.clock.toSec, 'clock locks into the exact committed time');
+      await page.screenshot({path:`${output}/clock-recap-1280x800.png`});
+      await page.setViewportSize({width:844,height:390}); await delay(250);
+      await page.screenshot({path:`${output}/clock-recap-844x390.png`});
+      await page.setViewportSize({width:1280,height:800}); await delay(250);
+    }
     await click('getLifeMapRecapDismissClickPoint');
     earnedLevel = completed.level;
     if (earnedLevel) break;
@@ -195,6 +221,9 @@ try {
     const canvas = await page.locator('canvas').boundingBox();
     await page.mouse.dblclick(canvas.x + nextPoint.x * canvas.width / 2424,
       canvas.y + nextPoint.y * canvas.height / 1080, {delay:80});
+    assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),true,
+      'double-click requires an explicit confirmation too');
+    await click('getLifeMapEnterNodeClickPoint');
     // Measure entry reuse without also opening a mouse-hover choice preview.
     // The node's position can fall under one of the newly displayed cards.
     await page.mouse.move(5,5);

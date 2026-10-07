@@ -1185,7 +1185,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
   getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   tooltipView,
   onOpenInventory: () => requestPauseBeforeDrag(),
-  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
+  isRecapOpen: () => getResolutionRecap?.() != null,
   onResolveOverflow: (keepInstanceIds) => dispatchLifeMapAction(
     ActionKinds.VASSAL_RESOLVE_VAULT_OVERFLOW, { keepInstanceIds }
   ),
@@ -1510,6 +1510,8 @@ function publishSettlementDebugApi() {
         committedNodeIds: presentation.committedNodeIds ?? [],
         playheadNodeId: presentation.playheadNodeId ?? null,
         candidateNodeId: vassalLifeMapView?.getCandidateNodeId?.() ?? null,
+        entryConfirmationOpen: vassalLifeMapView?.isEntryConfirmationOpen?.() === true,
+        entryCancelPoint: vassalLifeMapView?.getEntryCancelClickPoint?.() ?? null,
         profile: presentation.profileVassal ? {
           prestige: presentation.profileVassal.prestige,
           stats: presentation.profileVassal.stats,

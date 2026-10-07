@@ -15,13 +15,14 @@ export function createVassalPortraitView(portrait, {
   borderColor,
   shape = "square",
   age = null,
+  stage = getVassalPortraitStage(age),
 } = {}) {
   const root = new PIXI.Container();
   // A stable art assignment from the already serialized portrait descriptor.
   const key=JSON.stringify(portrait??{});
   let index=0; for(let i=0;i<key.length;i++) index=(index*31+key.charCodeAt(i))>>>0;
   const portraitId=`legacy-0${index%8+1}`;
-  const stage=getVassalPortraitStage(age);
+  root.portraitStage = stage;
   const texture=getChronicleTexture(`vassal-portraits-v1/${portraitId}${stage === "middle" ? "" : `-${stage}`}.png`);
   const ink = borderColor ?? RELIC.brass;
   if (shape === "circle") {

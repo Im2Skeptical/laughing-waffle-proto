@@ -13,7 +13,7 @@ const probeProfile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthor
 probeProfile.gameSettings.values.primordialBasePressure=1;
 probeProfile.gameSettings.values.primordialGrowthFactor=1.2;
 
-const PORT = 8080;
+const PORT = Number(process.env.PROBE_PORT ?? 8080);
 const URL = `http://127.0.0.1:${PORT}`;
 const DETAIL_PATH = "artifacts/settlement-browser-probe.json";
 const SCREENSHOT_PATH = "artifacts/settlement-browser-probe-latest.png";
@@ -653,6 +653,7 @@ try {
   );
   assert.ok(enterNodePoint, "the inspected available node has an explicit entry button");
   await clickDesignPoint(page, enterNodePoint);
+  await clickDesignPoint(page, await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeMapEnterNodeClickPoint()));
   await page.waitForFunction(() => {
     const debug = globalThis.__SETTLEMENT_DEBUG__;
     // The card is drawn before its asynchronous requirements finish loading.

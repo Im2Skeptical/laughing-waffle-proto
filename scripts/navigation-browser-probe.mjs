@@ -5,7 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
-const PORT = 18093;
+const PORT = Number(process.env.PROBE_PORT ?? 18093);
 const URL = `http://127.0.0.1:${PORT}`;
 const OUTPUT = 'artifacts/navigation';
 mkdirSync(OUTPUT, { recursive: true });
@@ -371,6 +371,22 @@ async function runProbe() {
   await capture('projection-1280x800');
   await navigate('present');
   let s = await snapshot();
+  // Key details stay outside the entire graph, including on a phone layout.
+  for (const viewport of [{width:1280,height:800},{width:844,height:390}]) {
+    await page.setViewportSize(viewport); await delay(250);
+    const key = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().graph.legendButtons[0]);
+    await clickPoint(key);
+    const geometry = await page.evaluate(() => ({
+      tooltip:__SETTLEMENT_DEBUG__.getTooltipDebugState(),
+      graph:__SETTLEMENT_DEBUG__.getSnapshot().graph.windowScreenRect,
+    }));
+    assert.equal(geometry.tooltip.visible,true, 'key details remain readable');
+    assert.ok(geometry.tooltip.y + geometry.tooltip.height * geometry.tooltip.scale
+      <= geometry.graph.y - 10, 'key tooltip never covers the graph');
+    await page.screenshot({path:`${OUTPUT}/graph-key-${viewport.width}x${viewport.height}.png`});
+    await page.keyboard.press('Escape');
+  }
+  await page.setViewportSize({width:1280,height:800}); await delay(250);
   assert.equal(s.navigation.time.mode, 'present');
   assert.equal(s.viewedSec, s.frontierSec);
   assert.ok(await controlPoint('getNavigationClickPoint', 'present'), 'Present remains on screen at the frontier');
@@ -446,6 +462,7 @@ async function runProbe() {
   const nodePoint = await controlPoint('getLifeMapNodeClickPoint', nodeId);
   await clickPoint(nodePoint);
   assert.equal((await snapshot()).decision.open, false, 'candidate selection keeps the map visible');
+  await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
   await clickPoint(await controlPoint('getLifeMapEnterNodeClickPoint'));
   await waitDecisionReady();
   // A card can be drawn before its asynchronous eligibility check completes.

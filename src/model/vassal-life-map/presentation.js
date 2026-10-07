@@ -134,6 +134,7 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
     ? buildShortestRegionPath(state, currentRegionId, selectedOption.locationRegionId)
     : [];
   const includedIds = new Set([
+    ...(nodeState.family === 'routes' ? (definition?.regions ?? []).map(region => region.id) : []),
     currentRegionId,
     ...geographicAdjacentIds,
     ...offeredRegionIds,

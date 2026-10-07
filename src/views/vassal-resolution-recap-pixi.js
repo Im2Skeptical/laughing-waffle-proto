@@ -2,8 +2,10 @@ import { addInteractionFeedback } from "./interaction-feedback.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { createTimePassageDisksView } from './sunandmoon-disks-pixi.js';
 
-const PANEL = Object.freeze({ x: 612, y: 210, width: 1200, height: 460 });
+const PANEL = Object.freeze({ x: 612, y: 210, width: 1200, height: 650 });
+const CLOCK_ANIMATION_MS = 1400;
 
 function addButton(parent, rect, label, onPress) {
   const root = new PIXI.Container();
@@ -58,20 +60,24 @@ export function createVassalResolutionRecapView({
   let signature = "";
   let dismissRoot = null;
   let wasVisible = false;
+  let clockView = null;
+  let clockStartedAt = null;
 
   function render(force = false, prepared = null) {
     const recap = prepared ?? getRecap?.() ?? null;
-    const visible = !prepared && isLifegraphVisible?.() === true && recap != null;
+    const ended = recap?.endedReason === "died" || recap?.endedReason === "retired";
+    const visible = !prepared && recap != null && (ended || isLifegraphVisible?.() === true);
+    if (visible && !wasVisible) clockStartedAt = performance.now();
     if (visible && !wasVisible) tooltipView?.hide?.({ force: true });
     wasVisible = visible;
     root.visible = visible;
     root.eventMode = visible ? "static" : "none";
     if (!recap) return;
-    const ended = recap.endedReason === "died" || recap.endedReason === "retired";
     const nextSignature = JSON.stringify(recap);
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
     clearChildren(root);
+    clockView = null;
     dismissRoot = null;
 
     const blocker = new PIXI.Graphics();
@@ -109,16 +115,23 @@ export function createVassalResolutionRecapView({
         ...TEXT_STYLES.title, fontSize: 22, fill: PALETTE.text,
       }, PANEL.x + 44, PANEL.y + 90));
       const threshold = recap.expThreshold ?? VASSAL_LIFE_TUNING.developmentThreshold;
-      changeLine(root, PANEL.x + 44, PANEL.y + 150, "AGE", recap.ageBefore ?? 0, recap.ageAfter ?? 0);
-      changeLine(root, PANEL.x + 360, PANEL.y + 150, "PRESTIGE", recap.prestigeBefore ?? 0, recap.prestigeAfter ?? 0);
-      changeLine(root, PANEL.x + 700, PANEL.y + 150, "EXP",
+      changeLine(root, PANEL.x + 44, PANEL.y + 460, "AGE", recap.ageBefore ?? 0, recap.ageAfter ?? 0);
+      changeLine(root, PANEL.x + 360, PANEL.y + 460, "PRESTIGE", recap.prestigeBefore ?? 0, recap.prestigeAfter ?? 0);
+      changeLine(root, PANEL.x + 700, PANEL.y + 460, "EXP",
         `${recap.expBefore ?? 0}/${threshold}`, `${recap.expAfter ?? 0}/${threshold}`);
       if (recap.queuedLevelUp) {
         const count = recap.earnedLevelCount || 1;
         root.addChild(createText(count === 1 ? "Level up earned" : `${count} level ups earned`, {
           ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.green,
-        }, PANEL.x + 44, PANEL.y + 250));
+        }, PANEL.x + 44, PANEL.y + 544));
       }
+    }
+
+    if (recap.clock) {
+      clockView = createTimePassageDisksView(root, recap.clock, {
+        x: PANEL.x + PANEL.width / 2, y: PANEL.y + 296,
+      });
+      clockView.update(0);
     }
 
     const buttonLabel = ended ? "RETURN TO MAP"
@@ -135,7 +148,14 @@ export function createVassalResolutionRecapView({
       return app.renderer?.prepare?.upload(root);
     },
     init: () => render(true),
-    update: () => render(),
+    update: () => {
+      render();
+      if (root.visible && clockView) {
+        const progress = Math.min(1, Math.max(0, (performance.now() - clockStartedAt) / CLOCK_ANIMATION_MS));
+        // Ease out into the exact committed time; rotations retain every elapsed turn.
+        clockView.update(1 - (1 - progress) ** 3);
+      }
+    },
     refresh: () => render(),
     resize: () => render(true),
     isOpen: () => root.visible,
@@ -147,6 +167,7 @@ export function createVassalResolutionRecapView({
       open: root.visible,
       continueState: dismissRoot?.interactionState ?? null,
       recap: getRecap?.() ?? null,
+      clock: clockView?.getSnapshot?.() ?? null,
     }),
   };
 }

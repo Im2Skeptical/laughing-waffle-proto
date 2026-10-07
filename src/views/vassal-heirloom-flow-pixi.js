@@ -41,9 +41,9 @@ export function createVassalHeirloomFlowView({
     root.addChild(node);return node;
   }
   function render(force=false) {
-    if(held)return;
     const snap=snapshot();root.visible=snap.visible;root.eventMode=snap.visible?'static':'none';
-    if(!snap.visible){if(root.children.length)clearChildren(root);signature='';controls=new Map();cardRoots=[];return;}
+    if(!snap.visible){held=false;if(root.children.length)clearChildren(root);signature='';controls=new Map();cardRoots=[];return;}
+    if(held)return;
     // Cover the later HUD and navigation siblings while browsing.
     if(root.parent.getChildIndex(root)!==root.parent.children.length-1)root.parent.setChildIndex(root,root.parent.children.length-1);
     if(snap.mode!==lastMode){selectedIds=snap.mode==='overflow'?snap.overflow.slice(0,6).map(item=>item.instanceId):[];page=0;lastMode=snap.mode;}

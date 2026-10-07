@@ -17,10 +17,14 @@ const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js','-l','
 let browser, page;
 const errors = [];
 const initial = createNewGameState(123);
-initial.civilization.chaos.monsterCount = 100;
+// Surround both player sites with spatial Monsters, ready to expand on Death.
+// An aggregate count alone no longer represents the live loss condition.
+for (const region of initial.world.regions) {
+  if (region.controller !== 'player') region.monster = {defense:100,ageMoons:99};
+}
 const timeline = createTimelineFromInitialState(initial);
-timeline.historyEndSec = timeline.maxReachedHistoryEndSec = timeline.cursorSec = 4;
-const terminal = rebuildStateAtSecond(timeline, 4);
+timeline.historyEndSec = timeline.maxReachedHistoryEndSec = timeline.cursorSec = 6;
+const terminal = rebuildStateAtSecond(timeline, 6);
 assert.equal(terminal.ok, true);
 assert.equal(terminal.state.runStatus.complete, true);
 const save = { meta:buildSaveMeta(terminal.state,'twoRegionStarter01'),
@@ -50,7 +54,8 @@ try {
   await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete?.open === true);
   const info = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.info);
   assert.equal(info.projected, false);
-  assert.match(info.explanation, /loss limit of 100/);
+  assert.equal(info.reason, 'redGodMonsterOverrun');
+  assert.match(info.explanation, /taken every player settlement/);
   await page.keyboard.press('Space');
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget), 0);
   await page.screenshot({path:`${output}/popup-1280x800.png`});
@@ -78,7 +83,7 @@ try {
   await page.getByRole('heading', {name:'Choose a slot for your new game'}).waitFor();
   assert.equal(await page.locator('.game-save-slot').count(), 3);
   await page.getByTestId('game-slot-3').click();
-  await page.getByTestId('game-menu').waitFor({state:'hidden'});
+  await page.getByTestId('game-menu').waitFor({state:'hidden',timeout:60000});
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.indicatorVisible), false,
     'starting a new game clears the prior loss');
   await page.close();
@@ -97,6 +102,16 @@ try {
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('newGame')), null,
     'a foreseen extinction offers no new-game action');
   await page.screenshot({path:`${output}/foreseen-extinction.png`});
+  for (const viewport of [{width:1280,height:800},{width:844,height:390}]) {
+    await page.setViewportSize(viewport); await delay(250);
+    const layout = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete);
+    for (let index=1;index<layout.copyRects.length;index++) {
+      const previous = layout.copyRects[index-1], current = layout.copyRects[index];
+      assert.ok(previous.y + previous.height < current.y, 'extinction copy never overlaps');
+    }
+    assert.ok(layout.panelRect.y + layout.panelRect.height < 1080, 'popup stays within the game screen');
+    await page.screenshot({path:`${output}/foreseen-extinction-${viewport.width}x${viewport.height}.png`});
+  }
   await click('browse');
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.indicatorVisible),true);

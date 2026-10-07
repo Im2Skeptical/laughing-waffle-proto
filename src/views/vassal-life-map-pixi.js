@@ -14,6 +14,7 @@ import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip, getCivilizationSurvivalViewModel, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
 import { confirmDockButton } from './vassal-node-decision/chrome.js';
+import { button } from './vassal-node-decision/cards.js';
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -73,6 +74,8 @@ export function createVassalLifeMapView({
   let displayedVassalId = null;
   let lastClick = { nodeId: null, atMs: 0 };
   let openRoot = null;
+  let cancelRoot = null;
+  let entryConfirmationOpen = false;
   let layoutPoints = new Map();
   let pinnedNodeIds = [];
   let lastPointerType = "mouse";
@@ -110,6 +113,7 @@ export function createVassalLifeMapView({
       hoveredNodeId = null;
       inspectedNodeId = null;
       candidateNodeId = null;
+      entryConfirmationOpen = false;
       tooltipView?.hide?.({ force: true });
     }
     return true;
@@ -221,7 +225,7 @@ export function createVassalLifeMapView({
       inspectedNodeId = node.id;
       candidateNodeId = node.id;
       tooltipView?.hide?.({ force: true });
-      if (sameNode) enterCandidate();
+      if (sameNode) requestEntryConfirmation();
       render(true);
       return;
     }
@@ -257,6 +261,7 @@ export function createVassalLifeMapView({
     if (!node) return false;
     const point = nodeRoots.get(node.id)?.toGlobal(new PIXI.Point(0, 0));
     candidateNodeId = null;
+    entryConfirmationOpen = false;
     lastClick = { nodeId: null, atMs: 0 };
     tooltipView?.hide?.({ force: true });
     const result = onEnterNode?.(node.id);
@@ -270,16 +275,30 @@ export function createVassalLifeMapView({
     return true;
   }
 
+  function requestEntryConfirmation() {
+    if (!getCandidate()) return false;
+    entryConfirmationOpen = true;
+    tooltipView?.hide?.({ force: true });
+    render(true);
+    return true;
+  }
+
   function handleKeyDown(event) {
     if (event?.repeat || event?.altKey || event?.ctrlKey || event?.metaKey || event?.shiftKey || !getCandidate()) return false;
     if (event.key === "Enter") {
       event.preventDefault();
-      enterCandidate();
+      requestEntryConfirmation();
       return true;
     }
     if (event.key === "Escape") {
       event.preventDefault();
+      if (entryConfirmationOpen) {
+        entryConfirmationOpen = false;
+        render(true);
+        return true;
+      }
       candidateNodeId = null;
+      entryConfirmationOpen = false;
       inspectedNodeId = null;
       lastClick = { nodeId: null, atMs: 0 };
       tooltipView?.hide?.({ force: true });
@@ -294,6 +313,7 @@ export function createVassalLifeMapView({
     if (hoveredNodeId || candidateNodeId || inspectedNodeId) tooltipView?.hide?.();
     hoveredNodeId = null;
     candidateNodeId = null;
+    entryConfirmationOpen = false;
     inspectedNodeId = null;
     lastClick = { nodeId: null, atMs: 0 };
   }
@@ -327,6 +347,7 @@ export function createVassalLifeMapView({
       displayedVassalId = vassal?.vassalId ?? null;
       inspectedNodeId = presentation.playheadNodeId ?? null;
       candidateNodeId = null;
+      entryConfirmationOpen = false;
       lastClick = { nodeId: null, atMs: 0 };
       pinnedNodeIds = [];
     }
@@ -344,7 +365,7 @@ export function createVassalLifeMapView({
     const nextSignature = getArtRevision() + JSON.stringify({
       vassal, committedNodeIds: presentation.committedNodeIds, playheadNodeId: presentation.playheadNodeId,
       readOnly, projected: presentation.viewedSec > presentation.frontierSec, loadoutPending,
-      effectiveNodeId, candidateNodeId, hoveredNodeId, pinnedNodeIds, unveiling,
+      effectiveNodeId, candidateNodeId, entryConfirmationOpen, hoveredNodeId, pinnedNodeIds, unveiling,
     });
     if (!force && nextSignature === signature) {
       updateSurvivalChrome(state, civilizationLossInfo);
@@ -358,6 +379,7 @@ export function createVassalLifeMapView({
     confirmSurface.visible = false;
     nodeRoots.clear();
     openRoot = null;
+    cancelRoot = null;
     updateSurvivalChrome(state, civilizationLossInfo);
     root.addChild(createText(vassal?.founderClassId ? `${vassal.archetype.toUpperCase()} CHRONICLE` : 'VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
 
@@ -478,10 +500,33 @@ export function createVassalLifeMapView({
     const candidate = getCandidate(presentation);
     if (candidate) {
       confirmSurface.visible = true;
-      openRoot = confirmDockButton(confirmSurface, app, {
-        enabled: true, label: "Enter", onClick: enterCandidate,
-      });
-      if (visible && (hoveredNodeId == null || hoveredNodeId === candidate.id)) {
+      if (entryConfirmationOpen) {
+        const family = getVassalLifeMapNodeFamily(candidate);
+        const rect = { x: 752, y: 248, width: 920, height: 400 };
+        const backdrop = new PIXI.Graphics().beginFill(0x090d0d, .72)
+          .drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+        backdrop.eventMode = 'static';
+        backdrop.on('pointerdown', event => event.stopPropagation());
+        const panel = new PIXI.Graphics();
+        roundedRect(panel, rect.x, rect.y, rect.width, rect.height, 16, PALETTE.panel, family.color, 3);
+        panel.eventMode = 'static';
+        panel.on('pointerdown', event => event.stopPropagation());
+        confirmSurface.addChild(backdrop, panel, createText(family.description, {
+          ...TEXT_STYLES.body, fontSize: 36, lineHeight: 44,
+          wordWrap: true, wordWrapWidth: rect.width - 88,
+        }, rect.x + 44, rect.y + 40));
+        openRoot = button(confirmSurface, {
+          x: rect.x + 320, y: rect.y + rect.height - 152, width: 556, height: 116,
+        }, 'Confirm', true, enterCandidate, false, {fontSize:32});
+        cancelRoot = button(confirmSurface, {
+          x: rect.x + 44, y: rect.y + rect.height - 152, width: 252, height: 116,
+        }, 'Cancel', true, () => { entryConfirmationOpen = false; render(true); }, false, {fontSize:32});
+      } else {
+        openRoot = confirmDockButton(confirmSurface, app, {
+          enabled: true, label: "Enter", onClick: requestEntryConfirmation,
+        });
+      }
+      if (!entryConfirmationOpen && visible && (hoveredNodeId == null || hoveredNodeId === candidate.id)) {
         showNodeTooltip(candidate, nodeRoots.get(candidate.id), vassal);
       }
     }
@@ -497,6 +542,12 @@ export function createVassalLifeMapView({
     },
     handleKeyDown,
     getCandidateNodeId: () => getCandidate()?.id ?? null,
+    isEntryConfirmationOpen: () => entryConfirmationOpen && confirmSurface.visible,
+    getEntryCancelClickPoint: () => {
+      if (!entryConfirmationOpen || !confirmSurface.visible || !cancelRoot) return null;
+      const rect = cancelRoot.getBounds();
+      return {x:rect.x + rect.width / 2, y:rect.y + rect.height / 2};
+    },
     getNodeClickPoint(nodeId) {
       const target = nodeRoots.get(nodeId);
       const point = root.visible && target && !target.destroyed
