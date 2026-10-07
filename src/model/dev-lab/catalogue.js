@@ -8,7 +8,7 @@ import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.j
 export function getLabCatalogue(state) {
   const entries = [];
   for (const [category, registry] of [['practice',state.gameConfig.gamepieces.practices], ['structure',state.gameConfig.gamepieces.structures]]) {
-    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, mode:def.mode, maturity: def.minimumQuality, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, def });
+    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, mode:def.mode, maturity: def.minimumQuality, locked:def.locked===true, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, def });
   }
   const liveCandidates = getVassalCandidatePool(state).candidates;
   const candidates = liveCandidates.length ? liveCandidates : generateCandidatePool(deserializeGameState(serializeGameState(state)));
@@ -23,6 +23,7 @@ export function filterLabCatalogue(entries, filters = {}) {
   return entries.filter(e => (!filters.category || e.category === filters.category)
     && (!filters.pool || e.pool === filters.pool) && (!filters.maturity || e.maturity === filters.maturity)
     && (!filters.mode || e.mode===filters.mode)
+    && (!filters.hideLocked || !e.locked)
     && (!filters.tag || e.tags?.includes(filters.tag)) && (!filters.trait || e.traits?.includes(filters.trait))
     && (!filters.size || e.size === Number(filters.size))
     && (!filters.search || JSON.stringify(e).toLowerCase().includes(filters.search.toLowerCase())));

@@ -33,6 +33,9 @@ Persistence/export live in
 `zoo.js` can project edited definitions into its display snapshot, including
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
+Reviewer Lock/Unlock controls save availability proposals alongside value edits.
+Zoo labels locks and can hide them in every card-version mode, including live
+faces, without changing the fixture or deleting definitions.
 
 `card-reading.js` supplies one lazy interactive Pixi canvas for Zoo quick reads
 and full inspection. It uses the game's `addPracticeReading` and

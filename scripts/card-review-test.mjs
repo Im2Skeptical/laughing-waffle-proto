@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
-import { createAuthoredGameConfig } from '../src/model/game-config.js';
+import { createAuthoredGameConfig, canonicalizeGamepiecesDraft, validateGamepiecesDraft } from '../src/model/game-config.js';
 import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
 import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS } from '../src/model/dev-lab/card-review.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { createEmptyTimelineFromBase, rebuildStateAtSecond } from '../src/model/timeline/index.js';
+import { selectedState } from '../src/model/tests/vassal-life-map/helpers.js';
+import { getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
+import { generateShopInventory } from '../src/model/vassal-life-map/shop.js';
+import { getStockShopGenerationContext } from '../src/model/vassal-life-map/stock-shops.js';
+import { getResearchLibraryCards } from '../src/views/research-library-data.js';
+import { getLabCatalogue, filterLabCatalogue } from '../src/model/dev-lab/catalogue.js';
 
 const gameConfig=createAuthoredGameConfig(), original=JSON.stringify(gameConfig), stored=new Map();
 const storage={getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value)};
@@ -147,4 +153,67 @@ assert.ok(launches.getLaunchStatus().issues.length,'review-only values must stil
 assert.throws(()=>launches.createNewGame(678),/Edited cards need attention/);
 assert.equal(JSON.stringify(gameConfig),original,'applying reviews never mutates authored definitions');
 assert.deepEqual(serializeGameState(createCardReviewController({storage:{getItem:()=>{throw new Error('Storage blocked');}}}).createNewGame(678)),baselineGame,'unavailable review storage cannot prevent ordinary game startup');
-console.log('[card-review] OK: persistent proposals, Stock/schedule trays, export, edited new-game snapshots, save/replay isolation, validation and storage failures');
+const lockStored=new Map(),lockStorage={getItem:key=>lockStored.get(key)??null,setItem:(key,value)=>lockStored.set(key,value)};
+const locks=createCardReviewController({storage:lockStorage,resolveLive:(kind,id)=>gameConfig.gamepieces[kind==='practice'?'practices':'structures'][id]});
+for(const [kind,registry] of [['practice','practices'],['structure','structures']]) {
+  for(const [id,def] of Object.entries(gameConfig.gamepieces[registry])) {
+    locks.flag(kind,id,def);
+    locks.setLocked(kind,id,true);
+  }
+}
+const restoredLocks=createCardReviewController({storage:lockStorage});
+assert.equal(restoredLocks.preview(restoredLocks.get('practice','forage')).definition.locked,true,'locks survive controller recreation');
+const lockExport=JSON.parse(locks.export());
+assert.equal(lockExport.cards.find(card=>card.id==='forage').modified.locked,true,'exports include locks and their original unlocked value');
+assert.equal(lockExport.cards.find(card=>card.id==='forage').changes[0].original,false);
+assert.throws(()=>locks.setLocked('practice','forage','true'),/boolean/);
+assert.deepEqual(serializeGameState(locks.createNewGame(678)),baselineGame,'lock drafts remain inert until applied');
+locks.setUseInNewGames(true);
+const lockedGame=locks.createNewGame(678),lockTimeline=createEmptyTimelineFromBase(lockedGame);
+const lockReplay=serializeGameState(rebuildStateAtSecond(lockTimeline,7).state);
+assert.equal(deserializeGameState(serializeGameState(lockedGame)).gameConfig.gamepieces.practices.forage.locked,true,'saves retain the pool lock');
+const allLocked=locks.applyTo(gameConfig.gamepieces).gamepieces;
+assert.equal(canonicalizeGamepiecesDraft(allLocked).structures.mudHouses.locked,true,'combined-profile canonicalization retains locks');
+assert.equal(validateGamepiecesDraft(allLocked).ok,true);
+const damaged=structuredClone(allLocked);damaged.practices.forage.locked='true';
+assert.ok(validateGamepiecesDraft(damaged).errors.some(error=>error.includes('forage.locked')));
+assert.equal(getResearchLibraryCards(lockedGame).length,0,'research browsing respects the run pool');
+const beforeCatalogue=JSON.stringify(serializeGameState(lockedGame)),lockedCatalogue=getLabCatalogue(lockedGame);
+assert.equal(filterLabCatalogue(lockedCatalogue,{category:'practice',hideLocked:true}).length,0,'Zoo can hide the complete locked Practice pool');
+assert.equal(filterLabCatalogue(lockedCatalogue,{category:'structure',hideLocked:true}).length,0,'Zoo can hide the complete locked Structure pool');
+assert.ok(filterLabCatalogue(lockedCatalogue,{category:'practice'}).length>0,'locked definitions remain browsable when the filter is off');
+assert.equal(JSON.stringify(serializeGameState(lockedGame)),beforeCatalogue,'catalogue/filtering preserves state and RNG');
+for(const [kind,id] of [['practice','forage'],['structure','mudHouses']]) {
+  locks.setLocked(kind,id,false);
+  assert.equal(locks.get(kind,id).edits.length,0,'unlocking restores a live card without a redundant override');
+}
+const thinPool=locks.applyTo(gameConfig.gamepieces).gamepieces;
+const families=['practiceReform','publicWorks','neutralMarket','classMarket','foodShop','housingShop','stockShop','signature'];
+for(const classId of [null,'scholar','warrior']) {
+  const state=selectedState(987),vassal=getCurrentLifeMapVassal(state);
+  vassal.classId=classId;state.civilization.research.total=100000;
+  state.gameConfig.gamepieces=allLocked;
+  assert.deepEqual(getStockShopGenerationContext(state,vassal),{stockOutputs:[],unmetStockOutputs:[]},'locked suppliers cannot generate unavailable Stock Supply nodes');
+  for(const family of families) {
+    const node={family,nodeId:'lock-test',stockOutput:'Edible',discoveryAccess:true,...(family==='signature'?{signatureNode:{groupId:'tagShop',tag:'Food'}}:{})};
+    assert.deepEqual(generateShopInventory(state,vassal,node),[],`${family}/${classId}: an exhausted pool produces no locked filler or upgrades`);
+    state.gameConfig.gamepieces=thinPool;
+    for(const inventoryRoll of [0,1,2]) {
+      const offers=generateShopInventory(state,vassal,{...node,inventoryRoll});
+      assert.ok(offers.every(offer=>['forage','mudHouses'].includes(offer.intervention.practiceId??offer.intervention.structureId)),`${family}/${classId}: rerolls and Discovery never bypass locks`);
+      if(family==='practiceReform')assert.equal(offers.length,1,'thin Practice pool still offers its remaining card');
+      if(family==='publicWorks')assert.equal(offers.length,1,'thin Structure pool still offers its remaining card');
+    }
+    state.gameConfig.gamepieces=allLocked;
+  }
+  state.gameConfig.gamepieces=thinPool;
+  assert.deepEqual(getStockShopGenerationContext(state,vassal).stockOutputs,['Edible','Wild'],'only unlocked Stock suppliers are considered');
+}
+assert.deepEqual(getResearchLibraryCards(locks.createNewGame(678)).map(card=>card.id).sort(),['forage','mudHouses']);
+assert.deepEqual(serializeGameState(rebuildStateAtSecond(lockTimeline,7).state),lockReplay,'unlocking browser drafts cannot change existing replay');
+locks.setLocked('practice','forage',true);locks.reset('practice','forage');
+assert.equal(locks.preview(locks.get('practice','forage')).definition.locked,undefined,'Reset edits restores availability');
+locks.setLocked('structure','mudHouses',true);locks.remove('structure','mudHouses');
+assert.equal(locks.applyTo(gameConfig.gamepieces).gamepieces.structures.mudHouses.locked,undefined,'deleting a review releases its lock');
+assert.equal(JSON.stringify(gameConfig),original,'lock operations leave authored registries untouched');
+console.log('[card-review] OK: persistent proposals/locks, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures');

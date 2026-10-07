@@ -64,6 +64,9 @@ Authoritative numbers:
   Card-review proposals require the menu's Use edited cards in new games toggle;
   new runs capture them in gameConfig. Existing runs and deterministic replay
   use their own serialized definitions, never browser review storage.
+  Optional boolean card-definition `locked` flags default to unlocked and are
+  captured through the same review/profile path. They exclude shop offers and
+  Stock Supply generation candidates while preserving installed-card behavior.
 - Fresh runs do not migrate obsolete saves or presets.
 
 ## Current prototype setup

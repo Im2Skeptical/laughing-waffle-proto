@@ -273,6 +273,14 @@ function copyEditableLeaves(template, source, path = []) {
 export function canonicalizeGamepiecesDraft(value) {
   const authored = createAuthoredGamepiecesDraft();
   const practices=copyEditableLeaves(authored.practices,value?.practices);
+  const structures=copyEditableLeaves(authored.structures,value?.structures);
+  // Optional availability data belongs to the run, not browser review storage.
+  for(const [kind,registry] of [['practices',practices],['structures',structures]]) {
+    for(const [id,def] of Object.entries(registry)) {
+      const locked=value?.[kind]?.[id]?.locked;
+      if(typeof locked==='boolean')def.locked=locked;
+    }
+  }
   for(const [id,def] of Object.entries(practices)) {
     const source=value?.practices?.[id];
     if(!source)continue;
@@ -285,7 +293,7 @@ export function canonicalizeGamepiecesDraft(value) {
   }
   return {
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
-    structures: copyEditableLeaves(authored.structures, value?.structures),
+    structures,
     practices,
   };
 }
@@ -387,6 +395,9 @@ export function validateGamepiecesDraft(value) {
     }
     for (const id of Object.keys(authored[kind])) {
       if (!value[kind][id]) errors.push(`${kind}.${id}: required`);
+    }
+    for(const [id,def] of Object.entries(value[kind])) {
+      if(def.locked!==undefined&&typeof def.locked!=='boolean')errors.push(`${kind}.${id}.locked: expected a boolean`);
     }
     if (kind==='practices') for (const [id,def] of Object.entries(value.practices)) {
       if (!['scheduled','charge'].includes(def.mode) || def.lane!==def.mode || (def.mode==='charge')!==(def.activation?.type==='charge')) errors.push(`practices.${id}: invalid mode`);

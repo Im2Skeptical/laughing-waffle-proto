@@ -20,7 +20,7 @@ export function getResearchLibraryCards(state) {
   return [
     ...VASSAL_INTERVENTION_PRACTICE_IDS.map(id => ({ id, kind:'practice', def:getDetailedPracticeDef(state,id) })),
     ...Object.keys(settlementStructureDefs).map(id => ({ id, kind:'structure', def:getDetailedStructureDef(state,id) })),
-  ].filter(card => card.def).map(card => {
+  ].filter(card => card.def && card.def.locked!==true).map(card => {
     const { def, kind } = card;
     const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def);
     const traits = [...new Set([...(def.tags??[]), ...(def.stockTraits??[]), ...['consume','require'].flatMap(key => (def[key]??[]).flatMap(input => input.traits))])];

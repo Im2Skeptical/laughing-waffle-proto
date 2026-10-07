@@ -108,6 +108,21 @@ where available, live values elsewhere), or **Edited cards only**. Draft faces,
 filters and reading panels use the modified definition without changing the
 Lab fixture. Cards with edits are marked **edited**; notes-only reviews are not.
 
+**Lock card** temporarily excludes a Practice or Structure from new shop offers,
+including upgrades, tagged shops, markets and rerolls. **Unlock card** restores
+its eligibility. Locks save and export with other reviewed values; **Reset edits**
+and **Delete review** also remove the lock proposal. Apply them with **Use edited
+cards in new games** or **Apply reviewed cards to draft** in Gym. Existing runs
+retain their recorded pool. Fixed starting and neutral placements keep their
+authored cards; locking changes the offer pool, not installed-card behavior.
+The run's optional boolean `locked` definition field defaults to unlocked when
+absent and can support future progression-driven availability.
+
+Zoo marks locked cards in every **Card versions** mode. **Hide locked cards**
+filters them out without deleting definitions or altering the fixture. The
+Research library shows only the run's available pool, and Life Map generation
+considers only unlocked suppliers when choosing Stock Supply outputs.
+
 The main menu's **Developer tools** includes **Use edited cards in new games**.
 Enable it, then start **New game** to play with this device's reviewed definitions;
 no rebuild is needed for subsequent card edits. Each new run captures a validated

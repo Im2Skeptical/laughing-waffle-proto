@@ -6,20 +6,28 @@ import { el, select, field, input, section, details, button, table } from './ele
 
 export function createZooView({controller,cards,run,onReview,review}) {
   const filters = {category:'practice'}, pageSize = 12;
-  let page = 0, selected = null, versionsMode='live';
+  let page = 0, selected = null, versionsMode='live', hideLocked=false;
   function render(parent) {
     let {state} = controller.getSnapshot();
+    const locks=new Map((review?.list()??[]).map(entry=> {
+      const live=state.gameConfig.gamepieces[entry.kind==='practice'?'practices':'structures'][entry.id];
+      return [`${entry.kind}:${entry.id}`,review.preview(entry,live).definition.locked===true];
+    }));
     let edited=new Set(),issues=[];
     if(versionsMode!=='live'&&review) {
       const result=review.applyTo(state.gameConfig.gamepieces);edited=new Set(result.applied);issues=result.issues;
       state={...state,gameConfig:{...state.gameConfig,gamepieces:result.gamepieces}};
     }
-    const catalogue=getLabCatalogue(state);
+    // Lock visibility survives unrelated value conflicts and applies to live faces.
+    const catalogue=getLabCatalogue(state).map(entry=>({...entry,locked:locks.get(`${entry.category}:${entry.id}`)??entry.locked}));
     const controls = el('div','','lab-controls');
     if(review) {
       const versions=select('Card versions',[['live','Live cards'],['edited','Show edited cards'],['edited-only','Edited cards only']],versionsMode);
       versions.addEventListener('change',()=>{versionsMode=versions.value;page=0;selected=null;run(()=>{});});controls.append(field('Card versions',versions));
     }
+    const hide=input('Hide locked cards','','checkbox');hide.checked=hideLocked;
+    hide.addEventListener('change',()=>{hideLocked=hide.checked;page=0;selected=null;run(()=>{});});
+    controls.append(field('Hide locked cards',hide));
     const choices = (key,property) => [...new Set(catalogue.flatMap(e => e[property] ?? []))].sort().map(s => [s,s]);
     const options = {
       category:[['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map nodes'],['neutral','Neutral templates'],['monster','Monsters']],
@@ -37,7 +45,7 @@ export function createZooView({controller,cards,run,onReview,review}) {
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;page=0;selected=null;run(()=>{});},250);});
     controls.append(field('Search',search)); parent.append(controls);
     if(versionsMode!=='live')parent.append(el('p',`${edited.size} edited cards shown. Other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`));
-    const matches = filterLabCatalogue(catalogue,filters).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
+    const matches = filterLabCatalogue(catalogue,{...filters,hideLocked}).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
     parent.append(el('p','Hover or tap a card for its quick read. Select the tooltip title or Inspect tooltip for the full rules, symbol key and linked definitions. Inspect / compare shows all four qualities.'));
     for (const [pool,expectedPractices,expectedStructures] of [['common',13,14],['scholar',48,32],['warrior',48,32]]) {
       const practices=catalogue.filter(e=>e.category==='practice'&&e.pool===pool),structures=catalogue.filter(e=>e.category==='structure'&&e.pool===pool);
@@ -50,6 +58,7 @@ export function createZooView({controller,cards,run,onReview,review}) {
       const e = catalogue.find(e=>`${e.category}:${e.id}` === selected);
       if (e) {
         const panel = section(e.label);
+        if(e.locked)panel.append(el('p','Locked · excluded from shop offers when reviewed cards are applied.'));
         panel.append(button('Close comparison',()=>run(()=>{selected=null;})));
         const variants = el('div','','lab-card-grid');
         if (['practice','structure'].includes(e.category)) {
@@ -80,7 +89,8 @@ export function createZooView({controller,cards,run,onReview,review}) {
         const face = getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
         if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
         const isEdited=edited.has(`${e.category}:${e.id}`);
-        const card=cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}${isEdited?' · edited':''}`,inspect,{readable:true});
+        const card=cards.card(face,`${e.label} · ${e.pool} · ${e.maturity}${e.locked?' · locked':''}${isEdited?' · edited':''}`,inspect,{readable:true});
+        if(e.locked)card.dataset.locked='true';
         if(isEdited)card.dataset.edited='true';
         if(onReview)card.append(button('Review card',()=>onReview(face)));
         grid.append(card);

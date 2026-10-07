@@ -63,6 +63,10 @@ export function reviewFields(def) {
 
 export function validateReviewValue(def, path, value) {
   if(!Array.isArray(path)||!path.length||path.some(part=>['__proto__','prototype','constructor'].includes(part)))throw new Error('This field is not editable.');
+  if(equal(path,['locked'])) {
+    if(typeof value!=='boolean')throw new Error('Card lock must be a boolean.');
+    return;
+  }
   if(equal(path,['stockTraits'])&&Array.isArray(def.stockTraits)) {
     if(!validSelection(value,REVIEW_STOCK_TRAITS))throw new Error('Choose Stock traits from the icon tray.');
     return;

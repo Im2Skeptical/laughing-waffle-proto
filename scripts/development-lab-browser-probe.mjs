@@ -94,6 +94,27 @@ try {
   await page.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
   await page.getByRole('button',{name:'Dev',exact:true}).click();
   await page.getByRole('heading',{name:'Card reviewer',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Lock card',exact:true}).click();
+  await page.getByRole('button',{name:'Unlock card',exact:true}).waitFor();
+  await page.reload();
+  assert.equal(await page.getByRole('button',{name:'Unlock card',exact:true}).getAttribute('aria-pressed'),'true','lock survives refresh');
+  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByLabel('Search runtime content').fill('smelting');
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-locked=true]').count(),1,'live Zoo marks reviewed locks');
+  for(const mode of ['live','edited','edited-only']) {
+    await page.getByLabel('Card versions',{exact:true}).selectOption(mode);
+    await page.getByLabel('Hide locked cards',{exact:true}).check();
+    await page.getByText('0 matching runtime entries',{exact:false}).waitFor();
+    assert.equal(await page.locator('.lab-catalogue-grid>.lab-card').count(),0,`${mode}: locked cards hidden`);
+    await page.getByLabel('Hide locked cards',{exact:true}).uncheck();
+    await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  }
+  await page.getByLabel('Card versions',{exact:true}).selectOption('live');
+  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await page.getByRole('button',{name:'Unlock card',exact:true}).click();
+  await page.getByRole('button',{name:'Lock card',exact:true}).waitFor();
+  checks.push('persistent Lock/Unlock reviewer controls and Hide locked cards in every Zoo version mode');
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Edit Production',exact:true}).click();
   const output=page.locator('.review-inline-editor').getByLabel('Stock produced',{exact:true});

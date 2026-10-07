@@ -11,7 +11,7 @@ import { getPlayerDetailedSites } from "./selectors.js";
 export function getStockShopGenerationContext(state, candidate) {
   const classId = candidate.founderClassId ?? candidate.classId;
   const practices = VASSAL_INTERVENTION_PRACTICE_IDS.map(id => getDetailedPracticeDef(state, id));
-  const eligible = practices.filter(def => def && ["common", classId].includes(def.pool));
+  const eligible = practices.filter(def => def && def.locked!==true && ["common", classId].includes(def.pool));
   const availableOutputs = getVassalStockOutputIds(eligible);
   const stockOutputs = getVassalStockOutputIds(eligible.filter(def =>
     getDetailedPracticeTierIndex(def.minimumQuality ?? "bronze") <= getResearchUnlockIndex(state)));

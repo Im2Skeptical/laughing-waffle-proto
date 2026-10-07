@@ -47,7 +47,7 @@ function rollOfferQuality(state, regionId, floor = 0) {
   return QUALITY_IDS[state.rngNextVassalInt(min, max)];
 }
 function isDefinitionUnlocked(state, def, nodeState = null) {
-  return getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
+  return def?.locked!==true && getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
 }
 
 export function validatePurchaseInterventions(state, vassal, purchases = [], order = vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.practiceDraftOrder) {

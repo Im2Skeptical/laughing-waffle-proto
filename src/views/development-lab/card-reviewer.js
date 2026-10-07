@@ -13,7 +13,7 @@ const groups = {
   capacity:{label:'Structure bonuses', match:path => ['housing','modifiers','candidateBonus','capacityPerCountSquared'].includes(path[0])},
 };
 const labelFor = (def, path) => {
-  const names={stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
+  const names={locked:'Card locked',stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
   const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
   if(path[0]==='effects')return `${effects[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':path[2]==='seasonAmounts'?` · ${path[3]?path[3][0].toUpperCase()+path[3].slice(1):'seasonal amounts'}`:` · ${path.slice(2).join(' · ')}`}`;
   if(path[0]==='tags')return `Card tag ${Number(path[1])+1}`;
@@ -33,7 +33,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     if(requested&&entries.some(entry=>reviewKey(entry.kind,entry.id)===requested))selected=requested;
     if(!entries.some(entry=>reviewKey(entry.kind,entry.id)===selected))selected=entries[0]?reviewKey(entries[0].kind,entries[0].id):null;
     const header=section('Card reviewer');
-    header.append(el('p','Tap a highlighted value area on your card to edit it. Changes and notes save automatically on this device.'));
+    header.append(el('p','Tap a highlighted value area on your card to edit it. Changes, locks and notes save automatically on this device.'));
     const exportAll=button(`Export all reviews (${entries.length})`,()=>{
       try {
         const url=URL.createObjectURL(new Blob([review.export()],{type:'application/json'}));
@@ -45,7 +45,8 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const queue=el('div','','review-queue');queue.setAttribute('aria-label','Flagged cards');
     for(const entry of entries) {
       const key=reviewKey(entry.kind,entry.id), live=resolve(state,entry);
-      const pick=button(`${live?.label??entry.baseline.label}${entry.edits.length?' · edited':''}${entry.notes?' · notes':''}`,()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
+      const locked=review.preview(entry,live).definition.locked===true;
+      const pick=button(`${live?.label??entry.baseline.label}${locked?' · locked':''}${entry.edits.length?' · edited':''}${entry.notes?' · notes':''}`,()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
       pick.dataset.reviewKey=key;
       pick.setAttribute('aria-pressed',String(selected===key));queue.append(pick);
     }
@@ -56,16 +57,22 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const panel=section(live?.label??entry.baseline.label);panel.classList.add('review-workspace');
     if(!live)panel.append(el('p','This card is absent from the current build. Its original definition, changes and notes are retained in your export.','lab-warning'));
     if(projected.conflicts.length)panel.append(el('p',`Some saved fields changed shape in this build: ${projected.conflicts.join(', ')}. These edits remain in your export.`,'lab-warning'));
-    const drift=entry.edits.filter(edit=>JSON.stringify(readReviewValue(entry.baseline,edit.path))!==JSON.stringify(readReviewValue(live,edit.path)));
+    const valueFor=(def,path)=>readReviewValue(def,path)??(path.length===1&&path[0]==='locked'?false:undefined);
+    const drift=entry.edits.filter(edit=>JSON.stringify(valueFor(entry.baseline,edit.path))!==JSON.stringify(valueFor(live,edit.path)));
     if(live&&drift.length)panel.append(el('p','The live build has changed some edited values since this card was flagged. Compare and check the changes below.','lab-warning'));
     const controls=el('div','','lab-controls');
+    const locked=definition.locked===true;
+    const lock=button(locked?'Unlock card':'Lock card',()=>run(()=>review.setLocked(entry.kind,entry.id,!locked)),'review-lock');
+    lock.setAttribute('aria-pressed',String(locked));lock.disabled=!live;
+    panel.append(el('p',locked?'Locked · excluded from shop offers when reviewed cards are applied to a new run.':'Unlocked · available for shop offers.'));
+    panel.append(el('p','Use edited cards in new games in the game menu, or Apply reviewed cards to draft in Gym, to test these locks. Existing runs keep their saved pool.'));
     const compare=button(comparison?'Hide live comparison':'Compare with live',()=>{comparison=!comparison;run(()=>{});},'review-compare');compare.disabled=!live;
     const quality=select('Preview quality',['bronze','silver','gold','diamond'],previewTiers[selected]??entry.tier);
     const remove=button('Delete review',()=>{
       if(remove.dataset.confirm!=='yes'){remove.dataset.confirm='yes';remove.textContent='Delete review and notes?';return;}
       review.remove(entry.kind,entry.id);selected=null;location.hash='/dev/reviewer';run(()=>{});
     });
-    controls.append(compare,field('Preview quality',quality),button('Reset edits',()=>{review.reset(entry.kind,entry.id);run(()=>{});}),remove);panel.append(controls);
+    controls.append(lock,compare,field('Preview quality',quality),button('Reset edits',()=>{review.reset(entry.kind,entry.id);run(()=>{});}),remove);panel.append(controls);
     const preview=el('div','','review-preview'), draftColumn=el('div','','review-column'), liveColumn=el('div','','review-column');
     const draftTitle=el('h3',`Your draft · ${definition.label}`),draftReading=el('div','','review-reading'),liveReading=el('div','','review-reading');
     draftColumn.append(draftTitle);preview.append(draftColumn);panel.append(preview);
@@ -100,8 +107,8 @@ export function createCardReviewerView({review, cards, getState, run}) {
     function changedRows() {
       const current=review.get(entry.kind,entry.id);changes.replaceChildren();
       const pick=[...queue.children].find(node=>node.dataset.reviewKey===reviewKey(entry.kind,entry.id));
-      if(pick)pick.textContent=`${live?.label??entry.baseline.label}${current.edits.length?' · edited':''}${current.notes?' · notes':''}`;
-      for(const edit of current.edits)changes.append(el('p',`${labelFor(definition,edit.path)}: live ${JSON.stringify(readReviewValue(live,edit.path))??'unavailable'} → draft ${JSON.stringify(edit.value)}`));
+      if(pick)pick.textContent=`${live?.label??entry.baseline.label}${definition.locked===true?' · locked':''}${current.edits.length?' · edited':''}${current.notes?' · notes':''}`;
+      for(const edit of current.edits)changes.append(el('p',`${labelFor(definition,edit.path)}: live ${JSON.stringify(valueFor(live,edit.path))??'unavailable'} → draft ${JSON.stringify(edit.value)}`));
       if(!current.edits.length)changes.append(el('p','No value changes yet.'));
     }
     function refresh() {
@@ -200,7 +207,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     if(definition.mode==='scheduled')shortcuts.append(button('Choose schedule triggers',()=>editGroup('schedule')));
     const form=el('div','','review-fields'),more=el('details'),moreFields=el('div','','review-fields');more.append(el('summary','More definition values'),moreFields);
     function renderValues() {
-      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation'].includes(item.path[0]));
+      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0]));
       const primary=fields.filter(item=>typeof item.value==='number'||['label','tags','ui','minimumQuality'].includes(item.path[0])||['triggerText','dischargeText'].includes(item.path.at(-1)));
       controlsFor(primary,form);const extra=fields.filter(item=>!primary.includes(item));controlsFor(extra,moreFields);more.hidden=!extra.length;
     }

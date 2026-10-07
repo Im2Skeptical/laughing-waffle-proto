@@ -28,6 +28,9 @@ export function createCardReviewController({storage = browserStorage(), resolveL
     const edits=typeof proposals==='function'?proposals(draft):proposals;
     for(const {path,value} of edits) {
       validateReviewValue(draft,path,value);validateReviewTarget(entry.baseline,live,path);
+      // Missing lock flags mean unlocked, including reviews from older builds.
+      const isLock=path.length===1&&path[0]==='locked';
+      if(isLock)entry.baseline.locked??=false;
       // Newly introduced fields establish their original value on first edit.
       let baseline=entry.baseline;
       for(let depth=0;depth<path.length;depth++) {
@@ -43,7 +46,7 @@ export function createCardReviewController({storage = browserStorage(), resolveL
       const parent=entry.edits.find(edit=>prefix(edit.path,path));
       const storedPath=parent?.path??path,storedValue=readReviewValue(draft,storedPath)??null;
       entry.edits=entry.edits.filter(edit=>!prefix(storedPath,edit.path)&&!prefix(edit.path,storedPath));
-      if(JSON.stringify(readReviewValue(live,storedPath)??null)!==JSON.stringify(storedValue))entry.edits.push({path:storedPath,value:storedValue});
+      if(JSON.stringify(readReviewValue(live,storedPath)??(isLock?false:null))!==JSON.stringify(storedValue))entry.edits.push({path:storedPath,value:storedValue});
     }
   });
   return {
@@ -70,6 +73,7 @@ export function createCardReviewController({storage = browserStorage(), resolveL
     edit(kind, id, path, value) {
       editValues(kind,id,[{path,value}]);
     },
+    setLocked:(kind,id,value)=>editValues(kind,id,[{path:['locked'],value}]),
     schedule:(kind,id,triggers)=>editValues(kind,id,draft=>reviewScheduleEdits(draft,triggers)),
     notes:(kind, id, notes) => write(doc => {doc.cards[reviewKey(kind, id)].notes = notes;}),
     reset:(kind, id) => write(doc => {
