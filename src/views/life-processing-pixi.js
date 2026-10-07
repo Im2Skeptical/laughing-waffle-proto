@@ -15,13 +15,24 @@ export function createLifeProcessingView({ app, layer, getStatus, onRetry, onRet
   back.addChild(createText('Go back',{fontFamily:'Georgia',fontSize:18,fill:0xffe5a3},10,10));
   addInteractionFeedback(back,{x:0,y:0,width:105,height:40},{onActivate:onReturn});
   root.addChild(bg,label,progress,retry,back); layer.addChild(root);
-  return { update() {
+  return {
+    getControlClickPoint(id) {
+      const control = id === 'retry' ? retry : id === 'back' ? back : null;
+      if (!root.visible || !control?.visible) return null;
+      return control.toGlobal(new PIXI.Point(52, 20));
+    },
+    update() {
     const status=getStatus(); root.visible=!!status; if(!status)return;
+    // Node panels are added later and can be raised for inspection. Keep
+    // recovery controls above their backdrops so visible buttons receive taps.
+    if (root.parent.getChildIndex(root) !== root.parent.children.length - 1) {
+      root.parent.setChildIndex(root, root.parent.children.length - 1);
+    }
     root.position.set((app.screen.width-520)/2,app.screen.height-332);
     retry.visible=status.phase==='error';
     back.visible=retry.visible && status.canReturn;
-    label.text=status.phase==='error'?'Preparation failed — retry':status.phase==='preparing'?'Preparing next choices…'
-      :status.phase==='revealing'?'Unveiling the next chapter…':status.phase==='committing'?'Committing decision…':'Resolving the chapter…';
+    label.text=status.phase==='error'?'Preparation failed':status.phase==='preparing'?'Preparing next choicesâ€¦'
+      :status.phase==='revealing'?'Unveiling the next chapterâ€¦':status.phase==='committing'?'Committing decisionâ€¦':'Resolving the chapterâ€¦';
     progress.clear();
     const span=status.targetSec-status.startSec;
     const fraction=span>0?Math.min(.95,(status.computedSec-status.startSec)/span):0;

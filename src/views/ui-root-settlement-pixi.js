@@ -1524,6 +1524,7 @@ function publishSettlementDebugApi() {
     getLifeMapHudSnapshot: () => ({...vassalLifeHudView?.getSemanticSnapshot?.(),heirlooms:vassalHeirloomFlowView?.getSemanticSnapshot?.()}),
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
+    getLifeDecisionControlClickPoint: id => lifeProcessingView?.getControlClickPoint(id) ?? null,
     getForecastWorkerDiagnostics: () => forecastWorkerService.getDiagnostics(),
     getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
     getOpeningSnapshot: () => opening.getSnapshot(),

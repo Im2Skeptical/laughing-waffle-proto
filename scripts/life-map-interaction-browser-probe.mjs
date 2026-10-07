@@ -52,6 +52,23 @@ try {
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId), null,
     'Enter without a selected candidate does not commit');
   await click('getLifeMapNodeClickPoint',node);
+  // Reproduce the first-node failure without changing the saved simulation.
+  // An explicit preparation error leaves the panel open for real recovery taps;
+  // a module-worker failure on Retry must then use the local execution path.
+  const beforeEntry=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().runner.timeline.actionCount);
+  await page.evaluate(()=>{
+    globalThis.__nativeLifeProbeWorker=window.Worker;
+    globalThis.__lifeProbeFailure='validation';
+    window.Worker=function(url,options){
+      if(String(url).includes('life-decision-worker')) {
+        if(globalThis.__lifeProbeFailure==='unavailable')throw new Error('module workers unavailable');
+        return {terminate(){},postMessage(message){queueMicrotask(()=>this.onmessage?.({data:{
+          kind:'error',reason:'probe preparation failure',requestId:message.requestId,
+        }}));}};
+      }
+      return new globalThis.__nativeLifeProbeWorker(url,options);
+    };
+  });
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),true);
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId),null,
@@ -68,6 +85,31 @@ try {
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);
   await page.keyboard.press('Enter');
   await click('getLifeMapEnterNodeClickPoint');
+  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing?.phase==='error');
+  await page.setViewportSize({width:844,height:390});
+  await delay(250);
+  const recoveryTap=async(method,arg)=>{
+    await page.waitForFunction(({method,arg}) => __SETTLEMENT_DEBUG__[method](arg), {method,arg});
+    const p=await point(method,arg);assert.ok(p,'recovery control available');
+    const box=await page.locator('canvas').boundingBox();
+    await page.touchscreen.tap(box.x+p.x*box.width/2424,box.y+p.y*box.height/1080);
+  };
+  await recoveryTap('getLifeDecisionControlClickPoint','back');
+  await page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+  assert.equal(await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().runner.timeline.actionCount),beforeEntry,
+    'Go back receives taps above the node panel and does not record a failed entry');
+  await recoveryTap('getLifeMapEnterNodeClickPoint');
+  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing?.phase==='error');
+  await page.evaluate(()=>{globalThis.__lifeProbeFailure='unavailable';});
+  await recoveryTap('getLifeDecisionControlClickPoint','retry');
+  await page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+  assert.equal(await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId),node,
+    'Retry receives taps above the node panel and recovers an unavailable worker');
+  assert.equal(await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().runner.timeline.actionCount),beforeEntry+1,
+    'recovery accepts the first entry exactly once');
+  await page.evaluate(()=>{window.Worker=globalThis.__nativeLifeProbeWorker;});
+  await page.setViewportSize({width:1280,height:800});
+  await delay(250);
   await page.waitForFunction(() => !!__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0), null, {timeout:5000});
   await page.waitForFunction(() => !__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
   await delay(500);
