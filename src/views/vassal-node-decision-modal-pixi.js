@@ -453,6 +453,7 @@ export function createVassalNodeDecisionModalView({
     const nextSignature = getArtRevision() + JSON.stringify({ presentation: {
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
       frontierSec:presentation.frontierSec, profileSec:presentation.profileSec,
+      decisionProcessing:presentation.decisionProcessing,
     }, decision, openNodeId, dragTargetIndex, width:app.screen.width,height:app.screen.height,
       previewOptionId, previewOfferId, previewTableauId, pinnedInspectionId, quickInspectionId, acquirePicker, replacementOfferId, offerPage });
     // Refresh callbacks can run several times for one entry. A matching layout
@@ -513,7 +514,11 @@ export function createVassalNodeDecisionModalView({
     }
 
     if (!nodeState) {
-      root.addChild(createText(readOnly
+      const processing = presentation.decisionProcessing;
+      root.addChild(createText(processing
+        ? processing.error ? "Unable to prepare this node. Use Retry or Go back below."
+          : "Preparing this node. Decisions will be available when preparation finishes."
+        : readOnly
         ? projection ? "Return to Present to enter this node. This future is a projection."
           : "This node was not part of the committed path. Return to Present to make decisions."
         : "Enter this node to reveal its choices and begin the decision.", {
@@ -528,7 +533,7 @@ export function createVassalNodeDecisionModalView({
           openNodeId = node.id;
           render(true);
         });
-      explainReadOnly(enterRoot, readOnly);
+      explainReadOnly(enterRoot, readOnly && !processing);
     } else if (nodeState.resolving) {
       root.addChild(createText("DECISION COMMITTED · RESOLUTION IN PROGRESS", {
         ...TEXT_STYLES.header, fontSize: 25, fill: PALETTE.accent,

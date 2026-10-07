@@ -1,6 +1,6 @@
 import { applyAction, ActionKinds } from '../model/actions.js';
 import { serializeGameState, deserializeGameState } from '../model/state.js';
-import { LIFE_DRAFT_ACTIONS } from '../model/vassal-life-map/decision-preparation.js';
+import { LIFE_DRAFT_ACTIONS, runLifeDecisionJob } from '../model/vassal-life-map/decision-preparation.js';
 import {
   getCurrentLifeMapVassal, getVassalNodeDecisionPresentation, getVassalPendingResolution,
 } from '../model/vassal-life-map.js';
@@ -17,11 +17,13 @@ const workerUrl = typeof __LIFE_DECISION_WORKER_URL__ !== 'undefined'
 export function createLifeDecisionController({
   getRunner, getState, onChange = () => {}, onPrepare = () => {}, onPrepareChoices = () => {}, onChunk = () => {},
   createWorker = () => new Worker(new URL(workerUrl, import.meta.url), { type: 'module' }),
+  workerTimeoutMs = 15000,
 }) {
   let adopting = false;
   let base = null, draft = null, actions = [], worker = null, requestId = 0;
   let job = null, nodes = {}, revision = 0;
   const presentations = new Map();
+  let workerTimeout = null;
 
   function token() {
     const timeline = getRunner().getTimeline();
@@ -33,6 +35,8 @@ export function createLifeDecisionController({
       && now.revision === expected.revision && now.sec === expected.sec;
   }
   function stopWorker() {
+    clearTimeout(workerTimeout);
+    workerTimeout = null;
     worker?.terminate();
     worker = null;
   }
@@ -64,7 +68,7 @@ export function createLifeDecisionController({
       return getRunner().dispatchPreparedActionsAtCurrentSecond(batch, stateData, base, options);
     } finally { adopting = false; }
   }
-  async function handleMessage(data, payload, accept) {
+  async function handleMessage(data, payload, accept, id) {
     if (data.kind === 'error') { fail(data.reason); return; }
     if (data.kind === 'accepted') {
       const result = adopt(payload.actions, data.stateData,
@@ -96,15 +100,15 @@ export function createLifeDecisionController({
       job.uiPreparation = Promise.resolve(onPrepare(deserializeGameState(data.stateData)));
       const preparingJob = job;
       job.uiPreparation.catch(error => {
-        if (job === preparingJob) fail(error.message);
+        if (id === requestId && job === preparingJob) fail(error.message);
       });
     } else if (data.kind === 'ready') {
       const preparedJob = job;
       await preparedJob.uiPreparation;
-      if (job !== preparedJob || job.error || !matches(base)) return;
+      if (id !== requestId || job !== preparedJob || job.error || !matches(base)) return;
       const choicesReady = onPrepareChoices(data.nodes, deserializeGameState(data.stateData));
       if (choicesReady) await choicesReady;
-      if (job !== preparedJob || job.error || !matches(base)) return;
+      if (id !== requestId || job !== preparedJob || job.error || !matches(base)) return;
       nodes = data.nodes;
       job.stateData = data.stateData;
       job.targetSec = data.stateData.tSec;
@@ -121,23 +125,63 @@ export function createLifeDecisionController({
       completed?.();
     }
   }
+  function startLocal(payload, accept) {
+    stopWorker();
+    // Invalidate late worker messages and abandon in-flight UI preparation.
+    const id = ++requestId;
+    const localJob = job;
+    const localPayload = job.accepted
+      ? { stateData: job.stateData, actions: [], prepareOnly: true } : payload;
+    const isCurrent = () => id === requestId && job === localJob && !job.error && matches(base);
+    const yieldTask = async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      if (!isCurrent()) throw new Error('cancelled');
+    };
+    const receive = data => {
+      if (!isCurrent()) return;
+      handleMessage(data, localPayload, accept, id).catch(error => {
+        if (id === requestId && job === localJob) fail(error.message);
+      });
+    };
+    // The same isolated transaction/tick code serves both execution paths.
+    // Yield before starting and between chunks/nodes so recovery stays usable.
+    yieldTask().then(() => runLifeDecisionJob(localPayload, receive, yieldTask)).catch(error => {
+      if (id === requestId && job === localJob) {
+        if (!matches(base)) sync();
+        else fail(error.message);
+      }
+    });
+  }
   function start(payload, accept) {
     stopWorker();
     const id = ++requestId;
     try {
       worker = createWorker();
-      worker.onerror = () => {
-        if (id === requestId) fail('Unable to prepare this decision. Please retry.');
+      const fallback = event => {
+        event?.preventDefault?.();
+        if (id === requestId && job && !job.error) {
+          if (!matches(base)) sync();
+          else startLocal(payload, accept);
+        }
       };
+      const watch = () => {
+        clearTimeout(workerTimeout);
+        workerTimeout = setTimeout(fallback, workerTimeoutMs);
+      };
+      worker.onerror = fallback;
+      worker.onmessageerror = fallback;
       worker.onmessage = ({ data }) => {
         if (id !== requestId || data.requestId !== id || !job || job.error) return;
         if (!matches(base)) { sync(); return; }
-        handleMessage(data, payload, accept).catch(error => {
+        if (data.kind === 'ready') stopWorker();
+        else watch();
+        handleMessage(data, payload, accept, id).catch(error => {
           if (id === requestId) fail(error.message);
         });
       };
+      watch();
       worker.postMessage({ ...payload, requestId: id });
-    } catch (error) { fail(error.message); }
+    } catch { startLocal(payload, accept); }
   }
 
   return {
@@ -202,7 +246,8 @@ export function createLifeDecisionController({
       const state = current();
       if (presentation.viewedSec !== presentation.frontierSec) return presentation;
       const vassal = getCurrentLifeMapVassal(state);
-      return { ...presentation, state, vassal, profileVassal: vassal, readOnly: presentation.readOnly || !!job };
+      return { ...presentation, state, vassal, profileVassal: vassal, readOnly: presentation.readOnly || !!job,
+        decisionProcessing: job ? { phase: job.phase, error: job.error } : null };
     },
     dispatch(kind, payload, options, accept) {
       sync();

@@ -61,6 +61,87 @@ assert.equal(getForecastRevealFollowTargetEndSec({capEndSec:100,readinessCapSec:
 assert.equal(getForecastRevealFollowTargetEndSec({capEndSec:100,readinessCapSec:null},100,0,98),100);
 console.log('[life-decision] isolated preloading, replay, local drafts, retry, duplicate/stale guards, reveal readiness OK');
 import { createSimRunner } from '../src/controllers/sim-runner.js';
+// A phone that cannot start module workers must still be able to enter its
+// first node. Preparation failure must not strand an otherwise fresh run.
+const unavailableRunner = createSimRunner({setupId:'devPlaytesting01'});
+unavailableRunner.resetToState(initial);
+const unavailableController = createLifeDecisionController({
+  getRunner:()=>unavailableRunner, getState:()=>unavailableRunner.getState(),
+  createWorker:()=>{throw new Error('module workers unavailable');},
+});
+async function waitForDecision(test, message) {
+  const deadline = Date.now() + 3000;
+  while (!test() && Date.now() < deadline) await new Promise(resolve=>setTimeout(resolve,5));
+  assert.ok(test(), message);
+}
+assert.equal(unavailableController.dispatch(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId},{},()=>{}).pending,true);
+await waitForDecision(()=>unavailableController.getStatus()===null,'worker fallback completes first entry');
+assert.equal(unavailableController.getStatus(),null,'first node must recover from worker startup failure');
+assert.equal(getCurrentLifeMapVassal(unavailableRunner.getState()).lifeMap.currentNodeId,nodeId);
+assert.equal(unavailableRunner.getTimeline().actions.length,1,'entry is accepted exactly once');
+for (const failure of ['workerError','messageError','postMessage','silent']) {
+  const fallbackRunner=createSimRunner({setupId:'devPlaytesting01'});
+  fallbackRunner.resetToState(initial);
+  let failedWorker, terminated=false, acceptCount=0;
+  const fallbackController=createLifeDecisionController({
+    getRunner:()=>fallbackRunner,getState:()=>fallbackRunner.getState(),workerTimeoutMs:failure==='silent'?1:15000,
+    createWorker:()=>failedWorker={terminate(){terminated=true;},postMessage(message){
+      this.message=message;
+      if(failure==='postMessage')throw new Error('cannot send snapshot');
+    }},
+  });
+  fallbackController.dispatch(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId},{},()=>{acceptCount++;});
+  const failedRequest=failedWorker.message;
+  const processing=fallbackController.overlay({readOnly:false,viewedSec:0,frontierSec:0});
+  assert.equal(processing.readOnly,true);
+  assert.ok(processing.decisionProcessing,'processing is distinct from historical read-only browsing');
+  if(failure==='workerError')failedWorker.onerror({preventDefault(){}});
+  if(failure==='messageError')failedWorker.onmessageerror();
+  await waitForDecision(()=>fallbackController.getStatus()===null,`${failure} fallback completes`);
+  assert.equal(terminated,true);
+  assert.equal(acceptCount,1);
+  assert.equal(fallbackRunner.getTimeline().actions.length,1);
+  const fallbackState=serializeGameState(fallbackRunner.getState());
+  assert.ok(JSON.stringify(fallbackState.civilization)===JSON.stringify(previews[nodeId].stateData.civilization),
+    `${failure} fallback uses the exact isolated worker transaction`);
+  assert.deepEqual(fallbackState.rng,previews[nodeId].stateData.rng);
+  failedWorker.onmessage({data:{kind:'accepted',requestId:failedRequest.requestId,stateData:previews[nodeId].stateData}});
+  assert.equal(fallbackRunner.getTimeline().actions.length,1,'late failed-worker output cannot duplicate entry');
+}
+// A worker can fail after it has already accepted and charged a decision.
+const partialRunner=createSimRunner({setupId:'devPlaytesting01'});
+partialRunner.resetToState(entered);
+let partialWorker, partialAccepts=0;
+const partialController=createLifeDecisionController({
+  getRunner:()=>partialRunner,getState:()=>partialRunner.getState(),
+  createWorker:()=>partialWorker={terminate(){},postMessage(message){this.message=message;}},
+});
+partialController.dispatch(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId});
+partialController.dispatch(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId},{},()=>{partialAccepts++;});
+const partialRequest=partialWorker.message;
+const partialMessages=[];
+await runLifeDecisionJob(partialRequest,message=>partialMessages.push(message));
+partialWorker.onmessage({data:{...partialMessages[0],requestId:partialRequest.requestId}});
+const paidCount=partialRunner.getTimeline().actions.length;
+partialWorker.onerror();
+await waitForDecision(()=>partialController.getResolution()?.ready,'accepted transaction resolves through fallback');
+assert.equal(partialRunner.getTimeline().actions.length,paidCount,'fallback never charges accepted actions twice');
+assert.equal(partialAccepts,1);
+assert.equal(partialController.commitResolution().ok,true);
+assert.deepEqual(serializeGameState(partialRunner.getState()).civilization,ready.stateData.civilization);
+assert.deepEqual(serializeGameState(partialRunner.getState()).rng,ready.stateData.rng);
+// Replacing the run before the first local yield cancels the obsolete work.
+const cancelledRunner=createSimRunner({setupId:'devPlaytesting01'});
+cancelledRunner.resetToState(initial);
+const cancelledController=createLifeDecisionController({getRunner:()=>cancelledRunner,getState:()=>cancelledRunner.getState(),
+  createWorker:()=>{throw new Error('unavailable');}});
+cancelledController.dispatch(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
+cancelledRunner.resetToState(initial);
+await waitForDecision(()=>cancelledController.getStatus()===null,'replacement run clears obsolete preparation');
+await new Promise(resolve=>setTimeout(resolve,10));
+assert.equal(cancelledRunner.getTimeline().actions.length,0);
+assert.equal(getCurrentLifeMapVassal(cancelledRunner.getState()).lifeMap.currentNodeId,null);
+console.log('[life-decision] failed/silent workers recover first entry and accepted resolution without duplicate charges; stale local work cancelled OK');
 const realRunner=createSimRunner({setupId:'devPlaytesting01'});
 realRunner.resetToState(initial);
 const actualTimeline=realRunner.getTimeline();
