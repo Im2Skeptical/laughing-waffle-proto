@@ -10,6 +10,10 @@ Content lives in `src/defs/gamepieces/detailed-settlement-defs.js`
 `detailedSettlementEffectOps`). Do not add pieces to
 `settlement-practice-defs.js` or `hub-structure-defs.js`.
 
+When a new or updated card needs artwork, read
+[illustrate-gamepiece](../../../.agents/skills/illustrate-gamepiece/SKILL.md)
+before writing the illustration prompt. Number-only changes do not need it.
+
 ## Number-only tweaks
 
 Changing rates, caps, costs, durations, or counts on an existing

@@ -6,6 +6,12 @@ The runtime and Zoo contain all 187 workbook rows plus Observation: Common **14 
 
 ## Bronze Common Research addition
 
+The initial Observation prompt recorded below is provenance, not the art
+direction for future illustrations. It missed the established composition and
+anonymous-face requirements. Generate replacements through
+[illustrate-gamepiece](../.agents/skills/illustrate-gamepiece/SKILL.md) and
+[the current illustration guidelines](../images/dark-fantasy/settlement-pieces-v4/README.md#current-illustration-guidelines).
+
 **Observation** is a Common Knowledge Practice available at Bronze and zero Research. Birth grants a fixed **1 Research**, using the existing `research` DSL effect. It costs the usual 10 Prestige / 12 phases to learn, occupies one of the five Practice slots, has no Stock inputs or output, and uses no worker or Scholar sockets. This gives unclassed and Warrior settlements a slow, dependable Research route while stronger Scholar engines retain their specialized rewards. Quality does not multiply the fixed Research yield. Existing runs retain their captured definitions; start a new run to use the addition.
 
 Its dedicated painting is `images/dark-fantasy/settlement-pieces-v4/observation.webp`, generated with the built-in imagegen tool. Prompt: “Create one portrait 5:7 game-card illustration for Observation, a humble early Common Knowledge practice. Dark fantasy medieval village at dawn. Two ordinary villagers in simple wool clothing closely examine the growth of a small plant beside a stone wall; one kneels comparing a leaf and the other scratches simple tally marks onto a small wooden tablet. No scholars' robes, no magic, no advanced instruments. Composition: subjects large and clear in central upper two thirds, foreground cobblestones and roots below, modest timber buildings and misty distant mountains behind. Style: richly composed painterly pixel art with crisp visibly square pixel clusters and limited deep navy, slate blue, muted ochre and golden dawn palette, matching the project's medieval fantasy card illustrations. Strong golden rimlight, deep blue shadows, readable at small thumbnail size. Edge-to-edge illustration only; no frame, no letters, no card title, no UI, no watermark. Save output for integration as the observation practice artwork.”

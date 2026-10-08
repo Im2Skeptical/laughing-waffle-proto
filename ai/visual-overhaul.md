@@ -4,6 +4,12 @@ Implemented September 2026. This document describes the shipped presentation and
 
 ## Art direction and layout
 
+For new or replacement Practice and Structure illustrations, follow
+[the current card-illustration guidelines](../images/dark-fantasy/settlement-pieces-v4/README.md#current-illustration-guidelines)
+through [illustrate-gamepiece](../.agents/skills/illustrate-gamepiece/SKILL.md).
+That guide specifies composition and anonymous figures as well as surface style;
+the presentation overview and historical prompts are not generation briefs.
+
 The references in `ai/References/` were accessible and inspected before design: Diablo II, Age of Empires II, Baldur's Gate II, and the supplied pixel illustration/card references. They informed the palette, material treatment, and composition; the shipped paintings and sprites are newly generated originals.
 
 The game keeps its fixed 2424 × 1080 landscape canvas, uniformly fitted and letterboxed. The menu can adapt to portrait; fullscreen and landscape entry are handled inside that same menu. Losing focus returns to the menu, and Continue resumes the live game. Main screens share engraved brass borders, dark stone panels, bone-colored headings, and readable body text. The lower band holds the shared navigation dock, Chronicle graph, and enlarged astrolabe. The dock is a thumb pad: two sculpted capsule halves with large icons and short titles, without subtitles. Life Map and Settlement share equal emphasis on the Regional Map; elsewhere Map is the smaller companion to the main destination. A circular Vassal portrait/location shortcut sits above the pad outside the Life Map, opposite a small auxiliary clock. Clock hands and colored directional arrows distinguish Present, History, and projected future; hover supplies context. A brief, reduced-motion-aware input highlight explains attempts to edit fixed history or projections. The wheel sits in the right corner, with a compact vertical lever immediately to its left. The lever locks forward/rewind movement around a neutral centre. The two discs and central phase medallion accept drags. Six phase sprites turn with the moon face; a tap on the upright centre opens the six-phase rules and results reference. The approved Sun, Moon, Phase, Prestige, Food, and Money sprites also label live resource amounts and framed choice/shop costs.

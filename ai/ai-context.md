@@ -95,6 +95,9 @@ knowledge, and the single vassal lineage are civilization-global.
 - File and test routing: [`ai/repository-map.md`](repository-map.md)
 - Glossary: [`CONTEXT.md`](../CONTEXT.md)
 - Art/presentation contract: [`ai/visual-overhaul.md`](visual-overhaul.md)
+- Generate or replace card illustrations: read
+  [illustrate-gamepiece](../.agents/skills/illustrate-gamepiece/SKILL.md)
+  before prompting, including requests that name only a Practice or Structure.
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
 Gym ? New run setup owns Map Lab, Game Settings and Life Map Lab under one

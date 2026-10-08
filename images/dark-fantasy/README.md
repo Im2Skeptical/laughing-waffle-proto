@@ -1,5 +1,10 @@
 # Dark-fantasy source art
 
+For Practice and Structure generation, read
+[the current illustration guidelines](settlement-pieces-v4/README.md#current-illustration-guidelines)
+and follow [illustrate-gamepiece](../../.agents/skills/illustrate-gamepiece/SKILL.md)
+before writing a prompt. Prior generation records below are provenance.
+
 Runtime art is maintained as named source images and packed by TexturePacker.
 Versioned source folders are the editable inventory; their generated
 atlases live in `../sprite-sheets/` and are registered in

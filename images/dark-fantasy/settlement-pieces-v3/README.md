@@ -1,6 +1,9 @@
 # Settlement paintings, third pass
 
 Archived composition pass. Runtime cards use `../settlement-pieces-v4/`.
+For new or replacement art, read
+[the current illustration guidelines](../settlement-pieces-v4/README.md#current-illustration-guidelines);
+the records here preserve the original pass, not a separate current workflow.
 
 At the time of this archived pass, this set covered 94 Practices, 34 Structures, and 27
 earlier card subjects: 155 named paintings in total. `index.html` is a local

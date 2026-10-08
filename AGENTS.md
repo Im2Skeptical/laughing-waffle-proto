@@ -4,10 +4,16 @@ Local instructions for agents working in this repo.
 
 ## Project context
 - Always read `ai/ai-context.md` (invariants and schema numbers).
+- Illustration requests for a Practice, Structure, or gamepiece card (including
+  "please generate a new illustration for the observation practice") must read
+  [illustrate-gamepiece](.agents/skills/illustrate-gamepiece/SKILL.md) before
+  writing a generation prompt or choosing reference art. This also applies when
+  creating a card needs new artwork. The user need not name a skill or restate
+  the art direction.
 - When a routing skill applies, read that skill first and follow it:
   `add-gamepiece`, `change-view`, `change-timegraph`,
   `change-vassal-life-map`, `change-settlement-sim`, `change-debug-tools`
-  (under `.grok/skills/`). Do not load the other skills.
+  (under `.grok/skills/`). Do not load unrelated routing skills.
 - Do not open `CONTEXT.md`, `ai/sim.md`, and `ai/ui.md` on every task.
   Read `ai/sim.md` **or** `ai/ui.md` (not both) only when the matching
   skill is not enough. Read both only when the task crosses model and
@@ -73,6 +79,10 @@ Local instructions for agents working in this repo.
 
 Grok auto-loads `<repo>/.grok/skills/*/SKILL.md`. Prefer those routing skills
 over loading a whole subsystem.
+The illustration skill lives in `.agents/skills/illustrate-gamepiece/` for
+Codex discovery; its `.grok/skills/illustrate-gamepiece/` adapter points to
+the same workflow. Follow the explicit illustration route above even when
+the current session's skill catalogue has not refreshed.
 
 ## Issue tracker
 
