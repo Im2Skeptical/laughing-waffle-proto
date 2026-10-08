@@ -34,9 +34,13 @@ try {
   // Short choice sets are segmented controls; each button carries its value.
   const choose=async(label,value)=>{
     const target=page.locator(`[role=group][aria-label="${label}"] [data-value="${value}"]`);
-    // Phones fold secondary Zoo filters away; open them as a person would.
-    if(!await target.isVisible()&&await page.locator('.lab-filter-more:not([open])').count())await page.locator('.lab-filter-more>summary').click();
+    // The Zoo bar slides away while scrolling down; scrolling up brings it back.
+    if(await page.locator('.lab-zoo-bar.is-hidden').count()){await page.mouse.wheel(0,-400);await page.locator('.lab-zoo-bar:not(.is-hidden)').waitFor();}
+    // Narrow screens keep full filters in a drawer; open and close it as a person would.
+    const drawer=!await target.isVisible()&&await page.getByTestId('zoo-filters-button').isVisible();
+    if(drawer)await page.getByTestId('zoo-filters-button').click();
     await target.click();
+    if(drawer)await page.getByTestId('zoo-filters-close').click();
   };
   const readingPoint=async point=>{
     const current=await reading(), rect=await page.getByTestId('lab-card-reading').boundingBox();
@@ -100,7 +104,8 @@ try {
   await choose('Category','practice');
   await page.getByLabel('Search runtime content').fill('smelting');
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  assert.equal(await page.locator('.lab-filter-more').evaluate(node=>node.open),false,'secondary Zoo filters collapse on phones');
+  assert.equal(await page.getByTestId('zoo-filters').isVisible(),false,'full Zoo filters stay in a drawer on phones');
+  assert.equal(await page.getByTestId('zoo-filters-button').getAttribute('aria-expanded'),'false');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Zoo fits a portrait phone');
   assert.equal(await page.locator('.lab-header').evaluate(node=>getComputedStyle(node).position),'sticky','phone navigation stays reachable');
   await page.locator('.lab-catalogue-grid .lab-card-preview').first().focus();

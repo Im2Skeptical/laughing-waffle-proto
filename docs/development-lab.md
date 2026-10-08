@@ -16,7 +16,14 @@ copy, save, default, import/export) and **Launch** (layout, seed, start). Its
 setup and initialization path as player New Game. It includes two player
 settlements on a seeded random road, rolled Structure capacities and four
 neutral settlements. **Copy to edit** creates an editable draft of that recipe.
-Map Lab, Game Settings and Life Map Lab are its three editor tabs. The single
+Map Lab, Game Settings and Life Map Lab are its three editor tabs. They use
+the Lab's shared styles: fields are grouped into collapsible sections with
+counts (Map Lab: Region, Connections, Population, Practices, Structures; Game
+Settings: one section per simulation stage, with **Find a setting** and a
+“not default” badge plus the default under each changed value; Life Map Lab:
+Topology & layout, Sequential repeats, Room-family weights beside a Preview).
+Explanations sit behind **How it works**, **What this controls** and field (i)
+help, which stay usable on the read-only baseline. The single
 **Combined profile** toolbar saves and loads every section together, including
 launch options and any applied reviewed cards. There are no separate section
 profile or preset toolbars. Edit gamepieces in the card reviewer. Profiles save
@@ -158,7 +165,7 @@ never write to storage. Buttons follow one hierarchy: primary (the main action),
 secondary, quiet and danger; badges mark counts and states. Shared tokens live
 at the top of the `.development-lab` block in `styles.css`.
 
-Zoo, Reviewer, Museum and Gym fit 390px portrait and 844×390 landscape
+Zoo, Reviewer, Museum and Gym (including the New run editors) fit 390px portrait and 844×390 landscape
 without horizontal scrolling. The header and section nav stay compact and
 sticky; landscape-short screens keep only the nav. Controls are at least 44px
 on narrow or touch screens, number fields use the numeric keyboard, and Zoo
@@ -234,13 +241,18 @@ Quick reads stay inside the viewport and scroll when needed; full inspection
 uses a modal canvas with independent rules and symbol-key scrolling.
 Catalogue specimens use equal-size frames, including wide Structures; card art
 keeps its original proportions within a fixed image area.
-Categories are tabs with counts, and Search stays visible. **Filters**
-(collapsed on phones) holds Show (Card versions: Live / With edits / Edited
-only, Hide locked) and Card details (Class tabs plus maturity, mode, tag, trait
-and slot size), offering only values that apply to the current category.
-**Clear filters** restores the defaults. Practices and Structures are grouped by
-class under sticky headers with counts. Coverage is a collapsed table unless
-runtime content is missing.
+One compact sticky bar holds the category tabs (with counts), Search and a
+**Filters (N)** button. The bar slides away while scrolling down and returns on
+the way up (instantly with reduced motion; never while typing a search).
+Full filters are a sticky sidebar on wide screens, a side drawer in landscape
+and a bottom sheet in portrait (**Done**, the scrim or Escape closes it). They
+hold Show (Card versions: Live / With edits / Edited only, Hide locked) and Card
+details (Class tabs plus maturity, mode, tag, trait and slot size), offering
+only values that apply to the current category. Active filters and the search
+appear as removable chips beside the result count, with **Clear all** once
+there are two or more. Practices and Structures are grouped by class under
+sticky headers with counts. Coverage is a collapsed table unless runtime
+content is missing.
 Comparison shows four Practice qualities or four Structure quality uplifts,
 capacity, timing, DSL effects, Consume/Require, gates, modifiers, and stacking.
 Zoo samples have no workers or institutions; Museum/Gym faces use the complete

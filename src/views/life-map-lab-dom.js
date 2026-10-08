@@ -1,4 +1,5 @@
 import { lockDebugEditor } from "./debug-editor-readonly.js";
+import { button as labButton, field as labField, disclosure, info, badge, isNarrow } from "./development-lab/elements.js";
 import {
   VASSAL_NODE_FAMILIES,
   getVassalLifeMapNodeFamily,
@@ -12,17 +13,16 @@ function element(tag, className = "", text = null) {
   return node;
 }
 
-function button(label, testId, handler) {
-  const node = element("button", "life-map-lab-button", label);
-  node.type = "button";
-  node.dataset.testid = testId;
-  node.addEventListener("click", handler);
+function button(label, testId, handler, variant = "") {
+  const node = labButton(label, handler, testId, variant);
+  node.classList.add("life-map-lab-button");
   return node;
 }
 
 function numberInput(value, testId, handler, { min = null, max = null, step = 1 } = {}) {
   const input = element("input", "life-map-lab-input");
   input.type = "number";
+  input.inputMode = "decimal";
   input.value = String(value);
   if (min != null) input.min = String(min);
   if (max != null) input.max = String(max);
@@ -35,10 +35,8 @@ function numberInput(value, testId, handler, { min = null, max = null, step = 1 
   return input;
 }
 
-function field(label, input) {
-  const root = element("label", "life-map-lab-field");
-  root.append(element("span", "", label), input);
-  return root;
+function field(label, input, options) {
+  return labField(label, input, options);
 }
 
 function svgNode(tag, attributes = {}) {
@@ -52,22 +50,8 @@ function colorHex(value) {
 }
 
 export function createLifeMapLabDom({ controller, readOnly = () => false } = {}) {
-  const root = element("div", "life-map-lab-root");
+  const root = element("div", "life-map-lab-root lab-editor");
   root.dataset.testid = "life-map-lab";
-  const style = document.createElement("style");
-  style.textContent = `
-    .life-map-lab-root{display:grid;gap:10px;color:#f6efe3}
-    .life-map-lab-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:end}
-    .life-map-lab-workspace{display:grid;grid-template-columns:minmax(420px,.85fr) minmax(600px,1.15fr);gap:10px;align-items:start}
-    .life-map-lab-card{background:rgba(14,18,23,.38);border:1px solid rgba(248,234,208,.22);border-radius:7px;padding:10px;min-width:0}
-    .life-map-lab-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-    .life-map-lab-weight-grid{display:grid;grid-template-columns:minmax(130px,1.5fr) repeat(3,minmax(70px,1fr));gap:5px;align-items:center}
-    .life-map-lab-button,.life-map-lab-input{min-height:30px;border:1px solid rgba(224,199,137,.65);border-radius:5px;padding:4px 8px;box-sizing:border-box}
-    .life-map-lab-button{background:#455463;color:#f8ead0;cursor:pointer}.life-map-lab-input{background:#f8f0df;color:#1d2430;width:100%}
-    .life-map-lab-preview{display:block;width:100%;height:auto;min-height:410px;background:#1c242b;border:1px solid #586876;border-radius:6px}
-    .life-map-lab-status{font-size:12px;color:#b9f5c7}.life-map-lab-error{font-size:12px;color:#ffb4a8}
-    @media(max-width:1100px){.life-map-lab-workspace{grid-template-columns:1fr}.life-map-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  `;
   let unsubscribe = null;
   let selectedNodeId = null;
 
@@ -119,77 +103,106 @@ export function createLifeMapLabDom({ controller, readOnly = () => false } = {})
     const snapshot = controller.getSnapshot();
     const draft = snapshot.draft;
     const config = draft.generatorConfig;
-    root.replaceChildren(style);
-    root.append(element("h3", "", "Life Map Lab"));
-    root.append(element("p", "", "Tune deterministic Vassal map generation. Changes apply only to the next launch from New run setup."));
+    root.replaceChildren();
+    const toolbar = element("div", "lab-editor-toolbar");
+    toolbar.append(info("life-map-lab", [
+      "Tunes deterministic Vassal life-map generation. Changes apply only to the next launch from New run setup; the preview seed only changes this preview.",
+      "Lanes and depths shape the grid, route traces carve the paths through it, and smoothing and node gap tidy the layout. Weights set how often each room family appears in the early, mid and late depths.",
+    ], { label: "How it works" }));
+    root.append(toolbar);
 
-    const workspace = element("div", "life-map-lab-workspace");
+    const workspace = element("div", "life-map-lab-workspace lab-editor-workspace");
     workspace.dataset.testid = "life-map-lab-workspace";
-    const settings = element("section", "life-map-lab-card");
-    settings.append(element("h4", "", "Topology and layout"));
-    const grid = element("div", "life-map-lab-grid");
+    const settings = element("div", "lab-editor-column");
+
+    const grid = element("div", "lab-editor-grid life-map-lab-grid");
     const numeric = [
       ["Lanes", "laneCount", 2, 12, 1], ["Normal depths", "normalDepthCount", 3, 20, 1],
       ["Route traces", "routeCount", 2, 24, 1], ["Early depths", "earlyDepthCount", 1, 18, 1],
       ["Mid depths", "midDepthCount", 1, 18, 1], ["Layout smoothing", "layoutSmoothing", 0, 1, 0.05],
       ["Minimum node gap", "minimumNodeGap", 0.02, 0.3, 0.01],
     ];
+    const help = {
+      layoutSmoothing: "0 keeps raw lane positions; 1 smooths them fully.",
+      minimumNodeGap: "Smallest distance between nodes, as a share of the map width.",
+    };
     for (const [label, key, min, max, step] of numeric) {
       grid.append(field(label, numberInput(config[key], `life-map-lab-${key}`, (value) =>
-        controller.updateValue(["generatorConfig", key], value), { min, max, step })));
+        controller.updateValue(["generatorConfig", key], value), { min, max, step }), help[key] ? { help: help[key] } : undefined));
     }
-    settings.append(grid, element("h4", "", "Sequential repeats"));
-    const repeats = element("div", "life-map-lab-actions");
+    settings.append(disclosure("Topology & layout", [grid], { key: "lifemap:topology", open: true, count: numeric.length, className: "lab-editor-section" }));
+
+    const repeats = element("div", "lab-editor-checks life-map-lab-actions");
     for (const familyId of VASSAL_NORMAL_NODE_FAMILY_IDS) {
-      const label = element("label", "life-map-lab-field");
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.checked = config.nonRepeatFamilyIds.includes(familyId);
       checkbox.dataset.testid = `life-map-lab-no-repeat-${familyId}`;
+      checkbox.setAttribute("aria-label", `Block repeated ${VASSAL_NODE_FAMILIES[familyId].label}`);
       checkbox.addEventListener("change", () => {
         const next = checkbox.checked
           ? [...new Set([...config.nonRepeatFamilyIds, familyId])]
           : config.nonRepeatFamilyIds.filter((id) => id !== familyId);
         controller.updateValue(["generatorConfig", "nonRepeatFamilyIds"], next);
       });
-      label.append(checkbox, document.createTextNode(` Block ${VASSAL_NODE_FAMILIES[familyId].label}`));
-      repeats.append(label);
+      repeats.append(field(VASSAL_NODE_FAMILIES[familyId].label, checkbox));
     }
-    settings.append(repeats, element("h4", "", "Room-family weights"));
+    const blocked = config.nonRepeatFamilyIds.length;
+    settings.append(disclosure("Sequential repeats", [
+      info("life-map-repeats", "Checked room families never appear twice in a row along a route.", { label: "What this controls" }),
+      repeats,
+    ], {
+      key: "lifemap:repeats", open: !isNarrow(), count: VASSAL_NORMAL_NODE_FAMILY_IDS.length,
+      badges: [badge(`${blocked} blocked`, blocked ? "accent" : "")], className: "lab-editor-section",
+    }));
+
     const weights = element("div", "life-map-lab-weight-grid");
-    weights.append(element("strong", "", "Family"), element("strong", "", "Early"), element("strong", "", "Mid"), element("strong", "", "Late"));
+    weights.setAttribute("role", "table");
+    weights.setAttribute("aria-label", "Room-family weights");
+    weights.append(element("span", "lab-editor-th", "Family"), element("span", "lab-editor-th", "Early"), element("span", "lab-editor-th", "Mid"), element("span", "lab-editor-th", "Late"));
     for (const familyId of VASSAL_NORMAL_NODE_FAMILY_IDS) {
-      weights.append(element("span", "", VASSAL_NODE_FAMILIES[familyId].label));
+      const family = VASSAL_NODE_FAMILIES[familyId];
+      const name = element("span", "life-map-lab-family");
+      const swatch = element("span", "life-map-lab-swatch", family.glyph ?? "");
+      swatch.style.background = colorHex(family.color);
+      name.append(swatch, element("span", "", family.label));
+      weights.append(name);
       for (const band of ["early", "mid", "late"]) {
-        weights.append(numberInput(config.weights[band][familyId], `life-map-lab-weight-${band}-${familyId}`, (value) =>
-          controller.updateValue(["generatorConfig", "weights", band, familyId], value), { min: 0, max: 100, step: 1 }));
+        const input = numberInput(config.weights[band][familyId], `life-map-lab-weight-${band}-${familyId}`, (value) =>
+          controller.updateValue(["generatorConfig", "weights", band, familyId], value), { min: 0, max: 100, step: 1 });
+        input.setAttribute("aria-label", `${family.label} ${band} weight`);
+        weights.append(input);
       }
     }
-    settings.append(weights);
+    settings.append(disclosure("Room-family weights", [
+      info("life-map-weights", "Relative chance of each family in each depth band. 0 removes the family from that band.", { label: "What this controls" }),
+      weights,
+    ], { key: "lifemap:weights", open: true, count: VASSAL_NORMAL_NODE_FAMILY_IDS.length, className: "lab-editor-section" }));
 
-    const previewCard = element("section", "life-map-lab-card");
-    const previewActions = element("div", "life-map-lab-actions");
+    const previewCard = element("section", "lab-editor-card life-map-lab-card life-map-lab-preview-card");
+    const previewHead = element("div", "lab-editor-head");
+    previewHead.append(element("h3", "", "Preview"));
+    if (snapshot.preview) previewHead.append(badge(`${snapshot.preview.nodes.length} nodes`), badge(`${snapshot.preview.edges.length} edges`), badge(`${snapshot.routeTraces.length} routes`));
+    previewCard.append(previewHead);
+    const previewActions = element("div", "lab-editor-toolbar life-map-lab-actions");
     previewActions.append(
       field("Preview seed", numberInput(draft.previewSeed, "life-map-lab-preview-seed", (value) => controller.setPreviewSeed(value), {
         min: -2147483648, max: 2147483647, step: 1,
       })),
       button("Regenerate", "life-map-lab-regenerate", () => controller.regenerate()),
-      button("Next seed", "life-map-lab-next-seed", () => controller.nextPreviewSeed())
+      button("Next seed", "life-map-lab-next-seed", () => controller.nextPreviewSeed(), "quiet")
     );
     previewCard.append(previewActions);
     renderPreview(previewCard, snapshot.preview);
     const selected = snapshot.preview?.nodes.find((node) => node.id === selectedNodeId);
-    const summary = selected
+    previewCard.append(element("p", "lab-editor-legend", selected
       ? `${selected.id} · depth ${selected.depth + 1} · lane ${selected.lane + 1} · ${getVassalLifeMapNodeFamily(selected)?.label}`
-      : snapshot.preview
-        ? `${snapshot.preview.nodes.length} nodes · ${snapshot.preview.edges.length} edges · ${snapshot.routeTraces.length} route traces`
-        : "Preview unavailable";
-    previewCard.append(element("p", "", summary));
-    for (const error of snapshot.diagnostics) previewCard.append(element("p", "life-map-lab-error", error));
-    workspace.append(settings, previewCard);
+      : snapshot.preview ? "Tap a node to see its depth, lane and family." : "Preview unavailable"));
+    for (const error of snapshot.diagnostics) previewCard.append(element("p", "lab-callout life-map-lab-error", error));
+    workspace.append(previewCard, settings);
     root.append(workspace);
-    const status = element("p", snapshot.status?.tone === "error"
-      ? "life-map-lab-error" : "life-map-lab-status", snapshot.status?.message ?? "");
+    const status = element("p", `lab-editor-status ${snapshot.status?.tone === "error"
+      ? "life-map-lab-error" : "life-map-lab-status"}`, snapshot.status?.message ?? "");
     status.dataset.testid = "life-map-lab-status";
     root.append(status);
   }

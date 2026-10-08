@@ -6,7 +6,7 @@ import { openLabHandoff } from '../../controllers/development-lab-bridge.js';
 import { createMapLabDom } from '../map-lab-dom.js';
 import { createLifeMapLabDom } from '../life-map-lab-dom.js';
 import { createDebugConfigurationDom } from '../debug-configuration-dom.js';
-import { el, button, confirmButton, select, input, field, section, info, group } from './elements.js';
+import { el, button, confirmButton, select, input, field, section, info, group, badge } from './elements.js';
 
 export function createNewRunSetupView({ getGymState, openInGym, review }) {
   const map = createMapLabController({ runner: { getState: getGymState } });
@@ -109,6 +109,10 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
     }
     root.append(el('h3', 'Edit the recipe', 'lab-section-title'));
     const editor = el('fieldset', '', 'lab-run-editor'); editor.classList.toggle('is-readonly', snapshot.readOnly);
+    if (snapshot.readOnly) {
+      const note = el('p','','lab-readonly-note'); note.append(badge('Read-only','warn'),'Copy to edit to change values. Maps, previews and help stay usable.');
+      editor.append(note);
+    }
     const surface = el('div');
     pages[activePage].render(); surface.append(pages[activePage].element); editor.append(surface);
     root.append(tabs, editor); syncStatus();

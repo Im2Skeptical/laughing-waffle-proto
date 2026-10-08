@@ -3,55 +3,33 @@ import {
   GAME_SETTINGS_DRAFT_KIND,
   GAME_SETTING_EDITOR_SECTIONS,
 } from "../model/game-config.js";
+import { el, field, disclosure, info, badge, isNarrow, setDisclosureOpen } from "./development-lab/elements.js";
 
 function numberInput(value, { min = 0, max = 1000000, step = "any" } = {}) {
-  const input = document.createElement("input");
+  const input = el("input");
   input.type = "number";
   input.value = String(value);
   input.min = String(min);
   input.max = String(max);
   input.step = String(step);
-  input.style.cssText = [
-    "width:100%",
-    "min-width:90px",
-    "min-height:34px",
-    "box-sizing:border-box",
-    "border:1px solid #8fa0ae",
-    "border-radius:5px",
-    "background:#f8f0df",
-    "color:#1d2430",
-    "padding:5px 8px",
-  ].join(";");
+  input.inputMode = "decimal";
   return input;
 }
 
 function booleanInput(value) {
-  const input = document.createElement("input");
+  const input = el("input");
   input.type = "checkbox";
   input.checked = value === true;
-  input.style.cssText = [
-    "width:22px",
-    "height:22px",
-    "margin:6px 0",
-    "accent-color:#d7b450",
-  ].join(";");
   return input;
 }
 
-function fieldRow(labelText, input) {
-  const label = document.createElement("label");
-  label.style.cssText = "display:grid;gap:4px;min-width:0;font-size:12px;color:#e8dfcb";
-  const caption = document.createElement("span");
-  caption.textContent = labelText;
-  label.append(caption, input);
-  return label;
-}
+const shown = (value) => typeof value === "boolean" ? (value ? "On" : "Off") : String(value);
 
 export function createDebugConfigurationDom({ controller, readOnly = () => false } = {}) {
-  const root = document.createElement("section");
+  const root = el("section", "", "lab-editor lab-settings-editor");
   const kind = GAME_SETTINGS_DRAFT_KIND;
   root.dataset.testid = `debug-${kind}`;
-  let unsubscribe = null;
+  let unsubscribe = null, query = "";
 
   function render() {
     renderContents();
@@ -62,20 +40,40 @@ export function createDebugConfigurationDom({ controller, readOnly = () => false
     const snapshot = controller.getSnapshot(kind);
     root.replaceChildren();
 
-    const status = document.createElement("div");
-    status.textContent = snapshot.status?.message ?? "";
-    status.style.cssText = [
-      "min-height:18px",
-      "margin-bottom:8px",
-      "font-size:12px",
-      `color:${snapshot.status?.tone === "error" ? "#ffb4a8" : snapshot.status?.tone === "warning" ? "#ffd98a" : "#b9f5c7"}`,
-    ].join(";");
-    root.appendChild(status);
+    const status = el("p", snapshot.status?.message ?? "", "lab-editor-status");
+    if (snapshot.status?.tone === "error") status.classList.add("map-lab-error");
+    else if (snapshot.status?.tone === "warning") status.classList.add("map-lab-warning");
 
-    const editor = document.createElement("div");
-    editor.style.cssText = "display:grid;gap:12px";
-    root.appendChild(editor);
-    renderSettings(editor, snapshot.draft);
+    // Long list: a search narrows every section at once.
+    const toolbar = el("div", "", "lab-editor-toolbar");
+    const search = el("input");
+    search.type = "search"; search.value = query; search.placeholder = "Find a setting…";
+    search.setAttribute("aria-label", "Find a setting"); search.dataset.labUi = "search"; search.enterKeyHint = "search";
+    search.addEventListener("input", () => { query = search.value; applySearch(); });
+    toolbar.append(search, info("game-settings", [
+      "These values apply to runs launched from this profile. Edits save into the draft as you type; a value outside its range is marked and ignored.",
+      "Sections follow the order the simulation uses them. “Not default” counts values that differ from this build’s defaults; each one shows its default underneath.",
+    ], { label: "How it works" }));
+    root.append(toolbar, status);
+    renderSettings(root, snapshot.draft);
+    applySearch();
+  }
+
+  function applySearch() {
+    const term = query.trim().toLowerCase();
+    let any = false;
+    for (const section of root.querySelectorAll(".lab-settings-section")) {
+      let matches = 0;
+      for (const row of section.querySelectorAll("[data-setting-label]")) {
+        const hit = !term || row.dataset.settingLabel.includes(term) || section.dataset.sectionLabel.includes(term);
+        row.hidden = !hit; if (hit) matches++;
+      }
+      const visible = !term || matches > 0;
+      section.hidden = !visible; any ||= visible;
+      if (term && visible) setDisclosureOpen(section, true);
+      else if (!term && section.dataset.defaultOpen) setDisclosureOpen(section, section.dataset.defaultOpen === "true");
+    }
+    root.querySelector(".lab-settings-empty")?.toggleAttribute("hidden", any);
   }
 
   function bindNumber(input, path) {
@@ -94,36 +92,44 @@ export function createDebugConfigurationDom({ controller, readOnly = () => false
   }
 
   function renderSettings(parent, draft) {
+    const list = el("div", "", "lab-settings-list");
     for (const section of GAME_SETTING_EDITOR_SECTIONS) {
-      const group = document.createElement("fieldset");
-      group.style.cssText = "border:1px solid #586876;border-radius:6px;padding:10px";
-      const legend = document.createElement("legend");
-      legend.textContent = section.label;
-      legend.style.color = "#e0c789";
-      group.appendChild(legend);
-      if (section.description) {
-        const description = document.createElement("p");
-        description.textContent = section.description;
-        description.style.cssText = "margin:0 0 9px;color:#c9d1d8;font-size:12px;line-height:1.35";
-        group.appendChild(description);
-      }
+      const body = [];
+      if (section.description) body.push(info(`settings:${section.id}`, section.description, { label: "What this controls" }));
+      let changed = 0;
       if (section.fields.length > 0) {
-        const grid = document.createElement("div");
-        grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px";
-        for (const field of section.fields) {
-          const input = field.type === "boolean"
-            ? booleanInput(draft.values[field.id])
-            : numberInput(draft.values[field.id], field);
-          input.dataset.testid = `setting-${field.id}`;
-          input.setAttribute("aria-label", field.label);
-          if (field.type === "boolean") bindBoolean(input, ["values", field.id]);
-          else bindNumber(input, ["values", field.id]);
-          grid.appendChild(fieldRow(field.label, input));
+        const grid = el("div", "", "lab-editor-grid");
+        for (const entry of section.fields) {
+          const value = draft.values[entry.id];
+          const input = entry.type === "boolean" ? booleanInput(value) : numberInput(value, entry);
+          input.dataset.testid = `setting-${entry.id}`;
+          input.setAttribute("aria-label", entry.label);
+          if (entry.type === "boolean") bindBoolean(input, ["values", entry.id]);
+          else bindNumber(input, ["values", entry.id]);
+          const row = field(entry.label, input);
+          row.dataset.settingLabel = entry.label.toLowerCase();
+          if (value !== entry.defaultValue) {
+            changed++;
+            row.dataset.edited = "true";
+            row.append(el("span", `Default: ${shown(entry.defaultValue)}`, "lab-editor-default"));
+          }
+          grid.append(row);
         }
-        group.appendChild(grid);
+        body.push(grid);
       }
-      parent.appendChild(group);
+      // Remembered per section; the first sections open on larger screens.
+      const open = !isNarrow() && GAME_SETTING_EDITOR_SECTIONS.indexOf(section) < 3;
+      const node = disclosure(section.label, body, {
+        key: `settings:${section.id}`, open, count: section.fields.length || undefined,
+        badges: [changed ? badge(`${changed} not default`, "accent") : null], className: "lab-editor-section lab-settings-section",
+      });
+      node.dataset.sectionLabel = section.label.toLowerCase();
+      node.dataset.defaultOpen = String(node.open);
+      node.addEventListener("toggle", () => { if (!query.trim()) node.dataset.defaultOpen = String(node.open); });
+      list.append(node);
     }
+    list.append(el("p", "No setting matches that search.", "lab-empty lab-settings-empty"));
+    parent.appendChild(list);
   }
 
   return {

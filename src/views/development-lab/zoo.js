@@ -2,11 +2,13 @@ import { getLabCatalogue, filterLabCatalogue } from '../../model/dev-lab/catalog
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { practiceSlot } from '../../model/dev-lab/fixtures.js';
-import { el, select, field, input, section, details, button, table, disclosure, info, badge, segmented, group, isNarrow } from './elements.js';
+import { el, select, field, input, section, details, button, table, disclosure, info, badge, segmented, group } from './elements.js';
 
 const CATEGORIES = [['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map'],['neutral','Neutrals'],['monster','Monsters'],['','All']];
 const POOLS = ['common','scholar','warrior'];
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : value;
+const VERSION_LABELS = {edited:'With edits','edited-only':'Edited only'};
+const HIDE_AFTER = 160;
 
 export function createZooView({controller,cards,run,review}) {
   const filters = {category:'practice'}, pageSize = 12;
@@ -15,6 +17,41 @@ export function createZooView({controller,cards,run,review}) {
   const liveDefinition = face => controller.getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
   const flag = face => run(()=>review.flag(face.kind,face.definitionId,liveDefinition(face),face.tier));
   const openReview = face => { location.hash = `/dev/reviewer?card=${encodeURIComponent(`${face.kind}:${face.definitionId}`)}`; };
+  let filtersOpen = false, barHidden = false, lastY = 0, barObserver = null;
+  const reducedMotion = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  // Sticky offsets below the bar follow its real height (0 while hidden).
+  function syncBar() {
+    const bar = document.querySelector('.lab-zoo-bar');
+    if (!bar) { document.documentElement.style.setProperty('--lab-zoo-bar-h','0px'); return; }
+    bar.classList.toggle('is-hidden',barHidden);
+    bar.classList.toggle('is-instant',reducedMotion());
+    document.documentElement.style.setProperty('--lab-zoo-bar-h',barHidden?'0px':`${bar.offsetHeight}px`);
+  }
+  function observeBar(bar) {
+    barObserver?.disconnect();
+    if (typeof ResizeObserver === 'function') { barObserver = new ResizeObserver(syncBar); barObserver.observe(bar); }
+  }
+  function setFiltersOpen(open) {
+    filtersOpen = open;
+    // Only a fresh open animates; re-renders while open stay still.
+    for (const node of document.querySelectorAll('.lab-zoo-filters,.lab-zoo-scrim')) { node.dataset.open = String(open); node.classList.toggle('is-entering',open); }
+    const toggle = document.querySelector('[data-testid=zoo-filters-button]');
+    toggle?.setAttribute('aria-expanded',String(open));
+    if (open) { barHidden = false; syncBar(); document.querySelector('.lab-zoo-filters-close')?.focus({preventScroll:true}); }
+    else if (document.querySelector('.lab-zoo-filters')?.contains(document.activeElement) || document.activeElement === document.body) toggle?.focus({preventScroll:true});
+  }
+  globalThis.addEventListener?.('hashchange',()=>{ filtersOpen = false; barHidden = false; barObserver?.disconnect(); });
+  globalThis.addEventListener?.('scroll',()=>{
+    const bar = document.querySelector('.lab-zoo-bar');
+    const y = globalThis.scrollY;
+    if (!bar) { lastY = y; return; }
+    const delta = y - lastY;
+    if (Math.abs(delta) < 8) return;
+    lastY = y;
+    // Stay put while typing a search so the field never slides away mid-word.
+    const hide = delta > 0 && y > HIDE_AFTER && !filtersOpen && !bar.querySelector('input:focus');
+    if (hide !== barHidden) { barHidden = hide; syncBar(); }
+  },{passive:true});
   function render(parent) {
     let {state} = controller.getSnapshot();
     const locks=new Map((review?.list()??[]).map(entry=> {
@@ -30,9 +67,13 @@ export function createZooView({controller,cards,run,review}) {
     const catalogue=getLabCatalogue(state).map(entry=>({...entry,locked:locks.get(`${entry.category}:${entry.id}`)??entry.locked}));
     const changed = () => { page=0; selected=null; run(()=>{}); };
 
-    const head = el('div','','lab-page-head');
+    const head = el('div','','lab-page-head lab-zoo-head');
     const heading = el('div'); heading.append(el('h2','Zoo'),el('p','Every runtime card and template in this build.','lab-subtitle'));
-    head.append(heading);
+    head.append(heading, info('zoo',[
+      'Tap or hover a card for its quick read. Rules opens the full rules, symbol key and linked definitions; Compare shows all four qualities and the runtime properties.',
+      'Flag adds a card to the reviewer without leaving the Zoo. Card versions can show reviewer drafts instead of live values; the fixture itself never changes.',
+      `Definitions come from this fixture’s serialized game config: ${Object.keys(state.gameConfig.gamepieces.practices).length} Practices and ${Object.keys(state.gameConfig.gamepieces.structures).length} Structures.`,
+    ],{label:'How it works'}));
     if (review) {
       const flagged = review.list().length;
       const link = el('a','','lab-review-link'); link.href = '#/dev/reviewer';
@@ -40,15 +81,7 @@ export function createZooView({controller,cards,run,review}) {
       link.setAttribute('aria-label',`Review flagged (${flagged})`);
       head.append(link);
     }
-    parent.append(head, info('zoo',[
-      'Tap or hover a card for its quick read. Rules opens the full rules, symbol key and linked definitions; Compare shows all four qualities and the runtime properties.',
-      'Flag adds a card to the reviewer without leaving the Zoo. Card versions can show reviewer drafts instead of live values; the fixture itself never changes.',
-      `Definitions come from this fixture’s serialized game config: ${Object.keys(state.gameConfig.gamepieces.practices).length} Practices and ${Object.keys(state.gameConfig.gamepieces.structures).length} Structures.`,
-    ],{label:'How the Zoo works'}));
-
-    // Categories are the main way in, so they are always-visible tabs with counts.
-    const counts = Object.fromEntries(CATEGORIES.map(([id])=>[id,id?catalogue.filter(e=>e.category===id).length:catalogue.length]));
-    parent.append(segmented('Category',CATEGORIES.map(([id,label])=>[id,label,counts[id]]),filters.category ?? '',value=>{filters.category=value;changed();},{testid:'zoo-category'}));
+    parent.append(head);
 
     // Only offer filters that can match something in the chosen category, and
     // drop hidden ones so an invisible filter never empties the catalogue.
@@ -61,35 +94,55 @@ export function createZooView({controller,cards,run,review}) {
     const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
     for (const key of Object.keys(options)) if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
 
-    const searchRow = el('div','','lab-search-row');
+    // One compact bar: category tabs, search and the Filters button. It slides
+    // away while scrolling down and returns on the way back up.
+    const bar = el('div','','lab-zoo-bar'); bar.dataset.testid = 'zoo-bar';
+    bar.classList.toggle('is-hidden',barHidden);
+    const counts = Object.fromEntries(CATEGORIES.map(([id])=>[id,id?catalogue.filter(e=>e.category===id).length:catalogue.length]));
+    const tabs = segmented('Category',CATEGORIES.map(([id,label])=>[id,label,counts[id]]),filters.category ?? '',value=>{filters.category=value;changed();},{testid:'zoo-category'});
     const search = input('Search runtime content',filters.search ?? '','search'); search.placeholder = 'Search names, rules, ids…'; search.enterKeyHint = 'search';
     let searchTimer;
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;changed();},250);});
-    searchRow.append(search);
-
     const active = [hideLocked, versionsMode !== 'live', ...Object.keys(options).map(key=>!!filters[key])].filter(Boolean).length;
+    const filtersButton = button('',()=>setFiltersOpen(!filtersOpen),'zoo-filters-button');
+    filtersButton.classList.add('lab-filters-button');
+    filtersButton.append(el('span','Filters'),badge(String(active),active?'accent':''));
+    filtersButton.querySelector('.lab-badge').hidden = !active;
+    filtersButton.setAttribute('aria-controls','zoo-filters'); filtersButton.setAttribute('aria-expanded',String(filtersOpen));
+    const tools = el('div','','lab-zoo-bar-tools'); tools.append(search, filtersButton);
+    bar.append(tabs, tools);
+    bar.addEventListener('focusin',event=>{ if (barHidden && event.target.matches(':focus-visible')) { barHidden=false; syncBar(); } });
+    parent.append(bar);
+
+    // Full filters: a sidebar on wide screens, a side drawer in landscape and
+    // a bottom sheet in portrait. The open state survives re-renders.
     const viewGroup = [];
     if (review) viewGroup.push(segmented('Card versions',[['live','Live'],['edited','With edits'],['edited-only','Edited only']],versionsMode,value=>{versionsMode=value;changed();}));
     const hide=input('Hide locked cards','','checkbox');hide.checked=hideLocked;
     hide.addEventListener('change',()=>{hideLocked=hide.checked;changed();});
     viewGroup.push(field('Hide locked',hide));
+    if (review) viewGroup.push(info('zoo-versions','Live shows this build. With edits swaps in reviewer drafts where they exist; Edited only lists just the drafted cards. Locked cards are excluded from shop offers once reviewed cards are applied.',{label:'About card versions'}));
     const cardGroup = [];
     if (options.pool.length) cardGroup.push(segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool ?? '',value=>{filters.pool=value;changed();}));
-    const selects = el('div','','lab-controls lab-filter-selects');
+    const selects = el('div','','lab-filter-selects');
     for (const key of ['maturity','mode','tag','trait','size']) {
       if (!options[key].length) continue;
       const control = select(labels[key],[['','Any'],...options[key].map(v=>[v,title(v)])],filters[key] ?? '');
       control.addEventListener('change',()=>{filters[key]=control.value;changed();}); selects.append(field(labels[key],control));
     }
     if (selects.children.length) cardGroup.push(selects);
-    const filterPanel = disclosure('Filters',[group('Show',...viewGroup),...(cardGroup.length?[group('Card details',...cardGroup)]:[])],
-      {key:'zoo:filters',open:active>0||!isNarrow(),className:'lab-filter-more',badges:[active?badge(`${active} active`,'accent'):null]});
-    const toolbar = el('div','','lab-toolbar');
-    toolbar.append(filterPanel);
-    const anyFilter = active > 0 || !!filters.search || filters.category !== 'practice';
-    if (anyFilter) toolbar.append(button('Clear filters',()=>{for(const key of Object.keys(filters))delete filters[key];filters.category='practice';hideLocked=false;versionsMode='live';changed();},'zoo-clear-filters','quiet'));
-    parent.append(searchRow,toolbar);
-    if(versionsMode!=='live')parent.append(el('p',`${edited.size} edited cards shown; other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`,'lab-note'));
+    const clearAll = () => { for (const key of Object.keys(filters)) if (key !== 'category') delete filters[key]; hideLocked=false; versionsMode='live'; changed(); };
+    const drawer = el('aside','','lab-zoo-filters'); drawer.id = 'zoo-filters'; drawer.dataset.testid = 'zoo-filters';
+    drawer.setAttribute('aria-label','Zoo filters'); drawer.dataset.open = String(filtersOpen);
+    const drawerHead = el('div','','lab-zoo-filters-head');
+    const drawerTitle = el('strong','Filters'); if (active) drawerTitle.append(' ',badge(String(active),'accent'));
+    const done = button('Done',()=>setFiltersOpen(false),'zoo-filters-close','primary'); done.classList.add('lab-zoo-filters-close');
+    drawerHead.append(drawerTitle);
+    if (active) drawerHead.append(button('Clear',clearAll,'','quiet'));
+    drawerHead.append(done);
+    drawer.append(drawerHead, group('Show',...viewGroup), ...(cardGroup.length?[group('Card details',...cardGroup)]:[]));
+    drawer.addEventListener('keydown',event=>{ if (event.key === 'Escape' && filtersOpen) { event.stopPropagation(); setFiltersOpen(false); } });
+    const scrim = el('div','','lab-zoo-scrim'); scrim.dataset.open = String(filtersOpen); scrim.addEventListener('click',()=>setFiltersOpen(false));
 
     let matches = filterLabCatalogue(catalogue,{...filters,hideLocked}).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
     // Cards are grouped by class; sorting keeps each group contiguous across pages.
@@ -111,13 +164,33 @@ export function createZooView({controller,cards,run,review}) {
       prev.disabled=page===0;next.disabled=(page+1)*pageSize>=matches.length;
       node.append(prev,el('span',`${page+1} / ${pages}`),next);return node;
     };
+    // Active filters read as small removable chips beside the result count.
+    const chips = el('div','','lab-filter-chips'); chips.setAttribute('role','group'); chips.setAttribute('aria-label','Active filters');
+    const chip = (text, remove, testid) => {
+      const node = button('',()=>{remove();changed();},testid); node.classList.add('lab-chip');
+      node.append(el('span',text),el('span','×','lab-chip-x')); node.setAttribute('aria-label',`Remove filter: ${text}`); chips.append(node);
+    };
+    if (filters.search) chip(`“${filters.search}”`,()=>{filters.search='';});
+    if (versionsMode !== 'live') chip(VERSION_LABELS[versionsMode],()=>{versionsMode='live';});
+    if (hideLocked) chip('Hide locked',()=>{hideLocked=false;});
+    for (const key of Object.keys(options)) if (filters[key]) chip(`${labels[key]}: ${title(filters[key])}`,()=>{filters[key]='';});
+    if (chips.children.length > 1) {
+      const clear = button('Clear all',clearAll,'zoo-clear-filters','quiet'); clear.classList.add('lab-chip-clear'); chips.append(clear);
+    }
     const results = el('div','','lab-results-bar');
     results.append(el('p',`${matches.length} matching runtime entries`,'lab-count'));
+    if (chips.children.length) results.append(chips);
     const coveragePanel = disclosure(missing.length?`Coverage: missing ${missing.join(', ')}`:'Coverage',[table(['Class','Practices','Structures','Status'],coverage)],
       {open:missing.length>0,className:`lab-coverage${missing.length?' lab-coverage-missing':''}`,badges:[badge(missing.length?'!':'✓',missing.length?'warn':'ok')]});
     results.append(coveragePanel);
     if (matches.length > pageSize) results.append(pager());
-    parent.append(results);
+
+    const layout = el('div','','lab-zoo-layout'), main = el('div','','lab-zoo-main');
+    layout.append(drawer, main); parent.append(layout, scrim);
+    if(versionsMode!=='live')main.append(el('p',`${edited.size} edited cards shown; other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`,'lab-note'));
+    main.append(results);
+    parent = main;
+    requestAnimationFrame(()=>{ syncBar(); observeBar(bar); });
 
     if (selected) {
       const e = catalogue.find(e=>`${e.category}:${e.id}` === selected);

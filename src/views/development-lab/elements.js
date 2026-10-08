@@ -59,6 +59,8 @@ export function field(label, node, {help} = {}) {
 }
 function infoButton(name, target) {
   const toggle = el('button','i','lab-info-button'); toggle.type = 'button';
+  // Help is never data: read-only editors keep it usable.
+  toggle.dataset.labUi = 'help';
   toggle.setAttribute('aria-label',name); toggle.setAttribute('aria-expanded','false');
   toggle.addEventListener('click',event => {
     event.preventDefault(); event.stopPropagation();
@@ -101,8 +103,17 @@ export function disclosure(summary, children = [], {key, open = false, count, ba
   if (count !== undefined) head.append(badge(String(count)));
   for (const item of badges) if (item) head.append(item);
   node.append(head, ...children);
-  if (key) node.addEventListener('toggle',() => { if (node.open !== initial || remembered(key, undefined) !== undefined) remember(key, node.open); });
+  if (key) node.addEventListener('toggle',() => {
+    if (node.dataset.silent === String(node.open)) { delete node.dataset.silent; return; }
+    if (node.open !== initial || remembered(key, undefined) !== undefined) remember(key, node.open);
+  });
   return node;
+}
+// Open or close a disclosure for the person (search results, for example)
+// without recording it as their own choice.
+export function setDisclosureOpen(node, open) {
+  if (node.open === !!open) return;
+  node.dataset.silent = String(!!open); node.open = !!open;
 }
 // "How this works": explanation stays one tap away and out of the layout.
 export function info(key, text, {label = 'How this works'} = {}) {

@@ -1,4 +1,5 @@
 import { lockDebugEditor } from "./debug-editor-readonly.js";
+import { button as labButton, field, disclosure, info, badge, isNarrow } from "./development-lab/elements.js";
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { worldMapDefs } from "../defs/world/world-map-defs.js";
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
@@ -17,17 +18,16 @@ function element(tag, className = "", text = null) {
   return node;
 }
 
-function button(label, testId, handler) {
-  const node = element("button", "map-lab-button", label);
-  node.type = "button";
-  node.dataset.testid = testId;
-  node.addEventListener("click", handler);
+function button(label, testId, handler, variant = "") {
+  const node = labButton(label, handler, testId, variant);
+  node.classList.add("map-lab-button");
   return node;
 }
 
-function selectField(options, value, testId, handler) {
+function selectField(options, value, testId, handler, label = "") {
   const node = element("select", "map-lab-input");
   node.dataset.testid = testId;
+  if (label) node.setAttribute("aria-label", label);
   for (const option of options) {
     const item = document.createElement("option");
     item.value = option.value;
@@ -44,16 +44,24 @@ function numberField(value, testId, handler, { min = 0, step = 1 } = {}) {
   node.type = "number";
   node.min = String(min);
   node.step = String(step);
+  node.inputMode = "numeric";
   node.value = String(value ?? 0);
   node.dataset.testid = testId;
   node.addEventListener("change", () => handler(Number(node.value)));
   return node;
 }
 
-function labelled(label, control) {
-  const node = element("label", "map-lab-field");
-  node.append(element("span", "", label), control);
-  return node;
+function checkbox(checked, testId, handler) {
+  const toggle = element("input", "");
+  toggle.type = "checkbox";
+  toggle.checked = !!checked;
+  toggle.dataset.testid = testId;
+  toggle.addEventListener("change", () => handler(toggle.checked));
+  return toggle;
+}
+
+function labelled(label, control, options) {
+  return field(label, control, options);
 }
 
 function eldersToText(classState) {
@@ -74,25 +82,8 @@ function elderTextToCohorts(text) {
 }
 
 export function createMapLabDom({ controller, readOnly = () => false } = {}) {
-  const root = element("div", "map-lab-root");
+  const root = element("div", "map-lab-root lab-editor");
   root.dataset.testid = "map-lab";
-  const style = document.createElement("style");
-  style.textContent = `
-    .codex-debug-panel.map-lab-active{inset:8px;width:auto;max-width:none;max-height:none}
-    .map-lab-root{display:grid;gap:10px;color:#f6efe3}
-    .map-lab-toolbar,.map-lab-slots{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-    .map-lab-workspace{display:grid;grid-template-columns:minmax(360px,.62fr) minmax(620px,1.38fr);gap:10px;align-items:start}
-    .map-lab-layout{display:grid;grid-template-columns:minmax(250px,.7fr) minmax(420px,1.3fr);gap:10px;min-width:0}
-    .map-lab-workspace>.map-lab-card{min-width:0}
-    .map-lab-card{background:rgba(14,18,23,.38);border:1px solid rgba(248,234,208,.22);border-radius:7px;padding:10px}
-    .map-lab-button,.map-lab-input{min-height:30px;border:1px solid rgba(224,199,137,.65);border-radius:5px;padding:4px 8px}
-    .map-lab-button{background:#455463;color:#f8ead0;cursor:pointer}.map-lab-button.active{background:#7a5f32}
-    .map-lab-input{background:#f8f0df;color:#1d2430}.map-lab-field{display:grid;gap:3px;font-size:12px}
-    .map-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    .map-lab-warning{color:#ffd18d;font-size:12px}.map-lab-error{color:#ffb4a8;font-size:12px}
-    .map-lab-controller-warning{margin:10px 0 0;padding:8px 10px;border:1px solid rgba(255,180,110,.75);border-radius:5px;background:rgba(117,66,36,.28);color:#ffd18d;font-size:13px;line-height:1.35}
-    @media(max-width:1100px){.map-lab-workspace,.map-lab-layout{grid-template-columns:1fr}}
-  `;
   let unsubscribe = null;
   let mapMode = "inspect";
 
@@ -108,12 +99,7 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
     const region = snapshot.draft.regions.find((entry) => entry.id === snapshot.selectedRegionId);
     root.replaceChildren();
 
-    const toolbar = element("div", "map-lab-toolbar");
-    toolbar.append(button("Copy settlement sandbox", "map-lab-load-current-game", () => controller.loadCurrentGame()));
-    root.append(toolbar);
-
-    const mapCard = element("section", "map-lab-card");
-    const mapActions = element("div", "map-lab-toolbar");
+    const toolbar = element("div", "lab-editor-toolbar map-lab-toolbar");
     const connectionModeButton = button(
       mapMode === "connection" ? "Connection mode: on" : "Edit shared-edge connections",
       "map-lab-connection-mode",
@@ -124,8 +110,19 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
       }
     );
     connectionModeButton.classList.toggle("active", mapMode === "connection");
-    mapActions.append(connectionModeButton);
-    mapCard.append(mapActions);
+    connectionModeButton.setAttribute("aria-pressed", String(mapMode === "connection"));
+    toolbar.append(
+      button("Copy settlement sandbox", "map-lab-load-current-game", () => controller.loadCurrentGame(), "quiet"),
+      connectionModeButton,
+      info("map-lab", [
+        "Tap a region on the map to edit it. Solid gold lines are active connections; dashed lines are shared edges that could be connected.",
+        "Edit shared-edge connections, then tap two neighbouring regions to add or remove their connection. Each region’s Connections list does the same with one tap.",
+        "Copy settlement sandbox replaces this draft with the settlement currently open in the Gym. Food and Currency are hosted Stock: edit each Practice’s Stock in its slot.",
+      ], { label: "How it works" })
+    );
+    root.append(toolbar);
+
+    const mapCard = element("section", "lab-editor-card map-lab-card map-lab-map");
     mapCard.append(createDebugWorldMapDom({
       definition,
       regions: snapshot.draft.regions,
@@ -148,124 +145,106 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
       },
       testid: "map-lab-world-map",
     }));
-    mapCard.append(element("p", "map-lab-warning", mapMode === "connection"
-      ? "Click two polygon-adjacent regions to add or remove their shared-edge connection."
-      : "Click a region to edit it. Solid gold lines are active; dashed lines are valid shared edges."));
+    const legend = element("p", "lab-editor-legend");
+    if (mapMode === "connection") legend.append(badge("Connection mode", "accent"), " Tap two neighbouring regions.");
+    else legend.append(element("span", "map-lab-key map-lab-key-active"), "Connected ", element("span", "map-lab-key map-lab-key-possible"), "Possible");
+    mapCard.append(legend);
     const status = element("div",
-      snapshot.status.tone === "error" ? "map-lab-error" : "map-lab-warning",
+      `lab-editor-status ${snapshot.status.tone === "error" ? "map-lab-error" : "map-lab-warning"}`,
       snapshot.status.message);
     status.dataset.testid = "map-lab-status";
 
+    const workspace = element("div", "map-lab-workspace lab-editor-workspace");
+    workspace.dataset.testid = "map-lab-workspace";
     if (!region) {
-      root.append(mapCard, status);
+      workspace.append(mapCard, element("p", "lab-empty", "Tap a region on the map to edit it."));
+      root.append(workspace, status);
       return;
     }
 
     const layout = element("div", "map-lab-layout");
-    const mechanics = element("section", "map-lab-card");
-    mechanics.append(element("h3", "", definition.regions
-      .find((entry) => entry.id === region.id)?.name ?? region.id));
-    const fields = element("div", "map-lab-grid");
+    const regionName = definition.regions.find((entry) => entry.id === region.id)?.name ?? region.id;
+    const used = occupiedCells(region.detailedState?.structureSlots ?? []).filter(Boolean).length;
+    const head = element("div", "lab-editor-head");
+    head.append(...[element("h3", "", regionName), badge(getMapLabRegionReference(definition, region.id)),
+      badge(region.controller, region.controller === "player" ? "accent" : ""),
+      region.detailedSettlementEnabled && badge("Detailed", "ok")].filter(Boolean));
+    layout.append(head);
+
+    const fields = element("div", "lab-editor-grid map-lab-grid");
     fields.append(
       labelled("Colour", selectField(REGION_COLOURS.map((value) => ({ value, label: value })),
-        region.colour, "map-lab-colour", (colour) => controller.updateRegion(region.id, { colour }))),
+        region.colour, "map-lab-colour", (colour) => controller.updateRegion(region.id, { colour }), "Region colour")),
       labelled("Controller", selectField(REGION_CONTROLLERS.map((value) => ({ value, label: value })),
-        region.controller, "map-lab-controller", (value) => controller.updateRegion(region.id, { controller: value }))),
+        region.controller, "map-lab-controller", (value) => controller.updateRegion(region.id, { controller: value }), "Region controller")),
       labelled("Structure capacity", numberField(region.structureCapacity, "map-lab-structure-capacity",
-        (structureCapacity) => controller.updateRegion(region.id, { structureCapacity }))),
-      labelled("Automatic capacity 5–8", (() => {
-        const toggle = element("input", "");
-        toggle.type = "checkbox";
-        toggle.checked = region.randomizeStructureCapacity;
-        toggle.dataset.testid = "map-lab-structure-capacity-random";
-        toggle.addEventListener("change", () => controller.updateRegion(region.id, {
-          randomizeStructureCapacity: toggle.checked,
-        }));
-        return toggle;
-      })()),
-      labelled("Detailed settlement", (() => {
-        const toggle = element("input", "");
-        toggle.type = "checkbox";
-        toggle.checked = region.detailedSettlementEnabled;
-        toggle.dataset.testid = "map-lab-detailed-toggle";
-        toggle.addEventListener("change", () => controller.updateRegion(region.id, {
-          detailedSettlementEnabled: toggle.checked,
-        }));
-        return toggle;
-      })())
+        (structureCapacity) => controller.updateRegion(region.id, { structureCapacity })), { help: `${used} of ${region.structureCapacity} construction cells are in use.` }),
+      labelled("Automatic capacity 5–8", checkbox(region.randomizeStructureCapacity, "map-lab-structure-capacity-random",
+        (randomizeStructureCapacity) => controller.updateRegion(region.id, { randomizeStructureCapacity }))),
+      labelled("Detailed settlement", checkbox(region.detailedSettlementEnabled, "map-lab-detailed-toggle",
+        (detailedSettlementEnabled) => controller.updateRegion(region.id, { detailedSettlementEnabled })))
     );
-    mechanics.append(fields);
+    const regionPanel = [fields];
     if (region.detailedSettlementEnabled && region.controller !== "player") {
-      const warning = element(
-        "p",
-        "map-lab-controller-warning",
-        "This settlement is not player controlled. External settlements run hosted Stock production and meals; frontier settlements are inactive. Authored neutral templates keep fixed demographics."
-      );
+      const warning = element("p", "lab-callout map-lab-controller-warning");
       warning.dataset.testid = "map-lab-nonplayer-detailed-warning";
-      mechanics.append(warning);
+      const help = element("span", "lab-field-help", "External settlements run hosted Stock production and meals; frontier settlements are inactive. Authored neutral templates keep fixed demographics.");
+      help.hidden = true;
+      const more = labButton("i", () => { help.hidden = !help.hidden; more.setAttribute("aria-expanded", String(!help.hidden)); }, "", "");
+      more.className = "lab-info-button"; more.dataset.labUi = "help";
+      more.setAttribute("aria-label", "About non-player settlements"); more.setAttribute("aria-expanded", "false");
+      warning.append(element("span", "", "Not player controlled: only hosted Stock and meals run. "), more, help);
+      regionPanel.push(warning);
     }
-    const used = occupiedCells(region.detailedState?.structureSlots ?? []).filter(Boolean).length;
-    mechanics.append(element("p", "map-lab-warning",
-      `${used} / ${region.structureCapacity} construction cells used`));
-    mechanics.append(element("h4", "", "Shared-edge connections"));
-    const connectionButtons = element("div", "map-lab-slots");
+    layout.append(disclosure("Region", regionPanel, { key: "map:region", open: true, count: 5, className: "lab-editor-section" }));
+
+    const connectionButtons = element("div", "lab-editor-chips map-lab-slots");
     const connectionKey = (a, b) => [a, b].sort().join("|");
     const activeConnectionKeys = new Set(snapshot.draft.connections.map((entry) =>
       connectionKey(entry.regionAId, entry.regionBId)));
-    snapshot.connectionCandidates
-      .filter((entry) => entry.regionAId === region.id || entry.regionBId === region.id)
-      .forEach((entry) => {
-        const neighbourId = entry.regionAId === region.id ? entry.regionBId : entry.regionAId;
-        const connected = activeConnectionKeys.has(connectionKey(region.id, neighbourId));
-        connectionButtons.append(button(
-          `${connected ? "Connected" : "Add"}: ${getMapLabRegionReference(definition, neighbourId)}`,
-          `map-lab-connection-${neighbourId}`,
-          () => {
-            controller.beginOrToggleConnection(region.id);
-            controller.beginOrToggleConnection(neighbourId);
-          }
-        ));
-      });
-    mechanics.append(connectionButtons);
-    layout.append(mechanics);
+    const neighbours = snapshot.connectionCandidates
+      .filter((entry) => entry.regionAId === region.id || entry.regionBId === region.id);
+    let connectedCount = 0;
+    neighbours.forEach((entry) => {
+      const neighbourId = entry.regionAId === region.id ? entry.regionBId : entry.regionAId;
+      const connected = activeConnectionKeys.has(connectionKey(region.id, neighbourId));
+      if (connected) connectedCount++;
+      const control = button(
+        `${connected ? "Connected" : "Add"}: ${getMapLabRegionReference(definition, neighbourId)}`,
+        `map-lab-connection-${neighbourId}`,
+        () => {
+          controller.beginOrToggleConnection(region.id);
+          controller.beginOrToggleConnection(neighbourId);
+        }
+      );
+      control.setAttribute("aria-pressed", String(connected));
+      connectionButtons.append(control);
+    });
+    if (!neighbours.length) connectionButtons.append(element("p", "lab-empty", "No shared edges."));
+    layout.append(disclosure("Connections", [connectionButtons], {
+      key: "map:connections", open: !isNarrow(), count: neighbours.length,
+      badges: [badge(`${connectedCount} connected`, connectedCount ? "accent" : "")], className: "lab-editor-section",
+    }));
 
-    const detail = element("section", "map-lab-card");
     if (!region.detailedSettlementEnabled || !region.detailedState) {
-      detail.append(element("p", "", "This region has no detailed settlement."));
-      layout.append(detail);
-      const workspace = element("div", "map-lab-workspace");
-      workspace.dataset.testid = "map-lab-workspace";
+      layout.append(element("p", "lab-empty", "No detailed settlement. Turn on Detailed settlement to edit its population, Practices and Structures."));
       workspace.append(mapCard, layout);
       root.append(workspace, status);
       return;
     }
     const state = region.detailedState;
-    detail.append(element("h3", "", "Detailed settlement"));
-    detail.append(element("p", "", "Food and Currency are hosted Stock. Edit each Practice below."));
 
+    const population = element("div", "lab-editor-cohorts");
+    let people = 0;
     for (const classId of ["villager", "stranger"]) {
       const cohort = state.populationByClass[classId];
-      const group = element("fieldset", "map-lab-card");
-      group.append(element("legend", "", classId));
-      const cohortFields = element("div", "map-lab-grid");
-      cohortFields.append(
-        labelled("Children", numberField(cohort.children, `map-lab-${classId}-children`, (children) =>
-          controller.updateDetailedState(region.id, {
-            populationByClass: {
-              ...state.populationByClass,
-              [classId]: { ...cohort, children },
-            },
-          }))),
-        labelled("Adults", numberField(cohort.adults, `map-lab-${classId}-adults`, (adults) =>
-          controller.updateDetailedState(region.id, {
-            populationByClass: {
-              ...state.populationByClass,
-              [classId]: { ...cohort, adults },
-            },
-          })))
-      );
+      people += (cohort.children ?? 0) + (cohort.adults ?? 0) + (cohort.eldersByAge ?? []).reduce((sum, entry) => sum + entry.count, 0);
+      const group = element("fieldset", "lab-editor-cohort");
+      group.append(element("legend", "", classId === "villager" ? "Villagers" : "Strangers"));
+      const cohortFields = element("div", "lab-editor-grid");
       const elderInput = element("input", "map-lab-input");
       elderInput.value = eldersToText(cohort);
+      elderInput.inputMode = "numeric";
       elderInput.dataset.testid = `map-lab-${classId}-elder-ages`;
       elderInput.addEventListener("change", () => controller.updateDetailedState(region.id, {
         populationByClass: {
@@ -273,24 +252,54 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
           [classId]: { ...cohort, eldersByAge: elderTextToCohorts(elderInput.value) },
         },
       }));
-      group.append(cohortFields, labelled("Elder ages (comma separated)", elderInput));
-      detail.append(group);
+      cohortFields.append(
+        labelled("Children", numberField(cohort.children, `map-lab-${classId}-children`, (children) =>
+          controller.updateDetailedState(region.id, {
+            populationByClass: { ...state.populationByClass, [classId]: { ...cohort, children } },
+          }))),
+        labelled("Adults", numberField(cohort.adults, `map-lab-${classId}-adults`, (adults) =>
+          controller.updateDetailedState(region.id, {
+            populationByClass: { ...state.populationByClass, [classId]: { ...cohort, adults } },
+          }))),
+        labelled("Elder ages", elderInput, { help: "Comma-separated ages, one per Elder (45 or older), e.g. 52, 60, 61." })
+      );
+      group.append(cohortFields);
+      population.append(group);
     }
+    layout.append(disclosure("Population", [population], {
+      key: "map:population", open: !isNarrow(), badges: [badge(`${people} people`)], className: "lab-editor-section",
+    }));
 
-    detail.append(element("h4", "", `${state.practiceSlots.length} practice slots`));
-    const practices = element("div", "map-lab-slots");
+    const practices = element("div", "lab-editor-slots");
     const practiceOptions = [
       { value: "", label: "Empty" },
       ...Object.values(detailedSettlementPracticeDefs).map((def) => ({ value: def.id, label: def.label })),
     ];
+    let filledPractices = 0;
     state.practiceSlots.forEach((slot, index) => {
-      practices.append(selectField(practiceOptions, slot?.practiceId ?? "",
+      if (slot) filledPractices++;
+      const row = element("div", "lab-editor-slot");
+      row.append(element("span", "lab-editor-slot-index", String(index + 1)));
+      row.append(selectField(practiceOptions, slot?.practiceId ?? "",
         `map-lab-practice-slot-${index}`, (practiceId) =>
-          controller.setPracticeSlot(region.id, index, practiceId || null)));
-      if (slot) practices.append(numberField(slot.stock ?? 0, `map-lab-stock-${index}`, stock => controller.updateDetailedState(region.id, {practiceSlots: state.practiceSlots.map((p,i)=>i===index?{...p,stock}:p)}), { min:0, step:1 }));
+          controller.setPracticeSlot(region.id, index, practiceId || null), `Practice slot ${index + 1}`));
+      if (slot) {
+        const stock = numberField(slot.stock ?? 0, `map-lab-stock-${index}`, (value) => controller.updateDetailedState(region.id, {
+          practiceSlots: state.practiceSlots.map((entry, i) => i === index ? { ...entry, stock: value } : entry),
+        }), { min: 0, step: 1 });
+        stock.setAttribute("aria-label", `Stock in slot ${index + 1}`);
+        const stockLabel = element("label", "lab-editor-stock");
+        stockLabel.append(element("span", "", "Stock"), stock);
+        row.append(stockLabel);
+      }
+      practices.append(row);
     });
-    detail.append(practices, element("h4", "", "Structures"));
-    const structures = element("div", "map-lab-slots");
+    layout.append(disclosure("Practices", [practices], {
+      key: "map:practices", open: !isNarrow(), count: state.practiceSlots.length,
+      badges: [badge(`${filledPractices} filled`, filledPractices ? "accent" : "")], className: "lab-editor-section",
+    }));
+
+    const structures = element("div", "lab-editor-slots lab-editor-slots-compact");
     const structureOptions = [
       { value: "", label: "Empty" },
       ...Object.values(settlementStructureDefs).map((def) => ({ value: def.id, label: `${def.label} (${def.footprint} cells)` })),
@@ -298,22 +307,27 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
     const occupied = occupiedCells(state.structureSlots);
     state.structureSlots.forEach((slot, index) => {
       const covered = occupied[index] && !slot;
-      const field = selectField(structureOptions, occupied[index]?.structureId ?? "",
+      const row = element("div", "lab-editor-slot");
+      row.append(element("span", "lab-editor-slot-index", String(index + 1)));
+      const control = selectField(structureOptions, occupied[index]?.structureId ?? "",
         `map-lab-structure-slot-${index}`, (structureId) =>
-          controller.setStructureSlot(region.id, index, structureId || null));
-      field.disabled = !!covered;
-      field.title = covered ? `Covered by construction at cell ${occupied[index].origin + 1}` : `Construction origin ${index + 1}`;
-      structures.append(field);
+          controller.setStructureSlot(region.id, index, structureId || null), `Construction cell ${index + 1}`);
+      control.disabled = !!covered;
+      control.title = covered ? `Covered by construction at cell ${occupied[index].origin + 1}` : `Construction origin ${index + 1}`;
+      row.append(control);
+      if (covered) row.dataset.covered = "true";
+      structures.append(row);
     });
-    detail.append(structures);
+    layout.append(disclosure("Structures", [structures], {
+      key: "map:structures", open: !isNarrow(),
+      badges: [badge(`${used}/${region.structureCapacity} cells`, used ? "accent" : "")], className: "lab-editor-section",
+    }));
+    const regionIndex = snapshot.draft.regions.indexOf(region);
     for (const warning of snapshot.diagnostics.warnings ?? []) {
-      if (warning.includes(region.id) || warning.includes(`regions[${snapshot.draft.regions.indexOf(region)}]`)) {
-        detail.append(element("p", "map-lab-warning", warning));
+      if (warning.includes(region.id) || warning.includes(`regions[${regionIndex}]`)) {
+        layout.append(element("p", "lab-callout map-lab-warning", warning));
       }
     }
-    layout.append(detail);
-    const workspace = element("div", "map-lab-workspace");
-    workspace.dataset.testid = "map-lab-workspace";
     workspace.append(mapCard, layout);
     root.append(workspace, status);
   }
@@ -321,14 +335,12 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
   return {
     element: root,
     init() {
-      document.head.append(style);
       unsubscribe = controller.subscribe(render);
       render();
     },
     render,
     destroy() {
       unsubscribe?.();
-      style.remove();
       root.remove();
     },
   };
