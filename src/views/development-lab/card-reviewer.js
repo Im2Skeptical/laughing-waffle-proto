@@ -1,9 +1,11 @@
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
-import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers } from '../../model/dev-lab/card-review.js';
+import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers, reviewOutputChoices, reviewAddOutput, reviewRemoveOutput } from '../../model/dev-lab/card-review.js';
+import { PRACTICE_OUTPUTS, PRACTICE_EFFECT_LIMIT, PRACTICE_INPUT_LIMIT, isPracticeOutput } from '../../model/practice-outputs.js';
 import { el, button, confirmButton, field, input, select, section, disclosure, info, badge, isWide } from './elements.js';
 import { constructionCopy, getLabStructureFace } from './structure-plan.js';
 import { createReviewBulkEdit } from './review-bulk-edit.js';
+import { reviewListEditor } from './review-list-editor.js';
 
 const groups = {
   construction:{label:'Construction costs', match:path=>path[0]==='construction'},
@@ -33,14 +35,26 @@ const queueChip = (node, label, entry, locked) => {
   node.setAttribute('aria-label',`${label}${locked?', locked':''}${edits?`, ${edits} edit${edits===1?'':'s'}`:''}${entry.notes?', notes':''}`);
 };
 const showValue = value => value === undefined ? 'unavailable' : typeof value === 'string' ? value : JSON.stringify(value);
+const EFFECT_NAMES={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus',boostSeasonalFood:'Seasonal food boost',addChaos:'Chaos'};
+const effectName = effect => {
+  const param=PRACTICE_OUTPUTS[effect.op]?.param, choices=PRACTICE_OUTPUTS[effect.op]?.choices;
+  return `${EFFECT_NAMES[effect.op]??effect.op}${param&&choices.length>1?` · ${effect[param]}`:''}`;
+};
+// Effect lists read as "Research gained 2, Chaos 6" in the change list.
+const inputCopy = input => `${input.amount} ${input.traits.join(' / ')}`;
+const showChange = (path, value) => path.length!==1||!Array.isArray(value) ? showValue(value)
+  : path[0]==='effects' ? (value.map(effect=>`${effectName(effect)} ${effect.amount??''}`.trim()).join(', ')||'no effects')
+  : ['consume','require'].includes(path[0]) ? (value.map(inputCopy).join(', ')||'none') : showValue(value);
 const labelFor = (def, path) => {
   if(path[0]==='construction') {
     if(path[1]==='cycles')return 'Successful construction cycles';
     if(path[1]==='consume')return path.length===2?'Construction Stock costs per cycle':`Construction cost ${Number(path[2])+1} · ${path[3]==='amount'?'Stock per cycle':`trait ${Number(path[4])+1}`}`;
   }
   const names={locked:'Card locked',stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
-  const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
-  if(path[0]==='effects')return `${effects[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':path[2]==='seasonAmounts'?` · ${path[3]?path[3][0].toUpperCase()+path[3].slice(1):'seasonal amounts'}`:` · ${path.slice(2).join(' · ')}`}`;
+  if(path.length===1&&path[0]==='effects')return 'Production outputs';
+  if(path.length===1&&path[0]==='consume')return 'Consumes';
+  if(path.length===1&&path[0]==='require')return 'Requires';
+  if(path[0]==='effects')return `${EFFECT_NAMES[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':path[2]==='seasonAmounts'?` · ${path[3]?path[3][0].toUpperCase()+path[3].slice(1):'seasonal amounts'}`:` · ${path.slice(2).join(' · ')}`}`;
   if(path[0]==='tags')return `Card tag ${Number(path[1])+1}`;
   if(path[0]==='stockTraits')return path.length===1?'Stock tags':`Stock trait ${Number(path[1])+1}`;
   if(path[0]==='activation')return 'Schedule triggers';
@@ -192,7 +206,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       reset.disabled=!current.edits.length;
       for(const edit of valueEdits) {
         const row=el('div','','review-change');
-        const text=el('p');text.append(el('strong',labelFor(definition,edit.path)),' ',el('span',showValue(valueFor(live,edit.path)),'review-old'),' → ',el('span',showValue(edit.value),'review-new'));
+        const text=el('p');text.append(el('strong',labelFor(definition,edit.path)),' ',el('span',showChange(edit.path,valueFor(live,edit.path)),'review-old'),' → ',el('span',showChange(edit.path,edit.value),'review-new'));
         row.append(text);
         if(live)row.append(button('Revert',()=>{
           try{
@@ -237,7 +251,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
         const feedback=el('span','','review-field-error'), wrapper=field(label,control);feedback.setAttribute('role','status');
         // Edited values show the live value beneath, so the diff is visible in place.
         const liveValue=live?readReviewValue(live,item.path):undefined;
-        if(live&&JSON.stringify(liveValue)!==JSON.stringify(value)){wrapper.dataset.edited='true';wrapper.append(el('span',`Live: ${showValue(liveValue)}`,'review-field-live'));}
+        if(live&&JSON.stringify(liveValue)!==JSON.stringify(value)){wrapper.dataset.edited='true';wrapper.append(el('span',liveValue===undefined?'Not on the live card':`Live: ${showValue(liveValue)}`,'review-field-live'));}
         wrapper.append(feedback);
         let pending=null;
         const commit=()=>{
@@ -329,14 +343,73 @@ export function createCardReviewerView({review, cards, getState, run}) {
       }
       wrap.append(feedback);destination.append(wrap);
     }
+    // Lists (Production outputs, Consume, Require) share one editor: rows with
+    // amount and Remove, then Add from an icon tray. Each save replaces the
+    // whole list, so fixed effects keep their places and Revert restores it.
+    const listCovered=path=>entry.kind==='practice'&&(['consume','require'].includes(path[0])||(path[0]==='effects'&&isPracticeOutput(definition.effects?.[path[1]])));
+    function saveList(path,value,focusSelector) {
+      try {
+        review.edit(entry.kind,entry.id,path,value);
+        refresh();renderValues();saveStatus.textContent='Saved on this device';
+        if(editor.open&&['yields','inputs'].includes(activeGroup)){const scroll=editorFields.scrollTop;fillEditor(activeGroup);editorFields.scrollTop=scroll;}
+        if(focusSelector)(editor.open?editorFields:valuesHost).querySelector(focusSelector)?.focus({preventScroll:true});
+      }catch(error){return error.message;}
+    }
+    function outputsEditor(destination) {
+      if(entry.kind!=='practice'||!Array.isArray(definition.effects))return;
+      const liveKeys=new Set((live?.effects??[]).map(effect=>JSON.stringify([effect.op,effect.classId,effect.bank])));
+      const rows=definition.effects.map((effect,index)=>({effect,index})).filter(({effect})=>isPracticeOutput(effect)).map(({effect,index})=>({
+        label:effectName(effect),amount:effect.amount,icons:[{event:PRACTICE_OUTPUTS[effect.op].icon}],
+        badge:live&&!liveKeys.has(JSON.stringify([effect.op,effect.classId,effect.bank]))?'Added':null,
+        onAmount:value=>{const next=structuredClone(definition.effects);next[index].amount=value;return saveList(['effects'],next);},
+        onRemove:()=>saveList(['effects'],reviewRemoveOutput(definition,index),'[data-testid=review-outputs-add]'),
+      }));
+      const choices=reviewOutputChoices(definition).map(choice=>({key:choice.key,label:choice.label,icon:{event:choice.icon},effect:choice.effect}));
+      destination.append(reviewListEditor({title:'Non-Stock outputs',testid:'review-outputs',rows,choices,addLabel:'Add output',cards,whole:false,
+        emptyNote:'No non-Stock outputs on this card.',full:definition.effects.length>=PRACTICE_EFFECT_LIMIT,
+        fullNote:`Cards show up to ${PRACTICE_EFFECT_LIMIT} effects. Remove one to add another.`,
+        onAdd:(key,amount)=>saveList(['effects'],reviewAddOutput(definition,{...choices.find(choice=>choice.key===key).effect,amount}),'[data-testid=review-outputs-remove]')}));
+    }
+    function inputsEditor(destination) {
+      if(entry.kind!=='practice'||definition.mode!=='scheduled')return;
+      const total=(definition.consume?.length??0)+(definition.require?.length??0);
+      for(const [kind,title,addLabel,verb] of [['consume','Consumes','Add consume','consumed each activation'],['require','Requires','Add requirement','held, not consumed']]) {
+        const list=definition[kind]??[];
+        const rows=list.map((item,index)=>{
+          const label=item.traits.join(' / ');
+          // Accepted traits stay editable per row, like construction costs.
+          const tray=el('div','','review-icon-tray');
+          for(const trait of REVIEW_STOCK_TRAITS) {
+            const pick=button('',()=>{
+              const next=structuredClone(list),traits=next[index].traits;
+              next[index].traits=traits.includes(trait)?traits.filter(value=>value!==trait):[...traits,trait];
+              const error=saveList([kind],next);if(error)pick.closest('.review-list')?.querySelector('.review-field-error')?.replaceChildren(error);
+            });
+            pick.setAttribute('aria-label',`${title} ${index+1}: ${trait}`);pick.setAttribute('aria-pressed',String(item.traits.includes(trait)));
+            pick.append(cards.icon({trait}),el('span',trait));tray.append(pick);
+          }
+          return {label,amount:item.amount,icons:item.traits.map(trait=>({trait})),
+            extra:disclosure('Accepted traits',[el('p','Any listed trait can supply this input.','lab-note'),tray],{key:`review:${kind}-traits:${selected}:${index}`,className:'review-list-traits'}),
+            onAmount:value=>{const next=structuredClone(list);next[index].amount=value;return saveList([kind],next);},
+            onRemove:()=>saveList([kind],list.filter((_,i)=>i!==index),`[data-testid=review-${kind}-add]`)};
+        });
+        destination.append(reviewListEditor({title:`${title} · ${verb}`,testid:`review-${kind}`,rows,cards,addLabel,
+          choices:REVIEW_STOCK_TRAITS.filter(trait=>trait!=='Charge').map(trait=>({key:trait,label:trait,icon:{trait}})),
+          emptyNote:kind==='consume'?'Consumes no Stock.':'Requires no Stock.',full:total>=PRACTICE_INPUT_LIMIT,
+          fullNote:`Cards show up to ${PRACTICE_INPUT_LIMIT} Consume and Require inputs. Remove one to add another.`,
+          onAdd:(trait,amount)=>saveList([kind],[...structuredClone(list),{amount,traits:[trait]}],`[data-testid=review-${kind}-remove]`)}));
+      }
+    }
     function fillEditor(id) {
       editorFields.replaceChildren();
       const values=el('div','','review-fields');
-      controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)&&!['stockTraits','activation'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume')),values);
+      controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)&&!['stockTraits','activation'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume')&&!listCovered(item.path)),values);
       if(values.children.length)editorFields.append(values);
       if(id==='stock')iconTray('stock',editorFields);
       if(id==='schedule')iconTray('schedule',editorFields);
       if(id==='construction')constructionEditor(editorFields);
+      if(id==='yields')outputsEditor(editorFields);
+      if(id==='inputs')inputsEditor(editorFields);
       if(id==='yields'&&definition.mode==='scheduled')editorFields.append(button('Choose schedule triggers',()=>editGroup('schedule')));
     }
     function editGroup(id) {
@@ -376,20 +449,33 @@ export function createCardReviewerView({review, cards, getState, run}) {
     let term='';
     find.addEventListener('input',()=>{term=find.value.trim().toLowerCase();renderValues();});
     function renderValues() {
-      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume'));
+      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume')&&!listCovered(item.path));
       if(definition.construction)fields.push({path:['construction','consume'],value:definition.construction.consume});
       const current=review.get(entry.kind,entry.id), editedPaths=new Set(current.edits.map(edit=>JSON.stringify(edit.path)));
       const assigned=new Map(valueGroups.map(([id])=>[id,[]]));
       for(const item of fields)assigned.get(valueGroups.find(([,,match])=>match(item.path))[0]).push(item);
       const scrollY=window.scrollY;valuesHost.replaceChildren();
+      // List editors join their groups: outputs after Production, inputs as Consume & require.
+      const listEdited=path=>current.edits.some(edit=>edit.path.length===1&&edit.path[0]===path);
+      const listGroup=(id,label,fill,count,changed,words)=>{
+        if(term&&!`${label} ${words}`.toLowerCase().includes(term))return;
+        const body=el('div');fill(body);if(!body.children.length)return;
+        const box=disclosure(label,[body],{key:term?undefined:`review:group:${id}`,open:!!term||changed||isWide(),count,className:'review-group',badges:[changed?badge('edited','accent'):null]});
+        box.dataset.group=id;valuesHost.append(box);
+      };
+      const extras={
+        yields:()=>listGroup('outputs','Production outputs',outputsEditor,definition.effects?.filter(isPracticeOutput).length??0,listEdited('effects'),'add remove research output'),
+        inputs:()=>listGroup('inputs','Consume & require',inputsEditor,(definition.consume?.length??0)+(definition.require?.length??0),listEdited('consume')||listEdited('require'),'consume require stock input'),
+      };
       for(const [id,label] of valueGroups) {
         const items=assigned.get(id).filter(item=>!term||labelFor(definition,item.path).toLowerCase().includes(term));
-        if(!items.length)continue;
+        if(!items.length){extras[id]?.();continue;}
         const edits=items.filter(item=>editedPaths.has(JSON.stringify(item.path))||(item.path[0]==='construction'&&item.path[1]==='consume'&&current.edits.some(edit=>edit.path[0]==='construction'&&edit.path[1]==='consume'))).length;
         const body=el('div','','review-fields');controlsFor(items,body);
         const box=disclosure(label,[body],{key:term?undefined:`review:group:${id}`,open:!!term||edits>0||isWide(),count:items.length,className:'review-group',badges:[edits?badge(`${edits} edited`,'accent'):null]});
         if(term)box.open=true;
         box.dataset.group=id;valuesHost.append(box);
+        extras[id]?.();
       }
       if(!valuesHost.children.length)valuesHost.append(el('p','No values match.','lab-empty'));
       window.scrollTo(0,scrollY);

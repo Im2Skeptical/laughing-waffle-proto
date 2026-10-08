@@ -554,6 +554,26 @@ html:has(.review-inline-editor[open]) { overflow:hidden; }
 .development-lab .review-workspace .lab-panel-head input[type=search] { flex:1 1 160px; max-width:260px; }
 .review-workspace .lab-controls button,.review-queue button { min-height:var(--tap); }
 
+/* Reviewer list editors (Production outputs, Consume, Require): rows with
+   icons, amount and Remove; Add opens the Stock-tag style icon tray. */
+.review-list { margin:var(--s2) 0 var(--s3); }
+.development-lab .review-list-title { margin:var(--s2) 0 var(--s1); font-size:var(--fs-sm); color:var(--lab-muted); text-transform:uppercase; letter-spacing:.04em; }
+.review-list-rows { list-style:none; margin:0 0 var(--s2); padding:0; }
+.review-list-row { display:grid; grid-template-columns:auto minmax(0,1fr) 76px auto; align-items:center; gap:var(--s1) var(--s2); padding:var(--s1) 0; border-bottom:1px solid var(--lab-line); }
+.review-list-icons { display:inline-flex; gap:2px; }
+.review-list-icons img { width:28px; height:28px; }
+.review-list-name { min-width:0; font-weight:600; overflow-wrap:anywhere; }
+.development-lab .review-list-row input { width:100%; min-height:var(--tap); font-size:16px; }
+.development-lab .review-list-row button { min-height:var(--tap); }
+.development-lab .review-list-row>.review-list-traits { grid-column:1 / -1; margin:0; padding:0 var(--s2); background:var(--lab-surface-2); border-radius:var(--r1); }
+.development-lab .review-list-adder { margin:var(--s1) 0; padding:0 var(--s3); background:var(--lab-surface-2); border-radius:var(--r1); }
+.development-lab .review-list-adder>summary { min-height:var(--tap); }
+.review-list-add { display:flex; align-items:end; gap:var(--s2); margin:0 0 var(--s3); }
+.development-lab .review-list-add label { flex:0 1 120px; }
+.development-lab .review-list-add input { width:100%; min-height:var(--tap); font-size:16px; }
+.development-lab .review-list-add button { flex:1 1 auto; min-height:var(--tap); }
+.development-lab .review-list-empty { margin:var(--s1) 0; }
+
 /* Reviewer bulk edit: selection mode, sticky action bar, field sheet, undo. */
 .review-queue-tools { display:flex; align-items:center; gap:var(--s2); margin-bottom:var(--s2); }
 .development-lab .review-queue-wrap .review-queue-tools input[type=search] { flex:1 1 auto; width:auto; min-width:0; margin:0; }

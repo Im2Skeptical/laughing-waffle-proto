@@ -39,11 +39,14 @@ export function createCardReviewController({storage = browserStorage(), resolveL
         if(baseline[part]===undefined)break;
         baseline=baseline[part];
       }
-      validateReviewValue(entry.baseline,path,value);
-      writeReviewValue(draft,path,value);
       // Editing a leaf inside a selected collection updates that collection;
       // selecting a collection supersedes old per-index edits without losing them.
       const parent=entry.edits.find(edit=>prefix(edit.path,path));
+      writeReviewValue(draft,path,value);
+      // A leaf inside a reviewed collection (an added output, say) may not exist
+      // in the original, so the whole collection is checked against it instead.
+      if(parent&&parent.path.length<path.length)validateReviewValue(entry.baseline,parent.path,readReviewValue(draft,parent.path));
+      else validateReviewValue(entry.baseline,path,value);
       const storedPath=parent?.path??path,storedValue=readReviewValue(draft,storedPath)??null;
       entry.edits=entry.edits.filter(edit=>!prefix(storedPath,edit.path)&&!prefix(edit.path,storedPath));
       if(JSON.stringify(readReviewValue(live,storedPath)??(isLock?false:null))!==JSON.stringify(storedValue))entry.edits.push({path:storedPath,value:storedValue});

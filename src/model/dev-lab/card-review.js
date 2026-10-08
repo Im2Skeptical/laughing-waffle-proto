@@ -1,5 +1,6 @@
 import { detailedSettlementPracticeDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { MOON_PHASE_DEFS } from '../../defs/gamesettings/moon-phase-defs.js';
+import { PRACTICE_OUTPUTS, PRACTICE_EFFECT_LIMIT, PRACTICE_INPUT_LIMIT, isPracticeOutput, practiceOutputKey, practiceEffectsCompatible, validPracticeInputs } from '../practice-outputs.js';
 
 // Review documents are independent of GameState and of runner/save schemas.
 export const CARD_REVIEW_SCHEMA = 1;
@@ -91,6 +92,17 @@ export function validateReviewValue(def, path, value) {
       ||(value.seasonKeys!==undefined&&(!validSelection(value.seasonKeys,REVIEW_SEASONS)||!value.seasonKeys.length))
       ||(value.stage!==undefined&&!['preRouting','postRouting'].includes(value.stage))
       ||Object.keys(value).some(key=>!['type','also','seasonKeys','stage'].includes(key)&&!equal(value[key],def.activation[key])))throw new Error('Choose valid schedule triggers from the icon tray.');
+    return;
+  }
+  // Whole Consume/Require lists on scheduled Practices.
+  if((equal(path,['consume'])||equal(path,['require']))&&Array.isArray(def[path[0]])&&def.mode) {
+    if(def.mode==='charge'&&value?.length)throw new Error('Charge cards cannot consume or require Stock.');
+    if(!validPracticeInputs(value,REVIEW_STOCK_TRAITS))throw new Error(`Use whole amounts of 0 or more, at least one Stock trait each, up to ${PRACTICE_INPUT_LIMIT} inputs.`);
+    return;
+  }
+  // Whole effect lists: add or remove non-Stock outputs; fixed effects keep their place.
+  if(equal(path,['effects'])&&Array.isArray(def.effects)&&def.mode) {
+    if(!practiceEffectsCompatible(def.effects,value))throw new Error(`Keep Stock and other fixed effects; add each output type once, up to ${PRACTICE_EFFECT_LIMIT} effects, with a number amount.`);
     return;
   }
   if(path[0]==='effects'&&Number.isInteger(path[1])&&path[2]==='seasonAmounts'&&typeof def.effects?.[path[1]]?.amount==='number') {
@@ -218,3 +230,16 @@ export function planReviewBulkEdit(targets, path, value, {includeLocked=false}={
     return {...row,from:field.value,status:'change'};
   });
 }
+
+// Output types a card could add: each op/parameter pair not already present.
+export function reviewOutputChoices(def) {
+  const present=new Set((def?.effects??[]).filter(isPracticeOutput).map(practiceOutputKey));
+  return Object.entries(PRACTICE_OUTPUTS).flatMap(([op,spec])=>(spec.param?spec.choices:[null]).map(choice=>{
+    const effect={op,amount:1,...(spec.param?{[spec.param]:choice}:{})};
+    return {key:practiceOutputKey(effect),effect,icon:spec.icon,label:spec.param&&spec.choices.length>1?`${spec.label} · ${choice}`:spec.label};
+  })).filter(choice=>!present.has(choice.key));
+}
+// The next effect list after adding or removing one output. Seasonal cards
+// fall back to `amount` for effects without seasonal amounts.
+export const reviewAddOutput = (def, effect) => [...clone(def.effects??[]),clone(effect)];
+export const reviewRemoveOutput = (def, index) => clone(def.effects).filter((effect,i)=>i!==index||!isPracticeOutput(effect));

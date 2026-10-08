@@ -5,11 +5,17 @@ import { CIV_CONTENT_TUNING } from '../detailed-settlements/stock.js';
 import { getVassalCandidatePool } from '../vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
+import { practiceEffectProduct } from '../practice-outputs.js';
+
+const inputTraits = list => [...new Set((Array.isArray(list) ? list : []).flatMap(input => input?.traits ?? []))];
+// What a card produces: Stock, Chaos and each non-Stock output; Structures list Housing.
+export const labCardProduces = (category, def) => category === 'structure' ? (def.housing > 0 ? ['Housing'] : [])
+  : [...new Set((def.effects ?? []).map(practiceEffectProduct).filter(Boolean))];
 
 export function getLabCatalogue(state) {
   const entries = [];
   for (const [category, registry] of [['practice',state.gameConfig.gamepieces.practices], ['structure',state.gameConfig.gamepieces.structures]]) {
-    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, mode:def.mode, maturity: def.minimumQuality, locked:def.locked===true, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, def });
+    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, mode:def.mode, maturity: def.minimumQuality, locked:def.locked===true, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, produces: labCardProduces(category, def), consumes: inputTraits(def.consume), requires: inputTraits(def.require), def });
   }
   const liveCandidates = getVassalCandidatePool(state).candidates;
   const candidates = liveCandidates.length ? liveCandidates : generateCandidatePool(deserializeGameState(serializeGameState(state)));
@@ -27,5 +33,7 @@ export function filterLabCatalogue(entries, filters = {}) {
     && (!filters.hideLocked || !e.locked)
     && (!filters.tag || e.tags?.includes(filters.tag)) && (!filters.trait || e.traits?.includes(filters.trait))
     && (!filters.size || e.size === Number(filters.size))
+    && (!filters.produces || e.produces?.includes(filters.produces))
+    && (!filters.consumes || e.consumes?.includes(filters.consumes)) && (!filters.requires || e.requires?.includes(filters.requires))
     && (!filters.search || JSON.stringify(e).toLowerCase().includes(filters.search.toLowerCase())));
 }

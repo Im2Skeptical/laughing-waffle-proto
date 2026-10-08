@@ -56,6 +56,15 @@ cards only with Include locked), save in one storage write and return a snapshot
 of each changed card's baseline and edits for Undo bulk edit. Positional effect
 fields stay per card. Zoo "Add N shown to review" flags the filtered Practices and
 Structures with `flagMany` and hands the group to the reviewer's selection.
+`review-list-editor.js` is the one editor for a card's lists: Production outputs
+(non-Stock outputs from `model/practice-outputs.js`) and scheduled Practices'
+Consume and Require. Rows show icons, an amount and Remove; Add uses the Stock-tag
+icon tray, an amount and Add. Each save replaces the whole `effects`, `consume`
+or `require` list, which shows as one Changes row with Revert. Stock production,
+Chaos and other DSL effects keep their authored order and shape; one output per
+type, at most three effects and three inputs. Game-config canonicalization keeps
+such lists and falls back to the authored list otherwise. Zoo Produces, Consumes
+and Requires filters read the same data (Structures produce Housing).
 `structure-plan.js` projects disposable plan slots through the shared face renderer
 and supplies per-cycle/total cost copy. Zoo and Reviewer switch between plan and
 completed faces. Reviewer construction controls edit cycles and whole Stock cost

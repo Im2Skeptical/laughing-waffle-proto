@@ -421,6 +421,93 @@ try {
     await phone.close();
     checks.push('phone bulk edit: Zoo Add N shown, selection mode/filter/Selected view, bottom-sheet fields with counts, old→new preview with skip reasons and Include locked, single save, per-card Revert, Undo, landscape drawer, 44px targets');
   }
+  // Phone list editors (Production outputs, Consume, Require) and the Zoo
+  // Produces/Consumes/Requires filters, in a fresh context.
+  {
+    const phone=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
+    const listErrors=[];phone.on('page',p=>p.on('pageerror',e=>listErrors.push(e.message)));
+    const tab=await phone.newPage();
+    const tall=async(locator,name)=>assert.ok((await locator.boundingBox()).height>=44,`${name} is touch-sized`);
+    const filters=async action=>{await tab.getByTestId('zoo-filters-button').click();await action();await tab.getByTestId('zoo-filters-close').click();};
+    const openGroup=async id=>{const group=tab.locator(`.review-value-groups [data-group=${id}]`);if(!await group.evaluate(node=>node.open))await group.locator('summary').first().click();return group;};
+    const addTo=async(list,label,amount)=>{
+      const adder=list.locator('.review-list-adder');
+      if(!await adder.evaluate(node=>node.open))await adder.locator('summary').click();
+      await list.getByRole('button',{name:label,exact:true}).click();
+      await list.locator('[data-testid$=-add-amount]').fill(String(amount));
+      await tall(list.locator('[data-testid$=-add]'),'Add');
+      await list.locator('[data-testid$=-add]').click();
+    };
+    const change=name=>tab.locator('.review-change').filter({has:tab.locator('strong',{hasText:new RegExp(`^${name}$`)})});
+    await tab.goto(`${url}/#/dev/zoo`);
+    await tab.getByText('109 matching runtime entries',{exact:false}).waitFor();
+    await filters(()=>tab.getByTestId('zoo-produces').selectOption('Research'));
+    await tab.getByText('8 matching runtime entries',{exact:false}).waitFor();
+    assert.match(await tab.getByTestId('zoo-produces').locator('option[value=Research]').textContent(),/Research \(8\)/,'Produces options carry counts');
+    await tab.getByRole('button',{name:'Remove filter: Produces: Research',exact:true}).click();
+    await filters(()=>tab.getByTestId('zoo-requires').selectOption('Tool'));
+    await tab.getByRole('button',{name:'Remove filter: Requires: Tool',exact:true}).waitFor();
+    assert.ok(await tab.locator('.lab-catalogue-grid>.lab-card').count()>0,'Requires filter finds cards');
+    await tab.getByRole('button',{name:'Remove filter: Requires: Tool',exact:true}).click();
+    await tab.getByText('109 matching runtime entries',{exact:false}).waitFor();
+    // Production outputs on a Charge card.
+    await tab.getByLabel('Search runtime content').fill('caravanGuarding');
+    await tab.getByText('1 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByRole('button',{name:'Flag for review',exact:true}).click();
+    await tab.getByRole('button',{name:'Open review',exact:true}).click();
+    const outputs=(await openGroup('outputs')).getByTestId('review-outputs');
+    assert.equal(await tab.locator('.review-value-groups [data-group=inputs]').count(),0,'Charge cards have no Consume/Require editor');
+    await addTo(outputs,'Add output: Research',2);
+    await change('Production outputs').waitFor();
+    assert.match(await change('Production outputs').textContent(),/Research gained 2/);
+    await tall(outputs.getByRole('button',{name:'Remove Research gained',exact:true}),'Remove output');
+    assert.equal(await outputs.getByRole('button',{name:'Add output: Research',exact:true}).count(),0,'added outputs leave the picker');
+    assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'outputs editor fits a phone');
+    await tab.getByRole('button',{name:'Edit Production',exact:true}).click();
+    await tab.locator('.review-inline-editor [data-testid=review-outputs]').getByRole('button',{name:'Remove Research gained',exact:true}).waitFor();
+    await tab.locator('.review-inline-editor').getByRole('button',{name:'Done',exact:true}).click();
+    // Consume and Require on a scheduled card.
+    await tab.getByRole('link',{name:'Zoo',exact:true}).click();
+    await tab.getByLabel('Search runtime content').fill('masonry');
+    await tab.getByText('1 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByRole('button',{name:'Flag for review',exact:true}).click();
+    await tab.getByRole('button',{name:'Open review',exact:true}).click();
+    const inputsGroup=await openGroup('inputs');
+    const consume=inputsGroup.getByTestId('review-consume'),require=inputsGroup.getByTestId('review-require');
+    assert.equal(await inputsGroup.locator('[data-review-path]').count(),0,'list editors replace per-index Consume/Require fields');
+    await addTo(consume,'Add consume: Fuel',2);
+    await change('Consumes').waitFor();
+    assert.match(await change('Consumes').textContent(),/1 Stone → 1 Stone, 2 Fuel/);
+    await tall(require.getByRole('button',{name:'Remove Tool',exact:true}),'Remove requirement');
+    await require.getByRole('button',{name:'Remove Tool',exact:true}).click();
+    await change('Requires').waitFor();
+    assert.match(await change('Requires').textContent(),/1 Tool → none/);
+    await inputsGroup.getByTestId('review-consume').getByTestId('review-consume-amount').last().fill('3');
+    await inputsGroup.getByTestId('review-consume').getByTestId('review-consume-amount').last().press('Enter');
+    await tab.getByText('1 Stone, 3 Fuel',{exact:true}).waitFor();
+    assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Consume/Require editors fit a phone');
+    await tab.getByRole('link',{name:'Zoo',exact:true}).click();
+    await tab.getByLabel('Search runtime content').fill('');
+    await filters(async()=>{
+      await tab.locator('[role=group][aria-label="Card versions"] [data-value=edited]').click();
+      await tab.getByTestId('zoo-produces').selectOption('Research');
+    });
+    await tab.getByText('9 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByRole('button',{name:'Remove filter: Produces: Research',exact:true}).click();
+    await filters(()=>tab.getByTestId('zoo-consumes').selectOption('Fuel'));
+    await tab.getByRole('button',{name:'Read Masonry, bronze',exact:false}).first().waitFor();
+    await tab.getByRole('link',{name:/Review flagged/}).click();
+    for(const name of ['Consumes','Requires']) {
+      await change(name).getByRole('button',{name:'Revert',exact:true}).click();
+      await change(name).waitFor({state:'detached'});
+    }
+    await tab.locator('.review-queue button').first().click();
+    await change('Production outputs').getByRole('button',{name:'Revert',exact:true}).click();
+    await change('Production outputs').waitFor({state:'detached'});
+    assert.deepEqual(listErrors,[]);
+    await phone.close();
+    checks.push('phone list editors: add/remove non-Stock outputs, Consume and Require with the Stock-tag icon tray, inline amounts, Changes against live with Revert; Zoo Produces/Consumes/Requires filters with counts, chips and edited versions');
+  }
   if(process.argv.includes('--reviewer-only')) {
     assert.deepEqual(errors,[]);
     writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));

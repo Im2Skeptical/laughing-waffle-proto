@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createAuthoredGameConfig, canonicalizeGamepiecesDraft, validateGamepiecesDraft } from '../src/model/game-config.js';
 import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
-import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS, reviewBulkFields, planReviewBulkEdit } from '../src/model/dev-lab/card-review.js';
+import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS, reviewBulkFields, planReviewBulkEdit, reviewOutputChoices, reviewAddOutput, reviewRemoveOutput } from '../src/model/dev-lab/card-review.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { createEmptyTimelineFromBase, rebuildStateAtSecond } from '../src/model/timeline/index.js';
@@ -323,4 +323,117 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.equal(bulk.get('practice',third),null);
   writes=0;assert.deepEqual(bulk.bulkEdit(keys,['workerCapacity'],99).changed,[]);
 }
-console.log('[card-review] OK: persistent proposals/locks/construction costs, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures, bulk edits/skips/undo');
+
+// Production outputs: add and remove non-Stock outputs; fixed effects keep their places.
+{
+  const outStored=new Map();
+  const outStorage={getItem:key=>outStored.get(key)??null,setItem:(key,value)=>outStored.set(key,value)};
+  const outLive=structuredClone(gameConfig.gamepieces);
+  const out=createCardReviewController({storage:outStorage,resolveLive:(kind,id)=>outLive[kind==='practice'?'practices':'structures'][id]});
+  const draftOf=id=>out.preview(out.get('practice',id)).definition;
+  for(const id of ['caravanGuarding','charnelAlchemy','heroicCompany'])out.flag('practice',id,outLive.practices[id]);
+  const caravan=outLive.practices.caravanGuarding;
+  assert.ok(reviewOutputChoices(caravan).some(choice=>choice.key==='research'));
+  assert.ok(!reviewOutputChoices(outLive.practices.charnelAlchemy).some(choice=>choice.key==='research'),'present outputs are not offered again');
+  assert.deepEqual(reviewOutputChoices(caravan).filter(choice=>choice.effect.op==='train').map(choice=>choice.key),['train:scholar','train:warrior']);
+  out.edit('practice','caravanGuarding',['effects'],reviewAddOutput(caravan,{op:'research',amount:2}));
+  assert.deepEqual(draftOf('caravanGuarding').effects.map(effect=>effect.op),['generateStock','research']);
+  // Leaf edits after an output change fold into the one effect-list edit.
+  out.edit('practice','caravanGuarding',['effects',1,'amount'],3);
+  out.edit('practice','caravanGuarding',['effects',0,'amount'],caravan.effects[0].amount+1);
+  assert.deepEqual(out.get('practice','caravanGuarding').edits.map(edit=>edit.path),[['effects']]);
+  assert.deepEqual(draftOf('caravanGuarding').effects,[{...caravan.effects[0],amount:caravan.effects[0].amount+1},{op:'research',amount:3}]);
+  // Remove Research (a non-Stock output) from a Stock + Research + Chaos card.
+  const charnel=outLive.practices.charnelAlchemy;
+  out.edit('practice','charnelAlchemy',['effects'],reviewRemoveOutput(charnel,1));
+  assert.deepEqual(draftOf('charnelAlchemy').effects.map(effect=>effect.op),['generateStock','addChaos']);
+  assert.deepEqual(reviewRemoveOutput(charnel,0),structuredClone(charnel.effects),'Stock production cannot be removed');
+  // A card with no effects can gain one.
+  out.edit('practice','heroicCompany',['effects'],[{op:'bankSupport',amount:1,bank:'siege'}]);
+  const outBefore=outStorage.getItem(CARD_REVIEW_STORAGE_KEY);
+  const reject=(id,effects,message)=>assert.throws(()=>out.edit('practice',id,['effects'],effects),undefined,message);
+  reject('caravanGuarding',[{op:'research',amount:2}],'Stock production stays');
+  reject('charnelAlchemy',[charnel.effects[2],charnel.effects[0]],'fixed effects keep their order');
+  reject('charnelAlchemy',[charnel.effects[0]],'Chaos is not a removable output');
+  reject('caravanGuarding',[caravan.effects[0],{op:'research',amount:1},{op:'research',amount:2}],'one output per type');
+  reject('caravanGuarding',[caravan.effects[0],{op:'teleport',amount:1}],'only known output types');
+  reject('caravanGuarding',[caravan.effects[0],{op:'train',amount:1,classId:'farmer'}],'valid output parameters');
+  reject('caravanGuarding',[caravan.effects[0],{op:'research',amount:'2'}],'number amounts');
+  reject('caravanGuarding',[caravan.effects[0],{op:'research',amount:1,target:'x'}],'no extra output keys');
+  reject('caravanGuarding',[caravan.effects[0],{op:'research',amount:1},{op:'bankPreview',amount:1},{op:'train',amount:1,classId:'scholar'}],'cards show up to three effects');
+  reject('caravanGuarding',[{...caravan.effects[0],op:'research'}],'Stock effects keep their op');
+  assert.equal(outStorage.getItem(CARD_REVIEW_STORAGE_KEY),outBefore,'invalid output lists leave the draft intact');
+  // Edited cards carry added/removed outputs into new games and saves.
+  out.setUseInNewGames(true);
+  assert.deepEqual(out.getLaunchStatus().issues,[]);
+  const outGame=out.createNewGame(77);
+  assert.deepEqual(outGame.gameConfig.gamepieces.practices.caravanGuarding.effects.map(effect=>effect.op),['generateStock','research']);
+  assert.equal(outGame.gameConfig.gamepieces.practices.caravanGuarding.effects[1].amount,3);
+  assert.deepEqual(outGame.gameConfig.gamepieces.practices.charnelAlchemy.effects.map(effect=>effect.op),['generateStock','addChaos']);
+  assert.deepEqual(outGame.gameConfig.gamepieces.practices.heroicCompany.effects,[{op:'bankSupport',amount:1,bank:'siege'}]);
+  assert.deepEqual(validateGamepiecesDraft(outGame.gameConfig.gamepieces).errors,[]);
+  assert.deepEqual(deserializeGameState(serializeGameState(outGame)).gameConfig.gamepieces.practices.caravanGuarding.effects,outGame.gameConfig.gamepieces.practices.caravanGuarding.effects,'saves keep added outputs');
+  const tampered=structuredClone(gameConfig.gamepieces);tampered.practices.caravanGuarding.effects=[{op:'research',amount:9}];
+  assert.deepEqual(canonicalizeGamepiecesDraft(tampered).practices.caravanGuarding.effects.map(effect=>effect.op),['generateStock'],'incompatible effect lists fall back to the authored effects');
+  // Zoo: filter by what a card produces, live and with drafts applied.
+  const researchers=state=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',produces:'Research'}).map(entry=>entry.id);
+  const liveResearch=researchers(createNewGameState(77));
+  assert.equal(liveResearch.length,8);assert.ok(liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
+  const editedResearch=researchers(outGame);
+  assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
+  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,81);
+  assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,6);
+  // Revert restores the live list and removes the edit.
+  out.edit('practice','caravanGuarding',['effects'],outLive.practices.caravanGuarding.effects);
+  assert.equal(out.get('practice','caravanGuarding').edits.length,0);
+  out.setUseInNewGames(false);
+}
+
+// Consume/Require lists: add, remove and retrait inputs on scheduled Practices.
+{
+  const inStored=new Map();
+  const inStorage={getItem:key=>inStored.get(key)??null,setItem:(key,value)=>inStored.set(key,value)};
+  const inLive=structuredClone(gameConfig.gamepieces);
+  const inputs=createCardReviewController({storage:inStorage,resolveLive:(kind,id)=>inLive[kind==='practice'?'practices':'structures'][id]});
+  const masonry=inLive.practices.masonry;
+  inputs.flag('practice','masonry',masonry);inputs.flag('practice','caravanGuarding',inLive.practices.caravanGuarding);
+  const draft=()=>inputs.preview(inputs.get('practice','masonry')).definition;
+  inputs.edit('practice','masonry',['consume'],[...masonry.consume,{amount:2,traits:['Fuel']}]);
+  inputs.edit('practice','masonry',['require'],[]);
+  assert.deepEqual(draft().consume,[{traits:['Stone'],amount:1},{amount:2,traits:['Fuel']}]);
+  assert.deepEqual(draft().require,[]);
+  // Leaf edits fold into the list edit; alternatives are allowed.
+  inputs.edit('practice','masonry',['consume',1,'amount'],3);
+  inputs.edit('practice','masonry',['consume'],[draft().consume[0],{amount:3,traits:['Fuel','Timber']}]);
+  assert.deepEqual(inputs.get('practice','masonry').edits.map(edit=>edit.path[0]).sort(),['consume','require']);
+  const inBefore=inStorage.getItem(CARD_REVIEW_STORAGE_KEY);
+  const reject=(id,path,value,message)=>assert.throws(()=>inputs.edit('practice',id,path,value),undefined,message);
+  reject('masonry',['consume'],[{amount:1,traits:[]}],'at least one trait');
+  reject('masonry',['consume'],[{amount:1,traits:['Unknown']}],'known Stock traits');
+  reject('masonry',['consume'],[{amount:1,traits:['Charge']}],'Charge is not a Stock input');
+  reject('masonry',['consume'],[{amount:1.5,traits:['Stone']}],'whole amounts');
+  reject('masonry',['consume'],[{amount:-1,traits:['Stone']}],'non-negative amounts');
+  reject('masonry',['consume'],[{amount:1,traits:['Stone','Stone']}],'unique traits');
+  reject('masonry',['consume'],[{amount:1,traits:['Stone'],chance:2}],'no extra keys');
+  reject('masonry',['require'],Array.from({length:4},()=>({amount:1,traits:['Tool']})),'up to three inputs');
+  reject('caravanGuarding',['consume'],[{amount:1,traits:['Stone']}],'Charge cards cannot consume');
+  assert.equal(inStorage.getItem(CARD_REVIEW_STORAGE_KEY),inBefore,'invalid inputs leave the draft intact');
+  inputs.setUseInNewGames(true);
+  assert.deepEqual(inputs.getLaunchStatus().issues,[]);
+  const game=inputs.createNewGame(91),played=game.gameConfig.gamepieces.practices.masonry;
+  assert.deepEqual(played.consume,[{amount:1,traits:['Stone']},{amount:3,traits:['Fuel','Timber']}]);
+  assert.deepEqual(played.require,[]);
+  assert.deepEqual(validateGamepiecesDraft(game.gameConfig.gamepieces).errors,[]);
+  assert.deepEqual(deserializeGameState(serializeGameState(game)).gameConfig.gamepieces.practices.masonry.consume,played.consume,'saves keep edited inputs');
+  const tampered=structuredClone(gameConfig.gamepieces);tampered.practices.masonry.consume=Array.from({length:5},()=>({amount:1,traits:['Stone']}));
+  assert.equal(canonicalizeGamepiecesDraft(tampered).practices.masonry.consume.length,1,'invalid input lists fall back to the authored list');
+  const consumers=(state,trait)=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',consumes:trait}).map(entry=>entry.id);
+  assert.ok(consumers(game,'Fuel').includes('masonry')&&!consumers(createNewGameState(91),'Fuel').includes('masonry'),'Consumes filter follows edited inputs');
+  assert.ok(filterLabCatalogue(getLabCatalogue(createNewGameState(91)),{category:'practice',requires:'Tool'}).some(entry=>entry.id==='masonry'));
+  assert.ok(!filterLabCatalogue(getLabCatalogue(game),{category:'practice',requires:'Tool'}).some(entry=>entry.id==='masonry'),'Requires filter follows removed requirements');
+  // Revert restores the live lists.
+  inputs.edit('practice','masonry',['consume'],masonry.consume);inputs.edit('practice','masonry',['require'],masonry.require);
+  assert.equal(inputs.get('practice','masonry').edits.length,0);
+  inputs.setUseInNewGames(false);
+}
+console.log('[card-review] OK: persistent proposals/locks/construction costs, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures, bulk edits/skips/undo, production outputs and Consume/Require lists, Produces/Consumes/Requires filters');

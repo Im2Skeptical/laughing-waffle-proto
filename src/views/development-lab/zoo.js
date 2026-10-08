@@ -98,9 +98,9 @@ export function createZooView({controller,cards,run,review}) {
     const values = property => [...new Set(inCategory.flatMap(e => e[property] ?? []))].filter(v => v !== '' && v != null).map(String).sort();
     const options = {
       pool:POOLS.filter(v=>values('pool').includes(v)), maturity:['bronze','silver','gold','diamond'].filter(v=>values('maturity').includes(v)),
-      mode:values('mode'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
+      mode:values('mode'), produces:values('produces'), consumes:values('consumes'), requires:values('requires'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
     };
-    const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
+    const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',produces:'Produces',consumes:'Consumes',requires:'Requires',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
     for (const key of Object.keys(options)) if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
 
     // One compact bar: category tabs, search and the Filters button. It slides
@@ -134,9 +134,12 @@ export function createZooView({controller,cards,run,review}) {
     const cardGroup = [];
     if (options.pool.length) cardGroup.push(segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool ?? '',value=>{filters.pool=value;changed();}));
     const selects = el('div','','lab-filter-selects');
-    for (const key of ['maturity','mode','tag','trait','size']) {
+    // Produces/Consumes/Requires list each value with how many cards in this category match.
+    const counted = ['produces','consumes','requires'], count = (key,value) => inCategory.filter(e=>e[key]?.includes(value)).length;
+    for (const key of ['maturity','mode','produces','consumes','requires','tag','trait','size']) {
       if (!options[key].length) continue;
-      const control = select(labels[key],[['','Any'],...options[key].map(v=>[v,title(v)])],filters[key] ?? '');
+      const control = select(labels[key],[['','Any'],...options[key].map(v=>[v,counted.includes(key)?`${v} (${count(key,v)})`:title(v)])],filters[key] ?? '');
+      if (counted.includes(key)) control.dataset.testid = `zoo-${key}`;
       control.addEventListener('change',()=>{filters[key]=control.value;changed();}); selects.append(field(labels[key],control));
     }
     if (selects.children.length) cardGroup.push(selects);

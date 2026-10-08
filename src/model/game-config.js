@@ -3,6 +3,7 @@ import {
   settlementStructureDefs,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { MOON_PHASE_DEFS } from '../defs/gamesettings/moon-phase-defs.js';
+import { isPracticeOutput, practiceEffectsCompatible, validPracticeInputs } from './practice-outputs.js';
 import {
   canonicalizeVassalLifeMapGeneratorConfig,
   createAuthoredVassalLifeMapGeneratorConfig,
@@ -243,6 +244,21 @@ function copyEditableLeaves(template, source, path = []) {
   // Construction recipes are editable collections, unlike fixed DSL effect lists.
   if(path.at(-2)==='construction'&&path.at(-1)==='consume'&&Array.isArray(source)) {
     return source.map(cost=>({amount:Number.isFinite(cost?.amount)?cost.amount:1,traits:normalizeTags(cost?.traits,['Construction'])}));
+  }
+  // Practice Consume/Require lists are reviewable collections too.
+  if(path.length===2&&['consume','require'].includes(path[1])&&Array.isArray(template)&&validPracticeInputs(source,STOCK_TRAITS)) {
+    return source.map(input=>({amount:input.amount,traits:[...input.traits]}));
+  }
+  // Practice effects: fixed DSL effects keep their authored shape and order;
+  // reviewed non-Stock outputs may be added or removed. Anything else falls
+  // back to the authored list below.
+  if(path.length===2&&path[1]==='effects'&&Array.isArray(template)&&practiceEffectsCompatible(template,source)) {
+    const fixed=template.filter(effect=>!isPracticeOutput(effect));let next=0;
+    return source.map((effect,index)=>{
+      if(!isPracticeOutput(effect))return copyEditableLeaves(fixed[next++],effect,[...path,index]);
+      const {op,amount,classId,bank}=effect;
+      return {op,amount,...(classId!==undefined?{classId}:{}),...(bank!==undefined?{bank}:{})};
+    });
   }
   if(path.at(-1)==='activation'&&template.type!=='charge'&&source&&scheduleTypes.includes(source.type)) {
     const activation={...clone(template),type:source.type};
