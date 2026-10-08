@@ -154,6 +154,7 @@ export function createVassalResolutionRecapView({
     refresh: () => render(),
     resize: () => render(true),
     isOpen: () => root.visible,
+    isAnimating: () => root.visible && clockView?.getSnapshot()?.locked === false,
     getDismissClickPoint: () => root.visible && dismissRoot?.toGlobal
       ? dismissRoot.toGlobal(new PIXI.Point(
         dismissRoot.hitArea.width / 2, dismissRoot.hitArea.height / 2

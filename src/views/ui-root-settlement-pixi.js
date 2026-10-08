@@ -175,6 +175,14 @@ function fitCanvasToViewport(view) {
   view.style.position = "fixed";
   view.style.left = `${left}px`;
   view.style.top = `${top}px`;
+  // Keep the 2424×1080 logical stage/input coordinates, but rasterise at the
+  // pixels actually displayed. A small viewport must not draw a full-size
+  // backing buffer only to shrink it in CSS on every clock-animation frame.
+  const resolution = Math.min(1, scale * (window.devicePixelRatio || 1));
+  if (Math.abs(app.renderer.resolution - resolution) > .001) {
+    app.renderer.resolution = resolution;
+    app.renderer.resize(VIEWPORT_DESIGN_WIDTH, VIEWPORT_DESIGN_HEIGHT);
+  }
 }
 
 function stylePage() {
@@ -255,6 +263,7 @@ const settlementGraphSession = createSettlementGraphSession({
   setWorldViewMode: (mode) => setWorldViewMode(mode),
   onPendingResolutionSettled: (payload) =>
     settlementVassalFlow?.noteResolutionSettled?.(payload),
+  isRecapAnimating: () => vassalResolutionRecapView?.isAnimating() === true,
 });
 const {
   getSettlementGraphScope,
@@ -1328,6 +1337,12 @@ runCompleteView = createRunCompleteView({
     settlementGraphView?.getScreenRect(), settlementNavigationView?.getPresentScreenRect(),
     sunMoonDisksView?.getScreenRect(), timeControlsView?.getScreenRect(),
   ].filter(Boolean),
+  getEmphasisTargets: () => [
+    { id: 'plot', rect: settlementGraphView?.getPlotStageRect(), shape: 'rect' },
+    { id: 'present', rect: settlementNavigationView?.getPresentScreenRect(), shape: 'circle' },
+  ].filter(target => target.rect).map(target => ({ ...target, rect: {
+    x: target.rect.x, y: target.rect.y, width: target.rect.width, height: target.rect.height,
+  } })),
   onOpen: () => {
     requestPauseBeforeDrag();
     settlementGraphView?.pauseForecastReveal?.();
@@ -1759,6 +1774,14 @@ app.ticker.add((delta) => {
   if (!openingFrame) {
     clearOpeningPreviewCache();
     runner.update(frameDt);
+  }
+  if (vassalResolutionRecapView.isAnimating()) {
+    // Keep runner ticks above this gate. The resolved recap already owns input;
+    // even covered graph status queries can restart expensive forecast work.
+    vassalResolutionRecapView.update(frameDt);
+    nodeResolutionDiagnostics.sample({recapOpen:true,resolutionSec:getSettlementFrontierSec()});
+    timelineAudio.update(frameDt);
+    return;
   }
   settlementGraphController.update?.();
   if (openingFrame) {

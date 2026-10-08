@@ -3,10 +3,11 @@ import { clearChildren, createText, roundedRect } from "./settlement-view-primit
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { getClockTimePassage } from './sunandmoon-disks-pixi.js';
 import { createConsequentialTimeView } from './consequential-time-pixi.js';
+import { createRunCompleteEmphasisView } from './run-complete-emphasis-pixi.js';
 
 const PANEL = { width: 1320 };
 
-export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotlightRects } = {}) {
+export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotlightRects, getEmphasisTargets } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 190;
   layer.addChild(root);
@@ -19,6 +20,7 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
   let clock = null;
   let clockView = null;
   let clockStartedAt = 0;
+  let emphasisView = null;
   const contains = (rect, x, y) => x >= rect.x && x <= rect.x + rect.width &&
     y >= rect.y && y <= rect.y + rect.height;
   function minimize() { presentation.minimize(); render(); }
@@ -51,11 +53,13 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     spotlightRects = snapshot.open && snapshot.info?.projected
       ? (getSpotlightRects?.() ?? []).map(rect => ({ x: rect.x - 6, y: rect.y - 6,
         width: rect.width + 12, height: rect.height + 12 })) : [];
-    const nextSignature = JSON.stringify([snapshot, spotlightRects, app.screen.width, app.screen.height]);
+    const emphasisTargets = snapshot.open && snapshot.info?.projected ? getEmphasisTargets?.() ?? [] : [];
+    const nextSignature = JSON.stringify([snapshot, spotlightRects, emphasisTargets, app.screen.width, app.screen.height]);
     if (!force && signature === nextSignature) return;
     signature = nextSignature;
     clearChildren(root);
     clockView = null;
+    emphasisView = null;
     panelRect = null;
     copyNodes = [];
     targets.clear();
@@ -82,6 +86,10 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     blocker.on("pointerdown", event => event.stopPropagation());
     blocker.on("pointertap", event => event.stopPropagation());
     root.addChild(blocker);
+    if (emphasisTargets.length) {
+      emphasisView = createRunCompleteEmphasisView(root, emphasisTargets);
+      emphasisView.update(performance.now() - clockStartedAt);
+    }
     const panel = new PIXI.Container();
     const textNodes = [];
     let cursorY = 36;
@@ -104,9 +112,14 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
       ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42, fill: PALETTE.text,
     }, 36);
     const panelHeight = cursorY + 76 + 36;
-    panel.position.set((app.screen.width - PANEL.width) / 2,
-      Math.max(20, (app.screen.height - panelHeight) / 2 - (info.projected ? 50 : 0)));
-    panelRect = {x:panel.x, y:panel.y, width:PANEL.width, height:panelHeight};
+    // The first spotlight is the entire graph cabinet. Fit the projected panel
+    // above it, including its border, rather than covering the upper plot rows.
+    const bottom = info.projected && spotlightRects[0] ? spotlightRects[0].y - 16 : app.screen.height - 20;
+    const scale = info.projected ? Math.min(1, (bottom - 20) / panelHeight) : 1;
+    panel.scale.set(scale);
+    panel.position.set((app.screen.width - PANEL.width * scale) / 2,
+      Math.max(20, (bottom + 20 - panelHeight * scale) / 2));
+    panelRect = {x:panel.x, y:panel.y, width:PANEL.width * scale, height:panelHeight * scale};
     copyNodes = textNodes;
     panel.eventMode = "static";
     panel.hitArea = new PIXI.Rectangle(0, 0, PANEL.width, panelHeight);
@@ -132,7 +145,11 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
   return {
     init: () => render(true), update: () => {
       render();
-      if (root.visible) clockView?.update(performance.now() - clockStartedAt);
+      if (root.visible) {
+        const elapsed = performance.now() - clockStartedAt;
+        clockView?.update(elapsed);
+        emphasisView?.update(elapsed);
+      }
     }, resize: () => render(true),
     sync(input) {
       const result = presentation.sync(input);
@@ -148,6 +165,7 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     reopen() { presentation.reopen(); clockStartedAt = performance.now(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
     isOpen: () => presentation.getSnapshot().open,
     getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects, panelRect, clock: clockView?.getSnapshot() ?? null,
+      emphasis: emphasisView?.getSnapshot() ?? null,
       copyRects: copyNodes.map(node => node.getBounds()) }),
     getClickPoint(id) {
       const target = targets.get(id);

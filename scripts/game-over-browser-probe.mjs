@@ -107,6 +107,11 @@ try {
   const extinctionClock = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete);
   assert.equal(extinctionClock.clock.second, extinctionClock.info.tSec, 'foreseen clock locks at extinction');
   assert.deepEqual(extinctionClock.clock.labels, ['Year', 'Moon', 'Phase'], 'extinction teaches all three icons');
+  assert.equal(extinctionClock.info.guidance, 'Return to the present and choose a vassal to change it.');
+  assert.deepEqual(extinctionClock.emphasis.targets.map(target => target.id), ['plot', 'present']);
+  await delay(100);
+  const pulsed = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete.emphasis.pulse);
+  assert.notEqual(pulsed, extinctionClock.emphasis.pulse, 'plot and present glows continue pulsing after the clock locks');
   await page.screenshot({path:`${output}/foreseen-extinction.png`});
   for (const viewport of [{width:1280,height:800},{width:844,height:390}]) {
     await page.setViewportSize(viewport); await delay(250);
@@ -116,9 +121,13 @@ try {
       assert.ok(previous.y + previous.height < current.y, 'extinction copy never overlaps');
     }
     assert.ok(layout.panelRect.y + layout.panelRect.height < 1080, 'popup stays within the game screen');
+    assert.ok(layout.panelRect.y + layout.panelRect.height < layout.spotlightRects[0].y,
+      'the entire graph cabinet stays clear below the extinction panel');
     await page.screenshot({path:`${output}/foreseen-extinction-${viewport.width}x${viewport.height}.png`});
   }
   await click('browse');
+  assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete.emphasis), null,
+    'minimising extinction removes both glows');
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.indicatorVisible),true);
   const selected = await page.evaluate(() => {

@@ -17,6 +17,7 @@ const url = `http://127.0.0.1:${port}`;
 const label = process.env.PROBE_LABEL ?? 'consecutive';
 const profileEnabled = process.env.PROBE_PROFILE === '1';
 const throughEnd = process.env.PROBE_UNVEIL === '1';
+const measureAnimation = process.env.PROBE_ANIMATION === '1';
 const artifact = `artifacts/node-recap-input-${label}.json`;
 mkdirSync('artifacts', { recursive: true });
 const state = createNewGameState(Number(process.env.PROBE_SEED ?? 735));
@@ -145,8 +146,30 @@ try {
     if (option) await click('getLifeMapOptionClickPoint', 0);
     const family = await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeDecisionTimingSnapshot().family);
     stage = `confirm node ${turn + 1} (${family})`;
+    if (measureAnimation) await page.evaluate(() => {
+      globalThis.__recapAnimation = { frames: [], done: false };
+      let first = null, previous = null, progress = 0;
+      function sample() {
+        const time = performance.now();
+        const state = __SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot();
+        if (state.recapOpen && state.recapClock) {
+          first ??= time;
+          __recapAnimation.frames.push({ atMs: time - first, gapMs: previous == null ? 0 : time - previous,
+            progress: state.recapClock.progress, jump: state.recapClock.progress - progress });
+          previous = time; progress = state.recapClock.progress;
+          if (state.recapClock.locked) { __recapAnimation.done = true; return; }
+        }
+        requestAnimationFrame(sample);
+      }
+      requestAnimationFrame(sample);
+    });
     await click('getLifeMapConfirmClickPoint');
     await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot().recapOpen);
+    let animation = null;
+    if (measureAnimation) {
+      await page.waitForFunction(() => __recapAnimation.done);
+      animation = await page.evaluate(() => __recapAnimation);
+    }
     const dismiss = await point('getLifeMapRecapDismissClickPoint');
     const box = await page.locator('canvas').boundingBox();
     const touchPoint = { x: box.x + dismiss.x * box.width / 2424, y: box.y + dismiss.y * box.height / 1080,
@@ -168,7 +191,7 @@ try {
     const workers = await page.evaluate(() => globalThis.__probeWorkers.map(worker => ({ ...worker })));
     const response = Math.min(input.feedbackFrameAtMs ?? Infinity, input.closedAtMs);
     const { metrics } = await cdp.send('Performance.getMetrics');
-    turns.push({ turn: turn + 1, node, family, ...meta, input,
+    turns.push({ turn: turn + 1, node, family, ...meta, input, animation,
       dispatchDelayMs: Math.round(input.downAtMs + input.timeOrigin - requestedDownEpochMs),
       responseMs: Math.round(response + input.timeOrigin - requestedDownEpochMs),
       closeMs: Math.round(input.closedAtMs + input.timeOrigin - requestedDownEpochMs),
@@ -208,6 +231,12 @@ try {
     writeFileSync(`artifacts/node-recap-input-${label}.cpuprofile`, JSON.stringify(profile));
   }
   assert.deepEqual(errors, []);
+  if (measureAnimation) {
+    const maxJump = Math.max(...turns.flatMap(turn => turn.animation.frames.map(frame => frame.jump)));
+    const maxGap = Math.max(...turns.flatMap(turn => turn.animation.frames.map(frame => frame.gapMs)));
+    console.log(`[recap-animation] max jump=${maxJump.toFixed(3)}, max gap=${Math.round(maxGap)}ms; ${artifact}`);
+    assert.ok(maxJump < .12 && maxGap < 150, `recap animation stalls: jump=${maxJump.toFixed(3)}, gap=${Math.round(maxGap)}ms (${artifact})`);
+  }
   assert.ok(turns.some(turn=>turn.workers.some(worker=>worker.events.some(event=>event.sharedConfig===true))),
     'real browser worker replies must clone identical configs once per message');
   console.log(JSON.stringify({ responseMs: turns.map(t => t.responseMs), closeMs: turns.map(t => t.closeMs), unveil, artifact }));

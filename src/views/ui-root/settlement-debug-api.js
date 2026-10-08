@@ -195,6 +195,7 @@ export function publishSettlementDebugApi({
       revealTargetSec: nonNegativeFloor(getGraphRevealTargetSec?.()),
       recapOpen: getLifeMapRecapSnapshot?.()?.open === true,
       recapContinueState: getLifeMapRecapSnapshot?.()?.continueState ?? null,
+      recapClock: getLifeMapRecapSnapshot?.()?.clock ?? null,
     }),
     getSnapshot: () => {
       const forecastStatus = getForecastStatus?.() ?? null;

@@ -967,6 +967,7 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
 {
   const calls = [];
   let scheduledRefresh = null;
+  let recapAnimating = true;
   const vassal = { vassalId: 'v1', lifeMap: { pendingResolution: {
     nodeId: 'n1', startSec: 0, resolveSec: 100, phaseCost: 100,
   } } };
@@ -986,12 +987,16 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
     getGraphController: () => ({ refreshAuthoritativeRangeFrom: () => calls.push('refresh') }),
     getGraphView: () => ({ render: () => calls.push('render') }),
     onPendingResolutionSettled: () => calls.push('recap'),
+    isRecapAnimating: () => recapAnimating,
     scheduleAfterPaint: (callback) => { scheduledRefresh = callback; },
   });
   assert.equal(session.processSettlementPendingCommit(), true,
     'the frame knows a resolution recap opened');
   assert.deepEqual(calls, ['recap'], 'the recap is prepared before graph history refresh');
   assert.equal(typeof scheduledRefresh, 'function');
+  scheduledRefresh();
+  assert.deepEqual(calls, ['recap'], 'covered graph refresh must not interrupt the recap animation');
+  recapAnimating = false;
   scheduledRefresh();
   assert.deepEqual(calls, ['recap', 'refresh'], 'graph history refresh follows the recap paint');
 }

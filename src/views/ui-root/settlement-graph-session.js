@@ -81,6 +81,7 @@ export function createSettlementGraphSession({
   getFrontierSec,
   setWorldViewMode,
   onPendingResolutionSettled,
+  isRecapAnimating = () => false,
   scheduleAfterPaint = scheduleGraphRefreshAfterPaint,
 } = {}) {
   let settlementGraphScope = "civilization";
@@ -217,12 +218,17 @@ export function createSettlementGraphSession({
         ...recapIncome,
       });
       // Reuse the worker's authoritative tick summaries when promoting graph
-      // samples to history. Let the recap paint before updating graph geometry.
+      // samples to history. Covered graph/forecast preparation must wait until
+      // the time reveal locks or is dismissed, rather than blocking its startup.
       const committedTimeline = getTimeline?.();
       const committedRevision = committedTimeline?.revision;
-      scheduleAfterPaint?.(() => {
+      scheduleAfterPaint?.(function refreshAfterRecapAnimation() {
         if (getTimeline && (getTimeline() !== committedTimeline
           || committedTimeline?.revision !== committedRevision)) return;
+        if (isRecapAnimating()) {
+          scheduleAfterPaint?.(refreshAfterRecapAnimation);
+          return;
+        }
         getGraphController?.()?.refreshAuthoritativeRangeFrom?.(
           beforePendingResolution.startSec,
           { summaries: preparedResolution?.summaries }

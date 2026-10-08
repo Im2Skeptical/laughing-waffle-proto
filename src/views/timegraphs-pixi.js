@@ -2184,6 +2184,13 @@ export function createMetricGraphView({
     };
   }
 
+  function getPlotStageRect() {
+    if (!root.visible) return null;
+    const topLeft = root.toGlobal(new PIXI.Point(plot.x, plot.y));
+    const bottomRight = root.toGlobal(new PIXI.Point(plot.x + plot.w, plot.y + plot.h));
+    return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
+  }
+
   function getDebugState() {
     syncProjectionReplacementDataContext();
     const tl = getTimeline?.();
@@ -2460,6 +2467,7 @@ export function createMetricGraphView({
     isOpen,
     getScreenRect,
     getPlotScreenRect,
+    getPlotStageRect,
     getDebugState,
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
     getForecastRevealTargetEndSec: () => Math.max(0, Math.floor(reveal.targetEndSec ?? 0)),

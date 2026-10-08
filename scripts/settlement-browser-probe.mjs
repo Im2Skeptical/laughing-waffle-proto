@@ -309,6 +309,10 @@ try {
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   await clickDesignPoint(page, await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
+  // Faster rendering can unveil past Cedar's fall before the navigation taps.
+  // Keep the pointer checks at a known, already-revealed living settlement.
+  await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(64));
+  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().viewedSec === 64);
   let cedarPoint = await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods"));
   await pressDesignPoint(page, cedarPoint);
@@ -323,6 +327,11 @@ try {
   assert.equal(selected.worldMap.graphScope, "settlement");
   assert.equal(selected.controller.subjectKey, "cedar-woods",
     "selecting a detailed region shows its local timegraph");
+  assert.ok(selected.worldMap.selectedRegion.detailedSettlement,
+    `selected settlement must still be alive: ${JSON.stringify({
+      frontierSec: selected.frontierSec, viewedSec: selected.viewedSec,
+      lostAtSec: selected.worldMap.selectedRegion.lostAtSec,
+    })}`);
   assert.ok(
     selected.worldMap.selectedRegion.detailedSettlement.elderOrder.resistance >= 0
   );
