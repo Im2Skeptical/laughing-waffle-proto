@@ -194,7 +194,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
       wordWrap: true, wordWrapWidth: PANEL_WIDTH - titleX - PAD,
     }, titleX, 48);
     content.addChild(medallion, eyebrow, title);
-    // Context line: location, then Prestige with the HUD's own Prestige icon.
+    // Context line: location, then Prestige with the HUD's own Prestige icon and the word.
     const metaY = title.y + title.height + 20;
     let metaX = titleX;
     if (spec.location) {
@@ -212,6 +212,9 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
         x: metaX, y: metaY - iconSize / 2, fontSize: 26, iconSize, fill: PALETTE.accent,
       });
       amount.label = 'entry-prestige';
+      // Spell out the resource next to its icon: "[icon] 19 Prestige".
+      content.addChild(createText('Prestige', { ...TEXT_STYLES.body, fontSize: 24, fill: PALETTE.accent },
+        metaX + amount.width + 8, metaY, 0, .5));
     }
     const headerBottom = Math.max(140, metaY + 22);
 
