@@ -196,7 +196,13 @@ const ordinaryWire={...forecast,stateDataBySecond:Array.from(forecast.stateDataB
   summaryBySecond:Array.from(forecast.summaryBySecond)};
 const encodedWire=encodeForecastChunk(forecast);
 assert.equal(JSON.stringify(encodedWire),JSON.stringify(ordinaryWire),'wire JSON/state/RNG/summaries are unchanged');
-assert.ok(serializeWire(encodedWire).byteLength < serializeWire(ordinaryWire).byteLength*.5,
+// Projection snapshots share one deep-frozen config at the source; a message
+// that copied it per anchor would be more than twice as large.
+const perAnchorConfigWire={...ordinaryWire,stateDataBySecond:ordinaryWire.stateDataBySecond.map(([sec,data])=>
+  [sec,{...data,gameConfig:structuredClone(data.gameConfig)}])};
+assert.equal(new Set(ordinaryWire.stateDataBySecond.map(([,data])=>data.gameConfig)).size,1,
+  'projection anchors reference one config value');
+assert.ok(serializeWire(encodedWire).byteLength < serializeWire(perAnchorConfigWire).byteLength*.5,
   'real forecast messages must clone each identical config once, not once per anchor');
 const receivedWire=freezeForecastChunkConfigs(structuredClone(encodedWire));
 const [firstAnchor,secondAnchor]=receivedWire.stateDataBySecond.map(([,data])=>data);

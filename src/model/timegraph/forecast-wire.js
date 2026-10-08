@@ -14,7 +14,9 @@ export function encodeForecastChunk(result) {
     if (!stateData || typeof stateData !== "object") return stateData;
     if (snapshots.has(stateData)) return snapshots.get(stateData);
     let config = stateData.gameConfig;
-    if (config && typeof config === "object") {
+    // Projection snapshots already share one deep-frozen config, which
+    // structured clone sends once per message. Only intern unshared copies.
+    if (config && typeof config === "object" && !Object.isFrozen(config)) {
       const key = JSON.stringify(config);
       if (!configs.has(key)) configs.set(key, freezeTree(JSON.parse(key)));
       config = configs.get(key);
