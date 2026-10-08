@@ -107,6 +107,8 @@ try {
   const extinctionClock = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete);
   assert.equal(extinctionClock.clock.second, extinctionClock.info.tSec, 'foreseen clock locks at extinction');
   assert.deepEqual(extinctionClock.clock.labels, ['Year', 'Moon', 'Phase'], 'extinction teaches all three icons');
+  assert.equal(extinctionClock.clock.rotationMode, 'compressed', 'extinction retains its compressed spin');
+  assert.equal(extinctionClock.clock.previousCounters, null, 'only commits show previous time indicators');
   assert.equal(extinctionClock.info.guidance, 'Return to the present and choose a vassal to change it.');
   assert.deepEqual(extinctionClock.emphasis.targets.map(target => target.id), ['plot', 'present']);
   await delay(100);

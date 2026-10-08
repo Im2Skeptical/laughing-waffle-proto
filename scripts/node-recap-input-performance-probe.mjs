@@ -11,6 +11,8 @@ import { ActionKinds, applyAction } from '../src/model/actions.js';
 import { getVassalCandidatePool } from '../src/model/vassal-life-map.js';
 import { createTimelineFromInitialState } from '../src/model/timeline/index.js';
 import { exportSave } from '../src/controllers/sim-runner/save-slots.js';
+import { getClockTimePassage } from '../src/views/sunandmoon-disks-pixi.js';
+import { getTimeRevealCounters } from '../src/views/consequential-time-pixi.js';
 
 const port = 18187;
 const url = `http://127.0.0.1:${port}`;
@@ -172,9 +174,12 @@ try {
         const time = performance.now();
         const state = __SETTLEMENT_DEBUG__.getNodeResolutionTimingSnapshot();
         if (state.recapOpen && state.recapClock) {
+          __recapAnimation.rotationMode ??= state.recapClock.rotationMode;
+          __recapAnimation.previousCounters ??= state.recapClock.previousCounters;
           first ??= time;
           __recapAnimation.frames.push({ atMs: time - first, gapMs: previous == null ? 0 : time - previous,
             progress: state.recapClock.progress, jump: state.recapClock.progress - progress,
+            recoil: state.recapClock.recoil,
             processingVisible: state.processingVisible,
             second: state.recapClock.second,
             moonRotation: state.recapClock.moonRotation, seasonRotation: state.recapClock.seasonRotation });
@@ -263,13 +268,21 @@ try {
       const frames = turn.animation.frames;
       assert.equal(frames[0].second, turn.committedBefore, 'recap starts at the previous committed time');
       assert.equal(frames.at(-1).second, turn.second, 'recap stops at the new total');
-      assert.ok(frames.at(-1).moonRotation - frames[0].moonRotation > Math.PI * 2,
-        'the moon wheel visibly spins through at least one full revolution');
-      for (let i = 1; i < frames.length; i++) {
-        for (const wheel of ['moonRotation', 'seasonRotation']) {
-          const step = Math.abs(frames[i][wheel] - frames[i - 1][wheel]);
-          assert.ok(step < Math.PI / 2, `visible wheel motion jumps ${step.toFixed(2)} radians (${artifact})`);
-        }
+      const clock = getClockTimePassage({ ...state, tSec: turn.committedBefore }, { tSec: turn.second });
+      assert.equal(turn.animation.rotationMode, 'cyclical', 'recap uses actual cyclical motion');
+      assert.deepEqual(turn.animation.previousCounters, getTimeRevealCounters(clock, clock.fromSec),
+        'each counter retains its previous committed value beside the arrow');
+      const first = frames[0];
+      const moonStart = first.moonRotation - first.recoil;
+      const seasonStart = first.seasonRotation + first.recoil * .65;
+      for (const frame of frames) {
+        const moonElapsed = Math.max(0, frame.second - 1) - Math.max(0, first.second - 1);
+        const moonTravel = moonElapsed / clock.moonCycleSec * Math.PI * 2;
+        const seasonTravel = (frame.second - first.second) / clock.seasonCycleSec * Math.PI * 2;
+        assert.ok(Math.abs(frame.moonRotation - moonStart - moonTravel - frame.recoil) < 1e-9,
+          `moon wheel follows actual elapsed time (${artifact})`);
+        assert.ok(Math.abs(frame.seasonRotation - seasonStart - seasonTravel + frame.recoil * .65) < 1e-9,
+          `year wheel follows actual elapsed time (${artifact})`);
       }
     }
     assert.ok(turns.every(turn => turn.animation.frames.every(frame => !frame.processingVisible)),

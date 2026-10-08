@@ -127,6 +127,7 @@ export function createVassalResolutionRecapView({
     if (recap.clock) {
       clockView = createConsequentialTimeView(root, recap.clock, {
         x: PANEL.x + 44, y: PANEL.y + 138, width: PANEL.width - 88,
+        showPrevious: true,
       });
       clockView.update(0);
     }

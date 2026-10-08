@@ -127,7 +127,9 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     roundedRect(bg, 0, 0, PANEL.width, panelHeight, 18, PALETTE.panel, accent, 3);
     panel.addChild(bg, ...textNodes);
     if (info.projected && clock) {
-      clockView = createConsequentialTimeView(panel, clock, { x: 56, y: clockY, width: PANEL.width - 112, accent });
+      clockView = createConsequentialTimeView(panel, clock, {
+        x: 56, y: clockY, width: PANEL.width - 112, accent, rotationMode: 'compressed',
+      });
       clockView.update(performance.now() - clockStartedAt);
     }
     root.addChild(panel);

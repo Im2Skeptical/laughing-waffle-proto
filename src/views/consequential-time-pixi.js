@@ -28,7 +28,9 @@ export function getTimeRevealCounters(clock, second) {
   return { years, moons, phases };
 }
 
-export function createConsequentialTimeView(parent, clock, { x, y, width, accent = PALETTE.accent }) {
+export function createConsequentialTimeView(parent, clock, {
+  x, y, width, accent = PALETTE.accent, rotationMode = 'cyclical', showPrevious = false,
+}) {
   const root = new PIXI.Container();
   root.position.set(x, y);
   root.eventMode = 'none';
@@ -45,7 +47,8 @@ export function createConsequentialTimeView(parent, clock, { x, y, width, accent
       .lineTo(width / 2 + Math.cos(angle) * 185, 176 + Math.sin(angle) * 185);
   }
   mechanism.addChild(frame);
-  const disks = createTimePassageDisksView(mechanism, clock, { x: width / 2, y: 176, radius: 166 });
+  const disks = createTimePassageDisksView(mechanism, clock, { x: width / 2, y: 176, radius: 166, rotationMode });
+  const previousCounters = showPrevious ? getTimeRevealCounters(clock, clock.fromSec) : null;
   const counters = [];
   const gap = 18;
   const cellWidth = (width - gap * 2) / 3;
@@ -62,11 +65,24 @@ export function createConsequentialTimeView(parent, clock, { x, y, width, accent
     const icon = new PIXI.Sprite(getChronicleTexture(`piece-frames-v1/time-${id}.png`) ?? PIXI.Texture.EMPTY);
     icon.anchor.set(.5); icon.position.set(52, 50); icon.width = icon.height = 76;
     const name = createText(label, { ...TEXT_STYLES.title, fontSize: 30, fill: PALETTE.textMuted }, 52, 100, .5, .5);
+    let valueLeft = 104;
+    if (previousCounters) {
+      const previous = createText(String(previousCounters[key]), {
+        ...TEXT_STYLES.title, fontSize: 34, fill: accent,
+      }, valueLeft, 72, 0, .5);
+      previous.scale.set(Math.min(1, 70 / Math.max(1, previous.width)));
+      const arrow = createText('→', {
+        ...TEXT_STYLES.title, fontSize: 34, fill: accent,
+      }, valueLeft + previous.width + 8, 72, 0, .5);
+      valueLeft = arrow.x + arrow.width + 10;
+      cell.addChild(previous, arrow);
+    }
+    const valueWidth = cellWidth - 16 - valueLeft;
     const value = createText('0', { ...TEXT_STYLES.header, fontSize: 82, fill: PALETTE.text },
-      (cellWidth + 104) / 2, 60, .5, .5);
+      valueLeft + valueWidth / 2, 60, .5, .5);
     cell.addChild(icon, name, value);
     root.addChild(cell);
-    counters.push({ cell, value, key, last: null, tickAt: -Infinity });
+    counters.push({ cell, value, valueWidth, key, last: null, tickAt: -Infinity });
   }
   let snapshot = null;
   return {
@@ -82,14 +98,14 @@ export function createConsequentialTimeView(parent, clock, { x, y, width, accent
           if (counter.last !== null) counter.tickAt = elapsedMs;
           counter.last = next;
           counter.value.text = String(next);
-          counter.value.scale.set(Math.min(1, (cellWidth - 122) / Math.max(1, counter.value.width / counter.value.scale.x)));
+          counter.value.scale.set(Math.min(1, counter.valueWidth / Math.max(1, counter.value.width / counter.value.scale.x)));
         }
         const tick = Math.max(0, 1 - (elapsedMs - counter.tickAt) / 85);
         counter.value.y = 60 - tick * 4;
         counter.value.tint = motion.locked ? 0xffe3a1 : 0xffffff;
         counter.cell.y = 308 + motion.recoil * 12;
       }
-      snapshot = { ...time, ...motion, counters: values, labels: ['Year', 'Moon', 'Phase'] };
+      snapshot = { ...time, ...motion, counters: values, previousCounters, rotationMode, labels: ['Year', 'Moon', 'Phase'] };
     },
     getSnapshot: () => snapshot,
   };

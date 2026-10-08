@@ -38,26 +38,31 @@ export function getClockTimePassage(beforeState, afterState) {
   };
 }
 
-export function sampleClockTimePassage(clock, progress) {
+export function sampleClockTimePassage(clock, progress, rotationMode = 'cyclical') {
   const duration = Math.max(0, clock.toSec - clock.fromSec);
   const p = clamp01(progress);
   const elapsed = duration * p;
   const second = clock.fromSec + elapsed;
   // Moon phase zero covers both the opening second and second one.
-  const moonElapsed = Math.max(0, clock.toSec - 1) - Math.max(0, clock.fromSec - 1);
-  // Counters reveal every elapsed year. The illustrated mechanism takes a
-  // bounded number of visible turns, retaining the exact final phase. Racing
-  // hundreds of revolutions through two seconds aliases into a jittery flicker.
+  const moonElapsed = Math.max(0, second - 1) - Math.max(0, clock.fromSec - 1);
+  // Extinction compresses a whole future into a few visible turns. Commits
+  // instead retain every revolution, including intervals shorter than a cycle.
   const visibleTurns = (turns, minimum, maximum) => turns <= 0 ? 0
     : Math.max(minimum, Math.min(maximum, Math.floor(turns))) + turns % 1;
+  const compressed = rotationMode === 'compressed';
+  const fullMoonElapsed = Math.max(0, clock.toSec - 1) - Math.max(0, clock.fromSec - 1);
   return {
     second,
-    moonRotation: (clock.moonPhase + visibleTurns(moonElapsed / clock.moonCycleSec, 1, 2) * p) * TWO_PI,
-    seasonRotation: (clock.seasonPhase + visibleTurns(duration / clock.seasonCycleSec, 1, 1) * p) * TWO_PI,
+    moonRotation: (clock.moonPhase + (compressed
+      ? visibleTurns(fullMoonElapsed / clock.moonCycleSec, 1, 2) * p
+      : moonElapsed / clock.moonCycleSec)) * TWO_PI,
+    seasonRotation: (clock.seasonPhase + (compressed
+      ? visibleTurns(duration / clock.seasonCycleSec, 1, 1) * p
+      : elapsed / clock.seasonCycleSec)) * TWO_PI,
   };
 }
 
-export function createTimePassageDisksView(parent, clock, {x, y, radius = 155}) {
+export function createTimePassageDisksView(parent, clock, {x, y, radius = 155, rotationMode = 'cyclical'}) {
   const root = new PIXI.Container();
   root.eventMode = 'none';
   root.position.set(x, y);
@@ -89,7 +94,7 @@ export function createTimePassageDisksView(parent, clock, {x, y, radius = 155}) 
   let sample = null;
   return {
     update(progress, recoil = 0) {
-      sample = sampleClockTimePassage(clock, progress);
+      sample = sampleClockTimePassage(clock, progress, rotationMode);
       sample.moonRotation += recoil;
       sample.seasonRotation -= recoil * .65;
       moon.rotation = sample.moonRotation;

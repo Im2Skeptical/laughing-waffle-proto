@@ -32,10 +32,10 @@ import {
   const end = sampleClockTimePassage(clock, 1);
   const phaseDistance = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
   assert.equal(end.second, after.tSec, 'recap settles at committed time');
-  assert.ok(phaseDistance(end.moonRotation - start.moonRotation,
-    120 / getMoonCycleDurationSec(before) * Math.PI * 2) < 1e-9, 'moon stops at the committed phase');
-  assert.ok(phaseDistance(end.seasonRotation - start.seasonRotation,
-    120 / (SEASON_DURATION_SEC * 4) * Math.PI * 2) < 1e-9, 'season stops at the committed phase');
+  assert.ok(Math.abs(end.moonRotation - start.moonRotation
+    - 120 / getMoonCycleDurationSec(before) * Math.PI * 2) < 1e-9, 'commit retains every moon revolution');
+  assert.ok(Math.abs(end.seasonRotation - start.seasonRotation
+    - 120 / (SEASON_DURATION_SEC * 4) * Math.PI * 2) < 1e-9, 'commit retains every year revolution');
   assert.equal(sampleClockTimePassage(clock, .5).second, 67);
   assert.equal(JSON.stringify(before), saved, 'clock animation leaves simulation state untouched');
   const opening = {...before, tSec:0};
@@ -56,20 +56,35 @@ import {
   assert.deepEqual(getTimeRevealCounters(openingClock, 0), { years: 0, moons: 0, phases: 0 });
   assert.deepEqual(getTimeRevealCounters(clock, clock.seasonCycleSec + clock.moonCycleSec + clock.moonCycleSec / 6),
     { years: 1, moons: 1, phases: 1 }, 'total time carries through all three labeled units');
-  // A multi-year recap must read as a spin, rather than aliasing whole turns
-  // between displayed frames. Counters still reach the full committed time.
+  // Partial, exact, and multiple cycles must all follow actual displayed time.
+  for (const duration of [1, 3, 6, 32, 432, 31552]) {
+    const commitClock = getClockTimePassage({...before, tSec:448}, {...before, tSec:448 + duration});
+    const initial = sampleClockTimePassage(commitClock, 0);
+    for (const progress of [0, .1, .5, .9, 1]) {
+      const frame = sampleClockTimePassage(commitClock, progress);
+      assert.ok(Math.abs(frame.moonRotation - initial.moonRotation
+        - duration * progress / commitClock.moonCycleSec * Math.PI * 2) < 1e-9,
+      'commit moon motion is proportional even for a partial cycle');
+      assert.ok(Math.abs(frame.seasonRotation - initial.seasonRotation
+        - duration * progress / commitClock.seasonCycleSec * Math.PI * 2) < 1e-9,
+      'commit year motion is proportional to time passed');
+    }
+  }
+  assert.equal(sampleClockTimePassage(openingClock, .5 / openingClock.toSec).moonRotation, 0,
+    'opening moon holds phase zero through second one');
+  // Foreseen extinction compresses long futures, preserving the final phase.
   for (const toSec of [880, 32000]) {
     const longClock = getClockTimePassage({...before, tSec:448}, {...before, tSec:toSec});
-    const locked = sampleClockTimePassage(longClock, 1);
+    const locked = sampleClockTimePassage(longClock, 1, 'compressed');
     assert.equal(locked.second, toSec);
     assert.ok(phaseDistance(locked.moonRotation,
       (longClock.moonPhase + (toSec - 448) / longClock.moonCycleSec) * Math.PI * 2) < 1e-9);
-    let previous = sampleClockTimePassage(longClock, 0);
+    let previous = sampleClockTimePassage(longClock, 0, 'compressed');
     for (let ms = 1000 / 60; ms <= TIME_REVEAL_DURATION_MS; ms += 1000 / 60) {
-      const frame = sampleClockTimePassage(longClock, sampleTimeReveal(ms).progress);
+      const frame = sampleClockTimePassage(longClock, sampleTimeReveal(ms).progress, 'compressed');
       for (const wheel of ['moonRotation', 'seasonRotation']) {
         assert.ok(Math.abs(frame[wheel] - previous[wheel]) < .45,
-          `a long recap spins visibly: ${wheel} jumps ${(frame[wheel] - previous[wheel]).toFixed(2)} radians per frame`);
+          `extinction spins visibly: ${wheel} jumps ${(frame[wheel] - previous[wheel]).toFixed(2)} radians per frame`);
       }
       previous = frame;
     }
