@@ -13,6 +13,7 @@
 - Target-only restore from isolated anchors, with a frozen interned canonical config and a bounded 64-entry LRU of validated anchors (`979e46e`, `src/model/timegraph/state-restorer.js`).
 - Persistent worker projection session across yielding slices; built worker URL fix (`6e60b57`, `f12196c`).
 - Reveal retune (`f12196c`, constants in `src/views/ui-root/settlement-graph-session.js`).
+- Shared deep-frozen config per projection generation: snapshots carry no config copy, the cache counts it once (anchors keep the 16 s stride), the worker sends it to the main thread once per generation, MessageChannel slice yields, and round-trip-free detailed-settlement copies (8 Oct 2026, branch `perf/projection-shared-config`).
 - Not done on purpose: sparse summaries. Not attempted: packed/WASM state, large-world or ~1000-year measurement.
 
 ## Non-negotiables
@@ -23,11 +24,19 @@
 - Keep moon-turn and meal fields (they feed later simulation phases).
 - The model imports no views.
 - Browsing is limited to revealed coverage (`clampScrubSecToRevealCap`).
-- Interaction and scrubbing stay smooth during unveil. A Pixel 3 is the device floor.
+- Interaction and scrubbing stay smooth during unveil. A Pixel 6 (8 GB RAM, Google Tensor) is the device floor.
 - Smooth scrubbing outranks unveil speed and horizon length.
+- New Game waits for the full opening forecast (Cam's decision, 8 Oct 2026); do not propose a progressive opening.
 
 ## Intent (stated by Cam; Draft, see the brief)
 Ideally the simulation is effectively instant, with ~1000 years unveiled in about a second or less, without locking out interaction. The September 25 fixture measured ~200 years in ~18.4 s; that is a dated measurement, not a current performance guarantee. October 2 supply/cache measurements are in `docs/research/settlement-supply-performance.md`.
+
+## Measured baseline (8 Oct 2026, Node worker-path replica, not a device)
+- `gameConfig` was ~230 KB of a ~350 KB serialized snapshot, copied into every anchor, slice tail and wire message. It is now shared and frozen per generation.
+- 198-year dev fixture (`devPlaytesting01` 99117, base pressure 0), median of 3: before 10.7 s (592 sim-s/s), 143 anchors with a 40 s median gap, wire 121 MB, main-thread 3.1 s. After: 5.9 s (1081 sim-s/s), 412 anchors at the 16 s stride, wire 67 MB, main-thread 2.4 s, restore-to-next-anchor p95 62 ms → 25 ms.
+- 189-year new game (seed 424242): 13.3 s (454 sim-s/s) → 6.5 s (924 sim-s/s), 138 → 375 anchors.
+- Worker CPU after: simulation ~42%, serialization ~22%, summaries ~15%, wire clone ~7%. Simulation is now the largest cost; `drainPracticeEvents` and `assignDetailedSettlementWorkers` lead it.
+- The replica harness (real service, worker and cache in Node `worker_threads`) was ad hoc and is not checked in; it is described in the PR. In-repo checks: `node scripts/timegraph-performance-probe.mjs` and `npm run test:differential`.
 
 ## Mistakes to avoid
 - Recommending "return only summaries/deltas from the worker" or "copy-on-write forks" without checking the existing design and the rules above.

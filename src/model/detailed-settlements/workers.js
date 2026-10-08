@@ -5,8 +5,14 @@ import { ageCohortTotal } from './cohorts.js';
 export function assignDetailedSettlementWorkers(state, regionId) {
   const settlement = getDetailedSettlement(state,regionId);
   const assignments=(settlement?.practiceSlots??[]).map((slot,slotIndex)=>({slotIndex,practiceId:slot?.practiceId??null,tokens:[],effectiveWorkers:0}));
-  const capacity=a=>getDetailedPracticeDef(state,a.practiceId)?.workerCapacity??0;
-  const scholarOrder=[...assignments].sort((a,b)=>Number(!!getDetailedPracticeDef(state,b.practiceId)?.scholarRequired)-Number(!!getDetailedPracticeDef(state,a.practiceId)?.scholarRequired)||a.slotIndex-b.slotIndex);
+  // Definitions cannot change during one pass: resolve each slot's once.
+  // The comparator returns exactly the previous values, so the stable sort
+  // produces the same order.
+  const defs=assignments.map(a=>getDetailedPracticeDef(state,a.practiceId));
+  const capacities=defs.map(def=>def?.workerCapacity??0);
+  const scholarRequired=defs.map(def=>Number(!!def?.scholarRequired));
+  const capacity=a=>capacities[a.slotIndex];
+  const scholarOrder=[...assignments].sort((a,b)=>scholarRequired[b.slotIndex]-scholarRequired[a.slotIndex]||a.slotIndex-b.slotIndex);
   for(const [classId,cohort] of Object.entries(settlement?.populationByClass??{})) {
     const scholar=cohort.specialists?.scholar;
     const scholars=Math.max(0,ageCohortTotal(scholar)-(scholar?.children??0));

@@ -485,29 +485,46 @@ function validateDeserializedStateBody(state) {
 // A private reader per preview-restorer. New configurations use the ordinary
 // full deserializer. Exact JSON equality allows only its validated, frozen
 // config to be reused; every new mutable body still passes all body validation.
+// Deep-frozen raw configs already matched against the current key are
+// recognised by identity, so shared projection configs are not re-stringified
+// for every anchor; unfrozen inputs are always compared by JSON text.
 export function createProjectionAnchorReader() {
   let configKey = null;
   let config = null;
+  let matchedFrozenConfigs = new WeakSet();
   function freeze(value) {
     if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
     for (const child of Object.values(value)) freeze(child);
     return Object.freeze(value);
   }
+  function rememberFrozen(rawConfig) {
+    if (rawConfig && typeof rawConfig === "object" && Object.isFrozen(rawConfig)) {
+      matchedFrozenConfigs.add(rawConfig);
+    }
+  }
   return {
     read(data) {
       const raw = typeof data === "string" ? JSON.parse(data) : data;
-      const key = JSON.stringify(raw?.gameConfig);
-      if (!config || key !== configKey) {
-        const state = deserializeGameState(raw);
-        config = freeze(state.gameConfig);
-        configKey = key;
-        return state;
+      const rawConfig = raw?.gameConfig;
+      const knownFrozen = config != null && rawConfig != null && typeof rawConfig === "object"
+        && matchedFrozenConfigs.has(rawConfig);
+      if (!knownFrozen) {
+        const key = JSON.stringify(rawConfig);
+        if (!config || key !== configKey) {
+          const state = deserializeGameState(raw);
+          config = freeze(state.gameConfig);
+          configKey = key;
+          matchedFrozenConfigs = new WeakSet();
+          rememberFrozen(rawConfig);
+          return state;
+        }
+        rememberFrozen(rawConfig);
       }
       const state = deepCloneSerializable({ ...raw, gameConfig: undefined });
       state.gameConfig = config;
       return validateDeserializedStateBody(state);
     },
-    clear() { configKey = null; config = null; },
+    clear() { configKey = null; config = null; matchedFrozenConfigs = new WeakSet(); },
   };
 }
 

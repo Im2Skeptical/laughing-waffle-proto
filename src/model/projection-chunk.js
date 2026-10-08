@@ -1,4 +1,4 @@
-import { deserializeGameState, serializeGameState } from "./state.js";
+import { createProjectionAnchorReader, serializeGameState } from "./state.js";
 import { canonicalizeSnapshot } from "./canonicalize.js";
 import { buildProjectionSummaryFromState } from "./projection-summary.js";
 import {
@@ -16,6 +16,13 @@ import {
 } from "./perf.js";
 
 const DEFAULT_FORECAST_STATE_ANCHOR_STRIDE_SEC = 16;
+
+// One boundary reader per thread. Each distinct config is fully validated and
+// canonicalized once, then shared as one deep-frozen value; every boundary's
+// mutable body is still cloned and fully validated (schema, world, Life Map,
+// RNG). The simulation never writes gameConfig, so a write throws instead of
+// silently diverging from the snapshots that share it.
+const boundaryReader = createProjectionAnchorReader();
 
 function clampSec(value) {
   if (!Number.isFinite(value)) return 0;
@@ -54,7 +61,7 @@ function shouldStoreStateAnchor(sec, startSec, endSec, stateAnchorStrideSec) {
 
 function deserializeProjectionState(stateData) {
   const startMs = perfEnabled() ? perfNowMs() : 0;
-  const state = deserializeGameState(stateData);
+  const state = boundaryReader.read(stateData);
   if (perfEnabled()) {
     recordProjectionDeserialize(perfNowMs() - startMs);
   }
@@ -63,10 +70,25 @@ function deserializeProjectionState(stateData) {
 
 function serializeProjectionState(state) {
   const startMs = perfEnabled() ? perfNowMs() : 0;
-  const stateData = serializeGameState(state);
+  const stateData = serializeProjectionSnapshot(state);
   if (perfEnabled()) {
     recordProjectionSerialize(perfNowMs() - startMs);
   }
+  return stateData;
+}
+
+// Projection snapshots keep the save serializer's stripping rules for the
+// mutable body, but reference the runner's deep-frozen config instead of
+// copying ~230 KB of definitions per anchor. The null placeholder keeps the
+// gameConfig key position, so JSON text equals serializeGameState(state).
+// Saves and timeline checkpoints still use serializeGameState directly.
+export function serializeProjectionSnapshot(state) {
+  const config = state?.gameConfig;
+  if (!config || typeof config !== "object" || !Object.isFrozen(config)) {
+    return serializeGameState(state);
+  }
+  const stateData = serializeGameState({ ...state, gameConfig: null });
+  stateData.gameConfig = config;
   return stateData;
 }
 

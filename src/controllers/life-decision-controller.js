@@ -1,5 +1,6 @@
 import { applyAction, ActionKinds } from '../model/actions.js';
 import { serializeGameState, deserializeGameState } from '../model/state.js';
+import { freezeForecastChunkConfigs } from '../model/timegraph/forecast-wire.js';
 import { LIFE_DRAFT_ACTIONS, runLifeDecisionJob } from '../model/vassal-life-map/decision-preparation.js';
 import {
   getCurrentLifeMapVassal, getVassalNodeDecisionPresentation, getVassalPendingResolution,
@@ -88,6 +89,9 @@ export function createLifeDecisionController({
       else job.acceptAfterReady = () => accept?.(result);
       changed();
     } else if (data.kind === 'chunk') {
+      // Snapshots in one message share a config after structured clone; only
+      // a frozen config may be shared between cached anchors.
+      freezeForecastChunkConfigs(data.chunk);
       job.computedSec = data.chunk.endSec;
       job.targetSec = data.targetSec;
       job.summaries ??= new Map();
