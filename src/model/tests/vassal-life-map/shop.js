@@ -49,13 +49,17 @@ for (const classId of [null, "scholar", "warrior"]) {
       const checkInventory = () => {
         assert.equal(shop.contentMode, "shop");
         assert.equal(shop.signatureNode, null, "ordinary supply shops do not require signatures");
-        assert.equal(shop.inventory.length, 3, `${classId}/${family}: three tagged offers`);
+        const eligibleCount=[...Object.values(detailedSettlementPracticeDefs),...Object.values(settlementStructureDefs)]
+          .filter(def=>!def.locked&&def.tags.includes(tag)&&['common',classId].includes(def.pool)
+            &&(research>0||def.minimumQuality==='bronze')).length;
+        const expectedCount=Math.min(3,eligibleCount);
+        assert.equal(shop.inventory.length, expectedCount, `${classId}/${family}: thin tagged pools offer only eligible cards`);
         assert.ok(shop.inventory.every(offer => {
           const def = offerDefinition(state, offer);
           return def.tags.includes(tag) && ["common", classId].includes(def.pool);
         }), `${classId}/${family}: only eligible cards with the advertised tag`);
         assert.equal(new Set(shop.inventory.map(offer =>
-          `${offer.intervention.kind}:${offerDefinition(state, offer).id}`)).size, 3);
+          `${offer.intervention.kind}:${offerDefinition(state, offer).id}`)).size, expectedCount);
         assert.equal(getVassalNodeDecisionPresentation(state, nodeId).contextKind, "settlement");
         if (research === 100000 && classId) {
           const eligibleClassCount = [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]

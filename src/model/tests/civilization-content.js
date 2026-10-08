@@ -51,15 +51,15 @@ assert.ok(state.world.sites.some(s=>s.neutral&&adjacentRegionIds(state,state.civ
 assert.deepEqual(serializeGameState(state),serializeGameState(createNewGameState(42)));
 assert.ok(!Object.hasOwn(settlement,'currency')&&!Object.hasOwn(settlement,'storedFood')&&!Object.hasOwn(settlement,'looseFood'));
 settlement.practiceSlots=[slot('logging',2),slot('surfaceMining',1),slot('smelting'),slot('logging',5)];
-const plan=planStock(state,settlement,[{traits:['Ore'],amount:1},{traits:['Fuel'],amount:1}]);
+const plan=planStock(state,settlement,[{traits:['Ore'],amount:1},{traits:['Construction'],amount:1}]);
 assert.equal(plan.ok,true);assert.deepEqual(plan.providers.map(p=>p.slotIndex),[1,0]);
 applyStockPlan(state,settlement,plan);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[1,0,0,5]);
-assert.deepEqual(planStock(state,settlement,[{traits:['Fuel'],amount:2}]).providers.map(p=>p.slotIndex),[0,3],'providers on both sides pay in left-to-right order');
+assert.deepEqual(planStock(state,settlement,[{traits:['Construction'],amount:2}]).providers.map(p=>p.slotIndex),[0,3],'providers on both sides pay in left-to-right order');
 const before=JSON.stringify(settlement.practiceSlots);
-assert.equal(planStock(state,settlement,[{traits:['Fuel'],amount:1},{traits:['Ore'],amount:1}]).ok,false);
+assert.equal(planStock(state,settlement,[{traits:['Construction'],amount:1},{traits:['Ore'],amount:1}]).ok,false);
 assert.equal(JSON.stringify(settlement.practiceSlots),before,'failed transaction cannot partially consume');
-settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning',1),slot('logging',1)];
-const wholeBoard=planStock(state,settlement,[{traits:['Fuel'],amount:3}]);
+settlement.practiceSlots=[slot('logging',1),slot('logging',1),slot('logging',1)];
+const wholeBoard=planStock(state,settlement,[{traits:['Construction'],amount:3}]);
 assert.equal(wholeBoard.ok,true);assert.deepEqual(wholeBoard.providers.map(p=>p.slotIndex),[0,1,2],'Consume includes own Stock and scans the whole board left to right');
 applyStockPlan(state,settlement,wholeBoard);assert.deepEqual(settlement.practiceSlots.map(p=>p.stock),[0,0,0]);
 settlement.practiceSlots=[slot('garrisonDuty'),slot('bowmaking',1)];
@@ -85,10 +85,12 @@ assert.equal(neutral.detailedState.populationByClass.stranger.adults,pop);assert
 const a=createNewGameState(718),b=deserializeGameState(serializeGameState(a));
 advanceReplayStateToSecond(a,120);advanceReplayStateToSecond(b,60);const c=deserializeGameState(serializeGameState(b));advanceReplayStateToSecond(c,120);
 assert.equal(JSON.stringify(serializeGameState(a)) === JSON.stringify(serializeGameState(c)), true,'serialized authoritative stepping parity');
-const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validation.errors,[]);
+const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validation.errors,[
+ 'glassmaking: missing provider Mineral', 'distilling: missing provider Vessel', 'embalming: missing provider Vessel',
+]);
 // Require is non-consuming and may share an activation-start unit with Consume.
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning')];
-const shared=planStock(state,settlement,[{traits:['Timber'],amount:1}],[{traits:['Fuel'],amount:1}]);
+const shared=planStock(state,settlement,[{traits:['Timber'],amount:1}],[{traits:['Construction'],amount:1}]);
 assert.equal(shared.ok,true);applyStockPlan(state,settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
 const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
 assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can use existing suppliers');
@@ -161,8 +163,9 @@ const withoutFoundry=buildDetailedPracticeEvaluation(hybrid,hybridSite,hybridWor
 assert.equal(beforeFoundry.effects[0].scaledValue.effectiveValue,withoutFoundry.effects[0].scaledValue.effectiveValue);
 assert.ok(beforeFoundry.stockCapacity>withoutFoundry.stockCapacity,'Foundry still increases Metal storage');
 hybridSite.detailedState.structureSlots=withFoundry;
+hybridSite.detailedState.practiceSlots[0]=slot('charcoalBurning',2); // Logging no longer supplies Fuel.
 emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'surfaceMining',traits:['Ore']});
-emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'logging',traits:['Fuel']});
+emitPracticeEvent(hybrid,{kind:'stockGenerated',regionId:hybridSite.regionId,practiceId:'charcoalBurning',traits:['Fuel']});
 flushPracticeEvents(hybrid);
 runPracticeActivation(hybrid,'birth');
 assert.ok(stockTotal(hybrid,hybridSite.detailedState,'Arms')>0,'Scholar-assisted Metal production supplies Warrior Arms through ordinary Stock');

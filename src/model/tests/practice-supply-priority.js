@@ -89,7 +89,7 @@ assert.equal(simultaneous.owner.detailedState.practiceSlots[1].stock, 1, 'condit
 // Children emitted during a shared recipe get a local pass before the next
 // shared recipe: Bowmaking wakes Smelting, then supplies Weaponsmithing.
 const children = fixture();
-children.owner.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 2), practiceSlot('toolmaking', 1), practiceSlot('smelting'));
+children.owner.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 2), practiceSlot('toolmaking', 1), practiceSlot('smelting'), practiceSlot('charcoalBurning',1));
 children.borrower.detailedState.practiceSlots = fiveSlots(practiceSlot('bowmaking'), practiceSlot('weaponsmithing'));
 const smelting = children.state.gameConfig.gamepieces.practices.smelting;
 smelting.charge.threshold = 1;

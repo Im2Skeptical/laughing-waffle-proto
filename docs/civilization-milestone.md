@@ -15,6 +15,13 @@ first-pass system notes below retain their original tuning context.
 
 ## Current iteration and handoff
 
+- The reviewed [minimal bronze test set](minimal-bronze-test-set.md) is the
+  authored default for new games. It narrows early Common/Scholar choices with
+  four Practice locks, maturity changes and revised recipes/capacities. The full
+  registry remains implemented; the workbook tuning below is superseded where
+  that test set differs. Three unchanged later-tier recipes currently lack
+  Mineral/Vessel Practice providers; their gaps remain explicit diagnostics.
+
 - Practice capacity is fixed at **five** per player detailed settlement.
   Neutrals instead own finite priced Stock inventories, replenish before each
   Food phase, and retain fixed demographics without installed gamepieces. This intentional readability and composition limit was reaffirmed

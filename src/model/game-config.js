@@ -1,6 +1,7 @@
 import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
+  STOCK_TRAIT_IDS,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { MOON_PHASE_DEFS } from '../defs/gamesettings/moon-phase-defs.js';
 import { isPracticeOutput, practiceEffectsCompatible, validPracticeInputs } from './practice-outputs.js';
@@ -17,7 +18,7 @@ export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const scheduleTypes=[...MOON_PHASE_DEFS.map(phase=>phase.id),'season','passive','crisis'];
 const seasonKeys=['spring','summer','autumn','winter'];
-const STOCK_TRAITS=[...new Set(Object.values(detailedSettlementPracticeDefs).flatMap(def=>def.stockTraits))];
+const STOCK_TRAITS=STOCK_TRAIT_IDS;
 
 export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({

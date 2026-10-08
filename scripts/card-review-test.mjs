@@ -70,7 +70,7 @@ assert.equal(review.get('practice','smelting').notes,card.notes,'reset keeps not
 review.remove('structure','mudHouses');
 assert.equal(review.list().length,1);
 review.flag('practice','forage',live.practices.forage);
-review.edit('practice','forage',['stockTraits',1],'Plant'); // Previously saved per-index edits.
+review.edit('practice','forage',['stockTraits',0],'Plant'); // Previously saved per-index edits.
 review.edit('practice','forage',['stockTraits'],['Edible','Plant','Water','Grain']);
 assert.deepEqual(create().preview(review.get('practice','forage')).definition.stockTraits,['Edible','Plant','Water','Grain']);
 assert.equal(review.get('practice','forage').edits.length,1,'whole-tray edits supersede old index edits');
@@ -210,7 +210,7 @@ for(const classId of [null,'scholar','warrior']) {
     state.gameConfig.gamepieces=allLocked;
   }
   state.gameConfig.gamepieces=thinPool;
-  assert.deepEqual(getStockShopGenerationContext(state,vassal).stockOutputs,['Edible','Wild'],'only unlocked Stock suppliers are considered');
+  assert.deepEqual(getStockShopGenerationContext(state,vassal).stockOutputs,['Edible'],'only unlocked Stock suppliers are considered');
 }
 assert.deepEqual(getResearchLibraryCards(locks.createNewGame(678)).map(card=>card.id).sort(),['forage','mudHouses']);
 assert.deepEqual(serializeGameState(rebuildStateAtSecond(lockTimeline,7).state),lockReplay,'unlocking browser drafts cannot change existing replay');
@@ -266,6 +266,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   const bulkResolve=(kind,id)=>bulkLive[kind==='practice'?'practices':'structures'][id];
   const bulk=createCardReviewController({storage:bulkStorage,resolveLive:bulkResolve});
   const practiceIds=Object.keys(bulkLive.practices).slice(0,5);
+  for(const id of practiceIds)bulkLive.practices[id].workerCapacity=2; // Controlled bulk-edit fixture.
   writes=0;
   assert.equal(bulk.flagMany([...practiceIds.map(id=>({kind:'practice',id,definition:bulkLive.practices[id],tier:'bronze'})),{kind:'structure',id:'mudHouses',definition:bulkLive.structures.mudHouses}]),6);
   assert.equal(writes,1,'flagging a filtered group is one storage write');
@@ -378,7 +379,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   // Zoo: filter by what a card produces, live and with drafts applied.
   const researchers=state=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',produces:'Research'}).map(entry=>entry.id);
   const liveResearch=researchers(createNewGameState(77));
-  assert.equal(liveResearch.length,9);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
+  assert.equal(liveResearch.length,10);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
   const editedResearch=researchers(outGame);
   assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
   assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,81);
@@ -396,6 +397,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   const inLive=structuredClone(gameConfig.gamepieces);
   const inputs=createCardReviewController({storage:inStorage,resolveLive:(kind,id)=>inLive[kind==='practice'?'practices':'structures'][id]});
   const masonry=inLive.practices.masonry;
+  masonry.require=[{traits:['Tool'],amount:1}]; // Exercise removal independently of authored tuning.
   inputs.flag('practice','masonry',masonry);inputs.flag('practice','caravanGuarding',inLive.practices.caravanGuarding);
   const draft=()=>inputs.preview(inputs.get('practice','masonry')).definition;
   inputs.edit('practice','masonry',['consume'],[...masonry.consume,{amount:2,traits:['Fuel']}]);
@@ -429,7 +431,9 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.equal(canonicalizeGamepiecesDraft(tampered).practices.masonry.consume.length,1,'invalid input lists fall back to the authored list');
   const consumers=(state,trait)=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',consumes:trait}).map(entry=>entry.id);
   assert.ok(consumers(game,'Fuel').includes('masonry')&&!consumers(createNewGameState(91),'Fuel').includes('masonry'),'Consumes filter follows edited inputs');
-  assert.ok(filterLabCatalogue(getLabCatalogue(createNewGameState(91)),{category:'practice',requires:'Tool'}).some(entry=>entry.id==='masonry'));
+  const requiringGame=createNewGameState(91);
+  requiringGame.gameConfig.gamepieces.practices.masonry.require=structuredClone(masonry.require);
+  assert.ok(filterLabCatalogue(getLabCatalogue(requiringGame),{category:'practice',requires:'Tool'}).some(entry=>entry.id==='masonry'));
   assert.ok(!filterLabCatalogue(getLabCatalogue(game),{category:'practice',requires:'Tool'}).some(entry=>entry.id==='masonry'),'Requires filter follows removed requirements');
   // Revert restores the live lists.
   inputs.edit('practice','masonry',['consume'],masonry.consume);inputs.edit('practice','masonry',['require'],masonry.require);

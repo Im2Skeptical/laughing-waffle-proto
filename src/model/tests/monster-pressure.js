@@ -55,8 +55,8 @@ home.detailedState.practiceSlots=[practiceSlot('forage',3),practiceSlot('bowmaki
 home.detailedState.populationByClass.villager.adults=30;trainSpecialists(home.detailedState,'warrior',30);
 costs.currentSeasonIndex=1;
 const face=getGamepieceFace(costs,'practice','raidingParties');
-assert.equal(face.chaosCost,12);
-assert.equal(face.inputs.find(input=>input.icon==='chaos').amount,12);
+assert.equal(face.chaosCost,1);
+assert.equal(face.inputs.find(input=>input.icon==='chaos').amount,1);
 const before=costs.civilization.chaos.chaosPower;
 runPracticeActivation(costs,'season');
 assert.equal(costs.civilization.chaos.chaosPower-before,face.chaosCost,'Raid cost is fixed despite staffing');

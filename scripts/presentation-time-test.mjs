@@ -172,7 +172,7 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
-assert.equal(granaryFace.reading.effects[0].text,'+3.75 to Edible Stock Capacity');
+assert.equal(granaryFace.reading.effects[0].text,'+6.25 to Edible Stock Capacity');
 assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
 assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Stock capacity bonus','Construction footprint','Quality']);
 const kilnTerms=getInspectionTerms(getGamepieceFace(faceClock,'structure','kiln')).terms;

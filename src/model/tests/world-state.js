@@ -123,8 +123,8 @@ for (const site of getDetailedSettlementSites(state)) {
   assert.equal(view.storedFood, 2);
   assert.deepEqual(view.workerPool, {
     availableWorkerCount: 2,
-    activeWorkerCount: 2,
-    unusedWorkerCount: 0,
+    activeWorkerCount: 1,
+    unusedWorkerCount: 1,
   });
 }
 const pressureState = createInitialState("devPlaytesting01", 24680);
@@ -361,7 +361,7 @@ assert.deepEqual(civilizationSummary.food, {
   stored: 10,
   loose: 0,
   total: 10,
-  storedCapacity: 25,
+  storedCapacity: 35,
 });
 assert.equal(civilizationSummary.population.byClass.villager.total, 115);
 assert.equal(civilizationSummary.population.byClass.stranger.total, 0);

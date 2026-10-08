@@ -34,6 +34,9 @@ const housingCardIds = new Set([
   'mudHouses', 'timberHouse', 'stoneHouse', 'longhouse', 'tenement', 'greatDwelling',
   'housebuilding', 'civilEngineering',
 ]);
+// Current reviewed defaults supersede these workbook Stock traits/capacities.
+const reviewedTraits={forage:['Edible'],logging:['Timber','Construction'],surfaceMining:['Ore'],saltGathering:['Salt','Currency'],pottery:['Storage'],brickmaking:['Construction'],brewing:['Currency','Edible'],saltCuring:['Edible'],recordKeeping:['Record'],surveying:['Record']};
+const reviewedCapacities={quarrying:3,brewing:8,saltCuring:20,milling:16,recordKeeping:8,raidingParties:20,monsterHunting:7};
 for (const row of source.entries) {
   const def=(row.kind==='practices'?practices:structures)[row.id];
   assert.ok(def,`${row.pool}/${row.id}: missing runtime row`);
@@ -42,8 +45,8 @@ for (const row of source.entries) {
   assert.deepEqual(def.tags,authoredTags.filter(tag=>tag!=='Housing'||housingCardIds.has(row.id)));
   if (row.kind==='practices') {
     const traits=(row.fields['Stock Traits']??'').split(',').map(t=>t.trim()).filter(Boolean);
-    assert.deepEqual(def.stockTraits,row.id==='monsterHunting'?[...traits,'Currency']:traits);
-    assert.equal(def.stockCapacity,row.id==='monsterHunting'?7:row.fields.Capacity??0);
+    assert.deepEqual(def.stockTraits,reviewedTraits[row.id]??(row.id==='monsterHunting'?[...traits,'Currency']:traits));
+    assert.equal(def.stockCapacity,reviewedCapacities[row.id]??row.fields.Capacity??0);
     assert.equal(def.mode,row.fields.Mode.toLowerCase());assert.equal(def.lane,def.mode);
     if (def.mode==='charge') {
       assert.equal(def.activation.type,'charge');assert.equal(def.charge.gain,row.fields['Charge Gain']);

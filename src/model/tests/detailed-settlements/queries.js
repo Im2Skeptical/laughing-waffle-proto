@@ -14,7 +14,11 @@ import { getRegionState } from "../../world-state.js";
 import { settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { fresh } from "./helpers.js";
 
-assert.equal(validateDetailedPracticeDefinitions().ok, true);
+assert.deepEqual(validateDetailedPracticeDefinitions().errors, [
+  'glassmaking: missing provider Mineral',
+  'distilling: missing provider Vessel',
+  'embalming: missing provider Vessel',
+], 'the bronze test set leaves only the documented later-tier recipes without providers');
 const state = fresh();
 assert.equal(getGreenAscendancySummary(state).tier, 0);
 state.year = 100;
@@ -36,19 +40,19 @@ primordial.year = 7;
 assert.equal(getPrimordialChaosPressure(primordial), 16,
   "Primordial base, factor, and cadence are configurable without a cap");
 assert.deepEqual(assignDetailedSettlementWorkers(state, "river-crown")
-  .map((entry) => entry.effectiveWorkers), [2, 0, 0, 0, 0]);
+  .map((entry) => entry.effectiveWorkers), [1, 0, 0, 0, 0]);
 const strangerWorkers = fresh();
 const strangerSite = getDetailedSettlement(strangerWorkers, "river-crown");
 strangerSite.populationByClass.villager.adults = 0;
 strangerSite.populationByClass.villager.eldersByAge = [];
 strangerSite.populationByClass.stranger.adults = 20;
-assert.equal(assignDetailedSettlementWorkers(strangerWorkers, "river-crown")[0].effectiveWorkers, 1);
+assert.equal(assignDetailedSettlementWorkers(strangerWorkers, "river-crown")[0].effectiveWorkers, 0.5);
 
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 5);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 7);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 30);
 getDetailedSettlement(state, "upper-floodplain").structureSlots[3] = { structureId: "granary" };
 getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structureId: "mudHouses" };
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 8);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 12);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
 
 assert.deepEqual(['mudHouses','timberHouse','stoneHouse','longhouse','tenement','greatDwelling'].map(id=>settlementStructureDefs[id]?.housing),[30,60,90,210,360,630]);

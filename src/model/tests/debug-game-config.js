@@ -135,7 +135,7 @@ const gamepieces = setAtPath(authoredConfig.gamepieces,['practices','forage','st
 const setup = clone(setupDefs.devPlaytesting01);
 setup.gameConfig=canonicalizeGameConfig({settings,gamepieces});
 const configured=createInitialState(setup,901);
-assert.equal(getStoredFoodCapacity(configured,'cedar-woods'),12);
+assert.equal(getStoredFoodCapacity(configured,'cedar-woods'),14);
 assert.deepEqual(assignDetailedSettlementWorkers(configured,'river-crown').map(a=>a.effectiveWorkers),[1,...Array(4).fill(0)]);
 assert.equal(getPopulationSummary(configured,'cedar-woods').mealDemand,1,'Food is one hosted unit per thirty people');
 assert.equal(serializeGameState(configured).gameConfig.gamepieces.practices.forage.stockCapacity,9);

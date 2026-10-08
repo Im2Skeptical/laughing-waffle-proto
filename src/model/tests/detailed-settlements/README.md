@@ -13,3 +13,5 @@ That runner imports this folder so each slice can be read or executed alone.
 
 Keep runner import order matching the original suite.
 Life-map assertions stay here; `tests/vassal-life-map.js` is a separate stream.
+The runner also imports `tests/minimal-bronze-content.js` for the authored
+bronze recipe, schedule, construction and shop-eligibility regression checks.

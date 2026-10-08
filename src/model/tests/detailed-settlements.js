@@ -6,6 +6,7 @@ import "./detailed-settlements/phases.js";
 import "./detailed-settlements/vassals.js";
 import './charge-content.js';
 import './common-research.js';
+import './minimal-bronze-content.js';
 import './settlement-supply.js';
 import './practice-supply-priority.js';
 import './structure-construction.js';

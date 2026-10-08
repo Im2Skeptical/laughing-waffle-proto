@@ -33,7 +33,7 @@ const { state, local, remote } = supply;
 local.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 1));
 remote.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 2), practiceSlot('surfaceMining', 1));
 const stockBefore = serializeGameState(state);
-const plan = planStock(state, local.detailedState, [{ traits: ['Fuel'], amount: 3 }]);
+const plan = planStock(state, local.detailedState, [{ traits: ['Construction'], amount: 3 }]);
 assert.equal(plan.ok, true);
 assert.deepEqual(plan.providers.map(p => [p.regionId, p.slotIndex, p.amount]),
   [[local.regionId, 0, 1], [remote.regionId, 0, 2]], 'local board precedes remote stock');
@@ -41,14 +41,14 @@ assert.deepEqual(serializeGameState(state), stockBefore, 'provider planning is p
 assert.equal(applyStockPlan(state, local.detailedState, plan), true);
 assert.equal(local.detailedState.practiceSlots[0].stock, 0);
 assert.equal(remote.detailedState.practiceSlots[0].stock, 0, 'the remote host pays its own debit');
-assert.deepEqual(state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Fuel'],
-  'Fuel drawn from Logging reports Fuel, not its other Timber / Construction Traits');
+assert.deepEqual(state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Construction'],
+  'Construction drawn from Logging reports Construction, not its other Timber Trait');
 const required = planStock(state, local.detailedState, [], [{ traits: ['Ore'], amount: 1 }]);
 assert.equal(required.ok, true);
 applyStockPlan(state, local.detailedState, required);
 assert.equal(remote.detailedState.practiceSlots[1].stock, 1, 'Require never consumes remote Stock');
 const failureBefore = serializeGameState(state);
-const failed = planStock(state, local.detailedState, [{ traits: ['Ore'], amount: 1 }, { traits: ['Fuel'], amount: 1 }]);
+const failed = planStock(state, local.detailedState, [{ traits: ['Ore'], amount: 1 }, { traits: ['Construction'], amount: 1 }]);
 assert.equal(failed.ok, false);
 assert.equal(applyStockPlan(state, local.detailedState, failed), false);
 assert.deepEqual(serializeGameState(state), failureBefore, 'failed multi-board recipe changes nothing');
@@ -121,14 +121,14 @@ assert.deepEqual(scheduled.state.civilization.practiceEvents.stockTransfers.tran
 assert.deepEqual(scheduled.state.civilization.practiceEvents.stockTransfers.transfers.map(t => t.traits), [['Tool'], ['Timber']]);
 const consumedEvent = scheduled.state.civilization.practiceEvents.trace.find(event => event.kind === 'stockConsumed');
 assert.ok(consumedEvent.traits.includes('Timber'), 'consumption events read traits from the real remote host');
-assert.ok(consumedEvent.traits.includes('Fuel'), 'reaction events retain the actual Stock Traits, independently of transfer icons');
+assert.ok(consumedEvent.traits.includes('Construction'), 'reaction events retain the actual Stock Traits, independently of transfer icons');
 
 const alternatives = fixture();
 alternatives.remote.detailedState.practiceSlots = fiveSlots(practiceSlot('logging', 1));
-const alternativePlan = planStock(alternatives.state, alternatives.local.detailedState, [{ traits: ['Stone', 'Fuel'], amount: 1 }]);
+const alternativePlan = planStock(alternatives.state, alternatives.local.detailedState, [{ traits: ['Stone', 'Construction'], amount: 1 }]);
 assert.equal(alternativePlan.ok, true);
 applyStockPlan(alternatives.state, alternatives.local.detailedState, alternativePlan);
-assert.deepEqual(alternatives.state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Fuel'],
+assert.deepEqual(alternatives.state.civilization.practiceEvents.stockTransfers.transfers[0].traits, ['Construction'],
   'alternative recipes identify the actual matched request');
 
 const grainInput = fixture();

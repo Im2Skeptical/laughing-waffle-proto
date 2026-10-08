@@ -1,4 +1,4 @@
-import { detailedSettlementPracticeDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
+import { STOCK_TRAIT_IDS } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { MOON_PHASE_DEFS } from '../../defs/gamesettings/moon-phase-defs.js';
 import { PRACTICE_OUTPUTS, PRACTICE_EFFECT_LIMIT, PRACTICE_INPUT_LIMIT, isPracticeOutput, practiceOutputKey, practiceEffectsCompatible, validPracticeInputs } from '../practice-outputs.js';
 
@@ -8,7 +8,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const reviewKey = (kind, id) => `${kind}:${id}`;
 export const readReviewValue = (def, path) => path.reduce((value, part) => value?.[part], def);
-export const REVIEW_STOCK_TRAITS = Object.freeze([...new Set(Object.values(detailedSettlementPracticeDefs).flatMap(def=>def.stockTraits))].sort());
+export const REVIEW_STOCK_TRAITS = STOCK_TRAIT_IDS;
 export const REVIEW_SEASONS = Object.freeze(['spring','summer','autumn','winter']);
 export const REVIEW_PHASES = Object.freeze(MOON_PHASE_DEFS.map(phase=>phase.id));
 export const REVIEW_SCHEDULE_TYPES = Object.freeze([...REVIEW_PHASES,'season','passive','crisis']);
