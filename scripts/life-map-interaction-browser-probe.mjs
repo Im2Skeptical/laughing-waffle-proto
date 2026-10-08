@@ -74,6 +74,13 @@ try {
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.currentNodeId),null,
     'Enter opens confirmation without entering the node');
   await page.screenshot({path:`${output}/entry-confirmation.png`});
+  for (const viewport of [{width:844,height:390},{width:1280,height:800}]) {
+    await page.setViewportSize(viewport);
+    await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmation?.phase === 'open');
+    await delay(120);
+    const dialog = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmation);
+    assert.ok(dialog.buttonCssHeight >= 43.5, `entry confirmation buttons stay touch-sized at ${viewport.width}x${viewport.height}`);
+  }
   await page.keyboard.press('Escape');
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);
   await click('getLifeMapNodeClickPoint',node);
@@ -84,7 +91,8 @@ try {
     'Cancel leaves the candidate unentered');
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);
   await page.keyboard.press('Enter');
-  await click('getLifeMapEnterNodeClickPoint');
+  // A second, separate Enter is the dialog's default action.
+  await page.keyboard.press('Enter');
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing?.phase==='error');
   await page.setViewportSize({width:844,height:390});
   await delay(250);

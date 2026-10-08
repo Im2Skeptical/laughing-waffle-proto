@@ -4,6 +4,7 @@ import { createSettlementVassalFlow } from '../src/views/ui-root/settlement-vass
 import { createNewGameState } from '../src/model/new-game.js';
 import { getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
 import { createVassalResolutionRecapView } from '../src/views/vassal-resolution-recap-pixi.js';
+import { describeEntryBlockedReason, getEntryConsequences } from '../src/views/life-map-entry-confirm-pixi.js';
 import { selectedState, forceEnter, nodeIdForFamily, dispatch, resolvePending }
   from '../src/model/tests/vassal-life-map/helpers.js';
 
@@ -64,6 +65,24 @@ flow.dispatchLifeMapAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: 'test
 assert.equal(dispatched.at(-1).options.viewInvalidationReason, undefined);
 assert.equal(invalidated, 1);
 console.log('[life-map-interaction] entry and drafts avoid forecast rebuild; confirmation invalidates');
+
+// The entry dialog states what committing does before the player confirms.
+const entryRows = (spec) => getEntryConsequences(spec).map(row => `${row.id}:${row.detail}`);
+assert.deepEqual(entryRows({node:{family:'training'}, otherOpenCount:0}), [
+  'cost:Free to enter · each choice lists its own cost',
+  'path:Locks in this path · it is the only open node',
+]);
+assert.match(entryRows({node:{family:'training'}, otherOpenCount:1})[1], /1 other open node closes$/u);
+assert.match(entryRows({node:{family:'training'}, otherOpenCount:2})[1], /2 other open nodes close$/u);
+for (const node of [{family:'crisis'}, {family:'relic'}, {family:'signature', signatureNode:{variantId:'monsterHunt'}}]) {
+  assert.ok(getEntryConsequences({node}).some(row => row.id === 'risk'), `${node.family} warns about death risk`);
+}
+assert.equal(getEntryConsequences({node:{family:'travel'}}).some(row => row.id === 'risk'), false);
+assert.equal(getEntryConsequences({node:{family:'travel'}, blockedReason:'heirloomLoadoutRequired'}).at(-1).detail,
+  'Finish equipping Heirlooms first.');
+assert.equal(describeEntryBlockedReason('somethingNew'), "This node can't be entered right now.");
+assert.equal(describeEntryBlockedReason(null), null);
+console.log('[life-map-interaction] entry confirmation lists cost, commitment, risk and blocked reasons');
 
 // A Vassal may die while the player is viewing the civilization map.
 // Exercise the real recap view with a minimal display surface.

@@ -14,7 +14,8 @@ import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
 import { layoutChronicleNodes } from './timeline-presentation.js';
 import { addCivilizationSurvivalStrip, getCivilizationSurvivalViewModel, getSurvivalEndDetailsClickPoint } from './civilization-survival-hud.js';
 import { confirmDockButton } from './vassal-node-decision/chrome.js';
-import { button } from './vassal-node-decision/cards.js';
+import { createLifeMapEntryConfirm } from './life-map-entry-confirm-pixi.js';
+import { getRegionReference } from "../model/world-state.js";
 
 const MAP_RECT = Object.freeze({ x: 58, y: 88, width: 2318, height: 720 });
 const NODE_RADIUS = 32;
@@ -59,6 +60,12 @@ export function createVassalLifeMapView({
   confirmSurface.visible = false;
   confirmLayer?.addChild(confirmSurface);
   let confirmPointerHeld = false;
+  let entryBlockedReason = null;
+  const entryDialog = createLifeMapEntryConfirm({
+    app, layer: confirmLayer,
+    onConfirm: () => enterCandidate(),
+    onCancel: () => cancelEntryConfirmation(),
+  });
   confirmSurface.on("pointerdown", () => { confirmPointerHeld = true; });
   for (const type of ["pointerup", "pointerupoutside", "pointercancel"]) {
     confirmSurface.on(type, () => { confirmPointerHeld = false; });
@@ -74,7 +81,6 @@ export function createVassalLifeMapView({
   let displayedVassalId = null;
   let lastClick = { nodeId: null, atMs: 0 };
   let openRoot = null;
-  let cancelRoot = null;
   let entryConfirmationOpen = false;
   let layoutPoints = new Map();
   let pinnedNodeIds = [];
@@ -260,23 +266,39 @@ export function createVassalLifeMapView({
     const node = getCandidate();
     if (!node) return false;
     const point = nodeRoots.get(node.id)?.toGlobal(new PIXI.Point(0, 0));
+    const wasConfirming = entryConfirmationOpen;
     candidateNodeId = null;
     entryConfirmationOpen = false;
     lastClick = { nodeId: null, atMs: 0 };
     tooltipView?.hide?.({ force: true });
     const result = onEnterNode?.(node.id);
     if (result?.ok === false) {
+      // Keep the dialog up and say why, rather than silently dropping it.
       candidateNodeId = node.id;
+      entryConfirmationOpen = wasConfirming;
+      entryBlockedReason = result.reason ?? "unknown";
       render(true);
       return false;
     }
+    entryBlockedReason = null;
+    // The decision modal animates in from the node; don't cross-fade over it.
+    entryDialog.close({ immediate: true });
     onOpenDecision?.(node.id, point ? { x: point.x, y: point.y } : null);
+    render(true);
+    return true;
+  }
+
+  function cancelEntryConfirmation() {
+    if (!entryConfirmationOpen) return false;
+    entryConfirmationOpen = false;
+    entryBlockedReason = null;
     render(true);
     return true;
   }
 
   function requestEntryConfirmation() {
     if (!getCandidate()) return false;
+    entryBlockedReason = null;
     entryConfirmationOpen = true;
     tooltipView?.hide?.({ force: true });
     render(true);
@@ -287,16 +309,15 @@ export function createVassalLifeMapView({
     if (event?.repeat || event?.altKey || event?.ctrlKey || event?.metaKey || event?.shiftKey || !getCandidate()) return false;
     if (event.key === "Enter") {
       event.preventDefault();
-      requestEntryConfirmation();
+      // Enter is the dialog's default action once it is showing; key repeat
+      // is ignored above, so holding Enter cannot open and commit in one go.
+      if (entryConfirmationOpen && entryDialog.isOpen()) enterCandidate();
+      else requestEntryConfirmation();
       return true;
     }
     if (event.key === "Escape") {
       event.preventDefault();
-      if (entryConfirmationOpen) {
-        entryConfirmationOpen = false;
-        render(true);
-        return true;
-      }
+      if (entryConfirmationOpen) return cancelEntryConfirmation();
       candidateNodeId = null;
       entryConfirmationOpen = false;
       inspectedNodeId = null;
@@ -314,6 +335,7 @@ export function createVassalLifeMapView({
     hoveredNodeId = null;
     candidateNodeId = null;
     entryConfirmationOpen = false;
+    entryBlockedReason = null;
     inspectedNodeId = null;
     lastClick = { nodeId: null, atMs: 0 };
   }
@@ -331,6 +353,7 @@ export function createVassalLifeMapView({
       if (wasVisible) clearInteractionSelection();
       wasVisible = false;
       confirmSurface.visible = false;
+      entryDialog.sync({ open: false, immediate: true });
       return;
     }
     wasVisible = visible;
@@ -365,11 +388,12 @@ export function createVassalLifeMapView({
     const nextSignature = getArtRevision() + JSON.stringify({
       vassal, committedNodeIds: presentation.committedNodeIds, playheadNodeId: presentation.playheadNodeId,
       readOnly, projected: presentation.viewedSec > presentation.frontierSec, loadoutPending,
-      effectiveNodeId, candidateNodeId, entryConfirmationOpen, hoveredNodeId, pinnedNodeIds, unveiling,
+      effectiveNodeId, candidateNodeId, entryConfirmationOpen, entryBlockedReason, hoveredNodeId, pinnedNodeIds, unveiling,
     });
     if (!force && nextSignature === signature) {
       updateSurvivalChrome(state, civilizationLossInfo);
       confirmSurface.visible = visible && confirmVisibleWhenShown;
+      if (!visible) entryDialog.sync({ open: false, immediate: true });
       return;
     }
     signature = nextSignature;
@@ -379,7 +403,6 @@ export function createVassalLifeMapView({
     confirmSurface.visible = false;
     nodeRoots.clear();
     openRoot = null;
-    cancelRoot = null;
     updateSurvivalChrome(state, civilizationLossInfo);
     root.addChild(createText(vassal?.founderClassId ? `${vassal.archetype.toUpperCase()} CHRONICLE` : 'VASSAL CHRONICLE',{...TEXT_STYLES.title,fontSize:25,fill:PALETTE.accent},78,32));
 
@@ -392,6 +415,7 @@ export function createVassalLifeMapView({
       root.addChild(createText("No Vassal had been appointed at this point in the timeline.", {
         ...TEXT_STYLES.header, fontSize: 22, fill: PALETTE.textMuted,
       }, MAP_RECT.x + 70, MAP_RECT.y + 180));
+      entryDialog.sync({ open: false });
       return;
     }
 
@@ -500,28 +524,7 @@ export function createVassalLifeMapView({
     const candidate = getCandidate(presentation);
     if (candidate) {
       confirmSurface.visible = true;
-      if (entryConfirmationOpen) {
-        const family = getVassalLifeMapNodeFamily(candidate);
-        const rect = { x: 752, y: 248, width: 920, height: 400 };
-        const backdrop = new PIXI.Graphics().beginFill(0x090d0d, .72)
-          .drawRect(0, 0, app.screen.width, app.screen.height).endFill();
-        backdrop.eventMode = 'static';
-        backdrop.on('pointerdown', event => event.stopPropagation());
-        const panel = new PIXI.Graphics();
-        roundedRect(panel, rect.x, rect.y, rect.width, rect.height, 16, PALETTE.panel, family.color, 3);
-        panel.eventMode = 'static';
-        panel.on('pointerdown', event => event.stopPropagation());
-        confirmSurface.addChild(backdrop, panel, createText(family.description, {
-          ...TEXT_STYLES.body, fontSize: 36, lineHeight: 44,
-          wordWrap: true, wordWrapWidth: rect.width - 88,
-        }, rect.x + 44, rect.y + 40));
-        openRoot = button(confirmSurface, {
-          x: rect.x + 320, y: rect.y + rect.height - 152, width: 556, height: 116,
-        }, 'Confirm', true, enterCandidate, false, {fontSize:32});
-        cancelRoot = button(confirmSurface, {
-          x: rect.x + 44, y: rect.y + rect.height - 152, width: 252, height: 116,
-        }, 'Cancel', true, () => { entryConfirmationOpen = false; render(true); }, false, {fontSize:32});
-      } else {
+      if (!entryConfirmationOpen) {
         openRoot = confirmDockButton(confirmSurface, app, {
           enabled: true, label: "Enter", onClick: requestEntryConfirmation,
         });
@@ -532,22 +535,41 @@ export function createVassalLifeMapView({
     }
     confirmVisibleWhenShown = confirmSurface.visible;
     confirmSurface.visible = visible && confirmVisibleWhenShown;
+    if (!candidate) entryBlockedReason = null;
+    entryDialog.sync({
+      open: visible && entryConfirmationOpen && !!candidate,
+      spec: candidate ? entrySpec(candidate, presentation) : null,
+    });
+  }
+
+  function entrySpec(node, presentation) {
+    const vassal = presentation.vassal;
+    const family = getVassalLifeMapNodeFamily(node) ?? {};
+    const location = vassal?.locationRegionId
+      ? String(getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId) : null;
+    const prestige = Number.isFinite(vassal?.prestige) ? Math.floor(vassal.prestige) : null;
+    const otherOpenCount = Math.max(0, (vassal?.lifeMap?.availableNodeIds ?? []).filter((id) => id !== node.id).length);
+    return {
+      node, family, location, prestige, otherOpenCount, blockedReason: entryBlockedReason,
+      signature: !!node.signatureNode?.variantId,
+      key: { id: node.id, label: family.label, location, prestige, otherOpenCount, blocked: entryBlockedReason },
+    };
   }
 
   return {
     init: () => render(true), update: () => render(), refresh: () => render(true),
     setVisible: (visible) => {
       root.visible = visible === true;
-      if (!root.visible) confirmSurface.visible = false;
+      if (!root.visible) {
+        confirmSurface.visible = false;
+        entryDialog.sync({ open: false, immediate: true });
+      }
     },
     handleKeyDown,
     getCandidateNodeId: () => getCandidate()?.id ?? null,
     isEntryConfirmationOpen: () => entryConfirmationOpen && confirmSurface.visible,
-    getEntryCancelClickPoint: () => {
-      if (!entryConfirmationOpen || !confirmSurface.visible || !cancelRoot) return null;
-      const rect = cancelRoot.getBounds();
-      return {x:rect.x + rect.width / 2, y:rect.y + rect.height / 2};
-    },
+    getEntryCancelClickPoint: () => entryConfirmationOpen ? entryDialog.getCancelPoint() : null,
+    getEntryConfirmationSnapshot: () => entryDialog.getSnapshot(),
     getNodeClickPoint(nodeId) {
       const target = nodeRoots.get(nodeId);
       const point = root.visible && target && !target.destroyed
@@ -555,7 +577,9 @@ export function createVassalLifeMapView({
       return point ? { x: point.x, y: point.y } : null;
     },
     getEnterNodeClickPoint: () => {
-      if (!getCandidate() || !openRoot || !confirmSurface.visible) return null;
+      if (!getCandidate()) return null;
+      if (entryConfirmationOpen) return entryDialog.getConfirmPoint();
+      if (!openRoot || !confirmSurface.visible) return null;
       const rect = openRoot.getBounds();
       return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     },
