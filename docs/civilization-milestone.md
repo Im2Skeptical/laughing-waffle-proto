@@ -8,7 +8,7 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 
 ## CivContent 2.6 update
 
-The full 109-Practice / 78-Structure pool and 24 Charge engines now supersede
+The full 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
 the representative subset. See [the implementation report](civcontent-2.6-implementation.md)
 for exact runtime coverage, tests and remaining provisional clauses. The
 first-pass system notes below retain their original tuning context.
@@ -130,7 +130,7 @@ human playtest work.
 
 ## Provisional choices and deviations
 
-- CivContent 2.6 now offers Common 13/14, Scholar 48/32 and Warrior 48/32
+- CivContent 2.6 plus Observation now offers Common 14/14, Scholar 48/32 and Warrior 48/32
   (Practice/Structure). Every Practice is Scheduled or Charge; full pool and
   per-card deviations are in `docs/civcontent-2.6-implementation.md`.
 - Practice purchases use 10 Prestige / 12 phases. Structure plans remain available

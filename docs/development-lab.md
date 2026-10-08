@@ -248,7 +248,7 @@ families/signatures, the four neutral templates, and the single spatial Monster
 type. Search covers IDs, names, rules, and definition data. Filters cover category,
 Common/Scholar/Warrior, minimum maturity, Card Tags, Stock Traits, and footprint.
 It also filters Scheduled/Charge mode and reports the required CivContent 2.6
-pool counts (109 Practices / 78 Structures). Compare exposes Charge grammar,
+pool counts (110 Practices / 78 Structures). Compare exposes Charge grammar,
 executable effects and provisional deviations.
 
 Faces use the actual `getGamepieceFace` / `addSettlementPiece` pipeline and art.
@@ -398,7 +398,7 @@ the source run's prior history because the bridge transfers a state, not a run.
 - Two neutral templates still author six/seven Practices, but normal runtime
   construction installs only the first five. Zoo shows both installed and omitted
   entries, without changing those gameplay definitions.
-- All 187 runtime Practices and Structures have dedicated packed illustrations.
+- All 188 runtime Practices and Structures have dedicated packed illustrations.
   The CivContent 2.6 art additions preserve the paintings of existing cards.
 - Structures, candidates, node families and Monster tuning are runtime data;
   there is no fabricated workbook-only content or alternate simulation.
@@ -429,7 +429,7 @@ the source run's prior history because the bridge transfers a state, not a run.
   exhibits, edits, reset/storage, forecast, desktop/mobile, both bridges, refresh,
   original save protection. Details/screenshots: `artifacts/development-lab-*`.
 - `npm run probe:development-lab -- --zoo-only`: quick reads and full inspection
-  for all 187 runtime Practices/Structures, quality comparison, linked definitions,
+  for all 188 runtime Practices/Structures, quality comparison, linked definitions,
   desktop/mobile bounds, and unchanged fixture state/RNG.
 - `npm run probe:prototypes`: standalone workbenches through the
   Prototypes directory, Pages subpath and refresh, desktop/mobile layouts,

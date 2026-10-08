@@ -57,7 +57,7 @@ Authoritative UI behavior. Engine invariants and schema numbers:
 contract: `ai/visual-overhaul.md`.
 
 - Main screens share a fixed-landscape dark stone/brass frame, pixel-art terrain,
-  illustrated gamepiece cards with dedicated packed art for all 187 runtime pieces, and an engraved astrolabe. New presentation
+  illustrated gamepiece cards with dedicated packed art for all 188 runtime pieces, and an engraved astrolabe. New presentation
   modules sample viewed timeline time for hamlet/fire sprites, dust, transfer
   packets, and optional reversible ambient audio. Fractional presentation time
   never substitutes for a missing authoritative snapshot.
@@ -240,7 +240,7 @@ contract: `ai/visual-overhaul.md`.
   bottom, with workers on the right for Scheduled cards and the left for Charge cards.
   Solar/lunar discs rotate at the bottom in time with scheduled triggers; charge
   practices show a segmented reservoir and trigger tray. Normal thresholds use one
-  chamber per point; large custom thresholds group points and show a numeric count. The 187 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
+  chamber per point; large custom thresholds group points and show a numeric count. The 188 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Routes/Travel show a cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on

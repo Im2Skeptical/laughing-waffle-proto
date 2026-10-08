@@ -162,7 +162,7 @@ export function createZooView({controller,cards,run,review}) {
     if (grouped) matches = POOLS.flatMap(pool=>matches.filter(e=>e.pool===pool)).concat(matches.filter(e=>!POOLS.includes(e.pool)));
 
     const coverage = [], missing = [];
-    for (const [pool,expectedPractices,expectedStructures] of [['common',13,14],['scholar',48,32],['warrior',48,32]]) {
+    for (const [pool,expectedPractices,expectedStructures] of [['common',14,14],['scholar',48,32],['warrior',48,32]]) {
       const practices=catalogue.filter(e=>e.category==='practice'&&e.pool===pool),structures=catalogue.filter(e=>e.category==='structure'&&e.pool===pool);
       const charge=practices.filter(e=>e.def.mode==='charge').length;
       const short=practices.length!==expectedPractices||structures.length!==expectedStructures;

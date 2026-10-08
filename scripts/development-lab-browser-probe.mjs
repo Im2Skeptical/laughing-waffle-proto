@@ -290,7 +290,7 @@ try {
   checks.push('reviewer Dev/Zoo entry, icon trays and variable Stock tags, multiple schedule triggers/season yields, viewport-height modal with fixed Done footer and side/Escape dismissal, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
   await page.getByRole('link',{name:'Zoo',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('');
-  await page.getByText('109 matching runtime entries',{exact:false}).waitFor();
+  await page.getByText('110 matching runtime entries',{exact:false}).waitFor();
   await choose('Card versions','edited-only');
   await page.getByText('3 matching runtime entries',{exact:false}).waitFor();
   assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-edited=true]').count(),3,'Zoo can show only edited Practice drafts');
@@ -319,17 +319,17 @@ try {
     const reviews=()=>tab.evaluate(()=>JSON.parse(localStorage.getItem('civsurvivor.card-review.v1')??'{"cards":{}}').cards);
     const tall=async(locator,name)=>assert.ok((await locator.boundingBox()).height>=44,`${name} is touch-sized`);
     await tab.goto(`${url}/#/dev/zoo`);
-    await tab.getByText('109 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByText('110 matching runtime entries',{exact:false}).waitFor();
     await tab.getByTestId('zoo-filters-button').click();
     await tab.locator('[role=group][aria-label="Class"] [data-value="common"]').click();
     await tab.getByTestId('zoo-filters-close').click();
-    await tab.getByText('13 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByText('14 matching runtime entries',{exact:false}).waitFor();
     const addShown=tab.getByTestId('zoo-add-shown');
-    assert.equal(await addShown.textContent(),'Add 13 shown to review');await tall(addShown,'Add shown');
+    assert.equal(await addShown.textContent(),'Add 14 shown to review');await tall(addShown,'Add shown');
     await addShown.click();
-    await tab.getByText('Added 13 cards to review.',{exact:true}).waitFor();
+    await tab.getByText('Added 14 cards to review.',{exact:true}).waitFor();
     assert.equal(await addShown.textContent(),'All shown are in review');
-    assert.equal(Object.keys(await reviews()).length,13,'Zoo flags the filtered group');
+    assert.equal(Object.keys(await reviews()).length,14,'Zoo flags the filtered group');
     assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Zoo add-shown fits a phone');
     await tab.locator('[role=group][aria-label="Category"] [data-value="structure"]').click();
     await tab.getByLabel('Search runtime content').fill('longhouse');
@@ -356,9 +356,9 @@ try {
     assert.equal(await tab.locator('.review-bulk-count').textContent(),'1 selected','Select all shown respects the filter');
     await tab.getByLabel('Filter flagged cards',{exact:true}).fill('');
     await tab.getByTestId('review-select-all').click();
-    assert.equal(await tab.locator('.review-bulk-count').textContent(),'14 selected');
+    assert.equal(await tab.locator('.review-bulk-count').textContent(),'15 selected');
     await tab.locator('[data-testid=review-select-view] [data-value=selected]').click();
-    assert.equal(await tab.locator('.review-queue button:not([hidden])').count(),14);
+    assert.equal(await tab.locator('.review-queue button:not([hidden])').count(),15);
     for(const id of ['review-select-all','review-bulk-edit'])await tall(tab.getByTestId(id),id);
     const barBox=await tab.getByTestId('review-bulk-bar').boundingBox();
     assert.ok(barBox.y+barBox.height<=844&&barBox.y>700,'selection bar sits at the bottom of the phone screen');
@@ -370,19 +370,19 @@ try {
     const sheetBox=await sheet.boundingBox();
     assert.ok(Math.abs(sheetBox.y+sheetBox.height-844)<=1&&sheetBox.x>=0&&sheetBox.width<=390,'field sheet is a bottom sheet on phones');
     const sockets=sheet.locator('[data-testid=review-bulk-field][data-path=workerCapacity]');
-    assert.match(await sockets.textContent(),/Worker sockets.*13 of 14 have it/);
+    assert.match(await sockets.textContent(),/Worker sockets.*14 of 15 have it/);
     assert.equal(await sheet.locator('[data-testid=review-bulk-field][data-path=effects]').count(),0,'positional effect fields are not offered');
     await tall(sockets,'field row');
     await sockets.click();
     await sheet.getByTestId('review-bulk-value').fill('3');
-    await sheet.getByText('12 cards will change · 2 skipped',{exact:true}).waitFor();
+    await sheet.getByText('13 cards will change · 2 skipped',{exact:true}).waitFor();
     assert.deepEqual(await sheet.locator('.review-bulk-row[data-status=skipped]').evaluateAll(rows=>rows.map(row=>row.dataset.reason).sort()),['locked','missing']);
     assert.match(await sheet.locator('.review-bulk-row[data-status=change]').first().textContent(),/2 → 3/);
     await sheet.getByTestId('review-bulk-include-locked').check();
-    await sheet.getByText('13 cards will change · 1 skipped',{exact:true}).waitFor();
+    await sheet.getByText('14 cards will change · 1 skipped',{exact:true}).waitFor();
     await sheet.getByTestId('review-bulk-include-locked').uncheck();
     await sheet.getByTestId('review-bulk-value').fill('13');
-    await sheet.getByText('0 cards will change · 14 skipped',{exact:true}).waitFor();
+    await sheet.getByText('0 cards will change · 15 skipped',{exact:true}).waitFor();
     assert.equal(await sheet.getByTestId('review-bulk-apply').isDisabled(),true,'invalid values cannot be applied');
     await sheet.getByTestId('review-bulk-value').fill('3');
     await tall(sheet.getByTestId('review-bulk-apply'),'Apply');
@@ -392,7 +392,7 @@ try {
     await sheet.waitFor({state:'detached'});
     await tab.getByTestId('review-bulk-banner').waitFor();
     const socketEdits=cards=>Object.values(cards).filter(card=>card.edits.some(edit=>edit.path[0]==='workerCapacity')).length;
-    assert.equal(socketEdits(await reviews()),12,'one bulk save edits every changed card');
+    assert.equal(socketEdits(await reviews()),13,'one bulk save edits every changed card');
     await tall(tab.getByTestId('review-bulk-undo'),'Undo bulk edit');
     // Per-card Revert still works on a bulk change.
     await tab.getByTestId('review-select').click();
@@ -400,15 +400,15 @@ try {
     const socketsRow=tab.locator('.review-change').filter({has:tab.locator('strong',{hasText:/^Worker sockets$/})});
     await socketsRow.getByRole('button',{name:'Revert',exact:true}).click();
     await socketsRow.waitFor({state:'detached'});
-    assert.equal(socketEdits(await reviews()),11);
+    assert.equal(socketEdits(await reviews()),12);
     await tab.getByTestId('review-bulk-undo').click();
-    await tab.getByText('Bulk edit undone · 12 cards restored.',{exact:true}).waitFor();
+    await tab.getByText('Bulk edit undone · 13 cards restored.',{exact:true}).waitFor();
     assert.equal(socketEdits(await reviews()),0,'Undo bulk edit restores the pre-change cards');
     assert.equal((await reviews())[(await first.getAttribute('data-review-key'))].edits.some(edit=>edit.path[0]==='locked'),true,'undo keeps edits made before the bulk save');
     // Landscape phone: the sheet becomes a full-height side drawer.
     await tab.setViewportSize({width:844,height:390});
     await tab.getByTestId('review-select').click();
-    assert.equal(await tab.locator('.review-bulk-count').textContent(),'14 selected','selection persists across saves');
+    assert.equal(await tab.locator('.review-bulk-count').textContent(),'15 selected','selection persists across saves');
     await tab.getByTestId('review-bulk-edit').click();
     await sheet.locator('[data-path=workerCapacity]').click();
     await settled();
@@ -440,16 +440,16 @@ try {
     };
     const change=name=>tab.locator('.review-change').filter({has:tab.locator('strong',{hasText:new RegExp(`^${name}$`)})});
     await tab.goto(`${url}/#/dev/zoo`);
-    await tab.getByText('109 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByText('110 matching runtime entries',{exact:false}).waitFor();
     await filters(()=>tab.getByTestId('zoo-produces').selectOption('Research'));
-    await tab.getByText('8 matching runtime entries',{exact:false}).waitFor();
-    assert.match(await tab.getByTestId('zoo-produces').locator('option[value=Research]').textContent(),/Research \(8\)/,'Produces options carry counts');
+    await tab.getByText('9 matching runtime entries',{exact:false}).waitFor();
+    assert.match(await tab.getByTestId('zoo-produces').locator('option[value=Research]').textContent(),/Research \(9\)/,'Produces options carry counts');
     await tab.getByRole('button',{name:'Remove filter: Produces: Research',exact:true}).click();
     await filters(()=>tab.getByTestId('zoo-requires').selectOption('Tool'));
     await tab.getByRole('button',{name:'Remove filter: Requires: Tool',exact:true}).waitFor();
     assert.ok(await tab.locator('.lab-catalogue-grid>.lab-card').count()>0,'Requires filter finds cards');
     await tab.getByRole('button',{name:'Remove filter: Requires: Tool',exact:true}).click();
-    await tab.getByText('109 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByText('110 matching runtime entries',{exact:false}).waitFor();
     // Production outputs on a Charge card.
     await tab.getByLabel('Search runtime content').fill('caravanGuarding');
     await tab.getByText('1 matching runtime entries',{exact:false}).waitFor();
@@ -518,7 +518,7 @@ try {
     let inspected=0;
     for(const category of ['practice','structure']) {
       await choose('Category',category);
-      await page.getByText(`${category==='practice'?109:78} matching runtime entries`,{exact:false}).waitFor();
+      await page.getByText(`${category==='practice'?110:78} matching runtime entries`,{exact:false}).waitFor();
       do {
         const cards=page.locator('.lab-catalogue-grid>.lab-card');
         for(let index=0;index<await cards.count();index++) {
@@ -544,8 +544,8 @@ try {
         await page.waitForFunction(first=>document.querySelector('.lab-catalogue-grid .lab-card strong')?.textContent!==first,first);
       } while(true);
     }
-    assert.equal(inspected,187,'all runtime Practices and Structures are readable');
-    checks.push('all 109 Practices and 78 Structures open quick reads and full inspection');
+    assert.equal(inspected,188,'all runtime Practices and Structures are readable');
+    checks.push('all 110 Practices and 78 Structures open quick reads and full inspection');
     assert.deepEqual(errors,[]);
     writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
     console.log('[probe:development-lab] OK: Zoo reading, quality comparison, keywords and desktop/mobile');

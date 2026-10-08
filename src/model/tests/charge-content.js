@@ -23,7 +23,7 @@ import { getCurrentLifeMapVassal } from '../vassal-life-map.js';
 import { getGamepieceFace } from '../gamepiece-presentation.js';
 
 const source=JSON.parse(readFileSync(new URL('../../../docs/civcontent-2.6-source.json',import.meta.url),'utf8'));
-for (const [pool,p,s,c] of [['common',13,14,4],['scholar',48,32,10],['warrior',48,32,10]]) {
+for (const [pool,p,s,c] of [['common',14,14,4],['scholar',48,32,10],['warrior',48,32,10]]) {
   assert.equal(Object.values(practices).filter(d=>d.pool===pool).length,p);
   assert.equal(Object.values(structures).filter(d=>d.pool===pool).length,s);
   assert.equal(Object.values(practices).filter(d=>d.pool===pool&&d.mode==='charge').length,c);
@@ -178,7 +178,7 @@ for(let i=0;i<3;i++) event(development,{kind:'stockGenerated',practiceId:'record
 assert.equal(development.state.civilization.candidateDevelopment.scholar,1);
 development.state.civilization.vassalLineage.selectedVassalIds=['previous'];development.state.civilization.vassalLineage.establishedClassId='scholar';
 generateCandidatePool(development.state);assert.equal(development.state.civilization.candidateDevelopment.scholar,0);
-assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,109);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
+assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,110);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
 const bad=serializeGameState(createLabFixture('charge'));bad.world.sites[0].detailedState.practiceSlots.push(practiceSlot('forage'));
 assert.throws(()=>deserializeGameState(bad),/5 practice slots/);assert.throws(()=>fiveSlots(...Array(6).fill(practiceSlot('forage'))),/five/);
 const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites.find(site=>site.detailedState.practiceSlots[0]).detailedState.practiceSlots[0].charge=-1;
