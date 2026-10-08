@@ -7,6 +7,8 @@ import { el, button, confirmButton, field, input, select, section, disclosure, i
 import { constructionCopy, getLabStructureFace } from './structure-plan.js';
 import { createReviewBulkEdit } from './review-bulk-edit.js';
 import { reviewListEditor } from './review-list-editor.js';
+import { qualityFilterFields } from './quality-filter.js';
+import { matchesQualityFilter } from '../../model/dev-lab/quality-filter.js';
 
 const groups = {
   construction:{label:'Construction costs', match:path=>path[0]==='construction'},
@@ -65,6 +67,7 @@ const labelFor = (def, path) => {
 
 export function createCardReviewerView({review, cards, getState, run}) {
   let selected=null, comparison=false, queueTerm='';
+  const queueFilters={};
   const bulk=createReviewBulkEdit({review,run,labelFor});
   const importer=createReviewImport({review,run,onImported:()=>bulk.clearUndo()});
   const previewTiers={};
@@ -85,7 +88,12 @@ export function createCardReviewerView({review, cards, getState, run}) {
       } catch(error) {run(()=>{throw error;});}
     },'review-export','quiet');exportAll.disabled=!entries.length;
     const transfer=el('div','','lab-controls'),importControls=importer.controls();
-    transfer.append(exportAll,importControls.pick,importControls.file);
+    const clearAll=confirmButton('Clear all reviews',`Clear all ${entries.length} reviews?`,()=>run(()=>{
+      review.clear();bulk.reset();selected=null;queueTerm='';
+      for(const key of Object.keys(queueFilters))delete queueFilters[key];
+    }),'review-clear-all');clearAll.disabled=!entries.length;
+    clearAll.title='Remove every flagged card, including its edits, locks and notes';
+    transfer.append(exportAll,importControls.pick,importControls.file,clearAll);
     header.append(transfer,importControls.status);
     bulk.sync(entries.map(entry=>reviewKey(entry.kind,entry.id)));
     const howTo=info('reviewer',[
@@ -93,6 +101,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       'Changes against live lists every edit with a Revert. Lock card keeps a card out of new shop offers once reviewed cards are applied (Use edited cards in new games on the menu, or Apply reviewed cards to draft in Gym). Existing runs keep their pool.',
       'Export all downloads every flagged card with notes, original, live and proposed values. Move that JSON file to another device and choose Import reviews to continue there. For matching cards, choose which device’s drafts to keep.',
       'Select picks several cards; Edit together sets one whole-card number or choice on all of them, with a preview of every change and skip first. Undo bulk edit restores the cards as they were.',
+      'Maturity filters the card’s minimum quality. Choose an exact tier or combine inclusive or exclusive lower and upper bounds; Select all shown picks the matching cards. Clear all reviews removes every flagged card and its drafts and notes; tap it twice to confirm.',
     ],{label:'How reviewing works'});
     const undoBanner=bulk.banner();
     if(!entries.length){parent.append(header,...(undoBanner?[undoBanner]:[]),howTo,el('p','No flagged cards yet. Use Flag for review in the Zoo, or Dev at the top right of a card inspection.','lab-empty'));return;}
@@ -101,7 +110,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const queue=el('div','','review-queue');queue.setAttribute('aria-label',selecting?'Select flagged cards':'Flagged cards');queue.setAttribute('role','group');
     for(const entry of entries) {
       const key=reviewKey(entry.kind,entry.id), live=resolve(state,entry);
-      const locked=review.preview(entry,live).definition.locked===true;
+      const draft=review.preview(entry,live).definition,locked=draft.locked===true;
       const name=live?.label??entry.baseline.label;
       // While selecting, a tap toggles the card in the selection instead of opening it.
       const pick=button('',()=>{
@@ -109,6 +118,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
         selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;
       });
       queueChip(pick,name,entry,locked);pick.dataset.reviewKey=key;pick.dataset.name=name.toLowerCase();
+      pick.dataset.maturity=draft.minimumQuality??entry.tier;
       pick.setAttribute('aria-pressed',String(selected===key));queue.append(pick);
     }
     const visibleKeys=()=>[...queue.children].filter(pick=>!pick.hidden).map(pick=>pick.dataset.reviewKey);
@@ -122,17 +132,22 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const selectControls=bulk.controls(()=>syncQueue(),visibleKeys), bulkBar=bulk.bar(()=>syncQueue());
     queueTools.append(selectControls.toggle);
     queueWrap.append(queueTools);
+    const range=el('div','','lab-filter-selects review-queue-filters');
+    range.append(...qualityFilterFields(queueFilters,()=>run(()=>{})));
+    queueWrap.append(range);
     if(selectControls.tools)queueWrap.append(selectControls.tools);
     queueWrap.append(queue);
+    const noMatches=el('p','No flagged cards match these filters.','lab-empty');queueWrap.append(noMatches);
     if(bulkBar)queueWrap.append(bulkBar.node);
     function syncQueue() {
       const term=queueTerm.trim().toLowerCase();
       for(const pick of queue.children) {
         const key=pick.dataset.reviewKey;
-        pick.hidden=(!!term&&!pick.dataset.name.includes(term))||bulk.hidden(key);
+        pick.hidden=(!!term&&!pick.dataset.name.includes(term))||!matchesQualityFilter(pick.dataset.maturity,queueFilters)||bulk.hidden(key);
         if(bulk.isSelecting())bulk.decorate(pick,key);else pick.setAttribute('aria-pressed',String(selected===key));
       }
       selectControls.update?.(entries.length);bulkBar?.update();
+      noMatches.hidden=visibleKeys().length>0;
     }
     syncQueue();
     parent.append(header,...(undoBanner?[undoBanner]:[]),howTo,queueWrap);
@@ -204,7 +219,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     function changedRows() {
       const current=review.get(entry.kind,entry.id);changes.replaceChildren();
       const pick=[...queue.children].find(node=>node.dataset.reviewKey===reviewKey(entry.kind,entry.id));
-      if(pick){queueChip(pick,live?.label??entry.baseline.label,current,definition.locked===true);bulk.decorate(pick,pick.dataset.reviewKey);}
+      if(pick){queueChip(pick,live?.label??entry.baseline.label,current,definition.locked===true);pick.dataset.maturity=definition.minimumQuality??entry.tier;bulk.decorate(pick,pick.dataset.reviewKey);syncQueue();}
       const valueEdits=current.edits.filter(edit=>!(edit.path.length===1&&edit.path[0]==='locked'));
       changesTitle.textContent=`Changes against live${valueEdits.length?` (${valueEdits.length})`:''}`;
       reset.disabled=!current.edits.length;

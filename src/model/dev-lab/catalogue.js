@@ -6,6 +6,7 @@ import { getVassalCandidatePool } from '../vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
 import { practiceEffectProduct } from '../practice-outputs.js';
+import { matchesQualityFilter } from './quality-filter.js';
 
 const inputTraits = list => [...new Set((Array.isArray(list) ? list : []).flatMap(input => input?.traits ?? []))];
 // What a card produces: Stock, Chaos and each non-Stock output; Structures list Housing.
@@ -28,7 +29,7 @@ export function getLabCatalogue(state) {
 
 export function filterLabCatalogue(entries, filters = {}) {
   return entries.filter(e => (!filters.category || e.category === filters.category)
-    && (!filters.pool || e.pool === filters.pool) && (!filters.maturity || e.maturity === filters.maturity)
+    && (!filters.pool || e.pool === filters.pool) && matchesQualityFilter(e.maturity, filters)
     && (!filters.mode || e.mode===filters.mode)
     && (!filters.hideLocked || !e.locked)
     && (!filters.tag || e.tags?.includes(filters.tag)) && (!filters.trait || e.traits?.includes(filters.trait))

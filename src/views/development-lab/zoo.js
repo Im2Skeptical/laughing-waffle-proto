@@ -3,6 +3,8 @@ import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { practiceSlot } from '../../model/dev-lab/fixtures.js';
 import { constructionCopy, getLabStructureFace } from './structure-plan.js';
+import { qualityFilterFields, qualityFilterLabel } from './quality-filter.js';
+import { DETAILED_QUALITY_IDS } from '../../model/detailed-practice-tiers.js';
 import { el, select, field, input, section, details, button, table, disclosure, info, badge, segmented, group } from './elements.js';
 
 const CATEGORIES = [['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map'],['neutral','Neutrals'],['monster','Monsters'],['','All']];
@@ -97,11 +99,12 @@ export function createZooView({controller,cards,run,review}) {
     const inCategory = catalogue.filter(e => !filters.category || e.category === filters.category);
     const values = property => [...new Set(inCategory.flatMap(e => e[property] ?? []))].filter(v => v !== '' && v != null).map(String).sort();
     const options = {
-      pool:POOLS.filter(v=>values('pool').includes(v)), maturity:['bronze','silver','gold','diamond'].filter(v=>values('maturity').includes(v)),
+      pool:POOLS.filter(v=>values('pool').includes(v)), maturity:values('maturity').length ? [...DETAILED_QUALITY_IDS] : [],
       mode:values('mode'), produces:values('produces'), consumes:values('consumes'), requires:values('requires'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
     };
     const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',produces:'Produces',consumes:'Consumes',requires:'Requires',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
     for (const key of Object.keys(options)) if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
+    if (!options.maturity.length) { filters.maturityFrom=''; filters.maturityTo=''; }
 
     // One compact bar: category tabs, search and the Filters button. It slides
     // away while scrolling down and returns on the way back up.
@@ -112,7 +115,7 @@ export function createZooView({controller,cards,run,review}) {
     const search = input('Search runtime content',filters.search ?? '','search'); search.placeholder = 'Search names, rules, ids…'; search.enterKeyHint = 'search';
     let searchTimer;
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;changed();},250);});
-    const active = [hideLocked, versionsMode !== 'live', ...Object.keys(options).map(key=>!!filters[key])].filter(Boolean).length;
+    const active = [hideLocked, versionsMode !== 'live', filters.maturityFrom, filters.maturityTo, ...Object.keys(options).map(key=>!!filters[key])].filter(Boolean).length;
     const filtersButton = button('',()=>setFiltersOpen(!filtersOpen),'zoo-filters-button');
     filtersButton.classList.add('lab-filters-button');
     filtersButton.append(el('span','Filters'),badge(String(active),active?'accent':''));
@@ -134,9 +137,10 @@ export function createZooView({controller,cards,run,review}) {
     const cardGroup = [];
     if (options.pool.length) cardGroup.push(segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool ?? '',value=>{filters.pool=value;changed();}));
     const selects = el('div','','lab-filter-selects');
+    if (options.maturity.length) selects.append(...qualityFilterFields(filters,changed));
     // Produces/Consumes/Requires list each value with how many cards in this category match.
     const counted = ['produces','consumes','requires'], count = (key,value) => inCategory.filter(e=>e[key]?.includes(value)).length;
-    for (const key of ['maturity','mode','produces','consumes','requires','tag','trait','size']) {
+    for (const key of ['mode','produces','consumes','requires','tag','trait','size']) {
       if (!options[key].length) continue;
       const control = select(labels[key],[['','Any'],...options[key].map(v=>[v,counted.includes(key)?`${v} (${count(key,v)})`:title(v)])],filters[key] ?? '');
       if (counted.includes(key)) control.dataset.testid = `zoo-${key}`;
@@ -186,6 +190,7 @@ export function createZooView({controller,cards,run,review}) {
     if (versionsMode !== 'live') chip(VERSION_LABELS[versionsMode],()=>{versionsMode='live';});
     if (hideLocked) chip('Hide locked',()=>{hideLocked=false;});
     for (const key of Object.keys(options)) if (filters[key]) chip(`${labels[key]}: ${title(filters[key])}`,()=>{filters[key]='';});
+    for (const key of ['maturityFrom','maturityTo']) if (filters[key]) chip(`Maturity: ${qualityFilterLabel(filters[key])}`,()=>{filters[key]='';});
     if (chips.children.length > 1) {
       const clear = button('Clear all',clearAll,'zoo-clear-filters','quiet'); clear.classList.add('lab-chip-clear'); chips.append(clear);
     }

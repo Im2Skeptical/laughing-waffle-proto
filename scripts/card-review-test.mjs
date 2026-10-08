@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createAuthoredGameConfig, canonicalizeGamepiecesDraft, validateGamepiecesDraft } from '../src/model/game-config.js';
-import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
+import { createCardReviewController, CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY } from '../src/controllers/card-review-controller.js';
 import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS, reviewBulkFields, planReviewBulkEdit, reviewOutputChoices, reviewAddOutput, reviewRemoveOutput } from '../src/model/dev-lab/card-review.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
@@ -12,6 +12,61 @@ import { getStockShopGenerationContext } from '../src/model/vassal-life-map/stoc
 import { getResearchLibraryCards } from '../src/views/research-library-data.js';
 import { getLabCatalogue, filterLabCatalogue } from '../src/model/dev-lab/catalogue.js';
 import { constructionCopy, getLabStructureFace } from '../src/views/development-lab/structure-plan.js';
+import { matchesQualityFilter } from '../src/model/dev-lab/quality-filter.js';
+
+// Range boundaries are shared by the Zoo and the reviewer selection queue.
+{
+  const entries=['bronze','silver','gold','diamond'].map(maturity=>({id:maturity,maturity,category:'practice'}));
+  entries.push({id:'no-quality',category:'candidate'});
+  const ids=filters=>filterLabCatalogue(entries,filters).map(entry=>entry.id);
+  assert.equal(ids({}).length,5);
+  assert.deepEqual(ids({maturity:'silver'}),['silver']);
+  assert.deepEqual(ids({maturityFrom:'gt:silver'}),['gold','diamond']);
+  assert.deepEqual(ids({maturityFrom:'gte:silver'}),['silver','gold','diamond']);
+  assert.deepEqual(ids({maturityTo:'lt:gold'}),['bronze','silver']);
+  assert.deepEqual(ids({maturityTo:'lte:gold'}),['bronze','silver','gold']);
+  assert.deepEqual(ids({maturityFrom:'gte:silver',maturityTo:'lte:gold'}),['silver','gold']);
+  assert.deepEqual(ids({maturityFrom:'gt:silver',maturityTo:'lt:gold'}),[]);
+  assert.deepEqual(ids({maturityFrom:'gt:diamond'}),[]);
+  assert.deepEqual(ids({maturityTo:'lt:bronze'}),[]);
+  assert.deepEqual(ids({maturityFrom:'gte:gold',maturityTo:'lte:silver'}),[]);
+  assert.deepEqual(ids({category:'candidate',maturityFrom:'gte:bronze'}),[]);
+  assert.equal(matchesQualityFilter('silver',{maturityFrom:'gt:unknown'}),false);
+  assert.equal(matchesQualityFilter('silver',{maturityFrom:'unknown:bronze'}),false);
+  for(const tier of ['bronze','silver','gold','diamond']) {
+    assert.deepEqual(ids({maturityFrom:`gte:${tier}`,maturityTo:`lte:${tier}`}),[tier]);
+  }
+}
+
+// Clearing is one transaction, affects reviews only, and survives reopening.
+{
+  const saved=new Map();let writes=0;
+  const clearStorage={getItem:key=>saved.get(key)??null,setItem:(key,value)=>{writes++;saved.set(key,value);}};
+  const controller=createCardReviewController({storage:clearStorage});
+  const definitions=createAuthoredGameConfig().gamepieces;
+  controller.flag('practice','smelting',definitions.practices.smelting);
+  controller.edit('practice','smelting',['effects',0,'amount'],4);
+  controller.setLocked('practice','smelting',true);
+  controller.notes('practice','smelting','Clear me');
+  controller.flag('structure','mudHouses',definitions.structures.mudHouses);
+  controller.setUseInNewGames(true);
+  saved.set('player-save','untouched');writes=0;
+  const before=clearStorage.getItem(CARD_REVIEW_STORAGE_KEY);
+  const failing=createCardReviewController({storage:{getItem:clearStorage.getItem,setItem:()=>{throw new Error('Storage full');}}});
+  assert.throws(()=>failing.clear(),/Storage full/);
+  assert.equal(clearStorage.getItem(CARD_REVIEW_STORAGE_KEY),before);
+  controller.clear();
+  assert.equal(writes,1);
+  const reopened=createCardReviewController({storage:clearStorage});
+  assert.deepEqual(reopened.list(),[]);
+  assert.deepEqual(JSON.parse(reopened.export()).cards,[]);
+  assert.equal(saved.get('player-save'),'untouched');
+  assert.equal(saved.get(CARD_REVIEW_GAME_MODE_KEY),'true');
+  assert.deepEqual(reopened.applyTo(definitions).applied,[]);
+  reopened.flag('practice','smelting',definitions.practices.smelting);
+  assert.deepEqual(reopened.get('practice','smelting').edits,[]);
+  assert.equal(reopened.get('practice','smelting').notes,'');
+}
 
 const gameConfig=createAuthoredGameConfig(), original=JSON.stringify(gameConfig), stored=new Map();
 const storage={getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value)};

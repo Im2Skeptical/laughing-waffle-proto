@@ -215,5 +215,6 @@ export function createReviewBulkEdit({review, run, labelFor}) {
   }
 
   return {sync, banner, controls, decorate, hidden, toggleKey, bar, openSheet, clearUndo:()=>{undo=null;},
+    reset:()=>{selection.clear();selecting=false;view='all';undo=null;sheet?.close();sheet=null;},
     isSelecting:() => selecting, selected:() => [...selection]};
 }

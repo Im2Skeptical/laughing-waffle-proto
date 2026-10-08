@@ -49,6 +49,12 @@ JSON draft/path operations live in
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
 Reviewer Lock/Unlock controls save availability proposals alongside value edits.
+Clear all reviews removes the entire queue, drafts and notes in one storage
+transaction after a two-tap confirmation, and resets selection and bulk undo.
+Zoo and Reviewer share Maturity filters for exact tiers and inclusive/exclusive
+lower and upper bounds, ordered Bronze, Silver, Gold, Diamond. These filter the
+definition's minimum quality (the projected draft in the reviewer), independently
+of the rendered preview quality. Select all shown follows the filtered queue.
 `review-bulk-edit.js` adds the reviewer's selection mode (Select, All/Selected
 views, Select all shown, a fixed "N selected · Edit together" bar) and a sheet
 that sets one top-level number or choice across the selection: bottom sheet on

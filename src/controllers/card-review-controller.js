@@ -131,6 +131,7 @@ export function createCardReviewController({storage = browserStorage(), resolveL
       const live=resolveLive?.(kind,id);if(live)entry.baseline=JSON.parse(JSON.stringify(live));
     }),
     remove:(kind, id) => write(doc => {delete doc.cards[reviewKey(kind, id)];}),
+    clear:() => write(doc => {doc.cards = {};}),
     preview:(entry, live) => projectReview(entry, live ?? resolveLive?.(entry.kind, entry.id)),
     export:() => JSON.stringify(exportReviewDocument(read(), resolveLive), null, 2),
     previewImport(raw) {
