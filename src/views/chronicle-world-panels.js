@@ -1,4 +1,4 @@
-import { addIllustration } from './chronicle-art.js';
+import { addIllustration, addRegionLandmark } from './chronicle-art.js';
 import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pixi.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
@@ -27,6 +27,10 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
   root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?'NEUTRAL SETTLEMENT':region.lostAtSec != null?'RUINS':'FRONTIER'}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+50));
+  if (region.monster) {
+    addRegionLandmark(root,'monster-lair',{x:x+rect.width*.19,y:y+95,width:rect.width*.58,height:rect.height-125});
+    return;
+  }
   if(vm){
     const food=vm.storedFood+vm.looseFood, shortfall=food<vm.population.mealDemand;
     const housingFull=vm.population.total>0&&vm.population.total>=vm.population.housingCapacity;

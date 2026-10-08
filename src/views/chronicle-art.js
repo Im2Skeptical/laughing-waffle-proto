@@ -57,6 +57,11 @@ const PACKED_GROUPS = Object.freeze({
     files: Object.freeze(['chronicle-illustrations.json']),
     eager: true,
   }),
+  regionLandmarks: Object.freeze({
+    prefix: 'region-landmarks-v1/',
+    files: Object.freeze(['region-landmarks.json']),
+    eager: true,
+  }),
   vassalPortraits: Object.freeze({
     prefix: 'vassal-portraits-v1/',
     files: Object.freeze(['vassal-portraits.json']),
@@ -263,6 +268,22 @@ export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
 
 export function landmarkTexture(kind, frame) {
   return loadTexture(`chronicle-illustrations-v1/${kind}-${frame}.png`);
+}
+
+export const getRegionLandmarkTexture = id => loadTexture(`region-landmarks-v1/${id}.png`);
+
+// Complete cutouts, including pennants and horns, retain their aspect ratio.
+export function addRegionLandmark(parent, id, rect) {
+  const texture = getRegionLandmarkTexture(id);
+  if (!texture?.baseTexture.valid) return null;
+  const sprite = new PIXI.Sprite(texture);
+  const scale = Math.min(rect.width / texture.width, rect.height / texture.height);
+  sprite.scale.set(scale);
+  sprite.position.set(rect.x + (rect.width - sprite.width) / 2, rect.y + (rect.height - sprite.height) / 2);
+  sprite.eventMode = 'none';
+  sprite.label = id;
+  parent.addChild(sprite);
+  return sprite;
 }
 
 export function addGateBackdrop(parent, rect, alpha = 0.18) {

@@ -1,0 +1,44 @@
+{"frames": {
+
+"monster-ground.png":
+{
+	"frame": {"x":2,"y":2,"w":502,"h":502},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":502,"h":502},
+	"sourceSize": {"w":502,"h":502}
+},
+"monster-lair.png":
+{
+	"frame": {"x":2,"y":508,"w":502,"h":502},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":502,"h":502},
+	"sourceSize": {"w":502,"h":502}
+},
+"neutral-market-board.png":
+{
+	"frame": {"x":508,"y":508,"w":710,"h":355},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":710,"h":355},
+	"sourceSize": {"w":710,"h":355}
+},
+"neutral-market-town.png":
+{
+	"frame": {"x":508,"y":2,"w":502,"h":502},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":502,"h":502},
+	"sourceSize": {"w":502,"h":502}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "region-landmarks.png",
+	"format": "RGBA8888",
+	"size": {"w":1220,"h":1012},
+	"scale": "0.4",
+	"smartupdate": "$TexturePacker:SmartUpdate:fb04b20979dca9598482062384cc36df:8324f736c4167e85e7a2b0ff21e031ff:bdef0f242d57baab936e1832d47e417c$"
+}
+}

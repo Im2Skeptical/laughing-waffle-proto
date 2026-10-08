@@ -23,6 +23,8 @@ try {
     const {addMonsterMarker}=await import('/src/views/world-map/territory-art.js');
     await preloadChronicleArt();
     const state=createLabFixture('defense',42);
+    const {CIV_CONTENT_TUNING}=await import('/src/model/detailed-settlements.js');
+    const spreadInterval=CIV_CONTENT_TUNING.monsterExpansionPulses;
     const before=JSON.stringify(serializeGameState(state));
     const app=new PIXI.Application({width:1280,height:450,backgroundColor:0x091212});
     document.body.append(app.view);app.stage.scale.set(1280/2424);
@@ -31,7 +33,7 @@ try {
       setSelectedRegionId:id=>{selected=id;active=true;view.refresh();},onShowCivilizationGraph:()=>{active=false;view.refresh();}});
     view.init();app.ticker.add(()=>view.update());
     const walk=node=>[node,...(node.children??[]).flatMap(walk)];
-    const countdownCases=[0,1,99,100,199].map(ageMoons=>{
+    const countdownCases=[0,1,spreadInterval-1,spreadInterval,spreadInterval+1].map(ageMoons=>{
       const container=new PIXI.Container();
       addMonsterMarker(container,{x:0,y:0},{ageMoons});
       const text=walk(container).find(n=>n.label==='monster-spread-moons').text;
@@ -42,9 +44,13 @@ try {
       check(){const nodes=walk(app.stage);return {
         monsterRegions:state.world.regions.filter(r=>r.monster).length,
         ground:nodes.filter(n=>n.label==='monster-ground').length,
+        groundPaintings:nodes.filter(n=>n.label==='monster-ground-painting').length,
+        lairPaintings:nodes.filter(n=>n.label==='monster-lair').length,
+        neutralPaintings:nodes.filter(n=>n.label==='neutral-market-town').length,
+        neutralRegions:state.world.sites.filter(site=>site.neutral).length,
         markers:nodes.filter(n=>n.label==='monster-marker').length,
         countdowns:nodes.filter(n=>n.label==='monster-spread-countdown').length,
-        countdownCases,
+        countdownCases, spreadInterval,
         playerBorders:nodes.filter(n=>n.label==='player-region-border').length,
         selectedBorders:nodes.filter(n=>n.label==='selected-region-border').length,
         selectedInk:nodes.filter(n=>n.label==='selected-region-border').flatMap(n=>n.geometry.graphicsData.map(d=>({width:d.lineStyle.width,color:d.lineStyle.color}))),
@@ -55,9 +61,13 @@ try {
   const overview=await page.evaluate(()=>territoryProbe.check());
   assert.ok(overview.monsterRegions>0);
   assert.equal(overview.ground,overview.monsterRegions,'every occupied region has clipped corruption graphics');
+  assert.equal(overview.groundPaintings,overview.monsterRegions,'every occupied region uses its generated ground painting');
+  assert.equal(overview.lairPaintings,overview.monsterRegions,'every occupied region uses its generated lair painting');
+  assert.equal(overview.neutralPaintings,overview.neutralRegions,'every neutral town uses its generated market painting');
   assert.equal(overview.markers,overview.monsterRegions,'every occupied region has a monster emblem');
   assert.equal(overview.countdowns,overview.monsterRegions,'every occupied region shows its spread countdown');
-  assert.deepEqual(overview.countdownCases,['100 / 100 moons','99 / 100 moons','1 / 100 moons','100 / 100 moons','1 / 100 moons']);
+  const interval=overview.spreadInterval;
+  assert.deepEqual(overview.countdownCases,[`${interval} / ${interval}`,`${interval-1} / ${interval}`,`1 / ${interval}`,`0 / ${interval}`,`0 / ${interval}`]);
   assert.ok(overview.playerBorders>0,'player territory remains distinct');
   assert.ok(overview.unchanged,'drawing leaves serialized state and RNG unchanged');
   await page.screenshot({path:`${output}/overview.png`});
@@ -65,6 +75,7 @@ try {
   await page.waitForFunction(()=>!territoryProbe.view.getSemanticSnapshot().focusAnimating);
   const selected=await page.evaluate(()=>territoryProbe.check());
   assert.equal(selected.selectedBorders,1);
+  assert.equal(selected.lairPaintings,selected.monsterRegions+1,'the selected monster panel shows the generated lair');
   assert.ok(selected.selectedInk.some(ink=>ink.width===6&&ink.color===0x98e8f2),'selected region has its own high-contrast outline');
   assert.ok(selected.unchanged);
   await page.screenshot({path:`${output}/selected-monster.png`});

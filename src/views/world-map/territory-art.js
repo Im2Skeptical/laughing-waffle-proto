@@ -3,6 +3,7 @@ import { RELATION_STYLES, drawRelationshipLine } from './relationships.js';
 import { CIV_CONTENT_TUNING } from '../../model/detailed-settlements.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
+import { addRegionLandmark, getRegionLandmarkTexture } from '../chronicle-art.js';
 
 // Fixed map-space decoration. No simulation RNG or time-dependent geometry.
 export function addMonsterGround(parent, points) {
@@ -12,23 +13,19 @@ export function addMonsterGround(parent, points) {
   const mask = new PIXI.Graphics().beginFill(0xffffff).drawPolygon(points).endFill();
   mask.eventMode = 'none';
   const ink = new PIXI.Graphics().beginFill(0x110e16, .72).drawPolygon(points).endFill();
-  ink.beginFill(0x651b2c, .18).drawPolygon(points).endFill();
   const xs = points.filter((_, i) => i % 2 === 0), ys = points.filter((_, i) => i % 2 === 1);
   const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-  for (let row = 0, y = minY + 18; y < maxY + 40; y += 62, row++) {
-    for (let col = 0, x = minX - 20; x < maxX + 30; x += 70, col++) {
-      const shift = (row * 19 + col * 31) % 27;
-      const px = x + (row % 2) * 25, py = y + shift;
-      const fissure = [px-18,py-24, px-6,py-9, px-11,py+1, px+7,py+14, px+12,py+29];
-      for (const [width, colour, alpha] of [[9,0x100c13,.85],[3,0x933649,.65],[1,0xe77658,.7]]) {
-        ink.lineStyle(width,colour,alpha).moveTo(fissure[0],fissure[1]);
-        for (let i=2;i<fissure.length;i+=2) ink.lineTo(fissure[i],fissure[i+1]);
-      }
-      ink.lineStyle(2,0x933649,.65).moveTo(px-11,py+1).lineTo(px-25,py+7).lineTo(px-30,py+19);
-      ink.lineStyle(0).beginFill(0x0a0d12,.65).drawEllipse(px+26,py-13,15,7).endFill();
-    }
-  }
   ground.addChild(ink);
+  const texture = getRegionLandmarkTexture('monster-ground');
+  if (texture?.baseTexture.valid) {
+    const tile = new PIXI.TilingSprite(texture,maxX-minX,maxY-minY);
+    tile.position.set(minX,minY);
+    tile.tileScale.set(.75);
+    tile.tilePosition.set(-minX,-minY);
+    tile.eventMode = 'none';
+    tile.label = 'monster-ground-painting';
+    ground.addChild(tile);
+  }
   parent.addChild(ground, mask);
   ground.mask = mask;
   return ground;
@@ -70,22 +67,11 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
 }
 
 export function addMonsterMarker(parent, point, monster) {
-  const marker = new PIXI.Graphics();
+  const marker = new PIXI.Container();
   marker.label = 'monster-marker';
   marker.eventMode = 'none';
-  marker.position.set(point.x,point.y-13);
-  marker.beginFill(0x080a10,.85).drawEllipse(0,18,34,12).endFill();
-  // Broken stone teeth around a horned skull, readable even at overview scale.
-  marker.lineStyle(2,0x773448).beginFill(0x241e2b)
-    .drawPolygon([-29,18,-25,-5,-17,10,-10,-28,0,-9,15,-31,20,5,28,-3,32,18]).endFill();
-  marker.lineStyle(2,0x251321).beginFill(0xc59485)
-    .drawPolygon([-16,-7,-29,-24,-25,-2,-15,8,-11,22,11,22,15,8,25,-2,29,-24,16,-7,10,-15,-10,-15]).endFill();
-  marker.lineStyle(0).beginFill(0x271322)
-    .drawPolygon([-12,-4,-2,0,-5,7,-13,4])
-    .drawPolygon([12,-4,2,0,5,7,13,4])
-    .drawPolygon([0,6,-4,13,4,13]).endFill();
-  marker.beginFill(0xff735a).drawCircle(-8,2,2).drawCircle(8,2,2).endFill();
-  marker.lineStyle(2,0x542538).moveTo(-6,16).lineTo(-6,22).moveTo(0,16).lineTo(0,22).moveTo(6,16).lineTo(6,22);
+  marker.position.set(point.x,point.y);
+  addRegionLandmark(marker,'monster-lair',{x:-53,y:-89,width:106,height:106});
   parent.addChild(marker);
   const interval = CIV_CONTENT_TUNING.monsterExpansionPulses;
   const remaining = Math.max(0,interval - monster.ageMoons);

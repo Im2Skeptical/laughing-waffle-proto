@@ -693,7 +693,7 @@ export function createWorldMapView({
       const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
-        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-72:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
+        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
       if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, indicator.monster);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);

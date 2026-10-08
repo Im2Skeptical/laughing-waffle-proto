@@ -72,7 +72,7 @@ Regional tableaus show five larger Practices and an eight-cell construction
 rail, with cells beyond regional capacity hatched and locked. Card inspection
 continues to use the shared piece view.
 Neutral tableaus instead show a teal wooden market billboard with current
-Stock quantities and Currency prices. Striped stalls and diamond pennants
+Stock quantities and Currency prices. Generated market-village paintings with striped teal awnings and pennants
 replace player-town paintings and workers on the map. Billboard rows expose
 traits and replenishment on inspection; purchases follow simulation consumption.
 
@@ -101,9 +101,15 @@ Settlement paintings are 58 x 66 map units; zoom supplies the close view.
 Structure-slot pictograms are omitted from the map and remain in settlement
 panels. Player land has a dark-backed gold boundary; the selected polygon uses
 an ice-blue/white outline drawn above neighboring terrain and roads.
-`territory-art.js` draws polygon-clipped scorched ground and fissures plus a
-horned skull marker for monster regions, without consuming simulation RNG.
+`territory-art.js` tiles generated scorched ground inside polygon masks and
+places a generated horned-skull lair painting for monster regions, without consuming simulation RNG.
 Each monster marker shows moons remaining until its next spread attempt, out of
-the simulation's 100-moon interval. The countdown restarts after each attempt.
+the simulation's configured spread interval. The countdown restarts after each attempt.
 Run `node scripts/map-territory-browser-probe.mjs` for occupied-region visual
 checks, including selection and mobile zoom, and serialized-state preservation.
+
+Generated region art uses the `region-landmarks-v1` atlas, packed at 40% source
+resolution. Complete town/lair cutouts preserve aspect ratio. The market
+billboard uses a nine-slice wooden frame behind live quantities and prices;
+monster region panels show the same lair painting. Source masters and exact
+prompts are in `images/dark-fantasy/region-landmarks-v1/README.md`.

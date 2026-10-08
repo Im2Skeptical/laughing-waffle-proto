@@ -11,6 +11,7 @@ The currently packed groups are:
 - `heirlooms-v1` — fourteen square item paintings and the Vassal bag; shared by active icons, Relic choices, inventory, loadout and inheritance.
 - `settlement-pieces-v4` — limited-palette settlement paintings for every current Practice and Structure, plus earlier cards.
 - `piece-frames-v1` — structure, practice, and time frames.
+- `region-landmarks-v1` ? generated neutral market village and billboard, monster lair, and scorched ground; [source prompts](region-landmarks-v1/README.md).
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.
 - `vassal-portraits-v1` — the established portrait set, with youth, middle-age, and elder frames for each identity.
 - `chronicle-gate-v1` — the shared menu and Life Map backdrop.

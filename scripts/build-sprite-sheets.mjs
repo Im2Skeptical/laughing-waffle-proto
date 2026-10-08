@@ -7,6 +7,7 @@ const jobs = [
   ['settlement-pieces', 'images/dark-fantasy/settlement-pieces-v4', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096', '--multipack']],
   ['piece-frames', 'images/dark-fantasy/piece-frames-v1', ['--scale', '0.5', '--max-size', '2048']],
   ['chronicle-illustrations', 'images/dark-fantasy/chronicle-illustrations-v1', ['--scale', '1', '--max-size', '4096']],
+  ['region-landmarks', 'images/dark-fantasy/region-landmarks-v1', ['--scale', '0.4', '--scale-mode', 'Fast', '--max-size', '2048']],
   ['vassal-portraits', 'images/dark-fantasy/vassal-portraits-v1', ['--scale', '0.8', '--max-size', '2048']],
   // These single-frame sheets let the DOM and Pixi use the same packed source.
   ['chronicle-gate', 'images/dark-fantasy/chronicle-gate-v1', ['--scale', '1', '--max-size', '2048', '--padding', '0', '--border-padding', '0', '--extrude', '0']],

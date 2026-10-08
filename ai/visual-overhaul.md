@@ -64,7 +64,7 @@ This is an implemented reversible ambient layer, not a complete authored soundtr
 
 ## Asset library
 
-All eight atlas groups live in `images/sprite-sheets/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
+All atlas groups live in `images/sprite-sheets/` and are loaded as nearest-neighbor textures. Illustration crops preserve aspect ratio. Atlas cells share base textures; only texture regions are cached.
 
 Heirlooms have a distinct square object painting each. The compact Vassal bar
 places three active icons and the bag beside smaller stat chips. Opening the

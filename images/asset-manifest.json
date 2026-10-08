@@ -409,6 +409,19 @@
         "mandateOfHeaven.png",
         "bag.png"
       ]
+    },
+    "region-landmarks": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/region-landmarks.json"
+      ],
+      "source": "region-landmarks-v1",
+      "files": [
+        "monster-ground.png",
+        "monster-lair.png",
+        "neutral-market-board.png",
+        "neutral-market-town.png"
+      ]
     }
   },
   "standalone": [
