@@ -16,6 +16,7 @@ export function createLifeProcessingView({ app, layer, getStatus, onRetry, onRet
   addInteractionFeedback(back,{x:0,y:0,width:105,height:40},{onActivate:onReturn});
   root.addChild(bg,label,progress,retry,back); layer.addChild(root);
   return {
+    isVisible: () => root.visible,
     getControlClickPoint(id) {
       const control = id === 'retry' ? retry : id === 'back' ? back : null;
       if (!root.visible || !control?.visible) return null;

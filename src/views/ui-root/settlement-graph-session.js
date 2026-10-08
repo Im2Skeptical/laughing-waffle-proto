@@ -3,6 +3,7 @@ import {
   SETTLEMENT_VISIBLE_WINDOW_YEARS,
 } from "../../defs/gamesettings/gamerules-defs.js";
 import { GRAPH_METRICS } from "../../model/graph-metrics.js";
+import { getClockTimePassage } from '../sunandmoon-disks-pixi.js';
 import {
   getCurrentLifeMapVassal,
   getVassalAge,
@@ -190,6 +191,9 @@ export function createSettlementGraphSession({
     const gains = beforeVassal ? getVassalNodeResolutionGains(beforeVassal,
       beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family) : null;
     const recapIncome = beforeVassal && beforePendingResolution ? {
+      // Installing a commit mutates the runner's state object in place. Retain
+      // clock values now; the beforeState reference cannot preserve its time.
+      clock: getClockTimePassage(beforeState, { tSec: beforePendingResolution.resolveSec }),
       prestigeIncome: gains.prestige,
       developmentIncome: gains.development,
       prestigeBefore: beforeVassal.prestige ?? 0,

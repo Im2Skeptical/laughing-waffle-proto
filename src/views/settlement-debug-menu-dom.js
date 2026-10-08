@@ -143,8 +143,10 @@ export function createSettlementDebugMenuDom({
   function positionUtility(){
     const box=document.querySelector('canvas')?.getBoundingClientRect();
     if(!box?.width||!box?.height)return;
-    const top=`${box.top+5}px`;
-    const right=`${Math.max(5,window.innerWidth-box.right+10)}px`;
+    // The illustrated header spans logical y=12..74. Align to its center,
+    // rather than a viewport offset that drifts as the canvas is letterboxed.
+    const top=`${box.top+box.height*43/1080-utilityControls.getBoundingClientRect().height/2}px`;
+    const right=`${Math.max(5,window.innerWidth-box.right+box.width*28/2424)}px`;
     if(utilityControls.style.top!==top)utilityControls.style.top=top;
     if(utilityControls.style.right!==right)utilityControls.style.right=right;
   }
@@ -166,7 +168,7 @@ export function createSettlementDebugMenuDom({
     // Menu visibility and mobile browser chrome can move the canvas without a
     // window resize. Sample its final visible bounds, after layout has settled.
     update: positionUtility,
-    refresh() {},
+    refresh: positionUtility,
     close,
     destroy() {
       vassalLab.destroy();

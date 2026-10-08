@@ -41,7 +41,10 @@ try {
   page = await browser.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true });
   page.setDefaultTimeout(30000);
   page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(({ text, meta, saveEnabled }) => {
+  await page.addInitScript(({ text, meta, saveEnabled, measureAnimation }) => {
+    // Keep the requested viewport while testing responsive animation/layout.
+    // Headless fullscreen substitutes the host display size for phone metrics.
+    if (measureAnimation) Element.prototype.requestFullscreen = async () => {};
     globalThis.__probeWorkers = [];
     const NativeWorker = globalThis.Worker;
     globalThis.Worker = class extends NativeWorker {
@@ -53,7 +56,7 @@ try {
           const entries=data.result?.stateDataBySecond;
           this.probe.events.push({ atMs: performance.now(), kind: data.kind, endSec: data.endSec, done: data.done,
             sharedConfig:Array.isArray(entries)&&entries.length>1
-              ? entries[0][1]?.gameConfig!=null && entries[0][1].gameConfig===entries[1][1]?.gameConfig : null });
+              ? data.result.sharedConfig?.id != null && entries.every(([, snapshot]) => snapshot.gameConfig == null) : null });
           if (this.probe.events.length > 8) this.probe.events.shift();
         });
         this.addEventListener('error', event => { this.probe.error = event.message; });
@@ -82,7 +85,7 @@ try {
         return interval(ms === 10000 ? () => {} : callback, ms, ...args);
       };
     }
-  }, { text: saved.text, meta: saved.meta, saveEnabled: process.env.PROBE_SAVE !== '0' });
+  }, { text: saved.text, meta: saved.meta, saveEnabled: process.env.PROBE_SAVE !== '0', measureAnimation });
   await page.goto(url);
   await page.getByTestId('game-continue').click();
   await page.getByTestId('game-menu').waitFor({ state: 'hidden' });
@@ -102,6 +105,21 @@ try {
   }
   await click('getNavigationClickPoint', 'present');
   await click('getNavigationClickPoint', 'life');
+  async function checkHeaderLayout(viewport) {
+    await page.setViewportSize(viewport);
+    await delay(250);
+    const header = await page.evaluate(() => {
+      const canvas = document.querySelector('canvas').getBoundingClientRect();
+      const controls = document.querySelector('[data-testid="utility-controls"]').getBoundingClientRect();
+      return { actualY: controls.y + controls.height / 2,
+        expectedY: canvas.y + canvas.height * 43 / 1080 };
+    });
+    assert.ok(Math.abs(header.actualY - header.expectedY) < 1,
+      `Save & menu must stay centered in the game header: ${JSON.stringify({ viewport, ...header })}`);
+  }
+  if (measureAnimation) for (const viewport of [{ width: 1280, height: 800 }, { width: 844, height: 390 }]) {
+    await checkHeaderLayout(viewport);
+  }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.PROBE_CPU_RATE ?? 4) });
   await cdp.send('Performance.enable');
   if (profileEnabled) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.start'); }
@@ -145,6 +163,7 @@ try {
     const option = await point('getLifeMapOptionClickPoint', 0);
     if (option) await click('getLifeMapOptionClickPoint', 0);
     const family = await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeDecisionTimingSnapshot().family);
+    const committedBefore = await page.evaluate(() => __SETTLEMENT_DEBUG__.getLifeDecisionTimingSnapshot().frontierSec);
     stage = `confirm node ${turn + 1} (${family})`;
     if (measureAnimation) await page.evaluate(() => {
       globalThis.__recapAnimation = { frames: [], done: false };
@@ -155,7 +174,10 @@ try {
         if (state.recapOpen && state.recapClock) {
           first ??= time;
           __recapAnimation.frames.push({ atMs: time - first, gapMs: previous == null ? 0 : time - previous,
-            progress: state.recapClock.progress, jump: state.recapClock.progress - progress });
+            progress: state.recapClock.progress, jump: state.recapClock.progress - progress,
+            processingVisible: state.processingVisible,
+            second: state.recapClock.second,
+            moonRotation: state.recapClock.moonRotation, seasonRotation: state.recapClock.seasonRotation });
           previous = time; progress = state.recapClock.progress;
           if (state.recapClock.locked) { __recapAnimation.done = true; return; }
         }
@@ -169,6 +191,9 @@ try {
     if (measureAnimation) {
       await page.waitForFunction(() => __recapAnimation.done);
       animation = await page.evaluate(() => __recapAnimation);
+      if (turn === 0) for (const viewport of [{ width: 1280, height: 800 }, { width: 844, height: 390 }]) {
+        await checkHeaderLayout(viewport);
+      }
     }
     const dismiss = await point('getLifeMapRecapDismissClickPoint');
     const box = await page.locator('canvas').boundingBox();
@@ -191,7 +216,7 @@ try {
     const workers = await page.evaluate(() => globalThis.__probeWorkers.map(worker => ({ ...worker })));
     const response = Math.min(input.feedbackFrameAtMs ?? Infinity, input.closedAtMs);
     const { metrics } = await cdp.send('Performance.getMetrics');
-    turns.push({ turn: turn + 1, node, family, ...meta, input, animation,
+    turns.push({ turn: turn + 1, node, family, committedBefore, ...meta, input, animation,
       dispatchDelayMs: Math.round(input.downAtMs + input.timeOrigin - requestedDownEpochMs),
       responseMs: Math.round(response + input.timeOrigin - requestedDownEpochMs),
       closeMs: Math.round(input.closedAtMs + input.timeOrigin - requestedDownEpochMs),
@@ -232,13 +257,30 @@ try {
   }
   assert.deepEqual(errors, []);
   if (measureAnimation) {
+    assert.ok(turns.every(turn => turn.animation.frames.at(-1).second > turn.animation.frames[0].second),
+      `recap must count from previous committed time to the new total (${artifact})`);
+    for (const turn of turns) {
+      const frames = turn.animation.frames;
+      assert.equal(frames[0].second, turn.committedBefore, 'recap starts at the previous committed time');
+      assert.equal(frames.at(-1).second, turn.second, 'recap stops at the new total');
+      assert.ok(frames.at(-1).moonRotation - frames[0].moonRotation > Math.PI * 2,
+        'the moon wheel visibly spins through at least one full revolution');
+      for (let i = 1; i < frames.length; i++) {
+        for (const wheel of ['moonRotation', 'seasonRotation']) {
+          const step = Math.abs(frames[i][wheel] - frames[i - 1][wheel]);
+          assert.ok(step < Math.PI / 2, `visible wheel motion jumps ${step.toFixed(2)} radians (${artifact})`);
+        }
+      }
+    }
+    assert.ok(turns.every(turn => turn.animation.frames.every(frame => !frame.processingVisible)),
+      `the loading bar must finish before the recap opens (${artifact})`);
     const maxJump = Math.max(...turns.flatMap(turn => turn.animation.frames.map(frame => frame.jump)));
     const maxGap = Math.max(...turns.flatMap(turn => turn.animation.frames.map(frame => frame.gapMs)));
     console.log(`[recap-animation] max jump=${maxJump.toFixed(3)}, max gap=${Math.round(maxGap)}ms; ${artifact}`);
     assert.ok(maxJump < .12 && maxGap < 150, `recap animation stalls: jump=${maxJump.toFixed(3)}, gap=${Math.round(maxGap)}ms (${artifact})`);
   }
   assert.ok(turns.some(turn=>turn.workers.some(worker=>worker.events.some(event=>event.sharedConfig===true))),
-    'real browser worker replies must clone identical configs once per message');
+    'real browser worker replies must use the shared forecast config reference');
   console.log(JSON.stringify({ responseMs: turns.map(t => t.responseMs), closeMs: turns.map(t => t.closeMs), unveil, artifact }));
   if (throughEnd) {
     assert.ok(unveil, 'the fixture must reach its first vassal end');

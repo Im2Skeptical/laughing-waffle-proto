@@ -1539,6 +1539,7 @@ function publishSettlementDebugApi() {
     getLifeMapHudSnapshot: () => ({...vassalLifeHudView?.getSemanticSnapshot?.(),heirlooms:vassalHeirloomFlowView?.getSemanticSnapshot?.()}),
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
     getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
+    isLifeProcessingVisible: () => lifeProcessingView?.isVisible() === true,
     getLifeDecisionControlClickPoint: id => lifeProcessingView?.getControlClickPoint(id) ?? null,
     getForecastWorkerDiagnostics: () => forecastWorkerService.getDiagnostics(),
     getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
@@ -1778,6 +1779,7 @@ app.ticker.add((delta) => {
   if (vassalResolutionRecapView.isAnimating()) {
     // Keep runner ticks above this gate. The resolved recap already owns input;
     // even covered graph status queries can restart expensive forecast work.
+    lifeProcessingView.update();
     vassalResolutionRecapView.update(frameDt);
     nodeResolutionDiagnostics.sample({recapOpen:true,resolutionSec:getSettlementFrontierSec()});
     timelineAudio.update(frameDt);
@@ -1799,8 +1801,10 @@ app.ticker.add((delta) => {
     });
   }
   settlementGraphView?.setInteractionReadinessCap?.(lifeDecisionController.getReadinessCap());
-  lifeProcessingView?.update?.();
   const resolutionOpened = processSettlementPendingCommit();
+  // Committing clears the preparation job. Hide its loading bar in this same
+  // frame before the recap paints, rather than freezing the previous status.
+  lifeProcessingView?.update?.();
   if (vassalResolutionRecapView.isOpen()) {
     // The prepared recap owns this frame. Simulation/worker commits above keep
     // their normal cadence; covered views need no replay, geometry or preview

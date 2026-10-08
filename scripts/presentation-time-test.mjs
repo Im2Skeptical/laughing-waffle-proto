@@ -16,6 +16,7 @@ import { VASSAL_TIME_COST_RANGES } from '../src/defs/gamepieces/vassal-life-map-
 import { getClockTimePassage, sampleClockTimePassage } from '../src/views/sunandmoon-disks-pixi.js';
 import { getSettlementYearDurationSec } from '../src/model/settlement-state.js';
 import { sampleTimeReveal, getTimeRevealCounters, TIME_REVEAL_DURATION_MS } from '../src/views/consequential-time-pixi.js';
+import { createSettlementVassalFlow } from '../src/views/ui-root/settlement-vassal-flow.js';
 import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
@@ -29,17 +30,18 @@ import {
   const clock = getClockTimePassage(before, after);
   const start = sampleClockTimePassage(clock, 0);
   const end = sampleClockTimePassage(clock, 1);
+  const phaseDistance = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
   assert.equal(end.second, after.tSec, 'recap settles at committed time');
-  assert.ok(Math.abs((end.moonRotation - start.moonRotation) / (Math.PI * 2)
-    - 120 / getMoonCycleDurationSec(before)) < 1e-10, 'moon keeps every elapsed revolution');
-  assert.ok(Math.abs((end.seasonRotation - start.seasonRotation) / (Math.PI * 2)
-    - 120 / (SEASON_DURATION_SEC * 4)) < 1e-10, 'season keeps every elapsed revolution');
+  assert.ok(phaseDistance(end.moonRotation - start.moonRotation,
+    120 / getMoonCycleDurationSec(before) * Math.PI * 2) < 1e-9, 'moon stops at the committed phase');
+  assert.ok(phaseDistance(end.seasonRotation - start.seasonRotation,
+    120 / (SEASON_DURATION_SEC * 4) * Math.PI * 2) < 1e-9, 'season stops at the committed phase');
   assert.equal(sampleClockTimePassage(clock, .5).second, 67);
   assert.equal(JSON.stringify(before), saved, 'clock animation leaves simulation state untouched');
   const opening = {...before, tSec:0};
   const openingClock = getClockTimePassage(opening, after);
-  assert.ok(Math.abs(sampleClockTimePassage(openingClock,1).moonRotation / (Math.PI * 2)
-    - 126 / getMoonCycleDurationSec(opening)) < 1e-10, 'opening moon phase matches the HUD at committed time');
+  assert.ok(phaseDistance(sampleClockTimePassage(openingClock,1).moonRotation,
+    126 / getMoonCycleDurationSec(opening) * Math.PI * 2) < 1e-9, 'opening moon phase matches the HUD at committed time');
   let lastSecond = clock.fromSec;
   for (let elapsed = 0; elapsed <= TIME_REVEAL_DURATION_MS; elapsed += 10) {
     const motion = sampleTimeReveal(elapsed);
@@ -54,6 +56,24 @@ import {
   assert.deepEqual(getTimeRevealCounters(openingClock, 0), { years: 0, moons: 0, phases: 0 });
   assert.deepEqual(getTimeRevealCounters(clock, clock.seasonCycleSec + clock.moonCycleSec + clock.moonCycleSec / 6),
     { years: 1, moons: 1, phases: 1 }, 'total time carries through all three labeled units');
+  // A multi-year recap must read as a spin, rather than aliasing whole turns
+  // between displayed frames. Counters still reach the full committed time.
+  for (const toSec of [880, 32000]) {
+    const longClock = getClockTimePassage({...before, tSec:448}, {...before, tSec:toSec});
+    const locked = sampleClockTimePassage(longClock, 1);
+    assert.equal(locked.second, toSec);
+    assert.ok(phaseDistance(locked.moonRotation,
+      (longClock.moonPhase + (toSec - 448) / longClock.moonCycleSec) * Math.PI * 2) < 1e-9);
+    let previous = sampleClockTimePassage(longClock, 0);
+    for (let ms = 1000 / 60; ms <= TIME_REVEAL_DURATION_MS; ms += 1000 / 60) {
+      const frame = sampleClockTimePassage(longClock, sampleTimeReveal(ms).progress);
+      for (const wheel of ['moonRotation', 'seasonRotation']) {
+        assert.ok(Math.abs(frame[wheel] - previous[wheel]) < .45,
+          `a long recap spins visibly: ${wheel} jumps ${(frame[wheel] - previous[wheel]).toFixed(2)} radians per frame`);
+      }
+      previous = frame;
+    }
+  }
 }
 
 // Stock Supply markers keep the output needed by their specialty badge, even
@@ -974,25 +994,32 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   let state = { tSec: 0, civilization: { vassalLineage: {
     currentVassalId: 'v1', vassalsById: { v1: vassal },
   } } };
+  const flow = createSettlementVassalFlow({
+    playback: { getSettlementFrontierState: () => state },
+  });
   const session = createSettlementGraphSession({
     getFrontierState: () => state,
     getFrontierSec: () => 100,
     getForecastController: () => ({ processPendingCommit: () => {
-      state = { ...state, tSec: 100, civilization: { vassalLineage: {
+      // The real runner reuses its state object when installing a commit.
+      Object.assign(state, { tSec: 100, civilization: { vassalLineage: {
         currentVassalId: 'v1', vassalsById: { v1: {
           ...vassal, lifeMap: { pendingResolution: null },
         } },
-      } } };
+      } } });
     } }),
     getGraphController: () => ({ refreshAuthoritativeRangeFrom: () => calls.push('refresh') }),
     getGraphView: () => ({ render: () => calls.push('render') }),
-    onPendingResolutionSettled: () => calls.push('recap'),
+    onPendingResolutionSettled: payload => { flow.noteResolutionSettled(payload); calls.push('recap'); },
     isRecapAnimating: () => recapAnimating,
     scheduleAfterPaint: (callback) => { scheduledRefresh = callback; },
   });
   assert.equal(session.processSettlementPendingCommit(), true,
     'the frame knows a resolution recap opened');
   assert.deepEqual(calls, ['recap'], 'the recap is prepared before graph history refresh');
+  assert.equal(flow.getResolutionRecap().clock.fromSec, 0,
+    'a reused runner state must not replace the clock start with committed end time');
+  assert.equal(flow.getResolutionRecap().clock.toSec, 100);
   assert.equal(typeof scheduledRefresh, 'function');
   scheduledRefresh();
   assert.deepEqual(calls, ['recap'], 'covered graph refresh must not interrupt the recap animation');

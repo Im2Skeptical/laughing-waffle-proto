@@ -121,6 +121,7 @@ export function publishSettlementDebugApi({
   getLifeMapHudSnapshot,
   getLifeMapRecapSnapshot,
   getLifeDecisionStatus,
+  isLifeProcessingVisible,
   getForecastWorkerDiagnostics,
   getRunCompleteSnapshot,
   getOpeningSnapshot,
@@ -196,6 +197,7 @@ export function publishSettlementDebugApi({
       recapOpen: getLifeMapRecapSnapshot?.()?.open === true,
       recapContinueState: getLifeMapRecapSnapshot?.()?.continueState ?? null,
       recapClock: getLifeMapRecapSnapshot?.()?.clock ?? null,
+      processingVisible: isLifeProcessingVisible?.() === true,
     }),
     getSnapshot: () => {
       const forecastStatus = getForecastStatus?.() ?? null;

@@ -39,14 +39,21 @@ export function getClockTimePassage(beforeState, afterState) {
 }
 
 export function sampleClockTimePassage(clock, progress) {
-  const elapsed = Math.max(0, clock.toSec - clock.fromSec) * clamp01(progress);
+  const duration = Math.max(0, clock.toSec - clock.fromSec);
+  const p = clamp01(progress);
+  const elapsed = duration * p;
   const second = clock.fromSec + elapsed;
   // Moon phase zero covers both the opening second and second one.
-  const moonElapsed = Math.max(0, second - 1) - Math.max(0, clock.fromSec - 1);
+  const moonElapsed = Math.max(0, clock.toSec - 1) - Math.max(0, clock.fromSec - 1);
+  // Counters reveal every elapsed year. The illustrated mechanism takes a
+  // bounded number of visible turns, retaining the exact final phase. Racing
+  // hundreds of revolutions through two seconds aliases into a jittery flicker.
+  const visibleTurns = (turns, minimum, maximum) => turns <= 0 ? 0
+    : Math.max(minimum, Math.min(maximum, Math.floor(turns))) + turns % 1;
   return {
     second,
-    moonRotation: (clock.moonPhase + moonElapsed / clock.moonCycleSec) * TWO_PI,
-    seasonRotation: (clock.seasonPhase + elapsed / clock.seasonCycleSec) * TWO_PI,
+    moonRotation: (clock.moonPhase + visibleTurns(moonElapsed / clock.moonCycleSec, 1, 2) * p) * TWO_PI,
+    seasonRotation: (clock.seasonPhase + visibleTurns(duration / clock.seasonCycleSec, 1, 1) * p) * TWO_PI,
   };
 }
 
@@ -87,8 +94,9 @@ export function createTimePassageDisksView(parent, clock, {x, y, radius = 155}) 
       sample.seasonRotation -= recoil * .65;
       moon.rotation = sample.moonRotation;
       season.rotation = sample.seasonRotation;
-      const phaseIndex = Math.floor(Math.max(0, sample.second - 1)
-        / (clock.moonCycleSec / MOON_PHASE_DEFS.length)) % MOON_PHASE_DEFS.length;
+      const phaseCount = MOON_PHASE_DEFS.length;
+      const phaseIndex = ((Math.floor(sample.moonRotation / TWO_PI * phaseCount) % phaseCount)
+        + phaseCount) % phaseCount;
       centres.forEach((icon, index) => { icon.visible = index === phaseIndex; });
     },
     getSnapshot: () => sample,

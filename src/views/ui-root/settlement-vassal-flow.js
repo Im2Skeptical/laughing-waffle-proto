@@ -122,7 +122,7 @@ export function createSettlementVassalFlow({
   }
 
   function captureResolutionRecap({
-    vassalId, beforeState, prestigeIncome, developmentIncome, phaseCost,
+    vassalId, beforeState, clock, prestigeIncome, developmentIncome, phaseCost,
     prestigeBefore, expBefore, ageBefore, afterState = playback.getSettlementFrontierState(), prepareOnly = false,
   } = {}) {
     const afterVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
@@ -134,7 +134,8 @@ export function createSettlementVassalFlow({
     const recap = {
       vassalId,
       timeLabel: formatVassalPhaseDuration(phaseCost ?? 0, beforeState),
-      clock: getClockTimePassage(beforeState, afterState),
+      clock: clock ? { ...clock, toSec: Math.max(clock.fromSec, afterState.tSec) }
+        : getClockTimePassage(beforeState, afterState),
       prestigeIncome: prestigeIncome ?? 0,
       developmentIncome: developmentIncome ?? 0,
       ageBefore: Number.isFinite(ageBefore) ? ageBefore : 0,
@@ -173,12 +174,13 @@ export function createSettlementVassalFlow({
 
   function noteResolutionSettled({
     beforeState, beforeVassalId, pending, prestigeIncome, developmentIncome,
-    prestigeBefore, expBefore, ageBefore,
+    prestigeBefore, expBefore, ageBefore, clock,
   } = {}) {
     if (!beforeVassalId) return;
     captureResolutionRecap({
       vassalId: beforeVassalId,
       beforeState,
+      clock,
       prestigeIncome,
       developmentIncome,
       prestigeBefore,
@@ -224,6 +226,7 @@ export function createSettlementVassalFlow({
     const beforeVassal = stagedDecision ? null : getCurrentLifeMapVassal(beforeState);
     const activeVassalId = beforeVassal?.vassalId ?? null;
     const recapIncome = beforeVassal ? {
+      clock: getClockTimePassage(beforeState, beforeState),
       prestigeIncome: getVassalNodeResolutionGains(
         beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
       ).prestige,
