@@ -1,6 +1,8 @@
 import { createRunCompletePresentation } from "./run-complete-presentation.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { getClockTimePassage } from './sunandmoon-disks-pixi.js';
+import { createConsequentialTimeView } from './consequential-time-pixi.js';
 
 const PANEL = { width: 1320 };
 
@@ -14,6 +16,9 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
   let spotlightRects = [];
   let panelRect = null;
   let copyNodes = [];
+  let clock = null;
+  let clockView = null;
+  let clockStartedAt = 0;
   const contains = (rect, x, y) => x >= rect.x && x <= rect.x + rect.width &&
     y >= rect.y && y <= rect.y + rect.height;
   function minimize() { presentation.minimize(); render(); }
@@ -50,6 +55,7 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     if (!force && signature === nextSignature) return;
     signature = nextSignature;
     clearChildren(root);
+    clockView = null;
     panelRect = null;
     copyNodes = [];
     targets.clear();
@@ -86,12 +92,14 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
       textNodes.push(node);
       cursorY += node.height + gap;
     };
-    addCopy(info.title, { ...TEXT_STYLES.header, fontSize: 48, fill: accent }, 12);
-    addCopy(`${info.projected ? '' : 'Civilization ended · '}Year ${info.year}`, {
+    addCopy(info.title, { ...TEXT_STYLES.header, fontSize: 48, fill: accent }, 20);
+    const clockY = cursorY;
+    if (info.projected) cursorY += 456;
+    else addCopy(`Civilization ended · Year ${info.year}`, {
       ...TEXT_STYLES.title, fontSize: 29, fill: PALETTE.textMuted,
     }, 32);
     addCopy(info.cause, { ...TEXT_STYLES.header, fontSize: 36, fill: PALETTE.text }, 20);
-    addCopy(info.explanation, { ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42 }, 28);
+    if (!info.projected) addCopy(info.explanation, { ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42 }, 28);
     addCopy(info.guidance, {
       ...TEXT_STYLES.body, fontSize: 32, lineHeight: 42, fill: PALETTE.text,
     }, 36);
@@ -105,6 +113,10 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
     const bg = new PIXI.Graphics();
     roundedRect(bg, 0, 0, PANEL.width, panelHeight, 18, PALETTE.panel, accent, 3);
     panel.addChild(bg, ...textNodes);
+    if (info.projected && clock) {
+      clockView = createConsequentialTimeView(panel, clock, { x: 56, y: clockY, width: PANEL.width - 112, accent });
+      clockView.update(performance.now() - clockStartedAt);
+    }
     root.addChild(panel);
     const browseRect = info.projected
       ? { x: 56, y: cursorY, width: PANEL.width - 112, height: 76 }
@@ -118,12 +130,24 @@ export function createRunCompleteView({ app, layer, onOpen, onNewGame, getSpotli
   }
 
   return {
-    init: () => render(true), update: () => render(), resize: () => render(true),
-    sync(input) { const result = presentation.sync(input); if (result.opened) onOpen?.(); render(); return result; },
-    reset() { presentation.reset(); render(); },
-    reopen() { presentation.reopen(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
+    init: () => render(true), update: () => {
+      render();
+      if (root.visible) clockView?.update(performance.now() - clockStartedAt);
+    }, resize: () => render(true),
+    sync(input) {
+      const result = presentation.sync(input);
+      if (result.opened) {
+        const state = input.frontierState;
+        clock = getClockTimePassage({ tSec: 0, gameConfig: state?.gameConfig }, { tSec: result.info.tSec });
+        clockStartedAt = performance.now();
+        onOpen?.();
+      }
+      render(); return result;
+    },
+    reset() { presentation.reset(); clock = null; render(); },
+    reopen() { presentation.reopen(); clockStartedAt = performance.now(); onOpen?.(); render(); return { ok: !!presentation.getSnapshot().info }; },
     isOpen: () => presentation.getSnapshot().open,
-    getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects, panelRect,
+    getSemanticSnapshot: () => ({ ...presentation.getSnapshot(), spotlightRects, panelRect, clock: clockView?.getSnapshot() ?? null,
       copyRects: copyNodes.map(node => node.getBounds()) }),
     getClickPoint(id) {
       const target = targets.get(id);

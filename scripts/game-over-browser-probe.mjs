@@ -17,6 +17,8 @@ const server = spawn(process.execPath, ['node_modules/serve/bin/serve.js','-l','
 let browser, page;
 const errors = [];
 const initial = createNewGameState(123);
+// The current pressure budget must allow the prepared fronts to act on Death.
+initial.civilization.chaos.monsterPressure = 4;
 // Surround both player sites with spatial Monsters, ready to expand on Death.
 // An aggregate count alone no longer represents the live loss condition.
 for (const region of initial.world.regions) {
@@ -101,6 +103,10 @@ try {
   },null,{timeout:15000});
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('newGame')), null,
     'a foreseen extinction offers no new-game action');
+  await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete.clock?.locked);
+  const extinctionClock = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runComplete);
+  assert.equal(extinctionClock.clock.second, extinctionClock.info.tSec, 'foreseen clock locks at extinction');
+  assert.deepEqual(extinctionClock.clock.labels, ['Year', 'Moon', 'Phase'], 'extinction teaches all three icons');
   await page.screenshot({path:`${output}/foreseen-extinction.png`});
   for (const viewport of [{width:1280,height:800},{width:844,height:390}]) {
     await page.setViewportSize(viewport); await delay(250);

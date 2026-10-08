@@ -15,6 +15,7 @@ import { SEASON_DURATION_SEC } from '../src/defs/gamesettings/gamerules-defs.js'
 import { VASSAL_TIME_COST_RANGES } from '../src/defs/gamepieces/vassal-life-map-defs.js';
 import { getClockTimePassage, sampleClockTimePassage } from '../src/views/sunandmoon-disks-pixi.js';
 import { getSettlementYearDurationSec } from '../src/model/settlement-state.js';
+import { sampleTimeReveal, getTimeRevealCounters, TIME_REVEAL_DURATION_MS } from '../src/views/consequential-time-pixi.js';
 import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
@@ -39,6 +40,20 @@ import {
   const openingClock = getClockTimePassage(opening, after);
   assert.ok(Math.abs(sampleClockTimePassage(openingClock,1).moonRotation / (Math.PI * 2)
     - 126 / getMoonCycleDurationSec(opening)) < 1e-10, 'opening moon phase matches the HUD at committed time');
+  let lastSecond = clock.fromSec;
+  for (let elapsed = 0; elapsed <= TIME_REVEAL_DURATION_MS; elapsed += 10) {
+    const motion = sampleTimeReveal(elapsed);
+    const second = sampleClockTimePassage(clock, motion.progress).second;
+    assert.ok(second >= lastSecond && second <= clock.toSec, 'mechanical recoil never rewinds or overshoots counters');
+    lastSecond = second;
+  }
+  assert.equal(sampleTimeReveal(100).progress, 0, 'wind-up holds the committed start');
+  assert.ok(sampleTimeReveal(100).recoil < 0, 'wheels tension before advancing');
+  assert.ok(sampleTimeReveal(1950).recoil > 0, 'wheels recoil at the stop');
+  assert.deepEqual(sampleTimeReveal(TIME_REVEAL_DURATION_MS), { progress: 1, recoil: 0, locked: true });
+  assert.deepEqual(getTimeRevealCounters(openingClock, 0), { years: 0, moons: 0, phases: 0 });
+  assert.deepEqual(getTimeRevealCounters(clock, clock.seasonCycleSec + clock.moonCycleSec + clock.moonCycleSec / 6),
+    { years: 1, moons: 1, phases: 1 }, 'total time carries through all three labeled units');
 }
 
 // Stock Supply markers keep the output needed by their specialty badge, even

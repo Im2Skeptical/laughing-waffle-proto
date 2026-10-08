@@ -81,8 +81,10 @@ export function createTimePassageDisksView(parent, clock, {x, y, radius = 155}) 
   root.addChild(pointers);
   let sample = null;
   return {
-    update(progress) {
+    update(progress, recoil = 0) {
       sample = sampleClockTimePassage(clock, progress);
+      sample.moonRotation += recoil;
+      sample.seasonRotation -= recoil * .65;
       moon.rotation = sample.moonRotation;
       season.rotation = sample.seasonRotation;
       const phaseIndex = Math.floor(Math.max(0, sample.second - 1)

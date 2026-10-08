@@ -227,9 +227,10 @@ try {
     assert.equal(completed.processing,null,'recap opens with all required preparation complete');
     assert.equal(completed.ended,null,'young fixture survives its early choices');
     if (turn === 0) {
-      await delay(1550);
+      await page.waitForFunction(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapRecap.clock?.locked);
       const clock = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapRecap);
       assert.equal(clock.clock.second,clock.recap.clock.toSec, 'clock locks into the exact committed time');
+      assert.deepEqual(clock.clock.labels, ['Year', 'Moon', 'Phase'], 'recap teaches all three time icons');
       await page.screenshot({path:`${output}/clock-recap-1280x800.png`});
       await page.setViewportSize({width:844,height:390}); await delay(250);
       await page.screenshot({path:`${output}/clock-recap-844x390.png`});
