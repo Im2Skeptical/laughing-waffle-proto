@@ -122,7 +122,13 @@ export function createProjectionCache({
       bytes = Math.max(512, stateData.length);
     } else {
       try {
-        bytes = Math.max(512, JSON.stringify(stateData).length);
+        // Projection snapshots reference one deep-frozen config per run
+        // generation; it is retained once, not per anchor. Counting it per
+        // anchor made config (~65% of a snapshot) evict most 16 s anchors.
+        const sharedConfig = stateData?.gameConfig && typeof stateData.gameConfig === "object"
+          && Object.isFrozen(stateData.gameConfig);
+        bytes = Math.max(512, JSON.stringify(
+          sharedConfig ? { ...stateData, gameConfig: null } : stateData).length);
       } catch (_) {
         bytes = avg;
       }

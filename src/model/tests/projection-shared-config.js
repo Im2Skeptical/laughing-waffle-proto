@@ -12,6 +12,7 @@ import { createProjectionChunkSession, buildProjectionChunkFromStateData } from 
 import { encodeForecastChunk, freezeForecastChunkConfigs } from "../timegraph/forecast-wire.js";
 import { createProjectionStateRestorer } from "../timegraph/state-restorer.js";
 import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
+import { createProjectionCache } from "../timegraph/projection-cache.js";
 
 const HORIZON_SEC = Number(process.env.PROJECTION_IDENTITY_SECONDS ?? 2400);
 const initial = createInitialState("devPlaytesting01", 99117);
@@ -135,4 +136,16 @@ assert.equal(stored.gameConfig.settings.values.primordialBasePressure, 0);
 const saved = serializeGameState(ordinary);
 assert.notEqual(saved.gameConfig, ordinary.gameConfig);
 assert.equal(Object.isFrozen(saved.gameConfig), false);
+// Byte accounting counts each shared frozen config once per generation, not
+// per anchor, so a full 16-second stride fits where config copies would not.
+const sharedConfig = Object.freeze({ padding: "c".repeat(64 * 1024) });
+const sharedBudget = createProjectionCache({ maxBytes: 1024 * 1024 });
+const copiedBudget = createProjectionCache({ maxBytes: 1024 * 1024 });
+for (let t = 16; t <= 1024; t += 16) {
+  const body = { tSec: t, padding: "b".repeat(8 * 1024) };
+  sharedBudget.setStateData(t, { ...body, gameConfig: sharedConfig });
+  copiedBudget.setStateData(t, { ...body, gameConfig: { padding: sharedConfig.padding } });
+}
+assert.equal(sharedBudget.getSize(), 64, "shared-config anchors keep the full 16 s stride within budget");
+assert.ok(copiedBudget.getSize() < 20, "unshared config copies are still counted per anchor");
 console.log(`[projection-shared-config] ${compared} anchors byte-identical, ${offAnchorTargets.size} off-anchor restores (value-identical) over ${sec}s; isolation OK`);
