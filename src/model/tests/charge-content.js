@@ -181,7 +181,7 @@ generateCandidatePool(development.state);assert.equal(development.state.civiliza
 assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,109);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
 const bad=serializeGameState(createLabFixture('charge'));bad.world.sites[0].detailedState.practiceSlots.push(practiceSlot('forage'));
 assert.throws(()=>deserializeGameState(bad),/5 practice slots/);assert.throws(()=>fiveSlots(...Array(6).fill(practiceSlot('forage'))),/five/);
-const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites[0].detailedState.practiceSlots[0].charge=-1;
+const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites.find(site=>site.detailedState.practiceSlots[0]).detailedState.practiceSlots[0].charge=-1;
 assert.throws(()=>deserializeGameState(malformed),/invalid Charge/);
 const config=structuredClone(engine.gameConfig);config.gamepieces.practices.smelting.charge.threshold=0;assert.equal(validateGameConfig(config).ok,false);
 const stockCost=structuredClone(engine.gameConfig);stockCost.gamepieces.practices.smelting.consume=[{traits:['Ore'],amount:1}];

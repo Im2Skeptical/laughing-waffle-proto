@@ -5,8 +5,9 @@ import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
 import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterPulseMoons: 24, monsterChaosScale: 100, monsterExpansionPulses: 3, monsterDefense: 3 });
-export const stockTraits = (state, slot) => getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
-export const stockTotal = (state, settlement, trait) => (settlement?.practiceSlots ?? []).reduce((sum, slot) => sum + (stockTraits(state, slot).includes(trait) ? Math.max(0, slot.stock ?? 0) : 0), 0);
+export const stockTraits = (state, slot) => slot?.traits ?? getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
+export const localStockSlots = (state, settlement) => state.world.sites.find(site => site.detailedState === settlement)?.neutral?.stocks ?? settlement?.practiceSlots ?? [];
+export const stockTotal = (state, settlement, trait) => localStockSlots(state, settlement).reduce((sum, slot) => sum + (stockTraits(state, slot).includes(trait) ? Math.max(0, slot.stock ?? 0) : 0), 0);
 export const specialistCount = (settlement, classId) => Object.values(settlement?.populationByClass ?? {}).reduce((sum, cohort) => sum + ageCohortTotal(cohort.specialists?.[classId]), 0);
 export const structureQualityMultiplier = slot => 1 + .25 * Math.max(0,slot?.qualityBonus??0);
 
@@ -73,34 +74,53 @@ export function generateStock(state, settlement, slot, amount, staffed = false) 
   return generated;
 }
 
-// Local board first, then allied shared-edge neighbours in authored region order.
+// Local board, allies, then priced neutrals; each group uses authored region order.
 // Physical adjacency and a live connection are independently required.
 export function stockProviderSlots(state, settlement, localOnly = false) {
   const host = state.world.sites.find(site => site.detailedState === settlement);
-  const sources = [{ regionId: host?.regionId ?? null, settlement }];
+  const sources = [{ regionId: host?.regionId ?? null, settlement, local: true }];
+  const markets = [];
   if (!localOnly && host && getRegionState(state, host.regionId)?.controller === 'player') {
     const connected = getConnectedRegionIds(state, host.regionId);
     for (const regionId of getAdjacentRegionIds(state, host.regionId)) {
-      if (!connected.includes(regionId) || getRegionState(state, regionId)?.controller !== 'player') continue;
+      if (!connected.includes(regionId)) continue;
       const site = state.world.sites.find(site => site.regionId === regionId && site.simulationMode === 'detailed');
-      if (site?.detailedState) sources.push({ regionId, settlement: site.detailedState });
+      if (!site?.detailedState) continue;
+      if (getRegionState(state, regionId)?.controller === 'player') sources.push({ regionId, settlement: site.detailedState });
+      else if (site.neutral) markets.push({ regionId, settlement: site.detailedState, market: true });
     }
   }
-  return sources.flatMap(source => (source.settlement?.practiceSlots ?? []).map((slot, slotIndex) =>
-    ({ regionId: source.regionId, slotIndex, slot })));
+  return [...sources, ...markets].flatMap(source => localStockSlots(state, source.settlement).map((slot, slotIndex) =>
+    ({ regionId: source.regionId, slotIndex, slot, local: !!source.local, market: !!source.market })));
 }
 
 export function stockProviderSlot(state, settlement, provider) {
   const hostId = state.world.sites.find(site => site.detailedState === settlement)?.regionId;
   const source = provider.regionId == null || provider.regionId === hostId ? settlement
     : state.world.sites.find(site => site.regionId === provider.regionId)?.detailedState;
-  return source?.practiceSlots[provider.slotIndex];
+  return localStockSlots(state, source)[provider.slotIndex];
+}
+
+function reserveMarketPayment(state, sources, remaining, market, amount) {
+  let owed = market.slot.price * amount;
+  const payments = [];
+  for (let i = 0; i < sources.length && owed > 0; i++) {
+    const source = sources[i];
+    if (!source.local || !stockTraits(state, source.slot).includes('Currency')) continue;
+    const paid = Math.min(owed, remaining[i]);
+    if (!paid) continue;
+    remaining[i] -= paid;
+    owed -= paid;
+    payments.push({ kind: 'consume', regionId: source.regionId, slotIndex: source.slotIndex,
+      practiceId: source.slot.practiceId, amount: paid, traits: ['Currency'], paymentFor: market.regionId });
+  }
+  return owed === 0 ? payments : null;
 }
 
 function recordStockTransfers(state, settlement, providers, reason) {
   const destinationRegionId = state.world.sites.find(site => site.detailedState === settlement)?.regionId;
   if (!destinationRegionId) return;
-  const remote = providers.filter(provider => provider.regionId && provider.regionId !== destinationRegionId);
+  const remote = providers.filter(provider => provider.paymentFor || provider.regionId && provider.regionId !== destinationRegionId);
   if (!remote.length) return;
   const journal = practiceEventJournal(state);
   if (journal.stockTransfers?.tSec !== state.tSec) journal.stockTransfers = { tSec: state.tSec, transfers: [] };
@@ -115,7 +135,7 @@ function recordStockTransfers(state, settlement, providers, reason) {
     const traits = trait ? [trait] : [];
     transfers.push({ transferId: `stock:${state.tSec}:${transfers.length}`, boundarySec: state.tSec,
       systemId: 'stock', resourceId: trait === 'Edible' ? 'food' : 'stock',
-      reason, kind: provider.kind, sourceRegionId: provider.regionId, destinationRegionId,
+      reason, kind: provider.kind, sourceRegionId: provider.regionId, destinationRegionId: provider.paymentFor ?? destinationRegionId,
       slotIndex: provider.slotIndex, practiceId: provider.practiceId, traits, amount: provider.amount });
   }
 }
@@ -139,6 +159,7 @@ export function planStock(state, settlement, consume = [], require = [], consume
       let needed = cost.amount ?? 1;
       if (kind === 'consume' && consumer) needed = Math.max(needed>0?1:0, Math.ceil(needed - modifiers.reduce((n,m) => n + (m.kind === 'consumeReduction' && cost.traits.includes('Record') && matchesPractice(state,consumer,m.query,staffed) ? m.amount : 0),0)));
       for (let i = 0; i < slots.length && needed > 0; i++) {
+        if (sources[i].market) continue;
         if (!compatible(slots[i], cost.traits, kind === 'require')) continue;
         const amount = Math.min(needed, kind === 'require' ? slots[i]?.stock ?? 0 : remaining[i]);
         if (amount <= 0) continue;
@@ -147,13 +168,26 @@ export function planStock(state, settlement, consume = [], require = [], consume
         needed -= amount;
       }
       if (needed > 0 && (wildcard && !wildcardUsed || flexible && !flexibleUsed)) {
-        const index = slots.findIndex((s,i) => remaining[i] > 0 && (wildcard && !wildcardUsed && stockTraits(state,s).includes('Currency') || flexible && !flexibleUsed));
+        const index = slots.findIndex((s,i) => !sources[i].market && remaining[i] > 0 && (wildcard && !wildcardUsed && stockTraits(state,s).includes('Currency') || flexible && !flexibleUsed));
         if (index >= 0) {
           const useCurrency=wildcard&&!wildcardUsed&&stockTraits(state,slots[index]).includes('Currency');
           const providerKind=useCurrency?'consume':kind;
           providers.push({kind:providerKind,regionId:sources[index].regionId,slotIndex:sources[index].slotIndex,practiceId:slots[index].practiceId,amount:1,traits:stockTraits(state,slots[index]),substitution:cost.traits});
           if (providerKind==='consume') remaining[index]--;
           needed--;if (useCurrency) wildcardUsed=true;else flexibleUsed=true;
+        }
+      }
+      if (kind === 'consume' && needed > 0) {
+        for (let i = 0; i < sources.length && needed > 0; i++) {
+          if (!sources[i].market || !compatible(slots[i], cost.traits, false)) continue;
+          const currency = sources.reduce((sum, source, index) => sum + (source.local && stockTraits(state, source.slot).includes('Currency') ? remaining[index] : 0), 0);
+          const amount = Math.min(needed, remaining[i], Math.floor(currency / slots[i].price));
+          if (amount <= 0) continue;
+          providers.push(...reserveMarketPayment(state, sources, remaining, sources[i], amount),
+            {kind,regionId:sources[i].regionId,slotIndex:sources[i].slotIndex,amount,traits:cost.traits,
+              marketStockId:slots[i].id,label:slots[i].label,unitPrice:slots[i].price});
+          remaining[i] -= amount;
+          needed -= amount;
         }
       }
       if (needed > 0) return { ok: false, missing: { kind, traits: cost.traits, amount: needed }, providers: [] };
@@ -164,7 +198,20 @@ export function planStock(state, settlement, consume = [], require = [], consume
 
 export function applyStockPlan(state, settlement, plan) {
   if (!plan.ok) return false;
-  for (const p of plan.providers) if (p.kind === 'consume') stockProviderSlot(state, settlement, p).stock -= p.amount;
+  const purchases = {};
+  for (const p of plan.providers) if (p.kind === 'consume') {
+    stockProviderSlot(state, settlement, p).stock -= p.amount;
+    if (p.paymentFor) {
+      state.world.sites.find(site => site.regionId === p.paymentFor).neutral.currencyStock += p.amount;
+      purchases[p.paymentFor] = (purchases[p.paymentFor] ?? 0) + p.amount;
+      const result = state.civilization.currentMoonTurn?.regions?.[p.regionId];
+      if (result) result.currencySpent = (result.currencySpent ?? 0) + p.amount;
+    }
+  }
+  for (const [targetRegionId, amount] of Object.entries(purchases)) {
+    state.civilization.history.trades = (state.civilization.history.trades ?? 0) + 1;
+    emitPracticeEvent(state, {kind:'externalTrade',regionId:state.world.sites.find(site=>site.detailedState===settlement)?.regionId,targetRegionId,amount});
+  }
   recordStockTransfers(state, settlement, plan.providers, 'practice');
   return true;
 }
@@ -175,6 +222,7 @@ export function consumeAvailableStock(state, settlement, trait, amount) {
   const providers = [];
   for (const source of stockProviderSlots(state, settlement)) {
     if (remaining <= 0) break;
+    if (source.market) continue;
     if (!stockTraits(state, source.slot).includes(trait)) continue;
     const taken = Math.min(remaining, Math.max(0, source.slot?.stock ?? 0));
     if (taken <= 0) continue;
@@ -183,13 +231,26 @@ export function consumeAvailableStock(state, settlement, trait, amount) {
     providers.push({ kind: 'consume', regionId: source.regionId, slotIndex: source.slotIndex,
       practiceId: source.slot.practiceId, amount: taken, traits: [trait] });
   }
+  for (const source of stockProviderSlots(state, settlement).filter(source => source.market)) {
+    if (remaining <= 0) break;
+    if (!stockTraits(state, source.slot).includes(trait)) continue;
+    const taken = Math.min(remaining, source.slot.stock, Math.floor(stockTotal(state, settlement, 'Currency') / source.slot.price));
+    if (taken <= 0) continue;
+    const sources = stockProviderSlots(state, settlement, true);
+    const payments = reserveMarketPayment(state, sources, sources.map(source => Math.max(0, source.slot?.stock ?? 0)), source, taken);
+    applyStockPlan(state, settlement, { ok: true, providers: payments });
+    source.slot.stock -= taken;
+    remaining -= taken;
+    providers.push({ kind: 'consume', regionId: source.regionId, slotIndex: source.slotIndex,
+      amount: taken, traits: [trait], marketStockId:source.slot.id,label:source.slot.label,unitPrice:source.slot.price });
+  }
   recordStockTransfers(state, settlement, providers, 'food');
   return amount - remaining;
 }
 
 export function consumeStock(state, settlement, trait, amount) {
   let remaining = Math.max(0, amount);
-  for (const slot of settlement?.practiceSlots ?? []) {
+  for (const slot of localStockSlots(state, settlement)) {
     if (!stockTraits(state, slot).includes(trait)) continue;
     const taken = Math.min(remaining, Math.max(0, slot.stock ?? 0));
     slot.stock = Math.max(0, (slot.stock ?? 0) - taken);

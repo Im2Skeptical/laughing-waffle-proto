@@ -30,6 +30,7 @@ import {
 } from "./civilization-survival-hud.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { addNeutralMarketGlyph, NEUTRAL_COLOUR } from './neutral-market-pixi.js';
 import {
   CIVILIZATION_HEADER_RECT,
   CIVILIZATION_RECT,
@@ -691,8 +692,8 @@ export function createWorldMapView({
       const point = screenPoint(regionDef.display.labelPoint);
       const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
-        indicator.monster ? `Defense ${indicator.monster.defense}` : `NEUTRAL · Defense ${indicator.neutral.defense}`,
-        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:0xf1d095,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-72:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
+        indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
+        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-72:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
       if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, indicator.monster);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
@@ -704,12 +705,15 @@ export function createWorldMapView({
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
         if (display.scenery !== false) {
-          landmarks.push(addTimelineLandmark(mapContent,{x:point.x-29,y:point.y-76,width:58,height:66},
-            {startSec:definition.regions.indexOf(regionDef)*.37}));
-          landmarks.push(addTimelineLandmark(mapContent,{x:point.x+29,y:point.y-17,width:20,height:17},
-            {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
+          if (indicator.neutral) addNeutralMarketGlyph(mapContent, point);
+          else {
+            landmarks.push(addTimelineLandmark(mapContent,{x:point.x-29,y:point.y-76,width:58,height:66},
+              {startSec:definition.regions.indexOf(regionDef)*.37}));
+            landmarks.push(addTimelineLandmark(mapContent,{x:point.x+29,y:point.y-17,width:20,height:17},
+              {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
+          }
         }
-        if (display.workers !== false) addWorkerIndicator(
+        if (display.workers !== false && !indicator.neutral) addWorkerIndicator(
           adornments,
           {x:0,y:65},
           indicator.activeWorkerCount,
@@ -894,7 +898,8 @@ export function createWorldMapView({
         focusAnimating: camera.isAnimating(),
         panelReveal: panelReveal.snapshot(),
         layout: { viewport: MAP_VIEWPORT_RECT, detail: DETAIL_RECT, chaos: CIVILIZATION_RECT, groupFrame: GROUP_FRAME_RECT },
-        structureSlots: viewModel ? { visible: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX, available: viewModel.structureCapacity, blocked: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX - viewModel.structureCapacity } : null,
+        market: viewModel?.neutral ? {stocks:viewModel.marketStocks,currency:viewModel.marketCurrency} : null,
+        structureSlots: viewModel && !viewModel.neutral ? { visible: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX, available: viewModel.structureCapacity, blocked: DEFAULT_REGION_STRUCTURE_CAPACITY_MAX - viewModel.structureCapacity } : null,
         graphScope:
           getGraphScope?.() === "settlement"
             ? "settlement"

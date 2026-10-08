@@ -16,6 +16,7 @@ import {
 } from "./civilization-survival-hud.js";
 import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
+import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
 
 const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 730 });
 export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
@@ -142,12 +143,17 @@ export function createSettlementPrototypeView({
       rect: SETTLEMENT_HEADER_LAYOUT.survival,
       onOpenEndDetails,
     }).detailsTarget;
+    if (!vm.neutral) {
     addButton(root, SETTLEMENT_HEADER_LAYOUT.overview, "Overview",
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
     addButton(root, SETTLEMENT_HEADER_LAYOUT.demographics, "Demographics",
       activeTab === "demographics", () => { activeTab = "demographics"; lastSignature = ""; });
+    }
 
-    if (activeTab === "overview") {
+    if (vm.neutral) {
+      addNeutralMarketBillboard(root,{x:BODY.x+320,y:BODY.y+10,width:1680,height:BODY.height-20},
+        {name:vm.name,stocks:vm.marketStocks,defense:state.world.sites.find(site=>site.regionId===regionId)?.neutral?.defense,tooltipView});
+    } else if (activeTab === "overview") {
       const foodRect = { x: BODY.x, y: BODY.y, width: 540, height: 260 };
       const practiceRect = { x: 606, y: BODY.y, width: 920, height: 430 };
       const orderRect = { x: 1544, y: BODY.y, width: 832, height: 430 };

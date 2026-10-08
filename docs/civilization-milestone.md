@@ -15,8 +15,9 @@ first-pass system notes below retain their original tuning context.
 
 ## Current iteration and handoff
 
-- Practice capacity is fixed at **five** per detailed settlement, including
-  neutrals. This intentional readability and composition limit was reaffirmed
+- Practice capacity is fixed at **five** per player detailed settlement.
+  Neutrals instead own finite priced Stock inventories, replenish before each
+  Food phase, and retain fixed demographics without installed gamepieces. This intentional readability and composition limit was reaffirmed
   after the content pass; the temporary twelve-slot expansion was reverted.
   Future UX and gamepiece design must work within five slots. The regional,
   overview, and purchase boards show one row; shop inventory may still page.
@@ -90,7 +91,11 @@ first-pass system notes below retain their original tuning context.
   uplift, Commissions, Discovery, and one free inventory reconsideration per shop.
   Warrior founding, Support, prestige-derived Retinue, Campaign and Challenge.
 - Four authored neutral templates with fixed populations, Stock production/consumption,
-  connected Trade/Raid targeting and conquest. Spatial Monsters expand deterministically;
+  connected Trade/Raid targeting and conquest. Consumption draws from local
+  Stock first, adjacent road-connected allies second, and adjacent road-connected
+  neutral markets last. Market purchases spend the consuming town's hosted
+  Currency at the billboard price; failed recipes spend nothing. Require inputs
+  use local/allied Stock only. Neutral markets retain the Currency paid to them. Spatial Monsters expand deterministically;
   supplied autonomous defense spends Stock, failure creates ruins and loss history.
   A displaced active Vassal evacuates to the first surviving player settlement.
 - Shared Crisis incidents for actual Food shortages and adjacent Monsters. Prowess

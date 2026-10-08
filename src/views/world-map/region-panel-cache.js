@@ -21,7 +21,8 @@ export function createRegionPanelCache({ rect, addCloseButton, onClose, maxEntri
     const root = new PIXI.Container();
     const panel = new PIXI.Graphics();
     roundedRect(panel, rect.x, rect.y, rect.width, rect.height, 7,
-      PALETTE.panelSoft, settlementScope ? PALETTE.accent : PALETTE.stroke, settlementScope ? 5 : 3);
+      input.vm?.neutral ? 0x132b29 : PALETTE.panelSoft,
+      input.vm?.neutral ? 0x8ed7cf : settlementScope ? PALETTE.accent : PALETTE.stroke, settlementScope ? 5 : 3);
     panel.eventMode = 'static';
     panel.cursor = input.vm ? 'pointer' : 'default';
     panel.hitArea = new PIXI.Rectangle(rect.x, rect.y, rect.width, rect.height);

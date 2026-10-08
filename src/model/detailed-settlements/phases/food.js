@@ -1,4 +1,5 @@
 import { consumeStock, consumeAvailableStock, CIV_CONTENT_TUNING } from "../stock.js";
+import { replenishNeutralMarkets } from '../neutral-market.js';
 // Food moon phase: meals, happiness, and starvation migration intents.
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
@@ -87,6 +88,7 @@ function evaluateFoodHappiness(state, classState, ratio) {
 export function runFoodPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   getPhaseModifiers(state).foodByRegion = {};
+  replenishNeutralMarkets(state);
   runPracticeActivation(state, "food", "preRouting");
   runPracticeActivation(state, "food", "postRouting");
   // All owners get first use of their own Edible Stock. Only after this pass

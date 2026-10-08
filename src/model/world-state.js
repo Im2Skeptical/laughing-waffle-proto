@@ -12,6 +12,7 @@ import {
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { isDetailedPracticeTier } from "./detailed-practice-tiers.js";
 import { validSpecialistCohorts } from "./detailed-settlements/cohorts.js";
+import { validateNeutralMarket } from './detailed-settlements/neutral-market.js';
 
 export const REGION_COLOURS = Object.freeze(["red", "blue", "green", "black"]);
 export const REGION_CONTROLLERS = Object.freeze([
@@ -170,6 +171,7 @@ function validateRegionMechanics(region, errors, label = "region") {
 }
 
 function validateDetailedSettlement(site, region, errors, gamepieces) {
+  errors.push(...validateNeutralMarket(site));
   const settlement = site?.detailedState;
   if (!settlement || typeof settlement !== "object") {
     errors.push(`site ${site?.id ?? "?"} has no detailed state`);

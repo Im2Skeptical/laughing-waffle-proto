@@ -47,6 +47,9 @@ export function getStructureCount(state, regionId, structureId) {
 
 export function getStructureCapacity(state, regionId, capacityKind) {
   const settlement = getDetailedSettlement(state, regionId);
+  const neutral = getDetailedSettlementSite(state, regionId)?.neutral;
+  if (neutral) return capacityKind === 'housing' ? neutral.housing
+    : neutral.stocks.reduce((sum, stock) => sum + (stock.traits.includes('Edible') ? stock.capacity : 0), 0);
   if (capacityKind === "housing") return (settlement?.structureSlots ?? []).reduce((n,s) => n + Math.floor((s?.construction ? 0 : getDetailedStructureDef(state,s?.structureId)?.housing ?? 0)*structureQualityMultiplier(s)),0);
   return (settlement?.practiceSlots ?? []).reduce((n,s) => n + (stockTraits(state,s).includes("Edible") ? stockCapacity(state,settlement,s) : 0),0);
 }

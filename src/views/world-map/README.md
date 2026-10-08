@@ -71,6 +71,10 @@ share its transform and clipping; simulation state and replay are unchanged.
 Regional tableaus show five larger Practices and an eight-cell construction
 rail, with cells beyond regional capacity hatched and locked. Card inspection
 continues to use the shared piece view.
+Neutral tableaus instead show a teal wooden market billboard with current
+Stock quantities and Currency prices. Striped stalls and diamond pennants
+replace player-town paintings and workers on the map. Billboard rows expose
+traits and replenishment on inspection; purchases follow simulation consumption.
 
 Run `npm run test:region-map-camera` for deterministic focus/animation checks
 and `npm run probe:region-map` for disclosure, mouse/touch gestures, inspection,

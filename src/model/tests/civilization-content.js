@@ -182,10 +182,10 @@ assert.equal(getPopulationSummary(relations,neighbor.regionId).total,neutralPopu
 home.detailedState.practiceSlots=[slot('forage',3),slot('bowmaking',3),slot('raidingParties'),...Array(2).fill(null)];
 home.detailedState.populationByClass.villager.adults=30;
 trainSpecialists(home.detailedState,'warrior',30);
-const raidTargetStock=neighbor.detailedState.practiceSlots.filter(Boolean).reduce((n,p)=>n+p.stock,0);
+const raidTargetStock=neighbor.neutral.stocks.reduce((n,p)=>n+p.stock,0);
 relations.currentSeasonIndex=1;runPracticeActivation(relations,'season');
 assert.ok(relations.civilization.history.raids>0,'Raid requires no active Vassal');
-assert.ok(neighbor.detailedState.practiceSlots.filter(Boolean).reduce((n,p)=>n+p.stock,0)<raidTargetStock);
+assert.ok(neighbor.neutral.stocks.reduce((n,p)=>n+p.stock,0)<raidTargetStock);
 assert.ok(stockTotal(relations,home.detailedState,'Loot')>0);
 
 // Warrior founding uses the same public Life Map command route as Scholar founding.

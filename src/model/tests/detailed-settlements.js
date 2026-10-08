@@ -8,5 +8,6 @@ import './charge-content.js';
 import './settlement-supply.js';
 import './practice-supply-priority.js';
 import './structure-construction.js';
+import './neutral-markets.js';
 
 console.log("[detailed-settlements] OK");

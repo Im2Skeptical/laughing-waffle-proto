@@ -32,7 +32,7 @@ Routing skills live in `.grok/skills/`.
 - `tSec` is authoritative time and advances only through simulation ticks.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
-- Every detailed settlement has exactly five Practice slots. This fixed design
+- Every player settlement has exactly five Practice slots. Neutral settlements use priced market inventories instead of installed Practices or Structures. This fixed design
   limit preserves readability and composition choices; UX and gamepieces must
   work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
@@ -48,7 +48,7 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v30; runner saves v21. Older saves are rejected.
+- Game state v31; runner saves v22. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v17 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
@@ -81,7 +81,7 @@ authored debug fixture still has five detailed settlements in Regions01, 03,
 Region state owns colour, controller, connections, `structureCapacity`, and
 the independent detailed-settlement toggle. New runs roll every region's
 structure capacity from 5–8 in authored order through `state.rng`; Map Lab
-regions can pin an explicit capacity. Each detailed site owns
+regions can pin an explicit capacity. Each player detailed site owns
 Villager/Stranger cohorts with orthogonal Scholar/Warrior subsets, anonymous elder ages, five hosted-Stock practice slots, a regional construction strip, aggregate Elder Order state,
 and local moon/meal summaries. Spatial Monsters, settlement loss history, Chaos, persistent survival
 knowledge, and the single vassal lineage are civilization-global.

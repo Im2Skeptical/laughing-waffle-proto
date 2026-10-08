@@ -9,6 +9,7 @@ export function getSettlementStockTags(viewModel) {
   const produced = new Set();
   const demanded = new Set();
   const inputs = [];
+  for (const stock of viewModel.marketStocks ?? []) for (const trait of stock.traits) produced.add(trait);
   for (const piece of [...(viewModel.practices ?? []), ...(viewModel.structures ?? [])]) {
     const face = piece?.face;
     if (!face) continue;

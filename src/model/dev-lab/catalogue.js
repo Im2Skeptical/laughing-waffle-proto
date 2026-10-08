@@ -1,5 +1,6 @@
 import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { NEUTRAL_TEMPLATES } from '../detailed-settlements/external-world.js';
+import { NEUTRAL_MARKETS } from '../detailed-settlements/neutral-market.js';
 import { CIV_CONTENT_TUNING } from '../detailed-settlements/stock.js';
 import { getVassalCandidatePool } from '../vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
@@ -14,7 +15,7 @@ export function getLabCatalogue(state) {
   const candidates = liveCandidates.length ? liveCandidates : generateCandidatePool(deserializeGameState(serializeGameState(state)));
   for (const [index, def] of candidates.entries()) entries.push({ id: `candidate-${index}`, category: 'candidate', label: `${def.archetype} · ${def.classId} candidate ${index + 1}`, pool: def.classId, def: {...def, specimenSource:liveCandidates.length?'Current pool':'Next-pool preview on a clone'} });
   for (const def of [...Object.values(VASSAL_NODE_FAMILIES), ...Object.values(VASSAL_SIGNATURE_NODE_VARIANTS)]) entries.push({ id: def.id, category: 'life-map', label: def.label, def });
-  for (const [index, def] of NEUTRAL_TEMPLATES.entries()) entries.push({ id: `neutral-${index}`, category: 'neutral', label: def.name, def: { ...def, installedPractices: def.practices.slice(0, 5), omittedPractices: def.practices.slice(5) } });
+  for (const [index, def] of NEUTRAL_TEMPLATES.entries()) entries.push({ id: `neutral-${index}`, category: 'neutral', label: def.name, def: { ...def, stocks: NEUTRAL_MARKETS[index] } });
   entries.push({ id: 'spatial-monster', category: 'monster', label: 'Spatial Monster (single runtime type)', def: { baseDefense: CIV_CONTENT_TUNING.monsterDefense, pulseMoons: CIV_CONTENT_TUNING.monsterPulseMoons, chaosScale: CIV_CONTENT_TUNING.monsterChaosScale, expansionPulses: CIV_CONTENT_TUNING.monsterExpansionPulses, rule: 'Saved pressure grows logarithmically with accumulated Chaos. Pulses advance existing fronts before spawning; three advances expand a front.', liveInstances: state.world.regions.filter(r => r.monster).map(r => ({ regionId: r.id, ...r.monster })) } });
   return entries;
 }

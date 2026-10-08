@@ -1,10 +1,10 @@
 import { emptySpecialists } from "./cohorts.js";
+import { NEUTRAL_MARKETS } from './neutral-market.js';
+import { getDetailedPracticeDef } from '../game-config.js';
 import { createInitialDetailedSettlementData } from '../../defs/world/detailed-settlement-scenario.js';
 import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-settlement-defs.js';
-import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
-import { normalizeStructureLayout } from '../structure-layout.js';
-import { stockCapacity, stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
+import { stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
 import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
 import { selectPopulationComposition, compositionTotal } from './helpers.js';
 import { removePopulationComposition, addCompositionToStrangers } from './phases/migration.js';
@@ -86,10 +86,10 @@ export function getRetinue(state, vassal) {
 }
 
 export const NEUTRAL_TEMPLATES = Object.freeze([
-  { name: 'Forager Hamlet', population: 18, defense: 3, practices: ['forage','pastoralism'], structures: ['mudHouses','granary','sheepfold'] },
-  { name: 'Timber Village', population: 24, defense: 4, practices: ['forage','pastoralism','logging','barter'], structures: ['timberHouse','granary','storehouse','marketSquare'] },
-  { name: 'Stone Village', population: 30, defense: 5, practices: ['forage','pastoralism','logging','surfaceMining','charcoalBurning','smelting'], structures: ['stoneHouse','granary','workshop','kiln','storehouse'] },
-  { name: 'Market Town', population: 60, defense: 8, practices: ['forage','pastoralism','dryFarming','barter','logging','quarrying','surfaceMining'], structures: ['longhouse','granary','marketSquare','storehouse','workshop'] },
+  { name: 'Forager Hamlet', population: 18, defense: 3 },
+  { name: 'Timber Village', population: 24, defense: 4 },
+  { name: 'Stone Village', population: 30, defense: 5 },
+  { name: 'Market Town', population: 60, defense: 8 },
 ]);
 function distance(state, start, end) {
   const queue = [[start,0]], seen = new Set([start]);
@@ -105,14 +105,11 @@ export function createNeutralSettlement(state, id, index) {
   if (!template || getRegionState(state,id)?.controller !== 'frontier' || siteAt(state,id) || getRegionState(state,id)?.monster) return {ok:false,reason:'neutralSiteUnavailable'};
   const region = getRegionState(state,id), settlement = createInitialDetailedSettlementData();
   settlement.populationByClass.villager = { ...settlement.populationByClass.villager, children:0, adults:template.population, eldersByAge:[] };
-  settlement.practiceSlots = Array.from({length:DETAILED_PRACTICE_SLOT_COUNT},(_,i) => template.practices[i] ? {practiceId:template.practices[i], tier:'bronze', stock:0, charge:0, work:0} : null);
-  region.structureCapacity = Math.max(region.structureCapacity, template.structures.reduce((n,id) => n+getDetailedStructureDef(state,id).footprint,0));
-  const placements = [];
-  for (const structureId of template.structures) { placements.push({structureId}); for(let i=1;i<getDetailedStructureDef(state,structureId).footprint;i++) placements.push(null); }
-  settlement.structureSlots = normalizeStructureLayout(placements,region.structureCapacity,id => getDetailedStructureDef(state,id),id);
-  for (const slot of settlement.practiceSlots.filter(Boolean)) { const cap=stockCapacity(state,settlement,slot); slot.stock=cap>0 ? Math.max(1,Math.floor(cap*(index===3?.75:.5))) : 0; }
+  settlement.practiceSlots = Array(DETAILED_PRACTICE_SLOT_COUNT).fill(null);
+  settlement.structureSlots = Array(region.structureCapacity).fill(null);
+  const stocks = NEUTRAL_MARKETS[index].map(entry => ({ ...entry, traits: [...entry.traits], stock: Math.floor(entry.capacity / 2) }));
   region.controller='external-a'; region.detailedSettlementEnabled=true;
-  state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:template.name,neutral:{template:template.name,defense:template.defense},detailedState:settlement});
+  state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:template.name,neutral:{template:template.name,defense:template.defense,housing:template.population,stocks,currencyStock:0},detailedState:settlement});
   return {ok:true,site:siteAt(state,id)};
 }
 
@@ -154,7 +151,7 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
   if (site.neutral) return {ok: def.externalAction === 'trade', bonus:0};
   const targets = getConnectedRegionIds(state,site.regionId).map(id=>siteAt(state,id)).filter(s=>s?.neutral);
   if (def.externalAction === 'trade') {
-    const stockedTarget=targets.find(s=>s.detailedState.practiceSlots.some(p=>p?.stock>0));
+    const stockedTarget=targets.find(s=>s.neutral.stocks.some(p=>p.stock>0));
     if(apply&&stockedTarget) {
       state.civilization.history.trades=(state.civilization.history.trades??0)+1;
       emitPracticeEvent(state,{kind:'externalTrade',regionId:site.regionId,practiceId:def.id});
@@ -168,9 +165,9 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
       recordSupportUsage(state,site.regionId,'hunt');emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:site.regionId,practiceId:def.id}); }
     return {ok:true,bonus:getRegionState(state,id)?.monster?.defense??prepared?.bonus??0,targetId:id};
   }
-  const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.detailedState.practiceSlots.some(p=>p?.stock>0));
+  const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.neutral.stocks.some(p=>p.stock>0));
   if(!target) return {ok:false};
-  const provider=target.detailedState.practiceSlots.find(p=>p?.stock>0);
+  const provider=target.neutral.stocks.find(p=>p.stock>0);
   const yieldCount=Math.min(2,provider.stock);
   if(apply) { provider.stock-=yieldCount; state.civilization.history.raids++;
     emitPracticeEvent(state,{kind:'raidResolved',regionId:site.regionId,practiceId:def.id}); }

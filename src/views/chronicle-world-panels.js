@@ -5,6 +5,7 @@ import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { regionalConstructionRect, regionalPracticeSize, PIECE_SIZE } from './piece-geometry.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
+import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
 
 export function addChaosPanelContent(root, rect, summary) {
   addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:112,height:rect.height-16},{alpha:.8});
@@ -17,6 +18,11 @@ export function addChaosPanelContent(root, rect, summary) {
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {
+  if (vm?.neutral) {
+    addNeutralMarketBillboard(root, {x:rect.x+22,y:rect.y+18,width:rect.width-44,height:rect.height-30},
+      {name:vm.name,reference,stocks:vm.marketStocks,defense,tooltipView});
+    return;
+  }
   const x=rect.x+22,y=rect.y;
   root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
   root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?'NEUTRAL SETTLEMENT':region.lostAtSec != null?'RUINS':'FRONTIER'}`,{

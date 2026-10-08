@@ -26,6 +26,11 @@ file is the legacy tick substrate.
   Food and Practice inputs use local Stock first, then player-controlled detailed
   settlements sharing both a polygon edge and a live connection, in authored
   region order. Require preserves the provider's Stock; Consume debits its host.
+  Unmet Consume inputs and meals can then buy from adjacent, road-connected
+  neutral inventories at their listed prices, paid from the consuming town's
+  Currency hosts. Recipe reservations include payment and remain atomic;
+  meals buy only affordable quantities. Unsold neutral Stock cannot satisfy
+  Require or diversity conditions. Payments and purchases emit map transfers.
   Food resolves local meals for every settlement before unmet demand draws from
   neighbours, so only the Stock remaining after the owner's meal can be shared.
   The current transfer second is recorded in the JSON Practice event journal for
@@ -39,6 +44,8 @@ file is the legacy tick substrate.
 - `workers.js` - Scholar sockets and ordinary population worker assignment.
 - `cohorts.js` - orthogonal specialist age subsets and composition helpers.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.
+- `neutral-market.js` - finite priced neutral inventories, Food-phase
+  replenishment, and validation. Neutral towns install no gamepieces.
 - `phases.js` — **the stepper**. `initializeDetailedSettlementCivilization`
   and `stepDetailedSettlementsSecond`. Phase bodies live in `phases/`
   (`birth.js`, `food.js`, `housing.js`, `faith.js`, `migration.js`,

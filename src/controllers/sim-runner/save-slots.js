@@ -15,7 +15,7 @@ import { describeSaveError, saveFailureCategory } from './save-diagnostics.js';
 import { initializeSaveStorage, runSaveTransaction, putSaveRecord, SAVE_PAYLOAD_STORE, SAVE_META_STORE } from './save-storage.js';
 import { inspectSaveInWorker } from '../save-load-worker-service.js';
 
-export const SAVE_SCHEMA_VERSION = 21;
+export const SAVE_SCHEMA_VERSION = 22;
 export const SAVE_SLOT_COUNT = 3;
 
 function normalizeSaveSlot(slot) {

@@ -247,7 +247,7 @@ export function createZooView({controller,cards,run,review}) {
       }
       else {
         const item = section(e.label,el('p',e.def.description ?? e.def.rule ?? e.pool ?? 'Runtime template','lab-clamp'));
-        if (e.category === 'neutral') item.append(el('p',`Installed: ${e.def.installedPractices.join(', ')}${e.def.omittedPractices.length?` · omitted: ${e.def.omittedPractices.join(', ')}`:''}`,'lab-note'));
+        if (e.category === 'neutral') item.append(el('p',e.def.stocks.map(stock=>`${stock.label} · ${stock.price} Currency`).join(' / '),'lab-note'));
         item.classList.add('lab-specimen'); item.append(details('Runtime data',e.def)); grid.append(item);
       }
     }

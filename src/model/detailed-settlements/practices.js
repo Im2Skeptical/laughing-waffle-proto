@@ -46,7 +46,7 @@ function conditionsMet(state, site, def, assignment, localOnly = false) {
   if (def.scholarRequired && !isScholarStaffed(assignment)) return false;
   if (def.specialistRequired && !specialistCount(settlement, def.specialistRequired)) return false;
   if (def.condition === 'diverseStock') {
-    const signatures = new Set(stockProviderSlots(state, settlement, localOnly).filter(s => (s.slot?.stock ?? 0) > 0).map(s => stockTraits(state, s.slot).slice().sort().join('|')));
+    const signatures = new Set(stockProviderSlots(state, settlement, localOnly).filter(s => !s.market && (s.slot?.stock ?? 0) > 0).map(s => stockTraits(state, s.slot).slice().sort().join('|')));
     if (signatures.size < 2) return false;
   }
   if (def.condition === 'ruins' && !adjacentRegionIds(state, site.regionId).some(id => getRegionState(state, id)?.lostAtSec != null || getRegionState(state, id)?.monster)) return false;
