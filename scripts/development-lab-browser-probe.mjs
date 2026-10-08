@@ -31,6 +31,17 @@ try {
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   const zooState=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
   const reading=()=>page.evaluate(()=>__LAB_DEBUG__.getCardReading());
+  // Short choice sets are segmented controls; each button carries its value.
+  const choose=async(label,value)=>{
+    const target=page.locator(`[role=group][aria-label="${label}"] [data-value="${value}"]`);
+    // The Zoo bar slides away while scrolling down; scrolling up brings it back.
+    if(await page.locator('.lab-zoo-bar.is-hidden').count()){await page.mouse.wheel(0,-400);await page.locator('.lab-zoo-bar:not(.is-hidden)').waitFor();}
+    // Narrow screens keep full filters in a drawer; open and close it as a person would.
+    const drawer=!await target.isVisible()&&await page.getByTestId('zoo-filters-button').isVisible();
+    if(drawer)await page.getByTestId('zoo-filters-button').click();
+    await target.click();
+    if(drawer)await page.getByTestId('zoo-filters-close').click();
+  };
   const readingPoint=async point=>{
     const current=await reading(), rect=await page.getByTestId('lab-card-reading').boundingBox();
     return {x:rect.x+point.x*rect.width/current.width,y:rect.y+point.y*rect.height/current.height};
@@ -53,22 +64,24 @@ try {
   await page.waitForFunction(()=>__LAB_DEBUG__.getCardReading()?.keywords?.depth===0);
   await page.getByRole('button',{name:'Close inspection',exact:true}).click();
   assert.equal(await reading(),null,'closing inspection restores focus without reopening the quick read');
-  await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  await page.getByRole('button',{name:'Compare',exact:true}).click();
   await page.getByRole('heading',{name:'Smelting',exact:true}).waitFor();
+  await page.waitForFunction(()=>{const r=[...document.querySelectorAll('section.lab-panel h2')].find(h=>h.textContent==='Smelting')?.getBoundingClientRect();return r&&r.top>=0&&r.top<innerHeight;});
   await page.getByRole('button',{name:'Read Smelting, gold',exact:true}).click();
   assert.equal((await reading()).tier,'gold','quality comparison uses its selected face');
   await page.keyboard.press('Escape');
-  await page.getByLabel('Class',{exact:true}).selectOption('warrior');
+  await choose('Class','warrior');
   await page.getByText('0 matching runtime entries',{exact:false}).waitFor();
-  await page.getByLabel('Class',{exact:true}).selectOption('');
+  await choose('Class','');
   await page.getByLabel('Search runtime content').fill('');
-  await page.getByLabel('Category',{exact:true}).selectOption('structure');
+  await choose('Category','structure');
   await page.getByLabel('Slot size',{exact:true}).selectOption('3');
+  await page.waitForFunction(()=>document.querySelectorAll('.lab-catalogue-grid>.lab-card').length>1);
   await delay(1200);
   const sizes=await page.locator('.lab-catalogue-grid>.lab-card').evaluateAll(nodes=>nodes.map(n=>({width:n.clientWidth,height:n.clientHeight})));
   assert.ok(sizes.length>1 && sizes.every(s=>s.width===sizes[0].width&&s.height===sizes[0].height),'uniform Zoo specimens');
   const structureCard=page.locator('.lab-catalogue-grid>.lab-card').first();
-  await structureCard.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
+  await structureCard.getByRole('button',{name:'Rules',exact:true}).click();
   assert.equal((await reading()).kind,'structure');
   assert.equal((await reading()).reading.passive,true);
   assert.ok((await reading()).glossary.length,'Structure uses the current symbol key');
@@ -79,39 +92,65 @@ try {
   const quickBounds=await page.locator('.lab-card-quick-read').boundingBox();
   assert.ok(quickBounds.x>=0&&quickBounds.y>=0&&quickBounds.x+quickBounds.width<=845&&quickBounds.y+quickBounds.height<=391,'mobile quick read stays inside viewport');
   await page.screenshot({path:'artifacts/development-lab-zoo-mobile-quick-read.png'});
-  await structureCard.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
+  await structureCard.getByRole('button',{name:'Rules',exact:true}).click();
   assert.equal((await reading()).mode,'inspect','tap opens full Structure inspection');
   await page.screenshot({path:'artifacts/development-lab-zoo-mobile-inspection.png'});
   await page.getByRole('button',{name:'Close inspection',exact:true}).click();
   await page.setViewportSize({width:1280,height:800});
   assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'all reading interactions preserve fixture state and RNG');
   await page.screenshot({path:'artifacts/development-lab-zoo.png'});
-  checks.push('runtime search, class/footprint filters, quality comparison, Charge and Structure quick reads, shared inspector, keywords, mobile bounds, state/RNG preservation');
-  await page.getByLabel('Category',{exact:true}).selectOption('practice');
-  await page.getByLabel('Slot size',{exact:true}).selectOption('');
+  // Phone portrait: no hover is needed, the quick read has explicit actions and targets stay touch-sized.
+  await page.setViewportSize({width:390,height:844});
+  await choose('Category','practice');
   await page.getByLabel('Search runtime content').fill('smelting');
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  await page.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
+  assert.equal(await page.getByTestId('zoo-filters').isVisible(),false,'full Zoo filters stay in a drawer on phones');
+  assert.equal(await page.getByTestId('zoo-filters-button').getAttribute('aria-expanded'),'false');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Zoo fits a portrait phone');
+  assert.equal(await page.locator('.lab-header').evaluate(node=>getComputedStyle(node).position),'sticky','phone navigation stays reachable');
+  await page.locator('.lab-catalogue-grid .lab-card-preview').first().focus();
+  await page.waitForFunction(()=>__LAB_DEBUG__.getCardReading()?.mode==='quick');
+  const sheet=await page.locator('.lab-card-quick-read').boundingBox();
+  assert.ok(sheet.x>=0&&sheet.x+sheet.width<=390&&sheet.y+sheet.height<=844,'phone quick read is a bottom sheet inside the viewport');
+  const quickBar=page.locator('.lab-quick-actions');
+  for(const name of ['Full rules','Close quick read']) assert.ok((await quickBar.getByRole('button',{name,exact:true}).boundingBox()).height>=44,`${name} is touch-sized`);
+  for(const name of ['Rules','Compare','Flag for review']) assert.ok((await page.locator('.lab-catalogue-grid').getByRole('button',{name,exact:true}).boundingBox()).height>=44,`${name} is touch-sized`);
+  await quickBar.getByRole('button',{name:'Full rules',exact:true}).click();
+  assert.equal((await reading()).mode,'inspect','quick read opens full rules without hover');
+  await page.getByRole('button',{name:'Close inspection',exact:true}).click();
+  await page.locator('.lab-catalogue-grid .lab-card-preview').first().press('Enter');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getCardReading()?.mode==='quick');
+  await quickBar.getByRole('button',{name:'Close quick read',exact:true}).click();
+  assert.equal(await reading(),null,'quick read closes from its own button');
+  await page.screenshot({path:'artifacts/development-lab-zoo-phone.png'});
+  await page.setViewportSize({width:1280,height:800});
+  checks.push('phone Zoo: sticky nav, collapsed filters, touch-sized card and quick-read actions, no horizontal overflow');
+  checks.push('runtime search, class/footprint filters, quality comparison, Charge and Structure quick reads, shared inspector, keywords, mobile bounds, state/RNG preservation');
+  await choose('Category','practice');
+  assert.equal(await page.getByLabel('Slot size',{exact:true}).count(),0,'Practice-only catalogue hides the Structure footprint filter');
+  await page.getByLabel('Search runtime content').fill('smelting');
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'Rules',exact:true}).click();
   await page.getByRole('button',{name:'Dev',exact:true}).click();
   await page.getByRole('heading',{name:'Card reviewer',exact:true}).waitFor();
   await page.getByRole('button',{name:'Lock card',exact:true}).click();
   await page.getByRole('button',{name:'Unlock card',exact:true}).waitFor();
   await page.reload();
   assert.equal(await page.getByRole('button',{name:'Unlock card',exact:true}).getAttribute('aria-pressed'),'true','lock survives refresh');
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('smelting');
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-locked=true]').count(),1,'live Zoo marks reviewed locks');
   for(const mode of ['live','edited','edited-only']) {
-    await page.getByLabel('Card versions',{exact:true}).selectOption(mode);
+    await choose('Card versions',mode);
     await page.getByLabel('Hide locked cards',{exact:true}).check();
     await page.getByText('0 matching runtime entries',{exact:false}).waitFor();
     assert.equal(await page.locator('.lab-catalogue-grid>.lab-card').count(),0,`${mode}: locked cards hidden`);
     await page.getByLabel('Hide locked cards',{exact:true}).uncheck();
     await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   }
-  await page.getByLabel('Card versions',{exact:true}).selectOption('live');
-  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await choose('Card versions','live');
+  await page.getByRole('button',{name:'Open review',exact:true}).click();
   await page.getByRole('button',{name:'Unlock card',exact:true}).click();
   await page.getByRole('button',{name:'Lock card',exact:true}).waitFor();
   checks.push('persistent Lock/Unlock reviewer controls and Hide locked cards in every Zoo version mode');
@@ -121,6 +160,10 @@ try {
   await output.fill('4');
   await page.getByText('Produce 4 Stock',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Done',exact:true}).click();
+  await page.getByRole('heading',{name:'Changes against live (1)',exact:true}).waitFor();
+  assert.equal(await page.locator('.review-queue button[aria-pressed=true] .lab-badge-accent').textContent(),'1 edit','queue shows the edit count');
+  assert.ok((await page.locator('.review-preview').boundingBox()).y<(await page.locator('.review-changes').boundingBox()).y&&(await page.locator('.review-changes').boundingBox()).y<(await page.getByLabel('Review notes',{exact:true}).boundingBox()).y,'diff sits between the card and the notes');
+  assert.equal(await page.locator('.review-toolbar').evaluate(node=>getComputedStyle(node).position),'sticky','phone reviewer actions stay in reach');
   await page.getByLabel('Review notes',{exact:true}).fill('Check the Metal chain on mobile.');
   await page.getByLabel('Preview quality',{exact:true}).selectOption('gold');
   await page.getByRole('button',{name:'Compare with live',exact:true}).click();
@@ -137,12 +180,17 @@ try {
   await page.getByLabel('Review notes',{exact:true}).waitFor();
   assert.equal(await page.getByLabel('Stock produced',{exact:true}).inputValue(),'4');
   assert.equal(await page.getByLabel('Review notes',{exact:true}).inputValue(),'Check the Metal chain on mobile.');
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
-  await page.getByLabel('Category',{exact:true}).selectOption('structure');
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();
+  await choose('Category','structure');
   await page.getByLabel('Search runtime content').fill('longhouse');
   await page.getByRole('button',{name:'Read Longhouse, silver',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await page.getByRole('button',{name:'Flag for review',exact:true}).click();
+  await page.getByRole('button',{name:'Open review',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>location.hash),'#/dev/zoo','flagging keeps the Zoo open');
+  assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-flagged=true]').count(),1,'flagged card is marked in place');
+  await page.getByRole('link',{name:'Review flagged (2)',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Open review',exact:true}).click();
   await page.getByRole('button',{name:'Edit Structure bonuses',exact:true}).click();
   await page.locator('.review-inline-editor').getByLabel('Housing',{exact:true}).fill('175');
   await page.getByRole('button',{name:'Done',exact:true}).click();
@@ -154,6 +202,15 @@ try {
   await page.setViewportSize({width:390,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'wide Structure draft fits phone');
   await page.screenshot({path:'artifacts/card-review-mobile-structure.png'});
+  const housingRow=page.locator('.review-change').filter({has:page.locator('strong',{hasText:/^Housing$/})});
+  await housingRow.getByRole('button',{name:'Revert',exact:true}).click();
+  await housingRow.waitFor({state:'detached'});
+  const resetEdits=page.getByTestId('review-reset');
+  await resetEdits.click();
+  assert.equal(await resetEdits.textContent(),'Reset all edits?','Reset asks before discarding edits');
+  await page.getByLabel('Review notes',{exact:true}).focus();
+  assert.equal(await resetEdits.textContent(),'Reset edits','leaving Reset disarms it');
+  assert.equal(await page.getByLabel('Footprint',{exact:true}).inputValue(),'3','unconfirmed Reset keeps edits');
   const download=page.waitForEvent('download');
   await page.getByTestId('review-export').click();
   const exported=JSON.parse(readFileSync(await (await download).path(),'utf8'));
@@ -161,13 +218,14 @@ try {
   assert.equal(exported.cards.find(card=>card.id==='smelting').notes,'Check the Metal chain on mobile.');
   assert.equal(exported.cards.find(card=>card.id==='smelting').modified.effects[0].amount,4);
   assert.equal(exported.cards.find(card=>card.id==='longhouse').modified.footprint,3);
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
-  await page.getByLabel('Category',{exact:true}).selectOption('practice');
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();
+  await choose('Category','practice');
   await page.getByText('0 matching runtime entries',{exact:false}).waitFor();
   await page.getByLabel('Search runtime content').fill('forage');
   await page.getByRole('button',{name:'Read Foraging, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await page.getByRole('button',{name:'Flag for review',exact:true}).click();
+  await page.getByRole('button',{name:'Open review',exact:true}).click();
   await page.getByRole('button',{name:'Edit Stock capacity & traits',exact:true}).click();
   const editor=page.locator('.review-inline-editor');
   assert.equal(await editor.locator('[data-pick]').count(),36,'all Stock icons are available');
@@ -200,11 +258,12 @@ try {
   await page.getByRole('button',{name:'Edit Stock capacity & traits',exact:true}).click();
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Water',exact:true}).getAttribute('aria-pressed'),'true','added tag persists across reload');
   await editor.getByRole('button',{name:'Done',exact:true}).click();
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('dryFarming');
   await page.getByRole('button',{name:'Read Dry Farming, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  await page.getByRole('button',{name:'Review card',exact:true}).click();
+  await page.getByRole('button',{name:'Flag for review',exact:true}).click();
+  await page.getByRole('button',{name:'Open review',exact:true}).click();
   await page.getByRole('button',{name:'Edit Production',exact:true}).click();
   await editor.getByLabel('Stock produced · Autumn',{exact:true}).fill('8');
   await editor.getByRole('button',{name:'Done',exact:true}).click();
@@ -227,21 +286,21 @@ try {
   assert.equal(trayExport.cards.find(card=>card.id==='smelting').notes,'Check the Metal chain on mobile.');
   assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'review edits preserve fixture state and RNG');
   checks.push('reviewer Dev/Zoo entry, icon trays and variable Stock tags, multiple schedule triggers/season yields, viewport-height modal with fixed Done footer and side/Escape dismissal, Charge/Structure values, phone/landscape/desktop bounds, persistence, combined export, state/RNG preservation');
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();
   await page.getByLabel('Search runtime content').fill('');
   await page.getByText('109 matching runtime entries',{exact:false}).waitFor();
-  await page.getByLabel('Card versions',{exact:true}).selectOption('edited-only');
+  await choose('Card versions','edited-only');
   await page.getByText('3 matching runtime entries',{exact:false}).waitFor();
   assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-edited=true]').count(),3,'Zoo can show only edited Practice drafts');
   await page.getByLabel('Search runtime content').fill('dryFarming');
   await page.getByRole('button',{name:'Read Dry Farming, bronze',exact:true}).waitFor();
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
-  await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  await page.getByRole('button',{name:'Compare',exact:true}).click();
   // The controller schedules comparison rendering on the next animation frame.
   await page.getByText('"spring":4',{exact:false}).first().waitFor();
   assert.ok(await page.getByText('"spring":4',{exact:false}).count(),'edited Zoo definition uses the proposed seasonal amounts');
-  await page.getByLabel('Card versions',{exact:true}).selectOption('live');
-  await page.getByRole('button',{name:'Inspect / compare',exact:true}).click();
+  await choose('Card versions','live');
+  await page.getByRole('button',{name:'Compare',exact:true}).click();
   await page.getByText('"summer":2',{exact:false}).waitFor();
   assert.equal(await page.locator('.lab-catalogue-grid>.lab-card[data-edited=true]').count(),0,'live Zoo values remain available');
   assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state)),zooState,'Zoo draft browsing preserves fixture state/RNG');
@@ -255,10 +314,9 @@ try {
   } else if(process.argv.includes('--zoo-only')) {
     // Walk the real paged catalogue: every runtime card must open both shared
     // reading surfaces, including unusual DSL effects and gated Structures.
-    await page.getByLabel('Slot size',{exact:true}).selectOption('');
     let inspected=0;
     for(const category of ['practice','structure']) {
-      await page.getByLabel('Category',{exact:true}).selectOption(category);
+      await choose('Category',category);
       await page.getByText(`${category==='practice'?109:78} matching runtime entries`,{exact:false}).waitFor();
       do {
         const cards=page.locator('.lab-catalogue-grid>.lab-card');
@@ -273,15 +331,15 @@ try {
             return reading?.mode==='quick'&&`Read ${reading.title}, ${reading.tier}`===name;
           },name);
           await page.keyboard.press('Escape');
-          await card.getByRole('button',{name:'Inspect tooltip',exact:true}).click();
+          await card.getByRole('button',{name:'Rules',exact:true}).click();
           assert.equal((await reading()).kind,category,`full inspection for ${name}`);
           assert.ok((await reading()).reading.effects.length,`rules for ${name}`);
           await page.getByRole('button',{name:'Close inspection',exact:true}).click();
           inspected++;
         }
-        if(await page.getByRole('button',{name:'Next',exact:true}).isDisabled())break;
+        if(await page.getByRole('button',{name:'Next',exact:true}).last().isDisabled())break;
         const first=await cards.first().locator('strong').textContent();
-        await page.getByRole('button',{name:'Next',exact:true}).click();
+        await page.getByRole('button',{name:'Next',exact:true}).last().click();
         await page.waitForFunction(first=>document.querySelector('.lab-catalogue-grid .lab-card strong')?.textContent!==first,first);
       } while(true);
     }
@@ -291,8 +349,10 @@ try {
     writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
     console.log('[probe:development-lab] OK: Zoo reading, quality comparison, keywords and desktop/mobile');
   } else {
-  await page.getByRole('link',{name:'Museum · systems'}).click();
+  await page.getByRole('link',{name:'Museum',exact:true}).click();
   await page.getByLabel('Fixture',{exact:true}).selectOption('food-31');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getSnapshot().exhibitId==='food-31');
+  checks.push('choosing a Museum exhibit opens it without a separate Load');
   await page.getByTestId('lab-load-fixture').click();
   await page.getByTestId('lab-step').click();
   await page.getByText('Meal demand\n2',{exact:true}).waitFor();
@@ -394,13 +454,19 @@ try {
   await page.getByLabel('Adult population',{exact:true}).fill('30');
   await page.getByLabel('Adult population',{exact:true}).press('Tab');
   await page.waitForFunction(()=>__LAB_DEBUG__.getSnapshot().state.world.sites.find(s=>s.regionId===__LAB_DEBUG__.getSnapshot().regionId).detailedState.populationByClass.villager.adults===30);
+  await page.getByTestId('lab-undo').click();
+  await page.waitForFunction(()=>__LAB_DEBUG__.getSnapshot().state.world.sites.find(s=>s.regionId===__LAB_DEBUG__.getSnapshot().regionId).detailedState.populationByClass.villager.adults!==30);
+  await page.getByLabel('Adult population',{exact:true}).fill('30');
+  await page.getByLabel('Adult population',{exact:true}).press('Tab');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getSnapshot().state.world.sites.find(s=>s.regionId===__LAB_DEBUG__.getSnapshot().regionId).detailedState.populationByClass.villager.adults===30);
+  checks.push('Gym Undo restores the state before the last edit');
   await page.getByLabel('Warrior adults',{exact:true}).fill('30');
   await page.getByLabel('Warrior adults',{exact:true}).press('Tab');
   await page.getByText('Warriors\n30 (was 0)',{exact:true}).waitFor();
   await page.getByLabel('Stock slot 3',{exact:true}).fill('999');
   await page.getByLabel('Stock slot 3',{exact:true}).press('Tab');
   await page.getByTestId('lab-status').filter({hasText:'at most'}).waitFor();
-  await page.getByText('Reproduce and share · saved fixtures / JSON',{exact:true}).click();
+  await page.getByText('Saved fixtures & JSON',{exact:true}).click();
   await page.getByLabel('Fixture name',{exact:true}).fill('browser reproduction');
   await page.getByRole('button',{name:'Save to Museum',exact:true}).click();
   await page.getByTestId('lab-step').click();

@@ -268,6 +268,9 @@ contract: `ai/visual-overhaul.md`.
   screen navigation, and read-only browsing; a changed authoritative frontier
   invalidates them. Confirm validates the batch in the Life decision worker and
   appends it once. Entering a node and paid rerolls remain real transactions.
+  Tapping a dimmed offer, option, reroll, relic or Confirm shows a short dock
+  notice with the reason (Prestige, requirement, replacement target or missing
+  choice) instead of silently ignoring the tap.
   Reachable node content and legal rerolls are prepared from isolated snapshots;
   preparation never spends Prestige or advances authoritative RNG.
   A screen-level animated processing indicator covers commit, resolution, and

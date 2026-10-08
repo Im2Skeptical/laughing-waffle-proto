@@ -22,7 +22,7 @@ export async function checkNodeSandbox(page, context) {
   async function staged() {
     try { await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.purchaseOrder.length===1,null,{timeout:3000}); }
     catch {
-      const actual=await page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {type:s.settings.type,open:s.modal.open,pending:s.modal.interactionPending,costs:s.modal.costPanels.map(c=>({state:c.interactionState,disabled:c.disabled})),status:document.querySelector('.lab-panel [role="status"]').textContent};});
+      const actual=await page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {type:s.settings.type,open:s.modal.open,pending:s.modal.interactionPending,costs:s.modal.costPanels.map(c=>({state:c.interactionState,disabled:c.disabled})),status:document.querySelector('.lab-node-sandbox [role="status"]')?.textContent};});
       throw new Error(`Expected one staged offer; actual ${JSON.stringify(actual)}`);
     }
   }
@@ -66,6 +66,9 @@ export async function checkNodeSandbox(page, context) {
   await click('confirm');await page.waitForFunction(()=>!__LAB_DEBUG__.getNodeSandbox().modal.open);
   assert.ok((await snapshot()).pending,'Confirm starts real resolution');
   await page.getByLabel('Sandbox node type').selectOption('patronage');await page.getByTestId('lab-node-refresh').click();
+  await click('confirm');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.blockedNotice==='Choose an option first.');
+  assert.equal((await snapshot()).modal,true,'a blocked Confirm explains itself without closing the node');
   await click('option');assert.ok((await snapshot()).selected);
   await click('confirm');await page.getByTestId('lab-node-resolve').click();
   assert.ok((await snapshot()).tSec>0);assert.equal((await snapshot()).pending,false);
@@ -87,10 +90,10 @@ export async function checkNodeSandbox(page, context) {
   const after=await page.evaluate(()=>({state:JSON.stringify(__LAB_DEBUG__.getSnapshot().state),storage:JSON.stringify({...localStorage})}));
   assert.ok(before.state===after.state,'dummy interactions leave the Gym timeline untouched');
   assert.ok(before.storage===after.storage,'dummy interactions write no saved state');
-  await page.getByRole('link',{name:'Zoo · content',exact:true}).click();await canvas.waitFor({state:'detached'});
+  await page.getByRole('link',{name:'Zoo',exact:true}).click();await canvas.waitFor({state:'detached'});
   assert.equal(await canvas.count(),0,'node workspace is absent from Zoo');
-  await page.getByRole('link',{name:'Museum · systems',exact:true}).click();
+  await page.getByRole('link',{name:'Museum',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-mode="museum"]').getAttribute('aria-current')==='page');
   assert.equal(await canvas.count(),0,'node workspace is absent from Museum');
-  await page.getByRole('link',{name:'Gym · sandbox',exact:true}).click();await page.getByTestId('lab-workspace-settlement').click();
+  await page.getByRole('link',{name:'Gym',exact:true}).click();await page.getByTestId('lab-workspace-settlement').click();
 }

@@ -1,7 +1,7 @@
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers } from '../../model/dev-lab/card-review.js';
-import { el, button, field, input, select, section } from './elements.js';
+import { el, button, confirmButton, field, input, select, section, disclosure, info, badge, isWide } from './elements.js';
 
 const groups = {
   stock:{label:'Stock capacity & traits', match:path => ['stockCapacity','stockTraits'].includes(path[0])},
@@ -12,6 +12,24 @@ const groups = {
   charge:{label:'Charge', match:path => path[0]==='charge' && typeof path.at(-1)==='string' && ['gain','threshold'].includes(path.at(-1))},
   capacity:{label:'Structure bonuses', match:path => ['housing','modifiers','candidateBonus','capacityPerCountSquared'].includes(path[0])},
 };
+// Value fields are grouped by what they change; the first matching group wins.
+const valueGroups = [
+  ['identity','Name & copy',path => ['label','rule','ui','tags','minimumQuality'].includes(path[0]) || ['triggerText','dischargeText'].includes(path.at(-1))],
+  ['costs','Costs & requirements',path => ['vassalPrestigeCost','vassalPhaseCost','specialistGate','footprint'].includes(path[0])],
+  ...Object.entries(groups).filter(([id]) => id !== 'schedule').map(([id,{label,match}]) => [id,label,match]),
+  ['other','Other values',() => true],
+];
+const valueEditCount = entry => entry.edits.filter(edit => !(edit.path.length === 1 && edit.path[0] === 'locked')).length;
+// Queue chips: the name plus compact state badges (edits, lock, notes).
+const queueChip = (node, label, entry, locked) => {
+  const edits = valueEditCount(entry);
+  node.replaceChildren(el('span',label,'review-queue-name'));
+  if (edits) node.append(badge(`${edits} edit${edits===1?'':'s'}`,'accent'));
+  if (locked) node.append(badge('Locked','warn'));
+  if (entry.notes) node.append(badge('Notes'));
+  node.setAttribute('aria-label',`${label}${locked?', locked':''}${edits?`, ${edits} edit${edits===1?'':'s'}`:''}${entry.notes?', notes':''}`);
+};
+const showValue = value => value === undefined ? 'unavailable' : typeof value === 'string' ? value : JSON.stringify(value);
 const labelFor = (def, path) => {
   const names={locked:'Card locked',stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
   const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
@@ -32,50 +50,74 @@ export function createCardReviewerView({review, cards, getState, run}) {
     const requested=new URLSearchParams(location.hash.split('?')[1]??'').get('card');
     if(requested&&entries.some(entry=>reviewKey(entry.kind,entry.id)===requested))selected=requested;
     if(!entries.some(entry=>reviewKey(entry.kind,entry.id)===selected))selected=entries[0]?reviewKey(entries[0].kind,entries[0].id):null;
-    const header=section('Card reviewer');
-    header.append(el('p','Tap a highlighted value area on your card to edit it. Changes, locks and notes save automatically on this device.'));
-    const exportAll=button(`Export all reviews (${entries.length})`,()=>{
+    const header=el('section','','lab-page-head review-head');
+    const heading=el('div');heading.append(el('h2','Card reviewer'),el('p','Edit flagged cards. Drafts save on this device.','lab-subtitle'));
+    header.append(heading);
+    const exportAll=button(`Export all (${entries.length})`,()=>{
       try {
         const url=URL.createObjectURL(new Blob([review.export()],{type:'application/json'}));
         const link=el('a');link.href=url;link.download='card-reviews.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
       } catch(error) {run(()=>{throw error;});}
-    },'review-export');exportAll.disabled=!entries.length;
+    },'review-export','quiet');exportAll.disabled=!entries.length;
     header.append(exportAll);
-    if(!entries.length){header.append(el('p','Flag a Practice or Structure using Review card in the Zoo, or Dev at the top right of its inspection.'));parent.append(header);return;}
-    const queue=el('div','','review-queue');queue.setAttribute('aria-label','Flagged cards');
+    const howTo=info('reviewer',[
+      'Tap an outlined area on the card to edit it, or use the grouped values below. Valid edits save immediately; partial numbers wait until they are valid.',
+      'Changes against live lists every edit with a Revert. Lock card keeps a card out of new shop offers once reviewed cards are applied (Use edited cards in new games on the menu, or Apply reviewed cards to draft in Gym). Existing runs keep their pool.',
+      'Export all downloads every flagged card with notes, original, live and proposed values.',
+    ],{label:'How reviewing works'});
+    if(!entries.length){parent.append(header,howTo,el('p','No flagged cards yet. Use Flag for review in the Zoo, or Dev at the top right of a card inspection.','lab-empty'));return;}
+    const queueWrap=el('div','','review-queue-wrap');
+    const queue=el('div','','review-queue');queue.setAttribute('aria-label','Flagged cards');queue.setAttribute('role','group');
     for(const entry of entries) {
       const key=reviewKey(entry.kind,entry.id), live=resolve(state,entry);
       const locked=review.preview(entry,live).definition.locked===true;
-      const pick=button(`${live?.label??entry.baseline.label}${locked?' · locked':''}${entry.edits.length?' · edited':''}${entry.notes?' · notes':''}`,()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
-      pick.dataset.reviewKey=key;
+      const name=live?.label??entry.baseline.label;
+      const pick=button('',()=>{selected=key;location.hash=`/dev/reviewer?card=${encodeURIComponent(key)}`;});
+      queueChip(pick,name,entry,locked);pick.dataset.reviewKey=key;pick.dataset.name=name.toLowerCase();
       pick.setAttribute('aria-pressed',String(selected===key));queue.append(pick);
     }
-    header.append(queue);parent.append(header);
+    // Long queues get a filter; the chip row itself scrolls sideways on phones.
+    if(entries.length>6) {
+      const filter=input('Filter flagged cards','','search');filter.placeholder=`Filter ${entries.length} flagged cards…`;
+      filter.addEventListener('input',()=>{const term=filter.value.trim().toLowerCase();for(const pick of queue.children)pick.hidden=!!term&&!pick.dataset.name.includes(term);});
+      queueWrap.append(filter);
+    }
+    queueWrap.append(queue);parent.append(header,howTo,queueWrap);
+    requestAnimationFrame(()=>queue.querySelector('[aria-pressed=true]')?.scrollIntoView({block:'nearest',inline:'nearest'}));
     const entry=entries.find(entry=>reviewKey(entry.kind,entry.id)===selected),live=resolve(state,entry);
     const projected=review.preview(entry,live);
     let definition=projected.definition;
     const panel=section(live?.label??entry.baseline.label);panel.classList.add('review-workspace');
+    const lockBadge=badge('Locked','warn'),titleRow=el('div','','lab-panel-head');titleRow.append(panel.firstChild,lockBadge);panel.prepend(titleRow);
     if(!live)panel.append(el('p','This card is absent from the current build. Its original definition, changes and notes are retained in your export.','lab-warning'));
     if(projected.conflicts.length)panel.append(el('p',`Some saved fields changed shape in this build: ${projected.conflicts.join(', ')}. These edits remain in your export.`,'lab-warning'));
     const valueFor=(def,path)=>readReviewValue(def,path)??(path.length===1&&path[0]==='locked'?false:undefined);
     const drift=entry.edits.filter(edit=>JSON.stringify(valueFor(entry.baseline,edit.path))!==JSON.stringify(valueFor(live,edit.path)));
     if(live&&drift.length)panel.append(el('p','The live build has changed some edited values since this card was flagged. Compare and check the changes below.','lab-warning'));
-    const controls=el('div','','lab-controls');
+    const controls=el('div','','lab-controls review-toolbar');
     const locked=definition.locked===true;
     const lock=button(locked?'Unlock card':'Lock card',()=>run(()=>review.setLocked(entry.kind,entry.id,!locked)),'review-lock');
-    lock.setAttribute('aria-pressed',String(locked));lock.disabled=!live;
-    panel.append(el('p',locked?'Locked · excluded from shop offers when reviewed cards are applied to a new run.':'Unlocked · available for shop offers.'));
-    panel.append(el('p','Use edited cards in new games in the game menu, or Apply reviewed cards to draft in Gym, to test these locks. Existing runs keep their saved pool.'));
+    lock.setAttribute('aria-pressed',String(locked));lock.disabled=!live;lockBadge.hidden=!locked;
+    lock.title=locked?'Excluded from new shop offers when reviewed cards are applied':'Available for shop offers';
     const compare=button(comparison?'Hide live comparison':'Compare with live',()=>{comparison=!comparison;run(()=>{});},'review-compare');compare.disabled=!live;
     const quality=select('Preview quality',['bronze','silver','gold','diamond'],previewTiers[selected]??entry.tier);
-    const remove=button('Delete review',()=>{
-      if(remove.dataset.confirm!=='yes'){remove.dataset.confirm='yes';remove.textContent='Delete review and notes?';return;}
+    const remove=confirmButton('Delete review','Delete review and notes?',()=>{
       review.remove(entry.kind,entry.id);selected=null;location.hash='/dev/reviewer';run(()=>{});
-    });
-    controls.append(lock,compare,field('Preview quality',quality),button('Reset edits',()=>{review.reset(entry.kind,entry.id);run(()=>{});}),remove);panel.append(controls);
+    },'review-delete');
+    // Reset discards every value edit, so it confirms like Delete does.
+    const reset=confirmButton('Reset edits','Reset all edits?',()=>{review.reset(entry.kind,entry.id);run(()=>{});},'review-reset');
+    reset.disabled=!entry.edits.length;
+    // Frequent actions stay in the (sticky on phones) toolbar; destructive ones
+    // sit with the change list they affect.
+    controls.append(lock,compare,field('Quality',quality));panel.append(controls);
+    const danger=el('div','','lab-controls review-danger');danger.append(reset,remove);
     const preview=el('div','','review-preview'), draftColumn=el('div','','review-column'), liveColumn=el('div','','review-column');
     const draftTitle=el('h3',`Your draft · ${definition.label}`),draftReading=el('div','','review-reading'),liveReading=el('div','','review-reading');
     draftColumn.append(draftTitle);preview.append(draftColumn);panel.append(preview);
+    // The diff sits directly under the card so phone reviewers see it without
+    // scrolling past every field.
+    const changesTitle=el('h3','Changes against live'),changes=el('div','','review-changes');
+    panel.append(changesTitle,changes,danger);
     const surface=el('div','','review-face'), targets=el('div','','review-targets');
     const editor=el('dialog','','review-inline-editor');editor.hidden=true;
     const editorTitle=el('strong'),editorFields=el('div','','review-editor-body');editor.append(editorTitle,editorFields,button('Done',()=>editor.close()));
@@ -103,13 +145,29 @@ export function createCardReviewerView({review, cards, getState, run}) {
       if(entry.kind==='practice')face.stockCapacity=stockCapacity(previewState,{structureSlots:[]},slot);
       return face;
     };
-    const changes=el('div','','review-changes'), saveStatus=el('p','Saved on this device','review-save-status');saveStatus.setAttribute('role','status');
+    const saveStatus=el('p','Saved on this device','review-save-status');saveStatus.classList.add('lab-note');saveStatus.setAttribute('role','status');
     function changedRows() {
       const current=review.get(entry.kind,entry.id);changes.replaceChildren();
       const pick=[...queue.children].find(node=>node.dataset.reviewKey===reviewKey(entry.kind,entry.id));
-      if(pick)pick.textContent=`${live?.label??entry.baseline.label}${definition.locked===true?' · locked':''}${current.edits.length?' · edited':''}${current.notes?' · notes':''}`;
-      for(const edit of current.edits)changes.append(el('p',`${labelFor(definition,edit.path)}: live ${JSON.stringify(valueFor(live,edit.path))??'unavailable'} → draft ${JSON.stringify(edit.value)}`));
-      if(!current.edits.length)changes.append(el('p','No value changes yet.'));
+      if(pick)queueChip(pick,live?.label??entry.baseline.label,current,definition.locked===true);
+      const valueEdits=current.edits.filter(edit=>!(edit.path.length===1&&edit.path[0]==='locked'));
+      changesTitle.textContent=`Changes against live${valueEdits.length?` (${valueEdits.length})`:''}`;
+      reset.disabled=!current.edits.length;
+      for(const edit of valueEdits) {
+        const row=el('div','','review-change');
+        const text=el('p');text.append(el('strong',labelFor(definition,edit.path)),' ',el('span',showValue(valueFor(live,edit.path)),'review-old'),' → ',el('span',showValue(edit.value),'review-new'));
+        row.append(text);
+        if(live)row.append(button('Revert',()=>{
+          try{
+            if(edit.path[0]==='activation')review.schedule(entry.kind,entry.id,reviewScheduleTriggers(live));
+            else review.edit(entry.kind,entry.id,edit.path,valueFor(live,edit.path));
+            refresh();renderValues();saveStatus.textContent='Saved on this device';
+          }
+          catch(error){saveStatus.textContent=`Could not revert: ${error.message}`;}
+        },'','quiet'));
+        changes.append(row);
+      }
+      if(!valueEdits.length)changes.append(el('p','No value changes yet.','lab-empty'));
     }
     function refresh() {
       definition=review.preview(review.get(entry.kind,entry.id),live).definition;
@@ -130,15 +188,33 @@ export function createCardReviewerView({review, cards, getState, run}) {
         const control=typeof value==='boolean'?select(label,[['true','Yes'],['false','No']],String(value)):choices?select(label,choices,value):input(label,value,typeof value==='number'?'number':'text');
         if(typeof value==='number'){control.removeAttribute('min');control.step='any';control.inputMode='decimal';}
         control.dataset.reviewPath=JSON.stringify(item.path);
-        const feedback=el('span','','review-field-error'), wrapper=field(label,control);feedback.setAttribute('role','status');wrapper.append(feedback);
-        control.addEventListener(typeof value==='boolean'||choices?'change':'input',()=>{
+        const feedback=el('span','','review-field-error'), wrapper=field(label,control);feedback.setAttribute('role','status');
+        // Edited values show the live value beneath, so the diff is visible in place.
+        const liveValue=live?readReviewValue(live,item.path):undefined;
+        if(live&&JSON.stringify(liveValue)!==JSON.stringify(value)){wrapper.dataset.edited='true';wrapper.append(el('span',`Live: ${showValue(liveValue)}`,'review-field-live'));}
+        wrapper.append(feedback);
+        let pending=null;
+        const commit=()=>{
+          clearTimeout(pending);pending=null;
           try {
-            if(typeof value==='number'&&!control.value.trim())throw new Error('Enter a number.');
+            if(typeof value==='number'&&(!control.value.trim()||!Number.isFinite(control.valueAsNumber)))throw new Error('Enter a number.');
             review.edit(entry.kind,entry.id,item.path,typeof value==='number'?control.valueAsNumber:typeof value==='boolean'?control.value==='true':control.value);
             refresh();feedback.textContent='';control.removeAttribute('aria-invalid');saveStatus.textContent='Saved on this device';
             for(const sibling of panel.querySelectorAll('[data-review-path]'))if(sibling!==control&&sibling.dataset.reviewPath===control.dataset.reviewPath)sibling.value=control.value;
           } catch(error){feedback.textContent=error.message;control.setAttribute('aria-invalid','true');saveStatus.textContent='This value has not been saved.';}
-        });destination.append(wrapper);
+        };
+        if(typeof value==='boolean'||choices)control.addEventListener('change',commit);
+        else {
+          // Typed values save after a short pause or when the field is left,
+          // so partial input ("1" on the way to "12", or "-") is not stored.
+          control.addEventListener('input',()=>{
+            clearTimeout(pending);saveStatus.textContent='Unsaved change…';
+            if(typeof value==='number'&&(!control.value.trim()||!Number.isFinite(control.valueAsNumber)))return;
+            pending=setTimeout(commit,450);
+          });
+          control.addEventListener('change',commit);
+        }
+        destination.append(wrapper);
       }
     }
     const title=value=>value[0].toUpperCase()+value.slice(1);
@@ -199,20 +275,40 @@ export function createCardReviewerView({review, cards, getState, run}) {
     draftImage=cards.image(makeFace(definition),sections);surface.append(draftImage.node,targets,editor);draftColumn.append(surface,draftReading);readingCopy(draftReading,makeFace(definition));
     if(comparison&&live){liveColumn.append(el('h3',`Live · ${live.label}`));liveImage=cards.image(makeFace(live));const liveSurface=el('div','','review-face');liveSurface.append(liveImage.node);liveColumn.append(liveSurface,liveReading);readingCopy(liveReading,makeFace(live));preview.append(liveColumn);}
     quality.addEventListener('change',()=>{tier=quality.value;previewTiers[selected]=tier;refresh();});
-    const notes=el('textarea');notes.value=entry.notes;notes.rows=3;notes.placeholder='What should change, and why?';notes.setAttribute('aria-label','Review notes');
+    const notes=el('textarea');notes.value=entry.notes;notes.rows=2;notes.placeholder='What should change, and why?';notes.setAttribute('aria-label','Review notes');
     notes.addEventListener('input',()=>{try{review.notes(entry.kind,entry.id,notes.value);saveStatus.textContent='Saved on this device';changedRows();}catch(error){saveStatus.textContent=`Notes not saved: ${error.message}`;}});
-    panel.append(saveStatus,el('h3','Notes'),notes);
+    panel.append(el('h3','Notes'),notes,saveStatus);
     const shortcuts=el('div','','lab-controls');
     if(Array.isArray(definition.stockTraits))shortcuts.append(button('Choose Stock tags',()=>editGroup('stock')));
     if(definition.mode==='scheduled')shortcuts.append(button('Choose schedule triggers',()=>editGroup('schedule')));
-    const form=el('div','','review-fields'),more=el('details'),moreFields=el('div','','review-fields');more.append(el('summary','More definition values'),moreFields);
+    // Values are grouped and collapsible: groups with edits open, the rest
+    // stay closed on phones until asked for. A search finds any value.
+    const valuesHost=el('div','','review-value-groups');
+    const find=input('Find a card value','','search');find.placeholder='Find a value…';
+    let term='';
+    find.addEventListener('input',()=>{term=find.value.trim().toLowerCase();renderValues();});
     function renderValues() {
       const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0]));
-      const primary=fields.filter(item=>typeof item.value==='number'||['label','tags','ui','minimumQuality'].includes(item.path[0])||['triggerText','dischargeText'].includes(item.path.at(-1)));
-      controlsFor(primary,form);const extra=fields.filter(item=>!primary.includes(item));controlsFor(extra,moreFields);more.hidden=!extra.length;
+      const current=review.get(entry.kind,entry.id), editedPaths=new Set(current.edits.map(edit=>JSON.stringify(edit.path)));
+      const assigned=new Map(valueGroups.map(([id])=>[id,[]]));
+      for(const item of fields)assigned.get(valueGroups.find(([,,match])=>match(item.path))[0]).push(item);
+      const scrollY=window.scrollY;valuesHost.replaceChildren();
+      for(const [id,label] of valueGroups) {
+        const items=assigned.get(id).filter(item=>!term||labelFor(definition,item.path).toLowerCase().includes(term));
+        if(!items.length)continue;
+        const edits=items.filter(item=>editedPaths.has(JSON.stringify(item.path))).length;
+        const body=el('div','','review-fields');controlsFor(items,body);
+        const box=disclosure(label,[body],{key:term?undefined:`review:group:${id}`,open:!!term||edits>0||isWide(),count:items.length,className:'review-group',badges:[edits?badge(`${edits} edited`,'accent'):null]});
+        if(term)box.open=true;
+        box.dataset.group=id;valuesHost.append(box);
+      }
+      if(!valuesHost.children.length)valuesHost.append(el('p','No values match.','lab-empty'));
+      window.scrollTo(0,scrollY);
     }
-    renderValues();panel.append(el('h3','Card values'),shortcuts,form,more);
-    panel.append(el('h3','Changes against live'),changes);changedRows();parent.append(panel);
+    renderValues();
+    const valuesHead=el('div','','lab-panel-head');valuesHead.append(el('h3','Card values'),find);
+    panel.append(valuesHead,shortcuts,valuesHost);
+    changedRows();parent.append(panel);
   }
   return {render};
 }

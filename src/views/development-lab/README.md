@@ -4,10 +4,23 @@ The hash entry in `ui-root-pixi.js` boots `development-lab-dom.js` without the
 live game shell. DOM views emit controller commands. `cards.js` renders the
 actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
-The global stylesheet uses `.development-lab` selectors only.
+The global stylesheet uses `.development-lab` selectors only, driven by the
+tokens at the top of that block. `elements.js` holds the shared building blocks:
+button tones, `disclosure` (remembered collapsible groups with count badges),
+`info` ("How … works" toggles), field-level help, `badge`, `segmented` and
+`group`. Remembered open/closed state uses one browser-storage key and is only
+written when a person toggles something.
 
 `new-run-setup.js` mounts Map Lab, Game Settings and Life Map Lab under Gym,
-with one combined-profile toolbar. The card reviewer owns gamepiece editing;
+with one combined-profile toolbar. Those editors (`../map-lab-dom.js`,
+`../debug-configuration-dom.js`, `../life-map-lab-dom.js`) are only mounted
+here; they build on `elements.js` and their styles are scoped under
+`.development-lab .lab-editor`, with no injected or inline style blocks.
+`lockDebugEditor` skips controls marked `data-lab-ui` (help toggles, searches)
+so the read-only baseline stays explorable.
+`zoo.js` keeps the filter drawer open state and the sliding bar state in its
+closure so re-renders after a filter change keep the drawer and focus in place;
+`--lab-zoo-bar-h` offsets sticky headers below the bar. The card reviewer owns gamepiece editing;
 reviewed cards can be applied to the combined profile. `debug-profile-controller.js` owns read-only Regular game, editable
 recipe copies, local drafts/profiles and launch options. Both its launches and
 player New Game use `model/new-game.js`. Profiles describe initialization;

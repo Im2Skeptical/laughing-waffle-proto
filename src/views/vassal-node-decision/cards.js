@@ -12,10 +12,12 @@ import {
   QUALITY_COLORS,
 } from "./constants.js";
 
-export function button(parent, rect, label, enabled, onClick, selected = false, {fontSize = 22} = {}) {
+// A disabled button with onUnavailable stays dimmed but answers a tap with
+// its reason instead of ignoring it.
+export function button(parent, rect, label, enabled, onClick, selected = false, {fontSize = 22, onUnavailable = null} = {}) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
-  root.eventMode = enabled ? "static" : "none";
+  root.eventMode = enabled || onUnavailable ? "static" : "none";
   root.cursor = enabled ? "pointer" : "default";
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
   const gfx = new PIXI.Graphics();
@@ -28,6 +30,7 @@ export function button(parent, rect, label, enabled, onClick, selected = false, 
     wordWrap: true, wordWrapWidth: rect.width - 18, align: "center",
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, { enabled, onActivate: onClick });
+  if (!enabled && onUnavailable) root.on('pointertap', event => { event.stopPropagation(); onUnavailable(event); });
   parent.addChild(root);
   return root;
 }
