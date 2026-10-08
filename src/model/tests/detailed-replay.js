@@ -1,5 +1,6 @@
 import "./timegraph-performance.js";
 import "./projection-shared-config.js";
+import "./simulation-clone-equivalence.js";
 import './development-lab.js';
 import assert from "node:assert/strict";
 import './settlement-redesign.js';

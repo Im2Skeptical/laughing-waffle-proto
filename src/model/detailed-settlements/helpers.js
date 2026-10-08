@@ -27,7 +27,63 @@ export function roundFood(value) {
   return Math.max(0, Math.round((Number(value) || 0) * FOOD_SCALE) / FOOD_SCALE);
 }
 
+const JSON_CLONE_UNSUPPORTED = Symbol("jsonCloneUnsupported");
+
+// Mirrors one JSON value conversion: non-finite numbers become null, -0
+// becomes 0, and undefined/function/symbol values are omitted from objects
+// and become null in arrays. Anything outside plain JSON-shaped data throws
+// the sentinel so the caller uses the real JSON round trip instead (which
+// also reproduces JSON's errors, e.g. for cycles caught by the depth guard).
+const JSON_CLONE_MAX_DEPTH = 256;
+function jsonCloneValue(value, inArray, depth = 0) {
+  switch (typeof value) {
+    case "string":
+    case "boolean":
+      return value;
+    case "number":
+      return Number.isFinite(value) ? (value === 0 ? 0 : value) : null;
+    case "undefined":
+    case "function":
+    case "symbol":
+      return inArray ? null : undefined;
+    case "object": {
+      if (value === null) return null;
+      if (depth > JSON_CLONE_MAX_DEPTH) throw JSON_CLONE_UNSUPPORTED;
+      if (typeof value.toJSON === "function") throw JSON_CLONE_UNSUPPORTED;
+      if (Array.isArray(value)) {
+        if (Object.getPrototypeOf(value) !== Array.prototype) throw JSON_CLONE_UNSUPPORTED;
+        const out = new Array(value.length);
+        for (let index = 0; index < value.length; index++) out[index] = jsonCloneValue(value[index], true, depth + 1);
+        return out;
+      }
+      const proto = Object.getPrototypeOf(value);
+      if (proto !== Object.prototype && proto !== null) throw JSON_CLONE_UNSUPPORTED;
+      const out = {};
+      for (const key of Object.keys(value)) {
+        const child = jsonCloneValue(value[key], false, depth + 1);
+        if (child === undefined) continue;
+        if (key === "__proto__") {
+          Object.defineProperty(out, key, { value: child, enumerable: true, writable: true, configurable: true });
+        } else out[key] = child;
+      }
+      return out;
+    }
+    default:
+      throw JSON_CLONE_UNSUPPORTED;
+  }
+}
+
+// Same result as JSON.parse(JSON.stringify(value)) (values, key order,
+// null/-0/non-finite handling) for JSON-shaped data, without building and
+// reparsing a string on the simulation hot path.
 export function clone(value) {
+  if (value !== undefined && typeof value !== "function" && typeof value !== "symbol") {
+    try {
+      return jsonCloneValue(value, false);
+    } catch (error) {
+      if (error !== JSON_CLONE_UNSUPPORTED) throw error;
+    }
+  }
   return JSON.parse(JSON.stringify(value));
 }
 

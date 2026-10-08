@@ -10,11 +10,38 @@ export function addAgeCohort(target, source, sign = 1) {
   for(const e of source?.eldersByAge ?? []) ages.set(e.age,(ages.get(e.age)??0)+sign*e.count);
   target.eldersByAge = [...ages].filter(([,count])=>count>0).sort((a,b)=>a[0]-b[0]).map(([age,count])=>({age,count}));
 }
+const PLAIN_CLONE_UNSUPPORTED = Symbol('plainCloneUnsupported');
+// structuredClone semantics for plain objects/arrays/primitives: keeps
+// undefined, -0, NaN, holes, key order, and shared/cyclic references (via
+// seen). Anything else throws the sentinel and gets the real structuredClone.
+function plainStructuredCopy(value, seen) {
+  if (value === null || typeof value !== 'object') {
+    if (typeof value === 'function' || typeof value === 'symbol') throw PLAIN_CLONE_UNSUPPORTED;
+    return value;
+  }
+  const prior = seen.get(value);
+  if (prior) return prior;
+  const proto = Object.getPrototypeOf(value);
+  const out = Array.isArray(value) && proto === Array.prototype ? new Array(value.length)
+    : proto === Object.prototype || proto === null ? {} : null;
+  if (!out) throw PLAIN_CLONE_UNSUPPORTED;
+  seen.set(value, out);
+  for (const key of Object.keys(value)) {
+    const child = plainStructuredCopy(value[key], seen);
+    if (key === '__proto__') Object.defineProperty(out, key, { value: child, enumerable: true, writable: true, configurable: true });
+    else out[key] = child;
+  }
+  return out;
+}
+function cloneCohortData(value) {
+  try { return plainStructuredCopy(value, new Map()); }
+  catch (error) { if (error !== PLAIN_CLONE_UNSUPPORTED) throw error; return structuredClone(value); }
+}
 export function splitSpecialistCohorts(cohort) {
-  const ordinary = { children:cohort?.children??0, adults:cohort?.adults??0, eldersByAge:structuredClone(cohort?.eldersByAge??[]) };
+  const ordinary = { children:cohort?.children??0, adults:cohort?.adults??0, eldersByAge:cloneCohortData(cohort?.eldersByAge??[]) };
   const parts = { ordinary };
   for(const id of SPECIALIST_IDS) {
-    parts[id]=structuredClone(cohort?.specialists?.[id]??emptyAgeCohort());
+    parts[id]=cloneCohortData(cohort?.specialists?.[id]??emptyAgeCohort());
     addAgeCohort(ordinary,parts[id],-1);
   }
   return parts;
