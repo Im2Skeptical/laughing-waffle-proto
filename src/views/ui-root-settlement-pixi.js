@@ -1527,6 +1527,7 @@ function publishSettlementDebugApi() {
         candidateNodeId: vassalLifeMapView?.getCandidateNodeId?.() ?? null,
         entryConfirmationOpen: vassalLifeMapView?.isEntryConfirmationOpen?.() === true,
         entryCancelPoint: vassalLifeMapView?.getEntryCancelClickPoint?.() ?? null,
+        entryConfirmation: vassalLifeMapView?.getEntryConfirmationSnapshot?.() ?? null,
         profile: presentation.profileVassal ? {
           prestige: presentation.profileVassal.prestige,
           stats: presentation.profileVassal.stats,

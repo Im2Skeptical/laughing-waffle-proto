@@ -4,6 +4,7 @@ import { createSettlementVassalFlow } from '../src/views/ui-root/settlement-vass
 import { createNewGameState } from '../src/model/new-game.js';
 import { getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
 import { createVassalResolutionRecapView } from '../src/views/vassal-resolution-recap-pixi.js';
+import { describeEntryBlockedReason, getEntryConsequences } from '../src/views/life-map-entry-confirm-pixi.js';
 import { selectedState, forceEnter, nodeIdForFamily, dispatch, resolvePending }
   from '../src/model/tests/vassal-life-map/helpers.js';
 
@@ -64,6 +65,17 @@ flow.dispatchLifeMapAction(ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: 'test
 assert.equal(dispatched.at(-1).options.viewInvalidationReason, undefined);
 assert.equal(invalidated, 1);
 console.log('[life-map-interaction] entry and drafts avoid forecast rebuild; confirmation invalidates');
+
+// The compact entry dialog only adds rows for conditional warnings.
+assert.deepEqual(getEntryConsequences({node:{family:'training'}}), [], 'ordinary nodes need no consequence rows');
+for (const node of [{family:'crisis'}, {family:'relic'}, {family:'signature', signatureNode:{variantId:'monsterHunt'}}]) {
+  assert.deepEqual(getEntryConsequences({node}).map(row => row.id), ['risk'], `${node.family} warns about death risk`);
+}
+assert.deepEqual(getEntryConsequences({node:{family:'travel'}, blockedReason:'heirloomLoadoutRequired'}),
+  [{id:'blocked', label:"Can't enter", detail:'Finish equipping Heirlooms first.'}]);
+assert.equal(describeEntryBlockedReason('somethingNew'), "This node can't be entered right now.");
+assert.equal(describeEntryBlockedReason(null), null);
+console.log('[life-map-interaction] entry confirmation shows only risk and blocked-entry rows');
 
 // A Vassal may die while the player is viewing the civilization map.
 // Exercise the real recap view with a minimal display surface.
