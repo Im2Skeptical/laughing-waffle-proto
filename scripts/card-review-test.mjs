@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createAuthoredGameConfig, canonicalizeGamepiecesDraft, validateGamepiecesDraft } from '../src/model/game-config.js';
 import { createCardReviewController, CARD_REVIEW_STORAGE_KEY } from '../src/controllers/card-review-controller.js';
-import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS } from '../src/model/dev-lab/card-review.js';
+import { projectReview, reviewScheduleTriggers, REVIEW_STOCK_TRAITS, reviewBulkFields, planReviewBulkEdit } from '../src/model/dev-lab/card-review.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { createEmptyTimelineFromBase, rebuildStateAtSecond } from '../src/model/timeline/index.js';
@@ -257,4 +257,70 @@ assert.deepEqual(serializeGameState(rebuildStateAtSecond(planTimeline,7).state),
 planReview.reset('structure','mudHouses');
 assert.deepEqual(planReview.applyTo(gameConfig.gamepieces).gamepieces.structures.mudHouses.construction,gameConfig.gamepieces.structures.mudHouses.construction);
 assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves authored definitions untouched');
-console.log('[card-review] OK: persistent proposals/locks/construction costs, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures');
+
+// Bulk edit: one value across a group, skipped cards with reasons, single write, undo.
+{
+  const bulkStored=new Map();let writes=0;
+  const bulkStorage={getItem:key=>bulkStored.get(key)??null,setItem:(key,value)=>{writes++;bulkStored.set(key,value);}};
+  const bulkLive=structuredClone(gameConfig.gamepieces);
+  const bulkResolve=(kind,id)=>bulkLive[kind==='practice'?'practices':'structures'][id];
+  const bulk=createCardReviewController({storage:bulkStorage,resolveLive:bulkResolve});
+  const practiceIds=Object.keys(bulkLive.practices).slice(0,5);
+  writes=0;
+  assert.equal(bulk.flagMany([...practiceIds.map(id=>({kind:'practice',id,definition:bulkLive.practices[id],tier:'bronze'})),{kind:'structure',id:'mudHouses',definition:bulkLive.structures.mudHouses}]),6);
+  assert.equal(writes,1,'flagging a filtered group is one storage write');
+  assert.equal(bulk.flagMany([{kind:'practice',id:practiceIds[0],definition:bulkLive.practices[practiceIds[0]]}]),0,'re-flagging adds nothing');
+  const [first,second,third,fourth]=practiceIds, keys=[...practiceIds.map(id=>`practice:${id}`),'structure:mudHouses','practice:missingCard'];
+  bulk.edit('practice',second,['workerCapacity'],5);
+  bulk.notes('practice',second,'Keep my note.');
+  bulk.setLocked('practice',third,true);
+  bulk.edit('practice',fourth,['effects',0,'amount'],(bulkLive.practices[fourth].effects?.[0]?.amount??0)+1);
+  const fields=bulk.bulkFields(keys), sockets=fields.find(field=>field.path[0]==='workerCapacity');
+  assert.equal(sockets.count,5,'Worker sockets: 5 of the 6 present cards have it');
+  assert.deepEqual(sockets.values,[2,5]);
+  assert.equal(fields.find(field=>field.path[0]==='vassalPrestigeCost').count,6,'shared costs count practices and structures');
+  assert.equal(fields.find(field=>field.path[0]==='minimumQuality').type,'choice');
+  assert.ok(!fields.some(field=>['locked','label','effects','tags','authoredHook'].includes(field.path[0])),'bulk fields stay top-level numbers and choices');
+  assert.deepEqual(reviewBulkFields([{label:'x',locked:true,effects:[{op:'research',amount:1}],workerBonus:1}]).map(field=>field.path[0]),['workerBonus']);
+  const plan=bulk.planBulk(keys,['workerCapacity'],5);
+  const reason=key=>plan.find(row=>row.key===key);
+  assert.equal(reason(`practice:${first}`).status,'change');assert.equal(reason(`practice:${first}`).from,2);
+  assert.equal(reason(`practice:${second}`).reason,'same');
+  assert.equal(reason(`practice:${third}`).reason,'locked');
+  assert.equal(reason('structure:mudHouses').reason,'missing');
+  assert.equal(reason('practice:missingCard').reason,'absent');
+  assert.equal(bulk.planBulk(keys,['workerCapacity'],5,{includeLocked:true}).find(row=>row.key===`practice:${third}`).status,'change');
+  const invalid=bulk.planBulk(keys,['workerCapacity'],13);
+  assert.ok(invalid.filter(row=>row.reason==='invalid').length===5&&!invalid.some(row=>row.status==='change'),'invalid values skip every card with the validation message');
+  assert.match(invalid.find(row=>row.reason==='invalid').message,/worker sockets 0–12/);
+  assert.deepEqual(planReviewBulkEdit([{key:'a',definition:{minimumQuality:'bronze'}}],['minimumQuality'],'platinum').map(row=>row.reason),['invalid']);
+  const beforeBulk=bulkStorage.getItem(CARD_REVIEW_STORAGE_KEY);
+  writes=0;
+  const result=bulk.bulkEdit(keys,['workerCapacity'],5);
+  assert.equal(writes,1,'a bulk edit saves in one storage write');
+  assert.deepEqual(result.changed.sort(),[first,fourth,practiceIds[4]].map(id=>`practice:${id}`).sort());
+  assert.deepEqual(result.skipped.map(row=>row.reason).sort(),['absent','locked','missing','same']);
+  for(const id of [first,fourth,practiceIds[4]])assert.equal(bulk.preview(bulk.get('practice',id)).definition.workerCapacity,5);
+  assert.equal(bulk.preview(bulk.get('practice',third)).definition.workerCapacity,2,'locked cards are skipped unless included');
+  assert.equal(bulk.get('practice',fourth).edits.length,2,'bulk edits add to existing per-card edits');
+  assert.equal(bulk.get('structure','mudHouses').edits.length,0);
+  // Per-card Revert (a single-card edit back to live) still works on bulk results.
+  bulk.edit('practice',first,['workerCapacity'],bulkLive.practices[first].workerCapacity);
+  assert.equal(bulk.get('practice',first).edits.length,0,'reverting a bulk change removes that edit');
+  bulk.notes('practice',fourth,'Written after the bulk edit.');
+  assert.equal(bulk.undoBulk(result.undo),3);
+  const afterUndo=JSON.parse(bulkStorage.getItem(CARD_REVIEW_STORAGE_KEY)),beforeDoc=JSON.parse(beforeBulk);
+  for(const key of keys.filter(key=>beforeDoc.cards[key])) {
+    assert.deepEqual(afterUndo.cards[key].edits,beforeDoc.cards[key].edits,`${key} edits restored by undo`);
+    assert.deepEqual(afterUndo.cards[key].baseline,beforeDoc.cards[key].baseline,`${key} baseline restored by undo`);
+  }
+  assert.equal(afterUndo.cards[`practice:${fourth}`].notes,'Written after the bulk edit.','undo keeps notes written since');
+  assert.equal(afterUndo.cards[`practice:${second}`].notes,'Keep my note.');
+  const included=bulk.bulkEdit(keys,['minimumQuality'],'silver',{includeLocked:true});
+  assert.ok(included.changed.includes(`practice:${third}`)&&included.changed.includes('structure:mudHouses'),'Include locked applies to locked cards; choices apply across kinds');
+  bulk.remove('practice',third);
+  assert.equal(bulk.undoBulk(included.undo),included.changed.length-1,'cards deleted since stay deleted');
+  assert.equal(bulk.get('practice',third),null);
+  writes=0;assert.deepEqual(bulk.bulkEdit(keys,['workerCapacity'],99).changed,[]);
+}
+console.log('[card-review] OK: persistent proposals/locks/construction costs, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures, bulk edits/skips/undo');

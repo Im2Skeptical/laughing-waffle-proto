@@ -1,4 +1,4 @@
-import { parseReviewDocument, projectReview, applyCardReviews, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument } from '../model/dev-lab/card-review.js';
+import { parseReviewDocument, projectReview, applyCardReviews, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument, planReviewBulkEdit, reviewBulkFields } from '../model/dev-lab/card-review.js';
 import { createAuthoredGamepiecesDraft, validateGamepiecesDraft } from '../model/game-config.js';
 import { createNewGameState } from '../model/new-game.js';
 
@@ -20,7 +20,7 @@ export function createCardReviewController({storage = browserStorage(), resolveL
     const doc = read(); action(doc); storage.setItem(CARD_REVIEW_STORAGE_KEY, JSON.stringify(doc)); return doc;
   };
   const prefix = (a,b) => a.length<=b.length&&a.every((part,index)=>part===b[index]);
-  const editValues = (kind,id,proposals) => write(doc=>{
+  const applyEdits = (doc,kind,id,proposals) => {
     const entry=doc.cards[reviewKey(kind,id)];
     if(!entry)throw new Error('Flag this card before editing.');
     const live=resolveLive?.(kind,id)??entry.baseline;
@@ -48,6 +48,23 @@ export function createCardReviewController({storage = browserStorage(), resolveL
       entry.edits=entry.edits.filter(edit=>!prefix(storedPath,edit.path)&&!prefix(edit.path,storedPath));
       if(JSON.stringify(readReviewValue(live,storedPath)??(isLock?false:null))!==JSON.stringify(storedValue))entry.edits.push({path:storedPath,value:storedValue});
     }
+  };
+  const editValues = (kind,id,proposals) => write(doc=>applyEdits(doc,kind,id,proposals));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const addFlag = (doc,kind,id,definition,tier='bronze') => {
+    if (!['practice','structure'].includes(kind) || !definition) throw new Error('Only Practice and Structure cards can be reviewed.');
+    const key = reviewKey(kind, id);
+    if (doc.cards[key]) return false;
+    doc.cards[key] = {kind, id, tier, baseline:clone(definition), edits:[], notes:'', flaggedAt:new Date().toISOString()};
+    return true;
+  };
+  // Bulk targets carry the projected draft so plans match what single edits see.
+  const bulkTargets = (doc,keys) => [...new Set(keys)].map(key=>{
+    const entry=doc.cards[key];
+    if(!entry)return {key,label:key,absent:true};
+    const live=resolveLive?.(entry.kind,entry.id);
+    const definition=projectReview(entry,live??entry.baseline).definition;
+    return {key,label:definition.label??entry.id,definition,locked:definition.locked===true,absent:Boolean(resolveLive)&&!live};
   });
   return {
     useInNewGames:enabled,
@@ -65,10 +82,39 @@ export function createCardReviewController({storage = browserStorage(), resolveL
     get:(kind, id) => read().cards[reviewKey(kind, id)] ?? null,
     flag(kind, id, definition, tier = 'bronze') {
       if (!['practice','structure'].includes(kind) || !definition) throw new Error('Only Practice and Structure cards can be reviewed.');
-      write(doc => {
-        const key = reviewKey(kind, id);
-        if (!doc.cards[key]) doc.cards[key] = {kind, id, tier, baseline:JSON.parse(JSON.stringify(definition)), edits:[], notes:'', flaggedAt:new Date().toISOString()};
+      write(doc => {addFlag(doc,kind,id,definition,tier);});
+    },
+    // One storage write; existing reviews keep their edits and notes.
+    flagMany(items) {
+      let added=0;
+      write(doc=>{for(const {kind,id,definition,tier} of items)if(addFlag(doc,kind,id,definition,tier))added++;});
+      return added;
+    },
+    bulkFields:keys=>reviewBulkFields(bulkTargets(read(),keys).filter(target=>!target.absent).map(target=>target.definition)),
+    planBulk:(keys,path,value,options)=>planReviewBulkEdit(bulkTargets(read(),keys),path,value,options),
+    // Applies one top-level value to many cards in a single storage write.
+    // Returns the plan rows plus an undo snapshot of each changed card's
+    // baseline and edits from before the change.
+    bulkEdit(keys,path,value,options) {
+      let result;
+      write(doc=>{
+        const rows=[], entries={};
+        for(const row of planReviewBulkEdit(bulkTargets(doc,keys),path,value,options)) {
+          if(row.status!=='change'){rows.push(row);continue;}
+          const entry=doc.cards[row.key], before={baseline:clone(entry.baseline),edits:clone(entry.edits)};
+          try{applyEdits(doc,entry.kind,entry.id,[{path,value}]);entries[row.key]=before;rows.push(row);}
+          catch(error){Object.assign(entry,before);rows.push({...row,status:'skipped',reason:'invalid',message:error.message});}
+        }
+        result={rows,changed:Object.keys(entries),skipped:rows.filter(row=>row.status==='skipped'),undo:{path:[...path],value,entries}};
       });
+      return result;
+    },
+    // Restores each card's pre-bulk baseline and edits; notes written since
+    // stay, and cards deleted since stay deleted.
+    undoBulk(undo) {
+      let restored=0;
+      write(doc=>{for(const [key,before] of Object.entries(undo?.entries??{}))if(doc.cards[key]){Object.assign(doc.cards[key],clone(before));restored++;}});
+      return restored;
     },
     edit(kind, id, path, value) {
       editValues(kind,id,[{path,value}]);

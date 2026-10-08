@@ -173,3 +173,48 @@ export function exportReviewDocument(doc, resolveLive) {
         changes:entry.edits.map(edit => ({path:edit.path, original:readReviewValue(entry.baseline, edit.path), live:readReviewValue(live, edit.path) ?? null, proposed:edit.value}))};
     })};
 }
+
+// Bulk edits cover whole-card numbers and choices only; positional effect rows
+// differ per card, so they stay single-card edits.
+export const REVIEW_QUALITIES = Object.freeze(['bronze','silver','gold','diamond']);
+export function reviewBulkFieldType(path, value) {
+  if(!Array.isArray(path)||path.length!==1||path[0]==='locked')return null;
+  if(path[0]==='minimumQuality')return REVIEW_QUALITIES.includes(value)?'choice':null;
+  if(typeof value==='number')return 'number';
+  if(typeof value==='boolean')return 'boolean';
+  return null;
+}
+
+// Shared fields across definitions, with how many carry each one.
+export function reviewBulkFields(definitions) {
+  const fields=new Map();
+  for(const def of definitions.filter(Boolean)) {
+    for(const field of reviewFields(def)) {
+      const type=reviewBulkFieldType(field.path,field.value);
+      if(!type)continue;
+      const key=field.path[0], entry=fields.get(key)??{path:[key],type,count:0,values:[]};
+      if(entry.type!==type)continue;
+      entry.count++;if(!entry.values.includes(field.value))entry.values.push(field.value);
+      fields.set(key,entry);
+    }
+  }
+  return [...fields.values()].map(field=>({...field,values:field.values.sort((a,b)=>typeof a==='number'?a-b:String(a).localeCompare(String(b)))}));
+}
+
+// targets: [{key,label,definition,locked,absent}] where definition is the
+// projected draft. Every target gets a row: 'change' or 'skipped' with a reason.
+export function planReviewBulkEdit(targets, path, value, {includeLocked=false}={}) {
+  return targets.map(target=>{
+    const row={key:target.key,label:target.label??target.key,locked:target.locked===true,to:value};
+    const skip=(reason,message,from)=>({...row,from,status:'skipped',reason,message});
+    if(target.absent||!target.definition)return skip('absent','Absent from this build');
+    const field=reviewFields(target.definition).find(item=>equal(item.path,path));
+    const type=field&&reviewBulkFieldType(path,field.value);
+    if(!type)return skip('missing','Card has no such value');
+    if(equal(field.value,value))return skip('same','Already this value',field.value);
+    try{validateReviewValue(target.definition,path,value);}
+    catch(error){return skip('invalid',error.message,field.value);}
+    if(row.locked&&!includeLocked)return skip('locked','Locked card (not included)',field.value);
+    return {...row,from:field.value,status:'change'};
+  });
+}

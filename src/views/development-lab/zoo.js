@@ -18,6 +18,14 @@ export function createZooView({controller,cards,run,review}) {
   const liveDefinition = face => controller.getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
   const flag = face => run(()=>review.flag(face.kind,face.definitionId,liveDefinition(face),face.tier));
   const openReview = face => { location.hash = `/dev/reviewer?card=${encodeURIComponent(`${face.kind}:${face.definitionId}`)}`; };
+  // "Add N shown to review" flags the filtered group in one write; the note
+  // that follows hands the group to the reviewer's selection.
+  let addedGroup = null;
+  const addShown = entries => run(()=>{
+    const keys = entries.map(entry=>`${entry.category}:${entry.id}`);
+    const added = review.flagMany(entries.map(entry=>({kind:entry.category,id:entry.id,definition:liveDefinition({kind:entry.category,definitionId:entry.id}),tier:entry.maturity})));
+    addedGroup = {keys, added};
+  });
   let filtersOpen = false, barHidden = false, lastY = 0, barObserver = null;
   const reducedMotion = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   // Sticky offsets below the bar follow its real height (0 while hidden).
@@ -41,7 +49,7 @@ export function createZooView({controller,cards,run,review}) {
     if (open) { barHidden = false; syncBar(); document.querySelector('.lab-zoo-filters-close')?.focus({preventScroll:true}); }
     else if (document.querySelector('.lab-zoo-filters')?.contains(document.activeElement) || document.activeElement === document.body) toggle?.focus({preventScroll:true});
   }
-  globalThis.addEventListener?.('hashchange',()=>{ filtersOpen = false; barHidden = false; barObserver?.disconnect(); });
+  globalThis.addEventListener?.('hashchange',()=>{ addedGroup = null; filtersOpen = false; barHidden = false; barObserver?.disconnect(); });
   globalThis.addEventListener?.('scroll',()=>{
     const bar = document.querySelector('.lab-zoo-bar');
     const y = globalThis.scrollY;
@@ -66,13 +74,13 @@ export function createZooView({controller,cards,run,review}) {
     }
     // Lock visibility survives unrelated value conflicts and applies to live faces.
     const catalogue=getLabCatalogue(state).map(entry=>({...entry,locked:locks.get(`${entry.category}:${entry.id}`)??entry.locked}));
-    const changed = () => { page=0; selected=null; run(()=>{}); };
+    const changed = () => { page=0; selected=null; addedGroup=null; run(()=>{}); };
 
     const head = el('div','','lab-page-head lab-zoo-head');
     const heading = el('div'); heading.append(el('h2','Zoo'),el('p','Every runtime card and template in this build.','lab-subtitle'));
     head.append(heading, info('zoo',[
       'Tap or hover a card for its quick read. Rules opens the full rules, symbol key and linked definitions; Compare shows all four qualities and the runtime properties.',
-      'Flag adds a card to the reviewer without leaving the Zoo. Card versions can show reviewer drafts instead of live values; the fixture itself never changes.',
+      'Flag adds a card to the reviewer without leaving the Zoo; Add N shown to review flags every Practice and Structure matching the filters, ready to edit together. Card versions can show reviewer drafts instead of live values; the fixture itself never changes.',
       `Definitions come from this fixture’s serialized game config: ${Object.keys(state.gameConfig.gamepieces.practices).length} Practices and ${Object.keys(state.gameConfig.gamepieces.structures).length} Structures.`,
     ],{label:'How it works'}));
     if (review) {
@@ -181,6 +189,14 @@ export function createZooView({controller,cards,run,review}) {
     const results = el('div','','lab-results-bar');
     results.append(el('p',`${matches.length} matching runtime entries`,'lab-count'));
     if (chips.children.length) results.append(chips);
+    const reviewable = review ? matches.filter(e=>['practice','structure'].includes(e.category)) : [];
+    if (reviewable.length) {
+      const fresh = reviewable.filter(e=>!review.get(e.category,e.id));
+      const add = button(fresh.length?`Add ${fresh.length} shown to review`:'All shown are in review',()=>addShown(fresh),'zoo-add-shown');
+      add.disabled = !fresh.length; add.classList.add('lab-add-shown');
+      if (fresh.length) add.title = 'Flag every Practice and Structure that matches these filters';
+      results.append(add);
+    }
     const coveragePanel = disclosure(missing.length?`Coverage: missing ${missing.join(', ')}`:'Coverage',[table(['Class','Practices','Structures','Status'],coverage)],
       {open:missing.length>0,className:`lab-coverage${missing.length?' lab-coverage-missing':''}`,badges:[badge(missing.length?'!':'✓',missing.length?'warn':'ok')]});
     results.append(coveragePanel);
@@ -190,6 +206,13 @@ export function createZooView({controller,cards,run,review}) {
     layout.append(drawer, main); parent.append(layout, scrim);
     if(versionsMode!=='live')main.append(el('p',`${edited.size} edited cards shown; other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`,'lab-note'));
     main.append(results);
+    if (addedGroup) {
+      const note = el('div','','lab-added-note'); note.setAttribute('role','status'); note.dataset.testid = 'zoo-added-note';
+      note.append(el('p',addedGroup.added?`Added ${addedGroup.added} card${addedGroup.added===1?'':'s'} to review.`:'Already in review.'));
+      const go = el('a',`Edit ${addedGroup.keys.length} together`,'lab-primary'); go.dataset.testid = 'zoo-edit-together';
+      go.href = `#/dev/reviewer?select=${encodeURIComponent(addedGroup.keys.join(','))}`;
+      note.append(go); main.append(note);
+    }
     if(!filters.category||filters.category==='structure')main.append(
       segmented('Structure face',[['built','Completed structures'],['plan','Construction plans']],structureSide,value=>{structureSide=value;run(()=>{});},{testid:'zoo-structure-face'}),
       el('p','Plans show the construction side. Costs are consumed each successful Housing cycle; bonuses start on completion.','lab-note'));

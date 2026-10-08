@@ -47,6 +47,15 @@ Persistence/export live in
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
 Reviewer Lock/Unlock controls save availability proposals alongside value edits.
+`review-bulk-edit.js` adds the reviewer's selection mode (Select, All/Selected
+views, Select all shown, a fixed "N selected · Edit together" bar) and a sheet
+that sets one top-level number or choice across the selection: bottom sheet on
+portrait phones, side drawer in landscape, dialog on desktop. The controller's
+`planBulk`/`bulkEdit` share one plan (old → new or a skip reason per card; locked
+cards only with Include locked), save in one storage write and return a snapshot
+of each changed card's baseline and edits for Undo bulk edit. Positional effect
+fields stay per card. Zoo "Add N shown to review" flags the filtered Practices and
+Structures with `flagMany` and hands the group to the reviewer's selection.
 `structure-plan.js` projects disposable plan slots through the shared face renderer
 and supplies per-cycle/total cost copy. Zoo and Reviewer switch between plan and
 completed faces. Reviewer construction controls edit cycles and whole Stock cost
