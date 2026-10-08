@@ -19,6 +19,10 @@ survive app builds, including changes to game-save schemas.
 current definitions and reports missing cards or conflicting field shapes.
 The controller uses this for Zoo display and validated new-game snapshots;
 simulation and replay never read review storage.
+Construction cycles and Stock cost collections use that same review document.
+Positive whole amounts/cycles and nonempty recognized trait alternatives are
+validated before storage. Game config captures variable recipe row counts so
+added/removed costs survive new-game initialization and save/replay.
 Stock trait collections and schedule/seasonal-yield edits use the same v1 review
 document as primitive edits. Collection edits replace overlapping leaf edits;
 subsequent leaf edits update their saved collection. Schedule source icons derive

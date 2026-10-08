@@ -84,6 +84,18 @@ the full Development Lab probe includes the same node checks.
 
 ## Card reviewer
 
+Structures have a **Structure face** selector in Zoo and Reviewer: completed
+structures show their bonuses; construction plans show scaffold, consumed Stock
+and the cycle tally. Zoo cards and comparisons list per-cycle and total costs.
+Reviewer defaults to the plan side for Structures. **Edit construction costs**
+opens successful cycle count and Stock cost rows; change amounts, toggle accepted
+trait alternatives, or add/remove rows. At least one row and one trait per row
+are required, with positive whole amounts and cycles. Construction runs during
+Housing, consumes all rows together each successful cycle, and pauses when Stock
+is unavailable. Bonuses start on completion. Draft and live comparisons use the
+same selected face. Construction proposals persist/export and apply to new runs
+through the existing reviewed-card settings.
+
 **Reviewer** sits beside Zoo in the nav, with a badge counting flagged cards.
 **Flag for review** flags any Zoo Practice or Structure without leaving the Zoo;
 flagged cards then offer **Open review**, and the Zoo's **Review flagged** link

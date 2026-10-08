@@ -71,6 +71,20 @@ export function validateReviewValue(def, path, value) {
     if(!validSelection(value,REVIEW_STOCK_TRAITS))throw new Error('Choose Stock traits from the icon tray.');
     return;
   }
+  if(path[0]==='construction') {
+    if(!def.construction)throw new Error('This card has no construction plan.');
+    if(equal(path,['construction','consume'])) {
+      if(!Array.isArray(value)||!value.length||value.some(cost=>!cost||typeof cost!=='object'||Array.isArray(cost)
+        ||Object.keys(cost).some(key=>!['amount','traits'].includes(key))
+        ||!Number.isInteger(cost.amount)||cost.amount<1||!validSelection(cost.traits,REVIEW_STOCK_TRAITS)||!cost.traits.length))
+        throw new Error('Keep at least one cost, with a positive whole amount and at least one Stock trait.');
+      return;
+    }
+    if(equal(path,['construction','cycles'])||(path.length===4&&path[1]==='consume'&&path[3]==='amount')) {
+      if(!Number.isInteger(value)||value<1)throw new Error('Construction cycles and costs must be positive whole numbers.');
+    }
+    if(path[1]==='consume'&&path[3]==='traits'&&!REVIEW_STOCK_TRAITS.includes(value))throw new Error('Choose a valid construction Stock trait.');
+  }
   if(equal(path,['activation'])&&def.mode==='scheduled') {
     if(!value||typeof value!=='object'||Array.isArray(value)||!REVIEW_SCHEDULE_TYPES.includes(value.type)
       ||(value.also!==undefined&&(!validSelection(value.also,REVIEW_SCHEDULE_TYPES)||value.also.includes(value.type)))

@@ -240,6 +240,10 @@ function normalizeTags(value, fallback) {
 
 function copyEditableLeaves(template, source, path = []) {
   if (['tags','stockTraits','traits','traitsAny','tagsAny'].includes(path.at(-1))) return normalizeTags(source, template);
+  // Construction recipes are editable collections, unlike fixed DSL effect lists.
+  if(path.at(-2)==='construction'&&path.at(-1)==='consume'&&Array.isArray(source)) {
+    return source.map(cost=>({amount:Number.isFinite(cost?.amount)?cost.amount:1,traits:normalizeTags(cost?.traits,['Construction'])}));
+  }
   if(path.at(-1)==='activation'&&template.type!=='charge'&&source&&scheduleTypes.includes(source.type)) {
     const activation={...clone(template),type:source.type};
     delete activation.also;delete activation.seasonKeys;delete activation.stage;

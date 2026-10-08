@@ -47,6 +47,10 @@ Persistence/export live in
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
 Reviewer Lock/Unlock controls save availability proposals alongside value edits.
+`structure-plan.js` projects disposable plan slots through the shared face renderer
+and supplies per-cycle/total cost copy. Zoo and Reviewer switch between plan and
+completed faces. Reviewer construction controls edit cycles and whole Stock cost
+collections, including trait alternatives, without changing the fixture.
 Zoo labels locks and can hide them in every card-version mode, including live
 faces, without changing the fixture or deleting definitions.
 

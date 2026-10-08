@@ -2,8 +2,10 @@ import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers } from '../../model/dev-lab/card-review.js';
 import { el, button, confirmButton, field, input, select, section, disclosure, info, badge, isWide } from './elements.js';
+import { constructionCopy, getLabStructureFace } from './structure-plan.js';
 
 const groups = {
+  construction:{label:'Construction costs', match:path=>path[0]==='construction'},
   stock:{label:'Stock capacity & traits', match:path => ['stockCapacity','stockTraits'].includes(path[0])},
   schedule:{label:'Schedule triggers', match:path=>path[0]==='activation'},
   workers:{label:'Workers', match:path => String(path[0]).startsWith('worker')},
@@ -31,6 +33,10 @@ const queueChip = (node, label, entry, locked) => {
 };
 const showValue = value => value === undefined ? 'unavailable' : typeof value === 'string' ? value : JSON.stringify(value);
 const labelFor = (def, path) => {
+  if(path[0]==='construction') {
+    if(path[1]==='cycles')return 'Successful construction cycles';
+    if(path[1]==='consume')return path.length===2?'Construction Stock costs per cycle':`Construction cost ${Number(path[2])+1} · ${path[3]==='amount'?'Stock per cycle':`trait ${Number(path[4])+1}`}`;
+  }
   const names={locked:'Card locked',stockCapacity:'Stock capacity',workerCapacity:'Worker sockets',workerBonus:'Bonus per worker',workerCapacityPerQuality:'Extra sockets per quality',vassalPrestigeCost:'Prestige cost',vassalPhaseCost:'Phase cost',footprint:'Footprint',housing:'Housing',candidateBonus:'Candidate bonus',specialistGate:'Specialists required',label:'Name',rule:'Rules copy',threshold:'Discharge threshold',gain:'Charge per event',triggerText:'Charge trigger copy',dischargeText:'Discharge copy',minimumQuality:'Minimum quality'};
   const effects={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus'};
   if(path[0]==='effects')return `${effects[def.effects?.[path[1]]?.op]??def.effects?.[path[1]]?.op??`Effect ${Number(path[1])+1}`}${path[2]==='amount'?'':path[2]==='seasonAmounts'?` · ${path[3]?path[3][0].toUpperCase()+path[3].slice(1):'seasonal amounts'}`:` · ${path.slice(2).join(' · ')}`}`;
@@ -44,6 +50,7 @@ const labelFor = (def, path) => {
 export function createCardReviewerView({review, cards, getState, run}) {
   let selected=null, comparison=false;
   const previewTiers={};
+  const previewSides={};
   const resolve = (state, entry) => state.gameConfig.gamepieces[entry.kind==='practice'?'practices':'structures'][entry.id];
   function render(parent) {
     const state=getState(), entries=review.list();
@@ -101,6 +108,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     lock.title=locked?'Excluded from new shop offers when reviewed cards are applied':'Available for shop offers';
     const compare=button(comparison?'Hide live comparison':'Compare with live',()=>{comparison=!comparison;run(()=>{});},'review-compare');compare.disabled=!live;
     const quality=select('Preview quality',['bronze','silver','gold','diamond'],previewTiers[selected]??entry.tier);
+    const side=select('Structure face',[['built','Completed structure'],['plan','Construction plan']],previewSides[selected]??'plan');
     const remove=confirmButton('Delete review','Delete review and notes?',()=>{
       review.remove(entry.kind,entry.id);selected=null;location.hash='/dev/reviewer';run(()=>{});
     },'review-delete');
@@ -110,6 +118,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
     // Frequent actions stay in the (sticky on phones) toolbar; destructive ones
     // sit with the change list they affect.
     controls.append(lock,compare,field('Quality',quality));panel.append(controls);
+    if(entry.kind==='structure')controls.append(field('Structure face',side));
     const danger=el('div','','lab-controls review-danger');danger.append(reset,remove);
     const preview=el('div','','review-preview'), draftColumn=el('div','','review-column'), liveColumn=el('div','','review-column');
     const draftTitle=el('h3',`Your draft · ${definition.label}`),draftReading=el('div','','review-reading'),liveReading=el('div','','review-reading');
@@ -140,7 +149,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       }
       const qualityBonus=entry.kind==='structure'?Math.max(0,tiers.indexOf(tier)-tiers.indexOf(def.minimumQuality??'bronze')):0;
       const slot={practiceId:entry.id,tier,qualityBonus,stock:0,charge:0,work:0};
-      const face=getGamepieceFace(previewState,entry.kind,entry.id,tier,{slot});
+      const face=entry.kind==='structure' ? getLabStructureFace(previewState,entry.id,tier,{qualityBonus,plan:side.value==='plan'}) : getGamepieceFace(previewState,entry.kind,entry.id,tier,{slot});
       if(def.mode==='scheduled')face.reviewSchedule=reviewScheduleTriggers(def);
       if(entry.kind==='practice')face.stockCapacity=stockCapacity(previewState,{structureSlots:[]},slot);
       return face;
@@ -173,20 +182,29 @@ export function createCardReviewerView({review, cards, getState, run}) {
       definition=review.preview(review.get(entry.kind,entry.id),live).definition;
       const face=makeFace(definition);draftImage?.update(face);draftTitle.textContent=`Your draft · ${face.label}`;readingCopy(draftReading,face);
       if(liveImage){const liveFace=makeFace(live);liveImage.update(liveFace);readingCopy(liveReading,liveFace);}changedRows();
+      for(const summary of panel.querySelectorAll('[data-construction-summary]'))summary.textContent=constructionCopy(definition).join(' ');
     }
     function readingCopy(node,face) {
       node.replaceChildren();
       for(const effect of face.reading.effects)node.append(el('p',[effect.timing,effect.text].filter(Boolean).join(' · ')));
       for(const requirement of face.reading.requirements)node.append(el('p',requirement));
       if(face.reading.trigger)node.append(el('p',face.reading.trigger));
+      if(entry.kind==='structure'&&!face.construction)for(const line of constructionCopy(node===liveReading?live:definition).slice(0,3))node.append(el('p',line));
     }
     function controlsFor(fields, destination) {
       destination.replaceChildren();
       for(const item of fields) {
         const label=labelFor(definition,item.path), value=readReviewValue(definition,item.path);
+        if(item.path[0]==='construction'&&item.path[1]==='consume'&&item.path.length===2) {
+          destination.append(button('Edit construction Stock costs',()=>editGroup('construction')),el('p',constructionCopy(definition).slice(1,3).join(' '),'lab-note'));
+          continue;
+        }
         const choices=item.path[0]==='minimumQuality'?['bronze','silver','gold','diamond']:item.path.some(part=>['stockTraits','traits','traitsAny'].includes(part))?REVIEW_STOCK_TRAITS:item.path.includes('seasonKeys')?REVIEW_SEASONS:null;
         const control=typeof value==='boolean'?select(label,[['true','Yes'],['false','No']],String(value)):choices?select(label,choices,value):input(label,value,typeof value==='number'?'number':'text');
-        if(typeof value==='number'){control.removeAttribute('min');control.step='any';control.inputMode='decimal';}
+        if(typeof value==='number') {
+          if(item.path[0]==='construction'){control.min='1';control.step='1';control.inputMode='numeric';}
+          else {control.removeAttribute('min');control.step='any';control.inputMode='decimal';}
+        }
         control.dataset.reviewPath=JSON.stringify(item.path);
         const feedback=el('span','','review-field-error'), wrapper=field(label,control);feedback.setAttribute('role','status');
         // Edited values show the live value beneath, so the diff is visible in place.
@@ -218,6 +236,44 @@ export function createCardReviewerView({review, cards, getState, run}) {
       }
     }
     const title=value=>value[0].toUpperCase()+value.slice(1);
+    function constructionEditor(destination) {
+      const summary=el('p',constructionCopy(definition).join(' '),'lab-note');summary.dataset.constructionSummary='';destination.append(summary);
+      const feedback=el('p','','review-field-error');feedback.setAttribute('role','status');
+      const saveCosts=(costs,focusLabel,errorNode=feedback)=>{
+        try {
+          review.edit(entry.kind,entry.id,['construction','consume'],costs);
+          refresh();renderValues();saveStatus.textContent='Saved on this device';
+          const scroll=editorFields.scrollTop;fillEditor('construction');editorFields.scrollTop=scroll;
+          if(focusLabel)for(const node of editorFields.querySelectorAll('[aria-label]'))if(node.getAttribute('aria-label')===focusLabel)node.focus({preventScroll:true});
+        }catch(error){errorNode.textContent=error.message;}
+      };
+      definition.construction.consume.forEach((cost,index)=>{
+        const row=el('div','','review-picker');row.append(el('strong',`Stock cost ${index+1}`));
+        const rowFeedback=el('p','','review-field-error');rowFeedback.setAttribute('role','status');
+        const amountLabel=`Cost ${index+1}: Stock per cycle`,amount=input(amountLabel,cost.amount);
+        amount.min='1';amount.addEventListener('change',()=>{
+          const costs=structuredClone(definition.construction.consume);costs[index].amount=amount.valueAsNumber;
+          saveCosts(costs,amountLabel,rowFeedback);
+        });
+        row.append(field('Stock per successful cycle',amount));
+        const remove=button(`Remove cost ${index+1}`,()=>saveCosts(definition.construction.consume.filter((_,i)=>i!==index),'Add construction cost'),'','quiet');
+        remove.disabled=definition.construction.consume.length===1;row.append(remove);
+        row.append(rowFeedback,el('p',`Accepted Stock: ${cost.traits.join(' / ')}. Any listed trait can supply this cost.`,'lab-note'));
+        const tray=el('div','','review-icon-tray');
+        for(const trait of REVIEW_STOCK_TRAITS) {
+          const label=`Cost ${index+1}: ${trait}`,pick=button('',()=>{
+            const costs=structuredClone(definition.construction.consume),traits=costs[index].traits;
+            costs[index].traits=traits.includes(trait)?traits.filter(value=>value!==trait):[...traits,trait];
+            saveCosts(costs,label,rowFeedback);
+          });
+          pick.setAttribute('aria-label',label);pick.setAttribute('aria-pressed',String(cost.traits.includes(trait)));
+          pick.append(cards.icon({trait}),el('span',trait));tray.append(pick);
+        }
+        row.append(disclosure('Choose accepted Stock traits',[tray],{key:`review:construction-traits:${selected}:${index}`,open:false}));destination.append(row);
+      });
+      const add=button('Add construction cost',()=>saveCosts([...definition.construction.consume,{amount:1,traits:['Construction']}],'Add construction cost'));
+      add.setAttribute('aria-label','Add construction cost');destination.append(add,feedback);
+    }
     function iconTray(id,destination) {
       const current=id==='stock'?definition.stockTraits:reviewScheduleTriggers(definition);
       const wrap=el('div','','review-picker');
@@ -248,10 +304,11 @@ export function createCardReviewerView({review, cards, getState, run}) {
     function fillEditor(id) {
       editorFields.replaceChildren();
       const values=el('div','','review-fields');
-      controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)&&!['stockTraits','activation'].includes(item.path[0])),values);
+      controlsFor(reviewFields(definition).filter(item=>groups[id].match(item.path)&&!['stockTraits','activation'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume')),values);
       if(values.children.length)editorFields.append(values);
       if(id==='stock')iconTray('stock',editorFields);
       if(id==='schedule')iconTray('schedule',editorFields);
+      if(id==='construction')constructionEditor(editorFields);
       if(id==='yields'&&definition.mode==='scheduled')editorFields.append(button('Choose schedule triggers',()=>editGroup('schedule')));
     }
     function editGroup(id) {
@@ -266,7 +323,8 @@ export function createCardReviewerView({review, cards, getState, run}) {
     }
     function sections(regions) {
       targets.replaceChildren();
-      for(const [id,rect] of Object.entries(regions)) {
+      for(const [section,rect] of Object.entries(regions)) {
+        const id=entry.kind==='structure'&&side.value==='plan'&&['inputs','schedule','construction'].includes(section)?'construction':section;
         if(!groups[id]||(id!=='schedule'&&!reviewFields(definition).some(item=>groups[id].match(item.path))))continue;
         const tap=button('',()=>editGroup(id));tap.dataset.section=id;tap.setAttribute('aria-label',`Edit ${groups[id].label}`);tap.title=groups[id].label;
         Object.assign(tap.style,{left:`${rect.x}%`,top:`${rect.y}%`,width:`${rect.width}%`,height:`${rect.height}%`});targets.append(tap);
@@ -275,12 +333,14 @@ export function createCardReviewerView({review, cards, getState, run}) {
     draftImage=cards.image(makeFace(definition),sections);surface.append(draftImage.node,targets,editor);draftColumn.append(surface,draftReading);readingCopy(draftReading,makeFace(definition));
     if(comparison&&live){liveColumn.append(el('h3',`Live · ${live.label}`));liveImage=cards.image(makeFace(live));const liveSurface=el('div','','review-face');liveSurface.append(liveImage.node);liveColumn.append(liveSurface,liveReading);readingCopy(liveReading,makeFace(live));preview.append(liveColumn);}
     quality.addEventListener('change',()=>{tier=quality.value;previewTiers[selected]=tier;refresh();});
+    side.addEventListener('change',()=>{previewSides[selected]=side.value;refresh();});
     const notes=el('textarea');notes.value=entry.notes;notes.rows=2;notes.placeholder='What should change, and why?';notes.setAttribute('aria-label','Review notes');
     notes.addEventListener('input',()=>{try{review.notes(entry.kind,entry.id,notes.value);saveStatus.textContent='Saved on this device';changedRows();}catch(error){saveStatus.textContent=`Notes not saved: ${error.message}`;}});
     panel.append(el('h3','Notes'),notes,saveStatus);
     const shortcuts=el('div','','lab-controls');
     if(Array.isArray(definition.stockTraits))shortcuts.append(button('Choose Stock tags',()=>editGroup('stock')));
     if(definition.mode==='scheduled')shortcuts.append(button('Choose schedule triggers',()=>editGroup('schedule')));
+    if(entry.kind==='structure')shortcuts.append(button('Edit construction costs',()=>editGroup('construction'),'review-construction-costs'));
     // Values are grouped and collapsible: groups with edits open, the rest
     // stay closed on phones until asked for. A search finds any value.
     const valuesHost=el('div','','review-value-groups');
@@ -288,7 +348,8 @@ export function createCardReviewerView({review, cards, getState, run}) {
     let term='';
     find.addEventListener('input',()=>{term=find.value.trim().toLowerCase();renderValues();});
     function renderValues() {
-      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0]));
+      const fields=reviewFields(definition).filter(item=>!['stockTraits','activation','locked'].includes(item.path[0])&&!(item.path[0]==='construction'&&item.path[1]==='consume'));
+      if(definition.construction)fields.push({path:['construction','consume'],value:definition.construction.consume});
       const current=review.get(entry.kind,entry.id), editedPaths=new Set(current.edits.map(edit=>JSON.stringify(edit.path)));
       const assigned=new Map(valueGroups.map(([id])=>[id,[]]));
       for(const item of fields)assigned.get(valueGroups.find(([,,match])=>match(item.path))[0]).push(item);
@@ -296,7 +357,7 @@ export function createCardReviewerView({review, cards, getState, run}) {
       for(const [id,label] of valueGroups) {
         const items=assigned.get(id).filter(item=>!term||labelFor(definition,item.path).toLowerCase().includes(term));
         if(!items.length)continue;
-        const edits=items.filter(item=>editedPaths.has(JSON.stringify(item.path))).length;
+        const edits=items.filter(item=>editedPaths.has(JSON.stringify(item.path))||(item.path[0]==='construction'&&item.path[1]==='consume'&&current.edits.some(edit=>edit.path[0]==='construction'&&edit.path[1]==='consume'))).length;
         const body=el('div','','review-fields');controlsFor(items,body);
         const box=disclosure(label,[body],{key:term?undefined:`review:group:${id}`,open:!!term||edits>0||isWide(),count:items.length,className:'review-group',badges:[edits?badge(`${edits} edited`,'accent'):null]});
         if(term)box.open=true;

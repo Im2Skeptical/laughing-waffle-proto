@@ -4,6 +4,8 @@ import { eventIcon, seasonIcon } from '../piece-face-chrome.js';
 import { el, button, details } from './elements.js';
 import { createLabCardReading } from './card-reading.js';
 
+const faceDescription = face => `${face.label} · ${face.tier}${face.kind==='practice'?` · Stock ${face.stock}/${face.stockCapacity}`:face.construction?` · Construction plan, ${face.construction.completedCycles}/${face.construction.requiredCycles} cycles · Consume per cycle: ${face.inputs.map(cost=>`${cost.amount} ${cost.traits.join(' / ')}`).join(' + ')}`:' · Completed structure'}`;
+
 export function createLabCards({onReview} = {}) {
   const reading = createLabCardReading({onReview});
   const renderer = new PIXI.Renderer({width:440,height:250,resolution:2,backgroundAlpha:0,antialias:true,preserveDrawingBuffer:true});
@@ -51,11 +53,10 @@ export function createLabCards({onReview} = {}) {
     return img;
   }
   function image(face, onSections) {
-    const description=face=>`${face.label} · ${face.tier}${face.kind==='practice'?` · Stock ${face.stock}/${face.stockCapacity}`:''}`;
-    const img=el('img');img.alt=description(face);
+    const img=el('img');img.alt=faceDescription(face);
     const item={img,face,width:face.kind==='structure'?Math.max(180,face.footprint*145):180,onSections};
     images.push(item);paint(item);
-    return {node:img,update(next){item.face=next;img.alt=description(next);item.width=next.kind==='structure'?Math.max(180,next.footprint*145):180;paint(item);}};
+    return {node:img,update(next){item.face=next;img.alt=faceDescription(next);item.width=next.kind==='structure'?Math.max(180,next.footprint*145):180;paint(item);}};
   }
   // Readable specimens: tapping/hovering the face gives the quick read; one
   // compact row holds Rules (full inspection), Compare and any caller actions.
@@ -64,7 +65,7 @@ export function createLabCards({onReview} = {}) {
     const wrapper = el('article','','lab-card');
     if (!face) { wrapper.append(el('p',label || 'Empty Practice slot','lab-empty')); return wrapper; }
     const width = face.kind === 'structure' ? Math.max(180,face.footprint * 145) : 180;
-    const img = el('img'); img.alt = `${face.label}, ${face.tier}, ${face.stock}/${face.stockCapacity} Stock`; img.width = width; img.height = 250;
+    const img = el('img'); img.alt = faceDescription(face); img.width = width; img.height = 250;
     const item = {img,face,width}; images.push(item); paint(item);
     const row = el('div','','lab-card-actions');
     const name = el('strong', label || `${face.label} · ${face.tier}`, 'lab-card-title');

@@ -2,6 +2,7 @@ import { getLabCatalogue, filterLabCatalogue } from '../../model/dev-lab/catalog
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { practiceSlot } from '../../model/dev-lab/fixtures.js';
+import { constructionCopy, getLabStructureFace } from './structure-plan.js';
 import { el, select, field, input, section, details, button, table, disclosure, info, badge, segmented, group } from './elements.js';
 
 const CATEGORIES = [['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map'],['neutral','Neutrals'],['monster','Monsters'],['','All']];
@@ -12,7 +13,7 @@ const HIDE_AFTER = 160;
 
 export function createZooView({controller,cards,run,review}) {
   const filters = {category:'practice'}, pageSize = 12;
-  let page = 0, selected = null, versionsMode='live', hideLocked=false, scrollToSelected = false;
+  let page = 0, selected = null, versionsMode='live', hideLocked=false, scrollToSelected = false, structureSide='built';
   // Flag in place: the reviewer keeps the queue, so browsing continues here.
   const liveDefinition = face => controller.getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
   const flag = face => run(()=>review.flag(face.kind,face.definitionId,liveDefinition(face),face.tier));
@@ -189,6 +190,9 @@ export function createZooView({controller,cards,run,review}) {
     layout.append(drawer, main); parent.append(layout, scrim);
     if(versionsMode!=='live')main.append(el('p',`${edited.size} edited cards shown; other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`,'lab-note'));
     main.append(results);
+    if(!filters.category||filters.category==='structure')main.append(
+      segmented('Structure face',[['built','Completed structures'],['plan','Construction plans']],structureSide,value=>{structureSide=value;run(()=>{});},{testid:'zoo-structure-face'}),
+      el('p','Plans show the construction side. Costs are consumed each successful Housing cycle; bonuses start on completion.','lab-note'));
     parent = main;
     requestAnimationFrame(()=>{ syncBar(); observeBar(bar); });
 
@@ -202,11 +206,13 @@ export function createZooView({controller,cards,run,review}) {
         if (['practice','structure'].includes(e.category)) {
           for (const [quality,tier] of ['bronze','silver','gold','diamond'].entries()) {
             const slot = e.category === 'practice' ? practiceSlot(e.id,0,tier) : {qualityBonus:quality};
-            const face = getGamepieceFace(state,e.category,e.id,tier,{slot});
+            const face = e.category==='structure' ? getLabStructureFace(state,e.id,tier,{qualityBonus:quality,plan:structureSide==='plan'}) : getGamepieceFace(state,e.category,e.id,tier,{slot});
             if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
             variants.append(cards.card(face,e.category === 'practice' ? title(tier) : `Quality +${quality * 25}%`,null,{readable:true}));
           }
-          panel.append(variants,disclosure('Runtime properties',[table(['Property','Runtime value'],[
+          panel.append(variants);
+          if(e.category==='structure')panel.append(disclosure('Construction plan',constructionCopy(e.def).map(line=>el('p',line)),{open:true}));
+          panel.append(disclosure('Runtime properties',[table(['Property','Runtime value'],[
             ['Maturity',e.maturity],['Card Tags',e.tags.join(', ')],['Stock Traits',e.traits.join(', ')],
             ['Timing',JSON.stringify(e.def.activation ?? 'passive')],['Generate / effects',JSON.stringify(e.def.effects)],
             ['Mode',e.def.mode??'Passive Structure'],['Charge trigger / gain / threshold',e.def.charge?`${e.def.charge.triggerText} +${e.def.charge.gain}; threshold ${e.def.charge.threshold}`:'—'],
@@ -233,13 +239,17 @@ export function createZooView({controller,cards,run,review}) {
       const inspect = ()=>run(()=>{selected=`${e.category}:${e.id}`;scrollToSelected=true;});
       if (['practice','structure'].includes(e.category)) {
         const slot = e.category === 'practice' ? practiceSlot(e.id,0,e.maturity) : {};
-        const face = getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
+        const face = e.category==='structure' ? getLabStructureFace(state,e.id,e.maturity,{plan:structureSide==='plan'}) : getGamepieceFace(state,e.category,e.id,e.maturity,{slot});
         if (e.category === 'practice') face.stockCapacity = stockCapacity(state,{structureSlots:[]},slot);
         const isEdited=edited.has(`${e.category}:${e.id}`);
         const isFlagged=!!review?.get(e.category,e.id);
         const actions=review?[isFlagged?button('Open review',()=>openReview(face),'','primary'):button('Flag for review',()=>flag(face))]:[];
         const meta=[badge(title(e.pool)),badge(title(e.maturity)),e.locked&&badge('Locked','warn'),isEdited&&badge('Edited','accent'),isFlagged&&badge('Flagged','accent')].filter(Boolean);
         const card=cards.card(face,e.label,inspect,{readable:true,actions,meta});
+        if(e.category==='structure') {
+          card.dataset.structureSide=structureSide;
+          card.append(el('p',constructionCopy(e.def).slice(0,3).join(' '),'lab-note'));
+        }
         if(e.locked)card.dataset.locked='true';
         if(isEdited)card.dataset.edited='true';
         if(isFlagged)card.dataset.flagged='true';
