@@ -12,7 +12,9 @@ world, portrait and topology fixed. Node entry and all interactions use normal
 Life Map rules; the independent controller validates cloned transactions.
 
 `card-review.js` defines the independent review schema, editable definition
-values, non-mutating draft projection and export data. Storage belongs to the
+values, non-mutating draft projection and export/import data. Imports validate
+persisted drafts against their original baselines and discard derived export
+fields, keeping removed cards and build conflicts reviewable. Storage belongs to the
 controller. Its schema is deliberately independent of GameState so reviews
 survive app builds, including changes to game-save schemas.
 `applyCardReviews` clones a supplied registry, projects edited cards onto its

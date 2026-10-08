@@ -214,6 +214,6 @@ export function createReviewBulkEdit({review, run, labelFor}) {
     dialog.querySelector('[data-testid=review-bulk-field]')?.focus({preventScroll:true});
   }
 
-  return {sync, banner, controls, decorate, hidden, toggleKey, bar, openSheet,
+  return {sync, banner, controls, decorate, hidden, toggleKey, bar, openSheet, clearUndo:()=>{undo=null;},
     isSelecting:() => selecting, selected:() => [...selection]};
 }

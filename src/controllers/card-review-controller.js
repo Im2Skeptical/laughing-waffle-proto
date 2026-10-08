@@ -1,6 +1,7 @@
 import { parseReviewDocument, projectReview, applyCardReviews, reviewKey, readReviewValue, writeReviewValue, reviewScheduleEdits, validateReviewValue, validateReviewTarget, exportReviewDocument, planReviewBulkEdit, reviewBulkFields } from '../model/dev-lab/card-review.js';
 import { createAuthoredGamepiecesDraft, validateGamepiecesDraft } from '../model/game-config.js';
 import { createNewGameState } from '../model/new-game.js';
+import { importReviewDocument } from '../model/dev-lab/card-review.js';
 
 // Stable across builds; never attach this key to player save reset/cleanup.
 export const CARD_REVIEW_STORAGE_KEY = 'civsurvivor.card-review.v1';
@@ -132,6 +133,23 @@ export function createCardReviewController({storage = browserStorage(), resolveL
     remove:(kind, id) => write(doc => {delete doc.cards[reviewKey(kind, id)];}),
     preview:(entry, live) => projectReview(entry, live ?? resolveLive?.(entry.kind, entry.id)),
     export:() => JSON.stringify(exportReviewDocument(read(), resolveLive), null, 2),
+    previewImport(raw) {
+      const incoming=importReviewDocument(raw),local=read();
+      const keys=Object.keys(incoming.cards),existing=keys.filter(key=>Object.hasOwn(local.cards,key));
+      return {total:keys.length,added:keys.length-existing.length,existing:existing.length};
+    },
+    import(raw,{overwrite=false}={}) {
+      const incoming=importReviewDocument(raw);
+      const result={added:0,replaced:0,skipped:0};
+      write(doc=>{
+        for(const [key,entry] of Object.entries(incoming.cards)) {
+          const exists=Object.hasOwn(doc.cards,key);
+          if(exists&&!overwrite){result.skipped++;continue;}
+          doc.cards[key]=entry;result[exists?'replaced':'added']++;
+        }
+      });
+      return result;
+    },
   };
 }
 

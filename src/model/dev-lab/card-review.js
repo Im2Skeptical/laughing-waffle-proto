@@ -186,6 +186,41 @@ export function exportReviewDocument(doc, resolveLive) {
     })};
 }
 
+// Import persisted fields, excluding derived live/diff data. Validate against
+// the original baseline so removed cards and old-build conflicts survive transfer.
+export function importReviewDocument(raw) {
+  let exported;
+  try { exported=JSON.parse(raw); } catch { throw new Error('Choose a valid card-reviews JSON export.'); }
+  if(exported?.type!=='card-review'||exported.schemaVersion!==CARD_REVIEW_SCHEMA||!Array.isArray(exported.cards))
+    throw new Error('Unsupported review file. Choose a card-reviews JSON export from Export all.');
+  const doc={schemaVersion:CARD_REVIEW_SCHEMA,cards:{}};
+  const safe=value=>{
+    if(!value||typeof value!=='object')return;
+    for(const [key,child] of Object.entries(value)) {
+      if(['__proto__','prototype','constructor'].includes(key))throw new Error('Review file contains an unsafe field.');
+      safe(child);
+    }
+  };
+  for(const entry of exported.cards) {
+    if(!entry||!['practice','structure'].includes(entry.kind)||typeof entry.id!=='string'||!entry.id.trim()
+      ||!entry.baseline||typeof entry.baseline!=='object'||Array.isArray(entry.baseline)
+      ||!['bronze','silver','gold','diamond'].includes(entry.tier)||typeof entry.notes!=='string'
+      ||typeof entry.flaggedAt!=='string'||!Number.isFinite(Date.parse(entry.flaggedAt))||!Array.isArray(entry.edits))
+      throw new Error('Review file contains a damaged card draft.');
+    const key=reviewKey(entry.kind,entry.id);
+    if(Object.hasOwn(doc.cards,key))throw new Error(`Review file contains duplicate drafts for ${entry.id}.`);
+    const edits=entry.edits.map(edit=>{
+      if(!edit||!Array.isArray(edit.path)||!edit.path.length||!Object.hasOwn(edit,'value')
+        ||edit.path.some(part=>!(typeof part==='string'&&part.length)&&!(Number.isInteger(part)&&part>=0)))
+        throw new Error(`Review file contains a damaged edit for ${entry.id}.`);
+      return {path:edit.path,value:edit.value};
+    });
+    const draft={kind:entry.kind,id:entry.id,tier:entry.tier,baseline:entry.baseline,edits,notes:entry.notes,flaggedAt:entry.flaggedAt};
+    safe(draft);doc.cards[key]=draft;
+  }
+  return parseReviewDocument(JSON.stringify(doc));
+}
+
 // Bulk edits cover whole-card numbers and choices only; positional effect rows
 // differ per card, so they stay single-card edits.
 export const REVIEW_QUALITIES = Object.freeze(['bronze','silver','gold','diamond']);

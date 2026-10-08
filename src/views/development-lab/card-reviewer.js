@@ -1,4 +1,5 @@
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
+import { createReviewImport } from './review-import.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { reviewFields, reviewKey, readReviewValue, REVIEW_STOCK_TRAITS, REVIEW_PHASES, REVIEW_SEASONS, reviewScheduleTriggers, reviewOutputChoices, reviewAddOutput, reviewRemoveOutput } from '../../model/dev-lab/card-review.js';
 import { PRACTICE_OUTPUTS, PRACTICE_EFFECT_LIMIT, PRACTICE_INPUT_LIMIT, isPracticeOutput } from '../../model/practice-outputs.js';
@@ -65,6 +66,7 @@ const labelFor = (def, path) => {
 export function createCardReviewerView({review, cards, getState, run}) {
   let selected=null, comparison=false, queueTerm='';
   const bulk=createReviewBulkEdit({review,run,labelFor});
+  const importer=createReviewImport({review,run,onImported:()=>bulk.clearUndo()});
   const previewTiers={};
   const previewSides={};
   const resolve = (state, entry) => state.gameConfig.gamepieces[entry.kind==='practice'?'practices':'structures'][entry.id];
@@ -82,12 +84,14 @@ export function createCardReviewerView({review, cards, getState, run}) {
         const link=el('a');link.href=url;link.download='card-reviews.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
       } catch(error) {run(()=>{throw error;});}
     },'review-export','quiet');exportAll.disabled=!entries.length;
-    header.append(exportAll);
+    const transfer=el('div','','lab-controls'),importControls=importer.controls();
+    transfer.append(exportAll,importControls.pick,importControls.file);
+    header.append(transfer,importControls.status);
     bulk.sync(entries.map(entry=>reviewKey(entry.kind,entry.id)));
     const howTo=info('reviewer',[
       'Tap an outlined area on the card to edit it, or use the grouped values below. Valid edits save immediately; partial numbers wait until they are valid.',
       'Changes against live lists every edit with a Revert. Lock card keeps a card out of new shop offers once reviewed cards are applied (Use edited cards in new games on the menu, or Apply reviewed cards to draft in Gym). Existing runs keep their pool.',
-      'Export all downloads every flagged card with notes, original, live and proposed values.',
+      'Export all downloads every flagged card with notes, original, live and proposed values. Move that JSON file to another device and choose Import reviews to continue there. For matching cards, choose which device’s drafts to keep.',
       'Select picks several cards; Edit together sets one whole-card number or choice on all of them, with a preview of every change and skip first. Undo bulk edit restores the cards as they were.',
     ],{label:'How reviewing works'});
     const undoBanner=bulk.banner();

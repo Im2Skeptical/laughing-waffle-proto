@@ -41,7 +41,9 @@ step in one storage transaction. The editor is a viewport-height modal with narr
 tap-to-close side margins, Escape dismissal and a fixed Done footer. Only its body
 scrolls; background page scrolling is locked while it is open.
 Persistence/export live in
-`src/controllers/card-review-controller.js`; JSON draft/path operations live in
+`src/controllers/card-review-controller.js`; `review-import.js` previews file
+imports and chooses how matching drafts are handled before committing.
+JSON draft/path operations live in
 `src/model/dev-lab/card-review.js`. Reviews never enter the Lab timeline.
 `zoo.js` can project edited definitions into its display snapshot, including
 filters, shared readings and quality comparisons. Live/edited/edited-only modes

@@ -125,6 +125,14 @@ live → draft and a **Revert** button that restores that field's live value.
 notes, its original definition, current live definition, modified definition,
 and explicit original/live/proposed values at each edited path.
 
+**Import reviews** opens an **Export all** JSON file to continue on another device.
+Move `card-reviews.json` from your phone to your PC (or back), then select it here.
+The preview counts new and existing reviews. Matching cards default to **Keep this
+device’s drafts**; choose **Use imported drafts** to replace their full edits,
+notes and original definitions. Reviews outside the file stay untouched. Invalid
+files leave all drafts unchanged. Importing does not enable edited cards in new
+games or change an existing run.
+
 Reviews use the stable `civsurvivor.card-review.v1` browser-storage key, independent
 of simulation/save schemas and game resets. They survive sessions and builds on
 the same site, browser and device. Clearing browser site data removes them.

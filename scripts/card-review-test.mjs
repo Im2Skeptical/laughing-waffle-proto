@@ -436,4 +436,43 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.equal(inputs.get('practice','masonry').edits.length,0);
   inputs.setUseInNewGames(false);
 }
-console.log('[card-review] OK: persistent proposals/locks/construction costs, export, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures, bulk edits/skips/undo, production outputs and Consume/Require lists, Produces/Consumes/Requires filters');
+{
+  const importedStore=new Map();let writes=0;
+  const importedStorage={getItem:key=>importedStore.get(key)??null,setItem:(key,value)=>{writes++;importedStore.set(key,value);}};
+  const destination=createCardReviewController({storage:importedStorage,resolveLive});
+  const raw=JSON.stringify(exported);
+  assert.deepEqual(destination.previewImport(raw),{total:2,added:2,existing:0});
+  assert.equal(writes,0,'preview never writes');
+  assert.deepEqual(destination.import(raw),{added:2,replaced:0,skipped:0});
+  assert.equal(writes,1,'import commits the entire file in one write');
+  const sourceFields=entry=>Object.fromEntries(['kind','id','tier','baseline','edits','notes','flaggedAt'].map(key=>[key,entry[key]]));
+  assert.deepEqual(destination.list(),exported.cards.map(sourceFields),'all persisted fields round-trip, including notes-only reviews');
+  assert.equal(destination.useInNewGames(),false,'import never enables reviewed game definitions');
+  assert.equal(destination.preview(destination.get('practice','smelting')).conflicts.length,1,'old-build field conflicts stay visible');
+  assert.equal(destination.get('structure','mudHouses').notes,'Keep this as the baseline.','removed cards retain their notes and baseline');
+  assert.equal(Object.hasOwn(destination.get('practice','smelting'),'modified'),false,'derived export data is discarded');
+  destination.notes('practice','smelting','PC draft');
+  destination.flag('practice','forage',live.practices.forage);
+  assert.deepEqual(destination.previewImport(raw),{total:2,added:0,existing:2});
+  assert.deepEqual(destination.import(raw),{added:0,replaced:0,skipped:2});
+  assert.equal(destination.get('practice','smelting').notes,'PC draft');
+  assert.deepEqual(destination.import(raw,{overwrite:true}),{added:0,replaced:2,skipped:0});
+  assert.deepEqual(destination.get('practice','smelting'),sourceFields(exported.cards[0]));
+  assert.ok(destination.get('practice','forage'),'reviews outside the import stay');
+  const before=importedStorage.getItem(CARD_REVIEW_STORAGE_KEY),writesBefore=writes;
+  const invalid=change=>{const doc=structuredClone(exported);change(doc);return JSON.stringify(doc);};
+  for(const bad of ['not JSON','null','{}',invalid(doc=>doc.schemaVersion=99),invalid(doc=>doc.type='debug-profile'),
+    invalid(doc=>doc.cards.push(doc.cards[0])),invalid(doc=>doc.cards[1].notes=12),
+    invalid(doc=>doc.cards[1].edits=[{path:['constructor','polluted'],value:true}]),
+    invalid(doc=>doc.cards[1].edits=[{path:['housing'],value:'bad'}]),
+    invalid(doc=>doc.cards[1].baseline=JSON.parse('{"__proto__":{"polluted":true}}'))]) {
+    assert.throws(()=>destination.import(bad));
+    assert.equal(importedStorage.getItem(CARD_REVIEW_STORAGE_KEY),before,'invalid files never partially import');
+  }
+  assert.equal(writes,writesBefore,'invalid imports never attempt storage writes');
+  const full=createCardReviewController({storage:{getItem:importedStorage.getItem,setItem:()=>{throw new Error('Storage full');}},resolveLive});
+  assert.throws(()=>full.import(raw,{overwrite:true}),/Storage full/);
+  assert.equal(importedStorage.getItem(CARD_REVIEW_STORAGE_KEY),before);
+  assert.deepEqual(destination.import(JSON.stringify({type:'card-review',schemaVersion:1,cards:[]})),{added:0,replaced:0,skipped:0});
+}
+console.log('[card-review] OK: persistent proposals/locks/construction costs, export/import round-trip and conflicts, pool filtering/rerolls, edited new-game snapshots, save/replay isolation, validation and storage failures, bulk edits/skips/undo, production outputs and Consume/Require lists, Produces/Consumes/Requires filters');
