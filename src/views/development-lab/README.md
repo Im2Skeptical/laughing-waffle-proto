@@ -4,7 +4,12 @@ The hash entry in `ui-root-pixi.js` boots `development-lab-dom.js` without the
 live game shell. DOM views emit controller commands. `cards.js` renders the
 actual Pixi settlement piece into images through one shared renderer, avoiding
 one WebGL context per catalogue specimen. Images have textual state alongside.
-The global stylesheet uses `.development-lab` selectors only.
+The global stylesheet uses `.development-lab` selectors only, driven by the
+tokens at the top of that block. `elements.js` holds the shared building blocks:
+button tones, `disclosure` (remembered collapsible groups with count badges),
+`info` ("How … works" toggles), field-level help, `badge`, `segmented` and
+`group`. Remembered open/closed state uses one browser-storage key and is only
+written when a person toggles something.
 
 `new-run-setup.js` mounts Map Lab, Game Settings and Life Map Lab under Gym,
 with one combined-profile toolbar. The card reviewer owns gamepiece editing;

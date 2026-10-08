@@ -6,7 +6,7 @@ import { openLabHandoff } from '../../controllers/development-lab-bridge.js';
 import { createMapLabDom } from '../map-lab-dom.js';
 import { createLifeMapLabDom } from '../life-map-lab-dom.js';
 import { createDebugConfigurationDom } from '../debug-configuration-dom.js';
-import { el, button, confirmButton, select, input, field, section } from './elements.js';
+import { el, button, confirmButton, select, input, field, section, info, group } from './elements.js';
 
 export function createNewRunSetupView({ getGymState, openInGym, review }) {
   const map = createMapLabController({ runner: { getState: getGymState } });
@@ -29,7 +29,8 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
     const snapshot = profiles.getSnapshot();
     status.textContent = error || snapshot.status.message;
     status.classList.toggle('lab-warning', !!error || snapshot.status.tone === 'warning');
-    dirty.textContent = snapshot.readOnly ? 'Read-only baseline' : snapshot.dirty ? 'Edited draft · launch uses current edits' : 'Saved profile';
+    dirty.textContent = snapshot.readOnly ? 'Read-only baseline' : snapshot.dirty ? 'Unsaved edits · launch uses them' : 'Saved profile';
+    dirty.className = `lab-badge ${snapshot.readOnly ? '' : snapshot.dirty ? 'lab-badge-warn' : 'lab-badge-ok'}`;
   }
   function act(action) {
     try {
@@ -43,7 +44,10 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
     const snapshot = profiles.getSnapshot();
     root.replaceChildren();
     if (!pages[activePage]) { activePage = 'mapLab'; profiles.setActivePage(activePage); }
-    root.append(el('h2', 'New run setup'), el('p', 'One combined profile saves Map Lab, Game Settings, Life Map Lab, reviewed cards and launch options together. Start from Regular game, copy it, tune the draft, then launch. Museum exhibits are saved game states.'));
+    root.append(info('new-run-setup', [
+      'One combined profile saves Map Lab, Game Settings, Life Map Lab, reviewed cards and launch options together. Start from Regular game, copy it, tune the draft, then launch. Museum exhibits are saved game states, not recipes.',
+      snapshot.readOnly ? 'Regular game follows this build’s New Game setup, including two starting settlements and four neutrals. It updates with the game and cannot be overwritten.' : 'All three editor tabs edit this combined profile. Save profile captures every section and the reviewed cards applied to this draft.',
+    ], { label: 'How profiles work' }));
     const toolbar = el('div', '', 'lab-controls'); toolbar.dataset.testid = 'debug-profile-toolbar';
     const chosen = select('New run profile', snapshot.profileOptions.map(entry => [entry.id, `${entry.name}${entry.readOnly ? ' · live baseline' : ''}${entry.id === snapshot.defaultProfileId ? ' · default' : ''}`]), snapshot.selectedProfileId ?? '');
     if (!snapshot.selectedProfileId) { const custom = el('option', 'Current editable draft'); custom.value = ''; chosen.prepend(custom); chosen.value = ''; }
@@ -58,29 +62,32 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
     const save = button('Save profile', () => act(() => profiles.saveProfile(profileName)), 'debug-profile-save'); save.disabled = snapshot.readOnly;
     const remove = confirmButton('Delete profile', 'Delete this profile?', () => act(() => profiles.deleteProfile(snapshot.selectedProfileId)), 'debug-profile-delete'); remove.disabled = snapshot.readOnly || !snapshot.selectedProfileId;
     const defaultButton = button('Default in workshop', () => act(() => profiles.setDefaultProfile(snapshot.selectedProfileId)), 'debug-profile-default'); defaultButton.disabled = !snapshot.selectedProfileId;
-    toolbar.append(field('Combined profile', chosen), button('Copy to edit', () => act(() => { profileName = ''; return profiles.copyProfile(); }), 'debug-profile-copy'), field('Save as', name), save, remove, defaultButton,
-      button('Import / Export', () => act(() => { jsonOpen = !jsonOpen; const result = profiles.exportProfile(profileName); if (result.ok) jsonText = result.text; return result; }), 'debug-profile-json-toggle'));
-    root.append(toolbar, dirty, status);
-    root.append(el('p', snapshot.readOnly ? 'Regular game follows this build’s New Game setup, including two starting settlements and four neutrals. It updates with the game and cannot be overwritten.' : 'All three tabs edit this combined profile. Save profile captures every section and the reviewed cards applied to this draft.'));
+    save.classList.add('lab-primary');
+    const pick = el('div', '', 'lab-controls');
+    pick.append(field('Combined profile', chosen), button('Copy to edit', () => act(() => { profileName = ''; return profiles.copyProfile(); }), 'debug-profile-copy', snapshot.readOnly ? 'primary' : ''), dirty);
+    toolbar.append(field('Save as', name), save, defaultButton,
+      button('Import / Export', () => act(() => { jsonOpen = !jsonOpen; const result = profiles.exportProfile(profileName); if (result.ok) jsonText = result.text; return result; }), 'debug-profile-json-toggle', 'quiet'), remove);
+    root.append(section('Profile', pick, toolbar), status);
     const launchControls = el('div', '', 'lab-controls');
     const placement = select('Starting settlement placement', [['randomRoad', 'Regular game · random connected pair'], ['authoredMap', 'Exact Map Lab placement']], snapshot.launch.startMode);
     placement.disabled = snapshot.readOnly;
     placement.addEventListener('change', () => act(() => profiles.setLaunch({ ...snapshot.launch, startMode: placement.value })));
     const neutrals = input('Seed neutral settlements', '', 'checkbox'); neutrals.checked = snapshot.launch.neutralSettlements; neutrals.disabled = snapshot.readOnly;
     neutrals.addEventListener('change', () => act(() => profiles.setLaunch({ ...snapshot.launch, neutralSettlements: neutrals.checked })));
-    launchControls.append(field('Starting layout', placement), field('Seed neutral settlements', neutrals), field('Seed', seed),
-      button('Start new run', () => act(() => openLabHandoff(profiles.createRun(Number(seed.value)), 'play', { sameTab: true })), 'debug-start-new-run'),
+    const layoutHelp = snapshot.launch.startMode === 'randomRoad' ? 'The first detailed settlement in Map Lab supplies the shared starting tableau; placement is rolled from the roads. Exact Map Lab placement uses per-region assignments.' : 'Each region uses its Map Lab controller and tableau. Neutral seeding fills available frontier regions when enabled.';
+    launchControls.append(field('Starting layout', placement, { help: layoutHelp }), field('Seed neutral settlements', neutrals), field('Seed', seed, { help: 'The launch seed makes runs reproducible. Life Map’s preview seed only changes its preview.' }));
+    const launchActions = el('div', '', 'lab-controls');
+    launchActions.append(button('Start new run', () => act(() => openLabHandoff(profiles.createRun(Number(seed.value)), 'play', { sameTab: true })), 'debug-start-new-run', 'primary'),
       button('Open in settlement sandbox', () => act(() => openInGym(profiles.createRun(Number(seed.value)))), 'lab-setup-to-gym'));
-    root.append(launchControls, el('p', snapshot.launch.startMode === 'randomRoad' ? 'The first detailed settlement in Map Lab supplies the shared starting tableau. Controller and detailed-settlement placement are rolled from the roads; choose Exact Map Lab placement to use per-region assignments.' : 'Each region uses its Map Lab controller and tableau. Neutral seeding fills available frontier regions when enabled.'));
     const applyReviews = button('Apply reviewed cards to draft', () => act(() => {
       const profile = profiles.getCurrentProfile(), result = review.applyTo(profile.gamepieces);
       if (result.issues.length) throw new Error(result.issues[0]);
       return config.replaceDraftsFromProfile({ ...profile, gamepieces: result.gamepieces });
     }), 'lab-setup-reviewed-cards'); applyReviews.disabled = snapshot.readOnly;
     const cards = el('div', '', 'lab-controls');
-    const reviewer = el('a', 'Open card reviewer'); reviewer.href = '#/dev/reviewer';
-    cards.append(reviewer, applyReviews);
-    root.append(el('p', 'Edit cards in the card reviewer, then apply them here to include them in this profile.'), cards);
+    const reviewer = el('a', 'Open card reviewer', 'lab-quiet-link'); reviewer.href = '#/dev/reviewer';
+    cards.append(applyReviews, reviewer);
+    root.append(section('Launch', launchControls, launchActions, group('Reviewed cards', cards)));
     if (jsonOpen) {
       const area = el('textarea'); area.setAttribute('aria-label', 'New run profile JSON'); area.value = jsonText; area.rows = 12;
       area.addEventListener('input', () => { jsonText = area.value; });
@@ -95,11 +102,12 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
       button('Copy JSON', async () => { try { await navigator.clipboard.writeText(jsonText); status.textContent = 'Profile JSON copied.'; } catch (_) { area.focus(); area.select(); status.textContent = 'JSON selected; copy it from this field.'; } }));
       io.append(actions); root.append(io);
     }
-    const tabs = el('div', '', 'lab-controls');
+    const tabs = el('div', '', 'lab-segmented'); tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', 'Profile editor');
     for (const [id, label] of [['mapLab', 'Map Lab'], ['gameSettings', 'Game Settings'], ['lifeMapLab', 'Life Map Lab']]) {
       const tab = button(label, () => { activePage = id; profiles.setActivePage(id); render(); }, `debug-${id}-tab`);
-      tab.setAttribute('aria-pressed', String(activePage === id)); tabs.append(tab);
+      tab.dataset.value = id; tab.setAttribute('aria-pressed', String(activePage === id)); tabs.append(tab);
     }
+    root.append(el('h3', 'Edit the recipe', 'lab-section-title'));
     const editor = el('fieldset', '', 'lab-run-editor'); editor.classList.toggle('is-readonly', snapshot.readOnly);
     const surface = el('div');
     pages[activePage].render(); surface.append(pages[activePage].element); editor.append(surface);

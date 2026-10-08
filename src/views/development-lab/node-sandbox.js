@@ -3,24 +3,27 @@ import { LAB_NODE_TYPES } from '../../model/dev-lab/node-sandbox.js';
 import { getResearchProgression } from '../../model/research-progression.js';
 import { createVassalNodeDecisionModalView } from '../vassal-node-decision-modal-pixi.js';
 import { attachDevPreviewDisplay } from '../dev-preview-display.js';
-import { el, button, field, input, select, section } from './elements.js';
+import { el, button, field, input, select, section, disclosure, info, group, isNarrow } from './elements.js';
 
 export function createLabNodeSandboxView() {
   const controller = createNodeSandboxController();
-  const node = section('Node sandbox', el('p','An isolated dummy and settlement using the real game decision screen. Refresh restores the setup; the same settings and seed reproduce the same contents.'));
+  const node = el('section','','lab-node-sandbox');
   const settings = controller.getSnapshot().settings, fields = {};
   const controls = el('div','','lab-controls');
   fields.type = select('Sandbox node type',LAB_NODE_TYPES,settings.type);
   fields.classId = select('Dummy class',[['scholar','Scholar'],['warrior','Warrior'],['unclassed','Unclassed']],settings.classId);
   controls.append(field('Node / shop',fields.type),field('Dummy class',fields.classId));
+  // Seed and Research change the contents; the dummy's stats sit one tap away.
+  const stats = el('div','','lab-controls');
+  const short = {seed:'Seed',research:'Research',prestige:'Prestige',age:'Age',cunning:'Cunning / Ingenuity',wisdom:'Wisdom',effectiveness:'Effectiveness',intelligence:'Intelligence / Prowess'};
   for (const [key,label] of [['seed','Refresh seed'],['research','Research'],['prestige','Dummy Prestige'],['age','Dummy age'],['cunning','Dummy Cunning / Ingenuity'],['wisdom','Dummy Wisdom'],['effectiveness','Dummy Effectiveness'],['intelligence','Dummy Intelligence / Prowess']]) {
     fields[key] = input(label,settings[key]);
     fields[key].max = String(key === 'seed' ? 4294967295 : key === 'research' ? Number.MAX_SAFE_INTEGER : key === 'prestige' ? 10000 : 100);
-    controls.append(field(label,fields[key]));
+    (['seed','research'].includes(key) ? controls : stats).append(field(short[key],fields[key]));
   }
   const status = el('p','','lab-status');status.setAttribute('role','status');
-  const summary = el('p');
-  const researchSummary = el('p');
+  const summary = el('p','','lab-summary');
+  const researchSummary = el('p','','lab-note');
   const viewport = el('div','','lab-node-viewport');
   const app = new PIXI.Application({width:2424,height:1080,backgroundColor:0x111c21,antialias:true,resolution:1});
   app.stage.eventMode='static';app.stage.hitArea=app.screen;
@@ -40,7 +43,7 @@ export function createLabNodeSandboxView() {
     const snapshot = controller.getSnapshot();
     const research = getResearchProgression(snapshot.state);
     const odds = research.tiers.filter(tier=>tier.unlocked).map(tier=>`${tier.id} ${(tier.chance*100).toFixed(1).replace(/\.0$/, '')}%`).join(', ');
-    researchSummary.textContent = `Research ${research.research} · Base quality rolls: ${odds}. ${research.nextMilestone ? `Next: ${research.nextMilestone.label} at ${research.nextMilestone.research} Research. ` : ''}Research also unlocks eligible shop cards; class bonuses and upgrades still apply.`;
+    researchSummary.textContent = `Quality rolls: ${odds}${research.nextMilestone ? ` · next: ${research.nextMilestone.label} at ${research.nextMilestone.research}` : ''}`;
     status.textContent = error || snapshot.message;status.classList.toggle('lab-warning',!!error);
     const phase=!snapshot.vassal?'dummy ended':snapshot.vassal.lifeMap.pendingResolution?'outcome pending':snapshot.vassal.lifeMap.nodeStates[snapshot.nodeId]?.resolved?'resolved':'ready';
     summary.textContent = `Gym Dummy · ${snapshot.settings.classId} · seed ${snapshot.settings.seed} · t=${snapshot.state.tSec}s · Prestige ${snapshot.vassal?.prestige ?? 'ended'} · ${phase}`;
@@ -72,11 +75,14 @@ export function createLabNodeSandboxView() {
     const result = run(()=>controller.refresh(values));
     if(result.ok) { fields.seed.value=String(values.seed);modal.open(controller.getSnapshot().nodeId); }
   }
-  controls.append(button('Refresh contents',()=>refresh(),'lab-node-refresh'),button('Next seed',()=>refresh(true),'lab-node-next-seed'));
+  controls.append(button('Refresh contents',()=>refresh(),'lab-node-refresh','primary'),button('Next seed',()=>refresh(true),'lab-node-next-seed'));
   const actions = el('div','','lab-controls');
   const resolve = button('Resolve outcome',()=>run(()=>controller.resolve()),'lab-node-resolve');
-  actions.append(button('Open node',()=>modal.open(controller.getSnapshot().nodeId),'lab-node-open'),button('Close node',()=>modal.close()),resolve);
-  node.append(controls,status,summary,researchSummary,actions,viewport,el('p','Use the card costs to stage, drag cards onto the settlement, and inspect their faces. The in-game reroll uses its normal cost and limit. Resolve outcome advances only this dummy simulation through the decision’s duration. Fullscreen gives the game screen more room on phones.'));
+  actions.append(button('Open node',()=>modal.open(controller.getSnapshot().nodeId),'lab-node-open'),button('Close node',()=>modal.close(),'','quiet'),resolve);
+  const setup = section('Setup', group('Contents',controls), disclosure('Dummy stats',[stats],{key:'node:stats',open:!isNarrow()}), researchSummary,
+    info('node-sandbox',['An isolated dummy and settlement using the real game decision screen. Refresh restores the setup; the same settings and seed reproduce the same contents. Research also unlocks eligible shop cards; class bonuses and upgrades still apply.',
+      'Stage offers with their costs, drag cards onto the settlement and inspect faces. The in-game reroll keeps its normal cost and limit. Resolve outcome advances only this dummy through the decision’s duration. Fullscreen gives the game screen more room on phones.']));
+  node.append(setup,status,summary,actions,viewport);
   app.view.addEventListener('keydown',event=>{if(modal.handleInspectionKey(event)){event.preventDefault();return;}if(event.key==='Escape')modal.close();});
   app.ticker.add(()=>{if(node.isConnected)modal.update();});
   updateStatus();modal.open(controller.getSnapshot().nodeId);

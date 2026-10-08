@@ -24,17 +24,17 @@ const WORKBENCHES = [
 ];
 
 export function renderPrototypes(host) {
-  const intro = el('section', '', 'lab-prototype-intro');
-  intro.append(el('small', 'DESIGN STUDIES'), el('h2', 'Prototype workbenches'),
-    el('p', 'Explore proposed visual treatments with editable examples. Changes stay in the workbench; player saves and live gameplay are untouched.'));
-  host.append(intro);
+  const intro = el('div', '', 'lab-page-head lab-prototype-intro'), text = el('div');
+  text.append(el('h2', 'Prototype workbenches'), el('p', 'Visual design studies. Edits stay in each workbench.', 'lab-subtitle'));
+  intro.append(text); host.append(intro);
   const grid = el('div', '', 'lab-prototype-grid');
   for (const [index, workbench] of WORKBENCHES.entries()) {
     const card = el('article', '', 'lab-panel lab-prototype-card');
-    card.append(el('small', `0${index + 1} · ${workbench.label.toUpperCase()}`),
-      el('h3', workbench.title), el('p', workbench.description),
-      el('p', workbench.details, 'lab-prototype-details'));
-    const link = el('a', `Open ${workbench.label} workbench →`, 'lab-prototype-open');
+    const chips = el('div', '', 'lab-chips');
+    for (const detail of workbench.details.split(' · ')) chips.append(el('span', detail, 'lab-badge'));
+    card.append(el('span', `0${index + 1} · ${workbench.label}`, 'lab-eyebrow'),
+      el('h3', workbench.title), el('p', workbench.description, 'lab-clamp'), chips);
+    const link = el('a', `Open ${workbench.label} workbench →`, 'lab-prototype-open lab-primary');
     link.href = new URL(`images/dark-fantasy/${workbench.folder}/`, document.baseURI).href;
     card.append(link); grid.append(card);
   }

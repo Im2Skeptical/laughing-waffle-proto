@@ -4,13 +4,13 @@ import { createSunAndMoonDisksView, SUN_AND_MOON_DISKS_LAYOUT } from '../sunandm
 import { createTooltipView } from '../tooltip-pixi.js';
 import { GRAPH_METRICS } from '../../model/graph-metrics.js';
 import { getActiveGraphGroups, toggleGraphGroup } from '../ui-root/settlement-graph-groups.js';
-import { el, field, select, input } from './elements.js';
+import { el, field, select, input, disclosure, isNarrow } from './elements.js';
 import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 
 // One persistent stage: DOM edits never interrupt a map/wheel/graph gesture.
 export function createLabScene({getController,run,onReview}) {
   const node=el('section','','lab-scene'), controls=el('div','','lab-controls');
-  const display={}, groupPanel=el('details'), seriesPanel=el('div','','lab-controls');
+  const display={}, groupPanel=el('details','','lab-disclosure lab-scene-series'), seriesPanel=el('div','','lab-controls');
   let scope='settlement', visibleIds=['food','gold','totalPopulation','housingCapacity'];
   let lastController=null, lastTimeline=null, lastHorizon=null;
   const state=()=>getController().getSnapshot().state;
@@ -39,13 +39,16 @@ export function createLabScene({getController,run,onReview}) {
   const setScope=value=>{scope=value;scopeSelect.value=value;configureSeries();renderSeries();};
   scopeSelect.addEventListener('change',()=>setScope(scopeSelect.value));
   controls.append(field('Trends',scopeSelect));
+  // Map layers and graph series are long checkbox lists, so each folds away.
+  const layers=el('div','','lab-controls');
   for(const [key,label] of Object.entries({terrain:'Terrain',scenery:'Scenery',connections:'Connections',workers:'Workers',structures:'Structures',actors:'Actors',alerts:'Alerts'})) {
     const check=input(`Map ${label}`,'','checkbox');check.checked=true;
     check.addEventListener('change',()=>{display[key]=check.checked;map.refresh();});
-    controls.append(field(label,check));
+    layers.append(field(label,check));
   }
-  groupPanel.append(el('summary','Choose graph series'),seriesPanel);
-  node.append(controls,groupPanel);
+  const seriesSummary=el('summary');seriesSummary.append(el('span','Graph series','lab-disclosure-title'));
+  groupPanel.append(seriesSummary,seriesPanel);
+  node.append(controls,disclosure('Map layers',[layers],{key:'scene:layers',open:!isNarrow(),count:7}),groupPanel);
   const viewport=el('div','','lab-scene-viewport');node.append(viewport);
   const displayMode=attachDevPreviewDisplay(viewport);
   const app=new PIXI.Application({width:2424,height:1200,backgroundColor:0x111c21,antialias:true,resolution:1});
