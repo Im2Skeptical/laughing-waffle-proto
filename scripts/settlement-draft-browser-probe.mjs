@@ -111,6 +111,12 @@ try {
       }
     };
     await delay(900);
+    const initial=await snapshot();
+    assert.deepEqual(initial.visibleOfferIds,['fixture:0','fixture:1','fixture:2'],
+      'Three offers fit on the first page, including the widest Structure');
+    assert.deepEqual(initial.costPanels.map(panel=>panel.rect.width),[270,270,270],
+      'Structures and Practices use the same offer columns');
+    await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}-offers.png`});
     await tap(await point('getOfferFacePoint',0));
     let s=await snapshot();assert.equal(s.purchaseOrder.length,0);assert.ok(s.inspectedCardId || s.quickCardId);
     if(s.quickCardId) {await tap(s.inspectionTitlePoint); s=await snapshot();}

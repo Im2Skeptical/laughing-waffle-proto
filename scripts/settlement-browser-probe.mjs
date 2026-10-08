@@ -309,6 +309,14 @@ try {
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('settlement')));
   await clickDesignPoint(page, await page.evaluate(() =>
     globalThis.__SETTLEMENT_DEBUG__.getNavigationClickPoint('map')));
+  // Claim manual time before choosing the fixture second; automatic follow
+  // can otherwise replace it while the human-duration press is held.
+  const pointerTimeLever = await page.evaluate(() =>
+    globalThis.__SETTLEMENT_DEBUG__.getTimeLeverScreenRect());
+  await pressDesignPoint(page, {
+    x: pointerTimeLever.x + pointerTimeLever.width / 2,
+    y: pointerTimeLever.y + pointerTimeLever.height / 2,
+  }, 180);
   // Faster rendering can unveil past Cedar's fall before the navigation taps.
   // Keep the pointer checks at a known, already-revealed living settlement.
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.browseSecond(64));

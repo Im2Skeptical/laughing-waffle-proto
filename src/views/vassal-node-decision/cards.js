@@ -9,6 +9,7 @@ import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 import {
   COST_FOOTER_HEIGHT,
+  OPTION_COLUMN,
   QUALITY_COLORS,
 } from "./constants.js";
 
@@ -121,16 +122,23 @@ export function pieceOfferCard(parent, rect, spec) {
   root.addChild(title);
   title.scale.set(Math.min(1, 62 / Math.max(1, title.height)));
   const isStructure = spec.presentation?.kind === 'structure';
-  const faceWidth = isStructure ? PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) * 178 / PIECE_SIZE.structureHeight : 220;
-  const faceHeight = isStructure ? 178 : 308;
-  const faceY = 84 + (308 - faceHeight) / 2;
-  const faceX=isStructure ? (rect.width-faceWidth*2-24)/2 : (rect.width-faceWidth)/2;
+  const aspect = PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) / PIECE_SIZE.structureHeight;
+  const faceHeight = isStructure ? Math.min(172, (rect.width - 48) / aspect) : 308;
+  const faceWidth = isStructure ? faceHeight * aspect : 220;
+  const staggerX = isStructure ? Math.min(28, (rect.width - faceWidth) / 3) : 0;
+  const staggerY = isStructure ? faceHeight - Math.max(faceHeight * .14, faceHeight * 2 - 300) : 0;
+  const faceY = 84 + (308 - faceHeight - staggerY) / 2;
+  const faceX = (rect.width - faceWidth - staggerX) / 2;
   if(isStructure) {
+    // Use the Practice column's height: the plan overlaps the completed
+    // building's upper edge, leaving its bottom-right bonuses exposed.
+    addSettlementPiece(root,{x:faceX+staggerX,y:faceY+staggerY,width:faceWidth,height:faceHeight},{face:spec.presentation,onInspect:spec.onCompletedInspect??spec.onInspect});
     for(const [dx,dy,angle] of [[-10,8,-.055],[8,4,.045]]) {
       const back=addSettlementPiece(root,{x:faceX+dx,y:faceY+dy,width:faceWidth,height:faceHeight},{face:spec.constructionPresentation});
+      back.pivot.set(back.pieceGeometry.width/2,back.pieceGeometry.height/2);
+      back.position.set(faceX+dx+faceWidth/2,faceY+dy+faceHeight/2);
       back.rotation=angle;back.eventMode='none';back.alpha=.7;
     }
-    addSettlementPiece(root,{x:faceX+faceWidth+24,y:faceY,width:faceWidth,height:faceHeight},{face:spec.presentation,onInspect:spec.onCompletedInspect??spec.onInspect});
   }
   root.faceRoot=addSettlementPiece(root,{x:faceX,y:faceY,width:faceWidth,height:faceHeight},{
     face:isStructure?spec.constructionPresentation:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
@@ -207,18 +215,16 @@ export function heirloomChoiceCard(parent, rect, spec) {
   return root;
 }
 
-// Keep physical faces at board scale; wide Structures use fewer offer columns
-// per page rather than shrinking their glyphs to fit a portrait column.
+// Practices and Structure plans share three columns; only extra offers page.
 export function shopOfferPages(offers) {
   const pages = [[]]; let used = 0;
   for (const offer of offers) {
-    const width = offer.presentation?.kind === 'structure'
-      ? Math.max(322, offer.presentation.footprint * 120 * 178 / 160 * 2 + 64) : 282;
+    const width = OPTION_COLUMN.width;
     const page = pages.at(-1);
-    if (page.length && used + 16 + width > 886) {pages.push([]); used = 0;}
+    if (page.length === 3) {pages.push([]); used = 0;}
     const next = pages.at(-1);
-    next.push({offer, width, x:used + (next.length ? 16 : 0)});
-    used += (next.length > 1 ? 16 : 0) + width;
+    next.push({offer, width, x:used + (next.length ? OPTION_COLUMN.gap : 0)});
+    used += (next.length > 1 ? OPTION_COLUMN.gap : 0) + width;
   }
   return pages;
 }
