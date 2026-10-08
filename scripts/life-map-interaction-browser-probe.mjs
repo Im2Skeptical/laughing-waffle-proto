@@ -80,6 +80,8 @@ try {
     await delay(120);
     const dialog = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmation);
     assert.ok(dialog.buttonCssHeight >= 43.5, `entry confirmation buttons stay touch-sized at ${viewport.width}x${viewport.height}`);
+    if (viewport.width === 1280) assert.ok(dialog.panelSize.width <= 900 && dialog.panelSize.height <= 420,
+      `entry confirmation stays compact on desktop: ${JSON.stringify(dialog.panelSize)}`);
   }
   await page.keyboard.press('Escape');
   assert.equal(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMap.entryConfirmationOpen),false);

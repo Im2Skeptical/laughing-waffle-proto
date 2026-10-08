@@ -66,23 +66,16 @@ assert.equal(dispatched.at(-1).options.viewInvalidationReason, undefined);
 assert.equal(invalidated, 1);
 console.log('[life-map-interaction] entry and drafts avoid forecast rebuild; confirmation invalidates');
 
-// The entry dialog states what committing does before the player confirms.
-const entryRows = (spec) => getEntryConsequences(spec).map(row => `${row.id}:${row.detail}`);
-assert.deepEqual(entryRows({node:{family:'training'}, otherOpenCount:0}), [
-  'cost:Free to enter · each choice lists its own cost',
-  'path:Locks in this path · it is the only open node',
-]);
-assert.match(entryRows({node:{family:'training'}, otherOpenCount:1})[1], /1 other open node closes$/u);
-assert.match(entryRows({node:{family:'training'}, otherOpenCount:2})[1], /2 other open nodes close$/u);
+// The compact entry dialog only adds rows for conditional warnings.
+assert.deepEqual(getEntryConsequences({node:{family:'training'}}), [], 'ordinary nodes need no consequence rows');
 for (const node of [{family:'crisis'}, {family:'relic'}, {family:'signature', signatureNode:{variantId:'monsterHunt'}}]) {
-  assert.ok(getEntryConsequences({node}).some(row => row.id === 'risk'), `${node.family} warns about death risk`);
+  assert.deepEqual(getEntryConsequences({node}).map(row => row.id), ['risk'], `${node.family} warns about death risk`);
 }
-assert.equal(getEntryConsequences({node:{family:'travel'}}).some(row => row.id === 'risk'), false);
-assert.equal(getEntryConsequences({node:{family:'travel'}, blockedReason:'heirloomLoadoutRequired'}).at(-1).detail,
-  'Finish equipping Heirlooms first.');
+assert.deepEqual(getEntryConsequences({node:{family:'travel'}, blockedReason:'heirloomLoadoutRequired'}),
+  [{id:'blocked', label:"Can't enter", detail:'Finish equipping Heirlooms first.'}]);
 assert.equal(describeEntryBlockedReason('somethingNew'), "This node can't be entered right now.");
 assert.equal(describeEntryBlockedReason(null), null);
-console.log('[life-map-interaction] entry confirmation lists cost, commitment, risk and blocked reasons');
+console.log('[life-map-interaction] entry confirmation shows only risk and blocked-entry rows');
 
 // A Vassal may die while the player is viewing the civilization map.
 // Exercise the real recap view with a minimal display surface.

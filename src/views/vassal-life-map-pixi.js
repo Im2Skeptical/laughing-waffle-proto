@@ -548,11 +548,11 @@ export function createVassalLifeMapView({
     const location = vassal?.locationRegionId
       ? String(getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId) : null;
     const prestige = Number.isFinite(vassal?.prestige) ? Math.floor(vassal.prestige) : null;
-    const otherOpenCount = Math.max(0, (vassal?.lifeMap?.availableNodeIds ?? []).filter((id) => id !== node.id).length);
     return {
-      node, family, location, prestige, otherOpenCount, blockedReason: entryBlockedReason,
+      node, family, location, prestige, blockedReason: entryBlockedReason,
       signature: !!node.signatureNode?.variantId,
-      key: { id: node.id, label: family.label, location, prestige, otherOpenCount, blocked: entryBlockedReason },
+      // Art revision: rebuild once the Prestige icon texture has loaded.
+      key: { id: node.id, label: family.label, location, prestige, blocked: entryBlockedReason, art: getArtRevision() },
     };
   }
 

@@ -2,17 +2,19 @@
 // decision modal's motion: a short eased fade/scale, instant under reduced
 // motion, with controls live from the first frame so input is never delayed.
 import { addInteractionFeedback } from './interaction-feedback.js';
-import { drawHourglass, paintRelicPanel, RELIC } from './chronicle-skin.js';
+import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { dockPadContour, drawDockCheckIcon, paintDockPadFace } from './settlement-dock-style.js';
 import { drawLifeMapNodeIcon } from './life-map-node-icon.js';
+import { addResourceAmount } from './resource-cost-pixi.js';
 import { clearChildren, createText } from './settlement-view-primitives.js';
 import { PALETTE, TEXT_STYLES } from './settlement-theme.js';
 
 const STAGE = Object.freeze({ width: 2424, height: 1080, margin: 14 });
 const CENTER = Object.freeze({ x: 1212, y: 448 });
-const PANEL_WIDTH = 1080;
-const PAD = 48;
-const BUTTON = Object.freeze({ height: 112, maxHeight: 176, cancel: 280, confirm: 420, gap: 22 });
+// Compact: sized to its content, with only the rows that actually apply.
+const PANEL_WIDTH = 860;
+const PAD = 34;
+const BUTTON = Object.freeze({ height: 100, maxHeight: 176, cancel: 220, confirm: 320, gap: 18 });
 // 44 CSS px is the minimum comfortable touch target.
 const MIN_TOUCH_CSS_PX = 44;
 const OPEN_MS = 200;
@@ -36,21 +38,16 @@ export function describeEntryBlockedReason(reason) {
   return reason ? BLOCKED_REASONS[reason] ?? "This node can't be entered right now." : null;
 }
 
-// Consequences the player can scan before committing. Entering is free and
-// closes every other open node; costs and risks belong to the choices inside.
-export function getEntryConsequences({ node, family, otherOpenCount = 0, blockedReason = null } = {}) {
-  const rows = [
-    { id: 'cost', icon: 'time', label: 'Cost', detail: 'Free to enter · each choice lists its own cost' },
-    { id: 'path', icon: 'path', label: 'Commits', detail: otherOpenCount > 0
-      ? `Locks in this path · ${otherOpenCount} other open node${otherOpenCount === 1 ? ' closes' : 's close'}`
-      : 'Locks in this path · it is the only open node' },
-  ];
+// Only conditional warnings earn a row: a death risk inside, or why entry
+// just failed. Everything else is said by the title and description.
+export function getEntryConsequences({ node, family, blockedReason = null } = {}) {
+  const rows = [];
   const kind = node?.signatureNode?.variantId ?? node?.family ?? family?.id;
   if (RISKY_FAMILIES.has(kind)) {
-    rows.push({ id: 'risk', icon: 'risk', label: 'Risk', detail: 'Some choices here can kill this Vassal', tone: 'risk' });
+    rows.push({ id: 'risk', label: 'Risk', detail: 'Some choices here can kill this Vassal' });
   }
   const blocked = describeEntryBlockedReason(blockedReason);
-  if (blocked) rows.push({ id: 'blocked', icon: 'risk', label: "Can't enter", detail: blocked, tone: 'risk' });
+  if (blocked) rows.push({ id: 'blocked', label: "Can't enter", detail: blocked });
   return rows;
 }
 
@@ -59,19 +56,9 @@ function cssScaleOf(app) {
   return Number.isFinite(width) && width > 0 ? width / (app.screen?.width || STAGE.width) : 1;
 }
 
-function drawRowIcon(g, icon, x, y, color) {
-  if (icon === 'time') {
-    drawHourglass(g, x, y, 24, color);
-  } else if (icon === 'path') {
-    g.lineStyle(3, color, 1).moveTo(x - 13, y + 12).lineTo(x - 13, y)
-      .bezierCurveTo(x - 13, y - 9, x, y - 9, x + 12, y - 12)
-      .moveTo(x - 13, y).lineTo(x + 12, y + 2);
-    g.lineStyle(0).beginFill(color).drawCircle(x + 12, y - 12, 4).endFill();
-    g.lineStyle(2, color, .45).moveTo(x + 8, y + 7).lineTo(x + 16, y - 3).moveTo(x + 8, y - 3).lineTo(x + 16, y + 7);
-  } else {
-    g.lineStyle(3, color, 1).drawPolygon([x, y - 14, x + 14, y + 12, x - 14, y + 12]);
-    g.lineStyle(0).beginFill(color).drawRect(x - 1.5, y - 5, 3, 9).drawCircle(x, y + 8, 2).endFill();
-  }
+function drawWarningIcon(g, x, y, color) {
+  g.lineStyle(3, color, 1).drawPolygon([x, y - 13, x + 13, y + 11, x - 13, y + 11]);
+  g.lineStyle(0).beginFill(color).drawRect(x - 1.5, y - 5, 3, 9).drawCircle(x, y + 7, 2).endFill();
 }
 
 // Carved pill button shared by both actions (the same face as the Lifegraph
@@ -85,7 +72,7 @@ function pillButton(parent, rect, { label, colors, primary, onActivate }) {
   root.hitArea = new PIXI.Polygon(contour);
   const face = new PIXI.Graphics();
   const content = new PIXI.Container();
-  const fontSize = Math.round(Math.min(40, rect.height * .32));
+  const fontSize = Math.round(Math.min(38, rect.height * .34));
   const text = createText(label, {
     ...TEXT_STYLES.title, fontSize, fill: colors.ink, letterSpacing: 1,
   }, 0, 0, 0, .5);
@@ -167,7 +154,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
 
   function computeScale() {
     const css = cssScaleOf(app);
-    const body = layout?.bodyHeight ?? 450;
+    const body = layout?.bodyHeight ?? 320;
     const fitWidth = (STAGE.width - STAGE.margin * 2) / PANEL_WIDTH;
     const fitHeight = STAGE.height - STAGE.margin * 2;
     const fit = (buttonHeight) => Math.min(fitWidth, fitHeight / (body + buttonHeight));
@@ -193,65 +180,84 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
     const textWidth = PANEL_WIDTH - PAD * 2;
 
     // Header: the map's own node icon in a medallion, then eyebrow, name, context.
-    const headerHeight = 196;
     const medallion = new PIXI.Graphics();
-    const mx = PAD + 70, my = 104;
-    medallion.lineStyle(3, RELIC.brass, 1).beginFill(RELIC.night, .95).drawCircle(mx, my, 68).endFill();
-    medallion.lineStyle(4, accent, 1).drawCircle(mx, my, 58);
-    if (node) drawLifeMapNodeIcon(medallion, node, { fill: 0xf4e7bd, accent, outline: 0x111714, x: mx, y: my, scale: 1.3 });
-    const titleX = PAD + 166;
+    const mx = PAD + 46, my = 72;
+    medallion.lineStyle(3, RELIC.brass, 1).beginFill(RELIC.night, .95).drawCircle(mx, my, 46).endFill();
+    medallion.lineStyle(3, accent, 1).drawCircle(mx, my, 39);
+    if (node) drawLifeMapNodeIcon(medallion, node, { fill: 0xf4e7bd, accent, outline: 0x111714, x: mx, y: my, scale: .92 });
+    const titleX = PAD + 112;
     const eyebrow = createText(spec.signature ? 'Signature opportunity' : 'Enter turning point', {
-      ...TEXT_STYLES.title, fontSize: 24, fill: RELIC.gold, letterSpacing: 3,
-    }, titleX, 38);
+      ...TEXT_STYLES.title, fontSize: 20, fill: RELIC.gold, letterSpacing: 3,
+    }, titleX, 24);
     const title = createText(family.label ?? 'Turning point', {
-      ...TEXT_STYLES.header, fontSize: 54, fill: RELIC.bone,
+      ...TEXT_STYLES.header, fontSize: 42, fill: RELIC.bone,
       wordWrap: true, wordWrapWidth: PANEL_WIDTH - titleX - PAD,
-    }, titleX, 68);
-    const meta = [spec.location ? `Vassal at ${spec.location}` : null,
-      Number.isFinite(spec.prestige) ? `${spec.prestige} Prestige` : null].filter(Boolean).join('  ·  ');
-    const metaText = createText(meta, { ...TEXT_STYLES.body, fontSize: 26, fill: RELIC.ash }, titleX, 68 + title.height + 6);
-    content.addChild(medallion, eyebrow, title, metaText);
-    const headerBottom = Math.max(headerHeight, metaText.y + metaText.height + 22);
+    }, titleX, 48);
+    content.addChild(medallion, eyebrow, title);
+    // Context line: location, then Prestige with the HUD's own Prestige icon.
+    const metaY = title.y + title.height + 20;
+    let metaX = titleX;
+    if (spec.location) {
+      const where = createText(`Vassal at ${spec.location}`, { ...TEXT_STYLES.body, fontSize: 24, fill: RELIC.ash }, metaX, metaY, 0, .5);
+      content.addChild(where);
+      metaX += where.width + 14;
+    }
+    if (Number.isFinite(spec.prestige)) {
+      if (spec.location) {
+        content.addChild(new PIXI.Graphics().beginFill(RELIC.brass).drawCircle(metaX, metaY, 3).endFill());
+        metaX += 14;
+      }
+      const iconSize = 32;
+      const amount = addResourceAmount(content, 'prestige', spec.prestige, {
+        x: metaX, y: metaY - iconSize / 2, fontSize: 26, iconSize, fill: PALETTE.accent,
+      });
+      amount.label = 'entry-prestige';
+    }
+    const headerBottom = Math.max(140, metaY + 22);
 
     const description = createText(family.description ?? '', {
-      ...TEXT_STYLES.body, fontSize: 33, lineHeight: 44, fill: PALETTE.text,
+      ...TEXT_STYLES.body, fontSize: 29, lineHeight: 38, fill: PALETTE.text,
       wordWrap: true, wordWrapWidth: textWidth,
-    }, PAD, headerBottom + 26);
+    }, PAD, headerBottom + 18);
     content.addChild(description);
+    let contentBottom = description.y + description.height;
 
-    const rows = getEntryConsequences({ node, family, otherOpenCount: spec.otherOpenCount, blockedReason: spec.blockedReason });
-    const rowHeight = 60;
-    const rowsY = description.y + description.height + 26;
-    const rowGraphics = new PIXI.Graphics();
-    rowGraphics.lineStyle(0).beginFill(RELIC.night, .42)
-      .drawRect(PAD, rowsY, textWidth, rows.length * rowHeight + 12).endFill();
-    rows.forEach((row, index) => {
-      const y = rowsY + 6 + index * rowHeight + rowHeight / 2;
-      const tone = row.tone === 'risk' ? PALETTE.red : RELIC.gold;
-      if (index > 0) rowGraphics.lineStyle(1, RELIC.brass, .28).moveTo(PAD + 16, y - rowHeight / 2).lineTo(PAD + textWidth - 16, y - rowHeight / 2);
-      drawRowIcon(rowGraphics, row.icon, PAD + 36, y, tone);
-      content.addChild(
-        createText(row.label, { ...TEXT_STYLES.title, fontSize: 27, fill: row.tone === 'risk' ? 0xe0a093 : RELIC.bone }, PAD + 72, y, 0, .5),
-        createText(row.detail, { ...TEXT_STYLES.body, fontSize: 27, fill: row.tone === 'risk' ? 0xe0b3a8 : PALETTE.textMuted }, PAD + 250, y, 0, .5),
-      );
-    });
-    content.addChildAt(rowGraphics, 0);
-    const bodyHeight = rowsY + rows.length * rowHeight + 12 + 34 + 40;
+    // Conditional warnings only (death risk, blocked entry).
+    const rows = getEntryConsequences({ node, family, blockedReason: spec.blockedReason });
+    if (rows.length) {
+      const rowHeight = 48;
+      const rowsY = contentBottom + 16;
+      const band = new PIXI.Graphics();
+      band.beginFill(PALETTE.red, .12).drawRect(PAD, rowsY, textWidth, rows.length * rowHeight).endFill();
+      band.beginFill(PALETTE.red, .85).drawRect(PAD, rowsY, 4, rows.length * rowHeight).endFill();
+      rows.forEach((row, index) => {
+        const y = rowsY + index * rowHeight + rowHeight / 2;
+        drawWarningIcon(band, PAD + 30, y, PALETTE.red);
+        const label = createText(row.label, { ...TEXT_STYLES.title, fontSize: 24, fill: 0xe0a093 }, PAD + 56, y, 0, .5);
+        content.addChild(label, createText(row.detail, {
+          ...TEXT_STYLES.body, fontSize: 24, fill: 0xe0b3a8,
+        }, label.x + label.width + 18, y, 0, .5));
+      });
+      content.addChildAt(band, 0);
+      contentBottom = rowsY + rows.length * rowHeight;
+    }
+    const footerY = contentBottom + 24;
+    const bottomPad = 26;
+    const bodyHeight = footerY + bottomPad;
     layout = { bodyHeight };
 
     const { scale, buttonHeight } = computeScale();
     const height = bodyHeight + buttonHeight;
-    const footerY = bodyHeight - 40;
     const confirmRect = { x: PANEL_WIDTH - PAD - BUTTON.confirm, y: footerY, width: BUTTON.confirm, height: buttonHeight };
     const cancelRect = { x: confirmRect.x - BUTTON.gap - BUTTON.cancel, y: footerY, width: BUTTON.cancel, height: buttonHeight };
 
     // Panel chrome: drop shadow, relic stone, inner gold hairline, header band.
     const chrome = new PIXI.Graphics();
-    chrome.beginFill(RELIC.shadow, .55).drawRect(10, 16, PANEL_WIDTH, height).endFill();
+    chrome.beginFill(RELIC.shadow, .55).drawRect(8, 12, PANEL_WIDTH, height).endFill();
     paintRelicPanel(chrome, 0, 0, PANEL_WIDTH, height, RELIC.stone, RELIC.brass, 3);
-    chrome.lineStyle(0).beginFill(RELIC.night, .5).drawRect(10, 10, PANEL_WIDTH - 20, headerBottom - 10).endFill();
-    chrome.beginFill(accent, .9).drawRect(10, 10, PANEL_WIDTH - 20, 6).endFill();
-    const inset = 10, c = 6;
+    chrome.lineStyle(0).beginFill(RELIC.night, .5).drawRect(8, 8, PANEL_WIDTH - 16, headerBottom - 8).endFill();
+    chrome.beginFill(accent, .9).drawRect(8, 8, PANEL_WIDTH - 16, 5).endFill();
+    const inset = 8, c = 6;
     chrome.lineStyle(1.5, RELIC.gold, .42).drawPolygon([
       inset + c, inset, PANEL_WIDTH - inset - c, inset, PANEL_WIDTH - inset, inset + c,
       PANEL_WIDTH - inset, height - inset - c, PANEL_WIDTH - inset - c, height - inset,
@@ -259,15 +265,15 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
     ]);
     // Engraved header rule with a centre diamond.
     const midX = PANEL_WIDTH / 2;
-    chrome.lineStyle(2, RELIC.brass, .8).moveTo(PAD, headerBottom).lineTo(midX - 14, headerBottom)
-      .moveTo(midX + 14, headerBottom).lineTo(PANEL_WIDTH - PAD, headerBottom);
+    chrome.lineStyle(2, RELIC.brass, .8).moveTo(PAD, headerBottom).lineTo(midX - 12, headerBottom)
+      .moveTo(midX + 12, headerBottom).lineTo(PANEL_WIDTH - PAD, headerBottom);
     chrome.lineStyle(2, RELIC.gold, 1).beginFill(RELIC.night)
-      .drawPolygon([midX, headerBottom - 9, midX + 9, headerBottom, midX, headerBottom + 9, midX - 9, headerBottom]).endFill();
+      .drawPolygon([midX, headerBottom - 8, midX + 8, headerBottom, midX, headerBottom + 8, midX - 8, headerBottom]).endFill();
     panelRoot.addChild(chrome, content);
 
     if (finePointer?.matches) {
       panelRoot.addChild(createText('Enter ↵  confirms\nEsc  cancels', {
-        ...TEXT_STYLES.body, fontSize: 22, lineHeight: 32, fill: RELIC.ash,
+        ...TEXT_STYLES.body, fontSize: 20, lineHeight: 28, fill: RELIC.ash,
       }, PAD, footerY + buttonHeight / 2, 0, .5));
     }
     const cancelRoot = pillButton(panelRoot, cancelRect, { label: 'Cancel', colors: CANCEL_COLORS, onActivate: () => onCancel?.() });
@@ -280,13 +286,14 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
     // On a tiny stage (a narrow portrait window) the enlarged panel spans the
     // screen. Hug the left edge so its title clears the DOM Save & menu chrome
     // that floats over the top-right corner of the canvas.
-    const panelX = scale > 1.25 ? STAGE.margin + PANEL_WIDTH * scale / 2 : CENTER.x;
+    const panelX = PANEL_WIDTH * scale > STAGE.width * .6 ? STAGE.margin + PANEL_WIDTH * scale / 2 : CENTER.x;
     const halfHeight = height * scale / 2;
     const panelY = Math.max(STAGE.margin + halfHeight, Math.min(STAGE.height - STAGE.margin - halfHeight, CENTER.y));
     panelRoot.pivot.set(PANEL_WIDTH / 2, height / 2);
     layout = {
       bodyHeight, height, scale, buttonHeight, center: { x: panelX, y: panelY },
       confirmRect, cancelRect, confirmRoot, cancelRoot, cssScale: cssScaleOf(app),
+      panelSize: { width: PANEL_WIDTH * scale, height: height * scale },
     };
     backdrop.clear().beginFill(0x050808, .66)
       .drawRect(0, 0, app?.screen?.width ?? STAGE.width, app?.screen?.height ?? STAGE.height).endFill();
@@ -408,6 +415,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
       phase: motion ? (logicalOpen ? 'opening' : 'closing') : logicalOpen ? 'open' : 'closed',
       scale: layout?.scale ?? null, buttonHeight: layout?.buttonHeight ?? null,
       buttonCssHeight: layout ? layout.buttonHeight * layout.scale * layout.cssScale : null,
+      panelSize: layout?.panelSize ?? null,
     }),
   };
 }
