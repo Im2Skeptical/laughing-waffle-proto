@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { Worker } from 'node:worker_threads';
+import { advanceReplayStateOneSecond } from '../src/model/replay-second-runner.js';
+import { canonicalizeSnapshot } from '../src/model/canonicalize.js';
+import { deserializeGameState } from '../src/model/state.js';
 import { createTimegraphForecastWorkerService } from '../src/controllers/timegraph-forecast-worker-service.js';
 import { createProjectionCache } from '../src/model/timegraph/projection-cache.js';
 import { createNewGameState } from '../src/model/new-game.js';
 import { createEmptyTimelineFromBase } from '../src/model/timeline/index.js';
 import { serializeGameState } from '../src/model/state.js';
 import { buildProjectionChunkFromStateData } from '../src/model/projection-chunk.js';
-import { createForecastChunkConfigSender, encodeForecastChunk } from '../src/model/timegraph/forecast-wire.js';
+import { createForecastChunkConfigReceiver, createForecastChunkConfigSender, encodeForecastChunk } from '../src/model/timegraph/forecast-wire.js';
 
 function fixture() {
   const state = createNewGameState(99117);
@@ -114,6 +118,71 @@ shared.listeners.get('message')({ data: { ...shared.messages.at(-1), kind: 'chun
   baseSec: 20, endSec: 22, done: true, result: structuredClone(orphanWire) } });
 assert.equal(shared.cache.getStateData(22), null, 'chunks without a known config never merge');
 shared.service.dispose();
+
+// A completed job immediately continues while its caller is still polling,
+// instead of idling the worker until the next poll; stale callers and edited
+// timelines never receive automatic continuations.
+const eager = fixture();
+eager.request(60);
+const eagerJob = eager.messages[0];
+const eagerChunk = buildProjectionChunkFromStateData(eager.cache.getStateData(1), 1, 20);
+eager.at(100);
+eager.listeners.get('message')({ data: { ...eagerJob, kind: 'chunkResult', baseSec: 1, endSec: 20, done: true, result: eagerChunk } });
+assert.equal(eager.messages.length, 2, 'next chunk dispatched on completion');
+assert.equal(eager.messages[1].baseSec, 20);
+assert.equal(eager.messages[1].endSec, 40);
+assert.equal(JSON.stringify(eager.messages[1].boundaryStateData), JSON.stringify(eagerChunk.lastStateData),
+  'continuation starts from the accepted tail anchor');
+eager.at(1000);
+const eagerSecond = buildProjectionChunkFromStateData(eagerChunk.lastStateData, 20, 40);
+eager.listeners.get('message')({ data: { ...eager.messages[1], kind: 'chunkResult', baseSec: 20, endSec: 40, done: true, result: eagerSecond } });
+assert.equal(eager.messages.length, 2, 'no automatic continuation once the caller stopped polling');
+eager.request(60);
+assert.equal(eager.messages.length, 3, 'the regular poll still dispatches');
+eager.service.handleTimelineInvalidation();
+eager.listeners.get('message')?.({ data: { ...eager.messages[2], kind: 'chunkResult', baseSec: 40, endSec: 60, done: true,
+  result: buildProjectionChunkFromStateData(eagerSecond.lastStateData, 40, 60) } });
+assert.equal(eager.messages.length, 3, 'edits never continue an obsolete job');
+eager.service.dispose();
+
+// Run the real worker script in a worker thread: MessageChannel-yielded
+// slices, config sent once, every received snapshot identical to replay.
+{
+  const workerUrl = new URL('../src/controllers/timegraph-forecast-worker.js', import.meta.url).href;
+  const thread = new Worker(`const { parentPort, workerData } = require('node:worker_threads');
+    const queued = []; let loaded = false;
+    globalThis.postMessage = message => parentPort.postMessage(message);
+    parentPort.on('message', data => loaded ? globalThis.onmessage({ data }) : queued.push(data));
+    import(workerData.url).then(() => { loaded = true; for (const data of queued) globalThis.onmessage({ data }); });`,
+  { eval: true, workerData: { url: workerUrl } });
+  const state = createNewGameState(99117);
+  state.paused = false;
+  const base = serializeGameState(state);
+  const replies = await new Promise((resolve, reject) => {
+    const received = [];
+    thread.on('error', reject);
+    thread.on('message', message => { received.push(message); if (message.done) resolve(received); });
+    thread.postMessage({ kind: 'buildChunk', requestId: 1, requestKey: 'k', timelineToken: 't', historyEndSec: 0,
+      baseSec: 0, endSec: 120, stepSec: 1, streamSliceSec: 30, boundaryStateData: base, scheduledActionsBySecond: [] });
+  });
+  await thread.terminate();
+  assert.equal(replies.length, 4, 'four yielded 30 s slices');
+  assert.ok(replies[0].result.sharedConfig.config && replies.slice(1).every(reply => reply.result.sharedConfig.config === null));
+  const receiver = createForecastChunkConfigReceiver();
+  const snapshots = new Map();
+  for (const reply of replies) {
+    assert.equal(receiver.restore(reply.result), true);
+    for (const [sec, data] of reply.result.stateDataBySecond) snapshots.set(sec, data);
+    snapshots.set(reply.endSec, reply.result.lastStateData);
+  }
+  const official = deserializeGameState(base);
+  canonicalizeSnapshot(official);
+  for (let sec = 1; sec <= 120; sec++) {
+    advanceReplayStateOneSecond(official);
+    canonicalizeSnapshot(official);
+    if (snapshots.has(sec)) assert.equal(JSON.stringify(snapshots.get(sec)), JSON.stringify(serializeGameState(official)), `worker snapshot ${sec}`);
+  }
+}
 
 const silent = fixture();
 silent.request();

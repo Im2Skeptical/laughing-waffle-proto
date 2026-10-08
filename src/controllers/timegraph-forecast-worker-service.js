@@ -17,6 +17,7 @@ export const TIMEGRAPH_FORECAST_EARLY_CHUNK_WINDOW_SEC = 1440;
 export const TIMEGRAPH_FORECAST_EARLY_CHUNK_SIZE_SEC = 180;
 export const TIMEGRAPH_FORECAST_EARLY_STREAM_SLICE_SEC = 20;
 export const TIMEGRAPH_FORECAST_EARLY_REQUEST_CADENCE_MS = 20;
+export const TIMEGRAPH_FORECAST_CONTINUATION_POLL_WINDOW_MS = 250;
 
 const DEFAULT_FORECAST_WORKER_URL =
   typeof __TIMEGRAPH_FORECAST_WORKER_URL__ === "string"
@@ -265,7 +266,20 @@ export function createTimegraphForecastWorkerService({
     }
     if (message.done === true) {
       releaseRequest(message.requestId);
+      dispatchContinuation(entry, merged?.ok === true && message.result?.ok === true);
     }
+  }
+
+  // Start the next chunk as soon as a job completes instead of waiting for the
+  // caller's next poll (16-50 ms). Only while that caller is still actively
+  // polling this same timeline/step entry; edits and worker replacement clear
+  // the entry, and the regular poll path remains authoritative.
+  function dispatchContinuation(entry, accepted) {
+    if (!accepted || !entry?.lastCoverageArgs) return;
+    if (requestsByKey.get(entry.requestKey) !== entry || entry.inFlight) return;
+    if (entry.terminalEndSec != null || entry.requestedEndSec <= entry.coverageEndSec) return;
+    if (timeNowMs() - entry.lastPolledMs > TIMEGRAPH_FORECAST_CONTINUATION_POLL_WINDOW_MS) return;
+    requestCoverage(entry.lastCoverageArgs, { continuation: true });
   }
 
   function advanceCoverageLocally({
@@ -396,16 +410,17 @@ export function createTimegraphForecastWorkerService({
     };
   }
 
-  function requestCoverage({
-    projectionCache,
-    timeline,
-    timelineToken,
-    historyEndSec,
-    stepSec,
-    desiredEndSec,
-    boundaryStateData,
-    scheduledActionsBySecond,
-  } = {}) {
+  function requestCoverage(args = {}, { continuation = false } = {}) {
+    const {
+      projectionCache,
+      timeline,
+      timelineToken,
+      historyEndSec,
+      stepSec,
+      desiredEndSec,
+      boundaryStateData,
+      scheduledActionsBySecond,
+    } = args;
     if (!projectionCache || !timeline) {
       return {
         ok: false,
@@ -456,6 +471,11 @@ export function createTimegraphForecastWorkerService({
         normalizedStepSec
       );
       entry.coverageEndSec = coverage.coverageEndSec;
+    }
+
+    if (!continuation) {
+      entry.lastCoverageArgs = args;
+      entry.lastPolledMs = timeNowMs();
     }
 
     const pending =

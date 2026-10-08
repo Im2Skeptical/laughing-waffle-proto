@@ -4,6 +4,24 @@ import { createForecastChunkConfigSender } from "../model/timegraph/forecast-wir
 // Sends each shared frozen config once per worker lifetime.
 const encodeForecastChunkMessage = createForecastChunkConfigSender();
 
+// Yield between slices with a MessageChannel task. Browsers clamp nested
+// setTimeout(0) to >=4 ms, which idled the worker ~4 ms per 20-30 s slice.
+// A message task still lets queued requests and termination run in between.
+const yieldChannel = typeof MessageChannel === "function" ? new MessageChannel() : null;
+const yieldQueue = [];
+if (yieldChannel) {
+  yieldChannel.port1.onmessage = () => yieldQueue.shift()?.();
+  yieldChannel.port1.unref?.();
+}
+function yieldThen(callback) {
+  if (!yieldChannel) {
+    setTimeout(callback, 0);
+    return;
+  }
+  yieldQueue.push(callback);
+  yieldChannel.port2.postMessage(0);
+}
+
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));
   return Math.max(0, Math.floor(value));
@@ -101,7 +119,7 @@ function runBuildChunkJob(message) {
       if (done) return;
 
       currentBaseSec = resultEndSec;
-      setTimeout(stepSlice, 0);
+      yieldThen(stepSlice);
     } catch (error) {
       postChunkResult(
         message,
