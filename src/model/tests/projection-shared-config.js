@@ -9,7 +9,8 @@ import { canonicalizeSnapshot } from "../canonicalize.js";
 import { advanceReplayStateOneSecond, initializeReplayClock } from "../replay-second-runner.js";
 import { buildProjectionSummaryFromState } from "../projection-summary.js";
 import { createProjectionChunkSession, buildProjectionChunkFromStateData } from "../projection-chunk.js";
-import { encodeForecastChunk, freezeForecastChunkConfigs } from "../timegraph/forecast-wire.js";
+import { createForecastChunkConfigReceiver, createForecastChunkConfigSender } from "../timegraph/forecast-wire.js";
+import { serialize as serializeWire } from "node:v8";
 import { createProjectionStateRestorer } from "../timegraph/state-restorer.js";
 import { createTimelineFromInitialState, rebuildStateAtSecond } from "../timeline/index.js";
 import { createProjectionCache } from "../timegraph/projection-cache.js";
@@ -28,8 +29,12 @@ function deepFrozen(value, seen = new Set()) {
   return Object.values(value).every(child => deepFrozen(child, seen));
 }
 
-// Production path: worker-shaped session slices -> wire encoding -> structured
-// clone -> main-thread config restoration.
+// Production path: worker-shaped session slices -> wire encoding (config sent
+// once per worker) -> structured clone -> main-thread config restoration.
+const sendChunk = createForecastChunkConfigSender();
+const receiver = createForecastChunkConfigReceiver();
+const messageBytes = [];
+let mainConfig = null;
 const session = createProjectionChunkSession(base, 0, HORIZON_SEC, { stepSec: 1, actionsBySecond: [] });
 assert.equal(session.ok, true);
 const anchors = new Map();
@@ -44,7 +49,16 @@ while (sec < HORIZON_SEC) {
     assert.equal(data.gameConfig, configIdentity, "every anchor shares one config value");
   }
   assert.equal(slice.lastStateData.gameConfig, configIdentity);
-  const received = freezeForecastChunkConfigs(structuredClone(encodeForecastChunk(slice)));
+  const wire = sendChunk(slice);
+  assert.equal(wire.sharedConfig.config != null, messageBytes.length === 0, "config travels only in the first message");
+  messageBytes.push(serializeWire(wire).byteLength);
+  const received = structuredClone(wire);
+  assert.equal(receiver.restore(received), true);
+  for (const [, data] of received.stateDataBySecond) {
+    mainConfig ??= data.gameConfig;
+    assert.equal(data.gameConfig, mainConfig, "main-thread anchors share one config across chunks");
+  }
+  assert.equal(received.lastStateData.gameConfig, mainConfig);
   for (const [s, data] of received.stateDataBySecond) anchors.set(s, data);
   anchors.set(slice.endSec, received.lastStateData);
   for (const [s, summary] of received.summaryBySecond) summaries.set(s, summary);
@@ -52,6 +66,25 @@ while (sec < HORIZON_SEC) {
   if (slice.terminal) break;
 }
 assert.ok(deepFrozen(configIdentity), "the shared config is deep-frozen");
+assert.ok(deepFrozen(mainConfig), "the received config is deep-frozen");
+assert.ok(serializeWire(configIdentity).byteLength > 100000, "config is the bulk that later messages omit");
+assert.ok(messageBytes.slice(1).every(bytes => bytes < 3 * 160000), "later messages carry bodies only");
+// An id the receiver never saw is rejected rather than merged without config.
+const orphan = structuredClone(sendChunk(createProjectionChunkSession(base, 0, 4).next(4)));
+const freshReceiver = createForecastChunkConfigReceiver();
+assert.equal(freshReceiver.restore(orphan), false, "unknown config ids are rejected");
+// Mixed configs within one chunk fall back to per-message config copies.
+const mixedFirst = buildProjectionChunkFromStateData(base, 0, 2);
+const alternate = structuredClone(mixedFirst.lastStateData);
+alternate.gameConfig.settings.values.primordialBasePressure = 7;
+const mixedWire = createForecastChunkConfigSender()({ ok: true,
+  stateDataBySecond: new Map([[1, mixedFirst.stateDataBySecond.get(1) ?? mixedFirst.lastStateData], [2, alternate]]),
+  summaryBySecond: new Map(), lastStateData: alternate });
+assert.equal(mixedWire.sharedConfig, undefined);
+const mixedReceived = structuredClone(mixedWire);
+assert.equal(createForecastChunkConfigReceiver().restore(mixedReceived), true);
+assert.notEqual(mixedReceived.stateDataBySecond[0][1].gameConfig.settings.values.primordialBasePressure,
+  mixedReceived.lastStateData.gameConfig.settings.values.primordialBasePressure);
 assert.throws(() => { configIdentity.settings.values.primordialBasePressure = 1; }, TypeError);
 
 // Official replay with the save serializer at every compared second.
@@ -99,6 +132,32 @@ for (const target of [...offAnchorTargets].slice(0, 2)) {
 const direct = buildProjectionChunkFromStateData(base, 0, 64);
 for (const [s, data] of direct.stateDataBySecond) {
   if (officialText.has(s)) assert.equal(JSON.stringify(data), officialText.get(s));
+}
+
+// The restore reader recognises the shared frozen config by identity instead
+// of stringifying ~230 KB per anchor; a different frozen config is still
+// compared by content and fully validated.
+{
+  const originalStringify = JSON.stringify;
+  let configStringifies = 0;
+  JSON.stringify = function countingStringify(value, ...rest) {
+    if (value === mainConfig) configStringifies++;
+    return originalStringify.call(this, value, ...rest);
+  };
+  try {
+    const reader = createProjectionStateRestorer();
+    for (const s of anchorSecs.slice(0, 24)) reader.restore(anchors.get(s), s);
+  } finally {
+    JSON.stringify = originalStringify;
+  }
+  assert.ok(configStringifies <= 1, `shared config compared by identity (stringified ${configStringifies}x)`);
+  const changed = structuredClone(anchors.get(anchorSecs[0]));
+  changed.gameConfig.settings.values.primordialBasePressure = 3;
+  Object.freeze(changed.gameConfig);
+  const reader = createProjectionStateRestorer();
+  reader.restore(anchors.get(anchorSecs[0]), anchorSecs[0]);
+  assert.equal(reader.restore(changed, anchorSecs[0]).gameConfig.settings.values.primordialBasePressure, 3,
+    "a different frozen config is never mistaken for the shared one");
 }
 
 // Mutation isolation: restored previews own independent mutable bodies, and

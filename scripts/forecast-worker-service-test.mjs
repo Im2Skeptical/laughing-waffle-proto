@@ -6,7 +6,7 @@ import { createNewGameState } from '../src/model/new-game.js';
 import { createEmptyTimelineFromBase } from '../src/model/timeline/index.js';
 import { serializeGameState } from '../src/model/state.js';
 import { buildProjectionChunkFromStateData } from '../src/model/projection-chunk.js';
-import { encodeForecastChunk } from '../src/model/timegraph/forecast-wire.js';
+import { createForecastChunkConfigSender, encodeForecastChunk } from '../src/model/timegraph/forecast-wire.js';
 
 function fixture() {
   const state = createNewGameState(99117);
@@ -85,6 +85,35 @@ assert.equal(continued.request(40).coverageEndSec, 20,
   'each new chunk needs startup grace to deserialize its boundary state on a slow CPU');
 assert.equal(continued.terminated(), 0);
 continued.service.dispose();
+
+// Real worker wire: the shared config arrives once, later chunks refer to it,
+// and every merged anchor references one frozen config value.
+const shared = fixture();
+shared.request(40);
+const send = createForecastChunkConfigSender();
+const firstShared = buildProjectionChunkFromStateData(shared.cache.getStateData(1), 1, 10);
+const secondShared = buildProjectionChunkFromStateData(firstShared.lastStateData, 10, 20);
+const firstWire = send(firstShared), secondWire = send(secondShared);
+assert.ok(firstWire.sharedConfig.config && secondWire.sharedConfig.config === null);
+shared.listeners.get('message')({ data: { ...shared.messages[0], kind: 'chunkResult',
+  baseSec: 1, endSec: 10, done: false, result: structuredClone(firstWire) } });
+shared.listeners.get('message')({ data: { ...shared.messages[0], kind: 'chunkResult',
+  baseSec: 10, endSec: 20, done: true, result: structuredClone(secondWire) } });
+assert.equal(shared.cache.getForecastAsyncMeta().forecastAsyncEndSec, 20);
+assert.equal(shared.cache.getStateData(10).gameConfig, shared.cache.getStateData(20).gameConfig,
+  'anchors from different chunks share one interned config');
+assert.ok(Object.isFrozen(shared.cache.getStateData(20).gameConfig.settings.values));
+assert.equal(JSON.stringify(shared.cache.getStateData(20)), JSON.stringify(secondShared.lastStateData),
+  'reattached snapshots are byte-identical to the worker snapshots');
+// A replacement worker numbers configs again; an id never received is rejected.
+shared.service.handleTimelineInvalidation();
+shared.request(40);
+const orphanWire = send(buildProjectionChunkFromStateData(secondShared.lastStateData, 20, 22));
+assert.equal(orphanWire.sharedConfig.config, null);
+shared.listeners.get('message')({ data: { ...shared.messages.at(-1), kind: 'chunkResult',
+  baseSec: 20, endSec: 22, done: true, result: structuredClone(orphanWire) } });
+assert.equal(shared.cache.getStateData(22), null, 'chunks without a known config never merge');
+shared.service.dispose();
 
 const silent = fixture();
 silent.request();

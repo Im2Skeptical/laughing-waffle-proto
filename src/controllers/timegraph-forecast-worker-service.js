@@ -1,5 +1,5 @@
 import { buildProjectionChunkFromStateData } from "../model/projection-chunk.js";
-import { freezeForecastChunkConfigs } from "../model/timegraph/forecast-wire.js";
+import { createForecastChunkConfigReceiver } from "../model/timegraph/forecast-wire.js";
 import {
   perfEnabled,
   recordSettlementForecastBuild,
@@ -110,6 +110,8 @@ export function createTimegraphForecastWorkerService({
   let nextRequestId = 1;
   const requestsById = new Map();
   const requestsByKey = new Map();
+  // One frozen config per worker generation, shared by every merged anchor.
+  const configReceiver = createForecastChunkConfigReceiver();
 
   function getChunkStrategy(baseSec, coverageEndSec) {
     const safeBaseSec = clampSec(baseSec);
@@ -148,6 +150,7 @@ export function createTimegraphForecastWorkerService({
     if (failure) lastFailure = { atMs: timeNowMs(), ...failure };
     const currentWorker = worker;
     worker = null;
+    configReceiver.resetWorker();
     clearInFlightRequests();
     if (!currentWorker) return;
     if (typeof currentWorker.removeEventListener === "function") {
@@ -208,6 +211,9 @@ export function createTimegraphForecastWorkerService({
   function handleWorkerMessage(event) {
     const message = event?.data ?? null;
     if (!message || message.kind !== "chunkResult") return;
+    // Intern a newly sent config before any stale-request early return: the
+    // worker sends each config only once, and later chunks refer to its id.
+    const configRestored = configReceiver.restore(message.result);
 
     const request = requestsById.get(message.requestId) ?? null;
     if (!request) return;
@@ -216,7 +222,11 @@ export function createTimegraphForecastWorkerService({
     const projectionCache = request.projectionCache;
     const timeline = request.timeline;
     if (!projectionCache || !timeline) return;
-    freezeForecastChunkConfigs(message.result);
+    if (!configRestored) {
+      recordSettlementForecastWorkerReject("missingSharedConfig");
+      if (message.done === true) releaseRequest(message.requestId);
+      return;
+    }
 
     const merged = projectionCache.mergeForecastChunk?.(timeline, {
       timelineToken: message.timelineToken,

@@ -1,5 +1,8 @@
 import { createProjectionChunkSession } from "../model/projection-chunk.js";
-import { encodeForecastChunk } from "../model/timegraph/forecast-wire.js";
+import { createForecastChunkConfigSender } from "../model/timegraph/forecast-wire.js";
+
+// Sends each shared frozen config once per worker lifetime.
+const encodeForecastChunkMessage = createForecastChunkConfigSender();
 
 function clampSec(value, fallback = 0) {
   if (!Number.isFinite(value)) return Math.max(0, Math.floor(fallback));
@@ -52,7 +55,7 @@ function postChunkResult(message, result, { baseSec, endSec, done }) {
     endSec,
     stepSec: message.stepSec,
     done,
-    result: encodeForecastChunk(result),
+    result: encodeForecastChunkMessage(result),
   });
 }
 
