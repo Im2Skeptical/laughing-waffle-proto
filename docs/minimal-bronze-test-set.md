@@ -29,6 +29,10 @@ for inspection and editing; this is a provisional bronze balance test.
   Housing cycles; Sheepfold and Storehouse take four. Storehouse consumes two
   Construction per cycle.
 
+The 2026-10-09 `card-reviews (2).json` export additionally removes Tool from
+Scriptorium, Weigh House and Schoolhouse construction costs. Each consumes
+one Construction Stock per Housing cycle and completes after three paid cycles.
+
 Removing Mineral and Vessel from their producing cards intentionally leaves
 the unchanged later-tier Glassmaking, Distilling and Embalming recipes without
 a Common/Scholar Practice provider. Definition diagnostics continue to report
