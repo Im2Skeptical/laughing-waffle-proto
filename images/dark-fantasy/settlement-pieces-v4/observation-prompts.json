@@ -1,0 +1,39 @@
+{
+  "current": true,
+  "id": "observation",
+  "label": "Observation",
+  "pool": "common",
+  "date": "2026-10-09",
+  "tool": "built-in image_gen.imagegen",
+  "mode": "new original composition",
+  "prompt": "Use case: stylized-concept. Asset type: replacement painting for Observation, a Common Practice card in a medieval dark-fantasy civilization game. Generate one original opaque full-bleed 5:7 portrait illustration, ideally 1060x1484. Fresh composition. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action, two grouped anonymous figures, bold silhouettes, a supporting diagonal, environmental and architectural scale, broad calm value masses, and one focal area with strongest light and contrast. Subject: careful everyday observation advances knowledge. In an old stone courtyard beneath a massive weathered arch, two ordinary villagers in plain charcoal and umber hooded cloaks study a single leafy branch growing through a crack in the courtyard wall. We view both figures strictly from behind and slightly above. One gently lifts a broad olive-green leaf into a narrow shaft of warm sunlight; the other leans closer and points at that same leaf. Their purposeful hand gestures and the sunlit leaf make one unmistakable focal action. No harvesting, no books or writing tools, no magical effects. Anonymous human figures: every face completely indiscernible at full resolution, hoods hide heads completely; only the backs of hoods visible, no profile, eyes, nose, mouth or recognizable facial features; no other people or depicted faces. Practice framing: all principal action, BOTH figures and the identifying branch grouped in the upper central 45%, specifically x=25-75% and y=16-43%; figures small and subordinate to the monumental stone environment, each no more than 24% of image height. Branch and pointing hands near x=53%, y=30%. The entire lower half is quiet, low contrast charcoal/umber courtyard paving and broad soft architectural shadows, no figures or focal objects below halfway, suitable for card controls. Upper corners calm and subdued. Surface treatment inspired by inspected VGA adventure-game pixel-art references l5.png and l6.png: hand-placed shaped pixel clusters, crisp hard stepped edges, planar shading, selective ordered dithering, around 24-36 purposeful colors, no smooth gradients, no photographic or brush texture, no noisy pixel filter, no glossy 3D. Inspected current Common card Barter guides only warm-stone materials and palette, not its trading subject; inspected previous Observation is superseded, do not reproduce its composition or faces. Do not copy the style references' eyes, buildings or UI. Restricted Common palette: warm stone, charcoal, umber, wheat ochre, muted olive, restrained pale honey sunlight on the focal leaf. Broad readable silhouettes and the observation gesture must remain clear at roughly 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frame, decorative border, vignette, watermark, or distracting tiny clutter.",
+  "references": [
+    {
+      "path": "ai/References/Card Art Style/l5.png",
+      "role": "inspected pixel-treatment reference; not supplied as image input"
+    },
+    {
+      "path": "ai/References/Card Art Style/l6.png",
+      "role": "inspected pixel-treatment reference; not supplied as image input"
+    },
+    {
+      "path": "images/dark-fantasy/settlement-pieces-v4/barter.webp",
+      "role": "inspected Common palette and environmental-scale reference; not supplied as image input"
+    },
+    {
+      "path": "images/dark-fantasy/settlement-pieces-v4/observation.webp",
+      "revision": "6e2f97a",
+      "role": "inspected superseded painting; composition and faces excluded"
+    }
+  ],
+  "imageInputs": [],
+  "generatedOutput": "C:/Users/User/.codex/generated_images/01a11dff-58b3-7ee3-b8d0-1579a4d91d15/exec-98e576fe-a338-42ec-a26d-204d8d1ac52d.png",
+  "output": "images/dark-fantasy/settlement-pieces-v4/observation.webp",
+  "processing": "Opaque RGB output normalized from 1042x1510 to the existing 1060x1484 5:7 canvas with nearest-neighbor resampling and lossless WebP encoding; no scene edits.",
+  "supersedes": {
+    "sourceRevision": "6e2f97a",
+    "reviewArtifact": "artifacts/observation-art/observation-before.webp",
+    "note": "Earlier shared prompt records remain unchanged as provenance; this record is the current Observation brief."
+  },
+  "review": "Accepted after full-size inspection and browser review of the packed production card at 70, 170 and 300 pixels wide, plus the standalone 70x100 painting. Faces are hidden by rear-view hoods. Hands and sunlit leaf are the upper-central focal action. Lower half contains subdued paving and shadows with room for the production overlays. Review screenshot: artifacts/observation-art/production-card-review.png."
+}

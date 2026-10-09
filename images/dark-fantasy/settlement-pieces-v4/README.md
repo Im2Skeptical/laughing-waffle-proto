@@ -59,6 +59,11 @@ adjectives. The generation workflow is
 
 ## Existing production pass
 
+The current Observation painting is a fresh composition recorded in
+[`observation-prompts.json`](observation-prompts.json). That record supersedes
+the earlier Observation brief; shared historical prompt records remain below
+as provenance.
+
 This version restyles the 155 third-pass paintings while preserving their
 compositions, subjects, grouped anonymous figures, architectural scale, and
 small-card focal points. The production art was edited one scene at a time
