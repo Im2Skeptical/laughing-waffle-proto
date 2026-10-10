@@ -83,3 +83,21 @@ The current executable table now matches all 109 Practice rows and 78 Structure 
 Forecasting's existing 6 Chaos cost was added to its current table row and UI rule. Sixteen other executable rows were brought up to date with the existing tuned definitions, including Goat Herding's two-moon cadence. Astronomy, Ruin Delving and Mounted Raiding now display their existing Chaos costs; Monster Hunting displays its existing 6 Research victory reward. Cistern, Millhouse, Workshop and Storehouse describe their implemented capacity modifiers, and Astronomy no longer promises its deferred all-season Research reward.
 
 All nine changed card fields were `ui.rule` only. An independent comparison preserved every other definition field, including gameplay effects, modifiers, costs, schemas and authored workbook wording. The historical source workbook was not changed. The audit reports findings rather than treating shortened or deferred authored clauses as authority for new mechanics.
+
+## Qualitative follow-up
+
+A supervised follow-up inspected the current text and interpreter for all 188 definitions. Eight additional Structure `ui.rule` strings were corrected without changing executable fields:
+
+- Library grants Record capacity; it does not substitute arbitrary providers for Record requirements.
+- Observatory's Record/Instrument capacity applies without a Knowledge tag restriction; its Instrument-to-Glass Require substitution remains described.
+- Printing House grants its authored output modifier; it does not create extra stocked Record hosts in connected settlements.
+- The Last Citadel grants flat defensive Support and a capped lost-settlement bonus.
+- Frontier Keep and Ashen March-Fortress draw Support into their owner from directly connected player settlements. They do not project their owner's Support outward.
+- Beacon Chain adds local Support and draws a connected share. It does not add a route hop or require intermediate Mobility.
+- Watchtower grants defense per matching stocked host, capped at three hosts; it does not grant an offensive Support bonus.
+
+These claims were checked against `stock.js` provider/query handling and `external-world.js` Support calculations, with the quality and martial-boundary fixtures exercising representative combinations. Combined network share is capped at 50%; each external source contributes at most 10. Every field outside the eight `ui.rule` strings, including `authoredRule` and `authoredHook`, was independently compared and preserved.
+
+Sheep Husbandry's Scholar-capacity promise exists only in historical `authoredHook`; the current displayed rule makes no such promise. Calendar Keeping already says to choose the leftmost producer, consistent with deterministic slot-order selection; it was left unchanged. Scholar-staffed training's doubled output is an omission in some prose, rather than a false displayed promise. This pass does not settle deferred workbook hooks or future balance choices.
+
+The Stock composition mutation audit caught nine semantic faults. The remaining donor-tag-guard mutation is inactive for the default pool: Charnel Library substitutes Knowledge-tagged Bone for required Record, but Ossuary Keeping is the only Bone host and already supplies Record directly. No distinct default donor exercises that gate. Its survival is recorded as a coverage limit, rather than a successful guard test or a gameplay defect. The behavioral suite also proves that one Tool host can satisfy a Require and then be consumed once; Require reads activation-start Stock and does not make a second reservation.
