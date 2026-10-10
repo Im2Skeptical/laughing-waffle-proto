@@ -12,7 +12,7 @@ import {
 } from "../../detailed-settlements.js";
 import { getRegionState } from "../../world-state.js";
 import { settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
-import { fresh } from "./helpers.js";
+import { fresh, putStructure } from "./helpers.js";
 
 assert.deepEqual(validateDetailedPracticeDefinitions().errors, [
   'glassmaking: missing provider Mineral',
@@ -52,6 +52,20 @@ assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 7);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 30);
 getDetailedSettlement(state, "upper-floodplain").structureSlots[3] = { structureId: "granary" };
 getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structureId: "mudHouses" };
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 12);
+assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
+// Direct query seam only. Real commissions stay in the construction continuation tests.
+const floodplain = getDetailedSettlement(state, "upper-floodplain");
+putStructure(floodplain, "granary", 3);
+putStructure(floodplain, "mudHouses", 4);
+const pendingGranary = floodplain.structureSlots[3];
+const pendingHouses = floodplain.structureSlots[4];
+pendingGranary.construction = { completedCycles: 0 };
+pendingHouses.construction = { completedCycles: 0 };
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 7, "an unfinished granary adds no food capacity");
+assert.equal(getHousingCapacity(state, "upper-floodplain"), 30, "unfinished houses add no housing");
+delete pendingGranary.construction;
+delete pendingHouses.construction;
 assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 12);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
 
