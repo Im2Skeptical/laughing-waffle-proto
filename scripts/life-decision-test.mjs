@@ -45,8 +45,15 @@ assert.equal(controller.getPresentation(nodeId).nodeState.selectedOptionId,optio
 assert.equal(controller.dispatch(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId},{},()=>{}).pending,true);
 assert.equal(controller.dispatch(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId},{},()=>{}).ok,false,'duplicate submit blocked');
 const request=lastWorker.message;
-lastWorker.onmessage({data:{requestId:request.requestId,kind:'error',reason:'test failure'}});
+const failedWorker=lastWorker;
+failedWorker.onmessage({data:{requestId:request.requestId,kind:'error',reason:'test failure'}});
+assert.equal(tl.revision,1,'failed worker cannot commit actions');
+assert.deepEqual(serializeGameState(current),before,'failed worker cannot commit state');
 controller.retry();
+failedWorker.onmessage({data:{requestId:request.requestId,kind:'error',reason:'late worker'}});
+assert.equal(tl.revision,1,'late worker error cannot commit actions');
+assert.deepEqual(serializeGameState(current),before,'late worker error cannot commit state');
+assert.equal(controller.getStatus().error ?? null,null,'late worker error cannot fail the new job');
 assert.deepEqual(lastWorker.message.actions,request.actions,'retry retains draft exactly once');
 const active=lastWorker;
 await runLifeDecisionJob(active.message,m=>active.onmessage({data:{...m,requestId:active.message.requestId}}));
