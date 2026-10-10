@@ -9,6 +9,7 @@ import { createNewGameState } from "../new-game.js";
 import {
   advanceReplayStateOneSecond,
   advanceReplayStateToSecond,
+  initializeReplayClock,
 } from "../replay-second-runner.js";
 import { deserializeGameState, serializeGameState } from "../state.js";
 import {
@@ -219,10 +220,51 @@ function snapshot(state) {
 
 function assertRoundTrip(state, label) {
   const saved = snapshot(state);
+  for (const key of RUNTIME_METHODS) {
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(saved, key),
+      false,
+      `${label}: serialized state still has ${key}`,
+    );
+  }
   const wire = JSON.parse(JSON.stringify(saved));
   const restored = deserializeGameState(wire);
+  for (const key of RUNTIME_METHODS) {
+    assert.equal(typeof restored[key], "function", `${label}: ${key} was not restored`);
+  }
   assertSnapshotEqual(snapshot(restored), saved, label);
   return saved;
+}
+
+function assertTwoSameSecondRerolls(seed) {
+  const action = { kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {}, tSec: 0 };
+  const replayContext = { isReplay: true };
+  const once = createNewGameState(seed);
+  initializeReplayClock(once, 0);
+  const onceResult = applyAction(once, action, replayContext);
+  assert.equal(onceResult.ok, true, onceResult.reason ?? "single vassal reroll failed");
+
+  const manual = createNewGameState(seed);
+  initializeReplayClock(manual, 0);
+  const first = applyAction(manual, action, replayContext);
+  const second = applyAction(manual, action, replayContext);
+  assert.equal(first.ok, true, first.reason ?? "first vassal reroll failed");
+  assert.equal(second.ok, true, second.reason ?? "second vassal reroll failed");
+  const expected = snapshot(manual);
+  assert.notEqual(
+    expected.rng?.vassalSeed,
+    snapshot(once).rng?.vassalSeed,
+    "a second vassal reroll did not consume a new vassal RNG value",
+  );
+
+  const timeline = createTimelineFromInitialState(createNewGameState(seed));
+  const recordedFirst = appendActionAtCursor(timeline, { ...action }, { tSec: 0 });
+  const recordedSecond = appendActionAtCursor(timeline, { ...action }, { tSec: 0 });
+  assert.equal(recordedFirst.ok, true, recordedFirst.reason ?? "first reroll was not recorded");
+  assert.equal(recordedSecond.ok, true, recordedSecond.reason ?? "second reroll was not recorded");
+  const rebuilt = rebuildStateAtSecond(timeline, 0);
+  assert.equal(rebuilt.ok, true, rebuilt.reason ?? "two-reroll replay failed");
+  assertSnapshotEqual(snapshot(rebuilt.state), expected, "two same-second vassal rerolls");
 }
 
 function assertReplay(seed, sec, expected) {
@@ -314,6 +356,8 @@ try {
       assertSnapshotEqual(snapshot(rebuilt.state), snapshot(actionRun.state), "action replay");
     }
   }
+
+  assertTwoSameSecondRerolls(SEEDS[0]);
 
   const finished = deserializeGameState(snapshot(runs[0].state));
   const finishedSec = Math.floor(finished.tSec ?? 0);

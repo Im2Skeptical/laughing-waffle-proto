@@ -88,4 +88,29 @@ const pending = inspectSaveInWorker(text, { isCurrent: () => current,
 current = false;
 assert.equal((await pending).reason, 'cancelled');
 assert.equal(terminated, true, 'Back terminates pending replay');
+// Finish reads isCurrent when the final message arrives. Flip the flag inside
+// postMessage, then deliver success on the handler installed before postMessage.
+// A second success must not publish or terminate again. No timer is involved.
+let finishGateOpen = true;
+let finishGateTerminates = 0;
+const finishGatePayload = { ok: true };
+const finishGateLate = { ok: true, late: true };
+const finishGate = await inspectSaveInWorker(text, {
+  isCurrent: () => finishGateOpen,
+  createWorker: () => {
+    const adapter = {
+      postMessage() {
+        finishGateOpen = false;
+        adapter.onmessage({ data: finishGatePayload });
+        adapter.onmessage({ data: finishGateLate });
+      },
+      terminate() { finishGateTerminates += 1; },
+    };
+    return adapter;
+  },
+});
+assert.equal(finishGate.ok, false, 'finish-time cancellation must not publish a loaded game');
+assert.equal(finishGate.reason, 'cancelled');
+assert.equal(finishGateTerminates, 1, 'a late success after settle terminates the worker once');
+assert.equal(finishGate.late, undefined, 'a late success must not replace the settled cancellation');
 console.log('[save-load-worker] OK: exact replay, invalid saves, unavailable workers, cancellation');
