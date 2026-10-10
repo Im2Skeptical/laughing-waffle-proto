@@ -36,7 +36,7 @@
     "test:vassal-life-map": "node src/model/tests/vassal-life-map.js",
     "test:detailed-replay": "node src/model/tests/detailed-replay.js",
     "test:invariants": "node src/model/tests/engine-invariants.js",
-    "test:replay-stress": "node scripts/replay-stress-test.mjs && node scripts/replay-draft-boundaries-test.mjs",
+    "test:replay-stress": "node scripts/replay-stress-test.mjs && node scripts/replay-draft-boundaries-test.mjs && node scripts/replay-lineage-boundaries-test.mjs",
     "test:debug-config": "node src/model/tests/debug-game-config.js",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
     "probe:settlement-entry": "node scripts/settlement-entry-performance-probe.mjs",
