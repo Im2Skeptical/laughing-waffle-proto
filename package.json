@@ -32,7 +32,7 @@
     "check:source": "node scripts/check-source-reachability.mjs",
     "test:world": "node src/model/tests/world-state.js",
     "test:map-lab": "node src/model/tests/map-lab-draft.js",
-    "test:detailed-settlements": "node src/model/tests/detailed-settlements.js",
+    "test:detailed-settlements": "node src/model/tests/detailed-settlements.js && node scripts/charge-stock-boundaries-test.mjs",
     "test:vassal-life-map": "node src/model/tests/vassal-life-map.js",
     "test:detailed-replay": "node src/model/tests/detailed-replay.js",
     "test:invariants": "node src/model/tests/engine-invariants.js",
