@@ -36,13 +36,26 @@ export function runHousingPhase(state, phase) {
       : assessedPopulation > capacity * getGameSetting(state, "overHousingNegativeRatio")
         ? "negative"
         : "neutral";
-    const composition = selectUnreservedPopulation(
+    // Prioritize Strangers, retaining proportional age/specialist selection
+    // within each class and excluding population already reserved this moon.
+    const strangerPart = selectUnreservedPopulation(
       turn,
       site.regionId,
       settlement,
-      ["stranger", "villager"],
+      ["stranger"],
       overflow
     );
+    const villagerPart = selectUnreservedPopulation(
+      turn,
+      site.regionId,
+      settlement,
+      ["villager"],
+      Math.max(0, overflow - compositionTotal(strangerPart))
+    );
+    const composition = {
+      stranger: strangerPart.stranger,
+      villager: villagerPart.villager,
+    };
     const intent = addMoonMigrationIntent(state, turn, {
       reason: "housing",
       sourceId: site.regionId,
