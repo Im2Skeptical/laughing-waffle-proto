@@ -1,6 +1,6 @@
 // Paid neutral supply across the food boundary: local free stock first, literal
 // coin spend, depletion plus replenishment, excluded providers, and atomic
-// mixed inputs. Fixtures are authored before any timeline. Afterwards only
+// mixed inputs, plus one successful paid Edible+Timber recipe. Fixtures are authored before any timeline. Afterwards only
 // official ticks. JSON fork, rebuild, and save-slot reload must match the
 // full serialized state, including every RNG field.
 // node scripts/neutral-market-continuation-test.mjs
@@ -145,6 +145,40 @@ function seamAtomic() {
   else fail("atomic-insufficient-mixed", { poorOk: poorPlan.ok, armsOk: armsPlan.ok, poorApplied, armsApplied });
 }
 
+function seamPaidRecipe({ coins = 5, endCoins = 2, id = "paid-recipe-receipt" } = {}) {
+  const pack = authored({ coins, logging: 0 });
+  const plan = planStock(pack.state, pack.local.detailedState, [
+    { traits: ["Edible"], amount: 1 },
+    { traits: ["Timber"], amount: 1 },
+  ]);
+  const applied = applyStockPlan(pack.state, pack.local.detailedState, plan);
+  const qty = quantities(pack);
+  const providers = (plan.providers ?? []).map(provider => ({
+    kind: provider.kind,
+    practiceId: provider.practiceId ?? null,
+    marketStockId: provider.marketStockId ?? null,
+    slotIndex: provider.slotIndex,
+    amount: provider.amount,
+    unitPrice: provider.unitPrice ?? null,
+    traits: provider.traits,
+    regionId: provider.regionId,
+    paymentFor: provider.paymentFor ?? null,
+  }));
+  const price = (plan.providers ?? []).filter(provider => provider.paymentFor).reduce((sum, provider) => sum + provider.amount, 0);
+  const receipt = [
+    { kind: "consume", practiceId: "barter", marketStockId: null, slotIndex: 2, amount: 2, unitPrice: null, traits: ["Currency"], regionId: pack.local.regionId, paymentFor: pack.neutral.regionId },
+    { kind: "consume", practiceId: null, marketStockId: "food", slotIndex: 0, amount: 1, unitPrice: 2, traits: ["Edible"], regionId: pack.neutral.regionId, paymentFor: null },
+    { kind: "consume", practiceId: "barter", marketStockId: null, slotIndex: 2, amount: 1, unitPrice: null, traits: ["Currency"], regionId: pack.local.regionId, paymentFor: pack.neutral.regionId },
+    { kind: "consume", practiceId: null, marketStockId: "timber", slotIndex: 1, amount: 1, unitPrice: 1, traits: ["Timber"], regionId: pack.neutral.regionId, paymentFor: null },
+  ];
+  const ok = plan.ok === true && applied === true && price === 3
+    && qty.coins === endCoins && qty.currency === 3 && qty.edible === 3 && qty.timber === 5
+    && qty.tools === 1 && qty.arms === 0
+    && same(`${id}-providers`, providers, receipt);
+  if (ok) covered.push(id);
+  else fail(id, { ok: plan.ok, applied, price, coins: qty.coins, currency: qty.currency, edible: qty.edible, timber: qty.timber, tools: qty.tools, arms: qty.arms });
+}
+
 function seamDistant() {
   const pack = authored({ link: "distant", logging: 0 });
   const before = snap(pack.state);
@@ -250,6 +284,8 @@ function playExcluded() {
 const storage = createSaveTestStorage();
 try {
   seamAtomic();
+  seamPaidRecipe();
+  seamPaidRecipe({ coins: 3, endCoins: 0, id: "paid-recipe-exact-budget" });
   seamDistant();
   await playConnected();
   playExcluded();
@@ -262,6 +298,8 @@ try {
 const expected = [
   "authored-legal",
   "atomic-insufficient-mixed",
+  "paid-recipe-receipt",
+  "paid-recipe-exact-budget",
   "excluded-nonadjacent",
   "local-free-before-paid",
   "food-depletion-restock",
@@ -280,7 +318,7 @@ writeJson("summary.json", {
     "Save reload uses the public writeSaveToSlot/inspectSaveSlot path on fake-indexeddb test storage, not a browser profile.",
     "Ticks stop at the first food boundary. Later housing, faith, migration, and death are outside this slice.",
     "Meal demand is ceil(61/30)=3. Coins buy 2 Edible at the authored price of 2, so one meal stays unmet.",
-    "Atomic and nonadjacent checks are pre-timeline planStock seams. They change nothing, so they are not replayed.",
+    "Atomic, paid-recipe, and nonadjacent checks are pre-timeline planStock seams. Only the paid recipe applies Stock. None of them are replayed.",
     "Production market templates and prices are not edited. The fixture replaces one site inventory before the timeline.",
     "Projection parity stays in src/model/tests/neutral-markets.js.",
   ],
