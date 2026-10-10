@@ -122,12 +122,16 @@ export function validateDebugProfileLibrary(library) {
   }
   const ids = new Set();
   const names = new Set();
+  let greatestId = 0;
   for (const [index, entry] of library.profiles.entries()) {
     const path = `profiles[${index}]`;
     if (!/^profile-\d+$/.test(entry?.id ?? "") || ids.has(entry.id)) {
       errors.push(`${path}.id: invalid or duplicate`);
     }
     ids.add(entry?.id);
+    if (/^profile-\d+$/.test(entry?.id ?? "")) {
+      greatestId = Math.max(greatestId, Number(entry.id.slice(8)));
+    }
     const name = normalizedName(entry?.name);
     if (!name || name.length > 80 || names.has(nameKey(name)) || nameKey(name) === nameKey(REGULAR_GAME_PROFILE_NAME)) {
       errors.push(`${path}.name: invalid or duplicate`);
@@ -136,6 +140,9 @@ export function validateDebugProfileLibrary(library) {
     for (const error of validateDebugProfile(entry?.profile).errors ?? []) {
       errors.push(`${path}.${error}`);
     }
+  }
+  if (Number.isInteger(library.nextId) && library.nextId <= greatestId) {
+    errors.push(`nextId: must exceed ${greatestId}`);
   }
   return { ok: errors.length === 0, errors };
 }

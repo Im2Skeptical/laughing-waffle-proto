@@ -12,7 +12,7 @@ function normalizeReplaySecond(value) {
 export function initializeReplayClock(state, startSec = 0) {
   if (!state || typeof state !== "object") return state;
   const safeStartSec = normalizeReplaySecond(startSec);
-  state.paused = false;
+  state.paused = state.runStatus?.complete === true;
   state.tSec = safeStartSec;
   state.simStepIndex = safeStartSec * TICKS_PER_REPLAY_SECOND;
   return state;

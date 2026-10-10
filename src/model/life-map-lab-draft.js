@@ -1,4 +1,5 @@
 import {
+  VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION,
   canonicalizeVassalLifeMapGeneratorConfig,
   createAuthoredVassalLifeMapGeneratorConfig,
   validateVassalLifeMapGeneratorConfig,
@@ -45,6 +46,13 @@ export function validateLifeMapLabDraft(value) {
 export function parseLifeMapLabDraftJson(text) {
   try {
     const value = JSON.parse(text);
+    // Canonicalization normalizes current drafts; it must not upgrade imports.
+    if (value?.schemaVersion !== LIFE_MAP_LAB_DRAFT_SCHEMA_VERSION) {
+      return { ok: false, errors: [`schemaVersion: expected ${LIFE_MAP_LAB_DRAFT_SCHEMA_VERSION}`] };
+    }
+    if (value?.generatorConfig?.schemaVersion !== VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION) {
+      return { ok: false, errors: [`generatorConfig.schemaVersion: expected ${VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION}`] };
+    }
     const draft = canonicalizeLifeMapLabDraft(value);
     const validation = validateLifeMapLabDraft(draft);
     return validation.ok ? { ok: true, draft, errors: [] } : validation;
