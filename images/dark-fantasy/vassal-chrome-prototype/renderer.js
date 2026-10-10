@@ -202,8 +202,6 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
   const root=new PIXI.Container(), face=founders[index], warnings=[];
   root.previewWarnings=warnings;
   panel(root,0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height);
-  label(root,'CHOOSE YOUR FOUNDER',36,24,{size:43,bold:true});
-  label(root,'Choose the class your successors can inherit.',36,82,{size:28,color:C.ash});
   label(root,`${index+1} / ${founders.length}`,1212,52,{size:28,align:'center',color:C.ash});
   action(root,'\u2039',1280,22,92,84,()=>onNavigate?.(-1));
   action(root,'\u203a',1400,22,92,84,()=>onNavigate?.(1));
@@ -235,18 +233,14 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
       root.previewTargets[`select:${i}`]={x:x+24,y:790,width:696,height:68};
     }
   } else {
-    label(root,face.name.toUpperCase(),40,160,{size:48,bold:true});
-    label(root,`Founder of ${face.classId==='warrior'?'Warriors':'Scholars'}`,40,222,{size:30,color:C.gold});
-    const portrait=assemblePortrait({classId:face.classId,identity,size:330,founder:true});portrait.position.set(108,298);root.addChild(portrait);
-    label(root,'FOUNDING ACTION',40,652,{size:25,color:C.gold});
-    label(root,face.outcome,40,697,{size:32,width:450,clipH:116,warnings,field:'Founding outcome'});
-    statExchange(root,face.classId,540,146,978,{warnings,onInspect});
+    label(root,face.name.toUpperCase(),40,86,{size:54,bold:true});
+    label(root,face.classId.toUpperCase(),40,160,{size:30,color:C.gold});
+    const portrait=assemblePortrait({classId:face.classId,identity,size:440,founder:true});portrait.position.set(46,278);root.addChild(portrait);
+    statExchange(root,face.classId,540,130,978,{warnings,onInspect});
     classAbilities(root,face.classId,564,478,930,{warnings,onInspect});
     const flavour=label(root,CLASSES[face.classId].flavour,564,754,{size:26,color:'#929789'});flavour.style.fontStyle='italic';
   }
   if(variant!=='B'&&!face.mystery) {
-    label(root,`${face.phaseCost} base phases \u00b7 0 Prestige`,40,820,{size:28,color:C.ash});
-    if(face.classId==='scholar') label(root,'+ Lyceum if 2 cells are free',40,856,{size:26,color:C.ash});
     action(root,'Other 3 stats \u203a',540,802,460,76,()=>onInspect?.('defaults'));
     root.previewTargets.defaults={x:540,y:802,width:460,height:76};
   }

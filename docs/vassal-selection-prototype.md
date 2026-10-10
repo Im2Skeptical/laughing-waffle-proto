@@ -16,6 +16,11 @@ effects appear beside Ingenuity/Prowess replacements; class abilities show numer
 rewards and costs. Tap for detailed rules and the three retained stats. Flavour is
 one muted italic line. This is still an isolated design study.
 
+The focused dossier is now preferred. Its latest pass removes the picker
+heading/instruction and the founding-action heading, outcome and cost notes.
+Larger portraits, a short class label and matching mechanical panels present
+Philosopher and Warlord in the same phone-landscape format.
+
 The founder rail retains 4, 6 or 8 slots.
 Warrior and Scholar can be inspected; extra slots are black question-mark
 silhouettes. The Scholar first-run gate is optional and remains a design proposal.

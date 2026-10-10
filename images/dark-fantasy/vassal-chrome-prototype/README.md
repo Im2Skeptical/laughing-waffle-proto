@@ -21,6 +21,14 @@ concrete abilities. **B: class comparison** shows both founders and exchanges
 together. Tap the A/B control inside the canvas to switch. Arrow keys browse
 founders; Alt + arrows switch layouts. Workbench exits the phone review mode.
 
+The focused dossier is the chosen direction. Its latest pass removes the
+Choose your founder heading/instruction and the entire founding-action block,
+including its outcome and costs. A larger class-framed portrait balances the
+stat exchange and abilities. Class identity is a short Scholar/Warrior label.
+Review [Philosopher](index.html?study=founder&phone=true&guided=false&variant=A&founder=1)
+and [Warlord](index.html?study=founder&phone=true&guided=false&variant=A&founder=0)
+in the same forced landscape format.
+
 Scholar exchanges Cunning for Ingenuity; Warrior exchanges Intelligence for
 Prowess. Lost effects are visible alongside the replacement. Commission rewards,
 Prestige-free but time-consuming rerolls, Prestige-held Retinue and a numeric
@@ -33,8 +41,8 @@ assemblies remain available in the workbench.
 
 - **Founder menu:** a focused dossier or paired comparison, arrows,
   swipe, horizontal/Shift-scroll, keyboard arrows and a thumbnail rail. Compare
-  4, 6 or 8 slots. Warlord and Philosopher explain their classes and compulsory
-  founding actions. Extra slots are black silhouettes with question marks.
+  4, 6 or 8 slots. Warlord and Philosopher explain their stat exchanges and class
+  abilities. Extra slots are black silhouettes with question marks.
   The optional first-run Scholar lock is a proposal; its explanation remains
   inspectable. No unlock rule is invented for unknown founders.
 - **Regular vassal:** compare identity first, signature first and full stat
