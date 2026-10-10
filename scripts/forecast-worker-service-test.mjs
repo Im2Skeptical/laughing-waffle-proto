@@ -45,6 +45,8 @@ const slow = fixture();
 slow.request();
 slow.at(900);
 assert.equal(slow.request().coverageEndSec, 1, 'slow startup must remain off the main thread after its initial seed');
+slow.flushTasks();
+assert.equal(slow.terminated(), 0, '900ms is inside the 5s startup grace, so a queued first-result watchdog must not fire');
 assert.equal(slow.terminated(), 0, 'a healthy worker loading on a slow CPU must survive the 750ms progress timeout');
 const job = slow.messages[0];
 const result = buildProjectionChunkFromStateData(slow.cache.getStateData(1), 1, 2);
@@ -87,7 +89,8 @@ continued.request(40);
 continued.at(1900);
 assert.equal(continued.request(40).coverageEndSec, 20,
   'each new chunk needs startup grace to deserialize its boundary state on a slow CPU');
-assert.equal(continued.terminated(), 0);
+continued.flushTasks();
+assert.equal(continued.terminated(), 0, '900ms into a new chunk is still startup grace, not a stall');
 continued.service.dispose();
 
 // Real worker wire: the shared config arrives once, later chunks refer to it,

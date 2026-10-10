@@ -670,6 +670,19 @@ assert.equal(restartReveal.previewSec, null);
     'civilization'
   );
   assert.equal(sameTimeline.get('food').maxValue, 10, 'same timeline identity keeps high-water');
+  const fixedSameGroupRange = { maxValue: 2, groupId: 'resources', scaleMode: 'fixed' };
+  const fixedSameGroup = applyRunScaleHighWaterRanges(
+    highWater,
+    new Map([['food', fixedSameGroupRange]]),
+    series,
+    'civilization'
+  );
+  assert.equal(
+    fixedSameGroup.get('food').maxValue,
+    2,
+    'a fixed series in a group that already holds high-water keeps its literal max'
+  );
+  assert.equal(fixedSameGroupRange.maxValue, 2, 'a fixed series input range stays unchanged');
   const otherSubject = applyRunScaleHighWaterRanges(
     highWater,
     new Map([['food', { maxValue: 3, groupId: 'resources' }]]),
