@@ -1,6 +1,6 @@
 # Vassal selection design study
 
-## Current workbench revision (October 3)
+## Current workbench revision (October 10)
 
 Use the [vassal & founder workbench](../images/dark-fantasy/vassal-chrome-prototype/README.md)
 for the current direction. Run `npm run preview:vassals` and open
@@ -8,7 +8,15 @@ for the current direction. Run `npm run preview:vassals` and open
 It follows the card workbench with a fixed game-screen preview, live editable
 text, layered painted assets, comparison gallery and full-resolution PNG export.
 
-A's founder ceremony is now a single centred carousel with 4, 6 or 8 slots.
+The mechanics-first founder picker compares a focused dossier (A) with a paired
+class comparison (B), both rendered in Pixi inside the existing game screen.
+Use `?study=founder&phone=true&guided=false&variant=A` for the forced phone-landscape
+review. Portrait viewports rotate the whole game canvas. Lost Cunning/Intelligence
+effects appear beside Ingenuity/Prowess replacements; class abilities show numeric
+rewards and costs. Tap for detailed rules and the three retained stats. Flavour is
+one muted italic line. This is still an isolated design study.
+
+The founder rail retains 4, 6 or 8 slots.
 Warrior and Scholar can be inspected; extra slots are black question-mark
 silhouettes. The Scholar first-run gate is optional and remains a design proposal.
 C's regular drawer now has three text hierarchies to compare, plus both custom

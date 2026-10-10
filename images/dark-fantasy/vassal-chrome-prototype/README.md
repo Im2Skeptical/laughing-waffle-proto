@@ -9,9 +9,29 @@ This follows the illustrated card workbench: editable presentation fixtures,
 layered painted assets, comparisons at game size, transparency and PNG export.
 Keep it inside this workbench until the user approves production integration.
 
+## Mechanics-first picker pass (October 10)
+
+Open [the forced phone-landscape picker](index.html?study=founder&phone=true&guided=false&variant=A).
+The picker, its layout switcher and rule popups are rendered in Pixi on the
+existing game-screen reference. Portrait browser viewports rotate the whole
+game canvas into landscape; no responsive web-card layout substitutes for it.
+
+**A: focused dossier** puts the class portrait beside its stat exchange and
+concrete abilities. **B: class comparison** shows both founders and exchanges
+together. Tap the A/B control inside the canvas to switch. Arrow keys browse
+founders; Alt + arrows switch layouts. Workbench exits the phone review mode.
+
+Scholar exchanges Cunning for Ingenuity; Warrior exchanges Intelligence for
+Prowess. Lost effects are visible alongside the replacement. Commission rewards,
+Prestige-free but time-consuming rerolls, Prestige-held Retinue and a numeric
+risk-reward example are explicit. Tap stats and abilities for their detailed
+rules. A's Other 3 stats control discloses only that class's retained stats.
+Flavour is one muted italic line. The earlier successor-drawer and frame
+assemblies remain available in the workbench.
+
 ## Studies
 
-- **Founder menu:** one centred founder, dim neighbouring previews, arrows,
+- **Founder menu:** a focused dossier or paired comparison, arrows,
   swipe, horizontal/Shift-scroll, keyboard arrows and a thumbnail rail. Compare
   4, 6 or 8 slots. Warlord and Philosopher explain their classes and compulsory
   founding actions. Extra slots are black silhouettes with question marks.
@@ -38,7 +58,8 @@ Save PNG exports the full 2424×1080 game composition regardless of the browser
 size. Candidate and frame assemblies export at twice their logical resolution.
 Empty frames retain their transparent apertures.
 
-URLs preserve `study`, `class`, `layout`, `founder`, `slots` and `guided`.
+URLs preserve `study`, `class`, `layout`, `founder`, `slots`, `guided`, `variant`
+and `phone`.
 Other property edits are ephemeral; Reset restores that study's fixture.
 Confirmation only records a local preview message. It never enters a real node.
 
@@ -56,7 +77,8 @@ panel painter. It exports `loadVassalAssets`, `assemblePortrait`,
 `assembleRegular`, `assembleFounder` and `assembleGame`. Shared textures belong
 to the loader; destroy containers with `{ children: true }`.
 
-Only founding and signature definitions are read. Simulation state, RNG,
+Founding and signature definitions are read; class-rule copy is an isolated
+presentation fixture. Simulation state, RNG,
 serialization schemas, time and replay are untouched. The production renderer
 does not import this workbench. Its source imports are bundled independently for
 Pages; the asset manifest registers only the standalone preview images.
@@ -65,6 +87,8 @@ Pages; the asset manifest registers only the standalone preview images.
 
 Run `npm run check:architecture`, `npm run check:assets`, `npm run build` and
 `npm run verify`. In the browser, check all six class/layout combinations;
+both founder layouts at 844×390; portrait rotation at 390×844; Pixi taps on stat
+exchanges, retained stats, Retinue, risk rewards, Commissions and rerolls;
 overflow warnings and reset; locked/open Scholar and unavailable silhouettes;
 4/6/8-slot wrapping; keyboard arrows outside fields; arrows/thumbnails/swipe;
 PNG dimensions and transparent apertures; repeated tab changes without growing

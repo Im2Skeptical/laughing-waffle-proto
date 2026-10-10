@@ -59,6 +59,79 @@ function action(parent,value,x,y,w,h,onClick,{disabled=false,bright=false,warnin
   root.on('pointertap',()=>onClick?.()); parent.addChild(root); return root;
 }
 
+// Two Pixi picker studies in the actual game canvas: A dossier / B comparison.
+// These are presentation fixtures, not a second implementation of class rules.
+const CLASSES = {
+  scholar: {
+    from:'Cunning', to:'Ingenuity',
+    loss:'Lose extra Prestige income from Cunning.',
+    gain:'+5% shop-quality chance per point; extra Discovery Research.',
+    abilities:[['Commission','Complete a new Practice or Structure for +20 Prestige.','commission'],['Free reroll','Once per shop: 0 Prestige. Still costs time.','reroll']],
+    flavour:'A patient mind leaves its mark.',
+  },
+  warrior: {
+    from:'Intelligence', to:'Prowess',
+    loss:'Lose Intelligence\u2019s Prestige-cost discount.',
+    gain:'+1 personal Martial Force per point; safer, faster Challenges.',
+    abilities:[['Personal Retinue','1 Force per 10 held Prestige, up to your Warrior cap.','retinue'],['Risk reward','Survive 25% base danger: +13 Prestige. Scales with danger.','risk']],
+    flavour:'Their courage outlives their name.',
+  },
+};
+const EXPLANATIONS = {
+  cunning:['Cunning','Each point adds 1 Prestige per completed node, on top of 3 base Prestige. Scholars replace this stat with Ingenuity and keep only the 3 base Prestige.'],
+  intelligence:['Intelligence','Each point discounts Prestige costs by 8%, capped at 60%. Costs round up. Warriors replace this stat with Prowess and lose this discount.'],
+  ingenuity:['Ingenuity','Each point adds a 5% chance to raise offered shop quality by one tier, capped at 75%. The price stays the same. Each point also adds 1 Research to Discovery rewards.'],
+  prowess:['Prowess','Each point adds 1 personal Martial Force to Campaigns. In Challenges it removes 5 percentage points of danger and 1 base phase. Personal Prowess does not supply automatic settlement defense.'],
+  commission:['Commission','Choose a new Practice or a completed Structure as your objective. Completing it earns 20 Prestige, checked when a Life Map node completes. Accepting the objective costs 0 phases.'],
+  reroll:['Free reroll','One reroll per shop, before staging purchases. Scholar cost: 0 Prestige. It still adds 216 base phases, reduced by Effectiveness and applicable Heirlooms.'],
+  retinue:['Personal Retinue','Gain 1 Force per 10 Prestige held. Base cap: 1 per 10 Warriors, rounded up, across player settlements. Institutions and Practices can raise the cap. With no Warriors, Retinue is zero. It contributes to Campaigns, not automatic defense.'],
+  risk:['Risk reward','Surviving a risky choice grants Prestige equal to its base danger \u00d7 50, rounded up. Example: 25% base danger gives +13 Prestige. Campaigns and Challenges use their base danger before Prowess or Force reductions. Other risky choices use their stated danger. This is added to the choice\u2019s own reward.'],
+  defaults:['Retained stats','Cunning: +1 Prestige per point per completed node. Intelligence: 8% Prestige-cost discount per point. Wisdom: 2 base EXP + Wisdom per completed node. Effectiveness: 8% phase-cost discount per point. Discounts cap at 60%; costs round up. Your class replaces exactly one of these four stats.'],
+};
+
+function inspectTarget(root,id,x,y,w,h,onInspect) {
+  const hit=new PIXI.Container(); hit.position.set(x,y); hit.eventMode='static';hit.cursor='pointer';hit.hitArea=new PIXI.Rectangle(0,0,w,h);
+  hit.on('pointertap',()=>onInspect?.(id));root.addChild(hit);
+  (root.previewTargets??={})[id]={x,y,width:w,height:h};
+}
+
+function statExchange(root,classId,x,y,width,{size=34,warnings,onInspect}={}) {
+  const data=CLASSES[classId];
+  panel(root,x,y,width,300);
+  label(root,'STAT REPLACEMENT',x+24,y+18,{size:24,color:C.gold});
+  label(root,`${data.from}  \u2192  ${data.to}`,x+24,y+58,{size:42,bold:true,width:width-48,clipH:56,warnings,field:'Stat exchange'});
+  label(root,data.loss,x+24,y+126,{size,color:'#c0aaa0',width:width-48,clipH:76,warnings,field:'Lost stat effect'});
+  label(root,data.gain,x+24,y+204,{size,color:C.bone,width:width-48,clipH:82,warnings,field:'Class stat effect'});
+  inspectTarget(root,data.from.toLowerCase(),x+18,y+52,(width-36)/2,134,onInspect);
+  inspectTarget(root,data.to.toLowerCase(),x+width/2,y+52,(width-36)/2,234,onInspect);
+}
+
+function classAbilities(root,classId,x,y,width,{size=32,warnings,onInspect}={}) {
+  label(root,'CLASS ABILITIES \u00b7 TAP FOR RULES',x,y,{size:24,color:C.gold});
+  CLASSES[classId].abilities.forEach(([name,copy,id],i)=>{
+    const top=y+42+i*112;
+    label(root,`${name}  \u203a`,x,top,{size:36,bold:true});
+    label(root,copy,x,top+46,{size,color:C.ash,width,clipH:74,warnings,field:name});
+    inspectTarget(root,id,x-8,top-4,width+16,110,onInspect);
+  });
+}
+
+function explanation(root,id,classId,onClose) {
+  const data=EXPLANATIONS[id];if(!data) return;
+  const overlay=new PIXI.Container();
+  const shade=new PIXI.Graphics().beginFill(0x050908,.88).drawRect(0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height).endFill();
+  shade.eventMode='static';shade.on('pointertap',()=>onClose?.());overlay.addChild(shade);
+  panel(overlay,242,150,1076,630,true);
+  label(overlay,data[0],286,190,{size:48,bold:true});
+  let copy=data[1];
+  if(id==='defaults') copy=classId==='scholar'
+    ? 'Wisdom: 2 base EXP + Wisdom per completed node.\n\nEffectiveness: 8% phase-cost discount per point.\n\nIntelligence: 8% Prestige-cost discount per point.\n\nDiscounts cap at 60%; costs round up.'
+    : 'Cunning: 3 base Prestige + Cunning per completed node.\n\nWisdom: 2 base EXP + Wisdom per completed node.\n\nEffectiveness: 8% phase-cost discount per point.\n\nThe discount caps at 60%; costs round up.';
+  label(overlay,copy,286,276,{size:36,width:982,clipH:420,warnings:root.previewWarnings,field:'Rule explanation'});
+  action(overlay,'CLOSE',1092,184,182,78,onClose);
+  root.addChild(overlay);root.previewTargets={close:{x:1092,y:184,width:182,height:78}};
+}
+
 export function assemblePortrait({classId='warrior',identity=0,size=240,founder=false,mystery=false,frameOnly=false}={}) {
   const root=new PIXI.Container();
   if (mystery) {
@@ -125,38 +198,87 @@ export function assembleRegular(face,{layout='identity',font=22,selected=false}=
   root.previewWarnings=warnings; return root;
 }
 
-export function assembleFounder({founders,index=0,identity=0,guided=true,onNavigate,onSelect,onConfirm}={}) {
+export function assembleFounder({founders,index=0,identity=0,guided=true,variant='A',inspect=null,onNavigate,onSelect,onConfirm,onInspect,onCloseInspect,onVariant,onExitPhone}={}) {
   const root=new PIXI.Container(), face=founders[index], warnings=[];
+  root.previewWarnings=warnings;
   panel(root,0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height);
-  label(root,'CHOOSE YOUR FOUNDER',780,24,{size:46,align:'center',bold:true});
-  label(root,'Begin a tradition your successors will inherit.',780,82,{size:27,align:'center',color:C.ash});
-  panel(root,452,126,656,746,true);
-  const p=assemblePortrait({classId:face.classId,identity,size:300,founder:!face.mystery,mystery:face.mystery});
-  p.position.set(630,156); root.addChild(p);
-  label(root,face.name.toUpperCase(),780,478,{size:48,align:'center'});
-  label(root,face.mystery ? 'A tradition yet to be discovered' : `Founder of ${face.classId==='warrior' ? 'Warriors' : 'Scholars'}`,780,540,{size:29,align:'center',color:C.gold});
-  label(root,face.mystery ? 'Its story has yet to be revealed.' : face.play,780,592,{size:26,align:'center',color:C.ash,width:600,clipH:68,warnings,field:'Class meaning'});
-  label(root,face.mystery ? 'UNDISCOVERED' : 'FOUNDING ACTION',780,676,{size:17,align:'center',color:C.gold,bold:true});
-  label(root,face.mystery ? '???' : face.outcome,780,707,{size:26,align:'center',width:610,clipH:64,warnings,field:'Founding outcome'});
-  if (!face.mystery) label(root,`${face.phaseCost} phases · ${face.classId==='warrior' ? 'No conquest required' : 'Lyceum if space permits'}`,780,775,{size:25,align:'center',color:C.ash});
-  const locked=face.mystery || (face.classId==='scholar' && guided);
-  action(root,face.mystery ? 'NOT YET REVEALED' : locked ? 'LOCKED · PREVIEW ONLY' : `BEGIN WITH ${face.name.toUpperCase()}`,515,814,530,50,onConfirm,{disabled:locked,bright:!locked});
-  for (const direction of [-1,1]) {
-    const neighbour=founders[(index+direction+founders.length)%founders.length];
-    const preview=assemblePortrait({classId:neighbour.classId,identity,size:205,mystery:neighbour.mystery});
-    preview.position.set(direction<0 ? 105 : 1248,292); preview.alpha=.46; root.addChild(preview);
-    label(root,neighbour.name,direction<0 ? 207 : 1350,523,{size:25,align:'center',color:C.ash});
-    action(root,direction<0 ? '‹' : '›',direction<0 ? 175 : 1325,579,66,54,()=>onNavigate?.(direction));
+  label(root,'CHOOSE YOUR FOUNDER',36,24,{size:43,bold:true});
+  label(root,'Choose the class your successors can inherit.',36,82,{size:28,color:C.ash});
+  label(root,`${index+1} / ${founders.length}`,1212,52,{size:28,align:'center',color:C.ash});
+  action(root,'\u2039',1280,22,92,84,()=>onNavigate?.(-1));
+  action(root,'\u203a',1400,22,92,84,()=>onNavigate?.(1));
+  root.previewTargets={previous:{x:1280,y:22,width:92,height:84},next:{x:1400,y:22,width:92,height:84}};
+  if(face.mystery) {
+    const portrait=assemblePortrait({size:300,mystery:true});portrait.position.set(630,190);root.addChild(portrait);
+    label(root,'UNKNOWN FOUNDER',780,548,{size:48,align:'center'});
+    label(root,'No class or mechanics have been authored for this slot.',780,630,{size:34,width:1080,align:'center'});
+  } else if(variant==='B') {
+    for(const [i,candidate] of founders.slice(0,2).entries()) {
+      const x=28+i*760, selected=index===i;
+      panel(root,x,138,744,642,selected);
+      const portrait=assemblePortrait({classId:candidate.classId,identity,size:132,founder:true});portrait.position.set(x+20,173);root.addChild(portrait);
+      label(root,candidate.name.toUpperCase(),x+174,163,{size:42,bold:true});
+      label(root,`Founds ${candidate.classId==='warrior'?'Warriors':'Scholars'}`,x+174,222,{size:30,color:C.gold});
+      label(root,candidate.outcome,x+24,316,{size:32,width:696,clipH:80,warnings,field:'Comparison founding'});
+      label(root,`${candidate.phaseCost} base phases \u00b7 0 Prestige${candidate.classId==='scholar'?' \u00b7 Lyceum if space':''}`,x+24,397,{size:27,width:696,clipH:34,warnings,field:'Founding cost'});
+      const data=CLASSES[candidate.classId];
+      label(root,`${data.from} \u2192 ${data.to}  \u203a`,x+24,451,{size:37,bold:true,width:696,clipH:46,warnings,field:'Comparison exchange'});
+      label(root,data.loss,x+24,504,{size:30,color:'#c0aaa0',width:696,clipH:40,warnings,field:'Comparison loss'});
+      label(root,data.gain,x+24,550,{size:30,width:696,clipH:80,warnings,field:'Comparison gain'});
+      inspectTarget(root,`${candidate.classId}:exchange`,x+16,443,712,181,()=>onInspect?.(data.to.toLowerCase()));
+      const summaries=candidate.classId==='scholar'?['Commission \u00b7 +20 Prestige','Reroll \u00b7 0 Prestige; costs time']:['Retinue \u00b7 1 Force / 10 Prestige','Risk \u00b7 25% base danger: +13 Prestige'];
+      data.abilities.forEach(([name,copy,id],j)=>{
+        label(root,`${summaries[j]} \u203a`,x+24,645+j*56,{size:32,color:C.gold,width:696,clipH:42,warnings,field:name});
+        inspectTarget(root,`${candidate.classId}:${id}`,x+16,635+j*56,712,56,()=>onInspect?.(id));
+      });
+      action(root,selected?'SELECTED':`INSPECT ${candidate.name.toUpperCase()}`,x+24,790,696,68,()=>onSelect?.(i),{bright:selected,warnings});
+      root.previewTargets[`select:${i}`]={x:x+24,y:790,width:696,height:68};
+    }
+  } else {
+    label(root,face.name.toUpperCase(),40,160,{size:48,bold:true});
+    label(root,`Founder of ${face.classId==='warrior'?'Warriors':'Scholars'}`,40,222,{size:30,color:C.gold});
+    const portrait=assemblePortrait({classId:face.classId,identity,size:330,founder:true});portrait.position.set(108,298);root.addChild(portrait);
+    label(root,'FOUNDING ACTION',40,652,{size:25,color:C.gold});
+    label(root,face.outcome,40,697,{size:32,width:450,clipH:116,warnings,field:'Founding outcome'});
+    statExchange(root,face.classId,540,146,978,{warnings,onInspect});
+    classAbilities(root,face.classId,564,478,930,{warnings,onInspect});
+    const flavour=label(root,CLASSES[face.classId].flavour,564,754,{size:26,color:'#929789'});flavour.style.fontStyle='italic';
   }
-  // A fixed-width rail scales to eight founders without changing the screen layout.
-  const pitch=88, railWidth=founders.length*pitch, start=(1560-railWidth)/2;
+  if(variant!=='B'&&!face.mystery) {
+    label(root,`${face.phaseCost} base phases \u00b7 0 Prestige`,40,820,{size:28,color:C.ash});
+    if(face.classId==='scholar') label(root,'+ Lyceum if 2 cells are free',40,856,{size:26,color:C.ash});
+    action(root,'Other 3 stats \u203a',540,802,460,76,()=>onInspect?.('defaults'));
+    root.previewTargets.defaults={x:540,y:802,width:460,height:76};
+  }
+  const locked=face.mystery || (face.classId==='scholar' && guided);
+  if(variant!=='B'||face.mystery) {
+    action(root,face.mystery?'UNAVAILABLE':locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${face.name.toUpperCase()}`,1024,802,494,76,onConfirm,{disabled:locked,bright:!locked,warnings});
+    root.previewTargets.confirm={x:1024,y:802,width:494,height:76};
+  } else {
+    action(root,locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${face.name.toUpperCase()}`,1004,868,514,76,onConfirm,{disabled:locked,bright:!locked,warnings});
+    root.previewTargets.confirm={x:1004,y:868,width:514,height:76};
+  }
+  const pitch=variant==='B'?70:88, railWidth=founders.length*pitch, start=variant==='B'?390:(1560-railWidth)/2;
   founders.forEach((candidate,i)=>{
-    const thumb=new PIXI.Container(); thumb.position.set(start+i*pitch,884);
-    panel(thumb,0,0,76,62,i===index);
-    const art=assemblePortrait({classId:candidate.classId,identity,size:54,mystery:candidate.mystery}); art.position.set(11,4); thumb.addChild(art);
-    thumb.eventMode='static'; thumb.cursor='pointer'; thumb.hitArea=new PIXI.Rectangle(0,0,76,62); thumb.on('pointertap',()=>onSelect?.(i)); root.addChild(thumb);
+    const thumb=new PIXI.Container(); thumb.position.set(start+i*pitch,890);
+    const w=variant==='B'?62:76;
+    panel(thumb,0,0,w,62,i===index);
+    const art=assemblePortrait({classId:candidate.classId,identity,size:54,mystery:candidate.mystery}); art.position.set((w-54)/2,4); thumb.addChild(art);
+    thumb.eventMode='static'; thumb.cursor='pointer'; thumb.hitArea=new PIXI.Rectangle(0,0,w,62); thumb.on('pointertap',()=>onSelect?.(i)); root.addChild(thumb);
+    root.previewTargets[`founder:${i}`]={x:start+i*pitch,y:890,width:w,height:62};
   });
-  root.previewWarnings=warnings; root.previewLocked=locked; return root;
+  // Floating workshop controls are Pixi too; all selector content stays in-game.
+  action(root,variant==='A'?'A \u00b7 DOSSIER \u203a':'B \u00b7 COMPARE \u203a',28,890,340,62,()=>onVariant?.(variant==='A'?'B':'A'));
+  root.previewTargets.variant={x:28,y:890,width:340,height:62};
+  if(variant!=='B') {
+    action(root,'WORKBENCH',1190,890,328,62,onExitPhone);
+    root.previewTargets.workbench={x:1190,y:890,width:328,height:62};
+  } else {
+    action(root,'WORKBENCH',680,28,316,76,onExitPhone);
+    root.previewTargets.workbench={x:680,y:28,width:316,height:76};
+  }
+  if(inspect) explanation(root,inspect,face.classId,onCloseInspect);
+  root.previewLocked=locked;return root;
 }
 
 export function assembleGame(state,callbacks={}) {
@@ -164,6 +286,7 @@ export function assembleGame(state,callbacks={}) {
   sprite(root,textures.screen,0,0,GAME_SIZE.width,GAME_SIZE.height);
   if (state.study==='founder') {
     const modal=assembleFounder({...state, ...callbacks}); modal.position.set(432,116); root.addChild(modal); warnings.push(...modal.previewWarnings);
+    root.previewTargets=Object.fromEntries(Object.entries(modal.previewTargets??{}).map(([id,r])=>[id,{...r,x:r.x+432,y:r.y+116}]));
   } else if (state.study==='regular') {
     // Cover the original drawer; retain the original HUD, map, dock and lever.
     panel(root,432,590,1560,484);
