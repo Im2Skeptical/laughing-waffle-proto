@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 31,
+    gameStateSchemaVersion: 32,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -180,7 +180,7 @@ export function createEmptyState(
         chaosPower: 0,
         spatialSpawns: 0,
         monsterPressure: 0,
-        pressurePulses: 0,
+        expansionEvents: 0,
         lastPressureRegionId: null,
         monsterCount: 0,
         lastMoonIncome: null,
@@ -449,12 +449,12 @@ export function serializeGameState(state) {
 }
 
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 31) {
-    throw new Error("Unsupported game-state schema: expected v31");
+  if (state?.gameStateSchemaVersion !== 32) {
+    throw new Error("Unsupported game-state schema: expected v32");
   }
   const chaos=state?.civilization?.chaos;
   if (!chaos || !Number.isFinite(chaos.monsterPressure) || chaos.monsterPressure<0
-      || !Number.isInteger(chaos.pressurePulses) || chaos.pressurePulses<0
+      || !Number.isInteger(chaos.expansionEvents) || chaos.expansionEvents<0
       || !Number.isInteger(chaos.spatialSpawns) || chaos.spatialSpawns<0
       || !(chaos.lastPressureRegionId===null || state.world.regions.some(r=>r.id===chaos.lastPressureRegionId))) {
     throw new Error("Invalid serialized Monster Pressure");
@@ -533,8 +533,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 31) {
-    throw new Error("Unsupported game-state schema: expected v31");
+  if (state?.gameStateSchemaVersion !== 32) {
+    throw new Error("Unsupported game-state schema: expected v32");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

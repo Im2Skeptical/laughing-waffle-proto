@@ -11,11 +11,11 @@ import { serializeGameState, deserializeGameState } from '../src/model/state.js'
 // Pin documented quantities independently of the executable effects.
 const STOCK = 2;
 const SIDE = {
-  alchemy: { research: 0, chaos: 8, preview: 0, warriorBank: 0 },
+  alchemy: { research: 0, progress: 10, chaos: 0, preview: 0, warriorBank: 0 },
   anatomicalStudy: { research: 2, chaos: 0, preview: 0, warriorBank: 0 },
   plagueLedger: { research: 0, chaos: 0, preview: 1, warriorBank: 0 },
   heresiography: { research: 3, chaos: 0, preview: 0, warriorBank: 0 },
-  charnelAlchemy: { research: 2, chaos: 15, preview: 0, warriorBank: 0 },
+  charnelAlchemy: { research: 2, progress: 15, chaos: 0, preview: 0, warriorBank: 0 },
   watchkeeping: { research: 0, chaos: 0, preview: 1, warriorBank: 0 },
   sagaKeeping: { research: 0, chaos: 0, preview: 0, warriorBank: 2 },
   caravanGuarding: { research: 0, chaos: 0, preview: 0, warriorBank: 0 },
@@ -60,6 +60,7 @@ function snap(f) {
   return {
     research: f.state.civilization.research.total,
     chaos: f.state.civilization.chaos.chaosPower,
+    progress: f.state.civilization.chaos.monsterPressure,
     preview: f.local.previewBonus ?? 0,
     warriorBank: f.state.civilization.candidateDevelopment?.warrior ?? 0,
   };

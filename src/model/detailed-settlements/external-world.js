@@ -1,6 +1,7 @@
 import { emptySpecialists } from "./cohorts.js";
 import { NEUTRAL_MARKETS } from './neutral-market.js';
-import { getDetailedPracticeDef } from '../game-config.js';
+import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
+import { getChaosResistance } from './phases/chaos.js';
 import { createInitialDetailedSettlementData } from '../../defs/world/detailed-settlement-scenario.js';
 import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
@@ -142,7 +143,7 @@ export function seedOpeningMonster(state) {
   const target = eligible.find(region => Math.min(...players.map(id => distance(state,id,region.id))) === 2)
     ?? eligible.find(region => players.some(id => adjacentRegionIds(state,id).includes(region.id))) ?? eligible[0];
   if (!target) return; // Explicit all-settlement debug maps have no legal frontier.
-  target.monster = { defense: 2, ageMoons: 0 };
+  target.monster = { defense: 2 };
   state.civilization.chaos.spatialSpawns = 1;
   state.civilization.chaos.monsterCount = 1;
 }
@@ -187,7 +188,8 @@ export function conquerSettlement(state, targetId, edge = 0) {
 }
 
 export function getMonsterPressureRate(state) {
-  return (1 + Math.log1p(Math.max(0,state.civilization.chaos.chaosPower) / CIV_CONTENT_TUNING.monsterChaosScale)) / CIV_CONTENT_TUNING.monsterPulseMoons;
+  const uncoveredChaos = Math.max(0, (state?.civilization?.chaos?.chaosPower ?? 0) - getChaosResistance(state));
+  return uncoveredChaos * getGameSetting(state, 'monsterProgressPerChaos');
 }
 
 function monsterExpansionTarget(state, region) {
@@ -199,22 +201,18 @@ function pulseMonsterPressure(state, regions) {
   const chaos=state.civilization.chaos;
   const threats=regions.filter(region => region.monster && monsterExpansionTarget(state,region));
   if (threats.length) {
-    // Rotate through existing fronts. Each pulse acts once, including new fronts.
+    // One full global tracker expands one front, in rotating authored order.
     const previous=regions.findIndex(region => region.id===chaos.lastPressureRegionId);
     const region=threats.find(region => regions.indexOf(region)>previous) ?? threats[0];
     chaos.lastPressureRegionId=region.id;
-    // This serialized counter advances only on pressure pulses, never by age.
-    region.monster.ageMoons++;
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'advance'});
-    if (region.monster.ageMoons<CIV_CONTENT_TUNING.monsterExpansionPulses) return;
-    region.monster.ageMoons=0;
     expandMonster(state,region,monsterExpansionTarget(state,region).id);
     return;
   }
   const target=regions.find(region => region.controller==='frontier' && !region.monster && !siteAt(state,region.id));
   if (target) {
     const spawnNumber=++chaos.spatialSpawns;
-    target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3),ageMoons:0};
+    target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3)};
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
   } else {
     const region=regions.filter(region => region.monster).sort((a,b)=>a.monster.defense-b.monster.defense)[0];
@@ -257,17 +255,17 @@ function expandMonster(state, region, targetId) {
     settlement.lastDefense={tSec:state.tSec,result:'lost',sourceRegionId:region.id};
   }
   if(site) { delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
-  target.controller='frontier';target.monster={defense:region.monster.defense,ageMoons:0};
+  target.controller='frontier';target.monster={defense:region.monster.defense};
   emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
 }
 
-export function stepSpatialPressure(state) {
+function resolveMonsterPressure(state) {
   const chaos=state.civilization.chaos;
   const regions=getWorldDefinition(state).regions.map(region=>getRegionState(state,region.id));
-  chaos.monsterPressure = Math.round((chaos.monsterPressure + getMonsterPressureRate(state)) * 1e9) / 1e9;
-  while (chaos.monsterPressure>=1 && playerSites(state).length) {
-    chaos.monsterPressure-=1;
-    chaos.pressurePulses++;
+  const threshold = getGameSetting(state, 'monsterExpansionThreshold');
+  while (chaos.monsterPressure>=threshold && playerSites(state).length) {
+    chaos.monsterPressure = Math.round((chaos.monsterPressure-threshold)*1e9)/1e9;
+    chaos.expansionEvents++;
     pulseMonsterPressure(state,regions);
   }
 
@@ -282,4 +280,17 @@ export function stepSpatialPressure(state) {
   }
   chaos.monsterCount=regions.filter(r=>r.monster).length;
   if(!playerSites(state).length) { state.runStatus={complete:true,reason:'redGodMonsterOverrun',year:state.year,tSec:state.tSec};state.paused=true; }
+}
+
+// Both passive pressure and fixed action costs use this authoritative resolver.
+// A dangerous action can fill the tracker even while Resistance contains Chaos.
+export function addMonsterPressure(state, amount) {
+  if (state.runStatus?.complete) return;
+  const chaos = state.civilization.chaos;
+  chaos.monsterPressure = Math.round((chaos.monsterPressure + Math.max(0, amount))*1e9)/1e9;
+  resolveMonsterPressure(state);
+}
+
+export function stepSpatialPressure(state) {
+  addMonsterPressure(state, getMonsterPressureRate(state));
 }

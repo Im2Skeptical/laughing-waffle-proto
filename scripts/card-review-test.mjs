@@ -399,10 +399,10 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   out.edit('practice','caravanGuarding',['effects',0,'amount'],caravan.effects[0].amount+1);
   assert.deepEqual(out.get('practice','caravanGuarding').edits.map(edit=>edit.path),[['effects']]);
   assert.deepEqual(draftOf('caravanGuarding').effects,[{...caravan.effects[0],amount:caravan.effects[0].amount+1},{op:'research',amount:3}]);
-  // Remove Research (a non-Stock output) from a Stock + Research + Chaos card.
+  // Remove Research (a non-Stock output) from a Stock + Research + Monster progress card.
   const charnel=outLive.practices.charnelAlchemy;
   out.edit('practice','charnelAlchemy',['effects'],reviewRemoveOutput(charnel,1));
-  assert.deepEqual(draftOf('charnelAlchemy').effects.map(effect=>effect.op),['generateStock','addChaos']);
+  assert.deepEqual(draftOf('charnelAlchemy').effects.map(effect=>effect.op),['generateStock','addMonsterPressure']);
   assert.deepEqual(reviewRemoveOutput(charnel,0),structuredClone(charnel.effects),'Stock production cannot be removed');
   // A card with no effects can gain one.
   out.edit('practice','heroicCompany',['effects'],[{op:'bankSupport',amount:1,bank:'siege'}]);
@@ -425,7 +425,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   const outGame=out.createNewGame(77);
   assert.deepEqual(outGame.gameConfig.gamepieces.practices.caravanGuarding.effects.map(effect=>effect.op),['generateStock','research']);
   assert.equal(outGame.gameConfig.gamepieces.practices.caravanGuarding.effects[1].amount,3);
-  assert.deepEqual(outGame.gameConfig.gamepieces.practices.charnelAlchemy.effects.map(effect=>effect.op),['generateStock','addChaos']);
+  assert.deepEqual(outGame.gameConfig.gamepieces.practices.charnelAlchemy.effects.map(effect=>effect.op),['generateStock','addMonsterPressure']);
   assert.deepEqual(outGame.gameConfig.gamepieces.practices.heroicCompany.effects,[{op:'bankSupport',amount:1,bank:'siege'}]);
   assert.deepEqual(validateGamepiecesDraft(outGame.gameConfig.gamepieces).errors,[]);
   assert.deepEqual(deserializeGameState(serializeGameState(outGame)).gameConfig.gamepieces.practices.caravanGuarding.effects,outGame.gameConfig.gamepieces.practices.caravanGuarding.effects,'saves keep added outputs');

@@ -1,6 +1,5 @@
 import { CONTROLLER_COLOURS } from './constants.js';
 import { RELATION_STYLES, drawRelationshipLine } from './relationships.js';
-import { CIV_CONTENT_TUNING } from '../../model/detailed-settlements.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
 import { addRegionLandmark, getRegionLandmarkTexture } from '../chronicle-art.js';
@@ -66,15 +65,15 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
   return border;
 }
 
-export function addMonsterMarker(parent, point, monster) {
+export function addMonsterMarker(parent, point, chaos) {
   const marker = new PIXI.Container();
   marker.label = 'monster-marker';
   marker.eventMode = 'none';
   marker.position.set(point.x,point.y);
   addRegionLandmark(marker,'monster-lair',{x:-53,y:-89,width:106,height:106});
   parent.addChild(marker);
-  const interval = CIV_CONTENT_TUNING.monsterExpansionPulses;
-  const remaining = Math.max(0,interval - monster.ageMoons);
+  const interval = chaos.expansionThreshold;
+  const remaining = Math.max(0,interval - chaos.expansionProgress);
   const countdown = new PIXI.Container();
   countdown.label = 'monster-spread-countdown';
   countdown.eventMode = 'none';
@@ -82,9 +81,10 @@ export function addMonsterMarker(parent, point, monster) {
   countdown.addChild(new PIXI.Graphics().lineStyle(1,0x99515d,.9)
     .beginFill(0x130f18,.94).drawRoundedRect(-44,0,88,32,5).endFill());
   const progress=new PIXI.Graphics();
-  for(let pulse=0;pulse<interval;pulse++) progress.lineStyle(1,0xcda49d).beginFill(pulse<monster.ageMoons?0xff886e:0x30202b).drawCircle(-12+pulse*12,7,3).endFill();
+  progress.beginFill(0x30202b).drawRect(-34,5,68,5).endFill();
+  progress.beginFill(0xff886e).drawRect(-34,5,68*Math.min(1,chaos.expansionProgress/interval),5).endFill();
   countdown.addChild(progress);
-  const label = createText(`${remaining} / ${interval}`, {...TEXT_STYLES.chip,fontSize:16,fill:remaining<=1?0xff886e:0xffddbc}, 0,13,.5);
+  const label = createText(`${Math.round(chaos.expansionProgress)} / ${interval}`, {...TEXT_STYLES.chip,fontSize:16,fill:remaining<=interval*.25?0xff886e:0xffddbc}, 0,13,.5);
   label.label = 'monster-spread-moons';
   countdown.addChild(label);
   parent.addChild(countdown);

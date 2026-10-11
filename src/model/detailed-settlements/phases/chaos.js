@@ -7,9 +7,6 @@ import {
   roundFood,
 } from "../helpers.js";
 import {
-  getPhaseModifiers,
-} from "../practices.js";
-import {
   getDetailedSettlementSites,
 } from "../queries.js";
 
@@ -25,11 +22,7 @@ export function getPrimordialChaosPressure(state) {
   return roundFood(basePressure * (growthFactor ** growthSteps));
 }
 
-export function runGlobalChaos(state) {
-  const civilization = state.civilization;
-  const pending = civilization.chaos.pendingLosses ?? {
-    prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
-  };
+export function getChaosResistanceBreakdown(state) {
   const faithPopulation = { bronze: 0, silver: 0, gold: 0, diamond: 0 };
   for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
     for (const classId of POPULATION_CLASS_ORDER) {
@@ -43,7 +36,18 @@ export function runGlobalChaos(state) {
   const populationResistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
     return sum + Math.floor(population / getGameSetting(state, `${tier}ChaosResistancePopulation`));
   }, 0);
-  const resistance = roundFood(populationResistance + (getPhaseModifiers(state).faithResistance ?? 0));
+  const resistance = roundFood(populationResistance + (state?.civilization?.phaseModifiers?.faithResistance ?? 0));
+  return { faithPopulation, populationResistance, resistance };
+}
+
+export const getChaosResistance = state => getChaosResistanceBreakdown(state).resistance;
+
+export function runGlobalChaos(state) {
+  const civilization = state.civilization;
+  const pending = civilization.chaos.pendingLosses ?? {
+    prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
+  };
+  const { faithPopulation, populationResistance, resistance } = getChaosResistanceBreakdown(state);
   const primordialPressure = getPrimordialChaosPressure(state);
   const prematureDeathPressure = Math.max(0,pending.prematureDeaths
     * getGameSetting(state, "prematureDeathChaosWeight")-(pending.prematureDeathMitigation??0));
@@ -58,7 +62,8 @@ export function runGlobalChaos(state) {
     + externalEmigrationPressure
     + oldAgeDeathPressure
     + internalMigrationPressure;
-  const totalIncome = Math.max(0, rawPressure - resistance);
+  // Resistance contains accumulated Chaos's monster threat, never its income.
+  const totalIncome = Math.max(0, rawPressure);
   civilization.chaos.chaosPower = roundFood(
     civilization.chaos.chaosPower + totalIncome
   );

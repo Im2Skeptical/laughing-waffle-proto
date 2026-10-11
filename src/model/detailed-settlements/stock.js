@@ -4,7 +4,7 @@ import { ageCohortTotal, emptySpecialists } from './cohorts.js';
 import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
 import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
 
-export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterPulseMoons: 24, monsterChaosScale: 100, monsterExpansionPulses: 3, monsterDefense: 3 });
+export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, prestigePerRetinue: 10, warriorsPerRetinue: 10, warriorsPerSupport: 5, monsterDefense: 3 });
 export const stockTraits = (state, slot) => slot?.traits ?? getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
 export const localStockSlots = (state, settlement) => state.world.sites.find(site => site.detailedState === settlement)?.neutral?.stocks ?? settlement?.practiceSlots ?? [];
 export const stockTotal = (state, settlement, trait) => localStockSlots(state, settlement).reduce((sum, slot) => sum + (stockTraits(state, slot).includes(trait) ? Math.max(0, slot.stock ?? 0) : 0), 0);

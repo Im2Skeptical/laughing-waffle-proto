@@ -6,7 +6,7 @@ import { getCurrentSeasonKey } from '../state.js';
 import { getRegionState } from '../world-state.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from './queries.js';
 import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCount, trainSpecialists, structureModifiers, matchesPractice } from './stock.js';
-import { resolveExternalPractice, adjacentRegionIds } from './external-world.js';
+import { resolveExternalPractice, adjacentRegionIds, addMonsterPressure } from './external-world.js';
 import { applyBuild, findStructurePlacement } from '../structure-layout.js';
 import { addActionChaos, emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
 import { stockTraits, stockProviderSlots, stockProviderSlot } from './stock.js';
@@ -68,7 +68,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
   const def=getDetailedPracticeDef(state,slot.practiceId);
   activationType??=def.activation.type;
   let amount=effect.activationAmounts?.[activationType] ?? (activationType==='season'?effect.seasonAmounts?.[getCurrentSeasonKey(state)]:undefined) ?? effect.amount ?? 0;
-  if (effect.op==='addChaos') return Math.max(0, effect.amount ?? 0);
+  if (['addChaos','addMonsterPressure'].includes(effect.op)) return Math.max(0, amount);
   const modifiers=structureModifiers(state,settlement);
   if (effect.populationBand) amount+=Math.min(3+modifiers.reduce((n,m)=>n+(m.kind==='scalingCap'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0),Math.floor(getPopulationSummary(state,site.regionId).total/effect.populationBand));
   if (effect.historyScale==='losses') amount+=Math.min(4,state.civilization.history?.lostSettlements??0);
@@ -146,6 +146,7 @@ export function runPracticeActivation(state, activationType, stage = null) {
       if (activationType==='season' && def.activation.seasonKeys && !def.activation.seasonKeys.includes(getCurrentSeasonKey(state))) continue;
       if (def.cadenceMoons && Math.floor(state.tSec / (getGameSetting(state, 'phaseDurationSec') * 6)) % def.cadenceMoons) continue;
       const attempt = (currentAssignment, localOnly) => {
+        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller)) return false;
         if (def.activation.conditions?.[activationType] && !conditionsMet(state,site,{...def,condition:def.activation.conditions[activationType]},currentAssignment,localOnly)) return false;
         const plan = recipePlan(state,site,currentAssignment,localOnly);
         if (!plan.ok) return false;
@@ -179,6 +180,7 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
     if (effect.op==='generateStock') generateStock(state,settlement,slot,amount+plan.external.bonus,staffed);
     else if (!site.neutral) {
       if (effect.op==='addChaos') addActionChaos(state,amount,{regionId:site.regionId,practiceId:def.id});
+      if (effect.op==='addMonsterPressure') addMonsterPressure(state,amount);
       if (effect.op==='research') state.civilization.research.total+=amount;
       if (effect.op==='train') trainSpecialists(settlement,effect.classId,amount*(staffed&&effect.classId==='scholar'?2:1));
       if (effect.op==='addHousingForPhase') getPhaseModifiers(state).housingByRegion[site.regionId]=(getPhaseModifiers(state).housingByRegion[site.regionId]??0)+amount;
@@ -255,6 +257,7 @@ function drainPracticeEvents(state, sharedRetries = []) {
     for (const [key, candidate] of deferred) if (candidate.event.rootId === event.rootId) deferred.delete(key);
   };
   const tryDischarge = (site, assignment, event, localOnly) => {
+    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || getRegionState(state,site.regionId)?.controller !== 'player') return;
     const root = rootFor(event.rootId);
     if (root.stopped) return;
     const slot = site.detailedState.practiceSlots[assignment.slotIndex];

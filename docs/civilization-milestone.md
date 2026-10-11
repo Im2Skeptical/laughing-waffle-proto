@@ -165,15 +165,21 @@ human playtest work.
   or specialty-preserving ruin recovery has been added.
 - Each fresh launch seeds one Defense-2 frontier Monster, preferably one frontier
   step away from player settlements, and connects the adjacent small neutral.
-  At Death, saved Monster Pressure gains `(1 + ln(1 + Chaos / 100)) / 24` pulses;
-  Chaos remains accumulated. A pulse rotates among expandable existing fronts,
-  advancing one toward expansion after three pulses. Empty frontier has priority.
-  Only blocked/absent fronts allow another spawn; a fully occupied map instead
-  strengthens a blocked Monster. Supplied interception retains Support and Edible
-  requirements; settlement loss remains the run-ending condition.
+  Chaos accumulates permanently from Faith income, without subtracting Resistance.
+  At Death, the amount of accumulated Chaos above current Resistance adds Monster
+  expansion progress (default 0.1 per uncovered point). Resistance freezes saved
+  progress while it contains Chaos. One shared tracker fills at 100 by default;
+  a full tracker immediately expands one front in rotating authored order and retains
+  overflow. Empty frontier has priority. Only blocked/absent fronts allow another
+  spawn; a fully occupied map instead strengthens a blocked Monster. Supplied
+  interception retains Support and Edible requirements; settlement loss remains
+  the run-ending condition.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric
   Practices, deep knowledge study and higher-quality Relic searches generate fixed
-  Chaos costs, shown with the Chaos symbol and amount before commitment.
+  Monster expansion progress costs, shown with the Monster symbol and amount before commitment.
+  These bypass Resistance and can fill the tracker immediately without adding Chaos.
+  Threshold, passive rate, Crisis diversion and Life Map risk costs are editable in Game Settings;
+  individual Practice amounts are editable in the card reviewer.
   Campaign Monster victories award 12 + 4×Defense Prestige and 3×Defense Research;
   automatic hunts award stronger capacity-limited Loot/Record/Currency trophies and 6 Research.
   Successful defense and diversion grant Defense Research, and diversion also
@@ -183,7 +189,7 @@ human playtest work.
   provider ties use existing connection/tableau order. Neutrals never grow classes or
   build/research autonomously.
 - Shortage relief grants up to three Edible within host capacity, costing 15% Danger
-  or one Currency. Threat diversion resets expansion age at 20% Danger. Prowess does
+  or one Currency. Threat diversion removes 25 shared expansion progress by default at 20% Danger. Prowess does
   not discount these risks.
 - Storehouse targets Construction rather than asking the player to choose a Trait;
   Cistern and Millhouse use simple capacity rules. Most selected institutions use
@@ -213,7 +219,7 @@ exists; it does not govern Vassal candidates or purchases.
 - Do Commissions provide sufficient purchasing income alongside the cost of holding
   Prestige for Retinue? Does the free reconsideration make early supply chains reliable?
 - Is automatic defense's Edible consumption legible before collapse, and is the
-  100-moon expansion interval the right response window? Should players explicitly prioritize threats?
+  resistance-gated expansion rate the right response window? Should players explicitly prioritize threats?
 - Does adjacent conquest need a stronger supply or travel constraint? Should reconquest
   preserve the age and specialist identities of survivors rather than resetting them?
 - Which deferred institutions and terminal engines improve decisions enough to justify

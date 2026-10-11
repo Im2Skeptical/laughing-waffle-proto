@@ -2,7 +2,7 @@ import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
 import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, structureModifiers } from '../detailed-settlements/stock.js';
 import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement, recordSupportUsage, evacuatePopulation } from '../detailed-settlements/external-world.js';
-import { getDetailedPracticeDef } from '../game-config.js';
+import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
 import { planStock, applyStockPlan } from '../detailed-settlements/stock.js';
 import { getConnectedRegionIds } from '../world-state.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
@@ -21,7 +21,7 @@ export function classActionOptions(state, vassal, family) {
   ];
   if(family==='discovery') return [
     {id:'discovery-research',label:'Discovery: develop technique (+25 Research)',phaseCost:6,classAction:{kind:'discovery',research:25}},
-    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher, 10% Danger)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addChaos',amount:40}],classAction:{kind:'discovery',research:60,frontier:true}},
+    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher, 10% Danger)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
   ];
   if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}: Prowess ${getVassalEffectiveStats(vassal).intelligence??0}; ${Math.max(0,difficulty-(getVassalEffectiveStats(vassal).intelligence??0))*5}% Danger`,phaseCost:Math.max(2,difficulty*2-(getVassalEffectiveStats(vassal).intelligence??0)),prestigeDelta:difficulty*3,baseDanger:difficulty*.05,immediateDeathChance:Math.min(.6,Math.max(0,difficulty-(getVassalEffectiveStats(vassal).intelligence??0))*.05),classAction:{kind:'challenge',difficulty}}));
   if(family==='campaign') {
@@ -31,7 +31,7 @@ export function classActionOptions(state, vassal, family) {
       const difficulty=site?.neutral?.defense??region?.monster?.defense;
       if(!difficulty||force<difficulty||stockTotal(state,settlement,'Edible')<1) return [];
       const edge=force-difficulty;
-      return [{id:`campaign-${id}`,label:`${site?.neutral?'Conquer':'Assault'} ${getRegionReference(state,id)}: Force ${force} vs ${difficulty}; 1 Edible`,phaseCost:Math.max(2,8-edge),prestigeDelta:site?.neutral?difficulty*3:12+difficulty*4,effects:site?.neutral?[{op:'addChaos',amount:20+difficulty*4}]:[],baseDanger:difficulty*.05,immediateDeathChance:Math.max(0,.15-edge*.03),classAction:{kind:'campaign',targetId:id,difficulty}}];
+      return [{id:`campaign-${id}`,label:`${site?.neutral?'Conquer':'Assault'} ${getRegionReference(state,id)}: Force ${force} vs ${difficulty}; 1 Edible`,phaseCost:Math.max(2,8-edge),prestigeDelta:site?.neutral?difficulty*3:12+difficulty*4,effects:site?.neutral?[{op:'addMonsterPressure',amount:getGameSetting(state,'conquestMonsterProgress')+difficulty*getGameSetting(state,'conquestMonsterProgressPerDefense')}]:[],baseDanger:difficulty*.05,immediateDeathChance:Math.max(0,.15-edge*.03),classAction:{kind:'campaign',targetId:id,difficulty}}];
     });
     return options.length?options:[{id:'campaign-prepare',label:'Prepare: need an adjacent target, sufficient Force and 1 Edible',phaseCost:2,classAction:{kind:'prepare'}}];
   }
@@ -47,7 +47,7 @@ export function classActionOptions(state, vassal, family) {
         }
       }
       const threat=adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster);
-      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: divert expansion (20% Danger)`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
+      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: reduce expansion progress by ${getGameSetting(state,'monsterDiversionProgress')} (20% Danger)`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
       if (threat||stockTotal(state,target,'Edible')<pop.mealDemand) {
         const response=target.practiceSlots.find(p=>getDetailedPracticeDef(state,p?.practiceId)?.responseAction==='rescue');
         const def=getDetailedPracticeDef(state,response?.practiceId);
@@ -141,7 +141,7 @@ function applyClassActionRecipe(state,vassal,action) {
   if(action.kind==='delay') {
     const monster=getRegionState(state,action.targetId).monster;
     state.civilization.research.total+=monster.defense;
-    monster.ageMoons=0;
+    state.civilization.chaos.monsterPressure=Math.max(0,state.civilization.chaos.monsterPressure-getGameSetting(state,'monsterDiversionProgress'));
     emitPracticeEvent(state,{kind:'monsterDiverted',regionId:vassal.locationRegionId,classId:vassal.classId});
   }
   if(action.kind==='evacuate') {

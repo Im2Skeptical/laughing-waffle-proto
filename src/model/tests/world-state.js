@@ -66,7 +66,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 31);
+assert.equal(state.gameStateSchemaVersion, 32);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -401,12 +401,12 @@ assert.equal(
 );
 assert.equal(
   civilizationSeries.find((series) => series.id === "chaosResistance").getValue(state),
-  3
+  57
 );
 assert.equal(
-  civilizationSeries.find((series) => series.id === "chaosRawPressure").scaleGroupId,
+  civilizationSeries.find((series) => series.id === "chaosPower").scaleGroupId,
   civilizationSeries.find((series) => series.id === "chaosResistance").scaleGroupId,
-  "raw Chaos pressure and Chaos resistance share a scale for direct comparison"
+  "accumulated Chaos and Chaos resistance share a scale for direct comparison"
 );
 assert.equal(
   localSeries.find((series) => series.id === "totalPopulation")
@@ -494,7 +494,7 @@ assert.equal(
 );
 assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 115);
 assert.equal(projectionSummary.graphValues.civilization.chaosRawPressure, 12.5);
-assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 3);
+assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 57);
 assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"]
     .totalPopulation,
@@ -513,7 +513,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 26;
-assert.throws(() => deserializeGameState(old), /expected v31/);
+assert.throws(() => deserializeGameState(old), /expected v32/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };

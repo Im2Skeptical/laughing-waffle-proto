@@ -330,3 +330,9 @@ The forecast worker is a separately bundled Pages asset recorded in
 fallback.
 
 Probes and test routes: `ai/repository-map.md`.
+
+Monster map markers show the shared expansion tracker, not per-Monster ages.
+The civilization panel compares accumulated Chaos with current Resistance and
+shows expansion progress / threshold and passive progress per moon (or Contained).
+Dangerous action costs use a Monster symbol plus expansion progress; Chaos is a
+separate permanent burden. Chaos and Resistance graph series share a scale.

@@ -14,11 +14,12 @@ Stock planning and Structure modifiers live in
 | --- | --- |
 | `generateStock` | Adds integer Stock to the source Practice, clipped to its current capacity; positive actual yields emit Stock-generation events. |
 | `addChaos` | Adds a fixed civilization Chaos cost on successful activation and emits chaosIncreased; workers and output bonuses do not scale it. |
+| `addMonsterPressure` | Adds fixed progress to the shared Monster expansion tracker on successful activation. A full tracker immediately expands one front even under sufficient Resistance, retaining overflow; workers and output bonuses do not scale the cost. |
 | `research` | Adds civilization Research. |
 | `train` | Trains available unclassed adults into the specified Scholar or Warrior specialty. |
 | `addHousingForPhase` | Adds a temporary regional Housing bonus to the current phase modifiers. |
 | `reduceLocalFoodRequirement` | Reduces the regional Food requirement through the current phase modifiers. |
-| `addFaithChaosResistance` | Adds current-phase Faith resistance. |
+| `addFaithChaosResistance` | Adds Faith resistance, held until the next Birth phase. Resistance contains accumulated Chaos's passive Monster progress; it never reduces Chaos income or direct action progress. |
 | `bankCandidateDevelopment` | Banks class-specific Development for later candidate generation. |
 | `bankShopQuality` | Banks a capped bonus for the next eligible Scholar shop. |
 | `bankSupport` | Banks a capped amount in the named settlement Support channel. |

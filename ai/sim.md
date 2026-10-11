@@ -27,13 +27,17 @@ registries here.
   retries for that trigger/stage. Each retry rechecks inputs, staffing and
   conditions; incomplete plans reserve nothing. Food resolves all local meals
   before unmet demand draws from neighbour leftovers.
-- Faith-phase Chaos income and authored ambitious action costs accumulate permanently.
-  At Death, Monster Pressure gains `(1 + ln(1 + Chaos / 100)) / 24` pulses.
-  Fractional pressure is saved. Each pulse advances one existing expandable front
-  in rotating authored order; three advances expand it and reset its progress.
-  Empty frontier is preferred, then other adjacent territory. A new Monster only
-  spawns when no existing front can expand. If no frontier remains, a blocked
-  Monster strengthens. Supplied defense still tests Support and spends Stock.
+- Faith-phase Chaos income accumulates permanently, independently of Resistance.
+  Practice Resistance bonuses last until the next Birth phase.
+  Resistance is compared with accumulated Chaos: sufficient Resistance freezes
+  passive Monster expansion progress without erasing saved progress. At Death,
+  uncovered Chaos adds configurable progress (default 0.1 per point per moon).
+  One shared tracker fills at 100 progress by default; each full tracker expands
+  one existing front in rotating authored order and retains overflow. Dangerous
+  actions add fixed progress directly and can trigger expansion immediately even
+  under full Resistance. Empty frontier is preferred, then other adjacent territory.
+  A new Monster only spawns when no existing front can expand; with no empty frontier,
+  a blocked Monster strengthens. Supplied defense tests Support and spends Stock.
 - Practices are unique installed engines. Workers are optional; ordinary tokens
   represent population bands, while each Scholar claims one specialist socket.
   Scholar staffing adds the Knowledge Card Tag, never a Stock Trait.
@@ -77,8 +81,8 @@ registries here.
   streak, and adds newly Bronze-and-Negative cohorts to the same migrant bucket.
   Each Faith reckoning also adds uncapped civilization-wide Primordial pressure:
   base pressure grows by cadence-based exponentiation independent of settlement
-  count, then loss pressure and current population/Faith resistance determine
-  incoming Chaos.
+  count, then loss pressure determines incoming Chaos. Current population/Faith
+  Resistance contains the resulting accumulated burden.
 - Migration resolves all food, housing, and faith causes identically using
   snapshot-based, globally reserved housing. Death then resolves arrival meals,
   unplaced-migrant hardship, monthly elder mortality, and spatial Monster pressure. Hosted Stock does not rot.

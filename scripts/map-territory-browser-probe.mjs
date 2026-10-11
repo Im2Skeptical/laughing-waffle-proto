@@ -23,8 +23,8 @@ try {
     const {addMonsterMarker}=await import('/src/views/world-map/territory-art.js');
     await preloadChronicleArt();
     const state=createLabFixture('defense',42);
-    const {CIV_CONTENT_TUNING}=await import('/src/model/detailed-settlements.js');
-    const spreadInterval=CIV_CONTENT_TUNING.monsterExpansionPulses;
+    const {getGameSetting}=await import('/src/model/game-config.js');
+    const spreadInterval=getGameSetting(state,'monsterExpansionThreshold');
     const before=JSON.stringify(serializeGameState(state));
     const app=new PIXI.Application({width:1280,height:450,backgroundColor:0x091212});
     document.body.append(app.view);app.stage.scale.set(1280/2424);
@@ -33,9 +33,9 @@ try {
       setSelectedRegionId:id=>{selected=id;active=true;view.refresh();},onShowCivilizationGraph:()=>{active=false;view.refresh();}});
     view.init();app.ticker.add(()=>view.update());
     const walk=node=>[node,...(node.children??[]).flatMap(walk)];
-    const countdownCases=[0,1,spreadInterval-1,spreadInterval,spreadInterval+1].map(ageMoons=>{
+    const countdownCases=[0,1,spreadInterval-1,spreadInterval,spreadInterval+1].map(expansionProgress=>{
       const container=new PIXI.Container();
-      addMonsterMarker(container,{x:0,y:0},{ageMoons});
+      addMonsterMarker(container,{x:0,y:0},{expansionProgress,expansionThreshold:spreadInterval});
       const text=walk(container).find(n=>n.label==='monster-spread-moons').text;
       container.destroy({children:true});
       return text;
@@ -67,7 +67,7 @@ try {
   assert.equal(overview.markers,overview.monsterRegions,'every occupied region has a monster emblem');
   assert.equal(overview.countdowns,overview.monsterRegions,'every occupied region shows its spread countdown');
   const interval=overview.spreadInterval;
-  assert.deepEqual(overview.countdownCases,[`${interval} / ${interval}`,`${interval-1} / ${interval}`,`1 / ${interval}`,`0 / ${interval}`,`0 / ${interval}`]);
+  assert.deepEqual(overview.countdownCases,[`0 / ${interval}`,`1 / ${interval}`,`${interval-1} / ${interval}`,`${interval} / ${interval}`,`${interval+1} / ${interval}`]);
   assert.ok(overview.playerBorders>0,'player territory remains distinct');
   assert.ok(overview.unchanged,'drawing leaves serialized state and RNG unchanged');
   await page.screenshot({path:`${output}/overview.png`});

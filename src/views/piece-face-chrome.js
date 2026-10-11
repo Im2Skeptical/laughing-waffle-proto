@@ -121,6 +121,7 @@ function workerDock(parent, face, w, h, left = false) {
 }
 
 export function eventIcon(parent, icon, x, y, size) {
+  if(icon==='monster')return addResourceIcon(parent,icon,x,y,size);
   if(!['monster','defense','support','danger','campaign','challenge','development'].includes(icon))return addResourceIcon(parent,icon,x,y,size);
   const g=new PIXI.Graphics();g.position.set(x-size/2,y-size/2);g.scale.set(size/32);
   g.lineStyle(1.5,0xe3cc94).beginFill(0x293b39);
@@ -144,7 +145,7 @@ export function eventIcon(parent, icon, x, y, size) {
 
 function chargeDock(parent, face, w, h, pulse) {
   const workers=workerDock(parent,face,w,h,true);
-  const costs=(face.inputs??[]).filter(input=>input.kind==='chaos');
+  const costs=(face.inputs??[]).filter(input=>['chaos','monsterPressure'].includes(input.kind));
   const start=(workers?.width??0)+(costs.length?44:0);
   const inputs=inputTray(parent,costs,start,h);
   const rows=face.production?.length?face.production:face.outputs??[];
@@ -240,7 +241,7 @@ function inputTray(parent, inputs, right, h) {
         traitIcon(groupRoot,trait,cursor+3+i*21,1,22);
         if(i)numeral(groupRoot,'/',cursor+2+i*21,12,10);
       });
-      const marker=input.kind==='chaos'?'+':input.kind==='consume'?'−':'◇';
+      const marker=['chaos','monsterPressure'].includes(input.kind)?'+':input.kind==='consume'?'−':'◇';
       numeral(groupRoot,`${marker}${input.amount}`,cursor+input.width-7,19,11,input.width-3);
       cursor+=input.width;
     });

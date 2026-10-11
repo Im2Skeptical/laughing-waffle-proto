@@ -11,7 +11,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 17;
+export const GAME_CONFIG_SCHEMA_VERSION = 18;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -104,6 +104,23 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
       field("silverChaosResistancePopulation", "Silver people per Chaos resistance", 5, 1, 100000, 1, true),
       field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 2, 1, 100000, 1, true),
       field("diamondChaosResistancePopulation", "Diamond people per Chaos resistance", 1, 1, 100000, 1, true),
+    ]),
+  }),
+  Object.freeze({
+    id: "monsterExpansion",
+    label: "Monster expansion",
+    description: "Resistance contains accumulated Chaos. Dangerous actions add expansion progress directly; a full tracker expands one Monster front.",
+    fields: Object.freeze([
+      field("monsterExpansionThreshold", "Progress per expansion", 100, 1, 100000, 1, true),
+      field("monsterProgressPerChaos", "Progress per uncovered Chaos each moon", 0.1, 0, 100, 0.01),
+      field("monsterDiversionProgress", "Progress removed by Crisis diversion", 25, 0, 100000, 1, true),
+      field("discoveryMonsterProgress", "Forbidden Discovery progress", 40, 0, 100000, 1, true),
+      field("conquestMonsterProgress", "Conquest base progress", 20, 0, 100000, 1, true),
+      field("conquestMonsterProgressPerDefense", "Conquest progress per Defense", 5, 0, 100000, 1, true),
+      field("deepStudyMonsterProgress", "Deep knowledge study progress", 20, 0, 100000, 1, true),
+      field("silverRelicMonsterProgress", "Silver Relic search progress", 10, 0, 100000, 1, true),
+      field("goldRelicMonsterProgress", "Gold Relic search progress", 25, 0, 100000, 1, true),
+      field("diamondRelicMonsterProgress", "Diamond Relic search progress", 50, 0, 100000, 1, true),
     ]),
   }),
   Object.freeze({

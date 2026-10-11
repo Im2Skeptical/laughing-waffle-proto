@@ -11,7 +11,7 @@ function effectText(effect, amount) {
     train: `Train ${amount} ${names[effect.classId] ?? 'specialist'}${amount === 1 ? '' : 's'}`,
     addHousingForPhase: `Gain ${amount} Housing for this phase`,
     reduceLocalFoodRequirement: `Use ${amount} less Edible Stock at this settlement's next meal`,
-    addFaithChaosResistance: `Gain ${amount} Chaos resistance for this phase`,
+    addFaithChaosResistance: `Gain ${amount} Chaos resistance until the next Birth phase`,
     bankCandidateDevelopment: `Next ${names[effect.classId] ?? 'Vassal'} candidate gains ${amount} Development`,
     bankShopQuality: `Gain ${amount} quality bonus for the next local shop (up to 3)`,
     bankPreview: `Gain ${amount} local preview bonus (up to 3)`,
@@ -38,7 +38,7 @@ export function getPracticeReading(def) {
   const times = charge ? [''] : [activation.type, ...(activation.also ?? [])].flatMap(type =>
     type === 'season' ? (activation.seasonKeys?.length ? activation.seasonKeys : ['spring', 'summer', 'autumn', 'winter']).map(title)
       : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase`]);
-  const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>effect.op!=='addChaos').map(effect => ({
+  const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect => ({
     timing, text: effectText(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
   })));
   // Some supplied martial Practices contribute continuously rather than via

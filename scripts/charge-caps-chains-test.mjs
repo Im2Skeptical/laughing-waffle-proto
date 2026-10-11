@@ -16,7 +16,7 @@ const PREVIEW_CAP = 3;
 const SUPPORT_CAP = 10;
 const REACTION_CAP = 200;
 const SHOP_RESEARCH = 3;
-const SHOP_CHAOS = 10;
+const SHOP_PROGRESS = 10;
 const FORMATION_GAIN = 2;
 const COORDINATION_GAIN = 1;
 const PREVIEW_GAIN = 1;
@@ -80,11 +80,11 @@ function knowledge(host) {
 try {
 const shopBelow = shopHost(SHOP_CAP - SHOP_GAIN, 3);
 const researchBefore = shopBelow.state.civilization.research.total;
-const chaosBefore = shopBelow.state.civilization.chaos.chaosPower;
+const progressBefore = shopBelow.state.civilization.chaos.monsterPressure;
 knowledge(shopBelow);
 assert.equal(shopBelow.local.shopQualityBonus, SHOP_CAP);
 assert.equal(shopBelow.state.civilization.research.total - researchBefore, SHOP_RESEARCH);
-assert.equal(shopBelow.state.civilization.chaos.chaosPower - chaosBefore, SHOP_CHAOS);
+assert.equal(shopBelow.state.civilization.chaos.monsterPressure - progressBefore, SHOP_PROGRESS);
 assert.equal(shopBelow.local.practiceSlots[0].charge, 0);
 record('shop-one-below', { shop: shopBelow.local.shopQualityBonus, charge: 0 });
 

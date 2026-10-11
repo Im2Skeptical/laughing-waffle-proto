@@ -359,13 +359,13 @@ runCase('forecasting', () => {
   proseHas(def, 'Consume 1 [Record]');
   proseHas(def, 'Require 1 stocked [Record] from a Knowledge-tagged Practice');
   proseHas(def, 'Scholar worker');
-  proseHas(def, 'gain 6 Chaos');
+  proseHas(def, '5 Monster expansion progress');
   assert.equal(def.effects.find(effect => effect.op === 'addFaithChaosResistance').amount, 3);
-  assert.equal(def.effects.find(effect => effect.op === 'addChaos').amount, 6);
-  const chaos = blocked.state.civilization.chaos.chaosPower;
+  assert.equal(def.effects.find(effect => effect.op === 'addMonsterPressure').amount, 5);
+  const progress = blocked.state.civilization.chaos.monsterPressure;
   runPracticeActivation(blocked.state, 'birth');
   assert.equal(blocked.local.practiceSlots[1].stock, 2);
-  assert.equal(blocked.state.civilization.chaos.chaosPower, chaos);
+  assert.equal(blocked.state.civilization.chaos.monsterPressure, progress);
   assert.equal(getPhaseModifiers(blocked.state).faithResistance, 0);
   const staffed = open(1, 2);
   assert.equal(assignment(staffed)[0].specialists[0], 'scholar');
@@ -377,16 +377,17 @@ runCase('forecasting', () => {
   runPracticeActivation(staffed.state, 'birth');
   assert.equal(staffed.local.practiceSlots[1].stock, 0);
   assert.equal(getPhaseModifiers(staffed.state).faithResistance, 6);
-  const chaosDelta = staffed.state.civilization.chaos.chaosPower - chaos;
-  assert.equal(chaosDelta, 12, 'two Birth activations add 6 Chaos each');
+  const progressDelta = staffed.state.civilization.chaos.monsterPressure - progress;
+  assert.equal(progressDelta, 10, 'two Birth activations add 5 expansion progress each');
+  assert.equal(staffed.state.civilization.chaos.chaosPower, 0);
   const third = providers(staffed);
   assert.equal(third.supplied, false);
   assert.deepEqual(third.missing, { kind: 'require', traits: ['Record'], amount: 1 });
   runPracticeActivation(staffed.state, 'birth');
   assert.equal(staffed.local.practiceSlots[1].stock, 0);
   assert.equal(getPhaseModifiers(staffed.state).faithResistance, 6);
-  assert.equal(staffed.state.civilization.chaos.chaosPower - chaos, 12);
-  return { repeats: 2, faith: 6, chaosAdded: 12, thirdBlocked: true };
+  assert.equal(staffed.state.civilization.chaos.monsterPressure - progress, 10);
+  return { repeats: 2, faith: 6, progressAdded: 10, thirdBlocked: true };
 });
 
 const limitations = [

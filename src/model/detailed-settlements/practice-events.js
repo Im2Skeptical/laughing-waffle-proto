@@ -18,6 +18,11 @@ export function getActionChaosCost(action) {
     sum + (effect.op === 'addChaos' ? Math.max(0, effect.amount ?? 0) : 0), 0);
 }
 
+export function getActionMonsterPressureCost(action) {
+  return (action?.effects ?? []).reduce((sum, effect) =>
+    sum + (effect.op === 'addMonsterPressure' ? Math.max(0, effect.amount ?? 0) : 0), 0);
+}
+
 export function addActionChaos(state, amount, context = {}) {
   const cost = Math.max(0, amount);
   if (!cost) return;

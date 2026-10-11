@@ -11,6 +11,8 @@ import { resolveProbability, rollCount } from "./shared.js";
 
 export function runBirthPhase(state, phase) {
   const turn = beginMoonTurn(state, phase);
+  // Resistance effects last one moon, including the following Death phase.
+  state.civilization.phaseModifiers.faithResistance = 0;
   runPracticeActivation(state, "birth");
   const lastAgedYear = Math.max(1, Math.floor(
     state.civilization.lastPopulationAgingYear ?? 1

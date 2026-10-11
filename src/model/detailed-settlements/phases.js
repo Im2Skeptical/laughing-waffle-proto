@@ -27,7 +27,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 31;
+  state.gameStateSchemaVersion = 32;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
@@ -47,7 +47,7 @@ export function initializeDetailedSettlementCivilization(state) {
     monsterCount: 0,
     spatialSpawns: 0,
     monsterPressure: 0,
-    pressurePulses: 0,
+    expansionEvents: 0,
     lastPressureRegionId: null,
     lastMoonIncome: null,
     pendingLosses: {
@@ -76,6 +76,10 @@ export function stepDetailedSettlementsSecond(state, tSec) {
   }
   if (state._seasonChanged === true) {
     runPracticeActivation(state, "season");
+    if (state.runStatus?.complete) {
+      flushPracticeEvents(state);
+      return;
+    }
     if (getCurrentSeasonKey(state)==='spring') for (const site of getDetailedSettlementSites(state)) {
       site.detailedState.history??={deaths:0};site.detailedState.history.springDeaths=site.detailedState.history.deaths;
     }

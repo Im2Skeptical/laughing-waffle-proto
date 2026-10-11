@@ -2,7 +2,7 @@
 // Death fixture: new-game seeds 1, 2, 8 with every opening candidate age set to 90
 // before the timeline exists (bounded search 1..8; 3..7 survive). Founding
 // train-estate then resolves at second 6. Terminal fixture: detailed-replay
-// terminalProjectionBase monsters (defense 100, ageMoons 2) plus monsterPressure 4,
+// terminalProjectionBase monsters (defense 100) plus monsterPressure 400,
 // the documented first-Death overrun (seeds 123, 124, 125, second 6, year 1).
 // Afterwards only public actions and official ticks. Advance past terminal is not
 // atomic and is not ok. Stdout is one aggregate line.
@@ -255,9 +255,9 @@ async function playDeath(seed) {
 
 function openTerminal(seed) {
   const state = createNewGameState(seed);
-  state.civilization.chaos.monsterPressure = 4;
+  state.civilization.chaos.monsterPressure = 400;
   for (const region of state.world.regions) {
-    if (region.controller !== "player") region.monster = { defense: 100, ageMoons: 2 };
+    if (region.controller !== "player") region.monster = { defense: 100 };
   }
   initializeReplayClock(state, 0);
   return { state, timeline: createTimelineFromInitialState(state) };

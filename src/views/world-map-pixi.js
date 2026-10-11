@@ -694,7 +694,7 @@ export function createWorldMapView({
       if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
-      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, indicator.monster);
+      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, civilizationSummary.chaos);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
@@ -791,9 +791,11 @@ export function createWorldMapView({
             `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
             `Premature pressure: ${reckoning?.prematureDeathPressure ?? 0} · Emigration pressure: ${reckoning?.externalEmigrationPressure ?? 0}`,
             `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
-            `Raw pressure: ${reckoning?.rawPressure ?? 0} · Resistance: ${reckoning?.resistance ?? 0}`,
+            `Chaos income: ${reckoning?.rawPressure ?? 0} · Resistance: ${civilizationSummary.chaos.resistance}`,
             `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
             `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
+            `Expansion progress: ${civilizationSummary.chaos.expansionProgress} / ${civilizationSummary.chaos.expansionThreshold}`,
+            "Resistance contains accumulated Chaos; dangerous actions bypass it.",
           ],
         }, civilizationPanel.getBounds(), { dismissOnExit: true });
       });

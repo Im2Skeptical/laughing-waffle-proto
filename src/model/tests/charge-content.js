@@ -94,7 +94,7 @@ assert.equal(independent.local.shopQualityBonus,1,'Experimentation needs no tech
 const triggerFace=getGamepieceFace({},'practice','alchemy','bronze',{slot:{charge:2},workers:{effectiveWorkers:3,tokens:[{},{},{}]}});
 assert.deepEqual(triggerFace.chargeTriggers.map(s=>[s.trait,s.event]),[['Medicine','stockConsumed'],['Metal','stockConsumed'],['Glass','stockConsumed']]);
 assert.equal(triggerFace.workerMultiplier,4);assert.equal(triggerFace.chargeGain,4);
-assert.deepEqual(triggerFace.inputs,[{kind:'chaos',amount:8,traits:[],icon:'chaos'}]);assert.equal(triggerFace.production[0].value,2);
+assert.deepEqual(triggerFace.inputs,[{kind:'monsterPressure',amount:10,traits:[],icon:'monster'}]);assert.equal(triggerFace.production[0].value,2);
 assert.equal(triggerFace.fill,2/3);assert.match(triggerFace.detailLines.join(' '),/Charge gained \(not output\)/);
 assert.deepEqual(getGamepieceFace({},'practice','anatomicalStudy').chargeTriggers.map(s=>s.icon??s.trait),['death','Bone']);
 const engine=createLabFixture('charge'),timeline=createTimelineFromInitialState(engine);

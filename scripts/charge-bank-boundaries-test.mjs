@@ -17,7 +17,7 @@ const EXPECTED = {
   teaching: { research: 2, scholars: 1 },
   teachingStaffed: { research: 2, scholars: 2 },
   examinationCoaching: { scholarBank: 1 },
-  experimentation: { research: 3, shop: 1, chaos: 10 },
+  experimentation: { research: 3, shop: 1, progress: 10 },
   formationTraining: { formation: 2 },
   veteranInstruction: { warriorBank: 1 },
   feastingTheHost: { warriors: 1, warriorBank: 1 },
@@ -112,6 +112,7 @@ function readBanks(f) {
   return {
     research: f.state.civilization.research.total,
     chaos: f.state.civilization.chaos.chaosPower,
+    progress: f.state.civilization.chaos.monsterPressure,
     scholarBank: development.scholar ?? 0,
     warriorBank: development.warrior ?? 0,
     shop: f.local.shopQualityBonus ?? 0,
@@ -126,7 +127,7 @@ function readBanks(f) {
 }
 
 function assertDelta(before, after, expected, label) {
-  const fields = ['research', 'chaos', 'scholarBank', 'warriorBank', 'shop', 'formation', 'coordination', 'greatHost', 'scholars', 'warriors'];
+  const fields = ['research', 'chaos', 'progress', 'scholarBank', 'warriorBank', 'shop', 'formation', 'coordination', 'greatHost', 'scholars', 'warriors'];
   for (const field of fields) {
     const delta = (expected[field] ?? 0);
     assert.equal(after[field] - before[field], delta, `${label} ${field}`);

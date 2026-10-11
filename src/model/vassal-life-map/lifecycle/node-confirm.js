@@ -1,3 +1,5 @@
+import { getGameSetting } from '../../game-config.js';
+import { addMonsterPressure } from '../../detailed-settlements/external-world.js';
 import { addActionChaos } from '../../detailed-settlements/practice-events.js';
 import { classActionOptions, validateClassAction, applyClassAction, completeCommission } from "../class-actions.js";
 import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
@@ -228,7 +230,7 @@ function buildDevelopmentOptions(state, vassal) {
       option.lossStatId = losses[state.rngNextVassalInt(0, losses.length - 1)];
       option.lossStatLabel=getVassalStatPresentation(vassal,option.lossStatId).label;
     }
-    if (template.id==='deepStudy' && ['cunning','wisdom'].includes(statId)) option.effects=[{op:'addChaos',amount:20}];
+    if (template.id==='deepStudy' && ['cunning','wisdom'].includes(statId)) option.effects=[{op:'addMonsterPressure',amount:getGameSetting(state,'deepStudyMonsterProgress')}];
     return option;
   });
 }
@@ -356,6 +358,8 @@ function applyVassalNodeEffects(state, effects = []) {
   for (const effect of effects) {
     if (effect?.op === "addChaos") {
       addActionChaos(state,effect.amount);
+    } else if (effect?.op === "addMonsterPressure") {
+      addMonsterPressure(state,effect.amount);
     } else if (effect?.op === "AdjustSettlementChaosGodState") {
       const god = getSettlementChaosGodState(state, effect.godId)
         ?? (effect.godId === "redGod" ? state?.civilization?.chaos : null);
@@ -492,7 +496,10 @@ function applyOptionEffect(state, vassal, nodeState, option) {
         + Math.max(0, Math.floor(option.legacyStartingPrestigeBonus))
     );
   }
-  const effectsResult = applyVassalNodeEffects(state, option?.effects);
+  // Resolve the committed action at its validated location before its Monster
+  // cost can destroy that town or evacuate the Vassal to a different supplier.
+  const monsterEffects = (option?.effects ?? []).filter(effect => effect.op === 'addMonsterPressure');
+  const effectsResult = applyVassalNodeEffects(state, (option?.effects ?? []).filter(effect => effect.op !== 'addMonsterPressure'));
   if (!effectsResult.ok) return effectsResult;
   if (Number.isFinite(option?.immediateDeathChance) && option.immediateDeathChance > 0
       && state.rngNextVassalFloat() < option.immediateDeathChance) {
@@ -507,6 +514,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     } else {
       nodeState.resolutionResult = `${cause}Death`;
       finishVassal(state, vassal, { reason: "died", cause });
+      applyVassalNodeEffects(state, monsterEffects);
       return { ok: true, immediateDeath: true, prestigeCost, phaseCost: 0 };
     }
   }
@@ -514,6 +522,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     if ((option?.immediateDeathChance??0)>0) emitPracticeEvent(state,{kind:'dangerSurvived',regionId:vassal.locationRegionId,classId:vassal.classId,
       martial:['campaign','challenge'].includes(option?.classAction?.kind)});
     if (!option?.classAction?.onCompletion) applyClassAction(state, vassal, option?.classAction);
+    applyVassalNodeEffects(state, monsterEffects);
   });
   flushPracticeEvents(state);
   if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;

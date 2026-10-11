@@ -1,4 +1,5 @@
-import { getMartialSupport } from './external-world.js';
+import { getMartialSupport, getMonsterPressureRate } from './external-world.js';
+import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
 // Read models that combine queries with worker assignment.
 
@@ -123,6 +124,10 @@ export function getDetailedCivilizationSummary(state) {
     overHousingSiteCount,
     chaos: {
       chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
+      resistance: getChaosResistance(state),
+      expansionProgress: state?.civilization?.chaos?.monsterPressure ?? 0,
+      expansionThreshold: getGameSetting(state, 'monsterExpansionThreshold'),
+      progressPerMoon: getMonsterPressureRate(state),
       monsterCount: Math.max(0, Math.floor(state?.civilization?.chaos?.monsterCount ?? 0)),
       lastReckoning: clone(state?.civilization?.chaos?.lastMoonIncome ?? null),
     },

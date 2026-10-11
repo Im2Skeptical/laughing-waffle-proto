@@ -1,7 +1,7 @@
 // Completed second-6 overrun stays frozen for projection-chunk, timeline
 // state-data query, and projection state-restorer. Fixture matches
-// scripts/replay-terminal-save-test.mjs (seeds 123 and 124, monsterPressure 4,
-// neutral defense 100 / ageMoons 2). Edits happen before the timeline and
+// scripts/replay-terminal-save-test.mjs (seeds 123 and 124, monsterPressure 400,
+// neutral defense 100). Edits happen before the timeline and
 // before ticks. The complete flag comes from advanceReplayStateToSecond.
 // Projection reports a terminal tail (ok, endSec 6). Query past the anchor
 // returns advanceFailed. Restorer continuation returns null. Those contracts
@@ -118,9 +118,9 @@ function matchFrozen(seed, data, frozen, label) {
 
 function authorTerminal(seed) {
   const state = createNewGameState(seed);
-  state.civilization.chaos.monsterPressure = 4;
+  state.civilization.chaos.monsterPressure = 400;
   for (const region of state.world.regions) {
-    if (region.controller !== "player") region.monster = { defense: 100, ageMoons: 2 };
+    if (region.controller !== "player") region.monster = { defense: 100 };
   }
   initializeReplayClock(state, 0);
   const timeline = createTimelineFromInitialState(state);

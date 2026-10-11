@@ -18,11 +18,11 @@ let browser, page;
 const errors = [];
 const initial = createNewGameState(123);
 // The current pressure budget must allow the prepared fronts to act on Death.
-initial.civilization.chaos.monsterPressure = 4;
+initial.civilization.chaos.monsterPressure = 400;
 // Surround both player sites with spatial Monsters, ready to expand on Death.
 // An aggregate count alone no longer represents the live loss condition.
 for (const region of initial.world.regions) {
-  if (region.controller !== 'player') region.monster = {defense:100,ageMoons:99};
+  if (region.controller !== 'player') region.monster = {defense:100};
 }
 const timeline = createTimelineFromInitialState(initial);
 timeline.historyEndSec = timeline.maxReachedHistoryEndSec = timeline.cursorSec = 6;

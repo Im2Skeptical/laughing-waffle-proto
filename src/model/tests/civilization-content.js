@@ -221,16 +221,16 @@ const defendingPool=getVassalCandidatePool(defense);
 assert.equal(selectLifeMapVassal(defense,0,defendingPool.expectedPoolHash).ok,true);
 const displacedVassal=getCurrentLifeMapVassal(defense);displacedVassal.locationRegionId=defended.regionId;
 const frontier=adjacentRegionIds(defense,defended.regionId)[0];
-for(const id of adjacentRegionIds(defense,frontier)) if(id!==defended.regionId)getRegionState(defense,id).monster={defense:1,ageMoons:0};
-getRegionState(defense,frontier).monster={defense:2,ageMoons:2};
-defense.civilization.chaos.monsterPressure=.999;
+for(const id of adjacentRegionIds(defense,frontier)) if(id!==defended.regionId)getRegionState(defense,id).monster={defense:1};
+getRegionState(defense,frontier).monster={defense:2};
+defense.civilization.chaos.monsterPressure=100;
 defense.civilization.chaos.lastPressureRegionId=defense.world.regions[defense.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
 defended.detailedState.practiceSlots=[slot('forage',1),slot('bowmaking',1),slot('garrisonDuty'),...Array(2).fill(null)];
 trainSpecialists(defended.detailedState,'warrior',15);
 const earlyExpansion=deserializeGameState(serializeGameState(defense));
-getRegionState(earlyExpansion,frontier).monster.ageMoons=1;
+earlyExpansion.civilization.chaos.monsterPressure=50;
 stepSpatialPressure(earlyExpansion);
-assert.equal(earlyExpansion.world.sites.find(s=>s.regionId===defended.regionId).detailedState.lastDefense,undefined,'Monster does not expand before its third pressure advance');
+assert.equal(earlyExpansion.world.sites.find(s=>s.regionId===defended.regionId).detailedState.lastDefense,undefined,'Monster does not expand before the global tracker fills');
 const shortPatrol=deserializeGameState(serializeGameState(defense));
 const patrolSite=shortPatrol.world.sites.find(s=>s.regionId===defended.regionId);
 patrolSite.detailedState.practiceSlots[2]=slot('patrolling');
@@ -240,8 +240,8 @@ assert.equal(patrolSite.detailedState.practiceSlots[0].stock,1,'failed defense d
 stepSpatialPressure(defense);
 assert.equal(defended.detailedState.lastDefense.result,'held');
 assert.equal(stockTotal(defense,defended.detailedState,'Edible'),0);
-getRegionState(defense,frontier).monster.ageMoons=2;
-defense.civilization.chaos.monsterPressure=.999;
+
+defense.civilization.chaos.monsterPressure=100;
 defense.civilization.chaos.lastPressureRegionId=defense.world.regions[defense.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
 stepSpatialPressure(defense);
 assert.equal(defended.simulationMode,'ruin');assert.ok(defense.civilization.history.lostSettlements>=1);
@@ -258,7 +258,7 @@ if(surviving) {
 // Shared Crisis reads live shortages/Monsters. Prowess cannot resist a relief expedition.
 const crisisBase=createNewGameState(77),crisisSite=getDetailedSettlementSites(crisisBase,{playerOnly:true})[0];
 crisisSite.detailedState.practiceSlots[0].stock=0;
-getRegionState(crisisBase,adjacentRegionIds(crisisBase,crisisSite.regionId)[0]).monster={defense:3,ageMoons:2};
+getRegionState(crisisBase,adjacentRegionIds(crisisBase,crisisSite.regionId)[0]).monster={defense:3};
 const crisisVassal={classId:'warrior',locationRegionId:crisisSite.regionId,stats:{intelligence:0},prestige:0};
 const incidents=classActionOptions(crisisBase,crisisVassal,'crisis');
 assert.ok(incidents.some(o=>o.classAction.kind==='relief'));assert.ok(incidents.some(o=>o.classAction.kind==='delay'));

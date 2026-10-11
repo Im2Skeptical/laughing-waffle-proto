@@ -6,10 +6,13 @@ import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 
 // The approved PNGs remain original assets; Pixi only places/scales their sprites.
 export function addResourceIcon(parent, id, x, y, size) {
-  if (['trade','knowledge','research','housingCapacity','foodCapacity','population','hourglass','activation','chaos'].includes(id)) {
+  if (['trade','knowledge','research','housingCapacity','foodCapacity','population','hourglass','activation','chaos','monster'].includes(id)) {
     const symbol = new PIXI.Graphics(); symbol.position.set(x-size/2,y-size/2);
     symbol.scale.set(size/32);symbol.lineStyle(2,0xe7ca8c,1);
-    if(id==='chaos') {
+    if(id==='monster') {
+      symbol.beginFill(0x8f4b42).drawPolygon([4,2,12,8,20,8,28,2,26,22,16,30,6,22]).endFill();
+      symbol.beginFill(0xffddbc).drawCircle(11,15,2).drawCircle(21,15,2).endFill();
+    } else if(id==='chaos') {
       symbol.beginFill(0x293b39).drawPolygon([16,1,20,9,28,5,24,14,31,19,22,21,22,30,15,25,7,31,8,22,1,17,10,13,7,4]).endFill();
       symbol.beginFill(0xad7759).drawCircle(16,17,5).endFill();
     } else if(id==='population') {
@@ -86,7 +89,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 // One footer for options, shop offers, inspections, and draft receipts. Prices
 // remain live text; the entire framed area owns the action, independently of art.
 export function addCostPanel(parent, rect, {
-  phaseCost = 0, prestigeCost = 0, currencyCost = 0, chaosCost = 0, state = null, selected = false, staged = false,
+  phaseCost = 0, prestigeCost = 0, currencyCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
   interactive = true, fontSize = 40, iconSize = 52, riskLabel = null,
 } = {}) {
@@ -113,6 +116,7 @@ export function addCostPanel(parent, rect, {
   const resourceCosts = [
     prestigeCost > 0 ? { id: 'prestige', value: prestigeCost } : null,
     currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
+    monsterPressureCost > 0 ? { id: 'monster', value: `+${monsterPressureCost} progress` } : null,
     chaosCost > 0 ? { id: 'chaos', value: `+${chaosCost}` } : null,
   ].filter(Boolean);
   const hasResources = resourceCosts.length > 0;
@@ -158,11 +162,11 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster expansion progress` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;
-  root.costSummary = { phaseCost, prestigeCost, currencyCost, chaosCost, description, riskLabel, selected, staged, disabled, unaffordable };
+  root.costSummary = { phaseCost, prestigeCost, currencyCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {

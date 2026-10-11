@@ -69,11 +69,15 @@ export function editLabState(source, regionId, edit) {
       if (!result.ok) throw new Error(result.reason);
       break;
     }
+    case 'monsterProgress': {
+      state.civilization.chaos.monsterPressure=integer(p.amount,'Expansion progress');
+      break;
+    }
     case 'monster': {
       const region = getRegionState(state,p.regionId);
       if (!region) throw new Error('Unknown region');
       if (p.remove) delete region.monster;
-      else region.monster = { defense: integer(p.defense,'Defense',1000), ageMoons: integer(p.age,'Monster age') };
+      else region.monster = { defense: integer(p.defense,'Defense',1000) };
       state.civilization.chaos.monsterCount = state.world.regions.filter(r => r.monster).length;
       break;
     }

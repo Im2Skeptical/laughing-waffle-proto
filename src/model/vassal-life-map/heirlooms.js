@@ -1,3 +1,4 @@
+import { getGameSetting } from '../game-config.js';
 import {
   HEIRLOOM_CARRY_SLOTS,
   HEIRLOOM_EQUIPPED_SLOTS,
@@ -227,7 +228,7 @@ export function generateRelicOffers(state, vassal) {
       quality: def.quality,
       description: def.description,
       inheritanceState: "sanctified",
-      effects: [{op:"addChaos",amount:({bronze:0,silver:10,gold:25,diamond:50})[def.quality]}],
+      effects: [{op:"addMonsterPressure",amount:def.quality==='bronze'?0:getGameSetting(state,`${def.quality}RelicMonsterProgress`)}],
       prestigeCost: 0,
       ...cost,
       phaseCost: state.rngNextVassalInt(range.min, range.max),

@@ -1,3 +1,4 @@
+import { getChaosResistance } from './detailed-settlements/phases/chaos.js';
 import { stockTotal } from "./detailed-settlements/stock.js";
 // src/model/graph-metrics.js
 // Metric definitions for time graphs.
@@ -362,9 +363,9 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
   },
   {
     id: "chaosPower",
-    label: "Chaos Power",
+    label: "Chaos",
     color: 0xc96a52,
-    scaleGroupId: "settlementChaosPower",
+    scaleGroupId: "chaosBurden",
     scaleMode: "dynamic",
     scaleMin: 0,
     pickerGroup: "global",
@@ -379,7 +380,7 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
   },
   {
     id: "chaosRawPressure",
-    label: "Chaos Pressure",
+    label: "Chaos Income",
     color: 0xe89a55,
     scaleGroupId: "chaosReckoning",
     scaleMode: "dynamic",
@@ -397,13 +398,13 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     id: "chaosResistance",
     label: "Chaos Resistance",
     color: 0x73c9c8,
-    scaleGroupId: "chaosReckoning",
+    scaleGroupId: "chaosBurden",
     scaleMode: "dynamic",
     scaleMin: 0,
     pickerGroup: "global",
-    getValue: (state) => getChaosReckoningValue(state, "resistance"),
+    getValue: (state) => getChaosResistance(state),
     getValueFromSnapshot: (snapshot) =>
-      getChaosReckoningValue(snapshot, "resistance"),
+      getChaosResistance(snapshot),
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "chaosResistance"),
     getLegendTooltipSpec: (state) => getChaosResistanceTooltipSpec(state),

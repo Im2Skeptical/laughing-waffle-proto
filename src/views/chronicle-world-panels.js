@@ -12,9 +12,9 @@ export function addChaosPanelContent(root, rect, summary) {
   const x=rect.x+132,y=rect.y+12;
   const text=(s,dy,size=22,fill=PALETTE.text)=>root.addChild(createText(s,{...TEXT_STYLES.body,fontSize:size,fill},x,y+dy));
   text('THE COMING DARK',0,24,PALETTE.accent);
-  text(`${summary.green.label} · Chaos ${summary.chaos.chaosPower}`,28,20);
-  text(`Pressure ${summary.chaos.lastReckoning?.incomingChaos??0}   ·   Resistance ${summary.chaos.lastReckoning?.resistance??0}`,55,18);
-  text(`Monsters  ${summary.chaos.monsterCount} occupied regions`,82,20);
+  text(`${summary.green.label} / ${summary.chaos.monsterCount} Monster ${summary.chaos.monsterCount===1?"region":"regions"}`,28,20);
+  text(`Chaos ${summary.chaos.chaosPower}   ·   Resistance ${summary.chaos.resistance}`,55,18);
+  text(`Expansion ${Math.round(summary.chaos.expansionProgress*10)/10} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+(Math.round(summary.chaos.progressPerMoon*10)/10)+" / moon":"Contained"}`,82,20);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {

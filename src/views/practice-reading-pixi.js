@@ -63,8 +63,12 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   if (!reading.effects.length) y+=copy(root,reading.passive?'No ongoing effect.':'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
   y+=8;
   paintRelicPanel(activation,0,blockY,width,y-blockY,reading.type==='Charge'?0x152321:0x1b2017,RELIC.brass,1);
-  if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost) {
+  if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost || face.monsterPressureCost) {
     y+=18;
+    if(face.monsterPressureCost) {
+      addResourceAmount(root,'monster',`+${face.monsterPressureCost} expansion progress`,{x:pad,y,fontSize:fontSize*.82,iconSize:fontSize*1.25});
+      y+=fontSize*1.25+12;
+    }
     if(face.chaosCost) {
       addResourceAmount(root,'chaos',`+${face.chaosCost}`,{x:pad,y,fontSize,iconSize:fontSize*1.25});
       y+=fontSize*1.25+12;

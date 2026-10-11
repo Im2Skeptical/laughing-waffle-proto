@@ -1,3 +1,4 @@
+import { getChaosResistance } from '../detailed-settlements/phases/chaos.js';
 import { stockTotal } from '../detailed-settlements/stock.js';
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import {
@@ -65,13 +66,15 @@ export function getSettlementFoodTooltipSpec(state) {
 }
 
 export function getSettlementChaosPowerTooltipSpec(state) {
-  const redGod = getSettlementChaosGodSummary(state, "redGod");
+  const chaos = getDetailedCivilizationSummary(state).chaos;
   return {
-    title: "Chaos Power",
+    title: "Chaos",
     lines: [
-      `Current chaos power: ${Math.floor(redGod?.chaosPower ?? 0)}`,
-      `Next spawn in: ${Math.floor(redGod?.spawnCountdownSec ?? 0)}s`,
-      `Projected monsters on next spawn: ${Math.floor(redGod?.nextSpawnCount ?? 0)}`,
+      `Accumulated Chaos: ${chaos.chaosPower}`,
+      `Current Resistance: ${chaos.resistance}`,
+      `Expansion progress: ${formatChaosReckoningValue(chaos.expansionProgress)} / ${chaos.expansionThreshold}`,
+      `Passive progress per moon: ${formatChaosReckoningValue(chaos.progressPerMoon)}`,
+      "Resistance stops passive progress when it meets accumulated Chaos. Dangerous actions add progress directly.",
     ],
   };
 }
@@ -227,7 +230,7 @@ export function getChaosRawPressureTooltipSpec(state) {
     title: "Raw Chaos Pressure",
     lines: [
       `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "rawPressure"))}`,
-      "Primordial pressure plus recorded civilization losses, before resistance.",
+      "Chaos income from primordial pressure plus recorded civilization losses. Resistance does not reduce this income.",
       "Reckoned during Faith and held until the next Faith phase.",
     ],
   };
@@ -237,9 +240,9 @@ export function getChaosResistanceTooltipSpec(state) {
   return {
     title: "Chaos Resistance",
     lines: [
-      `Latest Faith reckoning: ${formatChaosReckoningValue(getChaosReckoningValue(state, "resistance"))}`,
+      `Current Resistance: ${formatChaosReckoningValue(getChaosResistance(state))}`,
       "Living population contributes resistance according to its Faith tier.",
-      "Resistance only reduces new incoming Chaos; it never removes accumulated Chaos.",
+      "Resistance stops passive Monster progress when it meets accumulated Chaos. It never removes Chaos or saved progress; dangerous actions bypass it.",
     ],
   };
 }
