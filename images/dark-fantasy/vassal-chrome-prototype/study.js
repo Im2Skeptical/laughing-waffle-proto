@@ -14,7 +14,7 @@ let displayMode={active:false};
 function defaults(study='founder') {
   const signature=VASSAL_SIGNATURE_NODE_VARIANTS.legacyPlus;
   return {study,surface:study==='frame' ? 'assembly' : 'game',slots:4,index:0,guided:true,classId:'warrior',identity:0,crest:false,frameOnly:false,
-    variant:'A',phone:false,inspect:null,layout:'identity',name:'Aren',region:'R03',age:20,prestige:24,keyStat:2,otherStat:1,wisdom:1,effectiveness:2,
+    variant:'A',exchange:'A',phone:false,inspect:null,layout:'identity',name:'Aren',region:'R03',age:20,prestige:24,keyStat:2,otherStat:1,wisdom:1,effectiveness:2,
     signature:'legacyPlus',signatureTitle:signature.label,description:signature.description,signatureColor:'#a29ee8',font:22,size:440,lastAction:null};
 }
 
@@ -31,6 +31,18 @@ function sceneState() { return {...state,face:face(),founders:founders()}; }
 function makeApp(host) {
   const app=new PIXI.Application({width:10,height:10,backgroundAlpha:0,antialias:true,autoStart:false,resolution:Math.min(devicePixelRatio||1,2),autoDensity:true,preserveDrawingBuffer:true});
   app.renderer.plugins.accessibility.div.classList.add('prototype-accessibility');
+  if(host.id==='hero') {
+    const mapPosition=app.renderer.events.mapPositionToPoint.bind(app.renderer.events);
+    app.renderer.events.mapPositionToPoint=(point,x,y)=>{
+      // Pixi's default mapping uses an unrotated bounding rectangle. Undo the
+      // phone preview's CSS quarter-turn before mapping taps into canvas space.
+      if(state.phone && innerHeight>innerWidth) {
+        const rect=app.view.getBoundingClientRect();
+        point.x=(y-rect.top)/rect.height*app.screen.width;
+        point.y=(rect.right-x)/rect.width*app.screen.height;
+      } else mapPosition(point,x,y);
+    };
+  }
   host.appendChild(app.view); apps.push(app); return app;
 }
 function draw(app,object,width,logical,x=0,y=0) {
@@ -50,14 +62,16 @@ function confirm() {
   $('event-status').textContent=`${state.lastAction} No game or save changed.`;publishState();
 }
 function setVariant(variant) {state.variant=variant;state.inspect=null;sync();render();}
+function setExchange(exchange) {state.exchange=exchange;state.inspect=null;sync();render();}
 function inspect(id) {state.inspect=id;render();}
 function closeInspect() {state.inspect=null;render();}
 function phonePreview(phone=true) {state.phone=phone;if(phone)state.surface='game';sync();render();}
-const callbacks={onNavigate:navigate,onSelect:choose,onConfirm:confirm,onInspect:inspect,onCloseInspect:closeInspect,onVariant:setVariant,onExitPhone:()=>phonePreview(false)};
+const callbacks={onNavigate:navigate,onSelect:choose,onConfirm:confirm,onInspect:inspect,onCloseInspect:closeInspect,onVariant:setVariant,onExchange:setExchange,onExitPhone:()=>phonePreview(false)};
 
 function sync() {
   document.body.dataset.phone=String(state.phone);
   $('variant').value=state.variant;
+  $('exchange').value=state.exchange;
   for (const id of ['surface','slots','classId','identity','layout','name','region','age','prestige','keyStat','otherStat','wisdom','effectiveness','signature','signatureTitle','description','font','size']) $(id).value=String(state[id]);
   for (const id of ['guided','crest','frameOnly']) $(id).checked=state[id];
   $('founder').replaceChildren(...founders().map((f,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=`${i+1}. ${f.mystery ? `Unknown founder ${i-1}` : f.name}`;return option;}));
@@ -68,7 +82,7 @@ function sync() {
   $('previous').hidden=$('next').hidden=state.study!=='founder';
   for (const node of document.querySelectorAll('[data-study]')) node.setAttribute('aria-pressed',String(node.dataset.study===state.study));
   const url=new URL(location.href);
-  for (const [key,value] of Object.entries({study:state.study,layout:state.layout,class:state.classId,founder:state.index,slots:state.slots,guided:state.guided,variant:state.variant,phone:state.phone})) url.searchParams.set(key,value);
+  for (const [key,value] of Object.entries({study:state.study,layout:state.layout,class:state.classId,founder:state.index,slots:state.slots,guided:state.guided,variant:state.variant,exchange:state.exchange,phone:state.phone})) url.searchParams.set(key,value);
   history.replaceState(null,'',url);
 }
 
@@ -147,7 +161,7 @@ function render(message='') {
   $('preview-title').textContent=state.study==='founder' ? `${founders()[state.index].name} · ${state.index+1} / ${state.slots}` : state.study==='regular' ? `${state.classId==='scholar' ? 'Scholar' : 'Warrior'} · ${layoutNames[state.layout]}` : `${state.classId==='scholar' ? 'Scholar' : 'Warrior'} frame`;
   $('hero').setAttribute('aria-label',`${$('preview-title').textContent}. ${state.surface==='game' ? 'Fixed game screen.' : 'Enlarged assembly.'} ${state.study==='founder' && founders()[state.index].mystery ? 'Black silhouette with question mark; unavailable.' : ''}`);
   $('font-label').textContent=`${state.font} logical px`;$('size-label').textContent=`${state.size} px (assembly only)`;
-  $('rules').textContent=state.study==='founder' ? 'Compare A: focused dossier and B: class comparison. Stat replacement and concrete class abilities lead. Tap their Pixi hit areas for rules; the other three stats are disclosed on demand. Phone preview fills the viewport and rotates portrait screens into landscape. The Scholar lock remains an optional proposal.'
+  $('rules').textContent=state.study==='founder' ? 'The focused dossier has three stat-box studies: A lose/gain split, B replacement rows, C a worked example at two points (illustrative, not founder stats). Tap A/B/C STAT inside Pixi or use Shift + arrows to compare. Tap stats and abilities for rules. Phone preview fills the viewport and rotates portrait screens into landscape. The Scholar lock remains an optional proposal.'
     : state.study==='regular' ? 'Identity, starting settlement, Age, Prestige and a signature opportunity belong on the candidate. Compare a key-stat summary with all four named stats. Long copy raises a fit warning instead of silently shrinking the font.'
       : 'The regular Warrior ring uses swords; the Scholar arch uses scrolls and a book. Toggle the separate crest to make either one a founder. Empty-frame exports keep a transparent aperture.';
   if (message) $('event-status').textContent=message;
@@ -164,6 +178,7 @@ async function main() {
   const params=new URL(location.href).searchParams;
   state=defaults(studies.includes(params.get('study')) ? params.get('study') : 'founder');
   state.variant=params.get('variant')==='B'?'B':'A';state.phone=params.get('phone')==='true';
+  if(['A','B','C'].includes(params.get('exchange')))state.exchange=params.get('exchange');
   if (layouts.includes(params.get('layout'))) state.layout=params.get('layout');
   if (params.get('class')==='scholar') state.classId='scholar';
   if ([4,6,8].includes(Number(params.get('slots')))) state.slots=Number(params.get('slots'));
@@ -171,11 +186,12 @@ async function main() {
   for (const [id,s] of Object.entries(VASSAL_SIGNATURE_NODE_VARIANTS)) {const option=document.createElement('option');option.value=id;option.textContent=s.label;$('signature').appendChild(option);}
   await loadVassalAssets();hero=makeApp($('hero'));ready=true;
   displayMode=attachDevPreviewDisplay($('hero'),{onChange:()=>{if(window.vassalWorkbench)render();}});
-  window.vassalWorkbench={get state(){return {...state};},get face(){return face();},get founders(){return founders();},warnings:[],targets:{},selectStudy,navigate,selectFounder:choose,setVariant,inspect,closeInspect,phonePreview,exportPng,get canvasCount(){return apps.length;}};
+  window.vassalWorkbench={get state(){return {...state};},get face(){return face();},get founders(){return founders();},warnings:[],targets:{},selectStudy,navigate,selectFounder:choose,setVariant,setExchange,inspect,closeInspect,phonePreview,exportPng,get canvasCount(){return apps.length;}};
   sync();render('Ready to review. Changes affect this workbench only.');
   document.querySelectorAll('[data-study]').forEach(button=>button.addEventListener('click',()=>selectStudy(button.dataset.study)));
   $('controls').addEventListener('submit',e=>e.preventDefault());
   $('variant').addEventListener('change',()=>setVariant($('variant').value));
+  $('exchange').addEventListener('change',()=>setExchange($('exchange').value));
   $('phone-preview').addEventListener('click',()=>phonePreview());
   for (const id of ['surface','classId','identity','layout','guided','crest','frameOnly']) $(id).addEventListener('change',()=>{
     state[id]=$(id).type==='checkbox' ? $(id).checked : id==='identity' ? Number($(id).value) : $(id).value;sync();render('Preview properties updated.');
@@ -189,13 +205,13 @@ async function main() {
   $('signature').addEventListener('change',()=>{const s=VASSAL_SIGNATURE_NODE_VARIANTS[$('signature').value];state.signature=s.id;state.signatureTitle=s.label;state.description=s.description;state.signatureColor=`#${s.color.toString(16).padStart(6,'0')}`;sync();render('Loaded the signature definition. Edit the title and explanation to explore the copy.');});
   $('previous').addEventListener('click',()=>navigate(-1));$('next').addEventListener('click',()=>navigate(1));
   $('checker').addEventListener('change',()=>render());
-  $('reset').addEventListener('click',()=>{state={...defaults(state.study),phone:state.phone,variant:state.variant};sync();render('Restored this study’s example properties.');});
+  $('reset').addEventListener('click',()=>{state={...defaults(state.study),phone:state.phone,variant:state.variant,exchange:state.exchange};sync();render('Restored this study’s example properties.');});
   $('export').addEventListener('click',()=>{const link=document.createElement('a');link.download=`vassal-${state.study}-${state.study==='founder' ? state.index+1 : state.classId}-${state.surface}.png`;link.href=exportPng();link.click();$('event-status').textContent='Saved the full-resolution preview as PNG.';});
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&state.inspect){closeInspect();event.preventDefault();return;}
     if(event.key==='Escape'&&state.phone&&!displayMode.active){phonePreview(false);event.preventDefault();return;}
     if(state.study!=='founder'||event.target.closest('input,textarea,select,[contenteditable]'))return;
-    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();if(event.altKey)setVariant(state.variant==='A'?'B':'A');else navigate(event.key==='ArrowLeft'?-1:1);}
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();const direction=event.key==='ArrowLeft'?-1:1;if(event.altKey)setVariant(state.variant==='A'?'B':'A');else if(event.shiftKey)setExchange(['A','B','C'][(['A','B','C'].indexOf(state.exchange)+direction+3)%3]);else navigate(direction);}
   });
   let start=null,lastWheel=0;
   hero.view.addEventListener('pointerdown',event=>{start={x:event.clientX,y:event.clientY};});

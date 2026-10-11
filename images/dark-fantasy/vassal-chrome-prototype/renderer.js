@@ -64,6 +64,11 @@ function action(parent,value,x,y,w,h,onClick,{disabled=false,bright=false,warnin
 const CLASSES = {
   scholar: {
     from:'Cunning', to:'Ingenuity',
+    oldRule:'+1 Prestige per completed node / point.',
+    consequence:'Only the base 3 Prestige remains.',
+    newRule:'+5% shop-quality chance and +1 Discovery Research / point.',
+    exampleOld:'5 → 3 Prestige', exampleLoss:'Per node: lose the extra 2.',
+    exampleNew:'10% quality chance', exampleGain:'+2 Discovery Research.',
     loss:'Lose extra Prestige income from Cunning.',
     gain:'+5% shop-quality chance per point; extra Discovery Research.',
     abilities:[['Commission','Complete a new Practice or Structure for +20 Prestige.','commission'],['Free reroll','Once per shop: 0 Prestige. Still costs time.','reroll']],
@@ -71,6 +76,11 @@ const CLASSES = {
   },
   warrior: {
     from:'Intelligence', to:'Prowess',
+    oldRule:'8% Prestige-cost discount / point.',
+    consequence:'Pay the full Prestige cost.',
+    newRule:'+1 Martial Force / point; safer, faster Challenges.',
+    exampleOld:'84 → 100 Prestige', exampleLoss:'For a 100-Prestige purchase.',
+    exampleNew:'+2 Martial Force', exampleGain:'Challenges: −10 points danger, −2 phases.',
     loss:'Lose Intelligence\u2019s Prestige-cost discount.',
     gain:'+1 personal Martial Force per point; safer, faster Challenges.',
     abilities:[['Personal Retinue','1 Force per 10 held Prestige, up to your Warrior cap.','retinue'],['Risk reward','Survive 25% base danger: +13 Prestige. Scales with danger.','risk']],
@@ -86,7 +96,6 @@ const EXPLANATIONS = {
   reroll:['Free reroll','One reroll per shop, before staging purchases. Scholar cost: 0 Prestige. It still adds 216 base phases, reduced by Effectiveness and applicable Heirlooms.'],
   retinue:['Personal Retinue','Gain 1 Force per 10 Prestige held. Base cap: 1 per 10 Warriors, rounded up, across player settlements. Institutions and Practices can raise the cap. With no Warriors, Retinue is zero. It contributes to Campaigns, not automatic defense.'],
   risk:['Risk reward','Surviving a risky choice grants Prestige equal to its base danger \u00d7 50, rounded up. Example: 25% base danger gives +13 Prestige. Campaigns and Challenges use their base danger before Prowess or Force reductions. Other risky choices use their stated danger. This is added to the choice\u2019s own reward.'],
-  defaults:['Retained stats','Cunning: +1 Prestige per point per completed node. Intelligence: 8% Prestige-cost discount per point. Wisdom: 2 base EXP + Wisdom per completed node. Effectiveness: 8% phase-cost discount per point. Discounts cap at 60%; costs round up. Your class replaces exactly one of these four stats.'],
 };
 
 function inspectTarget(root,id,x,y,w,h,onInspect) {
@@ -95,15 +104,43 @@ function inspectTarget(root,id,x,y,w,h,onInspect) {
   (root.previewTargets??={})[id]={x,y,width:w,height:h};
 }
 
-function statExchange(root,classId,x,y,width,{size=34,warnings,onInspect}={}) {
+// Three stat-box treatments on the same focused dossier, via ?exchange=A/B/C.
+function statExchange(root,classId,x,y,width,{exchange='A',warnings,onInspect}={}) {
   const data=CLASSES[classId];
   panel(root,x,y,width,300);
-  label(root,'STAT REPLACEMENT',x+24,y+18,{size:24,color:C.gold});
-  label(root,`${data.from}  \u2192  ${data.to}`,x+24,y+58,{size:42,bold:true,width:width-48,clipH:56,warnings,field:'Stat exchange'});
-  label(root,data.loss,x+24,y+126,{size,color:'#c0aaa0',width:width-48,clipH:76,warnings,field:'Lost stat effect'});
-  label(root,data.gain,x+24,y+204,{size,color:C.bone,width:width-48,clipH:82,warnings,field:'Class stat effect'});
-  inspectTarget(root,data.from.toLowerCase(),x+18,y+52,(width-36)/2,134,onInspect);
-  inspectTarget(root,data.to.toLowerCase(),x+width/2,y+52,(width-36)/2,234,onInspect);
+  const lost='#c0aaa0', half=width/2;
+  if(exchange==='B') {
+    label(root,'ONE STAT REPLACED',x+24,y+18,{size:24,color:C.gold});
+    const old=label(root,data.from,x+24,y+62,{size:38,color:lost,bold:true});
+    root.addChild(new PIXI.Graphics().lineStyle(2,0xc0aaa0).moveTo(old.x,old.y+24).lineTo(old.x+old.width,old.y+24));
+    label(root,'REMOVED',x+24,y+113,{size:23,color:lost});
+    label(root,`${data.oldRule}\n${data.consequence}`,x+330,y+62,{size:30,color:lost,width:width-356,clipH:94,warnings,field:'Removed stat'});
+    rule(root,x+24,y+168,width-48);
+    label(root,data.to,x+24,y+190,{size:38,bold:true});
+    label(root,'REPLACES IT',x+24,y+241,{size:23,color:C.gold});
+    label(root,data.newRule,x+330,y+190,{size:30,width:width-356,clipH:88,warnings,field:'Replacement stat'});
+    inspectTarget(root,data.from.toLowerCase(),x+18,y+52,width-36,112,onInspect);
+    inspectTarget(root,data.to.toLowerCase(),x+18,y+178,width-36,112,onInspect);
+  } else {
+    label(root,exchange==='C'?'STAT REPLACEMENT · EXAMPLE AT 2 POINTS':'STAT REPLACEMENT',x+24,y+18,{size:24,color:C.gold});
+    root.addChild(new PIXI.Graphics().lineStyle(1,RELIC.brass,.85).moveTo(x+half,y+62).lineTo(x+half,y+280));
+    label(root,'LOSE',x+24,y+62,{size:24,color:lost});
+    label(root,'GAIN',x+half+24,y+62,{size:24,color:C.gold});
+    label(root,data.from,x+24,y+98,{size:40,color:lost,bold:true});
+    label(root,data.to,x+half+24,y+98,{size:40,bold:true});
+    if(exchange==='C') {
+      label(root,data.exampleOld,x+24,y+157,{size:34,color:lost,bold:true,width:half-48,clipH:48,warnings,field:'Loss example'});
+      label(root,data.exampleNew,x+half+24,y+157,{size:34,bold:true,width:half-48,clipH:48,warnings,field:'Gain example'});
+      label(root,data.exampleLoss,x+24,y+218,{size:29,color:lost,width:half-48,clipH:74,warnings,field:'Loss example context'});
+      label(root,data.exampleGain,x+half+24,y+218,{size:29,width:half-48,clipH:74,warnings,field:'Gain example context'});
+    } else {
+      label(root,data.oldRule,x+24,y+157,{size:30,color:lost,width:half-48,clipH:80,warnings,field:'Lost stat effect'});
+      label(root,data.consequence,x+24,y+245,{size:25,color:lost,width:half-48,clipH:40,warnings,field:'Lost stat consequence'});
+      label(root,data.newRule,x+half+24,y+157,{size:30,width:half-48,clipH:124,warnings,field:'Class stat effect'});
+    }
+    inspectTarget(root,data.from.toLowerCase(),x+18,y+52,half-36,234,onInspect);
+    inspectTarget(root,data.to.toLowerCase(),x+half+18,y+52,half-36,234,onInspect);
+  }
 }
 
 function classAbilities(root,classId,x,y,width,{size=32,warnings,onInspect}={}) {
@@ -116,18 +153,14 @@ function classAbilities(root,classId,x,y,width,{size=32,warnings,onInspect}={}) 
   });
 }
 
-function explanation(root,id,classId,onClose) {
+function explanation(root,id,onClose) {
   const data=EXPLANATIONS[id];if(!data) return;
   const overlay=new PIXI.Container();
   const shade=new PIXI.Graphics().beginFill(0x050908,.88).drawRect(0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height).endFill();
   shade.eventMode='static';shade.on('pointertap',()=>onClose?.());overlay.addChild(shade);
   panel(overlay,242,150,1076,630,true);
   label(overlay,data[0],286,190,{size:48,bold:true});
-  let copy=data[1];
-  if(id==='defaults') copy=classId==='scholar'
-    ? 'Wisdom: 2 base EXP + Wisdom per completed node.\n\nEffectiveness: 8% phase-cost discount per point.\n\nIntelligence: 8% Prestige-cost discount per point.\n\nDiscounts cap at 60%; costs round up.'
-    : 'Cunning: 3 base Prestige + Cunning per completed node.\n\nWisdom: 2 base EXP + Wisdom per completed node.\n\nEffectiveness: 8% phase-cost discount per point.\n\nThe discount caps at 60%; costs round up.';
-  label(overlay,copy,286,276,{size:36,width:982,clipH:420,warnings:root.previewWarnings,field:'Rule explanation'});
+  label(overlay,data[1],286,276,{size:36,width:982,clipH:420,warnings:root.previewWarnings,field:'Rule explanation'});
   action(overlay,'CLOSE',1092,184,182,78,onClose);
   root.addChild(overlay);root.previewTargets={close:{x:1092,y:184,width:182,height:78}};
 }
@@ -198,7 +231,7 @@ export function assembleRegular(face,{layout='identity',font=22,selected=false}=
   root.previewWarnings=warnings; return root;
 }
 
-export function assembleFounder({founders,index=0,identity=0,guided=true,variant='A',inspect=null,onNavigate,onSelect,onConfirm,onInspect,onCloseInspect,onVariant,onExitPhone}={}) {
+export function assembleFounder({founders,index=0,identity=0,guided=true,variant='A',exchange='A',inspect=null,onNavigate,onSelect,onConfirm,onInspect,onCloseInspect,onVariant,onExchange,onExitPhone}={}) {
   const root=new PIXI.Container(), face=founders[index], warnings=[];
   root.previewWarnings=warnings;
   panel(root,0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height);
@@ -236,13 +269,17 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
     label(root,face.name.toUpperCase(),40,86,{size:54,bold:true});
     label(root,face.classId.toUpperCase(),40,160,{size:30,color:C.gold});
     const portrait=assemblePortrait({classId:face.classId,identity,size:440,founder:true});portrait.position.set(46,278);root.addChild(portrait);
-    statExchange(root,face.classId,540,130,978,{warnings,onInspect});
+    statExchange(root,face.classId,540,130,978,{exchange,warnings,onInspect});
     classAbilities(root,face.classId,564,478,930,{warnings,onInspect});
     const flavour=label(root,CLASSES[face.classId].flavour,564,754,{size:26,color:'#929789'});flavour.style.fontStyle='italic';
   }
   if(variant!=='B'&&!face.mystery) {
-    action(root,'Other 3 stats \u203a',540,802,460,76,()=>onInspect?.('defaults'));
-    root.previewTargets.defaults={x:540,y:802,width:460,height:76};
+    // Workshop-only controls: the stat box changes; the dossier stays fixed.
+    ['A','B','C'].forEach((key,i)=>{
+      const x=540+i*154;
+      action(root,`${key} · STAT`,x,802,146,76,()=>onExchange?.(key),{bright:exchange===key,warnings});
+      root.previewTargets[`exchange:${key}`]={x,y:802,width:146,height:76};
+    });
   }
   const locked=face.mystery || (face.classId==='scholar' && guided);
   if(variant!=='B'||face.mystery) {
@@ -271,7 +308,7 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
     action(root,'WORKBENCH',680,28,316,76,onExitPhone);
     root.previewTargets.workbench={x:680,y:28,width:316,height:76};
   }
-  if(inspect) explanation(root,inspect,face.classId,onCloseInspect);
+  if(inspect) explanation(root,inspect,onCloseInspect);
   root.previewLocked=locked;return root;
 }
 

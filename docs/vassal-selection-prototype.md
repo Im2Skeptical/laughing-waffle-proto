@@ -1,6 +1,6 @@
 # Vassal selection design study
 
-## Current workbench revision (October 10)
+## Current workbench revision (October 11)
 
 Use the [vassal & founder workbench](../images/dark-fantasy/vassal-chrome-prototype/README.md)
 for the current direction. Run `npm run preview:vassals` and open
@@ -13,13 +13,20 @@ class comparison (B), both rendered in Pixi inside the existing game screen.
 Use `?study=founder&phone=true&guided=false&variant=A` for the forced phone-landscape
 review. Portrait viewports rotate the whole game canvas. Lost Cunning/Intelligence
 effects appear beside Ingenuity/Prowess replacements; class abilities show numeric
-rewards and costs. Tap for detailed rules and the three retained stats. Flavour is
+rewards and costs. Tap stats and abilities for detailed rules. Flavour is
 one muted italic line. This is still an isolated design study.
 
 The focused dossier is now preferred. Its latest pass removes the picker
 heading/instruction and the founding-action heading, outcome and cost notes.
 Larger portraits, a short class label and matching mechanical panels present
 Philosopher and Warlord in the same phone-landscape format.
+
+The retained-stat button is removed. Three stat-box treatments keep that dossier
+fixed: `exchange=A` is a lose/gain split, `exchange=B` is removed/replacement rows,
+and `exchange=C` shows a worked example at two points. The example is illustrative,
+not an assigned founder stat. Each treatment names the lost effect, including the
+8% Prestige discount per Intelligence point or extra Prestige per Cunning point.
+Tap the A/B/C STAT workshop controls inside Pixi; Shift + arrows also cycles them.
 
 The founder rail retains 4, 6 or 8 slots.
 Warrior and Scholar can be inspected; extra slots are black question-mark
