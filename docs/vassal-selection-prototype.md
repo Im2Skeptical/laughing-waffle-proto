@@ -28,6 +28,14 @@ out with a REMOVED label. A highlighted Prowess/Ingenuity subsection explains ea
 per-point effect and the lost default effect. All five names can be tapped for
 their rules. Retained stats stay concise; no founder stat values are invented.
 
+Navigation arrows flank the bottom portrait rail. Stat rules now use compact
+anchored Pixi tooltips, without a screen-wide shade or blocking navigation.
+Dossier text can be tapped to edit copy; for stat names, open the tooltip and
+tap its title, or tap its explanation to edit the rule. Ability chevrons open
+rules, while their names/descriptions edit directly. The native input supports
+the phone keyboard. Apply/Cancel affect only local preview copy, retained until
+Reset or reload. PNG export and the workbench state include the edited text.
+
 The founder rail retains 4, 6 or 8 slots.
 Warrior and Scholar can be inspected; extra slots are black question-mark
 silhouettes. The Scholar first-run gate is optional and remains a design proposal.

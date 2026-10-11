@@ -2,6 +2,14 @@
 @media(max-width:1050px){header,main{padding:22px}.workspace{grid-template-columns:minmax(0,1fr) 250px;gap:22px}.stage-area{padding:14px}#gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.stage-heading{flex-direction:column}.canvas-slot{min-height:300px}}
 @media(max-width:700px){.workspace{grid-template-columns:1fr}.stage-heading{flex-direction:row}form{display:flex;flex-direction:column}.canvas-slot{min-height:230px}header,main{padding:16px}.header-links{font-size:10px}#gallery{grid-template-columns:1fr}.sample{padding:18px}header p:not(.eyebrow){font-size:12px}.actions{gap:6px}.actions button{font-size:12px}h1{font-size:25px}.stage-heading h2{font-size:21px}}
 /* Phone review is a fixed Pixi game viewport, including on a desktop browser. */
+#hero{position:relative}
+#copy-editor[hidden]{display:none}
+#copy-editor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,80%);max-height:94%;overflow:auto;z-index:1100;padding:14px 18px;background:#151c1a;border:2px solid #c3a469;color:#e0d4b4;text-align:left;box-shadow:0 4px 24px #000a}
+#copy-editor label{font: bold 17px Georgia,serif;margin:0 0 8px;display:block}
+#copy-editor textarea{font:16px Georgia,serif;min-height:70px;max-height:120px;resize:vertical;background:#252c2d;color:#e0d4b4;width:100%;padding:8px;border:1px solid #92784a}
+#copy-editor p{font-size:12px;margin:6px 0;color:#b1b4a6}
+#copy-editor>div{display:flex;justify-content:flex-end;gap:12px}
+#copy-editor button{font-size:15px;padding:8px 16px}
 body[data-phone=true]{overflow:hidden;background:#090d0c}
 body[data-phone=true]>header,body[data-phone=true] .study-tabs,body[data-phone=true] .stage-heading,body[data-phone=true] .actions,body[data-phone=true] #event-status,body[data-phone=true] #bounds-status,body[data-phone=true] #controls,body[data-phone=true] .comparison,body[data-phone=true] main>details{display:none}
 body[data-phone=true] #hero{position:fixed;inset:0;width:100vw;height:100dvh;min-height:0;margin:0;padding:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:#090d0c;touch-action:none;border:0;border-radius:0}

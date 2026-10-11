@@ -14,7 +14,7 @@ let displayMode={active:false};
 function defaults(study='founder') {
   const signature=VASSAL_SIGNATURE_NODE_VARIANTS.legacyPlus;
   return {study,surface:study==='frame' ? 'assembly' : 'game',slots:4,index:0,guided:true,classId:'warrior',identity:0,crest:false,frameOnly:false,
-    variant:'A',phone:false,inspect:null,layout:'identity',name:'Aren',region:'R03',age:20,prestige:24,keyStat:2,otherStat:1,wisdom:1,effectiveness:2,
+    variant:'A',phone:false,inspect:null,copy:{},layout:'identity',name:'Aren',region:'R03',age:20,prestige:24,keyStat:2,otherStat:1,wisdom:1,effectiveness:2,
     signature:'legacyPlus',signatureTitle:signature.label,description:signature.description,signatureColor:'#a29ee8',font:22,size:440,lastAction:null};
 }
 
@@ -65,7 +65,17 @@ function setVariant(variant) {state.variant=variant;state.inspect=null;sync();re
 function inspect(id) {state.inspect=id;render();}
 function closeInspect() {state.inspect=null;render();}
 function phonePreview(phone=true) {state.phone=phone;if(phone)state.surface='game';sync();render();}
-const callbacks={onNavigate:navigate,onSelect:choose,onConfirm:confirm,onInspect:inspect,onCloseInspect:closeInspect,onVariant:setVariant,onExitPhone:()=>phonePreview(false)};
+let editing=null;
+function editCopy(entry) {
+  editing=entry;$('copy-value').value=entry.value;$('copy-editor').hidden=false;
+  $('copy-value').focus();$('copy-value').select();
+}
+function closeEditor() {editing=null;$('copy-editor').hidden=true;hero.view.focus();}
+function applyCopy() {
+  if(!editing)return;
+  state.copy[editing.key]=$('copy-value').value;closeEditor();render('Preview copy updated. Reset restores the original text.');
+}
+const callbacks={onNavigate:navigate,onSelect:choose,onConfirm:confirm,onInspect:inspect,onCloseInspect:closeInspect,onVariant:setVariant,onEdit:editCopy,onExitPhone:()=>phonePreview(false)};
 
 function sync() {
   document.body.dataset.phone=String(state.phone);
@@ -153,6 +163,7 @@ function render(message='') {
   const warnings=draw(hero,object,requested,logical,x,y);
   window.vassalWorkbench.warnings=warnings;
   window.vassalWorkbench.targets=object.previewTargets??{};
+  window.vassalWorkbench.tooltip=object.previewTooltip??null;
   $('bounds-status').classList.toggle('warning',warnings.length>0);
   $('bounds-status').textContent=warnings.length ? `Text needs revision: ${warnings.join(' · ')}` : 'Text fits its reserved regions. Frames and paintings remain separate layers.';
   $('hero').classList.toggle('checker',$('checker').checked);
@@ -160,7 +171,7 @@ function render(message='') {
   $('preview-title').textContent=state.study==='founder' ? `${founders()[state.index].name} · ${state.index+1} / ${state.slots}` : state.study==='regular' ? `${state.classId==='scholar' ? 'Scholar' : 'Warrior'} · ${layoutNames[state.layout]}` : `${state.classId==='scholar' ? 'Scholar' : 'Warrior'} frame`;
   $('hero').setAttribute('aria-label',`${$('preview-title').textContent}. ${state.surface==='game' ? 'Fixed game screen.' : 'Enlarged assembly.'} ${state.study==='founder' && founders()[state.index].mystery ? 'Black silhouette with question mark; unavailable.' : ''}`);
   $('font-label').textContent=`${state.font} logical px`;$('size-label').textContent=`${state.size} px (assembly only)`;
-  $('rules').textContent=state.study==='founder' ? 'The focused dossier shows four default stats and one class stat. The replaced default is grey and crossed out; the three others remain active. The class-stat subsection explains per-point effects and the lost effect. Tap any stat or class ability for rules. Phone preview fills the viewport and rotates portrait screens into landscape. The Scholar lock remains an optional proposal.'
+  $('rules').textContent=state.study==='founder' ? 'The focused dossier shows four default stats and one class stat. Tap a stat for a compact tooltip; tap its title or explanation to edit. Other dossier text edits directly. Ability chevrons open their rules. Copy edits stay in this page until Reset or reload. The arrows beside the portrait rail change founders. Phone preview stays in forced landscape.'
     : state.study==='regular' ? 'Identity, starting settlement, Age, Prestige and a signature opportunity belong on the candidate. Compare a key-stat summary with all four named stats. Long copy raises a fit warning instead of silently shrinking the font.'
       : 'The regular Warrior ring uses swords; the Scholar arch uses scrolls and a book. Toggle the separate crest to make either one a founder. Empty-frame exports keep a transparent aperture.';
   if (message) $('event-status').textContent=message;
@@ -184,10 +195,17 @@ async function main() {
   for (const [id,s] of Object.entries(VASSAL_SIGNATURE_NODE_VARIANTS)) {const option=document.createElement('option');option.value=id;option.textContent=s.label;$('signature').appendChild(option);}
   await loadVassalAssets();hero=makeApp($('hero'));ready=true;
   displayMode=attachDevPreviewDisplay($('hero'),{onChange:()=>{if(window.vassalWorkbench)render();}});
-  window.vassalWorkbench={get state(){return {...state};},get face(){return face();},get founders(){return founders();},warnings:[],targets:{},selectStudy,navigate,selectFounder:choose,setVariant,inspect,closeInspect,phonePreview,exportPng,get canvasCount(){return apps.length;}};
+  hero.view.tabIndex=0;
+  window.vassalWorkbench={get state(){return {...state};},get face(){return face();},get founders(){return founders();},warnings:[],targets:{},tooltip:null,selectStudy,navigate,selectFounder:choose,setVariant,inspect,closeInspect,phonePreview,exportPng,get canvasCount(){return apps.length;}};
   sync();render('Ready to review. Changes affect this workbench only.');
   document.querySelectorAll('[data-study]').forEach(button=>button.addEventListener('click',()=>selectStudy(button.dataset.study)));
   $('controls').addEventListener('submit',e=>e.preventDefault());
+  $('copy-editor').addEventListener('submit',event=>{event.preventDefault();applyCopy();});
+  $('copy-cancel').addEventListener('click',closeEditor);
+  $('copy-editor').addEventListener('keydown',event=>{
+    if(event.key==='Escape'){event.stopPropagation();event.preventDefault();closeEditor();}
+    if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();applyCopy();}
+  });
   $('variant').addEventListener('change',()=>setVariant($('variant').value));
   $('phone-preview').addEventListener('click',()=>phonePreview());
   for (const id of ['surface','classId','identity','layout','guided','crest','frameOnly']) $(id).addEventListener('change',()=>{

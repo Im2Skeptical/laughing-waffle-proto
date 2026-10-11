@@ -21,6 +21,21 @@ concrete abilities. **B: class comparison** shows both founders and exchanges
 together. Tap the A/B control inside the canvas to switch. Arrow keys browse
 founders; Alt + arrows switch layouts. Workbench exits the phone review mode.
 
+Navigation arrows now flank the square portraits at the bottom, with the index
+above the rail. Stat taps open compact Pixi tooltips anchored beside the tapped
+entry. There is no screen-wide shade; other stats and navigation remain usable.
+Close a tooltip with its cross, Escape or a tap elsewhere in the dossier.
+
+Tap dossier text to edit its copy, including headings, class effects, ability
+names/descriptions, the replacement note and flavour. A stat name opens its
+tooltip first: tap the tooltip title to edit that name or the explanation to
+edit its rule copy. Ability chevrons open rules while their text edits directly.
+A small native text input over the Pixi canvas supports the phone keyboard;
+Apply updates the preview, Cancel discards the draft. Ctrl/Cmd + Enter applies.
+Copy edits survive founder/layout changes within the page and are included in
+PNG exports and the workbench state. Reset or reload restores the original copy.
+These changes affect no gamepiece definitions or gameplay.
+
 The focused dossier is the chosen direction. Its latest pass removes the
 Choose your founder heading/instruction and the entire founding-action block,
 including its outcome and costs. A larger class-framed portrait balances the
@@ -104,6 +119,8 @@ Run `npm run check:architecture`, `npm run check:assets`, `npm run build` and
 `npm run verify`. In the browser, check all six class/layout combinations;
 both founder layouts at 844×390; portrait rotation at 390×844; Pixi taps on stat
 all five stat names, Retinue, risk rewards, Commissions and rerolls;
+bottom-rail arrow placement at 4/6/8 slots; tooltip bounds and dismissal;
+all dossier text targets, Apply/Cancel, tooltip copy/name edits and Reset;
 overflow warnings and reset; locked/open Scholar and unavailable silhouettes;
 4/6/8-slot wrapping; keyboard arrows outside fields; arrows/thumbnails/swipe;
 PNG dimensions and transparent apertures; repeated tab changes without growing

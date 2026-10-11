@@ -16,7 +16,14 @@
     <section class="workspace">
       <div class="stage-area">
         <div class="stage-heading"><div><span id="mode" class="eyebrow"></span><h2 id="preview-title">Loading artwork…</h2></div><label class="toggle"><input id="checker" type="checkbox"> Transparency</label></div>
-        <div id="hero" class="canvas-slot" role="img" aria-label="Vassal art preview"></div>
+        <div id="hero" class="canvas-slot" role="img" aria-label="Vassal art preview">
+          <form id="copy-editor" role="dialog" aria-modal="false" aria-label="Edit preview copy" hidden>
+            <label for="copy-value">Edit copy</label>
+            <textarea id="copy-value" rows="3" aria-label="Preview copy" spellcheck="true"></textarea>
+            <p>Local preview copy. Reset or reload restores the original.</p>
+            <div><button id="copy-cancel" type="button">Cancel</button><button type="submit">Apply</button></div>
+          </form>
+        </div>
         <div class="actions"><button id="previous" type="button" aria-label="Previous founder">← Previous</button><button id="next" type="button" aria-label="Next founder">Next →</button><button id="phone-preview" type="button">Phone landscape preview</button><button id="reset" type="button" class="quiet">Reset study</button><button id="export" type="button" class="quiet">Save PNG</button></div>
         <p id="event-status" role="status" aria-live="polite"></p>
         <p id="bounds-status" class="bounds-status" role="status"></p>

@@ -51,6 +51,22 @@ function label(parent,value,x,y,{size=22,color=C.bone,width,clipH,bold=false,ali
 
 function rule(parent,x,y,width) { parent.addChild(new PIXI.Graphics().lineStyle(1,RELIC.brass,.85).moveTo(x,y).lineTo(x+width,y)); }
 
+function editableLabel(root,key,value,x,y,options={}) {
+  const copy=root.previewCopy?.[key] ?? value;
+  const text=label(root,copy,x,y,options);
+  const width=options.width ?? text.width;
+  const bounds={x:options.align==='center'?x-width/2:x,y,width,height:options.clipH ?? text.height};
+  text.eventMode='static';text.cursor='text';
+  text.hitArea=new PIXI.Rectangle(options.align==='center'?-width/2:0,0,bounds.width,bounds.height);
+  text.on('pointertap',event=>{event.stopPropagation();root.previewEdit?.({key,value:copy});});
+  (root.previewTargets??={})[`edit:${key}`]=bounds;
+  return text;
+}
+
+function ruleTitleKey(id) {
+  return ['cunning','intelligence','wisdom','effectiveness','prowess','ingenuity'].includes(id) ? `stat.${id}` : `ability.${id}.name`;
+}
+
 function action(parent,value,x,y,w,h,onClick,{disabled=false,bright=false,warnings}={}) {
   const root=new PIXI.Container(); root.position.set(x,y);
   const g=panel(root,0,0,w,h,bright); if (bright) g.tint=0xd3bc87;
@@ -96,7 +112,7 @@ const EXPLANATIONS = {
 
 function inspectTarget(root,id,x,y,w,h,onInspect) {
   const hit=new PIXI.Container(); hit.position.set(x,y); hit.eventMode='static';hit.cursor='pointer';hit.hitArea=new PIXI.Rectangle(0,0,w,h);
-  hit.on('pointertap',()=>onInspect?.(id));root.addChild(hit);
+  hit.on('pointertap',event=>{event.stopPropagation();onInspect?.(id);});root.addChild(hit);
   (root.previewTargets??={})[id]={x,y,width:w,height:h};
 }
 
@@ -104,45 +120,56 @@ function inspectTarget(root,id,x,y,w,h,onInspect) {
 function statPanel(root,classId,x,y,width,{warnings,onInspect}={}) {
   const data=CLASSES[classId], removed='#80867d', detailX=x+332, detailWidth=width-360;
   panel(root,x,y,width,360);
-  label(root,'DEFAULT STATS',x+24,y+18,{size:24,color:C.ash});
+  editableLabel(root,'heading.defaults','DEFAULT STATS',x+24,y+18,{size:24,color:C.ash});
   ['Cunning','Intelligence','Wisdom','Effectiveness'].forEach((name,i)=>{
     const top=y+58+i*70, lost=name===data.from;
-    const text=label(root,name,x+24,top,{size:34,color:lost?removed:C.bone,width:266,clipH:43,warnings,field:name});
+    const text=label(root,root.previewCopy?.[`stat.${name.toLowerCase()}`] ?? name,x+24,top,{size:34,color:lost?removed:C.bone,width:266,clipH:43,warnings,field:name});
     if(lost) {
       root.addChild(new PIXI.Graphics().lineStyle(2,0x80867d).moveTo(text.x,text.y+22).lineTo(text.x+text.width,text.y+22));
-      label(root,'REMOVED',x+24,top+39,{size:20,color:removed});
+      editableLabel(root,'heading.removed','REMOVED',x+24,top+39,{size:20,color:removed});
     }
-    inspectTarget(root,name.toLowerCase(),x+18,top-4,278,70,onInspect);
+    inspectTarget(root,name.toLowerCase(),x+18,top-4,278,43,onInspect);
   });
   panel(root,x+308,y+10,width-318,340,true);
-  label(root,'CLASS STAT \u00b7 PER POINT',detailX,y+26,{size:24,color:C.gold});
-  label(root,`${data.to}  \u203a`,detailX,y+62,{size:44,bold:true,color:C.gold});
-  data.statDetails.forEach((copy,i)=>label(root,copy,detailX,y+120+i*78,{size:32,width:detailWidth,clipH:77,warnings,field:`${data.to} effect ${i+1}`}));
+  editableLabel(root,'heading.classStat','CLASS STAT \u00b7 PER POINT',detailX,y+26,{size:24,color:C.gold});
+  label(root,`${root.previewCopy?.[`stat.${data.to.toLowerCase()}`] ?? data.to}  \u203a`,detailX,y+62,{size:44,bold:true,color:C.gold});
+  inspectTarget(root,data.to.toLowerCase(),detailX,y+62,detailWidth,54,onInspect);
+  data.statDetails.forEach((copy,i)=>editableLabel(root,`${classId}.statEffect.${i}`,copy,detailX,y+120+i*78,{size:32,width:detailWidth,clipH:77,warnings,field:`${data.to} effect ${i+1}`}));
   rule(root,detailX,y+280,detailWidth);
-  label(root,`Replaces ${data.from}.\n${data.removedEffect}`,detailX,y+292,{size:26,color:C.ash,width:detailWidth,clipH:64,warnings,field:'Removed stat effect'});
-  inspectTarget(root,data.to.toLowerCase(),x+314,y+14,width-332,332,onInspect);
+  editableLabel(root,`${classId}.replacement`,`Replaces ${data.from}.\n${data.removedEffect}`,detailX,y+292,{size:26,color:C.ash,width:detailWidth,clipH:64,warnings,field:'Removed stat effect'});
 }
 
 function classAbilities(root,classId,x,y,width,{size=32,warnings,onInspect}={}) {
-  label(root,'CLASS ABILITIES \u00b7 TAP FOR RULES',x,y,{size:24,color:C.gold});
+  editableLabel(root,'heading.abilities','CLASS ABILITIES',x,y,{size:24,color:C.gold});
   CLASSES[classId].abilities.forEach(([name,copy,id],i)=>{
     const top=y+42+i*112;
-    label(root,`${name}  \u203a`,x,top,{size:36,bold:true});
-    label(root,copy,x,top+46,{size,color:C.ash,width,clipH:74,warnings,field:name});
-    inspectTarget(root,id,x-8,top-4,width+16,110,onInspect);
+    editableLabel(root,`ability.${id}.name`,name,x,top,{size:36,bold:true,width:width-88,clipH:44,warnings,field:name});
+    editableLabel(root,`ability.${id}.copy`,copy,x,top+46,{size,color:C.ash,width:width-88,clipH:74,warnings,field:name});
+    label(root,'\u203a',x+width-48,top+12,{size:44,color:C.gold});
+    inspectTarget(root,id,x+width-72,top-4,80,110,onInspect);
   });
 }
 
 function explanation(root,id,onClose) {
   const data=EXPLANATIONS[id];if(!data) return;
+  const anchor=root.previewTargets[id] ?? root.previewTargets[Object.keys(root.previewTargets).find(key=>key.endsWith(`:${id}`))];
+  const titleKey=ruleTitleKey(id), bodyKey=`rule.${id}`;
+  const content=root.previewCopy?.[bodyKey] ?? data[1];
+  const measure=new PIXI.Text(content,{fontFamily:'Georgia, serif',fontSize:30,wordWrap:true,wordWrapWidth:712,breakWords:true,lineHeight:35.4});
+  const height=Math.min(480,Math.max(210,Math.ceil(measure.height)+132));measure.destroy();
+  const x=Math.max(24,Math.min(FOUNDER_SIZE.width-784,(anchor?.x ?? 600)+(anchor?.width ?? 0)+16));
+  const y=Math.max(24,Math.min(FOUNDER_SIZE.height-height-96,(anchor?.y ?? 120)+(anchor?.height ?? 0)+14));
   const overlay=new PIXI.Container();
-  const shade=new PIXI.Graphics().beginFill(0x050908,.88).drawRect(0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height).endFill();
-  shade.eventMode='static';shade.on('pointertap',()=>onClose?.());overlay.addChild(shade);
-  panel(overlay,242,150,1076,630,true);
-  label(overlay,data[0],286,190,{size:48,bold:true});
-  label(overlay,data[1],286,276,{size:36,width:982,clipH:420,warnings:root.previewWarnings,field:'Rule explanation'});
-  action(overlay,'CLOSE',1092,184,182,78,onClose);
-  root.addChild(overlay);root.previewTargets={close:{x:1092,y:184,width:182,height:78}};
+  overlay.eventMode='static';overlay.hitArea=new PIXI.Rectangle(x,y,760,height);overlay.on('pointertap',event=>event.stopPropagation());
+  overlay.previewCopy=root.previewCopy;overlay.previewEdit=root.previewEdit;overlay.previewTargets={};
+  panel(overlay,x,y,760,height,true);
+  editableLabel(overlay,titleKey,data[0],x+24,y+20,{size:36,bold:true,width:602,clipH:44,warnings:root.previewWarnings,field:'Tooltip title'});
+  editableLabel(overlay,bodyKey,data[1],x+24,y+82,{size:30,width:712,clipH:height-132,warnings:root.previewWarnings,field:'Rule tooltip'});
+  label(overlay,'Tap text to edit copy',x+24,y+height-35,{size:22,color:C.ash});
+  action(overlay,'\u00d7',x+654,y+14,84,58,onClose);
+  root.addChild(overlay);
+  Object.assign(root.previewTargets,overlay.previewTargets,{close:{x:x+654,y:y+14,width:84,height:58}});
+  root.previewTooltip={x,y,width:760,height};
 }
 
 export function assemblePortrait({classId='warrior',identity=0,size=240,founder=false,mystery=false,frameOnly=false}={}) {
@@ -211,18 +238,15 @@ export function assembleRegular(face,{layout='identity',font=22,selected=false}=
   root.previewWarnings=warnings; return root;
 }
 
-export function assembleFounder({founders,index=0,identity=0,guided=true,variant='A',inspect=null,onNavigate,onSelect,onConfirm,onInspect,onCloseInspect,onVariant,onExitPhone}={}) {
+export function assembleFounder({founders,index=0,identity=0,guided=true,variant='A',inspect=null,copy={},onEdit,onNavigate,onSelect,onConfirm,onInspect,onCloseInspect,onVariant,onExitPhone}={}) {
   const root=new PIXI.Container(), face=founders[index], warnings=[];
   root.previewWarnings=warnings;
+  root.previewCopy=copy;root.previewEdit=onEdit;root.previewTargets={};
   panel(root,0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height);
-  label(root,`${index+1} / ${founders.length}`,1212,52,{size:28,align:'center',color:C.ash});
-  action(root,'\u2039',1280,22,92,84,()=>onNavigate?.(-1));
-  action(root,'\u203a',1400,22,92,84,()=>onNavigate?.(1));
-  root.previewTargets={previous:{x:1280,y:22,width:92,height:84},next:{x:1400,y:22,width:92,height:84}};
   if(face.mystery) {
     const portrait=assemblePortrait({size:300,mystery:true});portrait.position.set(630,190);root.addChild(portrait);
-    label(root,'UNKNOWN FOUNDER',780,548,{size:48,align:'center'});
-    label(root,'No class or mechanics have been authored for this slot.',780,630,{size:34,width:1080,align:'center'});
+    editableLabel(root,'mystery.name','UNKNOWN FOUNDER',780,548,{size:48,align:'center'});
+    editableLabel(root,'mystery.copy','No class or mechanics have been authored for this slot.',780,630,{size:34,width:1080,align:'center'});
   } else if(variant==='B') {
     for(const [i,candidate] of founders.slice(0,2).entries()) {
       const x=28+i*760, selected=index===i;
@@ -246,22 +270,28 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
       root.previewTargets[`select:${i}`]={x:x+24,y:790,width:696,height:68};
     }
   } else {
-    label(root,face.name.toUpperCase(),40,86,{size:54,bold:true});
-    label(root,face.classId.toUpperCase(),40,160,{size:30,color:C.gold});
+    editableLabel(root,`${face.classId}.name`,face.name.toUpperCase(),40,86,{size:54,bold:true,width:460,clipH:65,warnings,field:'Founder name'});
+    editableLabel(root,`${face.classId}.classLabel`,face.classId.toUpperCase(),40,160,{size:30,color:C.gold});
     const portrait=assemblePortrait({classId:face.classId,identity,size:440,founder:true});portrait.position.set(46,278);root.addChild(portrait);
     statPanel(root,face.classId,540,130,978,{warnings,onInspect});
     classAbilities(root,face.classId,564,518,930,{warnings,onInspect});
-    const flavour=label(root,CLASSES[face.classId].flavour,40,774,{size:26,color:'#929789',width:440,clipH:64,warnings,field:'Flavour'});flavour.style.fontStyle='italic';
+    const flavour=editableLabel(root,`${face.classId}.flavour`,CLASSES[face.classId].flavour,40,774,{size:26,color:'#929789',width:440,clipH:64,warnings,field:'Flavour'});flavour.style.fontStyle='italic';
   }
   const locked=face.mystery || (face.classId==='scholar' && guided);
+  const displayName=copy[`${face.classId}.name`] ?? face.name.toUpperCase();
   if(variant!=='B'||face.mystery) {
-    action(root,face.mystery?'UNAVAILABLE':locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${face.name.toUpperCase()}`,1024,802,494,76,onConfirm,{disabled:locked,bright:!locked,warnings});
+    action(root,face.mystery?'UNAVAILABLE':locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${displayName}`,1024,802,494,76,onConfirm,{disabled:locked,bright:!locked,warnings});
     root.previewTargets.confirm={x:1024,y:802,width:494,height:76};
   } else {
-    action(root,locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${face.name.toUpperCase()}`,1004,868,514,76,onConfirm,{disabled:locked,bright:!locked,warnings});
-    root.previewTargets.confirm={x:1004,y:868,width:514,height:76};
+    action(root,locked?'LOCKED \u00b7 PREVIEW':`BEGIN WITH ${displayName}`,1088,868,430,76,onConfirm,{disabled:locked,bright:!locked,warnings});
+    root.previewTargets.confirm={x:1088,y:868,width:430,height:76};
   }
   const pitch=variant==='B'?70:88, railWidth=founders.length*pitch, start=variant==='B'?390:(1560-railWidth)/2;
+  label(root,`${index+1} / ${founders.length}`,start+railWidth/2,853,{size:24,align:'center',color:C.ash});
+  action(root,'\u2039',start-84,890,70,62,()=>onNavigate?.(-1));
+  action(root,'\u203a',start+railWidth+2,890,70,62,()=>onNavigate?.(1));
+  root.previewTargets.previous={x:start-84,y:890,width:70,height:62};
+  root.previewTargets.next={x:start+railWidth+2,y:890,width:70,height:62};
   founders.forEach((candidate,i)=>{
     const thumb=new PIXI.Container(); thumb.position.set(start+i*pitch,890);
     const w=variant==='B'?62:76;
@@ -271,16 +301,20 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
     root.previewTargets[`founder:${i}`]={x:start+i*pitch,y:890,width:w,height:62};
   });
   // Floating workshop controls are Pixi too; all selector content stays in-game.
-  action(root,variant==='A'?'A \u00b7 DOSSIER \u203a':'B \u00b7 COMPARE \u203a',28,890,340,62,()=>onVariant?.(variant==='A'?'B':'A'));
-  root.previewTargets.variant={x:28,y:890,width:340,height:62};
+  action(root,variant==='A'?'A \u00b7 DOSSIER \u203a':'B \u00b7 COMPARE \u203a',28,890,244,62,()=>onVariant?.(variant==='A'?'B':'A'));
+  root.previewTargets.variant={x:28,y:890,width:244,height:62};
   if(variant!=='B') {
-    action(root,'WORKBENCH',1190,890,328,62,onExitPhone);
-    root.previewTargets.workbench={x:1190,y:890,width:328,height:62};
+    action(root,'WORKBENCH',1268,890,250,62,onExitPhone);
+    root.previewTargets.workbench={x:1268,y:890,width:250,height:62};
   } else {
     action(root,'WORKBENCH',680,28,316,76,onExitPhone);
     root.previewTargets.workbench={x:680,y:28,width:316,height:76};
   }
-  if(inspect) explanation(root,inspect,onCloseInspect);
+  if(inspect) {
+    root.eventMode='static';root.hitArea=new PIXI.Rectangle(0,0,FOUNDER_SIZE.width,FOUNDER_SIZE.height);
+    root.on('pointertap',()=>onCloseInspect?.());
+    explanation(root,inspect,onCloseInspect);
+  }
   root.previewLocked=locked;return root;
 }
 
@@ -290,6 +324,7 @@ export function assembleGame(state,callbacks={}) {
   if (state.study==='founder') {
     const modal=assembleFounder({...state, ...callbacks}); modal.position.set(432,116); root.addChild(modal); warnings.push(...modal.previewWarnings);
     root.previewTargets=Object.fromEntries(Object.entries(modal.previewTargets??{}).map(([id,r])=>[id,{...r,x:r.x+432,y:r.y+116}]));
+    root.previewTooltip=modal.previewTooltip?{...modal.previewTooltip,x:modal.previewTooltip.x+432,y:modal.previewTooltip.y+116}:null;
   } else if (state.study==='regular') {
     // Cover the original drawer; retain the original HUD, map, dock and lever.
     panel(root,432,590,1560,484);
