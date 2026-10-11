@@ -21,12 +21,12 @@ heading/instruction and the founding-action heading, outcome and cost notes.
 Larger portraits, a short class label and matching mechanical panels present
 Philosopher and Warlord in the same phone-landscape format.
 
-The retained-stat button is removed. Three stat-box treatments keep that dossier
-fixed: `exchange=A` is a lose/gain split, `exchange=B` is removed/replacement rows,
-and `exchange=C` shows a worked example at two points. The example is illustrative,
-not an assigned founder stat. Each treatment names the lost effect, including the
-8% Prestige discount per Intelligence point or extra Prestige per Cunning point.
-Tap the A/B/C STAT workshop controls inside Pixi; Shift + arrows also cycles them.
+The retained-stat button and earlier three stat-box treatments are superseded by
+one unified panel. It shows Cunning, Intelligence, Wisdom, Effectiveness and the
+class stat: five names, four active stats. The replaced default is grey and crossed
+out with a REMOVED label. A highlighted Prowess/Ingenuity subsection explains each
+per-point effect and the lost default effect. All five names can be tapped for
+their rules. Retained stats stay concise; no founder stat values are invented.
 
 The founder rail retains 4, 6 or 8 slots.
 Warrior and Scholar can be inspected; extra slots are black question-mark

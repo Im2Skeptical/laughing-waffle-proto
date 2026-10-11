@@ -9,7 +9,7 @@ This follows the illustrated card workbench: editable presentation fixtures,
 layered painted assets, comparisons at game size, transparency and PNG export.
 Keep it inside this workbench until the user approves production integration.
 
-## Mechanics-first picker pass (October 10)
+## Mechanics-first picker pass (October 11)
 
 Open [the forced phone-landscape picker](index.html?study=founder&phone=true&guided=false&variant=A).
 The picker, its layout switcher and rule popups are rendered in Pixi on the
@@ -33,12 +33,14 @@ Scholar exchanges Cunning for Ingenuity; Warrior exchanges Intelligence for
 Prowess. Lost effects are visible alongside the replacement. Commission rewards,
 Prestige-free but time-consuming rerolls, Prestige-held Retinue and a numeric
 risk-reward example are explicit. Tap stats and abilities for their detailed
-rules. The retained-stat button is removed. Within the focused dossier,
-`exchange=A` splits lose/gain columns, `exchange=B` uses explicit removed/replacement
-rows, and `exchange=C` shows an illustrative two-point comparison. This example
-does not assign founder stats. Tap the A/B/C STAT controls in Pixi or use
-Shift + arrows; the rest of the dossier stays fixed. Intelligence's lost 8% discount
-per point and Cunning's lost extra node Prestige are explicit in all three.
+rules. A unified stat panel now shows all four default names plus the class stat:
+five visible names, four active stats. The replaced default is grey and crossed out,
+with a REMOVED label. Retained defaults stay concise and can be tapped for rules.
+The highlighted class-stat subsection describes both effects per point and the
+effect lost with the replaced default. Scholar loses Cunning's extra node Prestige;
+Warrior loses Intelligence's Prestige-cost discount. The earlier three stat-box
+treatments and their workshop controls are superseded. No founder stat values are
+invented, and there is no retained-stat button.
 Flavour is one muted italic line. The earlier successor-drawer and frame
 assemblies remain available in the workbench.
 
@@ -71,7 +73,7 @@ Save PNG exports the full 2424×1080 game composition regardless of the browser
 size. Candidate and frame assemblies export at twice their logical resolution.
 Empty frames retain their transparent apertures.
 
-URLs preserve `study`, `class`, `layout`, `founder`, `slots`, `guided`, `variant`, `exchange`
+URLs preserve `study`, `class`, `layout`, `founder`, `slots`, `guided`, `variant`
 and `phone`.
 Other property edits are ephemeral; Reset restores that study's fixture.
 Confirmation only records a local preview message. It never enters a real node.
@@ -101,7 +103,7 @@ Pages; the asset manifest registers only the standalone preview images.
 Run `npm run check:architecture`, `npm run check:assets`, `npm run build` and
 `npm run verify`. In the browser, check all six class/layout combinations;
 both founder layouts at 844×390; portrait rotation at 390×844; Pixi taps on stat
-exchanges and their three treatments, Retinue, risk rewards, Commissions and rerolls;
+all five stat names, Retinue, risk rewards, Commissions and rerolls;
 overflow warnings and reset; locked/open Scholar and unavailable silhouettes;
 4/6/8-slot wrapping; keyboard arrows outside fields; arrows/thumbnails/swipe;
 PNG dimensions and transparent apertures; repeated tab changes without growing
