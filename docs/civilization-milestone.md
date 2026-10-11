@@ -167,13 +167,16 @@ human playtest work.
   step away from player settlements, and connects the adjacent small neutral.
   Chaos accumulates permanently from Faith income, without subtracting Resistance.
   At Death, the amount of accumulated Chaos above current Resistance adds Monster
-  expansion progress (default 0.1 per uncovered point). Resistance freezes saved
+  expansion progress (default 1 per 1,000 uncovered points per moon). Resistance freezes saved
   progress while it contains Chaos. One shared tracker fills at 100 by default;
   a full tracker immediately expands one front in rotating authored order and retains
   overflow. Empty frontier has priority. Only blocked/absent fronts allow another
   spawn; a fully occupied map instead strengthens a blocked Monster. Supplied
   interception retains Support and Edible requirements; settlement loss remains
   the run-ending condition.
+- Untouched Starter_02 openings target extinction between years 150 and 250.
+  Passive Monster progress is tuned against the real simulation over each starting
+  road; dangerous-action costs and the 100-progress threshold stay independent.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric
   Practices, deep knowledge study and higher-quality Relic searches generate fixed
   Monster expansion progress costs, shown with the Monster symbol and amount before commitment.

@@ -21,7 +21,7 @@ const state=createNewGameState(420), chaos=state.civilization.chaos;
 const initialRng={...state.rng}, first=state.world.regions.find(region=>region.monster);
 assert.equal(first.monster.defense,2);
 assert.equal(getGameSetting(state,'monsterExpansionThreshold'),100);
-assert.equal(getGameSetting(state,'monsterProgressPerChaos'),.1);
+assert.equal(getGameSetting(state,'monsterProgressPerChaos'),.001);
 // Containment freezes existing progress, including at exact equality.
 chaos.monsterPressure=80;
 for (const delta of [-10,0]) {
@@ -47,7 +47,7 @@ assert.equal(chaos.chaosPower,3.64);
 assert.equal(getMonsterPressureRate(state),0);
 // Linear, tunable uncovered-Chaos rate. A full tracker expands directly.
 state.civilization.phaseModifiers.faithResistance=0;
-chaos.chaosPower=getChaosResistance(state)+10;
+chaos.chaosPower=getChaosResistance(state)+1000;
 assert.equal(getMonsterPressureRate(state),1);
 chaos.monsterPressure=99;
 const saved=serializeGameState(state), restored=deserializeGameState(saved);
@@ -60,7 +60,7 @@ assert.deepEqual(serializeGameState(state),serializeGameState(restored),'saved p
 assert.deepEqual(state.rng,initialRng,'pressure never consumes RNG');
 assert.equal(state.tSec,0,'direct pressure stepping never advances simulation time');
 state.gameConfig.settings.values.monsterProgressPerChaos=.2;
-assert.equal(getMonsterPressureRate(state),2);
+assert.equal(getMonsterPressureRate(state),200);
 // Dangerous actions bypass complete containment, retain overflow, and do not add Chaos.
 const danger=createNewGameState(424), dc=danger.civilization.chaos;
 danger.civilization.phaseModifiers.faithResistance=1000;

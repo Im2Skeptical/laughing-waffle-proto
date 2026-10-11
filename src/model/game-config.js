@@ -112,7 +112,7 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     description: "Resistance contains accumulated Chaos. Dangerous actions add expansion progress directly; a full tracker expands one Monster front.",
     fields: Object.freeze([
       field("monsterExpansionThreshold", "Progress per expansion", 100, 1, 100000, 1, true),
-      field("monsterProgressPerChaos", "Progress per uncovered Chaos each moon", 0.1, 0, 100, 0.01),
+      field("monsterProgressPerChaos", "Progress per uncovered Chaos each moon", 0.001, 0, 100, 0.001),
       field("monsterDiversionProgress", "Progress removed by Crisis diversion", 25, 0, 100000, 1, true),
       field("discoveryMonsterProgress", "Forbidden Discovery progress", 40, 0, 100000, 1, true),
       field("conquestMonsterProgress", "Conquest base progress", 20, 0, 100000, 1, true),

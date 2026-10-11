@@ -31,7 +31,7 @@ registries here.
   Practice Resistance bonuses last until the next Birth phase.
   Resistance is compared with accumulated Chaos: sufficient Resistance freezes
   passive Monster expansion progress without erasing saved progress. At Death,
-  uncovered Chaos adds configurable progress (default 0.1 per point per moon).
+  uncovered Chaos adds configurable progress (default 1 per 1,000 points per moon).
   One shared tracker fills at 100 progress by default; each full tracker expands
   one existing front in rotating authored order and retains overflow. Dangerous
   actions add fixed progress directly and can trigger expansion immediately even

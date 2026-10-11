@@ -134,6 +134,8 @@ const terminalProjectionBase = createNewGameState(123);
 for (const region of terminalProjectionBase.world.regions) {
   if (region.controller !== "player") region.monster = { defense: 100 };
 }
+// Exercise terminal truncation independently of the untouched opening's pacing.
+terminalProjectionBase.civilization.chaos.monsterPressure = 400;
 const terminalProjection = buildProjectionChunkFromStateData(
   serializeGameState(terminalProjectionBase), 0, 3000
 );

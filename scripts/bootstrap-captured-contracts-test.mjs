@@ -3,6 +3,7 @@ import { createConfiguredNewGameState, createNewGameState } from "../src/model/n
 import { createStarterBootProfile } from "../src/model/starter-boot-profile.js";
 import { deserializeGameState, serializeGameState } from "../src/model/state.js";
 import { getWorldDefinition } from "../src/model/world-state.js";
+import { initializeReplayClock, advanceReplayStateOneSecond } from "../src/model/replay-second-runner.js";
 
 const SEEDS = [11, 735, 7919];
 
@@ -56,5 +57,23 @@ assert.equal(edited.gameConfig.settings.values.prematureDeathChaosWeight, 7);
 assert.equal(edited.gameConfig.settings.values.externalEmigrationChaosWeight, 8);
 assert.equal(edited.gameConfig.settings.values.primordialBasePressure, 9);
 assert.equal(edited.gameConfig.settings.values.primordialGrowthFactor, 1.5);
+
+// Every authored starting road must give an untouched New Game 150–250 years.
+// Use the official tick/replay path, including population, faith and spatial losses.
+const openingRoads = new Set();
+const extinctionYears = [];
+for (const seed of [1, 2, 4, 6, 7, 8, 12, 18, 30]) {
+  const opening = initializeReplayClock(createNewGameState(seed));
+  openingRoads.add(opening.world.regions.filter(region => region.controller === 'player').map(region => region.id).join('/'));
+  while (!opening.runStatus?.complete && opening.year <= 250) {
+    assert.equal(advanceReplayStateOneSecond(opening).ok, true, `opening ${seed} advances`);
+  }
+  assert.equal(opening.runStatus?.reason, 'redGodMonsterOverrun', `opening ${seed} ends through Monster expansion`);
+  assert.ok(opening.year >= 150 && opening.year <= 250,
+    `opening ${seed} extinction year ${opening.year} must be within 150–250`);
+  extinctionYears.push(opening.year);
+}
+assert.equal(openingRoads.size, 9, 'balance coverage includes all nine starting roads');
+console.log(`[opening-balance] nine roads: extinction years ${Math.min(...extinctionYears)}–${Math.max(...extinctionYears)}`);
 
 console.log("[bootstrap-captured-contracts] OK");
