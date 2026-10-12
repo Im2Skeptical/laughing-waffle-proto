@@ -4,6 +4,7 @@
 // planner helpers still match those strings.
 
 import {
+  cmdChooseVassalCommission,
   cmdChooseVassalDevelopmentStat,
   cmdConfirmHeirloomLoadout,
   cmdConfirmVassalLifeNode,
@@ -47,6 +48,7 @@ export const ActionKinds = {
   VASSAL_REORDER_SHOP_PURCHASE: "vassalReorderShopPurchase",
   VASSAL_REROLL_SHOP: "vassalRerollShop",
   VASSAL_CONFIRM_LIFE_NODE: "vassalConfirmLifeNode",
+  VASSAL_CHOOSE_COMMISSION: "vassalChooseCommission",
   VASSAL_CHOOSE_DEVELOPMENT_STAT: "vassalChooseDevelopmentStat",
   VASSAL_CONFIRM_HEIRLOOM_LOADOUT: "vassalConfirmHeirloomLoadout",
   VASSAL_RESOLVE_VAULT_OVERFLOW: "vassalResolveVaultOverflow",
@@ -174,6 +176,9 @@ export function applyAction(state, action, context = {}) {
       break;
     case ActionKinds.VASSAL_CONFIRM_LIFE_NODE:
       result = cmdConfirmVassalLifeNode(state, payload);
+      break;
+    case ActionKinds.VASSAL_CHOOSE_COMMISSION:
+      result = cmdChooseVassalCommission(state, payload);
       break;
     case ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT:
       result = cmdChooseVassalDevelopmentStat(state, payload);

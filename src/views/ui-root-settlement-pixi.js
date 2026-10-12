@@ -1,3 +1,4 @@
+import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
 import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
 import { createLifeProcessingView } from "./life-processing-pixi.js";
@@ -1167,6 +1168,13 @@ vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
   },
 });
 
+const vassalCommissionPicker = createVassalCommissionPicker({
+  layer:modalLayer,
+  getPresentation:()=>lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  isVisible:()=>worldViewMode==='vassalLife' && !getResolutionRecap?.(),
+  onChoose:offerId=>dispatchLifeMapAction(ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId}),
+});
+
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
@@ -1539,6 +1547,10 @@ function publishSettlementDebugApi() {
     getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
     getLifeMapHudSnapshot: () => ({...vassalLifeHudView?.getSemanticSnapshot?.(),heirlooms:vassalHeirloomFlowView?.getSemanticSnapshot?.()}),
     getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
+    getCommissionSnapshot: () => vassalCommissionPicker.getSnapshot(),
+    getFounderSnapshot: () => settlementVassalChooserView?.getFounderSnapshot?.() ?? null,
+    getFounderControlClickPoint: id => settlementVassalChooserView?.getFounderControlClickPoint?.(id) ?? null,
+    getCommissionChoiceClickPoint: index => vassalCommissionPicker.getChoiceClickPoint(index),
     getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
     isLifeProcessingVisible: () => lifeProcessingView?.isVisible() === true,
     getLifeDecisionControlClickPoint: id => lifeProcessingView?.getControlClickPoint(id) ?? null,
@@ -1827,6 +1839,7 @@ app.ticker.add((delta) => {
   vassalLifeMapView.update(frameDt);
   vassalLifeHudView.update(frameDt);
   vassalNodeDecisionModalView.update(frameDt);
+  vassalCommissionPicker.update();
   vassalLevelUpModalView.update(frameDt);
   vassalResolutionRecapView.update(frameDt);
   nodeResolutionDiagnostics.sample({

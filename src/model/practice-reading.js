@@ -43,7 +43,7 @@ export function getPracticeReading(def) {
   })));
   // Some supplied martial Practices contribute continuously rather than via
   // an effect operation. Describe their implemented contribution explicitly.
-  if (!effects.length && (def.supportMultiplier || def.defenseMultiplier)) effects.push({timing: 'While supplied', text: `Contribute extra ${def.defenseMultiplier?'defensive ':''}Martial Support from local Warriors${def.retinueCap ? `; gain ${def.retinueCap} Warrior Retinue capacity` : ''}`});
+  if (!effects.length && (def.supportMultiplier || def.defenseMultiplier)) effects.push({timing: 'While supplied', text: `Contribute extra ${def.defenseMultiplier?'defensive ':''}Martial Support from local Warriors${def.retinueForce ? `; gain ${def.retinueForce} Warrior Retinue Force` : ''}`});
   if (!effects.length && def.responseAction === 'rescue') effects.push({timing: 'During a Crisis', text: 'Rescue up to 5 people into available Housing in a connected friendly settlement'});
   const requirements = ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input =>
     `${kind === 'consume' ? 'Consume' : 'Require'} ${input.amount} ${traits(input.traits)}${kind === 'require' ? ' (kept)' : ''}.`));

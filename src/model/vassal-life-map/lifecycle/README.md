@@ -4,7 +4,8 @@ Callers keep importing from `src/model/vassal-life-map.js`. That barrel
 re-exports the previous public lifecycle API from `../lifecycle.js`.
 `getSettlementRequirements` stays on `lifecycle.js` for presentation.js.
 
-This split is mechanical. Mortality/confirm semantics were not rewritten.
+Node confirmation also resolves timed Scholar Delve through the shared mortality
+path, without completing the shop or earning node income.
 
 ## Files
 
@@ -16,4 +17,5 @@ This split is mechanical. Mortality/confirm semantics were not rewritten.
 - `../heirlooms.js` — inventory helpers used by candidates, confirm, and validate
 
 Import graph is acyclic: candidates → node-confirm → step. step also
-imports candidate validators. shop.js is not touched.
+imports candidate validators and continuous Commission progression. shop.js
+creates a timed Delve pending action; offers refresh only after resolution.

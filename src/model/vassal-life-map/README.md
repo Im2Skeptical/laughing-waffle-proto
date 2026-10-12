@@ -19,7 +19,12 @@ re-exports the previous public API; internals live here.
     also accept a `currentVassal` object, a `selectedVassals` array, and
     selected-id fallbacks when `vassalsById` is absent.
 - `class-actions.js`
-  - Shared class founding, Commission/Discovery, Campaign/Challenge and live Crisis rules.
+  - Shared class founding, Discovery, Campaign/Challenge and live Crisis rules.
+- `class-rules.js`
+  - Shared RISK success, surpassing quality rolls and Delve time calculations.
+- `commissions.js`
+  - Continuous Scholar offers, actor-attributed node goals, completion, and validation.
+    Construction tracks only projects started by committed Vassal shop actions.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.

@@ -343,8 +343,8 @@ export function getVassalStatPresentation(vassal, statId, valueOverride = null) 
   const baseValue = Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
   const heirloomBonus = value - (Number.isFinite(valueOverride) ? value : baseValue);
   const bonusNote = heirloomBonus > 0 ? ` · Heirloom +${heirloomBonus}` : "";
-  if (statId === "cunning" && vassal?.classId === "scholar") return { statId, label: "Ingenuity", value, powerLabel: `${Math.round(Math.min(.75, value * .05) * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
-  if (statId === "intelligence" && vassal?.classId === "warrior") return { statId, label: "Prowess", value, powerLabel: `+${value} personal Martial Force`, formula: "Campaign / Challenge only; no automatic defense bonus", pointsToCap: null };
+  if (statId === "cunning" && vassal?.classId === "scholar") return { statId, label: "Ingenuity", value, powerLabel: `${Math.round(value * .05 * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
+  if (statId === "intelligence" && vassal?.classId === "warrior") return { statId, label: "Prowess", value, powerLabel: `+${value} Martial Force`, formula: "Global Martial Force; RISK success × (1 + 15% per point)", pointsToCap: null };
   if (statId === "cunning") {
     const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
     return {

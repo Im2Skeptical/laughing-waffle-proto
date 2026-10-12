@@ -1,3 +1,4 @@
+import { createClassPortraitArt } from './vassal-class-art.js';
 import { drawDeterministicBust } from "./settlement-elder-bust-view.js";
 import { getChronicleTexture } from './chronicle-art.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
@@ -12,6 +13,8 @@ export function getVassalPortraitStage(age) {
 
 export function createVassalPortraitView(portrait, {
   size = 96,
+  classId = null,
+  founder = false,
   borderColor,
   shape = "square",
   age = null,
@@ -24,6 +27,8 @@ export function createVassalPortraitView(portrait, {
   const portraitId=`legacy-0${index%8+1}`;
   root.portraitStage = stage;
   const texture=getChronicleTexture(`vassal-portraits-v1/${portraitId}${stage === "middle" ? "" : `-${stage}`}.png`);
+  const classArt = createClassPortraitArt(classId, {size,founder,texture});
+  if (classArt) {classArt.portraitStage=stage;return classArt;}
   const ink = borderColor ?? RELIC.brass;
   if (shape === "circle") {
     const radius = size / 2;

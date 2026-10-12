@@ -14,6 +14,8 @@ export function getNavigationVassalPortrait(viewedState) {
   return {
     vassalId: vassal.vassalId,
     traits: vassal.portrait,
+    classId: vassal.classId ?? vassal.founderClassId,
+    founder: !!vassal.founderClassId,
     age: getVassalAge(viewedState, vassal),
     regionId,
     locationLabel: getRegionReference(viewedState, regionId) ?? regionId,
@@ -293,15 +295,17 @@ export function createSettlementNavigationView({
       for (const child of portrait.removeChildren()) child.destroy({ children: true });
       if (state.portrait) {
         const art = createVassalPortraitView(state.portrait.traits, {
-          size: layout.auxiliarySize, age: state.portrait.age,
+          size: layout.auxiliarySize, age: state.portrait.age, classId: state.portrait.classId, founder: state.portrait.founder,
         });
         const mask = new PIXI.Graphics();
         mask.beginFill(0xffffff).drawCircle(auxiliaryRadius, auxiliaryRadius, auxiliaryRadius - 4).endFill();
-        art.mask = mask;
+        if (!state.portrait.classId) art.mask = mask;
         art.eventMode = 'none';
         const rim = new PIXI.Graphics();
         rim.lineStyle(3, RELIC.brass, 1).drawCircle(auxiliaryRadius, auxiliaryRadius, auxiliaryRadius - 1);
-        portrait.addChild(art, mask, rim);
+        portrait.addChild(art);
+        if (!state.portrait.classId) portrait.addChild(mask,rim);
+        else {mask.destroy();rim.destroy();}
       }
     }
 

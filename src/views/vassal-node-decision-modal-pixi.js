@@ -1,4 +1,6 @@
 import { getActionChaosCost, getActionMonsterPressureCost } from '../model/detailed-settlements/practice-events.js';
+import { getVassalDelvePhaseCost } from '../model/vassal-life-map/class-rules.js';
+import { formatVassalPhaseDuration } from '../model/vassal-life-map/selectors.js';
 import { getVassalShopRerollCost } from '../model/vassal-life-map/shop.js';
 import { getTapFeedbackSnapshot } from './interaction-feedback.js';
 import { deserializeGameState } from '../model/state.js';
@@ -787,18 +789,22 @@ export function createVassalNodeDecisionModalView({
     const explainConfirm = confirmBlocked ? () => explainBlocked(confirmBlocked) : null;
     if (isShop && nodeState && !nodeState.resolving && showShopReroll(node)) {
       const rerollCost = getVassalShopRerollCost(vassal);
-      const rerollEnabled = !readOnly && !nodeState.rerollUsed
+      const rerollEnabled = !readOnly && !nodeState.resolving && (vassal.classId === "scholar" || !nodeState.rerollUsed)
         && (nodeState.purchasedOffers ?? []).length === 0
         && rerollCost <= vassal.prestige;
-      const rerollBlocked = nodeState.rerollUsed ? 'This node’s reroll has already been used.'
+      const rerollBlocked = nodeState.rerollUsed && vassal.classId !== 'scholar' ? 'This node’s reroll has already been used.'
         : (nodeState.purchasedOffers ?? []).length ? 'Undo staged offers before rerolling.'
           : rerollCost > vassal.prestige ? `Not enough Prestige: rerolling needs ${rerollCost}, you have ${vassal.prestige}.` : null;
-      const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 290, height: 50 },
-        nodeState.rerollUsed ? "REROLL USED" : vassal.classId === "scholar" ? "RECONSIDER" : "REROLL", rerollEnabled,
+      const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: vassal.classId === 'scholar' ? 440 : 290, height: 50 },
+        vassal.classId === "scholar" ? "DELVE" : nodeState.rerollUsed ? "REROLL USED" : "REROLL", rerollEnabled,
         () => {replacementOfferId=null; onRerollShop?.(node.id);}, false,
         { onUnavailable: !readOnly && rerollBlocked ? () => explainBlocked(rerollBlocked) : null });
       reroll.children[1].x = 96; reroll.children[1].style.fontSize = 20;
-      if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
+      if (vassal.classId === 'scholar') {
+        reroll.children[1].x=70;
+        const cost=getVassalDelvePhaseCost(state,vassal,nodeState);
+        reroll.addChild(createText(formatVassalPhaseDuration(cost,state),{...TEXT_STYLES.body,fontSize:18,fill:PALETTE.accent},128,16));
+      } else if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
     renderTitlePlaque(root, family);

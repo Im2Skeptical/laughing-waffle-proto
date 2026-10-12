@@ -48,15 +48,15 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v32; runner saves v23. Older saves are rejected.
+- Game state v33; runner saves v24. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v18 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v19 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v5; serialized Life Map graph v4.
+- Life Map generator settings v6; serialized Life Map graph v4.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
 - Debug drafts are inert until launched from Gym ? New run setup; saved combined

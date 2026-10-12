@@ -51,7 +51,7 @@ function modifierText(mod, amount) {
     support: `+${percent}% to local Martial Support`,
     defense: `+${n} local Defense`,
     defenseMultiplier: `+${percent}% to local defensive Martial Support`,
-    retinueCap: `+${n} Warrior Retinue capacity`,
+    retinueForce: `+${n} Warrior Retinue Force`,
     lossDefense: `+${n} Defense per lost settlement, up to 3 losses`,
     currencyWildcard: 'Consume one hosted Currency Stock to replace one missing required or consumed Stock in a recipe',
     consumeReduction: `${scope} consume ${n} less Record Stock (at least 1 remains required)`,

@@ -1,3 +1,5 @@
+import { getCurrentLifeMapVassal, getVassalEffectiveStats } from '../vassal-life-map/selectors.js';
+import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { emptySpecialists } from "./cohorts.js";
 import { NEUTRAL_MARKETS } from './neutral-market.js';
 import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
@@ -49,8 +51,15 @@ export function getSupportSources(state,regionId,defense=false) {
   return sources;
 }
 export const getMartialSupport = (state,regionId,defense=false) => getSupportSources(state,regionId,defense).reduce((n,s)=>n+s.amount,0);
+export function getCivilizationSupportSources(state) {
+  const contributions = new Map();
+  for (const site of playerSites(state)) for (const source of getSupportSources(state,site.regionId,true)) {
+    contributions.set(source.regionId,(contributions.get(source.regionId) ?? 0) + source.amount);
+  }
+  return Array.from(contributions,([regionId,amount])=>({regionId,amount})).filter(source=>source.amount>0);
+}
 export function recordSupportUsage(state,regionId,kind,defense=false,classId=null) {
-  const sources=getSupportSources(state,regionId,defense).filter(s=>s.amount>0);
+  const sources=getCivilizationSupportSources(state);
   for (const source of sources) {
     emitPracticeEvent(state,{kind:'supportContributed',regionId:source.regionId,actionKind:kind,amount:source.amount,classId});
     const local=siteAt(state,source.regionId)?.detailedState;
@@ -71,19 +80,25 @@ export function evacuatePopulation(state,sourceId,destinationId,maximum) {
 }
 export function getRetinue(state, vassal) {
   const sites = playerSites(state);
-  const population = sites.reduce((n, s) => n + specialistCount(s.detailedState, 'warrior'), 0);
-  let cap = Math.ceil(population / CIV_CONTENT_TUNING.warriorsPerRetinue);
+  const population = sites.reduce((n, site) => n + specialistCount(site.detailedState, 'warrior'), 0);
+  if (vassal?.classId !== 'warrior') return { value: 0, cap: null, population, nextPrestige: null };
+  const held = Math.floor(Math.max(0, vassal.prestige ?? 0) / VASSAL_CLASS_RULES.warrior.prestigePerRetinue);
+  let bonus = 0;
   for (const site of sites) {
-    cap += structureModifiers(state, site.detailedState).reduce((n, m) => n + (m.kind === 'retinueCap' ? m.amount : 0), 0);
-    site.detailedState.practiceSlots.forEach(slot => {
+    bonus += structureModifiers(state, site.detailedState).reduce((n, m) => n + (m.kind === 'retinueForce' ? m.amount : 0), 0);
+    for (const slot of site.detailedState.practiceSlots) {
       const def = getDetailedPracticeDef(state, slot?.practiceId);
-      if (def?.retinueCap && planStock(state, site.detailedState, def.consume, def.require).ok) cap += def.retinueCap;
-    });
+      if (def?.retinueForce && planStock(state, site.detailedState, def.consume, def.require).ok) bonus += def.retinueForce;
+    }
   }
-  if (!population || vassal?.classId !== 'warrior') cap = 0;
-  cap = Math.floor(cap);
-  const value = Math.min(cap, Math.floor((vassal?.prestige ?? 0) / CIV_CONTENT_TUNING.prestigePerRetinue));
-  return { value, cap, population, nextPrestige: value < cap ? (value + 1) * CIV_CONTENT_TUNING.prestigePerRetinue : null };
+  return { value: held + Math.floor(bonus), cap: null, population, nextPrestige: (held + 1) * VASSAL_CLASS_RULES.warrior.prestigePerRetinue };
+}
+
+// Provisional global calculation. Keep the single seam for a localized redesign.
+export function getMartialForce(state, vassal = getCurrentLifeMapVassal(state)) {
+  const support = getCivilizationSupportSources(state).reduce((n, source) => n + source.amount, 0);
+  return support + (vassal?.classId === 'warrior'
+    ? getVassalEffectiveStats(vassal).intelligence + getRetinue(state, vassal).value : 0);
 }
 
 export const NEUTRAL_TEMPLATES = Object.freeze([
@@ -160,13 +175,13 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
     return {ok:true,bonus:stockedTarget?1:0};
   }
   if (def.externalAction === 'hunt') {
-    const id=prepared?.targetId??adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=getMartialSupport(state,site.regionId));
+    const id=prepared?.targetId??adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=getMartialForce(state));
     if (!id) return {ok:false};
     if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length; state.civilization.history.victories++;
       recordSupportUsage(state,site.regionId,'hunt');emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:site.regionId,practiceId:def.id}); }
     return {ok:true,bonus:getRegionState(state,id)?.monster?.defense??prepared?.bonus??0,targetId:id};
   }
-  const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialSupport(state,site.regionId) && s.neutral.stocks.some(p=>p.stock>0));
+  const target=prepared?.targetId?targets.find(s=>s.regionId===prepared.targetId):targets.find(s=>s.neutral.defense<=getMartialForce(state) && s.neutral.stocks.some(p=>p.stock>0));
   if(!target) return {ok:false};
   const provider=target.neutral.stocks.find(p=>p.stock>0);
   const yieldCount=Math.min(2,provider.stock);
@@ -234,7 +249,7 @@ function expandMonster(state, region, targetId) {
       const edibleCost=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===targetId&&stockTraits(state,stockProviderSlot(state,settlement,p)).includes('Edible')).reduce((sum,p)=>sum+p.amount,0);
       return plan.ok && stockTotal(state,settlement,'Edible')>=edibleCost+1 ? [{plan}] : [];
     })[0];
-    if(response && getMartialSupport(state,targetId,true)>=region.monster.defense) {
+    if(response && getMartialForce(state)>=region.monster.defense) {
       withPracticeRoot(state,{kind:'defense',regionId:targetId},()=>{
         recordSupportUsage(state,targetId,'defense',true);
         applyStockPlan(state,settlement,response.plan);

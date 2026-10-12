@@ -1,7 +1,10 @@
+import { ensureCommissionOffers } from './commissions.js';
+import { getVassalRiskDeathChance } from './class-rules.js';
+import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
 import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, structureModifiers } from '../detailed-settlements/stock.js';
-import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement, recordSupportUsage, evacuatePopulation } from '../detailed-settlements/external-world.js';
+import { getMartialForce, adjacentRegionIds, conquerSettlement, recordSupportUsage, evacuatePopulation } from '../detailed-settlements/external-world.js';
 import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
 import { planStock, applyStockPlan } from '../detailed-settlements/stock.js';
 import { getConnectedRegionIds } from '../world-state.js';
@@ -15,17 +18,13 @@ export function classActionOptions(state, vassal, family) {
   const settlement=getDetailedSettlement(state,vassal.locationRegionId);
   if (VASSAL_FOUNDING_OPTIONS[family]) return [structuredClone(VASSAL_FOUNDING_OPTIONS[family])];
   if(family==='training') return [{id:'train-estate',label:`Train ${vassal.classId==='scholar'?'Scholars':'Warriors'}`,description:`Convert up to ${vassal.classId==='scholar'?2:10} existing adults into ${vassal.classId==='scholar'?'Scholars':'Warriors'}.`,phaseCost:6,prestigeCost:0,classAction:{kind:'train'}}];
-  if(family==='commission') return [
-    {id:'commission-practice',label:'Commission: install a new Practice for 20 Prestige',phaseCost:0,classAction:{kind:'commission',objective:'practice'}},
-    {id:'commission-structure',label:'Commission: build a Structure for 20 Prestige',phaseCost:0,classAction:{kind:'commission',objective:'structure'}},
-  ];
   if(family==='discovery') return [
     {id:'discovery-research',label:'Discovery: develop technique (+25 Research)',phaseCost:6,classAction:{kind:'discovery',research:25}},
     {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher, 10% Danger)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
   ];
-  if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}: Prowess ${getVassalEffectiveStats(vassal).intelligence??0}; ${Math.max(0,difficulty-(getVassalEffectiveStats(vassal).intelligence??0))*5}% Danger`,phaseCost:Math.max(2,difficulty*2-(getVassalEffectiveStats(vassal).intelligence??0)),prestigeDelta:difficulty*3,baseDanger:difficulty*.05,immediateDeathChance:Math.min(.6,Math.max(0,difficulty-(getVassalEffectiveStats(vassal).intelligence??0))*.05),classAction:{kind:'challenge',difficulty}}));
+  if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}: ${Math.round(getVassalRiskDeathChance(vassal,difficulty*.05)*100)}% RISK`,phaseCost:difficulty*2,prestigeDelta:difficulty*3,immediateDeathChance:difficulty*.05,classAction:{kind:'challenge',difficulty}}));
   if(family==='campaign') {
-    const force=(getVassalEffectiveStats(vassal).intelligence??0)+getRetinue(state,vassal).value+getMartialSupport(state,vassal.locationRegionId);
+    const force=getMartialForce(state, vassal);
     const options=adjacentRegionIds(state,vassal.locationRegionId).flatMap(id=>{
       const site=state.world.sites.find(s=>s.regionId===id), region=getRegionState(state,id);
       const difficulty=site?.neutral?.defense??region?.monster?.defense;
@@ -110,14 +109,14 @@ function applyClassActionRecipe(state,vassal,action) {
       });
     }
   }
-  if(action.kind==='commission') vassal.commission={objective:action.objective,initialIds:(action.objective==='practice'?settlement.practiceSlots:settlement.structureSlots).filter(Boolean).map(p=>p.practiceId??p.placementId),regionId:vassal.locationRegionId};
+  ensureCommissionOffers(state, vassal);
   if(action.kind==='discovery') {
-    state.civilization.research.total+=action.research+Math.max(0,getVassalEffectiveStats(vassal).cunning??0);
+    state.civilization.research.total+=action.research+VASSAL_CLASS_RULES.scholar.discoveryResearchPerPoint*Math.max(0,getVassalEffectiveStats(vassal).cunning??0);
     if(action.frontier) vassal.discoveryAccess=true;
   }
   if(action.kind==='campaign') {
     const origin=vassal.locationRegionId;
-    const force=(getVassalEffectiveStats(vassal).intelligence??0)+getRetinue(state,vassal).value+getMartialSupport(state,vassal.locationRegionId);
+    const force=getMartialForce(state, vassal);
     recordSupportUsage(state,origin,'campaign',false,vassal.classId);
     consumeStock(state,settlement,'Edible',1);
     const target=state.world.sites.find(s=>s.regionId===action.targetId);
@@ -153,11 +152,4 @@ function applyClassActionRecipe(state,vassal,action) {
       if (plan.ok) {applyStockPlan(state,source,plan);evacuatePopulation(state,action.targetId,action.destinationId,action.maximum);}
     }
   }
-}
-export function completeCommission(state,vassal) {
-  const c=vassal.commission;
-  if(!c) return;
-  const settlement=getDetailedSettlement(state,c.regionId);
-  const ids=(c.objective==='practice'?settlement?.practiceSlots:settlement?.structureSlots)?.filter(Boolean).map(p=>p.practiceId??p.placementId)??[];
-  if(ids.some(id=>!c.initialIds.includes(id))) {vassal.prestige+=20;vassal.completedCommissions=(vassal.completedCommissions??0)+1;delete vassal.commission;}
 }

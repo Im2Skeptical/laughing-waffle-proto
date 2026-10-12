@@ -8,7 +8,7 @@ import {
 
 const TRANSACTIONS = new Set([
   ActionKinds.VASSAL_ENTER_LIFE_NODE, ActionKinds.VASSAL_REROLL_SHOP,
-  ActionKinds.VASSAL_CONFIRM_LIFE_NODE, ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT,
+  ActionKinds.VASSAL_CONFIRM_LIFE_NODE, ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, ActionKinds.VASSAL_CHOOSE_COMMISSION,
 ]);
 const workerUrl = typeof __LIFE_DECISION_WORKER_URL__ !== 'undefined'
   ? __LIFE_DECISION_WORKER_URL__ : './life-decision-worker.js';

@@ -100,10 +100,10 @@ const EXPLANATIONS = {
   wisdom:['Wisdom','Each completed node grants 2 base EXP plus Wisdom. This stat is retained by both Warriors and Scholars.'],
   effectiveness:['Effectiveness','Each point discounts phase costs by 8%, capped at 60%. Costs round up. This stat is retained by both Warriors and Scholars.'],
   intelligence:['Intelligence','Each point discounts Prestige costs by 8%, capped at 60%. Costs round up. Warriors replace this stat with Prowess and lose this discount.'],
-  ingenuity:['Ingenuity','Each point adds a 5% chance to raise offered shop quality by one tier, capped at 75%. The price stays the same. Each point also adds 1 Research to Discovery rewards.'],
+  ingenuity:['Ingenuity','Each point adds 5% shop-quality chance. Above 100%, surplus chance rolls for another tier: 125% gives one guaranteed tier and a 25% chance of a second. Quality stops at Diamond; prices stay the same. Each point adds 1 Research on DISCOVERY.'],
   prowess:['Prowess','Each point grants +1 Martial Force and 15% increased RISK success chance. Prowess replaces Intelligence and its Prestige-cost discount.'],
-  commission:['Commissions','Keep a Commission underway. Earn Prestige when you complete it, then choose your next Commission.'],
-  reroll:['Delve','Spend 10 years to reroll the current shop offers.'],
+  commission:['Commissions','Keep a Commission underway and choose the next from three on completion. Complete it through nodes: install a Practice (20 Prestige), finish a commissioned Structure (40), or acquire a Relic (60).'],
+  reroll:['Delve','Spend 10 base years, discounted by Effectiveness, to reroll shop offers. Delve costs no Prestige and is repeatable before staged purchases. Time and mortality resolve before the offers refresh.'],
   retinue:['Personal Retinue','Gain +1 Martial Force for every 10 Prestige currently held. Spending or gaining Prestige changes the size of your Personal Retinue.'],
   risk:['Risk reward','Each successful RISK earns +15 Prestige.'],
 };

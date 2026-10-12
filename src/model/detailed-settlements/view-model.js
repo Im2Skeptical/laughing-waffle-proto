@@ -1,4 +1,4 @@
-import { getMartialSupport, getMonsterPressureRate } from './external-world.js';
+import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
 // Read models that combine queries with worker assignment.
@@ -164,6 +164,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
     marketStocks: clone(site.neutral?.stocks ?? []),
     marketCurrency: site.neutral?.currencyStock ?? 0,
     lastDefense: clone(settlement.lastDefense ?? null),
+    martialForce: getMartialForce(state),
     martialSupport: getMartialSupport(state,regionId),
     defensiveSupport: getMartialSupport(state,regionId,true),
     storedFood: stockTotal(state, settlement, "Edible"),

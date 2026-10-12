@@ -15,7 +15,7 @@ export async function prepareLifeChoices(stateData, yieldTask = async () => {}) 
   const base = deserializeGameState(stateData);
   const vassal = getCurrentLifeMapVassal(base);
   const nodes = {};
-  if (!vassal || vassal.developmentChoiceQueue?.length || base.runStatus?.complete) return nodes;
+  if (!vassal || vassal.developmentChoiceQueue?.length || vassal.commissionOffers?.length || base.runStatus?.complete) return nodes;
   const ids = vassal.lifeMap.currentNodeId ? [vassal.lifeMap.currentNodeId] : vassal.lifeMap.availableNodeIds ?? [];
   for (const nodeId of ids) {
     await yieldTask();
@@ -27,7 +27,7 @@ export async function prepareLifeChoices(stateData, yieldTask = async () => {}) 
       entryPresentation: actions.length ? getVassalNodeDecisionPresentation(base, nodeId) : null};
     const reroll = {kind: ActionKinds.VASSAL_REROLL_SHOP, payload: {nodeId}};
     const rerolled = deserializeGameState(entered);
-    if (applyAction(rerolled, reroll, {isReplay:true}).ok) {
+    if (vassal.classId !== 'scholar' && applyAction(rerolled, reroll, {isReplay:true}).ok) {
       item.reroll = {actions:[reroll], stateData:serializeGameState(rerolled), presentation:getVassalNodeDecisionPresentation(rerolled,nodeId)};
     }
     nodes[nodeId] = item;

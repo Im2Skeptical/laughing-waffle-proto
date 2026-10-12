@@ -25,7 +25,7 @@ try {
   await click('getNavigationClickPoint','present');
   await click('getNavigationClickPoint','vassal');
   assert.deepEqual(await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().worldMap.vassalPreparation.chooser.portraitStages),
-    ['youth','youth','youth'], 'drawer uses the youngest portrait variants');
+    ['youth','youth'], 'founder rail uses youth portraits');
   await click('getVassalCandidateClickPoint',0);
   await click('getNavigationClickPoint','vassal');
   const node = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
@@ -248,6 +248,12 @@ try {
     }
     await click('getLifeMapRecapDismissClickPoint');
     earnedLevel = completed.level;
+    const commissions=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getCommissionSnapshot());
+    if(commissions.open && !earnedLevel) {
+      const index=commissions.offers.findIndex(o=>o.id==='relic');
+      await click('getCommissionChoiceClickPoint',index);
+      await page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getSnapshot().worldMap.lifeDecisionProcessing);
+    }
     if (earnedLevel) break;
     const next = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lineage.currentVassal.availableNodeIds[0]);
     const beforeEntry = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision);

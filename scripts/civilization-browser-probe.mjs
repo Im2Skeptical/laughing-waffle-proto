@@ -12,7 +12,7 @@ try {
  for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
  browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
  for(const candidateIndex of [0,1]) {
-  page=await browser.newPage({viewport:{width:1280,height:800}});
+  page=await browser.newPage({viewport:{width:844,height:390},hasTouch:true});
   page.on('pageerror',e=>errors.push(e.message));
   const snapshot=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot());
   const click=async(method,arg)=>{
@@ -39,8 +39,20 @@ try {
   assert.equal(candidates[candidateIndex].classId,null);
   assert.equal(candidates[candidateIndex].founderClassId,candidateIndex?'warrior':'scholar');
   assert.equal(candidates[candidateIndex].archetype,candidateIndex?'Warlord':'Philosopher');
+  assert.equal(candidates.length,2,'two available founders');
   await click('getVassalCandidateClickPoint',candidateIndex);
-  await click('getNavigationClickPoint','vassal');
+  const dossier=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot());
+  assert.equal(dossier.classId,candidateIndex?'warrior':'scholar');
+  assert.equal(dossier.replacedStat,candidateIndex?'Intelligence':'Cunning');
+  await click('getFounderControlClickPoint',dossier.classStat);
+  assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot())).tooltip,dossier.classStat);
+  await page.screenshot({path:`artifacts/civilization-${candidateIndex}-dossier-tooltip.png`});
+  await click('getFounderControlClickPoint','closeTooltip');
+  await click('getFounderControlClickPoint','next');
+  assert.notEqual((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot())).classId,dossier.classId);
+  await click('getFounderControlClickPoint','previous');
+  await page.screenshot({path:`artifacts/civilization-${candidateIndex}-dossier.png`});
+  await click('getFounderControlClickPoint','begin');
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getLastVassalSelectionResult())).ok,true);
   const selectedVassal=await snapshot();
   const first=selectedVassal.lineage.currentVassal.availableNodeIds[0];
@@ -48,6 +60,7 @@ try {
   await click('getLifeMapEnterNodeClickPoint');
   await click('getLifeMapEnterNodeClickPoint');
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.animation?.phase==='open');
+  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)!=null);
   await click('getLifeMapOptionClickPoint',0);
   assert.equal((await snapshot()).lifeMapDecision.selectedOptionId,'train-estate');
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-founding.png`});
@@ -56,7 +69,17 @@ try {
   const resolved=await snapshot();
   assert.ok(resolved.frontierSec>=1,'founding resolves through authoritative time');
   assert.ok(resolved.worldMap.selectedRegion.detailedSettlement.specialists[candidateIndex?'warrior':'scholar']>= (candidateIndex?10:2));
-  if(candidateIndex) assert.ok(resolved.lifeMapHud.retinue.cap>=1,'Warrior population supports a Retinue cap');
+  if(candidateIndex) assert.equal(resolved.lifeMapHud.retinue.cap,null,'Retinue is uncapped');
+  else {
+    const commission=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getCommissionSnapshot());
+    assert.equal(commission.offers.length,3,'first continuous Commission offers');
+    const dismiss=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getLifeMapRecapDismissClickPoint());
+    if(dismiss) await click('getLifeMapRecapDismissClickPoint');
+    await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getCommissionSnapshot().open);
+    await page.screenshot({path:'artifacts/civilization-scholar-commissions.png'});
+    await click('getCommissionChoiceClickPoint',0);
+    await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getCommissionSnapshot().offers.length===0);
+  }
   checks.push(`${candidateIndex?'Warrior':'Scholar'}: real New Game, four neutrals, five-slot panel, candidate, founding confirmation and time resolution`);
   await page.close();page=null;
  }

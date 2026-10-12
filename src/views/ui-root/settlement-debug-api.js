@@ -121,6 +121,10 @@ export function publishSettlementDebugApi({
   getLifeMapHudSnapshot,
   getLifeMapRecapSnapshot,
   getLifeDecisionStatus,
+  getFounderSnapshot,
+  getFounderControlClickPoint,
+  getCommissionSnapshot,
+  getCommissionChoiceClickPoint,
   isLifeProcessingVisible,
   getForecastWorkerDiagnostics,
   getRunCompleteSnapshot,
@@ -174,6 +178,7 @@ export function publishSettlementDebugApi({
 } = {}) {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
+    getFounderSnapshot, getFounderControlClickPoint, getCommissionSnapshot, getCommissionChoiceClickPoint,
     getLifeDecisionTimingSnapshot: () => {
       const lineage = summarizeLineage(getFrontierState?.());
       const recap = getLifeMapRecapSnapshot?.()?.recap;

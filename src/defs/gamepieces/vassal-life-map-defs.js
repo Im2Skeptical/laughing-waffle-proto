@@ -14,7 +14,6 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   philosopherFounding: Object.freeze({ id: "philosopherFounding", label: "Philosopher Founding", glyph: "P", color: 0xa46fc4, description: "A Philosopher establishes the Scholars." }),
   warlordFounding: Object.freeze({ id: "warlordFounding", label: "Warlord Founding", glyph: "W", color: 0xca5b5b, description: "A Warlord establishes the Warriors through training." }),
   training: Object.freeze({ id: "training", label: "Training", glyph: "T", color: 0xa46fc4, description: "Grow an established specialist class." }),
-  commission: Object.freeze({ id: "commission", label: "Commission", glyph: "C", color: 0xa46fc4, description: "Accept an objective for Prestige." }),
   discovery: Object.freeze({ id: "discovery", label: "Discovery", glyph: "D", color: 0xa46fc4, description: "Develop technological access through Ingenuity." }),
   campaign: Object.freeze({ id: "campaign", label: "Campaign", glyph: "C", color: 0xa46fc4, description: "Lead organized conflict." }),
   challenge: Object.freeze({ id: "challenge", label: "Challenge", glyph: "C", color: 0xa46fc4, description: "Take a personal martial risk." }),
@@ -104,7 +103,7 @@ export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "crisis", "relic", "training", "commission", "discovery", "campaign", "challenge",
+  "publicWorks", "routes", "crisis", "relic", "training", "discovery", "campaign", "challenge",
   "neutralMarket", "classMarket",
   "foodShop", "housingShop",
 ]);

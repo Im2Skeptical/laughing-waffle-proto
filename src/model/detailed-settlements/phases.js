@@ -27,7 +27,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 32;
+  state.gameStateSchemaVersion = 33;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [

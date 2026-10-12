@@ -1,3 +1,5 @@
+import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
+import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
 import { getDetailedSettlement } from '../detailed-settlements/queries.js';
 import { findStructurePlacement, projectStructureDraft } from "../structure-layout.js";
@@ -94,10 +96,10 @@ export function prepareStructurePlacement(state, vassal, nodeState, offer, origi
 function makeStructureOffer(state, vassal, nodeState, roll, structureId, index, category = 'structure') {
   const def = getDetailedStructureDef(state, structureId);
   const tier = def.minimumQuality ?? 'bronze';
-  const qualityBonus = vassal.classId==='scholar' && tier!=='diamond' && state.rngNextVassalFloat()<Math.min(.75,(getVassalEffectiveStats(vassal).cunning??0)*.05) ? 1 : 0;
+  const qualityBonus = rollScholarQualityBonus(state, vassal, 3 - QUALITY_IDS.indexOf(tier));
   return {
     offerId: nodeState.nodeId + ':r' + roll + ':' + category + ':' + index,
-    label: 'Build ' + qualityLabel(qualityBonus ? getNextDetailedPracticeTier(tier) : tier) + ' ' + def.label,
+    label: 'Build ' + qualityLabel(QUALITY_IDS[Math.min(3, QUALITY_IDS.indexOf(tier) + qualityBonus)]) + ' ' + def.label,
     basePrestigeCost: Math.max(0, def.vassalPrestigeCost ?? 0),
     basePhaseCost: Math.max(0, def.vassalPhaseCost ?? 0),
     baseCurrencyCost: Math.max(0, def.localCurrencyCost ?? 0),
@@ -155,10 +157,10 @@ function buildCardOffers(state, vassal, nodeState, roll, { kind = null, required
     const installed = reservation.practiceSlots.find(slot => slot?.practiceId === practiceId);
     const tier = installed?.tier ?? "bronze";
     const naturalTier = rollOfferQuality(state, vassal.locationRegionId);
-    const offeredTier = vassal.classId === "scholar" && state.rngNextVassalFloat()
-      < Math.min(.75, (getVassalEffectiveStats(vassal).cunning ?? 0) * .05)
-      ? (getNextDetailedPracticeTier(naturalTier) ?? naturalTier) : naturalTier;
-    const resultingTier = installed ? getNextDetailedPracticeTier(tier) : offeredTier;
+    const baseTier = installed ? getNextDetailedPracticeTier(tier) : naturalTier;
+    const baseIndex = QUALITY_IDS.indexOf(baseTier);
+    const qualityBonus = rollScholarQualityBonus(state, vassal, 3 - baseIndex);
+    const resultingTier = QUALITY_IDS[baseIndex + qualityBonus];
     return {
       offerId: `${nodeState.nodeId}:r${roll}:${category}:${index}`,
       label: installed ? `Upgrade ${def.label} ${qualityLabel(tier)} → ${qualityLabel(resultingTier)}`
@@ -465,9 +467,16 @@ export function rerollVassalShop(state, nodeId) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
-  if (nodeState.rerollUsed) return { ok: false, reason: "rerollUsed" };
+  if (nodeState.rerollUsed && vassal.classId !== 'scholar') return { ok: false, reason: "rerollUsed" };
   if ((nodeState.purchasedOffers ?? []).length > 0) {
     return { ok: false, reason: "stagedPurchases" };
+  }
+  if (vassal.classId === 'scholar') {
+    const phaseCost = getVassalDelvePhaseCost(state, vassal, nodeState);
+    markHeirloomTimeAction(nodeState, phaseCost);
+    nodeState.resolving = true;
+    vassal.lifeMap.pendingResolution = {kind:'shopDelve',nodeId,startSec:state.tSec,resolveSec:state.tSec + phaseCost * getMoonPhaseDurationSec(state),phaseCost};
+    return {ok:true,prestigeCost:0,phaseCost,pendingResolution:clone(vassal.lifeMap.pendingResolution)};
   }
   const prestigeCost = getVassalShopRerollCost(vassal);
   const phaseCost = getVassalActionPhaseCost(

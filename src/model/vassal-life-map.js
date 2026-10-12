@@ -39,6 +39,8 @@ export {
   rerollVassalShop,
 } from "./vassal-life-map/shop.js";
 
+export { chooseVassalCommission } from './vassal-life-map/commissions.js';
+
 export {
   initializeVassalLifeMapCivilization,
   rerollVassalCandidates,

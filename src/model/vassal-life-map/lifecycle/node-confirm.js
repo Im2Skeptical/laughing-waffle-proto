@@ -1,7 +1,10 @@
+import { getVassalRiskDeathChance } from '../class-rules.js';
+import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
+import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
 import { getGameSetting } from '../../game-config.js';
 import { addMonsterPressure } from '../../detailed-settlements/external-world.js';
 import { addActionChaos } from '../../detailed-settlements/practice-events.js';
-import { classActionOptions, validateClassAction, applyClassAction, completeCommission } from "../class-actions.js";
+import { classActionOptions, validateClassAction, applyClassAction } from "../class-actions.js";
 import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
 import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
 import { removePopulationComposition } from "../../detailed-settlements/phases/migration.js";
@@ -302,6 +305,7 @@ function createNodeState(state, vassal, node) {
 export function enterVassalLifeNode(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
   if (!vassal) return { ok: false, reason: "noCurrentVassal" };
+  if (vassal.commissionOffers?.length) return { ok: false, reason: 'commissionRequired' };
   if (hasPendingHeirloomLoadout(state)) return { ok: false, reason: "heirloomLoadoutRequired" };
   if ((vassal.developmentChoiceQueue ?? []).length > 0) {
     return { ok: false, reason: "developmentChoiceRequired" };
@@ -501,8 +505,9 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   const monsterEffects = (option?.effects ?? []).filter(effect => effect.op === 'addMonsterPressure');
   const effectsResult = applyVassalNodeEffects(state, (option?.effects ?? []).filter(effect => effect.op !== 'addMonsterPressure'));
   if (!effectsResult.ok) return effectsResult;
-  if (Number.isFinite(option?.immediateDeathChance) && option.immediateDeathChance > 0
-      && state.rngNextVassalFloat() < option.immediateDeathChance) {
+  const isRisk = Math.max(option?.baseDanger ?? 0, option?.immediateDeathChance ?? 0) > 0;
+  const riskFailed = isRisk && state.rngNextVassalFloat() < getVassalRiskDeathChance(vassal, option.immediateDeathChance);
+  if (riskFailed) {
     const cause = nodeState.family === "relic" ? "relic" : "crisis";
     if (spendMandateProtection(vassal)) {
       nodeState.mandatePreventedDeath = true;
@@ -519,14 +524,14 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     }
   }
   withPracticeRoot(state,{kind:'vassalAction',regionId:vassal.locationRegionId,classId:vassal.classId},()=>{
-    if ((option?.immediateDeathChance??0)>0) emitPracticeEvent(state,{kind:'dangerSurvived',regionId:vassal.locationRegionId,classId:vassal.classId,
+    if (isRisk && !riskFailed) emitPracticeEvent(state,{kind:'dangerSurvived',regionId:vassal.locationRegionId,classId:vassal.classId,
       martial:['campaign','challenge'].includes(option?.classAction?.kind)});
     if (!option?.classAction?.onCompletion) applyClassAction(state, vassal, option?.classAction);
     applyVassalNodeEffects(state, monsterEffects);
   });
   flushPracticeEvents(state);
   if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;
-  if (vassal.classId === "warrior" && (option?.baseDanger??option?.immediateDeathChance) > 0) vassal.prestige += Math.ceil((option.baseDanger??option.immediateDeathChance) * 50);
+  if (vassal.classId === 'warrior' && isRisk && !riskFailed) vassal.prestige += VASSAL_CLASS_RULES.warrior.riskPrestige;
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
     nodeState,
     isTravel: nodeState.family === "travel",
@@ -556,10 +561,11 @@ function enqueueVassalDevelopmentChoices(state, vassal, count) {
 }
 
 export function completeNodeResolution(state, vassal, nodeState) {
-  const option = nodeState.options.find(entry => entry.id === nodeState.selectedOptionId);
+  const delve = vassal.lifeMap.pendingResolution?.kind === 'shopDelve';
+  const option = delve ? null : nodeState.options.find(entry => entry.id === nodeState.selectedOptionId);
   if (option?.classAction?.onCompletion) applyClassAction(state, vassal, option.classAction);
-  completeCommission(state, vassal);
-  const gains = getVassalNodeResolutionGains(vassal, nodeState.family);
+  ensureCommissionOffers(state, vassal);
+  const gains = delve ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
   vassal.prestige += gains.prestige;
   vassal.developmentProgress += gains.development;
   let earnedDevelopmentChoices = 0;
@@ -575,7 +581,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   nodeState.resolved = true;
   nodeState.resolvedSec = Math.max(0, Math.floor(state.tSec ?? 0));
   vassal.lifeMap.pendingResolution = null;
-  if (!vassal.lifeMap.completedNodeIds.includes(nodeState.nodeId)) {
+  if (!delve && !vassal.lifeMap.completedNodeIds.includes(nodeState.nodeId)) {
     vassal.lifeMap.completedNodeIds.push(nodeState.nodeId);
   }
   if (mortalityRoll < mortalityChance) {
@@ -600,6 +606,13 @@ export function completeNodeResolution(state, vassal, nodeState) {
   addLifeEvent(state, vassal, "nodeResolved", {
     nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
   });
+  if (delve) {
+    nodeState.resolved = false;
+    nodeState.inventoryRoll += 1;
+    nodeState.inventory = generateShopInventory(state, vassal, nodeState);
+    addLifeEvent(state, vassal, 'shopDelved', {nodeId:nodeState.nodeId,age});
+    return {ok:true,ended:false,delved:true};
+  }
   const node = getVassalLifeMapNode(vassal, nodeState.nodeId);
   vassal.lifeMap.currentNodeId = null;
   if (getVassalLifeMapOutgoingNodeIds(vassal, node?.id).length === 0) {
@@ -668,6 +681,9 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     settlement.structureSlots = validation.reservation.structureSlots;
   }
   for (const purchase of [...nodeState.purchasedOffers].reverse()) {
+    const change = purchase.intervention;
+    if (change.kind === 'practice' && change.mode === 'learn') recordCommissionAction(state, vassal, {kind:'practiceInstalled'});
+    if (change.kind === 'structure' && purchase.placement) recordCommissionAction(state, vassal, {kind:'structureStarted',regionId:vassal.locationRegionId,placementId:purchase.placement.placementId});
     if (purchase.intervention.kind === 'connection') {
       const result = applyIntervention(state, purchase.intervention);
       if (!result.ok) return result;
@@ -693,6 +709,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   if (nodeState.family === "relic" && option?.definitionId && acquire.destination !== "decline") {
     const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
     if (!acquired.ok) return acquired;
+    recordCommissionAction(state, vassal, {kind:'relicAcquired'});
   }
   if (relicPhaseCost != null) optionResult = { ...optionResult, phaseCost: relicPhaseCost };
   nodeState.accumulatedPhaseCost += optionResult.phaseCost;

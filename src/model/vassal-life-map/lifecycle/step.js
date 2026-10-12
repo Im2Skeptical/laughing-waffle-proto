@@ -23,11 +23,13 @@ import {
   isValidPortraitDescriptor,
   isValidSignatureDescriptor,
 } from "./candidates.js";
+import { stepVassalCommission, validateVassalCommissions } from '../commissions.js';
 import { completeNodeResolution } from "./node-confirm.js";
 import { hasPendingHeirloomLoadout, validateHeirloomState } from "../heirlooms.js";
 
 export function stepVassalLifeMapSecond(state, tSec) {
   const vassal = getCurrentLifeMapVassal(state);
+  stepVassalCommission(state, vassal);
   const pending = vassal?.lifeMap?.pendingResolution;
   if (!vassal || !pending || Math.floor(tSec ?? 0) < Math.floor(pending.resolveSec ?? 0)) {
     return { ok: true, resolved: false };
@@ -52,6 +54,7 @@ export function getVassalNodeDisplayState(state, nodeId) {
     nodeState,
     available: !!vassal?.lifeMap?.availableNodeIds?.includes(nodeId)
       && (vassal.developmentChoiceQueue ?? []).length === 0
+      && !vassal.commissionOffers?.length
       && !hasPendingHeirloomLoadout(state),
     current: vassal?.lifeMap?.currentNodeId === nodeId,
     completed: !!vassal?.lifeMap?.completedNodeIds?.includes(nodeId),
@@ -108,6 +111,7 @@ export function validateVassalLifeMapState(state) {
     errors.push("vassalLineage.currentVassalId: expected an existing Vassal id");
   }
   for (const [vassalId, vassal] of Object.entries(lineage.vassalsById ?? {})) {
+    errors.push(...validateVassalCommissions(vassal).map(error => `${vassalId}: ${error}`));
     if (vassal?.vassalId !== vassalId) errors.push(`${vassalId}: mismatched vassalId`);
     if (!Number.isFinite(vassal?.prestige) || !Number.isFinite(vassal?.initialAge)
         || !Number.isFinite(vassal?.selectedSec)) {
@@ -135,6 +139,16 @@ export function validateVassalLifeMapState(state) {
       }
     }
     const graphValidation = validateVassalLifeMapGraph(vassal?.lifeMap?.graph);
+    const pending = vassal?.lifeMap?.pendingResolution;
+    if (pending && (!['nodeResolution','shopDelve'].includes(pending.kind)
+        || !Number.isFinite(pending.startSec) || !Number.isFinite(pending.resolveSec)
+        || pending.resolveSec < pending.startSec || !Number.isInteger(pending.phaseCost)
+        || pending.phaseCost < 0 || vassal.lifeMap.currentNodeId !== pending.nodeId
+        || !vassal.lifeMap.nodeStates?.[pending.nodeId]?.resolving
+        || (pending.kind === 'shopDelve' && (vassal.classId !== 'scholar'
+          || !isShopNodeState(vassal.lifeMap.nodeStates?.[pending.nodeId]))))) {
+      errors.push(`${vassalId}.lifeMap.pendingResolution: invalid timed action`);
+    }
     if (!graphValidation.ok
         || !Array.isArray(vassal?.lifeMap?.completedNodeIds)
         || !Array.isArray(vassal?.lifeMap?.availableNodeIds)

@@ -1,3 +1,4 @@
+import { getVassalRiskDeathChance } from './class-rules.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
 import { evaluateDetailedPracticeSlot, assignDetailedSettlementWorkers } from "../detailed-settlements/practices.js";
 import { getGamepieceFace } from "../gamepiece-presentation.js";
@@ -296,7 +297,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     state, vassal, Math.floor(state.tSec ?? 0) + totalPhaseCost * getMoonPhaseDurationSec(state)
   );
   const immediateDeathChance = Math.max(0, Math.min(1,
-    Number(selectedOption?.immediateDeathChance) || 0
+    getVassalRiskDeathChance(vassal, selectedOption?.immediateDeathChance)
   ));
   const naturalDeathChance = getVassalMortalityChance(projectedAge);
   const previewRegionId = selectedOption?.locationRegionId ?? vassal.locationRegionId;
@@ -367,7 +368,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   };
   const displacedPractices = projected?.practices?.displaced ?? [];
   return {
-    node, nodeState,
+    node, nodeState: nodeState ? {...clone(nodeState), options:(nodeState.options ?? []).map(option => {
+      const risk = getVassalRiskDeathChance(vassal, option.immediateDeathChance);
+      return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk,
+        label:(option.label ?? '').replace(/\d+(?:\.\d+)?% Danger/g, `${Math.round(risk*100)}% RISK`)} : {})};
+    })} : null,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
       [option.id, getSettlementRequirements(state, vassal, option)])),
     currentPrestige: vassal.prestige,

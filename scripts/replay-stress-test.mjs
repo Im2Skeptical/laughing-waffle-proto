@@ -314,6 +314,12 @@ function pickOption(seed, options) {
 
 function laterDecision(session) {
   const vassal = getCurrentLifeMapVassal(session.state);
+  if (vassal?.commissionOffers?.length) {
+    const offer=vassal.commissionOffers[Math.abs(session.seed) % vassal.commissionOffers.length];
+    const chosen=commit(session,ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:offer.offerId});
+    if(!chosen?.ok) {fail(session,'commission-choice',{reason:chosen?.reason});return null;}
+    snap(session,'at-commission-choice');
+  }
   const available = vassal?.lifeMap?.availableNodeIds ?? [];
   if (!available.length) {
     fail(session, "later-node", { reason: session.terminal?.reason ?? "noAvailableNode" });

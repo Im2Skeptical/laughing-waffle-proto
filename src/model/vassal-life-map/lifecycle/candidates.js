@@ -1,3 +1,4 @@
+import { ensureCommissionOffers } from '../commissions.js';
 import { specialistCount, structureModifiers } from "../../detailed-settlements/stock.js";
 import { emitPracticeEvent } from '../../detailed-settlements/practice-events.js';
 // Vassal candidate portraits, signatures, pool generation, and selection.
@@ -85,7 +86,7 @@ export function generateCandidatePool(state) {
   ));
   const isFounderPool = lineage.selectedVassalIds.length === 0;
   const candidates = locations.length === 0 ? [] : Array.from(
-    { length: VASSAL_LIFE_TUNING.candidateCount },
+    { length: isFounderPool ? 2 : VASSAL_LIFE_TUNING.candidateCount },
     (_, index) => {
       const locationRegionId = locations[state.rngNextVassalInt(0, locations.length - 1)];
       const local = getDetailedSite(state, locationRegionId)?.detailedState;
@@ -235,7 +236,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   const ordinary = record.lifeMap.graph.nodes.filter(n => !n.signatureNode && !["legacy", "signature"].includes(n.family));
   const lifeClassId = record.founderClassId ?? record.classId;
   // Custom generator weights must not grant another class's actions.
-  const classFamilies = { training: null, commission: 'scholar', discovery: 'scholar', campaign: 'warrior', challenge: 'warrior' };
+  const classFamilies = { training: null, discovery: 'scholar', campaign: 'warrior', challenge: 'warrior' };
   for (const node of ordinary) {
     if (node.family === "classMarket" && !lifeClassId) node.family = "neutralMarket";
     if (Object.hasOwn(classFamilies, node.family)
@@ -246,7 +247,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   if (record.classId && ordinary[0]) ordinary[0].family = "training";
   let classIndex = 0;
   for (const node of ordinary.slice(1)) if (lifeClassId && classIndex < 2 && ["patronage", "development"].includes(node.family)) {
-    node.family = lifeClassId === "scholar" ? ["commission", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
+    node.family = lifeClassId === "scholar" ? ["discovery", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
   }
   if (record.founderClassId) {
     const graph = record.lifeMap.graph;
@@ -265,6 +266,7 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     record.lifeMap.availableNodeIds = [foundingNodeId];
     lineage.founderClassId = record.founderClassId;
   }
+  ensureCommissionOffers(state, record);
   delete record.age;
   lineage.nextVassalId = idNumber + 1;
   lineage.currentVassalId = vassalId;

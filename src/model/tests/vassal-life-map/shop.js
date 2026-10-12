@@ -72,6 +72,12 @@ for (const classId of [null, "scholar", "warrior"]) {
       const restored = deserializeGameState(serializeGameState(state));
       act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
       dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+      if (classId === 'scholar') {
+        const end = vassal.lifeMap.pendingResolution.resolveSec;
+        initializeReplayClock(state, state.tSec);initializeReplayClock(restored, restored.tSec);
+        assert.equal(advanceReplayStateToSecond(state, end).ok, true);
+        assert.equal(advanceReplayStateToSecond(restored, end).ok, true);
+      }
       checkInventory();
       assert.deepEqual(serializeGameState(restored), serializeGameState(state),
         "ordinary tagged shops reroll identically after reload");
@@ -134,6 +140,12 @@ for (const classId of [null, "scholar", "warrior"]) {
         const restored = deserializeGameState(serializeGameState(state));
         act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
         dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+        if (classId === 'scholar') {
+          const end = vassal.lifeMap.pendingResolution.resolveSec;
+          initializeReplayClock(state,state.tSec);initializeReplayClock(restored,restored.tSec);
+          assert.equal(advanceReplayStateToSecond(state,end).ok,true);
+          assert.equal(advanceReplayStateToSecond(restored,end).ok,true);
+        }
         checkInventory();
         assert.deepEqual(serializeGameState(restored), serializeGameState(state),
           "saved shops reroll identically after reload");

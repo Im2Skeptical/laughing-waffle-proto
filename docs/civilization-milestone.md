@@ -95,7 +95,7 @@ first-pass system notes below retain their original tuning context.
   aging and mortality. Scholar sockets take priority over ordinary worker bands and
   add the Knowledge Card Tag without changing Stock Traits.
 - Scholar founding, institutional and retirement candidate bonuses, Ingenuity quality
-  uplift, Commissions, Discovery, and one free inventory reconsideration per shop.
+  uplift, Commissions, Discovery, and repeatable timed Delve.
   Warrior founding, Support, prestige-derived Retinue, Campaign and Challenge.
 - Four authored neutral templates with fixed populations, Stock production/consumption,
   connected Trade/Raid targeting and conquest. Consumption draws from local
@@ -149,20 +149,28 @@ human playtest work.
   Worker bonus is +100% per effective worker (base ×1, one full worker ×2,
   three ×4), rounded down at the integer Stock output boundary. Worker effectiveness
   and existing Stock capacity limits still apply. This supersedes the provisional 25% bonus.
-- Scholar founding trains two adult Scholars; Warrior founding trains ten adults, both
-  costing six phases. Ingenuity uplift chance is 5% per point, capped at 75%, with no
-  price increase. Commission rewards 20 Prestige for one new Practice/Structure.
-  Discovery gives 25 or 60 Research plus Ingenuity; risky observation has 10% Danger.
-  Scholar ordinary recurring Prestige is fixed at three; institutions supply simple
-  class-stat bonuses instead of bespoke Development-choice biases.
-- Retinue keeps the specified floor(Prestige/10), capped by ceil(Warriors/10) plus
-  bonuses, and is zero with no Warrior population. Base Support is floor(Warriors/5)
-  before configured modifiers. No army wallet or units exist.
-- Campaign requires enough Prowess + Retinue + local Support and one hosted Edible.
-  Advantage reduces time/danger/collateral. At advantage three all neutral population
+- Scholar founding trains two adults and establishes a Lyceum; Warrior founding
+  trains ten, both costing six phases. Ingenuity grants +5% shop-quality chance
+  per point, with surplus tier rolls above 100% and a Diamond ceiling, without
+  price increases. Discovery gives 25 or 60 Research plus Ingenuity.
+- Commissions are continuous objectives, selected from three and completed only
+  through Vassal nodes: install a Practice (20 Prestige), finish a commissioned
+  Structure (40), acquire a Relic (60). More node-driven goals remain future work.
+  Delve is repeatable, costs 0 Prestige and 10 base years discounted by
+  Effectiveness; offers refresh after real time and mortality resolve.
+- Retinue is floor(held Prestige/10), without a population cap. Former cap bonuses
+  add Force directly. Global Martial Force sums owned Warrior/support strength,
+  active Warrior Prowess and Retinue. Campaigns and supplied automatic defense
+  use that same number. Localized calculation is pinned for redesign because it
+  may make personal and regional strength more satisfying.
+- Prowess increases all RISK success relatively by 15% per point, capped at 100%,
+  and successful RISK earns 15 extra Prestige. Challenge-only time/danger bonuses
+  are removed; protected failed rolls do not earn success rewards.
+- Campaign requires sufficient global Force and one hosted Edible. Advantage
+  reduces time/danger/collateral. At advantage three all neutral population
   survives; below that, 80% population and Stock survive. Survivors become adult
-  Strangers. Ruins retain dormant population/Stock for reconquest; no siege attrition
-  or specialty-preserving ruin recovery has been added.
+  Strangers. Ruins retain dormant population/Stock for reconquest; no siege
+  attrition or specialty-preserving ruin recovery has been added.
 - Each fresh launch seeds one Defense-2 frontier Monster, preferably one frontier
   step away from player settlements, and connects the adjacent small neutral.
   Chaos accumulates permanently from Faith income, without subtracting Resistance.
@@ -192,8 +200,7 @@ human playtest work.
   provider ties use existing connection/tableau order. Neutrals never grow classes or
   build/research autonomously.
 - Shortage relief grants up to three Edible within host capacity, costing 15% Danger
-  or one Currency. Threat diversion removes 25 shared expansion progress by default at 20% Danger. Prowess does
-  not discount these risks.
+  or one Currency. Threat diversion removes 25 shared expansion progress by default at 20% Danger. Prowess increases success for both risky responses.
 - Storehouse targets Construction rather than asking the player to choose a Trait;
   Cistern and Millhouse use simple capacity rules. Most selected institutions use
   gated capacity/candidate bonuses; Foundry proves shared Knowledge/Consume output
@@ -220,7 +227,7 @@ exists; it does not govern Vassal candidates or purchases.
 - Does two-Scholar founding produce useful scarcity while ten-Warrior founding gives
   enough Support without making recruitment trivial?
 - Do Commissions provide sufficient purchasing income alongside the cost of holding
-  Prestige for Retinue? Does the free reconsideration make early supply chains reliable?
+  Prestige for Retinue? Does a ten-year Delve make early supply chains reliable?
 - Is automatic defense's Edible consumption legible before collapse, and is the
   resistance-gated expansion rate the right response window? Should players explicitly prioritize threats?
 - Does adjacent conquest need a stronger supply or travel constraint? Should reconquest

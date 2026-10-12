@@ -166,9 +166,10 @@ try {
   check('greatHost total', getMartialSupport(host, 'river-crown'), 17);
   unchanged(host, hostRaw, 'host queries');
   useSupport(hostRaw, 'river-crown', 'campaign', false, 'warrior', [
-    { kind: 'supportContributed', regionId: 'upper-floodplain', actionKind: 'campaign', amount: 7, classId: 'warrior' },
-    { kind: 'supportContributed', regionId: 'lake-country', actionKind: 'campaign', amount: 10, classId: 'warrior' },
-    { kind: 'martialActionResolved', regionId: 'river-crown', actionKind: 'campaign', sourceRegionIds: ['upper-floodplain', 'lake-country'], classId: 'warrior' },
+    { kind: 'supportContributed', regionId: 'west-levee', actionKind: 'campaign', amount: 29, classId: 'warrior' },
+    { kind: 'supportContributed', regionId: 'upper-floodplain', actionKind: 'campaign', amount: 21, classId: 'warrior' },
+    { kind: 'supportContributed', regionId: 'lake-country', actionKind: 'campaign', amount: 37, classId: 'warrior' },
+    { kind: 'martialActionResolved', regionId: 'river-crown', actionKind: 'campaign', sourceRegionIds: ['west-levee', 'upper-floodplain', 'lake-country'], classId: 'warrior' },
   ], 'usage');
 
   const emptyDraft = authored();
@@ -176,10 +177,11 @@ try {
   bank(site(emptyDraft, 'river-crown'), { coordination: 0, formation: 0, siege: 0, mobility: 0 });
   bank(site(emptyDraft, 'upper-floodplain'), { formation: 4 });
   const { live: empty, raw: emptyRaw } = seal(emptyDraft);
-  check('retinue without warriors', getRetinue(empty, { classId: 'warrior', prestige: 50 }), { value: 0, cap: 0, population: 0, nextPrestige: null });
+  check('retinue without warriors', getRetinue(empty, { classId: 'warrior', prestige: 50 }), { value: 8, cap: null, population: 0, nextPrestige: 60 });
   unchanged(empty, emptyRaw, 'empty retinue query');
   useSupport(emptyRaw, 'river-crown', 'defense', true, null, [
-    { kind: 'martialActionResolved', regionId: 'river-crown', actionKind: 'defense', sourceRegionIds: [], classId: null },
+    { kind: 'supportContributed', regionId: 'upper-floodplain', actionKind: 'defense', amount: 4, classId: null },
+    { kind: 'martialActionResolved', regionId: 'river-crown', actionKind: 'defense', sourceRegionIds: ['upper-floodplain'], classId: null },
   ], 'zero sources');
 
   const retinueDraft = authored();
@@ -187,10 +189,10 @@ try {
   warriors(site(retinueDraft, 'river-crown'), 10);
   place(site(retinueDraft, 'river-crown'), 'retinueHall', 0, 2);
   const { live: retinue, raw: retinueRaw } = seal(retinueDraft);
-  check('retinue prestige floor', getRetinue(retinue, { classId: 'warrior', prestige: 0 }), { value: 0, cap: 4, population: 10, nextPrestige: 10 });
-  check('retinue below cap', getRetinue(retinue, { classId: 'warrior', prestige: 35 }), { value: 3, cap: 4, population: 10, nextPrestige: 40 });
-  check('retinue cap clamp', getRetinue(retinue, { classId: 'warrior', prestige: 100 }), { value: 4, cap: 4, population: 10, nextPrestige: null });
-  check('retinue class gate', getRetinue(retinue, { classId: 'scholar', prestige: 100 }), { value: 0, cap: 0, population: 10, nextPrestige: null });
+  check('retinue prestige floor', getRetinue(retinue, { classId: 'warrior', prestige: 0 }), { value: 3, cap: null, population: 10, nextPrestige: 10 });
+  check('retinue below cap', getRetinue(retinue, { classId: 'warrior', prestige: 35 }), { value: 6, cap: null, population: 10, nextPrestige: 40 });
+  check('uncapped retinue + Force bonus', getRetinue(retinue, { classId: 'warrior', prestige: 100 }), { value: 13, cap: null, population: 10, nextPrestige: 110 });
+  check('retinue class gate', getRetinue(retinue, { classId: 'scholar', prestige: 100 }), { value: 0, cap: null, population: 10, nextPrestige: null });
   unchanged(retinue, retinueRaw, 'retinue queries');
   console.log('martial-support-boundaries ok');
 } catch (error) {

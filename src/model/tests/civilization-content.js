@@ -1,3 +1,4 @@
+import { ensureCommissionOffers, chooseVassalCommission, stepVassalCommission } from '../vassal-life-map/commissions.js';
 import './monster-pressure.js';
 import assert from 'node:assert/strict';
 import { createNewGameState } from '../new-game.js';
@@ -9,7 +10,7 @@ import { getRetinue, getMartialSupport, adjacentRegionIds, conquerSettlement, st
 import { runPracticeActivation, buildDetailedPracticeEvaluation, validateDetailedPracticeDefinitions, getPracticeTags, assignDetailedSettlementWorkers, tryCreateStructure } from '../detailed-settlements/practices.js';
 import { getRegionState, addWorldConnection } from '../world-state.js';
 import { getDetailedPracticeDef } from '../game-config.js';
-import { classActionOptions, applyClassAction, completeCommission } from '../vassal-life-map/class-actions.js';
+import { classActionOptions, applyClassAction } from '../vassal-life-map/class-actions.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool, selectLifeMapVassal } from '../vassal-life-map.js';
 import { ActionKinds, applyAction } from '../actions.js';
 import { generateShopInventory, getVassalShopRerollCost } from '../vassal-life-map/shop.js';
@@ -125,16 +126,17 @@ assert.ok(getPracticeTags(scholarState,'logging',staffing[0]).includes('Knowledg
 assert.equal(stockTraits(scholarState,scholarSite.detailedState.practiceSlots[0]).includes('Knowledge'),false);
 trainSpecialists(scholarSite.detailedState,'warrior',10);
 assert.ok(getMartialSupport(scholarState,scholar.locationRegionId,true)>0,'shared Arms supplies hybrid civilization defense');
-applyClassAction(scholarState,scholar,{kind:'commission',objective:'structure'});
+ensureCommissionOffers(scholarState,scholar);
+assert.equal(chooseVassalCommission(scholarState,scholar.commissionOffers.find(o=>o.id==='structure').offerId).ok,true);
 const prestigeBefore=scholar.prestige;
 assert.equal(tryCreateStructure(scholarState,scholar.locationRegionId,'workshop'),true);
-completeCommission(scholarState,scholar);assert.equal(scholar.prestige,prestigeBefore+20);
-completeCommission(scholarState,scholar);assert.equal(scholar.prestige,prestigeBefore+20,'Commission reward is once only');
+stepVassalCommission(scholarState,scholar);
+assert.equal(scholar.prestige,prestigeBefore,'autonomous Structure creation cannot complete a vassal Commission');
 applyClassAction(scholarState,scholar,{kind:'discovery',research:60,frontier:true});
 const inventoryNode={nodeId:'discovery-fixture',family:'practiceReform',purchasedOffers:[]};
 generateShopInventory(scholarState,scholar,inventoryNode);
 assert.equal(inventoryNode.discoveryAccess,true);assert.equal(scholar.discoveryAccess,undefined);
-assert.equal(getVassalShopRerollCost(scholar),0,'Scholar has one price-neutral reconsideration per shop');
+assert.equal(getVassalShopRerollCost(scholar),0,'Scholar Delve costs no Prestige');
 
 // Institutions and retirement strengthen later local candidates, from identical RNG.
 const baseCandidates=createNewGameState(91),educated=deserializeGameState(serializeGameState(baseCandidates));

@@ -144,7 +144,7 @@ export function createVassalLifeHudView({
     const hud = new PIXI.Graphics();
     roundedRect(hud, barX, barY, barWidth, LIFE_HUD.barHeight, 10, 0x2b332e, PALETTE.accent, 1.5);
     const portrait = createVassalPortraitView(vassal.portrait, {
-      size: LIFE_HUD.portraitSize, borderColor: PALETTE.accent, shape: "circle", age: shown.age,
+      size: LIFE_HUD.portraitSize, classId: vassal.classId ?? vassal.founderClassId, founder: !!vassal.founderClassId, borderColor: PALETTE.accent, shape: "circle", age: shown.age,
     });
     portrait.position.set(hudX, hudY);
     const location = String(
@@ -172,8 +172,8 @@ export function createVassalLifeHudView({
 
     if (vassal.classId === 'warrior') {
       const retinue = getRetinue(presentation.state,vassal);
-      root.addChild(createText(`Retinue ${retinue.value}/${retinue.cap} · ${retinue.nextPrestige == null ? 'at cap' : 'next '+retinue.nextPrestige+' Prestige'}`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
-    } else if (vassal.commission) root.addChild(createText(`Commission: new ${vassal.commission.objective} (+20 Prestige)`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
+      root.addChild(createText(`Retinue +${retinue.value} Force; next at ${retinue.nextPrestige} Prestige`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
+    } else if (vassal.commission) root.addChild(createText(`Commission: ${vassal.commission.label} (+${vassal.commission.prestige} Prestige)`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
     const expX = contentX + 118;
     root.addChild(
       createText("EXP", {

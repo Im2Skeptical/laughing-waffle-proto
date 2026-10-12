@@ -32,7 +32,7 @@ const lifeMapState = fresh(777);
 lifeMapState.paused = true;
 lifeMapState.gameConfig.settings.values.primordialBasePressure = 0;
 const lifePool = getVassalCandidatePool(lifeMapState);
-assert.equal(lifePool.candidates.length, 3);
+assert.equal(lifePool.candidates.length, 2);
 assert.ok(lifePool.candidates.every((candidate) =>
   Number.isFinite(candidate.age) && Number.isFinite(candidate.prestige)
     && ["cunning", "wisdom", "effectiveness", "intelligence"].every(
@@ -188,7 +188,7 @@ constrainedVassalState.world.connections = getWorldConnectionCandidates(
   getWorldDefinition(constrainedVassalState)
 );
 const constrainedPool = buildDetailedVassalSelectionPool(constrainedVassalState);
-assert.equal(constrainedPool.candidates.length, 3,
+assert.equal(constrainedPool.candidates.length, 2,
   "candidate rolls retry another intervention type when structures are unavailable");
 assert.ok(constrainedPool.candidates.flatMap((candidate) => candidate.interventions).every(
   (entry) => entry.kind !== "structure"

@@ -1,3 +1,4 @@
+import { ensureCommissionOffers, chooseVassalCommission, stepVassalCommission } from '../vassal-life-map/commissions.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { canonicalizeSnapshot } from '../canonicalize.js';
 import { getDetailedSettlementViewModel } from '../detailed-settlements.js';
@@ -7,7 +8,7 @@ import { getRetinue, NEUTRAL_TEMPLATES, createNeutralSettlement } from '../detai
 import { getRegionState, canonicalizeWorldState, addWorldConnection } from '../world-state.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool, selectLifeMapVassal } from '../vassal-life-map.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
-import { classActionOptions, validateClassAction, applyClassAction, completeCommission } from '../vassal-life-map/class-actions.js';
+import { classActionOptions, validateClassAction, applyClassAction } from '../vassal-life-map/class-actions.js';
 import { generateShopInventory } from '../vassal-life-map/shop.js';
 import { advanceReplayStateToSecond } from '../replay-second-runner.js';
 import { getMoonPhaseAtSecond, getNextMoonPhaseBoundarySec, getMoonCycleDurationSec } from '../moon-phases.js';
@@ -113,7 +114,14 @@ export function editLabState(source, regionId, edit) {
       applyClassAction(state,vassal,option.classAction);
       break;
     }
-    case 'commissionCheck': if (vassal) completeCommission(state,vassal); break;
+    case 'commissionChoose': {
+      ensureCommissionOffers(state,vassal);
+      const offer=vassal?.commissionOffers?.find(entry=>entry.id===p.goalId);
+      const result=chooseVassalCommission(state,offer?.offerId);
+      if(!result.ok)throw new Error(result.reason);
+      break;
+    }
+    case 'commissionCheck': if (vassal) stepVassalCommission(state,vassal); break;
     default: throw new Error('Unknown Lab edit');
   }
   canonicalizeWorldState(state);

@@ -18,6 +18,10 @@ export async function checkNodeSandbox(page, context) {
     // Mouse hover installs the game's preview layout after its short dwell.
     await page.waitForTimeout(180);
     const settled=await point(kind,index);await page.mouse.click(settled.x,settled.y);
+    if(kind==='offer' && await page.evaluate(()=>!!__LAB_DEBUG__.getNodeSandbox().modal.replacementOfferId)) {
+      const slot=await point('tableau',4);
+      await page.mouse.click(slot.x,slot.y);
+    }
   }
   async function staged() {
     try { await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.purchaseOrder.length===1,null,{timeout:3000}); }
@@ -83,6 +87,11 @@ export async function checkNodeSandbox(page, context) {
   const touch=await context.newCDPSession(page);await touch.send('Emulation.setTouchEmulationEnabled',{enabled:true});
   const tap=await point('offer');
   await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[tap]});await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  if(await page.evaluate(()=>!!__LAB_DEBUG__.getNodeSandbox().modal.replacementOfferId)) {
+    const slot=await point('tableau',4);
+    await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[slot]});
+    await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }
   await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.purchaseOrder.length===1);
   await page.screenshot({path:'artifacts/development-lab-node-mobile.png'});
   await touch.send('Emulation.setTouchEmulationEnabled',{enabled:false});await touch.detach();

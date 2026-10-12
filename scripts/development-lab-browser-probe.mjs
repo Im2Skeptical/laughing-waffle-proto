@@ -241,7 +241,12 @@ try {
   }
   await page.setViewportSize({width:390,height:844});
   const imageBefore=await page.locator('.review-face>img').first().getAttribute('src');
-  for(const tag of ['Plant','Water','Grain','Wild'])await editor.getByRole('button',{name:`Stock tag: ${tag}`,exact:true}).click();
+  for(const tag of ['Plant','Water','Grain'])await editor.getByRole('button',{name:`Stock tag: ${tag}`,exact:true}).click();
+  const wildTag=editor.getByRole('button',{name:'Stock tag: Wild',exact:true});
+  assert.equal(await wildTag.getAttribute('aria-pressed'),'false','baseline Foraging produces Edible only');
+  await wildTag.click();
+  assert.equal(await wildTag.getAttribute('aria-pressed'),'true','adding Wild is reflected');
+  await wildTag.click();
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Wild',exact:true}).getAttribute('aria-pressed'),'false');
   assert.equal(await editor.getByRole('button',{name:'Stock tag: Water',exact:true}).getAttribute('aria-pressed'),'true');
   assert.notEqual(await page.locator('.review-face>img').first().getAttribute('src'),imageBefore,'Stock tag edits repaint the card');
@@ -363,6 +368,11 @@ try {
     const barBox=await tab.getByTestId('review-bulk-bar').boundingBox();
     assert.ok(barBox.y+barBox.height<=844&&barBox.y>700,'selection bar sits at the bottom of the phone screen');
     assert.equal(await tab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'selection mode fits a phone');
+    const bulkTargets=Object.values(await reviews());
+    const socketTargets=bulkTargets.filter(card=>Number.isFinite(card.baseline.workerCapacity));
+    const isLocked=card=>card.edits.find(edit=>edit.path[0]==='locked')?.value ?? card.baseline.locked===true;
+    const lockedSockets=socketTargets.filter(isLocked).length;
+    const changedSockets=socketTargets.length-lockedSockets;
     await tab.getByTestId('review-bulk-edit').click();
     const sheet=tab.getByTestId('review-bulk-sheet');await sheet.waitFor();
     const settled=()=>sheet.evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));
@@ -375,9 +385,9 @@ try {
     await tall(sockets,'field row');
     await sockets.click();
     await sheet.getByTestId('review-bulk-value').fill('3');
-    await sheet.getByText('13 cards will change · 2 skipped',{exact:true}).waitFor();
-    assert.deepEqual(await sheet.locator('.review-bulk-row[data-status=skipped]').evaluateAll(rows=>rows.map(row=>row.dataset.reason).sort()),['locked','missing']);
-    assert.match(await sheet.locator('.review-bulk-row[data-status=change]').first().textContent(),/2 → 3/);
+    await sheet.getByText(`${changedSockets} cards will change \u00b7 ${15-changedSockets} skipped`,{exact:true}).waitFor();
+    assert.deepEqual(await sheet.locator('.review-bulk-row[data-status=skipped]').evaluateAll(rows=>rows.map(row=>row.dataset.reason).sort()),[...Array(lockedSockets).fill('locked'),'missing'].sort());
+    assert.match(await sheet.locator('.review-bulk-row[data-status=change]').first().textContent(),/\u2192 3/);
     await sheet.getByTestId('review-bulk-include-locked').check();
     await sheet.getByText('14 cards will change · 1 skipped',{exact:true}).waitFor();
     await sheet.getByTestId('review-bulk-include-locked').uncheck();
@@ -392,7 +402,7 @@ try {
     await sheet.waitFor({state:'detached'});
     await tab.getByTestId('review-bulk-banner').waitFor();
     const socketEdits=cards=>Object.values(cards).filter(card=>card.edits.some(edit=>edit.path[0]==='workerCapacity')).length;
-    assert.equal(socketEdits(await reviews()),13,'one bulk save edits every changed card');
+    assert.equal(socketEdits(await reviews()),changedSockets,'one bulk save edits every changed card');
     await tall(tab.getByTestId('review-bulk-undo'),'Undo bulk edit');
     // Per-card Revert still works on a bulk change.
     await tab.getByTestId('review-select').click();
@@ -400,9 +410,9 @@ try {
     const socketsRow=tab.locator('.review-change').filter({has:tab.locator('strong',{hasText:/^Worker sockets$/})});
     await socketsRow.getByRole('button',{name:'Revert',exact:true}).click();
     await socketsRow.waitFor({state:'detached'});
-    assert.equal(socketEdits(await reviews()),12);
+    assert.equal(socketEdits(await reviews()),changedSockets-1);
     await tab.getByTestId('review-bulk-undo').click();
-    await tab.getByText('Bulk edit undone · 13 cards restored.',{exact:true}).waitFor();
+    await tab.getByText(`Bulk edit undone \u00b7 ${changedSockets} cards restored.`,{exact:true}).waitFor();
     assert.equal(socketEdits(await reviews()),0,'Undo bulk edit restores the pre-change cards');
     assert.equal((await reviews())[(await first.getAttribute('data-review-key'))].edits.some(edit=>edit.path[0]==='locked'),true,'undo keeps edits made before the bulk save');
     // Landscape phone: the sheet becomes a full-height side drawer.
@@ -442,8 +452,11 @@ try {
     await tab.goto(`${url}/#/dev/zoo`);
     await tab.getByText('110 matching runtime entries',{exact:false}).waitFor();
     await filters(()=>tab.getByTestId('zoo-produces').selectOption('Research'));
-    await tab.getByText('9 matching runtime entries',{exact:false}).waitFor();
-    assert.match(await tab.getByTestId('zoo-produces').locator('option[value=Research]').textContent(),/Research \(9\)/,'Produces options carry counts');
+    const researchLabel=await tab.getByTestId('zoo-produces').locator('option[value=Research]').textContent();
+    const researchCount=Number(researchLabel.match(/Research \((\d+)\)/)?.[1]);
+    assert.ok(researchCount>0,'Produces options carry positive counts');
+    await tab.getByText(`${researchCount} matching runtime entries`,{exact:false}).waitFor();
+    assert.equal(await tab.locator('.lab-catalogue-grid>.lab-card').count(),researchCount,'Research filter matches its advertised count');
     await tab.getByRole('button',{name:'Remove filter: Produces: Research',exact:true}).click();
     await filters(()=>tab.getByTestId('zoo-requires').selectOption('Tool'));
     await tab.getByRole('button',{name:'Remove filter: Requires: Tool',exact:true}).waitFor();
@@ -478,10 +491,14 @@ try {
     await addTo(consume,'Add consume: Fuel',2);
     await change('Consumes').waitFor();
     assert.match(await change('Consumes').textContent(),/1 Stone → 1 Stone, 2 Fuel/);
+    await addTo(require,'Add requirement: Tool',1);
+    await change('Requires').waitFor();
     await tall(require.getByRole('button',{name:'Remove Tool',exact:true}),'Remove requirement');
     await require.getByRole('button',{name:'Remove Tool',exact:true}).click();
+    await change('Requires').waitFor({state:'detached'});
+    await addTo(require,'Add requirement: Tool',1);
     await change('Requires').waitFor();
-    assert.match(await change('Requires').textContent(),/1 Tool → none/);
+    assert.match(await change('Requires').textContent(),/none \u2192 1 Tool/);
     await inputsGroup.getByTestId('review-consume').getByTestId('review-consume-amount').last().fill('3');
     await inputsGroup.getByTestId('review-consume').getByTestId('review-consume-amount').last().press('Enter');
     await tab.getByText('1 Stone, 3 Fuel',{exact:true}).waitFor();
@@ -492,7 +509,7 @@ try {
       await tab.locator('[role=group][aria-label="Card versions"] [data-value=edited]').click();
       await tab.getByTestId('zoo-produces').selectOption('Research');
     });
-    await tab.getByText('9 matching runtime entries',{exact:false}).waitFor();
+    await tab.getByText(`${researchCount+1} matching runtime entries`,{exact:false}).waitFor();
     await tab.getByRole('button',{name:'Remove filter: Produces: Research',exact:true}).click();
     await filters(()=>tab.getByTestId('zoo-consumes').selectOption('Fuel'));
     await tab.getByRole('button',{name:'Read Masonry, bronze',exact:false}).first().waitFor();

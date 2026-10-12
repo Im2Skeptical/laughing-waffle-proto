@@ -1,3 +1,5 @@
+import { createProtovassalDossier } from './protovassal-dossier-pixi.js';
+import { getVassalClassArtRevision } from './vassal-class-art.js';
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
@@ -26,7 +28,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
   root.addChild(gfx);
 
   const portrait = createVassalPortraitView(candidate.portrait, {
-    size: 132, borderColor: selected ? PALETTE.green : PALETTE.accent, stage: 'youth',
+    size: 132, classId: candidate.classId, borderColor: selected ? PALETTE.green : PALETTE.accent, stage: 'youth',
   });
   portrait.position.set(18, 15);
   root.addChild(portrait);
@@ -71,6 +73,7 @@ export function createWorldMapVassalDrawerView({
   let buildCount = 0;
   let candidateRoots = [];
   let rerollRoot = null;
+  let founderDossier = null;
   let lastTapIndex=null,lastTapTime=0;
   function tapCandidate(index){
     const now=performance.now();
@@ -90,11 +93,12 @@ export function createWorldMapVassalDrawerView({
     const state = getState?.();
     const pool = getSelectionPool?.() ?? (preparing ? buildDetailedVassalSelectionPool(state) : null);
     const selectedIndex = getSelectedCandidateIndex?.() ?? null;
-    const next = getArtRevision() + JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
+    const next = getArtRevision() + getVassalClassArtRevision() + JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
     if (!force && next === signature) return;
     signature = next;
     buildCount++;
     clearChildren(root);
+    founderDossier=null;
 
     const blocker = new PIXI.Graphics();
     blocker.beginFill(0x000000, 0.001).drawRect(0, 0, VIEWPORT.width, VIEWPORT.height).endFill();
@@ -102,6 +106,11 @@ export function createWorldMapVassalDrawerView({
     blocker.on("pointerdown", (event) => { event?.stopPropagation?.(); onClose?.(); });
     root.addChild(blocker);
 
+    if (pool?.candidates?.[0]?.founderClassId) {
+      const dossier = createProtovassalDossier({candidates:pool.candidates,selectedIndex,onPreview:onPreviewCandidate,onConfirm:onConfirmCandidate});
+      founderDossier=dossier;
+      root.addChild(dossier);candidateRoots=dossier.candidateRoots;rerollRoot=null;return;
+    }
     const frame = new PIXI.Graphics();
     roundedRect(frame, DRAWER_RECT.x, DRAWER_RECT.y, DRAWER_RECT.width, DRAWER_RECT.height,
       12, PALETTE.panel, PALETTE.accent, 3);
@@ -144,12 +153,19 @@ export function createWorldMapVassalDrawerView({
       await renderer.prepare.upload(root);
     },
     getPreparationSnapshot: () => ({ visible: root.visible, candidateCount: candidateRoots.length, buildCount,
-      portraitStages: candidateRoots.map(card => card.children.find(child => child.portraitStage)?.portraitStage) }),
+      portraitStages: candidateRoots.map(card => card.portraitStage ?? card.children.find(child => child.portraitStage)?.portraitStage) }),
     setVisible: (visible) => { root.visible = visible === true; },
+    getFounderSnapshot: () => root.visible ? founderDossier?.getSnapshot() ?? null : null,
+    getFounderControlClickPoint: id => {
+      const control=founderDossier?.controls[id];
+      if(!root.visible || !control || control.destroyed)return null;
+      const point=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));
+      return {x:point.x,y:point.y};
+    },
     getCandidateClickPoint: (candidateIndex = 0) => {
       const card = candidateRoots[Math.max(0, Math.floor(candidateIndex))];
       if (!root.visible || !card?.visible || typeof card.toGlobal !== "function") return null;
-      const point = card.toGlobal(new PIXI.Point(card.hitArea.width / 2, card.hitArea.height / 2 - 28));
+      const point = card.toGlobal(new PIXI.Point(card.hitArea.width / 2, card.hitArea.height / 2));
       return { x: Number(point?.x ?? 0), y: Number(point?.y ?? 0) };
     },
     getRerollClickPoint: () => {

@@ -21,12 +21,12 @@ function isCanonicalSignatureDescriptor(descriptor) {
 }
 const DEFAULT_WEIGHTS = Object.freeze({
   // Equal Food/Housing weights yield roughly three basic supply shops per graph.
-  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0, 0.25, 0.25, 1, 1]),
-  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 4, 0, 0, 0, 0, 0, 0.5, 0.5, 1, 1]),
-  late: Object.freeze([1, 2, 2, 4, 4, 4, 5, 3, 0, 0, 0, 0, 0, 1, 1, 1, 1]),
+  early: Object.freeze([5, 5, 5, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0.25, 0.25, 1, 1]),
+  mid: Object.freeze([3, 3, 3, 3, 3, 3, 1, 4, 0, 0, 0, 0, 0.5, 0.5, 1, 1]),
+  late: Object.freeze([1, 2, 2, 4, 4, 4, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 5;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 6;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {

@@ -84,9 +84,9 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
   const specialistX=x+730;
-  root.addChild(createText(`Scholars ${vm.specialists.scholar}\nWarriors ${vm.specialists.warrior}\nSupport ${vm.martialSupport}`,{
+  root.addChild(createText(`Scholars ${vm.specialists.scholar}\nWarriors ${vm.specialists.warrior}\nMartial Force ${vm.martialForce}`,{
     ...TEXT_STYLES.chip,fontSize:21,lineHeight:28,fill:PALETTE.textMuted},specialistX,y+20));
-  const defenseLines=[`Defense ${defense ?? vm.defensiveSupport}`,
+  const defenseLines=[`Defense ${defense ?? vm.martialForce}`,
     vm.lastDefense ? `Last defense: ${vm.lastDefense.result}` : '',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`].filter(Boolean);
   root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:28,fill:PALETTE.textMuted},x+1000,y+20));

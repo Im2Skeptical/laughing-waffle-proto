@@ -1,4 +1,5 @@
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
+import { preloadVassalClassArt, getVassalClassTextures } from './vassal-class-art.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const cells = new Map();
@@ -172,7 +173,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
     .map(group => loadPackedGroup(group, true));
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
-  const ready = Promise.all(eager);
+  const ready = Promise.all([...eager, preloadVassalClassArt()]);
   const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
   if (includeSettlementPieces) return warm;
   void warm.catch(error => console.error('[art] background artwork preparation failed', error));
@@ -184,7 +185,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
 export function prepareChronicleArt(renderer) {
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
-    const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
+    const textures = new Map([...packedTextures.values(),...getVassalClassTextures()].map(texture => [texture.baseTexture, texture]));
     const gl = renderer.gl;
     const maxSize = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
     if ([...textures.keys()].some(base => !base.valid || (maxSize && (base.realWidth > maxSize || base.realHeight > maxSize)))) {

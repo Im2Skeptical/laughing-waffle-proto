@@ -1,3 +1,4 @@
+import { VASSAL_COMMISSION_DEFS } from '../../defs/vassal-class-rules.js';
 import { getDetailedSettlementViewModel } from '../../model/detailed-settlements.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool } from '../../model/vassal-life-map.js';
 import { classActionOptions } from '../../model/vassal-life-map/class-actions.js';
@@ -98,7 +99,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   }
   if(vassal) {
     const panel=disclosure(`${vassal.classId[0].toUpperCase()+vassal.classId.slice(1)} Vassal`,[el('div','','lab-chips')],{key:'gym:vassal',open:true,className:'lab-panel'});
-    panel.lastChild.append(badge(`Location ${vassal.locationRegionId}`),badge(`Commission: ${vassal.commission?.objective ?? 'none'}`),badge(`Discovery: ${vassal.discoveryAccess ? 'next shop' : 'none'}`));
+    panel.lastChild.append(badge(`Location ${vassal.locationRegionId}`),badge(`Commission: ${vassal.commission?.label ?? 'none'}`),badge(`Discovery: ${vassal.discoveryAccess ? 'next shop' : 'none'}`));
     const controls=el('div','','lab-controls');
     const prestige=input('Prestige',vassal.prestige), ingenuity=input('Ingenuity',vassal.stats.cunning), prowess=input('Prowess',vassal.stats.intelligence);
     if(gym) {
@@ -107,10 +108,10 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
       panel.append(group('Stats',stats));
     }
     controls.append(button('Spend 5 Prestige',()=>edit('spendPrestige',{})),button('Preview seeded shop',()=>run(()=>controller.shop())),button('Check Commission',()=>edit('commissionCheck',{})));
-    if (!gym && vassal.classId === 'scholar') controls.append(button('Commission target: replace slot 5 with Foraging',()=>edit('practice',{index:4,id:'forage',stock:0,tier:'bronze'})));
+    if (vassal.classId === 'scholar' && !vassal.commission) for (const goal of VASSAL_COMMISSION_DEFS) controls.append(button(`Choose Commission: ${goal.label} (+${goal.prestige})`,()=>edit('commissionChoose',{goalId:goal.id})));
     panel.append(group('Actions',controls));
     const effects=el('div','','lab-controls');
-    for(const family of [...(vassal.classId==='scholar'?['commission','discovery']:['campaign']),'crisis']) {
+    for(const family of [...(vassal.classId==='scholar'?['discovery']:['campaign']),'crisis']) {
       const options=classActionOptions(state,vassal,family)??[];
       const choice=select(`${family} option`,options.map(o=>[o.id,o.label]),options[0]?.id);
       const row=el('div','','lab-inline');row.append(field(family[0].toUpperCase()+family.slice(1),choice),button('Resolve effect',()=>edit('classEffect',{family,id:choice.value})));effects.append(row);

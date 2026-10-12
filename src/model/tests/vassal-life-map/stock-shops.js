@@ -122,6 +122,7 @@ for (const classId of [null, "scholar", "warrior"]) {
       assert.equal(appendActionAtCursor(shopTimeline, { kind, payload, tSec: state.tSec }, state).ok, true);
       dispatch(state, kind, payload);
     };
+    if(vassal.commissionOffers?.length) shopAct(ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:vassal.commissionOffers.find(o=>o.id==='relic').offerId});
     shopAct(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId: target.id });
     const nodeState = vassal.lifeMap.nodeStates[target.id];
     const checkOffers = () => {
@@ -136,6 +137,12 @@ for (const classId of [null, "scholar", "warrior"]) {
     const restored = deserializeGameState(serializeGameState(state));
     shopAct(ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
     dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
+    if (classId === 'scholar') {
+      const end=vassal.lifeMap.pendingResolution.resolveSec;
+      initializeReplayClock(state,state.tSec);initializeReplayClock(restored,restored.tSec);
+      assert.equal(advanceReplayStateToSecond(state,end).ok,true);
+      assert.equal(advanceReplayStateToSecond(restored,end).ok,true);
+    }
     checkOffers();
     assertReplayMatches(restored, state, "saved output and rerolls remain deterministic");
     if(research===0)continue; // Empty early shops still exercise generation, reload and reroll.

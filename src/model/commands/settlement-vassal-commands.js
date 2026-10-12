@@ -1,4 +1,5 @@
 import {
+  chooseVassalCommission,
   chooseVassalDevelopmentStat,
   confirmHeirloomLoadout,
   confirmVassalLifeNode,
@@ -47,6 +48,9 @@ export const cmdResolveVaultOverflow = (state, payload = {}) =>
   resolveVaultOverflow(state, payload.keepInstanceIds ?? []);
 export const cmdChooseVassalDevelopmentStat = (state, payload = {}) =>
   chooseVassalDevelopmentStat(state, payload.choiceId, payload.statId);
+
+export const cmdChooseVassalCommission = (state, payload = {}) =>
+  chooseVassalCommission(state, payload.offerId);
 
 export const cmdMoveVassalShopStructure = (state, payload = {}) =>
   moveVassalShopStructure(state, payload.nodeId, payload.offerId, payload.origin);

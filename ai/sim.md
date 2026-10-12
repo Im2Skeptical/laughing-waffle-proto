@@ -48,7 +48,7 @@ registries here.
   advance progress; completion activates the building. Unfinished sites supply no
   Housing, modifiers, tags, institutional bonuses or capabilities.
   Numeric capacities are additive. The Common Housing ladder is 30/60/90/210/360/630.
-  Gated query modifiers supply capacity, output, defense and Retinue cap bonuses.
+  Gated query modifiers supply capacity, output, defense and Retinue Force bonuses.
 - Scholars and Warriors are mutually exclusive specialties inside Villager/Stranger
   age cohorts. Aging, migration and mortality preserve those identities.
 - Four deterministic neutral templates are fixed-demography external actors.
@@ -144,13 +144,21 @@ registries here.
   identity throughout the life. Later pools contain unclassed Vassals and the
   established class only, independent of surviving local specialist populations.
   Founders never recur; an unfinished founding leaves later pools unclassed.
-- Scholar Ingenuity replaces Cunning income with price-neutral quality uplift,
-  Discovery access and Research, one free shop reconsideration, and Commissions.
-  Local institutions and retired class stats improve later candidates.
-- Warrior Prowess replaces the Intelligence price discount. Campaign combines
-  Prowess, derived Retinue and local Martial Support; Challenge is personal.
-  Prowess never reduces general Crisis danger. Retinue is computed from unspent
-  Prestige, Warrior population and institutional caps; it is not inventory.
+- Scholar Ingenuity replaces Cunning income: +5% price-neutral shop-quality
+  chance per point with surplus rolls above 100% (Diamond ceiling), and +1
+  Discovery Research per point. Delve spends 10 base years, discounted by
+  Effectiveness, before refreshing offers; it is repeatable and costs no Prestige.
+  Continuous Commissions are selected from three and credit only committed Vassal
+  node actions: new Practice (20 Prestige), completed commissioned Structure (40),
+  acquired Relic (60). Construction attribution and history are serialized.
+- Warrior Prowess replaces the Intelligence price discount: +1 global Martial
+  Force per point and RISK success multiplied by (1 + 0.15 * Prowess), capped at
+  100%. Every successful RISK grants +15 extra Prestige; prevented failed rolls
+  do not. Retinue is floor(held Prestige/10), with direct institutional Force
+  bonuses and no population cap. Campaign and supplied automatic defense use the
+  same civilization-wide Force. Localized calculation is pinned for redesign.
+  Challenge has no separate Prowess time/danger reduction. Natural aging remains
+  separate. These rules also apply to class successors.
 - Crisis options inspect live Food shortages and adjacent Monsters. Mortality
   remains on the existing Vassal RNG substream. See
   `docs/civilization-milestone.md` for the implemented pool and tuning decisions.

@@ -35,7 +35,11 @@ in the top right. Shops pair a fanned site plan with its completed Structure;
 repeat commissions keep the plan available. Cycle readiness uses the existing time rim. Generic art is reused for new
 content with distinct names and rules. Structure inspection retains its existing
 hover/touch reading panel.
-Warrior status displays Retinue, cap and next Prestige threshold. Scholar status
+The live founder picker uses a Pixi focused dossier with crossed-out replaced
+attributes, a separate class-stat panel, compact tooltips and a bottom portrait
+rail with flanking arrows. Both founders are available; two future slots are locked.
+Painted class frames preserve ordinary Vassal portrait identity.
+Warrior status displays uncapped Retinue and next Prestige threshold. Scholar status
 shows the active Commission. Class stat labels are Ingenuity and Prowess.
 Structure rows are centered and use the same eight-cell pitch across regions.
 Time costs use purpose-drawn sun, crescent, and lunar-phase icons with numbers

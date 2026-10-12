@@ -1,3 +1,4 @@
+import { ensureCommissionOffers, chooseVassalCommission } from '../vassal-life-map/commissions.js';
 import { createLabFixture, fiveSlots, practiceSlot } from './fixtures.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { getCurrentLifeMapVassal, enterVassalLifeNode } from '../vassal-life-map.js';
@@ -27,6 +28,7 @@ export function createLabNodeSandbox(options = {}) {
   settlement.practiceSlots = fiveSlots(practiceSlot('forage',2),practiceSlot('barter',4),practiceSlot('logging',2),practiceSlot('surfaceMining',2),practiceSlot('bowmaking',2));
   vassal.name = 'Gym Dummy';
   vassal.classId = settings.classId === 'unclassed' ? null : settings.classId;
+  if(vassal.classId !== 'scholar') {vassal.commission=null;vassal.commissionOffers=[];}
   vassal.prestige = settings.prestige;
   vassal.initialAge = settings.age;
   for (const key of ['effectiveness','intelligence','cunning','wisdom']) vassal.stats[key] = settings[key];
@@ -42,6 +44,8 @@ export function createLabNodeSandbox(options = {}) {
   vassal.lifeMap.availableNodeIds = [node.id];
   state.rng.vassalSeed = settings.seed;
   state.rng.vassalDevelopmentSeed = settings.seed;
+  ensureCommissionOffers(state,vassal);
+  if(vassal.commissionOffers?.length) chooseVassalCommission(state,vassal.commissionOffers.find(o=>o.id==='relic').offerId);
   const entered = enterVassalLifeNode(state, node.id);
   if (!entered.ok) throw new Error(entered.reason);
   return { settings, nodeId:node.id, state:deserializeGameState(serializeGameState(state)) };

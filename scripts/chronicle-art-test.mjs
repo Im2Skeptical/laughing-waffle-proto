@@ -9,7 +9,12 @@ async function fixture(load) {
   const calls = [];
   globalThis.PIXI = {
     SCALE_MODES: { NEAREST: 0 }, MIPMAP_MODES: { OFF: 0 },
-    Assets: { setPreferences() {}, async load(url) { calls.push(url); return load(url); } },
+    Rectangle: class {constructor(x,y,width,height){Object.assign(this,{x,y,width,height});}},
+    Texture: class {constructor(baseTexture,rect){Object.assign(this,{baseTexture,width:rect.width,height:rect.height});}},
+    Assets: { setPreferences() {}, async load(url) {
+      calls.push(url);const result=load(url);
+      return url.endsWith('.png') ? {...Object.values(result.textures)[0],width:1248,height:1200} : result;
+    } },
   };
   const art = await import(`../src/views/chronicle-art.js?test=${++instance}`);
   const uploaded = [];
@@ -45,7 +50,7 @@ try {
   });
   await transient.art.prepareChronicleArt(transient.renderer);
   assert.equal(attempts, 3);
-  assert.equal(transient.uploaded.length, 11, 'every atlas, including heirlooms, reaches upload preparation');
+  assert.equal(transient.uploaded.length, 13, 'every atlas, including heirlooms and class portraits, reaches upload preparation');
 
   const invalid = await fixture(() => ({ textures: { 'food.png': { baseTexture: { valid: false } } } }));
   await assert.rejects(invalid.art.prepareChronicleArt(invalid.renderer), /invalid|decoded/i, 'invalid textures cannot pass readiness');
@@ -70,7 +75,7 @@ try {
     for (const texture of scaled.uploaded) texture.baseTexture._glTextures = { 1: {} };
   };
   await scaled.art.prepareChronicleArt(scaled.renderer);
-  assert.equal(scaled.uploaded.length, 11, 'GPU limits use physical pixels, not scaled logical texture dimensions');
+  assert.equal(scaled.uploaded.length, 13, 'GPU limits use physical pixels, not scaled logical texture dimensions');
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer,
     gl: { ...scaled.renderer.gl, getParameter: () => 1000 } }), /texture size limit/);
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer, CONTEXT_UID: 2 }), /uploaded/,

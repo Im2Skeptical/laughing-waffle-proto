@@ -164,7 +164,7 @@ export function createSettlementVassalFlow({
     const vassal = getCurrentLifeMapVassal(beforeState);
     const pending = getVassalPendingResolution(beforeState);
     if (!vassal || !pending) return;
-    const gains = getVassalNodeResolutionGains(vassal,
+    const gains = pending.kind === 'shopDelve' ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal,
       vassal.lifeMap?.nodeStates?.[vassal.lifeMap?.currentNodeId]?.family);
     return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true,
       prestigeIncome:gains.prestige, developmentIncome:gains.development,
@@ -181,8 +181,8 @@ export function createSettlementVassalFlow({
       vassalId: beforeVassalId,
       beforeState,
       clock,
-      prestigeIncome,
-      developmentIncome,
+      prestigeIncome: pending?.kind === 'shopDelve' ? 0 : prestigeIncome,
+      developmentIncome: pending?.kind === 'shopDelve' ? 0 : developmentIncome,
       prestigeBefore,
       expBefore,
       ageBefore,

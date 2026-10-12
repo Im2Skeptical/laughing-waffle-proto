@@ -128,8 +128,8 @@ assert.equal(VASSAL_LEGACY_OPTIONS[0].legacyStartingPrestigeBonus,
 
 const signaturePoolState = createInitialState("devPlaytesting01", 2201);
 const signaturePool = getVassalCandidatePool(signaturePoolState);
-assert.equal(new Set(signaturePool.candidates.map((candidate) => candidate.signatureNode.groupId)).size, 3,
-  "a candidate pool contains three distinct signature groups");
+assert.equal(new Set(signaturePool.candidates.map((candidate) => candidate.signatureNode.groupId)).size, signaturePool.candidates.length,
+  "each founder has a distinct signature group");
 assert.ok(signaturePool.candidates.every((candidate) => candidate.portrait
   && Object.values(candidate.portrait).every((value) => typeof value === "string")),
 "every candidate has a JSON-only procedural portrait descriptor");
