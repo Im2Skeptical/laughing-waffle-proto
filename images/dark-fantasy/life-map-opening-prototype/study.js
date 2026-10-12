@@ -77,7 +77,7 @@ function renderGraph(snapshot) {
     host.append(row);
   }
   $('graph-status').textContent = `${visitedIds.length} encounters completed${snapshot.draftChanged ? ' · draft changes await restart' : ''}`;
-  requestAnimationFrame(drawConnections);
+  queueMicrotask(drawConnections);
 }
 function drawConnections() {
   const host = $('graph'), bounds = host.getBoundingClientRect();
