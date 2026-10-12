@@ -28,7 +28,7 @@ app.renderer.events.mapPositionToPoint = (target, x, y) => {
   target.y = (rect.right - x) / rect.width * H;
 };
 const root = new PIXI.Container(); app.stage.addChild(root);
-const mapRect = { x: 535, y: 190, width: 1800, height: 650 };
+const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
 let map = generateMap(state), targets = [];
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
@@ -106,8 +106,7 @@ function drawBiome(region, parent) {
     if (region.biome === 'forest') drawTree(g, x, y, s, colour.ink);
     else if (region.biome === 'mountains') drawMountain(g, x, y, s * 1.6, colour.ink);
     else if (region.biome === 'islands') {
-      g.lineStyle(3, 0xd5cb97, .85).beginFill(0x87986d).drawEllipse(x, y, s * 2.8, s * 1.2).endFill();
-      g.lineStyle(1, 0xc3e1dd, .4).moveTo(x - s * 3, y + s * 2).lineTo(x + s * 2.2, y + s * 2);
+      g.lineStyle(1.5, 0xc3e1dd, .3).moveTo(x - s, y).quadraticCurveTo(x, y - s * .3, x + s * 1.7, y);
     } else if (region.biome === 'swamp') {
       g.lineStyle(1, 0x829887, .5).beginFill(0x3e6562, .5).drawEllipse(x, y, s * 2.3, s * .7).endFill();
       g.lineStyle(1.8, colour.ink, .9).moveTo(x + s, y).lineTo(x + s * .8, y - s).moveTo(x + s * 1.4, y).lineTo(x + s * 1.6, y - s * .8);
@@ -125,20 +124,18 @@ function featurePath(feature) {
     return index ? points.slice(1) : points;
   });
 }
-function drawFeatures() {
-  for (const feature of map.features) {
-    const points = featurePath(feature), skeleton = state.variant === 'B';
-    if (feature.type === 'river') {
-      line(root, points, 0x4d7768, skeleton ? 22 : 30, .22);
-      line(root, points, 0xd3c995, 13, .9); line(root, points, 0x3e747f, 9); line(root, points, 0xa8d2cc, 2.5, .85);
-    } else if (feature.type === 'chasm') {
-      line(root, points, 0xb69b76, 25, .65); line(root, points, 0x514b47, 15); line(root, points, 0x222c2e, 7);
-    } else if (feature.type === 'valley') {
-      line(root, points, 0x718762, 70, .18); line(root, points, 0xc8bd88, 36, .3); line(root, points, 0xc7cf9c, 4, .5);
+function drawLandform(parent, type, points, skeleton) {
+    if (type === 'river') {
+      line(parent, points, 0x4d7768, skeleton ? 22 : 30, .22);
+      line(parent, points, 0xd3c995, 13, .9); line(parent, points, 0x3e747f, 9); line(parent, points, 0xa8d2cc, 2.5, .85);
+    } else if (type === 'chasm') {
+      line(parent, points, 0xb69b76, 25, .65); line(parent, points, 0x514b47, 15); line(parent, points, 0x222c2e, 7);
+    } else if (type === 'valley') {
+      line(parent, points, 0x718762, 70, .18); line(parent, points, 0xc8bd88, 36, .3); line(parent, points, 0xc7cf9c, 4, .5);
     } else {
-      line(root, points, 0x645d4f, 45, .14);
-      if (skeleton) line(root, points, 0xc5b292, 8, .85);
-      const g = new PIXI.Graphics(); root.addChild(g);
+      line(parent, points, 0x645d4f, 45, .14);
+      if (skeleton) line(parent, points, 0xc5b292, 8, .85);
+      const g = new PIXI.Graphics(); parent.addChild(g);
       let remaining = 0;
       for (let i = 1; i < points.length; i++) {
         const a = point(points[i - 1]), b = point(points[i]), length = Math.hypot(b.x - a.x, b.y - a.y);
@@ -149,6 +146,11 @@ function drawFeatures() {
         remaining -= length;
       }
     }
+}
+function drawFeatures() {
+  for (const feature of map.features) {
+    const points = featurePath(feature), skeleton = state.variant === 'B';
+    drawLandform(root, feature.type, points, skeleton);
     if (skeleton) {
       const p = point(points[Math.floor(points.length * .55)]);
       const label = text(root, FEATURE_NAMES[feature.type], p.x, p.y - 35, 32, 0xf6ecd0, { stroke: 0x243439, strokeThickness: 7 }); label.anchor.set(.5);
@@ -156,12 +158,63 @@ function drawFeatures() {
   }
 }
 
+function drawSurroundings() {
+  const layer = new PIXI.Container(), clip = new PIXI.Graphics().beginFill(0xffffff).drawRoundedRect(494, 146, 1896, 750, 10).endFill();
+  layer.eventMode = 'none'; clip.eventMode = 'none'; root.addChild(layer, clip); layer.mask = clip;
+  const colours = { ocean: 0x315561, mountains: 0x777968, wasteland: 0x8c8062 };
+  for (const patch of map.surroundings.patches) {
+    const ink = new PIXI.Graphics().beginFill(colours[patch.kind]).drawPolygon(polygonPoints(patch.points)).endFill(); layer.addChild(ink);
+    const edge = map.edges.find(e => e.id === patch.edgeId);
+    if (patch.kind === 'wasteland') line(layer, edge.points, BIOMES[map.regions.find(r => r.id === patch.regionId).biome].colour, 42, .2);
+    const bounds = { minX: Math.min(...patch.points.map(p => p.x)), maxX: Math.max(...patch.points.map(p => p.x)),
+      minY: Math.min(...patch.points.map(p => p.y)), maxY: Math.max(...patch.points.map(p => p.y)) };
+    const g = new PIXI.Graphics(); layer.addChild(g);
+    for (let i = 0; i < 85; i++) {
+      const index = map.edges.indexOf(edge) * 1000 + i * 3 + 91000;
+      const p = { x: bounds.minX + decorationRandom(map.seed, index) * (bounds.maxX - bounds.minX),
+        y: bounds.minY + decorationRandom(map.seed, index + 1) * (bounds.maxY - bounds.minY) };
+      if (!insidePolygon(p, patch.points)) continue;
+      const { x, y } = point(p), size = 9 + decorationRandom(map.seed, index + 2) * 13;
+      if (patch.kind === 'mountains') drawMountain(g, x, y, size * 1.4, 0x495851);
+      else if (patch.kind === 'ocean') g.lineStyle(1.5, 0xacc9c2, .17).moveTo(x - size, y).quadraticCurveTo(x, y - 3, x + size, y);
+      else g.lineStyle(1.5, 0x665d4a, .45).moveTo(x - size, y).lineTo(x, y - 3).lineTo(x + size * .8, y + 2)
+        .moveTo(x, y - 3).lineTo(x + size * .2, y + 9);
+    }
+  }
+  if (state.variant !== 'A') for (const continuation of map.surroundings.continuations) {
+    drawLandform(layer, continuation.type, continuation.points, false);
+  }
+  // Dim the non-playable landscape while retaining its geographic continuity.
+  const shade = new PIXI.Graphics().beginFill(0x152c31, .2).drawRoundedRect(494, 146, 1896, 750, 10).endFill(); layer.addChild(shade);
+  text(root, 'BEYOND THE PLAYABLE REGIONS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
+}
+
+function drawIslands() {
+  if (state.variant === 'A') return;
+  for (const cluster of map.islandClusters) {
+    const g = new PIXI.Graphics(); g.eventMode = 'none'; root.addChild(g);
+    for (const contour of cluster.contours) {
+      const points = polygonPoints(contour);
+      const lagoon = contour !== cluster.contours[0] && insidePolygon(contour[0], cluster.contours[0]);
+      g.lineStyle(11, 0x456e74, .65).beginFill(lagoon ? BIOMES.islands.colour : 0x94a276).drawPolygon(points).endFill();
+      g.lineStyle(5, 0xe1cf95, .95).drawPolygon(points);
+      g.lineStyle(1.5, 0x717f56, .7).drawPolygon(points);
+    }
+    if (state.variant === 'C') for (const core of cluster.cores) {
+      const p = point(core.centre);
+      for (let i = 0; i < 7; i++) {
+        const angle = i * 2.4 + core.phase, radius = core.radius * .55;
+        const q = point({ x: core.centre.x + Math.cos(angle) * radius / 2.15, y: core.centre.y + Math.sin(angle) * radius });
+        drawTree(g, q.x, q.y, 7, 0x47614b);
+      }
+      g.lineStyle(1.5, 0x6d7e53, .4).moveTo(p.x - 12, p.y + 15).quadraticCurveTo(p.x, p.y + 10, p.x + 18, p.y + 15);
+    }
+  }
+}
+
 function drawMap() {
   panel(root, 492, 144, 1900, 754, 0x24444c, 0x718071);
-  const water = new PIXI.Graphics(); root.addChild(water);
-  for (let y = 190; y < 860; y += 42) for (let x = 545; x < 2330; x += 88) {
-    water.lineStyle(1.5, 0x9fc2b9, .09).moveTo(x, y).quadraticCurveTo(x + 20, y - 5, x + 44, y);
-  }
+  drawSurroundings();
   for (const region of map.regions) {
     const shape = new PIXI.Graphics(); root.addChild(shape);
     const points = polygonPoints(state.variant === 'A' ? region.polygon : region.outline);
@@ -174,12 +227,15 @@ function drawMap() {
     shape.on('pointertap', () => { state.selected = region.id; render(); });
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24 });
   }
+  drawIslands();
   for (const edge of map.edges) {
     const straight = [edge.points[0], edge.points.at(-1)];
     const sameBiome = edge.regions.length === 2 && map.regions.find(r => r.id === edge.regions[0]).biome === map.regions.find(r => r.id === edge.regions[1]).biome;
     const boundary = edge.regions.length === 1;
-    line(root, state.variant === 'A' ? straight : edge.points, boundary ? 0xdace9b : 0x31493f,
-      boundary ? 5 : state.variant === 'A' ? 2.5 : 1.8, boundary ? .9 : sameBiome && state.variant === 'C' ? .24 : .55);
+    const outside = boundary ? map.surroundings.patches.find(p => p.edgeId === edge.id) : null;
+    const seaBoundary = outside?.kind === 'ocean', islandWater = seaBoundary && map.regions.find(r => r.id === edge.regions[0]).biome === 'islands';
+    line(root, state.variant === 'A' ? straight : edge.points, boundary ? islandWater ? 0x7fa5a4 : seaBoundary ? 0xdace9b : 0xb2ad88 : 0x31493f,
+      boundary ? islandWater ? 1.5 : 4 : state.variant === 'A' ? 2.5 : 1.8, boundary ? islandWater ? .4 : .8 : sameBiome && state.variant === 'C' ? .24 : .55);
   }
   if (state.variant !== 'A') drawFeatures();
   const selected = map.regions.find(r => r.id === state.selected);
@@ -197,10 +253,10 @@ function drawMap() {
   }
   text(root, 'N', 2318, 182, 30, 0xd9d6b6); const compass = new PIXI.Graphics().lineStyle(2, 0xd9d6b6, .7).moveTo(2330, 227).lineTo(2330, 270)
     .moveTo(2318, 247).lineTo(2342, 247); root.addChild(compass);
-  const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of land · Neighbours ${selected.neighbours.join(', ')}`
+  const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
     : state.variant === 'A' ? '20 regions · straight-edge topology · tap a region to inspect'
       : state.variant === 'B' ? 'Continuous features follow shared edges across the map · decorative geography'
-        : 'Biome textures, shared organic borders and continuous landforms · tap to inspect';
+        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · ocean, barren hinterland and highland barriers · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
 
@@ -213,7 +269,7 @@ function render() {
     const x = 518 + i * 372, y = 928;
     const g = new PIXI.Graphics().beginFill(biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
     text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 31);
-    text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of land`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
+    text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
   panel(root, 1004, 1003, 930, 62, 0x182e32, 0x778675);
   button('Previous map view', 1012, 1008, 100, 52, () => cycle(-1), { copy: '←', size: 35 });
@@ -232,9 +288,11 @@ function sync() {
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
-    biomeLandPercent: Object.fromEntries(Object.entries(map.biomeAreas).map(([id, area]) => [id, +(area * 100).toFixed(1)])),
+    biomeAreaPercent: Object.fromEntries(Object.entries(map.biomeAreas).map(([id, area]) => [id, +(area * 100).toFixed(1)])),
     features: map.features.map(f => ({ type: f.type, sharedEdges: f.edgeIds.length })),
-    assumptions: 'Islands are water-rich regions with decorative islets; all graph neighbours remain intact. Landforms are edge routes, not a hydrology simulation. No live game or persistence.' }, null, 2);
+    islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
+    surroundings: [...new Set(map.surroundings.patches.map(p => p.kind))],
+    assumptions: 'Neighbouring Islands regions share generated land and coastlines. Ocean, barren hinterland and mountain barriers derive from boundary biomes and landform endpoints. All graph neighbours remain intact; surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
   app.renderer.render(app.stage);

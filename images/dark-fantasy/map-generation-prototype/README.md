@@ -22,13 +22,19 @@ rotated fallback where browser orientation locking is unavailable.
 The bottom arrows or keyboard Left/Right switch views without regenerating.
 Settings are shareable URL parameters; no browser storage or player save is used.
 Twenty weighted Voronoi regions receive the five biomes, randomly assigned the
-exact counts **6, 5, 4, 3, 2**. Count and land area are separately reported.
+exact counts **6, 5, 4, 3, 2**. Count and playable area are separately reported.
 Clustering favours equal-biome neighbours, with weak coastal/wet/ridge preferences.
 Shared borders are generated once and reused for terrain masks and selection.
 Landform routes traverse several shared edges; river, mountain range, chasm and
 valley treatments are decorative. This is not elevation, hydrology or climate
-simulation. Islands are water-rich graph regions containing decorative islets;
-separated land masses and water-crossing rules remain an open design question.
+simulation. Connected Islands regions share a cluster-wide land field: region
+centres have organic land cores joined across shared edges, with a continuous
+coastline and occasional lagoons. Region divisions and graph neighbours remain
+intact. Ocean surrounds Island coasts and river mouths; mountain barriers follow
+highland regions, range endpoints and river headwaters; other edges meet barren
+hinterland. These non-playable surroundings use shared curved transitions and
+continue the generated landforms beyond the playable area. Water crossings and
+impassability remain visual suggestions, with no simulation rules attached.
 
 Reflections affect only the displayed map; identities, adjacency, biome counts,
 areas and features remain identical. Labels and symbols stay upright. The isolated
@@ -37,7 +43,8 @@ simulation state, RNG streams, schemas, replay, definitions and saves are untouc
 
 `window.mapWorkbench` exposes the current map, controls, screen-space Pixi targets
 and PNG export for inspection. Validate quota counts, seed reproducibility,
-symmetric connected adjacency, area coverage and continuous feature routes;
+symmetric connected adjacency, area coverage, continuous feature routes, island
+cores belonging to their shared landmass, and geography-derived surroundings;
 review generation controls, tap selection, views, URL refresh, reflections, PNG,
 fullscreen and fixed aspect ratio at desktop and 844 × 390 phone landscape.
 `npm run verify` covers packaging and the unchanged game invariants.
