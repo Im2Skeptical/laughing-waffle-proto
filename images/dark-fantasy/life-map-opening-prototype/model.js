@@ -3,7 +3,8 @@ import { createNewGameState } from '../../../src/model/new-game.js';
 import { serializeGameState, deserializeGameState } from '../../../src/model/state.js';
 import { getCurrentLifeMapVassal, selectLifeMapVassal, enterVassalLifeNode, getVassalNodeDecisionPresentation,
   getVassalAge, getVassalEffectiveStats, getVassalActionPhaseCost, getAdjustedVassalPrestigeCost,
-  selectVassalNodeOption, confirmVassalLifeNode, purchaseVassalShopOffer, chooseVassalDevelopmentStat } from '../../../src/model/vassal-life-map.js';
+  selectVassalNodeOption, confirmVassalLifeNode, purchaseVassalShopOffer, chooseVassalDevelopmentStat, getVassalStatPresentation, formatVassalPhaseDuration } from '../../../src/model/vassal-life-map.js';
+import { getVassalMortalityChance } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { classActionOptions } from '../../../src/model/vassal-life-map/class-actions.js';
 import { generateShopInventory } from '../../../src/model/vassal-life-map/shop.js';
 import { getStockShopGenerationContext } from '../../../src/model/vassal-life-map/stock-shops.js';
@@ -143,20 +144,36 @@ export function enterOpeningEncounter(session, id) {
   return session;
 }
 
-export function getOpeningDecision(session) {
+export function getOpeningDecision(session, preview = {}) {
   if (!session.activeId) return null;
-  const presentation = getVassalNodeDecisionPresentation(session.state, session.runtimeNodeId);
+  const presentation = getVassalNodeDecisionPresentation(session.state, session.runtimeNodeId, preview);
   const vassal = openingVassal(session), current = nodeState(session);
-  return { ...presentation, options: current.options.map(option => {
+  const spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  const options = current.options.map(option => {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
     const phases = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, { nodeState: current, isTravel: current.family === 'travel' && !!option.locationRegionId });
     const projectedAge = getVassalAge(session.state, vassal, session.state.tSec + phases * getMoonPhaseDurationSec(session.state));
-    return { ...option, cost, phases, projectedAge, blocked: cost > vassal.prestige ? 'Insufficient Prestige'
+    return { ...option, ...(option.statId ? { statLabel: getVassalStatPresentation(vassal, option.statId).label } : {}), cost, phases, projectedAge, blocked: cost > vassal.prestige ? 'Insufficient Prestige'
       : !session.founded && (projectedAge >= 40 || (option.immediateDeathChance ?? 0) > 0) ? 'Founding must remain before any death risk' : null };
-  }) };
+  });
+  if (spec.pass && current.contentMode === 'shop' && !presentation.purchases.length) {
+    const phases = getVassalActionPhaseCost(vassal, spec.pass.phaseCost ?? 0, { nodeState: current });
+    const age = getVassalAge(session.state, vassal, session.state.tSec + phases * getMoonPhaseDurationSec(session.state));
+    presentation.mortalityEstimate = { ...presentation.mortalityEstimate, totalPhaseCost: phases,
+      timeLabel: formatVassalPhaseDuration(phases, session.state), projectedAge: age,
+      naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
+  }
+  return { ...presentation, node: { ...presentation.node, experimentId: spec.id,
+    presentationLabel: spec.title, presentationDescription: spec.description },
+    nodeState: { ...presentation.nodeState, options }, options };
 }
-export function stageOpeningOffer(session, offerId) {
-  return requireOk(purchaseVassalShopOffer(session.state, session.runtimeNodeId, offerId));
+export function selectOpeningOption(session, optionId) {
+  const option = getOpeningDecision(session)?.options.find(o => o.id === optionId);
+  if (!option || option.blocked) throw new Error(option?.blocked ?? 'Choose an available action.');
+  return requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
+}
+export function stageOpeningOffer(session, offerId, origin, toIndex, replacePracticeId) {
+  return requireOk(purchaseVassalShopOffer(session.state, session.runtimeNodeId, offerId, origin, toIndex, replacePracticeId));
 }
 export function commitOpeningEncounter(session, optionId = null, destination = 'equip', pass = false) {
   const current = nodeState(session), spec = session.experiment.nodes.find(n => n.id === session.activeId);
@@ -188,4 +205,28 @@ export function finishOpeningEncounter(session, before) {
 export function chooseOpeningDevelopment(session, statId) {
   const vassal = getCurrentLifeMapVassal(session.state);
   return requireOk(chooseVassalDevelopmentStat(session.state, vassal?.developmentChoiceQueue[0]?.choiceId, statId));
+}
+
+// Render-only projection: the editable graph does not replace GameState's
+// generated graph or alter its validation, serialization or replay rules.
+export function getOpeningGraphPresentation(session) {
+  const vassal = openingVassal(session), depths = {};
+  const visit = (id, depth) => {
+    if ((depths[id] ?? -1) >= depth) return;
+    depths[id] = depth; session.experiment.nodes.find(n => n.id === id).next.forEach(next => visit(next, depth + 1));
+  };
+  session.experiment.entryIds.forEach(id => visit(id, 0));
+  const maxDepth = Math.max(...Object.values(depths));
+  const nodes = session.experiment.nodes.map(spec => {
+    const peers = session.experiment.nodes.filter(n => depths[n.id] === depths[spec.id]);
+    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
+    return { id: spec.id, experimentId: spec.id, presentationLabel: spec.title, presentationDescription: spec.description,
+      family, depth: depths[spec.id], lane: peers.indexOf(spec),
+      ...(family === 'stockShop' ? { stockOutput: spec.stockOutput === 'auto' ? 'Needed' : spec.stockOutput } : {}),
+      position: { x: depths[spec.id] / Math.max(1, maxDepth), y: peers.length === 1 ? .5 : .25 + .5 * peers.indexOf(spec) / (peers.length - 1) } };
+  });
+  return { ...vassal, lifeMap: { ...vassal.lifeMap, currentNodeId: session.activeId,
+    availableNodeIds: session.availableIds, completedNodeIds: session.visitedIds,
+    graph: { ...vassal.lifeMap.graph, nodes, entryNodeIds: session.experiment.entryIds,
+      edges: session.experiment.nodes.flatMap(n => n.next.map(next => ({ fromNodeId: n.id, toNodeId: next }))) } } };
 }

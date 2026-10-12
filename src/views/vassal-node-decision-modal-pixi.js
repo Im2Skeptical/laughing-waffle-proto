@@ -51,6 +51,8 @@ export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
   onPurchaseOffer, onUndoPurchase, onReorderPurchase, onMoveStructure, onRerollShop, onConfirmNode,
   onWorldMap, onReadOnlyAction, getProtectedBackdropRects, onReview, onOpenHeirlooms, tooltipView,
+  getNodeFamily = getVassalLifeMapNodeFamily,
+  showShopReroll = () => true,
 } = {}) {
   const backdrop = new PIXI.Graphics();
   backdrop.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
@@ -99,13 +101,13 @@ export function createVassalNodeDecisionModalView({
     const content = new PIXI.Container();
     for (const child of root.removeChildren()) content.addChild(child);
     return {content, signature, enterRoot, optionRoots, offerRoots, shopCardRoots,
-      confirmRoot, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauLayer, discardRoots, offerPageRoots, tableauWidth:tableau.width,
+      confirmRoot, acquireRoots, undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauLayer, discardRoots, offerPageRoots, tableauWidth:tableau.width,
       inspectionAboveChrome:inspectionLayerIndex!==null};
   }
   function restoreLayout(layout) {
     for (const child of layout.content.removeChildren()) root.addChild(child);
     layout.content.destroy();
-    ({signature, enterRoot, optionRoots, offerRoots, shopCardRoots, confirmRoot,
+    ({signature, enterRoot, optionRoots, offerRoots, shopCardRoots, confirmRoot, acquireRoots,
       undoRoots, tableauRoots, inspectionRoot, lastDecision, tableauLayer, discardRoots, offerPageRoots} = layout);
     tableau.width = layout.tableauWidth;
     setInspectionAboveChrome(layout.inspectionAboveChrome);
@@ -131,6 +133,7 @@ export function createVassalNodeDecisionModalView({
   let offerRoots = [];
   let shopCardRoots = [];
   let confirmRoot = null;
+  let acquireRoots = {};
   let undoRoots = [];
   let hoveredOptionId = null;
   let hoveredOfferId = null;
@@ -481,7 +484,7 @@ export function createVassalNodeDecisionModalView({
     tableau.width = TABLEAU.width;
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
-    const family = getVassalLifeMapNodeFamily(node);
+    const family = getNodeFamily(node);
     motionColor = family?.color ?? PALETTE.accent;
     const nextSignature = getArtRevision() + JSON.stringify({ presentation: {
       vassalId:vassal?.vassalId, readOnly, viewedSec:presentation.viewedSec,
@@ -514,6 +517,7 @@ export function createVassalNodeDecisionModalView({
     offerPageRoots = [];
     shopCardRoots = [];
     confirmRoot = null;
+    acquireRoots = {};
     undoRoots = [];
     tableauRoots = [];
     inspectionRoot = null;
@@ -781,7 +785,7 @@ export function createVassalNodeDecisionModalView({
           : replacementOfferId ? 'Choose a board Practice to replace, or tap the offer again to cancel.'
             : node.family === 'relic' ? 'Choose an heirloom first.' : 'Choose an option first.';
     const explainConfirm = confirmBlocked ? () => explainBlocked(confirmBlocked) : null;
-    if (isShop && nodeState && !nodeState.resolving) {
+    if (isShop && nodeState && !nodeState.resolving && showShopReroll(node)) {
       const rerollCost = getVassalShopRerollCost(vassal);
       const rerollEnabled = !readOnly && !nodeState.rerollUsed
         && (nodeState.purchasedOffers ?? []).length === 0
@@ -814,7 +818,7 @@ export function createVassalNodeDecisionModalView({
         const result = onConfirmNode?.(node.id, acquire);
         if (result?.ok !== false) close();
       };
-      button(root, {
+      acquireRoots.equip = button(root, {
         x: confirmRect.x, y: confirmRect.y - 8, width: confirmRect.width, height: 48,
       }, selected?.emptyRelic ? "CONTINUE" : "EQUIP NOW", canAcquire || (canConfirm && !!selected?.emptyRelic), () => {
         if (selected?.emptyRelic) {
@@ -828,7 +832,7 @@ export function createVassalNodeDecisionModalView({
         acquirePicker = { destination: "equip" };
         render(true);
       }, false, { onUnavailable: explainConfirm });
-      button(root, {
+      acquireRoots.carry = button(root, {
         x: confirmRect.x, y: confirmRect.y + 48, width: confirmRect.width, height: 48,
       }, "STOW IN BAG", canAcquire, () => {
         if ((heirlooms.carry ?? []).some((item) => !item)) {
@@ -977,6 +981,13 @@ export function createVassalNodeDecisionModalView({
     getConfirmClickPoint: () => {
       if (!logicalOpen || !confirmRoot) return null;
       const rect = confirmRoot.getBounds();
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    },
+    getAcquireClickPoint(destination = 'equip') {
+      if (!logicalOpen) return null;
+      const target = destination === 'decline' ? confirmRoot : acquireRoots[destination];
+      if (!target) return null;
+      const rect = target.getBounds();
       return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
     },
     getUndoClickPoint(index = 0) {

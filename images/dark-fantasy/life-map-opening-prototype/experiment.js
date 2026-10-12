@@ -60,6 +60,7 @@ export function validateOpeningExperiment(doc) {
         || !OPENING_KINDS.includes(node.kind) || typeof node.title !== 'string' || !node.title.trim()
         || typeof node.description !== 'string' || !Array.isArray(node.next) || new Set(node.next).size !== node.next.length) throw new Error('Each node needs a unique ID, title, description, kind and next-node list.');
     ids.add(node.id);
+    if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
     if (node.stockOutput != null && typeof node.stockOutput !== 'string') throw new Error(`${node.title}: choose a Stock output.`);
     for (const list of ['options', 'relics', 'cards']) {

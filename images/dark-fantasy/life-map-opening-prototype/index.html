@@ -5,23 +5,26 @@
   <base href="../../../">
   <title>Protovassal opening workbench</title>
   <link rel="stylesheet" href="images/dark-fantasy/life-map-opening-prototype/study.css">
+  <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css">
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
 </head>
 <body>
   <header><div><p class="eyebrow">CIVILIZATION SURVIVOR · GAMEPLAY EXPERIMENT</p><h1>Protovassal opening</h1>
     <p>Does this authored Warrior opening give useful opportunities, teach Prestige and make early military preparation matter?</p></div>
     <a href="index.html#/dev/prototypes">← Prototype workbenches</a></header>
   <main>
-    <div class="toolbar" id="toolbar"></div>
     <p id="status" role="status" aria-live="polite"></p>
     <nav id="walkthroughs" aria-label="Guided experiments"></nav>
     <p id="guide" class="note"></p>
-    <section aria-label="Current civilization" id="summary"></section>
+    <section class="game-panel" aria-label="Playable game screen">
+      <div id="game-screen"><p class="note">Loading game artwork…</p></div>
+      <p class="note">Play on the canvas: select a node, enter it, then choose or stage cards and Confirm. Use the game navigation for the world and settlement. Fullscreen gives you the normal game proportions.</p>
+    </section>
+    <div class="toolbar" id="toolbar"></div>
     <div class="workspace">
       <div class="play-column">
-        <section class="panel"><div class="section-head"><h2>Opening graph</h2><span id="graph-status"></span></div>
-          <p class="note">Choose a highlighted node. Edit any node using its pencil button.</p><div id="graph"></div></section>
-        <section class="panel" id="decision" aria-label="Current decision"></section>
         <section class="panel"><h2>Outcomes</h2><div id="outcomes"></div></section>
+        <details class="panel"><summary>Civilization numbers</summary><section aria-label="Current civilization" id="summary"></section></details>
         <details class="panel"><summary>Settlements, production and relics</summary><div id="settlements"></div></details>
       </div>
       <aside>
@@ -29,7 +32,7 @@
         <details class="panel"><summary>Experiment JSON / import</summary><p class="note">Edit links, offers and costs here, or import an exported experiment. Applying changes updates the draft; Restart begins a fresh run.</p>
           <textarea id="json" rows="18" spellcheck="false" aria-label="Experiment JSON"></textarea><div class="actions"><button id="apply-json">Apply JSON to draft</button><label class="file-button">Import JSON<input type="file" id="import" accept=".json,application/json"></label></div></details>
         <details class="panel"><summary>What this experiment changes</summary><p>Fresh-game world, population, Stock, Retinue, action effects, mortality and elapsed time use real game rules. The authored graph, curated offers, development choices and ordinary relic Chaos penalties belong only to this workbench.</p>
-          <p>The graph advances through disposable encounter slots in a normal runtime graph. The playable controls are a compact text interface; this does not test the full game screen's presentation. Stock Supply uses the current global unmet-input check.</p>
+          <p>The mock screen reuses the game's Pixi Life Map, world map, settlement, HUD, node decision and inspection views. The authored graph advances through disposable encounter slots in a normal runtime graph. Stock Supply uses the current global unmet-input check.</p>
           <p>Each ordinary node still grants the current routine Prestige and Development income. Earned ability choices remain playable. Pre-founding actions that would reach mortality age are blocked. World collapse can still end a run.</p>
           <p>Saved experiments use separate browser storage. Nothing writes to player saves, live card reviews or the main game configuration.</p></details>
       </aside>

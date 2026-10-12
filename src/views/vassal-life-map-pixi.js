@@ -49,6 +49,8 @@ function drawPinMarker(graphics, filled) {
 export function createVassalLifeMapView({
   app, layer, confirmLayer, getPresentation, getCivilizationLossInfo, onOpenEndDetails, isVisible, onEnterNode, onOpenDecision, onReadOnlyAction, tooltipView,
   isRecapOpen,
+  getNodeFamily = getVassalLifeMapNodeFamily,
+  describeEntryConsequences, getDisplayScale,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 10;
@@ -62,7 +64,7 @@ export function createVassalLifeMapView({
   let confirmPointerHeld = false;
   let entryBlockedReason = null;
   const entryDialog = createLifeMapEntryConfirm({
-    app, layer: confirmLayer,
+    app, layer: confirmLayer, describeConsequences: describeEntryConsequences, getDisplayScale,
     onConfirm: () => enterCandidate(),
     onCancel: () => cancelEntryConfirmation(),
   });
@@ -127,7 +129,7 @@ export function createVassalLifeMapView({
 
   function showNodeTooltip(node, target, vassal) {
     if (dismissTooltipForRecap()) return;
-    const family = getVassalLifeMapNodeFamily(node);
+    const family = getNodeFamily(node);
     if (!family || !target) return;
     const presentation = getPresentation?.() ?? {};
     const available = getDisplay(vassal, node.id, new Set(presentation.committedNodeIds ?? []),
@@ -474,7 +476,7 @@ export function createVassalLifeMapView({
     for (const node of nodes) {
       const display = getDisplay(vassal, node.id, committed, readOnly, loadoutPending);
       const point = nodePoint(node);
-      const family = getVassalLifeMapNodeFamily(node) ?? {};
+      const family = getNodeFamily(node) ?? {};
       const nodeRoot = new PIXI.Container();
       nodeRoot.position.set(point.x, point.y);
       nodeRoot.eventMode = "static";
@@ -544,7 +546,7 @@ export function createVassalLifeMapView({
 
   function entrySpec(node, presentation) {
     const vassal = presentation.vassal;
-    const family = getVassalLifeMapNodeFamily(node) ?? {};
+    const family = getNodeFamily(node) ?? {};
     const location = vassal?.locationRegionId
       ? String(getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId) : null;
     const prestige = Number.isFinite(vassal?.prestige) ? Math.floor(vassal.prestige) : null;

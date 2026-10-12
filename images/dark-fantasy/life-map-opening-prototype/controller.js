@@ -1,9 +1,9 @@
 import { serializeGameState, deserializeGameState } from '../../../src/model/state.js';
 import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-runner.js';
-import { undoVassalShopPurchase } from '../../../src/model/vassal-life-map.js';
+import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { createOpeningSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment } from './model.js';
+  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment } from './model.js';
 
 export const OPENING_STORAGE_KEY = 'civsurvivor.prototype.warriorOpening.v1';
 export function createOpeningController(storage = null) {
@@ -25,6 +25,7 @@ export function createOpeningController(storage = null) {
       session, decision: getOpeningDecision(session), busy, progress, message, canRewind: checkpoints.length > 0,
       saved: !!saved, draftChanged: JSON.stringify(draft) !== JSON.stringify(session.experiment),
       development: openingVassal(session).developmentChoiceQueue[0] ?? null }; },
+    getDecision(preview) { return getOpeningDecision(session, preview); },
     replaceDraft(doc) { idle(); draft = validateOpeningExperiment(doc); message = 'Draft updated. Restart to play these changes.'; notify(); },
     save() { idle(); if (!storage) throw new Error('Browser storage is unavailable. Export the experiment instead.');
       storage.setItem(OPENING_STORAGE_KEY, JSON.stringify(draft)); saved = structuredClone(draft); message = 'Experiment saved in this browser.'; notify(); },
@@ -37,8 +38,16 @@ export function createOpeningController(storage = null) {
       checkpoints.push(checkpoint); session = next; message = 'Choose an action or stage purchases.'; notify(); },
     rewind() { idle(); if (!checkpoints.length) return;
       session = cloneOpeningSession(checkpoints.pop()); message = 'Returned to the previous decision, including its RNG state.'; notify(); },
-    stage(id) { transact(next => stageOpeningOffer(next, id)); },
+    select(id) { transact(next => selectOpeningOption(next, id)); },
+    stage(id, origin, toIndex, replacePracticeId) { transact(next => stageOpeningOffer(next, id, origin, toIndex, replacePracticeId)); },
     undo(id) { transact(next => { const result = undoVassalShopPurchase(next.state, next.runtimeNodeId, id); if (!result.ok) throw new Error(result.reason); }); },
+    reorder(id, toIndex) { transact(next => { const result = reorderVassalShopPurchase(next.state, next.runtimeNodeId, id, toIndex); if (!result.ok) throw new Error(result.reason); }); },
+    move(id, origin) { transact(next => { const result = moveVassalShopStructure(next.state, next.runtimeNodeId, id, origin); if (!result.ok) throw new Error(result.reason); }); },
+    reroll() { transact(next => {
+      const spec = next.experiment.nodes.find(n => n.id === next.activeId);
+      if (spec.cards) throw new Error('Edit curated offers in the draft, then Restart.');
+      const result = rerollVassalShop(next.state, next.runtimeNodeId); if (!result.ok) throw new Error(result.reason);
+    }); },
     develop(statId) { transact(next => chooseOpeningDevelopment(next, statId)); },
     async commit(optionId, destination, pass) {
       idle(); const next = cloneOpeningSession(session), before = openingSummary(next);

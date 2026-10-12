@@ -107,7 +107,9 @@ function pillButton(parent, rect, { label, colors, primary, onActivate }) {
   return root;
 }
 
-export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = {}) {
+export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel,
+  describeConsequences = getEntryConsequences, getDisplayScale = () => cssScaleOf(app),
+} = {}) {
   const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
   const finePointer = globalThis.matchMedia?.('(pointer: fine)');
   const root = new PIXI.Container();
@@ -153,7 +155,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
   });
 
   function computeScale() {
-    const css = cssScaleOf(app);
+    const css = getDisplayScale();
     const body = layout?.bodyHeight ?? 320;
     const fitWidth = (STAGE.width - STAGE.margin * 2) / PANEL_WIDTH;
     const fitHeight = STAGE.height - STAGE.margin * 2;
@@ -226,7 +228,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
     let contentBottom = description.y + description.height;
 
     // Conditional warnings only (death risk, blocked entry).
-    const rows = getEntryConsequences({ node, family, blockedReason: spec.blockedReason });
+    const rows = describeConsequences({ node, family, blockedReason: spec.blockedReason });
     if (rows.length) {
       const rowHeight = 48;
       const rowsY = contentBottom + 16;
@@ -314,7 +316,7 @@ export function createLifeMapEntryConfirm({ app, layer, onConfirm, onCancel } = 
 
   function tick() {
     if (pointerHeld) return;
-    if (layout && root.visible && Math.abs(cssScaleOf(app) - layout.cssScale) > layout.cssScale * .01) build();
+    if (layout && root.visible && Math.abs(getDisplayScale() - layout.cssScale) > layout.cssScale * .01) build();
     if (!motion) return;
     const t = Math.min(1, (performance.now() - motion.startedAtMs) / motion.duration);
     const eased = 1 - (1 - t) ** 3;

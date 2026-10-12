@@ -15,7 +15,8 @@ opening or a replacement for normal gameplay.
 - `experiment.js`: editable JSON graph, offers and validation.
 - `model.js`: disposable encounters using existing Life Map effects and fresh-game state.
 - `controller.js`: transactions, tick resolution, complete rewind checkpoints and separate draft storage.
-- `study.js`: compact text gameplay, graph/node editing, outcomes and guided experiments.
+- `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
+- `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
 
 The initial branches are a curated ordinary Relic and a bundled world opportunity.
 Both converge on Warrior founding, followed by expenditure, Development, martial
@@ -23,6 +24,8 @@ response, Stock Supply and an easy benefit. Node editing changes the draft only;
 Restart captures it in a new disposable session. Advanced JSON supports adding
 nodes/offers, changing entry points and rewiring the graph. Validation requires a
 reachable acyclic graph whose every entry path reaches one founding node.
+The optional `displayLabel` sets a short map plaque; the title and description
+remain available in the entry confirmation and decision screen.
 
 Save/Load uses `civsurvivor.prototype.warriorOpening.v1`, independently of player
 saves, reviewed cards, launch profiles and the Museum. Export/import transfers
@@ -40,7 +43,10 @@ ticks, with short yields so the interface remains responsive.
 The outer authored graph is independent of the generated runtime graph. Its
 encounters borrow ordinary runtime slots; founding uses the existing founding
 slot at the authored convergence point. Normal GameState and graph schemas are
-unchanged. The compact DOM controls are not a test of the full game's UI.
+unchanged. Play uses the game's Pixi Life Map, node modal, cards, inspection,
+staging/drag/undo, level-up cards, HUD, world map and settlement. The shared
+navigation opens these views; Fullscreen uses the existing landscape control.
+The editor and saved-draft controls remain beside/below the mock screen.
 
 Curated shop offers use existing card definitions and eligibility. Ordinary
 relics have zero direct death risk and explicit authored Chaos costs. The separate
@@ -55,4 +61,6 @@ the real civilization can still collapse. No new Scholar unlock rule is applied.
 
 Validate deployment with `npm run verify`. The updated
 `npm run probe:prototypes` checks the directory, retirement, opening playthrough,
-rewind, edited costs, draft persistence/import and mobile containment.
+rewind, edited costs, draft persistence/import, real Pixi selection/confirmation,
+shop inspection/drag/undo, earned level-up choices, map navigation, portrait
+fullscreen touch input and mobile containment.

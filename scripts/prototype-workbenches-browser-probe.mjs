@@ -59,6 +59,25 @@ async function exportedSize() {
     return { width:image.width, height:image.height, centerAlpha:context.getImageData(image.width/2,image.height/2,1,1).data[3] };
   });
 }
+async function openingPoint(kind,index=0) {
+  const canvas=page.getByTestId('opening-game-screen');await canvas.scrollIntoViewIfNeeded();
+  const point=await page.evaluate(({kind,index})=>openingWorkbench.getClientPoint(kind,index),{kind,index});
+  assert.ok(point,`Opening canvas target ${kind}/${index}`);return point;
+}
+async function openingClick(kind,index=0,touch=false) {
+  if(['option','offer','face','confirm','undo','tableau','inspectClose','acquire'].includes(kind))await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.animation==='open');
+  let point=await openingPoint(kind,index);
+  if(touch)await page.touchscreen.tap(point.x,point.y);
+  else {await page.mouse.move(point.x,point.y);await page.waitForTimeout(180);point=await openingPoint(kind,index);await page.mouse.click(point.x,point.y);}
+}
+async function openingEnter(id,touch=false) {
+  await openingClick('node',id,touch);
+  await page.waitForFunction(id=>openingWorkbench.getSnapshot().game.graph.candidateId===id,id);
+  await openingClick('enter',0,touch);
+  await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.graph.entryAnimation==='open');
+  await openingClick('enter',0,touch);
+  await page.waitForFunction(id=>openingWorkbench.getSnapshot().activeId===id,id);
+}
 try {
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
@@ -96,6 +115,66 @@ try {
     for(let step=0;step<4;step++) {if(await next.isDisabled())break;await next.click();await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy);}
     assert.deepEqual((await page.evaluate(()=>openingWorkbench.getSnapshot())).summary,first.summary);
     await page.screenshot({path:'artifacts/prototype-opening-desktop.png'});
+  });
+  await check('Pixi game screen: graph entry, relic, founding, inspect, drag, undo and world navigation', async () => {
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+    await page.getByRole('button',{name:'Relic & invest',exact:true}).click();
+    assert.equal(await page.getByTestId('opening-game-screen').count(),1);
+    assert.equal(await page.locator('#decision,#graph').count(),0,'gameplay uses the Pixi screen');
+    await openingEnter('relic');await openingClick('option',0);await openingClick('acquire','equip');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('relic'));
+    assert.ok((await page.evaluate(()=>openingWorkbench.getSnapshot().summary.heirlooms)).includes('Minor Seal'));
+    await openingEnter('founding');await openingClick('option',0);await openingClick('confirm');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().summary.classId==='warrior');
+    await openingEnter('shop');
+    await openingClick('offer',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===1);
+    assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.projectedPrestige<openingWorkbench.getSnapshot().summary.prestige));
+    await openingClick('undo',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===0);
+    await openingClick('face',0);await page.waitForFunction(()=>!!openingWorkbench.getSnapshot().game.modal.inspectedCardId);
+    await page.screenshot({path:'artifacts/prototype-opening-pixi-inspection.png'});
+    await openingClick('inspectClose');
+    const from=await openingPoint('face',0),to=await openingPoint('tableau',2);
+    await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:12});await page.mouse.up();
+    await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===1);
+    await page.screenshot({path:'artifacts/prototype-opening-pixi-shop.png'});
+    await openingClick('confirm');await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('shop'));
+    await openingClick('nav','map');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.mode),'map');
+    await page.screenshot({path:'artifacts/prototype-opening-pixi-world.png'});
+    await openingClick('nav','settlement');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.mode),'settlement');
+    await openingClick('nav','life');
+    await openingEnter('development');await openingClick('option',0);await openingClick('confirm');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('development'));
+    await openingEnter('martial');await openingClick('option',0);await openingClick('confirm');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().game.level.open);
+    await openingClick('level',0);await openingClick('levelConfirm');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().game.level.open);
+    await fullscreenRoundTrip('#game-screen');
+  });
+  await check('Pixi opening touch and portrait landscape fallback', async () => {
+    const previous=page,mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+    page=await mobile.newPage();page.on('pageerror',error=>errors.push(error.message));
+    let phase='boot';
+    try {
+      await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+      phase='fullscreen';
+      await page.evaluate(()=>{document.documentElement.requestFullscreen=()=>Promise.reject(new Error('Denied for fallback check'));});
+      await page.locator('#game-screen .dev-preview-fullscreen').tap();
+      await page.waitForFunction(()=>document.querySelector('#game-screen').classList.contains('dev-preview-expanded')&&!document.querySelector('.dev-preview-fullscreen').disabled);
+      phase='node entry';await openingEnter('relic',true);
+      phase='option selection';await openingClick('option',0,true);
+      phase='acquisition';await openingClick('acquire','equip',true);
+      await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('relic'));
+      await page.screenshot({path:'artifacts/prototype-opening-pixi-phone.png'});
+      await page.locator('#game-screen .dev-preview-fullscreen').tap();
+      await page.waitForFunction(()=>!document.querySelector('#game-screen').classList.contains('dev-preview-expanded'));
+      await noOverflow('opening portrait after fullscreen');
+    }catch(error){
+      const actual=await page.evaluate(()=>({ready:document.body.dataset.ready,status:document.querySelector('#status').textContent,game:openingWorkbench.getSnapshot().game,
+        activeId:openingWorkbench.getSnapshot().activeId,viewport:{width:innerWidth,height:innerHeight},canvas:document.querySelector('canvas').getBoundingClientRect().toJSON()}));
+      await writeFile('artifacts/opening-pixi-touch-failure.json',JSON.stringify({phase,actual,error:error.message},null,2));
+      await page.screenshot({path:'artifacts/opening-pixi-touch-failure.png'});
+      throw new Error(`Touch ${phase}: ${error.message.split('\n')[0]}; details artifacts/opening-pixi-touch-failure.json`);
+    }finally{await mobile.close();page=previous;}
   });
   await check('Opening draft edit, save/reload, import/export and phone containment', async () => {
     await page.getByRole('button',{name:'Explore & save',exact:true}).click();

@@ -204,7 +204,10 @@ The Pages build bundles these entries separately from the game.
 The opening workbench edits an authored Warrior graph and plays sequential
 encounters from the real fresh-game economy. Edit nodes, connections, curated
 shop/relic offers, costs and rewards; Restart captures the draft in a disposable
-run. Resolve choices through real simulation ticks, inspect before/after results,
+run. Its mock game screen reuses the live Pixi Life Map, node modal, shop cards,
+inspection, staging/drag/undo, level-ups, HUD, world map and settlement. Play on
+the canvas; the shared navigation and Fullscreen keep normal game proportions.
+Resolve choices through real simulation ticks, inspect before/after results,
 and Rewind a decision including the complete RNG state. Guided experiments compare
 Relic & invest, Explore & save and Accept Chaos; their Next guided choice button
 uses the same operations as free play. Earned level-up choices remain playable.
