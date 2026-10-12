@@ -9,7 +9,16 @@ This follows the illustrated card workbench: editable presentation fixtures,
 layered painted assets, comparisons at game size, transparency and PNG export.
 Keep it inside this workbench until the user approves production integration.
 
-## Mechanics-first picker pass (October 11)
+## Mechanics-first picker pass (October 12)
+
+The latest draft adopts the user's edited Warlord screenshot and applies the
+same wording structure to Scholar: Unlocks class, BASE ATTRIBUTES, CLASS
+ATTRIBUTES, REPLACED, effects stated per point, and a short Replaces line.
+The fixtures and Warrior tooltips now describe proposed mechanics. The user
+requires the eventual menu implementation and vassal mechanics update to follow
+the final approved design together. Existing simulation rules are experimental;
+they do not constrain this design workshop. See the proposed-mechanics table in
+[`docs/vassal-selection-prototype.md`](../../../docs/vassal-selection-prototype.md).
 
 Open [the forced phone-landscape picker](index.html?study=founder&phone=true&guided=false&variant=A).
 The picker, its layout switcher and rule popups are rendered in Pixi on the
@@ -39,20 +48,20 @@ These changes affect no gamepiece definitions or gameplay.
 The focused dossier is the chosen direction. Its latest pass removes the
 Choose your founder heading/instruction and the entire founding-action block,
 including its outcome and costs. A larger class-framed portrait balances the
-stat exchange and abilities. Class identity is a short Scholar/Warrior label.
+stat exchange and abilities. Class identity reads Unlocks SCHOLAR/WARRIOR.
 Review [Philosopher](index.html?study=founder&phone=true&guided=false&variant=A&founder=1)
 and [Warlord](index.html?study=founder&phone=true&guided=false&variant=A&founder=0)
 in the same forced landscape format.
 
 Scholar exchanges Cunning for Ingenuity; Warrior exchanges Intelligence for
 Prowess. Lost effects are visible alongside the replacement. Commission rewards,
-Prestige-free but time-consuming rerolls, Prestige-held Retinue and a numeric
-risk-reward example are explicit. Tap stats and abilities for their detailed
+Prestige-free but time-consuming rerolls, Prestige-held Retinue and a fixed
+RISK-success reward are explicit. Tap stats and abilities for their detailed
 rules. A unified stat panel now shows all four default names plus the class stat:
 five visible names, four active stats. The replaced default is grey and crossed out,
-with a REMOVED label. Retained defaults stay concise and can be tapped for rules.
-The highlighted class-stat subsection describes both effects per point and the
-effect lost with the replaced default. Scholar loses Cunning's extra node Prestige;
+with a REPLACED label. Retained defaults stay concise and can be tapped for rules.
+The highlighted class-stat subsection describes both effects per point and names
+the replaced default. Scholar loses Cunning's extra node Prestige;
 Warrior loses Intelligence's Prestige-cost discount. The earlier three stat-box
 treatments and their workshop controls are superseded. No founder stat values are
 invented, and there is no retained-stat button.

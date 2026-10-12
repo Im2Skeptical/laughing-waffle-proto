@@ -76,24 +76,22 @@ function action(parent,value,x,y,w,h,onClick,{disabled=false,bright=false,warnin
 }
 
 // Two Pixi picker studies in the actual game canvas: A dossier / B comparison.
-// These are presentation fixtures, not a second implementation of class rules.
+// Proposed mechanics for the menu pass; existing simulation rules are experimental.
 const CLASSES = {
   scholar: {
     from:'Cunning', to:'Ingenuity',
-    statDetails:['+5% chance of higher-quality\nshop offers at the same price.','+1 Research from Discovery.'],
-    removedEffect:'Only the base 3 Prestige per node remains.',
+    statDetails:['+5% shop-quality chance per point','+1 Research on DISCOVERY per point'],
     loss:'Lose extra Prestige income from Cunning.',
     gain:'+5% shop-quality chance per point; extra Discovery Research.',
-    abilities:[['Commission','Complete a new Practice or Structure for +20 Prestige.','commission'],['Free reroll','Once per shop: 0 Prestige. Still costs time.','reroll']],
+    abilities:[['Commission','+20 Prestige on Commission completion','commission'],['Free reroll','1 shop reroll per shop: 0 Prestige; costs time','reroll']],
     flavour:'A patient mind leaves its mark.',
   },
   warrior: {
     from:'Intelligence', to:'Prowess',
-    statDetails:['+1 personal Martial Force\nto Campaigns.','Challenges: \u22125 points of danger\nand \u22121 base phase.'],
-    removedEffect:'The Prestige-cost discount is removed.',
+    statDetails:['+1 Martial Force per point','15% increased RISK success chance per point'],
     loss:'Lose Intelligence\u2019s Prestige-cost discount.',
-    gain:'+1 personal Martial Force per point; safer, faster Challenges.',
-    abilities:[['Personal Retinue','1 Force per 10 held Prestige, up to your Warrior cap.','retinue'],['Risk reward','Survive 25% base danger: +13 Prestige. Scales with danger.','risk']],
+    gain:'+1 Martial Force and 15% increased RISK success chance per point.',
+    abilities:[['Personal Retinue','+1 Martial Force per 10 held Prestige','retinue'],['Risk reward','+15 Prestige on RISK success','risk']],
     flavour:'Their courage outlives their name.',
   },
 };
@@ -103,11 +101,11 @@ const EXPLANATIONS = {
   effectiveness:['Effectiveness','Each point discounts phase costs by 8%, capped at 60%. Costs round up. This stat is retained by both Warriors and Scholars.'],
   intelligence:['Intelligence','Each point discounts Prestige costs by 8%, capped at 60%. Costs round up. Warriors replace this stat with Prowess and lose this discount.'],
   ingenuity:['Ingenuity','Each point adds a 5% chance to raise offered shop quality by one tier, capped at 75%. The price stays the same. Each point also adds 1 Research to Discovery rewards.'],
-  prowess:['Prowess','Each point adds 1 personal Martial Force to Campaigns. In Challenges it removes 5 percentage points of danger and 1 base phase. Personal Prowess does not supply automatic settlement defense.'],
+  prowess:['Prowess','Each point grants +1 Martial Force and 15% increased RISK success chance. Prowess replaces Intelligence and its Prestige-cost discount.'],
   commission:['Commission','Choose a new Practice or a completed Structure as your objective. Completing it earns 20 Prestige, checked when a Life Map node completes. Accepting the objective costs 0 phases.'],
   reroll:['Free reroll','One reroll per shop, before staging purchases. Scholar cost: 0 Prestige. It still adds 216 base phases, reduced by Effectiveness and applicable Heirlooms.'],
-  retinue:['Personal Retinue','Gain 1 Force per 10 Prestige held. Base cap: 1 per 10 Warriors, rounded up, across player settlements. Institutions and Practices can raise the cap. With no Warriors, Retinue is zero. It contributes to Campaigns, not automatic defense.'],
-  risk:['Risk reward','Surviving a risky choice grants Prestige equal to its base danger \u00d7 50, rounded up. Example: 25% base danger gives +13 Prestige. Campaigns and Challenges use their base danger before Prowess or Force reductions. Other risky choices use their stated danger. This is added to the choice\u2019s own reward.'],
+  retinue:['Personal Retinue','Gain +1 Martial Force for every 10 Prestige currently held. Spending or gaining Prestige changes the size of your Personal Retinue.'],
+  risk:['Risk reward','Each successful RISK earns +15 Prestige.'],
 };
 
 function inspectTarget(root,id,x,y,w,h,onInspect) {
@@ -120,23 +118,23 @@ function inspectTarget(root,id,x,y,w,h,onInspect) {
 function statPanel(root,classId,x,y,width,{warnings,onInspect}={}) {
   const data=CLASSES[classId], removed='#80867d', detailX=x+332, detailWidth=width-360;
   panel(root,x,y,width,360);
-  editableLabel(root,'heading.defaults','DEFAULT STATS',x+24,y+18,{size:24,color:C.ash});
+  editableLabel(root,'heading.defaults','BASE ATTRIBUTES',x+24,y+18,{size:24,color:C.ash});
   ['Cunning','Intelligence','Wisdom','Effectiveness'].forEach((name,i)=>{
     const top=y+58+i*70, lost=name===data.from;
     const text=label(root,root.previewCopy?.[`stat.${name.toLowerCase()}`] ?? name,x+24,top,{size:34,color:lost?removed:C.bone,width:266,clipH:43,warnings,field:name});
     if(lost) {
       root.addChild(new PIXI.Graphics().lineStyle(2,0x80867d).moveTo(text.x,text.y+22).lineTo(text.x+text.width,text.y+22));
-      editableLabel(root,'heading.removed','REMOVED',x+24,top+39,{size:20,color:removed});
+      editableLabel(root,'heading.removed','REPLACED',x+24,top+39,{size:20,color:removed});
     }
     inspectTarget(root,name.toLowerCase(),x+18,top-4,278,43,onInspect);
   });
   panel(root,x+308,y+10,width-318,340,true);
-  editableLabel(root,'heading.classStat','CLASS STAT \u00b7 PER POINT',detailX,y+26,{size:24,color:C.gold});
+  editableLabel(root,'heading.classStat','CLASS ATTRIBUTES',detailX,y+26,{size:24,color:C.gold});
   label(root,`${root.previewCopy?.[`stat.${data.to.toLowerCase()}`] ?? data.to}  \u203a`,detailX,y+62,{size:44,bold:true,color:C.gold});
   inspectTarget(root,data.to.toLowerCase(),detailX,y+62,detailWidth,54,onInspect);
   data.statDetails.forEach((copy,i)=>editableLabel(root,`${classId}.statEffect.${i}`,copy,detailX,y+120+i*78,{size:32,width:detailWidth,clipH:77,warnings,field:`${data.to} effect ${i+1}`}));
   rule(root,detailX,y+280,detailWidth);
-  editableLabel(root,`${classId}.replacement`,`Replaces ${data.from}.\n${data.removedEffect}`,detailX,y+292,{size:26,color:C.ash,width:detailWidth,clipH:64,warnings,field:'Removed stat effect'});
+  editableLabel(root,`${classId}.replacement`,`Replaces ${data.from}`,detailX,y+292,{size:26,color:C.ash,width:detailWidth,clipH:64,warnings,field:'Replaced attribute'});
 }
 
 function classAbilities(root,classId,x,y,width,{size=32,warnings,onInspect}={}) {
@@ -261,7 +259,7 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
       label(root,data.loss,x+24,504,{size:30,color:'#c0aaa0',width:696,clipH:40,warnings,field:'Comparison loss'});
       label(root,data.gain,x+24,550,{size:30,width:696,clipH:80,warnings,field:'Comparison gain'});
       inspectTarget(root,`${candidate.classId}:exchange`,x+16,443,712,181,()=>onInspect?.(data.to.toLowerCase()));
-      const summaries=candidate.classId==='scholar'?['Commission \u00b7 +20 Prestige','Reroll \u00b7 0 Prestige; costs time']:['Retinue \u00b7 1 Force / 10 Prestige','Risk \u00b7 25% base danger: +13 Prestige'];
+      const summaries=candidate.classId==='scholar'?['Commission \u00b7 +20 Prestige','Reroll \u00b7 0 Prestige; costs time']:['Retinue \u00b7 1 Martial Force / 10 Prestige','Risk success \u00b7 +15 Prestige'];
       data.abilities.forEach(([name,copy,id],j)=>{
         label(root,`${summaries[j]} \u203a`,x+24,645+j*56,{size:32,color:C.gold,width:696,clipH:42,warnings,field:name});
         inspectTarget(root,`${candidate.classId}:${id}`,x+16,635+j*56,712,56,()=>onInspect?.(id));
@@ -271,7 +269,7 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
     }
   } else {
     editableLabel(root,`${face.classId}.name`,face.name.toUpperCase(),40,86,{size:54,bold:true,width:460,clipH:65,warnings,field:'Founder name'});
-    editableLabel(root,`${face.classId}.classLabel`,face.classId.toUpperCase(),40,160,{size:30,color:C.gold});
+    editableLabel(root,`${face.classId}.classLabel`,`Unlocks ${face.classId.toUpperCase()}`,40,160,{size:30,color:C.gold});
     const portrait=assemblePortrait({classId:face.classId,identity,size:440,founder:true});portrait.position.set(46,278);root.addChild(portrait);
     statPanel(root,face.classId,540,130,978,{warnings,onInspect});
     classAbilities(root,face.classId,564,518,930,{warnings,onInspect});

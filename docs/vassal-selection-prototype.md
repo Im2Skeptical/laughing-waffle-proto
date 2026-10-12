@@ -1,6 +1,35 @@
 # Vassal selection design study
 
-## Current workbench revision (October 11)
+## Current workbench revision (October 12)
+
+The user's edited Warlord screenshot establishes the first-pass direction:
+Unlocks WARRIOR/SCHOLAR, BASE ATTRIBUTES, CLASS ATTRIBUTES, a crossed-out default
+marked REPLACED, per-point class effects, and a short Replaces line. Both dossiers
+use this treatment and remain editable for the user's final copy pass.
+
+### Proposed mechanics for the implementation pass
+
+The existing vassal rules are experimental first-pass mechanics. When the user
+authorizes implementation, update the menu and matching vassal mechanics together
+to follow the approved readable design. The prototype is a design proposal and
+does not alter the running simulation. Express the resulting behaviors through
+the existing DSL, extending generalized capabilities where needed.
+
+| Detail | Warrior: screenshot direction | Scholar: draft for final review |
+| --- | --- | --- |
+| Unlock | WARRIOR | SCHOLAR |
+| Attribute replaced | Intelligence → Prowess | Cunning → Ingenuity |
+| Class effect 1 | +1 Martial Force per point | +5% shop-quality chance per point |
+| Class effect 2 | 15% increased RISK success chance per point | +1 Research on DISCOVERY per point |
+| Ability 1 | Personal Retinue: +1 Martial Force per 10 held Prestige | Commission: +20 Prestige on completion |
+| Ability 2 | Risk reward: +15 Prestige on RISK success | Free reroll: once per shop, 0 Prestige; costs time |
+
+Warrior tooltip copy follows the proposal too: it no longer describes the old
+Challenge-only phase/danger bonuses, Warrior-population Retinue cap, or
+danger-scaled Prestige reward. Scholar keeps its current starting numbers for
+workshopping; they remain subject to the final pass. Resolve the arithmetic of
+"15% increased" (relative increase versus percentage points), success-chance
+limits, and the scope of Martial Force before implementing the new rules.
 
 Use the [vassal & founder workbench](../images/dark-fantasy/vassal-chrome-prototype/README.md)
 for the current direction. Run `npm run preview:vassals` and open
@@ -18,14 +47,14 @@ one muted italic line. This is still an isolated design study.
 
 The focused dossier is now preferred. Its latest pass removes the picker
 heading/instruction and the founding-action heading, outcome and cost notes.
-Larger portraits, a short class label and matching mechanical panels present
+Larger portraits, an Unlocks class label and matching mechanical panels present
 Philosopher and Warlord in the same phone-landscape format.
 
 The retained-stat button and earlier three stat-box treatments are superseded by
 one unified panel. It shows Cunning, Intelligence, Wisdom, Effectiveness and the
 class stat: five names, four active stats. The replaced default is grey and crossed
-out with a REMOVED label. A highlighted Prowess/Ingenuity subsection explains each
-per-point effect and the lost default effect. All five names can be tapped for
+out with a REPLACED label. A highlighted Prowess/Ingenuity subsection explains each
+per-point effect and names the replaced default. All five names can be tapped for
 their rules. Retained stats stay concise; no founder stat values are invented.
 
 Navigation arrows flank the bottom portrait rail. Stat rules now use compact
