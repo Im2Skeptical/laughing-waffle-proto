@@ -206,8 +206,11 @@ The [map-generation workbench](../images/dark-fantasy/map-generation-prototype/R
 explores twenty seeded regions with exact 6/5/4/3/2 biome counts, clustering,
 unequal areas and connected river, mountain-range, chasm and valley borders.
 Connected Islands regions form larger shared land masses. The non-playable
-surroundings follow boundary biomes and landform endpoints, with ocean, barren
-hinterland and mountain barriers continuing the playable area's geography.
+surroundings put ocean on one world side or two sides sharing a corner, with
+barren hinterland and mountain barriers elsewhere. Region-scale bays and
+protrusions reshape the whole partition while retaining adjacency. Mountain
+artwork stays on land; rivers lead toward the chosen ocean. Drag, scroll, pinch,
+zoom buttons and Fit explore the irregular footprint through the game's camera.
 Its Regions, Geography and Terrain views share one generated graph. Generation
 controls, selection, reflections and PNG export live in a fixed 2424 × 1080
 Pixi landscape window with the shared Fullscreen control. Settings live in memory

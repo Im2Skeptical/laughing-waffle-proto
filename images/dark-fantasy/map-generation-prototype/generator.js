@@ -16,6 +16,42 @@ const distance = (a, b) => Math.hypot((a.x - b.x) * ASPECT, a.y - b.y);
 const key = p => `${Math.round(p.x * 1e6)},${Math.round(p.y * 1e6)}`;
 const edgeKey = (a, b) => [a, b].sort().join('|');
 const lerp = (a, b, t) => a + (b - a) * t;
+const WORLD_SIDES = ['north', 'east', 'south', 'west'];
+
+function createWorld(seed) {
+  const state = { rng: { seed: seed ^ 0x537a91 } }; attachRngHelpers(state);
+  const first = state.rngNextInt(0, 3), count = state.rngNextInt(1, 2);
+  const oceanSides = Array.from({ length: count }, (_, i) => WORLD_SIDES[(first + i) % 4]);
+  const phases = Array.from({ length: 8 }, () => state.rngNextFloat() * Math.PI * 2);
+  const strength = .7 + state.rngNextFloat() * .3;
+  const warp = p => {
+    // Two positive-scale shears preserve the partition while making bays and
+    // headlands as deep as a region. Faraway hinterland extends smoothly.
+    const sy = Math.max(-.15, Math.min(1.15, p.y));
+    const width = .86 + strength * (.26 * Math.sin(sy * 7 + phases[0]) + .13 * Math.sin(sy * 14 + phases[1]));
+    const x = .5 + (p.x - .5) * width + strength * (.14 * Math.sin(sy * 6 + phases[2]) + .065 * Math.sin(sy * 13 + phases[3]));
+    const sx = Math.max(-.15, Math.min(1.15, x));
+    const height = .9 + strength * (.24 * Math.sin(sx * 6 + phases[4]) + .12 * Math.sin(sx * 13 + phases[5]));
+    const y = .5 + (p.y - .5) * height + strength * (.19 * Math.sin(sx * 7 + phases[6]) + .075 * Math.sin(sx * 14 + phases[7]));
+    return { x, y };
+  };
+  return { oceanSides, shape: { phases, strength }, warp };
+}
+
+function worldSide(p) {
+  const distances = [p.y, 1 - p.x, 1 - p.y, p.x];
+  return WORLD_SIDES[distances.indexOf(Math.min(...distances))];
+}
+
+function densify(points, closed = false, steps = 12) {
+  const result = [];
+  for (let i = 0; i < points.length - (closed ? 0 : 1); i++) {
+    const a = points[i], b = points[(i + 1) % points.length];
+    for (let j = 0; j < steps; j++) result.push({ x: lerp(a.x, b.x, j / steps), y: lerp(a.y, b.y, j / steps) });
+  }
+  if (!closed) result.push(points.at(-1));
+  return result;
+}
 
 function clip(polygon, a, b, c) {
   const result = [];
@@ -64,7 +100,7 @@ function shuffle(values, state) {
   return values;
 }
 
-function buildGeography(vertices, edges, types, state) {
+function buildGeography(vertices, edges, types, state, oceanSides) {
   const outer = new Set(edges.filter(e => e.regions.length === 1).flatMap(e => [e.a, e.b]));
   const connections = new Map([...vertices.keys()].map(id => [id, []]));
   for (const edge of edges) {
@@ -77,6 +113,14 @@ function buildGeography(vertices, edges, types, state) {
     chasm: [{ x: .04, y: .63 }, { x: .93, y: .75 }],
     valley: [{ x: .07, y: .4 }, { x: .96, y: .5 }],
   };
+  const turn = (WORLD_SIDES.indexOf(oceanSides[0]) + 2) % 4;
+  const rotate = p => turn === 0 ? p : turn === 1 ? { x: 1 - p.y, y: p.x }
+    : turn === 2 ? { x: 1 - p.x, y: 1 - p.y } : { x: p.y, y: 1 - p.x };
+  specs.river = specs.river.map(rotate);
+  const landSides = WORLD_SIDES.filter(side => !oceanSides.includes(side));
+  const sidePoint = side => ({ north: { x: .35, y: .02 }, east: { x: .98, y: .35 },
+    south: { x: .65, y: .98 }, west: { x: .02, y: .65 } })[side];
+  specs.ridge = [sidePoint(landSides[0]), sidePoint(landSides.at(-1))];
   const used = new Set(), features = [];
   for (const type of types) {
     const [source, destination] = specs[type];
@@ -90,10 +134,11 @@ function buildGeography(vertices, edges, types, state) {
       for (const { to, edge } of connections.get(current)) {
         if (!pending.has(to)) continue;
         const a = vertices.get(current), b = vertices.get(to), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-        const targetY = lerp(source.y, destination.y, mid.x);
-        const deviation = type === 'river' ? Math.abs(mid.x - lerp(source.x, destination.x, mid.y)) : Math.abs(mid.y - targetY);
+        const deviation = segmentDistance(mid, source, destination);
+        const forward = ((b.x - a.x) * (destination.x - source.x) * ASPECT ** 2 + (b.y - a.y) * (destination.y - source.y))
+          / distance(source, destination);
         const cost = distance(a, b) * (1 + deviation * 4 + (edge.regions.length === 1 ? 8 : 0) + (used.has(edge.id) ? 12 : 0))
-          + (type === 'river' ? Math.max(0, a.y - b.y) * 3 : 0);
+          + (type === 'river' ? Math.max(0, -forward) * 3 : 0);
         const candidate = scores.get(current) + cost;
         if (candidate < (scores.get(to) ?? Infinity)) { scores.set(to, candidate); previous.set(to, { from: current, edge }); }
       }
@@ -170,10 +215,16 @@ function segmentDistance(p, a, b) {
 }
 
 // March triangles to recover coastlines from one continuous cluster-wide field.
-function islandContours(bounds, field) {
-  const nx = Math.ceil((bounds.maxX - bounds.minX) * ASPECT / .017), ny = Math.ceil((bounds.maxY - bounds.minY) / .017);
-  const rows = Array.from({ length: ny + 1 }, (_, y) => Array.from({ length: nx + 1 }, (_, x) => {
-    const p = { x: lerp(bounds.minX, bounds.maxX, x / nx), y: lerp(bounds.minY, bounds.maxY, y / ny) };
+function islandContours(bounds, field, anchors) {
+  const columns = Math.ceil((bounds.maxX - bounds.minX) * ASPECT / .017), lines = Math.ceil((bounds.maxY - bounds.minY) / .017);
+  // Keep narrow shared-edge crossings on the sampling grid, so a genuine
+  // island neck cannot disappear merely because it falls between samples.
+  const coordinates = (min, max, count, axis) => [...new Set([...Array.from({ length: count + 1 }, (_, i) => lerp(min, max, i / count)),
+    ...anchors.map(p => p[axis])].map(v => +v.toFixed(10)))].sort((a, b) => a - b);
+  const xs = coordinates(bounds.minX, bounds.maxX, columns, 'x'), ys = coordinates(bounds.minY, bounds.maxY, lines, 'y');
+  const nx = xs.length - 1, ny = ys.length - 1;
+  const rows = ys.map(y => xs.map(x => {
+    const p = { x, y };
     return { ...p, value: field(p) };
   }));
   const joins = new Map(), points = new Map();
@@ -225,8 +276,10 @@ function buildIslandClusters(regions, edges, seed) {
         const edge = edges.find(e => e.id === id);
         return segmentDistance(region.centre, edge.points[0], edge.points.at(-1));
       }));
-      return { regionId: region.id, centre: region.centre, radius: Math.max(.025, clearance * .85),
-        phase: decorationRandom(seed, regions.indexOf(region) + 87000) * Math.PI * 2 };
+      const radius = Math.max(.025, clearance * .85), phase = decorationRandom(seed, regions.indexOf(region) + 87000) * Math.PI * 2;
+      return { regionId: region.id, centre: region.centre, radius, phase,
+        foliage: Array.from({ length: 7 }, (_, i) => ({ x: region.centre.x + Math.cos(i * 2.4 + phase) * radius * .55 / ASPECT,
+          y: region.centre.y + Math.sin(i * 2.4 + phase) * radius * .55 })) };
     });
     const bridges = edges.filter(e => e.regions.length === 2 && e.regions.every(id => regionIds.includes(id))).map(edge => {
       const [a, b] = edge.regions.map(id => cores.find(c => c.regionId === id));
@@ -244,17 +297,18 @@ function buildIslandClusters(regions, edges, seed) {
       }), ...bridges.map(bridge => bridge.width - Math.min(segmentDistance(p, bridge.points[0], bridge.points[1]), segmentDistance(p, bridge.points[1], bridge.points[2]))));
       const clearance = Math.min(...shore.map(e => segmentDistance(p, e.points[0], e.points.at(-1))));
       if (!members.some(region => insidePolygon(p, region.outline))) return -Math.max(.00001, clearance);
-      value = Math.min(value, clearance - .008);
+      const coastInset = .008 * Math.min(1, ...bridges.map(b => distance(p, b.points[1]) / (b.width * 1.5)));
+      value = Math.min(value, clearance - coastInset);
       return value;
     };
-    const contours = islandContours(bounds, field);
+    const contours = islandContours(bounds, field, [...cores.map(c => c.centre), ...bridges.map(b => b.points[1])]);
     clusters.push({ id: `island-${clusters.length + 1}`, regionIds, cores, bridges, contours });
   }
   return clusters;
 }
 
-function buildSurroundings(regions, edges, features, seed) {
-  const outside = p => ({ x: .5 + (p.x - .5) * 1.85, y: .5 + (p.y - .5) * 1.85 });
+function buildSurroundings(regions, edges, features, seed, oceanSides) {
+  const outside = p => ({ x: .5 + (p.x - .5) * 6, y: .5 + (p.y - .5) * 6 });
   const phase = decorationRandom(seed, 94000) * Math.PI * 2, spokes = new Map();
   const spoke = p => {
     if (!spokes.has(key(p))) {
@@ -267,31 +321,34 @@ function buildSurroundings(regions, edges, features, seed) {
     return spokes.get(key(p));
   };
   const continuations = features.flatMap(feature => {
-    return [0, feature.vertexIds.length - 1].map((i, end) => {
+    return [0, feature.vertexIds.length - 1].flatMap((i, end) => {
       const edge = edges.find(e => e.id === feature.edgeIds[end ? feature.edgeIds.length - 1 : 0]);
       const p = edge.a === feature.vertexIds[i] ? edge.points[0] : edge.points.at(-1);
-      return { type: feature.type, end: end ? 'end' : 'start', points: spoke(p) };
+      const touchesOcean = edges.some(e => e.regions.length === 1 && (e.a === feature.vertexIds[i] || e.b === feature.vertexIds[i]) && oceanSides.includes(e.worldSide));
+      if (feature.type !== 'river' && touchesOcean) return [];
+      // Rivers meet the ocean at a short mouth, rather than drawing a canal
+      // across the whole surrounding sea.
+      return [{ type: feature.type, end: end ? 'end' : 'start', points: touchesOcean ? spoke(p).slice(0, 3) : spoke(p) }];
     });
   });
   const patches = edges.filter(e => e.regions.length === 1).map(edge => {
     const region = regions.find(r => r.id === edge.regions[0]);
     const nearEdge = p => segmentDistance(p, edge.points[0], edge.points.at(-1)) < .12;
     const near = type => continuations.some(c => c.type === type && nearEdge(c.points[0]));
-    const riverMouth = continuations.some(c => c.type === 'river' && c.end === 'end' && nearEdge(c.points[0]));
-    const kind = region.biome === 'islands' || riverMouth ? 'ocean'
-      : region.biome === 'mountains' || near('ridge') || near('river') ? 'mountains'
-        : region.biome === 'swamp' ? 'ocean' : 'wasteland';
+    const kind = oceanSides.includes(edge.worldSide) ? 'ocean'
+      : region.biome === 'mountains' || near('ridge') || near('river') ? 'mountains' : 'wasteland';
     const points = [...edge.points, ...spoke(edge.points.at(-1)).slice(1), ...edge.points.map(outside).reverse().slice(1),
       ...spoke(edge.points[0]).slice().reverse().slice(1, -1)];
-    return { edgeId: edge.id, regionId: region.id, kind, points,
-      reason: region.biome === 'islands' ? 'Island coast' : riverMouth ? 'River mouth' : near('ridge') ? 'Range continuation'
-        : kind === 'mountains' ? 'Highland barrier' : kind === 'ocean' ? 'Wetland coast' : 'Barren hinterland' };
+    return { edgeId: edge.id, regionId: region.id, kind, side: edge.worldSide, points,
+      reason: kind === 'ocean' ? 'Chosen world coast' : near('ridge') ? 'Range continuation'
+        : kind === 'mountains' ? 'Highland barrier' : 'Barren hinterland' };
   });
   return { patches, continuations };
 }
 
 export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6, roughness = .65, featureSet = 0 } = {}) {
   const state = { rng: { seed: Math.floor(seed) } }; attachRngHelpers(state);
+  const world = createWorld(Math.floor(seed));
   const coastline = [{ x: .035, y: .14 }, { x: .14, y: .025 }, { x: .58, y: .015 }, { x: .9, y: .06 },
     { x: .985, y: .25 }, { x: .965, y: .77 }, { x: .85, y: .96 }, { x: .43, y: .99 }, { x: .1, y: .92 }, { x: .025, y: .68 }];
   const sites = Array.from({ length: 20 }, (_, i) => ({
@@ -321,11 +378,15 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     });
   }
   const edges = [...edgeMap.values()];
+  for (const edge of edges.filter(e => e.regions.length === 1)) {
+    const a = vertices.get(edge.a), b = vertices.get(edge.b);
+    edge.worldSide = worldSide({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  }
   for (const edge of edges.filter(e => e.regions.length === 2)) {
     const [a, b] = edge.regions;
     regions.find(r => r.id === a).neighbours.push(b); regions.find(r => r.id === b).neighbours.push(a);
   }
-  const features = buildGeography(vertices, edges, FEATURE_SETS[featureSet], state);
+  const features = buildGeography(vertices, edges, FEATURE_SETS[featureSet], state, world.oceanSides);
   const biomes = shuffle(Object.keys(BIOMES), state), quota = Object.fromEntries(biomes.map((biome, i) => [biome, 6 - i]));
   assignBiomes(regions, edges, quota, clustering, state);
   for (const edge of edges) shapeEdge(edge, vertices, regions, roughness, state);
@@ -337,14 +398,34 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     region.area = polygonArea(region.outline);
     region.centre = centroid(region.outline);
   }
+  const islandClusters = buildIslandClusters(regions, edges, seed);
+  const surroundings = buildSurroundings(regions, edges, features, seed, world.oceanSides);
+  for (const region of regions) {
+    region.outline = region.outline.map(world.warp);
+    region.centre = world.warp(region.centre);
+    region.area = polygonArea(region.outline);
+  }
+  for (const edge of edges) {
+    edge.topologyPoints = densify([edge.points[0], edge.points.at(-1)], false, Math.max(12, edge.points.length)).map(world.warp);
+    edge.points = edge.points.map(world.warp);
+  }
+  for (const region of regions) region.polygon = region.edgeIds.flatMap((id, i) => {
+    const edge = edgeMap.get(id), points = edge.a === region.vertexIds[i] ? edge.topologyPoints : [...edge.topologyPoints].reverse();
+    return points.slice(0, -1);
+  });
+  for (const cluster of islandClusters) {
+    cluster.contours = cluster.contours.map(contour => contour.map(world.warp));
+    for (const core of cluster.cores) { core.centre = world.warp(core.centre); core.foliage = core.foliage.map(world.warp); }
+    for (const bridge of cluster.bridges) bridge.points = densify(bridge.points).map(world.warp);
+  }
+  for (const patch of surroundings.patches) patch.points = patch.points.map(world.warp);
+  for (const continuation of surroundings.continuations) continuation.points = continuation.points.map(world.warp);
   const totalArea = regions.reduce((sum, r) => sum + r.area, 0);
   const biomeAreas = Object.fromEntries(Object.keys(BIOMES).map(b => [b, regions.filter(r => r.biome === b).reduce((sum, r) => sum + r.area, 0) / totalArea]));
   const shared = edges.filter(e => e.regions.length === 2);
   const matching = shared.filter(e => regions.find(r => r.id === e.regions[0]).biome === regions.find(r => r.id === e.regions[1]).biome).length;
-  const islandClusters = buildIslandClusters(regions, edges, seed);
-  const surroundings = buildSurroundings(regions, edges, features, seed);
   return { seed, regions, edges, features, quota, biomeAreas, totalArea, matchingBorders: matching, sharedBorders: shared.length,
-    islandClusters, surroundings };
+    islandClusters, surroundings, world: { oceanSides: world.oceanSides, shape: world.shape } };
 }
 
 // Stable decoration positions: independent of generation and presentation mode.

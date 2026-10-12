@@ -15,7 +15,7 @@ border variation, feature combinations, reflections, region selection and PNG
 export. The shared Fullscreen button requests landscape and supplies the existing
 rotated fallback where browser orientation locking is unavailable.
 
-- `?variant=A`: straight polygons, region references and biome labels.
+- `?variant=A`: the reshaped region partition, references and biome labels.
 - `?variant=B`: shared organic borders and the connected geographic skeleton.
 - `?variant=C`: terrain markings, subdued same-biome borders and landforms.
 
@@ -24,17 +24,30 @@ Settings are shareable URL parameters; no browser storage or player save is used
 Twenty weighted Voronoi regions receive the five biomes, randomly assigned the
 exact counts **6, 5, 4, 3, 2**. Count and playable area are separately reported.
 Clustering favours equal-biome neighbours, with weak coastal/wet/ridge preferences.
+Seeded, positive-scale spatial warps reshape the whole partition, producing deep
+bays and protrusions at region scale while preserving the graph and shared edges.
+The fine Border variation control is independent of this larger world outline.
 Shared borders are generated once and reused for terrain masks and selection.
 Landform routes traverse several shared edges; river, mountain range, chasm and
 valley treatments are decorative. This is not elevation, hydrology or climate
 simulation. Connected Islands regions share a cluster-wide land field: region
 centres have organic land cores joined across shared edges, with a continuous
 coastline and occasional lagoons. Region divisions and graph neighbours remain
-intact. Ocean surrounds Island coasts and river mouths; mountain barriers follow
-highland regions, range endpoints and river headwaters; other edges meet barren
-hinterland. These non-playable surroundings use shared curved transitions and
-continue the generated landforms beyond the playable area. Water crossings and
+intact. Each seed chooses **one ocean world side or two adjacent sides sharing a
+corner**. Only those sides host surrounding ocean, regardless of the boundary
+biomes. Islands meeting a land side remain water-rich regions beside hinterland.
+Other sides use mountain barriers or barren terrain. Rivers are directed toward
+the chosen ocean; mountain ranges favour land edges and terminate at coastlines.
+Mountain artwork is clipped to land, including island shorelines and lagoons.
+These non-playable surroundings use shared curved transitions and continue land
+features beyond the playable area without putting mountain ink into sea. Water crossings and
 impassability remain visual suggestions, with no simulation rules attached.
+
+Drag to pan, scroll or pinch to zoom, or use the in-canvas − / + controls. **Fit**
+returns to the overview of the irregular playable footprint. Map artwork,
+markers, selection and geographic features share the existing game camera's
+transform; the generator controls and other chrome stay fixed. Camera gestures
+never regenerate or mutate the graph.
 
 Reflections affect only the displayed map; identities, adjacency, biome counts,
 areas and features remain identical. Labels and symbols stay upright. The isolated
@@ -44,7 +57,8 @@ simulation state, RNG streams, schemas, replay, definitions and saves are untouc
 `window.mapWorkbench` exposes the current map, controls, screen-space Pixi targets
 and PNG export for inspection. Validate quota counts, seed reproducibility,
 symmetric connected adjacency, area coverage, continuous feature routes, island
-cores belonging to their shared landmass, and geography-derived surroundings;
-review generation controls, tap selection, views, URL refresh, reflections, PNG,
+cores belonging to their shared landmass, the one/two-adjacent-side ocean rule,
+and finite noncrossing region-scale shapes; review generation controls, tap
+selection before/after pan and zoom, drag-versus-tap, pinch, Fit, views, URL refresh, reflections, PNG,
 fullscreen and fixed aspect ratio at desktop and 844 × 390 phone landscape.
 `npm run verify` covers packaging and the unchanged game invariants.
