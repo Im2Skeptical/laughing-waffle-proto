@@ -352,7 +352,7 @@ function sync() {
     islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
     surroundings: [...new Set(map.surroundings.patches.map(p => p.kind))],
     world: map.world,
-    assumptions: 'Ocean occupies one world side or two adjacent sides. The partition is reshaped with region-scale bays and protrusions. Mountain ink is clipped to land. Other world edges remain hinterland even beside Islands. All graph neighbours remain intact; surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
+    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Mountain ink is clipped to land. Other world edges remain hinterland even beside Islands. Surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
   app.renderer.render(app.stage);

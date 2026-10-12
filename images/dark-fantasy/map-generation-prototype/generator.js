@@ -22,35 +22,13 @@ function createWorld(seed) {
   const state = { rng: { seed: seed ^ 0x537a91 } }; attachRngHelpers(state);
   const first = state.rngNextInt(0, 3), count = state.rngNextInt(1, 2);
   const oceanSides = Array.from({ length: count }, (_, i) => WORLD_SIDES[(first + i) % 4]);
-  const phases = Array.from({ length: 8 }, () => state.rngNextFloat() * Math.PI * 2);
-  const strength = .7 + state.rngNextFloat() * .3;
-  const warp = p => {
-    // Two positive-scale shears preserve the partition while making bays and
-    // headlands as deep as a region. Faraway hinterland extends smoothly.
-    const sy = Math.max(-.15, Math.min(1.15, p.y));
-    const width = .86 + strength * (.26 * Math.sin(sy * 7 + phases[0]) + .13 * Math.sin(sy * 14 + phases[1]));
-    const x = .5 + (p.x - .5) * width + strength * (.14 * Math.sin(sy * 6 + phases[2]) + .065 * Math.sin(sy * 13 + phases[3]));
-    const sx = Math.max(-.15, Math.min(1.15, x));
-    const height = .9 + strength * (.24 * Math.sin(sx * 6 + phases[4]) + .12 * Math.sin(sx * 13 + phases[5]));
-    const y = .5 + (p.y - .5) * height + strength * (.19 * Math.sin(sx * 7 + phases[6]) + .075 * Math.sin(sx * 14 + phases[7]));
-    return { x, y };
-  };
-  return { oceanSides, shape: { phases, strength }, warp };
+  const phases = Array.from({ length: 2 }, () => state.rngNextFloat() * Math.PI * 2);
+  return { oceanSides, shape: { method: 'connected-cells', phases } };
 }
 
 function worldSide(p) {
   const distances = [p.y, 1 - p.x, 1 - p.y, p.x];
   return WORLD_SIDES[distances.indexOf(Math.min(...distances))];
-}
-
-function densify(points, closed = false, steps = 12) {
-  const result = [];
-  for (let i = 0; i < points.length - (closed ? 0 : 1); i++) {
-    const a = points[i], b = points[(i + 1) % points.length];
-    for (let j = 0; j < steps; j++) result.push({ x: lerp(a.x, b.x, j / steps), y: lerp(a.y, b.y, j / steps) });
-  }
-  if (!closed) result.push(points.at(-1));
-  return result;
 }
 
 function clip(polygon, a, b, c) {
@@ -346,18 +324,16 @@ function buildSurroundings(regions, edges, features, seed, oceanSides) {
   return { patches, continuations };
 }
 
-export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6, roughness = .65, featureSet = 0 } = {}) {
-  const state = { rng: { seed: Math.floor(seed) } }; attachRngHelpers(state);
-  const world = createWorld(Math.floor(seed));
-  const coastline = [{ x: .035, y: .14 }, { x: .14, y: .025 }, { x: .58, y: .015 }, { x: .9, y: .06 },
-    { x: .985, y: .25 }, { x: .965, y: .77 }, { x: .85, y: .96 }, { x: .43, y: .99 }, { x: .1, y: .92 }, { x: .025, y: .68 }];
-  const sites = Array.from({ length: 20 }, (_, i) => ({
-    x: .12 + (i % 5) * .19 + (state.rngNextFloat() - .5) * .13 * sizeVariation,
-    y: .14 + Math.floor(i / 5) * .235 + (state.rngNextFloat() - .5) * .17 * sizeVariation,
-    weight: (state.rngNextFloat() - .5) * .012 * sizeVariation,
+function buildFootprint(state, sizeVariation, phases) {
+  // Grow a connected patch of normal-sized cells. The silhouette advances and
+  // retreats by whole regions; no displacement is applied to the partition.
+  const sites = Array.from({ length: 96 }, (_, i) => ({
+    x: -.6 + (i % 12 + .5 + (state.rngNextFloat() - .5) * .65) * 2.2 / 12,
+    y: -.95 + (Math.floor(i / 12) + .5 + (state.rngNextFloat() - .5) * .65) * 2.9 / 8,
+    weight: (state.rngNextFloat() - .5) * .045 * sizeVariation,
   }));
-  const regions = sites.map((site, index) => {
-    let polygon = coastline;
+  const cells = sites.map((site, index) => {
+    let polygon = [{ x: -2, y: -2 }, { x: 3, y: -2 }, { x: 3, y: 3 }, { x: -2, y: 3 }];
     for (const other of sites) {
       if (site === other) continue;
       polygon = clip(polygon, 2 * ASPECT ** 2 * (other.x - site.x), 2 * (other.y - site.y),
@@ -365,8 +341,48 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     }
     // Equal-sized cells can meet exactly at a clip plane: retain one junction.
     polygon = polygon.filter((p, i) => key(p) !== key(polygon[(i + polygon.length - 1) % polygon.length]));
-    return { id: `R${String(index + 1).padStart(2, '0')}`, polygon, centre: centroid(polygon), area: polygonArea(polygon), neighbours: [] };
+    return { index, polygon, centre: centroid(polygon), neighbours: [] };
   });
+  const owners = new Map();
+  for (const cell of cells) for (let i = 0; i < cell.polygon.length; i++) {
+    const id = edgeKey(key(cell.polygon[i]), key(cell.polygon[(i + 1) % cell.polygon.length]));
+    if (owners.has(id)) {
+      const other = cells[owners.get(id)]; cell.neighbours.push(other.index); other.neighbours.push(cell.index);
+    } else owners.set(id, cell.index);
+  }
+  const score = cell => {
+    const x = (cell.centre.x - .5) / .7, y = (cell.centre.y - .5) / .56;
+    const angle = Math.atan2(y, x);
+    const radius = 1 + .19 * Math.sin(angle * 3 + phases[0]) + .12 * Math.sin(angle * 5 + phases[1]);
+    return Math.hypot(x, y) / radius;
+  };
+  const start = cells.reduce((best, cell) => score(cell) < score(best) ? cell : best).index;
+  const selected = new Set([start]), frontier = new Set(cells[start].neighbours);
+  const perimeter = cells.filter(cell => cell.polygon.some(p => p.x === -2 || p.x === 3 || p.y === -2 || p.y === 3)).map(cell => cell.index);
+  const keepsExteriorConnected = candidate => {
+    const seen = new Set(), pending = [...perimeter];
+    while (pending.length) {
+      const i = pending.pop();
+      if (i === candidate || selected.has(i) || seen.has(i)) continue;
+      seen.add(i); pending.push(...cells[i].neighbours);
+    }
+    return seen.size === cells.length - selected.size - 1;
+  };
+  while (selected.size < 20) {
+    const next = [...frontier].sort((a, b) => score(cells[a]) - score(cells[b])).find(keepsExteriorConnected);
+    selected.add(next); frontier.delete(next);
+    cells[next].neighbours.forEach(i => { if (!selected.has(i)) frontier.add(i); });
+  }
+  return [...selected].sort((a, b) => a - b).map((index, i) => ({
+    id: `R${String(i + 1).padStart(2, '0')}`, polygon: cells[index].polygon, centre: cells[index].centre,
+    area: polygonArea(cells[index].polygon), neighbours: [],
+  }));
+}
+
+export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6, roughness = .65, featureSet = 0 } = {}) {
+  const state = { rng: { seed: Math.floor(seed) } }; attachRngHelpers(state);
+  const world = createWorld(Math.floor(seed));
+  const regions = buildFootprint(state, sizeVariation, world.shape.phases);
   const vertices = new Map(), edgeMap = new Map();
   for (const region of regions) {
     region.vertexIds = region.polygon.map(p => { const id = key(p); vertices.set(id, p); return id; });
@@ -400,26 +416,7 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
   }
   const islandClusters = buildIslandClusters(regions, edges, seed);
   const surroundings = buildSurroundings(regions, edges, features, seed, world.oceanSides);
-  for (const region of regions) {
-    region.outline = region.outline.map(world.warp);
-    region.centre = world.warp(region.centre);
-    region.area = polygonArea(region.outline);
-  }
-  for (const edge of edges) {
-    edge.topologyPoints = densify([edge.points[0], edge.points.at(-1)], false, Math.max(12, edge.points.length)).map(world.warp);
-    edge.points = edge.points.map(world.warp);
-  }
-  for (const region of regions) region.polygon = region.edgeIds.flatMap((id, i) => {
-    const edge = edgeMap.get(id), points = edge.a === region.vertexIds[i] ? edge.topologyPoints : [...edge.topologyPoints].reverse();
-    return points.slice(0, -1);
-  });
-  for (const cluster of islandClusters) {
-    cluster.contours = cluster.contours.map(contour => contour.map(world.warp));
-    for (const core of cluster.cores) { core.centre = world.warp(core.centre); core.foliage = core.foliage.map(world.warp); }
-    for (const bridge of cluster.bridges) bridge.points = densify(bridge.points).map(world.warp);
-  }
-  for (const patch of surroundings.patches) patch.points = patch.points.map(world.warp);
-  for (const continuation of surroundings.continuations) continuation.points = continuation.points.map(world.warp);
+  for (const edge of edges) edge.topologyPoints = [edge.points[0], edge.points.at(-1)];
   const totalArea = regions.reduce((sum, r) => sum + r.area, 0);
   const biomeAreas = Object.fromEntries(Object.keys(BIOMES).map(b => [b, regions.filter(r => r.biome === b).reduce((sum, r) => sum + r.area, 0) / totalArea]));
   const shared = edges.filter(e => e.regions.length === 2);

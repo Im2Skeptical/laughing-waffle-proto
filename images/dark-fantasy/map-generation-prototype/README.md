@@ -15,7 +15,7 @@ border variation, feature combinations, reflections, region selection and PNG
 export. The shared Fullscreen button requests landscape and supplies the existing
 rotated fallback where browser orientation locking is unavailable.
 
-- `?variant=A`: the reshaped region partition, references and biome labels.
+- `?variant=A`: the region partition, references and biome labels.
 - `?variant=B`: shared organic borders and the connected geographic skeleton.
 - `?variant=C`: terrain markings, subdued same-biome borders and landforms.
 
@@ -24,9 +24,12 @@ Settings are shareable URL parameters; no browser storage or player save is used
 Twenty weighted Voronoi regions receive the five biomes, randomly assigned the
 exact counts **6, 5, 4, 3, 2**. Count and playable area are separately reported.
 Clustering favours equal-biome neighbours, with weak coastal/wet/ridge preferences.
-Seeded, positive-scale spatial warps reshape the whole partition, producing deep
-bays and protrusions at region scale while preserving the graph and shared edges.
-The fine Border variation control is independent of this larger world outline.
+The footprint grows twenty connected cells from a larger weighted Voronoi
+tessellation. A seeded angular preference produces bays and headlands at whole
+region scale, with no enclosed gaps. Regions retain their broad, convex base
+shapes; there is no global warp or stretching. Site jitter gives organic variety
+even at zero Size variation; the size control varies cell weights independently.
+Border variation adds bounded fine detail to shared edges.
 Shared borders are generated once and reused for terrain masks and selection.
 Landform routes traverse several shared edges; river, mountain range, chasm and
 valley treatments are decorative. This is not elevation, hydrology or climate
