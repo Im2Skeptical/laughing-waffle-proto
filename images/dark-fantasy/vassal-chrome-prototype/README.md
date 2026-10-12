@@ -20,6 +20,12 @@ the final approved design together. Existing simulation rules are experimental;
 they do not constrain this design workshop. See the proposed-mechanics table in
 [`docs/vassal-selection-prototype.md`](../../../docs/vassal-selection-prototype.md).
 
+The user's Scholar proposal now reads Commissions (gain Prestige each completion)
+and Delve (spend 10 years to reroll shop offers). Commission tooltip copy describes
+an ongoing objective: complete it, earn Prestige, then choose the next one.
+That loop is proposed for the later mechanics pass. The picker shows abilities
+and attributes; unique Life Map nodes such as Campaign are explained in play.
+
 Open [the forced phone-landscape picker](index.html?study=founder&phone=true&guided=false&variant=A).
 The picker, its layout switcher and rule popups are rendered in Pixi on the
 existing game-screen reference. Portrait browser viewports rotate the whole
@@ -55,7 +61,7 @@ in the same forced landscape format.
 
 Scholar exchanges Cunning for Ingenuity; Warrior exchanges Intelligence for
 Prowess. Lost effects are visible alongside the replacement. Commission rewards,
-Prestige-free but time-consuming rerolls, Prestige-held Retinue and a fixed
+Delve's 10-year reroll cost, Prestige-held Retinue and a fixed
 RISK-success reward are explicit. Tap stats and abilities for their detailed
 rules. A unified stat panel now shows all four default names plus the class stat:
 five visible names, four active stats. The replaced default is grey and crossed out,

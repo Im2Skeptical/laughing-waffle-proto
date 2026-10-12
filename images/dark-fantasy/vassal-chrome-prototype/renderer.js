@@ -83,7 +83,7 @@ const CLASSES = {
     statDetails:['+5% shop-quality chance per point','+1 Research on DISCOVERY per point'],
     loss:'Lose extra Prestige income from Cunning.',
     gain:'+5% shop-quality chance per point; extra Discovery Research.',
-    abilities:[['Commission','+20 Prestige on Commission completion','commission'],['Free reroll','1 shop reroll per shop: 0 Prestige; costs time','reroll']],
+    abilities:[['Commissions','Gain Prestige each Commission completion','commission'],['Delve','Spend 10 years to reroll shop offers','reroll']],
     flavour:'A patient mind leaves its mark.',
   },
   warrior: {
@@ -102,8 +102,8 @@ const EXPLANATIONS = {
   intelligence:['Intelligence','Each point discounts Prestige costs by 8%, capped at 60%. Costs round up. Warriors replace this stat with Prowess and lose this discount.'],
   ingenuity:['Ingenuity','Each point adds a 5% chance to raise offered shop quality by one tier, capped at 75%. The price stays the same. Each point also adds 1 Research to Discovery rewards.'],
   prowess:['Prowess','Each point grants +1 Martial Force and 15% increased RISK success chance. Prowess replaces Intelligence and its Prestige-cost discount.'],
-  commission:['Commission','Choose a new Practice or a completed Structure as your objective. Completing it earns 20 Prestige, checked when a Life Map node completes. Accepting the objective costs 0 phases.'],
-  reroll:['Free reroll','One reroll per shop, before staging purchases. Scholar cost: 0 Prestige. It still adds 216 base phases, reduced by Effectiveness and applicable Heirlooms.'],
+  commission:['Commissions','Keep a Commission underway. Earn Prestige when you complete it, then choose your next Commission.'],
+  reroll:['Delve','Spend 10 years to reroll the current shop offers.'],
   retinue:['Personal Retinue','Gain +1 Martial Force for every 10 Prestige currently held. Spending or gaining Prestige changes the size of your Personal Retinue.'],
   risk:['Risk reward','Each successful RISK earns +15 Prestige.'],
 };
@@ -259,7 +259,7 @@ export function assembleFounder({founders,index=0,identity=0,guided=true,variant
       label(root,data.loss,x+24,504,{size:30,color:'#c0aaa0',width:696,clipH:40,warnings,field:'Comparison loss'});
       label(root,data.gain,x+24,550,{size:30,width:696,clipH:80,warnings,field:'Comparison gain'});
       inspectTarget(root,`${candidate.classId}:exchange`,x+16,443,712,181,()=>onInspect?.(data.to.toLowerCase()));
-      const summaries=candidate.classId==='scholar'?['Commission \u00b7 +20 Prestige','Reroll \u00b7 0 Prestige; costs time']:['Retinue \u00b7 1 Martial Force / 10 Prestige','Risk success \u00b7 +15 Prestige'];
+      const summaries=candidate.classId==='scholar'?['Commissions \u00b7 Prestige on completion','Delve \u00b7 10-year shop reroll']:['Retinue \u00b7 1 Martial Force / 10 Prestige','Risk success \u00b7 +15 Prestige'];
       data.abilities.forEach(([name,copy,id],j)=>{
         label(root,`${summaries[j]} \u203a`,x+24,645+j*56,{size:32,color:C.gold,width:696,clipH:42,warnings,field:name});
         inspectTarget(root,`${candidate.classId}:${id}`,x+16,635+j*56,712,56,()=>onInspect?.(id));
