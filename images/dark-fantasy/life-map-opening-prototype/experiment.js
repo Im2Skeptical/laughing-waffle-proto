@@ -80,17 +80,17 @@ export function validateOpeningExperiment(doc) {
   const reached = new Set(), visiting = new Set(), checked = new Set();
   const visit = (id, founded) => {
     const node = doc.nodes.find(n => n.id === id), key = `${id}:${founded}`;
-    if (visiting.has(id)) throw new Error('The opening graph cannot contain a cycle.');
+    if (visiting.has(id)) throw new Error(`The opening graph cannot contain a cycle. A route loops back to "${node.title}".`);
     if (checked.has(key)) return;
     visiting.add(id); reached.add(id);
     const nextFounded = founded || node.kind === 'founding';
-    if (!nextFounded && !node.next.length) throw new Error('Every entry path must reach founding.');
+    if (!nextFounded && !node.next.length) throw new Error(`Every entry path must reach founding. "${node.title}" currently ends before founding.`);
     if (!nextFounded && (node.kind === 'specialRelic' || [...(node.options ?? []), ...(node.relics ?? [])].some(o => (o.immediateDeathChance ?? 0) > 0))) throw new Error('Pre-founding encounters must have no direct death risk.');
     for (const next of node.next) visit(next, nextFounded);
     visiting.delete(id); checked.add(key);
   };
   doc.entryIds.forEach(id => visit(id, false));
-  if (reached.size !== ids.size) throw new Error('Every authored node must be reachable from an entry.');
+  if (reached.size !== ids.size) throw new Error(`Every authored node must be reachable from an entry. Connect or remove: ${doc.nodes.filter(n => !reached.has(n.id)).map(n => n.title).join(', ')}.`);
   return structuredClone(doc);
 }
 

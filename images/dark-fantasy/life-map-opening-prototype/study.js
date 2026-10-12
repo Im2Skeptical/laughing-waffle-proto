@@ -2,6 +2,8 @@ import { createOpeningController } from './controller.js';
 import { createOpeningExperiment, OPENING_KINDS } from './experiment.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 import { createOpeningGameScreen } from './game-screen.js';
+import { createOpeningGraphEditor } from './graph-editor.js';
+import { KIND_LABELS } from './graph-edit.js';
 
 let storage = null;
 try { storage = window.localStorage; } catch { /* Export works without browser storage. */ }
@@ -9,6 +11,8 @@ const controller = createOpeningController(storage);
 const $ = id => document.getElementById(id);
 let selectedId = 'relic', editorKey = '', toolbarKey = '', jsonKey = '', error = '', guide = null;
 let gameScreen = null;
+const graphEditor = createOpeningGraphEditor({ host: $('graph-editor'), controller, run,
+  onSelect: id => { selectedId = id; editorKey = ''; render(); } });
 const abilityNames = { intelligence: 'Prowess', effectiveness: 'Effectiveness', wisdom: 'Wisdom', cunning: 'Cunning' };
 const guides = [
   { id: 'spend', label: 'Relic & invest', text: 'Take the Minor Seal, found the Warriors, buy a Practice, then drill. Watch the purchase discount, Retinue and Force.', entry: 'relic', relic: 0, buy: true },
@@ -85,17 +89,11 @@ function renderEditor(snapshot) {
   const fields = {}, grid = el('div', '', 'editor-grid');
   fields.title = appendField(grid, 'Title', spec.title);
   fields.displayLabel = appendField(grid, 'Game-screen label (blank = node type)', spec.displayLabel);
-  fields.kind = appendField(grid, 'Encounter type', spec.kind, { options: OPENING_KINDS.map(kind => [kind, kind]) });
+  fields.kind = appendField(grid, 'Encounter type', spec.kind, { options: OPENING_KINDS.map(kind => [kind, KIND_LABELS[kind]]) });
   fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
   if (spec.kind === 'supply') fields.stockOutput = appendField(grid, 'Stock output / auto', spec.stockOutput ?? 'auto');
   host.append(grid);
   const description = el('label', 'Description'), text = el('textarea'); text.rows = 3; text.value = spec.description; description.append(text); host.append(description);
-  host.append(el('p', 'Next encounters', 'note'));
-  const next = el('div', '', 'link-checks'), links = [];
-  doc.nodes.filter(n => n.id !== spec.id).forEach(node => {
-    const label = el('label', node.title), check = document.createElement('input'); check.type = 'checkbox'; check.checked = spec.next.includes(node.id); check.value = node.id; label.prepend(check); links.push(check); next.append(label);
-  }); host.append(next);
-  const entry = el('label', 'Entry opportunity'), entryCheck = document.createElement('input'); entryCheck.type = 'checkbox'; entryCheck.checked = doc.entryIds.includes(spec.id); entryCheck.style.width = '18px'; entryCheck.style.minHeight = '18px'; entry.prepend(entryCheck); host.append(entry);
   const lists = {};
   for (const list of ['options', 'cards', 'relics', 'pass']) {
     if (spec[list] == null) continue;
@@ -121,17 +119,14 @@ function renderEditor(snapshot) {
     if (fields.displayLabel.value.trim()) changed.displayLabel = fields.displayLabel.value.trim(); else delete changed.displayLabel;
     if (fields.phaseCost.value === '') delete changed.phaseCost; else changed.phaseCost = Number(fields.phaseCost.value);
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
-    changed.next = links.filter(c => c.checked).map(c => c.value);
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {
         if (input.value === '') delete value[name]; else value[name] = input.type === 'number' ? Number(input.value) : input.value;
       } return value; }); changed[list] = list === 'pass' ? items[0] : items;
     }
-    const nextDoc = { ...doc, nodes: doc.nodes.map(n => n.id === spec.id ? changed : n),
-      entryIds: entryCheck.checked ? [...new Set([...doc.entryIds, spec.id])] : doc.entryIds.filter(id => id !== spec.id) };
-    controller.replaceDraft(nextDoc);
+    controller.editDraft({ ...doc, nodes: doc.nodes.map(n => n.id === spec.id ? changed : n) });
   }, 'primary'));
-  host.append(el('p', 'Use Experiment JSON to add/remove nodes or offers and compare larger graph variations.', 'note'));
+  host.append(el('p', 'Use the graph above to move, duplicate or remove this node and edit its routes.', 'note'));
 }
 
 function renderGuides(snapshot) {
@@ -163,6 +158,7 @@ async function guidedChoice() {
 function render() {
   const snapshot = controller.getSnapshot();
   renderToolbar(snapshot); renderSummary(snapshot); renderOutcomes(snapshot); renderEditor(snapshot); renderGuides(snapshot);
+  graphEditor.refresh(snapshot, selectedId);
   gameScreen?.refresh(snapshot);
   $('status').textContent = error || snapshot.message || 'Choose an entry node or a guided experiment.';
   $('status').className = error ? 'error' : '';
@@ -177,13 +173,14 @@ async function startGameScreen() {
 try {
   gameScreen = await createOpeningGameScreen({ host: $('game-screen'), controller,
     onError: message => { error = message; render(); },
-    onEdit: id => { if (id) selectedId = id; editorKey = ''; render(); $('editor').scrollIntoView({ block: 'start', behavior: 'smooth' }); },
+    onEdit: id => { if (id) selectedId = id; editorKey = ''; render(); $('graph-editor').scrollIntoView({ block: 'start', behavior: 'smooth' }); },
   });
   document.body.dataset.ready = 'true';
 } catch (failure) { error = `Unable to open the game screen: ${failure.message}`; render(); }
 }
 void startGameScreen();
 // Focused inspection hook for the collaborative browser; never includes full GameState.
-window.openingWorkbench = { getSnapshot: () => { const { summary, busy, session } = controller.getSnapshot(); return { summary, busy, availableIds: session.availableIds, activeId: session.activeId, visitedIds: session.visitedIds, game: gameScreen?.getSnapshot() }; },
+window.openingWorkbench = { getSnapshot: () => { const { summary, busy, session, draft, draftIssue } = controller.getSnapshot(); return { summary, busy, availableIds: session.availableIds, activeId: session.activeId, visitedIds: session.visitedIds,
+  draftGraph: { entryIds: draft.entryIds, issue: draftIssue, nodes: draft.nodes.map(({ id, kind, next }) => ({ id, kind, next })) }, game: gameScreen?.getSnapshot() }; },
   getPoint: (kind, index) => gameScreen?.getPoint(kind, index),
   getClientPoint: (kind, index) => gameScreen?.getClientPoint(kind, index) };

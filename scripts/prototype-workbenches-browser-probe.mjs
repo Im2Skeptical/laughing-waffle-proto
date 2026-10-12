@@ -176,6 +176,61 @@ try {
       throw new Error(`Touch ${phase}: ${error.message.split('\n')[0]}; details artifacts/opening-pixi-touch-failure.json`);
     }finally{await mobile.close();page=previous;}
   });
+  await check('Opening graph editor: reorder, add, duplicate, remove, draw routes and undo invalid edits', async () => {
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();
+    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
+    const graph=()=>page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph);
+    const successors=async id=>(await graph()).nodes.find(n=>n.id===id).next;
+    await page.locator('#graph-editor .graph-card[data-node="development"]').click();
+    await page.locator('#graph-move-target').selectOption('founding');await page.locator('#graph-move-before').click();
+    assert.deepEqual(await successors('relic'),['development']);assert.deepEqual(await successors('explore'),['development']);
+    assert.deepEqual(await successors('development'),['founding']);assert.deepEqual(await successors('shop'),['martial']);
+    await page.locator('#graph-editor .graph-card[data-node="development"]>rect').dragTo(page.locator('#graph-editor .graph-card[data-node="shop"]>rect'));
+    assert.deepEqual(await successors('founding'),['development']);assert.deepEqual(await successors('development'),['shop']);
+    await page.locator('#graph-move-target').selectOption('founding');await page.locator('#graph-move-before').click();
+    await page.locator('#graph-new-kind').selectOption('patronage');await page.locator('#graph-add').click();
+    assert.deepEqual(await successors('development'),['patronage-1']);assert.deepEqual(await successors('patronage-1'),['founding']);
+    await page.locator('#graph-editor [data-from="development"][data-to="patronage-1"]').click();await page.locator('#graph-remove-edge').click();
+    assert.ok((await graph()).issue);await page.locator('#graph-undo').click();assert.equal((await graph()).issue,'');
+    await page.locator('#graph-duplicate').click();assert.equal((await graph()).nodes.length,10);
+    await page.locator('#graph-remove-node').click();assert.equal((await graph()).nodes.length,9);
+    await page.locator('#graph-undo').click();assert.equal((await graph()).nodes.length,10);
+    await page.locator('#graph-redo').click();assert.equal((await graph()).nodes.length,9);
+    await page.locator('#edit-node').selectOption('shop');await page.locator('#graph-move-target').selectOption('development');await page.locator('#graph-move-before').click();
+    assert.deepEqual(await successors('shop'),['development']);assert.deepEqual(await successors('founding'),['martial']);
+    await page.locator('#graph-editor .graph-scroll').evaluate(n=>{n.scrollLeft=0;});
+    const source=await page.locator('#graph-editor [data-port="out"][data-node="explore"]').boundingBox();
+    const target=await page.locator('#graph-editor .graph-card[data-node="development"]>rect').boundingBox();
+    await page.locator('#graph-editor').scrollIntoViewIfNeeded();
+    const a=await page.locator('#graph-editor [data-port="out"][data-node="explore"]').boundingBox(),b=await page.locator('#graph-editor .graph-card[data-node="development"]>rect').boundingBox();
+    assert.ok(source&&target&&a&&b);
+    await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:12});await page.mouse.up();
+    await page.waitForFunction(()=>openingWorkbench.getSnapshot().draftGraph.nodes.find(n=>n.id==='explore').next.includes('development'));
+    await page.locator('#graph-editor [data-from="explore"][data-to="development"]').click();await page.locator('#graph-remove-edge').click();
+    assert.deepEqual(await successors('explore'),['shop']);
+    await page.locator('#graph-editor .graph-routes summary').click();await page.locator('#graph-from').selectOption('shop');await page.locator('#graph-to').selectOption('development');await page.locator('#graph-disconnect').click();
+    assert.ok((await graph()).issue);assert.equal(await page.locator('#graph-play').isDisabled(),true);
+    await page.locator('#graph-undo').click();assert.equal((await graph()).issue,'');
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'graph authoring leaves the running world unchanged');
+    await page.getByRole('button',{name:'Fit graph',exact:true}).click();await page.screenshot({path:'artifacts/prototype-opening-graph-editor.png'});
+    await page.locator('#graph-play').click();await openingEnter('relic');await openingClick('option',0);await openingClick('acquire','equip');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('relic'));
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().availableIds),['shop'],'Pixi play follows the edited graph');
+  });
+  await check('Opening graph editor phone controls and containment', async () => {
+    const previous=page,mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+    page=await mobile.newPage();
+    try {
+      await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+      await page.locator('#edit-node').selectOption('development');await page.locator('#graph-move-target').selectOption('founding');await page.locator('#graph-move-before').tap();
+      assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph.nodes.find(n=>n.id==='development').next),['founding']);
+      await page.locator('#graph-new-kind').selectOption('shop');await page.locator('#graph-add').tap();
+      assert.equal(await page.locator('#graph-editor .graph-card').count(),9);
+      await page.locator('#graph-undo').tap();assert.equal(await page.locator('#graph-editor .graph-card').count(),8);
+      await noOverflow('graph editor phone');await page.screenshot({path:'artifacts/prototype-opening-graph-editor-phone.png'});
+    }finally{await mobile.close();page=previous;}
+  });
   await check('Opening draft edit, save/reload, import/export and phone containment', async () => {
     await page.getByRole('button',{name:'Explore & save',exact:true}).click();
     await page.getByRole('button',{name:'Next guided choice',exact:true}).click();

@@ -16,16 +16,40 @@ opening or a replacement for normal gameplay.
 - `model.js`: disposable encounters using existing Life Map effects and fresh-game state.
 - `controller.js`: transactions, tick resolution, complete rewind checkpoints and separate draft storage.
 - `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
+- `graph-edit.js` / `graph-editor.js`: route-changing operations and the visual draft editor.
 - `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
 
 The initial branches are a curated ordinary Relic and a bundled world opportunity.
 Both converge on Warrior founding, followed by expenditure, Development, martial
 response, Stock Supply and an easy benefit. Node editing changes the draft only;
-Restart captures it in a new disposable session. Advanced JSON supports adding
-nodes/offers, changing entry points and rewiring the graph. Validation requires a
+Restart captures it in a new disposable session. The visual editor supports
+adding nodes from populated templates, duplicating/removing nodes, changing entry
+points and rewiring the graph. Advanced JSON remains available for offer editing.
+Validation requires a
 reachable acyclic graph whose every entry path reaches one founding node.
 The optional `displayLabel` sets a short map plaque; the title and description
 remain available in the entry confirmation and decision screen.
+
+## Editing the route
+
+Select a node and choose a destination with **Before** or **After**. Moving
+Development before Founding redirects all routes into Founding through Development
+and joins up Development's old neighbours. You can also drag a node onto another
+node to move it before that node, or onto an arrow to insert it on that one route.
+Drag from a node's right-hand dot to another node to draw a connection; clicking
+the dot then the destination works too. Select an arrow and use **Remove
+connection**. **Connect nodes without dragging** provides the same actions on
+phones and with a keyboard.
+
+**Add node** inserts a populated node after the selected node or on the selected
+connection. **Remove node & join routes** bridges its predecessors to its successors.
+Founding remains unique and can be moved. **Undo edit** and **Redo edit** cover
+graph and content edits independently of playthrough rewind.
+
+Disconnected or cyclic drafts remain visible while you work. The editor names
+the issue; playing and saving require a valid graph. **Play edited opening** or
+**Restart** launches the current draft in the Pixi screen. The running world and
+its RNG stay unchanged while editing.
 
 Save/Load uses `civsurvivor.prototype.warriorOpening.v1`, independently of player
 saves, reviewed cards, launch profiles and the Museum. Export/import transfers
@@ -64,3 +88,5 @@ Validate deployment with `npm run verify`. The updated
 rewind, edited costs, draft persistence/import, real Pixi selection/confirmation,
 shop inspection/drag/undo, earned level-up choices, map navigation, portrait
 fullscreen touch input and mobile containment.
+`scripts/opening-graph-editor-test.mjs` also covers graph operations, invalid-draft
+isolation and real Development/Practice purchases before founding.

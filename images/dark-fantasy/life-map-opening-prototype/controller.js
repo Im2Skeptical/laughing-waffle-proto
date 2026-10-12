@@ -13,6 +13,18 @@ export function createOpeningController(storage = null) {
     if (raw) { draft = validateOpeningExperiment(JSON.parse(raw)); saved = structuredClone(draft); message = 'Loaded your saved experiment.'; }
   } catch { message = 'Saved draft could not be read. The built-in experiment is open.'; }
   let session = createOpeningSession(draft), checkpoints = [], listeners = new Set();
+  let draftIssue = '', draftUndo = [], draftRedo = [];
+  function checkDraft() {
+    try { validateOpeningExperiment(draft); draftIssue = ''; }
+    catch (error) { draftIssue = error.message; }
+  }
+  function editDraft(doc) {
+    idle(); if (JSON.stringify(doc) === JSON.stringify(draft)) return;
+    draftUndo.push(structuredClone(draft)); if (draftUndo.length > 80) draftUndo.shift();
+    draftRedo = []; draft = structuredClone(doc); checkDraft();
+    message = draftIssue ? 'Graph edits kept. Fix the highlighted issue before playing or saving.' : 'Draft updated. Restart to play these changes.';
+    notify();
+  }
   const notify = () => listeners.forEach(listener => listener());
   function idle() { if (busy) throw new Error('Wait for the current outcome to resolve.'); }
   function transact(operation) {
@@ -23,16 +35,20 @@ export function createOpeningController(storage = null) {
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
     getSnapshot() { return { draft: structuredClone(draft), experiment: session.experiment, summary: openingSummary(session),
       session, decision: getOpeningDecision(session), busy, progress, message, canRewind: checkpoints.length > 0,
-      saved: !!saved, draftChanged: JSON.stringify(draft) !== JSON.stringify(session.experiment),
+      saved: !!saved, draftIssue, canUndoDraft: draftUndo.length > 0, canRedoDraft: draftRedo.length > 0,
+      draftChanged: JSON.stringify(draft) !== JSON.stringify(session.experiment),
       development: openingVassal(session).developmentChoiceQueue[0] ?? null }; },
     getDecision(preview) { return getOpeningDecision(session, preview); },
-    replaceDraft(doc) { idle(); draft = validateOpeningExperiment(doc); message = 'Draft updated. Restart to play these changes.'; notify(); },
+    replaceDraft(doc) { idle(); editDraft(validateOpeningExperiment(doc)); },
+    editDraft,
+    undoDraft() { idle(); if (!draftUndo.length) return; draftRedo.push(structuredClone(draft)); draft = draftUndo.pop(); checkDraft(); message = 'Undid the draft edit.'; notify(); },
+    redoDraft() { idle(); if (!draftRedo.length) return; draftUndo.push(structuredClone(draft)); draft = draftRedo.pop(); checkDraft(); message = 'Redid the draft edit.'; notify(); },
     save() { idle(); if (!storage) throw new Error('Browser storage is unavailable. Export the experiment instead.');
-      storage.setItem(OPENING_STORAGE_KEY, JSON.stringify(draft)); saved = structuredClone(draft); message = 'Experiment saved in this browser.'; notify(); },
-    load() { idle(); if (!saved) throw new Error('Save an experiment first.'); draft = structuredClone(saved); message = 'Saved draft loaded. Restart to play it.'; notify(); },
-    resetDraft() { idle(); draft = createOpeningExperiment(); message = 'Built-in draft restored. Restart to play it.'; notify(); },
+      validateOpeningExperiment(draft); storage.setItem(OPENING_STORAGE_KEY, JSON.stringify(draft)); saved = structuredClone(draft); message = 'Experiment saved in this browser.'; notify(); },
+    load() { idle(); if (!saved) throw new Error('Save an experiment first.'); editDraft(saved); },
+    resetDraft() { editDraft(createOpeningExperiment()); },
     restart() { idle(); const next = createOpeningSession(draft); session = next; checkpoints = []; message = 'Fresh opening, same seed. Choose an entry.'; notify(); },
-    nextSeed() { idle(); draft.seed = (draft.seed + 1) >>> 0; controller.restart(); },
+    nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);
       enterOpeningEncounter(next, id); deserializeGameState(serializeGameState(next.state));
       checkpoints.push(checkpoint); session = next; message = 'Choose an action or stage purchases.'; notify(); },
