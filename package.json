@@ -9,6 +9,7 @@
     "prototype:vassal": "serve . --listen 4173",
     "preview:cards": "node scripts/preview-cards.mjs",
     "preview:vassals": "node scripts/preview-vassals.mjs",
+    "preview:opening": "serve . --listen 5185",
     "preview:structures": "node scripts/preview-structures.mjs",
     "preview:keywords": "node scripts/preview-keywords.mjs",
     "build": "node scripts/build-pages.mjs",

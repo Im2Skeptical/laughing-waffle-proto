@@ -1,5 +1,8 @@
 # Practice inspector prototype
 
+**Retired from Development Lab and Pages deployment.** This source study is
+retained for local reference; its original workflow is described below.
+
 Question: how should a player read a simple symbol key and follow keywords within
 keywords while studying a Practice? This isolated Dev Lab workbench keeps the
 current enlarged symbolic card and readable Activation rules. The right-hand panel uses only symbol — name

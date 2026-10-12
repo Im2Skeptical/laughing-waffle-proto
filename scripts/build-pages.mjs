@@ -112,24 +112,29 @@ async function buildPagesArtifact() {
         || parts.length === darkFantasyIndex + 1
         || parts.includes("card-chrome-prototype")
         || parts.includes("vassal-chrome-prototype")
-        || parts.includes("structure-chrome-prototype")
-        || parts.includes("keyword-inspection-prototype")
+        || parts.includes("life-map-opening-prototype")
         || parts.includes("settlement-pieces-v4");
-      return keepDarkFantasy
+      // Retired card workbench keeps only styles shared by the game and Vassals.
+      const keepSharedCardStyles = !parts.includes("card-chrome-prototype")
+        || filename === "card-chrome-prototype" || filename.endsWith(".css");
+      return keepDarkFantasy && keepSharedCardStyles
         && !parts.includes("GameElements")
         && !/^resource-language-[01]\.(json|png)$/.test(filename)
         && !/^test-(data|sheet)-/.test(filename);
     },
   });
-  await access(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/renderer.js"));
+  await access(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/display.css"));
   await access(path.join(outDir, "images/dark-fantasy/vassal-chrome-prototype/components.png"));
   await access(path.join(outDir, "images/dark-fantasy/settlement-pieces-v4/forage.webp"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v2"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/settlement-pieces-v3"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/index.html"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/structure-chrome-prototype"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/keyword-inspection-prototype"));
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
   // Isolated workbenches bundle their read-only imports separately from the game.
-  for (const folder of ["card-chrome-prototype", "vassal-chrome-prototype", "structure-chrome-prototype", "keyword-inspection-prototype"]) {
+  for (const folder of ["life-map-opening-prototype", "vassal-chrome-prototype"]) {
     const studyPath = `images/dark-fantasy/${folder}/study.js`;
     await build({
       entryPoints: [studyPath], outfile: path.join(outDir, studyPath),

@@ -1,10 +1,13 @@
 # Illustrated card workbench (prototype)
 
+**Retired from Development Lab and Pages deployment.** This source study is
+retained for local reference; its original workflow is described below.
+
 Run `npm run preview:cards` from the repository root, then open
 <http://localhost:5181/images/dark-fantasy/card-chrome-prototype/>.
-Any existing root development server serves the same path. The Pages build
-also includes this page; it bundles the read-only definition imports separately
-from the game. The live card renderer does not import this prototype.
+Any existing root development server serves the same path. The former Pages
+build bundled the read-only definition imports separately from the game.
+The live card renderer does not import this prototype.
 
 **Approval boundary:** keep this treatment inside the prototype until the user
 explicitly confirms production integration.

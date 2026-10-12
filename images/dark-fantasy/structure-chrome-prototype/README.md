@@ -1,9 +1,12 @@
 # Structure Pixi screen workbench (prototype)
 
+**Retired from Development Lab and Pages deployment.** This source study is
+retained for local reference; its original workflow is described below.
+
 Run `npm run preview:structures`, then open
 <http://localhost:5183/images/dark-fantasy/structure-chrome-prototype/>.
-Also linked from **Development Lab → Prototypes → Structures & tooltips**.
-Pages bundles this isolated entry separately; the live game never imports it.
+Previously linked from Development Lab → Prototypes → Structures & tooltips.
+The live game never imports this entry.
 Keep this treatment here until production integration is explicitly requested.
 
 Question: which face communicates capacity at actual construction-strip size,

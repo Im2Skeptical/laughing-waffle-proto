@@ -196,49 +196,34 @@ toolbar stays reachable in portrait; landscape puts the card beside its fields.
 
 ## Prototypes
 
-**Prototypes** sits beside Zoo, Museum and Gym. Its four workbenches
-cover illustrated Cards, Vassals & Founders, Structures & tooltips, and the Practice
-inspector. Each opens
-an isolated page with a return link to this section. Direct workbench URLs and
+**Prototypes** sits beside Zoo, Museum and Gym. It now contains two isolated
+workbenches: **Protovassal opening** and **Vassals & Founders**. Direct URLs and
 the Prototypes hash route support refresh and GitHub Pages repository paths.
-The Pages build bundles each separately. Edits are temporary presentation
-examples; these studies do not change the live renderer, simulation or saves.
+The Pages build bundles these entries separately from the game.
 
-Cards includes a matched comparison with the current game renderer and five-card
-regional settlement / three-offer Practice shop screen references. Its Graphics
-control switches the hero, preset cards and contextual previews. Graphics choices
-survive workbench URL refresh. The in-game Practice quick read and expanded
-inspect view are the current tooltip reference; the old standalone Practice tooltip workbench is retired.
+The opening workbench edits an authored Warrior graph and plays sequential
+encounters from the real fresh-game economy. Edit nodes, connections, curated
+shop/relic offers, costs and rewards; Restart captures the draft in a disposable
+run. Resolve choices through real simulation ticks, inspect before/after results,
+and Rewind a decision including the complete RNG state. Guided experiments compare
+Relic & invest, Explore & save and Accept Chaos; their Next guided choice button
+uses the same operations as free play. Earned level-up choices remain playable.
 
-Structures renders three card treatments, quick reads and inspection entirely
-inside a Pixi canvas over a static game screenshot. It preserves the map,
-settlement, five Practice slots, construction strip, graph and navigation at
-game proportions. Hover or tap a Structure for its quick read; select the title
-for the Practice-style card/rules/glossary inspection. The same Fullscreen
-control as Cards/Vassals provides mobile landscape preview, with in-canvas
-variant and reading controls. Save screen PNG exports the current canvas,
-including any tooltip or inspection. Quality, Scholar requirements and staging
-are temporary preview controls. The URL preserves treatment, card and context.
-Run `npm run preview:structures` or open it from Prototypes. No live cards change.
+Save/Load uses separate browser storage; JSON export/import transfers recipes
+between devices. Graph edits remain in the draft until Restart. See the
+[opening workbench guide](../images/dark-fantasy/life-map-opening-prototype/README.md)
+for the experimental differences and run command. Normal gameplay, saves, card
+reviews, generation rules and Scholar unlocks are unchanged.
 
-Inspector studies the actual Pixi full inspection renderer, current card faces
-and a simple right-hand symbol key. Each row is a symbol and its readable name;
-definitions are behind clickable names rather than paragraphs in the key.
-Definitions contain further clickable terms; Back retraces the private reading
-stack and Close dismisses it. Each layout displays one definition, without Pin
-or a visible history list. Compare a nearby
-reference (`?variant=A`), fixed rail (`B`) or centered reference (`C`) with the
-bottom Pixi switcher. Its Fullscreen button uses the same mobile landscape
-flow and rotated fallback as the other workbenches; card, quality and layout
-controls remain inside the fullscreen canvas. Run locally with
-`npm run preview:keywords`. These interactions
-are exploratory and do not change the in-game tooltip.
+The former Illustrated Cards, Structures & tooltips and Practice inspector
+sections are retired from the directory and Pages deployment. Their source
+studies remain available locally for reference. Shared card-workbench styles
+remain published because the game and Vassal workbench still use them.
 
-The card hero, screen references, vassal hero and Museum/Gym Pixi
-scene have a top-right Fullscreen button. The same button exits. Touch devices
-request the main game's landscape display mode; browsers that reject orientation
-locking get a landscape preview fallback. Escape and native fullscreen exit also
-restore the normal page. Museum/Gym keep their existing map, graph and wheel input.
+Vassals & Founders retains its founder carousel, editable dossiers, class
+comparison and frame studies. Its Fullscreen button and the Museum/Gym scene
+use the game's landscape display mode, including the rotated fallback on touch
+browsers that reject orientation locking. Escape restores the normal page.
 
 ## Catalogue
 
