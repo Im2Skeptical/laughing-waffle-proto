@@ -83,11 +83,11 @@ try {
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.url().startsWith(url) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
-  await check('Pages subpath, two active workbenches, retirement and refresh', async () => {
+  await check('Pages subpath, three active workbenches, retirement and refresh', async () => {
     await page.goto(`${url}#/dev/prototypes`);
     await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
-    assert.equal(await page.locator('.lab-prototype-open').count(),2);
-    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Opening workbench \u2192', 'Open Vassals workbench \u2192']);
+    assert.equal(await page.locator('.lab-prototype-open').count(),3);
+    assert.deepEqual(await page.locator('.lab-prototype-open').allTextContents(), ['Open Map workbench \u2192', 'Open Opening workbench \u2192', 'Open Vassals workbench \u2192']);
     for (const folder of ['card-chrome-prototype','structure-chrome-prototype','keyword-inspection-prototype']) {
       assert.equal((await fetch(`${url}images/dark-fantasy/${folder}/`)).status,404,`${folder} is retired from deployment`);
     }

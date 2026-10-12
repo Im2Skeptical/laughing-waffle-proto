@@ -2,6 +2,11 @@ import { el } from './elements.js';
 
 const WORKBENCHES = [
   {
+    title: 'Regional map generation', folder: 'map-generation-prototype', label: 'Map',
+    description: 'Explore twenty generated regions, five biomes, clustering, varied sizes and continuous geographic borders in a Pixi landscape window.',
+    details: 'Seeded generation · 3 map views · landscape fullscreen · PNG export',
+  },
+  {
     title: 'Protovassal opening', folder: 'life-map-opening-prototype', label: 'Opening',
     description: 'Edit and play an authored Warrior opening, compare branches and inspect their real simulation outcomes.',
     details: 'Editable encounters · rewind / restart · saved experiments',

@@ -196,10 +196,19 @@ toolbar stays reachable in portrait; landscape puts the card beside its fields.
 
 ## Prototypes
 
-**Prototypes** sits beside Zoo, Museum and Gym. It now contains two isolated
-workbenches: **Protovassal opening** and **Vassals & Founders**. Direct URLs and
+**Prototypes** sits beside Zoo, Museum and Gym. It contains three isolated
+workbenches: **Regional map generation**, **Protovassal opening** and
+**Vassals & Founders**. Direct URLs and
 the Prototypes hash route support refresh and GitHub Pages repository paths.
 The Pages build bundles these entries separately from the game.
+
+The [map-generation workbench](../images/dark-fantasy/map-generation-prototype/README.md)
+explores twenty seeded regions with exact 6/5/4/3/2 biome counts, clustering,
+unequal areas and connected river, mountain-range, chasm and valley borders.
+Its Regions, Geography and Terrain views share one generated graph. Generation
+controls, selection, reflections and PNG export live in a fixed 2424 × 1080
+Pixi landscape window with the shared Fullscreen control. Settings live in memory
+and shareable URL parameters; no live game, draft or player save is attached.
 
 The opening workbench edits an authored Warrior graph and plays sequential
 encounters from the real fresh-game economy. Edit nodes, connections, curated

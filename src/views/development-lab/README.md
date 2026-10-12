@@ -87,7 +87,7 @@ Both catalogue and quality-comparison cards opt in; Museum/Gym and pickers keep
 their existing input. Closing or re-rendering dismisses the reading surface.
 
 `prototypes.js` renders the design-workbench directory at `#/dev/prototypes`.
-Its Opening and Vassals links open the separately bundled pages under
+Its Map, Opening and Vassals links open the separately bundled pages under
 `images/dark-fantasy/`; no prototype renderer is imported into the game shell.
 
 `dev-preview-display.js` provides the shared enter/exit control for the persistent
