@@ -286,42 +286,82 @@ function buildIslandClusters(regions, edges, seed) {
 }
 
 function buildSurroundings(regions, edges, features, seed, oceanSides) {
-  const outside = p => ({ x: .5 + (p.x - .5) * 6, y: .5 + (p.y - .5) * 6 });
-  const phase = decorationRandom(seed, 94000) * Math.PI * 2, spokes = new Map();
-  const spoke = p => {
-    if (!spokes.has(key(p))) {
-      const end = outside(p);
-      spokes.set(key(p), Array.from({ length: 21 }, (_, i) => {
-        const t = i / 20, x = lerp(p.x, end.x, t), y = lerp(p.y, end.y, t), envelope = Math.sin(t * Math.PI) ** 2;
-        return { x: x + .045 * Math.sin(y * 5 + phase) * envelope, y: y + .065 * Math.sin(x * 5 - phase) * envelope };
-      }));
-    }
-    return spokes.get(key(p));
-  };
-  const continuations = features.flatMap(feature => {
-    return [0, feature.vertexIds.length - 1].flatMap((i, end) => {
-      const edge = edges.find(e => e.id === feature.edgeIds[end ? feature.edgeIds.length - 1 : 0]);
-      const p = edge.a === feature.vertexIds[i] ? edge.points[0] : edge.points.at(-1);
-      const touchesOcean = edges.some(e => e.regions.length === 1 && (e.a === feature.vertexIds[i] || e.b === feature.vertexIds[i]) && oceanSides.includes(e.worldSide));
-      if (feature.type !== 'river' && touchesOcean) return [];
-      // Rivers meet the ocean at a short mouth, rather than drawing a canal
-      // across the whole surrounding sea.
-      return [{ type: feature.type, end: end ? 'end' : 'start', points: touchesOcean ? spoke(p).slice(0, 3) : spoke(p) }];
-    });
-  });
   const patches = edges.filter(e => e.regions.length === 1).map(edge => {
     const region = regions.find(r => r.id === edge.regions[0]);
-    const nearEdge = p => segmentDistance(p, edge.points[0], edge.points.at(-1)) < .12;
-    const near = type => continuations.some(c => c.type === type && nearEdge(c.points[0]));
     const kind = oceanSides.includes(edge.worldSide) ? 'ocean'
-      : region.biome === 'mountains' || near('ridge') || near('river') ? 'mountains' : 'wasteland';
-    const points = [...edge.points, ...spoke(edge.points.at(-1)).slice(1), ...edge.points.map(outside).reverse().slice(1),
-      ...spoke(edge.points[0]).slice().reverse().slice(1, -1)];
-    return { edgeId: edge.id, regionId: region.id, kind, side: edge.worldSide, points,
-      reason: kind === 'ocean' ? 'Chosen world coast' : near('ridge') ? 'Range continuation'
-        : kind === 'mountains' ? 'Highland barrier' : 'Barren hinterland' };
+      : ({ mountains: 'highlands', forest: 'scrub', swamp: 'marsh', islands: 'marsh' })[region.biome] ?? 'badlands';
+    return { edgeId: edge.id, regionId: region.id, kind, side: edge.worldSide,
+      points: [edge.points[0], edge.points.at(-1)], biome: region.biome };
   });
-  return { patches, continuations };
+  const anchors = [], continuations = [];
+  const oceanVertices = new Set(edges.filter(e => e.regions.length === 1 && oceanSides.includes(e.worldSide)).flatMap(e => [e.a, e.b]));
+  for (const feature of features) for (const end of [0, 1]) {
+    const i = end ? feature.vertexIds.length - 1 : 0;
+    const vertex = feature.vertexIds[i];
+    if (oceanVertices.has(vertex)) continue;
+    const edge = edges.find(e => e.id === feature.edgeIds[end ? feature.edgeIds.length - 1 : 0]);
+    const ordered = edge.a === vertex ? edge.points : [...edge.points].reverse();
+    const p = ordered[0], inner = ordered[Math.min(8, ordered.length - 1)];
+    const length = distance(p, inner), dx = (p.x - inner.x) / length, dy = (p.y - inner.y) / length;
+    const bend = (decorationRandom(seed, 95000 + anchors.length) - .5) * .2;
+    const curve = Array.from({ length: 17 }, (_, j) => {
+      const t = j / 16, across = bend * Math.sin(t * Math.PI / 2);
+      return { x: p.x + dx * .22 * t - dy * across / ASPECT, y: p.y + dy * .22 * t + dx * ASPECT * across };
+    });
+    const points = [];
+    for (const q of curve) {
+      if (sampleSurroundings({ seed, oceanSides, patches, anchors: [] }, q).ocean > .45) break;
+      points.push(q);
+    }
+    if (points.length < 2) continue;
+    anchors.push({ type: feature.type, point: points.at(-1) });
+    if (feature.type === 'river') continuations.push({ type: 'river', end: end ? 'end' : 'start', points });
+  }
+  return { seed, oceanSides, patches, anchors, continuations, bounds: { minX: -3.5, maxX: 6, minY: -3.5, maxY: 6 } };
+}
+
+const smooth = (a, b, value) => { const t = Math.max(0, Math.min(1, (value - a) / (b - a))); return t * t * (3 - 2 * t); };
+function terrainNoise(seed, p, frequency, salt) {
+  const x = p.x * ASPECT * frequency, y = p.y * frequency, ix = Math.floor(x), iy = Math.floor(y);
+  const fx = smooth(0, 1, x - ix), fy = smooth(0, 1, y - iy);
+  const value = (a, b) => decorationRandom(seed, Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ salt);
+  return lerp(lerp(value(ix, iy), value(ix + 1, iy), fx), lerp(value(ix, iy + 1), value(ix + 1, iy + 1), fx), fy);
+}
+
+// One continuous field for the non-playable world, not edge-shaped wedges.
+// JSON geometry is the input; callers can sample or bake it without a sim tick.
+export function sampleSurroundings(surroundings, p) {
+  let seaDistance = Infinity, landDistance = Infinity, total = 0;
+  const affinity = { highlands: 0, marsh: 0, scrub: 0, badlands: 0 };
+  for (const patch of surroundings.patches) {
+    const d = segmentDistance(p, ...patch.points);
+    if (patch.kind === 'ocean') seaDistance = Math.min(seaDistance, d);
+    else {
+      landDistance = Math.min(landDistance, d);
+      const weight = 1 / (.004 + d ** 3); total += weight; affinity[patch.kind] += weight;
+    }
+  }
+  const n = terrainNoise(surroundings.seed, p, 1.2, 98432), fine = terrainNoise(surroundings.seed, p, 3.4, 56321);
+  const directions = { north: .5 - p.y, east: p.x - .5, south: p.y - .5, west: .5 - p.x };
+  const seaDirection = Math.max(...surroundings.oceanSides.map(side => directions[side]));
+  const landDirection = Math.max(...WORLD_SIDES.filter(side => !surroundings.oceanSides.includes(side)).map(side => directions[side]));
+  const farOcean = .5 + (seaDirection - landDirection) / (2 * (Math.abs(seaDirection) + Math.abs(landDirection) + .1));
+  const nearest = Math.min(seaDistance, landDistance);
+  const coastalOcean = landDistance / (seaDistance + landDistance || .0001);
+  const ocean = lerp(coastalOcean, farOcean, smooth(.35, 1.5, nearest))
+    + (n - .5) * .2 * smooth(.015, .18, nearest);
+  const influence = 1 / (1 + landDistance ** 2 * 2);
+  for (const kind of Object.keys(affinity)) affinity[kind] = affinity[kind] / (total || 1) * influence;
+  let height = .3 + n * .35 + fine * .16 + affinity.highlands * .55;
+  let wet = .08 + (1 - n) * .3 + affinity.marsh * .7;
+  for (const anchor of surroundings.anchors) {
+    const strength = Math.exp(-(distance(p, anchor.point) ** 2) / .09);
+    if (anchor.type === 'ridge' || anchor.type === 'chasm') height += strength * .45;
+    else wet += strength * .65;
+  }
+  const highlands = smooth(.52, .85, height), marsh = smooth(.32, .7, wet) * (1 - highlands);
+  const scrub = Math.min(1 - highlands - marsh, (.12 + affinity.scrub * .7 + fine * .12) * (1 - highlands));
+  return { ocean: Math.max(0, Math.min(1, ocean)), highlands, marsh, scrub, badlands: 1 - highlands - marsh - scrub };
 }
 
 function buildFootprint(state, sizeVariation, phases) {

@@ -207,10 +207,12 @@ explores twenty seeded regions with exact 6/5/4/3/2 biome counts, clustering,
 unequal areas and connected river, mountain-range, chasm and valley borders.
 Connected Islands regions form larger shared land masses. The non-playable
 surroundings put ocean on one world side or two sides sharing a corner, with
-barren hinterland and mountain barriers elsewhere. Twenty connected cells from
+continuously blended badlands, scrub, marsh and highlands elsewhere. Twenty connected cells from
 a larger tessellation form region-scale bays and headlands, retaining broad
-region shapes without a global warp or enclosed gaps. Mountain
-artwork stays on land; rivers lead toward the chosen ocean. Drag, scroll, pinch,
+region shapes without a global warp or enclosed gaps. Mountain and river
+artwork stays on land; rivers end at the chosen ocean's shoreline. Inland creeks
+taper into wetland fringes, while other landforms influence the surrounding
+terrain without projecting lines or wedges outward. Drag, scroll, pinch,
 zoom buttons and Fit explore the irregular footprint through the game's camera.
 Its Regions, Geography and Terrain views share one generated graph. Generation
 controls, selection, reflections and PNG export live in a fixed 2424 × 1080

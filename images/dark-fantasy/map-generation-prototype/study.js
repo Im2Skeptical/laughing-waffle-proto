@@ -1,6 +1,6 @@
 // Throwaway Pixi landscape study: A topology, B geographic skeleton, C terrain.
 // Same generated map in each mode; no live renderer or simulation is attached.
-import { generateMap, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
+import { generateMap, sampleSurroundings, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
@@ -61,7 +61,7 @@ viewport.on('pointertap', event => {
   if (region) { state.selected = region.id; render(); }
 });
 const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
-let map = generateMap(state), targets = [];
+let map = generateMap(state), targets = [], backgroundArt = null;
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
 const polygonPoints = points => points.flatMap(p => { const v = point(p); return [v.x, v.y]; });
@@ -190,7 +190,7 @@ function drawLandform(parent, type, points, skeleton) {
 function drawFeatures() {
   for (const feature of map.features) {
     const points = featurePath(feature), skeleton = state.variant === 'B';
-    if (feature.type === 'ridge') {
+    if (feature.type === 'ridge' || feature.type === 'river') {
       const layer = new PIXI.Container(), mask = new PIXI.Graphics();
       layer.eventMode = 'none'; mask.eventMode = 'none';
       for (const region of map.regions.filter(r => r.biome !== 'islands')) mask.beginFill(0xffffff).drawPolygon(polygonPoints(region.outline)).endFill();
@@ -212,36 +212,81 @@ function drawFeatures() {
 }
 
 function drawSurroundings() {
-  const layer = new PIXI.Container(); layer.eventMode = 'none'; worldLayer.addChild(layer); layer.alpha = .85;
-  const landMask = new PIXI.Graphics(); landMask.eventMode = 'none';
-  const colours = { ocean: 0x315561, mountains: 0x777968, wasteland: 0x8c8062 };
-  for (const patch of map.surroundings.patches) {
-    const patchLayer = new PIXI.Container(), clip = new PIXI.Graphics().beginFill(0xffffff).drawPolygon(polygonPoints(patch.points)).endFill();
-    clip.eventMode = 'none'; patchLayer.eventMode = 'none'; layer.addChild(patchLayer, clip); patchLayer.mask = clip;
-    const ink = new PIXI.Graphics().beginFill(colours[patch.kind]).drawPolygon(polygonPoints(patch.points)).endFill(); patchLayer.addChild(ink);
-    if (patch.kind !== 'ocean') landMask.beginFill(0xffffff).drawPolygon(polygonPoints(patch.points)).endFill();
-    const edge = map.edges.find(e => e.id === patch.edgeId);
-    if (patch.kind === 'wasteland') line(patchLayer, edge.points, BIOMES[map.regions.find(r => r.id === patch.regionId).biome].colour, 42, .2);
-    const bounds = { minX: Math.max(-.75, Math.min(...patch.points.map(p => p.x))), maxX: Math.min(1.75, Math.max(...patch.points.map(p => p.x))),
-      minY: Math.max(-.75, Math.min(...patch.points.map(p => p.y))), maxY: Math.min(1.75, Math.max(...patch.points.map(p => p.y))) };
-    const g = new PIXI.Graphics(); patchLayer.addChild(g);
-    for (let i = 0; i < 260; i++) {
-      const index = map.edges.indexOf(edge) * 1000 + i * 3 + 91000;
-      const p = { x: bounds.minX + decorationRandom(map.seed, index) * (bounds.maxX - bounds.minX),
-        y: bounds.minY + decorationRandom(map.seed, index + 1) * (bounds.maxY - bounds.minY) };
-      if (!insidePolygon(p, patch.points)) continue;
-      const { x, y } = point(p), size = 9 + decorationRandom(map.seed, index + 2) * 13;
-      if (patch.kind === 'mountains') drawMountain(g, x, y, size * 1.4, 0x495851);
-      else if (patch.kind === 'ocean') g.lineStyle(1.5, 0xacc9c2, .17).moveTo(x - size, y).quadraticCurveTo(x, y - 3, x + size, y);
-      else g.lineStyle(1.5, 0x665d4a, .45).moveTo(x - size, y).lineTo(x, y - 3).lineTo(x + size * .8, y + 2)
-        .moveTo(x, y - 3).lineTo(x + size * .2, y + 9);
-    }
+  if (backgroundArt?.map !== map) {
+    backgroundArt?.textures.forEach(texture => texture.destroy(true));
+    backgroundArt = bakeBackground();
   }
-  const landContinuations = new PIXI.Container(); landContinuations.eventMode = 'none'; layer.addChild(landContinuations, landMask); landContinuations.mask = landMask;
+  const layer = new PIXI.Container(); layer.eventMode = 'none'; worldLayer.addChild(layer);
+  const sprite = (texture, bounds) => {
+    const node = new PIXI.Sprite(texture), p = point({ x: bounds.minX, y: bounds.minY });
+    node.position.set(p.x, p.y); node.width = (bounds.maxX - bounds.minX) * mapRect.width; node.height = (bounds.maxY - bounds.minY) * mapRect.height;
+    if (state.flipX) node.scale.x *= -1; if (state.flipY) node.scale.y *= -1;
+    node.eventMode = 'none'; layer.addChild(node); return node;
+  };
+  sprite(backgroundArt.textures[0], map.surroundings.bounds);
+  sprite(backgroundArt.textures[1], backgroundArt.detailBounds);
+  const landMask = sprite(backgroundArt.textures[2], backgroundArt.detailBounds);
+  const landArt = new PIXI.Container(), seaArt = new PIXI.Graphics(), g = new PIXI.Graphics();
+  landArt.eventMode = 'none'; layer.addChild(seaArt, landArt); landArt.mask = landMask; landArt.addChild(g);
+  const b = backgroundArt.detailBounds;
+  for (let i = 0; i < 4200; i++) {
+    const index = 91000 + i * 4;
+    const p = { x: b.minX + decorationRandom(map.seed, index) * (b.maxX - b.minX), y: b.minY + decorationRandom(map.seed, index + 1) * (b.maxY - b.minY) };
+    const field = backgroundArt.sample(p), { x, y } = point(p), size = 6 + decorationRandom(map.seed, index + 2) * 13;
+    if (field[0] > .6) {
+      seaArt.lineStyle(1.5, 0xacc9c2, .16).moveTo(x - size, y).quadraticCurveTo(x, y - 3, x + size, y);
+    } else if (field[1] > .55) drawMountain(g, x, y, size * (1.1 + field[1] * .5), 0x4f5c53);
+    else if (field[2] > .25) {
+      g.lineStyle(1, 0x8c9c80, .24).beginFill(0x375a56, .25).drawEllipse(x, y, size * 1.6, size * .45).endFill();
+      g.lineStyle(1.2, 0x40564b, .6).moveTo(x + size * .4, y).lineTo(x + size * .3, y - size * .7);
+    } else if (field[3] > .35) {
+      g.lineStyle(1.5, 0x405744, .4).moveTo(x - size, y).lineTo(x - size * .5, y - 4).lineTo(x, y)
+        .moveTo(x + 5, y + 3).lineTo(x + 8, y - 3);
+    } else g.lineStyle(1.3, 0x665d49, .35).moveTo(x - size, y).lineTo(x, y - 3).lineTo(x + size * .8, y + 2);
+  }
   if (state.variant !== 'A') for (const continuation of map.surroundings.continuations) {
-    drawLandform(continuation.type === 'river' ? layer : landContinuations, continuation.type, continuation.points, false);
+    const creek = new PIXI.Graphics(); landArt.addChild(creek);
+    continuation.points.forEach((p, i, points) => {
+      if (!i) return;
+      const a = point(points[i - 1]), c = point(p), t = i / (points.length - 1);
+      creek.lineStyle(9 * (1 - t * .85), 0x789e99, (1 - t) ** .8).moveTo(a.x, a.y).lineTo(c.x, c.y);
+    });
   }
   text(root, 'BEYOND THE PLAYABLE REGIONS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
+}
+
+function bakeBackground() {
+  const bounds = map.surroundings.bounds, count = 321, data = new Float32Array(count * count * 4);
+  for (let y = 0; y < count; y++) for (let x = 0; x < count; x++) {
+    const field = sampleSurroundings(map.surroundings, { x: bounds.minX + x / (count - 1) * (bounds.maxX - bounds.minX),
+      y: bounds.minY + y / (count - 1) * (bounds.maxY - bounds.minY) });
+    data.set([field.ocean, field.highlands, field.marsh, field.scrub], (y * count + x) * 4);
+  }
+  const sample = (p, out = new Float32Array(4)) => {
+    const x = Math.max(0, Math.min(count - 1.001, (p.x - bounds.minX) / (bounds.maxX - bounds.minX) * (count - 1)));
+    const y = Math.max(0, Math.min(count - 1.001, (p.y - bounds.minY) / (bounds.maxY - bounds.minY) * (count - 1)));
+    const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, a = (iy * count + ix) * 4, b = a + count * 4;
+    for (let i = 0; i < 4; i++) out[i] = (data[a + i] * (1 - fx) + data[a + 4 + i] * fx) * (1 - fy)
+      + (data[b + i] * (1 - fx) + data[b + 4 + i] * fx) * fy;
+    return out;
+  };
+  const palette = [[128, 115, 85], [117, 121, 106], [77, 104, 93], [99, 119, 90]], sea = [43, 78, 89];
+  const detailBounds = { minX: -1.5, maxX: 2.5, minY: -1.5, maxY: 2.5 };
+  const paint = (area, size, mask = false) => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d'), pixels = ctx.createImageData(size, size);
+    const p = { x: 0, y: 0 }, f = new Float32Array(4);
+    const dx = (area.maxX - area.minX) / (size - 1), dy = (area.maxY - area.minY) / (size - 1);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      p.x = area.minX + x * dx; p.y = area.minY + y * dy; sample(p, f);
+      const t = Math.max(0, Math.min(1, (f[0] - .47) / .06)), ocean = t * t * (3 - 2 * t), offset = (y * size + x) * 4;
+      for (let c = 0; c < 3; c++) pixels.data[offset + c] = mask ? 255
+        : (palette[0][c] * (1 - f[1] - f[2] - f[3]) + palette[1][c] * f[1] + palette[2][c] * f[2] + palette[3][c] * f[3]) * (1 - ocean) + sea[c] * ocean;
+      pixels.data[offset + 3] = mask ? (1 - ocean) * 255 : 255;
+    }
+    ctx.putImageData(pixels, 0, 0); return PIXI.Texture.from(canvas);
+  };
+  return { map, sample, detailBounds, textures: [paint(bounds, 512), paint(detailBounds, 1024), paint(detailBounds, 1024, true)] };
 }
 
 function drawIslands() {
@@ -314,7 +359,7 @@ function drawMap() {
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
     : state.variant === 'A' ? '20 regions · straight-edge topology · tap a region to inspect'
       : state.variant === 'B' ? 'Continuous features follow shared edges across the map · decorative geography'
-        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · ocean, barren hinterland and highland barriers · tap to inspect`;
+        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · blended uninhabitable terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
 
@@ -350,9 +395,9 @@ function sync() {
     biomeAreaPercent: Object.fromEntries(Object.entries(map.biomeAreas).map(([id, area]) => [id, +(area * 100).toFixed(1)])),
     features: map.features.map(f => ({ type: f.type, sharedEdges: f.edgeIds.length })),
     islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
-    surroundings: [...new Set(map.surroundings.patches.map(p => p.kind))],
+    surroundings: ['ocean', 'badlands', 'scrub', 'marsh', 'highlands'],
     world: map.world,
-    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Mountain ink is clipped to land. Other world edges remain hinterland even beside Islands. Surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
+    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Badlands, scrub, marsh and highlands blend continuously, influenced by nearby biomes. Rivers stop at shorelines; inland creeks taper into wetland fringes. River and mountain ink is clipped to land. Other world edges remain hinterland even beside Islands. Surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
   app.renderer.render(app.stage);

@@ -39,11 +39,15 @@ coastline and occasional lagoons. Region divisions and graph neighbours remain
 intact. Each seed chooses **one ocean world side or two adjacent sides sharing a
 corner**. Only those sides host surrounding ocean, regardless of the boundary
 biomes. Islands meeting a land side remain water-rich regions beside hinterland.
-Other sides use mountain barriers or barren terrain. Rivers are directed toward
-the chosen ocean; mountain ranges favour land edges and terminate at coastlines.
-Mountain artwork is clipped to land, including island shorelines and lagoons.
-These non-playable surroundings use shared curved transitions and continue land
-features beyond the playable area without putting mountain ink into sea. Water crossings and
+Other sides blend four uninhabitable terrain types: **badlands, scrub, marsh and
+highlands**. A continuous seeded terrain field uses nearby boundary biomes and
+landform endpoints as influences; it has no radial wedges or hard type borders.
+Rivers are directed toward the chosen ocean and stop at the shoreline. Both
+river and mountain artwork are clipped to land, including island shorelines
+and lagoons. On inland sides, short curved creeks taper into wetland fringes;
+other landforms influence surrounding terrain instead of extending as lines
+to nowhere. The field is baked into cached Pixi textures once per generated map;
+selection, reflections and camera gestures reuse it. Water crossings and
 impassability remain visual suggestions, with no simulation rules attached.
 
 Drag to pan, scroll or pinch to zoom, or use the in-canvas − / + controls. **Fit**
@@ -61,7 +65,8 @@ simulation state, RNG streams, schemas, replay, definitions and saves are untouc
 and PNG export for inspection. Validate quota counts, seed reproducibility,
 symmetric connected adjacency, area coverage, continuous feature routes, island
 cores belonging to their shared landmass, the one/two-adjacent-side ocean rule,
-and finite noncrossing region-scale shapes; review generation controls, tap
+finite normalized terrain blends, bounded inland creeks, rivers stopping at
+ocean/island shores, and finite noncrossing region-scale shapes; review generation controls, tap
 selection before/after pan and zoom, drag-versus-tap, pinch, Fit, views, URL refresh, reflections, PNG,
 fullscreen and fixed aspect ratio at desktop and 844 × 390 phone landscape.
 `npm run verify` covers packaging and the unchanged game invariants.
