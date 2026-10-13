@@ -135,12 +135,17 @@ async function loadPackedSheet(name) {
       await new Promise(resolve => setTimeout(resolve, [500, 1500][attempt]));
     }
   }
-  const textures = Object.values(sheet?.textures ?? {});
-  if (!textures.length || textures.some(texture => !texture?.baseTexture?.valid || texture.valid === false)
-    || Object.keys(sheet.data?.frames ?? {}).some(frame => !sheet.textures[frame])) {
-    throw artworkError(`Artwork has invalid or undecoded textures: ${name}`);
+  // Pixi loads and caches a multipack's related sheets with the first one.
+  // Return them together so callers never load (and re-cache) them again.
+  const sheets = [sheet, ...(sheet?.linkedSheets ?? [])];
+  for (const part of sheets) {
+    const textures = Object.values(part?.textures ?? {});
+    if (!textures.length || textures.some(texture => !texture?.baseTexture?.valid || texture.valid === false)
+      || Object.keys(part.data?.frames ?? {}).some(frame => !part.textures[frame])) {
+      throw artworkError(`Artwork has invalid or undecoded textures: ${name}`);
+    }
   }
-  return sheet;
+  return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? []).filter(item => typeof item === 'string') };
 }
 
 async function loadPackedGroup(group, retryFailed = false) {
@@ -149,9 +154,12 @@ async function loadPackedGroup(group, retryFailed = false) {
   // Multipack sheets link to each other. Loading them concurrently can leave
   // Pixi's asset promises waiting on the same linked sheet indefinitely.
   const load = (async () => {
+    const loaded = new Set();
     for (const name of group.files) {
-      const sheet = await loadPackedSheet(name);
-      Object.entries(sheet.textures).forEach(([name, texture]) => {
+      if (loaded.has(name)) continue;
+      const { sheets, linked } = await loadPackedSheet(name);
+      loaded.add(name); linked.forEach(item => loaded.add(item));
+      for (const sheet of sheets) Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
         configureTexture(texture);
         packedTextures.set(file, texture);

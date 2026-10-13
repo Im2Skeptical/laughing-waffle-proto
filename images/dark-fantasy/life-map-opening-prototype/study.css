@@ -9,3 +9,28 @@
 .graph-editor{margin-top:18px}.graph-editor .graph-scroll{overflow:auto;max-height:440px;max-width:100%;border:1px solid var(--line);background:#0d171b;border-radius:8px;overscroll-behavior:contain}.graph-scroll svg{display:block;max-width:none;touch-action:none}.graph-card{cursor:grab;touch-action:none}.graph-card>rect{fill:#1b2d32;stroke:#4a6268;stroke-width:2}.graph-card.selected>rect{stroke:#e3be71;stroke-width:3}.graph-card.entry>rect{fill:#25362f}.graph-card:focus-visible>rect{stroke:#fff;stroke-width:3}.graph-kind{font:600 18px system-ui;fill:#eadac1}.graph-title{font:14px system-ui;fill:#b5c7c6;pointer-events:none}.graph-kind,.graph-entry-label{pointer-events:none}.graph-entry-label{font:600 12px system-ui;letter-spacing:1px;fill:#93c9ae}.graph-port{cursor:crosshair;touch-action:none}.graph-port-hit{fill:transparent}.graph-port-dot{fill:#101b20;stroke:#a8c1b6;stroke-width:3}.graph-port:hover .graph-port-dot,.graph-port:focus-visible .graph-port-dot{fill:#e3be71;stroke:#e3be71}.graph-edge{cursor:pointer}.graph-edge-hit{fill:none;stroke:transparent;stroke-width:24}.graph-edge-line{fill:none;stroke:#8ea9a1;stroke-width:2;pointer-events:none}.graph-edge.selected .graph-edge-line,.graph-edge:hover .graph-edge-line,.graph-edge:focus-visible .graph-edge-line{stroke:#e3be71;stroke-width:4}.graph-drawing{fill:none;stroke:#e3be71;stroke-width:3;stroke-dasharray:7 5}.graph-validation{font-size:14px;color:var(--green);min-height:24px}.graph-validation.warning{color:var(--red)}.graph-tool-row{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin:12px 0}.graph-tool-row label{flex:1;min-width:190px;max-width:420px}.graph-tool-row button{flex:0 1 auto}.graph-selection{color:var(--gold)}.graph-routes{margin-top:12px}.graph-tools [hidden]{display:none!important}@media(max-width:760px){.graph-tool-row label{max-width:100%;flex-basis:100%}.graph-editor .actions button{flex:1 1 auto}}
 
 .graph-grid-line{fill:none;stroke:#31474d;stroke-width:1}.graph-grid-label{font:12px system-ui;fill:#8da7ac}.graph-selection-box{fill:#e3be7130;stroke:#e3be71;stroke-width:2;stroke-dasharray:6 4}.graph-card.custom-note>rect{fill:#30293b;stroke:#b399ce;stroke-dasharray:7 4}.graph-card.custom-note.selected>rect{stroke:#e3be71}.graph-note-preview{font:italic 13px system-ui;fill:#d2badf;pointer-events:none}.graph-scroll svg[data-mode=pan]{cursor:grab}.graph-scroll svg[data-mode=pan] .graph-card{cursor:grab}.graph-editor button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)}
+
+/* Phone-first pass: game first, explanations on demand, 44px targets. */
+summary{min-height:44px;display:flex;align-items:center;gap:6px}header>a{display:inline-flex;align-items:center;min-height:44px}
+#game-screen .dev-preview-fullscreen{min-height:44px;min-width:44px}
+.about{margin-top:4px}.about summary{font-size:14px;color:var(--muted);font-weight:500}.about p{color:var(--muted);font-size:14px}
+.guides{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}.guides #guide{margin:0;flex:1 1 280px}
+.draft-menu{position:relative}.draft-menu>summary{border:1px solid var(--line);border-radius:6px;padding:0 12px;background:#0e1c21;font-weight:400;list-style:none}
+.draft-menu>summary::-webkit-details-marker{display:none}.draft-menu[open]>summary{border-color:var(--gold)}
+.draft-menu-items{position:absolute;z-index:5;right:0;top:calc(100% + 6px);display:grid;gap:6px;min-width:220px;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #0008;animation:draft-menu-in .14s ease-out}
+@keyframes draft-menu-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.draft-menu-items{animation:none}}
+.metric strong{display:flex;align-items:center;gap:6px}.stat-icon{width:24px;height:24px;flex:none}
+.offer-editor>summary{font-weight:500;color:var(--text)}.offer-editor[open]>summary{margin-bottom:8px}
+.rotate-hint{display:none}
+@media(max-width:900px),(max-height:500px){header{padding-top:10px;padding-bottom:6px}header h1{font-size:22px;margin:2px 0}.eyebrow{display:none}main{padding-top:6px}.game-panel{margin-top:4px}}
+/* Landscape phones: the whole canvas fits the screen height. */
+@media(max-height:500px) and (orientation:landscape){header{display:flex;align-items:center;gap:12px;padding-top:4px;padding-bottom:4px}header>div{display:flex;align-items:center;gap:16px;flex-wrap:wrap}header>a{margin-top:0}
+  .about{margin:0}.about[open]{flex-basis:100%}#status{min-height:0;margin:0 0 4px;font-size:14px}
+  #game-screen{padding-top:0;position:relative}#game-screen .game-screen-label{display:none}
+  #game-screen:not(.dev-preview-expanded) canvas{width:min(calc(100% - 104px),calc((100dvh - 96px) * 2424 / 1080))}
+  #game-screen:not(.dev-preview-expanded) .dev-preview-fullscreen{top:6px;right:6px}}
+/* Portrait phones: a rotate screen over the inline canvas; Fullscreen rotates it. */
+@media(orientation:portrait) and (max-width:760px) and (pointer:coarse){#game-screen:not(.dev-preview-expanded){position:relative}#game-screen:not(.dev-preview-expanded) canvas{opacity:.25;pointer-events:none}
+  .game-panel{position:relative}.rotate-hint{display:flex;position:absolute;inset:48px 0 0;align-items:center;justify-content:center;text-align:center;padding:16px;margin:0;color:var(--text);font-weight:600;pointer-events:none}
+  .game-panel:has(.dev-preview-expanded) .rotate-hint{display:none}}

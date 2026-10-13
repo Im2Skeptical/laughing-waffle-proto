@@ -42,7 +42,7 @@ export function openingSummary(session) {
   const retinue = getRetinue(state, vassal), support = getMartialSupport(state, vassal.locationRegionId);
   return { tSec: state.tSec, age: getVassalAge(state, vassal), prestige: vassal.prestige, classId: vassal.classId,
     location: getRegionReference(state, vassal.locationRegionId), prowess: stats.intelligence, effectiveness: stats.effectiveness,
-    cunning: stats.cunning, wisdom: stats.wisdom, retinue: retinue.value, retinueCap: retinue.cap, support,
+    cunning: stats.cunning, wisdom: stats.wisdom, retinue: retinue.value, support,
     force: stats.intelligence + retinue.value + support, chaos: state.civilization.chaos?.chaosPower ?? 0,
     monsterPressure: state.civilization.chaos?.monsterPressure ?? 0,
     research: state.civilization.research.total, dead: vassal.isDead, complete: !!state.runStatus?.complete,

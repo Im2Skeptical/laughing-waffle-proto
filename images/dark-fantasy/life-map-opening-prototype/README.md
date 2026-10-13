@@ -20,6 +20,13 @@ opening or a replacement for normal gameplay.
 - `note-screen.js`: enterable Custom Notes, with scrollable intention text and Confirm.
 - `world-decision-screen.js`: full-map Move / Build a route / Tour selection.
 - `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
+- `stat-icons.js`: the game's resource icons as small DOM images for the summary panel.
+
+On phones the game comes first: landscape fits the whole canvas on the first
+screen, portrait shows a rotate screen (Fullscreen rotates the game), and the
+introduction sits under **About this experiment**. Rewind and Restart are in the
+page toolbar and appear on the canvas only in fullscreen; draft file actions
+(Save, Load, Export, Restore) are under **Draft…**.
 
 The initial branches are a curated ordinary Relic and a bundled world opportunity.
 Both converge on Warrior founding, followed by expenditure, Development, martial
