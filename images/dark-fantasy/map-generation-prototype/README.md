@@ -54,7 +54,12 @@ the generated feature routes, region shapes and gameplay graph are unchanged.
 Footpoints and sampled silhouettes respect coast, river and valley exclusions;
 opaque pixels must fit dry land. Groups fall back to compact art where needed.
 Woodlands form irregular patches and clearings rather than repeating one tree.
-All art shares one nearest-sampled sprite atlas. Rendered silhouettes vary while
+Trees and sites share one nearest-sampled sprite atlas. Relief uses a cached
+per-map atlas: each opaque texel samples its local biome, including across
+borders and after reflections. Mountains retain reddish umber on mountain
+ground; ranges over woodland, peat and dead hinterland inherit those colours.
+Foothills use ground-matched bodies and softened feet. Ordinary plains hills
+must fit entirely within plains; range foothills may follow other terrain. Rendered silhouettes vary while
 the accepted footprint, biome quotas and graph remain unchanged.
 
 The atlas sea uses a depth wash with 32 stationary shades and sparse broken
@@ -80,8 +85,13 @@ accepted geography on one world lattice and bakes the ground into a nearest-
 sampled, unmipmapped texture. **Fine** uses 4 design units per source texel;
 **Coarse** uses 6. Pixel size and sprite scale are fixed across region areas.
 Separate original pixel matrices and engravings provide trees, crags, hills,
-reeds, stones and placeholder towns/ruins. Three candidate sites and a few road strokes are visual
-readability samples, with no gameplay meaning. **Sites + roads** toggles them.
+reeds, stones and placeholder towns/ruins. Three candidate sites and connecting roads are visual readability samples,
+with no gameplay meaning. `roads.js` routes over the baked playable land lattice,
+preferring easier terrain and short river crossings. Ocean-separated sites stay
+disconnected. Warm pale road centres with dark verges render above terrain and
+region divisions but below sites; vegetation clears their corridor and relief
+opens into passes. River crossings receive short bridge planks. Routing and
+road textures rebuild only with the terrain bake, never during camera movement. **Sites + roads** toggles them.
 Opaque sprite pixels must fit dry ground; reflections reposition upright props
 and omit props whose reflected silhouette would overhang water. Ground patterns
 and geographical features mirror together. Ordinary gameplay picking still uses

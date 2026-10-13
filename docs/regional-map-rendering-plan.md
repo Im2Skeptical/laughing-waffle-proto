@@ -96,6 +96,13 @@ reed, hill, ruin and mountain families. Connected, overlapping massifs and
 coast-normal hachures carry the relief. Earlier Quiet/Textured comparisons are
 removed from the workbench and renderer.
 
+The current prototype colours relief per texel from the underlying biome, with
+softened foothill feet and upright, material-correct reflections. Plains hill
+scatter stays inside plains. Sample roads connect reachable sites over dry
+playable land, clear a decoration corridor, and use contrasting ink verges and
+pale centres with planked river crossings. These routes remain presentation
+fixtures; gameplay road ownership and connectivity are still a separate design.
+
 Placement
 and variation are deterministic from stable map/feature identifiers; density
 depends on area and terrain. River corridors exclude peaks, coasts constrain

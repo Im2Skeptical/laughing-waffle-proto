@@ -4,7 +4,7 @@ import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, F
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
-import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, ATLAS_COLOURS } from './pixel-terrain.js';
+import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, ATLAS_COLOURS } from './pixel-terrain.js';
 
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
@@ -447,7 +447,7 @@ function drawPixelMap() {
     backgroundArt?.textures.forEach(texture => texture.destroy(true)); backgroundArt = bakeBackground();
   }
   if (pixelArtMap !== map) {
-    for (const art of pixelArtCache.values()) { art.texture.destroy(true); art.borderTexture.destroy(true); art.fogTexture?.destroy(true); }
+    for (const art of pixelArtCache.values()) { destroyPixelTerrain(art); }
     pixelArtCache.clear(); pixelArtMap = map;
   }
   const key = `${state.variant}:${state.texel}:${state.sites}`;
@@ -455,7 +455,7 @@ function drawPixelMap() {
     pixelArtCache.set(key, bakePixelTerrain(map, { texel: state.texel, sites: state.sites, sampleBackground: backgroundArt.sample }));
     if (pixelArtCache.size > 2) {
       const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
-      art.texture.destroy(true); art.borderTexture.destroy(true); art.fogTexture?.destroy(true); pixelArtCache.delete(oldest);
+      destroyPixelTerrain(art); pixelArtCache.delete(oldest);
     }
   }
   currentPixelArt = pixelArtCache.get(key);
@@ -465,23 +465,26 @@ function drawPixelMap() {
     node.eventMode = 'none'; worldLayer.addChild(node);
   };
   put(currentPixelArt.texture, currentPixelArt.bounds);
-  const textures = pixelSpriteTextures();
+  const textures = pixelSpriteTextures(), reliefTextures = reliefSpriteTextures(currentPixelArt, state.flipX, state.flipY);
   const origin = point({ x: currentPixelArt.bounds.minX, y: currentPixelArt.bounds.minY });
   // Reposition reflected props while keeping their silhouettes and light upright.
   const props = currentPixelArt.props.filter(prop => pixelSpriteFits(currentPixelArt, prop, state.flipX, state.flipY))
     .sort((a, b) => point(a.point).y - point(b.point).y);
   currentPixelArt.stats.displayedProps = props.length;
-  for (const prop of props) {
-    const node = new PIXI.Sprite(textures[prop.kind]), p = point(prop.point);
+  const drawProp = prop => {
+    const node = new PIXI.Sprite(reliefTextures.get(prop) ?? textures[prop.kind]), p = point(prop.point);
     node.scale.set(state.texel);
     node.position.set(origin.x + Math.round((p.x - node.width / 2 - origin.x) / state.texel) * state.texel,
       origin.y + Math.round((p.y - node.height - origin.y) / state.texel) * state.texel);
     node.alpha = prop.background ? .9 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
-  }
+  };
+  props.filter(prop => !prop.kind.startsWith('ruin')).forEach(drawProp);
   currentPixelArt.stats.fogEnabled = state.fog;
   if (currentPixelArt.fogTexture && state.fog) put(currentPixelArt.fogTexture, currentPixelArt.bounds, state.texel * 4);
   // Region identity stays above stamps and atmospheric decoration.
   put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
+  put(currentPixelArt.roadTexture, currentPixelArt.borderBounds);
+  props.filter(prop => prop.kind.startsWith('ruin')).forEach(drawProp);
   const selected = map.regions.find(r => r.id === state.selected);
   for (const region of map.regions) {
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
