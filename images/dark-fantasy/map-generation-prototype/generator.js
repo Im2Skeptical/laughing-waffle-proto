@@ -26,9 +26,40 @@ function createWorld(seed) {
   return { oceanSides, shape: { method: 'connected-cells', phases } };
 }
 
-function worldSide(p) {
-  const distances = [p.y, 1 - p.x, 1 - p.y, p.x];
-  return WORLD_SIDES[distances.indexOf(Math.min(...distances))];
+function assignWorldSides(edges, regions, vertices) {
+  // Walk the actual exterior. Position-based quadrants mislabel the underside
+  // of a long western/eastern projection as coast, wrapping sea around it.
+  const next = new Map(edges.filter(e => e.regions.length === 1).map(edge => {
+    const region = regions.find(r => r.id === edge.regions[0]), i = region.edgeIds.indexOf(edge.id);
+    return [region.vertexIds[i], { edge, to: region.vertexIds[(i + 1) % region.vertexIds.length] }];
+  }));
+  const perimeter = [], start = next.keys().next().value;
+  let current = start;
+  do {
+    const step = next.get(current);
+    perimeter.push({ edge: step.edge, point: vertices.get(current) });
+    current = step.to;
+  } while (current !== start);
+  // Supporting diagonal corners keep the four side arcs in perimeter order.
+  // A projecting headland can have ocean above and hinterland below it, while
+  // the chosen one/two adjacent ocean sides still form one continuous coast.
+  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([dx, dy]) =>
+    perimeter.reduce((best, entry, i) => entry.point.x * ASPECT * dx + entry.point.y * dy
+      > perimeter[best].point.x * ASPECT * dx + perimeter[best].point.y * dy ? i : best, 0));
+  const ordered = [...perimeter.slice(corners[0]), ...perimeter.slice(0, corners[0])];
+  const stops = [0];
+  let previous = 0;
+  for (let i = 1; i < 4; i++) {
+    let offset = (corners[i] - corners[0] + perimeter.length) % perimeter.length;
+    if (offset < previous) offset = perimeter.length;
+    previous = offset;
+    // An acute tip may support two corners; reserve an edge for each side.
+    stops.push(Math.max(stops.at(-1) + 1, Math.min(perimeter.length - (4 - i), offset)));
+  }
+  stops.push(perimeter.length);
+  for (let side = 0; side < 4; side++) for (let i = stops[side]; i < stops[side + 1]; i++) {
+    ordered[i].edge.worldSide = WORLD_SIDES[side];
+  }
 }
 
 function clip(polygon, a, b, c) {
@@ -459,10 +490,7 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     });
   }
   const edges = [...edgeMap.values()];
-  for (const edge of edges.filter(e => e.regions.length === 1)) {
-    const a = vertices.get(edge.a), b = vertices.get(edge.b);
-    edge.worldSide = worldSide({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-  }
+  assignWorldSides(edges, regions, vertices);
   for (const edge of edges.filter(e => e.regions.length === 2)) {
     const [a, b] = edge.regions;
     regions.find(r => r.id === a).neighbours.push(b); regions.find(r => r.id === b).neighbours.push(a);

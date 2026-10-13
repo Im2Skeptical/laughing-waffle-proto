@@ -473,7 +473,7 @@ function sync() {
     islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
     surroundings: ['ocean', 'badlands', 'scrub', 'marsh', 'highlands'],
     world: map.world,
-    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Uninhabitable terrain blends continuously. Geographic interactions produce water gaps, mountain valleys, narrow headwaters, estuaries and rocky coasts. River corridors clear both range and biome peaks; coastal courses sit inland. Landform ink is clipped to actual land. These are decorative interpretations, not a hydrology simulation. No live game or persistence.' }, null, 2);
+    assumptions: 'Ocean occupies one world side or two adjacent sides, assigned as continuous outer-boundary arcs. Headlands can face ocean on one side and hinterland on the other. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Uninhabitable terrain blends continuously. Geographic interactions produce water gaps, mountain valleys, narrow headwaters, estuaries and rocky coasts. River corridors clear both range and biome peaks; coastal courses sit inland. Landform ink is clipped to actual land. These are decorative interpretations, not a hydrology simulation. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
   app.renderer.render(app.stage);

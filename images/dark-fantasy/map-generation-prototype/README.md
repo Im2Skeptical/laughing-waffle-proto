@@ -46,7 +46,12 @@ centres have organic land cores joined across shared edges, with a continuous
 coastline and occasional lagoons. Region divisions and graph neighbours remain
 intact. Each seed chooses **one ocean world side or two adjacent sides sharing a
 corner**. Only those sides host surrounding ocean, regardless of the boundary
-biomes. Islands meeting a land side remain water-rich regions beside hinterland.
+biomes. The four sides are continuous arcs of the actual outer boundary, divided
+at supporting diagonal corners. Long headlands can therefore have ocean on one
+face and hinterland on the other, instead of their position assigning ocean to
+every edge of the projection. The coastal arcs feed river routing, coastal
+landforms and background blending together. Islands meeting a land side remain
+water-rich regions beside hinterland.
 Other sides blend four uninhabitable terrain types: **badlands, scrub, marsh and
 highlands**. A continuous seeded terrain field uses nearby boundary biomes and
 landform endpoints as influences; it has no radial wedges or hard type borders.
@@ -87,6 +92,7 @@ simulation state, RNG streams, schemas, replay, definitions and saves are untouc
 and PNG export for inspection. Validate quota counts, seed reproducibility,
 symmetric connected adjacency, area coverage, continuous feature routes, island
 cores belonging to their shared landmass, the one/two-adjacent-side ocean rule,
+continuous coastline arcs and hinterland beneath seed 1873's western projection,
 finite normalized terrain blends, bounded inland creeks, rivers stopping at
 ocean/island shores, continuous inland courses, cleared peak corridors, valley
 flanks, estuaries and rocky coasts, and finite noncrossing region-scale shapes;
