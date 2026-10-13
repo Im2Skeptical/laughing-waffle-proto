@@ -275,3 +275,41 @@ Regression: in the workbench browser console, run
 It compares a fixed landscape crop across forced regional/close detail, then
 checks a round trip through automatic zoom. The original bug changed 318,512
 of 450,000 pixels on seed 1867; the corrected forced-mode comparison changes zero.
+
+
+### Terrain contact and water composition study
+
+The current atlas adds biome-specific contact treatments, retaining one canonical
+landscape across all zoom levels. `terrain-interactions.js` owns the material
+profiles and static ocean composition; `settlement-ground.js` draws clipped site
+outskirts. These are provisional illustrated treatments, not hydrology or gameplay.
+
+| Material | Coast and river | Roads and settlement surroundings |
+|---|---|---|
+| Plains | Sandy banks, wider broken beaches | Ochre tracks, tilled plots and approach paths |
+| Forest | Dark organic banks, narrow shores | Muted tracks, clearing edges and cut timber |
+| Islands | Pale beaches and shallow shoals | Sandy paths and small cultivated plots |
+| Swamp | Sheltered ripples, fading sediment and peat margins | Narrow timber walkways, drainage pools |
+| Mountains | Stony banks and scree transitions | Rock-coloured tracks, retaining walls and terraces |
+
+Adjacent materials blend through narrow irregular transition zones. Mountain
+relief feet fade into local ground; the original polygon divisions remain visible
+above the composition. Lairs use rubble and worn approaches. Site ground marks
+respect the owning polygon and canonical water mask. The close/regional landmark
+illustrations still share one composition; overview emblems intentionally abstract it.
+
+The sea now combines directional warped swells, smaller oblique ripple packets,
+localized breaking surf, quiet depth washes and sheltered coastal water. Dedicated
+phase indices use 128-159 for swell, 160-191 for foam, and 208-239 for small ripples.
+Static RGB `waterBase` and byte `waterStrength` retain depth/sediment and effect
+amplitude separately from phase. These additional CPU planes total five bytes per
+pixel beyond the index plane; the inspector reports all six as `waterFieldMiB`.
+Only resolved colour is filtered for zoom. Water is still static: the proposed
+ramps need an actual forward/backward animation review before acceptance.
+
+Reference: [Ferrari's explanation](https://www.effectgames.com/effect/article-Q_A_with_Mark_J_Ferrari.html)
+of arranging and masking moving colour bands, and the
+[Canvas Cycle demo](https://www.effectgames.com/demos/canvascycle/).
+The reference art is not used as a texture. Review at Fit and close zoom on seeds
+1867 and 1873, inspecting forest/plains and swamp/mountain contacts, swamp coast,
+beaches, boardwalks, retaining walls and the unchanged zoom-persistence check.

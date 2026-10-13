@@ -5,6 +5,7 @@ import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../.
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
+import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
@@ -589,8 +590,15 @@ function drawAtlasSites() {
     const p = point(site.point), group = new PIXI.Container(), width = 116 * state.actorScale;
     group.position.set(p.x, p.y); group.eventMode = 'none'; group.label = `atlas-${site.kind}-${site.regionId}`;
     const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
-    const ground = new PIXI.Graphics().beginFill(site.kind === 'monster' ? 0x282329 : 0xb29b72, .35)
-      .drawEllipse(0, 0, width * .48, width * .12).endFill(); group.addChild(ground);
+    const biome = map.regions.find(r => r.id === site.regionId)?.biome ?? 'plains';
+    const dry = (x, y) => {
+      const q = { x: site.point.x + (state.flipX ? -x : x) / mapRect.width, y: site.point.y + (state.flipY ? -y : y) / mapRect.height };
+      const px = Math.floor((q.x - currentPixelArt.bounds.minX) * mapRect.width / 2), py = Math.floor((q.y - currentPixelArt.bounds.minY) * mapRect.height / 2);
+      if (px < 0 || py < 0 || px >= currentPixelArt.stats.width || py >= currentPixelArt.stats.height) return false;
+      return !currentPixelArt.waterIndices[py * currentPixelArt.stats.width + px] && insidePolygon(q, map.regions.find(r => r.id === site.regionId).outline);
+    };
+    const roads = currentPixelArt.roadPaths.flat().map(q => { const a = point(q); return [a.x - p.x, a.y - p.y]; });
+    const ground = settlementGround(site, biome, map.seed, state.actorScale, dry, roads); group.addChild(ground);
     // All versions share one lower-centre ground anchor and world footprint.
     const meshes = landmarkArt[site.kind].map((texture, index) => {
       const node = zoomArt(texture), fit = Math.min(width / texture.width, 98 * state.actorScale / texture.height);
