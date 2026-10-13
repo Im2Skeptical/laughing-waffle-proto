@@ -81,10 +81,10 @@ export function createZoomArt(texture) {
   mesh.eventMode = 'none';
   const render = mesh._render.bind(mesh);
   mesh._render = renderer => { shader.uniforms.uAlpha = mesh.worldAlpha; render(renderer); };
-  mesh.sampleZoom = (pixelsPerWorldUnit, smooth = true) => {
+  mesh.sampleZoom = (pixelsPerWorldUnit, smooth = true, minimumLod = 0) => {
     const sx = Math.max(.001, Math.abs(mesh.scale.x) * pixelsPerWorldUnit);
     const sy = Math.max(.001, Math.abs(mesh.scale.y) * pixelsPerWorldUnit);
-    const lod = smooth ? Math.min(levels.length - 1, Math.max(0, Math.log2(1 / Math.min(sx, sy)))) : 0;
+    const lod = Math.min(levels.length - 1, Math.max(minimumLod, smooth ? Math.log2(1 / Math.min(sx, sy)) : 0, 0));
     const lo = Math.floor(lod), hi = Math.min(levels.length - 1, lo + 1), a = levels[lo], b = levels[hi];
     Object.assign(shader.uniforms, { uFine: a, uCoarse: b, uFineSize: [a.width, a.height], uCoarseSize: [b.width, b.height],
       uFineFootprint: smooth ? [1 / sx / 2 ** lo, 1 / sy / 2 ** lo] : [.0001, .0001],
@@ -124,7 +124,8 @@ export async function prepareLandmarkLods() {
   const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
   const ctx = source.getContext('2d'); ctx.drawImage(image, 0, 0);
   const pixels = ctx.getImageData(0, 0, image.width, image.height).data;
-  const rows = [[0, 447, 96], [447, 810, 48], [810, 1024, 20]], result = {};
+  // Regional artwork reduces the same composition; only the overview is a symbolic replacement.
+  const rows = [[0, 447, 96], [0, 447, 48], [810, 1024, 20]], result = {};
   for (const [col, kind] of ['player', 'neutral', 'monster'].entries()) {
     result[kind] = rows.map(([top, bottom, width]) => {
       let left = (col + 1) * 512, right = col * 512, upper = bottom, lower = top;

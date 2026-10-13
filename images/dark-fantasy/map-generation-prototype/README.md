@@ -122,7 +122,7 @@ The drawing buffer follows the displayed physical size to avoid an extra CSS
 resampling pass; chrome text retains its own higher-resolution textures. PNG
 export still produces the complete 2424 x 1080 design frame.
 
-Two static bakes are cached; density/site changes bake as needed, while
+Canonical static bakes are cached; site changes bake as needed, while density,
 selection, camera gestures and reflections reuse the current textures. The state
 disclosure reports grid dimensions, source texel size, texture/index-plane memory,
 prop counts and desktop bake duration. The static bake retains explicit ocean
@@ -238,16 +238,17 @@ Share `siteArt=live&actorScale=1` or `siteArt=sketch` in the URL.
 ### Smooth zoom and adaptive illustration
 
 Map art is now the default. The new [generated landmark atlas](assets/README.md)
-provides three separately illustrated versions of settlements, markets and lairs.
+provides close illustrations and overview emblems for settlements, markets and lairs.
+Regional versions now reduce the close composition, preserving individual buildings.
 They share a lower-centre ground anchor and a comparable 116-unit footprint.
 Regional art has 48 source pixels across; close art has 96; strategic emblems
 have 20 and retain an 18–24 CSS-pixel footprint. Gold roofs, teal awnings and
 ivory horns/rust flags distinguish gameplay kinds. Vegetation clears around sites.
 
 **Detail** cycles Auto, Close, Regional and Overview. Auto uses projected CSS
-size: strategic/regional fade at 14–22px, regional/close at 54–68px. The close
-terrain layer uses the existing 2-unit bake, fading over the selected overview
-density at 0.40–0.68 CSS pixels per design unit. Both are prepared during loading;
+size: strategic/regional fade at 14–22px, regional/close at 54–68px. Terrain uses one canonical 2-unit bake. Fine/Coarse select reductions of
+that artwork, relaxing to full detail at 0.40?0.68 CSS pixels per design unit.
+Forests, relief, roads and coastal features therefore retain their world positions;
 camera movement never bakes terrain, regenerates geography or consumes RNG.
 LOD is sampled directly from camera/display scale; returning to a zoom restores
 the same representation. Reflections preserve fixture identities.
@@ -255,8 +256,7 @@ the same representation. Reflections preserve fixture identities.
 **Pixels: Smooth zoom / Nearest** compares sampling. `zoom-art.js` builds
 independent colour-frame reduction levels, blends adjacent reductions on shrink,
 and uses sharp texel-edge filtering on enlargement. Separate frame textures avoid
-atlas bleed and power-of-two restrictions. Offscreen meshes and fully obscured
-terrain layers are skipped. This is a prototype mesh renderer, not a mobile GPU
+atlas bleed and power-of-two restrictions. Offscreen meshes are skipped. This is a prototype mesh renderer, not a mobile GPU
 performance sign-off. The state inspector reports prefilter memory and mesh counts.
 
 Overview roads, rivers and internal borders get restrained screen-width ink.
@@ -269,3 +269,9 @@ Share `siteArt=atlas&smoothZoom=1&detailMode=auto`. Inspect seeds 1867/1873,
 0.35–2.5 camera zoom, phone fullscreen, both reflections, forced detail, nearest
 comparison, sites off/on, Base/Atlas and repeat PNG exports. `mapWorkbench.setCamera`
 is a review hook. All changes remain in the disposable prototype.
+
+Regression: in the workbench browser console, run
+`await (await import(new URL("./lod-persistence-check.js", location.href))).verifyTerrainPersistence()`.
+It compares a fixed landscape crop across forced regional/close detail, then
+checks a round trip through automatic zoom. The original bug changed 318,512
+of 450,000 pixels on seed 1867; the corrected forced-mode comparison changes zero.

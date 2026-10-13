@@ -69,7 +69,7 @@ const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
 let map = generateMap(state), targets = [], backgroundArt = null;
 let pixelArtMap = null, currentPixelArt = null;
 let gameArt = null, liveSites = [];
-let landmarkArt = null, zoomNodes = [], landmarkNodes = [], farTerrainLayer = null, closeTerrainLayer = null, overviewInk = null;
+let landmarkArt = null, zoomNodes = [], landmarkNodes = [], terrainLayer = null, overviewInk = null;
 const pixelArtCache = new Map();
 const pixelReview = () => state.variant === 'F';
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
@@ -470,16 +470,11 @@ function drawPixelMap() {
     }
     return pixelArtCache.get(key);
   };
-  currentPixelArt = terrainAt(state.texel);
+  // One canonical world: density changes only sample its colour pyramid.
+  currentPixelArt = terrainAt(2);
   liveSites = state.sites && state.siteArt !== 'sketch' ? sampleLiveSites() : [];
-  farTerrainLayer = new PIXI.Container(); farTerrainLayer.eventMode = 'none'; worldLayer.addChild(farTerrainLayer);
-  drawTerrainLayer(currentPixelArt, farTerrainLayer);
-  if (state.texel !== 2) {
-    closeTerrainLayer = new PIXI.Container(); closeTerrainLayer.eventMode = 'none'; worldLayer.addChild(closeTerrainLayer);
-    const detailed = terrainAt(2); drawTerrainLayer(detailed, closeTerrainLayer);
-    currentPixelArt.stats.closeTerrainTexel = 2;
-    currentPixelArt.stats.closeTerrainMiB = detailed.stats.textureMiB + detailed.stats.fogTextureMiB;
-  }
+  terrainLayer = new PIXI.Container(); terrainLayer.eventMode = 'none'; worldLayer.addChild(terrainLayer);
+  drawTerrainLayer(currentPixelArt, terrainLayer);
   overviewInk = new PIXI.Graphics(); overviewInk.eventMode = 'none'; worldLayer.addChild(overviewInk);
   if (liveSites.length) {
     if (state.siteArt === 'atlas') drawAtlasSites(); else drawLiveSites();
@@ -550,11 +545,11 @@ function sampleLiveSites() {
       y: p.y + (y === -1 ? -89 : y === 0 ? -36 : 18) * scale / mapRect.height,
     }, region.outline)));
     const roads = currentPixelArt.roadClearance;
-    const cx = (p.x - currentPixelArt.bounds.minX) * mapRect.width / state.texel;
-    const cy = (p.y - currentPixelArt.bounds.minY) * mapRect.height / state.texel;
+    const cx = (p.x - currentPixelArt.bounds.minX) * mapRect.width / currentPixelArt.stats.texel;
+    const cy = (p.y - currentPixelArt.bounds.minY) * mapRect.height / currentPixelArt.stats.texel;
     let coversRoad = false;
-    for (let y = Math.floor(cy - 89 * scale / state.texel); y <= cy + 18 * scale / state.texel && !coversRoad; y++) {
-      for (let x = Math.floor(cx - 54 * scale / state.texel); x <= cx + 54 * scale / state.texel; x++) {
+    for (let y = Math.floor(cy - 89 * scale / currentPixelArt.stats.texel); y <= cy + 18 * scale / currentPixelArt.stats.texel && !coversRoad; y++) {
+      for (let x = Math.floor(cx - 54 * scale / currentPixelArt.stats.texel); x <= cx + 54 * scale / currentPixelArt.stats.texel; x++) {
         if (x >= roads.x && y >= roads.y && x < roads.x + roads.width && y < roads.y + roads.height
           && roads.data[(y - roads.y) * roads.width + x - roads.x]) { coversRoad = true; break; }
       }
@@ -597,9 +592,14 @@ function drawAtlasSites() {
     const ground = new PIXI.Graphics().beginFill(site.kind === 'monster' ? 0x282329 : 0xb29b72, .35)
       .drawEllipse(0, 0, width * .48, width * .12).endFill(); group.addChild(ground);
     // All versions share one lower-centre ground anchor and world footprint.
-    const meshes = landmarkArt[site.kind].map(texture => {
+    const meshes = landmarkArt[site.kind].map((texture, index) => {
       const node = zoomArt(texture), fit = Math.min(width / texture.width, 98 * state.actorScale / texture.height);
-      node.scale.set(fit); node.position.set(-node.width / 2, 8 - node.height); group.addChild(node); return node;
+      node.scale.set(fit);
+      if (index === 1) {
+        const source = landmarkArt[site.kind][0], scale = Math.min(width / source.width, 98 * state.actorScale / source.height);
+        node.scale.set(source.width * scale / texture.width, source.height * scale / texture.height);
+      }
+      node.position.set(-node.width / 2, 8 - node.height); group.addChild(node); return node;
     });
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 22, 18, colour,
       { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
@@ -614,9 +614,8 @@ function updateZoomPresentation() {
   const cssScale = Math.min(rect.width / W, rect.height / H);
   const screenScale = Math.max(.001, cssScale * camera.snapshot().zoom);
   const physicalScale = camera.snapshot().zoom * app.renderer.resolution;
-  const near = state.detailMode === 'close' ? 1 : state.detailMode !== 'auto' ? 0 : smoothRange(.40, .68, screenScale);
-  if (closeTerrainLayer) { closeTerrainLayer.alpha = near; closeTerrainLayer.visible = near > .001; }
-  if (farTerrainLayer) farTerrainLayer.visible = !closeTerrainLayer || near < .999;
+  const near = smoothRange(.40, .68, screenScale);
+  const terrainLodFloor = Math.log2(state.texel / 2) * (1 - near);
   const tiers = { close: 0, regional: 0, overview: 0 };
   for (const item of landmarkNodes) {
     const projected = item.width * screenScale;
@@ -648,7 +647,7 @@ function updateZoomPresentation() {
     node.renderable = Math.max(x, x2) * pose.zoom + pose.x >= viewRect.x && Math.min(x, x2) * pose.zoom + pose.x <= viewRect.x + viewRect.width
       && Math.max(y, y2) * pose.zoom + pose.y >= viewRect.y && Math.min(y, y2) * pose.zoom + pose.y <= viewRect.y + viewRect.height;
     if (node.renderable && node.visible) visibleMeshes++;
-    node.sampleZoom(physicalScale, state.smoothZoom);
+    node.sampleZoom(physicalScale, state.smoothZoom, node.parent === terrainLayer ? terrainLodFloor : 0);
   }
   // Important connections retain a small readable stroke at overview scale.
   overviewInk?.clear();
@@ -669,7 +668,7 @@ function updateZoomPresentation() {
 function render() {
   for (const node of root.removeChildren()) node.destroy({ children: true }); targets = [];
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
-  zoomNodes = []; landmarkNodes = []; farTerrainLayer = null; closeTerrainLayer = null; overviewInk = null;
+  zoomNodes = []; landmarkNodes = []; terrainLayer = null; overviewInk = null;
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
   text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
   if (pixelReview()) button('Cycle live asset scale', 1065, 40, 350, 52, () => {
