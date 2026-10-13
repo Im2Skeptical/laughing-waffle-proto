@@ -50,6 +50,20 @@ to nowhere. The field is baked into cached Pixi textures once per generated map;
 selection, reflections and camera gestures reuse it. Water crossings and
 impassability remain visual suggestions, with no simulation rules attached.
 
+A geographic interaction pass gives rivers and ranges a shared interpretation.
+Rivers route through a connected inland edge network, with coastal stretches
+pulled inward to leave land between the channel and shore. A continuous dry
+course is retained; it terminates at water instead of reappearing beyond an
+inlet. Headwaters start narrow and widen downstream. Flat mouths widen into
+small estuaries; rocky shores use narrower mouths. Mountains crossing rivers
+leave water gaps with rocky banks; parallel stretches form valleys with peaks
+on their flanks. Both range symbols and ordinary mountain-biome symbols respect
+the river corridors. Coastal ranges sit inland, and rocky shorelines receive
+cliff hachures. All landform artwork is clipped to actual land, so offshore peaks
+require generated island land. Region polygons, graph adjacency and biome quotas
+remain independent of these decorative paths. The state disclosure reports
+interaction counts for comparing seeds and views.
+
 Drag to pan, scroll or pinch to zoom, or use the in-canvas − / + controls. **Fit**
 returns to the overview of the irregular playable footprint. Map artwork,
 markers, selection and geographic features share the existing game camera's
@@ -66,7 +80,9 @@ and PNG export for inspection. Validate quota counts, seed reproducibility,
 symmetric connected adjacency, area coverage, continuous feature routes, island
 cores belonging to their shared landmass, the one/two-adjacent-side ocean rule,
 finite normalized terrain blends, bounded inland creeks, rivers stopping at
-ocean/island shores, and finite noncrossing region-scale shapes; review generation controls, tap
+ocean/island shores, continuous inland courses, cleared peak corridors, valley
+flanks, estuaries and rocky coasts, and finite noncrossing region-scale shapes;
+review generation controls, tap
 selection before/after pan and zoom, drag-versus-tap, pinch, Fit, views, URL refresh, reflections, PNG,
 fullscreen and fixed aspect ratio at desktop and 844 × 390 phone landscape.
 `npm run verify` covers packaging and the unchanged game invariants.

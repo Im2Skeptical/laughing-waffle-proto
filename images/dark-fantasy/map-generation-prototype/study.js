@@ -1,6 +1,6 @@
 // Throwaway Pixi landscape study: A topology, B geographic skeleton, C terrain.
 // Same generated map in each mode; no live renderer or simulation is attached.
-import { generateMap, sampleSurroundings, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
+import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
@@ -65,6 +65,8 @@ let map = generateMap(state), targets = [], backgroundArt = null;
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
 const polygonPoints = points => points.flatMap(p => { const v = point(p); return [v.x, v.y]; });
+const worldPoint = (x, y) => ({ x: state.flipX ? 1 - (x - mapRect.x) / mapRect.width : (x - mapRect.x) / mapRect.width,
+  y: state.flipY ? 1 - (y - mapRect.y) / mapRect.height : (y - mapRect.y) / mapRect.height });
 
 function text(parent, value, x, y, size = 30, colour = 0xe6e0c9, options = {}) {
   const node = new PIXI.Text(value, { fontFamily: 'Georgia, serif', fontSize: size, fill: colour, ...options });
@@ -128,6 +130,7 @@ function drawTree(g, x, y, s, colour) {
     .drawPolygon([x, y - s, x - s * 1.2, y + s * .55, x + s * 1.2, y + s * .55]).endFill();
 }
 function drawMountain(g, x, y, s, colour) {
+  if (!canPlacePeak(map.geography, worldPoint(x, y), s * 1.2 / mapRect.height)) return;
   g.lineStyle(1.8, colour, .8).beginFill(0x877e70, .55).drawPolygon([x - s, y + s * .55, x, y - s, x + s, y + s * .55]).endFill();
   g.lineStyle(1, 0xe0d7b9, .65).moveTo(x - s * .3, y - s * .4).lineTo(x, y - s).lineTo(x + s * .35, y - s * .35);
   g.lineStyle(1.6, colour, .65).moveTo(x, y - s * .8).lineTo(x + s * .18, y + s * .2);
@@ -158,39 +161,57 @@ function drawBiome(region, parent) {
 }
 
 function featurePath(feature) {
-  return feature.edgeIds.flatMap((id, index) => {
-    const edge = map.edges.find(e => e.id === id);
-    const points = edge.a === feature.vertexIds[index] ? edge.points : [...edge.points].reverse();
-    return index ? points.slice(1) : points;
-  });
+  return feature.points;
 }
 function drawLandform(parent, type, points, skeleton) {
     if (type === 'river') {
       line(parent, points, 0x4d7768, skeleton ? 22 : 30, .22);
-      line(parent, points, 0xd3c995, 13, .9); line(parent, points, 0x3e747f, 9); line(parent, points, 0xa8d2cc, 2.5, .85);
+      const g = new PIXI.Graphics(); parent.addChild(g); let travelled = 0;
+      for (let i = 1; i < points.length; i++) {
+        const a = point(points[i - 1]), b = point(points[i]); travelled += Math.hypot(b.x - a.x, b.y - a.y);
+        const width = 3 + 6 * Math.min(1, travelled / 100);
+        g.lineStyle(width + 4, 0xd3c995, .9).moveTo(a.x, a.y).lineTo(b.x, b.y);
+        g.lineStyle(width, 0x3e747f).moveTo(a.x, a.y).lineTo(b.x, b.y);
+        g.lineStyle(Math.max(1, width * .27), 0xa8d2cc, .85).moveTo(a.x, a.y).lineTo(b.x, b.y);
+      }
     } else if (type === 'chasm') {
       line(parent, points, 0xb69b76, 25, .65); line(parent, points, 0x514b47, 15); line(parent, points, 0x222c2e, 7);
     } else if (type === 'valley') {
       line(parent, points, 0x718762, 70, .18); line(parent, points, 0xc8bd88, 36, .3); line(parent, points, 0xc7cf9c, 4, .5);
     } else {
-      line(parent, points, 0x645d4f, 45, .14);
-      if (skeleton) line(parent, points, 0xc5b292, 8, .85);
+      let band = [];
+      const finishBand = () => {
+        if (band.length > 1) {
+          line(parent, band, 0x645d4f, 45, .14);
+          if (skeleton) line(parent, band, 0xc5b292, 8, .85);
+        }
+        band = [];
+      };
+      for (const p of points) {
+        if (canPlacePeak(map.geography, p, .04)) band.push(p); else finishBand();
+      }
+      finishBand();
       const g = new PIXI.Graphics(); parent.addChild(g);
       let remaining = 0;
       for (let i = 1; i < points.length; i++) {
         const a = point(points[i - 1]), b = point(points[i]), length = Math.hypot(b.x - a.x, b.y - a.y);
         for (; remaining < length; remaining += 27) {
-          const t = remaining / length;
-          drawMountain(g, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, 20 + Math.sin(i * .4) * 5, 0x595a53);
+          const t = remaining / length, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+          const p = worldPoint(x, y), size = 20 + Math.sin(i * .4) * 5;
+          const valley = map.geography.corridors.find(c => c.type === 'mountain-valley' && projectToPath(p, c.points).distance < c.width + size / mapRect.height);
+          if (valley) {
+            const q = projectToPath(p, valley.points), offset = valley.width + size * 1.2 / mapRect.height + .02;
+            for (const sign of [-1, 1]) {
+              const flank = point({ x: q.point.x - q.tangent.y / 2.15 * offset * sign, y: q.point.y + q.tangent.x * offset * sign });
+              drawMountain(g, flank.x, flank.y, size * .85, 0x595a53);
+            }
+          } else drawMountain(g, x, y, size, 0x595a53);
         }
         remaining -= length;
       }
     }
 }
-function drawFeatures() {
-  for (const feature of map.features) {
-    const points = featurePath(feature), skeleton = state.variant === 'B';
-    if (feature.type === 'ridge' || feature.type === 'river') {
+function landLayer() {
       const layer = new PIXI.Container(), mask = new PIXI.Graphics();
       layer.eventMode = 'none'; mask.eventMode = 'none';
       for (const region of map.regions.filter(r => r.biome !== 'islands')) mask.beginFill(0xffffff).drawPolygon(polygonPoints(region.outline)).endFill();
@@ -202,11 +223,64 @@ function drawFeatures() {
         mask.endFill();
         for (const contour of cluster.contours.slice(1).filter(c => !insidePolygon(c[0], cluster.contours[0]))) mask.beginFill(0xffffff).drawPolygon(polygonPoints(contour)).endFill();
       }
-      worldLayer.addChild(layer, mask); layer.mask = mask; drawLandform(layer, feature.type, points, skeleton);
-    } else drawLandform(worldLayer, feature.type, points, skeleton);
+      worldLayer.addChild(layer, mask); layer.mask = mask; return layer;
+}
+function drawFeatures() {
+  const priority = { valley: 0, chasm: 1, ridge: 2, river: 3 };
+  for (const feature of [...map.features].sort((a, b) => priority[a.type] - priority[b.type])) {
+    const points = featurePath(feature), skeleton = state.variant === 'B';
+    if (points.length < 2) continue;
+    const parent = landLayer();
+    drawLandform(parent, feature.type, points, skeleton);
+    if (feature.type === 'river' && feature.mouth) drawMouth(parent, feature);
     if (skeleton) {
       const p = point(points[Math.floor(points.length * .55)]);
       const label = text(worldLayer, FEATURE_NAMES[feature.type], p.x, p.y - 35, 32, 0xf6ecd0, { stroke: 0x243439, strokeThickness: 7 }); label.anchor.set(.5);
+    }
+  }
+}
+
+function drawMouth(parent, feature) {
+  const mouth = feature.mouth, end = feature.points.at(-1), t = mouth.tangent;
+  const width = mouth.treatment === 'estuary' ? .024 : .009;
+  const backwards = { x: end.x - t.x / 2.15 * .08, y: end.y - t.y * .08 };
+  const points = [
+    { x: backwards.x - t.y / 2.15 * .005, y: backwards.y + t.x * .005 },
+    { x: end.x - t.y / 2.15 * width, y: end.y + t.x * width },
+    { x: end.x + t.y / 2.15 * width, y: end.y - t.x * width },
+    { x: backwards.x + t.y / 2.15 * .005, y: backwards.y - t.x * .005 },
+  ];
+  const g = new PIXI.Graphics().lineStyle(2, 0xc6c393, .65).beginFill(0x65919a, .95).drawPolygon(polygonPoints(points)).endFill();
+  parent.addChild(g);
+}
+
+function drawInteractions() {
+  if (state.variant === 'A') return;
+  const layer = landLayer(), g = new PIXI.Graphics(); layer.addChild(g);
+  for (const interaction of map.geography.interactions) {
+    if (interaction.type === 'mountain-valley') {
+      line(layer, interaction.points, 0xb1b18a, 62, .24);
+      line(layer, interaction.points, 0x81956f, 38, .2);
+    } else if (interaction.type === 'water-gap') {
+      line(layer, interaction.points, 0xaaa68b, 42, .3);
+      // Short rock hachures flank the opening rather than peak symbols in it.
+      for (let i = 0; i < interaction.points.length; i += 6) {
+        const p = interaction.points[i], q = projectToPath(p, interaction.points);
+        for (const sign of [-1, 1]) {
+          const a = point({ x: p.x - q.tangent.y / 2.15 * .04 * sign, y: p.y + q.tangent.x * .04 * sign });
+          const b = point({ x: p.x - q.tangent.y / 2.15 * .056 * sign, y: p.y + q.tangent.x * .056 * sign });
+          g.lineStyle(2, 0x5d665b, .65).moveTo(a.x, a.y).lineTo(b.x, b.y);
+        }
+      }
+    } else if (interaction.type === 'rocky-coast') {
+      line(layer, interaction.points, 0x5a6256, 7, .65);
+      for (let i = 1; i < interaction.points.length; i += 5) {
+        const p = interaction.points[i], q = projectToPath(p, interaction.points), centre = point(p);
+        if (map.geography.corridors.some(c => projectToPath(p, c.points).distance < c.width)) continue;
+        const a = point({ x: p.x - q.tangent.y / 2.15 * .02, y: p.y + q.tangent.x * .02 });
+        const b = point({ x: p.x + q.tangent.y / 2.15 * .02, y: p.y - q.tangent.x * .02 });
+        g.lineStyle(1.7, 0x5a6256, .65).moveTo(a.x, a.y).lineTo(centre.x, centre.y).lineTo(b.x, b.y);
+      }
     }
   }
 }
@@ -327,6 +401,7 @@ function drawMap() {
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
   }
   drawIslands();
+  drawInteractions();
   for (const edge of map.edges) {
     const straight = edge.topologyPoints;
     const sameBiome = edge.regions.length === 2 && map.regions.find(r => r.id === edge.regions[0]).biome === map.regions.find(r => r.id === edge.regions[1]).biome;
@@ -359,7 +434,7 @@ function drawMap() {
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
     : state.variant === 'A' ? '20 regions · straight-edge topology · tap a region to inspect'
       : state.variant === 'B' ? 'Continuous features follow shared edges across the map · decorative geography'
-        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · blended uninhabitable terrain · tap to inspect`;
+        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
 
@@ -394,10 +469,11 @@ function sync() {
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
     biomeAreaPercent: Object.fromEntries(Object.entries(map.biomeAreas).map(([id, area]) => [id, +(area * 100).toFixed(1)])),
     features: map.features.map(f => ({ type: f.type, sharedEdges: f.edgeIds.length })),
+    geographicInteractions: map.geography.interactions.reduce((counts, i) => ({ ...counts, [i.type]: (counts[i.type] ?? 0) + 1 }), {}),
     islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
     surroundings: ['ocean', 'badlands', 'scrub', 'marsh', 'highlands'],
     world: map.world,
-    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Badlands, scrub, marsh and highlands blend continuously, influenced by nearby biomes. Rivers stop at shorelines; inland creeks taper into wetland fringes. River and mountain ink is clipped to land. Other world edges remain hinterland even beside Islands. Surrounding terrain has no gameplay rules. No live game or persistence.' }, null, 2);
+    assumptions: 'Ocean occupies one world side or two adjacent sides. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Uninhabitable terrain blends continuously. Geographic interactions produce water gaps, mountain valleys, narrow headwaters, estuaries and rocky coasts. River corridors clear both range and biome peaks; coastal courses sit inland. Landform ink is clipped to actual land. These are decorative interpretations, not a hydrology simulation. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
   app.renderer.render(app.stage);

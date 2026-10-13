@@ -80,10 +80,22 @@ function shuffle(values, state) {
 
 function buildGeography(vertices, edges, types, state, oceanSides) {
   const outer = new Set(edges.filter(e => e.regions.length === 1).flatMap(e => [e.a, e.b]));
+  const seaVertices = new Set(edges.filter(e => e.regions.length === 1 && oceanSides.includes(e.worldSide)).flatMap(e => [e.a, e.b]));
   const connections = new Map([...vertices.keys()].map(id => [id, []]));
   for (const edge of edges) {
     connections.get(edge.a).push({ to: edge.b, edge });
     connections.get(edge.b).push({ to: edge.a, edge });
+  }
+  const inlandComponents = new Map(); let component = 0;
+  for (const id of vertices.keys()) {
+    if (inlandComponents.has(id)) continue;
+    const pending = [id];
+    while (pending.length) {
+      const current = pending.pop(); if (inlandComponents.has(current)) continue;
+      inlandComponents.set(current, component);
+      pending.push(...connections.get(current).filter(c => c.edge.regions.length === 2).map(c => c.to));
+    }
+    component++;
   }
   const specs = {
     river: [{ x: .35 + state.rngNextFloat() * .25, y: .02 }, { x: .4 + state.rngNextFloat() * .3, y: .97 }],
@@ -102,8 +114,19 @@ function buildGeography(vertices, edges, types, state, oceanSides) {
   const used = new Set(), features = [];
   for (const type of types) {
     const [source, destination] = specs[type];
-    const nearest = p => [...outer].sort((a, b) => distance(vertices.get(a), p) - distance(vertices.get(b), p))[0];
-    const start = nearest(source), end = nearest(destination);
+    const accessible = [...outer].filter(id => connections.get(id).some(c => c.edge.regions.length === 2));
+    const nearest = (p, candidates = accessible) => candidates.sort((a, b) => distance(vertices.get(a), p) - distance(vertices.get(b), p))[0];
+    let start = nearest(source), end = nearest(destination);
+    if (type === 'river') {
+      const ends = accessible.filter(id => seaVertices.has(id));
+      const starts = [...vertices.keys()].filter(id => !seaVertices.has(id) && connections.get(id).some(c => c.edge.regions.length === 2));
+      const pairs = starts.flatMap(a => ends.filter(b => inlandComponents.get(a) === inlandComponents.get(b)).map(b => ({
+        start: a, end: b, score: distance(vertices.get(a), source) + distance(vertices.get(b), destination) + (outer.has(a) ? 0 : .15),
+      })));
+      const best = pairs.sort((a, b) => a.score - b.score)[0];
+      if (!best) continue;
+      ({ start, end } = best);
+    }
     const scores = new Map([[start, 0]]), previous = new Map(), pending = new Set(vertices.keys());
     while (pending.size) {
       const current = [...pending].reduce((best, id) => (scores.get(id) ?? Infinity) < (scores.get(best) ?? Infinity) ? id : best);
@@ -111,12 +134,14 @@ function buildGeography(vertices, edges, types, state, oceanSides) {
       pending.delete(current);
       for (const { to, edge } of connections.get(current)) {
         if (!pending.has(to)) continue;
+        // Rivers use inland edges, with a single final approach to the sea.
+        if (type === 'river' && edge.regions.length === 1) continue;
         const a = vertices.get(current), b = vertices.get(to), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
         const deviation = segmentDistance(mid, source, destination);
         const forward = ((b.x - a.x) * (destination.x - source.x) * ASPECT ** 2 + (b.y - a.y) * (destination.y - source.y))
           / distance(source, destination);
         const cost = distance(a, b) * (1 + deviation * 4 + (edge.regions.length === 1 ? 8 : 0) + (used.has(edge.id) ? 12 : 0))
-          + (type === 'river' ? Math.max(0, -forward) * 3 : 0);
+          + (type === 'river' ? Math.max(0, -forward) * 3 + (seaVertices.has(to) && to !== end ? distance(a, b) * 5 : 0) : 0);
         const candidate = scores.get(current) + cost;
         if (candidate < (scores.get(to) ?? Infinity)) { scores.set(to, candidate); previous.set(to, { from: current, edge }); }
       }
@@ -453,16 +478,206 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     });
     region.area = polygonArea(region.outline);
     region.centre = centroid(region.outline);
+    region.bounds = pathBounds(region.outline);
   }
   const islandClusters = buildIslandClusters(regions, edges, seed);
   const surroundings = buildSurroundings(regions, edges, features, seed, world.oceanSides);
+  const geography = buildInteractions(regions, edges, features, islandClusters, surroundings);
   for (const edge of edges) edge.topologyPoints = [edge.points[0], edge.points.at(-1)];
   const totalArea = regions.reduce((sum, r) => sum + r.area, 0);
   const biomeAreas = Object.fromEntries(Object.keys(BIOMES).map(b => [b, regions.filter(r => r.biome === b).reduce((sum, r) => sum + r.area, 0) / totalArea]));
   const shared = edges.filter(e => e.regions.length === 2);
   const matching = shared.filter(e => regions.find(r => r.id === e.regions[0]).biome === regions.find(r => r.id === e.regions[1]).biome).length;
   return { seed, regions, edges, features, quota, biomeAreas, totalArea, matchingBorders: matching, sharedBorders: shared.length,
-    islandClusters, surroundings, world: { oceanSides: world.oceanSides, shape: world.shape } };
+    islandClusters, surroundings, geography, world: { oceanSides: world.oceanSides, shape: world.shape } };
+}
+
+export function projectToPath(p, points) {
+  let best = { distance: Infinity, point: p, tangent: { x: 1, y: 0 } };
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i], dx = (b.x - a.x) * ASPECT, dy = b.y - a.y, length = Math.hypot(dx, dy);
+    if (!length) continue;
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * ASPECT * dx + (p.y - a.y) * dy) / length ** 2));
+    const q = { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) }, d = distance(p, q);
+    if (d < best.distance) best = { distance: d, point: q, tangent: { x: dx / length, y: dy / length }, segment: i - 1 };
+  }
+  return best;
+}
+
+export function isLand(map, p) {
+  for (const cluster of map.islandClusters) {
+    if (cluster.contours.some((poly, i) => insidePolygon(p, poly) && (i === 0 || !insidePolygon(poly[0], cluster.contours[0])))
+      && !cluster.contours.slice(1).some(poly => insidePolygon(poly[0], cluster.contours[0]) && insidePolygon(p, poly))) return true;
+  }
+  const contains = r => withinBounds(p, r.bounds, .000001) && (insidePolygon(p, r.outline)
+    || projectToPath(p, [...r.outline, r.outline[0]]).distance < .0000001);
+  if (map.regions.some(r => r.biome !== 'islands' && contains(r))) return true;
+  if (map.regions.some(r => r.biome === 'islands' && contains(r))) return false;
+  return sampleSurroundings(map.surroundings, p).ocean < .5;
+}
+
+function pathBounds(points, margin = 0) {
+  return { minX: Math.min(...points.map(p => p.x)) - margin / ASPECT, maxX: Math.max(...points.map(p => p.x)) + margin / ASPECT,
+    minY: Math.min(...points.map(p => p.y)) - margin, maxY: Math.max(...points.map(p => p.y)) + margin };
+}
+function withinBounds(p, bounds, radius = 0) {
+  return p.x >= bounds.minX - radius / ASPECT && p.x <= bounds.maxX + radius / ASPECT
+    && p.y >= bounds.minY - radius && p.y <= bounds.maxY + radius;
+}
+
+function buildInteractions(regions, edges, features, islandClusters, surroundings) {
+  const map = { regions, islandClusters, surroundings }, interactions = [], coasts = [], corridors = [];
+  for (const feature of features) feature.points = feature.edgeIds.flatMap((id, i) => {
+    const edge = edges.find(e => e.id === id), points = edge.a === feature.vertexIds[i] ? edge.points : [...edge.points].reverse();
+    return i ? points.slice(1) : points;
+  });
+  const ridges = features.filter(f => f.type === 'ridge');
+  const rocky = p => ridges.some(f => projectToPath(p, f.points).distance < .12);
+  for (const edge of edges) {
+    const neighbours = edge.regions.map(id => regions.find(r => r.id === id));
+    const sea = edge.regions.length === 1 && surroundings.oceanSides.includes(edge.worldSide);
+    const islandWater = edge.regions.length === 2 && neighbours.filter(r => r.biome === 'islands').length === 1;
+    if (!sea && !islandWater || neighbours.every(r => r.biome === 'islands')) continue;
+    coasts.push({ edgeId: edge.id, points: edge.points, water: sea ? 'ocean' : 'island-water',
+      rocky: neighbours.some(r => r.biome === 'mountains') || rocky(edge.points[Math.floor(edge.points.length / 2)]) });
+  }
+  for (const cluster of islandClusters) for (const contour of cluster.contours) coasts.push({
+    edgeId: null, points: [...contour, contour[0]], water: 'island-water', rocky: rocky(contour[Math.floor(contour.length / 2)]),
+  });
+  coasts.forEach(c => { c.bounds = pathBounds(c.points, .15); });
+  const closestCoast = p => {
+    let best = { distance: Infinity };
+    for (const coast of coasts) {
+      if (best.distance < .15 && !withinBounds(p, coast.bounds)) continue;
+      const q = projectToPath(p, coast.points);
+      if (q.distance < best.distance) best = { ...q, coast };
+    }
+    return best;
+  };
+  const avoidCoast = (points, clearance, mouth = false) => {
+    const remaining = new Array(points.length).fill(0);
+    for (let i = points.length - 2; i >= 0; i--) remaining[i] = remaining[i + 1] + distance(points[i], points[i + 1]);
+    return points.map((p, i) => {
+      const near = closestCoast(p), target = clearance * (mouth ? smooth(0, .14, remaining[i]) : 1);
+      if (near.distance >= target) return p;
+      const n = { x: -near.tangent.y / ASPECT, y: near.tangent.x };
+      for (const sign of [1, -1]) {
+        const q = { x: near.point.x + n.x * target * sign, y: near.point.y + n.y * target * sign };
+        if (isLand(map, q)) return q;
+      }
+      return p;
+    });
+  };
+  for (const ridge of ridges) {
+    const raw = ridge.points;
+    ridge.points = avoidCoast(raw, .085);
+    let start = -1;
+    const flush = end => {
+      if (start < 0) return;
+      const points = raw.slice(start, end + 1), near = closestCoast(points[Math.floor(points.length / 2)]);
+      if (points.length > 1 && distance(points[0], points.at(-1)) > .035) interactions.push({ type: 'coastal-range', points, point: near.point, featureIndex: features.indexOf(ridge) });
+      start = -1;
+    };
+    raw.forEach((p, i) => {
+      const near = closestCoast(p), a = raw[Math.max(0, i - 1)], b = raw[Math.min(raw.length - 1, i + 1)], d = distance(a, b);
+      const parallel = d && Math.abs((b.x - a.x) * ASPECT / d * near.tangent.x + (b.y - a.y) / d * near.tangent.y) > .7;
+      if (near.distance < .13 && parallel) { if (start < 0) start = i; }
+      else flush(i - 1);
+      if (near.distance < .05 && !parallel && !interactions.some(e => e.type === 'coastal-headland' && distance(e.point, near.point) < .12)) {
+        interactions.push({ type: 'coastal-headland', points: near.coast.points, point: near.point, featureIndex: features.indexOf(ridge) });
+      }
+    });
+    flush(raw.length - 1);
+  }
+  for (const river of features.filter(f => f.type === 'river')) {
+    const raw = avoidCoast(river.points, .055, true);
+    // Sample the course, so a short segment cannot jump over an inlet.
+    const samples = raw.flatMap((p, i) => {
+      if (!i) return [p]; const a = raw[i - 1], steps = Math.max(1, Math.ceil(distance(a, p) / .006));
+      return Array.from({ length: steps }, (_, j) => ({ x: lerp(a.x, p.x, (j + 1) / steps), y: lerp(a.y, p.y, (j + 1) / steps) }));
+    });
+    const spans = []; let span = [];
+    for (const p of samples) {
+      if (isLand(map, p)) {
+        if (span.length && [.25, .5, .75].some(t => !isLand(map, { x: lerp(span.at(-1).x, p.x, t), y: lerp(span.at(-1).y, p.y, t) }))) {
+          spans.push(span); span = [];
+        }
+        span.push(p);
+      }
+      else if (span.length) { spans.push(span); span = []; }
+    }
+    if (span.length) spans.push(span);
+    const length = points => points.reduce((sum, p, i) => sum + (i ? distance(points[i - 1], p) : 0), 0);
+    let course = spans.sort((a, b) => length(b) - length(a))[0] ?? [];
+    const inlandStart = course.findIndex((p, i) => i < course.length / 2 && closestCoast(p).distance > .04);
+    if (inlandStart > 0) course = course.slice(inlandStart);
+    river.points = course;
+    if (course.length < 2) continue;
+    const featureIndex = features.indexOf(river), source = course[0];
+    let end = course.at(-1), near = closestCoast(end);
+    if (near.distance > .000001 && near.distance < .035) {
+      const contact = { x: lerp(near.point.x, end.x, .0001), y: lerp(near.point.y, end.y, .0001) };
+      if ([.25, .5, .75, 1].every(t => isLand(map, { x: lerp(end.x, contact.x, t), y: lerp(end.y, contact.y, t) }))) {
+        course.push(contact); end = contact; near = closestCoast(end);
+      }
+    }
+    const corridor = { type: 'river-valley', points: course, width: .033, bounds: pathBounds(course, .033) };
+    corridors.push(corridor);
+    interactions.push({ type: 'headwaters', point: source, points: course.slice(0, Math.min(12, course.length)),
+      mountainous: ridges.some(r => projectToPath(source, r.points).distance < .15)
+        || regions.some(r => r.biome === 'mountains' && insidePolygon(source, r.outline)), featureIndex });
+    if (near.distance < .035) {
+      const mouth = { type: 'river-mouth', point: end, tangent: projectToPath(end, course).tangent,
+        treatment: near.coast.rocky ? 'rocky-mouth' : 'estuary', water: near.coast.water, featureIndex };
+      interactions.push(mouth); river.mouth = mouth;
+    }
+    let coastal = [];
+    const finishCoastal = () => {
+      if (length(coastal) > .12) interactions.push({ type: 'coastal-river', points: coastal, point: coastal[Math.floor(coastal.length / 2)], featureIndex });
+      coastal = [];
+    };
+    course.forEach((p, i) => {
+      const near = closestCoast(p), a = course[Math.max(0, i - 1)], b = course[Math.min(course.length - 1, i + 1)], d = distance(a, b);
+      const parallel = d && Math.abs((b.x - a.x) * ASPECT / d * near.tangent.x + (b.y - a.y) / d * near.tangent.y) > .8;
+      if (near.distance < .1 && parallel) coastal.push(p); else finishCoastal();
+    });
+    finishCoastal();
+    for (const ridge of ridges) {
+      let episode = [];
+      const flush = () => {
+        if (!episode.length) return;
+        const points = episode.map(e => e.point), parallel = episode.filter(e => e.parallel).length / episode.length;
+        const type = parallel > .55 && length(points) > .08 ? 'mountain-valley' : 'water-gap';
+        const width = type === 'mountain-valley' ? .065 : .045;
+        corridors.push({ type, points, width, bounds: pathBounds(points, width) });
+        interactions.push({ type, points, point: points[Math.floor(points.length / 2)], featureIndex }); episode = [];
+      };
+      course.forEach((p, i) => {
+        const q = projectToPath(p, ridge.points);
+        if (q.distance >= .075) { flush(); return; }
+        const a = course[Math.max(0, i - 1)], b = course[Math.min(course.length - 1, i + 1)], d = distance(a, b);
+        const dot = d ? Math.abs((b.x - a.x) * ASPECT / d * q.tangent.x + (b.y - a.y) / d * q.tangent.y) : 0;
+        episode.push({ point: p, parallel: dot > .78 });
+      });
+      flush();
+    }
+  }
+  surroundings.continuations = surroundings.continuations.filter(creek => features.some(f => f.type === 'river' && f.points.length
+    && distance(creek.points[0], f.points[0]) < .02));
+  for (const creek of surroundings.continuations) corridors.push({ type: 'headwater-valley', points: creek.points, width: .025,
+    bounds: pathBounds(creek.points, .025) });
+  for (const coast of coasts.filter(c => c.rocky)) interactions.push({ type: 'rocky-coast', points: coast.points, point: coast.points[Math.floor(coast.points.length / 2)] });
+  return { interactions, corridors, coasts };
+}
+
+export function canPlacePeak(geography, p, radius) {
+  for (const corridor of geography.corridors) {
+    if (withinBounds(p, corridor.bounds, radius) && projectToPath(p, corridor.points).distance < corridor.width + radius) return false;
+  }
+  for (const coast of geography.coasts) {
+    if (withinBounds(p, coast.bounds, radius) && projectToPath(p, coast.points).distance < .015 + radius) return false;
+  }
+  return true;
 }
 
 // Stable decoration positions: independent of generation and presentation mode.

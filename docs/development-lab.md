@@ -212,8 +212,14 @@ a larger tessellation form region-scale bays and headlands, retaining broad
 region shapes without a global warp or enclosed gaps. Mountain and river
 artwork stays on land; rivers end at the chosen ocean's shoreline. Inland creeks
 taper into wetland fringes, while other landforms influence the surrounding
-terrain without projecting lines or wedges outward. Drag, scroll, pinch,
-zoom buttons and Fit explore the irregular footprint through the game's camera.
+terrain without projecting lines or wedges outward.
+The geography pass opens water gaps where rivers cross ranges, puts peaks on
+valley flanks along parallel stretches, and keeps ordinary mountain symbols out
+of river corridors. Coastal rivers sit inland; narrow headwaters widen toward
+estuaries or rocky mouths. Coastal ranges and cliffs respect actual land,
+including generated islands. Interaction counts are exposed in the state panel.
+Drag, scroll, pinch, zoom buttons and Fit explore the irregular footprint
+through the game's camera.
 Its Regions, Geography and Terrain views share one generated graph. Generation
 controls, selection, reflections and PNG export live in a fixed 2424 × 1080
 Pixi landscape window with the shared Fullscreen control. Settings live in memory
