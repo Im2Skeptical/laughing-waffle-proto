@@ -177,16 +177,16 @@ function render() {
 $('apply-json').addEventListener('click', () => run(() => controller.replaceDraft(JSON.parse($('json').value))));
 $('import').addEventListener('change', () => run(async () => { const file = $('import').files[0]; if (file) controller.replaceDraft(JSON.parse(await file.text())); $('import').value = ''; }));
 controller.subscribe(render); render();
-async function startGameScreen() {
+function startGameScreen() {
 try {
-  gameScreen = await createOpeningGameScreen({ host: $('game-screen'), controller,
+  gameScreen = createOpeningGameScreen({ host: $('game-screen'), controller,
     onError: message => { error = message; render(); },
     onEdit: id => { if (id) selectedId = id; editorKey = ''; render(); $('graph-editor').scrollIntoView({ block: 'start', behavior: 'smooth' }); },
   });
   document.body.dataset.ready = 'true';
 } catch (failure) { error = `Unable to open the game screen: ${failure.message}`; render(); }
 }
-void startGameScreen();
+startGameScreen();
 // Focused inspection hook for the collaborative browser; never includes full GameState.
 window.openingWorkbench = { getSnapshot: () => { const { summary, busy, session, draft, draftIssue } = controller.getSnapshot(); return { summary, busy, availableIds: session.availableIds, activeId: session.activeId, visitedIds: session.visitedIds,
   draftGraph: { entryIds: draft.entryIds, issue: draftIssue, nodes: draft.nodes.map(({ id, kind, next, editorPosition }) => ({ id, kind, next, editorPosition })) }, game: gameScreen?.getSnapshot() }; },

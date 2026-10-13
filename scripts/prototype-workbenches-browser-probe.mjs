@@ -95,6 +95,31 @@ try {
     await page.reload(); await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
     await page.setViewportSize({width:390,height:844}); await noOverflow('directory portrait');
   });
+  await check('Pixi first load: both entry nodes open choices while artwork is pending', async () => {
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();
+    const points = await page.evaluate(() => Object.fromEntries(['relic','explore'].map(id => [id,openingWorkbench.getPoint('node',id)])));
+    for (const id of ['relic','explore']) {
+      let release, held = 0;
+      const gate = new Promise(resolve => { release = resolve; });
+      const pattern = '**/images/sprite-sheets/**';
+      await page.route(pattern, async route => { held++; await gate; await route.continue(); });
+      try {
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.waitForFunction(() => window.openingWorkbench && document.querySelector('[data-testid="opening-game-screen"]'));
+        const canvas = page.getByTestId('opening-game-screen'); await canvas.scrollIntoViewIfNeeded();
+        const rect = await canvas.boundingBox(), p = points[id];
+        await page.mouse.click(rect.x+p.x/2424*rect.width,rect.y+p.y/1080*rect.height);
+        await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
+        await page.waitForFunction(id => openingWorkbench.getSnapshot().activeId === id,id);
+        const actual = await page.evaluate(() => {const s=openingWorkbench.getSnapshot();return {activeId:s.activeId,ready:document.body.dataset.ready,modalOpen:s.game?.modal.open,family:s.game?.modal.family};});
+        assert.ok(held>0,'artwork is still pending during entry');
+        assert.equal(actual.modalOpen,true,`First-load ${id} choices open before artwork finishes: ${JSON.stringify(actual)}`);
+        assert.equal(actual.family,id==='relic'?'relic':'travel');
+        assert.ok(await page.evaluate(()=>!!openingWorkbench.getPoint('option',0)),'choices have rendered controls');
+      } finally {release();await page.unrouteAll({behavior:'wait'});}
+      await ready();
+    }
+  });
   await check('Opening playthrough, real founding, purchase, rewind and same-seed outcomes', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();

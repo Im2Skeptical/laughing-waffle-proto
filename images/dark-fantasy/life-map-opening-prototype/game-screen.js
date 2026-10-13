@@ -19,7 +19,7 @@ import { createOpeningNoteScreen } from './note-screen.js';
 
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.
-export async function createOpeningGameScreen({ host, controller, onEdit, onError }) {
+export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const app = new PIXI.Application({ width: 2424, height: 1080, backgroundColor: PALETTE.background, antialias: true, resolution: 1 });
   app.stage.eventMode = 'static'; app.stage.hitArea = app.screen;
   app.view.tabIndex = 0; app.view.dataset.testid = 'opening-game-screen';
@@ -39,6 +39,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   if (accessibility?.div) accessibility.div.style.pointerEvents = 'none';
   host.addEventListener('pointerdown', event => { if (event.target === app.view) app.view.focus({ preventScroll: true }); }, { capture: true });
   let snapshot = controller.getSnapshot(), mode = 'life', selectedRegion = openingVassal(snapshot.session).locationRegionId;
+  let destroyed = false;
   let previousRuntimeId = null, lastActiveId = null, outcomeId = null, message = '', footerKey = '', controlKey = '', outcomeKey = '';
   const decisionCache = new Map();
   const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'level', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
@@ -191,8 +192,12 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
     modal.update(); level.update(); bag.update(); hud.update(); navigation.update(app.ticker.deltaMS / 1000);
     drawChrome();
   });
-  await prepareChronicleArt(app.renderer);
   refresh();
+  // Attach the playable screen before awaiting optional artwork. Input is already
+  // live on the canvas, and controller notifications must reach its decision views.
+  void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
+    if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
+  });
   const point = (kind, index = 0) => ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
@@ -212,5 +217,5 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
       note: note.getSnapshot(), modal: { open: note.isOpen() || modalState.open, animation: note.isOpen() ? 'open' : modalState.animation.phase, family: note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
         contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
-  }, destroy: () => { display.destroy(); app.destroy(true, { children: true }); } };
+  }, destroy: () => { destroyed = true; display.destroy(); app.destroy(true, { children: true }); } };
 }

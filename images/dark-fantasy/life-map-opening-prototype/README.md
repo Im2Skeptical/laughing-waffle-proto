@@ -65,6 +65,10 @@ enter the note to read its text, scroll/drag if needed, then **Confirm** to leav
 Reading a note does not advance time, grant routine node income or consume RNG.
 The prototype records the visit and offers the connected next nodes.
 
+The Pixi screen attaches immediately, with artwork prepared in the background.
+Entry confirmations and choices work during a cold or slow artwork load; an
+artwork failure reports a message without detaching the playable screen.
+
 Disconnected or cyclic drafts remain visible while you work. The editor names
 the issue; playing and saving require a valid graph. **Play edited opening** or
 **Restart** launches the current draft in the Pixi screen. The running world and
@@ -110,4 +114,6 @@ fullscreen touch input and mobile containment.
 `scripts/opening-graph-editor-test.mjs` also covers graph operations, invalid-draft
 isolation, group positioning, and real Development/Practice purchases before
 founding. Browser checks cover box/group/single dragging, panning, saved positions,
-phone position controls and reading/confirming Custom Notes.
+phone position controls and reading/confirming Custom Notes. First-load regression
+checks hold artwork requests while entering both initial nodes and verify their
+choice modals open before those requests finish.
