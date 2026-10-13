@@ -266,3 +266,9 @@ pixels on the same renderer and inspect WebGL errors, masks, fullscreen and
 phone camera behavior. Game integration must also pass `npm run verify`, the
 existing presentation tests and map/Chronicle probes. No extra simulation ticks,
 sparse summaries or forecast-policy changes are needed for this renderer.
+
+The coastal refinement defaults the prototype to Fine, reduces individual tree
+scale into woodland canopy groups, and separates static shoals from foam, surf
+and shallow-ripple index bands. These bands provide distinct animation masks;
+actual palette cycling remains the next review step. Thinner road and river
+strokes keep that additional coastline detail legible.

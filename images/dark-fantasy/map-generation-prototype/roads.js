@@ -103,7 +103,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
       distance += Math.hypot(p.x - a.x, p.y - a.y);
       if (wet(p)) continue;
       const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-      const bend = Math.sin(distance / (19 * scale)) * Math.sin(Math.PI * n / (shaped.length - 1)) * 2.5 * scale;
+      const bend = (Math.sin(distance / (31 * scale)) * 6 + Math.sin(distance / (13 * scale)) * 1.5) * Math.sin(Math.PI * n / (shaped.length - 1)) * scale;
       const q = { x: p.x - (b.y - a.y) / length * bend, y: p.y + (b.x - a.x) / length * bend };
       if (!wet(q) && clear(shaped[n - 1], q) && clear(q, shaped[n + 1])) shaped[n] = q;
     }

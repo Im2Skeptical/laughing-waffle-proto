@@ -89,7 +89,7 @@ must fit dry ground, and crags respect the existing river/coast exclusion rules.
 
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
 accepted geography on one world lattice and bakes the ground into a nearest-
-sampled, unmipmapped texture. **Detail** is the new default: 2 design units per source texel, twice the
+sampled, unmipmapped texture. **Fine** is the default. **Detail** uses 2 design units per source texel, twice the
 linear resolution of **Fine** (4); **Coarse** uses 6. Detail samples the
 generated engravings at double resolution while preserving their world sizes. Coastlines receive
 broken cliff strata, beach stipple and lit shore stones along the land mask.
@@ -211,3 +211,13 @@ review generation controls, tap
 selection before/after pan and zoom, drag-versus-tap, pinch, Fit, views, URL refresh, reflections, PNG,
 fullscreen and fixed aspect ratio at desktop and 844 Ã— 390 phone landscape.
 `npm run verify` covers packaging and the unchanged game invariants.
+
+### Coastal and woodland refinement
+
+Fine is the default review density. Woodland stamps compress many crowns into
+canopy masses, with smaller groups around their edges; islands use low scrub
+and small rocks. Roads use thinner verges and broader, land-checked bends;
+rivers have narrower banks and channels. The static water bake separates foam
+(32–35), broken surf (40–47), shallow ripples (48–55) and stationary shoals
+(96–111). These are source structures for the later time-keyed palette pass,
+not animated effects yet. Review seeds 1867 and 1873 at Fine and phone landscape.

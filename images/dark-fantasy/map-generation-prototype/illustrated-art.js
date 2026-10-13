@@ -40,9 +40,12 @@ export async function loadIllustratedArt(banks) {
     for (let n = 0; n < 12; n++) art[`crag${n}`] = build(n % 3 ? 'peaks' : 'massif', (n % 3 ? 43 + n % 4 * 3 : 56) * detail);
     for (let n = 0; n < 6; n++) art[`crag-small${n}`] = build(n % 2 ? 'peaks' : 'rocks', (24 + n % 3 * 3) * detail);
     for (let n = 0; n < 5; n++) art[`hill${n}`] = build(n % 2 ? 'hills' : 'scrub', (20 + n * 3) * detail);
-    const woods = [['wood', 55], ['wood', 46], ['copse', 35], ['copse', 28], ['trees', 23], ['tree', 16], ['trees', 19], ['tree', 20]];
+    // Many small crowns per silhouette: woodland at map scale, not giant trees.
+    const woods = [['wood', 38], ['wood', 32], ['wood', 27], ['wood', 24], ['copse', 15], ['copse', 12], ['trees', 8], ['trees', 10]];
     woods.forEach(([frame, width], n) => { art[`copse${n}`] = build(frame, width * detail); });
     for (let n = 0; n < 3; n++) art[`deadwood${n}`] = build(n === 0 ? 'marsh' : 'reeds', (n === 0 ? 43 : 24 + n * 4) * detail);
+    art.shoreScrub = build('scrub', 13 * detail);
+    art.shoreRock = build('rocks', 9 * detail);
     art.cliff0 = build('cliff', 30 * detail); art.cliff1 = build('rocks', 20 * detail);
     for (const [kind, glyph] of Object.entries(art)) if (/^(crag|hill|deadwood|cliff)/.test(kind)) {
       const colours = {};

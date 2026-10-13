@@ -18,12 +18,23 @@ const ATLAS_GROUND = {
   badlands: [0x252527, 0x323235, 0x404044, 0x505054],
 };
 // Explicit water indices survive the static bake for the subsequent cycle study.
-// Zero = dry. Ocean 1..8, river 16..23, foam 32..35 are separate ranges.
+// Zero = dry. Ocean 1..8, river 16..23, foam 32..35, surf 40..47,
+// shallow ripples 48..55. Stationary depth 64..95 and shoals 96..111.
 // Index 9 and Atlas depth shades 64..95 stay fixed during surface cycling.
 const ATLAS_WATER = [0, 0x3c555c, 0x425c62, 0x496368, 0x526e72, 0x5a797b, 0x628182, 0x6b8989, 0x7a9691,
   0x263f4e, 0x2e4d5b, 0x365e69, 0x41747c, 0x53898c];
 for (let i = 0; i < 8; i++) ATLAS_WATER[16 + i] = [0x586d71, 0x657e81, 0x7b9391, 0x9aaea2, 0xb9c5af, 0x9aaea2, 0x7b9391, 0x657e81][i];
 for (let i = 0; i < 4; i++) ATLAS_WATER[32 + i] = [0x79938b, 0x8fa295, 0xa5b09f, 0x8fa295][i];
+// Coastal animation material banks: 40..47 advancing/backwashing surf,
+// 48..55 shallow ripples; 96..111 stationary translucent-looking shoal colours.
+for (let i = 0; i < 8; i++) {
+  ATLAS_WATER[40 + i] = [0x557e82, 0x648d8e, 0x779e9b, 0x9bb6a8, 0xb6c7b4, 0x91afa3, 0x709895, 0x5c8588][i];
+  ATLAS_WATER[48 + i] = [0x4b727a, 0x507980, 0x60888c, 0x759a99, 0x86aaa3, 0x759a99, 0x60888c, 0x507980][i];
+}
+for (let i = 0; i < 16; i++) {
+  const t = i / 15;
+  ATLAS_WATER[96 + i] = (Math.round(60 + 26 * t) << 16) | (Math.round(86 + 36 * t) << 8) | Math.round(94 + 29 * t);
+}
 // Stationary depth shades use a separate bank from the cycling surface marks.
 for (let i = 0; i < 32; i++) {
   const t = i / 31;
@@ -49,7 +60,7 @@ export function pixelSpriteTextures(texel = 4) {
 
 const MATERIALS = [null, ...Object.keys(ATLAS_GROUND)];
 const MATERIAL_IDS = Object.fromEntries(MATERIALS.map((name, i) => [name, i]));
-const relief = prop => /crag|hill|cliff|deadwood/.test(prop.kind);
+const relief = prop => /crag|hill|cliff|deadwood|shore/.test(prop.kind);
 const samplePlane = (plane, x, y) => x < plane.x || y < plane.y || x >= plane.x + plane.width || y >= plane.y + plane.height
   ? 0 : plane.data[(y - plane.y) * plane.width + x - plane.x];
 function glyphPosition(terrain, prop, flipX, flipY) {
@@ -217,9 +228,18 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const swell = ((y + Math.round(waveX[x] * 2 + waveXY[x + y] * 2 + broad * 12)) % 19 + 19) % 19;
       // Broken surface highlights over depth washes, with no cartographic rings.
       const depthShade = .5 * Math.exp(-Math.max(0, depth) / 4) + .35 * broad + .1 * texture;
-      waterIndices[i] = seaDistance[i] <= 3 && texture > .38 ? 32 + phase % 4
-        : swell === 0 && texture > .7 && broad > .4 ? 1 + phase
-          : 64 + Math.min(31, Math.floor(depthShade * 31));
+      const shoreDepth = seaDistance[i] / 3 * texel / 4;
+      const along = noise(map.seed ^ 8317, x, y, 12 * 4 / texel);
+      const coastalPhase = (Math.floor(shoreDepth * 1.3 + along * 5) % 8 + 8) % 8;
+      const breaker = (shoreDepth + along * 5) % 7;
+      // Broken, varying-width surf follows the actual coastline and lagoon
+      // banks. Deep-water highlights remain separate from nearshore motion.
+      waterIndices[i] = shoreDepth <= 1.1 && texture > .46 ? 32 + coastalPhase % 4
+        : shoreDepth < 9 && breaker < 1.3 && along > .32 && texture > .36 ? 40 + coastalPhase
+          : shoreDepth > 5 && shoreDepth < 20 && swell < 1 && texture > .45 ? 48 + coastalPhase
+            : shoreDepth < 13 ? 96 + Math.max(0, Math.min(15, Math.floor((1 - shoreDepth / 15) * 10 + along * 4)))
+              : swell === 0 && texture > .7 && broad > .4 ? 1 + phase
+                : 64 + Math.min(31, Math.floor(depthShade * 31));
     } else if (dryDistance[i] <= 2 * unit) {
       colours[i] = regionIds[i] < 0 ? dryDistance[i] <= unit ? 0x161b20 : 0x353c42
         : dryDistance[i] <= unit ? 0x594b36 : 0x9d8a65;
@@ -284,9 +304,9 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   }
   for (const coast of map.geography.coasts.filter(c => c.rocky)) stroke(coast.points, 1, 0x6c5e48);
   for (const river of map.features.filter(f => f.type === 'river')) {
-    const widthAt = d => (.5 + Math.min(1.2, d / 28)) * 4 / texel;
-    stroke(river.points, d => widthAt(d) + 2.5 * detail, (x, y) => mixColour(groundBank[materialAt(x, y) ?? 'badlands'][1], 0x444c3c, .22));
-    stroke(river.points, d => widthAt(d) + detail, (x, y) => mixColour(groundBank[materialAt(x, y) ?? 'badlands'][3], 0xa99c77, .35));
+    const widthAt = d => (.3 + Math.min(.65, d / 60)) * 4 / texel;
+    stroke(river.points, d => widthAt(d) + 1.1 * detail, (x, y) => mixColour(groundBank[materialAt(x, y) ?? 'badlands'][1], 0x444c3c, .22));
+    stroke(river.points, d => widthAt(d) + .45 * detail, (x, y) => mixColour(groundBank[materialAt(x, y) ?? 'badlands'][3], 0xa99c77, .35));
     stroke(river.points, widthAt, 0, 16);
     if (river.mouth?.treatment === 'estuary') {
       const end = river.points.at(-1), p = pixel(end);
@@ -322,11 +342,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     const p = world(qx, qy), region = map.regions[regionIds[i]], n = noise(map.seed ^ 38571, qx, qy, 42), chance = decorationRandom(map.seed, salt + 2);
     let kind = null;
     const variant = Math.floor(decorationRandom(map.seed, salt + 3) * 12);
-    if (region?.biome === 'forest') kind = n > .38 && chance < .58 ? `copse${chance < .10 && n > .55 ? variant % 2 : chance < .28 ? 2 + variant % 2 : 4 + variant % 4}` : null;
+    if (region?.biome === 'forest') kind = n > .34 && chance < .78 ? `copse${n > .5 ? variant % 4 : n > .4 ? 4 + variant % 2 : 6 + variant % 2}` : null;
     else if (region?.biome === 'mountains') kind = null; // Composed along spines below.
     else if (region?.biome === 'swamp') kind = chance < .14 ? `deadwood${variant % 3}` : chance < .38 ? 'rushes' : null;
     else if (region?.biome === 'plains') kind = chance < .16 ? `hill${variant % 5}` : null;
-    else if (region?.biome === 'islands') kind = chance < .24 ? `copse${2 + variant % 6}` : null;
+    else if (region?.biome === 'islands') kind = chance < .12 ? 'shoreScrub' : chance < .17 ? 'shoreRock' : null;
     else if (!region) { sampleBackground(p, f); kind = chance < .12 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 || f[3] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null; }
     if (kind?.startsWith('crag') && !canPlacePeak(map.geography, p, .07)) kind = null;
     if (kind && !region) kind = `ash-${kind}`;
@@ -435,13 +455,13 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       for (let j = 0; j < steps; j++) samples.push({ x: Math.round(a.x + (b.x - a.x) * j / steps), y: Math.round(a.y + (b.y - a.y) * j / steps) });
     }
     samples.push(path.at(-1));
-    for (const p of samples) roadDot(p.x, p.y, 4 * detail, '', true);
+    for (const p of samples) roadDot(p.x, p.y, 3 * detail, '', true);
     roadCtx.globalAlpha = .3;
-    for (const p of samples) roadDot(p.x, p.y, Math.ceil(2.4 * detail), '#655339');
+    for (const p of samples) roadDot(p.x, p.y, Math.ceil(1.5 * detail), '#655339');
     roadCtx.globalAlpha = .85;
-    for (const p of samples) roadDot(p.x, p.y, Math.ceil(1.4 * detail), '#695338');
+    for (const p of samples) roadDot(p.x, p.y, detail, '#695338');
     roadCtx.globalAlpha = 1;
-    for (const [n, p] of samples.entries()) roadDot(p.x, p.y, detail, n % 11 < 3 ? '#b5a078' : '#c9b68c');
+    for (const [n, p] of samples.entries()) roadDot(p.x, p.y, Math.max(0, detail - 1), n % 11 < 3 ? '#b5a078' : '#c9b68c');
     // Fine broken wheel marks and irregular verge stones give the route a
     // drawn surface. Bridges get their own continuous deck and cross-planks.
     for (let n = 3; n < samples.length - 3; n += 5) {
@@ -497,11 +517,18 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     let c = waterIndices[i] ? waterBank[waterIndices[i]] : colours[i];
     // Retain the river phase indices while keeping the still-water study from
     // reading as alternating bright stripes at the finer resolution.
-    if (detail === 2 && waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
+    if (waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
     image.data[i * 4] = c >> 16 & 255; image.data[i * 4 + 1] = c >> 8 & 255; image.data[i * 4 + 2] = c & 255; image.data[i * 4 + 3] = detail === 2
       ? Math.round(255 * Math.min(1, Math.min(i % width, width - 1 - i % width, Math.floor(i / width), height - 1 - Math.floor(i / width)) / 64)) : 255;
   }
   ctx.putImageData(image, 0, 0);
+  const coastalEffects = { foam: 0, surf: 0, shallowRipples: 0, shoals: 0 };
+  for (const index of waterIndices) {
+    if (index >= 32 && index <= 35) coastalEffects.foam++;
+    else if (index >= 40 && index <= 47) coastalEffects.surf++;
+    else if (index >= 48 && index <= 55) coastalEffects.shallowRipples++;
+    else if (index >= 96 && index <= 111) coastalEffects.shoals++;
+  }
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   const fog = document.createElement('canvas'); fog.width = Math.ceil(width / 4); fog.height = Math.ceil(height / 4);
   const fogCtx = fog.getContext('2d'), fogImage = fogCtx.createImageData(fog.width, fog.height);
@@ -523,7 +550,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
 
   return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, materials, props, bounds, waterIndices, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
-    roads: roads.length, bridges, interactions, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: spines.length, rangeMassifs: props.filter(p => p.range).length,
+    roads: roads.length, bridges, interactions, coastalEffects, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: spines.length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
     textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still water; independent index ranges retained' } };
 }

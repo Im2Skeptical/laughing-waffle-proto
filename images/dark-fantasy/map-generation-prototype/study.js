@@ -15,7 +15,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   clustering: numberParam('clustering', .05, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
   roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
-  texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 2, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
+  texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,
