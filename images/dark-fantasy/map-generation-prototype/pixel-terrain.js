@@ -29,19 +29,20 @@ for (let i = 0; i < 32; i++) {
   ATLAS_WATER[64 + i] = (Math.round(55 + 38 * t) << 16) | (Math.round(76 + 39 * t) << 8) | Math.round(82 + 31 * t);
 }
 
-const ART = createAtlasArt();
-let spriteArt = null;
-export function pixelSpriteTextures() {
-  if (spriteArt) return spriteArt;
-  const entries = Object.entries(ART), cell = 64, canvas = document.createElement('canvas'); canvas.width = 16 * cell; canvas.height = Math.ceil(entries.length / 16) * cell;
+const ART_BANKS = { 1: createAtlasArt(), 2: createAtlasArt(2) };
+const spriteArtCache = new Map();
+export function pixelSpriteTextures(texel = 4) {
+  const detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
+  if (spriteArtCache.has(detail)) return spriteArtCache.get(detail);
+  const entries = Object.entries(ART), cell = 64 * detail, canvas = document.createElement('canvas'); canvas.width = 16 * cell; canvas.height = Math.ceil(entries.length / 16) * cell;
   const ctx = canvas.getContext('2d');
   entries.forEach(([, art], i) => art.rows.forEach((row, y) => [...row].forEach((code, x) => {
     if (art.colours[code]) { ctx.fillStyle = art.colours[code]; ctx.fillRect(i % 16 * cell + 2 + x, Math.floor(i / 16) * cell + 2 + y, 1, 1); }
   })));
   const base = PIXI.Texture.from(canvas).baseTexture; base.scaleMode = PIXI.SCALE_MODES.NEAREST; base.mipmap = PIXI.MIPMAP_MODES.OFF;
-  spriteArt = Object.fromEntries(entries.map(([kind, art], i) => [kind, new PIXI.Texture(base,
+  const spriteArt = Object.fromEntries(entries.map(([kind, art], i) => [kind, new PIXI.Texture(base,
     new PIXI.Rectangle(i % 16 * cell + 2, Math.floor(i / 16) * cell + 2, Math.max(...art.rows.map(r => r.length)), art.rows.length))]));
-  return spriteArt;
+  spriteArtCache.set(detail, spriteArt); return spriteArt;
 }
 
 const MATERIALS = [null, ...Object.keys(ATLAS_GROUND)];
@@ -50,7 +51,7 @@ const relief = prop => /crag|hill/.test(prop.kind);
 const samplePlane = (plane, x, y) => x < plane.x || y < plane.y || x >= plane.x + plane.width || y >= plane.y + plane.height
   ? 0 : plane.data[(y - plane.y) * plane.width + x - plane.x];
 function glyphPosition(terrain, prop, flipX, flipY) {
-  const art = ART[prop.kind], { texel } = terrain.stats, sx = flipX ? -1 : 1, sy = flipY ? -1 : 1;
+  const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel } = terrain.stats, sx = flipX ? -1 : 1, sy = flipY ? -1 : 1;
   return { sx, sy, left: Math.round(sx * (prop.point.x - terrain.bounds.minX) * 1576 / texel - Math.max(...art.rows.map(r => r.length)) / 2),
     top: Math.round(sy * (prop.point.y - terrain.bounds.minY) * 516 / texel - art.rows.length) };
 }
@@ -63,7 +64,8 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
   const key = `${flipX}:${flipY}`;
   terrain.reliefCache ??= new Map();
   if (terrain.reliefCache.has(key)) return terrain.reliefCache.get(key).textures;
-  const props = terrain.props.filter(relief), canvas = document.createElement('canvas'), cell = 64;
+  const ART = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1];
+  const props = terrain.props.filter(relief), canvas = document.createElement('canvas'), cell = terrain.stats.texel === 2 ? 128 : 64;
   canvas.width = cell * 16; canvas.height = Math.max(cell, Math.ceil(props.length / 16) * cell);
   const ctx = canvas.getContext('2d'), palettes = {};
   for (const name of MATERIALS.slice(1)) {
@@ -72,7 +74,7 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       d: mixColour(bank[3], 0xd9c9af, name === 'mountains' ? .25 : .12), e: mixColour(bank[3], 0xe1d6bf, .4), f: bank[1] };
   }
   props.forEach((prop, i) => {
-    const art = ART[prop.kind], g = glyphPosition(terrain, prop, flipX, flipY);
+    const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], g = glyphPosition(terrain, prop, flipX, flipY);
     art.rows.forEach((row, y) => [...row].forEach((code, x) => {
       if (code === '.') return;
       const ix = Math.floor(g.sx * (g.left + x + .5)), iy = Math.floor(g.sy * (g.top + y + .5));
@@ -97,12 +99,12 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
   return textures;
 }
 export function destroyPixelTerrain(terrain) {
-  for (const texture of [terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture]) texture?.destroy(true);
+  for (const texture of [terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]) texture?.destroy(true);
   for (const cached of terrain.reliefCache?.values() ?? []) cached.base.destroy();
 }
 
 export function pixelSpriteFits(terrain, prop, flipX, flipY) {
-  const art = ART[prop.kind], { texel, width, height } = terrain.stats;
+  const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel, width, height } = terrain.stats;
   const px = (prop.point.x - terrain.bounds.minX) * 1576 / texel, py = (prop.point.y - terrain.bounds.minY) * 516 / texel;
   const sx = flipX ? -1 : 1, sy = flipY ? -1 : 1, w = Math.max(...art.rows.map(r => r.length));
   const left = Math.round(sx * px - w / 2), top = Math.round(sy * py - art.rows.length);
@@ -127,8 +129,16 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = true }) {
-  const started = performance.now(), bounds = map.surroundings.bounds;
+export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true }) {
+  const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
+  // Fine detail covers the map and a generous hinterland. A cheap distant bake
+  // supports unrestricted panning without a giant high-resolution GPU texture.
+  const bounds = texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds;
+  let backdropTexture = null;
+  if (texel === 2) {
+    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false });
+    backdropTexture = distant.texture; distant.texture = null; destroyPixelTerrain(distant);
+  }
   const groundBank = ATLAS_GROUND, waterBank = ATLAS_WATER;
   const width = Math.ceil((bounds.maxX - bounds.minX) * 1576 / texel), height = Math.ceil((bounds.maxY - bounds.minY) * 516 / texel);
   const size = width * height, regionIds = new Int16Array(size).fill(-1), islandLand = new Uint8Array(size);
@@ -245,6 +255,19 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
       colours[j] = rocky ? step < 3 ? 0x76634a : groundBank[biome][0] : 0xaa946a;
     }
   }
+  if (detail === 2) for (let y = 5; y < height - 5; y++) for (let x = 5; x < width - 5; x++) {
+    const i = y * width + x, region = map.regions[regionIds[i]], d = dryDistance[i];
+    if (!land[i] || !region || d < 6 || d > 27) continue;
+    const salt = Math.imul(x, 8329) ^ Math.imul(y, 2311), grain = decorationRandom(map.seed ^ 9137, salt);
+    const rocky = region.biome === 'mountains' || noise(map.seed ^ 1471, x, y, 32) > .58;
+    const bank = groundBank[region.biome];
+    if (rocky && d % 8 <= 1 && grain > .23) colours[i] = mixColour(bank[0], 0x493c31, .25);
+    else if (!rocky && d < 13 && grain < .22) colours[i] = mixColour(bank[2], 0xd0bd92, .25);
+    // Tiny shore stones have a lit edge and a dark underside, confined to land.
+    if (grain > .987 && d > 12 && d < 24) {
+      colours[i] = bank[3]; if (land[i + width]) colours[i + width] = bank[0];
+    }
+  }
   for (const feature of map.features.filter(f => f.type === 'valley')) stroke(feature.points, 4, (x, y) => groundBank[materialAt(x, y) ?? 'badlands'][2]);
   for (const corridor of map.geography.corridors.filter(c => c.type === 'mountain-valley' || c.type === 'water-gap')) {
     stroke(corridor.points, corridor.type === 'mountain-valley' ? 3 : 2, (x, y) => groundBank[materialAt(x, y) ?? 'badlands'][2]);
@@ -267,9 +290,9 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
   const props = [], candidates = [];
   // Grid jitter uses map coordinates, not current zoom or camera position.
   const lo = pixel({ x: -1, y: -1 }), hi = pixel({ x: 2, y: 2 });
-  const spacing = 10;
+  const spacing = 10 * detail;
   for (let y = Math.ceil(lo.y / spacing) * spacing; y < hi.y; y += spacing) for (let x = Math.ceil(lo.x / spacing) * spacing; x < hi.x; x += spacing) {
-    const salt = Math.imul(x, 14369) ^ Math.imul(y, 37813), qx = x + Math.floor(decorationRandom(map.seed, salt) * 8), qy = y + Math.floor(decorationRandom(map.seed, salt + 1) * 8);
+    const salt = Math.imul(x, 14369) ^ Math.imul(y, 37813), qx = x + Math.floor(decorationRandom(map.seed, salt) * 8 * detail), qy = y + Math.floor(decorationRandom(map.seed, salt + 1) * 8 * detail);
     const i = qy * width + qx; if (!land[i] || waterIndices[i]) continue;
     const p = world(qx, qy), region = map.regions[regionIds[i]], n = noise(map.seed ^ 38571, qx, qy, 42), chance = decorationRandom(map.seed, salt + 2);
     let kind = null;
@@ -295,8 +318,8 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
     const start = Math.min(...projections) * .65, end = Math.max(...projections) * .65;
     const path = Array.from({ length: 17 }, (_, n) => {
       const t = n / 16, along = start + (end - start) * t;
-      const bend = Math.sin(t * Math.PI * 2) * Math.min(9, (end - start) * .12);
-      return world(centre.x + vx * along - vy * bend, centre.y + vy * along + vx * bend + 5);
+      const bend = Math.sin(t * Math.PI * 2) * Math.min(9 * detail, (end - start) * .12);
+      return world(centre.x + vx * along - vy * bend, centre.y + vy * along + vx * bend + 5 * detail);
     });
     spines.push({ points: path, salt: 7391 + spines.length * 853, biome: true });
     for (const neighbour of mountainRegions.filter(r => region.neighbours.includes(r.id) && r.id > region.id)) {
@@ -311,12 +334,12 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
       const a = points[j - 1], b = points[j], length = Math.hypot(b.x - a.x, b.y - a.y);
       while (next <= travelled + length) {
         const t = length ? (next - travelled) / length : 0, salt = spine.salt + Math.round(next) * 79;
-        const px = a.x + (b.x - a.x) * t, py = a.y + (b.y - a.y) * t + (decorationRandom(map.seed, salt) - .5) * 6;
+        const px = a.x + (b.x - a.x) * t, py = a.y + (b.y - a.y) * t + (decorationRandom(map.seed, salt) - .5) * 6 * detail;
         const p = world(Math.floor(px), Math.floor(py));
         if (canPlacePeak(map.geography, p, .045)) candidates.unshift({ kind: `crag${Math.floor(decorationRandom(map.seed, salt + 1) * 12)}`, point: p, salt, range: true, background: false });
-        const foothill = world(Math.floor(px - 8), Math.floor(py + 10));
+        const foothill = world(Math.floor(px - 8 * detail), Math.floor(py + 10 * detail));
         candidates.push({ kind: `hill${Math.floor(decorationRandom(map.seed, salt + 2) * 5)}`, point: foothill, salt, background: false });
-        next += 18 + decorationRandom(map.seed, salt + 3) * 7;
+        next += (18 + decorationRandom(map.seed, salt + 3) * 7) * detail;
       }
       travelled += length;
     }
@@ -341,8 +364,8 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
     }
     if (!fitsLand(candidate)) continue;
     if (candidate.kind.includes('crag') && props.some(q => q.kind.includes('crag')
-      && Math.hypot((q.point.x - candidate.point.x) * 1576 / texel, (q.point.y - candidate.point.y) * 516 / texel) < (candidate.range ? 13 : 24))) continue;
-    if (towns.some(t => Math.hypot((t.point.x - candidate.point.x) * 1576 / texel, (t.point.y - candidate.point.y) * 516 / texel) < 16)) continue;
+      && Math.hypot((q.point.x - candidate.point.x) * 1576 / texel, (q.point.y - candidate.point.y) * 516 / texel) < (candidate.range ? 13 : 24) * detail)) continue;
+    if (towns.some(t => Math.hypot((t.point.x - candidate.point.x) * 1576 / texel, (t.point.y - candidate.point.y) * 516 / texel) < 16 * detail)) continue;
     props.push(candidate);
   }
   props.push(...towns);
@@ -375,9 +398,9 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
       for (let j = 0; j < steps; j++) samples.push({ x: Math.round(a.x + (b.x - a.x) * j / steps), y: Math.round(a.y + (b.y - a.y) * j / steps) });
     }
     samples.push(path.at(-1));
-    for (const p of samples) roadDot(p.x, p.y, 4, '', true);
-    for (const p of samples) roadDot(p.x, p.y, 2, '#493d2f');
-    for (const p of samples) roadDot(p.x, p.y, 1, '#d0b888');
+    for (const p of samples) roadDot(p.x, p.y, 4 * detail, '', true);
+    for (const p of samples) roadDot(p.x, p.y, 2 * detail, '#493d2f');
+    for (const p of samples) roadDot(p.x, p.y, detail, '#d0b888');
     let crossing = false;
     for (let n = 0; n < samples.length; n++) {
       const p = samples[n], water = waterIndices[p.y * width + p.x], river = water >= 16 && water <= 23;
@@ -415,8 +438,12 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d'), image = ctx.createImageData(width, height);
   for (let i = 0; i < size; i++) {
-    const c = waterIndices[i] ? waterBank[waterIndices[i]] : colours[i];
-    image.data[i * 4] = c >> 16 & 255; image.data[i * 4 + 1] = c >> 8 & 255; image.data[i * 4 + 2] = c & 255; image.data[i * 4 + 3] = 255;
+    let c = waterIndices[i] ? waterBank[waterIndices[i]] : colours[i];
+    // Retain the river phase indices while keeping the still-water study from
+    // reading as alternating bright stripes at the finer resolution.
+    if (detail === 2 && waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .65);
+    image.data[i * 4] = c >> 16 & 255; image.data[i * 4 + 1] = c >> 8 & 255; image.data[i * 4 + 2] = c & 255; image.data[i * 4 + 3] = detail === 2
+      ? Math.round(255 * Math.min(1, Math.min(i % width, width - 1 - i % width, Math.floor(i / width), height - 1 - Math.floor(i / width)) / 64)) : 255;
   }
   ctx.putImageData(image, 0, 0);
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
@@ -432,12 +459,13 @@ export function bakePixelTerrain(map, { texel = 4, sampleBackground, sites = tru
     }
     const cloud = noise(map.seed ^ 3831, px, py, 100) * .7 + noise(map.seed ^ 8591, px, py, 38) * .3;
     fogImage.data[offset] = 151; fogImage.data[offset + 1] = 164; fogImage.data[offset + 2] = 169;
-    fogImage.data[offset + 3] = playable ? 0 : Math.max(0, cloud - .3) * (land[Math.min(size - 1, py * width + px)] ? 110 : 25);
+    const fade = detail === 2 ? Math.min(1, Math.min(x, y, fog.width - 1 - x, fog.height - 1 - y) / 16) : 1;
+    fogImage.data[offset + 3] = playable ? 0 : Math.max(0, cloud - .3) * (land[Math.min(size - 1, py * width + px)] ? 110 : 25) * fade;
   }
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { texture, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, materials, props, bounds, waterIndices, geography: map.geography, stats: { style: 'F', texel, width, height, props: props.length, sites: towns.length,
+  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, materials, props, bounds, waterIndices, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, reliefColouring: 'Per-pixel local biome; softened foothills', mountainSpines: spines.length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),

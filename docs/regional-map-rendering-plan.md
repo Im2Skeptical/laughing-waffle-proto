@@ -96,6 +96,12 @@ reed, hill, ruin and mountain families. Connected, overlapping massifs and
 coast-normal hachures carry the relief. Earlier Quiet/Textured comparisons are
 removed from the workbench and renderer.
 
+The workbench now defaults to 5% clustering with 2.5-point controls. Its Detail
+mode uses 2-unit ground texels and double-resolution engravings with finer
+coastal strata, shore stones and feature marks, preserving symbol world size.
+A bounded detailed bake overlays a cheaper distant backdrop so panning does
+not require one oversized high-resolution texture.
+
 The current prototype colours relief per texel from the underlying biome, with
 softened foothill feet and upright, material-correct reflections. Plains hill
 scatter stays inside plains. Sample roads connect reachable sites over dry

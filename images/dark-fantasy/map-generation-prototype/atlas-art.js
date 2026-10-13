@@ -6,39 +6,41 @@ const STONE = { a: '#51422f', b: '#867359', c: '#af9d7a', d: '#c9b894', e: '#ddd
 const MOUNTAIN = { a: '#5d4034', b: '#94705e', c: '#b49a7e', d: '#d0b29b', e: '#e0cbb0', f: '#aa9276' };
 const HILL = { a: '#756747', b: '#92835a', c: '#b1a071', d: '#bfae7b', f: '#9c8c62' };
 const WOOD = { a: '#39392c', b: '#55563e', c: '#787652', d: '#9a9167', e: '#64563d', f: '#9b8c68' };
-function engraving(width, height, colours) {
+function engraving(width, height, colours, detail = 1) {
+  width *= detail; height *= detail;
   const grid = Array.from({ length: height }, () => new Array(width).fill('.'));
-  const put = (x, y, code) => { x = Math.floor(x); y = Math.floor(y); if (grid[y]?.[x] !== undefined) grid[y][x] = code; };
+  const put = (x, y, code) => { x = Math.floor(x * detail); y = Math.floor(y * detail); if (grid[y]?.[x] !== undefined) grid[y][x] = code; };
   const line = (a, b, code, broken = false) => {
-    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]))));
+    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) * detail));
     for (let i = 0; i <= steps; i++) if (!broken || i % 5 !== 3) put(a[0] + (b[0] - a[0]) * i / steps, a[1] + (b[1] - a[1]) * i / steps, code);
   };
   const polygon = (points, code, outline = null) => {
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      const px = (x + .5) / detail, py = (y + .5) / detail;
       let inside = false;
       for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
         const a = points[i], b = points[j];
-        if ((a[1] > y + .5) !== (b[1] > y + .5) && x + .5 < (b[0] - a[0]) * (y + .5 - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+        if ((a[1] > py) !== (b[1] > py) && px < (b[0] - a[0]) * (py - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
       }
-      if (inside) put(x, y, code);
+      if (inside) grid[y][x] = code;
     }
     if (outline) points.forEach((p, i) => line(p, points[(i + 1) % points.length], outline));
   };
   const ellipse = (cx, cy, rx, ry, code, outline = null) => {
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-      const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
-      if (d <= 1) put(x, y, outline && d > .62 ? outline : code);
+      const d = ((x / detail - cx) / rx) ** 2 + ((y / detail - cy) / ry) ** 2;
+      if (d <= 1) grid[y][x] = outline && d > 1 - .38 / detail ? outline : code;
     }
   };
-  return { put, line, polygon, ellipse, grid, finish: () => ({ colours, rows: grid.map(row => row.join('')) }) };
+  return { put, line, polygon, ellipse, at: (x, y) => grid[Math.floor(y * detail)]?.[Math.floor(x * detail)], finish: () => ({ colours, rows: grid.map(row => row.join('')) }) };
 }
 
-export function createAtlasArt() {
-  const art = {};
+export function createAtlasArt(detail = 1) {
+  const art = {}, draw = (w, h, colours) => engraving(w, h, colours, detail);
   // Each massif contains overlapping back and front peaks. Open, irregular feet
   // blend into the ground; ridge strokes and short hatches describe rock faces.
   for (let v = 0; v < 18; v++) {
-    const compact = v >= 12, width = compact ? 28 : 42 + v % 4 * 3, height = compact ? 22 : 28 + v % 5, g = engraving(width, height, MOUNTAIN);
+    const compact = v >= 12, width = compact ? 28 : 42 + v % 4 * 3, height = compact ? 22 : 28 + v % 5, g = draw(width, height, MOUNTAIN);
     const peak = (cx, foot, span, tall, salt) => {
       const lean = (salt % 3 - 1) * 2, top = [cx + lean, foot - tall];
       const left = [[cx - span, foot], [cx - span * .66, foot - tall * .3], [cx - span * .35, foot - tall * .57], top];
@@ -50,10 +52,14 @@ export function createAtlasArt() {
       const slope = [top, ...right]; slope.slice(1).forEach((p, i) => g.line(slope[i], p, 'a', i === 2));
       ridge.slice(1).forEach((p, i) => g.line(ridge[i], p, i === 2 ? 'b' : 'a', true));
       g.line([top[0] - 1, top[1] + 2], [cx - 3, foot - tall * .55], 'e', true);
-      for (let y = Math.ceil(foot - tall * .7); y < foot - 2; y += 3) {
-        for (let x = Math.ceil(cx); x < cx + span; x++) if (g.grid[y]?.[x] === 'b' && (x + y + salt) % 4 === 0) {
-          g.put(x, y, 'a'); if (g.grid[y + 1]?.[x + 1] === 'b') g.put(x + 1, y + 1, 'c');
+      for (let y = Math.ceil(foot - tall * .7); y < foot - 2; y += detail === 2 ? 1.5 : 3) {
+        for (let x = Math.ceil(cx); x < cx + span; x++) if (g.at(x, y) === 'b' && (detail === 2 ? (Math.round(x * 2) + Math.round(y * 2) + salt) % 7 === 0 : (x + y + salt) % 4 === 0)) {
+          g.put(x, y, 'a'); if (g.at(x + 1, y + 1) === 'b') g.put(x + 1, y + 1, 'c');
         }
+      }
+      if (detail === 2) for (let n = 0; n < 4; n++) {
+        const y = foot - tall * (.28 + n * .12), x = cx - span * (.12 + n % 2 * .1);
+        g.line([x, y], [x - 2, y + 1.5], 'c', true);
       }
       for (let x = cx - span; x <= cx + span; x += 3) g.put(x, foot + (x % 2), 'f');
     };
@@ -70,7 +76,7 @@ export function createAtlasArt() {
     art[compact ? `crag-small${v - 12}` : `crag${v}`] = g.finish();
   }
   for (let v = 0; v < 5; v++) {
-    const width = 16 + v * 2, height = 7 + v % 2, g = engraving(width, height, HILL);
+    const width = 16 + v * 2, height = 7 + v % 2, g = draw(width, height, HILL);
     const points = Array.from({ length: width - 2 }, (_, i) => [i + 1, height - 3 - Math.sin(i / (width - 3) * Math.PI) * (3 + v % 2)]);
     g.polygon([...points, [width - 2, height - 2], [1, height - 2]], 'd');
     points.slice(1).forEach((p, i) => g.line(points[i], p, 'a'));
@@ -78,7 +84,7 @@ export function createAtlasArt() {
     g.line([2, height - 2], [width - 3, height - 2], 'f', true); art[`hill${v}`] = g.finish();
   }
   for (let v = 0; v < 8; v++) {
-    const width = 16 + v % 4 * 3, height = 12 + v % 3 * 2, g = engraving(width, height, WOOD);
+    const width = 16 + v % 4 * 3, height = 12 + v % 3 * 2, g = draw(width, height, WOOD);
     const trees = Array.from({ length: 4 + v % 4 }, (_, i) => ({
       x: 3 + decorationRandom(753951, v * 40 + i * 3) * (width - 7),
       y: 3 + decorationRandom(753951, v * 40 + i * 3 + 1) * (height - 8),
@@ -91,13 +97,17 @@ export function createAtlasArt() {
         g.line([tree.x, tree.y - tree.size + 1], [tree.x - 1, tree.y + 1], 'd');
       } else {
         g.ellipse(tree.x, tree.y, tree.size, tree.size * .8, 'c', 'a');
+        if (detail === 2) {
+          g.line([tree.x - tree.size * .6, tree.y], [tree.x - .5, tree.y - 1], 'd');
+          g.line([tree.x + .5, tree.y + 1], [tree.x + tree.size * .6, tree.y], 'b');
+        }
         g.put(tree.x - 1, tree.y - 1, 'd'); g.put(tree.x + 1, tree.y + 1, 'b');
       }
     }
     g.line([3, height - 2], [width - 4, height - 2], 'f', true); art[`copse${v}`] = g.finish();
   }
   for (let v = 0; v < 3; v++) {
-    const width = 11 + v * 2, height = 16 + v * 2, g = engraving(width, height, WOOD), cx = Math.floor(width / 2);
+    const width = 11 + v * 2, height = 16 + v * 2, g = draw(width, height, WOOD), cx = Math.floor(width / 2);
     g.line([cx, height - 3], [cx - 1, 3], 'a'); g.line([cx + 1, height - 4], [cx, 7], 'e');
     for (let i = 0; i < 3; i++) {
       const y = 5 + i * 3, sign = (i + v) % 2 ? 1 : -1;
@@ -107,7 +117,7 @@ export function createAtlasArt() {
     g.line([cx - 3, height - 2], [cx + 3, height - 2], 'f', true); art[`deadwood${v}`] = g.finish();
   }
   for (let v = 0; v < 3; v++) {
-    const width = 16 + v * 3, height = 19 - v * 2, g = engraving(width, height, STONE);
+    const width = 16 + v * 3, height = 19 - v * 2, g = draw(width, height, STONE);
     const tower = (x, y, w, h) => {
       g.polygon([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], 'd', 'a');
       g.line([x + w - 2, y + 1], [x + w - 2, y + h - 1], 'b');
@@ -121,6 +131,7 @@ export function createAtlasArt() {
   }
   art.rushes = { colours: { a: '#625d43', b: '#a49b76', c: '#727d66' }, rows: [
     '.b...b.', '.a..ba.', '.ab.aa.', '..a.a..', '..aaa..', '...a...', '.ccccc.', 'ccccccc'] };
+  if (detail === 2) art.rushes.rows = art.rushes.rows.flatMap(row => [row.replaceAll(/./g, c => c + c), row.replaceAll(/./g, c => c + c)]);
   // Dead forms retain their silhouettes in a separate ash/charcoal palette.
   for (const [kind, glyph] of Object.entries(art)) if (/^(crag|hill|deadwood|rushes)/.test(kind)) {
     art[`ash-${kind}`] = { rows: glyph.rows, colours: { a: '#111519', b: '#292e33', c: '#41474b', d: '#596066', e: '#737a7d', f: '#353b40' } };

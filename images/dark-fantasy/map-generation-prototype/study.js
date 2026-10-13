@@ -12,10 +12,10 @@ const params = new URL(location.href).searchParams;
 const numberParam = (name, fallback, min, max) => params.has(name) && Number.isFinite(Number(params.get(name)))
   ? Math.max(min, Math.min(max, Number(params.get(name)))) : fallback;
 const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
-  clustering: numberParam('clustering', .15, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
+  clustering: numberParam('clustering', .05, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
   roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
-  texel: params.get('texel') === '6' ? 6 : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
+  texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 2, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,
@@ -106,7 +106,7 @@ function fitMap() {
   app.renderer.render(app.stage);
 }
 function regenerate() { map = generateMap(state); state.selected = null; fitMap(); render(); }
-function adjust(name, step) { state[name] = Math.round(Math.max(0, Math.min(1, state[name] + step)) * 100) / 100; regenerate(); }
+function adjust(name, step) { state[name] = Math.round(Math.max(0, Math.min(1, state[name] + step)) * 1000) / 1000; regenerate(); }
 function cycle(direction) { const keys = Object.keys(VARIANTS); state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
 
 function drawControls() {
@@ -116,11 +116,11 @@ function drawControls() {
   button('Previous seed', 58, 274, 174, 82, () => { state.seed = Math.max(0, state.seed - 1); regenerate(); }, { copy: '← Seed' });
   button('Next seed', 248, 274, 192, 82, () => { state.seed++; regenerate(); }, { copy: 'New seed →' });
   for (const [name, label, y] of [['clustering', 'Clustering', 392], ['sizeVariation', 'Size variation', 494], ['roughness', 'Border variation', 596]]) {
-    text(root, `${label}  ${Math.round(state[name] * 100)}%`, 58, y, 29);
+    text(root, `${label}  ${Math.round(state[name] * 1000) / 10}%`, 58, y, 29);
     const g = new PIXI.Graphics().beginFill(0x17282c).drawRoundedRect(58, y + 45, 208, 12, 6)
       .beginFill(0xafb487).drawRoundedRect(58, y + 45, 208 * state[name], 12, 6).endFill(); root.addChild(g);
-    button(`Less ${label.toLowerCase()}`, 288, y - 8, 68, 80, () => adjust(name, -.15), { copy: '−', size: 42 });
-    button(`More ${label.toLowerCase()}`, 372, y - 8, 68, 80, () => adjust(name, .15), { copy: '+', size: 42 });
+    button(`Less ${label.toLowerCase()}`, 288, y - 8, 68, 80, () => adjust(name, name === 'clustering' ? -.025 : -.15), { copy: '−', size: 42 });
+    button(`More ${label.toLowerCase()}`, 372, y - 8, 68, 80, () => adjust(name, name === 'clustering' ? .025 : .15), { copy: '+', size: 42 });
   }
   const types = FEATURE_SETS[state.featureSet];
   button('Change geographic features', 58, 704, 382, 88, () => { state.featureSet = (state.featureSet + 1) % FEATURE_SETS.length; regenerate(); },
@@ -430,14 +430,14 @@ function drawMap() {
     .map(side => state.flipY && (side === 'north' || side === 'south') ? side === 'north' ? 'south' : 'north' : side);
   text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? 'still water · drag / pinch to explore' : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
   if (pixelReview()) {
-    button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = state.texel === 4 ? 6 : 4; render(); }, { copy: state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
+    button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = { 2: 4, 4: 6, 6: 2 }[state.texel]; render(); }, { copy: state.texel === 2 ? 'Pixels: Detail' : state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
     button('Toggle placeholder sites', 1826, 158, 212, 70, () => { state.sites = !state.sites; render(); }, { copy: state.sites ? 'Sites + roads: On' : 'Sites + roads: Off', size: 23 });
   }
   button('Zoom out', 2052, 158, 90, 70, () => { camera.zoomBy(.8); app.renderer.render(app.stage); }, { copy: '−', size: 38 });
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
-    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
+    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.texel === 2 ? 'detailed' : state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
           : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
@@ -464,8 +464,9 @@ function drawPixelMap() {
     node.position.set(p.x, p.y); node.scale.set(state.flipX ? -density : density, state.flipY ? -density : density);
     node.eventMode = 'none'; worldLayer.addChild(node);
   };
+  if (currentPixelArt.backdropTexture) put(currentPixelArt.backdropTexture, currentPixelArt.backdropBounds, 8);
   put(currentPixelArt.texture, currentPixelArt.bounds);
-  const textures = pixelSpriteTextures(), reliefTextures = reliefSpriteTextures(currentPixelArt, state.flipX, state.flipY);
+  const textures = pixelSpriteTextures(state.texel), reliefTextures = reliefSpriteTextures(currentPixelArt, state.flipX, state.flipY);
   const origin = point({ x: currentPixelArt.bounds.minX, y: currentPixelArt.bounds.minY });
   // Reposition reflected props while keeping their silhouettes and light upright.
   const props = currentPixelArt.props.filter(prop => pixelSpriteFits(currentPixelArt, prop, state.flipX, state.flipY))

@@ -30,7 +30,11 @@ rotated fallback where browser orientation locking is unavailable.
 The **Base structure / Atlas rendering** buttons and bottom arrows switch between
 these two views without regenerating the graph. The earlier region/skeleton,
 Quiet and Textured comparisons are removed. Atlas is the default view; both
-entries default to the approved seed-1867 settings above. Explicit URL generation
+entries now default to seed 1867 with **Clustering 5%**, Size variation 85% and
+Border variation 100%. Clustering moves in **2.5 percentage-point steps**,
+allowing a choice between the earlier 0% and 15% settings. On seed 1867 these
+produce 15, 18 and 21 shared-biome borders at 0%, 5% and 15%, respectively;
+clustering is a bias, not a guaranteed percentage of shared borders. Explicit URL generation
 settings still override them. The isolated generator's own defaults are unchanged.
 
 ### Dark fantasy atlas direction
@@ -75,15 +79,23 @@ Unplayable land uses black/grey badlands, dead scrub, peat marsh and ash highlan
 these are visual treatments of the existing background field. A separate,
 smoothly sampled static cloud texture sits above those stamps, clearing a margin
 around playable regions. **Hinterland fog** toggles it without rebaking; `fog=0`
-shares the clear view. The overlay adds about 1.1 MiB at Fine, 0.5 MiB at Coarse.
+shares the clear view. The overlay adds about 0.8 MiB at Detail, 1.1 MiB at Fine, 0.5 MiB at Coarse.
 It has no wall-clock animation. Later fog motion should sample the same absolute
 viewed time as water, outside the ground bake. Opaque glyph pixels
 must fit dry ground, and crags respect the existing river/coast exclusion rules.
 
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
 accepted geography on one world lattice and bakes the ground into a nearest-
-sampled, unmipmapped texture. **Fine** uses 4 design units per source texel;
-**Coarse** uses 6. Pixel size and sprite scale are fixed across region areas.
+sampled, unmipmapped texture. **Detail** is the new default: 2 design units per source texel, twice the
+linear resolution of **Fine** (4); **Coarse** uses 6. Detail redraws the
+engravings at double resolution with finer rock hatching, face ledges and
+woodland canopy marks while preserving their world sizes. Coastlines receive
+broken cliff strata, beach stipple and lit shore stones along the land mask.
+The detailed ground covers the playable map plus a generous hinterland
+(normalized -1.5 to 2.5), backed by a distant 8-unit bake for unrestricted pan.
+Its main texture is 3152 by 1032, below a 4096-pixel texture limit; the main
+RGBA texture uses about 12.4 MiB plus 4.4 MiB for the distant backdrop.
+Choose Detail/Fine/Coarse with **Pixels**, or share `texel=2`, `4` or `6`. Pixel size and sprite scale are fixed across region areas.
 Separate original pixel matrices and engravings provide trees, crags, hills,
 reeds, stones and placeholder towns/ruins. Three candidate sites and connecting roads are visual readability samples,
 with no gameplay meaning. `roads.js` routes over the baked playable land lattice,
