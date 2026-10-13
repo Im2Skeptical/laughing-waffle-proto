@@ -23,23 +23,20 @@ border variation, feature combinations, reflections, region selection and PNG
 export. The shared Fullscreen button requests landscape and supplies the existing
 rotated fallback where browser orientation locking is unavailable.
 
-- `?variant=A`: the region partition, references and biome labels.
-- `?variant=B`: shared organic borders and the connected geographic skeleton.
-- `?variant=C`: terrain markings, subdued same-biome borders and landforms.
-- `?variant=D`: pixel **Quiet ground**, broad colour clusters and sparse details.
-- `?variant=E`: pixel **Textured ground**, authored grass/stone/pool patterns.
+- `?variant=C`: **Approved base structure**, with the original terrain markings,
+  shared borders, islands, landforms and blended surroundings.
 - `?variant=F`: **Dark fantasy atlas**, parchment and slate with engraved relief.
 
-The **Geography / Pixel rendering** tabs switch between the two studies. Bottom
-arrows cycle A/B/C within Geography and D/E/F within Pixel rendering. Direct Quiet,
-Textured and Atlas buttons compare the treatments on the same graph. Entering
-via D/E/F defaults to the seed-1867 reference settings above. Existing C URLs and
-the generator's defaults are retained.
+The **Base structure / Atlas rendering** buttons and bottom arrows switch between
+these two views without regenerating the graph. The earlier region/skeleton,
+Quiet and Textured comparisons are removed. Atlas is the default view; both
+entries default to the approved seed-1867 settings above. Explicit URL generation
+settings still override them. The isolated generator's own defaults are unchanged.
 
 ### Dark fantasy atlas direction
 
 F responds to the user's illustrated fantasy-atlas and Elden Ring map references:
-warm aged ochres, olive woodland, grey peat wetlands, umber mountain relief
+warm aged ochres, olive woodland, grey peat wetlands, subtly reddish umber mountain relief
 and muted slate-green water. The references
 guide composition and palette; their artwork is not copied into the renderer.
 `atlas-art.js` supplies **38 original pixel engravings**: eighteen asymmetric massifs,
@@ -56,7 +53,7 @@ than scattering independently across a grid. The spines are rendering data;
 the generated feature routes, region shapes and gameplay graph are unchanged.
 Footpoints and sampled silhouettes respect coast, river and valley exclusions;
 opaque pixels must fit dry land. Groups fall back to compact art where needed.
-woodlands form irregular patches and clearings rather than repeating one tree.
+Woodlands form irregular patches and clearings rather than repeating one tree.
 All art shares one nearest-sampled sprite atlas. Rendered silhouettes vary while
 the accepted footprint, biome quotas and graph remain unchanged.
 
@@ -93,19 +90,19 @@ The drawing buffer follows the displayed physical size to avoid an extra CSS
 resampling pass; chrome text retains its own higher-resolution textures. PNG
 export still produces the complete 2424 x 1080 design frame.
 
-Two static bakes are cached; style/density/site changes bake as needed, while
+Two static bakes are cached; density/site changes bake as needed, while
 selection, camera gestures and reflections reuse the current textures. The state
 disclosure reports grid dimensions, source texel size, texture/index-plane memory,
 prop counts and desktop bake duration. The static bake retains explicit ocean
 indices 1–8, river indices 16–23 and foam indices 32–35 for the subsequent palette
 cycling experiment. There is no animation clock or palette shader in this pass.
-Deep-water index 9 is stationary in D/E; F uses stationary depth indices 64–95,
+The Atlas uses stationary depth indices 64–95,
 so a future cycle need not pulse the ocean's entire background colour.
 Do not run the encoded index plane through ordinary atlas colour quantization.
 
 Review at **844 x 390** landscape, fullscreen, Fit and close zoom, using seeds
-1867 and 1873 and some variation extremes. Compare D/E with the same pixel size
-and site setting; inspect biome distinction, shore steps, narrow rivers, cleared
+1867 and 1873 and some variation extremes. Compare the Atlas with the approved
+base structure; inspect biome distinction, shore steps, narrow rivers, cleared
 mountain water gaps and visual room for gameplay overlays. Phone-shaped browser
 review is not a physical-device performance measurement.
 

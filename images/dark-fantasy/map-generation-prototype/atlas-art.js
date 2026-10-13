@@ -3,6 +3,7 @@
 import { decorationRandom } from './generator.js';
 
 const STONE = { a: '#51422f', b: '#867359', c: '#af9d7a', d: '#c9b894', e: '#ddd0ae', f: '#ac9872' };
+const MOUNTAIN = { a: '#5d4034', b: '#94705e', c: '#b49a7e', d: '#d0b29b', e: '#e0cbb0', f: '#aa9276' };
 const HILL = { a: '#756747', b: '#92835a', c: '#b1a071', d: '#bfae7b', f: '#9c8c62' };
 const WOOD = { a: '#39392c', b: '#55563e', c: '#787652', d: '#9a9167', e: '#64563d', f: '#9b8c68' };
 function engraving(width, height, colours) {
@@ -37,7 +38,7 @@ export function createAtlasArt() {
   // Each massif contains overlapping back and front peaks. Open, irregular feet
   // blend into the ground; ridge strokes and short hatches describe rock faces.
   for (let v = 0; v < 18; v++) {
-    const compact = v >= 12, width = compact ? 28 : 42 + v % 4 * 3, height = compact ? 22 : 28 + v % 5, g = engraving(width, height, STONE);
+    const compact = v >= 12, width = compact ? 28 : 42 + v % 4 * 3, height = compact ? 22 : 28 + v % 5, g = engraving(width, height, MOUNTAIN);
     const peak = (cx, foot, span, tall, salt) => {
       const lean = (salt % 3 - 1) * 2, top = [cx + lean, foot - tall];
       const left = [[cx - span, foot], [cx - span * .66, foot - tall * .3], [cx - span * .35, foot - tall * .57], top];

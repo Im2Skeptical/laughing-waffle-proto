@@ -2,7 +2,8 @@
 
 Status: proposed, 13 October 2026. The first static rendering review is implemented
 in the isolated [Pixi workbench](../images/dark-fantasy/map-generation-prototype/README.md):
-D/E compare ground treatments, pixel size and placeholder sites. F adds varied
+C preserves the approved base structure; F is the current Atlas rendering.
+Earlier comparison modes are removed. The Atlas adds varied
 engraved terrain silhouettes and an aged ochre/peat/slate fantasy-atlas palette
 in response to the user's visual references. Its follow-up separates tall peaks
 from rounded hills, strengthens biome and region readability, replaces sea
@@ -13,7 +14,8 @@ returns to parchment/olive/peat washes and composes overlapping, ink-hatched
 massifs along winding mountain-region spines and the existing geographic range.
 Compact groups fit narrow land; silhouette clearance retains coast, river and
 valley gaps. Inked banks and coast-normal shore hachures replace the bright
-coastal rim. These are rendering changes, not graph-generation changes. Art selection,
+coastal rim. Mountain ground and massifs now carry a subtle reddish umber tint.
+These are rendering changes, not graph-generation changes. Art selection,
 palette cycling and live-game generation integration remain pending.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 
@@ -82,21 +84,19 @@ nonsequential/reverse seeks and snapshot gating.
 
 The active map uses illustrated tiling textures and masked sprites. The isolated
 generation study uses vector fills/symbols and smooth background textures. There
-is no palette-cycling shader in either. The new D/E static pixel study retains
+is no palette-cycling shader in either. The current Atlas pixel study retains
 explicit water indices alongside its resolved ground image. Nearest texture
 sampling alone does not turn the original artwork into composed pixel art.
 
 ## Ground and prop treatment
 
-Compare two treatments on identical geography and palettes:
+The current direction is the illustrated fantasy Atlas, compared only with the
+approved base geography. Broad parchment colour washes support authored woodland,
+reed, hill, ruin and mountain families. Connected, overlapping massifs and
+coast-normal hachures carry the relief. Earlier Quiet/Textured comparisons are
+removed from the workbench and renderer.
 
-1. **Quiet ground:** broad, limited-colour clusters, sparse grass/stone/mud
-   details, stepped shore and cliff bands. Larger shapes carry readability.
-2. **Textured ground:** small authored seamless patterns and transition stamps,
-   placed through the same material masks with controlled variation and limited
-   dithering. This tests a richer retro strategy-map treatment.
-
-Both use authored tree, reed, rock, cliff and mountain sprite families. Placement
+Placement
 and variation are deterministic from stable map/feature identifiers; density
 depends on area and terrain. River corridors exclude peaks, coasts constrain
 cliffs, and wetlands receive reeds and pools. Scatter forms clusters with clear
@@ -233,7 +233,7 @@ rebuilds but still incurs fragment shading and fill cost.
 
 ## Impact and verification
 
-The initial proposal changed documentation only. The D/E static review now adds
+The initial proposal changed documentation only. The Atlas static review now adds
 prototype presentation code and authored pixel matrices, without integrating
 into the live renderer. Live simulation state, RNG, schemas, replay and forecast
 behavior are untouched. Verify documentation with `npm run check:docs` and

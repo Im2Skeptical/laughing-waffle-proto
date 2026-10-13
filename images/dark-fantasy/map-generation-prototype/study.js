@@ -1,21 +1,20 @@
-// Throwaway Pixi study: A/B/C geography; D/E compare quiet/textured pixel ground.
+// Throwaway Pixi study: approved base geography and current Atlas rendering.
 // Same generated map in each mode; no live renderer or simulation is attached.
 import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
-import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, PIXEL_STYLES, PIXEL_COLOURS, ATLAS_COLOURS } from './pixel-terrain.js';
+import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, ATLAS_COLOURS } from './pixel-terrain.js';
 
-const VARIANTS = { A: 'Regions', B: 'Geography', C: 'Terrain', D: 'Pixel · Quiet ground', E: 'Pixel · Textured ground', F: 'Dark fantasy atlas' };
+const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
 const numberParam = (name, fallback, min, max) => params.has(name) && Number.isFinite(Number(params.get(name)))
   ? Math.max(min, Math.min(max, Number(params.get(name)))) : fallback;
-const pixelEntry = !!PIXEL_STYLES[params.get('variant')];
-const state = { seed: Math.floor(numberParam('seed', pixelEntry ? 1867 : 1847, 0, 2147483647)),
-  clustering: numberParam('clustering', pixelEntry ? .15 : .45, 0, 1), sizeVariation: numberParam('size', pixelEntry ? .85 : .6, 0, 1),
-  roughness: numberParam('roughness', pixelEntry ? 1 : .65, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
-  variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'C',
+const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
+  clustering: numberParam('clustering', .15, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
+  roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
+  variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: params.get('texel') === '6' ? 6 : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
@@ -60,14 +59,14 @@ viewport.on('pointertap', event => {
   const local = worldLayer.toLocal(event.global);
   const x = (local.x - mapRect.x) / mapRect.width, y = (local.y - mapRect.y) / mapRect.height;
   const p = { x: state.flipX ? 1 - x : x, y: state.flipY ? 1 - y : y };
-  const region = map.regions.find(r => insidePolygon(p, state.variant === 'A' ? r.polygon : r.outline));
+  const region = map.regions.find(r => insidePolygon(p, r.outline));
   if (region) { state.selected = region.id; render(); }
 });
 const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
 let map = generateMap(state), targets = [], backgroundArt = null;
 let pixelArtMap = null, currentPixelArt = null;
 const pixelArtCache = new Map();
-const pixelReview = () => !!PIXEL_STYLES[state.variant];
+const pixelReview = () => state.variant === 'F';
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
 const polygonPoints = points => points.flatMap(p => { const v = point(p); return [v.x, v.y]; });
@@ -108,7 +107,7 @@ function fitMap() {
 }
 function regenerate() { map = generateMap(state); state.selected = null; fitMap(); render(); }
 function adjust(name, step) { state[name] = Math.round(Math.max(0, Math.min(1, state[name] + step)) * 100) / 100; regenerate(); }
-function cycle(direction) { const keys = pixelReview() ? ['D', 'E', 'F'] : ['A', 'B', 'C']; state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
+function cycle(direction) { const keys = Object.keys(VARIANTS); state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
 
 function drawControls() {
   panel(root, 30, 144, 440, 858);
@@ -170,9 +169,9 @@ function drawBiome(region, parent) {
 function featurePath(feature) {
   return feature.points;
 }
-function drawLandform(parent, type, points, skeleton) {
+function drawLandform(parent, type, points) {
     if (type === 'river') {
-      line(parent, points, 0x4d7768, skeleton ? 22 : 30, .22);
+      line(parent, points, 0x4d7768, 30, .22);
       const g = new PIXI.Graphics(); parent.addChild(g); let travelled = 0;
       for (let i = 1; i < points.length; i++) {
         const a = point(points[i - 1]), b = point(points[i]); travelled += Math.hypot(b.x - a.x, b.y - a.y);
@@ -190,7 +189,6 @@ function drawLandform(parent, type, points, skeleton) {
       const finishBand = () => {
         if (band.length > 1) {
           line(parent, band, 0x645d4f, 45, .14);
-          if (skeleton) line(parent, band, 0xc5b292, 8, .85);
         }
         band = [];
       };
@@ -235,15 +233,11 @@ function landLayer() {
 function drawFeatures() {
   const priority = { valley: 0, chasm: 1, ridge: 2, river: 3 };
   for (const feature of [...map.features].sort((a, b) => priority[a.type] - priority[b.type])) {
-    const points = featurePath(feature), skeleton = state.variant === 'B';
+    const points = featurePath(feature);
     if (points.length < 2) continue;
     const parent = landLayer();
-    drawLandform(parent, feature.type, points, skeleton);
+    drawLandform(parent, feature.type, points);
     if (feature.type === 'river' && feature.mouth) drawMouth(parent, feature);
-    if (skeleton) {
-      const p = point(points[Math.floor(points.length * .55)]);
-      const label = text(worldLayer, FEATURE_NAMES[feature.type], p.x, p.y - 35, 32, 0xf6ecd0, { stroke: 0x243439, strokeThickness: 7 }); label.anchor.set(.5);
-    }
   }
 }
 
@@ -262,7 +256,6 @@ function drawMouth(parent, feature) {
 }
 
 function drawInteractions() {
-  if (state.variant === 'A') return;
   const layer = landLayer(), g = new PIXI.Graphics(); layer.addChild(g);
   for (const interaction of map.geography.interactions) {
     if (interaction.type === 'mountain-valley') {
@@ -325,7 +318,7 @@ function drawSurroundings() {
         .moveTo(x + 5, y + 3).lineTo(x + 8, y - 3);
     } else g.lineStyle(1.3, 0x665d49, .35).moveTo(x - size, y).lineTo(x, y - 3).lineTo(x + size * .8, y + 2);
   }
-  if (state.variant !== 'A') for (const continuation of map.surroundings.continuations) {
+  for (const continuation of map.surroundings.continuations) {
     const creek = new PIXI.Graphics(); landArt.addChild(creek);
     continuation.points.forEach((p, i, points) => {
       if (!i) return;
@@ -371,7 +364,6 @@ function bakeBackground() {
 }
 
 function drawIslands() {
-  if (state.variant === 'A') return;
   for (const cluster of map.islandClusters) {
     const g = new PIXI.Graphics(); g.eventMode = 'none'; worldLayer.addChild(g);
     for (const contour of cluster.contours) {
@@ -381,7 +373,7 @@ function drawIslands() {
       g.lineStyle(5, 0xe1cf95, .95).drawPolygon(points);
       g.lineStyle(1.5, 0x717f56, .7).drawPolygon(points);
     }
-    if (state.variant === 'C') for (const core of cluster.cores) {
+    for (const core of cluster.cores) {
       const p = point(core.centre);
       for (const tree of core.foliage) {
         const q = point(tree);
@@ -399,9 +391,9 @@ function drawMap() {
   drawSurroundings();
   for (const region of map.regions) {
     const shape = new PIXI.Graphics(); worldLayer.addChild(shape);
-    const points = polygonPoints(state.variant === 'A' ? region.polygon : region.outline);
-    shape.beginFill(state.variant === 'B' ? 0x929c84 : BIOMES[region.biome].colour, state.variant === 'B' ? .72 : 1).drawPolygon(points).endFill();
-    if (state.variant === 'C') {
+    const points = polygonPoints(region.outline);
+    shape.beginFill(BIOMES[region.biome].colour).drawPolygon(points).endFill();
+    {
       const art = new PIXI.Container(), mask = new PIXI.Graphics().beginFill(0xffffff).drawPolygon(points).endFill();
       worldLayer.addChild(art, mask); art.mask = mask; drawBiome(region, art);
     }
@@ -412,26 +404,24 @@ function drawMap() {
   drawIslands();
   drawInteractions();
   for (const edge of map.edges) {
-    const straight = edge.topologyPoints;
     const sameBiome = edge.regions.length === 2 && map.regions.find(r => r.id === edge.regions[0]).biome === map.regions.find(r => r.id === edge.regions[1]).biome;
     const boundary = edge.regions.length === 1;
     const outside = boundary ? map.surroundings.patches.find(p => p.edgeId === edge.id) : null;
     const seaBoundary = outside?.kind === 'ocean', islandWater = seaBoundary && map.regions.find(r => r.id === edge.regions[0]).biome === 'islands';
-    line(worldLayer, state.variant === 'A' ? straight : edge.points, boundary ? islandWater ? 0x7fa5a4 : seaBoundary ? 0xdace9b : 0xb2ad88 : 0x31493f,
-      boundary ? islandWater ? 1.5 : 4 : state.variant === 'A' ? 2.5 : 1.8, boundary ? islandWater ? .4 : .8 : sameBiome && state.variant === 'C' ? .24 : .55);
+    line(worldLayer, edge.points, boundary ? islandWater ? 0x7fa5a4 : seaBoundary ? 0xdace9b : 0xb2ad88 : 0x31493f,
+      boundary ? islandWater ? 1.5 : 4 : 1.8, boundary ? islandWater ? .4 : .8 : sameBiome ? .24 : .55);
   }
-  if (state.variant !== 'A') drawFeatures();
+  drawFeatures();
   const selected = map.regions.find(r => r.id === state.selected);
   if (selected) {
     const g = new PIXI.Graphics().lineStyle(6, 0xf9edb4).beginFill(0xfff3b1, .1)
-      .drawPolygon(polygonPoints(state.variant === 'A' ? selected.polygon : selected.outline)).endFill(); worldLayer.addChild(g);
+      .drawPolygon(polygonPoints(selected.outline)).endFill(); worldLayer.addChild(g);
   }
   for (const region of map.regions) {
-    const p = point(region.centre), labels = state.variant === 'A';
-    const g = new PIXI.Graphics().lineStyle(2, 0xefd9a6, .8).beginFill(0x263d38, .9).drawCircle(p.x, p.y, labels ? 23 : 8).endFill(); worldLayer.addChild(g);
-    if (labels || selected?.id === region.id) {
+    const p = point(region.centre);
+    const g = new PIXI.Graphics().lineStyle(2, 0xefd9a6, .8).beginFill(0x263d38, .9).drawCircle(p.x, p.y, 8).endFill(); worldLayer.addChild(g);
+    if (selected?.id === region.id) {
       const label = text(worldLayer, region.id.slice(1), p.x, p.y, 26, 0xffedbf, { fontFamily: 'Arial, sans-serif' }); label.anchor.set(.5);
-      if (labels) { const biome = text(worldLayer, BIOMES[region.biome].name, p.x, p.y + 31, 26, 0xf8f0d8, { stroke: 0x34483c, strokeThickness: 4 }); biome.anchor.set(.5, 0); }
     }
   }
   }
@@ -447,9 +437,7 @@ function drawMap() {
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
-    : state.variant === 'A' ? '20 regions · straight-edge topology · tap a region to inspect'
-      : state.variant === 'B' ? 'Continuous features follow shared edges across the map · decorative geography'
-        : pixelReview() ? `${PIXEL_STYLES[state.variant]} · ${state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
+    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
           : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
@@ -464,7 +452,7 @@ function drawPixelMap() {
   }
   const key = `${state.variant}:${state.texel}:${state.sites}`;
   if (!pixelArtCache.has(key)) {
-    pixelArtCache.set(key, bakePixelTerrain(map, { texel: state.texel, style: state.variant, sites: state.sites, sampleBackground: backgroundArt.sample }));
+    pixelArtCache.set(key, bakePixelTerrain(map, { texel: state.texel, sites: state.sites, sampleBackground: backgroundArt.sample }));
     if (pixelArtCache.size > 2) {
       const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
       art.texture.destroy(true); art.borderTexture.destroy(true); art.fogTexture?.destroy(true); pixelArtCache.delete(oldest);
@@ -477,7 +465,6 @@ function drawPixelMap() {
     node.eventMode = 'none'; worldLayer.addChild(node);
   };
   put(currentPixelArt.texture, currentPixelArt.bounds);
-  if (state.variant !== 'F') put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
   const textures = pixelSpriteTextures();
   const origin = point({ x: currentPixelArt.bounds.minX, y: currentPixelArt.bounds.minY });
   // Reposition reflected props while keeping their silhouettes and light upright.
@@ -489,12 +476,12 @@ function drawPixelMap() {
     node.scale.set(state.texel);
     node.position.set(origin.x + Math.round((p.x - node.width / 2 - origin.x) / state.texel) * state.texel,
       origin.y + Math.round((p.y - node.height - origin.y) / state.texel) * state.texel);
-    node.alpha = prop.background ? state.variant === 'F' ? .9 : .68 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
+    node.alpha = prop.background ? .9 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
   }
-  currentPixelArt.stats.fogEnabled = state.variant === 'F' && state.fog;
+  currentPixelArt.stats.fogEnabled = state.fog;
   if (currentPixelArt.fogTexture && state.fog) put(currentPixelArt.fogTexture, currentPixelArt.bounds, state.texel * 4);
   // Region identity stays above stamps and atmospheric decoration.
-  if (state.variant === 'F') put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
+  put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
   const selected = map.regions.find(r => r.id === state.selected);
   for (const region of map.regions) {
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
@@ -503,7 +490,7 @@ function drawPixelMap() {
     const g = new PIXI.Graphics().lineStyle(4, 0xf5df98, .9).drawPolygon(polygonPoints(selected.outline)); worldLayer.addChild(g);
     const p = point(selected.centre), label = text(worldLayer, selected.id, p.x, p.y - 34, 25, 0xffedc2, { stroke: 0x203c35, strokeThickness: 5 }); label.anchor.set(.5);
   }
-  text(root, `STATIC PIXEL STUDY · ${PIXEL_STYLES[state.variant].toUpperCase()}`, 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
+  text(root, 'STATIC PIXEL STUDY · DARK FANTASY ATLAS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
 }
 
 function render() {
@@ -511,24 +498,20 @@ function render() {
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
   text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
-  button('Show generation study', 1520, 40, 236, 52, () => { state.variant = 'C'; render(); }, { copy: 'Geography', active: !pixelReview(), size: 24 });
-  button('Show pixel rendering study', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Pixel rendering', active: pixelReview(), size: 24 });
+  button('Show approved base structure', 1450, 40, 306, 52, () => { state.variant = 'C'; render(); }, { copy: 'Base structure', active: !pixelReview(), size: 24 });
+  button('Show atlas rendering', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 372, y = 928;
-    const g = new PIXI.Graphics().beginFill(state.variant === 'F' ? ATLAS_COLOURS[id] : pixelReview() ? PIXEL_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
+    const g = new PIXI.Graphics().beginFill(pixelReview() ? ATLAS_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
     text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 31);
     text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
   panel(root, 1004, 1003, 930, 62, 0x182e32, 0x778675);
   button('Previous map view', 1012, 1008, 100, 52, () => cycle(-1), { copy: '←', size: 35 });
-  const label = text(root, `${state.variant}  /  ${VARIANTS[state.variant]}`, 1470, 1035, 29); label.anchor.set(.5);
+  const label = text(root, VARIANTS[state.variant], 1470, 1035, 29); label.anchor.set(.5);
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
-  if (pixelReview()) {
-    button('Use quiet pixel ground', 514, 1008, 144, 52, () => { state.variant = 'D'; render(); }, { copy: 'Quiet', active: state.variant === 'D', size: 25 });
-    button('Use textured pixel ground', 674, 1008, 150, 52, () => { state.variant = 'E'; render(); }, { copy: 'Textured', active: state.variant === 'E', size: 25 });
-    button('Use dark fantasy atlas', 840, 1008, 144, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas', active: state.variant === 'F', size: 25 });
-  } else text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
+  text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   if (state.variant === 'F') button('Toggle hinterland fog', 2010, 1008, 340, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Hinterland fog: On' : 'Hinterland fog: Off', active: state.fog, size: 24 });
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   app.renderer.render(app.stage);
@@ -591,5 +574,5 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
     width: t.width * scale, height: t.height * scale };
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
-  setState(patch) { Object.assign(state, patch); if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
+  setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
 fitMap(); render(); document.body.dataset.ready = 'true';
