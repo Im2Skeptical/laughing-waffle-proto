@@ -3,7 +3,7 @@ import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-ru
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { createOpeningSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote } from './model.js';
+  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, resolveOpeningOptionOutcome } from './model.js';
 
 export const OPENING_STORAGE_KEY = 'civsurvivor.prototype.warriorOpening.v1';
 export function createOpeningController(storage = null) {
@@ -48,6 +48,12 @@ export function createOpeningController(storage = null) {
     load() { idle(); if (!saved) throw new Error('Save an experiment first.'); editDraft(saved); },
     resetDraft() { editDraft(createOpeningExperiment()); },
     restart() { idle(); const next = createOpeningSession(draft); session = next; checkpoints = []; message = 'Fresh opening, same seed. Choose an entry.'; notify(); },
+    previewEncounter(id) {
+      idle(); const next = createOpeningSession(draft);
+      if (!draft.nodes.some(n => n.id === id)) throw new Error('Select a node to preview.');
+      next.availableIds = [id]; const before = cloneOpeningSession(next); enterOpeningEncounter(next, id);
+      session = next; checkpoints = [before]; message = 'Previewing this node in a fresh disposable opening.'; notify();
+    },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);
       enterOpeningEncounter(next, id); deserializeGameState(serializeGameState(next.state));
@@ -70,7 +76,11 @@ export function createOpeningController(storage = null) {
       if (next.experiment.nodes.find(n => n.id === next.activeId)?.kind === 'customNote') {
         finishOpeningNote(next); session = next; message = 'Note read. Continue to the next node.'; notify(); return;
       }
-      commitOpeningEncounter(next, optionId, destination, pass);
+      const outcome = resolveOpeningOptionOutcome(next, optionId);
+      if (outcome?.needsAcquisition) {
+        session = next; message = `${next.randomOutcome.label}. Choose where to put the relic, then Confirm.`; notify(); return;
+      }
+      commitOpeningEncounter(next, outcome?.optionId ?? optionId, destination, pass);
       busy = true; progress = 0; message = 'Resolving the world through simulation ticks…'; notify();
       try {
         const vassal = openingVassal(next), target = vassal.lifeMap.pendingResolution?.resolveSec ?? next.state.tSec;

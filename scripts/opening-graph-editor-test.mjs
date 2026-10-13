@@ -59,7 +59,9 @@ assert.deepEqual(controller.getSnapshot().session.experiment, doc);
 assert.deepEqual(createOpeningController({ getItem: key => memory.get(key) }).getSnapshot().draft, doc);
 
 // Both requested pre-founding encounters run through real rules, not just graph layout.
-controller.enter('explore'); await controller.commit('guides');
+controller.enter('explore'); await controller.commit('tour');
+if(controller.getSnapshot().session.activeId) await controller.commit(controller.getSnapshot().decision.nodeState.selectedOptionId,'carry');
+if(controller.getSnapshot().development) controller.develop(controller.getSnapshot().development.offeredStatIds[0]);
 controller.enter('development'); await controller.commit('drill');
 assert.equal(controller.getSnapshot().session.founded, false);
 controller.enter('shop');
@@ -80,3 +82,4 @@ assert.deepEqual(controller.getSnapshot().session.availableIds, [note.id]);
 controller.editDraft(positioned); controller.save();
 assert.deepEqual(createOpeningController({ getItem: key => memory.get(key) }).getSnapshot().draft, positioned);
 console.log('[opening-graph-editor] OK: routes, grid groups/bounds/collisions, undo/save isolation, pre-founding play and enter/confirm notes without world changes');
+await import('./opening-tour-test.mjs');

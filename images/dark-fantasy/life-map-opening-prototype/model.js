@@ -62,7 +62,7 @@ export function openingSummary(session) {
 
 function requireOk(result) { if (!result.ok) throw new Error(result.reason); return result; }
 function toOption(item, fallbackId) {
-  const { chaos = 0, ...option } = structuredClone(item);
+  const { chaos = 0, weightedOutcomes, ...option } = structuredClone(item);
   return { id: fallbackId, ...option, effects: chaos ? [{ op: 'addChaos', amount: chaos }] : [] };
 }
 function nodeState(session) { return openingVassal(session).lifeMap.nodeStates[session.runtimeNodeId]; }
@@ -86,6 +86,7 @@ function curatedOffers(state, vassal, current, cards) {
 
 export function enterOpeningEncounter(session, id) {
   if (!session.availableIds.includes(id) || session.activeId) throw new Error('Choose an available encounter.');
+  session.randomOutcome = null;
   const note = session.experiment.nodes.find(n => n.id === id);
   if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
@@ -119,7 +120,6 @@ export function enterOpeningEncounter(session, id) {
     const routes = generateShopInventory(state, vassal, { ...current, family: 'routes' });
     current.options.push(...routes.map(offer => ({ id: offer.offerId, label: offer.label, phaseCost: spec.phaseCost ?? offer.basePhaseCost,
       prestigeCost: offer.basePrestigeCost, intervention: offer.intervention, experimentFamily: 'routes' })));
-    if (vassal.classId === 'warrior') current.options.push(...classActionOptions(state, vassal, 'campaign').filter(o => o.classAction.kind !== 'prepare'));
     current.options.push(...(spec.options ?? []).map(o => toOption(o, o.id)));
   } else if (spec.kind === 'martial') {
     current.options = [...classActionOptions(state, vassal, 'campaign').filter(o => o.classAction.kind !== 'prepare'),
@@ -157,7 +157,13 @@ export function getOpeningDecision(session, preview = {}) {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
     const phases = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, { nodeState: current, isTravel: current.family === 'travel' && !!option.locationRegionId });
     const projectedAge = getVassalAge(session.state, vassal, session.state.tSec + phases * getMoonPhaseDurationSec(session.state));
-    return { ...option, ...(option.statId ? { statLabel: getVassalStatPresentation(vassal, option.statId).label } : {}), cost, phases, projectedAge, blocked: cost > vassal.prestige ? 'Insufficient Prestige'
+    const source = spec.options?.find(o => o.id === option.id);
+    const buckets = source?.weightedOutcomes ? eligibleOutcomeBuckets(session, source) : [];
+    const weight = buckets.reduce((sum, b) => sum + b.weight, 0);
+    const relicWeight = buckets.reduce((sum, b) => sum + b.weight * b.options.filter(r => r.definitionId).length / b.options.length, 0);
+    const gains = [...new Set(buckets.flatMap(b => b.options.filter(r => r.statId).map(r => r.statDelta)))];
+    return { ...option, ...(source?.weightedOutcomes ? { randomReward: { relicChance: weight ? 100 * relicWeight / weight : 0, statDelta: gains.length === 1 ? gains[0] : null } } : {}),
+      ...(option.statId ? { statLabel: getVassalStatPresentation(vassal, option.statId).label } : {}), cost, phases, projectedAge, blocked: cost > vassal.prestige ? 'Insufficient Prestige'
       : !session.founded && (projectedAge >= 40 || (option.immediateDeathChance ?? 0) > 0) ? 'Founding must remain before any death risk' : null };
   });
   if (spec.pass && current.contentMode === 'shop' && !presentation.purchases.length) {
@@ -190,17 +196,52 @@ export function commitOpeningEncounter(session, optionId = null, destination = '
     const option = current.options.find(o => o.id === optionId);
     if (!option) throw new Error('Choose an available action.');
     // Keep Travel-specific discounts on movement, rather than route building.
-    if (spec.kind === 'world' && (option.intervention || option.classAction || !option.locationRegionId)) current.family = option.classAction ? 'campaign' : 'development';
+    if (spec.kind === 'world' && !session.randomOutcome && (option.intervention || option.classAction || !option.locationRegionId)) current.family = option.classAction ? 'campaign' : 'development';
     const check = getOpeningDecision(session).options.find(o => o.id === optionId);
     if (check.blocked) throw new Error(check.blocked);
     requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
   }
-  return requireOk(confirmVassalLifeNode(session.state, session.runtimeNodeId, { destination }));
+  return requireOk(confirmVassalLifeNode(session.state, session.runtimeNodeId, typeof destination === 'object' ? destination : { destination }));
+}
+
+// Prototype outcome grammar: choose a weighted bucket, then one eligible reward.
+// The selected reward is executed by the existing ability/Relic node rules.
+function eligibleOutcomeBuckets(session, source) {
+  const owned = getOwnedHeirloomDefinitionIds(session.state, openingVassal(session));
+  const pools = source.weightedOutcomes.map(bucket => ({ ...bucket,
+    options: bucket.options.filter(reward => !reward.definitionId || !owned.has(reward.definitionId))
+  })).filter(bucket => bucket.options.length);
+  const weighted = pools.filter(bucket => bucket.weight > 0);
+  return weighted.length ? weighted : pools.filter(bucket => bucket.options.every(r => r.statId)).map(bucket => ({...bucket,weight:1}));
+}
+export function resolveOpeningOptionOutcome(session, optionId) {
+  optionId ??= nodeState(session)?.selectedOptionId;
+  const spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  const source = spec?.options?.find(o => o.id === optionId);
+  if (!source?.weightedOutcomes || session.randomOutcome) return null;
+  const { state } = session, vassal = openingVassal(session), buckets = eligibleOutcomeBuckets(session, source);
+  if (!buckets.length) throw new Error('No unowned relic or ability reward is available. Edit the reward pools.');
+  const total = buckets.reduce((sum, bucket) => sum + bucket.weight, 0);
+  let roll = state.rngNextVassalInt(0, 999999) / 1000000 * total;
+  let bucket = buckets.at(-1);
+  for (const candidate of buckets) { if (roll < candidate.weight) { bucket = candidate; break; } roll -= candidate.weight; }
+  const reward = bucket.options[state.rngNextVassalInt(0, bucket.options.length - 1)];
+  const current = nodeState(session), outcome = { ...toOption(source, source.id), ...reward,
+    id: `${source.id}-reward`, immediateDeathChance: 0 };
+  const family = reward.definitionId ? 'relic' : 'development';
+  const label = reward.definitionId ? `Found ${VASSAL_HEIRLOOM_DEFS[reward.definitionId].label}`
+    : `Gained +${reward.statDelta} ${getVassalStatPresentation(vassal, reward.statId).label}`;
+  outcome.label = reward.definitionId ? VASSAL_HEIRLOOM_DEFS[reward.definitionId].label : label;
+  if (reward.definitionId) Object.assign(outcome, { quality: 'bronze', description: VASSAL_HEIRLOOM_DEFS[reward.definitionId].description });
+  current.family = family; current.contentMode = 'choice'; current.options = [outcome]; current.selectedOptionId = outcome.id;
+  openingVassal(session).lifeMap.graph.nodes.find(n => n.id === session.runtimeNodeId).family = family;
+  session.randomOutcome = { ...reward, sourceOptionId: source.id, optionId: outcome.id, label };
+  return { optionId: outcome.id, needsAcquisition: !!reward.definitionId };
 }
 export function finishOpeningEncounter(session, before) {
   const spec = session.experiment.nodes.find(n => n.id === session.activeId);
   const after = openingSummary(session);
-  session.outcomes.push({ id: spec.id, title: spec.title, before, after });
+  session.outcomes.push({ id: spec.id, title: spec.title, before, after, ...(session.randomOutcome ? { reward: structuredClone(session.randomOutcome) } : {}) });
   session.visitedIds.push(spec.id);
   session.founded = !!session.state.civilization.vassalLineage.establishedClassId;
   session.availableIds = after.dead || after.complete ? [] : [...spec.next];

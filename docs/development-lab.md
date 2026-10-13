@@ -236,6 +236,14 @@ and Rewind a decision including the complete RNG state. Guided experiments compa
 Relic & invest, Explore & save and Accept Chaos; their Next guided choice button
 uses the same operations as free play. Earned level-up choices remain playable.
 
+**Preview this node** opens an authored encounter directly in a fresh disposable
+opening. World Decision uses the full map with **Move**, **Build a route**, and
+**Tour this region**. Tour stays local and offers, by default, a 25% chance of an
+unowned ordinary Bronze relic, otherwise +1 to a random ability. Relic acquisition
+uses the normal equip/carry/vault choices; exhausted relic pools fall back to an
+ability. Odds are editable, and rewind restores the same seeded result. Existing
+local-option recipes can be replaced with **Use Tour as the local activity**.
+
 The visual graph editor moves nodes before/after a destination and joins up their
 old routes, inserts new nodes from populated templates, duplicates/removes nodes,
 and draws or deletes connections. Drag cards into grid columns/rows, box-select

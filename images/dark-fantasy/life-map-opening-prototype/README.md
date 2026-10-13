@@ -18,6 +18,7 @@ opening or a replacement for normal gameplay.
 - `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
 - `graph-edit.js` / `graph-editor.js`: route-changing operations and the visual draft editor.
 - `note-screen.js`: enterable Custom Notes, with scrollable intention text and Confirm.
+- `world-decision-screen.js`: full-map Move / Build a route / Tour selection.
 - `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
 
 The initial branches are a curated ordinary Relic and a bundled world opportunity.
@@ -69,6 +70,27 @@ The Pixi screen attaches immediately, with artwork prepared in the background.
 Entry confirmations and choices work during a cold or slow artwork load; an
 artwork failure reports a message without detaching the playable screen.
 
+**Preview this node** in the encounter editor opens it directly in a fresh
+disposable state, with the current seed and authored content. It does not change
+the draft or require playing through the preceding nodes. Rewind returns to that
+preview's entry; Restart resumes the complete authored opening.
+
+World Decision uses the complete game map. Move highlights reachable destinations;
+Build highlights legal connections and draws the proposed road; Tour keeps the
+Vassal in the current region. Confirming Tour rolls a weighted reward: by default
+25% an unowned Bronze relic, otherwise +1 to a random ability. The reward has no
+direct death roll. A relic is revealed before the ordinary equip/carry/vault
+acquisition choice; the tour's time cost is charged by that confirmation. An
+exhausted relic pool falls back to an ability gain. Ordinary node income still
+follows the game rules. Outcomes record the reward, and complete RNG rewind
+repeats it. Hovering, selecting modes, and reading odds do not roll rewards.
+
+The World Decision editor exposes **Relic chance (%)**. Existing authored local
+options remain as authored; **Use Tour as the local activity** replaces them with
+the new reward recipe while retaining the node and its connections. The optional
+`weightedOutcomes` option data defines weighted pools of existing relic/ability
+rewards, resolved through the normal rules; player New Game never reads it.
+
 Disconnected or cyclic drafts remain visible while you work. The editor names
 the issue; playing and saving require a valid graph. **Play edited opening** or
 **Restart** launches the current draft in the Pixi screen. The running world and
@@ -117,3 +139,7 @@ founding. Browser checks cover box/group/single dragging, panning, saved positio
 phone position controls and reading/confirming Custom Notes. First-load regression
 checks hold artwork requests while entering both initial nodes and verify their
 choice modals open before those requests finish.
+`scripts/opening-tour-test.mjs` covers both reward branches, cost/location,
+serialization, deterministic rewind, exhausted pools and direct preview. Browser
+checks exercise full-map target selection, editable odds, discovery acquisition
+and the portrait fullscreen touch flow.

@@ -1,5 +1,14 @@
 // Experimental encounter data. Never read by player New Game or saved runs.
+import { VASSAL_STAT_IDS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
+
+export function createOpeningTourOption(relicChance = 25) {
+  return { id: 'tour', label: 'Tour the current region', phaseCost: 6, weightedOutcomes: [
+    { weight: relicChance, options: Object.values(VASSAL_HEIRLOOM_DEFS).filter(d => d.quality === 'bronze').map(d => ({ definitionId: d.id })) },
+    { weight: 100 - relicChance, options: VASSAL_STAT_IDS.map(statId => ({ statId, statDelta: 1 })) },
+  ] };
+}
 
 export function createOpeningExperiment() {
   return {
@@ -14,8 +23,8 @@ export function createOpeningExperiment() {
           { definitionId: 'hourglass', phaseCost: 6, prestigeCost: 0, chaos: 10 },
         ] },
       { id: 'explore', title: 'Choose your foothold', kind: 'world',
-        description: 'Travel to another player settlement or open a connection. Meet local guides if you prefer to remain here.', phaseCost: 6, next: ['founding'],
-        options: [{ id: 'guides', label: 'Meet local guides', phaseCost: 4, prestigeDelta: 3 }] },
+        description: 'Move to another settlement, build a route, or tour this region for an ordinary relic or a random ability gain.', phaseCost: 6, next: ['founding'],
+        options: [createOpeningTourOption()] },
       { id: 'founding', title: 'Establish the Warriors', kind: 'founding',
         description: 'Both routes converge here. Train ten existing adults; Prestige now sustains your Retinue.', phaseCost: 6, next: ['shop'] },
       { id: 'shop', title: 'Make your first investment', kind: 'shop',
@@ -109,4 +118,18 @@ function validateOffer(item, title) {
   }
   if (item.statId != null && !['cunning', 'wisdom', 'effectiveness', 'intelligence'].includes(item.statId)) throw new Error(`${title}: choose a recognized ability.`);
   if (item.kind != null && !['practice', 'structure'].includes(item.kind)) throw new Error(`${title}: cards must be Practices or Structures.`);
+  if (item.weightedOutcomes != null) {
+    if (!Array.isArray(item.weightedOutcomes) || !item.weightedOutcomes.length || item.weightedOutcomes.length > 12
+        || !item.weightedOutcomes.some(bucket => bucket.weight > 0)) throw new Error(`${title}: random outcomes need positive total weight.`);
+    for (const bucket of item.weightedOutcomes) {
+      if (!finite(bucket.weight, 0, 10000) || !Array.isArray(bucket.options) || !bucket.options.length || bucket.options.length > 24) throw new Error(`${title}: each outcome needs a weight and reward pool.`);
+      for (const reward of bucket.options) {
+        if(reward && Object.keys(reward).some(key=>!['definitionId','statId','statDelta'].includes(key))) throw new Error(`${title}: random rewards contain only a relic ID or an ability gain.`);
+        if (!reward || reward.weightedOutcomes || (!reward.definitionId && !reward.statId)) throw new Error(`${title}: rewards must name a relic or ability.`);
+        if (reward.definitionId && (!VASSAL_HEIRLOOM_DEFS[reward.definitionId] || VASSAL_HEIRLOOM_DEFS[reward.definitionId].quality !== 'bronze')) throw new Error(`${title}: random finds use ordinary Bronze relics.`);
+        if (reward.statId && (!VASSAL_STAT_IDS.includes(reward.statId) || !Number.isInteger(reward.statDelta) || reward.statDelta < 1 || reward.statDelta > 10)) throw new Error(`${title}: random ability rewards need a positive gain.`);
+        if (reward.definitionId && reward.statId) throw new Error(`${title}: choose a relic or an ability per reward.`);
+      }
+    }
+  }
 }
