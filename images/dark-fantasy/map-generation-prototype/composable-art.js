@@ -1,7 +1,19 @@
-import { CONTACT_PAIRS } from './terrain-collapse.js';
+import { CONTACT_PAIRS } from './terrain-composition.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 7 };
+
+// Source hues carry the material information: leaves, trunks, earth and rock.
+// Small channel corrections preserve those differences and the painted light.
+export function gradeTerrainColour(r, g, b, family) {
+  const foliage = g > b * 1.22 && r < g * 1.22;
+  const stone = Math.max(r, g, b) - Math.min(r, g, b) < 35;
+  let gains = [1.06, 1.055, 1.08];
+  if (family === 'forest' && foliage) gains = [1.01, 1.075, 1.035];
+  if (family === 'swamp') gains = foliage ? [.98, 1.025, 1.06] : [1.025, 1.045, 1.10];
+  if (family === 'mountains' && stone) gains = [1.085, 1.035, 1.025];
+  return [r, g, b].reduce((rgb, value, i) => rgb | Math.min(255, Math.round(value * gains[i] + 3)) << (16 - i * 8), 0);
+}
 
 export async function loadComposableArt(banks) {
   const sheets = [...biomes.map(name => ({ name, columns: 4, rows: 3 })),
@@ -33,7 +45,7 @@ export async function loadComposableArt(banks) {
       const kind = contact ? `contact-${pair}-${col}` : `terrain-${sheet.name}-${n}`;
       const scale = [1.2, 1, .85, 1.1, 1.05, .8, .75, 1.15, .9, 1, .8, .85][n];
       const width = contact ? 25 : Math.round((sheet.name === 'mountains' ? 36 : sheet.name === 'forest' ? 26 : 25) * scale);
-      frames.push({ image, kind, rect: [left, top, right - left + 1, bottom - top + 1], width });
+      frames.push({ image, kind, family: sheet.name, rect: [left, top, right - left + 1, bottom - top + 1], width });
       composableLibrary.cells.push({ kind, sheet: sheet.name, pair: contact ? CONTACT_PAIRS[pair] : null, sourcePixels: opaque });
     }
   }
@@ -43,20 +55,22 @@ export async function loadComposableArt(banks) {
     const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(frame.image, ...frame.rect, 0, 0, canvas.width, canvas.height);
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    const rows = [], colours = {}, tones = {};
+    const rows = [], colours = {}, opacity = [], rgbColours = {};
     for (let y = 0; y < canvas.height; y++) {
-      let row = '';
+      let row = ''; const alpha = [];
       for (let x = 0; x < canvas.width; x++) {
         const i = (y * canvas.width + x) * 4;
-        if (data[i + 3] < 95 || (data[i + 2] > data[i] + 8 && data[i + 1] > data[i] + 3)) { row += '.'; continue; }
-        const r = data[i] >> 4, g = data[i + 1] >> 4, b = data[i + 2] >> 4;
-        const code = String.fromCharCode(256 + (r << 8) + (g << 4) + b);
-        row += code; colours[code] = `#${((r * 16 + 8) << 16 | (g * 16 + 8) << 8 | b * 16 + 8).toString(16).padStart(6, '0')}`;
-        tones[code] = Math.max(0, Math.min(1, ((r * .25 + g * .6 + b * .15) / 15 - .05) / .75));
+        if (data[i + 3] < 65 || (data[i + 2] > data[i] + 8 && data[i + 1] > data[i] + 3)) { row += '.'; alpha.push(0); continue; }
+        const r = data[i] >> 3, g = data[i + 1] >> 3, b = data[i + 2] >> 3;
+        const code = String.fromCharCode(256 + (r << 10) + (g << 5) + b);
+        const rgb = gradeTerrainColour(r * 8 + 4, g * 8 + 4, b * 8 + 4, frame.family);
+        row += code; rgbColours[code] = rgb; colours[code] = `#${rgb.toString(16).padStart(6, '0')}`;
+        alpha.push(data[i + 3] / 255);
       }
-      rows.push(row);
+      rows.push(row); opacity.push(alpha);
     }
-    banks[detail][frame.kind] = { rows, colours, tones, illustrated: true, composable: true };
-    banks[detail][`${frame.kind}-mirror`] = { ...banks[detail][frame.kind], rows: rows.map(row => [...row].reverse().join('')) };
+    const glyph = { rows, colours, rgbColours, opacity, family: frame.family, illustrated: true, composable: true };
+    banks[detail][frame.kind] = glyph;
+    banks[detail][`${frame.kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
   }
 }

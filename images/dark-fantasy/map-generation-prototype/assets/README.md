@@ -11,12 +11,14 @@ Exact generation prompts, cell names and grid metadata are recorded in
 [composable-terrain-prompts.json](composable-terrain-prompts.json).
 
 `../composable-art.js` crops alpha bounds, reduces them to the canonical pixel
-lattice and derives mirrored end caps. Those mirrors do not count as additional
-source pieces. Runtime tonal shading follows the actual ground under each texel,
-and painted blue water is removed so the authoritative water mask remains clear.
+lattice and derives mirrored variants. Those mirrors do not count as additional
+source pieces. Five-bit colour channels and retained source alpha preserve the
+painting's material variety. Small family-specific channel grades adjust warmth
+and foliage; illustrations are never recoloured by the region beneath them.
+Painted blue water is removed so the authoritative water mask remains clear.
 Generated cells are combinable illustrations, not verified seamless edge tiles.
-`../terrain-collapse.js` supplies explicit semantic continuation ports; it does
-not infer pixel sockets from image boundaries.
+`../terrain-composition.js` checks actual painted silhouette overlaps, limits
+overpainting and rejects repeated neighbouring images when composing them.
 
 ## Landmark zoom atlas
 
@@ -52,7 +54,7 @@ Its alpha channel is preserved. The source sheet is 1536 × 1024.
 
 `../illustrated-art.js` curates twelve nonuniform frames, resamples them into
 the map's pixel lattice, and quantizes colours. Mountain, foothill, cliff and
-marsh engravings use per-pixel local-biome shading; dead hinterland uses charcoal.
+marsh engravings retain their source colours; dead hinterland uses charcoal.
 The runtime retains the procedural site icons and reeds alongside the generated
 terrain. None of these assets or placement rules are imported by the live game.
 

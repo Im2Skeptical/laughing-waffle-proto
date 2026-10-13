@@ -2,40 +2,47 @@
 
 ### Connected terrain composition review
 
-The current atlas replaces playable-area stamp scatter with geography-led
-chains. A new [110-piece library](assets/README.md) contains twelve pieces per
+The current atlas uses geography-led compositions from a
+[110-piece library](assets/README.md), with twelve pieces per
 biome and five per biome pairing. Source forms include woodland walls, ridges,
 gullies, reed banks, dunes, broken escarpments, gaps and end caps. Existing
 charcoal background engraving and rocky shore accents remain.
 
-`terrain-collapse.js` uses a simple tiled Wave Function Collapse model along
-shared borders, long geographic features, inland coastal corridors and each
-region's principal axis. Legal domains respect the actual land/water mask and
-mountain gorge exclusions. Earlier corridors constrain later domains before
-collapse; pieces are never removed afterward to resolve collisions. The solver
-propagates matching ports, chooses low-entropy cells using seeded weights and
-backtracks when necessary. Diagnostics report placements, gaps and contradictions.
-This is a path model, not a full two-dimensional overlapping tile solver;
-branch-shaped artwork is decorative rather than an additional solved branch.
-Generated art does not guarantee pixel-perfect seams.
+`terrain-composition.js` follows shared borders, geographic ranges and coastal
+corridors with variable spacing based on the actual painting dimensions. It
+measures painted alpha overlap to connect adjacent pieces, searches around
+difficult joins, limits overpainting and rejects nearby repetition of a source
+image (including its mirror). Correlated two-dimensional density fields form
+interior masses and clearings; there are no parallel interior rows or equal slots.
+Footprints respect land, water, biome compatibility and mountain gorge exclusions.
+Diagnostics report placements, verified joins, breaks and interior pieces.
+This replaces the former semantic-port WFC experiment, whose labels did not
+guarantee that painted shapes met. Source illustrations remain compositable
+fragments, not seamless square tiles; a physically impossible join leaves a gap.
 
-Terrain colour samples the owning material per pixel, allowing contact pieces
-to span a biome division without carrying an unrelated yellow ground patch.
-Road masks cut passes through relief. Existing settlement ground treatments and
+`composable-art.js` preserves separate foliage, bark, earth and rock colours.
+Small asset-family channel grades adjust warmth and vegetation without mapping
+the whole painting onto a biome ramp. Five-bit colour channels retain more
+subtle variation than the previous four-bit reduction. Source alpha and softly
+faded ground feet blend overlaps. Region membership never recolours illustrated
+pixels; quieter earth palettes sit underneath the artwork. Dead hinterland
+retains its separately authored charcoal variants.
+Road masks cut passes through relief. Settlement ground treatments and
 vegetation clearances remain. All placements belong to the canonical bake;
 zoom changes sampling only. The approved Base structure view is unchanged.
+Composed terrain reflects around its geographic centre, preserving its ground
+footprint while the painted relief stays upright.
 Simulation state, game RNG, schemas, replay and live-game rendering are untouched.
 Ocean composition remains static pending the time-keyed palette review.
 
-Validation: `node images/dark-fantasy/map-generation-prototype/terrain-collapse-check.mjs`
-checks deterministic connected corridors, masked gaps and contradictions across
-80 seeds. Run the browser persistence check below on seeds 1867 and 1873, including
+Validation: `node images/dark-fantasy/map-generation-prototype/terrain-composition-check.mjs`
+checks painted overlap rather than bounding boxes, legal footprints, repetition
+spacing, deterministic placement and preservation of material hues. Run the
+browser persistence check below on seeds 1867, 1869 and 1873, including
 reflections. Inspect Fit and close zoom, coastline clearance, mountain/river gaps,
 the readable road network and site surroundings. New source sheets contain
 110 nonempty alpha cells; their source PNGs total about 21 MiB, so this is still a
 prototype art library rather than a mobile loading/performance sign-off.
-
-Algorithm reference: [WaveFunctionCollapse's simple tiled model](https://github.com/mxgmn/WaveFunctionCollapse).
 
 Run `npm run preview:map`, then open
 <http://localhost:5184/images/dark-fantasy/map-generation-prototype/>.
@@ -87,22 +94,19 @@ of forms. Runtime resampling places them on the same world pixel lattice; a
 compact colour palette retains the illustrated hatching. `atlas-art.js` still
 supplies procedural site icons and reed accents. Generated source art and the
 exact built-in generation prompt are recorded in [assets/README.md](assets/README.md).
-The source PNG is unchanged; cropping, palette reduction and biome shading are
-part of the renderer. Mountain, hill, marsh and cliff engravings take the colour
-of the ground beneath each pixel, with charcoal treatment in dead hinterland.
-Mountain regions follow winding visual spines along each region's long axis,
-joined through shared borders to neighbouring mountain regions. The geographic
-range supplies an additional spine. Groups overlap along these paths rather
-than scattering independently across a grid. The spines are rendering data;
-the generated feature routes, region shapes and gameplay graph are unchanged.
+Source PNGs are unchanged; cropping, palette reduction and selective material
+grading happen during asset preparation. Illustrated pixels retain their own
+colours across region boundaries. Geographic ranges and shared borders guide
+overlapping groups; irregular density fields compose region interiors. These
+placements are rendering data; feature routes, region shapes and gameplay graph
+are unchanged.
 Footpoints and sampled silhouettes respect coast, river and valley exclusions;
 opaque pixels must fit dry land. Groups fall back to compact art where needed.
 Woodlands form irregular patches and clearings rather than repeating one tree.
 Trees and sites share one nearest-sampled sprite atlas. Relief uses a cached
-per-map atlas: each opaque texel samples its local biome, including across
-borders and after reflections. Mountains retain reddish umber on mountain
-ground; ranges over woodland, peat and dead hinterland inherit those colours.
-Foothills use ground-matched bodies and softened feet. Ordinary plains hills
+per-map atlas: each texel retains its asset colour, while ground masks clip
+roads and water. Rock stays rock-coloured across woodland and peat; dead
+hinterland uses separate charcoal art. Foothills have softened feet. Ordinary plains hills
 must fit entirely within plains; range foothills may follow other terrain. Rendered silhouettes vary while
 the accepted footprint, biome quotas and graph remain unchanged.
 
@@ -329,8 +333,8 @@ outskirts. These are provisional illustrated treatments, not hydrology or gamepl
 | Swamp | Sheltered ripples, fading sediment and peat margins | Narrow timber walkways, drainage pools |
 | Mountains | Stony banks and scree transitions | Rock-coloured tracks, retaining walls and terraces |
 
-Adjacent materials blend through narrow irregular transition zones. Mountain
-relief feet fade into local ground; the original polygon divisions remain visible
+Adjacent ground materials blend through narrow irregular transition zones.
+Illustrated feet fade into the ground without zone tinting; polygon divisions remain visible
 above the composition. Lairs use rubble and worn approaches. Site ground marks
 respect the owning polygon and canonical water mask. The close/regional landmark
 illustrations still share one composition; overview emblems intentionally abstract it.

@@ -4,18 +4,18 @@ import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
-import { composeTerrainPaths } from './terrain-collapse.js';
+import { composeTerrainLandscape } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
 
-export const ATLAS_COLOURS = { plains: 0xbfa574, forest: 0x858158, islands: 0x688689, swamp: 0x858477, mountains: 0xb79780 };
+export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
 const ATLAS_GROUND = {
-  plains: [0xae9363, 0xb99f6e, 0xbfa574, 0xcbb486],
-  forest: [0x74704c, 0x7c7851, 0x858158, 0x918b64],
+  plains: [0x9f8c69, 0xac9670, 0xb7a17b, 0xc5b18d],
+  forest: [0x777556, 0x898164, 0x969174, 0xa39b7b],
   islands: [0x9eaa83, 0xabb48e, 0xb5bc99, 0xc1c5a6],
-  swamp: [0x727467, 0x7c7d70, 0x858477, 0x939082],
-  mountains: [0xa0836c, 0xae8d76, 0xb79780, 0xc3a18b],
+  swamp: [0x696e63, 0x78796b, 0x858675, 0x949080],
+  mountains: [0x827869, 0x958774, 0xa49782, 0xb4a792],
   highlands: [0x25292e, 0x30353c, 0x3d434b, 0x4b5159],
   marsh: [0x202429, 0x2b2f36, 0x363b42, 0x454b51],
   scrub: [0x242728, 0x2f3435, 0x3c4142, 0x4a5051],
@@ -56,7 +56,7 @@ export function pixelSpriteTextures(texel = 4) {
   const entries = Object.entries(ART), cell = 64 * detail, columns = 32, canvas = document.createElement('canvas'); canvas.width = columns * cell; canvas.height = Math.ceil(entries.length / columns) * cell;
   const ctx = canvas.getContext('2d');
   entries.forEach(([, art], i) => art.rows.forEach((row, y) => [...row].forEach((code, x) => {
-    if (art.colours[code]) { ctx.fillStyle = art.colours[code]; ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1); }
+    if (art.colours[code]) { ctx.globalAlpha = art.opacity?.[y][x] ?? 1; ctx.fillStyle = art.colours[code]; ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1); }
   })));
   const base = PIXI.Texture.from(canvas).baseTexture; base.scaleMode = PIXI.SCALE_MODES.NEAREST; base.mipmap = PIXI.MIPMAP_MODES.OFF;
   const spriteArt = Object.fromEntries(entries.map(([kind, art], i) => [kind, new PIXI.Texture(base,
@@ -72,20 +72,22 @@ const samplePlane = (plane, x, y) => x < plane.x || y < plane.y || x >= plane.x 
 function glyphPosition(terrain, prop, flipX, flipY) {
   const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel } = terrain.stats, sx = flipX ? -1 : 1, sy = flipY ? -1 : 1;
   return { sx, sy, left: Math.round(sx * (prop.point.x - terrain.bounds.minX) * 1576 / texel - Math.max(...art.rows.map(r => r.length)) / 2),
-    top: Math.round(sy * (prop.point.y - terrain.bounds.minY) * 516 / texel - art.rows.length) };
+    top: Math.round(sy * ((prop.point.y - terrain.bounds.minY) * 516 / texel - (prop.composed ? art.rows.length / 2 : 0))
+      - art.rows.length * (prop.composed ? .5 : 1)) };
 }
 function mixColour(a, b, t) {
   return [16, 8, 0].reduce((c, shift) => c | Math.round(((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t) << shift, 0);
 }
-// Material-aware relief is baked per reflection pose, so upright silhouettes
-// sample the ground they actually cover. Camera movement never rebuilds it.
+// Painted relief retains its source material colours across region boundaries.
+// Ground masks only clip water/roads; they never recolour a whole illustration.
 export function reliefSpriteTextures(terrain, flipX, flipY) {
   const key = `${flipX}:${flipY}`;
   terrain.reliefCache ??= new Map();
   if (terrain.reliefCache.has(key)) return terrain.reliefCache.get(key).textures;
   const ART = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1];
   const props = terrain.props.filter(relief), canvas = document.createElement('canvas'), cell = terrain.stats.texel === 2 ? 128 : 64;
-  canvas.width = cell * 16; canvas.height = Math.max(cell, Math.ceil(props.length / 16) * cell);
+  const columns = props.length > 256 ? 32 : 16;
+  canvas.width = cell * columns; canvas.height = Math.max(cell, Math.ceil(props.length / columns) * cell);
   const ctx = canvas.getContext('2d'), palettes = {};
   for (const name of MATERIALS.slice(1)) {
     const bank = ATLAS_GROUND[name], body = bank[2];
@@ -101,21 +103,17 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       if (!name || samplePlane(terrain.roadClearance, ix, iy)) return;
       const bank = ATLAS_GROUND[name], palette = palettes[name];
       let colour = palette[code] ?? bank[2];
-      if (art.tones) {
-        const tone = art.tones[code];
-        colour = tone < .5 ? mixColour(palette.a, bank[0], tone * 2) : mixColour(bank[0], palette.e, (tone - .5) * 2);
-        if (art.composable && name === 'forest') colour = mixColour(colour, tone < .5 ? 0x353b27 : 0x8d9157, .35);
-      }
+      if (art.illustrated) colour = art.rgbColours?.[code] ?? Number.parseInt(art.colours[code].slice(1), 16);
       if (prop.kind.includes('hill') && !art.illustrated && code !== 'a' && code !== 'b') colour = mixColour(colour, bank[2], .75);
-      const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * .12));
-      ctx.globalAlpha = (code === 'f' ? .32 : 1) * foot;
+      const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * (art.composable ? .22 : .12)));
+      ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot;
       ctx.fillStyle = `#${colour.toString(16).padStart(6, '0')}`;
-      ctx.fillRect(i % 16 * cell + 2 + x, Math.floor(i / 16) * cell + 2 + y, 1, 1);
+      ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1);
     }));
   });
   const base = PIXI.Texture.from(canvas).baseTexture; base.scaleMode = PIXI.SCALE_MODES.NEAREST; base.mipmap = PIXI.MIPMAP_MODES.OFF;
   const textures = new Map(props.map((prop, i) => [prop, new PIXI.Texture(base,
-    new PIXI.Rectangle(i % 16 * cell + 2, Math.floor(i / 16) * cell + 2, Math.max(...ART[prop.kind].rows.map(r => r.length)), ART[prop.kind].rows.length))]));
+    new PIXI.Rectangle(i % columns * cell + 2, Math.floor(i / columns) * cell + 2, Math.max(...ART[prop.kind].rows.map(r => r.length)), ART[prop.kind].rows.length))]));
   terrain.reliefCache.set(key, { base, textures });
   if (terrain.reliefCache.size > 2) {
     const oldest = terrain.reliefCache.keys().next().value;
@@ -134,7 +132,8 @@ export function pixelSpriteFits(terrain, prop, flipX, flipY) {
   const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel, width, height } = terrain.stats;
   const px = (prop.point.x - terrain.bounds.minX) * 1576 / texel, py = (prop.point.y - terrain.bounds.minY) * 516 / texel;
   const sx = flipX ? -1 : 1, sy = flipY ? -1 : 1, w = Math.max(...art.rows.map(r => r.length));
-  const left = Math.round(sx * px - w / 2), top = Math.round(sy * py - art.rows.length);
+  const left = Math.round(sx * px - w / 2), top = Math.round(sy * (py - (prop.composed ? art.rows.length / 2 : 0))
+    - art.rows.length * (prop.composed ? .5 : 1));
   return art.rows.every((row, y) => [...row].every((code, x) => {
     if (code === '.') return true;
     const ix = Math.floor(sx * (left + x + .5)), iy = Math.floor(sy * (top + y + .5));
@@ -336,7 +335,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   for (let y = Math.ceil(lo.y / spacing) * spacing; y < hi.y; y += spacing) for (let x = Math.ceil(lo.x / spacing) * spacing; x < hi.x; x += spacing) {
     const salt = Math.imul(x, 14369) ^ Math.imul(y, 37813), qx = x + Math.floor(decorationRandom(map.seed, salt) * 8 * detail), qy = y + Math.floor(decorationRandom(map.seed, salt + 1) * 8 * detail);
     const i = qy * width + qx; if (!land[i] || waterIndices[i]) continue;
-    const p = world(qx, qy), region = map.regions[regionIds[i]], n = noise(map.seed ^ 38571, qx, qy, 42), chance = decorationRandom(map.seed, salt + 2);
+    const p = world(qx, qy), region = map.regions[regionIds[i]], chance = decorationRandom(map.seed, salt + 2);
     let kind = null;
     const variant = Math.floor(decorationRandom(map.seed, salt + 3) * 12);
     if (region) continue; // Playable terrain is composed on geographic chains below.
@@ -358,13 +357,16 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));
     const left = Math.round(p.x - w / 2), top = Math.round(p.y - art.rows.length);
-    return art.rows.every((row, y) => [...row].every((code, x) => {
+    let outside = 0, painted = 0;
+    const fits = art.rows.every((row, y) => [...row].every((code, x) => {
       if (code === '.') return true;
       const px = left + x, py = top + y, i = py * width + px;
       if (px < 0 || py < 0 || px >= width || py >= height || !land[i] || waterIndices[i]) return false;
+      if (prop.allowedBiomes) { painted++; if (!prop.allowedBiomes.includes(map.regions[regionIds[i]]?.biome)) outside++; }
       if (prop.plainsOnly && materialAt(px, py) !== 'plains') return false;
       return !(prop.kind.includes('crag') || prop.peak) || x % 4 !== 0 || y % 4 !== 0 || canPlacePeak(map.geography, world(px, py), 1.5 * texel / 516);
     }));
+    return fits && (!painted || outside / painted < .025);
   };
   const towns = sites ? map.regions.filter(r => r.biome !== 'islands').filter((r, i) => i === 2 || i === 7 || i === 12)
     .map((r, i) => ({ kind: `ruin${i % 3}`, point: r.centre, regionId: r.id })).filter(fitsLand) : [];
@@ -444,7 +446,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   }
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving and coastal accents remain; towns keep their anchors.
-  const composition = composeTerrainPaths({ map, art: ART, pixel, world, detail,
+  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: fitsLand });
@@ -517,7 +519,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
 
   return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
-    roads: roads.length, bridges, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
+    roads: roads.length, bridges, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
     textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 6 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still water; independent index ranges retained' } };
 }
