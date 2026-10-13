@@ -15,6 +15,7 @@ import { PALETTE, TEXT_STYLES } from '../../../src/views/settlement-theme.js';
 import { getVassalLifeMapNodeFamily } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { getEntryConsequences } from '../../../src/views/life-map-entry-confirm-pixi.js';
 import { getOpeningGraphPresentation, openingVassal } from './model.js';
+import { createOpeningNoteScreen } from './note-screen.js';
 
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.
@@ -40,7 +41,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   let snapshot = controller.getSnapshot(), mode = 'life', selectedRegion = openingVassal(snapshot.session).locationRegionId;
   let previousRuntimeId = null, lastActiveId = null, outcomeId = null, message = '', footerKey = '', controlKey = '', outcomeKey = '';
   const decisionCache = new Map();
-  const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'level', 'bag', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
+  const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'level', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
   app.stage.addChild(...Object.values(layers));
   const state = () => snapshot.session.state;
   const presentation = () => ({ state: state(), vassal: openingVassal(snapshot.session), readOnly: snapshot.busy,
@@ -54,8 +55,8 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
     const danger = Math.max(spec.kind === 'specialRelic' && !spec.relics?.length ? .35 : 0,
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
-    const label = spec.displayLabel?.trim() || ({ world: 'World Decision', martial: 'Martial', specialRelic: 'Special Relic' })[spec.kind] || def.label;
-    return { ...def, label, description: `${spec.title}\n${spec.description}`
+    const label = spec.displayLabel?.trim() || ({ world: 'World Decision', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
+    return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
       + (danger ? ` Direct death risk up to ${Math.round(danger * 100)}%.` : '')
       + (chaos ? ` Optional Chaos cost up to ${chaos}.` : ''), ...(spec.kind === 'specialRelic' ? { color: PALETTE.red } : {}) };
   };
@@ -85,7 +86,8 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
     isVisible: () => mode === 'life',
     onEnterNode: id => invoke(() => controller.enter(id)),
     onOpenDecision: (id, point) => {
-      if (id === snapshot.session.activeId) modal.open(snapshot.session.runtimeNodeId, point);
+      if (id === snapshot.session.activeId && snapshot.decision?.nodeState.contentMode === 'note') note.refresh(snapshot.decision.node);
+      else if (id === snapshot.session.activeId) modal.open(snapshot.session.runtimeNodeId, point);
       else if (snapshot.session.visitedIds.includes(id)) { outcomeId = id; drawChrome(); }
     },
   });
@@ -120,6 +122,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
   const bag = createVassalHeirloomFlowView({ app, layer: layers.bag, getState: state, getPresentation: presentation, tooltipView: tooltip });
+  const note = createOpeningNoteScreen({ app, layer: layers.note, onConfirm: () => controller.commit().catch(error => { message = error.message; onError?.(message); }) });
   const hud = createVassalLifeHudView({ layer: layers.hud, getPresentation: presentation,
     isVisible: () => mode === 'life' || modal.isOpen(), getDeltas: () => level.getHudDeltas() ?? modal.getHudDeltas(),
     tooltipView: tooltip, onOpenHeirlooms: tab => bag.openInventory(tab) });
@@ -132,7 +135,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
 
   function drawChrome() {
     const s = snapshot.summary, active = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId);
-    const footerSignature = JSON.stringify([s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
+    const footerSignature = JSON.stringify([s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
     if (footerKey !== footerSignature) {
       footerKey = footerSignature; clearChildren(layers.footer);
       const bg = new PIXI.Graphics(); roundedRect(bg, 390, 852, 1480, 196, 14, PALETTE.panel, PALETTE.stroke, 2); layers.footer.addChild(bg);
@@ -142,7 +145,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
       let detail = message || (snapshot.busy ? `Resolving real simulation ticks · ${snapshot.progress}%` : active?.description ?? `At ${s.location} · ${s.tSec}s elapsed · use the game navigation to inspect the world and settlement.`);
       if (active?.pass && !snapshot.decision?.purchases.length) detail += ` Confirm without a purchase: ${active.pass.label}, ${active.pass.phaseCost ?? 0} phases, +${active.pass.prestigeDelta ?? 0} Prestige.`;
       layers.footer.addChild(createText(detail, { ...TEXT_STYLES.body, fontSize: 23, wordWrap: true, wordWrapWidth: 1400, fill: message ? PALETTE.red : PALETTE.textMuted }, 414, 960));
-      layers.footer.visible = !modal.isOpen() && !life.isEntryConfirmationOpen();
+      layers.footer.visible = !modal.isOpen() && !note.isOpen() && !life.isEntryConfirmationOpen();
     }
     const controlSignature = JSON.stringify([snapshot.busy, snapshot.canRewind, snapshot.session.activeId]);
     if (controlKey !== controlSignature) {
@@ -167,6 +170,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   }
   function refresh(next = controller.getSnapshot()) {
     snapshot = next; decisionCache.clear();
+    note.refresh(mode === 'life' && next.decision?.nodeState.contentMode === 'note' ? next.decision.node : null);
     if (snapshot.session.activeId !== lastActiveId) { selectedRegion = openingVassal(snapshot.session).locationRegionId; lastActiveId = snapshot.session.activeId; }
     world.setVisible(mode === 'map'); settlement.setVisible(mode === 'settlement'); life.setVisible(mode === 'life');
     for (const name of ['world', 'settlement', 'life', 'modal', 'navigation']) layers[name].interactiveChildren = !snapshot.busy;
@@ -192,7 +196,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   const point = (kind, index = 0) => ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
-    confirm: () => modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
+    confirm: () => note.isOpen() ? note.getConfirmPoint() : modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
     acquire: () => modal.getAcquireClickPoint(index),
     inspectClose: () => modal.getInspectionClosePoint(), level: () => level.getChoiceClickPoint(index), levelConfirm: () => level.getConfirmClickPoint(),
     nav: () => navigation.getClickPoint(index),
@@ -205,7 +209,7 @@ export async function createOpeningGameScreen({ host, controller, onEdit, onErro
   }, getSnapshot: () => {
     const modalState = modal.getSemanticSnapshot();
     return { mode, ready: true, graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
-      modal: { open: modalState.open, animation: modalState.animation.phase, family: modalState.family, selectedOptionId: modalState.selectedOptionId,
+      note: note.getSnapshot(), modal: { open: note.isOpen() || modalState.open, animation: note.isOpen() ? 'open' : modalState.animation.phase, family: note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
         contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
   }, destroy: () => { display.destroy(); app.destroy(true, { children: true }); } };

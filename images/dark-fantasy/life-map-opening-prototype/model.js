@@ -86,6 +86,8 @@ function curatedOffers(state, vassal, current, cards) {
 
 export function enterOpeningEncounter(session, id) {
   if (!session.availableIds.includes(id) || session.activeId) throw new Error('Choose an available encounter.');
+  const note = session.experiment.nodes.find(n => n.id === id);
+  if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
   if (!vassal || state.runStatus?.complete) throw new Error('This run has ended. Rewind or restart.');
   const spec = session.experiment.nodes.find(n => n.id === id), graph = vassal.lifeMap.graph;
@@ -146,6 +148,8 @@ export function enterOpeningEncounter(session, id) {
 
 export function getOpeningDecision(session, preview = {}) {
   if (!session.activeId) return null;
+  const note = session.experiment.nodes.find(n => n.id === session.activeId);
+  if (note.kind === 'customNote') return { node: note, nodeState: { contentMode: 'note' }, options: [], purchases: [] };
   const presentation = getVassalNodeDecisionPresentation(session.state, session.runtimeNodeId, preview);
   const vassal = openingVassal(session), current = nodeState(session);
   const spec = session.experiment.nodes.find(n => n.id === session.activeId);
@@ -207,6 +211,14 @@ export function chooseOpeningDevelopment(session, statId) {
   return requireOk(chooseVassalDevelopmentStat(session.state, vassal?.developmentChoiceQueue[0]?.choiceId, statId));
 }
 
+export function finishOpeningNote(session) {
+  const spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  if (spec?.kind !== 'customNote') throw new Error('Enter a Custom Note first.');
+  const summary = openingSummary(session);
+  session.outcomes.push({ id: spec.id, title: spec.title, before: summary, after: structuredClone(summary) });
+  session.visitedIds.push(spec.id); session.activeId = null; session.runtimeNodeId = null; session.availableIds = [...spec.next];
+}
+
 // Render-only projection: the editable graph does not replace GameState's
 // generated graph or alter its validation, serialization or replay rules.
 export function getOpeningGraphPresentation(session) {
@@ -219,7 +231,7 @@ export function getOpeningGraphPresentation(session) {
   const maxDepth = Math.max(...Object.values(depths));
   const nodes = session.experiment.nodes.map(spec => {
     const peers = session.experiment.nodes.filter(n => depths[n.id] === depths[spec.id]);
-    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
+    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic', customNote: 'patronage' }[spec.kind] ?? spec.kind;
     return { id: spec.id, experimentId: spec.id, presentationLabel: spec.title, presentationDescription: spec.description,
       family, depth: depths[spec.id], lane: peers.indexOf(spec),
       ...(family === 'stockShop' ? { stockOutput: spec.stockOutput === 'auto' ? 'Needed' : spec.stockOutput } : {}),

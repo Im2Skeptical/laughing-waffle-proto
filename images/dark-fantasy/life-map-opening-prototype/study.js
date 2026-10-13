@@ -86,6 +86,13 @@ function renderEditor(snapshot) {
   host.append(el('h2', 'Edit an encounter'), el('p', 'Apply edits, then Restart. The current playthrough retains its original experiment.', 'note'));
   const chooser = appendField(host, 'Node', selectedId, { options: doc.nodes.map(n => [n.id, n.title]), id: 'edit-node' });
   chooser.addEventListener('change', () => { selectedId = chooser.value; editorKey = ''; render(); });
+  if (spec.kind === 'customNote') {
+    const title = appendField(host, 'Title', spec.title, { id: 'note-title' });
+    const label = el('label', 'Intended player interaction'), intention = el('textarea'); intention.id = 'note-intention'; intention.rows = 7; intention.value = spec.description;
+    intention.placeholder = 'Describe what the player sees, chooses, pays, gains, or changes at this node.'; label.append(intention); host.append(label);
+    host.append(button('Save note', () => controller.editDraft({ ...doc, nodes: doc.nodes.map(n => n.id === spec.id ? { ...n, title: title.value, description: intention.value } : n) }), 'primary'));
+    host.append(el('p', 'During play, enter this node to read the note and Confirm to leave. No time, rewards or dice rolls are applied.', 'note')); return;
+  }
   const fields = {}, grid = el('div', '', 'editor-grid');
   fields.title = appendField(grid, 'Title', spec.title);
   fields.displayLabel = appendField(grid, 'Game-screen label (blank = node type)', spec.displayLabel);
@@ -143,6 +150,7 @@ async function guidedChoice() {
   if (snapshot.development) return controller.develop(snapshot.development.offeredStatIds.includes('intelligence') ? 'intelligence' : snapshot.development.offeredStatIds[0]);
   if (!snapshot.session.activeId) return controller.enter(snapshot.session.availableIds.includes(guide.entry) ? guide.entry : snapshot.session.availableIds[0]);
   const spec = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId), decision = snapshot.decision;
+  if (spec.kind === 'customNote') return controller.commit();
   if (spec.kind === 'shop' || spec.kind === 'supply') {
     if (spec.kind === 'shop' && guide.buy) {
       if (decision.purchases.length) return controller.commit(null, 'equip', false);
@@ -181,6 +189,8 @@ try {
 void startGameScreen();
 // Focused inspection hook for the collaborative browser; never includes full GameState.
 window.openingWorkbench = { getSnapshot: () => { const { summary, busy, session, draft, draftIssue } = controller.getSnapshot(); return { summary, busy, availableIds: session.availableIds, activeId: session.activeId, visitedIds: session.visitedIds,
-  draftGraph: { entryIds: draft.entryIds, issue: draftIssue, nodes: draft.nodes.map(({ id, kind, next }) => ({ id, kind, next })) }, game: gameScreen?.getSnapshot() }; },
+  draftGraph: { entryIds: draft.entryIds, issue: draftIssue, nodes: draft.nodes.map(({ id, kind, next, editorPosition }) => ({ id, kind, next, editorPosition })) }, game: gameScreen?.getSnapshot() }; },
+  getEditorSnapshot: () => graphEditor.getSnapshot(),
+  getEditorCellPoint: (column, row) => graphEditor.getCellClientPoint(column, row),
   getPoint: (kind, index) => gameScreen?.getPoint(kind, index),
   getClientPoint: (kind, index) => gameScreen?.getClientPoint(kind, index) };

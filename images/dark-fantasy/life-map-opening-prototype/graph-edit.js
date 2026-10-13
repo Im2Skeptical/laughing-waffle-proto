@@ -1,6 +1,7 @@
 import { createOpeningExperiment, OPENING_KINDS } from './experiment.js';
 
-export const KIND_LABELS = { relic: 'Relic', world: 'World decision', founding: 'Founding', shop: 'Practice shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic' };
+export const KIND_LABELS = { relic: 'Relic', world: 'World decision', founding: 'Founding', shop: 'Practice shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic', customNote: 'Custom Note' };
+export const OPENING_GRID = { x: 72, y: 62, columnWidth: 300, rowHeight: 150, maxIndex: 47 };
 const unique = ids => [...new Set(ids)];
 const node = (doc, id) => {
   const result = doc.nodes.find(n => n.id === id);
@@ -12,13 +13,15 @@ const node = (doc, id) => {
 export function newOpeningNode(doc, kind, copyId = null) {
   if (doc.nodes.length >= 24) throw new Error('This experiment supports up to 24 nodes.');
   if (!OPENING_KINDS.includes(kind) || kind === 'founding') throw new Error('Keep the existing founding node.');
-  const template = copyId ? node(doc, copyId) : kind === 'specialRelic'
+  const template = copyId ? node(doc, copyId) : kind === 'customNote'
+    ? { kind, title: 'Custom Note', description: '' } : kind === 'specialRelic'
     ? { kind, title: 'A dangerous discovery', description: 'A rare relic with a signalled direct death risk.', relics: [{ definitionId: 'hourglass', phaseCost: 6, immediateDeathChance: .35 }] }
     : createOpeningExperiment().nodes.find(n => n.kind === kind);
   let index = 1;
   while (doc.nodes.some(n => n.id === `${kind}-${index}`)) index++;
-  return { ...structuredClone(template), id: `${kind}-${index}`, title: copyId ? `${template.title} (copy)` : template.title,
+  const added = { ...structuredClone(template), id: `${kind}-${index}`, title: copyId ? `${template.title} (copy)` : template.title,
     ...(!copyId && kind === 'patronage' ? { description: 'A modest benefit is a valid step. Choose how much time to invest.' } : {}), next: [] };
+  delete added.editorPosition; return added;
 }
 
 function detach(doc, id) {
@@ -54,6 +57,13 @@ export function insertOpeningNode(document, added, selection) {
     const source = node(doc, selection.id);
     node(doc, added.id).next = [...source.next]; source.next = [added.id];
   } else doc.entryIds.push(added.id);
+  if (document.nodes.some(n => n.editorPosition)) {
+    const { cells } = layoutOpeningDraft(document), anchor = cells[selection?.from ?? selection?.id] ?? { column: 0, row: 0 };
+    const column = Math.min(OPENING_GRID.maxIndex, anchor.column + 1);
+    const occupied = new Set(Object.values(cells).filter(p => p.column === column).map(p => p.row));
+    let row = anchor.row; while (occupied.has(row)) row = (row + 1) % (OPENING_GRID.maxIndex + 1);
+    node(doc, added.id).editorPosition = { column, row };
+  }
   return doc;
 }
 
@@ -92,11 +102,38 @@ export function layoutOpeningDraft(doc) {
       counts.set(id, counts.get(id) - 1); if (!counts.get(id)) queue.push(id);
     });
   }
-  const lanes = new Map(), points = {};
+  const lanes = new Map(), points = {}, cells = {};
   doc.nodes.forEach(n => {
     const depth = counts.get(n.id) > 0 ? 0 : depths.get(n.id), lane = lanes.get(depth) ?? 0;
-    // Leave an exposed stretch of arrow between the two 44px connector targets.
-    lanes.set(depth, lane + 1); points[n.id] = { x: 54 + depth * 300, y: 38 + lane * 136 };
+    lanes.set(depth, lane + 1);
+    cells[n.id] = n.editorPosition ?? { column: depth, row: lane };
+    const { column, row } = cells[n.id];
+    points[n.id] = { x: OPENING_GRID.x + column * OPENING_GRID.columnWidth, y: OPENING_GRID.y + row * OPENING_GRID.rowHeight };
   });
-  return { points, width: Math.max(600, ...Object.values(points).map(p => p.x + 246)), height: Math.max(210, ...Object.values(points).map(p => p.y + 150)) };
+  return { points, cells, width: Math.max(900, ...Object.values(points).map(p => p.x + 600)), height: Math.max(362, ...Object.values(points).map(p => p.y + 300)) };
+}
+
+export function positionOpeningNodes(document, ids, columnDelta, rowDelta, { allowOverlap = false } = {}) {
+  if (!ids.length || !Number.isInteger(columnDelta) || !Number.isInteger(rowDelta)) throw new Error('Select nodes and a whole column/row.');
+  ids.forEach(id => node(document, id));
+  const doc = structuredClone(document), { cells } = layoutOpeningDraft(doc), selected = new Set(ids);
+  const columns = ids.map(id => cells[id].column), rows = ids.map(id => cells[id].row);
+  columnDelta = Math.max(-Math.min(...columns), Math.min(OPENING_GRID.maxIndex - Math.max(...columns), columnDelta));
+  rowDelta = Math.max(-Math.min(...rows), Math.min(OPENING_GRID.maxIndex - Math.max(...rows), rowDelta));
+  if (!columnDelta && !rowDelta) return doc;
+  // Freeze the remaining automatic positions too, so later route edits cannot
+  // move unselected cards around a manually arranged diagram.
+  doc.nodes.forEach(n => { n.editorPosition = { column: cells[n.id].column + (selected.has(n.id) ? columnDelta : 0), row: cells[n.id].row + (selected.has(n.id) ? rowDelta : 0) }; });
+  if (!allowOverlap) {
+    for (const id of ids) {
+      const moved = node(doc, id), { column, row } = moved.editorPosition;
+      const occupant = doc.nodes.find(n => !selected.has(n.id) && n.editorPosition.column === column && n.editorPosition.row === row);
+      if (occupant) throw new Error(`Column ${column + 1}, Row ${row + 1} already contains "${occupant.title}". Choose an empty cell.`);
+    }
+  }
+  return doc;
+}
+
+export function autoArrangeOpeningNodes(document) {
+  const doc = structuredClone(document); doc.nodes.forEach(n => { delete n.editorPosition; }); return doc;
 }

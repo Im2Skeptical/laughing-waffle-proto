@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createOpeningExperiment, validateOpeningExperiment } from '../images/dark-fantasy/life-map-opening-prototype/experiment.js';
-import { newOpeningNode, insertOpeningNode, moveOpeningNode, moveOpeningNodeOnConnection, removeOpeningNode, setOpeningConnection, layoutOpeningDraft } from '../images/dark-fantasy/life-map-opening-prototype/graph-edit.js';
+import { newOpeningNode, insertOpeningNode, moveOpeningNode, moveOpeningNodeOnConnection, removeOpeningNode, setOpeningConnection, layoutOpeningDraft, positionOpeningNodes, autoArrangeOpeningNodes } from '../images/dark-fantasy/life-map-opening-prototype/graph-edit.js';
 import { createOpeningController } from '../images/dark-fantasy/life-map-opening-prototype/controller.js';
 import { serializeGameState } from '../src/model/state.js';
 
@@ -31,12 +31,27 @@ const cycle = setOpeningConnection(doc, 'founding', 'development', true);
 assert.throws(() => validateOpeningExperiment(cycle), /cycle/);
 assert.ok(Object.values(layoutOpeningDraft(cycle).points).every(p => Number.isFinite(p.x) && Number.isFinite(p.y)), 'invalid cyclic drafts can still be drawn');
 
+const positioned = positionOpeningNodes(original, ['relic', 'explore'], 2, 1);
+validateOpeningExperiment(positioned);
+assert.deepEqual(layoutOpeningDraft(positioned).cells.relic, { column: 2, row: 1 });
+assert.deepEqual(layoutOpeningDraft(positioned).cells.explore, { column: 2, row: 2 });
+assert.deepEqual(positioned.nodes.map(n => n.next), original.nodes.map(n => n.next), 'group placement does not rewire routes');
+assert.deepEqual(positioned.entryIds, original.entryIds);
+const atEdge = positionOpeningNodes(positioned, ['relic', 'explore'], -100, -100);
+assert.deepEqual(layoutOpeningDraft(atEdge).cells.relic, { column: 0, row: 0 });
+assert.deepEqual(layoutOpeningDraft(atEdge).cells.explore, { column: 0, row: 1 }, 'group spacing survives boundary clamping');
+assert.throws(() => positionOpeningNodes(original, ['relic'], 1, 0), /already contains/);
+assert.deepEqual(autoArrangeOpeningNodes(positioned), original);
+const gridCopy = newOpeningNode(positioned, 'relic', 'relic');
+validateOpeningExperiment(insertOpeningNode(positioned, gridCopy, { id: 'relic' }));
+assert.throws(() => validateOpeningExperiment({ ...original, nodes: original.nodes.map(n => ({ ...n, editorPosition: { column: 0, row: 0 } })) }), /same grid cell/);
+
 const memory = new Map(), controller = createOpeningController({ getItem: key => memory.get(key), setItem: (key, value) => memory.set(key, value) });
 const before = JSON.stringify(serializeGameState(controller.getSnapshot().session.state));
 const broken = setOpeningConnection(original, 'shop', 'development', false);
 controller.editDraft(broken); assert.match(controller.getSnapshot().draftIssue, /reachable/);
 assert.throws(() => controller.restart(), /reachable/); assert.throws(() => controller.save(), /reachable/);
-assert.equal(memory.size, 0); assert.equal(JSON.stringify(serializeGameState(controller.getSnapshot().session.state)), before);
+assert.equal(memory.size, 0); assert.ok(JSON.stringify(serializeGameState(controller.getSnapshot().session.state)) === before, 'draft edits and failed launches preserve state and RNG');
 controller.undoDraft(); assert.deepEqual(controller.getSnapshot().draft, original);
 controller.redoDraft(); assert.deepEqual(controller.getSnapshot().draft, broken);
 controller.editDraft(doc); controller.save(); controller.restart();
@@ -53,4 +68,15 @@ assert.ok(offer, 'a common Practice can be purchased before founding'); controll
 const snap = controller.getSnapshot(); if (snap.development) controller.develop(snap.development.offeredStatIds[0]);
 controller.enter('founding'); await controller.commit(controller.getSnapshot().decision.options[0].id);
 assert.equal(controller.getSnapshot().session.founded, true);
-console.log('[opening-graph-editor] OK: branch-preserving moves, insertion/removal, duplication, cycle rendering, draft undo/save isolation and pre-founding Development/shop play');
+const note = newOpeningNode(original, 'customNote'); note.title = 'Prepare a difficult choice'; note.description = 'Choose a sacrifice for a future reward.';
+const withNote = insertOpeningNode(original, note, { id: 'relic' }); validateOpeningExperiment(withNote);
+controller.replaceDraft(withNote); controller.restart(); controller.enter('relic'); await controller.commit(controller.getSnapshot().decision.options[0].id);
+const beforeNote = JSON.stringify(serializeGameState(controller.getSnapshot().session.state));
+controller.enter(note.id); assert.equal(controller.getSnapshot().decision.nodeState.contentMode, 'note');
+assert.equal(controller.getSnapshot().decision.node.description, note.description);
+await controller.commit(); assert.ok(JSON.stringify(serializeGameState(controller.getSnapshot().session.state)) === beforeNote, 'reading a note leaves every state and RNG field unchanged');
+assert.deepEqual(controller.getSnapshot().session.availableIds, ['founding']); controller.rewind();
+assert.deepEqual(controller.getSnapshot().session.availableIds, [note.id]);
+controller.editDraft(positioned); controller.save();
+assert.deepEqual(createOpeningController({ getItem: key => memory.get(key) }).getSnapshot().draft, positioned);
+console.log('[opening-graph-editor] OK: routes, grid groups/bounds/collisions, undo/save isolation, pre-founding play and enter/confirm notes without world changes');

@@ -238,11 +238,15 @@ uses the same operations as free play. Earned level-up choices remain playable.
 
 The visual graph editor moves nodes before/after a destination and joins up their
 old routes, inserts new nodes from populated templates, duplicates/removes nodes,
-and draws or deletes connections. Drag nodes onto nodes/arrows, or use the
-Before/After controls and connection selectors on phones. Draft Undo/Redo is
+and draws or deletes connections. Drag cards into grid columns/rows, box-select
+groups, and drag any selected card to move the group. Positioning preserves route
+connections; Before/After changes the route. Column/Row fields and Pan mode support
+phone authoring. Draft Undo/Redo is
 separate from playthrough Rewind. Disconnected or cyclic edits remain visible
 with an explanation; playing and saving require a valid graph. **Play edited
-opening** captures the draft in a fresh Pixi playthrough.
+opening** captures the draft in a fresh Pixi playthrough. **Custom Note** nodes
+hold a title and intended interaction; enter them to read the text and Confirm to
+leave, without changing simulation time, income or RNG.
 
 Save/Load uses separate browser storage; JSON export/import transfers recipes
 between devices. Graph edits remain in the draft until Restart. See the

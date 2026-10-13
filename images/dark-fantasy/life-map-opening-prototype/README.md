@@ -17,6 +17,7 @@ opening or a replacement for normal gameplay.
 - `controller.js`: transactions, tick resolution, complete rewind checkpoints and separate draft storage.
 - `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
 - `graph-edit.js` / `graph-editor.js`: route-changing operations and the visual draft editor.
+- `note-screen.js`: enterable Custom Notes, with scrollable intention text and Confirm.
 - `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
 
 The initial branches are a curated ordinary Relic and a bundled world opportunity.
@@ -32,10 +33,22 @@ remain available in the entry confirmation and decision screen.
 
 ## Editing the route
 
-Select a node and choose a destination with **Before** or **After**. Moving
-Development before Founding redirects all routes into Founding through Development
-and joins up Development's old neighbours. You can also drag a node onto another
-node to move it before that node, or onto an arrow to insert it on that one route.
+Drag individual cards to place them in a column and row. In **Select / move**,
+drag empty space to box-select several cards, then drag any selected card to move
+the group. Shift/Ctrl/Cmd-click adds or removes cards from the selection. Group
+spacing is preserved, including at the grid boundary. Occupied cells reject a drop
+rather than overlapping cards. **Column**, **Row**, and **Move selection** offer
+the same positioning on phones. Arrow keys nudge a selection; **Pan canvas** moves
+the viewport. **Auto-arrange** restores a layout based on the connections.
+
+Positions are stored as optional zero-based `editorPosition: {column, row}` data
+in each node; UI fields are one-based. They are saved/exported with the draft.
+Positions arrange the authoring diagram; connections determine the playable route.
+Dragging cards never rewires connections.
+
+To change the route order, select one node and choose a destination with **Before**
+or **After**. Moving Development before Founding redirects all routes into Founding
+through Development and joins up Development's old neighbours.
 Drag from a node's right-hand dot to another node to draw a connection; clicking
 the dot then the destination works too. Select an arrow and use **Remove
 connection**. **Connect nodes without dragging** provides the same actions on
@@ -45,6 +58,12 @@ phones and with a keyboard.
 connection. **Remove node & join routes** bridges its predecessors to its successors.
 Founding remains unique and can be moved. **Undo edit** and **Redo edit** cover
 graph and content edits independently of playthrough rewind.
+
+**Add Custom Note** adds a node with a title and intended player interaction.
+Notes can be connected and positioned like other nodes. During a playthrough,
+enter the note to read its text, scroll/drag if needed, then **Confirm** to leave.
+Reading a note does not advance time, grant routine node income or consume RNG.
+The prototype records the visit and offers the connected next nodes.
 
 Disconnected or cyclic drafts remain visible while you work. The editor names
 the issue; playing and saving require a valid graph. **Play edited opening** or
@@ -89,4 +108,6 @@ rewind, edited costs, draft persistence/import, real Pixi selection/confirmation
 shop inspection/drag/undo, earned level-up choices, map navigation, portrait
 fullscreen touch input and mobile containment.
 `scripts/opening-graph-editor-test.mjs` also covers graph operations, invalid-draft
-isolation and real Development/Practice purchases before founding.
+isolation, group positioning, and real Development/Practice purchases before
+founding. Browser checks cover box/group/single dragging, panning, saved positions,
+phone position controls and reading/confirming Custom Notes.

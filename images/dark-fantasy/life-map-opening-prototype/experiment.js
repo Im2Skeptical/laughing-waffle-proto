@@ -1,5 +1,5 @@
 // Experimental encounter data. Never read by player New Game or saved runs.
-export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'development', 'martial', 'supply', 'patronage', 'specialRelic'];
+export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
 
 export function createOpeningExperiment() {
   return {
@@ -55,11 +55,19 @@ export function validateOpeningExperiment(doc) {
       || !Array.isArray(doc.nodes) || doc.nodes.length < 2 || doc.nodes.length > 24
       || !Array.isArray(doc.entryIds) || !doc.entryIds.length) throw new Error('Choose a name, unsigned seed and 2–24 nodes in a version-1 experiment.');
   const ids = new Set();
+  const occupiedCells = new Set();
   for (const node of doc.nodes) {
     if (!node || typeof node.id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(node.id) || ids.has(node.id)
         || !OPENING_KINDS.includes(node.kind) || typeof node.title !== 'string' || !node.title.trim()
         || typeof node.description !== 'string' || !Array.isArray(node.next) || new Set(node.next).size !== node.next.length) throw new Error('Each node needs a unique ID, title, description, kind and next-node list.');
     ids.add(node.id);
+    if (node.editorPosition != null) {
+      const { column, row } = node.editorPosition;
+      if (!Number.isInteger(column) || !Number.isInteger(row) || !finite(column, 0, 47) || !finite(row, 0, 47)) throw new Error(`${node.title}: choose a column and row from 1 to 48.`);
+      const key = `${column}:${row}`;
+      if (occupiedCells.has(key)) throw new Error(`${node.title}: two nodes occupy the same grid cell.`);
+      occupiedCells.add(key);
+    }
     if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
     if (node.stockOutput != null && typeof node.stockOutput !== 'string') throw new Error(`${node.title}: choose a Stock output.`);

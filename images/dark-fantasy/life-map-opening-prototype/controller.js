@@ -3,7 +3,7 @@ import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-ru
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { createOpeningSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment } from './model.js';
+  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote } from './model.js';
 
 export const OPENING_STORAGE_KEY = 'civsurvivor.prototype.warriorOpening.v1';
 export function createOpeningController(storage = null) {
@@ -67,6 +67,9 @@ export function createOpeningController(storage = null) {
     develop(statId) { transact(next => chooseOpeningDevelopment(next, statId)); },
     async commit(optionId, destination, pass) {
       idle(); const next = cloneOpeningSession(session), before = openingSummary(next);
+      if (next.experiment.nodes.find(n => n.id === next.activeId)?.kind === 'customNote') {
+        finishOpeningNote(next); session = next; message = 'Note read. Continue to the next node.'; notify(); return;
+      }
       commitOpeningEncounter(next, optionId, destination, pass);
       busy = true; progress = 0; message = 'Resolving the world through simulation ticks…'; notify();
       try {
