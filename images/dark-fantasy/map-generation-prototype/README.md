@@ -39,15 +39,23 @@ the generator's defaults are retained.
 ### Dark fantasy atlas direction
 
 F responds to the user's illustrated fantasy-atlas and Elden Ring map references:
-warm aged ochres, moss-green forest, plum-grey wetlands, pale slate mountains
-and muted teal water. The references
+warm aged ochres, olive woodland, grey peat wetlands, umber mountain relief
+and muted slate-green water. The references
 guide composition and palette; their artwork is not copied into the renderer.
-`atlas-art.js` supplies **32 original pixel engravings**: twelve asymmetric crags,
+`atlas-art.js` supplies **38 original pixel engravings**: eighteen asymmetric massifs,
 five low hills, eight mixed woodland copses, three bare trees, three ruined sites
-and a reed stamp, plus **21 ash-grey variants** for the dead hinterland. Crags
-have tall continuous slopes, pale summits, shaded faces and hatching; their
-23–28 texel height contrasts with rounded 7–8 texel hills. Mountains no longer
-scatter hill stamps, and peak spacing prevents dense overlapping silhouettes;
+and a reed stamp, plus **27 ash-grey variants** for the dead hinterland. Twelve
+large 42–51 by 28–32 texel massifs compose three or four overlapping peaks;
+six compact 28 by 22 texel groups fit cramped land. Open irregular feet, broken
+ridge strokes, warm light faces and umber hatching replace closed triangular
+stickers and white caps. Rounded 7–8 texel hills sit on their flanks.
+Mountain regions follow winding visual spines along each region's long axis,
+joined through shared borders to neighbouring mountain regions. The geographic
+range supplies an additional spine. Groups overlap along these paths rather
+than scattering independently across a grid. The spines are rendering data;
+the generated feature routes, region shapes and gameplay graph are unchanged.
+Footpoints and sampled silhouettes respect coast, river and valley exclusions;
+opaque pixels must fit dry land. Groups fall back to compact art where needed.
 woodlands form irregular patches and clearings rather than repeating one tree.
 All art shares one nearest-sampled sprite atlas. Rendered silhouettes vary while
 the accepted footprint, biome quotas and graph remain unchanged.
@@ -55,8 +63,12 @@ the accepted footprint, biome quotas and graph remain unchanged.
 The atlas sea uses a depth wash with 32 stationary shades and sparse broken
 surface highlights instead of cartographic contour rings. The original separate
 ocean/river/foam index ranges remain available. Water remains still in this
-review. Region divisions use dark ink with a fine warm highlight above terrain
-stamps, including equal-biome neighbours and water-rich Island regions.
+review. The broad bright coastal rim is reduced to a narrow umber bank, sparse
+shore foam and short coast-normal hachures: longer cliff marks on rocky shores,
+shorter sand marks elsewhere. These follow the actual land mask, including
+island land, independently of game-zone edges. Region divisions use sepia ink
+above terrain stamps, including equal-biome neighbours; water-rich Island
+regions use lighter broken lines so their zone extent does not read as a coast.
 Unplayable land uses black/grey badlands, dead scrub, peat marsh and ash highlands;
 these are visual treatments of the existing background field. A separate,
 smoothly sampled static cloud texture sits above those stamps, clearing a margin

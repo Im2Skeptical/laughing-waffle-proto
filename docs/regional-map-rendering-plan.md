@@ -8,7 +8,12 @@ in response to the user's visual references. Its follow-up separates tall peaks
 from rounded hills, strengthens biome and region readability, replaces sea
 contours with depth shading, and renders a charcoal dead hinterland beneath a
 separate switchable static fog layer. Future fog animation must sample absolute
-viewed time independently of the ground bake, like water. Art selection,
+viewed time independently of the ground bake, like water. The latest review
+returns to parchment/olive/peat washes and composes overlapping, ink-hatched
+massifs along winding mountain-region spines and the existing geographic range.
+Compact groups fit narrow land; silhouette clearance retains coast, river and
+valley gaps. Inked banks and coast-normal shore hachures replace the bright
+coastal rim. These are rendering changes, not graph-generation changes. Art selection,
 palette cycling and live-game generation integration remain pending.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 

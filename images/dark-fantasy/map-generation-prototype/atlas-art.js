@@ -2,7 +2,7 @@
 // Fixed silhouettes and hatching; no borrowed map artwork or simulation RNG.
 import { decorationRandom } from './generator.js';
 
-const STONE = { a: '#33343a', b: '#62616a', c: '#99969a', d: '#beb9ad', e: '#e0d9c6', f: '#80786e' };
+const STONE = { a: '#51422f', b: '#867359', c: '#af9d7a', d: '#c9b894', e: '#ddd0ae', f: '#ac9872' };
 const HILL = { a: '#756747', b: '#92835a', c: '#b1a071', d: '#bfae7b', f: '#9c8c62' };
 const WOOD = { a: '#39392c', b: '#55563e', c: '#787652', d: '#9a9167', e: '#64563d', f: '#9b8c68' };
 function engraving(width, height, colours) {
@@ -34,39 +34,39 @@ function engraving(width, height, colours) {
 
 export function createAtlasArt() {
   const art = {};
-  // Tall continuous slopes distinguish peaks from the low rounded hill family.
-  const profiles = [
-    [[0, 1], [.14, .78], [.25, .6], [.43, .02], [.55, .32], [.7, .55], [.84, .8], [1, 1]],
-    [[0, 1], [.19, .7], [.35, .42], [.56, .02], [.62, .3], [.76, .65], [1, 1]],
-    [[0, 1], [.13, .79], [.29, .4], [.4, .04], [.51, .25], [.6, .17], [.77, .64], [1, 1]],
-    [[0, 1], [.2, .67], [.38, .06], [.48, .34], [.62, .16], [.78, .67], [1, 1]],
-    [[0, 1], [.17, .75], [.3, .52], [.52, .03], [.65, .49], [.83, .8], [1, 1]],
-    [[0, 1], [.14, .79], [.35, .44], [.51, .02], [.6, .38], [.73, .57], [.86, .82], [1, 1]],
-  ];
-  for (let v = 0; v < 12; v++) {
-    const width = 18 + v % 4 * 2, height = 23 + v % 6, g = engraving(width, height, STONE);
-    const outline = profiles[v % profiles.length].map(([x, y]) => [1 + x * (width - 3), 1 + y * (height - 4)]);
-    g.polygon(outline, 'c', 'a');
-    const summit = outline.reduce((best, p) => p[1] < best[1] ? p : best), foot = [summit[0] + (width - summit[0]) * .15, height - 3];
-    for (let y = Math.ceil(summit[1]); y < height - 2; y++) {
-      const t = (y - summit[1]) / (foot[1] - summit[1]), ridgeX = summit[0] + (foot[0] - summit[0]) * t;
-      for (let x = Math.ceil(ridgeX); x < width; x++) if (g.grid[y][x] === 'c') g.put(x, y, 'b');
-    }
-    g.polygon([summit, [summit[0] - 3, summit[1] + 7], [summit[0], summit[1] + 5], [summit[0] + 2, summit[1] + 7]], 'e');
-    g.line(summit, [summit[0] - 2, summit[1] + 5], 'e');
-    g.line([summit[0] - 2, summit[1] + 5], [summit[0] - 5, summit[1] + 8], 'd');
-    g.line(summit, [summit[0] + 1, summit[1] + 4], 'a');
-    g.line([summit[0] + 1, summit[1] + 4], foot, 'a', true);
-    for (let i = 0; i < 7; i++) {
-      const t = (i + 1) / 9, x = summit[0] + (foot[0] - summit[0]) * t, y = summit[1] + (foot[1] - summit[1]) * t;
-      for (let n = 0; n < 4 + (v + i) % 4; n++) {
-        const px = Math.floor(x + n), py = Math.floor(y + n * .7);
-        if (g.grid[py]?.[px] === 'b' && n % 2 === 0) g.put(px, py, (i + n) % 3 ? 'a' : 'c');
+  // Each massif contains overlapping back and front peaks. Open, irregular feet
+  // blend into the ground; ridge strokes and short hatches describe rock faces.
+  for (let v = 0; v < 18; v++) {
+    const compact = v >= 12, width = compact ? 28 : 42 + v % 4 * 3, height = compact ? 22 : 28 + v % 5, g = engraving(width, height, STONE);
+    const peak = (cx, foot, span, tall, salt) => {
+      const lean = (salt % 3 - 1) * 2, top = [cx + lean, foot - tall];
+      const left = [[cx - span, foot], [cx - span * .66, foot - tall * .3], [cx - span * .35, foot - tall * .57], top];
+      const right = [[cx + span * .26, foot - tall * .56], [cx + span * .63, foot - tall * .25], [cx + span, foot]];
+      const ridge = [top, [cx + 1, foot - tall * .68], [cx - 1, foot - tall * .42], [cx + span * .28, foot - 2]];
+      g.polygon([...left, ...right, [cx + span * .45, foot - 1], [cx, foot], [cx - span * .4, foot - 1]], 'd');
+      g.polygon([...ridge, [cx + span, foot], ...right.slice(0, 2).reverse()], 'b');
+      left.slice(1).forEach((p, i) => g.line(left[i], p, 'a', i === 0));
+      const slope = [top, ...right]; slope.slice(1).forEach((p, i) => g.line(slope[i], p, 'a', i === 2));
+      ridge.slice(1).forEach((p, i) => g.line(ridge[i], p, i === 2 ? 'b' : 'a', true));
+      g.line([top[0] - 1, top[1] + 2], [cx - 3, foot - tall * .55], 'e', true);
+      for (let y = Math.ceil(foot - tall * .7); y < foot - 2; y += 3) {
+        for (let x = Math.ceil(cx); x < cx + span; x++) if (g.grid[y]?.[x] === 'b' && (x + y + salt) % 4 === 0) {
+          g.put(x, y, 'a'); if (g.grid[y + 1]?.[x + 1] === 'b') g.put(x + 1, y + 1, 'c');
+        }
       }
+      for (let x = cx - span; x <= cx + span; x += 3) g.put(x, foot + (x % 2), 'f');
+    };
+    if (compact) {
+      peak(8, height - 6, 6, 10 + v % 3, v);
+      peak(19, height - 5, 7, 12 + v % 3, v + 1);
+      peak(14, height - 2, 9, 15 + v % 3, v + 2);
+    } else {
+      peak(11 + v % 3, height - 7, 10, 13 + v % 4, v);
+      peak(width - 14, height - 8, 11, 17 + v % 5, v + 1);
+      peak(width * (v % 2 ? .52 : .43), height - 3, 12 + v % 2, 18 + v % 7, v + 2);
+      if (v % 3 !== 0) peak(width - 12, height - 2, 10, 12 + v % 4, v + 3);
     }
-    outline.forEach((p, i) => { if (i < outline.length - 1) g.line(p, outline[i + 1], 'a', v % 3 === 0); });
-    g.line([2, height - 2], [width - 3, height - 2], 'f', true);
-    art[`crag${v}`] = g.finish();
+    art[compact ? `crag-small${v - 12}` : `crag${v}`] = g.finish();
   }
   for (let v = 0; v < 5; v++) {
     const width = 16 + v * 2, height = 7 + v % 2, g = engraving(width, height, HILL);
