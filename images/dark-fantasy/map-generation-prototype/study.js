@@ -16,6 +16,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
+  siteArt: params.get('siteArt') === 'sketch' ? 'sketch' : 'live', actorScale: numberParam('actorScale', 1, .5, 1.5),
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,
@@ -65,6 +66,7 @@ viewport.on('pointertap', event => {
 const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
 let map = generateMap(state), targets = [], backgroundArt = null;
 let pixelArtMap = null, currentPixelArt = null;
+let gameArt = null, liveSites = [];
 const pixelArtCache = new Map();
 const pixelReview = () => state.variant === 'F';
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
@@ -431,13 +433,18 @@ function drawMap() {
   text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? 'still water · drag / pinch to explore' : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
   if (pixelReview()) {
     button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = { 2: 4, 4: 6, 6: 2 }[state.texel]; render(); }, { copy: state.texel === 2 ? 'Pixels: Detail' : state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
-    button('Toggle placeholder sites', 1826, 158, 212, 70, () => { state.sites = !state.sites; render(); }, { copy: state.sites ? 'Sites + roads: On' : 'Sites + roads: Off', size: 23 });
+    button('Cycle map sites', 1826, 158, 212, 70, () => {
+      if (!state.sites) { state.sites = true; state.siteArt = 'live'; }
+      else if (state.siteArt === 'live') state.siteArt = 'sketch';
+      else state.sites = false;
+      render();
+    }, { copy: !state.sites ? 'Sites: Off' : state.siteArt === 'live' ? 'Sites: Live game' : 'Sites: Sketch', size: 23 });
   }
   button('Zoom out', 2052, 158, 90, 70, () => { camera.zoomBy(.8); app.renderer.render(app.stage); }, { copy: '−', size: 38 });
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
-    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.texel === 2 ? 'detailed' : state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
+    : pixelReview() ? `${VARIANTS[state.variant]} · still water · ${state.sites && state.siteArt === 'live' ? 'gold hamlets / teal markets / red monster lairs' : 'sketch sites'} · tap a region to inspect`
           : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
@@ -459,6 +466,7 @@ function drawPixelMap() {
     }
   }
   currentPixelArt = pixelArtCache.get(key);
+  liveSites = state.sites && state.siteArt === 'live' ? sampleLiveSites() : [];
   const put = (texture, bounds, density = state.texel) => {
     const node = new PIXI.Sprite(texture), p = point({ x: bounds.minX, y: bounds.minY });
     node.position.set(p.x, p.y); node.scale.set(state.flipX ? -density : density, state.flipY ? -density : density);
@@ -479,13 +487,18 @@ function drawPixelMap() {
       origin.y + Math.round((p.y - node.height - origin.y) / state.texel) * state.texel);
     node.alpha = prop.background ? .9 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
   };
-  props.filter(prop => !prop.kind.startsWith('ruin')).forEach(drawProp);
+  props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.some(site => {
+    const a = point(prop.point), b = point(site.point);
+    return Math.abs(a.x - b.x) < 60 * state.actorScale && a.y > b.y - 75 * state.actorScale && a.y < b.y + 20 * state.actorScale;
+  })).forEach(drawProp);
   currentPixelArt.stats.fogEnabled = state.fog;
   if (currentPixelArt.fogTexture && state.fog) put(currentPixelArt.fogTexture, currentPixelArt.bounds, state.texel * 4);
   // Region identity stays above stamps and atmospheric decoration.
   put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
   put(currentPixelArt.roadTexture, currentPixelArt.borderBounds);
-  props.filter(prop => prop.kind.startsWith('ruin')).forEach(drawProp);
+  if (liveSites.length) drawLiveSites();
+  else props.filter(prop => prop.kind.startsWith('ruin')).forEach(drawProp);
+  currentPixelArt.stats.liveSites = liveSites.map(({ kind, regionId }) => ({ kind, regionId }));
   const selected = map.regions.find(r => r.id === state.selected);
   for (const region of map.regions) {
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
@@ -497,11 +510,69 @@ function drawPixelMap() {
   text(root, 'ILLUSTRATED TERRAIN STUDY · DARK FANTASY ATLAS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
 }
 
+// Illustrative fixtures only. Road endpoints remain the baked sample towns.
+function sampleLiveSites() {
+  const towns = currentPixelArt.props.filter(prop => prop.kind.startsWith('ruin'));
+  const result = towns.map((prop, i) => ({ ...prop, kind: i === 1 ? 'neutral' : 'player' }));
+  const candidates = map.regions.filter(region => region.biome !== 'islands'
+    && !towns.some(town => town.regionId === region.id));
+  for (const region of candidates.filter(r => r.biome === 'swamp' || r.biome === 'mountains').concat(candidates)) {
+    if (result.filter(site => site.kind === 'monster').length >= 2) break;
+    if (result.some(site => site.regionId === region.id)) continue;
+    const p = region.centre, scale = state.actorScale;
+    // Choose fixtures in the original map orientation so flips preserve identity.
+    const fits = [-1, 0, 1].every(x => [-1, 0, 1].every(y => insidePolygon({
+      x: p.x + x * 54 * scale / mapRect.width,
+      y: p.y + (y === -1 ? -89 : y === 0 ? -36 : 18) * scale / mapRect.height,
+    }, region.outline)));
+    const roads = currentPixelArt.roadClearance;
+    const cx = (p.x - currentPixelArt.bounds.minX) * mapRect.width / state.texel;
+    const cy = (p.y - currentPixelArt.bounds.minY) * mapRect.height / state.texel;
+    let coversRoad = false;
+    for (let y = Math.floor(cy - 89 * scale / state.texel); y <= cy + 18 * scale / state.texel && !coversRoad; y++) {
+      for (let x = Math.floor(cx - 54 * scale / state.texel); x <= cx + 54 * scale / state.texel; x++) {
+        if (x >= roads.x && y >= roads.y && x < roads.x + roads.width && y < roads.y + roads.height
+          && roads.data[(y - roads.y) * roads.width + x - roads.x]) { coversRoad = true; break; }
+      }
+    }
+    if (!fits || coversRoad || result.some(site => Math.hypot((site.point.x - p.x) * mapRect.width, (site.point.y - p.y) * mapRect.height) < 155 * scale)) continue;
+    result.push({ kind: 'monster', point: p, regionId: region.id });
+  }
+  return result;
+}
+
+function drawLiveSites() {
+  for (const site of [...liveSites].sort((a, b) => point(a.point).y - point(b.point).y)) {
+    const p = point(site.point), scale = state.actorScale;
+    const group = new PIXI.Container(); group.position.set(p.x, p.y); group.scale.set(scale);
+    group.eventMode = 'none'; group.label = `live-${site.kind}-${site.regionId}`;
+    const shadow = new PIXI.Graphics().beginFill(0x171b18, .35).drawEllipse(0, -5, site.kind === 'player' ? 29 : 45, 12).endFill();
+    group.addChild(shadow);
+    if (site.kind === 'monster') {
+      const ground = new PIXI.Sprite(gameArt.ground); ground.anchor.set(.5); ground.position.set(0, -10); ground.width = 112; ground.height = 62; ground.alpha = .65;
+      const mask = new PIXI.Graphics().beginFill(0xffffff).drawEllipse(0, -10, 56, 31).endFill();
+      group.addChild(ground, mask); ground.mask = mask;
+    }
+    const sprite = new PIXI.Sprite(gameArt[site.kind]); sprite.anchor.set(.5, 0);
+    const rect = site.kind === 'player' ? { width: 58, height: 66, top: -76 }
+      : site.kind === 'neutral' ? { width: 94, height: 94, top: -79 } : { width: 106, height: 106, top: -89 };
+    const fit = Math.min(rect.width / sprite.texture.width, rect.height / sprite.texture.height);
+    sprite.scale.set(fit); sprite.position.set(0, rect.top + (rect.height - sprite.height) / 2); group.addChild(sprite);
+    const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xff886e;
+    const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 26, 17, colour,
+      { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
+    worldLayer.addChild(group);
+  }
+}
+
 function render() {
   for (const node of root.removeChildren()) node.destroy({ children: true }); targets = [];
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
   text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
+  if (pixelReview()) button('Cycle live asset scale', 1065, 40, 350, 52, () => {
+    state.actorScale = state.actorScale < 1 ? 1 : state.actorScale < 1.25 ? 1.25 : .75; render();
+  }, { copy: `Game assets: ${Math.round(state.actorScale * 100)}%`, size: 24 });
   button('Show approved base structure', 1450, 40, 306, 52, () => { state.variant = 'C'; render(); }, { copy: 'Base structure', active: !pixelReview(), size: 24 });
   button('Show atlas rendering', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
@@ -525,7 +596,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, actorScale: state.actorScale, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
@@ -579,6 +650,15 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
   setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
-prepareIllustratedArt().then(() => { fitMap(); render(); document.body.dataset.ready = 'true'; }).catch(error => {
+Promise.all([prepareIllustratedArt(), PIXI.Assets.load('images/sprite-sheets/chronicle-illustrations.json'),
+  PIXI.Assets.load('images/sprite-sheets/region-landmarks.json')]).then(([, chronicle, landmarks]) => {
+  gameArt = { player: chronicle.textures['hamlet-0.png'], neutral: landmarks.textures['neutral-market-town.png'],
+    monster: landmarks.textures['monster-lair.png'], ground: landmarks.textures['monster-ground.png'] };
+  for (const texture of Object.values(gameArt)) {
+    texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+    texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  }
+  fitMap(); render(); document.body.dataset.ready = 'true';
+}).catch(error => {
   document.body.dataset.ready = 'error'; console.error('Illustrated terrain failed to load', error);
 });

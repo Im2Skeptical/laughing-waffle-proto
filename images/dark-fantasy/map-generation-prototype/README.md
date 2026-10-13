@@ -221,3 +221,16 @@ rivers have narrower banks and channels. The static water bake separates foam
 (32–35), broken surf (40–47), shallow ripples (48–55) and stationary shoals
 (96–111). These are source structures for the later time-keyed palette pass,
 not animated effects yet. Review seeds 1867 and 1873 at Fine and phone landscape.
+
+### Live game landmark review
+
+Sites cycles between **Live game**, **Sketch**, and **Off**. Live game is the
+default: two player hamlets, one teal neutral market (where the sample towns fit),
+and up to two monster lairs with local scorched ground. Assets come directly
+from the game's existing packed chronicle and region-landmark atlases. The hamlet
+is frozen at frame zero for this static review. No generated replacement art.
+**Game assets** cycles 75%, 100%, and 125% of live map dimensions. Review pan,
+zoom, reflections, biome contrast and marker/road clearance on seeds 1867 and
+1873. Monster candidates must fit their region and avoid roads; missing viable
+sites are omitted. Fixtures illustrate placement, not a generated game state.
+Share `siteArt=live&actorScale=1` or `siteArt=sketch` in the URL.
