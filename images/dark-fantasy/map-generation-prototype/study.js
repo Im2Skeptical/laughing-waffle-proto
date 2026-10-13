@@ -4,9 +4,9 @@ import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, F
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
-import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, PIXEL_STYLES, PIXEL_COLOURS } from './pixel-terrain.js';
+import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, PIXEL_STYLES, PIXEL_COLOURS, ATLAS_COLOURS } from './pixel-terrain.js';
 
-const VARIANTS = { A: 'Regions', B: 'Geography', C: 'Terrain', D: 'Pixel · Quiet ground', E: 'Pixel · Textured ground' };
+const VARIANTS = { A: 'Regions', B: 'Geography', C: 'Terrain', D: 'Pixel · Quiet ground', E: 'Pixel · Textured ground', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
 const numberParam = (name, fallback, min, max) => params.has(name) && Number.isFinite(Number(params.get(name)))
@@ -108,7 +108,7 @@ function fitMap() {
 }
 function regenerate() { map = generateMap(state); state.selected = null; fitMap(); render(); }
 function adjust(name, step) { state[name] = Math.round(Math.max(0, Math.min(1, state[name] + step)) * 100) / 100; regenerate(); }
-function cycle(direction) { const keys = pixelReview() ? ['D', 'E'] : ['A', 'B', 'C']; state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
+function cycle(direction) { const keys = pixelReview() ? ['D', 'E', 'F'] : ['A', 'B', 'C']; state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
 
 function drawControls() {
   panel(root, 30, 144, 440, 858);
@@ -508,11 +508,11 @@ function render() {
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
   text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
   button('Show generation study', 1520, 40, 236, 52, () => { state.variant = 'C'; render(); }, { copy: 'Geography', active: !pixelReview(), size: 24 });
-  button('Show pixel rendering study', 1776, 40, 270, 52, () => { state.variant = 'D'; render(); }, { copy: 'Pixel rendering', active: pixelReview(), size: 24 });
+  button('Show pixel rendering study', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Pixel rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 372, y = 928;
-    const g = new PIXI.Graphics().beginFill(pixelReview() ? PIXEL_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
+    const g = new PIXI.Graphics().beginFill(state.variant === 'F' ? ATLAS_COLOURS[id] : pixelReview() ? PIXEL_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
     text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 31);
     text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
@@ -521,8 +521,9 @@ function render() {
   const label = text(root, `${state.variant}  /  ${VARIANTS[state.variant]}`, 1470, 1035, 29); label.anchor.set(.5);
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
   if (pixelReview()) {
-    button('Use quiet pixel ground', 514, 1008, 216, 52, () => { state.variant = 'D'; render(); }, { copy: 'Quiet', active: state.variant === 'D', size: 25 });
-    button('Use textured pixel ground', 748, 1008, 230, 52, () => { state.variant = 'E'; render(); }, { copy: 'Textured', active: state.variant === 'E', size: 25 });
+    button('Use quiet pixel ground', 514, 1008, 144, 52, () => { state.variant = 'D'; render(); }, { copy: 'Quiet', active: state.variant === 'D', size: 25 });
+    button('Use textured pixel ground', 674, 1008, 150, 52, () => { state.variant = 'E'; render(); }, { copy: 'Textured', active: state.variant === 'E', size: 25 });
+    button('Use dark fantasy atlas', 840, 1008, 144, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas', active: state.variant === 'F', size: 25 });
   } else text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   app.renderer.render(app.stage);

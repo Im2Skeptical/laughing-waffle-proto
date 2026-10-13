@@ -28,19 +28,37 @@ rotated fallback where browser orientation locking is unavailable.
 - `?variant=C`: terrain markings, subdued same-biome borders and landforms.
 - `?variant=D`: pixel **Quiet ground**, broad colour clusters and sparse details.
 - `?variant=E`: pixel **Textured ground**, authored grass/stone/pool patterns.
+- `?variant=F`: **Dark fantasy atlas**, parchment and slate with engraved relief.
 
 The **Geography / Pixel rendering** tabs switch between the two studies. Bottom
-arrows cycle A/B/C within Geography and D/E within Pixel rendering. Direct Quiet
-and Textured buttons compare the two pixel treatments on the same graph. Entering
-via D/E defaults to the seed-1867 reference settings above. Existing C URLs and
+arrows cycle A/B/C within Geography and D/E/F within Pixel rendering. Direct Quiet,
+Textured and Atlas buttons compare the treatments on the same graph. Entering
+via D/E/F defaults to the seed-1867 reference settings above. Existing C URLs and
 the generator's defaults are retained.
+
+### Dark fantasy atlas direction
+
+F responds to the user's illustrated fantasy-atlas and Elden Ring map references:
+warm aged ochres, peat/olive washes, umber ink and muted slate water. The references
+guide composition and palette; their artwork is not copied into the renderer.
+`atlas-art.js` supplies **32 original pixel engravings**: twelve asymmetric crags,
+five low hills, eight mixed woodland copses, three bare trees, three ruined sites
+and a reed stamp. Crags have uneven summit profiles, shaded faces and hatching;
+woodlands form irregular patches and clearings rather than repeating one tree.
+All art shares one nearest-sampled sprite atlas. Rendered silhouettes vary while
+the accepted footprint, biome quotas and graph remain unchanged.
+
+The atlas sea uses approximate shore-distance contours and bending etched swells,
+with the same separate ocean/river/foam index ranges as D/E. Colours change, not
+the time-sampling design. Water remains still in this review. Opaque glyph pixels
+must fit dry ground, and crags respect the existing river/coast exclusion rules.
 
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
 accepted geography on one world lattice and bakes the ground into a nearest-
 sampled, unmipmapped texture. **Fine** uses 4 design units per source texel;
 **Coarse** uses 6. Pixel size and sprite scale are fixed across region areas.
-Separate original pixel matrices provide pines, oaks, peaks, reeds, grass, stones
-and placeholder towns. Three candidate sites and a few road strokes are visual
+Separate original pixel matrices and engravings provide trees, crags, hills,
+reeds, stones and placeholder towns/ruins. Three candidate sites and a few road strokes are visual
 readability samples, with no gameplay meaning. **Sites + roads** toggles them.
 Opaque sprite pixels must fit dry ground; reflections reposition upright props
 and omit props whose reflected silhouette would overhang water. Ground patterns

@@ -3,8 +3,8 @@ import { el } from './elements.js';
 const WORKBENCHES = [
   {
     title: 'Regional map generation', folder: 'map-generation-prototype', label: 'Map',
-    description: 'Explore twenty generated regions and compare quiet or textured pixel landscapes, still water and terrain sprites in a Pixi landscape window.',
-    details: '3 geography views · 2 pixel styles · landscape fullscreen · PNG export',
+    description: 'Explore twenty generated regions and compare pixel landscapes with an engraved dark-fantasy atlas, parchment colours and slate water.',
+    details: '3 geography views · 3 pixel styles · landscape fullscreen · PNG export',
   },
   {
     title: 'Protovassal opening', folder: 'life-map-opening-prototype', label: 'Opening',

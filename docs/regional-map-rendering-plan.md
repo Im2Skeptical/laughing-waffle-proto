@@ -2,7 +2,9 @@
 
 Status: proposed, 13 October 2026. The first static rendering review is implemented
 in the isolated [Pixi workbench](../images/dark-fantasy/map-generation-prototype/README.md):
-D/E compare ground treatments, pixel size and placeholder sites. Art selection,
+D/E compare ground treatments, pixel size and placeholder sites. F adds varied
+engraved terrain silhouettes and an aged ochre/peat/slate fantasy-atlas palette
+in response to the user's visual references. Art selection,
 palette cycling and live-game generation integration remain pending.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 
