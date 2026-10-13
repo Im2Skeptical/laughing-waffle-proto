@@ -119,8 +119,10 @@ export function zoomArtStats() {
 
 export async function prepareLandmarkLods() {
   const image = new Image();
-  image.src = new URL('./assets/landmark-lod-v1.png', import.meta.url).href;
-  await image.decode();
+  await new Promise((resolve, reject) => {
+    image.onload = resolve; image.onerror = () => reject(new Error('Landmark sheet failed to load'));
+    image.src = new URL('./assets/landmark-lod-v1.png', import.meta.url).href;
+  });
   const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
   const ctx = source.getContext('2d'); ctx.drawImage(image, 0, 0);
   const pixels = ctx.getImageData(0, 0, image.width, image.height).data;

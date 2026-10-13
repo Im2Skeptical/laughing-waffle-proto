@@ -2,8 +2,10 @@
 // same categorical glyph format as the procedural artwork, on the world lattice.
 export async function loadIllustratedArt(banks) {
   const image = new Image();
-  image.src = new URL('./assets/terrain-engraving-v1.png', import.meta.url).href;
-  await image.decode();
+  await new Promise((resolve, reject) => {
+    image.onload = resolve; image.onerror = () => reject(new Error('Engraving sheet failed to load'));
+    image.src = new URL('./assets/terrain-engraving-v1.png', import.meta.url).href;
+  });
   const frames = {
     massif: [8, 18, 585, 346], peaks: [593, 125, 355, 252],
     hills: [955, 220, 325, 164], rocks: [1283, 195, 248, 190],

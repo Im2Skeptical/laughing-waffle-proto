@@ -1,5 +1,23 @@
 # Generated terrain engraving study
 
+## Composable terrain library
+
+Seven new transparent source sheets provide **110 pieces**: twelve for each of
+the five biomes, plus five for each of the ten unordered biome pairings.
+The five biome sheets use a 4-by-3 grid; the two contact sheets use a 5-by-5 grid.
+Contact columns contain continuing segments, bends, branches, gaps and end caps.
+The source paintings are original generated artwork, preserved unchanged.
+Exact generation prompts, cell names and grid metadata are recorded in
+[composable-terrain-prompts.json](composable-terrain-prompts.json).
+
+`../composable-art.js` crops alpha bounds, reduces them to the canonical pixel
+lattice and derives mirrored end caps. Those mirrors do not count as additional
+source pieces. Runtime tonal shading follows the actual ground under each texel,
+and painted blue water is removed so the authoritative water mask remains clear.
+Generated cells are combinable illustrations, not verified seamless edge tiles.
+`../terrain-collapse.js` supplies explicit semantic continuation ports; it does
+not infer pixel sockets from image boundaries.
+
 ## Landmark zoom atlas
 
 `landmark-lod-v1.png` is a new transparent 1536 × 1024 atlas generated with the

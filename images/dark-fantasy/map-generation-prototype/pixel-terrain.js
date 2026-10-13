@@ -3,6 +3,8 @@
 import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
+import { loadComposableArt, composableLibrary } from './composable-art.js';
+import { composeTerrainPaths } from './terrain-collapse.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
@@ -47,24 +49,24 @@ for (let i = 0; i < 32; i++) {
 
 const ART_BANKS = { 1: createAtlasArt(), 2: createAtlasArt(2) };
 const spriteArtCache = new Map();
-export const prepareIllustratedArt = () => loadIllustratedArt(ART_BANKS);
+export const prepareIllustratedArt = () => Promise.all([loadIllustratedArt(ART_BANKS), loadComposableArt(ART_BANKS)]);
 export function pixelSpriteTextures(texel = 4) {
   const detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   if (spriteArtCache.has(detail)) return spriteArtCache.get(detail);
-  const entries = Object.entries(ART), cell = 64 * detail, canvas = document.createElement('canvas'); canvas.width = 16 * cell; canvas.height = Math.ceil(entries.length / 16) * cell;
+  const entries = Object.entries(ART), cell = 64 * detail, columns = 32, canvas = document.createElement('canvas'); canvas.width = columns * cell; canvas.height = Math.ceil(entries.length / columns) * cell;
   const ctx = canvas.getContext('2d');
   entries.forEach(([, art], i) => art.rows.forEach((row, y) => [...row].forEach((code, x) => {
-    if (art.colours[code]) { ctx.fillStyle = art.colours[code]; ctx.fillRect(i % 16 * cell + 2 + x, Math.floor(i / 16) * cell + 2 + y, 1, 1); }
+    if (art.colours[code]) { ctx.fillStyle = art.colours[code]; ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1); }
   })));
   const base = PIXI.Texture.from(canvas).baseTexture; base.scaleMode = PIXI.SCALE_MODES.NEAREST; base.mipmap = PIXI.MIPMAP_MODES.OFF;
   const spriteArt = Object.fromEntries(entries.map(([kind, art], i) => [kind, new PIXI.Texture(base,
-    new PIXI.Rectangle(i % 16 * cell + 2, Math.floor(i / 16) * cell + 2, Math.max(...art.rows.map(r => r.length)), art.rows.length))]));
+    new PIXI.Rectangle(i % columns * cell + 2, Math.floor(i / columns) * cell + 2, Math.max(...art.rows.map(r => r.length)), art.rows.length))]));
   spriteArtCache.set(detail, spriteArt); return spriteArt;
 }
 
 const MATERIALS = [null, ...Object.keys(ATLAS_GROUND)];
 const MATERIAL_IDS = Object.fromEntries(MATERIALS.map((name, i) => [name, i]));
-const relief = prop => /crag|hill|cliff|deadwood|shore/.test(prop.kind);
+const relief = prop => /crag|hill|cliff|deadwood|shore|terrain-|contact-/.test(prop.kind);
 const samplePlane = (plane, x, y) => x < plane.x || y < plane.y || x >= plane.x + plane.width || y >= plane.y + plane.height
   ? 0 : plane.data[(y - plane.y) * plane.width + x - plane.x];
 function glyphPosition(terrain, prop, flipX, flipY) {
@@ -102,6 +104,7 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       if (art.tones) {
         const tone = art.tones[code];
         colour = tone < .5 ? mixColour(palette.a, bank[0], tone * 2) : mixColour(bank[0], palette.e, (tone - .5) * 2);
+        if (art.composable && name === 'forest') colour = mixColour(colour, tone < .5 ? 0x353b27 : 0x8d9157, .35);
       }
       if (prop.kind.includes('hill') && !art.illustrated && code !== 'a' && code !== 'b') colour = mixColour(colour, bank[2], .75);
       const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * .12));
@@ -138,7 +141,7 @@ export function pixelSpriteFits(terrain, prop, flipX, flipY) {
     if (ix < 0 || iy < 0 || ix >= width || iy >= height || terrain.waterIndices[iy * width + ix]) return false;
     if (prop.plainsOnly && samplePlane(terrain.materials, ix, iy) !== MATERIAL_IDS.plains) return false;
     if (!relief(prop) && !prop.kind.startsWith('ruin') && samplePlane(terrain.roadClearance, ix, iy)) return false;
-    if (terrain.geography && prop.kind.includes('crag') && x % 2 === 0 && y % 2 === 0) {
+    if (terrain.geography && (prop.kind.includes('crag') || prop.peak) && x % 2 === 0 && y % 2 === 0) {
       return canPlacePeak(terrain.geography, { x: terrain.bounds.minX + (ix + .5) * texel / 1576,
         y: terrain.bounds.minY + (iy + .5) * texel / 516 }, 1.5 * texel / 516);
     }
@@ -336,43 +339,12 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     const p = world(qx, qy), region = map.regions[regionIds[i]], n = noise(map.seed ^ 38571, qx, qy, 42), chance = decorationRandom(map.seed, salt + 2);
     let kind = null;
     const variant = Math.floor(decorationRandom(map.seed, salt + 3) * 12);
-    if (region?.biome === 'forest') kind = n > .34 && chance < .78 ? `copse${n > .5 ? variant % 4 : n > .4 ? 4 + variant % 2 : 6 + variant % 2}` : null;
-    else if (region?.biome === 'mountains') kind = null; // Composed along spines below.
-    else if (region?.biome === 'swamp') kind = chance < .14 ? `deadwood${variant % 3}` : chance < .38 ? 'rushes' : null;
-    else if (region?.biome === 'plains') kind = chance < .16 ? `hill${variant % 5}` : null;
-    else if (region?.biome === 'islands') kind = chance < .12 ? 'shoreScrub' : chance < .17 ? 'shoreRock' : null;
-    else if (!region) { sampleBackground(p, f); kind = chance < .12 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 || f[3] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null; }
+    if (region) continue; // Playable terrain is composed on geographic chains below.
+    sampleBackground(p, f);
+    kind = chance < .12 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 || f[3] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null;
     if (kind?.startsWith('crag') && !canPlacePeak(map.geography, p, .07)) kind = null;
     if (kind && !region) kind = `ash-${kind}`;
     if (kind) candidates.push({ kind, point: p, salt, background: !region, plainsOnly: region?.biome === 'plains' && kind.startsWith('hill') });
-  }
-  // Contact-zone silhouettes follow the shared border: coppice edges, wet
-  // thickets and foothills make material changes spatial rather than flat fills.
-  for (const edge of map.edges.filter(e => e.regions.length === 2)) {
-    const neighbours = edge.regions.map(id => map.regions.find(r => r.id === id));
-    if (neighbours[0].biome === neighbours[1].biome) continue;
-    for (const region of neighbours) {
-      if (!['forest', 'swamp', 'mountains'].includes(region.biome)) continue;
-      let travelled = 0, next = 0;
-      const centre = pixel(region.centre);
-      for (let j = 1; j < edge.points.length; j++) {
-        const a = pixel(edge.points[j - 1]), b = pixel(edge.points[j]);
-        const length = Math.hypot(b.x - a.x, b.y - a.y);
-        while (next <= travelled + length) {
-          const t = length ? (next - travelled) / length : 0;
-          const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
-          const distance = Math.hypot(centre.x - x, centre.y - y) || 1;
-          const px = Math.round(x + (centre.x - x) / distance * 10 * detail), py = Math.round(y + (centre.y - y) / distance * 10 * detail);
-          const salt = Math.imul(px, 9349) ^ Math.imul(py, 7151), i = py * width + px;
-          if (regionIds[i] === map.regions.indexOf(region) && land[i] && !waterIndices[i] && decorationRandom(map.seed, salt) > .3) {
-            const kind = region.biome === 'forest' ? `copse${6 + (salt & 1)}` : region.biome === 'swamp' ? 'deadwood0' : `hill${Math.abs(salt) % 5}`;
-            candidates.push({ kind, point: world(px, py), salt, background: false });
-          }
-          next += 24 * detail;
-        }
-        travelled += length;
-      }
-    }
   }
   // Cliffs belong to rocky coast sections, placed back from the water so their
   // complete illustrated footprint can fit land; compact outcrops fill gaps.
@@ -383,44 +355,6 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     const salt = Math.imul(x, 9371) ^ Math.imul(y, 3989);
     if (decorationRandom(map.seed, salt) < .24) candidates.push({ kind: `cliff${salt & 1}`, point: world(x, y), salt, background: false });
   }
-  const spines = [];
-  const mountainRegions = map.regions.filter(r => r.biome === 'mountains');
-  for (const region of mountainRegions) {
-    const centre = pixel(region.centre), points = region.outline.map(pixel);
-    let xx = 0, xy = 0, yy = 0;
-    for (const p of points) { const dx = p.x - centre.x, dy = p.y - centre.y; xx += dx * dx; xy += dx * dy; yy += dy * dy; }
-    const angle = .5 * Math.atan2(2 * xy, xx - yy), vx = Math.cos(angle), vy = Math.sin(angle);
-    const projections = points.map(p => (p.x - centre.x) * vx + (p.y - centre.y) * vy);
-    const start = Math.min(...projections) * .65, end = Math.max(...projections) * .65;
-    const path = Array.from({ length: 17 }, (_, n) => {
-      const t = n / 16, along = start + (end - start) * t;
-      const bend = Math.sin(t * Math.PI * 2) * Math.min(9 * detail, (end - start) * .12);
-      return world(centre.x + vx * along - vy * bend, centre.y + vy * along + vx * bend + 5 * detail);
-    });
-    spines.push({ points: path, salt: 7391 + spines.length * 853, biome: true });
-    for (const neighbour of mountainRegions.filter(r => region.neighbours.includes(r.id) && r.id > region.id)) {
-      const edge = map.edges.find(e => e.regions.includes(region.id) && e.regions.includes(neighbour.id));
-      spines.push({ points: [region.centre, edge.points[Math.floor(edge.points.length / 2)], neighbour.centre], salt: 14531 + spines.length * 653, biome: true });
-    }
-  }
-  for (const ridge of map.features.filter(f => f.type === 'ridge')) spines.unshift({ points: ridge.points, salt: 38741, biome: false });
-  for (const spine of spines) {
-    const points = spine.points.map(pixel); let travelled = 0, next = 0;
-    for (let j = 1; j < points.length; j++) {
-      const a = points[j - 1], b = points[j], length = Math.hypot(b.x - a.x, b.y - a.y);
-      while (next <= travelled + length) {
-        const t = length ? (next - travelled) / length : 0, salt = spine.salt + Math.round(next) * 79;
-        const px = a.x + (b.x - a.x) * t, py = a.y + (b.y - a.y) * t + (decorationRandom(map.seed, salt) - .5) * 6 * detail;
-        const p = world(Math.floor(px), Math.floor(py));
-        if (canPlacePeak(map.geography, p, .045)) candidates.unshift({ kind: `crag${Math.floor(decorationRandom(map.seed, salt + 1) * 12)}`, point: p, salt, range: true, background: false });
-        const foothill = world(Math.floor(px - 8 * detail), Math.floor(py + 10 * detail));
-        candidates.push({ kind: `hill${Math.floor(decorationRandom(map.seed, salt + 2) * 5)}`, point: foothill, salt, background: false });
-        next += (18 + decorationRandom(map.seed, salt + 3) * 7) * detail;
-      }
-      travelled += length;
-    }
-  }
-
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));
     const left = Math.round(p.x - w / 2), top = Math.round(p.y - art.rows.length);
@@ -429,7 +363,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const px = left + x, py = top + y, i = py * width + px;
       if (px < 0 || py < 0 || px >= width || py >= height || !land[i] || waterIndices[i]) return false;
       if (prop.plainsOnly && materialAt(px, py) !== 'plains') return false;
-      return !prop.kind.includes('crag') || x % 2 !== 0 || y % 2 !== 0 || canPlacePeak(map.geography, world(px, py), 1.5 * texel / 516);
+      return !(prop.kind.includes('crag') || prop.peak) || x % 4 !== 0 || y % 4 !== 0 || canPlacePeak(map.geography, world(px, py), 1.5 * texel / 516);
     }));
   };
   const towns = sites ? map.regions.filter(r => r.biome !== 'islands').filter((r, i) => i === 2 || i === 7 || i === 12)
@@ -508,6 +442,14 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       crossing = river;
     }
   }
+  // Replace playable scatter with connected terrain compositions. Existing
+  // background engraving and coastal accents remain; towns keep their anchors.
+  const composition = composeTerrainPaths({ map, art: ART, pixel, world, detail,
+    // Road corridors stencil individual pixels in reliefSpriteTextures; they
+    // create passes instead of rejecting an entire connecting landscape piece.
+    legal: fitsLand });
+  const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin') || prop.kind.startsWith('cliff'));
+  props.splice(0, props.length, ...retained, ...composition.props);
   interactions.bridge = bridges;
   interactions.rockyShore = props.filter(p => p.kind.startsWith('cliff')).length;
   interactions.softShore = map.geography.coasts.filter(c => !c.rocky).length;
@@ -575,7 +517,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
 
   return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
-    roads: roads.length, bridges, interactions, coastalEffects, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: spines.length, rangeMassifs: props.filter(p => p.range).length,
+    roads: roads.length, bridges, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
     textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 6 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still water; independent index ranges retained' } };
 }

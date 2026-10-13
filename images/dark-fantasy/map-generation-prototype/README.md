@@ -1,5 +1,42 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Connected terrain composition review
+
+The current atlas replaces playable-area stamp scatter with geography-led
+chains. A new [110-piece library](assets/README.md) contains twelve pieces per
+biome and five per biome pairing. Source forms include woodland walls, ridges,
+gullies, reed banks, dunes, broken escarpments, gaps and end caps. Existing
+charcoal background engraving and rocky shore accents remain.
+
+`terrain-collapse.js` uses a simple tiled Wave Function Collapse model along
+shared borders, long geographic features, inland coastal corridors and each
+region's principal axis. Legal domains respect the actual land/water mask and
+mountain gorge exclusions. Earlier corridors constrain later domains before
+collapse; pieces are never removed afterward to resolve collisions. The solver
+propagates matching ports, chooses low-entropy cells using seeded weights and
+backtracks when necessary. Diagnostics report placements, gaps and contradictions.
+This is a path model, not a full two-dimensional overlapping tile solver;
+branch-shaped artwork is decorative rather than an additional solved branch.
+Generated art does not guarantee pixel-perfect seams.
+
+Terrain colour samples the owning material per pixel, allowing contact pieces
+to span a biome division without carrying an unrelated yellow ground patch.
+Road masks cut passes through relief. Existing settlement ground treatments and
+vegetation clearances remain. All placements belong to the canonical bake;
+zoom changes sampling only. The approved Base structure view is unchanged.
+Simulation state, game RNG, schemas, replay and live-game rendering are untouched.
+Ocean composition remains static pending the time-keyed palette review.
+
+Validation: `node images/dark-fantasy/map-generation-prototype/terrain-collapse-check.mjs`
+checks deterministic connected corridors, masked gaps and contradictions across
+80 seeds. Run the browser persistence check below on seeds 1867 and 1873, including
+reflections. Inspect Fit and close zoom, coastline clearance, mountain/river gaps,
+the readable road network and site surroundings. New source sheets contain
+110 nonempty alpha cells; their source PNGs total about 21 MiB, so this is still a
+prototype art library rather than a mobile loading/performance sign-off.
+
+Algorithm reference: [WaveFunctionCollapse's simple tiled model](https://github.com/mxgmn/WaveFunctionCollapse).
+
 Run `npm run preview:map`, then open
 <http://localhost:5184/images/dark-fantasy/map-generation-prototype/>.
 Also linked from **Development Lab → Prototypes → Regional map generation**.

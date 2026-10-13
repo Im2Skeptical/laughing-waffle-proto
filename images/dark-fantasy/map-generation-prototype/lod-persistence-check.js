@@ -2,7 +2,11 @@
 export async function verifyTerrainPersistence() {
   const state = mapWorkbench.state, camera = mapWorkbench.camera;
   const capture = async () => {
-    const image = new Image(); image.src = mapWorkbench.exportPng(); await image.decode();
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = resolve; image.onerror = () => reject(new Error('Persistence capture failed to load'));
+      image.src = mapWorkbench.exportPng();
+    });
     const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 450;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 700, 260, 1000, 450, 0, 0, 1000, 450);
