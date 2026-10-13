@@ -1,6 +1,6 @@
 // Disposable presentation routes between sample sites. No gameplay connections.
 // Search the already-baked land lattice; the generator and its RNG stay untouched.
-export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds }) {
+export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1 }) {
   const step = 2, minX = Math.max(0, bounds.minX), minY = Math.max(0, bounds.minY);
   const cols = Math.ceil((Math.min(width, bounds.maxX) - minX) / step), rows = Math.ceil((Math.min(height, bounds.maxY) - minY) / step);
   const size = cols * rows, costs = new Float32Array(size);
@@ -76,5 +76,37 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
     }
     if (!joined) break;
   }
-  return paths;
+  return paths.map(path => {
+    if (path.length < 3) return path;
+    const wet = p => waterIndices[Math.round(p.y) * width + Math.round(p.x)] >= 16 && waterIndices[Math.round(p.y) * width + Math.round(p.x)] <= 23;
+    const clear = (a, b) => {
+      const count = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y)));
+      for (let n = 0; n <= count; n++) if (!dry(Math.round(a.x + (b.x - a.x) * n / count), Math.round(a.y + (b.y - a.y) * n / count))) return false;
+      return true;
+    };
+    let shaped = path.map(p => ({ ...p }));
+    // Relax lattice corners, keeping bridge samples fixed and checking every
+    // replacement segment against real land. Narrow isthmuses stay intact.
+    for (let pass = 0; pass < 16; pass++) {
+      const next = shaped.map(p => ({ ...p }));
+      for (let n = 1; n < shaped.length - 1; n++) {
+        if (wet(path[n])) continue;
+        const a = shaped[n - 1], p = shaped[n], b = shaped[n + 1];
+        const q = { x: (a.x + p.x * 2 + b.x) / 4, y: (a.y + p.y * 2 + b.y) / 4 };
+        if (!wet(q) && clear(a, q) && clear(q, b)) next[n] = q;
+      }
+      shaped = next;
+    }
+    const original = shaped.map(p => ({ ...p })); let distance = 0;
+    for (let n = 1; n < shaped.length - 1; n++) {
+      const a = original[n - 1], p = original[n], b = original[n + 1];
+      distance += Math.hypot(p.x - a.x, p.y - a.y);
+      if (wet(p)) continue;
+      const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const bend = Math.sin(distance / (19 * scale)) * Math.sin(Math.PI * n / (shaped.length - 1)) * 2.5 * scale;
+      const q = { x: p.x - (b.y - a.y) / length * bend, y: p.y + (b.x - a.x) / length * bend };
+      if (!wet(q) && clear(shaped[n - 1], q) && clear(q, shaped[n + 1])) shaped[n] = q;
+    }
+    return shaped.map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+  });
 }

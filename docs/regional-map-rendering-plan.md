@@ -102,6 +102,14 @@ coastal strata, shore stones and feature marks, preserving symbol world size.
 A bounded detailed bake overlays a cheaper distant backdrop so panning does
 not require one oversized high-resolution texture.
 
+The first hybrid illustration pass now consumes a generated transparent terrain
+sheet through curated large/medium/small frames, with procedural sites, reeds,
+roads, riverbanks and shore treatments. Roads receive land-checked corner
+relaxation, gentle bends, textured verges and fixed river crossings. Shared
+interaction treatments cover bridges, passes, existing gorges/estuaries, rocky
+or soft coasts and woodland fringes. This is a prototype art-language trial;
+asset coverage and intersection composition still need visual review.
+
 The current prototype colours relief per texel from the underlying biome, with
 softened foothill feet and upright, material-correct reflections. Plains hill
 scatter stays inside plains. Sample roads connect reachable sites over dry

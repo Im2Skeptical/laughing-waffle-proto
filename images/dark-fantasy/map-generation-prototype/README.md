@@ -43,13 +43,16 @@ F responds to the user's illustrated fantasy-atlas and Elden Ring map references
 warm aged ochres, olive woodland, grey peat wetlands, subtly reddish umber mountain relief
 and muted slate-green water. The references
 guide composition and palette; their artwork is not copied into the renderer.
-`atlas-art.js` supplies **38 original pixel engravings**: eighteen asymmetric massifs,
-five low hills, eight mixed woodland copses, three bare trees, three ruined sites
-and a reed stamp, plus **27 ash-grey variants** for the dead hinterland. Twelve
-large 42–51 by 28–32 texel massifs compose three or four overlapping peaks;
-six compact 28 by 22 texel groups fit cramped land. Open irregular feet, broken
-ridge strokes, warm light faces and umber hatching replace closed triangular
-stickers and white caps. Rounded 7–8 texel hills sit on their flanks.
+The current hybrid pass uses a generated transparent engraving sheet, curated
+into twelve source frames by `illustrated-art.js`. Large massifs and woodland
+masses, medium copses and foothills, and small trees/outcrops provide a hierarchy
+of forms. Runtime resampling places them on the same world pixel lattice; a
+compact colour palette retains the illustrated hatching. `atlas-art.js` still
+supplies procedural site icons and reed accents. Generated source art and the
+exact built-in generation prompt are recorded in [assets/README.md](assets/README.md).
+The source PNG is unchanged; cropping, palette reduction and biome shading are
+part of the renderer. Mountain, hill, marsh and cliff engravings take the colour
+of the ground beneath each pixel, with charcoal treatment in dead hinterland.
 Mountain regions follow winding visual spines along each region's long axis,
 joined through shared borders to neighbouring mountain regions. The geographic
 range supplies an additional spine. Groups overlap along these paths rather
@@ -87,22 +90,29 @@ must fit dry ground, and crags respect the existing river/coast exclusion rules.
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
 accepted geography on one world lattice and bakes the ground into a nearest-
 sampled, unmipmapped texture. **Detail** is the new default: 2 design units per source texel, twice the
-linear resolution of **Fine** (4); **Coarse** uses 6. Detail redraws the
-engravings at double resolution with finer rock hatching, face ledges and
-woodland canopy marks while preserving their world sizes. Coastlines receive
+linear resolution of **Fine** (4); **Coarse** uses 6. Detail samples the
+generated engravings at double resolution while preserving their world sizes. Coastlines receive
 broken cliff strata, beach stipple and lit shore stones along the land mask.
 The detailed ground covers the playable map plus a generous hinterland
 (normalized -1.5 to 2.5), backed by a distant 8-unit bake for unrestricted pan.
 Its main texture is 3152 by 1032, below a 4096-pixel texture limit; the main
 RGBA texture uses about 12.4 MiB plus 4.4 MiB for the distant backdrop.
 Choose Detail/Fine/Coarse with **Pixels**, or share `texel=2`, `4` or `6`. Pixel size and sprite scale are fixed across region areas.
-Separate original pixel matrices and engravings provide trees, crags, hills,
+Generated terrain engravings and remaining procedural glyphs provide trees, crags, hills,
 reeds, stones and placeholder towns/ruins. Three candidate sites and connecting roads are visual readability samples,
 with no gameplay meaning. `roads.js` routes over the baked playable land lattice,
 preferring easier terrain and short river crossings. Ocean-separated sites stay
-disconnected. Warm pale road centres with dark verges render above terrain and
-region divisions but below sites; vegetation clears their corridor and relief
-opens into passes. River crossings receive short bridge planks. Routing and
+disconnected. Routes relax grid corners and gain bounded gentle bends, checking each
+replacement segment against dry land. Warm pale road centres, softened dark
+verges and broken wheel marks render above terrain and region divisions but
+below sites; vegetation clears their corridor and relief
+opens into passes. River crossings receive bridge planks and keep their crossing anchors.
+Riverbanks use local terrain shades and riparian marks. Rocky shore sections
+receive stratified strokes and illustrated outcrops; soft shores retain beach
+stipple. Woodland transitions gain a broken fringe beneath tree groups.
+Rendering diagnostics expose bridge, mountain-pass, gorge, estuary, rocky/soft
+shore and woodland-fringe classifications. These are shared treatments, not an
+exhaustive asset for every possible terrain combination. Routing and
 road textures rebuild only with the terrain bake, never during camera movement. **Sites + roads** toggles them.
 Opaque sprite pixels must fit dry ground; reflections reposition upright props
 and omit props whose reflected silhouette would overhang water. Ground patterns

@@ -4,7 +4,7 @@ import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, F
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
-import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, ATLAS_COLOURS } from './pixel-terrain.js';
+import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
 
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
@@ -494,7 +494,7 @@ function drawPixelMap() {
     const g = new PIXI.Graphics().lineStyle(4, 0xf5df98, .9).drawPolygon(polygonPoints(selected.outline)); worldLayer.addChild(g);
     const p = point(selected.centre), label = text(worldLayer, selected.id, p.x, p.y - 34, 25, 0xffedc2, { stroke: 0x203c35, strokeThickness: 5 }); label.anchor.set(.5);
   }
-  text(root, 'STATIC PIXEL STUDY · DARK FANTASY ATLAS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
+  text(root, 'ILLUSTRATED TERRAIN STUDY · DARK FANTASY ATLAS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
 }
 
 function render() {
@@ -579,4 +579,6 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
   setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
-fitMap(); render(); document.body.dataset.ready = 'true';
+prepareIllustratedArt().then(() => { fitMap(); render(); document.body.dataset.ready = 'true'; }).catch(error => {
+  document.body.dataset.ready = 'error'; console.error('Illustrated terrain failed to load', error);
+});
