@@ -4,7 +4,11 @@ Status: proposed, 13 October 2026. The first static rendering review is implemen
 in the isolated [Pixi workbench](../images/dark-fantasy/map-generation-prototype/README.md):
 D/E compare ground treatments, pixel size and placeholder sites. F adds varied
 engraved terrain silhouettes and an aged ochre/peat/slate fantasy-atlas palette
-in response to the user's visual references. Art selection,
+in response to the user's visual references. Its follow-up separates tall peaks
+from rounded hills, strengthens biome and region readability, replaces sea
+contours with depth shading, and renders a charcoal dead hinterland beneath a
+separate switchable static fog layer. Future fog animation must sample absolute
+viewed time independently of the ground bake, like water. Art selection,
 palette cycling and live-game generation integration remain pending.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 

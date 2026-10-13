@@ -1,21 +1,21 @@
-// Disposable static art study: one world pixel lattice, two ground treatments.
+// Disposable static art study: one world pixel lattice, three ground treatments.
 // Geography stays authoritative. No ticker, simulation events or mutable RNG.
 import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 
 export const PIXEL_STYLES = { D: 'Quiet ground', E: 'Textured ground', F: 'Dark fantasy atlas' };
 export const PIXEL_COLOURS = { plains: 0xb5ad72, forest: 0x557451, islands: 0x54858a, swamp: 0x697761, mountains: 0x969585 };
-export const ATLAS_COLOURS = { plains: 0xb9a37d, forest: 0x7c7859, islands: 0x7d9190, swamp: 0x797960, mountains: 0xb6a58a };
+export const ATLAS_COLOURS = { plains: 0xc3aa6d, forest: 0x617251, islands: 0x487e86, swamp: 0x766379, mountains: 0xa2a1ac };
 const ATLAS_GROUND = {
-  plains: [0x9f8c6a, 0xb09b77, 0xb9a37d, 0xc4b18a],
-  forest: [0x625e43, 0x777252, 0x89805d, 0x9d8f6b],
-  islands: [0x9c9875, 0xaca17e, 0xb9ad86, 0xc9ba92],
-  swamp: [0x64644f, 0x73725a, 0x838068, 0x948d70],
-  mountains: [0x8b7e65, 0x9f8f74, 0xb3a183, 0xc4b494],
-  highlands: [0x796d56, 0x8b7c61, 0x9c8b6d, 0xab9a7c],
-  marsh: [0x62634f, 0x70705a, 0x7e7c64, 0x8d8770],
-  scrub: [0x786f53, 0x887c5d, 0x988868, 0xa89675],
-  badlands: [0x857151, 0x98815c, 0xaa926e, 0xb9a17c],
+  plains: [0xa78e56, 0xb69c61, 0xc3aa6d, 0xcfb981],
+  forest: [0x465a41, 0x546648, 0x617251, 0x73815c],
+  islands: [0x899e82, 0x9cac8c, 0xadb897, 0xbdc3a5],
+  swamp: [0x584e60, 0x665a6c, 0x766379, 0x847187],
+  mountains: [0x82818e, 0x91909d, 0xa2a1ac, 0xb4b2b8],
+  highlands: [0x25292e, 0x30353c, 0x3d434b, 0x4b5159],
+  marsh: [0x202429, 0x2b2f36, 0x363b42, 0x454b51],
+  scrub: [0x242728, 0x2f3435, 0x3c4142, 0x4a5051],
+  badlands: [0x252527, 0x323235, 0x404044, 0x505054],
 };
 const GROUND = {
   plains: [0x8d945f, 0xa7a46a, 0xb5ad72, 0xc4b980],
@@ -30,14 +30,20 @@ const GROUND = {
 };
 // Explicit water indices survive the static bake for the subsequent cycle study.
 // Zero = dry. Ocean 1..8, river 16..23, foam 32..35 are separate ranges.
-// Deep-water index 9 stays fixed, so cycling does not flash the entire ocean.
+// Index 9 and Atlas depth shades 64..95 stay fixed during surface cycling.
 const WATER = [0, 0x203e50, 0x244758, 0x2a5261, 0x325e6a, 0x3d6b75, 0x4b7b81, 0x588b8b, 0x659595];
 WATER[9] = WATER[1];
 for (let i = 0; i < 8; i++) WATER[16 + i] = [0x315969, 0x3a6773, 0x477981, 0x578c8e, 0x6b9b98, 0x578c8e, 0x477981, 0x3a6773][i];
 for (let i = 0; i < 4; i++) WATER[32 + i] = [0x75a29b, 0x96b9aa, 0xb6cbb3, 0x96b9aa][i];
-const ATLAS_WATER = [0, 0x647b7c, 0x6f8585, 0x7b908d, 0x899d97, 0x9cac9f, 0xacb9a9, 0xbcc4b0, 0xc5ccb7, 0x637777];
+const ATLAS_WATER = [0, 0x294a58, 0x305764, 0x396370, 0x416e79, 0x497a82, 0x53848a, 0x608e92, 0x739d9d,
+  0x263f4e, 0x2e4d5b, 0x365e69, 0x41747c, 0x53898c];
 for (let i = 0; i < 8; i++) ATLAS_WATER[16 + i] = [0x586d71, 0x657e81, 0x7b9391, 0x9aaea2, 0xb9c5af, 0x9aaea2, 0x7b9391, 0x657e81][i];
-for (let i = 0; i < 4; i++) ATLAS_WATER[32 + i] = [0x778d87, 0x97a59a, 0xadb6a4, 0x97a59a][i];
+for (let i = 0; i < 4; i++) ATLAS_WATER[32 + i] = [0x719b97, 0x8aaba0, 0xa8bdab, 0x8aaba0][i];
+// Stationary depth shades use a separate bank from the cycling surface marks.
+for (let i = 0; i < 32; i++) {
+  const t = i / 31;
+  ATLAS_WATER[64 + i] = (Math.round(38 + 45 * t) << 16) | (Math.round(63 + 74 * t) << 8) | Math.round(78 + 62 * t);
+}
 
 // Small original pixel matrices. Each character is one authored texel.
 const ART = {
@@ -158,7 +164,7 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
       }
     }
   }
-  // Manhattan shore distances: categorical pixels never blend palette indices.
+  // Manhattan distances in D/E; chamfer distances in F. Indices remain categorical.
   const seaDistance = new Uint8Array(size), dryDistance = new Uint8Array(size);
   const unit = atlas ? 3 : 1, cap = atlas ? 108 : 8;
   for (let i = 0; i < size; i++) { seaDistance[i] = land[i] ? 0 : cap; dryDistance[i] = land[i] ? cap : 0; }
@@ -174,20 +180,24 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
   }
   const waveX = Float32Array.from({ length: width }, (_, x) => Math.sin(x / 27) * 3);
   const waveXY = Float32Array.from({ length: width + height }, (_, i) => Math.sin(i / 61) * 2);
-  const coastalRings = [3, 6, 10, 15, 22, 30];
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
     if (!land[i]) {
       const phase = ((x + (y >> 2)) % 8 + 8) % 8;
       const ripple = y % 13 === Math.floor(x / 11) % 4 && x % 19 < 9;
       if (atlas) {
-        const depth = Math.floor(seaDistance[i] / 3);
-        const swell = ((y + Math.round(waveX[x] + waveXY[x + y])) % 25 + 25) % 25;
-        waterIndices[i] = depth <= 1 ? 32 + phase % 4 : depth < 4 ? 2 : coastalRings.includes(depth) && depth < 36 ? 4 + (phase % 2)
-          : swell === 0 ? 3 : swell === 1 ? 1 : 9;
+        const texture = noise(map.seed ^ 21913, x, y, 24), broad = noise(map.seed ^ 9071, x, y, 75);
+        const depth = seaDistance[i] / 3 + (texture - .5) * 4;
+        const swell = ((y + Math.round(waveX[x] * 2 + waveXY[x + y] * 2 + broad * 12)) % 19 + 19) % 19;
+        // Broken surface highlights over depth washes, with no cartographic rings.
+        const depthShade = .82 * Math.exp(-Math.max(0, depth) / 9) + .18 * broad;
+        waterIndices[i] = seaDistance[i] <= 3 && texture > .38 ? 32 + phase % 4
+          : swell === 0 && texture > .7 && broad > .4 ? 1 + phase
+            : 64 + Math.min(31, Math.floor(depthShade * 31));
       } else waterIndices[i] = seaDistance[i] === 1 ? 32 + phase % 4 : seaDistance[i] < 4 ? 4 + phase % 4 : ripple ? 2 + phase % 3 : 9;
     } else if (dryDistance[i] <= 2 * unit) {
-      colours[i] = atlas ? dryDistance[i] <= unit ? 0x65573f : 0x9d8a65 : dryDistance[i] === 1 ? 0xb8b080 : 0x989d6c;
+      colours[i] = atlas ? regionIds[i] < 0 ? dryDistance[i] <= unit ? 0x161b20 : 0x353c42
+        : dryDistance[i] <= unit ? 0x65573f : 0x9d8a65 : dryDistance[i] === 1 ? 0xb8b080 : 0x989d6c;
     }
   }
   const put = (x, y, colour, water = 0, onlyDry = false) => {
@@ -250,12 +260,13 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
     if (atlas) {
       const variant = Math.floor(decorationRandom(map.seed, salt + 3) * 12);
       if (region?.biome === 'forest') kind = n > .38 && chance < .88 ? `copse${variant % 8}` : null;
-      else if (region?.biome === 'mountains') kind = chance < .47 && n > .3 && canPlacePeak(map.geography, p, .07) ? `crag${variant}` : chance < .62 ? `hill${variant % 5}` : null;
+      else if (region?.biome === 'mountains') kind = chance < .42 && n > .3 && canPlacePeak(map.geography, p, .07) ? `crag${variant}` : null;
       else if (region?.biome === 'swamp') kind = chance < .3 ? `deadwood${variant % 3}` : chance < .5 ? 'rushes' : null;
       else if (region?.biome === 'plains') kind = chance < .16 ? `hill${variant % 5}` : null;
       else if (region?.biome === 'islands') kind = chance < .28 ? `copse${variant % 8}` : null;
-      else if (!region) { sampleBackground(p, f); kind = chance < .13 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null; }
+      else if (!region) { sampleBackground(p, f); kind = chance < .24 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 || f[3] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null; }
       if (kind?.startsWith('crag') && !canPlacePeak(map.geography, p, .07)) kind = null;
+      if (kind && !region) kind = `ash-${kind}`;
     }
     if (kind) candidates.push({ kind, point: p, salt, background: !region });
   }
@@ -265,7 +276,10 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
       const a = points[i - 1], b = points[i], length = Math.hypot(b.x - a.x, b.y - a.y);
       for (; remaining < length; remaining += 13 * 4 / texel) {
         const t = remaining / length, p = world(Math.floor(a.x + (b.x - a.x) * t), Math.floor(a.y + (b.y - a.y) * t));
-        if (canPlacePeak(map.geography, p, .075)) candidates.push({ kind: atlas ? `crag${Math.floor(decorationRandom(map.seed, i * 831 + Math.round(remaining)) * 12)}` : 'peak', point: p, salt: i, background: false });
+        if (canPlacePeak(map.geography, p, .075)) {
+          const candidate = { kind: atlas ? `crag${Math.floor(decorationRandom(map.seed, i * 831 + Math.round(remaining)) * 12)}` : 'peak', point: p, salt: i, background: false };
+          if (atlas) candidates.unshift(candidate); else candidates.push(candidate);
+        }
       }
       remaining -= length;
     }
@@ -287,6 +301,8 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
   }
   for (const candidate of candidates) {
     if (!fitsLand(candidate)) continue;
+    if (atlas && candidate.kind.includes('crag') && props.some(q => q.kind.includes('crag')
+      && Math.hypot((q.point.x - candidate.point.x) * 1576 / texel, (q.point.y - candidate.point.y) * 516 / texel) < 17)) continue;
     if (towns.some(t => Math.hypot((t.point.x - candidate.point.x) * 1576 / texel, (t.point.y - candidate.point.y) * 516 / texel) < 16)) continue;
     props.push(candidate);
   }
@@ -299,13 +315,21 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
   const borderCtx = borderCanvas.getContext('2d');
   for (const edge of map.edges) {
     const same = edge.regions.length === 2 && map.regions.find(r => r.id === edge.regions[0]).biome === map.regions.find(r => r.id === edge.regions[1]).biome;
-    borderCtx.fillStyle = atlas ? '#65563e' : edge.regions.length === 1 ? '#c0bc8a' : '#384d40'; borderCtx.globalAlpha = same ? .22 : edge.regions.length === 1 ? .55 : .4;
+    borderCtx.fillStyle = atlas ? '#242829' : edge.regions.length === 1 ? '#c0bc8a' : '#384d40';
+    borderCtx.globalAlpha = atlas ? .8 : same ? .22 : edge.regions.length === 1 ? .55 : .4;
     const points = edge.points.map(pixel);
     for (let j = 1; j < points.length; j++) {
       const a = points[j - 1], b = points[j], steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y)));
       for (let s = 0; s <= steps; s++) {
         const x = Math.floor(a.x + (b.x - a.x) * s / steps), y = Math.floor(a.y + (b.y - a.y) * s / steps);
-        if ((!same || (x + y) % 4 < 2) && land[y * width + x] && !waterIndices[y * width + x]) borderCtx.fillRect(x - bx, y - by, 1, 1);
+        if (atlas) {
+          // Gameplay divisions remain visible across water-rich Island regions.
+          borderCtx.fillRect(x - bx, y - by, 1, 1);
+          borderCtx.fillStyle = edge.regions.length === 1 ? '#d3bc81' : '#c5b28a';
+          borderCtx.globalAlpha = edge.regions.length === 1 ? .7 : .48;
+          borderCtx.fillRect(x - bx + 1, y - by + 1, 1, 1);
+          borderCtx.fillStyle = '#242829'; borderCtx.globalAlpha = .8;
+        } else if ((!same || (x + y) % 4 < 2) && land[y * width + x] && !waterIndices[y * width + x]) borderCtx.fillRect(x - bx, y - by, 1, 1);
       }
     }
   }
@@ -320,7 +344,27 @@ export function bakePixelTerrain(map, { texel = 4, style = 'D', sampleBackground
   }
   ctx.putImageData(image, 0, 0);
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
-  return { texture, borderTexture, borderBounds, props, bounds, waterIndices, stats: { style, texel, width, height, props: props.length, sites: towns.length,
-    palette: atlas ? 'Aged ochre, peat, umber and slate' : 'Original pixel palette', glyphKinds: new Set(props.map(p => p.kind)).size,
+  let fogTexture = null;
+  if (atlas) {
+    const fog = document.createElement('canvas'); fog.width = Math.ceil(width / 4); fog.height = Math.ceil(height / 4);
+    const fogCtx = fog.getContext('2d'), fogImage = fogCtx.createImageData(fog.width, fog.height);
+    for (let y = 0; y < fog.height; y++) for (let x = 0; x < fog.width; x++) {
+      const px = x * 4, py = y * 4, offset = (y * fog.width + x) * 4;
+      // Clear a margin around playable polygons; fog never obscures region detail.
+      let playable = false;
+      for (let dy = -8; dy <= 8; dy += 4) for (let dx = -8; dx <= 8; dx += 4) {
+        const sx = px + dx, sy = py + dy;
+        if (sx >= 0 && sy >= 0 && sx < width && sy < height && regionIds[sy * width + sx] >= 0) playable = true;
+      }
+      const cloud = noise(map.seed ^ 3831, px, py, 100) * .7 + noise(map.seed ^ 8591, px, py, 38) * .3;
+      fogImage.data[offset] = 151; fogImage.data[offset + 1] = 164; fogImage.data[offset + 2] = 169;
+      fogImage.data[offset + 3] = playable ? 0 : Math.max(0, cloud - .3) * (land[Math.min(size - 1, py * width + px)] ? 110 : 25);
+    }
+    fogCtx.putImageData(fogImage, 0, 0); fogTexture = PIXI.Texture.from(fog);
+    fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  }
+  return { texture, borderTexture, borderBounds, fogTexture, props, bounds, waterIndices, stats: { style, texel, width, height, props: props.length, sites: towns.length,
+    palette: atlas ? 'Ochre plains, moss forest, plum wetlands, slate peaks; charcoal hinterland' : 'Original pixel palette', glyphKinds: new Set(props.map(p => p.kind)).size,
+    fog: atlas ? 'Separate static cloud overlay; toggle without rebaking' : null, fogTextureMiB: atlas ? +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1) : 0,
     textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still water; independent index ranges retained' } };
 }

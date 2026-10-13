@@ -39,18 +39,31 @@ the generator's defaults are retained.
 ### Dark fantasy atlas direction
 
 F responds to the user's illustrated fantasy-atlas and Elden Ring map references:
-warm aged ochres, peat/olive washes, umber ink and muted slate water. The references
+warm aged ochres, moss-green forest, plum-grey wetlands, pale slate mountains
+and muted teal water. The references
 guide composition and palette; their artwork is not copied into the renderer.
 `atlas-art.js` supplies **32 original pixel engravings**: twelve asymmetric crags,
 five low hills, eight mixed woodland copses, three bare trees, three ruined sites
-and a reed stamp. Crags have uneven summit profiles, shaded faces and hatching;
+and a reed stamp, plus **21 ash-grey variants** for the dead hinterland. Crags
+have tall continuous slopes, pale summits, shaded faces and hatching; their
+23–28 texel height contrasts with rounded 7–8 texel hills. Mountains no longer
+scatter hill stamps, and peak spacing prevents dense overlapping silhouettes;
 woodlands form irregular patches and clearings rather than repeating one tree.
 All art shares one nearest-sampled sprite atlas. Rendered silhouettes vary while
 the accepted footprint, biome quotas and graph remain unchanged.
 
-The atlas sea uses approximate shore-distance contours and bending etched swells,
-with the same separate ocean/river/foam index ranges as D/E. Colours change, not
-the time-sampling design. Water remains still in this review. Opaque glyph pixels
+The atlas sea uses a depth wash with 32 stationary shades and sparse broken
+surface highlights instead of cartographic contour rings. The original separate
+ocean/river/foam index ranges remain available. Water remains still in this
+review. Region divisions use dark ink with a fine warm highlight above terrain
+stamps, including equal-biome neighbours and water-rich Island regions.
+Unplayable land uses black/grey badlands, dead scrub, peat marsh and ash highlands;
+these are visual treatments of the existing background field. A separate,
+smoothly sampled static cloud texture sits above those stamps, clearing a margin
+around playable regions. **Hinterland fog** toggles it without rebaking; `fog=0`
+shares the clear view. The overlay adds about 1.1 MiB at Fine, 0.5 MiB at Coarse.
+It has no wall-clock animation. Later fog motion should sample the same absolute
+viewed time as water, outside the ground bake. Opaque glyph pixels
 must fit dry ground, and crags respect the existing river/coast exclusion rules.
 
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
@@ -74,8 +87,8 @@ disclosure reports grid dimensions, source texel size, texture/index-plane memor
 prop counts and desktop bake duration. The static bake retains explicit ocean
 indices 1–8, river indices 16–23 and foam indices 32–35 for the subsequent palette
 cycling experiment. There is no animation clock or palette shader in this pass.
-Deep-water index 9 is stationary, so a future cycle need not pulse the ocean's
-entire background colour.
+Deep-water index 9 is stationary in D/E; F uses stationary depth indices 64–95,
+so a future cycle need not pulse the ocean's entire background colour.
 Do not run the encoded index plane through ordinary atlas colour quantization.
 
 Review at **844 x 390** landscape, fullscreen, Fit and close zoom, using seeds

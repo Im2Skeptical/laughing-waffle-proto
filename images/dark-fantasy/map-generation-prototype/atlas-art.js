@@ -2,7 +2,8 @@
 // Fixed silhouettes and hatching; no borrowed map artwork or simulation RNG.
 import { decorationRandom } from './generator.js';
 
-const STONE = { a: '#40382e', b: '#78694f', c: '#a59271', d: '#c3b492', e: '#d6c9a8', f: '#8c7d60' };
+const STONE = { a: '#33343a', b: '#62616a', c: '#99969a', d: '#beb9ad', e: '#e0d9c6', f: '#80786e' };
+const HILL = { a: '#756747', b: '#92835a', c: '#b1a071', d: '#bfae7b', f: '#9c8c62' };
 const WOOD = { a: '#39392c', b: '#55563e', c: '#787652', d: '#9a9167', e: '#64563d', f: '#9b8c68' };
 function engraving(width, height, colours) {
   const grid = Array.from({ length: height }, () => new Array(width).fill('.'));
@@ -33,18 +34,17 @@ function engraving(width, height, colours) {
 
 export function createAtlasArt() {
   const art = {};
-  // Different summit profiles: double crag, tilted needle, broad massif, broken
-  // ridge and blunt escarpment. Variation changes form, not only scale or tint.
+  // Tall continuous slopes distinguish peaks from the low rounded hill family.
   const profiles = [
-    [[0, 1], [.1, .69], [.21, .7], [.42, .04], [.53, .43], [.68, .23], [.82, .62], [1, 1]],
-    [[0, 1], [.24, .66], [.48, .12], [.58, .4], [.68, .09], [.72, .42], [.88, .65], [1, 1]],
-    [[0, 1], [.12, .6], [.28, .28], [.47, .24], [.53, .12], [.68, .22], [.75, .51], [.9, .68], [1, 1]],
-    [[0, 1], [.17, .71], [.38, .15], [.46, .54], [.6, .37], [.77, .1], [.8, .65], [1, 1]],
-    [[0, 1], [.08, .54], [.24, .49], [.3, .24], [.6, .2], [.63, .32], [.83, .38], [.91, .82], [1, 1]],
-    [[0, 1], [.14, .79], [.35, .44], [.51, .02], [.56, .35], [.73, .48], [.86, .82], [1, 1]],
+    [[0, 1], [.14, .78], [.25, .6], [.43, .02], [.55, .32], [.7, .55], [.84, .8], [1, 1]],
+    [[0, 1], [.19, .7], [.35, .42], [.56, .02], [.62, .3], [.76, .65], [1, 1]],
+    [[0, 1], [.13, .79], [.29, .4], [.4, .04], [.51, .25], [.6, .17], [.77, .64], [1, 1]],
+    [[0, 1], [.2, .67], [.38, .06], [.48, .34], [.62, .16], [.78, .67], [1, 1]],
+    [[0, 1], [.17, .75], [.3, .52], [.52, .03], [.65, .49], [.83, .8], [1, 1]],
+    [[0, 1], [.14, .79], [.35, .44], [.51, .02], [.6, .38], [.73, .57], [.86, .82], [1, 1]],
   ];
   for (let v = 0; v < 12; v++) {
-    const width = 16 + v % 4 * 3, height = 16 + (v * 7 % 13), g = engraving(width, height, STONE);
+    const width = 18 + v % 4 * 2, height = 23 + v % 6, g = engraving(width, height, STONE);
     const outline = profiles[v % profiles.length].map(([x, y]) => [1 + x * (width - 3), 1 + y * (height - 4)]);
     g.polygon(outline, 'c', 'a');
     const summit = outline.reduce((best, p) => p[1] < best[1] ? p : best), foot = [summit[0] + (width - summit[0]) * .15, height - 3];
@@ -52,6 +52,7 @@ export function createAtlasArt() {
       const t = (y - summit[1]) / (foot[1] - summit[1]), ridgeX = summit[0] + (foot[0] - summit[0]) * t;
       for (let x = Math.ceil(ridgeX); x < width; x++) if (g.grid[y][x] === 'c') g.put(x, y, 'b');
     }
+    g.polygon([summit, [summit[0] - 3, summit[1] + 7], [summit[0], summit[1] + 5], [summit[0] + 2, summit[1] + 7]], 'e');
     g.line(summit, [summit[0] - 2, summit[1] + 5], 'e');
     g.line([summit[0] - 2, summit[1] + 5], [summit[0] - 5, summit[1] + 8], 'd');
     g.line(summit, [summit[0] + 1, summit[1] + 4], 'a');
@@ -68,10 +69,11 @@ export function createAtlasArt() {
     art[`crag${v}`] = g.finish();
   }
   for (let v = 0; v < 5; v++) {
-    const width = 16 + v * 2, height = 9 + v % 3, g = engraving(width, height, STONE);
-    const points = [[1, height - 3], [4, 4], [width * .45, 1 + v % 2], [width * .7, 3], [width - 2, height - 3]];
-    g.polygon(points, 'd'); g.line(points[0], points[1], 'a'); g.line(points[1], points[2], 'a'); g.line(points[2], points[3], 'a'); g.line(points[3], points[4], 'a');
-    for (let x = 4; x < width - 2; x += 3) g.line([x, 5 + v % 2], [x + 2, height - 3], 'b');
+    const width = 16 + v * 2, height = 7 + v % 2, g = engraving(width, height, HILL);
+    const points = Array.from({ length: width - 2 }, (_, i) => [i + 1, height - 3 - Math.sin(i / (width - 3) * Math.PI) * (3 + v % 2)]);
+    g.polygon([...points, [width - 2, height - 2], [1, height - 2]], 'd');
+    points.slice(1).forEach((p, i) => g.line(points[i], p, 'a'));
+    for (let x = 4; x < width - 2; x += 4) g.put(x, height - 3, 'b');
     g.line([2, height - 2], [width - 3, height - 2], 'f', true); art[`hill${v}`] = g.finish();
   }
   for (let v = 0; v < 8; v++) {
@@ -118,5 +120,9 @@ export function createAtlasArt() {
   }
   art.rushes = { colours: { a: '#625d43', b: '#a49b76', c: '#727d66' }, rows: [
     '.b...b.', '.a..ba.', '.ab.aa.', '..a.a..', '..aaa..', '...a...', '.ccccc.', 'ccccccc'] };
+  // Dead forms retain their silhouettes in a separate ash/charcoal palette.
+  for (const [kind, glyph] of Object.entries(art)) if (/^(crag|hill|deadwood|rushes)/.test(kind)) {
+    art[`ash-${kind}`] = { rows: glyph.rows, colours: { a: '#111519', b: '#292e33', c: '#41474b', d: '#596066', e: '#737a7d', f: '#353b40' } };
+  }
   return art;
 }

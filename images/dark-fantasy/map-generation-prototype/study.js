@@ -16,7 +16,7 @@ const state = { seed: Math.floor(numberParam('seed', pixelEntry ? 1867 : 1847, 0
   clustering: numberParam('clustering', pixelEntry ? .15 : .45, 0, 1), sizeVariation: numberParam('size', pixelEntry ? .85 : .6, 0, 1),
   roughness: numberParam('roughness', pixelEntry ? 1 : .65, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'C',
-  texel: params.get('texel') === '6' ? 6 : 4, sites: params.get('sites') !== '0',
+  texel: params.get('texel') === '6' ? 6 : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,
@@ -459,7 +459,7 @@ function drawPixelMap() {
     backgroundArt?.textures.forEach(texture => texture.destroy(true)); backgroundArt = bakeBackground();
   }
   if (pixelArtMap !== map) {
-    for (const art of pixelArtCache.values()) { art.texture.destroy(true); art.borderTexture.destroy(true); }
+    for (const art of pixelArtCache.values()) { art.texture.destroy(true); art.borderTexture.destroy(true); art.fogTexture?.destroy(true); }
     pixelArtCache.clear(); pixelArtMap = map;
   }
   const key = `${state.variant}:${state.texel}:${state.sites}`;
@@ -467,17 +467,17 @@ function drawPixelMap() {
     pixelArtCache.set(key, bakePixelTerrain(map, { texel: state.texel, style: state.variant, sites: state.sites, sampleBackground: backgroundArt.sample }));
     if (pixelArtCache.size > 2) {
       const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
-      art.texture.destroy(true); art.borderTexture.destroy(true); pixelArtCache.delete(oldest);
+      art.texture.destroy(true); art.borderTexture.destroy(true); art.fogTexture?.destroy(true); pixelArtCache.delete(oldest);
     }
   }
   currentPixelArt = pixelArtCache.get(key);
-  const put = (texture, bounds) => {
+  const put = (texture, bounds, density = state.texel) => {
     const node = new PIXI.Sprite(texture), p = point({ x: bounds.minX, y: bounds.minY });
-    node.position.set(p.x, p.y); node.scale.set(state.flipX ? -state.texel : state.texel, state.flipY ? -state.texel : state.texel);
+    node.position.set(p.x, p.y); node.scale.set(state.flipX ? -density : density, state.flipY ? -density : density);
     node.eventMode = 'none'; worldLayer.addChild(node);
   };
   put(currentPixelArt.texture, currentPixelArt.bounds);
-  put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
+  if (state.variant !== 'F') put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
   const textures = pixelSpriteTextures();
   const origin = point({ x: currentPixelArt.bounds.minX, y: currentPixelArt.bounds.minY });
   // Reposition reflected props while keeping their silhouettes and light upright.
@@ -489,8 +489,12 @@ function drawPixelMap() {
     node.scale.set(state.texel);
     node.position.set(origin.x + Math.round((p.x - node.width / 2 - origin.x) / state.texel) * state.texel,
       origin.y + Math.round((p.y - node.height - origin.y) / state.texel) * state.texel);
-    node.alpha = prop.background ? .68 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
+    node.alpha = prop.background ? state.variant === 'F' ? .9 : .68 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
   }
+  currentPixelArt.stats.fogEnabled = state.variant === 'F' && state.fog;
+  if (currentPixelArt.fogTexture && state.fog) put(currentPixelArt.fogTexture, currentPixelArt.bounds, state.texel * 4);
+  // Region identity stays above stamps and atmospheric decoration.
+  if (state.variant === 'F') put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
   const selected = map.regions.find(r => r.id === state.selected);
   for (const region of map.regions) {
     const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
@@ -525,7 +529,8 @@ function render() {
     button('Use textured pixel ground', 674, 1008, 150, 52, () => { state.variant = 'E'; render(); }, { copy: 'Textured', active: state.variant === 'E', size: 25 });
     button('Use dark fantasy atlas', 840, 1008, 144, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas', active: state.variant === 'F', size: 25 });
   } else text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
-  text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
+  if (state.variant === 'F') button('Toggle hinterland fog', 2010, 1008, 340, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Hinterland fog: On' : 'Hinterland fog: Off', active: state.fog, size: 24 });
+  else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   app.renderer.render(app.stage);
   sync();
 }
@@ -533,7 +538,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
