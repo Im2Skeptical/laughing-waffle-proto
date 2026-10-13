@@ -16,6 +16,7 @@ import { getVassalLifeMapNodeFamily } from '../../../src/defs/gamepieces/vassal-
 import { getEntryConsequences } from '../../../src/views/life-map-entry-confirm-pixi.js';
 import { getOpeningGraphPresentation, openingVassal } from './model.js';
 import { createOpeningNoteScreen } from './note-screen.js';
+import { createOpeningWorldDecisionScreen } from './world-decision-screen.js';
 
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.
@@ -40,9 +41,9 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   host.addEventListener('pointerdown', event => { if (event.target === app.view) app.view.focus({ preventScroll: true }); }, { capture: true });
   let snapshot = controller.getSnapshot(), mode = 'life', selectedRegion = openingVassal(snapshot.session).locationRegionId;
   let destroyed = false;
-  let previousRuntimeId = null, lastActiveId = null, outcomeId = null, message = '', footerKey = '', controlKey = '', outcomeKey = '';
+  let previousRuntimeId = null, previousDecisionFamily = null, lastActiveId = null, outcomeId = null, message = '', footerKey = '', controlKey = '', outcomeKey = '';
   const decisionCache = new Map();
-  const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'level', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
+  const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'worldDecision', 'level', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
   app.stage.addChild(...Object.values(layers));
   const state = () => snapshot.session.state;
   const presentation = () => ({ state: state(), vassal: openingVassal(snapshot.session), readOnly: snapshot.busy,
@@ -53,6 +54,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     const def = getVassalLifeMapNodeFamily(node);
     const spec = snapshot.experiment.nodes.find(n => n.id === (node.experimentId ?? node.id));
     if (!spec) return def;
+    if (spec.kind === 'world' && snapshot.session.randomOutcome && node.family === 'relic') return { ...def, label: 'Tour discovery', description: snapshot.session.randomOutcome.label };
     const danger = Math.max(spec.kind === 'specialRelic' && !spec.relics?.length ? .35 : 0,
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
@@ -66,7 +68,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     catch (error) { message = error.message; onError?.(message); drawChrome(); return { ok: false, reason: message }; }
   }
   function navigate(destination) {
-    modal.close({ immediate: true }); tooltip.hide({ force: true }); outcomeId = null;
+    modal.close({ immediate: true }); worldDecision.close(); tooltip.hide({ force: true }); outcomeId = null;
     mode = destination; refresh(snapshot);
   }
   const world = createWorldMapView({ layer: layers.world, getState: state,
@@ -88,6 +90,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     onEnterNode: id => invoke(() => controller.enter(id)),
     onOpenDecision: (id, point) => {
       if (id === snapshot.session.activeId && snapshot.decision?.nodeState.contentMode === 'note') note.refresh(snapshot.decision.node);
+      else if (id === snapshot.session.activeId && snapshot.experiment.nodes.find(n=>n.id===id)?.kind === 'world' && snapshot.decision?.node.family === 'travel') worldDecision.open();
       else if (id === snapshot.session.activeId) modal.open(snapshot.session.runtimeNodeId, point);
       else if (snapshot.session.visitedIds.includes(id)) { outcomeId = id; drawChrome(); }
     },
@@ -111,7 +114,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       const decision = snapshot.decision;
       const spec = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId);
       const pass = decision?.nodeState.contentMode === 'shop' && !decision.purchases.length && !!spec.pass;
-      void controller.commit(decision?.nodeState.selectedOptionId, acquire.destination ?? 'equip', pass).catch(error => {
+      void controller.commit(decision?.nodeState.selectedOptionId, { ...acquire, destination: acquire.destination ?? 'equip' }, pass).catch(error => {
         message = error.message; onError?.(message);
         if (snapshot.session.activeId) modal.open(snapshot.session.runtimeNodeId);
         drawChrome();
@@ -120,6 +123,9 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     },
     onWorldMap: () => navigate('map'), onOpenHeirlooms: tab => bag.openInventory(tab),
   });
+  const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
+    getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
+    onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
   const bag = createVassalHeirloomFlowView({ app, layer: layers.bag, getState: state, getPresentation: presentation, tooltipView: tooltip });
@@ -136,7 +142,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
 
   function drawChrome() {
     const s = snapshot.summary, active = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId);
-    const footerSignature = JSON.stringify([s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
+    const footerSignature = JSON.stringify([s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), worldDecision.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
     if (footerKey !== footerSignature) {
       footerKey = footerSignature; clearChildren(layers.footer);
       const bg = new PIXI.Graphics(); roundedRect(bg, 390, 852, 1480, 196, 14, PALETTE.panel, PALETTE.stroke, 2); layers.footer.addChild(bg);
@@ -146,7 +152,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       let detail = message || (snapshot.busy ? `Resolving real simulation ticks · ${snapshot.progress}%` : active?.description ?? `At ${s.location} · ${s.tSec}s elapsed · use the game navigation to inspect the world and settlement.`);
       if (active?.pass && !snapshot.decision?.purchases.length) detail += ` Confirm without a purchase: ${active.pass.label}, ${active.pass.phaseCost ?? 0} phases, +${active.pass.prestigeDelta ?? 0} Prestige.`;
       layers.footer.addChild(createText(detail, { ...TEXT_STYLES.body, fontSize: 23, wordWrap: true, wordWrapWidth: 1400, fill: message ? PALETTE.red : PALETTE.textMuted }, 414, 960));
-      layers.footer.visible = !modal.isOpen() && !note.isOpen() && !life.isEntryConfirmationOpen();
+      layers.footer.visible = !modal.isOpen() && !worldDecision.isOpen() && !note.isOpen() && !life.isEntryConfirmationOpen();
     }
     const controlSignature = JSON.stringify([snapshot.busy, snapshot.canRewind, snapshot.session.activeId]);
     if (controlKey !== controlSignature) {
@@ -164,6 +170,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       const bg = new PIXI.Graphics(); bg.beginFill(0x111718, .88).drawRect(0, 0, 2424, 1080); bg.eventMode = 'static'; layers.outcome.addChild(bg);
       const panel = new PIXI.Graphics(); roundedRect(panel, 480, 230, 1464, 600, 18, PALETTE.panel, PALETTE.accent, 3); layers.outcome.addChild(panel);
       layers.outcome.addChild(createText(result.title, { ...TEXT_STYLES.header, fontSize: 38 }, 530, 270));
+      if(result.reward) layers.outcome.addChild(createText(result.reward.label,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
       const lines = [['age', 'Age'], ['prestige', 'Prestige'], ['force', 'Force'], ['chaos', 'Chaos'], ['research', 'Research'], ['tSec', 'Elapsed time']];
       lines.forEach(([key, label], index) => layers.outcome.addChild(createText(`${label}: ${result.before[key]} → ${result.after[key]}`, { ...TEXT_STYLES.title, fontSize: 28 }, 530, 345 + index * 52)));
       button(layers.outcome, { x: 1540, y: 720, width: 320, height: 64 }, 'CLOSE OUTCOME', true, () => { outcomeId = null; drawChrome(); });
@@ -171,6 +178,11 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   }
   function refresh(next = controller.getSnapshot()) {
     snapshot = next; decisionCache.clear();
+    if(snapshot.session.activeId && snapshot.session.activeId !== lastActiveId) mode = 'life';
+    const active = snapshot.experiment.nodes.find(n=>n.id===snapshot.session.activeId);
+    const showWorld = mode === 'life' && active?.kind === 'world' && snapshot.decision?.node.family === 'travel';
+    worldDecision.refresh(showWorld?snapshot.decision:null,active,snapshot.busy);
+    if(showWorld && modal.isOpen()) modal.close({immediate:true});
     note.refresh(mode === 'life' && next.decision?.nodeState.contentMode === 'note' ? next.decision.node : null);
     if (snapshot.session.activeId !== lastActiveId) { selectedRegion = openingVassal(snapshot.session).locationRegionId; lastActiveId = snapshot.session.activeId; }
     world.setVisible(mode === 'map'); settlement.setVisible(mode === 'settlement'); life.setVisible(mode === 'life');
@@ -178,18 +190,21 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     life.refresh(); world.refresh(); settlement.refresh(); hud.refresh(); level.refresh(); bag.refresh(); navigation.update();
     if (snapshot.session.runtimeNodeId !== previousRuntimeId) {
       previousRuntimeId = snapshot.session.runtimeNodeId;
-      if (previousRuntimeId) { mode = 'life'; world.setVisible(false); settlement.setVisible(false); life.setVisible(true); modal.open(previousRuntimeId); }
+      if (previousRuntimeId && !showWorld) { mode = 'life'; world.setVisible(false); settlement.setVisible(false); life.setVisible(true); modal.open(previousRuntimeId); }
       else modal.close({ immediate: true });
-    } else if (previousRuntimeId && modal.isOpen()) modal.refresh();
+    } else if (previousRuntimeId && !showWorld && previousDecisionFamily !== snapshot.decision?.node.family) modal.open(previousRuntimeId);
+    else if (previousRuntimeId && modal.isOpen()) modal.refresh();
+    previousDecisionFamily = snapshot.decision?.node.family ?? null;
     drawChrome();
   }
   app.view.addEventListener('keydown', event => {
+    if(worldDecision.isOpen() && event.key==='Escape'){worldDecision.close();drawChrome();event.preventDefault();return;}
     if (modal.handleInspectionKey(event) || life.handleKeyDown(event)) { event.preventDefault(); return; }
     if (event.key === 'Escape') { modal.close(); outcomeId = null; drawChrome(); }
   });
   app.ticker.add(() => {
     life.update(); if (mode === 'map') world.update(); if (mode === 'settlement') settlement.update();
-    modal.update(); level.update(); bag.update(); hud.update(); navigation.update(app.ticker.deltaMS / 1000);
+    worldDecision.update(); modal.update(); level.update(); bag.update(); hud.update(); navigation.update(app.ticker.deltaMS / 1000);
     drawChrome();
   });
   refresh();
@@ -198,7 +213,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldTarget'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     confirm: () => note.isOpen() ? note.getConfirmPoint() : modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
@@ -206,7 +221,12 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     inspectClose: () => modal.getInspectionClosePoint(), level: () => level.getChoiceClickPoint(index), levelConfirm: () => level.getConfirmClickPoint(),
     nav: () => navigation.getClickPoint(index),
   })[kind]?.();
-  return { refresh, getPoint: point, getClientPoint: (kind, index) => {
+  return { refresh, openDecision:()=>{
+    app.view.focus({preventScroll:true});
+    if(snapshot.decision?.nodeState.contentMode==='note')note.refresh(snapshot.decision.node);
+    else if(snapshot.experiment.nodes.find(n=>n.id===snapshot.session.activeId)?.kind==='world' && snapshot.decision?.node.family==='travel')worldDecision.open();
+    else if(snapshot.session.runtimeNodeId)modal.open(snapshot.session.runtimeNodeId);
+  }, getPoint: point, getClientPoint: (kind, index) => {
     const target = point(kind, index); if (!target) return null;
     const rect = app.view.getBoundingClientRect();
     return rotated() ? { x: rect.right - target.y / 1080 * rect.width, y: rect.top + target.x / 2424 * rect.height }
@@ -214,7 +234,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   }, getSnapshot: () => {
     const modalState = modal.getSemanticSnapshot();
     return { mode, ready: true, graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
-      note: note.getSnapshot(), modal: { open: note.isOpen() || modalState.open, animation: note.isOpen() ? 'open' : modalState.animation.phase, family: note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: modalState.selectedOptionId,
+      worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? 'travel' : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
         contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
   }, destroy: () => { destroyed = true; display.destroy(); app.destroy(true, { children: true }); } };

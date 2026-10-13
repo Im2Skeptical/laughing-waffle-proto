@@ -120,6 +120,61 @@ try {
       await ready();
     }
   });
+  await check('World Decision: direct preview, whole map, move/build selection, Tour and relic acquisition', async () => {
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    await page.locator('#edit-node').selectOption('explore');await page.locator('#preview-node').click();
+    await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.open);
+    const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
+    assert.equal((await world()).regionCount,15,'whole world is represented');
+    const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
+    await openingClick('worldMode','move');const move=(await world()).targets.find(t=>!t.blocked);assert.ok(move);
+    await openingClick('worldTarget',move.regionId);assert.equal((await world()).selectedOptionId,move.id);
+    await openingClick('worldMode','build');const build=(await world()).targets.find(t=>!t.blocked);assert.ok(build);
+    await openingClick('worldTarget',build.regionId);assert.equal((await world()).selectedOptionId,build.id);
+    await openingClick('worldMode','tour');assert.equal((await world()).selectedOptionId,'tour');
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'map previews apply no world changes');
+    await page.screenshot({path:'artifacts/prototype-world-decision.png'});
+    await openingClick('confirm');
+    await page.waitForFunction(()=>openingWorkbench.getSnapshot().visitedIds.includes('explore')||openingWorkbench.getSnapshot().game.modal.family==='relic');
+    if(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId==='explore'))await openingClick('acquire','carry');
+    await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.location),before.location);
+    for(const chance of [0,100]){
+      await page.locator('#edit-node').selectOption('explore');await page.locator('#tour-relic-chance').fill(String(chance));
+      await page.getByRole('button',{name:'Apply node edits',exact:true}).click();await page.locator('#preview-node').click();
+      await openingClick('worldMode','tour');assert.equal((await world()).tour.relicChance,chance);
+      await openingClick('confirm');
+      if(chance===100){
+        await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.family==='relic');
+        await page.locator('#preview-node').click();assert.equal((await world()).open,true,'preview replaces an unclaimed discovery');
+        await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.open),false,'closing the full map leaves no old modal beneath it');
+        await page.locator('#preview-node').click();assert.equal((await world()).open,true,'preview reopens a dismissed World Decision');
+        await openingClick('worldMode','tour');await openingClick('confirm');
+        await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.family==='relic');await openingClick('acquire','carry');
+      }
+      await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
+    }
+    for(const mode of ['move','build']) {
+      await page.locator('#preview-node').click();await openingClick('worldMode',mode);
+      const start=await world(), choice=start.targets.find(t=>!t.blocked);assert.ok(choice);
+      await openingClick('worldTarget',choice.regionId);await openingClick('confirm');
+      await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
+      const end=await world();
+      assert.equal(end.locationRegionId,mode==='move'?choice.regionId:start.locationRegionId);
+      assert.equal(end.connectionCount,start.connectionCount+(mode==='build'?1:0));
+    }
+    const previous=page,mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});page=await mobile.newPage();
+    try{await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();await page.locator('#edit-node').selectOption('explore');await page.locator('#preview-node').tap();
+      await page.locator('#game-screen .dev-preview-fullscreen').tap();await page.waitForFunction(()=>document.querySelector('#game-screen').classList.contains('dev-preview-expanded'));
+      await openingClick('worldMode','tour',true);assert.equal((await world()).selectedOptionId,'tour');await openingClick('confirm',0,true);
+      await page.waitForFunction(()=>openingWorkbench.getSnapshot().visitedIds.includes('explore')||openingWorkbench.getSnapshot().game.modal.family==='relic');
+      if(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId==='explore'))await openingClick('acquire','carry',true);
+      await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
+    }finally{await mobile.close();page=previous;}
+    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+  });
   await check('Opening playthrough, real founding, purchase, rewind and same-seed outcomes', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();

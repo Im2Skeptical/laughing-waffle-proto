@@ -1,5 +1,5 @@
 import { createOpeningController } from './controller.js';
-import { createOpeningExperiment, OPENING_KINDS } from './experiment.js';
+import { createOpeningExperiment, createOpeningTourOption, OPENING_KINDS } from './experiment.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 import { createOpeningGameScreen } from './game-screen.js';
 import { createOpeningGraphEditor } from './graph-editor.js';
@@ -16,7 +16,7 @@ const graphEditor = createOpeningGraphEditor({ host: $('graph-editor'), controll
 const abilityNames = { intelligence: 'Prowess', effectiveness: 'Effectiveness', wisdom: 'Wisdom', cunning: 'Cunning' };
 const guides = [
   { id: 'spend', label: 'Relic & invest', text: 'Take the Minor Seal, found the Warriors, buy a Practice, then drill. Watch the purchase discount, Retinue and Force.', entry: 'relic', relic: 0, buy: true },
-  { id: 'save', label: 'Explore & save', text: 'Meet local guides, found the Warriors and retain Prestige. Compare military strength and production with the investment route.', entry: 'explore', buy: false },
+  { id: 'save', label: 'Explore & save', text: 'Tour the region, found the Warriors and retain Prestige. Compare the discovery, military strength and production with the investment route.', entry: 'explore', buy: false },
   { id: 'chaos', label: 'Accept Chaos', text: 'Take the Hourglass without a death roll. Watch Chaos grow and compare the time discount over the following encounters.', entry: 'relic', relic: 2, buy: true },
 ];
 function el(tag, text = '', className = '') { const node = document.createElement(tag); node.textContent = text; node.className = className; return node; }
@@ -64,6 +64,7 @@ function renderOutcomes(snapshot) {
     const row = el('div', '', 'outcome'); row.append(el('strong', result.title));
     const keys = [['age', 'Age'], ['prestige', 'Prestige'], ['force', 'Force'], ['chaos', 'Chaos'], ['research', 'Research'], ['tSec', 'Time']];
     row.append(el('p', keys.map(([key, label]) => `${label} ${format(result.before[key])} → ${format(result.after[key])}`).join(' · '), 'delta'));
+    if(result.reward) row.append(el('p',result.reward.label,'delta'));
     if (result.before.location !== result.after.location) row.append(el('p', `${result.before.location} → ${result.after.location}`, 'note'));
     const stock = result.after.sites.map(site => `${site.name}: population ${site.population}, Food ${site.food}, Warriors ${site.warriors}`);
     row.append(el('p', stock.join(' · '), 'note')); host.append(row);
@@ -86,6 +87,9 @@ function renderEditor(snapshot) {
   host.append(el('h2', 'Edit an encounter'), el('p', 'Apply edits, then Restart. The current playthrough retains its original experiment.', 'note'));
   const chooser = appendField(host, 'Node', selectedId, { options: doc.nodes.map(n => [n.id, n.title]), id: 'edit-node' });
   chooser.addEventListener('change', () => { selectedId = chooser.value; editorKey = ''; render(); });
+  const preview = button('Preview this node', () => { controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
+  preview.id='preview-node';host.append(preview);
+  if(spec.kind==='world') host.append(button('Use Tour as the local activity',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?{...n,options:[createOpeningTourOption()]}:n)})));
   if (spec.kind === 'customNote') {
     const title = appendField(host, 'Title', spec.title, { id: 'note-title' });
     const label = el('label', 'Intended player interaction'), intention = el('textarea'); intention.id = 'note-intention'; intention.rows = 7; intention.value = spec.description;
@@ -117,6 +121,10 @@ function renderEditor(snapshot) {
             : name === 'definitionId' && list === 'relics' ? Object.values(VASSAL_HEIRLOOM_DEFS).map(d => [d.id, d.label]) : null;
         inputs[name] = appendField(row, ({ definitionId: 'Card / relic ID', prestigeCost: 'Prestige cost', prestigeDelta: 'Prestige reward', phaseCost: 'Phases', chaos: 'Chaos penalty', statId: 'Ability', statDelta: 'Ability change', immediateDeathChance: 'Death probability' })[name] ?? name, item[name], { type: numeric ? 'number' : 'text', options });
       }
+      if(item.weightedOutcomes?.length===2) {
+        const total=item.weightedOutcomes.reduce((sum,b)=>sum+b.weight,0);
+        inputs.relicChance=appendField(row,'Relic chance (%)',100*item.weightedOutcomes[0].weight/total,{type:'number',min:0,max:100,id:'tour-relic-chance'});
+      }
       group.append(row); section.append(group); return { item, inputs, index };
     });
     host.append(section);
@@ -128,6 +136,7 @@ function renderEditor(snapshot) {
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {
+        if(name==='relicChance'){value.weightedOutcomes[0].weight=Number(input.value);value.weightedOutcomes[1].weight=100-Number(input.value);continue;}
         if (input.value === '') delete value[name]; else value[name] = input.type === 'number' ? Number(input.value) : input.value;
       } return value; }); changed[list] = list === 'pass' ? items[0] : items;
     }
@@ -159,7 +168,7 @@ async function guidedChoice() {
     return controller.commit(null, 'equip', true);
   }
   const option = spec.kind === 'relic' ? decision.options[guide.relic ?? 0]
-    : decision.options.find(o => o.id === ({ world: 'guides', development: 'drill', martial: 'readiness', patronage: 'favor' })[spec.kind]) ?? decision.options.find(o => !o.blocked);
+    : decision.options.find(o => o.id === ({ world: 'tour', development: 'drill', martial: 'readiness', patronage: 'favor' })[spec.kind]) ?? decision.options.find(o => !o.blocked);
   if (!option) throw new Error('No guided action is available. Try free play or edit the draft.');
   return controller.commit(option.id, 'equip', false);
 }
