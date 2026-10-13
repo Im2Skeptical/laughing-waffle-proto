@@ -17,6 +17,14 @@ valley gaps. Inked banks and coast-normal shore hachures replace the bright
 coastal rim. Mountain ground and massifs now carry a subtle reddish umber tint.
 These are rendering changes, not graph-generation changes. Art selection,
 palette cycling and live-game generation integration remain pending.
+
+The current workbench also tests smooth zoom with a generated three-level
+landmark atlas, screen-size-based detail, close terrain, colour prefiltering and
+sharp pixel-edge sampling. Settlements, markets and lairs share ground anchors
+and deliberate small silhouettes; strategic emblems retain a readable screen
+footprint. This replaces raw shrinking of the old paintings in the default
+prototype view. Existing live assets remain available for comparison. No live
+renderer or simulation changes accompany this experiment.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 
 ## Recommendation

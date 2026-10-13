@@ -1,5 +1,33 @@
 # Generated terrain engraving study
 
+## Landmark zoom atlas
+
+`landmark-lod-v1.png` is a new transparent 1536 × 1024 atlas generated with the
+built-in image tool. It contains settlement, market and monster-lair columns,
+and detailed, regional and strategic rows. Existing game art is preserved.
+`../zoom-art.js` crops the actual alpha bounds in each frame, converts rows to
+96 / 48 / 20 pixels wide and quantizes colour clusters. Source alpha is retained.
+The detailed and regional versions share a lower-centre ground anchor. Tiny
+versions use a minimum screen footprint. Runtime sampling never modifies the
+source sheet. This is prototype artwork; it does not replace live game assets.
+
+### Landmark generation prompt
+
+```text
+Create ONE production sprite atlas PNG for a dark fantasy illustrated regional map game. Transparent background, landscape canvas, a precise 3 column by 3 row grid of nine isolated sprites with generous equal transparent gutters. No text, no labels, no frame lines, no parchment background, no shadows detached from subjects.
+
+Columns consistently identify: LEFT a player settlement, CENTER a neutral market town, RIGHT a monster lair.
+Rows consistently identify: TOP detailed close-view illustration, MIDDLE simplified regional-view illustration of THE SAME subject with the same silhouette and colours, BOTTOM tiny strategic emblem of the same subject.
+
+Art direction: antique hand-engraved Tolkien-like fantasy atlas translated into deliberate pixel clusters, muted Elden-Ring-like parchment ochre, aged ivory, olive grey, reddish umber, charcoal ink; restrained cool teal only for neutral market awnings and pennants. Dark fantasy, weathered and austere, beautifully readable silhouettes. Fine pixel art with clean pixel clusters and selective engraving, not photorealism, not smooth digital painting. Consistent three-quarter overhead view, light from upper left, minimal low earthy ground footprint. Small architectural elements implying a whole settlement rather than one enormous house. Artwork must remain recognisable at 24 screen pixels wide.
+
+LEFT top: compact medieval settlement of 6-9 ochre roof groups around one modest gate tower and courtyard, a gold pennant, low palisade, road entering at lower centre. Weathered stone, deep readable roof shadows, some exquisite close detail. MIDDLE left: same gate tower, same gold pennant and roof silhouette, 3-4 roof masses, no tiny crosshatching. BOTTOM left: simple ochre gate-tower-and-roofs emblem.
+CENTER top: equally sized compact market town, clustered grey stone/umber roofs around clearly visible desaturated teal striped awnings, small teal pennants, courtyard and road entering lower centre. MIDDLE center: same roof silhouette and teal canopy, very selective details. BOTTOM center: strong tiny teal canopy and roof emblem.
+RIGHT top: ruined dark stone gate and several broken low walls with an unmistakable pale horned beast skull above the entrance, muted rust-red pennant, charcoal scorched ground footprint, no flames. Similar overall height and footprint to towns, not a giant skull floating on a circle. MIDDLE right: same pale horns and broken gate silhouette in ivory, charcoal and rust with simpler broken walls. BOTTOM right: a compact ivory horned-skull-and-gate emblem with a rust accent.
+
+Top row occupies similar visual width in all three cells, around 75% cell width and 70% cell height. Middle row same cell bounds but fewer broader shapes. Bottom row centred, about 35% cell width and height, crisp and simple. Keep each frame fully separated, all cutouts complete. Transparent alpha outside each sprite. This atlas will be sampled into 96px / 48px / 20px versions for smooth zoom LOD.
+```
+
 `terrain-engraving-v1.png` is the original transparent sprite sheet generated
 with the built-in image-generation tool for this disposable map prototype.
 Its alpha channel is preserved. The source sheet is 1536 × 1024.

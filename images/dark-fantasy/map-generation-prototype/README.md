@@ -218,19 +218,54 @@ Fine is the default review density. Woodland stamps compress many crowns into
 canopy masses, with smaller groups around their edges; islands use low scrub
 and small rocks. Roads use thinner verges and broader, land-checked bends;
 rivers have narrower banks and channels. The static water bake separates foam
-(32�35), broken surf (40�47), shallow ripples (48�55) and stationary shoals
-(96�111). These are source structures for the later time-keyed palette pass,
+(32–35), broken surf (40–47), shallow ripples (48–55) and stationary shoals
+(96–111). These are source structures for the later time-keyed palette pass,
 not animated effects yet. Review seeds 1867 and 1873 at Fine and phone landscape.
 
 ### Live game landmark review
 
-Sites cycles between **Live game**, **Sketch**, and **Off**. Live game is the
-default: two player hamlets, one teal neutral market (where the sample towns fit),
+Sites cycles between **Map art**, **Old game**, **Sketch**, and **Off**. Old game
+preserves the original comparison: two player hamlets, one teal neutral market (where the sample towns fit),
 and up to two monster lairs with local scorched ground. Assets come directly
 from the game's existing packed chronicle and region-landmark atlases. The hamlet
-is frozen at frame zero for this static review. No generated replacement art.
-**Game assets** cycles 75%, 100%, and 125% of live map dimensions. Review pan,
+is frozen at frame zero for this static review. Existing game art is preserved.
+**Landmarks** cycles 75%, 100%, and 125% scale. Review pan,
 zoom, reflections, biome contrast and marker/road clearance on seeds 1867 and
 1873. Monster candidates must fit their region and avoid roads; missing viable
 sites are omitted. Fixtures illustrate placement, not a generated game state.
 Share `siteArt=live&actorScale=1` or `siteArt=sketch` in the URL.
+
+### Smooth zoom and adaptive illustration
+
+Map art is now the default. The new [generated landmark atlas](assets/README.md)
+provides three separately illustrated versions of settlements, markets and lairs.
+They share a lower-centre ground anchor and a comparable 116-unit footprint.
+Regional art has 48 source pixels across; close art has 96; strategic emblems
+have 20 and retain an 18–24 CSS-pixel footprint. Gold roofs, teal awnings and
+ivory horns/rust flags distinguish gameplay kinds. Vegetation clears around sites.
+
+**Detail** cycles Auto, Close, Regional and Overview. Auto uses projected CSS
+size: strategic/regional fade at 14–22px, regional/close at 54–68px. The close
+terrain layer uses the existing 2-unit bake, fading over the selected overview
+density at 0.40–0.68 CSS pixels per design unit. Both are prepared during loading;
+camera movement never bakes terrain, regenerates geography or consumes RNG.
+LOD is sampled directly from camera/display scale; returning to a zoom restores
+the same representation. Reflections preserve fixture identities.
+
+**Pixels: Smooth zoom / Nearest** compares sampling. `zoom-art.js` builds
+independent colour-frame reduction levels, blends adjacent reductions on shrink,
+and uses sharp texel-edge filtering on enlargement. Separate frame textures avoid
+atlas bleed and power-of-two restrictions. Offscreen meshes and fully obscured
+terrain layers are skipped. This is a prototype mesh renderer, not a mobile GPU
+performance sign-off. The state inspector reports prefilter memory and mesh counts.
+
+Overview roads, rivers and internal borders get restrained screen-width ink.
+Labels fade before tiny versions become cluttered. Source water indices remain
+untouched: only resolved RGBA colours enter this filtering path. Future cycling
+must resolve palette colours before filtering, or use authored categorical LODs.
+Water/fog and landmarks remain static in this review; no simulation ticks are added.
+
+Share `siteArt=atlas&smoothZoom=1&detailMode=auto`. Inspect seeds 1867/1873,
+0.35–2.5 camera zoom, phone fullscreen, both reflections, forced detail, nearest
+comparison, sites off/on, Base/Atlas and repeat PNG exports. `mapWorkbench.setCamera`
+is a review hook. All changes remain in the disposable prototype.

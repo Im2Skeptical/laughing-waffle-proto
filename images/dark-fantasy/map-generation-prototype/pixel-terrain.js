@@ -4,6 +4,7 @@ import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadIllustratedArt } from './illustrated-art.js';
+import { releaseZoomArt } from './zoom-art.js';
 
 export const ATLAS_COLOURS = { plains: 0xbfa574, forest: 0x858158, islands: 0x688689, swamp: 0x858477, mountains: 0xb79780 };
 const ATLAS_GROUND = {
@@ -111,13 +112,15 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
   terrain.reliefCache.set(key, { base, textures });
   if (terrain.reliefCache.size > 2) {
     const oldest = terrain.reliefCache.keys().next().value;
+    releaseZoomArt(terrain.reliefCache.get(oldest).textures.values());
     terrain.reliefCache.get(oldest).base.destroy(); terrain.reliefCache.delete(oldest);
   }
   return textures;
 }
 export function destroyPixelTerrain(terrain) {
+  releaseZoomArt([terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]);
   for (const texture of [terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]) texture?.destroy(true);
-  for (const cached of terrain.reliefCache?.values() ?? []) cached.base.destroy();
+  for (const cached of terrain.reliefCache?.values() ?? []) { releaseZoomArt(cached.textures.values()); cached.base.destroy(); }
 }
 
 export function pixelSpriteFits(terrain, prop, flipX, flipY) {
@@ -548,7 +551,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, materials, props, bounds, waterIndices, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, interactions, coastalEffects, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Generated engravings, local biome shading, large/medium/small groups', mountainSpines: spines.length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
