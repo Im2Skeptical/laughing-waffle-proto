@@ -1,7 +1,9 @@
 # Regional map: pixel rendering and timeline animation proposal
 
-Status: proposed, 13 October 2026. Research and documentation only; renderer
-implementation and live-game generation integration need a subsequent request.
+Status: proposed, 13 October 2026. The first static rendering review is implemented
+in the isolated [Pixi workbench](../images/dark-fantasy/map-generation-prototype/README.md):
+D/E compare ground treatments, pixel size and placeholder sites. Art selection,
+palette cycling and live-game generation integration remain pending.
 See the [primary-source research](research/regional-map-pixel-rendering-research.md).
 
 ## Recommendation
@@ -69,8 +71,9 @@ nonsequential/reverse seeks and snapshot gating.
 
 The active map uses illustrated tiling textures and masked sprites. The isolated
 generation study uses vector fills/symbols and smooth background textures. There
-is no palette-cycling/index-texture renderer in either. Nearest texture sampling
-exists, but alone does not turn this artwork into deliberately composed pixel art.
+is no palette-cycling shader in either. The new D/E static pixel study retains
+explicit water indices alongside its resolved ground image. Nearest texture
+sampling alone does not turn the original artwork into composed pixel art.
 
 ## Ground and prop treatment
 
@@ -219,9 +222,11 @@ rebuilds but still incurs fragment shading and fill cost.
 
 ## Impact and verification
 
-This proposal changes documentation only. Runtime code, live simulation state,
-RNG, schemas, replay and forecast behavior are untouched. Verify the documentation
-with `npm run check:docs` and `git diff --check`.
+The initial proposal changed documentation only. The D/E static review now adds
+prototype presentation code and authored pixel matrices, without integrating
+into the live renderer. Live simulation state, RNG, schemas, replay and forecast
+behavior are untouched. Verify documentation with `npm run check:docs` and
+`git diff --check`; the static-review packaging also passes `npm run verify`.
 
 For a later implementation, pure phase/event tests should cover repeat/reverse
 seeks and wraparound; browser checks should compare frozen and revisited world

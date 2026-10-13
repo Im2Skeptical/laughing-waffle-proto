@@ -14,8 +14,8 @@ variation 85%**, **River + Range**, with ocean south + west. Border variation
 appears to be **100%** in the supplied screenshot (full slider, obscured numeric
 label). These are review settings, not new defaults. See the proposed
 [pixel rendering and palette-cycling plan](../../../docs/regional-map-rendering-plan.md)
-for how to build graphics on these structures; no pixel renderer is implemented
-by that proposal.
+for how to build graphics on these structures. The static pixel study below is
+the first implementation of that plan, isolated from gameplay.
 
 The window uses the game's **2424 × 1080 Pixi design space**, scaled as one fixed
 landscape scene. Its controls are Pixi, including seed, clustering, size variation,
@@ -26,6 +26,45 @@ rotated fallback where browser orientation locking is unavailable.
 - `?variant=A`: the region partition, references and biome labels.
 - `?variant=B`: shared organic borders and the connected geographic skeleton.
 - `?variant=C`: terrain markings, subdued same-biome borders and landforms.
+- `?variant=D`: pixel **Quiet ground**, broad colour clusters and sparse details.
+- `?variant=E`: pixel **Textured ground**, authored grass/stone/pool patterns.
+
+The **Geography / Pixel rendering** tabs switch between the two studies. Bottom
+arrows cycle A/B/C within Geography and D/E within Pixel rendering. Direct Quiet
+and Textured buttons compare the two pixel treatments on the same graph. Entering
+via D/E defaults to the seed-1867 reference settings above. Existing C URLs and
+the generator's defaults are retained.
+
+Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
+accepted geography on one world lattice and bakes the ground into a nearest-
+sampled, unmipmapped texture. **Fine** uses 4 design units per source texel;
+**Coarse** uses 6. Pixel size and sprite scale are fixed across region areas.
+Separate original pixel matrices provide pines, oaks, peaks, reeds, grass, stones
+and placeholder towns. Three candidate sites and a few road strokes are visual
+readability samples, with no gameplay meaning. **Sites + roads** toggles them.
+Opaque sprite pixels must fit dry ground; reflections reposition upright props
+and omit props whose reflected silhouette would overhang water. Ground patterns
+and geographical features mirror together. Ordinary gameplay picking still uses
+the unchanged polygons, with a normal-resolution selection highlight.
+The drawing buffer follows the displayed physical size to avoid an extra CSS
+resampling pass; chrome text retains its own higher-resolution textures. PNG
+export still produces the complete 2424 x 1080 design frame.
+
+Two static bakes are cached; style/density/site changes bake as needed, while
+selection, camera gestures and reflections reuse the current textures. The state
+disclosure reports grid dimensions, source texel size, texture/index-plane memory,
+prop counts and desktop bake duration. The static bake retains explicit ocean
+indices 1–8, river indices 16–23 and foam indices 32–35 for the subsequent palette
+cycling experiment. There is no animation clock or palette shader in this pass.
+Deep-water index 9 is stationary, so a future cycle need not pulse the ocean's
+entire background colour.
+Do not run the encoded index plane through ordinary atlas colour quantization.
+
+Review at **844 x 390** landscape, fullscreen, Fit and close zoom, using seeds
+1867 and 1873 and some variation extremes. Compare D/E with the same pixel size
+and site setting; inspect biome distinction, shore steps, narrow rivers, cleared
+mountain water gaps and visual room for gameplay overlays. Phone-shaped browser
+review is not a physical-device performance measurement.
 
 The bottom arrows or keyboard Left/Right switch views without regenerating.
 Settings are shareable URL parameters; no browser storage or player save is used.

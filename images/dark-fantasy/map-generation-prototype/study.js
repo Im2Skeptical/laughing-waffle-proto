@@ -1,19 +1,22 @@
-// Throwaway Pixi landscape study: A topology, B geographic skeleton, C terrain.
+// Throwaway Pixi study: A/B/C geography; D/E compare quiet/textured pixel ground.
 // Same generated map in each mode; no live renderer or simulation is attached.
 import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
+import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, PIXEL_STYLES, PIXEL_COLOURS } from './pixel-terrain.js';
 
-const VARIANTS = { A: 'Regions', B: 'Geography', C: 'Terrain' };
+const VARIANTS = { A: 'Regions', B: 'Geography', C: 'Terrain', D: 'Pixel · Quiet ground', E: 'Pixel · Textured ground' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
 const numberParam = (name, fallback, min, max) => params.has(name) && Number.isFinite(Number(params.get(name)))
   ? Math.max(min, Math.min(max, Number(params.get(name)))) : fallback;
-const state = { seed: Math.floor(numberParam('seed', 1847, 0, 2147483647)),
-  clustering: numberParam('clustering', .45, 0, 1), sizeVariation: numberParam('size', .6, 0, 1),
-  roughness: numberParam('roughness', .65, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
+const pixelEntry = !!PIXEL_STYLES[params.get('variant')];
+const state = { seed: Math.floor(numberParam('seed', pixelEntry ? 1867 : 1847, 0, 2147483647)),
+  clustering: numberParam('clustering', pixelEntry ? .15 : .45, 0, 1), sizeVariation: numberParam('size', pixelEntry ? .85 : .6, 0, 1),
+  roughness: numberParam('roughness', pixelEntry ? 1 : .65, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'C',
+  texel: params.get('texel') === '6' ? 6 : 4, sites: params.get('sites') !== '0',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,
@@ -62,6 +65,9 @@ viewport.on('pointertap', event => {
 });
 const mapRect = { x: 652, y: 268, width: 1576, height: 516 };
 let map = generateMap(state), targets = [], backgroundArt = null;
+let pixelArtMap = null, currentPixelArt = null;
+const pixelArtCache = new Map();
+const pixelReview = () => !!PIXEL_STYLES[state.variant];
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
 const polygonPoints = points => points.flatMap(p => { const v = point(p); return [v.x, v.y]; });
@@ -70,6 +76,7 @@ const worldPoint = (x, y) => ({ x: state.flipX ? 1 - (x - mapRect.x) / mapRect.w
 
 function text(parent, value, x, y, size = 30, colour = 0xe6e0c9, options = {}) {
   const node = new PIXI.Text(value, { fontFamily: 'Georgia, serif', fontSize: size, fill: colour, ...options });
+  node.resolution = 2;
   node.position.set(x, y); parent.addChild(node); return node;
 }
 function line(parent, points, colour, width, alpha = 1) {
@@ -101,7 +108,7 @@ function fitMap() {
 }
 function regenerate() { map = generateMap(state); state.selected = null; fitMap(); render(); }
 function adjust(name, step) { state[name] = Math.round(Math.max(0, Math.min(1, state[name] + step)) * 100) / 100; regenerate(); }
-function cycle(direction) { const keys = Object.keys(VARIANTS); state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
+function cycle(direction) { const keys = pixelReview() ? ['D', 'E'] : ['A', 'B', 'C']; state.variant = keys[(keys.indexOf(state.variant) + direction + keys.length) % keys.length]; render(); }
 
 function drawControls() {
   panel(root, 30, 144, 440, 858);
@@ -387,6 +394,8 @@ function drawIslands() {
 
 function drawMap() {
   const frame = new PIXI.Graphics().lineStyle(2, 0x718071).drawRoundedRect(492, 144, 1900, 754, 10); root.addChild(frame);
+  if (pixelReview()) drawPixelMap();
+  else {
   drawSurroundings();
   for (const region of map.regions) {
     const shape = new PIXI.Graphics(); worldLayer.addChild(shape);
@@ -425,17 +434,72 @@ function drawMap() {
       if (labels) { const biome = text(worldLayer, BIOMES[region.biome].name, p.x, p.y + 31, 26, 0xf8f0d8, { stroke: 0x34483c, strokeThickness: 4 }); biome.anchor.set(.5, 0); }
     }
   }
+  }
+  const selected = map.regions.find(r => r.id === state.selected);
   const oceanSides = map.world.oceanSides.map(side => state.flipX && (side === 'east' || side === 'west') ? side === 'east' ? 'west' : 'east' : side)
     .map(side => state.flipY && (side === 'north' || side === 'south') ? side === 'north' ? 'south' : 'north' : side);
-  text(root, `Ocean: ${oceanSides.join(' + ')} · drag / pinch / scroll to explore`, 520, 198, 25, 0xd9d6b6);
+  text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? 'still water · drag / pinch to explore' : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
+  if (pixelReview()) {
+    button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = state.texel === 4 ? 6 : 4; render(); }, { copy: state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
+    button('Toggle placeholder sites', 1826, 158, 212, 70, () => { state.sites = !state.sites; render(); }, { copy: state.sites ? 'Sites + roads: On' : 'Sites + roads: Off', size: 23 });
+  }
   button('Zoom out', 2052, 158, 90, 70, () => { camera.zoomBy(.8); app.renderer.render(app.stage); }, { copy: '−', size: 38 });
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
     : state.variant === 'A' ? '20 regions · straight-edge topology · tap a region to inspect'
       : state.variant === 'B' ? 'Continuous features follow shared edges across the map · decorative geography'
-        : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
+        : pixelReview() ? `${PIXEL_STYLES[state.variant]} · ${state.texel === 4 ? 'fine' : 'coarse'} world pixels · still water · placeholder sites · tap a region to inspect`
+          : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
+}
+
+function drawPixelMap() {
+  if (backgroundArt?.map !== map) {
+    backgroundArt?.textures.forEach(texture => texture.destroy(true)); backgroundArt = bakeBackground();
+  }
+  if (pixelArtMap !== map) {
+    for (const art of pixelArtCache.values()) { art.texture.destroy(true); art.borderTexture.destroy(true); }
+    pixelArtCache.clear(); pixelArtMap = map;
+  }
+  const key = `${state.variant}:${state.texel}:${state.sites}`;
+  if (!pixelArtCache.has(key)) {
+    pixelArtCache.set(key, bakePixelTerrain(map, { texel: state.texel, style: state.variant, sites: state.sites, sampleBackground: backgroundArt.sample }));
+    if (pixelArtCache.size > 2) {
+      const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
+      art.texture.destroy(true); art.borderTexture.destroy(true); pixelArtCache.delete(oldest);
+    }
+  }
+  currentPixelArt = pixelArtCache.get(key);
+  const put = (texture, bounds) => {
+    const node = new PIXI.Sprite(texture), p = point({ x: bounds.minX, y: bounds.minY });
+    node.position.set(p.x, p.y); node.scale.set(state.flipX ? -state.texel : state.texel, state.flipY ? -state.texel : state.texel);
+    node.eventMode = 'none'; worldLayer.addChild(node);
+  };
+  put(currentPixelArt.texture, currentPixelArt.bounds);
+  put(currentPixelArt.borderTexture, currentPixelArt.borderBounds);
+  const textures = pixelSpriteTextures();
+  const origin = point({ x: currentPixelArt.bounds.minX, y: currentPixelArt.bounds.minY });
+  // Reposition reflected props while keeping their silhouettes and light upright.
+  const props = currentPixelArt.props.filter(prop => pixelSpriteFits(currentPixelArt, prop, state.flipX, state.flipY))
+    .sort((a, b) => point(a.point).y - point(b.point).y);
+  currentPixelArt.stats.displayedProps = props.length;
+  for (const prop of props) {
+    const node = new PIXI.Sprite(textures[prop.kind]), p = point(prop.point);
+    node.scale.set(state.texel);
+    node.position.set(origin.x + Math.round((p.x - node.width / 2 - origin.x) / state.texel) * state.texel,
+      origin.y + Math.round((p.y - node.height - origin.y) / state.texel) * state.texel);
+    node.alpha = prop.background ? .68 : 1; node.eventMode = 'none'; worldLayer.addChild(node);
+  }
+  const selected = map.regions.find(r => r.id === state.selected);
+  for (const region of map.regions) {
+    const c = point(region.centre); targets.push({ label: region.id, x: c.x - 12, y: c.y - 12, width: 24, height: 24, map: true });
+  }
+  if (selected) {
+    const g = new PIXI.Graphics().lineStyle(4, 0xf5df98, .9).drawPolygon(polygonPoints(selected.outline)); worldLayer.addChild(g);
+    const p = point(selected.centre), label = text(worldLayer, selected.id, p.x, p.y - 34, 25, 0xffedc2, { stroke: 0x203c35, strokeThickness: 5 }); label.anchor.set(.5);
+  }
+  text(root, `STATIC PIXEL STUDY · ${PIXEL_STYLES[state.variant].toUpperCase()}`, 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
 }
 
 function render() {
@@ -443,10 +507,12 @@ function render() {
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
   text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
+  button('Show generation study', 1520, 40, 236, 52, () => { state.variant = 'C'; render(); }, { copy: 'Geography', active: !pixelReview(), size: 24 });
+  button('Show pixel rendering study', 1776, 40, 270, 52, () => { state.variant = 'D'; render(); }, { copy: 'Pixel rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 372, y = 928;
-    const g = new PIXI.Graphics().beginFill(biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
+    const g = new PIXI.Graphics().beginFill(pixelReview() ? PIXEL_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
     text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 31);
     text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
@@ -454,7 +520,10 @@ function render() {
   button('Previous map view', 1012, 1008, 100, 52, () => cycle(-1), { copy: '←', size: 35 });
   const label = text(root, `${state.variant}  /  ${VARIANTS[state.variant]}`, 1470, 1035, 29); label.anchor.set(.5);
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
-  text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
+  if (pixelReview()) {
+    button('Use quiet pixel ground', 514, 1008, 216, 52, () => { state.variant = 'D'; render(); }, { copy: 'Quiet', active: state.variant === 'D', size: 25 });
+    button('Use textured pixel ground', 748, 1008, 230, 52, () => { state.variant = 'E'; render(); }, { copy: 'Textured', active: state.variant === 'E', size: 25 });
+  } else text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   app.renderer.render(app.stage);
   sync();
@@ -463,7 +532,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    roughness: state.roughness, features: state.featureSet, variant: state.variant, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
@@ -473,17 +542,29 @@ function sync() {
     islandClusters: map.islandClusters.map(c => ({ regions: c.regionIds, landContours: c.contours.length })),
     surroundings: ['ocean', 'badlands', 'scrub', 'marsh', 'highlands'],
     world: map.world,
+    pixelRendering: pixelReview() ? currentPixelArt.stats : null,
     assumptions: 'Ocean occupies one world side or two adjacent sides, assigned as continuous outer-boundary arcs. Headlands can face ocean on one side and hinterland on the other. Twenty connected cells form an irregular footprint without global stretching or enclosed gaps. Border variation adds bounded fine detail. Uninhabitable terrain blends continuously. Geographic interactions produce water gaps, mountain valleys, narrow headwaters, estuaries and rocky coasts. River corridors clear both range and biome peaks; coastal courses sit inland. Landform ink is clipped to actual land. These are decorative interpretations, not a hydrology simulation. No live game or persistence.' }, null, 2);
 }
 function exportPng() {
-  app.renderer.render(app.stage);
-  const a = document.createElement('a'); a.download = `map-study-${state.seed}-${state.variant}.png`; a.href = app.view.toDataURL('image/png'); a.click();
+  const a = document.createElement('a'); a.download = `map-study-${state.seed}-${state.variant}.png`; a.href = pngData(); a.click();
+}
+function pngData() {
+  // Export the full design frame, independent of the phone's display resolution.
+  app.renderer.resolution = 1; app.renderer.resize(W, H); app.renderer.render(app.stage);
+  const png = app.view.toDataURL('image/png'); fitCanvas(); return png;
 }
 function fitCanvas() {
   const scale = Math.min(host.clientWidth / W, host.clientHeight / H);
+  // Draw at the displayed physical size rather than letting CSS blur a large
+  // backing canvas. Scene geometry and pointer coordinates stay in design units.
+  const resolution = scale * Math.min(devicePixelRatio || 1, 2);
+  if (Math.abs(app.renderer.resolution - resolution) > .0001) {
+    app.renderer.resolution = resolution; app.renderer.resize(W, H);
+  }
   // Size the canvas box itself, so Pixi pointer coordinates match letterboxing.
   app.view.style.setProperty('width', `${W * scale}px`, 'important');
   app.view.style.setProperty('height', `${H * scale}px`, 'important');
+  app.renderer.render(app.stage);
 }
 attachDevPreviewDisplay(host, { onChange: fitCanvas });
 new ResizeObserver(fitCanvas).observe(host);
@@ -503,5 +584,6 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
   return { ...t, x: r.x + (r.width - W * scale) / 2 + t.x * scale, y: r.y + (r.height - H * scale) / 2 + t.y * scale,
     width: t.width * scale, height: t.height * scale };
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
-  setState(patch) { Object.assign(state, patch); regenerate(); }, exportPng() { app.renderer.render(app.stage); return app.view.toDataURL('image/png'); } };
+  get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
+  setState(patch) { Object.assign(state, patch); if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
 fitMap(); render(); document.body.dataset.ready = 'true';

@@ -3,8 +3,8 @@ import { el } from './elements.js';
 const WORKBENCHES = [
   {
     title: 'Regional map generation', folder: 'map-generation-prototype', label: 'Map',
-    description: 'Explore twenty generated regions, five biomes, clustering, varied sizes and continuous geographic borders in a Pixi landscape window.',
-    details: 'Seeded generation · 3 map views · landscape fullscreen · PNG export',
+    description: 'Explore twenty generated regions and compare quiet or textured pixel landscapes, still water and terrain sprites in a Pixi landscape window.',
+    details: '3 geography views · 2 pixel styles · landscape fullscreen · PNG export',
   },
   {
     title: 'Protovassal opening', folder: 'life-map-opening-prototype', label: 'Opening',
