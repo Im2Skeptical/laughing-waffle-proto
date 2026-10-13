@@ -9,6 +9,14 @@ or renderer. Keep the study here until game integration is explicitly requested.
 Question: do exact biome quotas, mild clustering, unequal areas and continuous
 geographic border features make a readable, believable regional map?
 
+The accepted structural reference is **seed 1867**, **Clustering 15%**, **Size
+variation 85%**, **River + Range**, with ocean south + west. Border variation
+appears to be **100%** in the supplied screenshot (full slider, obscured numeric
+label). These are review settings, not new defaults. See the proposed
+[pixel rendering and palette-cycling plan](../../../docs/regional-map-rendering-plan.md)
+for how to build graphics on these structures; no pixel renderer is implemented
+by that proposal.
+
 The window uses the game's **2424 × 1080 Pixi design space**, scaled as one fixed
 landscape scene. Its controls are Pixi, including seed, clustering, size variation,
 border variation, feature combinations, reflections, region selection and PNG
