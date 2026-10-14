@@ -46,7 +46,7 @@ export function paintRegionDivisions({ map, pixel, width, height, detail, land, 
         }
         let shade, amount;
         if (d < core) {
-          shade = type === 'peat-channel' ? 0x344b45 : type === 'woodland-bank' ? 0x343c2d
+          shade = type === 'peat-channel' ? 0x4b4056 : type === 'woodland-bank' ? 0x343c2d
             : type === 'escarpment' ? 0x51413a : 0x5a5040;
           amount = .78;
         } else if (signed < 0) {

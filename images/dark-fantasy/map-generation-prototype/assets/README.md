@@ -1,5 +1,16 @@
 # Generated terrain engraving study
 
+## Custom boundary art
+
+New built-in imagegen sources are `masters/composable-ridge-border-v1.png`
+(12 pieces), `masters/composable-bridge-v1.png` (eight spans) and
+`masters/bank-swamp-v2.png` (eight bank profiles). Exact prompts are in
+[custom-boundary-prompts.json](masters/custom-boundary-prompts.json).
+The importer packs 130 relief frames and 40 profiles; two contact pieces remain
+excluded. Ground soil grading preserves warm rushes and wood while shifting
+neutral peat/clay toward plum. Runtime files total approximately 2.08 MiB;
+source sheets stay out of the mobile deployment.
+
 ## Replacement ridge and wetland art
 
 `masters/composable-mountains-v2.png` and `masters/composable-swamp-v2.png`

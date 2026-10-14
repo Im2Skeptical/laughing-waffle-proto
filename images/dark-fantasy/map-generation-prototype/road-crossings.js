@@ -21,9 +21,31 @@ export function bridgeSpans(samples, waterAt, detail) {
   return spans;
 }
 
-export function paintBridge(span, detail, dot) {
+const bridgeImages = new WeakMap();
+function bridgeImage(art) {
+  if (bridgeImages.has(art)) return bridgeImages.get(art);
+  const canvas = document.createElement('canvas'); canvas.width = art.rows[0].length; canvas.height = art.rows.length;
+  const ctx = canvas.getContext('2d');
+  art.rows.forEach((row, y) => [...row].forEach((code, x) => {
+    if (!art.colours[code]) return;
+    ctx.globalAlpha = art.opacity?.[y][x] ?? 1; ctx.fillStyle = art.colours[code]; ctx.fillRect(x, y, 1, 1);
+  }));
+  bridgeImages.set(art, canvas); return canvas;
+}
+
+export function paintBridge(span, detail, dot, stamp = null) {
   const { a, b } = span, dx = b.x - a.x, dy = b.y - a.y, length = Math.hypot(dx, dy);
   if (!length) return;
+  if (stamp?.art) {
+    const ctx = stamp.context, image = bridgeImage(stamp.art);
+    // One coherent low span at world scale. No bright enlarged procedural piers.
+    ctx.save(); ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = false;
+    ctx.translate((a.x + b.x) / 2 - stamp.origin.x, (a.y + b.y) / 2 - stamp.origin.y);
+    ctx.rotate(Math.atan2(dy, dx));
+    const stampWidth = length + 2 * detail, stampHeight = Math.min(4 * detail, stampWidth * image.height / image.width);
+    ctx.drawImage(image, -stampWidth / 2, -stampHeight / 2, stampWidth, stampHeight);
+    ctx.restore(); return;
+  }
   const nx = -dy / length, ny = dx / length, half = 2 * detail, steps = Math.ceil(length);
   const at = (t, side, colour, shadow = 0) => dot(Math.round(a.x + dx * t + nx * side), Math.round(a.y + dy * t + ny * side + shadow), 0, colour);
   // Cast shadow, continuous dark structure, timber deck and cross-grain planks.

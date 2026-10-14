@@ -1,5 +1,34 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Custom ridge boundaries, bridge spans and peat banks
+
+The current pass adds 12 directional ridge-boundary pieces, eight compact bridge
+spans and eight plum-grey peat-bank profiles, generated with built-in imagegen.
+The exact prompts and source names are in
+[custom-boundary-prompts.json](assets/masters/custom-boundary-prompts.json).
+Sources are preserved in `assets/masters/`; reduced imports total about 2.08 MiB.
+The relief atlas now contains 130 frames, 128 usable, plus 40 bank profiles.
+
+Shared mountain-region edges, including mountain/mountain pairs, use the custom
+crests, bends, diagonal sections, saddles and passes. Those paths get placement
+priority, use direction-specific candidates and keep their own crest anchor
+through vertical reflection. Their crest pixels stay intact rather than being
+cut by the generic terrain-division stencil. Rivers and ocean exclusions remain.
+
+Bridges use one compact generated span fitted between actual dry-bank approaches,
+replacing bright enlarged procedural piers. Pool banks sample the generated peat,
+root, clay and reed profiles on both sides of the actual pool distance field;
+they are not rectangular sprites placed beside a guessed shoreline. Quiet pool
+depth washes retain the cycle-index planes. Ground peat/clay and neutral relief
+are selectively graded toward smoky plum; golden rushes and wood retain colour.
+Only actual sample-town approaches shape dry clearings, with a smooth field falloff
+rather than mandatory circular holes at every region centre.
+
+Inspect seed 1878 at Fit and close zoom, then 1869 reflected. Run the terrain,
+wetland and crossing checks below. This changes disposable illustration only;
+simulation state, RNG, schemas, region ownership, connectivity and replay remain
+unchanged.
+
 ### Connected high ridges and open wetlands
 
 Mountain and swamp relief now use version-2 source sheets in `assets/masters/`.

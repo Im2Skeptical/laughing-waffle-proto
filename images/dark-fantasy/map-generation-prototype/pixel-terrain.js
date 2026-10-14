@@ -19,7 +19,7 @@ const ATLAS_GROUND = {
   plains: [0x9f8c69, 0xac9670, 0xb7a17b, 0xc5b18d],
   forest: [0x777556, 0x898164, 0x969174, 0xa39b7b],
   islands: [0x9eaa83, 0xabb48e, 0xb5bc99, 0xc1c5a6],
-  swamp: [0x515f5b, 0x65736c, 0x7d8b7b, 0x9ba38c],
+  swamp: [0x55505d, 0x6d6170, 0x867b87, 0x9c8c99],
   mountains: [0x827869, 0x958774, 0xa49782, 0xb4a792],
   highlands: [0x25292e, 0x30353c, 0x3d434b, 0x4b5159],
   marsh: [0x202429, 0x2b2f36, 0x363b42, 0x454b51],
@@ -77,8 +77,8 @@ const samplePlane = (plane, x, y) => x < plane.x || y < plane.y || x >= plane.x 
 function glyphPosition(terrain, prop, flipX, flipY) {
   const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel } = terrain.stats, sx = flipX ? -1 : 1, sy = flipY ? -1 : 1;
   return { sx, sy, left: Math.round(sx * (prop.point.x - terrain.bounds.minX) * 1576 / texel - Math.max(...art.rows.map(r => r.length)) / 2),
-    top: Math.round(sy * ((prop.point.y - terrain.bounds.minY) * 516 / texel - (prop.composed ? art.rows.length / 2 : 0))
-      - art.rows.length * (prop.composed ? .5 : 1)) };
+    top: Math.round(sy * ((prop.point.y - terrain.bounds.minY) * 516 / texel - (prop.composed ? art.rows.length * (prop.anchorHeight ?? .5) : 0))
+      - art.rows.length * (prop.composed ? 1 - (prop.anchorHeight ?? .5) : 1)) };
 }
 function mixColour(a, b, t) {
   return [16, 8, 0].reduce((c, shift) => c | Math.round(((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t) << shift, 0);
@@ -112,7 +112,7 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       if (prop.kind.includes('hill') && !art.illustrated && code !== 'a' && code !== 'b') colour = mixColour(colour, bank[2], .75);
       const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * (art.composable ? .22 : .12)));
       ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot
-        * (1 - samplePlane(terrain.divisionClearance, ix, iy) / 255);
+        * (prop.ridgeBoundary ? 1 : 1 - samplePlane(terrain.divisionClearance, ix, iy) / 255);
       ctx.fillStyle = `#${colour.toString(16).padStart(6, '0')}`;
       ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1);
     }));
@@ -138,8 +138,8 @@ export function pixelSpriteFits(terrain, prop, flipX, flipY) {
   const art = ART_BANKS[terrain.stats.texel === 2 ? 2 : 1][prop.kind], { texel, width, height } = terrain.stats;
   const px = (prop.point.x - terrain.bounds.minX) * 1576 / texel, py = (prop.point.y - terrain.bounds.minY) * 516 / texel;
   const sx = flipX ? -1 : 1, sy = flipY ? -1 : 1, w = Math.max(...art.rows.map(r => r.length));
-  const left = Math.round(sx * px - w / 2), top = Math.round(sy * (py - (prop.composed ? art.rows.length / 2 : 0))
-    - art.rows.length * (prop.composed ? .5 : 1));
+  const left = Math.round(sx * px - w / 2), top = Math.round(sy * (py - (prop.composed ? art.rows.length * (prop.anchorHeight ?? .5) : 0))
+    - art.rows.length * (prop.composed ? 1 - (prop.anchorHeight ?? .5) : 1));
   return art.rows.every((row, y) => [...row].every((code, x) => {
     if (code === '.') return true;
     const ix = Math.floor(sx * (left + x + .5)), iy = Math.floor(sy * (top + y + .5));
@@ -250,7 +250,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
     regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
   const wetlands = paintWetlandPools({ map, pixel, width, height, detail, regionIds, land, dryDistance,
-    colours, waterIndices, waterBase, waterStrength, noise, mixColour });
+    colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
+      .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
   const put = (x, y, colour, water = 0, onlyDry = false) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const i = y * width + x; if (onlyDry && !land[i]) return;
@@ -470,7 +471,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     }
     const spans = bridgeSpans(samples, p => waterIndices[p.y * width + p.x], detail);
     bridges += spans.length;
-    for (const span of spans) paintBridge(span, detail, roadDot);
+    for (const [n, span] of spans.entries()) paintBridge(span, detail, roadDot, {
+      art: ART[`terrain-bridge-${(n + bridges + map.seed) % 8}`], context: roadCtx, origin: { x: bx, y: by } });
   }
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving and coastal accents remain; towns keep their anchors.

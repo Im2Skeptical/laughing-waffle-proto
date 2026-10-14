@@ -1,0 +1,23 @@
+{
+  "generator": "built-in imagegen",
+  "jobs": [
+    {
+      "name": "ridge-border",
+      "cols": 4,
+      "rows": 3,
+      "prompt": "Original RTS terrain sprite art for a dark fantasy pixel regional map. Slightly raised north-facing fantasy atlas relief, lighting upper-left, muted aged parchment and charcoal ink, reddish grey rock, very fine pixel clusters and engraved textures. Detailed combinable terrain, not a screenshot. No labels, no text, no grid lines. Transparent sprite sheet exactly 4 columns x 3 rows, 12 wholly separate pieces in equal cells, generous completely transparent 16% margins on every side; never touch adjacent sprites. Narrow connected ridge BOUNDARY graphics, not large freestanding landscape scenes: a continuous jagged crest cleanly separates two slopes, light rock face on one side and charcoal steep shadow face on the other. Peaked reddish-grey serrated ridgeline. Dusty rose small lit facets, sparse grey vegetation at feet, NO white snow. Each section has narrow footprint and dissolving gravel feet. Pieces in order: 1 long straight east-west three-peak crest; 2 curving east-west crest; 3 diagonal rising northeast crest; 4 diagonal rising northwest crest; 5 foreshortened north-south crest; 6 Y branch dividing three slopes; 7 low saddle between two crests; 8 tapered crest end; 9 low scree shoulder joining ridge; 10 fractured escarpment base; 11 narrow rocky pass between two ridges; 12 broken crag end. Distinctively sharp continuous boundary like a range viewed on a fantasy map, each long section visibly links its summits. No isolated cone icons, no hill mounds, no rectangular terrain base."
+    },
+    {
+      "name": "bridge",
+      "cols": 4,
+      "rows": 2,
+      "prompt": "Original RTS terrain sprite art for a dark fantasy pixel regional map. Slightly raised north-facing fantasy atlas relief, lighting upper-left, muted aged parchment and charcoal ink, reddish grey rock, very fine pixel clusters and engraved textures. Detailed combinable terrain, not a screenshot. No labels, no text, no grid lines. Transparent sprite sheet exactly 4 columns x 2 rows, 8 separate complete small bridge sprites, generous totally transparent 16% margins each cell. Top-down slightly raised map view. ALL bridges left-to-right horizontally across image, low parallel rails, each touches a small dark muddy stone abutment at left and right. Clear compact silhouettes that read well at 12-30px rendered length. No surrounding water or landscape scene. NO tall posts, no towers, no huge bright white piers. Brown weathered timber, muted dark slate stone, subtle tan plank light, clear deep underside shadow. 8 variations in order: 1 short simple timber span, 2 narrow rustic plank bridge, 3 low dark stone arch bridge, 4 stone-supported timber crossing, 5 longer two-span timber bridge, 6 stout dark causeway bridge, 7 rough peatland boardwalk bridge, 8 worn stone parapet span. No water painted into sprites. Fine structure readable but strong unified deck silhouette from afar."
+    },
+    {
+      "name": "bank-swamp-v2",
+      "cols": 2,
+      "rows": 4,
+      "prompt": "Original RTS terrain sprite art for a dark fantasy pixel regional map. Slightly raised north-facing fantasy atlas relief, lighting upper-left, muted aged parchment and charcoal ink, reddish grey rock, very fine pixel clusters and engraved textures. Detailed combinable terrain, not a screenshot. No labels, no text, no grid lines. OPAQUE material texture atlas exactly 2 columns x 4 rows, eight equal landscape swatches. Not transparent. Each entire swatch is a horizontal reed-lined PEAT POOL EDGE PROFILE, dry wetland soil at top progressing through a ragged bank at middle into shallow still pool water at bottom. Same material scale and horizon depth in all swatches. Material palette muted violet-grey, aubergine peat, smoky slate water, lilac grey clay, pale dead roots, dusty ochre thin rushes. NO green forest foliage. Rich fine shore detail, rootlets, exposed peat layers, reed feet submerged, fragmented wet silt, tiny stones; natural irregular boundary but a consistent horizontal transition. No raised hills, no objects casting huge shadows. Eight types in order: exposed crumbly peat bank; drowned reed fringe; tangled roots in mud; violet clay shelf; dark moss/peat ledge; patchy rush bank; wet driftwood root mat; fine silt and tiny gravel. All touch their swatch edges, no gaps, no grid, no border, no labels. These are wrap-able pool bank materials used in a terrain shader, not framed scenes."
+    }
+  ]
+}

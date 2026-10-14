@@ -518,7 +518,7 @@ function drawTerrainLayer(art, parent) {
       origin.y + Math.round((p.y - node.height - origin.y) / density) * density);
     // Terrain compositions keep their geographic centre when reflected. A
     // bottom anchor would shift every upright painting by its full height.
-    if (state.flipY && prop.composed) node.position.y += node.height;
+    if (state.flipY && prop.composed) node.position.y += node.height * 2 * (prop.anchorHeight ?? .5);
     node.alpha = prop.background ? .9 : 1; parent.addChild(node);
   };
   props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.some(site => {

@@ -51,12 +51,12 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
   const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-small$/, '');
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
-    const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * .5));
+    const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * (context === 'ridge-boundary' ? .68 : .5)));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
     return { kind, point, salt, family, allowedBiomes, context, composed: true,
       left: Math.round(p.x - s.width / 2), top: Math.round(p.y - s.height),
-      boundary: context !== 'interior', range: family === 'terrain-mountains',
-      peak: family === 'terrain-mountains' && [0, 1, 2, 4, 10].includes(n)
+      boundary: context !== 'interior', ridgeBoundary: context === 'ridge-boundary', anchorHeight: context === 'ridge-boundary' ? .68 : .5, range: family === 'terrain-mountains' || family === 'terrain-ridge-border',
+      peak: family === 'terrain-ridge-border' || family === 'terrain-mountains' && [0, 1, 2, 4, 10].includes(n)
         || family.startsWith('contact-') && CONTACT_PAIRS[Number(family.slice(8))].includes('mountains') && n !== 3 };
   };
   const nearby = prop => props.filter(p => Math.abs(p.left - prop.left) < 85 * detail && Math.abs(p.top - prop.top) < 65 * detail);
@@ -84,7 +84,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
       if (overlap > .58) continue;
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
-      if (previous && (join < (context === 'ridge' ? .12 : .06) || join > .46)) continue;
+      if (previous && (join < (context.startsWith('ridge') ? .12 : .06) || join > .46)) continue;
       const score = rand(salt + attempt * 31 + 4) * .3
         + (previous ? 1 - Math.abs(join - .22) * 3 : Math.min(.3, overlap)) - Math.max(0, overlap - .38);
       options.push({ prop, score, join });
@@ -94,8 +94,9 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
   };
 
   const paths = [];
+  const ridgeArt = !!art['terrain-ridge-border-0'];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
-    paths.push({ points: feature.points.map(pixel), family: 'terrain-mountains', allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: 'ridge' });
+    paths.push({ points: feature.points.map(pixel), family: ridgeArt ? 'terrain-ridge-border' : 'terrain-mountains', directional: ridgeArt, allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: ridgeArt ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: ridgeArt ? 'ridge-boundary' : 'ridge' });
   // Mountain biomes carry a connected major-axis spine, with low flanks below.
   for (const [i, region] of map.regions.entries()) if (region.biome === 'mountains') {
     const outline = region.outline.map(pixel), centre = pixel(region.centre);
@@ -112,10 +113,11 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
   for (const [i, edge] of map.edges.entries()) {
     if (edge.regions.length !== 2) continue;
     const pair = edge.regions.map(id => regions.get(id).biome);
-    if (pair[0] === pair[1]) continue;
+    if (pair[0] === pair[1] && !(ridgeArt && pair.includes('mountains'))) continue;
     const contact = CONTACT_PAIRS.findIndex(p => p.includes(pair[0]) && p.includes(pair[1]));
-    paths.push({ points: edge.points.map(pixel), family: `contact-${contact}`, indices: [0, 1, 2, 3, 4],
-      allowedBiomes: pair, salt: 20003 + i * 919, context: 'boundary' });
+    paths.push({ points: edge.points.map(pixel), family: ridgeArt && pair.includes('mountains') ? 'terrain-ridge-border' : `contact-${contact}`,
+      directional: ridgeArt && pair.includes('mountains'), indices: ridgeArt && pair.includes('mountains') ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 3, 4],
+      allowedBiomes: pair, salt: 20003 + i * 919, context: ridgeArt && pair.includes('mountains') ? 'ridge-boundary' : 'boundary' });
   }
   for (const [i, coast] of map.geography.coasts.entries()) {
     const edge = map.edges.find(e => e.id === coast.edgeId);
@@ -147,6 +149,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
 
   // Step by each accepted painting's footprint, vary the spacing, and require
   // real alpha overlap when extending a run. No equal slots or parallel rows.
+  paths.sort((a, b) => Number(b.context === 'ridge-boundary') - Number(a.context === 'ridge-boundary'));
   for (const path of paths) {
     diagnostics.paths++;
     let travelled = 0, next = rand(path.salt) * 12 * detail, previous = null, attempts = 0;
@@ -155,16 +158,19 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       while (length && next <= travelled + length) {
         const t = (next - travelled) / length, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
         const salt = path.salt + (++attempts) * 719;
-        let prop = choose({ ...path, x, y, salt, previous });
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const recipe = { ...path, indices: !path.directional ? path.indices : Math.abs(dy) < Math.abs(dx) * .4 ? [0, 1, 6, 7, 10]
+          : Math.abs(dy) > Math.abs(dx) * 2 ? [4, 5, 7, 10] : dx * dy < 0 ? [2, 6, 7, 10] : [3, 6, 7, 10] };
+        let prop = choose({ ...recipe, x, y, salt, previous });
         // Search either side of the predicted join before declaring a gap.
         // This adapts to differently shaped paintings and curved boundaries.
         if (!prop && previous) for (const offset of [-5, 5, -9]) {
-          prop = choose({ ...path, x: x + (b.x - a.x) / length * offset * detail,
+          prop = choose({ ...recipe, x: x + (b.x - a.x) / length * offset * detail,
             y: y + (b.y - a.y) / length * offset * detail, salt: salt + offset * 113, previous });
           if (prop) break;
         }
         if (!prop && previous) { diagnostics.breaks++; previous = null; }
-        if (!prop) prop = choose({ ...path, x, y, salt });
+        if (!prop) prop = choose({ ...recipe, x, y, salt });
         if (prop) {
           if (previous) diagnostics.joined++;
           add(prop); previous = prop;

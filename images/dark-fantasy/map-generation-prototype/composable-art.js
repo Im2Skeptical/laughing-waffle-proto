@@ -1,4 +1,4 @@
-export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 7 };
+export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 9 };
 
 // Source hues carry the material information: leaves, trunks, earth and rock.
 // Small channel corrections preserve those differences and the painted light.
@@ -7,7 +7,10 @@ export function gradeTerrainColour(r, g, b, family) {
   const stone = Math.max(r, g, b) - Math.min(r, g, b) < 35;
   let gains = [1.06, 1.055, 1.08];
   if (family === 'forest' && foliage) gains = [1.01, 1.075, 1.035];
-  if (family === 'swamp') gains = foliage ? [.98, 1.025, 1.06] : [1.025, 1.045, 1.10];
+  if (family === 'swamp') {
+    const peat = b > g * .70 && r < g * 1.35;
+    gains = peat ? [1.10, .95, 1.20] : foliage ? [1.04, .99, 1.08] : [1.04, 1.02, 1.04];
+  }
   if (family === 'mountains' && stone) gains = [1.085, 1.035, 1.025];
   return [r, g, b].reduce((rgb, value, i) => rgb | Math.min(255, Math.round(value * gains[i] + 3)) << (16 - i * 8), 0);
 }

@@ -4,7 +4,7 @@ export const SHORE_TREATMENTS = {
   plains: { bank: 0x78664a, sediment: 0xc5b78c, road: [0xa28d65, 0xc3b18a], beach: 14, exposure: .9 },
   forest: { bank: 0x424936, sediment: 0x92956a, road: [0x6b6446, 0xa49b70], beach: 5, exposure: .6 },
   islands: { bank: 0x8a8e69, sediment: 0xd3cbae, road: [0xa7a27a, 0xd0c6a0], beach: 18, exposure: .8 },
-  swamp: { bank: 0x414b40, sediment: 0x78846d, road: [0x6e6958, 0xaaa18b], beach: 24, exposure: .18 },
+  swamp: { bank: 0x55475b, sediment: 0x96869a, road: [0x6e6958, 0xaaa18b], beach: 24, exposure: .18 },
   mountains: { bank: 0x615047, sediment: 0xa3927f, road: [0x8b7161, 0xbfa991], beach: 4, exposure: 1 },
 };
 const biomes = [null, 'plains', 'forest', 'islands', 'swamp', 'mountains'];
@@ -65,7 +65,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         const substrate = surfaces.bank(material, x, y, .52 + Math.min(.45, distance / 38), horizontal);
         waterBase[i] = mixColour(waterBase[i], substrate, Math.exp(-distance / 9) * .52);
       }
-      if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x6e8270, Math.exp(-distance / 11) * .7);
+      if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x74657b, Math.exp(-distance / 11) * .7);
       const strength = index >= 160 && index < 192 ? .2 + lace * .65
         : index >= 208 ? clamp((fine - .5) * 2) * .7
         : index >= 128 && index < 160 ? clamp((lace - .35) * 2.8) * (.18 + broad * .45)

@@ -9,7 +9,10 @@ const make = () => ({ colours: new Uint32Array(size).fill(0x778675), waterIndice
 const noise = (seed, x, y) => .56 + .17 * Math.sin(x / 8) * Math.cos(y / 9);
 const mixColour = (a, b, t) => [16, 8, 0].reduce((c, s) => c | Math.round((a >> s & 255) * (1 - t) + (b >> s & 255) * t) << s, 0);
 const a = make(), b = make(), args = { map, pixel: p => p, width, height, detail: 1, regionIds, land, dryDistance, noise, mixColour };
-const result = paintWetlandPools({ ...args, ...a }); paintWetlandPools({ ...args, ...b });
+const depths = [];
+const surfaces = { bank: (biome, x, y, depth) => { depths.push(depth); return 0x74596b; } };
+const result = paintWetlandPools({ ...args, ...a, surfaces }); paintWetlandPools({ ...args, ...b, surfaces });
+assert.ok(result.illustratedBanks > 0 && depths.some(d => d < .46) && depths.some(d => d > .53), 'Imported bank profiles must wrap both dry and submerged sides of pool contours');
 assert.ok(result.pools > 0 && result.margins > 0, 'Wetlands need open pools and textured margins');
 assert.deepEqual(a, b, 'Wetland detail must be deterministic');
 assert.equal(a.waterIndices[45 * width + 25], 0, 'Site approach must remain dry');

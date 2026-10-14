@@ -79,9 +79,15 @@ def import_surfaces():
     banks = {}
     for biome in BIOMES:
         raw = swatches(MASTER / f'ground-{biome}-v1.png', 4, 4, (SIZE, SIZE))
+        if biome == 'swamp':
+            for tile in raw:
+                rgb = tile[..., :3].astype(float)
+                peat = (rgb[..., 2] > rgb[..., 1] * .70) & (rgb[..., 0] < rgb[..., 1] * 1.35)
+                rgb[peat] = rgb[peat] * [1.10, .92, 1.18] + [3, 0, 8]
+                tile[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
         common = periodic(raw[0])
         ground[biome] = [conform(tile, common) for tile in raw]
-        raw_banks = swatches(MASTER / f'bank-{biome}-v1.png', 2, 4, (64, 32))
+        raw_banks = swatches(MASTER / (f'bank-{biome}-v2.png' if biome == 'swamp' else f'bank-{biome}-v1.png'), 2, 4, (64, 32))
         # Along-bank strips share left/right colour samples; depth is preserved.
         common_bank = raw_banks[0].astype(float).copy()
         for d in range(4):
@@ -175,9 +181,9 @@ def import_surfaces():
 
 def import_relief():
     images, records = [], []
-    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5)]
+    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2)]
     for name, columns, rows in sheets:
-        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else BASE / f'composable-{name}-v1.png'
+        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge'] else BASE / f'composable-{name}-v1.png'
         source = Image.open(source_path).convert('RGBA')
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
@@ -196,6 +202,8 @@ def import_relief():
             kind = f'contact-{pair}-{n % columns}' if contact else f'terrain-{name}-{n}'
             scale = [1.2, 1, .85, 1.1, 1.05, .8, .75, 1.15, .9, 1, .8, .85][n] if not contact else 1
             width = 50 if contact else round((36 if name == 'mountains' else 26 if name == 'forest' else 25) * scale) * 2
+            if name == 'ridge-border': width = 92 if n < 8 else 64
+            if name == 'bridge': width = 64
             height = min(118, max(1, round(width * cropped.height / cropped.width)))
             image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
             images.append(image)
@@ -227,4 +235,4 @@ if __name__ == '__main__':
     import_surfaces()
     import_relief()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
-    print(f'Map art import: 635 terrain cases, 40 bank profiles, 110 relief frames; runtime files {total / 1048576:.2f} MiB')
+    print(f'Map art import: 635 terrain cases, 40 bank profiles, 130 relief frames; runtime files {total / 1048576:.2f} MiB')
