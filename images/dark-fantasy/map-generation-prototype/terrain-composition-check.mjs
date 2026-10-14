@@ -13,6 +13,10 @@ for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b
     art[`${family}-${n}-mirror`] = { rows: rows.map(row => [...row].reverse().join('')) };
   }
 }
+// The loader marks source fragments that overlap their neighbours. Neither
+// their original nor their mirrored variant may reach the composition.
+art['terrain-forest-0'].cutRuns = { right: 44 };
+art['terrain-forest-0-mirror'].cutRuns = { left: 44 };
 // Bounding boxes overlap, but their painted parts do not: this was not checked
 // by the former semantic-port solver.
 const disconnected = { a: { rows: ['xx......', 'xx......'] }, b: { rows: ['......xx', '......xx'] } };
@@ -30,6 +34,7 @@ for (const seed of [1867, 1869, 1873]) {
   assert.ok(a.props.length > 20 && a.diagnostics.joined > 0, 'Fixture must exercise interior growth and actual joins');
   for (let i = 0; i < a.props.length; i++) {
     assert.ok(legal(a.props[i]), 'Every footprint must satisfy the supplied geographic mask');
+    assert.equal(Object.keys(art[a.props[i].kind].cutRuns ?? {}).length, 0, 'Source fragments with clipped edges must never be placed');
     for (const p of a.props.slice(0, i)) {
       assert.ok(illustrationOverlap(a.props[i], p, art) <= .58, 'No painting may bury most of another painting');
       if (p.kind.replace(/-mirror$/, '') === a.props[i].kind.replace(/-mirror$/, ''))

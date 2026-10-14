@@ -19,6 +19,10 @@ Painted blue water is removed so the authoritative water mask remains clear.
 Generated cells are combinable illustrations, not verified seamless edge tiles.
 `../terrain-composition.js` checks actual painted silhouette overlaps, limits
 overpainting and rejects repeated neighbouring images when composing them.
+`../terrain-frames.js` detects actual alpha gutters rather than assuming equal
+crop widths. Eight inseparable source fragments are excluded from placement:
+mountains 0, 1, 4, 5, 6, 7 and contact families 7/8 fragment 2. The inspector
+reports this explicitly. All swamp fragments now extract without solid cutoffs.
 
 ## Landmark zoom atlas
 

@@ -70,7 +70,9 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
     for (let attempt = 0; attempt < Math.min(context === 'interior' ? 8 : 12, candidates.length); attempt++) {
       const { n, mirrored } = candidates[attempt];
       const kind = `${family}-${n}${mirrored ? '-mirror' : ''}`;
-      if (!art[kind]) continue;
+      // Some source fragments physically touch artwork in the next row. Those
+      // cannot be extracted whole; never place a sliced illustration.
+      if (!art[kind] || Object.keys(art[kind].cutRuns ?? {}).length) continue;
       const px = x + (rand(salt + attempt * 31 + 2) - .5) * 5 * detail;
       const py = y + (rand(salt + attempt * 31 + 3) - .5) * 6 * detail;
       const prop = make(kind, px, py, family, salt, allowedBiomes, context), near = nearby(prop);

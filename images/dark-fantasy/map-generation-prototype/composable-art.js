@@ -1,4 +1,5 @@
 import { CONTACT_PAIRS } from './terrain-composition.js';
+import { findTerrainFrames, terrainFrameCutRuns } from './terrain-frames.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 7 };
@@ -29,24 +30,29 @@ export async function loadComposableArt(banks) {
     const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
     const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
     const data = ctx.getImageData(0, 0, image.width, image.height).data;
-    const cw = image.width / sheet.columns, ch = image.height / sheet.rows;
+    const sourceFrames = findTerrainFrames(data, image.width, image.height, sheet.columns, sheet.rows);
     for (let n = 0; n < sheet.columns * sheet.rows; n++) {
       const col = n % sheet.columns, row = Math.floor(n / sheet.columns);
-      let left = Math.ceil((col + 1) * cw), right = 0, top = Math.ceil((row + 1) * ch), bottom = 0, opaque = 0;
-      for (let y = Math.ceil(row * ch + ch * .025); y < (row + 1) * ch - ch * .025; y++) {
-        for (let x = Math.ceil(col * cw + cw * .025); x < (col + 1) * cw - cw * .025; x++) {
-          if (data[(y * image.width + x) * 4 + 3] < 120) continue;
-          left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y); opaque++;
+      const cell = sourceFrames[n], cutRuns = terrainFrameCutRuns(data, image.width, cell);
+      let left = cell.right, right = 0, top = cell.bottom, bottom = 0, opaque = 0;
+      for (let y = cell.top; y < cell.bottom; y++) {
+        for (let x = cell.left; x < cell.right; x++) {
+          const alpha = data[(y * image.width + x) * 4 + 3];
+          if (alpha < 65) continue;
+          left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+          if (alpha >= 120) opaque++;
         }
       }
       if (opaque < 80) throw new Error(`Empty generated terrain cell: ${sheet.name}/${n}`);
+      left = Math.max(cell.left, left - 2); right = Math.min(cell.right - 1, right + 2);
+      top = Math.max(cell.top, top - 2); bottom = Math.min(cell.bottom - 1, bottom + 2);
       const contact = sheet.name.startsWith('contacts');
       const pair = contact ? (sheet.name === 'contacts-1' ? 0 : 5) + row : null;
       const kind = contact ? `contact-${pair}-${col}` : `terrain-${sheet.name}-${n}`;
       const scale = [1.2, 1, .85, 1.1, 1.05, .8, .75, 1.15, .9, 1, .8, .85][n];
       const width = contact ? 25 : Math.round((sheet.name === 'mountains' ? 36 : sheet.name === 'forest' ? 26 : 25) * scale);
-      frames.push({ image, kind, family: sheet.name, rect: [left, top, right - left + 1, bottom - top + 1], width });
-      composableLibrary.cells.push({ kind, sheet: sheet.name, pair: contact ? CONTACT_PAIRS[pair] : null, sourcePixels: opaque });
+      frames.push({ image, kind, family: sheet.name, cutRuns, rect: [left, top, right - left + 1, bottom - top + 1], width });
+      composableLibrary.cells.push({ kind, sheet: sheet.name, pair: contact ? CONTACT_PAIRS[pair] : null, sourcePixels: opaque, cutRuns });
     }
   }
   for (const detail of [1, 2]) for (const frame of frames) {
@@ -69,7 +75,7 @@ export async function loadComposableArt(banks) {
       }
       rows.push(row); opacity.push(alpha);
     }
-    const glyph = { rows, colours, rgbColours, opacity, family: frame.family, illustrated: true, composable: true };
+    const glyph = { rows, colours, rgbColours, opacity, cutRuns: frame.cutRuns, family: frame.family, illustrated: true, composable: true };
     banks[detail][frame.kind] = glyph;
     banks[detail][`${frame.kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
   }

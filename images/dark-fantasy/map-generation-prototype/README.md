@@ -20,6 +20,16 @@ This replaces the former semantic-port WFC experiment, whose labels did not
 guarantee that painted shapes met. Source illustrations remain compositable
 fragments, not seamless square tiles; a physically impossible join leaves a gap.
 
+`terrain-frames.js` finds transparent row gutters and independent column gutters
+per row instead of cropping a fixed grid with inset margins. Generated swamp
+and river-bank pieces overrun nominal cells; fixed crops previously sliced
+through solid artwork. Alpha bounds include translucent fringe and a small
+transparent guard. A source-side edge audit excludes fragments with long solid
+cutoffs that cannot be extracted whole. Currently eight source pieces are
+excluded (six mountain fragments and two contact forks), leaving 102 usable
+pieces. Their identities are shown in the renderer inspector; source PNGs are
+preserved for replacement rather than painted over or globally blurred.
+
 `composable-art.js` preserves separate foliage, bark, earth and rock colours.
 Small asset-family channel grades adjust warmth and vegetation without mapping
 the whole painting onto a biome ramp. Five-bit colour channels retain more
@@ -37,7 +47,10 @@ Ocean composition remains static pending the time-keyed palette review.
 
 Validation: `node images/dark-fantasy/map-generation-prototype/terrain-composition-check.mjs`
 checks painted overlap rather than bounding boxes, legal footprints, repetition
-spacing, deterministic placement and preservation of material hues. Run the
+spacing, deterministic placement, exclusion of damaged fragments and preservation
+of material hues. `node images/dark-fantasy/map-generation-prototype/terrain-frame-check.mjs`
+reproduces oversized source pieces crossing nominal cells and checks intact
+extraction. Review seeds 1869 and 1870 at close zoom for swamp/bank crop edges. Run the
 browser persistence check below on seeds 1867, 1869 and 1873, including
 reflections. Inspect Fit and close zoom, coastline clearance, mountain/river gaps,
 the readable road network and site surroundings. New source sheets contain
