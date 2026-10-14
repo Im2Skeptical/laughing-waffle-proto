@@ -136,7 +136,7 @@ export function createVassalLifeMapView({
       presentation.readOnly === true,
       presentation.state?.civilization?.vassalLineage?.pendingHeirloomLoadout === true).available;
     tooltipView?.show?.({
-      title: `${family.glyph}  ${family.label}`,
+      title: family.label,
       lines: [family.description],
       accentColor: family.color,
       maxWidth: 310,

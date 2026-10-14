@@ -5,6 +5,7 @@ import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 import { dockPadContour, drawDockCheckIcon, paintDockPadFace } from "../settlement-dock-style.js";
 import { CONFIRM_DOCK, PANEL, TITLE_PLAQUE } from "./constants.js";
+import { drawLifeMapNodeIcon } from "../life-map-node-icon.js";
 
 export function titlePlaqueRect() {
   return {
@@ -21,10 +22,16 @@ export function renderTitlePlaque(parent, family) {
   const gfx = new PIXI.Graphics();
   roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 10,
     0x242a27, family.color ?? PALETTE.accent, 3);
-  parent.addChild(gfx,
-    createText(`${family.glyph}  ${String(family.label ?? "").toUpperCase()}`, {
+  // The family is identified by its Life Map node icon; the legacy letter
+  // glyphs in VASSAL_NODE_FAMILIES are generator keys, not display art.
+  const icon = new PIXI.Graphics();
+  if (family.id) drawLifeMapNodeIcon(icon, { family: family.id }, { fill: 0xf4e7bd,
+    accent: family.color ?? PALETTE.accent, outline: 0x111714, x: rect.x + 34, y: rect.y + 26, scale: .42 });
+  const textX = family.id ? rect.x + 62 : rect.x + 18;
+  parent.addChild(gfx, icon,
+    createText(String(family.label ?? "").toUpperCase(), {
       ...TEXT_STYLES.header, fontSize: 26, fill: family.color ?? PALETTE.accent,
-    }, rect.x + 18, rect.y + 12),
+    }, textX, rect.y + 12),
     createText(family.description ?? "", {
       ...TEXT_STYLES.body, fontSize: 15, fill: PALETTE.textMuted,
       wordWrap: true, wordWrapWidth: rect.width - 36,

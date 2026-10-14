@@ -4,6 +4,7 @@ import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirlo
 import { createOpeningGameScreen } from './game-screen.js';
 import { createOpeningGraphEditor } from './graph-editor.js';
 import { KIND_LABELS } from './graph-edit.js';
+import { statIcon } from './stat-icons.js';
 
 let storage = null;
 try { storage = window.localStorage; } catch { /* Export works without browser storage. */ }
@@ -41,9 +42,13 @@ function renderToolbar(snapshot) {
     const seed = field('Seed', snapshot.draft.seed, { type: 'number', min: 0, max: 4294967295, id: 'seed' });
     name.input.addEventListener('change', () => run(() => controller.replaceDraft({ ...controller.getSnapshot().draft, name: name.input.value })));
     seed.input.addEventListener('change', () => run(() => controller.replaceDraft({ ...controller.getSnapshot().draft, seed: Number(seed.input.value) })));
-    host.append(name.wrap, seed.wrap, button('Restart', () => controller.restart(), 'primary'), button('Next seed', () => controller.nextSeed()),
-      button('Rewind decision', () => controller.rewind()), button('Save draft', () => controller.save()), button('Load saved', () => controller.load()),
+    // Play controls stay visible; draft file actions sit behind one disclosure.
+    const menu = el('details', '', 'draft-menu'), summary = el('summary', 'Draft…'), items = el('div', '', 'draft-menu-items');
+    items.append(button('Save draft', () => controller.save()), button('Load saved', () => controller.load()),
       button('Export JSON', exportDraft), button('Restore built-in draft', () => controller.resetDraft()));
+    menu.append(summary, items);
+    host.append(name.wrap, seed.wrap, button('Restart', () => controller.restart(), 'primary'), button('Rewind decision', () => controller.rewind()),
+      button('Next seed', () => controller.nextSeed()), menu);
   }
   [...$('toolbar').querySelectorAll('button')].forEach(b => { b.disabled = snapshot.busy || b.textContent === 'Rewind decision' && !snapshot.canRewind || b.textContent === 'Load saved' && !snapshot.saved; });
   $('toolbar').querySelectorAll('input').forEach(input => { input.disabled = snapshot.busy; });
@@ -52,10 +57,14 @@ function exportDraft() {
   const url = URL.createObjectURL(new Blob([controller.exportDraft()], { type: 'application/json' }));
   const anchor = el('a'); anchor.href = url; anchor.download = 'protovassal-opening.json'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+const SUMMARY_METRICS = [['year', 'Age', s => s.age], ['prestige', 'Prestige', s => s.prestige], ['stock-arms', 'Force', s => s.force],
+  ['population', 'Retinue Force', s => `+${s.retinue}`], ['activation', 'Prowess', s => s.prowess], ['chaos', 'Chaos', s => s.chaos],
+  ['hourglass', 'Seconds', s => s.tSec], ['research', 'Research', s => s.research]];
 function renderSummary({ summary: s }) {
-  const metrics = [['Age', s.age], ['Prestige', s.prestige], ['Force', s.force], ['Retinue', `${s.retinue}/${s.retinueCap}`],
-    ['Prowess', s.prowess], ['Chaos', s.chaos], ['Time · seconds', s.tSec], ['Research', s.research]];
-  $('summary').replaceChildren(...metrics.map(([label, value]) => { const box = el('div', '', 'metric'); box.append(el('span', label), el('strong', String(format(value)))); return box; }));
+  $('summary').replaceChildren(...SUMMARY_METRICS.map(([icon, label, value]) => {
+    const box = el('div', '', 'metric'), number = el('strong', String(format(value(s))));
+    number.prepend(statIcon(icon)); box.title = label; box.append(number, el('span', label)); return box;
+  }));
 }
 function renderOutcomes(snapshot) {
   const host = $('outcomes'); host.replaceChildren();
@@ -108,9 +117,12 @@ function renderEditor(snapshot) {
   const lists = {};
   for (const list of ['options', 'cards', 'relics', 'pass']) {
     if (spec[list] == null) continue;
-    const items = list === 'pass' ? [spec.pass] : spec[list], section = el('div'); section.append(el('h3', list === 'pass' ? 'Alternative to purchasing' : list));
+    const items = list === 'pass' ? [spec.pass] : spec[list], section = el('div'); section.append(el('h3', list === 'pass' ? 'Alternative to purchasing' : ({ options: 'Options', cards: 'Cards', relics: 'Relics' })[list]));
     lists[list] = items.map((item, index) => {
-      const group = el('div', '', 'offer-editor'), inputs = {}, row = el('div', '', 'editor-grid');
+      const group = el('details', '', 'offer-editor'), inputs = {}, row = el('div', '', 'editor-grid');
+      const name = item.label ?? (list === 'relics' ? VASSAL_HEIRLOOM_DEFS[item.definitionId]?.label : item.definitionId) ?? item.id ?? `Item ${index + 1}`;
+      const costs = [item.prestigeCost ? `${item.prestigeCost} Prestige` : '', item.phaseCost != null ? `${item.phaseCost} phases` : '', item.chaos ? `${item.chaos} Chaos` : ''].filter(Boolean).join(' · ');
+      group.open = items.length === 1; group.append(el('summary', costs ? `${name} · ${costs}` : name));
       const keys = list === 'cards' ? ['kind', 'definitionId', 'prestigeCost', 'phaseCost']
         : list === 'relics' ? ['definitionId', 'prestigeCost', 'phaseCost', 'chaos', ...(spec.kind === 'specialRelic' ? ['immediateDeathChance'] : [])]
           : ['id', 'label', 'phaseCost', 'prestigeCost', 'prestigeDelta', 'chaos', 'statId', 'statDelta'];

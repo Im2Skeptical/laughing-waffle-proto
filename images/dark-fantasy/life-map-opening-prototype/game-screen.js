@@ -7,9 +7,10 @@ import { createWorldMapView } from '../../../src/views/world-map-pixi.js';
 import { createSettlementPrototypeView } from '../../../src/views/settlement-prototype-view.js';
 import { createSettlementNavigationView, getNavigationVassalPortrait } from '../../../src/views/settlement-navigation-pixi.js';
 import { createTooltipView } from '../../../src/views/tooltip-pixi.js';
-import { prepareChronicleArt } from '../../../src/views/chronicle-art.js';
+import { prepareChronicleArt, getArtRevision } from '../../../src/views/chronicle-art.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { button } from '../../../src/views/vassal-node-decision/cards.js';
+import { addResourceAmount } from '../../../src/views/resource-cost-pixi.js';
 import { clearChildren, createText, roundedRect } from '../../../src/views/settlement-view-primitives.js';
 import { PALETTE, TEXT_STYLES } from '../../../src/views/settlement-theme.js';
 import { getVassalLifeMapNodeFamily } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
@@ -27,7 +28,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   app.view.setAttribute('aria-label', 'Playable opening: Life Map, world map, settlement and node decisions');
   host.replaceChildren(app.view);
   const screenLabel = document.createElement('span'); screenLabel.className = 'game-screen-label'; screenLabel.textContent = 'Opening playthrough'; host.prepend(screenLabel);
-  const display = attachDevPreviewDisplay(host);
+  const display = attachDevPreviewDisplay(host, { onChange: active => { host.closest('body')?.classList.toggle('opening-fullscreen', active); } });
   const rotated = () => display.active && matchMedia('(orientation:portrait) and (pointer:coarse)').matches;
   const mapPosition = app.renderer.events.mapPositionToPoint.bind(app.renderer.events);
   app.renderer.events.mapPositionToPoint = (point, x, y) => {
@@ -60,8 +61,8 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
     const label = spec.displayLabel?.trim() || ({ world: 'World Decision', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
     return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
-      + (danger ? ` Direct death risk up to ${Math.round(danger * 100)}%.` : '')
-      + (chaos ? ` Optional Chaos cost up to ${chaos}.` : ''), ...(spec.kind === 'specialRelic' ? { color: PALETTE.red } : {}) };
+      + (danger ? `\nDirect death risk up to ${Math.round(danger * 100)}%.` : '')
+      + (chaos ? `\nOptional Chaos cost up to ${chaos}.` : ''), ...(spec.kind === 'specialRelic' ? { color: PALETTE.red } : {}) };
   };
   function invoke(action) {
     try { action(); message = ''; return { ok: true }; }
@@ -142,23 +143,33 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
 
   function drawChrome() {
     const s = snapshot.summary, active = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId);
-    const footerSignature = JSON.stringify([s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), worldDecision.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
+    const footerSignature = JSON.stringify([getArtRevision(), s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), worldDecision.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
     if (footerKey !== footerSignature) {
       footerKey = footerSignature; clearChildren(layers.footer);
       const bg = new PIXI.Graphics(); roundedRect(bg, 390, 852, 1480, 196, 14, PALETTE.panel, PALETTE.stroke, 2); layers.footer.addChild(bg);
       const title = active ? active.title : snapshot.session.availableIds.length ? 'Choose the next opportunity' : s.dead || s.complete ? 'This run ended · Rewind or Restart' : 'Authored opening complete';
       layers.footer.addChild(createText(title, { ...TEXT_STYLES.header, fontSize: 30, fill: PALETTE.accent }, 414, 868));
-      layers.footer.addChild(createText(`Age ${s.age}    Prestige ${s.prestige}    Force ${s.force}    Retinue ${s.retinue}/${s.retinueCap}    Chaos ${s.chaos}`, { ...TEXT_STYLES.title, fontSize: 27 }, 414, 916));
+      // Game resource icons, as on the HUD; Retinue is the Force it adds (it has no cap).
+      let statX = 414;
+      for (const [icon, value, label] of [['year', s.age, 'Age'], ['prestige', s.prestige, 'Prestige'], ['stock-arms', s.force, 'Force'],
+        ['population', `+${s.retinue}`, 'Retinue Force'], ['chaos', s.chaos, 'Chaos']]) {
+        const stat = addResourceAmount(layers.footer, icon, value, { x: statX, y: 908, fontSize: 28, iconSize: 38 });
+        stat.accessibleTitle = `${label} ${value}`; statX += Math.max(150, stat.width + 44);
+      }
       let detail = message || (snapshot.busy ? `Resolving real simulation ticks · ${snapshot.progress}%` : active?.description ?? `At ${s.location} · ${s.tSec}s elapsed · use the game navigation to inspect the world and settlement.`);
       if (active?.pass && !snapshot.decision?.purchases.length) detail += ` Confirm without a purchase: ${active.pass.label}, ${active.pass.phaseCost ?? 0} phases, +${active.pass.prestigeDelta ?? 0} Prestige.`;
       layers.footer.addChild(createText(detail, { ...TEXT_STYLES.body, fontSize: 23, wordWrap: true, wordWrapWidth: 1400, fill: message ? PALETTE.red : PALETTE.textMuted }, 414, 960));
       layers.footer.visible = !modal.isOpen() && !worldDecision.isOpen() && !note.isOpen() && !life.isEntryConfirmationOpen();
     }
-    const controlSignature = JSON.stringify([snapshot.busy, snapshot.canRewind, snapshot.session.activeId]);
+    const controlSignature = JSON.stringify([snapshot.busy, snapshot.canRewind, snapshot.session.activeId, display.active]);
     if (controlKey !== controlSignature) {
       controlKey = controlSignature; clearChildren(layers.controls);
-      button(layers.controls, { x: 1950, y: 16, width: 145, height: 54 }, 'REWIND', !snapshot.busy && snapshot.canRewind, () => invoke(() => controller.rewind()), false, { fontSize: 20 });
-      button(layers.controls, { x: 2102, y: 16, width: 145, height: 54 }, 'RESTART', !snapshot.busy, () => invoke(() => controller.restart()), false, { fontSize: 20 });
+      // Rewind and Restart live in the page toolbar; fullscreen hides it, so only
+      // then does the canvas carry them. Edit leaves fullscreen for the editor.
+      if (display.active) {
+        button(layers.controls, { x: 1950, y: 16, width: 145, height: 54 }, 'REWIND', !snapshot.busy && snapshot.canRewind, () => invoke(() => controller.rewind()), false, { fontSize: 20 });
+        button(layers.controls, { x: 2102, y: 16, width: 145, height: 54 }, 'RESTART', !snapshot.busy, () => invoke(() => controller.restart()), false, { fontSize: 20 });
+      }
       button(layers.controls, { x: 2254, y: 16, width: 145, height: 54 }, 'EDIT', !snapshot.busy, () => { void display.exit().then(() => onEdit?.(snapshot.session.activeId ?? life.getCandidateNodeId())); }, false, { fontSize: 20 });
     }
     const nextOutcomeKey = JSON.stringify([outcomeId, snapshot.session.outcomes]);

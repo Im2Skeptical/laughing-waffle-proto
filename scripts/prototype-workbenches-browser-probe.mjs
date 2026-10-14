@@ -59,6 +59,13 @@ async function exportedSize() {
     return { width:image.width, height:image.height, centerAlpha:context.getImageData(image.width/2,image.height/2,1,1).data[3] };
   });
 }
+// Draft file actions sit in the toolbar's Draft… disclosure.
+async function draftAction(name) {
+  const menu=page.locator('#toolbar .draft-menu');
+  if(!await menu.evaluate(node=>node.open))await menu.locator('summary').click();
+  await page.getByRole('button',{name,exact:true}).click();
+  await menu.evaluate(node=>{node.open=false;});
+}
 async function openingPoint(kind,index=0) {
   const canvas=page.getByTestId('opening-game-screen');await canvas.scrollIntoViewIfNeeded();
   const point=await page.evaluate(({kind,index})=>openingWorkbench.getClientPoint(kind,index),{kind,index});
@@ -82,6 +89,8 @@ try {
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   page = await browser.newPage({ viewport:{ width:1280,height:800 } });
   page.on('pageerror', error => errors.push(error.message));
+  // Each atlas frame is cached once; a repeat means a sheet was loaded twice.
+  page.on('console', message => { if (/\[Cache\] already has key/.test(message.text())) errors.push(message.text()); });
   page.on('response', response => { if (response.url().startsWith(url) && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
   await check('Pages subpath, three active workbenches, retirement and refresh', async () => {
     await page.goto(`${url}#/dev/prototypes`);
@@ -123,7 +132,7 @@ try {
   await check('World Decision: direct preview, whole map, move/build selection, Tour and relic acquisition', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
-    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    await draftAction('Restore built-in draft');
     await page.locator('#edit-node').selectOption('explore');await page.locator('#preview-node').click();
     await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.open);
     const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
@@ -173,7 +182,7 @@ try {
       if(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId==='explore'))await openingClick('acquire','carry',true);
       await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
     }finally{await mobile.close();page=previous;}
-    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    await draftAction('Restore built-in draft');
   });
   await check('Opening playthrough, real founding, purchase, rewind and same-seed outcomes', async () => {
     await page.setViewportSize({width:1280,height:800});
@@ -256,9 +265,27 @@ try {
       throw new Error(`Touch ${phase}: ${error.message.split('\n')[0]}; details artifacts/opening-pixi-touch-failure.json`);
     }finally{await mobile.close();page=previous;}
   });
+  await check('Opening phone layout: landscape game first, portrait rotate screen, 44px targets, icon stats', async () => {
+    const previous=page;
+    for (const viewport of [{width:844,height:390},{width:390,height:844}]) {
+      const mobile=await browser.newContext({viewport,isMobile:true,hasTouch:true});page=await mobile.newPage();
+      try {
+        await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+        const layout=await page.evaluate(()=>{const canvas=document.querySelector('#game-screen canvas').getBoundingClientRect();
+          const small=[...document.querySelectorAll('button,a,summary,input,select')].filter(node=>{const r=node.getBoundingClientRect();return r.width&&r.height<44;}).map(node=>node.textContent.trim()||node.type);
+          return {canvasBottom:canvas.bottom,hint:getComputedStyle(document.querySelector('.rotate-hint')).display,small,
+            metrics:[...document.querySelectorAll('#summary .metric')].map(node=>({icon:!!node.querySelector('img.stat-icon'),text:node.textContent}))};});
+        assert.deepEqual(layout.small,[],'every control is at least 44px tall');
+        assert.ok(layout.metrics.length===8&&layout.metrics.every(metric=>metric.icon&&!/null|undefined/.test(metric.text)),'summary stats carry game icons and real values');
+        if(viewport.width>viewport.height){assert.ok(layout.canvasBottom<=viewport.height,'landscape shows the whole game on the first screen');assert.equal(layout.hint,'none');}
+        else assert.notEqual(layout.hint,'none','portrait shows the rotate screen');
+      } finally { await mobile.close(); }
+    }
+    page=previous;
+  });
   await check('Opening graph editor: reorder, add, duplicate, remove, draw routes and undo invalid edits', async () => {
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();
-    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    await draftAction('Restore built-in draft');
     const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     const graph=()=>page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph);
     const successors=async id=>(await graph()).nodes.find(n=>n.id===id).next;
@@ -301,7 +328,7 @@ try {
   });
   await check('Opening grid: box selection, group drag, single drag, pan, notes, persistence and note play', async () => {
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
-    await page.getByRole('button',{name:'Restore built-in draft',exact:true}).click();
+    await draftAction('Restore built-in draft');
     const graph=()=>page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph);
     const cells=()=>page.evaluate(()=>openingWorkbench.getEditorSnapshot().cells);
     const center=(column,row)=>page.evaluate(({column,row})=>openingWorkbench.getEditorCellPoint(column,row),{column,row});
@@ -339,7 +366,7 @@ try {
     const intention='Let the player trade safety for a scarce stock.\n'+Array.from({length:30},(_,i)=>`Intention ${i+1}: offer an understandable cost and a useful outcome.`).join('\n');
     await page.locator('#note-intention').fill(intention);await page.getByRole('button',{name:'Save note',exact:true}).click();
     assert.equal((await graph()).nodes.find(n=>n.id==='customNote-1').kind,'customNote');
-    await page.getByRole('button',{name:'Save draft',exact:true}).click();const saved=await graph();
+    await draftAction('Save draft');const saved=await graph();
     await page.reload();await ready();assert.deepEqual(await graph(),saved);
     await page.locator('#edit-node').selectOption('customNote-1');assert.equal(await page.locator('#note-intention').inputValue(),intention);
     await page.getByRole('button',{name:'Fit graph',exact:true}).click();await page.locator('#graph-editor').scrollIntoViewIfNeeded();
@@ -381,11 +408,11 @@ try {
     await page.getByLabel('Override phases (blank = offer cost)').fill('9');
     await page.getByRole('button',{name:'Apply node edits',exact:true}).click();
     assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'editing does not mutate the running experiment');
-    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await draftAction('Save draft');
     await page.reload();await ready();
     const saved=await page.evaluate(()=>JSON.parse(document.querySelector('#json').value));
     assert.equal(saved.nodes.find(n=>n.id==='explore').phaseCost,9);
-    const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export JSON',exact:true}).click();
+    const download=page.waitForEvent('download');await draftAction('Export JSON');
     const exported=await download;assert.equal(exported.suggestedFilename(),'protovassal-opening.json');
     await page.locator('#import').setInputFiles({name:'opening.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({...saved,name:'Imported opening',seed:43}))});
     await page.waitForFunction(()=>document.querySelector('#experiment-name').value==='Imported opening');
