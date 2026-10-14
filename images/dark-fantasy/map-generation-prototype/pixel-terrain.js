@@ -11,6 +11,7 @@ import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interacti
 import { prepareTerrainSurfaces, createSurfaceSampler } from './terrain-surfaces.js';
 import { paintTerrainFoundations } from './terrain-foundations.js';
 import { paintRegionDivisions } from './terrain-divisions.js';
+import { paintWetlandPools } from './wetland-ground.js';
 import { bridgeSpans, paintBridge } from './road-crossings.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
@@ -18,7 +19,7 @@ const ATLAS_GROUND = {
   plains: [0x9f8c69, 0xac9670, 0xb7a17b, 0xc5b18d],
   forest: [0x777556, 0x898164, 0x969174, 0xa39b7b],
   islands: [0x9eaa83, 0xabb48e, 0xb5bc99, 0xc1c5a6],
-  swamp: [0x696e63, 0x78796b, 0x858675, 0x949080],
+  swamp: [0x515f5b, 0x65736c, 0x7d8b7b, 0x9ba38c],
   mountains: [0x827869, 0x958774, 0xa49782, 0xb4a792],
   highlands: [0x25292e, 0x30353c, 0x3d434b, 0x4b5159],
   marsh: [0x202429, 0x2b2f36, 0x363b42, 0x454b51],
@@ -248,6 +249,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
     regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
+  const wetlands = paintWetlandPools({ map, pixel, width, height, detail, regionIds, land, dryDistance,
+    colours, waterIndices, waterBase, waterStrength, noise, mixColour });
   const put = (x, y, colour, water = 0, onlyDry = false) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const i = y * width + x; if (onlyDry && !land[i]) return;
@@ -511,7 +514,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d'), image = ctx.createImageData(width, height);
   for (let i = 0; i < size; i++) {
-    let c = waterIndices[i] ? (waterBase[i] && !land[i] ? mixColour(waterBase[i], waterBank[waterIndices[i]], waterStrength[i] / 255) : waterBank[waterIndices[i]]) : colours[i];
+    let c = waterIndices[i] ? (waterBase[i] ? mixColour(waterBase[i], waterBank[waterIndices[i]], waterStrength[i] / 255) : waterBank[waterIndices[i]]) : colours[i];
     // Retain the river phase indices while keeping the still-water study from
     // reading as alternating bright stripes at the finer resolution.
     if (waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
@@ -549,7 +552,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
   return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
-    palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, glyphKinds: new Set(props.map(p => p.kind)).size,
+    palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,

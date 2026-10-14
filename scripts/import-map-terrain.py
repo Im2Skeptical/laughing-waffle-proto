@@ -177,7 +177,8 @@ def import_relief():
     images, records = [], []
     sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5)]
     for name, columns, rows in sheets:
-        source = Image.open(BASE / f'composable-{name}-v1.png').convert('RGBA')
+        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else BASE / f'composable-{name}-v1.png'
+        source = Image.open(source_path).convert('RGBA')
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
         cells = json.loads(probe.stdout)

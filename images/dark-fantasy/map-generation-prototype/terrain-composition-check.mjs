@@ -52,7 +52,7 @@ const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
 const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
   && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + islandMap.features.filter(f => f.type === 'ridge').length
-  + islandMap.geography.coasts.length, 'Every island contour must receive a shore profile even without a graph edge ID');
+  + islandMap.geography.coasts.length + islandMap.regions.filter(r => r.biome === 'mountains').length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [lr, lg, lb] = channels(leaves), [sr, sg, sb] = channels(stone);
 assert.ok(lg > lr && lg > lb * 1.7, 'Leaf hue must survive grading');

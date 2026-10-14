@@ -39,7 +39,7 @@ function field(seed, x, y, scale) {
 
 const INTERIORS = {
   forest: [0, 2, 3, 4, 5, 7, 8, 9, 11], mountains: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  swamp: [0, 1, 2, 4, 5, 6, 7, 8, 9, 11], plains: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  swamp: [0, 1, 2, 3, 6, 7, 8, 9, 10, 11], plains: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   islands: [8, 9, 10, 11],
 };
 const COASTS = { forest: [5, 6, 7, 9, 10], mountains: [5, 6, 7, 8, 9, 11],
@@ -84,7 +84,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
       if (overlap > .58) continue;
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
-      if (previous && (join < .06 || join > .46)) continue;
+      if (previous && (join < (context === 'ridge' ? .12 : .06) || join > .46)) continue;
       const score = rand(salt + attempt * 31 + 4) * .3
         + (previous ? 1 - Math.abs(join - .22) * 3 : Math.min(.3, overlap)) - Math.max(0, overlap - .38);
       options.push({ prop, score, join });
@@ -96,6 +96,19 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
   const paths = [];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
     paths.push({ points: feature.points.map(pixel), family: 'terrain-mountains', allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: 'ridge' });
+  // Mountain biomes carry a connected major-axis spine, with low flanks below.
+  for (const [i, region] of map.regions.entries()) if (region.biome === 'mountains') {
+    const outline = region.outline.map(pixel), centre = pixel(region.centre);
+    const xs = outline.map(p => p.x), ys = outline.map(p => p.y);
+    const rx = (Math.max(...xs) - Math.min(...xs)) * .38, ry = (Math.max(...ys) - Math.min(...ys)) * .38;
+    const horizontal = rx > ry;
+    const points = Array.from({ length: 13 }, (_, n) => {
+      const t = n / 12 * 2 - 1, bend = Math.sin(t * Math.PI * 1.4 + rand(i + 511) * 2) * .24;
+      return { x: centre.x + (horizontal ? t * rx : bend * rx), y: centre.y + (horizontal ? bend * ry : t * ry) };
+    });
+    paths.push({ points, family: 'terrain-mountains', allowedBiomes: ['mountains'],
+      indices: [0, 1, 2, 3, 4, 6, 10], salt: 130001 + i * 877, context: 'ridge' });
+  }
   for (const [i, edge] of map.edges.entries()) {
     if (edge.regions.length !== 2) continue;
     const pair = edge.regions.map(id => regions.get(id).biome);
@@ -169,7 +182,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
     const outline = region.outline.map(pixel), family = `terrain-${region.biome}`;
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);
     const width = Math.max(...xs) - minX, height = Math.max(...ys) - minY;
-    const area = Math.abs(polygonArea(outline)), dense = ['forest', 'swamp', 'mountains'].includes(region.biome);
+    const area = Math.abs(polygonArea(outline)), dense = region.biome === 'forest';
     const candidates = [], count = Math.min(650, Math.ceil(width * height / (30 * detail * detail)));
     for (let n = 0; n < count; n++) {
       const salt = 270001 + index * 91813 + n * 137, x = minX + rand(salt) * width, y = minY + rand(salt + 1) * height;
@@ -179,10 +192,10 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? 1150 : dense ? 160 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? 1150 : region.biome === 'swamp' ? 1100 : dense ? 160 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const prop = choose({ ...candidate, family, indices: INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+      const prop = choose({ ...candidate, family, indices: region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores

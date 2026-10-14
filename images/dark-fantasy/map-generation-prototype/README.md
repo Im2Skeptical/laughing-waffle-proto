@@ -1,5 +1,30 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Connected high ridges and open wetlands
+
+Mountain and swamp relief now use version-2 source sheets in `assets/masters/`.
+The 24 replacement pieces were generated with built-in imagegen; exact prompts
+are saved in [ridge-wetland-prompts.json](assets/masters/ridge-wetland-prompts.json).
+All 24 have complete extractable edges, bringing the relief library to 108 usable
+pieces; only the two damaged contact fragments remain excluded. Runtime imports
+remain capped at 118px; the packed art library now totals about 1.94 MiB.
+
+Mountain regions receive a connected main-axis spine of serrated summits and
+saddles. Geographic range paths use the same crests with a stronger overlap
+requirement; low scree, valleys and foothills flank them rather than competing
+as randomly scattered full-height peaks. Islands remain excluded from massifs.
+
+Swamp interiors use sparse low reed banks, pools and deadwood rather than the
+forest's dense canopy placement. A world-seeded ground field creates open peat
+pools, textured margins and quiet water-ramp modulation. The pool's static depth
+wash is respected even though its gameplay land mask remains unchanged. Site
+approaches and border margins stay dry. This is presentation only; region shapes,
+connectivity, simulation RNG, schemas and replay are unchanged.
+
+Run `node images/dark-fantasy/map-generation-prototype/wetland-ground-check.mjs`
+and `npm run check:map-art`. Review seeds 1869 and 1875 at Fit and close zoom,
+then run the persistence check below.
+
 ### Illustrated divisions and complete crossings
 
 Every shared region border, including same-biome borders, now receives a

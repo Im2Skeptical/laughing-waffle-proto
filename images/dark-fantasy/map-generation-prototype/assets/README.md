@@ -1,5 +1,12 @@
 # Generated terrain engraving study
 
+## Replacement ridge and wetland art
+
+`masters/composable-mountains-v2.png` and `masters/composable-swamp-v2.png`
+replace the original mountain and swamp relief at import time. Their 24 pieces
+have complete silhouettes. Originals are preserved. The exact built-in imagegen
+prompts are in [ridge-wetland-prompts.json](masters/ridge-wetland-prompts.json).
+
 ## Imported continuous terrain kit
 
 The ten new source sheets in `masters/` contain sixteen full ground swatches
@@ -9,7 +16,7 @@ record the built-in image-generation workflow. Sources are preserved unchanged.
 `runtime/terrain-kit-v1.webp` packs 635 32px material/transition/shore/river/road
 cases. `runtime/bank-profiles-v1.webp` packs forty 64x32px bank profiles.
 `runtime/relief-v1.webp` and its manifest hold the 110 reduced relief pieces;
-eight remain excluded because of inseparable source edges. Legacy engraving
+two contact pieces remain excluded because of inseparable source edges. Legacy engraving
 and the consistent landmark LODs also use reduced imported WebP files.
 
 Run `npm run build:map-art` to rebuild, and `npm run check:map-art` to verify

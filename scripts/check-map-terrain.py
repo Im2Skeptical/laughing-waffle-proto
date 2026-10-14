@@ -48,7 +48,7 @@ for biome in biomes:
 
 relief = json.loads((folder / 'relief-v1.json').read_text())
 assert len(relief['frames']) == 110
-assert len([r for r in relief['frames'] if r['cutRuns']]) == 8, 'Source exclusion audit changed unexpectedly'
+assert {r['kind'] for r in relief['frames'] if r['cutRuns']} == {'contact-7-2', 'contact-8-2'}, 'Replacement biome art must have complete extractable edges'
 assert all(r['rect'][2] <= 118 and r['rect'][3] <= 118 for r in relief['frames'])
 total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix in ['.webp', '.json'])
 assert total < 3 * 1048576, 'Imported art exceeded the prototype runtime budget'
