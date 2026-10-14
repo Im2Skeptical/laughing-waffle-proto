@@ -1,9 +1,41 @@
 import { decorationRandom } from './generator.js';
 import { SHORE_TREATMENTS } from './terrain-interactions.js';
 
+// Whole painted pieces are admitted only where their opaque footprint is dry.
+// Never stencil a house or boardwalk in half at a river or region boundary.
+export function settlementOutskirts(parent, art, scale, dry, roads, makeSprite) {
+  const source = art.productive.baseTexture.resource.source;
+  const alpha = texture => {
+    const canvas = document.createElement('canvas'); canvas.width = texture.width; canvas.height = texture.height;
+    const { x, y, width, height } = texture.frame, ctx = canvas.getContext('2d');
+    ctx.drawImage(source, x, y, width, height, 0, 0, width, height);
+    return ctx.getImageData(0, 0, width, height).data;
+  };
+  let placed = 0; const occupied = [];
+  const approach = roads.filter(p => Math.hypot(...p) > 38 * scale && Math.hypot(...p) < 95 * scale)
+    .sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
+  for (const role of ['approach', 'productive']) {
+    const texture = art[role], pixels = alpha(texture), width = 54 * scale, ratio = width / texture.width;
+    const candidates = role === 'approach' && approach ? [approach, [-40 * scale, -8 * scale], [40 * scale, -8 * scale]]
+      : [[42 * scale, -8 * scale], [-42 * scale, -8 * scale], [0, -48 * scale]];
+    for (const [cx, cy] of candidates) {
+      if (occupied.some(p => Math.hypot(p[0] - cx, p[1] - cy) < 32 * scale)) continue;
+      const left = cx - width / 2, top = cy - texture.height * ratio / 2;
+      let valid = true;
+      for (let y = 0; y < texture.height && valid; y += 2) for (let x = 0; x < texture.width; x += 2) {
+        if (pixels[(y * texture.width + x) * 4 + 3] > 95 && !dry(left + x * ratio, top + y * ratio)) { valid = false; break; }
+      }
+      if (!valid) continue;
+      const node = makeSprite(texture); node.scale.set(ratio); node.position.set(left, top);
+      parent.addChild(node); occupied.push([cx, cy]); placed++; break;
+    }
+  }
+  return placed;
+}
+
 // Ground work, not a circular icon plate. Every mark is clipped against the
 // canonical land/water field by the caller, and keyed to the site's identity.
-export function settlementGround(site, biome, seed, scale, dry, roads) {
+export function settlementGround(site, biome, seed, scale, dry, roads, illustrated = false) {
   const g = new PIXI.Graphics(), bank = SHORE_TREATMENTS[biome];
   const random = n => decorationRandom(seed, (site.salt ?? Number(site.regionId.slice(1)) * 3571) + n * 7919);
   const colour = site.kind === 'monster' ? 0x494039 : bank.bank;
@@ -19,7 +51,7 @@ export function settlementGround(site, biome, seed, scale, dry, roads) {
     }
   };
   // Broken earthen apron extends into paths and patches instead of a hard oval.
-  for (let n = 0; n < 85; n++) {
+  for (let n = 0; n < (illustrated ? 0 : 85); n++) {
     const x = (random(n * 3) - .5) * 165, y = (random(n * 3 + 1) - .5) * 95 + 8;
     if (Math.hypot(x / 85, y / 56) > 1) continue;
     const size = 4 + random(n * 3 + 2) * 11;
@@ -40,7 +72,7 @@ export function settlementGround(site, biome, seed, scale, dry, roads) {
       }
     }
   }
-  for (let n = 0; n < 13; n++) {
+  for (let n = 0; n < (illustrated ? 0 : 13); n++) {
     const x = (random(800 + n * 2) - .5) * 175, y = 12 + random(801 + n * 2) * 38;
     const w = 8 + random(940 + n) * 18;
     if (site.kind === 'monster') {
@@ -53,8 +85,8 @@ export function settlementGround(site, biome, seed, scale, dry, roads) {
       line([x, y + 3], [x + w, y - 3], 3, 0x68564b, .8);
       line([x, y + 1], [x + w, y - 5], 2, 0xc0a790, .75);
     } else if (biome === 'swamp') {
-      polygon([[x, y], [x + w, y - 1], [x + w - 3, y + 4], [x + 4, y + 6]], 0x4a645a, .65);
-      line([x + 3, y + 1], [x + w - 4, y], 1, 0x8b9d83, .5);
+      polygon([[x, y], [x + w, y - 1], [x + w - 3, y + 4], [x + 4, y + 6]], 0x55475b, .65);
+      line([x + 3, y + 1], [x + w - 4, y], 1, 0x96869a, .5);
     } else {
       line([x, y], [x + 10, y + 2], 3, 0x514c32, .8);
       line([x, y - 1], [x + 9, y + 1], 2, 0xa29362, .75);

@@ -5,7 +5,7 @@ import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../.
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
-import { settlementGround } from './settlement-ground.js';
+import { settlementGround, settlementOutskirts } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
@@ -18,7 +18,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
-  siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', 1, .5, 1.5),
+  siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
   smoothZoom: params.get('smoothZoom') !== '0', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
@@ -523,7 +523,7 @@ function drawTerrainLayer(art, parent) {
   };
   props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.some(site => {
     const a = point(prop.point), b = point(site.point);
-    return Math.abs(a.x - b.x) < 78 * state.actorScale && a.y > b.y - 104 * state.actorScale && a.y < b.y + 20 * state.actorScale;
+    return Math.abs(a.x - b.x) < 66 * state.actorScale && a.y > b.y - (site.kind === 'monster' ? 104 : 68) * state.actorScale && a.y < b.y + 14 * state.actorScale;
   })).forEach(drawProp);
   art.stats.fogEnabled = state.fog;
   if (art.fogTexture && state.fog) put(art.fogTexture, art.bounds, density * 4);
@@ -537,6 +537,28 @@ function drawTerrainLayer(art, parent) {
 function sampleLiveSites() {
   const towns = currentPixelArt.props.filter(prop => prop.kind.startsWith('ruin'));
   const result = towns.map((prop, i) => ({ ...prop, kind: i === 1 ? 'neutral' : 'player' }));
+  // Fill missing biome examples with small independent villages. These are
+  // illustrative fixtures; only the original sample towns own inter-town roads.
+  if (state.siteArt === 'atlas') for (const biome of ['plains', 'forest', 'islands', 'swamp', 'mountains']) {
+    if (result.some(s => map.regions.find(r => r.id === s.regionId)?.biome === biome)) continue;
+    const candidates = [];
+    for (const region of map.regions.filter(r => r.biome === biome)) {
+      const xs = region.outline.map(p => p.x), ys = region.outline.map(p => p.y);
+      for (let y = Math.min(...ys); y < Math.max(...ys); y += .025) for (let x = Math.min(...xs); x < Math.max(...xs); x += .012) {
+        const p = { x, y }, scale = state.actorScale;
+        const fits = [-1, -.5, 0, .5, 1].every(dx => [-80, -60, -40, -20, 12].every(dy => {
+          const q = { x: x + dx * 58 * scale / mapRect.width, y: y + dy * scale / mapRect.height };
+          const px = Math.floor((q.x - currentPixelArt.bounds.minX) * mapRect.width / 2);
+          const py = Math.floor((q.y - currentPixelArt.bounds.minY) * mapRect.height / 2);
+          return insidePolygon(q, region.outline) && px >= 0 && py >= 0 && px < currentPixelArt.stats.width && py < currentPixelArt.stats.height
+            && !currentPixelArt.waterIndices[py * currentPixelArt.stats.width + px];
+        }));
+        if (fits) candidates.push({ point: p, regionId: region.id, distance: Math.hypot((x - region.centre.x) * mapRect.width, (y - region.centre.y) * mapRect.height) });
+      }
+    }
+    candidates.sort((a, b) => a.distance - b.distance);
+    if (candidates.length) result.push({ ...candidates[0], kind: 'neutral' });
+  }
   const candidates = map.regions.filter(region => region.biome !== 'islands'
     && !towns.some(town => town.regionId === region.id));
   for (const region of candidates.filter(r => r.biome === 'swamp' || r.biome === 'mountains').concat(candidates)) {
@@ -602,13 +624,16 @@ function drawAtlasSites() {
       return !currentPixelArt.waterIndices[py * currentPixelArt.stats.width + px] && insidePolygon(q, map.regions.find(r => r.id === site.regionId).outline);
     };
     const roads = currentPixelArt.roadPaths.flat().map(q => { const a = point(q); return [a.x - p.x, a.y - p.y]; });
-    const ground = settlementGround(site, biome, map.seed, state.actorScale, dry, roads); group.addChild(ground);
+    const biomeArt = site.kind !== 'monster' ? landmarkArt.biomes[biome] : null;
+    const ground = settlementGround(site, biome, map.seed, state.actorScale, dry, roads, !!biomeArt); group.addChild(ground);
+    const outskirts = biomeArt ? settlementOutskirts(ground, biomeArt, state.actorScale, dry, roads, zoomArt) : 0;
+    const textures = biomeArt ? [biomeArt[site.kind], biomeArt[site.kind], biomeArt[site.kind]] : landmarkArt[site.kind];
     // All versions share one lower-centre ground anchor and world footprint.
-    const meshes = landmarkArt[site.kind].map((texture, index) => {
+    const meshes = textures.map((texture, index) => {
       const node = zoomArt(texture), fit = Math.min(width / texture.width, 98 * state.actorScale / texture.height);
       node.scale.set(fit);
       if (index === 1) {
-        const source = landmarkArt[site.kind][0], scale = Math.min(width / source.width, 98 * state.actorScale / source.height);
+        const source = textures[0], scale = Math.min(width / source.width, 98 * state.actorScale / source.height);
         node.scale.set(source.width * scale / texture.width, source.height * scale / texture.height);
       }
       node.position.set(-node.width / 2, 8 - node.height); group.addChild(node); return node;
@@ -616,7 +641,7 @@ function drawAtlasSites() {
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 22, 18, colour,
       { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
     const badge = new PIXI.Graphics(); group.addChild(badge);
-    landmarkNodes.push({ site, meshes, label, ground, badge, width }); worldLayer.addChild(group);
+    landmarkNodes.push({ site, meshes, label, ground, badge, width, textures, biome, outskirts, biomeArt: !!biomeArt }); worldLayer.addChild(group);
   }
 }
 
@@ -635,20 +660,20 @@ function updateZoomPresentation() {
     if (state.detailMode !== 'auto') { close = state.detailMode === 'close' ? 1 : 0; overview = state.detailMode === 'overview' ? 1 : 0; }
     const weights = [close, (1 - close) * (1 - overview), overview];
     item.meshes.forEach((node, i) => {
-      node.alpha = weights[i]; node.visible = weights[i] > .001;
-      if (i === 2) {
+      node.alpha = item.biomeArt ? (i === 0 ? 1 : 0) : weights[i]; node.visible = node.alpha > .001;
+      if (i === 2 && !item.biomeArt) {
         const screenWidth = Math.max(18, Math.min(24, projected * .65));
         const width = screenWidth / screenScale;
-        node.scale.set(width / landmarkArt[item.site.kind][2].width);
+        node.scale.set(width / item.textures[2].width);
         node.position.set(-width / 2, 8 - node.height);
       }
     });
     const dominant = weights.indexOf(Math.max(...weights)); tiers[['close', 'regional', 'overview'][dominant]]++;
-    item.ground.alpha = 1 - overview; item.label.alpha = smoothRange(30, 42, projected);
-    item.label.scale.set(Math.max(1, 8 / (18 * screenScale)));
-    item.badge.clear(); item.badge.alpha = overview;
+    item.ground.alpha = item.biomeArt ? 1 : 1 - overview; item.label.alpha = smoothRange(30, 42, projected);
+    item.label.scale.set(Math.max(8 / (18 * screenScale), Math.min(1, 14 / (18 * screenScale))));
+    item.badge.clear(); item.badge.alpha = item.biomeArt ? 1 - close : overview;
     const colour = item.site.kind === 'player' ? 0xe4c271 : item.site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
-    const width = item.meshes[2].width;
+    const width = item.biomeArt ? 20 / screenScale : item.meshes[2].width;
     item.badge.lineStyle(1 / screenScale, colour, .8).moveTo(-width * .3, 10).lineTo(width * .3, 10);
   }
   const pose = camera.snapshot(); let visibleMeshes = 0;
@@ -674,6 +699,7 @@ function updateZoomPresentation() {
     for (const path of currentPixelArt.roadPaths) { trace(path, 1.8, 0x3e342a, .7); trace(path, .9, 0xd7be8c, .9); }
   }
   Object.assign(currentPixelArt.stats, { landmarkLod: tiers, zoomFiltering: state.smoothZoom ? 'Prefiltered colour levels + sharp pixel enlargement' : 'Nearest pixel enlargement',
+    settlementArt: landmarkNodes.filter(n => n.biomeArt).map(n => ({ biome: n.biome, kind: n.site.kind, regionId: n.site.regionId, outskirts: n.outskirts, width: n.width })),
     detailMode: state.detailMode, closeTerrainWeight: +near.toFixed(3), screenZoom: +screenScale.toFixed(3), zoomMeshes: zoomNodes.length, visibleMeshes, ...zoomArtStats() });
 }
 

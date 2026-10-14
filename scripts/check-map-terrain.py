@@ -50,6 +50,12 @@ relief = json.loads((folder / 'relief-v1.json').read_text())
 assert len(relief['frames']) == 130
 assert {r['kind'] for r in relief['frames'] if r['cutRuns']} == {'contact-7-2', 'contact-8-2'}, 'Replacement biome art must have complete extractable edges'
 assert all(r['rect'][2] <= 118 and r['rect'][3] <= 118 for r in relief['frames'])
+settlements = json.loads((folder / 'settlements-v1.json').read_text())['frames']
+assert len(settlements) == 20 and all(not f['cutRuns'] for f in settlements)
+for biome in biomes:
+    assert {f['role'] for f in settlements if f['biome'] == biome} == {'player', 'neutral', 'productive', 'approach'}
+assert all(f['rect'][2] <= 128 and f['rect'][3] <= 128 for f in settlements)
+
 total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix in ['.webp', '.json'])
 assert total < 3 * 1048576, 'Imported art exceeded the prototype runtime budget'
 print(f'Map terrain: 635 cases across five biomes, exact ground/contact/bank pixel joins, 130 relief frames; {total / 1048576:.2f} MiB.')

@@ -145,5 +145,15 @@ export async function prepareLandmarkLods() {
       return texture;
     });
   }
+  const settlements = await (await fetch(new URL('./assets/runtime/settlements-v1.json', import.meta.url))).json();
+  const sheet = await PIXI.Assets.load(new URL('./assets/runtime/settlements-v1.webp', import.meta.url).href);
+  result.biomes = {};
+  for (const frame of settlements.frames) {
+    const [x, y, w, h] = frame.rect;
+    const texture = new PIXI.Texture(sheet.baseTexture, new PIXI.Rectangle(x, y, w, h));
+    const biome = result.biomes[frame.biome] ??= {};
+    // The same artwork and footprint at every zoom: filtering removes detail without moving buildings.
+    biome[frame.role] = texture;
+  }
   return result;
 }

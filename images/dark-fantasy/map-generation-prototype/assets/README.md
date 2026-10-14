@@ -1,5 +1,18 @@
 # Generated terrain engraving study
 
+## Biome settlements
+
+Built-in imagegen produced `masters/settlement-town-v1.png` (ten player/neutral
+towns) and `masters/settlement-outskirts-v1.png` (ten surroundings). Four crowded
+swamp/mountain surroundings are replaced by `masters/settlement-outskirts-v2.png`.
+Exact prompts: [settlement-prompts.json](masters/settlement-prompts.json) and
+[replacement prompt](masters/settlement-outskirts-v2-prompt.json).
+All original masters are retained; only the 20 selected pieces ship in the
+`runtime/settlements-v1.webp` atlas and JSON manifest. Import widths are 128px for
+towns and 80px for outskirts. Colours and alpha are preserved; faint gutter haze
+is discarded. The five biome rows each contain player, neutral, productive and
+approach roles. Total runtime art including terrain is about 2.30 MiB.
+
 ## Custom boundary art
 
 New built-in imagegen sources are `masters/composable-ridge-border-v1.png`

@@ -1,5 +1,31 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Distant settlements and biome outskirts
+
+Landmarks default to 75% (87 world units wide). Ten new town paintings provide
+player settlements and neutral markets for all five biomes, using smaller roofs,
+lanes and low walls within the footprint. Ten separate productive/approach pieces
+add fields, woodland yards, island quays, peat boardwalks and mountain terraces.
+Outskirts admit whole alpha footprints on dry ground within the owning region;
+they never cut a building in half at a shore. Source material colours are retained.
+Town silhouettes and their outskirts stay fixed through zoom: the renderer
+prefilters the same painting rather than swapping building arrangements.
+Small gold/teal identification marks remain visible at overview, with capped labels.
+
+The original road-connected sample towns remain. Additional neutral village
+fixtures fill missing biome examples where a dry footprint fits, including islands;
+these do not invent inter-town roads or gameplay connectivity. Review seed 1878
+at Fit and close zoom and 1869 with both reflections. All five biome variants and
+outskirts counts are exposed under `mapWorkbench.pixelRendering.settlementArt`.
+
+Built-in imagegen masters and exact prompts are in `assets/masters/settlement-*`.
+The offline importer packs 20 pieces into `assets/runtime/settlements-v1.webp`,
+with towns capped at 128px and surroundings at 80px wide. Four crowded outskirts
+cells were replaced by the v2 sheet; the importer rejects clipped silhouettes.
+Total runtime art is about 2.30 MiB. Run `npm run build:map-art`,
+`npm run check:map-art`, and the zoom persistence check below.
+Simulation state, RNG, schemas, authoritative replay and the live game are untouched.
+
 ### Custom ridge boundaries, bridge spans and peat banks
 
 The current pass adds 12 directional ridge-boundary pieces, eight compact bridge

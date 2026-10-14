@@ -230,9 +230,35 @@ def import_relief():
     (OUT / 'landmarks-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
 
 
+def import_settlements():
+    images, records = [], []
+    for sheet, roles, width, biomes, rows in [('town-v1', ['player', 'neutral'], 128, BIOMES, 5),
+                                ('outskirts-v1', ['productive', 'approach'], 80, BIOMES[:3], 5),
+                                ('outskirts-v2', ['productive', 'approach'], 80, BIOMES[3:], 2)]:
+        source = Image.open(MASTER / f'settlement-{sheet}.png').convert('RGBA')
+        payload = json.dumps([source.width, source.height, 2, rows]).encode() + b'\n' + source.tobytes()
+        probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
+        for n, cell in enumerate(json.loads(probe.stdout)):
+            if n // 2 >= len(biomes): continue
+            if cell['cutRuns']: raise ValueError(f'Clipped settlement asset {sheet}/{n}: {cell["cutRuns"]}')
+            cropped = source.crop((cell['left'], cell['top'], cell['right'], cell['bottom']))
+            alpha = np.array(cropped)[..., 3]
+            ys, xs = np.nonzero(alpha >= 95)
+            cropped = cropped.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
+            height = round(width * cropped.height / cropped.width)
+            image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
+            # Preserve painted material colours and soft contact edges; remove only faint gutter haze.
+            image[..., 3] = np.where(image[..., 3] < 45, 0, image[..., 3])
+            images.append(image)
+            records.append({'biome': biomes[n // 2], 'role': roles[n % 2], 'cutRuns': cell['cutRuns']})
+    frames = packed(images, records, 'settlements-v1.webp', 4, (136, 136))
+    (OUT / 'settlements-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
+
+
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
     import_surfaces()
     import_relief()
+    import_settlements()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
     print(f'Map art import: 635 terrain cases, 40 bank profiles, 130 relief frames; runtime files {total / 1048576:.2f} MiB')
